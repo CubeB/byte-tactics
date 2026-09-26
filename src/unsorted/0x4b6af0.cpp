@@ -1,4 +1,4 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
 // FUNCTION: 0x4b6af0
 int __stdcall FUN_004b6af0(int param_1, int param_2)
@@ -6,16 +6,17 @@ int __stdcall FUN_004b6af0(int param_1, int param_2)
     int ecx = 0;
     int edx = 0;
 
-    while (true) {
-        if (param_2 == edx) break;
-
+    while (edx != param_2) {
         unsigned char al = *(unsigned char*)(ecx + param_1);
-        if (al != 0x00 && al != 0x0a) {
+        if (al == 0) {
+            edx++;
             ecx++;
-            continue;
+        } else if (al == 0x0a) {
+            edx++;
+            ecx++;
+        } else {
+            ecx++;
         }
-        edx++;
-        ecx++;
     }
 
     return ecx + param_1;

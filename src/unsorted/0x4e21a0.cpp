@@ -1,4 +1,4 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
 struct Class_004e21a0 {
     double field_0;
@@ -11,9 +11,10 @@ struct Class_004e21a0 {
 // FUNCTION: 0x4e21a0
 void Class_004e21a0::FUN_004e21a0(double param_1)
 {
-    if (*(unsigned char*)((char*)this + 0x48) != 0) {
+    if (field_48 != 0) {
         field_0 -= param_1;
-    } else {
-        field_0 = param_1 + *(double*)this;
+        return;
     }
+
+    field_0 = param_1 + field_0;
 }

@@ -1,7 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
+class Class_00435100 {
+public:
+    int FUN_00435100();
+};
+
 // FUNCTION: 0x435100
-int __fastcall FUN_00435100(int* ecx)
+int Class_00435100::FUN_00435100()
 {
-    return *ecx;
+    return *(int*)this;
 }

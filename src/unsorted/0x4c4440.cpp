@@ -1,7 +1,12 @@
 // Decompiled by Haiku. Names are provisional.
 
+class Class_004c4440 {
+public:
+    int FUN_004c4440();
+};
+
 // FUNCTION: 0x4c4440
-int __fastcall FUN_004c4440(int param)
+int Class_004c4440::FUN_004c4440()
 {
-    return *(int*)param;
+    return *(int*)this;
 }

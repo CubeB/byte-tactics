@@ -12,6 +12,8 @@ struct Class_0044f010 {
     Class_0044f010(int param_1);
 };
 
+extern void* DAT_004fd458[];  // vtable
+
 // FUNCTION: 0x44f010
 Class_0044f010::Class_0044f010(int param_1)
 {
@@ -20,7 +22,7 @@ Class_0044f010::Class_0044f010(int param_1)
     dl = dl & 0xfc;
     dl = dl | 8;
     ((int*)this)[1] = 0;          // +0x4
-    ((int*)this)[0] = 0x4fd458;   // vtable
+    ((void**)this)[0] = DAT_004fd458; // vtable
     ((int*)this)[0x17] = 0;       // +0x5c
     *(unsigned char*)(((char*)this) + 0x64) = dl;
     ((int*)this)[0x18] = 0;       // +0x60

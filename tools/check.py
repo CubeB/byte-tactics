@@ -267,6 +267,18 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
     ours_ins = disasm(data, address)
     reloc_ins = {i.address for i in ours_ins for ref in refs
                  if i.address - address <= ref.offset < i.address - address + i.size}
+
+    # An address into the original image written as a plain number matches the
+    # bytes but not the meaning: the linker could never move it. Require a symbol.
+    if bytes_match:
+        for i in ours_ins:
+            if i.address in reloc_ins or i.mnemonic.startswith("j") or i.mnemonic == "call":
+                continue
+            for m in HEX.finditer(i.op_str):
+                v = int(m.group(), 16)
+                if 0x401000 <= v < orig.end:
+                    refs.append(Ref(i.address - address, f"{v:#x}", v, "mismatch",
+                                    "hard-coded address: declare the global/vtable/function and refer to it by name"))
     lo, hi = address, address + size
     ours_txt = [normalise(i, lo, hi, lambda v, i=i: i.address in reloc_ins) for i in ours_ins]
     theirs_txt = [normalise(i, lo, hi, lambda v: orig.base <= v < orig.end) for i in disasm(theirs, address)]

@@ -176,3 +176,22 @@ effect, the missing piece is usually a helper that was inlined:
   `int i` for-loop that MSVC turned into a pointer loop.
 - For `imul reg, [mem]`, the register operand is the left side of `*` in the
   source.
+- **`ret N` with no matching stack reads**: the function has unused trailing
+  parameters. Declare them (`int unused`) instead of fighting the cleanup.
+- **Return types**: `mov al, cl` at the end means a `bool`/`char` return;
+  `mov eax, ecx` means `int`.
+- **Bit toggles**: a `not`/`xor`/`and`/`xor` sequence on one bit is
+  `f->flag = !f->flag;` on a 1-bit bitfield. Place the bitfield so the bit
+  lands where the mask says (mask 0x8 is bit 3).
+- **x87 sums in the wrong order**: write the sum as sequential accumulation
+  (`r = a*d; r = r + b*e; r = r + c*f;`) so the compiler cannot reassociate it.
+- **MSVC STL templates**: a `__thiscall` that loops from a pointer argument to
+  `[ecx+8]` and then stores into `[ecx+8]` is probably `std::vector<T>::erase`
+  (members `_First` +4, `_Last` +8, `_End` +0xc). To make the compiler emit the
+  template out of line, take its address in a global
+  (`EraseFn g = &std::vector<T>::erase;`) and put the mangled symbol after the
+  address in the `// FUNCTION:` line. See `src/unsorted/0x40cfb0.cpp`.
+- **Addresses are always symbols**: never write an address as a number (a
+  vtable, string, global or function). Declare it (`extern void* DAT_004fd458[];`,
+  a string literal, `extern Class_x DAT_00528a78;`) and use the name. The
+  checker rejects hard-coded addresses.

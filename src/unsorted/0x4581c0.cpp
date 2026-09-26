@@ -1,0 +1,25 @@
+// Decompiled by Sonnet. Names are provisional.
+
+extern "C" void __cdecl FUN_004d85a0(void* p);
+
+class Class_00437a20 {
+public:
+    void FUN_00437a20();
+};
+
+class Class_004581c0 {
+public:
+    char unknown_0[0x10];
+    void* ptr;              // +0x10
+
+    void FUN_004581c0();
+};
+
+// FUNCTION: 0x4581c0
+void Class_004581c0::FUN_004581c0()
+{
+    if (ptr) {
+        FUN_004d85a0(ptr);
+    }
+    ((Class_00437a20*)this)->FUN_00437a20();
+}

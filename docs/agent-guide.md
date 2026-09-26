@@ -71,10 +71,10 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
   class `Class_<8 hex digits of your function's address>`, e.g.
   `Class_00401234::FUN_00401234`.
 - A callee called as a method (ecx set to an object just before the call)
-  that `ctx.py` shows without a name: declare it as a method of the class you
-  use for that object, named `FUN_<callee address>`. If you have no class for
-  that object either, use `Class_<callee address>`. Once a callee has a name
-  in `data/symbols.csv`, `ctx.py` shows it and you must use it.
+  that `ctx.py` shows without a name is always `Class_<callee address>::FUN_<callee address>`,
+  the same name its own author will give it. If your object has a different
+  class, cast: `((Class_00437a20*)obj)->FUN_00437a20()`. Once a callee has a
+  name in `data/symbols.csv`, `ctx.py` shows it and you must use it.
 - A function that is only `ret` or `ret N` is an empty function: an empty body
   with N/4 dword-sized parameters (as a `__thiscall` method if unsure).
 - Library calls (`sprintf`, `memset`, `strcpy`, `malloc`, ...) are the normal C

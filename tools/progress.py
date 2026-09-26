@@ -99,7 +99,8 @@ def main() -> None:
             if not base_name(res.symbol).startswith("$"):  # compiler-generated statics like _$E1
                 symbols.setdefault(base_name(res.symbol), address)
             for ref in res.refs:
-                if ref.status == "new" and not ref.symbol.startswith(NOT_LEARNED):
+                if (ref.status == "new" and not ref.symbol.startswith(NOT_LEARNED)
+                        and not base_name(ref.symbol).startswith("$")):
                     symbols.setdefault(base_name(ref.symbol), ref.target)
 
     PROGRESS.parent.mkdir(exist_ok=True)

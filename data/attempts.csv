@@ -297,16 +297,16 @@ address,size,model,batch,result,similarity,runs,notes
 0x473530,35,sonnet,S5,matched,100.0,,escalated from Haiku
 0x417090,37,sonnet,S5,matched,100.0,,escalated from Haiku
 0x4b6e80,39,sonnet,S5,matched,100.0,,escalated from Haiku
-0x4d6ba0,51,sonnet,S6,assigned,,,escalated from Haiku
-0x48fb30,43,sonnet,S6,assigned,,,escalated from Haiku
-0x472fd0,55,sonnet,S6,assigned,,,escalated from Haiku
-0x44c7a0,59,sonnet,S6,assigned,,,escalated from Haiku
-0x4d1b00,61,sonnet,S6,assigned,,,escalated from Haiku
-0x479560,41,sonnet,S6,assigned,,,
-0x406c10,46,sonnet,S6,assigned,,,
-0x40c9f0,50,sonnet,S6,assigned,,,
-0x4b96a0,54,sonnet,S6,assigned,,,
-0x4404c0,60,sonnet,S6,assigned,,,
+0x4d6ba0,51,sonnet,S6,matched,100.0,,escalated from Haiku
+0x48fb30,43,sonnet,S6,matched,100.0,,escalated from Haiku
+0x472fd0,55,sonnet,S6,partial,90.0,,escalated from Haiku
+0x44c7a0,59,sonnet,S6,partial,29.6,,escalated from Haiku
+0x4d1b00,61,sonnet,S6,partial,68.2,,escalated from Haiku
+0x479560,41,sonnet,S6,matched,100.0,,
+0x406c10,46,sonnet,S6,matched,100.0,,
+0x40c9f0,50,sonnet,S6,partial,37.2,,
+0x4b96a0,54,sonnet,S6,partial,79.2,,
+0x4404c0,60,sonnet,S6,matched,100.0,,
 0x40cfb0,66,opus,O3,matched,100.0,,
 0x47e570,75,opus,O3,matched,100.0,,
 0x4d0a10,86,opus,O3,matched,100.0,,
@@ -353,11 +353,11 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c13f0,12,haiku,H11,matched,100.0,,
 0x4c1400,12,haiku,H11,matched,100.0,,
 0x4c1410,12,haiku,H11,matched,100.0,,
-0x438650,161,opus,O4,assigned,,,
-0x46df40,185,opus,O4,assigned,,,
-0x4c48c0,212,opus,O4,assigned,,,
-0x438070,260,opus,O4,assigned,,,
-0x47e750,307,opus,O4,assigned,,,
+0x438650,161,opus,O4,partial,43.7,,
+0x46df40,185,opus,O4,matched,100.0,,
+0x4c48c0,212,opus,O4,matched,100.0,,
+0x438070,260,opus,O4,partial,63.9,,
+0x47e750,307,opus,O4,matched,100.0,,
 0x428b60,66,opus,O5,matched,100.0,,
 0x4c7080,72,opus,O5,matched,100.0,,
 0x4e1a30,80,opus,O5,matched,100.0,,
@@ -434,18 +434,18 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b6af0,48,opus,O7,assigned,,,escalated from Sonnet
 0x4e21a0,29,opus,O7,assigned,,,escalated from Sonnet
 0x438480,32,opus,O7,assigned,,,escalated from Opus orchestrator
-0x42f910,65,opus,O8,assigned,,,
-0x43e060,74,opus,O8,assigned,,,
-0x495860,83,opus,O8,assigned,,,
-0x44f8a0,92,opus,O8,assigned,,,
-0x49f5a0,104,opus,O8,assigned,,,
-0x448bf0,119,opus,O8,assigned,,,
-0x40d670,132,opus,O8,assigned,,,
-0x451180,146,opus,O8,assigned,,,
-0x4b66a0,96,opus,O9,assigned,,,escalated from Sonnet
-0x479530,41,opus,O9,assigned,,,escalated from Sonnet
-0x4a0f30,44,opus,O9,assigned,,,escalated from Sonnet
-0x4afec0,60,opus,O9,assigned,,,escalated from Sonnet
+0x42f910,65,opus,O8,matched,100.0,,
+0x43e060,74,opus,O8,matched,100.0,,
+0x495860,83,opus,O8,matched,100.0,,
+0x44f8a0,92,opus,O8,matched,100.0,,
+0x49f5a0,104,opus,O8,matched,100.0,,
+0x448bf0,119,opus,O8,matched,100.0,,
+0x40d670,132,opus,O8,matched,100.0,,
+0x451180,146,opus,O8,partial,85.4,,
+0x4b66a0,96,opus,O9,matched,100.0,,escalated from Sonnet
+0x479530,41,opus,O9,matched,100.0,,escalated from Sonnet
+0x4a0f30,44,opus,O9,matched,100.0,,escalated from Sonnet
+0x4afec0,60,opus,O9,matched,100.0,,escalated from Sonnet
 0x403180,13,opus,O6,matched,100.0,,escalated from Haiku: stdcall callee taking a table address
 0x406bf0,13,opus,O6,matched,100.0,,escalated from Haiku: stdcall callee taking a table address
 0x415b20,13,opus,O6,matched,100.0,,escalated from Haiku: stdcall callee taking a table address

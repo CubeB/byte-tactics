@@ -118,7 +118,9 @@ def annotations(src: Path) -> list[tuple[int, str]]:
         m = ANNOTATION.match(line)
         if not m:
             continue
-        text = " ".join(lines[i + 1:i + 4])
+        # The definition follows, possibly after more comments or blank lines.
+        following = [l for l in lines[i + 1:i + 12] if l.strip() and not l.strip().startswith("//")]
+        text = " ".join(following[:3])
         op = re.search(r"([\w:]*?)operator\s*(new|delete|==|!=|<=|>=|\[\]|\(\)|=|<|>|\+|-|\*|/)\s*\(", text)
         sig = text.split("(", 1)[0]
         names = [op.group(1) + "operator" + op.group(2)] if op else re.findall(r"[A-Za-z_~][\w:~]*", sig)
@@ -325,6 +327,8 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
 
 def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
     name = base_name(sym_name)
+    if name.startswith("$"):  # compiler-generated, file-local (_$E1...): not in the global map
+        return Ref(off, sym_name, target, "new", "file-local")
     known = symbols.get(name)
     if known is not None:
         ok = known == target

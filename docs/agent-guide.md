@@ -223,3 +223,30 @@ effect, the missing piece is usually a helper that was inlined:
   loads a global pointer (`extern Class_x* DAT_...;`, call with `->`). The
   same goes for vtables and tables: storing the address itself needs an array
   declaration (`extern void* DAT_...[];`).
+- **Never add your own `if (n > 0)` guard around a loop**: MSVC rotates a plain
+  `for` loop into test-at-bottom form and adds that single guard itself; a
+  guard in the source makes the test appear twice.
+- **A pointer chain loaded after an index multiply** (`[edx + eax + disp]`,
+  with `obj->a->b` read after `i * size` is computed): wrap the chain in a
+  `static inline` getter and index its result, `GetEntries(obj)[i].field`.
+- **Embedded structs at odd offsets**: a struct embedded at an offset that is
+  not a multiple of 4 needs `#pragma pack(push, 2)` (or 1) on the outer struct.
+  A `mov eax, edx; cmp eax, K` right after a store means the source re-reads
+  the field it just assigned (typical inside an inline method on that struct).
+- **Structs returned by value**: a callee returning a struct has a hidden first
+  argument (the return buffer), so `ctx.py` shows one more argument dword than
+  it really has, and a function that returns a struct returns `eax` = that
+  pointer. Declare the real return type (`Vec3 __stdcall f(Obj*, int)`).
+- **Structs passed by value**: a plain struct is pushed dword by dword; a class
+  with a user-defined copy constructor is built in place
+  (`sub esp, 8; mov eax, esp; mov [eax], ...`).
+- **Callee types**: when a callee already has a name, look for its file in
+  `src/unsorted/` and copy its parameter types (for example a `char`
+  parameter), since they decide how arguments are prepared.
+- **Bit tests**: a single-bit test on a byte folds to `test byte ptr [m], mask`;
+  `shr reg, N; test al, 1` means a bitfield in a wider (`int`) field. Setting
+  a bit in a dword bitfield is `mov eax, [m]; or al, K; mov [m], eax`.
+- **`abs()`**: the `cdq; xor eax, edx; sub eax, edx` idiom is `abs()` from
+  `<stdlib.h>`; a hand-written `if (x < 0) x = -x;` compiles differently.
+- **Keep notes above the annotation**: put comments before the
+  `// FUNCTION:` line, not between it and the definition.

@@ -30,11 +30,11 @@ NOT_LEARNED = ("$", "??_C@", "__real@", "??_7", "??_G", "??_E")
 
 def compile_cached(src: Path, include_hash: str):
     key = hashlib.sha256(src.read_bytes() + include_hash.encode() + DEFAULT_FLAGS.encode()).hexdigest()[:16]
-    stamp = ROOT / "build/obj" / src.relative_to(ROOT / "src").with_suffix(".key")
+    stamp = ROOT / "build/progress" / src.relative_to(ROOT / "src").with_suffix(".key")
     obj = stamp.with_suffix(".obj")
     if stamp.exists() and stamp.read_text() == key and obj.exists():
         return obj, ""
-    obj, log = compile_source(src)
+    obj, log = compile_source(src, out_dir="progress")
     if obj:
         stamp.write_text(key)
     return obj, log

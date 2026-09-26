@@ -130,13 +130,17 @@ def winpath(p: Path) -> str:
     return "Z:" + str(p).replace("/", "\\")
 
 
-def compile_source(src: Path, flags: str = DEFAULT_FLAGS) -> tuple[Path | None, str]:
-    """Returns (object path, compiler output). Object path is None on failure."""
+def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") -> tuple[Path | None, str]:
+    """Returns (object path, compiler output). Object path is None on failure.
+
+    out_dir (under build/) keeps concurrent users, e.g. agents running check.py
+    while progress.py re-verifies everything, from clobbering each other's objects.
+    """
     bad = FORBIDDEN.search(src.read_text(errors="replace"))
     if bad:
         return None, f"{src}: '{bad.group(0)}' is not allowed; write the function in plain C++"
     rel = src.resolve().relative_to(ROOT / "src") if src.resolve().is_relative_to(ROOT / "src") else Path(src.name)
-    out = ROOT / "build" / "obj" / rel.with_suffix(".obj")
+    out = ROOT / "build" / out_dir / rel.with_suffix(".obj")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)
     cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), f"/I{winpath(ROOT / 'include')}",

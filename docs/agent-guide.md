@@ -83,7 +83,10 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
   `__cdecl`, or a `__thiscall` method with no stack arguments.
 - The FPO line gives the number of stack argument dwords.
 - `__thiscall` is only available for member functions: make it a method of a
-  class/struct. Free functions default to `__cdecl`; write `__stdcall`
+  class/struct. A function that only uses `ecx` (not `edx`) as an input
+  is a `__thiscall` method, not `__fastcall`: both compile the same, but
+  Cavedog wrote methods, and the name you choose is what callers will use.
+  Free functions default to `__cdecl`; write `__stdcall`
   explicitly when needed.
 
 ## Getting MSVC 5 to produce the same code
@@ -143,4 +146,9 @@ their whole budget.
 - **Division by a constant** compiles to a multiply by a "magic" number plus
   shifts. Write the plain division (`x / 48`); if registers or the shift
   sequence differ, the signedness of `x` is usually wrong (`int` adds a sign
-  fix-up, `unsigned` doesn't).
+  fix-up, `unsigned` doesn't). A guarded division such as "return 0 if the count is
+  zero, otherwise a difference divided by 48" matched only when written as one
+  ternary, `return n == 0 ? 0 : (b - a) / 48;`, not as an early `return 0`.
+- **Loop compares**: `jbe`/`jae` in a loop test means the counter is
+  `unsigned`; `sete dl; test dl, dl` means the result of a comparison was
+  stored in a `bool` local first.

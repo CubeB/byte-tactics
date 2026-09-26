@@ -1,14 +1,15 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
 struct Class_00475840 {
     int unknown_0;
     int field_4;
     int field_8;
+
+    int FUN_00475840();
 };
 
 // FUNCTION: 0x475840
-int __fastcall FUN_00475840(Class_00475840* param_1)
+int Class_00475840::FUN_00475840()
 {
-    if (param_1->field_4 == 0) return 0;
-    return (param_1->field_8 - param_1->field_4) / 48;
+    return field_4 == 0 ? 0 : (field_8 - field_4) / 48;
 }

@@ -299,3 +299,15 @@ Look for it instead of blaming the compiler:
 `tools/wcl /c /O2 /Ob2 /GX /MT /Fa<file>.asm <file>.cpp` compiles a scratch file
 and writes an assembly listing you can read directly; iterate that way, then
 confirm with one `check.py` run.
+- **Empty functions called with a format string** are debug-print stubs whose
+  body was compiled out: declare and define them variadic,
+  `void FUN_x(const char* fmt, ...)`.
+- **A function that "writes `*p = x`" but keeps `p` out of `eax` until the
+  end** returns `p` (`return p;`), like an assignment operator.
+- **Calls through a global function pointer** (`call [DAT_x]`, including
+  imported APIs such as `Sleep` or `GlobalAlloc`): declare the global with its
+  real type, `extern void (__stdcall* DAT_x)(DWORD);`, and call through it.
+  A table of them is an array of function pointers.
+- **A call through a vtable** (`mov eax, [ecx]; call [eax+N]`) is a C++
+  virtual call: declare a class with virtual methods (N/4 slots) and call the
+  method; a hand-cast function pointer moves `this` to the wrong register.

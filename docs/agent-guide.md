@@ -70,6 +70,11 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
 - If your function is a method and its class has no known name yet, call the
   class `Class_<8 hex digits of your function's address>`, e.g.
   `Class_00401234::FUN_00401234`.
+- A callee called as a method (ecx set to an object just before the call)
+  that `ctx.py` shows without a name: declare it as a method of the class you
+  use for that object, named `FUN_<callee address>`. If you have no class for
+  that object either, use `Class_<callee address>`. Once a callee has a name
+  in `data/symbols.csv`, `ctx.py` shows it and you must use it.
 - A function that is only `ret` or `ret N` is an empty function: an empty body
   with N/4 dword-sized parameters (as a `__thiscall` method if unsure).
 - Library calls (`sprintf`, `memset`, `strcpy`, `malloc`, ...) are the normal C
@@ -195,3 +200,17 @@ effect, the missing piece is usually a helper that was inlined:
   vtable, string, global or function). Declare it (`extern void* DAT_004fd458[];`,
   a string literal, `extern Class_x DAT_00528a78;`) and use the name. The
   checker rejects hard-coded addresses.
+- **`mov ecx, <global>; jmp <method>`**: a tail call of a method on a global
+  object. Declare the object (`extern Class_x DAT_00528a78;`) and write
+  `DAT_00528a78.FUN_004e1650();`. See `src/unsorted/0x4de0f0.cpp`.
+- **Locals in parameter slots**: MSVC 5 reuses the stack slot of a parameter
+  that is no longer needed for a local. When the code writes into a
+  parameter's slot (a buffer, an output value), declare an ordinary local and
+  the compiler puts it there itself.
+- **Keeping a narrow computation where it is**: if the original computes
+  `add cl, 0x3f; shl cl, 2` before a test and yours folds it into the branch,
+  compute it in separate statements on an `unsigned char` local
+  (`h = n + 0x3f; h <<= 2;`).
+- **Search loops ending in `or reg, -1` then `cmp reg, -1`**: an inlined
+  helper returning an index or -1. Write it as a `static inline` function with
+  an early `return i;`.

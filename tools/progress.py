@@ -104,11 +104,11 @@ def main() -> None:
 
     PROGRESS.parent.mkdir(exist_ok=True)
     with PROGRESS.open("w", newline="") as fh:
-        w = csv.DictWriter(fh, ["address", "size", "file", "symbol", "status", "similarity"])
+        w = csv.DictWriter(fh, ["address", "size", "file", "symbol", "status", "similarity"], lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     with SYMBOLS.open("w", newline="") as fh:
-        w = csv.writer(fh)
+        w = csv.writer(fh, lineterminator="\n")
         w.writerow(["address", "name"])
         for name, a in sorted(symbols.items(), key=lambda kv: (kv[1], kv[0])):
             w.writerow([f"{a:#x}", name])

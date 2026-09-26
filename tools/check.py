@@ -81,11 +81,19 @@ def base_name(sym: str) -> str:
     return sym
 
 
+OPERATOR_CODES = {"new": "2", "delete": "3", "=": "4", "==": "8", "!=": "9", "[]": "A",
+                  "()": "R", "<": "M", "<=": "N", ">": "O", ">=": "P", "+": "H", "-": "G",
+                  "*": "D", "/": "K"}
+
+
 def mangled_prefixes(qualname: str) -> list[str]:
     """Symbol prefixes a C++ definition of `qualname` could compile to."""
     parts = qualname.split("::")
     last, scopes = parts[-1], parts[:-1]
     scope = "".join(s + "@" for s in reversed(scopes))
+    if last.startswith("operator"):
+        code = OPERATOR_CODES.get(last[len("operator"):])
+        return [f"??{code}{scope}@"] if code else [qualname]
     if scopes and last == scopes[-1]:
         return [f"??0{last}@{''.join(s + '@' for s in reversed(scopes[:-1]))}@"]
     if last.startswith("~"):
@@ -110,8 +118,10 @@ def annotations(src: Path) -> list[tuple[int, str]]:
         m = ANNOTATION.match(line)
         if not m:
             continue
-        sig = " ".join(lines[i + 1:i + 4]).split("(", 1)[0]
-        names = re.findall(r"[A-Za-z_~][\w:~]*", sig)
+        text = " ".join(lines[i + 1:i + 4])
+        op = re.search(r"([\w:]*?)operator\s*(new|delete|==|!=|<=|>=|\[\]|\(\)|=|<|>|\+|-|\*|/)\s*\(", text)
+        sig = text.split("(", 1)[0]
+        names = [op.group(1) + "operator" + op.group(2)] if op else re.findall(r"[A-Za-z_~][\w:~]*", sig)
         # An explicit symbol after the address (for compiler-generated functions
         # such as dynamic initialisers, _$E1) is matched exactly, marked with "=".
         name = "=" + m.group(2) if m.group(2) else (names[-1] if names else "")

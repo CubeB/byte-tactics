@@ -129,7 +129,7 @@ def main() -> None:
 
     OUT.parent.mkdir(exist_ok=True)
     with OUT.open("w", newline="") as fh:
-        w = csv.DictWriter(fh, FIELDS, extrasaction="ignore")
+        w = csv.DictWriter(fh, FIELDS, extrasaction="ignore", lineterminator="\n")
         w.writeheader()
         for f in everything:
             w.writerow({**f, "address": f"{f['address']:#x}"})

@@ -21,8 +21,8 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | Size (bytes) | Haiku | Sonnet |
 | --- | ---: | ---: |
 | 1-16 | 149/150 (99%) |  |
-| 17-40 | 24/27 (89%) | 5/5 (100%) |
-| 41-64 | 0/3 (0%) | 6/7 (86%) |
+| 17-40 | 31/42 (74%) | 5/5 (100%) |
+| 41-64 | 3/11 (27%) | 6/7 (86%) |
 | 65-160 | 1/6 (17%) | 2/6 (33%) |
 
 ### Cost per batch
@@ -40,6 +40,8 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | H6 | haiku | 12 | 12 | 67,840 | 5,653 | 6 |
 | H7 | haiku | 40 | 40 | 57,819 | 1,445 | 4 |
 | S3 | sonnet | 10 | 8 | 133,720 | 16,715 | 15 |
+| H8 | haiku | 15 | 7 | 98,163 | 14,023 | 10 |
+| H9 | haiku | 8 | 3 | 95,670 | 31,890 | 8 |
 
 ### Escalations
 

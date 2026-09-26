@@ -13,7 +13,9 @@ Writes:
 import argparse
 import csv
 import hashlib
+import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from check import (DEFAULT_FLAGS, ROOT, SYMBOLS, Original, annotations, base_name, compare,
@@ -62,6 +64,11 @@ def main() -> None:
             work.append((address, qualname, src))
     work.sort()
 
+    # Compiling is the slow part (one Wine process per file), so do it in parallel.
+    sources = sorted({src for _, _, src in work})
+    with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:
+        compiled = dict(zip(sources, pool.map(lambda s: compile_cached(s, include_hash), sources)))
+
     seen: dict[int, Path] = {}
     objects: dict[Path, object] = {}
     rows = []
@@ -78,7 +85,7 @@ def main() -> None:
             row["status"] = "not a game function start"
             continue
         if src not in objects:
-            obj_path, log = compile_cached(src, include_hash)
+            obj_path, log = compiled[src]
             objects[src] = parse_object(obj_path.read_bytes(), obj_path.name) if obj_path else log
         obj = objects[src]
         if isinstance(obj, str):

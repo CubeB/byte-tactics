@@ -211,29 +211,29 @@ address,size,model,batch,result,similarity,runs,notes
 0x41d8b0,6,haiku,H7,matched,100.0,,
 0x428c00,6,haiku,H7,matched,100.0,,
 0x428c10,6,haiku,H7,matched,100.0,,
-0x437b30,17,haiku,H8,assigned,,,
-0x44ce20,18,haiku,H8,assigned,,,
-0x4335c0,19,haiku,H8,assigned,,,
-0x4b6b60,19,haiku,H8,assigned,,,
-0x49fb10,21,haiku,H8,assigned,,,
-0x4caa20,22,haiku,H8,assigned,,,
-0x44cf00,24,haiku,H8,assigned,,,
-0x48ec00,26,haiku,H8,assigned,,,
-0x470eb0,28,haiku,H8,assigned,,,
-0x40cc80,30,haiku,H8,assigned,,,
-0x43a940,33,haiku,H8,assigned,,,
-0x416e30,34,haiku,H8,assigned,,,
-0x473530,35,haiku,H8,assigned,,,
-0x417090,37,haiku,H8,assigned,,,
-0x4b6e80,39,haiku,H8,assigned,,,
-0x44f010,41,haiku,H9,assigned,,,
-0x48fb30,43,haiku,H9,assigned,,,
-0x470f00,46,haiku,H9,assigned,,,
-0x45ae80,49,haiku,H9,assigned,,,
-0x4d6ba0,51,haiku,H9,assigned,,,
-0x472fd0,55,haiku,H9,assigned,,,
-0x44c7a0,59,haiku,H9,assigned,,,
-0x4d1b00,61,haiku,H9,assigned,,,
+0x437b30,17,haiku,H8,matched,100.0,,
+0x44ce20,18,haiku,H8,matched,100.0,,
+0x4335c0,19,haiku,H8,matched,100.0,,
+0x4b6b60,19,haiku,H8,matched,100.0,,
+0x49fb10,21,haiku,H8,matched,100.0,,
+0x4caa20,22,haiku,H8,matched,100.0,,
+0x44cf00,24,haiku,H8,partial,42.1,,
+0x48ec00,26,haiku,H8,matched,100.0,,
+0x470eb0,28,haiku,H8,partial,52.2,,
+0x40cc80,30,haiku,H8,partial,76.9,,
+0x43a940,33,haiku,H8,partial,83.3,,
+0x416e30,34,haiku,H8,partial,0.0,,
+0x473530,35,haiku,H8,partial,86.7,,
+0x417090,37,haiku,H8,partial,0.0,,
+0x4b6e80,39,haiku,H8,partial,69.2,,
+0x44f010,41,haiku,H9,matched,100.0,,
+0x48fb30,43,haiku,H9,partial,78.6,,
+0x470f00,46,haiku,H9,matched,100.0,,
+0x45ae80,49,haiku,H9,matched,100.0,,
+0x4d6ba0,51,haiku,H9,partial,86.4,,
+0x472fd0,55,haiku,H9,partial,62.2,,
+0x44c7a0,59,haiku,H9,partial,18.2,,
+0x4d1b00,61,haiku,H9,partial,36.4,,
 0x41ea30,97,opus,O2,assigned,,,escalated from Sonnet
 0x44dc60,75,opus,O2,assigned,,,escalated from Sonnet
 0x4c9290,128,opus,O2,assigned,,,escalated from Sonnet
@@ -289,3 +289,21 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b66a0,96,sonnet,S4,assigned,,,escalated from Haiku
 0x45c6d0,110,sonnet,S4,assigned,,,escalated from Haiku
 0x4b6370,128,sonnet,S4,assigned,,,escalated from Haiku
+0x470eb0,28,sonnet,S5,assigned,,,escalated from Haiku
+0x44cf00,24,sonnet,S5,assigned,,,escalated from Haiku
+0x40cc80,30,sonnet,S5,assigned,,,escalated from Haiku
+0x43a940,33,sonnet,S5,assigned,,,escalated from Haiku
+0x416e30,34,sonnet,S5,assigned,,,escalated from Haiku
+0x473530,35,sonnet,S5,assigned,,,escalated from Haiku
+0x417090,37,sonnet,S5,assigned,,,escalated from Haiku
+0x4b6e80,39,sonnet,S5,assigned,,,escalated from Haiku
+0x4d6ba0,51,sonnet,S6,assigned,,,escalated from Haiku
+0x48fb30,43,sonnet,S6,assigned,,,escalated from Haiku
+0x472fd0,55,sonnet,S6,assigned,,,escalated from Haiku
+0x44c7a0,59,sonnet,S6,assigned,,,escalated from Haiku
+0x4d1b00,61,sonnet,S6,assigned,,,escalated from Haiku
+0x479560,41,sonnet,S6,assigned,,,
+0x406c10,46,sonnet,S6,assigned,,,
+0x40c9f0,50,sonnet,S6,assigned,,,
+0x4b96a0,54,sonnet,S6,assigned,,,
+0x4404c0,60,sonnet,S6,assigned,,,

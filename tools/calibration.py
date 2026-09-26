@@ -11,6 +11,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DOC = ROOT / "docs/agents.md"
 START, END = "<!-- calibration:start -->", "<!-- calibration:end -->"
+# Relative price per token (input and output scale together): Haiku 4.5 $1/$5,
+# Sonnet 5 $2/$10, Opus 5.5 $4/$20 per million tokens.
+PRICE = {"haiku": 1, "sonnet": 2, "opus": 4}
 BANDS = [(1, 16), (17, 40), (41, 64), (65, 160), (161, 400), (401, 1 << 30)]
 
 
@@ -46,12 +49,13 @@ def main() -> None:
         if any(cells):
             lines.append(f"| {b} | " + " | ".join(cells) + " |")
 
-    cost = ["| Batch | Model | Functions | Matched | Tokens | Tokens per match | Minutes |",
-            "| --- | --- | ---: | ---: | ---: | ---: | ---: |"]
+    cost = ["| Batch | Model | Functions | Matched | Tokens | Tokens per match | Cost units per match | Minutes |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for b in batches:
         n, ok, tok = int(b["functions"]), int(b["matched"]), int(b["tokens"])
         per = f"{tok // ok:,}" if ok else "n/a"
-        cost.append(f"| {b['batch']} | {b['model']} | {n} | {ok} | {tok:,} | {per} | {int(b['seconds']) / 60:.0f} |")
+        units = f"{tok * PRICE.get(b['model'], 1) / ok / 1000:.0f}" if ok else "n/a"
+        cost.append(f"| {b['batch']} | {b['model']} | {n} | {ok} | {tok:,} | {per} | {units} | {int(b['seconds']) / 60:.0f} |")
 
     esc = defaultdict(lambda: [0, 0])
     for r in attempts:
@@ -62,7 +66,10 @@ def main() -> None:
     esc_lines = [f"- {m.capitalize()} matched {ok} of {n} functions a cheaper model had failed." for m, (n, ok) in esc.items()]
 
     section = "\n".join([START, "### First-attempt match rate by function size", "", *lines, "",
-                         "### Cost per batch", "", *cost, "",
+                         "### Cost per batch", "",
+                         "Cost units: thousands of tokens weighted by price relative to Haiku "
+                         "(Sonnet 5 costs 2x per token, Opus 5.5 4x). Token counts are the "
+                         "harness's totals per agent.", "", *cost, "",
                          "### Escalations", "", *(esc_lines or ["- none yet"]), END])
     text = DOC.read_text()
     if START in text:

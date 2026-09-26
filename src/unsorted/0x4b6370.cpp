@@ -1,65 +1,35 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
+#include <windows.h>
 
-extern int DAT_0051fbd0;
-extern int DAT_0051fc84;
+struct GameCtx_4b6370 {
+    char unknown_0[0xe8];
+    unsigned int f_e8;
+};
+
+extern GameCtx_4b6370* DAT_0051fbd0;
+extern unsigned int DAT_0051fc84;
 extern int DAT_0051fc80;
 extern int DAT_0051fbe0;
-extern int (*DAT_004fc0dc)();
+
+typedef int (__stdcall *Callback_4b6370)(int);
 
 // FUNCTION: 0x4b6370
-int FUN_004b6370()
+void FUN_004b6370()
 {
-    int (*GetTickCount)() = DAT_004fc0dc;
+    unsigned int q1 = (GetTickCount() * DAT_0051fbd0->f_e8) / 1000;
+    int diff = (int)q1 - DAT_0051fc84;
+    DAT_0051fc84 = (GetTickCount() * DAT_0051fbd0->f_e8) / 1000;
 
-    int esi = (int)GetTickCount;
-    int edi;
-
-    int eax = GetTickCount();
-    int edx = *(int *)&DAT_0051fbd0;
-    int ecx = eax;
-    ecx = ecx * *(int *)((char *)edx + 0xe8);
-
-    int magic = 0x10624dd3;
-    eax = magic;
-
-    edx = (int)((unsigned __int64)(ecx * (unsigned int)eax) >> 32);
-
-    ecx = *(int *)&DAT_0051fc84;
-    edx = edx >> 6;
-    edx = edx - ecx;
-    edi = edx;
-
-    eax = GetTickCount();
-    edx = *(int *)&DAT_0051fbd0;
-    ecx = eax;
-    eax = magic;
-    int temp_esi = 0x51fbe0;
-
-    ecx = ecx * *(int *)((char *)edx + 0xe8);
-    edx = (int)((unsigned __int64)(ecx * (unsigned int)eax) >> 32);
-    edx = edx >> 6;
-    *(int *)&DAT_0051fc84 = edx;
-
-    int *piVar5 = (int *)temp_esi;
-    int result = 0;
-
-    while ((int)piVar5 < (int)&DAT_0051fc80) {
-        if (*piVar5 >= 0) {
-            ecx = piVar5[1];
-            ecx = ecx - edi;
-            eax = ecx;
-            piVar5[1] = ecx;
-
-            if (eax <= 0) {
-                eax = piVar5[-1];
-                int (*fn)(int) = (int (*)(int))piVar5[-2];
-                result = fn(eax);
-                ecx = *piVar5;
-                piVar5[1] = ecx;
+    int* p = &DAT_0051fbe0;
+    do {
+        if (p[0] >= 0) {
+            if ((p[1] -= diff) <= 0) {
+                int arg = p[-1];
+                Callback_4b6370 fn = (Callback_4b6370)p[-2];
+                fn(arg);
+                p[1] = p[0];
             }
         }
-        piVar5 += 4;
-    }
-
-    return result;
+        p += 4;
+    } while ((int)p < (int)&DAT_0051fc80);
 }

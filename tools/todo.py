@@ -25,6 +25,7 @@ def main() -> None:
     ap.add_argument("--min-size", type=int, default=0)
     ap.add_argument("--max-size", type=int, default=1 << 30)
     ap.add_argument("--leaf", action="store_true", help="only functions that call no other game function")
+    ap.add_argument("--calls", action="store_true", help="only functions that call at least one game function")
     ap.add_argument("--seh", choices=["yes", "no"], help="only functions with / without a C++ exception frame")
     ap.add_argument("--limit", type=int, default=20)
     args = ap.parse_args()
@@ -37,6 +38,7 @@ def main() -> None:
         if int(r["address"], 16) not in done
         and args.min_size <= int(r["size"]) <= args.max_size
         and (not args.leaf or r["game_calls"] == "0")
+        and (not args.calls or r["game_calls"] != "0")
         and (args.seh is None or r["seh"] == ("1" if args.seh == "yes" else "0"))
     ]
     picked.sort(key=lambda r: (int(r["size"]), int(r["address"], 16)))

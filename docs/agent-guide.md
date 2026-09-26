@@ -214,3 +214,12 @@ effect, the missing piece is usually a helper that was inlined:
 - **Search loops ending in `or reg, -1` then `cmp reg, -1`**: an inlined
   helper returning an index or -1. Write it as a `static inline` function with
   an early `return i;`.
+- **`xor eax, eax` then a byte/word load into `al`/`ax`**: declare
+  `unsigned int result = 0;` before the load and assign into it
+  (`result = *(unsigned char*)p;`). A plain `return *(unsigned char*)p;` loads
+  with a different register choice.
+- **Global object vs. pointer**: `mov ecx, <addr>` passes the address of a
+  global object (`extern Class_x DAT_...;`, call with `.`); `mov ecx, [<addr>]`
+  loads a global pointer (`extern Class_x* DAT_...;`, call with `->`). The
+  same goes for vtables and tables: storing the address itself needs an array
+  declaration (`extern void* DAT_...[];`).

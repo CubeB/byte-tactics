@@ -1,23 +1,35 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
-extern "C" int DAT_004fc988;
+extern void* DAT_004fc988;
 
-class Class_00407930 {
+class Class_00407930
+{
 public:
-    void FUN_00407930(void *param_1, void *param_2, void *param_3, void *param_4);
+    void* vtable;      // +0x0
+    int field_4;       // +0x4
+    int field_8;       // +0x8
+    int field_c;       // +0xc
+    int field_10;      // +0x10
+    int field_14;      // +0x14
+    int field_18;      // +0x18
+    int field_1c;      // +0x1c
+    int field_20;      // +0x20
+    int field_24;      // +0x24
+
+    Class_00407930(int param_1, int param_2, int param_3, int param_4);
 };
 
 // FUNCTION: 0x407930
-void Class_00407930::FUN_00407930(void *param_1, void *param_2, void *param_3, void *param_4)
+Class_00407930::Class_00407930(int param_1, int param_2, int param_3, int param_4)
 {
-    *(void **)((char *)this + 8) = param_2;
-    *(void **)((char *)this + 4) = param_1;
-    *(int *)((char *)this + 0xc) = 0;
-    *(unsigned int *)((char *)this + 0x10) = *(unsigned char *)((char *)param_1 + 4);
-    *(void **)((char *)this + 0x1c) = param_4;
-    *(void **)((char *)this + 0x20) = param_3;
-    *(int *)this = (int)&DAT_004fc988;
-    *(int *)((char *)this + 0x24) = 0;
-    *(int *)((char *)this + 0x18) = 6;
-    *(int *)((char *)this + 0x14) = 3;
+    field_4 = param_1;
+    field_8 = param_2;
+    field_c = 0;
+    field_10 = *(unsigned char*)(param_1 + 4);
+    field_1c = param_4;
+    field_20 = param_3;
+    vtable = &DAT_004fc988;
+    field_24 = 0;
+    field_18 = 6;
+    field_14 = 3;
 }

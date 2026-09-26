@@ -1,0 +1,2 @@
+address,size,file,symbol,status,similarity
+0x401070,57,src/unsorted/0x401070.cpp,?Reset@PlayerRef@@QAEXE@Z,matched,100.0

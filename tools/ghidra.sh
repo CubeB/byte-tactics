@@ -13,6 +13,14 @@ OUT="$PROJ/decomp"
 [ -x "$HEADLESS" ] || { echo "Ghidra missing, run tools/setup_toolchain.sh" >&2; exit 1; }
 mkdir -p "$PROJ"
 
+# Prefer a Java 21 install even when the system default java is older.
+for jdk in /usr/lib/jvm/java-21-openjdk-* /usr/lib/jvm/java-2[2-9]-openjdk-*; do
+    if [ -x "$jdk/bin/java" ]; then
+        export JAVA_HOME="$jdk" PATH="$jdk/bin:$PATH"
+        break
+    fi
+done
+
 if [ ! -d "$PROJ/TotalA.rep" ]; then
     "$HEADLESS" "$PROJ" TotalA -import "$ROOT/orig/TotalA.exe" \
         -scriptPath "$ROOT/tools/ghidra" \

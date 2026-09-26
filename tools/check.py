@@ -1,31 +1,48 @@
 """Compile a source file and compare one function against the original exe.
 
-    uv run tools/check.py 0x401070 src/pilot.cpp --sym Reset
+    uv run tools/check.py 0x401070                  # finds the file by its annotation
+    uv run tools/check.py 0x401070 src/foo.cpp --sym Reset
 
-Bytes the linker fills in (relocations) are ignored when comparing, and shown
-next to the address the original uses so wrong globals or callees stand out.
+A function is annotated with a comment on the line before its definition:
+
+    // FUNCTION: 0x401070
+    void PlayerRef::Reset(unsigned char playerIndex)
+
+A function MATCHES when every byte the compiler controls is identical and every
+reference the linker fills in points at the right thing:
+  - strings and constants defined in the file must have the original's contents
+  - jump tables must point back into the function at the right place
+  - named functions and globals must agree with data/symbols.csv, the
+    name -> address map learned from earlier matches
 """
 
 import argparse
+import csv
 import difflib
 import re
 import struct
 import subprocess
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import capstone
 import pefile
 
-from coff import REL_I386_REL32, Section, parse_object
+from coff import REL_I386_DIR32, REL_I386_REL32, CoffObject, parse_object
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_FLAGS = "/O2 /GX /MT"
 PADDING = (0x90, 0xCC)
+SYMBOLS = ROOT / "data/symbols.csv"
+ANNOTATION = re.compile(r"^\s*//\s*FUNCTION:\s*(0x[0-9a-fA-F]+)")
+FORBIDDEN = re.compile(r"\b(__asm|_asm|_emit|__emit)\b|#\s*pragma\s+(optimize|code_seg)")
 
+
+# --- the original exe -------------------------------------------------------
 
 class Original:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path = ROOT / "orig/TotalA.exe"):
         self.pe = pefile.PE(str(path))
         self.base = self.pe.OPTIONAL_HEADER.ImageBase
         self.end = self.base + self.pe.OPTIONAL_HEADER.SizeOfImage
@@ -37,46 +54,151 @@ class Original:
                     rva, size = struct.unpack_from("<II", raw, i)
                     self.sizes[self.base + rva] = size
 
-    def code(self, va: int, size: int) -> bytes:
-        return self.pe.get_data(va - self.base, size)
+    def read(self, va: int, size: int) -> bytes:
+        try:
+            return self.pe.get_data(va - self.base, size)
+        except Exception:
+            return b""
+
+
+# --- names ------------------------------------------------------------------
+
+def base_name(sym: str) -> str:
+    """Undecorate a symbol just enough to compare names: '?Reset@PlayerRef@@QAEXE@Z' -> 'PlayerRef::Reset'."""
+    if sym.startswith("??_C@"):
+        return sym  # string literal, named after its contents
+    if sym.startswith("??0") or sym.startswith("??1"):
+        scopes = sym[3:].split("@@", 1)[0].split("@")
+        cls = scopes[0]
+        return "::".join(reversed(scopes)) + "::" + ("~" if sym[2] == "1" else "") + cls
+    if sym.startswith("??"):
+        return sym  # operators, vftables, compiler helpers: keep as is
+    if sym.startswith("?"):
+        parts = sym[1:].split("@@", 1)[0].split("@")
+        return "::".join(reversed(parts[1:])) + ("::" if len(parts) > 1 else "") + parts[0]
+    if sym.startswith("_"):
+        return sym[1:].split("@", 1)[0]
+    return sym
+
+
+def mangled_prefixes(qualname: str) -> list[str]:
+    """Symbol prefixes a C++ definition of `qualname` could compile to."""
+    parts = qualname.split("::")
+    last, scopes = parts[-1], parts[:-1]
+    scope = "".join(s + "@" for s in reversed(scopes))
+    if scopes and last == scopes[-1]:
+        return [f"??0{last}@{''.join(s + '@' for s in reversed(scopes[:-1]))}@"]
+    if last.startswith("~"):
+        return [f"??1{last[1:]}@{''.join(s + '@' for s in reversed(scopes[:-1]))}@"]
+    return [f"?{last}@{scope}@", f"_{last}@", f"_{last}"]
+
+
+def load_symbols() -> dict[str, int]:
+    if not SYMBOLS.exists():
+        return {}
+    with SYMBOLS.open() as fh:
+        return {row["name"]: int(row["address"], 16) for row in csv.DictReader(fh)}
+
+
+# --- source files -------------------------------------------------------------
+
+def annotations(src: Path) -> list[tuple[int, str]]:
+    """(address, qualified name) for every // FUNCTION: annotation in a file."""
+    lines = src.read_text(errors="replace").splitlines()
+    out = []
+    for i, line in enumerate(lines):
+        m = ANNOTATION.match(line)
+        if not m:
+            continue
+        sig = " ".join(lines[i + 1:i + 4]).split("(", 1)[0]
+        names = re.findall(r"[A-Za-z_~][\w:~]*", sig)
+        out.append((int(m.group(1), 16), names[-1] if names else ""))
+    return out
+
+
+def find_source(address: int) -> Path | None:
+    for src in sorted((ROOT / "src").rglob("*.cpp")):
+        if any(a == address for a, _ in annotations(src)):
+            return src
+    return None
 
 
 def winpath(p: Path) -> str:
     return "Z:" + str(p).replace("/", "\\")
 
 
-def compile_source(src: Path, flags: str) -> Path:
-    out = ROOT / "build" / "check" / (src.stem + ".obj")
+def compile_source(src: Path, flags: str = DEFAULT_FLAGS) -> tuple[Path | None, str]:
+    """Returns (object path, compiler output). Object path is None on failure."""
+    bad = FORBIDDEN.search(src.read_text(errors="replace"))
+    if bad:
+        return None, f"{src}: '{bad.group(0)}' is not allowed; write the function in plain C++"
+    rel = src.resolve().relative_to(ROOT / "src") if src.resolve().is_relative_to(ROOT / "src") else Path(src.name)
+    out = ROOT / "build" / "obj" / rel.with_suffix(".obj")
     out.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), f"/Fo{winpath(out)}", winpath(src)]
+    out.unlink(missing_ok=True)
+    cmd = [str(ROOT / "tools" / "wcl"), "/c", *flags.split(), f"/I{winpath(ROOT / 'include')}",
+           f"/Fo{winpath(out)}", winpath(src.resolve())]
     proc = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
+    log = (proc.stdout + proc.stderr).replace("\r", "")
     if proc.returncode != 0 or not out.exists():
-        sys.exit(f"compile failed:\n{proc.stdout}{proc.stderr}")
-    return out
+        return None, log
+    return out, log
 
 
-def extract(obj_path: Path, sym: str | None) -> tuple[str, bytes, bytes, dict[int, str]]:
-    obj = parse_object(obj_path.read_bytes(), obj_path.name)
-    candidates = []
+# --- comparison ---------------------------------------------------------------
+
+@dataclass
+class Ref:
+    offset: int      # within the function
+    symbol: str
+    target: int      # address the original uses (after removing our addend)
+    status: str      # ok | new | mismatch | unverified
+    note: str = ""
+
+
+@dataclass
+class Result:
+    address: int
+    symbol: str
+    size: int
+    ours_size: int
+    bytes_match: bool
+    ratio: float
+    refs: list[Ref] = field(default_factory=list)
+    diff: str = ""
+    error: str = ""
+
+    @property
+    def matched(self) -> bool:
+        return self.bytes_match and not any(r.status == "mismatch" for r in self.refs)
+
+    @property
+    def status(self) -> str:
+        if self.error:
+            return "error"
+        return "MATCH" if self.matched else f"{self.ratio * 100:.1f}%"
+
+
+def select_function(obj: CoffObject, want: str | None, qualname: str | None):
+    cands = []
     for sec in obj.sections:
         if not sec.is_code:
             continue
         syms = sorted(obj.symbols_in(sec), key=lambda s: s.value)
         for i, s in enumerate(syms):
             end = syms[i + 1].value if i + 1 < len(syms) else len(sec.data)
-            candidates.append((s.name, sec, s.value, end))
-    if sym:
-        candidates = [c for c in candidates if sym in c[0]]
-    if len(candidates) != 1:
-        names = ", ".join(c[0] for c in candidates) or "none"
-        sys.exit(f"need exactly one function to compare, found: {names} (use --sym)")
-    name, sec, start, end = candidates[0]
-    data, mask = sec.data[start:end], sec.mask()[start:end]
-    while data and data[-1] in PADDING:
-        data, mask = data[:-1], mask[:-1]
-    relocs = {r.offset - start: r.symbol for r in sec.relocs if start <= r.offset < end}
-    rel32 = {r.offset - start for r in sec.relocs if r.type == REL_I386_REL32 and start <= r.offset < end}
-    return name, data, mask, {k: v + (" (call/jmp)" if k in rel32 else "") for k, v in relocs.items()}
+            cands.append((s.name, sec, s.value, end))
+    if want:
+        picked = [c for c in cands if want in c[0]]
+    elif qualname:
+        prefixes = mangled_prefixes(qualname)
+        picked = [c for c in cands if c[0].startswith(tuple(prefixes)) or c[0] == prefixes[-1]]
+    else:
+        picked = cands
+    if len(picked) != 1:
+        names = ", ".join(c[0] for c in picked or cands) or "none"
+        return None, f"could not pick one function for {qualname or want or 'this file'} (candidates: {names})"
+    return picked[0], ""
 
 
 def disasm(code: bytes, va: int) -> list:
@@ -89,56 +211,133 @@ HEX = re.compile(r"0x[0-9a-f]+")
 
 
 def normalise(ins, lo: int, hi: int, is_addr) -> str:
-    """Replace addresses outside the function with <addr> so both sides compare equal."""
     def sub(m):
         v = int(m.group(), 16)
         return "<addr>" if is_addr(v) and not lo <= v < hi else m.group()
     return f"{ins.mnemonic} {HEX.sub(sub, ins.op_str)}".strip()
 
 
+def compare(orig: Original, obj: CoffObject, address: int, want: str | None = None,
+            qualname: str | None = None, symbols: dict[str, int] | None = None) -> Result:
+    symbols = load_symbols() if symbols is None else symbols
+    picked, err = select_function(obj, want, qualname)
+    if not picked:
+        return Result(address, "", 0, 0, False, 0.0, error=err)
+    name, sec, start, end = picked
+    data, mask = sec.data[start:end], sec.mask()[start:end]
+    while data and data[-1] in PADDING and mask[-1]:
+        data, mask = data[:-1], mask[:-1]
+    size = orig.sizes.get(address, len(data))
+    theirs = orig.read(address, size)
+    bytes_match = len(data) == len(theirs) and all(not m or a == b for a, b, m in zip(data, theirs, mask))
+
+    by_name = {s.name: s for s in obj.symbols}
+    by_addr = {v: k for k, v in symbols.items()}
+    refs = []
+    for r in sec.relocs:
+        if not start <= r.offset < end or r.offset - start + 4 > len(theirs):
+            continue
+        off = r.offset - start
+        (field_ours,) = struct.unpack_from("<I", data, off)
+        (field_orig,) = struct.unpack_from("<I", theirs, off)
+        if r.type == REL_I386_REL32:
+            target = (address + off + 4 + field_orig - field_ours) & 0xFFFFFFFF
+        elif r.type == REL_I386_DIR32:
+            target = (field_orig - field_ours) & 0xFFFFFFFF
+        else:
+            refs.append(Ref(off, r.symbol, 0, "unverified", f"relocation type {r.type:#x}"))
+            continue
+        refs.append(check_ref(orig, obj, sec, start, address, off, r.symbol, target, field_ours,
+                              by_name, symbols, by_addr))
+
+    ours_ins = disasm(data, address)
+    reloc_ins = {i.address for i in ours_ins for ref in refs
+                 if i.address - address <= ref.offset < i.address - address + i.size}
+    lo, hi = address, address + size
+    ours_txt = [normalise(i, lo, hi, lambda v, i=i: i.address in reloc_ins) for i in ours_ins]
+    theirs_txt = [normalise(i, lo, hi, lambda v: orig.base <= v < orig.end) for i in disasm(theirs, address)]
+    ratio = difflib.SequenceMatcher(None, theirs_txt, ours_txt, autojunk=False).ratio()
+    diff = "" if bytes_match else "\n".join(
+        difflib.unified_diff(theirs_txt, ours_txt, "original", "ours", lineterm="", n=3))
+    return Result(address, name, size, len(data), bytes_match, 1.0 if bytes_match else ratio, refs, diff)
+
+
+def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_name, symbols, by_addr) -> Ref:
+    sym = by_name.get(sym_name)
+    # Defined in this object: compare what it points at.
+    if sym is not None and sym.section > 0:
+        target_sec = obj.sections[sym.section - 1]
+        if target_sec is sec:  # jump tables and other self-references
+            want = address + sym.value - start
+            ok = target == want
+            return Ref(off, sym_name, target, "ok" if ok else "mismatch",
+                       "" if ok else f"should point into this function at {want:#x}")
+        if target_sec.is_code:
+            return lookup(off, sym_name, target, symbols, by_addr)
+        ours = target_sec.data[sym.value:]
+        if not ours or not any(ours[:64]):
+            return lookup(off, sym_name, target, symbols, by_addr)  # uninitialised data
+        ours = ours[:ours.index(0) + 1] if sym_name.startswith(("$SG", "??_C@")) and 0 in ours else ours[:16]
+        theirs = orig.read(target + addend, len(ours)) if sym_name.startswith("$SG") else orig.read(target, len(ours))
+        if sym_name.startswith("$SG"):
+            ours = target_sec.data[sym.value + addend:][:len(ours)]
+        ok = ours == theirs
+        return Ref(off, sym_name, target, "ok" if ok else "mismatch",
+                   "" if ok else f"contents differ: ours {ours[:24]!r} original {theirs[:24]!r}")
+    return lookup(off, sym_name, target, symbols, by_addr)
+
+
+def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
+    name = base_name(sym_name)
+    known = symbols.get(name)
+    if known is not None:
+        ok = known == target
+        return Ref(off, sym_name, target, "ok" if ok else "mismatch",
+                   "" if ok else f"'{name}' is {known:#x} in data/symbols.csv, but the original uses {target:#x}"
+                   + (f" ('{by_addr[target]}')" if target in by_addr else ""))
+    if target in by_addr:
+        return Ref(off, sym_name, target, "mismatch",
+                   f"{target:#x} is already named '{by_addr[target]}' in data/symbols.csv; use that name")
+    return Ref(off, sym_name, target, "new")
+
+
+def report(res: Result, verbose: bool = True) -> str:
+    if res.error:
+        return f"{res.address:#x}  ERROR  {res.error}"
+    lines = [f"{res.address:#x}  {res.symbol}  original {res.size} bytes, ours {res.ours_size} bytes  ->  {res.status}"]
+    if res.bytes_match and not res.matched:
+        lines[0] += "  (bytes match, but a reference is wrong)"
+    if verbose and res.refs:
+        lines.append("\nreferences the linker fills in (symbol -> address in the original):")
+        for r in sorted(res.refs, key=lambda r: r.offset):
+            flag = {"ok": "ok ", "new": "new", "mismatch": "BAD", "unverified": "?  "}[r.status]
+            lines.append(f"  {flag} +{r.offset:#05x}  {base_name(r.symbol)[:48]:48s} {r.target:#x}  {r.note}")
+    if verbose and res.diff:
+        lines.append("\n" + res.diff)
+    return "\n".join(lines)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("address", type=lambda s: int(s, 16))
-    ap.add_argument("source", type=Path)
-    ap.add_argument("--sym", help="substring of the (mangled) function name to compare")
+    ap.add_argument("source", type=Path, nargs="?")
+    ap.add_argument("--sym", help="substring of the mangled name, if the annotation can't be used")
     ap.add_argument("--flags", default=DEFAULT_FLAGS)
-    ap.add_argument("--exe", type=Path, default=ROOT / "orig/TotalA.exe")
     args = ap.parse_args()
 
-    orig = Original(args.exe)
-    obj = compile_source(args.source.resolve(), args.flags)
-    name, ours, mask, relocs = extract(obj, args.sym)
-    size = orig.sizes.get(args.address, len(ours))
-    theirs = orig.code(args.address, size)
-
-    exact = len(ours) == len(theirs) and all(not m or a == b for a, b, m in zip(ours, theirs, mask))
-    va, hi = args.address, args.address + size
-
-    # Relocated operands are 0 (or an addend) in the .obj, so treat any reloc'd
-    # instruction's operands as <addr>; in the exe, anything inside the image is.
-    ours_ins = disasm(ours, va)
-    reloc_ins = {i.address for i in ours_ins for off in relocs if i.address - va <= off < i.address - va + i.size}
-    ours_txt = [normalise(i, va, hi, lambda v, i=i: i.address in reloc_ins) for i in ours_ins]
-    theirs_ins = disasm(theirs, va)
-    theirs_txt = [normalise(i, va, hi, lambda v: orig.base <= v < orig.end) for i in theirs_ins]
-    ratio = difflib.SequenceMatcher(None, theirs_txt, ours_txt, autojunk=False).ratio()
-
-    status = "MATCH" if exact else f"{ratio * 100:.1f}%"
-    print(f"{args.address:#x}  {name}  original {size} bytes, ours {len(ours)} bytes  ->  {status}")
-
-    # Pair each relocation with what the original has in the same place.
-    if relocs:
-        print("\nlinker-resolved references (ours -> original):")
-        for off, sym in sorted(relocs.items()):
-            if off + 4 <= len(theirs):
-                (val,) = struct.unpack_from("<I", theirs, off)
-                if "(call/jmp)" in sym:
-                    val = (va + off + 4 + val) & 0xFFFFFFFF
-                print(f"  +{off:#05x}  {sym:40s} {val:#x}")
-
-    if not exact:
-        print("\n" + "\n".join(difflib.unified_diff(theirs_txt, ours_txt, "original", "ours", lineterm="", n=3)))
-    sys.exit(0 if exact else 1)
+    src = args.source or find_source(args.address)
+    if src is None:
+        sys.exit(f"no file under src/ has '// FUNCTION: {args.address:#x}'")
+    qualname = next((q for a, q in annotations(src) if a == args.address), None)
+    obj_path, log = compile_source(src, args.flags)
+    if obj_path is None:
+        sys.exit(f"compile failed:\n{log}")
+    warnings = [l for l in log.splitlines() if "warning" in l]
+    res = compare(Original(), parse_object(obj_path.read_bytes(), obj_path.name), args.address, args.sym, qualname)
+    print(report(res))
+    if warnings:
+        print("\ncompiler warnings:\n  " + "\n  ".join(warnings[:10]))
+    sys.exit(0 if res.matched else 1)
 
 
 if __name__ == "__main__":

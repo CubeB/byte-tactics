@@ -152,3 +152,27 @@ their whole budget.
 - **Loop compares**: `jbe`/`jae` in a loop test means the counter is
   `unsigned`; `sete dl; test dl, dl` means the result of a comparison was
   stored in a `bool` local first.
+
+## When the registers or the order won't budge
+
+Cavedog wrote many small helper functions and methods, and `/Ob2` inlined
+them. An inlined function boundary changes the order MSVC evaluates things in
+and which registers it keeps values in, so when source-level shuffling has no
+effect, the missing piece is usually a helper that was inlined:
+
+- If swapping the operands of `this->a + this->b` changes nothing, move the
+  expression into a small `static inline` helper that takes the object
+  pointer (`MidX(this)` doing `w->x1 + w->x2`); MSVC then keeps the source
+  order. See `src/unsorted/0x44dc60.cpp`.
+- A value that sits in a scratch register on one path, and is copied into
+  place (`mov edx, ebp`) just before the paths merge on the other, is the
+  return value of an inlined function with one `return` per path. A local
+  assigned on both paths gets a callee-saved register for the whole function
+  instead. See `src/unsorted/0x4c9290.cpp`.
+- A loop that walks a pointer, where the offset is added after the loop
+  guard (`add eax, K` after `test/jle`), is plain array indexing
+  (`arr[i].field`) in the source; adding the offset yourself moves the `add`
+  before the guard. A `cmp ptr, end; jl` loop over a global array is a signed
+  `int i` for-loop that MSVC turned into a pointer loop.
+- For `imul reg, [mem]`, the register operand is the left side of `*` in the
+  source.

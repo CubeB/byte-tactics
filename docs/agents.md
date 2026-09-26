@@ -42,10 +42,11 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | S3 | sonnet | 10 | 8 | 133,720 | 16,715 | 15 |
 | H8 | haiku | 15 | 7 | 98,163 | 14,023 | 10 |
 | H9 | haiku | 8 | 3 | 95,670 | 31,890 | 8 |
+| O2 | opus | 4 | 4 | 122,629 | 30,657 | 12 |
 
 ### Escalations
 
-- Opus matched 2 of 2 functions a cheaper model had failed.
+- Opus matched 6 of 6 functions a cheaper model had failed.
 - Sonnet matched 4 of 6 functions a cheaper model had failed.
 <!-- calibration:end -->
 

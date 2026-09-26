@@ -1,26 +1,45 @@
-// Decompiled by Sonnet. Names are provisional.
+// Decompiled by Opus. Names are provisional.
 
-struct Inner_41ea30 {
-    char unknown_0[4];
-    char* arrBase;   // +4
+struct Amount_41ea30 {
+    int current;                     // +0x00
+    int required;                    // +0x04
 };
 
-extern char* DAT_00511de8;   // pointer to game object
+#pragma pack(push, 1)
+struct Entry_41ea30 {
+    unsigned char type;              // +0x00
+    char unknown_1[0x28];
+    unsigned char flag;              // +0x29
+    char unknown_2a[0xb6 - 0x2a];
+    short count;                     // +0xb6
+    char unknown_b8[2];
+    Amount_41ea30 amount;            // +0xba
+    char unknown_c2[0x15b - 0xc2];
+};
+
+struct Holder_41ea30 {
+    char unknown_0[4];
+    Entry_41ea30* entries;           // +0x04
+};
+
+struct Game_41ea30 {
+    char unknown_0[0x531];
+    Holder_41ea30* holder;           // +0x531
+};
+#pragma pack(pop)
+
+// GLOBAL: 0x511de8
+extern Game_41ea30* g_game;
 
 // FUNCTION: 0x41ea30
 int FUN_0041ea30(void)
 {
-    Inner_41ea30* p531 = *(Inner_41ea30**)(DAT_00511de8 + 0x531);
-    char* base = p531->arrBase;
-    int i = 0;
-    int count = *(short*)(base + 0xb6);
-    base += 0xba;
-    for (; i < count; i++, base += 0x15b) {
-        if (*(unsigned char*)(base - 0xba) == 0xd) {
-            if (*(unsigned char*)(base - 0x91) == 0) {
-                return 0;
-            }
-            if (*(int*)base < *(int*)(base + 4)) {
+    Entry_41ea30* entries = g_game->holder->entries;
+    int count = entries->count;
+    for (int i = 0; i < count; i++) {
+        if (entries[i].type == 0xd) {
+            Amount_41ea30* amount = &entries[i].amount;
+            if (entries[i].flag == 0 || amount->current < amount->required) {
                 return 0;
             }
         }

@@ -522,9 +522,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x485e30,30,haiku,H14,matched,100.0,,
 0x408810,32,haiku,H14,matched,100.0,,
 0x416cf0,33,haiku,H14,matched,100.0,,
-0x416630,34,haiku,H14,matched,100.0,,
+0x416630,34,haiku,H14,partial,13.3,,fixed afterwards by Opus orchestrator
 0x470f30,35,haiku,H14,matched,100.0,,
-0x418ca0,37,haiku,H14,matched,100.0,,
+0x418ca0,37,haiku,H14,partial,13.3,,fixed afterwards by Opus orchestrator
 0x4623b0,39,haiku,H14,matched,100.0,,
 0x472fd0,55,opus,O12,matched,100.0,,escalated from Sonnet
 0x44c7a0,59,opus,O12,matched,100.0,,escalated from Sonnet

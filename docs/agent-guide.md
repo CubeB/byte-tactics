@@ -271,3 +271,31 @@ single call:
 - **Widened returns**: `and eax, 0xff` before `ret`, after a `sete al` or a
   byte loaded into `al`, means the function returns `int` holding a `bool` or
   `unsigned char`; the return type is `int`.
+
+## When your version is "more optimised" than the original
+
+It never is. If MSVC merges two branches, hoists a load, rotates a loop or
+peels an iteration that the original didn't, the original source contained
+something the optimiser saw early that leaves no trace in the final code.
+Look for it instead of blaming the compiler:
+
+- **Re-check the semantics first.** An off-by-one start (scanning from
+  `strlen(s)`, not `strlen(s) - 1`) or a return value you dropped can look
+  exactly like an optimisation difference.
+- **Paths kept apart that you merge**: give them different return values
+  (`return 0;` costs nothing when `eax` already holds 0), or add a no-op
+  conversion; with x87 code a `(float)` cast of a double emits nothing but
+  changes operand order and stops a load being hoisted.
+- **A loop tested at the top with a `jmp` back from every branch**: the loop
+  condition was an inlined helper with one `return` per outcome
+  (`static inline int NotDone(...) { if (a == b) return 0; return 1; }`).
+  A plain `while` gets rotated and its identical branches merged.
+- **A global "vector" whose atexit destructor has no destroy loop** (no
+  `push ecx`/dead store): a vector-shaped custom container, not `std::vector`.
+  See `src/unsorted/0x438450.cpp` and `0x438480.cpp`.
+
+## Saving check.py runs
+
+`tools/wcl /c /O2 /Ob2 /GX /MT /Fa<file>.asm <file>.cpp` compiles a scratch file
+and writes an assembly listing you can read directly; iterate that way, then
+confirm with one `check.py` run.

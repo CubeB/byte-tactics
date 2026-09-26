@@ -1,23 +1,33 @@
-// Decompiled by Sonnet. Names are provisional.
+// Decompiled by Opus. Names are provisional.
 
-// FUNCTION: 0x4b6af0
-int __stdcall FUN_004b6af0(int param_1, int param_2)
+// The loop test was an inlined helper with one return per outcome. Its
+// multi-block body stops MSVC from rotating the loop (moving the test to the
+// bottom) and from merging the two identical "next line" branches; written
+// as a plain `while (n != lines)` the loop is rotated and the branches merged.
+static inline int NotDone(int wanted, int current)
 {
-    int ecx = 0;
-    int edx = 0;
+    if (wanted == current) {
+        return 0;
+    }
+    return 1;
+}
 
-    while (edx != param_2) {
-        unsigned char al = *(unsigned char*)(ecx + param_1);
-        if (al == 0) {
-            edx++;
-            ecx++;
-        } else if (al == 0x0a) {
-            edx++;
-            ecx++;
+// Returns a pointer to the start of line `n` of `text`; lines end at '\n' or '\0'.
+// FUNCTION: 0x4b6af0
+char* __stdcall FUN_004b6af0(char* text, int n)
+{
+    int i = 0;
+    int lines = 0;
+    while (NotDone(n, lines)) {
+        if (text[i] == 0) {
+            lines++;
+            i++;
+        } else if (text[i] == '\n') {
+            lines++;
+            i++;
         } else {
-            ecx++;
+            i++;
         }
     }
-
-    return ecx + param_1;
+    return text + i;
 }

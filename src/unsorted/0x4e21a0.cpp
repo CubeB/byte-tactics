@@ -1,19 +1,24 @@
-// Decompiled by Sonnet. Names are provisional.
+// Decompiled by Opus. Names are provisional.
 
+// A timer: while stopped, `time` holds the elapsed time; while running, it
+// holds the start time (see the neighbouring methods at 0x4e2160..0x4e21f0).
 struct Class_004e21a0 {
-    double field_0;
+    double time;           // +0x00
     char unknown_8[0x40];
-    char field_48;
+    char stopped;          // +0x48
 
-    void FUN_004e21a0(double param_1);
+    void FUN_004e21a0(double delta);
 };
 
 // FUNCTION: 0x4e21a0
-void Class_004e21a0::FUN_004e21a0(double param_1)
+void Class_004e21a0::FUN_004e21a0(double delta)
 {
-    if (field_48 != 0) {
-        field_0 -= param_1;
+    if (stopped) {
+        time -= delta;
     } else {
-        field_0 = param_1 + field_0;
+        // Without /Op the float conversion emits nothing, but it makes MSVC
+        // load delta first (fld delta; fadd time) instead of hoisting a shared
+        // `fld time` above the branch.
+        time += (float)delta;
     }
 }

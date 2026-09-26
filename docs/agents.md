@@ -20,7 +20,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 
 | Size (bytes) | Haiku | Opus | Sonnet |
 | --- | ---: | ---: | ---: |
-| 1-16 | 259/278 (93%) | 2/2 (100%) |  |
+| 1-16 | 283/312 (91%) | 2/2 (100%) |  |
 | 17-40 | 31/42 (74%) |  | 9/10 (90%) |
 | 41-64 | 3/11 (27%) |  | 14/21 (67%) |
 | 65-160 | 1/6 (17%) | 21/22 (95%) | 2/6 (33%) |
@@ -60,10 +60,12 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | S6 | sonnet | 10 | 5 | 258,908 | 51,781 | 104 | 36 |
 | O8 | opus | 8 | 7 | 135,415 | 19,345 | 77 | 10 |
 | O12 | opus | 5 | 5 | 59,980 | 11,996 | 48 | 2 |
+| H13 | haiku | 34 | 24 | 110,397 | 4,599 | 5 | 12 |
+| O7 | opus | 5 | 5 | 217,143 | 43,428 | 174 | 19 |
 
 ### Escalations
 
-- Opus matched 18 of 18 functions a cheaper model had failed.
+- Opus matched 23 of 23 functions a cheaper model had failed.
 - Sonnet matched 23 of 29 functions a cheaper model had failed.
 <!-- calibration:end -->
 
@@ -77,7 +79,9 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
   Release default of `/O2`. Found through global `std::vector` initialisers,
   whose construct and `atexit` steps are only merged into one function under
   `/Ob2`; every earlier match still matches with it.
-- The game uses the compiler's own STL (`std::vector` at least). The vector
-  destructor stubs registered with `atexit` (e.g. 0x438480) do not match yet:
-  VC5's `~vector` leaves a dead stack store that the original lacks, whatever
-  the element type tried so far.
+- The game uses the compiler's own STL (`std::vector`, including out-of-line
+  `erase`) and also a vector-shaped container of its own: the global at 0x438450
+  has an atexit destructor with no destroy loop, which `std::vector` never
+  produces. Every case where our compiler seemed to "optimise more" than
+  Cavedog's turned out to be a difference in the source (an inlined helper, a
+  no-op cast, an extra return value, an off-by-one), not in the compiler.

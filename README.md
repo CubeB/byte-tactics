@@ -1,0 +1,51 @@
+# TA: Byte Tactics
+
+A matching decompilation of Total Annihilation (Cavedog, 1997): C++ source that
+compiles, with the original compiler, to byte-identical machine code.
+
+This repository contains no game files and no Microsoft software. You need your
+own copy of Total Annihilation. The reconstructed game code is derived from
+Cavedog's work and is not offered under any license.
+
+## Target
+
+`TotalA.exe` v3.1 patch, as shipped on Steam (see `orig/TotalA.exe.sha256`).
+
+| Fact | Value | How we know |
+| --- | --- | --- |
+| Compiler | Visual C++ 5.0 with Service Pack 3 | Linker 5.10; runtime library matches SP3, not RTM (`tools/crtmatch.py`) |
+| Runtime library | LIBCMT (static, multithreaded, `/MT`) | 568 LIBCMT code sections found byte-for-byte |
+| Language | C++ | Source paths such as `c:\cavedog\wargame\multi.cpp` in the binary |
+| Function map | 3,782 functions with exact start, size and argument count | FPO debug records left in the exe |
+| Link date | 1998-07-30 | PE header |
+
+## Setup
+
+Needs `wine`, `7z`, `cabextract`, `curl` and [uv](https://docs.astral.sh/uv/).
+
+```sh
+tools/setup_toolchain.sh   # downloads VC++ 5.0 + SP3 into toolchain/, copies TotalA.exe from Steam
+```
+
+Set `STEAM_TA` if the game is not in the default Steam library.
+
+## Checking a function
+
+```sh
+uv run tools/check.py 0x401070 src/pilot.cpp --sym Reset
+```
+
+This compiles the file with `/O2 /GX /MT`, extracts the function from the object
+file and compares it with the original, ignoring bytes the linker fills in. It
+prints `MATCH`, or a similarity score and an assembly diff. The exit code is 0 only
+on an exact match.
+
+`tools/wcl` runs `cl.exe` under Wine directly (`BT_TOOLCHAIN=msvc5-rtm` selects the
+unpatched compiler).
+
+## Layout
+
+- `src/`: reconstructed source
+- `tools/`: comparison and analysis scripts
+- `orig/`: the original exe (ignored by git) and its expected hash
+- `toolchain/`: VC++ 5.0 and the Wine prefix (ignored by git)

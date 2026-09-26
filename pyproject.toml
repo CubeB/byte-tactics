@@ -1,0 +1,9 @@
+[project]
+name = "byte-tactics"
+version = "0.1.0"
+description = "TA: Byte Tactics, a matching decompilation of Total Annihilation"
+requires-python = ">=3.11"
+dependencies = [
+    "capstone>=5",
+    "pefile>=2023.2.7",
+]

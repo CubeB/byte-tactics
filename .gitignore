@@ -1,0 +1,12 @@
+# Microsoft's compiler and the game binary must never be committed.
+/toolchain/
+/orig/*
+!/orig/*.sha256
+/build/
+*.obj
+*.exe
+*.pdb
+*.ilk
+
+.venv/
+__pycache__/

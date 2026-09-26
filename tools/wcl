@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Run the VC++ 5.0 compiler (SP3 by default) under Wine.
+# Usage: tools/wcl [cl.exe args...]    e.g. tools/wcl /c /O2 src/foo.cpp
+# Set BT_TOOLCHAIN=msvc5-rtm to use the unpatched compiler instead.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TC="$ROOT/toolchain/${BT_TOOLCHAIN:-msvc5-sp3}"
+[ -f "$TC/BIN/CL.EXE" ] || { echo "Toolchain missing, run tools/setup_toolchain.sh" >&2; exit 1; }
+
+winpath() { echo "Z:${1//\//\\}"; }
+
+export WINEPREFIX="$ROOT/toolchain/wineprefix" WINEARCH=win32 WINEDEBUG=-all
+export INCLUDE="$(winpath "$TC/INCLUDE")" LIB="$(winpath "$TC/LIB")"
+
+tool="$(basename "$0")"
+case "$tool" in
+    wlink) exe=LINK.EXE ;;
+    *) exe=CL.EXE ;;
+esac
+exec wine "$TC/BIN/$exe" /nologo "$@"

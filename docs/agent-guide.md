@@ -66,6 +66,11 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
 - Otherwise use `FUN_<8 hex digits>` for functions and `DAT_<8 hex digits>` for
   globals, e.g. `FUN_004b4ba0`, `DAT_00511de8`. Name your own function
   `FUN_<addr>` too unless its purpose is obvious.
+- If your function is a method and its class has no known name yet, call the
+  class `Class_<8 hex digits of your function's address>`, e.g.
+  `Class_00401234::FUN_00401234`.
+- A function that is only `ret` or `ret N` is an empty function: an empty body
+  with N/4 dword-sized parameters (as a `__thiscall` method if unsure).
 - Library calls (`sprintf`, `memset`, `strcpy`, `malloc`, ...) are the normal C
   runtime; include the header and call them.
 

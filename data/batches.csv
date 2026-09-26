@@ -1,0 +1,3 @@
+batch,model,functions,matched,matched_bytes,total_bytes,tokens,tool_uses,seconds
+H1,haiku,8,5,125,271,74514,76,352
+H0,haiku,30,29,187,197,75811,102,444

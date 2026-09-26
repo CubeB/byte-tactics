@@ -1,4 +1,5 @@
-// Decompiled by Sonnet. Names are provisional.
+// Decompiled by Opus. Names are provisional.
+// Clears every pixel of an 8-bit image that is not the colour key.
 
 struct Image_004b96a0 {
     unsigned short width;   // +0x0
@@ -10,18 +11,14 @@ struct Image_004b96a0 {
 };
 
 // FUNCTION: 0x4b96a0
-void __stdcall FUN_004b96a0(Image_004b96a0* param_1)
+void __stdcall FUN_004b96a0(Image_004b96a0* image)
 {
-    int count = param_1->height * param_1->width;
-    char* p = param_1->data;
-    int i = count;
-
-    if (count != 0) {
-        do {
-            if (*p != param_1->colorKey) {
-                *p = 0;
-            }
-            p++;
-        } while (--i != 0);
+    int count = image->height * image->width;
+    char* p = image->data;
+    while (count--) {
+        if (*p != image->colorKey) {
+            *p = 0;
+        }
+        p++;
     }
 }

@@ -1,21 +1,21 @@
-// Decompiled by Sonnet. Names are provisional.
+// Decompiled by Opus. Names are provisional.
+// Returns whether a std::vector of 48-byte elements is empty; the bool from
+// the inlined vector::empty() is widened to the int return value.
+#include <vector>
+
+struct Elem_00472fd0 {
+    char unknown_0[0x30];
+};
 
 struct Class_00472fd0 {
-    char unknown_0[0x10];
-    int field_10;   // +0x10
-    int field_14;   // +0x14
+    char unknown_0[0xc];
+    std::vector<Elem_00472fd0> items;   // +0xc (_First +0x10, _Last +0x14)
 
-    bool FUN_00472fd0();
+    int FUN_00472fd0();
 };
 
 // FUNCTION: 0x472fd0
-bool Class_00472fd0::FUN_00472fd0()
+int Class_00472fd0::FUN_00472fd0()
 {
-    int diff;
-    if (field_10 == 0) {
-        diff = 0;
-    } else {
-        diff = (field_14 - field_10) / 48;
-    }
-    return diff == 0;
+    return items.empty();
 }

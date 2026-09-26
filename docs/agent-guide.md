@@ -250,3 +250,24 @@ effect, the missing piece is usually a helper that was inlined:
   `<stdlib.h>`; a hand-written `if (x < 0) x = -x;` compiles differently.
 - **Keep notes above the annotation**: put comments before the
   `// FUNCTION:` line, not between it and the definition.
+
+## Library and STL idioms (write the call, not the loop)
+
+MSVC inlines these, so the disassembly shows a loop, but the source was a
+single call:
+
+- **`strcmp`**: a byte-compare loop unrolled by 2 ending in
+  `sbb eax, eax; sbb eax, -1`. `memcmp`: `repe cmpsb` after `xor edx, edx`.
+  `strlen`: `repne scasb` with `or ecx, -1`. Call the function with
+  `const char*` arguments.
+- **`vec.empty()`**: `sete al; ... and eax, 0xff` on a value that is 0 when
+  `_First` is null, else `(_Last - _First) / sizeof(T)`.
+- **`vector::erase(first, last)` out of line**: `eax` = the first argument, and a
+  dead `mov [esp+8], <old _Last>` just before `ret 8` (left by the inlined
+  `_Destroy`). See `src/unsorted/0x40cfb0.cpp` and `0x40c9f0.cpp`. For vectors of
+  pointers, define the pointed-to struct (MSVC 5's `<xmemory>` needs it).
+- **`while (n--)`**: `mov esi, ecx; dec ecx; test esi, esi; je`, then
+  `lea esi, [ecx+1]` inside the guarded block.
+- **Widened returns**: `and eax, 0xff` before `ret`, after a `sete al` or a
+  byte loaded into `al`, means the function returns `int` holding a `bool` or
+  `unsigned char`; the return type is `int`.

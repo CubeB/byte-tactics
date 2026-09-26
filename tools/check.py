@@ -321,6 +321,9 @@ def report(res: Result, verbose: bool = True) -> str:
     lines = [f"{res.address:#x}  {res.symbol}  original {res.size} bytes, ours {res.ours_size} bytes  ->  {res.status}"]
     if res.bytes_match and not res.matched:
         lines[0] += "  (bytes match, but a reference is wrong)"
+    if re.match(r"\?[^@]+@@YI", res.symbol):
+        lines.append("note: this is a __fastcall free function. If only ecx is an input (edx unused), "
+                     "write it as a __thiscall method of a class instead; see docs/agent-guide.md.")
     if verbose and res.refs:
         lines.append("\nreferences the linker fills in (symbol -> address in the original):")
         for r in sorted(res.refs, key=lambda r: r.offset):

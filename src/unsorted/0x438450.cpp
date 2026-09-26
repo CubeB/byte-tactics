@@ -4,7 +4,7 @@
 #include <vector>
 
 
-// FUNCTION: 0x434a30 _$E5
-// The destructor registered with atexit is at 0x434a60; it does not match yet
+// FUNCTION: 0x438450 _$E5
+// The destructor registered with atexit is at 0x438480; it does not match yet
 // because the element type is unknown.
-std::vector<int> DAT_005122c0;
+std::vector<int> DAT_00512340;

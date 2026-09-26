@@ -67,7 +67,27 @@ class Namer:
                 (v,) = struct.unpack("<f", self.orig.read(va, 4) or b"\0" * 4)
                 return f"{label} = {v!r} (float)"
         s = self.string_at(va)
-        return f"{label} {s}" if s else label
+        if s:
+            return f"{label} {s}"
+        vt = self.vtable_at(va)
+        return f"{label} = vtable? [{vt}]" if vt else label
+
+    def vtable_at(self, va: int) -> str:
+        """A run of pointers to known function starts in .rdata looks like a vtable."""
+        if self.section(va) != ".rdata":
+            return ""
+        entries = []
+        for i in range(32):
+            raw = self.orig.read(va + 4 * i, 4)
+            if len(raw) < 4:
+                break
+            (p,) = struct.unpack("<I", raw)
+            if p not in self.funcs:
+                break
+            entries.append(self.function_label(p))
+        if len(entries) < 2:
+            return ""
+        return ", ".join(entries[:6]) + (f", ... ({len(entries)} entries)" if len(entries) > 6 else "")
 
 
 def callee_pops(orig: Original, va: int, size: int) -> set[int]:
@@ -77,6 +97,12 @@ def callee_pops(orig: Original, va: int, size: int) -> set[int]:
         if mnem == "ret":
             pops.add(int(op, 16) if op else 0)
     return pops
+
+
+def md_first(code: bytes, va: int):
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.syntax = capstone.CS_OPT_SYNTAX_INTEL
+    return md.disasm(code, va)
 
 
 def main() -> None:
@@ -99,6 +125,10 @@ def main() -> None:
     print(f"returns with: {', '.join(f'ret {p:#x}' if p else 'ret' for p in sorted(pops)) or 'no ret (tail jump?)'}"
           "  (ret N = callee cleans N bytes: __stdcall or __thiscall; plain ret = __cdecl, or __thiscall with no args)")
     print(f"called from {f['callers']} place(s); calls {f['calls']} function(s)")
+    head = [i for _, i in zip(range(5), md_first(code, va))]
+    if any(i.mnemonic == "mov" and i.op_str == "eax, ecx" for i in head):
+        print("hint: copies ecx (this) into eax up front and returns it: typical of a C++ constructor, "
+              "or of a method returning *this / this")
 
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.syntax = capstone.CS_OPT_SYNTAX_INTEL

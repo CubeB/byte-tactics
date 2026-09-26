@@ -16,7 +16,7 @@ import hashlib
 import sys
 from pathlib import Path
 
-from check import (ROOT, SYMBOLS, Original, annotations, base_name, compare,
+from check import (DEFAULT_FLAGS, ROOT, SYMBOLS, Original, annotations, base_name, compare,
                    compile_source)
 from coff import parse_object
 
@@ -27,7 +27,7 @@ NOT_LEARNED = ("$", "??_C@", "__real@", "??_7", "??_G", "??_E")
 
 
 def compile_cached(src: Path, include_hash: str):
-    key = hashlib.sha256(src.read_bytes() + include_hash.encode()).hexdigest()[:16]
+    key = hashlib.sha256(src.read_bytes() + include_hash.encode() + DEFAULT_FLAGS.encode()).hexdigest()[:16]
     stamp = ROOT / "build/obj" / src.relative_to(ROOT / "src").with_suffix(".key")
     obj = stamp.with_suffix(".obj")
     if stamp.exists() and stamp.read_text() == key and obj.exists():
@@ -89,7 +89,8 @@ def main() -> None:
         row["similarity"] = f"{res.ratio * 100:.1f}"
         row["status"] = "matched" if res.matched else ("error" if res.error else "partial")
         if res.matched:
-            symbols.setdefault(base_name(res.symbol), address)
+            if not base_name(res.symbol).startswith("$"):  # compiler-generated statics like _$E1
+                symbols.setdefault(base_name(res.symbol), address)
             for ref in res.refs:
                 if ref.status == "new" and not ref.symbol.startswith(NOT_LEARNED):
                     symbols.setdefault(base_name(ref.symbol), ref.target)

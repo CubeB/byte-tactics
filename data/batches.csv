@@ -1,3 +1,7 @@
 batch,model,functions,matched,matched_bytes,total_bytes,tokens,tool_uses,seconds
 H1,haiku,8,5,125,271,74514,76,352
 H0,haiku,30,29,187,197,75811,102,444
+H2,haiku,6,1,65,560,113234,85,621
+S1,sonnet,8,7,229,271,109303,29,688
+H3,haiku,10,7,165,262,93884,73,568
+H4,haiku,40,40,42,42,55163,64,194

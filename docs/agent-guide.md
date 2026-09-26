@@ -26,7 +26,8 @@ Work from the repository root: `~/repos/personal/byte-tactics`.
   run `tools/progress.py`, and do not commit.
 - No inline assembly or byte emission (`__asm`, `_emit`) and no
   `#pragma optimize`/`code_seg`; the checker rejects them. Compiler flags are
-  fixed (`/O2 /GX /MT`); do not try to change them.
+  fixed (`/O2 /Ob2 /GX /MT`: `/Ob2` means the compiler inlines small
+  functions on its own); do not try to change them.
 - Each file must compile on its own: define the structs/classes you need in the
   file, and declare (don't define) the functions and globals you call or use.
 
@@ -116,3 +117,30 @@ End your reply with one table row per function you were given:
 ```
 
 Keep notes short and specific: what made it hard, what fixed it.
+
+## Patterns already solved in this game
+
+Check these before fighting the compiler; each one has cost earlier agents
+their whole budget.
+
+- **`push ecx` as the first instruction** usually just reserves 4 bytes of
+  stack for a local variable. It is not saving an argument, and `ecx` is not
+  necessarily a parameter.
+- **`mov eax, ecx` near the start, `this` returned in `eax`**: a C++
+  constructor (constructors return `this`), or a method that returns `this` /
+  `*this`. Write it as a real constructor, `Class::Class(...)`, or as a method
+  returning `Class*`/`Class&`. `ctx.py` prints a hint when it sees this.
+- **Storing a `.rdata` address into `[this]`**: the vtable pointer. `ctx.py`
+  marks such addresses `vtable? [...]`. Declare the class with virtual methods
+  (declared, not defined) and write the constructor; the compiler stores the
+  vtable itself. Don't assign it by hand.
+- **A global `std::vector`**: a function that copies one byte from an
+  uninitialised stack slot (`push ecx; mov al, [esp+3]`), zeroes the next three
+  dwords of a global, then calls `atexit` is the compiler-generated
+  initialiser for `std::vector<T> global;`. See `src/unsorted/0x438450.cpp`.
+  Compiler-generated functions have no definition to annotate, so put the
+  symbol after the address: `// FUNCTION: 0x438450 _$E5`.
+- **Division by a constant** compiles to a multiply by a "magic" number plus
+  shifts. Write the plain division (`x / 48`); if registers or the shift
+  sequence differ, the signedness of `x` is usually wrong (`int` adds a sign
+  fix-up, `unsigned` doesn't).

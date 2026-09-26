@@ -32,10 +32,10 @@ import pefile
 from coff import REL_I386_DIR32, REL_I386_REL32, CoffObject, parse_object
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_FLAGS = "/O2 /GX /MT"
+DEFAULT_FLAGS = "/O2 /Ob2 /GX /MT"
 PADDING = (0x90, 0xCC)
 SYMBOLS = ROOT / "data/symbols.csv"
-ANNOTATION = re.compile(r"^\s*//\s*FUNCTION:\s*(0x[0-9a-fA-F]+)")
+ANNOTATION = re.compile(r"^\s*//\s*FUNCTION:\s*(0x[0-9a-fA-F]+)(?:\s+(\S+))?")
 FORBIDDEN = re.compile(r"\b(__asm|_asm|_emit|__emit)\b|#\s*pragma\s+(optimize|code_seg)")
 
 
@@ -112,7 +112,10 @@ def annotations(src: Path) -> list[tuple[int, str]]:
             continue
         sig = " ".join(lines[i + 1:i + 4]).split("(", 1)[0]
         names = re.findall(r"[A-Za-z_~][\w:~]*", sig)
-        out.append((int(m.group(1), 16), names[-1] if names else ""))
+        # An explicit symbol after the address (for compiler-generated functions
+        # such as dynamic initialisers, _$E1) is matched exactly, marked with "=".
+        name = "=" + m.group(2) if m.group(2) else (names[-1] if names else "")
+        out.append((int(m.group(1), 16), name))
     return out
 
 
@@ -190,6 +193,8 @@ def select_function(obj: CoffObject, want: str | None, qualname: str | None):
             cands.append((s.name, sec, s.value, end))
     if want:
         picked = [c for c in cands if want in c[0]]
+    elif qualname and qualname.startswith("="):
+        picked = [c for c in cands if c[0] == qualname[1:]]
     elif qualname:
         prefixes = mangled_prefixes(qualname)
         picked = [c for c in cands if c[0].startswith(tuple(prefixes)) or c[0] == prefixes[-1]]
@@ -238,6 +243,11 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
         if not start <= r.offset < end or r.offset - start + 4 > len(theirs):
             continue
         off = r.offset - start
+        if not bytes_match:
+            # Until the code lines up, the original's bytes at this offset belong
+            # to some other instruction, so the address read there is meaningless.
+            refs.append(Ref(off, r.symbol, 0, "unverified", "checked once the code matches"))
+            continue
         (field_ours,) = struct.unpack_from("<I", data, off)
         (field_orig,) = struct.unpack_from("<I", theirs, off)
         if r.type == REL_I386_REL32:
@@ -311,7 +321,8 @@ def report(res: Result, verbose: bool = True) -> str:
         lines.append("\nreferences the linker fills in (symbol -> address in the original):")
         for r in sorted(res.refs, key=lambda r: r.offset):
             flag = {"ok": "ok ", "new": "new", "mismatch": "BAD", "unverified": "?  "}[r.status]
-            lines.append(f"  {flag} +{r.offset:#05x}  {base_name(r.symbol)[:48]:48s} {r.target:#x}  {r.note}")
+            target = f"{r.target:#x}" if r.status != "unverified" else "-"
+            lines.append(f"  {flag} +{r.offset:#05x}  {base_name(r.symbol)[:48]:48s} {target}  {r.note}")
     if verbose and res.diff:
         lines.append("\n" + res.diff)
     return "\n".join(lines)

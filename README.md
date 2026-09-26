@@ -46,6 +46,17 @@ unpatched compiler).
 ## Layout
 
 - `src/`: reconstructed source
+- `data/functions.csv`: every function in the exe (`tools/functions.py`)
 - `tools/`: comparison and analysis scripts
 - `orig/`: the original exe (ignored by git) and its expected hash
 - `toolchain/`: VC++ 5.0 and the Wine prefix (ignored by git)
+
+## Function map
+
+`uv run tools/functions.py` rebuilds `data/functions.csv` from the exe's FPO
+records, the runtime library matches and a call graph. `kind` is `game`
+(Cavedog code), `library` (runtime, already matched) or `gap` (no FPO record,
+likely hand-written assembly).
+
+`tools/ghidra.sh` (needs Java 21) loads the exe into Ghidra with that map and
+exports pseudo-C for every game function to `build/ghidra/decomp/`.

@@ -57,6 +57,21 @@ if [ ! -d "$TC/msvc5-sp3" ]; then
     rm -rf "$tmp"
 fi
 
+# Ghidra, for pseudo-C starting points (tools/ghidra.sh). Needs Java 21 to run.
+GHIDRA_ZIP=ghidra_12.1.4_PUBLIC_20260921.zip
+if [ ! -d "$TC/ghidra" ]; then
+    if [ ! -f "$DL/$GHIDRA_ZIP" ]; then
+        curl -fSL -o "$DL/$GHIDRA_ZIP.part" \
+            "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/$GHIDRA_ZIP"
+        mv "$DL/$GHIDRA_ZIP.part" "$DL/$GHIDRA_ZIP"
+    fi
+    echo "ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387d2d4db  $DL/$GHIDRA_ZIP" | sha256sum -c --quiet
+    tmp="$(mktemp -d -p "$TC")"
+    7z x -y -bso0 -bsp0 "$DL/$GHIDRA_ZIP" -o"$tmp"
+    mv "$tmp"/ghidra_* "$TC/ghidra"
+    rm -rf "$tmp"
+fi
+
 if [ ! -f "$ROOT/orig/TotalA.exe" ]; then
     cp "$STEAM_TA/TotalA.exe" "$ROOT/orig/TotalA.exe"
 fi

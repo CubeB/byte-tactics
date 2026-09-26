@@ -20,7 +20,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 
 | Size (bytes) | Haiku | Opus | Sonnet |
 | --- | ---: | ---: | ---: |
-| 1-16 | 224/230 (97%) | 2/2 (100%) |  |
+| 1-16 | 259/278 (93%) | 2/2 (100%) |  |
 | 17-40 | 31/42 (74%) |  | 9/10 (90%) |
 | 41-64 | 3/11 (27%) |  | 11/16 (69%) |
 | 65-160 | 1/6 (17%) | 14/14 (100%) | 2/6 (33%) |
@@ -53,10 +53,11 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | S7 | sonnet | 8 | 6 | 128,367 | 21,394 | 43 | 14 |
 | S8 | sonnet | 5 | 5 | 90,150 | 18,030 | 36 | 7 |
 | S4 | sonnet | 11 | 7 | 246,350 | 35,192 | 70 | 30 |
+| H12 | haiku | 48 | 35 | 113,802 | 3,251 | 3 | 11 |
 
 ### Escalations
 
-- Opus matched 6 of 6 functions a cheaper model had failed.
+- Opus matched 9 of 9 functions a cheaper model had failed.
 - Sonnet matched 21 of 24 functions a cheaper model had failed.
 <!-- calibration:end -->
 

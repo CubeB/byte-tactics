@@ -11,6 +11,7 @@ kind is one of:
   gap      code between FPO records (hand-written assembly, thunks, or data)
 """
 
+import argparse
 import csv
 import struct
 from collections import defaultdict
@@ -25,6 +26,7 @@ from crtmatch import MIN_SIZE, find_masked
 ROOT = Path(__file__).resolve().parent.parent
 EXE = ROOT / "orig/TotalA.exe"
 RUNTIME_LIB = ROOT / "toolchain/msvc5-sp3/LIB/LIBCMT.LIB"
+CPP_LIB = ROOT / "toolchain/msvc5-sp3/LIB/LIBCPMT.LIB"
 OUT = ROOT / "data/functions.csv"
 SUBSTANTIAL = 64  # bytes; library matches this long are never coincidences
 FIELDS = ["address", "size", "kind", "name", "params", "locals", "seh", "frame_pointer",
@@ -64,7 +66,35 @@ def library_names(pe: pefile.PE) -> dict[int, str]:
     return names
 
 
+def cpp_library_names(pe: pefile.PE) -> dict[int, str]:
+    """Code from the C++ runtime (LIBCPMT): std::string internals, _Lockit, std
+    exceptions. Much of it is template code instantiated inside Cavedog's own
+    objects, so it sits in the middle of game code rather than in the runtime
+    block. Short matches are too often coincidences (any 16-byte getter looks
+    like another), so only take 64+ byte matches and 32+ byte ones next to them."""
+    text = next(s for s in pe.sections if s.Name.startswith(b".text"))
+    hay = text.get_data()
+    text_va = pe.OPTIONAL_HEADER.ImageBase + text.VirtualAddress
+    found = []
+    for obj in read_archive(CPP_LIB):
+        for sec in obj.sections:
+            if not sec.is_code or len(sec.data) < 32:
+                continue
+            off = find_masked(hay, sec.data, sec.mask())
+            if off >= 0:
+                syms = obj.symbols_in(sec)
+                if syms:
+                    found.append((text_va + off + syms[0].value, len(sec.data), syms[0].name))
+    strong = [f for f in found if f[1] >= SUBSTANTIAL]
+    names = {}
+    for addr, size, name in found:
+        if size >= SUBSTANTIAL or any(abs(addr - s[0]) <= 0x200 for s in strong):
+            names.setdefault(addr, name)
+    return names
+
+
 def main() -> None:
+    argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter).parse_args()
     pe = pefile.PE(str(EXE))
     base = pe.OPTIONAL_HEADER.ImageBase
     text = next(s for s in pe.sections if s.Name.startswith(b".text"))
@@ -87,6 +117,11 @@ def main() -> None:
             f["kind"] = "library"
         elif f["kind"] == "library":
             f["kind"], f["name"] = "game", ""
+    # C++ runtime code found inside the game region (see cpp_library_names).
+    cpp = cpp_library_names(pe)
+    for f in funcs:
+        if f["kind"] == "game" and f["address"] in cpp:
+            f["kind"], f["name"] = "library", cpp[f["address"]]
     starts = {f["address"] for f in funcs}
 
     # Everything in .text not covered by an FPO record (ignoring alignment padding).

@@ -23,7 +23,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | 1-16 | 283/312 (91%) | 2/2 (100%) |  |
 | 17-40 | 44/57 (77%) |  | 9/10 (90%) |
 | 41-64 | 3/11 (27%) |  | 14/21 (67%) |
-| 65-160 | 1/6 (17%) | 29/30 (97%) | 2/6 (33%) |
+| 65-160 | 1/6 (17%) | 37/38 (97%) | 2/6 (33%) |
 | 161-400 |  | 3/5 (60%) |  |
 
 ### Cost per batch
@@ -65,6 +65,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | H14 | haiku | 15 | 13 | 106,141 | 8,164 | 8 | 11 |
 | O13 | opus | 8 | 8 | 73,619 | 9,202 | 37 | 3 |
 | S9 | sonnet | 10 | 10 | 139,663 | 13,966 | 28 | 17 |
+| O10 | opus | 8 | 8 | 177,828 | 22,228 | 89 | 14 |
 
 ### Escalations
 
@@ -88,3 +89,10 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
   produces. Every case where our compiler seemed to "optimise more" than
   Cavedog's turned out to be a difference in the source (an inlined helper, a
   no-op cast, an extra return value, an off-by-one), not in the compiler.
+- Cavedog compiled without `/GX` (no C++ exception handling). The real STL
+  version of `std::map`'s iterator increment (0x46ea10) matches byte-for-byte
+  only without it; with it MSVC adds an exception frame the original lacks.
+  The only exception frames in the exe belong to Microsoft's C++ library.
+- The C++ runtime library (LIBCPMT) accounts for 15 functions inside the game
+  region: `std::string` internals instantiated in Cavedog's objects, two copies
+  of `std::_Lockit`, and the std exception classes. They are now `library`.

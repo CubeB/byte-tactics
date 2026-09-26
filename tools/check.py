@@ -32,7 +32,7 @@ import pefile
 from coff import REL_I386_DIR32, REL_I386_REL32, CoffObject, parse_object
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_FLAGS = "/O2 /Ob2 /GX /MT"
+DEFAULT_FLAGS = "/O2 /Ob2 /MT"
 PADDING = (0x90, 0xCC)
 SYMBOLS = ROOT / "data/symbols.csv"
 ANNOTATION = re.compile(r"^\s*//\s*FUNCTION:\s*(0x[0-9a-fA-F]+)(?:\s+(\S+))?")

@@ -26,7 +26,7 @@ Work from the repository root: `~/repos/personal/byte-tactics`.
   run `tools/progress.py`, and do not commit.
 - No inline assembly or byte emission (`__asm`, `_emit`) and no
   `#pragma optimize`/`code_seg`; the checker rejects them. Compiler flags are
-  fixed (`/O2 /Ob2 /GX /MT`: `/Ob2` means the compiler inlines small
+  fixed (`/O2 /Ob2 /MT`: `/Ob2` means the compiler inlines small
   functions on its own); do not try to change them.
 - Each file must compile on its own: define the structs/classes you need in the
   file, and declare (don't define) the functions and globals you call or use.
@@ -296,7 +296,7 @@ Look for it instead of blaming the compiler:
 
 ## Saving check.py runs
 
-`tools/wcl /c /O2 /Ob2 /GX /MT /Fa<file>.asm <file>.cpp` compiles a scratch file
+`tools/wcl /c /O2 /Ob2 /MT /Fa<file>.asm <file>.cpp` compiles a scratch file
 and writes an assembly listing you can read directly; iterate that way, then
 confirm with one `check.py` run.
 - **Empty functions called with a format string** are debug-print stubs whose
@@ -311,3 +311,13 @@ confirm with one `check.py` run.
 - **A call through a vtable** (`mov eax, [ecx]; call [eax+N]`) is a C++
   virtual call: declare a class with virtual methods (N/4 slots) and call the
   method; a hand-cast function pointer moves `this` to the wrong register.
+
+## The STL and C++ exceptions
+
+Cavedog compiled without `/GX` (no C++ exception handling), and so does the
+checker. Use the real MSVC 5 STL headers (`<vector>`, `<map>`, `<string>`,
+`<list>`): a local `std::_Lockit` or a `std::string` compiles without an
+exception frame, exactly as in the original. Code from the C++ library itself
+(`std::string` internals, `_Lockit`, the std exception classes) is marked
+`library` in `data/functions.csv` and needs no decompiling; call it by its real
+name (`std::_Lockit::_Lockit` is 0x4e39b0).

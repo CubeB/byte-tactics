@@ -1,19 +1,21 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Walks a loaded 3DO model: recurses into its two child models, then for each
 // object resolves its texture name against the loaded GAF files and either
 // points it at a plain texture or starts an animation sequence.
 //
-// NOTE: "entry" is deliberately left uninitialised. The original has no store
-// before the first lookup loop, so on the (never taken in practice) path where
-// g_game->blockCount <= 0 the parameter pointer is used as if it were a GAF
-// entry. Initialising it to 0 changes the generated code.
+// NOTE: "entry" is deliberately left uninitialised, as in the original (likely
+// an original bug). The original has no store before the first lookup loop, so
+// on the (never taken in practice) path where g_game->blockCount <= 0 the
+// parameter pointer is used as if it were a GAF entry. Initialising it to 0
+// changes the generated code.
 //
-// Still differs from the original by one scheduling detail: in the
-// "*entry <= 1" (plain texture) branch the original loads the flags first, then
-// the texture name, then ANDs and stores name before flags:
-//     mov eax,[esi+0x1c] / mov ecx,[edi+0x28] / and al,0xfd /
-//     mov [ebp],ecx / mov [esi+0x1c],eax
-// this version stores the flags before loading the name.
+// Statement order in two blocks decides the plain-texture branch: the
+// not-found block sets flag 1 before storing the colour 0xd1, and the plain
+// branch stores the texture before clearing flag 2. Both blocks then end in
+// the same flags store "mov [esi+0x1c], eax"; with the colour stored last in
+// the not-found block, MSVC does not tail-merge them (it compares the blocks
+// before scheduling), and the scheduler then interleaves the plain branch as
+// the original does.
 
 #pragma pack(push, 1)
 struct Game_0042a140 {
@@ -81,8 +83,8 @@ void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
                 if (entry != 0 && *entry == 10)
                     elem->flags |= 4;
                 if (entry == 0) {
-                    elem->type = 0xd1;
                     elem->flags |= 1;
+                    elem->type = 0xd1;
                     continue;
                 }
             }
@@ -96,8 +98,8 @@ void __stdcall FUN_0042a140(Model_0042a140* model, const char* name)
                 }
                 continue;
             }
-            elem->flags &= ~2;
             elem->name = *(void**)((char*)entry + 0x28);
+            elem->flags &= ~2;
         }
     }
 }

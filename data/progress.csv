@@ -638,10 +638,13 @@ address,size,file,symbol,status,similarity
 0x43d210,127,src/unsorted/0x43d210.cpp,?FUN_0043d210@Class_0043d210@@QAEXPAVClass_0048b090@@H@Z,matched,100.0
 0x43dd10,13,src/unsorted/0x43dd10.cpp,?FUN_0043dd10@Class_0043dd10@@QAEXXZ,matched,100.0
 0x43dd20,79,src/unsorted/0x43dd20.cpp,?FUN_0043dd20@Class_0043dd20@@QAEXPAUUnit_0043dd20@@@Z,matched,100.0
+0x43def0,359,src/unsorted/0x43def0.cpp,?FUN_0043def0@@YG?AUVec3@@PAUObject_0043def0@@H@Z,partial,63.6
 0x43e060,74,src/unsorted/0x43e060.cpp,?FUN_0043e060@@YG?AUVec3@@PAUObject@@H@Z,matched,100.0
+0x43e0b0,202,src/unsorted/0x43e0b0.cpp,?FUN_0043e0b0@@YGXPAUObj_0043e0b0@@PAUVec3@@H@Z,matched,100.0
 0x43e180,96,src/unsorted/0x43e180.cpp,?FUN_0043e180@@YG?AUOut_0043e180@@PAUObj_0043e180@@H@Z,matched,100.0
 0x43e1e0,86,src/unsorted/0x43e1e0.cpp,?FUN_0043e1e0@@YGHPAUObject@@E@Z,matched,100.0
 0x43e240,145,src/unsorted/0x43e240.cpp,?FUN_0043e240@@YGXPAUObject@@PAUVec3@@EH@Z,matched,100.0
+0x43e2e0,217,src/unsorted/0x43e2e0.cpp,?FUN_0043e2e0@@YGXPAUObject@@PAUVec3@@E@Z,matched,100.0
 0x43e3c0,62,src/unsorted/0x43e3c0.cpp,?FUN_0043e3c0@@YGXPAUObj_0043e3c0@@H@Z,matched,100.0
 0x43e400,103,src/unsorted/0x43e400.cpp,?FUN_0043e400@@YGXPAUObject@@PAUVec3@@@Z,matched,100.0
 0x43e470,29,src/unsorted/0x43e470.cpp,?FUN_0043e470@@YGHE@Z,matched,100.0
@@ -649,10 +652,13 @@ address,size,file,symbol,status,similarity
 0x440290,65,src/unsorted/0x440290.cpp,_$E3,matched,100.0
 0x4402e0,53,src/unsorted/0x4402e0.cpp,??0Class_004402e0@@QAE@XZ,matched,100.0
 0x440320,28,src/unsorted/0x440320.cpp,??1Class_004402e0@@QAE@XZ,matched,100.0
+0x440340,222,src/unsorted/0x440340.cpp,?FUN_00440340@Class_00440320@@QAEXPAUSource_00440340@@@Z,matched,100.0
 0x440420,70,src/unsorted/0x440420.cpp,?FUN_00440420@@YGPAUClass_00440320@@PAD@Z,matched,100.0
 0x440470,79,src/unsorted/0x440470.cpp,?FUN_00440470@Class_00440470@@QAEXII@Z,matched,100.0
 0x4404c0,60,src/unsorted/0x4404c0.cpp,?FUN_004404c0@Class_004404c0@@QAEXHHH@Z,matched,100.0
+0x440830,242,src/unsorted/0x440830.cpp,?FUN_00440830@Class_00440830@@QAEXUPoint_00440830@@0@Z,partial,71.2
 0x440930,1,src/unsorted/0x440930.cpp,?FUN_00440930@@YAXXZ,matched,100.0
+0x440940,189,src/unsorted/0x440940.cpp,?FUN_00440940@@YAXXZ,matched,100.0
 0x440a00,57,src/unsorted/0x440a00.cpp,?FUN_00440a00@@YAXXZ,matched,100.0
 0x440a40,47,src/unsorted/0x440a40.cpp,?FUN_00440a40@@YGXUPoint_00440a40@@0@Z,matched,100.0
 0x440a70,115,src/unsorted/0x440a70.cpp,?FUN_00440a70@@YGXPAUStruct_00440a70@@@Z,matched,100.0

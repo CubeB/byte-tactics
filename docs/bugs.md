@@ -97,6 +97,15 @@ first successful insert returns (its index), so a caller cannot tell "full"
 from "added at slot 0". The same guard stops at 0xfe, so slot 0xff is never
 used. Found by Space Bunny Free in #25.
 
+## Piece centre minimums seeded with 0 (likely)
+
+**0x43e0b0**, which works out a 3D piece's bounds and centre. All six
+accumulators (minimum and maximum per axis) start at 0
+(`xor edx, edx; xor edi, edi; xor esi, esi` at 0x43e0cb), and the minimum test
+has no large sentinel, so a minimum can never be above 0. For a piece whose
+vertices are all positive on an axis, the centre is pulled towards the
+piece's origin. The maximums are unaffected. Found by Space Bunny Free in #34.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -170,3 +179,9 @@ Things that look wrong in the original but have no effect, kept for the record.
   3, so bit 0 and bits 6 to 31 keep stack garbage, and the whole structure is
   then copied into the spawned object (FUN_00421620's inlined `rep movsd`).
   Harmless if nothing reads those bits. Found by DeepSeek V4.1 Flash in #22.
+
+- **0x440940** (loading progress): the counter starts at 100 and adds 100
+  before each division, so entry i reports `100 * (i + 2) / count`, starting
+  one step ahead and passing 100 near the end; a final store of 100 hides it.
+  Entries skipped for a zero field still count in the divisor. Found by Space
+  Bunny Free in #34.

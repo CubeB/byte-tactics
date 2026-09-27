@@ -1283,6 +1283,7 @@ address,size,file,symbol,status,similarity
 0x4702a0,46,src/unsorted/0x4702a0.cpp,?_Ucopy@?$vector@UElem_004702a0@@V?$allocator@UElem_004702a0@@@std@@@std@@IAEPAUElem_004702a0@@PBU3@0PAU3@@Z,matched,100.0
 0x4702d0,42,src/unsorted/0x4702d0.cpp,?FUN_004702d0@@YGPAHPAH00@Z,matched,100.0
 0x470300,132,src/unsorted/0x470300.cpp,??_GClass_0046ded0@@QAEPAXI@Z,matched,100.0
+0x470390,457,src/unsorted/0x470390.cpp,??0Class_0046ded0@@QAE@ABV0@@Z,matched,100.0
 0x470560,515,src/unsorted/0x470560.cpp,??4Class_00470560@@QAEAAU0@ABU0@@Z,matched,100.0
 0x470770,35,src/unsorted/0x470770.cpp,?size@?$vector@UElem_0046faf0@@V?$allocator@UElem_0046faf0@@@std@@@std@@QBEIXZ,matched,100.0
 0x470a40,70,src/unsorted/0x470a40.cpp,?FUN_00470a40@@YGPAUElem_00470a40@@PAU1@00@Z,matched,100.0

@@ -1,14 +1,33 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
 //
-// Best version so far: 62.3%.  Semantics and the stack frame match (sub esp, 8,
-// mid[1] at [esp+0x14], the spilled col[0] at [esp+0x20]).  What still differs
-// is MSVC 5's register allocation and instruction scheduling in the top block:
-// the original keeps the top-left x sum in eax with the operands loaded in the
-// order p[0], p[4], p[6], p[2], while this source is scheduled as
-// ((p[2] + p[0]) + p[4]) + p[6] and the colour pointer is hoisted into edi at
-// the head of the prologue instead of after the corner sums.  The four call
-// argument blocks also reload the corner values into different registers.
-// The exact source that produced the original schedule is not reproduced here.
+// Best version so far: 62.3% (notes below updated by Claude Opus 5.5 in #103).
+// Semantics and the stack frame match (sub esp, 8, mid[1] at [esp+0x14], the
+// spilled col[0] at [esp+0x20]).
+//
+// What still differs: the operand order of the three four-term sums. The
+// original builds x as ((p[0] + p[4]) + p[6]) + p[2], y as
+// ((p[3] + p[1]) + p[7]) + p[5] and the height sum as
+// ((col[0] + col[2]) + col[3]) + col[1], and keeps p[2] alive in a register
+// for the first call. Every source form tried pairs p[0] with p[2] first in
+// the x sum. MSVC 5 ignores the source order of these terms entirely, and in
+// a scratch file five identical copies of one sum function come out in three
+// different orders, so the order is compiler state (what was compiled before
+// this function), not source shape. Tried without success: a Pt struct array,
+// Pt/array/scalar mid, every order of the three statements, expression vs
+// "+=" sums, Avg4/Sum4 inline helpers, mid returned by value, locals for
+// p[1].x/col[0]/col[1], "2 +" first, const pointers, each with all 128 sets
+// of tools/headers.py. The original file probably defined FUN_00417f60 (the
+// callee, directly before this function) first; decompiling it into this file
+// is the next thing to try.
+//
+// Also: the original's "xor ecx, ecx; mov cl, [edi+2]; shl ecx, 8" comes
+// from "col[i] * 256"; the "<< 8" below compiles to "mov ch, [edi+2]" but
+// scores higher here only because the diff aligns better.
+//
+// The callee draws contour lines across a triangle (its third coordinate is a
+// height: >> 8, minus a sea level byte, into a colour table), so col holds the
+// four corner heights of a map cell and this draws the cell as four triangles
+// around its centre.
 
 // Gouraud-shaded quad fill: FUN_00417f60 fills one shaded triangle, so the quad
 // is drawn as four triangles fanning from the average of the four corners.

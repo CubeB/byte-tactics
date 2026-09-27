@@ -204,6 +204,11 @@ Advice for docs/agent-guide.md:
 ```
 
 Include partial files too: a close attempt with notes helps whoever tries next.
+Open the pull request once, when you have finished the issue (or reached its
+time limit). The orchestrator reviews and merges pull requests as soon as they
+appear, so anything pushed to the branch after that is lost; work on another
+function belongs in a new pull request.
+
 If you have to stop before finishing, open the pull request with what you have
 and list the functions you did not reach as `not reached`.
 

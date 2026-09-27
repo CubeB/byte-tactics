@@ -14,7 +14,8 @@ that counts.
 wrote them, per the pull request table). `--escalate hard` opens an issue for
 GPT-6 Astra and Claude Opus with every function left unmatched; `--escalate
 claude` opens one for the orchestrator's own clean-up instead (what cheap models
-such as DeepSeek leave behind).
+such as DeepSeek leave behind); `--escalate retry` opens an ordinary near-miss
+issue any model may take (a weak free model's leftovers, for DeepSeek next).
 """
 
 import argparse
@@ -34,8 +35,9 @@ def main() -> None:
     ap.add_argument("--seconds", type=int, default=0)
     ap.add_argument("--model-for", action="append", default=[], metavar="ADDR=MODEL",
                     help="model that wrote one function, if not the main one (repeatable)")
-    ap.add_argument("--escalate", choices=["hard", "claude"],
-                    help="open an issue for the functions left unmatched: 'hard' for GPT-6 Astra and "
+    ap.add_argument("--escalate", choices=["retry", "hard", "claude"],
+                    help="open an issue for the functions left unmatched: 'retry' for any model (a weak "
+                         "free model's leftovers, for DeepSeek to try next), 'hard' for GPT-6 Astra and "
                          "Claude Opus, 'claude' for the orchestrator's own clean-up (cheap models' leftovers)")
     args = ap.parse_args()
     per_function = {int(a, 16): m for a, m in (x.split("=", 1) for x in args.model_for)}
@@ -84,6 +86,7 @@ def main() -> None:
         subprocess.run(["uv", "run", "--quiet", "tools/issues.py", "--addresses", *left,
                         "--title", f"Retry: {len(left)} function{'' if len(left) == 1 else 's'} left unmatched in {batch}",
                         "--label", "near-miss", *(["--label", "claude"] if args.escalate == "claude" else []),
+                        *(["--open"] if args.escalate == "retry" else []),
                         "--escalation",
                         "--note", f"Tried by {', '.join(models)} in {batch}. Each file says what still "
                                   "differs; treat it as a starting point, not as correct."],

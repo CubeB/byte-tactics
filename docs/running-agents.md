@@ -144,8 +144,10 @@ Run from the main checkout, on `main`:
    - `uv run tools/record.py <issue> <model> --escalate claude`. Add
      `--model-for <addr>=<model>` for each function another model (such as a
      worker) wrote. `--escalate claude` opens a retry issue labelled `claude`
-     for everything left unmatched. Use `--escalate hard` instead only to give
-     GPT-6 Astra a go at it.
+     for everything left unmatched. For a weak or free model's leftovers use
+     `--escalate retry`, an ordinary `near-miss` issue that DeepSeek and the
+     other cheap models can take next, so Opus only sees what a capable cheap
+     model also missed. Use `--escalate hard` only to give GPT-6 Astra a go.
    - `uv run tools/progress.py`
    - `uv run tools/calibration.py`
 

@@ -72,6 +72,8 @@ def main() -> None:
     ap.add_argument("--note", default="", help="text appended to the issue body")
     ap.add_argument("--escalation", action="store_true",
                     help="these functions were already tried; record the new attempt as an escalation")
+    ap.add_argument("--open", action="store_true",
+                    help="never add `hard`: a retry any model may take (a weak model's leftovers)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -102,7 +104,8 @@ def main() -> None:
         labels = ["decomp", *[f"size:{b}" for b in bands], *args.label]
         # Larger functions and retries go to the strongest models (AGENTS.md).
         # Issues labelled `claude` are the orchestrator's own clean-up and never `hard`.
-        if "claude" not in labels and (args.escalation or "near-miss" in labels or "huge" in bands):
+        if ("claude" not in labels and not args.open
+                and (args.escalation or "near-miss" in labels or "huge" in bands)):
             labels.append("hard")
         if args.dry_run:
             print(f"{title}  [{', '.join(labels)}]")

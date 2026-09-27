@@ -823,6 +823,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   matches gives the right class (0x4349f0).
 - **One `sub` after an if/else merge**: `x - K` written in both branches; a
   single subtraction after the merge becomes `add reg, -K` (0x4bc320).
+- **`cmp eax, <reg known to be 0>` instead of `test eax, eax` after a call**: the
+  result was stored in a local first (`hr = f(); if (hr == 0)`) (0x4c9dd0).
+- **An immediate `mov [m], 0` among stores of zeroed registers**: that
+  assignment came before the zero temporaries in the source (0x43d210).
+- **A literal argument pushed as a register** right after a compare with that
+  value: MSVC reused the register; the source still had the literal.
+- **A call to a named method with no `mov ecx` before it** in a function that
+  never sets ecx: the caller is a method of the same class and `this` passes
+  through (0x437b50).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

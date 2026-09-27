@@ -1,3 +1,4 @@
 name,address,note
 std::_Lockit::_Lockit,0x4e1480,second identical copy linked with the library code at 0x4d8000-0x4e3000
 std::_Lockit::~_Lockit,0x4e1540,second identical copy linked with the library code at 0x4d8000-0x4e3000
+IURect_0046e160::IU?$pair::?$_Tree::erase,0x46f1e0,"overload: erase(iterator), called by erase(iterator, iterator) at 0x46e890; the checker gives both overloads one name"

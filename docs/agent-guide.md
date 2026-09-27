@@ -1420,6 +1420,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   MSVC merges any other `return 0` into the final one, so the failing path is
   probably an inline helper tested with `if (!Helper()) return 0;`. See
   0x461750 (86.5% to 98.6%).
+- **A template calling another overload of itself**: check.py names a
+  function by its mangled name up to the first `@@`, so two overloads of one
+  template member (such as `_Tree::erase(iterator)` and
+  `erase(iterator, iterator)`) get the same name, and a call from one to the
+  other is reported as pointing at the wrong address. If your bytes match and
+  that is the only failure, say so in the pull request; the orchestrator adds
+  a row to data/aliases.csv (#249, 0x46e890).
+- **Specialise `allocator<T>::destroy` to call a `/Gz` `_Destroy` directly**
+  when an inline `std::_Destroy(T*)` overload calling the `__stdcall` FUN_
+  stays a call one level too deep. See 0x46eaa0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

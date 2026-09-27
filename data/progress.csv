@@ -1191,12 +1191,12 @@ address,size,file,symbol,status,similarity
 0x46e610,34,src/unsorted/0x46e610.cpp,??1Class_0046e610@@QAE@XZ,matched,100.0
 0x46e870,3,src/unsorted/0x46e870.cpp,?_Destroy@?$vector@UElem_0046faf0@@V?$allocator@UElem_0046faf0@@@std@@@std@@IAEXPAUElem_0046faf0@@0@Z,matched,100.0
 0x46e880,14,src/unsorted/0x46e880.cpp,?FUN_0046e880@Class_0046e880@@QAEPAHPAH@Z,matched,100.0
-0x46e890,276,src/unsorted/0x46e890.cpp,?erase@Class_0046e890@@QAE?AVClass_0046ea10@@V2@0@Z,partial,100.0
+0x46e890,276,src/unsorted/0x46e890.cpp,?erase@?$_Tree@IU?$pair@IURect_0046e160@@@std@@U_Kfn@?$map@IURect_0046e160@@U?$less@I@std@@V?$allocator@URect_0046e160@@@3@@2@U?$less@I@2@V?$allocator@URect_0046e160@@@2@@std@@QAE?AViterator@12@V312@0@Z,matched,100.0
 0x46e9b0,88,src/unsorted/0x46e9b0.cpp,?FUN_0046e9b0@Class_0046e9b0@@QAE?AVIter_0046e9b0@@ABI@Z,matched,100.0
-0x46ea10,132,src/unsorted/0x46ea10.cpp,?FUN_0046ea10@Class_0046ea10@@QAEXXZ,matched,100.0
-0x46eaa0,189,src/unsorted/0x46eaa0.cpp,?_Destroy@?$vector@UClass_0046eaa0@@V?$allocator@UClass_0046eaa0@@@std@@@std@@IAEXPAUClass_0046eaa0@@0@Z,partial,52.3
+0x46ea10,132,src/unsorted/0x46ea10.cpp,?_Inc@iterator@?$_Tree@IU?$pair@IURect_0046e160@@@std@@U_Kfn@?$map@IURect_0046e160@@U?$less@I@std@@V?$allocator@URect_0046e160@@@3@@2@U?$less@I@2@V?$allocator@URect_0046e160@@@2@@std@@QAEXXZ,matched,100.0
+0x46eaa0,189,src/unsorted/0x46eaa0.cpp,?_Destroy@?$vector@UClass_0046eaa0@@V?$allocator@UClass_0046eaa0@@@std@@@std@@IAEXPAUClass_0046eaa0@@0@Z,matched,100.0
 0x46eb60,52,src/unsorted/0x46eb60.cpp,?erase@?$list@HV?$allocator@H@std@@@std@@QAE?AViterator@12@V312@@Z,matched,100.0
-0x46f6d0,79,src/unsorted/0x46f6d0.cpp,?FUN_0046f6d0@Class_0046f6d0@@QAEXPAUNode_0046f6d0@@@Z,matched,100.0
+0x46f6d0,79,src/unsorted/0x46f6d0.cpp,?_Erase@?$_Tree@IU?$pair@IURect_0046e160@@@std@@U_Kfn@?$map@IURect_0046e160@@U?$less@I@std@@V?$allocator@URect_0046e160@@@3@@2@U?$less@I@2@V?$allocator@URect_0046e160@@@2@@std@@IAEXPAU_Node@12@@Z,matched,100.0
 0x46f720,124,src/unsorted/0x46f720.cpp,?FUN_0046f720@Class_0046f720@@QAEXXZ,matched,100.0
 0x46fac0,15,src/unsorted/0x46fac0.cpp,??Eiterator@?$list@HV?$allocator@H@std@@@std@@QAE?AV012@H@Z,matched,100.0
 0x46fad0,22,src/unsorted/0x46fad0.cpp,??0Class_0046fad0@@QAE@ABQAUNode_0046fad0@@AB_N@Z,matched,100.0

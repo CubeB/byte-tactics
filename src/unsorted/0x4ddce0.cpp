@@ -38,8 +38,16 @@ static inline Node_004ddce0* AllocNode()
     return node;
 }
 
+// A method that ignores `this`: its caller (0x4dc680, an inlined tree insert
+// after its std::_Lockit) sets ecx to the tree. Shaped like
+// std::_Tree<...>::_Buynode(parent, colour) with a pooled allocator.
+class Class_004ddce0 {
+public:
+    Node_004ddce0* FUN_004ddce0(int param_1, int param_2);
+};
+
 // FUNCTION: 0x4ddce0
-Node_004ddce0* __stdcall FUN_004ddce0(int param_1, int param_2)
+Node_004ddce0* Class_004ddce0::FUN_004ddce0(int param_1, int param_2)
 {
     Node_004ddce0* node = AllocNode();
     node->field_4 = param_1;

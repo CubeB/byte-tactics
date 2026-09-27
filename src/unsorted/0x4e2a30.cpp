@@ -66,8 +66,16 @@ static inline void* PoolAlloc(unsigned int n)
     return p;
 }
 
+// A method that ignores `this`: its caller (0x4e2250, an inlined tree insert
+// after its std::_Lockit) sets ecx to the tree. Shaped like
+// std::_Tree<...>::_Buynode(parent, colour) with a pooled allocator.
+class Class_004e2a30 {
+public:
+    Node_004e2a30* FUN_004e2a30(int param_1, int param_2);
+};
+
 // FUNCTION: 0x4e2a30
-Node_004e2a30* __stdcall FUN_004e2a30(int param_1, int param_2)
+Node_004e2a30* Class_004e2a30::FUN_004e2a30(int param_1, int param_2)
 {
     Node_004e2a30* node = (Node_004e2a30*)PoolAlloc(sizeof(Node_004e2a30));
     node->field_4 = param_1;

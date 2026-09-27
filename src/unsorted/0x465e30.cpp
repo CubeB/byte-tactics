@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
 // Sets each player's two camera floats (player +0x8c and +0x98) from the game
 // mode: mode 1 copies the net player's stored floats, mode 2 the per-slot
 // integers converted to float, mode 3 the colour-index player's info values
@@ -6,22 +6,13 @@
 // original does, so a player with a colour index other than its own slot
 // gets the other player's view position).
 //
-// Still differs (68.4%): one register-allocation decision about the players
-// offset induction variable. The original keeps i*0x14b in its stack slot
-// ([esp+0x14]), loading it into ecx at the top of the loop for
-// `lea esi,[eax+ecx+0x1b63]` and into edx at the bottom to add 0x14b, so
-// esi holds the player pointer and the loop starts with
-// `xor ebp,ebp` (the slots IV) initialising both memory IVs. This build
-// promotes the offset IV into esi and coalesces the player pointer into the
-// same register, which also reorders the g_game load in case 3 and the flag
-// load at the loop top, and makes three jumps shorter. Tried without luck:
-// pointer declared in/out of the loop, `int`/`long`/`unsigned`/`short` loop
-// counters, while/do forms, if/else instead of the switch, net or slot
-// pointer locals, 1-D vs 2-D vs raw-offset address forms, `&arr[i]` vs
-// `arr + i`, storing through players[i] in one case at a time, an unused
-// compare on the pointer, and 0..400 dummy externs before and inside the
-// function (the "compiler state" trick). Frame size, slot order and every
-// other instruction already match.
+// Without a header in front (79.6%), MSVC 5 promotes the i*0x14b offset into
+// esi and reuses it for the player pointer; the original keeps the offset in
+// its stack slot. The compiler state after <windows.h> (tools/headers.py; 84
+// or more unused declarations do the same) gives the original's allocation
+// with the source unchanged.
+#include <windows.h>
+
 #pragma pack(push, 1)
 
 class Class_00435100 {

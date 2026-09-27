@@ -87,6 +87,9 @@ revisit them once the surrounding code is known.
 - 0x4352d0, 0x463730 and 0x45ca50 have no callers and no pointers to them:
   probably dead code.
 
+- 0x438b90's `Class_00438b90` has `Class_0043a1f0`'s layout (kind at +4,
+  flags at +0x42).
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

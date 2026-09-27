@@ -718,6 +718,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Before declaring a class's virtuals**, dump its vtable with
   `objdump -s --start-address=<vtable> --stop-address=<vtable+0x40>
   orig/TotalA.exe` to see what each slot holds.
+- **All divisions done before three stores to an output struct**: assign a
+  constructed temporary, `*out = Vec3(a / n, b / n, c / n);`; field-by-field
+  stores interleave with the divisions (0x407410).
+- **`if (bf && x)` vs nested ifs**: `if (bf && x)` tests the bitfield with
+  `test byte ptr [m], mask`; nested `if (bf) { if (x) ... }` gives `mov ax, [m];
+  shr eax, N; test al, 1` (0x4c2cc0).
+- **A byte difference used as an `unsigned short` index**: compute it into an
+  `int` in its own statement; `(unsigned short)(c - f)` does 16-bit arithmetic
+  (0x4c1480).
+- **`mov reg, [0]`**: an inlined helper was passed a null pointer and reads a
+  field through it, e.g. `Send(0, &packet)` (0x46d530).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

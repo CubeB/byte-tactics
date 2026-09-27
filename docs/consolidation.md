@@ -12,6 +12,11 @@ single addresses, so one real class often appears under several names.
 - `Class_004c91a0` (copy constructor, 0x4c91a0), `Class_004c9390` (destructor:
   decrement and free, 0x4c9390) and `Class_004c93b0` (assignment,
   0x4c93b0) are the same reference-counted string handle.
+- `Class_00485e30` (vtable 0x4fd698, created by 0x485d40) derives from
+  `Class_004b0610`; its 20 overrides (0x480770-0x481470) are matched under
+  separate placeholder classes. 0x485e30.cpp keeps a static `new` to emit its
+  `??_G` until 0x485d40 is decompiled. The run 0x4b0720-0x4b1c00 is probably
+  more non-virtual methods of `Class_004b0610` (0x485d40 calls 0x4b0940).
 - `Class_00470ae0` (vtable 0x4fd580, `??_G` at 0x470ae0): its constructor is
   0x470a90 (`Class_00470a90::FUN_00470a90`) and its destructor 0x470b80
   (`Class_00470b80::FUN_00470b80`).

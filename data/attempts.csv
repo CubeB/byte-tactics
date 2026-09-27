@@ -1288,7 +1288,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x416660,34,sonnet,S25,assigned,,,escalated from H27
 0x40d4f0,35,sonnet,S25,assigned,,,escalated from H27
 0x47a8e0,40,sonnet,S25,assigned,,,escalated from H27
-0x4b06b0,63,opus,O49,assigned,,,consolidation of Class_004b0610
+0x4b06b0,63,opus,O49,matched,100.0,,consolidation of Class_004b0610
 0x4e2fe0,67,opus,O50,matched,100.0,,
 0x40a100,75,opus,O50,matched,100.0,,
 0x4d1aa0,81,opus,O50,matched,100.0,,
@@ -1299,3 +1299,13 @@ address,size,model,batch,result,similarity,runs,notes
 0x44f7e0,126,opus,O50,matched,100.0,,
 0x4d0b80,137,opus,O50,matched,100.0,,
 0x470ae0,151,opus,O50,matched,100.0,,
+0x40b320,68,opus,O51,assigned,,,
+0x4161f0,75,opus,O51,assigned,,,
+0x4d1c00,81,opus,O51,assigned,,,
+0x4e03f0,88,opus,O51,assigned,,,
+0x4cb590,95,opus,O51,assigned,,,
+0x4769f0,105,opus,O51,assigned,,,
+0x45fbc0,116,opus,O51,assigned,,,
+0x457cb0,126,opus,O51,assigned,,,
+0x443070,138,opus,O51,assigned,,,
+0x4ba880,151,opus,O51,assigned,,,

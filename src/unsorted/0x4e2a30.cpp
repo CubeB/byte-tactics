@@ -21,8 +21,8 @@ public:
     Class_004e2a10* FUN_004e2a10(const Data1* param_1, const Data2* param_2);
 };
 
-// The function just before this one in the original file (see
-// 0x4e2a10.cpp). With no function compiled before it, MSVC copies the
+// The function just before this one in the original file.
+// With no function compiled before it, MSVC copies the
 // node-field stores into the out-of-memory path instead of jumping to them.
 // FUNCTION: 0x4e2a10
 Class_004e2a10* Class_004e2a10::FUN_004e2a10(const Data1* param_1, const Data2* param_2)

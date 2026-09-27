@@ -95,7 +95,7 @@ revisit them once the surrounding code is known.
 
 - The `Class_00471cc0` family (base vtable 0x4fd5a8: destructor plus three
   `_purecall`s; derived vtables 0x4fd5b8, 0x4fd5d8, 0x4fd5f8, 0x4fd618,
-  0x4fd638): 0x471430, 0x471560 and 0x4716a0 are scalar deleting destructors
+  0x4fd638): 0x471430, 0x471560, 0x4716a0 and 0x4717e0 are scalar deleting destructors
   still written as placeholder methods with a hand-stored base vtable, like
   the 0x4fc980 family before its consolidation.
 

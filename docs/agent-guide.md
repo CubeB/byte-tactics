@@ -755,6 +755,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A field read and stored back unchanged between two real updates**
   (`mov edx, [esi+4]; mov [esi+4], edx`): a component-wise `out->y -= d.y`
   where `d.y` is a constant 0 from an inlined vector helper (0x44d720).
+- **`or ecx, -1; repne scasb; not ecx` pushed with no `dec ecx`**:
+  `strlen(s) + 1`, the length including the terminator (0x49e640).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

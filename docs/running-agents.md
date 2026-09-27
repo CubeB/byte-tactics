@@ -118,9 +118,13 @@ Run from the main checkout, on `main`:
    Near-misses to retry with a stronger model:
    - `uv run tools/issues.py --addresses ... --title "Near-misses" --label near-miss --escalation`
 2. **Review each pull request.**
-   - `gh pr checkout <PR>` in a scratch worktree.
-   - `uv run tools/checkall.py <addresses>` to re-check the functions.
-   - Read the files for forbidden tricks and made-up names.
+   - `tools/review.sh <PR>` checks the pull request out in `.worktrees/pr-<PR>`.
+     It lists the changed files, re-checks every function in them and flags
+     forbidden constructs.
+   - Read the files for made-up names, and fix bad matches before merging.
+   - Squash-merge with a commit message in the project's format:
+     `gh pr merge <PR> --squash --delete-branch --subject "Add: ..." --body "..."`.
+   - `tools/review.sh <PR> --clean` removes the worktree.
 3. **Merge and record.** Squash-merge, then on `main`:
    - `uv run tools/record.py <issue> <model> --escalate claude`. Add
      `--model-for <addr>=<model>` for each function another model (such as a

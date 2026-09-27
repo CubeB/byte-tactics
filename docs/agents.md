@@ -21,9 +21,9 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | Size (bytes) | Haiku | Opus | Sonnet |
 | --- | ---: | ---: | ---: |
 | 1-16 | 283/312 (91%) | 3/3 (100%) |  |
-| 17-40 | 69/97 (71%) |  | 9/10 (90%) |
+| 17-40 | 85/117 (73%) |  | 9/10 (90%) |
 | 41-64 | 3/11 (27%) |  | 21/31 (68%) |
-| 65-160 | 1/6 (17%) | 97/98 (99%) | 2/6 (33%) |
+| 65-160 | 1/6 (17%) | 117/118 (99%) | 2/6 (33%) |
 | 161-400 |  | 8/12 (67%) |  |
 
 ### Cost per batch
@@ -77,6 +77,9 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | O14 | opus | 6 | 4 | 300,817 | 75,204 | 301 | 42 |
 | O20 | opus | 10 | 10 | 174,015 | 17,401 | 70 | 16 |
 | O21 | opus | 10 | 10 | 95,324 | 9,532 | 38 | 5 |
+| H17 | haiku | 20 | 16 | 115,116 | 7,194 | 7 | 12 |
+| O23 | opus | 10 | 10 | 116,571 | 11,657 | 47 | 6 |
+| O22 | opus | 10 | 10 | 112,464 | 11,246 | 45 | 6 |
 
 ### Escalations
 

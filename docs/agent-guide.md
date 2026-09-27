@@ -296,7 +296,11 @@ Look for it instead of blaming the compiler:
 
 ## Saving check.py runs
 
-`tools/wcl /c /O2 /Ob2 /MT /Fa<file>.asm <file>.cpp` compiles a scratch file
+Several agents work at once, so keep scratch files in your own folder:
+`build/scratch/<your first address>/` (for example `build/scratch/0x4635b0/`),
+never a shared name like `/tmp/a.cpp`.
+
+`tools/wcl /c /O2 /Ob2 /MT /Fa<file>.asm /Fo<file>.obj <file>.cpp` compiles a scratch file
 and writes an assembly listing you can read directly; iterate that way, then
 confirm with one `check.py` run.
 - **Empty functions called with a format string** are debug-print stubs whose
@@ -388,3 +392,24 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Families of functions**: look for matched functions of the same shape (for
   example the pool allocators 0x4ddce0/0x4ddc00: GlobalAlloc 0x2000 plus the
   out-of-memory handler) and copy them, changing only sizes and globals.
+- **Inlined `std::map::find`**: declare the lower-bound callee as returning a
+  node pointer and wrap it in a small iterator class (returning the iterator by
+  value adds a hidden return pointer). `cmp; sbb; neg; test al, al` needs a
+  `less`-style functor with `bool operator()`; `(p == End() || cmp(...)) ? End() : p`
+  gives the `lea eax, [temp]` selection. See `src/unsorted/0x46e330.cpp`.
+- **Assigning to a 1-bit bitfield**: an `int` value gives `xor/and 1/xor`; a
+  `char` value gives `and/or`.
+- **An argument `push` in the middle of a run of field stores**: MSVC hoists the
+  push to just after the last inlined constructor before the call, so the stores
+  before it came from member objects' inline constructors. Split those fields
+  into member structs with inline constructors (see `0x4635b0.cpp`).
+- **The same argument setup on both sides of a branch, then a jump to one
+  call**: the source called one inlined helper in both branches of an if/else
+  and MSVC merged the tail. A ternary argument gives a single push sequence.
+- **Calls into "gap" regions** (hand-written assembly, e.g. the fixed-point trig
+  routines at 0x4b70a0-0x4b7200): run `ctx.py` on the gap start to read the
+  routine, take argument types from it (`movsx` of a word means `short`), and
+  declare it `__cdecl FUN_<addr>`.
+- **DirectX**: `<ddraw.h>`, `<dsound.h>` and `<dplay.h>` are available; a COM
+  call (`call [ecx+N]` with the interface pointer pushed) is the real interface
+  method, e.g. `IDirectDrawPalette::SetEntries`.

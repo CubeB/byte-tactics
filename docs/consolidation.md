@@ -116,6 +116,11 @@ revisit them once the surrounding code is known.
   (copy) and `Class_004c91b0` (`const char*`); the timer's two constructors
   both use `Class_004e1d20::Class_004e1d20`, which the checker cannot tell apart.
 
+- The `Class_0044ce20` family (vtables around 0x4fd3f8, constructors 0x44e740
+  and 0x44e9c0 among others) still stores its vtables by hand
+  (`vtable = DAT_004fd3f8;`), like the 0x4fc980 family before its
+  consolidation.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

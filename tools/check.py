@@ -309,6 +309,25 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
     ours_ins = disasm(data, address)
     reloc_ins = {i.address for i in ours_ins for ref in refs
                  if i.address - address <= ref.offset < i.address - address + i.size}
+    lo, hi = address, address + size
+
+    # For the diff, point every field the linker fills in at a placeholder
+    # address in the image, so it prints as an address like the original's
+    # instead of `[0]`, `push 0` or a call to the next instruction.
+    placeholder = orig.base + 0x1000
+    if lo <= placeholder < hi:
+        placeholder = orig.end - 0x10
+    patched = bytearray(data)
+    for r in sec.relocs:
+        off = r.offset - start
+        if not start <= r.offset < end or off + 4 > len(patched):
+            continue
+        (field,) = struct.unpack_from("<I", patched, off)
+        if r.type == REL_I386_REL32:
+            struct.pack_into("<I", patched, off, (placeholder - (address + off + 4)) & 0xFFFFFFFF)
+        elif r.type == REL_I386_DIR32:
+            struct.pack_into("<I", patched, off, (placeholder + field) & 0xFFFFFFFF)
+    shown_ins = disasm(bytes(patched), address)
 
     # An address into the original image written as a plain number matches the
     # bytes but not the meaning: the linker could never move it. Require a symbol.
@@ -321,9 +340,9 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
                 if 0x401000 <= v < orig.end:
                     refs.append(Ref(i.address - address, f"{v:#x}", v, "mismatch",
                                     "hard-coded address: declare the global/vtable/function and refer to it by name"))
-    lo, hi = address, address + size
-    ours_txt = [normalise(i, lo, hi, lambda v, i=i: i.address in reloc_ins) for i in ours_ins]
-    theirs_txt = [normalise(i, lo, hi, lambda v: orig.base <= v < orig.end) for i in disasm(theirs, address)]
+    in_image = lambda v: orig.base <= v < orig.end
+    ours_txt = [normalise(i, lo, hi, in_image) for i in shown_ins]
+    theirs_txt = [normalise(i, lo, hi, in_image) for i in disasm(theirs, address)]
     ratio = difflib.SequenceMatcher(None, theirs_txt, ours_txt, autojunk=False).ratio()
     diff = "" if bytes_match else "\n".join(
         difflib.unified_diff(theirs_txt, ours_txt, "original", "ours", lineterm="", n=3))

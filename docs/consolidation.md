@@ -54,6 +54,12 @@ revisit them once the surrounding code is known.
   is `??1logic_error`), 0x4fdcb4 is `std::out_of_range` (0x4c3aa0 `??1`,
   0x4c3af0 `_Doraise`, 0x4c3c60 `??_G`), 0x4fdc7c is `std::length_error`.
 
+- 0x407980 and 0x408810 (and 0x407390 if matched that way) are scalar deleting
+  destructors written with a hand-assigned vtable pointer
+  (`vtable = DAT_004fc980;`). The real source is a `??_G` of classes derived
+  from the base with vtable 0x4fc980, the base destructor inlined. Placeholder
+  slot names are now compatible across classes, so a real `??_G` may now pass.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

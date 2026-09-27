@@ -146,3 +146,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   (0 to 7) but indexes a six-entry sound array with no bound, so values 6 and
   7 would read past it. Whether the data ever holds those values is unknown.
   Found by Codex / GPT-6 in #7.
+- **0x420e50** (possible): builds a spawn structure on the stack whose flags
+  dword at +0x28 is only partly set. It clears bits 4 and 5 and sets bits 1 to
+  3, so bit 0 and bits 6 to 31 keep stack garbage, and the whole structure is
+  then copied into the spawned object (FUN_00421620's inlined `rep movsd`).
+  Harmless if nothing reads those bits. Found by DeepSeek V4.1 Flash in #22.

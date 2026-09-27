@@ -1262,6 +1262,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `(float)sqrt(x) * 30.0f * n` MSVC 5 moves the constant last (and may negate
   it to turn a following `+` into a `sub`); parentheses keep the order but turn
   `fidiv`/`fimul` into `fild`-based code. See 0x411f50 if you solve it.
+- **A pointer field re-read each iteration with base and index swapped**:
+  bind a reference to the field (`NameEntry*& entries = list->entries;`) so
+  MSVC reloads it and bases the `lea` on the loop offset. Found by DeepSeek
+  V4.1 Flash in #22 (0x421f20).
+- **Padding a struct to a power-of-two size** turns element indexing into a
+  shift (`shl edx, 8`) and can fix the surrounding registers as a side effect,
+  where an explicit multiplication does not. See 0x421da0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

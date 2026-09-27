@@ -2763,7 +2763,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x488d30,309,,#260,assigned,,,issue #260
 0x465e30,371,,#264,assigned,,,"issue #264, escalated"
 0x466b70,165,,#264,assigned,,,"issue #264, escalated"
-0x4399f0,312,,#267,assigned,,,"issue #267, escalated"
+0x4399f0,312,opus,#267,matched,100.0,,"issue #267, escalated"
 0x41f7f0,3580,,#271,assigned,,,issue #271
 0x420620,766,,#271,assigned,,,issue #271
 0x420b00,420,,#271,assigned,,,issue #271

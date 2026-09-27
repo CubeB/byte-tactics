@@ -1003,6 +1003,7 @@ address,size,file,symbol,status,similarity
 0x456190,106,src/unsorted/0x456190.cpp,?FUN_00456190@@YGHPAUObject_00456190@@F@Z,matched,100.0
 0x456200,139,src/unsorted/0x456200.cpp,?FUN_00456200@@YGHPAUObject_00456200@@PADDHHHH@Z,matched,100.0
 0x456290,124,src/unsorted/0x456290.cpp,?FUN_00456290@@YGHPAUObject_00456290@@FDHHHH@Z,matched,100.0
+0x4565a0,442,src/unsorted/0x4565a0.cpp,?FUN_004565a0@@YGXPAUMessage_004565a0@@@Z,matched,100.0
 0x456760,225,src/unsorted/0x456760.cpp,?FUN_00456760@@YAHXZ,matched,100.0
 0x456850,87,src/unsorted/0x456850.cpp,?FUN_00456850@@YAEXZ,matched,100.0
 0x4568b0,3,src/unsorted/0x4568b0.cpp,?FUN_004568b0@@YGXHHH@Z,matched,100.0
@@ -1012,6 +1013,7 @@ address,size,file,symbol,status,similarity
 0x4571c0,218,src/unsorted/0x4571c0.cpp,?FUN_004571c0@@YGXEE@Z,matched,100.0
 0x4572a0,293,src/unsorted/0x4572a0.cpp,?FUN_004572a0@@YAHXZ,matched,100.0
 0x4573d0,358,src/unsorted/0x4573d0.cpp,?FUN_004573d0@@YGXPAUPlayer_004573d0@@0E@Z,matched,100.0
+0x457540,451,src/unsorted/0x457540.cpp,?FUN_00457540@@YGXPAUPacket_00457540@@PAUPlayer_00457540@@@Z,matched,100.0
 0x4578d0,18,src/unsorted/0x4578d0.cpp,?FUN_004578d0@@YGXH@Z,matched,100.0
 0x4578f0,340,src/unsorted/0x4578f0.cpp,?FUN_004578f0@@YAXXZ,matched,100.0
 0x457a50,154,src/unsorted/0x457a50.cpp,?FUN_00457a50@@YAHXZ,matched,100.0

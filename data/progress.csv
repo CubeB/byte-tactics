@@ -1294,6 +1294,7 @@ address,size,file,symbol,status,similarity
 0x470a90,70,src/unsorted/0x470a90.cpp,?FUN_00470a90@Class_00470a90@@QAEPAVClass_00470ae0@@HH@Z,matched,100.0
 0x470ae0,151,src/unsorted/0x470ae0.cpp,??_GClass_00470ae0@@UAEPAXI@Z,matched,100.0
 0x470b80,130,src/unsorted/0x470b80.cpp,?FUN_00470b80@Class_00470b80@@QAEXXZ,matched,100.0
+0x470c10,561,src/unsorted/0x470c10.cpp,?FUN_00470c10@Class_00470c10@@QAEHHH@Z,matched,100.0
 0x470e50,95,src/unsorted/0x470e50.cpp,?FUN_00470e50@Class_00470e50@@QAEXXZ,matched,100.0
 0x470eb0,28,src/unsorted/0x470eb0.cpp,?FUN_00470eb0@Class_00470eb0@@QAEHH@Z,matched,100.0
 0x470ed0,20,src/unsorted/0x470ed0.cpp,?FUN_00470ed0@Class_00470ed0@@QAEXH@Z,matched,100.0

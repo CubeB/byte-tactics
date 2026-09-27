@@ -27,3 +27,13 @@ single addresses, so one real class often appears under several names.
 - 0x4581e0 and 0x4335e0 match only with a header block (`windows.h`, `stdio.h`,
   `string.h`, `math.h`) at the top; 0x4d1820 and 0x438650 still differ in one
   operand order. Their original translation units probably decide this.
+
+## Matches that use suspicious constructs
+
+These match byte-for-byte but use something Cavedog probably did not write;
+revisit them once the surrounding code is known.
+
+- 0x458d20 and 0x474d10 force a dead stack store with `volatile`. A reserved
+  `push ecx` slot plus a store that is never read is the signature of an
+  inlined `std::vector<int>` destructor (compare 0x46e610 and 0x438480); the
+  real source is probably a vector member or local.

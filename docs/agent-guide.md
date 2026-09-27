@@ -514,3 +514,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   mov edx, [esp+X]; and edx, 0xff`) is an `unsigned char` local used in more
   than one basic block; index loops (`for (i = 0; text[i]; i++) { unsigned char
   c = text[i]; ... }`) give that shape where pointer-walking loops do not.
+- **Avoid `volatile`**: a store that looks dead, often with a `push ecx`
+  reserved slot, usually comes from inlined STL code (the destroy loop of a
+  `std::vector` of a trivial type leaves exactly that). Try the real STL
+  construct first; `volatile` is a last resort that Cavedog almost certainly
+  did not write.

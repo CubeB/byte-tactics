@@ -1,31 +1,96 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// The constructor of the class whose only virtual is its own destructor
-// (0x461340 is its scalar deleting destructor, 0x461420 its destructor). It
-// builds, in declaration order: an int, a table of eleven big entries, a
-// {pointer, used, capacity} buffer triple, and a Class_00462d30 member that is
-// given the new object as its argument.
+// The constructor of the class whose only virtual is its own destructor (the
+// vtable is 0x4fd514, the scalar deleting destructor 0x461340, the destructor
+// 0x461420). It builds, in declaration order: an int at +0x04, a table of
+// eleven 0x1044-byte channels from +0x08, a {pointer, used, capacity} triple at
+// +0xb2f4, and a Class_00462d30 member at +0xb300 that is given the new object.
 //
-// NOT MATCHED YET (68.4%). All 98 instructions are present, in the same order,
-// with the same registers, and the two loops write the same bytes; the whole
-// remaining difference is which member each loop's induction variable is
-// anchored to. The original emits `lea eax, [ecx + 0x40]` in the first loop
-// (stores then run from -0x3c up to 0) and `lea esi, [eax + 0x20]` in the second
-// (stores from -0x1c up to +0x10). This file emits [ecx + 0x20] and [eax + 0xc],
-// which shifts every displacement in the run by a constant while addressing
-// exactly the same addresses. Tried: flattening the nested sub-structs into one
-// run of plain ints moves both bases to 0xc (worse, and it breaks the second
-// loop too); swapping the order of the two redundant trailing stores, and
-// anchoring them through `(&p->mid)->field_18` and `(&p->field_4)[0]`, change
-// nothing. The base does follow the aggregate nesting, but no consistent rule
-// falls out: with the nesting above it is the third int of the *first* nested
-// sub-struct in both loops (mid's third int = 0x20, head's third int = 0x0c),
-// while the original wants 0x40 and 0x20, which is the third int of the *last*
-// sub-struct in the second loop but of no sub-struct at all in the first (0x40
-// is the bare trailing int). Worth trying next: a nested sub-struct at +0x38
-// holding 0x38/0x3c/0x40, so that the "last sub-struct" reading also gives 0x40
-// in the first loop, and re-nesting Class_00462d30 so Head and Tail swap roles.
+// The eleven channels come from a hand-written loop that writes the first
+// field through the array index and the rest through a walking pointer: that
+// is what leaves the loop with the two induction variables the original has
+// (the array start in ecx, and in eax the group member the inlined Init runs
+// from). MSVC 5 anchors that second variable on the third store of the first
+// inlined member function, so the shape of the members decides every
+// displacement in the run: the three-dword Channel_00460f40 at +0x38 gives
+// loop one its +0x40, the four-dword Mid_00462d30 at +0x18 gives the ten small
+// entries their +0x20. The two setters (Class_00462860::FUN_00462860 with
+// 4000 ms and Class_004628a0::FUN_004628a0 with 200 ms) are inlined and
+// constant-folded into the two trailing stores, 0x78 and 6.
+//
+// The small entries are built by the array member's own constructor loop, with
+// each tail's buffer allocated by operator new and null-checked: 0x4b4f10 is
+// operator new, and the three dwords the constructor writes at the start of the
+// new block are the new object's own fields.
 
-struct Buffer_00462d30 {
+#include <stdlib.h>
+
+struct Channel_00460f40 {              // the channel's last member (ctor 0x460f40)
+    int field_0;                       // +0x38
+    int field_4;                       // +0x3c
+    int field_8;                       // +0x40
+
+    void Init() { field_0 = 0; field_4 = 0; field_8 = -1; }
+};
+
+struct Channel_00460f60 {
+    int field_0;                       // +0x00
+    int field_4;                       // +0x04
+    int field_8;                       // +0x08
+    int field_c;                       // +0x0c
+    int field_10;                      // +0x10
+    int field_14;                      // +0x14
+    int field_18;                      // +0x18
+    int field_1c;                      // +0x1c
+    int field_20;                      // +0x20
+    int field_24;                      // +0x24
+    int field_28;                      // +0x28
+    int field_2c;                      // +0x2c
+    int field_30;                      // +0x30
+    int field_34;                      // +0x34
+    Channel_00460f40 field_38;         // +0x38
+    char unknown_44[0x1044 - 0x44];
+
+    void Init()
+    {
+        field_4 = 0;
+        field_8 = 0;
+        field_c = 0;
+        field_10 = -2;
+        field_14 = -1;
+        field_18 = 0;
+        field_1c = -1;
+        field_20 = 0;
+        field_24 = 0;
+        field_28 = 0;
+        field_2c = 0;
+        field_30 = 0;
+        field_34 = 0;
+        field_38.Init();
+    }
+};
+
+struct Table_004611e0 {
+    Channel_00460f60 channels[11];
+    char* buffer;                      // +0xb2f4
+    int used;                          // +0xb2f8
+    int capacity;                      // +0xb2fc
+
+    Table_004611e0()
+    {
+        Channel_00460f60* p = channels;
+        for (int i = 0; i < 11; i++, p++) {
+            channels[i].field_0 = -1;
+            p->Init();
+            p->field_18 = 0x78;         // 4000 ms in 30 Hz ticks
+            p->field_4 = 6;             // 200 ms in 30 Hz ticks
+        }
+        buffer = 0;
+        used = 0;
+        capacity = 0;
+    }
+};
+
+struct Buffer_00462d30 {              // what the new below allocates
     int count;                         // +0x00
     int used;                          // +0x04
     int current;                       // +0x08
@@ -34,27 +99,17 @@ struct Buffer_00462d30 {
     Buffer_00462d30() { count = 0; used = 0; current = -1; }
 };
 
-struct F0_00462d30 {
-    int field_0;                       // +0x00
-
-    F0_00462d30() { field_0 = -1; }
-};
-
-struct Head_00462d30 {
-    int field_4;                       // +0x04
-    int field_8;                       // +0x08
-    int field_c;                       // +0x0c
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
-
-    Head_00462d30() { field_4 = -1; field_8 = -1; field_c = 0; field_10 = -1; field_14 = 0; }
-};
-
-struct Tail_00462d30 {
+struct Mid_00462d30 {
     int field_18;                      // +0x18
     int field_1c;                      // +0x1c
     int field_20;                      // +0x20
     int field_24;                      // +0x24
+
+    void Init() { field_18 = 0; field_1c = 0; field_20 = 0; field_24 = 0; }
+};
+
+struct Tail_00462d30 {
+    Mid_00462d30 mid;                  // +0x18
     Buffer_00462d30* buffer;           // +0x28
     int field_2c;                      // +0x2c
     int field_30;                      // +0x30
@@ -62,32 +117,38 @@ struct Tail_00462d30 {
     Tail_00462d30()
     {
         buffer = 0;
-        field_18 = 0; field_1c = 0; field_20 = 0; field_24 = 0; field_2c = -1; field_30 = -1;
+        mid.Init();
+        field_2c = -1;
+        field_30 = -1;
+        buffer = new Buffer_00462d30;
     }
 };
 
-struct Entry_00462d30 : public F0_00462d30 {
-    Head_00462d30 head;                // +0x04
-    Tail_00462d30 tail;                // +0x18
+struct F0_00462d30 {
+    int field_0;                       // +0x00
 
-    Entry_00462d30() { tail.buffer = new Buffer_00462d30; }
+    F0_00462d30() { field_0 = -1; }
 };
 
-struct Tail5_00462d30 {
-    int field_228;
-    int field_22c;
-    int field_230;
-    int field_234;
-    int field_238;
+struct Entry_00462d30 : public F0_00462d30 {
+    int field_4;                       // +0x04
+    int field_8;                       // +0x08
+    int field_c;                       // +0x0c
+    int field_10;                      // +0x10
+    int field_14;                      // +0x14
+    Tail_00462d30 tail;                // +0x18
 
-    Tail5_00462d30() { field_228 = 0; field_22c = 0; field_230 = 0; field_234 = -1; field_238 = -1; }
+    Entry_00462d30()
+        : field_4(-1), field_8(-1), field_c(0), field_10(-1), field_14(0)
+    {
+    }
 };
 
 class Class_00462d30 {
 public:
     virtual ~Class_00462d30();
     int field_4;                       // +0x04
-    void* field_8;                     // +0x08
+    void* owner;                       // +0x08
     int field_c;                       // +0x0c
     int field_10;                      // +0x10
     int field_14;                      // +0x14
@@ -100,79 +161,10 @@ public:
     int field_234;                     // +0x234
     int field_238;                     // +0x238
 
-    Class_00462d30(void* owner)
-        : field_4(0), field_8(owner), field_c(-1), field_10(-1), field_14(0), field_18(0), field_1c(0)
+    Class_00462d30(void* o)
+        : field_4(0), owner(o), field_c(-1), field_10(-1), field_14(0), field_18(0), field_1c(0),
+          field_228(0), field_22c(0), field_230(0), field_234(-1), field_238(-1)
     {
-        field_228 = 0;
-        field_22c = 0;
-        field_230 = 0;
-        field_234 = -1;
-        field_238 = -1;
-    }
-};
-
-struct Mid_004611e0 {
-    int field_18;                      // +0x18
-    int field_1c;                      // +0x1c
-    int field_20;                      // +0x20
-    int field_24;                      // +0x24
-    int field_28;                      // +0x28
-    int field_2c;                      // +0x2c
-    int field_30;                      // +0x30
-    int field_34;                      // +0x34
-    int field_38;                      // +0x38
-    int field_3c;                      // +0x3c
-
-    void Init()
-    {
-        field_18 = 0; field_1c = 0; field_20 = 0; field_24 = 0; field_28 = 0;
-        field_2c = 0; field_30 = 0; field_34 = 0; field_38 = 0; field_3c = 0;
-    }
-};
-
-struct Entry_004611e0 {
-    int field_0;                       // +0x00
-    int field_4;                       // +0x04
-    int field_8;                       // +0x08
-    int field_c;                       // +0x0c
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
-    Mid_004611e0 mid;                  // +0x18
-    int field_40;                      // +0x40
-    char unknown_44[0x1044 - 0x44];
-
-    void Init()
-    {
-        field_4 = 0;
-        field_8 = 0;
-        field_c = 0;
-        field_10 = -2;
-        field_14 = -1;
-        mid.Init();
-        field_40 = -1;
-    }
-};
-
-struct Table_004611e0 {
-    Entry_004611e0 entries[11];
-    char* buffer;                      // +0xb2f4
-    int used;                          // +0xb2f8
-    int capacity;                      // +0xb2fc
-
-    Table_004611e0() { Init(); }
-
-    void Init()
-    {
-        Entry_004611e0* p = entries;
-        for (int i = 0; i < 11; i++, p++) {
-            entries[i].field_0 = -1;
-            p->Init();
-            p->mid.field_18 = 0x78;
-            p->field_4 = 6;
-        }
-        buffer = 0;
-        used = 0;
-        capacity = 0;
     }
 };
 

@@ -2373,4 +2373,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x405740,574,,#40,assigned,,,issue #40
 0x405980,1040,,#40,assigned,,,issue #40
 0x405d90,578,,#40,assigned,,,issue #40
-0x407d40,296,,#43,assigned,,,"issue #43, escalated"
+0x407d40,296,opus,#43,partial,77.5,,"issue #43, escalated"

@@ -58,7 +58,7 @@ Give the lead this prompt:
 > open a pull request. Then pick up the next one, until none are left.
 
 `AGENTS.md` keeps OpenCode models off issues labelled `hard` (functions over
-400 bytes, and near-misses); those are for GPT-6 Astra and Claude Opus. To steer a model
+600 bytes, and near-misses); those are for GPT-6 Astra and Claude Opus. To steer a model
 further, add a size label to the prompt, for example "only take `size:medium`
 issues".
 
@@ -113,7 +113,7 @@ What's left is mostly the harder, larger functions.
 - **Codex, GPT-6 Astra.** OpenAI reports it solves 88% of a
   binary reverse-engineering benchmark first time. That is not the same task
   as matching decompilation, but it makes Astra the strongest candidate for
-  the `hard` issues (functions over 400 bytes, near-misses), which are
+  the `hard` issues (functions over 600 bytes, near-misses), which are
   reserved for it and Claude Opus.
 - **OpenCode.** There is no track record here for any of these models. The
   likeliest candidates are the larger, non-Flash ones (GPT-6 Luna, Kimi K3,

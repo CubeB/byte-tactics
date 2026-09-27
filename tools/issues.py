@@ -6,7 +6,7 @@
     uv run tools/issues.py --band medium --count 2 --dry-run  # print what would be opened
 
 Each issue lists neighbouring functions (address order, so related code stays
-together) and is labelled `decomp` plus a size label. Huge functions (over 400
+together) and is labelled `decomp` plus a size label. Huge functions (over 600
 bytes) and escalations are also labelled `hard`, which only the strongest
 models take (see AGENTS.md). Its functions are written
 to data/attempts.csv as `assigned` to batch `#<issue>` so they are not handed
@@ -23,7 +23,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BANDS = {"small": (1, 64), "medium": (65, 160), "large": (161, 400), "huge": (401, 1 << 30)}
+BANDS = {"small": (1, 64), "medium": (65, 160), "large": (161, 400), "xl": (401, 600),
+         "huge": (601, 1 << 30)}
 FIELDS = ["address", "size", "model", "batch", "result", "similarity", "runs", "notes"]
 
 
@@ -65,7 +66,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--band", choices=BANDS)
     ap.add_argument("--count", type=int, default=1, help="number of issues to open")
-    ap.add_argument("--per", type=int, help="functions per issue (default: 12 small/medium, 6 large, 3 huge)")
+    ap.add_argument("--per", type=int, help="functions per issue (default: 12 small/medium, 6 large, 4 xl, 3 huge)")
     ap.add_argument("--addresses", nargs="+", help="exact functions for one issue (e.g. escalations)")
     ap.add_argument("--title", help="title for an --addresses issue")
     ap.add_argument("--label", action="append", default=[], help="extra label (repeatable)")
@@ -89,7 +90,7 @@ def main() -> None:
         if not args.band:
             sys.exit("give --band or --addresses")
         lo, hi = BANDS[args.band]
-        per = args.per or {"small": 12, "medium": 12, "large": 6, "huge": 3}[args.band]
+        per = args.per or {"small": 12, "medium": 12, "large": 6, "xl": 4, "huge": 3}[args.band]
         busy = taken()
         todo = sorted((a, s) for a, s in game.items() if lo <= s <= hi and a not in busy)
         for i in range(args.count):

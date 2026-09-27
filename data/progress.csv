@@ -17,6 +17,9 @@ address,size,file,symbol,status,similarity
 0x401fd0,63,src/unsorted/0x401fd0.cpp,?FUN_00401fd0@@YGHHPAUObj@@H@Z,matched,100.0
 0x402160,141,src/unsorted/0x402160.cpp,?FUN_00402160@@YGHPAUUnit_00402160@@PAUOrder_00402160@@H@Z,matched,100.0
 0x4021f0,564,src/unsorted/0x4021f0.cpp,?FUN_004021f0@@YGHPAUUnit_004021f0@@PAUOrder_004021f0@@H@Z,matched,100.0
+0x402430,522,src/unsorted/0x402640.cpp,?FUN_00402430@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
+0x402640,1328,src/unsorted/0x402640.cpp,?FUN_00402640@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
+0x402b70,401,src/unsorted/0x402b70.cpp,?FUN_00402b70@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x402d10,131,src/unsorted/0x402d10.cpp,?FUN_00402d10@@YGHPAUUnit_00402d10@@PAUOrder_00402d10@@H@Z,matched,100.0
 0x402fc0,79,src/unsorted/0x402fc0.cpp,?FUN_00402fc0@@YGHPAUUnit_00402fc0@@PAUOrder_00402fc0@@H@Z,matched,100.0
 0x403010,41,src/unsorted/0x403010.cpp,?FUN_00403010@@YGHPAUObj_403010@@HH@Z,matched,100.0

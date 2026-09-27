@@ -913,6 +913,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A 0/1 argument pushed on its own in each branch**: write the call in every
   branch with an `int ok` local rather than one call after the branches
   (0x401360).
+- **A float constant that fails on the bytes after it** (our object pads it
+  where the original's constant pool has the next constant): define the real
+  preceding function in the same file, so its constants come first in the pool
+  as in the original (0x402430 in 0x402640.cpp).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -122,9 +122,9 @@ In OpenCode, do not decompile the functions yourself first. Hand them to the
 `decomp-worker` subagent, which runs on a cheap model and has its own step
 limit:
 
-1. Give each worker one or two addresses and the absolute path of your
-   worktree (`.worktrees/issue-<N>`). Run up to four workers at once, each
-   with different addresses.
+1. Start one worker per function, all at the same time, each given its one
+   address and the absolute path of your worktree (`.worktrees/issue-<N>`).
+   Each worker only touches its own function's file.
 2. When they report, run `uv run tools/checkall.py <all the issue's
    addresses>` yourself. Only trust MATCH lines you see from the checker.
 3. For each function a worker left partial, try it yourself: at most 8

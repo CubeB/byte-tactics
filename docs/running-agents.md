@@ -33,7 +33,7 @@ OpenCode runs as a lead plus cheap workers:
 - **The workers** are the `decomp-worker` subagent defined in
   `.opencode/agents/decomp-worker.md`. They run on DeepSeek V4.1 Flash
   (`opencode-go/deepseek-v4.1-flash`) and do the first attempt at each
-  function. Up to four run at once.
+  function, one worker per function, all at once.
 - **Limits:** a worker stops after 80 steps (the file's `steps`), and
   `AGENTS.md` caps each function at 15 check runs or 20 minutes. Nothing gets
   stuck for long.

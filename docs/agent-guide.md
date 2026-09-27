@@ -752,6 +752,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Loops over `g_game->players[i]`** with the walking pointer at the entry
   start and the byte compare constant in a register: take a per-iteration
   `Player* p = &g_game->players[i];` (0x457b90).
+- **A field read and stored back unchanged between two real updates**
+  (`mov edx, [esi+4]; mov [esi+4], edx`): a component-wise `out->y -= d.y`
+  where `d.y` is a constant 0 from an inlined vector helper (0x44d720).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -45,6 +45,12 @@ def fpo_records(pe: pefile.PE) -> list[dict]:
     return sorted(out, key=lambda f: f["address"])
 
 
+# Byte-identical library functions: the name the exe really uses. memcpy and
+# memmove are the same code in LIBCMT, but /O2 inlines memcpy, so an
+# out-of-line call to that code is memmove (std::char_traits<char>::move).
+PREFERRED = {"_memcpy": "_memmove"}
+
+
 def library_names(pe: pefile.PE) -> dict[int, str]:
     """Map exe address -> runtime library symbol for every matched library function."""
     text = next(s for s in pe.sections if s.Name.startswith(b".text"))
@@ -60,7 +66,7 @@ def library_names(pe: pefile.PE) -> dict[int, str]:
                 continue
             syms = obj.symbols_in(sec)
             for s in syms:
-                names.setdefault(text_va + off + s.value, s.name)
+                names.setdefault(text_va + off + s.value, PREFERRED.get(s.name, s.name))
             if not syms:
                 names.setdefault(text_va + off, f"{obj.name.split(chr(92))[-1]}:{sec.name}")
     return names

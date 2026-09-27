@@ -1,14 +1,30 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (49.4%), best found. Sends a chat/text message (type 5, up to 64
-// characters) to the players selected by the game's chat mode at +0x2bf0.
-// The whole control flow, every offset and constant, and the inlined
-// FUN_0044fe00 target search match. The original reloads the `text` argument
-// dead into eax at the start of both mode branches, which keeps g_game in ecx;
-// without that dead use MSVC keeps g_game in eax and rotates every scratch
-// register by one. Tried and ruled out: unused inlined-helper parameters,
-// void-cast locals, folded ternaries/commas, text[0] guards, member/__fastcall
-// /__stdcall helpers, block-scoped locals, and all 128 header sets. /O2
-// eliminates every construct that could produce the reload.
+// PARTIAL (54.4% with the current check.py diff), best found. Sends a
+// chat/text message (type 5, up to 64 characters) to the players selected
+// by the game's chat mode at +0x2bf0. The whole control flow, every offset
+// and constant, and the inlined FUN_0044fe00 target search match. The
+// original reloads the `text` argument dead into eax at the start of both
+// mode branches, which keeps g_game in ecx; without that dead use MSVC keeps
+// g_game in eax and rotates every scratch register by one. Tried and ruled
+// out: unused inlined-helper parameters, void-cast locals, folded
+// ternaries/commas, text[0] guards, member/__fastcall/__stdcall helpers,
+// block-scoped locals, and all 128 header sets. /O2 eliminates every
+// construct that could produce the reload.
+//
+// Notes from Claude Opus 5.5 (#228): the N-declarations test (0 to 400
+// unused externs) stays at 54.4% for every N, so the source shape is wrong,
+// not the compiler state. Whatever holds eax is already there right after
+// strncpy: the original's inlined FUN_0044fe00 loop keeps i in eax and
+// g_game in ecx (ours swaps them), and in the mode 1/2 loop the mode byte
+// sits in dl and the mode 1 ally test becomes `cmp byte ptr [m], 0` because
+// no byte register is free. Also tried, none moving g_game to ecx: loop-only
+// inline helpers taking `text` (loop inside or outside the helper), per-index
+// helpers for the id, player, selection and ally reads, one function-scope
+// `i` for all three loops (with the target search written in place too), a
+// switch on the mode, `text[0] == '+'` or the buffer setup moved into inline
+// helpers, `if (text) {}` or `strlen(text);` inside and before the loops, a
+// `char* t = text` walked with the loop, `text` reused to hold the buffer
+// pointer before each send, and an unused `ok` result local.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -50,16 +66,7 @@ static inline int FindTarget()
     return -1;
 }
 
-// Best so far (49.4%): the whole control flow, every offset and every constant
-// match. What still differs: the original starts each of the two mode branches
-// with a dead `mov eax,[esp+0x14]` (a reload of the `text` argument that is
-// never read again). That dead use makes MSVC keep g_game in ecx for the whole
-// function; without it MSVC keeps g_game in eax, so every scratch register in
-// the three loops is rotated by one (i/ecx vs i/eax, dl/edx vs cl/ecx, ...).
-// The source construct that produces those two reloads could not be found:
-// unused inlined-helper parameters, unused/void-cast locals, folded ternaries
-// and comma expressions, text[0] guards, member/__fastcall/__stdcall helpers
-// and block-scoped locals all get fully eliminated by /O2.
+// See the notes at the top for what still differs.
 // FUNCTION: 0x453360
 void __stdcall FUN_00453360(char* text)
 {

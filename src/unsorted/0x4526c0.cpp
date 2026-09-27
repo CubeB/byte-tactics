@@ -1,30 +1,24 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 //
-// Finds the first player slot with flag_73 set and info->flags_97 bit 0 set
-// (or 10 when there is none), then either handles the local player or
-// broadcasts packet 0x17 to that slot.
+// Finds the first in-use player whose info has the "ready" bit set (or 10
+// when there is none). If that is the local player, the group change in
+// `param` is applied locally (through FUN_004523e0 when the group is taken);
+// otherwise packet 0x17 is sent to that player, or broadcast when there is
+// none.
 //
-// PARTIAL: 66.0%. The loop body is byte-identical, but three regions differ:
-//  - prologue: the original computes the local player pointer with
-//    `lea eax,[edx+esi]` and schedules the `i = 0` store between the two index
-//    multiplies; ours uses `mov eax,edx; add eax,esi` after them.
-//  - loop exit: the original materialises the byte local on both exits
-//    (`mov [esp+0x10],0xa` on the normal exit and an out-of-line
-//    `mov [esp+0x10],bl; jmp` for the found exit); ours merges the exits and
-//    keeps the value in bl.
-//  - post-loop: the original reads the byte into eax and the i != 10 branch
-//    copies eax to ecx; ours uses ecx from the start.
-// The same loop appears inlined in 0x44fed0 and 0x451220 and compiles to the
-// materialised form there, so the source is probably an inlined `FindSlot`
-// helper whose result byte MSVC coalesced with the caller's variable; every
-// helper spelling tried (by value, by pointer, by reference, __inline,
-// __forceinline) still returned the value through al here.
-
+// What made it match: the search is an inlined helper returning an
+// `unsigned char` that the caller widens into an `int` (the widening is what
+// makes MSVC store the result straight into a stack byte on both exits), the
+// loop tests the fields directly rather than through a per-index helper
+// (which moves the "found" exit block), and the local player index is
+// re-read from g_game in the compare instead of being cached in a local.
+// The flag at info+0x97 is bit 0 of an `unsigned short` bitfield (0x451220
+// writes it as a word); a byte field with `& 1` compiles the same here.
 #pragma pack(push, 1)
 struct PlayerInfo_004526c0 {
     char unknown_0[0x96];
     unsigned char field_96;            // +0x96
-    unsigned char flags_97;            // +0x97
+    unsigned short ready : 1;          // +0x97, mask 1
 };
 
 struct Player_004526c0 {
@@ -61,20 +55,21 @@ int __stdcall FUN_00451df0(int player, void* data, int size);
 int __stdcall FUN_004523e0(int a, int b, int c);
 int __stdcall FUN_00452570(int a, int b);
 
+static inline unsigned char FindReadyPlayer()
+{
+    for (unsigned char i = 0; i < 10; i++) {
+        if (g_game->players[i].flag_73 && g_game->players[i].info->ready)
+            return i;
+    }
+    return 10;
+}
+
 // FUNCTION: 0x4526c0
 int __stdcall FUN_004526c0(int param)
 {
-    int local = g_game->localPlayer;
-    Player_004526c0* p = &g_game->players[local];
-    unsigned char i;
-
-    for (i = 0; i < 10; i++) {
-        if (g_game->players[i].flag_73 != 0
-            && (g_game->players[i].info->flags_97 & 1) != 0)
-            break;
-    }
-
-    if (i == local) {
+    Player_004526c0* p = &g_game->players[g_game->localPlayer];
+    int i = FindReadyPlayer();
+    if (i == g_game->localPlayer) {
         if (FUN_00452570(p->field_4, param) == 0) {
             FUN_004523e0(p->field_4, p->field_4, param);
             return 1;

@@ -139,6 +139,11 @@ revisit them once the surrounding code is known.
   and 0x44e9c0 among others) still stores its vtables by hand
   (`vtable = DAT_004fd3f8;`), like the 0x4fc980 family before its
   consolidation.
+- The family that stores vtable 0x4fd2f8 and then 0x4fd3b8 (a base and a
+  derived class) does the same: constructors 0x44de80, 0x44e080, 0x44e190,
+  0x44e250 and 0x44e2d0, each matched under its own placeholder class. They
+  should become one derived class with real virtual slots, whose base
+  constructor stores 0x4fd2f8.
 
 - 0x43c360 is `vector::size()` of the global vector of 25-byte records at
   0x512340 but is named `Class_0043c360::FUN_0043c360`; it will clash when

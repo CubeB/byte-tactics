@@ -141,6 +141,16 @@ is never read. Found by DeepSeek V4.1 Flash in #33.
 100-byte stack buffer with `sprintf` (`sub esp, 0x64`); a long enough name
 overflows it. Found by DeepSeek V4.1 Flash in #126.
 
+## Loading a save runs a destructor on file data (likely)
+
+**0x44de80** constructs an embedded `Class_004895c0` at `rec+0xa`, then reads
+a 0x36-byte record from the save file over it, and at the end runs that
+object's destructor on whatever the file contained; non-zero bytes at +0xe
+make the destructor follow a pointer taken from the file. Its saver 0x44dfb0
+writes the embedded vtable pointer (0x4fd754) and 8 never-set stack bytes into
+the file (so do 0x44d090, 0x44d500 and 0x44d9a0 with their first dword).
+Found by DeepSeek V4.1 Flash in #136.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -246,3 +256,6 @@ Things that look wrong in the original but have no effect, kept for the record.
   missing or unwritable file passes a null `FILE*` to `fread`/`fwrite` and
   `fclose`; the sibling writer 0x4bc290 does check. Found by DeepSeek V4.1
   Flash in #127.
+- **0x44e5b0** (possible): in the `flags & 4` branch it reads
+  `target->heading` with no null check; `target` is only tested when
+  `flags & 1` is set. Found by DeepSeek V4.1 Flash in #136.

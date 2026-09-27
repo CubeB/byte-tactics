@@ -161,5 +161,10 @@ Run from the main checkout, on `main`:
    in other ways: `__fastcall` free functions, hand-stored vtables, invented
    names. The orchestrator fixes those during review, or with a subagent,
    before merging.
-6. **Release stale claims.** For claims older than a day with no pull request,
-   unassign the issue and comment "Released".
+6. **Release stale claims.** For a claim with no pull request and no recent
+   work (no pushed branch, and nothing changed in its `.worktrees/issue-<N>`
+   for a couple of hours), check whether the uncommitted work beats `main`
+   (`tools/checkall.py` in both), then unassign the issue and comment
+   "Released by the orchestrator: <why>". Agents treat an issue as free when
+   its most recent "Claimed by"/"Released" comment is a release, so the
+   comment must start with "Released".

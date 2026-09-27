@@ -56,11 +56,13 @@ itself:
 
 ```sh
 gh issue view <N> --json assignees,labels,comments \
-  --jq '{assignees: [.assignees[].login], labels: [.labels[].name], claims: [.comments[].body | select(startswith("Claimed by"))]}'
+  --jq '{assignees: [.assignees[].login], labels: [.labels[].name], claim: ([.comments[].body | select(startswith("Claimed by") or startswith("Released")) | split("\n")[0]] | last)}'
 ```
 
-Skip it if it has an assignee or any "Claimed by" comment, or if its labels
-are not for you. Then claim it:
+`claim` is the most recent claim or release comment. Skip the issue if it has
+an assignee, if `claim` starts with "Claimed by", or if its labels are not for
+you. An issue whose `claim` starts with "Released" (the orchestrator frees
+stale claims that way) or is null is free. Then claim it:
 
 ```sh
 gh issue edit <N> --add-assignee @me
@@ -72,9 +74,11 @@ If `gh issue edit --add-assignee` fails because you are not a collaborator on
 the repository (outside contributors can't assign themselves), the "Claimed by"
 comment alone is your claim; the orchestrator will assign you. Several agents
 can share one GitHub account, so the assignee only says "taken"; the comment
-says by whom. If `gh issue view` shows an earlier "Claimed by"
-comment from a different agent, you lost the race: comment "Released, claimed
-twice", do not unassign, and go back to the list for another issue.
+says by whom. If `gh issue view` shows a "Claimed by" comment from a
+different agent after the last "Released" comment and before yours, you lost
+the race: comment "Lost the claim race, the earlier claim stands" (never start
+it with "Released", which would free the issue), do not unassign, and go back
+to the list for another issue.
 
 ## 3. Work in your own copy
 

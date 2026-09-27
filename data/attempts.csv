@@ -2122,3 +2122,116 @@ address,size,model,batch,result,similarity,runs,notes
 0x49d1e0,129,opus,O112,matched,100.0,,
 0x450980,141,opus,O112,matched,100.0,,
 0x4b34f0,159,opus,O112,matched,100.0,,
+0x402160,141,,#1,assigned,,,issue #1
+0x408620,71,,#1,assigned,,,issue #1
+0x40bab0,78,,#1,assigned,,,issue #1
+0x4164b0,71,,#1,assigned,,,issue #1
+0x417b50,90,,#1,assigned,,,issue #1
+0x4194d0,109,,#1,assigned,,,issue #1
+0x41b230,109,,#1,assigned,,,issue #1
+0x41c5e0,96,,#1,assigned,,,issue #1
+0x41f040,96,,#1,assigned,,,issue #1
+0x4256d0,90,,#1,assigned,,,issue #1
+0x4257e0,121,,#1,assigned,,,issue #1
+0x432a80,120,,#1,assigned,,,issue #1
+0x433540,119,,#2,assigned,,,issue #2
+0x435320,121,,#2,assigned,,,issue #2
+0x43ac60,78,,#2,assigned,,,issue #2
+0x43e180,96,,#2,assigned,,,issue #2
+0x445300,152,,#2,assigned,,,issue #2
+0x44d500,90,,#2,assigned,,,issue #2
+0x44d840,96,,#2,assigned,,,issue #2
+0x44e6c0,90,,#2,assigned,,,issue #2
+0x44e930,129,,#2,assigned,,,issue #2
+0x44e9c0,140,,#2,assigned,,,issue #2
+0x450030,96,,#2,assigned,,,issue #2
+0x451b60,84,,#2,assigned,,,issue #2
+0x45aaa0,100,,#3,assigned,,,issue #3
+0x45af90,152,,#3,assigned,,,issue #3
+0x45b880,153,,#3,assigned,,,issue #3
+0x45c010,90,,#3,assigned,,,issue #3
+0x45cde0,160,,#3,assigned,,,issue #3
+0x4618a0,84,,#3,assigned,,,issue #3
+0x463f60,160,,#3,assigned,,,issue #3
+0x46e3c0,129,,#3,assigned,,,issue #3
+0x477940,153,,#3,assigned,,,issue #3
+0x47f1a0,101,,#3,assigned,,,issue #3
+0x480020,160,,#3,assigned,,,issue #3
+0x489740,101,,#3,assigned,,,issue #3
+0x48d920,120,,#4,assigned,,,issue #4
+0x491e50,101,,#4,assigned,,,issue #4
+0x49d880,140,,#4,assigned,,,issue #4
+0x4a1630,77,,#4,assigned,,,issue #4
+0x4a7ee0,129,,#4,assigned,,,issue #4
+0x4ab310,129,,#4,assigned,,,issue #4
+0x4ae440,108,,#4,assigned,,,issue #4
+0x4ae4e0,108,,#4,assigned,,,issue #4
+0x4ae580,141,,#4,assigned,,,issue #4
+0x4b0720,120,,#4,assigned,,,issue #4
+0x4b6c30,101,,#4,assigned,,,issue #4
+0x4be010,90,,#4,assigned,,,issue #4
+0x4c42a0,159,,#5,assigned,,,issue #5
+0x4c5c60,108,,#5,assigned,,,issue #5
+0x4c6f10,100,,#5,assigned,,,issue #5
+0x4c9490,152,,#5,assigned,,,issue #5
+0x4c97b0,77,,#5,assigned,,,issue #5
+0x4ce530,77,,#5,assigned,,,issue #5
+0x4cf800,153,,#5,assigned,,,issue #5
+0x4d83c0,139,,#5,assigned,,,issue #5
+0x4d8ae0,70,,#5,assigned,,,issue #5
+0x4da3f0,130,,#5,assigned,,,issue #5
+0x4da480,100,,#5,assigned,,,issue #5
+0x4dab10,160,,#5,assigned,,,issue #5
+0x4db760,70,,#6,assigned,,,issue #6
+0x4dbd20,83,,#6,assigned,,,issue #6
+0x4dc620,83,,#6,assigned,,,issue #6
+0x4dd2a0,159,,#6,assigned,,,issue #6
+0x4dd3d0,83,,#6,assigned,,,issue #6
+0x4dd820,159,,#6,assigned,,,issue #6
+0x4de0a0,70,,#6,assigned,,,issue #6
+0x401ce0,275,,#7,assigned,,,issue #7
+0x402010,330,,#7,assigned,,,issue #7
+0x403260,317,,#7,assigned,,,issue #7
+0x4033a0,242,,#7,assigned,,,issue #7
+0x4038a0,380,,#7,assigned,,,issue #7
+0x405fe0,162,,#7,assigned,,,issue #7
+0x406090,257,,#8,assigned,,,issue #8
+0x4061a0,346,,#8,assigned,,,issue #8
+0x406780,384,,#8,assigned,,,issue #8
+0x406aa0,331,,#8,assigned,,,issue #8
+0x406c90,257,,#8,assigned,,,issue #8
+0x4071f0,340,,#8,assigned,,,issue #8
+0x4074a0,189,,#9,assigned,,,issue #9
+0x4077e0,329,,#9,assigned,,,issue #9
+0x407d40,296,,#9,assigned,,,issue #9
+0x4086d0,268,,#9,assigned,,,issue #9
+0x408830,229,,#9,assigned,,,issue #9
+0x409470,176,,#9,assigned,,,issue #9
+0x409520,166,,#10,assigned,,,issue #10
+0x4095d0,346,,#10,assigned,,,issue #10
+0x409dc0,208,,#10,assigned,,,issue #10
+0x409f80,185,,#10,assigned,,,issue #10
+0x40a040,185,,#10,assigned,,,issue #10
+0x40a150,265,,#10,assigned,,,issue #10
+0x40b0d0,229,,#11,assigned,,,issue #11
+0x40b1c0,244,,#11,assigned,,,issue #11
+0x40bdb0,244,,#11,assigned,,,issue #11
+0x40beb0,302,,#11,assigned,,,issue #11
+0x40d7b0,195,,#11,assigned,,,issue #11
+0x40d900,191,,#11,assigned,,,issue #11
+0x40df00,330,,#12,assigned,,,issue #12
+0x40e050,270,,#12,assigned,,,issue #12
+0x40e9e0,326,,#12,assigned,,,issue #12
+0x40ef20,223,,#12,assigned,,,issue #12
+0x40f060,172,,#12,assigned,,,issue #12
+0x40f110,204,,#12,assigned,,,issue #12
+0x419400,192,,#13,assigned,,,"issue #13, escalated"
+0x4223e0,127,,#13,assigned,,,"issue #13, escalated"
+0x438650,161,,#13,assigned,,,"issue #13, escalated"
+0x485140,117,,#13,assigned,,,"issue #13, escalated"
+0x49c880,147,,#13,assigned,,,"issue #13, escalated"
+0x4ac970,161,,#13,assigned,,,"issue #13, escalated"
+0x4c0a90,118,,#13,assigned,,,"issue #13, escalated"
+0x4c1ab0,66,,#13,assigned,,,"issue #13, escalated"
+0x4d1820,333,,#13,assigned,,,"issue #13, escalated"
+0x4ddf00,158,,#13,assigned,,,"issue #13, escalated"

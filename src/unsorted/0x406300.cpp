@@ -1,9 +1,27 @@
-// Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: 73.4%. Allocation tail merging, zero-register reuse, and operand order differ.
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// Order handler "Guarding" (earlier attempt by GPT-6 Astra, 73.4%).
+// Partial: 85.3%. What fixed most of it: the two "help" branches each end in
+// their own `new` + FUN_0043acb0 + `order->flags = 0; return 3;` (MSVC merges
+// the tails itself); the extra zero uses before that merge make MSVC keep 0 in
+// ebp for the whole post-loop region (`cmp eax, ebp`, `push ebp`, `mov
+// [ebx+6], ebp`) and duplicate the call tails as the original does. Also
+// needed <windows.h> + <stdio.h> (headers.py) for the case-0 `lea` order and
+// `unit != other->target` for `cmp edi, [ecx+0x16]`.
+// Still different (all in the building/attacking help part and follow tail):
+// - branch 1 stores the kind byte (`mov [esp+0x10], dl`) before jumping to the
+//   shared `new`, and branch 2 copies the "HelpBuild" temporary with `mov al,
+//   [eax]; mov [esp+0x10], al`; ours copies both into dl and merges the store
+//   after `push 0x56` (7 bytes short).
+// - the shared ctor call loads order->target->order twice (`mov ecx, [edx+0x5c];
+//   mov edx, [edx+0x5c]; add ecx, 0x22`); ours loads it once and uses `lea`.
+// - follow block: original does `mov ecx, ebx` before `sar`, then `lea eax,
+//   [esp+0x20]; push eax`; ours computes `lea edx, [esp+0x1c]` first.
+// Tried without effect: else-if between the two help branches (worse),
+// `kind = "HelpBuild"` (flips the case-0 lea back), a 0x406f80-style `ordered`
+// flag (spills it and adds a test). The unused `follow:` label matters: without
+// it the score drops to 82.1%, so the original probably jumped there (goto).
+#include <windows.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <memory.h>
 struct Vec3 {
     int x, y, z;
     Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
@@ -85,7 +103,7 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
         }
         if (order->target->order && order->target->order->kind.index &&
             (unit->def->flags&0x40) && (order->target->def->flags&0x40) &&
-            (order->target->order->capabilities&0x100000) && order->target->order->target!=unit) {
+            (order->target->order->capabilities&0x100000) && unit!=order->target->order->target) {
             int building=order->target->order->kind=="MobileBuild" ||
                          order->target->order->kind=="BuildingBuild";
             Order* other=order->target->order;
@@ -94,12 +112,15 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
             if (!building && actionable) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=order->target->order->kind;
-            } else if (building && other->target) {
+                FUN_0043acb0(unit,new Class_0043a0c0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
+                order->flags=0; return 3;
+            }
+            if (building && other->target) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=Class_00438760("HelpBuild");
-            } else goto follow;
-            FUN_0043acb0(unit,new Class_0043a0c0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
-            order->flags=0; return 3;
+                FUN_0043acb0(unit,new Class_0043a0c0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
+                order->flags=0; return 3;
+            }
         }
 follow:
         Vec3 pos=order->target->pos+order->pos;

@@ -27,7 +27,7 @@ struct Game_00494e70 {
     unsigned char field_2a43;           // +0x2a43
     unsigned char flags_2a44;           // +0x2a44
     char unknown_2a45[0x38d75 - 0x2a45];
-    unsigned char flags_38d75;          // +0x38d75
+    unsigned short netFlags;            // +0x38d75, 16-bit flags word
 };
 #pragma pack(pop)
 
@@ -47,26 +47,36 @@ extern int DAT_005091d0;
 // large it flips the network state DAT_005091d0 between 0 and 1 and resets the
 // counter DAT_0051f2fc.
 //
-// PARTIAL: everything matches except the two tests on g_game->flags_38d75 at
+// PARTIAL: everything matches except the two tests on g_game->netFlags at
 // 0x494e8b. The original emits two memory-operand bit tests
 // (`test byte ptr [eax+0x38d75],1` then `...,2`); this source makes MSVC load
 // the byte once (`mov al,[eax+0x38d75]; test al,1; test al,2`), 4 bytes
-// shorter. This is the same pattern documented in src/unsorted/0x452800.cpp
-// (also 0x4550c2): MSVC 5 always CSEs the byte across the two tests unless a
-// real call separates them (0x4ebcf5 reloads only because a store through an
-// aliasing pointer sits between its tests). Tried here: `a && !b`, `!a || b`,
-// nested ifs, `goto`, a single large `if`, `==`/`!=` forms, 8/16/32-bit
-// fields, char/short bitfields, local copies, unions, mixed member/cast
-// spellings, a dereferenced local pointer, two separate inline accessors, and
-// all 128 header sets (headers.py); every form shares the load. The rest of
-// the function, including the ring-sum loop, the state-transition logic and
-// the DAT reloads, is byte-identical.
+// shorter. The same pair appears in 0x452800 and in 0x453d40 (at 0x4550c2).
+//
+// Notes from Claude Opus 5.5 (#436): the difference is not compiler state.
+// It scores 78.9% for 0 to 400 unused `extern int`s, for 500 to 8000 unused
+// prototypes, for every headers.py set and with <windows.h> plus <string>,
+// <vector> + <map>, <iostream>, <list> or the DirectX headers. In scratch
+// tests MSVC 5 shares the load across the two tests for every non-volatile
+// spelling (bitfields, masks, byte/word/dword union views, inline helpers
+// taking the object or a reference, ternaries, switch, separate ifs).
+// Adding `volatile` to the declaration of netFlags (a 16-bit flags word)
+// makes this function MATCH with no other change; adding `volatile` to
+// 0x452800's declaration of the field makes that function MATCH as well.
+// Evidence that Cavedog really declared this word volatile: every write to
+// it in the game (0x496861, 0x4975c0 and
+// 0x497c57) is a word read-modify-write through a register
+// (`mov cx,[m]; or ecx,4; mov [m],cx`), which MSVC 5 emits only for a
+// volatile field; every non-volatile form (`w |= 4`, `w = w & ~4`, a 1-bit
+// bitfield store, a struct copy) compiles to `or byte ptr [m],4` or
+// `and word ptr [m],0xfffb` straight to memory. Left non-volatile here
+// because the project rules forbid volatile; the orchestrator can decide.
 
 // FUNCTION: 0x494e70
 void FUN_00494e70()
 {
     if ((g_game->flags_2a44 & 4)
-        && (!(g_game->flags_38d75 & 1) || (g_game->flags_38d75 & 2))
+        && (!(g_game->netFlags & 1) || (g_game->netFlags & 2))
         && FUN_004b6340() > DAT_0051f2f8 + 0x1e) {
         int state = g_game->field_10->FUN_004ce680();
         if (++DAT_0051f2fc > 10) {

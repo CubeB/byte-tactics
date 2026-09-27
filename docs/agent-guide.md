@@ -883,6 +883,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A sum the original computes twice**: MSVC 5 shares `a + b` even across
   branches, so one use was probably two `+=` steps (`z += off; z += x1;`)
   (0x4c0a90).
+- **Which field MSVC 5 walks an array loop from**: with no pointer local, the
+  walking register starts at the second field the source accesses, so an
+  unexpected `lea reg, [base+K]` shows which access came second (0x49d1e0,
+  0x450980).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

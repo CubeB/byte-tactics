@@ -4,6 +4,90 @@ Which model can decompile which functions, measured on real batches. Every
 result here was re-verified with `tools/check.py` by the orchestrator; agents'
 own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 
+## Overnight run, 26 to 27 September 2026: summary
+
+The repository was created at 23:05. By 06:45 it held 1,938 matched
+functions, 120,222 bytes, **14.13%** of Cavedog's code, in 134 commits. Every match was
+re-verified by the orchestrator with `tools/check.py` before it was committed;
+agents' own claims were never counted.
+
+| Time | Matched |
+| --- | ---: |
+| 23:29 | 0.09% |
+| 00:56 | 1.47% |
+| 02:58 | 5.03% |
+| 04:57 | 8.82% |
+| 06:45 | 14.13% |
+
+The rate rose from under 2% of the code per hour before 03:30 to about 2.5%
+an hour after it, and about 3% in the last two hours, once the calibration
+showed Opus was the cheapest model per match above 40 bytes and the work moved
+to it.
+
+### Which model for which functions
+
+| Model | Batches | Functions matched | Bytes matched | Tokens | Cost units per matched byte |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Haiku | 29 | 522 of 666 (78%) | 8,273 | 2.9M | 346 |
+| Sonnet | 26 | 216 of 241 (90%) | 8,882 | 4.3M | 963 |
+| Opus | 108 | 1,188 of 1,203 (99%) | 102,355 | 17.0M | 665 |
+
+Cost units weight tokens by each model's input price (Haiku 1, Sonnet 2, Opus 4:
+$1, $2 and $4 per million input tokens). The token counts are the subagents'
+own totals, so treat the absolute numbers as rough; the ratios are what matter.
+
+- **Haiku** is reliable only on the smallest functions: 91% of 1-16 byte
+  functions first time, 70% of 17-40 bytes, and under 30% above 40 bytes. It
+  tends to give up after one or two check runs; telling it to make at least
+  six different attempts raised one 17-40 byte batch from 7 of 20 to 15 of 20.
+  Its drafts often repeat the same mistakes (a `__fastcall` free function
+  instead of a method, `&DAT_00511de8` instead of loading the `g_game` pointer,
+  invented vtable slot names), so every Haiku match needs checking.
+- **Sonnet** matched about 88-90% of 17-64 byte functions first time and 94% of
+  the functions Haiku failed on, at about 2.5 times Haiku's cost per matched
+  byte.
+- **Opus** matched 99-100% of everything up to 160 bytes and about 80% of
+  161-260 byte functions, usually on the first check run. Because it needs far
+  fewer tokens per function, it was cheaper per match than Sonnet from 41 bytes
+  up and within about 1.5 times the Haiku-then-Sonnet pipeline at 17-40 bytes,
+  with no second pass and cleaner code. Batches of 12-20 functions took 5-15
+  minutes each.
+- **Recommendation:** use Opus for everything above 16 bytes, in batches of
+  12-20 functions with five agents at a time. Haiku is only worth it for the
+  1-16 byte band, which is finished. For 161-260 bytes Opus costs about twice
+  as much per matched byte as for 65-160 bytes.
+
+### Remaining work
+
+- Unattempted game functions: 0 of 1-16 bytes, 1 of 17-40 bytes, 0 of 41-64 bytes, 67 of 65-160 bytes, 669 of 161-400 bytes, 582 of over 400 bytes.
+- Near-misses left partial (each with notes in its file): 0x419400, 0x4223e0, 0x438650, 0x485140, 0x49c880, 0x4ac970, 0x4c0a90, 0x4c1ab0, 0x4d1820, 0x4ddf00.
+- Worth a human look: the Smacker video library is imported by ordinal, and
+  the names the agents gave those imports are inferred from call sites (listed
+  in the guide); and 0x415bb0 looks like a real Cavedog bug (a one-dword
+  `new` where an array was meant), reproduced as written.
+- `docs/consolidation.md` lists the naming and class-structure clean-up found
+  along the way: classes known under several placeholder names, callee
+  signatures that disagree between files, and two suspicious constructs.
+
+### Tooling added during the night
+
+- `tools/headers.py`: tries a function's file with all 64 combinations of six
+  common headers in a few seconds. MSVC 5's operand order and register choice
+  depend on which headers are included, and this settled a dozen functions
+  that no source rewrite could.
+- `tools/checkall.py`: checks many functions in one parallel run.
+- `tools/check.py`: vtable slots must use the names their functions already
+  have (so the source could link), deleting destructors in a slot must be the
+  known `??_G`, constants are compared only up to the next symbol, and scratch
+  objects from different folders no longer overwrite each other.
+- `tools/ctx.py` stops a vtable at the next vtable start, and
+  `tools/functions.py` no longer cuts the last byte off a hand-written routine
+  ending in `ret N`.
+- Three class families that had been matched as unrelated placeholder
+  functions with hand-stored vtable pointers (vtables 0x4fd428, 0x4fc980 and
+  0x4fd5a8) are now real base and derived classes whose vtables the compiler
+  emits, plus `Class_004b0610` and its derived class.
+
 ## Method
 
 - Functions are grouped by size band and whether they call other game
@@ -23,7 +107,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | 1-16 | 283/312 (91%) | 3/3 (100%) |  |
 | 17-40 | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
 | 41-64 | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
-| 65-160 | 1/6 (17%) | 729/737 (99%) | 2/6 (33%) |
+| 65-160 | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
 | 161-400 |  | 29/35 (83%) |  |
 
 ### Cost per batch
@@ -194,6 +278,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | O110 | opus | 12 | 12 | 162,056 | 13,504 | 54 | 10 |
 | O111 | opus | 10 | 10 | 156,977 | 15,697 | 63 | 9 |
 | O108 | opus | 12 | 11 | 248,708 | 22,609 | 90 | 24 |
+| O112 | opus | 10 | 10 | 170,925 | 17,092 | 68 | 12 |
 
 ### Escalations
 

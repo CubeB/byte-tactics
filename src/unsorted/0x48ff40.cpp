@@ -7,27 +7,27 @@ public:
     int celebrated;                      // +0x8
 
     Condition_0048ff40() { satisfied = celebrated = 0; }
-    virtual int IsSatisfied() = 0;
+    virtual int FUN_0048f7e0() = 0;      // IsSatisfied
     virtual void FUN_0048ea10();         // Slot1
     virtual void FUN_0048ea20();         // Slot2
     virtual void FUN_0048ea30();         // Slot3
     virtual void FUN_0048f840(void* file) = 0;   // Save
-    virtual void Load(void* file) = 0;
+    virtual void FUN_0048f880(void* file) = 0;   // Load
 };
 
 // Secondary interface of a condition that watches events.
 class Listener_0048ff40 {
 public:
-    virtual void Notify(void* event) = 0;
+    virtual void FUN_0048f790(void* event) = 0;
 };
 
 // DefeatCondition_AllUnitsKilled.
 class Class_0048f840 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual int IsSatisfied();
+    virtual int FUN_0048f7e0();
     virtual void FUN_0048f840(void* file);   // Save
-    virtual void Load(void* file);
-    virtual void Notify(void* event);
+    virtual void FUN_0048f880(void* file);   // Load
+    virtual void FUN_0048f790(void* event);
 };
 
 class Class_0048ff40 {
@@ -48,7 +48,7 @@ int Class_0048ff40::FUN_0048ff40()
         defeatCount++;
     }
     for (int i = 0; i < defeatCount; i++) {
-        if (defeat[i]->IsSatisfied())
+        if (defeat[i]->FUN_0048f7e0())
             return 1;
     }
     return 0;

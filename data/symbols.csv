@@ -2938,6 +2938,9 @@ address,name
 0x4fd638,??_7Class_004750b0@@6B@
 0x4fd660,??_7Class_0047db20@@6B@
 0x4fd754,??_7Class_004895c0@@6B@
+0x4fd7f8,??_7Class_0048f840@@6BListener_0048ff40@@@
+0x4fd800,??_7Class_0048f840@@6BCondition_0048ff40@@@
+0x4fd940,??_7Listener_0048ff40@@6B@
 0x4fd948,??_7Class_0048eb40@@6B@
 0x4fd980,??_7Class_00490630@@6B@
 0x4fd9b0,??_7Class_004907e0@@6B@

@@ -537,3 +537,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   of a temporary, `v = Vec3(0, 0, 0);`, not a member initialiser.
 - **Packing blocks**: keep a struct with a dword at an odd offset (e.g. +0x38a47)
   in its own `pack(1)` block; `pack(2)` silently moves the field.
+- **Base and index swapped in an address** (`[esi+eax]` vs `[eax+esi]`, a different
+  SIB byte): the same header dependence as commutative operands; adding a
+  header fixed it. The `/Fa` listing prints both the same way, so compare
+  encodings with `objdump -d -M intel file.obj` (installed).
+- **"-2 jumps away, -1 skips, default stores"**: a `switch` with `case -2`,
+  `case -1` and `default`, not an if/else chain.

@@ -284,6 +284,9 @@ Things that look wrong in the original but have no effect, kept for the record.
   through a fresh lookup of the local player's unit (0x445d08, 0x445d36); its
   sibling 0x445d60 stores once. Found by Space Bunny Free in #125.
 
+- **0x452570** searches the ten player entries for the same id twice; the
+  second search's result is thrown away. Found by DeepSeek V4.1 Flash in #139.
+
 ## Possible leaks and unchecked inputs
 
 - **0x413470** (an order handler), state 3 (likely): after two misses it
@@ -332,3 +335,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x4523e0** (possible): when all ten group slots are in use (possible when
+  `to` is not an active player, such as -1), the loop ends without writing
+  the message's value byte at `[esp+0x13]`, so FUN_00451bc0 sends a two-byte
+  message whose second byte is uninitialised. Found by DeepSeek V4.1 Flash in
+  #139.

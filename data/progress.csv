@@ -38,6 +38,9 @@ address,size,file,symbol,status,similarity
 0x403f70,768,src/unsorted/0x403f70.cpp,?FUN_00403f70@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x404270,1212,src/unsorted/0x404270.cpp,?FUN_00404270@@YGHPAUUnit@@PAUOrder@@I@Z,partial,83.4
 0x404730,920,src/unsorted/0x404730.cpp,?FUN_00404730@@YGHPAUUnit@@PAUOrder@@I@Z,matched,100.0
+0x404ad0,724,src/unsorted/0x404ad0.cpp,?FUN_00404ad0@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
+0x404db0,1348,src/unsorted/0x404db0.cpp,?FUN_00404db0@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
+0x405300,1080,src/unsorted/0x405300.cpp,?FUN_00405300@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x406090,257,src/unsorted/0x406090.cpp,?FUN_00406090@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x4061a0,346,src/unsorted/0x4061a0.cpp,?FUN_004061a0@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x406780,384,src/unsorted/0x406780.cpp,?FUN_00406780@@YGHPAUUnit@@PAUOrder@@E@Z,matched,100.0

@@ -65,3 +65,13 @@ fadd st(1); fsqrt`, adding the second coordinate twice. The effect is a radius
 that grows roughly with the square root of y rather than with y, so assisting
 units stop at the wrong distance for large footprints. Found by ozgb's Codex /
 GPT-6 Astra in #38.
+
+## Harmless oddities
+
+Things that look wrong in the original but have no effect, kept for the record.
+
+- **0x404db0** (resurrect order): the feature pointer is first set to
+  `&features[0xffff]`, the "no feature" index far past the end of the table,
+  before the state test; no path reads it in the state where it stays that way.
+- **0x404db0**: the second failure message is spelt "Ressurection failed",
+  the first "Resurrection failed".

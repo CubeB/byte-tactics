@@ -2367,9 +2367,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x403f70,768,gpt-6-astra,#38,matched,100.0,,issue #38
 0x404270,1212,gpt-6-astra,#38,partial,83.4,,issue #38
 0x404730,920,gpt-6-astra,#38,matched,100.0,,issue #38
-0x404ad0,724,,#39,assigned,,,issue #39
-0x404db0,1348,,#39,assigned,,,issue #39
-0x405300,1080,,#39,assigned,,,issue #39
+0x404ad0,724,opus,#39,matched,100.0,,issue #39
+0x404db0,1348,opus,#39,matched,100.0,,issue #39
+0x405300,1080,opus,#39,matched,100.0,,issue #39
 0x405740,574,,#40,assigned,,,issue #40
 0x405980,1040,,#40,assigned,,,issue #40
 0x405d90,578,,#40,assigned,,,issue #40

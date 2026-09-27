@@ -926,6 +926,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **64-bit widening that comes too early**: a `Vec3` subtraction followed by a
   member squared-distance helper postpones it until after the range
   calculation; separate scalar 64-bit locals widen too early (0x404730).
+- **A 16-bit register copy (`mov bx, dx`) of a value stored later**: assign the
+  values into the fields of a small struct local (`Point16 p; p.x = n % w;`) and
+  copy them out afterwards; a plain `short` local gives `mov ebx, edx` (0x404db0,
+  same shape at 0x423c50).
+- **A box whose `hi.x` is stored twice**: `box.hi = box.lo;` then `+=` per field;
+  separate field assignments drop the first store (0x404ad0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

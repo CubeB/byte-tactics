@@ -1,4 +1,7 @@
 // Decompiled by Opus. Names are provisional.
+// Codex / GPT-6 retest in #13:
+// unsigned queue indices, a pop helper given the capacity and a
+// separate entry pointer did not reproduce the size-before-entry load.
 // Pops the next entry from a small ring buffer (0 when empty); 0x4c1b00
 // peeks at it and 0x4c1b20 pushes. Remaining difference: the original loads
 // `size` before the entry, this loads the entry first. Source order,

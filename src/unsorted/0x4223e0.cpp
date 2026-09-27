@@ -1,4 +1,7 @@
 // Decompiled by Opus. Names are provisional.
+// Codex / GPT-6 retest in #13:
+// a vector-shaped container and a release helper taking the first
+// and last pointers by reference still produced 109 bytes, not 127.
 // Deletes every entry of the global vector at DAT_00511fb4 (see 0x422460),
 // then the vector itself.
 //

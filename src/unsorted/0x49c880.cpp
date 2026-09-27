@@ -1,4 +1,7 @@
 // Decompiled by Opus. Names are provisional.
+// Codex / GPT-6 retest in #13:
+// an owner-filtered removal helper and reversing the two predicate
+// terms did not fix the ebx/ebp allocation. Retain the original best partial.
 
 struct Vec3_0049c880 {
     int x;

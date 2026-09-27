@@ -631,6 +631,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A method with an established placeholder name that is really an out-of-line
   destructor**: write the named method as `((Real*)this)->Real::~Real();` with
   an inline destructor; MSVC inlines it with its vtable store (0x470b80).
+- **A `bool` return from a call**: `return f() == 0 ? true : false;` gives
+  `test eax, eax; sete al`; an int local first gives `xor edx, edx; sete dl;
+  mov al, dl`, and `return f() == 0;` gives `neg; sbb; inc` (0x4de810).
+- **Two parameters clamped through one reused stack slot**: a `static inline`
+  clamp helper per value, not in-place changes to the parameters (0x496e90).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

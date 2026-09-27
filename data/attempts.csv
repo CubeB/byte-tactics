@@ -3227,9 +3227,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x436c30,1613,opus,#428,matched,100.0,,issue #428
 0x437580,639,opus,#428,partial,78.9,,issue #428
 0x437de0,653,opus,#428,matched,100.0,,issue #428
-0x496bb0,298,,#431,assigned,,,"issue #431, escalated"
-0x496ce0,207,,#431,assigned,,,"issue #431, escalated"
-0x497080,248,,#431,assigned,,,"issue #431, escalated"
+0x496bb0,298,opus,#431,matched,100.0,,"issue #431, escalated"
+0x496ce0,207,opus,#431,matched,100.0,,"issue #431, escalated"
+0x497080,248,opus,#431,matched,100.0,,"issue #431, escalated"
 0x4a0e00,299,,#433,assigned,,,"issue #433, escalated"
 0x4933e0,205,opus,#436,matched,100.0,,"issue #436, escalated"
 0x494e70,371,opus,#436,matched,100.0,,"issue #436, escalated"

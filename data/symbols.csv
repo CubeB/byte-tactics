@@ -1230,6 +1230,7 @@ address,name
 0x46c8e0,FUN_0046c8e0
 0x46cbe0,Class_0046cbe0::Class_0046cbe0
 0x46cec0,Class_0046cec0::FUN_0046cec0
+0x46cef0,Class_0046cef0::FUN_0046cef0
 0x46d040,Class_0046d040::Class_0046d040
 0x46d4c0,Class_0046d4c0::FUN_0046d4c0
 0x46d500,Class_0046d500::FUN_0046d500
@@ -1260,6 +1261,7 @@ address,name
 0x46ea10,IURect_0046e160::IU?$pair::?$_Tree::iterator::_Inc
 0x46eaa0,UClass_0046eaa0::?$vector::_Destroy
 0x46eb60,std::H::HV?$allocator::?$list::erase
+0x46eba0,Class_0046eba0::FUN_0046eba0
 0x46f6d0,IURect_0046e160::IU?$pair::?$_Tree::_Erase
 0x46f720,Class_0046f720::FUN_0046f720
 0x46fac0,??Eiterator@?$list@HV?$allocator@H@std@@@std@@QAE?AV012@H@Z
@@ -3654,7 +3656,10 @@ address,name
 0x51e528,DAT_0051e528
 0x51e52c,DAT_0051e52c
 0x51e548,DAT_0051e548
+0x51e550,DAT_0051e550
+0x51e558,DAT_0051e558
 0x51e574,DAT_0051e574
+0x51e57c,DAT_0051e57c
 0x51e580,DAT_0051e580
 0x51e588,DAT_0051e588
 0x51e58c,DAT_0051e58c

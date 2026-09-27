@@ -11,7 +11,7 @@
 #include <vector>
 
 #pragma pack(push, 1)
-struct Unit_00407560 {
+struct Unit {
     char unknown_0[0x6c];
     short x;                                // +0x6c
     char unknown_6e[6];
@@ -23,7 +23,7 @@ struct Group_00407560 {
     void* player;                           // +0x0
     int id;                                 // +0x4
     char unknown_8[8];
-    std::vector<Unit_00407560*> units;      // +0x10
+    std::vector<Unit*> units;      // +0x10
 };
 
 class Class_00407560;
@@ -35,7 +35,7 @@ struct Owner_00407560 {
 };
 #pragma pack(pop)
 
-void __stdcall FUN_00480250(Unit_00407560* u, int id);
+void __stdcall FUN_00480250(Unit* u, int id);
 
 class Class_00407560 {
 public:
@@ -58,7 +58,7 @@ void Class_00407560::FUN_00407560(int kind, int limit)
         FUN_00480250(other->group->units[0], group->id);
     }
     int sx = 0, sz = 0;
-    std::vector<Unit_00407560*>::iterator it;
+    std::vector<Unit*>::iterator it;
     for (it = group->units.begin(); it != group->units.end(); ++it) {
         sx += (*it)->x;
         sz += (*it)->z;
@@ -71,7 +71,7 @@ void Class_00407560::FUN_00407560(int kind, int limit)
         if (g->units.size() == 1)
             break;
         int maxd = 0;
-        std::vector<Unit_00407560*>::iterator best = g->units.end();
+        std::vector<Unit*>::iterator best = g->units.end();
         for (it = g->units.begin(); it != g->units.end(); ++it) {
             int dx = (*it)->x - cx;
             int dz = (*it)->z - cz;
@@ -87,7 +87,7 @@ void Class_00407560::FUN_00407560(int kind, int limit)
         sx -= (*best)->x;
         sz -= (*best)->z;
     }
-    std::vector<Unit_00407560*> list;
+    std::vector<Unit*> list;
     for (it = other->group->units.begin(); it != other->group->units.end(); ++it) {
         int dx = (*it)->x - cx;
         int dz = (*it)->z - cz;

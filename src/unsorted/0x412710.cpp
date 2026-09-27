@@ -16,6 +16,10 @@
 // - State 4's second Offset call: the original reloads the spilled distance
 //   into edx straight after the first call (`mov edx, [esp+0x3c]` before
 //   `add esp, 8`); ours reloads it into eax after `mov ebx, eax`.
+// - Name: 0x406c00 is std::vector<Unit*>::_Destroy (#135), so a matching
+//   version must use std::vector<Unit*> for `v`, not Elem_00406c10. That
+//   change alone moves registers in state 4's health test (82.2% to 81.2%),
+//   so it is left for whoever finishes this function.
 // What fixed most of it: `Vec3 p = base + off` with a member operator+ built
 // on operator+= (states 1 and 3), a separate sum then copy in state 4, the
 // literal 0 as the second VTOL_SEEKATTACK target, and <memory.h> (found with

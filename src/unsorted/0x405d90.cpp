@@ -1,9 +1,8 @@
 // Decompiled by GPT-6 Astra. Names are provisional.
 struct Unit;
-struct Elem_00406c10 { Unit* ptr; };
-void __stdcall FUN_00406c70(Elem_00406c10*, const Elem_00406c10*);
+void __stdcall FUN_00406c70(Unit**, Unit* const*);
 namespace std {
-inline void _Construct(Elem_00406c10* dest, const Elem_00406c10& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
 }
 #include <vector>
 #pragma pack(push, 1)
@@ -20,7 +19,7 @@ class Class_00405d90 {
 public:
     virtual void FUN_00405d90(Unit*);
     Owner* owner;
-    std::vector<Elem_00406c10>* units;
+    std::vector<Unit*>* units;
     Unit* self;
 };
 // FUNCTION: 0x405d90
@@ -34,5 +33,5 @@ void Class_00405d90::FUN_00405d90(Unit* unit)
     if ((unsigned char)kind != 1) return;
     if ((unsigned int)unit->health >= unit->def->maxHealth && unit->progress == 0.0f) return;
     if (unit->orderPlayer == owner->index && unit->orderKind == 5) return;
-    units->push_back(*(const Elem_00406c10*)&unit);
+    units->push_back(unit);
 }

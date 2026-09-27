@@ -34,10 +34,6 @@ struct Vec3 {
     Vec3 operator-(const Vec3& v) const { Vec3 r = *this; r -= v; return r; }
 };
 
-struct Elem_00406c10 {
-    int unknown_0;
-};
-
 class Class_00438760 {
 public:
     unsigned char index;
@@ -128,7 +124,7 @@ void __stdcall FUN_0048a060(Unit*, Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, int);
 void __stdcall FUN_0043ad10(Unit*, Class_0043a0c0*);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a0c0*);
-void __stdcall FUN_0040b530(int player, Vec3* pos, int range, std::vector<Elem_00406c10>* out);
+void __stdcall FUN_0040b530(int player, Vec3* pos, int range, std::vector<Unit*>* out);
 Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
 
 static inline Vec3 Offset(short angle, int distance)
@@ -247,11 +243,11 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags = 0x100e8;
         if ((unsigned int)unit->field_108 < (unit->def->field_1fa >> 2) * 3) {
-            std::vector<Elem_00406c10> v;
+            std::vector<Unit*> v;
             FUN_0040b530(unit->player->index, &unit->pos, 0xf00, &v);
             if (!v.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                int target = v[FUN_004b6c30(v.size())].unknown_0;
+                int target = (int)v[FUN_004b6c30(v.size())];
                 FUN_0043acb0(unit, new Class_0043a0c0("VTOL_LANDING", target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;

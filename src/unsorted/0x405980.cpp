@@ -26,7 +26,6 @@
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;
-struct Elem_00406c10 { Unit* ptr; };
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 class Class_004388d0 { public: void FUN_004388d0(int); };
 class Class_00438930 { public: void FUN_00438930(Vec3*, int); };
@@ -52,9 +51,9 @@ public:
 class Class_00405d90 {
 public:
     Owner* owner;
-    std::vector<Elem_00406c10>* units;
+    std::vector<Unit*>* units;
     Unit* self;
-    Class_00405d90(Owner* o, std::vector<Elem_00406c10>* v, Unit* s) : owner(o), units(v), self(s) {}
+    Class_00405d90(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     virtual void FUN_00405d90(Unit*);
 };
 void __stdcall FUN_0043a020(Unit*, Order*);
@@ -81,11 +80,11 @@ int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
         ((Class_00439e80*)order)->FUN_00439e80(60);
         order->flags |= 0xe0;
         if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
-            std::vector<Elem_00406c10> units;
+            std::vector<Unit*> units;
             int range = unit->def->range << 16;
             FUN_0047e890(&unit->pos, range, Class_00405d90(unit->owner, &units, unit));
             if (!units.empty()) {
-                Unit* target = units[FUN_004b6c30(units.size())].ptr;
+                Unit* target = units[FUN_004b6c30(units.size())];
                 if (unit->owner->allied[target->owner->index]) {
                     Class_00438760 kind = FUN_0043f0e0(8, unit, target, 0);
                     if (kind.index) {

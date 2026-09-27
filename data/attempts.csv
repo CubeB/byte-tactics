@@ -2398,9 +2398,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x405980,1040,opus,#63,partial,80.4,,"issue #63, escalated"
 0x406300,1152,opus,#65,partial,85.3,,"issue #65, escalated"
 0x4b6c30,101,opus,#72,partial,86.1,,"issue #72, escalated"
-0x40b530,627,,#77,assigned,,,issue #77
-0x40b7b0,720,,#77,assigned,,,issue #77
-0x40bb00,686,,#77,assigned,,,issue #77
+0x40b530,627,gpt-6,#77,matched,100.0,,issue #77
+0x40b7b0,720,gpt-6,#77,matched,100.0,,issue #77
+0x40bb00,686,gpt-6,#77,partial,92.4,,issue #77
 0x40bfe0,535,gpt-6-astra,#78,matched,100.0,,issue #78
 0x40c250,664,gpt-6-astra,#78,matched,100.0,,issue #78
 0x40c600,494,gpt-6-astra,#78,matched,100.0,,issue #78

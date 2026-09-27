@@ -133,8 +133,11 @@ address,size,file,symbol,status,similarity
 0x40b320,68,src/unsorted/0x40b320.cpp,?FUN_0040b320@@YGXH@Z,matched,100.0
 0x40b370,19,src/unsorted/0x40b370.cpp,?FUN_0040b370@@YGXH@Z,matched,100.0
 0x40b390,401,src/unsorted/0x40b390.cpp,?FUN_0040b390@@YGXH@Z,matched,100.0
+0x40b530,627,src/unsorted/0x40b530.cpp,?FUN_0040b530@@YGXHPBUVec@@HPAV?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@@Z,matched,100.0
+0x40b7b0,720,src/unsorted/0x40b7b0.cpp,?FUN_0040b7b0@@YGPAUUnit@@PAU1@EH@Z,matched,100.0
 0x40ba80,37,src/unsorted/0x40ba80.cpp,?FUN_0040ba80@@YGXHPAUStruct_0040ba80@@@Z,matched,100.0
 0x40bab0,78,src/unsorted/0x40bab0.cpp,?FUN_0040bab0@@YGXHHPAUStruct_0040bab0@@@Z,matched,100.0
+0x40bb00,686,src/unsorted/0x40bb00.cpp,?FUN_0040bb00@@YGHHG@Z,partial,92.4
 0x40bdb0,244,src/unsorted/0x40bdb0.cpp,?FUN_0040bdb0@@YGGIPAUUnit_0040bdb0@@@Z,matched,100.0
 0x40beb0,302,src/unsorted/0x40beb0.cpp,?FUN_0040beb0@@YG?AUVec3_0040beb0@@PBU1@0H@Z,matched,100.0
 0x40bfe0,535,src/unsorted/0x40bfe0.cpp,?FUN_0040bfe0@@YGHHPBUVec3@@PAUUnitType@@PAU1@@Z,matched,100.0

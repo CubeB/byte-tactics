@@ -681,6 +681,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   address of the outer `vector<vector<T>>::operator=` (0x433a30).
 - **`f(g(a), b)` pushes `b` before calling `g`**: when the original loads `b`
   after `g` returns, store `g`'s result in a local first (0x445e20).
+- **`cmp edx, edx` plus a dead store of the old `_Last` into an argument
+  slot**: an inlined `vector::clear()` (`erase(begin(), end())`) on that
+  argument (0x44ce90).
+- **An uncalled out-of-line constructor just before a class's destructor**: the
+  class's `new` site inlines the same body elsewhere; reuse the class that
+  inlined copy already has (0x470f80, 0x4402e0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

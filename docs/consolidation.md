@@ -77,6 +77,10 @@ revisit them once the surrounding code is known.
   `~vector<Elem_00434020>`. So 0x434360 is probably an erase on a three-level
   vector, and 0x434770's recorded name is one level too shallow.
 
+- `Class_004402e0` (constructor 0x4402e0) is the class 0x440290.cpp calls
+  `Class_00440320`, while 0x440320 is recorded as the free function
+  `FUN_00440320`.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

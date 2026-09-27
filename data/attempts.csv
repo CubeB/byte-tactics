@@ -2313,12 +2313,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x42f3a0,167,space-bunny-free,#27,matched,100.0,,issue #27
 0x42f450,297,space-bunny-free,#27,matched,100.0,,issue #27
 0x42f7e0,215,space-bunny-free,#27,matched,100.0,,issue #27
-0x431740,382,,#28,assigned,,,issue #28
-0x431950,199,,#28,assigned,,,issue #28
-0x432fb0,244,,#28,assigned,,,issue #28
-0x433130,312,,#28,assigned,,,issue #28
-0x433270,270,,#28,assigned,,,issue #28
-0x433380,377,,#28,assigned,,,issue #28
+0x431740,382,space-bunny-free,#28,matched,100.0,,issue #28
+0x431950,199,space-bunny-free,#28,matched,100.0,,issue #28
+0x432fb0,244,space-bunny-free,#28,matched,100.0,,issue #28
+0x433130,312,space-bunny-free,#28,matched,100.0,,issue #28
+0x433270,270,space-bunny-free,#28,partial,100.0,,issue #28
+0x433380,377,space-bunny-free,#28,partial,42.0,,issue #28
 0x4335f0,194,space-bunny-free,#29,partial,77.2,,issue #29
 0x4344e0,220,space-bunny-free,#29,matched,100.0,,issue #29
 0x4345e0,386,space-bunny-free,#29,matched,100.0,,issue #29
@@ -2601,3 +2601,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x41aa00,646,,#176,assigned,,,issue #176
 0x41ace0,1030,,#176,assigned,,,issue #176
 0x4335f0,194,,#180,assigned,,,"issue #180, escalated"
+0x433380,377,,#186,assigned,,,"issue #186, escalated"

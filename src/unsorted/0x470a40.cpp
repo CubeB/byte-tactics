@@ -1,7 +1,8 @@
 // Decompiled by Opus. Names are provisional.
 // std::copy for 14-byte elements, compiled with __stdcall as the default
 // convention (same shape as 0x4702d0). Its one caller copies one vector's
-// elements into another.
+// elements into another. It is the second std::copy instantiation, so
+// data/aliases.csv lists 0x470a40 for std::copy (0x4256a0 is the first).
 
 #pragma pack(push, 2)
 struct Elem_00470a40 {

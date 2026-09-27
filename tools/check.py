@@ -65,6 +65,10 @@ class Original:
 
 def base_name(sym: str) -> str:
     """Undecorate a symbol just enough to compare names: '?Reset@PlayerRef@@QAEXE@Z' -> 'PlayerRef::Reset'."""
+    if re.search(r"@\?\d+\?\?", sym):
+        # A function-local static (or its guard, $S1) is named inside its
+        # function's scope; it is file-local like the compiler's _$E names.
+        return "$local:" + sym
     if sym.startswith("??_C@"):
         return sym  # string literal, named after its contents
     if sym.startswith("??0") or sym.startswith("??1"):

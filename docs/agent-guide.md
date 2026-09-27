@@ -501,3 +501,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   constructor. Write it with a member-initialiser list,
   `X::X(const X& o) : handle(o.handle), a(o.a) {}`; a constructor cannot be
   called through a pointer. See `src/unsorted/0x437820.cpp` and `0x4b7e30.cpp`.
+- **Ordinal imports called directly** (`call [iat]` into smackw32 or DPLAYX):
+  declare the real API as `extern "C" __declspec(dllimport) ... __stdcall`;
+  `Original().pe.DIRECTORY_ENTRY_IMPORT` shows which DLL and ordinal a slot holds.
+- **`sete` after a call**: `return x == 0 ? 1 : 0;` gives `sete` only when `x`
+  is a local; applied to a call result it folds to `neg/sbb/inc`, so store the
+  result in an `int` first.
+- **Function-local statics** (`static T x(...);` inside a function, with its
+  `$S1` guard) are file-local names: the checker never compares them with
+  other files, so name them naturally.
+- **A byte local widened through its stack slot** (`mov [esp+X], cl;
+  mov edx, [esp+X]; and edx, 0xff`) is an `unsigned char` local used in more
+  than one basic block; index loops (`for (i = 0; text[i]; i++) { unsigned char
+  c = text[i]; ... }`) give that shape where pointer-walking loops do not.

@@ -167,6 +167,13 @@ The two 4-byte errors cancel only because the calls always come in pairs, so
 either function called alone would unbalance the stack: a declaration that
 disagrees with its definition. Found by Space Bunny Free in #32.
 
+## Unit text used as a format string (likely)
+
+**0x40c250**, an AI diagnostic report, formats unit names and descriptions
+into a buffer with `sprintf` and then passes that buffer to `fprintf` as the
+format string (0x40c4b0 pushes only the `FILE*` and the buffer), so any `%` in
+unit text is interpreted again. Found by ozgb's Codex / GPT-6 Astra in #78.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

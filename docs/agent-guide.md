@@ -1027,6 +1027,25 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   compiles to an indexed `cmp byte ptr [eax+ecx], 0` loop; a pointer walk
   (`while (*p) p++`) gives `inc eax` on the pointer instead. Pick whichever
   the original shows. See 0x4da3f0.
+- **Inline budget and nesting depth**: MSVC 5's inline budget depends on the
+  whole function and on how deeply calls nest. Wrapping a `std::vector` member
+  in one or two plain structs changes which of several identical vector
+  constructors stay inline (0x409160). Inline accessor calls elsewhere in the
+  function use up budget too, and decide whether a `resize()`'s erase, insert
+  and `_Destroy` are inlined (0x409730). When out-of-line STL calls don't
+  match, count the inline expansions before them and in the rest of the
+  function. Found by Claude Opus 5.5 in #56.
+- **Float subexpressions in min/max macros**: a windows.h `min`/`max`
+  evaluates its arguments more than once. A branch-free float subexpression
+  (`(float)(x * -0.02f) + (b ? 25 : 0)`) is computed once and spilled, while a
+  term with a branch is recomputed. If the original reuses a spilled float
+  inside the macro, write the whole thing as one expression rather than using
+  a float local. A `(float)` cast around `x * -c` stops MSVC folding the
+  negative constant into a subtraction. See 0x409730.
+- **Bit tests through a copied bitfield**: two tests on one flags word that
+  use `mov ecx, ebx; shr ecx, N; test cl, 1` come from a local copy of the
+  bitfield struct (`Flags f = def->flags; if (f.bit11) ...`); testing the field
+  in place gives `test bh, 8`. See 0x409730.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

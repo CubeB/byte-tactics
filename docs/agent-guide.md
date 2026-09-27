@@ -877,6 +877,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Before writing a constructor, find a sibling constructor of the same
   family** (grep for a distinctive expression such as `<< 19`) and copy its
   local-variable layout; it decides which stack slots MSVC reuses (0x44d3b0).
+- **A placeholder method name that is really a constructor**: write the method
+  as `((Real*)this)->Real::Real(args); return (Real*)this;` with an inline
+  constructor (0x470a90); the destructor counterpart is 0x470b80.
+- **A sum the original computes twice**: MSVC 5 shares `a + b` even across
+  branches, so one use was probably two `+=` steps (`z += off; z += x1;`)
+  (0x4c0a90).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

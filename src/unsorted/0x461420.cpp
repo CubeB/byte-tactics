@@ -4,10 +4,8 @@
 // destroys the Class_00462d30 member at +0xb300, then the eleven big entries
 // at +0x10 in reverse order. The class declarations for Class_00462d30 are
 // copied from 0x462cc0.cpp so its destructor is inlined here.
-// Note: the constructor at 0x4611e0 initialises its eleven 0x1044 entries at
-// +0x8 (so they end at +0xb54), eight bytes away from the range this
-// destructor frees (+0x10 to +0xb2fc). The two do not agree; this file follows
-// the destructor.
+// The channels start at +0x08; the +0x10 here is each channel's own
+// items/count pair at its +0x08 (settled in #225, see 0x460e20.cpp).
 
 struct Obj_00462d30 {
     int a, b, c;

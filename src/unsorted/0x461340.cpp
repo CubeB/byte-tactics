@@ -11,12 +11,11 @@
 // destructors; the first subtraction lines it up again, so the pointers freed
 // are the ones the array really holds.
 //
-// Suspected bug in the original: the constructor 0x4611e0 initialises its
-// eleven big entries at +0x08 (ecx = ebp+8, eleven times, step 0x1044, so
-// +0x08 to +0xb2d4), while this destructor frees eleven entries at +0x10
-// (+0x10 to +0xb2fc). The last entry's tail is never initialised and is freed
-// anyway. The Class_00462d30 member part of both agrees (+0xb300, and the
-// constructor writes 0xb304 to 0xb31c, which this destructor reads).
+// The channels really start at +0x08, as the constructor 0x4611e0 has them;
+// what this destructor frees from +0x10 is each channel's own items/count
+// pair at its +0x08 (settled in #225, where one class definition compiles the
+// constructor, `_$E4` and `_$E2` to the original bytes). This file's entry
+// layout is a view of that and is not a bug.
 
 struct Buffers_00462d30 {
     char* a;                           // +0x0

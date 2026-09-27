@@ -1,0 +1,34 @@
+// Decompiled by Opus. Names are provisional.
+// Draws a percentage bar: FUN_004bf8c0 on the whole rectangle, then, when the
+// percentage (capped at 100) is positive, fills that fraction of its width.
+// Both calls take the colour byte at g_game+0xdda through one reference.
+
+struct Rect_004b0510 {
+    int x1;                          // +0x0
+    int y1;                          // +0x4
+    int x2;                          // +0x8
+    int y2;                          // +0xc
+};
+
+struct Game_00468310 {
+    char unknown_0[0xdda];
+    unsigned char color;             // +0xdda
+};
+
+extern Game_00468310* g_game;
+
+void __stdcall FUN_004bf8c0(void* param_1, void* param_2, int param_3);
+void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+
+// FUNCTION: 0x468310
+void __stdcall FUN_00468310(void* surface, Rect_004b0510* rect, int percent)
+{
+    unsigned char& color = g_game->color;
+    FUN_004bf8c0(surface, rect, color);
+    if (percent >= 100)
+        percent = 100;
+    if (percent > 0) {
+        rect->x2 = (rect->x2 - rect->x1) * percent / 100 + rect->x1;
+        FUN_004bf6f0(surface, rect, color);
+    }
+}

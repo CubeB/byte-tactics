@@ -852,6 +852,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Destroying a `std::vector` member of each array element**: call
   `arr[i].member.~vector()` directly for `lea esi, [base+idx+K]`; the element's
   implicit destructor gives `add esi, idx` (0x4801f0).
+- **`g_game->f += call() << k` when the original loads `g_game` after the
+  call**: put the result in an int local first (0x416860).
+- **Find near-copies before writing**: grep src/unsorted for a distinctive
+  offset or callee address; many functions differ from a matched sibling only
+  in a callee, a key string or a value type.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

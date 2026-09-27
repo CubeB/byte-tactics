@@ -1052,6 +1052,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   duplicated entry `test; je`, put the guarded loop in an inline member helper
   whose body starts with its own `if (bits)` guard. Found by DeepSeek V4.1
   Flash in #11 (0x40d900, 57% to 73%).
+- **`__stdcall` STL heap helpers**: a make_heap or pop_heap body that ends in
+  `ret N`, called from a function that also inlines `std::vector` code, is
+  declared `__stdcall`, with the inline wrapper's body written at the call
+  site. How many inline helpers the function uses decides which vector members
+  /Ob2 leaves out of line. Found by Claude Opus 5.5 in #57 (0x40a260).
+- **Struct fields copied with `fld`/`fstp`**: a field copied through the FPU
+  instead of with `mov` was passed through a `float` parameter of an inline
+  constructor. See 0x40a7b0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -113,7 +113,10 @@ address,size,file,symbol,status,similarity
 0x40a040,185,src/unsorted/0x40a040.cpp,?FUN_0040a040@@YGXH@Z,matched,100.0
 0x40a100,75,src/unsorted/0x40a100.cpp,?FUN_0040a100@@YAXXZ,matched,100.0
 0x40a150,265,src/unsorted/0x40a150.cpp,?FUN_0040a150@Class_0040a150@@QAEXXZ,matched,100.0
+0x40a260,834,src/unsorted/0x40a260.cpp,?FUN_0040a260@Class_0040a7b0@@QAE_NPAUUnitType@@PAUVec3@@PAV?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@HPAUPoint16@@@Z,partial,100.0
 0x40a5b0,19,src/unsorted/0x40a5b0.cpp,?FUN_0040a5b0@Class_0040a5b0@@QAEPAV1@PBUData@@@Z,matched,100.0
+0x40a5d0,473,src/unsorted/0x40a5d0.cpp,?FUN_0040a5d0@Class_0040a7b0@@QAE_NPAUUnitType@@PAUVec3@@HPAUPoint16@@@Z,matched,100.0
+0x40a7b0,644,src/unsorted/0x40a7b0.cpp,?FUN_0040a7b0@Class_0040a7b0@@QAEXXZ,partial,81.4
 0x40ad20,73,src/unsorted/0x40ad20.cpp,?FUN_0040ad20@Class_0040ad20@@QAEXXZ,matched,100.0
 0x40ad70,15,src/unsorted/0x40ad70.cpp,?FUN_0040ad70@@YGXHHH@Z,matched,100.0
 0x40b0d0,229,src/unsorted/0x40b0d0.cpp,?FUN_0040b0d0@@YG_NHPAUVec3_40b0d0@@H@Z,matched,100.0

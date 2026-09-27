@@ -9,8 +9,16 @@
 extern void* DAT_00529e58;             // free list
 extern void (*DAT_005289bc)();         // out-of-memory handler
 
+// A method that ignores `this`: its callers (0x4e17c0, 0x4e2620) set ecx
+// to the tree whose nodes it allocates (the allocator sits at +0),
+// pushing the node size (0x208).
+class Class_004e2b60 {
+public:
+    void* FUN_004e2b60(unsigned int n);
+};
+
 // FUNCTION: 0x4e2b60
-void* __stdcall FUN_004e2b60(unsigned int n)
+void* Class_004e2b60::FUN_004e2b60(unsigned int n)
 {
     if (DAT_00529e58 == 0) {
         unsigned int rem = 0x2000;

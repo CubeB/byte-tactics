@@ -1,5 +1,7 @@
 // Decompiled by Opus. Names are provisional.
-// Blanks out C and C++ style comments in a text buffer, in place.
+// Blanks out C and C++ style comments in a text buffer, in place. A method
+// that ignores `this`: its callers (0x4c2f60, 0x4c3120) pass their own
+// `this` through in ecx.
 
 // Handles the text at p (a // comment, a /* */ comment, or one ordinary
 // character) and returns where to continue.
@@ -34,8 +36,13 @@ static inline char* SkipComment(char* p)
     return p;
 }
 
+class Class_004c33a0 {
+public:
+    void FUN_004c33a0(char* p);
+};
+
 // FUNCTION: 0x4c33a0
-void __stdcall FUN_004c33a0(char* p)
+void Class_004c33a0::FUN_004c33a0(char* p)
 {
     while (*p)
         p = SkipComment(p);

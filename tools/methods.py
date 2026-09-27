@@ -49,6 +49,9 @@ def main() -> None:
                 passed = False
                 continue
             read, written = ins.regs_access()
+            if ins.mnemonic.startswith("rep"):
+                passed = False  # ecx is a string instruction's count (a by-value struct copy)
+                continue
             if ECX in read and not (ins.mnemonic == "xor" and ins.op_str == "ecx, ecx"):
                 passed = False
             if ECX in written:

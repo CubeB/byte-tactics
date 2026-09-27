@@ -3,7 +3,7 @@ struct Vec { int x,y,z; };
 struct Unit;
 class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
 #pragma pack(push,2)
-class Class_0043a0c0 { public: char pad[0x56]; Class_0043a0c0(Class_00438760,Unit*,Vec*,int,int,int); };
+class Class_0043a1f0 { public: char pad[0x56]; Class_0043a1f0(Class_00438760,Unit*,Vec*,int,int,int); };
 #pragma pack(pop)
 #pragma pack(push,1)
 struct Def { char pad[0x218]; unsigned short radius; };
@@ -14,7 +14,7 @@ class Class_00438880 { public: void FUN_00438880(int); };
 class Class_00438930 { public: void FUN_00438930(Vec*,int); };
 class Class_00439e80 { public: void FUN_00439e80(int); };
 void __stdcall FUN_0047f780(Unit*,int,void*);
-void __stdcall FUN_0043acb0(Unit*,Class_0043a0c0*);
+void __stdcall FUN_0043acb0(Unit*,Class_0043a1f0*);
 // FUNCTION: 0x403260
 int __stdcall FUN_00403260(Unit* unit,Order* order,unsigned flags)
 {
@@ -31,7 +31,7 @@ int __stdcall FUN_00403260(Unit* unit,Order* order,unsigned flags)
     case 1:
         if(flags&0x20) {
             FUN_0047f780(unit,6,0);
-            FUN_0043acb0(unit,new Class_0043a0c0("SELFDESTRUCT",0,0,1,0,0));
+            FUN_0043acb0(unit,new Class_0043a1f0("SELFDESTRUCT",0,0,1,0,0));
             return 5;
         }
         if(flags&0x40) return 8;

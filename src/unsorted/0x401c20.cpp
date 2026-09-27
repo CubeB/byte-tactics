@@ -14,10 +14,10 @@ struct Vec_00401c20 {
 };
 
 #pragma pack(push, 2)
-class Class_0043a0c0 {
+class Class_0043a1f0 {
 public:
     char unknown_0[0x56];
-    Class_0043a0c0(Class_00438760 type, int a, Vec_00401c20* b, int c, int d, int e);
+    Class_0043a1f0(Class_00438760 type, int a, Vec_00401c20* b, int c, int d, int e);
 };
 #pragma pack(pop)
 
@@ -43,7 +43,7 @@ struct Unit_00401c20 {
 #pragma pack(pop)
 
 void __stdcall FUN_0048a0f0(Unit_00401c20* unit, int which);
-void __stdcall FUN_0043acb0(Unit_00401c20* owner, Class_0043a0c0* node);
+void __stdcall FUN_0043acb0(Unit_00401c20* owner, Class_0043a1f0* node);
 
 // FUNCTION: 0x401c20
 int __stdcall FUN_00401c20(Unit_00401c20* unit, Class_00438880* order, int unused)
@@ -53,7 +53,7 @@ int __stdcall FUN_00401c20(Unit_00401c20* unit, Class_00438880* order, int unuse
     FUN_0048a0f0(unit, 1);
     FUN_0048a0f0(unit, 2);
     if ((unit->flags & 3) == 2 && (unit->def->flags & 0x800)) {
-        FUN_0043acb0(unit, new Class_0043a0c0("VTOL_LANDIFCAN", 0, &unit->pos, 0, 0, 0));
+        FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDIFCAN", 0, &unit->pos, 0, 0, 0));
     }
     return 5;
 }

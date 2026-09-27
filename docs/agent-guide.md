@@ -1727,3 +1727,18 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A flat declaration sweep is a result**: if 0 to 700 unused declarations
   never change the score, the difference is the source shape, so keep
   rewriting; if the score moves, it is compiler state (0x4624a0, 0x46e640).
+- **A 1-bit bitfield can free a register**: `p->flags |= 1` on an
+  `unsigned char` field is load, `or bl, 1`, store, which occupies `bl`; as an
+  `unsigned short started : 1` bitfield it becomes `or byte ptr [ecx+N], 1`
+  and the allocation of the rest of the function can change (0x496ee0). When
+  diffs in several distant blocks appear together, look for one shared cause
+  like this before tuning each block.
+- **An out-of-line `_Ufill` call from a `vector(n, value)` constructor**: MSVC
+  5 always inlines `_Ufill` there with the real `<vector>`, so declare the
+  container by hand with `std::allocator` from `<memory>` and `_Ufill` declared
+  only (0x406c40, 0x46ca60, 0x488310).
+- **A ternary's operand order picks the branch**: `(w >= 200 ? w : 200)` gives
+  `jge` with the value on the fall-through; `(w < 200 ? 200 : w)` does not.
+- **Jump table case bodies come out in source order**: when the bodies sit in
+  an unexpected physical order, write the case labels in that order rather
+  than sorted.

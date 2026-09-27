@@ -364,6 +364,16 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x48b710** (possible): reads the unit's link at +0x96 for a 16-bit id
+  subtraction after testing only the owner and its vtable slot 7, while
+  0x48b200, which writes the same field, tests the link for null first, so a
+  unit with no link is read through a null pointer. Found by Space Bunny Free
+  in #498.
+- **0x488310** (possible): passes the network count, an `int`, straight to a
+  `vector(n, value)` constructor; a negative count is clamped only for the
+  allocation, so `_Ufill` would then write far past a zero-byte block. Harmless
+  if the count is never negative. Read from the disassembly of a partial
+  match. Found by Space Bunny Free in #498.
 - **0x45f8c0** (likely): when a line value does not start with '|', the
   split scans from `value + 1` for the next '|' with no test for '\0', so a
   value with no second '|' runs off the end of the 0x80-byte buffer. When it

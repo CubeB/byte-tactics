@@ -526,3 +526,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A `new` of a class with two bases**: the second base's vtable store survives
   in the listing while the first base's disappears; declare both bases as real
   classes (the second with a pure virtual).
+- **Static vs external global objects**: if the atexit destructor of a global
+  `std::vector` keeps `_First` in a callee-saved register on the empty path, the
+  vector is a file-scope `static` (see `0x434a30.cpp`); the checker accepts the
+  compiler's `$S`-suffixed name.
+- **Two pointers walking one struct array**, one at +0 and one into the middle
+  of a group of fields: the group was accessed through an inlined helper taking
+  the sub-struct by reference.
+- **Three zeroed registers stored through `lea reg, [this+K]`**: a body assignment
+  of a temporary, `v = Vec3(0, 0, 0);`, not a member initialiser.
+- **Packing blocks**: keep a struct with a dword at an odd offset (e.g. +0x38a47)
+  in its own `pack(1)` block; `pack(2)` silently moves the field.

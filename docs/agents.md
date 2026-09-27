@@ -23,7 +23,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | 1-16 | 283/312 (91%) | 3/3 (100%) |  |
 | 17-40 | 146/197 (74%) |  | 9/10 (90%) |
 | 41-64 | 3/11 (27%) |  | 54/64 (84%) |
-| 65-160 | 1/6 (17%) | 216/219 (99%) | 2/6 (33%) |
+| 65-160 | 1/6 (17%) | 226/229 (99%) | 2/6 (33%) |
 | 161-400 |  | 8/12 (67%) |  |
 
 ### Cost per batch
@@ -100,6 +100,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | S16 | sonnet | 10 | 10 | 144,922 | 14,492 | 29 | 14 |
 | H21 | haiku | 20 | 18 | 120,661 | 6,703 | 7 | 11 |
 | O34 | opus | 10 | 10 | 127,012 | 12,701 | 51 | 8 |
+| O33 | opus | 10 | 10 | 175,050 | 17,505 | 70 | 12 |
 
 ### Escalations
 
@@ -118,9 +119,10 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
   whose construct and `atexit` steps are only merged into one function under
   `/Ob2`; every earlier match still matches with it.
 - The game uses the compiler's own STL (`std::vector`, including out-of-line
-  `erase`) and also a vector-shaped container of its own: the global at 0x438450
-  has an atexit destructor with no destroy loop, which `std::vector` never
-  produces. Every case where our compiler seemed to "optimise more" than
+  `erase`, and `std::map`) and also a vector-shaped container of its own: the
+  global at 0x438450 has an atexit destructor with no destroy loop, which
+  `std::vector` never produces. The global at 0x434a30 is a file-scope `static`
+  `std::vector` of 8-byte elements with a destructor; both destructors match. Every case where our compiler seemed to "optimise more" than
   Cavedog's turned out to be a difference in the source (an inlined helper, a
   no-op cast, an extra return value, an off-by-one), not in the compiler.
 - Cavedog compiled without `/GX` (no C++ exception handling). The real STL

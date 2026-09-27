@@ -66,6 +66,13 @@ revisit them once the surrounding code is known.
 - 0x407980, 0x408810, 0x4079d0 and 0x407390 still store a hand-assigned vtable;
   see 0x43a1f0.cpp for the real-slot form, which now passes the checks.
 
+- The 0x4fd428 family is consolidated (table in 0x44ef60.cpp): base
+  `Class_0044ef20`, derived `Class_0044f010`, `Class_0044f570`, middle
+  `Class_00490630` and its children `Class_004907e0`, `Class_00490880`.
+  Left over: 0x490880.cpp uses the name `Class_00490880` for what is
+  `Class_004907e0`'s slot 2 override; 0x44f010.cpp and 0x44f570.cpp store their
+  vtables by hand; 0x44ef90's class is spelt `Class_44ef90`.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

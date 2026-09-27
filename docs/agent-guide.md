@@ -611,6 +611,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   virtual slots with the names they already have (placeholder `FUN_` names in
   different classes are compatible) and let the constructor or destructor store
   it (0x43a1f0).
+- **A derived class's `??_G` when its destructor is trivial**: the static
+  object trick does not emit it (the derived vtable store is dead, so the
+  vtable is never emitted). Define the real constructor again, unannotated, in
+  the `??_G` file (0x44f590, 0x490840, 0x490630); see 0x44ef60.cpp for the
+  whole family.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

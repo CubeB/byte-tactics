@@ -61,6 +61,7 @@ public:
     virtual void FUN_0044ef50(int);                 // slot 10, 0x417e00
 };
 
+// FUNCTION: 0x44f040 ??_GClass_0044f010@@UAEPAXI@Z
 // FUNCTION: 0x44f450
 Class_0044f010::~Class_0044f010()
 {

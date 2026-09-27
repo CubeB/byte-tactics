@@ -673,6 +673,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Indexing through a pointer field**: load the array pointer into a local
   before indexing (`Entry* entries = obj->entries; entries[i]`) when the
   original loads it before the multiply (0x4a0ff0).
+- **A fill loop that looks like `rep stosd` plus a separate counter loop and a
+  `lea edi, [base+cnt*4]`**: not `memset` but a plain loop such as
+  `while (n >= 4) { *d++ = v; n -= 4; }`, which MSVC 5 converts (0x4d82c0).
+- **Out-of-line `std::vector<T>::~vector`** (`push ecx`, free `_First`, zero the
+  three pointers, called from element destroy loops): emit it by taking the
+  address of the outer `vector<vector<T>>::operator=` (0x433a30).
+- **`f(g(a), b)` pushes `b` before calling `g`**: when the original loads `b`
+  after `g` returns, store `g`'s result in a local first (0x445e20).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

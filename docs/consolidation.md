@@ -70,6 +70,13 @@ revisit them once the surrounding code is known.
   `Class_004907e0`'s slot 2 override; 0x44f010.cpp and 0x44f570.cpp store their
   vtables by hand; 0x44ef90's class is spelt `Class_44ef90`.
 
+- The timer class is `Class_004e2150` in 0x4e2150.cpp and `Class_004e2160`
+  elsewhere; its getter 0x4e1e30 is `Class_004e1e30::FUN_004e1e30`.
+- 0x434360.cpp's `Elem_00434360` looks like `std::vector<Elem_00434020>`: the
+  operator= it calls (0x434770) destroys elements with 0x433a30, which is
+  `~vector<Elem_00434020>`. So 0x434360 is probably an erase on a three-level
+  vector, and 0x434770's recorded name is one level too shallow.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

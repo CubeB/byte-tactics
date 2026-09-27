@@ -559,8 +559,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (`for (rem = 0x2000; rem >= n; rem -= n)`, as in 0x4e2b60), not a fixed count.
 - **`mov eax, fs:[0x2c]`** then an indexed load: thread-local storage. Declare the
   variable `__declspec(thread)` (the exe has a `.tls` section).
-- **The high half of a `mul`** (`mul reg` then using `edx`):
+- **`mul` by a large odd constant, then a shift of `edx`** (`mov eax, 0x10624dd3;
+  mul ...; shr edx, 6`): plain unsigned division by a constant (`v / 1000u`).
+  The high half of a `mul` by a variable (`mul reg` then using `edx`) is
   `(unsigned int)(((unsigned __int64)a * b) >> 32)`.
+- **`cmp eax, ecx; sbb eax, eax` after an inlined `strlen`** (with `ecx` zero):
+  write the test as `0 < strlen(s)`; `strlen(s) > 0` or `!= 0` give `neg; sbb`.
 - **`lea esi, [base+K]` then `[esi]` accesses, with the base register reused as a
   loop pointer**: the source took a pointer to the field plus a separate array
   pointer and never used the object pointer directly afterwards.

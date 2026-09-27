@@ -4,9 +4,9 @@
 
 void FUN_004d85a0(void* p);
 
-class Class_00434ff0 {
+class Class_00434f70 {
 public:
-    ~Class_00434ff0();
+    ~Class_00434f70();
 };
 
 extern void* DAT_005122d4;
@@ -25,6 +25,6 @@ void FUN_00434b90()
     DAT_005122d8 = 0;
     DAT_005122dc = 0;
     DAT_005122e0 = 0;
-    delete *(Class_00434ff0**)(g_game + 0x391e9);
-    *(Class_00434ff0**)(g_game + 0x391e9) = 0;
+    delete *(Class_00434f70**)(g_game + 0x391e9);
+    *(Class_00434f70**)(g_game + 0x391e9) = 0;
 }

@@ -1,5 +1,5 @@
 // Decompiled by Space Bunny Free. Names are provisional.
-// Replaces the singleton at g_game+0x391e9 with a fresh Class_00434ff0 when the
+// Replaces the singleton at g_game+0x391e9 with a fresh Class_00434f70 when the
 // current one belongs to a different owner, then stores it back (NULL when the
 // allocation failed). The constructor body is inlined here.
 //
@@ -23,7 +23,7 @@ public:
 
 extern char DAT_005119b8[];
 
-class Class_00434ff0 {
+class Class_00434f70 {
 public:
     int owner;                          // +0x0
     char unknown_4[0xa04 - 0x4];
@@ -45,11 +45,11 @@ public:
     int field_dc0;                      // +0xdc0
     char unknown_dc4[0xec4 - 0xdc4];
 
-    Class_00434ff0(int owner_);
-    ~Class_00434ff0();
+    Class_00434f70(int owner_);
+    ~Class_00434f70();
 };
 
-inline Class_00434ff0::Class_00434ff0(int owner_)
+inline Class_00434f70::Class_00434f70(int owner_)
 {
     field_db8 = 0;
     field_db0 = 0;
@@ -71,7 +71,7 @@ inline Class_00434ff0::Class_00434ff0(int owner_)
 #pragma pack(push, 1)
 struct Game_00434ab0 {
     char unknown_0[0x391e9];
-    Class_00434ff0* field_391e9;       // +0x391e9
+    Class_00434f70* field_391e9;       // +0x391e9
 };
 #pragma pack(pop)
 
@@ -86,5 +86,5 @@ void __stdcall FUN_00434ab0(int owner)
         }
         delete g_game->field_391e9;
     }
-    g_game->field_391e9 = new Class_00434ff0(owner);
+    g_game->field_391e9 = new Class_00434f70(owner);
 }

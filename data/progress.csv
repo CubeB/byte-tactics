@@ -974,6 +974,7 @@ address,size,file,symbol,status,similarity
 0x499c10,87,src/unsorted/0x499c10.cpp,?FUN_00499c10@@YGXPAUObject_00499c10@@PAUSource_00499c10@@@Z,matched,100.0
 0x499c70,88,src/unsorted/0x499c70.cpp,?FUN_00499c70@@YGXPAUWeapon_499c70@@PAUUnit_499c70@@@Z,matched,100.0
 0x499e50,91,src/unsorted/0x499e50.cpp,?FUN_00499e50@@YGXPAUUnit_499e50@@@Z,matched,100.0
+0x49a0c0,85,src/unsorted/0x49a0c0.cpp,?FUN_0049a0c0@@YGXPAXPAUVec3_0049a0c0@@@Z,matched,100.0
 0x49a850,64,src/unsorted/0x49a850.cpp,?FUN_0049a850@@YGHPAUVec3i_0049a850@@@Z,matched,100.0
 0x49adf0,33,src/unsorted/0x49adf0.cpp,?FUN_0049adf0@@YGHHI@Z,matched,100.0
 0x49af90,103,src/unsorted/0x49af90.cpp,?FUN_0049af90@@YGXHPAUPacket_0049af90@@@Z,matched,100.0
@@ -1055,6 +1056,7 @@ address,size,file,symbol,status,similarity
 0x4a81b0,39,src/unsorted/0x4a81b0.cpp,?FUN_004a81b0@@YGXPAUStruct_004a81b0@@PAD@Z,matched,100.0
 0x4aa8d0,6,src/unsorted/0x4aa8d0.cpp,?FUN_004aa8d0@@YAHXZ,matched,100.0
 0x4aa8e0,13,src/unsorted/0x4aa8e0.cpp,?FUN_004aa8e0@@YGXPAHH@Z,matched,100.0
+0x4aafe0,91,src/unsorted/0x4aafe0.cpp,?FUN_004aafe0@@YGHPAUObject_004aafe0@@@Z,matched,100.0
 0x4ab040,17,src/unsorted/0x4ab040.cpp,?FUN_004ab040@@YGHPAUClass_004ab040@@@Z,matched,100.0
 0x4ab060,50,src/unsorted/0x4ab060.cpp,?FUN_004ab060@@YGHPAUObject_004ab060@@PBD@Z,matched,100.0
 0x4ab0a0,14,src/unsorted/0x4ab0a0.cpp,?FUN_004ab0a0@@YGXPAX@Z,matched,100.0

@@ -743,6 +743,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **What callers do with a function**: `objdump -d -M intel orig/TotalA.exe |
   grep -B8 "call   0x<addr>"` shows whether they set ecx, what they push and
   what the object is.
+- **The same tail call in both arms of an if/else**, seen as a `push` hoisted
+  above the `je` in both arms: write the call in each arm; early returns
+  falling through to one shared call do not reproduce it (0x408920).
+- **A byte copy loop that increments the destination before the load** (`inc
+  edx; mov al, [ecx]; ...; mov [edx-1], al`): read into an `unsigned int` local,
+  then `*d++ = c;` (0x4587b0).
+- **Loops over `g_game->players[i]`** with the walking pointer at the entry
+  start and the byte compare constant in a register: take a per-iteration
+  `Player* p = &g_game->players[i];` (0x457b90).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

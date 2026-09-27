@@ -21,6 +21,18 @@ struct Cell_0040df00 {
     short index;                        // +2
 };
 
+// The pathfinder's heap sift-down and neighbour expansion, named as their own
+// files name them (all of these are one class; see docs/consolidation.md).
+class Class_0040f000 {
+public:
+    void FUN_0040f060(int pos);
+};
+
+class Class_0040da70 {
+public:
+    void FUN_0040da70(short* p, Cell_0040df00* cell, int dir);
+};
+
 class Class_0040df00 {
 public:
     Node_0040df00* nodes;               // +0x00
@@ -37,9 +49,6 @@ public:
     char unknown_38[0x44 - 0x38];
     int field_44;                       // +0x44
 
-    void FUN_0040f060(int pos);                             // callee, heap sift down
-    void FUN_0040da70(short* p, Cell_0040df00* cell, int dir); // callee, expand
-
     void Pop()
     {
         int idx = this->heap[0] - this->nodes;
@@ -51,7 +60,7 @@ public:
         if (pos < last) {
             this->heap[pos] = this->heap[last];
             this->heap[pos]->heapPos = pos;
-            FUN_0040f060(pos);
+            ((Class_0040f000*)this)->FUN_0040f060(pos);
         }
     }
 
@@ -80,6 +89,6 @@ int Class_0040df00::FUN_0040df00()
     }
     c->kind = 2;
     for (int d = -this->field_44; d <= this->field_44; d++)
-        FUN_0040da70((short*)&local, c, d & 7);
+        ((Class_0040da70*)this)->FUN_0040da70((short*)&local, c, d & 7);
     return 0;
 }

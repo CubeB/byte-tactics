@@ -745,8 +745,14 @@ address,size,file,symbol,status,similarity
 0x444be0,95,src/unsorted/0x444be0.cpp,?FUN_00444be0@@YAXXZ,matched,100.0
 0x444c40,102,src/unsorted/0x444c40.cpp,?FUN_00444c40@@YGXPAUMenu_00444c40@@H@Z,matched,100.0
 0x445300,152,src/unsorted/0x445300.cpp,?FUN_00445300@@YGXPAUEntry_00445300@@@Z,matched,100.0
+0x4453a0,176,src/unsorted/0x4453a0.cpp,?FUN_004453a0@@YGXPAUPlayer_004453a0@@0@Z,matched,100.0
+0x445450,341,src/unsorted/0x445450.cpp,?FUN_00445450@@YAXXZ,partial,91.5
+0x445b70,249,src/unsorted/0x445b70.cpp,?FUN_00445b70@@YGXPAUGui_445b70@@H@Z,matched,100.0
+0x445c70,227,src/unsorted/0x445c70.cpp,?FUN_00445c70@@YGXPAUSub_00445c70@@H@Z,matched,100.0
+0x445d60,187,src/unsorted/0x445d60.cpp,?FUN_00445d60@@YGXPAUSub_00445d60@@H@Z,matched,100.0
 0x445e20,35,src/unsorted/0x445e20.cpp,?FUN_00445e20@@YGXPAUMenu_00445e20@@PADH@Z,matched,100.0
 0x445e50,125,src/unsorted/0x445e50.cpp,?FUN_00445e50@@YGXPADHHP6GXPAUMenu_00445e50@@H@Z@Z,matched,100.0
+0x445ed0,324,src/unsorted/0x445ed0.cpp,?FUN_00445ed0@@YAXXZ,matched,100.0
 0x446020,91,src/unsorted/0x446020.cpp,?FUN_00446020@@YGXPAUGadget_00446020@@@Z,matched,100.0
 0x446080,324,src/unsorted/0x446080.cpp,?FUN_00446080@@YGXH@Z,matched,100.0
 0x4461d0,311,src/unsorted/0x4461d0.cpp,?FUN_004461d0@@YGXPAUGui_004461d0@@@Z,matched,100.0

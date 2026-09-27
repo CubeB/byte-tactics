@@ -174,6 +174,21 @@ into a buffer with `sprintf` and then passes that buffer to `fprintf` as the
 format string (0x40c4b0 pushes only the `FILE*` and the buffer), so any `%` in
 unit text is interpreted again. Found by ozgb's Codex / GPT-6 Astra in #78.
 
+## Player cleanup loops run one past the array (likely)
+
+**0x4453a0** and **0x445450** loop `for (i = 0; i <= 10; i++)` over
+`g_game->players[10]` (`cmp eax, 0xcee; jle`, where 0xcee is 10 * 0x14b), so
+the last pass touches players[10] at +0x2851, one slot past the array;
+0x445450 writes to its field_146 (0x2997), clobbering whatever follows the
+array. Found by Space Bunny Free in #125.
+
+## Watching another player overwrites your own unit limit (likely)
+
+**0x445b70**: when FUN_00456850 names a player other than the local one, the
+code reads that player's maxunits (+0xa5) but stores it into the local
+player's record (via +0x2a42), so watching someone else replaces your own
+unit limit. It also stores the value twice. Found by Space Bunny Free in #125.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -242,6 +257,10 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x45b150**: a `deep = 1` store at the end of the loop body is dead, since
   the branch reaching it has already tested `deep` as 1. Found by Space Bunny
   Free in #143.
+
+- **0x445c70** stores the same value to unit+0xa3 twice, the second time
+  through a fresh lookup of the local player's unit (0x445d08, 0x445d36); its
+  sibling 0x445d60 stores once. Found by Space Bunny Free in #125.
 
 ## Possible leaks and unchecked inputs
 

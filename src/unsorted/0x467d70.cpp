@@ -1,0 +1,67 @@
+// Decompiled by space-bunny-free. Names are provisional.
+// Draws the local player's three light bar frames (one frame table per side)
+// onto the blit surface: the first bar twice, the second copy also shifted
+// down by the status bar height, then the third bar where it sits.
+//
+// Three instructions still differ: this version materialises side * 4 into edi
+// before the first table read, where the original reads the first table with
+// the scale-4 form and only materialises side * 4 for the other two. MSVC
+// unifies the shared index across all three reads whatever spelling of the
+// three table accesses I tried (one array, a 2D array, three pointer fields,
+// byte offsets, an inlined draw helper).
+
+#pragma pack(push, 1)
+struct Unit_467d70 {
+    char unknown_0[0x95];
+    unsigned char side;                 // +0x95
+};
+
+struct Player_467d70 {
+    Unit_467d70* unit;                  // +0x00
+    char unknown_4[0x14b - 4];
+};
+
+struct Game_467d70 {
+    char unknown_0[0x1b8a];
+    Player_467d70 players[10];          // +0x1b8a
+    char unknown_2878[0x2a43 - 0x2878];
+    unsigned char playerIndex;          // +0x2a43
+    char unknown_2a44[0x1481f - 0x2a44];
+    unsigned short* field_1481f[5];     // +0x1481f
+    unsigned short* field_14833[5];     // +0x14833
+    unsigned short* field_14847[5];     // +0x14847
+    char unknown_1485b[0x37e1b - 0x1485b];
+    void* surface;                      // +0x37e1b
+};
+#pragma pack(pop)
+
+extern Game_467d70* g_game;
+
+int __stdcall FUN_004b7f30(unsigned short* frames, int frame);
+void __stdcall FUN_004b7f90(void* surf, short* frame, int x, int y);
+int FUN_004b6710();
+void __stdcall FUN_004c69a0(void* surf);
+void __stdcall FUN_004c6890(void* surf, int mode);
+void FUN_004c63a0();
+
+// FUNCTION: 0x467d70
+void FUN_00467d70()
+{
+    void* surf = g_game->surface;
+    FUN_004c69a0(surf);
+    FUN_004c6890(surf, 0);
+
+    int side = g_game->players[g_game->playerIndex].unit->side;
+
+    short* bar = (short*)FUN_004b7f30(g_game->field_1481f[side], 0);
+    FUN_004b7f90(surf, bar, bar[2] + 0x81, bar[3]);
+
+    int dy = FUN_004b6710() - 0x20;
+    bar = (short*)FUN_004b7f30(g_game->field_14833[side], 0);
+    FUN_004b7f90(surf, bar, bar[2] + 0x81, bar[3] + dy);
+
+    bar = (short*)FUN_004b7f30(g_game->field_14847[side], 0);
+    FUN_004b7f90(surf, bar, bar[2], bar[3]);
+
+    FUN_004c63a0();
+}

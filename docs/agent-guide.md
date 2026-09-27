@@ -1320,6 +1320,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Try `<windows.h>` before a long source search**: in #23 and #30 it alone
   fixed several operand-order and register differences that no rewrite had
   (0x422170, 0x423710, 0x437a30).
+- **A function a few bytes short because two blocks share an ending**: MSVC 5
+  merges identical block endings (one block jumps into the other's last
+  instruction) before it schedules instructions. If the original keeps two
+  blocks apart that end in the same store, one of them had a different last
+  statement in the source, which the scheduler then reordered. Swap
+  independent stores in the other block (0x42a140: `flags |= 1; type = 0xd1;`
+  rather than the reverse). Found by Claude Opus 5.5 in #160.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

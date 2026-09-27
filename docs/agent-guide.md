@@ -209,6 +209,14 @@ effect, the missing piece is usually a helper that was inlined:
   template out of line, take its address in a global
   (`EraseFn g = &std::vector<T>::erase;`) and put the mangled symbol after the
   address in the `// FUNCTION:` line. See `src/unsorted/0x40cfb0.cpp`.
+- **A `std::vector` member starts 4 bytes before its `_First`**: the empty
+  allocator byte sits at +0, padded to 4, even inside a `pack(1)` class (the
+  header's own packing applies). When the original re-reads `_First` after an
+  inlined `size()`, use a real `std::vector` member rather than raw pointer
+  fields, which let the compiler reuse the loaded value (see 0x4c45e0.cpp).
+- **A matched sibling's wording can fail once inlined**: a helper phrasing that
+  matches out of line may allocate registers differently when inlined into a
+  bigger function; try the plainest form (`if (i >= N) i = 0; return v;`).
 - **Addresses are always symbols**: never write an address as a number (a
   vtable, string, global or function). Declare it (`extern void* DAT_004fd458[];`,
   a string literal, `extern Class_x DAT_00528a78;`) and use the name. The

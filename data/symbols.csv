@@ -1262,6 +1262,7 @@ address,name
 0x46cec0,Class_0046cec0::FUN_0046cec0
 0x46cef0,Class_0046cef0::FUN_0046cef0
 0x46d040,Class_0046d040::Class_0046d040
+0x46d1a0,Class_0046d040::~Class_0046d040
 0x46d4c0,Class_0046d4c0::FUN_0046d4c0
 0x46d500,Class_0046d500::FUN_0046d500
 0x46d530,Class_0046d4c0::FUN_0046d530
@@ -1292,6 +1293,7 @@ address,name
 0x46eaa0,UClass_0046eaa0::?$vector::_Destroy
 0x46eb60,std::H::HV?$allocator::?$list::erase
 0x46eba0,Class_0046eba0::FUN_0046eba0
+0x46ef50,IUValue_0046d040::IU?$pair::?$_Tree::insert
 0x46f6d0,IURect_0046e160::IU?$pair::?$_Tree::_Erase
 0x46f720,Class_0046f720::FUN_0046f720
 0x46fac0,??Eiterator@?$list@HV?$allocator@H@std@@@std@@QAE?AV012@H@Z
@@ -3808,7 +3810,7 @@ address,name
 0x51e590,DAT_0051e590
 0x51e594,DAT_0051e594
 0x51e598,IURect_0046e160::IU?$pair::?$_Tree::_Nil
-0x51e59c,DAT_0051e59c
+0x51e59c,IURect_0046e160::IU?$pair::?$_Tree::_Nilrefs
 0x51e5a0,DAT_0051e5a0
 0x51e608,DAT_0051e608
 0x51e610,DAT_0051e610

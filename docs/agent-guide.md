@@ -381,7 +381,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (`int r = f(); if (!r)` vs `if (!f())`) change the whole function's registers.
 - **Two ways to write `== 0`**: `return x == 0 ? 1 : 0;` gives
   `xor edx, edx; test; sete dl; mov eax, edx`; `return x == 0;` gives
-  `neg; sbb; inc`.
+  `neg; sbb; inc`. `neg; sbb; neg; dec` (0 or -1) is `return p ? 0 : -1;`.
 - **Zero-init order**: a chained `a = b = c = d = 0;` initialises right to left.
 - **Operand order that nothing changes**: only when the single remaining
   difference is which of two loads in one commutative `a + b` (or `x ^ y`) comes

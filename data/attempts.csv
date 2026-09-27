@@ -1169,15 +1169,15 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a0280,125,opus,O43,matched,100.0,,
 0x45b920,137,opus,O43,matched,100.0,,
 0x4aeee0,150,opus,O43,matched,100.0,,
-0x4d0a90,28,sonnet,S22,assigned,,,escalated from Haiku
-0x4c9390,31,sonnet,S22,assigned,,,escalated from Haiku
-0x481470,32,sonnet,S22,assigned,,,escalated from Haiku
-0x46d500,33,sonnet,S22,assigned,,,escalated from Haiku
-0x40c580,34,sonnet,S22,assigned,,,escalated from Haiku
-0x4d8e20,34,sonnet,S22,assigned,,,escalated from Haiku
-0x4b7f30,36,sonnet,S22,assigned,,,escalated from Haiku
-0x44f260,37,sonnet,S22,assigned,,,escalated from Haiku
-0x44df80,40,sonnet,S22,assigned,,,escalated from Haiku
+0x4d0a90,28,sonnet,S22,matched,100.0,,escalated from Haiku
+0x4c9390,31,sonnet,S22,matched,100.0,,escalated from Haiku
+0x481470,32,sonnet,S22,matched,100.0,,escalated from Haiku
+0x46d500,33,sonnet,S22,matched,100.0,,escalated from Haiku
+0x40c580,34,sonnet,S22,matched,100.0,,escalated from Haiku
+0x4d8e20,34,sonnet,S22,matched,100.0,,escalated from Haiku
+0x4b7f30,36,sonnet,S22,matched,100.0,,escalated from Haiku
+0x44f260,37,sonnet,S22,matched,100.0,,escalated from Haiku
+0x44df80,40,sonnet,S22,matched,100.0,,escalated from Haiku
 0x458d20,14,opus,O44,assigned,,,escalated: replace volatile or close register gap
 0x474d10,58,opus,O44,assigned,,,escalated: replace volatile or close register gap
 0x475110,58,opus,O44,assigned,,,escalated: replace volatile or close register gap
@@ -1234,3 +1234,16 @@ address,size,model,batch,result,similarity,runs,notes
 0x4012a0,126,opus,O46,assigned,,,
 0x4623e0,137,opus,O46,assigned,,,
 0x429660,151,opus,O46,assigned,,,
+0x48f610,20,sonnet,S24,assigned,,,escalated from H26
+0x410830,22,sonnet,S24,assigned,,,escalated from H26
+0x491c60,23,sonnet,S24,assigned,,,escalated from H26
+0x4ab4c0,26,sonnet,S24,assigned,,,escalated from H26
+0x432c20,30,sonnet,S24,assigned,,,escalated from H26
+0x4c9790,31,sonnet,S24,assigned,,,escalated from H26
+0x472e00,33,sonnet,S24,assigned,,,escalated from H26
+0x40c5d0,34,sonnet,S24,assigned,,,escalated from H26
+0x406c40,35,sonnet,S24,assigned,,,escalated from H26
+0x4ba590,36,sonnet,S24,assigned,,,escalated from H26
+0x4794d0,37,sonnet,S24,assigned,,,escalated from H26
+0x417300,39,sonnet,S24,assigned,,,escalated from H26
+0x467a20,40,sonnet,S24,assigned,,,escalated from H26

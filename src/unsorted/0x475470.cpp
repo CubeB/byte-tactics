@@ -1,70 +1,86 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free and Claude Opus 5.5. Names are provisional.
 // Slot 2 (FUN_00472e30) of Class_00474cd0 (vtable 0x4fd618, see 0x474cd0.cpp),
 // the fog-culled twin of Class_004750b0::FUN_00472e30 (0x475700). Every
-// 32-byte record of the vector at +0xc gets its screen position computed, but
-// it is only drawn when its world cell is visible to the local player: the
-// per-player byte map (+0x7c, +0x80, +0x84) when bit 1 of the flag byte at
-// +0x14281 is set, else that player's bit in the global short map at +0x14273
-// (the same test as the matched 0x408090, inlined here).
+// 32-byte record of the vector at +0xc is drawn through an inlined record
+// method that computes the screen position first and only draws when the
+// record's world cell is visible to the local player: the player's explored
+// byte map (+0x7c data, +0x80 width, +0x84 height) when bit 1 of the flag byte
+// at +0x14281 is set, else that player's bit in the global short map at
+// +0x14273 (the matched 0x408090, inlined here). The same explored-map inline
+// appears in 0x407e90 (0x407f74), 0x465ac0 (0x465b6a) and 0x473a00.
 //
-// Still differs (42.4 percent, 387 of 398 bytes). Every expression tree
-// matches: the three `short` field reads, the two screen positions, the
-// `&&` chain in the byte-map branch (which is what gives the shared false
-// label and `mov eax, 1` / `xor eax, eax`), the nested tests in the short-map
-// branch (which is what gives `neg eax; sbb eax, eax; neg eax`), the argument
-// order of the two calls, and the whole tail. What is left is one register
-// allocation, and it cascades:
+// Still differs (84.6 percent, 394 of 398 bytes). Writing the loop as a call
+// of the inline record method DrawIfVisible, with IsVisible(player, &pos)
+// split into the two inline tests, is what gives the +0xe-biased induction variable in its own
+// stack slot and the original's frame (42.4 to 64.5 percent); computing sx
+// before sy gives the original's load order (x, height, z) and keeps x in bx
+// (78.2); reading the byte map through the ByteMap::Get method keeps
+// `width * y + x` as an index and loads the width into its own register.
+// Two spots are left:
 //
-// The original runs TWO memory induction variables. Slot 1 (frame +4) is the
-// unbiased `it`, and slot 0 (frame +0) is a *biased* copy at `it + 0xe`, which
-// is the base of every record field access: the loop head reloads it into eax
-// and reads `[eax-8]`, `[eax-4]`, `[eax]`, `[eax+6]`, and the draw block
-// reloads it into eax again for `field_14`. `it` itself is only used for
-// `it->data` and the loop test. The two are incremented side by side in the
-// tail (`mov edx,[slot0]; mov eax,[slot1]; add ..,0x20` twice).
-//
-// Here the anchored base is a real variable, so MSVC keeps it in edi across
-// the loop head (`lea edi, [eax+0xe]` before the pushes, then `mov dx,[edi]`,
-// `mov ax,[edi-4]`, `mov bp,[edi-8]`) and only reloads it after the calls.
-// That costs edi, so the allocation shifts by one: x lands in bp instead of
-// bx, the player pointer is computed into ebx and spilled to frame slot 4
-// instead of living in ebp, and both branches then pick different scratch
-// registers (`mov ebp,[ebx+0x80]`, `add eax,[ebx+0x7c]` where the original
-// has `mov ebx,[ebp+0x80]` twice, `imul ebx,eax`, `add ebx,ecx` and
-// `cmp byte [ebx+ecx],0`). The frame slots follow: the original spends slot 0
-// on the biased base, slot 1 on `it`, slot 4 on the col temp of branch 2 and
-// slot 5 on `this`; this file has `it` in slot 0, the base in slot 1, the
-// player pointer in slot 4, and the dead store of `_First` before the guard in
-// slot 0 instead of slot 1.
-//
-// The base is anchored where the original has it (+0xe) without being written
-// out as a cast, which is the one thing the source shape does reproduce: with
-// no pointer local MSVC keeps the iterator in ebp and reads `[ebp+6]` etc.
-// (32.6 percent), and with the loop-carried pointer declared before the loop it
-// is anchored but the whole loop shape moves (32.8 percent). Tied at 42.4:
-// `short* s = (short*)it + 7;` with `s[-4]`, `s[-2]`, `s[0]`, a
-// `Pos_00474cd0*` local bound by reference, and the pointer to the nested
-// position struct this file uses. What is needed next is a source that spends
-// one more callee-saved register inside the body, or none on the base, so
-// that the base falls back to its frame slot.
+// 1. The short-map branch multiplies into ty's register:
+//      ours:  imul eax, [ebp+0x80]; add eax, ebx; mov ebx, [esi+0x14273];
+//             xor ebp, ebp; mov bp, [ebx+eax*2]
+//      orig:  mov ebp, [ebp+0x80]; imul ebp, eax; mov eax, [esi+0x14273];
+//             add ebp, ebx; xor ebx, ebx; mov bx, [eax+ebp*2]; mov eax, ebx
+//    in every compiler state tried. Tried without effect: either operand
+//    order and casts in the product, an index local, MapSize::Index and
+//    ByteMap::Index methods, a SeenCell(map, x, y) helper, Player member
+//    functions, a mask row pointer. A MapSize* parameter (37.6) and an
+//    `if (Contains) return ...;` form (71.5) are worse. The matched 0x408090
+//    has the original's form on its own, but stops matching (72.5, the same
+//    fold) with `#include <vector>` in front of it, so this is compiler
+//    state there; here no state unfolds it.
+// 2. Compiler state: unused declarations (extern ints, prototypes, structs,
+//    typedefs, enums or inline functions) cycle through four outcomes with a
+//    period of about 520: 84.6 (N = 0 to 7, the end of that window: the
+//    byte-map lookup folds the data pointer, `add ebx, [ebp+0x7c]` for the
+//    original's `add ebx, ecx; mov ecx, [ebp+0x7c]`), 78.2 (N = 8 to 200: the byte-map
+//    lookup is exact, but the scratch registers of the call block rotate by
+//    one and the loop tail differs, probably the one temporary that spot 1
+//    is missing), 75.0 and 80.5. tools/headers.py finds nothing higher.
 #include <stddef.h>
 #include <vector>
 
 void* __stdcall FUN_004b7f30(void* a, int b);
 void __stdcall FUN_004b8500(void* dest, void* src, int x, int y);
 
+struct Position_00475470 {             // 16.16 fixed point; only high words read
+    short xFrac;
+    short x;                           // +0x2
+    short yFrac;
+    short y;                           // +0x6
+    short zFrac;
+    short z;                           // +0xa
+};
+
+struct MapSize_00475470 {
+    unsigned int width;                // +0x0
+    unsigned int height;               // +0x4
+
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
+struct ByteMap_00475470 {
+    unsigned char* data;               // +0x0
+    MapSize_00475470 size;             // +0x4
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
 #pragma pack(push, 1)
-struct Player_00474cd0 {
+struct Player_00475470 {
     char unknown_0[0x7c];
-    unsigned char* fogMap;             // +0x7c
-    unsigned int mapWidth;             // +0x80
-    unsigned int mapHeight;            // +0x84
+    ByteMap_00475470 explored;         // +0x7c
     char unknown_88[0x14b - 0x88];
 };
 
-struct Game_00474cd0 {
+struct Game_00475470 {
     char unknown_0[0x1b63];
-    Player_00474cd0 players[10];       // +0x1b63
+    Player_00475470 players[10];       // +0x1b63
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14273 - 0x2a44];
@@ -78,7 +94,7 @@ struct Game_00474cd0 {
 };
 #pragma pack(pop)
 
-extern Game_00474cd0* g_game;
+extern Game_00475470* g_game;
 
 // Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
 class Class_00471cc0 {
@@ -92,24 +108,49 @@ public:
     virtual int FUN_00472e70() = 0;                     // slot 3
 };
 
-// The position sub-struct of the 32-byte record (whose draw method is
-// 0x475040). Taking its address is what makes MSVC anchor the loop's field
-// reads on its last member, at +0xe from the record.
-struct Pos_00474cd0 {
-    short x;                           // +0
-    char unknown_2[2];
-    short h;                           // +4
-    char unknown_6[2];
-    short y;                           // +8
-    char unknown_a[4];
-};
+static inline int IsExplored(Player_00475470* map, Position_00475470* pos)
+{
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (pos->y >> 1)) >> 5;
+    if (map->explored.size.Contains(tx, ty) && map->explored.Get(tx, ty))
+        return 1;
+    return 0;
+}
 
-struct Record_00474cd0 {
+// The body of the matched 0x408090.
+static inline int IsSeen(Player_00475470* map, Position_00475470* pos)
+{
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (pos->y >> 1)) >> 5;
+    if (!map->explored.size.Contains(tx, ty)) {
+        return 0;
+    }
+    return (g_game->visibilityMask[map->explored.size.width * ty + tx] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
+static inline int IsVisible(Player_00475470* map, Position_00475470* pos)
+{
+    if ((g_game->flags & 2) == 2)
+        return IsExplored(map, pos);
+    return IsSeen(map, pos);
+}
+
+// The 32-byte record; its unculled draw method is 0x475040.
+struct Record_00475470 {
     void* data;                        // +0x00
-    char unknown_4[0x6 - 0x4];
-    Pos_00474cd0 pos;                  // +0x06, 0xe bytes
+    Position_00475470 pos;             // +0x04
+    char unknown_10[0x14 - 0x10];
     int field_14;                      // +0x14
     char unknown_18[0x20 - 0x18];
+
+    void DrawIfVisible(void* dest, short px, short py)
+    {
+        short sx = pos.x - px + 0x80;
+        short sy = pos.z - (pos.y >> 1) - py + 0x20;
+        if (IsVisible(&g_game->players[g_game->playerIndex], &pos))
+            FUN_004b8500(dest, FUN_004b7f30(data, field_14), sx, sy);
+    }
 };
 
 struct Vec3_00474d50;
@@ -118,7 +159,7 @@ struct Vec3_00474d50;
 class Class_00474cd0 : public Class_00471cc0 {
 public:
     int time;                                           // +0x8
-    std::vector<Record_00474cd0> records;               // +0xc (_First +0x10)
+    std::vector<Record_00475470> records;               // +0xc (_First +0x10)
     char unknown_1c[0x38 - 0x1c];
 
     Class_00474cd0();
@@ -134,32 +175,8 @@ public:
 // FUNCTION: 0x475470
 void Class_00474cd0::FUN_00472e30(int dest)
 {
-    for (std::vector<Record_00474cd0>::iterator it = records.begin(); it != records.end(); ++it) {
-        Pos_00474cd0* pos = &it->pos;
-        short x = pos->x;
-        short height = pos->h;
-        short y = pos->y;
-        short sy = y - g_game->scrollY - (height >> 1) + 0x20;
-        short sx = x - g_game->scrollX + 0x80;
-        Player_00474cd0* p = &g_game->players[g_game->playerIndex];
-        int visible;
-        if ((g_game->flags & 2) == 2) {
-            int row = (y - (height >> 1)) >> 5;
-            int col = x >> 5;
-            visible = (unsigned int)col < p->mapWidth && (unsigned int)row < p->mapHeight &&
-                    p->fogMap[p->mapWidth * row + col] != 0;
-        } else {
-            int row = (y - (height >> 1)) >> 5;
-            int col = x >> 5;
-            visible = (unsigned int)col < p->mapWidth
-                    ? ((unsigned int)row < p->mapHeight
-                       ? (g_game->visibilityMask[p->mapWidth * row + col] &
-                          (1 << g_game->playerIndex)) != 0
-                       : 0)
-                    : 0;
-        }
-        if (visible) {
-            FUN_004b8500((void*)dest, FUN_004b7f30(it->data, it->field_14), sx, sy);
-        }
+    for (std::vector<Record_00475470>::iterator it = records.begin(); it != records.end();
+         ++it) {
+        it->DrawIfVisible((void*)dest, g_game->scrollX, g_game->scrollY);
     }
 }

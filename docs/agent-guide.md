@@ -699,6 +699,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (one level shallower gives `??1T`). Probe the depth with wrapper structs in
   scratch; rebuilding the real caller in the same file emits it, and the
   rebuilt caller may match too (0x4c51b0 and 0x4c2eb0).
+- **A `ret 0xc` copy loop that never reads `ecx` but whose callers set `ecx` to
+  a vector**: `vector<T>::_Ucopy`, a member, not a `__stdcall` function; the
+  caller pattern `push &local; push n; mov ecx, vec` is `vector::resize`
+  (0x40d550, 0x40c7f0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

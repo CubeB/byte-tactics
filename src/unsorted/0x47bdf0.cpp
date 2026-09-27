@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Smacker movie player constructor: opens the .smk file, hands the Smack
 // library the game's DirectSound object, then paints a black frame into the
 // surface the player blits through. That surface is the display's own
@@ -59,8 +59,8 @@ public:
     int hasSurfaces;                 // +0x414
     char unknown_418[0x528 - 0x418];
     Surfaces_0047bdf0 surfaces;      // +0x528
+    char unknown_53c[0x544 - 0x53c];
     Surfaces_0047bdf0* wrapper;      // +0x544
-    char unknown_548[0x5b8 - 0x548];
 
     Class_0047bdf0(char* path, int a, int b, int c, int d, int e);
 };
@@ -81,14 +81,10 @@ Class_0047bdf0::Class_0047bdf0(char* path, int a, int b, int c, int d, int e)
 
     Display_0047bdf0* disp = FUN_004b6220();
     hwnd = disp->hwnd;
-    unsigned short flags = disp->flags;
-    if (flags & 2) {
-        if (disp->surfaces.ddraw) {
-            wrapper = &disp->surfaces;
-            hasSurfaces = 0;
-        }
-    }
-    if (!(flags & 2) && !disp->surfaces.ddraw) {
+    if ((disp->flags & 2) && disp->surfaces.ddraw) {
+        wrapper = &disp->surfaces;
+        hasSurfaces = 0;
+    } else if (!(disp->flags & 2) && !disp->surfaces.ddraw) {
         wrapper = &surfaces;
         wrapper->ddraw = 0;
         wrapper->primary = 0;

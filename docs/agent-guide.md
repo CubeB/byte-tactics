@@ -667,6 +667,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Constructor order**: MSVC 5 stores the vtable after the member
   initialisers and before the body, so stores before the vtable store are
   initialisers and stores after it are body assignments (0x407930).
+- **A bitfield assigned from a call result**: `xor eax, ecx; and eax, 1; xor
+  eax, ecx` in `eax` comes from an `int` local holding the result; assigning
+  the call directly copies the old field into a callee-saved register (0x4ae410).
+- **Indexing through a pointer field**: load the array pointer into a local
+  before indexing (`Entry* entries = obj->entries; entries[i]`) when the
+  original loads it before the multiply (0x4a0ff0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

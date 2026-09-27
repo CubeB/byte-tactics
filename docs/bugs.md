@@ -348,3 +348,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   current one, so the last input character is never copied, and the
   quoted-newline path overwrites the byte just written with `&`. Found by
   Space Bunny Free in #207.
+- **0x417890** (likely): a debug console command formats
+  `debugdat\%s.txt` with its argument into a 60-byte stack buffer using
+  `sprintf`, with no bound, so a long argument overflows it. Found by ozgb's
+  Codex / GPT-6 Astra in #174.
+- **0x418310** (possible): the arrow overlay tests the masked flag 4, but its
+  colour switch uses the unmasked flags and sets the colour only for 1 and 2,
+  so flag values 5 and 6 draw with a stale stack byte (loaded at 0x4186f8).
+  Found by ozgb's Codex / GPT-6 Astra in #174.

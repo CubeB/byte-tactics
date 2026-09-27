@@ -1,27 +1,47 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Still differs in two places (see the note above the FUNCTION line):
-//  1. the copy of the unit position into the state (the original loads the two
-//     halves as a dword plus a word through a `lea`ed address of state->pos,
-//     mine copies a 4-byte member and a separate short), and
-//  2. the tail of the inlined tree walk: the original calls FUN_0045b030 for
-//     the next sibling, mine jumps back to the top of the inlined loop.
+// Snaps the object state to the unit's own position when the two differ by 8 or
+// more on any axis, marks the state dirty and clears the root entry's "modified"
+// flag, then, when the state is dirty, restores the piece tree's vertices,
+// rebuilds the root entry and clears the dirty flag.
 //
-// On hunk 1, the obvious reading is that the original assigns a 6-byte struct
-// (dword at +0, short at +4) rather than copying two fields, since that is what
-// the guide's "struct copy vs field copies" note predicts for a `lea`ed
-// destination. Tried: wrapping the Vec2 and the short in a packed 6-byte
-// Pos3_0045ab10 member on both sides and assigning it whole. MSVC does lower it
-// as a struct copy with both leas, but symmetrically and through edi, and the
-// score falls to 76.7 percent because the following `state->root` load is then
-// emitted twice (`mov eax, [ecx+0x1e]` before and `mov edx, [ecx+0x1e]` after)
-// where the original loads it once into edx, and the flags bitfield test moves
-// from dl to al. The original also interleaves `mov [ecx+8],1` between the dword
-// and the word halves of the copy, which the struct assignment does not
-// reproduce either. Reverted; the two separate field copies here score better.
-// Snaps the object state to the unit's own position when the two differ by 8
-// or more on any axis, marks the state dirty and clears the root entry's
-// "modified" flag, then, when the state is dirty, restores the piece tree's
-// vertices, rebuilds the root entry and clears the dirty flag.
+// Still differs in two places, both inside the walk/copy above the FUNCTION
+// line, so this file is a partial match (86.5 percent):
+//
+//  1. The copy of the unit position into the state. The original does
+//         mov eax, [esi+0x64] ; lea edx, [ecx+0x18] ; mov [ecx+0x18], eax
+//         mov ax, [esi+0x68]  ; mov [ecx+8], 1      ; mov [edx+4], ax
+//     i.e. the source stays folded off the unit register, the destination
+//     address is a register (edx) used by the last store only, and the dword
+//     temp is eax. Every 6-byte struct spelling (plain assignment, nested
+//     {Vec2; short}, memcpy, a by-value or by-reference setter, `*this = v`
+//     in a vec method, a user copy constructor, a struct-pointer local, source
+//     and destination locals) lowers to two leas instead
+//     (lea edx, [esi+0x64] ; lea eax, [ecx+0x18]) with the dword temp in
+//     edi/esi, which then also emits `state->root` twice and moves the flags
+//     bitfield test from dl to al: 78.9 percent. The same copy in a small
+//     standalone function does produce the original's shape (one lea, folded
+//     source, temps in eax/ax), so this looks like register pressure: with the
+//     walk's rep movsd and its live values in the same function MSVC
+//     materialises both struct addresses. Copying the 4-byte member and the
+//     short separately keeps every other register right and scores best.
+//  2. The tail of the inlined walk. The original inlines one level of
+//     FUN_0045b030 and hands the rest of the sibling walk back to it
+//     (`cmp ebx, ebp ; je end ; xor edx, edx ; mov ecx, ebx ; call`), which
+//     only happens if FUN_0045b030 is written recursively: its out-of-line body
+//     at 0x45b030 is byte-identical either way, because MSVC turns the tail
+//     recursion into the loop that 0x45b030.cpp spells out. Tried: the
+//     recursive form plain, with the tail call assigned instead of returned,
+//     with the child's result discarded, with the result as bool/char/short,
+//     with an early return for the no-sibling path, with a local copy of the
+//     original force, with a local for the root pointer, with the sibling test
+//     first, and the same walk written out by hand in the caller with
+//     FUN_0045b030 only declared or with the child call in both arms of the
+//     if/else. All of them need one more callee-saved register than the loop
+//     form: MSVC then puts the unit argument in ebp, the zero in edx and the
+//     walk result in eax, so the whole function shifts (56.2 percent).
+//     `__declspec(noinline)` does not exist in VC5 and taking the helper's
+//     address does not stop /Ob2 from inlining it at the two call sites.
+//     tools/headers.py over all 128 header sets changes nothing.
 #include <stdlib.h>
 #include <string.h>
 

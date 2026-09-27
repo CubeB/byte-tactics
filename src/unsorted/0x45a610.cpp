@@ -2,27 +2,36 @@
 // Builds the screen-space vertex list of every drawable piece of a model into
 // a 2000-entry local array, then hands each piece's line segments to
 // FUN_004c1000 (a bounding-box/line pass) through a 25-entry scratch buffer.
-// Still differs: MSVC anchors the piece induction variable on piece->flags
-// (lea ..+0x4a, accesses at -0x28/-0x6) where the original anchors it on the
-// piece itself (lea ..+0x22, accesses at +0x28/+0x22), and after the copy
-// loop it reloads info (ebx) before the segment index (edi) where the original
-// reloads the index first. Both are register-allocation/address-mode choices I
-// could not reproduce from any phrasing of the source.
+// Pieces are walked last to first: the `dec ecx; js` guard, the `inc ecx`
+// after it, and the `dec ecx; jne` latch together mean the walk starts at
+// pieces[count-1], runs exactly count times and stops at pieces[0].
 //
-// Follow-up on the anchor, per the guide's "which field MSVC walks an array
-// loop from" rule (the walking register starts at the second field the source
-// touches). The original's lea is +0x22, the element base, and it then reads
-// flags at +0x28, info at +0 and vertices at +0x22, so its second access was
-// info, the field at offset 0. Ours anchors at +0x4a, which is the element
-// base plus 0x28, so our second access is flags. Tried, and the anchor does
-// not move: indexing the array directly with no pointer local, and testing
-// model->pieces[i].flags first. Both still anchor on flags. Moving the info
-// read between the two flag tests does move the anchor, but it drops the file
-// to 70.1 percent because the hoisted info extends a live range and the loop
-// counter moves from ecx to eax, which breaks the whole allocation. The
-// original's disassembly also loads info after both flag tests, so the 94.5
-// percent structure here is the right one and the anchor difference is
-// compiler state, not source shape.
+// The piece induction variable only lands on the element base (lea ..+0x22,
+// with the fields at +0x28, +0x22 and +0) when the piece pointer is a loop
+// variable updated next to the index (`piece--` beside `i--`) inside a
+// guarded block. A plain indexed `for` over model->pieces[i] anchors on
+// piece->flags (+0x4a) instead, and a pointer initialised in the `for` header
+// computes it before the `js` guard, which the original does not.
+//
+// The segment index has to be a local of the function itself, initialised
+// there, and not one of the flags block: MSVC orders the locals of the block
+// that follows the vertex copy loop by scope depth, so with the index declared
+// inside `if (flags & 2)` the two reloads out of that loop come out
+// `mov ebx,[info]` then `mov edi,[segno]`, where the original reloads the
+// index into edi first. A bare `int segno;` at the top keeps the old order;
+// only the initialised declaration moves it ahead of `info`.
+//
+// Every byte now matches. What is left is the name the linker puts on the
+// stack probe at +6: the original calls the function at 0x4e4b20, which
+// data/symbols.csv calls _alloca_probe, while this object references
+// __chkstk. They are the same code: toolchain/msvc5-sp3/LIB/CHKSTK.OBJ
+// defines both names at the same offset in .text, and the exe's 0x4e4b20 is
+// that object byte for byte. MSVC 5 only emits _alloca_probe for a function
+// that contains an alloca, and an alloca also forces `push ebp; mov ebp,esp`
+// into the prologue, which the original does not have, so no source of this
+// function can reference that name. __chkstk is the only name reachable here,
+// with or without the sp3 patch, and the same holds for the other 16 large
+// frame functions in the exe, which all call 0x4e4b20.
 #include <string.h>
 
 struct Vertex_0045a610 {
@@ -61,7 +70,7 @@ struct Piece_0045a610 {
     char unknown_4[0x22 - 0x4];
     Vertex_0045a610* vertices;        // +0x22 (16.16 fixed point)
     char unknown_26[0x28 - 0x26];
-    unsigned short flags;             // +0x28 bit 0 and bit 2
+    unsigned short flags;             // +0x28 bit 0 and bit 1
     char unknown_2a[0x36 - 0x2a];
 };
 
@@ -86,38 +95,43 @@ void Class_0045a610::FUN_0045a610(View_0045a610* view, Model_0045a610* model)
 {
     Vertex_0045a610 verts[2000];
     Vertex_0045a610 tmp[25];
-    for (int i = model->pieceCount - 1; i >= 0; i--) {
+    int segno = 0;                    // the initialiser only sets the scope, see above
+    int i = model->pieceCount - 1;
+    if (i >= 0) {
         Piece_0045a610* piece = &model->pieces[i];
-        if (piece->flags & 1) {
-            if (piece->flags & 2) {
-                PieceInfo_0045a610* info = piece->info;
-                Vertex_0045a610* v = piece->vertices;
-                for (int j = 0; j < info->vertexCount; j++) {
-                    int y = (short)(v->y >> 16);
-                    verts[j].x = (short)(v->x >> 16) + (y >> 2);
-                    verts[j].y = (short)(-v->z >> 16) - (y >> 2);
-                    verts[j].z = y + 25;
-                    verts[j].x += view->field_4;
-                    verts[j].y += view->field_6;
-                    v++;
-                }
-                Segment_0045a610* seg = info->segments;
-                int s;
-                if (info->field_c != -1) {
-                    seg++;
-                    s = 1;
-                } else {
-                    s = 0;
-                }
-                for (; s < info->segmentCount; s++, seg++) {
-                    unsigned short* ip = seg->indices;
-                    // A segment with more than 25 vertices overruns tmp[].
-                    for (int k = 0; k < seg->count; k++, ip++) {
-                        tmp[k] = verts[*ip];
+        while (i >= 0) {
+            if (piece->flags & 1) {
+                if (piece->flags & 2) {
+                    PieceInfo_0045a610* info = piece->info;
+                    Vertex_0045a610* v = piece->vertices;
+                    for (int j = 0; j < info->vertexCount; j++) {
+                        int y = (short)(v->y >> 16);
+                        verts[j].x = (short)(v->x >> 16) + (y >> 2);
+                        verts[j].y = (short)(-v->z >> 16) - (y >> 2);
+                        verts[j].z = y + 25;
+                        verts[j].x += view->field_4;
+                        verts[j].y += view->field_6;
+                        v++;
                     }
-                    FUN_004c1000(view, tmp, seg->count, 0);
+                    Segment_0045a610* seg = info->segments;
+                    if (info->field_c != -1) {
+                        seg++;
+                        segno = 1;
+                    } else {
+                        segno = 0;
+                    }
+                    // A segment with more than 25 vertices overruns tmp[].
+                    for (; segno < info->segmentCount; segno++, seg++) {
+                        unsigned short* ip = seg->indices;
+                        for (int k = 0; k < seg->count; k++, ip++) {
+                            tmp[k] = verts[*ip];
+                        }
+                        FUN_004c1000(view, tmp, seg->count, 0);
+                    }
                 }
             }
+            piece--;
+            i--;
         }
     }
 }

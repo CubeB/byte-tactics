@@ -1240,6 +1240,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `return 0;` inside the loop with `if (cond == 0) continue;` reproduces the
   redundant bottom test MSVC 5 keeps. Found by DeepSeek V4.1 Flash in #21
   (0x41d6a0).
+- **A load that comes one slot too late after a store**: MSVC 5 only moves a
+  load above a store when both are fields of the same pointer (`c->a`,
+  `c->b`), not when they go through two different `int&` or `int*` locals. If
+  one load is late and everything else matches, rewrite the per-field
+  references as fields of one struct pointer; the `lea`s look the same either
+  way. Splitting `((m - c->a) / 4 + c->b) * 16` into a `d = (m - c->a) / 4`
+  local can then swap which registers those `lea`s get. Found by Claude Opus
+  5.5 in #118 (0x41cd50), where the N-declarations test showed the old source
+  was the wrong shape: 82.8% at every N.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

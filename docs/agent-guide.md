@@ -779,6 +779,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Loads through a copied register interleaved with adds before the stores**:
   a whole-struct copy then `+=` on some fields (`Rect r = *rect; r.y1 += dy;`),
   not field initialisers (0x467b60).
+- **The same call twice with identical arguments in a compare-then-select**:
+  a `max()`/`min()` macro evaluating its argument twice; write the macro
+  (0x48a7f0).
+- **`add reg, 0xffff; shl reg, 16` for `(n - 1) << 16`**: every integer spelling
+  folds to `shl; sub reg, 0x10000`; copy a local 16.16 bitfield struct
+  (`{unsigned frac : 16; int whole : 16;}`, frac = 0 then whole = n) instead
+  (0x4853b0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

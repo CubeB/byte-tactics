@@ -242,3 +242,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   FUN_004a0200's result (0x45bc07, then `test eax, eax` at 0x45bc0d), so a
   missing "VIDSLDR" entry would be dereferenced. Found by Space Bunny Free in
   #143.
+- **0x44b140** and **0x44b230** (possible): never check `fopen`'s result, so a
+  missing or unwritable file passes a null `FILE*` to `fread`/`fwrite` and
+  `fclose`; the sibling writer 0x4bc290 does check. Found by DeepSeek V4.1
+  Flash in #127.

@@ -1,4 +1,24 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free. Names are provisional.
+//
+// 83.5% (300-byte original, ours 305). Prologue, player-pointer arithmetic, the
+// two bounds checks, the reloaded map width and the tail call all match. What
+// still differs, all inside the two test arms:
+//   - fog arm: ours keeps the map width in edi and hoists its load above the
+//     `sub eax, edx`; the original uses edx and loads it after.
+//   - fog arm: ours builds the index in edi with fogMap in ebx, so the
+//     address is [edi+ecx]; the original builds it in edx with fogMap in the
+//     just-dead eax, giving [edx+eax].
+//   - fog arm: ours ends the taken path with `mov edx,1; xor eax,eax;
+//     test edx,edx; setne al`; the original has `mov eax,1`. The `if (visible)`
+//     correction below is what stops MSVC folding the 1/0 into a setcc, and
+//     dropping it costs about 17 points.
+//   - mask arm: ours puts the `visible = 0` block after the taken path and
+//     tests `jae` twice; the original puts it between the tests and inverts
+//     the second test to `jb`.
+// The register roles above are the whole remaining gap; no source spelling
+// tried (about 100k variants over rect order, argument types, index spelling,
+// duplicate vs helper width reads, Pos sub-struct two-way reads, block shape,
+// statement order) moves them.
 #pragma pack(push, 1)
 
 struct Rect_004b0510 {
@@ -13,13 +33,14 @@ struct Player_00473a00 {
     unsigned char* fogMap;           // +0x7c
     unsigned int mapWidth;           // +0x80
     unsigned int mapHeight;          // +0x84
-    char unknown_88[0x14a - 0x88];
+    char unknown_88[0x14b - 0x88];   // stride 331, not 330: the original's
+                                     // lea is base + i + 330*i
 };
 
 struct Game_00473a00 {
     char unknown_0[0x1b63];
-    Player_00473a00 players[10];     // +0x1b63
-    char unknown_2847[0x2a43 - 0x2847];
+    Player_00473a00 players[11];     // +0x1b63, stride 0x14b
+    char unknown_299c[0x2a43 - 0x299c];
     unsigned char playerIndex;       // +0x2a43
     char unknown_2a44[0x14273 - 0x2a44];
     unsigned short* visibilityMask;  // +0x14273
@@ -57,18 +78,31 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
     r.y2 = r.y1 + 1;
 
     Player_00473a00* p = &g_game->players[g_game->playerIndex];
+    // The original reads the map width twice per arm, once for the bounds test
+    // and once for the index; a second pointer with the same value keeps the
+    // two loads apart. A helper taking the pointer does not: MSVC 5 CSEs them.
+    Player_00473a00* q = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->flags & 2) == 2) {
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
-        unsigned char* cell = p->fogMap + p->mapWidth * row;
-        visible = (unsigned int)col < p->mapWidth && (unsigned int)row < p->mapHeight &&
-                  cell[col] != 0;
+        visible = 0;
+        if (((unsigned int)col < p->mapWidth && (unsigned int)row < p->mapHeight) &&
+            p->fogMap[q->mapWidth * row + col] != 0)
+            visible = 1;
+        if (visible)
+            visible = 1;
+        else
+            visible = 0;
     } else {
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
-        visible = (g_game->visibilityMask[p->mapWidth * row + col] &
-                   (1 << g_game->playerIndex)) != 0;
+        if (((unsigned int)col < p->mapWidth && (unsigned int)row < p->mapHeight)) {
+            unsigned short m = g_game->visibilityMask[q->mapWidth * row + col];
+            visible = (m & (1 << g_game->playerIndex)) != 0;
+        } else {
+            visible = 0;
+        }
     }
 
     if (visible)

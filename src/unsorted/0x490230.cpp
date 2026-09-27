@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
 // PARTIAL: 99.2% (300 of 301 bytes). The mission's defeat check: it does
 // nothing unless the mission is active (the dword at +0x88, set to 1 by
 // Class_0048df90), then asks the game mode which test to run: 1 runs the
@@ -11,16 +11,56 @@
 // pointer in the index slot), every phrasing here gives [edi + ecx*1 + 0x108].
 // The identical loop in 0x48ffd0 (matched) uses the base/index order this
 // file produces, so the flip is a register-allocation effect of the extra
-// code in this function, not of the expression. Ruled out: every headers.py
-// set, 13 large headers, 0 to 1200 dummy externs, up to 4000 dummy
-// prototypes, the 0x48ffd0 wording as an inlined helper, an inline
-// IsAllied() accessor, int/char/unsigned char index types, [10] and [11]
-// flag arrays, declaration orders, and address expressions written with the
-// terms reversed. A second pass added six more address shapes, all still
-// giving [edi + ecx*1 + 0x108]: a local pointer to the array indexed as
-// ALLIED[i], the same pointer taken inside the loop body, a local record
-// pointer offset by 0x108 and indexed, the constant moved inside the
-// subscript, and the whole load read through an (unsigned char*)me cast.
+// code in this function, not of the expression.
+// The one thing that does flip it (found by brute force over ~350 scratch
+// variants, all scored with check.py --sym): make the subscript a plain
+// unsigned int variable instead of the char counter, that is
+//     unsigned int j = i;                 // before the i != player test
+//     if (i != g_game->player && !me->allied[j] && g_game->players[i].count != 0)
+// then MSVC emits the original's `mov al, [ecx + edi + 0x108]`. But the copy
+// lives before the branch, so MSVC also hoists `mov ecx, [esp + 0x10]` and
+// `and ecx, 0xff` above `cmp dl, bl` (the loop head becomes the reload, the
+// back edge targets it) and that costs more than the SIB gains: 98.5%.
+// Putting the copy after the `continue`, or inside a nested if, restores the
+// placement and loses the flip again. The flip and the sinking are two sides
+// of the same thing: the counter value has to be a temp that is live across
+// the branch for MSVC to put it in the base slot.
+// Second route to the flip, found later, costs more but localises the problem:
+// use the copy in BOTH tests, so one temp serves `allied[j]` and
+// `players[j].count` the way the original's ecx serves both:
+//     if (i == g_game->player) continue;
+//     unsigned int j = i;
+//     if (me->allied[j]) continue;
+//     if (g_game->players[j].count != 0) return 0;
+// This does emit the original's SIB order, but the extra live temp costs 20%:
+// MSVC gives up ebp as the zero constant for the whole function (`xor ebp,ebp`
+// becomes `xor esi,esi`, and the inlined FUN_0048fed0's `cmp [edi+0x40], ebp`
+// becomes `cmp [edi+0x40], esi`), the counter temp lands in eax instead of
+// ecx, and the flag load becomes `mov cl, [eax + edi + 0x108]`. 78.2% overall.
+// So the tie-break is reachable, but not without perturbing the allocation of
+// the rest of the function. Note that the 99.2% version already uses exactly
+// the original's register plan (dl counter, ecx counter-as-int, edi record
+// pointer, ebp zero, esi g_game, bl player) and differs in this one byte only,
+// so what is needed is a perturbation that changes the base/index tie-break
+// and nothing else. Both routes above change the register plan as well.
+// Ruled out (all still [edi + ecx*1 + 0x108], all at 99.2% or less): every
+// headers.py set, 13 large headers, 0 to 1200 dummy externs, up to 4000 dummy
+// prototypes, the 0x48ffd0 wording as an inlined helper (free, static, extern,
+// with an argument, and its continue-chain variant), an inline IsAllied()
+// accessor with either argument order, an inline unsigned int accessor,
+// int/char/unsigned char/short index types, (int)i and (unsigned char)i
+// casts, i*1, i+0, i|0, i&0xff, [10] and [11] flag arrays, bool and char
+// flag arrays, a 2D flag array, an array of one-byte flag structs, const and
+// non-const pointer and array declarations, a local copy of g_game, a local
+// copy of the record pointer, a local copy of the flag row pointer, every
+// declaration order of me, i and player (in the case block and at function
+// scope), all six permutations of the three && operands, && chains, continue
+// chains, nested ifs, while and do/while loops, an if/else dispatch instead
+// of the switch (which is ruled out anyway: only a switch gives the dec/je
+// chain), the class member layout (array sizes, member order, extra padding
+// fields), and address expressions with the terms reversed (i + me + 0x108
+// and friends: MSVC canonicalises the int back to the pointer side and then
+// scales it by the record size, which is worse).
 
 class Class_00435100 {
 public:

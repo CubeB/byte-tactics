@@ -1,12 +1,12 @@
-// Decompiled by Space Bunny Free. Names are provisional.
-// Not a full match: 99.1%. Every byte matches except one addressing mode,
-// the load in the inner loop: the original has [edx+esi*1+0x108] (the loop
-// counter in the base slot) and this has [esi+edx*1+0x108] (the struct
-// pointer in the base slot). The two loads before the inner loop need the
-// opposite order, and no source form, helper, declaration order, loop shape
-// or header set (all 128 combinations, tools/headers.py) makes MSVC emit the
-// two orders in one function: any change that fixes this one flips those two
-// instead. <windows.h> is what keeps the other two the right way round.
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Full match. The only thing that ever differed was the base/index order of the
+// inner load: the original has [edx+esi+0x108] (the loop counter in the base
+// slot) and an earlier attempt produced [esi+edx+0x108]. In `p[a+b]` MSVC makes
+// the variable declared first the addressing-mode index, so declaring the two
+// Player pointers (mine, other) before the loop counters (i, j) puts `other` in
+// the index slot of the inner load and leaves the two outer loads (which want
+// the counter indexed) untouched. <windows.h> is still needed to keep those two
+// the right way round.
 #include <windows.h>                    // unused, but it picks the operand order
 
 #pragma pack(push, 1)
@@ -48,11 +48,13 @@ extern Game_00490080* g_game;
 // FUNCTION: 0x490080
 int FUN_00490080()
 {
+    // declared before the loop counters on purpose: that is what puts `other`
+    // in the index slot of the inner load (see the note at the top)
+    Player_00490080* mine;
+    Player_00490080* other;
     unsigned char i;
     int j;
     unsigned char state;
-    Player_00490080* mine;
-    Player_00490080* other;
 
     if (g_game->value_37ef6 == 2) {
         return 0;

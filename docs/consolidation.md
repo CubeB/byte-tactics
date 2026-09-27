@@ -9,6 +9,10 @@ single addresses, so one real class often appears under several names.
 - `Class_0044cf60` and `Class_0044d010`: both constructors store vtable
   `DAT_004fd328` and fill the same fields (+8 packed point, +0xc radius,
   +0x10 radius squared). Probably overloaded constructors of one class.
+- `Class_004c91a0` (copy constructor, 0x4c91a0) and `Class_004c93b0` (assignment,
+  0x4c93b0) are the same reference-counted string handle.
+- `Class_0044e250` and `Class_0044e330`: two constructors storing vtable
+  `DAT_004fd3b8`.
 - Functions that store the same vtable address belong to the same class (or a
   base/derived pair); a tool listing every vtable store would find the rest.
 

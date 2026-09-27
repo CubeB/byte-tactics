@@ -1,17 +1,18 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Opus. Names are provisional.
+// Copy constructor of a reference-counted string handle: the handle points at
+// character data whose reference count is stored just before it. The
+// assignment operator of the same handle is at 0x4c93b0.
 
-struct Class_004c91a0 {
+class Class_004c91a0 {
 public:
-    void* field_0;
-    
-    void FUN_004c91a0(void** param_1);
+    char* ptr;
+
+    Class_004c91a0(const Class_004c91a0& other);
 };
 
 // FUNCTION: 0x4c91a0
-void Class_004c91a0::FUN_004c91a0(void** param_1)
+Class_004c91a0::Class_004c91a0(const Class_004c91a0& other)
 {
-    void* ptr = *param_1;
-    field_0 = ptr;
-    (*(int*)ptr)++;
+    ptr = other.ptr;
     ((int*)ptr)[-1]++;
 }

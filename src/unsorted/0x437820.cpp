@@ -1,19 +1,23 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Haiku, rewritten by Opus. Names are provisional.
+// Copy constructor of a {string handle, int} pair.
 
-extern void __stdcall FUN_004c91a0(int*);
+class Class_004c91a0 {
+public:
+    char* ptr;
+
+    Class_004c91a0(const Class_004c91a0& other);
+};
 
 class Class_00437820 {
 public:
-    char unknown_0[4];
+    Class_004c91a0 handle;
     int field_4;
 
-    Class_00437820* FUN_00437820(int*);
+    Class_00437820(const Class_00437820& other);
 };
 
 // FUNCTION: 0x437820
-Class_00437820* Class_00437820::FUN_00437820(int* param_1)
+Class_00437820::Class_00437820(const Class_00437820& other)
+    : handle(other.handle), field_4(other.field_4)
 {
-    FUN_004c91a0(param_1);
-    field_4 = param_1[1];
-    return this;
 }

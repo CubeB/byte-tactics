@@ -459,3 +459,20 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   with one argument different.
 - **Scalar deleting destructors that free through a pool** instead of
   `operator delete`: call the pool object's method (see `0x471cd0.cpp`).
+- **Register priority**: when MSVC gives the preferred callee-saved register to
+  the wrong variable, the original may have used the other variable once more
+  in a way that folds away (e.g. an inlined sibling getter with its own range
+  check inside an identical explicit check). A throwaway extra use in a scratch
+  copy confirms the diagnosis; then find the natural construct, never commit
+  the throwaway.
+- **A callee that starts `mov eax, ecx` and ends `ret N`** is a method, usually a
+  constructor, even if your call site happens to leave the right value in
+  `ecx`. Declaring it as a free function can still produce matching bytes, but
+  gives it a wrong name that later callers trip over.
+- **Protected STL members out of line** (e.g. `vector::_Ucopy`): derive a struct
+  from the container and initialise a static member pointer inside it,
+  `Fn Access::fn = &Access::_Ucopy;`.
+- **`or byte ptr [m], K` straight to memory** is setting a 1-bit
+  `unsigned short` bitfield; `unsigned char` bitfields go through a register.
+- **Loops with several induction variables**: which one MSVC compares against
+  the end follows the order the per-iteration pointer locals are computed.

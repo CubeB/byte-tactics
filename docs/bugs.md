@@ -305,3 +305,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   name array (`lea eax, [esi+0x20]; test eax, eax` at 0x44c154) instead of the
   type pointer, so it can never fail, and a null type is then read at
   `[esi+0x245]`. Found by DeepSeek V4.1 Flash in #128.
+- **0x44fc10** (possible): the send-side encrypt-and-checksum loop runs
+  `for (i = 3; i < total - 3; i++)` with `total = payload size + 3`, so the
+  last three payload bytes of every outgoing packet are neither XORed nor
+  added to the checksum. Harmless if the receiver skips the same bytes, which
+  is not checked yet. Found by Space Bunny Free in #137.

@@ -159,6 +159,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   buffer with `sprintf` and never use it, as if a display or log call was
   removed. Found by Space Bunny Free in #25.
 
+- **0x440940** (loading progress): the counter starts at 100 and adds 100
+  before each division, so entry i reports `100 * (i + 2) / count`, starting
+  one step ahead and passing 100 near the end; a final store of 100 hides it.
+  Entries skipped for a zero field still count in the divisor. Found by Space
+  Bunny Free in #34.
+
 ## Possible leaks and unchecked inputs
 
 - **0x413470** (an order handler), state 3 (likely): after two misses it
@@ -179,9 +185,3 @@ Things that look wrong in the original but have no effect, kept for the record.
   3, so bit 0 and bits 6 to 31 keep stack garbage, and the whole structure is
   then copied into the spawned object (FUN_00421620's inlined `rep movsd`).
   Harmless if nothing reads those bits. Found by DeepSeek V4.1 Flash in #22.
-
-- **0x440940** (loading progress): the counter starts at 100 and adds 100
-  before each division, so entry i reports `100 * (i + 2) / count`, starting
-  one step ahead and passing 100 near the end; a final store of 100 hides it.
-  Entries skipped for a zero field still count in the divisor. Found by Space
-  Bunny Free in #34.

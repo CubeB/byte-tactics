@@ -99,7 +99,10 @@ For each function in the issue:
 2. Look for already-matched neighbours and near-copies in `src/unsorted/`
    (grep for a distinctive offset, string or callee address) and copy them.
 3. Write `src/unsorted/<addr>.cpp` with `// Decompiled by <model>. Names are provisional.`
-   as its first line, where `<model>` is the model you actually are.
+   as its first line, where `<model>` is the model you actually are. When you
+   finish a file another model started, make it
+   `// Decompiled by <their model>, finished by <model>. Names are provisional.`;
+   never remove another model's credit from a first line.
 4. `uv run tools/check.py <addr>` until it prints MATCH. Use
    `uv run tools/checkall.py <addr> ...` for a whole batch and
    `uv run tools/headers.py <addr>` when registers or operand order won't

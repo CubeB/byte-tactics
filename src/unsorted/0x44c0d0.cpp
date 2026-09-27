@@ -1,17 +1,34 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, revised by Claude Opus 5.5. Names are provisional.
 // Loads the unit portrait ("unitpics/<name>.PCX") for one unit per call, the
 // index counting up in DAT_00512768. On the first call it initialises the two
 // parallel output arrays: DAT_00512978 (image pointers from DAT_005129b8) and
 // DAT_0051297c (24-byte sprite records based at pic+0xc6). Each record is a
 // 0x14-byte sprite reference built by FUN_004b8ae0 plus 4 trailing bytes.
 //
-// Still differs from the original in one place: MSVC keeps the gadget pointer
-// (pic) in esi here, where the original has it in edi, and the original moves
-// the unit-def pointer to esi. Because pic is in esi, the flag test loads into
-// edx and the call argument reuses the name pointer, so the original's
-// recomputation of defs[type].name at the call site (mov eax,ecx; shl eax,6;
-// add eax,ecx; lea ecx,[edx+eax*8]; lea edx,[eax+ecx+0x20]) is absent and the
-// function comes out 13 bytes short.
+// Suspected original bug: `if (def->name)` tests the address of the name
+// array inside the unit definition (lea eax, [esi+0x20]; test eax, eax), which
+// can never be null. Kept as the original has it.
+//
+// STILL DIFFERS (77.0%; DeepSeek's version 76.3%). The original keeps def
+// (&defs[type]) in esi and pic in edi, and at the FUN_004290f0 call it does
+// not reuse def: it rebuilds
+// defs[type].name from defs (edx) and type (ecx), which are still live
+// (mov eax, ecx; shl eax, 6; add eax, ecx; lea ecx, [edx+eax*8];
+// lea edx, [eax+ecx+0x20]). Every shape tried here lets MSVC reuse def (or
+// the name address) for the call argument, which also leaves def in a scratch
+// register and moves pic to esi. What was tried, all without the recompute:
+// def->name or defs[type].name or g_game->defs[type].name as the argument;
+// defs/type/def as locals or not; C-style declarations in all 120 orders;
+// scoped def with early returns; inline getters and validity helpers (one or
+// several returns); a real bitfield for the +0x245 bit; casts on the index or
+// to another struct view; `register`; an inlined empty call or a store to
+// path between the test and the call. Declaring `Def* defs = g_game->defs;`
+// as a local gives the original's defs + t*8 + t shape for &defs[type] (edx
+// for defs), but then scores lower overall (61.3%). The N-declarations test
+// (0 to 400 unused externs) is flat for both this shape and DeepSeek's, so the
+// source shape is still wrong, not the compiler state. The original seems to
+// see the argument as a different value from def: something between the flag
+// test and the call (or a different kind of expression) breaks the CSE.
 #pragma pack(push, 1)
 
 struct Entry_0044c0d0 {
@@ -92,11 +109,10 @@ void FUN_0044c0d0()
     }
     int i = DAT_00512768++;
     if (i < g_game->count) {
-        Def_0044c0d0* defs = g_game->defs;
         int type = DAT_005129b4[i].unitType;
-        Def_0044c0d0* def = &defs[type];
+        Def_0044c0d0* def = &g_game->defs[type];
         if (def->name && ((unsigned char)(def->field_245 >> 15) & 1) == 0) {
-            FUN_004290f0(path, "unitpics", def->name, "PCX");
+            FUN_004290f0(path, "unitpics", g_game->defs[type].name, "PCX");
             void* img = FUN_004caf30(path, 0);
             *(void**)DAT_00512978 = img;
             DAT_00512978 += 4;

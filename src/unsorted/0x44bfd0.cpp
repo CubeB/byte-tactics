@@ -1,30 +1,21 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Walks the 12 "SLIDER%d" gadgets of the "DESCLIST" block, enables/grays each
 // one from the per-player slider array (DAT_005129b4), sets its position from
 // the array value (or the gadget's own max when the value is -1), then tells
 // the menu about it and calls the gadget's own callback.
 //
-// STILL DIFFERS (82.1%): the flags store's address association. The original
-// computes (flags + base) and then indexes by the loop counter i
-// (`add edx, ecx; mov [edx+edi], al`). With a plain `int base` MSVC 5 instead
-// computes (flags + i) and indexes by base (`add edx, edi; mov [edx+ecx], al`),
-// and that also rotates the later scratch registers (the DAT value load, the
-// name lea and the callback argument). Narrowing the index with `(short)base`
-// restores the original association, but MSVC then reloads base with
-// `movsx ecx, word ptr [esp+0x18]` instead of `mov ecx, dword ptr [esp+0x18]`
-// and hoists that load above the enabled test. The local `Locals` struct only
-// pins the three locals to the original stack slots (human 0x10, desc 0x14,
-// base 0x18); the plain declarations of the narrow form swap desc and base.
-// Dropping the `(short)` cast gives the natural int form, which keeps the dword
-// reload and the slot order but has the association backwards.
+// The locals are declared C-style at the top with the loop counter first:
+// that alone makes MSVC compute the flags store as (flags + base)[i]. With
+// `for (int i ...)` (i declared after base) it builds (flags + i)[base] and
+// rotates the later scratch registers, whatever the index expression.
 #include <stdio.h>
 
 #pragma pack(push, 1)
 struct Entry_0044bfd0 {                // 0x15b-byte GUI entry
     char unknown_0[0xbc];
-    short field_bc;                    // +0xbc base index
+    short field_bc;                    // +0xbc first visible item
     char unknown_be[0xd6 - 0xbe];
-    char* flags;                       // +0xd6 enabled flags
+    char* flags;                       // +0xd6 per-item flags
     char unknown_da[0x13c - 0xda];
     int field_13c;                     // +0x13c maximum
     char unknown_140[0x144 - 0x140];
@@ -63,23 +54,29 @@ void __stdcall FUN_004a1450(Menu_0044bfd0* obj, char* name, int param_3);
 // FUNCTION: 0x44bfd0
 void __stdcall FUN_0044bfd0(Menu_0044bfd0* param_1, int unused)
 {
-    struct Locals { int human; Entry_0044bfd0* desc; int base; } loc;
-    loc.desc = FUN_0049ff90(param_1->inner->gadgets, "DESCLIST");
-    loc.human = FUN_00457a50();
-    loc.base = loc.desc->field_bc;
+    int i;
+    Entry_0044bfd0* desc;
+    int human;
+    int base;
+    Entry_0044bfd0* slider;
+    int en;
+    int value;
+    char name[20];
 
-    for (int i = 0; i < 12; i++) {
-        char name[20];
+    desc = FUN_0049ff90(param_1->inner->gadgets, "DESCLIST");
+    human = FUN_00457a50();
+    base = desc->field_bc;
+
+    for (i = 0; i < 12; i++) {
         sprintf(name, "SLIDER%d", i);
-        Entry_0044bfd0* slider = FUN_004a0200(param_1->inner->gadgets, name);
+        slider = FUN_004a0200(param_1->inner->gadgets, name);
         if (slider != 0) {
-            int en;
-            if (loc.human == 0 || DAT_005129b4[loc.base + i].enabled == 0)
+            if (human == 0 || DAT_005129b4[base + i].enabled == 0)
                 en = 1;
             else
                 en = 0;
-            loc.desc->flags[(short)loc.base + i] = en != 0;
-            int value = DAT_005129b4[loc.base + i].value;
+            desc->flags[base + i] = en != 0;
+            value = DAT_005129b4[base + i].value;
             if (value == -1)
                 value = slider->field_13c;
             FUN_0045b9b0(slider, value);

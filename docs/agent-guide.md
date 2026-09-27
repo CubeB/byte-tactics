@@ -786,6 +786,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   folds to `shl; sub reg, 0x10000`; copy a local 16.16 bitfield struct
   (`{unsigned frac : 16; int whole : 16;}`, frac = 0 then whole = n) instead
   (0x4853b0).
+- **An in-place copy loop kept as two walking pointers** (`inc ecx; inc eax`):
+  write it with two int indices into the one array, `do { p[k] = p[j]; k++; }
+  while (p[j++]);`; pointer versions become an offset from the source
+  (0x4bb150).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

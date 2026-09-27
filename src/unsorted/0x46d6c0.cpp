@@ -61,14 +61,31 @@ struct Node_0046d6c0 {
     Val_0046d6c0 value;               // +0x10
 };
 
+
+struct H8_0046d6c0 {                 // 8 bytes
+    int field_0;                     // +0x0
+    Shorts_0046d6c0 shorts;          // +0x4
+};
+
+struct H10_0046d6c0 {                // 0x10 bytes
+    int field_0;                     // +0x0
+    int field_4;                     // +0x4
+    Shorts_0046d6c0 shorts;          // +0x8
+    short field_c;                   // +0xc
+};
+
+struct H18_0046d6c0 {                // 0x18 bytes
+    H10_0046d6c0 part;               // +0x00
+    H10_0046d6c0 rest;               // +0x10
+};
+
 struct Handle_0046d6c0 {              // 5 bytes
     Node_0046d6c0* head;              // +0x0
     unsigned char flag;               // +0x4
 };
 
-struct Loc_0046d6c0 {                 // 0x18 bytes
-    Handle_0046d6c0 h;                // +0x0
-    Tail_0046d6c0 tail;               // +0x8
+struct Loc_0046d6c0 {
+    Tail_0046d6c0 src;
 };
 
 // A std::vector<int>, whose insert() is the out-of-line 0x46e640. Leaving the
@@ -148,20 +165,21 @@ void Class_0046d6c0::FUN_0046d6c0(Packet_0046d6c0* packet, unsigned char player)
 
         case 2:
             {
-                int* j = i->ids.begin();
-                while (j != i->ids.end()) {
+                Vec_0046d6c0& v = i->ids;
+                int* j = v.begin();
+                while (j != v.end()) {
                     if (*j == packet->field_6) {
                         break;
                     }
                     j++;
                 }
-                if (j != i->ids.end()) {
+                if (j != v.end()) {
                     return;
                 }
             }
             i->ids.insert(i->ids.end(), 1, packet->field_6);
-            i->pairs.insert(i->pairs.end(), 1, *(int*)&packet->field_a.all);
-            FUN_0046d970(packet->field_6, *(int*)&packet->field_a.all);
+            i->pairs.insert(i->pairs.end(), 1, packet->field_a.all);
+            FUN_0046d970(packet->field_6, packet->field_a.all);
             break;
 
         case 3:
@@ -175,21 +193,23 @@ void Class_0046d6c0::FUN_0046d6c0(Packet_0046d6c0* packet, unsigned char player)
         }
     } else {
         Loc_0046d6c0 loc;
-        Shorts_0046d6c0 s;
+        H10_0046d6c0 t;
         Val_0046d6c0 v;
         if (packet->arg != 0 && packet->arg == 3) {
             int f6 = packet->field_6;
+            int f2 = packet->field_2;
             int fc = packet->field_a.part.top;
-            s.a = packet->field_a.part.lo;
-            s.b = packet->field_a.part.hi;
-            v.tail = loc.tail;
+            t.shorts.a = packet->field_a.part.lo;
+            t.shorts.b = packet->field_a.part.hi;
+            v.tail = loc.src;
             v.key = f6;
-            ((Map_0046d6c0*)this)->FUN_0046ef50(&loc.h, &v);
-            Node_0046d6c0* node = loc.h.head;
-            node->value.key = f6;
-            node->value.tail.field_0 = 0;
-            node->value.tail.field_4 = s;
-            node->value.tail.field_8 = fc;
+            ((Map_0046d6c0*)this)->FUN_0046ef50((Handle_0046d6c0*)&loc, &v);
+            Node_0046d6c0* node = ((Handle_0046d6c0*)&loc)->head;
+            Val_0046d6c0* pv = &node->value;
+            pv->key = f6;
+            pv->tail.field_0 = f2;
+            pv->tail.field_4 = t.shorts;
+            pv->tail.field_8 = fc;
             FUN_0046d860(packet->field_6);
         }
     }

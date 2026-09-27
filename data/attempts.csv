@@ -2355,9 +2355,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x440340,222,,#34,assigned,,,issue #34
 0x440830,242,,#34,assigned,,,issue #34
 0x440940,189,,#34,assigned,,,issue #34
-0x401360,2239,,#35,assigned,,,issue #35
-0x401e00,463,,#35,assigned,,,issue #35
-0x4021f0,564,,#35,assigned,,,issue #35
+0x401360,2239,opus,#35,partial,50.7,,issue #35
+0x401e00,463,opus,#35,matched,100.0,,issue #35
+0x4021f0,564,opus,#35,matched,100.0,,issue #35
 0x402430,522,,#36,assigned,,,issue #36
 0x402640,1328,,#36,assigned,,,issue #36
 0x402b70,401,,#36,assigned,,,issue #36

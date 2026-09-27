@@ -908,6 +908,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   them in the compiler's input (0x407d40).
 - **`strlen(text) > 0 ? text : 0`** gives `cmp eax, ecx; sbb esi, esi` for a
   pointer-or-null select (0x435320).
+- **Stack offsets of several local arrays**: they follow the order the code
+  first writes them (zeroing order), not the declaration order (0x401360).
+- **A 0/1 argument pushed on its own in each branch**: write the call in every
+  branch with an `int ok` local rather than one call after the branches
+  (0x401360).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

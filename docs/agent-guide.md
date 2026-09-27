@@ -83,6 +83,10 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
   `Class_<addr>::Class_<addr>`, because that is what its own author will call it.
 - A function that is only `ret` or `ret N` is an empty function: an empty body
   with N/4 dword-sized parameters (as a `__thiscall` method if unsure).
+  If every caller sets `lea ecx, [esp+N]` to a local object just before calling
+  it, at the end of that object's scope, it is that class's empty out-of-line
+  destructor (see 0x4e2cb0.cpp); check with
+  `objdump -d -M intel orig/TotalA.exe | grep -B14 "call   0x<addr>"`.
 - Library calls (`sprintf`, `memset`, `strcpy`, `malloc`, ...) are the normal C
   runtime; include the header and call them.
 

@@ -1107,6 +1107,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A bit loop tested twice on entry**: write
   `if (dirty[i]) { unsigned bits = dirty[i]; ... while (bits) ... }`. Loading
   `bits` first and testing `if (bits)` drops the second test. See 0x40d900.
+- **A `?:` on a one-bit bitfield choosing between two strings**: write
+  `(flag != 0) ? "ON" : "OFF"` to get `test byte ptr [m], mask; mov eax, <on>;
+  jne; mov eax, <off>`. `flag ? a : b` gives `shr`/`test`, and `!flag ? b : a`
+  flips the branch. Found by DeepSeek V4.1 Flash in #16 (0x418cd0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

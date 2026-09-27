@@ -1,19 +1,26 @@
 // Decompiled by Haiku. Names are provisional.
+// std::vector<Elem_0040cc40>::capacity() from MSVC 5's <vector>, out of
+// line. Taking the member's address makes the compiler emit it. 0x40a260
+// calls it from its inlined vector::reserve, where /Ob2's budget ran out
+// (its neighbours there are size(), 0x40c5b0, and Elem_0040cc40's copy
+// constructor, 0x40a5b0).
+#include <vector>
 
-class Class_0040ca30 {
-public:
-    char unknown_0[4];
-    int field_4;
-    int field_8;
-    int field_c;
-
-    int FUN_0040ca30();
+struct Point16 {
+    short x;
+    short y;
 };
 
-// FUNCTION: 0x40ca30
-int Class_0040ca30::FUN_0040ca30() {
-    if (field_4 == 0) {
-        return 0;
-    }
-    return (field_c - field_4) >> 3;
-}
+struct Elem_0040cc40 {
+    Point16 pos;                       // +0x0
+    float key;                         // +0x4
+    Elem_0040cc40() {}
+    Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key) {}
+    bool operator<(const Elem_0040cc40& o) const { return key < o.key; }
+};
+
+typedef std::vector<Elem_0040cc40> Vec_0040ca30;
+typedef Vec_0040ca30::size_type (Vec_0040ca30::*CapacityFn_0040ca30)() const;
+
+// FUNCTION: 0x40ca30 ?capacity@?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@QBEIXZ
+CapacityFn_0040ca30 g_capacity_0040ca30 = &Vec_0040ca30::capacity;

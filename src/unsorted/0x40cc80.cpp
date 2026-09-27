@@ -1,17 +1,19 @@
 // Decompiled by Sonnet. Names are provisional.
+// std::vector<Elem_0040cfb0>::size() from MSVC 5's <vector>, out of line, for
+// the 3-byte element type (the `/ 3` is the pointer difference). Taking the
+// member's address makes the compiler emit it. 0x409160 calls it with ecx
+// set to its vector at +0x65, from the inlined resize() around the
+// out-of-line insert (0x40cca0) and erase (0x40cfb0).
+#include <vector>
 
-class Class_0040cc80
-{
-public:
-    int unknown_0;
-    int field_4;
-    int field_8;
-
-    int FUN_0040cc80();
+struct Elem_0040cfb0 {
+    char a;                            // +0x0
+    char b;                            // +0x1
+    char c;                            // +0x2
 };
 
-// FUNCTION: 0x40cc80
-int Class_0040cc80::FUN_0040cc80()
-{
-    return field_4 == 0 ? 0 : (field_8 - field_4) / 3;
-}
+typedef std::vector<Elem_0040cfb0> Vec_0040cc80;
+typedef Vec_0040cc80::size_type (Vec_0040cc80::*SizeFn_0040cc80)() const;
+
+// FUNCTION: 0x40cc80 ?size@?$vector@UElem_0040cfb0@@V?$allocator@UElem_0040cfb0@@@std@@@std@@QBEIXZ
+SizeFn_0040cc80 g_size_0040cc80 = &Vec_0040cc80::size;

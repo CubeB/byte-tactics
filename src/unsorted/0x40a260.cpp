@@ -6,13 +6,11 @@
 // wins; once one is found, candidates more than 160 beyond the first hit's
 // squared distance stop the search.
 //
-// The bytes match with the real MSVC 5 std::vector, but three callees the
-// compiler emits out of line carry placeholder names in data/symbols.csv:
-// 0x40ca30 is vector<Elem_0040cc40>::capacity() (named
-// Class_0040ca30::FUN_0040ca30), 0x40c5b0 is vector<Elem_0040cc40>::size()
-// (Class_0040c5b0::FUN_0040c5b0), and 0x40a5b0 is Elem_0040cc40's copy
-// constructor (Class_0040a5b0::FUN_0040a5b0). All three are called from the
-// inlined vector::reserve and pop_heap here, where /Ob2's budget ran out.
+// It matches with the real MSVC 5 std::vector. Three callees the compiler
+// emits out of line, 0x40ca30 (vector<Elem_0040cc40>::capacity()), 0x40c5b0
+// (vector<Elem_0040cc40>::size()) and 0x40a5b0 (Elem_0040cc40's copy
+// constructor), are called from the inlined vector::reserve and pop_heap
+// here, where /Ob2's budget ran out.
 //
 // The heap functions 0x40d620 (_Make_heap) and 0x40d700 (_Pop_heap) end in
 // `ret N`: the original file was compiled with __stdcall as the default, so

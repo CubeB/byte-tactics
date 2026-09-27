@@ -4,12 +4,11 @@
 // the template instantiation out of line.
 #include <vector>
 
-#pragma pack(push, 1)
 struct Elem_0040cfb0 {
-    short a;                 // +0x0
-    char b;                  // +0x2
+    char a;                            // +0x0
+    char b;                            // +0x1
+    char c;                            // +0x2
 };
-#pragma pack(pop)
 
 typedef std::vector<Elem_0040cfb0> Vec_0040cfb0;
 typedef Vec_0040cfb0::iterator (Vec_0040cfb0::*EraseFn_0040cfb0)(

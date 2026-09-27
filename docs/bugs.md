@@ -126,3 +126,23 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x40eb70** (the per-tick path scheduler): the `r < 3` case and the final
   `else` set the same value, and its second call to 0x40ef20 can never run.
   Found by Claude Opus 5.5 in #81.
+- **0x41d7b0** (builds a path on the CD): its format string at 0x502914 is
+  `%c\\%s\%s`, two backslashes after the drive letter and one before the file
+  name, so paths come out as `D:\\dir\file`. Windows accepts the doubled
+  separator. Found by DeepSeek V4.1 Flash in #21.
+
+## Possible leaks and unchecked inputs
+
+- **0x413470** (an order handler), state 3 (likely): after two misses it
+  allocates a `Class_0044e2d0` waypoint and sets its speed with
+  `FUN_0044e730(0x80)`, then only ORs 0x110e8 into the order flags and returns
+  2. Every other branch hands the waypoint to the order through
+  `FUN_004388d0`; this one never does, so the object leaks and the waypoint
+  is lost. Found by Claude Opus 5.5 in #98.
+- **0x41d7b0** (possible): calls `strlen(ext)` with no null check, where its
+  sibling 0x4290f0 tests `if (ext != 0)` first, so a null extension would
+  crash here. Found by DeepSeek V4.1 Flash in #21.
+- **0x402010** (possible): the unit type's countdown is a three-bit field
+  (0 to 7) but indexes a six-entry sound array with no bound, so values 6 and
+  7 would read past it. Whether the data ever holds those values is unknown.
+  Found by Codex / GPT-6 in #7.

@@ -177,6 +177,11 @@ can disagree on types (a real link would fail). Known cases:
   decompiled. (0x4181d0.cpp also holds 0x417f60, defined above it as the
   original file did; see #111.)
 
+- FUN_004103a0's second parameter is `int scale` in 0x4103a0.cpp, but all
+  four callers (0x40fc53, 0x4108bf, 0x413018, 0x4131a7) load the constant into
+  a register and push it, which only a 4-byte struct passed by value does;
+  0x412d40.cpp declares it as a union. Settle on the struct.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

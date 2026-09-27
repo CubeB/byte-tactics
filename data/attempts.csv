@@ -2430,9 +2430,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x411560,728,,#97,assigned,,,issue #97
 0x4118e0,1636,,#97,assigned,,,issue #97
 0x411f50,1980,,#97,assigned,,,issue #97
-0x412710,1572,,#98,assigned,,,issue #98
-0x412d40,1838,,#98,assigned,,,issue #98
-0x413470,1864,,#98,assigned,,,issue #98
+0x412710,1572,opus,#98,partial,82.2,,issue #98
+0x412d40,1838,opus,#98,matched,100.0,,issue #98
+0x413470,1864,opus,#98,partial,85.2,,issue #98
 0x40e050,270,opus,#99,matched,100.0,,"issue #99, escalated"
 0x40ef20,223,opus,#99,matched,100.0,,"issue #99, escalated"
 0x4181d0,315,opus,#103,partial,62.3,,"issue #103, escalated"

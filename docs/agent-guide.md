@@ -1224,6 +1224,22 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A vertex swap that loads x and y together and stores them after the
   height**: the vertex is an `{x, y}` struct passed by value, with the height
   as a separate parameter. See 0x417f60.
+- **A constant loaded into a register and pushed**: if every caller does
+  `mov eax, K; push eax` instead of `push K`, that parameter is a 4-byte
+  struct (or union) passed by value; declaring it `int` always gives
+  `push K`. Found by Claude Opus 5.5 in #98 (FUN_004103a0's scale).
+- **A frame one struct bigger than the original's**: the earlier locals were
+  probably inside an inline helper. MSVC 5 reuses an inline helper's stack
+  slots for later locals, but not a plain `{ }` block's. See 0x412d40.
+- **`_hypot`, not `hypot`**: the bytes match either way, but check.py flags
+  `hypot` as the wrong reference.
+- **Scratch file names that differ only in case** (`h3a.cpp`, `h3A.cpp`) share
+  one object file under Wine, and check.py then reports "compile failed" with
+  no error.
+- **A doubled test and shared failure exit in a do/while loop**: replacing
+  `return 0;` inside the loop with `if (cond == 0) continue;` reproduces the
+  redundant bottom test MSVC 5 keeps. Found by DeepSeek V4.1 Flash in #21
+  (0x41d6a0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

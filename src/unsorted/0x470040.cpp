@@ -78,7 +78,8 @@ public:
                 d->_Destroy(d->_First, d->_Last);
                 operator delete(d->begin());
                 int n = (int)s->FUN_00470270();
-                n = n < 0 ? 0 : n;
+                if (n < 0)
+                    n = 0;
                 Elem_004702a0* p = (Elem_004702a0*)operator new(n * 4);
                 d->_First = p;
                 Elem_004702a0* q = d->_Ucopy(s->begin(), s->end(), p);

@@ -352,6 +352,17 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
     return lookup(off, sym_name, target, symbols, by_addr)
 
 
+def same_slot_function(held: str, name: str, fn: int) -> bool:
+    """Two names for one vtable slot that only differ where names are still
+    provisional: the vector (??_E) and scalar (??_G) deleting destructors, which
+    MSVC 5 links to one function, or a placeholder method FUN_<address> filed
+    under different placeholder classes (to be merged in docs/consolidation.md)."""
+    if held[:4] in ("??_E", "??_G") and name[:4] in ("??_E", "??_G"):
+        return held[4:] == name[4:]
+    method = f"FUN_{fn:08x}"
+    return held.split("::")[-1] == method and name.split("::")[-1] == method
+
+
 def check_vtable(orig, obj, sec, start, target, symbols) -> str:
     """Compare a vtable defined in our object with the original one at target:
     every slot we declare must be a function in the original's vtable, and
@@ -373,6 +384,13 @@ def check_vtable(orig, obj, sec, start, target, symbols) -> str:
         known = symbols.get(name)
         if known is not None and known != fn:
             return f"vtable slot {off // 4} is {fn:#x} in the original, but '{name}' is {known:#x}"
+        # The reverse: the slot's function already has another name (a method
+        # inherited from a base class keeps the base's name).
+        held = [n for n, a in symbols.items() if a == fn]
+        if (known is None and held and fn not in ALIAS_MAP.get(name, ())
+                and not any(is_placeholder(h, fn) or same_slot_function(h, name, fn) for h in held)):
+            return (f"vtable slot {off // 4} is {fn:#x}, already named '{held[0]}' in data/symbols.csv; "
+                    "declare it under that name (a base class's method if it is inherited)")
     return ""
 
 

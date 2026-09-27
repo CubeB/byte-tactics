@@ -53,9 +53,27 @@ public:
 Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
     : owner(p), field_8(q), field_c(0), field_10(p->field_4) {}
 
-// Partial: the final vector stores precede field_38 and the derived vtable.
-// The original places field_38 and the vtable first, then stores through ecx.
-// This version emits 297 bytes instead of 296.
+// Partial (77.5%): everything up to the last _ftol matches. The original then
+// does `lea ecx, [esi+0x2c]`, stores field_38 and the derived vtable, pops edi
+// and only then stores c through ecx (`mov [ecx], ebx` unfolded). Here c's
+// stores come first and the scheduler folds the first one to [esi+0x2c], so
+// this version emits 297 bytes instead of 296.
+//
+// Notes from a second attempt (Claude Opus 5.5):
+// - The `lea reg, [esi+K]` store pattern only appears for an implicit struct
+//   copy into an inlined constructor's `this` (`*this = Vec3(...)`). Field
+//   initialisers, a user operator=, a Set() helper or a by-value helper
+//   returning Vec3 give direct [esi+K] stores and no lea.
+// - The scheduler folds `[ecx]` into `[esi+0x2c]` only when nothing can fill
+//   the slot after the lea; in the original the field_38 and vtable stores
+//   fill it, so they must come before c's copy in the compiler's input, while
+//   c's two _ftol values are computed before field_38 is stored.
+// - No variant reproduced that order: c assigned in the body (the vtable store
+//   then precedes c's g_game loads), c(Vec3(g_game)), an explicit copy
+//   constructor, a trivial destructor, a named temporary, member order in the
+//   list, c plus field_38 as one member struct (stores fold, no lea), self
+//   assignments (removed entirely), every header set (tools/headers.py) and
+//   the RTM compiler all keep c's copy before field_38 or lose the lea.
 // FUNCTION: 0x407d40
 Class_00407d40::Class_00407d40(Class_00408cb0* p, void* q)
     : Class_00407350(p, q), a(g_game), b(g_game), c(g_game), field_38(0)

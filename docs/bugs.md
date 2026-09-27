@@ -301,3 +301,7 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x44e5b0** (possible): in the `flags & 4` branch it reads
   `target->heading` with no null check; `target` is only tested when
   `flags & 1` is set. Found by DeepSeek V4.1 Flash in #136.
+- **0x44c0d0** (likely): its null check tests the address of the unit type's
+  name array (`lea eax, [esi+0x20]; test eax, eax` at 0x44c154) instead of the
+  type pointer, so it can never fail, and a null type is then read at
+  `[esi+0x245]`. Found by DeepSeek V4.1 Flash in #128.

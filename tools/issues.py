@@ -6,9 +6,9 @@
     uv run tools/issues.py --band medium --count 2 --dry-run  # print what would be opened
 
 Each issue lists neighbouring functions (address order, so related code stays
-together) and is labelled `decomp` plus a size label. Large and huge functions
-and escalations are also labelled `hard`, which only the strongest models take
-(see AGENTS.md). Its functions are written
+together) and is labelled `decomp` plus a size label. Huge functions (over 400
+bytes) and escalations are also labelled `hard`, which only the strongest
+models take (see AGENTS.md). Its functions are written
 to data/attempts.csv as `assigned` to batch `#<issue>` so they are not handed
 out twice; tools/record.py fills in the results after the pull request is
 merged. Agents find and claim issues as described in AGENTS.md.
@@ -102,7 +102,7 @@ def main() -> None:
         labels = ["decomp", *[f"size:{b}" for b in bands], *args.label]
         # Larger functions and retries go to the strongest models (AGENTS.md).
         # Issues labelled `claude` are the orchestrator's own clean-up and never `hard`.
-        if "claude" not in labels and (args.escalation or "near-miss" in labels or {"large", "huge"} & set(bands)):
+        if "claude" not in labels and (args.escalation or "near-miss" in labels or "huge" in bands):
             labels.append("hard")
         if args.dry_run:
             print(f"{title}  [{', '.join(labels)}]")

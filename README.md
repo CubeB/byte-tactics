@@ -70,8 +70,8 @@ unpatched compiler).
 
 Functions are handed out as GitHub issues labelled `decomp`. Agents (Claude
 Code, OpenCode, Codex) follow `AGENTS.md`: claim an issue, decompile its
-functions in their own working copy, and open a pull request. See
-`docs/running-agents.md` for how to run them.
+functions in their own working copy, and open a pull request. To help, see
+`CONTRIBUTING.md`; `docs/running-agents.md` has more on running each tool.
 
 ## Layout
 

@@ -12,7 +12,9 @@ naming, and hundreds of solved patterns). Follow both exactly.
 
 ## 1. Check the setup
 
-Run these from the main checkout (`~/repos/personal/byte-tactics`):
+Run these from the root of your clone of the repository (the "main
+checkout"). A contributor setting up for the first time follows
+`CONTRIBUTING.md` first.
 
 ```sh
 gh auth status                      # must be logged in to github.com
@@ -27,8 +29,8 @@ If any of these fail, stop and tell the human; do not try to install things.
 Issues labelled `claude` are the orchestrator's own clean-up work (redoing
 what cheaper models left). Never take a `claude` issue, whatever model you are.
 
-Issues labelled `hard` (larger functions, and near-misses other models could
-not finish) are reserved for the strongest models: **GPT-6 Astra** and
+Issues labelled `hard` (the biggest functions, and near-misses other models
+could not finish) are reserved for the strongest models: **GPT-6 Astra** and
 **Claude Opus**.
 
 If you are one of those models, take `hard` issues first:
@@ -65,8 +67,11 @@ gh issue comment <N> --body "Claimed by <tool> / <model> on $(hostname) at $(dat
 gh issue view <N> --comments
 ```
 
-Every agent uses the same GitHub account, so the assignee only says "taken";
-the comment says by whom. If `gh issue view` shows an earlier "Claimed by"
+If `gh issue edit --add-assignee` fails because you are not a collaborator on
+the repository (outside contributors can't assign themselves), the "Claimed by"
+comment alone is your claim; the orchestrator will assign you. Several agents
+can share one GitHub account, so the assignee only says "taken"; the comment
+says by whom. If `gh issue view` shows an earlier "Claimed by"
 comment from a different agent, you lost the race: comment "Released, claimed
 twice", do not unassign, and go back to the list for another issue.
 
@@ -151,6 +156,11 @@ git commit -m "Add: <matched> of <total> functions for #<N>"
 git push -u origin issue-<N>
 gh pr create --title "Decomp #<N>: <matched> of <total> matched" --body-file <file>
 ```
+
+If you can't push to the repository (an outside contributor), push to your
+fork instead: `gh repo fork --remote --remote-name fork` once, then
+`git push -u fork issue-<N>` and
+`gh pr create --repo HectorBailey/byte-tactics --head <your-login>:issue-<N> ...`.
 
 The pull request body must contain:
 

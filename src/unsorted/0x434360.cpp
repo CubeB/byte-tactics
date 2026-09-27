@@ -1,18 +1,22 @@
 // Decompiled by Opus. Names are provisional.
 // std::vector<std::vector<Elem_00434360> >::erase(iterator first, iterator last)
-// from MSVC 5's <vector>: copy the tail down with the inner vector's
+// from MSVC 5's <vector>, where Elem_00434360 is a struct holding one
+// std::vector<Elem_00434020>: copy the tail down with the inner vector's
 // operator= (0x434770), then destroy the leftover inner vectors. Destroying
-// an element calls the out-of-line FUN_00434440 (which frees a vector held in
-// the element), reproduced here with a std::_Destroy overload for the element
-// type. Same shape as 0x434020.cpp. Taking the member's address makes the
-// compiler emit the template instantiation out of line.
+// an element calls the out-of-line FUN_00434440 (std::_Destroy for the
+// element, which frees the vector it holds), reproduced here with a
+// std::_Destroy overload for the element type. Same shape as 0x434020.cpp.
+// Taking the member's address makes the compiler emit the template
+// instantiation out of line.
 #include <vector>
 
+struct Elem_00434020 {
+    unsigned short a;                  // +0x0
+    unsigned short b;                  // +0x2
+};
+
 struct Elem_00434360 {
-    int unknown_0;                     // +0x0
-    int* first;                        // +0x4
-    int* last;                         // +0x8
-    int* end;                          // +0xc
+    std::vector<Elem_00434020> v;      // +0x0
 };
 
 void __stdcall FUN_00434440(Elem_00434360* p);

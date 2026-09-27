@@ -1,5 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// The object at +0 is a three-deep std::vector (the same class as 0x433380).
+// The object at +0 is a std::vector<std::vector<Elem_00434360> > (the same
+// class as 0x433380), where Elem_00434360 is a struct holding one
+// std::vector<Elem_00434020>; the fill value is a std::vector<Elem_00434360>.
 // Its out-of-line members are declared only, so the compiler emits the same
 // calls the original does instead of inlining them.
 
@@ -39,16 +41,15 @@ namespace std {
 
 void __cdecl operator delete(void* p);
 
-struct Elem_004340b0 {
-    int value;                         // +0x0
+struct Elem_00434020 {
+    unsigned short a;                  // +0x0
+    unsigned short b;                  // +0x2
 };
 
 struct Elem_00434360 {
-    int value;                         // +0x0
+    std::vector<Elem_00434020> v;      // +0x0
 };
 
-typedef std::vector<Elem_004340b0> V1_00433130;
-typedef std::vector<V1_00433130> V2_00433130;
 typedef std::vector<Elem_00434360> W1_00433130;
 typedef std::vector<W1_00433130> W2_00433130;
 
@@ -106,10 +107,10 @@ void Class_00433130::FUN_00433130()
         if (((Class_004c3410*)&tdf)->FUN_004c3410("TABLEINFO") != 0) {
             short numtables = (short)((Class_004c46c0*)tdf.field_4)->FUN_004c46c0("numtables", 0);
             {
-                V2_00433130 temp;
+                W1_00433130 temp;
                 unsigned n = (unsigned)numtables;
                 if (tables.size() < n)
-                    tables.insert(tables.end(), n - tables.size(), *(W1_00433130*)&temp);
+                    tables.insert(tables.end(), n - tables.size(), temp);
                 else if (n < tables.size())
                     tables.erase(tables.begin() + n, tables.end());
             }

@@ -3,11 +3,15 @@
 // std::vector<Elem_00434020> held at +0 (the global at 0x51e6a0). Callers
 // pass size() - 1, so this is the last element. The index is narrowed to a
 // short before indexing; only the real std::vector operator[] keeps _First
-// loaded before the index arithmetic, as in the original.
+// loaded before the index arithmetic, as in the original. The global is
+// really a std::vector<std::vector<Elem_00434360> > (see 0x4330b0.cpp); with
+// that spelling MSVC schedules the index arithmetic differently, and the
+// return type is not part of the name data/symbols.csv compares.
 #include <vector>
 
 struct Elem_00434020 {
-    int value;                         // +0x0
+    unsigned short a;                  // +0x0
+    unsigned short b;                  // +0x2
 };
 
 typedef std::vector<Elem_00434020> Inner_00433500;

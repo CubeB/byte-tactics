@@ -11,7 +11,8 @@
 #include <vector>
 
 struct Elem_00434020 {
-    int value;                         // +0x0
+    unsigned short a;                  // +0x0
+    unsigned short b;                  // +0x2
 };
 
 struct Elem_00434360 {

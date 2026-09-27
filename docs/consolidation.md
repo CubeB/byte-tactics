@@ -86,14 +86,6 @@ revisit them once the surrounding code is known.
 
 - The timer class is `Class_004e2150` in 0x4e2150.cpp and `Class_004e2160`
   elsewhere; its getter 0x4e1e30 is `Class_004e1e30::FUN_004e1e30`.
-- 0x434360.cpp's `Elem_00434360` looks like `std::vector<Elem_00434020>`: the
-  operator= it calls (0x434770) destroys elements with 0x433a30, which is
-  `~vector<Elem_00434020>`. So 0x434360 is probably an erase on a three-level
-  vector, and 0x434770's recorded name is one level too shallow. Evidence
-  since: with `Elem_00434360` as a struct holding a `vector<Elem_00434020>`,
-  a rebuilt 0x434770 is byte-identical (0x4349f0.cpp), but it then calls
-  0x434470 and 0x4349c0 under names other than their recorded ones
-  (`Elem_004349c0` and `Elem_00434020` look like one 4-byte type).
 
 - `Class_004402e0` (constructor 0x4402e0) is the class 0x440290.cpp calls
   `Class_00440320`, while 0x440320 is recorded as the free function
@@ -200,15 +192,6 @@ can disagree on types (a real link would fail). Known cases:
 - 0x438760 is the constructor of `Class_00438760`, an order type held as its
   index in the sorted order-type table and passed by value (#31).
 
-- Around 0x433a30 to 0x435000 (`vector<Elem_00434020>` and
-  `vector<vector<Elem_00434020>>`, #29): 0x433a30 is named
-  `UElem_00434020::?$vector::~?$vector` in data/symbols.csv, but it is
-  probably `??1?$vector@UElem_00434020@...@std@@QAE@XZ`, the element vector's
-  destructor; 0x433db0 (unnamed) is probably
-  `vector<vector<Elem_00434020>>::insert(iterator, size_type, const T&)`.
-  0x4335f0 (partial) calls both. 0x434ff0 is `Class_00434f70`'s destructor
-  (its constructor is 0x434f70).
-
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with
@@ -259,3 +242,31 @@ can disagree on types (a real link would fail). Known cases:
   `Elem_0040c9f0` and `Unit_00407560` were renamed to `Unit*` and `Unit`.
   0x412710 (partial) still uses `Elem_00406c10`, since `Unit*` alone moves
   registers there.
+- The tables read from gamedata\los.tdf (0x433130, 0x433380), around
+  0x4330b0-0x434a30 (#187): the 4-byte element (two `unsigned short`s, see
+  0x4339e0) is `Elem_00434020`, and `Elem_00434360` is a struct holding one
+  `std::vector<Elem_00434020>`, with implicit members (0x434770 calls its
+  `??_G`, 0x4349f0, and its copy constructor, 0x434470).
+  The global at 0x51e6a0 is `vector<vector<Elem_00434360>>` (insert 0x4340f0,
+  erase 0x434360). `vector<Elem_00434360>` owns 0x433a80 (destructor),
+  0x433b00 (`size`), 0x433db0 (`insert`), 0x434020 (`erase`), 0x4340b0
+  (`_Destroy`), 0x4344e0 (copy constructor) and 0x434770 (`operator=`), plus
+  0x434400 (`allocator::destroy`) and 0x434440 (`std::_Destroy`, `/Gz`).
+  `vector<Elem_00434020>` owns 0x433a10 (constructor), 0x433a30 (destructor),
+  0x433a60 (`size`), 0x433d50 (`erase`), 0x433d90 (`_Destroy`), 0x4345e0
+  (`operator=`) and 0x4349c0 (`_Ucopy`), plus 0x433da0 and 0x4343f0
+  (allocator) and 0x434430 (`std::_Destroy`). Evidence: 0x433380 fills a
+  `vector<Elem_00434360>` with a value it destroys through 0x433a30, and
+  0x4336f0, called on each of its elements, uses 0x433a60 and 0x433d50 on the
+  element itself; 0x433270 frees each element of its local column through
+  0x433d90 and 0x433da0. `Elem_00433d50`, `Elem_004349c0` and
+  `Elem_004340b0` became `Elem_00434020`, and the middle level, spelt
+  `vector<vector<Elem_00434020>>`, became `vector<Elem_00434360>`. Where the
+  implicit destructor costs an inline level (0x433a80, 0x434020), a
+  `std::_Destroy(Elem_00434360*)` overload running the held vector's
+  destructor keeps the call to 0x434430 inline. Left over: 0x433500 spells
+  the global one level short (only that spelling schedules like the original;
+  its return type is not compared), 0x433270 wraps the held vector in a
+  second struct for inline depth, 0x433540 (no callers) destroys a vector of
+  `vector<Elem_00434020>`, and 0x4335f0 (partial) calls 0x433db0 and 0x433a30
+  under `Class_` placeholders.

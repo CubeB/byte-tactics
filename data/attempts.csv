@@ -2696,8 +2696,8 @@ address,size,model,batch,result,similarity,runs,notes
 0x461b10,272,opus,#239,partial,84.5,,"issue #239, escalated"
 0x461c20,310,opus,#239,matched,100.0,,"issue #239, escalated"
 0x4628d0,219,opus,#239,partial,96.6,,"issue #239, escalated"
-0x461020,333,,#240,assigned,,,"issue #240, escalated"
-0x4611e0,352,,#240,assigned,,,"issue #240, escalated"
+0x461020,333,space-bunny-free,#240,matched,100.0,,"issue #240, escalated"
+0x4611e0,352,space-bunny-free,#240,matched,100.0,,"issue #240, escalated"
 0x467cb0,192,,#246,assigned,,,issue #246
 0x467d70,218,,#246,assigned,,,issue #246
 0x46a430,256,,#246,assigned,,,issue #246

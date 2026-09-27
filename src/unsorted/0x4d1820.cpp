@@ -1,4 +1,8 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by GPT-6. Names are provisional.
+// Retains the best earlier partial by Opus.
+// Retest: byte temporaries, encoding helpers and the preceding compression
+// entry points did not change the XOR operand order. The baseline remains
+// 96.2%, with the original copying the index byte before XORing memory.
 // Builds a "SQSH" compressed chunk: header, then the (optionally
 // compressed and encrypted) data.
 #include <string.h>

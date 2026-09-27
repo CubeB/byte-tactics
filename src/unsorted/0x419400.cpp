@@ -1,4 +1,7 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by GPT-6. Names are provisional.
+// Retains the best earlier partial by Opus.
+// Retest: an inline float setter, a return-per-branch amount helper and the
+// preceding metal-sharing handler did not move the store past the pushes.
 // Chat command: sets the local player's energy-sharing threshold to the
 // argument, capped at field_a4 (a min() macro, so the argument is read twice),
 // and prints a confirmation.

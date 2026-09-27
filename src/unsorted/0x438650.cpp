@@ -1,4 +1,8 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by GPT-6. Names are provisional.
+// Retains the best earlier partial by Opus.
+// Retest: signed intermediate products, a scale helper and a widened
+// multiplier did not preserve both load order and unsigned float conversion.
+// Retain the original best partial, including its redundant 16-bit mask.
 
 #pragma pack(push, 1)
 struct UnitType_00438650 {

@@ -1335,6 +1335,26 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   locals**: write the call once per branch into a result local, which MSVC
   merges, so each branch pushes its own arguments and frees the register. See
   0x423160.
+- **What spends the /Ob2 inline budget**: depth-1 call sites are handled in
+  source order and deeper ones last-first. Tiny helpers cost nothing, even
+  ones with a call, a branch or a `new`; big inlined bodies do, and so does a
+  big candidate that /Ob2 rejects. Found by Claude Opus 5.5 in #131 (0x4152f0).
+- **A helper that returns a flag leaves a test behind**: when an inlined
+  helper's last `return` falls through to its end, the caller keeps
+  `mov eax, K; test eax, eax; je`. If the original has no such test, the code
+  was not a helper returning a flag.
+- **Several `new` branches sharing a tail**: an if/else-if chain that assigns
+  one pointer, followed by one shared call, merges the constructor tails the
+  way the original does; separate `if (...) { ...; return 3; }` blocks merge
+  only some of them.
+- **Counter updates after the rates**: writing all the `prev = cur` stores
+  after the rate computations keeps each current counter in its own
+  callee-saved register, and the scheduler moves the stores back up. See
+  0x415fa0.
+- **A `__stdcall` function with one more push than its signature**: a
+  function that pushes an argument for a method callee of the same call also
+  pops it, so count the pushes against the `ret N`. Found by Space Bunny Free
+  in #28 (0x431950).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

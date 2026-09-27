@@ -80,12 +80,31 @@ class Namer:
         vt = self.vtable_at(va)
         return f"{label} = vtable? [{vt}]" if vt else label
 
+    def vtable_starts(self) -> set[int]:
+        """Addresses some code stores into [reg] (`mov dword ptr [reg], imm32`):
+        vtable starts. MSVC 5 places vtables back to back with no RTTI between
+        them, so a run of function pointers must stop at the next one."""
+        if not hasattr(self, "_vtable_starts"):
+            text = next(s for s in self.orig.pe.sections if s.Name.startswith(b".text"))
+            code = text.get_data()
+            lo, hi = next((lo, hi) for lo, hi, n in self.sections if n == ".rdata")
+            starts = set()
+            for i in range(len(code) - 6):
+                if code[i] == 0xC7 and code[i + 1] in (0, 1, 2, 3, 6, 7):
+                    imm = int.from_bytes(code[i + 2:i + 6], "little")
+                    if lo <= imm < hi:
+                        starts.add(imm)
+            self._vtable_starts = starts
+        return self._vtable_starts
+
     def vtable_at(self, va: int) -> str:
         """A run of pointers to known function starts in .rdata looks like a vtable."""
         if self.section(va) != ".rdata":
             return ""
         entries = []
         for i in range(32):
+            if i and va + 4 * i in self.vtable_starts():
+                break
             raw = self.orig.read(va + 4 * i, 4)
             if len(raw) < 4:
                 break

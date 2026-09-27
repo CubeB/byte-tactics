@@ -1,6 +1,21 @@
-// Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: scratch-register choices differ in order calls and flag copying;
-// the state-2 flag test uses test ax/jge instead of test ah/je.
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// Order handler: when the unit has just been built (progress 0), copies the
+// QMove/QPatrol orders queued on the factory (order->target) to the new unit
+// and its fire/move states, else parks it; otherwise a small wait state machine.
+//
+// Partial (79.5%): only register choices differ. The case-2 tail is fixed:
+// one Wait() after an if/else-if lets MSVC duplicate the tail itself and keeps
+// 0x8000 out of a register (two Wait() calls plus the test hoist it into ebx).
+// Still different: in the loop, the two FUN_0043f0e0 argument blocks and the
+// FUN_0043adc0 call use registers rotated by one (ours ecx/edx, eax/ecx,
+// eax/edx; original eax/ecx, edx/eax, edx/ecx). Adding two throwaway temps in
+// the loop head fixes the loop exactly, so the original allocates the kind's
+// zero (xor al, al) before the two byte loads, or has one temporary fewer
+// there. In the flag copy, the second target->flags load goes to edx (original
+// ecx, reusing the pointer register) and the value copy to ecx (original edx).
+// No-change rewrites: headers.py, preceding 0x402d10 in the file, while loop,
+// operand swaps, operator==, operator=, local pos/node/k copies, ternaries,
+// bitfield Ready(), IsHuman helper, nested ifs.
 class Class_00438760 {
 public:
     unsigned char index;
@@ -100,12 +115,9 @@ int __stdcall FUN_00402da0(Unit* unit, Order* order, unsigned int flags)
         order->Wait();
         return 1;
     case 2:
-        if ((short)flags < 0) {
+        if (flags & 0x8000) {
             ((Class_00439e80*)order)->FUN_00439e80(30);
-            order->Wait();
-            return 2;
-        }
-        if (flags & 1) {
+        } else if (flags & 1) {
             ((Class_00439e80*)order)->FUN_00439e80(11);
             FUN_0041bcd0(unit, 11);
         }

@@ -1,6 +1,8 @@
-// Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: cases 0, 5 and 6 share a call tail that is separate for case 6
-// in the original; vector arithmetic and scratch registers also differ.
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// Order handler: attack-move style state machine. The inner step switch
+// advances order->step after cases 6 and 7 in one `order->step++` after the
+// switch; cases 0 and 5 go through the inline Advance(), so MSVC merges only
+// those two (at the pushed distance) and keeps case 6 separate.
 #include <math.h>
 #include <windows.h>
 #include <memory.h>
@@ -106,22 +108,19 @@ int __stdcall FUN_004034a0(Unit* unit, Order* order, unsigned int flags)
             }
         case 5:
             return order->Advance(weapon / 2);
-        case 6: {
-            Vec3* target = &order->target->pos;
-            ((Class_00438930*)order)->FUN_00438930(target, 0);
-            order->step++;
+        case 6:
+            ((Class_00438930*)order)->FUN_00438930(&order->target->pos, 0);
             break;
-        }
         case 7:
             ((Class_00438a00*)order)->FUN_00438a00(&order->target->pos, weapon, weapon / 2);
-            order->step++;
-            return 1;
+            break;
         case 8:
             ((Class_00438a00*)order)->FUN_00438a00(&order->target->pos, weapon * 2, weapon);
             order->step = 0;
             return 1;
         default: return 7;
         }
+        order->step++;
         return 1;
     case 3:
         if (flags & 0x40e0) { order->state = 1; return 4; }

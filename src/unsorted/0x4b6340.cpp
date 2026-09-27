@@ -1,15 +1,17 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Opus. Names are provisional.
+// Milliseconds since boot scaled by the rate at +0xe8 of the object at
+// DAT_0051fbd0, divided by 1000 (unsigned, so `mul` by the magic number).
 #include <windows.h>
 
-extern void* DAT_0051fbd0;
+struct GlobalObj_004b6340 {
+    char unknown_0[0xe8];
+    int rate;                          // +0xe8
+};
+
+extern GlobalObj_004b6340* DAT_0051fbd0;
 
 // FUNCTION: 0x4b6340
-unsigned int __cdecl FUN_004b6340()
+unsigned int FUN_004b6340()
 {
-    unsigned int result = GetTickCount();
-    void* ptr = DAT_0051fbd0;
-    unsigned int val = *(int*)((unsigned char*)ptr + 0xe8);
-    result = result * val;
-    result = result / 1000;
-    return result;
+    return GetTickCount() * DAT_0051fbd0->rate / 1000;
 }

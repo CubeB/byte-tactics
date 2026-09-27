@@ -1,19 +1,20 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Opus. Names are provisional.
+// A DllMain-shaped entry point: on DLL_PROCESS_ATTACH it saves the module
+// handle (read back by 0x4d9f50). `sub eax, 0; je; dec eax; jne` is a switch
+// with cases 0 and 1.
+#include <windows.h>
 
 extern int DAT_005289c4;
 
 // FUNCTION: 0x4d9f30
-int __stdcall FUN_004d9f30(int param_1, int param_2, int param_3)
+BOOL __stdcall FUN_004d9f30(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
-    int eax = param_2;
-    eax = eax - 0;
-    if (eax == 0) {
-        return 1;
+    switch (reason) {
+    case DLL_PROCESS_DETACH:
+        break;
+    case DLL_PROCESS_ATTACH:
+        DAT_005289c4 = (int)instance;
+        break;
     }
-    eax = eax - 1;
-    if (eax != 0) {
-        return 1;
-    }
-    DAT_005289c4 = param_1;
-    return 1;
+    return TRUE;
 }

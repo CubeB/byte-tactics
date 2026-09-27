@@ -1,18 +1,32 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Opus. Names are provisional.
+// Clears a flag in the cursor state held in the game object and warps the
+// mouse back to the saved position. The state is reached through a pointer
+// local, which keeps the `add eax, 0x2cc7` the original has.
 
-extern void* g_game;
+void __stdcall FUN_004c22f0(int x, int y);
+void FUN_004c2870();
 
-extern void FUN_004c22f0(int param_1, int param_2);
-extern void FUN_004c2870();
+#pragma pack(push, 1)
+struct CursorState_0041cd20 {
+    int x;                             // +0x0
+    int y;                             // +0x4
+    char unknown_8[0x10];
+    int flag;                          // +0x18
+};
+
+struct Game_0041cd20 {
+    char unknown_0[0x2cc7];
+    CursorState_0041cd20 cursor;       // +0x2cc7
+};
+#pragma pack(pop)
+
+extern Game_0041cd20* g_game;
 
 // FUNCTION: 0x41cd20
-void __cdecl FUN_0041cd20()
+void FUN_0041cd20()
 {
-    int eax = (int)g_game;
-    *(int*)(eax + 0x2cdf) = 0;
-    eax = eax + 0x2cc7;
-    int ecx = *(int*)(eax + 4);
-    int edx = *(int*)(eax);
-    FUN_004c22f0(edx, ecx);
+    CursorState_0041cd20* cursor = &g_game->cursor;
+    cursor->flag = 0;
+    FUN_004c22f0(cursor->x, cursor->y);
     FUN_004c2870();
 }

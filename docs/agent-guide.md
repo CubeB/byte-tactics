@@ -636,6 +636,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   mov al, dl`, and `return f() == 0;` gives `neg; sbb; inc` (0x4de810).
 - **Two parameters clamped through one reused stack slot**: a `static inline`
   clamp helper per value, not in-place changes to the parameters (0x496e90).
+- **Two byte-identical out-of-line STL helpers**: the call site tells them
+  apart; `ecx` set to the container means `allocator<T>::destroy`, no `ecx`
+  means `std::_Destroy<T>` (0x434400).
+- **A callee with one unused extra stack argument whose caller reads `[eax]`
+  right after the call**: a postfix `operator++(int)` / `operator--(int)` on an
+  STL iterator, returned through a hidden buffer (0x46fac0).
+- **A byte constant hoisted as `mov dl, K`**: every use must be byte-typed;
+  route the result through an `unsigned char` local (0x4897e0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -1,8 +1,10 @@
-// Decompiled by Haiku. Names are provisional.
-extern int _rmdir(const char*);
+// Decompiled by Opus. Names are provisional.
+// __stdcall wrapper around the CRT's _rmdir, like its neighbour 0x4bbc10
+// (rename).
+#include <direct.h>
 
 // FUNCTION: 0x4bbc30
-void __stdcall FUN_004bbc30(const char* param_1, int unused)
+void __stdcall FUN_004bbc30(const char* path)
 {
-    _rmdir(param_1);
+    _rmdir(path);
 }

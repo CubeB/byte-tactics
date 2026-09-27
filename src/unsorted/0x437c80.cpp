@@ -1,11 +1,17 @@
-// Decompiled by Haiku. Names are provisional.
-extern void __stdcall FUN_00437a30(void*, int);
+// Decompiled by Opus. Names are provisional.
+// Hands the whole arena (its length minus the 8-byte record header) to the
+// allocator 0x437a30 as one block, storing the handle at +0xc.
 
-struct Class_00437c80 {
+class Class_00437a30 {
 public:
-    int field_0;
+    int FUN_00437a30(void** handle, int size);
+};
+
+class Class_00437c80 {
+public:
+    int length;                        // +0x0
     char unknown_4[8];
-    int field_c;
+    void* handle;                      // +0xc
 
     void FUN_00437c80();
 };
@@ -13,5 +19,5 @@ public:
 // FUNCTION: 0x437c80
 void Class_00437c80::FUN_00437c80()
 {
-    FUN_00437a30((void*)((char*)this + 0xc), field_0 - 8);
+    ((Class_00437a30*)this)->FUN_00437a30(&handle, length - 8);
 }

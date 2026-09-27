@@ -1,18 +1,21 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Opus. Names are provisional.
+// Sets a flag bit in the word at +0x8 (a 1-bit unsigned short bitfield, which
+// MSVC sets with `or byte ptr` straight to memory) and stores a short.
 
-struct Class_44e720 {
-public:
+struct Class_0044e720 {
     char unknown_0[8];
-    unsigned char field_8;
-    char unknown_9[5];
-    short field_e;
+    unsigned short unknown_bits : 6;   // +0x8
+    unsigned short flag : 1;           // +0x8 bit 6
+    unsigned short unknown_rest : 9;
+    char unknown_a[4];
+    short value;                       // +0xe
 
-    void FUN_0044e720(short param_1);
+    void FUN_0044e720(short v);
 };
 
 // FUNCTION: 0x44e720
-void Class_44e720::FUN_0044e720(short param_1)
+void Class_0044e720::FUN_0044e720(short v)
 {
-    field_8 |= 0x40;
-    field_e = param_1;
+    flag = 1;
+    value = v;
 }

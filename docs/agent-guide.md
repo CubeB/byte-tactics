@@ -586,6 +586,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **String arguments that are addresses of the function's own stack
   arguments**: a struct passed by value; a caller's `sub esp, K; rep movsd`
   gives its size (0x4d8790).
+- **An out-of-line destructor (`??1`)** stores the derived vtable, runs the
+  body, then stores the base vtable (the inlined base destructor). If the
+  class's `??_G` already has a file, define the same destructor with its own
+  `// FUNCTION:` line there or in a copy of that class declaration (0x4909e0).
+- **Check a small batch before spending check.py runs**: compile every file in
+  one `tools/wcl` loop and compare each object's `objdump -d --no-show-raw-insn`
+  with ctx.py; mismatches show up before the first check.py run.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

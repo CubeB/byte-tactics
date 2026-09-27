@@ -533,6 +533,7 @@ address,size,file,symbol,status,similarity
 0x44d2c0,71,src/unsorted/0x44d2c0.cpp,?FUN_0044d2c0@Class_0044d2c0@@QAEHPAH@Z,matched,100.0
 0x44d310,51,src/unsorted/0x44d310.cpp,?FUN_0044d310@Class_0044d310@@QAEHPAUObj_0044d310@@@Z,matched,100.0
 0x44d350,84,src/unsorted/0x44d350.cpp,?FUN_0044d350@Class_0044d350@@QAEHHH@Z,matched,100.0
+0x44d3b0,141,src/unsorted/0x44d3b0.cpp,??0Class_0044d3b0@@QAE@PAUSource_0044d3b0@@HHHH@Z,matched,100.0
 0x44d440,6,src/unsorted/0x44d440.cpp,?FUN_0044d440@@YAHXZ,matched,100.0
 0x44d450,32,src/unsorted/0x44d450.cpp,?FUN_0044d450@Class_0044d450@@QAEPAU1@E@Z,matched,100.0
 0x44d470,137,src/unsorted/0x44d470.cpp,??0Class_0044d470@@QAE@HPAVClass_004b4ba0@@PAD@Z,matched,100.0
@@ -1715,6 +1716,7 @@ address,size,file,symbol,status,similarity
 0x4cf220,4,src/unsorted/0x4cf220.cpp,?FUN_004cf220@Class_004cf220@@QAEHXZ,matched,100.0
 0x4cf4d0,103,src/unsorted/0x4cf4d0.cpp,?FUN_004cf4d0@Class_004cf4d0@@QAEXPAPAUIDirectSoundBuffer@@@Z,matched,100.0
 0x4cf540,40,src/unsorted/0x4cf540.cpp,?FUN_004cf540@Class_004cf540@@QAEXHH@Z,matched,100.0
+0x4cf8a0,153,src/unsorted/0x4cf8a0.cpp,?FUN_004cf8a0@Class_004cf8a0@@QAEHHHHHHHH@Z,matched,100.0
 0x4cfb40,82,src/unsorted/0x4cfb40.cpp,?FUN_004cfb40@Class_004cfb40@@QAEXXZ,matched,100.0
 0x4cfba0,28,src/unsorted/0x4cfba0.cpp,?FUN_004cfba0@Class_004cfba0@@QAEHXZ,matched,100.0
 0x4cfe40,56,src/unsorted/0x4cfe40.cpp,?FUN_004cfe40@Class_004cfe40@@QAEXPAXI@Z,matched,100.0

@@ -874,6 +874,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A value loaded into `eax` then copied to a callee-saved register**: use the
   parameter itself as the loop variable and keep a copy of its old value
   (0x4a7560).
+- **Before writing a constructor, find a sibling constructor of the same
+  family** (grep for a distinctive expression such as `<< 19`) and copy its
+  local-variable layout; it decides which stack slots MSVC reuses (0x44d3b0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

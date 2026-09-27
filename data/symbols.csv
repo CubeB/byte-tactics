@@ -597,6 +597,7 @@ address,name
 0x44d2c0,Class_0044d2c0::FUN_0044d2c0
 0x44d310,Class_0044d310::FUN_0044d310
 0x44d350,Class_0044d350::FUN_0044d350
+0x44d3b0,Class_0044d3b0::Class_0044d3b0
 0x44d440,FUN_0044d440
 0x44d450,Class_0044d450::FUN_0044d450
 0x44d470,Class_0044d470::Class_0044d470
@@ -1950,9 +1951,11 @@ address,name
 0x4cf180,Class_004cf180::FUN_004cf180
 0x4cf210,Class_004cf210::FUN_004cf210
 0x4cf220,Class_004cf220::FUN_004cf220
+0x4cf370,Class_004cf370::FUN_004cf370
 0x4cf4d0,Class_004cf4d0::FUN_004cf4d0
 0x4cf540,Class_004cf540::FUN_004cf540
 0x4cf570,Class_004cf570::FUN_004cf570
+0x4cf8a0,Class_004cf8a0::FUN_004cf8a0
 0x4cfb40,Class_004cfb40::FUN_004cfb40
 0x4cfba0,Class_004cfba0::FUN_004cfba0
 0x4cfbc0,Class_004cfbc0::FUN_004cfbc0

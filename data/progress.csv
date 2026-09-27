@@ -2276,6 +2276,7 @@ address,size,file,symbol,status,similarity
 0x4c5fa0,77,src/unsorted/0x4c5fa0.cpp,?FUN_004c5fa0@@YGHPAUSurface_004c5fa0@@@Z,matched,100.0
 0x4c61b0,62,src/unsorted/0x4c61b0.cpp,?FUN_004c61b0@@YGHH@Z,matched,100.0
 0x4c61f0,18,src/unsorted/0x4c61f0.cpp,?FUN_004c61f0@@YGXH@Z,matched,100.0
+0x4c6890,266,src/unsorted/0x4c6890.cpp,?FUN_004c6890@@YGHPAUSurface@@H@Z,matched,100.0
 0x4c69a0,28,src/unsorted/0x4c69a0.cpp,?FUN_004c69a0@@YGXH@Z,matched,100.0
 0x4c69c0,36,src/unsorted/0x4c69c0.cpp,?FUN_004c69c0@@YGXPAH@Z,matched,100.0
 0x4c69f0,107,src/unsorted/0x4c69f0.cpp,?FUN_004c69f0@@YGPAUClass_004c6a60@@PADHH@Z,matched,100.0
@@ -2285,10 +2286,15 @@ address,size,file,symbol,status,similarity
 0x4c6b10,33,src/unsorted/0x4c6b10.cpp,?FUN_004c6b10@Class_004c6b10@@QAEXURect_004c6b10@@@Z,matched,100.0
 0x4c6b40,18,src/unsorted/0x4c6b40.cpp,?FUN_004c6b40@@YGXH@Z,matched,100.0
 0x4c6b60,12,src/unsorted/0x4c6b60.cpp,?FUN_004c6b60@@YAHXZ,matched,100.0
+0x4c6b70,224,src/unsorted/0x4c6b70.cpp,?FUN_004c6b70@@YGXPAUImage_004c6b70@@0HH@Z,partial,91.2
+0x4c6c50,194,src/unsorted/0x4c6c50.cpp,?FUN_004c6c50@@YGXPAUSurface_004c6c50@@0HHH@Z,matched,100.0
 0x4c6d20,149,src/unsorted/0x4c6d20.cpp,?FUN_004c6d20@@YGXPAUSurface_004c6d20@@0PAURect_004c6d20@@PAUPoint_004c6d20@@@Z,matched,100.0
+0x4c6dc0,163,src/unsorted/0x4c6dc0.cpp,?FUN_004c6dc0@@YGXPAUSurface_004c6dc0@@0PAURect_004c6dc0@@PAUPoint_004c6dc0@@E@Z,matched,100.0
 0x4c6e70,149,src/unsorted/0x4c6e70.cpp,?FUN_004c6e70@@YGXPAUSurface_004c6e70@@0PAURect_004c6e70@@PAUPoint_004c6e70@@@Z,matched,100.0
 0x4c6f10,100,src/unsorted/0x4c6f10.cpp,?FUN_004c6f10@@YGXPAUSurface_004c6f10@@PAVClass_004b4cf0@@@Z,matched,100.0
+0x4c6f80,251,src/unsorted/0x4c6f80.cpp,?FUN_004c6f80@@YGPAUSurface_004c6f80@@PAX@Z,matched,100.0
 0x4c7080,72,src/unsorted/0x4c7080.cpp,?FUN_004c7080@@YGXH@Z,matched,100.0
+0x4c70d0,280,src/unsorted/0x4c70d0.cpp,?FUN_004c70d0@@YGXHPAURange@@HH@Z,partial,78.7
 0x4c9180,22,src/unsorted/0x4c9180.cpp,??0Class_004c9180@@QAE@XZ,matched,100.0
 0x4c91a0,16,src/unsorted/0x4c91a0.cpp,??0Class_004c91a0@@QAE@ABV0@@Z,matched,100.0
 0x4c91b0,117,src/unsorted/0x4c91b0.cpp,??0Class_004c91b0@@QAE@PBD@Z,matched,100.0

@@ -162,8 +162,11 @@ Run from the main checkout, on `main`:
    names. The orchestrator fixes those during review, or with a subagent,
    before merging.
 6. **Release stale claims.** For a claim with no pull request and no recent
-   work (no pushed branch, and nothing changed in its `.worktrees/issue-<N>`
-   for a couple of hours), check whether the uncommitted work beats `main`
+   work (no pushed branch, and nothing changed anywhere in its
+   `.worktrees/issue-<N>`, including `build/`, for a couple of hours), ask the
+   human whether that session is still running: Codex and OpenCode sessions
+   pause on usage limits and resume later. If it has stopped, check whether
+   the uncommitted work beats `main`
    (`tools/checkall.py` in both), then unassign the issue and comment
    "Released by the orchestrator: <why>". Agents treat an issue as free when
    its most recent "Claimed by"/"Released" comment is a release, so the

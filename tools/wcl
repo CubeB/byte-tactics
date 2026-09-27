@@ -10,7 +10,15 @@ TC="$ROOT/toolchain/${BT_TOOLCHAIN:-msvc5-sp3}"
 
 winpath() { echo "Z:${1//\//\\}"; }
 
-export WINEPREFIX="$ROOT/toolchain/wineprefix" WINEARCH=win32 WINEDEBUG=-all
+export WINEPREFIX="$ROOT/toolchain/wineprefix" WINEDEBUG=-all
+# Keep an existing prefix's architecture: setups made before this change have a
+# win32 prefix, which Wine refuses to run as win64. New prefixes are win64,
+# which wow64-only Wine (Wine 11 on Fedora, for one) requires and which runs the
+# 32-bit compiler on other Wine builds too.
+if [ -z "${WINEARCH:-}" ]; then
+    WINEARCH="$(sed -n 's/^#arch=//p' "$WINEPREFIX/system.reg" 2>/dev/null | head -n 1 || true)"
+fi
+export WINEARCH="${WINEARCH:-win64}"
 export INCLUDE="$(winpath "$TC/INCLUDE")" LIB="$(winpath "$TC/LIB")"
 
 tool="$(basename "$0")"

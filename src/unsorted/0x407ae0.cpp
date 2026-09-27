@@ -1,0 +1,182 @@
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from Class_00407350
+// (the family is listed in 0x407350.cpp, whose declarations this copies).
+// Sets field_c to 30..929 ticks from now. A group of fewer than 5 units
+// either moves (mode 9) to the unit nearest its average position, or, when
+// FUN_0040ba80 gives a rally point for field_10, is sent to 2..3 random points
+// around it (mode 2 first, then mode 9). A bigger group is sent to a random
+// point on the map edge.
+//
+// Partial (82.7%): everything outside the scatter loop matches. Left to fix:
+// - The original computes w / 2 and h / 2 after the loop guard
+//   (`cmp ecx, ebx; jle`), keeping w / 2 in ebp and h / 2 on the stack and
+//   `this` only on the stack inside the loop. Explicit hw/hh locals (below)
+//   give that allocation but compute them before the guard (`test ecx, ecx`).
+//   Writing `FUN_004b6c30(w) - w / 2` in the loop (hoisted by the compiler)
+//   puts them after the guard but gives `this` ebp and hw a stack slot.
+// - In the loop body the original adds into pos.x's register
+//   (`mov edx, [pos.x]; sub eax, ebp; shl eax, 16; add edx, eax`); every
+//   variant here adds into eax.
+// - `dest.x = pos.x.value + MakeFixed(FUN_004b6c30(w) - w / 2).value` (with
+//   no hw/hh locals) gets the guard and all registers right (82.3%) but adds a
+//   redundant `and eax, 0xffff0000` after each shift and still adds into eax.
+// - Tried without effect: every header set, `rx = FUN_004b6c30(w)` temps,
+//   `dest.x = pos.x; dest.x += ...`, swapped operands, an explicit guard with
+//   do/while, i declared at the top, other fixed-point helpers.
+//
+// `field_c = g_game->ticks + FUN_004b6c30(900) + 30` in one expression folds
+// to `lea eax, [eax+edx+0x1e]`; the delay has to be computed first.
+// The final MakeFixed ternaries give the `lea eax, [tmp]; mov ecx, [eax]`
+// selection. The unit FUN_004071f0 returns is used without a null check.
+#include <vector>
+
+#pragma pack(push, 1)
+struct Game_00407ae0 {
+    char unknown_0[0x14223];
+    int baseX;                         // +0x14223
+    int baseY;                         // +0x14227
+    char unknown_1422b[0x38a47 - 0x1422b];
+    int ticks;                         // +0x38a47
+};
+#pragma pack(pop)
+
+extern Game_00407ae0* g_game;
+
+struct FixedParts_00407ae0 {
+    unsigned int frac : 16;
+    int whole : 16;
+};
+
+union Fixed_00407ae0 {
+    int value;
+    FixedParts_00407ae0 parts;
+};
+
+static inline Fixed_00407ae0 MakeFixed(int i)
+{
+    Fixed_00407ae0 f;
+    f.parts.frac = 0;
+    f.parts.whole = i;
+    return f;
+}
+
+struct Vec3_00407410 {
+    int x;
+    int y;
+    int z;
+
+    Vec3_00407410() {}
+    Vec3_00407410(int a, int b, int c) : x(a), y(b), z(c) {}
+};
+
+union Coord_00407ae0 {
+    int value;
+    struct {
+        unsigned short frac;
+        short whole;
+    } s;
+};
+
+struct Pos_00407ae0 {
+    Coord_00407ae0 x;
+    Coord_00407ae0 y;
+    Coord_00407ae0 z;
+};
+
+#pragma pack(push, 1)
+struct Unit_00407ae0 {
+    char unknown_0[0x6a];
+    Vec3_00407410 pos;                 // +0x6a
+};
+#pragma pack(pop)
+
+struct Group_00407ae0 {
+    void* player;                      // +0x0
+    int id;                            // +0x4
+    char unknown_8[0x10 - 0x8];
+    std::vector<Unit_00407ae0*> units; // +0x10
+};
+
+struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
+    char unknown_0[4];
+    unsigned char field_4;             // +0x4
+};
+
+class Class_004071f0 {
+public:
+    Unit_00407ae0* FUN_004071f0(Vec3_00407410 pos);
+};
+
+// Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
+class Class_00407350 {
+public:
+    Class_00408cb0* owner;             // +0x4
+    void* field_8;                     // +0x8
+    int field_c;                       // +0xc
+    unsigned int field_10;             // +0x10
+
+    Class_00407350(Class_00408cb0* p, void* q);
+    virtual void FUN_00407380();                    // slot 0
+    virtual ~Class_00407350() {}                    // slot 1
+
+    int FUN_00407410(Vec3_00407410* out);
+};
+
+// Vtable 0x4fc998, constructor 0x407a90, ??_G 0x407ac0.
+class Class_00407a90 : public Class_00407350 {
+public:
+    Class_00407a90(Class_00408cb0* p, void* q);
+    virtual void FUN_00407380();                    // slot 0, 0x407ae0
+};
+
+int __stdcall FUN_004b6c30(int range);
+void __stdcall FUN_0040ba80(int index, Pos_00407ae0* out);
+void __stdcall FUN_00480460(void* player, int id, int mode, int remove, int* target,
+                            Vec3_00407410* pos, int flags, int extra);
+
+// FUNCTION: 0x407ae0
+void Class_00407a90::FUN_00407380()
+{
+    Vec3_00407410 dest;
+    int delay = FUN_004b6c30(900) + 30;
+    field_c = g_game->ticks + delay;
+    if ((int)((Group_00407ae0*)field_8)->units.size() < 5) {
+        Pos_00407ae0 pos;
+        FUN_0040ba80(field_10, &pos);
+        if ((pos.x.s.whole | pos.z.s.whole) == 0) {
+            FUN_00407410(&dest);
+            Unit_00407ae0* target = ((Class_004071f0*)owner)->FUN_004071f0(dest);
+            FUN_00480460(((Group_00407ae0*)field_8)->player, ((Group_00407ae0*)field_8)->id,
+                         9, 1, 0, &target->pos, 0, 0);
+        } else {
+            int n = FUN_004b6c30(2) + 2;
+            int w = g_game->baseX / 8;
+            int h = g_game->baseY / 8;
+            int hw = w / 2, hh = h / 2;
+            for (int i = 0; i < n; i++) {
+                int dx = FUN_004b6c30(w) - hw;
+                dest.x = pos.x.value + (dx << 16);
+                dest.y = pos.y.value;
+                int dz = FUN_004b6c30(h) - hh;
+                dest.z = pos.z.value + (dz << 16);
+                if (i == 0)
+                    FUN_00480460(((Group_00407ae0*)field_8)->player, ((Group_00407ae0*)field_8)->id,
+                                 2, 0, 0, &dest, 0, 0);
+                else
+                    FUN_00480460(((Group_00407ae0*)field_8)->player, ((Group_00407ae0*)field_8)->id,
+                                 9, 1, 0, &dest, 0, 0);
+            }
+        }
+    } else {
+        dest.y = 0;
+        if (FUN_004b6c30(2)) {
+            dest.x = FUN_004b6c30(g_game->baseX) << 16;
+            dest.z = (FUN_004b6c30(2) ? MakeFixed(0) : MakeFixed(g_game->baseY - 1)).value;
+        } else {
+            dest.x = (FUN_004b6c30(2) ? MakeFixed(0) : MakeFixed(g_game->baseX - 1)).value;
+            dest.z = FUN_004b6c30(g_game->baseY) << 16;
+        }
+        FUN_00480460(((Group_00407ae0*)field_8)->player, ((Group_00407ae0*)field_8)->id,
+                     9, 0, 0, &dest, 0, 0);
+    }
+}

@@ -35,11 +35,6 @@ public:
     void* FUN_00461b10();
 };
 
-class Class_00461c20 {
-public:
-    Packet_00462710* FUN_00461c20(int param_1);
-};
-
 class Class_004628d0 {
 public:
     int FUN_004628d0(Packet_00462710* packet, int number, void* data, unsigned int length, void* prev);
@@ -57,6 +52,7 @@ public:
 
 class Class_00462710 {
 public:
+    Packet_00462710* FUN_00461c20(int param_1);  // 0x461c20, a method of this class
     int field_00;                      // +0x0
     char unknown_04[4];
     void** field_08;                   // +0x8
@@ -88,7 +84,7 @@ int Class_00462710::FUN_00462710(int param_1, void* param_2, unsigned int param_
         if (block == 0)
             return 0;
     }
-    Packet_00462710* pkt = ((Class_00461c20*)this)->FUN_00461c20(param_1);
+    Packet_00462710* pkt = FUN_00461c20(param_1);
     if (pkt == 0)
         return 0;
     int r = ((Class_004628d0*)block)->FUN_004628d0(pkt, field_1c, param_2, param_3, field_34);
@@ -96,7 +92,7 @@ int Class_00462710::FUN_00462710(int param_1, void* param_2, unsigned int param_
         field_1c = field_1c - 1;
         block = (Class_00462ae0*)((Class_00461b10*)this)->FUN_00461b10();
         if (block != 0) {
-            pkt = ((Class_00461c20*)this)->FUN_00461c20(param_1);
+            pkt = FUN_00461c20(param_1);
             if (pkt != 0)
                 r = ((Class_004628d0*)block)->FUN_004628d0(pkt, field_1c, param_2, param_3, field_34);
             else

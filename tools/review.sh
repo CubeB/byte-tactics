@@ -52,10 +52,11 @@ fi
 echo "== whole project after merging"
 uv run --quiet tools/progress.py | tail -1 | sed 's/^/  /'
 git show origin/main:data/progress.csv > build/main-progress.csv
+regressed=0
 awk -F, 'NR == FNR { if ($5 == "matched") m[$1] = 1; next }
          FNR > 1 && ($1 in m) && $5 != "matched" { print "  !! matched on main, now " $5 " " $6 "%: " $1 " " $3; bad = 1 }
-         END { if (!bad) print "  no function that matches on main stops matching" }' \
-    build/main-progress.csv data/progress.csv
+         END { if (!bad) print "  no function that matches on main stops matching"; exit bad }' \
+    build/main-progress.csv data/progress.csv || regressed=1
 
 sources=$(echo "$changed" | grep '^src/unsorted/.*\.cpp$' | while read -r f; do [ -f "$f" ] && echo "$f"; done || true)
 addresses=$(grep -hoE '^// FUNCTION: 0x[0-9a-f]+' $sources 2>/dev/null | awk '{print $3}' | sort -u || true)
@@ -67,3 +68,7 @@ grep -nE '__fastcall|volatile|__asm|_emit|#pragma optimize|vtable *= *DAT_|\(voi
     | grep -v '^\S*:[0-9]*:\s*//' | sed 's/^/  /' || echo "  none"
 
 git checkout -q -- data README.md 2>/dev/null || true
+if [ "$regressed" = 1 ]; then
+    echo "!! do not merge as is: it breaks a function that matches on main"
+    exit 2
+fi

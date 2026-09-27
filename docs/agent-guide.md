@@ -1014,6 +1014,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   right side first**: if the original computes the left side first, put it in
   its own statement (`int d = dx * dx + dz * dz; if (d < limit * (int)v.size())`)
   (0x407560).
+- **A real call to 0x4e84e0 is memmove**: /O2 always inlines `memcpy` (as
+  `rep movsd` plus a tail), so an out-of-line call to the runtime copy is
+  `memmove`, usually `std::char_traits<char>::move` from a string method. The
+  library's memcpy and memmove are byte-identical, which is why it was once
+  named `memcpy`. Found by Claude Opus 5.5 in #84 (0x4da3f0).
+- **Returned by value through a hidden pointer**: a method whose first stack
+  argument is a pointer it fills in and then returns in `eax` returns a class
+  by value (`Class f(...) const`), not `void f(Class* out, ...)`. The mangled
+  name then has `?AV1@` as its return type. See 0x4c9490.
+- **Counting loops that index the string**: `for (i = 0; text[i]; i++)`
+  compiles to an indexed `cmp byte ptr [eax+ecx], 0` loop; a pointer walk
+  (`while (*p) p++`) gives `inc eax` on the pointer instead. Pick whichever
+  the original shows. See 0x4da3f0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

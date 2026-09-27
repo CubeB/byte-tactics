@@ -16,6 +16,9 @@ Work from the repository root: `~/repos/personal/byte-tactics`.
 2. Write `src/unsorted/0x<addr>.cpp` (lower-case hex, e.g. `0x4010b0.cpp`).
 3. `uv run tools/check.py 0x<addr>`: compiles your file and prints `MATCH`, or a
    similarity % with a diff (`-` lines are the original, `+` lines are yours).
+   Addresses the linker fills in show as `<addr>` in the diff; in your own
+   `/Fa` listings or object file they appear as 0 or as a symbol name. That is
+   normal and not a bug in your declarations.
 4. Adjust and repeat. Stop at `MATCH`, or when you run out of attempts for that
    function; leave your best (highest %) version in the file either way.
 
@@ -373,12 +376,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `xor edx, edx; test; sete dl; mov eax, edx`; `return x == 0;` gives
   `neg; sbb; inc`.
 - **Zero-init order**: a chained `a = b = c = d = 0;` initialises right to left.
-- **Stop early on operand-order-only differences**: when the only difference is
-  which of two loads in a commutative `a + b` (or `x ^ y`) comes first, and
-  swapping operands or wrapping them in helpers changes nothing, the cause is
-  compiler state left by earlier functions in the original source file. It
-  cannot be fixed from this function's source; say so in your notes and move
-  on. Never add unused code to change that state.
+- **Operand order that nothing changes**: only when the single remaining
+  difference is which of two loads in one commutative `a + b` (or `x ^ y`) comes
+  first, and you have tried swapping operands, helpers and the header block
+  below, is the cause compiler state from earlier functions in the original
+  file; say so and move on. This is rare. Ordinary register differences
+  (a different register for a value, different instruction order elsewhere)
+  are almost always fixable from the source: keep using the techniques above.
+  Never add unused code to change the compiler state.
 - **Operand order that no rewrite changes can depend on the headers**: which
   operand of a commutative integer or x87 operation MSVC loads first can depend
   on how many declarations the file has seen. If nothing else works, try

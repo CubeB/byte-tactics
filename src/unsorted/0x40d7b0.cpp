@@ -1,40 +1,49 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-//
-// Partial (67.5%): a map cell lookup. Everything matches except the prologue
-// register allocation. The original keeps the first argument x in edx
-// (`cmp edx, [edi+0x10]`, then `sar edx,1` in place), which cascades to
-// cx in edx, cy in eax and w in esi; here x is allocated to eax, so cy takes
-// esi, w takes eax and the final `imul` has its operands swapped. ~40
-// variants (unsigned params, early `x >> 1`, separate ifs, reversed operand
-// order, w declared before/after cx/cy, `map` re-read) never allocate x to
-// edx.
-#pragma pack(push, 1)
-struct Map_0040d7b0 {
-    char unknown_0[4];
-    short field_4;                     // +0x4
-    short field_6;                     // +0x6
-    char unknown_8[0x10 - 0x8];
-    unsigned int width;                // +0x10
-    unsigned int height;               // +0x14
-    unsigned int* data;                // +0x18
-};
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Looks up the 2-bit state of map cell (x, y): 0 when the cell is off the map
+// or its visibility cell is off the game grid, 2 when the player's bit is not
+// set in that visibility cell, else the cell's stored value.
+// The map's bounds check and cell read are inline methods (the cell read
+// re-reads the width after the bounds check), `g_game->width >> 1` is written
+// twice rather than held in a local, and <stdlib.h> is needed: without it the
+// first argument lands in eax instead of edx.
+#include <stdlib.h>
 
+#pragma pack(push, 1)
 struct Game_0040d7b0 {
     char unknown_0[0x14233];
     int width;                         // +0x14233
     int height;                        // +0x14237
     char unknown_1423b[0x14273 - 0x1423b];
-    unsigned short* visibilityMask;    // +0x14273
+    unsigned short* visibilityMask;    // +0x14273, one bit per player
 };
 #pragma pack(pop)
 
 extern Game_0040d7b0* g_game;
 
+struct Map_0040d7b0 {
+    char unknown_0[4];
+    short originX;                     // +0x4
+    short originY;                     // +0x6
+    char unknown_8[0x10 - 0x8];
+    unsigned int width;                // +0x10
+    unsigned int height;               // +0x14
+    unsigned int* cells;               // +0x18, 16 2-bit cells per dword
+
+    int InBounds(unsigned int x, unsigned int y)
+    {
+        return x < width && y < height;
+    }
+    int Get(int x, int y)
+    {
+        return (cells[width * (y >> 4) + x] >> ((y & 0xf) << 1)) & 3;
+    }
+};
+
 struct Class_0040d7b0 {
     char unknown_0[0x64];
     Map_0040d7b0* map;                 // +0x64
     char unknown_68[0x78 - 0x68];
-    unsigned char field_78;            // +0x78
+    unsigned char player;              // +0x78
 
     int FUN_0040d7b0(int x, int y);
 };
@@ -42,16 +51,13 @@ struct Class_0040d7b0 {
 // FUNCTION: 0x40d7b0
 int Class_0040d7b0::FUN_0040d7b0(int x, int y)
 {
-    Map_0040d7b0* map = this->map;
-    if (x >= map->width || y >= map->height)
+    if (!map->InBounds(x, y))
         return 0;
-    int cx = (x >> 1) + (map->field_4 >> 2);
-    int cy = (y >> 1) + (map->field_6 >> 2);
-    int w = g_game->width >> 1;
-    if (cx >= w || cy >= (g_game->height >> 1))
+    int cx = (x >> 1) + (map->originX >> 2);
+    int cy = (y >> 1) + (map->originY >> 2);
+    if (cx >= (g_game->width >> 1) || cy >= (g_game->height >> 1))
         return 0;
-    if (!((1 << this->field_78) & g_game->visibilityMask[cy * w + cx]))
+    if (!((1 << player) & g_game->visibilityMask[cy * (g_game->width >> 1) + cx]))
         return 2;
-    Map_0040d7b0* map2 = this->map;
-    return (map2->data[map2->width * (y >> 4) + x] >> ((y & 0xf) << 1)) & 3;
+    return map->Get(x, y);
 }

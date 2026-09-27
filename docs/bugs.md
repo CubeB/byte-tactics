@@ -340,3 +340,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   the message's value byte at `[esp+0x13]`, so FUN_00451bc0 sends a two-byte
   message whose second byte is uninitialised. Found by DeepSeek V4.1 Flash in
   #139.
+- **0x476830** (possible): its "lowercase" loop adds 0x20 to every non-zero
+  byte, so `.` becomes `N` and `a` becomes 0x81; fine only if the input is
+  always upper case. It also writes one byte past a `count * 30` buffer for a
+  30-character name. Found by Space Bunny Free in #207.
+- **0x476cd0** (possible): the copy loop tests the next byte rather than the
+  current one, so the last input character is never copied, and the
+  quoted-newline path overwrites the byte just written with `&`. Found by
+  Space Bunny Free in #207.

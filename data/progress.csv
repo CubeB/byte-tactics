@@ -1250,7 +1250,10 @@ address,size,file,symbol,status,similarity
 0x475150,105,src/unsorted/0x475150.cpp,?FUN_00475150@Class_00475150@@QAEXPAUVec3_00475150@@HHH@Z,matched,100.0
 0x475330,3,src/unsorted/0x475330.cpp,?FUN_00475330@@YAHXZ,matched,100.0
 0x475440,33,src/unsorted/0x475440.cpp,?FUN_00475440@Class_00475440@@QAEHXZ,matched,100.0
+0x475470,398,src/unsorted/0x475470.cpp,?FUN_00472e30@Class_00474cd0@@UAEXPAX@Z,partial,35.7
+0x475600,248,src/unsorted/0x475600.cpp,?FUN_00472d50@Class_004750b0@@UAEXXZ,matched,100.0
 0x475700,108,src/unsorted/0x475700.cpp,?FUN_00472e30@Class_004750b0@@UAEXH@Z,matched,100.0
+0x475770,208,src/unsorted/0x475770.cpp,?FUN_00475770@Class_00475770@@QAEXH@Z,partial,77.6
 0x475840,33,src/unsorted/0x475840.cpp,?FUN_00475840@Class_00475840@@QAEHXZ,matched,100.0
 0x475870,3,src/unsorted/0x475870.cpp,?_Destroy@?$vector@UElem_00475880@@V?$allocator@UElem_00475880@@@std@@@std@@IAEXPAUElem_00475880@@0@Z,matched,100.0
 0x475880,58,src/unsorted/0x475880.cpp,?_Ucopy@?$vector@UElem_00475880@@V?$allocator@UElem_00475880@@@std@@@std@@IAEPAUElem_00475880@@PBU3@0PAU3@@Z,matched,100.0
@@ -1258,9 +1261,12 @@ address,size,file,symbol,status,similarity
 0x476740,148,src/unsorted/0x476740.cpp,?FUN_00476740@@YGXPADH@Z,matched,100.0
 0x4767e0,12,src/unsorted/0x4767e0.cpp,?FUN_004767e0@@YAHXZ,matched,100.0
 0x4767f0,50,src/unsorted/0x4767f0.cpp,?FUN_004767f0@@YAXXZ,matched,100.0
+0x476830,229,src/unsorted/0x476830.cpp,?FUN_00476830@@YAPADXZ,matched,100.0
+0x476920,196,src/unsorted/0x476920.cpp,?FUN_00476920@@YGHPBD@Z,matched,100.0
 0x4769f0,105,src/unsorted/0x4769f0.cpp,?FUN_004769f0@@YGHPAPAX@Z,matched,100.0
 0x476c70,42,src/unsorted/0x476c70.cpp,?FUN_00476c70@@YAXXZ,matched,100.0
 0x476ca0,42,src/unsorted/0x476ca0.cpp,?FUN_00476ca0@@YAXXZ,matched,100.0
+0x476cd0,169,src/unsorted/0x476cd0.cpp,?FUN_00476cd0@@YGPADPAD@Z,matched,100.0
 0x476e90,86,src/unsorted/0x476e90.cpp,?FUN_00476e90@@YGPADPADHH@Z,matched,100.0
 0x4774d0,60,src/unsorted/0x4774d0.cpp,?FUN_004774d0@@YAHXZ,matched,100.0
 0x477510,134,src/unsorted/0x477510.cpp,?FUN_00477510@@YGXPAUObject_00477510@@@Z,matched,100.0

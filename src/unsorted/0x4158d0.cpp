@@ -6,10 +6,9 @@
 // work) or the def and health loads swap edi and eax.
 #include <math.h>
 struct Unit;
-struct Elem_00406c10 { Unit* ptr; };
-void __stdcall FUN_00406c70(Elem_00406c10*, const Elem_00406c10*);
+void __stdcall FUN_00406c70(Unit**, Unit* const*);
 namespace std {
-inline void _Construct(Elem_00406c10* dest, const Elem_00406c10& src) { FUN_00406c70(dest, &src); }
+inline void _Construct(Unit** dest, Unit* const& src) { FUN_00406c70(dest, &src); }
 }
 #include <vector>
 #pragma pack(push, 1)
@@ -26,7 +25,7 @@ class Class_004158d0 {
 public:
     virtual void FUN_004158d0(Unit*);
     Owner* owner;
-    std::vector<Elem_00406c10>* units;
+    std::vector<Unit*>* units;
     Unit* self;
 };
 
@@ -41,5 +40,5 @@ void Class_004158d0::FUN_004158d0(Unit* unit)
     if ((unsigned char)kind != 1) return;
     if (unit->health >= unit->def->maxHealth && unit->progress == 0.0f) return;
     if (unit->orderPlayer == owner->index && unit->orderKind == 5) return;
-    units->push_back(*(const Elem_00406c10*)&unit);
+    units->push_back(unit);
 }

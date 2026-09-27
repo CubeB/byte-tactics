@@ -10,17 +10,23 @@
 // - The landing block. The original calls vector<Unit*>'s constructor
 //   (0x40c510), the size() inside empty() (0x40c560) and the destructor
 //   (0x40c530, twice) out of line, but inlines the direct size() and
-//   operator[] and the whole vector<Elem_00406c10> code further down. Written
-//   inline here (plain vector, Class_00410830 wrapper, wrapper with forwarding
-//   methods) MSVC inlines everything. Only the Land helper below plus the
-//   Class_00410830 wrapper (a vector<Unit*> subclass, as in 0x4103e0 and
-//   0x410850, whose out-of-line constructor is 0x410830) reproduces the calls,
+//   operator[], and inlines all of the second vector<Unit*> (the visitor's
+//   list) further down. Written inline here (plain vector, Class_00410830
+//   wrapper, wrapper with forwarding methods) MSVC inlines everything.
+//   Only the Land helper below plus the Class_00410830 wrapper (a
+//   vector<Unit*> subclass, as in 0x4103e0 and 0x410850, whose out-of-line
+//   constructor is 0x410830) reproduces the calls,
 //   but its return flag leaves a test (mov eax, 1; test eax, eax; je) that the
 //   original lacks: MSVC 5 never threads the helper's last return. Probing
 //   with extra FUN_0040f200 copies shows /Ob2 handles depth-1 call sites in
 //   source order and deeper ones last-first, so the original probably ran out
-//   of inline budget right after the Elem part's depth-2 calls; the extra
-//   inline code that used that budget was not found.
+//   of inline budget right after the visitor part's depth-2 calls. Many small
+//   inline helpers (even 600) use no budget; big ones (FUN_0040f200 copies,
+//   or a rejected inline Reclaim helper) do. Giving Class_00438760 its real
+//   constructor body inline (as a header might) is rejected by /Ob2 but still
+//   uses budget: the inline-landing version then calls the landing vector's
+//   _Destroy out of line, the right direction but not far enough. What used
+//   the rest of the budget in the original was not found.
 // - The reclaim tail. Here branches 1 and 4 share their constructor tail but
 //   2 and 3 keep their own. An if/else-if chain assigning one
 //   `Class_0043a0c0* node` per branch, then one FUN_0043acb0(unit, node),
@@ -47,7 +53,6 @@ public:
 };
 
 struct Unit;
-struct Elem_00406c10 { Unit* ptr; };
 class Class_00410830 : public std::vector<Unit*> {};
 
 class Class_0043d210 {
@@ -110,9 +115,9 @@ public:
 class Class_004158d0 {
 public:
     Owner* owner;
-    std::vector<Elem_00406c10>* units;
+    std::vector<Unit*>* units;
     Unit* self;
-    Class_004158d0(Owner* o, std::vector<Elem_00406c10>* v, Unit* s) : owner(o), units(v), self(s) {}
+    Class_004158d0(Owner* o, std::vector<Unit*>* v, Unit* s) : owner(o), units(v), self(s) {}
     virtual void FUN_004158d0(Unit*);
 };
 
@@ -188,11 +193,11 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
         if (Land(unit, order))
             return 0;
         if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
-            std::vector<Elem_00406c10> units;
+            std::vector<Unit*> units;
             int range = unit->def->range << 16;
             FUN_0047e890(&unit->pos, range, Class_004158d0(unit->owner, &units, unit));
             if (!units.empty()) {
-                Unit* target = units[FUN_004b6c30(units.size())].ptr;
+                Unit* target = units[FUN_004b6c30(units.size())];
                 if (((Class_004899b0*)unit)->FUN_004899b0(target) && target->progress == 0.0f) {
                     if (FUN_0043b400(unit, target, 0))
                         return 6;

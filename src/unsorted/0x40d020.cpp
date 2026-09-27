@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// std::vector<unsigned short>::insert(iterator, size_type, const T&) from
+// std::vector<short>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward all
 // inlined. 0x409160 calls it from the inlined resize() of the vector at
 // +0x7d (with size() 0x40d000 and erase() 0x40d240). Taking the member's
@@ -20,9 +20,9 @@
 #include <ddraw.h>
 #include <vector>
 
-typedef std::vector<unsigned short> Vec_0040d020;
+typedef std::vector<short> Vec_0040d020;
 typedef void (Vec_0040d020::*InsertFn_0040d020)(
-    Vec_0040d020::iterator, Vec_0040d020::size_type, const unsigned short&);
+    Vec_0040d020::iterator, Vec_0040d020::size_type, const short&);
 
-// FUNCTION: 0x40d020 ?insert@?$vector@GV?$allocator@G@std@@@std@@QAEXPAGIABG@Z
+// FUNCTION: 0x40d020 ?insert@?$vector@FV?$allocator@F@std@@@std@@QAEXPAFIABF@Z
 InsertFn_0040d020 g_insert_0040d020 = &Vec_0040d020::insert;

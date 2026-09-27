@@ -148,7 +148,7 @@ public:
     std::vector<Elem_0040cfb0> vec_65; // +0x65
     int field_75;                      // +0x75
     int field_79;                      // +0x79
-    std::vector<unsigned short> vec_7d; // +0x7d
+    std::vector<short> vec_7d;  // +0x7d
     std::vector<unsigned char> vec_8d; // +0x8d
     std::vector<unsigned char> vec_9d; // +0x9d
 

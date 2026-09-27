@@ -1,18 +1,16 @@
 // Decompiled by Opus. Names are provisional.
-// std::vector<Elem_00425430>::erase(iterator first, iterator last) for a
-// 2-byte element type (the dead store of the old _Last into the argument
-// slot comes from the inlined _Destroy). Taking the member's address makes
-// the compiler emit the template instantiation out of line. The element
-// type is a guess: any 2-byte trivially copyable type compiles the same.
+// std::vector<unsigned short>::erase(iterator first, iterator last), called
+// from the first inlined resize() of 0x424c00's feature type remap table
+// (with size() 0x4251f0 and insert 0x425210). The element is a scalar: the
+// resize value temporary in 0x424c00 is stored as a dword, which a 2-byte
+// struct would not give. Renamed in #335 from vector<Elem_00425430>; the
+// byte-identical 0x40d240 is vector<short>::erase. Taking the member's
+// address makes the compiler emit the template instantiation out of line.
 #include <vector>
 
-struct Elem_00425430 {
-    short value;
-};
-
-typedef std::vector<Elem_00425430> Vec_00425430;
+typedef std::vector<unsigned short> Vec_00425430;
 typedef Vec_00425430::iterator (Vec_00425430::*EraseFn_00425430)(
     Vec_00425430::iterator, Vec_00425430::iterator);
 
-// FUNCTION: 0x425430 ?erase@?$vector@UElem_00425430@@V?$allocator@UElem_00425430@@@std@@@std@@QAEPAUElem_00425430@@PAU3@0@Z
+// FUNCTION: 0x425430 ?erase@?$vector@GV?$allocator@G@std@@@std@@QAEPAGPAG0@Z
 EraseFn_00425430 g_erase_00425430 = &Vec_00425430::erase;

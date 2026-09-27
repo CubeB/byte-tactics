@@ -335,3 +335,35 @@ can disagree on types (a real link would fail). Known cases:
   file; 0x46eaa0 reaches it one inline level deeper than /Ob2 would go,
   so it stands in for the template with an explicit specialisation of
   `allocator<Elem_0046faf0>::destroy` that calls FUN_00470030.
+- Two element types for one 2-byte scalar (#335): the exe has two
+  byte-identical sets of `std::vector` members for 2-byte scalars, and the
+  linker keeps one copy per mangled name, so each set is its own element
+  type. `vector<short>` is the per-unit-type count table at +0x7d of the
+  player AI object (every read sign-extends it: 0x409730, 0x40bb00,
+  0x40c200; 0x40aa40 fills it as `vector<short>`) and owns 0x40d000
+  (`size`), 0x40d020 (`insert`), 0x40d240 (`erase`) and 0x40d280
+  (`_Destroy`), which were spelt `vector<unsigned short>`.
+  `vector<unsigned short>` is 0x424c00's feature type remap table (0xffff
+  is "none") and owns 0x4251f0 (`size`, was `Class_004251f0::FUN_004251f0`),
+  0x425210 (`insert`, not matched), 0x425430 (`erase`) and 0x425470
+  (`_Destroy`), both of which were `vector<Elem_00425430>`. The feature list
+  DAT_00511fb4 is `vector<Class_004c2ea0*>`: 0x4251e0 (`_Destroy`, a member
+  called with ecx set to the vector, was the free `__stdcall FUN_004251e0`)
+  and 0x425480 (`insert`, was `Class_00425480::FUN_00425480`; 0x4222e0
+  now reaches it through `push_back`).
+- `std::copy<unsigned short*, unsigned short*>` (0x4256a0) comes from the
+  same `/Gz` file as 0x424c00. MSVC 5 names a function template
+  instantiation without its template arguments, so
+  `template <> unsigned short* __stdcall std::copy(unsigned short*, ...)`
+  with a body compiles to the `/Gz` name `?copy@std@@YGPAGPAG00@Z` (with
+  warning C4666). Such a declaration cannot be called while the real
+  `<xutility>`'s `__cdecl` template is visible (C2568, or the template is
+  inlined instead), so 0x424c00 defines `_XUTILITY_` and declares the same
+  `<xutility>` templates `__stdcall` before `<vector>`, a stand-in for `/Gz`
+  until files are regrouped. Every instantiation of it is named `std::copy`
+  by the checker, so the next matched one needs a row in `data/aliases.csv`.
+- 0x424c00 (partial) still writes out the two vectors as explicit
+  specialisations under their real names: with the real `<vector>` its
+  second `resize` either inlines `copy` (64.3%) or, with the `__stdcall`
+  `<xutility>`, calls `erase` out of line (64.6%), while the original
+  inlines `erase` and calls `copy` and `_Destroy`.

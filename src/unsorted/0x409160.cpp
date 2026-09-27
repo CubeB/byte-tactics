@@ -2,7 +2,7 @@
 // Constructor of a player's AI state object (DAT_005119c0[player], built by
 // 0x40b320; 0x40b390 destroys it). Its out-of-line STL callees are
 // std::vector<Unit*>::vector(const allocator&) (0x40c510),
-// std::vector<unsigned short>::size() (0x40d000) and
+// std::vector<short>::size() (0x40d000) and
 // std::vector<Elem_0040cfb0>::size() (0x40cc80), among others.
 //
 // Which calls MSVC 5 inlines here depends on its inline budget, and the
@@ -91,7 +91,7 @@ public:
     std::vector<Elem_0040cfb0> vec_65; // +0x65
     int field_75;                      // +0x75
     int field_79;                      // +0x79
-    std::vector<unsigned short> vec_7d; // +0x7d
+    std::vector<short> vec_7d;  // +0x7d
     std::vector<unsigned char> vec_8d; // +0x8d
     std::vector<unsigned char> vec_9d; // +0x9d
     std::vector<Elem_0040d4f0> vec_ad; // +0xad

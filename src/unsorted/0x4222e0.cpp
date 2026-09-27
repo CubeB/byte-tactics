@@ -8,6 +8,9 @@
 // convention MSVC 5 schedules the loop entry as `cmp esi,eax; mov edi,esi`,
 // while the original emits `mov edi,esi; cmp esi,eax`. A non-cdecl convention
 // on this no-argument function changes only the instruction order.
+// push_back inlines to a call of the out-of-line
+// std::vector<Class_004c2ea0*>::insert (0x425480); #335 replaced the
+// placeholder Class_00425480::FUN_00425480 that stood for it.
 #include <vector>
 
 class Class_004c2ea0 {
@@ -41,18 +44,6 @@ extern std::vector<Class_004c2ea0*>* DAT_00511fb4;
 
 void __stdcall FUN_004bcb50(char* dir, char* pattern, void* list, int flags, char recurse);
 
-// Out-of-line std::vector<Class_004c2ea0*>::insert; declared under the name of
-// its own address so the compiler emits a call instead of inlining it.
-class Class_00425480 {
-public:
-    char unknown_0[4];                     // +0x0
-    Class_004c2ea0** first;                // +0x4
-    Class_004c2ea0** last;                 // +0x8
-    Class_004c2ea0** end;                  // +0xc
-
-    void FUN_00425480(Class_004c2ea0** pos, unsigned count, Class_004c2ea0* const& value);
-};
-
 // FUNCTION: 0x4222e0
 void __stdcall FUN_004222e0()
 {
@@ -62,7 +53,7 @@ void __stdcall FUN_004222e0()
     for (std::vector<Elem_004222e0>::iterator it = list.begin(); it < list.end(); it++) {
         Class_004c2ea0* obj = new Class_004c2ea0;
         if (((Class_004c2f60*)obj)->FUN_004c2f60(it->name.data)) {
-            ((Class_00425480*)DAT_00511fb4)->FUN_00425480(DAT_00511fb4->end(), 1, obj);
+            DAT_00511fb4->push_back(obj);
         } else {
             delete obj;
         }

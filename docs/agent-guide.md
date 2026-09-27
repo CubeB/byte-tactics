@@ -790,6 +790,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   write it with two int indices into the one array, `do { p[k] = p[j]; k++; }
   while (p[j++]);`; pointer versions become an offset from the source
   (0x4bb150).
+- **A constructor callee whose existing file declares the class smaller than
+  the size pushed to `new`**: declare the class again locally with the right
+  size and the same constructor signature (0x40f200).
+- **Out-of-line pool allocators** (0x4dddf0, 0x4e2b60): declare `unsigned int
+  rem = 0x2000;` before the GlobalAlloc retry loop, and pop with `p = DAT; DAT =
+  *(void**)DAT;`.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

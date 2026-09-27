@@ -54,9 +54,9 @@ address,name
 0x406900,FUN_00406900
 0x406aa0,FUN_00406aa0
 0x406bf0,FUN_00406bf0
-0x406c00,UElem_00406c10::?$vector::_Destroy
-0x406c10,UElem_00406c10::?$vector::_Ucopy
-0x406c40,UElem_00406c10::?$vector::_Ufill
+0x406c00,PAUUnit::?$vector::_Destroy
+0x406c10,PAUUnit::?$vector::_Ucopy
+0x406c40,PAUUnit::?$vector::_Ufill
 0x406c70,FUN_00406c70
 0x406c90,FUN_00406c90
 0x406da0,FUN_00406da0
@@ -100,7 +100,7 @@ address,name
 0x408c40,Class_00408c40::FUN_00408c40
 0x408cb0,Class_00408cb0::Class_00408cb0
 0x408f10,Class_00408f10::FUN_00408f10
-0x408f30,PAUUnit_00407560::?$vector::insert
+0x408f30,PAUUnit::?$vector::insert
 0x409160,Class_00409160::Class_00409160
 0x409470,Class_00409470::FUN_00409470
 0x409520,FUN_00409520
@@ -145,7 +145,7 @@ address,name
 0x40c5d0,UElem_0040cfb0::?$vector::~?$vector
 0x40c600,UElem_0040d4f0::?$vector::resize
 0x40c7f0,UElem_0040d550::?$vector::resize
-0x40c9f0,PAUElem_0040c9f0::?$vector::erase
+0x40c9f0,PAUUnit::?$vector::erase
 0x40ca30,UElem_0040cc40::?$vector::capacity
 0x40ca50,UElem_0040cc40::?$vector::insert
 0x40cc30,UElem_0040cc40::?$vector::_Destroy
@@ -1011,6 +1011,7 @@ address,name
 0x464c60,FUN_00464c60
 0x464da0,FUN_00464da0
 0x464de0,FUN_00464de0
+0x465ac0,FUN_00465ac0
 0x465fb0,FUN_00465fb0
 0x466050,FUN_00466050
 0x466580,FUN_00466580

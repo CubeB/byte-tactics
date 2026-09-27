@@ -6,7 +6,8 @@
 #include <vector>
 
 struct Elem_00434020 {
-    int value;                         // +0x0
+    unsigned short a;                  // +0x0
+    unsigned short b;                  // +0x2
 };
 
 typedef std::vector<Elem_00434020> Inner_004345e0;

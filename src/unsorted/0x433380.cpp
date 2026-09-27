@@ -9,14 +9,16 @@
 // argument.
 //
 // The type is three levels of std::vector: `tables` is a
-// vector<vector<vector<Elem_00434020> > >. tables[table] is resized (its size,
-// insert and erase are the out-of-line 0x433b00, 0x433db0, 0x434020 of a
-// vector<vector<Elem_00434020> >), the fill value is a default-constructed
-// std::vector<Elem_00434020> (constructor 0x433a10, destructor 0x433a30) and
-// the four calls go to the extra method of the inner vector (0x4336f0). The
-// hand-rolled std::vector interface above, with size, insert, erase, the
-// constructor and the destructor only declared, is what makes the compiler
-// emit those same out-of-line calls, as in the sibling 0x433130.cpp.
+// vector<vector<Elem_00434360> >, where Elem_00434360 is a struct holding one
+// std::vector<Elem_00434020>. tables[table] is resized (its size, insert and
+// erase are the out-of-line 0x433b00, 0x433db0, 0x434020 of a
+// vector<Elem_00434360>), the fill value is a default-constructed
+// Elem_00434360 (its held vector's constructor 0x433a10 and destructor
+// 0x433a30) and the four calls go to the extra method of the element
+// (0x4336f0). The hand-rolled std::vector interface above, with size,
+// insert, erase, the constructor and the destructor only declared, is what
+// makes the compiler emit those same out-of-line calls, as in the sibling
+// 0x433130.cpp.
 //
 // What still differs (the remaining 58%):
 //   * register choice in the prologue. The original keeps `this` in esi and
@@ -66,16 +68,17 @@ namespace std {
 }
 
 struct Elem_00434020 {
-    int value;                         // +0x0
+    unsigned short a;                  // +0x0
+    unsigned short b;                  // +0x2
 };
 
 class Class_004c3410;
 class Class_004c46c0;
 
-// The 16-byte line: a std::vector<Elem_00434020> whose method the original
-// calls on every entry (0x4336f0). It is used through a view, so that the
-// vector<Elem_00434020> instantiations keep the names data/symbols.csv
-// records for 0x433a10, 0x433a30, 0x433b00 and 0x434020.
+// The 16-byte line: an Elem_00434360 holding a std::vector<Elem_00434020>,
+// whose method the original calls on every entry (0x4336f0). It is used
+// through a view, so that the vector<Elem_00434020> instantiations keep the
+// names data/symbols.csv records for 0x433a10 and 0x433a30.
 typedef std::vector<Elem_00434020> Line_00433380;
 
 class LineView_00433380 : public Line_00433380 {
@@ -83,7 +86,11 @@ public:
     void FUN_004336f0(Class_004c3410* file, short line, int col);
 };
 
-typedef std::vector<Line_00433380> Group_00433380;
+struct Elem_00434360 {
+    Line_00433380 v;                   // +0x0
+};
+
+typedef std::vector<Elem_00434360> Group_00433380;
 typedef std::vector<Group_00433380> Table_00433380;
 
 class Class_004c3410 {
@@ -125,7 +132,7 @@ void Class_00433380::FUN_00433380(Class_004c3410* file, short table)
     short numlines = (short)file->current->FUN_004c46c0("numlines", 0);
     Group_00433380& group = tables[table];
     {
-        Line_00433380 blank;
+        Elem_00434360 blank;
         short n = numlines * 4;
         if (group.size() < n)
             group.insert(group.end(), n - group.size(), blank);

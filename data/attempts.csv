@@ -2518,12 +2518,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x456760,225,,#140,assigned,,,issue #140
 0x456de0,243,,#140,assigned,,,issue #140
 0x456ee0,368,,#140,assigned,,,issue #140
-0x457050,368,,#141,assigned,,,issue #141
-0x4572a0,293,,#141,assigned,,,issue #141
-0x4573d0,358,,#141,assigned,,,issue #141
-0x4578f0,340,,#141,assigned,,,issue #141
-0x458310,281,,#141,assigned,,,issue #141
-0x4586a0,267,,#141,assigned,,,issue #141
+0x457050,368,space-bunny-free,#141,matched,100.0,,issue #141
+0x4572a0,293,space-bunny-free,#141,partial,35.7,,issue #141
+0x4573d0,358,space-bunny-free,#141,matched,100.0,,issue #141
+0x4578f0,340,space-bunny-free,#141,matched,100.0,,issue #141
+0x458310,281,space-bunny-free,#141,matched,100.0,,issue #141
+0x4586a0,267,space-bunny-free,#141,matched,100.0,,issue #141
 0x45a510,254,space-bunny-free,#142,matched,100.0,,issue #142
 0x45a610,379,space-bunny-free,#142,partial,94.5,,issue #142
 0x45a790,307,space-bunny-free,#142,matched,100.0,,issue #142
@@ -2712,3 +2712,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x46e890,276,,#249,assigned,,,"issue #249, escalated"
 0x46eaa0,189,,#249,assigned,,,"issue #249, escalated"
 0x45d130,326,,#250,assigned,,,"issue #250, escalated"
+0x4572a0,293,,#252,assigned,,,"issue #252, escalated"

@@ -1,4 +1,9 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Opus 5.5. Names are provisional.
+// The headers are not used by the code: they set the compiler state that
+// decides the order of the y-coordinate sum (see the notes below).
+#include <windows.h>
+#include <memory.h>
+
 #pragma pack(push, 1)
 struct Pos_4399f0 {
     unsigned short x_frac;           // +0x0
@@ -32,50 +37,20 @@ int __cdecl FUN_004b70ef(int angle, int distance);
 int __cdecl FUN_004b7123(int angle, int distance);
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2, int color);
 
-// Partial, 94.8 percent (5 instructions of 312 bytes differ, nothing else).
-// Only the y-coordinate setup differs. The original evaluates
-// yc = p.z - view->cy - (p.y >> 1) + 0x20 in source order: it loads p.x, p.z
-// then p.y, then view->cx into ecx and view->cy into ebx, then does
-// sub edi,ecx (x - cx), sub ebp,ebx (z - cy), add edi,0x80, sub ebp,edx.
-// This compiler reassociates the same source to (p.z - (p.y >> 1)) - view->cy:
-// it loads p.y first, spends it immediately, then reuses ecx for view->cy once
-// cx dies. The sar edx,1, the lea and every other byte are already in place,
-// so only the operand pairing of the two subs and the cy register differ.
-// This is the guide's "operand order that nothing changes" case.
+// Draws an ellipse (radius `height`, 0.89 of it vertically) of 16 segments
+// around an object's screen position, then copies the position to `out`.
 //
-// Everything below was tried (each with check.py on a scratch copy) and all of
-// it reproduces the same 94.8 percent, with or without the guide's helper,
-// hoisting and header techniques:
-// - source order: yc first, yc split over three statements, the 0x20 add before
-//   the shift, parentheses that change the tree, one combined declaration;
-// - helpers: static inline functions for the shift, for view->cx/cy, for the
-//   whole expression, for both, taking the Pos by value or by reference, with
-//   out-params or a 2-int struct, plus Pos/View member functions (ScreenX,
-//   ScreenY, CenterX, CenterY);
-// - locals: hoisting p.x/p.y/p.z, view->cx/cy, the shift result (int and
-//   short), reading the Pos through a pointer or a reference;
-// - types: (float)/(double) casts on the 0.89 multiply, short angle parameters
-//   for FUN_004b70ef/7123, a typed struct for unit->field_92->height, an
-//   int[2] view centre, an unpacked Pos;
-// - context: a real function from the repo above this one (0x439cf0,
-//   0x417bb0) changes nothing, and tools/headers.py reports all 128 header
-//   sets give the same bytes.
-// A second round, in the same 94.8 percent: interleaving the statements to
-// reproduce the original's own order (sub x, sub z, add 0x80, sub y-half, add
-// 0x20, one statement each), hoisting p.x/p.z/p.y as locals in x, z, y order,
-// taking int& references to view->cx and view->cy, hoisting them as locals in
-// both orders, and a short local for the half all give byte-identical code to
-// what is here. Only making the y expression unsigned changes anything, and it
-// drops to 60.8 percent, so the tree is signed and MSVC is reassociating a
-// signed chain on its own rather than exploiting unsigned commutativity.
-//
-// The reassociation is decided by MSVC's scheduler, not by the source text:
-// 0x417e00 (matched) has the identical y formula and keeps the source order,
-// so the difference is the register pressure of keeping xc and yc alive across
-// the loop. Untested: decompiling the preceding function 0x439740 (674 bytes)
-// into this file, per the "when a match needs the function before it compiled
-// first" pattern; the two small real functions tried above did not move it.
-
+// The two earlier attempts (#31, #158) stopped at 94.8 percent with the same
+// source: without these headers MSVC reassociates
+// `p.z - view->cy - (p.y >> 1)` into `(p.z - (p.y >> 1)) - view->cy`, loads
+// p.y first and reuses ecx for view->cy. That is compiler state, not source
+// shape: with N unused `extern int` declarations in front of this source and
+// no headers, it matches for N = 43 to 298, and the pattern repeats every 512
+// declarations (half of every period matches). `<windows.h>` + `<memory.h>`
+// puts N = 0 near the middle of a matching window (it still matches with 109
+// fewer or 146 more declarations). `<stdlib.h>` + `<math.h>` + `<memory.h>`
+// is the most centred set (-134 to +121); `<windows.h>` alone also matches
+// (-82 to +173).
 // FUNCTION: 0x4399f0
 void __stdcall FUN_004399f0(void* surface, View_4399f0* view, Obj_4399f0* obj,
                             Pos_4399f0* out, int unused)

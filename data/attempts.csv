@@ -2482,9 +2482,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x413bc0,441,,#129,assigned,,,issue #129
 0x413d80,1480,,#129,assigned,,,issue #129
 0x414380,1000,,#129,assigned,,,issue #129
-0x414770,784,,#130,assigned,,,issue #130
-0x414a80,997,,#130,assigned,,,issue #130
-0x414e70,988,,#130,assigned,,,issue #130
+0x414770,784,opus,#130,matched,100.0,,issue #130
+0x414a80,997,opus,#130,matched,100.0,,issue #130
+0x414e70,988,opus,#130,matched,100.0,,issue #130
 0x4152f0,1504,,#131,assigned,,,issue #131
 0x4158d0,578,,#131,assigned,,,issue #131
 0x415fa0,426,,#131,assigned,,,issue #131

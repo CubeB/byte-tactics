@@ -318,9 +318,9 @@ address,size,file,symbol,status,similarity
 0x41b8d0,388,src/unsorted/0x41b8d0.cpp,?FUN_0041b8d0@@YGXPAUUnit_0041b8d0@@0@Z,matched,100.0
 0x41bcd0,51,src/unsorted/0x41bcd0.cpp,?FUN_0041bcd0@@YGXPAUObj_41bcd0@@H@Z,matched,100.0
 0x41bd10,203,src/unsorted/0x41bd10.cpp,?FUN_0041bd10@@YGHPAUObj_0041bd10@@PAUUnit_0041bd10@@M@Z,matched,100.0
-0x41bde0,299,src/unsorted/0x41bde0.cpp,?FUN_0041bde0@@YGXH@Z,partial,64.5
+0x41bde0,299,src/unsorted/0x41bde0.cpp,?FUN_0041bde0@@YGXH@Z,matched,100.0
 0x41bf10,325,src/unsorted/0x41bf10.cpp,?FUN_0041bf10@@YGXH@Z,matched,100.0
-0x41c060,173,src/unsorted/0x41c060.cpp,?FUN_0041c060@@YGXH@Z,partial,50.0
+0x41c060,173,src/unsorted/0x41c060.cpp,?FUN_0041c060@@YGXH@Z,matched,100.0
 0x41c110,52,src/unsorted/0x41c110.cpp,?FUN_0041c110@@YGXPAUUnit_0041c110@@@Z,matched,100.0
 0x41c150,40,src/unsorted/0x41c150.cpp,?FUN_0041c150@@YGXPAX@Z,matched,100.0
 0x41c180,300,src/unsorted/0x41c180.cpp,?FUN_0041c180@@YAXXZ,matched,100.0

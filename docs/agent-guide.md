@@ -1192,6 +1192,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (`Point origin = def->origin;`) and pass the local to both WorldToCell and
   CellToWorld helpers. Passing `def->origin` to each keeps the cell in
   registers and shrinks the frame by 4. See 0x419670.
+- **The two sides of a comparison evaluated in the wrong order**: run
+  tools/headers.py before rewriting the expression. The heavier side (here a
+  pointer chain ending in a byte) is loaded first, and the other value then
+  takes a callee-saved register or the scratch registers come out mirrored;
+  the header set decides which. Found by Claude Opus 5.5 in #113 (0x41bde0,
+  0x41c060).
+- **Siblings can need different headers**: functions from one original
+  source file, each in its own file here, can need different header sets
+  (0x41bde0 needs `<stdlib.h>` and fails with `<windows.h>`; 0x41c060 is the
+  reverse). Run headers.py for each function rather than copying a sibling's
+  includes.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

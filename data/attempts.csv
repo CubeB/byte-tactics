@@ -2225,7 +2225,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x40ef20,223,deepseek-v4.1-flash,#12,partial,74.1,,issue #12
 0x40f060,172,deepseek-v4.1-flash,#12,matched,100.0,,issue #12
 0x40f110,204,deepseek-v4.1-flash,#12,matched,100.0,,issue #12
-0x419400,192,opus,#106,matched,100.0,,"fixed on main with the #106 fix (was in #13)"
+0x419400,192,opus,#106,matched,100.0,,fixed on main with the #106 fix (was in #13)
 0x4223e0,127,,#13,assigned,,,"issue #13, escalated"
 0x438650,161,,#13,assigned,,,"issue #13, escalated"
 0x485140,117,,#13,assigned,,,"issue #13, escalated"
@@ -2440,5 +2440,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x419670,341,opus,#106,matched,100.0,,"issue #106, escalated"
 0x417f60,617,,#111,assigned,,,"issue #111, escalated"
 0x4181d0,315,,#111,assigned,,,"issue #111, escalated"
-0x41bde0,299,,#113,assigned,,,"issue #113, escalated"
-0x41c060,173,,#113,assigned,,,"issue #113, escalated"
+0x41bde0,299,opus,#113,matched,100.0,,"issue #113, escalated"
+0x41c060,173,opus,#113,matched,100.0,,"issue #113, escalated"

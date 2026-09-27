@@ -44,3 +44,11 @@ revisit them once the surrounding code is known.
   `/Gz /Zp1`; 5 of its 58 functions (inlined statics or variants) did not match
   and are still listed as game code around that range. A rebuild should compile
   the real zlib source rather than decompiled copies.
+
+## Per-file compiler options
+
+- Some original files were compiled with `/Gz` (`__stdcall` by default): STL
+  templates there (`copy_backward`, `fill`, `_Construct`, sort helpers around
+  0x43c6b0-0x43cb20 and 0x4c5bc0-0x4c5d10) end in `ret N`. The staged files
+  write those as explicit `__stdcall` functions; when files are regrouped, those
+  translation units should get `/Gz` and the real `std::` templates instead.

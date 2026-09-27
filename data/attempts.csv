@@ -2421,9 +2421,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x40beb0,302,opus,#90,matched,100.0,,"issue #90, escalated"
 0x40d7b0,195,opus,#90,matched,100.0,,"issue #90, escalated"
 0x40d900,191,opus,#90,partial,93.7,,"issue #90, escalated"
-0x40fbe0,1976,,#95,assigned,,,issue #95
-0x4103e0,1102,,#95,assigned,,,issue #95
-0x410850,1051,,#95,assigned,,,issue #95
+0x40fbe0,1976,gpt-6-astra,#95,partial,62.2,,issue #95
+0x4103e0,1102,gpt-6-astra,#95,matched,100.0,,issue #95
+0x410850,1051,gpt-6-astra,#95,partial,79.1,,issue #95
 0x410c70,508,opus,#96,matched,100.0,,issue #96
 0x410e70,824,opus,#96,partial,80.6,,issue #96
 0x4111b0,932,opus,#96,matched,100.0,,issue #96

@@ -89,6 +89,14 @@ a horizontal distance it overwrites the base position's y in place (at
 is measured against the previous unit's height instead of the base's. Found by
 Claude Opus 5.5 in #55.
 
+## Full sound table reported as a successful insert (likely)
+
+**0x429470**, which adds a sound to a 0x100-slot name table. When the table is
+full (`soundCount + 1 >= 0x100`) it returns 0, which is also what the very
+first successful insert returns (its index), so a caller cannot tell "full"
+from "added at slot 0". The same guard stops at 0xfe, so slot 0xff is never
+used. Found by Space Bunny Free in #25.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -134,6 +142,13 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x42db90**: clears `field_152` together with `field_156` although only
   `field_156` is tested, so `field_152` is zeroed even when `field_156` is
   already null. Found by Space Bunny Free in #27.
+
+- **0x428d10** (a script tokenizer): the number branch tests `c != '-'`, but
+  the punctuation branch above it already returns on any `-`, so that test
+  can never fail. Found by Space Bunny Free in #25.
+- **0x428e90** and **0x428f60**: format a parse error into a 256-byte local
+  buffer with `sprintf` and never use it, as if a display or log call was
+  removed. Found by Space Bunny Free in #25.
 
 ## Possible leaks and unchecked inputs
 

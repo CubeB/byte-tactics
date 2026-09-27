@@ -1282,6 +1282,20 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Compare byte counts first**: when yours is a few bytes longer or shorter,
   the difference often names the cause (an immediate `0` store is 4 bytes
   longer than a register store). See 0x42f3a0.
+- **Advancing a member pointer, one register or two**: `p++` or `*++p` on a
+  member gives `mov edx, [esi+N]; inc edx; mov eax, edx; mov [esi+N], edx`;
+  `char* q = p; p = q + 1;` gives the one-register
+  `mov eax, [esi+N]; inc eax; mov [esi+N], eax`. Both can occur in one
+  function, so change only the loop that differs; an inline helper returning
+  `++p` gives the two-register form too. Found by Space Bunny Free in #25
+  (0x428d10).
+- **A local frame bigger than your locals add up to**: the original probably
+  had one struct with a padding field (0x4295b0 needed
+  `int w; int h; int unused; char header[0x40];` for a 0x4c frame).
+- **Arrays before a far global offset**: when a function uses a table at a
+  large fixed offset (`+0x33e13`), size the arrays before it so the offset
+  comes out right; their sizes are not visible in the function itself. See
+  0x429470.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

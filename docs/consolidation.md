@@ -100,6 +100,13 @@ revisit them once the surrounding code is known.
   `Class_00470ed0`/`Class_00470eb0` in some files and `Class_00470ae0` in
   0x470ae0.cpp.
 
+- The victory condition with vtables 0x4fd890 (primary) and 0x4fd888 (visitor
+  base) is `Class_0048f250`; its slots 4 and 5 (0x48f2f0, 0x48f330) are still
+  filed as `Class_0048f2f0` and `Class_0048f330`.
+- **A probable Cavedog bug**: the bit writer grows its buffer with `new
+  unsigned int(capacity * 2)` (one dword initialised to the size) where an
+  array was surely meant (0x415bb0, inlined in 0x415c10).
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

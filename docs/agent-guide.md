@@ -796,6 +796,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Out-of-line pool allocators** (0x4dddf0, 0x4e2b60): declare `unsigned int
   rem = 0x2000;` before the GlobalAlloc retry loop, and pop with `p = DAT; DAT =
   *(void**)DAT;`.
+- **`push 4; call operator new` then `if (p) *p = n`** with `n` a size: `new
+  T(n)`, a scalar with an initialiser, not an array allocation (0x415bb0).
+- **A zero register stored three times through a copy of the destination
+  pointer** (`mov ebx, esi; mov [ebx], edi` x3): an inlined `memset(p, 0, 12)`;
+  field-by-field zeroing gives immediate stores (0x485330).
+- **A null test of `this`, then `lea reg, [this+K]` with the call tail on both
+  paths**: `this` converted to a non-primary base; declare the real two-base
+  class and pass `this` (0x48f200).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -1381,6 +1381,7 @@ address,size,file,symbol,status,similarity
 0x4befe0,115,src/unsorted/0x4befe0.cpp,?FUN_004befe0@@YGIPAUSurface_004befe0@@HH@Z,matched,100.0
 0x4c0310,28,src/unsorted/0x4c0310.cpp,?FUN_004c0310@@YGXPAXPAHHH@Z,matched,100.0
 0x4c07b0,106,src/unsorted/0x4c07b0.cpp,?FUN_004c07b0@@YGHPAXPAUPoint_004c07b0@@HH@Z,matched,100.0
+0x4c1320,126,src/unsorted/0x4c1320.cpp,?FUN_004c1320@@YGHPAUPoint_004c1320@@HHH@Z,partial,88.1
 0x4c13a0,38,src/unsorted/0x4c13a0.cpp,?FUN_004c13a0@@YGXHH@Z,matched,100.0
 0x4c13d0,18,src/unsorted/0x4c13d0.cpp,?FUN_004c13d0@@YGXH@Z,matched,100.0
 0x4c13f0,12,src/unsorted/0x4c13f0.cpp,?FUN_004c13f0@@YAHXZ,matched,100.0
@@ -1587,6 +1588,7 @@ address,size,file,symbol,status,similarity
 0x4d81a0,94,src/unsorted/0x4d81a0.cpp,?FUN_004d81a0@@YA_NHH@Z,matched,100.0
 0x4d8200,74,src/unsorted/0x4d8200.cpp,?FUN_004d8200@@YADXZ,matched,100.0
 0x4d8250,1,src/unsorted/0x4d8250.cpp,?FUN_004d8250@@YAXXZ,matched,100.0
+0x4d8260,69,src/unsorted/0x4d8260.cpp,?FUN_004d8260@@YAHXZ,matched,100.0
 0x4d82b0,1,src/unsorted/0x4d82b0.cpp,?FUN_004d82b0@@YAXXZ,matched,100.0
 0x4d82c0,68,src/unsorted/0x4d82c0.cpp,?FUN_004d82c0@@YAXPAXII@Z,matched,100.0
 0x4d8360,43,src/unsorted/0x4d8360.cpp,?FUN_004d8360@@YAIPAX@Z,matched,100.0

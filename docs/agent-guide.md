@@ -974,6 +974,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **An unused label can change the code**: in 0x406300, removing an unused
   `follow:` label lowered the score, so the original probably had a `goto`
   there. Keep labels that help.
+- **A multiply by an odd constant as a `lea` chain versus `imul reg, imm`** can
+  depend on the header set alone: 0x4b6c30's `seed * 16807` is a `lea` chain only
+  with `<windows.h>` included.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

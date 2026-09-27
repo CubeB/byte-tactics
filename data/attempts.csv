@@ -2158,18 +2158,18 @@ address,size,model,batch,result,similarity,runs,notes
 0x47f1a0,101,deepseek-v4.1-flash,#3,matched,100.0,,issue #3
 0x480020,160,deepseek-v4.1-flash,#3,matched,100.0,,issue #3
 0x489740,101,deepseek-v4.1-flash,#3,matched,100.0,,issue #3
-0x48d920,120,,#4,assigned,,,issue #4
-0x491e50,101,,#4,assigned,,,issue #4
-0x49d880,140,,#4,assigned,,,issue #4
-0x4a1630,77,,#4,assigned,,,issue #4
-0x4a7ee0,129,,#4,assigned,,,issue #4
-0x4ab310,129,,#4,assigned,,,issue #4
-0x4ae440,108,,#4,assigned,,,issue #4
-0x4ae4e0,108,,#4,assigned,,,issue #4
-0x4ae580,141,,#4,assigned,,,issue #4
-0x4b0720,120,,#4,assigned,,,issue #4
-0x4b6c30,101,,#4,assigned,,,issue #4
-0x4be010,90,,#4,assigned,,,issue #4
+0x48d920,120,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x491e50,101,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x49d880,140,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4a1630,77,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4a7ee0,129,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4ab310,129,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4ae440,108,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4ae4e0,108,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4ae580,141,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4b0720,120,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
+0x4b6c30,101,deepseek-v4.1-flash,#4,partial,57.5,,issue #4
+0x4be010,90,deepseek-v4.1-flash,#4,matched,100.0,,issue #4
 0x4c42a0,159,,#5,assigned,,,issue #5
 0x4c5c60,108,,#5,assigned,,,issue #5
 0x4c6f10,100,,#5,assigned,,,issue #5
@@ -2397,3 +2397,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x404270,1212,opus,#60,matched,100.0,,"issue #60, escalated"
 0x405980,1040,opus,#63,partial,80.4,,"issue #63, escalated"
 0x406300,1152,opus,#65,partial,85.3,,"issue #65, escalated"
+0x4b6c30,101,,#72,assigned,,,"issue #72, escalated"

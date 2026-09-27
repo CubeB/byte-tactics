@@ -304,10 +304,14 @@ confirm with one `check.py` run.
   `void FUN_x(const char* fmt, ...)`.
 - **A function that "writes `*p = x`" but keeps `p` out of `eax` until the
   end** returns `p` (`return p;`), like an assignment operator.
-- **Calls through a global function pointer** (`call [DAT_x]`, including
-  imported APIs such as `Sleep` or `GlobalAlloc`): declare the global with its
-  real type, `extern void (__stdcall* DAT_x)(DWORD);`, and call through it.
-  A table of them is an array of function pointers.
+- **Windows API calls** (`call [0x4fc0e0]` that `ctx.py` labels "import Sleep from
+  KERNEL32.dll"): include `<windows.h>` (or `<mmsystem.h>` for sound APIs) and
+  call the function normally. Never declare an import slot as a `DAT_` global;
+  the checker knows every import by name.
+- **Calls through a game global holding a function pointer** (`call [DAT_x]`
+  where `DAT_x` is not an import): declare it with its real type,
+  `extern void (__stdcall* DAT_x)(int);`, and call through it. A table of them
+  is an array of function pointers.
 - **A call through a vtable** (`mov eax, [ecx]; call [eax+N]`) is a C++
   virtual call: declare a class with virtual methods (N/4 slots) and call the
   method; a hand-cast function pointer moves `this` to the wrong register.

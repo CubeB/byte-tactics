@@ -29,6 +29,8 @@ class Namer:
     def __init__(self, orig: Original, funcs: dict[int, dict]):
         self.orig, self.funcs = orig, funcs
         self.names = {addr: name for name, addr in load_symbols().items()}
+        self.imports = {e.address: (d.dll.decode(), e.name.decode())
+                        for d in orig.pe.DIRECTORY_ENTRY_IMPORT for e in d.imports if e.name}
         self.sections = [(orig.base + s.VirtualAddress, orig.base + s.VirtualAddress + s.Misc_VirtualSize,
                           s.Name.rstrip(b"\0").decode()) for s in orig.pe.sections]
 
@@ -53,6 +55,9 @@ class Namer:
         return None
 
     def describe(self, va: int, ins) -> str:
+        if va in self.imports:
+            dll, name = self.imports[va]
+            return f"import {name} from {dll}: include <windows.h> (or the API's header) and call {name}()"
         if va in self.funcs or va in self.names and self.section(va) == ".text":
             return self.function_label(va)
         sec = self.section(va)

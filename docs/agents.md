@@ -21,9 +21,9 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | Size (bytes) | Haiku | Opus | Sonnet |
 | --- | ---: | ---: | ---: |
 | 1-16 | 283/312 (91%) | 2/2 (100%) |  |
-| 17-40 | 44/57 (77%) |  | 9/10 (90%) |
-| 41-64 | 3/11 (27%) |  | 14/21 (67%) |
-| 65-160 | 1/6 (17%) | 47/48 (98%) | 2/6 (33%) |
+| 17-40 | 52/77 (68%) |  | 9/10 (90%) |
+| 41-64 | 3/11 (27%) |  | 21/31 (68%) |
+| 65-160 | 1/6 (17%) | 57/58 (98%) | 2/6 (33%) |
 | 161-400 |  | 3/5 (60%) |  |
 
 ### Cost per batch
@@ -67,6 +67,9 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | S9 | sonnet | 10 | 10 | 139,663 | 13,966 | 28 | 17 |
 | O10 | opus | 8 | 8 | 177,828 | 22,228 | 89 | 14 |
 | O15 | opus | 10 | 10 | 122,592 | 12,259 | 49 | 8 |
+| S10 | sonnet | 10 | 7 | 209,102 | 29,871 | 60 | 23 |
+| H15 | haiku | 20 | 8 | 114,543 | 14,317 | 14 | 12 |
+| O16 | opus | 10 | 10 | 181,978 | 18,197 | 73 | 13 |
 
 ### Escalations
 
@@ -97,3 +100,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 - The C++ runtime library (LIBCPMT) accounts for 15 functions inside the game
   region: `std::string` internals instantiated in Cavedog's objects, two copies
   of `std::_Lockit`, and the std exception classes. They are now `library`.
+- Known checker limit: a vtable defined in a decompiled file is verified by
+  name, not by its entries, so a file can declare fewer virtual methods than
+  the original vtable has (0x4b0610 declares 4 of 21). Resolving each vtable
+  entry against the name map would close this.

@@ -61,10 +61,16 @@ def main() -> None:
         if (a > runtime_start and r["kind"] == "library" and r["name"]
                 and not r["name"].startswith(NOT_LEARNED)):
             symbols.setdefault(base_name(r["name"]), a)
+    # Import slots carry their API's name: a call to a dllimport function
+    # references __imp__Name@N, whose base name is _imp__Name.
+    orig = Original()
+    for d in orig.pe.DIRECTORY_ENTRY_IMPORT:
+        for e in d.imports:
+            if e.name:
+                symbols.setdefault("_imp__" + e.name.decode(), e.address)
 
     include_hash = hashlib.sha256(b"".join(
         p.read_bytes() for p in sorted((ROOT / "include").rglob("*")) if p.is_file())).hexdigest()
-    orig = Original()
     work = []
     for src in sorted((ROOT / "src").rglob("*.cpp")):
         for address, qualname in annotations(src):
@@ -76,6 +82,7 @@ def main() -> None:
     with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:
         compiled = dict(zip(sources, pool.map(lambda s: compile_cached(s, include_hash), sources)))
 
+    conflicts: list[str] = []
     seen: dict[int, Path] = {}
     objects: dict[Path, object] = {}
     rows = []
@@ -103,12 +110,20 @@ def main() -> None:
         row["similarity"] = f"{res.ratio * 100:.1f}"
         row["status"] = "matched" if res.matched else ("error" if res.error else "partial")
         if res.matched:
-            if not base_name(res.symbol).startswith("$"):  # compiler-generated statics like _$E1
-                symbols.setdefault(base_name(res.symbol), address)
+            # One name per address: the first one learned (or pre-loaded) wins.
+            named = set(symbols.values())
+            own = base_name(res.symbol)
+            if not own.startswith("$"):  # skip compiler-generated _$E1...
+                if address not in named:
+                    symbols.setdefault(own, address)
+                elif symbols.get(own) != address:
+                    held = next(k for k, v in symbols.items() if v == address)
+                    conflicts.append(f"{address:#x} {row['file']}: defines '{own}', but callers use '{held}'")
             for ref in res.refs:
                 if (ref.status == "new" and not ref.symbol.startswith(NOT_LEARNED)
-                        and not base_name(ref.symbol).startswith("$")):
+                        and not base_name(ref.symbol).startswith("$") and ref.target not in named):
                     symbols.setdefault(base_name(ref.symbol), ref.target)
+                    named.add(ref.target)
 
     PROGRESS.parent.mkdir(exist_ok=True)
     with PROGRESS.open("w", newline="") as fh:
@@ -156,6 +171,8 @@ def main() -> None:
         for r in rows:
             if r["status"] not in ("matched", "partial"):
                 print(f"  {r['address']} {r['file']}: {r['status']}")
+    for c in conflicts:
+        print("  name conflict:", c)
     bad = [r for r in rows if r["status"] not in ("matched", "partial")]
     sys.exit(1 if bad else 0)
 

@@ -1491,6 +1491,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Finding what spends the inline budget in a big STL function**: delete later
   code in a scratch copy and watch which calls appear in the `/Fa` listing; one
   extra `v->begin()` pushed an `erase` out of line in 0x424c00.
+- **A stretch that is a matched neighbour's body instruction for
+  instruction**: write it as an inline copy of that neighbour and call it. A
+  `sub esp, N` frame the function never seems to need can be that neighbour's
+  by-value struct argument. Found by Claude Opus 5.5 in #333 (0x4861d0, 62.9%
+  to MATCH).
+- **A `xor reg, reg` before a 16-bit load that the original lacks**, where the
+  value goes into an inlined helper: the helper's parameter is
+  `unsigned short`, not `int` with a cast, even if the helper's own file
+  matches with `int`. See 0x4861d0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

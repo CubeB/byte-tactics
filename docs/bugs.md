@@ -381,3 +381,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   colour switch uses the unmasked flags and sets the colour only for 1 and 2,
   so flag values 5 and 6 draw with a stale stack byte (loaded at 0x4186f8).
   Found by ozgb's Codex / GPT-6 Astra in #174.
+- **0x4861d0** (possible): when a spawn record's id is 0 the unit pointer is
+  null, but `unit->field_a6` is still read (`cmp word ptr [esi+0xa6], 0` right
+  after `xor esi, esi`), then written, and the null pointer is passed to every
+  callee; only the loop inlined from FUN_00485e90 checks for null. Harmless if
+  id 0 never occurs. Found by Claude Opus 5.5 in #333.

@@ -2897,7 +2897,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4851c0,354,,#329,assigned,,,"issue #329, escalated"
 0x465e30,371,opus,#330,matched,100.0,,"issue #330, escalated"
 0x466b70,165,opus,#330,matched,100.0,,"issue #330, escalated"
-0x4861d0,395,,#333,assigned,,,"issue #333, escalated"
+0x4861d0,395,opus,#333,matched,100.0,,"issue #333, escalated"
 0x471de0,195,,#340,assigned,,,"issue #340, escalated"
 0x472630,230,space-bunny-free,#342,matched,100.0,,"issue #342, escalated"
 0x472720,230,space-bunny-free,#342,matched,100.0,,"issue #342, escalated"

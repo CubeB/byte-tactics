@@ -218,6 +218,10 @@ can disagree on types (a real link would fail). Known cases:
   that class. 0x462860 and 0x4628a0 are methods of the channel class (a
   timeout and the send pacing), matched under separate placeholder classes.
 
+- FUN_00485e90's unit type parameter is `int` in 0x485e90.cpp but must be
+  `unsigned short` where 0x4861d0 inlines it (#333); 0x485e90 also matches
+  with `unsigned short`, so settle on that.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

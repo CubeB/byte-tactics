@@ -1515,7 +1515,7 @@ address,size,file,symbol,status,similarity
 0x485e30,30,src/unsorted/0x485e30.cpp,??_GClass_00485e30@@UAEPAXI@Z,matched,100.0
 0x485e50,54,src/unsorted/0x485e50.cpp,?FUN_00485e50@@YGXPAUUnit_00485e50@@@Z,matched,100.0
 0x485e90,186,src/unsorted/0x485e90.cpp,?FUN_00485e90@@YGXHUPos_00485e90@@HPAUUnit_00485e90@@@Z,matched,100.0
-0x4861d0,395,src/unsorted/0x4861d0.cpp,?FUN_004861d0@@YGPAUUnit_004861d0@@HPAUSpawn_004861d0@@@Z,partial,62.9
+0x4861d0,395,src/unsorted/0x4861d0.cpp,?FUN_004861d0@@YGPAUUnit_004861d0@@EPAUSpawn_004861d0@@@Z,matched,100.0
 0x486360,247,src/unsorted/0x486360.cpp,?FUN_00486360@@YGXPAUUnit_486360@@HH@Z,matched,100.0
 0x486460,74,src/unsorted/0x486460.cpp,?FUN_00486460@@YGHPAUUnit_00486460@@@Z,matched,100.0
 0x486e80,71,src/unsorted/0x486e80.cpp,?FUN_00486e80@@YGXF@Z,matched,100.0

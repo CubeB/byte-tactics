@@ -2620,12 +2620,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x46c920,317,,#199,not reached,,,issue #199 (session stopped)
 0x46ca60,381,,#199,not reached,,,issue #199 (session stopped)
 0x46cef0,325,,#199,not reached,,,issue #199 (session stopped)
-0x46d040,342,,#200,assigned,,,issue #200
-0x46d1a0,312,,#200,assigned,,,issue #200
-0x46d860,259,,#200,assigned,,,issue #200
-0x46d970,351,,#200,assigned,,,issue #200
-0x46e000,166,,#200,assigned,,,issue #200
-0x46e0b0,163,,#200,assigned,,,issue #200
+0x46d040,342,space-bunny-free,#200,partial,85.3,,issue #200
+0x46d1a0,312,space-bunny-free,#200,partial,85.0,,issue #200
+0x46d860,259,space-bunny-free,#200,partial,73.4,,issue #200
+0x46d970,351,space-bunny-free,#200,matched,100.0,,issue #200
+0x46e000,166,space-bunny-free,#200,matched,100.0,,issue #200
+0x46e0b0,163,space-bunny-free,#200,matched,100.0,,issue #200
 0x46e160,276,deepseek-v4.1-flash,#201,matched,100.0,,issue #201
 0x46e280,173,deepseek-v4.1-flash,#201,matched,100.0,,issue #201
 0x46e890,276,deepseek-v4.1-flash,#201,partial,100.0,,issue #201
@@ -2868,3 +2868,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x47eee0,224,,#312,assigned,,,"issue #312, escalated"
 0x47a760,372,,#317,assigned,,,"issue #317, escalated"
 0x47bdf0,304,,#317,assigned,,,"issue #317, escalated"
+0x46d040,342,,#319,assigned,,,"issue #319, escalated"
+0x46d1a0,312,,#319,assigned,,,"issue #319, escalated"
+0x46d860,259,,#319,assigned,,,"issue #319, escalated"

@@ -1,5 +1,7 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Best attempt, 42% of the bytes match (not MATCH).
+// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Best attempt, 42% of the bytes match (not MATCH). Retry of the previous
+// 42% attempt: no source-level rewrite found that flips the two registers it
+// notes below, but the notes are now more specific.
 //
 // The function: for table number `table` (0-based) it builds the name
 // "TABLE%d" (table + 1), resets the TDF reader, looks the name up, and if it
@@ -21,17 +23,39 @@
 // 0x433130.cpp.
 //
 // What still differs (the remaining 58%):
-//   * register choice in the prologue. The original keeps `this` in esi and
-//     the table parameter as a 16-bit copy in di (`mov di, word ptr [esp+54]`,
-//     `mov esi, ecx`, then `movsx eax, di` at each use). This version
-//     sign-extends the parameter into esi up front and keeps `this` in edi,
-//     and every later difference follows from that.
-//   * the frame is 0x20 bytes here against 0x3c in the original, whose
+//   * Register choice in the prologue, and everything downstream follows
+//     from it. The original is
+//         mov di, word ptr [esp+0x54]   ; table kept raw, 16-bit, in di
+//         mov esi, ecx                  ; this in esi
+//     and re-extends table at each use (`movsx eax, di`, twice). This
+//     compiler output is
+//         movsx esi, word ptr [esp+0x38] ; table widened into esi
+//         mov edi, ecx                   ; this in edi
+//     MSVC hoists the sign-extension of the short parameter into esi because
+//     both uses (sprintf's "%d" and the tables index) need `(int)table`, so
+//     it is CSE'd across the two calls. If the hoist is suppressed the raw
+//     value lands in edi and `this` gets esi, exactly as the original.
+//     Everything else (numlines in esi vs ebp, n in ebp vs esi, the loop
+//     accumulator in ebp, the four spills at [esp+0x10..0x18]) is a
+//     consequence of that one decision.
+//   * Things tried, all of which leave the hoist in place: a short local
+//     copy of the parameter; `(short)`/`(unsigned short)` casts on the index;
+//     an int parameter with a short local; an `int` index local; taking the
+//     index through an inlined helper returning int; `table & 0x7fff`
+//     (this moves `this` to esi but adds the AND, dropping to 40%); a
+//     `std::vector::operator[]` taking a short; the k-loop spelled as for,
+//     while, with the declared loop variable hoisted, with a walking pointer;
+//     n as short vs int; group declared before vs after the numlines call;
+//     early return vs enclosing if. `tools/headers.py` finds no header set
+//     that changes it and prefixed `extern int dummyN;` declarations (N up
+//     to 400) do not either, so it is not simple compiler state.
+//   * The frame is 0x20 bytes here against 0x3c in the original, whose
 //     locals are 2n, -n and n spilled in the loop plus the 16-byte fill
-//     value and the 16-byte name buffer. The original reloads numlines from
-//     the dead `file` argument slot, which frees ebp for the loop's
-//     induction variable 2n + i; here numlines stays in a register, so the
-//     compiler strength-reduces the loop indices instead.
+//     value and the 16-byte name buffer. The original recomputes the loop
+//     base 2n + i from the spilled 2n each iteration (and clobbers ebp with
+//     _First at the fourth call); this version keeps the accumulator in ebp
+//     and increments it, so the three spills never appear and the frame
+//     never grows.
 #include <stdio.h>
 
 // A hand-rolled std::vector interface, as in 0x433130.cpp: size, insert and

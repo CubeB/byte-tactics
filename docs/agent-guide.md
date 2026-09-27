@@ -75,6 +75,9 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
   the same name its own author will give it. If your object has a different
   class, cast: `((Class_00437a20*)obj)->FUN_00437a20()`. Once a callee has a
   name in `data/symbols.csv`, `ctx.py` shows it and you must use it.
+- A callee that is a **constructor** (called on the result of `operator new`,
+  or one that stores a vtable and returns `this`) is named as a constructor,
+  `Class_<addr>::Class_<addr>`, because that is what its own author will call it.
 - A function that is only `ret` or `ret N` is an empty function: an empty body
   with N/4 dword-sized parameters (as a `__thiscall` method if unsure).
 - Library calls (`sprintf`, `memset`, `strcpy`, `malloc`, ...) are the normal C
@@ -424,3 +427,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Scalar deleting destructors** (call the destructor, `operator delete(this)`
   if `flag & 1`, return `this`): call the destructor by its real name,
   `((Base*)this)->~Base();`, so it agrees with the destructor's own file.
+- **Sizes pushed to `new` that are not multiples of 4** (e.g. 0x36): the class
+  needs `#pragma pack(push, 2)` or MSVC rounds `sizeof` up.
+- **The STL source is local**: `toolchain/msvc5-sp3/INCLUDE/XTREE`, `VECTOR`,
+  `XSTRING` and friends show exactly where locks and helpers sit in inlined STL
+  code (e.g. `lower_bound` is `iterator(_Lbound(k))`, and `_Lbound` takes the lock).

@@ -1,15 +1,19 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (58.3%). The body, loop rotation and the buf->count==0 early exit
-// match. What still differs: the two spilled temporaries are swapped. The
-// original keeps `this` in esi and the wrapped index in edi; this build chooses
-// edi for `this` and esi for the index. All the loop registers agree
-// (buf=ebp, now=ebx, p=esi, mustBeSentBefore=edi). Tried: unsigned/signed
-// index, declaration order, ternary and if/else wrap forms (those flip the
-// register but lose the branchy store/reload wrap), an inlined wrap helper,
-// local `count`, `self` aliases, every standard header set, and defining the
-// immediately preceding real functions; none moved the choice. The
-// `not_eligible` block also ends up outlined after the return blocks instead
-// of between grow and the shared reset, which costs a few more bytes.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Partial (84.5%). Everything but one register pair matches: the original
+// keeps `this` in esi and the wrapped index ix in edi before the scan (and
+// reloads them into those registers after the "eligible" print), while this
+// version swaps them. The stack slots, the block order and the scan registers
+// all agree.
+//
+// What fixed the block order (65.7% to 84.5%): the scan is an inline helper,
+// IsReusable, with one `return` per outcome, that also does the empty-buffer
+// test and both debug prints, exactly like the sibling 0x461c20 (which
+// matches). Tried without moving the swap: declaration orders, ix declared in
+// or outside the loop, `++ix`, int ix, a `self` local, a count local, a
+// NextIndex helper, a Grow() wrapper, `break` to a shared reuse tail, printing
+// `head` in the force path, the helper as a member of the buffer class, helper
+// parameter order. An N-declarations sweep (0 to 1200) and headers.py leave it
+// at 84.5%, so the difference is in the source, not the compiler state.
 
 void FUN_00461170(const char* fmt, ...);
 unsigned int FUN_004b6340();
@@ -52,60 +56,50 @@ public:
     Class_004629b0* FUN_00461b10();
 };
 
+static inline int IsReusable(Class_004629b0* buf, int minRetain)
+{
+    if (buf->count == 0)
+        return 1;
+    Packet_004629b0* p = buf->first;
+    unsigned int now = FUN_004b6340();
+    int mustBeSentBefore = now - minRetain;
+    FUN_00461170("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
+                 now, minRetain, mustBeSentBefore);
+    for (; p != 0; p = p->next) {
+        if (p->owner != buf)
+            break;
+        if (p->queued >= 0)
+            return 0;
+        if (p->sentTime > mustBeSentBefore && p->sentTime <= now)
+            return 0;
+    }
+    FUN_00461170("buffer eligible for reuse:  all packets have been sent more than %lu game ticks ago\n",
+                 minRetain);
+    return 1;
+}
+
 // FUNCTION: 0x461b10
 Class_004629b0* Class_00461b10::FUN_00461b10()
 {
-    Class_004629b0* buf;
-    unsigned int ix;
-    int minRetain;
-    Packet_004629b0* p;
-    unsigned int now;
-
-    do {
-        if (this->count > 0) {
-            ix = this->head + 1;
-            if (ix >= this->count)
+    for (;;) {
+        if (count > 0) {
+            unsigned int ix = head + 1;
+            if (ix >= count)
                 ix = 0;
-            buf = this->array[ix];
-            minRetain = this->minRetain;
-            if (buf->count == 0) {
+            Class_004629b0* buf = array[ix];
+            if (IsReusable(buf, minRetain)) {
                 buf->FUN_004629b0();
-                this->head = ix;
+                head = ix;
                 return buf;
             }
-            p = buf->first;
-            now = FUN_004b6340();
-            int mustBeSentBefore = now - minRetain;
-            FUN_00461170("cur game time: %ld, min retain=%ld, mustBeSentBefore=%ld\n",
-                         now, minRetain, mustBeSentBefore);
-            if (p != 0) {
-                do {
-                    if (p->owner != buf)
-                        goto not_eligible;
-                    if (p->queued >= 0)
-                        goto eligible;
-                    if (p->sentTime > mustBeSentBefore && p->sentTime <= now)
-                        goto eligible;
-                    p = p->next;
-                } while (p != 0);
-            }
-            goto not_eligible;
-        eligible:
-            if (this->count >= 0x22) {
+            if (count >= 0x22) {
                 buf->FUN_004629b0();
-                this->head = ix;
+                head = ix;
                 FUN_00461170("force-allocated a previously-used buffer, ix=%ld\n", ix);
                 return buf;
             }
         }
-    grow:
         if (((Class_00461fd0*)this)->FUN_00461fd0(0x10, 0x320) == 0)
             return 0;
-    } while (1);
-not_eligible:
-    FUN_00461170("buffer eligible for reuse:  all packets have been sent more than %lu game ticks ago\n",
-                 minRetain);
-    buf->FUN_004629b0();
-    this->head = ix;
-    return buf;
+    }
 }

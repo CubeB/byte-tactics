@@ -1,10 +1,17 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial: every block matches the original's layout except that the
-// allocation-failure `return 0` block sits out of line at the end in the
-// original (reached by `je`) while MSVC 5 puts it inline for every plain
-// if/else spelling (75.4%). Writing the buffer setup as a `while` loop keeps
-// the original's block order (DAT return inline, failure return last) but adds
-// the loop's back-edge test and hoists 0x42a into ebx, which is 78%.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Partial (98.6%). Only the last block differs: the original's out-of-line
+// allocation-failure `return 0` is the real epilogue, scheduled as
+// `pop edi; pop esi; xor eax, eax; pop ebx`, while this version emits
+// `xor eax, eax; pop edi; pop esi; pop ebx` there.
+//
+// What got it from 86.5% to 98.6%: the body after the network check is an
+// inline helper whose failure `return 0` the caller tests with
+// `if (!Setup(...)) return 0;`. That keeps the two `return 0` blocks apart and
+// puts the failure one last. Writing the failure `return 0` as the function's
+// last statement instead (a `goto fail`, `if (Setup()) return 1; return 0;`,
+// an outer `if (DAT_00506dbc)`) gives the interleaved epilogue but makes MSVC
+// merge the network check's `return 0` into it (84 to 86%). An N-declarations
+// sweep (0 to 400) leaves both shapes unchanged, so the rest is source shape.
 #include <windows.h>
 
 void* operator new(unsigned int size);
@@ -37,6 +44,35 @@ public:
     int field_b52c;                    // +0xb52c
 
     int FUN_00461750(int arg1, int arg2);
+    int Setup(int arg1, int arg2)
+    {
+        if (field_b318 == 0) {
+            if (field_b31c != 0) {
+                field_b318 = field_b31c;
+                field_b31c = 0;
+            } else {
+                field_b318 = (int)operator new(0x42a);
+                if (field_b318 == 0) {
+                    return 0;
+                }
+                field_b528 = 0x42a;
+            }
+        }
+        field_b52c = 0;
+        if (field_b314 != 0) {
+            *(int*)(field_b314 + 0xc) = 0;
+            field_b314 = 0;
+        }
+        entries[0].FUN_00461db0(0, field_4, arg1, arg2);
+        Class_00462470* e = entries + 1;
+        int n = 10;
+        do {
+            e->FUN_00461db0(-1, field_4, 2, 100);
+            e++;
+        } while (--n);
+        SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+        return 1;
+    }
 };
 
 // FUNCTION: 0x461750
@@ -45,30 +81,8 @@ int Class_00461750::FUN_00461750(int arg1, int arg2)
     if (DAT_00506dbc == 0) {
         return 0;
     }
-    while (field_b318 == 0) {
-        if (field_b31c != 0) {
-            field_b318 = field_b31c;
-            field_b31c = 0;
-        } else {
-            field_b318 = (int)operator new(0x42a);
-            if (field_b318 == 0) {
-                return 0;
-            }
-            field_b528 = 0x42a;
-        }
+    if (!Setup(arg1, arg2)) {
+        return 0;
     }
-    field_b52c = 0;
-    if (field_b314 != 0) {
-        *(int*)(field_b314 + 0xc) = 0;
-        field_b314 = 0;
-    }
-    entries[0].FUN_00461db0(0, field_4, arg1, arg2);
-    Class_00462470* e = entries + 1;
-    int n = 10;
-    do {
-        e->FUN_00461db0(-1, field_4, 2, 100);
-        e++;
-    } while (--n);
-    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
     return 1;
 }

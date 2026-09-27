@@ -951,6 +951,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Scratch registers rotated by one across a loop** (eax/ecx vs ecx/edx): MSVC 5
   hands them out in rotation, so the loop has one temporary more or fewer
   earlier on; two throwaway loads in a scratch copy confirm it (0x402da0).
+- **Two locals swapped between callee-saved registers after a search helper**:
+  try inverting the helper's early return (`if (i < 0) return 0;` versus
+  `if (i >= 0) { ...; return e; } return 0;`) (0x45af90).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

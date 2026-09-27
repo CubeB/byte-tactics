@@ -4,21 +4,23 @@
 // clears flag bits, and takes the firing unit's colour, its tracked
 // projectile slot, the barrel the shot came out of and the frame number.
 //
-// Still differs (best 87.5%): the original emits the second flag clear as
+// The second flag clear reloads the word instead of being folded into the
+// first one:
 //   and word ptr [esi+0x69], 0xfffe      <- first clear, in place
 //   mov ax, word ptr [esi+0x69]          <- reload, no GVN forwarding
 //   ...
 //   and eax, 0xffcf                     <- mask in a register
 //   ...
 //   mov word ptr [esi+0x69], ax         <- store sunk to the end of the run
-// i.e. the second clear reloads the word instead of being folded into the
-// first one. MSVC 5 always folds two read-modify-writes to the same word in
-// one block (plain short, bitfield, 16-bit bitfield, union member, cast to a
-// second struct type, and a local holding the value were all tried and all
-// fold), and the only forms that stop the fold (a by-reference helper, a
-// block boundary) change the first clear or the layout instead. The reload
-// also pins ax across the rest of the run, which is why the g_game pointer
-// ends up in edx rather than eax and why +0x4a is stored before +0x4e.
+// Writing the second clear as one statement that reads the word and masks it
+// into a local (`unsigned short f = proj->flags & ~0x30;`) is what stops the
+// fold. Every other spelling of it - a second `&=`, a bitfield, a 16-bit
+// bitfield, a union member, a cast to a second struct type, a by-reference
+// helper, a block boundary, a pointer local - either folds into a single
+// `and word ptr [esi+0x69], 0xffce` or turns into a second in-place `and`.
+// The reload also pins ax across the rest of the run, which is why the g_game
+// pointer ends up in edx rather than eax; that in turn fixes the order of the
+// three stores that follow, so +0x4a has to be written before +0x56.
 
 struct Vec3_0049c740 {
     int x;
@@ -94,11 +96,6 @@ struct Game_0049c740 {
 
 extern Game_0049c740* g_game;
 
-// Taking the word by reference is what keeps MSVC from folding the two flag
-// clears into one `and word ptr [esi+0x69], 0xffce`, which is the shape the
-// first clear has in the original.
-static inline void Clear45(unsigned short& f) { f = f & ~0x30; }
-
 int __stdcall FUN_0043e1e0(Unit_0049c740* unit, unsigned char weapon);
 void __stdcall FUN_0047f300(int sound, Vec3_0049c740* pos, int param_3);
 
@@ -115,14 +112,20 @@ void __stdcall FUN_0049c740(Proj_0049c740* proj, Shot_0049c740* shot, Vec3_0049c
     proj->field_42 = field_5;
     proj->flags &= ~1;
     proj->active = 0;
-    Clear45(proj->flags);
-    proj->field_56 = 0;
+    unsigned short f = proj->flags & ~0x30;
     proj->field_4a = g_game->field_38a47;
+    proj->field_56 = 0;
     proj->field_4e = 0;
+    proj->flags = f;
     if (unit) {
         proj->SetOwner(unit);
         if ((unit->flags & 0x20000000) && g_game->trackedUnit == unit)
             g_game->trackedProj = proj;
+        // Suspected bug: the loop leaves i at 3 when no slot matches, and that
+        // 3 is passed to FUN_0043e1e0, which indexes names[weapon] on a
+        // three-element local array (see src/unsorted/0x43e1e0.cpp), so it
+        // reads past the array unless a unit can never fire a weapon outside
+        // slots 0 to 2.
         for (i = 0; i < 3; i++)
             if (unit->slots[i].shot == shot)
                 break;

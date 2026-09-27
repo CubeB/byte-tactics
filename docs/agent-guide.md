@@ -359,3 +359,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   has a destructor that makes that call; write the element class with
   `~Elem() { FUN_x(this); }` (or, as in `0x434020.cpp`, an overload of
   `std::_Destroy` for the element type).
+- **Copy matched siblings first**: look for already-matched neighbours that use
+  the same inlined helper and copy it verbatim; small phrasing differences
+  (`int r = f(); if (!r)` vs `if (!f())`) change the whole function's registers.
+- **Two ways to write `== 0`**: `return x == 0 ? 1 : 0;` gives
+  `xor edx, edx; test; sete dl; mov eax, edx`; `return x == 0;` gives
+  `neg; sbb; inc`.
+- **Zero-init order**: a chained `a = b = c = d = 0;` initialises right to left.
+- **Stop early on operand-order-only differences**: when the only difference is
+  which of two loads in a commutative `a + b` (or `x ^ y`) comes first, and
+  swapping operands or wrapping them in helpers changes nothing, the cause is
+  compiler state left by earlier functions in the original source file. It
+  cannot be fixed from this function's source; say so in your notes and move
+  on. Never add unused code to change that state.

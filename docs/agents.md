@@ -24,7 +24,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | 17-40 | 69/97 (71%) |  | 9/10 (90%) |
 | 41-64 | 3/11 (27%) |  | 21/31 (68%) |
 | 65-160 | 1/6 (17%) | 77/78 (99%) | 2/6 (33%) |
-| 161-400 |  | 3/5 (60%) |  |
+| 161-400 |  | 7/11 (64%) |  |
 
 ### Cost per batch
 
@@ -74,6 +74,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | O19 | opus | 10 | 10 | 125,371 | 12,537 | 50 | 8 |
 | H16 | haiku | 20 | 17 | 112,841 | 6,637 | 7 | 11 |
 | S11 | sonnet | 11 | 11 | 155,898 | 14,172 | 28 | 17 |
+| O14 | opus | 6 | 4 | 300,817 | 75,204 | 301 | 42 |
 
 ### Escalations
 
@@ -112,3 +113,8 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
   are linked in, and a block of code at 0x4d8000-0x4e3000 calls the copy that
   sits inside it. That block is probably a separately built library of
   Cavedog's (or a third party's) linked after the game's own objects.
+- Some near-misses depend on compiler state left by earlier functions in the
+  same source file: in 0x4581e0 the load order of one `a + b` flips with
+  unrelated code placed before it. These should resolve once functions are
+  regrouped into their original translation units in address order, which is
+  a later phase of the project.

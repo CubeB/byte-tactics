@@ -1704,3 +1704,26 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A load that moves across a branch can be an inverted comparison**: the
   wrong direction can still give the right `cmp` and byte count. Check the
   branch polarity before blaming register allocation (0x45ffb0).
+- **Frame slot order that differs from declaration order**: a local declared
+  without an initialiser and zeroed by a later statement gets its store after
+  the initialised locals, which also changes which locals get callee-saved
+  registers (0x4b6880, 37.8% to 86.0%).
+- **`cmp reg, reg` against a zero register instead of `test reg, reg`**
+  appears when a call's result is assigned to a named variable before the
+  comparison. Store every call result in a variable of the API's return type
+  if the original compares that way throughout (0x4b6880).
+- **A reload of an address-taken local that drifts by a couple of
+  instructions** around a call's argument pushes, with the displacement
+  shifting by exactly 4 per push, is a scheduler tie-break. Don't spend the
+  budget on it (0x4b6570, about 30 shapes tried).
+- **Rule out the compiler build and the STL revision cheaply**: build once with
+  `BT_TOOLCHAIN=msvc5-rtm` (the unpatched compiler, see `tools/wcl`), and `cmp`
+  the INCLUDE headers. If putting the exe's real neighbouring instantiations in
+  the same file leaves check.py's output byte-identical, the source form is not
+  the lever (0x4732e0).
+- **A `g_game` field at an odd offset**: test it as
+  `*(unsigned char*)((char*)g_game + K) & mask` rather than declaring a field
+  that MSVC 5 would align (0x46a610).
+- **A flat declaration sweep is a result**: if 0 to 700 unused declarations
+  never change the score, the difference is the source shape, so keep
+  rewriting; if the score moves, it is compiler state (0x4624a0, 0x46e640).

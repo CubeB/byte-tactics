@@ -131,6 +131,10 @@ Things that look wrong in the original but have no effect, kept for the record.
   name, so paths come out as `D:\\dir\file`. Windows accepts the doubled
   separator. Found by DeepSeek V4.1 Flash in #21.
 
+- **0x42db90**: clears `field_152` together with `field_156` although only
+  `field_156` is tested, so `field_152` is zeroed even when `field_156` is
+  already null. Found by Space Bunny Free in #27.
+
 ## Possible leaks and unchecked inputs
 
 - **0x413470** (an order handler), state 3 (likely): after two misses it

@@ -1269,6 +1269,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Padding a struct to a power-of-two size** turns element indexing into a
   shift (`shl edx, 8`) and can fix the surrounding registers as a side effect,
   where an explicit multiplication does not. See 0x421da0.
+- **`delete p` rather than a spelled-out destructor and `operator delete`**:
+  when the two differ only in a callee-saved register, write `delete p`; MSVC
+  keeps `p` live across the call and reuses the same zero for the following
+  field stores, which also turns a register store into an immediate `0`.
+  Found by Space Bunny Free in #27 (0x42f3a0).
+- **A loop over a global array of fixed-stride records**: write
+  `Record* p = &g.arr[i];` in an `int i` loop to get
+  `lea reg, [base+idx*stride+disp]` with a byte-offset induction variable and
+  an immediate zero store; a `char*` base plus a manual offset rotates the
+  increment and puts the zero in a register. See 0x42e310.
+- **Compare byte counts first**: when yours is a few bytes longer or shorter,
+  the difference often names the cause (an immediate `0` store is 4 bytes
+  longer than a register store). See 0x42f3a0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -1,19 +1,20 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Appends `size` bytes at `data` to the buffer's inline storage (at +0x14),
 // fills in the output packet `p`, and bumps the buffer's packet count.
+// `value` is the previously queued packet (0x462710 passes its tail), stored
+// in the packet's prev field at +0x18.
 //
-// PARTIAL: 81.9%. Semantically identical to the original. The instruction
-// sequence, registers and store order all match except for two bytes:
-//   1. the original reloads `length` (mov eax,[ebx+0xc]) before
-//      `mov [esi+4],eax`; this version keeps the value in eax from the copy.
-//   2. the copy destination is encoded as lea edi,[eax+ebx+0x14] here versus
-//      lea edi,[ebx+eax+0x14] in the original (base/index swapped).
-// Both come from reading the member `length` directly: that emits the reload
-// and fixes the lea order, but then MSVC hoists the `value` load into ecx
-// before the offset store (and uses edx for count+1, eax for the last print).
-// Keeping `len` in a local reproduces the original value/count register
-// allocation but drops the reload. A local `unsigned int len = length;` is
-// used here because it gets 81.9% versus 77.3% for the direct member read.
+// Partial (96.6%). One instruction is missing: after the copy the original
+// reloads `length` (mov eax, [ebx+0xc]) for `p->offset`; this version reuses
+// the value loaded for the size check, kept in eax through the copy by `len`.
+// Writing `p->offset = length` gives the reload, but then MSVC loads `value`
+// into ecx above the offset store and rotates the registers of the count and
+// length updates (90.7%). No store order (all 120 tried), inline helper for
+// the copy or the packet setup, reference or pointer to `length`, or rewritten
+// size check gives both at once. Taking the copy destination from the member
+// (`buffer + length`, not `buffer + len`) is what fixes the lea operand order.
+// An N-declarations sweep (0 to 600) and headers.py change nothing, so the
+// difference is in the source, not the compiler state.
 #include <string.h>
 
 void FUN_00461170(const char* fmt, ...);
@@ -53,16 +54,14 @@ int Class_004628d0::FUN_004628d0(Packet_004628d0* p, int index, const void* data
                  size, 0x42a);
     if (length + size <= 0x42a) {
         unsigned int len = length;
-        memcpy(buffer + len, data, size);
+        memcpy(buffer + length, data, size);
         p->offset = len;
         p->owner = this;
         p->size = size;
         p->value = value;
         p->next = 0;
-        int old = count;
         length += size;
-        count = old + 1;
-        if (old == 0) {
+        if (count++ == 0) {
             firstIndex = index;
             FUN_00461170("set first packet ix to: %ld\n", index);
             first = p;

@@ -1,4 +1,15 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// Still 94.2%: the inlined ~list<int> erase(first,last) loop is byte-identical
+// except that MSVC here reloads the iterator before the bottom test,
+// `mov ecx,[esp+0x10]; cmp ecx,ebx`, where the original compares the memory
+// operand directly, `cmp [esp+0x10],ebx`. The register-allocator choice is
+// compiler state: it survives every class/type/flag/header variation tried
+// (plain list vs a derived ListWrap, containment wrappers, real std::map vs
+// the hand-written tree, std::vector vs custom vector members, defining the
+// member destructors, all tools/headers.py sets), and 0x46ca60 has the same
+// one-instruction difference. Everything else is byte-identical.
+//
 // Releases the overlay object at g_game+0x2a30 (Class_0046d040, built by
 // 0x46c8e0 and its constructor 0x46d040): `if (obj) delete obj;` with the
 // whole ~Class_0046d040 inlined here. The tree at +0x00 is written out by

@@ -2855,11 +2855,11 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a16f0,285,,#288,assigned,,,issue #288
 0x4a1810,164,,#288,assigned,,,issue #288
 0x43a0c0,274,opus,#294,matched,100.0,,"issue #294, escalated"
-0x4534e0,349,,#295,assigned,,,"issue #295, escalated"
-0x4538f0,338,,#295,assigned,,,"issue #295, escalated"
-0x453c20,273,,#295,assigned,,,"issue #295, escalated"
-0x456760,225,,#295,assigned,,,"issue #295, escalated"
-0x456de0,243,,#295,assigned,,,"issue #295, escalated"
+0x4534e0,349,opus,#295,partial,99.0,,"issue #295, escalated"
+0x4538f0,338,opus,#295,matched,100.0,,"issue #295, escalated"
+0x453c20,273,opus,#295,matched,100.0,,"issue #295, escalated"
+0x456760,225,opus,#295,matched,100.0,,"issue #295, escalated"
+0x456de0,243,opus,#295,partial,73.2,,"issue #295, escalated"
 0x4861d0,395,space-bunny-free,#307,partial,62.9,,"issue #307, escalated"
 0x4745e0,306,,#311,assigned,,,"issue #311, escalated"
 0x474b80,303,,#311,assigned,,,"issue #311, escalated"

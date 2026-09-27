@@ -1500,6 +1500,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   value goes into an inlined helper: the helper's parameter is
   `unsigned short`, not `int` with a cast, even if the helper's own file
   matches with `int`. See 0x4861d0.
+- **A loop pointer that points at a field** (`lea edx, [base+0x1b6f]`, then
+  `[edx-0xc]`) where the original's points at the element start: the original
+  walked an explicit `p++` pointer instead of indexing `&arr[i]`. Found by
+  Claude Opus 5.5 in #295 (0x453c20).
+- **Stopping MSVC from reusing loaded values**: spelling the first test through
+  `p->field` and later reads through `g_game->players[j].field` stops the
+  reuse, which changes which byte registers are free. See 0x456760.
+- **`mov al, [m]; and eax, 0xff` widening** only appears when an unsigned char
+  value sits in a register before being widened (a byte local used twice, or
+  byte locals followed by an `if`); plain loads, casts and bitfields give
+  `xor eax, eax; mov al, [m]`. See 0x456de0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

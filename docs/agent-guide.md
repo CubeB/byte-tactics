@@ -580,3 +580,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (`arr[g_count]`); keep a local copy only for later comparisons.
 - **`mov eax, 0xffff; cmp ax, 0xffff`**: an `unsigned short` helper returning
   0xffff (not `-1`).
+- **Parameter width from a byte use**: `mov al, byte ptr [esp+N]` feeding an
+  inlined `memset` fill value means an `int` parameter (`unsigned char` adds
+  `and eax, 0xff`, `char` gives `movsx`).
+- **An erase loop that reads `_First` once, before the loop**: take the iterator
+  into a local before the loop (`v.begin()` in the condition reloads it).

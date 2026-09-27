@@ -1069,16 +1069,16 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c5df0,124,opus,O39,matched,100.0,,
 0x4469c0,137,opus,O39,matched,100.0,,
 0x41df20,150,opus,O39,matched,100.0,,
-0x4e33d0,41,sonnet,S20,assigned,,,
-0x4d8360,43,sonnet,S20,assigned,,,
-0x4e05c0,46,sonnet,S20,assigned,,,
-0x489540,49,sonnet,S20,assigned,,,
-0x4b3370,51,sonnet,S20,assigned,,,
-0x4c1a60,54,sonnet,S20,assigned,,,
-0x4d0c10,56,sonnet,S20,assigned,,,
-0x475110,58,sonnet,S20,assigned,,,
-0x4800c0,60,sonnet,S20,assigned,,,
-0x471430,63,sonnet,S20,assigned,,,
+0x4e33d0,41,sonnet,S20,matched,100.0,,
+0x4d8360,43,sonnet,S20,matched,100.0,,
+0x4e05c0,46,sonnet,S20,matched,100.0,,
+0x489540,49,sonnet,S20,matched,100.0,,
+0x4b3370,51,sonnet,S20,matched,100.0,,
+0x4c1a60,54,sonnet,S20,matched,100.0,,
+0x4d0c10,56,sonnet,S20,partial,32.3,,
+0x475110,58,sonnet,S20,matched,100.0,,
+0x4800c0,60,sonnet,S20,partial,24.0,,
+0x471430,63,sonnet,S20,matched,100.0,,
 0x4da8a0,17,haiku,H24,partial,44.4,,
 0x40b370,19,haiku,H24,matched,100.0,,
 0x464b10,19,haiku,H24,matched,100.0,,
@@ -1159,16 +1159,16 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a0200,125,opus,O42,assigned,,,
 0x44f5c0,137,opus,O42,assigned,,,
 0x491d70,150,opus,O42,assigned,,,
-0x4c9d80,67,opus,O43,assigned,,,
-0x486460,74,opus,O43,assigned,,,
-0x45bcc0,81,opus,O43,assigned,,,
-0x49b680,88,opus,O43,assigned,,,
-0x470e50,95,opus,O43,assigned,,,
-0x4b8e50,104,opus,O43,assigned,,,
-0x428730,116,opus,O43,assigned,,,
-0x4a0280,125,opus,O43,assigned,,,
-0x45b920,137,opus,O43,assigned,,,
-0x4aeee0,150,opus,O43,assigned,,,
+0x4c9d80,67,opus,O43,matched,100.0,,
+0x486460,74,opus,O43,matched,100.0,,
+0x45bcc0,81,opus,O43,matched,100.0,,
+0x49b680,88,opus,O43,matched,100.0,,
+0x470e50,95,opus,O43,matched,100.0,,
+0x4b8e50,104,opus,O43,matched,100.0,,
+0x428730,116,opus,O43,matched,100.0,,
+0x4a0280,125,opus,O43,matched,100.0,,
+0x45b920,137,opus,O43,matched,100.0,,
+0x4aeee0,150,opus,O43,matched,100.0,,
 0x4d0a90,28,sonnet,S22,assigned,,,escalated from Haiku
 0x4c9390,31,sonnet,S22,assigned,,,escalated from Haiku
 0x481470,32,sonnet,S22,assigned,,,escalated from Haiku
@@ -1178,3 +1178,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b7f30,36,sonnet,S22,assigned,,,escalated from Haiku
 0x44f260,37,sonnet,S22,assigned,,,escalated from Haiku
 0x44df80,40,sonnet,S22,assigned,,,escalated from Haiku
+0x458d20,14,opus,O44,assigned,,,escalated: replace volatile or close register gap
+0x474d10,58,opus,O44,assigned,,,escalated: replace volatile or close register gap
+0x475110,58,opus,O44,assigned,,,escalated: replace volatile or close register gap
+0x4d0c10,56,opus,O44,assigned,,,escalated: replace volatile or close register gap
+0x4800c0,60,opus,O44,assigned,,,escalated: replace volatile or close register gap
+0x4b6f70,115,opus,O44,assigned,,,escalated: replace volatile or close register gap

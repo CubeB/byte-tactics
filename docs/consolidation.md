@@ -33,7 +33,7 @@ single addresses, so one real class often appears under several names.
 These match byte-for-byte but use something Cavedog probably did not write;
 revisit them once the surrounding code is known.
 
-- 0x458d20 and 0x474d10 force a dead stack store with `volatile`. A reserved
+- 0x458d20, 0x474d10 and 0x475110 force a dead stack store with `volatile`. A reserved
   `push ecx` slot plus a store that is never read is the signature of an
   inlined `std::vector<int>` destructor (compare 0x46e610 and 0x438480); the
   real source is probably a vector member or local.

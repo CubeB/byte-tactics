@@ -593,6 +593,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Check a small batch before spending check.py runs**: compile every file in
   one `tools/wcl` loop and compare each object's `objdump -d --no-show-raw-insn`
   with ctx.py; mismatches show up before the first check.py run.
+- **A constant hoisted into a register** (`mov eax, 1` then `test [m], al`)
+  where the original uses immediates: put the final test and `return 1/0` in
+  their own `static inline` helper (0x457a50).
+- **Finding a class's layout from its destructor**: grep the disassembly for
+  the vtable address to find the constructor's store site; the constructor
+  shows where member arrays start (0x462d30).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

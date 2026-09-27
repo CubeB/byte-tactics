@@ -60,6 +60,14 @@ revisit them once the surrounding code is known.
   from the base with vtable 0x4fc980, the base destructor inlined. Placeholder
   slot names are now compatible across classes, so a real `??_G` may now pass.
 
+## Signatures that disagree
+
+The checker compares names, not parameter types, so callers and definitions
+can disagree on types (a real link would fail). Known cases:
+
+- `FUN_004ba590`: its file takes `int`; callers such as 0x417290 pass `float`.
+- `FUN_004d0620`: its file returns `void`; 0x47efe0 uses a `void*` result.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

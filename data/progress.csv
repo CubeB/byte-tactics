@@ -1034,6 +1034,7 @@ address,size,file,symbol,status,similarity
 0x4587b0,85,src/unsorted/0x4587b0.cpp,?FUN_004587b0@@YGXPAUBitmap_004587b0@@0@Z,matched,100.0
 0x458d20,14,src/unsorted/0x458d20.cpp,?FUN_00458d20@@YGXHPAUCount_00458d20@@H@Z,matched,100.0
 0x458d30,149,src/unsorted/0x458d30.cpp,?FUN_00458d30@Class_00458d30@@QAEXPAUImage_458d30@@EHHH@Z,matched,100.0
+0x458fa0,455,src/unsorted/0x458fa0.cpp,?FUN_00458fa0@Class_00458fa0@@QAEXPAUView_0045a610@@PAUModel_00458fa0@@H@Z,partial,78.2
 0x459170,144,src/unsorted/0x459170.cpp,?FUN_00459170@Class_00459170@@QAEXPAUImage_00459170@@@Z,matched,100.0
 0x4597f0,61,src/unsorted/0x4597f0.cpp,?FUN_004597f0@@YGXHHH@Z,matched,100.0
 0x45a470,156,src/unsorted/0x45a470.cpp,?FUN_0045a470@Class_0045a470@@QAEPAUImage_0045a470@@PAU2@@Z,matched,100.0
@@ -1092,15 +1093,18 @@ address,size,file,symbol,status,similarity
 0x45cfc0,244,src/unsorted/0x45cfc0.cpp,?FUN_0045cfc0@@YAHXZ,matched,100.0
 0x45d0c0,111,src/unsorted/0x45d0c0.cpp,?FUN_0045d0c0@@YAXXZ,matched,100.0
 0x45d130,326,src/unsorted/0x45d130.cpp,?FUN_0045d130@@YAXXZ,matched,100.0
+0x45d7c0,526,src/unsorted/0x45d7c0.cpp,?FUN_0045d7c0@@YAXXZ,matched,100.0
 0x45d9d0,177,src/unsorted/0x45d9d0.cpp,?FUN_0045d9d0@@YAXXZ,matched,100.0
 0x45e4c0,287,src/unsorted/0x45e4c0.cpp,?FUN_0045e4c0@@YGXPAUModeList_0045e4c0@@@Z,matched,100.0
 0x45f190,52,src/unsorted/0x45f190.cpp,?FUN_0045f190@@YGXPAUGadget_0045f190@@@Z,matched,100.0
 0x45f770,137,src/unsorted/0x45f770.cpp,?FUN_0045f770@@YGXPAUGadget_0045f770@@@Z,matched,100.0
 0x45f800,185,src/unsorted/0x45f800.cpp,?FUN_0045f800@@YAXXZ,matched,100.0
+0x45f8c0,504,src/unsorted/0x45f8c0.cpp,?FUN_0045f8c0@@YGXPAUSub_0045f8c0@@HH@Z,partial,96.0
 0x45fac0,99,src/unsorted/0x45fac0.cpp,?FUN_0045fac0@@YGXPAUGadget_0045fac0@@@Z,matched,100.0
 0x45fb30,130,src/unsorted/0x45fb30.cpp,?FUN_0045fb30@@YAXXZ,matched,100.0
 0x45fbc0,116,src/unsorted/0x45fbc0.cpp,?FUN_0045fbc0@@YAXXZ,matched,100.0
 0x45fc40,27,src/unsorted/0x45fc40.cpp,?FUN_0045fc40@@YAXXZ,matched,100.0
+0x45ffb0,430,src/unsorted/0x45ffb0.cpp,?FUN_0045ffb0@@YGXPAX@Z,matched,100.0
 0x460160,473,src/unsorted/0x460160.cpp,?FUN_00460160@@YAXXZ,matched,100.0
 0x460340,349,src/unsorted/0x460340.cpp,?FUN_00460340@@YGXPAUGadget_00460340@@@Z,matched,100.0
 0x4604a0,286,src/unsorted/0x4604a0.cpp,?FUN_004604a0@@YAXXZ,matched,100.0

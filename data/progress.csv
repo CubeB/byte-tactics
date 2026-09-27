@@ -116,11 +116,15 @@ address,size,file,symbol,status,similarity
 0x40a5b0,19,src/unsorted/0x40a5b0.cpp,?FUN_0040a5b0@Class_0040a5b0@@QAEPAV1@PBUData@@@Z,matched,100.0
 0x40ad20,73,src/unsorted/0x40ad20.cpp,?FUN_0040ad20@Class_0040ad20@@QAEXXZ,matched,100.0
 0x40ad70,15,src/unsorted/0x40ad70.cpp,?FUN_0040ad70@@YGXHHH@Z,matched,100.0
+0x40b0d0,229,src/unsorted/0x40b0d0.cpp,?FUN_0040b0d0@@YG_NHPAUVec3_40b0d0@@H@Z,matched,100.0
+0x40b1c0,244,src/unsorted/0x40b1c0.cpp,?FUN_0040b1c0@@YGHHPAUVec_0040b1c0@@H@Z,matched,100.0
 0x40b2c0,85,src/unsorted/0x40b2c0.cpp,?FUN_0040b2c0@@YGXH@Z,matched,100.0
 0x40b320,68,src/unsorted/0x40b320.cpp,?FUN_0040b320@@YGXH@Z,matched,100.0
 0x40b370,19,src/unsorted/0x40b370.cpp,?FUN_0040b370@@YGXH@Z,matched,100.0
 0x40ba80,37,src/unsorted/0x40ba80.cpp,?FUN_0040ba80@@YGXHPAUStruct_0040ba80@@@Z,matched,100.0
 0x40bab0,78,src/unsorted/0x40bab0.cpp,?FUN_0040bab0@@YGXHHPAUStruct_0040bab0@@@Z,matched,100.0
+0x40bdb0,244,src/unsorted/0x40bdb0.cpp,?FUN_0040bdb0@@YGGIPAUUnit_0040bdb0@@@Z,matched,100.0
+0x40beb0,302,src/unsorted/0x40beb0.cpp,?FUN_0040beb0@@YGXPAUVec3i_0040beb0@@PBU1@1H@Z,partial,53.5
 0x40c200,34,src/unsorted/0x40c200.cpp,?FUN_0040c200@@YGHHI@Z,matched,100.0
 0x40c230,17,src/unsorted/0x40c230.cpp,?FUN_0040c230@@YGHH@Z,matched,100.0
 0x40c4f0,17,src/unsorted/0x40c4f0.cpp,?FUN_0040c4f0@@YGHH@Z,matched,100.0
@@ -155,8 +159,10 @@ address,size,file,symbol,status,similarity
 0x40d670,132,src/unsorted/0x40d670.cpp,?FUN_0040d670@@YGXPAUEntry_40d670@@HHU1@@Z,matched,100.0
 0x40d700,57,src/unsorted/0x40d700.cpp,?FUN_0040d700@@YGXPAUEntry_40d670@@00U1@PAX@Z,matched,100.0
 0x40d740,108,src/unsorted/0x40d740.cpp,?FUN_0040d740@@YGXPAUEntry_40d670@@HHU1@@Z,matched,100.0
+0x40d7b0,195,src/unsorted/0x40d7b0.cpp,?FUN_0040d7b0@Class_0040d7b0@@QAEHHH@Z,partial,67.5
 0x40d880,46,src/unsorted/0x40d880.cpp,?FUN_0040d880@Class_0040d880@@QAEXXZ,matched,100.0
 0x40d8b0,70,src/unsorted/0x40d8b0.cpp,?FUN_0040d8b0@Class_0040d8b0@@QAEXII@Z,matched,100.0
+0x40d900,191,src/unsorted/0x40d900.cpp,?FUN_0040d900@Class_0040d900@@QAEXXZ,partial,72.7
 0x40d9c0,123,src/unsorted/0x40d9c0.cpp,?FUN_0040d9c0@@YGHHH@Z,matched,100.0
 0x40da40,38,src/unsorted/0x40da40.cpp,?FUN_0040da40@Class_0040da40@@QAE_JHH@Z,matched,100.0
 0x40e9a0,25,src/unsorted/0x40e9a0.cpp,?FUN_0040e9a0@Class_0040e9a0@@QAEXXZ,matched,100.0

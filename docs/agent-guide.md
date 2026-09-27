@@ -1046,6 +1046,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   use `mov ecx, ebx; shr ecx, N; test cl, 1` come from a local copy of the
   bitfield struct (`Flags f = def->flags; if (f.bit11) ...`); testing the field
   in place gives `test bh, 8`. See 0x409730.
+- **Bottom-tested loops behind one guard**: a loop the original tests at the
+  bottom, entered through a single `if (n > 0)`, is
+  `if (n > 0) { do { ... } while (row < n); }`. When the original also shows a
+  duplicated entry `test; je`, put the guarded loop in an inline member helper
+  whose body starts with its own `if (bits)` guard. Found by DeepSeek V4.1
+  Flash in #11 (0x40d900, 57% to 73%).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

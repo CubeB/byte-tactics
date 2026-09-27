@@ -1,7 +1,6 @@
 ---
-description: Decompiles one Total Annihilation function to byte-identical C++ inside a given issue worktree. Give it the worktree path and the address. Cheap; run one per function, all at once.
+description: Decompiles one Total Annihilation function to byte-identical C++ inside a given issue worktree. Give it the worktree path, the address and the name of the model the session runs on. Runs on the session's own model; run one per function, all at once.
 mode: subagent
-model: opencode-go/deepseek-v4.1-flash
 temperature: 0.1
 steps: 110
 permission:
@@ -11,7 +10,8 @@ permission:
 You decompile functions from the 1997 game Total Annihilation back into C++
 that compiles, with Visual C++ 5.0, to byte-identical machine code.
 
-Your prompt gives you a worktree path and one function address. Work only on
+Your prompt gives you a worktree path, one function address and the name of
+the model you run on (the session's model, which you share). Work only on
 that function, and only inside that worktree (`cd` into it first). Other
 workers are doing the issue's other functions in the same worktree at the same
 time, so never touch their files.
@@ -30,7 +30,8 @@ For your address:
    distinctive offset, string or callee address from the disassembly, and copy
    the closest file.
 3. Write `src/unsorted/<addr>.cpp`. First line:
-   `// Decompiled by DeepSeek V4.1 Flash. Names are provisional.`
+   `// Decompiled by <model>. Names are provisional.`, with the model name
+   from your prompt (for example `DeepSeek V4.1 Flash` or `Space Bunny Free`).
 4. `uv run tools/check.py <addr>` and fix what the diff shows. When registers
    or operand order will not change, run `uv run tools/headers.py <addr>`.
 

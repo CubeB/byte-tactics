@@ -31,23 +31,23 @@ OpenCode runs as a lead plus cheap workers:
   Grok 4.7. It claims the issue, sets up the worktree, reviews the results,
   retries what the workers left and opens the pull request.
 - **The workers** are the `decomp-worker` subagent defined in
-  `.opencode/agents/decomp-worker.md`. They run on DeepSeek V4.1 Flash
-  (`opencode-go/deepseek-v4.1-flash`) and do the first attempt at each
-  function, one worker per function, all at once.
+  `.opencode/agents/decomp-worker.md`. The file sets no model, so they run on
+  whatever model the session was started with (OpenCode gives a subagent
+  without a `model:` line its caller's model). They do the first attempt at
+  each function, one worker per function, all at once.
 - **Limits:** a worker stops after 110 steps (the file's `steps`) and 12 or
   18 check runs depending on the function's size, and `AGENTS.md` caps each
   function by size (15 check runs or 20 minutes up to 400 bytes). Nothing
   gets stuck for long.
-- **Free sessions:** a lead on a free model such as Space Bunny Free
-  (`opencode/space-bunny-free`, see `opencode models | grep free`) uses the
-  `decomp-worker-free` subagent instead, which runs on the same free model, so
-  it costs nothing and can run as many sessions as you like. Record its
-  results under its own name (`record.py <issue> space-bunny-free ...`) and
-  send its leftovers back to the ordinary queue with `--escalate retry`, for
-  DeepSeek to try next.
+- **Free sessions:** start a session on a free model such as Space Bunny Free
+  (`opencode/space-bunny-free`, see `opencode models | grep free`) and its
+  workers run on it too, so it costs nothing and you can run as many as you
+  like. Record its results under its own name (`record.py <issue>
+  space-bunny-free ...`) and send its leftovers back to the ordinary queue with
+  `--escalate retry`, for DeepSeek to try next.
 
-To use a different worker model, change the `model:` line in that file. Your
-OpenCode Go plan limits spending per model: DeepSeek V4.1 Flash and Kimi K3
+To run the workers on a different model from the lead, add a `model:` line to
+that file. Your OpenCode Go plan limits spending per model: DeepSeek V4.1 Flash and Kimi K3
 have lower caps than GLM-5.3 and Grok 4.7, and each cap applies per 5 hours,
 per week and per month.
 

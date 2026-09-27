@@ -131,14 +131,13 @@ is spending hours on one function. So:
 ### Subagents (OpenCode)
 
 In OpenCode, do not decompile the functions yourself first. Hand them to the
-`decomp-worker` subagent, which runs on a cheap model and has its own step
-limit. If you yourself are running on a free model (a model id ending in
-`-free`, such as Space Bunny Free), use `decomp-worker-free` instead, which
-runs on Space Bunny Free, so the whole session costs nothing:
+`decomp-worker` subagent. It runs on the same model as your session (whatever
+model you were started with) and has its own step limit:
 
 1. Start one worker per function, all at the same time, each given its one
-   address and the absolute path of your worktree (`.worktrees/issue-<N>`).
-   Each worker only touches its own function's file.
+   address, the absolute path of your worktree (`.worktrees/issue-<N>`) and
+   the name of the model you are (for its `// Decompiled by` line). Each
+   worker only touches its own function's file.
 2. When they report, run `uv run tools/checkall.py <all the issue's
    addresses>` yourself. Only trust MATCH lines you see from the checker.
 3. For each function a worker left partial, try it yourself: at most 8

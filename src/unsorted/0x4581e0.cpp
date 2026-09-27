@@ -1,4 +1,8 @@
 // Decompiled by Opus. Names are provisional.
+#include <windows.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 
 struct Vertex_4581e0 {
     int x;                           // +0x0 (16.16 fixed point)

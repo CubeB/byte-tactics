@@ -1,4 +1,8 @@
 // Decompiled by Haiku. Names are provisional.
+#include <windows.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 
 struct Class_4335e0 {
 public:

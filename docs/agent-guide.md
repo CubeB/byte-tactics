@@ -372,3 +372,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   compiler state left by earlier functions in the original source file. It
   cannot be fixed from this function's source; say so in your notes and move
   on. Never add unused code to change that state.
+- **Operand order that no rewrite changes can depend on the headers**: which
+  operand of a commutative integer or x87 operation MSVC loads first can depend
+  on how many declarations the file has seen. If nothing else works, try
+  including the headers a real game file would have
+  (`<windows.h>`, `<stdio.h>`, `<string.h>`, `<math.h>`) at the top. There was no
+  single header set shared by every file, so only add them where they help.

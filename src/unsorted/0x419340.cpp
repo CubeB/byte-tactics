@@ -1,22 +1,15 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Chat command: sets the local player's metal-sharing threshold to the
-// minimum of field_a8 and the argument, then prints a confirmation.
+// argument, capped at field_a8, and prints a confirmation.
 //
-// Not matched (85.7%). Every instruction matches except the scheduling of the
-// one x87 store. Ours emits, at the ternary's join:
-//     fild [esp+8] / fstp [esi+0xe4] / push 0 / push 1 / mov ecx,edi / call
-// The original emits the store one slot later, between the two pushes:
-//     fild [esp+8] / push 0 / push 1 / fstp [esi+0xe4] / mov ecx,edi / call
-// Tried and unchanged: if/else with a store per arm (turns the field arm into
-// an integer move), a float/int temporary for the ternary result, a reference
-// or inline getter/setter for the field, comma expressions around the store
-// and inside sprintf's argument, an explicit (float) cast, a double cap, an
-// extra local, both declaration orders, polarity variants of the comparison,
-// a manual sprintf declaration, ~120 header sets (tools/headers.py), and a
-// preceding function in the same file. The sibling share-energy command
-// (0x419400, same shape) is stuck at the same 85.7% for the same reason, and
-// no other function in TotalA.exe contains this push/fstp pattern.
+// The cap is a min() macro (stdlib.h __min here; any macro with the usual
+// parentheses does the same) with an explicit (float) cast on the argument.
+// The macro's parentheses make MSVC load and spill field_a8 before the
+// first call, and the cast is what moves the store of the result after the
+// next call's `push 0; push 1`. Without the cast the store comes before the
+// pushes (85.7%).
 #include <stdio.h>
+#include <stdlib.h>
 
 #pragma pack(push, 1)
 struct Player_00419340 {
@@ -53,9 +46,7 @@ void __stdcall FUN_00419340(Class_004b73e0* args)
     char buf[256];
     if (g_game->flags & 1) {
         Player_00419340* p = &g_game->players[g_game->local_player];
-        float cap;
-        p->share_metal = (cap = p->field_a8) < args->FUN_004b73e0(1, 0)
-            ? p->field_a8 : args->FUN_004b73e0(1, 0);
+        p->share_metal = __min(p->field_a8, (float)args->FUN_004b73e0(1, 0));
         sprintf(buf, "OK.  Will share metal if above %d", args->FUN_004b73e0(1, 0));
         FUN_00463ca0(buf, 2, 0, 10);
     }

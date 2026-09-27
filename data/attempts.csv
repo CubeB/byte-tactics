@@ -2325,12 +2325,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x434ab0,212,,#29,assigned,,,issue #29
 0x434ff0,259,,#29,assigned,,,issue #29
 0x435760,394,,#29,assigned,,,issue #29
-0x435c60,196,,#30,assigned,,,issue #30
-0x437840,207,,#30,assigned,,,issue #30
-0x437a30,247,,#30,assigned,,,issue #30
-0x438180,194,,#30,assigned,,,issue #30
-0x438250,196,,#30,assigned,,,issue #30
-0x438320,290,,#30,assigned,,,issue #30
+0x435c60,196,deepseek-v4.1-flash,#30,matched,100.0,,issue #30 (callee declaration fixed at merge)
+0x437840,207,deepseek-v4.1-flash,#30,matched,100.0,,issue #30
+0x437a30,247,deepseek-v4.1-flash,#30,matched,100.0,,issue #30
+0x438180,194,deepseek-v4.1-flash,#30,matched,100.0,,issue #30
+0x438250,196,deepseek-v4.1-flash,#30,matched,100.0,,issue #30
+0x438320,290,deepseek-v4.1-flash,#30,matched,100.0,,issue #30
 0x4384a0,230,,#31,assigned,,,issue #31
 0x438760,198,,#31,assigned,,,issue #31
 0x438930,196,,#31,assigned,,,issue #31

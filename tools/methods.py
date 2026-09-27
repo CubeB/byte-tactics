@@ -62,7 +62,37 @@ def main() -> None:
         src = find_source(a)
         where = src.relative_to(ROOT) if src else "no file"
         print(f"{a:#x}  {n:40s}  ecx set at {e} of {c} call site(s)  {where}")
-    print(f"{len(suspects)} suspect(s)")
+    print(f"{len(suspects)} suspect(s) from call sites")
+
+    # Second check, from the callee's side: a function named as a free function
+    # whose own body reads ecx before writing it takes `this` in ecx (it is a
+    # method), even when its callers happen to have the object in ecx already
+    # and never load it (0x435da0, declared __stdcall by 0x435c00.cpp).
+    SETS_ECX = {("xor", "ecx, ecx"), ("or", "ecx, 0xffffffff"), ("and", "ecx, 0"), ("sub", "ecx, ecx")}
+    FAMILY = {ECX, capstone.x86.X86_REG_CX, capstone.x86.X86_REG_CL, capstone.x86.X86_REG_CH}
+    reads = []
+    for a in sorted(free):
+        src = find_source(a)
+        if src and "__fastcall" in src.read_text(errors="replace"):
+            continue  # takes its first argument in ecx
+        for ins in md.disasm(orig.read(a, funcs[a]), a):
+            if ins.mnemonic.startswith("rep") or ins.mnemonic in ("call", "ret"):
+                break
+            if ins.mnemonic == "push" and ins.op_str == "ecx":
+                continue  # reserves a dword of locals; the value is never used
+            read, written = ins.regs_access()
+            if FAMILY & set(written) and (ins.mnemonic, ins.op_str) in SETS_ECX:
+                break  # sets ecx without using its old value
+            if FAMILY & set(read):
+                reads.append(a)
+                break
+            if FAMILY & set(written):
+                break
+    for a in reads:
+        src = find_source(a)
+        where = src.relative_to(ROOT) if src else "no file (named by a caller)"
+        print(f"{a:#x}  {free[a]:40s}  reads ecx before setting it  {where}")
+    print(f"{len(reads)} suspect(s) from function bodies")
 
 
 if __name__ == "__main__":

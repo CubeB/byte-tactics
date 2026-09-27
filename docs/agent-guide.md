@@ -487,3 +487,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (`Vec3 f(Vec3 v)`).
 - **x87 loads one step early in a sum of squares**: compute each product into
   its own float local first.
+- **When a match needs the function before it compiled first** (a loop guard
+  gets its own copy of a call, or a tail merge differs, only in a file with no
+  earlier function): define the real preceding function (`ctx.py` on the
+  address just before yours) in the same file, above yours, with its own
+  `// FUNCTION:` annotation. That is how the original file was laid out, so it
+  is not a trick; never define made-up functions for this. See
+  `src/unsorted/0x4b0830.cpp`.
+- **Ordinal-only imports** (DPLAYX, smackw32) are called through `jmp [iat]`
+  thunks; declare the real API with `extern "C" ... __stdcall`.

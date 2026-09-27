@@ -836,16 +836,16 @@ address,size,model,batch,result,similarity,runs,notes
 0x40ba80,37,haiku,H19,partial,20.0,,
 0x4afcf0,38,haiku,H19,matched,100.0,,
 0x4085d0,40,haiku,H19,partial,27.3,,
-0x4ca400,66,opus,O30,assigned,,,
-0x48ecb0,73,opus,O30,assigned,,,
-0x4e3030,79,opus,O30,assigned,,,
-0x40f000,88,opus,O30,assigned,,,
-0x403100,94,opus,O30,assigned,,,
-0x48f370,103,opus,O30,assigned,,,
-0x4ae300,113,opus,O30,assigned,,,
-0x488f30,124,opus,O30,assigned,,,
-0x4b0830,135,opus,O30,assigned,,,
-0x49c880,147,opus,O30,assigned,,,
+0x4ca400,66,opus,O30,matched,100.0,,
+0x48ecb0,73,opus,O30,matched,100.0,,
+0x4e3030,79,opus,O30,matched,100.0,,
+0x40f000,88,opus,O30,matched,100.0,,
+0x403100,94,opus,O30,matched,100.0,,
+0x48f370,103,opus,O30,matched,100.0,,
+0x4ae300,113,opus,O30,matched,100.0,,
+0x488f30,124,opus,O30,matched,100.0,,
+0x4b0830,135,opus,O30,matched,100.0,,
+0x49c880,147,opus,O30,partial,67.4,,
 0x4e2ee0,66,opus,O31,matched,100.0,,
 0x48f160,73,opus,O31,matched,100.0,,
 0x479590,80,opus,O31,matched,100.0,,
@@ -896,3 +896,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c54d0,32,sonnet,S16,assigned,,,escalated from Haiku
 0x40ba80,37,sonnet,S16,assigned,,,escalated from Haiku
 0x4085d0,40,sonnet,S16,assigned,,,escalated from Haiku
+0x4b07c0,107,opus,O30,no file,0,,neighbour defined alongside 0x4b0830

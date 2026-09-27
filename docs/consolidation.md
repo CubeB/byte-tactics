@@ -227,3 +227,15 @@ can disagree on types (a real link would fail). Known cases:
   files that use them define them identically. `Class_00409160`,
   `Class_00409470`, `Class_00409730`, `Class_0040a150` and `Class_0040a7b0`
   are all that AI object (DAT_005119c0[player]).
+- The unit list is `std::vector<Unit*>`, and `Unit` is its only element name
+  (#135). Its out-of-line members are 0x406c00 (`_Destroy`), 0x406c10
+  (`_Ucopy`), 0x406c40 (`_Ufill`), 0x408f30 (`insert`), 0x40c510 (the
+  constructor), 0x40c530 (the destructor), 0x40c560 (`size`) and 0x40c9f0
+  (`erase`). 0x40ad80 calls `insert`, `_Ucopy`, `_Ufill` and `size` on one
+  vector, 0x40aa40 calls `erase` and `insert`, and 0x48d220 `_Destroy` and
+  `erase`; the exe has separate byte-identical copies of each of these for
+  other element types (the linker does not fold them), so one address is one
+  element type. The placeholders `Elem_00406c10` (a 4-byte struct),
+  `Elem_0040c9f0` and `Unit_00407560` were renamed to `Unit*` and `Unit`.
+  0x412710 (partial) still uses `Elem_00406c10`, since `Unit*` alone moves
+  registers there.

@@ -1,7 +1,7 @@
 // Decompiled by GPT-6. Names are provisional.
-// Bytes match; vector erase references disagree with the recorded element type.
-// The three calls to 0x40c9f0 erase Unit_00407560* lists, whereas its current
-// symbol names Elem_0040c9f0*. The insert calls identify the unit element type.
+// Clears the three unit lists (+0x05, +0x15, +0x25) through
+// std::vector<Unit*>::erase (0x40c9f0) and refills them with insert
+// (0x408f30), the members named in #135.
 #include <vector>
 #include <math.h>
 template<class T> struct List : std::vector<T> { void Clear() { clear(); } };
@@ -10,12 +10,12 @@ struct Vec { int x,y,z; Vec(int a,int b,int c):x(a),y(b),z(c){} };
 #pragma pack(push,1)
 struct Player { char pad[0x108]; unsigned char allied[0x3e]; unsigned char index; int IsAllied(unsigned char p) const { return allied[p]; } };
 struct Def { char pad[0x156]; int builder; char pad15a[0x241-0x15a]; unsigned flags; };
-struct Unit_00407560 { char pad[0x6a]; int x,y,z; char pad76[0x92-0x76]; Def* def; Player* owner; char pad9a[12]; unsigned short id; char pada8[0x104-0xa8]; float progress; char pad108[6]; unsigned char active; char pad10f; unsigned flags; int pad114; unsigned char PlayerIndex() const { return owner->index; } int Ready() const { return (flags&0x10000000) && !(flags&0x4000); } };
-struct Game { char pad[0x14357]; Unit_00407560* units; Unit_00407560* end; };
+struct Unit { char pad[0x6a]; int x,y,z; char pad76[0x92-0x76]; Def* def; Player* owner; char pad9a[12]; unsigned short id; char pada8[0x104-0xa8]; float progress; char pad108[6]; unsigned char active; char pad10f; unsigned flags; int pad114; unsigned char PlayerIndex() const { return owner->index; } int Ready() const { return (flags&0x10000000) && !(flags&0x4000); } };
+struct Game { char pad[0x14357]; Unit* units; Unit* end; };
 class Class_0040aa40 {
 public:
     Player* owner; char pad4;
-    List<Unit_00407560*> visible, known, factories;
+    List<Unit*> visible, known, factories;
     Vec centre;
     char pad41[0x75-0x41];
     int builders,hasSpecial;
@@ -26,7 +26,7 @@ public:
 };
 #pragma pack(pop)
 extern Game* g_game;
-int __stdcall FUN_00465ac0(Player*,Unit_00407560*);
+int __stdcall FUN_00465ac0(Player*,Unit*);
 // FUNCTION: 0x40aa40
 void Class_0040aa40::FUN_0040aa40()
 {
@@ -36,7 +36,7 @@ void Class_0040aa40::FUN_0040aa40()
     builders=0; hasSpecial=0;
     struct { float x,y,z,total; } sum={0,0,0,0};
     std::fill(counts.begin(),counts.end(),(short)0);
-    for(Unit_00407560* u=g_game->units+1;u<=g_game->end;++u) {
+    for(Unit* u=g_game->units+1;u<=g_game->end;++u) {
         if(u->Ready()) {
             if(!owner->IsAllied(u->PlayerIndex())) {
                 if(FUN_00465ac0(owner,u) && !(u->flags&0x8000)) visible.push_back(u);

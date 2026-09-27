@@ -4,7 +4,8 @@
 // callers are push_back sites (0x40ab36 on the vector at +0x5 of the
 // 0x409160 object, and 0x407786 on a local vector). Taking the member's
 // address makes the compiler emit the template instantiation out of line.
-// The element type is a guess: any 4-byte type compiles to the same code.
+// The element type is settled by 0x40ad80, which calls this, _Ucopy, _Ufill
+// and size on one vector of units (#135; see 0x406c00.cpp).
 //
 // Still differs (88.7%): in the third _Ucopy (_P, _Last into _Q + _M) the
 // original starts the source pointer with `lea eax, [ebx + ecx]` (P + dest,

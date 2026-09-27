@@ -23,6 +23,26 @@
 // allocator, `!= 0` instead of a bool test) give the SIB 0x10 form. The same
 // destructor compiled out of line, 0x470fb0, matches with SIB 0x10 too, so the
 // difference is an artefact of that one inlined copy.
+// Retried by Claude Opus 5.5 in #349, still one byte:
+// - Not compiler state: 0 to 400 unused `extern int` declarations (step 4),
+//   400 to 4000 (step 60), 0 to 6000 unused prototypes (step 150), about 30
+//   big header sets after <windows.h> (ddraw, dsound, dplay, dinput, mmsystem,
+//   commctrl, winsock, ole2, shlobj, vfw, <string>, <list>, <map>, <iostream>)
+//   and the lengths of the local names all give 98.6%.
+// - The exe has 31 inlined std::copy shift loops of this shape
+//   (`mov r, [p]; mov [a + b], r; add p, 4`); this is the only one with the
+//   delta as the base. The other 30, including 0x470fb0 and the erase loops of
+//   0x471050, 0x471eb0, 0x4715a0, 0x4716e0, 0x471fd0, 0x4720d0 and 0x472200,
+//   put the moving pointer first.
+// - In MSVC 5 the delta only becomes the base when the destination is
+//   indexed by a counter (`P[k] = f[k]`, `*(P + k) = *(f + k)`), and every
+//   such form also adds a `mov ecx, eax` copy of the source pointer that the
+//   original lacks. Pointer-walking copies always give SIB 0x10: std::copy,
+//   explicit `x`/`f` locals in either declaration and increment order, element
+//   structs with an operator=, const_iterator sources, a p++ walk or a
+//   reference over the ten vectors, erase in a for increment, dummy locals
+//   before, inside or after the `if`, and earlier functions in the same file
+//   that use the same vector type (erase(begin()), the out-of-line destructor).
 #include <vector>
 
 class Listener_00471de0 {

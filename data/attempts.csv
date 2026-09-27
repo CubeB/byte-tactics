@@ -2708,7 +2708,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x46c920,317,,#247,assigned,,,issue #247
 0x46ca60,381,,#247,assigned,,,issue #247
 0x46cef0,325,,#247,assigned,,,issue #247
-0x433380,377,,#248,assigned,,,"issue #248, escalated"
+0x433380,377,opus,#248,matched,100.0,,"issue #248, escalated"
 0x46e890,276,opus,#249,matched,100.0,,"issue #249, escalated (overload alias added at merge)"
 0x46eaa0,189,opus,#249,matched,100.0,,"issue #249, escalated"
 0x45d130,326,space-bunny-free,#250,matched,100.0,,"issue #250, escalated"

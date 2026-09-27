@@ -1430,6 +1430,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Specialise `allocator<T>::destroy` to call a `/Gz` `_Destroy` directly**
   when an inline `std::_Destroy(T*)` overload calling the `__stdcall` FUN_
   stays a call one level too deep. See 0x46eaa0.
+- **Helpers defined later in the file are still inlined**: MSVC 5 /Ob2
+  inlines non-inline functions defined after their caller in the same file.
+  Tiny vector members (`size()`, a default constructor) called out of line
+  from only one function usually mean such helpers; write them as inline
+  class methods and use the real `<vector>`. Found by Claude Opus 5.5 in #248
+  (0x433380, which inlines 0x433500, 0x4335e0 and 0x4335f0).
+- **A short parameter sign-extended separately at each use**
+  (`mov di, word ptr [param]`, then a `movsx` per use) means one use goes
+  through an inlined helper that changes its own short parameter (`n--`);
+  otherwise MSVC shares one sign-extended copy. See 0x433380.
+- **A narrow compiler-state window**: sweep N from 0 to about 35 in steps of
+  1 for each candidate header set and pick the one where N = 0 sits in the
+  middle of the matching range, so a later added declaration does not flip it.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

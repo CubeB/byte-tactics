@@ -1060,6 +1060,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Struct fields copied with `fld`/`fstp`**: a field copied through the FPU
   instead of with `mov` was passed through a `float` parameter of an inline
   constructor. See 0x40a7b0.
+- **Emitting a `std::vector` constructor out of line**: a constructor's
+  address can't be taken, and no vector member calls
+  `vector(const allocator&)`. An explicit instantiation,
+  `template class std::vector<T>;`, emits every member out of line, including
+  the constructors. See 0x40c510 and the STL section of docs/consolidation.md.
+- **Placeholder names on small STL members**: a tiny `size()`
+  (`(last - first) >> 2`), `capacity()` or empty-bodied destructor filed as
+  `Class_XXXXXXXX::FUN_XXXXXXXX` is usually a `std::vector` member. If your
+  bytes match but check.py says a reference is wrong, report the name in your
+  pull request instead of renaming it. A function that destroys a whole object
+  (0x40b390) names every member's out-of-line destructor by offset, which is
+  the quickest way to tie `~vector()` copies to element types. Found by Claude
+  Opus 5.5 in #56, #57 and #88.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

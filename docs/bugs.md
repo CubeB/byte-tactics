@@ -400,3 +400,7 @@ Things that look wrong in the original but have no effect, kept for the record.
   if the pool is full it returns with that entry claimed, its object pointer
   0, and its refs and velocity left from the slot's previous use, so a stale
   animation could be drawn. Found by Claude Opus 5.5 in #273.
+- **0x497080** (possible): applies the running maximums of each slot's +0xc
+  and +0x10 values inside the same loop, so each player gets the maximum of
+  the slots up to its own and only the last playing player gets the true
+  maximum. May be intended. Found by Claude Opus 5.5 in #431.

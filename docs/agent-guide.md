@@ -1545,6 +1545,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   by Claude Opus 5.5 in #428 (0x437de0).
 - **`shl eax, 16; mov edi, eax`** where yours shifts in place in another
   register: split it into `int r = ...; int radius = r << 16;`. See 0x437de0.
+- **`mov cl, [m]; shr cl, N; test cl, 1` on an `unsigned short` bitfield**
+  marks a standalone `if (p->bit)`; the same test inside an `&&` chain,
+  returned from an inline helper or stored in a local gives
+  `test byte ptr [m], mask`. (An `int` bitfield loads a whole dword.) Found by
+  Claude Opus 5.5 in #431 (0x496bb0).
+- **`je <tail>; jmp <body>` into another branch's body** means MSVC merged
+  two identical copies: write the body out in each branch. See 0x496ce0.
+- **A field declared `volatile` in the original**: every write goes through a
+  register (`mov cx, [m]; or ecx, 4; mov [m], cx`) and every repeated bit test
+  re-reads memory. Only then is `volatile` right; see AGENTS.md and
+  0x494e70 (#436).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

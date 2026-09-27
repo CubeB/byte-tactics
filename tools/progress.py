@@ -13,6 +13,7 @@ Writes:
 import argparse
 import csv
 import hashlib
+import re
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -26,6 +27,10 @@ README = ROOT / "README.md"
 PROGRESS = ROOT / "data/progress.csv"
 START, END = "<!-- progress:start -->", "<!-- progress:end -->"
 NOT_LEARNED = ("$", "??_C@", "__real@", "??_G", "??_E")
+# A static local to a function (`_?len@?CM@??FUN_...@4HA`, its guard `?$S1@?CM@??...`)
+# is private to its function, so two files can each have one with the same short
+# name at different addresses; never learn it as a global name.
+LOCAL_STATIC = re.compile(r"@\?[0-9A-P]{1,4}@\?\?")
 
 
 def compile_cached(src: Path, include_hash: str):
@@ -137,6 +142,7 @@ def main() -> None:
                     conflicts.append(f"{address:#x} {row['file']}: defines '{own}', but callers use '{held}'")
             for ref in res.refs:
                 if (ref.status == "new" and not ref.symbol.startswith(NOT_LEARNED)
+                        and not LOCAL_STATIC.search(ref.symbol)
                         and not base_name(ref.symbol).startswith("$") and ref.target not in named):
                     symbols.setdefault(base_name(ref.symbol), ref.target)
                     named.add(ref.target)

@@ -1181,6 +1181,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   #103 (0x4181d0).
 - **`<< 8` and `* 256` on a zero-extended byte**: `b << 8` compiles to
   `mov ch, [mem]`, `b * 256` to `mov cl, [mem]; shl ecx, 8`. See 0x4181d0.
+- **A pointer kept across a run of calls**: taking `T* p = &g_game->field;`
+  before the calls keeps it in a callee-saved register; re-reading
+  `g_game->field` at each use makes MSVC reload `g_game`. Found by DeepSeek
+  V4.1 Flash in #20 (0x41cc60).
+- **A two-value setter inlined in a loop**: an inline `SetPos(x, y)` gives
+  MSVC's right-to-left argument evaluation (y first) and its split temporary;
+  writing the two stores directly does not. See 0x41d1f0.
 - **A local shared across the arms of an `if` swaps registers**: if two
   values (say a unit pointer and a field loaded from it) come out in each
   other's registers, declare a separate local inside each arm instead of one
@@ -1203,6 +1210,20 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (0x41bde0 needs `<stdlib.h>` and fails with `<windows.h>`; 0x41c060 is the
   reverse). Run headers.py for each function rather than copying a sibling's
   includes.
+- **Compiler state or the wrong source?** Score a scratch copy with N unused
+  `extern int dummyN;` declarations in front, for N from 0 to about 400. If
+  any N matches, the source shape is right and only the compiler's state
+  differs; a legitimate header set (tools/headers.py, or ordinary pairs such
+  as `<stdio.h>` + `<string.h>`) or defining the real neighbouring function
+  above it can reach that state. Never commit the dummy declarations. Found by
+  Claude Opus 5.5 in #111 (0x417f60 matched for N = 195 to 289).
+- **Two weights sharing one local**: with `a - t` and `b - t` on the same local
+  `t`, MSVC 5 computes `-t` once with `neg` and adds it. If the original has
+  two separate `sub`s, give each weight its own local holding the same value.
+  See 0x417f60.
+- **A vertex swap that loads x and y together and stores them after the
+  height**: the vertex is an `{x, y}` struct passed by value, with the height
+  as a separate parameter. See 0x417f60.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

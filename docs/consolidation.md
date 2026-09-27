@@ -171,6 +171,12 @@ can disagree on types (a real link would fail). Known cases:
   declares it `unsigned int`. Settle on `unsigned int` when merging the
   pathfinder class.
 
+- FUN_004be950's colour parameter is declared `int` in 0x417c70.cpp,
+  0x417e00.cpp and 0x4181d0.cpp so that `color & 0xff` is not folded, though
+  the callee probably takes `unsigned char`. Settle it when 0x4be950 is
+  decompiled. (0x4181d0.cpp also holds 0x417f60, defined above it as the
+  original file did; see #111.)
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

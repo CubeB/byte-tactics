@@ -321,3 +321,13 @@ exception frame, exactly as in the original. Code from the C++ library itself
 (`std::string` internals, `_Lockit`, the std exception classes) is marked
 `library` in `data/functions.csv` and needs no decompiling; call it by its real
 name (`std::_Lockit::_Lockit` is 0x4e39b0).
+- **Arguments loaded in the wrong order or registers**: copy them into locals
+  just before the call; the order of those copies decides which load MSVC
+  hoists.
+- **A pointer stored, offset, and stored again** (`lea ecx, [eax+K]; mov [..], ecx;
+  add ecx, esi`): use one pointer local updated with `+=`; two separate
+  expressions let MSVC fold the offset into a fresh `lea`.
+- **A callee whose result is used as a full `int`** even though its own file
+  returns `unsigned short`/`char`: declare it returning `int` in your file (the
+  checker compares names, not types); the narrower type adds a mask the
+  original lacks.

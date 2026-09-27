@@ -49,10 +49,17 @@ def main() -> None:
         funcs = {int(r["address"], 16): r for r in csv.DictReader(fh)}
     game = {a: int(r["size"]) for a, r in funcs.items() if r["kind"] == "game"}
 
-    # Library names are known up front; everything else is learned from matches.
+    # Names from the runtime block at the end of the exe are known up front;
+    # everything else is learned from matches. C++ library code found inside
+    # the game region is left out: some of it exists twice (two copies of
+    # std::_Lockit were linked in) and only a match shows which copy the
+    # game's own code calls.
+    ordered = sorted(funcs.items())
+    runtime_start = next(a for a, r in reversed(ordered) if r["kind"] == "game")
     symbols: dict[str, int] = {}
-    for a, r in funcs.items():
-        if r["kind"] == "library" and r["name"] and not r["name"].startswith(NOT_LEARNED):
+    for a, r in ordered:
+        if (a > runtime_start and r["kind"] == "library" and r["name"]
+                and not r["name"].startswith(NOT_LEARNED)):
             symbols.setdefault(base_name(r["name"]), a)
 
     include_hash = hashlib.sha256(b"".join(

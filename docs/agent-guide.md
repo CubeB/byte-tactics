@@ -968,6 +968,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (0x405980; the same call shape is at 0x410a9a and 0x4154e8).
 - **x87 load order in `a >= b * 0.2`** depends on what else is in the basic
   block, not on how the comparison is written.
+- **A zero kept in `ebp` after a loop, with duplicated call tails**: write each
+  branch's tail out in full (its own `new`, call, stores and `return`) instead
+  of one shared call after an if/else-if (0x406300).
+- **An unused label can change the code**: in 0x406300, removing an unused
+  `follow:` label lowered the score, so the original probably had a `goto`
+  there. Keep labels that help.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

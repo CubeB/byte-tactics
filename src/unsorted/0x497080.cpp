@@ -1,25 +1,25 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Walks the ten player slots: for every player whose controller is set
-// (1, 2 or 3) and whose +0x146 byte is not 10, it folds that slot's +0xc and
-// +0x10 values into running maxima, sets the player's +0x149 flag and stores
-// max(value, 200) as a float at +0xdc (from the +0x10 value) and +0xe0 (from
-// the +0xc value). The +0x149 flag and the 200 floor match FUN_00496e90.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Walks the ten player slots: for every player that is playing (the same
+// check as IsPlaying in 0x40eb70), folds that slot's +0xc and +0x10 values
+// into running maxima and passes them to an inlined copy of FUN_00496e90,
+// which sets the player's +0x149 flag and stores max(value, 200) as floats
+// at +0xdc (from the +0x10 maximum) and +0xe0 (from the +0xc maximum).
 //
-// PARTIAL: this file does not match. The original keeps the loop index in
-// ebx, tests it at the top (`cmp bl,0xa; jae`) and uses esi (the slot offset)
-// for the back-edge test (`cmp esi,0xf0; jl`), with the run of stores reached
-// through a walked player offset in edi and both accumulators in stack slots.
-// Every source form tried here either rotates the byte counter into a
-// `dec`/`jne` countdown or spills the index to the stack, so the guard and the
-// walked player offset do not both appear. Best similarity reached: 44%.
-// The semantics and the data layout below are right; only the register
-// allocation and loop shape differ.
+// The inlined copy needs the clamp spelled as a ternary,
+// `width >= 200 ? width : 200` (the standalone 0x496e90 matches with it too);
+// the AtLeast200 helper in 0x496e90.cpp gives the two maxima more weight than
+// the player offset, so the offset is spilled instead of kept in edi. The
+// header only sets compiler state: without it the player address is
+// [edi+edx] instead of [edx+edi] (any single header from tools/headers.py
+// works).
+
+#include <windows.h>
 
 #pragma pack(push, 1)
 struct Player_00497080 {               // 0x14b bytes
-    int field_0;                       // +0x0
+    int active;                        // +0x0
     char unknown_4[0x73 - 0x4];
-    char controller;                   // +0x73
+    char type;                         // +0x73
     char unknown_74[0xdc - 0x74];
     float width;                       // +0xdc
     float height;                      // +0xe0
@@ -27,9 +27,10 @@ struct Player_00497080 {               // 0x14b bytes
     char field_146;                    // +0x146
     char unknown_147[0x149 - 0x147];
     unsigned short flag_149 : 1;       // +0x149
+    unsigned short rest_149 : 15;
 };
 
-struct Slot_00497080 {
+struct Slot_00497080 {                 // 0x18 bytes
     char unknown_0[0xc];
     int field_c;                       // +0xc
     int field_10;                      // +0x10
@@ -46,37 +47,41 @@ struct Game_00497080 {
 
 extern Game_00497080* g_game;
 
-static inline int AtLeast200(int v)
+static int IsPlaying(unsigned char i)
 {
-    if (v < 200)
-        v = 200;
-    return v;
+    if (i < 10) {
+        Player_00497080* p = &g_game->players[i];
+        if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
+            && p->field_146 != 10)
+            return 1;
+    }
+    return 0;
 }
 
+// Inlined copy of FUN_00496e90.
+static inline void __stdcall SetSize_00496e90(Player_00497080* obj, int height, int width)
+{
+    obj->flag_149 = 1;
+    obj->width = (float)(width >= 200 ? width : 200);
+    obj->height = (float)(height >= 200 ? height : 200);
+}
+
+// Possible original bug: the maxima are applied inside the same loop, so each
+// player gets the maxima of the slots up to and including its own, not of all
+// ten slots (only the last playing player sees the true maximum).
 // FUNCTION: 0x497080
 void FUN_00497080()
 {
-    unsigned char i = 0;
     int h = 0;
     int w = 0;
-    Player_00497080* p = g_game->players;
-    for (int off = 0; off < 0xf0; off += 0x18, i++, p++) {
-        if (i >= 10)
-            continue;
-        if (g_game->players[i].field_0 == 0)
-            continue;
-        char c = g_game->players[i].controller;
-        if (c != 1 && c != 2 && c != 3)
-            continue;
-        if (g_game->players[i].field_146 == 10)
-            continue;
-        Slot_00497080* s = (Slot_00497080*)((char*)g_game->slots + off);
-        if (s->field_c > h)
-            h = s->field_c;
-        if (s->field_10 > w)
-            w = s->field_10;
-        p->flag_149 = 1;
-        p->width = (float)AtLeast200(w);
-        p->height = (float)AtLeast200(h);
+    for (int i = 0; i < 10; i++) {
+        if (IsPlaying(i)) {
+            Slot_00497080* s = &g_game->slots[i];
+            if (s->field_c > h)
+                h = s->field_c;
+            if (s->field_10 > w)
+                w = s->field_10;
+            SetSize_00496e90(&g_game->players[i], h, w);
+        }
     }
 }

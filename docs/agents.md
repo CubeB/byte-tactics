@@ -289,7 +289,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #36 | opus | 3 | 3 | 345,400 | 115,133 | 461 | n/a |
 | #37 | gpt-6-astra | 3 | 1 | 0 | n/a | n/a | n/a |
 | #38 | gpt-6-astra | 3 | 2 | 0 | n/a | n/a | n/a |
-| #39 | opus | 3 | 3 | 0 | n/a | n/a | n/a |
+| #39 | opus | 3 | 3 | 241,723 | 80,574 | 322 | 18 |
 
 ### Escalations
 

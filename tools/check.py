@@ -135,7 +135,9 @@ def annotations(src: Path) -> list[tuple[int, str]]:
             continue
         # The definition follows, possibly after more comments or blank lines.
         following = [l for l in lines[i + 1:i + 12] if l.strip() and not l.strip().startswith("//")]
-        text = " ".join(following[:3])
+        # Only the definition header counts (up to the opening brace), so an
+        # `operator new(` call in the body is not mistaken for the definition.
+        text = " ".join(following[:3]).split("{", 1)[0]
         op = re.search(r"([\w:]*?)operator\s*(new|delete|==|!=|<=|>=|\[\]|\(\)|=|<|>|\+|-|\*|/)\s*\(", text)
         sig = text.split("(", 1)[0]
         names = [op.group(1) + "operator" + op.group(2)] if op else re.findall(r"[A-Za-z_~][\w:~]*", sig)

@@ -348,3 +348,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Two copies of one function**: the exe links two identical copies of
   `std::_Lockit` (0x4e39b0 and 0x4e1480). `data/aliases.csv` lists such
   duplicates, and the checker accepts either address for the name.
+- **Base constructor inlined into a derived constructor**: a store to a field
+  (e.g. +4) before the vtable store is the base's inline constructor (its own
+  vtable store is dead and disappears), followed by the derived class storing
+  its vtable. Declare the base constructor inline in the class
+  (see `src/unsorted/0x44d010.cpp`).
+- **Freeing and zeroing several {_First,_Last,_End} triples, last member first**:
+  the empty destructor of a class with `std::vector` members.
+- **A per-element call inside an inlined vector destroy loop**: the element type
+  has a destructor that makes that call; write the element class with
+  `~Elem() { FUN_x(this); }` (or, as in `0x434020.cpp`, an overload of
+  `std::_Destroy` for the element type).

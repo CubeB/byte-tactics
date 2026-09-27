@@ -618,8 +618,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   the one declared later first, whatever the source order; reorder the
   declarations, not the expression (0x4468c0).
 - **A float field spilled with `fld; fstp [esp+N]` before a call it is compared
-  with**: only a non-leaf expression such as `(cap = p->x) < f()` does that; a
-  plain field or a local copy is loaded after the call (0x419400).
+  with**: that is a `min()`/`max()` macro. In `p->x < f()` MSVC 5 loads the
+  field after the call, but the macro's parenthesised `(p->x) < (f())` loads
+  it before and spills it. If the original also stores the result after the
+  next call's constant pushes (`fild; push 0; push 1; fstp [field]`), cast the
+  int argument explicitly: `__min(p->x, (float)f())`. Found by Claude Opus 5.5
+  in #106 (0x419340, 0x419400).
 - **`__DATE__`/`__TIME__` strings**: write the literals ("Jul 30 1998",
   "11:16:36"); the macros give today's date (0x41d920).
 - **A hand-stored vtable** (`vtable = DAT_x;`) is a last resort: declare the real
@@ -1182,6 +1186,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   other's registers, declare a separate local inside each arm instead of one
   before the `if`. Found by DeepSeek V4.1 Flash in #19 (0x41bf10, 46% to
   100%).
+- **A point read once into a local and passed to two inline helpers**: if the
+  original reads a `Point` once as a dword, keeps it in an argument's stack
+  slot and spills one coordinate of the cell result as a short, copy it first
+  (`Point origin = def->origin;`) and pass the local to both WorldToCell and
+  CellToWorld helpers. Passing `def->origin` to each keeps the cell in
+  registers and shrinks the frame by 4. See 0x419670.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -108,7 +108,7 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 | 17-40 |  |  |  | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
 | 41-64 |  |  |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
 | 65-160 | 64/67 (96%) |  |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
-| 161-400 | 38/48 (79%) | 11/12 (92%) |  |  | 29/35 (83%) |  |
+| 161-400 | 38/48 (79%) | 11/12 (92%) |  |  | 30/36 (83%) |  |
 | 401+ |  |  | 7/12 (58%) |  | 19/30 (63%) |  |
 
 ### Cost per batch
@@ -320,10 +320,11 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #18 | deepseek-v4.1-flash | 6 | 6 | 0 | n/a | n/a | n/a |
 | #103 | opus | 1 | 0 | 174,429 | n/a | n/a | 15 |
 | #19 | deepseek-v4.1-flash | 6 | 4 | 0 | n/a | n/a | n/a |
+| #106 | opus | 2 | 2 | 219,248 | 109,624 | 438 | 20 |
 
 ### Escalations
 
-- Opus matched 59 of 67 functions a cheaper model had failed.
+- Opus matched 61 of 69 functions a cheaper model had failed.
 - Sonnet matched 109 of 116 functions a cheaper model had failed.
 <!-- calibration:end -->
 

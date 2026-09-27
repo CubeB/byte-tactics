@@ -2361,9 +2361,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x402430,522,opus,#36,matched,100.0,,issue #36
 0x402640,1328,opus,#36,matched,100.0,,issue #36
 0x402b70,401,opus,#36,matched,100.0,,issue #36
-0x402da0,537,,#37,assigned,,,issue #37
-0x4034a0,1016,,#37,assigned,,,issue #37
-0x403a20,1360,,#37,assigned,,,issue #37
+0x402da0,537,gpt-6-astra,#37,partial,78.4,,issue #37
+0x4034a0,1016,gpt-6-astra,#37,partial,79.4,,issue #37
+0x403a20,1360,gpt-6-astra,#37,matched,100.0,,issue #37
 0x403f70,768,,#38,assigned,,,issue #38
 0x404270,1212,,#38,assigned,,,issue #38
 0x404730,920,,#38,assigned,,,issue #38
@@ -2374,3 +2374,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x405980,1040,,#40,assigned,,,issue #40
 0x405d90,578,,#40,assigned,,,issue #40
 0x407d40,296,opus,#43,partial,77.5,,"issue #43, escalated"
+0x402da0,537,,#52,assigned,,,"issue #52, escalated"
+0x4034a0,1016,,#52,assigned,,,"issue #52, escalated"

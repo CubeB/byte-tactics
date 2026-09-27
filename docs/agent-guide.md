@@ -917,6 +917,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   where the original's constant pool has the next constant): define the real
   preceding function in the same file, so its constants come first in the pool
   as in the original (0x402430 in 0x402640.cpp).
+- **Passing a by-value class argument built from a literal**: write it
+  implicitly (`FUN_0043adc0("PARK", ...)`), which constructs it in place on the
+  stack; an explicit `Class_00438760("PARK")` makes a temporary and copies it.
+- **A vector sum whose last coordinate comes out in the wrong register**: use a
+  member `operator+` taking its operand by const reference, not a free helper
+  (0x403a20).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

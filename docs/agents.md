@@ -102,14 +102,14 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 <!-- calibration:start -->
 ### First-attempt match rate by function size
 
-| Size (bytes) | Deepseek-v4.1-flash | Gpt-6 | Haiku | Opus | Sonnet |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 1-16 |  |  | 283/312 (91%) | 3/3 (100%) |  |
-| 17-40 |  |  | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
-| 41-64 |  |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
-| 65-160 | 24/24 (100%) |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
-| 161-400 |  | 11/12 (92%) |  | 29/35 (83%) |  |
-| 401+ |  |  |  | 5/6 (83%) |  |
+| Size (bytes) | Deepseek-v4.1-flash | Gpt-6 | Gpt-6-astra | Haiku | Opus | Sonnet |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1-16 |  |  |  | 283/312 (91%) | 3/3 (100%) |  |
+| 17-40 |  |  |  | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
+| 41-64 |  |  |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
+| 65-160 | 24/24 (100%) |  |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
+| 161-400 |  | 11/12 (92%) |  |  | 29/35 (83%) |  |
+| 401+ |  |  | 1/3 (33%) |  | 5/6 (83%) |  |
 
 ### Cost per batch
 
@@ -287,6 +287,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #2 | deepseek-v4.1-flash | 12 | 12 | 0 | n/a | n/a | n/a |
 | #35 | opus | 3 | 2 | 248,955 | 124,477 | 498 | n/a |
 | #36 | opus | 3 | 3 | 345,400 | 115,133 | 461 | n/a |
+| #37 | gpt-6-astra | 3 | 1 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

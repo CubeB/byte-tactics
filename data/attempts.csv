@@ -2382,9 +2382,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x407560,639,,#54,assigned,,,issue #54
 0x407ae0,601,,#54,assigned,,,issue #54
 0x407e90,500,,#54,assigned,,,issue #54
-0x408100,1221,,#55,assigned,,,issue #55
-0x4089a0,578,,#55,assigned,,,issue #55
-0x408cb0,602,,#55,assigned,,,issue #55
+0x408100,1221,opus,#55,partial,75.1,,issue #55
+0x4089a0,578,opus,#55,matched,100.0,,issue #55
+0x408cb0,602,opus,#55,matched,100.0,,issue #55
 0x408f30,546,,#56,assigned,,,issue #56
 0x409160,783,,#56,assigned,,,issue #56
 0x409730,1678,,#56,assigned,,,issue #56

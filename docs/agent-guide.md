@@ -984,6 +984,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **`_Tree::_Dec`/`_Inc` node layout**: the `_Color` field's offset follows the
   value type's size (an 8-byte pair at +0xc puts it at +0x14; a 0x30-byte value
   moves it to +0x3c), and that decides the whole function's match.
+- **A run of inlined constructors that suddenly calls one out of line** (or
+  inlines a derived constructor but calls its base): MSVC's /Ob2 inlining
+  budget ran out. Define every callee's body in the file, including the ones the
+  original still calls out of line, so the budget runs out at the same place
+  (0x408cb0).
+- **A bitfield bit tested as `mov edx, ecx; shr edx, N; test dl, 1` inside an
+  `&&` chain**: write `!(unsigned char)bf`; `!bf` and `bf == 0` give
+  `test ch, mask` (0x4089a0).
+- **`fild` operands from a Vec3 temporary in memory**, with a literal 0 stored
+  for one component: the length helper takes `const Vec3&` and is called on a
+  temporary, `Length(a - b)` (0x408100).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

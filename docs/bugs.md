@@ -75,3 +75,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   before the state test; no path reads it in the state where it stays that way.
 - **0x404db0**: the second failure message is spelt "Ressurection failed",
   the first "Resurrection failed".
+
+## Base height overwritten while measuring flat distances (likely)
+
+**0x408100**, slot 0 of `Class_004085d0` (one of the AI's unit groups). To get
+a horizontal distance it overwrites the base position's y in place (at
+0x408250 and 0x40834f) and never restores it, so every later unit in the loop
+is measured against the previous unit's height instead of the base's. Found by
+Claude Opus 5.5 in #55.

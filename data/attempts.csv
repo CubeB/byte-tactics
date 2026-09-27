@@ -2317,7 +2317,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x431950,199,space-bunny-free,#28,matched,100.0,,issue #28
 0x432fb0,244,space-bunny-free,#28,matched,100.0,,issue #28
 0x433130,312,space-bunny-free,#28,matched,100.0,,issue #28
-0x433270,270,space-bunny-free,#28,partial,100.0,,issue #28
+0x433270,270,space-bunny-free,#28,matched,100.0,,issue #28 (names fixed in #187)
 0x433380,377,space-bunny-free,#28,partial,42.0,,issue #28
 0x4335f0,194,space-bunny-free,#29,partial,77.2,,issue #29
 0x4344e0,220,space-bunny-free,#29,matched,100.0,,issue #29

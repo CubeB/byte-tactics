@@ -222,6 +222,15 @@ can disagree on types (a real link would fail). Known cases:
   `unsigned short` where 0x4861d0 inlines it (#333); 0x485e90 also matches
   with `unsigned short`, so settle on that.
 
+- 0x437800 is recorded as `Class_00437800::Class_00437800` but is
+  `Class_00437820::operator=` (`??4Class_00437820@@QAEAAV0@ABV0@@Z`, the
+  compiler-generated assignment of `{Class_004c91a0 handle; int field_4;}`,
+  27 bytes, called only from 0x437580's fill and copy_backward); 0x4c93b0
+  (`Class_004c93b0::FUN_004c93b0`) is the string handle's
+  `Class_004c91a0::operator=`. Rename both before 0x437580 can match; its twin
+  at 0x488fb0 (with 0x489240) is the same instantiation for another vector
+  (#428).
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

@@ -1539,6 +1539,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A pointer into a g_game table taken only after the loop guard**
   (`add eax, K` after `jle`): a do/while behind an explicit
   `if (*count > 0)` with the pointer assigned inside it. See 0x422ea0.
+- **Only some fields of a struct stored twice** (pos.x and pos.y, not pos.z),
+  the first store after a call it could not have moved past: build the value
+  in a separate struct local and copy it whole (`Vec3 pos = offset;`). Found
+  by Claude Opus 5.5 in #428 (0x437de0).
+- **`shl eax, 16; mov edi, eax`** where yours shifts in place in another
+  register: split it into `int r = ...; int radius = r << 16;`. See 0x437de0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

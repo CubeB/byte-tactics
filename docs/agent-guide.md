@@ -564,3 +564,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **An index loop over a global array that should stay indexed**: address the
   array as a member of an enclosing global struct (`g.arr[i]`); the checker
   accepts the struct symbol plus a displacement.
+- **Diff against siblings before writing**: compare your function's `ctx.py`
+  disassembly with already-matched neighbours (ignoring addresses); several
+  functions are byte-identical copies apart from jump targets or `ret N`.
+- **A global object with a constructor and destructor**: write
+  `Class_x DAT_y;` and annotate the compiler-generated initialiser and atexit
+  destructor (`// FUNCTION: 0x49e610 _$E4` / `_$E2`); see `0x49e610.cpp`.
+- **An unreferenced `??_E` function** (vector deleting destructor) is emitted by
+  `new T[n]` on a class with a destructor; `new T[1]` in the file makes the
+  compiler emit it (annotate it with its mangled name).

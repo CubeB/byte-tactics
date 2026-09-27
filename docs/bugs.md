@@ -395,3 +395,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   after `xor esi, esi`), then written, and the null pointer is passed to every
   callee; only the loop inlined from FUN_00485e90 checks for null. Harmless if
   id 0 never occurs. Found by Claude Opus 5.5 in #333.
+- **0x421700** (possible): increments the debris counter at g_game+0x1491b
+  and writes the entry's position before searching the 300-slot object pool;
+  if the pool is full it returns with that entry claimed, its object pointer
+  0, and its refs and velocity left from the slot's previous use, so a stale
+  animation could be drawn. Found by Claude Opus 5.5 in #273.

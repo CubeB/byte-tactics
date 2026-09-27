@@ -1531,6 +1531,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Feature code near 0x4233a0 to 0x424050** inlines FUN_004232a0 (spot free
   list), FUN_00421eb0 (footprint centre) and FUN_00423bf0 (burnt-out
   replacement); write them as inline copies.
+- **Converted Vec3f locals with all `fild`s first**: MSVC 5 issues the x87
+  loads of several converted locals ahead of their stores only when each local
+  is used once, by one call (or copied to memory); a local feeding two calls
+  gives one fild/fmul/fstp per component. Found by Claude Opus 5.5 in #273
+  (0x421700, unsolved).
+- **A pointer into a g_game table taken only after the loop guard**
+  (`add eax, K` after `jle`): a do/while behind an explicit
+  `if (*count > 0)` with the pointer assigned inside it. See 0x422ea0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -1347,15 +1347,22 @@ address,size,model,batch,result,similarity,runs,notes
 0x43a1f0,218,opus,O53,assigned,,,
 0x417a60,232,opus,O53,assigned,,,
 0x4468c0,248,opus,O53,assigned,,,
-0x438730,42,opus,O54,assigned,,,
-0x41c2b0,43,opus,O54,assigned,,,
-0x416d50,46,opus,O54,assigned,,,
-0x4c22a0,47,opus,O54,assigned,,,
-0x42a400,50,opus,O54,assigned,,,
-0x4177a0,52,opus,O54,assigned,,,
-0x49e570,53,opus,O54,assigned,,,
-0x41b2a0,56,opus,O54,assigned,,,
-0x48fcd0,57,opus,O54,assigned,,,
-0x48f5d0,59,opus,O54,assigned,,,
-0x4ce190,61,opus,O54,assigned,,,
-0x490650,63,opus,O54,assigned,,,
+0x438730,42,opus,O54,matched,100.0,,
+0x41c2b0,43,opus,O54,matched,100.0,,
+0x416d50,46,opus,O54,matched,100.0,,
+0x4c22a0,47,opus,O54,matched,100.0,,
+0x42a400,50,opus,O54,matched,100.0,,
+0x4177a0,52,opus,O54,matched,100.0,,
+0x49e570,53,opus,O54,matched,100.0,,
+0x41b2a0,56,opus,O54,matched,100.0,,
+0x48fcd0,57,opus,O54,matched,100.0,,
+0x48f5d0,59,opus,O54,matched,100.0,,
+0x4ce190,61,opus,O54,matched,100.0,,
+0x490650,63,opus,O54,matched,100.0,,
+0x4b6b80,26,sonnet,S26,assigned,,,escalated from H28
+0x407390,32,sonnet,S26,assigned,,,escalated from H28
+0x490840,32,sonnet,S26,assigned,,,escalated from H28
+0x416e00,34,sonnet,S26,assigned,,,escalated from H28
+0x47f750,37,sonnet,S26,assigned,,,escalated from H28
+0x47f960,39,sonnet,S26,assigned,,,escalated from H28
+0x47f090,40,sonnet,S26,assigned,,,escalated from H28

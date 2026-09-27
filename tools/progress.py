@@ -83,8 +83,27 @@ def main() -> None:
         compiled = dict(zip(sources, pool.map(lambda s: compile_cached(s, include_hash), sources)))
 
     conflicts: list[str] = []
-    seen: dict[int, Path] = {}
     objects: dict[Path, object] = {}
+    for src in sources:
+        obj_path, log = compiled[src]
+        objects[src] = parse_object(obj_path.read_bytes(), obj_path.name) if obj_path else log
+
+    # Pass 1: every function whose bytes match contributes its own name (its
+    # definition) before any references are learned, so a caller elsewhere in
+    # the address order cannot claim that address under a different name.
+    named = set(symbols.values())
+    for address, qualname, src in work:
+        obj = objects[src]
+        if address not in game or isinstance(obj, str):
+            continue
+        res = compare(orig, obj, address, qualname=qualname, symbols=symbols)
+        own = base_name(res.symbol) if res.symbol else ""
+        if res.bytes_match and own and not own.startswith("$") and address not in named:
+            symbols.setdefault(own, address)
+            named.add(address)
+
+    # Pass 2: verify everything against those names and learn references.
+    seen: dict[int, Path] = {}
     rows = []
     for address, qualname, src in work:
         rel = src.relative_to(ROOT)
@@ -98,9 +117,6 @@ def main() -> None:
         if address not in game:
             row["status"] = "not a game function start"
             continue
-        if src not in objects:
-            obj_path, log = compiled[src]
-            objects[src] = parse_object(obj_path.read_bytes(), obj_path.name) if obj_path else log
         obj = objects[src]
         if isinstance(obj, str):
             row["status"] = "compile error"

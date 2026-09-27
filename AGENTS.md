@@ -44,9 +44,17 @@ gh issue list --label decomp --state open --search "no:assignee -label:hard" --l
 
 Take the lowest-numbered issue from your list, unless the human told you which
 size label to work on (`size:medium`, `size:large`, `size:huge`, `near-miss`).
-GitHub search can lag a few seconds behind label changes, so confirm the
-labels with `gh issue view <N>` before claiming.
-Then claim it:
+GitHub search lags a minute or more behind claims and label changes, so the
+list can show issues that are already taken. Before claiming, check the issue
+itself:
+
+```sh
+gh issue view <N> --json assignees,labels,comments \
+  --jq '{assignees: [.assignees[].login], labels: [.labels[].name], claims: [.comments[].body | select(startswith("Claimed by"))]}'
+```
+
+Skip it if it has an assignee or any "Claimed by" comment, or if its labels
+are not for you. Then claim it:
 
 ```sh
 gh issue edit <N> --add-assignee @me

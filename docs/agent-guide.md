@@ -1694,3 +1694,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A loop counter declared inside an `if` with a `do/while`** puts its `xor`
   after the loop guard; a plain `for` hoists it and reverses the add's operand
   order. Change both together (0x470c10).
+- **A code address stored into a field is not always a vtable**: if the value
+  is a plain function rather than an address in a `.rdata` vtable, declare the
+  field as a function pointer and assign it. `ctx.py`'s `vtable?` mark is only
+  a hint (0x460160).

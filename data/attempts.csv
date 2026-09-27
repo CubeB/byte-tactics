@@ -2343,12 +2343,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x43c990,209,,#32,assigned,,,issue #32
 0x43ca70,163,,#32,assigned,,,issue #32
 0x43cc20,254,,#32,assigned,,,issue #32
-0x43d0d0,306,,#33,assigned,,,issue #33
-0x43da70,216,,#33,assigned,,,issue #33
-0x43db50,170,,#33,assigned,,,issue #33
-0x43dc00,267,,#33,assigned,,,issue #33
-0x43dd70,180,,#33,assigned,,,issue #33
-0x43de30,180,,#33,assigned,,,issue #33
+0x43d0d0,306,deepseek-v4.1-flash,#33,matched,100.0,,issue #33
+0x43da70,216,deepseek-v4.1-flash,#33,matched,100.0,,issue #33
+0x43db50,170,deepseek-v4.1-flash,#33,matched,100.0,,issue #33
+0x43dc00,267,deepseek-v4.1-flash,#33,matched,100.0,,issue #33
+0x43dd70,180,deepseek-v4.1-flash,#33,matched,100.0,,issue #33
+0x43de30,180,deepseek-v4.1-flash,#33,matched,100.0,,issue #33
 0x43def0,359,space-bunny-free,#34,partial,63.6,,issue #34
 0x43e0b0,202,space-bunny-free,#34,matched,100.0,,issue #34
 0x43e2e0,217,space-bunny-free,#34,matched,100.0,,issue #34
@@ -2482,9 +2482,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x413bc0,441,,#129,assigned,,,issue #129
 0x413d80,1480,,#129,assigned,,,issue #129
 0x414380,1000,,#129,assigned,,,issue #129
-0x414770,784,,#130,assigned,,,issue #130
-0x414a80,997,,#130,assigned,,,issue #130
-0x414e70,988,,#130,assigned,,,issue #130
+0x414770,784,opus,#130,matched,100.0,,issue #130
+0x414a80,997,opus,#130,matched,100.0,,issue #130
+0x414e70,988,opus,#130,matched,100.0,,issue #130
 0x4152f0,1504,,#131,assigned,,,issue #131
 0x4158d0,578,,#131,assigned,,,issue #131
 0x415fa0,426,,#131,assigned,,,issue #131
@@ -2530,12 +2530,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x45a950,322,,#142,assigned,,,issue #142
 0x45ab10,260,,#142,assigned,,,issue #142
 0x45aec0,202,,#142,assigned,,,issue #142
-0x45b0a0,174,,#143,assigned,,,issue #143
-0x45b150,242,,#143,assigned,,,issue #143
-0x45bb00,228,,#143,assigned,,,issue #143
-0x45bbf0,194,,#143,assigned,,,issue #143
-0x45bd20,179,,#143,assigned,,,issue #143
-0x45bde0,179,,#143,assigned,,,issue #143
+0x45b0a0,174,space-bunny-free,#143,matched,100.0,,issue #143
+0x45b150,242,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bb00,228,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bbf0,194,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bd20,179,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bde0,179,space-bunny-free,#143,matched,100.0,,issue #143
 0x422040,298,opus,#146,matched,100.0,,"issue #146, escalated"
 0x43def0,359,,#154,assigned,,,"issue #154, escalated"
 0x440830,242,,#154,assigned,,,"issue #154, escalated"

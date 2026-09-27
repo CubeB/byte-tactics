@@ -2259,12 +2259,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x41a920,213,deepseek-v4.1-flash,#18,matched,100.0,,issue #18
 0x41b0f0,260,deepseek-v4.1-flash,#18,matched,100.0,,issue #18
 0x41b8d0,388,deepseek-v4.1-flash,#18,matched,100.0,,issue #18
-0x41bde0,299,,#19,assigned,,,issue #19
-0x41bf10,325,,#19,assigned,,,issue #19
-0x41c060,173,,#19,assigned,,,issue #19
-0x41c180,300,,#19,assigned,,,issue #19
-0x41c4c0,280,,#19,assigned,,,issue #19
-0x41c6f0,200,,#19,assigned,,,issue #19
+0x41bde0,299,deepseek-v4.1-flash,#19,partial,64.5,,issue #19
+0x41bf10,325,deepseek-v4.1-flash,#19,matched,100.0,,issue #19
+0x41c060,173,deepseek-v4.1-flash,#19,partial,50.0,,issue #19
+0x41c180,300,deepseek-v4.1-flash,#19,matched,100.0,,issue #19
+0x41c4c0,280,deepseek-v4.1-flash,#19,matched,100.0,,issue #19
+0x41c6f0,200,deepseek-v4.1-flash,#19,matched,100.0,,issue #19
 0x41c7c0,273,,#20,assigned,,,issue #20
 0x41c8e0,294,,#20,assigned,,,issue #20
 0x41cc60,177,,#20,assigned,,,issue #20
@@ -2440,3 +2440,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x419670,341,,#106,assigned,,,"issue #106, escalated"
 0x417f60,617,,#111,assigned,,,"issue #111, escalated"
 0x4181d0,315,,#111,assigned,,,"issue #111, escalated"
+0x41bde0,299,,#113,assigned,,,"issue #113, escalated"
+0x41c060,173,,#113,assigned,,,"issue #113, escalated"

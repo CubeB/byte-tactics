@@ -1177,6 +1177,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   #103 (0x4181d0).
 - **`<< 8` and `* 256` on a zero-extended byte**: `b << 8` compiles to
   `mov ch, [mem]`, `b * 256` to `mov cl, [mem]; shl ecx, 8`. See 0x4181d0.
+- **A local shared across the arms of an `if` swaps registers**: if two
+  values (say a unit pointer and a field loaded from it) come out in each
+  other's registers, declare a separate local inside each arm instead of one
+  before the `if`. Found by DeepSeek V4.1 Flash in #19 (0x41bf10, 46% to
+  100%).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

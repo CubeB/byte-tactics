@@ -81,6 +81,12 @@ revisit them once the surrounding code is known.
   `Class_00440320`, while 0x440320 is recorded as the free function
   `FUN_00440320`.
 
+- `Class_0046e4d0::FUN_0046e4d0` and `Class_0046e450` are the same object's
+  class (both called on g_game+0x2a30 from the two arms of one branch at
+  0x44c4f8).
+- 0x4352d0, 0x463730 and 0x45ca50 have no callers and no pointers to them:
+  probably dead code.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

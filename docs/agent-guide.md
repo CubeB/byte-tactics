@@ -1466,6 +1466,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   "headers change nothing" and missed a one-header fix; #267.) When the
   N-declarations windows repeat, sweep one full period per header set and
   pick the set whose window has N = 0 furthest from both edges.
+- **When the N-declarations test stays flat, go bigger before rewriting**:
+  0x41ce90 scored the same for 0 to 400 `extern int`s and every headers.py
+  set, but matched with 2000 or more unused function prototypes. Big real
+  headers after `<windows.h>` reach such states: `<string>`, `<vector>` +
+  `<map>` and `<iostream>` each fixed it, while `<vector>`, `<map>`, `<list>`,
+  `<ddraw.h>`, `<dsound.h>` and `<dplay.h>` alone did not. Found by Claude
+  Opus 5.5 in #209 (0x41ce90, fixed with `<string>`).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

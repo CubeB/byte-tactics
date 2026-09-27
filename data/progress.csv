@@ -988,7 +988,7 @@ address,size,file,symbol,status,similarity
 0x456ee0,368,src/unsorted/0x456ee0.cpp,?FUN_00456ee0@@YGXEEH@Z,matched,100.0
 0x457050,368,src/unsorted/0x457050.cpp,?FUN_00457050@@YGXEEH@Z,matched,100.0
 0x4571c0,218,src/unsorted/0x4571c0.cpp,?FUN_004571c0@@YGXEE@Z,matched,100.0
-0x4572a0,293,src/unsorted/0x4572a0.cpp,?FUN_004572a0@@YAHXZ,partial,35.7
+0x4572a0,293,src/unsorted/0x4572a0.cpp,?FUN_004572a0@@YAHXZ,matched,100.0
 0x4573d0,358,src/unsorted/0x4573d0.cpp,?FUN_004573d0@@YGXPAUPlayer_004573d0@@0E@Z,matched,100.0
 0x4578d0,18,src/unsorted/0x4578d0.cpp,?FUN_004578d0@@YGXH@Z,matched,100.0
 0x4578f0,340,src/unsorted/0x4578f0.cpp,?FUN_004578f0@@YAXXZ,matched,100.0

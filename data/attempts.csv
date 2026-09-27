@@ -2712,7 +2712,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x46e890,276,opus,#249,matched,100.0,,"issue #249, escalated (overload alias added at merge)"
 0x46eaa0,189,opus,#249,matched,100.0,,"issue #249, escalated"
 0x45d130,326,space-bunny-free,#250,matched,100.0,,"issue #250, escalated"
-0x4572a0,293,,#252,assigned,,,"issue #252, escalated"
+0x4572a0,293,space-bunny-free,#252,matched,100.0,,"issue #252, escalated"
 0x476d80,260,space-bunny-free,#253,matched,100.0,,issue #253
 0x477360,174,space-bunny-free,#253,matched,100.0,,issue #253
 0x477410,188,space-bunny-free,#253,matched,100.0,,issue #253

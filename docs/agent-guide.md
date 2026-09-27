@@ -647,6 +647,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A tail returning K or 0 compiled branchless** (`setcc; dec; and`) where
   the original branches: give the zero case its own explicit `return 0;` before
   the final `return 0;` (0x480720).
+- **`while (1)` vs `for (;;)`**: a loop that breaks in the middle stays tested
+  at the top only as `while (1)`; MSVC 5 rotates `for (;;)` (0x4356f0).
+- **A loop whose body reloads `*p` at the top and compares later bytes with a
+  register constant**: the body was an inlined helper returning the new
+  pointer, `while (*p) p = Helper(p);` (0x4c33a0).
+- **`push ecx; mov ecx, esp; push x; call F` before the other pushes**: F
+  constructs a by-value class argument in place; name it
+  `Class_<F>::Class_<F>` (0x401c20).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

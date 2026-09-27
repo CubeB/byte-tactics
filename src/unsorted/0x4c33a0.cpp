@@ -1,0 +1,42 @@
+// Decompiled by Opus. Names are provisional.
+// Blanks out C and C++ style comments in a text buffer, in place.
+
+// Handles the text at p (a // comment, a /* */ comment, or one ordinary
+// character) and returns where to continue.
+static inline char* SkipComment(char* p)
+{
+    if (p[0] == '/' && p[1] == '/') {
+        while (1) {
+            if (*p == '\n')
+                break;
+            *p = ' ';
+            p++;
+            if (*p == 0)
+                break;
+        }
+    } else if (p[0] == '/' && p[1] == '*') {
+        p[1] = ' ';
+        p[0] = ' ';
+        p += 2;
+        while (*p) {
+            if (p[-1] == '*' && p[0] == '/') {
+                p[0] = ' ';
+                p[-1] = ' ';
+                p++;
+                break;
+            }
+            p[-1] = ' ';
+            p++;
+        }
+    } else {
+        p++;
+    }
+    return p;
+}
+
+// FUNCTION: 0x4c33a0
+void __stdcall FUN_004c33a0(char* p)
+{
+    while (*p)
+        p = SkipComment(p);
+}

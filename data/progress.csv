@@ -903,6 +903,7 @@ address,size,file,symbol,status,similarity
 0x4ac130,54,src/unsorted/0x4ac130.cpp,?FUN_004ac130@@YGXPAUObj_004ac130@@@Z,matched,100.0
 0x4ac300,56,src/unsorted/0x4ac300.cpp,?FUN_004ac300@@YGXPAUObj_4ac300@@@Z,matched,100.0
 0x4ac8a0,28,src/unsorted/0x4ac8a0.cpp,?FUN_004ac8a0@@YGXPADPAX@Z,matched,100.0
+0x4ac970,161,src/unsorted/0x4ac970.cpp,?FUN_004ac970@@YGXPAUObject_004ac970@@HH@Z,partial,59.3
 0x4acbe0,142,src/unsorted/0x4acbe0.cpp,?FUN_004acbe0@@YGHPAUObject_004acbe0@@HH@Z,matched,100.0
 0x4acc70,93,src/unsorted/0x4acc70.cpp,?FUN_004acc70@@YGXPAUClass_004acc70@@PAUColor_004acc70@@@Z,matched,100.0
 0x4ad980,142,src/unsorted/0x4ad980.cpp,?FUN_004ad980@@YGXPAUStruct_004ad980@@PAUClass_004bbbe0@@H@Z,matched,100.0

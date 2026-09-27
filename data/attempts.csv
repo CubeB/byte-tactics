@@ -2824,12 +2824,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x494740,250,,#283,assigned,,,issue #283
 0x494e70,371,,#283,assigned,,,issue #283
 0x495930,256,,#283,assigned,,,issue #283
-0x496a60,175,,#284,assigned,,,issue #284
-0x496bb0,298,,#284,assigned,,,issue #284
-0x496ce0,207,,#284,assigned,,,issue #284
-0x497080,248,,#284,assigned,,,issue #284
-0x498f70,395,,#284,assigned,,,issue #284
-0x499100,254,,#284,assigned,,,issue #284
+0x496a60,175,deepseek-v4.1-flash,#284,matched,100.0,,issue #284
+0x496bb0,298,deepseek-v4.1-flash,#284,partial,84.1,,issue #284
+0x496ce0,207,deepseek-v4.1-flash,#284,partial,79.2,,issue #284
+0x497080,248,deepseek-v4.1-flash,#284,partial,44.0,,issue #284
+0x498f70,395,deepseek-v4.1-flash,#284,matched,100.0,,issue #284
+0x499100,254,deepseek-v4.1-flash,#284,matched,100.0,,issue #284
 0x499ab0,230,,#285,assigned,,,issue #285
 0x499cd0,376,,#285,assigned,,,issue #285
 0x49aa80,301,,#285,assigned,,,issue #285
@@ -3227,3 +3227,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x436c30,1613,,#428,assigned,,,issue #428
 0x437580,639,,#428,assigned,,,issue #428
 0x437de0,653,,#428,assigned,,,issue #428
+0x496bb0,298,,#431,assigned,,,"issue #431, escalated"
+0x496ce0,207,,#431,assigned,,,"issue #431, escalated"
+0x497080,248,,#431,assigned,,,"issue #431, escalated"

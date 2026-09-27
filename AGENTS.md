@@ -111,10 +111,18 @@ Some functions will not match with the model you are. That is expected: the
 orchestrator re-issues what you leave to a stronger model. What is not useful
 is spending hours on one function. So:
 
-- **Per function:** stop after 15 `check.py` runs or 20 minutes (check with
-  `date`), whichever comes first.
-- **Per issue:** after 2 hours, stop and open the pull request with what you
-  have.
+- **Per function**, scaled by its size (the issue lists each function's
+  bytes); stop at whichever comes first (check the time with `date`):
+
+  | function size | `check.py` runs | time |
+  |---|---|---|
+  | up to 400 bytes | 15 | 20 minutes |
+  | 401 to 1000 bytes | 25 | 40 minutes |
+  | over 1000 bytes | 35 | 60 minutes |
+
+  Scoring scratch variants with `check.py --sym` does not count as a run.
+- **Per issue:** after 2 hours (3 hours for a `hard` issue), stop and open the
+  pull request with what you have.
 - **When you stop on a function:** leave your best version in its file, with a
   comment at the top saying what still differs. Mark it `gave up` in the pull
   request table. It then counts as attempted, and the orchestrator hands it to

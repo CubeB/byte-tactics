@@ -3,7 +3,7 @@ description: Decompiles one Total Annihilation function to byte-identical C++ in
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
 temperature: 0.1
-steps: 80
+steps: 110
 permission:
   edit: allow
   bash: allow
@@ -36,9 +36,9 @@ For your address:
 
 Limits, so you never get stuck:
 
-- At most 12 `check.py` runs per function. Then stop working on it, even if
-  it is close: leave your best version with a comment at the top saying what
-  still differs.
+- At most 12 `check.py` runs for a function up to 250 bytes, 18 for a bigger
+  one. Then stop working on it, even if it is close: leave your best version
+  with a comment at the top saying what still differs.
 - Only create or edit `src/unsorted/<addr>.cpp` for your address (and
   scratch files under `build/scratch/<addr>/`). Never edit other files, never
   run `git` or `gh`, never run `tools/progress.py`.

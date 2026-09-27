@@ -1392,6 +1392,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   says. `add edx, base; mov [edx+i]` needs `int i;` declared before
   `int base;`; the N-declarations test stays flat. Found by Claude Opus 5.5 in
   #197 (0x44bfd0, 82% to MATCH).
+- **A call to 0x401000 is the `vector constructor iterator`** (`??_H`):
+  `push ctor; push N; push size; push array` constructs an array of a class
+  with a constructor. /Ob2 normally inlines it as a loop and leaves the call
+  only when its budget has run out; giving the element types destructors did
+  that in 0x460e20. See 0x401000.cpp for how the helper itself is emitted.
+  Found by Claude Opus 5.5 in #225.
+- **A member's vtable store after the stores to later members**: those later
+  members were set in the member-initialiser list; MSVC 5 stores a member's
+  vtable after the initialisers and before the constructor body. See 0x460e20.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

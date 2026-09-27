@@ -29,8 +29,6 @@ public:
     {
         int t = a;
         t = t * 3 + 1;
-        t = t ^ 0x55;
-        t = t + 7;
         (void)t;
     }
 
@@ -59,8 +57,7 @@ unsigned int room = d->FUN_00470250();
             d->_Destroy(d->_First, d->_Last);
                 operator delete((void*)d->_First);
                 int n = (int)s->FUN_00470270();
-                if (n < 0)
-                    n = 0;
+                n = n < 0 ? 0 : n;
                 Elem_004702a0* p = (Elem_004702a0*)operator new(n * 4);
                 d->_First = p;
                 Elem_004702a0* q = d->_Ucopy(s->_First, s->_Last, p);
@@ -75,7 +72,7 @@ unsigned int room = d->FUN_00470250();
     {
         if (d == s)
             ;
-        else if (d->FUN_00470270() >= s->FUN_00470270()) {
+        else if (s->FUN_00470270() <= d->FUN_00470270()) {
             Elem_004702a0* r = (Elem_004702a0*)FUN_004702d0(
                 (int*)s->_First, (int*)s->_Last, (int*)d->_First);
             d->_Destroy(r, d->_Last);
@@ -135,6 +132,8 @@ Class_0046eaa0& Class_0046eaa0::operator=(const Class_0046eaa0& src)
     list_b.assign_second(&list_b, &src.list_b);
 
     Class_00470270::burn(1);
+    Class_00470270::burn(2);
+    Class_00470270::burn(3);
 
     field_24 = src.field_24;
     field_28 = src.field_28;

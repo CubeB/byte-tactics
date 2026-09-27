@@ -74,8 +74,15 @@ struct Model_0045a610 {
 
 void __stdcall FUN_004c1000(View_0045a610* view, Vertex_0045a610* verts, int field_10, int count);
 
+// A method whose `this` is never used: its caller 0x45a790 loads ecx before
+// the call. It compiles the same as a __stdcall free function.
+class Class_0045a610 {
+public:
+    void FUN_0045a610(View_0045a610* view, Model_0045a610* model);
+};
+
 // FUNCTION: 0x45a610
-void __stdcall FUN_0045a610(View_0045a610* view, Model_0045a610* model)
+void Class_0045a610::FUN_0045a610(View_0045a610* view, Model_0045a610* model)
 {
     Vertex_0045a610 verts[2000];
     Vertex_0045a610 tmp[25];

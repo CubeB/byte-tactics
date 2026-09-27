@@ -41,8 +41,15 @@ struct Model_45a510 {
 };
 #pragma pack(pop)
 
+// A method whose `this` is never used: its caller 0x45a790 loads ecx before
+// the call. It compiles the same as a __stdcall free function.
+class Class_0045a510 {
+public:
+    void FUN_0045a510(int* width, int* height, int* originX, int* originY, Model_45a510* model);
+};
+
 // FUNCTION: 0x45a510
-void __stdcall FUN_0045a510(int* width, int* height, int* originX, int* originY, Model_45a510* model)
+void Class_0045a510::FUN_0045a510(int* width, int* height, int* originX, int* originY, Model_45a510* model)
 {
     int minX;
     int minY;

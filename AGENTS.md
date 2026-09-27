@@ -151,9 +151,15 @@ Rules that matter most (the guide has the rest):
 
 ## 5. Open a pull request
 
+First bring in what was merged while you worked, and re-check your functions,
+because a callee you call may have been matched under a new name in the
+meantime:
+
 ```sh
 git add src/unsorted/
 git commit -m "Add: <matched> of <total> functions for #<N>"
+git pull --rebase origin main
+uv run tools/checkall.py <your addresses>
 git push -u origin issue-<N>
 gh pr create --title "Decomp #<N>: <matched> of <total> matched" --body-file <file>
 ```

@@ -451,3 +451,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (`MakePoint(x, y)`, `AddPoints(a, b)`), not constructors and `operator+=`.
 - **`mov al, [m]; shr al, N; test al, 1` at an odd offset**: an `unsigned short`
   bitfield whose storage starts there, in a packed struct.
+- **A parameter pointer loaded before the first branch** while yours loads it
+  in each branch: take a reference to the field at the top
+  (`int& m = obj->field;`).
+- **Two pushes merging into one call** (`push edx; jmp L` / `L0: push imm` /
+  `L: push ...; call`): an if/else calling the same function in both branches
+  with one argument different.
+- **Scalar deleting destructors that free through a pool** instead of
+  `operator delete`: call the pool object's method (see `0x471cd0.cpp`).

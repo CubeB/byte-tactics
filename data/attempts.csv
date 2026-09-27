@@ -778,24 +778,24 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b4bf0,29,sonnet,S13,assigned,,,escalated from Haiku
 0x46e610,34,sonnet,S13,assigned,,,escalated from Haiku
 0x407350,40,sonnet,S13,assigned,,,escalated from Haiku
-0x471f40,66,opus,O27,assigned,,,
-0x40d620,73,opus,O27,assigned,,,
-0x4dd250,79,opus,O27,assigned,,,
-0x4ab510,87,opus,O27,assigned,,,
-0x49d0c0,93,opus,O27,assigned,,,
-0x417570,103,opus,O27,assigned,,,
-0x44cf60,113,opus,O27,assigned,,,
-0x452c40,124,opus,O27,assigned,,,
-0x44b330,135,opus,O27,assigned,,,
-0x435980,147,opus,O27,assigned,,,
-0x433a10,24,sonnet,S14,assigned,,,escalated from Haiku
-0x44f480,31,sonnet,S14,assigned,,,escalated from Haiku
-0x44ce50,32,sonnet,S14,assigned,,,escalated from Haiku
-0x4ada10,33,sonnet,S14,assigned,,,escalated from Haiku
-0x471cd0,34,sonnet,S14,assigned,,,escalated from Haiku
-0x4d8d40,35,sonnet,S14,assigned,,,escalated from Haiku
-0x490880,38,sonnet,S14,assigned,,,escalated from Haiku
-0x407a90,40,sonnet,S14,assigned,,,escalated from Haiku
+0x471f40,66,opus,O27,matched,100.0,,
+0x40d620,73,opus,O27,matched,100.0,,
+0x4dd250,79,opus,O27,matched,100.0,,
+0x4ab510,87,opus,O27,matched,100.0,,
+0x49d0c0,93,opus,O27,matched,100.0,,
+0x417570,103,opus,O27,matched,100.0,,
+0x44cf60,113,opus,O27,matched,100.0,,
+0x452c40,124,opus,O27,matched,100.0,,
+0x44b330,135,opus,O27,matched,100.0,,
+0x435980,147,opus,O27,matched,100.0,,
+0x433a10,24,sonnet,S14,matched,100.0,,escalated from Haiku
+0x44f480,31,sonnet,S14,matched,100.0,,escalated from Haiku
+0x44ce50,32,sonnet,S14,matched,100.0,,escalated from Haiku
+0x4ada10,33,sonnet,S14,matched,100.0,,escalated from Haiku
+0x471cd0,34,sonnet,S14,matched,100.0,,escalated from Haiku
+0x4d8d40,35,sonnet,S14,matched,100.0,,escalated from Haiku
+0x490880,38,sonnet,S14,matched,100.0,,escalated from Haiku
+0x407a90,40,sonnet,S14,matched,100.0,,escalated from Haiku
 0x4a1030,66,opus,O28,assigned,,,
 0x42a3b0,73,opus,O28,assigned,,,
 0x4dd7d0,79,opus,O28,assigned,,,

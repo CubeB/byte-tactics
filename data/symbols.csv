@@ -162,7 +162,7 @@ address,name
 0x40d470,std::E::EV?$allocator::?$vector::erase
 0x40d4a0,std::E::EV?$allocator::?$vector::_Destroy
 0x40d4b0,UElem_0040d4f0::?$vector::_Destroy
-0x40d4c0,Class_0040d4c0::FUN_0040d4c0
+0x40d4c0,UElem_0040d550::?$vector::size
 0x40d4e0,UElem_0040d550::?$vector::_Destroy
 0x40d4f0,UElem_0040d4f0::?$vector::_Ucopy
 0x40d520,UElem_0040d4f0::?$vector::_Ufill

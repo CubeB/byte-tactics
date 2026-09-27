@@ -149,7 +149,7 @@ address,size,file,symbol,status,similarity
 0x40c5b0,19,src/unsorted/0x40c5b0.cpp,?size@?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@QBEIXZ,matched,100.0
 0x40c5d0,34,src/unsorted/0x40c5d0.cpp,??1?$vector@UElem_0040cfb0@@V?$allocator@UElem_0040cfb0@@@std@@@std@@QAE@XZ,matched,100.0
 0x40c600,494,src/unsorted/0x40c600.cpp,?resize@?$vector@UElem_0040d4f0@@V?$allocator@UElem_0040d4f0@@@std@@@std@@QAEXIABUElem_0040d4f0@@@Z,matched,100.0
-0x40c7f0,511,src/unsorted/0x40c7f0.cpp,?resize@?$vector@UElem_0040d550@@V?$allocator@UElem_0040d550@@@std@@@std@@QAEXIABUElem_0040d550@@@Z,partial,100.0
+0x40c7f0,511,src/unsorted/0x40c7f0.cpp,?resize@?$vector@UElem_0040d550@@V?$allocator@UElem_0040d550@@@std@@@std@@QAEXIABUElem_0040d550@@@Z,matched,100.0
 0x40c9f0,50,src/unsorted/0x40c9f0.cpp,?erase@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@QAEPAPAUUnit@@PAPAU3@0@Z,matched,100.0
 0x40ca30,19,src/unsorted/0x40ca30.cpp,?capacity@?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@QBEIXZ,matched,100.0
 0x40ca50,467,src/unsorted/0x40ca50.cpp,?insert@?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@QAEPAUElem_0040cc40@@PAU3@ABU3@@Z,matched,100.0
@@ -166,7 +166,7 @@ address,size,file,symbol,status,similarity
 0x40d470,48,src/unsorted/0x40d470.cpp,?erase@?$vector@EV?$allocator@E@std@@@std@@QAEPAEPAE0@Z,matched,100.0
 0x40d4a0,3,src/unsorted/0x40d4a0.cpp,?_Destroy@?$vector@EV?$allocator@E@std@@@std@@IAEXPAE0@Z,matched,100.0
 0x40d4b0,3,src/unsorted/0x40d4b0.cpp,?_Destroy@?$vector@UElem_0040d4f0@@V?$allocator@UElem_0040d4f0@@@std@@@std@@IAEXPAUElem_0040d4f0@@0@Z,matched,100.0
-0x40d4c0,19,src/unsorted/0x40d4c0.cpp,?FUN_0040d4c0@Class_0040d4c0@@QAEHXZ,matched,100.0
+0x40d4c0,19,src/unsorted/0x40d4c0.cpp,?size@?$vector@UElem_0040d550@@V?$allocator@UElem_0040d550@@@std@@@std@@QBEIXZ,matched,100.0
 0x40d4e0,3,src/unsorted/0x40d4e0.cpp,?_Destroy@?$vector@UElem_0040d550@@V?$allocator@UElem_0040d550@@@std@@@std@@IAEXPAUElem_0040d550@@0@Z,matched,100.0
 0x40d4f0,35,src/unsorted/0x40d4f0.cpp,?_Ucopy@?$vector@UElem_0040d4f0@@V?$allocator@UElem_0040d4f0@@@std@@@std@@IAEPAUElem_0040d4f0@@PBU3@0PAU3@@Z,matched,100.0
 0x40d520,35,src/unsorted/0x40d520.cpp,?_Ufill@?$vector@UElem_0040d4f0@@V?$allocator@UElem_0040d4f0@@@std@@@std@@IAEXPAUElem_0040d4f0@@IABU3@@Z,matched,100.0

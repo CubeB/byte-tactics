@@ -1,5 +1,4 @@
 // Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: identical bytes, but 0x40d4c0 is named Class_0040d4c0::FUN_0040d4c0 instead of this vector's size().
 #include <vector>
 struct Elem_0040d550 { int value; };
 typedef std::vector<Elem_0040d550> Vec;

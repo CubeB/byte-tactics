@@ -170,7 +170,12 @@ def main() -> None:
         if f["address"] > cursor:
             chunk = pe.get_data(cursor - base, f["address"] - cursor)
             lead = len(chunk) - len(chunk.lstrip(b"\x90\xcc\x00"))
-            size = len(chunk.rstrip(b"\x90\xcc\x00")) - lead
+            body = chunk.rstrip(b"\x90\xcc\x00")
+            # Keep the high byte of a final `ret N` (c2 NN 00), which the
+            # padding strip would otherwise cut off.
+            if len(body) >= 2 and body[-2] == 0xC2 and len(body) < len(chunk):
+                body = chunk[:len(body) + 1]
+            size = len(body) - lead
             if size > 0:
                 gaps.append({"address": cursor + lead, "size": size, "kind": "gap", "name": lib.get(cursor + lead, ""),
                              "params": "", "locals": "", "seh": "", "frame_pointer": ""})

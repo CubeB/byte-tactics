@@ -1809,6 +1809,7 @@ address,size,file,symbol,status,similarity
 0x4e1680,38,src/unsorted/0x4e1680.cpp,?FUN_004e1680@@YAEXZ,matched,100.0
 0x4e1700,44,src/unsorted/0x4e1700.cpp,?FUN_004e1700@@YADXZ,matched,100.0
 0x4e1730,132,src/unsorted/0x4e1730.cpp,?FUN_004e1730@@YANXZ,matched,100.0
+0x4e1990,158,src/unsorted/0x4e1990.cpp,?FUN_004e1990@Class_004e1990@@QAEXABVClass_004e1a30@@@Z,matched,100.0
 0x4e1a30,80,src/unsorted/0x4e1a30.cpp,?FUN_004e1a30@Class_004e1a30@@QAEHABV1@@Z,matched,100.0
 0x4e1a80,14,src/unsorted/0x4e1a80.cpp,?FUN_004e1a80@@YAXI@Z,matched,100.0
 0x4e1a90,44,src/unsorted/0x4e1a90.cpp,?FUN_004e1a90@@YAPAVClass_004e17c0@@XZ,matched,100.0

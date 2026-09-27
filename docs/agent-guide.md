@@ -832,6 +832,23 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A call to a named method with no `mov ecx` before it** in a function that
   never sets ecx: the caller is a method of the same class and `this` passes
   through (0x437b50).
+- **A table whose existing `DAT_` symbol starts at element 1**: `arr[k - 1]`
+  keeps the offset in a separate `lea`; declare the true base as a new `DAT_`
+  symbol and index it directly (0x415ef0).
+- **Min-select `mov ecx, b; cmp; jae; mov ecx, a`**: the ternary names the value
+  loaded first as its true branch (`a >= b ? b : a`) (0x4dba40).
+- **A bitfield or boolean computed at 32 bits for a `char`-typed callee
+  parameter**: declare that parameter `int` in your file (0x446450).
+- **A zero constant in the wrong register while the early `return 0` has its own
+  `xor eax, eax`**: hoist the pointer local the original computes earlier; its
+  live range pushes the zero out of `eax` (0x437be0).
+- **Inlined `std::set`/`map` operations whose helpers already have placeholder
+  names**: write hand-rolled Iter/Find classes (as in 0x46e330). An 8-byte
+  `pair<iterator, bool>` comes back through a hidden pointer only with a
+  user-declared constructor (0x4e1990).
+- **Two struct locals copied from pointers**: the first declared gets a real
+  stack slot and the later one reuses a dead parameter slot; swap the
+  declarations if they come out reversed (0x421eb0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

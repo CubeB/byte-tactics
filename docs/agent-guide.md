@@ -729,6 +729,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (0x4c1480).
 - **`mov reg, [0]`**: an inlined helper was passed a null pointer and reads a
   field through it, e.g. `Send(0, &packet)` (0x46d530).
+- **A pointed-to field re-read around stores into a local buffer**: declare
+  the local at function scope; its address escapes to a call, so MSVC treats it
+  as aliased and keeps the re-reads (0x450f90).
+- **One code shape repeated across functions**: search the exe disassembly for
+  a distinctive immediate (such as `push 0xba`); the copies show it is an
+  inlined helper and which parts are fixed.
+- **Block layout that no reordering changes**: move the loop's match test and
+  its body into separate `static inline` helpers (0x43afc0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

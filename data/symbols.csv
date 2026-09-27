@@ -2465,7 +2465,7 @@ address,name
 0x4e8470,type_info::type_info
 0x4e8480,??4type_info@@AAEAAV0@ABV0@@Z
 0x4e8490,_CxxThrowException
-0x4e84e0,memcpy
+0x4e84e0,memmove
 0x4e8820,free
 0x4e8890,malloc
 0x4e88b0,_nh_malloc

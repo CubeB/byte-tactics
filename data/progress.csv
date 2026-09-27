@@ -1147,6 +1147,7 @@ address,size,file,symbol,status,similarity
 0x467c00,175,src/unsorted/0x467c00.cpp,?FUN_00467c00@@YGXPAXPAUPlayer_467c00@@PAURect_467c00@@H@Z,matched,100.0
 0x468310,108,src/unsorted/0x468310.cpp,?FUN_00468310@@YGXPAXPAURect_004b0510@@H@Z,matched,100.0
 0x46a400,36,src/unsorted/0x46a400.cpp,?FUN_0046a400@Class_0046a400@@QAEXH@Z,matched,100.0
+0x46b9d0,165,src/unsorted/0x46b9d0.cpp,?FUN_0046b9d0@@YGXPAXPAFUSize_0046b9d0@@H@Z,matched,100.0
 0x46ba80,89,src/unsorted/0x46ba80.cpp,?FUN_0046ba80@@YGXPAXPAUPoint_0046ba80@@HH@Z,matched,100.0
 0x46bc60,13,src/unsorted/0x46bc60.cpp,?FUN_0046bc60@@YGXH@Z,matched,100.0
 0x46bc70,108,src/unsorted/0x46bc70.cpp,?FUN_0046bc70@@YGHPADH@Z,matched,100.0

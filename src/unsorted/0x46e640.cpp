@@ -1,0 +1,92 @@
+// Decompiled by space-bunny-free. Names are provisional.
+// std::vector<int>::insert(iterator, size_type, const T&) from MSVC 5's
+// <vector>, with _Ucopy, _Ufill, _Destroy, fill and copy_backward all
+// inlined. Its one caller, 0x46d6c0, walks the 0x5c-byte entries of a
+// Class_0046e000 list and pushes, for each of the entry's two std::vector<int>
+// members (at +0x4 and +0x14, so _First at entry+8 and +0x18), the value of
+// a packet field at +0x6 or +0xa, the count 1, and the member's _Last.
+//
+// The template is reproduced here rather than included from <vector>, because
+// the codegen of the third inlined _Ucopy in the grow path depends on the
+// rest of the class and on the include set: the real header (which also
+// instantiates rbegin/rend, hence reverse_iterator) emits 547 bytes and a
+// four-instruction source pointer, this one emits 546 bytes and the lea the
+// original has. Still one byte differs: at 0x46e708 the original has
+// `lea eax, [ebx + ecx]` (the source pointer built from the source pointer
+// first) and this one has the same lea with the two registers swapped, so
+// MSVC 5 built the loop's source start value in the order (dest, source)
+// where the original built it (source, dest). Spelling the source start any
+// other way in the source, moving a statement, changing the loop's increment
+// order, and adding a live local (which demotes this from ebx to ebp) all
+// move it further away.
+#include <memory>
+#include <xutility>
+
+namespace std {
+template<class _Ty, class _A = allocator<_Ty> >
+class vector {
+public:
+	typedef vector<_Ty, _A> _Myt;
+	typedef _A allocator_type;
+	typedef _A::size_type size_type;
+	typedef _A::difference_type difference_type;
+	typedef _A::pointer _Tptr;
+	typedef _A::const_pointer _Ctptr;
+	typedef _A::reference reference;
+	typedef _A::const_reference const_reference;
+	typedef _A::value_type value_type;
+	typedef _Tptr iterator;
+	typedef _Ctptr const_iterator;
+
+	size_type size() const
+		{return (_First == 0 ? 0 : _Last - _First); }
+	size_type capacity() const
+		{return (_First == 0 ? 0 : _End - _First); }
+	iterator begin()
+		{return (_First); }
+	iterator end()
+		{return (_Last); }
+	void insert(iterator _P, size_type _M, const _Ty& _X)
+		{if (_End - _Last < _M)
+			{size_type _N = size() + (_M < size() ? size() : _M);
+			iterator _S = allocator.allocate(_N, (void *)0);
+			iterator _Q = _Ucopy(_First, _P, _S);
+			_Ufill(_Q, _M, _X);
+			_Ucopy(_P, _Last, _Q + _M);
+			_Destroy(_First, _Last);
+			allocator.deallocate(_First, _End - _First);
+			_End = _S + _N;
+			_Last = _S + size() + _M;
+			_First = _S; }
+		else if (_Last - _P < _M)
+			{_Ucopy(_P, _Last, _P + _M);
+			_Ufill(_Last, _M - (_Last - _P), _X);
+			fill(_P, _Last, _X);
+			_Last += _M; }
+		else if (0 < _M)
+			{_Ucopy(_Last - _M, _Last, _Last);
+			copy_backward(_P, _Last - _M, _Last);
+			fill(_P, _P + _M, _X);
+			_Last += _M; }}
+protected:
+	void _Destroy(iterator _F, iterator _L)
+		{for (; _F != _L; ++_F)
+			allocator.destroy(_F); }
+	iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P)
+		{for (; _F != _L; ++_P, ++_F)
+			allocator.construct(_P, *_F);
+		return (_P); }
+	void _Ufill(iterator _F, size_type _N, const _Ty& _X)
+		{for (; 0 < _N; --_N, ++_F)
+			allocator.construct(_F, _X); }
+	_A allocator;
+	iterator _First, _Last, _End;
+};
+}
+
+typedef std::vector<int> Vec_0046e640;
+typedef void (Vec_0046e640::*InsertFn_0046e640)(
+    Vec_0046e640::iterator, Vec_0046e640::size_type, int const&);
+
+// FUNCTION: 0x46e640 ?insert@?$vector@HV?$allocator@H@std@@@std@@QAEXPAHIABH@Z
+InsertFn_0046e640 g_insert_0046e640 = &Vec_0046e640::insert;

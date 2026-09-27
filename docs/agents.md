@@ -153,3 +153,8 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
   `__stdcall` and structs packed to 1 byte. Compiling the real zlib 1.0.4 source
   that way reproduces 53 functions (about 25 KB, 0x4d1c80-0x4d7d70) byte for byte,
   so they are marked `library`; `tools/setup_toolchain.sh` builds it.
+- The game itself was **not** built with `/Zp1`: adding it to every matched file
+  loses 11 matches (all STL containers, which need natural alignment) and gains
+  none. About a fifth of the files use `#pragma pack` for game structs with
+  fields at odd offsets, so Cavedog packed particular structs (game state, file
+  formats) in their headers rather than the whole build.

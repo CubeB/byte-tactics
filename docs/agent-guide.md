@@ -423,7 +423,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   declare it `__cdecl FUN_<addr>`.
 - **DirectX**: `<ddraw.h>`, `<dsound.h>` and `<dplay.h>` are available; a COM
   call (`call [ecx+N]` with the interface pointer pushed) is the real interface
-  method, e.g. `IDirectDrawPalette::SetEntries`.
+  method, e.g. `IDirectDrawPalette::SetEntries`. The toolchain's `<dplay.h>` only
+  has DirectX 3's `IDirectPlay`; the game's `IDirectPlay2`/`3` calls (e.g.
+  `SetPlayerData` +0x74, `EnumConnections` +0x8c) need the interface declared by
+  hand with padding slots, as in `0x4ca250.cpp` and `0x4c9d30.cpp`.
 - **Siblings first**: unnamed functions next to a matched one often differ only
   in a string literal or a constant (a "METAL" version next to an "ENERGY"
   one), so check neighbouring addresses in `src/unsorted/` before starting.

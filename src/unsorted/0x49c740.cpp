@@ -1,27 +1,28 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Initialises one entry of the 300-entry weapon array (g_game+0x141f7):
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Initialises one entry of the 300-entry projectile array (g_game+0x141f7):
 // copies the muzzle position into two fields, optionally a third position,
 // clears flag bits, and takes the firing unit's colour, its tracked
 // projectile slot, the barrel the shot came out of and the frame number.
 //
-// The second flag clear reloads the word instead of being folded into the
-// first one:
-//   and word ptr [esi+0x69], 0xfffe      <- first clear, in place
-//   mov ax, word ptr [esi+0x69]          <- reload, no GVN forwarding
+// The one shape that matters here: the two flag clears must not fold into a
+// single `and word ptr [esi+0x69], 0xffce`. The original does
+//   and word ptr [esi+0x69], 0xfffe     <- the first clear, stored in place
+//   mov ax, word ptr [esi+0x69]          <- a 16-bit local re-reads the word
 //   ...
-//   and eax, 0xffcf                     <- mask in a register
+//   and eax, 0xffcf                     <- the mask, at 32 bits
 //   ...
-//   mov word ptr [esi+0x69], ax         <- store sunk to the end of the run
-// Writing the second clear as one statement that reads the word and masks it
-// into a local (`unsigned short f = proj->flags & ~0x30;`) is what stops the
-// fold. Every other spelling of it - a second `&=`, a bitfield, a 16-bit
-// bitfield, a union member, a cast to a second struct type, a by-reference
-// helper, a block boundary, a pointer local - either folds into a single
-// `and word ptr [esi+0x69], 0xffce` or turns into a second in-place `and`.
-// The reload also pins ax across the rest of the run, which is why the g_game
-// pointer ends up in edx rather than eax; that in turn fixes the order of the
-// three stores that follow, so +0x4a has to be written before +0x56.
+//   mov word ptr [esi+0x69], ax         <- the store sinks below field_4e
+// so the second clear goes through an `unsigned short` local taken from the
+// field after the first clear, and the store of that local is the last of the
+// run. A local alone is not enough: taken as `int` it stays 16-bit folded,
+// and without the later stores to field_4a, field_56 and field_4e the reload
+// folds back to one in-place mask. The 32-bit `and eax` with a 16-bit store
+// is what an `unsigned short` local gives; a plain `&=` on the field is
+// emitted as an in-place `and word ptr` and can never produce it.
+// The frame number store (field_4a) has to be read before the mask, which
+// puts g_game into edx rather than eax.
 
+#pragma pack(push, 1)
 struct Vec3_0049c740 {
     int x;
     int y;
@@ -40,7 +41,6 @@ struct Slot_0049c740 {
     char unknown_4[0x18];              // the three slots are 0x1c apart
 };
 
-#pragma pack(push, 1)
 struct Unit_0049c740 {
     char unknown_0[0x10];
     Slot_0049c740 slots[3];            // +0x10
@@ -51,9 +51,7 @@ struct Unit_0049c740 {
     char unknown_100[0x110 - 0x100];
     unsigned int flags;                // +0x110
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
 struct Proj_0049c740 {
     Shot_0049c740* shot;               // +0x00
     Vec3_0049c740 pos;                 // +0x04
@@ -79,9 +77,7 @@ struct Proj_0049c740 {
     // sinks below it.
     void SetOwner(Unit_0049c740* u) { player = u->field_ff; owner = u; }
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
 struct Game_0049c740 {
     char unknown_0[0x141f3];
     int projectileCount;               // +0x141f3
@@ -112,20 +108,15 @@ void __stdcall FUN_0049c740(Proj_0049c740* proj, Shot_0049c740* shot, Vec3_0049c
     proj->field_42 = field_5;
     proj->flags &= ~1;
     proj->active = 0;
-    unsigned short f = proj->flags & ~0x30;
+    unsigned short f = proj->flags;
     proj->field_4a = g_game->field_38a47;
     proj->field_56 = 0;
     proj->field_4e = 0;
-    proj->flags = f;
+    proj->flags = f & ~0x30;
     if (unit) {
         proj->SetOwner(unit);
         if ((unit->flags & 0x20000000) && g_game->trackedUnit == unit)
             g_game->trackedProj = proj;
-        // Suspected bug: the loop leaves i at 3 when no slot matches, and that
-        // 3 is passed to FUN_0043e1e0, which indexes names[weapon] on a
-        // three-element local array (see src/unsorted/0x43e1e0.cpp), so it
-        // reads past the array unless a unit can never fire a weapon outside
-        // slots 0 to 2.
         for (i = 0; i < 3; i++)
             if (unit->slots[i].shot == shot)
                 break;

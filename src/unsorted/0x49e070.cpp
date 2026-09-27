@@ -1,18 +1,68 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
 //
-// 79.4 percent, and every remaining difference is one thing: the original
-// keeps the reload-time maximum in its frame slot at +0x14 and loads it into
-// ebx for the two calls, while this version keeps it in ebp and the array
-// induction variable in ebx. That swaps the registers the rest of the loop
-// body uses (the team byte, the subtraction, the comparison) and adds the
-// missing `mov [esp+0x14], ebp` in the preheader. Nothing I tried makes MSVC
-// 5 spill it: a 5-byte/4-byte local struct, an address-taken reference, an
-// extra use, a windows.h min/max, a loop-carried pointer, and an escaping
-// local struct all leave it in a callee-saved register. The escaping struct
-// that does put it in memory (+0x14, and the induction variable in ebp, as
-// the original has it) also promotes the loop counter into al, which changes
-// the loop shape and drops the score to 62 percent. See the note on
+// 79.4 percent. Everything in the loop body matches except the register the
+// reload-time maximum lives in: the original keeps it in its frame slot at
+// +0x14 and reloads it into ebx for the two calls, while this version keeps
+// it in ebp and puts the array induction variable in ebx. Everything the
+// difference cascades into follows from that (the team byte in bl vs cl, the
+// `sub edx, ebx` operand order, `and al, 0xfd` moving one instruction, and
+// the `lea eax, [eax+eax*4]` chain after the loop reloading the maximum).
+//
+// What the register allocator is doing (worth knowing before trying more
+// shapes): the callee-saved pool is taken in the order edi, esi, ebp, ebx.
+// Both versions give edi to the unit pointer and esi to the walking slot
+// pointer. The original then gives ebp to the strength-reduced `i * 4` and
+// leaves the maximum in memory, even though ebx is then free for the whole
+// body (it only holds the team byte and the reloaded maximum). So the
+// original's maximum was never a register candidate at all, while here it is
+// considered before the induction variable and takes ebp. The frame layout
+// (+0x0 counter byte, +0x4 maximum, +0x8 and +0x14 the two Vec3s) matches.
+//
+// Everything tried to keep the maximum in memory, all of which MSVC 5
+// promotes back into a callee-saved register: an `int *` to the member, an
+// `int&` parameter on a static inline helper, `memset(&frame, 0, 8)`, a
+// one-element local array of the struct, a struct returned by value from an
+// inline helper, a class with a user-defined constructor (the /Ob2 inliner
+// expands it and the address-taken flag is then dropped), and a helper whose
+// body is too big to fold away. Two shapes do move it into memory but cost
+// more elsewhere: a by-value `Acc Bump(Acc, int)` helper puts the maximum in
+// edi and moves the unit pointer to ebp (62 percent), and storing the address
+// in a file-scope static leaves the store in the code (36 percent). Also
+// tried, all 79.4 percent: separate locals instead of the shared 8-byte
+// struct, `while` and `do` loops, the update first in the body, a swapped
+// comparison, a `unsigned short` temporary, a two-element Vec3 array, the
+// Vec3s declared before the loop, and a `long` maximum. See the note on
 // Frame_0049e070 below for what the slot order depends on.
+//
+// Later pass, three more attempts, all worse, so do not repeat:
+// - A single temp for the two call arguments, `int m = frame.maxTime;` then
+//   passing `m` to both calls. This looks right, because the original loads
+//   ebx from [esp+0x14] once at 0x49e0d1 and pushes that same value for both
+//   calls, but MSVC promotes the temp to ebp and drops the memory slot for
+//   maxTime entirely (`xor ebx,ebx` replaces the initialising store), so the
+//   maximum ends up wholly in a register, which is the opposite of the
+//   original. 79.4 percent with a different cascade.
+// - `volatile int maxTime` as a member of Frame_0049e070. The evidence looks
+//   right (every write to the original's slot goes to memory and all three
+//   reads re-load it), but making one member volatile changes how the shared
+//   8-byte local is handled: the counter is then kept in bl rather than
+//   round-tripped through [esp+0x10], and the Vec3 slots shift. 75.4 percent.
+// - The same as a separate `volatile int` local instead of a struct member:
+//   68.1 percent.
+//
+// So the memory residency of the maximum is not something the source can ask
+// for directly, and it is not a volatile effect. It is a by-product of the
+// register auction: the induction wins ebp, and once the maximum has lost that
+// auction there is no callee-saved register left to hold it across the two
+// calls, so it stays in its slot and ebx (free between uses) carries it. The
+// lever, if there is one, has to make the induction outrank the maximum in the
+// auction without adding register pressure of its own.
+//
+// Note: the third argument of FUN_0043e240 and FUN_0043e2e0 is the weapon
+// index (see 0x43e240.cpp and 0x49d910.cpp, where it indexes a three-entry
+// name array), and this function passes the reload-time maximum there. That
+// looks like a mistake in the original: the maximum is a time, not a weapon
+// number, and anything above 2 indexes past "Tertiary".
 #include <windows.h>
 
 struct Vec3_0049e070 {

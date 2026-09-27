@@ -2836,7 +2836,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x49ae20,356,deepseek-v4.1-flash,#285,matched,100.0,,issue #285
 0x49b3e0,317,deepseek-v4.1-flash,#285,matched,100.0,,issue #285
 0x49b520,347,deepseek-v4.1-flash,#285,partial,74.7,,issue #285
-0x49c740,306,space-bunny-free,#286,partial,87.5,,issue #286
+0x49c740,306,space-bunny-free,#286,matched,100.0,,issue #286
 0x49d000,188,space-bunny-free,#286,matched,100.0,,issue #286
 0x49d120,182,space-bunny-free,#286,matched,100.0,,issue #286
 0x49d910,164,space-bunny-free,#286,matched,100.0,,issue #286

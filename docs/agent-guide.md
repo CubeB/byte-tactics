@@ -664,6 +664,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A pointer-walking loop whose exit returns with a bare `ret`** (the pointer
   is already 0 in `eax`): `while (p) { if (...) return 1; p = p->next; } return
   0;`; `do/while` peels a copy of the body and `break` adds a `setne` (0x481430).
+- **Constructor order**: MSVC 5 stores the vtable after the member
+  initialisers and before the body, so stores before the vtable store are
+  initialisers and stores after it are body assignments (0x407930).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -54,17 +54,14 @@ revisit them once the surrounding code is known.
   is `??1logic_error`), 0x4fdcb4 is `std::out_of_range` (0x4c3aa0 `??1`,
   0x4c3af0 `_Doraise`, 0x4c3c60 `??_G`), 0x4fdc7c is `std::length_error`.
 
-- 0x407980 and 0x408810 (and 0x407390 if matched that way) are scalar deleting
-  destructors written with a hand-assigned vtable pointer
-  (`vtable = DAT_004fc980;`). The real source is a `??_G` of classes derived
-  from the base with vtable 0x4fc980, the base destructor inlined. Placeholder
-  slot names are now compatible across classes, so a real `??_G` may now pass.
-
+- The 0x4fc980 family is consolidated (table in 0x407350.cpp): base
+  `Class_00407350` and six derived classes, one per 2-slot vtable, owned by
+  `Class_00408cb0`. `Class_004079d0` and `Class_00408810` are not yet named
+  after their constructors (0x4079a0, 0x4087e0); 0x407d40 (a constructor) is
+  unmatched at about 78%, its vtable stored between two vector computations.
 - 0x417a60 (the debug crash command) divides by `(one >> 1)` with
   `volatile int one = 1`; plausible for a deliberate crash, but check once
   its file's other functions are known.
-- 0x407980, 0x408810, 0x4079d0 and 0x407390 still store a hand-assigned vtable;
-  see 0x43a1f0.cpp for the real-slot form, which now passes the checks.
 
 - The 0x4fd428 family is consolidated (table in 0x44ef60.cpp): base
   `Class_0044ef20`, derived `Class_0044f010`, `Class_0044f570`, middle

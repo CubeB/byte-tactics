@@ -1,30 +1,44 @@
 // Decompiled by Opus. Names are provisional.
-// Constructor of the class whose vtable is at 0x4fc990 (slot 1 is its scalar
-// deleting destructor 0x4079d0). Same shape as Class_00407a90's constructor
-// with one more field.
+// Constructor of Class_004079d0 (vtable 0x4fc990), derived from
+// Class_00407350 (the family is listed in 0x407350.cpp). The owner creates
+// two of them, with 2 and 6.
 
-struct Arg_004079a0 {
+struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
     char unknown_0[4];
     unsigned char field_4;             // +0x4
 };
 
-class Class_004079d0 {
+// Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
+class Class_00407350 {
 public:
-    virtual void FUN_004079f0();       // slot 0
-    virtual void* FUN_004079d0(unsigned char flag); // slot 1
-
-    Arg_004079a0* field_4;             // +0x04
-    int field_8;                       // +0x08
-    int field_c;                       // +0x0c
+    Class_00408cb0* owner;             // +0x4
+    void* field_8;                     // +0x8
+    int field_c;                       // +0xc
     unsigned int field_10;             // +0x10
-    int field_14;                      // +0x14
 
-    Class_004079d0(Arg_004079a0* param_1, int param_2, int param_3);
+    Class_00407350(Class_00408cb0* p, void* q);
+    virtual void FUN_00407380();                    // slot 0
+    virtual ~Class_00407350() {}                    // slot 1
 };
 
+// Vtable 0x4fc990, constructor 0x4079a0, ??_G 0x4079d0.
+class Class_004079d0 : public Class_00407350 {
+public:
+    int field_14;                      // +0x14
+
+    Class_004079d0(Class_00408cb0* p, void* q, int a);
+    virtual void FUN_00407380();                    // slot 0, 0x4079f0
+};
+
+// The base constructor (0x407350, matched in 0x407350.cpp) was defined in the
+// same file, and /Ob2 inlines it below.
+Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
+    : owner(p), field_8(q), field_c(0), field_10(p->field_4)
+{
+}
+
 // FUNCTION: 0x4079a0
-Class_004079d0::Class_004079d0(Arg_004079a0* param_1, int param_2, int param_3)
-    : field_4(param_1), field_8(param_2), field_c(0), field_10(param_1->field_4),
-      field_14(param_3)
+Class_004079d0::Class_004079d0(Class_00408cb0* p, void* q, int a)
+    : Class_00407350(p, q), field_14(a)
 {
 }

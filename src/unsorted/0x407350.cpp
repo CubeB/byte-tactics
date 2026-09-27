@@ -1,27 +1,48 @@
-// Decompiled by Sonnet. Names are provisional.
-// A "manual vtable" object like src/unsorted/0x408810.cpp: the vtable slot
-// is a plain data member assigned from the shared table DAT_004fc980, not a
-// real C++ virtual table, so it must be named the same as that other file.
+// Decompiled by Sonnet, class family consolidated by Opus. Names are provisional.
+// Constructor of Class_00407350, the base of a family of small classes with
+// two virtual slots: slot 0 is a method each class overrides, slot 1 the
+// virtual destructor. The owner's constructor (0x408cb0) creates one object
+// of each class; it calls this constructor out of line once and inlines the
+// others.
+//
+// Every derived destructor is trivial, so each class's scalar deleting
+// destructor only stores the base vtable 0x4fc980 (the inlined base
+// destructor). All files of the family copy the declarations below verbatim.
+//
+//   class           vtable    constructor  ??_G      slot 0
+//   Class_00407350  0x4fc980  0x407350     0x407390  0x407380 (empty)
+//   Class_00407930  0x4fc988  0x407930     0x407980  0x4077e0
+//   Class_004079d0  0x4fc990  0x4079a0     0x4079d0  0x4079f0
+//   Class_00407a90  0x4fc998  0x407a90     0x407ac0  0x407ae0
+//   Class_00407d40  0x4fc9a0  0x407d40     0x407e70  0x407e90
+//   Class_004085d0  0x4fc9a8  0x4085d0     0x408600  0x408100
+//   Class_00408810  0x4fc9b0  0x4087e0     0x408810  0x4086d0
+//
+// Class_004079d0 and Class_00408810 keep the names their scalar deleting
+// destructors gave them first. The derived constructors inline this one
+// (/Ob2), so their files define it again, unannotated, as the original
+// translation unit did.
 
-extern void* DAT_004fc980[];
+struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
+    char unknown_0[4];
+    unsigned char field_4;             // +0x4
+};
 
+// Vtable 0x4fc980, constructor 0x407350, ??_G 0x407390.
 class Class_00407350 {
 public:
-    void** vtable;                       // +0x0
-    int field4;                          // +0x4
-    int field8;                          // +0x8
-    int fieldc;                          // +0xc
-    int field10;                         // +0x10
+    Class_00408cb0* owner;             // +0x4
+    void* field_8;                     // +0x8
+    int field_c;                       // +0xc
+    unsigned int field_10;             // +0x10
 
-    Class_00407350(int param1, int param2);
+    Class_00407350(Class_00408cb0* p, void* q);
+    virtual void FUN_00407380();                    // slot 0
+    virtual ~Class_00407350() {}                    // slot 1
 };
 
 // FUNCTION: 0x407350
-Class_00407350::Class_00407350(int param1, int param2)
+Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
+    : owner(p), field_8(q), field_c(0), field_10(p->field_4)
 {
-    field4 = param1;
-    field8 = param2;
-    fieldc = 0;
-    field10 = *(unsigned char*)(param1 + 4);
-    vtable = DAT_004fc980;
 }

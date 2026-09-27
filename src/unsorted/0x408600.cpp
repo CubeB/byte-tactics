@@ -1,6 +1,12 @@
-// Decompiled by Sonnet, class family consolidated by Opus. Names are provisional.
-// Constructor of Class_004085d0 (vtable 0x4fc9a8), derived from
-// Class_00407350 (the family is listed in 0x407350.cpp) without new fields.
+// Decompiled by Opus. Names are provisional.
+// The compiler-generated scalar deleting destructor of Class_004085d0
+// (vtable 0x4fc9a8), derived from Class_00407350 (the family is listed in
+// 0x407350.cpp). Its destructor is trivial, so only the inlined base
+// destructor's store of 0x4fc980 is left.
+//
+// A trivial destructor never stores this class's vtable, so the constructor
+// (0x4085d0, matched in 0x4085d0.cpp) is defined again below, unannotated, to
+// emit the vtable and with it this COMDAT.
 
 struct Class_00408cb0 {                // the owner (constructor 0x408cb0)
     char unknown_0[4];
@@ -27,14 +33,7 @@ public:
     virtual void FUN_00407380();                    // slot 0, 0x408100
 };
 
-// The base constructor (0x407350, matched in 0x407350.cpp) was defined in the
-// same file, and /Ob2 inlines it below.
-Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
-    : owner(p), field_8(q), field_c(0), field_10(p->field_4)
-{
-}
-
-// FUNCTION: 0x4085d0
+// FUNCTION: 0x408600 ??_GClass_004085d0@@UAEPAXI@Z
 Class_004085d0::Class_004085d0(Class_00408cb0* p, void* q)
     : Class_00407350(p, q)
 {

@@ -573,3 +573,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **An unreferenced `??_E` function** (vector deleting destructor) is emitted by
   `new T[n]` on a class with a destructor; `new T[1]` in the file makes the
   compiler emit it (annotate it with its mangled name).
+- **16-bit compares** (`cmp word ptr [m], reg`) against an `int` parameter: cast
+  the parameter to the field's type (`field == (unsigned short)p`), or MSVC
+  widens with `movzx` and compares 32 bits.
+- **Indexing by a global counter**: index with the global itself
+  (`arr[g_count]`); keep a local copy only for later comparisons.
+- **`mov eax, 0xffff; cmp ax, 0xffff`**: an `unsigned short` helper returning
+  0xffff (not `-1`).

@@ -76,9 +76,19 @@ Choose GPT-6 Astra with `/model` and give it this prompt:
 > labelled `hard`, decompile it and open a pull request. Then pick up the next
 > `hard` one, until none are left.
 
-`AGENTS.md` already tells Astra to prefer `hard` issues, so the plain prompt
-works too; this one keeps it from moving on to easier issues when the hard
-ones run out. For an unattended run, `codex exec "<prompt>"`.
+`AGENTS.md` tells Astra to take only `hard` issues and to stop when they run
+out, so it doesn't spend usage on work cheaper models can do.
+
+Codex usage goes quickly on long decompilation sessions. To make it last:
+
+- **One Codex session at a time.** The cheap OpenCode workers cover the
+  161-400 byte band; Astra only needs to keep up with the `hard` queue.
+- **Lower reasoning effort.** Set `model_reasoning_effort = "medium"` in
+  `~/.codex/config.toml`, or pass `-c model_reasoning_effort="medium"`.
+  Raise it again only for a stubborn near-miss.
+- **Stop it when the `hard` queue is empty** rather than giving it other work.
+  Anything a cheaper model leaves goes to the orchestrator's `claude` issues
+  first, not to Astra. For an unattended run, `codex exec "<prompt>"`.
 
 Codex runs commands in a sandbox. The agent needs network access (for `gh`
 and `git push`) and needs to run Wine. If either is blocked, start Codex with

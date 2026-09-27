@@ -33,13 +33,14 @@ Issues labelled `hard` (the biggest functions, and near-misses other models
 could not finish) are reserved for the strongest models: **GPT-6 Astra** and
 **Claude Opus**.
 
-If you are one of those models, take `hard` issues first:
+If you are one of those models, take only `hard` issues. They are expensive to
+run, so they are kept for work cheaper models can't do:
 
 ```sh
 gh issue list --label decomp --label hard --state open --search "no:assignee -label:claude" --limit 20
 ```
 
-Only when none are left, fall back to the list below.
+When none are left, stop and tell the human; do not fall back to other issues.
 
 If you are any other model, never take a `hard` issue:
 

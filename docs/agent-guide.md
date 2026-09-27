@@ -940,6 +940,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   decide whether the counter stays a byte; an `unsigned char` argument keeps it,
   `int` arguments add a separate integer induction variable (0x406300,
   0x406f80).
+- **A case whose call tail yours merges with other cases, but the original keeps
+  separate** (with `mov ecx, this` before the last push): let that case `break`
+  to a shared `x++; return 1;` after the switch instead of returning inside it.
+  Cases that `return` inside the switch are cross-jumped at the call (0x4034a0).
+- **A constant hoisted into a callee-saved register** (`mov ebx, 0x8000; test
+  ebx, eax`) where the original uses `test ah, 0x80`: remove one source use,
+  for example one shared `Wait(); return 2;` after an if/else-if, which MSVC
+  duplicates into both arms itself (0x402da0).
+- **Scratch registers rotated by one across a loop** (eax/ecx vs ecx/edx): MSVC 5
+  hands them out in rotation, so the loop has one temporary more or fewer
+  earlier on; two throwaway loads in a scratch copy confirm it (0x402da0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -2374,8 +2374,8 @@ address,size,model,batch,result,similarity,runs,notes
 0x405980,1040,gpt-6-astra,#40,partial,64.1,,issue #40
 0x405d90,578,gpt-6-astra,#40,matched,100.0,,issue #40
 0x407d40,296,opus,#43,partial,77.5,,"issue #43, escalated"
-0x402da0,537,,#52,assigned,,,"issue #52, escalated"
-0x4034a0,1016,,#52,assigned,,,"issue #52, escalated"
+0x402da0,537,opus,#52,partial,79.5,,"issue #52, escalated"
+0x4034a0,1016,opus,#52,matched,100.0,,"issue #52, escalated"
 0x406300,1152,gpt-6-astra,#53,partial,73.4,,issue #53
 0x406900,408,gpt-6-astra,#53,matched,100.0,,issue #53
 0x406f80,613,gpt-6-astra,#53,matched,100.0,,issue #53

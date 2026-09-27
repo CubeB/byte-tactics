@@ -25,11 +25,16 @@ address,size,file,symbol,status,similarity
 0x403180,13,src/unsorted/0x403180.cpp,?FUN_00403180@@YAXXZ,matched,100.0
 0x403190,50,src/unsorted/0x403190.cpp,?FUN_00403190@@YGHPAUUnit_00403190@@PAVClass_00438b90@@H@Z,matched,100.0
 0x4031d0,132,src/unsorted/0x4031d0.cpp,?FUN_004031d0@@YGHPAUUnitBody_004031d0@@PAVOrder_004031d0@@H@Z,matched,100.0
+0x406090,257,src/unsorted/0x406090.cpp,?FUN_00406090@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
+0x4061a0,346,src/unsorted/0x4061a0.cpp,?FUN_004061a0@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
+0x406780,384,src/unsorted/0x406780.cpp,?FUN_00406780@@YGHPAUUnit@@PAUOrder@@E@Z,matched,100.0
+0x406aa0,331,src/unsorted/0x406aa0.cpp,?FUN_00406aa0@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x406bf0,13,src/unsorted/0x406bf0.cpp,?FUN_00406bf0@@YAXXZ,matched,100.0
 0x406c00,3,src/unsorted/0x406c00.cpp,?FUN_00406c00@@YGXHH@Z,matched,100.0
 0x406c10,46,src/unsorted/0x406c10.cpp,?FUN_00406c10@@YGPAIPAI00@Z,matched,100.0
 0x406c40,35,src/unsorted/0x406c40.cpp,?FUN_00406c40@@YGXPAHI0@Z,matched,100.0
 0x406c70,19,src/unsorted/0x406c70.cpp,?FUN_00406c70@@YGXPAH0@Z,matched,100.0
+0x406c90,257,src/unsorted/0x406c90.cpp,?FUN_00406c90@@YGXPAUClass_004b73c0@@@Z,matched,100.0
 0x406da0,11,src/unsorted/0x406da0.cpp,?FUN_00406da0@@YAXXZ,matched,100.0
 0x406db0,144,src/unsorted/0x406db0.cpp,?FUN_00406db0@@YGXPAVClass_004b7410@@@Z,matched,100.0
 0x406e40,156,src/unsorted/0x406e40.cpp,?FUN_00406e40@@YGXPAVClass_004b73e0@@@Z,matched,100.0
@@ -37,6 +42,7 @@ address,size,file,symbol,status,similarity
 0x406f00,52,src/unsorted/0x406f00.cpp,?FUN_00406f00@@YAXXZ,matched,100.0
 0x406f40,1,src/unsorted/0x406f40.cpp,?FUN_00406f40@@YAXXZ,matched,100.0
 0x406f50,46,src/unsorted/0x406f50.cpp,?FUN_00406f50@Class_00406f50@@QAEXPAUObj_00406f50@@HH@Z,matched,100.0
+0x4071f0,340,src/unsorted/0x4071f0.cpp,?FUN_004071f0@Class_004071f0@@QAEPAUUnit@@HHH@Z,matched,100.0
 0x407350,40,src/unsorted/0x407350.cpp,??0Class_00407350@@QAE@PAUClass_00408cb0@@PAX@Z,matched,100.0
 0x407380,1,src/unsorted/0x407380.cpp,?FUN_00407380@Class_00407350@@UAEXXZ,matched,100.0
 0x407390,32,src/unsorted/0x407390.cpp,??_GClass_00407350@@UAEPAXI@Z,matched,100.0

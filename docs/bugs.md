@@ -46,3 +46,12 @@ result, so that test can never succeed.
 `dst->a` twice, the second time from `src->c`, so `src->a` is lost and
 `src->c` probably had another destination field. The field meanings are not
 known yet, so this may be deliberate.
+
+## "any" difficulty is only recognised as the first argument (likely)
+
+**0x406c90**, a console command that parses difficulty arguments. Its loop
+compares each argument against "easy", "medium" and "hard" using the loop
+index, but compares against "any" using argument 1 every time (the original
+pushes the constant 1, `ebx`, where the other comparisons push the index,
+`edi`). So "any" is ignored unless it is the first argument. Found by Codex /
+GPT-6 in #8.

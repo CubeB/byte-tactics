@@ -102,13 +102,13 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 <!-- calibration:start -->
 ### First-attempt match rate by function size
 
-| Size (bytes) | Haiku | Opus | Sonnet |
-| --- | ---: | ---: | ---: |
-| 1-16 | 283/312 (91%) | 3/3 (100%) |  |
-| 17-40 | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
-| 41-64 | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
-| 65-160 | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
-| 161-400 |  | 29/35 (83%) |  |
+| Size (bytes) | Gpt-6 | Haiku | Opus | Sonnet |
+| --- | ---: | ---: | ---: | ---: |
+| 1-16 |  | 283/312 (91%) | 3/3 (100%) |  |
+| 17-40 |  | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
+| 41-64 |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
+| 65-160 |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
+| 161-400 | 6/6 (100%) |  | 29/35 (83%) |  |
 
 ### Cost per batch
 
@@ -279,6 +279,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | O111 | opus | 10 | 10 | 156,977 | 15,697 | 63 | 9 |
 | O108 | opus | 12 | 11 | 248,708 | 22,609 | 90 | 24 |
 | O112 | opus | 10 | 10 | 170,925 | 17,092 | 68 | 12 |
+| #8 | gpt-6 | 6 | 6 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

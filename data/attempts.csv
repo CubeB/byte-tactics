@@ -3256,3 +3256,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x473590,301,,#466,assigned,,,"issue #466, escalated"
 0x473a00,300,,#466,assigned,,,"issue #466, escalated"
 0x474170,301,,#466,assigned,,,"issue #466, escalated"
+0x4534e0,349,space-bunny-free,#467,matched,100.0,,"PR #467, finishing earlier attempts"
+0x456de0,243,space-bunny-free,#467,partial,98.6,,"PR #467, finishing earlier attempts"

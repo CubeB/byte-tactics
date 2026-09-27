@@ -82,7 +82,7 @@ def main() -> None:
     if args.escalate and left:
         models = sorted({r["model"] for r in mine if r["result"] != "matched"})
         subprocess.run(["uv", "run", "--quiet", "tools/issues.py", "--addresses", *left,
-                        "--title", f"Retry: {len(left)} functions left unmatched in {batch}",
+                        "--title", f"Retry: {len(left)} function{'' if len(left) == 1 else 's'} left unmatched in {batch}",
                         "--label", "near-miss", *(["--label", "claude"] if args.escalate == "claude" else []),
                         "--escalation",
                         "--note", f"Tried by {', '.join(models)} in {batch}. Each file says what still "

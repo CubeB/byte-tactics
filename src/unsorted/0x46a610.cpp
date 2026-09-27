@@ -72,10 +72,7 @@ struct Spot_0046a610 {
     Point16_0046a610 cell;             // +0x28
     unsigned short feature;            // +0x2c
     char unknown_2e;
-    unsigned char flag0 : 1;           // +0x2f
-    unsigned char unknown_30 : 1;
-    unsigned char hasShadow : 1;
-    unsigned char unknown_32 : 5;
+    unsigned char flags;               // +0x2f, bit 2 = hasShadow
 };
 
 struct Unit_0046a610 {
@@ -111,60 +108,63 @@ void* __stdcall FUN_004b7ee0(void* ref);
 void* __stdcall FUN_004b7f30(unsigned short* table, int index);
 void __stdcall FUN_0045ac20(Unit_0046a610* unit, int shade);
 
-// The object's own anim is drawn mirrored when the feature says so.
-static void DrawAnim(Feature_0046a610* f, void* dest, void* frame, int x, int y)
-{
-    if (f->flipped)
-        FUN_004b8500(dest, frame, x, y);
-    else
-        FUN_004b7f90(dest, frame, x, y);
-}
-
-// The extra overlay has its own mirror flag.
-static void DrawShadow(Feature_0046a610* f, void* dest, void* frame, int x, int y)
-{
-    if (f->hasShadow)
-        FUN_004b8500(dest, frame, x, y);
-    else
-        FUN_004b7f90(dest, frame, x, y);
-}
-
 // FUNCTION: 0x46a610
 void __stdcall FUN_0046a610(void* dest, Cell_0046a610* cell, int ix, int iy)
 {
     Feature_0046a610* f = &g_game->features[cell->feature];
-    int x = f->footprint.x * 16 / 2;
-    x += (ix + 8) * 16;
-    x -= g_game->scroll_x;
+    int x = f->footprint.x * 16 / 2 + (ix + 8) * 16 - g_game->scroll_x;
     Cell_0046a610* next = &cell[g_game->width];
-    int shade = (cell->shade + cell[1].shade + next->shade + next[1].shade) >> 3;
+    int shade = ((cell->shade + cell[1].shade)
+        + (next->shade + next[1].shade)) / 8;
     int y = f->footprint.z * 16 / 2 - shade + (iy + 2) * 16 - g_game->scroll_y;
     if (cell->flags & 1) {
         Spot_0046a610* spot = &g_game->spots[cell->spot];
         if (f->drawn) {
-            if (spot->hasShadow && (g_game->drawFlags & 0x10))
-                DrawAnim(f, dest, FUN_004b7ee0(&spot->alt.shadow), x, y);
-            DrawAnim(f, dest, FUN_004b7ee0(&spot->state), x, y);
+            if (spot->flags & 4) {
+                if (g_game->drawFlags & 0x10) {
+                    void* fr = FUN_004b7ee0(&spot->alt.shadow);
+                    FUN_004b7f90(dest, fr, x, y);
+                }
+            }
+            void* fr = FUN_004b7ee0(&spot->state);
+            FUN_004b7f90(dest, fr, x, y);
         } else {
             Unit_0046a610* u = g_game->unit;
-            SpotState_0046a610* st = spot->state;
-            u->state = st;
-            st->owner = u;
+            u->state = spot->state;
+            spot->state->owner = u;
             u->rot = spot->rot;
             u->pos = spot->pos;
             FUN_0045ac20(u, shade);
         }
-    } else {
-        if (f->over) {
-            if (f->shadowTable && (g_game->drawFlags & 0x10))
-                DrawAnim(f, dest, FUN_004b7ee0(&f->shadowAnim), x, y);
-            if (f->animTable)
-                DrawShadow(f, dest, FUN_004b7ee0(&f->anim), x, y);
-        } else {
-            if (f->shadowTable && (g_game->drawFlags & 0x10))
-                DrawAnim(f, dest, FUN_004b7f30(f->shadowTable, 0), x, y);
-            if (f->animTable)
-                DrawShadow(f, dest, FUN_004b7f30(f->animTable, 0), x, y);
+    } else if (f->over) {
+        if (f->shadowTable && (g_game->drawFlags & 0x10)) {
+            void* frame = FUN_004b7ee0(&f->shadowAnim);
+            if (f->flipped)
+                FUN_004b8500(dest, frame, x, y);
+            else
+                FUN_004b7f90(dest, frame, x, y);
         }
+        if (!f->animTable)
+            return;
+        void* frame = FUN_004b7ee0(&f->anim);
+        if (f->hasShadow)
+            FUN_004b8500(dest, frame, x, y);
+        else
+            FUN_004b7f90(dest, frame, x, y);
+    } else {
+        if (f->shadowTable && (g_game->drawFlags & 0x10)) {
+            void* frame = FUN_004b7f30(f->shadowTable, 0);
+            if (f->flipped)
+                FUN_004b8500(dest, frame, x, y);
+            else
+                FUN_004b7f90(dest, frame, x, y);
+        }
+        if (!f->animTable)
+            return;
+        void* frame = FUN_004b7f30(f->animTable, 0);
+        if (f->hasShadow)
+            FUN_004b8500(dest, frame, x, y);
+        else
+            FUN_004b7f90(dest, frame, x, y);
     }
 }

@@ -1293,11 +1293,13 @@ address,size,file,symbol,status,similarity
 0x4742a0,19,src/unsorted/0x4742a0.cpp,?FUN_004742a0@Class_004742a0@@QAEHH@Z,matched,100.0
 0x474580,90,src/unsorted/0x474580.cpp,?FUN_00474580@Class_00474580@@QAEXXZ,matched,100.0
 0x474720,51,src/unsorted/0x474720.cpp,?FUN_00474720@Class_00474720@@QAEHH@Z,matched,100.0
+0x474760,284,src/unsorted/0x474760.cpp,?FUN_00474760@Class_00474760@@UAEXPAUVec3_00474760@@0HHH@Z,matched,100.0
 0x474b00,127,src/unsorted/0x474b00.cpp,?FUN_00474b00@Class_00474b00@@QAEXXZ,matched,100.0
 0x474cb0,20,src/unsorted/0x474cb0.cpp,?FUN_00474cb0@Class_00474cb0@@QAEHH@Z,matched,100.0
 0x474cd0,53,src/unsorted/0x474cd0.cpp,??0Class_00474cd0@@QAE@XZ,matched,100.0
 0x474d10,58,src/unsorted/0x474d10.cpp,??_GClass_00474cd0@@UAEPAXI@Z,matched,100.0
 0x474d50,147,src/unsorted/0x474d50.cpp,?FUN_00474d50@Class_00474d50@@QAEXPAUVec3_00474d50@@HHHHH@Z,matched,100.0
+0x474df0,395,src/unsorted/0x474df0.cpp,?FUN_00474df0@Class_00474cd0@@UAEXXZ,matched,100.0
 0x474f80,56,src/unsorted/0x474f80.cpp,?FUN_00474f80@Class_00474f80@@QAEHXZ,matched,100.0
 0x474fc0,127,src/unsorted/0x474fc0.cpp,?FUN_00474fc0@Class_00474fc0@@QAEXXZ,matched,100.0
 0x475040,72,src/unsorted/0x475040.cpp,?FUN_00475040@Class_00475040@@QAEXPAXFF@Z,matched,100.0
@@ -1306,7 +1308,9 @@ address,size,file,symbol,status,similarity
 0x4750f0,19,src/unsorted/0x4750f0.cpp,?FUN_004750f0@Class_004750f0@@QAE_NXZ,matched,100.0
 0x475110,58,src/unsorted/0x475110.cpp,??_GClass_004750b0@@UAEPAXI@Z,matched,100.0
 0x475150,105,src/unsorted/0x475150.cpp,?FUN_00475150@Class_00475150@@QAEXPAUVec3_00475150@@HHH@Z,matched,100.0
+0x4751c0,367,src/unsorted/0x4751c0.cpp,?FUN_004751c0@Class_004750b0@@UAEXXZ,matched,100.0
 0x475330,3,src/unsorted/0x475330.cpp,?FUN_00475330@@YAHXZ,matched,100.0
+0x475340,248,src/unsorted/0x475340.cpp,?FUN_00472d50@Class_00474cd0@@UAEXXZ,matched,100.0
 0x475440,33,src/unsorted/0x475440.cpp,?FUN_00475440@Class_00475440@@QAEHXZ,matched,100.0
 0x475470,398,src/unsorted/0x475470.cpp,?FUN_00472e30@Class_00474cd0@@UAEXPAX@Z,partial,35.7
 0x475600,248,src/unsorted/0x475600.cpp,?FUN_00472d50@Class_004750b0@@UAEXXZ,matched,100.0

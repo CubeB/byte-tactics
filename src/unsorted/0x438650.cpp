@@ -17,15 +17,18 @@ struct Unit_00438650 {
 };
 #pragma pack(pop)
 
-// Does not match yet: the original loads a->type->field_1fe before the
-// division by 5 (keeping it in edi); MSVC always evaluates the division first
-// here, whatever the operand order, helpers or temporaries.
+// Does not match yet (one extra "and edx, 0xffff"). MSVC re-sorts the
+// multiplication chain: when it is unsigned (field_1fa is unsigned, and the
+// result is converted to float as unsigned), the division is always evaluated
+// before field_1fe; a signed chain gets the original order, but then the float
+// conversion is signed. Narrowing the division result to unsigned short gives
+// the original order and registers at the cost of the mask.
 // FUNCTION: 0x438650
 int __stdcall FUN_00438650(Unit_00438650* a, Unit_00438650* b, int n)
 {
     UnitType_00438650* bt = b->type;
     float v = bt->field_18a > 10.0f ? bt->field_18a : 10.0f;
-    int r = (int)((a->type->field_1fe * ((a->field_b8 + 5) / 5) * bt->field_1fa * n) / (v * 300.0f));
+    int r = (int)((a->type->field_1fe * (unsigned short)((a->field_b8 + 5) / 5) * bt->field_1fa * n) / (v * 300.0f));
     if (r <= 1) {
         r = 1;
     }

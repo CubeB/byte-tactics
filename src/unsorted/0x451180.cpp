@@ -1,13 +1,13 @@
 // Decompiled by Opus. Names are provisional.
 
+#pragma pack(push, 1)
 struct PlayerInfo_451180 {
-    char unknown_0[0x98];
-    unsigned int unknown_98_0 : 28;  // +0x98
-    unsigned int flag_98_28 : 1;
-    unsigned int unknown_98_29 : 3;
+    char unknown_0[0x9b];
+    unsigned short unknown_9b_0 : 4; // +0x9b
+    unsigned short flag_9b_4 : 1;
+    unsigned short unknown_9b_5 : 11;
 };
 
-#pragma pack(push, 1)
 struct Player_451180 {
     char unknown_0[0x27];
     PlayerInfo_451180* info;         // +0x27
@@ -33,6 +33,9 @@ extern char DAT_005119b8[];
 void __stdcall FUN_00451090(char* name, int* d, int* c, int* b, int* a);
 void __stdcall FUN_004c9890(void* obj, char* name, char* data, int d, int c, int b, int a);
 
+// The flag is a bit of an unsigned short bitfield whose storage starts at the
+// odd offset 0x9b (packed struct): that gives the byte load and "shr al, 4;
+// test al, 1". An unsigned char bitfield folds to "test byte ptr".
 // FUNCTION: 0x451180
 void FUN_00451180(void)
 {
@@ -43,11 +46,7 @@ void FUN_00451180(void)
     char name[32];
 
     FUN_00451090(name, &d, &c, &b, &a);
-    // Best version (85.4%): the original loads only byte 0x9b and does
-    // "shr al, 4; test al, 1"; this dword bitfield gives "mov eax, [+0x98];
-    // shr eax, 0x1c; test al, 1", and every byte-sized form tried folds to
-    // "test byte ptr [+0x9b], 0x10".
-    if (g_game->players[g_game->localPlayer].info->flag_98_28) {
+    if (g_game->players[g_game->localPlayer].info->flag_9b_4) {
         g_game->flag_475_5 = 1;
     }
     FUN_004c9890(g_game->unknown_14, name, DAT_005119b8, d, c, b, a);

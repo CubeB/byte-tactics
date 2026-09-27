@@ -437,3 +437,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **The STL source is local**: `toolchain/msvc5-sp3/INCLUDE/XTREE`, `VECTOR`,
   `XSTRING` and friends show exactly where locks and helpers sit in inlined STL
   code (e.g. `lower_bound` is `iterator(_Lbound(k))`, and `_Lbound` takes the lock).
+- **A parameter loaded into `ecx` early, with other registers used for the
+  pointer chain**: a later callee is a `__thiscall` method on that parameter,
+  even when `ecx` is set long before the call.
+- **Adjacent `a += b` field updates whose last store is not sunk past a later
+  load**: an inlined `operator+=` on an embedded vector struct.
+- **Lazy singletons**: `if (!g) g = new T; return g;`. A failed-allocation path
+  doing `xor eax, eax; mov [g], eax` means the global is returned; a
+  `GlobalAlloc` null check around constructor stores is `new` with a class
+  `operator new` (see `0x4da9f0.cpp`).
+- **A small struct field stored to the stack and re-read as a dword before an
+  add**: C-style inline helpers that take and return the struct by value
+  (`MakePoint(x, y)`, `AddPoints(a, b)`), not constructors and `operator+=`.
+- **`mov al, [m]; shr al, N; test al, 1` at an odd offset**: an `unsigned short`
+  bitfield whose storage starts there, in a packed struct.

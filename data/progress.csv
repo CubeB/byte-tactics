@@ -407,8 +407,11 @@ address,size,file,symbol,status,similarity
 0x41da30,40,src/unsorted/0x41da30.cpp,?FUN_0041da30@@YAXXZ,matched,100.0
 0x41dee0,50,src/unsorted/0x41dee0.cpp,?FUN_0041dee0@@YAXXZ,matched,100.0
 0x41df20,150,src/unsorted/0x41df20.cpp,?FUN_0041df20@@YAXXZ,matched,100.0
+0x41dfc0,633,src/unsorted/0x41dfc0.cpp,?FUN_0041dfc0@@YGXPAE0H@Z,matched,100.0
 0x41e240,19,src/unsorted/0x41e240.cpp,?FUN_0041e240@@YAXXZ,matched,100.0
 0x41e260,12,src/unsorted/0x41e260.cpp,?FUN_0041e260@@YAHXZ,matched,100.0
+0x41e270,430,src/unsorted/0x41e270.cpp,?FUN_0041e270@@YAXXZ,matched,100.0
+0x41e420,1544,src/unsorted/0x41e420.cpp,?FUN_0041e420@@YAXXZ,matched,100.0
 0x41ea30,97,src/unsorted/0x41ea30.cpp,?FUN_0041ea30@@YAHXZ,matched,100.0
 0x41eaa0,192,src/unsorted/0x41eaa0.cpp,?FUN_0041eaa0@@YGPADPAD0H@Z,matched,100.0
 0x41eb60,238,src/unsorted/0x41eb60.cpp,?FUN_0041eb60@@YGPADPADHH@Z,matched,100.0

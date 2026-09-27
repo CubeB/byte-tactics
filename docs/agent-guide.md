@@ -1452,6 +1452,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `mov eax, 1` / `xor eax, eax`: store it in a `char` local
   (`char next = Helper(); if (next)`); a `bool` helper gives `mov al, 1`. See
   0x41f0a0.
+- **MSVC 5 never unrolls loops**: a body repeated four times at +0..+3 was
+  four source statements in a loop indexed `i*4+k`. Found by Claude Opus 5.5
+  in #210 (0x41dfc0).
+- **Clamps and the `min`/`max` macros**: `cmp eax, -1; jle keep; or eax, -1`
+  is windef.h's `min(-1, d)` with the constant first (`min(d, -1)` gives
+  `jl`); when the original compares the value first (`cmp v, t; jge keep`),
+  write the ternary `v < t ? t : v`, since `max(t, v)` gives `cmp t, v; jle`.
+  See 0x41dfc0 and 0x41e270.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

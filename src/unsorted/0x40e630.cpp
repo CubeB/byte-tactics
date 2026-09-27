@@ -1,0 +1,306 @@
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// Starts a path search for the object at +0x58: marks every goal cell the
+// target reports, picks the goal nearest to the start as the probe's aim,
+// runs the straight-line probe (0x40e160) and, when that did not reach a
+// goal, seeds the open heap with the start cell.
+//
+// Partial (85.6%): the structure, stack layout and callee-saved registers
+// match. What differs is scratch-register rotation from the start of the
+// non-goal branch on: the original gives the first temporaries there edx
+// (ours eax), loads width before start.x for the bounds check, loads the
+// object into ecx in the shared finish block (ours edx), and schedules the
+// heap reset stores and the depth store (0x64) earlier in the open-list
+// setup. Tried: the finish label in either branch or after the if, a stored
+// goal result, point/int/short bounds helpers, the node built as a
+// temporary or before/after the heap reset, and cost operand orders; none
+// moved the rotation. An inline helper for the open-list setup exhausts the
+// /Ob2 budget (the node constructor goes out of line).
+#include <vector>
+
+struct Point_0040e630 {
+    short x;
+    short y;
+};
+
+struct Cell_0040e630 {
+    unsigned char flags;               // +0 bit 0 open, bit 2 goal, bit 3 visited
+    char dir;                          // +1
+    short node;                        // +2 index into the node pool
+};
+
+struct NodeData_0040e630 {
+    Point_0040e630 pos;                // +0x0
+    int g;                             // +0x4
+    int f;                             // +0x8
+    short unknown_c;                   // +0xc
+    short depth;                       // +0xe
+
+    NodeData_0040e630(short x, short y, int g_, int f_, short depth_)
+    {
+        pos.x = x;
+        pos.y = y;
+        g = g_;
+        f = f_;
+        depth = depth_;
+    }
+};
+
+struct Node_0040e630 {
+    int index;                         // +0x0 heap slot, or next free node
+    NodeData_0040e630 data;            // +0x4
+};
+
+class Class_0040f000 {
+public:
+    void FUN_0040f000(int i);
+};
+
+class Class_0040f060 {
+public:
+    void FUN_0040f060(int i);
+};
+
+class Class_0040f110 {
+public:
+    void FUN_0040f110(int n);
+};
+
+struct Heap_0040e630 {
+    Node_0040e630* pool;               // +0x0
+    Node_0040e630** items;             // +0x4
+    int freeHead;                      // +0x8
+    int used;                          // +0xc
+    int capacity;                      // +0x10
+    int count;                         // +0x14
+    int topPopped;                     // +0x18
+
+    void Clear()
+    {
+        count = 0;
+        freeHead = -1;
+        used = 0;
+        topPopped = 0;
+    }
+    int Push(const NodeData_0040e630& d)
+    {
+        if (topPopped) {
+            Node_0040e630* n = items[0];
+            n->data = d;
+            ((Class_0040f060*)this)->FUN_0040f060(0);
+            topPopped = 0;
+            return n - pool;
+        }
+        if (count == capacity)
+            ((Class_0040f110*)this)->FUN_0040f110(-1);
+        int i = count++;
+        int k = freeHead;
+        if (k == -1)
+            k = used++;
+        else
+            freeHead = pool[k].index;
+        pool[k].data = d;
+        pool[k].index = i;
+        items[i] = &pool[k];
+        ((Class_0040f000*)this)->FUN_0040f000(i);
+        return k;
+    }
+};
+
+class Target_0040e630 {
+public:
+    virtual void unused0();
+    virtual void unused1();
+    virtual void unused2();
+    virtual void unused3();
+    virtual void unused4();
+    virtual int IsGoal(int x, int y);
+    virtual void GetGoals(std::vector<Point_0040e630>& goals);
+    virtual int Cost(int x, int y);
+};
+
+class Class_0044ced0 {
+public:
+    void FUN_0044ced0(int param_1);
+};
+
+class Class_0044f010 {
+public:
+    void FUN_0044f080(Point_0040e630* points, int count);
+};
+
+struct Unit_0040e630 {
+    char unknown_0[4];
+    void* field_4;                     // +0x4
+};
+
+#pragma pack(push, 2)
+struct Object_0040e630 {
+    Unit_0040e630* unit;               // +0x0
+    char unknown_4[0x66 - 0x4];
+    unsigned short heading;            // +0x66
+    char unknown_68[0x76 - 0x68];
+    Point_0040e630 pos;                // +0x76
+};
+#pragma pack(pop)
+
+class Dummy_00440be0 {
+public:
+    void FUN_00440be0(Object_0040e630* p);
+};
+
+class Class_00440af0 {
+public:
+    void FUN_00440af0(Object_0040e630* p);
+};
+
+class Class_0040d900 {
+public:
+    void FUN_0040d900();
+};
+
+class Class_0040e160 {
+public:
+    int FUN_0040e160();
+};
+
+struct Table_0040e630 {
+    unsigned char values[8];
+};
+
+struct Pair_0040e630 {
+    unsigned char a;
+    unsigned char b;
+};
+
+extern const Table_0040e630 DAT_004fca10;
+
+static int FixMul(int a, int b)
+{
+    return (int)(((__int64)a * b) >> 0x10);
+}
+
+struct Grid_0040e630 {
+    Cell_0040e630* cells;              // +0x0
+    unsigned int width;                // +0x4
+    unsigned int height;               // +0x8
+    char unknown_c[4];
+    unsigned int* dirty;               // +0x10
+
+    int InBounds(unsigned int x, unsigned int y)
+    {
+        return x < width && y < height;
+    }
+    void Set(unsigned int x, unsigned int y, unsigned char kind)
+    {
+        unsigned int i = width * y + x;
+        cells[i].flags = kind;
+        dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
+    }
+};
+
+class Class_0040e630 {
+public:
+    Heap_0040e630 heap;                // +0x0
+    Grid_0040e630 grid;                // +0x1c
+    Point_0040e630 start;              // +0x30
+    char unknown_34[4];
+    int goalX;                         // +0x38
+    int goalY;                         // +0x3c
+    int probe;                         // +0x40
+    int field_44;                      // +0x44
+    char unknown_48[4];
+    int steps;                         // +0x4c
+    int costScale;                     // +0x50
+    char unknown_54[4];
+    Object_0040e630* object;           // +0x58
+    Class_0044f010* path;              // +0x5c
+    Target_0040e630* target;           // +0x60
+    Dummy_00440be0* owner;             // +0x64
+    Table_0040e630 table;              // +0x68
+    Pair_0040e630 pairs[4];            // +0x70
+
+    int Cost(int x, int y)
+    {
+        int s = costScale;
+        return (int)(((__int64)s * target->Cost(x, y)) >> 0x10);
+    }
+    void ResetTable()
+    {
+        table = DAT_004fca10;
+        pairs[0].a = pairs[1].a = pairs[2].a = pairs[3].a = 0x10;
+        pairs[0].b = pairs[1].b = pairs[2].b = pairs[3].b = 0x16;
+    }
+    void MarkGoal(unsigned int x, unsigned int y)
+    {
+        if (grid.InBounds(x, y))
+            grid.Set(x, y, 4);
+    }
+    void Release()
+    {
+        owner->FUN_00440be0(object);
+        object = 0;
+        owner = 0;
+    }
+    void Finish()
+    {
+        path->FUN_0044f080(0, 0);
+        Release();
+    }
+
+    void FUN_0040e630(Target_0040e630* t);
+};
+
+// FUNCTION: 0x40e630
+void Class_0040e630::FUN_0040e630(Target_0040e630* t)
+{
+    owner = (Dummy_00440be0*)object->unit->field_4;
+    target = t;
+    start = object->pos;
+    ((Class_00440af0*)owner)->FUN_00440af0(object);
+    ResetTable();
+    ((Class_0040d900*)this)->FUN_0040d900();
+
+    std::vector<Point_0040e630> goals;
+    target->GetGoals(goals);
+    int bestDist = 0x7fffffff;
+    for (Point_0040e630* p = goals.begin(); p != goals.end(); p++) {
+        MarkGoal(p->x, p->y);
+        int dy = start.y - p->y;
+        int dx = start.x - p->x;
+        int d = dx * dx + dy * dy;
+        if (d < bestDist) {
+            goalX = p->x;
+            bestDist = d;
+            goalY = p->y;
+        }
+    }
+
+    if (target->IsGoal(start.x, start.y)) {
+        ((Class_0044ced0*)target)->FUN_0044ced0(0x100);
+    finish:
+        Finish();
+    } else {
+        int cost = Cost(start.x, start.y);
+        if (!grid.InBounds(start.x, start.y)) {
+            ((Class_0044ced0*)target)->FUN_0044ced0(0x200);
+            Finish();
+            return;
+        }
+        probe = ((Class_0040e160*)this)->FUN_0040e160();
+        if (probe == 0) {
+            ((Class_0044ced0*)target)->FUN_0044ced0(0x100);
+        } else {
+            ((Class_0044ced0*)target)->FUN_0044ced0(0x200);
+            if (probe >= cost)
+                goto finish;
+        }
+        heap.Clear();
+        NodeData_0040e630 d(start.x, start.y, 0, cost, 100);
+        unsigned int i = grid.width * start.y + start.x;
+        grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
+        grid.cells[i].flags |= 1;
+        grid.cells[i].dir = ((object->heading + 0x1000) >> 13) & 7;
+        grid.cells[i].node = heap.Push(d);
+        field_44 = 4;
+    }
+}

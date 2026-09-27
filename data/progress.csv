@@ -1506,6 +1506,7 @@ address,size,file,symbol,status,similarity
 0x4cb650,69,src/unsorted/0x4cb650.cpp,?FUN_004cb650@@YGXPAUObject_004cb650@@PAUVec3_004cb650@@1H@Z,matched,100.0
 0x4cb7c0,10,src/unsorted/0x4cb7c0.cpp,?FUN_004cb7c0@Class_004cb7c0@@QAEPAU1@XZ,matched,100.0
 0x4cb7d0,17,src/unsorted/0x4cb7d0.cpp,?FUN_004cb7d0@Class_004cb7d0@@QAEXXZ,matched,100.0
+0x4cb940,157,src/unsorted/0x4cb940.cpp,?FUN_004cb940@Class_004cb940@@QAE_NPAUImage_004cb940@@HHHHHH@Z,matched,100.0
 0x4cbb70,105,src/unsorted/0x4cbb70.cpp,?FUN_004cbb70@@YGHH@Z,matched,100.0
 0x4cd9b0,3,src/unsorted/0x4cd9b0.cpp,?FUN_004cd9b0@@YGXH@Z,matched,100.0
 0x4cd9c0,7,src/unsorted/0x4cd9c0.cpp,?FUN_004cd9c0@Class_004cd9c0@@QAEHXZ,matched,100.0

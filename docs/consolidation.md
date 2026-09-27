@@ -42,11 +42,6 @@ single addresses, so one real class often appears under several names.
 These match byte-for-byte but use something Cavedog probably did not write;
 revisit them once the surrounding code is known.
 
-- 0x474d10 and 0x475110 (scalar deleting destructors of classes derived from
-  `Class_00471cc0`) call the base destructor explicitly, as
-  `((Class_00471d00*)this)->FUN_00471d00()`, after `records.~vector()`. The
-  real source was an implicit destructor chain; that needs 0x471d00 renamed as
-  the base class destructor, together with all its callers.
 
 - The `std` exception classes in the C++ library block were misnamed by the
   signature matcher (their destructors are identical apart from the vtable).
@@ -93,11 +88,17 @@ revisit them once the surrounding code is known.
 - `Class_00415b60`, `Class_00415b90` and `Class_00415c10` are one bit-writer
   class (0x48b710 calls all three on one 0x410-byte stack object).
 
-- The `Class_00471cc0` family (base vtable 0x4fd5a8: destructor plus three
-  `_purecall`s; derived vtables 0x4fd5b8, 0x4fd5d8, 0x4fd5f8, 0x4fd618,
-  0x4fd638): 0x471430, 0x471560, 0x4716a0 and 0x4717e0 are scalar deleting destructors
-  still written as placeholder methods with a hand-stored base vtable, like
-  the 0x4fc980 family before its consolidation.
+
+- The 0x4fd5a8 family is consolidated (table in 0x471cc0.cpp): base
+  `Class_00471cc0` (destructor 0x471d00, class `operator new` 0x471d10 and
+  `operator delete` 0x471d50) and six derived classes. Left over: the slot
+  methods keep their placeholder classes (0x472f90 is still
+  `Class_00472fd0::FUN_00472f90`); 0x471d70 is a non-virtual base method;
+  0x475330 is recorded as a free function but is slot 3 of `Class_004750b0`;
+  four derived `??_G` files use a static `new` until the real `new` sites
+  (0x471340 and others) are decompiled; the pool at DAT_0051e610 is
+  `Class_00470ed0`/`Class_00470eb0` in some files and `Class_00470ae0` in
+  0x470ae0.cpp.
 
 ## Signatures that disagree
 

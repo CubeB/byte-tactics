@@ -1,39 +1,60 @@
-// Decompiled by Sonnet, rewritten without volatile by Opus. Names are provisional.
-// Scalar deleting destructor (vtable slot 0 at 0x4fd618) of a class derived
-// from Class_00471cc0, with a std::vector of 32-byte records at +0x0c (see
-// 0x474f80's size() test, `>> 5`). The derived destructor is implicit: it
-// destroys the vector (the inlined ~vector leaves the dead store of _First in
-// the `push ecx` slot) and calls the base destructor. The base destructor is
-// already named as a method, so both steps are written out explicitly.
+// Decompiled by Sonnet, rewritten without volatile and class family
+// consolidated by Opus. Names are provisional.
+// The compiler-generated scalar deleting destructor of Class_00474cd0
+// (vtable 0x4fd618), derived from Class_00471cc0 (the family is listed in
+// 0x471cc0.cpp). Its implicit destructor destroys the std::vector at +0xc
+// (the inlined ~vector leaves the dead store of _First in the `push ecx`
+// slot) and calls the base destructor (0x471d00); the class's operator
+// delete (0x471d50) frees it. This file did not see their definitions, so
+// both are called out of line.
+//
+// The implicit destructor never stores this class's vtable, so the
+// constructor (0x474cd0, matched in 0x474cd0.cpp) is defined again below,
+// unannotated, to emit the vtable and with it this COMDAT.
+#include <stddef.h>
 #include <vector>
 
-struct Record_00474d10 {
+extern char* g_game;
+
+// Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
+class Class_00471cc0 {
+public:
+    int field_4;                                        // +0x4
+
+    Class_00471cc0();
+    virtual ~Class_00471cc0();                          // slot 0
+    virtual void FUN_00472d50() = 0;                    // slot 1
+    virtual void FUN_00472e30(int) = 0;                 // slot 2
+    virtual int FUN_00472e70() = 0;                     // slot 3
+    static void* __stdcall operator new(size_t size);   // 0x471d10
+    static void __stdcall operator delete(void* p);     // 0x471d50
+};
+
+struct Record_00474cd0 {
     int unknown[8];
 };
 
-class Class_00471d00 {
+struct Vec3_00474d50;
+
+// Vtable 0x4fd618, constructor 0x474cd0, ??_G 0x474d10; 0x38 bytes.
+class Class_00474cd0 : public Class_00471cc0 {
 public:
-    void FUN_00471d00();
+    int time;                                           // +0x8
+    std::vector<Record_00474cd0> records;               // +0xc (_First +0x10)
+    char unknown_1c[0x38 - 0x1c];
+
+    Class_00474cd0();
+    virtual void FUN_00472d50();                        // slot 1, 0x475340
+    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
+    virtual int FUN_00472e70();                         // slot 3, 0x474f80
+    virtual void FUN_00474df0();                        // slot 4, 0x474df0
+    virtual int FUN_00475440();                         // slot 5, 0x475440
+    virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
+                              int alt);                 // slot 6, 0x474d50
 };
 
-extern void __stdcall FUN_00471d50(void* obj);
-
-class Class_00474d10 {
-public:
-    void* vtable;                           // +0x00
-    char unknown_4[8];
-    std::vector<Record_00474d10> records;   // +0x0c (_First +0x10, _Last +0x14, _End +0x18)
-
-    void* FUN_00474d10(unsigned char flag);
-};
-
-// FUNCTION: 0x474d10
-void* Class_00474d10::FUN_00474d10(unsigned char flag)
+// FUNCTION: 0x474d10 ??_GClass_00474cd0@@UAEPAXI@Z
+Class_00474cd0::Class_00474cd0()
 {
-    records.~vector();
-    ((Class_00471d00*)this)->FUN_00471d00();
-    if (flag & 1) {
-        FUN_00471d50(this);
-    }
-    return this;
+    time = *(int*)(g_game + 0x38a47);
 }

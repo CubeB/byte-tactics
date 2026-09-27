@@ -1,44 +1,49 @@
-// Decompiled by Opus. Names are provisional.
-// Constructor of the Class_00471cc0 subclass whose vtable is 0x4fd618 (its
-// scalar deleting destructor is 0x474d10): an empty std::vector of 32-byte
-// records at +0xc, and the current game time at +0x8.
+// Decompiled by Opus, class family consolidated by Opus. Names are provisional.
+// Constructor of Class_00474cd0 (vtable 0x4fd618, ??_G 0x474d10), derived
+// from Class_00471cc0 (the family is listed in 0x471cc0.cpp): an empty
+// std::vector of 32-byte records at +0xc, and the current game time at +0x8.
+// This file did not see the base class's definitions, so the base
+// constructor is called out of line.
+#include <stddef.h>
 #include <vector>
+
+extern char* g_game;
+
+// Vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, ??_G 0x471cd0.
+class Class_00471cc0 {
+public:
+    int field_4;                                        // +0x4
+
+    Class_00471cc0();
+    virtual ~Class_00471cc0();                          // slot 0
+    virtual void FUN_00472d50() = 0;                    // slot 1
+    virtual void FUN_00472e30(int) = 0;                 // slot 2
+    virtual int FUN_00472e70() = 0;                     // slot 3
+    static void* __stdcall operator new(size_t size);   // 0x471d10
+    static void __stdcall operator delete(void* p);     // 0x471d50
+};
 
 struct Record_00474cd0 {
     int unknown[8];
 };
 
-extern char* g_game;
+struct Vec3_00474d50;
 
-class Class_00471cc0 {
-public:
-    Class_00471cc0();
-
-    virtual void FUN_00474d10();
-    virtual void FUN_00475340();
-    virtual void FUN_00475470();
-    virtual void FUN_00474f80();
-    virtual void FUN_00474df0();
-    virtual void FUN_00475440();
-    virtual void FUN_00474d50();
-
-    int field_4;                            // +0x04
-};
-
+// Vtable 0x4fd618, constructor 0x474cd0, ??_G 0x474d10; 0x38 bytes.
 class Class_00474cd0 : public Class_00471cc0 {
 public:
-    int time;                               // +0x08
-    std::vector<Record_00474cd0> records;   // +0x0c (_First +0x10, _Last +0x14, _End +0x18)
+    int time;                                           // +0x8
+    std::vector<Record_00474cd0> records;               // +0xc (_First +0x10)
+    char unknown_1c[0x38 - 0x1c];
 
     Class_00474cd0();
-
-    virtual void FUN_00474d10();
-    virtual void FUN_00475340();
-    virtual void FUN_00475470();
-    virtual void FUN_00474f80();
-    virtual void FUN_00474df0();
-    virtual void FUN_00475440();
-    virtual void FUN_00474d50();
+    virtual void FUN_00472d50();                        // slot 1, 0x475340
+    virtual void FUN_00472e30(int);                     // slot 2, 0x475470
+    virtual int FUN_00472e70();                         // slot 3, 0x474f80
+    virtual void FUN_00474df0();                        // slot 4, 0x474df0
+    virtual int FUN_00475440();                         // slot 5, 0x475440
+    virtual void FUN_00474d50(Vec3_00474d50* pos, int limit, int a, int b, int c,
+                              int alt);                 // slot 6, 0x474d50
 };
 
 // FUNCTION: 0x474cd0

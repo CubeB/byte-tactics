@@ -987,11 +987,17 @@ address,size,file,symbol,status,similarity
 0x45bea0,179,src/unsorted/0x45bea0.cpp,?FUN_0045bea0@@YGXPAUObject_0045bea0@@H@Z,matched,100.0
 0x45bf60,161,src/unsorted/0x45bf60.cpp,?FUN_0045bf60@@YGXPAD0HH@Z,matched,100.0
 0x45c010,90,src/unsorted/0x45c010.cpp,?FUN_0045c010@@YGXPAUEntry_0045c010@@PADH@Z,matched,100.0
+0x45c070,251,src/unsorted/0x45c070.cpp,?FUN_0045c070@@YGXPAUObject_45c070@@H@Z,matched,100.0
+0x45c170,173,src/unsorted/0x45c170.cpp,?FUN_0045c170@@YGXPAUObject_45c170@@H@Z,matched,100.0
+0x45c220,268,src/unsorted/0x45c220.cpp,?FUN_0045c220@@YGXPAUObject_0045c220@@H@Z,matched,100.0
 0x45c330,157,src/unsorted/0x45c330.cpp,?FUN_0045c330@@YGXPAUObject_0045c330@@H@Z,matched,100.0
 0x45c3d0,22,src/unsorted/0x45c3d0.cpp,?FUN_0045c3d0@@YGXH@Z,matched,100.0
+0x45c3f0,274,src/unsorted/0x45c3f0.cpp,?FUN_0045c3f0@@YAXXZ,matched,100.0
 0x45c510,88,src/unsorted/0x45c510.cpp,?FUN_0045c510@@YAXXZ,matched,100.0
+0x45c570,187,src/unsorted/0x45c570.cpp,?FUN_0045c570@@YAXXZ,matched,100.0
 0x45c630,150,src/unsorted/0x45c630.cpp,?FUN_0045c630@@YAXXZ,matched,100.0
 0x45c6d0,110,src/unsorted/0x45c6d0.cpp,?FUN_0045c6d0@@YAXXZ,matched,100.0
+0x45c740,214,src/unsorted/0x45c740.cpp,?FUN_0045c740@@YAXXZ,matched,100.0
 0x45ca50,143,src/unsorted/0x45ca50.cpp,?FUN_0045ca50@@YAXXZ,matched,100.0
 0x45cde0,160,src/unsorted/0x45cde0.cpp,?FUN_0045cde0@@YAXXZ,matched,100.0
 0x45cf60,94,src/unsorted/0x45cf60.cpp,?FUN_0045cf60@@YAXXZ,matched,100.0

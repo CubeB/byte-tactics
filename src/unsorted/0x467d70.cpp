@@ -1,14 +1,15 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Draws the local player's three light bar frames (one frame table per side)
 // onto the blit surface: the first bar twice, the second copy also shifted
 // down by the status bar height, then the third bar where it sits.
 //
-// Three instructions still differ: this version materialises side * 4 into edi
-// before the first table read, where the original reads the first table with
-// the scale-4 form and only materialises side * 4 for the other two. MSVC
-// unifies the shared index across all three reads whatever spelling of the
-// three table accesses I tried (one array, a 2D array, three pointer fields,
-// byte offsets, an inlined draw helper).
+// The include of <stdio.h> is not used by the body. It is the missing piece
+// that makes MSVC 5 materialise `side * 4` in edi only after the first table
+// load and pick the game pointer as the addressing base; without it the same
+// C++ compiles to the shared index built one instruction early and to the
+// base/index operands swapped (95.7%).
+
+#include <stdio.h>
 
 #pragma pack(push, 1)
 struct Unit_467d70 {

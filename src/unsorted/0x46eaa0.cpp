@@ -1,34 +1,23 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// std::vector<Class_0046eaa0>::_Destroy(first, last) from MSVC 5's <vector>
-// (0x46eaa0 is called as vector<0x5c-byte element>::_Destroy from the inlined
-// erase at 0x46db82, with ecx set to the vector). It destroys each 0x5c-byte
-// element in place: the element destructor is inlined and frees its four
-// std::vector members last-first, each by the inlined ~vector (free _First,
-// zero _First/_Last/_End). _Destroy is protected, so a derived class takes its
-// address to make the compiler emit it out of line.
-//
-// Best: 52.3%. What still differs:
-// - The original calls vector<Elem_0046faf0>::_Destroy (0x46e870) OUT OF LINE
-//   for list_c; ours inlines it away (the loop body is empty, the element
-//   destructor is trivial). This is MSVC 5's /Ob2 inline budget. Probe
-//   (scratch only, not in this file): if the element class carries 8 or more
-//   extra members whose destructors are user-declared and empty, list_c's
-//   _Destroy is left out of line with exactly the original's relocations
-//   (FUN_00470030, delete, _Destroy, delete, delete, delete), but the
-//   register allocation changes (esi becomes first+0x40, edi/ebx swap). 7 such
-//   members still inline list_c; 9 also push list_d's _Destroy out of line.
-// - Register allocation inside the loop: the original keeps the element
-//   cursor in edi and 0 in ebx and bases on esi = first+0x18; ours keeps the
-//   cursor in ebx, 0 in edi, and bases on esi = first+0x40 (list_c._First).
-//   The original's ebp = first prologue is reproduced only without the
-//   std::_Destroy(Class_0046eaa0*) overload below (which this file omits).
-// - list_d's element cleanup loops over 0xe-byte elements calling
-//   FUN_00470030; the element type only needs a std::_Destroy overload that
-//   makes that call (0x434020.cpp's technique), so the element's own layout is
-//   a guess.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// std::vector<Class_0046eaa0>::_Destroy(first, last) from MSVC 5's <vector>,
+// called from the inlined erase at 0x46db82 (0x46dad0) with ecx set to the
+// vector. It runs each 0x5c-byte element's implicit destructor, which frees
+// the element's four std::vector members last-first.
+// The element's layout comes from its operator= (0x470040): list_a and list_b
+// use the vector<Elem_004702a0> helpers (0x470250, 0x470270, 0x470290,
+// 0x4702a0), the three dwords at +0x24 are copied one by one, and the member
+// at +0x30 is a struct with its own out-of-line operator= (0x470560), which
+// inlines list_c's operator= (calling 0x46faf0, 0x46e870 and the 14-byte
+// std::copy 0x470a40) and calls list_d's out of line (0x4707a0, 14-byte
+// elements too). That nesting is what the inline budget needs: list_c's
+// _Destroy stays out of line (0x46e870) while list_d's is inlined.
+// FUN_00470030 is std::_Destroy for the 14-byte element, compiled with
+// __stdcall as the default (/Gz, see docs/consolidation.md), which /Ob2 did
+// not inline at this depth. The explicit specialisation of
+// allocator<Elem_0046faf0>::destroy below calls it directly, standing in for
+// the /Gz template (an inline std::_Destroy overload would be one inline
+// level too deep here and stay a call).
 #include <vector>
-
-void __stdcall FUN_00470030(int);
 
 #pragma pack(push, 2)
 struct Elem_0046faf0 {
@@ -37,31 +26,37 @@ struct Elem_0046faf0 {
     int c;                             // +0x8
     short d;                           // +0xc
 };
-
-struct Elem_00470030 {
-    int a;                             // +0x0
-    int b;                             // +0x4
-    int c;                             // +0x8
-    short d;                           // +0xc
-};
 #pragma pack(pop)
 
-// The vector's destroy loop reaches the element cleanup through std::_Destroy;
-// an overload for the element type inlines the call at the right level.
+void __stdcall FUN_00470030(int);
+
 namespace std {
-inline void _Destroy(Elem_00470030* p)
+template<> inline void allocator<Elem_0046faf0>::destroy(Elem_0046faf0* p)
 {
     FUN_00470030((int)p);
 }
 }
 
-struct Class_0046eaa0 {
+struct Elem_004702a0 {
+    int unknown_0;
+};
+
+struct Class_00470560 {                // operator= is 0x470560
     int field_0;                       // +0x00
-    std::vector<int> list_a;           // +0x04
-    std::vector<int> list_b;           // +0x14
-    char unknown_24[0x18];             // +0x24
-    std::vector<Elem_0046faf0> list_c; // +0x3c
-    std::vector<Elem_00470030> list_d; // +0x4c
+    int field_4;                       // +0x04
+    int field_8;                       // +0x08
+    std::vector<Elem_0046faf0> list_c; // +0x0c
+    std::vector<Elem_0046faf0> list_d; // +0x1c (operator= 0x4707a0)
+};
+
+struct Class_0046eaa0 {                // operator= is 0x470040
+    int field_0;                       // +0x00
+    std::vector<Elem_004702a0> list_a; // +0x04
+    std::vector<Elem_004702a0> list_b; // +0x14
+    int field_24;                      // +0x24
+    int field_28;                      // +0x28
+    int field_2c;                      // +0x2c
+    Class_00470560 sub;                // +0x30
 };
 
 typedef std::vector<Class_0046eaa0> Vec_0046eaa0;

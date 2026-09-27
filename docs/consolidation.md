@@ -281,3 +281,38 @@ can disagree on types (a real link would fail). Known cases:
   second struct for inline depth, 0x433540 (no callers) destroys a vector of
   `vector<Elem_00434020>`, and 0x4335f0 (partial) calls 0x433db0 and 0x433a30
   under `Class_` placeholders.
+- The map around 0x46e160-0x46ff90 (#201, #249) is
+  `std::map<unsigned int, Rect_0046e160>`, a 16-byte value (`x`, `y`, short
+  `w` and `h`, one int) keyed by the dword at +0x13e of the 0x249-byte unit
+  definitions (0x46e160); its `_Tree` has `_Nil` at 0x51e598 and
+  `_Nilrefs` at 0x51e59c. The object holding it at +0 is destroyed by
+  0x46c920, 0x46ca60 and 0x46d1a0, which inline `~_Tree()` and call the
+  out-of-line `erase(first, last)` (0x46e890).
+  Real template names so far: 0x46e890 (`erase(iterator, iterator)`),
+  0x46f6d0 (`_Erase`) and 0x46ea10 (`iterator::_Inc`), renamed in #249 from
+  `Class_0046f6d0::FUN_0046f6d0` and `Class_0046ea10::FUN_0046ea10`; the
+  real `<map>` compiles all three to the same bytes. Still placeholders for
+  the same tree: 0x46e9b0 (`find`), 0x46f720 (`_Init`), 0x46fe60 (`_Lbound`,
+  called by the inlined `find()` in 0x46e160, 0x46e280, 0x46e330, 0x46e3c0,
+  0x46e450, 0x46e4d0, 0x46e550 and 0x46e9b0), 0x46feb0 (`_Lrotate`),
+  0x46ff10 (`_Rrotate`), 0x46ff70 (`_Buynode`) and 0x46ff90
+  (`iterator::_Dec`); not matched yet: 0x46f1e0 (`erase(iterator)`) and
+  0x46ef50 (which calls `_Buynode`). `Rect_0046e330`, `Rect_0046e450` and
+  `Event_0046e280` in those files are the same value type.
+- Overloads share one name in `tools/check.py` (`base_name` drops the
+  argument list), so 0x46e890, which calls the other `_Tree::erase`
+  overload (0x46f1e0) from `erase(_F++)`, is byte-identical with every
+  reference right but is reported "a reference is wrong" once its own name
+  is learned. It needs
+  `IURect_0046e160::IU?$pair::?$_Tree::erase,0x46f1e0` in
+  `data/aliases.csv` (checked in #249: with it 0x46e890 matches and no other
+  status changes), or overload-aware names in the checker.
+- The element of the vector erased in 0x46dad0 is `Class_0046eaa0`
+  (0x5c bytes, operator= 0x470040, `_Destroy` 0x46eaa0): an int, two
+  `vector<Elem_004702a0>` (+0x4, +0x14), three dwords, and at +0x30 a
+  struct `Class_00470560` (its operator= is 0x470560) holding three dwords
+  and two `vector<Elem_0046faf0>` (+0x3c, +0x4c; the second's operator= is
+  0x4707a0). FUN_00470030 is `std::_Destroy(Elem_0046faf0*)` from a `/Gz`
+  file; 0x46eaa0 reaches it one inline level deeper than /Ob2 would go,
+  so it stands in for the template with an explicit specialisation of
+  `allocator<Elem_0046faf0>::destroy` that calls FUN_00470030.

@@ -1,29 +1,27 @@
 // Decompiled by Opus. Names are provisional.
-// Shaped like std::_Tree<...>::_Erase(_Nodeptr) from MSVC 5's <xtree>
-// (recursively frees a subtree) under a lock object; DAT_0051e598 is the
-// tree's _Nil node.
-#include <yvals.h>
+// std::_Tree<...>::_Erase(_Nodeptr) from MSVC 5's <xtree> (recursively frees
+// a subtree under a lock) for the std::map<unsigned int, Rect_0046e160> tree
+// whose _Nil node is DAT_0051e598. Its callers are itself and the tree's
+// erase(first, last) (0x46e890), which inlines one level of it. Renamed from
+// Class_0046f6d0::FUN_0046f6d0 in #249; the real template compiles to the
+// same bytes. _Erase is protected, so a derived class takes its address to
+// make the compiler emit it out of line.
+#include <map>
 
-struct Node_0046f6d0 {
-    Node_0046f6d0* left;               // +0x0
-    Node_0046f6d0* parent;             // +0x4
-    Node_0046f6d0* right;              // +0x8
+struct Rect_0046e160 {                 // 0x10 bytes
+    int x;                             // +0x0
+    int y;                             // +0x4
+    short w;                           // +0x8
+    short h;                           // +0xa
+    int unknown_c;                     // +0xc
 };
 
-extern Node_0046f6d0* DAT_0051e598;
+typedef std::map<unsigned int, Rect_0046e160>::_Imp Tree_0046f6d0;
 
-class Class_0046f6d0 {
-public:
-    void FUN_0046f6d0(Node_0046f6d0* x);
+struct Access_0046f6d0 : Tree_0046f6d0 {
+    typedef void (Tree_0046f6d0::*EraseFn)(_Nodeptr);
+    static EraseFn fn;
 };
 
-// FUNCTION: 0x46f6d0
-void Class_0046f6d0::FUN_0046f6d0(Node_0046f6d0* x)
-{
-    std::_Lockit lock;
-    for (Node_0046f6d0* y = x; y != DAT_0051e598; x = y) {
-        FUN_0046f6d0(y->right);
-        y = y->left;
-        operator delete(x);
-    }
-}
+// FUNCTION: 0x46f6d0 ?_Erase@?$_Tree@IU?$pair@IURect_0046e160@@@std@@U_Kfn@?$map@IURect_0046e160@@U?$less@I@std@@V?$allocator@URect_0046e160@@@3@@2@U?$less@I@2@V?$allocator@URect_0046e160@@@2@@std@@IAEXPAU_Node@12@@Z
+Access_0046f6d0::EraseFn Access_0046f6d0::fn = &Access_0046f6d0::_Erase;

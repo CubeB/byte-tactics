@@ -1410,6 +1410,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   callee-saved register**: look for a comparison of that parameter that
   belongs inside an inlined search helper, whose own parameter is a separate
   variable. See 0x4523e0 (51% to MATCH).
+- **A scan loop ending `je <exit>; jmp <body>`** (not `jne <body>`), with
+  every exit going to far-away blocks, is an inline helper returning 1 or 0
+  from inside the loop; the helper may also hold the "nothing to scan" early
+  return and debug prints around the loop. Found by Claude Opus 5.5 in #239
+  (0x461b10, 0x461c20).
+- **An out-of-line failure `return 0` at the very end** with `xor eax, eax`
+  interleaved with the pops, while an earlier `return 0` has its own epilogue:
+  MSVC merges any other `return 0` into the final one, so the failing path is
+  probably an inline helper tested with `if (!Helper()) return 0;`. See
+  0x461750 (86.5% to 98.6%).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

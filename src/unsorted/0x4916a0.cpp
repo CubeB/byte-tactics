@@ -1,0 +1,76 @@
+// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Saves the per-track bytes from the CD object into the CD-list settings
+// block and writes it to the registry under "CDLISTS", then releases the
+// CD-list buffers, the track buffer and the rest of the game state.
+
+extern char* g_game;
+
+class Class_004ce450 {
+public:
+    int FUN_004ce450();
+};
+
+class Class_004ce7e0 {
+public:
+    unsigned char FUN_004ce7e0(int param_1);
+};
+
+// The CD-list settings block: 0x24 bytes of header, then 0xaa0-0x24 bytes
+// of per-track data (0x51e84c onwards).
+struct CdLists_4916a0 {
+    char unknown_0[0x24];
+    unsigned char tracks[0xaa0 - 0x24]; // +0x24
+};
+
+extern CdLists_4916a0 DAT_0051e828;
+
+struct Obj_004aeda0;
+struct Obj_004aef80;
+struct Class_00452370;
+
+void __stdcall FUN_0042f960(void* key, void* buf, int value);
+void FUN_00428730();
+void __stdcall FUN_004aeda0(Obj_004aeda0* obj, int i);
+void __stdcall FUN_004aef80(Obj_004aef80* obj);
+void FUN_00431920();
+void FUN_00431a20();
+void FUN_0042f8c0();
+void FUN_0042a3b0();
+void FUN_0047eee0();
+void FUN_0042a010();
+void FUN_004d85a0(int* param_1);
+void __stdcall FUN_004c61f0(int param_1);
+void FUN_004c62c0();
+void FUN_0043c350();
+void FUN_0042bcc0();
+void __stdcall FUN_00452370(Class_00452370* obj);
+void FUN_00434b90();
+
+// FUNCTION: 0x4916a0
+void FUN_004916a0(void)
+{
+    for (int i = 0; i < ((Class_004ce450*)*(void**)(g_game + 0x10))->FUN_004ce450(); i++) {
+        DAT_0051e828.tracks[i] = ((Class_004ce7e0*)*(void**)(g_game + 0x10))->FUN_004ce7e0(i + 1);
+    }
+    FUN_0042f960("CDLISTS", &DAT_0051e828, 0xaa0);
+    FUN_00428730();
+    FUN_004aeda0((Obj_004aeda0*)(g_game + 0x519), 1);
+    FUN_004aeda0((Obj_004aeda0*)(g_game + 0x519), 0);
+    FUN_004aef80((Obj_004aef80*)(g_game + 0x519));
+    FUN_00431920();
+    FUN_00431a20();
+    FUN_0042f8c0();
+    FUN_0042a3b0();
+    FUN_0047eee0();
+    FUN_0042a010();
+    FUN_004d85a0(*(int**)(g_game + 0x37e1b));
+    *(int*)(g_game + 0x37e1b) = 0;
+    FUN_004c61f0(0);
+    FUN_004c62c0();
+    FUN_0043c350();
+    FUN_004d85a0(*(int**)(g_game + 0x29a0));
+    *(int*)(g_game + 0x29a0) = 0;
+    FUN_0042bcc0();
+    FUN_00452370((Class_00452370*)(g_game + 0x12ef));
+    FUN_00434b90();
+}

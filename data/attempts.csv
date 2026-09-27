@@ -2836,12 +2836,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x49ae20,356,deepseek-v4.1-flash,#285,matched,100.0,,issue #285
 0x49b3e0,317,deepseek-v4.1-flash,#285,matched,100.0,,issue #285
 0x49b520,347,deepseek-v4.1-flash,#285,partial,74.7,,issue #285
-0x49c740,306,,#286,assigned,,,issue #286
-0x49d000,188,,#286,assigned,,,issue #286
-0x49d120,182,,#286,assigned,,,issue #286
-0x49d910,164,,#286,assigned,,,issue #286
-0x49df10,249,,#286,assigned,,,issue #286
-0x49e070,293,,#286,assigned,,,issue #286
+0x49c740,306,space-bunny-free,#286,partial,87.5,,issue #286
+0x49d000,188,space-bunny-free,#286,matched,100.0,,issue #286
+0x49d120,182,space-bunny-free,#286,matched,100.0,,issue #286
+0x49d910,164,space-bunny-free,#286,matched,100.0,,issue #286
+0x49df10,249,space-bunny-free,#286,matched,100.0,,issue #286
+0x49e070,293,space-bunny-free,#286,partial,79.4,,issue #286
 0x49e700,291,space-bunny-free,#287,matched,100.0,,issue #287
 0x4a0090,230,space-bunny-free,#287,matched,100.0,,issue #287
 0x4a0340,170,space-bunny-free,#287,matched,100.0,,issue #287
@@ -3243,3 +3243,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x490230,301,,#446,assigned,,,"issue #446, escalated"
 0x49aa80,301,,#447,assigned,,,"issue #447, escalated"
 0x49b520,347,,#447,assigned,,,"issue #447, escalated"
+0x49c740,306,,#449,assigned,,,"issue #449, escalated"
+0x49e070,293,,#449,assigned,,,"issue #449, escalated"

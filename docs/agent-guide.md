@@ -558,3 +558,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   variable `__declspec(thread)` (the exe has a `.tls` section).
 - **The high half of a `mul`** (`mul reg` then using `edx`):
   `(unsigned int)(((unsigned __int64)a * b) >> 32)`.
+- **`lea esi, [base+K]` then `[esi]` accesses, with the base register reused as a
+  loop pointer**: the source took a pointer to the field plus a separate array
+  pointer and never used the object pointer directly afterwards.
+- **An index loop over a global array that should stay indexed**: address the
+  array as a member of an enclosing global struct (`g.arr[i]`); the checker
+  accepts the struct symbol plus a displacement.

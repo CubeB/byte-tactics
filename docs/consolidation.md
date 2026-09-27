@@ -37,3 +37,10 @@ revisit them once the surrounding code is known.
   `push ecx` slot plus a store that is never read is the signature of an
   inlined `std::vector<int>` destructor (compare 0x46e610 and 0x438480); the
   real source is probably a vector member or local.
+
+## Third-party code
+
+- zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with
+  `/Gz /Zp1`; 5 of its 58 functions (inlined statics or variants) did not match
+  and are still listed as game code around that range. A rebuild should compile
+  the real zlib source rather than decompiled copies.

@@ -3033,8 +3033,8 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4d1670,385,game,,2,1,0,1,4,1,0
 0x4d1800,13,game,,0,0,0,0,0,0,2
 0x4d1810,13,game,,0,0,0,0,0,0,2
-0x4d1820,333,game,,6,5,0,1,2,2,3
-0x4d1970,296,game,,2,5,0,1,2,2,3
+0x4d1820,333,game,,6,5,0,1,2,1,3
+0x4d1970,296,game,,2,5,0,1,2,1,3
 0x4d1aa0,81,game,,2,0,0,0,0,0,3
 0x4d1b00,61,game,,1,0,0,0,0,0,0
 0x4d1b40,39,game,,1,0,0,0,0,0,2
@@ -3043,59 +3043,59 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4d1bd0,35,game,,2,0,0,0,0,0,0
 0x4d1c00,81,game,,1,0,0,0,1,0,0
 0x4d1c60,24,game,,1,0,0,0,0,0,3
-0x4d1c80,158,game,,4,14,0,0,3,3,1
-0x4d1d20,133,game,,4,14,0,0,3,3,1
-0x4d1db0,36,game,,4,0,0,0,1,1,1
-0x4d1de0,781,game,,8,0,0,1,2,2,1
-0x4d20f0,251,game,,3,0,0,1,1,1,0
-0x4d21f0,266,game,,1,0,0,0,1,1,0
-0x4d2300,192,game,,3,0,0,1,1,1,0
-0x4d23c0,1132,game,,2,0,0,1,2,2,2
-0x4d2830,133,game,,1,0,0,0,0,0,2
-0x4d28c0,42,game,,2,0,0,0,0,0,0
-0x4d28f0,479,game,,2,0,0,1,2,2,0
-0x4d2ad0,413,game,,1,1,0,1,1,1,3
-0x4d2c70,793,game,,2,1,0,1,4,4,0
-0x4d2f90,367,game,,2,5,0,1,0,0,2
-0x4d3100,1089,game,,2,1,0,1,4,4,0
-0x4d3550,69,game,,1,0,0,0,1,1,0
-0x4d35a0,75,game,,1,0,0,0,1,1,1
-0x4d35f0,388,game,,4,0,0,0,3,3,1
-0x4d3780,25,game,,3,0,0,0,1,1,1
-0x4d37a0,1076,game,,2,0,0,1,2,2,1
-0x4d3be0,128,game,,3,0,0,1,2,2,0
-0x4d3c60,256,game,,1,0,0,1,1,1,0
-0x4d3d60,6,game,,0,0,0,0,0,0,0
-0x4d3d70,21,game,,3,0,0,0,1,0,0
-0x4d3d90,16,game,,2,0,0,0,1,0,0
-0x4d3da0,763,game,,1,17,0,1,0,0,2
-0x4d40a0,368,game,,4,0,0,0,0,0,2
-0x4d4210,888,game,,1,0,0,1,0,0,1
-0x4d4590,1402,game,,4,0,0,1,6,6,3
-0x4d4b10,1170,game,,2,18,0,1,1,1,1
-0x4d4fb0,180,game,,3,0,0,1,0,0,1
-0x4d5070,233,game,,3,1,0,1,0,0,1
-0x4d5160,1399,game,,3,2,0,1,0,0,1
-0x4d56e0,291,game,,3,0,0,1,0,0,2
-0x4d5810,1092,game,,3,3,0,1,0,0,1
-0x4d5c60,103,game,,1,0,0,0,0,0,1
-0x4d5cd0,300,game,,3,0,0,1,0,0,3
-0x4d5e00,139,game,,3,0,0,0,2,2,6
-0x4d5e90,104,game,,3,0,0,0,1,1,1
-0x4d5f00,3180,game,,3,12,0,1,8,8,1
-0x4d6b70,48,game,,3,0,0,0,1,1,2
-0x4d6ba0,51,game,,3,0,0,0,0,0,1
-0x4d6be0,120,game,,4,0,0,0,1,1,1
-0x4d6c60,1249,game,,8,350,0,1,0,0,3
-0x4d7150,340,game,,8,0,0,1,1,1,1
-0x4d72b0,317,game,,4,303,0,0,1,1,1
-0x4d73f0,26,game,,3,0,0,0,0,0,0
-0x4d7410,61,game,,2,0,0,0,0,0,2
-0x4d7450,56,game,,5,0,0,0,0,0,1
-0x4d7490,1936,game,,3,5,0,1,2,2,1
-0x4d7c20,19,game,,2,0,0,0,0,0,2
-0x4d7c40,298,game,,3,1,0,1,0,0,2
-0x4d7d70,824,game,,6,5,0,1,0,0,1
+0x4d1c80,158,library,zlib 1.0.4: _compress@16,4,14,0,0,3,0,1
+0x4d1d20,133,library,zlib 1.0.4: _uncompress@16,4,14,0,0,3,0,1
+0x4d1db0,36,library,zlib 1.0.4: _deflateInit_@16,4,0,0,0,1,0,1
+0x4d1de0,781,library,zlib 1.0.4: _deflateInit2_@32,8,0,0,1,2,0,1
+0x4d20f0,251,library,zlib 1.0.4: _deflateSetDictionary@12,3,0,0,1,1,0,0
+0x4d21f0,266,library,zlib 1.0.4: _deflateReset@4,1,0,0,0,1,0,0
+0x4d2300,192,library,zlib 1.0.4: _deflateParams@12,3,0,0,1,1,0,0
+0x4d23c0,1132,library,zlib 1.0.4: _deflate@8,2,0,0,1,2,0,2
+0x4d2830,133,library,zlib 1.0.4: _deflateEnd@4,1,0,0,0,0,0,2
+0x4d28c0,42,library,zlib 1.0.4: _deflateCopy@8,2,0,0,0,0,0,0
+0x4d28f0,479,library,zlib 1.0.4: _deflate_stored@8,2,0,0,1,2,0,0
+0x4d2ad0,413,library,zlib 1.0.4: _fill_window@4,1,1,0,1,1,0,3
+0x4d2c70,793,library,zlib 1.0.4: _deflate_fast@8,2,1,0,1,4,0,0
+0x4d2f90,367,library,zlib 1.0.4: _longest_match@8,2,5,0,1,0,0,2
+0x4d3100,1089,library,zlib 1.0.4: _deflate_slow@8,2,1,0,1,4,0,0
+0x4d3550,69,library,zlib 1.0.4: _inflateReset@4,1,0,0,0,1,0,0
+0x4d35a0,75,library,zlib 1.0.4: _inflateEnd@4,1,0,0,0,1,0,1
+0x4d35f0,388,library,zlib 1.0.4: _inflateInit2_@16,4,0,0,0,3,0,1
+0x4d3780,25,library,zlib 1.0.4: _inflateInit_@12,3,0,0,0,1,0,1
+0x4d37a0,1076,library,zlib 1.0.4: _inflate@8,2,0,0,1,2,0,1
+0x4d3be0,128,library,zlib 1.0.4: _inflateSetDictionary@12,3,0,0,1,2,0,0
+0x4d3c60,256,library,zlib 1.0.4: _inflateSync@4,1,0,0,1,1,0,0
+0x4d3d60,6,library,zlib 1.0.4: _get_crc_table@0,0,0,0,0,0,0,0
+0x4d3d70,21,library,zlib 1.0.4: _zcalloc@12,3,0,0,0,1,0,0
+0x4d3d90,16,library,zlib 1.0.4: _zcfree@8,2,0,0,0,1,0,0
+0x4d3da0,763,library,zlib 1.0.4: __tr_init@4,1,17,0,1,0,0,2
+0x4d40a0,368,library,zlib 1.0.4: __tr_stored_block@16,4,0,0,0,0,0,2
+0x4d4210,888,library,zlib 1.0.4: __tr_align@4,1,0,0,1,0,0,1
+0x4d4590,1402,library,zlib 1.0.4: __tr_flush_block@16,4,0,0,1,6,0,3
+0x4d4b10,1170,library,zlib 1.0.4: _build_tree@8,2,18,0,1,1,0,1
+0x4d4fb0,180,library,zlib 1.0.4: _pqdownheap@12,3,0,0,1,0,0,1
+0x4d5070,233,library,zlib 1.0.4: _scan_tree@12,3,1,0,1,0,0,1
+0x4d5160,1399,library,zlib 1.0.4: _send_tree@12,3,2,0,1,0,0,1
+0x4d56e0,291,library,zlib 1.0.4: __tr_tally@12,3,0,0,1,0,0,2
+0x4d5810,1092,library,zlib 1.0.4: _compress_block@12,3,3,0,1,0,0,1
+0x4d5c60,103,library,zlib 1.0.4: _bi_windup@4,1,0,0,0,0,0,1
+0x4d5cd0,300,library,zlib 1.0.4: _adler32@12,3,0,0,1,0,0,3
+0x4d5e00,139,library,zlib 1.0.4: _inflate_blocks_reset@12,3,0,0,0,2,0,6
+0x4d5e90,104,library,zlib 1.0.4: _inflate_blocks_new@12,3,0,0,0,1,0,1
+0x4d5f00,3180,library,zlib 1.0.4: _inflate_blocks@12,3,12,0,1,8,0,1
+0x4d6b70,48,library,zlib 1.0.4: _inflate_blocks_free@12,3,0,0,0,1,0,2
+0x4d6ba0,51,library,zlib 1.0.4: _inflate_set_dictionary@12,3,0,0,0,0,0,1
+0x4d6be0,120,library,zlib 1.0.4: _inflate_trees_bits@16,4,0,0,0,1,0,1
+0x4d6c60,1249,library,zlib 1.0.4: _huft_build@32,8,350,0,1,0,0,3
+0x4d7150,340,library,zlib 1.0.4: _inflate_trees_dynamic@32,8,0,0,1,1,0,1
+0x4d72b0,317,library,zlib 1.0.4: _inflate_trees_fixed@16,4,303,0,0,1,0,1
+0x4d73f0,26,library,zlib 1.0.4: _falloc@12,3,0,0,0,0,0,0
+0x4d7410,61,library,zlib 1.0.4: _inflate_trees_free@8,2,0,0,0,0,0,2
+0x4d7450,56,library,zlib 1.0.4: _inflate_codes_new@20,5,0,0,0,0,0,1
+0x4d7490,1936,library,zlib 1.0.4: _inflate_codes@12,3,5,0,1,2,0,1
+0x4d7c20,19,library,zlib 1.0.4: _inflate_codes_free@8,2,0,0,0,0,0,2
+0x4d7c40,298,library,zlib 1.0.4: _inflate_flush@12,3,1,0,1,0,0,2
+0x4d7d70,824,library,zlib 1.0.4: _inflate_fast@24,6,5,0,1,0,0,1
 0x4d80b0,17,game,,0,0,0,0,0,0,0
 0x4d80d0,87,game,,0,0,0,0,2,1,6
 0x4d8130,1,game,,0,0,0,0,0,0,0

@@ -72,6 +72,19 @@ if [ ! -d "$TC/ghidra" ]; then
     rm -rf "$tmp"
 fi
 
+# zlib 1.0.4, statically linked into the game (compiled by Cavedog with /Gz /Zp1).
+# Built here so tools/functions.py can recognise its functions.
+ZLIB=zlib-1.0.4
+if [ ! -d "$TC/thirdparty/$ZLIB" ]; then
+    mkdir -p "$TC/thirdparty"
+    fetch "https://github.com/madler/zlib/archive/refs/tags/v1.0.4.tar.gz" "$DL/$ZLIB.tar.gz" 54076bfd66625988bb752b500ced6569
+    tar xzf "$DL/$ZLIB.tar.gz" -C "$TC/thirdparty"
+    (cd "$TC/thirdparty/$ZLIB" && for f in adler32 compress crc32 deflate gzio infblock infcodes inffast \
+            inflate inftrees infutil trees uncompr zutil; do
+        "$ROOT/tools/wcl" /c /O2 /Ob2 /MT /Gy /Gz /Zp1 "/Fo$f.obj" "$f.c" > /dev/null
+    done)
+fi
+
 if [ ! -f "$ROOT/orig/TotalA.exe" ]; then
     cp "$STEAM_TA/TotalA.exe" "$ROOT/orig/TotalA.exe"
 fi

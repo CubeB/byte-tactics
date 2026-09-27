@@ -21,9 +21,9 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | Size (bytes) | Haiku | Opus | Sonnet |
 | --- | ---: | ---: | ---: |
 | 1-16 | 283/312 (91%) | 3/3 (100%) |  |
-| 17-40 | 146/197 (74%) |  | 9/10 (90%) |
-| 41-64 | 3/11 (27%) |  | 54/64 (84%) |
-| 65-160 | 1/6 (17%) | 226/229 (99%) | 2/6 (33%) |
+| 17-40 | 158/217 (73%) |  | 9/10 (90%) |
+| 41-64 | 3/11 (27%) |  | 64/74 (86%) |
+| 65-160 | 1/6 (17%) | 236/239 (99%) | 2/6 (33%) |
 | 161-400 |  | 8/12 (67%) |  |
 
 ### Cost per batch
@@ -101,6 +101,9 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | H21 | haiku | 20 | 18 | 120,661 | 6,703 | 7 | 11 |
 | O34 | opus | 10 | 10 | 127,012 | 12,701 | 51 | 8 |
 | O33 | opus | 10 | 10 | 175,050 | 17,505 | 70 | 12 |
+| S18 | sonnet | 10 | 10 | 126,236 | 12,623 | 25 | 10 |
+| O35 | opus | 10 | 10 | 116,874 | 11,687 | 47 | 6 |
+| H22 | haiku | 20 | 12 | 107,474 | 8,956 | 9 | 10 |
 
 ### Escalations
 
@@ -145,3 +148,8 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
   unrelated code placed before it. These should resolve once functions are
   regrouped into their original translation units in address order, which is
   a later phase of the project.
+- The game statically links **zlib 1.0.4** (its `zlibVersion()` returns "1.0.4";
+  TA's archives are compressed), built with `/Gz /Zp1`: every function
+  `__stdcall` and structs packed to 1 byte. Compiling the real zlib 1.0.4 source
+  that way reproduces 53 functions (about 25 KB, 0x4d1c80-0x4d7d70) byte for byte,
+  so they are marked `library`; `tools/setup_toolchain.sh` builds it.

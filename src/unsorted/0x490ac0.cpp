@@ -1,0 +1,24 @@
+// Decompiled by Sonnet. Names are provisional.
+
+int __stdcall FUN_004c69f0(const char* name, int a, int b);
+void __stdcall FUN_004c61f0(int param_1);
+
+#pragma pack(push, 1)
+struct GameGlobal_00490ac0
+{
+    char unknown_0[0x37e1b];
+    int field_37e1b; // +0x37e1b
+    int field_37e1f; // +0x37e1f
+    int field_37e23; // +0x37e23
+};
+#pragma pack(pop)
+
+extern GameGlobal_00490ac0* g_game;
+extern const char DAT_005091d4[]; // "OFFSCREEN"
+
+// FUNCTION: 0x490ac0
+void FUN_00490ac0()
+{
+    g_game->field_37e1b = FUN_004c69f0(DAT_005091d4, g_game->field_37e1f, g_game->field_37e23);
+    FUN_004c61f0(g_game->field_37e1b);
+}

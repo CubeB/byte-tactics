@@ -20,7 +20,7 @@ from pathlib import Path
 import capstone
 import pefile
 
-from coff import read_archive
+from coff import parse_object, read_archive
 from crtmatch import MIN_SIZE, find_all_masked, find_masked
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -94,6 +94,39 @@ def cpp_library_names(pe: pefile.PE) -> dict[int, str]:
     return names
 
 
+THIRD_PARTY = [("zlib 1.0.4", ROOT / "toolchain/thirdparty/zlib-1.0.4")]
+STRONG = 40  # bytes; third-party functions this long are never coincidences
+
+
+def third_party_names(pe: pefile.PE) -> dict[int, str]:
+    """Third-party libraries built into the game from their own source (built by
+    tools/setup_toolchain.sh with Cavedog's options). Short functions such as
+    `return 1` match stubs all over the exe, so they only count inside the
+    block the long ones occupy."""
+    text = next(s for s in pe.sections if s.Name.startswith(b".text"))
+    hay = text.get_data()
+    text_va = pe.OPTIONAL_HEADER.ImageBase + text.VirtualAddress
+    names = {}
+    for label, folder in THIRD_PARTY:
+        found = []
+        for obj_path in sorted(folder.glob("*.obj")):
+            obj = parse_object(obj_path.read_bytes(), obj_path.name)
+            for sec in obj.sections:
+                syms = obj.symbols_in(sec)
+                if not sec.is_code or len(sec.data) < 8 or not syms:
+                    continue
+                for off in find_all_masked(hay, sec.data, sec.mask()):
+                    found.append((text_va + off + syms[0].value, len(sec.data), syms[0].name))
+        strong = [f for f in found if f[1] >= STRONG]
+        if not strong:
+            continue
+        lo, hi = min(f[0] for f in strong), max(f[0] + f[1] for f in strong)
+        for addr, size, name in found:
+            if size >= STRONG or lo <= addr < hi:
+                names.setdefault(addr, f"{label}: {name}")
+    return names
+
+
 def main() -> None:
     argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter).parse_args()
     pe = pefile.PE(str(EXE))
@@ -123,6 +156,11 @@ def main() -> None:
     for f in funcs:
         if f["kind"] == "game" and f["address"] in cpp:
             f["kind"], f["name"] = "library", cpp[f["address"]]
+    # Third-party libraries compiled into the game (zlib).
+    third = third_party_names(pe)
+    for f in funcs:
+        if f["kind"] == "game" and f["address"] in third:
+            f["kind"], f["name"] = "library", third[f["address"]]
     starts = {f["address"] for f in funcs}
 
     # Everything in .text not covered by an FPO record (ignoring alignment padding).

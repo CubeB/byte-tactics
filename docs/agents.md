@@ -107,7 +107,7 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 | 1-16 |  |  |  | 283/312 (91%) | 3/3 (100%) |  |
 | 17-40 |  |  |  | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
 | 41-64 |  |  |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
-| 65-160 | 47/48 (98%) |  |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
+| 65-160 | 54/55 (98%) |  |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
 | 161-400 |  | 11/12 (92%) |  |  | 29/35 (83%) |  |
 | 401+ |  |  | 7/12 (58%) |  | 8/9 (89%) |  |
 
@@ -298,6 +298,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #63 | opus | 1 | 0 | 0 | n/a | n/a | n/a |
 | #65 | opus | 1 | 0 | 0 | n/a | n/a | n/a |
 | #4 | deepseek-v4.1-flash | 12 | 11 | 0 | n/a | n/a | n/a |
+| #6 | deepseek-v4.1-flash | 7 | 7 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

@@ -977,6 +977,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A multiply by an odd constant as a `lea` chain versus `imul reg, imm`** can
   depend on the header set alone: 0x4b6c30's `seed * 16807` is a `lea` chain only
   with `<windows.h>` included.
+- **`_Ubound`/`_Lbound` with the returned iterator built before the lock's
+  destructor**: they hold a `std::_Lockit` for the whole body; move the locked
+  tree walk into a `static inline` helper and build the iterator from its result
+  afterwards.
+- **`_Tree::_Dec`/`_Inc` node layout**: the `_Color` field's offset follows the
+  value type's size (an 8-byte pair at +0xc puts it at +0x14; a 0x30-byte value
+  moves it to +0x3c), and that decides the whole function's match.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -2394,6 +2394,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x40aa40,725,,#58,assigned,,,issue #58
 0x40ad80,834,,#58,assigned,,,issue #58
 0x40b390,401,,#58,assigned,,,issue #58
-0x404270,1212,,#60,assigned,,,"issue #60, escalated"
+0x404270,1212,opus,#60,matched,100.0,,"issue #60, escalated"
 0x405980,1040,,#63,assigned,,,"issue #63, escalated"
 0x406300,1152,,#65,assigned,,,"issue #65, escalated"

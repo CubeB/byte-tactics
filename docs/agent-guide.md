@@ -954,6 +954,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Two locals swapped between callee-saved registers after a search helper**:
   try inverting the helper's early return (`if (i < 0) return 0;` versus
   `if (i >= 0) { ...; return e; } return 0;`) (0x45af90).
+- **A field read twice where yours reads it once**: read it once through an
+  inline method and once as a plain field (`health + def->MaxHealth()` over
+  `def->maxHealth * 2`); two plain reads get merged (0x404270).
+- **A constant folded into a reciprocal**: cast the helper's result
+  (`return (float)(x * 30);`) so MSVC keeps the multiply (0x404270).
+- **Constants: write literals, not `extern const float DAT_x`.** A literal
+  lands in the constant pool as in the original; a declared global points at
+  whatever address its name says, which must be exactly the original's.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

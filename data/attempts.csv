@@ -2438,3 +2438,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x4181d0,315,opus,#103,partial,62.3,,"issue #103, escalated"
 0x419340,192,,#106,assigned,,,"issue #106, escalated"
 0x419670,341,,#106,assigned,,,"issue #106, escalated"
+0x417f60,617,,#111,assigned,,,"issue #111, escalated"
+0x4181d0,315,,#111,assigned,,,"issue #111, escalated"

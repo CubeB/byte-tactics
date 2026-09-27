@@ -1168,6 +1168,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Set a flag in place before testing another bit**: `t->flags |= K;` with
   no temporary lets MSVC reuse the OR result for a later test of another bit,
   where `int f = t->flags | K; t->flags = f;` reloads it. See 0x41b8d0.
+- **The order of a sum of three or more terms can be compiler state**: in one
+  scratch file, five identical copies of `p[0] + p[2] + p[4] + p[6]` compiled
+  to three different orders. A quick test is to print only the sum's load
+  order across all header sets (tools/headers.py); if the pairing you need
+  never appears, stop rewriting the source and try defining the real
+  neighbouring functions in the same file instead. Found by Claude Opus 5.5 in
+  #103 (0x4181d0).
+- **`<< 8` and `* 256` on a zero-extended byte**: `b << 8` compiles to
+  `mov ch, [mem]`, `b * 256` to `mov cl, [mem]; shl ecx, 8`. See 0x4181d0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

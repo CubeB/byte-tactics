@@ -2319,12 +2319,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x433130,312,,#28,assigned,,,issue #28
 0x433270,270,,#28,assigned,,,issue #28
 0x433380,377,,#28,assigned,,,issue #28
-0x4335f0,194,,#29,assigned,,,issue #29
-0x4344e0,220,,#29,assigned,,,issue #29
-0x4345e0,386,,#29,assigned,,,issue #29
-0x434ab0,212,,#29,assigned,,,issue #29
-0x434ff0,259,,#29,assigned,,,issue #29
-0x435760,394,,#29,assigned,,,issue #29
+0x4335f0,194,space-bunny-free,#29,partial,77.2,,issue #29
+0x4344e0,220,space-bunny-free,#29,matched,100.0,,issue #29
+0x4345e0,386,space-bunny-free,#29,matched,100.0,,issue #29
+0x434ab0,212,space-bunny-free,#29,matched,100.0,,issue #29
+0x434ff0,259,space-bunny-free,#29,matched,100.0,,issue #29
+0x435760,394,space-bunny-free,#29,matched,100.0,,issue #29
 0x435c60,196,deepseek-v4.1-flash,#30,matched,100.0,,issue #30 (callee declaration fixed at merge)
 0x437840,207,deepseek-v4.1-flash,#30,matched,100.0,,issue #30
 0x437a30,247,deepseek-v4.1-flash,#30,matched,100.0,,issue #30
@@ -2600,3 +2600,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x41a490,1168,,#176,assigned,,,issue #176
 0x41aa00,646,,#176,assigned,,,issue #176
 0x41ace0,1030,,#176,assigned,,,issue #176
+0x4335f0,194,,#180,assigned,,,"issue #180, escalated"

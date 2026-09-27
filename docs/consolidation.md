@@ -195,6 +195,15 @@ can disagree on types (a real link would fail). Known cases:
 - 0x438760 is the constructor of `Class_00438760`, an order type held as its
   index in the sorted order-type table and passed by value (#31).
 
+- Around 0x433a30 to 0x435000 (`vector<Elem_00434020>` and
+  `vector<vector<Elem_00434020>>`, #29): 0x433a30 is named
+  `UElem_00434020::?$vector::~?$vector` in data/symbols.csv, but it is
+  probably `??1?$vector@UElem_00434020@...@std@@QAE@XZ`, the element vector's
+  destructor; 0x433db0 (unnamed) is probably
+  `vector<vector<Elem_00434020>>::insert(iterator, size_type, const T&)`.
+  0x4335f0 (partial) calls both. 0x434ff0 is `Class_00434f70`'s destructor
+  (its constructor is 0x434f70).
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

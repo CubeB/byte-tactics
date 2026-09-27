@@ -128,6 +128,19 @@ writes `e->items[30]`, but the items array is allocated with 60 bytes (30
 shorts, `push 0x3c` at 0x42dac7), two bytes short. The guard should be
 `count < 0x1e`. Found by DeepSeek V4.1 Flash in #26.
 
+## Z offset computed from the rotated x (likely)
+
+**0x43d0d0**: its second FUN_004b715a call, for the +0x68 (z) offset, reads the
+same stack slot as the first (`[esp+8]` at 0x43d1a0, then `push edi;
+mov ecx, [esp+0xc]` at 0x43d1ce), so both use the rotated x and the rotated z
+is never read. Found by DeepSeek V4.1 Flash in #33.
+
+## Player name overflows a 100-byte buffer (likely)
+
+**0x446080** formats the localized "Reject" prefix and a player name into a
+100-byte stack buffer with `sprintf` (`sub esp, 0x64`); a long enough name
+overflows it. Found by DeepSeek V4.1 Flash in #126.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -187,6 +200,16 @@ Things that look wrong in the original but have no effect, kept for the record.
   Entries skipped for a zero field still count in the divisor. Found by Space
   Bunny Free in #34.
 
+- **0x446310**: allocates an "AVAILABLE MODES" buffer (`count << 8` bytes at
+  `obj+0x14`), zeroes its first byte and never reads or frees it, so it leaks.
+  Found by DeepSeek V4.1 Flash in #126.
+- **0x446e90**: tests `players[i].type != 4` after an inlined check has
+  already limited that byte to 1, 2 or 3, so the test is dead. Found by
+  DeepSeek V4.1 Flash in #126.
+- **0x45b150**: a `deep = 1` store at the end of the loop body is dead, since
+  the branch reaching it has already tested `deep` as 1. Found by Space Bunny
+  Free in #143.
+
 ## Possible leaks and unchecked inputs
 
 - **0x413470** (an order handler), state 3 (likely): after two misses it
@@ -211,3 +234,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   3, so bit 0 and bits 6 to 31 keep stack garbage, and the whole structure is
   then copied into the spawned object (FUN_00421620's inlined `rep movsd`).
   Harmless if nothing reads those bits. Found by DeepSeek V4.1 Flash in #22.
+- **0x43de30** (possible): its chunked read `FUN_004b4c80(buf, 0x23)` is not
+  checked, so a short read copies a partly uninitialised record into the unit
+  type; its sibling loader 0x44d930 does check. Found by DeepSeek V4.1 Flash
+  in #33.
+- **0x45bbf0** (possible): reads `e->list` before the null check of
+  FUN_004a0200's result (0x45bc07, then `test eax, eax` at 0x45bc0d), so a
+  missing "VIDSLDR" entry would be dereferenced. Found by Space Bunny Free in
+  #143.

@@ -1,0 +1,20 @@
+// Decompiled by Opus. Names are provisional.
+// Fills a rectangle, then draws its bevelled border through FUN_004b0090
+// (compare 0x4b0510 and 0x4b0590).
+
+struct Rect_004b0510 {
+    int x1;                          // +0x0
+    int y1;                          // +0x4
+    int x2;                          // +0x8
+    int y2;                          // +0xc
+};
+
+void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FUN_004b0090(void* surface, Rect_004b0510* rect, int light, int dark, int fill);
+
+// FUNCTION: 0x4b04b0
+void __stdcall FUN_004b04b0(void* surface, Rect_004b0510* rect, int light, int dark, int fill)
+{
+    FUN_004bf6f0(surface, rect, fill);
+    FUN_004b0090(surface, rect, light, dark, fill);
+}

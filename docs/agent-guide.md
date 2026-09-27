@@ -766,6 +766,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Two callers deleting the same object at different inline depths** (one
   calls `??1T`, the other `??_GT`): rebuilding the deeper caller unannotated
   emits the `??_G` (0x470300).
+- **Stores through a pointer to an array element computed after the multiply**
+  (`i * size`, then the `obj->a->b` chain, then the add): pass `&obj->a->b[i]` to
+  a `static inline` helper that does the stores; a local pointer loads the
+  chain first (0x4a3eb0).
+- **`rep movsd` from `lea esi, [eax+K]` right after a call**: `memcpy(dst,
+  &p->field, n)`; a struct assignment gives `mov esi, eax; add esi, K`
+  (0x4c2380).
+- **A byte global used as an index and a compare, kept in `bl`**: read the
+  global each time rather than copying it to a local, which gets spilled
+  (0x48ffd0).
+- **Loads through a copied register interleaved with adds before the stores**:
+  a whole-struct copy then `+=` on some fields (`Rect r = *rect; r.y1 += dy;`),
+  not field initialisers (0x467b60).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -1,0 +1,22 @@
+// Decompiled by Opus. Names are provisional.
+
+struct Gadget_0045f190 {
+    char unknown_0[0x60];
+    int field_60;                      // +0x60
+};
+
+int __stdcall FUN_0049fd60(Gadget_0045f190* gadget, char* name);
+void __stdcall FUN_0047f1a0(char* str, int flag);
+void __stdcall FUN_004ab0a0(Gadget_0045f190* gadget);
+
+// FUNCTION: 0x45f190
+void __stdcall FUN_0045f190(Gadget_0045f190* gadget)
+{
+    if (gadget->field_60 != -1) {
+        if (FUN_0049fd60(gadget, "OK")) {
+            FUN_0047f1a0("Options", 0);
+            return;
+        }
+        FUN_004ab0a0(gadget);
+    }
+}

@@ -321,6 +321,12 @@ Look for it instead of blaming the compiler:
 
 ## Saving check.py runs
 
+The per-function budget in your instructions counts real attempts. Scoring a
+scratch file with `uv run tools/check.py <addr> <scratch.cpp> --sym <name>`
+(or checkall.py) is cheap and fine to repeat; there is no need to write your
+own objdump-normalising diff script, since check.py's diff already masks
+addresses.
+
 Several agents work at once, so keep scratch files in your own folder:
 `build/scratch/<your first address>/` (for example `build/scratch/0x4635b0/`),
 never a shared name like `/tmp/a.cpp`.
@@ -655,6 +661,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **`push ecx; mov ecx, esp; push x; call F` before the other pushes**: F
   constructs a by-value class argument in place; name it
   `Class_<F>::Class_<F>` (0x401c20).
+- **A pointer-walking loop whose exit returns with a bare `ret`** (the pointer
+  is already 0 in `eax`): `while (p) { if (...) return 1; p = p->next; } return
+  0;`; `do/while` peels a copy of the body and `break` adds a `setne` (0x481430).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

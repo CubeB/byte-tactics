@@ -123,11 +123,12 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | H26 | haiku | 20 | 7 | 108,963 | 15,566 | 16 | 10 |
 | S22 | sonnet | 9 | 9 | 157,991 | 17,554 | 35 | 15 |
 | O46 | opus | 10 | 10 | 118,409 | 11,840 | 47 | 5 |
+| S24 | sonnet | 13 | 13 | 118,024 | 9,078 | 18 | 8 |
 
 ### Escalations
 
 - Opus matched 32 of 33 functions a cheaper model had failed.
-- Sonnet matched 85 of 91 functions a cheaper model had failed.
+- Sonnet matched 98 of 104 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target

@@ -221,6 +221,10 @@ effect, the missing piece is usually a helper that was inlined:
   vtable, string, global or function). Declare it (`extern void* DAT_004fd458[];`,
   a string literal, `extern Class_x DAT_00528a78;`) and use the name. The
   checker rejects hard-coded addresses.
+- **`g_game` (0x511de8) is a pointer**: `mov eax, [0x511de8]` loads it, then
+  fields are read at `[eax+N]`. Declare `extern char* g_game;` (or a struct
+  pointer) and write `*(int*)(g_game + N)`. Never `&DAT_00511de8 + N`: that is a
+  constant address with no load, and can never match.
 - **`mov ecx, <global>; jmp <method>`**: a tail call of a method on a global
   object. Declare the object (`extern Class_x DAT_00528a78;`) and write
   `DAT_00528a78.FUN_004e1650();`. See `src/unsorted/0x4de0f0.cpp`.

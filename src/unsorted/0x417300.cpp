@@ -1,13 +1,21 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
+// Toggles one flag bit in the same 16-bit flags word as 0x416e30, 0x417060
+// and 0x418ca0 (mask 0x40 = bit 6), then calls FUN_00430f00.
 
-extern int DAT_00511de8;
+extern void* g_game;
 extern void FUN_00430f00();
 
+struct Flags_00417300
+{
+    unsigned short low : 6;
+    unsigned short flag : 1;
+    unsigned short rest : 9;
+};
+
 // FUNCTION: 0x417300
-void FUN_00417300() {
-    int* game = (int*)&DAT_00511de8;
-    unsigned short val = *(unsigned short*)((char*)game + 0x37f2f);
-    val = val ^ 0x40;
-    *(unsigned short*)((char*)game + 0x37f2f) = val;
+void __stdcall FUN_00417300(int unused)
+{
+    Flags_00417300* f = (Flags_00417300*)((char*)g_game + 0x37f2f);
+    f->flag = !f->flag;
     FUN_00430f00();
 }

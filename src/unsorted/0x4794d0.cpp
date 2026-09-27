@@ -1,19 +1,26 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
-extern int DAT_00511de8;
+extern void* g_game;
+
+struct Item_004794d0
+{
+    int type;               // +0x0
+    char unknown_4[0x14];   // sizeof == 0x18
+};
 
 // FUNCTION: 0x4794d0
-int FUN_004794d0() {
+int FUN_004794d0()
+{
     int count = 0;
-    int num_items = *(int*)((char*)&DAT_00511de8 + 0x38d81);
+    int num_items = *(int*)((char*)g_game + 0x38d81);
     if (num_items > 0) {
-        int* ptr = (int*)*(int*)((char*)&DAT_00511de8 + 0x29a0);
-        for (int i = 0; i < num_items; i++) {
-            if (*ptr == 2) {
+        Item_004794d0* ptr = *(Item_004794d0**)((char*)g_game + 0x29a0);
+        do {
+            if (ptr->type == 2) {
                 count++;
             }
-            ptr = (int*)((char*)ptr + 0x18);
-        }
+            ptr++;
+        } while (--num_items);
     }
     return count;
 }

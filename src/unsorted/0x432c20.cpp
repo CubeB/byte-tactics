@@ -1,18 +1,27 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
+// Same shape as the matched sibling 0x432c00: a scalar deleting destructor
+// that calls the reference-count release at 0x4c9390 (already named
+// Class_004c9390::FUN_004c9390 in data/symbols.csv and called as a plain
+// method by every other caller) then conditionally frees this.
 
-extern void FUN_004c9390(void*);
-extern void FUN_004b4f20(void*);
+extern void operator delete(void*);
+
+class Class_004c9390 {
+public:
+    void FUN_004c9390();
+};
 
 class Class_00432c20 {
 public:
-    void* FUN_00432c20(unsigned char param);
+    void* FUN_00432c20(unsigned char param_1);
 };
 
 // FUNCTION: 0x432c20
-void* Class_00432c20::FUN_00432c20(unsigned char param) {
-    FUN_004c9390(this);
-    if (param & 1) {
-        FUN_004b4f20(this);
+void* Class_00432c20::FUN_00432c20(unsigned char param_1)
+{
+    ((Class_004c9390*)this)->FUN_004c9390();
+    if ((param_1 & 1) != 0) {
+        operator delete(this);
     }
     return this;
 }

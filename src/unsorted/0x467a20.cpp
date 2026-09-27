@@ -1,11 +1,9 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
-extern void FUN_004b7f90(void*, int, int, int);
+extern void __stdcall FUN_004b7f90(void* param_1, short* param_2, int x, int y);
 
 // FUNCTION: 0x467a20
-void FUN_00467a20(void* param_1, int* param_2, int param_3, int param_4) {
-    short* data = (short*)param_2;
-    int y_offset = (int)data[2];
-    int x_offset = (int)data[3];
-    FUN_004b7f90(param_1, (int)data[3] + param_3, (int)data[2] + param_4, param_4);
+void __stdcall FUN_00467a20(void* param_1, short* param_2, int param_3, int param_4)
+{
+    FUN_004b7f90(param_1, param_2, param_2[2] + param_3, param_2[3] + param_4);
 }

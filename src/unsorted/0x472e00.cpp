@@ -1,6 +1,6 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
-extern int DAT_00511de8;
+extern void* g_game;
 
 class Class_00472e00 {
 public:
@@ -12,13 +12,11 @@ public:
 };
 
 // FUNCTION: 0x472e00
-int Class_00472e00::FUN_00472e00() {
-    unsigned int field8 = field_8;
-    unsigned int field4 = field_4;
-    if (!(field8 > field4)) {
-        void* game = &DAT_00511de8;
-        unsigned int game_field = *(unsigned int*)((char*)game + 0x38a47);
-        if (!(field8 > game_field)) {
+int Class_00472e00::FUN_00472e00()
+{
+    if (field_8 <= field_4) {
+        unsigned int game_val = *(unsigned int*)((char*)g_game + 0x38a47);
+        if ((unsigned int)field_8 <= game_val) {
             return 1;
         }
     }

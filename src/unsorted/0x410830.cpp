@@ -1,4 +1,7 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
+// The `push ecx` reserves a 4-byte local (guide: "push ecx as the first
+// instruction usually just reserves stack space"); the compiler never
+// initialises it before its one byte is copied into field_0.
 
 class Class_00410830 {
 public:
@@ -7,13 +10,14 @@ public:
     int field_8;
     int field_c;
 
-    Class_00410830(int param_1);
+    Class_00410830();
 };
 
 // FUNCTION: 0x410830
-Class_00410830::Class_00410830(int param_1) {
-    unsigned char byte_val = (unsigned char)param_1;
-    field_0 = byte_val;
+Class_00410830::Class_00410830()
+{
+    unsigned char local;
+    field_0 = local;
     field_4 = 0;
     field_8 = 0;
     field_c = 0;

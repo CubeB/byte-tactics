@@ -1234,19 +1234,19 @@ address,size,model,batch,result,similarity,runs,notes
 0x4012a0,126,opus,O46,matched,100.0,,
 0x4623e0,137,opus,O46,matched,100.0,,
 0x429660,151,opus,O46,matched,100.0,,
-0x48f610,20,sonnet,S24,assigned,,,escalated from H26
-0x410830,22,sonnet,S24,assigned,,,escalated from H26
-0x491c60,23,sonnet,S24,assigned,,,escalated from H26
-0x4ab4c0,26,sonnet,S24,assigned,,,escalated from H26
-0x432c20,30,sonnet,S24,assigned,,,escalated from H26
-0x4c9790,31,sonnet,S24,assigned,,,escalated from H26
-0x472e00,33,sonnet,S24,assigned,,,escalated from H26
-0x40c5d0,34,sonnet,S24,assigned,,,escalated from H26
-0x406c40,35,sonnet,S24,assigned,,,escalated from H26
-0x4ba590,36,sonnet,S24,assigned,,,escalated from H26
-0x4794d0,37,sonnet,S24,assigned,,,escalated from H26
-0x417300,39,sonnet,S24,assigned,,,escalated from H26
-0x467a20,40,sonnet,S24,assigned,,,escalated from H26
+0x48f610,20,sonnet,S24,matched,100.0,,escalated from H26
+0x410830,22,sonnet,S24,matched,100.0,,escalated from H26
+0x491c60,23,sonnet,S24,matched,100.0,,escalated from H26
+0x4ab4c0,26,sonnet,S24,matched,100.0,,escalated from H26
+0x432c20,30,sonnet,S24,matched,100.0,,escalated from H26
+0x4c9790,31,sonnet,S24,matched,100.0,,escalated from H26
+0x472e00,33,sonnet,S24,matched,100.0,,escalated from H26
+0x40c5d0,34,sonnet,S24,matched,100.0,,escalated from H26
+0x406c40,35,sonnet,S24,matched,100.0,,escalated from H26
+0x4ba590,36,sonnet,S24,matched,100.0,,escalated from H26
+0x4794d0,37,sonnet,S24,matched,100.0,,escalated from H26
+0x417300,39,sonnet,S24,matched,100.0,,escalated from H26
+0x467a20,40,sonnet,S24,matched,100.0,,escalated from H26
 0x429850,18,haiku,H27,assigned,,,
 0x40ca30,19,haiku,H27,assigned,,,
 0x470f60,19,haiku,H27,assigned,,,
@@ -1267,3 +1267,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x479500,37,haiku,H27,assigned,,,
 0x441430,39,haiku,H27,assigned,,,
 0x47a8e0,40,haiku,H27,assigned,,,
+0x450090,161,opus,O47,assigned,,,
+0x48aac0,173,opus,O47,assigned,,,
+0x4605c0,187,opus,O47,assigned,,,
+0x41bd10,203,opus,O47,assigned,,,
+0x4ca6a0,223,opus,O47,assigned,,,
+0x4de600,243,opus,O47,assigned,,,

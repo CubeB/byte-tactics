@@ -644,6 +644,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   STL iterator, returned through a hidden buffer (0x46fac0).
 - **A byte constant hoisted as `mov dl, K`**: every use must be byte-typed;
   route the result through an `unsigned char` local (0x4897e0).
+- **A tail returning K or 0 compiled branchless** (`setcc; dec; and`) where
+  the original branches: give the zero case its own explicit `return 0;` before
+  the final `return 0;` (0x480720).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

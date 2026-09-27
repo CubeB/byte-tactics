@@ -962,6 +962,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Constants: write literals, not `extern const float DAT_x`.** A literal
   lands in the constant pool as in the original; a declared global points at
   whatever address its name says, which must be exactly the original's.
+- **A visitor object whose field and vtable stores come after the pushes, in its
+  own frame slot**: pass it as a temporary by const reference,
+  `FUN_0047e890(&unit->pos, range, Class_00405d90(owner, &units, unit))`
+  (0x405980; the same call shape is at 0x410a9a and 0x4154e8).
+- **x87 load order in `a >= b * 0.2`** depends on what else is in the basic
+  block, not on how the comparison is written.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

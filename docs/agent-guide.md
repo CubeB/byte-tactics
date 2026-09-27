@@ -1048,8 +1048,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   encodings with `objdump -d -M intel file.obj` (installed).
   `uv run tools/headers.py <addr>` (each line it prints is one complete header
   set) compiles your file with every combination
-  of `<windows.h>`, `<stdio.h>`, `<stdlib.h>`, `<string.h>`, `<math.h>` and
-  `<memory.h>` in a few seconds and prints the sets that match; try it as soon
+  of `<windows.h>`, `<stdio.h>`, `<stdlib.h>`, `<string.h>`, `<math.h>`,
+  `<memory.h>` and `<ddraw.h>` in a few seconds and prints the sets that match; try it as soon
   as every rewrite gives the same wrong register or operand order (0x471f90
   needed exactly `<windows.h>` plus `<math.h>`).
 - **"-2 jumps away, -1 skips, default stores"**: a `switch` with `case -2`,

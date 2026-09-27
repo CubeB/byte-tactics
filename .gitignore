@@ -10,3 +10,6 @@
 
 .venv/
 __pycache__/
+
+# Per-issue working copies (tools/worktree.sh).
+/.worktrees/

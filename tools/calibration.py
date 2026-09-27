@@ -52,10 +52,13 @@ def main() -> None:
     cost = ["| Batch | Model | Functions | Matched | Tokens | Tokens per match | Cost units per match | Minutes |",
             "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for b in batches:
-        n, ok, tok = int(b["functions"]), int(b["matched"]), int(b["tokens"])
-        per = f"{tok // ok:,}" if ok else "n/a"
-        units = f"{tok * PRICE.get(b['model'], 1) / ok / 1000:.0f}" if ok else "n/a"
-        cost.append(f"| {b['batch']} | {b['model']} | {n} | {ok} | {tok:,} | {per} | {units} | {int(b['seconds']) / 60:.0f} |")
+        n, ok, tok = int(b["functions"]), int(b["matched"]), int(b["tokens"] or 0)
+        # Batches done through GitHub issues by other tools may not report tokens.
+        per = f"{tok // ok:,}" if ok and tok else "n/a"
+        units = (f"{tok * PRICE[b['model']] / ok / 1000:.0f}"
+                 if ok and tok and b["model"] in PRICE else "n/a")
+        minutes = f"{int(b['seconds'] or 0) / 60:.0f}" if b["seconds"] and b["seconds"] != "0" else "n/a"
+        cost.append(f"| {b['batch']} | {b['model']} | {n} | {ok} | {tok:,} | {per} | {units} | {minutes} |")
 
     esc = defaultdict(lambda: [0, 0])
     for r in attempts:

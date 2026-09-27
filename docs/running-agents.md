@@ -1,0 +1,104 @@
+# Running agents on the project
+
+Work is handed out as GitHub issues labelled `decomp`, each listing a few
+functions. Any coding agent can take part: it reads `AGENTS.md` (OpenCode and
+Codex both load it automatically), claims an unassigned issue, works in its own
+copy of the repository and opens a pull request. The orchestrator re-checks the
+pull request, merges it, records which model did what, and opens new issues.
+
+## One-time setup
+
+Everything runs from the main checkout, `~/repos/personal/byte-tactics`, which
+must already have the toolchain (`tools/setup_toolchain.sh`), the original exe
+in `orig/` and the Ghidra export in `build/ghidra/`. The agent also needs the
+GitHub CLI logged in (`gh auth status`), because it claims issues, pushes
+branches and opens pull requests with it.
+
+Agents create their working copies in `.worktrees/issue-<N>` (ignored by git),
+linked to the main checkout's toolchain, so several can run at once from one
+machine.
+
+## OpenCode
+
+```sh
+cd ~/repos/personal/byte-tactics
+opencode
+```
+
+Pick the model with `/models`, then give it this prompt:
+
+> Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue,
+> decompile it and open a pull request. Then pick up the next one, until none
+> are left.
+
+To steer a model to a difficulty, add a size label to the prompt, for example
+"only take `size:medium` issues". For an unattended run, `opencode run` takes
+the same prompt on the command line, with `-m <provider>/<model>` to choose the
+model (check `opencode run --help`). Run several in separate terminals; each
+claims a different issue.
+
+OpenCode asks before running shell commands unless you allow them. The agent
+needs to run `uv`, `gh`, `git` and the compiler (Wine) freely, so allow those
+for this project.
+
+## Codex
+
+```sh
+cd ~/repos/personal/byte-tactics
+codex
+```
+
+Choose the model with `/model` (GPT-6 Astra for the hard issues) and give it
+the same prompt as above. For an unattended run, `codex exec "<prompt>"`.
+
+Codex runs commands in a sandbox. The agent needs network access (for `gh`
+and `git push`) and needs to run Wine. If either is blocked, start Codex with
+`--sandbox danger-full-access` (check `codex --help` for the current flag
+names). This is your own repository and machine, and the agent only needs the
+repository folder.
+
+## Which model
+
+Last night's calibration (`docs/agents.md`) covered Claude models only. Opus
+matched 99-100% of functions up to 160 bytes and about 80% at 161-260 bytes.
+What's left is mostly the harder, larger functions.
+
+- **Codex, GPT-6 Astra.** OpenAI reports it solves 88% of a
+  binary reverse-engineering benchmark first time. That is not the same task
+  as matching decompilation, but it makes Astra the strongest candidate for
+  `size:large`, `size:huge` and `near-miss` issues.
+- **OpenCode.** There is no track record here for any of these models. The
+  likeliest candidates are the larger, non-Flash ones (GPT-6 Luna, Kimi K3,
+  GLM-5.3, Qwen3.8 Max, MiMo-V2.6-Pro, Grok 4.7). Give two or three of them a
+  `size:medium` issue each and compare.
+- **Measuring.** Every pull request names its model, and `tools/record.py`
+  logs the orchestrator's re-check under that name. `docs/agents.md` then
+  shows each model's match rate by function size. Use those numbers, not
+  reputation, to decide who gets which issues. If a plan is flat-rate rather
+  than per token, match rate is the number that matters.
+
+## The orchestrator's loop
+
+Run from the main checkout, on `main`:
+
+1. **Keep issues open.** Open a handful per size:
+   - `uv run tools/issues.py --band medium --count 6`
+   - `uv run tools/issues.py --band large --count 6`
+
+   Near-misses to retry with a stronger model:
+   - `uv run tools/issues.py --addresses ... --title "Near-misses" --label near-miss --escalation`
+2. **Review each pull request.**
+   - `gh pr checkout <PR>` in a scratch worktree.
+   - `uv run tools/checkall.py <addresses>` to re-check the functions.
+   - Read the files for forbidden tricks and made-up names.
+3. **Merge and record.** Squash-merge, then on `main`:
+   - `uv run tools/record.py <issue> <model>`
+   - `uv run tools/progress.py`
+   - `uv run tools/calibration.py`
+
+   Add any suspected original bugs to `docs/bugs.md` and new techniques to
+   `docs/agent-guide.md`, commit and push.
+4. **Retry what was left.** Open near-miss issues for partial functions
+   (`--escalation`).
+5. **Release stale claims.** For claims older than a day with no pull request,
+   unassign the issue and comment "Released".

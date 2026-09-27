@@ -66,6 +66,21 @@ that grows roughly with the square root of y rather than with y, so assisting
 units stop at the wrong distance for large footprints. Found by ozgb's Codex /
 GPT-6 Astra in #38.
 
+## Group attack target used without a null check (likely)
+
+**0x407ae0**, slot 0 of `Class_00407a90` (an AI unit group). It pushes
+`&target->pos` straight after `Class_004071f0::FUN_004071f0`, which returns 0
+when it finds no enemy unit (see 0x4071f0.cpp), so with no enemy the group is
+sent towards address 0x6a. Found by Claude Opus 5.5 in #54.
+
+## Group centre may drift after moving a unit (possible)
+
+**0x407560**. After `FUN_00480250(*best, kind)` moves the farthest unit to the
+other group, the code re-reads `*best` to subtract that unit's position from
+the running sums. If FUN_00480250 erases the unit from this group's vector,
+`*best` then names the next unit and the centre drifts. Not verified until
+FUN_00480250 is decompiled. Found by Claude Opus 5.5 in #54.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -83,3 +98,4 @@ a horizontal distance it overwrites the base position's y in place (at
 0x408250 and 0x40834f) and never restores it, so every later unit in the loop
 is measured against the previous unit's height instead of the base's. Found by
 Claude Opus 5.5 in #55.
+- **0x407e90**: an unused `std::vector` local is constructed and destroyed.

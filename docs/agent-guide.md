@@ -995,6 +995,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **`fild` operands from a Vec3 temporary in memory**, with a literal 0 stored
   for one component: the length helper takes `const Vec3&` and is called on a
   temporary, `Length(a - b)` (0x408100).
+- **`field = g_game->ticks + FUN_004b6c30(n) + K` folds into `lea eax,
+  [eax+edx+K]`**: when the original does `add eax, K; mov edx, [ticks]; add
+  edx, eax`, compute the delay into a local first (0x407ae0, 0x407e90).
+- **A comparison with an inlined `vector::size()` on the right is evaluated
+  right side first**: if the original computes the left side first, put it in
+  its own statement (`int d = dx * dx + dz * dz; if (d < limit * (int)v.size())`)
+  (0x407560).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

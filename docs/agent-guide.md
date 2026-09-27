@@ -936,6 +936,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   reference to that parameter as the element; copying the pointer into a
   separate element local adds a store (0x405d90, with the out-of-line
   `_Construct` FUN_00406c70).
+- **A loop over the three weapons with a byte counter**: callee parameter types
+  decide whether the counter stays a byte; an `unsigned char` argument keeps it,
+  `int` arguments add a separate integer induction variable (0x406300,
+  0x406f80).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

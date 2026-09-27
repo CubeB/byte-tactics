@@ -1299,6 +1299,9 @@ address,size,file,symbol,status,similarity
 0x472330,253,src/unsorted/0x472330.cpp,?FUN_00472330@@YGXHHHHF@Z,matched,100.0
 0x472430,252,src/unsorted/0x472430.cpp,?FUN_00472430@@YGXHHHF@Z,matched,100.0
 0x472530,251,src/unsorted/0x472530.cpp,?FUN_00472530@@YGXHHHF@Z,matched,100.0
+0x472630,230,src/unsorted/0x472630.cpp,?FUN_00472630@@YGXPAUVec3_00472630@@HHF@Z,matched,100.0
+0x472720,230,src/unsorted/0x472720.cpp,?FUN_00472720@@YGXPAUVec3_00472720@@HHF@Z,matched,100.0
+0x472810,224,src/unsorted/0x472810.cpp,?FUN_00472810@@YGXPAUVec3_00472810@@F@Z,matched,100.0
 0x4728f0,224,src/unsorted/0x4728f0.cpp,?FUN_004728f0@@YGXPAUVec3_00474cd0@@F@Z,matched,100.0
 0x4729d0,224,src/unsorted/0x4729d0.cpp,?FUN_004729d0@@YGXPAUVec3_00474cd0@@F@Z,matched,100.0
 0x472c50,223,src/unsorted/0x472c50.cpp,?FUN_00472c50@@YGXPAUVec3_00475150@@F@Z,matched,100.0

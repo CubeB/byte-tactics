@@ -364,6 +364,21 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x4565a0** (likely): the same player search returns 10 when the id is
+  -1 or not found, and this net-message handler uses it unchecked, reading
+  `players[10].active` and `.state` and writing `players[10].field_14`, one
+  past the ten-player table. Found by Space Bunny Free in #408.
+- **0x4743a0** (possible): the record's third position is copied to the
+  stack and its z component is then overwritten with
+  `FUN_004b7f60(g_game+0x147f3) - 1` (0x47454a), and `field_4` is stored one
+  dword past the 0x3c-byte record that 0x475bd0 appends, so it is never
+  stored. Read from the disassembly of a partial match. Found by Space Bunny
+  Free in #419.
+- **0x4c6890** (possible): a non-zero return from the driver's slot 5 (the
+  fade) makes the function return 0 (`test` at 0x4c690d, `xor ebp, ebp` at
+  0x4c6914), while the in-process fill paths return 1. Either slot 5 returns a
+  failure code on success or the test is inverted. Found by Space Bunny Free
+  in #386.
 - **0x4523e0** (likely): when `to` is -1, its inlined player search returns
   10 and the function writes the new group through `players[10].data`, one
   past the ten-player table (a pointer read from g_game+0x2878); the other

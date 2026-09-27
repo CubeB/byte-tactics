@@ -1654,3 +1654,43 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `and eax, 0xff`, `char` gives `movsx`).
 - **An erase loop that reads `_First` once, before the loop**: take the iterator
   into a local before the loop (`v.begin()` in the condition reloads it).
+- **A call to a small `size()` body from inside a vector's own code**: MSVC 5
+  expands `vector::size()` at some sites and calls the out-of-line COMDAT at
+  others, even within one function, so a call to a 19 to 35-byte `(_Last -
+  _First) / sizeof(T)` body is that vector's `size() const`, not a helper to
+  match with a hand-written struct. If your object emits the COMDAT under
+  `?size@?$vector@...` and it matches, that is the name (0x470560, 0x471160).
+- **A `/Gz` file calls every `<xutility>` and `<vector>` template
+  `__stdcall`**: a stray `add esp, N` after a template call means the real
+  `__cdecl` header is in scope. Use the `_XUTILITY_` plus `__stdcall` stand-in
+  from `0x424c00.cpp` (0x470560 needed it for `std::copy`).
+- **Vector copies spend the inline budget; plain field copies do not**: when a
+  copy constructor or `operator=` inlines the first few vector copies but calls
+  `_Ucopy` for a later one, wrap the tail vectors in a sub-struct with its own
+  copy constructor. Scratch builds with two to eight vector members, read from
+  the `/Fa` listing, measure the budget without spending `check.py` runs
+  (0x470390).
+- **A vector with some members inlined and some out of line**: a hand-written
+  `namespace std { template ... }` vector reproduces it and keeps the
+  protected-access mangling of the exe (0x470c10, 0x433130).
+- **`??_U` against `??2`**: `new T[n]` and `operator new(size)` differ in the
+  object's symbol, so try the other form when an allocation will not check
+  clean. In `_Allocate`, `test eax, eax; jge; xor eax, eax` is
+  `if (_N < 0) _N = 0;`, not a null check (0x470c10).
+- **Dividing a pointer difference by the element size again**: typed pointer
+  subtraction already divides by `sizeof(T)`, so `(last - first) / 52` on
+  52-byte elements divides twice. When the original divides once, subtract the
+  pointers as `char*` (0x4737c0, 0x475770).
+- **An `if/else` storing one of two constants is not `x = (cond);`**: both emit
+  `test; setne; mov`, but the expression form adds a 32-bit temporary and a
+  hoisted `xor`, which can push a loop past the short-jump limit (0x457540).
+- **A driver table of `__stdcall` function pointers** taking the object first
+  compiles to `mov ecx, [edx]; push edx; call [eax+N]`, which looks like a
+  virtual call. Declare the table as an array of `__stdcall` pointers
+  (0x4c6890).
+- **Allocate and initialise in one `static inline` helper**: keeping the size
+  arguments live across the allocator call puts them in callee-saved registers
+  (0x4c6f80, 52% to 100%).
+- **A loop counter declared inside an `if` with a `do/while`** puts its `xor`
+  after the loop guard; a plain `for` hoists it and reverses the add's operand
+  order. Change both together (0x470c10).

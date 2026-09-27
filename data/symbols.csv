@@ -1308,7 +1308,9 @@ address,name
 0x4702a0,UElem_004702a0::?$vector::_Ucopy
 0x4702d0,FUN_004702d0
 0x470300,??_GClass_0046ded0@@QAEPAXI@Z
+0x470560,??4Class_00470560@@QAEAAU0@ABU0@@Z
 0x470770,UElem_0046faf0::?$vector::size
+0x4707a0,??4?$vector@UElem_0046faf0@@V?$allocator@UElem_0046faf0@@@std@@@std@@QAEAAV01@ABV01@@Z
 0x470a40,FUN_00470a40
 0x470a90,Class_00470a90::FUN_00470a90
 0x470ae0,??_GClass_00470ae0@@UAEPAXI@Z

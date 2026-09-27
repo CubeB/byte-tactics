@@ -24,12 +24,29 @@ If any of these fail, stop and tell the human; do not try to install things.
 
 ## 2. Pick and claim an issue
 
+Issues labelled `hard` (larger functions, and near-misses other models could
+not finish) are reserved for the strongest models: **GPT-6 Astra** and
+**Claude Opus**.
+
+If you are one of those models, take `hard` issues first:
+
 ```sh
-gh issue list --label decomp --state open --search "no:assignee" --limit 20
+gh issue list --label decomp --label hard --state open --search "no:assignee" --limit 20
 ```
 
-Take the lowest-numbered one, unless the human told you which size label to
-work on (`size:medium`, `size:large`, `size:huge`, `near-miss`). Then claim it:
+Only when none are left, fall back to the list below.
+
+If you are any other model, never take a `hard` issue:
+
+```sh
+gh issue list --label decomp --state open --search "no:assignee -label:hard" --limit 20
+```
+
+Take the lowest-numbered issue from your list, unless the human told you which
+size label to work on (`size:medium`, `size:large`, `size:huge`, `near-miss`).
+GitHub search can lag a few seconds behind label changes, so confirm the
+labels with `gh issue view <N>` before claiming.
+Then claim it:
 
 ```sh
 gh issue edit <N> --add-assignee @me

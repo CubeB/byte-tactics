@@ -31,8 +31,10 @@ Pick the model with `/models`, then give it this prompt:
 > decompile it and open a pull request. Then pick up the next one, until none
 > are left.
 
-To steer a model to a difficulty, add a size label to the prompt, for example
-"only take `size:medium` issues". For an unattended run, `opencode run` takes
+`AGENTS.md` keeps OpenCode models off issues labelled `hard` (larger functions
+and near-misses); those are for GPT-6 Astra and Claude Opus. To steer a model
+further, add a size label to the prompt, for example "only take `size:medium`
+issues". For an unattended run, `opencode run` takes
 the same prompt on the command line, with `-m <provider>/<model>` to choose the
 model (check `opencode run --help`). Run several in separate terminals; each
 claims a different issue.
@@ -48,8 +50,15 @@ cd ~/repos/personal/byte-tactics
 codex
 ```
 
-Choose the model with `/model` (GPT-6 Astra for the hard issues) and give it
-the same prompt as above. For an unattended run, `codex exec "<prompt>"`.
+Choose GPT-6 Astra with `/model` and give it this prompt:
+
+> Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue
+> labelled `hard`, decompile it and open a pull request. Then pick up the next
+> `hard` one, until none are left.
+
+`AGENTS.md` already tells Astra to prefer `hard` issues, so the plain prompt
+works too; this one keeps it from moving on to easier issues when the hard
+ones run out. For an unattended run, `codex exec "<prompt>"`.
 
 Codex runs commands in a sandbox. The agent needs network access (for `gh`
 and `git push`) and needs to run Wine. If either is blocked, start Codex with
@@ -66,7 +75,8 @@ What's left is mostly the harder, larger functions.
 - **Codex, GPT-6 Astra.** OpenAI reports it solves 88% of a
   binary reverse-engineering benchmark first time. That is not the same task
   as matching decompilation, but it makes Astra the strongest candidate for
-  `size:large`, `size:huge` and `near-miss` issues.
+  the `hard` issues (large and huge functions, near-misses), which are
+  reserved for it and Claude Opus.
 - **OpenCode.** There is no track record here for any of these models. The
   likeliest candidates are the larger, non-Flash ones (GPT-6 Luna, Kimi K3,
   GLM-5.3, Qwen3.8 Max, MiMo-V2.6-Pro, Grok 4.7). Give two or three of them a

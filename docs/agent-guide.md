@@ -1355,6 +1355,22 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   function that pushes an argument for a method callee of the same call also
   pops it, so count the pushes against the `ret N`. Found by Space Bunny Free
   in #28 (0x431950).
+- **One induction variable for `i*A + j*B` in a nested loop**: the original
+  does `mov ebp, esi` before the inner loop and `add ebp, B` in it, re-reading
+  the list pointer every iteration. Read the pointer into a local inside the
+  inner loop body; the direct `g.lists[i].entries[j]` gives a `lea` each time,
+  and a local declared outside the loop is never reloaded. Found by Claude
+  Opus 5.5 in #176 (0x41ace0).
+- **Stack order of char arrays in a big frame** follows their size and use
+  count, not their declaration order: a `char[17]` sits below a `char[32]`
+  but a `char[20]` above it, so use the exact byte count the code implies. See
+  0x41aa00.
+- **Every branch ending in `f(obj); return;`**: write one call after an
+  if/else-if chain. MSVC copies it into each branch, and the lower use count
+  decides which callee-saved register `obj` gets. See 0x41aa00.
+- **Base and index of `[a+b+disp]` in a loop can flip with headers alone**: if
+  headers.py finds nothing, try declaring the CRT functions you use by hand
+  with no includes at all, then the N-declarations test. See 0x41ace0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -611,6 +611,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   SIB byte): the same header dependence as commutative operands; adding a
   header fixed it. The `/Fa` listing prints both the same way, so compare
   encodings with `objdump -d -M intel file.obj` (installed).
+  `uv run tools/headers.py <addr>` compiles your file with every combination
+  of `<windows.h>`, `<stdio.h>`, `<stdlib.h>`, `<string.h>`, `<math.h>` and
+  `<memory.h>` in a few seconds and prints the sets that match; try it as soon
+  as every rewrite gives the same wrong register or operand order (0x471f90
+  needed exactly `<windows.h>` plus `<math.h>`).
 - **"-2 jumps away, -1 skips, default stores"**: a `switch` with `case -2`,
   `case -1` and `default`, not an if/else chain.
 - **A field tested in one register, then re-read before a COM call** (or copied

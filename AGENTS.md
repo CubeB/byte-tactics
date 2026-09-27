@@ -84,8 +84,39 @@ For each function in the issue:
    `uv run tools/headers.py <addr>` when registers or operand order won't
    budge.
 
-Budget: about 15 real attempts per function. If it still does not match,
-leave your best version with a comment saying what differs, and move on.
+### Time limits: give up and move on
+
+Some functions will not match with the model you are. That is expected: the
+orchestrator re-issues what you leave to a stronger model. What is not useful
+is spending hours on one function. So:
+
+- **Per function:** stop after 15 `check.py` runs or 20 minutes (check with
+  `date`), whichever comes first.
+- **Per issue:** after 2 hours, stop and open the pull request with what you
+  have.
+- **When you stop on a function:** leave your best version in its file, with a
+  comment at the top saying what still differs. Mark it `gave up` in the pull
+  request table. It then counts as attempted, and the orchestrator hands it to
+  a bigger model with your notes as a head start.
+
+### Subagents (OpenCode)
+
+In OpenCode, do not decompile the functions yourself first. Hand them to the
+`decomp-worker` subagent, which runs on a cheap model and has its own step
+limit:
+
+1. Give each worker one or two addresses and the absolute path of your
+   worktree (`.worktrees/issue-<N>`). Run up to four workers at once, each
+   with different addresses.
+2. When they report, run `uv run tools/checkall.py <all the issue's
+   addresses>` yourself. Only trust MATCH lines you see from the checker.
+3. For each function a worker left partial, try it yourself: at most 8
+   `check.py` runs, starting from the worker's file and notes. If it still
+   does not match, mark it `gave up`.
+4. In the pull request table, the `model` column says which model wrote the
+   final version of each file.
+
+Other tools without subagents simply work through the functions in order.
 
 Rules that matter most (the guide has the rest):
 
@@ -117,9 +148,9 @@ Closes #<N>
 
 Model: <tool> / <model>
 
-| address | result | best % | check runs | notes |
-| 0x401234 | MATCH | 100 | 3 | needed unsigned char param |
-| 0x401260 | partial | 87.5 | 12 | register swap in loop I could not fix |
+| address | model | result | best % | check runs | notes |
+| 0x401234 | deepseek-v4.1-flash | MATCH | 100 | 3 | needed unsigned char param |
+| 0x401260 | glm-5.3 | gave up | 87.5 | 15 | register swap in loop I could not fix |
 
 Suspected original bugs:
 - 0x... : what looks wrong in Cavedog's code, and the evidence (or "none")
@@ -130,7 +161,7 @@ Advice for docs/agent-guide.md:
 
 Include partial files too: a close attempt with notes helps whoever tries next.
 If you have to stop before finishing, open the pull request with what you have
-and say which functions you did not reach.
+and list the functions you did not reach as `not reached`.
 
 ## Writing style
 

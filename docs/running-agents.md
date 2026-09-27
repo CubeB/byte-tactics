@@ -25,19 +25,39 @@ cd ~/repos/personal/byte-tactics
 opencode
 ```
 
-Pick the model with `/models`, then give it this prompt:
+OpenCode runs as a lead plus cheap workers:
+
+- **The lead** is the model you pick with `/models`, ideally GLM-5.3 or
+  Grok 4.7. It claims the issue, sets up the worktree, reviews the results,
+  retries what the workers left and opens the pull request.
+- **The workers** are the `decomp-worker` subagent defined in
+  `.opencode/agents/decomp-worker.md`. They run on DeepSeek V4.1 Flash
+  (`opencode-go/deepseek-v4.1-flash`) and do the first attempt at each
+  function. Up to four run at once.
+- **Limits:** a worker stops after 80 steps (the file's `steps`), and
+  `AGENTS.md` caps each function at 15 check runs or 20 minutes. Nothing gets
+  stuck for long.
+
+To use a different worker model, change the `model:` line in that file. Your
+OpenCode Go plan limits spending per model: DeepSeek V4.1 Flash and Kimi K3
+have lower caps than GLM-5.3 and Grok 4.7, and each cap applies per 5 hours,
+per week and per month.
+
+Give the lead this prompt:
 
 > Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue,
-> decompile it and open a pull request. Then pick up the next one, until none
-> are left.
+> hand its functions to decomp-worker subagents, retry what they leave, and
+> open a pull request. Then pick up the next one, until none are left.
 
 `AGENTS.md` keeps OpenCode models off issues labelled `hard` (larger functions
 and near-misses); those are for GPT-6 Astra and Claude Opus. To steer a model
 further, add a size label to the prompt, for example "only take `size:medium`
-issues". For an unattended run, `opencode run` takes
-the same prompt on the command line, with `-m <provider>/<model>` to choose the
-model (check `opencode run --help`). Run several in separate terminals; each
-claims a different issue.
+issues".
+
+For an unattended run, `opencode run` takes the same prompt on the command
+line, with `-m opencode-go/glm-5.3` to choose the lead (check
+`opencode run --help`). Run several in separate terminals; each claims a
+different issue.
 
 OpenCode asks before running shell commands unless you allow them. The agent
 needs to run `uv`, `gh`, `git` and the compiler (Wine) freely, so allow those
@@ -102,13 +122,17 @@ Run from the main checkout, on `main`:
    - `uv run tools/checkall.py <addresses>` to re-check the functions.
    - Read the files for forbidden tricks and made-up names.
 3. **Merge and record.** Squash-merge, then on `main`:
-   - `uv run tools/record.py <issue> <model>`
+   - `uv run tools/record.py <issue> <model> --escalate`. Add
+     `--model-for <addr>=<model>` for each function another model (such as a
+     worker) wrote. `--escalate` opens a `hard` retry issue for everything left
+     unmatched.
    - `uv run tools/progress.py`
    - `uv run tools/calibration.py`
 
    Add any suspected original bugs to `docs/bugs.md` and new techniques to
    `docs/agent-guide.md`, commit and push.
-4. **Retry what was left.** Open near-miss issues for partial functions
-   (`--escalation`).
+4. **Retry what was left.** `--escalate` in step 3 opens a `hard` retry issue
+   for anything marked `gave up` or `not reached`, so a stronger model picks
+   it up.
 5. **Release stale claims.** For claims older than a day with no pull request,
    unassign the issue and comment "Released".

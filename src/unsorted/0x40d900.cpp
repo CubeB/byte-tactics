@@ -1,79 +1,73 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 //
-// Partial (72.7%): clears the "kind" byte of each dirty 8-cell group.
-// The structure, offsets and constants match; what differs is which register
-// holds the dirty mask. The original loads it into ebx in the main loop and
-// copies edx->ebx in the tail (`mov ebx, edx` before computing p); here it is
-// edx in the main loop and ebx in the tail, and the tail computes p through
-// eax instead of edi. A guarded do/while outer loop plus an internally
-// guarded ClearBits helper (reproducing the duplicated entry test) raised
-// this from 57.1% to 72.7%.
+// Partial (93.7%): clears the kind byte of every cell in each dirty group of
+// eight cells, then clears the dirty masks. One dirty word covers 256 cells;
+// the last word is bounds-checked against the cell count.
+//
+// Testing `dirty[i]` and then copying it into `bits` (rather than testing
+// `bits`) is what keeps the duplicated `test ebx, ebx` before each group
+// loop. The main loop now matches exactly. What still differs is the start
+// of the last block: the original copies the dirty word into ebx straight
+// after the test, computes `i << 10` in edx and loads the cell array into
+// edi (`add edi, edx`); here the copy comes later, so `i << 10` is built in
+// edi and the cell array goes through ecx. Swapping the add's operands, a
+// static inline row helper, shared or separate `bits`/`p` locals, explicit
+// copies, do/while or for loops, and every header set gave the same code.
+//
+// Possible original bug: in the last block the bounds check uses `(i << 8) + k`
+// for every group, without the group's own offset (8 cells per mask bit), so
+// only the first 8 cells of the block are really checked against the count.
+
+struct Cell_0040d900 {
+    unsigned char kind;
+    char unknown_1[3];
+};
+
+struct Grid_0040d900 {
+    Cell_0040d900* cells;              // +0x0
+    unsigned int width;                // +0x4
+    unsigned int height;               // +0x8
+    int count;                         // +0xc
+    unsigned int* dirty;               // +0x10, one bit per 8 cells
+
+    void ClearBlock(int i, int last)
+    {
+        if (dirty[i]) {
+            unsigned int bits = dirty[i];
+            dirty[i] = 0;
+            Cell_0040d900* p = &cells[i * 256];
+            while (bits) {
+                if (bits & 1) {
+                    int c = i << 8;
+                    Cell_0040d900* q = p;
+                    for (int k = 8; k; k--) {
+                        if (!last || c < count)
+                            q->kind = 0;
+                        c++;
+                        q++;
+                    }
+                }
+                bits >>= 1;
+                p += 8;
+            }
+        }
+    }
+};
 
 class Class_0040d900 {
 public:
     char unknown_0[0x1c];
-    unsigned char* field_0x1c;         // +0x1c cell array
-    char unknown_1[0x08];
-    int field_0x28;                    // +0x28 cell count
-    unsigned int* field_0x2c;          // +0x2c dirty-cell masks
+    Grid_0040d900 grid;                // +0x1c
 
-    void ClearBits(unsigned char* p, unsigned int bits)
-    {
-        if (bits != 0) {
-            while (bits != 0) {
-                if (bits & 1) {
-                    unsigned char* q = p;
-                    int n = 8;
-                    do {
-                        *q = 0;
-                        q += 4;
-                    } while (--n);
-                }
-                bits >>= 1;
-                p += 0x20;
-            }
-        }
-    }
     void FUN_0040d900();
 };
 
 // FUNCTION: 0x40d900
 void Class_0040d900::FUN_0040d900()
 {
-    int nfull = ((field_0x28 + 0xff) >> 8) - 1;
-    int row = 0;
-    if (nfull > 0) {
-        row = 0;
-        do {
-            unsigned int bits = field_0x2c[row];
-            if (bits != 0) {
-                field_0x2c[row] = 0;
-                unsigned char* p = field_0x1c + row * 0x400;
-                ClearBits(p, bits);
-            }
-            row++;
-        } while (row < nfull);
-    }
-    {
-        unsigned int bits = field_0x2c[row];
-        if (bits != 0) {
-            field_0x2c[row] = 0;
-            unsigned char* p = field_0x1c + row * 0x400;
-            while (bits != 0) {
-                if (bits & 1) {
-                    int col = row << 8;
-                    unsigned char* q = p;
-                    int n = 8;
-                    do {
-                        if (col < field_0x28)
-                            *q = 0;
-                        col++;
-                        q += 4;
-                    } while (--n);
-                }
-                bits >>= 1;
-                p += 0x20;
-            }
-        }
-    }
+    int n = ((grid.count + 0xff) >> 8) - 1;
+    int i;
+    for (i = 0; i < n; i++)
+        grid.ClearBlock(i, 0);
+    grid.ClearBlock(i, 1);
 }

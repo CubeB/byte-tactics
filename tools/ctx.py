@@ -50,8 +50,11 @@ class Namer:
         if 0 not in raw:
             return None
         s = raw[:raw.index(0)]
-        if len(s) >= 2 and all(32 <= c < 127 or c in (9, 10, 13) for c in s):
-            return '"' + s.decode().encode("unicode_escape").decode()[:70] + '"'
+        if s and all(32 <= c < 127 or c in (9, 10, 13) for c in s):
+            text = '"' + s.decode().encode("unicode_escape").decode()[:70] + '"'
+            # One printable byte then a zero may be a short string ("\\") or
+            # just data, so say so.
+            return text if len(s) >= 2 else text + " (if this is a string)"
         return None
 
     def describe(self, va: int, ins) -> str:

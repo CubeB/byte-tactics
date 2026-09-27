@@ -519,3 +519,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `std::vector` of a trivial type leaves exactly that). Try the real STL
   construct first; `volatile` is a last resort that Cavedog almost certainly
   did not write.
+- **COM calls by slot**: work out the DirectX interface from the vtable slot
+  and call the real method (IDirectSoundBuffer: +0x24 GetStatus, +0x48 Stop).
+- **Header sets are not monotonic**: one header can flip an operand order that
+  a larger set does not; try several combinations in scratch with `/Fa`.
+- **A `new` of a class with two bases**: the second base's vtable store survives
+  in the listing while the first base's disappears; declare both bases as real
+  classes (the second with a pure virtual).

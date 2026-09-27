@@ -2776,9 +2776,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x4233a0,422,opus,#274,matched,100.0,,issue #274
 0x423550,433,opus,#274,matched,100.0,,issue #274
 0x4237d0,488,opus,#274,matched,100.0,,issue #274
-0x4239c0,559,,#275,assigned,,,issue #275
-0x423c50,1012,,#275,assigned,,,issue #275
-0x424050,1117,,#275,assigned,,,issue #275
+0x4239c0,559,opus,#275,matched,100.0,,issue #275
+0x423c50,1012,opus,#275,matched,100.0,,issue #275
+0x424050,1117,opus,#275,partial,99.1,,issue #275
 0x4244b0,505,opus,#276,matched,100.0,,issue #276
 0x424890,874,opus,#276,partial,91.9,,issue #276
 0x424c00,1496,opus,#276,partial,69.2,,issue #276

@@ -221,6 +221,15 @@ and every later cloakable unit without comparing its cloak bit
 move order and on/off buttons compare first (`cmp esi, ecx; je` at 0x41b893).
 Found by Claude Opus 5.5 in #208.
 
+## Feature seeding uses the map height as the row divisor (likely)
+
+**0x424050**, the per-tick feature update: when a scanned cell seeds a nearby
+copy of its feature, the column is `scanIndex % width` (+0x14233) but the row
+is `scanIndex / height` (+0x14237), while cells are indexed as
+`row * width + column`. On a map that is not square the seed lands in the
+wrong row (the two `idiv`s on the same index at 0x424137 and 0x424142). Found
+by Claude Opus 5.5 in #275.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

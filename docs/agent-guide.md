@@ -1519,6 +1519,18 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **The explored-map lookup** (index computed first, data pointer loaded last)
   is a method on a `{data, width, height}` struct at +0x7c; the same inline
   appears at 0x407f74, 0x465b6a and 0x473a7c (see 0x475470).
+- **`a*2 - b*2` always becomes `(a - b) << 1`** in MSVC 5, however it is
+  written; when the original shifts both terms separately, the second term was
+  a shift of a narrowed value: `((unsigned short)(h >> 2) << 1)` (the cast
+  also stops `>> 2 << 1` becoming an `and` mask). Found by Claude Opus 5.5 in
+  #275 (0x424050).
+- **Separate null returns in an inlined lookup** (`xor reg, reg; jmp` blocks)
+  while the two success paths share one tail: a helper with early
+  `return 0`s that ends on the success return; a trailing `return 0;` would
+  merge all the null returns. Found by Claude Opus 5.5 in #274 (0x4237d0).
+- **Feature code near 0x4233a0 to 0x424050** inlines FUN_004232a0 (spot free
+  list), FUN_00421eb0 (footprint centre) and FUN_00423bf0 (burnt-out
+  replacement); write them as inline copies.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

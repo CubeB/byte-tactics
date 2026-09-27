@@ -36,6 +36,12 @@ single addresses, so one real class often appears under several names.
 - 0x4581e0 and 0x4335e0 match only with a header block (`windows.h`, `stdio.h`,
   `string.h`, `math.h`) at the top; 0x4d1820 and 0x438650 still differ in one
   operand order. Their original translation units probably decide this.
+- 0x40f200, 0x40f2a0, 0x40f7d0 and 0x40fa20 (unit order handlers) share one
+  original file: 0x40f2a0 and 0x40fa20 inline FUN_0040f200, so each of their
+  files carries an unannotated copy of it next to the matched 0x40f200.cpp.
+  When they are merged into one translation unit, keep one definition. The
+  copies call the unit's type pointer at +0x92 `def` where 0x40f200.cpp says
+  `info`.
 
 ## Matches that use suspicious constructs
 

@@ -1073,6 +1073,21 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (0x40b390) names every member's out-of-line destructor by offset, which is
   the quickest way to tie `~vector()` copies to element types. Found by Claude
   Opus 5.5 in #56, #57 and #88.
+- **A copied shift in a scratch register is a multiply**: if the original
+  computes a shift in one register and copies it (`mov ecx, edx; shl ecx,
+  0x13; mov esi, ecx`) where yours shifts straight into the target, write a
+  multiply (`origin.x * 0x80000`, not `<< 19`). MSVC turns the multiply into a
+  shift after register allocation, so the copy appears. Found by Claude Opus
+  5.5 in #82 (0x40f2a0).
+- **Sum into a temporary, then copy**: if all three loads come before any
+  store, one component sits in a callee-saved register and the stores run x,
+  y, z, write `Vec3 sum; sum.x = a.x + b.x; ...; Vec3 dest = sum;`. Writing
+  `dest`'s fields directly, `operator+`, or a helper returning by value all
+  interleave the loads and stores. See 0x40f2a0.
+- **A mask kept in a register**: `mov ebx, 0xe0; test bl, al` (with ebx reused
+  by a later `or eax, ebx`) comes from casting the parameter,
+  `(unsigned char)flags & 0xe0`; plain `flags & 0xe0` gives `test al, 0xe0`.
+  See 0x40f2a0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -388,6 +388,8 @@ def check_vtable(orig, obj, sec, start, target, symbols) -> str:
                     "the class declares more virtual functions than its vtable has")
         name = base_name(sym)
         known = symbols.get(name)
+        if known is None and name.startswith("??_E"):
+            known = symbols.get("??_G" + name[4:])  # one function for both (see same_slot_function)
         if known is not None and known != fn:
             return f"vtable slot {off // 4} is {fn:#x} in the original, but '{name}' is {known:#x}"
         # The reverse: the slot's function already has another name (a method

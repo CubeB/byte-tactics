@@ -1,10 +1,11 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
+#include <windows.h>
 
-extern void* DAT_00509edc;
-extern int __stdcall MessageBoxA(void* hWnd, const char* lpText, const char* lpCaption, unsigned int uType);
+extern const char DAT_00509edc[];   // "Error"
 
 // FUNCTION: 0x4b6b80
-void __stdcall FUN_004b6b80(const char* param_1, int unused) {
+void __stdcall FUN_004b6b80(const char* param_1, int unused)
+{
     (void)unused;
-    MessageBoxA(0, param_1, (const char*)DAT_00509edc, 0x40000);
+    MessageBoxA(0, param_1, DAT_00509edc, 0x40000);
 }

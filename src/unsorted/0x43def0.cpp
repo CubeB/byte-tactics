@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, improved by Claude Opus 5.5. Names are provisional.
 //
 // Returns the world position of animation piece `index` of `obj` (with z
 // negated, as the callers add it to obj->pos at +0x6a):
@@ -14,88 +14,41 @@
 //   (FUN_004b6cc0), adding the object's base angles on the last node, then
 //   adds its own offset.
 //
-// Still differs from the original (63.6%). The structure is right: the frame,
-// the 5 locals (angles[3] + result.x/y/z), the `ret 0xc` hidden-return
-// calling convention, the piece stride 0x36 and both zero-return blocks all
-// match.
+// Still differs from the original: 94.2%, 359 bytes like the original.
 //
-// Size: ours is 354 bytes against the original's 359. The whole 5 byte
-// deficit is the `add reg, mem` folds below (2 bytes each, in base y, base z
-// and the loop's y), and one byte in the base x block. Everything else is the
-// same size, only the registers differ.
+// The source shape of the body is right. The old 64% notes blamed the base
+// piece's x load (the original folds it as [ecx+eax*2+0x26] before the item
+// pointer exists); that, the folded `add reg, mem` loads and the
+// FUN_004b6cc0 argument registers were all compiler state. With N unused
+// `extern int` declarations in front, N = 42..295 (and every window of about
+// 250 in each period of about 525 up to N = 6000) gives 94.2%, and
+// `<string.h>` alone, `<windows.h>` alone or `<ddraw.h>` alone reach the
+// same state. No N and no header set (tools/headers.py) goes past 94.2%.
 //
-// The one structural difference is how the BASE piece's x is addressed. The
-// original keeps index*27 in a register and folds the scale into two
-// separate addressing modes:
-//   lea eax, [eax + eax*2]              ; index*3
-//   lea eax, [eax + eax*8]              ; index*27
-//   mov edx, [ecx + eax*2 + 0x26]       ; item->x, folded, issued FIRST
-//   lea eax, [ecx + eax*2 + 0x22]       ; &item, materialised after
-//   mov ecx, [eax]                      ; item->p
-// i.e. x is loaded before the item pointer exists, and y/z then reuse the
-// materialised pointer as [eax+8] and [eax+0xc]. Below, the same shape is
-// produced but with p taking the folded slot (+0x22) and x becoming
-// [eax+4]. So the only thing to change is WHICH use of the address family
-// &block->items[index] MSVC treats as the first one: the first use keeps the
-// folded scale-2 form and the lea is materialised just after it. In the
-// original that first use is the x load, here it is the p load.
-//
-// A second pass over this function (issue #154) added these, all of which
-// also leave the p load in the folded slot and compile to 354 bytes / 63.6%,
-// byte for byte the same as the version below. Do not repeat:
-// - swapping the addends of the base, both `item->p->f10 + item->x` and
-//   `item->x + item->p->f10`: byte identical output. MSVC 5 normalises the
-//   operand order of a commutative +, so the order of the two loads is not
-//   reachable from the source. This is the root cause, not a side effect.
-// - casting an addend to break the normalisation: `item->x + (unsigned)
-//   item->p->f10`, `(unsigned)item->x + item->p->f10`, and both cast to
-//   unsigned: all byte identical, the pass runs before the conversion.
-// - the same swap in the loop's `+=`, and regrouping the loop's `+=` into a
-//   left or right associated `result.x = result.x + a + b`: byte identical.
-// - splitting the base x into two statements, `result.x = item->x;` then
-//   `result.x += item->p->f10;` (and the same for y and z): MSVC merges the
-//   pair back, giving `mov ecx, [eax + 4]` / `add ecx, [edx + 0x10]`, still
-//   354 bytes but now with the p load fused as well, so strictly worse.
-// - building the element address by hand, `(Item_0043def0*)((char*)block +
-//   0x22 + index * 0x36)`: byte identical, the address is still one family.
-// - dropping the `block` local and writing `obj->recs` at each use: byte
-//   identical, the pointer is CSE'd either way.
-// - modelling p's three offsets as `int v[3]` and writing `p->v[0]` and so
-//   on: byte identical.
-// - hoisting `short angles[3]` out of the loop body to function scope: 58.6%,
-//   worse, the local ordering changes and the frame allocation follows it.
-// - repeating the index expression for x, `block->items[index].x +
-//   item->p->f10` (61.1%): MSVC then CSEs the whole family into
-//   `lea eax, [ecx + eax*2]` (no displacement) and indexes +0x22/+0x26 off
-//   that, which is 1 byte longer and loses the scale-2 lea.
-// - writing the three base statements in the order z, y, x (61.9%): the
-//   folded load is still p, so the use order is not the source order.
-// - declaring Ptr_0043def0's fields `long` instead of `int`: identical, so
-//   the operand order is not type driven either.
-// - hoisting `Ptr_0043def0* pp = item->p;` into a local and using pp->f10
-//   (54.0%, 350 bytes): the p pointer then becomes a variable, the code
-//   shrinks by 9 bytes and stops reloading it the way the original does.
-//
-// The remaining differences are register allocation noise around the same
-// code, and the matched neighbour 0x43e060 (which adds two Vec3 with the
-// inline operator+ the other files here use) shows that MSVC also refuses to
-// fold those two loads into the add, so the original's "both operands in
-// registers" style is not a fold MSVC would ever choose if the IR were
-// shaped differently here. Three places still differ on that:
-// - base y/z and the loop's y fold the p->fNN load into the add, so the item
-//   field becomes the accumulator; the original always keeps p->fNN in a
-//   register and adds the item field to it. In the loop, x and z already
-//   come out that way, so it is the same IR with a different allocation.
-// - the three FUN_004b6cc0 pointer arguments go to edx, eax, ecx in the
-//   original and to eax, ecx, edx here (same order on the stack, only the
-//   register choice differs), and that choice then propagates into the
-//   first register used after the call.
-// - the final copy: the original loads x and y into edx and esi first and
-//   keeps the return pointer in edi, then negates z and stores all three;
-//   here the return pointer stays in edx and the y load is interleaved.
-//   Giving the return value its own `Vec3 out` local changes nothing.
-// - the index-out-of-range zero block zeroes ecx and esi in the opposite
-//   order (the other zero block, reached from the obj/recs test, matches).
+// What still differs, both in the return blocks:
+// - the final copy: the original loads x and y into edx and esi, copies the
+//   return pointer into edi, negates z (ecx) and stores all three; ours
+//   copies the pointer into edx and loads x and y through esi one after the
+//   other. Every spelling of the final return scores the same: `result.z =
+//   -result.z; return result;`, a separate `Vec3 out` in any field order,
+//   `Vec3 out = result;` (56%), an inline MakeVec3(x, y, -z) or Flip(const
+//   Vec3&) / Flip(Vec3) helper, a Vec3 constructor, a pointer to the result,
+//   `int x = ...` locals, and `int result[3]`.
+// - the index-out-of-range zero block: the original zeroes x, y, z (edx,
+//   esi, ecx); ours zeroes x, z, y (edx, ecx, esi). Zeroing it x, y, z
+//   (like the null block) gives the null block's registers, and MSVC then
+//   merges the two blocks (87.3%); every other order, chained `a = b = c =
+//   0`, memset, ZeroVec()/SetZero()/MakeVec3(0, 0, 0) helpers in either
+//   block, and zeroing `result` itself are 87.3 to 94.2%.
+// Both blocks in the original use the same registers (x = edx, y = esi,
+// z = ecx, pointer = edi), one step on from the null block's (x = ecx,
+// y = edx, z = esi); throwaway global stores before or inside either zero
+// block did not rotate them. Also tried: one shared `result` returned from both the range block
+// and the end (78 to 87%), nested `if (obj && obj->recs) { if (in range)
+// {...} }` (47 to 55%, all zero blocks merge), and the range check plus
+// computation in an inline helper (41%).
+
+#include <string.h>
 
 struct Vec3 {
     int x;

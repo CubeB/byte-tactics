@@ -1296,6 +1296,30 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   large fixed offset (`+0x33e13`), size the arrays before it so the offset
   comes out right; their sizes are not visible in the function itself. See
   0x429470.
+- **A one-bit test of `[m+1]` can be a 16-bit flags word at `m`**:
+  `test byte ptr [esi+0xff], 2` is also what `(flags & 0x200)` on an
+  `unsigned short` at +0xfe compiles to, and the wider field changes which
+  callee-saved registers MSVC hands out. If a register swap survives the
+  N-declarations test and every rewrite, try the flag field as a byte, a word
+  and a dword. Found by Claude Opus 5.5 in #146 (0x422040).
+- **A tail call after an if/else**: writing the call separately in both
+  branches (rather than once after the join) avoids a phi copy
+  (`mov eax, [esp+0x24]; mov [esp+8], eax`) and matches the original. Found by
+  Space Bunny Free in #34 (0x43e2e0).
+- **Out-of-line STL helpers and the inline budget**: every inline expansion
+  costs budget whatever its size, the inliner handles outer call sites before
+  nested ones and later source before earlier source, so a helper such as
+  `vector::_Destroy` is left out of line only when it sits one inline level
+  down or big inlined code follows it. Adding N trivial inline calls in a
+  scratch copy measures how much budget is missing. Found by Claude Opus 5.5
+  in #96 (0x410e70).
+- **A value kept in a register across a `switch` where the original reloads
+  it in one case**: move the earlier test into an inline helper that re-reads
+  the object through its parent (`Unit* t = order->target;` inside it). See
+  0x4111b0.
+- **Try `<windows.h>` before a long source search**: in #23 and #30 it alone
+  fixed several operand-order and register differences that no rewrite had
+  (0x422170, 0x423710, 0x437a30).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

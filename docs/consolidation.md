@@ -189,6 +189,12 @@ can disagree on types (a real link would fail). Known cases:
   (stores vtables, returns `this`, called on `operator new(0x36)`); 0x4118e0
   and 0x411f50 call it `Class_0044e190::Class_0044e190(Order*, Unit*)`.
 
+- 0x44e190, 0x44e250 and 0x44e2d0 all store vtables 0x4fd2f8 then 0x4fd3b8
+  and are called on `operator new(0x36)`: overloaded constructors of one
+  class, matched under three placeholder names (see #96, #97).
+- 0x438760 is the constructor of `Class_00438760`, an order type held as its
+  index in the sorted order-type table and passed by value (#31).
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

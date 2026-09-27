@@ -106,6 +106,28 @@ has no large sentinel, so a minimum can never be above 0. For a piece whose
 vertices are all positive on an axis, the centre is pulled towards the
 piece's origin. The maximums are unaffected. Found by Space Bunny Free in #34.
 
+## Texture pass uses the model as a texture entry (likely)
+
+**0x42a140**, a model texture pass. Its `entry` variable is only set inside the
+first lookup loop; when `g_game->blockCount` (+0x148df) is 0 or less the loop
+is skipped and `entry` still holds the model pointer, which is then treated as
+a GAF entry (compared with 10 and 1, passed to FUN_004b8b30 and stored). With
+exactly one texture GAF loaded, 0x42a440 sets blockCount to 0, so the path is
+reachable. Found by DeepSeek V4.1 Flash in #26.
+
+## Division by zero with one texture file (likely)
+
+**0x42a440** divides its progress value by `count - 1` (`cdq; idiv ebp`) with
+no guard, so a single texture file divides by zero. Found by DeepSeek V4.1
+Flash in #26.
+
+## Off-by-one append past a 30-entry list (likely)
+
+**0x42be30**: the append guard is `e->count <= 0x1e`, so at `count == 30` it
+writes `e->items[30]`, but the items array is allocated with 60 bytes (30
+shorts, `push 0x3c` at 0x42dac7), two bytes short. The guard should be
+`count < 0x1e`. Found by DeepSeek V4.1 Flash in #26.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -172,7 +194,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   `FUN_0044e730(0x80)`, then only ORs 0x110e8 into the order flags and returns
   2. Every other branch hands the waypoint to the order through
   `FUN_004388d0`; this one never does, so the object leaks and the waypoint
-  is lost. Found by Claude Opus 5.5 in #98.
+  is lost. Found by Claude Opus 5.5 in #98. **0x4111b0** (VTOL transport,
+  state 4) does the same with its pickup waypoint (#96).
+- **0x4384a0** (possible): when `operator new(0x56)` returns 0 it skips the
+  constructor and then reads `[eax + 0x42]` with eax still 0 (0x438537), a
+  null read on allocation failure. Found by Space Bunny Free in #31.
 - **0x41d7b0** (possible): calls `strlen(ext)` with no null check, where its
   sibling 0x4290f0 tests `if (ext != 0)` first, so a null extension would
   crash here. Found by DeepSeek V4.1 Flash in #21.

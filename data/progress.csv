@@ -700,8 +700,14 @@ address,size,file,symbol,status,similarity
 0x4428f0,125,src/unsorted/0x4428f0.cpp,?FUN_004428f0@@YGXPAUMenu_004428f0@@PAUPlayer_004428f0@@@Z,matched,100.0
 0x442970,185,src/unsorted/0x442970.cpp,?FUN_00442970@@YAXXZ,matched,100.0
 0x443070,138,src/unsorted/0x443070.cpp,?FUN_00443070@@YGHABU_GUID@@KPBXPAX@Z,matched,100.0
+0x443480,261,src/unsorted/0x443480.cpp,?FUN_00443480@@YGXPAUGadget_00443480@@@Z,matched,100.0
 0x443590,5,src/unsorted/0x443590.cpp,?FUN_00443590@@YAXXZ,matched,100.0
+0x4435a0,316,src/unsorted/0x4435a0.cpp,?FUN_004435a0@@YGXPAIPAPAD@Z,matched,100.0
+0x4436e0,223,src/unsorted/0x4436e0.cpp,?FUN_004436e0@@YAHXZ,matched,100.0
+0x4444d0,173,src/unsorted/0x4444d0.cpp,?FUN_004444d0@@YGHPAUEntry_004444d0@@HFHPAD@Z,matched,100.0
 0x444910,31,src/unsorted/0x444910.cpp,?FUN_00444910@@YGXPAUObj_00444910@@H@Z,matched,100.0
+0x444930,229,src/unsorted/0x444930.cpp,?FUN_00444930@@YGXPAUGadget_00444930@@@Z,matched,100.0
+0x444a20,372,src/unsorted/0x444a20.cpp,?FUN_00444a20@@YAXXZ,matched,100.0
 0x444ba0,52,src/unsorted/0x444ba0.cpp,?FUN_00444ba0@@YGXPAUObj_444ba0@@@Z,matched,100.0
 0x444be0,95,src/unsorted/0x444be0.cpp,?FUN_00444be0@@YAXXZ,matched,100.0
 0x444c40,102,src/unsorted/0x444c40.cpp,?FUN_00444c40@@YGXPAUMenu_00444c40@@H@Z,matched,100.0

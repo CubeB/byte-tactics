@@ -1460,6 +1460,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `jl`); when the original compares the value first (`cmp v, t; jge keep`),
   write the ternary `v < t ? t : v`, since `max(t, v)` gives `cmp t, v; jle`.
   See 0x41dfc0 and 0x41e270.
+- **Reading tools/headers.py**: "FIXED: N header set(s) make this function
+  MATCH" means those sets fix it; include one. (It used to say "N header
+  set(s) give identical bytes", which two attempts at 0x4399f0 misread as
+  "headers change nothing" and missed a one-header fix; #267.) When the
+  N-declarations windows repeat, sweep one full period per header set and
+  pick the set whose window has N = 0 furthest from both edges.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

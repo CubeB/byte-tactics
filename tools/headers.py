@@ -62,11 +62,12 @@ def main() -> None:
     label = lambda hs: " ".join(f"<{h}>" for h in hs) or "(none of them)"
     if best.bytes_match:
         good = [(hs, r) for hs, r in ok if r.bytes_match]
-        print(f"{len(good)} header set(s) give identical bytes; the smallest:")
+        print(f"FIXED: {len(good)} header set(s) make this function MATCH the original; "
+              f"include one of these at the top of the file (smallest first):")
         for hs, r in good[:6]:
             print(f"  {label(hs)}" + ("" if r.matched else "   (bytes match, a reference is wrong)"))
     else:
-        print("no header set gives identical bytes; closest:")
+        print("no header set makes it match; closest:")
         for hs, r in ok[:5]:
             print(f"  {r.ratio * 100:5.1f}%  {label(hs)}")
     print(f"({len(sets)} header sets tried; {len(results) - len(ok)} failed to compile)")

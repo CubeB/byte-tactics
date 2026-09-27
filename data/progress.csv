@@ -1326,6 +1326,7 @@ address,size,file,symbol,status,similarity
 0x472810,224,src/unsorted/0x472810.cpp,?FUN_00472810@@YGXPAUVec3_00472810@@F@Z,matched,100.0
 0x4728f0,224,src/unsorted/0x4728f0.cpp,?FUN_004728f0@@YGXPAUVec3_00474cd0@@F@Z,matched,100.0
 0x4729d0,224,src/unsorted/0x4729d0.cpp,?FUN_004729d0@@YGXPAUVec3_00474cd0@@F@Z,matched,100.0
+0x472ab0,413,src/unsorted/0x472ab0.cpp,?FUN_00472ab0@@YGXPAUShape_00472ab0@@F@Z,matched,100.0
 0x472c50,223,src/unsorted/0x472c50.cpp,?FUN_00472c50@@YGXPAUVec3_00475150@@F@Z,matched,100.0
 0x472d30,19,src/unsorted/0x472d30.cpp,?FUN_00472d30@Class_00472d30@@QAEHXZ,matched,100.0
 0x472d50,163,src/unsorted/0x472d50.cpp,?FUN_00472d50@Class_00471430@@UAEXXZ,matched,100.0

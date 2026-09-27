@@ -1327,6 +1327,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   statement in the source, which the scheduler then reordered. Swap
   independent stores in the other block (0x42a140: `flags |= 1; type = 0xd1;`
   rather than the reverse). Found by Claude Opus 5.5 in #160.
+- **Two stores in the wrong order, and reordering moves a constant into a
+  register instead**: the stores may have been an inline helper. One
+  `static inline` function holding both stores in their plain order, used for
+  every cell, matched 0x4246b0. Found by Claude Opus 5.5 in #161.
+- **A value pushed out of an inlined search counter's register by later
+  locals**: write the call once per branch into a result local, which MSVC
+  merges, so each branch pushes its own arguments and frees the register. See
+  0x423160.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

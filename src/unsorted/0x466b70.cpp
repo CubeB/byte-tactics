@@ -1,29 +1,46 @@
 // Decompiled by space-bunny-free. Names are provisional.
 //
-// Not a byte match yet: 65%, everything matches except the four multiplies.
-// The original has, in each of the four statements,
+// 75%: every instruction matches except the four multiplies. The original has,
+// in each of the four statements, the sign-extended short in the accumulator
+// and the int as imul's memory operand,
 //     movsx eax, word ptr [base + 0x142e_b]
 //     imul   eax, dword ptr [base + 0x1431_f]   (and the other three pairs)
 // while this file compiles to
 //     movsx edx, word ptr [base + 0x142e_b]
 //     mov    eax, dword ptr [base + 0x1431_f]
 //     imul   eax, edx
-// i.e. MSVC 5 here puts the sign-extended short in a scratch register and the
-// int operand in the accumulator, and uses the register form of imul. The
-// original has the short in the accumulator and the int as imul's memory
-// operand, which is the form VC5 emits when the multiply's left operand needs
-// no conversion (checked: a 4-byte enum field, or the same expression divided
-// by a constant instead of by g_game->divX, both give the memory-operand form).
-// So the original's short field must reach the multiply as a 16-bit load that
-// carries no separate conversion node, or the multiply must be a standalone
-// expression whose target register is the accumulator. Tried and rejected:
-// swapping the operands (identical code, VC5 canonicalises the pair), (int),
-// (long) and (unsigned) casts, short locals, block-scoped and comma/assignment
-// temporaries, static inline helpers (whole statement, product only, identity
-// on the short, product with two args), nested struct and array member access,
-// union member access, 16-bit int bitfields, reordering the struct members,
-// product-into-a-local then divide in a separate statement, and every header
-// set (tools/headers.py: all 128 give the same bytes).
+// i.e. MSVC 5 puts the short in a scratch register and the int in the
+// accumulator here. Each pair is 2 bytes too long, so we are 173 bytes to 165.
+//
+// The cause is the state of the compiler when the function is compiled, not
+// the source. With this file alone the plain expressions below always give the
+// `imul eax, edx` form; putting 24 unused `static inline` functions (which
+// emit no code at all) or 24 small functions above the function in the file
+// makes this same source give the original's `imul eax, [mem]` form, and 22
+// or fewer do not. The 56 game functions that precede this one in the exe's
+// contiguous run (the run starts at 0x462bd0 and has no gap larger than 0x960)
+// are most likely one translation unit, so the original file had well over 24
+// functions compiled first. Only four of the neighbours are matched
+// (0x466580, 0x4669b0, 0x466aa0, 0x466b00) and defining all four above this
+// function is not enough. This is the regrouping problem in docs/AGENTS.md, so
+// the four statements are left in the plainest form.
+//
+// Source-level attempts that do not change it (all measured on scratch copies
+// of this file): swapping the operands (VC5 canonicalises the pair), (int),
+// (long), (unsigned) and narrowing (short) casts, including a (short) cast of
+// a 32-bit field, which MSVC folds into the very same `movsx word` load but
+// still allocates to a scratch register, an int local for the short, a
+// `static inline` helper for the product and for the whole quotient, a
+// `short*`, `char*` or `int*` address form, the four shorts as an array, a
+// reused local, storing the product through param_1, and the address shape of
+// either operand (array index, nested struct member, base + offset cast): the
+// multiply's operand order does not follow the address shape here, unlike the
+// commutative adds of the sibling 0x4669b0. Dividing by a constant instead of
+// by g_game->divX does change it, and so does any real computation on the left
+// operand, `(sizeX << 4) * scaleX`, but both emit instructions the original
+// does not have. Also tried: union members, 16-bit bitfields, reordering the
+// struct members, and every header combination (tools/headers.py: all 128
+// give the same bytes).
 #pragma pack(push, 1)
 struct Game_00466b70 {
     char unknown_0[0x1422b];

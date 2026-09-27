@@ -2782,12 +2782,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x4244b0,505,opus,#276,matched,100.0,,issue #276
 0x424890,874,opus,#276,partial,91.9,,issue #276
 0x424c00,1496,opus,#276,partial,69.2,,issue #276
-0x488e70,188,,#277,assigned,,,issue #277
-0x489800,162,,#277,assigned,,,issue #277
-0x4898b0,162,,#277,assigned,,,issue #277
-0x4899b0,186,,#277,assigned,,,issue #277
-0x489a90,275,,#277,assigned,,,issue #277
-0x489bb0,299,,#277,assigned,,,issue #277
+0x488e70,188,space-bunny-free,#277,matched,100.0,,issue #277
+0x489800,162,space-bunny-free,#277,matched,100.0,,issue #277
+0x4898b0,162,space-bunny-free,#277,matched,100.0,,issue #277
+0x4899b0,186,space-bunny-free,#277,matched,100.0,,issue #277
+0x489a90,275,space-bunny-free,#277,matched,100.0,,issue #277
+0x489bb0,299,space-bunny-free,#277,matched,100.0,,issue #277
 0x489fa0,186,space-bunny-free,#278,matched,100.0,,issue #278
 0x48a870,261,space-bunny-free,#278,no file,0,,issue #278
 0x48a9f0,206,space-bunny-free,#278,no file,0,,issue #278

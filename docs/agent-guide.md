@@ -378,3 +378,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   including the headers a real game file would have
   (`<windows.h>`, `<stdio.h>`, `<string.h>`, `<math.h>`) at the top. There was no
   single header set shared by every file, so only add them where they help.
+- **A fresh loop variable**: when an inlined helper shifts array entries down
+  from index `i` and the original copies `i` into a new register before the
+  loop, write `for (int j = i; ...)`; reusing the parameter swaps which
+  register holds the counter and which the destination pointer.
+- **Struct copy vs field copies**: assigning a whole 16-byte struct member
+  emits `lea eax, [esi+8]` and stores relative to `eax`; four field assignments
+  give direct `[esi+8]..[esi+0x14]` stores.
+- **Families of functions**: look for matched functions of the same shape (for
+  example the pool allocators 0x4ddce0/0x4ddc00: GlobalAlloc 0x2000 plus the
+  out-of-memory handler) and copy them, changing only sizes and globals.

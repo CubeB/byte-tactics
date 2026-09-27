@@ -109,7 +109,7 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 | 41-64 |  |  |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
 | 65-160 | 64/67 (96%) |  |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
 | 161-400 | 49/60 (82%) | 17/18 (94%) |  |  | 30/36 (83%) |  |
-| 401+ |  |  | 7/12 (58%) |  | 20/33 (61%) |  |
+| 401+ |  | 1/3 (33%) | 7/12 (58%) |  | 20/33 (61%) |  |
 
 ### Cost per batch
 
@@ -328,6 +328,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #21 | deepseek-v4.1-flash | 6 | 6 | 0 | n/a | n/a | n/a |
 | #7 | gpt-6 | 6 | 6 | 0 | n/a | n/a | n/a |
 | #98 | opus | 3 | 1 | 444,190 | 444,190 | 1777 | 40 |
+| #58 | gpt-6 | 3 | 1 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

@@ -101,13 +101,14 @@ def main() -> None:
     for title, funcs, bands in groups:
         labels = ["decomp", *[f"size:{b}" for b in bands], *args.label]
         # Larger functions and retries go to the strongest models (AGENTS.md).
-        if args.escalation or "near-miss" in labels or {"large", "huge"} & set(bands):
+        # Issues labelled `claude` are the orchestrator's own clean-up and never `hard`.
+        if "claude" not in labels and (args.escalation or "near-miss" in labels or {"large", "huge"} & set(bands)):
             labels.append("hard")
         if args.dry_run:
             print(f"{title}  [{', '.join(labels)}]")
             continue
         for label in labels:
-            color = {"decomp": "5319e7", "hard": "b60205"}.get(label, "c5def5")
+            color = {"decomp": "5319e7", "hard": "b60205", "claude": "d97757"}.get(label, "c5def5")
             gh("label", "create", label, "--force", "--color", color)
         url = gh("issue", "create", "--title", title, "--body", body_for(funcs, args.note),
                  *[x for label in labels for x in ("--label", label)]).strip()

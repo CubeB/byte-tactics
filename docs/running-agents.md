@@ -122,17 +122,25 @@ Run from the main checkout, on `main`:
    - `uv run tools/checkall.py <addresses>` to re-check the functions.
    - Read the files for forbidden tricks and made-up names.
 3. **Merge and record.** Squash-merge, then on `main`:
-   - `uv run tools/record.py <issue> <model> --escalate`. Add
+   - `uv run tools/record.py <issue> <model> --escalate claude`. Add
      `--model-for <addr>=<model>` for each function another model (such as a
-     worker) wrote. `--escalate` opens a `hard` retry issue for everything left
-     unmatched.
+     worker) wrote. `--escalate claude` opens a retry issue labelled `claude`
+     for everything left unmatched. Use `--escalate hard` instead only to give
+     GPT-6 Astra a go at it.
    - `uv run tools/progress.py`
    - `uv run tools/calibration.py`
 
    Add any suspected original bugs to `docs/bugs.md` and new techniques to
    `docs/agent-guide.md`, commit and push.
-4. **Retry what was left.** `--escalate` in step 3 opens a `hard` retry issue
-   for anything marked `gave up` or `not reached`, so a stronger model picks
-   it up.
-5. **Release stale claims.** For claims older than a day with no pull request,
+4. **Clean up what was left.** Issues labelled `claude` hold what the other
+   agents left unmatched (`gave up`, `not reached`), mostly from the cheap
+   OpenCode workers. They are the orchestrator's own work, and every other
+   agent is told to skip them. The orchestrator hands them to Claude Opus
+   subagents working in the main checkout. It re-checks and commits their
+   files directly, and closes the issue.
+5. **Fix bad matches too.** A cheap model's file can match and still be wrong
+   in other ways: `__fastcall` free functions, hand-stored vtables, invented
+   names. The orchestrator fixes those during review, or with a subagent,
+   before merging.
+6. **Release stale claims.** For claims older than a day with no pull request,
    unassign the issue and comment "Released".

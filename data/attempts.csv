@@ -896,4 +896,14 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c54d0,32,sonnet,S16,assigned,,,escalated from Haiku
 0x40ba80,37,sonnet,S16,assigned,,,escalated from Haiku
 0x4085d0,40,sonnet,S16,assigned,,,escalated from Haiku
-0x4b07c0,107,opus,O30,no file,0,,neighbour defined alongside 0x4b0830
+0x4b07c0,107,opus,O30,matched,100.0,,neighbour defined alongside 0x4b0830
+0x421e60,67,opus,O32,assigned,,,
+0x48f900,73,opus,O32,assigned,,,
+0x47bf20,80,opus,O32,assigned,,,
+0x461180,87,opus,O32,assigned,,,
+0x47c4d0,94,opus,O32,assigned,,,
+0x4958c0,103,opus,O32,assigned,,,
+0x4ce1e0,114,opus,O32,assigned,,,
+0x4428f0,125,opus,O32,assigned,,,
+0x4be320,135,opus,O32,assigned,,,
+0x432610,148,opus,O32,assigned,,,

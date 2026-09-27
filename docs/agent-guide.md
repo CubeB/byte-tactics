@@ -1481,6 +1481,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   shared wineserver, which holds its output pipe while other agents compile.
   Kill that check.py (the server keeps running) and wrap long scratch runs in
   `timeout`.
+- **A register swap between two pointers in one loop can be a single
+  weighted use**: adding or removing one use of either is a quick test for a
+  priority tie. Found by Claude Opus 5.5 in #276 (0x424890).
+- **An inlined helper's spelling can differ from its standalone file**: the
+  inlined copy of FUN_00422e40 in 0x424c00 wants
+  `if (i != 0xffff) return i; return f(name);`, while 0x422e40.cpp matches with
+  `if (i == 0xffff) i = f(name); return i;`.
+- **Finding what spends the inline budget in a big STL function**: delete later
+  code in a scratch copy and watch which calls appear in the `/Fa` listing; one
+  extra `v->begin()` pushed an `erase` out of line in 0x424c00.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

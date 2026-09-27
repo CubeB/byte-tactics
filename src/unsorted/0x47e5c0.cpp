@@ -1,4 +1,12 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// 67.5%: the loop bodies and the value sequence match, but MSVC picks a
+// different set of registers. The original loads size.y into edx before the
+// pushes, keeps the grid pointer in edi and the y counter in esi; this source
+// gets size.y into edi after the pushes, grid in esi and the y counter in ecx,
+// then spills y. Hoisting ystart/yend/xend as separate variables, swapping the
+// sum operand order or making Pt copies all compile to the same (wrong)
+// allocation or worse; any change that moves size.y before the pushes flips
+// the whole allocation.
 
 struct Obj_0047e5c0;
 
@@ -42,13 +50,16 @@ struct Game_0047e5c0 {
 
 extern Game_0047e5c0* g_game;
 
+// Scans every grid cell overlapping the rectangle [pos, pos+size), calling
+// visitor->FUN_0047ed30 for each object (and child) whose own rectangle overlaps.
 // FUNCTION: 0x47e5c0
 void __stdcall FUN_0047e5c0(Pt_0047db20 pos, Pt_0047db20 size, Class_0047db20* visitor)
 {
     Grid_0047e5c0* grid = &g_game->grid;
     int sumx = pos.x + size.x;
     int sumy = pos.y + size.y;
-    for (int x = (pos.x >> 3) - 1; x <= (sumx >> 3) + 1; x++) {
+    int xend = (sumx >> 3) + 1;
+    for (int x = (pos.x >> 3) - 1; x <= xend; x++) {
         for (int y = (pos.y >> 3) - 1, ye = (sumy >> 3) + 1; y <= ye; y++) {
             if (x >= grid->width) {
                 continue;

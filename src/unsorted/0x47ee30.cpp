@@ -1,6 +1,15 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Best: 91.2%. The prologue and the tail now match. Two codegen differences remain:
+//  - the loop back-edge reloads the count through the base ([ebp+0x99]) where the
+//    original keeps the decremented value in eax (`mov eax, ecx`);
+//  - the original rematerialises `lea edi, [ebp+0x99]` after the free call, ours
+//    keeps edi live instead.
+// A natural alternative with the same prologue and back-edge but a one-byte
+// prologue difference (DAT is loaded into eax and copied to ebp) is a guarded
+// do/while: `int* count = &DAT->count; Entry* entries = DAT->entries;
+// if (entries[9].field_0 > 0) { do { ... } while (*count > 0); }`.
 
-void __stdcall FUN_004d85a0(int* param_1);
+void FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 struct Entry_0047f8c0 {                // 0x11 bytes
@@ -30,23 +39,25 @@ struct Table_0047ee30 {                // 0x18 bytes
 extern List_0047f8c0* DAT_0051e68c;
 extern Table_0047ee30 DAT_005086e0[24];
 
+// The count is reached through its own pointer and the guard reads it through the
+// base: that keeps the list in ebp and the count pointer in edi, as in the
+// original, instead of folding the count into the list base.
 // FUNCTION: 0x47ee30
 void FUN_0047ee30()
 {
-    List_0047f8c0* list = DAT_0051e68c;
-    int* count = &list->count;
-    while (*count > 0) {
+    int* count = &DAT_0051e68c->count;
+    Entry_0047f8c0* entries = DAT_0051e68c->entries;
+    while (*(int*)((char*)entries + 0x99) > 0) {
         int i = *count - 1;
-        Entry_0047f8c0* e = list->entries + i;
-        if (e->data != 0) {
-            FUN_004d85a0(e->data);
-            e->data = 0;
+        if (entries[i].data != 0) {
+            FUN_004d85a0(entries[i].data);
+            entries[i].data = 0;
         }
         for (int j = i; j < *count; j++)
-            list->entries[j] = list->entries[j + 1];
+            entries[j] = entries[j + 1];
         (*count)--;
     }
-    list->field_9d = 0;
+    ((List_0047f8c0*)entries)->field_9d = 0;
     for (int k = 0; k < 24; k++)
         DAT_005086e0[k].field_c = 0;
 }

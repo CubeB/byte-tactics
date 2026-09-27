@@ -1,4 +1,11 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Best 86.2%. Still differs from the original: the DAT_0051e68c load goes to
+// a scratch register (eax) and is copied to ebp, because the count pointer is
+// taken through the global (&DAT_0051e68c->count) instead of through the local
+// list; the original loads DAT straight into ebp and uses it as the base for
+// the count pointer. Using &list->count instead makes MSVC fold the pointer
+// away (53.8%). The original also re-materialises `lea edi,[ebp+0x99]` before
+// the inner shift loop, which this version does not.
 
 #pragma pack(push, 1)
 struct Entry_0047f8c0 {                // 0x11 bytes

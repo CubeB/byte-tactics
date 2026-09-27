@@ -1,0 +1,40 @@
+// Decompiled by Opus. Names are provisional.
+// Assignment of a C string to the reference-counted string handle (see
+// 0x4c91b0 for the constructor from a C string, whose body is inlined here,
+// and 0x4c93b0 for assignment from another handle): releases the old
+// characters, then shares the global empty string or copies the text into a
+// new block whose first int is the reference count.
+#include <stdlib.h>
+#include <string.h>
+
+extern int DAT_0050a778;
+extern void* DAT_0050a77c;
+
+class Class_004c93f0 {
+public:
+    char* ptr;
+
+    Class_004c93f0* FUN_004c93f0(const char* text);
+};
+
+// FUNCTION: 0x4c93f0
+Class_004c93f0* Class_004c93f0::FUN_004c93f0(const char* text)
+{
+    // The release, phrased as in the destructor body 0x4c9390.
+    ((int*)ptr)[-1]--;
+    int* old = (int*)ptr - 1;
+    if (((int*)ptr)[-1] == 0)
+        free(old);
+    char* chars;
+    if (text == 0 || *text == 0) {
+        DAT_0050a778++;
+        chars = (char*)&DAT_0050a77c;
+    } else {
+        int* block = (int*)malloc(strlen(text) + 1 + sizeof(int));
+        *block = 1;
+        chars = (char*)(block + 1);
+        strcpy(chars, text);
+    }
+    ptr = chars;
+    return this;
+}

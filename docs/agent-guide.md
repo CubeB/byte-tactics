@@ -867,6 +867,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A free function whose callers set `ecx` just before calling it**: it is
   really a method that ignores `this` (0x4ce190, 0x461610). Check the callers
   before trusting a free-function name.
+- **A negative-offset override (`[ecx-8]`)**: search .rdata for the function's
+  address, then grep the disassembly for stores of that vtable; the
+  constructor's store sequence names the owning class and the base offset
+  (0x48f790).
+- **A value loaded into `eax` then copied to a callee-saved register**: use the
+  parameter itself as the loop variable and keep a copy of its old value
+  (0x4a7560).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

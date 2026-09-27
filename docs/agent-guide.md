@@ -616,6 +616,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   vtable is never emitted). Define the real constructor again, unannotated, in
   the `??_G` file (0x44f590, 0x490840, 0x490630); see 0x44ef60.cpp for the
   whole family.
+- **Variants in one scratch file influence each other**: earlier functions in a
+  file change how later ones compile. Recompile the winning variant alone (or
+  run tools/headers.py) before the check.py run (0x4c23e0).
+- **Emitting a `std::vector` copy constructor out of line**: its address can't
+  be taken, but the address of a member that calls it (the outer vector's
+  `insert(iterator, size_type, const T&)`) works (0x434470).
+- **A field load hoisted above stores the original keeps it after**: put the
+  stores and the test in an inline method of a member sub-object (0x463610).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

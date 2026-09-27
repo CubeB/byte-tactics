@@ -132,7 +132,9 @@ is spending hours on one function. So:
 
 In OpenCode, do not decompile the functions yourself first. Hand them to the
 `decomp-worker` subagent, which runs on a cheap model and has its own step
-limit:
+limit. If you yourself are running on a free model (a model id ending in
+`-free`, such as Space Bunny Free), use `decomp-worker-free` instead, which
+runs on Space Bunny Free, so the whole session costs nothing:
 
 1. Start one worker per function, all at the same time, each given its one
    address and the absolute path of your worktree (`.worktrees/issue-<N>`).

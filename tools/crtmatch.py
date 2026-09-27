@@ -41,6 +41,17 @@ def find_masked(hay: bytes, needle: bytes, mask: bytes) -> int:
     return -1
 
 
+def find_all_masked(hay: bytes, needle: bytes, mask: bytes) -> list[int]:
+    """Every offset where needle matches (find_masked only returns the first)."""
+    out, start = [], 0
+    while True:
+        off = find_masked(hay[start:], needle, mask)
+        if off < 0:
+            return out
+        out.append(start + off)
+        start += off + 1
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--exe", default=ROOT / "orig/TotalA.exe", type=Path)

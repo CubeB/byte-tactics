@@ -21,7 +21,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | Size (bytes) | Haiku | Opus | Sonnet |
 | --- | ---: | ---: | ---: |
 | 1-16 | 283/312 (91%) | 2/2 (100%) |  |
-| 17-40 | 52/77 (68%) |  | 9/10 (90%) |
+| 17-40 | 69/97 (71%) |  | 9/10 (90%) |
 | 41-64 | 3/11 (27%) |  | 21/31 (68%) |
 | 65-160 | 1/6 (17%) | 77/78 (99%) | 2/6 (33%) |
 | 161-400 |  | 3/5 (60%) |  |
@@ -72,11 +72,13 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | O16 | opus | 10 | 10 | 181,978 | 18,197 | 73 | 13 |
 | O17 | opus | 10 | 10 | 146,685 | 14,668 | 59 | 11 |
 | O19 | opus | 10 | 10 | 125,371 | 12,537 | 50 | 8 |
+| H16 | haiku | 20 | 17 | 112,841 | 6,637 | 7 | 11 |
+| S11 | sonnet | 11 | 11 | 155,898 | 14,172 | 28 | 17 |
 
 ### Escalations
 
 - Opus matched 25 of 25 functions a cheaper model had failed.
-- Sonnet matched 33 of 39 functions a cheaper model had failed.
+- Sonnet matched 44 of 50 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target
@@ -106,3 +108,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
   name, not by its entries, so a file can declare fewer virtual methods than
   the original vtable has (0x4b0610 declares 4 of 21). Resolving each vtable
   entry against the name map would close this.
+- Two copies of the C++ library's lock code (`std::_Lockit` and its cleanup)
+  are linked in, and a block of code at 0x4d8000-0x4e3000 calls the copy that
+  sits inside it. That block is probably a separately built library of
+  Cavedog's (or a third party's) linked after the game's own objects.

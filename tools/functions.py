@@ -21,7 +21,7 @@ import capstone
 import pefile
 
 from coff import read_archive
-from crtmatch import MIN_SIZE, find_masked
+from crtmatch import MIN_SIZE, find_all_masked, find_masked
 
 ROOT = Path(__file__).resolve().parent.parent
 EXE = ROOT / "orig/TotalA.exe"
@@ -80,11 +80,12 @@ def cpp_library_names(pe: pefile.PE) -> dict[int, str]:
         for sec in obj.sections:
             if not sec.is_code or len(sec.data) < 32:
                 continue
-            off = find_masked(hay, sec.data, sec.mask())
-            if off >= 0:
-                syms = obj.symbols_in(sec)
-                if syms:
-                    found.append((text_va + off + syms[0].value, len(sec.data), syms[0].name))
+            syms = obj.symbols_in(sec)
+            if not syms:
+                continue
+            # Some library objects were linked twice (two std::_Lockit copies).
+            for off in find_all_masked(hay, sec.data, sec.mask()):
+                found.append((text_va + off + syms[0].value, len(sec.data), syms[0].name))
     strong = [f for f in found if f[1] >= SUBSTANTIAL]
     names = {}
     for addr, size, name in found:

@@ -1447,6 +1447,7 @@ address,name
 0x47db20,FUN_0047db20
 0x47db70,FUN_0047db70
 0x47ddc0,FUN_0047ddc0
+0x47dfc0,FUN_0047dfc0
 0x47e1f0,FUN_0047e1f0
 0x47e2d0,FUN_0047e2d0
 0x47e570,FUN_0047e570
@@ -3402,6 +3403,7 @@ address,name
 0x4fc3f4,_imp__SmackToBufferRect
 0x4fc3f8,_imp__SmackClose
 0x4fc408,_imp__SmackSoundOnOff
+0x4fc40c,_imp__DAT_004fc40c
 0x4fc490,DAT_004fc490
 0x4fc6e8,DAT_004fc6e8
 0x4fc980,??_7Class_00407350@@6B@

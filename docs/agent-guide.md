@@ -327,7 +327,9 @@ never a shared name like `/tmp/a.cpp`.
 
 `tools/wcl /c /O2 /Ob2 /MT /Fa<file>.asm /Fo<file>.obj <file>.cpp` compiles a scratch file
 and writes an assembly listing you can read directly; iterate that way, then
-confirm with one `check.py` run.
+confirm with one `check.py` run. `uv run tools/checkall.py <addr> <addr> ...` checks many
+functions at once (in parallel, one summary line each), which suits a batch of
+small functions.
 - **Empty functions called with a format string** are debug-print stubs whose
   body was compiled out: declare and define them variadic,
   `void FUN_x(const char* fmt, ...)`.
@@ -624,6 +626,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `insert(iterator, size_type, const T&)`) works (0x434470).
 - **A field load hoisted above stores the original keeps it after**: put the
   stores and the test in an inline method of a member sub-object (0x463610).
+- **A 1-bit bitfield assigned from a byte parameter** (`mov bl, [esp+N]; and
+  ebx, 1; shl`): the parameter is `int`; `char` gives `and bl, 1; movsx`.
+- **A method with an established placeholder name that is really an out-of-line
+  destructor**: write the named method as `((Real*)this)->Real::~Real();` with
+  an inline destructor; MSVC inlines it with its vtable store (0x470b80).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

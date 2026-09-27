@@ -1,0 +1,94 @@
+// Decompiled by space-bunny-free. Names are provisional.
+// A victory condition like 0x48efb0, but it counts the live units of the two
+// lists in g_game (the ones at +0x1bca and +0x1d15) and only then decides.
+// Each ForEach call converts `this` to the visitor subobject at +0xc, and the
+// compiler emits a null test of `this` per conversion, so a null `this` runs
+// both loops with a null visitor pointer.
+#include <string.h>
+
+struct Unit_0048f9d0 {
+    char unknown_0[0xa6];
+    short field_a6;                    // +0xa6
+    char unknown_a8[0x118 - 0xa8];
+};
+
+// Interface at +0xc of the object: slot 0 is called for each unit.
+class UnitVisitor_0048f9d0 {
+public:
+    virtual int Visit(Unit_0048f9d0* unit) = 0;
+};
+
+struct UnitList_0048f9d0 {
+    Unit_0048f9d0* first;              // +0x0
+    Unit_0048f9d0* last;               // +0x4 (inclusive)
+
+    void ForEach(UnitVisitor_0048f9d0* visitor)
+    {
+        for (Unit_0048f9d0* unit = first; unit <= last; unit++) {
+            if (unit->field_a6 != 0) {
+                int result = visitor->Visit(unit);
+                if (!result) {
+                    break;
+                }
+            }
+        }
+    }
+};
+
+#pragma pack(push, 1)
+struct Game_0048f9d0 {
+    char unknown_0[0x1bca];
+    UnitList_0048f9d0 units;           // +0x1bca
+    char unknown_1bd2[0x1d15 - 0x1bd2];
+    UnitList_0048f9d0 units2;          // +0x1d15
+};
+
+struct Info_0048f9d0 {
+    char unknown_0[0x20];
+    char name[0x20];                   // +0x20
+};
+
+struct Player_0048f9d0 {
+    char unknown_0[0x92];
+    Info_0048f9d0* info;               // +0x92
+    char unknown_96[0xff - 0x96];
+    unsigned char kind;                // +0xff
+};
+#pragma pack(pop)
+
+// GLOBAL: 0x511de8
+extern Game_0048f9d0* g_game;
+
+short __stdcall FUN_00488b10(char* name);
+
+class Condition_0048f9d0 {
+public:
+    virtual void FUN_0048f9d0(Player_0048f9d0* player) = 0;
+    int done;                          // +0x04
+    int announced;                     // +0x08
+};
+
+#pragma pack(push, 2)
+class Class_0048f9d0 : public Condition_0048f9d0, public UnitVisitor_0048f9d0 {
+public:
+    char name[0x20];                   // +0x10
+    short id;                          // +0x30
+    int count;                         // +0x32
+    void FUN_0048f9d0(Player_0048f9d0* player);
+    int Visit(Unit_0048f9d0* unit);
+};
+#pragma pack(pop)
+
+// FUNCTION: 0x48f9d0
+void Class_0048f9d0::FUN_0048f9d0(Player_0048f9d0* player)
+{
+    if (_strcmpi(name, player->info->name) == 0) {
+        id = FUN_00488b10(name);
+        count = 0;
+        g_game->units.ForEach(this);
+        g_game->units2.ForEach(this);
+        if (count <= 1) {
+            done = 1;
+        }
+    }
+}

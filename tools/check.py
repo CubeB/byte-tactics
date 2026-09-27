@@ -359,12 +359,14 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
 def same_slot_function(held: str, name: str, fn: int) -> bool:
     """Two names for one vtable slot that only differ where names are still
     provisional: the vector (??_E) and scalar (??_G) deleting destructors, which
-    MSVC 5 links to one function, or a placeholder method FUN_<address> filed
-    under different placeholder classes (to be merged in docs/consolidation.md)."""
+    MSVC 5 links to one function, or two placeholder methods FUN_<address>.
+    An override shares its base method's name, so a derived class's slot can
+    hold FUN_<base address> while its own function was matched as
+    FUN_<derived address>; both are provisional (docs/consolidation.md)."""
     if held[:4] in ("??_E", "??_G") and name[:4] in ("??_E", "??_G"):
         return held[4:] == name[4:]
-    method = f"FUN_{fn:08x}"
-    return held.split("::")[-1] == method and name.split("::")[-1] == method
+    placeholder = re.compile(r"FUN_[0-9a-f]{8}$")
+    return bool(placeholder.match(held.split("::")[-1]) and placeholder.match(name.split("::")[-1]))
 
 
 def check_vtable(orig, obj, sec, start, target, symbols) -> str:

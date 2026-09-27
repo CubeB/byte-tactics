@@ -2,7 +2,7 @@
 
 class Class_0047db20 {
 public:
-    virtual void FUN_0047db20_v0();
+    virtual void FUN_0047ed30();
 };
 
 struct Pt_0047db20 {

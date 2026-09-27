@@ -1,21 +1,9 @@
 // Decompiled by Haiku. Names are provisional.
+// std::logic_error::what() from the MSVC 5 <stdexcept>; the vtable at
+// 0x4fdca4 is std::logic_error's (see src/unsorted/0x4c38f0.cpp, which emits
+// its scalar deleting destructor the same way). The global below exists only
+// to make the compiler emit logic_error's vtable, and with it this COMDAT.
+#include <stdexcept>
 
-extern void* DAT_004fdc18;
-
-class Class_004c3730 {
-public:
-    char unknown_0[0x10];
-    void* field_10;
-
-    void* FUN_004c3730();
-};
-
-// FUNCTION: 0x4c3730
-void* Class_004c3730::FUN_004c3730()
-{
-    void* result = field_10;
-    if (result == 0) {
-        result = &DAT_004fdc18;
-    }
-    return result;
-}
+// FUNCTION: 0x4c3730 ?what@logic_error@std@@UBEPBDXZ
+static std::logic_error s_what_error("");

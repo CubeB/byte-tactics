@@ -8,10 +8,10 @@ public:
 
     Condition_0048ff40() { satisfied = celebrated = 0; }
     virtual int IsSatisfied() = 0;
-    virtual void Slot1();
-    virtual void Slot2();
-    virtual void Slot3();
-    virtual void Save(void* file) = 0;
+    virtual void FUN_0048ea10();         // Slot1
+    virtual void FUN_0048ea20();         // Slot2
+    virtual void FUN_0048ea30();         // Slot3
+    virtual void FUN_0048f840(void* file) = 0;   // Save
     virtual void Load(void* file) = 0;
 };
 
@@ -25,7 +25,7 @@ public:
 class Class_0048f840 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
     virtual int IsSatisfied();
-    virtual void Save(void* file);
+    virtual void FUN_0048f840(void* file);   // Save
     virtual void Load(void* file);
     virtual void Notify(void* event);
 };

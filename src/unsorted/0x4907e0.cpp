@@ -22,7 +22,7 @@ struct Struct_004907e0 {
 
 class Class_0044ef20 {
 public:
-    virtual void Slot0();
+    virtual void FUN_00490630();         // Slot0
     int field_4;                       // +0x4
     Struct_004907e0* owner;            // +0x8
 
@@ -31,7 +31,7 @@ public:
 
 class Class_00490630 : public Class_0044ef20 {
 public:
-    virtual void Slot0();
+    virtual void FUN_00490630();         // Slot0
     Vec3_004907e0 pos;                 // +0xc
     Vec3_004907e0 vel;                 // +0x18
     short field_24;                    // +0x24
@@ -50,7 +50,7 @@ public:
 
 class Class_004907e0 : public Class_00490630 {
 public:
-    virtual void Slot0();
+    virtual void FUN_00490630();         // Slot0
 
     Class_004907e0(Struct_004907e0* p);
 };

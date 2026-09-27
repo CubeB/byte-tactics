@@ -90,6 +90,9 @@ revisit them once the surrounding code is known.
 - 0x438b90's `Class_00438b90` has `Class_0043a1f0`'s layout (kind at +4,
   flags at +0x42).
 
+- `Class_00415b60`, `Class_00415b90` and `Class_00415c10` are one bit-writer
+  class (0x48b710 calls all three on one 0x410-byte stack object).
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

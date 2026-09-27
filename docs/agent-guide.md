@@ -737,6 +737,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   inlined helper and which parts are fixed.
 - **Block layout that no reordering changes**: move the loop's match test and
   its body into separate `static inline` helpers (0x43afc0).
+- **A narrowed index into a vector** (`_First` loaded before `dec; movsx;
+  shl`): index a real `std::vector` member (`&v[(short)(n - 1)]`); a raw
+  pointer field loads `_First` after the arithmetic (0x433500).
+- **What callers do with a function**: `objdump -d -M intel orig/TotalA.exe |
+  grep -B8 "call   0x<addr>"` shows whether they set ecx, what they push and
+  what the object is.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

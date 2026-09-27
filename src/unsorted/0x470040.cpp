@@ -1,4 +1,17 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Class_0046eaa0::operator= (0x470040). list_a and list_b are two vectors of
+// 4-byte elements, each with an out-of-line capacity() (0x470250) and size()
+// (0x470270) that both return the element count, i.e. a byte difference
+// shifted right by 2. list_a's class inlines its size() for the first
+// comparison, list_b's does not, and that is why the two assignments are two
+// separate inline bodies with different register allocations rather than one
+// body used twice.
+//
+// The spelling inside assign_first is load-bearing: s->begin() and s->end()
+// there, where assign_second uses the raw _First and _Last, are what makes
+// MSVC put the delete argument in eax and the reallocation size in edx
+// (lea edx, [eax*4]) instead of rolling both into eax (shl eax, 2). Widening
+// the accessors to the other two call sites, or back to raw fields, loses it.
 #include <vector>
 
 struct Elem_004702a0 {
@@ -25,6 +38,14 @@ class Class_00470270 : public Class_00470250 {
 public:
     unsigned int FUN_00470270() const;
 
+    __inline Elem_004702a0* begin() { return _First; }
+    __inline Elem_004702a0* end() { return _Last; }
+    __inline const Elem_004702a0* begin() const { return _First; }
+    __inline const Elem_004702a0* end() const { return _Last; }
+
+    // Three dead one-statement calls standing in for whatever the original
+    // spent its inline budget on: /Ob2 inlines _Ucopy and _Destroy here only
+    // as deep as this budget allows.
     static __inline void burn(int a)
     {
         int t = a;
@@ -45,22 +66,22 @@ public:
                 *q = *p;
             d->_Last = d->_First + s->FUN_00470270();
         } else {
-unsigned int room = d->FUN_00470250();
+            unsigned int room = d->FUN_00470250();
             if (s->FUN_00470270() <= room) {
-            Elem_004702a0* mid = s->_First;
+                Elem_004702a0* mid = s->_First;
                 mid += d->FUN_00470270();
-                FUN_004702d0((int*)s->_First, (int*)mid, (int*)d->_First);
+                FUN_004702d0((int*)s->begin(), (int*)mid, (int*)d->_First);
                 d->_Ucopy(mid, s->_Last, d->_Last);
-            
+
                 d->_Last = d->_First + s->FUN_00470270();
             } else {
-            d->_Destroy(d->_First, d->_Last);
-                operator delete((void*)d->_First);
+                d->_Destroy(d->_First, d->_Last);
+                operator delete(d->begin());
                 int n = (int)s->FUN_00470270();
                 n = n < 0 ? 0 : n;
                 Elem_004702a0* p = (Elem_004702a0*)operator new(n * 4);
                 d->_First = p;
-                Elem_004702a0* q = d->_Ucopy(s->_First, s->_Last, p);
+                Elem_004702a0* q = d->_Ucopy(s->begin(), s->end(), p);
                 d->_Last = q;
                 d->_End = q;
             }
@@ -78,16 +99,16 @@ unsigned int room = d->FUN_00470250();
             d->_Destroy(r, d->_Last);
             d->_Last = d->_First + s->FUN_00470270();
         } else {
-unsigned int room = d->FUN_00470250();
+            unsigned int room = d->FUN_00470250();
             if (s->FUN_00470270() <= room) {
-            Elem_004702a0* mid = s->_First;
+                Elem_004702a0* mid = s->_First;
                 mid += d->FUN_00470270();
                 FUN_004702d0((int*)s->_First, (int*)mid, (int*)d->_First);
                 d->_Ucopy(mid, s->_Last, d->_Last);
-            
+
                 d->_Last = d->_First + s->FUN_00470270();
             } else {
-            d->_Destroy(d->_First, d->_Last);
+                d->_Destroy(d->_First, d->_Last);
                 operator delete((void*)d->_First);
                 int n = (int)s->FUN_00470270();
                 if (n < 0)

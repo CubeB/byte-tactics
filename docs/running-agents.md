@@ -128,14 +128,19 @@ Run from the main checkout, on `main`:
    Near-misses to retry with a stronger model:
    - `uv run tools/issues.py --addresses ... --title "Near-misses" --label near-miss --escalation`
 2. **Review each pull request.**
-   - `tools/review.sh <PR>` checks the pull request out in `.worktrees/pr-<PR>`.
-     It lists the changed files, re-checks every function in them and flags
-     forbidden constructs.
+   - `tools/review.sh <PR>` checks the pull request out in `.worktrees/pr-<PR>`
+     and merges `origin/main` into it. It lists the changed files, rebuilds
+     `data/symbols.csv` as the real merge will, re-checks every function in
+     the pull request, lists any function that matches on `main` but would
+     stop matching (usually two files disagreeing on a callee's name), and
+     flags forbidden constructs.
    - Read the files for made-up names, and fix bad matches before merging.
    - Squash-merge with a commit message in the project's format:
      `gh pr merge <PR> --squash --delete-branch --subject "Add: ..." --body "..."`.
    - `tools/review.sh <PR> --clean` removes the worktree.
 3. **Merge and record.** Squash-merge, then on `main`:
+   - `uv run tools/progress.py` first, so the names record.py checks against
+     include the ones this merge added.
    - `uv run tools/record.py <issue> <model> --escalate claude`. Add
      `--model-for <addr>=<model>` for each function another model (such as a
      worker) wrote. `--escalate claude` opens a retry issue labelled `claude`

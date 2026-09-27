@@ -2407,9 +2407,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x40c7f0,511,,#79,assigned,,,issue #79
 0x40ca50,467,,#79,assigned,,,issue #79
 0x40cca0,781,,#79,assigned,,,issue #79
-0x40d020,532,,#80,assigned,,,issue #80
-0x40d290,477,,#80,assigned,,,issue #80
-0x40da70,1167,,#80,assigned,,,issue #80
+0x40d020,532,opus,#80,partial,57.0,,issue #80
+0x40d290,477,opus,#80,partial,92.3,,issue #80
+0x40da70,1167,opus,#80,partial,82.3,,issue #80
 0x40e160,1224,opus,#81,matched,100.0,,issue #81
 0x40e630,880,opus,#81,partial,85.6,,issue #81
 0x40eb70,937,opus,#81,matched,100.0,,issue #81 (one name fixed at merge)

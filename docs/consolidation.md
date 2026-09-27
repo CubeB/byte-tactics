@@ -166,6 +166,11 @@ can disagree on types (a real link would fail). Known cases:
   parameter `unsigned char`, but 0x401c20 shows it is a 1-byte class passed by
   value, built by `Class_00438760::Class_00438760`.
 
+- 0x40d7b0 returns `int` in its own file, but 0x40da70 uses its result as
+  unsigned (`cmp eax, 1; jae` and `cmp 1, eax; sbb`), so 0x40da70.cpp
+  declares it `unsigned int`. Settle on `unsigned int` when merging the
+  pathfinder class.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

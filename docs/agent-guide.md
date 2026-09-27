@@ -1148,6 +1148,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `node = items[i]` itself rather than being passed the node). Computing an
   argument at the call site changes register allocation before the loop. See
   0x40ef20 against 0x40f060.
+- **Match the out-of-line calls before chasing registers**: list the `call`
+  lines in each variant's `/Fa` listing and compare them with the original's.
+  /Ob2 does not spend its inline budget in source order: in 0x40da70, adding a
+  helper call in the second case of a `switch` changed what was inlined in the
+  first case above it. Found by Claude Opus 5.5 in #80.
+- **Out-of-line `vector::insert(iterator, size_type, const T&)` copies**
+  (0x408f30, 0x40d020, 0x40d290) differ from each other in the original in the
+  order of their pointer sums and in register choice, and source, type and flag
+  changes don't reach most of those spots. Treat them as compiler state and
+  move on quickly. See #56 and #80.
+- **Scratch folder names**: cl.exe fails with "cannot execute '.\c2'" if the
+  current directory contains a folder named `c1`, `c2` or `c1xx`. Name scratch
+  folders something else.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -496,3 +496,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `src/unsorted/0x4b0830.cpp`.
 - **Ordinal-only imports** (DPLAYX, smackw32) are called through `jmp [iat]`
   thunks; declare the real API with `extern "C" ... __stdcall`.
+- **Calling a constructor callee on `this` first, then copying fields and
+  returning `this`**: a copy constructor of a class whose first member has that
+  constructor. Write it with a member-initialiser list,
+  `X::X(const X& o) : handle(o.handle), a(o.a) {}`; a constructor cannot be
+  called through a pointer. See `src/unsorted/0x437820.cpp` and `0x4b7e30.cpp`.

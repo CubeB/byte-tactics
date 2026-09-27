@@ -19,6 +19,7 @@ reference the linker fills in points at the right thing:
 import argparse
 import csv
 import difflib
+import hashlib
 import re
 import struct
 import subprocess
@@ -172,7 +173,13 @@ def compile_source(src: Path, flags: str = DEFAULT_FLAGS, out_dir: str = "obj") 
     bad = FORBIDDEN.search(src.read_text(errors="replace"))
     if bad:
         return None, f"{src}: '{bad.group(0)}' is not allowed; write the function in plain C++"
-    rel = src.resolve().relative_to(ROOT / "src") if src.resolve().is_relative_to(ROOT / "src") else Path(src.name)
+    if src.resolve().is_relative_to(ROOT / "src"):
+        rel = src.resolve().relative_to(ROOT / "src")
+    else:
+        # A scratch file: keep objects of same-named files from different
+        # folders (several agents at once) apart.
+        tag = hashlib.sha256(str(src.resolve().parent).encode()).hexdigest()[:12]
+        rel = Path("scratch") / tag / src.name
     out = ROOT / "build" / out_dir / rel.with_suffix(".obj")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)

@@ -804,6 +804,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A null test of `this`, then `lea reg, [this+K]` with the call tail on both
   paths**: `this` converted to a non-primary base; declare the real two-base
   class and pass `this` (0x48f200).
+- **Headers can decide which side of a comparison is evaluated first**, not just
+  operand order inside `+` or `*`; run tools/headers.py as soon as a whole
+  subexpression comes out in the wrong order (0x4c1320).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

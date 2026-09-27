@@ -1698,3 +1698,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   is a plain function rather than an address in a `.rdata` vtable, declare the
   field as a function pointer and assign it. `ctx.py`'s `vtable?` mark is only
   a hint (0x460160).
+- **Two local arrays 4 bytes apart can move the score by 2%** with the same
+  byte count: before keeping a higher-scoring variant, compare the frame
+  offsets of the big locals in the `.o` with the original's (0x458fa0).
+- **A load that moves across a branch can be an inverted comparison**: the
+  wrong direction can still give the right `cmp` and byte count. Check the
+  branch polarity before blaming register allocation (0x45ffb0).

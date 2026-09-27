@@ -364,6 +364,23 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x45f8c0** (likely): when a line value does not start with '|', the
+  split scans from `value + 1` for the next '|' with no test for '\0', so a
+  value with no second '|' runs off the end of the 0x80-byte buffer. When it
+  does start with '|', the two `FUN_004b6af0(value, 0/1)` calls read
+  uninitialised stack at `value + 0x10` and `+0x14`. Read from the
+  disassembly of a partial match. Found by Space Bunny Free in #411.
+- **0x45ffb0** (likely, from the compiler): the matched source is valid C++,
+  but MSVC 5 gave the last dword of the second 32-byte quad local the stack
+  slot of the saved `esi` (`[esp+0x40]`, pushed at 0x45ffc5), so the store at
+  0x46011a overwrites it and the function returns with `esi` holding the
+  graphic's height minus one. Harmless at its one call site (0x46a3c2), which
+  restores `esi` from its own frame. Found by Space Bunny Free in #411.
+- **0x45d7c0** and **0x45b9b0** (possible): the slider position stores only
+  the result of the second `_ftol`, after `fsubr st(1)` has discarded the
+  integer part of `value * (steps - 1) / 64`, so the position field ends up
+  0 or 1 rather than the step index (0x45d8e6 to 0x45d90f). Found by Space
+  Bunny Free in #411.
 - **0x4565a0** (likely): the same player search returns 10 when the id is
   -1 or not found, and this net-message handler uses it unchecked, reading
   `players[10].active` and `.state` and writing `players[10].field_14`, one

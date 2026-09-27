@@ -697,6 +697,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.
+- **Smacker video (smackw32.dll, imported by ordinal)**: the imports have no
+  names in the exe, so declare them `extern "C" __declspec(dllimport) ...
+  __stdcall` with the names below and keep them consistent. Inferred from call
+  sites, not from an export table: 14 SmackOpen, 17 SmackSoundOnOff, 18
+  SmackClose, 19 SmackDoFrame, 20 SmackSummary, 21 SmackNextFrame, 23
+  SmackToBuffer, 27 SmackGoto, 28 SmackToBufferRect, 38
+  SmackSoundUseDirectSound. Smack struct: Width +4, Height +8, Frames +0xc,
+  FrameNum +0x374, LastRect +0x380..+0x38c (0x47c330).
+- **A search returning 0 when nothing is found** with `xor eax, eax` before the
+  loop: `int result = 0; for (...) if (...) { result = j; break; } return
+  result;` (0x440c10).
 - **COM calls by slot**: work out the DirectX interface from the vtable slot
   and call the real method (IDirectSoundBuffer: +0x24 GetStatus, +0x48 Stop).
 - **Header sets are not monotonic**: one header can flip an operand order that
@@ -719,7 +730,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   SIB byte): the same header dependence as commutative operands; adding a
   header fixed it. The `/Fa` listing prints both the same way, so compare
   encodings with `objdump -d -M intel file.obj` (installed).
-  `uv run tools/headers.py <addr>` compiles your file with every combination
+  `uv run tools/headers.py <addr>` (each line it prints is one complete header
+  set) compiles your file with every combination
   of `<windows.h>`, `<stdio.h>`, `<stdlib.h>`, `<string.h>`, `<math.h>` and
   `<memory.h>` in a few seconds and prints the sets that match; try it as soon
   as every rewrite gives the same wrong register or operand order (0x471f90

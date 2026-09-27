@@ -1306,6 +1306,8 @@ address,size,file,symbol,status,similarity
 0x4716a0,63,src/unsorted/0x4716a0.cpp,??_GClass_004716a0@@UAEPAXI@Z,matched,100.0
 0x4716e0,249,src/unsorted/0x4716e0.cpp,?FUN_004716e0@Class_004716e0@@QAEXHHHHFH@Z,matched,100.0
 0x4717e0,63,src/unsorted/0x4717e0.cpp,??_GClass_004717e0@@UAEPAXI@Z,matched,100.0
+0x471820,556,src/unsorted/0x471820.cpp,?FUN_00471820@Class_00471820@@QAEXPAUVec3_00474d50@@HHHHFH@Z,matched,100.0
+0x471a50,546,src/unsorted/0x471a50.cpp,?FUN_00471a50@Class_00471a50@@QAEXPAUVec3_00475150@@HHHF@Z,matched,100.0
 0x471c80,31,src/unsorted/0x471c80.cpp,?FUN_00471c80@@YAXXZ,matched,100.0
 0x471ca0,31,src/unsorted/0x471ca0.cpp,?FUN_00471ca0@@YAXXZ,matched,100.0
 0x471cc0,16,src/unsorted/0x471cc0.cpp,??0Class_00471cc0@@QAE@XZ,matched,100.0

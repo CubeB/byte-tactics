@@ -21,7 +21,7 @@ address,size,file,symbol,status,similarity
 0x406f40,1,src/unsorted/0x406f40.cpp,?FUN_00406f40@@YAXXZ,matched,100.0
 0x407350,40,src/unsorted/0x407350.cpp,??0Class_00407350@@QAE@HH@Z,matched,100.0
 0x407380,1,src/unsorted/0x407380.cpp,?FUN_00407380@@YAXXZ,matched,100.0
-0x407390,32,src/unsorted/0x407390.cpp,,compile error,
+0x407390,32,src/unsorted/0x407390.cpp,?FUN_00407390@Class_00407390@@QAEPAXE@Z,partial,64.0
 0x407930,75,src/unsorted/0x407930.cpp,??0Class_00407930@@QAE@HHHH@Z,matched,100.0
 0x407a90,40,src/unsorted/0x407a90.cpp,??0Class_00407a90@@QAE@PAUClass_00407a90_arg@@H@Z,matched,100.0
 0x408090,111,src/unsorted/0x408090.cpp,?FUN_00408090@@YGHPAUMap_00408090@@PAUPosition_00408090@@@Z,matched,100.0
@@ -60,6 +60,7 @@ address,size,file,symbol,status,similarity
 0x40d4c0,19,src/unsorted/0x40d4c0.cpp,?FUN_0040d4c0@Class_0040d4c0@@QAEHXZ,matched,100.0
 0x40d4e0,3,src/unsorted/0x40d4e0.cpp,?FUN_0040d4e0@@YGXHH@Z,matched,100.0
 0x40d4f0,35,src/unsorted/0x40d4f0.cpp,?FUN_0040d4f0@@YGXPAD00@Z,matched,100.0
+0x40d520,35,src/unsorted/0x40d520.cpp,?FUN_0040d520@@YGXPAEI0@Z,matched,100.0
 0x40d5b0,41,src/unsorted/0x40d5b0.cpp,?FUN_0040d5b0@@YGXPAUPair_40d5b0@@I0@Z,matched,100.0
 0x40d5e0,25,src/unsorted/0x40d5e0.cpp,?FUN_0040d5e0@@YGXPAH0@Z,matched,100.0
 0x40d620,73,src/unsorted/0x40d620.cpp,?FUN_0040d620@@YGXPAUEntry_40d670@@0PAH0@Z,matched,100.0
@@ -79,7 +80,7 @@ address,size,file,symbol,status,similarity
 0x415b90,20,src/unsorted/0x415b90.cpp,?FUN_00415b90@Class_00415b90@@QAEXXZ,matched,100.0
 0x415da0,17,src/unsorted/0x415da0.cpp,?FUN_00415da0@Class_00415da0@@QAEXHE@Z,matched,100.0
 0x415dc0,147,src/unsorted/0x415dc0.cpp,?FUN_00415dc0@Class_00415dc0@@QAEHH@Z,matched,100.0
-0x4161f0,75,src/unsorted/0x4161f0.cpp,?FUN_004161f0@@YAXXZ,partial,100.0
+0x4161f0,75,src/unsorted/0x4161f0.cpp,?FUN_004161f0@@YAXXZ,matched,100.0
 0x416270,3,src/unsorted/0x416270.cpp,?FUN_00416270@@YGXH@Z,matched,100.0
 0x416280,134,src/unsorted/0x416280.cpp,?FUN_00416280@@YGXPAVClass_004b73e0@@@Z,matched,100.0
 0x416370,3,src/unsorted/0x416370.cpp,?FUN_00416370@@YGXH@Z,matched,100.0
@@ -102,6 +103,7 @@ address,size,file,symbol,status,similarity
 0x416cf0,33,src/unsorted/0x416cf0.cpp,?FUN_00416cf0@@YGXPAX@Z,matched,100.0
 0x416d20,33,src/unsorted/0x416d20.cpp,?FUN_00416d20@@YGXPAX@Z,matched,100.0
 0x416db0,66,src/unsorted/0x416db0.cpp,?FUN_00416db0@@YGXPAVClass_004b7410@@@Z,matched,100.0
+0x416e00,34,src/unsorted/0x416e00.cpp,?FUN_00416e00@@YGXH@Z,partial,10.5
 0x416e30,34,src/unsorted/0x416e30.cpp,?FUN_00416e30@@YGXH@Z,matched,100.0
 0x417030,37,src/unsorted/0x417030.cpp,?FUN_00417030@@YGXH@Z,matched,100.0
 0x417060,37,src/unsorted/0x417060.cpp,?FUN_00417060@@YGXH@Z,matched,100.0
@@ -150,6 +152,7 @@ address,size,file,symbol,status,similarity
 0x422460,74,src/unsorted/0x422460.cpp,?FUN_00422460@@YGPAVClass_004c3e10@@PAD@Z,matched,100.0
 0x422dd0,97,src/unsorted/0x422dd0.cpp,?FUN_00422dd0@@YGFPAD@Z,matched,100.0
 0x422e40,95,src/unsorted/0x422e40.cpp,?FUN_00422e40@@YGGPAD@Z,matched,100.0
+0x4232a0,68,src/unsorted/0x4232a0.cpp,?FUN_004232a0@@YAHXZ,matched,100.0
 0x423bf0,88,src/unsorted/0x423bf0.cpp,?FUN_00423bf0@@YGXPAUObj_00423bf0@@@Z,matched,100.0
 0x4251e0,3,src/unsorted/0x4251e0.cpp,?FUN_004251e0@@YGXHH@Z,matched,100.0
 0x4251f0,18,src/unsorted/0x4251f0.cpp,?FUN_004251f0@Class_004251f0@@QAEHXZ,matched,100.0
@@ -419,6 +422,7 @@ address,size,file,symbol,status,similarity
 0x45ba20,63,src/unsorted/0x45ba20.cpp,?FUN_0045ba20@@YGHPAUClass_0045ba20@@@Z,matched,100.0
 0x45baf0,14,src/unsorted/0x45baf0.cpp,?FUN_0045baf0@@YGXPAXH@Z,matched,100.0
 0x45bcc0,81,src/unsorted/0x45bcc0.cpp,?FUN_0045bcc0@@YAXXZ,matched,100.0
+0x45bf60,161,src/unsorted/0x45bf60.cpp,?FUN_0045bf60@@YGXPAD0HH@Z,matched,100.0
 0x45c510,88,src/unsorted/0x45c510.cpp,?FUN_0045c510@@YAXXZ,matched,100.0
 0x45c630,150,src/unsorted/0x45c630.cpp,?FUN_0045c630@@YAXXZ,matched,100.0
 0x45c6d0,110,src/unsorted/0x45c6d0.cpp,?FUN_0045c6d0@@YAXXZ,matched,100.0
@@ -433,7 +437,7 @@ address,size,file,symbol,status,similarity
 0x461170,1,src/unsorted/0x461170.cpp,?FUN_00461170@@YAXPBDZZ,matched,100.0
 0x461180,87,src/unsorted/0x461180.cpp,?FUN_00461180@@YGHHHPAXH@Z,matched,100.0
 0x4615f0,20,src/unsorted/0x4615f0.cpp,?FUN_004615f0@Class_004615f0@@QAEXXZ,matched,100.0
-0x461610,1,src/unsorted/0x461610.cpp,?FUN_00461610@@YAXXZ,matched,100.0
+0x461610,1,src/unsorted/0x461610.cpp,?FUN_00461610@Class_00461610@@QAEXXZ,matched,100.0
 0x461620,3,src/unsorted/0x461620.cpp,?FUN_00461620@@YGXHHH@Z,matched,100.0
 0x461990,27,src/unsorted/0x461990.cpp,?FUN_00461990@@YGXHHHH@Z,matched,100.0
 0x4619b0,46,src/unsorted/0x4619b0.cpp,?FUN_004619b0@Class_004619b0@@QAEPAXHHPAXI@Z,matched,100.0
@@ -529,6 +533,7 @@ address,size,file,symbol,status,similarity
 0x472e00,33,src/unsorted/0x472e00.cpp,?FUN_00472e00@Class_00472e00@@QAEHXZ,matched,100.0
 0x472f60,33,src/unsorted/0x472f60.cpp,?FUN_00472f60@Class_00472f60@@QAEHXZ,matched,100.0
 0x472fd0,55,src/unsorted/0x472fd0.cpp,?FUN_00472fd0@Class_00472fd0@@QAEHXZ,matched,100.0
+0x4730c0,33,src/unsorted/0x4730c0.cpp,?FUN_004730c0@Class_004730c0@@QAEHXZ,matched,100.0
 0x4732d0,3,src/unsorted/0x4732d0.cpp,?FUN_004732d0@@YGXHH@Z,matched,100.0
 0x473500,46,src/unsorted/0x473500.cpp,?FUN_00473500@@YGPAIPAI00@Z,matched,100.0
 0x473530,35,src/unsorted/0x473530.cpp,?FUN_00473530@@YGXPAHI0@Z,matched,100.0
@@ -654,6 +659,7 @@ address,size,file,symbol,status,similarity
 0x4904b0,11,src/unsorted/0x4904b0.cpp,?FUN_004904b0@Class_004904b0@@QAEXXZ,matched,100.0
 0x490630,32,src/unsorted/0x490630.cpp,?FUN_00490630@Class_00490630@@QAEPAXH@Z,matched,100.0
 0x4907e0,94,src/unsorted/0x4907e0.cpp,??0Class_004907e0@@QAE@PAUStruct_004907e0@@@Z,matched,100.0
+0x490840,32,src/unsorted/0x490840.cpp,?FUN_00490840@Class_00490840@@QAEPAXE@Z,partial,64.0
 0x490880,38,src/unsorted/0x490880.cpp,?FUN_00490880@Class_00490880@@QAEXXZ,matched,100.0
 0x4908b0,7,src/unsorted/0x4908b0.cpp,?FUN_004908b0@Class_004908b0@@QAEEXZ,matched,100.0
 0x4908c0,125,src/unsorted/0x4908c0.cpp,?FUN_004908c0@Class_004908c0@@QAEXPAVClass_00415c10@@@Z,matched,100.0
@@ -867,6 +873,7 @@ address,size,file,symbol,status,similarity
 0x4ba690,22,src/unsorted/0x4ba690.cpp,?FUN_004ba690@@YGXH@Z,matched,100.0
 0x4ba6e0,22,src/unsorted/0x4ba6e0.cpp,?FUN_004ba6e0@@YGXPAUClass_004ba6e0@@@Z,matched,100.0
 0x4ba730,22,src/unsorted/0x4ba730.cpp,?FUN_004ba730@@YGXPAUObj_004ba730@@@Z,matched,100.0
+0x4ba880,151,src/unsorted/0x4ba880.cpp,?FUN_004ba880@@YGEPAUtagPALETTEENTRY@@U1@@Z,matched,100.0
 0x4bab00,43,src/unsorted/0x4bab00.cpp,?FUN_004bab00@@YGXPAI@Z,matched,100.0
 0x4bab90,3,src/unsorted/0x4bab90.cpp,?FUN_004bab90@@YGXHHH@Z,matched,100.0
 0x4bb0a0,67,src/unsorted/0x4bb0a0.cpp,?FUN_004bb0a0@@YGHPAD@Z,matched,100.0

@@ -572,6 +572,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A pointer computed into `ecx` before a float argument's `push ecx; fstp
   [esp]`, then pushed again as an argument**: the callee is a `__thiscall`
   method called on that pointer (0x41bd10).
+- **A parameter loaded after `operator new` that the original loads before**:
+  bind a reference to the global slot first (`T*& slot = arr[i]; slot = new
+  T(i);`), as in 0x40b320.
+- **Dead sums in a loop**: MSVC 5 keeps unused accumulations inside loops;
+  write them as unused locals rather than looking for a consumer.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -599,6 +599,18 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Finding a class's layout from its destructor**: grep the disassembly for
   the vtable address to find the constructor's store site; the constructor
   shows where member arrays start (0x462d30).
+- **Call order of `f() + g()`** (two calls without arguments): MSVC 5 calls
+  the one declared later first, whatever the source order; reorder the
+  declarations, not the expression (0x4468c0).
+- **A float field spilled with `fld; fstp [esp+N]` before a call it is compared
+  with**: only a non-leaf expression such as `(cap = p->x) < f()` does that; a
+  plain field or a local copy is loaded after the call (0x419400).
+- **`__DATE__`/`__TIME__` strings**: write the literals ("Jul 30 1998",
+  "11:16:36"); the macros give today's date (0x41d920).
+- **A hand-stored vtable** (`vtable = DAT_x;`) is a last resort: declare the real
+  virtual slots with the names they already have (placeholder `FUN_` names in
+  different classes are compatible) and let the constructor or destructor store
+  it (0x43a1f0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

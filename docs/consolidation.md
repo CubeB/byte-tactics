@@ -60,6 +60,12 @@ revisit them once the surrounding code is known.
   from the base with vtable 0x4fc980, the base destructor inlined. Placeholder
   slot names are now compatible across classes, so a real `??_G` may now pass.
 
+- 0x417a60 (the debug crash command) divides by `(one >> 1)` with
+  `volatile int one = 1`; plausible for a deliberate crash, but check once
+  its file's other functions are known.
+- 0x407980, 0x408810, 0x4079d0 and 0x407390 still store a hand-assigned vtable;
+  see 0x43a1f0.cpp for the real-slot form, which now passes the checks.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

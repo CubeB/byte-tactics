@@ -1,50 +1,64 @@
-// Decompiled by Sonnet. Names are provisional.
+// Decompiled by Sonnet and Opus. Names are provisional.
+// The compiler-generated scalar deleting destructor of Class_00490880
+// (vtable 0x4fd9e0), derived from Class_00490630 and Class_0044ef20 (see
+// 0x44ef60.cpp for the family). Its out-of-line destructor (0x4909e0, the
+// definition below) is inlined; it frees the object at +0x4 through its
+// virtual destructor. The middle class's vtable store is dead and disappears,
+// then the empty inline base destructor stores 0x4fd428.
 
-class Base4 {
+class Base_00490a10 {                  // the object at +0x4 (see 0x490a10.cpp)
 public:
-    virtual ~Base4();
+    virtual ~Base_00490a10();
 };
 
-// Base class, 11 virtual functions (see src/unsorted/0x44f590.cpp); its own
-// destructor is empty inline, so it is folded into the derived destructor
-// below. Slots not overridden by the derived class (1,3,5,6,7,8,10) keep
-// their base addresses; slots overridden here (2,4,9) are named after the
-// derived-class methods that occupy them so the vtable ends up right.
-//
-// Slots 2, 4 and 9 cannot satisfy both this class's OWN vtable
-// (??_7Class_0044f590, used while unwinding to the base part) and the derived
-// class's OWN vtable (??_7Class_00490880) at once: a true override must use
-// one identical name in both classes, but the base's own copy is a
-// different, already-established function (0x44efb0 = FUN_0044efb0,
-// src/unsorted/0x44efb0.cpp; 0x44f000 = FUN_0044f000, no file yet;
-// 0x44efd0 = FUN_0044efd0, src/unsorted/0x44efd0.cpp) from the derived
-// override (0x490690 = Class_00490880::FUN_00490690, no file yet; 0x490650 =
-// Class_00490650::FUN_00490650, src/unsorted/0x490650.cpp; 0x490a10 =
-// Class_00490a10::FUN_00490a10, src/unsorted/0x490a10.cpp). Named here to
-// satisfy the derived override (the more specific, already-qualified match);
-// Class_0044f590's own vtable is left with a BAD reference at slots 2, 4 and 9.
-class Class_0044f590 {
-public:
-    virtual ~Class_0044f590() {}
-    virtual void FUN_0044ef90(void* param);
-    virtual void FUN_00490690();
-    virtual void FUN_0044ef40(int, int, int);
-    virtual void FUN_00490650(int, int, int);
-    virtual int FUN_0044ef80();
-    virtual int FUN_0044eff0();
-    virtual int FUN_0044efe0();
-    virtual void FUN_0044efc0(int);
-    virtual void FUN_00490a10(int);
-    virtual void FUN_0044ef50(int);
+struct Struct_004907e0;                // the owner (see 0x4907e0.cpp)
+
+struct Vec3_004907e0 {
+    int x, y, z;
 };
 
-class Class_00490880 : public Class_0044f590 {
+// Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
+class Class_0044ef20 {
 public:
-    Base4* field_4;
-    virtual ~Class_00490880();
-    virtual void FUN_00490690();
-    virtual void FUN_00490650(int, int, int);
-    virtual void FUN_00490a10(int);
+    Base_00490a10* field_4;            // +0x4
+    Struct_004907e0* owner;            // +0x8
+
+    Class_0044ef20(Struct_004907e0* p);
+    virtual ~Class_0044ef20() {}                    // slot 0
+    virtual void FUN_0044ef90(void* param);         // slot 1
+    virtual void FUN_0044efb0();                    // slot 2
+    virtual void FUN_0044ef40(int, int, int);       // slot 3
+    virtual void FUN_0044f000(int, int, int);       // slot 4
+    virtual int FUN_0044ef80();                     // slot 5
+    virtual int FUN_0044eff0();                     // slot 6
+    virtual int FUN_0044efe0();                     // slot 7
+    virtual void FUN_0044efc0(int);                 // slot 8
+    virtual void FUN_0044efd0(int);                 // slot 9
+    virtual void FUN_0044ef50(int);                 // slot 10
+};
+
+// Vtable 0x4fd980, constructor 0x4905e0, ??_G 0x490630.
+class Class_00490630 : public Class_0044ef20 {
+public:
+    Vec3_004907e0 pos;                 // +0xc
+    Vec3_004907e0 vel;                 // +0x18
+    short field_24;                    // +0x24
+    char field_26;                     // +0x26
+    unsigned char dirty : 1;           // +0x27 bit 0
+    unsigned char mode : 2;            // +0x27 bits 1-2
+
+    Class_00490630(Struct_004907e0* p);
+    virtual void FUN_0044efb0();                    // slot 2, 0x490690
+    virtual void FUN_0044f000(int, int, int);       // slot 4, 0x490650
+};
+
+// Vtable 0x4fd9e0, constructor 0x490940, destructor 0x4909e0, ??_G 0x4909a0.
+// Slots 2 and 4 are inherited from Class_00490630.
+class Class_00490880 : public Class_00490630 {
+public:
+    Class_00490880(Struct_004907e0* p);
+    virtual ~Class_00490880();                      // slot 0
+    virtual void FUN_0044efd0(int);                 // slot 9, 0x490a10
 };
 
 // FUNCTION: 0x4909a0 ??_GClass_00490880@@UAEPAXI@Z

@@ -1249,6 +1249,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   local can then swap which registers those `lea`s get. Found by Claude Opus
   5.5 in #118 (0x41cd50), where the N-declarations test showed the old source
   was the wrong shape: 82.8% at every N.
+- **A narrow parameter pushed as a full dword**: if the callee's own file
+  declares a parameter `char` or `short` but your caller pushes a full dword
+  load (`mov ecx, [esi+0x36]; push ecx`), declare it `int` in your file; the
+  narrow type adds a byte or word load. Found by Claude Opus 5.5 in #97
+  (0x4118e0).
+- **`push reg` of a register known to hold 0** can be a literal `0` argument;
+  MSVC 5 reuses the register (0x4118e0 `push edi`, 0x411f50 `push ebx`).
+- **An argument evaluated before `new`** was a local computed before the
+  `new` expression (`Unit* pad = pads[...];`). See 0x4118e0.
+- **Unsolved: a constant factor moved last in a float product**: in
+  `(float)sqrt(x) * 30.0f * n` MSVC 5 moves the constant last (and may negate
+  it to turn a following `+` into a `sub`); parentheses keep the order but turn
+  `fidiv`/`fimul` into `fild`-based code. See 0x411f50 if you solve it.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -182,6 +182,13 @@ can disagree on types (a real link would fail). Known cases:
   a register and push it, which only a 4-byte struct passed by value does;
   0x412d40.cpp declares it as a union. Settle on the struct.
 
+- 0x4118e0 passes the landing pad index as a full dword to
+  `Class_0044e250::Class_0044e250` and `FUN_0048aac0`, whose own files declare
+  that parameter `short` and `char`; 0x4118e0.cpp declares them `int`. The
+  real parameters are probably `int`. 0x44e190 (unnamed) is a constructor
+  (stores vtables, returns `this`, called on `operator new(0x36)`); 0x4118e0
+  and 0x411f50 call it `Class_0044e190::Class_0044e190(Order*, Unit*)`.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

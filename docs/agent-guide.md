@@ -1135,6 +1135,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   gives the same load, not, and, or sequence as toggling a one-bit bitfield;
   `f ^= mask` compiles to a memory `xor`. Found by DeepSeek V4.1 Flash in #17
   (0x418d90, 0x418e50).
+- **A `lea` kept in a register before a field load**: `lea reg, [base+idx*4]`
+  followed by a load from `[reg+K]`, instead of one folded address, means the
+  field was read twice through a pointer local
+  (`if (c->dir != dir) dir = c->dir;`). MSVC merges the second load but keeps
+  the address. Found by Claude Opus 5.5 in #99 (0x40e050).
+- **A two-field inequality test that loads y before x**: if
+  `a.x != b.x || a.y != b.y` loads the wrong field first, write it as an
+  inline `operator!=` on the point struct. See 0x40e050.
+- **Inline copies of an out-of-line helper**: give the inline copy the same
+  parameters and body as the out-of-line one (for example, have it read
+  `node = items[i]` itself rather than being passed the node). Computing an
+  argument at the call site changes register allocation before the loop. See
+  0x40ef20 against 0x40f060.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

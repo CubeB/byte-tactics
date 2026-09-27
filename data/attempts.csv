@@ -2410,9 +2410,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x40d020,532,,#80,assigned,,,issue #80
 0x40d290,477,,#80,assigned,,,issue #80
 0x40da70,1167,,#80,assigned,,,issue #80
-0x40e160,1224,,#81,assigned,,,issue #81
-0x40e630,880,,#81,assigned,,,issue #81
-0x40eb70,937,,#81,assigned,,,issue #81
+0x40e160,1224,opus,#81,matched,100.0,,issue #81
+0x40e630,880,opus,#81,partial,85.6,,issue #81
+0x40eb70,937,opus,#81,matched,100.0,,issue #81 (one name fixed at merge)
 0x40f2a0,1260,opus,#82,matched,100.0,,issue #82
 0x40f7d0,590,opus,#82,matched,100.0,,issue #82
 0x40fa20,435,opus,#82,matched,100.0,,issue #82

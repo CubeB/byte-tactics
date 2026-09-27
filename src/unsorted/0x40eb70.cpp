@@ -36,7 +36,7 @@ struct Node_0040eb70 {
     NodeData_0040eb70 data;            // +0x4
 };
 
-class Class_0040f060 {
+class Class_0040f000 {
 public:
     void FUN_0040f060(int i);
 };
@@ -256,7 +256,7 @@ void Class_0040eb70::FUN_0040eb70()
                     if (idx < count) {
                         items[idx] = items[count];
                         items[idx]->index = idx;
-                        ((Class_0040f060*)this)->FUN_0040f060(idx);
+                        ((Class_0040f000*)this)->FUN_0040f060(idx);
                     }
                 }
                 NodeData_0040eb70 d = items[0]->data;

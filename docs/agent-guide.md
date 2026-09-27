@@ -1111,6 +1111,30 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `(flag != 0) ? "ON" : "OFF"` to get `test byte ptr [m], mask; mov eax, <on>;
   jne; mov eax, <off>`. `flag ? a : b` gives `shr`/`test`, and `!flag ? b : a`
   flips the branch. Found by DeepSeek V4.1 Flash in #16 (0x418cd0).
+- **A label and `goto` instead of an outer loop**: MSVC 5 weights register
+  priority by loop nesting, so an extra loop level changes which variable gets
+  which register. In 0x40e160 an outer `for (;;)` around two inner loops put
+  `this` in ebp; a label with a `goto` back to it (as the original evidently
+  did) gave `this` esi and raised the score from 62% to 82%. Found by Claude
+  Opus 5.5 in #81.
+- **Inlined 16.16 multiplies that compile two ways**:
+  `(int)(((__int64)s * f()) >> 16)` gives `imul reg` at some sites and
+  `mov ecx, eax; mov eax, reg; imul ecx` at others. A `FixMul(a, b)` helper
+  taking both as parameters gives the second form. When the forms differ per
+  site, mix the two spellings, then run tools/headers.py. See 0x40e160.
+- **A top-tested loop under an `else if`, failure path last**:
+  `else if (Size() != 0) { while (1) { if (Size() == 0) break; ... } } else { fail }`.
+  A plain `while (Size() != 0)` gets rotated, and
+  `else if (Size() == 0) { fail } else { ... }` puts the failure block first.
+  See 0x40eb70.
+- **A shared cleanup block that jumps back to the main epilogue**: one branch
+  falls into a label (`finish:`) that another reaches with `goto`. A `return`
+  inside a scope with a destructor gives that exit its own epilogue copy
+  instead. See 0x40e630.
+- **Toggling a bit in a plain integer field**: `f = (f & ~mask) | (~f & mask)`
+  gives the same load, not, and, or sequence as toggling a one-bit bitfield;
+  `f ^= mask` compiles to a memory `xor`. Found by DeepSeek V4.1 Flash in #17
+  (0x418d90, 0x418e50).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

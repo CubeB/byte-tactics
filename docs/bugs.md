@@ -113,3 +113,16 @@ Things that look wrong in the original but have no effect, kept for the record.
   because the constructor 0x40e9e0 rounds the cell count up to a multiple of
   8 and allocates that many, so every group is either wholly valid or never
   marked. Found by Claude Opus 5.5 in #90.
+- **0x419670**: the unit type's flag bit 11 is tested twice in a row
+  (`test ah, 8; jne` at 0x41976e lands on `shr eax, 0xb; test al, 1; je` at
+  0x419789), so the second test's branch can never be taken. A redundant
+  condition in the source. Found by DeepSeek V4.1 Flash in #17.
+- **0x40e630** (starts a path search): the start node's short at +0xc of its
+  data is never set. The node is built on the stack with only its position and
+  the word at +0xe (100) written, then copied into the pool, so +0xc is stack
+  garbage, and FUN_0040da70 adds a node's +0xc into its cost (0x40db0c).
+  Probably harmless, since the start node is popped and closed on the first
+  expansion before anything reads it. Found by Claude Opus 5.5 in #81.
+- **0x40eb70** (the per-tick path scheduler): the `r < 3` case and the final
+  `else` set the same value, and its second call to 0x40ef20 can never run.
+  Found by Claude Opus 5.5 in #81.

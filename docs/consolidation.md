@@ -22,12 +22,17 @@ single addresses, so one real class often appears under several names.
   (`Class_00470b80::FUN_00470b80`).
 - `Class_0044e250` and `Class_0044e330`: two constructors storing vtable
   `DAT_004fd3b8`.
-- The AI search grid ("AISearch touched mapentries"): 0x40e9e0 is its
-  constructor (`Class_0040e9e0`), 0x40d900 clears it (`Class_0040d900`, grid
-  embedded at +0x1c), with cells at +0x1c, width +0x20, height +0x24, cell
-  count (rounded up to 8) +0x28 and one dirty bit per 8 cells at +0x2c.
-  0x40df00, 0x40e050, 0x40ef20, 0x40f000, 0x40f060 and 0x40f110 (the search
-  and its binary heap, #12) are probably the same object.
+- The pathfinder ("AISearch touched mapentries" is its grid): one class with
+  a binary heap of 20-byte nodes at +0 and the grid at +0x1c (cells +0x1c,
+  width +0x20, height +0x24, cell count rounded up to 8 at +0x28, one dirty bit
+  per 8 cells at +0x2c). Its methods are matched under separate placeholder
+  classes: 0x40e9e0 (constructor), 0x40d7b0, 0x40d880, 0x40d8b0, 0x40d900,
+  0x40da40, 0x40e160, 0x40e630, 0x40e9a0, 0x40eb70, 0x40f000/0x40f060 (heap
+  sift up and down, already `Class_0040f000`), 0x40ef20 (heap `Remove(k)`),
+  0x40f1e0, and probably 0x40df00, 0x40e050 and 0x40f110. 0x40da40 is the
+  out-of-line copy of the cost helper inlined into 0x40e160 and 0x40e630;
+  0x40d880, 0x40d8b0 and 0x40e9a0 are inlined into 0x40e630. Found in #12, #81
+  and #90.
 - Functions that store the same vtable address belong to the same class (or a
   base/derived pair); a tool listing every vtable store would find the rest.
 

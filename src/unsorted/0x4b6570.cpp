@@ -1,31 +1,57 @@
-// Decompiled by Space Bunny Free. Names are provisional.
-// Frame rate counter: samples the clock, updates the frames-per-second value
-// and draws it over the frame when there is no offscreen GDI device context.
+// Decompiled by space-bunny-free. Names are provisional.
+// Frame rate counter: adds the time since the last call to the counter, and once
+// a second stores the number of frames in that second as the frame rate. When
+// there is no offscreen GDI device context it draws "FRATE <rate>" over the
+// frame through the surface's device context.
 //
-// Still differs (96.7%, 294 of 294 bytes, all three diffs are pure scheduling
-// of the same instructions inside the GDI block, same registers, same sizes):
+// 96.7%, 294 of 294 bytes, so every instruction is the right size and the
+// frame, the six reloads and the register choices are right. All three
+// differences are the same thing: where the reload of the address-taken local
+// `dc` sits inside the argument block of its call, the original lets it sink
+// one or two instructions further down than ours:
 //   +0x95 the original loads the hoisted SelectObject import into esi before
 //        reloading dc, ours reloads dc first;
 //   +0xdc the original emits `lea ecx,[buf]`, `push ebx` and only then reloads
 //        dc, ours reloads dc before the lea;
 //   +0xf1 the original pushes the old font before reloading dc, ours reloads
 //        dc first.
-// So the original puts the reload of the address-taken local dc one slot later
-// in those three statements. Phrasing the statements differently (temporaries,
-// comma operators, static inline helpers, block scopes, dead statements, other
-// field types, pack(1) instead of pack(2), a different buffer size) never moved
-// it; every variant compiles to the same order. The vtable methods must be
-// __stdcall (that is what produces `push this` plus `mov edx,[eax]`), and
-// headers.py reports no header set that changes anything.
-// A second pass followed the guide's "copy them into locals just before the
-// call; the order of those copies decides which load MSVC hoists": a fresh
-// HDC copy immediately before each of the six calls, the same for a three-call
-// subset, one copy for the whole block, SetTextColor moved ahead of the
-// wsprintf, and the font and rate read into locals before any drawing call.
-// The per-call copies still give 96.7% with the same three diffs; the other
-// three fall to 59 to 70%, so they change more than they fix. The order
-// between a hoisted import load and a stack-slot reload is the scheduler's
-// choice and does not follow from the source.
+// The registers and the displacements agree in all three places (edx/eax and
+// [esp+0xc] shifted by 4 for each push), so this is a scheduling tie-break,
+// not a different source value. The other three calls (SetBkMode at +0x83,
+// SetTextColor at +0xc0, EndDraw at +0x105) put the reload first in both.
+//
+// What the source below already gets right, and what the three diffs must not
+// disturb: the frame is exactly filled, 4 bytes of `dc` at +0xc plus the
+// 128-byte buffer at +0x10 leaves the 132 bytes the prologue reserves, so
+// there is no room for a third local; the address-taken `dc` is reloaded after
+// every one of the six calls; the SelectObject import is hoisted into esi
+// because it is called twice; the wsprintf result is kept in ebx; and the
+// vtable load `mov edx,[eax]` comes after the pushes of both __stdcall
+// methods, which is why those two slots must be __stdcall.
+//
+// A /Fa listing of this file shows that MSVC 5.0 emits the whole argument
+// block of a call under one statement, and that in this build it does not move
+// anything inside a block: our order is the plain source order, the reload of
+// `dc` first, in all six calls. So the original's compiler had three of those
+// reloads at a lower priority than the neighbouring import load, buffer lea
+// and register push. Nothing in this function's source shape moved them.
+// Compiled and diffed instruction by instruction, all byte-identical to this
+// file: swapping the two local declarations; putting both locals in one local
+// struct and using its fields; reading the local through a `HDC*`; an inline
+// helper taking `HDC&` for the whole drawing block; inline helpers for the
+// font read, the rate read, SetBkMode, TextOut, the GetDC call and the
+// `&dc`; about fifteen spellings (`== 0` against `!`, TRANSPARENT against 1,
+// RGB(255,255,0) against 0xffff, wsprintf against wsprintfA, TextOut against
+// TextOutA, split declarations and assignments, `== NULL` for the offscreen
+// test, DWORD against unsigned int, `+=` against `= ... +`); 0 to 12 and 500
+// extern declarations, 2000 unused prototypes and an unrelated function placed
+// ahead of this one; and all 128 header sets headers.py tries.
+//
+// The three reloads are therefore very likely decided by compiler state this
+// function's own source cannot reach, most likely the register allocator's
+// state left by whatever Cavedog compiled just before it in the same
+// translation unit, which docs/AGENTS.md expects to be recoverable when
+// functions are regrouped into their original translation units.
 #include <windows.h>
 
 // The surface at +0x8c is used through its vtable. Only two slots matter here:

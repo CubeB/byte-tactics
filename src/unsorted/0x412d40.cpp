@@ -1,0 +1,241 @@
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// VTOL strafing attack order handler. With flags 0x10008, or with no target
+// and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge player it
+// heads for the map centre. State 0 prepares the order ("Attacking";
+// FUN_0040f200 is defined here because /Ob2 inlined it). State 1 attacks:
+// when the target lies ahead (IsAhead) it makes a strafing run, otherwise it
+// circles, leading the target by its velocity, and after 90 ticks of that
+// it queues VTOL_EVADE.
+// Match notes: IsAhead must be an inline helper (its locals then share stack
+// slots with the later ones, giving the 0x38 frame; a plain block does not),
+// and FUN_004103a0's scale is a by-value 4-byte union, which is why every
+// caller loads the constant into a register before pushing it.
+#include <math.h>
+
+struct Vec3 {
+    union { int x; struct { unsigned short xf; short xw; }; };
+    int y;
+    union { int z; struct { unsigned short zf; short zw; }; };
+    void operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; }
+    Vec3 operator+(const Vec3& v) const { Vec3 r = *this; r += v; return r; }
+};
+
+union Fixed {
+    int v;
+    struct { unsigned short frac; short whole; } p;
+};
+
+class Class_00438760 {
+public:
+    unsigned char index;
+    Class_00438760(const char* name);
+};
+
+struct Unit;
+class Class_0043d210 {
+public:
+    char unknown_0[8];
+    Vec3 v;                            // +0x8
+    char unknown_14[0x2e - 0x14];
+    unsigned char field_2e;            // +0x2e
+    void FUN_0043d210(Unit* unit, int state);
+};
+class Class_004898b0 { public: void FUN_004898b0(int); };
+class Class_00489800 { public: void FUN_00489800(int); };
+class Class_0048b090 { public: void FUN_0048b090(int, int); };
+class Class_004388d0 { public: void FUN_004388d0(int); };
+class Class_00438880 { public: void FUN_00438880(const char*); };
+class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_0044e6c0 { public: void FUN_0044e6c0(int); };
+class Class_0044e730 { public: void FUN_0044e730(short); };
+
+#pragma pack(push, 1)
+struct UnitDef {
+    char pad0[0x192]; int field_192;
+    char pad196[0x21c - 0x196]; short field_21c;
+    char pad21e[0x241 - 0x21e]; unsigned int flags;
+};
+struct Unit {
+    Class_0043d210* type;
+    char pad4[0x66 - 4]; short heading;
+    char pad68[2];
+    union {
+        Vec3 pos;
+        struct { unsigned short xf; short x; int y; unsigned short zf; short z; } p;
+    };
+    char pad76[0x82 - 0x76];
+    int field_82; int field_86;
+    char pad8a[8]; UnitDef* def;
+    char pad96[0x110 - 0x96]; unsigned int flags;
+};
+struct Order {
+    char pad0[5]; unsigned char state; unsigned int flags;
+    char padA[0x16 - 0xa]; Unit* target;
+    char pad1a[0x22 - 0x1a]; Vec3 pos;
+    short x; short z;
+    char pad32[0x36 - 0x32]; int field_36;
+    char pad3a[0x3e - 0x3a]; int range;
+    unsigned int field_42;
+    char pad46[4]; int field_4a;
+};
+struct Game {
+    char pad0[0x1422b]; int width; int height;
+    char pad14233[0x142b7 - 0x14233]; int field_142b7;
+};
+class Class_0044e2d0 {
+public:
+    char unknown_0[0x36];
+    Class_0044e2d0(Order* order, const Vec3& pos);
+};
+#pragma pack(pop)
+
+#pragma pack(push, 2)
+class Class_0043a0c0 {
+public:
+    char unknown_0[0x56];
+    Class_0043a0c0(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
+};
+class Class_0044e740 {
+public:
+    char unknown_0[0x2c];
+    Class_0044e740(Order* order, const Vec3& a, const Vec3& b);
+    void FUN_0044ec10(int);
+};
+#pragma pack(pop)
+
+extern Game* g_game;
+
+int __stdcall FUN_004b6c30(int);
+int __cdecl FUN_004b70ef(short, int);
+int __cdecl FUN_004b7123(short, int);
+int __stdcall FUN_0048a980(Vec3*, Vec3*);
+void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
+void __stdcall FUN_0048a060(Unit*, Unit*, int);
+void __stdcall FUN_0043ad10(Unit*, Class_0043a0c0*);
+void __stdcall FUN_0043acb0(Unit*, Class_0043a0c0*);
+
+Vec3 __stdcall FUN_004103a0(short angle, Fixed scale);
+Vec3 __stdcall FUN_0040f790(const Vec3& a, const Vec3& b);
+
+static inline Vec3 Offset(short angle, int distance)
+{
+    Vec3 v;
+    v.x = -FUN_004b70ef(angle, distance);
+    v.y = 0;
+    v.z = -FUN_004b7123(angle, distance);
+    return v;
+}
+
+static inline Vec3 Add(const Vec3& a, const Vec3& b)
+{
+    Vec3 r;
+    r.x = a.x + b.x;
+    r.y = a.y + b.y;
+    r.z = a.z + b.z;
+    return r;
+}
+
+// 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
+void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
+{
+    ((Class_004898b0*)unit)->FUN_004898b0(3);
+    if (unit->field_86)
+        FUN_0048aac0(unit, 0, -1, 2);
+    ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
+    if ((unit->type->field_2e & 3) == 1) {
+        unit->type->FUN_0043d210(unit, 2);
+        Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
+        ((Class_0044e6c0*)obj)->FUN_0044e6c0(unit->def->field_21c / 2);
+        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        order->flags |= flags | 0xe0;
+    }
+}
+
+static inline int IsAhead(Unit* unit, Order* order)
+{
+    Vec3 toward = Offset(FUN_0048a980(&unit->pos, &order->target->pos), 0x140000);
+    Fixed dist;
+    dist.v = 0x140000;
+    Vec3 facing = FUN_004103a0(unit->heading, dist);
+    return (short)(toward.xw * facing.xw + toward.zw * facing.zw) > 0;
+}
+
+// FUNCTION: 0x412d40
+int __stdcall FUN_00412d40(Unit* unit, Order* order, int flags)
+{
+    if (flags & 0x10008) {
+        if (order->field_4a == 0 && (unit->flags & 0x300000))
+            FUN_0043ad10(unit, new Class_0043a0c0("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
+        return 5;
+    }
+    if (order->target == 0 && (order->field_42 & 0x200)) {
+        if (order->field_4a == 0)
+            FUN_0043ad10(unit, new Class_0043a0c0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
+        return 5;
+    }
+    if (unit->field_82 == g_game->field_142b7) {
+        Vec3 centre;
+        centre.x = g_game->width / 2 << 16;
+        centre.z = g_game->height / 2 << 16;
+        short angle = FUN_0048a980(&unit->pos, &centre);
+        Vec3 dest = FUN_0040f790(unit->pos, Offset(angle, 0x3200000));
+        Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
+        ((Class_0044e730*)obj)->FUN_0044e730(0x80);
+        order->flags |= 0xe0;
+        ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+        return 2;
+    }
+    if (order->range && (int)_hypot(unit->p.x - order->x, unit->p.z - order->z) >= order->range)
+        return 5;
+    switch (order->state) {
+    case 0:
+        if (unit->type && (unit->def->flags & 0x800)) {
+            ((Class_00438880*)order)->FUN_00438880("Attacking");
+            FUN_0040f200(unit, order, 0);
+            ((Class_00439e80*)order)->FUN_00439e80(1);
+            order->field_36 = 0;
+            return 1;
+        }
+        break;
+    case 1:
+        ((Class_00489800*)unit)->FUN_00489800(3);
+        ((Class_004898b0*)unit)->FUN_004898b0(0);
+        FUN_0048a060(unit, order->target, 0);
+        if (flags & 0xe0) {
+            if (IsAhead(unit, order)) {
+                Vec3 from = Add(unit->pos, Offset(unit->heading, unit->def->field_192 * 30));
+                Vec3 to = Offset(unit->heading, unit->def->field_192);
+                Class_0044e740* obj = new Class_0044e740(order, from, to);
+                obj->FUN_0044ec10(unit->def->field_21c);
+                ((Class_004388d0*)order)->FUN_004388d0((int)obj);
+                ((Class_00439e80*)order)->FUN_00439e80(FUN_004b6c30(0x1e) + 0x3c);
+                order->field_36 = 0;
+                return 2;
+            }
+        }
+        if (!(flags & 0xe0) && order->field_36 < 0x5a) {
+            if (IsAhead(unit, order))
+                order->field_36 = 0;
+            else
+                order->field_36 += 0x2d;
+            Fixed d;
+            d.v = (int)_hypot(unit->pos.x - order->target->pos.x, unit->pos.z - order->target->pos.z);
+            if (d.p.whole > 0xa0) {
+                Vec3 p = order->target->pos;
+                p.x += order->target->type->v.x * 45;
+                p.z += order->target->type->v.z * 45;
+                ((Class_004388d0*)order)->FUN_004388d0((int)new Class_0044e740(order, p,
+                    order->target->type->v + Offset(order->target->heading, order->target->def->field_192 / 2)));
+            }
+            ((Class_00439e80*)order)->FUN_00439e80(0x2d);
+            order->flags |= 0x100e8;
+            return 2;
+        }
+        ((Class_004388d0*)order)->FUN_004388d0(0);
+        FUN_0043acb0(unit, new Class_0043a0c0("VTOL_EVADE", (int)order->target, 0, 0, 0, 0));
+        order->field_36 = 0;
+        order->flags = 0;
+        return 0;
+    }
+    return 7;
+}

@@ -27,7 +27,7 @@ struct Game_00494e70 {
     unsigned char field_2a43;           // +0x2a43
     unsigned char flags_2a44;           // +0x2a44
     char unknown_2a45[0x38d75 - 0x2a45];
-    unsigned short netFlags;            // +0x38d75, 16-bit flags word
+    volatile unsigned short netFlags;   // +0x38d75, 16-bit flags word (volatile: see below)
 };
 #pragma pack(pop)
 
@@ -47,8 +47,8 @@ extern int DAT_005091d0;
 // large it flips the network state DAT_005091d0 between 0 and 1 and resets the
 // counter DAT_0051f2fc.
 //
-// PARTIAL: everything matches except the two tests on g_game->netFlags at
-// 0x494e8b. The original emits two memory-operand bit tests
+// Matches with netFlags declared `volatile`. Without it, only the two tests
+// on g_game->netFlags at 0x494e8b differ. The original emits two memory-operand bit tests
 // (`test byte ptr [eax+0x38d75],1` then `...,2`); this source makes MSVC load
 // the byte once (`mov al,[eax+0x38d75]; test al,1; test al,2`), 4 bytes
 // shorter. The same pair appears in 0x452800 and in 0x453d40 (at 0x4550c2).
@@ -69,8 +69,9 @@ extern int DAT_005091d0;
 // (`mov cx,[m]; or ecx,4; mov [m],cx`), which MSVC 5 emits only for a
 // volatile field; every non-volatile form (`w |= 4`, `w = w & ~4`, a 1-bit
 // bitfield store, a struct copy) compiles to `or byte ptr [m],4` or
-// `and word ptr [m],0xfffb` straight to memory. Left non-volatile here
-// because the project rules forbid volatile; the orchestrator can decide.
+// `and word ptr [m],0xfffb` straight to memory. Accepted as the original
+// declaration (network state, likely also touched from DirectPlay's thread);
+// see docs/consolidation.md.
 
 // FUNCTION: 0x494e70
 void FUN_00494e70()

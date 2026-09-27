@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (94.5% with the current check.py diff), best found. Everything
+// Matches once flags_38d75 is declared `volatile`, as the original evidently
+// did (see 0x494e70.cpp for the evidence). Earlier notes, kept for reference:
 // matches except the flags test at +0x38d75: the original emits
 // `test byte ptr [edx+0x38d75],1` then `...,2` (two memory-operand bit
 // tests), while this source emits `mov al,[edx+0x38d75]; test al,1;
@@ -42,7 +43,7 @@ struct Game_00452800 {
     char unknown_2a3c[0x2a42 - 0x2a3c];
     unsigned char field_2a42;          // +0x2a42
     char unknown_2a43[0x38d75 - 0x2a43];
-    unsigned char flags_38d75;         // +0x38d75
+    volatile unsigned char flags_38d75; // +0x38d75, volatile in the original (see 0x494e70.cpp)
 };
 #pragma pack(pop)
 

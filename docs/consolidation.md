@@ -162,6 +162,14 @@ revisit them once the surrounding code is known.
   struct or called an inline reset helper; revisit when the class's other
   methods are known.
 
+- The network flags word at g_game+0x38d75 is declared `volatile` in
+  0x494e70.cpp and 0x452800.cpp. That is an exception to the no-`volatile`
+  rule, accepted on evidence: every write to it in the exe (0x496861,
+  0x4975c0, 0x497c57) is a word load, bit change and store through a register,
+  and every pair of bit tests (0x45290e, 0x4550c2, 0x494e8b) re-reads memory,
+  which MSVC 5 does only for a volatile field (#436). Declare it `volatile` in
+  the game struct when the files are merged.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

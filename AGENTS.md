@@ -158,7 +158,11 @@ Rules that matter most (the guide has the rest):
   orchestrator updates those after merging. Tell the orchestrator in the pull
   request if you think one of them is wrong.
 - Never use inline assembly, `#pragma optimize`, hard-coded addresses or
-  `volatile` tricks to force a match. The checker rejects most of these, and
+  `volatile` tricks to force a match. (The one exception is a field the
+  original evidently declared `volatile`: every write to it in the exe goes
+  through a register and every repeated read re-loads it. Say so in the pull
+  request with the addresses; the orchestrator decides. The network flags at
+  g_game+0x38d75 are such a field.) The checker rejects most of these, and
   the rest will be undone in review.
 - Use exactly the names `ctx.py` shows for callees, globals and vtables. If a
   check fails only because a name in `data/symbols.csv` looks wrong, say so in

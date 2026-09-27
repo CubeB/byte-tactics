@@ -1,18 +1,18 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// Normalizes the line endings in `text` in place: counts the '\n's, copies the
+// Decompiled by Claude Opus 5.5. Names are provisional.
+// Normalizes the line endings in `text` in place: counts the '\n's, moves the
 // string to the tail of the buffer, then rewrites it from the front converting
 // lone '\r' and lone '\n' into "\r\n" and collapsing existing "\r\n" pairs.
 //
-// GAVE UP: 95.6%. The bytes match except for two instruction-scheduling swaps
-// the C++ frontend insists on (the original loads bl = '\n' before `not ecx`
-// and initialises the counting pointer edx = text after the loop guard; MSVC 5
-// emits the reverse order here). <stdio.h> is needed or the C++ frontend
-// reassociates the destination to `(text + size) - len - 1`; `#pragma
-// function(memcpy)` is needed or /O2 inlines memcpy, but the original calls it.
+// The bytes match. The call is memmove, not memcpy: /O2 always inlines memcpy,
+// and 0x4e84e0 is also what std::string::erase (0x4c4b10) calls for
+// char_traits::move, while std::string::assign (0x4e3c00) inlines its memcpy as
+// rep movsd. data/symbols.csv names 0x4e84e0 `memcpy`, so check.py reports the
+// reference as wrong until that entry is renamed to `memmove`.
+//
+// The counting loop must index `text[i]` (the pointer copy is set up after the
+// loop guard); <stdio.h> keeps the destination as `text + (size - len) - 1`.
 #include <stdio.h>
 #include <string.h>
-
-#pragma function(memcpy)
 
 // FUNCTION: 0x4da3f0
 void __cdecl FUN_004da3f0(char *text, int size)
@@ -20,17 +20,14 @@ void __cdecl FUN_004da3f0(char *text, int size)
     int len = strlen(text);
     char *dst = text + (size - len) - 1;
     int room = dst - text;
-    char *p = text;
 
-    while (*p != '\0') {
-        if (*p == '\n')
+    for (int i = 0; text[i] != 0; i++)
+        if (text[i] == '\n')
             room--;
-        p++;
-    }
     if (room <= 0)
         return;
 
-    memcpy(dst, text, len + 1);
+    memmove(dst, text, len + 1);
 
     while (*dst != '\0') {
         char c = *dst;

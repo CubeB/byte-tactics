@@ -797,8 +797,8 @@ address,size,file,symbol,status,similarity
 0x44b4e0,279,src/unsorted/0x44b4e0.cpp,?FUN_0044b4e0@@YGPAXPAH@Z,matched,100.0
 0x44b600,137,src/unsorted/0x44b600.cpp,?FUN_0044b600@@YGXHH@Z,matched,100.0
 0x44be70,351,src/unsorted/0x44be70.cpp,?FUN_0044be70@@YGXPAXPAD@Z,matched,100.0
-0x44bfd0,249,src/unsorted/0x44bfd0.cpp,?FUN_0044bfd0@@YGXPAUMenu_0044bfd0@@H@Z,partial,94.0
-0x44c0d0,335,src/unsorted/0x44c0d0.cpp,?FUN_0044c0d0@@YAXXZ,partial,76.3
+0x44bfd0,249,src/unsorted/0x44bfd0.cpp,?FUN_0044bfd0@@YGXPAUMenu_0044bfd0@@H@Z,matched,100.0
+0x44c0d0,335,src/unsorted/0x44c0d0.cpp,?FUN_0044c0d0@@YAXXZ,partial,77.0
 0x44c220,333,src/unsorted/0x44c220.cpp,?FUN_0044c220@@YAXXZ,matched,100.0
 0x44c370,166,src/unsorted/0x44c370.cpp,?FUN_0044c370@@YGXPAXPAUUnit_0044c370@@@Z,matched,100.0
 0x44c7a0,59,src/unsorted/0x44c7a0.cpp,?FUN_0044c7a0@@YAHPBD0@Z,matched,100.0

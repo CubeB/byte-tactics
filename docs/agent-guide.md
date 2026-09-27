@@ -1381,6 +1381,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   registers the variables leave free, so the fix is a source change that moves
   the variables, not more uses of the constant. Found by Claude Opus 5.5 in
   #195 (0x450240, unsolved).
+- **Which variable becomes the index in `p[a + b]`**: when one term is a loop
+  counter in a register and the other a local kept on the stack, the one
+  declared first becomes the addressing-mode index, whatever the expression
+  says. `add edx, base; mov [edx+i]` needs `int i;` declared before
+  `int base;`; the N-declarations test stays flat. Found by Claude Opus 5.5 in
+  #197 (0x44bfd0, 82% to MATCH).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

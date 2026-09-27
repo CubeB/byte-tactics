@@ -22,7 +22,7 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | --- | ---: | ---: | ---: |
 | 1-16 | 283/312 (91%) | 3/3 (100%) |  |
 | 17-40 | 176/237 (74%) |  | 9/10 (90%) |
-| 41-64 | 3/11 (27%) |  | 74/84 (88%) |
+| 41-64 | 3/11 (27%) |  | 78/89 (88%) |
 | 65-160 | 1/6 (17%) | 256/259 (99%) | 2/6 (33%) |
 | 161-400 |  | 8/12 (67%) |  |
 
@@ -108,11 +108,12 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | S19 | sonnet | 10 | 10 | 148,532 | 14,853 | 30 | 15 |
 | O37 | opus | 10 | 10 | 143,542 | 14,354 | 57 | 9 |
 | H23 | haiku | 20 | 18 | 117,068 | 6,503 | 7 | 10 |
+| S17 | sonnet | 10 | 9 | 238,260 | 26,473 | 53 | 31 |
 
 ### Escalations
 
 - Opus matched 32 of 33 functions a cheaper model had failed.
-- Sonnet matched 61 of 67 functions a cheaper model had failed.
+- Sonnet matched 66 of 72 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target
@@ -139,10 +140,11 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 - The C++ runtime library (LIBCPMT) accounts for 15 functions inside the game
   region: `std::string` internals instantiated in Cavedog's objects, two copies
   of `std::_Lockit`, and the std exception classes. They are now `library`.
-- Known checker limit: a vtable defined in a decompiled file is verified by
-  name, not by its entries, so a file can declare fewer virtual methods than
-  the original vtable has (0x4b0610 declares 4 of 21). Resolving each vtable
-  entry against the name map would close this.
+- Fixed checker limit: a vtable defined in a decompiled file used to be verified by
+  name only. check.py now checks each declared slot against the original
+  vtable: a slot must hold a function, must not run into the next class's
+  vtable, and must agree with established names. Declaring fewer slots than
+  the original is still allowed (0x4b0610 declares 4 of 21).
 - Two copies of the C++ library's lock code (`std::_Lockit` and its cleanup)
   are linked in, and a block of code at 0x4d8000-0x4e3000 calls the copy that
   sits inside it. That block is probably a separately built library of

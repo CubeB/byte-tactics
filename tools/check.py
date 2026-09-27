@@ -335,6 +335,10 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
                        "" if ok else f"should point into this function at {want:#x}")
         if target_sec.is_code:
             return lookup(off, sym_name, target, symbols, by_addr)
+        if sym_name.startswith("??_7"):
+            problem = check_vtable(orig, obj, target_sec, sym.value, target, symbols)
+            if problem:
+                return Ref(off, sym_name, target, "mismatch", problem)
         ours = target_sec.data[sym.value:]
         if not ours or not any(ours[:64]):
             return lookup(off, sym_name, target, symbols, by_addr)  # uninitialised data
@@ -346,6 +350,30 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
         return Ref(off, sym_name, target, "ok" if ok else "mismatch",
                    "" if ok else f"contents differ: ours {ours[:24]!r} original {theirs[:24]!r}")
     return lookup(off, sym_name, target, symbols, by_addr)
+
+
+def check_vtable(orig, obj, sec, start, target, symbols) -> str:
+    """Compare a vtable defined in our object with the original one at target:
+    every slot we declare must be a function in the original's vtable, and
+    must not disagree with a name already established for that function."""
+    slots = sorted((r.offset - start, r.symbol) for r in sec.relocs if r.offset >= start)
+    other_vtables = {a: n for n, a in symbols.items() if n.startswith("??_7") and a != target}
+    for off, sym in slots:
+        raw = orig.read(target + off, 4)
+        if len(raw) < 4:
+            return f"vtable slot {off // 4} is past the end of the original data"
+        (fn,) = struct.unpack("<I", raw)
+        if target + off in other_vtables:
+            return (f"vtable slot {off // 4} runs into another class's vtable "
+                    f"('{other_vtables[target + off]}' starts at {target + off:#x}); declare fewer virtual functions")
+        if fn not in orig.sizes:
+            return (f"vtable slot {off // 4} does not exist in the original (it holds {fn:#x}); "
+                    "the class declares more virtual functions than its vtable has")
+        name = base_name(sym)
+        known = symbols.get(name)
+        if known is not None and known != fn:
+            return f"vtable slot {off // 4} is {fn:#x} in the original, but '{name}' is {known:#x}"
+    return ""
 
 
 def lookup(off, sym_name, target, symbols, by_addr) -> Ref:

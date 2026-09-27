@@ -1,14 +1,18 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
-struct Class_004e2d00;
+class Class_004e2d00 {
+public:
+    void* FUN_004e2d00(const char* param1, int param2, int param3, unsigned int param4);
+};
 
-int Class_004e2d00_FUN_004e2d00(Class_004e2d00* this_obj, const char* param1, int param2, int param3, unsigned char param4);
+class Class_004e2cc0 {
+public:
+    bool FUN_004e2cc0(const char* param1, unsigned int param2);
+};
 
 // FUNCTION: 0x4e2cc0
-bool __stdcall FUN_004e2cc0(const char* param_1, unsigned int param_2)
+bool Class_004e2cc0::FUN_004e2cc0(const char* param1, unsigned int param2)
 {
-    int eax = param_2;
-    eax &= 0xff;
-    int result = Class_004e2d00_FUN_004e2d00(0, param_1, 0, 1, (unsigned char)eax);
-    return result != 0;
+    void* r = ((Class_004e2d00*)this)->FUN_004e2d00(param1, 0, 1, param2 & 0xff);
+    return r != 0 ? true : false;
 }

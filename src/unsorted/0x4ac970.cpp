@@ -1,6 +1,6 @@
-// Decompiled by GPT-6. Names are provisional.
-// Retains the best earlier partial by Opus.
-// Retest: a rectangle constructor, a drawing helper, coordinate updates and
+// Decompiled by Opus. Names are provisional.
+// Codex / GPT-6 retest in #13:
+// a rectangle constructor, a drawing helper, coordinate updates and
 // reordered rectangle stores changed register allocation without a match.
 // Draws the frame of one cell of the 16x16 "COLS" colour grid gadget
 // (cell index = row * 16 + column, each cell 8 pixels).

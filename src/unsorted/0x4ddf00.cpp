@@ -1,6 +1,6 @@
-// Decompiled by GPT-6. Names are provisional.
-// Retains the best earlier partial by Opus.
-// Retest: pointer-typed image bases, DWORD-sized arithmetic, a directory
+// Decompiled by Opus. Names are provisional.
+// Codex / GPT-6 retest in #13:
+// pointer-typed image bases, DWORD-sized arithmetic, a directory
 // reference and an RVA helper did not fix the final eax/ecx operand order.
 // Constructor of the loaded-image reader (the function-local static at
 // 0x528a78, built by 0x4de0a0 from GetModuleHandle(0)): maps the module's

@@ -1,6 +1,6 @@
-// Decompiled by GPT-6. Names are provisional.
-// Retains the best earlier partial by Opus.
-// Retest: split row and x offsets, unsigned offsets and wider colour
+// Decompiled by Opus. Names are provisional.
+// Codex / GPT-6 retest in #13:
+// split row and x offsets, unsigned offsets and wider colour
 // parameters did not reproduce the original repeated sum and registers.
 // Plots the two end points of one span row: the pixel at each end gets the
 // colour when it passes the depth test (the depth buffer keeps the integer

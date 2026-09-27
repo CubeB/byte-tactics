@@ -1,6 +1,6 @@
-// Decompiled by GPT-6. Names are provisional.
-// Retains the best earlier partial by Opus.
-// Retest: capturing z first and reversing helper argument order did not
+// Decompiled by Opus. Names are provisional.
+// Codex / GPT-6 retest in #13:
+// capturing z first and reversing helper argument order did not
 // preserve the position pointer in ecx and tile x in esi.
 // Returns the average of the two height bytes (+5, +6) of the map cell under
 // a 16.16 fixed-point position, or -1 off the map.

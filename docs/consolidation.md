@@ -40,6 +40,12 @@ revisit them once the surrounding code is known.
   real source was an implicit destructor chain; that needs 0x471d00 renamed as
   the base class destructor, together with all its callers.
 
+- The `std` exception classes in the C++ library block were misnamed by the
+  signature matcher (their destructors are identical apart from the vtable).
+  By RTTI: vtable 0x4fdca4 is `std::logic_error` (0x4c3730 is `what`, 0x4c38a0
+  is `??1logic_error`), 0x4fdcb4 is `std::out_of_range` (0x4c3aa0 `??1`,
+  0x4c3af0 `_Doraise`, 0x4c3c60 `??_G`), 0x4fdc7c is `std::length_error`.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

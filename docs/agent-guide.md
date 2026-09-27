@@ -547,6 +547,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   Returning it fixed 0x4d0c10 and 0x4800c0.
 - **A `(float)` cast on a difference** can decide how a float struct result is
   copied to the return buffer, not just x87 order (0x4b6f70).
+- **Placement-new copies with a null check** (`test esi, esi; je` then a copy
+  constructor call on `esi`, `ret 8`) are `std::allocator<T>::construct`; emit
+  it out of line by taking its address (see 0x432cf0.cpp).
+- **Naming a vtable from RTTI**: the dword before a vtable points to the RTTI
+  locator; locator +0xc points to the type descriptor, whose ".?AV...@@" string
+  names the class. `<stdexcept>` classes are emitted by a static object of the
+  class (see 0x4c38f0.cpp).
+- **Zeroing a fixed int array**: a `for` loop gives `mov ecx, N; lea edi; xor
+  eax, eax` for `rep stosd`; `memset` puts `xor eax, eax` before the `lea`.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -1,22 +1,23 @@
 // Decompiled by Haiku. Names are provisional.
+// Copy constructor of a pair of reference-counted string handles.
 
 class Class_004c91a0 {
 public:
-    void FUN_004c91a0(int* param_1);
+    char* ptr;
+
+    Class_004c91a0(const Class_004c91a0& other);
 };
 
 class Class_004c54a0 {
 public:
-    char unknown_0[4];
-    int field_4;                              // +0x4
+    Class_004c91a0 first;    // +0x0
+    Class_004c91a0 second;   // +0x4
 
-    void* FUN_004c54a0(int* param_1);
+    Class_004c54a0(const Class_004c54a0& other);
 };
 
 // FUNCTION: 0x4c54a0
-void* Class_004c54a0::FUN_004c54a0(int* param_1)
+Class_004c54a0::Class_004c54a0(const Class_004c54a0& other)
+    : first(other.first), second(other.second)
 {
-    ((Class_004c91a0*)this)->FUN_004c91a0(param_1);
-    ((Class_004c91a0*)((unsigned char*)this + 4))->FUN_004c91a0(param_1 + 1);
-    return this;
 }

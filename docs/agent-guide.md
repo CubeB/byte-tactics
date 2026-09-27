@@ -556,6 +556,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   class (see 0x4c38f0.cpp).
 - **Zeroing a fixed int array**: a `for` loop gives `mov ecx, N; lea edi; xor
   eax, eax` for `rep stosd`; `memset` puts `xor eax, eax` before the `lea`.
+- **An int call result stored into a `bool`**: `x ? true : false` gives
+  `test eax, eax; setne al`; `x != 0` and `(bool)x` give `neg; sbb; neg`.
+- **`fsub qword [-1.0]`** is `f += 1.0` (MSVC 5 adds 1.0 by subtracting -1.0).
+- **A function that opens with a copy of a recursive callee's body**: `/Ob2`
+  inlined one level of the recursion; write that level out by hand.
+- **A `??_G` with the destructor inlined**: give the class an inline virtual
+  destructor and add a static object whose constructor is only declared; MSVC
+  then emits the vtable and the `??_G` (see 0x470ae0.cpp). Annotate the atexit
+  destructor of a global as `_$E2` next to its `_$E4` (see 0x44f720.cpp).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

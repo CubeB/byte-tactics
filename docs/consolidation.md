@@ -12,6 +12,9 @@ single addresses, so one real class often appears under several names.
 - `Class_004c91a0` (copy constructor, 0x4c91a0), `Class_004c9390` (destructor:
   decrement and free, 0x4c9390) and `Class_004c93b0` (assignment,
   0x4c93b0) are the same reference-counted string handle.
+- `Class_00470ae0` (vtable 0x4fd580, `??_G` at 0x470ae0): its constructor is
+  0x470a90 (`Class_00470a90::FUN_00470a90`) and its destructor 0x470b80
+  (`Class_00470b80::FUN_00470b80`).
 - `Class_0044e250` and `Class_0044e330`: two constructors storing vtable
   `DAT_004fd3b8`.
 - Functions that store the same vtable address belong to the same class (or a

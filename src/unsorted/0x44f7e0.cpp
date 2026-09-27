@@ -1,7 +1,8 @@
 // Decompiled by Opus. Names are provisional.
-// A global object with an inline constructor and destructor. The compiler
-// generates its initialiser (0x44f720) and the destructor it registers with
-// atexit (0x44f7a0), which frees the four buffers in the same order.
+// A second global object of the class at 0x5129f8 (see 0x44f720.cpp), with
+// the same inline constructor and destructor. The compiler generates its
+// initialiser (0x44f7e0) and the destructor it registers with atexit
+// (0x44f860).
 
 #pragma pack(push, 1)
 class Class_005129f8 {
@@ -40,6 +41,6 @@ public:
 };
 #pragma pack(pop)
 
-// FUNCTION: 0x44f720 _$E4
-// FUNCTION: 0x44f7a0 _$E2
-Class_005129f8 DAT_005129f8;
+// FUNCTION: 0x44f7e0 _$E4
+// FUNCTION: 0x44f860 _$E2
+Class_005129f8 DAT_005129d0;

@@ -195,6 +195,13 @@ can disagree on types (a real link would fail). Known cases:
 - FUN_004a11c0's third parameter is `short` in 0x4a11c0.cpp, but 0x41a120
   only matches with `int` (#175); it is probably `int`.
 
+- `Class_00460f60`, the object at DAT_00513000 (#169, #225): eleven
+  0x1044-byte entries at +0x10 and a `Class_00462d30` member at +0xb300 per
+  its matched destructors 0x461340 and 0x461420, but its constructor 0x4611e0
+  (partial) initialises the entries from +0x08. Either the constructor file's
+  layout is off by 8 or the original constructor really is (a bug); settle it
+  when 0x4611e0 matches. 0x460e20 (`_$E4`) constructs this object.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

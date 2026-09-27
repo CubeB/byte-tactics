@@ -430,11 +430,14 @@ address,size,file,symbol,status,similarity
 0x41f680,116,src/unsorted/0x41f680.cpp,?FUN_0041f680@@YGXPAUGadget_41f680@@@Z,matched,100.0
 0x41f700,81,src/unsorted/0x41f700.cpp,?FUN_0041f700@@YAXXZ,matched,100.0
 0x41f760,131,src/unsorted/0x41f760.cpp,?FUN_0041f760@@YAHXZ,matched,100.0
+0x41f7f0,3580,src/unsorted/0x41f7f0.cpp,?FUN_0041f7f0@@YGXXZ,matched,100.0
 0x4205f0,24,src/unsorted/0x4205f0.cpp,?FUN_004205f0@@YAXXZ,matched,100.0
 0x420610,10,src/unsorted/0x420610.cpp,?FUN_00420610@@YAXXZ,matched,100.0
+0x420620,766,src/unsorted/0x420620.cpp,?FUN_00420620@@YAXXZ,matched,100.0
 0x420920,64,src/unsorted/0x420920.cpp,?FUN_00420920@@YAPAUSlot_00420920@@XZ,matched,100.0
 0x420960,193,src/unsorted/0x420960.cpp,?FUN_00420960@@YAXXZ,matched,100.0
 0x420a30,194,src/unsorted/0x420a30.cpp,?FUN_00420a30@@YGXPAUPos_00420a30@@PAUSrc_00420a30@@HH@Z,matched,100.0
+0x420b00,420,src/unsorted/0x420b00.cpp,?FUN_00420b00@@YGXPAX@Z,partial,58.2
 0x420cb0,99,src/unsorted/0x420cb0.cpp,?FUN_00420cb0@@YGPAUCalcedExplosion@@HHH@Z,matched,100.0
 0x420e50,224,src/unsorted/0x420e50.cpp,?FUN_00420e50@@YGXPAUUnit_00420e50@@@Z,matched,100.0
 0x421150,28,src/unsorted/0x421150.cpp,?FUN_00421150@@YAHXZ,matched,100.0

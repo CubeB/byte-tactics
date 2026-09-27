@@ -577,6 +577,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   T(i);`), as in 0x40b320.
 - **Dead sums in a loop**: MSVC 5 keeps unused accumulations inside loops;
   write them as unused locals rather than looking for a consumer.
+- **A dead `lea reg, [base+K]` next to stores at `[base+K+n]`**: a struct
+  pointer local (`S* p = &g_game->s; p->a = 0;`); MSVC folds the offsets into
+  the stores but keeps the `lea` (0x4679a0).
+- **An inlined `strcpy` whose destination `lea` sits between the `test` and the
+  `je` choosing the source**: an if/else with one `strcpy` per branch, tail
+  merged; a ternary source puts the `lea` after the merge (0x45ba60).
+- **String arguments that are addresses of the function's own stack
+  arguments**: a struct passed by value; a caller's `sub esp, K; rep movsd`
+  gives its size (0x4d8790).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

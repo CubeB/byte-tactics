@@ -136,6 +136,13 @@ End your reply with one table row per function you were given:
 
 Keep notes short and specific: what made it hard, what fixed it.
 
+If the code you matched looks like a mistake in the original game (a wrong
+allocation size, a read through a null pointer, a result that can never be
+true, a field written twice), keep it exactly as the original does, explain it
+in a comment in your file, and list it under a "Suspected original bugs"
+heading after your table, with the address and your evidence. The orchestrator
+records these in `docs/bugs.md`.
+
 ## Patterns already solved in this game
 
 Check these before fighting the compiler; each one has cost earlier agents

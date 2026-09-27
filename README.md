@@ -4,8 +4,14 @@ A matching decompilation of Total Annihilation (Cavedog, 1997): C++ source that
 compiles, with the original compiler, to byte-identical machine code.
 
 This repository contains no game files and no Microsoft software. You need your
-own copy of Total Annihilation. The reconstructed game code is derived from
-Cavedog's work and is not offered under any license.
+own copy of Total Annihilation. It is a preservation and research project and is
+not affiliated with or endorsed by Cavedog Entertainment or Wargaming, who own
+Total Annihilation.
+
+**Licence.** The tooling in `tools/` is MIT licensed (see `LICENSE`). The
+reconstructed game code in `src/` is derived from Cavedog's work; we claim no
+rights over it and it is not offered under any licence. Bugs found in the
+original game are listed in `docs/bugs.md`.
 
 <!-- progress:start -->
 ## Progress

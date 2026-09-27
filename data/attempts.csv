@@ -2530,12 +2530,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x45a950,322,,#142,assigned,,,issue #142
 0x45ab10,260,,#142,assigned,,,issue #142
 0x45aec0,202,,#142,assigned,,,issue #142
-0x45b0a0,174,,#143,assigned,,,issue #143
-0x45b150,242,,#143,assigned,,,issue #143
-0x45bb00,228,,#143,assigned,,,issue #143
-0x45bbf0,194,,#143,assigned,,,issue #143
-0x45bd20,179,,#143,assigned,,,issue #143
-0x45bde0,179,,#143,assigned,,,issue #143
+0x45b0a0,174,space-bunny-free,#143,matched,100.0,,issue #143
+0x45b150,242,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bb00,228,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bbf0,194,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bd20,179,space-bunny-free,#143,matched,100.0,,issue #143
+0x45bde0,179,space-bunny-free,#143,matched,100.0,,issue #143
 0x422040,298,opus,#146,matched,100.0,,"issue #146, escalated"
 0x43def0,359,,#154,assigned,,,"issue #154, escalated"
 0x440830,242,,#154,assigned,,,"issue #154, escalated"

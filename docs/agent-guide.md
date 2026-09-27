@@ -1376,6 +1376,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   as `[0]`, `push 0` or a call to the next instruction, which counted as a
   difference). Partials scored about 7.5 points higher overnight; compare only
   with scores measured since, and expect far shorter diffs.
+- **A constant held in a register for the whole function** is not a matter
+  of how often it is used: MSVC 5 seems to give constants only the byte
+  registers the variables leave free, so the fix is a source change that moves
+  the variables, not more uses of the constant. Found by Claude Opus 5.5 in
+  #195 (0x450240, unsolved).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -1,18 +1,14 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (93.8%), best found. `<windows.h>` is required: with it the first
-// block matches exactly (`xor eax,eax / xor edx,edx / mov al,[edi+0xa] /
-// mov dl,[edi+0xb] / imul eax,[width] / add eax,edx`) and the function reaches
-// 93.8%; without it the first block is 82.9%. The one remaining difference is
-// the order of the two clears in the inner footprint loop. The original emits
-// `and byte ptr [eax],0xfe` (flags) then `mov word ptr [eax-4],bx` (feature),
-// i.e. its source wrote the flags clear first. Writing that order (row[x].flags
-// &= 0xfe; row[x].feature = none;) makes MSVC keep 0xfe in `bl` and store the
-// feature as an immediate, which breaks the main-cell clear and the feature
-// register (`and cl,0xfe` / `mov [edi+8],bx`) and drops to 81.2%. Every
-// formulation tried (locals, casts, references, inline helpers, reordered main
-// cell, global/const `none`, headers) either keeps 93.8% with feature-first
-// stores or 81.2% with flags-first stores; the constant-register choice is
-// global and flips with the order.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Removes the feature standing on a map cell: if the cell is part of a
+// footprint (0xfffe), step back to the feature's origin cell first, release
+// its spot, then clear the origin cell and every footprint cell of the
+// feature, and tell FUN_00440a40 which area changed.
+//
+// The two clears are one inline helper (feature first, then flags). Written
+// out by hand in the inner loop, MSVC either keeps the stores in source order
+// with the wrong one first or moves the 0xfe constant into bl; only the
+// helper gives the original's `and byte ptr [eax], 0xfe` before
+// `mov word ptr [eax-4], bx`. `<windows.h>` is needed for the first block.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -38,11 +34,9 @@ struct Cell_004246b0 {
 
 struct Feature_004246b0 {
     char unknown_0[0x94];
-    short footprintX;                  // +0x94
-    short footprintZ;                  // +0x96
+    Point16_004246b0 footprint;        // +0x94
     char unknown_98[0xfe - 0x98];
-    unsigned char flags_fe;            // +0xfe
-    unsigned char flags_ff;            // +0xff
+    unsigned short flags;              // +0xfe
 };
 
 struct Spot_004246b0 {
@@ -71,40 +65,42 @@ void __stdcall FUN_004232f0(int index, int* head);
 void __stdcall FUN_0045aaa0(void* state);
 void __stdcall FUN_00440a40(Point16_004246b0 a, Point16_004246b0 b);
 
+static inline void ClearCell(Cell_004246b0* c)
+{
+    c->feature = 0xffff;
+    c->flags &= 0xfe;
+}
+
 // FUNCTION: 0x4246b0
 int __stdcall FUN_004246b0(Cell_004246b0* cell, int flag)
 {
-    unsigned short none = 0xffff;
     if (cell->feature == 0xfffe)
         cell -= cell->sf.offsetY * g_game->width + cell->sf.offsetX;
     if (cell->feature >= 0xfffb)
         return 0;
     Feature_004246b0* f = &g_game->features[cell->feature];
-    if (flag == 0 && (f->flags_ff & 2))
+    if (flag == 0 && (f->flags & 0x200))
         return 0;
     if (cell->flags & 1) {
         Spot_004246b0* spot = &g_game->spots[cell->sf.spot];
-        if (!(f->flags_fe & 1)) {
+        if (!(f->flags & 1)) {
             FUN_0045aaa0(spot->state);
             spot->state = 0;
         }
         FUN_004232f0(cell->sf.spot, &g_game->list_1421b);
     }
-    cell->feature = none;
-    cell->flags &= 0xfe;
-    for (int y = 0; y < f->footprintZ; y++) {
+    ClearCell(cell);
+    for (int y = 0; y < f->footprint.z; y++) {
         Cell_004246b0* row = &cell[y * g_game->width];
-        for (int x = 0; x < f->footprintX; x++) {
-            if (row[x].feature == 0xfffe) {
-                row[x].feature = none;
-                row[x].flags &= 0xfe;
-            }
+        for (int x = 0; x < f->footprint.x; x++) {
+            if (row[x].feature == 0xfffe)
+                ClearCell(&row[x]);
         }
     }
     int index = cell - g_game->cells;
     Point16_004246b0 p;
     p.x = index % g_game->width;
     p.z = index / g_game->width;
-    FUN_00440a40(p, *(Point16_004246b0*)&f->footprintX);
+    FUN_00440a40(p, f->footprint);
     return 1;
 }

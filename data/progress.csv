@@ -126,7 +126,7 @@ address,size,file,symbol,status,similarity
 0x415dc0,147,src/unsorted/0x415dc0.cpp,?FUN_00415dc0@Class_00415dc0@@QAEHH@Z,matched,100.0
 0x415e60,38,src/unsorted/0x415e60.cpp,?FUN_00415e60@Class_00415dc0@@QAEHH@Z,matched,100.0
 0x415e90,96,src/unsorted/0x415e90.cpp,?FUN_00415e90@@YAXXZ,matched,100.0
-0x415ef0,77,src/unsorted/0x415ef0.cpp,?FUN_00415ef0@@YGXEHH@Z,partial,55.0
+0x415ef0,77,src/unsorted/0x415ef0.cpp,?FUN_00415ef0@@YGXEHH@Z,matched,100.0
 0x415f40,86,src/unsorted/0x415f40.cpp,?FUN_00415f40@@YGXHHH@Z,matched,100.0
 0x4161f0,75,src/unsorted/0x4161f0.cpp,?FUN_004161f0@@YAXXZ,matched,100.0
 0x416240,43,src/unsorted/0x416240.cpp,?FUN_00416240@@YGXPAD@Z,matched,100.0
@@ -1600,6 +1600,7 @@ address,size,file,symbol,status,similarity
 0x4cf220,4,src/unsorted/0x4cf220.cpp,?FUN_004cf220@Class_004cf220@@QAEHXZ,matched,100.0
 0x4cf4d0,103,src/unsorted/0x4cf4d0.cpp,?FUN_004cf4d0@Class_004cf4d0@@QAEXPAPAUIDirectSoundBuffer@@@Z,matched,100.0
 0x4cf540,40,src/unsorted/0x4cf540.cpp,?FUN_004cf540@Class_004cf540@@QAEXHH@Z,matched,100.0
+0x4cfb40,82,src/unsorted/0x4cfb40.cpp,?FUN_004cfb40@Class_004cfb40@@QAEXXZ,matched,100.0
 0x4cfba0,28,src/unsorted/0x4cfba0.cpp,?FUN_004cfba0@Class_004cfba0@@QAEHXZ,matched,100.0
 0x4cfe40,56,src/unsorted/0x4cfe40.cpp,?FUN_004cfe40@Class_004cfe40@@QAEXPAXI@Z,matched,100.0
 0x4cfe80,8,src/unsorted/0x4cfe80.cpp,?FUN_004cfe80@Class_004cfe80@@QAEXXZ,matched,100.0
@@ -1669,6 +1670,7 @@ address,size,file,symbol,status,similarity
 0x4d86b0,63,src/unsorted/0x4d86b0.cpp,?FUN_004d86b0@@YAXHHH@Z,matched,100.0
 0x4d86f0,21,src/unsorted/0x4d86f0.cpp,?FUN_004d86f0@@YAXHH@Z,matched,100.0
 0x4d8710,16,src/unsorted/0x4d8710.cpp,?FUN_004d8710@@YAXPAX@Z,matched,100.0
+0x4d8720,82,src/unsorted/0x4d8720.cpp,?FUN_004d8720@@YAXPAXH@Z,partial,44.8
 0x4d8780,16,src/unsorted/0x4d8780.cpp,?FUN_004d8780@@YAXPAX@Z,matched,100.0
 0x4d8790,81,src/unsorted/0x4d8790.cpp,?FUN_004d8790@@YAXUBlockInfo_004d8790@@PADH@Z,matched,100.0
 0x4d87f0,34,src/unsorted/0x4d87f0.cpp,??0Class_004d87f0@@QAE@XZ,matched,100.0

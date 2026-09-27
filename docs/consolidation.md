@@ -70,7 +70,11 @@ revisit them once the surrounding code is known.
 - 0x434360.cpp's `Elem_00434360` looks like `std::vector<Elem_00434020>`: the
   operator= it calls (0x434770) destroys elements with 0x433a30, which is
   `~vector<Elem_00434020>`. So 0x434360 is probably an erase on a three-level
-  vector, and 0x434770's recorded name is one level too shallow.
+  vector, and 0x434770's recorded name is one level too shallow. Evidence
+  since: with `Elem_00434360` as a struct holding a `vector<Elem_00434020>`,
+  a rebuilt 0x434770 is byte-identical (0x4349f0.cpp), but it then calls
+  0x434470 and 0x4349c0 under names other than their recorded ones
+  (`Elem_004349c0` and `Elem_00434020` look like one 4-byte type).
 
 - `Class_004402e0` (constructor 0x4402e0) is the class 0x440290.cpp calls
   `Class_00440320`, while 0x440320 is recorded as the free function

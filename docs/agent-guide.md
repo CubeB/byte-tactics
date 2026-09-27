@@ -1161,6 +1161,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Scratch folder names**: cl.exe fails with "cannot execute '.\c2'" if the
   current directory contains a folder named `c1`, `c2` or `c1xx`. Name scratch
   folders something else.
+- **Read-modify-write of a few bits in a global byte**
+  (`mov al, [m]; and dl, 0xbf; or dl, al`): model the byte as a union of the
+  byte and a bitfield struct, and write the field directly. Found by DeepSeek
+  V4.1 Flash in #18 (0x4197d0).
+- **Set a flag in place before testing another bit**: `t->flags |= K;` with
+  no temporary lets MSVC reuse the OR result for a later test of another bit,
+  where `int f = t->flags | K; t->flags = f;` reloads it. See 0x41b8d0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -2443,12 +2443,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x41bde0,299,opus,#113,matched,100.0,,"issue #113, escalated"
 0x41c060,173,opus,#113,matched,100.0,,"issue #113, escalated"
 0x41cd50,315,opus,#118,matched,100.0,,"issue #118, escalated"
-0x440af0,225,,#123,assigned,,,issue #123
-0x4421f0,398,,#123,assigned,,,issue #123
-0x442560,384,,#123,assigned,,,issue #123
-0x4426e0,182,,#123,assigned,,,issue #123
-0x4427a0,322,,#123,assigned,,,issue #123
-0x442970,185,,#123,assigned,,,issue #123
+0x440af0,225,space-bunny-free,#123,matched,100.0,,issue #123
+0x4421f0,398,space-bunny-free,#123,matched,100.0,,issue #123
+0x442560,384,space-bunny-free,#123,matched,100.0,,issue #123
+0x4426e0,182,space-bunny-free,#123,matched,100.0,,issue #123
+0x4427a0,322,space-bunny-free,#123,matched,100.0,,issue #123
+0x442970,185,space-bunny-free,#123,matched,100.0,,issue #123
 0x443480,261,,#124,assigned,,,issue #124
 0x4435a0,316,,#124,assigned,,,issue #124
 0x4436e0,223,,#124,assigned,,,issue #124

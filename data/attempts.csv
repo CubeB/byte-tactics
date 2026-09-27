@@ -3221,9 +3221,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x432d40,612,,#426,assigned,,,issue #426
 0x4336f0,708,,#426,assigned,,,issue #426
 0x434bf0,886,,#426,assigned,,,issue #426
-0x435430,652,,#427,assigned,,,issue #427
-0x435da0,2740,,#427,assigned,,,issue #427
-0x436860,972,,#427,assigned,,,issue #427
+0x435430,652,opus,#427,matched,100.0,,issue #427
+0x435da0,2740,opus,#427,partial,89.5,,issue #427
+0x436860,972,opus,#427,matched,100.0,,issue #427
 0x436c30,1613,opus,#428,matched,100.0,,issue #428
 0x437580,639,opus,#428,partial,78.9,,issue #428
 0x437de0,653,opus,#428,matched,100.0,,issue #428

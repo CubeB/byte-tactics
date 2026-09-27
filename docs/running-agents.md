@@ -33,7 +33,7 @@ OpenCode runs as a lead plus cheap workers:
 - **The workers** are the `decomp-worker` subagent defined in
   `.opencode/agents/decomp-worker.md`. They run on DeepSeek V4.1 Flash
   (`opencode-go/deepseek-v4.1-flash`) and do the first attempt at each
-  function. Up to four run at once.
+  function, one worker per function, all at once.
 - **Limits:** a worker stops after 80 steps (the file's `steps`), and
   `AGENTS.md` caps each function at 15 check runs or 20 minutes. Nothing gets
   stuck for long.
@@ -76,9 +76,19 @@ Choose GPT-6 Astra with `/model` and give it this prompt:
 > labelled `hard`, decompile it and open a pull request. Then pick up the next
 > `hard` one, until none are left.
 
-`AGENTS.md` already tells Astra to prefer `hard` issues, so the plain prompt
-works too; this one keeps it from moving on to easier issues when the hard
-ones run out. For an unattended run, `codex exec "<prompt>"`.
+`AGENTS.md` tells Astra to take only `hard` issues and to stop when they run
+out, so it doesn't spend usage on work cheaper models can do.
+
+Codex usage goes quickly on long decompilation sessions. To make it last:
+
+- **One Codex session at a time.** The cheap OpenCode workers cover the
+  161-400 byte band; Astra only needs to keep up with the `hard` queue.
+- **Lower reasoning effort.** Set `model_reasoning_effort = "medium"` in
+  `~/.codex/config.toml`, or pass `-c model_reasoning_effort="medium"`.
+  Raise it again only for a stubborn near-miss.
+- **Stop it when the `hard` queue is empty** rather than giving it other work.
+  Anything a cheaper model leaves goes to the orchestrator's `claude` issues
+  first, not to Astra. For an unattended run, `codex exec "<prompt>"`.
 
 Codex runs commands in a sandbox. The agent needs network access (for `gh`
 and `git push`) and needs to run Wine. If either is blocked, start Codex with
@@ -118,14 +128,19 @@ Run from the main checkout, on `main`:
    Near-misses to retry with a stronger model:
    - `uv run tools/issues.py --addresses ... --title "Near-misses" --label near-miss --escalation`
 2. **Review each pull request.**
-   - `tools/review.sh <PR>` checks the pull request out in `.worktrees/pr-<PR>`.
-     It lists the changed files, re-checks every function in them and flags
-     forbidden constructs.
+   - `tools/review.sh <PR>` checks the pull request out in `.worktrees/pr-<PR>`
+     and merges `origin/main` into it. It lists the changed files, rebuilds
+     `data/symbols.csv` as the real merge will, re-checks every function in
+     the pull request, lists any function that matches on `main` but would
+     stop matching (usually two files disagreeing on a callee's name), and
+     flags forbidden constructs.
    - Read the files for made-up names, and fix bad matches before merging.
    - Squash-merge with a commit message in the project's format:
      `gh pr merge <PR> --squash --delete-branch --subject "Add: ..." --body "..."`.
    - `tools/review.sh <PR> --clean` removes the worktree.
 3. **Merge and record.** Squash-merge, then on `main`:
+   - `uv run tools/progress.py` first, so the names record.py checks against
+     include the ones this merge added.
    - `uv run tools/record.py <issue> <model> --escalate claude`. Add
      `--model-for <addr>=<model>` for each function another model (such as a
      worker) wrote. `--escalate claude` opens a retry issue labelled `claude`
@@ -146,5 +161,10 @@ Run from the main checkout, on `main`:
    in other ways: `__fastcall` free functions, hand-stored vtables, invented
    names. The orchestrator fixes those during review, or with a subagent,
    before merging.
-6. **Release stale claims.** For claims older than a day with no pull request,
-   unassign the issue and comment "Released".
+6. **Release stale claims.** For a claim with no pull request and no recent
+   work (no pushed branch, and nothing changed in its `.worktrees/issue-<N>`
+   for a couple of hours), check whether the uncommitted work beats `main`
+   (`tools/checkall.py` in both), then unassign the issue and comment
+   "Released by the orchestrator: <why>". Agents treat an issue as free when
+   its most recent "Claimed by"/"Released" comment is a release, so the
+   comment must start with "Released".

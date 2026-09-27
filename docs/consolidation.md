@@ -22,6 +22,19 @@ single addresses, so one real class often appears under several names.
   (`Class_00470b80::FUN_00470b80`).
 - `Class_0044e250` and `Class_0044e330`: two constructors storing vtable
   `DAT_004fd3b8`.
+- The pathfinder ("AISearch touched mapentries" is its grid): one class with
+  a binary heap of 20-byte nodes at +0 and the grid at +0x1c (cells +0x1c,
+  width +0x20, height +0x24, cell count rounded up to 8 at +0x28, one dirty bit
+  per 8 cells at +0x2c). Its methods are matched under separate placeholder
+  classes: 0x40e9e0 (constructor), 0x40d7b0, 0x40d880, 0x40d8b0, 0x40d900,
+  0x40da40, 0x40e160, 0x40e630, 0x40e9a0, 0x40eb70, 0x40f000/0x40f060 (heap
+  sift up and down, already `Class_0040f000`), 0x40ef20 (heap `Remove(k)`),
+  0x40f1e0, and probably 0x40df00, 0x40e050 and 0x40f110. 0x40da40 is the
+  out-of-line copy of the cost helper inlined into 0x40e160 and 0x40e630;
+  0x40d880, 0x40d8b0 and 0x40e9a0 are inlined into 0x40e630. Found in #12, #81
+  and #90. The object at +0x64 is called `owner` in 0x40eb70 and 0x40e630 but
+  `map` in 0x40d7b0 and 0x40e050 (which read map origin shorts at +4/+6 from
+  it); settle on one name when merging.
 - Functions that store the same vtable address belong to the same class (or a
   base/derived pair); a tool listing every vtable store would find the rest.
 
@@ -36,6 +49,12 @@ single addresses, so one real class often appears under several names.
 - 0x4581e0 and 0x4335e0 match only with a header block (`windows.h`, `stdio.h`,
   `string.h`, `math.h`) at the top; 0x4d1820 and 0x438650 still differ in one
   operand order. Their original translation units probably decide this.
+- 0x40f200, 0x40f2a0, 0x40f7d0 and 0x40fa20 (unit order handlers) share one
+  original file: 0x40f2a0 and 0x40fa20 inline FUN_0040f200, so each of their
+  files carries an unannotated copy of it next to the matched 0x40f200.cpp.
+  When they are merged into one translation unit, keep one definition. The
+  copies call the unit's type pointer at +0x92 `def` where 0x40f200.cpp says
+  `info`.
 
 ## Matches that use suspicious constructs
 
@@ -116,6 +135,22 @@ revisit them once the surrounding code is known.
   (copy) and `Class_004c91b0` (`const char*`); the timer's two constructors
   both use `Class_004e1d20::Class_004e1d20`, which the checker cannot tell apart.
 
+- The `Class_0044ce20` family (vtables around 0x4fd3f8, constructors 0x44e740
+  and 0x44e9c0 among others) still stores its vtables by hand
+  (`vtable = DAT_004fd3f8;`), like the 0x4fc980 family before its
+  consolidation.
+
+- 0x43c360 is `vector::size()` of the global vector of 25-byte records at
+  0x512340 but is named `Class_0043c360::FUN_0043c360`; it will clash when
+  0x43bc90 or 0x43c050 is decompiled with a real `std::vector`.
+- 0x44ec00 is a vtable slot of `Class_0044e740` recorded as a free function;
+  tools/methods.py can't see it because it is only called through the vtable.
+- 0x40e9e0 clears its pointer at +0x1c with `memset(&field_1c, 0, 4)` rather
+  than `field_1c = 0`, which keeps MSVC from folding the following
+  `delete field_1c` into a constant. The original probably cleared a larger
+  struct or called an inline reset helper; revisit when the class's other
+  methods are known.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions
@@ -131,6 +166,17 @@ can disagree on types (a real link would fail). Known cases:
   parameter `unsigned char`, but 0x401c20 shows it is a 1-byte class passed by
   value, built by `Class_00438760::Class_00438760`.
 
+- 0x40d7b0 returns `int` in its own file, but 0x40da70 uses its result as
+  unsigned (`cmp eax, 1; jae` and `cmp 1, eax; sbb`), so 0x40da70.cpp
+  declares it `unsigned int`. Settle on `unsigned int` when merging the
+  pathfinder class.
+
+- FUN_004be950's colour parameter is declared `int` in 0x417c70.cpp,
+  0x417e00.cpp and 0x4181d0.cpp so that `color & 0xff` is not folded, though
+  the callee probably takes `unsigned char`. Settle it when 0x4be950 is
+  decompiled. (0x4181d0.cpp also holds 0x417f60, defined above it as the
+  original file did; see #111.)
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with
@@ -145,3 +191,27 @@ can disagree on types (a real link would fail). Known cases:
   0x43c6b0-0x43cb20 and 0x4c5bc0-0x4c5d10) end in `ret N`. The staged files
   write those as explicit `__stdcall` functions; when files are regrouped, those
   translation units should get `/Gz` and the real `std::` templates instead.
+
+## STL instantiations
+
+- Small `std::vector` members matched early under placeholder classes block
+  their callers' name checks. Shapes to look for: `if (!_First) return 0;
+  return (_Last - _First) / sizeof(T)` is `size()` (with `_End` at +0xc,
+  `capacity()`); `push ecx`, free `_First`, zero +4/+8/+0xc (34 bytes) is
+  `~vector()` for a trivially destructible `T`; `mov eax, ecx`, copy the
+  allocator byte, zero +4/+8/+0xc, `ret 4` is `vector(const allocator&)`, the
+  default constructor. Name `T` after the other out-of-line members called on
+  the same object (its `_Ucopy`, `erase`, ...), since the element type is part
+  of every mangled name; a function that destroys a whole object (0x40b390 for
+  the player AI object of 0x409160) maps each member's offset to its
+  destructor. #88 renamed 0x40c510-0x40c5d0, 0x40cc80, 0x40d000, 0x40ca30 and
+  0x40a5b0 this way.
+- A constructor's address can't be taken, and no vector member calls
+  `vector(const allocator&)`, so 0x40c510.cpp emits it with an explicit
+  instantiation, `template class std::vector<Unit*>;`, which emits every member.
+- One element type, one name: `Elem_0040cc40` (a cell and its float sort key,
+  copy constructor 0x40a5b0) is the element of the vector at +0x4d of the
+  player AI object, and `Elem_0040cfb0` (three bytes) the one at +0x65. The
+  files that use them define them identically. `Class_00409160`,
+  `Class_00409470`, `Class_00409730`, `Class_0040a150` and `Class_0040a7b0`
+  are all that AI object (DAT_005119c0[player]).

@@ -1,11 +1,9 @@
-// Decompiled by GPT-6. Names are provisional.
-// Retains the best earlier partial by Opus.
-// Retest: an inline float setter, a return-per-branch amount helper and the
-// preceding metal-sharing handler did not move the store past the pushes.
+// Decompiled by Opus, finished with the fix Claude Opus 5.5 found for 0x419340. Names are provisional.
 // Chat command: sets the local player's energy-sharing threshold to the
 // argument, capped at field_a4 (a min() macro, so the argument is read twice),
 // and prints a confirmation.
 #include <stdio.h>
+#include <stdlib.h>
 
 #pragma pack(push, 1)
 struct Player_00419400 {
@@ -36,22 +34,16 @@ public:
 
 void __stdcall FUN_00463ca0(char* param_1, int param_2, int param_3, int param_4);
 
-// Not matched (85.7%). The `cap =` assignment reproduces the original's x87
-// spill of field_a4 around the first call (a plain field is compared after
-// the call instead). The one remaining difference: the original stores
-// share_energy after the next call's `push 0; push 1`, ours before them.
-// If/else, double, inline-helper and header variants did not move it; an
-// if/else that duplicates the tail schedules the fld arm exactly like the
-// original, so the original tail may have come from a cross-jumped copy.
+// The min() macro's parentheses load field_a4 before the call and spill it,
+// and the explicit (float) cast on the argument makes the store come after
+// the next call's pushes, as in the original (see 0x419340, #106).
 // FUNCTION: 0x419400
 void __stdcall FUN_00419400(Class_004b73e0* args)
 {
     char buf[256];
     if (g_game->flags & 1) {
         Player_00419400* p = &g_game->players[g_game->local_player];
-        float cap;
-        p->share_energy = (cap = p->field_a4) < args->FUN_004b73e0(1, 0)
-            ? p->field_a4 : args->FUN_004b73e0(1, 0);
+        p->share_energy = __min(p->field_a4, (float)args->FUN_004b73e0(1, 0));
         sprintf(buf, "OK.  Will share energy if above %d", args->FUN_004b73e0(1, 0));
         FUN_00463ca0(buf, 2, 0, 10);
     }

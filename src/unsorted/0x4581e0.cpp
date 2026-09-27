@@ -1,8 +1,8 @@
 // Decompiled by Opus. Names are provisional.
-#include <windows.h>
+// These headers keep the operand order of the offset->y + v->y sum (found
+// with tools/headers.py after the function became a method).
 #include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <stdlib.h>
 
 struct Vertex_4581e0 {
     int x;                           // +0x0 (16.16 fixed point)
@@ -32,8 +32,15 @@ struct Model_4581e0 {
 };
 #pragma pack(pop)
 
+// A method that ignores `this`: its one caller (0x4586a0) passes its own
+// `this` through in ecx.
+class Class_004581e0 {
+public:
+    void FUN_004581e0(int* width, int* height, int* originX, int* originY, Model_4581e0* model, Vertex_4581e0* offset);
+};
+
 // FUNCTION: 0x4581e0
-void __stdcall FUN_004581e0(int* width, int* height, int* originX, int* originY, Model_4581e0* model, Vertex_4581e0* offset)
+void Class_004581e0::FUN_004581e0(int* width, int* height, int* originX, int* originY, Model_4581e0* model, Vertex_4581e0* offset)
 {
     int minX;
     int minY;

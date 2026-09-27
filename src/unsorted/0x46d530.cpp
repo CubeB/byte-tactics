@@ -23,7 +23,7 @@ int FUN_0044fe00();
 unsigned int FUN_00450030();
 void __stdcall FUN_00451bc0(int a, unsigned int b, void* c, int d);
 
-// Inlined copy of FUN_0046cec0.
+// Inlined copy of Class_0046cec0::FUN_0046cec0 (a method that ignores this).
 static inline void SendPacket(unsigned int to, void* packet)
 {
     *(int*)((char*)packet + 2) = 0;

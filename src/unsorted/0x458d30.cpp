@@ -11,10 +11,17 @@ struct Image_458d30 {
     unsigned char* shade;            // +0x14
 };
 
+// A method that ignores `this`: its one caller (0x458dd0) passes its own
+// `this` through in ecx.
+class Class_00458d30 {
+public:
+    void FUN_00458d30(Image_458d30* img, unsigned char level, int above, int below, int between);
+};
+
 // Recolours every opaque pixel by its shade: below level - 4, at or above
 // level, or in between. -1 leaves the pixel, -2 makes it transparent.
 // FUNCTION: 0x458d30
-void __stdcall FUN_00458d30(Image_458d30* img, unsigned char level, int above, int below, int between)
+void Class_00458d30::FUN_00458d30(Image_458d30* img, unsigned char level, int above, int below, int between)
 {
     unsigned char low;
     if (level < 4)

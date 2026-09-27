@@ -1,0 +1,168 @@
+// Decompiled by GPT-6 Astra. Names are provisional.
+#include <windows.h>
+#include <math.h>
+struct Point { short x, y; };
+struct Vec3 {
+    int x, y, z;
+    Vec3 operator+(const Vec3& other) const {
+        Vec3 r;
+        r.x = x + other.x;
+        r.y = y + other.y;
+        r.z = z + other.z;
+        return r;
+    }
+};
+struct Unit;
+class Class_00438760 { public: unsigned char index; Class_00438760(const char*); };
+class Class_00438ad0 { public: void FUN_00438ad0(Point, Point); };
+class Class_00439e80 { public: void FUN_00439e80(int); };
+class Class_004898b0 { public: void FUN_004898b0(int); };
+class Class_004895c0 { public: void FUN_00489690(Unit*); };
+#pragma pack(push, 1)
+struct UnitDef {
+    char pad0[0x14a]; Point origin;
+    char pad14e[0x15e-0x14e]; Vec3 min, max;
+    char pad176[0x1fe-0x176]; unsigned short buildRate;
+    char pad200[0x212-0x200]; unsigned short buildRange;
+    char pad214[0x249-0x214];
+};
+struct Unit {
+    char pad0[0x66]; short angle;
+    char pad68[2]; Vec3 pos;
+    char pad76[8]; Point footprint;
+    char pad82[0x92-0x82]; UnitDef* def;
+    char pad96[0xb0-0x96]; int timeout;
+    char padb4[0xff-0xb4]; unsigned char player;
+    char pad100[4]; float progress;
+};
+struct Order {
+    char pad0[5]; unsigned char state;
+    unsigned int flags;
+    char padA[0x16-0xa]; Unit* target;
+    char pad1A[8]; Vec3 pos;
+    char pad2E[8]; int type;
+    int unused; int retries;
+};
+struct Game {
+    char pad0[0x1439b]; UnitDef* defs;
+    char pad1439f[0x38a47-0x1439f]; int tick;
+};
+#pragma pack(pop)
+extern Game* g_game;
+static inline UnitDef* Definitions() { return g_game->defs; }
+union Fixed { int value; struct { unsigned short fraction; short whole; }; };
+void __stdcall FUN_0047f780(Unit*, int, const char*);
+void __stdcall FUN_0041c110(Unit*);
+int __stdcall FUN_0047db70(UnitDef*, int, Point, int);
+void __stdcall FUN_0047ddc0(UnitDef*, Vec3*);
+Unit* __stdcall FUN_00485f50(unsigned char, short, Vec3, int, int, int);
+void __stdcall FUN_0043adc0(Class_00438760, int, Unit*, Unit*, Vec3*, int, int);
+short __stdcall FUN_0048a980(Vec3*, Vec3*);
+void __stdcall FUN_00438590(Unit*, Order*, short);
+int __stdcall FUN_00438700(Unit*, Order*, int);
+int __stdcall FUN_0041ba60(Unit*, Unit*, float);
+void __stdcall FUN_0043e400(Unit*, Vec3*);
+void __stdcall FUN_004720d0(Vec3*, Vec3*, int);
+static inline Point WorldToCell(Vec3 v, Point origin)
+{
+    Point c;
+    c.x = (v.x - (origin.x << 19) + 0x80000) >> 20;
+    c.y = (v.z - (origin.y << 19) + 0x80000) >> 20;
+    return c;
+}
+static inline void CellToWorld(Point origin, Point c, Vec3* v)
+{
+    v->x = (origin.x + c.x * 2) << 19;
+    v->z = (origin.y + c.y * 2) << 19;
+}
+// FUNCTION: 0x403a20
+int __stdcall FUN_00403a20(Unit* unit, Order* order, int flags)
+{
+    if (flags & 8) {
+        FUN_0047f780(unit, 7, "Construction terminated");
+        FUN_0041c110(unit);
+        return 8;
+    }
+    if (flags & 2) {
+        FUN_0041c110(unit);
+        return 5;
+    }
+    unsigned int state = 0;
+    state = order->state;
+    switch (state) {
+    case 0: {
+        UnitDef* def = &Definitions()[order->type];
+        Point cell = WorldToCell(order->pos, def->origin);
+        CellToWorld(def->origin, cell, &order->pos);
+        order->retries = 0;
+        ((Class_00438ad0*)order)->FUN_00438ad0(cell, def->origin);
+        order->flags = 0xe0;
+        return 1;
+    }
+    case 1: {
+        UnitDef* def = &Definitions()[order->type];
+        if (flags & 0x40) {
+            Fixed distance;
+            distance.value = (int)_hypot(unit->pos.x - order->pos.x, unit->pos.z - order->pos.z);
+            int gap = distance.whole - (int)(_hypot(unit->footprint.x, unit->footprint.y) * 8.0);
+            gap += (int)(_hypot(def->origin.x, def->origin.y) * -8.0);
+            unsigned int range = 0;
+            range = unit->def->buildRange;
+            if (gap > (int)range) {
+                FUN_0047f780(unit, 7, "I can't reach the construction site");
+                return 8;
+            }
+        }
+        if (!FUN_0047db70(def, 0, WorldToCell(order->pos, Definitions()[order->type].origin), 1)) {
+            if (!order->retries)
+                FUN_0047f780(unit, 7, "Waiting for target area to clear");
+            else if (order->retries > 10) {
+                FUN_0047f780(unit, 7, "Target area was blocked");
+                return 8;
+            }
+            order->retries++;
+            ((Class_00439e80*)order)->FUN_00439e80(30);
+            return 2;
+        }
+        ((Class_004898b0*)unit)->FUN_004898b0(3);
+        FUN_0047ddc0(def, &order->pos);
+        ((Class_004895c0*)((char*)order + 0x12))->FUN_00489690(
+            FUN_00485f50(unit->player, (short)order->type, order->pos, 0, 1, 0));
+        if (!order->target) {
+            FUN_0047f780(unit, 7, "Unable to create any more units");
+            ((Class_00439e80*)order)->FUN_00439e80(300);
+            return 2;
+        }
+        FUN_0047f780(unit, 9, "Starting construction");
+        FUN_0041c110(unit);
+        FUN_0043adc0("getbuilt", 1, order->target, unit, 0, 0, 0);
+        FUN_00438590(unit, order, FUN_0048a980(&unit->pos, &order->target->pos) - unit->angle);
+        return 1;
+    }
+    case 2:
+        return FUN_00438700(unit, order, 10);
+    case 3: {
+        int rate = 0;
+        rate = unit->def->buildRate;
+        if (FUN_0041ba60(unit, order->target, (float)(rate / 30))) {
+            Vec3 start;
+            FUN_0043e400(unit, &start);
+            Vec3 bounds[2];
+            bounds[0] = order->target->pos + order->target->def->min;
+            bounds[1] = order->target->pos + order->target->def->max;
+            FUN_004720d0(&start, bounds, 6);
+        }
+        unit->timeout = g_game->tick + 300;
+        if (order->target->progress != 0.0f) {
+            ((Class_00439e80*)order)->FUN_00439e80(1);
+            order->flags |= 0xa;
+            return 2;
+        }
+        return 1;
+    }
+    case 4:
+        FUN_0047f780(unit, 8, "Building complete");
+        return 5;
+    }
+    return 7;
+}

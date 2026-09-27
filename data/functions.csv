@@ -3502,7 +3502,7 @@ address,size,kind,name,params,locals,seh,frame_pointer,calls,game_calls,callers
 0x4e8470,11,library,??0type_info@@AAE@ABV0@@Z,1,0,0,0,0,0,0
 0x4e8480,5,library,??4type_info@@AAEAAV0@ABV0@@Z,1,0,0,0,0,0,0
 0x4e8490,71,library,__CxxThrowException@8,2,8,0,0,0,0,7
-0x4e84e0,821,library,_memcpy,,,,,0,0,0
+0x4e84e0,821,library,_memmove,,,,,0,0,0
 0x4e8820,104,library,_free,1,1,0,0,2,0,51
 0x4e8890,20,library,_malloc,1,0,0,0,1,0,48
 0x4e88b0,68,library,__nh_malloc,2,0,0,0,2,0,1

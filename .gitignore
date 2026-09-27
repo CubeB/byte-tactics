@@ -1,5 +1,5 @@
 # Microsoft's compiler and the game binary must never be committed.
-/toolchain/
+/toolchain
 /orig/*
 !/orig/*.sha256
 /build/

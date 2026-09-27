@@ -71,7 +71,7 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 
 ### Tooling added during the night
 
-- `tools/headers.py`: tries a function's file with all 64 combinations of six
+- `tools/headers.py`: tries a function's file with all 128 combinations of seven
   common headers in a few seconds. MSVC 5's operand order and register choice
   depend on which headers are included, and this settled a dozen functions
   that no source rewrite could.
@@ -102,13 +102,14 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 <!-- calibration:start -->
 ### First-attempt match rate by function size
 
-| Size (bytes) | Deepseek-v4.1-flash | Gpt-6 | Haiku | Opus | Sonnet |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 1-16 |  |  | 283/312 (91%) | 3/3 (100%) |  |
-| 17-40 |  |  | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
-| 41-64 |  |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
-| 65-160 | 12/12 (100%) |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
-| 161-400 |  | 6/6 (100%) |  | 29/35 (83%) |  |
+| Size (bytes) | Deepseek-v4.1-flash | Gpt-6 | Gpt-6-astra | Haiku | Opus | Sonnet |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1-16 |  |  |  | 283/312 (91%) | 3/3 (100%) |  |
+| 17-40 |  |  |  | 235/337 (70%) | 124/124 (100%) | 9/10 (90%) |
+| 41-64 |  |  |  | 3/11 (27%) | 255/255 (100%) | 96/109 (88%) |
+| 65-160 | 64/67 (96%) |  |  | 1/6 (17%) | 739/747 (99%) | 2/6 (33%) |
+| 161-400 | 43/54 (80%) | 11/12 (92%) |  |  | 30/36 (83%) |  |
+| 401+ |  |  | 7/12 (58%) |  | 19/30 (63%) |  |
 
 ### Cost per batch
 
@@ -281,10 +282,52 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | O112 | opus | 10 | 10 | 170,925 | 17,092 | 68 | 12 |
 | #8 | gpt-6 | 6 | 6 | 0 | n/a | n/a | n/a |
 | #1 | deepseek-v4.1-flash | 12 | 12 | 0 | n/a | n/a | n/a |
+| #9 | gpt-6 | 6 | 5 | 0 | n/a | n/a | n/a |
+| #43 | opus | 1 | 0 | 191,629 | n/a | n/a | 17 |
+| #2 | deepseek-v4.1-flash | 12 | 12 | 0 | n/a | n/a | n/a |
+| #35 | opus | 3 | 2 | 248,955 | 124,477 | 498 | n/a |
+| #36 | opus | 3 | 3 | 345,400 | 115,133 | 461 | n/a |
+| #37 | gpt-6-astra | 3 | 1 | 0 | n/a | n/a | n/a |
+| #38 | gpt-6-astra | 3 | 2 | 0 | n/a | n/a | n/a |
+| #39 | opus | 3 | 3 | 241,723 | 80,574 | 322 | 18 |
+| #40 | gpt-6-astra | 3 | 2 | 0 | n/a | n/a | n/a |
+| #53 | gpt-6-astra | 3 | 2 | 0 | n/a | n/a | n/a |
+| #52 | opus | 2 | 1 | 243,080 | 243,080 | 972 | 23 |
+| #3 | deepseek-v4.1-flash | 12 | 12 | 0 | n/a | n/a | n/a |
+| #60 | opus | 1 | 1 | 173,428 | 173,428 | 694 | 11 |
+| #63 | opus | 1 | 0 | 0 | n/a | n/a | n/a |
+| #65 | opus | 1 | 0 | 0 | n/a | n/a | n/a |
+| #4 | deepseek-v4.1-flash | 12 | 11 | 0 | n/a | n/a | n/a |
+| #6 | deepseek-v4.1-flash | 7 | 7 | 0 | n/a | n/a | n/a |
+| #55 | opus | 3 | 2 | 280,719 | 140,359 | 561 | 21 |
+| #10 | deepseek-v4.1-flash | 6 | 6 | 0 | n/a | n/a | n/a |
+| #54 | opus | 3 | 1 | 0 | n/a | n/a | n/a |
+| #5 | deepseek-v4.1-flash | 12 | 10 | 0 | n/a | n/a | n/a |
+| #72 | opus | 1 | 0 | 0 | n/a | n/a | n/a |
+| #84 | opus | 2 | 2 | 116,379 | 58,189 | 233 | 5 |
+| #56 | opus | 3 | 1 | 409,292 | 409,292 | 1637 | 45 |
+| #11 | deepseek-v4.1-flash | 6 | 3 | 0 | n/a | n/a | n/a |
+| #57 | opus | 3 | 2 | 298,804 | 149,402 | 598 | 26 |
+| #82 | opus | 3 | 3 | 259,597 | 86,532 | 346 | 19 |
+| #12 | deepseek-v4.1-flash | 6 | 4 | 0 | n/a | n/a | n/a |
+| #15 | deepseek-v4.1-flash | 6 | 6 | 0 | n/a | n/a | n/a |
+| #90 | opus | 3 | 2 | 271,979 | 135,989 | 544 | 31 |
+| #16 | deepseek-v4.1-flash | 6 | 5 | 0 | n/a | n/a | n/a |
+| #17 | deepseek-v4.1-flash | 6 | 4 | 0 | n/a | n/a | n/a |
+| #81 | opus | 3 | 2 | 346,841 | 173,420 | 694 | 32 |
+| #99 | opus | 2 | 2 | 164,661 | 82,330 | 329 | 8 |
+| #80 | opus | 3 | 0 | 376,412 | n/a | n/a | 38 |
+| #18 | deepseek-v4.1-flash | 6 | 6 | 0 | n/a | n/a | n/a |
+| #103 | opus | 1 | 0 | 174,429 | n/a | n/a | 15 |
+| #19 | deepseek-v4.1-flash | 6 | 4 | 0 | n/a | n/a | n/a |
+| #106 | opus | 2 | 2 | 219,248 | 109,624 | 438 | 20 |
+| #113 | opus | 2 | 2 | 127,022 | 63,511 | 254 | 13 |
+| #20 | deepseek-v4.1-flash | 6 | 5 | 0 | n/a | n/a | n/a |
+| #111 | opus | 2 | 2 | 242,823 | 121,411 | 486 | 23 |
 
 ### Escalations
 
-- Opus matched 51 of 52 functions a cheaper model had failed.
+- Opus matched 65 of 73 functions a cheaper model had failed.
 - Sonnet matched 109 of 116 functions a cheaper model had failed.
 <!-- calibration:end -->
 

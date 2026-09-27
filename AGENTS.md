@@ -33,13 +33,14 @@ Issues labelled `hard` (the biggest functions, and near-misses other models
 could not finish) are reserved for the strongest models: **GPT-6 Astra** and
 **Claude Opus**.
 
-If you are one of those models, take `hard` issues first:
+If you are one of those models, take only `hard` issues. They are expensive to
+run, so they are kept for work cheaper models can't do:
 
 ```sh
 gh issue list --label decomp --label hard --state open --search "no:assignee -label:claude" --limit 20
 ```
 
-Only when none are left, fall back to the list below.
+When none are left, stop and tell the human; do not fall back to other issues.
 
 If you are any other model, never take a `hard` issue:
 
@@ -55,11 +56,13 @@ itself:
 
 ```sh
 gh issue view <N> --json assignees,labels,comments \
-  --jq '{assignees: [.assignees[].login], labels: [.labels[].name], claims: [.comments[].body | select(startswith("Claimed by"))]}'
+  --jq '{assignees: [.assignees[].login], labels: [.labels[].name], claim: ([.comments[].body | select(startswith("Claimed by") or startswith("Released")) | split("\n")[0]] | last)}'
 ```
 
-Skip it if it has an assignee or any "Claimed by" comment, or if its labels
-are not for you. Then claim it:
+`claim` is the most recent claim or release comment. Skip the issue if it has
+an assignee, if `claim` starts with "Claimed by", or if its labels are not for
+you. An issue whose `claim` starts with "Released" (the orchestrator frees
+stale claims that way) or is null is free. Then claim it:
 
 ```sh
 gh issue edit <N> --add-assignee @me
@@ -71,9 +74,11 @@ If `gh issue edit --add-assignee` fails because you are not a collaborator on
 the repository (outside contributors can't assign themselves), the "Claimed by"
 comment alone is your claim; the orchestrator will assign you. Several agents
 can share one GitHub account, so the assignee only says "taken"; the comment
-says by whom. If `gh issue view` shows an earlier "Claimed by"
-comment from a different agent, you lost the race: comment "Released, claimed
-twice", do not unassign, and go back to the list for another issue.
+says by whom. If `gh issue view` shows a "Claimed by" comment from a
+different agent after the last "Released" comment and before yours, you lost
+the race: comment "Lost the claim race, the earlier claim stands" (never start
+it with "Released", which would free the issue), do not unassign, and go back
+to the list for another issue.
 
 ## 3. Work in your own copy
 
@@ -121,9 +126,9 @@ In OpenCode, do not decompile the functions yourself first. Hand them to the
 `decomp-worker` subagent, which runs on a cheap model and has its own step
 limit:
 
-1. Give each worker one or two addresses and the absolute path of your
-   worktree (`.worktrees/issue-<N>`). Run up to four workers at once, each
-   with different addresses.
+1. Start one worker per function, all at the same time, each given its one
+   address and the absolute path of your worktree (`.worktrees/issue-<N>`).
+   Each worker only touches its own function's file.
 2. When they report, run `uv run tools/checkall.py <all the issue's
    addresses>` yourself. Only trust MATCH lines you see from the checker.
 3. For each function a worker left partial, try it yourself: at most 8
@@ -150,9 +155,15 @@ Rules that matter most (the guide has the rest):
 
 ## 5. Open a pull request
 
+First bring in what was merged while you worked, and re-check your functions,
+because a callee you call may have been matched under a new name in the
+meantime:
+
 ```sh
 git add src/unsorted/
 git commit -m "Add: <matched> of <total> functions for #<N>"
+git pull --rebase origin main
+uv run tools/checkall.py <your addresses>
 git push -u origin issue-<N>
 gh pr create --title "Decomp #<N>: <matched> of <total> matched" --body-file <file>
 ```

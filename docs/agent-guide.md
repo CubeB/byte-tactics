@@ -618,8 +618,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   the one declared later first, whatever the source order; reorder the
   declarations, not the expression (0x4468c0).
 - **A float field spilled with `fld; fstp [esp+N]` before a call it is compared
-  with**: only a non-leaf expression such as `(cap = p->x) < f()` does that; a
-  plain field or a local copy is loaded after the call (0x419400).
+  with**: that is a `min()`/`max()` macro. In `p->x < f()` MSVC 5 loads the
+  field after the call, but the macro's parenthesised `(p->x) < (f())` loads
+  it before and spills it. If the original also stores the result after the
+  next call's constant pushes (`fild; push 0; push 1; fstp [field]`), cast the
+  int argument explicitly: `__min(p->x, (float)f())`. Found by Claude Opus 5.5
+  in #106 (0x419340, 0x419400).
 - **`__DATE__`/`__TIME__` strings**: write the literals ("Jul 30 1998",
   "11:16:36"); the macros give today's date (0x41d920).
 - **A hand-stored vtable** (`vtable = DAT_x;`) is a last resort: declare the real
@@ -897,6 +901,329 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Identical `switch` cases may need separate bodies** even when the original
   has one shared target: writing cases 1 and 3 separately let MSVC merge their
   calls at the right place and fixed register choice around them (0x406780).
+- **An inline helper that must reload a pointer member after each call**:
+  take the pointer by reference (`Owner*& o`); passing it by value keeps it in
+  a register (0x4077e0).
+- **`lea reg, [esi+K]` then stores at `[reg+4]`/`[reg+8]`**: a struct copy into
+  an inlined constructor's `this` (`*this = Vec3(...)`); field initialisers, a
+  user `operator=` or a helper give direct `[esi+K]` stores. The scheduler folds
+  the first store to `[esi+K]` only when nothing can fill the slot after the
+  `lea`, so an unfolded `mov [reg], x` means other instructions came between
+  them in the compiler's input (0x407d40).
+- **`strlen(text) > 0 ? text : 0`** gives `cmp eax, ecx; sbb esi, esi` for a
+  pointer-or-null select (0x435320).
+- **Stack offsets of several local arrays**: they follow the order the code
+  first writes them (zeroing order), not the declaration order (0x401360).
+- **A 0/1 argument pushed on its own in each branch**: write the call in every
+  branch with an `int ok` local rather than one call after the branches
+  (0x401360).
+- **A float constant that fails on the bytes after it** (our object pads it
+  where the original's constant pool has the next constant): define the real
+  preceding function in the same file, so its constants come first in the pool
+  as in the original (0x402430 in 0x402640.cpp).
+- **Passing a by-value class argument built from a literal**: write it
+  implicitly (`FUN_0043adc0("PARK", ...)`), which constructs it in place on the
+  stack; an explicit `Class_00438760("PARK")` makes a temporary and copies it.
+- **A vector sum whose last coordinate comes out in the wrong register**: use a
+  member `operator+` taking its operand by const reference, not a free helper
+  (0x403a20).
+- **64-bit widening that comes too early**: a `Vec3` subtraction followed by a
+  member squared-distance helper postpones it until after the range
+  calculation; separate scalar 64-bit locals widen too early (0x404730).
+- **A 16-bit register copy (`mov bx, dx`) of a value stored later**: assign the
+  values into the fields of a small struct local (`Point16 p; p.x = n % w;`) and
+  copy them out afterwards; a plain `short` local gives `mov ebx, edx` (0x404db0,
+  same shape at 0x423c50).
+- **A box whose `hi.x` is stored twice**: `box.hi = box.lo;` then `+=` per field;
+  separate field assignments drop the first store (0x404ad0).
+- **A vector insertion that reuses a pointer parameter's stack slot**: pass a
+  reference to that parameter as the element; copying the pointer into a
+  separate element local adds a store (0x405d90, with the out-of-line
+  `_Construct` FUN_00406c70).
+- **A loop over the three weapons with a byte counter**: callee parameter types
+  decide whether the counter stays a byte; an `unsigned char` argument keeps it,
+  `int` arguments add a separate integer induction variable (0x406300,
+  0x406f80).
+- **A case whose call tail yours merges with other cases, but the original keeps
+  separate** (with `mov ecx, this` before the last push): let that case `break`
+  to a shared `x++; return 1;` after the switch instead of returning inside it.
+  Cases that `return` inside the switch are cross-jumped at the call (0x4034a0).
+- **A constant hoisted into a callee-saved register** (`mov ebx, 0x8000; test
+  ebx, eax`) where the original uses `test ah, 0x80`: remove one source use,
+  for example one shared `Wait(); return 2;` after an if/else-if, which MSVC
+  duplicates into both arms itself (0x402da0).
+- **Scratch registers rotated by one across a loop** (eax/ecx vs ecx/edx): MSVC 5
+  hands them out in rotation, so the loop has one temporary more or fewer
+  earlier on; two throwaway loads in a scratch copy confirm it (0x402da0).
+- **Two locals swapped between callee-saved registers after a search helper**:
+  try inverting the helper's early return (`if (i < 0) return 0;` versus
+  `if (i >= 0) { ...; return e; } return 0;`) (0x45af90).
+- **A field read twice where yours reads it once**: read it once through an
+  inline method and once as a plain field (`health + def->MaxHealth()` over
+  `def->maxHealth * 2`); two plain reads get merged (0x404270).
+- **A constant folded into a reciprocal**: cast the helper's result
+  (`return (float)(x * 30);`) so MSVC keeps the multiply (0x404270).
+- **Constants: write literals, not `extern const float DAT_x`.** A literal
+  lands in the constant pool as in the original; a declared global points at
+  whatever address its name says, which must be exactly the original's.
+- **A visitor object whose field and vtable stores come after the pushes, in its
+  own frame slot**: pass it as a temporary by const reference,
+  `FUN_0047e890(&unit->pos, range, Class_00405d90(owner, &units, unit))`
+  (0x405980; the same call shape is at 0x410a9a and 0x4154e8).
+- **x87 load order in `a >= b * 0.2`** depends on what else is in the basic
+  block, not on how the comparison is written.
+- **A zero kept in `ebp` after a loop, with duplicated call tails**: write each
+  branch's tail out in full (its own `new`, call, stores and `return`) instead
+  of one shared call after an if/else-if (0x406300).
+- **An unused label can change the code**: in 0x406300, removing an unused
+  `follow:` label lowered the score, so the original probably had a `goto`
+  there. Keep labels that help.
+- **A multiply by an odd constant as a `lea` chain versus `imul reg, imm`** can
+  depend on the header set alone: 0x4b6c30's `seed * 16807` is a `lea` chain only
+  with `<windows.h>` included.
+- **Why headers matter at all: it is compiler state, not header content.** In
+  0x4b6c30, replacing `<windows.h>` with 2700 to 5400 unused prototypes flips
+  the same choice, while fewer or more do not. So operand order and register
+  choice can depend on how much the compiler had read before the function, in
+  the original source file. tools/headers.py finds a set that happens to
+  reproduce that state; when none does, the answer is probably the original
+  file's other contents (defining real neighbours in the same file is the
+  closest we can get for now).
+- **Spelling a constant multiply as shifts that reuse a temporary** (`(q << 31)
+  - q`) forces that value to be computed first; useful for diagnosing
+  evaluation-order problems, but it changes the instructions, so it is not a
+  fix in itself.
+- **`_Ubound`/`_Lbound` with the returned iterator built before the lock's
+  destructor**: they hold a `std::_Lockit` for the whole body; move the locked
+  tree walk into a `static inline` helper and build the iterator from its result
+  afterwards.
+- **`_Tree::_Dec`/`_Inc` node layout**: the `_Color` field's offset follows the
+  value type's size (an 8-byte pair at +0xc puts it at +0x14; a 0x30-byte value
+  moves it to +0x3c), and that decides the whole function's match.
+- **A run of inlined constructors that suddenly calls one out of line** (or
+  inlines a derived constructor but calls its base): MSVC's /Ob2 inlining
+  budget ran out. Define every callee's body in the file, including the ones the
+  original still calls out of line, so the budget runs out at the same place
+  (0x408cb0).
+- **A bitfield bit tested as `mov edx, ecx; shr edx, N; test dl, 1` inside an
+  `&&` chain**: write `!(unsigned char)bf`; `!bf` and `bf == 0` give
+  `test ch, mask` (0x4089a0).
+- **`fild` operands from a Vec3 temporary in memory**, with a literal 0 stored
+  for one component: the length helper takes `const Vec3&` and is called on a
+  temporary, `Length(a - b)` (0x408100).
+- **`field = g_game->ticks + FUN_004b6c30(n) + K` folds into `lea eax,
+  [eax+edx+K]`**: when the original does `add eax, K; mov edx, [ticks]; add
+  edx, eax`, compute the delay into a local first (0x407ae0, 0x407e90).
+- **A comparison with an inlined `vector::size()` on the right is evaluated
+  right side first**: if the original computes the left side first, put it in
+  its own statement (`int d = dx * dx + dz * dz; if (d < limit * (int)v.size())`)
+  (0x407560).
+- **A real call to 0x4e84e0 is memmove**: /O2 always inlines `memcpy` (as
+  `rep movsd` plus a tail), so an out-of-line call to the runtime copy is
+  `memmove`, usually `std::char_traits<char>::move` from a string method. The
+  library's memcpy and memmove are byte-identical, which is why it was once
+  named `memcpy`. Found by Claude Opus 5.5 in #84 (0x4da3f0).
+- **Returned by value through a hidden pointer**: a method whose first stack
+  argument is a pointer it fills in and then returns in `eax` returns a class
+  by value (`Class f(...) const`), not `void f(Class* out, ...)`. The mangled
+  name then has `?AV1@` as its return type. See 0x4c9490.
+- **Counting loops that index the string**: `for (i = 0; text[i]; i++)`
+  compiles to an indexed `cmp byte ptr [eax+ecx], 0` loop; a pointer walk
+  (`while (*p) p++`) gives `inc eax` on the pointer instead. Pick whichever
+  the original shows. See 0x4da3f0.
+- **Inline budget and nesting depth**: MSVC 5's inline budget depends on the
+  whole function and on how deeply calls nest. Wrapping a `std::vector` member
+  in one or two plain structs changes which of several identical vector
+  constructors stay inline (0x409160). Inline accessor calls elsewhere in the
+  function use up budget too, and decide whether a `resize()`'s erase, insert
+  and `_Destroy` are inlined (0x409730). When out-of-line STL calls don't
+  match, count the inline expansions before them and in the rest of the
+  function. Found by Claude Opus 5.5 in #56.
+- **Float subexpressions in min/max macros**: a windows.h `min`/`max`
+  evaluates its arguments more than once. A branch-free float subexpression
+  (`(float)(x * -0.02f) + (b ? 25 : 0)`) is computed once and spilled, while a
+  term with a branch is recomputed. If the original reuses a spilled float
+  inside the macro, write the whole thing as one expression rather than using
+  a float local. A `(float)` cast around `x * -c` stops MSVC folding the
+  negative constant into a subtraction. See 0x409730.
+- **Bit tests through a copied bitfield**: two tests on one flags word that
+  use `mov ecx, ebx; shr ecx, N; test cl, 1` come from a local copy of the
+  bitfield struct (`Flags f = def->flags; if (f.bit11) ...`); testing the field
+  in place gives `test bh, 8`. See 0x409730.
+- **Bottom-tested loops behind one guard**: a loop the original tests at the
+  bottom, entered through a single `if (n > 0)`, is
+  `if (n > 0) { do { ... } while (row < n); }`. When the original also shows a
+  duplicated entry `test; je`, put the guarded loop in an inline member helper
+  whose body starts with its own `if (bits)` guard. Found by DeepSeek V4.1
+  Flash in #11 (0x40d900, 57% to 73%).
+- **`__stdcall` STL heap helpers**: a make_heap or pop_heap body that ends in
+  `ret N`, called from a function that also inlines `std::vector` code, is
+  declared `__stdcall`, with the inline wrapper's body written at the call
+  site. How many inline helpers the function uses decides which vector members
+  /Ob2 leaves out of line. Found by Claude Opus 5.5 in #57 (0x40a260).
+- **Struct fields copied with `fld`/`fstp`**: a field copied through the FPU
+  instead of with `mov` was passed through a `float` parameter of an inline
+  constructor. See 0x40a7b0.
+- **Emitting a `std::vector` constructor out of line**: a constructor's
+  address can't be taken, and no vector member calls
+  `vector(const allocator&)`. An explicit instantiation,
+  `template class std::vector<T>;`, emits every member out of line, including
+  the constructors. See 0x40c510 and the STL section of docs/consolidation.md.
+- **Placeholder names on small STL members**: a tiny `size()`
+  (`(last - first) >> 2`), `capacity()` or empty-bodied destructor filed as
+  `Class_XXXXXXXX::FUN_XXXXXXXX` is usually a `std::vector` member. If your
+  bytes match but check.py says a reference is wrong, report the name in your
+  pull request instead of renaming it. A function that destroys a whole object
+  (0x40b390) names every member's out-of-line destructor by offset, which is
+  the quickest way to tie `~vector()` copies to element types. Found by Claude
+  Opus 5.5 in #56, #57 and #88.
+- **A copied shift in a scratch register is a multiply**: if the original
+  computes a shift in one register and copies it (`mov ecx, edx; shl ecx,
+  0x13; mov esi, ecx`) where yours shifts straight into the target, write a
+  multiply (`origin.x * 0x80000`, not `<< 19`). MSVC turns the multiply into a
+  shift after register allocation, so the copy appears. Found by Claude Opus
+  5.5 in #82 (0x40f2a0).
+- **Sum into a temporary, then copy**: if all three loads come before any
+  store, one component sits in a callee-saved register and the stores run x,
+  y, z, write `Vec3 sum; sum.x = a.x + b.x; ...; Vec3 dest = sum;`. Writing
+  `dest`'s fields directly, `operator+`, or a helper returning by value all
+  interleave the loads and stores. See 0x40f2a0.
+- **A mask kept in a register**: `mov ebx, 0xe0; test bl, al` (with ebx reused
+  by a later `or eax, ebx`) comes from casting the parameter,
+  `(unsigned char)flags & 0xe0`; plain `flags & 0xe0` gives `test al, 0xe0`.
+  See 0x40f2a0.
+- **A dead `operator delete(0)`**: a constructor that zeroes a pointer and
+  then deletes it emits a real `delete` of a register that holds 0. If the
+  original reloads the pointer instead of pushing a constant, clearing it with
+  `memset(&field, 0, 4)` rather than `field = 0` stops MSVC propagating the
+  zero. Found by DeepSeek V4.1 Flash in #12 (0x40e9e0).
+- **A struct local the original keeps in memory**: if yours lands in
+  registers, build it from an inline `operator-` (or `+`) that returns the
+  struct by value (`Vec3 d = *to - *from;`). Assigning field by field, an
+  `int[3]`, inline methods on `this`, constructors and taking its address all
+  ended up in registers. Found by Claude Opus 5.5 in #90 (0x40beb0).
+- **Three `fild`s kept on the x87 stack in x, y, z order**: convert each
+  component into its own `double` local before summing the squares; writing
+  `(double)x * x + ...` reorders the terms. See 0x40beb0.
+- **A value the original computes twice**: write the expression twice (for
+  example `g_game->width >> 1`) rather than caching it in a local; MSVC then
+  schedules it as the original does. See 0x40d7b0.
+- **A bit loop tested twice on entry**: write
+  `if (dirty[i]) { unsigned bits = dirty[i]; ... while (bits) ... }`. Loading
+  `bits` first and testing `if (bits)` drops the second test. See 0x40d900.
+- **A `?:` on a one-bit bitfield choosing between two strings**: write
+  `(flag != 0) ? "ON" : "OFF"` to get `test byte ptr [m], mask; mov eax, <on>;
+  jne; mov eax, <off>`. `flag ? a : b` gives `shr`/`test`, and `!flag ? b : a`
+  flips the branch. Found by DeepSeek V4.1 Flash in #16 (0x418cd0).
+- **A label and `goto` instead of an outer loop**: MSVC 5 weights register
+  priority by loop nesting, so an extra loop level changes which variable gets
+  which register. In 0x40e160 an outer `for (;;)` around two inner loops put
+  `this` in ebp; a label with a `goto` back to it (as the original evidently
+  did) gave `this` esi and raised the score from 62% to 82%. Found by Claude
+  Opus 5.5 in #81.
+- **Inlined 16.16 multiplies that compile two ways**:
+  `(int)(((__int64)s * f()) >> 16)` gives `imul reg` at some sites and
+  `mov ecx, eax; mov eax, reg; imul ecx` at others. A `FixMul(a, b)` helper
+  taking both as parameters gives the second form. When the forms differ per
+  site, mix the two spellings, then run tools/headers.py. See 0x40e160.
+- **A top-tested loop under an `else if`, failure path last**:
+  `else if (Size() != 0) { while (1) { if (Size() == 0) break; ... } } else { fail }`.
+  A plain `while (Size() != 0)` gets rotated, and
+  `else if (Size() == 0) { fail } else { ... }` puts the failure block first.
+  See 0x40eb70.
+- **A shared cleanup block that jumps back to the main epilogue**: one branch
+  falls into a label (`finish:`) that another reaches with `goto`. A `return`
+  inside a scope with a destructor gives that exit its own epilogue copy
+  instead. See 0x40e630.
+- **Toggling a bit in a plain integer field**: `f = (f & ~mask) | (~f & mask)`
+  gives the same load, not, and, or sequence as toggling a one-bit bitfield;
+  `f ^= mask` compiles to a memory `xor`. Found by DeepSeek V4.1 Flash in #17
+  (0x418d90, 0x418e50).
+- **A `lea` kept in a register before a field load**: `lea reg, [base+idx*4]`
+  followed by a load from `[reg+K]`, instead of one folded address, means the
+  field was read twice through a pointer local
+  (`if (c->dir != dir) dir = c->dir;`). MSVC merges the second load but keeps
+  the address. Found by Claude Opus 5.5 in #99 (0x40e050).
+- **A two-field inequality test that loads y before x**: if
+  `a.x != b.x || a.y != b.y` loads the wrong field first, write it as an
+  inline `operator!=` on the point struct. See 0x40e050.
+- **Inline copies of an out-of-line helper**: give the inline copy the same
+  parameters and body as the out-of-line one (for example, have it read
+  `node = items[i]` itself rather than being passed the node). Computing an
+  argument at the call site changes register allocation before the loop. See
+  0x40ef20 against 0x40f060.
+- **Match the out-of-line calls before chasing registers**: list the `call`
+  lines in each variant's `/Fa` listing and compare them with the original's.
+  /Ob2 does not spend its inline budget in source order: in 0x40da70, adding a
+  helper call in the second case of a `switch` changed what was inlined in the
+  first case above it. Found by Claude Opus 5.5 in #80.
+- **Out-of-line `vector::insert(iterator, size_type, const T&)` copies**
+  (0x408f30, 0x40d020, 0x40d290) differ from each other in the original in the
+  order of their pointer sums and in register choice, and source, type and flag
+  changes don't reach most of those spots. Treat them as compiler state and
+  move on quickly. See #56 and #80.
+- **Scratch folder names**: cl.exe fails with "cannot execute '.\c2'" if the
+  current directory contains a folder named `c1`, `c2` or `c1xx`. Name scratch
+  folders something else.
+- **Read-modify-write of a few bits in a global byte**
+  (`mov al, [m]; and dl, 0xbf; or dl, al`): model the byte as a union of the
+  byte and a bitfield struct, and write the field directly. Found by DeepSeek
+  V4.1 Flash in #18 (0x4197d0).
+- **Set a flag in place before testing another bit**: `t->flags |= K;` with
+  no temporary lets MSVC reuse the OR result for a later test of another bit,
+  where `int f = t->flags | K; t->flags = f;` reloads it. See 0x41b8d0.
+- **The order of a sum of three or more terms can be compiler state**: in one
+  scratch file, five identical copies of `p[0] + p[2] + p[4] + p[6]` compiled
+  to three different orders. A quick test is to print only the sum's load
+  order across all header sets (tools/headers.py); if the pairing you need
+  never appears, stop rewriting the source and try defining the real
+  neighbouring functions in the same file instead. Found by Claude Opus 5.5 in
+  #103 (0x4181d0).
+- **`<< 8` and `* 256` on a zero-extended byte**: `b << 8` compiles to
+  `mov ch, [mem]`, `b * 256` to `mov cl, [mem]; shl ecx, 8`. See 0x4181d0.
+- **A pointer kept across a run of calls**: taking `T* p = &g_game->field;`
+  before the calls keeps it in a callee-saved register; re-reading
+  `g_game->field` at each use makes MSVC reload `g_game`. Found by DeepSeek
+  V4.1 Flash in #20 (0x41cc60).
+- **A two-value setter inlined in a loop**: an inline `SetPos(x, y)` gives
+  MSVC's right-to-left argument evaluation (y first) and its split temporary;
+  writing the two stores directly does not. See 0x41d1f0.
+- **A local shared across the arms of an `if` swaps registers**: if two
+  values (say a unit pointer and a field loaded from it) come out in each
+  other's registers, declare a separate local inside each arm instead of one
+  before the `if`. Found by DeepSeek V4.1 Flash in #19 (0x41bf10, 46% to
+  100%).
+- **A point read once into a local and passed to two inline helpers**: if the
+  original reads a `Point` once as a dword, keeps it in an argument's stack
+  slot and spills one coordinate of the cell result as a short, copy it first
+  (`Point origin = def->origin;`) and pass the local to both WorldToCell and
+  CellToWorld helpers. Passing `def->origin` to each keeps the cell in
+  registers and shrinks the frame by 4. See 0x419670.
+- **The two sides of a comparison evaluated in the wrong order**: run
+  tools/headers.py before rewriting the expression. The heavier side (here a
+  pointer chain ending in a byte) is loaded first, and the other value then
+  takes a callee-saved register or the scratch registers come out mirrored;
+  the header set decides which. Found by Claude Opus 5.5 in #113 (0x41bde0,
+  0x41c060).
+- **Siblings can need different headers**: functions from one original
+  source file, each in its own file here, can need different header sets
+  (0x41bde0 needs `<stdlib.h>` and fails with `<windows.h>`; 0x41c060 is the
+  reverse). Run headers.py for each function rather than copying a sibling's
+  includes.
+- **Compiler state or the wrong source?** Score a scratch copy with N unused
+  `extern int dummyN;` declarations in front, for N from 0 to about 400. If
+  any N matches, the source shape is right and only the compiler's state
+  differs; a legitimate header set (tools/headers.py, or ordinary pairs such
+  as `<stdio.h>` + `<string.h>`) or defining the real neighbouring function
+  above it can reach that state. Never commit the dummy declarations. Found by
+  Claude Opus 5.5 in #111 (0x417f60 matched for N = 195 to 289).
+- **Two weights sharing one local**: with `a - t` and `b - t` on the same local
+  `t`, MSVC 5 computes `-t` once with `neg` and adds it. If the original has
+  two separate `sub`s, give each weight its own local holding the same value.
+  See 0x417f60.
+- **A vertex swap that loads x and y together and stores them after the
+  height**: the vertex is an `{x, y}` struct passed by value, with the height
+  as a separate parameter. See 0x417f60.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.
@@ -943,8 +1270,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   encodings with `objdump -d -M intel file.obj` (installed).
   `uv run tools/headers.py <addr>` (each line it prints is one complete header
   set) compiles your file with every combination
-  of `<windows.h>`, `<stdio.h>`, `<stdlib.h>`, `<string.h>`, `<math.h>` and
-  `<memory.h>` in a few seconds and prints the sets that match; try it as soon
+  of `<windows.h>`, `<stdio.h>`, `<stdlib.h>`, `<string.h>`, `<math.h>`,
+  `<memory.h>` and `<ddraw.h>` in a few seconds and prints the sets that match; try it as soon
   as every rewrite gives the same wrong register or operand order (0x471f90
   needed exactly `<windows.h>` plus `<math.h>`).
 - **"-2 jumps away, -1 skips, default stores"**: a `switch` with `case -2`,

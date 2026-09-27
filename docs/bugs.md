@@ -55,3 +55,74 @@ index, but compares against "any" using argument 1 every time (the original
 pushes the constant 1, `ebx`, where the other comparisons push the index,
 `edi`). So "any" is ignored unless it is the first argument. Found by Codex /
 GPT-6 in #8.
+
+## Construction-assist radius adds y twice instead of squaring it (likely)
+
+**0x403f70**, the order handler for helping another unit build. It works out a
+target radius as `sqrt(x*x + y + y)` where `sqrt(x*x + y*y)` was surely meant:
+the original's x87 sequence at 0x40401d is `fld st(1); fmul st(2); fadd st(1);
+fadd st(1); fsqrt`, adding the second coordinate twice. The effect is a radius
+that grows roughly with the square root of y rather than with y, so assisting
+units stop at the wrong distance for large footprints. Found by ozgb's Codex /
+GPT-6 Astra in #38.
+
+## Group attack target used without a null check (likely)
+
+**0x407ae0**, slot 0 of `Class_00407a90` (an AI unit group). It pushes
+`&target->pos` straight after `Class_004071f0::FUN_004071f0`, which returns 0
+when it finds no enemy unit (see 0x4071f0.cpp), so with no enemy the group is
+sent towards address 0x6a. Found by Claude Opus 5.5 in #54.
+
+## Group centre may drift after moving a unit (possible)
+
+**0x407560**. After `FUN_00480250(*best, kind)` moves the farthest unit to the
+other group, the code re-reads `*best` to subtract that unit's position from
+the running sums. If FUN_00480250 erases the unit from this group's vector,
+`*best` then names the next unit and the centre drifts. Not verified until
+FUN_00480250 is decompiled. Found by Claude Opus 5.5 in #54.
+
+## Base height overwritten while measuring flat distances (likely)
+
+**0x408100**, slot 0 of `Class_004085d0` (one of the AI's unit groups). To get
+a horizontal distance it overwrites the base position's y in place (at
+0x408250 and 0x40834f) and never restores it, so every later unit in the loop
+is measured against the previous unit's height instead of the base's. Found by
+Claude Opus 5.5 in #55.
+
+## Harmless oddities
+
+Things that look wrong in the original but have no effect, kept for the record.
+
+- **0x404db0** (resurrect order): the feature pointer is first set to
+  `&features[0xffff]`, the "no feature" index far past the end of the table,
+  before the state test; no path reads it in the state where it stays that way.
+- **0x404db0**: the second failure message is spelt "Ressurection failed",
+  the first "Resurrection failed".
+- **0x407e90**: an unused `std::vector` local is constructed and destroyed.
+- **0x40e9e0** (a map grid constructor): it clears the pointer at +0x1c and
+  then immediately passes it to `operator delete`, a dead free of the buffer
+  it is about to allocate. `delete 0` does nothing. Found by DeepSeek V4.1
+  Flash in #12.
+- **0x40e9e0**: the second buffer's size is `((cells + 0xff) >> 8) * 4`, and
+  the code fills `size - 1` bytes and writes the last dword with no check, so
+  a map with no cells would underflow to a 4 GB `memset`. Only reachable with
+  zero map dimensions. Found by DeepSeek V4.1 Flash in #12.
+- **0x40d900** (clears the AI search grid's touched cells): in the last block
+  the bounds check restarts at `(i << 8)` for every group of eight cells
+  instead of advancing, so it only really tests the first group. Harmless,
+  because the constructor 0x40e9e0 rounds the cell count up to a multiple of
+  8 and allocates that many, so every group is either wholly valid or never
+  marked. Found by Claude Opus 5.5 in #90.
+- **0x419670**: the unit type's flag bit 11 is tested twice in a row
+  (`test ah, 8; jne` at 0x41976e lands on `shr eax, 0xb; test al, 1; je` at
+  0x419789), so the second test's branch can never be taken. A redundant
+  condition in the source. Found by DeepSeek V4.1 Flash in #17.
+- **0x40e630** (starts a path search): the start node's short at +0xc of its
+  data is never set. The node is built on the stack with only its position and
+  the word at +0xe (100) written, then copied into the pool, so +0xc is stack
+  garbage, and FUN_0040da70 adds a node's +0xc into its cost (0x40db0c).
+  Probably harmless, since the start node is popped and closed on the first
+  expansion before anything reads it. Found by Claude Opus 5.5 in #81.
+- **0x40eb70** (the per-tick path scheduler): the `r < 3` case and the final
+  `else` set the same value, and its second call to 0x40ef20 can never run.
+  Found by Claude Opus 5.5 in #81.

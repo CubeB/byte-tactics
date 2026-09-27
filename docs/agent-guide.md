@@ -1401,6 +1401,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A member's vtable store after the stores to later members**: those later
   members were set in the member-initialiser list; MSVC 5 stores a member's
   vtable after the initialisers and before the constructor body. See 0x460e20.
+- **An inlined `unsigned char` search result stored to a stack byte on both
+  exits** (`mov [esp+N], bl` when found, `mov [esp+N], 0xa` after the loop,
+  then `mov eax, [esp+N]; and eax, 0xff`): the caller stored it in an `int`
+  (`int i = Find();`). Two separate stores of the "not found" value come from
+  two `return 10;` statements. Found by Claude Opus 5.5 in #228 (0x4526c0).
+- **A parameter kept in its stack slot while the loop counter gets a
+  callee-saved register**: look for a comparison of that parameter that
+  belongs inside an inlined search helper, whose own parameter is a separate
+  variable. See 0x4523e0 (51% to MATCH).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

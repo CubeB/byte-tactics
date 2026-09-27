@@ -339,6 +339,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x4523e0** (likely): when `to` is -1, its inlined player search returns
+  10 and the function writes the new group through `players[10].data`, one
+  past the ten-player table (a pointer read from g_game+0x2878); the other
+  users of the same search (0x44fed0, 0x452800, 0x4526c0) check for 10 first.
+  Found by Claude Opus 5.5 in #228.
 - **0x4523e0** (possible): when all ten group slots are in use (possible when
   `to` is not an active player, such as -1), the loop ends without writing
   the message's value byte at `[esp+0x13]`, so FUN_00451bc0 sends a two-byte

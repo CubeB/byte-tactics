@@ -2644,12 +2644,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x472630,230,space-bunny-free,#203,no file,0,,issue #203
 0x472720,230,space-bunny-free,#203,no file,0,,issue #203
 0x472810,224,space-bunny-free,#203,no file,0,,issue #203
-0x4728f0,224,,#204,assigned,,,issue #204
-0x4729d0,224,,#204,assigned,,,issue #204
-0x472c50,223,,#204,assigned,,,issue #204
-0x472d50,163,,#204,assigned,,,issue #204
-0x472eb0,163,,#204,assigned,,,issue #204
-0x473010,163,,#204,assigned,,,issue #204
+0x4728f0,224,space-bunny-free,#204,no file,0,,issue #204
+0x4729d0,224,space-bunny-free,#204,no file,0,,issue #204
+0x472c50,223,space-bunny-free,#204,no file,0,,issue #204
+0x472d50,163,space-bunny-free,#204,matched,100.0,,issue #204
+0x472eb0,163,space-bunny-free,#204,matched,100.0,,issue #204
+0x473010,163,space-bunny-free,#204,matched,100.0,,issue #204
 0x473170,163,space-bunny-free,#205,matched,100.0,,issue #205
 0x473590,301,space-bunny-free,#205,no file,0,,issue #205
 0x4736e0,212,space-bunny-free,#205,matched,100.0,,issue #205
@@ -2902,3 +2902,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x472630,230,,#342,assigned,,,"issue #342, escalated"
 0x472720,230,,#342,assigned,,,"issue #342, escalated"
 0x472810,224,,#342,assigned,,,"issue #342, escalated"
+0x4728f0,224,,#343,assigned,,,"issue #343, escalated"
+0x4729d0,224,,#343,assigned,,,"issue #343, escalated"
+0x472c50,223,,#343,assigned,,,"issue #343, escalated"

@@ -857,6 +857,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Find near-copies before writing**: grep src/unsorted for a distinctive
   offset or callee address; many functions differ from a matched sibling only
   in a callee, a key string or a value type.
+- **Victory-condition classes (vtables 0x4fd800-0x4fd978)**: each has a
+  visitor (second-base) vtable just before its main one (main 0x4fd870, visitor
+  0x4fd868); 0x4fd940 is the pure visitor base. Copy the two-base class and
+  ForEach helper from 0x48edb0 or 0x48f530.
+- **`Vec3 v; v = Vec3(0, 0, 0);`** gives three separate zero registers, the last
+  store after the argument pushes; `Vec3 v(0, 0, 0);` or field zeroing shares
+  one zero register (0x44eb60).
+- **A free function whose callers set `ecx` just before calling it**: it is
+  really a method that ignores `this` (0x4ce190, 0x461610). Check the callers
+  before trusting a free-function name.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

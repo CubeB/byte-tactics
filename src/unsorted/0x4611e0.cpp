@@ -176,17 +176,17 @@ struct Table_004611e0 {
     }
 };
 
-class Class_004611e0 {
+class Class_00460f60 {
 public:
-    virtual ~Class_004611e0();
+    virtual ~Class_00460f60();
     int field_4;                       // +0x04
     Table_004611e0 table;              // +0x08
     Class_00462d30 base;               // +0xb300
 
-    Class_004611e0();
+    Class_00460f60();
 };
 
 // FUNCTION: 0x4611e0
-Class_004611e0::Class_004611e0() : field_4(200), table(), base(this)
+Class_00460f60::Class_00460f60() : field_4(200), table(), base(this)
 {
 }

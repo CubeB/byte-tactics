@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// The scalar deleting destructor of Class_004611e0 (its vtable is 0x4fd514,
+// The scalar deleting destructor of Class_00460f60 (its vtable is 0x4fd514,
 // one slot; the out-of-line destructor is 0x461420 and the constructor
 // 0x4611e0). It is a compiler-generated function, so it is emitted by the
 // compiler for the static object below; its body is the whole destructor:
@@ -80,9 +80,9 @@ struct Entry_004611e0 {
     }
 };
 
-class Class_004611e0 {
+class Class_00460f60 {
 public:
-    virtual ~Class_004611e0() { }
+    virtual ~Class_00460f60() { }
     int field_4;                       // +0x04
     int field_8;
     int field_c;
@@ -91,6 +91,6 @@ public:
     Class_00462d30 member;             // +0xb300
 };
 
-static Class_004611e0 s_obj;
+static Class_00460f60 s_obj;
 
-// FUNCTION: 0x461340 ??_GClass_004611e0@@UAEPAXI@Z
+// FUNCTION: 0x461340 ??_GClass_00460f60@@UAEPAXI@Z

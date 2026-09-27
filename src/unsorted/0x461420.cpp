@@ -77,10 +77,10 @@ struct Entry_00461420 {
     }
 };
 
-class Class_00461420 {
+class Class_00460f60 {
 public:
-    Class_00461420();
-    virtual ~Class_00461420();
+    Class_00460f60();
+    virtual ~Class_00460f60();
     int field_4;
     char unknown_8[8];
     Entry_00461420 entries[11];        // +0x10
@@ -88,9 +88,9 @@ public:
     Class_00462d30 member;              // +0xb300
 };
 
-static Class_00461420 s_obj;
+static Class_00460f60 s_obj;
 
 // FUNCTION: 0x461420
-Class_00461420::~Class_00461420()
+Class_00460f60::~Class_00460f60()
 {
 }

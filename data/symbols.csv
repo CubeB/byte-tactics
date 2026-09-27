@@ -1207,6 +1207,7 @@ address,name
 0x46d860,Class_0046d860::FUN_0046d860
 0x46ded0,Class_0046ded0::~Class_0046ded0
 0x46df40,Class_0046df40::FUN_0046df40
+0x46e160,Class_0046e160::FUN_0046e160
 0x46e280,Class_0046e280::FUN_0046e280
 0x46e330,Class_0046e330::FUN_0046e330
 0x46e3c0,Class_0046e3c0::FUN_0046e3c0
@@ -1218,6 +1219,7 @@ address,name
 0x46e610,Class_0046e610::~Class_0046e610
 0x46e870,UElem_0046faf0::?$vector::_Destroy
 0x46e880,Class_0046e880::FUN_0046e880
+0x46e890,Class_0046e890::erase
 0x46e9b0,Class_0046e9b0::FUN_0046e9b0
 0x46ea10,Class_0046ea10::FUN_0046ea10
 0x46eb60,std::H::HV?$allocator::?$list::erase
@@ -1257,7 +1259,9 @@ address,name
 0x471050,Class_00470fb0::FUN_00471050
 0x4710e0,Class_00470fb0::FUN_004710e0
 0x471120,Class_00471120::FUN_00471120
+0x471340,Class_00471340::FUN_00471340
 0x471430,??_GClass_00471430@@UAEPAXI@Z
+0x471470,Class_00471470::FUN_00471470
 0x471560,??_GClass_00471560@@UAEPAXI@Z
 0x4716a0,??_GClass_004716a0@@UAEPAXI@Z
 0x4717e0,??_GClass_004717e0@@UAEPAXI@Z
@@ -1293,6 +1297,7 @@ address,name
 0x473250,Class_00473250::FUN_00473250
 0x473290,Class_00473290::FUN_00473290
 0x4732d0,UElem_00473500::?$vector::_Destroy
+0x4732e0,PAVClass_00471cc0::?$vector::insert
 0x473500,UElem_00473500::?$vector::_Ucopy
 0x473530,UElem_00473500::?$vector::_Ufill
 0x473560,Class_00473560::FUN_00473560
@@ -3340,7 +3345,9 @@ address,name
 0x4fd514,??_7Class_00460f60@@6B@
 0x4fd518,??_7Class_00462d30@@6B@
 0x4fd580,??_7Class_00470ae0@@6B@
+0x4fd588,??_7Class_00471430@@6B@
 0x4fd5a8,??_7Class_00471cc0@@6B@
+0x4fd5b8,??_7Class_00471560@@6B@
 0x4fd618,??_7Class_00474cd0@@6B@
 0x4fd638,??_7Class_004750b0@@6B@
 0x4fd660,??_7Class_0047db20@@6B@

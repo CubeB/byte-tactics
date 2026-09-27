@@ -1167,6 +1167,8 @@ address,size,file,symbol,status,similarity
 0x46d630,134,src/unsorted/0x46d630.cpp,?FUN_0046d630@Class_0046d630@@QAEXPAUTarget_0046d630@@EPAUSource_0046d630@@H@Z,matched,100.0
 0x46ded0,111,src/unsorted/0x46ded0.cpp,??1Class_0046ded0@@QAE@XZ,matched,100.0
 0x46df40,185,src/unsorted/0x46df40.cpp,?FUN_0046df40@Class_0046df40@@QAEPADXZ,matched,100.0
+0x46e160,276,src/unsorted/0x46e160.cpp,?FUN_0046e160@Class_0046e160@@QAEXXZ,matched,100.0
+0x46e280,173,src/unsorted/0x46e280.cpp,?FUN_0046e280@Class_0046e280@@QAEHPAUEvent_0046e280@@@Z,matched,100.0
 0x46e330,134,src/unsorted/0x46e330.cpp,?FUN_0046e330@Class_0046e330@@QAEHPAUUnit_0046e330@@PAURect_0046e330@@@Z,matched,100.0
 0x46e3c0,129,src/unsorted/0x46e3c0.cpp,?FUN_0046e3c0@Class_0046e3c0@@QAEHPAUUnit_0046e3c0@@@Z,matched,100.0
 0x46e450,122,src/unsorted/0x46e450.cpp,?FUN_0046e450@Class_0046e450@@QAEHPAUUnit_0046e450@@@Z,matched,100.0
@@ -1177,8 +1179,10 @@ address,size,file,symbol,status,similarity
 0x46e610,34,src/unsorted/0x46e610.cpp,??1Class_0046e610@@QAE@XZ,matched,100.0
 0x46e870,3,src/unsorted/0x46e870.cpp,?_Destroy@?$vector@UElem_0046faf0@@V?$allocator@UElem_0046faf0@@@std@@@std@@IAEXPAUElem_0046faf0@@0@Z,matched,100.0
 0x46e880,14,src/unsorted/0x46e880.cpp,?FUN_0046e880@Class_0046e880@@QAEPAHPAH@Z,matched,100.0
+0x46e890,276,src/unsorted/0x46e890.cpp,?erase@Class_0046e890@@QAE?AVClass_0046ea10@@V2@0@Z,partial,100.0
 0x46e9b0,88,src/unsorted/0x46e9b0.cpp,?FUN_0046e9b0@Class_0046e9b0@@QAE?AVIter_0046e9b0@@ABI@Z,matched,100.0
 0x46ea10,132,src/unsorted/0x46ea10.cpp,?FUN_0046ea10@Class_0046ea10@@QAEXXZ,matched,100.0
+0x46eaa0,189,src/unsorted/0x46eaa0.cpp,?_Destroy@?$vector@UClass_0046eaa0@@V?$allocator@UClass_0046eaa0@@@std@@@std@@IAEXPAUClass_0046eaa0@@0@Z,partial,52.3
 0x46eb60,52,src/unsorted/0x46eb60.cpp,?erase@?$list@HV?$allocator@H@std@@@std@@QAE?AViterator@12@V312@@Z,matched,100.0
 0x46f6d0,79,src/unsorted/0x46f6d0.cpp,?FUN_0046f6d0@Class_0046f6d0@@QAEXPAUNode_0046f6d0@@@Z,matched,100.0
 0x46f720,124,src/unsorted/0x46f720.cpp,?FUN_0046f720@Class_0046f720@@QAEXXZ,matched,100.0
@@ -1215,7 +1219,9 @@ address,size,file,symbol,status,similarity
 0x471050,132,src/unsorted/0x471050.cpp,?FUN_00471050@Class_00470fb0@@QAEXXZ,matched,100.0
 0x4710e0,55,src/unsorted/0x4710e0.cpp,?FUN_004710e0@Class_00470fb0@@QAEXPAX@Z,matched,100.0
 0x471120,51,src/unsorted/0x471120.cpp,?FUN_00471120@Class_00471120@@QAEXPAXF@Z,matched,100.0
+0x471340,239,src/unsorted/0x471340.cpp,?FUN_00471340@Class_00471340@@QAEXHHHF@Z,matched,100.0
 0x471430,63,src/unsorted/0x471430.cpp,??_GClass_00471430@@UAEPAXI@Z,matched,100.0
+0x471470,239,src/unsorted/0x471470.cpp,?FUN_00471470@Class_00471470@@QAEXHHHF@Z,matched,100.0
 0x471560,63,src/unsorted/0x471560.cpp,??_GClass_00471560@@UAEPAXI@Z,matched,100.0
 0x4716a0,63,src/unsorted/0x4716a0.cpp,??_GClass_004716a0@@UAEPAXI@Z,matched,100.0
 0x4717e0,63,src/unsorted/0x4717e0.cpp,??_GClass_004717e0@@UAEPAXI@Z,matched,100.0

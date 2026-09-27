@@ -287,6 +287,10 @@ Things that look wrong in the original but have no effect, kept for the record.
 - **0x452570** searches the ten player entries for the same id twice; the
   second search's result is thrown away. Found by DeepSeek V4.1 Flash in #139.
 
+- **0x471340** caps a list with `if (v.size() > 400)` before pushing, so the
+  list reaches 401 entries before one is evicted; an off-by-one if 400 was
+  meant as the maximum. Found by DeepSeek V4.1 Flash in #201.
+
 ## Possible leaks and unchecked inputs
 
 - **0x413470** (an order handler), state 3 (likely): after two misses it

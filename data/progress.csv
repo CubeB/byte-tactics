@@ -967,9 +967,15 @@ address,size,file,symbol,status,similarity
 0x459170,144,src/unsorted/0x459170.cpp,?FUN_00459170@Class_00459170@@QAEXPAUImage_00459170@@@Z,matched,100.0
 0x4597f0,61,src/unsorted/0x4597f0.cpp,?FUN_004597f0@@YGXHHH@Z,matched,100.0
 0x45a470,156,src/unsorted/0x45a470.cpp,?FUN_0045a470@Class_0045a470@@QAEPAUImage_0045a470@@PAU2@@Z,matched,100.0
+0x45a510,254,src/unsorted/0x45a510.cpp,?FUN_0045a510@Class_0045a510@@QAEXPAH000PAUModel_45a510@@@Z,matched,100.0
+0x45a610,379,src/unsorted/0x45a610.cpp,?FUN_0045a610@Class_0045a610@@QAEXPAUView_0045a610@@PAUModel_0045a610@@@Z,partial,94.5
+0x45a790,307,src/unsorted/0x45a790.cpp,?FUN_0045a790@Class_00437a30@@QAEXPAUState_0045a790@@PAUImage_0045a790@@@Z,matched,100.0
 0x45a8d0,116,src/unsorted/0x45a8d0.cpp,?FUN_0045a8d0@@YGPAUObjectState_0045a8d0@@PAUClass_0045ae80@@@Z,matched,100.0
+0x45a950,322,src/unsorted/0x45a950.cpp,?FUN_0045a950@@YGPAUObjectState_0045a950@@PAUClass_0045ae80@@PAUBuildList_0045a950@@H@Z,matched,100.0
 0x45aaa0,100,src/unsorted/0x45aaa0.cpp,?FUN_0045aaa0@@YGXPAUObjectState_0045aaa0@@@Z,matched,100.0
+0x45ab10,260,src/unsorted/0x45ab10.cpp,?FUN_0045ab10@@YGXPAUUnit_0045ab10@@@Z,partial,84.3
 0x45ae80,49,src/unsorted/0x45ae80.cpp,?FUN_0045ae80@@YGHPAUClass_0045ae80@@@Z,matched,100.0
+0x45aec0,202,src/unsorted/0x45aec0.cpp,?FUN_0045aec0@@YGPAUEntry_0045aec0@@PAUObjectState_0045aec0@@PAUClass_0045ae80@@PAU1@@Z,matched,100.0
 0x45af90,152,src/unsorted/0x45af90.cpp,?FUN_0045af90@@YGPAUEntry_0045af90@@PAUObjectState_0045af90@@PAUClass_0045ae80@@PAU1@@Z,matched,100.0
 0x45b030,105,src/unsorted/0x45b030.cpp,?FUN_0045b030@@YIHPAUPiece_0045b030@@H@Z,matched,100.0
 0x45b0a0,174,src/unsorted/0x45b0a0.cpp,?FUN_0045b0a0@@YIXPAUModel_0045b0a0@@PAUPiece_0045b030@@H@Z,matched,100.0

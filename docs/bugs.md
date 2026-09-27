@@ -189,6 +189,21 @@ code reads that player's maxunits (+0xa5) but stores it into the local
 player's record (via +0x2a42), so watching someone else replaces your own
 unit limit. It also stores the value twice. Found by Space Bunny Free in #125.
 
+## Displaced piece vertices never restored (likely)
+
+**0x45b030** (inlined into 0x45ab10) restores a piece's vertices only when its
+flag at +0x26 is 0 (`cmp word ptr [ebx+0x26], bp; je` into the `rep movsd`),
+then clears that flag, so the clear does nothing and a piece whose vertices
+were actually displaced (flag set) is never restored. The test looks
+inverted. Found by Space Bunny Free in #142.
+
+## Segment vertices overflow a 25-entry stack buffer (likely)
+
+**0x45a610** copies `seg->count` 12-byte vertices into a `Vertex tmp[25]` on
+its stack and passes that count on to FUN_004c1000, with no bound; a segment
+with more than 25 vertices overruns `tmp` into the vertex array above it.
+Found by Space Bunny Free in #142.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

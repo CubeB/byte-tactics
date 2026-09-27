@@ -1,27 +1,18 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
+
+struct Vec4_4c6ae0 { int a, b, c, d; };
 
 class Class_004c6ae0 {
 public:
     char unknown_0[0x1c];
-    int field_1c;
-    int field_20;
-    int field_24;
-    int field_28;
+    Vec4_4c6ae0 field_1c;    // +0x1c
 
-    void FUN_004c6ae0(int*);
+    Vec4_4c6ae0* FUN_004c6ae0(Vec4_4c6ae0* param_1);
 };
 
 // FUNCTION: 0x4c6ae0
-void Class_004c6ae0::FUN_004c6ae0(int* param_1)
+Vec4_4c6ae0* Class_004c6ae0::FUN_004c6ae0(Vec4_4c6ae0* param_1)
 {
-    int* p = (int*)((char*)this + 0x1c);
-    int temp;
-    temp = p[0];
-    param_1[0] = temp;
-    temp = p[1];
-    param_1[1] = temp;
-    temp = p[2];
-    param_1[2] = temp;
-    temp = p[3];
-    param_1[3] = temp;
+    *param_1 = field_1c;
+    return param_1;
 }

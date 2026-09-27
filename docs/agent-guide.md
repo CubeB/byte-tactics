@@ -413,3 +413,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **DirectX**: `<ddraw.h>`, `<dsound.h>` and `<dplay.h>` are available; a COM
   call (`call [ecx+N]` with the interface pointer pushed) is the real interface
   method, e.g. `IDirectDrawPalette::SetEntries`.
+- **Siblings first**: unnamed functions next to a matched one often differ only
+  in a string literal or a constant (a "METAL" version next to an "ENERGY"
+  one), so check neighbouring addresses in `src/unsorted/` before starting.
+- **Registers swapped in `base + index * size`**: try writing the full
+  `obj->a->arr[i].field` expression each time it is used; a shared
+  `Entry* e = &...[i]` local or getter changes which register holds the base.
+- **Read constants from the exe** to learn what a function does, e.g. a 16-byte
+  `.rdata` value compared with `memcmp` may be a DirectPlay service-provider GUID.
+- **Scalar deleting destructors** (call the destructor, `operator delete(this)`
+  if `flag & 1`, return `this`): call the destructor by its real name,
+  `((Base*)this)->~Base();`, so it agrees with the destructor's own file.

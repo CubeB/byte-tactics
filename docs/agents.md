@@ -22,8 +22,8 @@ own claims are not counted. Raw per-function records are in `data/attempts.csv`.
 | --- | ---: | ---: | ---: |
 | 1-16 | 283/312 (91%) | 3/3 (100%) |  |
 | 17-40 | 85/117 (73%) |  | 9/10 (90%) |
-| 41-64 | 3/11 (27%) |  | 21/31 (68%) |
-| 65-160 | 1/6 (17%) | 117/118 (99%) | 2/6 (33%) |
+| 41-64 | 3/11 (27%) |  | 31/41 (76%) |
+| 65-160 | 1/6 (17%) | 127/128 (99%) | 2/6 (33%) |
 | 161-400 |  | 8/12 (67%) |  |
 
 ### Cost per batch
@@ -80,11 +80,13 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | H17 | haiku | 20 | 16 | 115,116 | 7,194 | 7 | 12 |
 | O23 | opus | 10 | 10 | 116,571 | 11,657 | 47 | 6 |
 | O22 | opus | 10 | 10 | 112,464 | 11,246 | 45 | 6 |
+| S12 | sonnet | 12 | 12 | 165,246 | 13,770 | 28 | 19 |
+| O24 | opus | 10 | 10 | 100,952 | 10,095 | 40 | 5 |
 
 ### Escalations
 
 - Opus matched 25 of 25 functions a cheaper model had failed.
-- Sonnet matched 44 of 50 functions a cheaper model had failed.
+- Sonnet matched 46 of 52 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target

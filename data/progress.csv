@@ -1566,6 +1566,7 @@ address,size,file,symbol,status,similarity
 0x48c150,60,src/unsorted/0x48c150.cpp,?FUN_0048c150@@YAXXZ,matched,100.0
 0x48c320,109,src/unsorted/0x48c320.cpp,?FUN_0048c320@@YAXXZ,matched,100.0
 0x48c9b0,109,src/unsorted/0x48c9b0.cpp,?FUN_0048c9b0@@YGXPAUUnit_0048c9b0@@@Z,matched,100.0
+0x48d420,175,src/unsorted/0x48d420.cpp,?FUN_0048d420@@YAPAUUnit_0048d420@@XZ,matched,100.0
 0x48d920,120,src/unsorted/0x48d920.cpp,?FUN_0048d920@@YGXH@Z,matched,100.0
 0x48df90,24,src/unsorted/0x48df90.cpp,??0Class_0048df90@@QAE@XZ,matched,100.0
 0x48dfb0,82,src/unsorted/0x48dfb0.cpp,?FUN_0048dfb0@Class_0048dfb0@@QAEXXZ,matched,100.0

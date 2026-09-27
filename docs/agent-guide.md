@@ -1511,6 +1511,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   value sits in a register before being widened (a byte local used twice, or
   byte locals followed by an `if`); plain loads, casts and bitfields give
   `xor eax, eax; mov al, [m]`. See 0x456de0.
+- **An induction variable biased to a middle field** (`add eax, 0xe`, then
+  `[eax-8]`, `[eax-4]`, `[eax]`), kept in a stack slot beside the plain
+  iterator: the loop body is an inline element method called as
+  `it->Method(...)` that passes `&pos` on to further inline helpers. Found by
+  Claude Opus 5.5 in #324 (0x475470).
+- **The explored-map lookup** (index computed first, data pointer loaded last)
+  is a method on a `{data, width, height}` struct at +0x7c; the same inline
+  appears at 0x407f74, 0x465b6a and 0x473a7c (see 0x475470).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

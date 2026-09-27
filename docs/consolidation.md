@@ -99,6 +99,20 @@ revisit them once the surrounding code is known.
 
 - 0x438b90's `Class_00438b90` has `Class_0043a1f0`'s layout (kind at +4,
   flags at +0x42).
+- `Class_0043a1f0` (vtable 0x4fd2c8, constructors 0x43a0c0 and 0x43a420,
+  destructor 0x43a1f0) derives from `Class_0043a1e0` (vtable 0x4fd2cc). Each
+  vtable has one slot: the base's is the empty 0x43a1e0, and the derived
+  class overrides it with 0x438870 (still filed as
+  `Class_00438870::FUN_00438870`; neither has a direct caller). Both
+  constructors store 0x4fd2cc and then 0x4fd2c8 (the inline base
+  constructor first); the destructor stores only 0x4fd2c8, so the base
+  declares no destructor. #291 read 0x4fd2c8 as a 2-slot vtable, which runs
+  into 0x4fd2cc (#294). The link member at +0x12 is a `Class_004895c0`; its
+  destructor 0x489650, filed as `Class_00489650::FUN_00489650`, is called by
+  hand at the end of 0x43a1f0. When 0x43a420 is decompiled it must also be
+  `Class_0043a1f0::Class_0043a1f0` (a class named after its own address
+  could not store `??_7Class_0043a1f0`), so its caller 0x487080 will need a
+  data/aliases.csv row for that name at 0x43a420.
 
 - `Class_00415b60`, `Class_00415b90` and `Class_00415c10` are one bit-writer
   class (0x48b710 calls all three on one 0x410-byte stack object).
@@ -159,9 +173,10 @@ can disagree on types (a real link would fail). Known cases:
   (see 0x403190); its own file declares `int k`. FUN_0043f0e0 returns the same
   class through a hidden buffer.
 - `FUN_004d83b0` returns a pointer (0x481500) but its file says `void`.
-- `Class_0043a0c0`'s constructor: 0x43a020 and 0x43b730 declare its first
-  parameter `unsigned char`, but 0x401c20 shows it is a 1-byte class passed by
-  value, built by `Class_00438760::Class_00438760`.
+- `Class_0043a1f0`'s constructor 0x43a0c0: its own file takes `int`, 0x43a020
+  and 0x43b730 declare its first parameter `unsigned char`, but 0x401c20
+  shows it is a 1-byte class passed by value, built by
+  `Class_00438760::Class_00438760`.
 
 - 0x40d7b0 returns `int` in its own file, but 0x40da70 uses its result as
   unsigned (`cmp eax, 1; jae` and `cmp 1, eax; sbb`), so 0x40da70.cpp

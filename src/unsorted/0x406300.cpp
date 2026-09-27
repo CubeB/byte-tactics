@@ -47,14 +47,14 @@ struct Unit {
     char pad10a[6]; unsigned int flags;
 };
 struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; };
-class Class_0043a0c0 { public: char data[0x56]; Class_0043a0c0(Class_00438760, Unit*, Vec3*, int, int, int); };
+class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
 #pragma pack(pop)
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
 Unit* __stdcall FUN_0048a190(Unit*, int);
 int __stdcall FUN_0049abb0(Unit*, Unit*, unsigned char);
 void __stdcall FUN_0048a060(Unit*, Unit*, int);
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char, Unit*, Unit*, int);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a0c0*);
+void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 int __stdcall FUN_004b6c30(int);
 int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
@@ -97,7 +97,7 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
             Class_00438760 kind=FUN_0043f0e0(8,unit,order->target,0);
             if(kind.index) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
-                FUN_0043acb0(unit,new Class_0043a0c0(kind,order->target,0,0,0,0));
+                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target,0,0,0,0));
                 order->flags=0; return 3;
             }
         }
@@ -112,13 +112,13 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
             if (!building && actionable) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=order->target->order->kind;
-                FUN_0043acb0(unit,new Class_0043a0c0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
+                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
                 order->flags=0; return 3;
             }
             if (building && other->target) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=Class_00438760("HelpBuild");
-                FUN_0043acb0(unit,new Class_0043a0c0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
+                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
                 order->flags=0; return 3;
             }
         }

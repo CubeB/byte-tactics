@@ -1,8 +1,8 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by Opus, class hierarchy fixed by Claude Opus 5.5. Names are provisional.
 // Destructor (callers do `if (p) { p->~X(); operator delete(p); }`): notifies
 // the owner through a callback table, stops the unit's build animation (the
 // same code as FUN_004385f0), releases the attached object at +0x52 and
-// unlinks the list node at +0x12.
+// unlinks the list node at +0x12 (0x489650 is the link's destructor).
 
 class Class_004b07c0 {
 public:
@@ -56,10 +56,18 @@ struct Callback_0043a1f0 {
     char unknown_8[0x19 - 0x8];
 };
 
-class Class_0043a1f0 {
+// The base class (vtable 0x4fd2cc, one slot, the empty 0x43a1e0). It has no
+// destructor of its own, so this destructor stores only the derived vtable.
+class Class_0043a1e0 {
 public:
-    virtual void FUN_00438870(unsigned int);  // slot 0
-    virtual void FUN_0043a1e0(int);    // slot 1
+    virtual void FUN_0043a1e0(unsigned int);
+};
+
+class Class_0043a1f0 : public Class_0043a1e0 {
+public:
+    // Slot 0 of vtable 0x4fd2c8, overriding the base's: 0x438870 (matched
+    // as Class_00438870::FUN_00438870). See 0x43a0c0.cpp, the constructor.
+    virtual void FUN_0043a1e0(unsigned int);
     unsigned char kind;                // +0x4
     char unknown_5;
     unsigned char flags_6;             // +0x6

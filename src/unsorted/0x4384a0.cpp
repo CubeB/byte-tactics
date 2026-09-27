@@ -6,6 +6,13 @@
 
 struct Parent_004384a0;
 
+class Class_00438760 {
+public:
+    unsigned char index;
+    char unknown_1[3];
+    Class_00438760(const char*);
+};
+
 #pragma pack(push, 1)
 class Class_0043a1f0 {
 public:
@@ -19,19 +26,8 @@ public:
     Class_0043a1f0* next;              // +0x4a
     char unknown_4e[0x56 - 0x4e];
 
+    Class_0043a1f0(Class_00438760, int, void*, int, int, int);
     ~Class_0043a1f0();
-};
-
-class Class_00438760 {
-public:
-    unsigned char index;
-    char unknown_1[3];
-    Class_00438760(const char*);
-};
-
-class Class_0043a0c0 : public Class_0043a1f0 {
-public:
-    Class_0043a0c0(Class_00438760, int, void*, int, int, int);
 };
 
 struct Parent_004384a0 {
@@ -77,7 +73,7 @@ void __stdcall FUN_004384a0(Parent_004384a0* p)
             }
         }
         Class_0043a1f0* child =
-            new Class_0043a0c0("BECARRIED", p->field_86, 0, 0, 0, 0);
+            new Class_0043a1f0("BECARRIED", p->field_86, 0, 0, 0, 0);
         InsertBefore(p, child, (child->flags & 0x40000) ? p->firstTop : p->first);
     }
 }

@@ -108,10 +108,10 @@ public:
 #pragma pack(pop)
 
 #pragma pack(push, 2)
-class Class_0043a0c0 {
+class Class_0043a1f0 {
 public:
     char unknown_0[0x56];
-    Class_0043a0c0(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
+    Class_0043a1f0(Class_00438760 type, int a, Vec3* b, int c, int d, int e);
 };
 #pragma pack(pop)
 
@@ -125,8 +125,8 @@ int __stdcall FUN_0048a980(Vec3*, Vec3*);
 void __stdcall FUN_0048aac0(Unit* unit, Unit* target, char p3, char p4);
 void __stdcall FUN_0048a060(Unit*, Unit*, int);
 void __stdcall FUN_0048a0a0(Unit*, Vec3*, int);
-void __stdcall FUN_0043ad10(Unit*, Class_0043a0c0*);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a0c0*);
+void __stdcall FUN_0043ad10(Unit*, Class_0043a1f0*);
+void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 void __stdcall FUN_0040b530(int player, Vec3* pos, int range, std::vector<Elem_00406c10>* out);
 
 static inline Vec3 Offset(short angle, int distance)
@@ -160,12 +160,12 @@ int __stdcall FUN_00412710(Unit* unit, Order* order, int flags)
     int speed = unit->mover->speed;
     if (flags & 0x1000a) {
         if (order->field_4a == 0 && (unit->flags & 0x300000))
-            FUN_0043ad10(unit, new Class_0043a0c0("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
+            FUN_0043ad10(unit, new Class_0043a1f0("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
         return 5;
     }
     if (order->target == 0 && (order->field_42 & 0x200)) {
         if (order->field_4a == 0)
-            FUN_0043ad10(unit, new Class_0043a0c0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
+            FUN_0043ad10(unit, new Class_0043a1f0("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
     if (order->target)
@@ -227,7 +227,7 @@ int __stdcall FUN_00412710(Unit* unit, Order* order, int flags)
             if (!v.empty()) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 int target = v[FUN_004b6c30(v.size())].unknown_0;
-                FUN_0043acb0(unit, new Class_0043a0c0("VTOL_LANDING", target, 0, 0, 0, 0));
+                FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", target, 0, 0, 0, 0));
                 order->flags = 0;
                 return 0;
             }

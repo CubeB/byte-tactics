@@ -95,10 +95,10 @@ public:
 #pragma pack(pop)
 
 #pragma pack(push, 2)
-class Class_0043a0c0 {
+class Class_0043a1f0 {
 public:
     char unknown_0[0x56];
-    Class_0043a0c0(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
+    Class_0043a1f0(Class_00438760 type, Unit* target, void* pos, int c, int d, int e);
 };
 #pragma pack(pop)
 
@@ -108,7 +108,7 @@ int __cdecl FUN_004b7123(short, int);
 int __stdcall FUN_0047e570(Unit* unit, int id);
 void __stdcall FUN_0047f780(Unit*, int, const char*);
 void __stdcall FUN_0048aac0(Unit* unit, Unit* target, int p3, int p4);
-void __stdcall FUN_0043acb0(Unit*, Class_0043a0c0*);
+void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 
 static inline Vec3 Offset(short angle, int distance)
 {
@@ -252,7 +252,7 @@ int __stdcall FUN_004118e0(Unit* unit, Order* order, int flags)
             && (order->target.owner->def->flags & 0x40)
             && order->target.owner->buildLeft == 0.0f) {
             ((Class_004388d0*)order)->FUN_004388d0(0);
-            FUN_0043acb0(unit, new Class_0043a0c0("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
+            FUN_0043acb0(unit, new Class_0043a1f0("SELFREPAIR", order->target.owner, 0, 0, 0, 0));
         }
         return 5;
     }

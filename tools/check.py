@@ -339,7 +339,11 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
             problem = check_vtable(orig, obj, target_sec, sym.value, target, symbols)
             if problem:
                 return Ref(off, sym_name, target, "mismatch", problem)
-        ours = target_sec.data[sym.value:]
+        # Up to the next symbol in the same section: MSVC packs constants
+        # (floats, doubles) back to back, and the original's neighbours differ.
+        after = [s.value for s in obj.symbols if s.section == sym.section and s.value > sym.value
+                 and s.storage_class in (2, 3)]
+        ours = target_sec.data[sym.value:min(after, default=len(target_sec.data))]
         if not ours or not any(ours[:64]):
             return lookup(off, sym_name, target, symbols, by_addr)  # uninitialised data
         ours = ours[:ours.index(0) + 1] if sym_name.startswith(("$SG", "??_C@")) and 0 in ours else ours[:16]

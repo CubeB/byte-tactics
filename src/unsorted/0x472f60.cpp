@@ -1,19 +1,24 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
-extern int DAT_00511de8;
+extern char* g_game;
 
-static inline int Compare(int eax, int edx, int ecx)
-{
-    if (eax > edx) return 0;
-    if ((unsigned int)eax > (unsigned int)*(int*)(ecx + 0x38a47)) return 0;
-    return 1;
-}
+class Class_00472f60 {
+public:
+    char unknown_0[4];
+    int field_4;
+    int field_8;
+
+    int FUN_00472f60();
+};
 
 // FUNCTION: 0x472f60
-int __fastcall FUN_00472f60(int param_1)
+int Class_00472f60::FUN_00472f60()
 {
-    int eax = *(int*)(param_1 + 8);
-    int edx = *(int*)(param_1 + 4);
-    int ecx = DAT_00511de8;
-    return Compare(eax, edx, ecx);
+    if (field_8 <= field_4) {
+        unsigned int game_val = *(unsigned int*)((char*)g_game + 0x38a47);
+        if ((unsigned int)field_8 <= game_val) {
+            return 1;
+        }
+    }
+    return 0;
 }

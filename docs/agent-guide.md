@@ -565,6 +565,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   destructor and add a static object whose constructor is only declared; MSVC
   then emits the vtable and the `??_G` (see 0x470ae0.cpp). Annotate the atexit
   destructor of a global as `_$E2` next to its `_$E4` (see 0x44f720.cpp).
+- **Ghidra's return value can be a leftover**: when `eax` only holds what a
+  final `idiv` or call left there and no caller reads it (`called from 0
+  place(s)`, or callers ignore `eax`), the function returns `void` (0x47a8e0:
+  `*p = (*p + 1) % n;`, not a quotient and remainder pair).
+- **A pointer computed into `ecx` before a float argument's `push ecx; fstp
+  [esp]`, then pushed again as an argument**: the callee is a `__thiscall`
+  method called on that pointer (0x41bd10).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

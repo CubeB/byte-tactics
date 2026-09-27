@@ -151,6 +151,22 @@ writes the embedded vtable pointer (0x4fd754) and 8 never-set stack bytes into
 the file (so do 0x44d090, 0x44d500 and 0x44d9a0 with their first dword).
 Found by DeepSeek V4.1 Flash in #136.
 
+## Unit type fallback index off by one per skipped type (likely)
+
+**0x43a360** returns `n`, which counts every unit type entry (`inc eax` at
+0x43a404, outside the flag test), but matches on `k`, which skips types whose
++0x241 bit 5 is set (`inc ebp`, inside it). The fallback result is therefore
+off by one for each skipped type before the match. Found by Space Bunny Free
+in #32.
+
+## Two sort helpers pop the wrong number of argument bytes (likely)
+
+**0x43ca70** ends in `ret 0x5c` but both its callers (0x43be6a, 0x43c20c) push
+0x60 bytes; **0x43cb20** ends in `ret 0x28` but its callers push only 0x24.
+The two 4-byte errors cancel only because the calls always come in pairs, so
+either function called alone would unbalance the stack: a declaration that
+disagrees with its definition. Found by Space Bunny Free in #32.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

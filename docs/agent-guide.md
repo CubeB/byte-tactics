@@ -537,7 +537,19 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   reserved slot, usually comes from inlined STL code (the destroy loop of a
   `std::vector` of a trivial type leaves exactly that). Try the real STL
   construct first; `volatile` is a last resort that Cavedog almost certainly
-  did not write.
+  did not write. A loop whose body compiles to nothing
+  (`for (i = n - 1; i >= 0; i--) {}`) also leaves just the store of its
+  counter's first value (0x458d20). An explicit member destructor call works
+  as `member.~vector();` (MSVC 5 rejects `~TypedefName()`).
+- **Check whether the caller uses `eax`**: when the original keeps a value in
+  `eax` (or avoids `eax` in a loop and pushes `ebx` instead), the function
+  probably returns that value; look for `mov reg, eax` after a call site.
+  Returning it fixed 0x4d0c10 and 0x4800c0.
+- **A `(float)` cast on a difference** can decide how a float struct result is
+  copied to the return buffer, not just x87 order (0x4b6f70).
+- **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
+  of the mangled name>` checks a scratch file; put many variant functions in one
+  file and score each.
 - **COM calls by slot**: work out the DirectX interface from the vtable slot
   and call the real method (IDirectSoundBuffer: +0x24 GetStatus, +0x48 Stop).
 - **Header sets are not monotonic**: one header can flip an operand order that

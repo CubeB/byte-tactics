@@ -1178,12 +1178,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b7f30,36,sonnet,S22,matched,100.0,,escalated from Haiku
 0x44f260,37,sonnet,S22,matched,100.0,,escalated from Haiku
 0x44df80,40,sonnet,S22,matched,100.0,,escalated from Haiku
-0x458d20,14,opus,O44,assigned,,,escalated: replace volatile or close register gap
-0x474d10,58,opus,O44,assigned,,,escalated: replace volatile or close register gap
-0x475110,58,opus,O44,assigned,,,escalated: replace volatile or close register gap
-0x4d0c10,56,opus,O44,assigned,,,escalated: replace volatile or close register gap
-0x4800c0,60,opus,O44,assigned,,,escalated: replace volatile or close register gap
-0x4b6f70,115,opus,O44,assigned,,,escalated: replace volatile or close register gap
+0x458d20,14,opus,O44,matched,100.0,,escalated: replace volatile or close register gap
+0x474d10,58,opus,O44,matched,100.0,,escalated: replace volatile or close register gap
+0x475110,58,opus,O44,matched,100.0,,escalated: replace volatile or close register gap
+0x4d0c10,56,opus,O44,matched,100.0,,escalated: replace volatile or close register gap
+0x4800c0,60,opus,O44,matched,100.0,,escalated: replace volatile or close register gap
+0x4b6f70,115,opus,O44,matched,100.0,,escalated: replace volatile or close register gap
 0x4e0520,67,opus,O45,matched,100.0,,
 0x4b67d0,74,opus,O45,matched,100.0,,
 0x4636b0,81,opus,O45,matched,100.0,,
@@ -1283,3 +1283,8 @@ address,size,model,batch,result,similarity,runs,notes
 0x44f720,126,opus,O48,assigned,,,
 0x4cee50,137,opus,O48,assigned,,,
 0x440cd0,151,opus,O48,assigned,,,
+0x48fd50,20,sonnet,S25,assigned,,,escalated from H27
+0x472f60,33,sonnet,S25,assigned,,,escalated from H27
+0x416660,34,sonnet,S25,assigned,,,escalated from H27
+0x40d4f0,35,sonnet,S25,assigned,,,escalated from H27
+0x47a8e0,40,sonnet,S25,assigned,,,escalated from H27

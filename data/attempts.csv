@@ -2604,7 +2604,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x433380,377,,#186,assigned,,,"issue #186, escalated"
 0x43a0c0,274,,#189,assigned,,,"issue #189, escalated"
 0x43ca70,163,,#189,assigned,,,"issue #189, escalated"
-0x445450,341,,#194,assigned,,,"issue #194, escalated"
+0x445450,341,deepseek-v4.1-flash,#194,matched,100.0,,"issue #194, escalated"
 0x450240,305,opus,#195,partial,19.9,,"issue #195, escalated"
 0x44bfd0,249,opus,#197,matched,100.0,,"issue #197, escalated"
 0x44c0d0,335,opus,#197,partial,77.0,,"issue #197, escalated"

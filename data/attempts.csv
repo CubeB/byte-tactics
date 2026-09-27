@@ -2561,12 +2561,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x45f800,185,,#166,assigned,,,issue #166
 0x460340,349,,#166,assigned,,,issue #166
 0x4604a0,286,,#166,assigned,,,issue #166
-0x460680,370,,#167,assigned,,,issue #167
-0x460800,168,,#167,assigned,,,issue #167
-0x4608b0,233,,#167,assigned,,,issue #167
-0x460cc0,345,,#167,assigned,,,issue #167
-0x460e20,281,,#167,assigned,,,issue #167
-0x460f60,184,,#167,assigned,,,issue #167
+0x460680,370,deepseek-v4.1-flash,#167,matched,100.0,,issue #167
+0x460800,168,deepseek-v4.1-flash,#167,matched,100.0,,issue #167
+0x4608b0,233,deepseek-v4.1-flash,#167,matched,100.0,,issue #167
+0x460cc0,345,deepseek-v4.1-flash,#167,matched,100.0,,issue #167
+0x460e20,281,deepseek-v4.1-flash,#167,partial,69.0,,issue #167
+0x460f60,184,deepseek-v4.1-flash,#167,matched,100.0,,issue #167
 0x461020,333,,#169,assigned,,,issue #169
 0x4611e0,352,,#169,assigned,,,issue #169
 0x461340,209,,#169,assigned,,,issue #169
@@ -2685,3 +2685,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x45a610,379,,#221,assigned,,,"issue #221, escalated"
 0x45ab10,260,,#221,assigned,,,"issue #221, escalated"
 0x43def0,359,,#223,assigned,,,"issue #223, escalated"
+0x460e20,281,,#225,assigned,,,"issue #225, escalated"

@@ -192,6 +192,9 @@ can disagree on types (a real link would fail). Known cases:
 - 0x438760 is the constructor of `Class_00438760`, an order type held as its
   index in the sorted order-type table and passed by value (#31).
 
+- FUN_004a11c0's third parameter is `short` in 0x4a11c0.cpp, but 0x41a120
+  only matches with `int` (#175); it is probably `int`.
+
 ## Third-party code
 
 - zlib 1.0.4 occupies 0x4d1c80-0x4d7d70 and matches from its own source with

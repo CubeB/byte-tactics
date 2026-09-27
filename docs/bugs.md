@@ -204,6 +204,13 @@ its stack and passes that count on to FUN_004c1000, with no bound; a segment
 with more than 25 vertices overruns `tmp` into the vertex array above it.
 Found by Space Bunny Free in #142.
 
+## Both dialog choices named "CHOICE2" (likely)
+
+**0x460680** stores the same literal, "CHOICE2" (0x503120), as the name of two
+gadgets (at 0x4606d9 and 0x460710), where the matching dialog setup 0x464e70
+names them "CHOICE1" and "CHOICE2": a copy-paste slip. Found by DeepSeek V4.1
+Flash in #167.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

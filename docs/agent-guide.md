@@ -554,3 +554,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `__stdcall` free function (the real `std::` template gives a plain `ret`).
 - **Inlined GlobalAlloc pool allocators**: carve n-byte pieces generically
   (`for (rem = 0x2000; rem >= n; rem -= n)`, as in 0x4e2b60), not a fixed count.
+- **`mov eax, fs:[0x2c]`** then an indexed load: thread-local storage. Declare the
+  variable `__declspec(thread)` (the exe has a `.tls` section).
+- **The high half of a `mul`** (`mul reg` then using `edx`):
+  `(unsigned int)(((unsigned __int64)a * b) >> 32)`.

@@ -409,10 +409,18 @@ def check_vtable(orig, obj, sec, start, target, symbols) -> str:
     return ""
 
 
+PLACEHOLDER = re.compile(r"(?:DAT|FUN|PTR|LAB)_([0-9a-f]{8})$")
+
+
 def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
     name = base_name(sym_name)
     if target in ALIAS_MAP.get(name, ()):
         return Ref(off, sym_name, target, "ok", "duplicate copy (data/aliases.csv)")
+    # A placeholder name carries its own address: it must be where the original points.
+    m = PLACEHOLDER.search(name.split("::")[-1])
+    if m and int(m.group(1), 16) != target:
+        return Ref(off, sym_name, target, "mismatch",
+                   f"'{name}' names {int(m.group(1), 16):#x}, but the original uses {target:#x}")
     if name.startswith("$"):  # compiler-generated, file-local (_$E1...): not in the global map
         return Ref(off, sym_name, target, "new", "file-local")
     known = symbols.get(name)

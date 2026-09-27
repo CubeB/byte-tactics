@@ -291,6 +291,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   list reaches 401 entries before one is evicted; an off-by-one if 400 was
   meant as the maximum. Found by DeepSeek V4.1 Flash in #201.
 
+- **0x41f0a0** scans the 25 mission flags at g_game+0x391cf for the first
+  'U' after filling the missions list and never uses the index, perhaps a
+  lost "select the first unplayed mission" step. **0x41ec50** calls
+  FUN_004ab0a0(gadget) twice in a row in its load and save branches. Found by
+  Claude Opus 5.5 in #211.
+
 ## Possible leaks and unchecked inputs
 
 - **0x413470** (an order handler), state 3 (likely): after two misses it

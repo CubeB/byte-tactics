@@ -412,7 +412,10 @@ address,size,file,symbol,status,similarity
 0x41ea30,97,src/unsorted/0x41ea30.cpp,?FUN_0041ea30@@YAHXZ,matched,100.0
 0x41eaa0,192,src/unsorted/0x41eaa0.cpp,?FUN_0041eaa0@@YGPADPAD0H@Z,matched,100.0
 0x41eb60,238,src/unsorted/0x41eb60.cpp,?FUN_0041eb60@@YGPADPADHH@Z,matched,100.0
+0x41ec50,1008,src/unsorted/0x41ec50.cpp,?FUN_0041ec50@@YGXPAUGadget_0041ec50@@@Z,matched,100.0
 0x41f040,96,src/unsorted/0x41f040.cpp,?FUN_0041f040@@YAHXZ,matched,100.0
+0x41f0a0,852,src/unsorted/0x41f0a0.cpp,?FUN_0041f0a0@@YGXXZ,matched,100.0
+0x41f400,439,src/unsorted/0x41f400.cpp,?FUN_0041f400@@YAXXZ,matched,100.0
 0x41f5c0,99,src/unsorted/0x41f5c0.cpp,?FUN_0041f5c0@@YGXPAD@Z,matched,100.0
 0x41f630,78,src/unsorted/0x41f630.cpp,?FUN_0041f630@@YAXXZ,matched,100.0
 0x41f680,116,src/unsorted/0x41f680.cpp,?FUN_0041f680@@YGXPAUGadget_41f680@@@Z,matched,100.0

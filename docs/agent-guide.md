@@ -1443,6 +1443,15 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A narrow compiler-state window**: sweep N from 0 to about 35 in steps of
   1 for each candidate header set and pick the one where N = 0 sits in the
   middle of the matching range, so a later added declaration does not flip it.
+- **A stack load after a `push imm` means `__stdcall`**: if the original does
+  `push K; mov eax, [esp+X]; push eax; call` and yours hoists the load above
+  the push, the enclosing function is `__stdcall`, even with no arguments and
+  a plain `ret`; MSVC 5 hoists such loads only in `__cdecl` functions. Found
+  by Claude Opus 5.5 in #211 (0x41f0a0).
+- **An inlined helper's result tested with `test al, al`** after
+  `mov eax, 1` / `xor eax, eax`: store it in a `char` local
+  (`char next = Helper(); if (next)`); a `bool` helper gives `mov al, 1`. See
+  0x41f0a0.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

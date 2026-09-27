@@ -335,3 +335,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   returns `unsigned short`/`char`: declare it returning `int` in your file (the
   checker compares names, not types); the narrower type adds a mask the
   original lacks.
+- **Forcing a field to be re-read**: MSVC 5 reuses an already-loaded field only
+  when it is read through the same pointer temporary. When the original
+  re-reads fields it just tested, compute the pointer again into a second local
+  (`q = &g_game->players[i];`).
+- **Negative `this` offsets** (`[ecx-8]`) in a function with no direct callers:
+  it overrides a virtual function of a non-primary base class, and `this` points
+  at that base subobject. Write the real multiple-inheritance class.
+- **Function-local statics**: a guard-byte test, a constructor call on a global,
+  then `atexit` of an empty function is `static T x(args);` inside the function,
+  where `T` has an empty inline destructor.
+- **Two copies of one function**: the exe links two identical copies of
+  `std::_Lockit` (0x4e39b0 and 0x4e1480). `data/aliases.csv` lists such
+  duplicates, and the checker accepts either address for the name.

@@ -1,0 +1,3 @@
+name,address,note
+std::_Lockit::_Lockit,0x4e1480,second identical copy linked with the library code at 0x4d8000-0x4e3000
+std::_Lockit::~_Lockit,0x4e1540,second identical copy linked with the library code at 0x4d8000-0x4e3000

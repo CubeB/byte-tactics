@@ -101,6 +101,21 @@ def mangled_prefixes(qualname: str) -> list[str]:
     return [f"?{last}@{scope}@", f"_{last}@", f"_{last}"]
 
 
+ALIASES = ROOT / "data/aliases.csv"
+ALIAS_MAP: dict[str, set[int]] = {}
+
+
+def load_aliases() -> dict[str, set[int]]:
+    """Extra addresses a name may refer to, where the exe really contains
+    duplicate copies of one function (e.g. two std::_Lockit)."""
+    out: dict[str, set[int]] = {}
+    if ALIASES.exists():
+        with ALIASES.open() as fh:
+            for row in csv.DictReader(fh):
+                out.setdefault(row["name"], set()).add(int(row["address"], 16))
+    return out
+
+
 def load_symbols() -> dict[str, int]:
     if not SYMBOLS.exists():
         return {}
@@ -241,6 +256,8 @@ def normalise(ins, lo: int, hi: int, is_addr) -> str:
 def compare(orig: Original, obj: CoffObject, address: int, want: str | None = None,
             qualname: str | None = None, symbols: dict[str, int] | None = None) -> Result:
     symbols = load_symbols() if symbols is None else symbols
+    ALIAS_MAP.clear()
+    ALIAS_MAP.update(load_aliases())
     picked, err = select_function(obj, want, qualname)
     if not picked:
         return Result(address, "", 0, 0, False, 0.0, error=err)
@@ -327,6 +344,8 @@ def check_ref(orig, obj, sec, start, address, off, sym_name, target, addend, by_
 
 def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
     name = base_name(sym_name)
+    if target in ALIAS_MAP.get(name, ()):
+        return Ref(off, sym_name, target, "ok", "duplicate copy (data/aliases.csv)")
     if name.startswith("$"):  # compiler-generated, file-local (_$E1...): not in the global map
         return Ref(off, sym_name, target, "new", "file-local")
     known = symbols.get(name)

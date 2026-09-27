@@ -30,8 +30,16 @@
 // that contains an alloca, and an alloca also forces `push ebp; mov ebp,esp`
 // into the prologue, which the original does not have, so no source of this
 // function can reference that name. __chkstk is the only name reachable here,
-// with or without the sp3 patch, and the same holds for the other 16 large
-// frame functions in the exe, which all call 0x4e4b20.
+// with or without the sp3 patch, and the same holds for the other large
+// frame functions in the exe (20 call sites of 0x4e4b20, each 5 bytes into
+// its function, i.e. in the prologue).
+//
+// Rechecked in #321: `char buf[8000];` compiles to `call __chkstk` and
+// `_alloca(n)` to `call __alloca_probe`, and every N from 0 to 400 unused
+// `extern int` declarations leaves this file byte-identical. With the line
+// `_chkstk,0x4e4b20` added to data/aliases.csv (or 0x4e4b20 renamed to
+// `_chkstk` in data/symbols.csv), check.py prints MATCH for this file as it
+// is. That data change is the orchestrator's to make.
 #include <string.h>
 
 struct Vertex_0045a610 {

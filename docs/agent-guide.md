@@ -479,3 +479,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `unsigned short` bitfield; `unsigned char` bitfields go through a register.
 - **Loops with several induction variables**: which one MSVC compares against
   the end follows the order the per-iteration pointer locals are computed.
+- **Bitfield test polarity**: `if (!bitfield)` compiles to
+  `test byte ptr [m], mask`, while `if (bitfield)` (including
+  `if (bitfield) return;`) gives `mov reg, [m]; shr reg, N; test reg, 1`.
+- **x87 results stored back into argument slots** (`fstp [esp+0xc]`) before being
+  copied to a return buffer: the argument is a struct passed by value
+  (`Vec3 f(Vec3 v)`).
+- **x87 loads one step early in a sum of squares**: compute each product into
+  its own float local first.

@@ -897,6 +897,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Identical `switch` cases may need separate bodies** even when the original
   has one shared target: writing cases 1 and 3 separately let MSVC merge their
   calls at the right place and fixed register choice around them (0x406780).
+- **An inline helper that must reload a pointer member after each call**:
+  take the pointer by reference (`Owner*& o`); passing it by value keeps it in
+  a register (0x4077e0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

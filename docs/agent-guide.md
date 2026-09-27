@@ -706,6 +706,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **An inlined lock/acquire loop tested at the top**: the success case returns
   from inside a `while (1)`; breaking out or a try-helper condition rotates the
   loop (0x4c2b20).
+- **A function forwarding an STL iterator through a temporary plus a copy**:
+  the returned iterator type differs from the callee's (a `set`'s iterator is
+  the tree's `const_iterator`, converted by a constructor); a same-type forward
+  (`map`) builds the result straight into the return buffer (0x4dbd00).
+- **A leaf method ending with the stored value already in `eax`**: it probably
+  returns that value, even with no callers to show it (0x4b4c50).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

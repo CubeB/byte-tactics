@@ -2602,8 +2602,8 @@ address,size,model,batch,result,similarity,runs,notes
 0x41ace0,1030,opus,#176,partial,82.6,,issue #176
 0x4335f0,194,deepseek-v4.1-flash,#180,matched,100.0,,"issue #180, escalated"
 0x433380,377,deepseek-v4.1-flash,#186,partial,54.5,,"issue #186, escalated"
-0x43a0c0,274,,#189,assigned,,,"issue #189, escalated"
-0x43ca70,163,,#189,assigned,,,"issue #189, escalated"
+0x43a0c0,274,space-bunny-free,#189,partial,98.9,,"issue #189, escalated"
+0x43ca70,163,space-bunny-free,#189,matched,100.0,,"issue #189, escalated"
 0x445450,341,deepseek-v4.1-flash,#194,matched,100.0,,"issue #194, escalated"
 0x450240,305,opus,#195,partial,19.9,,"issue #195, escalated"
 0x44bfd0,249,opus,#197,matched,100.0,,"issue #197, escalated"

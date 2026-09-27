@@ -311,10 +311,11 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #82 | opus | 3 | 3 | 259,597 | 86,532 | 346 | 19 |
 | #12 | deepseek-v4.1-flash | 6 | 4 | 0 | n/a | n/a | n/a |
 | #15 | deepseek-v4.1-flash | 6 | 6 | 0 | n/a | n/a | n/a |
+| #90 | opus | 3 | 2 | 271,979 | 135,989 | 544 | 31 |
 
 ### Escalations
 
-- Opus matched 55 of 61 functions a cheaper model had failed.
+- Opus matched 57 of 64 functions a cheaper model had failed.
 - Sonnet matched 109 of 116 functions a cheaper model had failed.
 <!-- calibration:end -->
 

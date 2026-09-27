@@ -107,3 +107,9 @@ Things that look wrong in the original but have no effect, kept for the record.
   the code fills `size - 1` bytes and writes the last dword with no check, so
   a map with no cells would underflow to a 4 GB `memset`. Only reachable with
   zero map dimensions. Found by DeepSeek V4.1 Flash in #12.
+- **0x40d900** (clears the AI search grid's touched cells): in the last block
+  the bounds check restarts at `(i << 8)` for every group of eight cells
+  instead of advancing, so it only really tests the first group. Harmless,
+  because the constructor 0x40e9e0 rounds the cell count up to a multiple of
+  8 and allocates that many, so every group is either wholly valid or never
+  marked. Found by Claude Opus 5.5 in #90.

@@ -22,6 +22,12 @@ single addresses, so one real class often appears under several names.
   (`Class_00470b80::FUN_00470b80`).
 - `Class_0044e250` and `Class_0044e330`: two constructors storing vtable
   `DAT_004fd3b8`.
+- The AI search grid ("AISearch touched mapentries"): 0x40e9e0 is its
+  constructor (`Class_0040e9e0`), 0x40d900 clears it (`Class_0040d900`, grid
+  embedded at +0x1c), with cells at +0x1c, width +0x20, height +0x24, cell
+  count (rounded up to 8) +0x28 and one dirty bit per 8 cells at +0x2c.
+  0x40df00, 0x40e050, 0x40ef20, 0x40f000, 0x40f060 and 0x40f110 (the search
+  and its binary heap, #12) are probably the same object.
 - Functions that store the same vtable address belong to the same class (or a
   base/derived pair); a tool listing every vtable store would find the rest.
 

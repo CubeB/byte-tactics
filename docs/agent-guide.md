@@ -1093,6 +1093,20 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   original reloads the pointer instead of pushing a constant, clearing it with
   `memset(&field, 0, 4)` rather than `field = 0` stops MSVC propagating the
   zero. Found by DeepSeek V4.1 Flash in #12 (0x40e9e0).
+- **A struct local the original keeps in memory**: if yours lands in
+  registers, build it from an inline `operator-` (or `+`) that returns the
+  struct by value (`Vec3 d = *to - *from;`). Assigning field by field, an
+  `int[3]`, inline methods on `this`, constructors and taking its address all
+  ended up in registers. Found by Claude Opus 5.5 in #90 (0x40beb0).
+- **Three `fild`s kept on the x87 stack in x, y, z order**: convert each
+  component into its own `double` local before summing the squares; writing
+  `(double)x * x + ...` reorders the terms. See 0x40beb0.
+- **A value the original computes twice**: write the expression twice (for
+  example `g_game->width >> 1`) rather than caching it in a local; MSVC then
+  schedules it as the original does. See 0x40d7b0.
+- **A bit loop tested twice on entry**: write
+  `if (dirty[i]) { unsigned bits = dirty[i]; ... while (bits) ... }`. Loading
+  `bits` first and testing `if (bits)` drops the second test. See 0x40d900.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -125,6 +125,7 @@ address,name
 0x40bab0,FUN_0040bab0
 0x40bb00,FUN_0040bb00
 0x40bdb0,FUN_0040bdb0
+0x40beb0,FUN_0040beb0
 0x40c200,FUN_0040c200
 0x40c230,FUN_0040c230
 0x40c4f0,FUN_0040c4f0
@@ -165,6 +166,7 @@ address,name
 0x40d670,FUN_0040d670
 0x40d700,FUN_0040d700
 0x40d740,FUN_0040d740
+0x40d7b0,Class_0040d7b0::FUN_0040d7b0
 0x40d880,Class_0040d880::FUN_0040d880
 0x40d8b0,Class_0040d8b0::FUN_0040d8b0
 0x40d900,Class_0040e9e0::FUN_0040d900
@@ -2377,6 +2379,7 @@ address,name
 0x4e43d0,_allshr
 0x4e4400,_allmul
 0x4e4440,_alldiv
+0x4e44f0,_allshl
 0x4e4510,fprintf
 0x4e4560,atof
 0x4e45d0,_cinit

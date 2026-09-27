@@ -2418,9 +2418,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x40fa20,435,opus,#82,matched,100.0,,issue #82
 0x4c9490,152,opus,#84,matched,100.0,,"issue #84, escalated"
 0x4da3f0,130,opus,#84,matched,100.0,,"issue #84, escalated"
-0x40beb0,302,,#90,assigned,,,"issue #90, escalated"
-0x40d7b0,195,,#90,assigned,,,"issue #90, escalated"
-0x40d900,191,,#90,assigned,,,"issue #90, escalated"
+0x40beb0,302,opus,#90,matched,100.0,,"issue #90, escalated"
+0x40d7b0,195,opus,#90,matched,100.0,,"issue #90, escalated"
+0x40d900,191,opus,#90,partial,93.7,,"issue #90, escalated"
 0x40fbe0,1976,,#95,assigned,,,issue #95
 0x4103e0,1102,,#95,assigned,,,issue #95
 0x410850,1051,,#95,assigned,,,issue #95

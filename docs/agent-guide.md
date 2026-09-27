@@ -694,6 +694,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   names**: declare the derived slot names as the base's virtuals (the base
   vtable is never emitted in that file) so the derived constructor emits a
   correctly named vtable (0x474cd0).
+- **`push 0; mov ecx, elem; call X` in a destroy loop**: X is the element's
+  `??_G` with an implicit destructor, called only at one exact inline depth
+  (one level shallower gives `??1T`). Probe the depth with wrapper structs in
+  scratch; rebuilding the real caller in the same file emits it, and the
+  rebuilt caller may match too (0x4c51b0 and 0x4c2eb0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

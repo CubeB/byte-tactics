@@ -807,6 +807,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Headers can decide which side of a comparison is evaluated first**, not just
   operand order inside `+` or `*`; run tools/headers.py as soon as a whole
   subexpression comes out in the wrong order (0x4c1320).
+- **A field compared and then re-read at once** with nothing stored between:
+  the check and the use were inline methods of an embedded member struct,
+  called as `member.Method()` (0x40d8b0).
+- **One call after an if/else vs one in each arm**: MSVC duplicates a shared
+  tail call into both arms itself; writing it in each arm changes the argument
+  load order. Try both forms (0x4ab6c0 vs 0x408920).
+- **Inline helpers taking structs by value**: arguments are evaluated right to
+  left, so the parameter order decides which copy is loaded first (0x47ddc0).
+- **Overloaded constructors**: names are compared without signatures, so a
+  second constructor of an already named class needs a class named after its
+  own address (0x4c91b0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

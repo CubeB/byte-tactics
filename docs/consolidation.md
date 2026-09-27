@@ -107,6 +107,11 @@ revisit them once the surrounding code is known.
   unsigned int(capacity * 2)` (one dword initialised to the size) where an
   array was surely meant (0x415bb0, inlined in 0x415c10).
 
+- Overloads share one name in data/symbols.csv, so the string handle's
+  constructors are split across `Class_004c9180` (default), `Class_004c91a0`
+  (copy) and `Class_004c91b0` (`const char*`); the timer's two constructors
+  both use `Class_004e1d20::Class_004e1d20`, which the checker cannot tell apart.
+
 ## Signatures that disagree
 
 The checker compares names, not parameter types, so callers and definitions

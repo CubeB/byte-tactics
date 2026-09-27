@@ -712,6 +712,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   (`map`) builds the result straight into the return buffer (0x4dbd00).
 - **A leaf method ending with the stored value already in `eax`**: it probably
   returns that value, even with no callers to show it (0x4b4c50).
+- **In a constructor, `mov dl, [esp+4]` stored at +K and three zeroed dwords at
+  K+4..K+0xc**: a default-constructed `std::vector` member; the byte is its
+  empty allocator temporary in a dead parameter slot (0x480160).
+- **Before declaring a class's virtuals**, dump its vtable with
+  `objdump -s --start-address=<vtable> --stop-address=<vtable+0x40>
+  orig/TotalA.exe` to see what each slot holds.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

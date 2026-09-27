@@ -977,6 +977,18 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A multiply by an odd constant as a `lea` chain versus `imul reg, imm`** can
   depend on the header set alone: 0x4b6c30's `seed * 16807` is a `lea` chain only
   with `<windows.h>` included.
+- **Why headers matter at all: it is compiler state, not header content.** In
+  0x4b6c30, replacing `<windows.h>` with 2700 to 5400 unused prototypes flips
+  the same choice, while fewer or more do not. So operand order and register
+  choice can depend on how much the compiler had read before the function, in
+  the original source file. tools/headers.py finds a set that happens to
+  reproduce that state; when none does, the answer is probably the original
+  file's other contents (defining real neighbours in the same file is the
+  closest we can get for now).
+- **Spelling a constant multiply as shifts that reuse a temporary** (`(q << 31)
+  - q`) forces that value to be computed first; useful for diagnosing
+  evaluation-order problems, but it changes the instructions, so it is not a
+  fix in itself.
 - **`_Ubound`/`_Lbound` with the returned iterator built before the lock's
   destructor**: they hold a `std::_Lockit` for the whole body; move the locked
   tree walk into a `static inline` helper and build the iterator from its result

@@ -13,15 +13,18 @@ struct Entry_00438760 {
 extern Entry_00438760* DAT_00512344;
 extern Entry_00438760* DAT_00512348;
 
+// An order type held as its index in the sorted order-type table. Callers
+// build it from a name as a by-value temporary (0x403260, 0x4118e0, ...), so
+// this is its constructor.
 class Class_00438760 {
 public:
-    char* FUN_00438760(char* name);
+    unsigned char index;
+    Class_00438760(const char* name);
 };
 
 // FUNCTION: 0x438760
-char* Class_00438760::FUN_00438760(char* name)
+Class_00438760::Class_00438760(const char* name)
 {
-    char* result = (char*)this;
     Entry_00438760* first = DAT_00512344;
     int n = DAT_00512348 - DAT_00512344;
     for (; 0 < n; ) {
@@ -35,9 +38,8 @@ char* Class_00438760::FUN_00438760(char* name)
             n = n2;
     }
     if (first != DAT_00512348 && _strcmpi(first->name, name) == 0) {
-        *result = (unsigned char)(first - DAT_00512344);
-        return result;
+        index = (unsigned char)(first - DAT_00512344);
+        return;
     }
-    *result = 0;
-    return result;
+    index = 0;
 }

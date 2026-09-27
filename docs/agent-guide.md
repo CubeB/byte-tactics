@@ -1473,6 +1473,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `<map>` and `<iostream>` each fixed it, while `<vector>`, `<map>`, `<list>`,
   `<ddraw.h>`, `<dsound.h>` and `<dplay.h>` alone did not. Found by Claude
   Opus 5.5 in #209 (0x41ce90, fixed with `<string>`).
+- **A pointer loop that loads the end before the begin** needs
+  `T* last = p->end;` before the `for`. Found by Claude Opus 5.5 in #208.
+- **A field load MSVC hoists above a store the original keeps first**: write
+  the store through a `T&` to the field. See 0x41ba60.
+- **check.py hanging with `[CL.EXE] <defunct>` under it**: it started the
+  shared wineserver, which holds its output pipe while other agents compile.
+  Kill that check.py (the server keeps running) and wrap long scratch runs in
+  `timeout`.
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

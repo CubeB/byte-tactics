@@ -211,6 +211,16 @@ gadgets (at 0x4606d9 and 0x460710), where the matching dialog setup 0x464e70
 names them "CHOICE1" and "CHOICE2": a copy-paste slip. Found by DeepSeek V4.1
 Flash in #167.
 
+## Cloak state always "mixed" for several cloakable units (likely)
+
+**0x41b2e0**, which builds the order bar's combined state for the selected
+units. For the cloak button it sets the state to 2 ("mixed") for the second
+and every later cloakable unit without comparing its cloak bit
+(`cmp [esp+0x18], 3; jne 0x41b497` goes straight to `mov [esp+0x18], 2` at
+0x41b485), so two units that are both cloaked show as mixed. The fire order,
+move order and on/off buttons compare first (`cmp esi, ecx; je` at 0x41b893).
+Found by Claude Opus 5.5 in #208.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

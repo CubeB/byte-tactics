@@ -1088,6 +1088,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   by a later `or eax, ebx`) comes from casting the parameter,
   `(unsigned char)flags & 0xe0`; plain `flags & 0xe0` gives `test al, 0xe0`.
   See 0x40f2a0.
+- **A dead `operator delete(0)`**: a constructor that zeroes a pointer and
+  then deletes it emits a real `delete` of a register that holds 0. If the
+  original reloads the pointer instead of pushing a constant, clearing it with
+  `memset(&field, 0, 4)` rather than `field = 0` stops MSVC propagating the
+  zero. Found by DeepSeek V4.1 Flash in #12 (0x40e9e0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

@@ -132,6 +132,11 @@ revisit them once the surrounding code is known.
   0x43bc90 or 0x43c050 is decompiled with a real `std::vector`.
 - 0x44ec00 is a vtable slot of `Class_0044e740` recorded as a free function;
   tools/methods.py can't see it because it is only called through the vtable.
+- 0x40e9e0 clears its pointer at +0x1c with `memset(&field_1c, 0, 4)` rather
+  than `field_1c = 0`, which keeps MSVC from folding the following
+  `delete field_1c` into a constant. The original probably cleared a larger
+  struct or called an inline reset helper; revisit when the class's other
+  methods are known.
 
 ## Signatures that disagree
 

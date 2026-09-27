@@ -81,6 +81,14 @@ the running sums. If FUN_00480250 erases the unit from this group's vector,
 `*best` then names the next unit and the centre drifts. Not verified until
 FUN_00480250 is decompiled. Found by Claude Opus 5.5 in #54.
 
+## Base height overwritten while measuring flat distances (likely)
+
+**0x408100**, slot 0 of `Class_004085d0` (one of the AI's unit groups). To get
+a horizontal distance it overwrites the base position's y in place (at
+0x408250 and 0x40834f) and never restores it, so every later unit in the loop
+is measured against the previous unit's height instead of the base's. Found by
+Claude Opus 5.5 in #55.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -90,12 +98,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   before the state test; no path reads it in the state where it stays that way.
 - **0x404db0**: the second failure message is spelt "Ressurection failed",
   the first "Resurrection failed".
-
-## Base height overwritten while measuring flat distances (likely)
-
-**0x408100**, slot 0 of `Class_004085d0` (one of the AI's unit groups). To get
-a horizontal distance it overwrites the base position's y in place (at
-0x408250 and 0x40834f) and never restores it, so every later unit in the loop
-is measured against the previous unit's height instead of the base's. Found by
-Claude Opus 5.5 in #55.
 - **0x407e90**: an unused `std::vector` local is constructed and destroyed.
+- **0x40e9e0** (a map grid constructor): it clears the pointer at +0x1c and
+  then immediately passes it to `operator delete`, a dead free of the buffer
+  it is about to allocate. `delete 0` does nothing. Found by DeepSeek V4.1
+  Flash in #12.
+- **0x40e9e0**: the second buffer's size is `((cells + 0xff) >> 8) * 4`, and
+  the code fills `size - 1` bytes and writes the last dword with no check, so
+  a map with no cells would underflow to a 4 GB `memset`. Only reachable with
+  zero map dimensions. Found by DeepSeek V4.1 Flash in #12.

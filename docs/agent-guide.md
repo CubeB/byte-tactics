@@ -1216,7 +1216,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   differs; a legitimate header set (tools/headers.py, or ordinary pairs such
   as `<stdio.h>` + `<string.h>`) or defining the real neighbouring function
   above it can reach that state. Never commit the dummy declarations. Found by
-  Claude Opus 5.5 in #111 (0x417f60 matched for N = 195 to 289).
+  Claude Opus 5.5 in #111 (0x417f60 matched for N = 195 to 289). Run it
+  first even when earlier notes call a difference structural: in #223 two
+  attempts had blamed the source for what one header fixed (0x43def0, 64% to
+  94%). The score can repeat with a period (about 525 declarations there);
+  sweeping N from 0 to 400 in steps of 4 with parallel `check.py --sym` runs
+  takes about 5 seconds.
 - **Two weights sharing one local**: with `a - t` and `b - t` on the same local
   `t`, MSVC 5 computes `-t` once with `neg` and adds it. If the original has
   two separate `sub`s, give each weight its own local holding the same value.

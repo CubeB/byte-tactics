@@ -923,6 +923,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A vector sum whose last coordinate comes out in the wrong register**: use a
   member `operator+` taking its operand by const reference, not a free helper
   (0x403a20).
+- **64-bit widening that comes too early**: a `Vec3` subtraction followed by a
+  member squared-distance helper postpones it until after the range
+  calculation; separate scalar 64-bit locals widen too early (0x404730).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

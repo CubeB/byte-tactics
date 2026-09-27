@@ -55,3 +55,13 @@ index, but compares against "any" using argument 1 every time (the original
 pushes the constant 1, `ebx`, where the other comparisons push the index,
 `edi`). So "any" is ignored unless it is the first argument. Found by Codex /
 GPT-6 in #8.
+
+## Construction-assist radius adds y twice instead of squaring it (likely)
+
+**0x403f70**, the order handler for helping another unit build. It works out a
+target radius as `sqrt(x*x + y + y)` where `sqrt(x*x + y*y)` was surely meant:
+the original's x87 sequence at 0x40401d is `fld st(1); fmul st(2); fadd st(1);
+fadd st(1); fsqrt`, adding the second coordinate twice. The effect is a radius
+that grows roughly with the square root of y rather than with y, so assisting
+units stop at the wrong distance for large footprints. Found by ozgb's Codex /
+GPT-6 Astra in #38.

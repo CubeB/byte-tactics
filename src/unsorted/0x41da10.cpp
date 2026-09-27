@@ -1,15 +1,12 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
 
 // FUNCTION: 0x41da10
 void __stdcall FUN_0041da10(int param1, int param2, int param3)
 {
-    unsigned char al;
-    if (param3 == 0) {
-        al = 0;
-    } else {
-        al = 0xff;
-    }
-    al &= 0xb;
-    al += 0x4c;
-    *(unsigned char*)(param2 + param1) = al;
+    char mask;
+    if (param3)
+        mask = -1;
+    else
+        mask = 0;
+    *(unsigned char*)(param2 + param1) = (unsigned char)((mask & 0xb) + 0x4c);
 }

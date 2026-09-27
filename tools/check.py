@@ -357,9 +357,19 @@ def lookup(off, sym_name, target, symbols, by_addr) -> Ref:
                    "" if ok else f"'{name}' is {known:#x} in data/symbols.csv, but the original uses {target:#x}"
                    + (f" ('{by_addr[target]}')" if target in by_addr else ""))
     if target in by_addr:
+        held = by_addr[target]
+        # A DAT_<address> placeholder only says "some data at this address", so
+        # it agrees with any real name for the same address (e.g. a class's
+        # compiler-generated vtable ??_7...), in either direction.
+        if is_placeholder(held, target) or is_placeholder(name, target):
+            return Ref(off, sym_name, target, "ok", f"same address as '{held}'")
         return Ref(off, sym_name, target, "mismatch",
-                   f"{target:#x} is already named '{by_addr[target]}' in data/symbols.csv; use that name")
+                   f"{target:#x} is already named '{held}' in data/symbols.csv; use that name")
     return Ref(off, sym_name, target, "new")
+
+
+def is_placeholder(name: str, address: int) -> bool:
+    return name == f"DAT_{address:08x}"
 
 
 def report(res: Result, verbose: bool = True) -> str:

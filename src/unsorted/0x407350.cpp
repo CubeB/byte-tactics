@@ -1,37 +1,27 @@
-// Decompiled by Haiku. Names are provisional.
+// Decompiled by Sonnet. Names are provisional.
+// A "manual vtable" object like src/unsorted/0x408810.cpp: the vtable slot
+// is a plain data member assigned from the shared table DAT_004fc980, not a
+// real C++ virtual table, so it must be named the same as that other file.
 
-class Class_407350
-{
+extern void* DAT_004fc980[];
+
+class Class_00407350 {
 public:
-    virtual void method1();
-    virtual void method2();
-    virtual void method3();
-    virtual void method4();
-    virtual void method5();
-    virtual void method6();
-    virtual void method7();
-    virtual void method8();
-    virtual void method9();
-    virtual void method10();
-    virtual void method11();
-    virtual void method12();
-    virtual void method13();
-    virtual void method14();
+    void** vtable;                       // +0x0
+    int field4;                          // +0x4
+    int field8;                          // +0x8
+    int fieldc;                          // +0xc
+    int field10;                         // +0x10
 
-    int field_at_4;
-    int field_at_8;
-    int field_at_c;
-    int field_at_10;
-
-    Class_407350(int param1, int param2);
+    Class_00407350(int param1, int param2);
 };
 
 // FUNCTION: 0x407350
-Class_407350::Class_407350(int param1, int param2)
+Class_00407350::Class_00407350(int param1, int param2)
 {
-    this->field_at_4 = param1;
-    this->field_at_8 = param2;
-    this->field_at_c = 0;
-    unsigned char byte_val = *(unsigned char*)(param1 + 4);
-    this->field_at_10 = byte_val;
+    field4 = param1;
+    field8 = param2;
+    fieldc = 0;
+    field10 = *(unsigned char*)(param1 + 4);
+    vtable = DAT_004fc980;
 }

@@ -1,20 +1,19 @@
-// Decompiled by Haiku. Names are provisional.
-#include <stdlib.h>
+// Decompiled by Sonnet. Names are provisional.
+// A std::vector<int> member's destructor: MSVC 5's ~vector runs an
+// element-destroy loop over the (trivial, no-op) elements, which the
+// optimiser empties out but still leaves one dead store (and the `push ecx`
+// that makes room for it), then frees the storage and zeroes the
+// {_First,_Last,_End} triple. See src/unsorted/0x438480.cpp for the same note.
+#include <vector>
 
-class Class_46e610
-{
+class Class_0046e610 {
 public:
-    void FUN_0046e610();
+    std::vector<int> vec;
+
+    ~Class_0046e610();
 };
 
 // FUNCTION: 0x46e610
-void Class_46e610::FUN_0046e610()
+Class_0046e610::~Class_0046e610()
 {
-    int local_var;
-    void* ptr = *(void**)((char*)this + 0x4);
-    local_var = (int)ptr;
-    delete ptr;
-    *(int*)((char*)this + 0x4) = 0;
-    *(int*)((char*)this + 0x8) = 0;
-    *(int*)((char*)this + 0xc) = 0;
 }

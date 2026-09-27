@@ -25,7 +25,7 @@ from coff import parse_object
 README = ROOT / "README.md"
 PROGRESS = ROOT / "data/progress.csv"
 START, END = "<!-- progress:start -->", "<!-- progress:end -->"
-NOT_LEARNED = ("$", "??_C@", "__real@", "??_7", "??_G", "??_E")
+NOT_LEARNED = ("$", "??_C@", "__real@", "??_G", "??_E")
 
 
 def compile_cached(src: Path, include_hash: str):
@@ -124,6 +124,14 @@ def main() -> None:
                         and not base_name(ref.symbol).startswith("$") and ref.target not in named):
                     symbols.setdefault(base_name(ref.symbol), ref.target)
                     named.add(ref.target)
+                # A real name replaces a DAT_<address> placeholder for the same address.
+                real = base_name(ref.symbol)
+                placeholder = f"DAT_{ref.target:08x}"
+                if (ref.status == "ok" and symbols.get(placeholder) == ref.target
+                        and real != placeholder and real not in symbols
+                        and not ref.symbol.startswith(NOT_LEARNED) and not real.startswith("$")):
+                    del symbols[placeholder]
+                    symbols[real] = ref.target
 
     PROGRESS.parent.mkdir(exist_ok=True)
     with PROGRESS.open("w", newline="") as fh:

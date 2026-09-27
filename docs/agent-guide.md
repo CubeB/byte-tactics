@@ -147,7 +147,10 @@ their whole budget.
 - **Storing a `.rdata` address into `[this]`**: the vtable pointer. `ctx.py`
   marks such addresses `vtable? [...]`. Declare the class with virtual methods
   (declared, not defined) and write the constructor; the compiler stores the
-  vtable itself. Don't assign it by hand.
+  vtable itself. Don't assign it by hand. The checker accepts the compiler's
+  vtable name (`??_7Class@B@`) even where an earlier file named that address
+  `DAT_...`: a `DAT_<address>` placeholder agrees with any real name for the
+  same address, and the real name then replaces it.
 - **A global `std::vector`**: a function that copies one byte from an
   uninitialised stack slot (`push ecx; mov al, [esp+3]`), zeroes the next three
   dwords of a global, then calls `atexit` is the compiler-generated

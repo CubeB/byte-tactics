@@ -1411,7 +1411,7 @@ address,size,file,symbol,status,similarity
 0x4bc290,72,src/unsorted/0x4bc290.cpp,?FUN_004bc290@@YGHPADPAXH@Z,matched,100.0
 0x4bc2e0,23,src/unsorted/0x4bc2e0.cpp,?FUN_004bc2e0@@YGXPAD@Z,matched,100.0
 0x4bc300,32,src/unsorted/0x4bc300.cpp,?FUN_004bc300@@YGHPAD@Z,matched,100.0
-0x4bc320,52,src/unsorted/0x4bc320.cpp,?FUN_004bc320@@YGPADPAD0H@Z,partial,60.0
+0x4bc320,52,src/unsorted/0x4bc320.cpp,?FUN_004bc320@@YGPADPAD0H@Z,matched,100.0
 0x4bc360,16,src/unsorted/0x4bc360.cpp,?FUN_004bc360@@YGXPBD@Z,matched,100.0
 0x4bc8d0,84,src/unsorted/0x4bc8d0.cpp,?FUN_004bc8d0@@YGHPAUFind_004bc8d0@@@Z,matched,100.0
 0x4bce10,65,src/unsorted/0x4bce10.cpp,?FUN_004bce10@@YAXXZ,matched,100.0

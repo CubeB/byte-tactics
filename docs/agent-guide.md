@@ -818,6 +818,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A search returning 0 when nothing is found** with `xor eax, eax` before the
   loop: `int result = 0; for (...) if (...) { result = j; break; } return
   result;` (0x440c10).
+- **HAPINET wrappers (0x4c97xx-0x4ca8xx)**: `mov eax, <HRESULT>` before the null
+  test is `int result = K; if (dp) result = ...; return result;`; the constant
+  only after the `je` is an early return inside the `if`, then `return K;`.
+  IDirectPlay2 slots: EnumPlayers +0x30, GetPlayerName +0x54, Receive +0x64,
+  Send +0x68.
 - **COM calls by slot**: work out the DirectX interface from the vtable slot
   and call the real method (IDirectSoundBuffer: +0x24 GetStatus, +0x48 Stop).
 - **Header sets are not monotonic**: one header can flip an operand order that

@@ -1,4 +1,18 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// The map at +0x00 is the std::map<unsigned int, Value_0046d040> whose tree
+// header lives at 0x46f720 (written out by hand there as
+// Class_0046f720::FUN_0046f720). Because that file named the tree's _Init
+// Class_0046f720::FUN_0046f720, the member is a hand-written Class_0046f720
+// with the same four fields, not a real std::map (a real one would emit the
+// library's mangled ?_Init@?$_Tree@... symbol at +0x1d).
+//
+// The original's map constructor copies two empty objects (the key_compare and
+// the allocator) into bytes +0 and +1 from the still-live `param` stack slot,
+// which is why the prologue stores param's low byte twice, then 0 at +8. Taking
+// the two empty classes by value in Class_0046f720's constructor reproduces
+// that exactly. The insert itself still goes through the real std::map
+// instantiation, so the pair buffers and the _Tree::insert call at +0x111 come
+// out right.
 #include <list>
 #include <map>
 #include <vector>
@@ -21,7 +35,6 @@ struct Def_0046d040 {                  // 0x249 bytes
     unsigned int key;                  // +0x13e
     char unknown_142[0x245 - 0x142];
     unsigned int flags;                // +0x245
-    char unknown_249[0x249 - 0x249];
 };
 
 struct Game_0046d040 {
@@ -56,21 +69,62 @@ public:
     int* end;                          // +0xc
 };
 
+struct Cmp_0046d040 {                  // the map's empty key_compare
+    char x;
+};
+
+struct Alloc_0046d040 {                // the map's empty allocator
+    char x;
+};
+
+class Class_0046f720 {                 // the std::map's tree header at +0x00
+public:
+    char field_0;                      // +0x0
+    char field_1;                      // +0x1
+    char unknown_2[2];
+    void* head;                        // +0x4
+    char multi;                        // +0x8
+    char unknown_9[3];
+    int size;                          // +0xc
+
+    Class_0046f720(Cmp_0046d040 c, Alloc_0046d040 a)
+        : field_0(c.x), field_1(a.x), multi(0)
+    {
+        FUN_0046f720();
+    }
+
+    void FUN_0046f720();
+
+    Value_0046d040& operator[](unsigned int key)
+    {
+        return ((std::map<unsigned int, Value_0046d040>*)this)->operator[](key);
+    }
+};
+
 class Class_0046d040 {
 public:
-    std::map<unsigned int, Value_0046d040> rects;    // +0x00
-    std::vector<PlayerSync_0046d040> players;         // +0x10
-    std::list<int> ids;                               // +0x20
-    Sub_0046d040 sub;                                 // +0x2c
-    std::vector<int> list_a;                          // +0x38
-    std::vector<int> list_b;                          // +0x48
-    Sub2_0046d040 sub2;                               // +0x58
+    Class_0046f720 rects;                            // +0x00
+    std::vector<PlayerSync_0046d040> players;        // +0x10
+    std::list<int> ids;                              // +0x20
+    Sub_0046d040 sub;                                // +0x2c
+    std::vector<int> list_a;                         // +0x38
+    std::vector<int> list_b;                         // +0x48
+    Sub2_0046d040 sub2;                              // +0x58
 
     Class_0046d040(int param);
 };
 
+// A plain inline helper makes MSVC keep the tested bit in ebx, the callee-saved
+// register the flag value lives in across the insert call; written out in place
+// the expression lands in eax and adds a `mov ebx, eax`.
+static inline bool FlagOf_0046d040(Def_0046d040* d)
+{
+    return (d->flags >> 16) & 1;
+}
+
 // FUNCTION: 0x46d040
 Class_0046d040::Class_0046d040(int param)
+    : rects(Cmp_0046d040(), Alloc_0046d040())
 {
     sub.a = 0;
     sub.b = 0;
@@ -82,13 +136,12 @@ Class_0046d040::Class_0046d040(int param)
     {
         Value_0046d040 v;
         for (unsigned short i = 1; i < g_game->count; i++) {
-            v.y = 0;
-            v.w = 1;
-            bool flag = (Defs_0046d040()[i].flags >> 16) & 1;
             unsigned int key = g_game->defs[i].key;
             v.x = key;
+            v.y = 0;
+            v.w = 1;
             v.h = (short)sub2.flag;
-            v.flag = flag ? 0 : -1;
+            v.flag = FlagOf_0046d040(&g_game->defs[i]) ? 0 : -1;
             rects[key] = v;
         }
     }

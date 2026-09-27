@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Sends the "units expected" (packet type 0x1a, sub-type 3) notice to every
 // player whose sync record this object holds, then queues the player's id on
 // the insertion-ordered list at +0x20 unless it is already there.  The class
@@ -6,6 +6,11 @@
 // member, so the out-of-line find at 0x46e9b0 is called on this), a
 // std::vector<Player> at +0x10 and a std::list<unsigned int> at +0x20
 // (_Head +0x24, _Size +0x28).
+// Two source details the scheduler needs: taking Event* v = &it.ptr->value
+// before the disabled check makes MSVC hoist it.ptr into eax and keep it
+// across the loop, and writing the check as a positive `if (disabled == 0)`
+// block (not `if (disabled != 0) continue;`) makes it defer the type/arg/
+// field_b/field_c stores until after the call arguments are pushed.
 #include <list>
 #include <map>
 #include <vector>
@@ -90,18 +95,18 @@ void Class_0046d860::FUN_0046d860(unsigned int param_1)
     if (direct != 0) {
         Iter_0046d860 it = ((Class_0046e9b0*)this)->FUN_0046e9b0(param_1);
         for (std::vector<Player_0046d860>::iterator i = players.begin(); i != players.end(); ++i) {
-            if (disabled != 0) {
-                continue;
+            Event_0046d860* v = &it.ptr->value;
+            if (disabled == 0) {
+                Packet_0046d860 packet;
+                packet.type = 0x1a;
+                packet.arg = 3;
+                packet.field_6 = v->field_0;
+                packet.field_a = v->field_8;
+                packet.field_b = v->field_a;
+                packet.field_c = v->field_c;
+                ((Class_0046d4c0*)this)->FUN_0046d4c0(&*i, &packet, 1);
+                i->sent++;
             }
-            Packet_0046d860 packet;
-            packet.type = 0x1a;
-            packet.arg = 3;
-            packet.field_6 = it.ptr->value.field_0;
-            packet.field_a = it.ptr->value.field_8;
-            packet.field_b = it.ptr->value.field_a;
-            packet.field_c = it.ptr->value.field_c;
-            ((Class_0046d4c0*)this)->FUN_0046d4c0(&*i, &packet, 1);
-            i->sent++;
         }
     }
     for (std::list<unsigned int>::iterator it = queue.begin(); it != queue.end(); ++it) {

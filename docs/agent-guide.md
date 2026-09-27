@@ -849,6 +849,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Two struct locals copied from pointers**: the first declared gets a real
   stack slot and the later one reuses a dead parameter slot; swap the
   declarations if they come out reversed (0x421eb0).
+- **Destroying a `std::vector` member of each array element**: call
+  `arr[i].member.~vector()` directly for `lea esi, [base+idx+K]`; the element's
+  implicit destructor gives `add esi, idx` (0x4801f0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

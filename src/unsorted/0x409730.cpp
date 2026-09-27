@@ -49,9 +49,17 @@ struct Elem_0040d550 {
     int unknown_0;
 };
 
-struct Elem_0040c580 {
-    int a;
-    int b;
+struct Point16 {
+    short x;
+    short y;
+};
+
+struct Elem_0040cc40 {
+    Point16 pos;                       // +0x0
+    float key;                         // +0x4
+    Elem_0040cc40() {}
+    Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key) {}
+    bool operator<(const Elem_0040cc40& o) const { return key < o.key; }
 };
 
 #pragma pack(push, 1)
@@ -133,7 +141,7 @@ public:
     UnitList_00409730 list_25;         // +0x25
     int pos_35[3];                     // +0x35
     int pos_41[3];                     // +0x41
-    std::vector<Elem_0040c580> vec_4d; // +0x4d
+    std::vector<Elem_0040cc40> vec_4d; // +0x4d
     short centerX;                     // +0x5d
     short centerY;                     // +0x5f
     int field_61;                      // +0x61

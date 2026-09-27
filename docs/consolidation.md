@@ -156,3 +156,27 @@ can disagree on types (a real link would fail). Known cases:
   0x43c6b0-0x43cb20 and 0x4c5bc0-0x4c5d10) end in `ret N`. The staged files
   write those as explicit `__stdcall` functions; when files are regrouped, those
   translation units should get `/Gz` and the real `std::` templates instead.
+
+## STL instantiations
+
+- Small `std::vector` members matched early under placeholder classes block
+  their callers' name checks. Shapes to look for: `if (!_First) return 0;
+  return (_Last - _First) / sizeof(T)` is `size()` (with `_End` at +0xc,
+  `capacity()`); `push ecx`, free `_First`, zero +4/+8/+0xc (34 bytes) is
+  `~vector()` for a trivially destructible `T`; `mov eax, ecx`, copy the
+  allocator byte, zero +4/+8/+0xc, `ret 4` is `vector(const allocator&)`, the
+  default constructor. Name `T` after the other out-of-line members called on
+  the same object (its `_Ucopy`, `erase`, ...), since the element type is part
+  of every mangled name; a function that destroys a whole object (0x40b390 for
+  the player AI object of 0x409160) maps each member's offset to its
+  destructor. #88 renamed 0x40c510-0x40c5d0, 0x40cc80, 0x40d000, 0x40ca30 and
+  0x40a5b0 this way.
+- A constructor's address can't be taken, and no vector member calls
+  `vector(const allocator&)`, so 0x40c510.cpp emits it with an explicit
+  instantiation, `template class std::vector<Unit*>;`, which emits every member.
+- One element type, one name: `Elem_0040cc40` (a cell and its float sort key,
+  copy constructor 0x40a5b0) is the element of the vector at +0x4d of the
+  player AI object, and `Elem_0040cfb0` (three bytes) the one at +0x65. The
+  files that use them define them identically. `Class_00409160`,
+  `Class_00409470`, `Class_00409730`, `Class_0040a150` and `Class_0040a7b0`
+  are all that AI object (DAT_005119c0[player]).

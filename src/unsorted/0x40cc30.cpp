@@ -1,16 +1,25 @@
 // Decompiled by Opus. Names are provisional.
 // std::vector<Elem_0040cc40>::_Destroy(first, last) from MSVC 5's <vector>:
-// empty, since the element type is trivial. _Destroy is protected, so a
-// derived class takes its address to make the compiler emit it out of line.
-// The element type is a guess: any 8-byte trivially copyable type compiles
-// to the same code. Its callers (0x40a7b0, 0x40ca50) inline vector::insert
-// and call 0x40d5b0 (_Ufill), 0x40cc40 (_Ucopy) and 0x40cc30 (_Destroy)
-// with ecx set to the vector.
+// empty, since the element's destructor is trivial. _Destroy is protected,
+// so a derived class takes its address to make the compiler emit it out of
+// line.
+// The element is a map cell and its sort key, as 0x40a7b0 and 0x40a260 use
+// it (its copy constructor is 0x40a5b0). Its callers (0x40a7b0, 0x40ca50)
+// inline vector::insert and call 0x40d5b0 (_Ufill), 0x40cc40 (_Ucopy) and
+// 0x40cc30 (_Destroy) with ecx set to the vector.
 #include <vector>
 
+struct Point16 {
+    short x;
+    short y;
+};
+
 struct Elem_0040cc40 {
-    int a;                             // +0x0
-    int b;                             // +0x4
+    Point16 pos;                       // +0x0
+    float key;                         // +0x4
+    Elem_0040cc40() {}
+    Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key) {}
+    bool operator<(const Elem_0040cc40& o) const { return key < o.key; }
 };
 
 typedef std::vector<Elem_0040cc40> Vec_0040cc30;

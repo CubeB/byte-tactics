@@ -1,12 +1,9 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
 // Constructor of a player's AI state object (DAT_005119c0[player], built by
-// 0x40b320). The bytes match the original exactly; only the names of three
-// out-of-line STL callees disagree with data/symbols.csv, which holds
-// placeholder names for what are really std::vector template instantiations
-// emitted by this file (see the pull request):
-//   0x40c510 Class_0040c510::Class_0040c510 is std::vector<Unit*>::vector(const allocator&)
-//   0x40d000 Class_0040d000::FUN_0040d000   is std::vector<unsigned short>::size()
-//   0x40cc80 Class_0040cc80::FUN_0040cc80   is std::vector<Elem_0040cfb0>::size()
+// 0x40b320; 0x40b390 destroys it). Its out-of-line STL callees are
+// std::vector<Unit*>::vector(const allocator&) (0x40c510),
+// std::vector<unsigned short>::size() (0x40d000) and
+// std::vector<Elem_0040cfb0>::size() (0x40cc80), among others.
 //
 // Which calls MSVC 5 inlines here depends on its inline budget, and the
 // member layout below is what reproduces the original's choices: the unit
@@ -36,9 +33,17 @@ struct Elem_0040d550 {
     int unknown_0;
 };
 
-struct Elem_0040c580 {
-    int a;
-    int b;
+struct Point16 {
+    short x;
+    short y;
+};
+
+struct Elem_0040cc40 {
+    Point16 pos;                       // +0x0
+    float key;                         // +0x4
+    Elem_0040cc40() {}
+    Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key) {}
+    bool operator<(const Elem_0040cc40& o) const { return key < o.key; }
 };
 
 struct Vec3_00409160 {
@@ -81,7 +86,7 @@ public:
     Group_00409160 group_25;           // +0x25
     Vec3_00409160 pos_35;              // +0x35
     Vec3_00409160 pos_41;              // +0x41
-    std::vector<Elem_0040c580> vec_4d; // +0x4d
+    std::vector<Elem_0040cc40> vec_4d; // +0x4d
     Pos_00409160 center;               // +0x5d
     std::vector<Elem_0040cfb0> vec_65; // +0x65
     int field_75;                      // +0x75

@@ -687,6 +687,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **An uncalled out-of-line constructor just before a class's destructor**: the
   class's `new` site inlines the same body elsewhere; reuse the class that
   inlined copy already has (0x470f80, 0x4402e0).
+- **A `this`-less `__thiscall` range destroy** (`ret 8`, ecx unused, called with
+  `mov ecx, vec` before an inlined `_Ucopy`/insert tail): `vector<T>::_Destroy
+  (iterator, iterator)`, emitted like `_Ucopy` through a member pointer (0x4c5b70).
+- **A derived class that overrides every slot of a base whose vtable has other
+  names**: declare the derived slot names as the base's virtuals (the base
+  vtable is never emitted in that file) so the derived constructor emits a
+  correctly named vtable (0x474cd0).
 - **Scoring many variants**: `uv run tools/check.py <addr> <scratch.cpp> --sym <part
   of the mangled name>` checks a scratch file; put many variant functions in one
   file and score each.

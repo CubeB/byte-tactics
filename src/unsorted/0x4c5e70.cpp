@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
 // Locks the DirectDraw surface and fills a 0x30-byte surface descriptor,
 // registering it in the screen lock stack (DAT_0051fe00 entries at
 // DAT_0051fe08) so FUN_004c5df0 can unlock it later. When the display is
@@ -55,10 +55,9 @@ extern LockEntry_004c5e70 DAT_0051fe08[];
 
 Display_004c5e70* FUN_004b6220(void);
 
-// Still differs (97.8%): MSVC schedules the `desc.dwSize = sizeof(desc)`
-// store and the vtable load `mov ecx,[eax]` before the argument pushes; the
-// original keeps the store and the vtable load after `push 0x801`, and only
-// then reloads d->surface. Function size and every other instruction match.
+// Still differs (97.8%): the descriptor-size store and vtable load are
+// hoisted ahead of the DirectDraw call's argument setup. The original keeps
+// both after `push 0x801`; all remaining instructions match.
 // FUNCTION: 0x4c5e70
 int __stdcall FUN_004c5e70(Out_004c5e70* out)
 {

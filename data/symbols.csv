@@ -2275,6 +2275,8 @@ address,name
 0x4b7f60,FUN_004b7f60
 0x4b7f70,FUN_004b7f70
 0x4b7f90,FUN_004b7f90
+0x4b8150,FUN_004b8150
+0x4b8310,FUN_004b8310
 0x4b8500,FUN_004b8500
 0x4b8a80,FUN_004b8a80
 0x4b8ae0,FUN_004b8ae0
@@ -2584,6 +2586,9 @@ address,name
 0x4cbdd1,FUN_004cbdd1
 0x4cbe70,FUN_004cbe70
 0x4cbef1,FUN_004cbef1
+0x4cbf2c,FUN_004cbf2c
+0x4cc3d0,FUN_004cc3d0
+0x4cc51d,FUN_004cc51d
 0x4cc7ab,FUN_004cc7ab
 0x4cc8df,FUN_004cc8df
 0x4cd9b0,FUN_004cd9b0
@@ -3612,6 +3617,7 @@ address,name
 0x4fc9b0,??_7Class_00408810@@6B@
 0x4fca10,DAT_004fca10
 0x4fca18,DAT_004fca18
+0x4fccd8,IID_IDirectDraw2
 0x4fcd78,DAT_004fcd78
 0x4fcd98,DAT_004fcd98
 0x4fcda8,DAT_004fcda8

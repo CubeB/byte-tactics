@@ -388,3 +388,7 @@ can disagree on types (a real link would fail). Known cases:
   next field, `duplicateIds` in 0x450980, is at +0x299c). Most files declare
   `players[10]` with padding after it; 0x473590, 0x473a00, 0x474170,
   0x464060 and 0x41d920 declare all 11. Consolidate to 11.
+- **`Class_004c42a0` was also called `Section_004c51b0` and
+  `Section_004c3240`**: its destructor is 0x4c42a0 and its scalar deleting
+  destructor 0x4c32f0. 0x4c51b0.cpp, 0x4c3120.cpp and 0x4c3240.cpp were
+  renamed to `Class_004c42a0` when #381 landed.

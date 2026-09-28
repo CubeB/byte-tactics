@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Sibling of 0x4736e0 and 0x4742c0: the same base call with the third
 // argument, the same two 24-byte copies and the same trailing virtual call.
 // This one keeps each 24-byte block as a {point, far point} pair, moves the
@@ -37,6 +37,18 @@
 // I could not move any of those from the source: every spelling of the two
 // divisions, of the two temporaries and of the three deltas lands on the same
 // code, and no header set changes it either.
+//
+// Retry (deepseek-v4.1-flash): the store sinking is a real aliasing effect.
+// The two Vec3 refs may overlap, so MSVC must keep `e.x = bx` before `s.y` is
+// loaded. One plausible source shape is a single Segment pointer (start/end
+// fields of one object, so MSVC knows they do not overlap and does sink the
+// store). It does sink it, but every single-pointer spelling (Seg&, Seg*,
+// int*, two pointers into one object, direct this->seg_34 fields, with or
+// without per-component inline helpers) makes MSVC 5 hoist start.y above the
+// start.x store and spill it, 497 bytes turns into 513 to 564. A middle shape
+// (Segment* for end, Vec3* for start) also spills. The two-ref helper is the
+// only shape that stays in registers, so 87.5% is this function's ceiling
+// from source alone.
 
 class Class_00471d70 {
 public:

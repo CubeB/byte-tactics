@@ -1,14 +1,8 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
 // Resolves the connection index (searching the enumerated DirectPlay
 // connections for the provider GUID selected in DAT_00512c80 when the
 // incoming index is negative), then records that connection's GUID and
 // copies its data block into a freshly allocated buffer.
-// Still differs from the original (83.5%): MSVC keeps the connection size in
-// ebp across the FUN_004d83b0 call and reuses the list pointer for the first
-// size load, where this build reloads g_game and reuses that pointer for the
-// alloc size (a CSE choice that would not budge from the source). The merge
-// also loads edx before ecx, and the return-1 epilogue schedules mov eax,1
-// one pop later; the function is 420 bytes against the original's 424.
 #include <stdio.h>
 #include <string.h>
 extern "C" __declspec(dllimport) char* __stdcall lstrcpynA(char*, const char*, int);
@@ -64,12 +58,11 @@ int __stdcall FUN_00443ff0(int index)
     }
     if (index >= 0) {
         g_game->info.guid = g_game->sessions[index];
-        g_game->info.conn.data = g_game->conns[index].data;
-        Conn_443ff0* conns = g_game->conns;
-        g_game->info.conn.size = conns[index].size;
-        g_game->info.conn.data = FUN_004d83b0("DPLAY CONNECTION INFO", conns[index].size);
+        g_game->info.conn = g_game->conns[index];
+        int size = g_game->conns[index].size;
+        g_game->info.conn.data = FUN_004d83b0("DPLAY CONNECTION INFO", size);
         if (g_game->info.conn.data != 0) {
-            memcpy(g_game->info.conn.data, g_game->conns[index].data, g_game->conns[index].size);
+            memcpy(g_game->info.conn.data, g_game->conns[index].data, size);
         } else {
             g_game->info.conn.size = 0;
         }

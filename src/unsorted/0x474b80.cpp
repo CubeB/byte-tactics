@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// GPT-6-Luna rechecked the prior best at 84.6%. Its remaining differences are
+// the spills in the fog and mask arms and merged failure blocks below.
 //
 // NOT a match: 84.6 percent, 309 of 303 bytes. Three check.py runs in all (one
 // on the 84.0 version this file started from, two to confirm this one), plus

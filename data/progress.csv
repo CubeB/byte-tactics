@@ -2782,6 +2782,7 @@ address,size,file,symbol,status,similarity
 0x4da4f0,65,src/unsorted/0x4da4f0.cpp,?FUN_004da4f0@@YAHHPAXP6GHXZJ@Z,matched,100.0
 0x4da540,65,src/unsorted/0x4da540.cpp,?FUN_004da540@@YAPAXHPAXP6GHXZJ@Z,matched,100.0
 0x4da590,27,src/unsorted/0x4da590.cpp,?FUN_004da590@@YAPADPAD@Z,matched,100.0
+0x4da5b0,460,src/unsorted/0x4da5b0.cpp,?FUN_004da5b0@@YAXPAXPAD1@Z,matched,100.0
 0x4da780,50,src/unsorted/0x4da780.cpp,?FUN_004da780@@YAPAVCritSec_004da780@@XZ,matched,100.0
 0x4da7c0,1,src/unsorted/0x4da7c0.cpp,?FUN_004da7c0@@YAXXZ,matched,100.0
 0x4da7d0,109,src/unsorted/0x4da7d0.cpp,?FUN_004da7d0@@YAXI@Z,matched,100.0
@@ -2791,7 +2792,8 @@ address,size,file,symbol,status,similarity
 0x4da8c0,15,src/unsorted/0x4da8c0.cpp,?FUN_004da8c0@@YAIH@Z,matched,100.0
 0x4da9f0,62,src/unsorted/0x4da9f0.cpp,?FUN_004da9f0@@YAPAV?$Container_004da9f0@HV?$allocator@H@std@@@@XZ,matched,100.0
 0x4dab10,160,src/unsorted/0x4dab10.cpp,?FUN_004dab10@@YAXIPADH@Z,matched,100.0
-0x4db000,439,src/unsorted/0x4db000.cpp,?FUN_004db000@Class_004db000@@QAEXUPair_004db000@@@Z,partial,90.4
+0x4db000,439,src/unsorted/0x4db000.cpp,?FUN_004db000@Class_004db000@@QAEXUPair_004db000@@@Z,matched,100.0
+0x4db450,444,src/unsorted/0x4db450.cpp,?FUN_004db450@Class_004db450@@QAE_NI@Z,partial,92.9
 0x4db760,70,src/unsorted/0x4db760.cpp,?FUN_004db760@@YADXZ,matched,100.0
 0x4db7b0,1,src/unsorted/0x4db7b0.cpp,?FUN_004db7b0@@YAXXZ,matched,100.0
 0x4db7c0,6,src/unsorted/0x4db7c0.cpp,?FUN_004db7c0@@YAHXZ,matched,100.0
@@ -2915,6 +2917,7 @@ address,size,file,symbol,status,similarity
 0x4e2fe0,67,src/unsorted/0x4e2fe0.cpp,?FUN_004e2fe0@Class_004e2fe0@@QAEXPADPA_N_N@Z,matched,100.0
 0x4e3030,79,src/unsorted/0x4e3030.cpp,?FUN_004e3030@Class_004e3030@@QAEXPADPAEEEE@Z,matched,100.0
 0x4e33d0,41,src/unsorted/0x4e33d0.cpp,?FUN_004e33d0@@YAXPAXPADNN@Z,matched,100.0
+0x4e3400,423,src/unsorted/0x4e3400.cpp,?FUN_004e3400@@YAXPAXPAD@Z,matched,100.0
 0x4e3710,52,src/unsorted/0x4e3710.cpp,?FUN_004e3710@@YA_NXZ,matched,100.0
 0x4e3750,393,src/unsorted/0x4e3750.cpp,?FUN_004e3750@@YA_NIIDD@Z,matched,100.0
 0x4e38e0,78,src/unsorted/0x4e38e0.cpp,?FUN_004e38e0@@YA_NKPAX@Z,matched,100.0

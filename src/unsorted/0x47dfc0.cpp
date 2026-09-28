@@ -1,4 +1,33 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
+//
+// PARTIAL: 76.4%. The feature dispatch now matches the original instruction for
+// instruction: `else if (feature != 0xfffe) { blocked = 1; } else { ... }` writes
+// the outer `blocked = 1` as its own block, and the reversed inner arms
+// (`if (feature >= count) blocked = 1; else bit`, `if (f2 >= 0xfffb) blocked = 0;
+// else bit`) give each trivial arm the original's inline fall-through. With the
+// two `mov ecx, 1; jmp` blocks shared (a plain `else if (feature == 0xfffe)`
+// chain) the compiler hoists one copy to the end, costs 5 bytes and shifts the
+// whole tail.
+//
+// What is left is ONLY the prologue (+2 bytes): the original keeps `y` in ecx and
+// computes `imul ecx, ebx` directly, ours keeps `y` in esi and needs an extra
+// `mov ecx, ebx` first. The original's bound-check temporaries are
+// h->eax / height->esi, ours are h->ecx / height->eax. Everything from the
+// unit-record test onward is identical.
+//
+// Ruled out for the prologue: index operand order (`x + y*width`, `width*y + x`,
+// split into two statements), `h + y` operand order, all four bound checks in one
+// `||` chain or two, declaration order of index/result/row/locals, an unsigned
+// cast on y, and repeating all of those on top of the fixed dispatch. None of
+// them moves `y` off esi.
+//
+// Already correct and worth keeping: `Cell` needs `unknown_2[2]` so its size is
+// exactly 0xd, `Feature` needs a tail pad to be exactly 0x100; comparing
+// `(int)cell->low` inline instead of naming an `unsigned char low` local removes
+// three spill/reload pairs; the loop increments belong in the `for` header
+// (`row++, cell += rowStep` and `col++, cell++`); and the unit pointer must be a
+// reference, `Unit_0047dfc0*& unit = g_game->units[cell->spot].unit;`, which
+// reproduces the original's two-step `lea ecx, [edx+ecx*8]; mov ecx, [ecx]`.
 //
 // PARTIAL: 74.9%. This is the pathfinder's "can this rectangle be crossed"
 // scan. The unit-record access, the loop tail and the result downgrade match;
@@ -119,21 +148,22 @@ int __stdcall FUN_0047dfc0(Pathfinder_0047dfc0* obj, int x, int y, int w, int h)
             if (feature == 0xffff) {
                 blocked = 0;
             } else if (feature < 0xfffb) {
-                if (feature < g_game->featureCount)
-                    blocked = (g_game->features[feature].flags >> 6) & 1;
-                else
+                if (feature >= g_game->featureCount)
                     blocked = 1;
-            } else if (feature == 0xfffe) {
+                else
+                    blocked = (g_game->features[feature].flags >> 6) & 1;
+            } else if (feature != 0xfffe) {
+                blocked = 1;
+            } else {
                 Cell_0047dfc0* other =
                     cell - (cell->spotY * g_game->width + cell->spotX);
                 unsigned short f2 = other->feature;
-                if (f2 < 0xfffb)
-                    blocked = (g_game->features[f2].flags >> 6) & 1;
-                else
+                if (f2 >= 0xfffb)
                     blocked = 0;
-            } else {
-                blocked = 1;
+                else
+                    blocked = (g_game->features[f2].flags >> 6) & 1;
             }
+
             if (blocked)
                 return 0;
             if (cell->spot != 0) {

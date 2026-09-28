@@ -1,8 +1,8 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
 // Per player slot init: stamps the current tick into three fields, clears 22
 // dwords and six shorts, allocates the 0x34-byte PlayerRef and the squads table,
 // sizes and clears the map-cell buffer at (width/2) * (height/2) rounded up to
-// eight, and gives an active non-network player (type 3) a Class_00408cb0.
+// eight, and gives an inactive or non-network (type 3) player a Class_00408cb0.
 //
 // The 22 zero stores come out in the order the source writes them (0xac, 0xb4,
 // 0xbc, 0xc4, 0xcc, 0xd4, then 0x8c..0xc8, then 0xe8, 0xe4, 0xd0, 0xd8), so the
@@ -16,19 +16,85 @@
 // initialised locals (int h = ...; int w = ...) the allocation comes out the
 // other way round.
 //
-// Two things still differ from the original:
-//  1. The +0xf8 tick store. Here it follows the +0xf0/+0xf4 stores; the original
-//     hoists its load (the g_game reload and the tick read) above the first six
-//     zero stores but keeps the store itself below them. Writing the assignment
-//     after those six zeros puts the store in the right place but then MSVC
-//     leaves the load down there too, so neither order matches.
-//  2. The map buffer allocation. The original merges both arms of the
-//     conditional into one store with the pointer phi in eax, and then reloads
-//     [p + 0x7c] into edi for the inlined memset; this version keeps the phi in
-//     edi and forwards it, sinking the store past the memset's own loads, and
-//     pushes esi after rep stosd rather than before the shift. Ternary, if/else,
-//     a named local, a store through a cast pointer and an inlined helper all
-//     give the same edi form.
+// The last test is `!p->active || p->type != 3`, not `p->active && p->type != 3`:
+// the original's first branch is `je` into the allocation and the second `je`
+// over it, which is the `||` with both tests left as they are.
+//
+// STILL DIFFERS: only the first block, 14 instructions (96.6%). The original
+// runs one basic block from 0x46470c to the `jne` at 0x4647cb and inside it
+//   - loads g_game, p->ref and the tick for the +0xf8 store, all three at the
+//     top (0x46472d-0x464739),
+//   - then the six zero stores, the `cmp eax, ebp` at 0x464763, the +0xf8 store,
+//     sixteen zero stores, four zero stores, and finally the `jne`.
+// So the original's condition is evaluated *before* the eighteen instructions
+// that follow it, and the tick load sits at the top of the block. Here the load
+// and the `cmp` stay at their source positions (the `cmp` ends up at the end of
+// the block, next to the `jne`), and the scheduler hoists p->ref's load two
+// stores up and the +0x90 store one store up.
+//
+// What was tried and does not work (all give the plain "load at its store"
+// order): a `static inline` helper for the ticks, a member getter, the whole
+// body through a `Player&`, plain and C++ references to the +0xf8 field, casts
+// of the address, six zeros as a loop, an array, a pointer walk, a `do{}while(0)`
+// and bare nested blocks, and the tick statement before the six zeros.
+//
+// What does move the tick load to the top is a *local initialised there*:
+//   int t = g_game->ticks;          // third statement
+//   ... six zeros ...
+//   p->ff8 = t;
+// With that, plus `PlayerRef* ref = p->ref;` declared just before it, MSVC
+// emits the three loads at the top in exactly the original's order and puts
+// the `cmp` at 0x464763 - i.e. the whole block matches instruction for
+// instruction except for two register choices: the tick lands in ecx (the
+// g_game register is reused) instead of edx, and the constant 0 lands in ebx
+// (`xor ebx, ebx`, all 22 stores from ebx) instead of ebp. Any extra local
+// flips the zero from ebp to ebx and the width/2 local from ebx to ebp; dummy
+// locals, declaration order, const, unsigned, long, and moving the width/height
+// declaration around all leave it at ebx. Without the extra locals the zero is
+// in ebp and the loads are wrong, so the two cannot be had at once with the
+// shapes tried here. Scratch variants are in build/scratch/0x464700/ (v1 = this
+// body's first block, u2 = the two-local form, i1 = this file).
+//
+// The two things the previous attempt could not fix are fixed now, both by the
+// same trick (see the references at the memset): the phi of
+// `p->buffer = size ? operator new(size) : 0` stays in eax and the memset
+// reloads [esi+0x7c] into edi, and the size load lands after the phi store.
+//
+// 98.3 percent, up from 96.6, and the byte count matches (473). The one
+// remaining hunk is two instructions. The original evaluates its `p->ref` null
+// test early but sinks the `jne` all the way down to just before the
+// allocation, so the `cmp` sits high and the flags survive the 23 zero stores:
+//     mov edx, [ecx + 0x38a47]      ; third g_game->ticks, for the +0xf8 store
+//     <six zero stores>
+//     cmp eax, ebp                  ; the ref null test
+//     mov [esi + 0xf8], edx
+//     <seventeen zero stores>
+//     jne <past the allocation>
+// Both values live only in volatiles across that run (eax for the ref, edx for
+// the tick), and the six zeros get ebp, which is the callee-saved register
+// the original keeps for the constant 0 for the whole function.
+//
+// What this file does instead hoists the `p->ref` load correctly but puts the
+// cmp and the +0xf8 store above the six zeros, so the pair sits on the wrong
+// side of them. Getting the tick's LOAD hoisted above the zeros while leaving
+// its STORE after them needs a temporary, and that is exactly what breaks it:
+// every temp tried rotates the callee-saved pool and demotes the constant 0
+// from ebp to ebx, which is worth far more than the two instructions gained.
+// Confirmed for `int t = g_game->ticks;` used at the +0xf8 store (66.4 percent,
+// zero now in ebx and the store sunk up with the load), for the same temp with
+// `int w, h;` hoisted to the top of the function so declaration order could not
+// be the cause (66.4 percent, identical rotation), and previously for
+// `PlayerRef* rref = p->ref;` (61.3 percent, the ref load hoists correctly and
+// the zero still moves to ebx).
+//
+// The useful lead: at 96.6 percent, with `p->ff8 = g_game->ticks;` in its
+// natural place after the six zeros, the STORE and the cmp are already on the
+// right side of them and only the tick's load is late. So the target shape is
+// the 96.6 percent body with just that one load hoisted, and the obstacle is
+// purely that MSVC 5 will not hoist a load without also giving the value a
+// home that rotates the pool. A source form that makes the load cheap to hoist
+// without introducing a named temporary is what is still needed.
+
 
 #include <string.h>
 
@@ -162,17 +228,19 @@ void __stdcall FUN_00464700(Player_00464700* p)
     p->f84 = h;
     operator delete(p->buffer);
     p->f88 = (h * w + 7) & ~7;
-    {
-        void* b;
-        if (p->f88)
-            b = operator new(p->f88);
-        else
-            b = 0;
-        p->buffer = b;
-    }
-    memset(p->buffer, 0, p->f88);
+    p->buffer = p->f88 ? operator new(p->f88) : 0;
+    // Both references are load-bearing. With `memset(p->buffer, 0, p->f88)`
+    // MSVC propagates the phi and the size into the inlined memset, which puts
+    // the phi in edi and stores it from edi; the original reloads [esi+0x7c]
+    // into edi and keeps the phi in eax. Reading the fields through references
+    // stops that propagation, and it also stops the scheduler from hoisting
+    // the size load `mov ecx, [esi+0x88]` above the phi store (with the size
+    // read directly the load comes first, the original has it second).
+    void*& bref = p->buffer;
+    int& sz = p->f88;
+    memset(bref, 0, sz);
     FUN_00480190(p);
-    if (p->active && p->type != 3) {
+    if (!p->active || p->type != 3) {
         p->unit = new Class_00408cb0(p);
         FUN_0040b320(p->team);
     }

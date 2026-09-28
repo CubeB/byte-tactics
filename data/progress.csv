@@ -1488,11 +1488,14 @@ address,size,file,symbol,status,similarity
 0x47d820,333,src/unsorted/0x47d820.cpp,?FUN_0047d820@@YGHPAUUnit_0047d820@@UPoint@@@Z,partial,63.6
 0x47dac0,84,src/unsorted/0x47dac0.cpp,?FUN_0047dac0@@YGXPAUObj_0047dac0@@H@Z,matched,100.0
 0x47db20,65,src/unsorted/0x47db20.cpp,?FUN_0047db20@@YGXPAUObj_0047db20@@@Z,matched,100.0
+0x47db70,587,src/unsorted/0x47db70.cpp,?FUN_0047db70@@YGHPAUUnit_0047db70@@0UPoint_0047db70@@H@Z,partial,51.5
 0x47ddc0,158,src/unsorted/0x47ddc0.cpp,?FUN_0047ddc0@@YGXPAUUnit_0047ddc0@@PAUVec3_0047ddc0@@@Z,matched,100.0
+0x47dfc0,559,src/unsorted/0x47dfc0.cpp,?FUN_0047dfc0@@YGHPAUPathfinder_0047dfc0@@HHHH@Z,partial,74.9
 0x47e1f0,224,src/unsorted/0x47e1f0.cpp,?FUN_0047e1f0@@YGIPAVClass_00440830@@HH@Z,matched,100.0
 0x47e570,75,src/unsorted/0x47e570.cpp,?FUN_0047e570@@YGHPAUStruct_0047e570@@H@Z,matched,100.0
 0x47e5c0,386,src/unsorted/0x47e5c0.cpp,?FUN_0047e5c0@@YGXUPt_0047db20@@0PAVClass_0047db20@@@Z,partial,67.5
 0x47e750,307,src/unsorted/0x47e750.cpp,?FUN_0047e750@@YGXHHHHPAVVisitor_0047e750@@@Z,matched,100.0
+0x47e890,425,src/unsorted/0x47e890.cpp,?FUN_0047e890@@YGXPAUVec3@@HAAVClass_00405d90@@@Z,matched,100.0
 0x47ed30,13,src/unsorted/0x47ed30.cpp,?FUN_0047ed30@@YGXH@Z,matched,100.0
 0x47ed40,236,src/unsorted/0x47ed40.cpp,?FUN_0047ed40@@YAXXZ,matched,100.0
 0x47ee30,171,src/unsorted/0x47ee30.cpp,?FUN_0047ee30@@YAXXZ,partial,91.2
@@ -1516,6 +1519,7 @@ address,size,file,symbol,status,similarity
 0x47f960,39,src/unsorted/0x47f960.cpp,??0Class_0047f960@@QAE@HH@Z,matched,100.0
 0x47f990,146,src/unsorted/0x47f990.cpp,?FUN_0047f990@Class_0047f990@@QAEXXZ,matched,100.0
 0x47fa30,146,src/unsorted/0x47fa30.cpp,?FUN_0047fa30@Class_0047fa30@@QAEXXZ,matched,100.0
+0x47fad0,452,src/unsorted/0x47fad0.cpp,?FUN_0047fad0@Class_0047fad0@@QAEXPAUUnit_0047fad0@@HPAD@Z,matched,100.0
 0x47fca0,194,src/unsorted/0x47fca0.cpp,?FUN_0047fca0@Class_0047fca0@@QAEXXZ,partial,100.0
 0x47ffa0,123,src/unsorted/0x47ffa0.cpp,?FUN_0047ffa0@Class_0047ffa0@@QAEXH@Z,matched,100.0
 0x480020,160,src/unsorted/0x480020.cpp,?FUN_00480020@Class_00480020@@QAEXH@Z,matched,100.0

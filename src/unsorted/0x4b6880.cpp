@@ -1,33 +1,40 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free. Names are provisional.
 // Opens (or creates) HKCU\Software\Cavedog Entertainment\<subKey> and then
 // either reads or writes one REG_DWORD / string / binary value in it.
+// The decorated name is ?FUN_004b6880@@YGHPAD0PAEPAKKK@Z, so six stack
+// arguments, ret 0x18.
 //
-// What the original does, and what this file reproduces:
-// - The frame holds four dwords, in the order the compiler prints their
-//   offsets: result (-4), key1, the "Software" handle (-8), key2, the
-//   "Cavedog Entertainment" handle (-0xc), and key3, the subKey handle
-//   (-0x10). All four are zeroed in the prologue in the order key1, key2,
-//   key3, result, which only happens when `result` has no initialiser in its
-//   declaration and is zeroed by a statement after the three HKEY
-//   declarations.
-// - samDesired is read ? KEY_READ : KEY_WRITE, and ebx holds the constant 0
-//   across every call (four RegCreateKeyExA arguments and every comparison),
-//   while the flag itself lives in ebp.
-// - Every call result is stored in a LSTATUS and only then compared, which is
-//   what makes the original compare with `cmp eax, ebx`; comparing the call
-//   result directly gives `test eax, eax` instead.
-// - The read path accepts ERROR_SUCCESS and ERROR_MORE_DATA (0xea), not
-//   ERROR_FILE_NOT_FOUND.
+// What this file reproduces:
+// - The goto structure. All the failure exits jump to one `close:` label, and
+//   the two success stores are written out in their own arms, which is what
+//   makes MSVC duplicate `mov edi, 1` and put a `jmp` after each. With one
+//   shared tail the store is emitted once and the function loses 4 bytes.
+// - The frame holds four dwords, zeroed in the order key1, key2, key3, result,
+//   which needs the three HKEYs declared with `= 0` and `result` zeroed by a
+//   statement after them.
+// - The result lives in edi: it is assigned 1 on both success paths and read
+//   back from its stack slot on the failure path, then returned with
+//   `mov eax, edi`.
+// - `samDesired` is read ? KEY_READ : KEY_WRITE (`neg/sbb/and/add` in esi),
+//   the flag copy is in ebp, and ebx holds the constant 0, so every comparison
+//   is `cmp eax, ebx` and every zero argument is `push ebx`.
+// - Every call result is stored in a LONG before it is compared, which is what
+//   gives `cmp eax, ebx` rather than `test eax, eax`.
+// - The read path accepts ERROR_SUCCESS and ERROR_MORE_DATA (0xea).
+// - The ninth argument of all three RegCreateKeyExA calls is the address of
+//   the sixth parameter, not of a local. Passing 0 instead loses the frame slot
+//   and 12 bytes, so keep it.
 //
-// Still different (see the pull request table):
-// - The prologue hoists the flag load into eax (`mov eax,[arg6]` +
-//   `mov ebp,eax` + `mov esi,eax`) where the original loads it straight into
-//   ebp and copies it to esi. MSVC 5 folds the local flag copy back into the
-//   parameter, and the hoisted load wins over the shorter encoding.
-// - The original keeps the return value in edi (two `mov edi,1` stores, a
-//   `mov edi,<result slot>` on the failure path, `mov eax,edi` at the end);
-//   here the variable stays in its stack slot, which gives the same block
-//   layout but not the same bytes.
+// Still different (86.0% to 88.2% left on the table):
+// - The prologue. The original loads the flag straight into ebp between the
+//   two pushes and copies it into esi (`mov ebp, [esp+0x30]; push esi; mov esi,
+//   ebp`); here MSVC hoists the load above `push ebx` into a scratch register
+//   and copies it into esi early and ebp late, which costs 2 bytes. The
+//   address of that same parameter is taken (passed as lpdwDisposition), and
+//   that address-taken use is what stops MSVC folding the copy into a load:
+//   every shape tried (flag declared first, samDesired computed from the local,
+//   BOOL/unsigned/long flag, a separate `LPDWORD pRead`, passing 0) either
+//   keeps the hoist or loses the frame.
 #include <windows.h>
 
 // FUNCTION: 0x4b6880
@@ -44,26 +51,26 @@ int __stdcall FUN_004b6880(char* subKey, char* valueName, LPBYTE data, LPDWORD s
     result = 0;
     err = RegCreateKeyExA(HKEY_CURRENT_USER, "Software", 0, 0, 0, samDesired, 0,
                           &key1, &read);
-    if (err == 0) {
-        err = RegCreateKeyExA(key1, "Cavedog Entertainment", 0, 0, 0, samDesired, 0,
-                              &key2, &read);
-        if (err == 0) {
-            err = RegCreateKeyExA(key2, subKey, 0, 0, 0, samDesired, 0, &key3, &read);
-            if (err == 0) {
-                if (doRead) {
-                    err = RegQueryValueExA(key3, valueName, 0, 0, data, size);
-                    if (err == 0 || err == ERROR_MORE_DATA) {
-                        result = 1;
-                    }
-                } else {
-                    err = RegSetValueExA(key3, valueName, 0, type, data, *size);
-                    if (err == 0) {
-                        result = 1;
-                    }
-                }
-            }
-        }
+    if (err != 0)
+        goto close;
+    err = RegCreateKeyExA(key1, "Cavedog Entertainment", 0, 0, 0, samDesired, 0,
+                          &key2, &read);
+    if (err != 0)
+        goto close;
+    err = RegCreateKeyExA(key2, subKey, 0, 0, 0, samDesired, 0, &key3, &read);
+    if (err != 0)
+        goto close;
+    if (doRead) {
+        err = RegQueryValueExA(key3, valueName, 0, 0, data, size);
+        if (err != 0 && err != ERROR_MORE_DATA)
+            goto close;
+    } else {
+        err = RegSetValueExA(key3, valueName, 0, type, data, *size);
+        if (err != 0)
+            goto close;
     }
+    result = 1;
+close:
     if (key3 != 0) {
         RegCloseKey(key3);
     }

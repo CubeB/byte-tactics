@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free. Names are provisional.
 // Frame rate counter: adds the time since the last call to the counter, and once
 // a second stores the number of frames in that second as the frame rate. When
 // there is no offscreen GDI device context it draws "FRATE <rate>" over the
@@ -21,9 +21,12 @@
 // SetTextColor at +0xc0, EndDraw at +0x105) put the reload first in both.
 //
 // What the source below already gets right, and what the three diffs must not
-// disturb: the frame is exactly filled, 4 bytes of `dc` at +0xc plus the
-// 128-byte buffer at +0x10 leaves the 132 bytes the prologue reserves, so
-// there is no room for a third local; the address-taken `dc` is reloaded after
+// disturb: the frame is exactly filled. The .lst of this file shows
+// `_dc$29020 = -132` and `_buf$29021 = -128`, so the 132 bytes the prologue
+// reserves are 4 bytes of `dc` at the bottom plus the 128-byte buffer above it
+// and nothing else: there is no room for a third local, and the "four
+// HKEY/HDC locals at [esp+0x10] to [esp+0x1c]" that the frame sizes seem to
+// suggest are the buffer, not locals. The address-taken `dc` is reloaded after
 // every one of the six calls; the SelectObject import is hoisted into esi
 // because it is called twice; the wsprintf result is kept in ebx; and the
 // vtable load `mov edx,[eax]` comes after the pushes of both __stdcall
@@ -38,14 +41,31 @@
 // Compiled and diffed instruction by instruction, all byte-identical to this
 // file: swapping the two local declarations; putting both locals in one local
 // struct and using its fields; reading the local through a `HDC*`; an inline
-// helper taking `HDC&` for the whole drawing block; inline helpers for the
-// font read, the rate read, SetBkMode, TextOut, the GetDC call and the
+// helper taking `HDC&` or `HDC*` for the whole drawing block; inline helpers
+// for the font read, the rate read, SetBkMode, TextOut, the GetDC call and the
 // `&dc`; about fifteen spellings (`== 0` against `!`, TRANSPARENT against 1,
 // RGB(255,255,0) against 0xffff, wsprintf against wsprintfA, TextOut against
 // TextOutA, split declarations and assignments, `== NULL` for the offscreen
 // test, DWORD against unsigned int, `+=` against `= ... +`); 0 to 12 and 500
 // extern declarations, 2000 unused prototypes and an unrelated function placed
 // ahead of this one; and all 128 header sets headers.py tries.
+//
+// A second sweep (Space Bunny Free, #519) added, all byte-identical again:
+// `HDC*`/`HDC&`/`HDC`-by-value inline helpers for the drawing block; a helper
+// taking the surface, font and rate; helpers for SetBkMode and for TextOut
+// alone; the two locals declared at the top of the function; an extra nested
+// brace level; `void*` for `dc` with casts at every use; `unsigned int` and
+// `short` for the length; `&buf[0]`, `(char*)buf` and `LPSTR` for the buffer
+// argument; keeping the results of SetBkMode and the second SelectObject in a
+// variable; `(int)`/`COLORREF` casts on the constants; `== NULL` and `!` for
+// the GetDC test; `TextOutA`; braces on the `if` bodies; `++c->frames`;
+// a temporary for the tick delta; and a temporary for the returned rate. The
+// only variants that moved at all were the ones that change the function's
+// shape for real: a helper taking `HDC` by value (57.8%, the copy of `dc`
+// stops being the address-taken local so the reloads go away), a helper
+// taking the surface and font (54.4%), and returning `c->rate` instead of
+// re-reading the global (77.6%, the original really does reload the global
+// for the return value).
 //
 // The three reloads are therefore very likely decided by compiler state this
 // function's own source cannot reach, most likely the register allocator's

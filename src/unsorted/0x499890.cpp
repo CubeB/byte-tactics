@@ -1,0 +1,96 @@
+// Decompiled by GPT-5.6-Terra. Names are provisional.
+// Best attempt: 50.7%. MSVC folds the screen-byte shift into a bit test and
+// allocates different registers for subsequent game-state and input copies.
+#include <stdio.h>
+
+class Class_00435100 {
+public:
+    int FUN_00435100();
+};
+
+struct Input_00499890 {
+    int fields[6];
+};
+
+#pragma pack(push, 1)
+struct Game_00499890 {
+    char unknown_0[0x519];
+    char menu[0x10];
+    char unknown_529[0x2c76 - 0x529];
+    Input_00499890 selected;
+    char unknown_2c8e[0x37ebe - 0x2c8e];
+    unsigned short orderFlags;
+    char unknown_37ec0[0x37f2f - 0x37ec0];
+    unsigned char screenFlags;
+    char unknown_37f30[0x38a37 - 0x37f30];
+    int screenshot;
+    char unknown_38a3b[0x38a51 - 0x38a3b];
+    unsigned short otherFlags;
+    char path[0x20c];
+    char unknown_38c5f[0x391e9 - 0x38c5f];
+    Class_00435100* manager;
+    char unknown_391ed[0x391f5 - 0x391ed];
+    void (__cdecl* callback)();
+};
+#pragma pack(pop)
+
+extern Game_00499890* g_game;
+extern char DAT_005024fc[];
+extern char DAT_0050966c[];
+
+int FUN_004c1b00();
+void FUN_004c1ab0();
+void FUN_004b5910();
+void __stdcall FUN_00491d70(int);
+void __stdcall FUN_004bcf00(char*);
+int __stdcall FUN_004b6340();
+void __stdcall FUN_004c2de0(Input_00499890*);
+void __stdcall FUN_004a9fd0(void*);
+void FUN_00494e70();
+void FUN_0047f680();
+void __stdcall FUN_004c2d60(int*);
+void FUN_004b6370();
+void __stdcall FUN_004cb170(char*, char*);
+
+// FUNCTION: 0x499890
+void FUN_00499890()
+{
+    Input_00499890 first;
+    Input_00499890 second;
+    char path[0x100];
+    int key = FUN_004c1b00();
+
+    if (key == 0x7e && ((g_game->screenFlags >> 1) & 1)) {
+        FUN_004c1ab0();
+        FUN_004b5910();
+    }
+    if ((g_game->orderFlags & 1) && key == 0xe3) {
+        FUN_004c1ab0();
+        FUN_00491d70(0);
+        g_game->orderFlags &= 0xfffe;
+        if (g_game->manager->FUN_00435100() != 3)
+            g_game->otherFlags &= 0xfffe;
+    }
+    if (key == 0xd6) {
+        FUN_004c1ab0();
+        FUN_004bcf00(g_game->path);
+        sprintf(path, DAT_005024fc, g_game->path);
+        FUN_004bcf00(path);
+        FUN_004cb170(path, DAT_0050966c);
+        g_game->screenshot = FUN_004b6340();
+    }
+    FUN_004c2de0(&first);
+    FUN_004a9fd0(g_game->menu);
+    FUN_004c2de0(&second);
+    FUN_00494e70();
+    FUN_0047f680();
+    if (first.fields[4] == second.fields[4])
+        FUN_004c2d60(g_game->selected.fields);
+    else if (first.fields[4] == 0x205 || first.fields[4] == 0x202)
+        g_game->selected = first;
+    else
+        g_game->selected = second;
+    FUN_004b6370();
+    if (!(g_game->unknown_0[0xfd] & 8))
+        g_game->callback();
+}

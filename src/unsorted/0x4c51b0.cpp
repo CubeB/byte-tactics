@@ -45,18 +45,18 @@ struct Entries_004c51b0 {
     Inner_004c51b0 v;
 };
 
-class Section_004c51b0 {
+class Class_004c42a0 {
 public:
     int* name;                                 // +0x0
-    std::vector<Section_004c51b0*> children;   // +0x4
+    std::vector<Class_004c42a0*> children;   // +0x4
     char unknown_14;                           // +0x14
     Entries_004c51b0 entries;                  // +0x15
 
-    ~Section_004c51b0()
+    ~Class_004c42a0()
     {
         if (name)
             FUN_004d85a0(name);
-        for (Section_004c51b0** p = children.begin(); p < children.end(); p++)
+        for (Class_004c42a0** p = children.begin(); p < children.end(); p++)
             delete *p;
     }
 };
@@ -64,7 +64,7 @@ public:
 
 class Class_004c2ea0 {
 public:
-    Section_004c51b0* root;
+    Class_004c42a0* root;
     int field_4;
     int field_8;
 

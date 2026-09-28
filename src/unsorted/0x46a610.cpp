@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free. Names are provisional.
 // Draws one cell of the map/visibility grid: works out the blit position of
 // the cell (the feature's footprint offset, the smoothed shading of the four
 // cells of the 2x2 block, the cell's screen position and the scroll offset),
@@ -6,15 +6,14 @@
 // rotation into the local unit, or draws the feature's own frames (with the
 // shadow layer when bit 4 of the draw flags is set).
 //
-// Still differs (38% of the bytes match). The register allocation of the
-// prologue is the blocker: the original keeps g_game in ebx, the feature
-// pointer in esi, x in ebp and y in edi, and evaluates the four-cell shade
-// sum in edi (the y register) starting from cell->shade. This version gets
-// the feature pointer into esi right, but puts g_game in ebp, x in ebx and
-// the shade sum in edx, and folds the sum from the last term backwards.
-// <ddraw.h> is included because the allocation only lands this way with it,
-// and headers.py found no better set. The field at cell+0xc is tested with
-// `mov dl, 1; test dl, al` here and `test al, 1` in the original.
+// Two shapes were needed for the bytes to land. The mirrored blit is a macro,
+// not an inlined function: the function form gives the two copies of the flip
+// test the other way round from the original (and swaps x and y with them).
+// The shading sum indexes the second row of the block as cell[width] instead
+// of going through a next pointer: with a pointer MSVC loads the four shades
+// as cell, next[1], cell[1], next, where the original loads them in source
+// order. The two DrawFlip calls in the feature branch share one tail, so the
+// anim frame is drawn by writing the body out in each branch.
 
 #include <ddraw.h>
 
@@ -48,12 +47,11 @@ struct Feature {
     Handle anim;                       // +0xcc
     Handle shadowAnim;                 // +0xd8
     char unknown_e4[0xfe - 0xe4];
-    unsigned char drawn : 1;           // +0xfe
-    unsigned char over : 1;
-    unsigned char flipAnim : 1;
-    unsigned char flipShadow : 1;
-    unsigned char unknown_bits : 4;
-    char unknown_ff;
+    unsigned short drawn : 1;           // +0xfe
+    unsigned short over : 1;
+    unsigned short flipAnim : 1;
+    unsigned short flipShadow : 1;
+    unsigned short unknown_bits : 4;
 };
 
 // A live spot: the unit whose state it belongs to, which owns it in turn.
@@ -70,27 +68,29 @@ struct Cell {
     char unknown_5[0x8 - 0x5];
     unsigned short feature;            // +0x8
     unsigned short spot;               // +0xa
-    unsigned char flags;               // +0xc
+    unsigned char flags : 1;           // +0xc
+    unsigned char unknown_d : 7;
 };
 
+// A spot, 0x30 bytes: either a pair of animation handles or the live state of
+// a moving feature (its state, position and velocity).
 struct FeatureSpot {
-    char unknown_0[4];
+    short next;                        // +0x0
+    short prev;                        // +0x2
     union {
-        SpotState* state;              // +0x4
-        Handle anim;                   // +0x4
-    };
-    union {
-        Vec3 pos;                      // +0x8
         struct {
-            int unknown_8;             // +0x8
+            Handle anim;               // +0x4
             Handle shadow;             // +0x10
-            int unknown_1c;            // +0x1c
-        } alt;
+        };
+        struct {
+            SpotState* state;          // +0x4
+            Vec3 pos;                  // +0x8
+            Vec3 vel;                  // +0x14
+        };
     };
     Rot16 rot;                         // +0x20
     char unknown_26[0x2f - 0x26];
     unsigned char spotFlags;           // +0x2f
-    char unknown_30;
 };
 
 struct Unit {
@@ -131,29 +131,39 @@ static int DrawFlags()
     return *(unsigned char*)((char*)g_game + 0x37f06);
 }
 
-// A frame is drawn mirrored when the feature says so.
-static void DrawFlip(bool flip, void* dest, short* frame, int x, int y)
-{
-    if (flip)
-        FUN_004b8500(dest, frame, x, y);
-    else
-        FUN_004b7f90(dest, frame, x, y);
-}
+// A frame is drawn mirrored when the feature says so. This has to be a macro:
+// the same code as an inlined function allocates the flip test and the two
+// blit arguments to the other registers.
+#define DrawFlip(flip, dest, frame, x, y) \
+    do { \
+        if (flip) \
+            FUN_004b8500(dest, frame, x, y); \
+        else \
+            FUN_004b7f90(dest, frame, x, y); \
+    } while (0)
 
 // FUNCTION: 0x46a610
 void __stdcall FUN_0046a610(void* dest, Cell* cell, int ix, int iy)
 {
     Feature* f = &g_game->features[cell->feature];
-    Cell* next = cell + g_game->width;
-    int shade = (cell->shade + cell[1].shade + next->shade + next[1].shade) >> 3;
     int x = f->footprint.x * 16 / 2 + (ix + 8) * 16 - g_game->scroll_x;
+    int s = cell->shade;
+    s += cell[1].shade;
+    s += cell[g_game->width].shade;
+    s += cell[g_game->width + 1].shade;
+    int shade = s >> 3;
     int y = f->footprint.z * 16 / 2 - shade + (iy + 2) * 16 - g_game->scroll_y;
-    if (cell->flags & 1) {
+    if (cell->flags) {
         FeatureSpot* spot = &g_game->spots[cell->spot];
         if (f->drawn) {
-            if ((spot->spotFlags & 4) && (DrawFlags() & 0x10))
-                FUN_004b7f90(dest, (short*)FUN_004b7ee0(&spot->alt.shadow), x, y);
-            FUN_004b7f90(dest, (short*)FUN_004b7ee0(&spot->anim), x, y);
+            if ((spot->spotFlags & 4) && (DrawFlags() & 0x10)) {
+                short* frame = (short*)FUN_004b7ee0(&spot->shadow);
+                FUN_004b7f90(dest, frame, x, y);
+            }
+            {
+                short* frame = (short*)FUN_004b7ee0(&spot->anim);
+                FUN_004b7f90(dest, frame, x, y);
+            }
         } else {
             Unit* unit = g_game->unit;
             SpotState* st = spot->state;
@@ -163,15 +173,25 @@ void __stdcall FUN_0046a610(void* dest, Cell* cell, int ix, int iy)
             unit->pos = spot->pos;
             FUN_0045ac20(dest, unit);
         }
-    } else if (f->over) {
-        if (f->shadowTable && (DrawFlags() & 0x10))
-            DrawFlip(f->flipShadow, dest, (short*)FUN_004b7ee0(&f->shadowAnim), x, y);
-        if (f->animTable)
-            DrawFlip(f->flipAnim, dest, (short*)FUN_004b7ee0(&f->anim), x, y);
     } else {
-        if (f->shadowTable && (DrawFlags() & 0x10))
-            DrawFlip(f->flipShadow, dest, (short*)FUN_004b7f30(f->shadowTable, 0), x, y);
-        if (f->animTable)
-            DrawFlip(f->flipAnim, dest, (short*)FUN_004b7f30(f->animTable, 0), x, y);
+        if (f->over) {
+            if (f->shadowTable && (DrawFlags() & 0x10)) {
+                short* frame = (short*)FUN_004b7ee0(&f->shadowAnim);
+                DrawFlip(f->flipShadow, dest, frame, x, y);
+            }
+            if (f->animTable) {
+                short* frame = (short*)FUN_004b7ee0(&f->anim);
+                DrawFlip(f->flipAnim, dest, frame, x, y);
+            }
+        } else {
+            if (f->shadowTable && (DrawFlags() & 0x10)) {
+                short* frame = (short*)FUN_004b7f30(f->shadowTable, 0);
+                DrawFlip(f->flipShadow, dest, frame, x, y);
+            }
+            if (f->animTable) {
+                short* frame = (short*)FUN_004b7f30(f->animTable, 0);
+                DrawFlip(f->flipAnim, dest, frame, x, y);
+            }
+        }
     }
 }

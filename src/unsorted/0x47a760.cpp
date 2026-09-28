@@ -1,70 +1,54 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial (71.6%): the whole function is reproduced, including the inlined
-// player search (an inlined copy of FUN_0047a700, as in 0x450380), but MSVC
-// assigns the two outer induction variables the other way round: it keeps
-// i*0x18 in ebp and i*0x14b in esi, while the original keeps i*0x18 in esi and
-// i*0x14b in ebp. Every other byte, including the inlined search's register
-// use, matches. <windows.h> is needed for the [edi+esi] addressing order (see
-// 0x465e30 and 0x497080 for the same compiler-state trick).
+// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// PARTIAL 83.3%, 372 vs 368 bytes. Everything matches except the tail of the
+// mark search. The original keeps the search result in eax (cmp eax,esi / je /
+// cmp eax,esi / mov ecx,eax / jge at the top, then or eax,0xffffffff on the
+// normal loop exit and mov eax,ecx on the found path) and lays the found path
+// out of line at the function end. Ours coalesces the loop counter and result
+// into ecx and adds a cmpres before the -1 store. Tried: separate k, k hoisted
+// outside the restart loop, pointer loop, while/do-while shapes, writing to j
+// directly. None beat this. See the pull request for the full list.
 #include <windows.h>
 
 #pragma pack(push, 1)
-struct Unit_0047a760 {
-    char unknown_0[0x95];
-    unsigned char field_95;            // +0x95
-    unsigned char slot;                // +0x96
-};
-
-struct Player_0047a760 {               // 0x18 bytes
-    int active;                        // +0x00
-    unsigned char shade;               // +0x04
+struct Player_0047a760 {
+    int active;
+    unsigned char shade;
     char unknown_5[3];
-    int type;                          // +0x08
+    int type;
     char unknown_c[0x14 - 0xc];
-    unsigned char color;               // +0x14
+    unsigned char color;
     char unknown_15[3];
 };
 
-struct Entry_0047a760 {                // 0x14b bytes
+struct Unit_0047a760 {
+    char unknown_0[0x95];
+    unsigned char field_95;
+    unsigned char slot;
+};
+
+struct Entry_0047a760 {
     char unknown_0[0x27];
-    Unit_0047a760* unit;               // +0x27
+    Unit_0047a760* unit;
     char unknown_2b[0x108 - 0x2b];
-    unsigned char marks[0x14b - 0x108];// +0x108
+    unsigned char marks[0x14b - 0x108];
 };
 
 struct Game_0047a760 {
     char unknown_0[0x1b63];
-    Entry_0047a760 entries[10];        // +0x1b63
+    Entry_0047a760 entries[10];
     char unknown_2851[0x29a0 - 0x2851];
-    Player_0047a760* players;          // +0x29a0
+    Player_0047a760* players;
     char unknown_29a4[0x2a42 - 0x29a4];
-    unsigned char localPlayer;         // +0x2a42
-    unsigned char playerIndex;         // +0x2a43
+    unsigned char localPlayer;
+    unsigned char playerIndex;
     char unknown_2a44[0x38d81 - 0x2a44];
-    int playerCount;                   // +0x38d81
+    int playerCount;
 };
 #pragma pack(pop)
 
 extern Game_0047a760* g_game;
 
 void __stdcall FUN_00464290(unsigned char player, unsigned char kind);
-
-// Inlined copy of FUN_0047a700: first slot from `start` on the same side as
-// `self` that is active and not type 5, or `self` itself, or -1.
-static __inline int FindNext_0047a760(int self, int start)
-{
-    Player_0047a760* players = g_game->players;
-    int n = g_game->playerCount;
-    if (start != n) {
-        for (int i = start; i < n; i++) {
-            if (players[i].type == players[self].type && players[i].active != 0 && players[i].type != 5)
-                return i;
-            if (i == self)
-                return i;
-        }
-    }
-    return -1;
-}
 
 // FUNCTION: 0x47a760
 void FUN_0047a760()
@@ -86,7 +70,18 @@ void FUN_0047a760()
         if (g_game->players[i].active == 1 || g_game->players[i].active == 2) {
             int j = 0;
             for (;;) {
-                int k = FindNext_0047a760(i, j);
+                Player_0047a760* players = g_game->players;
+                int n = g_game->playerCount;
+                int ii = j;
+                if (j != n) {
+                    for (; ii < n; ii++) {
+                        if (players[ii].type == players[i].type && players[ii].active != 0 && players[ii].type != 5)
+                            break;
+                        if (ii == i)
+                            break;
+                    }
+                }
+                int k = (ii < n) ? ii : -1;
                 if (k == -1)
                     break;
                 g_game->entries[i].marks[k] = 1;

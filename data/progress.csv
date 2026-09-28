@@ -495,6 +495,7 @@ address,size,file,symbol,status,similarity
 0x425b60,32,src/unsorted/0x425b60.cpp,?FUN_00425b60@@YAXXZ,matched,100.0
 0x425b80,497,src/unsorted/0x425b80.cpp,?FUN_00425b80@@YAXXZ,matched,100.0
 0x426190,100,src/unsorted/0x426190.cpp,?FUN_00426190@@YGXPAUGadget_00426190@@@Z,matched,100.0
+0x426200,420,src/unsorted/0x426200.cpp,?FUN_00426200@@YAXXZ,partial,97.9
 0x426780,289,src/unsorted/0x426780.cpp,?FUN_00426780@@YGXPAD@Z,matched,100.0
 0x4268b0,275,src/unsorted/0x4268b0.cpp,?FUN_004268b0@@YGXH@Z,matched,100.0
 0x426d20,339,src/unsorted/0x426d20.cpp,?FUN_00426d20@@YAHXZ,matched,100.0

@@ -3472,7 +3472,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a7830,293,space-bunny-free,#646,matched,100.0,,"issue #646, escalated"
 0x4a9780,164,space-bunny-free,#646,matched,100.0,,"issue #646, escalated"
 0x4a9830,390,space-bunny-free,#646,partial,89.4,,"issue #646, escalated"
-0x44f9c0,585,,#650,assigned,,,"issue #650, escalated"
+0x44f9c0,585,deepseek-v4.1-flash,#650,matched,100.0,,"issue #650, escalated"
 0x4c2870,282,space-bunny-free,#652,partial,98.8,,"issue #652, escalated"
 0x4e3750,393,space-bunny-free,#656,matched,100.0,,"issue #656, escalated"
 0x425210,544,,#679,assigned,,,"issue #679, escalated"

@@ -3327,7 +3327,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b6570,294,,#519,assigned,,,"issue #519, escalated"
 0x4b6880,297,,#519,assigned,,,"issue #519, escalated"
 0x4732e0,537,,#522,assigned,,,"issue #522, escalated"
-0x46a610,589,,#523,assigned,,,"issue #523, escalated"
+0x46a610,589,space-bunny-free,#523,matched,100.0,,"issue #523, escalated"
 0x488310,596,mimo-v2.6-flash,#525,matched,100.0,,"issue #525, escalated"
 0x48ab70,448,mimo-v2.6-flash,#525,partial,96.7,,"issue #525, escalated"
 0x4bf4d0,332,,#527,assigned,,,"issue #527, escalated"

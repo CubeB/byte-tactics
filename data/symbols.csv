@@ -740,6 +740,7 @@ address,name
 0x43c350,FUN_0043c350
 0x43c360,Class_0043c360::FUN_0043c360
 0x43c390,UElem_0043c390::?$vector::_Destroy
+0x43c3a0,UElem_0043c390::?$vector::insert
 0x43c6b0,FUN_0043c6b0
 0x43c720,FUN_0043c720
 0x43c940,FUN_0043c940

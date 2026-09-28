@@ -1,0 +1,2 @@
+address,original,patched,note
+0x4cda44,3bc30f85de000000,e9e3de0200909090,"GOG no-CD music patch: the cmp eax,ebx / jne 0x4cdb2a was overwritten with a jmp to code in zero padding at 0x4fb92a that forces the track count to ""17""; the original bytes are rebuilt from that code's own jne"

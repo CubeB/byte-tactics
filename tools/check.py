@@ -55,11 +55,23 @@ class Original:
                     rva, size = struct.unpack_from("<II", raw, i)
                     self.sizes[self.base + rva] = size
 
+        # Bytes a later hand patch changed in orig/TotalA.exe (the GOG build),
+        # put back to what the compiler emitted: data/exe_patches.csv.
+        self.patches = []
+        if PATCHES.exists():
+            for row in csv.DictReader(PATCHES.open()):
+                self.patches.append((int(row["address"], 16), bytes.fromhex(row["original"])))
+
     def read(self, va: int, size: int) -> bytes:
         try:
-            return self.pe.get_data(va - self.base, size)
+            data = self.pe.get_data(va - self.base, size)
         except Exception:
             return b""
+        for at, orig in self.patches:
+            lo, hi = max(va, at), min(va + len(data), at + len(orig))
+            if lo < hi:
+                data = data[:lo - va] + orig[lo - at:hi - at] + data[hi - va:]
+        return data
 
 
 # --- names ------------------------------------------------------------------
@@ -107,6 +119,7 @@ def mangled_prefixes(qualname: str) -> list[str]:
 
 
 ALIASES = ROOT / "data/aliases.csv"
+PATCHES = ROOT / "data/exe_patches.csv"
 ALIAS_MAP: dict[str, set[int]] = {}
 
 

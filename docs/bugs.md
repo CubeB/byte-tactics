@@ -364,6 +364,27 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x497ce0** (likely): while it still waits for players (network flag
+  bit 3 clear), it divides 620 by the count of player records that are
+  present, on team 1 to 3 and not kind 10 (`idiv dword ptr [esp+0x10]` at
+  0x497dc3), with no test for 0; the early return guards only the other
+  path. Read from the disassembly of a partial match. Found by Space Bunny
+  Free in #502.
+- **0x498da0** (possible): keeps bit 2 of the byte at g_game+0x2cc6 as a cache
+  of bits 0 and 1, which nothing else writes, and its two branches disagree:
+  inside the view rect with bit 3 clear it sets the bit without testing the
+  map limits at +0x37e27, while the other branch sets it only when the point
+  is inside them, so one cursor position gives 1 or 0 depending on bit 3.
+  0x469e70 reads it with mask 6. It also passes `FUN_00481550`'s result,
+  which is 0 for a cell off the map, to `FUN_00421e60` (0x498f49), which
+  reads its +8 without a null test. Found by Space Bunny Free in #502.
+- **0x47db70** (possible): the map index is `(cell.x + cell.y) * width +
+  cell.x` with a row stride of `width - cell.y`, which reads like a mistyped
+  `cell.y * width + cell.x` with the footprint width lost; and the owner test
+  at 0x47dd05 compares against the raw low 16 bits of the second argument,
+  while 0x47dd48 dereferences it, so the fallback path would read through the
+  0 that seven of eight callers pass. Read from the disassembly of a partial
+  match. Found by Space Bunny Free in #495.
 - **0x4bf4d0** (likely): locks the screen surface itself (0x4bf4eb), but
   its three failure exits (null low map, null high map, null computed map, at
   0x4bf589, 0x4bf5a9 and 0x4bf5c0) return 0 without the unlock call that only

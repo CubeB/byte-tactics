@@ -1757,3 +1757,32 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **MSVC 5 does not fold a test of a local's address**: `if (&local == 0)`
   emits a dead `lea; test; jne` and one unreachable arm, which is how
   0x4bee60 reproduces its original.
+- **`tools/headers.py --cpp`** also tries `<string>`, `<vector>`, `<map>`,
+  `<list>` and `<iostream>`, one at a time on top of every C set (768 builds,
+  under a minute). Plain headers.py tries only the seven C headers.
+- **`fcomp; fnstsw ax; test ah, 0x40`** is MSVC's `x != 0.0f` (or `== 0.0f`):
+  it reads only C3, so a NaN compares equal to 0. That is the compiler's
+  normal float test, not a bug to report.
+- **Several failure exits sharing one `return 0` epilogue**: MSVC 5 never
+  merges two identical `return 0`s, so write one and `goto fail` to it, with
+  the locals declared uninitialised at function scope so no jump skips an
+  initialiser (0x461db0).
+- **`if (p) { ... } else { p = 0; }` after `operator new`** gives the
+  original's redundant `xor eax, eax` in the else path and the `jmp` over it;
+  `if (!p) return 0;` does not (0x461db0).
+- **A countdown over a separate walking pointer** (`k = n - 1; q = p;
+  while (k >= 0) { ...; q++; k--; }`) gives `lea edx, [n-1]; cmp; jl` in the
+  pre-header and a pointer biased one field high; making the pointer the loop
+  variable loses all three (0x461db0).
+- **Uninitialised locals get callee-saved registers in declaration order**,
+  not assignment order: swapping two declarations swaps their registers
+  (0x464700).
+- **A reference to a struct member keeps a two-step load**:
+  `Unit*& unit = g_game->units[i].unit;` gives `lea ecx, [edx+ecx*8];
+  mov ecx, [ecx]` where a plain pointer local folds it into one (0x47dfc0).
+- **Compare a small field inline instead of naming a local**:
+  `(int)cell->low < minHeight` in place of an `unsigned char low` local removed
+  three spill and reload pairs (0x47dfc0, 33.5% to 71.5%).
+- **Put pointer advances in the `for` header**
+  (`for (col = 0; col < w; col++, cell++)`); as body statements they are
+  scheduled differently (0x47dfc0).

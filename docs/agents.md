@@ -102,14 +102,14 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 <!-- calibration:start -->
 ### First-attempt match rate by function size
 
-| Size (bytes) |  | Deepseek-v4.1-flash | Gpt-6 | Gpt-6-astra | Haiku | Mimo-v2.6-flash | Opus | Sonnet | Space-bunny-free |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1-16 |  |  |  |  | 283/312 (91%) |  | 3/3 (100%) |  |  |
-| 17-40 |  |  |  |  | 235/337 (70%) |  | 124/124 (100%) | 9/10 (90%) |  |
-| 41-64 |  |  |  |  | 3/11 (27%) |  | 255/255 (100%) | 96/109 (88%) |  |
-| 65-160 |  | 64/67 (96%) |  |  | 1/6 (17%) |  | 739/747 (99%) | 2/6 (33%) |  |
-| 161-400 | 0/10 (0%) | 227/296 (77%) | 17/18 (94%) |  |  |  | 30/36 (83%) |  | 197/279 (71%) |
-| 401+ |  | 7/9 (78%) | 7/9 (78%) | 17/27 (63%) |  | 4/7 (57%) | 58/83 (70%) |  | 41/80 (51%) |
+| Size (bytes) |  | Deepseek-v4.1-flash | Gpt-6 | Gpt-6-astra | Haiku | Longcat2.5previewfree | Mimo-v2.6-flash | Opus | Sonnet | Space-bunny-free |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1-16 |  |  |  |  | 283/312 (91%) |  |  | 3/3 (100%) |  |  |
+| 17-40 |  |  |  |  | 235/337 (70%) |  |  | 124/124 (100%) | 9/10 (90%) |  |
+| 41-64 |  |  |  |  | 3/11 (27%) |  |  | 255/255 (100%) | 96/109 (88%) |  |
+| 65-160 |  | 64/67 (96%) |  |  | 1/6 (17%) |  |  | 739/747 (99%) | 2/6 (33%) |  |
+| 161-400 | 0/10 (0%) | 227/296 (77%) | 17/18 (94%) |  |  |  |  | 30/36 (83%) |  | 197/279 (71%) |
+| 401+ |  | 7/9 (78%) | 7/9 (78%) | 17/27 (63%) |  | 2/4 (50%) | 4/7 (57%) | 58/83 (70%) |  | 41/80 (51%) |
 
 ### Cost per batch
 
@@ -538,6 +538,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #381 | deepseek-v4.1-flash | 6 | 5 | 0 | n/a | n/a | n/a |
 | #398 | space-bunny-free | 3 | 2 | 0 | n/a | n/a | n/a |
 | #642 | space-bunny-free | 3 | 0 | 0 | n/a | n/a | n/a |
+| #560 | longcat2.5previewfree | 4 | 2 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

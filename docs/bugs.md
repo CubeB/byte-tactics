@@ -364,6 +364,17 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x4bf4d0** (likely): locks the screen surface itself (0x4bf4eb), but
+  its three failure exits (null low map, null high map, null computed map, at
+  0x4bf589, 0x4bf5a9 and 0x4bf5c0) return 0 without the unlock call that only
+  the shared tail at 0x4bf5ff makes, so the surface stays locked. It also
+  indexes a 256-byte table with a sign-extended pixel byte (`movsx` at
+  0x4bf5e8), reading up to 128 bytes before it for values above 127. Read
+  from the disassembly. Found by Space Bunny Free in #378.
+- **0x4bee60** (likely): its fallback test is on the address of the local
+  `screen` (`lea ecx, [esp+8]; test ecx, ecx; jne`), which is never 0, so the
+  second lock and the block at 0x4beea4 to 0x4bef1a never run and the game
+  never draws to the fallback surface. Found by Space Bunny Free in #378.
 - **0x48b710** (possible): reads the unit's link at +0x96 for a 16-bit id
   subtraction after testing only the owner and its vtable slot 7, while
   0x48b200, which writes the same field, tests the link for null first, so a

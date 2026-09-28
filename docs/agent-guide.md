@@ -1742,3 +1742,18 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Jump table case bodies come out in source order**: when the bodies sit in
   an unexpected physical order, write the case labels in that order rather
   than sorted.
+- **Look for twins before starting**: compare the issue's functions with jump
+  and call displacements masked. Identical or near-identical pairs are common
+  (0x4be950 and 0x4bed70 are one function at two addresses; 0x4bec70 is 91%
+  like them), and copying the matched twin's file finishes the other in one
+  run.
+- **Compute a value in each branch rather than once after the merge** when
+  the original repeats it: a single shared local let MSVC fold a later null
+  test away (0x4bf4d0).
+- **Copies into dead argument slots follow declaration order**: with
+  `int y1 = y, x1 = x, y0 = y, x0 = x;` the later copies coalesce into the dead
+  `x` and `y` argument slots as self-stores, and the order of the group
+  decides which copy lands where (0x4bee60, all 24 orders tried).
+- **MSVC 5 does not fold a test of a local's address**: `if (&local == 0)`
+  emits a dead `lea; test; jne` and one unreachable arm, which is how
+  0x4bee60 reproduces its original.

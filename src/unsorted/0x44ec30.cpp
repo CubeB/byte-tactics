@@ -33,6 +33,16 @@
 // 546-byte shape with the swapped SIB. The wanted order needs the compiler
 // state of the game's own translation unit, not this file.
 //
+// This is the fifth confirmed instance of that class, and the class also has a
+// proof, not just instances. 0x4c1760 and 0x4c1480 are byte-for-byte the same
+// source in the same file, and 0x4c1480 is MATCHED with the base and index the
+// other way round from what 0x4c1760 wants, so the order is not a function of
+// the source at all. The full set: 0x4c1760 (98.8%, proved unreachable by that
+// sibling), 0x425210 (99.6%), 0x46e640 (99.6%), this file (99.6%), 0x490230
+// (99.2%), 0x490080 (99.1%), 0x445450 (91.5%), and a variant at 0x4a51d0.
+// 0x4c4d70, the same STL function with the other register allocation, is
+// MATCHED, so the body of the function is not the difficulty.
+//
 // The class body below is MSVC 5's <vector> written out, exactly as
 // 0x425210.cpp and 0x46e640.cpp do, because the real header emits the
 // 547-byte shape.

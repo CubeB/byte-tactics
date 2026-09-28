@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 // Finds the GUI layout entry named `name` (0x15b-byte entries whose entry 0
 // stores the entry count as a short at +0xb6) and gives it the row array
 // `rows` and its count: +0xc6 gets the array, +0xc0 the count, flags +0x1b
@@ -31,6 +31,22 @@
 // test), the unsigned/sign-bit spellings, an inlined helper for the height or
 // the subtraction, `BT_TOOLCHAIN=msvc5-rtm`, and tools/headers.py. The zero
 // register and every other instruction are already the original's.
+//
+// A second pass added six more shapes for this last pair, none of which moved
+// it: the test as `remain <= -1` (96.2%), as `0 > remain`, against a named
+// `int zero` local, the subtraction in its own statement with the row height in
+// a local, the whole step through a `static inline int Step(int, int)` helper
+// (all 96.9%), and accumulating upwards as `used += h; if (used > height)`
+// which is much worse at 79.5% because it re-reads the entry's height.
+//
+// Note the shape of what is left, because it recurs: the original tests the
+// subtraction result against a register that already holds zero
+// (`cmp edi, ebp; jl`) where MSVC gives the shorter sign-flag form (`js`).
+// 0x4b6880 is the same two bytes the other way round, with `cmp eax, ebx`
+// against a zero register where we give `test eax, eax`. Both are late
+// back-end choices about comparing against a known zero, and in both cases
+// every source shape tried, including a named zero local reused for the stores
+// and the test, produces the short form. Treat it as compiler state.
 #include <string.h>
 
 #pragma pack(push, 1)

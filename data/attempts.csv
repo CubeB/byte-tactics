@@ -3121,10 +3121,10 @@ address,size,model,batch,result,similarity,runs,notes
 0x4e2ab0,162,,#398,assigned,,,issue #398
 0x4e2be0,200,,#398,assigned,,,issue #398
 0x4e3750,393,,#398,assigned,,,issue #398
-0x425210,544,,#399,assigned,,,issue #399
-0x425480,537,,#399,assigned,,,issue #399
-0x425b80,497,,#399,assigned,,,issue #399
-0x426200,420,,#399,assigned,,,issue #399
+0x425210,544,space-bunny-free,#399,partial,89.6,,issue #399
+0x425480,537,space-bunny-free,#399,no file,0,,issue #399
+0x425b80,497,space-bunny-free,#399,matched,100.0,,issue #399
+0x426200,420,space-bunny-free,#399,partial,97.9,,issue #399
 0x4290f0,402,,#400,assigned,,,issue #400
 0x42a610,596,,#400,assigned,,,issue #400
 0x42f580,448,,#400,assigned,,,issue #400
@@ -3465,3 +3465,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x4bfd60,167,,#637,assigned,,,"issue #637, escalated"
 0x4bfe10,267,,#637,assigned,,,"issue #637, escalated"
 0x4bff20,332,,#637,assigned,,,"issue #637, escalated"
+0x425210,544,,#642,assigned,,,"issue #642, escalated"
+0x425480,537,,#642,assigned,,,"issue #642, escalated"
+0x426200,420,,#642,assigned,,,"issue #642, escalated"

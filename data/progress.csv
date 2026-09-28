@@ -649,7 +649,7 @@ address,size,file,symbol,status,similarity
 0x435910,7,src/unsorted/0x435910.cpp,?FUN_00435910@Class_00435910@@QAEHXZ,matched,100.0
 0x435920,81,src/unsorted/0x435920.cpp,?FUN_00435920@Class_00435920@@QAEHXZ,matched,100.0
 0x435980,147,src/unsorted/0x435980.cpp,?FUN_00435980@Class_00435980@@QAEHH@Z,matched,100.0
-0x435a20,465,src/unsorted/0x435a20.cpp,?FUN_00435a20@Class_00435a20@@QAEHPAD@Z,partial,79.9
+0x435a20,465,src/unsorted/0x435a20.cpp,?FUN_00435a20@Class_00435a20@@QAEHPAD@Z,matched,100.0
 0x435c00,30,src/unsorted/0x435c00.cpp,?FUN_00435c00@Class_00435c00@@QAEXH@Z,matched,100.0
 0x435c20,7,src/unsorted/0x435c20.cpp,?FUN_00435c20@Class_00435c20@@QAEHXZ,matched,100.0
 0x435c30,7,src/unsorted/0x435c30.cpp,?FUN_00435c30@Class_00435c30@@QAEHXZ,matched,100.0

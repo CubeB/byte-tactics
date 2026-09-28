@@ -22,7 +22,9 @@
 // inner block variable, a function-scope variable initialised after the alloc,
 // a for-init copy, a reference and a struct; while, do/while and for with the
 // latch in the increment clause (all three identical); every declaration order;
-// a redundant second size test; a copy of dst into a local. The one thing that
+// a redundant second size test; a copy of dst into a local; the size as a
+// reference aliasing the name parameter's slot (same code), plus a separate
+// loop counter on top of it (65.3%, the size loses its memory home). The one thing that
 // would explain it is a source detail that makes the size's live range reach
 // into the loop, where esi holds the chunk count, so it could not be promoted.
 // Copies a file into an already open destination handle, 0x19000 bytes at a

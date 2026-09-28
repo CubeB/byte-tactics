@@ -3355,10 +3355,10 @@ address,size,model,batch,result,similarity,runs,notes
 0x49cc20,436,space-bunny-free,#556,matched,100.0,,issue #556
 0x49cde0,544,space-bunny-free,#556,matched,100.0,,issue #556
 0x49d9c0,429,space-bunny-free,#556,matched,100.0,,issue #556
-0x49db70,486,,#557,assigned,,,issue #557
-0x49dd60,430,,#557,assigned,,,issue #557
-0x4a05e0,494,,#557,assigned,,,issue #557
-0x4a09c0,545,,#557,assigned,,,issue #557
+0x49db70,486,gpt-5.6-terra,#557,partial,57.7,,issue #557
+0x49dd60,430,gpt-5.6-terra,#557,matched,100.0,,issue #557
+0x4a05e0,494,gpt-5.6-terra,#557,partial,53.8,,issue #557
+0x4a09c0,545,gpt-5.6-terra,#557,partial,76.1,,issue #557
 0x4a2be0,597,longcat-2.5-preview-free,#558,partial,39.4,,issue #558
 0x4a4440,477,longcat-2.5-preview-free,#558,partial,47.1,,issue #558
 0x4a4660,556,longcat-2.5-preview-free,#558,no file,0,,issue #558
@@ -3727,3 +3727,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x49a890,488,,#874,assigned,,,"issue #874, escalated"
 0x49abb0,568,,#874,assigned,,,"issue #874, escalated"
 0x4624a0,570,,#875,assigned,,,"issue #875, escalated"
+0x49db70,486,,#877,assigned,,,"issue #877, escalated"
+0x4a05e0,494,,#877,assigned,,,"issue #877, escalated"
+0x4a09c0,545,,#877,assigned,,,"issue #877, escalated"

@@ -1,7 +1,20 @@
-// Decompiled by GPT-6-Luna. Names are provisional.
-// Best result: 88.9%. The remaining differences are branch-local signed
-// quotient corrections, two 85-divisor result adjustments, and final call
-// argument loading. A shared helper-call epilogue produced a worse match.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free. Names are provisional.
+// MATCH (449 bytes). The level argument of Class_00458d30::FUN_00458d30 is
+// narrow (unsigned char, see the EHHH in that function's mangled name), and
+// telling the compiler so is what makes the register allocation come out
+// right:
+//   * FUN_00458d30's `level` parameter is declared `unsigned char`, so only the
+//     low byte of the quotient has to be correct. That is what turns the
+//     `(x * 255) / 85 - 1` of the two middle branches into a byte decrement
+//     (`add edx,ecx; dec dl`) instead of a three-operand `lea`, and it is why
+//     the shared sign fix-up of the last branch lands in ecx, which lets MSVC
+//     merge it with the first branch's fix-up (the first branch then jumps
+//     straight into the middle of the tail).
+//   * the three branches with no `- 1` reach that quotient through the
+//     `Scale` helper below. The inlined call boundary is what stops MSVC from
+//     sinking one of the `push -1`s into the middle of the sign fix-up; with
+//     the expression written inline, the fix-up is no longer a suffix of the
+//     last branch and the tail merge does not happen.
 #include <math.h>
 struct Image_458dd0 {
     unsigned short width;
@@ -30,7 +43,7 @@ extern char* g_game;
 
 class Class_00458d30 {
 public:
-    void FUN_00458d30(Image_458dd0* image, int level, int above, int below, int between);
+    void FUN_00458d30(Image_458dd0* image, unsigned char level, int above, int below, int between);
     int FUN_00458dd0(Image_458dd0* image, Model_458dd0* model);
 };
 
@@ -38,6 +51,8 @@ class Class_00458fa0 {
 public:
     void FUN_00458fa0(Image_458dd0* image, Model_458dd0* model, int palette);
 };
+
+static inline unsigned char Scale(int v, int num, int div) { return (unsigned char)((v * num) / div); }
 
 // FUNCTION: 0x458dd0
 int Class_00458d30::FUN_00458dd0(Image_458dd0* image, Model_458dd0* model)
@@ -70,22 +85,15 @@ int Class_00458d30::FUN_00458dd0(Image_458dd0* image, Model_458dd0* model)
 
     int alpha = (int)(owner->intensity * 255.0f);
     if (alpha > 0xeb) {
-        int level = ((alpha - 0xeb) * 255) / 20;
-        FUN_00458d30(image, level, -2, -2, palette1);
+        FUN_00458d30(image, Scale(alpha - 0xeb, 255, 20), -2, -2, palette1);
     } else if (alpha > 200) {
-        int level = ((alpha - 200) * 255) / 35;
-        FUN_00458d30(image, level, -2, -2, palette1);
+        FUN_00458d30(image, Scale(alpha - 200, 255, 35), -2, -2, palette1);
     } else if (alpha > 0x73) {
-        int level = ((0x73 - alpha) * 255) / 85;
-        level--;
-        FUN_00458d30(image, level, -2, palette1, palette2);
+        FUN_00458d30(image, (unsigned char)(((0x73 - alpha) * 255) / 85 - 1), -2, palette1, palette2);
     } else if (alpha > 0x1e) {
-        int level = ((0x1e - alpha) * 255) / 85;
-        level--;
-        FUN_00458d30(image, level, palette1, -1, palette2);
+        FUN_00458d30(image, (unsigned char)(((0x1e - alpha) * 255) / 85 - 1), palette1, -1, palette2);
     } else {
-        int level = (alpha * 255) / 30;
-        FUN_00458d30(image, level, -1, -1, palette1);
+        FUN_00458d30(image, Scale(alpha, 255, 30), -1, -1, palette1);
     }
 
     ((Class_00458fa0*)this)->FUN_00458fa0(image, model, palette2);

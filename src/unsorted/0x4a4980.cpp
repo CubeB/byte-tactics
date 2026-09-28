@@ -1,5 +1,4 @@
-// Decompiled by LongCat 2.5 Preview Free. Names are provisional.
-// GAVE UP: 74.2% match. Register allocation and stack layout differences.
+// Decompiled by GPT-6-Luna. Names are provisional.
 // Draws one gadget entry: builds the entry's bounding rect and a destination
 // quad, then either blits a texture (field_be via FUN_004b7f30, or field_c2)
 // onto it, or fills the rect with the colour at obj+0x8b9.
@@ -74,9 +73,10 @@ void __stdcall FUN_004a4980(Class_004a4980* obj, int index)
     Entry_004a4980* e = &entries[index];
 
     Rect_004a4980 rect;
-    rect.x1 = 0;
-    rect.y1 = 0;
-    if (e->type != 0) {
+    if (e->type == 0) {
+        rect.x1 = 0;
+        rect.y1 = 0;
+    } else {
         rect.x1 = e->x;
         rect.y1 = e->y;
     }
@@ -109,17 +109,17 @@ void __stdcall FUN_004a4980(Class_004a4980* obj, int index)
             src.p[3].y = result->h - 1;
             if (result->field_9 == 0) {
                 FUN_004c7580(*(void**)((char*)entries + 0xbc), result, &dst, &src);
-            } else {
-                FUN_004b7f90(*(void**)((char*)entries + 0xbc), result, result->field_4 + rect.x1, result->field_6 + rect.y1);
+                return;
             }
+            FUN_004b7f90(*(void**)((char*)entries + 0xbc), result, result->field_4 + rect.x1, result->field_6 + rect.y1);
+            return;
         }
     } else if (e->field_c2 != 0) {
-        Frame_004a4980* tex = (Frame_004a4980*)e->field_c2;
-        src.p[1].x = tex->w - 1;
-        src.p[2].x = tex->w - 1;
-        src.p[2].y = tex->h - 1;
-        src.p[3].y = tex->h - 1;
-        FUN_004c7580(*(void**)((char*)entries + 0xbc), tex, &dst, &src);
+        src.p[1].x = ((Frame_004a4980*)e->field_c2)->w - 1;
+        src.p[2].x = ((Frame_004a4980*)e->field_c2)->w - 1;
+        src.p[2].y = ((Frame_004a4980*)e->field_c2)->h - 1;
+        src.p[3].y = ((Frame_004a4980*)e->field_c2)->h - 1;
+        FUN_004c7580(*(void**)((char*)entries + 0xbc), e->field_c2, &dst, &src);
     } else {
         FUN_004bf6f0(*(void**)((char*)entries + 0xbc), &rect, obj->field_8b9);
     }

@@ -1,6 +1,8 @@
-// Decompiled by LongCat 2.5 Preview Free. Names are provisional.
-// GAVE UP: Register allocation: compiler uses ebx for walking pointer, original uses ebp.
-// Also redundant check after add ebp,0x29b. 39.4% match.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
+// Partial: raw selected-entry offsets make the entry-address calculation and
+// ebp/ebx pointers match. The remaining mismatch is register allocation: the
+// compiler keeps param_1 in edi, putting the loop index in esi and type in edx;
+// the original reloads param_1, with index in edi and type in esi (58.3%).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -50,56 +52,58 @@ char* __stdcall FUN_004b6af0(char* text, int line);
 void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
 {
     Entry_004a2be0* entries = param_1->holder->entries;
-    Entry_004a2be0* me = &entries[param_2];
-    int type = me->type;
-    int field_1b = me->field_1b;
-
     int i = 1;
+    char* me = (char*)entries + param_2 * 0x15b;
+    int field_1b = *(int*)(me + 0x1b);
+    int type = *(unsigned char*)me;
     if ((short)entries->count + 1 > 1) {
-        Entry_004a2be0* entry = (Entry_004a2be0*)((char*)entries + 0x29b);
-        for (; i < (short)entries->count + 1; i++, entry = (Entry_004a2be0*)((char*)entry + 0x15b)) {
+        char* entry = (char*)entries + 0x29b;
+        for (; i < (short)entries->count + 1; i++, entry += 0x15b) {
             if (i != param_2) {
-                if (entry->unknown_01[0] == me->unknown_01[0]) {
-                    switch (entry->type) {
+                if (entry[-0x13f] == me[1]) {
+                    switch ((unsigned char)entry[-0x140]) {
                     case 2:
                         if (type == 2) {
-                            entry->field_bc = me->field_bc;
-                            entry->field_ba = me->field_ba;
+                            *(short*)(entry - 0x84) = *(short*)(me + 0xbc);
+                            *(short*)(entry - 0x86) = *(short*)(me + 0xba);
                             FUN_004a1b40(param_1, i);
                         } else if (type == 4) {
                             int esi_val;
-                            if (*(unsigned char*)&entry->field_1b & 0x20) {
-                                esi_val = me->field_136 / (entry->field_be + 1);
+                            if (*(unsigned char*)(entry - 0x125) & 0x20) {
+                                esi_val = *(short*)(me + 0x136) / (*(short*)(entry - 0x82) + 1);
                             } else {
                                 esi_val = 0;
                             }
-                            if (entry->field_da != 0) {
-                                int edx_val = entry->field_c0 - entry->field_19 / entry->field_da;
-                                int eax_val = me->field_140 + esi_val;
-                                int result = (int)((float)edx_val * eax_val / (me->field_136 - 1));
-                                entry->field_bc = result;
+                            if (*(short*)(entry - 0x66) != 0) {
+                                int edx_val = *(short*)(entry - 0x80) -
+                                    *(short*)(entry - 0x127) / *(short*)(entry - 0x66);
+                                int eax_val = *(short*)(me + 0x140) + esi_val;
+                                int result = (int)((float)edx_val * eax_val /
+                                    (*(short*)(me + 0x136) - 1));
+                                *(short*)(entry - 0x84) = result;
                             }
                             FUN_004a1b40(param_1, i);
                         }
                         break;
                     case 3:
                         if (type == 2 && field_1b & 8) {
-                            char* line = FUN_004b6af0(me->field_c2, me->field_ba);
-                            strcpy((char*)entry + 0xb6, line);
+                            char* line = FUN_004b6af0(*(char**)(me + 0xc2), *(short*)(me + 0xba));
+                            strcpy(entry - 0x8a, line);
                             FUN_004a4d70(param_1, i);
                         }
                         break;
                     case 4:
                         if (type == 2) {
-                            if (me->field_c0 > 1) {
+                            if (*(short*)(me + 0xc0) > 1) {
                                 int result;
-                                if (me->field_be != 0) {
-                                    result = (int)((float)me->field_bc * entry->field_136 / me->field_be);
+                                if (*(short*)(me + 0xbe) != 0) {
+                                    result = (int)((float)*(short*)(me + 0xbc) *
+                                        *(short*)(entry - 0xa) / *(short*)(me + 0xbe));
                                 } else {
                                     result = 0;
                                 }
-                                if (entry->field_140 != result) {
-                                    entry->field_140 = result;
+                                if (*(short*)entry != result) {
+                                    *(short*)entry = result;
                                     FUN_004a2580(param_1, i);
                                 }
                             }

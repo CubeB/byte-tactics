@@ -2545,10 +2545,10 @@ address,name
 0x4c33a0,Class_004c33a0::FUN_004c33a0
 0x4c3410,Class_004c3410::FUN_004c3410
 0x4c3490,Class_004c3490::FUN_004c3490
+0x4c35c0,std::logic_error::logic_error
 0x4c3730,std::logic_error::what
 0x4c3740,std::logic_error::_Doraise
 0x4c38f0,??_Glogic_error@std@@UAEPAXI@Z
-0x4c3950,std::logic_error::logic_error
 0x4c3af0,std::out_of_range::_Doraise
 0x4c3c60,??_Gout_of_range@std@@UAEPAXI@Z
 0x4c3cc0,std::out_of_range::out_of_range

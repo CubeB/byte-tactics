@@ -1,13 +1,20 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// 84.3% : the bitfield stores, the name setup, the sprintf/strcpy pair and the
-// two message boxes match. Still differs, all register allocation of the same
-// source shapes: (1) MSVC puts the second parameter (`flag`) in esi here but
-// in edi in the original, which cascades through the loop-base and index
-// registers; (2) our `i = 0` initialiser is emitted before the first call, the
-// original emits it after; (3) the second (slot search) loop keeps the index
-// in a register where the original writes it back to its stack slot on both
-// exits. Struct fields, call sequence and statement order are otherwise the
-// same.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+//
+// Sends the "AI:" or nickname name to DirectPlay for one player slot and
+// fills in that slot's PlayerInfo. The two "is any player connected" searches
+// are the inlined FindPlayerInUse helper below, called once before the name is
+// built and once on the failure path; see 0x4515d0, 0x451bc0 and 0x451df0 for
+// the same helper matched out of line.
+//
+// What made it match: the searches have to be a `static inline` helper with
+// `return i` in the body and `return 10` after the loop, not a `for` loop with
+// a `break` in the caller. The helper form is what gives the first search a
+// register phi (mov al, 0xa on the fall-through, the out-of-line mov al, bl
+// for the found case, the return block parked after the last ret) and the
+// second search its three write-backs into the shared slot, and it is what
+// leaves the second parameter in edi and the loop counter in bl. Writing the
+// comparison as `playerIndex == FindPlayerInUse()` puts the parameter first
+// and gives `cmp cl, al`.
 #include <stdio.h>
 #include <string.h>
 
@@ -76,21 +83,25 @@ void __stdcall FUN_004abd90(void* menu, const char* text, int a, int b, int c);
 char* __stdcall FUN_004c5740(const char* text);
 int __cdecl FUN_004b6340();
 
+// The index of the first connected player, or 10 when there is none.
+static inline unsigned char FindPlayerInUse()
+{
+    for (unsigned char i = 0; i < 10; i++) {
+        if (g_game->players[i].field_73 != 0 && g_game->players[i].info->flag_97_0)
+            return i;
+    }
+    return 10;
+}
+
 // FUNCTION: 0x451220
 int __stdcall FUN_00451220(unsigned char playerIndex, int flag)
 {
     char buf[256];
-    unsigned char i = 0;
 
     Class_00463c60* player = &g_game->players[playerIndex];
     player->FUN_00463c60(flag);
 
-    for (; i < 10; i++) {
-        if (g_game->players[i].field_73 != 0 &&
-            g_game->players[i].info->flag_97_0)
-            break;
-    }
-    int same = (i == playerIndex);
+    int same = (playerIndex == FindPlayerInUse());
 
     if (flag == 1) {
         strcpy(buf, g_game->nickName);
@@ -116,13 +127,8 @@ int __stdcall FUN_00451220(unsigned char playerIndex, int flag)
                          buf, buf, g_game->passWord, 0, 0x50);
     if (r == 0) {
         g_game->players[playerIndex].FUN_00463c60(0);
-        unsigned char j;
-        for (j = 0; j < 10; j++) {
-            if (g_game->players[j].field_73 != 0 &&
-                g_game->players[j].info->flag_97_0)
-                break;
-        }
-        Class_00463c60* slot = &g_game->players[j];
+        unsigned char i = FindPlayerInUse();
+        Class_00463c60* slot = &g_game->players[i];
         if (slot->field_0 != 0 && (slot->field_73 == 1 || slot->field_73 == 2)) {
             FUN_004abd90(g_game->menu,
                 FUN_004c5740("Direct Play failed to add new player.\n\nRecommended you go to previous screen and re-create the game session.\n"),

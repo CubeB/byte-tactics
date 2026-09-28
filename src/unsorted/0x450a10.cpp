@@ -1,8 +1,30 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// PARTIAL 80.0%, 897 vs 872 bytes. Remaining: the doubled result gate
-// (DPNAME branch) is folded by MSVC; the free-slot search keeps the loop
-// counter and pointer in swapped registers; the inlined strcpy destination is
-// hoisted, costing a 4-byte frame slot and shifting every [esp+..] offset.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// PARTIAL 87.6%, 837 vs 872 bytes. Everything outside the name-copy block now
+// matches, including the free-slot search (writing that loop as a while loop with
+// a separate "s = i; if (!found) s = 10;" step puts the counter in ecx and the
+// walking pointer in eax, as the original does).
+//
+// What still differs, all inside the two strcpy pairs at 0x450b7e:
+//  1. MSVC tail-merges the network path's second strcpy with the COMPUTER path's
+//     second strcpy (both end in an identical "mov edi, <src> .. rep movsb").
+//     The original keeps them apart because the COMPUTER path writes edx
+//     ("xor edx, edx", the sunk "result = 0;") just before its final rep movsb.
+//     Writing the check as "int result = 0;" with
+//     "if (result == 0) { strcpy; strcpy; }" and "result = 0;" in the else branch
+//     does reproduce that block layout, the doubled "test edx, edx" gate and the
+//     frame size, but it drops to 81.2% because the destination address then
+//     spills (see 2). Not net better, so the merged form is kept here.
+//  2. The inlined strcpy puts the destination address in a hoisted temp and moves
+//     it into edi ("lea edx, [ebx + 0x49] .. mov edi, edx"). The original writes
+//     "lea edi, [ebx + 0x49]" straight into the copy loop. Tried: naming the
+//     pointer and the result differently, moving the pointer declaration, taking
+//     its address in the fullName/name expressions, and putting each strcpy pair
+//     in a static inline helper; every one compiles to the same hoisted temp.
+//     About 30 source shapes were scored under build/scratch/450a10.
+//  3. Because the COMPUTER branch is tail-merged away, the original's
+//     "mov edx, ecx" length save, its "xor eax, eax" between the two network
+//     copies and the "mov edx, eax" that parks the call result in edx never
+//     appear here either.
 #include <string.h>
 #include <windows.h>
 
@@ -115,18 +137,20 @@ int __stdcall FUN_00450a10(int param_1)
         }
     } else {
         int found = 0;
-        int i;
-        for (i = 0; i < 10; i++) {
+        int i = 0;
+        while (i < 10) {
             Player_00450a10* q = &g_game->players[i];
             if (q->active == 0 && q->type != 4) {
                 found = 1;
                 break;
             }
+            i++;
         }
+        int s = i;
         if (!found) {
-            i = 10;
+            s = 10;
         }
-        slot = i;
+        slot = s;
         if (slot == 10) {
             flag = 1;
         } else {
@@ -147,6 +171,8 @@ int __stdcall FUN_00450a10(int param_1)
         if (result == 0) {
             strcpy(p->fullName, ((DPNAME*)buf)->lpszShortNameA);
             strcpy(p->name, ((DPNAME*)buf)->lpszLongNameA);
+        }
+        else {
             result = 0;
         }
     } else {
@@ -154,7 +180,7 @@ int __stdcall FUN_00450a10(int param_1)
         strcpy(p->name, "COMPUTER");
         result = 0;
     }
-    if (result != 0) {
+    if (result) {
         return 1;
     }
     FUN_00464290(slot, g_game->players[slot].type);

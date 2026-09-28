@@ -1797,3 +1797,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   original has a jump table: spell out every case (0x464060). A guard on the
   outer condition (`if (mask == 0) { switch ... } else ...`) puts the shared
   block after the dispatch.
+- **A macro can match where a `static inline` helper does not**: two
+  textually separate copies keep their own branch order and register choice,
+  where an inlined helper made both copies alike (0x46a610, about 30%). In the
+  same function, two identical calls that share one tail in the original were
+  written out twice in the source; one shared helper kept them apart.
+- **Index an array rather than walk a second pointer when load order
+  matters**: `cell`, `cell[1]`, `cell[width]`, `cell[width+1]` loads in source
+  order; the same sum through a `next` pointer groups the loads by pointer
+  (0x46a610).
+- **Handing a function on**: if several remaining differences look like one
+  cause, say so and say what class of change to try next. That kind of note
+  got 0x488310 matched on the next attempt; a long list of what failed did
+  not help 0x48ab70.

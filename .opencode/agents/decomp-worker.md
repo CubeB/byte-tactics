@@ -40,6 +40,9 @@ Limits, so you never get stuck:
 - At most 12 `check.py` runs for a function up to 250 bytes, 18 for a bigger
   one. Then stop working on it, even if it is close: leave your best version
   with a comment at the top saying what still differs.
+- Whenever a scratch variant scores higher than `src/unsorted/<addr>.cpp`,
+  copy it into that file at once, so running out of steps never strands a
+  better version in `build/scratch/`.
 - Only create or edit `src/unsorted/<addr>.cpp` for your address (and
   scratch files under `build/scratch/<addr>/`). Never edit other files, never
   run `git` or `gh`, never run `tools/progress.py`.

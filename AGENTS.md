@@ -126,6 +126,10 @@ is spending hours on one function. So:
   Scoring scratch variants with `check.py --sym` does not count as a run.
 - **Per issue:** after 2 hours (3 hours for a `hard` issue), stop and open the
   pull request with what you have.
+- **Keep your best version in the file as you go:** whenever a scratch
+  variant scores higher than `src/unsorted/<addr>.cpp`, copy it into the file
+  at once. A step limit or a stopped session then never strands a better
+  version in `build/scratch/`.
 - **When you stop on a function:** leave your best version in its file, with a
   comment at the top saying what still differs. Mark it `gave up` in the pull
   request table. It then counts as attempted, and the orchestrator hands it to

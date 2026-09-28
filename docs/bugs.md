@@ -361,6 +361,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x4b7620** (likely): finds the insertion point with a case-insensitive
+  compare (`_strcmpi` at 0x4b7656) but tests for an existing key with a
+  case-sensitive one (inlined `strcmp` at 0x4b769b), so a key differing only
+  in case ("ABC", then "abc") is inserted as a duplicate instead of updating
+  the entry. Read from the disassembly of a partial match. Found by DeepSeek
+  V4.1 Flash in #373.
 - **0x464060** (possible): in mode 1, the arm for team 2 jumps past the only
   store to the `show` flag (0x46413d), so it keeps the previous entry's value,
   or an uninitialised one on the first pass; and `y += start` reuses the

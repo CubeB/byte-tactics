@@ -2508,11 +2508,11 @@ address,name
 0x4c4760,Class_004c4760::FUN_004c4760
 0x4c4800,Class_004c4800::FUN_004c4800
 0x4c48c0,Class_004c48c0::FUN_004c48c0
-0x4c49a0,Class_004c49a0::Class_004c49a0
-0x4c4c30,Class_004c49a0::_Eos
-0x4c4c50,Class_004c49a0::_Grow
+0x4c49a0,std::D::DU?$char_traits::?$basic_string::?$basic_string
+0x4c4c30,std::D::DU?$char_traits::?$basic_string::_Eos
+0x4c4c50,std::D::DU?$char_traits::?$basic_string::_Grow
 0x4c4d70,PAVClass_004c3e40::?$vector::insert
-0x4c50a0,Class_004c49a0::_Split
+0x4c50a0,std::D::DU?$char_traits::?$basic_string::_Split
 0x4c5170,FUN_004c5170
 0x4c5190,Elem_004c5bc0::~Elem_004c5bc0
 0x4c51b0,??_GElem_004c5bc0@@QAEPAXI@Z
@@ -3732,7 +3732,6 @@ address,name
 0x4fdaf0,DAT_004fdaf0
 0x4fdb00,??_7Class_004b0610@@6B@
 0x4fdbe8,DAT_004fdbe8
-0x4fdc1c,Class_004c49a0::npos
 0x4fdca4,??_7logic_error@std@@6B@
 0x501774,DAT_00501774
 0x501d18,DAT_00501d18

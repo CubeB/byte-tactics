@@ -3516,7 +3516,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x439b30,441,,#702,assigned,,,"issue #702, escalated"
 0x43adc0,500,,#702,assigned,,,"issue #702, escalated"
 0x438ea0,505,,#705,assigned,,,"issue #705, escalated"
-0x4bfe10,267,,#707,assigned,,,"issue #707, escalated"
+0x4bfe10,267,opus,#707,partial,74.9,,"issue #707, escalated"
 0x438c00,660,,#711,assigned,,,issue #711
 0x4394e0,601,,#711,assigned,,,issue #711
 0x439740,674,,#711,assigned,,,issue #711

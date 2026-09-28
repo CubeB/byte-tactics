@@ -3414,7 +3414,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x46d2e0,475,,#601,assigned,,,"issue #601, escalated"
 0x46d6c0,416,,#601,assigned,,,"issue #601, escalated"
 0x46e640,546,,#601,assigned,,,"issue #601, escalated"
-0x4a4c90,215,,#605,assigned,,,"issue #605, escalated"
+0x4a4c90,215,gpt-5.6-terra,#605,partial,62.4,,"issue #605, escalated"
 0x4b8500,465,mimo-v2.6-pro,#607,matched,100.0,,issue #607
 0x4b86e0,481,mimo-v2.6-pro,#607,matched,100.0,,issue #607
 0x4b88d0,427,mimo-v2.6-pro,#607,matched,100.0,,issue #607
@@ -3738,3 +3738,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x4689c0,803,,#885,assigned,,,"issue #885, escalated"
 0x46bf30,602,,#885,assigned,,,"issue #885, escalated"
 0x46cc10,678,,#885,assigned,,,"issue #885, escalated"
+0x4a4c90,215,,#886,assigned,,,"issue #886, escalated"

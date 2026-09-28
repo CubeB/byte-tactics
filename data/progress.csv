@@ -1188,6 +1188,7 @@ address,size,file,symbol,status,similarity
 0x463f60,160,src/unsorted/0x463f60.cpp,?FUN_00463f60@@YAHXZ,matched,100.0
 0x464000,87,src/unsorted/0x464000.cpp,?FUN_00464000@@YAXXZ,matched,100.0
 0x464290,561,src/unsorted/0x464290.cpp,?FUN_00464290@@YGXHD@Z,matched,100.0
+0x464700,473,src/unsorted/0x464700.cpp,?FUN_00464700@@YGXPAUPlayer_00464700@@@Z,partial,89.1
 0x4648e0,174,src/unsorted/0x4648e0.cpp,?FUN_004648e0@@YAXXZ,matched,100.0
 0x464990,55,src/unsorted/0x464990.cpp,?FUN_00464990@@YAXXZ,matched,100.0
 0x4649d0,48,src/unsorted/0x4649d0.cpp,?FUN_004649d0@@YAXXZ,matched,100.0

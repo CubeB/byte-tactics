@@ -1784,7 +1784,7 @@ address,size,file,symbol,status,similarity
 0x490050,42,src/unsorted/0x490050.cpp,?FUN_00490050@@YAHXZ,matched,100.0
 0x490080,378,src/unsorted/0x490080.cpp,?FUN_00490080@@YAHXZ,matched,100.0
 0x490200,42,src/unsorted/0x490200.cpp,?FUN_00490200@@YAHXZ,matched,100.0
-0x490230,301,src/unsorted/0x490230.cpp,?FUN_00490230@Class_0048ff40@@QAEHXZ,partial,99.2
+0x490230,301,src/unsorted/0x490230.cpp,?FUN_00490230@Class_0048ff40@@QAEHXZ,matched,100.0
 0x490360,334,src/unsorted/0x490360.cpp,?FUN_00490360@Class_00490360@@QAEHXZ,matched,100.0
 0x4904b0,11,src/unsorted/0x4904b0.cpp,?FUN_004904b0@Class_004904b0@@QAEXXZ,matched,100.0
 0x4904c0,84,src/unsorted/0x4904c0.cpp,?FUN_004904c0@Class_004904c0@@QAEXH@Z,matched,100.0

@@ -3240,7 +3240,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x48a9f0,206,,#445,assigned,,,"issue #445, escalated"
 0x48b090,367,,#445,assigned,,,"issue #445, escalated"
 0x48be00,290,,#445,assigned,,,"issue #445, escalated"
-0x490230,301,,#446,assigned,,,"issue #446, escalated"
+0x490230,301,deepseek-v4.1-flash,#446,matched,100.0,,"issue #446, escalated"
 0x49aa80,301,,#447,assigned,,,"issue #447, escalated"
 0x49b520,347,,#447,assigned,,,"issue #447, escalated"
 0x49c740,306,space-bunny-free,#449,matched,100.0,,"issue #449, escalated"

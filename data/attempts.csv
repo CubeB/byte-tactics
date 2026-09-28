@@ -2968,12 +2968,12 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b2290,169,,#370,assigned,,,issue #370
 0x4b2340,272,,#370,assigned,,,issue #370
 0x4b2450,227,,#370,assigned,,,issue #370
-0x4b26f0,336,,#371,assigned,,,issue #371
-0x4b3630,281,,#371,assigned,,,issue #371
-0x4b4560,200,,#371,assigned,,,issue #371
-0x4b4750,166,,#371,assigned,,,issue #371
-0x4b4910,180,,#371,assigned,,,issue #371
-0x4b49d0,162,,#371,assigned,,,issue #371
+0x4b26f0,336,deepseek-v4.1-flash,#371,partial,100.0,,issue #371
+0x4b3630,281,deepseek-v4.1-flash,#371,matched,100.0,,issue #371
+0x4b4560,200,deepseek-v4.1-flash,#371,matched,100.0,,issue #371
+0x4b4750,166,deepseek-v4.1-flash,#371,matched,100.0,,issue #371
+0x4b4910,180,deepseek-v4.1-flash,#371,matched,100.0,,issue #371
+0x4b49d0,162,deepseek-v4.1-flash,#371,matched,100.0,,issue #371
 0x4b4a80,200,space-bunny-free,#372,matched,100.0,,issue #372
 0x4b6110,268,space-bunny-free,#372,matched,100.0,,issue #372
 0x4b63f0,209,space-bunny-free,#372,matched,100.0,,issue #372
@@ -3394,3 +3394,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x464060,560,,#574,assigned,,,"issue #574, escalated"
 0x4644d0,555,,#574,assigned,,,"issue #574, escalated"
 0x464700,473,,#574,assigned,,,"issue #574, escalated"
+0x4b26f0,336,,#580,assigned,,,"issue #580, escalated"

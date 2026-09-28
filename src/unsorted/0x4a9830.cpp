@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Sibling of the list gadget's scroll-down step (0x4a99c0): the scroll-up
-// step. It first does what 0x4a99c0 does: picks the entry of type 7 whose
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// The list gadget's scroll-up step, the sibling of the scroll-down step
+// 0x4a99c0. It first does what 0x4a99c0 does: picks the entry of type 7 whose
 // group number matches entry `index` and makes that entry's id the current
 // one (falling back to the current id of the list holder). Then it works out
 // how far the visible window moves per line and, when the selected line is
@@ -9,15 +9,43 @@
 // gadget. A selection on line 0 is not moved, and a line whose text starts
 // with "&G" is not moved either.
 //
-// Still differs (81.7%, 388 bytes vs 390): writing the loop as
-// `i <= entries->count` (equivalent to the original's `i < entries->count + 1`)
-// is what makes MSVC put the `n` counter in the dead argument slot and keeps
-// `entries` in ebx / `me` in edi, but it makes the loop guard `cmp eax, esi;
-// jl` instead of the original's `inc eax; cmp eax, esi; jle`, and that
-// difference cascades into the ternary result living in edx instead of eax.
-// The `i < entries->count + 1` spelling gives the right guard but then `n`
-// stays in ecx and the walking pointer spills. Not found a spelling giving
-// both.
+// Partial (89.4%, 393 bytes vs 390): the group loop, the break, the fallback
+// and the whole scroll-up tail now match byte for byte, and writing the loop
+// as `i < entries->count + 1` (rather than the equivalent `i <= count`) is
+// what finally keeps the `n` counter in the dead argument slot and the
+// walking pointer in ecx. The only thing left is the register the merged
+// font-size value lives in. The original keeps it in eax, so `call
+// FUN_004c1450` falls straight into `lea ebx, [eax + 1]` with no copy, and
+// the other arm is `xor ecx, ecx; mov cx, word ptr [eax + 2]; mov eax, ecx;
+// add eax, 2`. This compiler keeps the value in edx and adds one `mov edx,
+// eax` after the call; because of that it sinks the divisor `lea ebx, [edx +
+// 1]` below the `movsx eax, word ptr [edi + 0x19]` and the `mov cx, word ptr
+// [edi + 0xba]` load of `sel` below the `idiv`, where the original has both
+// above it. So the wanted form is the value in eax, the `lea ebx, [eax + 1]`
+// right at the merge, and `sel` loaded before `cdq`.
+//
+// The original's 16-bit intermediate in a whole register (`xor ecx, ecx;
+// mov cx, ..`) is what 0x4a30c0 gets from the same `if/else` spelling of the
+// same expression, so the difference is register allocation rather than the
+// source shape. Nothing tried here puts the value in eax: extra 16-bit, int
+// and pointer locals, a `(int)` cast, swapped branches, swapped addends,
+// A second pass added six more spellings of the one remaining widening, none of
+// which reached the `xor ecx, ecx; mov cx, word ptr [eax + 2]; mov eax, ecx`
+// form: the 16-bit local as a signed `short` (87.5%), with an explicit
+// `(int)` cast on it (87.5%), with the local an `int` (74.3%), with no local at
+// all (74.6%), and with an `(unsigned int)` cast instead of `(int)` (89.4%, the
+// same bytes as the file). So the file's `unsigned short g` plus `size = g + 2`
+// is the best of the family, and the choice between `xor ecx, ecx; mov cx` and
+// `mov ax; and eax, 0xffff` for the same zero-extension is not reachable from
+// the source. It is the guide's "widened returns" note with the roles reversed:
+// there a byte load is masked before a return, here a 16-bit load is zeroed
+// through a second register instead of in place.
+// `size++` versus `size + 1` in the divisor, `unsigned int size`, the `+ 2`
+// folded into the pointer or not, a separate named divisor, and a small
+// `static inline` helper for either arm. Each of those either leaves the
+// value in edx or breaks the group loop's allocation (the walking pointer
+// spills to the stack and `n` moves into ecx, worth about ten points), so
+// the if/else with a 16-bit `g` local is the best of them at 89.4%.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -76,7 +104,7 @@ void __stdcall FUN_004a9830(Class_004a9830* param_1, int index)
     Entry_004a9830* me = &entries[index];
     int n = 0;
     int i = 1;
-    for (; i <= entries->count; i++) {
+    for (; i < entries->count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == me->group) {
                 FUN_004c1420(entries[i].id);
@@ -85,11 +113,16 @@ void __stdcall FUN_004a9830(Class_004a9830* param_1, int index)
             n++;
         }
     }
-    if (i > entries->count) {
+    if (i == entries->count + 1) {
         FUN_004c1420(DAT_0051fba4->current);
     }
-    int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
-        : (*(unsigned short*)(FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
+    int size;
+    if (DAT_0051fba4->list == 0) {
+        size = FUN_004c1450();
+    } else {
+        unsigned short g = *(unsigned short*)(FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2);
+        size = g + 2;
+    }
     size++;
     int step = (me->field_19 - 2) / size;
     short last = me->field_bc;

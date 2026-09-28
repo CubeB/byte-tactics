@@ -1,17 +1,10 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Selecting a text control in a dialog: remembers the index, picks the
-// current id of the list entry that belongs to the control's group and puts
-// the control's text back into it.
-//
-// Still differs (71.8%): the original loads the entry array pointer
-// (`[holder+4]`) right after loading the holder, before the `focus = -1`
-// store, and only then reloads the holder for the index; here it reloads the
-// holder first and loads the array pointer after the index, so `edi`/`esi`/
-// `ebx`/`ebp` end up swapped and the colour byte lands in `edx` rather than
-// `eax`. Everything from the loop onward is otherwise identical. The sibling
-// 0x4a76b0 has the same shape but a FindEntry prologue that pins the entry
-// pointer in `ebx`.
-
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Selecting the entry with the index the caller passes: remembers the index,
+// and if the entry it names is a type 3 (text) control it makes the group's
+// type 7 list entry current and puts the entry's own text back into the field.
+// The entry array is loaded twice, once into the `first` copy used by the type
+// test and once inside the branch; the type test needs its copy in a register
+// before the two stores, which is what makes the reload land in ebx.
 #pragma pack(push, 1)
 
 // A window's colour table: indexed from the window pointer itself.
@@ -72,11 +65,12 @@ void __stdcall FUN_004ab6c0(Menu_004a7830* control, int param_2, char* text,
 // FUNCTION: 0x4a7830
 void __stdcall FUN_004a7830(Menu_004a7830* menu, int index)
 {
+    Entry_004a7830* first = menu->holder->entries;
     menu->focus = -1;
     menu->holder->field_20 = index;
-    if (menu->holder->entries[menu->holder->field_20].type == 3) {
-        Entry_004a7830* entries = menu->holder->entries;
+    if (first[menu->holder->field_20].type == 3) {
         int i = menu->holder->field_20;
+        Entry_004a7830* entries = menu->holder->entries;
         Entry_004a7830* entry = &entries[i];
         int font = FUN_004c13f0();
         FUN_004c13a0((int)((unsigned char*)entry->colours)[(int)menu + 0x8b2], font);

@@ -1,16 +1,17 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 // Selects the menu entry named `name` (16 bytes of its name at +0x02 of the
 // 0x15b-byte entry, so entry i's name is at entries + i*0x15b + 2). When the
 // selected entry is type 3 it makes its group's type-7 entry current and
 // refreshes its edit field. FindEntry is inlined from the same helper as
 // 0x4a1810/0x4a30c0; the group loop is FUN_004a1810's body inlined.
 //
-// Partial, 84.9%: the original reloads layer+0x20 once into esi before the
-// type==3 test and uses that one register for the check, the entry address
-// and the later calls; this compiler splits the reload into eax (used by the
-// check) and keeps the FindEntry result in esi (used by the entry address),
-// and it does not reload `entries` (mov ebx,[ecx+4]) before the entry address.
-// Every attempt to force one variable/register produced worse code.
+// The type==3 body is the inlined helper DoSelect. The call passes a fresh
+// `menu->layer->entries` and a fresh read of `menu->layer->field_20` (the
+// store to field_20 above invalidates both, so the compiler reloads them into
+// esi and ebx), while the type==3 test itself still reads the local `entries`
+// and the field. That split is what makes the original's register choices:
+// esi for the index, ebx reloaded from layer+4 rather than kept, and the test's
+// `add ebx,esi` addressing that destroys the dead local.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -70,6 +71,29 @@ static inline int FindEntry(Entry_004a76b0* entries, char* name)
     return -1;
 }
 
+static inline void DoSelect(Menu_004a76b0* menu, Entry_004a76b0* entries, int sel)
+{
+    Entry_004a76b0* entry = &entries[sel];
+    FUN_004c13a0(((unsigned char*)entry->field_1f)[(int)menu + 0x8b2], FUN_004c13f0());
+    int n = 0;
+    int i = 1;
+    for (; i < entries->u.count + 1; i++) {
+        if (entries[i].type == 7) {
+            if (n == entry->group) {
+                FUN_004c1420(entries[i].id);
+                break;
+            }
+            n++;
+        }
+    }
+    if (i == entries->u.count + 1)
+        FUN_004c1420(DAT_0051fba4->group);
+    FUN_0049fc50(menu, sel);
+    menu->layer->field_20 = sel;
+    FUN_004ab6c0(menu, sel, entry->u.text, entry->field_138, 0);
+    FUN_004c1a40();
+}
+
 // FUNCTION: 0x4a76b0
 void __stdcall FUN_004a76b0(Menu_004a76b0* menu, char* name)
 {
@@ -79,25 +103,7 @@ void __stdcall FUN_004a76b0(Menu_004a76b0* menu, char* name)
         menu->focus = -1;
         menu->layer->field_20 = index;
         if (entries[menu->layer->field_20].type == 3) {
-            Entry_004a76b0* entry = &entries[index];
-            FUN_004c13a0(((unsigned char*)entry->field_1f)[(int)menu + 0x8b2], FUN_004c13f0());
-            int n = 0;
-            int i = 1;
-            for (; i < entries->u.count + 1; i++) {
-                if (entries[i].type == 7) {
-                    if (n == entry->group) {
-                        FUN_004c1420(entries[i].id);
-                        break;
-                    }
-                    n++;
-                }
-            }
-            if (i == entries->u.count + 1)
-                FUN_004c1420(DAT_0051fba4->group);
-            FUN_0049fc50(menu, index);
-            menu->layer->field_20 = index;
-            FUN_004ab6c0(menu, index, entry->u.text, entry->field_138, 0);
-            FUN_004c1a40();
+            DoSelect(menu, menu->layer->entries, menu->layer->field_20);
         }
     }
 }

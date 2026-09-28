@@ -1,25 +1,14 @@
-// Decompiled by mimo-v2.6-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
 // Builds the local player's selected-unit list, drops the unit at
 // g_game->units[g_game->field_2cba] from it, and returns an order code.
 // With no other selected unit it returns 0xf when arg is 1 and that unit is
 // finished and valid, else 0x13; otherwise it folds 0x13 with FUN_0043e490
 // over the remaining units and returns the minimum.
 //
-// The 13 Dummy() calls are the /Ob2 inline budget lever from the guide: in the
-// original translation unit the budget was spent by the surrounding code, so
-// vector::clear() keeps its out-of-line erase (0x40c9f0), each of the two early
-// destructors keeps its out-of-line _Destroy (0x406c00), and the push keeps the
-// out-of-line two-argument insert (0x48ddc0) instead of inlining it and calling
-// the three-argument insert.
-//
-// The push is a cast to Class_0048ddc0, the name for an unnamed __thiscall
-// callee. 0x48ddc0 is vector<Unit*>::insert(iterator, const T&) (ret 8, two
-// stack args; 0x48ddc0.cpp), but data/symbols.csv names only the
-// three-argument overload at 0x408f30 (ret 0xc), and check.py undecorates a
-// name only up to the first @@, so both overloads reduce to
-// PAUUnit::?$vector::insert and a plain vec.insert(vec.end(), u) reports that
-// row as a bad reference. A data/aliases.csv row for 0x48ddc0 would let the
-// plain call through, the way IURect_0046e160::IU?$pair::?$_Tree::erase does.
+// The real vector insertion name is used below. The remaining mismatch is that
+// MSVC 5 still inlines its two-argument wrapper before calling the three-
+// argument overload, because this reconstruction has not reproduced the
+// original translation unit's inline budget.
 #include <vector>
 
 struct Unit;
@@ -80,11 +69,6 @@ public:
     int FUN_00480100(int value);
 };
 
-class Class_0048ddc0 {
-public:
-    Unit** FUN_0048ddc0(Unit** position, Unit* const& value);
-};
-
 // FUNCTION: 0x48d220
 int __stdcall FUN_0048d220(char arg)
 {
@@ -100,7 +84,7 @@ int __stdcall FUN_0048d220(char arg)
     Player_0048d220* player = &g_game->players[g_game->player];
     for (Unit* u = player->units_first; u <= player->units_last; u++) {
         if (u->u.bits.selected)
-            ((Class_0048ddc0*)&vec)->FUN_0048ddc0(vec.end(), u);
+            vec.insert(vec.end(), u);
     }
 
     if (target != 0)

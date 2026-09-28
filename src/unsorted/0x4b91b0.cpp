@@ -1,7 +1,20 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL, 45.6% (best of about forty source shapes scored on check.py; the
-// 146-instruction original is matched instruction for instruction in outline,
-// so what is left is register and slot placement, not missing code).
+// PARTIAL, 51.7% (420 of 423 bytes; up from 45.6%). The 146-instruction
+// original is matched instruction for instruction in outline, so what is left
+// is register and slot placement, not missing code. About ninety shapes were
+// scored with check.py --sym; this is a strong partial and NOT a proven
+// plateau, the register-allocation question below is under-explored.
+//
+// Corrected from the previous attempt's notes, which were wrong in two ways
+// worth recording:
+//  - hw and hh are ONE halving, `w / 2` and `h / 2`, not `w/2/2`. The
+//    disassembly's `cdq; sub eax,edx; ... sar reg,1` is a single signed
+//    halving, and reading it as two cost several points. Fixing the semantics
+//    alone was 45.6% to 46.3%.
+//  - The frame size now MATCHES: both this file and the original are
+//    `sub esp, 0x24`, and `w` is in ebp as in the original. The previous
+//    attempt's 0x28 frame and its "the value needs one local more than the
+//    original's nine" conclusion are both superseded.
 //
 // What this builds: the "lens" image that 0x420620 asks for with (22, 22, 8).
 // A 0x18-byte header followed by a w by h array of 16-bit cells, each either
@@ -52,15 +65,32 @@
 //    loop rotates (base in ebx, the x counter in esi), MSVC folds the header
 //    offset 0x18 into the index (base starts at 12 with a matching +12 in the
 //    value) and every local slot moves.
-//  - Frame size 0x28 against the original's 0x24: the value needs one local
-//    more than the original's nine, and the original's set (hh, y, base, dy2,
-//    d2, thresh, dy, and the double that dx then shares) has no spare slot.
-//    The named value local is what lifts this file from 39.6% (the same source
-//    with the value as one expression) to 45.6%, so it is a stand-in for
-//    something in the original that frees a register; the original must be
-//    holding the four values live across the call (w, h, pitch, count) in the
-//    four callee-saved registers and spilling f, which leaves no register for
-//    a ninth value.
+//  - Frame size 0x28 against the original's 0x24: SUPERSEDED, both are 0x24
+//    now. The old conclusion that "the value needs one local more than the
+//    original's nine" was wrong; the frame was right all along once the
+//    semantics were fixed. What the original is doing instead is holding four
+//    values live across the call in the four callee-saved registers (ebp = w,
+//    esi = h, edi = pitch, ebx = count) and spilling f to the dead first
+//    parameter slot at [esp+0x38]. That is the single largest remaining hunk
+//    and the one lever not yet exhausted: make h genuinely live across the
+//    call, by touching it in a way that does not merely reload it, and MSVC
+//    should be forced into esi. Getting four registers live would in turn make
+//    f spill, which is what the loop's base addressing is waiting for.
+//  - The loop body differs in register rotation and indexing. The original
+//    uses esi as the running base and edi as x, addressing the cell as
+//    `(f + 0x18) + index*2` with base starting at 0; this file folds the 0x18
+//    into base (starting at 12, with a matching +12 in the value) and uses a
+//    countdown `inc esi; dec ecx; cmp esi,edi` where the original has a plain
+//    `inc edi; cmp edi,ebp`. Routing through a `cells` pointer local or
+//    through `f->data` both scored far worse (38% to 40%), so the folding is
+//    MSVC's own choice for the current source shape, not a spelling error.
+//  - The `f->half_width` and `f->half_height` stores repeat the expressions
+//    `(short)(w / 2)` and `(short)(h / 2)` rather than using the `hw` and `hh`
+//    locals. That duplication is load-bearing: using the locals scores 50.3%
+//    against 51.7%. Two other spellings score the same 51.7%, so the
+//    duplication is required but its exact form is not pinned down, which
+//    suggests the original's shape is something else again that frees the
+//    same register.
 //
 // Tried, with no better result (each scored on check.py from a scratch copy):
 // the size as count*2, count+count, (w*2)*h*2, 2*((w*2)*h) and with the
@@ -73,8 +103,11 @@
 // locals; the value as one expression, with a named int, with a named short,
 // with a named index, with no index subtraction and with -base - x; a cells
 // pointer local; the height store moved before the data and end stores; and
-// the threshold inlined in the comparison. 45.6% is a plateau: the last eight
-// variants that differ only in those spellings all score the same.
+// the threshold inlined in the comparison. Those spellings were a plateau at
+// 45.6% and are no longer one: the semantics fix plus the value expression
+// above reached 51.7%, which shows the plateau was an artefact of a wrong
+// reading rather than a wall. Treat any future plateau here with the same
+// suspicion and re-derive from the disassembly before believing it.
 #include <math.h>
 
 struct LensFrame_4b91b0 {
@@ -112,11 +145,11 @@ unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
     f->field_b = 0;
     if (!f)
         return 0;
-    short hw = (short)(w / 2 / 2);
-    short hh = (short)(h / 2 / 2);
+    short hw = (short)(w / 2);
+    short hh = (short)(h / 2);
     f->pitch = (unsigned short)pitch / 2;
-    f->half_width = hw;
-    f->half_height = hh;
+    f->half_width = (short)(w / 2);
+    f->half_height = (short)(h / 2);
     int base = 0;
     int y;
     for (y = 0; y < h; y++) {
@@ -132,11 +165,7 @@ unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
                 f->cells[base + x] = 0x7d00;
             } else {
                 double g = (dist - hw) / scale;
-                int a = (int)((double)dy / g);
-                int b = (int)((double)dx / g);
-                int v = (a + hh) * w;
-                v = v + b + hw - (base + x);
-                f->cells[base + x] = (unsigned short)v;
+                f->cells[base + x] = (unsigned short)((((int)((double)dy / g)) + hh) * w + ((int)((double)dx / g)) + hw - (base + x));
             }
         }
         base += w;

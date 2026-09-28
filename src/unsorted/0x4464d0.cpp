@@ -1,19 +1,15 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Handler for the CONTROL.GUI dialog: choosing a "LIVEPLYR%d" entry opens the
 // reject dialog for that player, WATCHING toggles the local player's watching
 // flag and republishes the GUI values, OK kicks every playing player in state
 // 3 without watch permission, and any other gadget clears the current one.
 //
-// STILL DIFFERS (91.0%): every instruction matches except that MSVC gives the
-// parameter `gui` edi and the local `info` ebp, while the original has gui in
-// ebp and info in edi (7 places: the prologue load/order, the three
-// `push gui`, and the two `info` bit operations). This is a register-priority
-// tie in MSVC 5's allocator: adding one more loop-weighted use of `gui` flips
-// the pair (a scratch with `i < 10 && gui != 0` in the LIVEPLYR loop puts gui
-// in ebp), but every spelling tried that keeps the bytes identical (loop
-// condition, while/goto/switch wrappers, inline getters, casts, extra locals,
-// declaration-order swaps, all headers.py sets) leaves it swapped. See
-// build/scratch/0x4464d0/ for the variants.
+// The WATCHING and OK tests are one if/else-if chain and the final
+// FUN_004ab0a0(gui) is written once after it, not at the end of each path.
+// MSVC duplicates that call into the WATCHING fall-through and the
+// neither-gadget fall-through, and the lower source use count of `gui` is what
+// lands it in ebp with `info` in edi (writing the call in both arms keeps gui
+// in edi instead). The OK arm returns early so it skips the shared call.
 #include <stdio.h>
 
 struct Class_004a1080;
@@ -85,10 +81,7 @@ void __stdcall FUN_004464d0(Gui_004464d0* gui)
             FUN_004a1080((Class_004a1080*)g_game->gui, "GAMEOPEN", !info->closed);
             FUN_0049fa90((Class_004a1080*)g_game->gui);
             FUN_00450f90();
-            FUN_004ab0a0(gui);
-            return;
-        }
-        if (FUN_0049fd60(gui, "OK")) {
+        } else if (FUN_0049fd60(gui, "OK")) {
             FUN_00451180();
             FUN_0047f1a0("Options", 0);
             if (!info->watching) {
@@ -102,8 +95,8 @@ void __stdcall FUN_004464d0(Gui_004464d0* gui)
                     }
                 }
             }
-        } else {
-            FUN_004ab0a0(gui);
+            return;
         }
+        FUN_004ab0a0(gui);
     }
 }

@@ -2727,6 +2727,7 @@ address,size,file,symbol,status,similarity
 0x4df250,46,src/unsorted/0x4df250.cpp,?FUN_004df250@Class_004df250@@QAEXXZ,matched,100.0
 0x4df280,163,src/unsorted/0x4df280.cpp,?FUN_004df280@Class_004df280@@QAEXD@Z,matched,100.0
 0x4df330,76,src/unsorted/0x4df330.cpp,?FUN_004df330@@YGHPAXIIJ@Z,matched,100.0
+0x4df380,340,src/unsorted/0x4df380.cpp,?FUN_004df380@Class_004df380@@QAEXXZ,matched,100.0
 0x4dfd00,15,src/unsorted/0x4dfd00.cpp,?FUN_004dfd00@@YAXXZ,matched,100.0
 0x4dfd10,51,src/unsorted/0x4dfd10.cpp,?FUN_004dfd10@@YAPAVClass_004df1e0@@XZ,matched,100.0
 0x4dfe80,28,src/unsorted/0x4dfe80.cpp,?FUN_004dfe80@@YAXXZ,matched,100.0

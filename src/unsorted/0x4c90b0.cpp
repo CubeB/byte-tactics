@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
 // Append of the reference-counted string handle: concatenates other's
 // characters onto this handle's, allocating a new block whose first int is
 // the reference count, then releasing the old block. The handle points at the
@@ -6,20 +6,34 @@
 // 0x4c93b0, 0x4c93f0). The class is named after this address because it has
 // no name in data/symbols.csv.
 //
-// Still differs from the original (best 91.4%):
-//  - the original materialises the emptiness test as a bool first
-//    (xor ecx,ecx; cmp byte ptr [esi],0; sete cl; test cl,cl; jne). A bool
-//    local or an inline IsEmpty() reproduces those three instructions but
-//    makes MSVC choose a different register schedule for the two string
-//    copies (86.1%), so the direct test below scores higher.
-//  - the original computes the allocation size as
-//    lea eax,[ecx+edx+1]; add eax,5 (two additions), i.e. n + m + 1 + 5;
-//    every source spelling of that sum folds to one lea with displacement 6
-//    in this toolchain. A live `len` variable reproduces the split but spills
-//    extra locals. This is probably compiler state from the file's earlier
-//    functions (0x4c8760, 0x4c8bb0).
-//  - the destination address comes out lea edx,[ebp+eax] where the original
-//    has lea edx,[eax+ebp] (same address, swapped base/index encoding).
+// The emptiness test is a bool returned by a helper (IsEmpty below, a free
+// function or a bool local both work): it is the only spelling found that
+// gives the original's `xor ecx,ecx; cmp byte ptr [esi],0; sete cl; test
+// cl,cl; jne end` and keeps other.ptr in esi, as the original does. A plain
+// `if (*other.ptr != 0)` is shorter (check.py 91.4%) but drops those three
+// instructions; a bool local materialises them in al instead of cl and moves
+// other.ptr into edx (80%).
+//
+// Still differs from the original (best 93.4%):
+//  - the allocation size is `lea eax,[ecx+edx+1]; add eax,5` in the original,
+//    i.e. the terminator (+1) and the block header (+5) are two separate
+//    additions, while every plain spelling of the sum folds into one
+//    `lea ecx,[ecx+edx+6]`. 7840 orderings and parenthesisations of the four
+//    terms (n, m and constants totalling 6) were tried, plus every type and
+//    sizeof spelling; MSVC 5 always reassociates the constants. What does
+//    reproduce the split is a value MSVC cannot reassociate into the lea: a
+//    narrowing conversion (the `short` below) or a value from a merged branch
+//    (`x ? n + m + 1 : n + m + 1`, which costs a phi and emits no code). The
+//    `short` cast is a codegen experiment, NOT the original's code: it also
+//    leaves a `movsx` the original has not got, and it truncates the size for
+//    strings over 32k. Delete it once the real spelling is found (86.1%).
+//  - with that cast the store of n (`mov [esp+0x10],edx`) lands before the
+//    `push ebp` instead of after it, and the size lands in edx rather than eax.
+//  - the destination of the second strcpy comes out `lea edx,[ebp+eax]` where
+//    the original has `lea edx,[eax+ebp]` (same address, base/index swapped).
+//    `#include <windows.h>` does not change it here.
+//  - the original reloads n from the stack right after the first strcpy's
+//    `rep movsd`; this version reloads it after the `rep movsb`.
 #include <string.h>
 #include <stdlib.h>
 
@@ -27,23 +41,27 @@ class Class_004c90b0 {
 public:
     char* ptr;              // refcount lives in the dword before ptr
 
+    bool IsEmpty() const { return *ptr == 0; }
+
     Class_004c90b0* FUN_004c90b0(const Class_004c90b0& other);
 };
 
 // FUNCTION: 0x4c90b0
 Class_004c90b0* Class_004c90b0::FUN_004c90b0(const Class_004c90b0& other)
 {
-    if (*other.ptr != 0) {
+    if (!other.IsEmpty()) {
         int n = (int)strlen(ptr);
         int m = (int)strlen(other.ptr);
-        int* block = (int*)malloc(n + m + 1 + 5);
+        short len = n + m + 1;      // codegen only, see the note above
+        int* block = (int*)malloc(len + 5);
         *block = 1;
         char* chars = (char*)(block + 1);
         strcpy(chars, ptr);
         strcpy(chars + n, other.ptr);
-        (*(int*)(ptr - 4))--;
-        if (*(int*)(ptr - 4) == 0) {
-            free(ptr - 4);
+        ((int*)ptr)[-1]--;
+        int* old = (int*)ptr - 1;
+        if (((int*)ptr)[-1] == 0) {
+            free(old);
         }
         ptr = chars;
     }

@@ -1,30 +1,67 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
 //
-// Partial: 80.0%. The search loop, the range test, the jump table, case 0 and
-// case 3 match byte for byte, and the total size is right (280 bytes). Case 1
-// and case 2 are register-rotated:
-//   case 1: the original leaves eax free for the third argument (the global
-//           reload is the 5-byte `mov eax, ds:0x51fe40`) and loads at_high
-//           late into ecx, after arg2 (in ecx) has been pushed:
-//             sub ecx,eax; mov [esi],edx; mov eax,ds:0x51fe40; push eax;
-//             push ecx; mov ecx,[esp+0x24]; push ecx; call
-//           Here the compiler hoists the at_high load into eax, so the global
-//           goes to edx as `mov edx,[0x51fe40]`:
-//             sub ecx,eax; mov eax,[esp+0x1c]; mov [esi],edx;
-//             mov edx,[0x51fe40]; push edx; push ecx; push eax; call
-//   case 2: the original loads at_low into edx before `push ecx` and loads
-//           at_high into eax after `add esp,0xc`; here at_low goes to ecx
-//           after the push and at_high to edx before the `add esp`.
-// Both are pure scheduling/register choices: the expressions, the push order,
-// the pushed addresses and the store positions are already correct. Tested
-// locally and with scratch scoring: swapping the two assignments, splitting
-// the FUN call into a temporary (`int r = ...`), passing the global instead of
-// the `size` local in each subset of cases, passing `DAT_0051fe40 - offset`,
-// caching at_low/at_high/size-offset in top-level temporaries, an inline
-// wrapper for FUN_004b7381, comma operators and `out[0]/out[1]` indexing. The
-// sibling function 0x4c70d0 in this family has the identical unresolved
-// rotation (see its file). Passing the global only in cases 1 and 3 (below) is
-// the best measured form.
+// Partial: 80.0%. The search loop, the tail arithmetic, the size test, the
+// jump table, case 0 and case 3 match byte for byte, and cases 1 and 2 differ
+// only because of one thing, case 1 (see below).
+//
+// Case 1's first argument is the FOURTH parameter, at_high, not value. The
+// stack arithmetic settles it: the prologue pushes three registers, so esp is
+// entry-0xc, and by the time of the load two arguments have been pushed, so
+// `mov ecx, [esp + 0x24]` reads entry+0x10, which is parameter 4. The same
+// holds at `mov edi, [esp + 0x10]` in the prologue (entry+4, parameter 1) and
+// at `mov esi, [esp + 0x14]` / `mov edx, [esp + 0x18]` in case 2 (entry+8 and
+// entry+0xc, parameters 2 and 3), so the offsets are all consistent.
+// An earlier version of this note claimed it was parameter 1 and changed the
+// argument to `value`; that scores 80.4% against this file's 80.0% but is the
+// wrong parameter, and the 0.4% is not worth reading the wrong slot. Passing
+// `at_high` is also what gives the right size, 280 bytes against 276.
+//
+// What still differs is one thing in case 1, and it is a placement decision
+// rather than a missing value. The original never keeps at_high in a register:
+// it re-loads the slot at its point of use, into ecx, after the third and
+// second arguments have already been pushed, because ecx is still holding the
+// second argument until then.
+//     mov eax, [DAT_0051fe40]      ; third argument
+//     push eax
+//     push ecx                     ; second argument (size - offset)
+//     mov ecx, [esp + 0x24]        ; at_high, reloaded here
+//     push ecx
+//     call FUN_004b7381
+// Here MSVC 5 hoists the at_high load to the top of the block into eax and
+// leaves ecx free, so the global ends up in edx and the pushes come out in a
+// different order. Cases 0, 2 and 3 and all the pre-switch code match.
+//
+// Tried on top of this version, none of which moved it:
+//   - `volatile int at_high` as the parameter, which is the natural reading of
+//     "re-loaded from its slot on every use" and is the exception the current
+//     AGENTS.md allows. It changes nothing: the load is still hoisted into eax.
+//   - an `int g = DAT_0051fe40;` local read after `out->low = at_low;`, to try
+//     to force the global into eax the way the original has it. Unchanged.
+//   - `value` as the argument (80.4%, 276 bytes): wrong parameter, see above.
+// The rest of the ruled-out list from the previous pass follows.
+//
+// Tried and measured, all on top of this version (80.4% unless said):
+//   - an inlined search helper that owns the loop and takes `value` as its
+//     own parameter (the 0x4523e0 pattern from the guide): the pre-switch
+//     code still matches byte for byte, but the parameter copy is propagated
+//     and case 1 still gets `push edi`.
+//   - the same helper also returning the offset (272 bytes, 47%: it breaks
+//     the tail's register order) or the offset and the size (80.4%, still
+//     propagated).
+//   - re-reading the parameter as `*(int*)&value`, `*(long*)&value`,
+//     `*(unsigned*)&value`, through a `const int&` local, through an
+//     `int*` local, through a reference or pointer parameter of an inlined
+//     helper, `value + zero`, `(int)(long)value`, `sizeof(int) ? value : 0`,
+//     a nested comma assignment, a local for the distance, a local for the
+//     call result, a `Range&` for the stores: all propagated to the edi copy.
+//   - `at_high` as the anchor (80.0%, 280 bytes: the right size but the
+//     wrong value), reversed statements, comma expressions, `out[0]/out[1]`.
+//   - tools/headers.py over 768 header sets (each of windows.h, stdio.h,
+//     stdlib.h, string.h crossed with none and the C++ headers): all 80.4%.
+//   - `*(volatile int*)&value` gives the wanted load and register but also a
+//     second, mandatory load of the same slot at the top of the case, so it
+//     is 280 bytes and still 80.0%; not a real reading of the original, since
+//     a volatile parameter would also be re-read inside the loop.
 
 // GLOBAL: 0x51fe98
 extern int DAT_0051fe98;

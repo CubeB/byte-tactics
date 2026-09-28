@@ -1,4 +1,31 @@
-// Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by mimo-v2.6-flash, finished by space-bunny-free. Names are provisional.
+// MATCH: all 494 bytes, 0x495010 to 0x4951fd. Re-verified with check.py after a
+// forced rebuild, so the score below is measured, not carried over from an
+// earlier note. Nothing is left outstanding: the body is plain C++ with no
+// volatile, no casts that change behaviour and no codegen tricks.
+//
+// What the code does: it opens (or closes) the TABMENU.GUI tab menu page. If any
+// of bits 5 to 7 of the flags word at +0x2bee is set the page is being closed:
+// the bits are cleared and the gui is either hidden, or torn down when
+// FUN_004ab060 does not find the file. Otherwise the bit 5 "open" flag is set,
+// the gui is fetched through FUN_004aa8f0 and given a click handler and an owner,
+// and the three ALLIES / SHARE / CONTROL checkboxes are set. The two first ones
+// are enabled when the player count of free, non allied slots is positive and
+// the net mode is 3, CONTROL also needs bit 0 of +0x2c74 clear and FUN_00457a50
+// true.
+//
+// Two things in the disassembly that the source has to reproduce rather than
+// avoid:
+// - The scan loop keeps its count in esi and its "1" constant in ebx, so the
+//   player type test reads `cmp byte ptr [eax + 0x73], bl` and the CONTROL test
+//   reads `test byte ptr [edx + 0x2c74], bl`. Only the `for` loop written as a
+//   single `count++` body with no extra locals gets that register split.
+// - The scale by 0x14b for players[localPlayer].info is left to the compiler:
+//   it emits the shl 5 / add / lea sequence. Spelling the multiply by hand gives
+//   a different form.
+//
+// No volatile field here: the flags word at +0x2bee is written once per branch
+// and never re-read, so it is a plain unsigned short.
 
 class Class_00435100 {
 public:

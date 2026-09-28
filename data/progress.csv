@@ -2079,7 +2079,7 @@ address,size,file,symbol,status,similarity
 0x4a5030,113,src/unsorted/0x4a5030.cpp,?FUN_004a5030@@YGHPAE@Z,matched,100.0
 0x4a50b0,40,src/unsorted/0x4a50b0.cpp,?FUN_004a50b0@@YAHXZ,matched,100.0
 0x4a50e0,238,src/unsorted/0x4a50e0.cpp,?FUN_004a50e0@@YGXPAXPADHHHH@Z,matched,100.0
-0x4a51d0,485,src/unsorted/0x4a51d0.cpp,?FUN_004a51d0@@YGHPAD0HHHHH@Z,partial,80.1
+0x4a51d0,485,src/unsorted/0x4a51d0.cpp,?FUN_004a51d0@@YGHPAD0HHHHH@Z,matched,100.0
 0x4a5d30,18,src/unsorted/0x4a5d30.cpp,?FUN_004a5d30@@YGXPAUStruct_004a5d30@@H@Z,matched,100.0
 0x4a5d50,254,src/unsorted/0x4a5d50.cpp,?FUN_004a5d50@@YGHPAUMenu_004a5d50@@H@Z,matched,100.0
 0x4a5e50,228,src/unsorted/0x4a5e50.cpp,?FUN_004a5e50@@YGXPAUObj_004a5e50@@H@Z,matched,100.0

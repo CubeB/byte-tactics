@@ -1824,3 +1824,8 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   report, not a matching problem**: list each slot's writes and reads in the
   disassembly (a `grep` is enough) before writing source; such a finding
   survives even if the function never matches (0x43cd20).
+- **More levers, measured**: `docs/field-notes.md` (CubeB, 47 functions in one
+  session) ranks the levers that paid, with the numbers: read the toolchain's
+  own headers before inferring (`XTREE`, `DSOUND.H`), treat a "register
+  allocation" difference as a wrong argument or type first, and grep the exe
+  for raw instruction bytes to find matched twins.

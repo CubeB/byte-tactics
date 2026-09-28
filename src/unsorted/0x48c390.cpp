@@ -1,4 +1,32 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// PARTIAL, 96.8% (773 of 773 bytes, exact size; up from 91.5%). The worker that
+// produced this died with no report, so these figures are measured from the
+// scratch directory afterwards.
+//
+// What is left is one group of loads and two halvings, in a different order.
+// The original hoists BOTH `[esi + 0x2c96]` and `[esi + 0x2ca6]` up with the
+// other field loads at the head of the group, then does `sar ebx,1 / sub edx,ebx`
+// for the first and `sar eax,1` for the second. This file loads `0x2c96` after
+// the subtractions, halves it in `eax`, and only then loads `0x2ca6`. Same
+// instructions, same operands, different placement: a scheduling tie-break, not
+// a structural difference.
+//
+// It is measured, not assumed. The scratch directory holds 647 variants, named
+// systematically for the orderings they sweep (`g_p_*` for projection order,
+// `h_sXYyYZx32` for the load/halving interleavings, `i_hw*` for half-width
+// forms). I scored the twenty newest and a forty-one sample spread across the
+// naming space; the best is `g_a_base.cpp`, which is byte-identical to the file
+// as written at 96.8%, and the runners-up cluster at 96.8%, 94.0% and 91.2%.
+// Nothing beat it and nothing matched, so with the size already exact this is
+// the end of the road for the single-file shape.
+//
+// Worth recording from the sweep: the `h_s*` family is bimodal. The
+// `s11*` sub-family (nine of the nine sampled) all sit at 96.8%, and every
+// `s00*` sits at 88.4% and every `s10*` at 87.5%, with the load order of the two
+// halvings changing the score by nothing at all within a sub-family. So the
+// deciding factor is which fields are grouped, not how the halvings are
+// interleaved, and 647 variants of the interleaving was far more search than
+// the question deserved.
 // Rubber-band unit selection: converts the drag rectangle in map units to
 // screen coordinates, marks every unit of the local player inside it
 // selected, then normalises the player's selection state and reports how
@@ -115,7 +143,7 @@ int __stdcall FUN_0048c390(void* param_1)
     }
     Player_0048c390* p = &g_game->players[g_game->player];
     int count = 0;
-    Unit_0048c390* last = 0;
+    Unit_0048c390* last;
     for (Unit_0048c390* u = p->first; u <= p->last; u++) {
         if ((u->flags & 0x20) && u->unknown_104 == 0.0f && !u->unknown_fb &&
             (!u->parent || (u->parent->flags & 0x40000000))) {
@@ -128,8 +156,8 @@ int __stdcall FUN_0048c390(void* param_1)
                     u->selected = !u->selected;
                 found = 1;
             }
+            if (u->selected) { last = u; count++; }
         }
-        if (u->selected) { last = u; count++; }
     }
     g_game->flag_37e9c = 0;
     for (Unit_0048c390* v = g_game->units_begin; v <= g_game->units_end; v++)

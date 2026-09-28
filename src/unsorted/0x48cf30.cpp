@@ -1,27 +1,39 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Partial (62%, 687 of 742 bytes). The shape is right: both loops, the two
-// averages, the tail-merged FUN_0043afc0 call and every field offset agree.
-// Still different, and all of it is one cause, the stack slot assignment:
-//   * the frame lays its locals out in another order (except at esp+0x14 and
-//     the `p` local at esp+0x34 agree, flag_a, range, p, avg_x, avg_z and the
-//     two byte locals do not), so every [esp+N] load differs;
-//   * consequently the fild temp is not here[1]'s slot, the byte locals are
-//     not at the bottom of the frame, and `entry` gets a register (edi)
-//     where the original reloads it from its argument slot for the
-//     Class_00438760 constructor calls;
-//   * the "Standing_MoveOrder" block is laid out before the first def test
-//     instead of after it, so the second u->def load is CSE'd instead of
-//     reloaded (the ctor call in between should have broken it);
-//   * the second 64x64 multiply (_allmul) takes its high word from the
-//     never-written slot at esp-0x1c. MSVC 5 emits `cdq` and pushes edx
-//     there, so the original must have had that high word in memory, which
-//     no spelling of `(__int64)dz * dz` reproduces.
-// Tried and kept: the call written in both arms (it tail-merges into the
-// original's single call plus jmp), the ! polarity of the two def tests
-// (the body runs when kind == X || (def->flags & bit), so the `je` to the
-// loop latch is right), `(char*)g_game->field_14357 + 280 * field_2cba`
-// (MSVC then folds it to 8*(35*team) in one lea) and the Game offsets
-// 0x1b63 / 0x2a42 / 0x2caa / 0x2cba / 0x14357.
+// Decompiled by space-bunny-free, finished by Space Bunny Free. Names are provisional.
+// Partial (63.4%). Every control-flow edge, call target, argument order and
+// field offset now agrees with the original, and the loops, the two averages
+// and the __int64 distance test all have the original's shape. What is left
+// is one cause: MSVC 5's frame layout puts our locals in a different order,
+// so every [esp+N] that names a local differs.
+//   original frame: 0x12/0x13 the two 1-byte temps, 0x14 except, 0x18 flag_a,
+//   0x1c range, 0x20 p, 0x28 the sign word of dz, 0x2c avg_x, 0x34 avg_z,
+//   0x38 here[3].
+//   ours: 0x10 except, 0x18 range, 0x1c/0x20 use_pos/use_flag, 0x24 the
+//   move-order temp, 0x28 avg_x, 0x2c avg_z, 0x30 flag_a, 0x34 p, 0x38 here.
+// Both frames are 0x34 bytes and both put `here` at 0x38, so the frame size
+// and the block structure agree; only the order differs. Reordering the
+// declarations changes nothing at all (MSVC 5 assigns the offsets in the
+// back end, four very different declaration orders all compile to the same
+// 733 bytes), so the order has to be steered by the shape of the code.
+// The other, smaller difference follows from it: because use_pos/use_flag are
+// live across the FUN_00438830 call, the compiler spills them and the tail
+// merge of the two FUN_0043afc0 calls is lost. Writing the call out in both
+// arms instead (with `continue` in the inner one) restores the tail merge but
+// makes MSVC materialise both 64x64 products in memory, which costs more than
+// the spill (54.3%).
+// Known-good detail: the fifth argument of FUN_0043f0e0 is the ADDRESS of
+// g_game->field_2caa (the original emits `add ecx, 0x2caa`), so the call
+// passes `&g_game->field_2caa`; passing the field's value instead costs a
+// point. The field_2cba test is `if (!x) except = 0; else ...` so that the
+// zero store is the fall-through of the `jne` (+1.4 points over the other
+// polarity).
+// One lead left open: the original constructs "Standing_FireOrder" straight
+// into the dead argument-0 slot (lea ecx, [esp+0x48] with the string pushed,
+// then mov al, [esp+0x48]), and reads `entry` nowhere else in the loop, so the
+// first parameter is probably dead after the prologue. Neither spelling
+// reproduces it: a placement new into `entry` keeps `entry` in edi, and a
+// local Class_00438760 temporary gets its own frame slot instead (63.3% either
+// way). The 1-byte buffer in the original stays at esp+0x13 while ours is
+// pushed into the same dead argument slot, which may be the same root cause.
 #include <new.h>
 
 #pragma pack(push, 1)
@@ -107,10 +119,10 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
     else
         flag_b = (kind.FUN_00438830()->flags >> 9) & 1;
     if (flag_b) {
-        if (g_game->field_2cba)
-            except = (Unit_0048cf30*)((char*)g_game->field_14357 + 280 * g_game->field_2cba);
-        else
+        if (!g_game->field_2cba)
             except = 0;
+        else
+            except = (Unit_0048cf30*)((char*)g_game->field_14357 + 280 * g_game->field_2cba);
     }
     Player_0048cf30* p = &g_game->players[g_game->field_2a42];
     int count = 0;
@@ -134,7 +146,7 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
             continue;
         unsigned char buf;
         if (mode)
-            kind.index = *FUN_0043f0e0(&buf, mode, u, except, g_game->field_2caa);
+            kind.index = *FUN_0043f0e0(&buf, mode, u, except, &g_game->field_2caa);
         if (!kind.index)
             continue;
         new ((Class_00438760*)entry) Class_00438760("Standing_FireOrder");

@@ -27,31 +27,58 @@
 //    IsExplored (Get method), IsExplored2 (plain index) and IsExplored3
 //    (pointer local). Using one spelling for all four costs about 8 points.
 //
-// What still differs, all of it in the last test:
-//  1. Both of the last test's returns go through the original's
-//     `xor ecx,ecx / test eax,eax / setne cl / mov eax,ecx` (an int->bool->int
-//     round trip), and the four exit paths each have their own copy of it. The
-//     seen arm is reproduced by a redundant self-correction on the int result
-//     (`if (b) b=1; else b=0;`), which MSVC 5 does not fold because the mask
-//     expression's value is not a tracked 0/1. The explored arm needs a narrow
-//     local to stop the same fold, and `short c = a ? 1 : 0;` gives the exact
-//     instruction sequence, but returning it adds one `movsx eax,ax` per exit
-//     (+3 bytes twice, hence 871 instead of 865). Tried and rejected: a `bool`
-//     local and a bool-returning helper both spill the flag to a stack slot
-//     (`mov byte ptr [esp+0x20],cl`), a `char` local rotates the value into
-//     al/ecx the wrong way round, and `unsigned short` gives `movzx` instead.
-//  2. The original reloads g_game into ebx (the unit pointer's register, dead
-//     after `mov eax,[ebx+0x92]`) at the top of the last test; ours CSEs the
-//     load into the end of the third test and keeps it in ebp, so the three
-//     g_game field reads in the last test name ebp instead of ebx.
-//  3. Ours tail-merges the last test's two "not visible" blocks; the original
-//     has a separate copy of the conversion and epilogue for each.
+// What still differs, all of it in the last test, and it is two things:
+//  1. Both of the last test's exits go through the original's
+//     `xor ecx,ecx / test eax,eax / setne cl / mov eax,ecx` (an int -> bool ->
+//     int round trip on a value the disassembly shows is a literal 1 or 0), and
+//     each of the four exits carries its own copy of it. MSVC 5 must simply fail
+//     to fold it, because every other spelling folds. `short c = a ? 1 : 0;`
+//     gives the exact four instructions but costs one `movsx eax,ax` per exit
+//     (+3 bytes twice, hence 871 rather than 865), and that is the 6 bytes of
+//     slack. The seen arm is already right: `if (b) b=1; else b=0;` survives
+//     there because IsSeen hands it a value that MSVC cannot track as 0/1 (it
+//     arrives through `neg eax / sbb eax,eax / xor ecx,ecx / neg eax`). The
+//     explored arm's value arrives as `mov eax, 1` or `xor eax, eax`, which is
+//     tracked, so every int spelling folds away (all four exit copies vanish,
+//     844 to 850 bytes, 92 to 94 percent).
+//  2. The original reloads g_game into ebx, the unit pointer's register, which
+//     is dead after `mov eax,[ebx+0x92]`, and does it at the top of the last
+//     test's fall-through block (original +0x25f). Ours puts the load one
+//     instruction earlier, in the block that ends the call (ours +0x24a, i.e.
+//     before `test eax,eax`), so it cannot take ebx, which is still live there,
+//     and lands in ebp instead. That is one extra instruction here and the four
+//     g_game field reads in the rest of the test name ebp instead of ebx
+//     (+0x14281, +0x14273, +0x2a43).
 //
-// Construct shapes that made things worse, so nobody repeats them: one shared
-// inline helper for all four visibility tests (the arms get merged and the
-// function shrinks to about 780 bytes), computing the cell coordinates once
-// above the flag test for the last pair (that merges the two bounds checks),
-// and putting both arms of the last test inside one inline function (same).
+// Shapes tried and rejected for 1, all of which fold: `int c = (a != 0);`,
+// `int c = 0; if (a) c = 1;`, `int c; if (a) c=1; else c=0;` followed by
+// `if (c) c=1; else c=0;`, `if (!a) a=0; else a=1;`, `c = 0; c = (a != 0);`,
+// and the self-correction hidden behind an inlined one-argument helper
+// (`Norm(1)` is still folded, so a parameter buys nothing). A `bool` local and
+// a bool-returning helper spill the flag to a stack slot (`mov byte ptr
+// [esp+0x20],cl`); a `char` local rotates the value into al/ecx the wrong way
+// round; `unsigned short` gives `movzx` and a 875-byte function; an
+// `unsigned value / unsigned b0 : 1` bitfield union collapses the function to
+// 812 bytes. Moving the self-correction inside IsExplored3 and returning its
+// result directly is the closest of the lot at 845 bytes, but it merges the two
+// exits and drops the score to 93.6 percent.
+//
+// Shapes tried and rejected for 2, none of which changes anything at all (all
+// stay at 871 bytes and 95.8 percent): a `Game_00465ac0*` local for the flag
+// test, an `unsigned char` local for `g_game->flags`, a `UnitDef*` local for
+// the last test only, and both at once. Moving the flag test above
+// `p.x -= u->def->f176;` gives 891 bytes, and hoisting `u->def` to a
+// function-wide local gives 882, so the order of those two statements is
+// load-bearing. Putting the seen arm first (testing `!= 2`) gives 851 bytes and
+// 86.9 percent. Note the ebp/ebx difference is NOT a consequence of the extra
+// `short` local: the 844-byte folded variant picks ebp in exactly the same
+// place.
+//
+// Other shapes that made things worse: one shared inline helper for all four
+// visibility tests (the arms get merged and the function shrinks to about 780
+// bytes), computing the cell coordinates once above the flag test for the last
+// pair (that merges the two bounds checks), and putting both arms of the last
+// test inside one inline function (same).
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

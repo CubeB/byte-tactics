@@ -1499,7 +1499,7 @@ address,size,file,symbol,status,similarity
 0x479760,122,src/unsorted/0x479760.cpp,?FUN_00479760@@YAHXZ,matched,100.0
 0x479bf0,92,src/unsorted/0x479bf0.cpp,?FUN_00479bf0@@YGXPAUObj_00479bf0@@PAD@Z,matched,100.0
 0x47a700,89,src/unsorted/0x47a700.cpp,?FUN_0047a700@@YGHHH@Z,matched,100.0
-0x47a760,372,src/unsorted/0x47a760.cpp,?FUN_0047a760@@YAXXZ,partial,71.6
+0x47a760,372,src/unsorted/0x47a760.cpp,?FUN_0047a760@@YAXXZ,partial,83.3
 0x47a8e0,40,src/unsorted/0x47a8e0.cpp,?FUN_0047a8e0@@YAXXZ,matched,100.0
 0x47a910,390,src/unsorted/0x47a910.cpp,?FUN_0047a910@@YGXPAUMenu_0047a910@@@Z,matched,100.0
 0x47aaa0,70,src/unsorted/0x47aaa0.cpp,?FUN_0047aaa0@@YGXPAUMenu_0047aaa0@@H@Z,matched,100.0

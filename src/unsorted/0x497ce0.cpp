@@ -1,11 +1,10 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
 // Draws the "waiting for other players" progress bars: one bar per connected
 // player, each 620/n wide, with a fill proportional to that player's percent.
-// 81% (bytes): prologue, both loops' shapes, loop 1's register assignment and
-// the flags test all match. Still open: the loop 2 body's temporaries land in
-// eax/ecx/edx where the original uses ecx/edx/eax, the preheader emits
-// `mov esi,0xb` before the loop index store instead of after, and the sprintf
-// tail keeps the "player ready" literal in eax instead of pushing it per arm.
+// Partial, 90.4%: a break-on-ineligible player loop preserves most of the
+// original body's register allocation, but its index remains stack-resident.
+// The original scans all ten entries with ecx as a byte offset; direct for and
+// do/while translations moved the full drawing body's temporary registers.
 #include <stdio.h>
 
 #pragma pack(push, 1)

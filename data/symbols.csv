@@ -2480,6 +2480,7 @@ address,name
 0x4c46c0,Class_004c46c0::FUN_004c46c0
 0x4c4760,Class_004c4760::FUN_004c4760
 0x4c48c0,Class_004c48c0::FUN_004c48c0
+0x4c4d70,PAVClass_004c3e40::?$vector::insert
 0x4c5170,FUN_004c5170
 0x4c5190,Elem_004c5bc0::~Elem_004c5bc0
 0x4c51b0,??_GElem_004c5bc0@@QAEPAXI@Z

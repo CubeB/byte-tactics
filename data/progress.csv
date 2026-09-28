@@ -2298,6 +2298,7 @@ address,size,file,symbol,status,similarity
 0x4bad30,182,src/unsorted/0x4bad30.cpp,?FUN_004bad30@@YGPAEPAUtagPALETTEENTRY@@@Z,matched,100.0
 0x4badf0,317,src/unsorted/0x4badf0.cpp,?FUN_004badf0@@YGPAEPAUtagPALETTEENTRY@@@Z,matched,100.0
 0x4baf30,191,src/unsorted/0x4baf30.cpp,?FUN_004baf30@@YGPAEPAUtagPALETTEENTRY@@@Z,matched,100.0
+0x4baff0,171,src/unsorted/0x4baff0.cpp,?FUN_004baff0@@YGPADPAD00@Z,matched,100.0
 0x4bb0a0,67,src/unsorted/0x4bb0a0.cpp,?FUN_004bb0a0@@YGHPAD@Z,matched,100.0
 0x4bb0f0,44,src/unsorted/0x4bb0f0.cpp,?FUN_004bb0f0@@YGPADPAD@Z,matched,100.0
 0x4bb120,45,src/unsorted/0x4bb120.cpp,?FUN_004bb120@@YGPADPAD@Z,matched,100.0
@@ -2316,12 +2317,17 @@ address,size,file,symbol,status,similarity
 0x4bbbe0,43,src/unsorted/0x4bbbe0.cpp,?FUN_004bbbe0@@YGIPAUClass_004bbbe0@@PAXI@Z,matched,100.0
 0x4bbc10,21,src/unsorted/0x4bbc10.cpp,?FUN_004bbc10@@YGXPBD0@Z,matched,100.0
 0x4bbc30,16,src/unsorted/0x4bbc30.cpp,?FUN_004bbc30@@YGXPBD@Z,matched,100.0
+0x4bbc40,178,src/unsorted/0x4bbc40.cpp,?FUN_004bbc40@@YGJPAD@Z,matched,100.0
 0x4bbd00,46,src/unsorted/0x4bbd00.cpp,?FUN_004bbd00@@YGJPAUClass_004bbd00@@@Z,matched,100.0
+0x4bbd30,288,src/unsorted/0x4bbd30.cpp,?FUN_004bbd30@@YGPAXPADPAXJI@Z,matched,100.0
+0x4bbff0,289,src/unsorted/0x4bbff0.cpp,?FUN_004bbff0@@YGPAXPADPAUFile_004bbff0@@PAI@Z,matched,100.0
+0x4bc120,356,src/unsorted/0x4bc120.cpp,?FUN_004bc120@@YGPAHPADPAH@Z,matched,100.0
 0x4bc290,72,src/unsorted/0x4bc290.cpp,?FUN_004bc290@@YGHPADPAXH@Z,matched,100.0
 0x4bc2e0,23,src/unsorted/0x4bc2e0.cpp,?FUN_004bc2e0@@YGXPAD@Z,matched,100.0
 0x4bc300,32,src/unsorted/0x4bc300.cpp,?FUN_004bc300@@YGHPAD@Z,matched,100.0
 0x4bc320,52,src/unsorted/0x4bc320.cpp,?FUN_004bc320@@YGPADPAD0H@Z,matched,100.0
 0x4bc360,16,src/unsorted/0x4bc360.cpp,?FUN_004bc360@@YGXPBD@Z,matched,100.0
+0x4bc370,314,src/unsorted/0x4bc370.cpp,?FUN_004bc370@@YGHPBD0@Z,partial,86.4
 0x4bc8d0,84,src/unsorted/0x4bc8d0.cpp,?FUN_004bc8d0@@YGHPAUFind_004bc8d0@@@Z,matched,100.0
 0x4bce10,65,src/unsorted/0x4bce10.cpp,?FUN_004bce10@@YAXXZ,matched,100.0
 0x4bce60,58,src/unsorted/0x4bce60.cpp,?FUN_004bce60@@YGHPAD@Z,matched,100.0

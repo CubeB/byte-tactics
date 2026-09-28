@@ -1,80 +1,46 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5. Names are provisional.
 
 // Translates every pixel of `rect` in `surface` through the byte table at
 // g_game+0xcc (FUN_004cced5), or in the locked screen (FUN_004c5e70 /
 // FUN_004c5fa0) when `surface` is 0. The rect is copied to a local first
 // because the clip helper FUN_004bf620 clips it in place. The locked path
-// returns the lock result and the caller-surface path returns `rect` itself,
-// so a failed lock returns 0 and leaves the screen locked (the unlock only
-// runs on success).
+// returns the lock result.
 //
-// Best so far: 64.6 percent, and semantically correct.
+// Best so far: 74.9 percent. Everything outside the two FUN_004cced5 argument
+// blocks matches: the frame, the late `push esi` after the flag test's early
+// return, both exits and the shared `mov eax, esi` tail.
 //
-// A WARNING about the note that used to be here, since it was wrong and cost
-// time. It claimed "Best so far: 63.7 percent ... both blit calls instruction
-// for instruction (argument order, register choice ...)". That 63.7% was a
-// version with a deliberately wrong locked-blit expression, written only to see
-// what it would score. It was discarded, as it should have been, but the note
-// describing it was left in place, so the file it was attached to was really
-// 55.7% and did NOT have matching blit calls. If you are reading an older note
-// that claims 63.7% with both calls matching, it is describing code that is not
-// in this file. The current 64.6% beats it while being correct.
+// Suspected original bug: the caller-surface path returns an uninitialised
+// local (`status`, warning C4700). `rect` is dead after the copy, so MSVC 5
+// puts `status` in rect's parameter slot, which is why the original ends that
+// path with `mov esi, [esp+0x50]` and in practice returns the rect pointer.
+// Returning `(int)rect` itself instead keeps rect alive to the end, and MSVC
+// then holds it in ebx (the extra `push ebx` of the earlier attempts).
+// `((int*)&surface)[1]` (the 0x4bfd60 spelling) compiles the same, but the
+// uninitialised local is the plainer explanation.
 //
-// Established and matching: the whole control flow (the flag test, the lock
-// path as the fall-through, the two exits, the 48-byte surface layout that
-// fixes the 0x40 frame, the 16-byte rect copy), and the else arm's blit call.
+// The other key: ONE `return result;` at the end, as in the siblings
+// 0x4be950 and 0x4bfd60. The lock-success path's separate epilogue in the
+// original is MSVC's tail duplication, not a second `return`; writing that
+// `return` explicitly moves `push esi` to the top (66.3 percent).
 //
-// The one thing that was blocking the frame, and how it was fixed: MSVC promotes
-// the `rect` parameter to a callee-saved register, so it pushes ebx at the top
-// and every frame offset in both arms is 4 higher than the original's. The
-// original never does that: it reads the argument into eax at the top
-// (`mov eax, [esp + 0x48]`) and re-loads it from the stack slot at the very end
-// (`mov esi, [esp+0x50]`, which the locked path's failed-lock exit jumps
-// straight into at the following `mov eax, esi`). Declaring the parameter
-// `Rect_004bfe10* volatile rect` is what stops the promotion: the ebx push
-// disappears and the frame offsets become the original's. It is a codegen
-// device rather than a demonstrated `volatile` in the original (the argument
-// is written only through the local copy, so a volatile read is a no-op
-// semantically), and it is not a narrowing cast, so nothing is truncated. It
-// costs one thing: MSVC then saves esi at the top of the function and pops it
-// on the early-return path, where the original shrink-wraps the `push esi` to
-// just after that early return. 64.6% with it, 55.7% without.
-//
-// What is still different, and note where the remaining work is NOT: the blit
-// arguments in the LOCKED arm are evaluated in a different order (the else arm
-// matches). The original pushes them right to left, field_cc, then height
-// (`bottom - top + 1`), then width (`right - left + 1`), then pitch, then dst,
-// computing the two `sub`/`inc` pairs before the `imul`; this version computes
-// dst first. The likely cause is the struct the locked path uses: the original
-// reads the locked screen's pitch from +0xc and its pixel base from +0x10, one
-// dword higher than the surface path's +0x8 and +0xc, so either that is a
-// genuine bug in the original or the local is a second, differently laid out
-// type. That is a types question, not a scheduling one.
-//
-// DO NOT reach for `volatile` on the rect parameter, even though it looks like
-// the obvious answer and even though it works on the code. Declaring it
-// `Rect_004bfe10* volatile rect` does remove the promotion: the ebx push
-// disappears, the frame offsets become the original's, and the score goes from
-// 55.7 to 64.6 percent. But MSVC 5 mangles a volatile POINTER parameter as a
-// reference, so the symbol changes from the original's
-// `?FUN_004bfe10@@YGHPAUSurface_004bfe10@@PAURect_004bfe10@@@Z` to one
-// containing `RAURect_004bfe10`. The calling convention happens to be
-// identical, which is why the checker still compares the code, but the
-// declaration is then a reference where the original has a pointer, and a
-// wrong signature is a worse defect than a 9 percent gap. Reverted for that
-// reason. If someone finds a way to stop the promotion that keeps the plain
-// pointer parameter, that is the remaining lead.
-//
-// Tried before, none of which removed the promotion (all still `push ebx`): a
-// `result` local assigned on both paths; a `result` initialised with the rect
-// next to the copy; a pointer local holding the rect; the copy through a local
-// pointer, through `int*` indexing, through an inlined `CopyRect` helper and
-// through a copy constructor; a field-by-field copy and the copy in both field
-// orders; a pointer return type and a `void*` return type; a reference
-// parameter with `&rect`; the two branch orders; `if (g->flags & 1) { ... }`
-// instead of an early return; the whole body in nested blocks; the clip result
-// in a local; the locked arm and the else arm each wrapped in an inlined
-// helper; and moving the copy after the engine call.
+// What still differs: only register choice and load order inside the two
+// argument blocks. Else arm: the original loads r.top before pushing
+// field_cc and r.bottom after (so field_cc goes in edx), ours loads r.bottom
+// first (field_cc in eax). Locked arm: the original evaluates strictly right
+// to left (field_cc, then bottom/top, right/left, then pitch and pixels in
+// registers), ours hoists the height loads above the field_cc load and folds
+// pixels as a memory operand (2 bytes short). None of these changed a single
+// byte: every spelling of width, height and dst (including parenthesised
+// pointer offsets); w/h/dst as locals in all orders; pointer, int, unsigned
+// and long types for dst, pixels, pitch, the rect fields and the table;
+// variadic, extern "C" and int-returning prototypes for FUN_004cced5;
+// inline blit helpers taking (surface, rect, table) or (surface, rect, game);
+// the header sets from tools/headers.py; and the flags /G3 to /G5, /Ox, /Ob1,
+// /Oa, /Ow and /Op (diagnosis only). Helpers taking the pixel pointer as a
+// scalar parameter (69.1) or doing the clip inside (57.3) are worse, and
+// `short` argument types change the loads themselves. FUN_004cced5
+// (hand-written assembly) has no other callers to copy the spelling from.
 
 #include <windows.h>
 
@@ -90,16 +56,6 @@ struct Surface_004bfe10 {
     int pitch;                         // +0x8
     unsigned char* pixels;             // +0xc
     char unknown_10[0x30 - 0x10];
-};
-
-// The locked screen is read through a different field list than the surface
-// argument: the pitch comes from +0xc and the pixel base from +0x10, one
-// dword higher than Surface_004bfe10 (see the bug note in the header).
-struct Screen_004bfe10 {
-    char unknown_0[0xc];
-    int pitch;                         // +0xc
-    unsigned char* pixels;             // +0x10
-    char unknown_14[0x30 - 0x14];
 };
 
 struct Game_004bfe10 {
@@ -122,22 +78,24 @@ int __stdcall FUN_004bfe10(Surface_004bfe10* surface, Rect_004bfe10* rect)
     Game_004bfe10* g = FUN_004b6220();
     if ((g->flags & 1) == 0)
         return 0;
+    int result;
+    int status;
     if (surface == 0) {
         Surface_004bfe10 screen;
-        int locked = FUN_004c5e70(&screen);
-        if (locked != 0) {
+        result = FUN_004c5e70(&screen);
+        if (result != 0) {
             if (FUN_004bf620(&screen, &r))
-                FUN_004cced5((int)screen.pixels + r.top * screen.pitch + r.left,
+                FUN_004cced5(r.top * screen.pitch + r.left + (int)screen.pixels,
                              screen.pitch, r.right - r.left + 1,
                              r.bottom - r.top + 1, g->field_cc);
             FUN_004c5fa0(&screen);
         }
-        return locked;
     } else {
         if (FUN_004bf620(surface, &r))
             FUN_004cced5((int)surface->pixels + r.top * surface->pitch + r.left,
                          surface->pitch, r.right - r.left + 1,
                          r.bottom - r.top + 1, g->field_cc);
+        result = status;
     }
-    return (int)rect;
+    return result;
 }

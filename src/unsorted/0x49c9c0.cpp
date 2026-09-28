@@ -11,14 +11,29 @@
 // time with the 0x49c920 helper, then play the firing and "RockUnit" sounds
 // and animations. Returns 0 when the array is full.
 //
-// A second pass added these and none of them moved the allocation: caching
-// p3's three fields in int locals so the pointer is dereferenced once (74.6%),
-// caching `(fire->f_1b >> 2) & 3` in a local so the unit is dereferenced fewer
-// times in the tail block (65.6%), and both together (65.6%). The first is
-// neutral and the second actively hurts, which is consistent with the wanted
-// allocation being one where `unit` holds the third callee-saved register and
-// `p3` is rematerialised from its argument slot, i.e. the opposite of what
-// caching the unit's fields pushes towards.
+// A previous note in this file said the original keeps p3 in its argument slot
+// and that the two later reads of that slot (0x49caff and 0x49cc00) return dz.
+// That is wrong, and it matters, because it pointed the wrong way. Counting esp
+// properly (E0 = esp just after the four prologue pushes, so the arguments sit
+// at E0+0x14 .. E0+0x24): the dz store at 0x49ca59 has two pushes outstanding,
+// so it writes E0+0x14, the dead `fire` argument slot, and the fild at 0x49ca62
+// reads the same place. The read at 0x49caff also has two pushes outstanding and
+// so reads E0+0x14, that is dz, which is what `FUN_004b7123` really is passed.
+// The read at 0x49cc00 has no pushes outstanding, reads E0+0x1c, and is p3, which
+// is what `FUN_004729d0` really is passed. So p3's own slot is never overwritten
+// and the source below is right: dz to FUN_004b7123, p3 to FUN_004729d0.
+//
+// Full slot map, original against this build (E0 relative, all four are dead
+// argument slots reused by a local):
+//            dx        dy        dz        a2
+//   original E0+0x18   E0+0x20   E0+0x14   E0+0x14
+//   this one E0+0x20   E0+0x1c   E0+0x14   E0+0x14
+// dz and a2 agree. dx and dy differ only because unit's slot is free in the
+// original (unit is in a register there) and taken here.
+//
+// Caching p3's three fields in int locals is neutral (74.6%), caching
+// `(fire->f_1b >> 2) & 3` in a local is not (65.6%), and both together are not
+// (65.6%).
 //
 // Two details are needed to get the numbers right:
 //   - `dy` has to be a 4-byte union: the original reads only its high half,
@@ -28,20 +43,44 @@
 //   - the second FUN_004b715a argument is `(short)(dist >> 16)` with a
 //     *logical* shift (`shr eax, 0x10`), so `dist` is unsigned.
 //
-// Still differs: MSVC 5 gives the third callee-saved register to p3 and leaves
-// the unit pointer in a scratch register, while the original gives it to the
-// unit pointer and keeps p3 in its incoming argument slot (re-read three
-// times, at 0x49ca39, 0x49caff and 0x49cc00). The register pool only has
-// room for three of the four pointer parameters, so exactly one of them is
-// left in memory, and this build picks the other one. That flips the register
-// in the argument loads at the top of the function, the two slots dx/dy take
-// from the dead argument slots (dx+0x18/dy+0x20 in the original, dx+0x20/
-// dy+0x1c here) and every later use of those registers. Tried and rejected:
-// all six declaration orders of dx/dy/dz, references and void* for every
-// parameter, const, a local copy of p3, static inline helpers for the
-// difference block, for the allocation block and for the two inlined helpers,
-// three-element structs and arrays for the differences, moving the f_3e store,
-// and unsigned/int variants of dist: all compile to the same allocation.
+// Still differs: exactly one register. MSVC 5 gives the third callee-saved
+// register to p3 and leaves the unit pointer in its argument slot, while the
+// original gives it to the unit pointer and keeps p3 in its argument slot, from
+// which it is rematerialised (0x49ca39 for the three field reads, 0x49cc00 for
+// the last call). Every other callee-saved register agrees in both builds:
+// esi = proj, edi = fire, ebx = p4, then a1, then a. The whole gap is the
+// ebp tie-break between `unit` and `p3`.
+//
+// The matching sibling 0x49cc20 has the same tail block and does put `unit` in
+// ebp, with its two forwarded position pointers left in scratch registers and
+// the fourth callee-saved register (ebx) holding the constant 0 that its three
+// zero stores share. So the wanted allocation is reachable; the difference is
+// this function's difference block, which needs p3 in a register here.
+//
+// Diagnostic that pins the mechanism down: passing p4 instead of p3 to the final
+// FUN_004729d0, so p3's range ends early, moves `unit` into ebp, but then p3
+// takes ebx and p4 is the one left in a scratch register. So the outcome is a
+// colouring tie-break rather than a priority order: unit beats p4, p3 beats
+// unit, and the original needs unit to beat p3. Nothing that shifts pressure
+// elsewhere in the function moves it.
+//
+// Tried in this pass, all 74.6% (that is, the identical allocation) unless
+// noted: the reference-returning accessor helpers of the guide's 0x4e2ab0 note
+// on every chain through `fire` and `unit`; p3 and p4 as `int*` with index
+// syntax; p3 as a reference; the unit pointer from proj->unit hoisted to
+// function scope; every local hoisted to the top of the function; dz computed
+// first; a2 as `int`; p3, p4 and unit each declared `int` and cast at every
+// use; a local copy of p3 used everywhere except the FUN_0049c740 push; a
+// local copy of p3 used only by the last call; a local copy of unit for the
+// whole tail; the tail block as a `static inline` helper taking (unit, fire);
+// just the angle expression as a `static inline` helper; unit->anims cached in
+// a local; N unused `extern int` declarations in front for N = 1 to 8; and
+// all 128 header sets of tools/headers.py. Two things did move and both were
+// worse: passing dz to both later calls instead of p3 (73.0%, dz then takes
+// p3's register and the tail reads still differ) and dz computed before dx
+// (71.0%). The previous pass had already rejected the declaration orders of
+// dx/dy/dz, references and void* for every parameter, const, arrays and structs
+// for the differences, and unsigned/int variants of dist.
 #include <math.h>
 
 struct Vec3_0049c9c0 {

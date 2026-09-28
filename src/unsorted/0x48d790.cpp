@@ -1,48 +1,32 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL: check.py says 57.1% (many of the lost lines are only shifted jump
-// targets). What is solved: the team index multiply (element size is 0x14b, not
-// 0x14a: that is what gives "add edx,ecx" plus the eax*2 scale), the float
-// and field_fb tests, the 0xffffff2f clearing loop (an inlined 0x48bd00), the
-// second scan with the dword owner test, and "shr ecx,4; test cl,1" for the
-// 0x10 bit (a 1-bit bitfield at +0x114 of the flags dword, not a mask: a mask
-// gives "test cl,0x10").
-// What still differs, all of it register allocation:
-//  1. The "first match" pointer is spilled (extra "push ecx", [esp+0x10] load
-//     and store) instead of living in ebx, so the function has 5 prologue
-//     pushes. Removing the `t` local makes MSVC put the pointer in ebp and drop
-//     the stack slot, but then the "lea ebp,[edx+eax*2+0x1b63]" and the
-//     [ebp+0x6b] end load of the second loop disappear, so it is not a win.
-//  2. Because the pointer is spilled, MSVC hoists the 0x40 mask out of the
-//     first loop into bl ("mov bl,0x40") and uses 0x40000000 out of the second
-//     loop into edx; the original keeps both as immediates because all four
-//     callee-saved registers are taken (ebx first match, ebp team, esi cursor,
-//     edi g_game). Writing the same 0x40 test in the second loop as well (so
-//     the constant has two uses) stops the hoist, but then the second loop gets
-//     a byte test instead of the original's dword test.
-//  3. My "lea ebp,[edx+eax*2]" folds the 0x1b63 into the member access
-//     ([ebp+0x1bce]); the original keeps 0x1b63 in the lea and +0x6b in the
-//     access. No declaration order of the three cursor statements changes it.
-//  4. In the clearing loop the original uses edi as the value temporary (so
-//     g_game has to be reloaded into edi after the call), mine uses edx.
-//  5. The 0x10 mask: the original materialises it in edx at the merge point of
-//     the two scans ("mov edx,0x10", then "or eax,edx" and
-//     "or word ptr [edi+0x37ebe],dx"); mine rematerialises the immediate, which
-//     also narrows the game flag store to a byte. This follows from (1): with
-//     ebx free, MSVC gives it to the 0x10 mask instead.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL: check.py says 67.6%. What is solved: the team index multiply
+// (element size 0x14b), the float and field_fb tests, the 0xffffff2f clearing
+// loop (an inlined 0x48bd00), "shr ecx,4; test cl,1" for the 0x10 bit (a
+// 1-bit bitfield at bit 4 of the flags dword), and, most importantly, the
+// owner test: BOTH scans test `owner->flags & 0x40000000`, and MSVC narrows
+// the first one to a byte test (`test byte ptr [eax+0x113], 0x40`) on its own.
+// With that the first-match pointer stays in ebx across the call, the 0x10
+// mask lands in edx, and the clearing loop uses edi as its temporary, exactly
+// as the original.
+// What still differs:
+//  1. The team pointer: the original materialises ebp as base+0x1b63
+//     ("lea ebp,[edx+eax*2+0x1b63]") and reads the second scan's end at
+//     [ebp+0x6b]; MSVC here materialises the bare base ("lea ebp,[edx+eax*2]")
+//     and reads [ebp+0x1bce]. The two spellings are the same address, so this
+//     is a CSE tie-break: no declaration order, reference, char* cast or
+//     inline helper tried (about 25 forms) flips it.
+//  2. The two exits are emitted in the other physical order: the original puts
+//     the second scan's in-loop `return` block (esi path) before the
+//     `found->flags |= 0x10` block (ebx path); here the ebx path comes first
+//     and falls into the shared `g_game->flags |= 0x10`. The pop scheduling in
+//     the esi path differs with it.
 #pragma pack(push, 1)
 
-// The object at +0x86 of a unit. Both loops test the same bit (bit 30 of the
-// dword at +0x110), but the first one reads it as a byte, so the field is
-// spelled both ways here.
+// The object at +0x86 of a unit. Bit 30 of the flags dword at +0x110 is the
+// same bit the first scan tests as byte [owner+0x113] & 0x40.
 struct Owner_0048d790 {
     char unknown_0[0x110];
-    union {
-        unsigned int flags;                            // +0x110
-        struct {
-            unsigned char unknown_111[3];
-            unsigned char bit30;                       // +0x113
-        } bytes;
-    } u;
+    unsigned int flags;                // +0x110
 };
 
 struct Unit_0048d790 {
@@ -102,7 +86,7 @@ void __stdcall FUN_0048d790(void)
         if (u->u.flags & 0x20) {
             if (u->field_104 == 0.0f && u->field_fb == 0) {
                 Owner_0048d790* owner = u->owner;
-                if (owner == 0 || (owner->u.bytes.bit30 & 0x40)) {
+                if (owner == 0 || (owner->flags & 0x40000000)) {
                     if (found == 0) {
                         found = u;
                     }
@@ -124,7 +108,7 @@ void __stdcall FUN_0048d790(void)
         for (u++; u <= t->end; u++) {
             if ((u->u.flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0) {
                 Owner_0048d790* owner = u->owner;
-                if (owner == 0 || (owner->u.flags & 0x40000000)) {
+                if (owner == 0 || (owner->flags & 0x40000000)) {
                     u->u.flags |= flag;
                     g_game->field_37e9c = 0;
                     g_game->flags |= flag;

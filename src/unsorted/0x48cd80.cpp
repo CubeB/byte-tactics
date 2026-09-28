@@ -1,4 +1,16 @@
 // Decompiled by mimo-v2.6-flash. Names are provisional.
+//
+// Not matched: 90.4% (432 bytes vs 428). The prologue and all of branch A
+// match byte for byte. The whole remaining diff comes from branch B reading
+// dx via g_game->view.x instead of through p, which costs 4 bytes at the px
+// load (mov edi,[eax+0x2c76] vs mov esi,[esi]) and so shifts every jump
+// target after it by +4, and mirrors py/px into the opposite registers:
+// - preheader loads count2 into ECX before list2 (original loads list2 first)
+// - mov esi,[esi+4]; mov edi,[eax+0x2c76] vs original mov edi,[esi+4]; mov esi,[esi]
+// The original also reads both loop deltas through p while keeping p in ESI
+// (lea esi for the branch A arg, lea esi in the preheader). No variant could
+// produce p in ESI with both branch B reads through p; every source that got
+// both reads via p (q = p, v = p, extra copies) put p in EDi instead.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {
@@ -79,7 +91,7 @@ unsigned short __stdcall FUN_0048cd80(void)
                     UnitDef_0048cd80* def = u->def;
                     int v = FixMul(def->field_17a, 0x8000) + def->field_17e;
                     v = FixMul(v, def->field_176);
-                    if (v < best && p->x >= 0) {
+                    if (v < best) {
                         result = u->field_a8;
                         best = v;
                     }
@@ -90,11 +102,9 @@ unsigned short __stdcall FUN_0048cd80(void)
         Slot_0048cd80* s = g_game->list2;
         int n = g_game->count2;
         int best = 99999;
-        int py = p->y;
-        int px = p->x;
         for (int i = n; i > 0; i--) {
-            int dy = s->y - py;
-            int dx = s->x - px;
+            int dy = s->y - p->y;
+            int dx = s->x - g_game->view.x;
             int d = dx * dx + dy * dy;
             if (d < 4 && d < best) {
                 best = d;

@@ -7,3 +7,4 @@ std::copy,0x470a40,"second instantiation (14-byte Elem_0046faf0, /Gz); the check
 PAUUnit::?$vector::insert,0x408f30,"overload: insert(iterator, size_type, const T&); insert(iterator, const T&) is 0x48ddc0, and the checker gives both one name"
 exception::exception,0x4e8230,"overload: the copy constructor exception(const exception&); the default constructor is 0x4e8190, and the checker gives both one name"
 std::logic_error::logic_error,0x4c35c0,"overload: logic_error(const string&); the copy constructor is 0x4c3950, and the checker gives both one name"
+exception::exception,0x4e81d0,"overload: exception(const char* const&); the default constructor is 0x4e8190 and the copy constructor 0x4e8230"

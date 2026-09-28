@@ -1,68 +1,36 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
 //
-// 79.4 percent. Everything in the loop body matches except the register the
-// reload-time maximum lives in: the original keeps it in its frame slot at
-// +0x14 and reloads it into ebx for the two calls, while this version keeps
-// it in ebp and puts the array induction variable in ebx. Everything the
-// difference cascades into follows from that (the team byte in bl vs cl, the
-// `sub edx, ebx` operand order, `and al, 0xfd` moving one instruction, and
-// the `lea eax, [eax+eax*4]` chain after the loop reloading the maximum).
+// Sets up a unit's three weapon slots: clears each slot's word at +0x8, stores
+// the slot's `attached` unit from the type's attached[3] array into +0x0,
+// encodes the slot index into flags bits 2-3 and whether the attached unit's
+// team is non-zero into bit 3, then asks for the weapon's aim from the unit's
+// position (0x43e240) and from the target direction (0x43e2e0), storing the
+// pitch difference between the two as the reload time at +0x4. The largest
+// reload time over the three slots is handed to the script as
+// "SetMaxReloadTime" in ticks (maxTime * 1000 / 30).
 //
-// What the register allocator is doing (worth knowing before trying more
-// shapes): the callee-saved pool is taken in the order edi, esi, ebp, ebx.
-// Both versions give edi to the unit pointer and esi to the walking slot
-// pointer. The original then gives ebp to the strength-reduced `i * 4` and
-// leaves the maximum in memory, even though ebx is then free for the whole
-// body (it only holds the team byte and the reloaded maximum). So the
-// original's maximum was never a register candidate at all, while here it is
-// considered before the induction variable and takes ebp. The frame layout
-// (+0x0 counter byte, +0x4 maximum, +0x8 and +0x14 the two Vec3s) matches.
+// What made this match (the previous 79.4 percent version had the maximum in
+// ebp and the index in ebx, i.e. the opposite of the original):
 //
-// Everything tried to keep the maximum in memory, all of which MSVC 5
-// promotes back into a callee-saved register: an `int *` to the member, an
-// `int&` parameter on a static inline helper, `memset(&frame, 0, 8)`, a
-// one-element local array of the struct, a struct returned by value from an
-// inline helper, a class with a user-defined constructor (the /Ob2 inliner
-// expands it and the address-taken flag is then dropped), and a helper whose
-// body is too big to fold away. Two shapes do move it into memory but cost
-// more elsewhere: a by-value `Acc Bump(Acc, int)` helper puts the maximum in
-// edi and moves the unit pointer to ebp (62 percent), and storing the address
-// in a file-scope static leaves the store in the code (36 percent). Also
-// tried, all 79.4 percent: separate locals instead of the shared 8-byte
-// struct, `while` and `do` loops, the update first in the body, a swapped
-// comparison, a `unsigned short` temporary, a two-element Vec3 array, the
-// Vec3s declared before the loop, and a `long` maximum. See the note on
-// Frame_0049e070 below for what the slot order depends on.
+// - The third argument of FUN_0043e240 / FUN_0043e2e0 is the loop index, not
+//   the reload-time maximum. The parameters are `unsigned char` (see
+//   0x43e240.cpp and 0x49d910.cpp), and for a char parameter MSVC 5 passes the
+//   dword at the char's stack slot without widening it, so the original's
+//   `mov ebx, [esp + 0x14]` at 0x49e0d1 (esp is 4 lower there because arg 4 was
+//   pushed first) reads the loop counter's slot. Declaring the third parameter
+//   `int` instead makes the compiler hoist the counter into a register.
+// - Folding the `...->team` read directly into the second flags expression,
+//   with no named team temporary, is what keeps the weapon-index load late
+//   (`mov ebx, [esp + 0x14]` after `setne dl`) and the team byte in bl. With a
+//   named temporary the allocator grabs ebx for the weapon value and the team
+//   lands in cl, dragging the load and the push order with it.
+// - Putting `s->field_e = 0` after the second flags assignment is what places
+//   the byte store at 0x49e0c8, between the team load and the test. Before the
+//   flags assignment it is hoisted above the `attached` store.
 //
-// Later pass, three more attempts, all worse, so do not repeat:
-// - A single temp for the two call arguments, `int m = frame.maxTime;` then
-//   passing `m` to both calls. This looks right, because the original loads
-//   ebx from [esp+0x14] once at 0x49e0d1 and pushes that same value for both
-//   calls, but MSVC promotes the temp to ebp and drops the memory slot for
-//   maxTime entirely (`xor ebx,ebx` replaces the initialising store), so the
-//   maximum ends up wholly in a register, which is the opposite of the
-//   original. 79.4 percent with a different cascade.
-// - `volatile int maxTime` as a member of Frame_0049e070. The evidence looks
-//   right (every write to the original's slot goes to memory and all three
-//   reads re-load it), but making one member volatile changes how the shared
-//   8-byte local is handled: the counter is then kept in bl rather than
-//   round-tripped through [esp+0x10], and the Vec3 slots shift. 75.4 percent.
-// - The same as a separate `volatile int` local instead of a struct member:
-//   68.1 percent.
-//
-// So the memory residency of the maximum is not something the source can ask
-// for directly, and it is not a volatile effect. It is a by-product of the
-// register auction: the induction wins ebp, and once the maximum has lost that
-// auction there is no callee-saved register left to hold it across the two
-// calls, so it stays in its slot and ebx (free between uses) carries it. The
-// lever, if there is one, has to make the induction outrank the maximum in the
-// auction without adding register pressure of its own.
-//
-// Note: the third argument of FUN_0043e240 and FUN_0043e2e0 is the weapon
-// index (see 0x43e240.cpp and 0x49d910.cpp, where it indexes a three-entry
-// name array), and this function passes the reload-time maximum there. That
-// looks like a mistake in the original: the maximum is a time, not a weapon
-// number, and anything above 2 indexes past "Tertiary".
+// The frame layout depends on the counter byte and the maximum sharing one
+// 8-byte local (`Frame_0049e070`, initialized `{0, 0}`). Two separate locals
+// put the counter in a slot of its own and shift the Vec3s.
 #include <windows.h>
 
 struct Vec3_0049e070 {
@@ -109,16 +77,15 @@ struct Unit_0049e070 {
 };
 #pragma pack(pop)
 
-// The loop counter and the reload-time maximum share one 8-byte local. Two
-// separate locals leave the counter a slot of its own at the top of the
-// frame, which shifts every other slot down by four.
+// The loop counter and the reload-time maximum share one 8-byte local; the
+// counter sits at +0x0 and the maximum at +0x4.
 struct Frame_0049e070 {
     unsigned char i;                  // +0x0
     int maxTime;                      // +0x4
 };
 
-void __stdcall FUN_0043e240(Unit_0049e070*, Vec3_0049e070*, int, int);
-void __stdcall FUN_0043e2e0(Unit_0049e070*, Vec3_0049e070*, int);
+void __stdcall FUN_0043e240(Unit_0049e070*, Vec3_0049e070*, unsigned char, int);
+void __stdcall FUN_0043e2e0(Unit_0049e070*, Vec3_0049e070*, unsigned char);
 
 // FUNCTION: 0x49e070
 void __stdcall FUN_0049e070(Unit_0049e070* unit)
@@ -129,16 +96,12 @@ void __stdcall FUN_0049e070(Unit_0049e070* unit)
         s->field_8 = 0;
         s->flags = (s->flags & 0xf2) | ((frame.i & 3) << 2);
         s->attached = unit->type->attached[frame.i];
-        // Read into a local: that is what keeps the byte load in a register
-        // between the +0xe store and the test, instead of folding it into a
-        // compare against memory.
-        unsigned char team = unit->type->attached[frame.i]->team;
+        s->flags = (s->flags & 0xfd) | (((unit->type->attached[frame.i]->team != 0) & 1 | 8) * 2);
         s->field_e = 0;
-        s->flags = (s->flags & 0xfd) | (((team != 0) & 1 | 8) * 2);
         Vec3_0049e070 a;
-        FUN_0043e240(unit, &a, frame.maxTime, -1);
+        FUN_0043e240(unit, &a, frame.i, -1);
         Vec3_0049e070 b;
-        FUN_0043e2e0(unit, &b, frame.maxTime);
+        FUN_0043e2e0(unit, &b, frame.i);
         s->field_4 = (a.z - b.z) * 1.25;
         if (s->attached->field_e4 > frame.maxTime)
             frame.maxTime = s->attached->field_e4;

@@ -2406,6 +2406,7 @@ address,name
 0x4bee60,FUN_004bee60
 0x4befe0,FUN_004befe0
 0x4bf4d0,FUN_004bf4d0
+0x4bf620,FUN_004bf620
 0x4bf6f0,FUN_004bf6f0
 0x4bf7b0,FUN_004bf7b0
 0x4bf8c0,FUN_004bf8c0
@@ -2617,6 +2618,7 @@ address,name
 0x4cc51d,FUN_004cc51d
 0x4cc7ab,FUN_004cc7ab
 0x4cc8df,FUN_004cc8df
+0x4ccdea,FUN_004ccdea
 0x4cd9b0,FUN_004cd9b0
 0x4cd9c0,Class_004cd9c0::FUN_004cd9c0
 0x4cd9d0,Class_004cd9d0::FUN_004cd9d0

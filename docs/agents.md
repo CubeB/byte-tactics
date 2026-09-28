@@ -630,6 +630,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #509 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
 | #537 | gpt-5.6-terra | 2 | 0 | 0 | n/a | n/a | n/a |
 | #609 | space-bunny-free | 4 | 1 | 0 | n/a | n/a | n/a |
+| #609 | space-bunny-free | 4 | 1 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

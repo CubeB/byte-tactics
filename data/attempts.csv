@@ -3719,3 +3719,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x4bcb50,442,,#870,assigned,,,"issue #870, escalated"
 0x4bcf80,454,,#870,assigned,,,"issue #870, escalated"
 0x4bd160,580,,#870,assigned,,,"issue #870, escalated"
+0x4bcb50,442,,#873,assigned,,,"issue #873, escalated"
+0x4bcf80,454,,#873,assigned,,,"issue #873, escalated"
+0x4bd160,580,,#873,assigned,,,"issue #873, escalated"

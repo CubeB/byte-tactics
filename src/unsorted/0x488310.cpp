@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
 // Builds the unit list of a recorded game (g_game->net->list) in two passes:
 // one entry per list slot, then the per-unit "extra" strings through
 // FUN_00487bf0, which walks the same list again and looks units up in the
@@ -7,16 +7,13 @@
 // [the player byte][the vector][the sprintf buffer], so the vector has to be
 // 16 bytes with the empty allocator at +0: that is what FUN_00487bf0 and
 // 0x487af0 read as Table_00488310's +0 and +4.
-// Still differs (85%): (1) the player check materialises g_game + 331*pl and
-// leaves the array's 0x1b63 displacement in the field offsets, where the
-// original keeps it in the lea and uses +0x73/+0x146; a named Player* gives
-// the original's offsets but costs a frame slot. (2) The original keeps the
-// zero-extension of the entry's flag byte (xor eax,eax; mov al; and al, 0x80)
-// where this folds it into a dword and, because the store then sinks, the
-// f108 multiply picks the other register. Both look like the original's
-// expression went through a byte-typed temporary I could not find a phrasing
-// for.
+// Two apparently cosmetic things decide the byte match, so do not tidy them
+// away: the mask on e->flags is 0xffffff80, not 0x80, because MSVC 5 narrows a
+// 0xFFFFFFxx mask to `and al` and so keeps the xor eax,eax / mov al
+// zero-extension (0x80 gives a 5-byte dword and), and <math.h> is included
+// because dropping it moves the f108 multiply onto the other register.
 #include <stdio.h>
+#include <math.h>
 #include <memory>
 
 struct Unit;
@@ -149,6 +146,7 @@ void __stdcall FUN_004b6290(char* message);
 // FUNCTION: 0x488310
 void __cdecl FUN_00488310()
 {
+    Player_00488310* p;
     char buf[100];
     int n = g_game->net->count;        // only the constructor takes it; the
     std::vector<Unit*> units(n);       // loops re-read net->count themselves
@@ -161,17 +159,16 @@ void __cdecl FUN_00488310()
         }
         unsigned char pl = (unsigned char)(e->player - 1);
         if (pl >= 10
-            || g_game->players[pl].active == 0
-            || (g_game->players[pl].type != 1 && g_game->players[pl].type != 2
-                && g_game->players[pl].type != 3)
-            || g_game->players[pl].f146 == 10) {
+            || (p = &g_game->players[pl], g_game->players[pl].active == 0)
+            || (p->type != 1 && p->type != 2 && p->type != 3)
+            || p->f146 == 10) {
             sprintf(buf, "Player number %d invalid for unit %s", e->player, e->name);
             FUN_004b6290(buf);
         }
         FUN_0047ddc0(item, &e->pos);
         Unit* u = FUN_00485f50((unsigned char)(e->player - 1), item->id, e->pos, 1, 1, 0);
         if (u) {
-            u->flags = (u->flags & ~0x8000) | ((e->flags & 0x80) << 8);
+            u->flags = (u->flags & ~0x8000) | ((e->flags & 0xffffff80) << 8);
             u->f108 = (unsigned short)((unsigned)(u->def->f1fa * e->f1a) / 100);
             u->f66 = e->f18;
             units[i] = u;

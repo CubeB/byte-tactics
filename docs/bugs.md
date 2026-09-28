@@ -361,6 +361,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x47bf70** (possible): passes a 16-bit field (`mov cx, word ptr
+  [eax+0x370]` at 0x47c111) to smackw32.dll ordinal 5 with `push ecx`, and the
+  upper half of `ecx` still holds a pointer from 0x47c0ea, so the call gets
+  garbage in its high 16 bits; harmless only if the callee reads a 16-bit
+  value. Found by Space Bunny Free in #819.
 - **0x4394e0** (likely): of four `idiv` sites, the division by the word at
   +0x2c is floored to 1 (`cmp; jae; mov ..., 1`), but the very next one, by
   the zero-extended word at +0x00, has no guard, so a record with 0 there

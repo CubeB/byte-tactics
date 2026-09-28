@@ -3415,10 +3415,10 @@ address,size,model,batch,result,similarity,runs,notes
 0x46d6c0,416,,#601,assigned,,,"issue #601, escalated"
 0x46e640,546,,#601,assigned,,,"issue #601, escalated"
 0x4a4c90,215,,#605,assigned,,,"issue #605, escalated"
-0x4b8500,465,,#607,assigned,,,issue #607
-0x4b86e0,481,,#607,assigned,,,issue #607
-0x4b88d0,427,,#607,assigned,,,issue #607
-0x4b8ec0,475,,#607,assigned,,,issue #607
+0x4b8500,465,mimo-v2.6-pro,#607,matched,100.0,,issue #607
+0x4b86e0,481,mimo-v2.6-pro,#607,matched,100.0,,issue #607
+0x4b88d0,427,mimo-v2.6-pro,#607,matched,100.0,,issue #607
+0x4b8ec0,475,mimo-v2.6-pro,#607,matched,100.0,,issue #607
 0x4b91b0,423,space-bunny-free,#608,partial,45.6,,issue #608
 0x4ba000,430,space-bunny-free,#608,partial,98.7,,issue #608
 0x4bb2e0,506,space-bunny-free,#608,matched,100.0,,issue #608

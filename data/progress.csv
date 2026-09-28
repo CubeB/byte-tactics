@@ -2307,6 +2307,9 @@ address,size,file,symbol,status,similarity
 0x4b7f90,439,src/unsorted/0x4b7f90.cpp,?FUN_004b7f90@@YGXPAVClass_004c6ae0@@PAUBitmap_004b7f90@@HH@Z,matched,100.0
 0x4b8150,436,src/unsorted/0x4b8150.cpp,?FUN_004b8150@@YGXPAVClass_004c6ae0@@PAUBitmap_004b8150@@HH@Z,matched,100.0
 0x4b8310,484,src/unsorted/0x4b8310.cpp,?FUN_004b8310@@YGXPAVClass_004c6ae0@@PAUSprite_004b8310@@HHH@Z,matched,100.0
+0x4b8500,465,src/unsorted/0x4b8500.cpp,?FUN_004b8500@@YGXPAVClass_004c6ae0@@PAUSprite_004b8500@@HH@Z,matched,100.0
+0x4b86e0,481,src/unsorted/0x4b86e0.cpp,?FUN_004b86e0@@YGXPAVClass_004c6ae0@@PAUBitmap_004b86e0@@HH@Z,matched,100.0
+0x4b88d0,427,src/unsorted/0x4b88d0.cpp,?FUN_004b88d0@@YGXPAVClass_004c6ae0@@PAUBitmap_004b88d0@@HHH@Z,matched,100.0
 0x4b8a80,89,src/unsorted/0x4b8a80.cpp,?FUN_004b8a80@@YGXPAUSurface_004b8a80@@PAUSrc_004b8a80@@@Z,matched,100.0
 0x4b8ae0,69,src/unsorted/0x4b8ae0.cpp,?FUN_004b8ae0@@YGXPAUDst_004b8ae0@@PAUSrc_004b8ae0@@@Z,matched,100.0
 0x4b8b30,81,src/unsorted/0x4b8b30.cpp,?FUN_004b8b30@@YGXPAURef_004b8b30@@PAUSrc_004b8b30@@H@Z,matched,100.0
@@ -2317,6 +2320,7 @@ address,size,file,symbol,status,similarity
 0x4b8da0,83,src/unsorted/0x4b8da0.cpp,?FUN_004b8da0@@YGPAUClass_004b8da0@@IHH@Z,matched,100.0
 0x4b8e00,77,src/unsorted/0x4b8e00.cpp,?FUN_004b8e00@@YGPAUBitmap_004b8e00@@IHH@Z,matched,100.0
 0x4b8e50,104,src/unsorted/0x4b8e50.cpp,?FUN_004b8e50@@YGXPAUBitmap_004b8e50@@H@Z,matched,100.0
+0x4b8ec0,475,src/unsorted/0x4b8ec0.cpp,?FUN_004b8ec0@@YGXPAVClass_004c6ae0@@PAUBitmap_004b8ec0@@HH@Z,matched,100.0
 0x4b90a0,260,src/unsorted/0x4b90a0.cpp,?FUN_004b90a0@@YGXPAUBitmap_004b90a0@@0HHH@Z,partial,82.8
 0x4b91b0,423,src/unsorted/0x4b91b0.cpp,?FUN_004b91b0@@YGPAEHHH@Z,partial,45.6
 0x4b9360,341,src/unsorted/0x4b9360.cpp,?FUN_004b9360@@YGXPAXPAUSprite_4b9360@@HH@Z,partial,83.1

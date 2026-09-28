@@ -1,79 +1,106 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL (18.2%, best of 3 check.py runs; see notes below).
-// Two lookups: is the cell at (x,y) or at (x+dx,y+dy) visible in the player's
-// fog map?  When the game flag at g_game+0x14281 has bit 1 set the per-player
-// byte map at +0x7c is used, otherwise the shared visibility bit mask at
-// +0x14273 with this player's bit (g_game+0x2a43).
-// What still differs from the original:
-//  - The original zeroes three dword locals in its prologue that it never
-//    reads (sub esp,0xc; xor eax,eax; mov [esp],eax; ... mov [esp+8],eax;
-//    ... mov [esp+0x14],eax, interleaved with the register pushes).  No
-//    source I tried reproduces those three dead stores.
-//  - It loads the flags as a word (mov ax, word ptr [ecx+0x14281]) while
-//    every spelling of `flags & 2` I tried narrows that load to a byte; the
-//    original's 16-bit and/compare/store say the field is 16-bit there.
-//  - It shifts 32-bit (movsx edx,di; sar edx,5; movsx ecx,bx; sub ecx,esi;
-//    sar ecx,5); mine narrows the shift to 16 bits and sign-extends the
-//    result instead, whichever of int or short locals I use.
-//  - It materialises the first point's 0/1 result branchily into edx
-//    (mov edx,1 / xor edx,edx / test edx,edx) with one shared zero block
-//    for both range checks and the grid byte; mine uses setne.
-
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL (82.2%, best of many scratch scorings; see notes below).
+// Is point (x, y) or point (x+dx, y+dy) visible to the local player?  The
+// 12-byte Position local (6 shorts, x/y/z among them) is zeroed with an
+// inlined memset and then filled from the arguments; the compiler promotes the
+// fields to registers but keeps the three dead zero dword stores, which is the
+// only source spelling that reproduces the original prologue.  When bit 1 of
+// the game flags word at g_game+0x14281 is set the player's explored byte map
+// at +0x7c (width +0x80, height +0x84) is used, otherwise the shared
+// visibility bit mask at +0x14273 with this player's bit (g_game+0x2a43).
+// The `Map_004658e0* m = map;` local and `char vis` (a 1-byte result) are what
+// finally put g_game in ecx, the map in eax, pos.x in di, pos.y in bx and
+// h = size>>1 in esi, matching the original's whole register assignment.
+// What still differs from the original (about 17% of the instruction lines):
+//  - The flags test: the original's local is a 16-bit value, so it does
+//    `and ax,2` and spills `mov word [esp+0x24],ax`; ours does `and eax,2`
+//    and `mov dword [esp+0x24],eax` even though the load is the original's
+//    `mov ax,word [ecx+0x14281]` (reading the whole word is required; every
+//    `g_game->flags & 2` form that masks immediately narrows the load to a
+//    byte).  Every declared type tried (short, unsigned short, chained `&=`,
+//    a second `unsigned short` intermediate) still widens the and/spill.
+//  - The explored byte map: ours folds the data pointer into the index add
+//    (`add ebp,[eax+0x7c]`); the original materialises it (`add ebp,edx;
+//    mov edx,[eax+0x7c]`) in both arms.  `Get`/direct indexing/`At(index)` all
+//    fold here; declaring the data pointer as a helper local is much worse.
+//  - The mask arm materialises the short cell in dx (`xor edx,edx;
+//    mov dx,word [ecx+ebp*2]`) where the original uses cx and then
+//    `mov edx,ecx`, so the mask pointer lands in ecx there and edx here.
+//  - The first visibility result is tested with `test dl,dl` (vis is char)
+//    where the original tests `test edx,edx`; `bool`/`int vis` fixes that test
+//    but loses the whole register assignment (69% and 64%).
+#include <string.h>
 #pragma pack(push, 1)
-
+struct MapSize_004658e0 {
+    unsigned int width;
+    unsigned int height;
+    int Contains(unsigned int tx, unsigned int ty) { return tx < width && ty < height; }
+};
+struct ByteMap_004658e0 {
+    unsigned char* data;
+    MapSize_004658e0 size;
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
 struct Map_004658e0 {
     char unknown_0[0x7c];
-    unsigned char* grid;               // +0x7c
-    unsigned int width;                // +0x80
-    unsigned int height;               // +0x84
+    ByteMap_004658e0 explored;
 };
-
 struct Game_004658e0 {
     char unknown_0[0x2a43];
-    unsigned char playerIndex;         // +0x2a43
+    unsigned char playerIndex;
     char unknown_2a44[0x14273 - 0x2a44];
-    unsigned short* visibilityMask;    // +0x14273
+    unsigned short* visibilityMask;
     char unknown_14277[0x14281 - 0x14277];
-    unsigned short flags;              // +0x14281
+    unsigned short flags;
 };
-
 #pragma pack(pop)
-
 extern Game_004658e0* g_game;
-
+struct Pos_004658e0 {
+    short xFrac;
+    short x;
+    short yFrac;
+    short y;
+    short zFrac;
+    short z;
+};
+static inline int IsExplored(Map_004658e0* map, Pos_004658e0* pos)
+{
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (pos->y >> 1)) >> 5;
+    if (map->explored.size.Contains(tx, ty) && map->explored.Get(tx, ty) != 0)
+        return 1;
+    return 0;
+}
+static inline int IsSeen(Map_004658e0* map, Pos_004658e0* pos)
+{
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (pos->y >> 1)) >> 5;
+    if (!map->explored.size.Contains(tx, ty))
+        return 0;
+    return (g_game->visibilityMask[map->explored.size.width * ty + tx] &
+            (1 << g_game->playerIndex)) != 0;
+}
 // FUNCTION: 0x4658e0
 int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, short size)
 {
-    int sx = (short)(x << 4);
-    int sy = (short)(y << 4);
-    unsigned short flag = g_game->flags & 2;
-    int vis;
-    if (flag == 2) {
-        vis = (unsigned int)(sx >> 5) < map->width &&
-              (unsigned int)((sy - (size >> 1)) >> 5) < map->height
-                  ? map->grid[map->width * ((sy - (size >> 1)) >> 5) + (sx >> 5)] != 0
-                  : 0;
-    } else {
-        vis = (unsigned int)(sx >> 5) < map->width &&
-              (unsigned int)((sy - (size >> 1)) >> 5) < map->height
-                  ? (g_game->visibilityMask[map->width * ((sy - (size >> 1)) >> 5) + (sx >> 5)] &
-                     (1 << g_game->playerIndex)) != 0
-                  : 0;
-    }
+    Map_004658e0* m = map;
+    char vis;
+    Pos_004658e0 pos;
+    memset(&pos, 0, sizeof(pos));
+    pos.x = (short)(x << 4);
+    pos.y = size;
+    pos.z = (short)(y << 4);
+    unsigned short flag = g_game->flags;
+
+    if ((flag & 2) == 2)
+        vis = IsExplored(m, &pos);
+    else
+        vis = IsSeen(m, &pos);
     if (vis)
         return 1;
-
-    sx = (short)(sx + (dx << 4));
-    sy = (short)(sy + (dy << 4));
-    if (flag == 2) {
-        if ((unsigned int)(sx >> 5) < map->width &&
-            (unsigned int)((sy - (size >> 1)) >> 5) < map->height)
-            return map->grid[map->width * ((sy - (size >> 1)) >> 5) + (sx >> 5)] != 0;
-        return 0;
-    }
-    if ((unsigned int)(sx >> 5) < map->width &&
-        (unsigned int)((sy - (size >> 1)) >> 5) < map->height)
-        return (g_game->visibilityMask[map->width * ((sy - (size >> 1)) >> 5) + (sx >> 5)] &
-                (1 << g_game->playerIndex)) != 0;
-    return 0;
+    pos.x = (short)(pos.x + (dx << 4));
+    pos.z = (short)(pos.z + (dy << 4));
+    if ((flag & 2) == 2)
+        return IsExplored(m, &pos);
+    return IsSeen(m, &pos);
 }

@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+#include <windows.h>
 // Rescales a radar picture. The picture is first copied into a temp bitmap of
 // its own size, then p is given the new size (x, y) and used as the surface to
 // draw on, and the copy is blitted into it, scaled to fit (w - 0x20) by

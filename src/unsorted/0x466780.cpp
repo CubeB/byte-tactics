@@ -1,7 +1,29 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Rebuilds the radar picture: fits the map onto 126 pixels along its long side,
 // then blits it onto the stored radar frame, or, when there is none, scales the
 // 8x8 icon map up to twice that size through a temporary picture.
+//
+// PARTIAL: 98.4%, same 548 byte length. Only the four-byte hunk at the top of
+// the fill loop and the six-byte hunk at its bottom differ; every instruction
+// is present and in the same registers, only two independent operations are
+// scheduled on opposite sides of each other. What still differs:
+//   1. At 0x466888 the original computes `test ebp, ebp` before it stores the
+//      temp pointer and j = 0: `mov esi, eax; test ebp, ebp; mov [temp], esi;
+//      mov [j], 0; jle`. Ours stores j = 0 first:
+//      `mov esi, eax; mov [j], 0; test ebp, ebp; mov [temp], esi; jle`.
+//   2. At 0x466954 the original does `inc edi` first, then reloads w2/h2, then
+//      compares and only then restores ebx: `inc edi; mov eax, [w2]; mov ebp,
+//      [h2]; cmp edi, eax; mov ebx, eax; jl`. Ours reloads w2/h2, then
+//      `inc edi; mov ebx, eax; cmp edi, eax; jl`.
+// Both are scheduler tie-breaks: over 50 loop shapes (for/while/do-while,
+// guarded and unguarded, pre/post increment, reversed bounds, function-scope
+// counters, countdown forms, inlined index/pixel/body helpers) and all 768
+// header sets headers.py tries, the compiler emits the same two orders. Adding
+// real neighbours (0x4665d0) in the file changes nothing either. The body
+// itself (x, y, index, value, pixel) matches instruction for instruction.
+// <windows.h> is required: without it the `(y / 32) * (rowWidth / 2)`
+// multiply evaluates its operands in the opposite order.
+#include <windows.h>
 
 #pragma pack(push, 1)
 struct Frame_004b8ae0 {

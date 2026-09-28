@@ -13,7 +13,7 @@
 // frees ebp for the outer counter.
 //
 // Suspected original bug: when `to` is -1, FindPlayerIndex returns 10 and the
-// last store goes through players[10].data, one entry past the 10-player
+// last store goes through players[10].data, the spare eleventh slot of the
 // table (a pointer read from g_game+0x2878). Nothing guards the index here,
 // unlike the callers of the same search in 0x44fed0 and 0x452800.
 #pragma pack(push, 1)

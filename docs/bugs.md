@@ -9,6 +9,11 @@ wrong and how sure we are.
 Confidence: **likely** means the code is clearly wrong on its face; **possible**
 means it looks wrong but the intent is not certain from the code seen so far.
 
+`g_game->players` has eleven 0x14b-byte slots (+0x1b63 to +0x299c, where the
+next field starts), not ten, so loops over slots 0 to 10 are not overruns and
+an index of 10 is the spare last slot. An earlier entry here that called those
+loops (0x4453a0, 0x445450) an overrun was withdrawn in #413.
+
 ## Bit writer grows its buffer into a single dword (likely)
 
 **0x415bb0**, also inlined into 0x415c10. `Class_00415b60` is a bit writer with
@@ -173,14 +178,6 @@ disagrees with its definition. Found by Space Bunny Free in #32.
 into a buffer with `sprintf` and then passes that buffer to `fprintf` as the
 format string (0x40c4b0 pushes only the `FILE*` and the buffer), so any `%` in
 unit text is interpreted again. Found by ozgb's Codex / GPT-6 Astra in #78.
-
-## Player cleanup loops run one past the array (likely)
-
-**0x4453a0** and **0x445450** loop `for (i = 0; i <= 10; i++)` over
-`g_game->players[10]` (`cmp eax, 0xcee; jle`, where 0xcee is 10 * 0x14b), so
-the last pass touches players[10] at +0x2851, one slot past the array;
-0x445450 writes to its field_146 (0x2997), clobbering whatever follows the
-array. Found by Space Bunny Free in #125.
 
 ## Watching another player overwrites your own unit limit (likely)
 
@@ -423,10 +420,10 @@ Things that look wrong in the original but have no effect, kept for the record.
   integer part of `value * (steps - 1) / 64`, so the position field ends up
   0 or 1 rather than the step index (0x45d8e6 to 0x45d90f). Found by Space
   Bunny Free in #411.
-- **0x4565a0** (likely): the same player search returns 10 when the id is
-  -1 or not found, and this net-message handler uses it unchecked, reading
-  `players[10].active` and `.state` and writing `players[10].field_14`, one
-  past the ten-player table. Found by Space Bunny Free in #408.
+- **0x4565a0** (possible): the same player search returns 10 when the id is
+  -1 or not found, and this net-message handler uses it unchecked, so it reads
+  and writes the spare eleventh slot (`players[10]`) instead of skipping the
+  message. Found by Space Bunny Free in #408.
 - **0x4743a0** (possible): the record's third position is copied to the
   stack and its z component is then overwritten with
   `FUN_004b7f60(g_game+0x147f3) - 1` (0x47454a), and `field_4` is stored one
@@ -438,11 +435,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   0x4c6914), while the in-process fill paths return 1. Either slot 5 returns a
   failure code on success or the test is inverted. Found by Space Bunny Free
   in #386.
-- **0x4523e0** (likely): when `to` is -1, its inlined player search returns
-  10 and the function writes the new group through `players[10].data`, one
-  past the ten-player table (a pointer read from g_game+0x2878); the other
-  users of the same search (0x44fed0, 0x452800, 0x4526c0) check for 10 first.
-  Found by Claude Opus 5.5 in #228.
+- **0x4523e0** (possible): when `to` is -1, its inlined player search returns
+  10 and the function writes the new group through the spare eleventh slot's
+  `players[10].data` (a pointer read from g_game+0x2878); the other users of
+  the same search (0x44fed0, 0x452800, 0x4526c0) check for 10 first. Found by
+  Claude Opus 5.5 in #228.
 - **0x4523e0** (possible): when all ten group slots are in use (possible when
   `to` is not an active player, such as -1), the loop ends without writing
   the message's value byte at `[esp+0x13]`, so FUN_00451bc0 sends a two-byte

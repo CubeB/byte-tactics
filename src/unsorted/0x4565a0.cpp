@@ -103,6 +103,6 @@ void __stdcall FUN_004565a0(Message_004565a0* p)
     }
     unsigned char other = FindPlayerIndex(g_game->lobby2);
     // No bound check on either index: an id of -1 makes FindPlayerIndex
-    // return 10, so players[10] is one entry past the ten player table.
+    // return 10, the spare eleventh slot (the table has 11, see docs/bugs.md).
     g_game->players[other].field_14 = GetTickCount() - p->start_tick;
 }

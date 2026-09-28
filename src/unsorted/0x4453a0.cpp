@@ -38,8 +38,9 @@ void __stdcall FUN_004453a0(Player_004453a0* param_1, Player_004453a0* param_2)
     param_1->active = 0;
     // The original bound is i <= 10, not i < 10: the offset test is
     // "cmp eax, 0xcee; jle" (0xcee is 10 * 0x14b, the size of players), so
-    // the last pass reads and writes players[10], one slot past the array
-    // (byte 0x2997 of g_game, just after the field at +0x2851).
+    // the last pass reads and writes players[10]. The table really has 11
+    // slots (+0x1b63 to +0x299c), so this is the spare last slot, not an
+    // overrun; this file declares only the first ten.
     for (int i = 0; i <= 10; i++) {
         Player_004453a0* p = &g_game->players[i];
         if (p->active != 0

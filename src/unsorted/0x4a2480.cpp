@@ -1,0 +1,72 @@
+// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Draws one gadget entry's three glyphs (start, repeated middle, end) across
+// the span [x, x + w] on the surface of the entry table. Same entry table as
+// 0x4a23b0 (fields x/y/w/h at 0x13..0x19) and 0x4a0f30 (holder at +0x18).
+// <windows.h> is needed only for the compiler state: without it MSVC keeps
+// the loop test's sum in the width register (add eax, esi) instead of a fresh
+// one (lea ecx, [esi+eax]).
+#include <windows.h>
+
+struct Glyph_004a2480 {
+    unsigned short width;              // +0x0
+    unsigned short height;             // +0x2
+};
+
+#pragma pack(push, 1)
+struct Entry_004a2480 {
+    char unknown_0[0x13];
+    short x;                           // +0x13
+    short y;                           // +0x15
+    short w;                           // +0x17
+    short h;                           // +0x19
+    char unknown_1b[0xbc - 0x1b];
+    void* surface;                     // +0xbc
+    char unknown_c0[0x13a - 0xc0];
+    unsigned short* glyphs;            // +0x13a
+    char unknown_13e[0x15b - 0x13e];
+};
+#pragma pack(pop)
+
+struct Holder_004a2480 {
+    char unknown_0[4];
+    Entry_004a2480* entries;           // +0x4
+};
+
+#pragma pack(push, 1)
+struct Class_004a2480 {
+    char unknown_0[0x18];
+    Holder_004a2480* holder;           // +0x18
+};
+#pragma pack(pop)
+
+Glyph_004a2480* __stdcall FUN_004b7f30(unsigned short* table, int index);
+void __stdcall FUN_004b7f90(void* surface, void* image, int x, int y);
+
+// FUNCTION: 0x4a2480
+void __stdcall FUN_004a2480(Class_004a2480* param_1, int index)
+{
+    Entry_004a2480* base = param_1->holder->entries;
+    void* surface = base->surface;
+    Entry_004a2480* e = &base[index];
+    unsigned short* glyphs = e->glyphs;
+    Glyph_004a2480* glyph = FUN_004b7f30(glyphs, 0);
+    int x = e->x;
+    int y = e->y + e->h / 2;
+    if (glyph != 0)
+        y -= glyph->height / 2;
+    else
+        y = e->y;
+    int limit = e->x + e->w;
+    if (glyph != 0)
+        FUN_004b7f90(surface, glyph, x, y);
+    x += glyph->width;
+    Glyph_004a2480* mid = FUN_004b7f30(glyphs, 1);
+    if (x + mid->width < limit) {
+        do {
+            FUN_004b7f90(surface, mid, x, y);
+            x += mid->width;
+        } while (x + mid->width < limit);
+    }
+    Glyph_004a2480* last = FUN_004b7f30(glyphs, 2);
+    FUN_004b7f90(surface, last, limit - last->width, y);
+}

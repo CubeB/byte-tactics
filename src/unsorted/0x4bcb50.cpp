@@ -32,6 +32,21 @@
 // two strcmp operands swapped, `if/else` instead of `else if`, a continue
 // guard, a `for(;;)` with a break, and an early return. Renaming the variables
 // does not move it either.
+//
+// The header lever is dead here too, so nobody sweeps it again. Tested on the
+// free harness, every one giving byte-identical output (143 instructions, path
+// in ebp): the three sets 0x4399f0 records (stdlib+math+memory,
+// windows+memory, windows), each on top of io.h, plus io.h+stdio+string, plus
+// each of stdlib, memory, math, windows, direct, fcntl, time, limits, setjmp,
+// string, stdio, process, errno, assert and sys/types alone on top of io.h.
+// The unused-declaration calibration from that file is flat as well: with a
+// header-free prelude (hand-declared sprintf, strcmp, _findclose and the
+// io.h-shaped finddata, which reproduces this output exactly) and N unused
+// `extern int` declarations in front of the body, every N from 0 to 316 in
+// steps of 4, and every N from 0 to 63 in steps of 1, is identical. There is
+// no window, so unlike 0x4399f0 no header set can be chosen to land in one.
+// This is the same clean negative as 0x438ea0: the register allocator here does
+// not read the symbol table size at all.
 #include <io.h>
 #include <stdio.h>
 #include <string.h>

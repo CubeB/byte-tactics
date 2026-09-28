@@ -1789,7 +1789,9 @@ address,size,file,symbol,status,similarity
 0x493340,79,src/unsorted/0x493340.cpp,?FUN_00493340@@YGXPAUObject_00493340@@H@Z,matched,100.0
 0x493390,79,src/unsorted/0x493390.cpp,?FUN_00493390@@YGXPAUObject_00493390@@H@Z,matched,100.0
 0x4933e0,205,src/unsorted/0x4933e0.cpp,?FUN_004933e0@@YGXE@Z,matched,100.0
+0x4934b0,564,src/unsorted/0x4934b0.cpp,?FUN_004934b0@@YGXPAUGadget_4934b0@@@Z,matched,100.0
 0x493ae0,264,src/unsorted/0x493ae0.cpp,?FUN_00493ae0@@YAXXZ,matched,100.0
+0x494050,457,src/unsorted/0x494050.cpp,?FUN_00494050@@YAXXZ,matched,100.0
 0x494220,105,src/unsorted/0x494220.cpp,?FUN_00494220@@YGXPAUGadget_00494220@@@Z,matched,100.0
 0x494290,75,src/unsorted/0x494290.cpp,?FUN_00494290@@YGXPAUGadget_00494290@@PAUEntry_00494290@@@Z,matched,100.0
 0x494740,250,src/unsorted/0x494740.cpp,?FUN_00494740@@YGXPAUGadget_00494740@@@Z,matched,100.0

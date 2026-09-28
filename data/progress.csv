@@ -2780,6 +2780,7 @@ address,size,file,symbol,status,similarity
 0x4e2a10,22,src/unsorted/0x4e2a30.cpp,?FUN_004e2a10@Class_004e2a10@@QAEPAV1@PBUData1@@PBUData2@@@Z,matched,100.0
 0x4e2a30,122,src/unsorted/0x4e2a30.cpp,?FUN_004e2a30@Class_004e2a30@@QAEPAUNode_004e2a30@@HH@Z,matched,100.0
 0x4e2b60,126,src/unsorted/0x4e2b60.cpp,?FUN_004e2b60@Class_004e2b60@@QAEPAXI@Z,matched,100.0
+0x4e2be0,200,src/unsorted/0x4e2be0.cpp,??0Class_004e2be0@@QAE@DPAD0@Z,matched,100.0
 0x4e2cb0,1,src/unsorted/0x4e2cb0.cpp,??1Class_004e2be0@@QAE@XZ,matched,100.0
 0x4e2cc0,32,src/unsorted/0x4e2cc0.cpp,?FUN_004e2cc0@Class_004e2cc0@@QAE_NPBDI@Z,matched,100.0
 0x4e2ce0,23,src/unsorted/0x4e2ce0.cpp,?FUN_004e2ce0@Class_004e2ce0@@QAEXPAXI@Z,matched,100.0

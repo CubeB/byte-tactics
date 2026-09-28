@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
 // Draws one side of a GUI entry's rectangle when bit 0 of param_3 is set; the
 // side is chosen by bits 0/1/2 of the entry's flags and the colour comes from
 // the colour table at obj+0x8b2 index `index`.

@@ -1,24 +1,34 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// GAVE UP at 78.2% (452 of 455 bytes). The frame size (0x5efc, with the
-// `mov eax, 0x5efc; call __chkstk`), the local slots (faceno at E+0, piece at
-// E+4, info at E+8, count at E+0xc, tmp[25] and verts[2000]), the backwards
-// piece walk, the two `dec ecx; js` / `dec ecx; jne` loop shapes, the face
-// start, the copy into tmp, `tmp[k] = tmp[0]`, the FUN_004c0820 call, the
-// unaligned bit-30 flag at +0x241 and the `? 125 : 50` shade all match byte
-// for byte. What is left is the register allocation of the vertex loop: the
-// original keeps the view pointer in ebp (loaded between `push ebp` and
-// `push ebx` in the preheader), the piece counter in ecx and the piece
-// pointer in eax, and it batches the three vertex loads `[ecx]`, `[ecx+4]`,
-// `[ecx+8]` before `add eax, 0xc`. This file puts the view pointer in ebx, the
-// counter in eax and the piece pointer in esi, and sinks the z load. The
-// ordering `x=; y=; y+=field_6; z=; x+=field_4;` gets the preheader right but
-// then MSVC hoists `movsx edi, word [ebp+6]` and spills `bright` to
-// [esp+0x10], which the original does not.
-// Note for whoever takes this next: two scratch variants (v_O_zlast.cpp and
-// v_Q2.cpp) score a *higher* 80.3% but are wrong. They lay the two vertex
-// arrays out 4 bytes high, at [esp+0x150] where the original uses
-// [esp+0x14c] (check with `objdump -d` on the .o). v_P6 is the best variant
-// with the original's real local layout, so that is what is committed here.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Best result: 84.1% (455 of 455 bytes). The body now compiles to the
+// original except for one global register swap: MSVC puts the `view` pointer
+// in ebx and the face `info` pointer in ebp, while the original keeps view in
+// ebp (loaded between `push ebp` and `push ebx` in the preheader) and info in
+// ebx. Everything else matches byte for byte: the frame size (0x5efc with
+// `mov eax, 0x5efc; call __chkstk`), the local slots (faceno at E+0x10, piece
+// at E+0x14, info at E+0x18, count at E+0x1c, tmp[25] at E+0x20, verts[2000]
+// at E+0x14c), the backwards piece walk, both loop shapes, the batched vertex
+// loads `[ecx]`, `[ecx+4]`, `[ecx+8]`, the destination pre-increment
+// (`add eax, 0xc` with negative offsets), the branchless `? 125 : 50` shade
+// kept in edi, the two `+=` reloads, the face start, the copy into tmp,
+// `tmp[k] = tmp[0]`, the FUN_004c0820 call and the unaligned bit-30 flag at
+// +0x241.
+//
+// How to get the body right: the vertex loop needs `v++` moved into the for
+// header (`for (...; j++, v++)`) and one of the large headers at the top of
+// the file. Without them MSVC sinks the z load and keeps the destination
+// offsets positive, and the whole loop is laid out differently. With
+// <windows.h> the loop is byte-identical apart from the ebx/ebp swap.
+// `tools/headers.py` tried every combination of the standard headers and
+// none flips that swap, so the cause is compiler state from the original
+// source file's other contents, not this function's source. A renderer file
+// in a DirectDraw game would have included <windows.h>/<ddraw.h> anyway.
+//
+// Earlier note from space-bunny-free: several scratch variants scored 80-90%
+// but are wrong; they lay the vertex arrays out 4 bytes high at [esp+0x150],
+// where the original uses [esp+0x14c]. Always check the `lea eax, ...` base
+// of verts before trusting a higher score.
+#include <windows.h>
+
 struct Vertex_0045a610 {
     int x;
     int y;
@@ -102,17 +112,16 @@ void Class_00458fa0::FUN_00458fa0(View_0045a610* view, Model_00458fa0* model, in
             if (piece->flags & 1) {
                 PieceInfo_00458fa0* info = piece->info;
                 Vertex_0045a610* v = piece->vertices;
-                for (int j = 0; j < info->vertexCount; j++) {
+                for (int j = 0; j < info->vertexCount; j++, v++) {
                     int bright = model->owner->map->brightFaces ? 125 : 50;
                     int x = (short)(v->x >> 16);
                     int y = (short)(v->y >> 16);
                     int z = (short)(-v->z >> 16);
                     verts[j].x = x;
                     verts[j].y = z - (y >> 1);
-                    verts[j].y += view->field_6;
                     verts[j].z = y + bright;
                     verts[j].x += view->field_4;
-                    v++;
+                    verts[j].y += view->field_6;
                 }
                 Face_00458fa0* f = info->faces;
                 if (info->field_c != -1) {

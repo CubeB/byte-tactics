@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash. Names are provisional.
 // Fills a help page (HELP.TDF, node "Help", keys "Line<n>"): for every line of
 // the page it looks the line up, cuts it at the '|' into a left and a right
 // half and adds two TEXT entries for them, 0x12 pixels lower each time.
@@ -30,6 +30,27 @@
 // <windows.h>+<stdio.h>, +<stdlib.h> and +<string.h>, so this is not the
 // headers-are-compiler-state effect either. The multiply is the only blocker
 // and the other two differences are its knock-on effects.
+//
+// Retry by deepseek-v4.1-flash, still 96.0%. Additional things tried that all
+// compiled to the same memory-form multiply: reordering/renaming the operand
+// locals, compound assignment and declarator forms, inline identity/product/sum
+// helpers (by value, by reference, returning a struct), changing AddLine's
+// parameter order, every loop spelling (while, for(;;), goto label, separate
+// counter), a struct-typed 32-bit-bitfield parameter, casts, and up to 400
+// extra declarations plus 40 more headers. p1/p2 do reach 97.4% with the right
+// instruction schedule (imul before the pushes) but only when `last = first +
+// page`, which is the wrong value.
+//
+// Diagnostic that pins the cause: the wanted shape is reachable. Writing the
+// multiply as `(page & 0x7fffffff) * lineCount` gives exactly
+// `mov eax,[page]; mov ecx,[lineCount]; imul eax,ecx`, but MSVC then also emits
+// the `and eax,0x7fffffff` (5 extra bytes). So MSVC only materialises the
+// `page` operand in eax when its expression is not a bare parameter; a plain
+// `page * lineCount` folds `page` into the imul memory operand as soon as
+// `lineCount` is already in ecx for the following add. The original had no
+// `and`, so its `page` expression was some construct that forces a register
+// without emitting an instruction, which is not expressible from the two
+// parameters here.
 #include <windows.h>
 #include <string.h>
 

@@ -361,6 +361,44 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x47c530** (likely): the movie summary prints "Total Playback Time" as
+  `1000 * totalTime / totalTime`, always 1000, the line above it copied and
+  not edited; both divisions are unguarded, so a summary with zero total time
+  faults. Found by Space Bunny Free in #327.
+- **0x435110** (likely): formats a message with the campaign name into a
+  0x80-byte stack buffer, while the name comes from a 0x100-byte field, so a
+  long name overruns the frame; 0x435da0 formats the same message into 0x100
+  bytes. Found by Space Bunny Free (CubeB) in #401.
+- **0x4373a0** (likely): ignores the result of the 0x40-byte header read
+  (0x43742f), so a truncated campaign file still passes the version test and
+  the checksum folds in stale stack; the two allocations after it are not
+  null-tested, and the header's offsets are not checked against the file
+  size. Found by Space Bunny Free (CubeB) in #401.
+- **0x4a99c0** (likely): the scroll-down block needs `sel > last + step` and
+  `sel <= last` at once, which holds only for `step <= 0`, so with the usual
+  positive step it never runs. Found by Space Bunny Free in #559.
+- **0x4a7f70** (possible): the loops that reset every frame's size and pick
+  the frame nearest the object run only on the CHECKBOX, `stagebuttn%d` and
+  BUTTONS0 fallbacks; a successful name lookup jumps past them (0x4a7fbf,
+  0x4a7fca, 0x4a7fdf). Found by Space Bunny Free in #559.
+- **0x4ba9d0** (likely): when no palette entry falls in the brightness band,
+  the fallback uses the loop counter after the loop, 256, which truncates to
+  0 in an `unsigned char`, so it returns `order[0]`. Found by Space Bunny
+  Free in #572.
+- **0x4baf30** (possible): the blue clamp tests `(blue >> 1) + 0x3c > 0xff` but
+  stores `(blue >> 1) + 0x32`; the sum can never pass 0xff, so the clamp is
+  dead and the two constants disagree. Found by DeepSeek V4.1 Flash in #375.
+- **0x4a2480** (likely): skips drawing a null first glyph but still adds its
+  width (`mov dx, word ptr [ecx]` with ecx 0, at 0x4a24f8). Found by DeepSeek
+  V4.1 Flash in #363.
+- **0x4a31c0** (possible): allocates the SCROLLITEMS scratch block with
+  FUN_004d83b0 and never frees it, where the siblings 0x41eaa0 and 0x41eb60
+  free the same kind of block with FUN_004d85a0. Found by DeepSeek V4.1 Flash
+  in #363.
+- **0x4a36a0** and **0x4a35a0** (possible): when the layout entry is not
+  found they report "Error in GUI layout" and then store through the null
+  entry (0x4a3716 onwards), which crashes unless that report never returns.
+  Found by DeepSeek V4.1 Flash in #363.
 - **0x4b7620** (likely): finds the insertion point with a case-insensitive
   compare (`_strcmpi` at 0x4b7656) but tests for an existing key with a
   case-sensitive one (inlined `strcmp` at 0x4b769b), so a key differing only

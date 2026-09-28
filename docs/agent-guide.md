@@ -1810,3 +1810,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   cause, say so and say what class of change to try next. That kind of note
   got 0x488310 matched on the next attempt; a long list of what failed did
   not help 0x48ab70.
+- **A function known only through its callees' class**: declare its class as
+  deriving from that class (`class Class_00435110 : public Class_00435c00`)
+  instead of copying the fields into a new one, so the inherited calls keep
+  their established names (0x435110).

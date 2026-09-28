@@ -1786,3 +1786,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Put pointer advances in the `for` header**
   (`for (col = 0; col < w; col++, cell++)`); as body statements they are
   scheduled differently (0x47dfc0).
+- **A score can rise by losing code**: `0xfffe >> 8` is `0xff`, so a mask
+  meant as `0xfe` became a no-op that MSVC deleted, and the score went up
+  while three instructions went missing. Check the byte count as well as the
+  percentage (0x4644d0).
+- **A group of `unsigned short` bitfields spans whole bytes**: six bits from
+  +0x9b take two bytes, so the struct ends at 0x9d. Check `sizeof` against the
+  `memset` count in the disassembly (0x4644d0).
+- **A `switch` with a `default:` can become a compare chain** where the
+  original has a jump table: spell out every case (0x464060). A guard on the
+  outer condition (`if (mask == 0) { switch ... } else ...`) puts the shared
+  block after the dispatch.

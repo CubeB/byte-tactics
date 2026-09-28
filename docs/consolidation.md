@@ -384,3 +384,7 @@ can disagree on types (a real link would fail). Known cases:
   second `resize` either inlines `copy` (64.3%) or, with the `__stdcall`
   `<xutility>`, calls `erase` out of line (64.6%), while the original
   inlines `erase` and calls `copy` and `_Destroy`.
+- **`g_game->players` has 11 slots** of 0x14b bytes, +0x1b63 to +0x299c (the
+  next field, `duplicateIds` in 0x450980, is at +0x299c). Most files declare
+  `players[10]` with padding after it; 0x473590, 0x473a00, 0x474170,
+  0x464060 and 0x41d920 declare all 11. Consolidate to 11.

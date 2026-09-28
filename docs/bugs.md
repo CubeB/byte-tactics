@@ -361,6 +361,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x464060** (possible): in mode 1, the arm for team 2 jumps past the only
+  store to the `show` flag (0x46413d), so it keeps the previous entry's value,
+  or an uninitialised one on the first pass; and `y += start` reuses the
+  timestamp read once before the loop (0x46423e), so every drawn entry moves
+  by the same amount. Read from the disassembly of a partial match. Found by
+  Space Bunny Free in #413.
 - **0x497ce0** (likely): while it still waits for players (network flag
   bit 3 clear), it divides 620 by the count of player records that are
   present, on team 1 to 3 and not kind 10 (`idiv dword ptr [esp+0x10]` at

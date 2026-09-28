@@ -1,21 +1,18 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // Aim a unit's two turret angles at a target point. The heading (+0x36) is
 // atan2(dx, dz); the pitch (+0x38) comes from the vertical difference against
-// a distance. Each angle is then moved towards the wanted one by at most the
-// unit type's turn rate (+0xE8), and if the wanted angle is more than 27000
-// (about 148 degrees) away while the type's flag bit 22 of +0x111 is set the
-// function gives up and returns 0. Otherwise it returns 1.
+// the horizontal distance. Each angle is then moved towards the wanted one by
+// at most the unit type's turn rate (+0xE8), and if the wanted angle is more
+// than 27000 (about 148 degrees) away while the type's flag bit 22 of +0x111 is
+// set, the function gives up and returns 0. Otherwise it returns 1.
 //
-// Match notes: this is a partial match (74.7%). The whole body matches the
-// original instruction for instruction; what still differs is the frame.
-// The original keeps `dy` in one fresh 4-byte stack slot (prologue `push ecx`,
-// later read as a word at [esp+0x12] for -(short)(dy >> 16)); MSVC 5 will not
-// do that for a plain `int dy` here, it either keeps it in edi (fixed edi) or
-// reuses an incoming argument slot for it. Writing the local as a small union
-// makes MSVC give it real memory, but as soon as the type is 8 bytes, so the
-// frame is `sub esp,8` instead of `push ecx` and the two incoming argument
-// slots end up 4 bytes higher. The four epilogues therefore say `add esp,8`
-// where the original says `pop ecx`.
+// Two details decide the shape. The vertical difference is a 16.16 fixed point
+// value kept in a 4 byte union, so only its high word is read
+// (`movsx ... word [slot+2]`) and it needs a real stack home; an 8 byte union
+// (or short[4]) makes the frame `sub esp,8` and shifts every slot. And the
+// declarations must be dx, then dy, then dz: that is what makes the register
+// allocator put dy in the fresh `push ecx` slot and send dx and dz to the dead
+// argument slots, with dy's subtraction before dx's.
 #include <math.h>
 #include <stdlib.h>
 
@@ -42,20 +39,24 @@ struct Unit_0049b520 {
     short pitch;                       // +0x38
 };
 
+union Fixed_0049b520 {
+    int value;
+    struct { unsigned short fraction; short whole; };
+};
+
 short __cdecl FUN_004b715a(int x, int z);
 
 // FUNCTION: 0x49b520
 int __stdcall FUN_0049b520(Unit_0049b520* unit, Vec3_0049b520* target)
 {
     UnitType_0049b520* type = unit->type;
-    // All members start at offset 0, so halves[1] is the top 16 bits of value.
-    union { int value; short halves[4]; } dy;
-    dy.value = unit->y - target->y;
     int dx = unit->x - target->x;
+    Fixed_0049b520 dy;
+    dy.value = unit->y - target->y;
     int dz = unit->z - target->z;
     short a1 = FUN_004b715a(dx, dz);
-    int dist = (int)_hypot(dy.value, dz);
-    short a2 = FUN_004b715a(-(int)dy.halves[1], (short)(dist >> 16));
+    int dist = (int)_hypot((double)dx, (double)dz);
+    short a2 = FUN_004b715a(-dy.whole, (short)(dist >> 16));
 
     short diff1 = a1 - unit->heading;
     short adiff1 = abs(diff1);

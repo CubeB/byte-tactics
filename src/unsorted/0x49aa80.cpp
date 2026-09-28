@@ -20,6 +20,22 @@
 // line-of-fire helper returns a real angle. Callers pass the unit in a1, the
 // unit's own position at a1+0x6a, the target point in a2/a3 and 0 or a slot
 // index in a4.
+//
+// Retry (deepseek-v4.1-flash) confirmed the first block is the only difference
+// and that it is a register-assignment problem, not a source-shape one in the
+// usual sense. The original keeps a2 in esi and a3 in edi across both __allmul
+// calls, leaving ebp as the only free callee-saved register; MSVC then puts
+// dx.lo in ebp, spills dx.hi, and spills all of dz. Our build instead
+// rematerialises a2/a3 from their stack argument slots, so ecx and ebp are
+// free, dx ends up wholly in registers and only dz spills (8-byte frame vs 16).
+// tools/headers.py --cpp (768 sets) changes nothing, and a sweep of 0..400
+// dummy extern declarations in front of the function (the compiler-state trick
+// in the guide) keeps the score pinned at 61.8, so state alone is not it.
+// int vs __int64 locals, local pointer and reference copies of a2/a3 used
+// throughout, inline DistSq / SquaredDistance helpers by pointer, reference and
+// as methods, an inline operator-, reordering declarations so a2 is read first,
+// and defining the matched neighbours 0x49a850 and 0x49adf0 in the same file
+// were all tried; every one either compiled to the same 61.8 code or worse.
 
 #pragma pack(push, 1)
 

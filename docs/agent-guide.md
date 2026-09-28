@@ -1829,3 +1829,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   own headers before inferring (`XTREE`, `DSOUND.H`), treat a "register
   allocation" difference as a wrong argument or type first, and grep the exe
   for raw instruction bytes to find matched twins.
+- **The target exe is the GOG build, with at least one hand patch**: at
+  0x4cda44 a `jmp` into zero padding (0x4fb92a) replaced a `cmp`/`jne` to force
+  the CD-music track count. `data/exe_patches.csv` records the compiler's
+  original bytes and check.py compares against those. If a function differs
+  only where the exe jumps into padding or has a run of `nop`s no compiler
+  would emit, report the address and bytes rather than chasing it (0x4cda00).

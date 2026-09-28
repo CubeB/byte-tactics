@@ -1,24 +1,40 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
-// 83.5% (300-byte original, ours 305). Prologue, player-pointer arithmetic, the
-// two bounds checks, the reloaded map width and the tail call all match. What
-// still differs, all inside the two test arms:
-//   - fog arm: ours keeps the map width in edi and hoists its load above the
-//     `sub eax, edx`; the original uses edx and loads it after.
-//   - fog arm: ours builds the index in edi with fogMap in ebx, so the
-//     address is [edi+ecx]; the original builds it in edx with fogMap in the
-//     just-dead eax, giving [edx+eax].
-//   - fog arm: ours ends the taken path with `mov edx,1; xor eax,eax;
-//     test edx,edx; setne al`; the original has `mov eax,1`. The `if (visible)`
-//     correction below is what stops MSVC folding the 1/0 into a setcc, and
-//     dropping it costs about 17 points.
-//   - mask arm: ours puts the `visible = 0` block after the taken path and
-//     tests `jae` twice; the original puts it between the tests and inverts
-//     the second test to `jb`.
-// The register roles above are the whole remaining gap; no source spelling
-// tried (about 100k variants over rect order, argument types, index spelling,
-// duplicate vs helper width reads, Pos sub-struct two-way reads, block shape,
-// statement order) moves them.
+// NOT A MATCH: 84.5% (300-byte original, ours 305). Prologue, player-pointer
+// arithmetic, the rect, the tail call and, since this retry, the whole mask arm
+// match byte for byte. Only the fog arm differs:
+//   - ours emits an extra `mov edi, [esi+0x80]` before `sub eax, edx` and an
+//     extra `xor edx, edx`; the original loads the width into edx after the
+//     subtraction and has no early zeroing.
+//   - ours builds the index in edi with fogMap in ebx, so the cell address is
+//     [edi+ecx]; the original builds it in edx with fogMap in the just-dead eax,
+//     giving `imul edx, eax; mov eax, [esi+0x7c]; add edx, ecx; [edx+eax]`.
+//   - ours ends the taken path with `mov edx,1; xor eax,eax; test edx,edx;
+//     setne al`; the original has a plain `mov eax,1`.
+//
+// The mask arm was the lever this round. Writing the fail path as an
+// early-return shape (`if (!Contains) visible = 0; else visible = ...;`) is
+// what turns the two `jae` of the old spelling into the original's `jae fail;
+// jb body` with the fail block before the body; a `Contains` method that
+// inlines to `tx < width && ty < height` is enough, the two-arm if/else alone
+// is not.
+//
+// The fog arm is a hard register-allocation knot. Any spelling that produces
+// the original fog arm text (the canonical `if (cond) visible = 1; else
+// visible = 0;`, a `? 1 : 0` ternary, a goto early-exit, or an inlined
+// IsExplored/ArmA helper returning one value per path) also moves g_game out
+// of ebx into edi and rotates this->x/this->y through bp/bx, which then breaks
+// the whole prologue and the mask arm. The shape kept below (a dead
+// `visible = 0` plus a trailing `if (visible) visible = 1; else visible = 0;`)
+// is the only one found that pins g_game in ebx; it costs the extra width load,
+// the early xor and the setne tail. Every other attempt (helpers as free
+// functions or members, with/without a second width pointer, `Contains` vs
+// inline comparisons, bool/unsigned locals, pre-initialising visible before
+// the outer if, an unused-declaration compiler-state sweep, `#include
+// <stddef.h>`) either scored lower or flipped g_game. The original's own
+// sibling 0x4745e0 (same draw-if-visible shape, 66.3% stuck on the same
+// g_game-in-the-wrong-register wall) suggests this is compiler state that a
+// spelling alone may not reach.
 #pragma pack(push, 1)
 
 struct Rect_004b0510 {
@@ -28,13 +44,21 @@ struct Rect_004b0510 {
     int y2;                          // +0xc
 };
 
+struct MapSize_00473a00 {
+    unsigned int width;              // +0x0
+    unsigned int height;             // +0x4
+
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
 struct Player_00473a00 {
     char unknown_0[0x7c];
     unsigned char* fogMap;           // +0x7c
-    unsigned int mapWidth;           // +0x80
-    unsigned int mapHeight;          // +0x84
-    char unknown_88[0x14b - 0x88];   // stride 331, not 330: the original's
-                                     // lea is base + i + 330*i
+    MapSize_00473a00 size;           // +0x80
+    char unknown_88[0x14b - 0x88];   // stride 331
 };
 
 struct Game_00473a00 {
@@ -87,8 +111,8 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
         visible = 0;
-        if (((unsigned int)col < p->mapWidth && (unsigned int)row < p->mapHeight) &&
-            p->fogMap[q->mapWidth * row + col] != 0)
+        if (((unsigned int)col < p->size.width && (unsigned int)row < p->size.height) &&
+            p->fogMap[q->size.width * row + col] != 0)
             visible = 1;
         if (visible)
             visible = 1;
@@ -97,12 +121,11 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
     } else {
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
-        if (((unsigned int)col < p->mapWidth && (unsigned int)row < p->mapHeight)) {
-            unsigned short m = g_game->visibilityMask[q->mapWidth * row + col];
-            visible = (m & (1 << g_game->playerIndex)) != 0;
-        } else {
+        if (!p->size.Contains((unsigned int)col, (unsigned int)row))
             visible = 0;
-        }
+        else
+            visible = (g_game->visibilityMask[q->size.width * row + col] &
+                       (1 << g_game->playerIndex)) != 0;
     }
 
     if (visible)

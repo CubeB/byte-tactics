@@ -2929,8 +2929,10 @@ address,size,file,symbol,status,similarity
 0x4df280,163,src/unsorted/0x4df280.cpp,?FUN_004df280@Class_004df280@@QAEXD@Z,matched,100.0
 0x4df330,76,src/unsorted/0x4df330.cpp,?FUN_004df330@@YGHPAXIIJ@Z,matched,100.0
 0x4df380,340,src/unsorted/0x4df380.cpp,?FUN_004df380@Class_004df380@@QAEXXZ,matched,100.0
+0x4df4e0,175,src/unsorted/0x4df4e0.cpp,?FUN_004df4e0@Class_004df4e0@@QAEXXZ,matched,100.0
 0x4dfd00,15,src/unsorted/0x4dfd00.cpp,?FUN_004dfd00@@YAXXZ,matched,100.0
 0x4dfd10,51,src/unsorted/0x4dfd10.cpp,?FUN_004dfd10@@YAPAVClass_004df1e0@@XZ,matched,100.0
+0x4dfd50,290,src/unsorted/0x4dfd50.cpp,_$E2,matched,100.0
 0x4dfe80,28,src/unsorted/0x4dfe80.cpp,?FUN_004dfe80@@YAXXZ,matched,100.0
 0x4e03f0,88,src/unsorted/0x4e03f0.cpp,?FUN_004e03f0@Class_004e03f0@@QAEXPAUNode_004e03f0@@@Z,matched,100.0
 0x4e0450,132,src/unsorted/0x4e0450.cpp,?FUN_004e0450@Class_004e0450@@QAEXXZ,matched,100.0

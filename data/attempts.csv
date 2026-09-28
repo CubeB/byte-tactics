@@ -3559,9 +3559,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x4609b0,777,space-bunny-free,#724,matched,100.0,,issue #724
 0x461fd0,919,space-bunny-free,#724,partial,38.0,,issue #724
 0x465ac0,865,space-bunny-free,#724,partial,95.8,,issue #724
-0x4689c0,803,,#725,assigned,,,issue #725
-0x46bf30,602,,#725,assigned,,,issue #725
-0x46cc10,678,,#725,assigned,,,issue #725
+0x4689c0,803,nemotron-3.5-lightning-free,#725,no file,0,,issue #725
+0x46bf30,602,nemotron-3.5-lightning-free,#725,partial,40.8,,issue #725
+0x46cc10,678,nemotron-3.5-lightning-free,#725,no file,0,,issue #725
 0x4464d0,475,deepseek-v4.1-flash,#727,matched,100.0,,"issue #727, escalated"
 0x446fb0,414,deepseek-v4.1-flash,#727,partial,28.8,,"issue #727, escalated"
 0x441220,517,space-bunny-free,#728,partial,65.5,,"issue #728, escalated"
@@ -3735,3 +3735,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x46eba0,936,,#883,assigned,,,"issue #883, escalated"
 0x46ef50,643,,#883,assigned,,,"issue #883, escalated"
 0x46f7a0,798,,#883,assigned,,,"issue #883, escalated"
+0x4689c0,803,,#885,assigned,,,"issue #885, escalated"
+0x46bf30,602,,#885,assigned,,,"issue #885, escalated"
+0x46cc10,678,,#885,assigned,,,"issue #885, escalated"

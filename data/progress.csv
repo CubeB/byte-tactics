@@ -2212,8 +2212,13 @@ address,size,file,symbol,status,similarity
 0x4bd150,5,src/unsorted/0x4bd150.cpp,?FUN_004bd150@@YGHHH@Z,matched,100.0
 0x4be010,90,src/unsorted/0x4be010.cpp,?FUN_004be010@@YGXPAUClass_004be010@@H@Z,matched,100.0
 0x4be070,49,src/unsorted/0x4be070.cpp,?FUN_004be070@@YGXPAUFile_004be070@@@Z,matched,100.0
+0x4be270,162,src/unsorted/0x4be270.cpp,?FUN_004be270@@YGXPAURecord_004be270@@@Z,matched,100.0
 0x4be320,135,src/unsorted/0x4be320.cpp,?FUN_004be320@@YAXXZ,matched,100.0
 0x4be3b0,73,src/unsorted/0x4be3b0.cpp,?FUN_004be3b0@@YGXPAUList_004be3b0@@@Z,matched,100.0
+0x4be950,201,src/unsorted/0x4be950.cpp,?FUN_004be950@@YGHPAUSurface_004be950@@HHHHH@Z,matched,100.0
+0x4bec70,244,src/unsorted/0x4bec70.cpp,?FUN_004bec70@@YGPAUSurface_004bec70@@PAU1@HHHHH@Z,matched,100.0
+0x4bed70,225,src/unsorted/0x4bed70.cpp,?FUN_004bed70@@YGPAUSurface_004bed70@@PAU1@HHHHH@Z,matched,100.0
+0x4bee60,380,src/unsorted/0x4bee60.cpp,?FUN_004bee60@@YGHPAUSurface_004bee60@@HHH@Z,matched,100.0
 0x4befe0,115,src/unsorted/0x4befe0.cpp,?FUN_004befe0@@YGIPAUSurface_004befe0@@HH@Z,matched,100.0
 0x4c0310,28,src/unsorted/0x4c0310.cpp,?FUN_004c0310@@YGXPAXPAHHH@Z,matched,100.0
 0x4c07b0,106,src/unsorted/0x4c07b0.cpp,?FUN_004c07b0@@YGHPAXPAUPoint_004c07b0@@HH@Z,matched,100.0

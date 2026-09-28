@@ -2333,10 +2333,15 @@ address,name
 0x4be070,FUN_004be070
 0x4be0b0,FUN_004be0b0
 0x4be180,FUN_004be180
+0x4be270,FUN_004be270
 0x4be320,FUN_004be320
 0x4be3b0,FUN_004be3b0
 0x4be400,FUN_004be400
 0x4be950,FUN_004be950
+0x4bea20,FUN_004bea20
+0x4bec70,FUN_004bec70
+0x4bed70,FUN_004bed70
+0x4bee60,FUN_004bee60
 0x4befe0,FUN_004befe0
 0x4bf4d0,FUN_004bf4d0
 0x4bf6f0,FUN_004bf6f0
@@ -2538,6 +2543,8 @@ address,name
 0x4cbdd1,FUN_004cbdd1
 0x4cbe70,FUN_004cbe70
 0x4cbef1,FUN_004cbef1
+0x4cc7ab,FUN_004cc7ab
+0x4cc8df,FUN_004cc8df
 0x4cd9b0,FUN_004cd9b0
 0x4cd9c0,Class_004cd9c0::FUN_004cd9c0
 0x4cd9d0,Class_004cd9d0::FUN_004cd9d0

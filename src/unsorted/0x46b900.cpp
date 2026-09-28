@@ -1,4 +1,6 @@
 // Decompiled by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// GPT-6-Luna tested alternate operand and store orders. Both scored below
+// this file's 93.7% best, so the prior source shape is retained.
 // Draws one labelled bar: FUN_004c1450 returns the current text line height
 // (c); the empty bar is outlined in white, the label is drawn, then the fill
 // bar for g_game->values[index] is drawn at 100/total scale.

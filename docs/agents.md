@@ -604,6 +604,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #487 | deepseek-v4.1-flash | 4 | 1 | 0 | n/a | n/a | n/a |
 | #734 | space-bunny-free | 2 | 0 | 0 | n/a | n/a | n/a |
 | #716 | space-bunny-free | 3 | 2 | 0 | n/a | n/a | n/a |
+| #686 | longcat-2.5-preview-free | 1 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 
@@ -613,7 +614,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 - Space-bunny-free matched 47 of 125 functions a cheaper model had failed.
 - Deepseek-v4.1-flash matched 20 of 49 functions a cheaper model had failed.
 - Mimo-v2.6-flash matched 3 of 5 functions a cheaper model had failed.
-- Longcat-2.5-preview-free matched 1 of 1 functions a cheaper model had failed.
+- Longcat-2.5-preview-free matched 1 of 2 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target

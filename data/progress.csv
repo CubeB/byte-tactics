@@ -2400,6 +2400,7 @@ address,size,file,symbol,status,similarity
 0x4bc8d0,84,src/unsorted/0x4bc8d0.cpp,?FUN_004bc8d0@@YGHPAUFind_004bc8d0@@@Z,matched,100.0
 0x4bc930,245,src/unsorted/0x4bc930.cpp,?FUN_004bc930@@YGHPBDH@Z,matched,100.0
 0x4bca30,288,src/unsorted/0x4bca30.cpp,?FUN_004bca30@@YGXPBDHPAVClass_004be6c0@@@Z,matched,100.0
+0x4bcb50,442,src/unsorted/0x4bcb50.cpp,?FUN_004bcb50@@YGXPADPBDPAVClass_004be6c0@@HH@Z,partial,90.2
 0x4bcd10,243,src/unsorted/0x4bcd10.cpp,?FUN_004bcd10@@YGXPAUFindData_004bcd10@@HPBDH@Z,matched,100.0
 0x4bce10,65,src/unsorted/0x4bce10.cpp,?FUN_004bce10@@YAXXZ,matched,100.0
 0x4bce60,58,src/unsorted/0x4bce60.cpp,?FUN_004bce60@@YGHPAD@Z,matched,100.0

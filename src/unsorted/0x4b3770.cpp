@@ -1,5 +1,5 @@
-// Decompiled by LongCat 2.5 Preview Free. Names are provisional.
-// GAVE UP: 64.2% match. Register allocation and stack layout differences.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
+// GAVE UP: 68.6% match. Original keeps file in EBP and zero in EBX; this source keeps file in EBX.
 #include <string.h>
 #include <stdio.h>
 
@@ -45,29 +45,34 @@ public:
 // FUNCTION: 0x4b3770
 int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
 {
+    register File_004bb5d0* file;
     char header[0x22];
-    char errmsg[0x100];
-    void* buf = 0;
-    int bufsize = 0;
+    char errmsg[0x84];
+    void* buf;
+    int bufsize;
     long remaining;
     long pos;
-    File_004bb5d0* file;
+    int dsize;
+    int zero = 0;
 
     file = (File_004bb5d0*)FUN_004bb5b0(filename);
-    if (file == 0) {
-        return 0;
+    if (file == (File_004bb5d0*)zero) {
+        return zero;
     }
 
     FUN_004bb7c0(file, header, 0x22);
     if (strncmp(header, "HAPIBANK", 8) != 0) {
         FUN_004bb5d0(file);
-        return 0;
+        return zero;
     }
 
     if (*(int*)(header + 0x14) != 1) {
         FUN_004bb5d0(file);
-        return 0;
+        return zero;
     }
+
+    buf = (void*)zero;
+    bufsize = zero;
 
     pos = FUN_004bbd00(file);
     FUN_004bb710(file, *(int*)(header + 0xc));
@@ -76,7 +81,8 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
     if (*(unsigned char*)(header + 0x18) != 0) {
         void* src = FUN_004d8450(remaining);
         FUN_004bb7c0(file, src, remaining);
-        int dsize = FUN_004d1b40((unsigned char*)src);
+        dsize = FUN_004d1b40((unsigned char*)src);
+        bufsize = dsize;
         void* dest = FUN_004d8450(dsize);
         int errcode = FUN_004d1970(dest, src);
         if (errcode != 0) {
@@ -84,13 +90,12 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
             sprintf(errmsg, "[HapiBank::OpenBank] Decompression Error: %s", errstr);
             FUN_004b6290(errmsg);
         }
-        buf = FUN_004d8580(0, dsize);
-        memcpy(buf, dest, dsize);
+        buf = FUN_004d8580((void*)zero, bufsize);
+        memcpy(buf, dest, bufsize);
         FUN_004d85a0(dest);
         FUN_004d85a0(src);
-        bufsize = dsize;
     } else {
-        if (buf != 0) {
+        if (buf != (void*)zero) {
             FUN_004d85a0(buf);
         }
         buf = FUN_004d8450(remaining);
@@ -98,13 +103,13 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
         FUN_004bb7c0(file, buf, remaining);
     }
 
-    if (name != 0) {
+    if (name != (char*)zero) {
         if (_strcmpi((char*)buf + *(int*)(header + 0x8), name) != 0) {
             FUN_004bb5d0(file);
-            if (buf != 0) {
+            if (buf != (void*)zero) {
                 FUN_004d85a0(buf);
             }
-            return 0;
+            return zero;
         }
     }
 
@@ -122,7 +127,7 @@ int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
     }
 
     FUN_004bb5d0(file);
-    if (buf != 0) {
+    if (buf != (void*)zero) {
         FUN_004d85a0(buf);
     }
     return 1;

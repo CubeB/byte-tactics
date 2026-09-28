@@ -3292,10 +3292,10 @@ address,size,model,batch,result,similarity,runs,notes
 0x480250,520,deepseek-v4.1-flash,#496,matched,100.0,,issue #496
 0x481140,508,deepseek-v4.1-flash,#496,matched,100.0,,issue #496
 0x4825b0,504,deepseek-v4.1-flash,#496,partial,86.7,,issue #496
-0x482910,418,,#497,assigned,,,issue #497
-0x4833b0,597,,#497,assigned,,,issue #497
-0x483dd0,461,,#497,assigned,,,issue #497
-0x4864b0,530,,#497,assigned,,,issue #497
+0x482910,418,deepseek-v4.1-flash,#497,matched,100.0,,issue #497
+0x4833b0,597,deepseek-v4.1-flash,#497,matched,100.0,,issue #497
+0x483dd0,461,deepseek-v4.1-flash,#497,matched,100.0,,issue #497
+0x4864b0,530,deepseek-v4.1-flash,#497,matched,100.0,,issue #497
 0x488310,596,space-bunny-free,#498,partial,85.0,,issue #498
 0x48ab70,448,space-bunny-free,#498,partial,96.7,,issue #498
 0x48b200,481,space-bunny-free,#498,matched,100.0,,issue #498

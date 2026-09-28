@@ -1058,6 +1058,8 @@ address,size,file,symbol,status,similarity
 0x452b70,82,src/unsorted/0x452b70.cpp,?FUN_00452b70@@YGHHHDH@Z,matched,100.0
 0x452bd0,97,src/unsorted/0x452bd0.cpp,?FUN_00452bd0@@YGHPAUPlayer_00452bd0@@@Z,matched,100.0
 0x452c40,124,src/unsorted/0x452c40.cpp,?FUN_00452c40@@YGPADH@Z,matched,100.0
+0x452cc0,848,src/unsorted/0x452cc0.cpp,?FUN_00452cc0@@YGXH@Z,partial,49.9
+0x453010,772,src/unsorted/0x453010.cpp,?FUN_00453010@@YGHHE@Z,partial,24.0
 0x453320,52,src/unsorted/0x453320.cpp,?FUN_00453320@@YGXHH@Z,matched,100.0
 0x453360,380,src/unsorted/0x453360.cpp,?FUN_00453360@@YGXPAD@Z,partial,54.4
 0x4534e0,349,src/unsorted/0x4534e0.cpp,?FUN_004534e0@@YGHXZ,matched,100.0

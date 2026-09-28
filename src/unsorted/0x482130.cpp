@@ -1,4 +1,33 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// 86.3%, 318 bytes, same size as the original but three register-allocation
+// details still differ (see "What still differs" at the bottom).
+// What is established:
+// - `expires` and `ticks` are unsigned: the loops use jae/jb, not jge/jl.
+// - `changed` is never initialised in the source. MSVC therefore has to read
+//   its (garbage) stack slot at the loop join, which is what the `mov eax,
+//   [esp+0x10]` after `test eax, eax` is. That slot is later reused by `src`,
+//   which is why the frame is only three dwords.
+// - The copy in the compaction loop is written as
+//       Eye* d = p;
+//       p++;
+//       d->player = ...; d->screen = &d->screenPos; ... d->flagB = ...;
+//   The saved destination `d` plus the early increment is what produces
+//   `mov eax, esi / add esi, 0x24 / mov [esp+0x18], esi` at the top of the
+//   copy, and it makes our code exactly as long as the original (303 -> 318).
+//   The field order of the copy is the store order in the original.
+// What still differs: only the register allocation around the `end` and `p`
+// stack slots. The original keeps `end` in the slot at [esp+0x14] and spills
+// the advanced `p` to [esp+0x18]; ours gives [esp+0x14] to a spill slot for
+// the &d->flagB address and puts `end` at [esp+0x18]. Because the original
+// frees esi (p's register) at the increment, both self-pointers
+// (&d->screenPos in esi, &d->flagB in edi) stay in registers; ours keeps p in
+// esi, so the &d->flagB address is spilled and the screenPos value goes
+// through edx instead of eax. The sign fix-up of the final /36 also uses ecx
+// instead of eax, following from the same difference. Splits into two pointer
+// variables, block scoping, a fresh phase-2 variable, the increment forms
+// (p++, ++p, p += 1, p = p + 1, Eye* d = p++), a copy helper (free function
+// and method), named locals for the two self-pointers and every
+// for/while/do-while spelling all give the same 86.3%.
 #include <stddef.h>
 
 #pragma pack(push, 1)
@@ -13,18 +42,18 @@ struct Vec3_00482130 {
     int z;
 };
 
-// One of the 20 "eyeball" records of the array at g_game + 0x1427b. The two
+// One of the "eyeball" records of the array at g_game + 0x1427b. The two
 // pointer fields point into the record itself: +4 at its screen position, +0xc
-// at the byte flag.
+// at the byte flag, so the copy has to re-point them at the destination.
 struct Eye_00482130 {
     void* player;                          // +0x00
     Pos_00482130* screen;                  // +0x04, &screenPos
     short x;                               // +0x08
-    char flagA;                            // +0x0a
+    unsigned char flagA;                   // +0x0a
     char flagB;                            // +0x0b
     char* flagPtr;                         // +0x0c, &flagB
     Vec3_00482130 v;                       // +0x10
-    int expires;                           // +0x1c
+    unsigned int expires;                  // +0x1c
     Pos_00482130 screenPos;                // +0x20
 };
 
@@ -33,7 +62,7 @@ struct Game_00482130 {
     int count;                             // +0x14277
     Eye_00482130* eyes;                    // +0x1427b
     char unknown_1427f[0x38a47 - 0x1427f];
-    int ticks;                             // +0x38a47
+    unsigned int ticks;                    // +0x38a47
 };
 #pragma pack(pop)
 
@@ -65,16 +94,17 @@ void FUN_00482130()
         if (src != end) {
             for (; src != end; src++) {
                 if (src->expires >= g_game->ticks) {
-                    p->player = src->player;
-                    p->screen = &p->screenPos;
-                    p->x = src->x;
-                    p->flagPtr = &p->flagB;
-                    p->v = src->v;
-                    p->flagA = src->flagA;
-                    p->expires = src->expires;
-                    p->screenPos = src->screenPos;
-                    p->flagB = src->flagB;
+                    Eye_00482130* d = p;
                     p++;
+                    d->player = src->player;
+                    d->screen = &d->screenPos;
+                    d->x = src->x;
+                    d->flagPtr = &d->flagB;
+                    d->v = src->v;
+                    d->flagA = src->flagA;
+                    d->expires = src->expires;
+                    d->screenPos = src->screenPos;
+                    d->flagB = src->flagB;
                 }
             }
         }

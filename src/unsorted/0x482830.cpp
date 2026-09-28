@@ -1,4 +1,28 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+//
+// Not a match yet: 87.3 percent, ours is 10 bytes longer (231 against 221).
+// Everything matches except the emission order of the two divisions that make
+// the y coordinate. The original emits pos.z / 0x200000 first and the high
+// half of pos.y divided by 64 second (0x4828ad and 0x4828bb), so the value of
+// pos.z / 0x200000 lands in edi and the second term stays in eax for
+// "sub edi, eax". Our build emits the 16 bit division first, which takes edi,
+// then has to spill the value to [esp+0x18] and reload it into edx for
+// "sub edi, edx" (three extra instructions, 10 bytes).
+//
+// The expression itself is right: the near identical function 0x482ac0 (a
+// MATCH, same body inlined) writes the same thing as
+//   cell_y = p.pos.z / 0x200000 - ((short*)&p.pos.y)[1] / 64;
+// and that build does emit pos.z first. So this is the scheduler's choice in
+// this one function, not a wrong expression. None of these source variations
+// changed the order: statement order of the x, z and y_hi divisions, temporaries
+// versus one expression, the high half read as a short field or as
+// ((short*)&pos.y)[1] or ((short*)&pos)[3], a local copy of g_game or of
+// params, short* versus struct out pointer, signed char versus unsigned char
+// cell_id, the clamp with and without a local table pointer, the nested if
+// against the early return form, int versus long, and removing the two
+// trailing calls. Removing the FUN_004b7f30 call, or the x division, makes the
+// order come out as in the original, so the pressure across that call is what
+// picks the wrong order.
 
 struct Out_482830 {
     short x;

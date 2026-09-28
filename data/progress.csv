@@ -2479,9 +2479,15 @@ address,size,file,symbol,status,similarity
 0x4c5dc0,18,src/unsorted/0x4c5dc0.cpp,?FUN_004c5dc0@@YGXHH@Z,matched,100.0
 0x4c5de0,6,src/unsorted/0x4c5de0.cpp,?FUN_004c5de0@@YAHXZ,matched,100.0
 0x4c5df0,124,src/unsorted/0x4c5df0.cpp,?FUN_004c5df0@@YAXXZ,matched,100.0
+0x4c5e70,293,src/unsorted/0x4c5e70.cpp,?FUN_004c5e70@@YGHPAUOut_004c5e70@@@Z,partial,97.8
 0x4c5fa0,77,src/unsorted/0x4c5fa0.cpp,?FUN_004c5fa0@@YGHPAUSurface_004c5fa0@@@Z,matched,100.0
+0x4c5ff0,214,src/unsorted/0x4c5ff0.cpp,?FUN_004c5ff0@@YGHPAUOut_004c5ff0@@@Z,partial,97.2
+0x4c60d0,213,src/unsorted/0x4c60d0.cpp,?FUN_004c60d0@@YGHHPAUtagRECT@@0@Z,matched,100.0
 0x4c61b0,62,src/unsorted/0x4c61b0.cpp,?FUN_004c61b0@@YGHH@Z,matched,100.0
 0x4c61f0,18,src/unsorted/0x4c61f0.cpp,?FUN_004c61f0@@YGXH@Z,matched,100.0
+0x4c6210,165,src/unsorted/0x4c6210.cpp,?FUN_004c6210@@YGHPAUArg_004c6210@@@Z,matched,100.0
+0x4c62c0,219,src/unsorted/0x4c62c0.cpp,?FUN_004c62c0@@YAXXZ,matched,100.0
+0x4c67c0,199,src/unsorted/0x4c67c0.cpp,?FUN_004c67c0@@YGXPAUObj_004c67c0@@PAX@Z,matched,100.0
 0x4c6890,266,src/unsorted/0x4c6890.cpp,?FUN_004c6890@@YGHPAUSurface@@H@Z,matched,100.0
 0x4c69a0,28,src/unsorted/0x4c69a0.cpp,?FUN_004c69a0@@YGXH@Z,matched,100.0
 0x4c69c0,36,src/unsorted/0x4c69c0.cpp,?FUN_004c69c0@@YGXPAH@Z,matched,100.0

@@ -1,18 +1,4 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// NOT YET MATCHING (90.4%). Everything from the prologue up to the three
-// Class_004ddbe0 constructions is byte-identical; the only difference is the
-// end of the function. The original emits the Class_004ddbe0 call and the
-// epilogue ONCE, after the else branch, and reaches it with `jmp 0x4db1a4` from
-// both insert paths (0x4db155, 0x4db193); here MSVC 5 keeps three copies of
-// `call Class_004ddbe0` + epilogue (473 bytes against the original's 439). I
-// could not find a source shape that makes MSVC 5 tail-merge those three
-// blocks: `goto` into the if body, a `goto` to a trailing label, a shared
-// `Class_004ddbe0 result` local, a `do {} while (0)` and an early return in
-// every branch all reproduce three copies (216, 176, 184 and 184 instructions
-// respectively, against 170 for the original), and a single construction site
-// reached by `goto` makes MSVC jump-thread the two insert paths into one
-// instead (164 instructions), which moves the block order.
-//
 // A hand-written walk over a std::map<unsigned int, int>: the argument is the
 // map's value_type (a base offset plus a block length) passed by value, and its
 // address is what the insert at 0x4dce60 copies into the new node. Two
@@ -20,6 +6,21 @@
 // searched for the offset and the pair inserted if nothing is there.
 // DAT_00528a54 is the tree's _Nil node, head->left is begin() and
 // head->parent is the root. Same shape as 0x4db450 and 0x4db7d0.
+//
+// The three Class_004ddbe0 calls (one per exit from the search) are the same
+// call in the source, written on one function-scope object, so MSVC 5 merges
+// their identical endings (lea ecx; call; epilogue) into the one at 0x4db1a4
+// that the first two reach with a jmp. Two details make that happen:
+//   * the insert call is passed straight to FUN_004ddbe0 as its first
+//     argument, rather than through a named local. MSVC then lays the
+//     argument pushes out interleaved (push &inserted, then the insert's four
+//     arguments, then push eax for the returned iterator), which is what the
+//     original does at 0x4db13f-0x4db154.
+//   * that parameter is a const reference. The insert returns a class with a
+//     constructor, so MSVC 5 passes a hidden return pointer to it and the
+//     callee hands the same pointer back in eax, which becomes the pushed
+//     first argument; a by-value or non-const-reference parameter does not
+//     reproduce the `push eax`.
 #include <yvals.h>
 
 struct Node_004db000 {
@@ -51,8 +52,9 @@ public:
 };
 
 // The tree's own methods, all called on the map itself. FUN_004dc130 is
-// erase(), FUN_004dce60 is an insert(); both return the tree's iterator, which
-// has constructors, so they hand it back through a hidden pointer.
+// erase(), FUN_004dce60 is an insert() that returns through a hidden pointer
+// (its return type has a constructor), so its result arrives in eax as the
+// address of the caller's temporary.
 class Class_004dd250 {
 public:
     Node_004db000* FUN_004dd250(const unsigned int& kv);
@@ -69,15 +71,15 @@ public:
                                  Pair_004db000* v);
 };
 
-// A pair-like helper: an iterator and a byte. The original passes the address
-// of the insert() result, so the first parameter is a reference.
+// A pair-like helper: an iterator and a byte, built by a member function that
+// takes both by reference.
 class Class_004ddbe0 {
 public:
     Class_004dd2a0 field_0;                    // +0x0
     unsigned char field_4;                     // +0x4
 
     Class_004ddbe0() {}
-    Class_004ddbe0(Class_004dd2a0& first, unsigned char* second);
+    Class_004ddbe0* FUN_004ddbe0(const Class_004dd2a0& first, unsigned char& second);
 };
 
 struct Less_004db000 {
@@ -106,6 +108,7 @@ void Class_004db000::FUN_004db000(Pair_004db000 p)
 {
     Class_004dd2a0 it;
     Class_004dd2a0 it2;
+    Class_004ddbe0 result;
     unsigned char inserted;
 
     Class_004dd2a0 n(((Class_004dd250*)this)->FUN_004dd250(p.offset));
@@ -143,23 +146,24 @@ void Class_004db000::FUN_004db000(Pair_004db000 p)
     }
 
     if (rebuild) {
-        ((Class_004dce60*)this)->FUN_004dce60(x, y, &p);
+        Class_004dd2a0 t(((Class_004dce60*)this)->FUN_004dce60(x, y, &p));
         return;
     }
     it2.ptr = y;
     if (less) {
         if (Class_004dd2a0(y) == Begin()) {
             inserted = 1;
-            Class_004ddbe0 result(((Class_004dce60*)this)->FUN_004dce60(x, y, &p), &inserted);
-            return;
+            result.FUN_004ddbe0(((Class_004dce60*)this)->FUN_004dce60(x, y, &p), inserted);
+            goto done;
         }
         it2.FUN_004dd2a0();
     }
     if (key_compare(it2.ptr->key, p.offset)) {
         inserted = 1;
-        Class_004ddbe0 result(((Class_004dce60*)this)->FUN_004dce60(x, y, &p), &inserted);
+        result.FUN_004ddbe0(((Class_004dce60*)this)->FUN_004dce60(x, y, &p), inserted);
     } else {
         inserted = 0;
-        Class_004ddbe0 result(it2, &inserted);
+        result.FUN_004ddbe0(it2, inserted);
     }
+done: ;
 }

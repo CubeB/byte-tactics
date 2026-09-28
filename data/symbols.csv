@@ -912,6 +912,7 @@ address,name
 0x44d910,Class_0044d910::FUN_0044d910
 0x44d930,Class_0044d930::Class_0044d930
 0x44d9a0,Class_0044d930::FUN_0044d9a0
+0x44da00,Class_0044da00::FUN_0044da00
 0x44dc60,Class_0044dc60::FUN_0044dc60
 0x44dcb0,Class_0044dcb0::FUN_0044dcb0
 0x44dd00,Class_0044dd00::FUN_0044dd00
@@ -946,6 +947,7 @@ address,name
 0x44ec00,FUN_0044ec00
 0x44ec10,Class_0044e740::FUN_0044ec10
 0x44ec20,Class_0044ec20::FUN_0044ec20
+0x44ec30,UPoint_0044eec0::?$vector::insert
 0x44ee60,UPoint_0044eec0::?$vector::_Destroy
 0x44ee70,UPoint_0044eec0::?$vector::size
 0x44ee90,UPoint_0044eec0::?$vector::_Ucopy

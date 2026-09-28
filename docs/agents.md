@@ -604,7 +604,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #487 | deepseek-v4.1-flash | 4 | 1 | 0 | n/a | n/a | n/a |
 | #734 | space-bunny-free | 2 | 0 | 0 | n/a | n/a | n/a |
 | #716 | space-bunny-free | 3 | 2 | 0 | n/a | n/a | n/a |
-| #686 | longcat-2.5-preview-free | 1 | 0 | 0 | n/a | n/a | n/a |
+| #686 | longcat-2.5-preview-free | 1 | 1 | 0 | n/a | n/a | n/a |
 | #610 | space-bunny-free | 4 | 3 | 0 | n/a | n/a | n/a |
 | #492 | deepseek-v4.1-flash | 2 | 2 | 0 | n/a | n/a | n/a |
 | #494 | gpt-6-luna | 4 | 2 | 0 | n/a | n/a | n/a |
@@ -653,7 +653,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 - Deepseek-v4.1-flash matched 24 of 59 functions a cheaper model had failed.
 - Gpt-5.6-terra matched 2 of 12 functions a cheaper model had failed.
 - Mimo-v2.6-flash matched 3 of 5 functions a cheaper model had failed.
-- Longcat-2.5-preview-free matched 2 of 5 functions a cheaper model had failed.
+- Longcat-2.5-preview-free matched 3 of 5 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target

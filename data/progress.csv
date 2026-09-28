@@ -2240,6 +2240,7 @@ address,size,file,symbol,status,similarity
 0x4bed70,225,src/unsorted/0x4bed70.cpp,?FUN_004bed70@@YGPAUSurface_004bed70@@PAU1@HHHHH@Z,matched,100.0
 0x4bee60,380,src/unsorted/0x4bee60.cpp,?FUN_004bee60@@YGHPAUSurface_004bee60@@HHH@Z,matched,100.0
 0x4befe0,115,src/unsorted/0x4befe0.cpp,?FUN_004befe0@@YGIPAUSurface_004befe0@@HH@Z,matched,100.0
+0x4bf4d0,332,src/unsorted/0x4bf4d0.cpp,?FUN_004bf4d0@@YGHPAUSurface_004bf4d0@@PAURect_004bf4d0@@H@Z,partial,69.4
 0x4c0310,28,src/unsorted/0x4c0310.cpp,?FUN_004c0310@@YGXPAXPAHHH@Z,matched,100.0
 0x4c07b0,106,src/unsorted/0x4c07b0.cpp,?FUN_004c07b0@@YGHPAXPAUPoint_004c07b0@@HH@Z,matched,100.0
 0x4c0a90,118,src/unsorted/0x4c0a90.cpp,?FUN_004c0a90@@YGXHPAUSpan_004c0a90@@PAUSurface_004c0a90@@E@Z,partial,85.7

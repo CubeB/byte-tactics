@@ -2493,6 +2493,7 @@ address,name
 0x4c3e30,Class_004c3e30::FUN_004c3e30
 0x4c3e40,Class_004c42a0::FUN_004c3e40
 0x4c42a0,Class_004c42a0::~Class_004c42a0
+0x4c4340,Class_004c4340::FUN_004c4340
 0x4c43f0,Class_004c43f0::FUN_004c43f0
 0x4c4420,Class_004c4420::FUN_004c4420
 0x4c4440,Class_004c4440::FUN_004c4440
@@ -2504,8 +2505,13 @@ address,name
 0x4c4630,Class_004c4630::FUN_004c4630
 0x4c46c0,Class_004c46c0::FUN_004c46c0
 0x4c4760,Class_004c4760::FUN_004c4760
+0x4c4800,Class_004c4800::FUN_004c4800
 0x4c48c0,Class_004c48c0::FUN_004c48c0
+0x4c49a0,Class_004c49a0::Class_004c49a0
+0x4c4c30,Class_004c49a0::_Eos
+0x4c4c50,Class_004c49a0::_Grow
 0x4c4d70,PAVClass_004c3e40::?$vector::insert
+0x4c50a0,Class_004c49a0::_Split
 0x4c5170,FUN_004c5170
 0x4c5190,Elem_004c5bc0::~Elem_004c5bc0
 0x4c51b0,??_GElem_004c5bc0@@QAEPAXI@Z
@@ -2957,6 +2963,7 @@ address,name
 0x4e39b0,std::_Lockit::_Lockit
 0x4e3a70,std::_Lockit::~_Lockit
 0x4e3e10,FUN_004e3e10
+0x4e4010,std::_Xran
 0x4e41e0,FUN_004e41e0
 0x4e41f0,FUN_004e41f0
 0x4e4200,FUN_004e4200
@@ -3723,6 +3730,7 @@ address,name
 0x4fdaf0,DAT_004fdaf0
 0x4fdb00,??_7Class_004b0610@@6B@
 0x4fdbe8,DAT_004fdbe8
+0x4fdc1c,Class_004c49a0::npos
 0x4fdca4,??_7logic_error@std@@6B@
 0x501774,DAT_00501774
 0x501d18,DAT_00501d18
@@ -4046,6 +4054,7 @@ address,name
 0x51fcb0,DAT_0051fcb0
 0x51fdb0,DAT_0051fdb0
 0x51fdb8,DAT_0051fdb8
+0x51fdc0,DAT_0051fdc0
 0x51fe00,DAT_0051fe00
 0x51fe08,DAT_0051fe08
 0x51fe48,DAT_0051fe48

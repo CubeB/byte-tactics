@@ -1,4 +1,4 @@
-// Decompiled by mimo-v2.6-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
 //
 // Not matched: 90.4% (432 bytes vs 428). The prologue and all of branch A
 // match byte for byte. The whole remaining diff comes from branch B reading
@@ -10,7 +10,9 @@
 // The original also reads both loop deltas through p while keeping p in ESI
 // (lea esi for the branch A arg, lea esi in the preheader). No variant could
 // produce p in ESI with both branch B reads through p; every source that got
-// both reads via p (q = p, v = p, extra copies) put p in EDi instead.
+// both reads via p (q = p, v = p, hoisted px/py locals, dx before dy) put p
+// in EDI instead, which drops branch A's two mov esi,[esp+0x14] reloads and
+// scores 71-73%.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {

@@ -57,6 +57,19 @@ char* __stdcall FUN_004a0d00(Gadget_00442050* gadget, const char* key, void* out
 // Reordering the bitfield writes and the two zero assignments, declaring the
 // locals inline, using &(a = 0) arguments, headers.py and the RTM toolchain
 // all leave the same four bytes different.
+//
+// A second pass added four more arrangements of the two zero assignments around
+// the two bitfield writes, in both the JOIN branch and the connect block: both
+// zeros first, the zeros in the opposite order, both zeros together after the
+// bitfield writes (98.3%, identical bytes), and the JOIN block alone (96.6%).
+// So the interleaved spelling in the file is the best of the family. What is
+// left really is one store's position relative to one `push`: the value `b` is
+// live across the call to FUN_00441c30, so its zero store must precede the call,
+// but whether it lands before or after the argument push is the scheduler's
+// choice, and no arrangement of the source statements moves it. Note that
+// taking `&b` into a pointer local before the store makes it worse in
+// principle, since it fixes the source order as compute-store-push, which is
+// the opposite of what the original does.
 void __stdcall FUN_00442050(Gadget_00442050* gadget)
 {
     int a, b, r;

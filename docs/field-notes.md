@@ -347,6 +347,12 @@ general, but they cost hours.
 
 ## Part 4: findings still needing a decision
 
+*Orchestrator status (2026-09-28): item 1 is done (0x472d30 and 0x470770 are
+now `std::vector<T>::size`, and `data/aliases.csv` covers the second
+`std::copy`). Item 3 is not a bug: `fcomp; fnstsw; test ah, 0x40` is MSVC's
+ordinary `!= 0.0f` / `== 0.0f` test (see the guide). Item 6 is recorded in the
+guide's "known wall" note on `vector::insert`.*
+
 1. **Four functions are byte-exact and refused by the checker** because
    `data/symbols.csv` folds two COMDAT `std::vector<T>::size` instantiations
    after their own placeholder file addresses. `0x472d30` and `0x470770` are

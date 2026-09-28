@@ -1,0 +1,116 @@
+// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Appends a new "eyeball" record to the array at g_game + 0x1427b (the same
+// record type as 0x482130), then runs the same inlined processing tail as
+// 0x482ac0 / 0x482830. The tail is the body of 0x482830 inlined on the new
+// record, so the flags & 2 test appears twice.
+// Two things were needed for the match:
+// - The three value parameters are plain int (the caller sign-extends the
+//   short fields before pushing, so int and short arguments look identical at
+//   the call; but declaring the byte parameter as unsigned char / char made
+//   MSVC reserve an extra 4-byte home slot and spill the y_hi / 64 temporary
+//   to [esp+0x24] instead of reusing [esp+0x20]).
+// - e->player must be assigned before e->screen in the source, otherwise the
+//   compiler clobbers ecx (still holding g_game) computing &e->screenPos and
+//   has to reload g_game.
+
+struct Vec3_482910 {
+    int x;
+    int y;
+    int z;
+};
+
+struct Pos_482910 {
+    short x;
+    short y;
+};
+
+struct Entry_482910 {                  // one cell table element, 8 bytes
+    int field_0;
+    short field_4;
+    short field_6;
+};
+
+struct Table_482910 {
+    unsigned short count;              // +0
+    char unknown_2[0x28 - 0x2];
+    Entry_482910* entries;             // +0x28
+};
+
+#pragma pack(push, 1)
+struct Eye_482910 {
+    void* player;                      // +0x00
+    Pos_482910* screen;                // +0x04, &screenPos
+    short x;                           // +0x08
+    unsigned char flagA;               // +0x0a
+    char flagB;                        // +0x0b
+    char* flagPtr;                     // +0x0c, &flagB
+    Vec3_482910 pos;                   // +0x10
+    unsigned int expires;              // +0x1c
+    Pos_482910 screenPos;              // +0x20
+};
+
+struct Game_482910 {
+    char unknown_0[0x2a43];
+    unsigned char playerIndex;         // +0x2a43
+    char unknown_2a44[0x14277 - 0x2a44];
+    int count;                         // +0x14277
+    Eye_482910* eyes;                  // +0x1427b
+    unsigned char field_1427f;         // +0x1427f
+    char unknown_14280;
+    unsigned char flags;               // +0x14281
+    char unknown_14282[0x1485b - 0x14282];
+    Table_482910* field_1485b;         // +0x1485b
+    char unknown_1485f[0x38a47 - 0x1485f];
+    unsigned int ticks;                // +0x38a47
+};
+#pragma pack(pop)
+
+extern Game_482910* g_game;
+
+void __stdcall FUN_004825b0(Eye_482910* e);
+void __stdcall FUN_00482270(Eye_482910* e);
+void __stdcall FUN_00481930(Eye_482910* e);
+Entry_482910* __stdcall FUN_004b7f30(unsigned short* table, int index);
+
+// FUNCTION: 0x482910
+void __stdcall FUN_00482910(Vec3_482910* src, int a, int b, int c)
+{
+    if ((g_game->flags & 2) == 2 && g_game->count < 0x14) {
+        Eye_482910* e = &g_game->eyes[g_game->count];
+        e->player = (char*)g_game + g_game->playerIndex * 0x14b + 0x1b63;
+        e->screen = &e->screenPos;
+        e->x = a;
+        e->flagPtr = &e->flagB;
+        e->pos = *src;
+        e->flagA = b;
+        int minY = (g_game->field_1427f + 1) << 16;
+        if (e->pos.y < minY) {
+            e->pos.y = minY;
+        }
+        e->expires = g_game->ticks + c;
+        if ((g_game->flags & 2) == 2) {
+            *e->flagPtr = 0;
+            if ((g_game->flags & 4) == 4) {
+                FUN_004825b0(e);
+            } else {
+                int lod = e->x / 32 - 5;
+                if (lod < 0) {
+                    lod = 0;
+                } else if (lod >= g_game->field_1485b->count) {
+                    lod = g_game->field_1485b->count - 1;
+                }
+                int cell_x = e->pos.x / 0x200000;
+                int cell_y = e->pos.z / 0x200000 - ((short*)&e->pos.y)[1] / 64;
+                Entry_482910* ce = FUN_004b7f30((unsigned short*)g_game->field_1485b, lod);
+                cell_x -= ce->field_4;
+                cell_y -= ce->field_6;
+                e->screen->x = (short)cell_x;
+                e->screen->y = (short)cell_y;
+                *e->flagPtr = (char)lod;
+                FUN_00482270(e);
+                FUN_00481930(e);
+            }
+        }
+        g_game->count++;
+    }
+}

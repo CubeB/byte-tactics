@@ -1814,3 +1814,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   deriving from that class (`class Class_00435110 : public Class_00435c00`)
   instead of copying the fields into a new one, so the inherited calls keep
   their established names (0x435110).
+- **Known wall: `vector::insert(iterator, size_type, const T&)`** comes out one
+  byte off, a base/index swap in the third inlined `_Ucopy`'s source `lea`
+  (original `[ebx+ecx]`, ours `[ecx+ebx]`), in both 0x46e640 and 0x44ec30 (99.6%
+  each). Neither header sets nor 0 to 700 unused declarations fix it, so it
+  comes from the source shape. Solve it once and it likely solves every
+  instantiation; until then, don't spend a normal budget on it.

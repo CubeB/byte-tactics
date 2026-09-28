@@ -10,7 +10,7 @@ void FUN_004e1be0();
 class Class_004e17c0 {
 public:
     char unknown_0[0x14];
-    Class_004e17c0* FUN_004e17c0();
+    Class_004e17c0();                  // 0x4e17c0
 };
 
 class Class_004df250 {
@@ -51,7 +51,6 @@ public:
 Class_004df1e0::Class_004df1e0()
     : ident("This is a unique identifier, isn't it - tell me the truth!")
 {
-    map.FUN_004e17c0();
     unknown_0 = 0;
     unknown_4 = -1;
     unknown_8 = -1;

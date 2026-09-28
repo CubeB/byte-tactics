@@ -102,7 +102,7 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 <!-- calibration:start -->
 ### First-attempt match rate by function size
 
-| Size (bytes) |  | Deepseek-v4.1-flash | Gpt-6 | Gpt-6-astra | Haiku | Longcat2.5previewfree | Mimo-v2.6-flash | Opus | Sonnet | Space-bunny-free |
+| Size (bytes) |  | Deepseek-v4.1-flash | Gpt-6 | Gpt-6-astra | Haiku | Longcat-2.5-preview-free | Mimo-v2.6-flash | Opus | Sonnet | Space-bunny-free |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1-16 |  |  |  |  | 283/312 (91%) |  |  | 3/3 (100%) |  |  |
 | 17-40 |  |  |  |  | 235/337 (70%) |  |  | 124/124 (100%) | 9/10 (90%) |  |
@@ -538,7 +538,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #381 | deepseek-v4.1-flash | 6 | 5 | 0 | n/a | n/a | n/a |
 | #398 | space-bunny-free | 3 | 2 | 0 | n/a | n/a | n/a |
 | #642 | space-bunny-free | 3 | 0 | 0 | n/a | n/a | n/a |
-| #560 | longcat2.5previewfree | 4 | 2 | 0 | n/a | n/a | n/a |
+| #560 | longcat-2.5-preview-free | 4 | 2 | 0 | n/a | n/a | n/a |
 | #376 | deepseek-v4.1-flash | 6 | 5 | 0 | n/a | n/a | n/a |
 | #646 | space-bunny-free | 4 | 3 | 0 | n/a | n/a | n/a |
 | #656 | space-bunny-free | 1 | 1 | 0 | n/a | n/a | n/a |

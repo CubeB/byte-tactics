@@ -1,4 +1,57 @@
 // Decompiled by space-bunny-free. Names are provisional.
+//
+// check.py: 83.6%, ours 420 bytes against the original's 416. The prologue,
+// the entry scan, the switch, case 1, case 2 (whole block) and case 4 are all
+// byte exact. The only remaining difference is the last two bytes of the else
+// branch, which is 142 bytes against the original's 140:
+//
+//  1. The original never reads packet->field_2 (there is no [esi+2] load
+//     anywhere in 0x46d6c0) and puts a plain zero in ebx with `xor ebx,ebx`,
+//     stored post-call as `mov [ecx+4], ebx`. So pv->tail.field_0 is set to 0.
+//     Every spelling of a constant zero I could find folds to an immediate
+//     (`mov dword ptr [reg+4], 0`) in MSVC 5, so this file still reads
+//     field_2 into ebx: `mov ebx,[esi+2]`. Micro-tested and all folded:
+//     int z = 0 (named and unnamed), 0L, 0u, (int)0, sizeof(char)-1, a ternary
+//     on zero, a value of 0.0f, a zeroed const struct member (that one emits a
+//     real load), a bss global (real load), x - x on a memory read, x ^ x,
+//     -(-x)+(-x), x/1 - x/1, (p - p), equal bitfields, and x & ~x (that last
+//     one does keep a callee-saved register but cannot fold to 0).
+//  2. The original materialises the node's value pointer once, `add ecx,0x10`,
+//     then stores at +0, +4, +8, +0xc off it. MSVC 5 folds the +0x10 into the
+//     first two displacements, then has to build a second base with a lea for
+//     the last two, because ecx is reused for `this` in between. Tried and all
+//     unchanged at 142 bytes: dropping the pv local entirely (that makes the
+//     block 139 and the base eax, with all four folded), taking pv straight from
+//     the handle, a const pv, an __inline accessor for &node->value, a char*
+//     plus 0x10 cast, pv declared before the call, the four stores in a nested
+//     block, key stored last, the shorts store through a Shorts* lvalue, a
+//     0xc-byte tail written as one struct copy, mixing node->value and pv, and
+//     all 24 orderings of the four pv-> stores (397 or 398 bytes, never 396).
+//
+// Suspected bugs in Cavedog's original, both verified against the disassembly:
+//
+//  1. The "already tracked" guard in case 2 is asymmetric and incomplete. The
+//     scan at 0x46d748-0x46d762 compares vec1's elements against [arg1+6]
+//     ONLY (`mov edx,[ebx+6]` / `cmp [eax],edx`), and a hit jumps to 0x46d760,
+//     where `cmp eax,ecx / jne 0x46d842` returns and skips both inserts. But
+//     the inserts at 0x46d771-0x46d775 and 0x46d783-0x46d787 push [arg1+6]
+//     into vec1 and [arg1+0xa] into vec2. So a new [arg1+0xa] is silently
+//     dropped whenever [arg1+6] is already tracked, and a [arg1+0xa] already
+//     present in vec2 is inserted a second time because vec2 is never scanned.
+//     Intent: the two vectors are index parallel (vec1 holds field_6, vec2 holds
+//     field_a), so the guard was plainly meant to test the pair, which needs
+//     both vectors scanned, not just the first.
+//  2. The counter at +0x5c is bumped before every filter. `inc edx` at 0x46d6dc
+//     and the store at 0x46d6df sit before the empty-player-list return at
+//     0x46d6e2, before the switch dispatch (`ja 0x46d842` for arg above 4 at
+//     0x46d72b) and before the arg != 3 returns at 0x46d7c9/0x46d7cd, so packets
+//     that change nothing still consume budget. Only the `disabled` test at
+//     0x46d6c9 precedes it. It is a single inc, not an accumulate. The counter
+//     is read as a LIMIT by `mov eax,[edi+0x5c] / cmp eax,ebx / jle 0x46dec8`
+//     at 0x46dd52, which is inside 0x46dad0, a different method of the same
+//     class (0x46dad0 is not a caller of 0x46d6c0; the callers are 0x46cef0 and
+//     0x46d500), so the drift silently lowers the effective cap in that method.
+//     Intent: the bump belongs after the filters, next to the state change.
 #include <vector>
 
 #pragma pack(push, 1)
@@ -165,20 +218,25 @@ void Class_0046d6c0::FUN_0046d6c0(Packet_0046d6c0* packet, unsigned char player)
 
         case 2:
             {
-                Vec_0046d6c0& v = i->ids;
-                int* j = v.begin();
-                while (j != v.end()) {
+                int* j = i->ids.begin();
+                while (j != i->ids.end()) {
                     if (*j == packet->field_6) {
                         break;
                     }
                     j++;
                 }
-                if (j != v.end()) {
+                if (j != i->ids.end()) {
                     return;
                 }
             }
-            i->ids.insert(i->ids.end(), 1, packet->field_6);
-            i->pairs.insert(i->pairs.end(), 1, packet->field_a.all);
+            {
+                Vec_0046d6c0& v = i->ids;
+                v.insert(v.end(), 1, packet->field_6);
+            }
+            {
+                Vec_0046d6c0& w = i->pairs;
+                w.insert(w.end(), 1, packet->field_a.all);
+            }
             FUN_0046d970(packet->field_6, packet->field_a.all);
             break;
 

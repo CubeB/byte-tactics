@@ -19,6 +19,48 @@
 // other way in the source, moving a statement, changing the loop's increment
 // order, and adding a live local (which demotes this from ebx to ebp) all
 // move it further away.
+//
+// What the byte is, and what is left to try. The third _Ucopy copies
+// [_P, _Last) to _Q + _M. MSVC 5 makes the destination the loop's basic
+// induction variable (its start is the one-instruction lea ecx,[edx+edi])
+// and re-derives the source from it, so the source start is the linear form
+// `_P + destIV - _S - _M*4`, emitted as lea, sub, sub. Only the order of the
+// two terms in that sum is in question, and the sum is built by the loop
+// optimiser, not by the source: everything below was measured and none of it
+// moves the byte.
+//   * The grow branch on its own, as a free function over the same class,
+//     reproduces `lea eax,[ecx+ebx]` exactly (build/scratch/0x46e640/micro),
+//     so the choice is made inside this loop and not by the branches, the
+//     spill of `this` or anything else in the function.
+//   * Spelling: _Q + _M as _M + _Q, &_Q[_M], (_Q + _M), _Q + _M*1,
+//     _Q + (int)_M, _Q + (long)_M; _P as _P + 0, *(&_P), &_P[0], (int*)_P,
+//     &_Last[0]; a local for either start (that kills the lea and costs a
+//     byte, 547); a static __inline accessor for either (no effect at all).
+//   * The loop: ++_P,++_F either way round, _P += 1, increments in the body,
+//     a while form, _F != _L either way round, _F < _L, a separate IV
+//     local, dest-first parameter order, a static _Ucopy, raw int* parameters.
+//   * The class: the real header's members bisected one group at a time
+//     (build/scratch/0x46e640/vec.cpp), the _Ufill loop's three shapes, and
+//     spelling size() once into a local. All 546-byte builds agree on the
+//     swapped SIB byte.
+//   * Includes: all 128 sets of the seven C headers, all 768 sets of
+//     headers.py --cpp, and by hand the real header's own set
+//     (<climits> <memory> <stdexcept> <xutility>, 547 bytes) plus
+//     <stdexcept>, <climits>, <algorithm>, <xmemory>, <new>, <exception>,
+//     <utility>, <typeinfo> and <string> in every position. Nothing matches.
+//   * The one lever that does work is global state that has nothing to do
+//     with this source: the *number of functions defined in the translation
+//     unit* before insert is compiled flips the third _Ucopy between two
+//     association shapes. Below one threshold (e.g. one dead static
+//     function, or <stdexcept>, or a second std::vector<T> instantiation)
+//     it is 547 bytes: `mov eax,ecx; sub eax,edx; add eax,ebx; sub eax,edi`,
+//     a different association. Between one and about fourteen units it is
+//     546 bytes with the swapped SIB byte, and above fourteen it is 547
+//     again. A dead loop-bodied function, fourteen chained inline calls and
+//     fourteen nested loops all put it in the 546 regime, so the regimes are
+//     countable but the source-anchored one is not among the reachable
+//     values. The original's association therefore needs a compiler state
+//     this file cannot reproduce, most likely its own big translation unit.
 #include <memory>
 #include <xutility>
 

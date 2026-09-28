@@ -1,17 +1,35 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL, 76.5%. Structural shape is right (see the note on Locals_0046d2e0
-// below, the one containing struct is what keeps the register allocation from
-// collapsing). What still differs, all MSVC 5 scheduling:
-//  1. where the hoisted `s.v.wh.w = 1` store lands: the original puts it in the
-//     preheader block AFTER the loop guard (same as the matched constructor
-//     0x46d040, whose `v.y = 0` / `v.w = 1` sit at 0x46d0e0/0x46d0e4, before its
-//     loop head at 0x46d0e9), ours puts it before the `cmp`.
-//  2. `add eax, ecx` vs our `add ecx, eax` for the def address, and the key
-//     and flags loads swapped.
-//  3. the `it == root` compare: the original reloads the root through eax
-//     (`cmp edx, [ecx]`), we copy it into a register first.
-//  4. the post-insert copy stores `v.y` from a reloaded stack slot; the
-//     original forwards the constant 0.
+// PARTIAL, 88.4%, and the whole function now compiles to the original's exact
+// 475 bytes, so only the in-block scheduling inside two blocks is left.
+// What is settled (do not undo):
+//  * ONE local struct `Locals_0046d2e0` holding both the value and the pair,
+//    with `Insert(s.val)` letting &s.val escape. Two separate locals collapse
+//    the register allocation (the frame grows to 0x50, `this` spills).
+//  * The loop is an `if (i < count) { ...; do { ...; i++; } while (i < count); }`.
+//    That, not `s.v.wh.w = 1` before a `for`, is what puts the
+//    `mov word [esp+0x40], cx` in the post-guard preheader like the original,
+//    and it is also the only form that keeps the bottom-tested latch.
+//  * The post-insert copy is a CONSTRUCTED value,
+//    `p.first->value = Value_0046d2e0(s.v.x, 0, s.v.wh, s.v.flag)`.
+//    A plain `p.first->value = s.v;` reloads s.v.y and is 2 bytes over; four
+//    separate field assignments re-read `p.first` four times (the stores go
+//    through a pointer, so MSVC 5 cannot CSE the four `p.first` loads) and give
+//    479 bytes. Only the constructor materialises the constant 0 into a
+//    register (`xor eax,eax / mov [edx+4],eax`) the way the original does; a
+//    literal 0 in a field assignment always becomes `mov dword [m], 0`.
+//  * `s.v.y = 0;` must be the last statement before `Insert`, and the y copy
+//    `s.val.value.y = s.v.y;` must come before it.
+// What still differs, all MSVC 5 scheduling inside two blocks:
+//  1. pre-insert block: the original hoists the `s.v.wh.h` store and the
+//     `s.val.value.y` load+store pair to the top of the block (before the key
+//     and flags loads) and reloads s.v.x and s.v.flag through the stack instead
+//     of forwarding the register. No permutation of the eight statements
+//     changes this: all 5040 legal orders compile identically, so it is not
+//     statement order.
+//  2. post-insert block: same instruction sequence, wrong registers. Ours puts
+//     the destination base in edi and hoists all three loads (edi/eax/edx/esi),
+//     the original uses edx for the base and reuses eax for the 0 and the flag,
+//     i.e. it has one live value fewer, which is a consequence of 1.
 #include <yvals.h>
 
 struct Wh_0046d2e0 {                   // 4 bytes, the w/h pair
@@ -24,6 +42,10 @@ struct Value_0046d2e0 {                 // 0x10 bytes, the map's value
     int y;                              // +0x4
     Wh_0046d2e0 wh;                     // +0x8
     int flag;                           // +0xc
+    // The constructor is what makes the post-insert copy a constructed
+    // temporary rather than a struct assignment; see the note above.
+    Value_0046d2e0() {}
+    Value_0046d2e0(int a, int b, Wh_0046d2e0 c, int d) : x(a), y(b), wh(c), flag(d) {}
 };
 
 struct Pair_0046d2e0 {                  // 0x14 bytes, the value_type
@@ -166,21 +188,24 @@ public:
 void Class_0046d040::FUN_0046d2e0()
 {
     Locals_0046d2e0 s;
-    s.v.wh.w = 1;
-    for (unsigned short i = 1; i < g_game->count; i++) {
-        unsigned int key = g_game->defs[i].key;
-        bool flag = (g_game->defs[i].flags >> 16) & 1;
-        s.v.wh.h = (short)field_58;
-        s.v.x = key;
-        s.v.flag = flag ? 0 : -1;
-        s.val.value.flag = s.v.flag;
-        s.val.value.wh = s.v.wh;
-        s.val.value.x = s.v.x;
-        s.val.key = key;
-        s.val.value.y = s.v.y;
-        s.v.y = 0;
-        Class_0046fad0 p = Insert(s.val);
-        p.first->value = s.v;
+    unsigned short i = 1;
+    if (i < g_game->count) {
+        s.v.wh.w = 1;
+        do {
+            unsigned int key = g_game->defs[i].key;
+            bool flag = (g_game->defs[i].flags >> 16) & 1;
+            s.v.wh.h = field_58;
+            s.v.x = key;
+            s.v.flag = flag ? 0 : -1;
+            s.val.value.flag = s.v.flag;
+            s.val.value.wh = s.v.wh;
+            s.val.value.x = s.v.x;
+            s.val.key = key;
+            s.val.value.y = s.v.y;
+            s.v.y = 0;
+            Class_0046fad0 p = Insert(s.val);
+            p.first->value = Value_0046d2e0(s.v.x, 0, s.v.wh, s.v.flag);
+            i++;
+        } while (i < g_game->count);
     }
 }
-

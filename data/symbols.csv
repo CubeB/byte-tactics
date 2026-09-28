@@ -2487,8 +2487,12 @@ address,name
 0x4c3410,Class_004c3410::FUN_004c3410
 0x4c3490,Class_004c3490::FUN_004c3490
 0x4c3730,std::logic_error::what
+0x4c3740,std::logic_error::_Doraise
 0x4c38f0,??_Glogic_error@std@@UAEPAXI@Z
+0x4c3950,std::logic_error::logic_error
+0x4c3af0,std::out_of_range::_Doraise
 0x4c3c60,??_Gout_of_range@std@@UAEPAXI@Z
+0x4c3cc0,std::out_of_range::out_of_range
 0x4c3e10,Class_004c3e10::FUN_004c3e10
 0x4c3e20,Class_004c3e20::FUN_004c3e20
 0x4c3e30,Class_004c3e30::FUN_004c3e30
@@ -2509,6 +2513,8 @@ address,name
 0x4c4800,Class_004c4800::FUN_004c4800
 0x4c48c0,Class_004c48c0::FUN_004c48c0
 0x4c49a0,std::D::DU?$char_traits::?$basic_string::?$basic_string
+0x4c4ac0,std::D::DU?$char_traits::?$basic_string::_Tidy
+0x4c4b10,std::D::DU?$char_traits::?$basic_string::erase
 0x4c4c30,std::D::DU?$char_traits::?$basic_string::_Eos
 0x4c4c50,std::D::DU?$char_traits::?$basic_string::_Grow
 0x4c4d70,PAVClass_004c3e40::?$vector::insert
@@ -3096,6 +3102,7 @@ address,name
 0x4e80e0,_mkdir
 0x4e8110,rewind
 0x4e8190,exception::exception
+0x4e8230,Class_004e8230::Class_004e8230
 0x4e82a0,??4exception@@QAEAAV0@ABV0@@Z
 0x4e82c0,exception::~exception
 0x4e82e0,exception::what
@@ -3733,6 +3740,9 @@ address,name
 0x4fdb00,??_7Class_004b0610@@6B@
 0x4fdbe8,DAT_004fdbe8
 0x4fdca4,??_7logic_error@std@@6B@
+0x4fdcb4,??_7out_of_range@std@@6B@
+0x4fefb8,_TI3?AVout_of_range
+0x4fefd8,_TI2?AVlogic_error
 0x501774,DAT_00501774
 0x501d18,DAT_00501d18
 0x501d38,DAT_00501d38

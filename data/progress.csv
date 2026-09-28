@@ -2427,9 +2427,15 @@ address,size,file,symbol,status,similarity
 0x4c32f0,169,src/unsorted/0x4c32f0.cpp,??_GClass_004c42a0@@QAEPAXI@Z,matched,100.0
 0x4c33a0,105,src/unsorted/0x4c33a0.cpp,?FUN_004c33a0@Class_004c33a0@@QAEXPAD@Z,matched,100.0
 0x4c3410,115,src/unsorted/0x4c3410.cpp,?FUN_004c3410@Class_004c3410@@QAEHPAD@Z,matched,100.0
+0x4c3490,292,src/unsorted/0x4c3490.cpp,?FUN_004c3490@Class_004c3490@@QAEHH@Z,partial,100.0
+0x4c35c0,354,src/unsorted/0x4c35c0.cpp,??0logic_error@std@@QAE@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z,partial,88.1
 0x4c3730,13,src/unsorted/0x4c3730.cpp,?what@logic_error@std@@UBEPBDXZ,matched,100.0
+0x4c3740,348,src/unsorted/0x4c3740.cpp,?_Doraise@logic_error@std@@MBEXXZ,matched,100.0
 0x4c38f0,95,src/unsorted/0x4c38f0.cpp,??_Glogic_error@std@@UAEPAXI@Z,matched,100.0
+0x4c3950,334,src/unsorted/0x4c3950.cpp,??0logic_error@std@@QAE@ABV01@@Z,matched,100.0
+0x4c3af0,356,src/unsorted/0x4c3af0.cpp,?_Doraise@out_of_range@std@@MBEXXZ,matched,100.0
 0x4c3c60,95,src/unsorted/0x4c3c60.cpp,??_Gout_of_range@std@@UAEPAXI@Z,matched,100.0
+0x4c3cc0,331,src/unsorted/0x4c3cc0.cpp,??0out_of_range@std@@QAE@ABV01@@Z,matched,100.0
 0x4c3e10,8,src/unsorted/0x4c3e10.cpp,?FUN_004c3e10@Class_004c3e10@@QAEXXZ,matched,100.0
 0x4c3e20,4,src/unsorted/0x4c3e20.cpp,?FUN_004c3e20@Class_004c3e20@@QAEHXZ,matched,100.0
 0x4c3e30,10,src/unsorted/0x4c3e30.cpp,?FUN_004c3e30@Class_004c3e30@@QAEXH@Z,matched,100.0

@@ -2,6 +2,11 @@
 #include <windows.h>
 #include <dsound.h>
 
+class Class_004ceee0 {
+public:
+    void FUN_004ceee0();
+};
+
 class Class_004cef90 {
 public:
     char unknown_0[0x24];
@@ -15,7 +20,6 @@ public:
     int field_290;                      // +0x290
 
     int FUN_004cef90(int rate, int bits, int channels, HWND handle);
-    void FUN_004ceee0();
 };
 
 // FUNCTION: 0x4cef90
@@ -58,6 +62,6 @@ int Class_004cef90::FUN_004cef90(int rate, int bits, int channels, HWND handle)
 error:
     if (hr == (HRESULT)0x88780078)
         field_290 = 1;
-    FUN_004ceee0();
+    ((Class_004ceee0*)this)->FUN_004ceee0();
     return 0;
 }

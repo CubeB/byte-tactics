@@ -3435,6 +3435,7 @@ address,name
 0x4faff0,DirectPlayEnumerateA
 0x4faff6,DirectPlayLobbyCreateA
 0x4faffc,DirectPlayCreate
+0x4fb002,DirectSoundCreate
 0x4fb440,_hypot
 0x4fb460,_cabs
 0x4fb480,_hypothlp

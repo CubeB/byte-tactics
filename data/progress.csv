@@ -630,6 +630,7 @@ address,size,file,symbol,status,similarity
 0x434f70,118,src/unsorted/0x434f70.cpp,??0Class_00434f70@@QAE@H@Z,matched,100.0
 0x434ff0,259,src/unsorted/0x434ff0.cpp,??1Class_00434f70@@QAE@XZ,matched,100.0
 0x435100,3,src/unsorted/0x435100.cpp,?FUN_00435100@Class_00435100@@QAEHXZ,matched,100.0
+0x435110,401,src/unsorted/0x435110.cpp,?FUN_00435110@Class_00435110@@QAEXPAD@Z,matched,100.0
 0x4352b0,24,src/unsorted/0x4352b0.cpp,?FUN_004352b0@Class_004352b0@@QAEPADXZ,matched,100.0
 0x4352d0,76,src/unsorted/0x4352d0.cpp,?FUN_004352d0@@YGHPAD@Z,matched,100.0
 0x435320,121,src/unsorted/0x435320.cpp,?FUN_00435320@Class_00435320@@QAEXXZ,matched,100.0

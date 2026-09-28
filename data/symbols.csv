@@ -1496,6 +1496,7 @@ address,name
 0x47c330,Class_0047c330::FUN_0047c330
 0x47c3a0,Class_0047c3a0::FUN_0047c3a0
 0x47c4d0,FUN_0047c4d0
+0x47c530,Class_0047c6c0::FUN_0047c530
 0x47c6c0,Class_0047c6c0::FUN_0047c6c0
 0x47c770,FUN_0047c770
 0x47c780,FUN_0047c780
@@ -3573,6 +3574,7 @@ address,name
 0x4fc3e0,_imp__SmackNextFrame
 0x4fc3e4,_imp__SmackDoFrame
 0x4fc3e8,_imp__SmackToBuffer
+0x4fc3ec,_imp__SmackSummary
 0x4fc3f0,_imp__SmackGoto
 0x4fc3f4,_imp__SmackToBufferRect
 0x4fc3f8,_imp__SmackClose

@@ -1,4 +1,7 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free. Names are provisional.
+// GPT-6-Luna tried inlining the visibility arms here. That scored 16.9%, so
+// this keeps the prior best at 66.3%; the register-allocation notes below
+// remain the useful handoff.
 //
 // NOT A MATCH: 66.3 percent (35 instruction lines still differ). Up from the
 // 60.3 percent this file held before: the whole gain is one line of source,

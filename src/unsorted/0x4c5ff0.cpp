@@ -1,5 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 97.2%: everything matches except the scheduling of the Lock setup.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
+// PARTIAL 97.2% after 8 completed checks: everything matches except the scheduling of the Lock setup.
 // The original emits `mov eax,[esi+0x88]`, `push edi`, `lea edx,[esp+0xc]`,
 // `push 1`, then `mov [esp+0x10],0x6c` and `mov ecx,[eax]`. Ours emits the
 // `desc.dwSize` store first and the vtable load before `push 1`. The null

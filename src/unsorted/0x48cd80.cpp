@@ -1,18 +1,11 @@
-// Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
 //
-// Not matched: 90.4% (432 bytes vs 428). The prologue and all of branch A
-// match byte for byte. The whole remaining diff comes from branch B reading
-// dx via g_game->view.x instead of through p, which costs 4 bytes at the px
-// load (mov edi,[eax+0x2c76] vs mov esi,[esi]) and so shifts every jump
-// target after it by +4, and mirrors py/px into the opposite registers:
-// - preheader loads count2 into ECX before list2 (original loads list2 first)
-// - mov esi,[esi+4]; mov edi,[eax+0x2c76] vs original mov edi,[esi+4]; mov esi,[esi]
-// The original also reads both loop deltas through p while keeping p in ESI
-// (lea esi for the branch A arg, lea esi in the preheader). No variant could
-// produce p in ESI with both branch B reads through p; every source that got
-// both reads via p (q = p, v = p, hoisted px/py locals, dx before dy) put p
-// in EDI instead, which drops branch A's two mov esi,[esp+0x14] reloads and
-// scores 71-73%.
+// Not matched: 90.4% (432 bytes vs 428). The prologue and branch A match.
+// Branch B reads dx from g_game->view.x, producing mov edi,[eax+0x2c76]
+// instead of the original mov esi,[esi]. This four-byte difference shifts
+// every following branch target. Replacing the dx expression with p->x makes
+// the compiler keep p in EDI from the prologue, which changes branch A and
+// falls to 71.2%.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {
@@ -102,9 +95,8 @@ unsigned short __stdcall FUN_0048cd80(void)
         }
     } else if (FUN_004b6720(&g_game->rect_142bb, p->x, p->y)) {
         Slot_0048cd80* s = g_game->list2;
-        int n = g_game->count2;
         int best = 99999;
-        for (int i = n; i > 0; i--) {
+        for (int i = g_game->count2; i > 0; i--) {
             int dy = s->y - p->y;
             int dx = s->x - g_game->view.x;
             int d = dx * dx + dy * dy;

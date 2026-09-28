@@ -2375,10 +2375,10 @@ address,size,file,symbol,status,similarity
 0x4c0070,301,src/unsorted/0x4c0070.cpp,?FUN_004c0070@@YGXPAUSurface_004c0070@@HHHH@Z,matched,100.0
 0x4c01a0,353,src/unsorted/0x4c01a0.cpp,?FUN_004c01a0@@YGXPAUSurface_004c01a0@@HHHHHH@Z,partial,48.3
 0x4c0310,28,src/unsorted/0x4c0310.cpp,?FUN_004c0310@@YGXPAXPAHHH@Z,matched,100.0
-0x4c06e0,200,src/unsorted/0x4c06e0.cpp,?FUN_004c06e0@@YGXHPAUSpan_004c06e0@@PAUSurface_004c06e0@@D@Z,partial,61.5
+0x4c06e0,200,src/unsorted/0x4c06e0.cpp,?FUN_004c06e0@@YGXHPAUSpan_004c06e0@@PAUSurface_004c06e0@@D@Z,partial,74.1
 0x4c07b0,106,src/unsorted/0x4c07b0.cpp,?FUN_004c07b0@@YGHPAXPAUPoint_004c07b0@@HH@Z,matched,100.0
 0x4c0a90,118,src/unsorted/0x4c0a90.cpp,?FUN_004c0a90@@YGXHPAUSpan_004c0a90@@PAUSurface_004c0a90@@E@Z,partial,85.7
-0x4c0b10,352,src/unsorted/0x4c0b10.cpp,?FUN_004c0b10@@YGXHPAUSpan_004c0b10@@PAUSurface_004c0b10@@E@Z,partial,48.2
+0x4c0b10,352,src/unsorted/0x4c0b10.cpp,?FUN_004c0b10@@YGXHPAUSpan_004c0b10@@PAUSurface_004c0b10@@E@Z,partial,55.8
 0x4c1320,126,src/unsorted/0x4c1320.cpp,?FUN_004c1320@@YGHPAUPoint_004c1320@@HHH@Z,matched,100.0
 0x4c13a0,38,src/unsorted/0x4c13a0.cpp,?FUN_004c13a0@@YGXHH@Z,matched,100.0
 0x4c13d0,18,src/unsorted/0x4c13d0.cpp,?FUN_004c13d0@@YGXH@Z,matched,100.0

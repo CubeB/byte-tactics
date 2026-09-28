@@ -1984,6 +1984,7 @@ address,name
 0x49f680,FUN_0049f680
 0x49f6a0,FUN_0049f6a0
 0x49f6c0,FUN_0049f6c0
+0x49f710,FUN_0049f710
 0x49f8c0,FUN_0049f8c0
 0x49f930,FUN_0049f930
 0x49f9c0,FUN_0049f9c0
@@ -3753,6 +3754,9 @@ address,name
 0x4fc404,_imp__SmackOpen
 0x4fc408,_imp__SmackSoundOnOff
 0x4fc40c,_imp__DAT_004fc40c
+0x4fc410,_imp__DAT_004fc410
+0x4fc414,_imp__DAT_004fc414
+0x4fc418,_imp__DAT_004fc418
 0x4fc490,DAT_004fc490
 0x4fc6e8,DAT_004fc6e8
 0x4fc980,??_7Class_00407350@@6B@

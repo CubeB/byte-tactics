@@ -861,6 +861,9 @@ address,size,file,symbol,status,similarity
 0x44b3c0,281,src/unsorted/0x44b3c0.cpp,?FUN_0044b3c0@@YGXPAUMenu_44b3c0@@@Z,matched,100.0
 0x44b4e0,279,src/unsorted/0x44b4e0.cpp,?FUN_0044b4e0@@YGPAXPAH@Z,matched,100.0
 0x44b600,137,src/unsorted/0x44b600.cpp,?FUN_0044b600@@YGXHH@Z,matched,100.0
+0x44b690,761,src/unsorted/0x44b690.cpp,?FUN_0044b690@@YGXPAUMenu_0044b690@@@Z,matched,100.0
+0x44b990,635,src/unsorted/0x44b990.cpp,?FUN_0044b990@@YAXXZ,partial,99.5
+0x44bc10,605,src/unsorted/0x44bc10.cpp,?FUN_0044bc10@@YAXXZ,matched,100.0
 0x44be70,351,src/unsorted/0x44be70.cpp,?FUN_0044be70@@YGXPAXPAD@Z,matched,100.0
 0x44bfd0,249,src/unsorted/0x44bfd0.cpp,?FUN_0044bfd0@@YGXPAUMenu_0044bfd0@@H@Z,matched,100.0
 0x44c0d0,335,src/unsorted/0x44c0d0.cpp,?FUN_0044c0d0@@YAXXZ,partial,77.0

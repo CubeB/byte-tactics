@@ -3304,10 +3304,10 @@ address,size,model,batch,result,similarity,runs,notes
 0x48bae0,457,,#499,assigned,,,issue #499
 0x48c7f0,447,,#499,assigned,,,issue #499
 0x48ca20,513,,#499,assigned,,,issue #499
-0x48cd80,428,,#500,assigned,,,issue #500
-0x48d220,499,,#500,assigned,,,issue #500
-0x48ddc0,449,,#500,assigned,,,issue #500
-0x490fe0,538,,#500,assigned,,,issue #500
+0x48cd80,428,mimo-v2.6-flash,#500,partial,75.3,,issue #500
+0x48d220,499,mimo-v2.6-flash,#500,partial,100.0,,issue #500
+0x48ddc0,449,mimo-v2.6-flash,#500,matched,100.0,,issue #500
+0x490fe0,538,deepseek-v4.1-flash,#500,matched,100.0,,issue #500
 0x4934b0,564,,#501,assigned,,,issue #501
 0x494050,457,,#501,assigned,,,issue #501
 0x495010,494,,#501,assigned,,,issue #501
@@ -3336,3 +3336,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x497ce0,595,,#535,assigned,,,"issue #535, escalated"
 0x47db70,587,,#536,assigned,,,"issue #536, escalated"
 0x47dfc0,559,,#536,assigned,,,"issue #536, escalated"
+0x48cd80,428,,#537,assigned,,,"issue #537, escalated"
+0x48d220,499,,#537,assigned,,,"issue #537, escalated"

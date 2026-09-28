@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
 // Reads one player's unit packet (the writer is the matched 0x48b710): an 8 bit
 // header byte, a 16 bit length, then the game tick (32 bits), which is stored
 // in the player at +0x18. Then a list of 16 bit unit indices, terminated by
@@ -11,32 +11,8 @@
 // stream bit picks the unit (tick % unit count) handed to the per unit reader
 // 0x48b3f0.
 //
-// NOT MATCHED: 97.1%, size exact (434 bytes). Everything matches except the
-// scheduling of the two whole struct copies that build the spawn record,
-// `spawn.pos = unit->pos;` (12 bytes, `lea eax, [esi+0x6a]` then
-// [eax]/[eax+4]/[eax+8]) and `spawn.tail = unit->tail;` (6 bytes,
-// `lea ecx, [esi+0x64]` then [ecx]/[ecx+4]). The original interleaves them:
-// pos.x, pos.y, tail.a, pos.z (stores: +5, +9, +0x11, +0xd, +0x15), and
-// hoists the call's `unit->player` load (mov dl, [esi+0xff]) to just before
-// the pos.z store, deferring the tail.b store to after the two pushes. MSVC 5
-// here emits each copy whole: pos.x, pos.y, pos.z, tail.a, tail.b, then the
-// player load. The whole 21 instruction set is identical, only 4 of them are
-// ordered differently.
-//
-// Tried and failed to move the scheduler: both copy orders and every order of
-// the type/id/player assignments plus the two copies (the first is
-// `spawn.id`, then `spawn.type`, then `spawn.player`, which is what makes the
-// first ten instructions match); copies as PosXY/partial pieces (8 byte and
-// 4 byte copies get folded to direct [esi+disp] loads, only the 12 byte and
-// 6 byte copies keep the lea); per field assignment with a base pointer via
-// pointer/reference locals or casts (the compiler folds them back);
-// static helpers with an out pointer and by value with a declaration
-// (they shift `unit` out of esi); an `unsigned char who = unit->player;`
-// local at every position; unused locals and a repeated player store; and
-// every one of the 128 standard header sets and the 768 --cpp sets from
-// tools/headers.py. The remaining difference looks like pure instruction
-// scheduling in the original translation unit that the isolated file cannot
-// reproduce.
+// `spawn` is declared inside the `if`: at function scope MSVC schedules the
+// two struct copies (pos, tail) one after the other instead of interleaved.
 
 // Bit reader, the counterpart of the writer used by 0x48b710 (see
 // src/unsorted/0x415dc0.cpp). Fields are data, index (the dword), bit.
@@ -131,13 +107,10 @@ void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Unit_0048b920* unit);
 void __stdcall FUN_0048a870(Unit_0048b920* unit);
 Unit_0048b920* __stdcall FUN_004861d0(unsigned char player, Spawn_0048b920* spawn);
 
-// Still differs: the spawn.pos / spawn.tail copy interleave (see the note at
-// the top of the file).
 // FUNCTION: 0x48b920
 void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
 {
     Class_00415dc0 reader;
-    Spawn_0048b920 spawn;
 
     reader.data = data;
     reader.index = 0;
@@ -154,6 +127,7 @@ void __stdcall FUN_0048b920(Player_0048b920* p, unsigned int* data)
         Unit_0048b920* unit = &p->units_begin[index];
         unsigned short type = (unsigned short)reader.FUN_00415dc0(g_game->field_14393);
         if (unit->field_a6 != type) {
+            Spawn_0048b920 spawn;
             spawn.id = unit->field_a8;
             spawn.type = type;
             spawn.player = 9;

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free. Names are provisional.
 // Opens the YESORNO.GUI dialog asking "Close Windows CD Player?", relabels
 // the CHOICE1 / CHOICE2 gadgets, puts the localised "Yes" and "No" on the two
 // gadgets the lookups found, and installs FUN_00426190 as the gadget handler.
@@ -29,6 +29,21 @@
 // declarations. This is the "reload of an address-taken local drifting around a
 // call's argument pushes" scheduler tie-break (see 0x45b6570 in the guide),
 // which source rewrites have not reached.
+//
+// A third pass added four more, none of which moved it: the two copies in the
+// opposite order (96.4%), the two destination pointers held in locals
+// `choice1 + 0xb6` and `choice2 + 0xb6` (97.9%, identical bytes), the two
+// looked-up strings held in locals before the copies (81.9%), and both together
+// (81.9%). The destination-pointer form is worth keeping as a null result: it
+// is the shape the guide recommends for deciding which load MSVC hoists, and
+// it changes nothing here.
+//
+// The residue is the same scheduler tie-break as 0x4b6570 (96.7%) and 0x4a35a0
+// (96.9%): the reload of a stack-held pointer is scheduled one slot early
+// relative to the `mov edi, eax` and `xor eax, eax` of the inlined strcpy, and
+// one argument push lands after the copy loop instead of before it. Three
+// functions, three different code shapes, the same place the scheduler decides
+// to put a load. Treat it as compiler state.
 #include <string.h>
 
 extern char* g_game;

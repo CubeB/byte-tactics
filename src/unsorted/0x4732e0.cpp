@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
 // std::vector<Class_00471cc0*>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward inlined; the
 // sixteen push_back sites call it out of line (they inline the count-is-one
@@ -8,7 +8,7 @@
 // wrong overload (C2563, or C2440 with a cast), because it prefers the
 // two-argument insert.
 //
-// Still differs (57.9%): the original puts `this` in ebp and the count in ebx
+// Still differs (57.9%, checked twice in this retry): the original puts `this` in ebp and the count in ebx
 // (`mov ebx, [esp+0x18]; mov ebp, ecx`), this build puts `this` in ebx and the
 // count in ebp, and that one choice cascades into every block (ours is 547
 // bytes, the original 537, because this has to reload `this` from its stack

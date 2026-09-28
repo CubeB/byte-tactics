@@ -43,14 +43,21 @@ public:
 // permutation. The original keeps `this` in ebx, the aux device count in ebp
 // and the cached dllimport address in edi; this build keeps `this` in edi, the
 // count in ebx and the import address in ebp, and that swap moves the final
-// `mov [reg+0x1c],eax` before `pop edi`. Nothing reachable from the file moves
-// it: declaring the count at the top, a local object pointer or reference, the
-// getters as static/free helpers or out-of-line, a __fastcall object pointer,
-// int/void* object parameters, explicit FARPROC locals, the full
-// Class_004cee50 layout, definition order, the rtm toolchain, tools/headers.py
-// (768 sets) and 0..8000 unused declarations all give the same `mov edi,ecx`.
-// Like 0x4732e0.cpp this looks like compiler state from the original
-// translation unit, reachable only after the regroup-into-TUs phase.
+// `mov [reg+0x1c],eax` before `pop edi`. The three registers rotate together
+// (esi is always the loop counter): probing shows that removing a wave loop
+// that reads `this` rotates the phase to `mov ebp,ecx`, and loading the counts
+// into outer locals rotates it far enough to reach `mov ebx,ecx`, but every
+// shape that reaches ebx drops the in-loop reload of `[this+0x10]` that the
+// original has. Nothing else reachable from the file moves it: the getters as
+// member/static/free/inline/out-of-line, value/int&/Class&/Class* parameters
+// (each gives one of the three rotations but never the right one), casts to
+// the sibling classes 0x4cfff0/0x4d0040, a base class, virtuals, early-return
+// range checks, explicit outer checks, do/while vs for, the full
+// Class_004cee50 layout plus its real constructor as a preceding neighbour,
+// definition order, tools/headers.py (128 and 768 sets), int/void* parameters,
+// explicit FARPROC locals and the rtm toolchain all give the same result.
+// Like 0x4732e0.cpp this is compiler state from the original translation unit,
+// reachable only after the regroup-into-TUs phase.
 // FUNCTION: 0x4cff30
 void Class_004cff30::FUN_004cff30()
 {

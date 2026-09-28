@@ -2599,6 +2599,7 @@ address,name
 0x4cb7f0,Class_004cb7f0::FUN_004cb7f0
 0x4cb940,Class_004cb940::FUN_004cb940
 0x4cb9e0,FUN_004cb9e0
+0x4cbab0,FUN_004cbab0
 0x4cbb70,FUN_004cbb70
 0x4cbbe0,FUN_004cbbe0
 0x4cbcd5,FUN_004cbcd5
@@ -2616,6 +2617,7 @@ address,name
 0x4cda00,Class_004cda00::FUN_004cda00
 0x4cdb40,Class_004cdb40::FUN_004cdb40
 0x4ce020,Class_004ce020::FUN_004ce020
+0x4ce030,FUN_004ce030
 0x4ce190,Class_004ce190::FUN_004ce190
 0x4ce1d0,Class_004ce1d0::FUN_004ce1d0
 0x4ce1e0,FUN_004ce1e0
@@ -4006,6 +4008,7 @@ address,name
 0x51ff10,DAT_0051ff10
 0x51ff14,DAT_0051ff14
 0x51ff18,DAT_0051ff18
+0x51ff20,DAT_0051ff20
 0x51ff48,DAT_0051ff48
 0x51ff58,DAT_0051ff58
 0x51ff60,DAT_0051ff60

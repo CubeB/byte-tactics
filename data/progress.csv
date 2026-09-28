@@ -2381,6 +2381,8 @@ address,size,file,symbol,status,similarity
 0x4c6f80,251,src/unsorted/0x4c6f80.cpp,?FUN_004c6f80@@YGPAUSurface_004c6f80@@PAX@Z,matched,100.0
 0x4c7080,72,src/unsorted/0x4c7080.cpp,?FUN_004c7080@@YGXH@Z,matched,100.0
 0x4c70d0,280,src/unsorted/0x4c70d0.cpp,?FUN_004c70d0@@YGXHPAURange@@HH@Z,partial,78.7
+0x4c71f0,280,src/unsorted/0x4c71f0.cpp,?FUN_004c71f0@@YGXHPAURange@@HH@Z,partial,80.0
+0x4c90b0,195,src/unsorted/0x4c90b0.cpp,?FUN_004c90b0@Class_004c90b0@@QAEPAV1@ABV1@@Z,partial,91.4
 0x4c9180,22,src/unsorted/0x4c9180.cpp,??0Class_004c9180@@QAE@XZ,matched,100.0
 0x4c91a0,16,src/unsorted/0x4c91a0.cpp,??0Class_004c91a0@@QAE@ABV0@@Z,matched,100.0
 0x4c91b0,117,src/unsorted/0x4c91b0.cpp,??0Class_004c91b0@@QAE@PBD@Z,matched,100.0
@@ -2398,12 +2400,16 @@ address,size,file,symbol,status,similarity
 0x4c9800,63,src/unsorted/0x4c9800.cpp,?FUN_004c9800@@YGHPAUNet_4c9800@@KKPAXK@Z,matched,100.0
 0x4c9840,69,src/unsorted/0x4c9840.cpp,?FUN_004c9840@@YGHPAUNet_4c9840@@PAXPAK@Z,matched,100.0
 0x4c9890,139,src/unsorted/0x4c9890.cpp,?FUN_004c9890@@YGHPAUNet_4c9890@@PAD1HHHH@Z,matched,100.0
+0x4c9920,335,src/unsorted/0x4c9920.cpp,?FUN_004c9920@@YGHPAUNet_004c9920@@PADHHHHH@Z,matched,100.0
+0x4c9a70,252,src/unsorted/0x4c9a70.cpp,?FUN_004c9a70@@YGHPAUNet_4c9a70@@PADKKKKK@Z,matched,100.0
 0x4c9b70,169,src/unsorted/0x4c9b70.cpp,?FUN_004c9b70@@YGXPAUNet_4c9b70@@@Z,matched,100.0
 0x4c9c20,40,src/unsorted/0x4c9c20.cpp,?FUN_004c9c20@@YGXPAUNet_4c9c20@@@Z,matched,100.0
+0x4c9c50,191,src/unsorted/0x4c9c50.cpp,?FUN_004c9c50@@YGHPAUSessionDesc_4c9c50@@PAHIPAUNet_4c9c50@@@Z,matched,100.0
 0x4c9d10,29,src/unsorted/0x4c9d10.cpp,?FUN_004c9d10@@YGHHHHHPAX@Z,matched,100.0
 0x4c9d30,67,src/unsorted/0x4c9d30.cpp,?FUN_004c9d30@@YGHPAUNet_4c9d30@@KPAXK@Z,matched,100.0
 0x4c9d80,67,src/unsorted/0x4c9d80.cpp,?FUN_004c9d80@@YGHPAUNet_4c9d80@@KPAXPAK@Z,matched,100.0
 0x4c9dd0,117,src/unsorted/0x4c9dd0.cpp,?FUN_004c9dd0@@YGHPAUNet_4c9dd0@@@Z,matched,100.0
+0x4c9e50,320,src/unsorted/0x4c9e50.cpp,?FUN_004c9e50@@YGHPAUNet_004c9e50@@PAXH@Z,matched,100.0
 0x4c9f90,50,src/unsorted/0x4c9f90.cpp,?FUN_004c9f90@@YGHPAUNet_4c9f90@@@Z,matched,100.0
 0x4ca250,212,src/unsorted/0x4ca250.cpp,?FUN_004ca250@@YGHPAUNet_4ca250@@HHHPAUGuid_4ca250@@@Z,matched,100.0
 0x4ca400,66,src/unsorted/0x4ca400.cpp,?FUN_004ca400@@YGHPAUNet_4ca400@@HH@Z,matched,100.0

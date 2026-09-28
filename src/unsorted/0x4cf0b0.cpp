@@ -7,7 +7,7 @@ public:
     void FUN_004cf4d0(IDirectSoundBuffer** set);
 };
 
-class Class_004cfbc0 {
+class Class_004cfb40 {
 public:
     void FUN_004cfbc0();
 };
@@ -48,5 +48,5 @@ void Class_004cf0b0::FUN_004cf0b0()
         }
     }
     if (field_1e4 != 0)
-        ((Class_004cfbc0*)this)->FUN_004cfbc0();
+        ((Class_004cfb40*)this)->FUN_004cfbc0();
 }

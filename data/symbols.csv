@@ -2540,6 +2540,7 @@ address,name
 0x4c9dd0,FUN_004c9dd0
 0x4c9e50,FUN_004c9e50
 0x4c9f90,FUN_004c9f90
+0x4c9fd0,FUN_004c9fd0
 0x4ca100,FUN_004ca100
 0x4ca250,FUN_004ca250
 0x4ca330,FUN_004ca330
@@ -3358,6 +3359,7 @@ address,name
 0x4fad80,__crtGetLocaleInfoW
 0x4faeb0,__crtGetLocaleInfoA
 0x4faff0,DirectPlayEnumerateA
+0x4faff6,DirectPlayLobbyCreateA
 0x4faffc,DirectPlayCreate
 0x4fb440,_hypot
 0x4fb460,_cabs
@@ -3627,6 +3629,7 @@ address,name
 0x4fcda8,DAT_004fcda8
 0x4fcdb8,DAT_004fcdb8
 0x4fcdc8,DAT_004fcdc8
+0x4fce18,DAT_004fce18
 0x4fcec8,DAT_004fcec8
 0x4fd2c8,??_7Class_0043a1f0@@6B@
 0x4fd2cc,??_7Class_0043a1e0@@6B@
@@ -3742,6 +3745,7 @@ address,name
 0x50a778,DAT_0050a778
 0x50a77c,DAT_0050a77c
 0x50a780,DAT_0050a780
+0x50a788,DAT_0050a788
 0x50b540,DAT_0050b540
 0x50b544,DAT_0050b544
 0x50b9e0,DAT_0050b9e0

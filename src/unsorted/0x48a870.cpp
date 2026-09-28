@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Places a unit's height (pos.y, 16.16 fixed point) on the ground, at the sea
 // level or on the water surface, depending on the flags in the unit's type
 // (+0x241): bit 12 floats, bit 19 floats on water, bit 20 can leave the water.
@@ -33,6 +33,17 @@
 // loads g_game, so the load reuses eax and encodes in 5 bytes, while every
 // variant that blocks the fold needs eax for the live product. Nothing tried
 // from the source controls which of the two MSVC picks.
+// deepseek-v4.1-flash retried this: a dead second use of the sum
+// (`int h = ...; if (h == h) {}`) does block the fold with no extra code and
+// gives the eleven instructions, but MSVC always lowers it as product in eax,
+// g_game in edx (6-byte load) and seaLevel in ecx, i.e. 262 bytes again; it is
+// 86.5%. Only a memory barrier (a volatile read/write of the sum) reproduces
+// the original's product-in-ecx / g_game-in-eax / seaLevel-in-edx schedule, and
+// it adds a stack store plus reload, so it cannot match. Every spelling of the
+// multiply (0xffff, 65535, (x<<16)-x, x*0x10000-x, a 16.16 bitfield
+// MakeFixed().value, an __int64 sum, long/unsigned/short locals, a static
+// inline helper, three term splits) folds; headers.py (plain and --cpp) and an
+// unused-declaration sweep to 3000 prototypes all leave the fold in place.
 // The three early exits in the original jump to 0x48a96f, the shared epilogue at
 // the very end, and the last branch (the FUN_0048a490 call) to 0x48a969 just
 // before it; those targets follow from the size of this block, so they move

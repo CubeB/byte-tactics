@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Moves a unit to a new position. The cell (the two shorts at +0x76) and the
 // two low bits of the flags at +0x110 only change when the new position falls
 // in a different cell (the fixed-point WorldToCell of the unit type's origin
@@ -9,32 +9,16 @@
 // flags value is returned. The callers (0x406aa0, 0x43d730) pass the position
 // as a Vec3 by value and 1 as the last argument.
 //
-// Still at 85.7% (tools/check.py), two differences left, both in the
-// register/scheduler choices rather than in the statements:
-//
-// 1. First block. The original loads param_5 (mov edi, [esp+0x28]) before the
-//    two movsx of the origin and puts the movsx of origin.y (read back from
-//    the copied Point) above the movsx of origin.x; ours hoists the origin.x
-//    movsx above the copy of the origin and loads param_5 after the cell.y
-//    shift. Every spelling tried gives our order: the WorldToCell helper with
-//    the origin first, a local Point origin, the position by value, by const
-//    reference or via an out-parameter helper, a Point(int,int) constructor,
-//    the cell.y expression first, two short locals, a SetTeam inline helper and
-//    both compare operand orders. It looks like scheduler state left by
-//    earlier functions in the original file.
-//
-// 2. `and al, 0xfc` (original, a byte) against `and eax, 0xfc` (ours). The
-//    original's OR operand has to be a char-typed expression, which is what
-//    lets MSVC narrow the clear to a byte: `(unsigned char)(param_5 & 3)`, a
-//    two-bit bitfield in a union, or an `unsigned char` parameter of an inline
-//    helper each reproduce `and al, 0xfc`, but every one of them also swaps the
-//    register allocation (pos.x lands in edi and param_5 in ebx instead of the
-//    other way round), which loses more than the narrowing gains. The `0xfc`
-//    mask below is the spelling that gives the and/or form at all: with
-//    `& ~3` MSVC picks the xor/and/xor lowering of the same statement. Note
-//    that 0xfc also clears bits 2..7 of the flags, unlike `& ~3`; that is what
-//    the original binary does (and, with a char operand, that is what the
-//    narrowed `and al, 0xfc` would mean anyway).
+// Still partial (87.2%): the flag update now matches (`and edi, 3` masking
+// param_5 in place and `and al, 0xfc` clearing the two low bits, thanks to the
+// `(short)` cast on the OR operand, which stops MSVC from lowering the pair as
+// the xor/and/xor bit insert and does not need a byte-addressable register the
+// way an `unsigned char` cast does). The one difference left is the first
+// block: the original reuses `eax` for the sign extend of origin.x
+// (`movsx eax, ax; shl eax, 0x13; mov ecx, eax`), which forces the origin copy
+// into its stack slot first, while MSVC here sign-extends straight into `ecx`
+// (`movsx ecx, ax; ... shl ecx, 0x13`) and keeps the copy after it; param_5's
+// load (`mov edi, [esp+0x28]`) consequently lands later than in the original.
 
 #pragma pack(push, 1)
 struct Point_0048a9f0 {
@@ -81,7 +65,7 @@ int __stdcall FUN_0048a9f0(Unit_0048a9f0* unit, Pos_0048a9f0 pos, int param_5)
         FUN_0047d0e0(unit);
         unit->pos = pos;
         unit->cell = cell;
-        unit->flags = (unit->flags & 0xfc) | (param_5 & 3);
+        unit->flags = (unit->flags & 0xfffffffc) | (short)(param_5 & 3);
         FUN_0047cc30(unit);
         FUN_004827b0(unit);
     }

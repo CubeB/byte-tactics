@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Builds a 512-entry bitmap of the type indices (+0xa6) of the local player's
 // selected units (bit 4 of the unit flags at +0x110), then sets bit 4 on every
 // unit of that player that is tagged (bit 5), whose float at +0x104 is 0.0f,
@@ -9,26 +9,10 @@
 // of 0x48c9b0, which clears the same bit under the opposite conditions, and it
 // repeats the loop 0x48bd50 does without the two-pass bitmap.
 //
-// 97.7%: every instruction matches except the last four. The original ends
-// with     or byte ptr [eax + 0x37ebe], 0x10
-// and mine ends with
-//     mov cl, byte ptr [eax + 0x37ebe] / pop ebx / or cl, 0x10 / mov [...], cl
-// i.e. the same `g_game->flags_37ebe |= 0x10;` (which matches byte for byte in
-// 0x48bd50 and 0x48c9b0) is compiled as a read-modify-write in `cl` here, and
-// the final `pop ebx` lands between the load and the store, which is what
-// stops MSVC 5 folding it into the one-instruction memory form. The trigger is
-// the store to the local bitmap in the first loop: deleting just that store
-// (everything else unchanged) makes MSVC emit the memory-or form. Tried and
-// flat: all 128 header sets (tools/headers.py), a plain unsigned int instead of
-// the bitfield view for bit 4, the bitfield on a byte-sized group, `|=`
-// written as `= x | K`, a reference or pointer helper for the flags word, a
-// pointer local for the bitmap, a struct-typed bitmap, both loops' condition
-// forms (nested ifs, one && chain), the player pointer as `players + n`, the
-// table and temporaries declared in other orders or at function scope, and
-// the last statement wrapped in a do/while(0) or a static inline helper. The
-// bitmap is read as `(u->field_a6 & 0xffff)`: `short` plus the mask gives the
-// original's `mov cx, word [...]` / `and ecx, 0xffff` load, where a plain
-// unsigned short gives `xor ecx, ecx` first.
+// Fixed the last four instructions by declaring +0x37ebe as the 16-bit
+// bitfield group the rest of the game uses (see 0x432610.cpp): bit 4 is one
+// named member, and writing it compiles to the original's single
+// `or byte ptr [eax + 0x37ebe], 0x10` instead of a load/or/store in cl.
 // Suspected original bug: MSVC 5 inverts the sense of a float comparison
 // against zero here, so the source `== 0.0f` tags units whose +0x104 value is
 // NOT 0.0f (the same inversion is visible in 0x48c9b0, which is written `!=
@@ -74,7 +58,9 @@ struct Game_0048be00 {
     char unknown_2a43[0x37e9c - 0x2a43];
     unsigned short field_37e9c;         // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
-    unsigned char flags_37ebe;          // +0x37ebe
+    unsigned short flags_0 : 4;         // +0x37ebe
+    unsigned short orderFlag : 1;       // +0x37ebe, bit 4
+    unsigned short flags_5 : 11;
 };
 #pragma pack(pop)
 
@@ -121,5 +107,5 @@ void FUN_0048be00(void)
     }
     g_game->field_37e9c = 0;
     FUN_00495860();
-    g_game->flags_37ebe |= 0x10;
+    g_game->orderFlag = 1;
 }

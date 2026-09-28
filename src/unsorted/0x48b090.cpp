@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Sets or clears bits of the unit's state byte at +0x10e and reacts to the three
 // bits that mean active (1), building (8) and working (4). The gained and the
 // lost bits are tested separately: each gained bit plays its script event and
@@ -6,28 +6,33 @@
 // unit (the list head at +0xa2) to update, then a network packet (0x11) tells
 // the owner when the owner is a real player (1 or 2).
 //
-// Not a match yet (92.3%, same size). What still differs, all in the first
-// twenty instructions and one store:
-// 1. In both branches of the set/clear choice MSVC 5 gives the destination
-//    register to the other operand than the original does. The original loads
-//    the old state into eax and the mask into edx (`or eax, edx`), and in the
-//    clear branch the masked complement into eax (`not eax; and eax, edx`);
-//    this version loads the mask into eax in the set branch and the old state
-//    into eax in the clear branch, and puts the not on edx. Swapping the source
-//    order of both operands, casting both operands explicitly, and routing them
-//    through inlined helpers all leave the code unchanged, so MSVC 5
-//    canonicalises the order and something else in the original source must
-//    have decided it.
-// 2. `lost` is computed into al here (`not al; and al, cl`), the original
+// Not a match yet (93.2%, same size). What still differs:
+// 1. In the set branch MSVC 5 gives the destination register to the other
+//    operand than the original does: the original loads the old state into eax
+//    and the mask into edx (`mov eax,[esp+0xc]; mov edx,[esp+0x14]; and both;
+//    or eax,edx`), this version loads the mask into eax and the old state into
+//    edx. Swapping the operand order in the source, casting both operands,
+//    moving the mask through a local and writing the branch as two statements
+//    all leave the code unchanged, so MSVC 5 canonicalises the commutative
+//    order and something else in the original file must have decided it. The
+//    same flip appears in the clear branch and in `lost`.
+// 2. The clear branch here is `(unsigned char)(old & ~(unsigned char)mask)`,
+//    which makes MSVC read the mask as a byte (`mov dl,[esp+0x14]; not dl`)
+//    and keeps the old state in eax. The original does the whole thing at
+//    dword width (`mov eax,[esp+0x14]; and eax,0xff; not eax; and eax,edx`
+//    with the old state in edx). This byte form scores two lines higher only
+//    because the diff aligns the two `and` lines; the plain
+//    `old & ~(unsigned char)mask` (93.2% -> 92.3%) is closer in instructions,
+//    so a future attempt should start from that instead.
+// 3. `lost` is computed into al here (`not al; and al, cl`), the original
 //    computes it into cl (`not al; and cl, al`).
-// 3. The packet's type byte: the original stores it between the other two
+// 4. The packet's type byte: the original stores it between the other two
 //    (`mov word [E+5], cx; mov byte [E+4], 0x11; mov byte [E+7], dl`), this
-//    version sinks the constant store past the argument pushes, just before the
-//    call. Moving the packet local to the outer scope keeps the store in place
-//    but then MSVC gives the packet the second argument's slot (+4) instead of
-//    the first argument's, which costs as much as it gains.
-// The rest of the function (every call, both list walks, the packet contents and
-// the frame, one dword of locals with `int now` in it) matches exactly.
+//    version sinks the constant store past the argument pushes, just before
+//    the call. Reordering the field assignments and aggregate initialisation
+//    both leave the store sunk.
+// The rest of the function (every call, both list walks, the frame, one dword
+// of locals with `int now` in it) matches exactly.
 
 #pragma pack(push, 1)
 
@@ -95,7 +100,7 @@ void Class_0048b090::FUN_0048b090(int mask, int set)
     if (set)
         now = old | (unsigned char)mask;
     else
-        now = old & ~(unsigned char)mask;
+        now = (unsigned char)(old & ~(unsigned char)mask);
     state = (unsigned char)now;
     if ((unsigned char)now != old) {
         unsigned char gained = ~old & now;

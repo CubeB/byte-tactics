@@ -12,6 +12,28 @@
 // access, every header set (tools/headers.py and --cpp) and 0 to 2048 extra
 // declarations leave the swap unchanged, so it is likely compiler state from
 // the original translation unit.
+//
+// That is now settled rather than suspected, and this is the sixth function in
+// the project to stop on a SIB base/index swap. The out-of-line sibling
+// 0x4c1480 is MATCHED and contains the *same* code: its glyph-width access is
+//     int d = c - font->first;
+//     unsigned int off = 0;
+//     off = font->offsets[(unsigned short)d];
+//     if (off)
+//         width += ((unsigned char*)font)[off];
+// character for character identical to the inlined copy in this file (diffing
+// the two regions differs by one closing brace). The matched one emits
+// `[edx + ecx]`, the inlined one `[ecx + edx]`. So the expression does not
+// decide the encoding: the same source matches in one function and not in
+// another, and the only difference is that here the loop is inlined into a
+// larger body where `font` arrives through a load chain rather than as a
+// parameter. That is compiler state.
+//
+// Six more spellings of the access were tried here and all give identical
+// bytes: the offset as a single assignment, as a pointer addition, the base
+// bound to a local, the offset as `int`, with an `(int)` cast, and the offset
+// as a narrower `unsigned short` (which is much worse, 67.5%, so the int-width
+// offset in the file is the best of the family).
 
 struct Font_004c1760 {
     char unknown_0[3];

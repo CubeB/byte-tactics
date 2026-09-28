@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 
 // Sibling of 0x4c0a90 (which plots the two end points). Fills the pixels
 // between the span ends: walks the depth ramp at +0x18 and the shade ramp at
@@ -6,35 +6,44 @@
 // surface's depth buffer when it exists, and looks the destination colour up
 // in the 32 x 256 shaded palette table at app+0xc4.
 //
-// PARTIAL, 48.2 percent. The whole shape is established (prologue, the two
-// divisions by the same span width, the clip of x1 to 0 and of x2 to
-// pitch-1, the two do/while loops, the byte depth test, the table index) but
-// one register allocation will not budge:
+// PARTIAL, 55.8 percent. What still differs, all of it following from two
+// register choices:
 //
-//   original: mov ebx,[ecx+4] / mov ebp,[ecx] / sub ebx,ebp / idiv ebx
-//   ours:     mov ebp,[ecx+4] / mov ebx,[ecx] / sub ebp,ebx / idiv ebp
+// 1. The head. The original puts span->x2 in ebx and span->x1 in ebp for the
+//    two divisions:
+//        original: mov ebx,[ecx+4] / mov ebp,[ecx] / sub ebx,ebp / idiv ebx
+//        ours:     mov ebp,[ecx+4] / mov ebx,[ecx] / sub ebp,ebx / idiv ebp
+//    Everything downstream that mentions ebx or ebp follows from it (the
+//    pitch clip wants surf in ebp and x2 in ebx, and later the loop count in
+//    ebx, which we give ebp).
 //
-// i.e. MSVC hands the divisor result to ebp and the long lived span->x1 to
-// ebx here, while the original does the opposite. This is the same ebp/ebx
-// swap reported in the comments of 0x4bf4d0 and 0x4c0a90, so it is a
-// property of this rasteriser family. Everything downstream that mentions
-// ebp or ebx follows from it. Also, our frame is 0x10 (four dwords) instead
-// of 0xc: the compiler spills the shade slope `ds` to [esp+0x1c] because the
-// masked loop uses eax for the shade index, where the original keeps ds in
-// eax and spills the loop count to the arg slot instead.
+// 2. The depth loop's shade index. The original computes it in ebx and ebp
+//    (which leaves eax free, so `ds` stays in eax for the whole loop and the
+//    loop count is spilled to the span argument slot). We compute it in eax,
+//    so `ds` is spilled to [esp+0x1c] and the frame is 0x10 instead of the
+//    original's 0xc. Every stack reference below the head is shifted by that
+//    one extra dword.
 //
-// Tried and did not move it: span->x1/span->x2 as explicit locals in either
-// declaration order, a `w = x2; w -= x1;` divisor temp, an inlined width
-// helper, `si` split out of the shift, `t = app->shade` in the masked draw,
-// unsigned char vs int colour, char* vs unsigned char* pixel pointers,
-// for-loops instead of do/while, and every combination of the seven common
-// headers plus one C++ header (tools/headers.py --cpp, 768 sets).
+// A third pass added four spellings of the head's two field loads, none of
+// which moves the ebx/ebp assignment: the span width as a named local with the
+// two fields read x1 then x2, the same with the reads in the order the original
+// emits them, the width written out at both divisions, and the subtraction
+// reversed with a negation at the division. All give 55.8%, and reversing the
+// subtraction is much worse at 34.0%. The two register choices above are the
+// whole remainder.
 //
-// A non-equivalent variant that only writes `span->x1 = 0;` before the
-// `span->s1 -= ds * span->x1;` edit scores 56.4 percent because the compiler
-// folds the s1 edit away, matching the original's instruction count in the
-// clip block. It is wrong (the original subtracts ds times the old, negative
-// span->x1), so it is not kept here.
+// What did move it from 48.2 to 55.8 percent:
+// - `int ci = color & 0xff;` hoisted above the `if (d != 0)` test. That one
+//   extra early use flips MSVC's ebx/ebp preference for the rest of the
+//   function: the pitch clip then loads surf into ebp and span->x2 into ebx,
+//   as the original does.
+// - `p += row * surf->pitch; p += start;` as two statements instead of
+//   `p += row * surf->pitch + start;`, and `while (count--)` in both loops
+//   instead of `do { } while (--count)`.
+//
+// Inert (all of them compile to identical code, 55.8 percent): a `w` temp for
+// the divisor in either form, `start`/`count` declared in any order,
+// `count = span->x2 - span->x1` instead of `span->x2 - start`.
 
 struct Span_004c0b10 {
     int x1;                            // +0x0
@@ -80,28 +89,30 @@ void __stdcall FUN_004c0b10(int row, Span_004c0b10* span, Surface_004c0b10* surf
     if (count > 0) {
         int z = span->z1;
         int s = span->s1;
-        p += row * surf->pitch + start;
+        p += row * surf->pitch;
+        p += start;
+        int ci = color & 0xff;
         if (d != 0) {
-            d += row * surf->pitch + start;
-            do {
+            d += row * surf->pitch;
+            d += start;
+            while (count--) {
                 unsigned char zi = z >> 16;
                 if (*d <= zi) {
                     int si = s >> 16;
-                    *p = app->shade[(si << 8) + (color & 0xff)];
+                    *p = app->shade[(si << 8) + ci];
                     *d = zi;
                 }
                 p++;
                 z += dz;
                 d++;
                 s += ds;
-            } while (--count);
+            }
         } else {
-            int ci = color & 0xff;
-            do {
+            while (count--) {
                 int si = s >> 16;
                 *p++ = app->shade[(si << 8) + ci];
                 s += ds;
-            } while (--count);
+            }
         }
     }
 }

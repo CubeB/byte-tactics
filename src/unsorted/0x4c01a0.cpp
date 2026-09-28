@@ -15,6 +15,29 @@
 // The source shape (px/py copies into x0/y0, address-taken end point) is
 // right; only the register allocator's choice differs, which
 // `check.py` shows as the prologue and loop-carried stores.
+//
+// A third pass pinned the structural shape of the gap, which is worth having
+// even though it did not close it. The prologue frames everything:
+//
+//   original: sub esp,0x40 ; push ebx ; push ebp ; mov edi,[esp+0x5c] ;
+//             mov ecx,[esp+0x58] ; mov [esp+0x10],ecx ; lea ebx,[edi+eax]
+//   ours:     sub esp,0x3c ; push ebp ; push edi ; lea edi,[ecx+eax]
+//
+// So the original reserves one dword more of frame (0x40 against 0x3c) and
+// spends a fourth callee-saved register: it pushes ebx, ebp and edi before the
+// division and pushes esi only *after* the loop guard (`jg`), while we push ebp
+// and edi and use ecx and esi instead. The `lea` is the same address in both,
+// computed into ebx in the original and into edi here, which is the same
+// register-choice permutation as the rest. The original also spills the step
+// (`mov ebp, eax` then `mov [esp+0x18], eax`) where we keep the step in ebp
+// and spill a different value to [esp+0x10], so the two functions disagree about
+// which value owns a frame slot as well as about how many slots there are.
+//
+// Four shapes of the head were tried and none moved it: the step as a named
+// local against a separate named loop limit, the loop bound from a local
+// `limit`, hoisting the `surface == 0` test, and taking the previous point as a
+// two-field struct. None changes the frame size, so the extra dword is a value
+// the original keeps in memory that this source keeps in a register.
 
 struct Surface_004c01a0 {
     int unknown_0[2];

@@ -4,6 +4,12 @@
 // still pending it is copied out first; otherwise a DirectPlay packet is
 // received, its header and XOR checksum are verified and the payload is
 // decompressed (kind 4) or copied (kind 3).
+//
+// The `goto` at the tail is not dead: it gives the shared error test two
+// predecessors (the 0x887700be path and the 0x8877001e path), which is what
+// stops MSVC 5 from propagating the branch's known value into the test and
+// folding the (always taken) compare away. Without it the tail loses the
+// second `cmp esi, 0x8877001e`.
 #include <stdio.h>
 #include <string.h>
 
@@ -19,6 +25,13 @@ public:
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct Net_0044f9c0 {
+    char unknown_0[0x4b5];
+    int field_4b5;                   // +0x4b5
+};
+#pragma pack(pop)
+
 int __stdcall FUN_004c9840(void* net, void* data, int* size);
 void __stdcall FUN_00415f40(int size, int overhead, int sent);
 int __stdcall FUN_004d1480(char* out, char* in);
@@ -29,6 +42,7 @@ void FUN_004d1810();
 int Class_0044f9c0::FUN_0044f9c0(void* net, char* data, int* size)
 {
     char msg[256];
+    unsigned int n;
     int clientSize = *size;
 
     if (unknown_8 != 0) {
@@ -46,14 +60,14 @@ int Class_0044f9c0::FUN_0044f9c0(void* net, char* data, int* size)
     }
 
     int result = FUN_004c9840(net, data, size);
-    if (*(int*)((char*)net + 0x4b5) != 0) {
+    if (((Net_0044f9c0*)net)->field_4b5 != 0) {
         if (result == 0) {
             FUN_00415f40(*size, 0, 0);
             if (data[0] != 3 && data[0] != 4)
                 return 0;
             if (*size < 4)
                 return 0x887700be;
-            unsigned int n = *size - 3;
+            n = *size - 3;
             unsigned short sum = 0;
             for (unsigned int i = 3; i < n; i++) {
                 sum += (unsigned char)data[i];
@@ -80,17 +94,17 @@ int Class_0044f9c0::FUN_0044f9c0(void* net, char* data, int* size)
             *size = unknown_c;
             return 0;
         }
-        if (result == 0x887700be) {
-            if (result == 0x8877001e) {
-                sprintf(msg, "netCondenser[3]: needed %ld, had client buffersize = %ld\n",
-                        *size, clientSize);
-            }
+        if (result != 0x887700be) {
+            if (result != 0x8877001e)
+                return result;
+        } else {
+            goto common_check;
+        }
+common_check:
+        if (result != 0x8877001e)
             return result;
-        }
-        if (result == 0x8877001e) {
-            sprintf(msg, "netCondenser[3]: needed %ld, had client buffersize = %ld\n",
-                    *size, clientSize);
-        }
+        sprintf(msg, "netCondenser[3]: needed %ld, had client buffersize = %ld\n",
+                clientSize, *size);
     }
     return result;
 }

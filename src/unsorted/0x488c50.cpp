@@ -27,12 +27,13 @@ public:
     ~Class_004c91b0() { FUN_004c9390(); }
 };
 
-struct Elem_00488a00 {
+class Class_00489260 {
+public:
     Class_004c91a0 name;               // +0x0
     void* value;                       // +0x4
 
-    Elem_00488a00(const Class_004c91a0& n, void* v) : name(n) { value = v; }
-    ~Elem_00488a00() { name.FUN_004c9390(); }
+    Class_00489260(const Class_004c91a0& n, void* v) : name(n) { value = v; }
+    ~Class_00489260() { name.FUN_004c9390(); }
 };
 
 class Class_00488c50 {
@@ -42,30 +43,35 @@ public:
     Class_00488c50() { memset(this, 0, sizeof(Class_00488c50)); }
 };
 
-// The global vector; its out-of-line insert is 0x488fb0.
-class Class_00488fb0 {
+// The global std::vector<Class_00489260>, written by hand so that insert
+// (0x488fb0, which has its own file) stays an out-of-line call under its real
+// name, as the original has it.
+namespace std {
+template<class T> class allocator;
+template<class T, class A = allocator<T> > class vector {
 public:
-    char allocator;                    // +0x0
-    Elem_00488a00* _First;             // +0x4
-    Elem_00488a00* _Last;              // +0x8
-    Elem_00488a00* _End;               // +0xc
+    char allocator_;                   // +0x0
+    T* _First;                         // +0x4
+    T* _Last;                          // +0x8
+    T* _End;                           // +0xc
 
-    Elem_00488a00* begin() { return _First; }
-    Elem_00488a00* end() { return _Last; }
+    T* begin() { return _First; }
+    T* end() { return _Last; }
     int size() const { return _Last - _First; }
-    void FUN_00488fb0(Elem_00488a00* pos, int n, const Elem_00488a00& x);
+    void insert(T* pos, unsigned int n, const T& x);
 };
+}
 
-extern Class_00488fb0 DAT_0051e6b0;
+extern std::vector<Class_00489260> DAT_0051e6b0;
 
 // FUNCTION: 0x488c50
 void* __stdcall FUN_00488c50(char* name)
 {
-    Elem_00488a00* first = DAT_0051e6b0.begin();
+    Class_00489260* first = DAT_0051e6b0.begin();
     int n = DAT_0051e6b0.size();
     for (; 0 < n; ) {
         int n2 = n / 2;
-        Elem_00488a00* m = first + n2;
+        Class_00489260* m = first + n2;
         if (_strcmpi(m->name.data, name) < 0)
             first = ++m, n -= n2 + 1;
         else
@@ -75,6 +81,6 @@ void* __stdcall FUN_00488c50(char* name)
         return first->value;
 
     Class_00488c50* p = new Class_00488c50;
-    DAT_0051e6b0.FUN_00488fb0(first, 1, Elem_00488a00(Class_004c91b0(name), p));
+    DAT_0051e6b0.insert(first, 1, Class_00489260(Class_004c91b0(name), p));
     return p;
 }

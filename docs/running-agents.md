@@ -95,8 +95,8 @@ Codex usage goes quickly on long decompilation sessions. To make it last:
   `~/.codex/config.toml`, or pass `-c model_reasoning_effort="medium"`.
   Raise it again only for a stubborn near-miss.
 - **Stop it when the `hard` queue is empty** rather than giving it other work.
-  Anything a cheaper model leaves goes to the orchestrator's `claude` issues
-  first, not to Astra. For an unattended run, `codex exec "<prompt>"`.
+  Anything a cheaper model leaves goes to an open retry issue first; only
+  what a retry also misses goes to `hard`, for Astra and Opus. For an unattended run, `codex exec "<prompt>"`.
 
 Codex runs commands in a sandbox. The agent needs network access (for `gh`
 and `git push`) and needs to run Wine. If either is blocked, start Codex with
@@ -149,20 +149,22 @@ Run from the main checkout, on `main`:
 3. **Merge and record.** Squash-merge, then on `main`:
    - `uv run tools/progress.py` first, so the names record.py checks against
      include the ones this merge added.
-   - `uv run tools/record.py <issue> <model> --escalate claude`. Add
+   - `uv run tools/record.py <issue> <model> --escalate retry`. Add
      `--model-for <addr>=<model>` for each function another model (such as a
-     worker) wrote. `--escalate claude` opens a retry issue labelled `claude`
-     for everything left unmatched. For a weak or free model's leftovers use
-     `--escalate retry`, an ordinary `near-miss` issue that DeepSeek and the
-     other cheap models can take next, so Opus only sees what a capable cheap
-     model also missed. Use `--escalate hard` only to give GPT-6 Astra a go.
+     worker) wrote. `--escalate retry` opens an ordinary `near-miss` issue any
+     model can take for everything left unmatched. When the issue was itself
+     a retry, use `--escalate hard` instead, so GPT-6 Astra and Opus see what
+     two cheaper attempts missed. GPT-6, Astra and Opus partials are not
+     escalated. `--escalate claude` is only for when the orchestrator runs
+     Opus workers of its own (step 4).
    - `uv run tools/progress.py`
    - `uv run tools/calibration.py`
 
    Add any suspected original bugs to `docs/bugs.md` and new techniques to
    `docs/agent-guide.md`, commit and push.
-4. **Clean up what was left.** Issues labelled `claude` hold what the other
-   agents left unmatched (`gave up`, `not reached`), mostly from the cheap
+4. **Clean up what was left** (only while the orchestrator runs Opus workers
+   of its own; otherwise leftovers stay in the retry and `hard` queues).
+   Issues labelled `claude` hold what the other agents left unmatched (`gave up`, `not reached`), mostly from the cheap
    OpenCode workers. They are the orchestrator's own work, and every other
    agent is told to skip them. The orchestrator hands them to Claude Opus
    subagents working in the main checkout. It re-checks and commits their

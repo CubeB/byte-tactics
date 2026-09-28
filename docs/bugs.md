@@ -361,6 +361,35 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x425b80** (likely): a running smoke puff copies the template byte over
+  the cell it occupies (`dest[s->pos] = src[s->pos]`), and 0xaa's low nibble
+  is 10, so a burnt feature under a puff stops reading as burnt and later
+  puffs die there: the smoke suppresses itself. Found by Space Bunny Free
+  (CubeB) in #399.
+- **0x4ab1b0** (likely): copies a controller name into a 0x10-byte field with
+  an unbounded `strcpy`, and the caller at 0x4abe6b passes the 18-character
+  `"Player%dController"`, so it spills into the field at +0x13. Found by
+  DeepSeek V4.1 Flash in #366.
+- **0x4a5d50** (likely): the loop that shortens a label until it fits
+  re-measures the empty string forever when the entry's height is below 6,
+  since `w <= height - 6` can then never hold for `w == 0`. Found by DeepSeek
+  V4.1 Flash in #364.
+- **0x4aedd0** (likely): when the table has no entry 0x49 it subtracts a
+  local that is never written (`mov ebx, [esp+0x10]` at 0x4aee78) from every
+  frame's +6 word; the compiler warns C4700 on the matching source. Found by
+  DeepSeek V4.1 Flash in #368.
+- **0x4b0160** (possible): both callers (0x4b0320, 0x4b0498) push three colour
+  bytes, but the function reads only two, so the third, apparently meant for
+  a highlight, is ignored. Found by DeepSeek V4.1 Flash in #369.
+- **0x49c9c0** (possible): passes the position pointer as the integer scale
+  argument of `FUN_004b7123`, which multiplies it as a length, where the
+  neighbouring calls pass the launch angle and a computed value. Read from
+  the disassembly of a partial match. Found by Space Bunny Free in #556.
+- **0x4b9d70** (possible): clamps the horizontal copy count to the
+  destination width without subtracting the destination column, so a copy
+  with a column offset can write past the end of the row (the vertical clip
+  does subtract the row). Read from the disassembly of a partial match. Found
+  by DeepSeek V4.1 Flash in #374.
 - **0x47c530** (likely): the movie summary prints "Total Playback Time" as
   `1000 * totalTime / totalTime`, always 1000, the line above it copied and
   not edited; both divisions are unguarded, so a summary with zero total time

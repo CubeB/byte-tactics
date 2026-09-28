@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra. Names are provisional.
+// Partial: MSVC reloads the list iterator before the erase-loop bottom test;
+// the original compares its stack slot directly.
 #include <list>
 #include <xmemory>
 

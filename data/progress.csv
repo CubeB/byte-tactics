@@ -728,6 +728,7 @@ address,size,file,symbol,status,similarity
 0x43ad50,100,src/unsorted/0x43ad50.cpp,?FUN_0043ad50@@YGXPAUOwner_0043ad50@@PAUNode_0043ad50@@@Z,matched,100.0
 0x43afc0,233,src/unsorted/0x43afc0.cpp,?FUN_0043afc0@@YGXEHPAUOwner_0043afc0@@HPAHHH@Z,matched,100.0
 0x43b0b0,310,src/unsorted/0x43b0b0.cpp,?FUN_0043b0b0@@YGXHPAUOwner_0043b0b0@@HH@Z,matched,100.0
+0x43b1f0,519,src/unsorted/0x43b1f0.cpp,?FUN_0043b1f0@@YGHPAUUnit@@0H@Z,matched,100.0
 0x43b700,42,src/unsorted/0x43b700.cpp,?FUN_0043b700@@YGHPAUUnit_0043b700@@@Z,matched,100.0
 0x43b730,136,src/unsorted/0x43b730.cpp,?FUN_0043b730@@YGXPAUParent_0043b730@@E@Z,matched,100.0
 0x43c020,36,src/unsorted/0x43c020.cpp,?FUN_0043c020@@YGHPAX0@Z,matched,100.0

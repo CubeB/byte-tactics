@@ -361,6 +361,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x4394e0** (likely): of four `idiv` sites, the division by the word at
+  +0x2c is floored to 1 (`cmp; jae; mov ..., 1`), but the very next one, by
+  the zero-extended word at +0x00, has no guard, so a record with 0 there
+  faults with a divide error. Read from the disassembly of a partial match.
+  Found by Space Bunny Free in #797.
 - **0x43cd20** (likely): the stack slot `[esp+0x14]` is written only at
   0x43ce51, on the path where the first `_hypot` exceeds 0x500000; on the
   other path (`jle` at 0x43cdbd) nothing writes it, yet 0x43d0b4 reads it and

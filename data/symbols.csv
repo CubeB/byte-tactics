@@ -602,6 +602,7 @@ address,name
 0x433a60,UElem_00434020::?$vector::size
 0x433a80,UElem_00434360::?$vector::~?$vector
 0x433b00,UElem_00434360::?$vector::size
+0x433b20,UElem_00434020::?$vector::insert
 0x433d50,UElem_00434020::?$vector::erase
 0x433d90,UElem_00434020::?$vector::_Destroy
 0x433da0,UElem_00434020::?$allocator::deallocate
@@ -3802,6 +3803,7 @@ address,name
 0x507b88,DAT_00507b88
 0x5086dc,DAT_005086dc
 0x5086e8,DAT_005086e8
+0x5086fc,DAT_005086fc
 0x508a78,DAT_00508a78
 0x508aa4,DAT_00508aa4
 0x508ab4,DAT_00508ab4

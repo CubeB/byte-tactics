@@ -526,6 +526,7 @@ address,size,file,symbol,status,similarity
 0x428fc0,21,src/unsorted/0x428fc0.cpp,?FUN_00428fc0@@YAXXZ,matched,100.0
 0x428fe0,21,src/unsorted/0x428fe0.cpp,?FUN_00428fe0@@YAXXZ,matched,100.0
 0x429000,235,src/unsorted/0x429000.cpp,?FUN_00429000@@YAXXZ,matched,100.0
+0x4290f0,402,src/unsorted/0x4290f0.cpp,?FUN_004290f0@@YGPADPAD000@Z,matched,100.0
 0x429290,78,src/unsorted/0x429290.cpp,?FUN_00429290@@YGPAXPBDH@Z,matched,100.0
 0x4292e0,72,src/unsorted/0x4292e0.cpp,?FUN_004292e0@@YGPAXPBD@Z,matched,100.0
 0x429330,310,src/unsorted/0x429330.cpp,?FUN_00429330@@YGPAXPAD@Z,matched,100.0
@@ -543,6 +544,7 @@ address,size,file,symbol,status,similarity
 0x42a400,50,src/unsorted/0x42a400.cpp,?FUN_0042a400@@YAHXZ,matched,100.0
 0x42a440,295,src/unsorted/0x42a440.cpp,?FUN_0042a440@@YAXXZ,matched,100.0
 0x42a570,159,src/unsorted/0x42a570.cpp,?FUN_0042a570@@YAXXZ,matched,100.0
+0x42a610,596,src/unsorted/0x42a610.cpp,?FUN_0042a610@@YGXPAUDef_0042a610@@@Z,matched,100.0
 0x42a870,95,src/unsorted/0x42a870.cpp,??_EClass_004c2ea0@@QAEPAXI@Z,matched,100.0
 0x42bcc0,77,src/unsorted/0x42bcc0.cpp,?FUN_0042bcc0@@YAXXZ,matched,100.0
 0x42bd10,46,src/unsorted/0x42bd10.cpp,?FUN_0042bd10@@YAXXZ,matched,100.0
@@ -560,6 +562,7 @@ address,size,file,symbol,status,similarity
 0x42e310,289,src/unsorted/0x42e310.cpp,?FUN_0042e310@@YAXXZ,matched,100.0
 0x42f3a0,167,src/unsorted/0x42f3a0.cpp,?FUN_0042f3a0@@YAXXZ,matched,100.0
 0x42f450,297,src/unsorted/0x42f450.cpp,?FUN_0042f450@@YGHPAUSource_0042f450@@PADPAH@Z,matched,100.0
+0x42f580,448,src/unsorted/0x42f580.cpp,?FUN_0042f580@@YAXXZ,matched,100.0
 0x42f740,149,src/unsorted/0x42f740.cpp,?FUN_0042f740@@YAXXZ,matched,100.0
 0x42f7e0,215,src/unsorted/0x42f7e0.cpp,?FUN_0042f7e0@@YAXXZ,matched,100.0
 0x42f8c0,62,src/unsorted/0x42f8c0.cpp,?FUN_0042f8c0@@YAXXZ,matched,100.0
@@ -608,6 +611,7 @@ address,size,file,symbol,status,similarity
 0x433a60,19,src/unsorted/0x433a60.cpp,?size@?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@QBEIXZ,matched,100.0
 0x433a80,117,src/unsorted/0x433a80.cpp,??1?$vector@UElem_00434360@@V?$allocator@UElem_00434360@@@std@@@std@@QAE@XZ,matched,100.0
 0x433b00,19,src/unsorted/0x433b00.cpp,?size@?$vector@UElem_00434360@@V?$allocator@UElem_00434360@@@std@@@std@@QBEIXZ,matched,100.0
+0x433b20,547,src/unsorted/0x433b20.cpp,?insert@?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@QAEXPAUElem_00434020@@IABU3@@Z,matched,100.0
 0x433d50,50,src/unsorted/0x433d50.cpp,?erase@?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@QAEPAUElem_00434020@@PAU3@0@Z,matched,100.0
 0x433d90,3,src/unsorted/0x433d90.cpp,?_Destroy@?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@IAEXPAUElem_00434020@@0@Z,matched,100.0
 0x433da0,16,src/unsorted/0x433da0.cpp,?deallocate@?$allocator@UElem_00434020@@@std@@QAEXPAXI@Z,matched,100.0

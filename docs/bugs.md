@@ -361,6 +361,11 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x4af320** (possible): the mode test and the find-handle test both fail
+  to the same one-instruction block (+0x438), and the finished directory walk
+  jumps over it, so the file walk runs whatever either test says; if it was
+  meant to be conditional, the flag is ignored. Read from the disassembly of
+  a partial match. Found by Space Bunny Free (CubeB) in #861.
 - **0x47bf70** (possible): passes a 16-bit field (`mov cx, word ptr
   [eax+0x370]` at 0x47c111) to smackw32.dll ordinal 5 with `push ecx`, and the
   upper half of `ecx` still holds a pointer from 0x47c0ea, so the call gets

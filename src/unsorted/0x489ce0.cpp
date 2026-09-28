@@ -1,0 +1,200 @@
+// Decompiled by Space Bunny Free. Names are provisional.
+// Applies one damage/heal event record (a small struct on the caller's stack:
+// byte type at +0, two unit ids at +1 and +3, an amount at +5, a byte at +7
+// and the event kind at +8) to the unit named by the first id.
+
+class Class_00438760 {
+public:
+    unsigned char index;
+    Class_00438760(const char* name);
+};
+
+#pragma pack(push, 2)
+class Class_0043a1f0 {
+public:
+    char unknown_0[4];
+    unsigned char kind;                // +0x4
+    char unknown_5[0x36 - 0x5];
+    int field_36;                      // +0x36
+    char unknown_3a[0x56 - 0x3a];
+    Class_0043a1f0(Class_00438760 k, void* owner, void* pos, int a, int b, int c);
+};
+#pragma pack(pop)
+
+class Class_004b0a70 {
+public:
+    int FUN_004b0a70(char* name, void* param_2, int param_3, int param_4, int param_5,
+                    int param_6, int param_7, int param_8);
+};
+
+#pragma pack(push, 1)
+struct Player_00489ce0 {
+    int active;                        // +0x0
+    char unknown_4[0x73 - 4];
+    unsigned char type;                // +0x73
+};
+
+struct UnitDef_00489ce0 {
+    char unknown_0[0x1fa];
+    unsigned int maxhp;                // +0x1fa
+    char unknown_1fe[0x241 - 0x1fe];
+    unsigned int flags;                // +0x241
+};
+
+struct Unit_00489ce0 {
+    char unknown_0[0x5c];
+    Class_0043a1f0* effect;            // +0x5c
+    char unknown_60[0x92 - 0x60];
+    UnitDef_00489ce0* def;             // +0x92
+    Player_00489ce0* owner;            // +0x96
+    Class_004b0a70* anims;             // +0x9a
+    char unknown_9e[0xf0 - 0x9e];
+    void* last;                       // +0xf0
+    char unknown_f4;
+    unsigned char kind;                // +0xf5
+    char unknown_f6[0xff - 0xf6];
+    unsigned char teamId;              // +0xff
+    char unknown_100[0x108 - 0x100];
+    short hp;                          // +0x108
+    char unknown_10a[0x110 - 0x10a];
+    unsigned int flags;                // +0x110
+    char unknown_114[0x118 - 0x114];
+};
+
+struct Event_00489ce0 {
+    unsigned char type;                // +0x0, unused here
+    unsigned short attacker;           // +0x1
+    unsigned short target;             // +0x3
+    unsigned short amount;             // +0x5
+    unsigned char param_7;             // +0x7
+    unsigned char kind;                // +0x8
+};
+
+struct Game_00489ce0 {
+    char unknown_0[0x2a42];
+    unsigned char teamId;              // +0x2a42
+    char unknown_2a43[0x14357 - 0x2a43];
+    Unit_00489ce0* units;              // +0x14357
+};
+#pragma pack(pop)
+
+extern Game_00489ce0* g_game;
+extern char s_paralyze_00508d80[];
+extern char s_HitByWeapon_00508d74[];
+extern char s_TakeDamage_00508d68[];
+
+void __stdcall FUN_0043acb0(Unit_00489ce0* owner, Class_0043a1f0* node);
+void __stdcall FUN_00467950(Unit_00489ce0* unit);
+void __stdcall FUN_00406f80(Unit_00489ce0* target, Unit_00489ce0* attacker, int amount);
+void __stdcall FUN_00494ff0(int flag);
+int __cdecl FUN_004b7123(unsigned short idx, int scale);
+int __cdecl FUN_004b70ef(short idx, int scale);
+
+// PARTIAL, 98.6% (697 of 697 bytes, exact size). Four bytes in one spot.
+//
+// The heal branch's add. The original loads hp into eax, then the amount into
+// edx, then `add eax, edx`, so the FIRST operand gets the add's destination
+// register. This file loads hp into edx, then the amount into eax, and the
+// `add` is identical, so the SECOND operand gets it. The base registers agree
+// (`esi` for hp at +0x108, `edi` for the amount at +5) and so does the load
+// order, hp first in both. Only the eax/edx assignment of the two addends
+// differs, and every jump target already lines up.
+//
+// About forty shapes were measured against it, all with `check.py --sym` after
+// `rm -rf build/obj`, and none moves it:
+//  - operand order both ways, `+=`, seeding a local first, assigning through a
+//    separate statement, and casting the field signed (six more, run as a final
+//    pass: `acc_short` 72.3%, `hp_plus`, `sum_local`, `amt_first_sum`,
+//    `two_step` and `cast_hp` all 98.6% with byte-identical output);
+//  - hoisting the amount to function scope, and a `static inline` helper for
+//    the clamp and for each operand separately;
+//  - embedded member getters on the structs, `getHp()` / `GetAmount()` and the
+//    `static inline` equivalents, which is the one axis that changes the shape
+//    of an operand's tree rather than reordering it. Three of the five did not
+//    compile because the helper was never inserted; the two that did are
+//    byte-identical to the file as written;
+//  - all 128 header sets from tools/headers.py, none of which changes it.
+//
+// This is the guide's "operand order that nothing changes" case, and the
+// explanation it gives is the right one: MSVC 5 is deciding this from
+// compiler state left by earlier functions in the original's translation unit,
+// not from this function's source. Nothing in this file's shape reaches it.
+//
+// FUNCTION: 0x489ce0
+void __stdcall FUN_00489ce0(Event_00489ce0* ev)
+{
+    Unit_00489ce0* unit = ev->attacker == 0 ? 0 : &g_game->units[ev->attacker];
+    Unit_00489ce0* target = ev->target == 0 ? 0 : &g_game->units[ev->target];
+
+    if (unit == 0)
+        return;
+    if (!(unit->flags & 0x10000000))
+        return;
+    if (unit->flags & 0x4000)
+        return;
+
+    if (ev->kind == 10) {
+        int v = unit->hp + ev->amount;
+        unsigned int maxhp = unit->def->maxhp;
+        if (!(v < maxhp))
+            v = maxhp;
+        unit->hp = (short)v;
+        return;
+    }
+
+    FUN_00467950(unit);
+
+    if (ev->kind != 11)
+        FUN_00406f80(target, unit, ev->amount);
+
+    unit->kind = ev->kind;
+
+    if (target) {
+        unsigned char c = target->teamId;
+        unit->unknown_f4 = c;
+        unit->last = target;
+        if (target->teamId == g_game->teamId || unit->teamId == g_game->teamId)
+            FUN_00494ff0(1);
+    }
+
+    if (ev->kind == 2) {
+        int ticks = ev->amount;
+        if (unit->flags & 0x10000000) {
+            if (!(unit->flags & 0x4000)) {
+                Player_00489ce0* owner = unit->owner;
+                if (owner->active && (owner->type == 1 || owner->type == 2)) {
+                    if (!(unit->def->flags & 0x4000000)) {
+                        Class_00438760 kind(s_paralyze_00508d80);
+                        Class_0043a1f0* e = unit->effect;
+                        if (e && e->kind == kind.index) {
+                            e->field_36 += ticks;
+                            return;
+                        }
+                        FUN_0043acb0(unit, new Class_0043a1f0(kind, 0, 0, ticks, 0, 0));
+                        return;
+                    }
+                }
+            }
+        }
+    } else {
+        unit->hp -= ev->amount;
+        if (unit->hp <= 0) {
+            if (unit->owner->active && (unit->owner->type == 1 || unit->owner->type == 2)) {
+                unit->flags |= 0x4000;
+                return;
+            }
+            unit->hp = 0;
+        }
+        if (ev->kind == 1) {
+            int a = FUN_004b7123(ev->param_7 << 8, 400);
+            int b = FUN_004b70ef(ev->param_7 << 8, 400);
+            unit->anims->FUN_004b0a70(s_HitByWeapon_00508d74, 0, 0, 2, a, b, 0, 0);
+            int pct = unit->hp * 100 / unit->def->maxhp;
+            if (pct < 0)
+                pct = 0;
+            if (pct > 100)
+                pct = 100;
+            unit->anims->FUN_004b0a70(s_TakeDamage_00508d68, 0, 0, 1, pct, 0, 0, 0);
+        }
+    }
+}

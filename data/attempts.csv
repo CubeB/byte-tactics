@@ -3276,10 +3276,10 @@ address,size,model,batch,result,similarity,runs,notes
 0x46b900,196,,#491,assigned,,,"issue #491, escalated"
 0x452960,520,,#492,assigned,,,"issue #492, escalated"
 0x453a50,460,,#492,assigned,,,"issue #492, escalated"
-0x4775a0,506,,#493,assigned,,,issue #493
-0x4777a0,406,,#493,assigned,,,issue #493
-0x478cb0,462,,#493,assigned,,,issue #493
-0x47aaf0,444,,#493,assigned,,,issue #493
+0x4775a0,506,mimo-v2.6-flash,#493,matched,100.0,,issue #493
+0x4777a0,406,mimo-v2.6-flash,#493,matched,100.0,,issue #493
+0x478cb0,462,mimo-v2.6-flash,#493,matched,100.0,,issue #493
+0x47aaf0,444,mimo-v2.6-flash,#493,matched,100.0,,issue #493
 0x47b9f0,437,,#494,assigned,,,issue #494
 0x47bbb0,441,,#494,assigned,,,issue #494
 0x47bf70,472,,#494,assigned,,,issue #494

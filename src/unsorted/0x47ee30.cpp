@@ -8,6 +8,23 @@
 // prologue difference (DAT is loaded into eax and copied to ebp) is a guarded
 // do/while: `int* count = &DAT->count; Entry* entries = DAT->entries;
 // if (entries[9].field_0 > 0) { do { ... } while (*count > 0); }`.
+//
+// Retry by deepseek-v4.1-flash: about 45 shapes were scored in scratch. They
+// split into two families and neither reaches 100%:
+//  - guard/condition written through the base (`*(int*)((char*)entries+0x99)`,
+//    `((List*)entries)->count`, `entries[9].field_0`) keeps the prologue exact
+//    (ebp = DAT, edi = &count) but the back edge reloads [ebp+0x99] instead of
+//    forwarding the decrement into eax;
+//  - condition written as `*count` (the same lvalue as `(*count)--`) makes the
+//    back edge forward (`mov eax, ecx`) but the compiler then computes the
+//    count pointer first, from a scratch load of the global:
+//    `mov eax,[DAT]; ...; mov ebp,eax; lea edi,[eax+0x99]`, and the guard is
+//    folded to `cmp [edi], 0`.
+// Deriving count from `list`/`entries` (`&list->count`, `(char*)entries+0x99`)
+// always folds the pointer away, so count must come from the global to stay a
+// separate edi. The original needs both the ebp-based prologue and the
+// forwarded back edge at once, plus the redundant `lea edi,[ebp+0x99]` before
+// the shift loop, which none of the scored shapes produced.
 
 void FUN_004d85a0(int* param_1);
 

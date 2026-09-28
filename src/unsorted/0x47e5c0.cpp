@@ -7,6 +7,14 @@
 // sum operand order or making Pt copies all compile to the same (wrong)
 // allocation or worse; any change that moves size.y before the pushes flips
 // the whole allocation.
+//
+// Retry notes (deepseek-v4.1-flash): computing ys right after y2 into its own
+// local (instead of in the inner for-init) does put size.y back in edx and
+// size.x in ecx, but the allocator still gives the grid pointer esi and the
+// loop counters end up elsewhere, scoring 45-52 percent. Declaring x1/y1/x2/y2
+// plus all four bounds collapses to the v1 allocation (grid esi, x ecx, y edx).
+// What is still missing is making the y counter outrank the grid pointer for
+// esi (so grid takes edi); no source-level ordering tried made that happen.
 
 struct Obj_0047e5c0;
 

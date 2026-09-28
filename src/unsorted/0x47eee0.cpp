@@ -1,11 +1,24 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Best 86.2%. Still differs from the original: the DAT_0051e68c load goes to
-// a scratch register (eax) and is copied to ebp, because the count pointer is
-// taken through the global (&DAT_0051e68c->count) instead of through the local
-// list; the original loads DAT straight into ebp and uses it as the base for
-// the count pointer. Using &list->count instead makes MSVC fold the pointer
-// away (53.8%). The original also re-materialises `lea edi,[ebp+0x99]` before
-// the inner shift loop, which this version does not.
+// Best 86.2%. Only the loop prologue still differs (the tail and the
+// back-edge already match):
+//  - ours loads DAT into eax and copies it to ebp; the original loads it
+//    straight into ebp (`mov ebp,[DAT]`), so the whole guard is one byte
+//    further along;
+//  - because of that the count pointer is based on eax (`lea edi,[eax+0x99]`)
+//    where the original bases it on ebp (`lea edi,[ebp+0x99]`), and the guard
+//    load is `mov eax,[eax+0x99]` instead of `mov eax,[ebp+0x99]`;
+//  - the original re-materialises `lea edi,[ebp+0x99]` just before the inner
+//    shift loop (0x47ef33); this version keeps edi live.
+// The eax detour is what taking the count pointer through the global
+// (&DAT_0051e68c->count) produces; taking it through the local list instead
+// makes MSVC fold the pointer away entirely (53.8%, list lands in esi and the
+// zero in ebp). Everything that had been tried by the end of this attempt:
+// local list + &list->count (fold), references, char*/int casts, uninitialised
+// locals, do/while, and deriving the list from a global-derived count pointer
+// (75.5%). Also note: FUN_004ceee0 is declared here as a method of
+// Class_004d0130, but ctx.py names it Class_004ceee0::FUN_004ceee0; if the
+// loop is ever fixed the symbol check will want a separate Class_004ceee0 and
+// a cast on `sound`.
 
 #pragma pack(push, 1)
 struct Entry_0047f8c0 {                // 0x11 bytes

@@ -1,93 +1,145 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// PARTIAL (37.1% best). What the function does: it snapshots the position the
-// caller passed in `out`, calls FUN_00439740 (which updates `out` and returns
-// the new position), and, when `flag` is set, walks the line from the snapshot
-// to the new position in 0x300000 steps drawing the object's animation frame
-// at each step, then leaves the snapshot in `out`.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// PARTIAL, 65.2%, ours is the same size as the original (601) and the
+// instruction sequence now matches the original one for one. What the function
+// does: it snapshots the position the caller passed in `out`, calls
+// FUN_00439740 (which recomputes `out` and draws the unit type icon), and when
+// `flag` is set walks the line from the snapshot to the new position in
+// 0x300000 steps, drawing the object's animation frame at each step. The frame
+// index is (g_game->frame - order->timestamp, clamped at 0) / max(1,
+// anim->field_2c) % anim->count, and `anim` is g_game->anims[21].
 //
-// The overall shape matches (parameter load order, the FUN_00439740 call, the
-// sqrt of the 16.16 delta length via _ftol, the frame-index division by the
-// frame count at anim+0x2c and the tick division by the count at anim+0x0) but
-// the register allocation still differs on nearly every instruction. The
-// original keeps the snapshot in (edi, ebp, ebx), `out` in esi, and the view
-// value in [esp+0x60]; ours keeps them in different slots. Small experiments
-// (the __int64 sqrt helper, a Pos local copied into `out`, the +1>>1 form of
-// the x/2 and (z-y/2)/2 expressions) did not close the gap.
+// Re-derived from the disassembly; the earlier attempt's 36% notes were wrong:
+//  - the length is the plain sum of squares. Its third fmul multiplies st(2),
+//    which is the *duplicate* of dz pushed by the preceding `fld st(1)`, not
+//    dy; reading it as dz*dy makes MSVC fold dy*dy + dz*dy into dy*(dy+dz) and
+//    the whole x87 block can never match,
+//  - the loop start is (t % 30) * 0x300000 / 30 exactly. The shr/add after the
+//    magic multiply is MSVC's own round-toward-zero fixup, not a halving; a
+//    probe of /30, /60, /30/2 and >>1 shows only the plain /30 emits it,
+//  - nothing is written back to *out after the walk (the old source stored the
+//    snapshot there again, which also made the function too long),
+//  - the FUN_004b7f90 arguments are the 16.16 hi words, the same
+//    `p.x - view->cx + 0x80` / `p.z - (p.y>>1) - view->cy + 0x20` shape the
+//    matched sibling 0x439740 uses.
 //
-// What still differs:
-//   - the sqrt and its float loads (our reassociation is off),
-//   - the age computation: original reads g_game->ticks first then
-//     obj->field_46 and uses xor/cmp/sbb; ours reads obj first and uses the
-//     setle/dec form,
-//   - `count` clamping, which the original does through a reused stack slot,
-//   - the whole 16.16 position interpolation loop body.
-#include <windows.h>
+// The one structural thing still missing was the loop body: the original keeps
+// the three 16.16 products in memory (each stored as its _allmul/_allshr pair
+// finishes) and only then adds the snapshot to all three, while a plain
+// `p.x.value = start.x.value + (int)(((__int64)dx * f) >> 16)` lets MSVC fuse
+// each add into the product's store. Building the products in a small static
+// helper that returns a Pos is what reproduces the spill and the deferred adds.
+//
+// What still differs is only register and stack-slot choice:
+//  - the original keeps `order` in ebx and the snapshot's x in edi; ours has
+//    them the other way round. That cascades: the original folds the timestamp
+//    into `sub eax,[ebx+0x46]` and holds g_game in ebp across the sqrt, while we
+//    load the timestamp into a register and reload g_game for anims[21] (one
+//    extra instruction each, paid back by the two `mov`s the original spends on
+//    `pos`),
+//  - the original spills dist, frames and anim into the dead argument slots
+//    (esp+0x64/0x68/0x6c) and keeps the deltas at esp+0x28..0x30; ours spills
+//    the deltas into the argument slots and puts anim at esp+0x10, so every
+//    local slot sits 4 higher. Declaration order, local and parameter names,
+//    the spelling of the clamp and of the ternary, and dummy externs (1..12)
+//    all left that unchanged.
+//  - `#include <stdio.h>` is worth one point: the same source is 64.2% without
+//    it.
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-struct Pos_4394e0 {
-    int x;                               // +0x0 (16.16 fixed point)
-    int y;                               // +0x4
-    int z;                               // +0x8
+#pragma pack(push, 1)
+
+union Fixed_004394e0 {
+    int value;                          // 16.16
+    struct {
+        unsigned short frac;
+        short whole;
+    };
 };
 
-struct View_4394e0 {
-    char pad_0[0x2c];
-    int cx;                              // +0x2c
-    int cy;                              // +0x30
+struct Pos_004394e0 {
+    Fixed_004394e0 x, y, z;
 };
 
-struct Obj_4394e0 {
-    char pad_0[0x46];
-    int field_46;                        // +0x46
+struct Node_004394e0 {                  // the unit order 0x439740 walks
+    char unknown_0[0x46];
+    int timestamp;                      // +0x46
 };
 
-struct Game_4394e0 {
-    char pad_0[0x148d3];
-    char* animTable;                     // +0x148d3
-    char pad_148d7[0x38a47 - 0x148d7];
-    unsigned int ticks;                  // +0x38a47
+struct View_004394e0 {
+    char unknown_0[0x2c];
+    int scroll_x;                       // +0x2c
+    int scroll_y;                       // +0x30
 };
 
-extern Game_4394e0* g_game;
+struct Anim_004394e0 {
+    unsigned short count;               // +0x0
+    char unknown_2[0x2c - 2];
+    unsigned short field_2c;            // +0x2c
+};
 
-void __stdcall FUN_00439740(void* surface, View_4394e0* view, Obj_4394e0* obj,
-                            Pos_4394e0* out, int flag);
-void __stdcall FUN_004b7f90(void* dst, void* bmp, int x, int y);
+struct Game_004394e0 {
+    char unknown_0[0x1487f];
+    Anim_004394e0* anims[22];           // +0x1487f, this function uses [21]
+    char unknown_148d7[0x38a47 - 0x148d7];
+    unsigned int frame;                 // +0x38a47
+};
+
+#pragma pack(pop)
+
+extern Game_004394e0* g_game;
+
+void __stdcall FUN_00439740(void* surface, View_004394e0* view,
+                            Node_004394e0* node, Pos_004394e0* out, int unused);
+void __stdcall FUN_004b7f90(void* surface, void* bmp, int x, int y);
+
+// The three 16.16 steps of the interpolated position. The original keeps them
+// in memory (the values are stored as each _allmul/_allshr pair finishes and
+// the three adds with `start` happen only after all three), which is what
+// building them in a helper returning a Pos reproduces.
+static Pos_004394e0 offset_004394e0(int dx, int dy, int dz, int f)
+{
+    Pos_004394e0 d;
+    d.x.value = (int)(((__int64)dx * f) >> 16);
+    d.y.value = (int)(((__int64)dy * f) >> 16);
+    d.z.value = (int)(((__int64)dz * f) >> 16);
+    return d;
+}
 
 // FUNCTION: 0x4394e0
-void __stdcall FUN_004394e0(void* surface, View_4394e0* view, Obj_4394e0* obj,
-                            Pos_4394e0* out, int flag)
+void __stdcall FUN_004394e0(void* surface, View_004394e0* view,
+                            Node_004394e0* order, Pos_004394e0* out, int flag)
 {
-    int ox = out->x;
-    int oy = out->y;
-    int oz = out->z;
-    FUN_00439740(surface, view, obj, out, flag);
+    Pos_004394e0 start = *out;
+    FUN_00439740(surface, view, order, out, flag);
     if (flag == 0)
         return;
-    int dx = out->x - ox;
-    int dy = out->y - oy;
-    int dz = out->z - oz;
+
+    int t = __max(g_game->frame - order->timestamp, 0);
+    int dx = out->x.value - start.x.value;
+    int dy = out->y.value - start.y.value;
+    int dz = out->z.value - start.z.value;
     int dist = (int)sqrt((double)dx * dx + (double)dy * dy + (double)dz * dz);
     if (dist < 0x10000)
         return;
-    char* anim = g_game->animTable;
-    unsigned int age = g_game->ticks - obj->field_46;
-    int t = age > 0 ? age : 0;
-    unsigned short count = *(unsigned short*)(anim + 0x2c);
-    if (count < 1)
-        count = 1;
-    int idx = t / count % *(unsigned short*)anim;
-    out->x = ox;
-    out->y = oy;
-    out->z = oz;
-    for (int i = t % 0x1e * 0x300000 / 0x1e; i < dist; i += 0x300000) {
-        int f = (int)(((__int64)i << 16) / dist);
-        int x = view->cx - (int)(((__int64)f * dx) >> 16);
-        int y = view->cy + ((int)(((__int64)f * dy) >> 16) >> 16 >> 1);
-        int z = view->cy - (int)(((__int64)f * dz) >> 16);
-        FUN_004b7f90(surface, *(void**)(anim + 0x28 + idx * 8),
-                     0x80 - (short)(x >> 16),
-                     0x20 - (short)(z >> 16) - (short)(y >> 16));
-        idx = (idx + 1) % *(unsigned short*)anim;
+
+    int pos = (t % 30) * 0x300000 / 30;
+    Anim_004394e0* anim = g_game->anims[21];
+    unsigned short len = anim->field_2c;
+    int frames = len < 1 ? 1 : (int)len;
+    int idx = (t / frames) % anim->count;
+
+    for (; pos < dist; pos += 0x300000) {
+        int f = (int)(((__int64)pos << 16) / dist);
+        Pos_004394e0 d = offset_004394e0(dx, dy, dz, f);
+        Pos_004394e0 p;
+        p.x.value = start.x.value + d.x.value;
+        p.y.value = start.y.value + d.y.value;
+        p.z.value = start.z.value + d.z.value;
+        FUN_004b7f90(surface, *(void**)((char*)anim + idx * 8 + 0x28),
+                     p.x.whole - view->scroll_x + 0x80,
+                     p.z.whole - (p.y.whole >> 1) - view->scroll_y + 0x20);
+        idx = (idx + 1) % anim->count;
     }
 }

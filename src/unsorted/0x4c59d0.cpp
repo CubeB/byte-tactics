@@ -1,28 +1,59 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
 //
-// PARTIAL: 90.9%, 409 against 415 bytes. This is the out-of-line
-// std::vector<Elem*>::insert for the reallocating case. Everything matches
-// except the ordering of the tail, where the original interleaves the two
-// helper calls, `operator delete` and the three member stores differently from
-// the source order this file started with.
+// PARTIAL: 93.3% (check.py), 337 of 367 code bytes identical. This is the
+// game's out-of-line vector::insert for the reallocating case: the three STL
+// helpers (_Ucopy, _Ufill, _Destroy) are out of line in this translation
+// unit except the first copy loop and the one-element fill, and so is
+// size(), which the tail calls to get the new _Last (at that point _First is
+// still the old one, so size() is the old count and _Last = s + count + 1).
 //
-// What moved it, from 80.9%: the order of the six tail statements. All 720
-// permutations of
-//     _Last = s + FUN_004c5ba0() + 1;   FUN_004c5bc0(p, _Last, q + 1);
-//     FUN_004c5b70(_First, _Last);      ::operator delete(_First);
-//     _End = s + n;                     _First = s;
-// were scored with `check.py --sym`. The winner calls FUN_004c5bc0 first, then
-// stores _Last, then FUN_004c5b70, then the delete, then _First, then _End
-// (90.9%); the source order it started with gave 80.9%, and moving only the
-// _End store after the delete gave 88.4%. So this is the guide's "register
-// choice and instruction order follow the order of your statements" in its
-// bluntest form: six statements, no semantic content in their order, and the
-// percentage is decided entirely by which of 720 orderings MSVC schedules the
-// way the original did.
+// Two things got it from 90.9% to 93.3%.
 //
-// The residue is the address computation for the _Last store. The original
-// computes it after the argument pushes for FUN_004c5bc0 (`mov ecx, esi` then
-// the `lea`); this file computes the `lea` above the pushes and reuses it.
+// 1. The tail statement order of the six statements after the two inlined
+//    loops, scored by exact byte count rather than by check.py's instruction
+//    diff ratio (the ratio punishes any size change and hid the winner):
+//        FUN_004c5bc0(p, _Last, q + 1);   FUN_004c5b70(_First, _Last);
+//        ::operator delete(_First);       _End = s + n;
+//        _First = s;                      _Last = s + FUN_004c5ba0() + 1;
+//    All 720 permutations were compiled; no ordering beats this one, and the
+//    whole of the second half of the function (the two else-if arms, both
+//    epilogues, the final `lea eax, [esi + edi*8]`) is byte identical only
+//    with this order.
+//
+// 2. The reallocating arm returns `_First + off`, not `begin() + off`. The
+//    two spell the same value, but `begin()` lets the allocator forward the
+//    value of `s` into the return, so the tail's register choices change and
+//    the whole second half stops matching. `return _First + off;` makes the
+//    compiler re-read the member, as the original does
+//    (`mov esi, dword ptr [esi + 4]`).
+//
+// What still differs is the tail of the reallocating arm, and all of it comes
+// from one instruction: the original stores _First (`mov [esi+4], edi`)
+// AFTER the call to FUN_004c5ba0, this file stores it before, which shifts the
+// ten instructions after it by 3 bytes and changes every register in them
+// (the original reuses eax for the delete argument and edx for n, this file
+// uses edx and eax; the original reloads off into edi and _First into esi,
+// this file into ecx and eax). MSVC 5 will not sink a store across a call, so
+// the source has to put something between `_End = s + n;` and `_First = s;`
+// that generates the call, and every such shape tried spills s and n or
+// reorders the two stores (see below). Tried and measured, none better:
+//   * all 720 orderings of the six statements, with and without an early
+//     `return` inside the arm and with the last statements in their own
+//     block;
+//   * the size call as a separate statement (`size_type k = FUN_004c5ba0();`
+//     then `_Last = s + k + 1;`, in every position): correct store order, but
+//     it spills s and n to their stack slots and costs 20 bytes;
+//   * a temporary for the new _Last (`iterator t = s + FUN_004c5ba0() + 1;`
+//     then `_First = s; _Last = t;`) and a `static inline` helper holding all
+//     three stores: 415 bytes but only 119 of 367 correct;
+//   * `_Last = s + 1 + size()`, `s + (size() + 1)`, `n + s` for _End, `int`,
+//     `size_type` and `ptrdiff_t` for off, `size_type` for the capacity, an
+//     `iterator&` bound to _First, a hand-written class with raw pointer
+//     members instead of a real std::vector base, <windows.h> in front, and
+//     every ordering of the declarations of off, n, s and q.
+// So the residue is a statement shape, not a detail of one of the 720
+// orderings; whoever takes this next should look for the one that makes MSVC
+// flush the _First store after the call.
 #include <stddef.h>
 #include <vector>
 
@@ -98,12 +129,12 @@ Elem_004c5bc0* Class_004c5ba0::FUN_004c59d0(iterator p, const Elem_004c5bc0& x)
             } while (--count != 0);
         }
         FUN_004c5bc0(p, _Last, q + 1);
-        _Last = s + FUN_004c5ba0() + 1;
         FUN_004c5b70(_First, _Last);
         ::operator delete(_First);
-        _First = s;
         _End = s + n;
-        return begin() + off;
+        _First = s;
+        _Last = s + FUN_004c5ba0() + 1;
+        return _First + off;
     }
     if ((size_type)(_Last - p) < 1u) {
         FUN_004c5bc0(p, _Last, p + 1);

@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
 // Loads a TDF section into the global map at 0x51fdb8: the section name is
 // compared with the one already loaded, the map is thrown away and rebuilt,
 // then every section of the file contributes one entry keyed by its own
@@ -7,23 +7,35 @@
 // this+1; the key the owner is born with is an uninitialised local byte
 // (the exe reads [esp+0x17], never written here), kept as `flag`.
 //
-// Still differs (57%):
-//  - the loop counter lives in ebx here, in the frame slot at [esp+0x18] in
-//    the original, so every [esp+N] here is 4 low and the frame is 0x220
-//    instead of 0x224. The original keeps a constant zero in a register
-//    across the loop, which is what squeezes the counter out; writing the
-//    strcmp test so that its zero comes from that register (cmp eax,ebx
-//    rather than test eax,eax) is the missing piece, and MSVC 5 folds every
-//    form of it I tried.
-//  - the original materialises the "keys differ" test as a bool in cl with
-//    the int form beside it (xor ecx,ecx; cmp; sete cl; neg cl; sbb ecx,ecx;
-//    inc ecx; test cl,cl), here it is a plain test eax,eax.
-//  - the destructor frees the vector through this+1 (lea edi,[eax+1], then
-//    [edi+4]/[edi+8]/[edi+0xc]); written as member accesses of `v` the
-//    compiler folds the +1 away and uses this+5/+9/+0xd.
-//  - the original re-reads the `section` argument from the stack for the
-//    strcpy instead of holding it in ebx, and saves ebx after the strcmpi
-//    test, again because ebx is wanted for that zero constant.
+// Best so far: 70.2 percent, up from 57. Two changes got it there, both about
+// forcing a value into the register or slot the original uses:
+//
+// 1. The destructor's vector free. The original materialises the vector's
+//    `this` as `lea edi, [eax+1]` and then frees through `[edi+4]`, `[edi+8]`
+//    and `[edi+0xc]`. Written as member accesses of `v`, MSVC 5 folds the +1
+//    away and uses this+5/+9/+0xd. Keeping a local `Class_004c5840* s = this;`
+//    and `Vec_004c54f0* w = &s->v;` alongside the object-base reads, and
+//    calling `w->Free2()`, keeps edi equal to this+1. 57 -> 70.2 percent.
+//
+// 2. The loop counter. It has to end up in the frame slot at [esp+0x18], the
+//    way the original has it, rather than in ebx, and that also makes the frame
+//    0x224 instead of 0x220. Declaring the index as a one-element array
+//    (`int idx[1]`) is what does it.
+//
+// What still differs, all of it listed so the next attempt does not repeat it:
+//  - the prologue order: the original does `mov eax, [esp+8]` and then loads
+//    the global before `push edi`; this file has them the other way round.
+//  - the inlined `~vector`. The original frees the buffer and zeroes three
+//    fields through edi before the object delete; this file emits an
+//    out-of-line Free2 call and then a single object delete.
+//  - the strcpy sequence keeps its length in edx where the original uses eax.
+//  - the argument loads before the 0x4c2f60 call, `mov eax, ecx` order.
+//
+// And the one thing that is a source of real doubt rather than codegen, see the
+// note on the insert condition below. The original materialises the
+// "keys differ" test as a bool in cl with the int form beside it
+// (`xor ecx,ecx; cmp; sete cl; neg cl; sbb ecx,ecx; inc ecx; test cl,cl`),
+// where this file has a plain `test eax,eax`.
 #include <string.h>
 
 extern char DAT_0051fdc0[256];
@@ -107,6 +119,14 @@ public:
     Elem_004c5bc0* end;                  // +0xc
 
     Elem_004c5bc0* FUN_004c59d0(Elem_004c5bc0* pos, Elem_004c5bc0* val);
+
+    void Free2()
+    {
+        ::operator delete(this->first);
+        this->first = 0;
+        this->last = 0;
+        this->end = 0;
+    }
 };
 
 class Class_004c5840 {
@@ -131,17 +151,16 @@ Class_004c5840::Class_004c5840(char count)
 
 Class_004c5840::~Class_004c5840()
 {
+    Class_004c5840* s = this;
+    Vec_004c54f0* w = &s->v;
     Elem_004c5bc0* p = v.first;
     Elem_004c5bc0* e = v.last;
     while (p != e) {
         p->~Elem_004c5bc0();
         p++;
     }
-    ::operator delete(v.first);
-    v.first = 0;
-    v.last = 0;
-    v.end = 0;
-    ::operator delete(this);
+    w->Free2();
+    ::operator delete(s);
 }
 
 // A TDF section: its name and the entries under it.
@@ -221,7 +240,8 @@ void __stdcall FUN_004c54f0(char* filename, char* section)
         char value[256];
         char name[256];
         if (((Class_004c2f60*)&f)->FUN_004c2f60(filename)) {
-            for (i = 0; ((Class_004c3490*)&f)->FUN_004c3490(i); i++) {
+            int idx[1];
+            for (idx[0] = 0; ((Class_004c3490*)&f)->FUN_004c3490(idx[0]); idx[0]++) {
                 f.current->FUN_004c4420(name, 0xff);
                 ((Class_004c48c0*)f.current)->FUN_004c48c0(value, DAT_0051fdc0, 0xff, DAT_005119b8);
                 if (strlen(value) != 0) {

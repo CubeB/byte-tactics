@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free. Names are provisional.
+// GAVE UP: 67.7% match. Register allocation and stack layout differences.
 // Builds a word-wrapped copy of `text` in a buffer allocated from the pool:
 // the number of characters per line is width / (width of one digit), and a
 // line is broken at a space or '-' when a word would exceed `width` pixels.

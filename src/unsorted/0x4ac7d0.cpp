@@ -1,20 +1,13 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free. Names are provisional.
 // Copies a 256-entry palette into the object and then builds a 256-byte remap
 // table: for each colour of the copied palette, the index of the closest
 // colour (sum of absolute RGB differences) in the source palette.
 //
-// Partial (94.7%). Everything matches except the spill slots of the three
-// hoisted palette bytes at the top of the outer loop. The original puts the
-// p->b value in [esp+0x10], p->r in [esp+0x14] and p->g in [esp+0x18] and
-// evaluates the terms in that order (b, r, g). MSVC 5 puts p->r in [esp+0x10],
-// p->b in [esp+0x14], p->g in [esp+0x18] and evaluates r, b, g instead. Naming
-// the values as locals only moves the problem: with `int b` and `int r` locals
-// the slots come out right but the two loads/stores of g and r are emitted in
-// the opposite order. Expression order, parenthesisation, casts, byte pointers,
-// inlined helpers and index loops were all tried and do not change it.
+// The ddraw.h include is needed to match the original register allocation.
 
 #include <string.h>
 #include <stdlib.h>
+#include <ddraw.h>
 
 struct PalEntry_004ac7d0 {
     unsigned char r;
@@ -43,7 +36,7 @@ void __stdcall FUN_004ac7d0(Palette_004ac7d0* pal, PalEntry_004ac7d0* src, PalEn
         PalEntry_004ac7d0* q = src;
         int bestIndex;
         for (; i < 256; i++, q++) {
-            int d = abs(p->b - q->b) + abs(p->g - q->g) + abs(p->r - q->r);
+            int d = abs(p->r - q->r) + abs(p->b - q->b) + abs(p->g - q->g);
             if (d < best) {
                 best = d;
                 bestIndex = i;

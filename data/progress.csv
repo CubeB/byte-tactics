@@ -1053,6 +1053,7 @@ address,size,file,symbol,status,similarity
 0x4572a0,293,src/unsorted/0x4572a0.cpp,?FUN_004572a0@@YAHXZ,matched,100.0
 0x4573d0,358,src/unsorted/0x4573d0.cpp,?FUN_004573d0@@YGXPAUPlayer_004573d0@@0E@Z,matched,100.0
 0x457540,451,src/unsorted/0x457540.cpp,?FUN_00457540@@YGXPAUPacket_00457540@@PAUPlayer_00457540@@@Z,matched,100.0
+0x457710,439,src/unsorted/0x457710.cpp,?FUN_00457710@@YAHXZ,matched,100.0
 0x4578d0,18,src/unsorted/0x4578d0.cpp,?FUN_004578d0@@YGXH@Z,matched,100.0
 0x4578f0,340,src/unsorted/0x4578f0.cpp,?FUN_004578f0@@YAXXZ,matched,100.0
 0x457a50,154,src/unsorted/0x457a50.cpp,?FUN_00457a50@@YAHXZ,matched,100.0
@@ -1069,10 +1070,13 @@ address,size,file,symbol,status,similarity
 0x4581e0,289,src/unsorted/0x4581e0.cpp,?FUN_004581e0@Class_004581e0@@QAEXPAH000PAUModel_4581e0@@PAUVertex_4581e0@@@Z,matched,100.0
 0x458310,281,src/unsorted/0x458310.cpp,?FUN_00458310@Class_00458310@@QAEXPAH000PAUModel_00458310@@HHH@Z,matched,100.0
 0x458430,159,src/unsorted/0x458430.cpp,?FUN_00458430@Class_00458430@@QAEXHPAUList_00458430@@UVec3@@H@Z,matched,100.0
+0x4584d0,461,src/unsorted/0x4584d0.cpp,?FUN_004584d0@Render_4584d0@@QAEXPAUModel_4584d0@@PAUVec3_4584d0@@PAXPAUPieceInfo_4584d0@@PAUVertex_4584d0@@IH@Z,partial,26.2
 0x4586a0,267,src/unsorted/0x4586a0.cpp,?FUN_004586a0@Class_004581e0@@QAEHPAUList_004586a0@@HH@Z,matched,100.0
 0x4587b0,85,src/unsorted/0x4587b0.cpp,?FUN_004587b0@@YGXPAUBitmap_004587b0@@0@Z,matched,100.0
+0x458810,427,src/unsorted/0x458810.cpp,?FUN_00458810@Class_004581e0@@QAEXPAUList_458810@@PAUVec3_458810@@@Z,partial,54.0
 0x458d20,14,src/unsorted/0x458d20.cpp,?FUN_00458d20@@YGXHPAUCount_00458d20@@H@Z,matched,100.0
 0x458d30,149,src/unsorted/0x458d30.cpp,?FUN_00458d30@Class_00458d30@@QAEXPAUImage_458d30@@EHHH@Z,matched,100.0
+0x458dd0,449,src/unsorted/0x458dd0.cpp,?FUN_00458dd0@Class_00458d30@@QAEHPAUImage_458dd0@@PAUModel_458dd0@@@Z,partial,88.9
 0x458fa0,455,src/unsorted/0x458fa0.cpp,?FUN_00458fa0@Class_00458fa0@@QAEXPAUView_0045a610@@PAUModel_00458fa0@@H@Z,partial,78.2
 0x459170,144,src/unsorted/0x459170.cpp,?FUN_00459170@Class_00459170@@QAEXPAUImage_00459170@@@Z,matched,100.0
 0x4597f0,61,src/unsorted/0x4597f0.cpp,?FUN_004597f0@@YGXHHH@Z,matched,100.0

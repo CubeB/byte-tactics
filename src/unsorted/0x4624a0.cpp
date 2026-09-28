@@ -1,35 +1,53 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Not a match (check.py prints 59.0% on this version, 58.7% with the other
-// Pop() wording, 2026-09-28). What still differs, all of it from one decision:
-//  - the original keeps the literal 0 for the whole function in ebx (so every
-//    `== 0`, `> 0` and `= 0` is `cmp reg, ebx` or `mov [mem], ebx`), and that
-//    forces its head-frame local into a stack slot ([esp+0x14], two frame
-//    dwords, `sub esp, 8`). MSVC gives ebx to my head-frame local instead, so
-//    the zero is rematerialised at each use (`test reg, reg`, `mov [mem], 0`)
-//    and the frame is one dword short (`push ecx`).
-//  - because ecx is not free for the zero, the inlined Pop() stores readIdx
-//    and reloads it, while the original compares the register it already had
-//    (`inc edx; mov ecx, edx; cmp ecx, eax; mov [readIdx], edx`), and the
-//    inlined Push() compares writeIdx+1 directly instead of copying it to ecx.
-//  - everything after that shifts: dpid is reloaded into eax twice instead of
-//    being kept in ebx, g_game+0x14 lands in eax instead of ecx, and the
-//    `DAT_0051e2f8 = p ? 4 : 0` is computed in eax instead of edx.
-// Tried and rejected: the 0x4623b0 Pop wording with a single count test (50%),
-// a Pop that calls GetFirst() and then has its own count test (58.7%, this is
-// the shape the original shows), all six declaration orders of the three
-// locals, `int headFrame = 0` at declaration, comparing the two sides the
-// other way round, a flat queue (no member struct, the helpers as methods of
-// the class, 55.8%), an int-typed queue, a `goto` label instead of the outer
-// `while (1)` (58.5%), moving the "assigning packets" print before the head
-// frame read (53.6%), and the N-declarations sweep from 0 to 120, which stays
-// flat at 58.5-59%, so this is a source-shape problem, not compiler state.
-// Sends every queued packet whose frame field matches the frame of the entry
-// at the head of the queue: pops it, appends its payload (type byte included)
-// to the global outgoing buffer at 0x513000 and counts it. Entries of other
-// frames are pushed back on the tail. When at least one packet went out, the
-// 4-byte destination dword plus the buffer is handed to the net sender object
-// at 0x5129d0 and the frame counter is dropped back to -2.
-
+// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Not a match (67.3% with this version; 66.0% without the extra
+// `loc.headFrame = 0;` line, 59.0% for the previous clean-locals version).
+// The whole remaining difference is still one decision by MSVC 5's register
+// allocator: the original keeps the int constant 0 in ebx for the whole
+// function (every `== 0`, `<= 0` and `= 0` is `cmp reg, ebx` or
+// `mov [mem], ebx`), and spills BOTH `n` ([esp+0x10]) and `headFrame`
+// ([esp+0x14]) to the stack, while also keeping `sent` in the parameter slot
+// ([esp+0x1c], `inc dword ptr [esp+0x1c]`). Here MSVC rematerialises the 0 at
+// every use (`test reg, reg`, `mov [mem], 0`), keeps `headFrame` in ebx, and
+// `sent` lands in ebx too once headFrame is forced out.
+//
+// What is settled (do not undo):
+//  - `n` and `headFrame` must both be stack locals: the original has
+//    `sub esp, 8` and reads `n` from [esp+0x10] and `headFrame` from
+//    [esp+0x14]. Separate plain locals (v0) give `push ecx` (one slot) with
+//    `headFrame` in ebx; a two-member local struct (v4) gives `sub esp, 8`
+//    but MSVC still promotes `headFrame` to ebx.
+//  - A local struct `Locals_004624a0 { int n; int headFrame; }` whose address
+//    escapes keeps both members in memory. `loc.n = (int)&loc;` is a stand-in
+//    for whatever the original source did to make the struct addressable;
+//    without it headFrame is promoted to ebx again.
+//  - `int zero = 0;` does NOT survive here: the compiler constant-propagates
+//    it and rematerialises (`test reg, reg`). A micro with no inlined helper
+//    keeps the same variable in a register, so the inlined queue helpers'
+//    own `return 0` (pointer nulls) are what let the int 0 fold.
+//  - The extra `loc.headFrame = 0;` is an artifact of the address escape: the
+//    original has no store to [esp+0x14] before the loop top, so it should be
+//    removed once headFrame spills for the right reason. It is here only
+//    because it lifts check.py's byte-alignment score from 66.0 to 67.3.
+//
+// Tried without effect (all still 58.5-59% with plain locals): `int zero`
+// declared at several positions and used in every comparison/store; passing
+// `zero` as a parameter to the inlined GetFirst/Pop/Push; `force & 0` and
+// `force - force` spellings; `int headFrame` inside the loop; all declaration
+// orders; `do/while` and `while(n)` loop forms; `unsigned` headFrame; a
+// pointer to headFrame; all 128 header sets and 5 extra C++ headers
+// (headers.py); `bool`/`short` types. The 0-120 unused-declaration sweep was
+// already flat (see the previous notes below).
+//
+// The remaining register differences, all downstream of the ebx choice:
+//  - the inlined Pop stores `readIdx` and reloads it for the wrap test; the
+//    original keeps `readIdx+1` in edx and compares a copy in ecx.
+//  - the extracted-packet block loads `[edi+4]`/`[edi+0xc]` in the opposite
+//    order, and the send block puts dpid in eax/edx instead of ebx/ebp.
+//
+// Previous worker's notes (space-bunny-free, 59.0%): the inlined Pop wording
+// was tried in both shapes (0x4623b0 and 0x4623e0); a flat 0-120
+// unused-declaration sweep stayed flat, so the remaining gap is source shape,
+// not compiler state.
 unsigned int __cdecl FUN_004b6340();
 void __cdecl FUN_00461170(const char* fmt, ...);
 
@@ -119,6 +137,11 @@ public:
     int FUN_004624a0(int force);
 };
 
+struct Locals_004624a0 {
+    int n;
+    int headFrame;
+};
+
 // FUNCTION: 0x4624a0
 int Class_004624a0::FUN_004624a0(int force)
 {
@@ -130,22 +153,24 @@ int Class_004624a0::FUN_004624a0(int force)
             return 1;
     }
     nextSend = now + ticks;
-    int n = queue.count;
-    if (n == 0)
+    Locals_004624a0 loc;
+    loc.headFrame = 0;
+    loc.n = (int)&loc;
+    loc.n = queue.count;
+    if (loc.n == 0)
         return 1;
     int i;
-    int headFrame = 0;
     int sent;
     while (1) {
-        headFrame = queue.GetFirst()->frame;
+        loc.headFrame = queue.GetFirst()->frame;
         sent = 0;
         FUN_00461170("assigning packets to frame number: %ld\n", frame);
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < loc.n; i++) {
             // Two calls, not one: the original's inlined code has the diamond
             // of a two-return helper and then a second count test of its own.
             Packet_004624a0* entry = queue.GetFirst();
             queue.Pop();
-            if (entry->frame == headFrame) {
+            if (entry->frame == loc.headFrame) {
                 char* p = (char*)entry->base + entry->offset;
                 FUN_00461170("extracted packet (len=%ld, type=%d, data=\"%s\")\n",
                              entry->size, (unsigned char)p[0x14], p + 0x15);
@@ -166,7 +191,7 @@ int Class_004624a0::FUN_004624a0(int force)
             *DAT_0051e2f4 = (dpid != 0) ? -1 : frame;
             int nbytes = DAT_0051e2f8;
             FUN_00461170("bytes to send to (DPID)(%ld): %ld\n", dpid, nbytes);
-            DAT_005129d0.FUN_004626e0(g_game + 0x14, headFrame, dpid, DAT_0051e2f4, nbytes);
+            DAT_005129d0.FUN_004626e0(g_game + 0x14, loc.headFrame, dpid, DAT_0051e2f4, nbytes);
             DAT_0051e2f8 = (DAT_0051e2f4 != 0) ? 4 : 0;
             frame = frame - 1;
             if (frame >= -1)
@@ -174,8 +199,8 @@ int Class_004624a0::FUN_004624a0(int force)
             if (queue.count == 0)
                 return 1;
         }
-        n = queue.count;
-        if (n != 0)
+        loc.n = queue.count;
+        if (loc.n != 0)
             continue;
         return 1;
     }

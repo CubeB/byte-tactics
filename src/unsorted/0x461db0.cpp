@@ -1,16 +1,17 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Partial (94.8%, 465 of 468 bytes). Everything matches except the final
-// countdown loop, where the original re-reads field_38 at the top of the loop
-// (`mov eax,[ebx+0x38]; cmp eax,ebp; jle latch` at 0x461f43) and compares the
-// field in memory in the latch (`cmp dword ptr [ebx+0x38],ebp; jne` at
-// 0x461f61), while this version keeps the loop's test value in a register
-// across the back edge. The original is a do/while (that alone gives the
-// memory-operand latch, see build/scratch notes) behind an entry test that
-// MSVC 5 here always folds into the loop, which rotates it back to this form.
-// A plain do/while (no guard), a guarded do/while, a guarded while, a goto
-// loop, an inline helper for the condition, and a local copy of field_38 for
-// the guard were all tried; only the unguarded do/while keeps the latch and it
-// loses the entry test, so the loop stayed a while. 3 bytes out of 468.
+// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Matches (468 of 468 bytes). The previous attempt (space-bunny-free) had the
+// whole function right except the final countdown loop: the original re-reads
+// field_38 at the top of the loop (`mov eax,[ebx+0x38]; cmp eax,ebp; jle
+// latch` at 0x461f43) and compares the field in memory at the latch
+// (`cmp dword ptr [ebx+0x38],ebp; jne` at 0x461f61), while a plain
+// `while (field_38 != 0) { if (field_38 > 0) ... }` keeps the loop's test
+// value in a register across the back edge.
+// The fix is to split the loop's condition from the entry guard: the guard
+// tests field_38 directly, so its value is loaded into eax, while the do/while
+// condition goes through a local `int* p = &field_38`, so MSVC compares it in
+// memory at the latch. The body then reloads field_38 at the top. Folding the
+// guard and the loop into one `while` lets MSVC share the load and lose the
+// 3 bytes.
 //
 // The three failure exits all jump to one shared epilogue at 0x461f78 in the
 // original, which needs a single `return 0` in the source, hence `goto fail`.
@@ -86,6 +87,7 @@ int Class_00462470::FUN_00461db0(int a1, unsigned int a2, int a3, int a4)
     unsigned int i;
     unsigned int j;
     int k;
+    int* p;
     field_14 = a1;
     field_4 = (a2 * 30 + 999) / 1000;
     if (entries == 0) {
@@ -158,16 +160,18 @@ int Class_00462470::FUN_00461db0(int a1, unsigned int a2, int a3, int a4)
     field_1c = -1;
     field_30 = 0;
     field_34 = 0;
-    // See the note at the top: the original reloads field_38 at the top of
-    // this loop, this spelling keeps the value in a register across the back
-    // edge (3 bytes out).
-    while (field_38 != 0) {
-        if (field_38 > 0) {
-            field_38--;
-            field_3c++;
-            if (field_3c >= 0x400)
-                field_3c = 0;
-        }
+    // p keeps the latch's test a memory operand, so the body's own test at
+    // the top of the loop reloads field_38 (0x461f43).
+    p = &field_38;
+    if (field_38 != 0) {
+        do {
+            if (field_38 > 0) {
+                field_38--;
+                field_3c++;
+                if (field_3c >= 0x400)
+                    field_3c = 0;
+            }
+        } while (*p != 0);
     }
     field_20 = 0;
     return 1;

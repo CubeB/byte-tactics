@@ -1,10 +1,31 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (38.5%), best found. The structure, every field offset and every
-// callee argument match, but the original keeps the rect zero in ebx and `x`
-// in ebp (so it pushes ebp and every later stack offset is 4 higher), while
-// this source folds the zeros to immediates, drops ebp, and assigns the remap
-// loop's cmap/idx/out to edi/ebx/ecx instead of ecx/edi/edx; the first surface
-// store is also hoisted differently.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL (83.5%). The frame, every field offset, every callee argument and
+// the whole remap loop now match: the loop counter lives in a register of its
+// own (that is what makes MSVC keep the rect zero in ebx and x in ebp, so the
+// prologue pushes ebp and every stack offset lines up).
+//
+// Still different, all of it instruction order inside blocks that hold the
+// right instructions:
+//  - both field swaps. The original emits the two loads and the two stores as
+//    one adjacent group (field_14 first, then field_10 into eax, store
+//    [0x10] then [0x14]). Every source spelling of the swap tried here
+//    (t = a; a = b; b = t, the reverse, two temps, a static inline helper, a
+//    pointer-to-pair local) makes MSVC sink the second store below the
+//    zero-extension of the width load. Going through a `unsigned char** p`
+//    local over the two buffers at least keeps the loads adjacent.
+//  - because that store is sunk, the second swap's value survives in edx, so
+//    the remap loop reuses it (`mov ecx, edx`) where the original reloads
+//    field_14, and the surface's bits field is filled from ecx where the
+//    original reloads field_10.
+//  - the surface block: the original loads height before width, loads x0
+//    before the first store (which frees ecx), stores height after bits and
+//    stores 10000 before the flags. MSVC's own order ignores the order of the
+//    assignments, only the position of the `bits` assignment changes it.
+//  - `cmap[c]` compiles to `mov bl, [ebx+ecx]` here and `mov bl, [ecx+ebx]` in
+//    the original (same registers, swapped base and index).
+//  - both `width * height` products put height in the accumulator register
+//    here and width in the original. No source spelling of the product
+//    (operand order, casts, locals, indexing, unsigned) changes that.
 //
 // Draws a sprite with a colour-remap effect: the destination surface is
 // blitted into the sprite's scratch buffer, then the sprite's index table is
@@ -21,8 +42,7 @@ struct Sprite_4b9360 {
     unsigned char frames;        // +0xa
     unsigned char field_b;       // +0xb
     char unknown_c[4];           // +0xc
-    unsigned char* field_10;     // +0x10
-    unsigned char* field_14;     // +0x14
+    unsigned char* buffers[2];   // +0x10, the two interchangeable scratch buffers
 };
 
 struct Surface_4b9360 {
@@ -35,8 +55,8 @@ struct Surface_4b9360 {
     unsigned short x;            // +0x18
     unsigned short y;            // +0x1a
     char unknown_1c[0x10];       // +0x1c
-    unsigned char flag0 : 1;     // +0x2c
-    unsigned char flag1 : 1;
+    unsigned int flag0 : 1;      // +0x2c
+    unsigned int flag1 : 1;
 };
 
 struct Rect_4b9360 {
@@ -50,26 +70,19 @@ void __stdcall FUN_004c69c0(Surface_4b9360* surface);
 void __stdcall FUN_004c6d20(void* dst, void* src, Rect_4b9360* rect, Rect_4b9360* pos);
 void __stdcall FUN_004b7f90(void* dst, Sprite_4b9360* sprite, int x, int y);
 
-// Match notes: structure and every field offset agree, but MSVC 5 allocates
-// registers differently here. The original keeps the zero for srcRect.left/top
-// in ebx (xor ebx,ebx) and x in ebp, so it pushes ebp and all its stack
-// offsets are 4 higher than ours; our build folds the zero to immediate stores
-// and puts the x - sprite->x temp in ebx instead, so ebp is never needed. The
-// two field swaps and the remap loop then pick different registers
-// (we get cmap/idx/out = edi/ebx/ecx, the original ecx/edi/edx) and the first
-// surface store (field_10 = 10000) is hoisted above the swap in our build.
 // FUNCTION: 0x4b9360
 void __stdcall FUN_004b9360(void* dst, Sprite_4b9360* sprite, int x, int y)
 {
-    unsigned char* t = sprite->field_10;
-    sprite->field_10 = sprite->field_14;
-    sprite->field_14 = t;
+    unsigned char** p = sprite->buffers;
+    unsigned char* t = p[0];
+    p[0] = p[1];
+    p[1] = t;
 
     Surface_4b9360 surface;
     surface.width = sprite->width;
-    surface.height = sprite->height;
     surface.pitch = sprite->width;
-    surface.bits = (int)sprite->field_10;
+    surface.height = sprite->height;
+    surface.bits = (int)sprite->buffers[0];
     surface.field_10 = 10000;
     surface.field_14 = -1;
     surface.x = sprite->x;
@@ -92,15 +105,16 @@ void __stdcall FUN_004b9360(void* dst, Sprite_4b9360* sprite, int x, int y)
 
     FUN_004c6d20(&surface, dst, &dstRect, &srcRect);
 
-    t = sprite->field_10;
-    sprite->field_10 = sprite->field_14;
-    sprite->field_14 = t;
+    t = p[0];
+    p[0] = p[1];
+    p[1] = t;
 
     int n = sprite->width * sprite->height;
-    unsigned char* cmap = sprite->field_14;
-    unsigned short* idx = (unsigned short*)sprite->field_10;
+    unsigned char* cmap = sprite->buffers[1];
+    unsigned short* idx = (unsigned short*)sprite->buffers[0];
     unsigned char* out = cmap + n;
-    while (n != 0) {
+    int i = n;
+    while (i != 0) {
         short c = *idx;
         unsigned char v;
         if (c != 32000)
@@ -111,12 +125,12 @@ void __stdcall FUN_004b9360(void* dst, Sprite_4b9360* sprite, int x, int y)
         out++;
         cmap++;
         idx++;
-        n--;
+        i--;
     }
 
     int m = sprite->width * sprite->height;
-    int saved = (int)sprite->field_10;
-    sprite->field_10 = sprite->field_14 + m;
+    int saved = (int)sprite->buffers[0];
+    sprite->buffers[0] = sprite->buffers[1] + m;
     FUN_004b7f90(dst, sprite, x, y);
-    sprite->field_10 = (unsigned char*)saved;
+    sprite->buffers[0] = (unsigned char*)saved;
 }

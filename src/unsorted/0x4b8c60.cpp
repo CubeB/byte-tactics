@@ -1,11 +1,16 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// TODO: 96.2%. Everything matches except the q = base + offset computation in
-// the middle loop: the original emits
-//     mov eax,[ebp]; mov ecx,edi; add ecx,eax; mov [ebp],ecx
-// while this source makes MSVC 5 emit
-//     mov eax,[ebp]; add eax,edi; mov ecx,eax; mov [ebp],eax
-// (same 4 instructions, the result register is reused instead of copied).
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 void* __stdcall FUN_004bbe50(char* name, int flags);
+
+// A block of the root object: a count, a sub-count, then a run of 8-byte
+// entries whose first int is an offset that is rebased in place.
+struct Entry { int off; int pad; };
+struct Blk {
+    unsigned short count;
+    unsigned char pad1[8];
+    unsigned char subcount;
+    unsigned char pad2[29];
+    Entry e[2];
+};
 
 // FUNCTION: 0x4b8c60
 void* __stdcall FUN_004b8c60(char* name)
@@ -15,14 +20,13 @@ void* __stdcall FUN_004b8c60(char* name)
         return 0;
 
     for (int i = 0; i < (short)base[1]; i++) {
-        unsigned short* p = (unsigned short*)((char*)base + base[3 + i]);
+        Blk* p = (Blk*)((char*)base + base[3 + i]);
         base[3 + i] = (int)p;
         int j = 0;
-        if (*p > 0) {
-            int* field = (int*)((char*)p + 0x28);
+        if (p->count > 0) {
             do {
-                *field = (int)((char*)base + *field);
-                int* q = (int*)*field;
+                int* q = (int*)((char*)base + p->e[j].off);
+                p->e[j].off = (int)q;
                 q[4] = q[4] + (int)base;
                 if (((unsigned char*)q)[0xa] > 0) {
                     for (int k = 0; k < (int)((unsigned char*)q)[0xa]; k++) {
@@ -32,8 +36,7 @@ void* __stdcall FUN_004b8c60(char* name)
                     }
                 }
                 j++;
-                field += 2;
-            } while (j < (int)*p);
+            } while (j < (int)p->count);
         }
     }
     return base;

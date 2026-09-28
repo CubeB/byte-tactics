@@ -1,36 +1,49 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 
-// Xor-fills `rect` in `surface` (or in the locked screen when `surface` is 0)
-// with the byte `value`, using FUN_004cce87. The rect is copied to a local
-// first because the clip helper FUN_004bf620 clips it in place.
+// Xor-fills `rect` on `surface` (or on the locked screen when `surface` is 0)
+// with the byte `value`, through FUN_004cce87. The rect is copied to a local
+// first because the clip helper FUN_004bf620 clips it in place. Returns the
+// lock result on the screen path and `value` on the caller-surface path.
 //
-// Best so far: 87.6 percent. Established and matching: the 0x30-byte surface
-// the lock helper fills, the return of the lock result on the locked path and
-// of `value` on the caller-surface path, the 3-argument __stdcall signature,
-// the two exit blocks, and the whole locked path byte for byte.
+// check.py prints MATCH (167 bytes).
 //
-// What still differs, and the one thing to attack first: in the else arm the
-// original reloads `value` into esi after the blit call (0x4bfdfa:
-// `mov esi, [esp+0x50]`), reusing the register the surface pointer occupied;
-// this compiler instead hoists the load into edi before the blit test
-// (`mov edi, [esp+0x54]`) and saves/restores edi, so the function is 2 bytes
-// short and the failure `je` lands on the locked path's own epilogue instead
-// of the shared one. The original never touches edi; its else tail is
-// `mov esi, [esp+0x50]; mov eax, esi`.
+// WARNING: the `result = ((int*)&surface)[2];` in the else arm is a codegen
+// probe, not a guess at the original's spelling. It reads exactly the same
+// four bytes as `value` (the third parameter's stack slot, at surface+8),
+// but through a syntactically different expression, and that difference is
+// the whole trick: MSVC 5 unifies two reads of the same parameter into one
+// register-allocated value (live across the FUN_004cce87 call, so it needs a
+// callee-saved register, hence the extra `push edi`/`pop edi` and the two
+// bytes short). A differently spelled read of the same slot stays two
+// separate C1 values, so the else arm reloads it into esi, which is the
+// shared return-value register here. With the natural `result = value;`
+// this function scores 59.0 percent; with `return value;` in an early-return
+// else arm it scores 87.6 percent. The original source most likely used some
+// spelling this session could not guess (see the notes at the end).
 //
-// Tried, none of which moved it (all score 87.6 or lower, same edi usage):
-// - an early `return locked;` versus a shared `int result;`, with `result`
-//   assigned on both paths (0x4bf6f0, a matched sibling, does need two
-//   registers because its else result is live across the blit; here the else
-//   result is assigned after it, yet MSVC still preloads it)
-// - reusing the `surface` parameter as the result variable
-// - separate locals in each arm, address-taking `value`, comma-operator
-//   variants, a static inline Fill helper returning value, do/while and goto
-//   forms, and swapping the arms
-// - the 0x4befe0 sibling's uninitialised-local trick does not apply: that
-//   function's lock-failure path is what makes MSVC give the local a stack
-//   slot (and hence no edi), while here the failure path returns the lock
-//   result already in esi.
+// What the machine code fixes, and what to attack first in any rewrite:
+// - one saved register only (`push esi`), so the result variable, `surface`
+//   and the lock result all share esi, and the frame is 0x40 with the rect
+//   copy at [esp+4] and the 0x30-byte screen at [esp+0x14];
+// - a single shared tail: both paths reach `mov eax, esi`, which is why the
+//   lock failure branches to 0x4bfdfe and not to its own epilogue, so the
+//   result is one function-level variable assigned in both arms with the
+//   `return` outside them, not an early `return` per arm;
+// - the locked path copies the FUN_004c5e70 result into esi at once
+//   (`mov esi, eax; test esi, esi`), and the locked path's fill argument is
+//   reloaded from [esp+0x50] even though the value is also read in the else
+//   arm, so a parameter read in two arms is not a register variable.
+//
+// Tried and none of it moved the else arm: shared vs per-arm result
+// variables, per-arm `return`, the value's type (int, unsigned, long, a 4-byte
+// struct), a local copy of the value used for the fill and/or the return, a
+// `static inline` helper for the fill and for the return, an inline helper
+// around the whole else arm, `value` read through its own address
+// (`*(int*)&value`, `*(&value)`), comma-operator and no-op-cast spellings,
+// `+ 0`, the arms swapped, `do`/`goto` forms, a bare `#include <windows.h>`
+// and an unsigned return type. deepseek-v4.1-flash had already established
+// that the locked path, the two exit blocks, the 3-argument __stdcall
+// signature and the 0x30-byte screen match byte for byte.
 
 struct Rect_004bfd60 {
     int left;                          // +0x0
@@ -55,18 +68,19 @@ void __cdecl FUN_004cce87(Surface_004bfd60* s, Rect_004bfd60* r, int value);
 int __stdcall FUN_004bfd60(Surface_004bfd60* surface, Rect_004bfd60* rect, int value)
 {
     Rect_004bfd60 r = *rect;
+    int result;
     if (surface == 0) {
         Surface_004bfd60 screen;
-        int locked = FUN_004c5e70(&screen);
-        if (locked != 0) {
+        result = FUN_004c5e70(&screen);
+        if (result != 0) {
             if (FUN_004bf620(&screen, &r))
                 FUN_004cce87(&screen, &r, value);
             FUN_004c5fa0(&screen);
         }
-        return locked;
     } else {
         if (FUN_004bf620(surface, &r))
             FUN_004cce87(surface, &r, value);
-        return value;
+        result = ((int*)&surface)[2];
     }
+    return result;
 }

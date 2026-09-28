@@ -1,27 +1,20 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 
 // Clears a dither pattern inside the clipped rectangle `rect` of `surface`, or
 // of the screen (locked with FUN_004c5e70 and unlocked with FUN_004c5fa0) when
-// `surface` is null. Rows alternate between the two byte masks (which half of
-// each dword is kept) according to the phase parity `(i + phase) & 1`, and the
+// `surface` is null. The rect is copied to a local first because the clip
+// helper FUN_004bf620 clips it in place. Rows alternate between the two byte
+// masks (which half of each dword is kept) according to the phase parity
+// `(i + phase) & 1`, the aligned middle is done a dword at a time, and the
 // unaligned byte ends are filled by stepping 2 bytes at a time. Returns 1 once
 // the pattern is laid down, 0 when the screen cannot be locked.
 //
-// 76.4 percent. The branch layout, the operand order and every instruction are
-// right, and only one thing differs: the compiler hands ebp to `x2` and edi to
-// `i` here (`lea ebp,[eax+3]` / `mov edi,eax` / `inc edi`), while ours hands
-// edi to `x2` and ebp to `i` and everything that mentions those two registers
-// follows from that swap. Runtime byte behaviour is identical.
-//
-// Tried and none of it moved the swap: every local declaration order for i/x1/
-// x2, function-scope vs for-scope i, `for`/`while`/`do`-with-guard loop forms,
-// signed vs unsigned x1/x2, a `static inline` RoundUp helper, an inlined
-// row-fill helper, inlining x1 or x2 at their uses, `(base + x2) - x1` vs
-// `base + (x2 - x1)` vs `end = pixels + row + x2`, moving the trailing bound
-// to the loop condition, and all 768 header sets tools/headers.py tries (it
-// found the <windows.h> shape below, which is what fixed the operand order).
-// Note 0x4bf4d0, the same-style sibling, is also stuck at a callee-saved
-// register swap for the same reason.
+// MATCH. The whole match hinged on giving the trailing byte fill ONE shared
+// loop after the if/else instead of spelling the loop out in both arms: with
+// two copies, `x2` and the loop counter `i` swap their callee-saved registers
+// (edi/ebp instead of ebp/edi) and the function comes out 14 bytes too long.
+// Sharing the loop between the two `pe`/`pb` assignments fixes the register
+// priority as well as the block layout.
 
 #include <windows.h>
 
@@ -65,6 +58,8 @@ int __stdcall FUN_004bff20(Surface_004bff20* surface, Rect_004bff20* rect, int p
                 *p = 0;
                 p += 2;
             }
+            unsigned char* pe;         // last byte of the trailing fill
+            unsigned char* pb;         // where that fill starts
             if ((i + phase) & 1) {
                 unsigned int* q = (unsigned int*)base;
                 unsigned int* qe = (unsigned int*)end;
@@ -72,12 +67,8 @@ int __stdcall FUN_004bff20(Surface_004bff20* surface, Rect_004bff20* rect, int p
                     *q &= 0xff00ff;
                     q++;
                 }
-                p = (unsigned char*)q + 1;
-                unsigned char* pe = end + r.right - x2;
-                while (p <= pe) {
-                    *p = 0;
-                    p += 2;
-                }
+                pe = (unsigned char*)q + r.right - x2;
+                pb = (unsigned char*)q + 1;
             } else {
                 unsigned int* q = (unsigned int*)base;
                 unsigned int* qe = (unsigned int*)end;
@@ -85,12 +76,12 @@ int __stdcall FUN_004bff20(Surface_004bff20* surface, Rect_004bff20* rect, int p
                     *q &= 0xff00ff00;
                     q++;
                 }
-                p = (unsigned char*)q;
-                unsigned char* pe = end + r.right - x2;
-                while (p <= pe) {
-                    *p = 0;
-                    p += 2;
-                }
+                pe = (unsigned char*)q + r.right - x2;
+                pb = (unsigned char*)q;
+            }
+            while (pb <= pe) {
+                *pb = 0;
+                pb += 2;
             }
         }
     }

@@ -2194,6 +2194,7 @@ address,size,file,symbol,status,similarity
 0x4aedd0,259,src/unsorted/0x4aedd0.cpp,?FUN_004aedd0@@YGXPAUObject_004aedd0@@PADH@Z,matched,100.0
 0x4aeee0,150,src/unsorted/0x4aeee0.cpp,?FUN_004aeee0@@YGXPAUObject_004aeee0@@PAD@Z,matched,100.0
 0x4aef80,32,src/unsorted/0x4aef80.cpp,?FUN_004aef80@@YGXPAUObj_004aef80@@@Z,matched,100.0
+0x4af320,642,src/unsorted/0x4af320.cpp,?FUN_004af320@@YGXPAD00HHH@Z,partial,90.8
 0x4af5b0,192,src/unsorted/0x4af5b0.cpp,?FUN_004af5b0@@YGXPAUClass_004af5b0@@@Z,matched,100.0
 0x4afa30,552,src/unsorted/0x4afa30.cpp,?FUN_004afa30@Class_004afa30@@QAEPAUClass_004af5b0@@PAD00H@Z,partial,80.3
 0x4afc60,135,src/unsorted/0x4afc60.cpp,?FUN_004afc60@@YGXPAUClass_004afc60@@H@Z,matched,100.0

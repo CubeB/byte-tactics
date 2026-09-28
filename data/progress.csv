@@ -2329,6 +2329,7 @@ address,size,file,symbol,status,similarity
 0x4bb200,88,src/unsorted/0x4bb200.cpp,?FUN_004bb200@@YGKDPADK@Z,matched,100.0
 0x4bb260,94,src/unsorted/0x4bb260.cpp,?FUN_004bb260@@YGKD@Z,matched,100.0
 0x4bb2c0,18,src/unsorted/0x4bb2c0.cpp,?FUN_004bb2c0@@YGXPAX@Z,matched,100.0
+0x4bb2e0,506,src/unsorted/0x4bb2e0.cpp,?FUN_004bb2e0@@YGPAUFile_004bb2e0@@PADPBD@Z,matched,100.0
 0x4bb5b0,18,src/unsorted/0x4bb5b0.cpp,?FUN_004bb5b0@@YGXPAX@Z,matched,100.0
 0x4bb5d0,124,src/unsorted/0x4bb5d0.cpp,?FUN_004bb5d0@@YGHPAUFile_004bb5d0@@@Z,matched,100.0
 0x4bb650,17,src/unsorted/0x4bb650.cpp,?FUN_004bb650@@YG_NPAUClass_004bb650@@@Z,matched,100.0

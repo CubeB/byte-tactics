@@ -1,7 +1,33 @@
-// Decompiled by mimo-v2.6-pro. Names are provisional.
+// Decompiled by mimo-v2.6-pro and GPT-5.6-Terra, measurement notes by
+// space-bunny-free. Names are provisional.
 // Opens the "SAVELIST.GUI" save dialog: copies each save name into the
 // description buffer with its extension stripped, fills the "GAMES" list,
 // wires up the list callbacks and shows the current game's name.
+//
+// Not finished: 635 of 635 bytes, 200 of 200 instructions, one fault left. In
+// the loop head the original keeps the three independent statements in source
+// order, ours schedules the count load first:
+//   original  mov ebx,[0x5129b0] / xor ebp,ebp / mov eax,[esp+0x10] / test
+//   ours      mov eax,[esp+0x10] / mov ebx,[0x5129b0] / xor ebp,ebp / test
+// A scheduler tie inside that one basic block, nothing else differs.
+// Measured negative (all 200 instructions, same 3 wrong, same size):
+//   * loop shape: `for` with and without an init, `while`, `if` + `do/while`,
+//     `for(;;)` with the test as a `break`, `if` + `for(;;)` + `break`,
+//     the loop test in a `static int NotDone(int,int)` helper;
+//   * `static char*& GetSaveDescriptions()` instead of `static char*`;
+//   * reading the count through an inlined helper in the guard, or in the
+//     loop condition, or through a second global-reading helper;
+//   * the zero of the counter through an inlined helper;
+//   * source order of the two loop-variable statements: the ptr load is
+//     emitted before the `xor` either way, so this is not source order;
+//   * headers: none, <stdlib.h>+<math.h>+<memory.h>, <windows.h>+<memory.h>,
+//     <windows.h>, <windows.h>+<stdio.h>+<math.h>,
+//     <stdlib.h>+<stdio.h>+<string.h>+<math.h> (6 sets, all with <string.h>):;
+//   * 21 unused `extern int` declarations in front, N = 0 to 640 in steps of
+//     32: the 0x4399f0 calibration does not reach this function.
+// The counter declared inside the `if` (0x470c10's shape) moves the `xor`
+// past the guard, which is worse. A free whole-function instruction differ
+// (build/scratch/0x44b990/d2.py) is what produced these numbers.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -61,6 +87,11 @@ void FUN_00428b60();
 void __stdcall FUN_0049fa50(Menu_0044b990* menu);
 void __stdcall FUN_004a81e0(Menu_0044b990* menu, int value);
 
+static char* GetSaveDescriptions()
+{
+    return DAT_005129b0;
+}
+
 // FUNCTION: 0x44b990
 void FUN_0044b990()
 {
@@ -72,8 +103,9 @@ void FUN_0044b990()
     FUN_004bcf00(DAT_005091c8);
     FUN_0044b4e0(&count);
     FUN_004a0bf0(&g_game->menu, "TITLE", "Save Game", 0);
-    char* ptr = DAT_005129b0;
-    for (int i = 0; i < count; i++) {
+    char* ptr = GetSaveDescriptions();
+    int i = 0;
+    for (; i < count; i++) {
         strcpy(ptr, FUN_004b6af0(DAT_005129ac, i));
         ptr += strlen(FUN_004b6af0(DAT_005129ac, i));
         while (*ptr != '.')

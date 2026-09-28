@@ -1,0 +1,240 @@
+// Decompiled by space-bunny-free. Names are provisional.
+//
+// 74.6 %. Everything matches except ONE thing: MSVC 5 rotates this loop, the
+// original does not.
+//
+// Original (test at the top of the loop, one shared latch at 0x4aed26):
+//   0x4aeb10  mov [esp+0x1c], esi     ; i = 0
+//   0x4aeb14  lea ebp, [eax+0xd6]    ; induction variable = obj + 0xd6
+//   0x4aeb1a  lea ecx, [esp+0x10]    ; LOOP HEAD
+//   0x4aeb1e  call 0x4c3e10
+//   0x4aeb23  push esi
+//   0x4aeb24  lea ecx, [esp+0x14]
+//   0x4aeb28  call 0x4c3490
+//   0x4aeb2d  test eax, eax
+//   0x4aeb2f  je 0x4aed3c
+//   ... body, every case "jmp 0x4aed26" ...
+//   0x4aed26  mov esi, [esp+0x1c]
+//   0x4aed2a  add ebp, 0x15b
+//   0x4aed30  inc esi
+//   0x4aed31  xor ebx, ebx
+//   0x4aed33  mov [esp+0x1c], esi
+//   0x4aed37  jmp 0x4aeb1a
+//
+// Here MSVC duplicates the guard into the latch and leaves a copy in the
+// preheader, which pushes the "lea ebp,[eax+0xd6]" AFTER the guard (the two
+// calls clobber eax). What is needed is a source shape MSVC will not rotate.
+//
+// Tried, all still rotated: for(;;) with break; for with the guard as a comma
+// expression; while(1); while with the guard; unsigned index; i = 0 before the
+// if; the element pointer at function scope or walking with e++; a named
+// `def = 0` default; def reset in the for-increment; do{}while(0) and
+// while(1){break;} wrappers; goto out of the loop.
+//
+// The two shapes that DO keep the test at the top both duplicate the latch into
+// every switch case (+29 bytes), so they are worse:
+//   i = 0; while (1) { reset; if (!find(i)) break; <body> i++; }
+//   i = 0; while (1) { reset; if (!find(i)) goto done; <body> i++; goto lbl; }
+// Scratch copies: build/scratch/0x4aeac0/v/w4.cpp, vK.cpp, x3.cpp.
+//
+// Everything else in the function is byte-identical: the 0x114 frame and its
+// local order (parser 0x8, i 0x14, ret 0x18, path[256] 0x1c), the induction
+// variable folded to obj+0xd6 with stride 0x15b (so Elem_004aeac0 is 0x15b
+// bytes under #pragma pack(1)), `lea esi,[ebp-0xd6]` for the element pointer,
+// ebx holding the literal 0 that MSVC hoisted as the "default" argument and as
+// the field_ce/field_d6/field_144 stores, the 11-entry jump table on
+// e->type (case 9 empty, default -> latch), the maxchars clamp, the tail merge
+// of the "text" read that cases 3 and 4 share, the inlined strcpy, and the
+// exit's (short)(i-1) store to obj+0xb6.
+//
+// Case 6 is one register off from the original: the original gets ecx
+// (`mov ecx,[ebp-0xe]; xor eax,ecx; and eax,1; xor eax,ecx; mov [ebp-0xe],eax`),
+// the two spellings tried here give edx or esi for the old value. All three
+// are the same size, so it does not change the score.
+#include <string.h>
+
+class Class_004c46c0 {
+public:
+    int FUN_004c46c0(const char* name, int def);
+};
+
+class Class_004c48c0 {
+public:
+    int FUN_004c48c0(char* dst, char* key, size_t size, char* def);
+};
+
+class Class_004c2f60 {
+public:
+    int FUN_004c2f60(char* file);
+};
+
+class Class_004c3e10 {
+public:
+    void FUN_004c3e10();
+};
+
+class Class_004c3e20 {
+public:
+    void* FUN_004c3e20();
+};
+
+class Class_004c3e30 {
+public:
+    void FUN_004c3e30(void* p);
+};
+
+class Class_004c3240 {
+public:
+    void FUN_004c3240();
+};
+
+class Class_004c3490 {
+public:
+    int FUN_004c3490(int index);
+};
+
+class Class_004c2ea0 {
+public:
+    void* field_0;
+    Class_004c46c0* current;            // +0x4
+    void* field_8;
+    Class_004c2ea0();
+    ~Class_004c2ea0();
+};
+
+extern char DAT_005119b8[];
+
+char* __stdcall FUN_004baff0(char* name, char* out, const char* ext);
+char* __stdcall FUN_004c5740(char* text);
+
+#pragma pack(push, 1)
+struct Sub2_004aeac0 {
+    char pad0[0xce - 0xb6];
+    int field_ce;                      // +0xce
+    char pad1[0xd6 - 0xce - 4];
+    int field_d6;                      // +0xd6
+    short itemheight;                  // +0xda
+    char pad2[0x136 - 0xdc];
+};
+
+struct Sub6_004aeac0 {
+    char pad0[0xc8 - 0xb6];
+    unsigned int hotornot;             // +0xc8
+    char pad1[0x136 - 0xcc];
+};
+
+union Body_004aeac0 {
+    char text[0x80];                   // +0xb6
+    int nuttin;                        // +0xb6
+    short total;                       // +0xb6
+    Sub2_004aeac0 s2;
+    Sub6_004aeac0 s6;
+};
+
+struct Sub34_004aeac0 {
+    short range;                       // +0x136
+    short maxchars;                    // +0x138
+    char pad0[0x13c - 0x13a];
+    int thick;                         // +0x13c
+    short knobpos;                     // +0x140
+    short knobsize;                    // +0x142
+    int field_144;                     // +0x144
+    char pad1[0x15b - 0x148];
+};
+
+struct Sub5_004aeac0 {
+    char link[0x11];                   // +0x136
+    char field_147;                    // +0x147
+    char pad0[0x15b - 0x148];
+};
+
+union Tail_004aeac0 {
+    Sub34_004aeac0 s34;
+    Sub5_004aeac0 s5;
+};
+
+struct Elem_004aeac0 {
+    unsigned char type;                // +0x000
+    char pad0[0xb6 - 0x001];
+    Body_004aeac0 body;                // +0xb6
+    Tail_004aeac0 tail;                // +0x136
+};
+#pragma pack(pop)
+
+void __stdcall FUN_004ad350(Elem_004aeac0* obj, Class_004c2ea0* tree);
+void __stdcall FUN_004ad890(Elem_004aeac0* obj, Class_004c2ea0* tree);
+void __stdcall FUN_004adc70(Elem_004aeac0* obj, Class_004c2ea0* tree);
+
+// FUNCTION: 0x4aeac0
+int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
+{
+    Class_004c2ea0 parser;
+    int i;
+    int ret = 0;
+    char path[256];
+    FUN_004baff0(name, path, "GUI");
+    if (((Class_004c2f60*)&parser)->FUN_004c2f60(path) == 1) {
+        ret = 1;
+        for (i = 0; ((Class_004c3e10*)&parser)->FUN_004c3e10(),
+                    ((Class_004c3490*)&parser)->FUN_004c3490(i); i++) {
+            void* cur = ((Class_004c3e20*)&parser)->FUN_004c3e20();
+            Elem_004aeac0* e = obj + i;
+            FUN_004ad350(e, &parser);
+            ((Class_004c3e30*)&parser)->FUN_004c3e30(cur);
+            switch (e->type) {
+            case 0:
+                FUN_004ad890(e, &parser);
+                break;
+            case 1:
+                FUN_004adc70(e, &parser);
+                break;
+            case 2:
+                e->body.s2.field_ce = 0;
+                e->body.s2.field_d6 = 0;
+                e->body.s2.itemheight = (short)parser.current->FUN_004c46c0("itemheight", 0);
+                break;
+            case 3:
+                e->tail.s34.maxchars = (short)parser.current->FUN_004c46c0("maxchars", 0);
+                if (e->tail.s34.maxchars > 0x80)
+                    e->tail.s34.maxchars = 0x80;
+                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "text", 0x80, DAT_005119b8);
+                strcpy(e->body.text, FUN_004c5740(e->body.text));
+                break;
+            case 4:
+                e->tail.s34.range = (short)parser.current->FUN_004c46c0("range", 0);
+                e->tail.s34.thick = (short)parser.current->FUN_004c46c0("thick", 0);
+                e->tail.s34.knobpos = (short)parser.current->FUN_004c46c0("knobpos", 0);
+                e->tail.s34.knobsize = (short)parser.current->FUN_004c46c0("knobsize", 0);
+                e->tail.s34.field_144 = 0;
+                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "text", 0x80, DAT_005119b8);
+                strcpy(e->body.text, FUN_004c5740(e->body.text));
+                break;
+            case 5:
+                e->tail.s5.link[0] = 0;
+                e->tail.s5.field_147 = 0;
+                memset(e->body.text, 0, sizeof(e->body.text));
+                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "text", 0x80, DAT_005119b8);
+                strncpy(e->body.text, FUN_004c5740(e->body.text), 0x7f);
+                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->tail.s5.link, "link", 0x10, DAT_005119b8);
+                break;
+            case 6: {
+                unsigned int t = parser.current->FUN_004c46c0("hotornot", 0) ^ e->body.s6.hotornot;
+                e->body.s6.hotornot = (t & 1) ^ e->body.s6.hotornot;
+                }
+                break;
+            case 7:
+                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "filename", 0x20, DAT_005119b8);
+                break;
+            case 8:
+                ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "filename", 0x20, DAT_005119b8);
+                break;
+            case 10:
+                e->body.nuttin = parser.current->FUN_004c46c0("nuttin", 0);
+                break;
+            }
+        }
+        obj->body.total = (short)(i - 1);
+        ((Class_004c3240*)&parser)->FUN_004c3240();
+    }
+    return ret;
+}

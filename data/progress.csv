@@ -2568,6 +2568,8 @@ address,size,file,symbol,status,similarity
 0x4d0660,22,src/unsorted/0x4d0660.cpp,?FUN_004d0660@Class_004d0660@@QAEXPADH@Z,matched,100.0
 0x4d0680,62,src/unsorted/0x4d0680.cpp,?FUN_004d0680@@YGXH@Z,matched,100.0
 0x4d06c0,85,src/unsorted/0x4d06c0.cpp,?FUN_004d06c0@Class_004d06c0@@QAEHPADHH@Z,matched,100.0
+0x4d0720,205,src/unsorted/0x4d0720.cpp,?FUN_004d0720@@YGHPAXPAD@Z,partial,97.5
+0x4d0910,206,src/unsorted/0x4d0910.cpp,?FUN_004d0910@@YGHPAX@Z,partial,76.1
 0x4d09e0,47,src/unsorted/0x4d09e0.cpp,?FUN_004d09e0@@YAXXZ,matched,100.0
 0x4d0a10,86,src/unsorted/0x4d0a10.cpp,?FUN_004d0a10@@YGXH@Z,matched,100.0
 0x4d0a70,28,src/unsorted/0x4d0a70.cpp,?FUN_004d0a70@@YAHXZ,matched,100.0

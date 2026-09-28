@@ -2154,7 +2154,10 @@ address,size,file,symbol,status,similarity
 0x4b7590,13,src/unsorted/0x4b7590.cpp,?FUN_004b7590@@YAXXZ,matched,100.0
 0x4b75a0,42,src/unsorted/0x4b75a0.cpp,_$E5,matched,100.0
 0x4b75d0,67,src/unsorted/0x4b75d0.cpp,_$E3,matched,100.0
+0x4b7620,319,src/unsorted/0x4b7620.cpp,?FUN_004b7620@@YGXPBDP6GXPAX@ZH@Z,partial,69.0
+0x4b7760,370,src/unsorted/0x4b7760.cpp,?FUN_004b7760@@YGXPAURec_004b7760@@@Z,partial,43.2
 0x4b78e0,22,src/unsorted/0x4b78e0.cpp,?FUN_004b78e0@@YGXHH@Z,matched,100.0
+0x4b7900,270,src/unsorted/0x4b7900.cpp,?FUN_004b7900@@YGHPAVClass_004b73c0@@H@Z,matched,100.0
 0x4b7a10,30,src/unsorted/0x4b7a30.cpp,?FUN_004b7a10@@YGHPADH@Z,matched,100.0
 0x4b7a30,142,src/unsorted/0x4b7a30.cpp,?FUN_004b7a30@@YGHPADHPAVClass_004b74f0@@H@Z,matched,100.0
 0x4b7ac0,1,src/unsorted/0x4b7ac0.cpp,?FUN_004b7ac0@@YAXXZ,matched,100.0
@@ -2172,10 +2175,13 @@ address,size,file,symbol,status,similarity
 0x4b8b30,81,src/unsorted/0x4b8b30.cpp,?FUN_004b8b30@@YGXPAURef_004b8b30@@PAUSrc_004b8b30@@H@Z,matched,100.0
 0x4b8b90,91,src/unsorted/0x4b8b90.cpp,?FUN_004b8b90@@YGHPAURef_004b8b90@@@Z,matched,100.0
 0x4b8bf0,101,src/unsorted/0x4b8bf0.cpp,?FUN_004b8bf0@@YGXPAURef_004b8bf0@@F@Z,matched,100.0
+0x4b8c60,216,src/unsorted/0x4b8c60.cpp,?FUN_004b8c60@@YGPAXPAD@Z,partial,96.2
 0x4b8d40,85,src/unsorted/0x4b8d40.cpp,?FUN_004b8d40@@YGPAUGafEntry_004b8d40@@PAUGaf_004b8d40@@PBD@Z,matched,100.0
 0x4b8da0,83,src/unsorted/0x4b8da0.cpp,?FUN_004b8da0@@YGPAUClass_004b8da0@@IHH@Z,matched,100.0
 0x4b8e00,77,src/unsorted/0x4b8e00.cpp,?FUN_004b8e00@@YGPAUBitmap_004b8e00@@IHH@Z,matched,100.0
 0x4b8e50,104,src/unsorted/0x4b8e50.cpp,?FUN_004b8e50@@YGXPAUBitmap_004b8e50@@H@Z,matched,100.0
+0x4b90a0,260,src/unsorted/0x4b90a0.cpp,?FUN_004b90a0@@YGXPAUBitmap_004b90a0@@0HHH@Z,partial,82.8
+0x4b9360,341,src/unsorted/0x4b9360.cpp,?FUN_004b9360@@YGXPAXPAUSprite_4b9360@@HH@Z,partial,38.5
 0x4b96a0,54,src/unsorted/0x4b96a0.cpp,?FUN_004b96a0@@YGXPAUImage_004b96a0@@@Z,matched,100.0
 0x4b96e0,90,src/unsorted/0x4b96e0.cpp,?FUN_004b96e0@@YGXPAUImage_004b96e0@@E@Z,matched,100.0
 0x4b9e60,110,src/unsorted/0x4b9e60.cpp,?FUN_004b9e60@@YGHPAEPAUImage_004b9e60@@@Z,matched,100.0

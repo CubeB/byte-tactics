@@ -2720,6 +2720,7 @@ address,size,file,symbol,status,similarity
 0x4de600,243,src/unsorted/0x4de600.cpp,?FUN_004de600@@YAXPAH0HH0H00H0@Z,matched,100.0
 0x4de700,271,src/unsorted/0x4de700.cpp,?FUN_004de700@@YAXHHHHPAHH0@Z,matched,100.0
 0x4de810,130,src/unsorted/0x4de810.cpp,?FUN_004de810@@YA_NPAD0@Z,matched,100.0
+0x4de8a0,347,src/unsorted/0x4de8a0.cpp,?FUN_004de8a0@@YAXPAD0@Z,matched,100.0
 0x4df160,101,src/unsorted/0x4df160.cpp,?FUN_004df160@@YAXXZ,matched,100.0
 0x4df1d0,1,src/unsorted/0x4df1d0.cpp,?FUN_004df1d0@@YAXXZ,matched,100.0
 0x4df1e0,102,src/unsorted/0x4df1e0.cpp,??0Class_004df1e0@@QAE@XZ,matched,100.0

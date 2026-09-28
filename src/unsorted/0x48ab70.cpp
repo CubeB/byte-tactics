@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by mimo-v2.6-flash, finished by space-bunny-free. Names are provisional.
 // The order record handler at 0x48aac0 builds a seven byte record on its stack
 // (type 0x0a, two unit ids, two bytes) and passes it here after it has been
 // through FUN_004fdb0 and FUN_00451df0, so this runs the order on the sending
@@ -22,8 +22,9 @@
 // +0x241 set. FUN_0048c9b0 then refreshes the order, and it is only reached on
 // the paths that got that far: every test that fails jumps past it.
 //
-// 96.7%: the size, the registers and the jump targets all match, but one ten
-// instruction block is in the original's order and not mine. The original
+// 96.7%: the size (448 bytes), the registers, the jump targets and every
+// instruction of the function match except one ten instruction block, which is
+// the same instructions in the original's order. The original
 //
 //     mov edx, [esi+0x110]   ; the bitfield's storage word
 //     mov cl, [ebp+5]        ; the value's operand
@@ -31,81 +32,71 @@
 //     xor eax, eax / cmp cl, 0xff / sete al / and eax, 1 / shl eax, 0x11
 //     or edx, eax / mov [esi+0x110], edx
 //
-// hoists the storage word load and its clear above the whole comparison, while
-// mine emits the comparison first and the load after the `cmp`, with the byte
-// operand in dl instead of cl:
+// loads the storage word first and clears it above the whole comparison; mine
+// (a named bool plus a bitfield store, the only shape that keeps the field
+// width mask `and eax, 1`) emits
 //
-//     mov dl, [ebp+5] / xor edx, edx / cmp dl, 0xff
+//     mov dl, [ebp+5] / xor eax, eax / cmp dl, 0xff
 //     mov edx, [esi+0x110]
-//     sete al / and eax, 1 / and edx, 0xfffdffff / shl eax, 0x11 / or edx, eax
+//     sete al / and eax, 1 / and edx, 0xfffdffff / shl eax, 0x11
+//     or edx, eax / mov [esi+0x110], edx
 //
-// Same instructions, same lengths, same final registers; only the order
-// differs, and the register classes follow from it (in the original the word
-// load takes edx first, so the byte has to go to cl). The source shape is
-// pinned down by the block itself: the `and eax, 1` is the field width mask
-// MSVC 5 puts in front of a bitfield store from a value it cannot prove is
-// 0 or 1, so the right hand side has to be a named temporary. Writing the
-// comparison inline gives the mask away, an `int` local gives it away, and
-// `? 1 : 0` gives the block a different length.
+// which is the same ten instructions, the same lengths and the same final
+// registers (eax holds the value, edx the word) with only the order, and with
+// the byte's operand in dl instead of cl.
 //
-// A second worker then ruled out, with about 60 more scratch variants, every
-// other way of getting the load and the clear above the comparison:
-// - The clear as its own statement (`b17 = 0;` before the compare, at the top
-//   of the `if (t)` block, or as `b17 &= 0;`) is NOT folded away: the
-//   function grows to 461 or 465 bytes, so the original really does the whole
-//   read-modify-write in one bitfield store.
-// - A hand written whole word read-modify-write
-//   (`w = u->f110.all; w &= 0xfffdffff; ... u->f110.all = w | (v << 17);`)
-//   puts the byte in cl, which is what the original has, but MSVC 5 sinks
-//   the word load to the use and folds the `&=` into the `|`, giving
-//   [char][word][xor][cmp][sete][shl][and][or][store]: the load lands second
-//   instead of first, the clear lands after the value, and a named `bool`
-//   shifted by 17 spills through the stack (`mov byte ptr [esp+N], dl`), so
-//   the block loses the field mask.
-// - A local copy of the flags union, an inline `set17` on it, a `T&` to the
-//   union or to the unit, a pointer to the union, `(Flags*)&w`, the clear
-//   through a second identical bitfield view, the three field stores plus the
-//   store in one inline method: every one of these compiles to exactly the
-//   block above. So do a `char`/`const bool`/`register bool` value, a
-//   `(char)` or `((int) == 255)` cast, an extra `{}` or `do {} while (0)`
-//   scope, `if (t != 0)`, a macro for the compare, `! (p != 0xff)`,
-//   `0xff - p == 0`, `& 1`, an `unsigned long` bitfield group, an 18 bit
-//   group, and the union with its members swapped.
-// - Only the register roles move with compiler state, never the order. Forty
-//   unused `extern` prototypes, or any of `<string>`, `<iostream>`,
-//   `<vector>`, `<map>`, `<list>` (alone or after `<windows.h>`), put the word
-//   in eax and the value in edx (`or eax, edx`), which is 95.0%, worse than
-//   the 96.7% here. Below 40 externs the file is exactly this version. Note
-//   that tools/headers.py does not include any of those big headers, so they
-//   are worth trying when a function is stuck on register roles.
+// What earlier workers ruled out (the clear as its own statement grows the
+// function to 461 or 465 bytes, so the original really does one read modify
+// write in a single bitfield store; local word copies sink the word load to its
+// use; a hand written whole word read modify write folds the clear into the
+// `|`; `T&`, pointers to the union, `char`/`const bool` temps, an 18 bit or
+// `unsigned long` bitfield group and every header set either keep this order or
+// move the word into eax and the value into edx) all still holds. What is new
+// from the third pass:
 //
-// The two register classes and the order are one decision: whichever load MSVC
-// 5 emits first takes its register, and the other is forced into the next
-// byte register. Treat it as compiler state; 0x485a40 has the same block with
-// the same shape (a local word, `&=` then a bool shifted in) and its order is
-// a third variant, which is what makes this look like a scheduling accident
-// rather than a different source.
+// - The original's order is a plain walk of the tree "destination first, then
+//   value": word load, operand load, clear, zero, compare, set, mask, shift,
+//   or, store. MSVC 5 only emits that walk when the value's operand needs a
+//   conversion node, because the conversion is then scheduled before the
+//   destination's clear. Both of this function's own spellings that keep the
+//   comparison a dword one produce exactly that order:
+//       u->f110.bits.b17 = (order->param == -1);            (unsigned char)
+//         mov edx,[esi+0x110] / xor eax,eax / mov al,[ebp+5]
+//         and edx,0xfffdffff / xor ecx,ecx / cmp eax,-1 / sete cl
+//         and ecx,1 / shl ecx,0x11 / or edx,ecx / mov [esi+0x110],edx
+//       u->f110.bits.b17 = (order->param == 0xff);          (signed char)
+//         movsx edx,[ebp+5] / mov ecx,[esi+0x110] / xor eax,eax
+//         cmp edx,0xff / sete al / and eax,1 / and ecx,0xfffdffff
+//         shl eax,0x11 / or eax,ecx / mov [esi+0x110],eax
+//   Both need a constant outside the byte's range, so they change the meaning
+//   and are not used. Every spelling that keeps the meaning (`unsigned char`
+//   against 0xff, or `signed char` against -1) is a byte compare, and MSVC then
+//   sinks the clear to after the value and folds the byte's operand into the
+//   result register (dl or al). The two effects always go together.
+// - The mask `and eax, 1` and a separate register for the compare's byte
+//   operand are also mutually exclusive in every spelling: `&& 1` (or a bitfield
+//   store, or a named bool) gives the separate register, `& 1` gives the mask.
+//   With `&& 1` in a whole word read modify write the rest of the block,
+//   including the byte in cl, is right and only the mask and the order are
+//   wrong; with `& 1` the mask is right and the byte goes to al.
+// - 0x485a40 (still open, issue #787) has the same block with the same register
+//   roles (value eax, word edi, byte cl, `or edi,eax`, store through edi) but
+//   compares `cmp cl, bl` against a zeroed local, and a register to register
+//   compare cannot reuse the result register for the operand. That is why it
+//   gets cl and we do not. A `static unsigned char` holding 0xff here does give
+//   `cmp cl, dl` and the wanted `or edx, eax` plus store through edx, but the
+//   compare then carries a register, not the 0xff immediate.
+// - So treat the two register classes and the order as one scheduling decision
+//   that no spelling found here reaches, not as a missing piece of syntax.
 //
-// A third worker (mimo-v2.6-flash) gave up at 96.7% after about 500 more free
-// probe configurations, none of which changed the load order, only the
-// register roles:
-// - A cross of expression forms (one statement bitfield store, named bool,
-//   local word read-modify-write, ternary, comma, anchored dependency) x
-//   header sets x 0 to 2000 extern prototypes: every build emits the byte
-//   load first. Local word forms sink the word load to its use, so the clear
-//   lands after the compare instead of before it.
-// - Neighbour in file: defining the predecessor 0x48aac0 in this file changes
-//   nothing, and defining the callees 0x47cb00 / 0x47cb40 in this file gets
-//   them inlined (the calls vanish) and only moves the byte to cl while the
-//   word takes ecx, still byte first.
-// - Statement order of independent statements does not survive compilation:
-//   `w = u->f110.all; bool v = (order->param == 0xff);` and the reverse order
-//   compile to identical bytes.
-// - Searching orig/TotalA.exe for siblings: `mov cl, [ebp + 5]` occurs only
-//   at 0x48ac8e, and `sete al` followed by `and eax, 1` only at 0x485a93 and
-//   0x48ac9c, with no matched source for either site, so there is no in tree
-//   shape to copy. Every reachable build puts the byte's load first or sinks
-//   the word load to its use; no source shape found emits word first.
+// Method note for the next attempt: compiling every candidate spelling of the
+// statement into its own copy of the whole function in a single file, and
+// disassembling all of them at once, explores hundreds of shapes per minute
+// (build/scratch/48ab70/genprobe.py and blocks.py). It also showed that a
+// whole word read modify write `(w & mask) | v` puts the value first whichever
+// operand the source writes first (MSVC 5 sorts commutative operands), and that
+// adding redundant nodes around either operand (`| 0`, `^ 0`, `& 0xffffffff`,
+// `(unsigned)` casts, an extra `& 1`) never changes the order.
 
 #pragma pack(push, 1)
 

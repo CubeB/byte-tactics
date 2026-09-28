@@ -1,6 +1,25 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Bilinearly interpolates the map cell height under a 12.4 fixed-point
-// position: returns -1 when the 2x2 cell block the sample needs is off the map.
+//
+// PARTIAL: 87.0% (208 bytes against our 210). The 12.4 fixed point extraction,
+// the cell layout, the four height loads and the sign-corrected /16 are right;
+// the return expression is deliberately written out twice, duplicated from the
+// first attempt, because that is what puts the twenty first instructions in the
+// original's registers.
+//
+// Two hunks are left:
+//  - the second row's address. The original computes cells[idx] + 12*w and then
+//    adds w (`lea ecx,[ecx+edi*4]`, `lea edi,[ecx+edx]`, `mov bl,[edi+4]`);
+//    here w is added first and 12*w is folded into the addressing mode. Every
+//    spelling tried (c[w], c + w, a separate pointer, byte pointers with
+//    13*w, 12*w + w, two explicit indices) compiles the same way.
+//  - the final interpolation. The original keeps the first row's lerp whole in
+//    ecx (`sar ecx,4; add ecx,esi`, then `sub eax,ecx` and `add eax,ecx`),
+//    which needs that value used twice; naming it a local gives the right tail
+//    but puts x >> 4 in edx instead of ecx and the first twenty instructions
+//    stop matching. Roughly 200 combinations of the two were tried; this is one
+//    register allocation puzzle, not a structural one.
+// Neither every header set nor the compiler-state probe (0 to 82 unused extern
+// declarations) changes anything here.
 
 #pragma pack(push, 1)
 struct Cell_00485070 {
@@ -34,18 +53,19 @@ extern Game_00485070* g_game;
 // FUNCTION: 0x485070
 int __stdcall FUN_00485070(Pos_00485070* p)
 {
-    int x = p->x.whole >> 4;
-    int z = p->z.whole >> 4;
-    int xf = p->x.whole & 15;
-    int zf = p->z.whole & 15;
-    if (x < 0 || x + 1 >= g_game->width || z < 0 || z + 1 >= g_game->height)
+    int x = p->x.whole;
+    int z = p->z.whole;
+    int xc = x >> 4;
+    int zc = z >> 4;
+    int xf = x & 15;
+    int zf = z & 15;
+    if (xc < 0 || xc + 1 >= g_game->width || zc < 0 || zc + 1 >= g_game->height)
         return -1;
-    Cell_00485070* c = &g_game->cells[z * g_game->width + x];
+    Cell_00485070* c = &g_game->cells[zc * g_game->width + xc];
     int a = c->height;
     int b = c[1].height;
     int e = c[g_game->width].height;
     int f = c[g_game->width + 1].height;
-    int row0 = a + (b - a) * xf / 16;
-    int row1 = e + (f - e) * xf / 16;
-    return row0 + (row1 - row0) * zf / 16;
+    return a + (b - a) * xf / 16 +
+        ((e + (f - e) * xf / 16) - (a + (b - a) * xf / 16)) * zf / 16;
 }

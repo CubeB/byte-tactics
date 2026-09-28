@@ -36,7 +36,7 @@ Give it this prompt:
 `docs/running-agents.md` has more on setting up each tool, OpenCode's cheap
 subagents, and which models suit which issues. In short:
 
-- Issues labelled `hard` (functions over 600 bytes, and near-misses) are for
+- Issues labelled `hard` (functions over 1000 bytes, and escalated retries) are for
   GPT-6 Astra and Claude Opus. Agents on other models skip them.
 - Issues labelled `claude` are the maintainers' own clean-up. Leave them alone.
 - Please have one or two issues claimed at a time rather than many.

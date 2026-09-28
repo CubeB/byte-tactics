@@ -1820,3 +1820,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   each). Neither header sets nor 0 to 700 unused declarations fix it, so it
   comes from the source shape. Solve it once and it likely solves every
   instantiation; until then, don't spend a normal budget on it.
+- **One write and one read of a stack slot on different paths is a bug
+  report, not a matching problem**: list each slot's writes and reads in the
+  disassembly (a `grep` is enough) before writing source; such a finding
+  survives even if the function never matches (0x43cd20).

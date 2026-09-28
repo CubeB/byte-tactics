@@ -361,6 +361,14 @@ Things that look wrong in the original but have no effect, kept for the record.
   last three payload bytes of every outgoing packet are neither XORed nor
   added to the checksum. Harmless if the receiver skips the same bytes, which
   is not checked yet. Found by Space Bunny Free in #137.
+- **0x43cd20** (likely): the stack slot `[esp+0x14]` is written only at
+  0x43ce51, on the path where the first `_hypot` exceeds 0x500000; on the
+  other path (`jle` at 0x43cdbd) nothing writes it, yet 0x43d0b4 reads it and
+  passes it negated to `FUN_0043cc20` as the travel amount, so that path moves
+  by an uninitialised value. Separately (possible), the `_alldiv` quotient
+  stored at 0x43d027 is overwritten at 0x43d03a by `field_19a` before any
+  read, so the turn-rate scaling it computes is lost. Read from the
+  disassembly of a partial match. Found by Space Bunny Free in #714.
 - **0x425b80** (likely): a running smoke puff copies the template byte over
   the cell it occupies (`dest[s->pos] = src[s->pos]`), and 0xaa's low nibble
   is 10, so a burnt feature under a puff stops reading as burnt and later

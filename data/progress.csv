@@ -2123,7 +2123,7 @@ address,size,file,symbol,status,similarity
 0x4ac4c0,325,src/unsorted/0x4ac4c0.cpp,?FUN_004ac4c0@@YGPADPAUMenu_004ac4c0@@PADHH@Z,partial,67.7
 0x4ac610,252,src/unsorted/0x4ac610.cpp,?FUN_004ac610@@YGXPAUClass_004ac610@@PAEHHH@Z,matched,100.0
 0x4ac710,179,src/unsorted/0x4ac710.cpp,?FUN_004ac710@@YGXPAUPalEntry_004ac710@@0PAE@Z,matched,100.0
-0x4ac7d0,207,src/unsorted/0x4ac7d0.cpp,?FUN_004ac7d0@@YGXPAUPalette_004ac7d0@@PAUPalEntry_004ac7d0@@1@Z,partial,94.7
+0x4ac7d0,207,src/unsorted/0x4ac7d0.cpp,?FUN_004ac7d0@@YGXPAUPalette_004ac7d0@@PAUPalEntry_004ac7d0@@1@Z,matched,100.0
 0x4ac8a0,28,src/unsorted/0x4ac8a0.cpp,?FUN_004ac8a0@@YGXPADPAX@Z,matched,100.0
 0x4ac8c0,167,src/unsorted/0x4ac8c0.cpp,?FUN_004ac8c0@@YGXPAUObject_004ac8c0@@@Z,partial,84.7
 0x4ac970,161,src/unsorted/0x4ac970.cpp,?FUN_004ac970@@YGXPAUObject_004ac970@@HH@Z,partial,83.1

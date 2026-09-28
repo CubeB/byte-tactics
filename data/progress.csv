@@ -658,6 +658,7 @@ address,size,file,symbol,status,similarity
 0x437280,127,src/unsorted/0x437280.cpp,?FUN_00437280@Class_00437280@@QAEXXZ,matched,100.0
 0x437300,31,src/unsorted/0x437300.cpp,?FUN_00437300@Class_00437300@@QAEHXZ,matched,100.0
 0x437320,116,src/unsorted/0x437320.cpp,?FUN_00437320@Class_00437320@@QAEHPAUVec3_00437320@@H@Z,matched,100.0
+0x4373a0,477,src/unsorted/0x4373a0.cpp,?FUN_004373a0@Class_004373a0@@QAEHXZ,matched,100.0
 0x437580,639,src/unsorted/0x437580.cpp,?insert@?$vector@VClass_00437820@@V?$allocator@VClass_00437820@@@std@@@std@@QAEXPAVClass_00437820@@IABV3@@Z,partial,78.9
 0x437800,27,src/unsorted/0x437800.cpp,??0Class_00437800@@QAE@PAH@Z,matched,100.0
 0x437820,27,src/unsorted/0x437820.cpp,??0Class_00437820@@QAE@ABV0@@Z,matched,100.0

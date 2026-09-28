@@ -1,28 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// NOT A MATCH yet (91.2%, 224 of 224 bytes, every block and jump identical).
-// What still differs: six instructions in the second branch (the one that
-// locks the screen and then blits `dst` from it, 0x4c6bce..0x4c6bdd) pick a
-// rotated set of registers. Original: `lea edx,[esp+4]` for the lock
-// argument, `mov eax,[esp+0x44]` (y), `mov ecx,[esp+0x40]` (x),
-// `lea edx,[esp+8]`. Mine: eax, ecx, edx, eax. The register allocator
-// starts one step earlier here, so the EAX/ECX/EDX cycle is off by one.
-// Tried and rejected: every branch shape that keeps this block layout
-// (if/else-if/else is the only one), the unlock helper's form, the local's
-// declaration (one or two locals), the callee declarations (return and
-// argument types, reference parameters), packed structs, and moving the
-// bitmap half-size reads into temporaries: all leave the same six
-// instructions different.
-// A second pass also ruled out, all still 91.2%: copying the arguments into
-// locals just before the call (`int px = x; int py = y;` in either order, and
-// with a local for `&screen` or for all four arguments), taking a reference
-// to x and y, writing `x + 0` / `y + 0`, hoisting the lock result into a local,
-// declaring the single `screen` local at function scope instead of per block,
-// nesting the else-if as a plain else with a nested if, writing the lock test
-// as `!FUN_004c5e70(...)`, and spelling branch 1 with locals for the two
-// computed coordinates or for the two half sizes. The push order and the
-// pushed addresses already agree; only the choice of eax/ecx/edx differs, so
-// this is the register rotation the guide calls out, with nothing left in the
-// block to change its live-value count.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Blits a bitmap with the hand-written routine FUN_004cbbe0. If `dst` is
 // null the screen is locked with FUN_004c5e70 and used as the destination;
 // if `bmp` is null the locked screen is used as the source instead. When one
@@ -30,6 +6,14 @@
 // and half height (the shorts at +0x18 and +0x1a). The unlock is FUN_004c5fa0
 // inlined; its Unlock call goes through a method of the embedded screen
 // struct, which is why the tested surface pointer is copied.
+//
+// The source shape that matches is two flat top-level `if`s (dst == 0, then
+// bmp == 0) that each blit and then tail-call `UnlockScreen(0); return;`.
+// MSVC cross-jumps the two blits onto one shared `call` and the two unlocks
+// onto one shared block. Writing it as an `if/else if/else` with a single
+// trailing unlock compiles to the same outline but rotates the scratch
+// registers of the second branch by one (eax/ecx/edx instead of
+// edx/eax/ecx), which is what left it at 91.2%.
 #include <ddraw.h>
 
 // One layout for both the locked surface and the bitmap: FUN_004cbbe0 takes
@@ -88,14 +72,16 @@ void __stdcall FUN_004c6b70(Image_004c6b70* dst, Image_004c6b70* bmp, int x, int
         if (FUN_004c5e70(&screen) == 0)
             return;
         FUN_004cbbe0(&screen, bmp, x - bmp->half_width, y - bmp->half_height);
-    } else if (bmp == 0) {
+        UnlockScreen(0);
+        return;
+    }
+    if (bmp == 0) {
         Image_004c6b70 screen;
         if (FUN_004c5e70(&screen) == 0)
             return;
         FUN_004cbbe0(dst, &screen, x, y);
-    } else {
-        FUN_004cbbe0(dst, bmp, x - bmp->half_width, y - bmp->half_height);
+        UnlockScreen(0);
         return;
     }
-    UnlockScreen(0);
+    FUN_004cbbe0(dst, bmp, x - bmp->half_width, y - bmp->half_height);
 }

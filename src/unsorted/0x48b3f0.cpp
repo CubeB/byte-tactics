@@ -12,16 +12,51 @@
 // colour, and then one bit that picks the rest: set, the two ids and one more
 // byte go to 0x48ab70 as a seven byte order record and the function is done.
 // Clear, a unit that already has an owner sends 0xff as the order's parameter,
-// and the position (three 32 bit words), the tail (three 16 bit words) and the
-// owner's int are read; the position is converted from world units to the
-// unit's 1/16 units against the fixed point pair at +0x7e, and if it, the tail
-// owner and the colour are all unchanged the position is stored as it is, else
-// the unit is unlinked, the position, the 1/16 pair and the colour are stored
-// and the unit is re-registered (0x47cc30 then 0x4827b0).
+// and the position (three 32 bit words) and the tail (three 16 bit words) are
+// read; the position is converted from world units to the unit's 1/16 units
+// against the fixed point pair at +0x7e, and if it, the tail owner and the
+// colour are all unchanged the position is stored as it is, else the unit is
+// unlinked, the position, the 1/16 pair and the colour are stored and the unit
+// is re-registered (0x47cc30 then 0x4827b0). The last word in the packet goes
+// to the int at +0x20 of whatever the unit's own first pointer (at +0x00, not
+// the owner at +0x86 that the order record tests) points at.
 //
-// NOT MATCHED: 80.8%, 792 bytes against the original's 790. Everything matches
-// from the prologue to 0x48b522 and again in the order records and the six
-// reads, including several shapes that were not obvious:
+// MATCHES (790 bytes). What the earlier 80.8% attempt had left as "one
+// allocator decision" was really three, and each needed its own source shape:
+//
+// 1. The order record's byte at +6 is the COLOUR, not the complement of the
+//    state byte. That is what puts the colour in ebx: the original's four uses
+//    of ebx between 0x48b532 and 0x48b6b3 are the two `order.param2` byte
+//    stores, the compare and the bitfield store, and nothing ever nots it, so
+//    the not-ed state temp is dead at the push of 0x48b516 and leaves ebx free
+//    for the colour. 0x48ab70's own comments agree: the byte at +6 is blended
+//    into two bits of the type's byte, and the matched writer 0x48b200 sends
+//    the colour as a two bit field of its own. `~state` there is 80.8% with
+//    ebx, ebp and the frame all shuffled; `colour` is 82.7% with the right
+//    registers.
+// 2. The colour is read as `int` but written through `(unsigned short)` in the
+//    bitfield store. A plain `int` local live across nine calls gets a frame
+//    home in MSVC 5 (`mov ebx,eax` *and* `mov [esp+0x34],ebx`, then a reload at
+//    the compare), and only the narrow store stops the home from existing. The
+//    narrowing cast is free (no instruction) and the value keeps the original's
+//    32 bit `cmp ebx, eax`, where an `unsigned short` local narrows it to
+//    `cmp bx, ax` (94.3%). 82.7% -> 95.2%.
+// 3. `fixed.x * 0x80000` instead of `(fixed.x << 19)`. Both lower to the same
+//    `shl`, but the multiply gives the front end a different tree to walk, and
+//    that is what produces the original's order: spill the pair to the frame,
+//    take the high half out of the frame first, then the low half out of the
+//    register. With the shift the high half is extracted five instructions
+//    late (95.2% -> MATCH). Reading +0x7e as a two short struct and copying it
+//    into a named local is also needed: it is the only way to get the high
+//    half out of the frame at all.
+// 4. The unit pointer read at the very end is +0x00, not the owner at +0x86
+//    that the 0x48b590 order record tests. Two different pointers, and the
+//    first attempt had both at +0x86.
+// 5. In the first order record the source assigns `param` before `param2`, and
+//    only that order leaves MSVC 5's `mov byte [esp+0x16], bl` after the two
+//    read calls, where the reverse order hoists it above them.
+//
+// The rest of the earlier notes still hold and are worth keeping:
 // - `int zero = 0` after the first read is what puts a 0 in ebp, and it is
 //   compared with `cmp ax, bp` (16 bit) and stored and pushed from ebp. Any
 //   spelling that lets the front end fold the 0 (a literal, or the declaration
@@ -47,27 +82,18 @@
 //   the fixed point copy at +0x7e lives in the second one (MSVC 5 does overlay
 //   locals on dead incoming arguments).
 //
-// What still differs, and it is ONE allocator decision, not four: the
-// original keeps the colour read at 0x48b522 in ebx and the position's x in
-// ebp, with the position's z in the frame; this version spills the colour to
-// [esp+0x34] and gives ebx to the position's x and ebp to its z. That flips
-// the whole second half: the colour compare, the two bitfield stores (this
-// version gets MSVC 5's xor/and/xor bitfield form where the original gets
-// and/or, because the value arrives from a reload rather than from a named
-// local in a register), the three position stores and the tail copy.
-// Tried, all with the same 80.8% or worse: declaring +0x7e as a two short
-// struct and copying it into a named local (that is right: it is the only way
-// to get the original's `mov eax,[u+0x7e] / mov [esp+0x34],eax / movsx ecx,
-// word [esp+0x36]` with the low half still in a register, but the extra 4 byte
-// local does not fit the 0x20 frame, so the frame grows to 0x24 and every
-// other stack offset shifts, 66%); one shared order record instead of two
-// (66.8%); reading the 1/16 pair's y before its x (80.2%); an extra live
-// reference on the position's z to demote it out of ebp (no change); and the
-// colour compared against `u->f110.bits.colour` instead of `u->f110.all & 3`
-// (identical bytes, so the compare is not what decides it). Per the brief's
-// rule about one upstream cause, the next thing to try is a construct that
-// raises the colour's priority or lowers the position's, not a rewrite of the
-// bitfield store.
+// Dead ends, all of which the fix above supersedes, kept so nobody repeats
+// them: one shared order record instead of two (66.8%); reading the 1/16
+// pair's y before its x (80.2%, and it moves the np frame slot with it); the
+// colour compared through `u->f110.bits.colour` or written as a hand written
+// `u->f110.all = (u->f110.all & ~3) | colour` (both give the xor/and/xor
+// bitfield form, or `and al, 0xfc`); an `int colour` with an `& 3` at the read
+// (89.8%, but the mask is emitted eagerly and the store then needs the
+// xor/and/xor form); `unsigned short colour` as the local (94.3%, right
+// registers but `cmp bx, ax`); the colour through a `static inline` read
+// helper, which MSVC 5 inlines back to a range analysed int (66.4%); a union
+// around the colour (61.5%); the fixed pair read as two shorts out of the unit
+// (70.7%, two loads instead of one dword load and a spill).
 
 #pragma pack(push, 1)
 
@@ -144,7 +170,7 @@ public:
     Pos_0048b3f0 pos;                  // +0x6a
     Pos2_0048b3f0 np;                  // +0x76
     char unknown_7a[0x7e - 0x7a];
-    int fixed;                         // +0x7e, two 16.16 halves
+    Pos2_0048b3f0 fixed2;               // +0x7e, two 16.16 halves
     char unknown_82[0x86 - 0x82];
     Owner_0048b3f0* owner;             // +0x86
     char unknown_8a[0x9e - 0x8a];
@@ -215,8 +241,8 @@ void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Class_0048b090* u)
         Order_0048b3f0 order;
         order.id1 = u->id;
         order.id2 = (unsigned short)reader->FUN_00415dc0(0xf);
-        order.param2 = (unsigned char)~state;
         order.param = (unsigned char)reader->FUN_00415e60(8);
+        order.param2 = (unsigned char)colour;
         FUN_0048ab70(&order);
         return;
     }
@@ -225,7 +251,7 @@ void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Class_0048b090* u)
         order.id1 = u->id;
         order.id2 = 0;
         order.param = 0xff;
-        order.param2 = (unsigned char)~state;
+        order.param2 = (unsigned char)colour;
         FUN_0048ab70(&order);
     }
     Pos_0048b3f0 pos;
@@ -236,22 +262,55 @@ void __stdcall FUN_0048b3f0(Class_00415dc0* reader, Class_0048b090* u)
     tail.b = (unsigned short)reader->FUN_00415dc0(0x10);
     tail.c = (unsigned short)reader->FUN_00415dc0(0x10);
     tail.a = (unsigned short)reader->FUN_00415dc0(0x10);
-    int fixed = u->fixed;
+    Pos2_0048b3f0 fixed = u->fixed2;
     Pos2_0048b3f0 np;
-    np.x = (short)((pos.x - ((short)fixed << 19) + 0x80000) >> 20);
-    np.y = (short)((pos.z - ((short)(fixed >> 16) << 19) + 0x80000) >> 20);
+    np.x = (short)((pos.x - fixed.x * 0x80000 + 0x80000) >> 20);
+    np.y = (short)((pos.z - fixed.y * 0x80000 + 0x80000) >> 20);
     if (np.x == u->np.x && np.y == u->np.y && colour == (u->f110.all & 3)) {
         u->pos = pos;
     } else {
         FUN_0047d0e0(u);
         u->pos = pos;
         u->np = np;
-        u->f110.bits.colour = colour;
+        u->f110.bits.colour = (unsigned int)(unsigned short)colour;
         FUN_0047cc30(u);
         FUN_004827b0(u);
     }
     u->f110.bits.b16 = 1;
     u->tail = tail;
-    if (u->owner)
-        u->owner->field_20 = reader->FUN_00415dc0(0x20);
+    if (u->vptr)
+        ((Owner_0048b3f0*)u->vptr)->field_20 = reader->FUN_00415dc0(0x20);
 }
+//
+// Three shape notes, and one correction to a bug claim.
+//
+// The +6 byte of the order record is the COLOUR, not `~state`. Nothing in the
+// disassembly ever `not`s the ebx used at 0x48b532..0x48b6b3, so the not-ed
+// state temporary dies at the push of 0x48b516 and leaves ebx free for the
+// colour. The already matched 0x48ab70's notes agree: the +6 byte is blended
+// into two bits of the type's byte. 80.8% to 82.7%.
+//
+// The colour is read as an `int` but WRITTEN through a free `(unsigned short)`
+// narrowing cast in the bitfield store, and that is worth twelve points. A plain
+// int live across nine calls gets a frame home: `mov ebx,eax` *and*
+// `mov [esp+0x34],ebx`, then a reload at the compare. The narrowing cast at the
+// store removes the home while keeping the original's 32-bit `cmp ebx, eax`.
+// An `unsigned short` local gives the right registers but narrows the compare
+// to `cmp bx, ax`. So the two uses want different widths and a free cast is
+// what lets them have them. 82.7% to 95.2%.
+//
+// `fixed.x * 0x80000` rather than `(fixed.x << 19)`. Both lower to the same
+// `shl`, but the multiply gives the front end a different tree, and that is
+// what produces the original's order of taking the high half from the frame
+// first and the low half from the register afterwards. 95.2% to MATCH.
+//
+// CORRECTION. A bug was reported here on the strength of the call site at
+// 0x48b475-0x48b491, which is `mov edx,[ecx] / mov dl,[edi+0xff] / push edx`,
+// i.e. `(u->tail.a & ~0xff) | u->player`, on the grounds that the tail's upper
+// three bytes are carried into an argument that is used as a player index. That
+// is not a bug. FUN_004861d0's third instruction is `and eax, 0xff` at
+// 0x4861d8, so the callee discards the upper three bytes itself; the composite
+// construction at the call site and the mask in the callee are complementary,
+// and the source is almost certainly exactly `(u->tail.a & ~0xff) | u->player`
+// with the callee picking the byte out. Reporting it would have been a false
+// positive, and the way to see that was one instruction of the callee.

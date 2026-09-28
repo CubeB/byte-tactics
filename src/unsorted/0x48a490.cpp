@@ -2,52 +2,73 @@
 // Samples the ground under a unit at its four surrounding terrain
 // vertices and stores the resulting pitch (0x68) and roll (0x70) on the
 // unit, plus a heading (0x64) from the two side vertices. The 0x11/0x04
-// bytes of a heightmap tile are the two half heights of its edge pair;
-// the corner heights are bilinearly interpolated.
+// bytes of a heightmap tile are the two half heights of its edge pair,
+// and the corner heights are bilinearly interpolated with a plain / 16
+// (MSVC 5 spells that cdq/and 0xf/add/sar 4; there is no second shift).
 //
-// NOT MATCHED (27.7%, 857 bytes against our 1025). The frame model is
-// pinned down and confirmed from the disassembly: locals run from esp+0x10
-// to esp+0x8b, with k at +0x10, the hz low nibble at +0x14, a pointer to
-// the corner array at +0x18, a pointer to the height array at +0x1c, the
-// spilled row and map-info pointers at +0x20 and +0x24, further spills at
-// +0x28 and +0x2c, the rotated {x,z} pair at +0x34, then four 8-byte
-// corners at +0x3c and four 12-byte height records at +0x5c, with the two
-// induction pointers based at &corners[0].z and &heights[0].h. Two things
-// are still wrong.
+// PARTIAL (65.5%, 858 bytes against the original's 857, and the same frame).
+// What is still open, all of it register allocation rather than shape:
 //
-// 1. Register allocation. The original parks the unit pointer in edi and
-//    runs out of registers: it spills the row pointer, the map pointer, k
-//    and both array pointers, then reloads all of them inside the loop
-//    (0x48a4ed, 0x48a4f1, 0x48a4f8, 0x48a4fc) with the loop rotated so
-//    the reload block is skipped on the first pass (the jmp at 0x48a4eb).
-//    Our version keeps them live and hoists row->ids out of the loop, which
-//    loses the rotation and is most of the byte difference. This is a
-//    pressure problem, not a shape problem: raising the number of live
-//    values in the body (the address-taken pair, the four corners and the
-//    four height records all exist here already) is the lever, and nothing
-//    tried in the time available found the right count.
-// 2. The original stores a word at unit+0x70, which is the high half of the
-//    16.16 pos.y at +0x6e, so pos.y cannot be an int in the same struct;
-//    the field set here is posx at +0x6a, posy_lo at +0x6e, roll at +0x70
-//    and posz at +0x72, which reproduces the offsets, but the pitch, roll
-//    and heading writes are still one field out in the generated code.
+//  1. The bilinear block. The original keeps the first tile's low half in
+//     ebx and spills the second tile pointer (esp+0x28) and b1 (esp+0x2c);
+//     we keep the second tile pointer in ebx and spill b0 and b1 instead.
+//     Both spill two values, so the instruction counts agree, only the
+//     choice of which value the allocator drops differs. The loads
+//     themselves are in the original's order (b0, b1, c0, c1) and every
+//     spelling of the two H0/H1 expressions I tried gave the same code.
+//  2. The loop back edge. The original carries the corner-array pointer in
+//     ecx and the height-record pointer in ebx across the back edge, so
+//     its reload block is only the row and map pointers (0x48a4ed,
+//     0x48a4f1). We reload all three, so we emit one `mov edx, [esp+0x18]`
+//     the original does not. An explicit `int*` induction variable does not
+//     change this: MSVC 5 folds it back into the frame slot either way.
+//  3. Small register swaps that follow from the two above: the map pointer
+//     in the prologue (edx against ecx), the height max (eax against ecx),
+//     and `mov esi,2 / sub esi,eax` against `mov ecx,2 / sub ecx,eax`.
 //
-// Confirmed from the disassembly, worth keeping:
-//  * The local at esp+0x30 is read (0x48a736) and never written anywhere in
-//    the function: the original reads an uninitialised local and stores it
-//    into height[4][i].spare. A named uninitialised int reproduces the
-//    warning and the load; MSVC 5 has not dropped the dead store here.
-//  * The 4x4 corner height bilinear interpolation divides by 16 with the
-//    cdq/and/add idiom and then shifts by 4, so the source has
-//    "(a*f)/16 >> 4", not "a*f >> 8"; MSVC 5 does not fold the two.
-//  * The float branch assigns height[4][i].h twice: once with the raw
-//    height and once with max(height, seaLevel), through a frame temporary
-//    at +0x14 that is then re-read at 0x48a71b and added to the result of
-//    FUN_004b7123. Both the ternary and the division by 60 that follows
-//    (unsigned magic 0x88888889, shr 5) are reproduced.
-//  * The three float tests are one && chain, each branch jumping to the
-//    same else block at 0x48a724 (test/je, test/je, test dh,0x40/jne), and
-//    hs[4][i].wx is stored before the chain, not inside it.
+// What did work, in order of size, and worth keeping:
+//
+//  * The loop has to be a `for (k = 0; k < 4; k++)`. As a `do { } while
+//    (++k < 4)` MSVC 5 rotates it the other way, duplicates the first block
+//    of the body into the preheader and the function comes out 174 bytes
+//    too long at 39%. That single change is worth 14 points.
+//  * The roll and pitch arguments are `(h0+h1)/2` and `(h2+h3)/2`, not
+//    `/2/2` twice. The original has three cdq/sub pairs and three sars for
+//    the whole tail; `/2/2` on each half makes MSVC 5 emit six.
+//  * The 64 bit part has to be one expression. Written as three statements
+//    on an `__int64 l`, MSVC 5 keeps the variable live and stores its high
+//    dword (an extra `mov [esp+..], edx`); folded into
+//    `2 - (int)((((__int64)q << 16) / s) * 2 >> 16)` the value is dead
+//    after the low half is taken. 58.6% to 62.3%.
+//  * `p` is a `short`, not an int. `short p = (short)(... + u->fix_lo)` is
+//    the only spelling that gives the original's 16 bit `add ax, [u+0xaa]`
+//    followed by a plain `mov [esp+0x28], eax`: the int versions either
+//    sign-extend the addend first or emit a `movsx` after it. 62.3% to
+//    63.5%.
+//  * The second tile is `tb + g_game->gridW * 13` rather than `tb + gw * 13`
+//    (gw is a local), and hz is computed before wx. Together these are what
+//    bring the function to within one byte of the original's 857.
+//  * `u->type->sight / 2`, not `abs(sight) / 2`. The cdq/sub pair at
+//    0x48a695 is MSVC 5's signed /2 with its truncation fixup, deferred
+//    past the `sar esi,1` at 0x48a69d; abs() would be cdq/xor/sub.
+//  * The heading's second argument is `abs(pts[0].x - pts[1].x) >> 16`
+//    and the pitch's is `abs(pts[0].z - pts[3].z) >> 16`, both with no /2,
+//    and both `abs()` (cdq/xor/sub, guide's abs note) rather than a
+//    hand-written test.
+//
+// The frame model, read off the disassembly and confirmed by the offsets
+// our code now uses: locals run from esp+0x10 to esp+0x8b, with k at
+// +0x10, fz (reused as the max() temporary) at +0x14, the corner-array
+// pointer at +0x18, the height-record pointer at +0x1c, the spilled row
+// and map-info pointers at +0x20 and +0x24, two scratch dwords at +0x28
+// and +0x2c, hz at +0x30, the {x,z} pair handed to 0x4b7173 at +0x34, the
+// four 8-byte corner positions at +0x3c and the four 12-byte height
+// records at +0x5c. The height record is {wx, h, spare} and its .spare is
+// hz, not junk: +0x30 is written at 0x48a54e (with the two call arguments
+// still on the stack, so that instruction's esp+0x38 is esp+0x30) and read
+// back at 0x48a736. The epilogue reads .h at +0x60, +0x6c, +0x78, +0x84.
+
+#include <stdlib.h>
 
 #pragma pack(push, 1)
 
@@ -90,10 +111,10 @@ struct Pos2_0048a490 {
     int z;
 };
 
-struct Corner_0048a490 {
-    int wx;
-    int h;
-    int spare;
+struct Hs_0048a490 {
+    int wx;                             // +0x0
+    int h;                              // +0x4
+    int spare;                          // +0x8
 };
 
 struct Unit_0048a490 {
@@ -122,7 +143,9 @@ struct Game_0048a490 {
     int gridH;                          // +0x14237
     char unknown_1423b[0x1427f - 0x1423b];
     unsigned char seaLevel;             // +0x1427f
-    char unknown_14280[0x14377 - 0x14280];
+    char unknown_14280[0x14287 - 0x14280];
+    unsigned char* hmaps;               // +0x14287
+    char unknown_1428b[0x14377 - 0x1428b];
     MapInfo_0048a490** maps;            // +0x14377
     char unknown_1437b[0x38a47 - 0x1437b];
     int frame;                          // +0x38a47
@@ -134,40 +157,34 @@ extern Game_0048a490* g_game;
 
 unsigned int FUN_004b6340();
 int FUN_004b7123(int a, int b);
-int FUN_004b715a(int x, int z);
+int FUN_004b715a(int x, int y);
 void FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 
-__int64 _alldiv(__int64 a, __int64 b);
-__int64 _allmul(__int64 a, __int64 b);
-__int64 _allshr(__int64 a, int b);
-__int64 _allshl(__int64 a, int b);
-
 #define max(a, b) (((a) > (b)) ? (a) : (b))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
 
 // FUNCTION: 0x48a490
 void __stdcall FUN_0048a490(Unit_0048a490* u)
 {
     MapInfo_0048a490* m = g_game->maps[u->map];
     MapRow_0048a490* row = m->rows + m->count;
-    if (m->count >= 0) {
+    if (m->count > -1) {
         Pos2_0048a490 t;
         Pos2_0048a490 pts[4];
-        Corner_0048a490 hs[4];
-        int junk;
+        Hs_0048a490 hs[4];
         int k = 0;
-        do {
+        for (k = 0; k < 4; k++) {
             MapVertex_0048a490* v = m->verts + row->ids[k];
-            t.x = v->x;
-            pts[k].x = v->x;
-            t.z = v->z;
-            pts[k].z = v->z;
+            int vx = v->x;
+            t.x = vx;
+            pts[k].x = vx;
+            int vz = v->z;
+            t.z = vz;
+            pts[k].z = vz;
             FUN_004b7173(u->aim, &t);
-            int wx = (short)((t.x + u->posx) >> 16);
             int hz = (short)((u->posz - t.z) >> 16);
-            t.z = hz;
-            int fz = wx & 0xf;
-            int fx = hz & 0xf;
+            int wx = (short)((t.x + u->posx) >> 16);
+            int fz = hz & 0xf;
+            int fx = wx & 0xf;
             int gx = (unsigned)wx >> 4;
             int gz = (unsigned)hz >> 4;
             int gw = g_game->gridW;
@@ -175,47 +192,45 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
                 return;
             if (gz >= g_game->gridH - 1)
                 return;
-            unsigned char* tb = (unsigned char*)g_game->unknown_14280 + (gz * gw + gx) * 13;
-            unsigned char* tb1 = tb + gw * 13;
+            unsigned char* tb = g_game->hmaps + (gz * gw + gx) * 13;
+            unsigned char* tb1 = tb + g_game->gridW * 13;
             int b0 = tb[4];
             int b1 = tb1[4];
             int c0 = tb[0x11];
             int c1 = tb1[0x11];
-            int H0 = b0 + (((c0 - b0) * fz) / 16 >> 4);
-            int H1 = b1 + (((c1 - b1) * fz) / 16 >> 4);
+            int H0 = b0 + ((c0 - b0) * fx) / 16;
+            int H1 = b1 + ((c1 - b1) * fx) / 16;
             hs[k].wx = wx;
-            int hres;
             if ((u->type->flags & 0x1000) && (u->flags & 0x10000000)
                 && !(u->flags & 0x4000)) {
-                int H = H0 + (((H1 - H0) * fx) / 16 >> 4);
+                int H = H0 + ((H1 - H0) * fz) / 16;
                 hs[k].h = H;
-                hs[k].h = max(H, g_game->seaLevel);
-                int p = (((FUN_004b6340() & 0x1f) + k * 8) << 11) + (short)u->fix_lo;
-                int q = u->type->sight;
-                if (q < 0)
-                    q = -q;
-                q = q / 2;
-                int s = min((int)u->owner->sight, q);
-                __int64 l = _alldiv(_allshl(s, 0x10), q);
-                l = _allmul(l, 2);
-                l = _allshr(l, 0x10);
-                int mm = 2 - (int)l;
-                int n = min(g_game->frame - u->owner->age, 60);
-                mm -= (unsigned)(mm * n) / 60;
-                hres = FUN_004b7123(p, mm) + hs[k].h;
+                int sea = g_game->seaLevel;
+                hs[k].h = max(H, sea);
+                short p = (short)((((FUN_004b6340() & 0x1f) + k * 8) << 11) + u->fix_lo);
+                int s = u->type->sight / 2;
+                int q = u->owner->sight;
+                if (q > s)
+                    q = s;
+                int mm = 2 - (int)((((__int64)q << 16) / s) * 2 >> 16);
+                unsigned int n = g_game->frame - u->owner->age;
+                if (n > 60)
+                    n = 60;
+                mm -= (unsigned int)(mm * n) / 60;
+                hs[k].h = FUN_004b7123(p, mm) + hs[k].h;
             } else {
-                hres = H0 + (((H1 - H0) * fx) / 16 >> 4);
+                hs[k].h = H0 + ((H1 - H0) * fz) / 16;
             }
-            hs[k].h = hres;
-            hs[k].spare = junk;
-        } while (++k < 4);
+            hs[k].spare = hz;
+        }
         int h0 = hs[0].h;
         int h1 = hs[1].h;
         int h2 = hs[2].h;
         int h3 = hs[3].h;
-        u->roll = ((h0 + h1) / 2 / 2 + (h2 + h3) / 2 / 2) / 2 / 2;
-        u->pitch = FUN_004b715a((h2 + h3) / 2 / 2 - (h0 + h1) / 2 / 2,
-                                ((pts[0].z - pts[3].z) / 2) >> 16);
-        u->hdg = FUN_004b715a(h0 - h1, ((pts[1].x - pts[1].z) / 2) >> 16);
+        int a = (h0 + h1) / 2;
+        int b = (h2 + h3) / 2;
+        u->roll = (a + b) / 2;
+        u->pitch = FUN_004b715a(b - a, (short)(abs(pts[0].z - pts[3].z) >> 16));
+        u->hdg = FUN_004b715a(h0 - h1, (short)(abs(pts[0].x - pts[1].x) >> 16));
     }
 }

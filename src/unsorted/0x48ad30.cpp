@@ -12,10 +12,10 @@
 // set, and at the end it ages the 0x14371 counter when bit 1 of +0x14373 is
 // set and FUN_004c1b80(0xf9) says no.
 //
-// NOT MATCHED: 73.8%, 828 bytes against 849. Everything except the outer
+// NOT MATCHED: 74.2%, 828 bytes against 849. Everything except the outer
 // loop's shape and a handful of register choices matches instruction for
-// instruction. What is missing is exactly the 16 bytes of the loop's pre-test
-// and the two induction variable initialisations:
+// instruction. What is missing is exactly the loop's entry guard and the two
+// induction variable initialisations:
 //
 //     xor al, al / cmp al, 0xa          <- the loop's entry guard
 //     mov dword ptr [esp + 0x18], ebx    <- the counter pointer's home slot
@@ -27,11 +27,49 @@
 // so the original is a rotated for/while loop whose entry guard MSVC 5 kept
 // (dead: the guard is never false because i starts at 0) and whose latch is
 // the ordinary up-counting one, `load / load / inc al / add edx,0x14b /
-// cmp al,0xa / store / store / jb`. Getting MSVC 5 to keep that guard while
+// cmp al,0xa / store / store / jb`. The do-while below drops the two
+// initialiser stores, which is why the compiler warns C4700 on `i` and `off`
+// here: the stores only come back with the guard.
+// Getting MSVC 5 to keep that guard while
 // still fusing the increment into the latch is the whole remaining problem,
 // and the trip count pass is what removes it: with a constant bound of 10 it
 // rewrites the loop as a down counter in a fresh int register and drops the
-// guard. Ruled out, each verified with a scratch score (see below):
+// guard.
+//
+// THE MISSING TRICK, found and confirmed (this is the way in). A
+// `static inline` helper in the loop body that TESTS THE LOOP COUNTER makes
+// MSVC 5 hoist that test out of the body to the top of the loop as
+// `xor al,al / cmp al,0xa / jae <the latch>`, and because the byte counter is
+// then live inside the body the trip count pass gives up, so the guard
+// survives and the latch stays the up-counting one. Five spellings were
+// compiled and all five produce the guard plus a byte-for-byte identical
+// latch, from a plain `do { } while (i < 10)` with no other change:
+//
+//     static inline int PlayerOk(unsigned char i, Player_0048ad30* p)
+//     { if (i >= 10) return 0; ...tests on p...; return 1; }
+//     do { Player* p = ...; if (PlayerOk(i, p)) { ...body... }
+//          i++; off += 0x14b; } while (i < 10);
+//
+// (0x44fe40, the other MATCHed function in the exe with this guard, is the
+// same recipe: its inlined `PlayerId(unsigned char i)` opens with
+// `if (i == 10 ...) return -1;` and the guard in its code at 0x44fe52 is
+// that test, hoisted.)
+//
+// What still blocks the match with that helper in place: with the loop now
+// analysed, the front end also strength-reduces the player address into a
+// register IV, so the body computes `lea edi, [edi + ecx + 0x1b63]` and keeps
+// accumulating, where the original reloads the offset (`mov edx,
+// [esp+0x14]`) and rebuilds `[ecx + edx + 0x1b63]` every iteration, and the
+// guard comes out as `jb <body>` plus a dead `xor edi,edi / jmp` instead of
+// `jae <latch>`. Best helper variant scored 70.9% (the address stays in
+// memory there, but `if (helper(...))` gets if-converted into
+// `xor edi,edi / jmp` select code all over the body). Moving the address
+// expression into the helper, or into a second helper, does not stop the
+// strength reduction. So the remaining job is one decision: keep the counter
+// live in the body (for the guard) but keep the address affine use of `off`
+// invisible to the induction variable pass.
+//
+// Ruled out for the guard, each verified with a scratch score:
 // - `for (i = 0, off = 0; i < 10; i++, off += 0x14b)` and the same loop with
 //   `off += 0x14b` as the last statement of the body: 69.5%, `mov dword ptr
 //   [esp+0x18], 0xa` plus `dec eax` in the latch.
@@ -54,12 +92,23 @@
 //   loop, an empty `for (; i < 10; )` third expression and `off` as the first
 //   loop initialiser: every one of them is a down counter as well (checked by
 //   compiling, not by scoring, since all of them lose the same 16 bytes).
+// - A loop whose test is an inlined helper, `for (i = 0; More(i); i++)` with
+//   `static inline int More(unsigned char i) { if (i >= 10) return 0; return
+//   1; }`: this also blocks the trip count pass and keeps the byte counter,
+//   but the loop is left unrotated, with a memory compare
+//   (`cmp byte ptr [esp+0x13], 0xa; jae`) at the top and an unconditional
+//   `inc bl; jmp` back edge, so it is not the original's shape. The helper
+//   that works has to be in the BODY, testing the counter, not the condition.
+// - `i = NextI(i)` with the increment in an inlined helper, `off =
+//   NextOff(off)`, a flat body whose three failed tests are `goto next` to a
+//   label at the end of the body, and the body indexing `&g_game->players[i]`:
+//   all down counters, all losing the same 16 bytes.
 // - `while (1) { if (i >= 10) break; ... }`, brief item 9's form: 70.8%, and
 //   it does keep a guard, but the guard is a memory compare
 //   (`cmp byte ptr [esp+0x13], 0xa`) instead of the original's register
 //   compare on the value `xor al,al` has just produced.
 // - The do-while that is in the file, `do { ... i++; off += 0x14b; } while
-//   (i < 10);`: 71.8%, the best of these. Its latch is byte for byte the
+//   (i < 10);`: 74.2%, the best of these. Its latch is byte for byte the
 //   original's, and swapping the two increment statements to `i++` first was
 //   worth 0.5 points (71.3% to 71.8%), so the original increments the index
 //   before the offset.
@@ -76,6 +125,16 @@
 // instead of a `shr eax, 4 / test al, 1` extraction; and loading the unit
 // list's `last` (+0x6b) before its `first` (+0x67) is worth half a point
 // (72.2% to 72.2% with the previous 71.8%, both scheduler tie-breaks).
+//
+// A fourth misread value, found this round and now in the file: the shield /
+// energy transfer divides by 30, not by 15. The original's sequence is
+// `imul ecx (0x88888889) / add edx,ecx / sar edx, 4 / mov eax,edx / shr
+// eax,0x1f / add edx,eax` and `/ 15` gives `sar edx, 3` with the same magic
+// (the magic is signed negative, so the shift is one less than for `/ 30`),
+// so `(float)(n / 15)` produced a one byte difference. Worth 0.4 points
+// (73.8% to 74.2%). The same `mov ax, [f200] / and eax,0xffff / shl eax,3`
+// before it is what shows the dividend is `(unsigned short) * 8` widened to
+// int, not a short.
 //
 // Also unmatched, and all downstream of the loop: the four register choices
 // in the tail half (`mov eax` vs `mov edx` for the g_game reloads, `dx` vs
@@ -287,7 +346,7 @@ void __stdcall FUN_0048ad30(void)
                                 if (u->type->f200 != 0 && u->f108 < u->type->f1fa
                                     && (g_game->ticks & 7) == 0) {
                                     int n = u->type->f200 * 8;
-                                    FUN_0041bd10(u, u, (float)(n / 15));
+                                    FUN_0041bd10(u, u, (float)(n / 30));
                                 }
                             }
                             FUN_0043b7c0(u);

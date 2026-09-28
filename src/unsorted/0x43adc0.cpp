@@ -10,26 +10,40 @@
 // `remove` is clear) and linked in: in front of the old list head, taking over
 // its flag 0x4000, through the code of 0x43acb0 when the new node has flag
 // 0x20 or 0x40000, otherwise right after the node that carries flag 0x1000, as
-// 0x43ad50 does.  All three helpers are inlined, and the dead `node != first`
-// compare in the second loop is the original passing the node itself as the
-// list head to the shared unlink helper.
+// 0x43ad50 does.  All three helpers are inlined.
 //
-// NOT MATCHING (56.6%, 471 of 500 bytes).  The whole difference is one
-// register-allocation decision: the original keeps the `owner` parameter in
-// its stack slot and re-reads it at every use (six `mov reg, [esp+0x1c]`:
-// 0x43ade2, 0x43ae14, 0x43ae5f, 0x43aec8, 0x43af07, 0x43af10, 0x43af8d), so
-// all four callee-saved registers are free for other things: bl holds the mask
-// 4 of the first loop's test (0x43ae25) and ebx/ebp hold 0x40000/0x4000 from
-// 0x43ae63 on, which is why the original tests those masks with `test reg, reg`
-// and stores 0x10000 with an immediate.  Every source spelling tried here
-// (one flat function, `static inline` helpers, owner member functions, the
-// owner passed by address or through a wrapper struct, the real 0x43acb0 and
-// 0x43ad50 defined above this function and called) makes MSVC 5 enregister
-// `owner` in ebx, which cascades into the immediates, the byte tests, the
-// operand order of the two flag copies and the branch polarity of the second
-// loop's list selection ternary.  The structure of the code itself is confirmed
-// correct: the blocks, the loops, the delete calls and all three helper bodies
-// line up one for one.
+// NOT MATCHING (80.7%, 488 of 500 bytes).  What is left is 12 bytes in the two
+// prune loops, and both halves of it come from one dead compare.
+//
+// The original's second loop keeps the compare of the shared unlink helper even
+// though its two arguments are the same node: 0x43aea5 is `cmp esi, esi`, and
+// the `or dword ptr [esi+0x42], 0x10000` behind it (0x43aeab) can never run.
+// Our source has the same two arguments (`RemoveFromList(lk, node, n)`), but the
+// front end folds `node != n` away, so the compare, the branch and the `or` are
+// all missing (11 bytes).  A compare that survives needs two distinct symbols
+// that still land in one register: `Class_0043a1f0* f = *q; if (f != n)` does
+// survive, but it reloads `*q` and costs a register, and with that extra
+// register the mask registers go away again.  Every other spelling tried
+// (`node = n` before the call, `*lk` as either argument, a local copy, the
+// unlink written out twice) is folded.
+//
+// That dead compare is also what makes the rest of the second block come out
+// right: because 0x10000 has a second use in the second loop, MSVC rematerialises
+// it at both uses instead of giving it a register, which frees ebx in the first
+// loop for the mask 4 (`mov bl, 4; test byte ptr [esi+0x42], bl` and
+// `or dword ptr [esi+0x42], 0x10000`, 0x43ae25 onwards).  With the compare
+// folded, 0x10000 has one short use, wins ebx, and the first loop differs in
+// three instructions.  The `Class_0043a1f0* node = n;` copy in PruneUsed is
+// what puts 0x40000 and 0x4000 into ebx and ebp (0x43ae63), and without it both
+// stay immediates, so keep it.
+//
+// Two smaller points, both confirmed: the constructor's second argument is this
+// function's fourth parameter (the `Unit*` target the callers pass), not
+// `owner`, which is what keeps `owner` in its stack slot and re-read at all
+// seven uses; and the original loads `owner->list` twice in the first loop's
+// pre-header (0x43ae18 and 0x43ae1b) where we load it once and copy, which no
+// spelling tried here defeats (declaration order, an inline accessor, an extra
+// argument, an uninitialised local: all merge the two loads).
 
 #pragma pack(push, 1)
 
@@ -51,7 +65,7 @@ public:
     Class_0043a1f0* next;                // +0x4a
     char unknown_4e[0x56 - 0x4e];
 
-    Class_0043a1f0(int k, Owner_0043adc0* o, Vec3_0043adc0* p, int a, int b, int c);
+    Class_0043a1f0(int k, void* o, Vec3_0043adc0* p, int a, int b, int c);
     ~Class_0043a1f0();
 };
 
@@ -108,7 +122,8 @@ static inline void PruneUsed(Owner_0043adc0* owner)
     for (Class_0043a1f0* n = owner->list; n != 0; n = owner->list) {
         if (!(n->flags & 0x4000))
             break;
-        RemoveFromList((n->flags & 0x40000) ? &owner->list2 : base, n, n);
+        Class_0043a1f0* node = n;
+        RemoveFromList((node->flags & 0x40000) ? &owner->list2 : base, node, n);
     }
 }
 
@@ -149,10 +164,10 @@ static inline void AddMarked(Owner_0043adc0* owner, Class_0043a1f0* node)
 }
 
 // FUNCTION: 0x43adc0
-void __stdcall FUN_0043adc0(int kind, int remove, Owner_0043adc0* owner, int id,
+void __stdcall FUN_0043adc0(int kind, int remove, Owner_0043adc0* owner, void* id,
                             Vec3_0043adc0* pos, int param_6, int param_7)
 {
-    Class_0043a1f0* obj = new Class_0043a1f0(kind, owner, pos, param_6, param_7, 0);
+    Class_0043a1f0* obj = new Class_0043a1f0(kind, id, pos, param_6, param_7, 0);
 
     if (remove == 0 && !(obj->flags & 0x40))
         PruneLoose(owner);

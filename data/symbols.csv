@@ -931,7 +931,7 @@ address,name
 0x44ec10,Class_0044e740::FUN_0044ec10
 0x44ec20,Class_0044ec20::FUN_0044ec20
 0x44ee60,UPoint_0044eec0::?$vector::_Destroy
-0x44ee70,Class_0044ee70::FUN_0044ee70
+0x44ee70,UPoint_0044eec0::?$vector::size
 0x44ee90,UPoint_0044eec0::?$vector::_Ucopy
 0x44eec0,UPoint_0044eec0::?$vector::_Ufill
 0x44eef0,FUN_0044eef0

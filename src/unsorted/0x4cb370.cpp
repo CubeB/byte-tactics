@@ -19,6 +19,18 @@
 // node->elems vs a cached elems pointer; all 128 combinations of the common
 // headers; do-while/while/for outer loop forms; names of the parameter and the
 // locals; `register` on the parameter and locals.
+// Retried by deepseek-v4.1-flash with no effect: each common header alone;
+// __thiscall method; Node& parameter; a differently-named local copy of the
+// parameter (`Node* node = param;`) so node is a local, not a parameter;
+// label+goto and for(;;)+break outer loops; an explicit extra use of node to
+// raise its register priority. Worse: re-declaring the two sum loops with the
+// sibling 0x4cb2f0's named locals (`int n`, `unsigned short* p`, `*p++`),
+// whether written inline or as an inlined static helper (48.6%, node lands in
+// eax). Index-based `node->elems[i]` walking also much worse (46.6%). The
+// source structure above is right; the allocator just refuses ebp for node.
+// Note the sibling 0x4cb2f0 (the average helper, no direct callers) is inlined
+// here, and its first sum loop's registers (count in esi, counter in edi) are
+// what falls out of this source once node is in ebp.
 
 struct Elem_004cb4c0 {              // 0x20 bytes
     int unknown_0;                  // +0x0

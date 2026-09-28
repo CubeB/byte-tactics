@@ -807,7 +807,7 @@ address,size,file,symbol,status,similarity
 0x443590,5,src/unsorted/0x443590.cpp,?FUN_00443590@@YAXXZ,matched,100.0
 0x4435a0,316,src/unsorted/0x4435a0.cpp,?FUN_004435a0@@YGXPAIPAPAD@Z,matched,100.0
 0x4436e0,223,src/unsorted/0x4436e0.cpp,?FUN_004436e0@@YAHXZ,matched,100.0
-0x443ff0,424,src/unsorted/0x443ff0.cpp,?FUN_00443ff0@@YGHH@Z,partial,83.5
+0x443ff0,424,src/unsorted/0x443ff0.cpp,?FUN_00443ff0@@YGHH@Z,matched,100.0
 0x4444d0,173,src/unsorted/0x4444d0.cpp,?FUN_004444d0@@YGHPAUEntry_004444d0@@HFHPAD@Z,matched,100.0
 0x444910,31,src/unsorted/0x444910.cpp,?FUN_00444910@@YGXPAUObj_00444910@@H@Z,matched,100.0
 0x444930,229,src/unsorted/0x444930.cpp,?FUN_00444930@@YGXPAUGadget_00444930@@@Z,matched,100.0

@@ -3461,7 +3461,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c2f60,434,,#632,assigned,,,"issue #632, escalated"
 0x4c54f0,583,,#632,assigned,,,"issue #632, escalated"
 0x4c59d0,415,,#632,assigned,,,"issue #632, escalated"
-0x443ff0,424,,#634,assigned,,,"issue #634, escalated"
+0x443ff0,424,space-bunny-free,#634,matched,100.0,,"issue #634, escalated"
 0x4bfd60,167,,#637,assigned,,,"issue #637, escalated"
 0x4bfe10,267,,#637,assigned,,,"issue #637, escalated"
 0x4bff20,332,,#637,assigned,,,"issue #637, escalated"

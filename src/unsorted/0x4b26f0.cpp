@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free. Names are provisional.
 //
 // This is the game code that does `return g_map[key];` for a global
 // std::map<int,int> living at 0x51fbc0 (its static _Nil sentinel is

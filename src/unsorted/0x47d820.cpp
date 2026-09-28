@@ -1,8 +1,27 @@
-// Decompiled by Space Bunny Free. Names are provisional.
-// Height of the ground under a unit's footprint: scans the footprint rectangle
-// of map cells, keeping the lowest cell height over the cells the unit's mask
-// marks and the highest over the cells it does not. If nothing was marked, the
-// water surface minus the type's draft is returned instead.
+// Decompiled by Space Bunny Free, finished by space-bunny-free. Names are provisional.
+// Ground height under a unit's footprint: walks the rectangle of map cells the
+// unit covers and keeps the lowest cell floor over the cells whose footprint
+// mask has bit 3 set, plus the highest floor over the cells with bit 3 and the
+// highest floor over the cells with bit 4 set. The bit 4 maximum is never read
+// (see the bug note), so the result is the low value, or the water surface
+// minus the type's draft when no mask bit was set at all.
+// The declaration order matters: y before the footprint copy before x is what
+// gives g_game ebx and cell.y si, as in the original.
+//
+// PARTIAL: 99.1%, one instruction out. The footprint mask load is
+// `mov al, [edi+esi]` here (mask pointer in the base slot, the mask index in
+// the index slot) where the original has `mov al, [esi+edi]`, so MSVC picked
+// the other operand as the base of that memory reference. Nothing in the
+// source moved it: the index type (int, unsigned, a separate unsigned),
+// subscript versus explicit pointer arithmetic, a local copy of the mask
+// pointer, the order of the index declaration, an explicit cast of the result
+// and incrementing the index in a separate statement were all tried, and
+// tools/headers.py (128 sets) plus 20 unused extern declarations in front
+// (the compiler-state probe from the guide) all score the same or worse. The
+// same swap only appears (with the mask in esi and the index in edi, which the
+// rest of the function then gets wrong) when the index is declared before the
+// cell pointer. Treated as the guide's "operand order that nothing changes"
+// case: one SIB byte, compiler state, move on.
 #pragma pack(push, 1)
 
 struct Point {
@@ -12,15 +31,15 @@ struct Point {
 
 struct Cell {
     char unknown_0[0x5];
-    unsigned char field_5;              // +0x5
-    unsigned char field_6;              // +0x6
-    char unknown_7[0xd - 0x7];
+    unsigned char field_5;              // +0x5, highest floor
+    unsigned char field_6;              // +0x6, lowest floor
+    char unknown_7[0xd - 0x7];          // 13 bytes per cell
 };
 
 struct Unit_0047d820 {
     char unknown_0[0x14a];
     Point origin;                       // +0x14a, footprint in map cells
-    char* mask;                         // +0x14e, one byte per footprint cell
+    unsigned char* mask;                // +0x14e, one byte per footprint cell
     char unknown_152[0x22c - 0x152];
     unsigned char draft;                // +0x22c
 };
@@ -41,19 +60,18 @@ extern Game_0047d820* g_game;
 // FUNCTION: 0x47d820
 int __stdcall FUN_0047d820(Unit_0047d820* unit, Point cell)
 {
+    short y = cell.y;
     Point fp = unit->origin;
-    if (cell.x < 1 || cell.y < 1 || cell.x + fp.x >= g_game->width ||
-        cell.y + fp.y >= g_game->height)
+    short x = cell.x;
+    if (x < 1 || y < 1 || x + fp.x >= g_game->width || y + fp.y >= g_game->height)
         return 0;
     int width = g_game->width;
-    Cell* c = &g_game->cells[cell.y * width + cell.x];
-    unsigned char low = 0xff;
-    unsigned char high = 0;
-    unsigned char high2 = 0;
+    Cell* c = &g_game->cells[y * width + x];
+    unsigned char low = 0xff, high = 0, high2 = 0;
     int i = 0;
     for (int row = fp.y; row > 0; row--) {
         for (int col = fp.x; col > 0; col--) {
-            unsigned char f = unit->mask[i++];
+            int f = unit->mask[i++];
             if (f & 8) {
                 if (c->field_6 < low)
                     low = c->field_6;
@@ -68,8 +86,10 @@ int __stdcall FUN_0047d820(Unit_0047d820* unit, Point cell)
         }
         c += width - fp.x;
     }
-    unsigned char r = low;
+    unsigned char r;
     if (high < low)
         r = g_game->seaLevel - unit->draft;
+    else
+        r = low;
     return r;
 }

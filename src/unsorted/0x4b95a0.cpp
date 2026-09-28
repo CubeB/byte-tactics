@@ -4,19 +4,19 @@
 // at +0xc0, and the two results are blended again. The source rows for output
 // row y are y and 2y+1, and the destination is one byte per pixel.
 //
-// Partial, check.py 81.1%. Every field offset, the two nested for loops, the
-// strength-reduced (row*2+1) stride counter and the inlined lookups match; the
-// remaining differences are MSVC 5 register allocation:
-//   * the first source index is computed into eax and the +0xc0 load sinks
-//     below the pointer lea, where the original computes the index in ebx
-//     (imul ebx,esi) and loads the table above the lea;
-//   * in the second lookup the original reads q[1] before q[0] and keeps
-//     q[0]<<8 in eax (esi holds q[1]); ours reads q[0] first;
-//   * at the destination store the original adds x to the row offset before
-//     loading dst->data, ours folds dst->data in first and indexes with x.
-// <memory.h> is included only because MSVC 5's allocator and operand order
-// depend on it; without it check.py drops to 80.5%.
-#include <memory.h>
+// Two MSVC 5 register-allocation quirks had to be reproduced, both found by
+// tools/headers.py:
+//   * src->width and src->data must be read inline in both pointer
+//     expressions. With them cached in locals MSVC puts the first index
+//     multiply in eax (`mov eax, esi; imul eax, ebx`) and the function is two
+//     bytes too long; inline, the multiply is `imul ebx, esi` and the whole
+//     first half matches instruction for instruction.
+//   * the file has to include <stdlib.h> (not <memory.h>, and not nothing):
+//     it is the header state, not the content, that makes MSVC read the
+//     second source pixel q[1] before q[0] and fold the destination base in
+//     after the row index. <stdlib.h> is the smallest of the sets
+//     tools/headers.py --cpp reports as byte-identical.
+#include <stdlib.h>
 
 struct Image_004b95a0 {
     unsigned short width;   // +0x0
@@ -42,11 +42,9 @@ void __stdcall FUN_004b95a0(Image_004b95a0* src, Image_004b95a0* dst)
     int row = 0;
     for (; row < dst->height; row++) {
         for (int x = 0; x < dst->width; x++) {
-            int w = src->width;
-            unsigned char* data = src->data;
-            unsigned char* p = data + (row * w + x) * 2;
+            unsigned char* p = src->data + (row * src->width + x) * 2;
             unsigned char* table = pal->table;
-            unsigned char* q = data + (row * 2 + 1) * w + x * 2;
+            unsigned char* q = src->data + (row * 2 + 1) * src->width + x * 2;
             int a = p[0];
             int b = p[1];
             int p1 = table[(a << 8) + b];

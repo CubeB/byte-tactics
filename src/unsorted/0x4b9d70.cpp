@@ -26,6 +26,23 @@
 // dst->width but dstCol is not subtracted from it, so when dstCol > 0 the
 // loop writes up to dstCol bytes past the end of the destination row
 // (the vertical clip does account for dstRow). Kept as the original does.
+// A second bug: if srcCol > src->width (possible when x is large), then
+// src->width - srcCol is negative, but the inner guard is `test ebx, ebx;
+// je`, which only exits at zero, so a negative count runs until it wraps.
+//
+// Retry note (deepseek-v4.1-flash): the original computes the vertical clip
+// first and only then `neg ecx` for the horizontal, so the source is
+// `dstCol = -sx; if (dstCol < 0) { srcCol = -dstCol; dstCol = 0; }` with the
+// sx expression evaluated before the vertical branch. Reconstructing that
+// order (v4 in build/scratch/0x4b9d70) scores 56.2%, the best correct-order
+// result, still under this file's 58.2%. Every phrasing of the two clip
+// expressions (separate variables, split statements, reordered operands)
+// compiles to the exact same bytes under MSVC 5 SP3, so the remaining
+// register split is compiler state, not source shape. No tested single
+// header, and none of the tested combinations of <windows.h>, <stdio.h>,
+// <string.h>, <math.h> and <memory.h>, reproduces the original's x-in-ecx
+// split; <string.h>, <stdio.h> and <math.h> alone do move the first temp to
+// edx but then hoist src->y into ecx.
 
 struct Image_004b9d70 {
     unsigned short width;   // +0x0

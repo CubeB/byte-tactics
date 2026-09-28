@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free. Names are provisional.
 // Bounds-checked accessor into the vector of pointers held at +4 (_First at
 // +8). The first size() guard returns 0 when the index is out of range; the
 // inlined std::vector::at that follows repeats the check and throws

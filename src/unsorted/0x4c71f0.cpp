@@ -1,5 +1,24 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
 // Calling convention checked again (#1188): __stdcall ret 0x10 matches, callee 0x4b7381 is cdecl (add esp,0xc) and is declared so; not the cause. Tried (&at_low)[1] for at_high in case 1: 80.0%, same 280 bytes, case 2 diff unchanged.
+//
+// deepseek-v4.1-flash pass (#1210), no score change, 80.0% (280 bytes). The jump
+// table was dumped from the exe (0x4c72f8 = 0x4c7260, 0x4c7284, 0x4c72ad,
+// 0x4c72cf), so the case labels are confirmed correct and the two mismatches are
+// purely at_high's materialisation. New spellings tried, all 80.0% unless said:
+//   - reordering the case bodies in the source (0,2,1,3 and 1,2,0,3): 74.6% and
+//     56.2%, so body emission order is load-bearing here as in 0x4c70d0.
+//   - writing the case 1 store through `int& low = out->low` or `Range& r = *out`
+//     (the 0x41ba60 lever for a load MSVC hoists above a store the original keeps
+//     first): unchanged, so that lever does not apply to a hoisted stack-parameter
+//     load.
+//   - a `const int&` alias for at_high, and a local `int h = at_high;` placed
+//     after the store: unchanged.
+//   - an inline three-argument forwarder `Forward(a,b,c)` returning
+//     FUN_004b7381(a,b,c), and a reversed one `Rev(c,b,a)` calling FUN(a,b,c):
+//     both 80.0%, so the inlined-call boundary does not change the schedule here.
+//   - `int* out` with out[0]/out[1] instead of Range*: 80.0%, identical bytes.
+// The 80.4% variant that passes `value` for case 1 stays rejected: it reads
+// parameter 1, not parameter 4 (see the stack arithmetic below).
 // Claude Sonnet 5.5 pass (#624): compiler state ruled out (0 to 400 unused `extern
 // int` declarations in steps of 8, all 80.0% and 280 bytes). More source shapes
 // scored, none moved case 1 or case 2: an inline helper `Scale(a, b)` that reads

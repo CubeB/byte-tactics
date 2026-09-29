@@ -1,4 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+//
+// Best so far: 88.5 percent (640 of 654 bytes). Everything matches except one
+// block, the cx/cy computation in the else arm of the flags bit 4 test. The
+// original emits, in this order:
+//     mov  eax, [esp+0x20]        ; pos.x          -> edi
+//     mov  ecx, [ecx+0x1485b]     ; table, the call's first argument
+//     ...  push ebx / push ecx
+//     movsx eax, [esp+0x2e]       ; high word of pos.y, / 64 -> esi
+//     mov  eax, [esp+0x30]        ; pos.z          -> esi again
+//     mov  [esp+0x40], esi        ; so the y value is spilled to the dead
+//     mov  eax, [esp+0x40]        ; incoming argument slot and reloaded
+// and afterwards both stores are full 32 bit, `movsx edx, word [eax+4]` plus
+// `sub edi, edx`, where this version folds the 16 bit operand into the sub
+// (`sub di, word ptr [eax+4]`) and computes z before y with y in eax.
+// The whole 14 byte difference is that one cause: the original's def order is
+// cx, y, z, so y takes esi and z has to spill it. Every source spelling tried
+// here makes MSVC 5 sink the y computation to its use, which puts z second and
+// leaves y in a scratch register. See the notes at the end of this file.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -142,6 +160,9 @@ void __stdcall FUN_004816a0(int arg)
                     i = 0;
                 else if (i >= g_game->field_1485b->count)
                     i = g_game->field_1485b->count - 1;
+                // The original reads this as a 16 bit load of the high word of
+                // pos.y, so it is spelled as one here; a plain shift of pos.y
+                // would be a 32 bit load plus `sar`.
                 int y = ((short*)&params.pos.y)[1] / 64;
                 int cx = params.pos.x / 0x200000;
                 int cy = params.pos.z / 0x200000 - y;
@@ -159,3 +180,24 @@ void __stdcall FUN_004816a0(int arg)
     FUN_00466c20();
     FUN_00466dc0();
 }
+
+// What was tried for the cx/cy block and did NOT move the number, so that
+// nobody repeats it. All of these compile to 640 bytes, the same schedule
+// (x, z, y with y in eax), and score 88.5 percent:
+//   * source order y, cx, cy / cx, y, cy / y, cx, cz, cy -= y / cx, cy, y, cy
+//   * three separate ints cx, ty, cz with the subtraction at the store
+//   * hoisting the 16 bit read into its own `int` or `short` local first
+//   * an `__inline` accessor for that 16 bit read
+//   * a function scope `int y` assigned inside the loop
+//   * dropping the `(short)` cast on the two stores
+// Moving y's definition before the i clamp does keep it early, but then MSVC 5
+// gives it ecx rather than esi and the block gets worse (81.7 percent).
+// Putting the call to FUN_004b7f30 first in the source, so that both of its
+// arguments would be evaluated before the divisions, also gets worse
+// (73.4 percent), so the original's early `push ebx` / `push ecx` pair is not
+// the source's statement order. A local `short*` for params.field_4 loses the
+// two reloads of it that the original has (85.6 percent).
+// The likely lever is still the one the guide calls an allocation lever: some
+// construct that stops MSVC 5 sinking the y definition down to its use, since
+// with the def order cx, y, z the y value would take esi and the z division
+// would have to spill it, which is exactly what the original does.

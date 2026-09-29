@@ -90,8 +90,11 @@ struct Game_00481d50 {
     char unknown_14283[0x1428f - 0x14283];
     Grid_00481d50 grid1;               // +0x1428f
     char unknown_1429f[0x142f1 - 0x1429f];
-    unsigned char flags_142f1;         // +0x142f1
-    char unknown_142f2[0x1485b - 0x142f2];
+    unsigned short flags_142f1_bit0 : 1;  // +0x142f1
+    unsigned short flags_142f1_bit1 : 1;
+    unsigned short flags_142f1_mapChanged : 1;
+    unsigned short flags_142f1_rest : 13;
+    char unknown_142f3[0x1485b - 0x142f3];
     void* losTable;                    // +0x1485b
 };
 
@@ -116,12 +119,22 @@ inline int Lod_00481d50(Params_00481d50* params)
     return v < 0 ? 0 : v;
 }
 
+// Status: partial, 52.7 percent. The shape below is the closest found. What is
+// still wrong: the stack slots and the register rotation across both branches.
+// The original keeps sx in [esp+0x1c], sy in [esp+0x20], the table pointer in
+// [esp+0x38] and the line pointer in [esp+0x3c]; this version puts sx in
+// [esp+0x20], sy in [esp+0x14], the table in [esp+0x18] and the line in
+// [esp+0x30]. In the else branch the original computes the destination first
+// (ecx) and the source second (edx); every spelling tried here leaves the
+// source in ecx. <windows.h> is required (the family sibling 0x4825b0 matches
+// only with it). The 0x482270 twin is byte-identical apart from the sign of the
+// two explored-map updates and is still unmatched too.
 // FUNCTION: 0x481d50
 void __stdcall FUN_00481d50(Params_00481d50* params)
 {
     if (((Map_00481d50*)params->field_0)->playerIndex == g_game->playerIndex) {
         g_game->flag3 = 0;
-        g_game->flags_142f1 |= 4;
+        g_game->flags_142f1_mapChanged = 1;
     }
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
@@ -133,8 +146,9 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
+        int lod = Lod_00481d50(params);
         void* table;
-        if (Lod_00481d50(params) < ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
+        if (lod < ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
             table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(Lod_00481d50(params));
         else
             table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(
@@ -143,8 +157,6 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
         short i = 0;
         ((Map_00481d50*)params->field_0)->explored.data[y * ((Map_00481d50*)params->field_0)->explored.size.width + x]--;
         int ref = *params->field_c;
-        if (count <= 0)
-            return;
         for (i = 0; i < count; i++) {
             void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
             short num = ((Class_004339c0*)line)->FUN_004339c0();
@@ -152,8 +164,6 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             int bestIdx = 0;
             short j = 0;
             int j1 = 1;
-            if (num <= 0)
-                continue;
             for (j = 0; j < num; j++) {
                 int e1;
                 int e2;

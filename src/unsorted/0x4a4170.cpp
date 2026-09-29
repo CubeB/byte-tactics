@@ -17,6 +17,12 @@
 // the merge, i.e. it is live on both paths, yet every literal-zero spelling
 // the front end sees is folded or rematerialised. A real variable that is 0 on
 // both paths and read after the merge is the only shape left.
+// deepseek-v4.1-flash retry (issue 1202): tools/headers.py with all 128 header
+// sets (and the file's own structs) is also flat at 80.9%, so the edx zero is
+// not a compiler-state or header effect. Rechecked the 0x4a3ef0 lesson by
+// declaring `int zero = 0;` right after the FUN_004a23b0 call (not at the top
+// of the focus block): still 80.9%, MSVC folds it to `mov [ebp+0x78], eax` and
+// `cmp word [ebx+0x140], 0` exactly as before. No change to the code.
 // Sonnet 5.5 retry (#1080): no change to the code. /Gz and /Gr give the same 80.9%. The original zero in edx is not reachable with an `int zero = 0` local, a local assigned 0 in both arms, or named locals for the call results, the drag flag, the holder and the offset (about 150 variants): MSVC folds every one back to immediates. In 0x4a3ef0 a zero local that is reassigned LATER (`int lines = 0;` then `lines = ...` in one arm), declared after the last call before the block, did create the zero register, so look for a real variable in this block that starts at 0 and is reassigned on some path.
 // Not a match yet, 80.9%. The whole prologue, the entry-address computation,
 // the 24-byte point copy, the FUN_004a23b0 call, both FUN_004ab510 tail

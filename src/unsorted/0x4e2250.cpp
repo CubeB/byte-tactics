@@ -191,7 +191,8 @@ Class_004e2a10 Class_004e2250::FUN_004e2250(const Val_004e2250& v)
     }
     Class_004e2ab0 it(y);
     if (ans) {
-        if (y == head->left) {
+        bool b = (y == head->left);
+        if (b) {
             it.ptr = FUN_004e2620(*(Node_004e2250**)(char*)const_cast<char*>((const char*)&v), x, y, v);
             return Class_004e2a10(it, (char)1);
         }

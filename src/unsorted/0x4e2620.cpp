@@ -1,28 +1,7 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// NOT MATCHED (54.4%). This is MSVC 5's <xtree> _Tree::_Insert for the name
-// table: the hint node and the value come in, the new node comes back through
-// a hidden pointer because the iterator has constructors. The node is 0x208
-// bytes: left/parent/right, a 504-byte value (a Class_004e1a30 key plus a
-// 500-byte buffer) and a 4-byte colour at +0x204, 0 = red and 1 = black.
-// DAT_005292c4 is the tree's _Nil. See 0x4e17c0.cpp for the singleton's
-// constructor and 0x4df380.cpp for the same node layout.
-//
-// What still differs (816 bytes vs our 797, 54.4%):
-//  * The link-up block (_Left(_Y) = _Z plus the three _Head updates) is placed
-//    INLINE by this source, after the ++_Size tests, while the original puts
-//    it COLD: all three conditions jump forward to it and it lives after the
-//    epilogue and the ret, at 0x4e2926..0x4e294b, 37 bytes, with the join at
-//    0x4e26ca. The original's block is the then-arm of the `||` chain and MSVC
-//    5 has sunk it; ours is the same then-arm and MSVC 5 kept it inline, so
-//    this is a block-ORDERING difference, not a shape difference. Tried and did
-//    not work: a do{}while(0) wrapper, an empty else, De Morgan on the
-//    condition (which is ruled out anyway, the original mixes je and jne in
-//    the chain so the source really is `_Y == head || _X != _Nil || cmp()`).
-//  * Because the red value 0 lives in a REGISTER in the original (edi, set by
-//    `xor edi,edi` at 0x4e26fe) but is an immediate here, the loop variable
-//    lands in edi instead of esi, and the black-uncle recolouring block uses
-//    edi where the original uses esi. Getting 0 into a register is the lever
-//    that would free edi and promote _X to esi; nothing tried so far does it.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// MSVC 5 <xtree> _Tree::_Insert(_X, _Y, _V). The body below mirrors the
+// original XTREE source line for line so the allocator sees the same live
+// ranges.
 #include <string.h>
 #include <yvals.h>
 
@@ -81,45 +60,48 @@ public:
     int nilref;                        // +0x8
     unsigned int size;                 // +0xc
 
-    Node_004e2620* root() { return head->parent; }
-    void Lrotate(Node_004e2620* _X)
+    Node_004e2620*& _Root() { return head->parent; }
+    Node_004e2620*& _Lmost() { return head->left; }
+    Node_004e2620*& _Rmost() { return head->right; }
+
+    static Node_004e2620*& _Left(Node_004e2620* p) { return p->left; }
+    static Node_004e2620*& _Right(Node_004e2620* p) { return p->right; }
+    static Node_004e2620*& _Parent(Node_004e2620* p) { return p->parent; }
+    static int& _Color(Node_004e2620* p) { return p->color; }
+
+    void _Lrotate(Node_004e2620* _X)
     {
         std::_Lockit _Lk;
-        Node_004e2620* _R = _X->right;
-        _X->right = _R->left;
-        if (_R->left != DAT_005292c4)
-            _R->left->parent = _X;
-        _R->parent = _X->parent;
-        if (_X == head->parent)
-            head->parent = _R;
-        else if (_X == _X->parent->left)
-            _X->parent->left = _R;
+        Node_004e2620* _Y = _Right(_X);
+        _Right(_X) = _Left(_Y);
+        if (_Left(_Y) != DAT_005292c4)
+            _Parent(_Left(_Y)) = _X;
+        _Parent(_Y) = _Parent(_X);
+        if (_X == _Root())
+            _Root() = _Y;
+        else if (_X == _Left(_Parent(_X)))
+            _Left(_Parent(_X)) = _Y;
         else
-            _X->parent->right = _R;
-        _R->left = _X;
-        _X->parent = _R;
+            _Right(_Parent(_X)) = _Y;
+        _Left(_Y) = _X;
+        _Parent(_X) = _Y;
     }
-    void Rrotate(Node_004e2620* _X)
+    void _Rrotate(Node_004e2620* _X)
     {
         std::_Lockit _Lk;
-        Node_004e2620* _L = _X->left;
-        _X->left = _L->right;
-        if (_L->right != DAT_005292c4)
-            _L->right->parent = _X;
-        _L->parent = _X->parent;
-        if (_X == head->parent) {
-            head->parent = _L;
-            _L->right = _X;
-            _X->parent = _L;
-        } else if (_X == _X->parent->right) {
-            _X->parent->right = _L;
-            _L->right = _X;
-            _X->parent = _L;
-        } else {
-            _X->parent->left = _L;
-            _L->right = _X;
-            _X->parent = _L;
-        }
+        Node_004e2620* _Y = _Left(_X);
+        _Left(_X) = _Right(_Y);
+        if (_Right(_Y) != DAT_005292c4)
+            _Parent(_Right(_Y)) = _X;
+        _Parent(_Y) = _Parent(_X);
+        if (_X == _Root())
+            _Root() = _Y;
+        else if (_X == _Right(_Parent(_X)))
+            _Right(_Parent(_X)) = _Y;
+        else
+            _Left(_Parent(_X)) = _Y;
+        _Right(_Y) = _X;
+        _Parent(_X) = _Y;
     }
 
     Iter_004e2620 FUN_004e2620(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V);
@@ -130,59 +112,59 @@ Iter_004e2620 Class_004e2620::FUN_004e2620(Node_004e2620* _X, Node_004e2620* _Y,
 {
     std::_Lockit _Lk;
     Node_004e2620* _Z = (Node_004e2620*)((Class_004e2b60*)this)->FUN_004e2b60(0x208);
-    _Z->parent = _Y;
-    _Z->color = 0;
-    _Z->left = DAT_005292c4;
-    _Z->right = DAT_005292c4;
+    _Parent(_Z) = _Y;
+    _Color(_Z) = 0;
+    _Left(_Z) = DAT_005292c4;
+    _Right(_Z) = DAT_005292c4;
     _Z->value = _V;
     ++size;
     if (_Y == head || _X != DAT_005292c4 || compare(_V.key, _Y->value.key)) {
-        _Y->left = _Z;
+        _Left(_Y) = _Z;
         if (_Y == head) {
-            head->parent = _Z;
-            head->right = _Z;
-        } else if (_Y == head->left)
-            head->left = _Z;
+            _Root() = _Z;
+            _Rmost() = _Z;
+        } else if (_Y == _Lmost())
+            _Lmost() = _Z;
     } else {
-        _Y->right = _Z;
-        if (_Y == head->right)
-            head->right = _Z;
+        _Right(_Y) = _Z;
+        if (_Y == _Rmost())
+            _Rmost() = _Z;
     }
-    for (_X = _Z; _X != head->parent && _X->parent->color == 0; ) {
-        if (_X->parent == _X->parent->parent->left) {
-            Node_004e2620* _U = _X->parent->parent->right;
-            if (_U->color == 0) {
-                _X->parent->color = 1;
-                _U->color = 1;
-                _X->parent->parent->color = 0;
-                _X = _X->parent->parent;
+    for (_X = _Z; _X != _Root() && _Color(_Parent(_X)) == 0; ) {
+        if (_Parent(_X) == _Left(_Parent(_Parent(_X)))) {
+            _Y = _Right(_Parent(_Parent(_X)));
+            if (_Color(_Y) == 0) {
+                _Color(_Parent(_X)) = 1;
+                _Color(_Y) = 1;
+                _Color(_Parent(_Parent(_X))) = 0;
+                _X = _Parent(_Parent(_X));
             } else {
-                if (_X == _X->parent->right) {
-                    Lrotate(_X->parent);
-                    _X = _X->parent;
+                if (_X == _Right(_Parent(_X))) {
+                    _X = _Parent(_X);
+                    _Lrotate(_X);
                 }
-                _X->parent->color = 1;
-                _X->parent->parent->color = 0;
-                Rrotate(_X->parent->parent);
+                _Color(_Parent(_X)) = 1;
+                _Color(_Parent(_Parent(_X))) = 0;
+                _Rrotate(_Parent(_Parent(_X)));
             }
         } else {
-            Node_004e2620* _U = _X->parent->parent->left;
-            if (_U->color == 0) {
-                _X->parent->color = 1;
-                _U->color = 1;
-                _X->parent->parent->color = 0;
-                _X = _X->parent->parent;
+            _Y = _Left(_Parent(_Parent(_X)));
+            if (_Color(_Y) == 0) {
+                _Color(_Parent(_X)) = 1;
+                _Color(_Y) = 1;
+                _Color(_Parent(_Parent(_X))) = 0;
+                _X = _Parent(_Parent(_X));
             } else {
-                if (_X == _X->parent->left) {
-                    Rrotate(_X->parent);
-                    _X = _X->parent;
+                if (_X == _Left(_Parent(_X))) {
+                    _X = _Parent(_X);
+                    _Rrotate(_X);
                 }
-                _X->parent->color = 1;
-                _X->parent->parent->color = 0;
-                Lrotate(_X->parent->parent);
+                _Color(_Parent(_X)) = 1;
+                _Color(_Parent(_Parent(_X))) = 0;
+                _Lrotate(_Parent(_Parent(_X)));
             }
         }
     }
-    head->parent->color = 1;
+    _Color(_Root()) = 1;
     return Iter_004e2620(_Z);
 }

@@ -1,4 +1,16 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free and deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash retry, no improvement over 88.7%: the only missing bytes are the
+// three pre-loop stores (mov [pt],esi / mov [shared],ebx / mov [priv],edi) that the
+// original keeps alongside the post-loop ones. Every source that emits both sets makes
+// MSVC rematerialise the three zeros as one scratch register, which spills the loop
+// counter and steals the counter registers, so the block grows to 948-951 bytes. Tried:
+// pre outside + post inside in all 216 store/zero order permutations; chained and single
+// chained assignments; separate counter copy; register/unsigned/signed/temp locals; struct,
+// array and union counter models; inline store/zero helpers (by value, reference, pointer);
+// volatile globals (worse); reordered declarations; preceding functions 0x4e0740/0x4e0790
+// in the same file; and flat N-declaration sweeps (0-3000 extern ints and prototypes) plus
+// headers.py. All 76.7% or lower, so the 88.7% single-post-store form is kept.
 // Reports the process working set into a caller-supplied buffer, with a
 // psapi.dll QueryWorkingSet refresh at most once every ten calls.
 //

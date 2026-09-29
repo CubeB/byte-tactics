@@ -1,4 +1,36 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Sonnet 5.5 pass (#1099), read this first:
+//  - The explicit fill loop below advances _Q itself and the third copy then
+//    uses `_Q + _M`, so as written it would place the tail 2*_M elements in.
+//    The real header's `_Ufill(_Q, _M, _X)` does not advance _Q. The faithful
+//    spelling scores 84.3% (783 vs 779 bytes with the real <vector>, 779 with
+//    this hand-written class); this one scores 88.9%. It is kept only because
+//    it scores higher: whoever finishes the function should start from
+//    `_Ufill(_Q, _M, _X)`, which is what the original does (its counter lives
+//    in the dead _P argument slot, [esp+0x1c], and its destination is a copy of
+//    _Q in eax while _Q stays in ebx).
+//  - The whole difference is one allocation: in the original _P is reloaded
+//    right after operator new into edx and stays there through the first copy,
+//    the fill and the third copy's start (`sub edx,ebx; add edx,eax; sub edx,ecx`),
+//    which forces the fill counter onto the stack. Here _P is reloaded into ecx,
+//    the first copy's `rep movsd` clobbers it and it is reloaded every
+//    iteration, and the counter takes edx. Shapes of the third copy's source
+//    pointer also differ between the three instantiations of this template in
+//    the original (0x4758c0, 0x475bd0, 0x475ef0), which points at compiler state.
+//  - Measured this pass with check.py --sym, all leaving the score unchanged
+//    (84.3% faithful, 88.9% here): copies of _P/_M/_X/_First/_Last in locals at
+//    five places with and without using them, identity wrappers around _P,
+//    every spelling of the first copy (helper, loops with _l/_d/_f declared in
+//    all 6 orders and both increment orders), the third copy as loops or a helper
+//    with any parameter order, _Q/_S/_N declaration forms, every variant of the
+//    _Ufill/_Ucopy/size() bodies, /Gr /Gz /G5 /Ob1 flags, header prefixes
+//    (only <string> and its relatives move it, downwards), and a 7000-variant
+//    statement and spelling hill climb over the three arms.
+//  - The class element type does not matter (about 700 random 52-byte layouts,
+//    with arrays, mixed widths, pointers and floats: all identical), and a
+//    second vector<T>::insert
+//    instantiation in the same file changes the sibling 0x475bd0's shape but
+//    never reproduces the original's.
 // std::vector<Class_00473590>::insert(iterator _P, size_type _M, const _Ty& _X)
 // from MSVC 5's <vector>, the 0x34-byte element, with _Ucopy, _Destroy,
 // copy_backward and fill inlined. 0x4737c0 is the only caller and it calls

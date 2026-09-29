@@ -1,13 +1,40 @@
 // Decompiled by space-bunny-free. Names are provisional.
 //
-// Gave up at 76.3%. The store sequence and order match exactly; the only
-// difference is the register the constant 4 is given. The original materialises
-// 4 into edx before the memset's rep stosd (so the memset has already reserved
-// eax/ecx/edi, and 4 is the first value to be allocated); ours allocates the
-// constant 1 first, so 1 takes edx and 4 falls to eax after the stosd, with one
-// extra `mov eax, 4`. Tried: putting the memset after the 14 stores (MSVC does
-// not hoist it, so the memset has to be the first statement), return type int
-// rather than bool, #pragma pack(1) for the unaligned +0x1745 fields.
+// Gave up at 76.3%. What is left is ONE thing: which register the constant 4
+// is given. The store sequence, the store order, the 25 immediate stores and
+// the whole epilogue are byte exact.
+//
+// Ours is 901 bytes, the original 915, and the whole 14 byte difference is the
+// 14 stores of the constant 4: the original keeps 4 in edx and stores it with
+// the 89 15 <abs> modrm form (6 bytes), we keep it in eax and store it with the
+// a3 <abs> moffs form (5 bytes). So getting 4 out of eax fixes the size too.
+//
+// The register hand-out order (which follows the allocation order, not a fixed
+// preference list) is:
+//   original: 4=edx 7=ecx 1=esi FUN_0044fd40=eax 3=ebp 6=edi 5=ebx 2=edx
+//   ours:     1=edx 4=eax 7=ecx FUN_0044fd40=eax 3=ebp 6=esi 5=ebx 2=edi
+// Positions 4 to 8 (the pointer, 3, 6, 5, 2) already agree, so the whole
+// mismatch is a 3 cycle among the first three constants. The original's order
+// is exactly the source order of first use, and the first value allocated also
+// gets the def hoisted above the memset's rep stosd (in the original that is
+// 4, here it is 1). Ours promotes the constant 1 to the head of the live range
+// list even though it is used 8 times against 4's 14 and 7's 20, so the list is
+// not ordered by use count, by live range length, or by the front end's symbol
+// order in any way I could find. Fixing this one 3 cycle fixes the function.
+//
+// Tried, all still 76.3% and all free to score with check.py --sym:
+//   - named locals for the constants (`int one = 1;`, `int four = 4;`) and
+//     using them in the stores: no change, the constants stay temps;
+//   - static __inline int get1()/get4() accessors in place of the literals, to
+//     see the value through a function boundary (an inlined boundary is not a
+//     CSE boundary, so this was worth a try): no change;
+//   - `= 1 + 0`, `= 0 + 1`, `= 4 + 0`, `= 0 + 4` to change the reference
+//     count of a temp without changing the emitted store: no change;
+//   - the memset target through a local pointer, and a (void*) cast on it: no
+//     change;
+//   - putting the memset after the 14 stores (MSVC does not hoist it, so the
+//     memset has to be the first statement), return type int rather than bool,
+//     #pragma pack(1) for the unaligned +0x1745 fields: no change.
 
 #include <string.h>
 

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // Removes a player (a "drop" / disconnect path): find the player's slot, bail
 // out if the slot is not a local, active player of type 1, 2 or 3, then clear
@@ -39,6 +39,29 @@
 //   the state is not from the previous function in the exe.
 // The natural construct that references p in the loop region with zero
 // emitted code (or otherwise promotes p above slot) is still unknown.
+//
+// deepseek-v4.1-flash (same run, 900s): re-confirmed all of the above and
+// added these negative results, so nobody repeats them:
+// - headers.py tried all 128 header sets; every one is 83.6%, so the
+//   <stdio.h>/<string.h> pair is not the lever here (unlike 0x452960).
+// - The clearing loop's form: for, do-while, `while (i != 10)`, label+goto
+//   and a top-tested `while (1)` all give the SAME callee-saved rotation
+//   (p=ebx, slot=esi, base=edi). The bottom-tested forms produce the
+//   original's `add edx,0x14b / cmp edx,0xcee / jl` but are 846 bytes and
+//   score 67.3 (the 2-byte shift misaligns everything after the loop), so
+//   the 848-byte top-tested while(1) keeps the higher checker score.
+// - Any p reference that survives dead-code elimination inside the loop
+//   (a store value, an `if (p->id == -2)`), and the 0x4523e0-style
+//   `unsigned char&` reference for slot, move p to esi and base to ebx (the
+//   original rotation) but always emit extra per-iteration code, so the
+//   score drops.
+// - Dead locals and pointer copies of p (plain, (void), address-taken) fold
+//   away with no effect; so do inline helpers PlayerAt/ClearSlot/Is123/Slot.
+// - The clearing loop counter type IS a lever: `unsigned char i` gives
+//   p=edi, base=edx (49.4%, wrong stride), `unsigned short i` gives
+//   p=ebx, base=esi (52.9%). Only `int i` produces the original's edx
+//   0x14b-stride counter, and it always leaves p in ebx.
+// Best kept in this file: 83.6%, 848 bytes, top-tested while(1).
 #include <stdio.h>
 #include <string.h>
 

@@ -1949,3 +1949,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   nested form can cost a register elsewhere, so check both together
   (0x4ba000, 98.7%). A compiler rule seen in one block is a guess until a
   second block of the same function agrees.
+- **A by-value struct argument can decide the register allocation.** MSVC
+  may turn it into a live pointer held in a callee-saved register, which
+  evicts whatever the original kept there. Passing the value from an inline
+  helper that returns the struct by value (`return u->pos;`) gave the
+  original's `lea edx, [ebx+0x6a]` and kept ebx for the unit (0x49abb0).
+  Before changing an aggregate's type, check which of its fields the
+  original actually stores.

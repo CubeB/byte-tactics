@@ -1,5 +1,16 @@
-// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 64.5%, 354 of 366 bytes (was 49.4% and 334 bytes).
+// deepseek-v4.1-flash pass: tried the unnamed `Dist(*p, b)` form (62.0%, and it
+// reorders the two distances: it loads c as a whole dword into ebp and computes
+// a.x - c.x first), a mixed `Dist(a, b)`/`Dist(*p, c)` form (62.0%), the exact
+// FUN_004805570 body for Dist (`Diff d = Sub(a, b); abs...`) both named and
+// unnamed (52.3%, but exactly 366 bytes), `Point a; a = *p;` (64.5%), a `short`
+// Toward step (64.5%) and dropping `inline` (64.5%). Best stays this file. The
+// one remaining structural gap: the original's first Dist temp at local0 is
+// overwritten by d1 (so local1 is the second Dist's `*p` temp), while with a
+// named `Point a` the compiler keeps `a` in local0 and puts d1 in local1;
+// everything else is the resulting register-allocation cascade in the first two
+// distance blocks.
 // Claude Sonnet 5.5 pass (#554): the original calls nothing, because it inlines
 // FUN_00480570 (max of the two absolute differences, Points passed by value) three
 // times and inlines a "move one point towards another" helper twice. That is what

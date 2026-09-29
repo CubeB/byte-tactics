@@ -102,6 +102,25 @@
 // - Home slot numbers do NOT follow declaration order: declaring `end` before
 //   `p`, or `changed` last, leaves [esp+0x10] the changed/src slot, [esp+0x14]
 //   the address-temp spill and [esp+0x18] `end` exactly as before.
+// deepseek-v4.1-flash pass (issue 1554): still 86.3% / 318 bytes; the only
+// difference is unchanged (the spill-victim choice for esi in the copy block).
+// New negatives, all 318 bytes / 86.3%, so none is the missing shape:
+// - a static inline copy helper taking `Eye*& p` (by reference, fully inlined),
+// - a direct `Eye*& rp = p;` reference local,
+// - `Eye** pp = &p;` with `d = *pp; (*pp)++;` (the address-taking is optimised
+//   away, so the pointer still gets no stack home),
+// - `const Eye*` for `end` or `src`,
+// - the compaction as a do/while that keeps `end` in the condition,
+// - `d->screen`/`d->flagPtr` written as `(Pos*)((char*)d + 0x20)` / `(char*)d + 0xb`,
+// - a `Vec3& dv = d->v; dv = src->v;` reference for the vector copy,
+// - p shared across phase 1 and phase 2 (reassigned before phase 2),
+// - `Eye* d = p++;` / `p = p + 1` return-value helper.
+// Worse: `p = Keep(p, src)` returning the advanced pointer (303 bytes, 65.7%),
+// and an extra live base pointer used in the count (322 bytes, 70.9%).
+// The tie is between keeping p in esi versus giving esi to &d->screenPos; the
+// allocator prefers the rematerialisable g_game (edi) as the first victim, and
+// no source shape tried changes it. Likely needs the original's translation
+// unit context rather than another rewrite of this body.
 #include <stddef.h>
 
 #pragma pack(push, 1)

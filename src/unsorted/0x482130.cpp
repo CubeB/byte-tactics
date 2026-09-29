@@ -1,4 +1,13 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Claude Sonnet 5.5 pass (#554): compiler state ruled out (0 to 400 unused
+// `extern int` declarations in steps of 8, and all 128 header sets from headers.py,
+// all give 318 bytes and 86.3%). Four more source shapes scored without change:
+// an `Expired(const Eye*)` predicate helper (340 bytes, 62.0%, worse), the copy as a
+// `CopyEye(p++, src)` static inline helper (86.3%), the first loop with the
+// `p++` moved out of the for header (85.3%) and the compaction loop as a
+// do/while (86.3%). The shape is std::remove_if plus vector::erase (find the first
+// expired eye, then copy every later live one down with an operator= that re-points
+// the two self pointers), which the code below already follows.
 // 86.3%, 318 bytes, same size as the original but three register-allocation
 // details still differ (see "What still differs" at the bottom).
 // What is established:

@@ -1,22 +1,31 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL: the tail (both move-one-axis-towards branches) and the three
-// abs/max distance blocks match the original in shape, but the first two
-// blocks differ in register allocation, which shifts everything after them.
-// What still differs (ours vs original at 0x4805b0):
-//   * the original loads b.x into ebx between `push esi` and `push edi` and
-//     keeps b.x/b.y in callee-saved registers, spilling c.y instead; we spill
-//     b.x and b.y and keep c.x/c.y in registers;
-//   * the original keeps the copy of *p in ONE register (edi, read as `di` in
-//     the second block) and materialises the 4-byte struct only for the `.y`
-//     reads; we split it into two registers (a.x, a.y), which costs the extra
-//     live value and flips the spills;
-//   * consequently d1/d2 stay in registers for us while the original keeps d1
-//     in the stack slot the struct temp just used.
-// Tried and rejected: `abs(a.x - b.x)` operand order (loads a before b),
-// dx/dy temporaries instead of the recompute, a static inline Dist helper
-// (0x480570's shape), (*p).x / p->x and a `Point&` parameter, and computing
-// the three distances in another order. The reversed operand order
-// (`abs(b.x - a.x)`) is what gets the per-expression load order right.
+// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5. Names are provisional.
+// PARTIAL: 64.5%, 354 of 366 bytes (was 49.4% and 334 bytes).
+// Claude Sonnet 5.5 pass (#554): the original calls nothing, because it inlines
+// FUN_00480570 (max of the two absolute differences, Points passed by value) three
+// times and inlines a "move one point towards another" helper twice. That is what
+// the source is now:
+//  - `Dist(Point a, Point b)` with the ternary body `return dx > dy ? dx : dy;`
+//    (the if-form scored 44 to 50%, the ternary 60%); the `a` copy in stack slot
+//    [esp+0x10] and its reuse for d1 come from the by-value parameter temp.
+//  - `Toward(Point from, Point to, int d)` modifies its by-value `from` in place
+//    and returns it, `*p = Toward(b, c, d1)`: the original tail (`mov eax,[esp+0x24];
+//    mov edx,[esp+0x28]; cmp dx,ax; mov [esp+0x24],eax` then in-place word stores)
+//    is reproduced instruction for instruction in shape, because the inline
+//    parameter reuses the caller's dead argument slot.
+//  - min is written `if (d1 > d3) d1 = d3;` (62.0 against 60.5 for `d3 < d1`).
+// What still differs is only register allocation in the first two distance blocks:
+// the original loads b.x into ebx and b.y into ebp with two `movsx` from the
+// argument slots before anything else (member-wise), keeps c.x in ecx and spills
+// c.y to [esp+0x18]; ours loads b and c as whole dwords (c: `mov ebx,[esp+0x28]`,
+// then uses bx) and spills b.x. A named local `Point a = *p;` scores 63 to 64.5%
+// but adds a local at [esp+0xc]; the unnamed `Dist(*p, b)` form (62.0%) has the
+// right slots ([esp+0x10] and [esp+0x14] for the two `a` temps) but hoists the whole
+// dword load of b. Tried without effect: Dist or Toward taking the second Point by
+// const reference (44 to 62%), comparison direction in Toward (all the same), Dist
+// with if-forms or swapped operands, d3 first (39.9%), d2 before d1 (49.5%), a
+// separate result temp in the tail. The declaration-count probe (0 to 400 unused
+// externs) is flat for the old file, and headers.py gives 64.5% for every set that
+// compiles, so this is source shape, not compiler state.
 #include <stdlib.h>
 
 struct Point_004805b0 {
@@ -24,35 +33,34 @@ struct Point_004805b0 {
     short y;
 };
 
-// Clamps one end of the segment b-c towards the other by the smaller of the
-// two distances it is not at, i.e. by min(max(dist(a,b), dist(a,c)),
-// dist(b,c)) with Chebyshev distance; *p supplies a and receives the result.
+static inline int Dist(Point_004805b0 a, Point_004805b0 b)
+{
+    int dx = abs(a.x - b.x);
+    int dy = abs(a.y - b.y);
+    return dx > dy ? dx : dy;
+}
+
+static inline Point_004805b0 Toward(Point_004805b0 from, Point_004805b0 to, int d)
+{
+    if (to.x < from.x) from.x -= d;
+    else if (from.x < to.x) from.x += d;
+    if (to.y < from.y) from.y -= d;
+    else if (from.y < to.y) from.y += d;
+    return from;
+}
+
 // FUNCTION: 0x4805b0
 void __stdcall FUN_004805b0(Point_004805b0* p, Point_004805b0 b, Point_004805b0 c)
 {
     Point_004805b0 a = *p;
-    int d1 = abs(b.x - a.x);
-    if (d1 <= abs(b.y - a.y))
-        d1 = abs(b.y - a.y);
-    int d2 = abs(c.x - a.x);
-    if (d2 <= abs(c.y - a.y))
-        d2 = abs(c.y - a.y);
-    int d3 = abs(c.x - b.x);
-    if (d3 <= abs(c.y - b.y))
-        d3 = abs(c.y - b.y);
+    int d1 = Dist(a, b);
+    int d2 = Dist(a, c);
+    int d3 = Dist(b, c);
     if (d1 > d2) {
-        if (d3 < d1) d1 = d3;
-        if (c.x < b.x) b.x -= d1;
-        else if (b.x < c.x) b.x += d1;
-        if (c.y < b.y) b.y -= d1;
-        else if (b.y < c.y) b.y += d1;
-        *p = b;
+        if (d1 > d3) d1 = d3;
+        *p = Toward(b, c, d1);
     } else {
-        if (d3 < d2) d2 = d3;
-        if (b.x < c.x) c.x -= d2;
-        else if (c.x < b.x) c.x += d2;
-        if (b.y < c.y) c.y -= d2;
-        else if (c.y < b.y) c.y += d2;
-        *p = c;
+        if (d2 > d3) d2 = d3;
+        *p = Toward(c, b, d2);
     }
 }

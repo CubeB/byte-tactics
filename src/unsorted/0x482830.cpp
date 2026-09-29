@@ -1,4 +1,19 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+// Claude Sonnet 5.5 pass (#554): this one depends on compiler state. With N unused
+// `extern int dummyK;` declarations after the header comment the score is 87.3 percent
+// and 231 bytes for N = 0 to 40 and again for N = 304 to 400, but 221 bytes (the
+// original size) and the division order of the original (pos.x, then pos.z, then
+// the y_hi term, with `sar ebp, 0x15` deferred to just before the call) for every N
+// from 48 to 296. In that window the remaining differences are only the placement of
+// the `g_game->field_1485b` load (original: right before its push, after both
+// divisions; ours: hoisted above the `push ebx`) and the scheduling of the two
+// `movsx` loads of the entry fields. The best of eight statement orders there (x and
+// y declaration order, subtraction order, store order) is 85.2 percent (y computed
+// before x with the subtractions in x, y order; or y, x throughout), and writing
+// `y -= entry->field_6` before `x -= entry->field_4` gives 85.2 as well, so none of
+// it reaches MATCH. headers.py finds no header set that reproduces the window
+// (best 87.3 percent for every set), so the file keeps the 231 byte form, which
+// scores higher than the window.
 //
 // Not a match yet: 87.3 percent, ours is 10 bytes longer (231 against 221).
 // Everything matches except the emission order of the two divisions that make

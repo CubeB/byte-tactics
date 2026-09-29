@@ -1,25 +1,13 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// 94.1% match, 1468 bytes (same size as the original). Three earlier diffs are
-// fixed:
-//  - inner loop is `slot++, t++` (slot pointer stored before the index);
-//  - case 1's flag is a 1-bit `unsigned short` bitfield, which makes MSVC emit
-//    `or byte ptr [ebp+0x13c], 1` straight to memory (an `unsigned char`
-//    bitfield or a plain `|= 1` goes through a register and costs 7 bytes);
-//  - case 3 (SIDE) materialises the condition in an `int` local and negates it
-//    (mov esi,1 / xor esi,esi / xor eax,eax / test esi,esi / sete al).
-// What still differs: the SIB base/index byte of the three player accesses in
-// cases 2, 3 and 6. The original has `[ecx+eax]` (base = the freshly loaded
-// g_game register, index = the running byte offset `off`); ours emits
-// `[eax+ecx]` (base = off, index = g_game). Only the SIB byte differs; the
-// registers, loads and everything else match. Tried and rejected (all scored
-// with check.py --sym): every pointer expression form (int cast, unsigned,
-// reversed operands, char-array subscript, member char-array subscript,
-// union of g_game as a byte array), `unsigned` off, <windows.h> and all 128
-// header sets from tools/headers.py, and reading g_game into a local. The
-// array-index forms `g_game->players[p]` and a local `Game* g = g_game;` do
-// produce the right SIB but change the loop strength reduction / register
-// allocation and drop to 76-82%. The jump-table entry address also shows as
-// <addr> in the diff, which is normal.
+// MATCH, 1468 bytes. The last diff was the SIB base/index byte of the three
+// player accesses in cases 2, 3 and 6: the original has g_game as the base
+// (`[ecx+eax]`). Writing the loop as an ordinary `for (p = 0; p < 10; p++)`
+// over the member array `g_game->players[p]` (instead of an explicit byte
+// offset variable) lets MSVC strength-reduce p*0x14b into the same memory
+// induction variable `off`, and the array base forces g_game into the SIB
+// base field. A separately declared `off` in the source always emitted
+// base = off (`[eax+ecx]`), whatever the operand order or pointer cast.
+// The jump-table entry itself displays as <addr> in the diff, which is normal.
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -115,7 +103,6 @@ void __cdecl FUN_004455b0(void)
 {
     char* base = g_game->menu.holder->gadgets;
     int p = 0;
-    int off = 0x1b63;
     int t;
     char** slot;
 
@@ -156,14 +143,14 @@ void __cdecl FUN_004455b0(void)
                     break;
                 case 2:
                     {
-                        Player_004455b0* pl = (Player_004455b0*)((char*)g_game + off);
+                        Player_004455b0* pl = &g_game->players[p];
                         if (pl->active == 0 || (pl->type != 1 && pl->type != 2))
                             dst->field_29 = 0;
                     }
                     break;
                 case 3:
                     {
-                        Player_004455b0* pl = (Player_004455b0*)((char*)g_game + off);
+                        Player_004455b0* pl = &g_game->players[p];
                         int ok = pl->active != 0 && (pl->type == 1 || pl->type == 2);
                         FUN_004a1450(&g_game->menu, dst->name, !ok);
                     }
@@ -172,8 +159,8 @@ void __cdecl FUN_004455b0(void)
                 case 6:
                     if (p != g_game->myPlayer && dst->state == 1)
                         CloneFix_004455b0(dst);
-                    if (*(int*)((char*)g_game + off) != 0 &&
-                        ((Player_004455b0*)((char*)g_game + off))->type == 2)
+                    if (*(int*)&g_game->players[p] != 0 &&
+                        (&g_game->players[p])->type == 2)
                         dst->field_29 = 0;
                     break;
                 case 7:
@@ -192,8 +179,7 @@ void __cdecl FUN_004455b0(void)
             }
         }
         p++;
-        off += 0x14b;
-    } while (off < 0x2851);
+    } while (p < 10);
 
     {
         char name[52];

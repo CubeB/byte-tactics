@@ -2659,6 +2659,7 @@ address,size,file,symbol,status,similarity
 0x4bf620,196,src/unsorted/0x4bf620.cpp,?FUN_004bf620@@YGHPAVClass_004c6ae0@@PAURect_004bf620@@@Z,matched,100.0
 0x4bf6f0,178,src/unsorted/0x4bf6f0.cpp,?FUN_004bf6f0@@YGHPAUSurface_004bf6f0@@PAURect_004bf6f0@@H@Z,matched,100.0
 0x4bf7b0,261,src/unsorted/0x4bf7b0.cpp,?FUN_004bf7b0@@YGPAUSurface_004bf7b0@@PAU1@PAHH@Z,matched,100.0
+0x4bf8c0,1172,src/unsorted/0x4bf8c0.cpp,?FUN_004bf8c0@@YGHPAUSurface_004bf8c0@@PAURect_004bf8c0@@H@Z,partial,99.4
 0x4bfd60,167,src/unsorted/0x4bfd60.cpp,?FUN_004bfd60@@YGHPAUSurface_004bfd60@@PAURect_004bfd60@@H@Z,matched,100.0
 0x4bfe10,267,src/unsorted/0x4bfe10.cpp,?FUN_004bfe10@@YGHPAUSurface_004bfe10@@PAURect_004bfe10@@@Z,partial,74.9
 0x4bff20,332,src/unsorted/0x4bff20.cpp,?FUN_004bff20@@YGHPAUSurface_004bff20@@PAURect_004bff20@@H@Z,matched,100.0
@@ -2694,6 +2695,7 @@ address,size,file,symbol,status,similarity
 0x4c1b00,32,src/unsorted/0x4c1b00.cpp,?FUN_004c1b00@@YAHXZ,matched,100.0
 0x4c1b20,84,src/unsorted/0x4c1b20.cpp,?FUN_004c1b20@@YGXH@Z,matched,100.0
 0x4c1b80,456,src/unsorted/0x4c1b80.cpp,?FUN_004c1b80@@YGHH@Z,matched,100.0
+0x4c1d50,1353,src/unsorted/0x4c1d50.cpp,?FUN_004c1d50@@YGXHH@Z,matched,100.0
 0x4c22a0,47,src/unsorted/0x4c22a0.cpp,?FUN_004c22a0@@YAXXZ,matched,100.0
 0x4c22d0,18,src/unsorted/0x4c22d0.cpp,?FUN_004c22d0@@YGXH@Z,matched,100.0
 0x4c22f0,19,src/unsorted/0x4c22f0.cpp,?FUN_004c22f0@@YGXHH@Z,matched,100.0
@@ -2737,6 +2739,7 @@ address,size,file,symbol,status,similarity
 0x4c3e10,8,src/unsorted/0x4c3e10.cpp,?FUN_004c3e10@Class_004c3e10@@QAEXXZ,matched,100.0
 0x4c3e20,4,src/unsorted/0x4c3e20.cpp,?FUN_004c3e20@Class_004c3e20@@QAEHXZ,matched,100.0
 0x4c3e30,10,src/unsorted/0x4c3e30.cpp,?FUN_004c3e30@Class_004c3e30@@QAEXH@Z,matched,100.0
+0x4c3e40,1115,src/unsorted/0x4c3e40.cpp,??0Class_004c3e40@@QAE@PAD0PAH0@Z,partial,36.3
 0x4c42a0,159,src/unsorted/0x4c42a0.cpp,??1Class_004c42a0@@QAE@XZ,matched,100.0
 0x4c4340,168,src/unsorted/0x4c4340.cpp,?FUN_004c4340@Class_004c4340@@QAEPAVClass_004c91a0@@PAV2@PAD1@Z,matched,100.0
 0x4c43f0,43,src/unsorted/0x4c43f0.cpp,?FUN_004c43f0@Class_004c43f0@@QAEXII@Z,matched,100.0

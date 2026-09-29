@@ -3976,9 +3976,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x4bb7c0,1042,sonnet-5.5,#1018,partial,46.0,,issue #1018
 0x4bd3b0,1148,sonnet-5.5,#1018,no file,0,,issue #1018
 0x4bd830,1332,sonnet-5.5,#1018,no file,0,,issue #1018
-0x4bf8c0,1172,,#1020,assigned,,,issue #1020
-0x4c1d50,1353,,#1020,assigned,,,issue #1020
-0x4c3e40,1115,,#1020,assigned,,,issue #1020
+0x4bf8c0,1172,deepseek-v4.1-flash,#1020,partial,99.4,,issue #1020
+0x4c1d50,1353,deepseek-v4.1-flash,#1020,matched,100.0,,issue #1020
+0x4c3e40,1115,deepseek-v4.1-flash,#1020,partial,36.3,,issue #1020
 0x4c63a0,1051,,#1021,assigned,,,issue #1021
 0x4c7580,1183,,#1021,assigned,,,issue #1021
 0x4c7a20,1529,,#1021,assigned,,,issue #1021
@@ -4393,3 +4393,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b3c60,1544,,#1459,assigned,,,"issue #1459, escalated"
 0x4b5510,1017,,#1459,assigned,,,"issue #1459, escalated"
 0x4b5cc0,1104,,#1459,assigned,,,"issue #1459, escalated"
+0x4bf8c0,1172,,#1460,assigned,,,"issue #1460, escalated"
+0x4c3e40,1115,,#1460,assigned,,,"issue #1460, escalated"

@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // VTOL patrol order handler ("Patrolling"). State 0 prepares the order
 // (FUN_0040f200 is defined here because /Ob2 inlined it). State 1 flies on:
 // when damaged it lands on a random free pad (VTOL_LANDING); with enough
@@ -42,6 +42,23 @@
 // What helped: FUN_0047ea40's range is a 4-byte union passed by value (the
 // original does mov eax, 0xf00000; push eax), and declaring the energy
 // pointer before the metal one gives the right stack slots.
+//
+// Round-12 retry results (deepseek-v4.1-flash), all in build/scratch/0x4152f0/:
+// - Single `Class_0043a1f0* node` assigned per branch then one
+//   FUN_0043acb0(unit, node): 60.1%, register roles collapse.
+// - Landing written inline (no Land helper) with the plain vector subclass:
+//   65.5%, frame drops to 0x40 and esi/edi swap, so the helper's stack home
+//   is what shapes the frame. Do not remove it.
+// - Full std::vector<Unit*,allocator> specialization (0x410850 style) with
+//   pads.empty()/pads.count() and units.inlineEmpty(): 65.3%, the visitor
+//   vector then calls size() out of line. 0x4103e0's specialization has no
+//   user ctor, so it cannot zero the visitor vector.
+// - Swapping so the capacity product is the left operand does not move the
+//   x87 loads; branch 2 still does fld energy; fld cap; fmul; fcompp where
+//   the original does fld cap; fmul; fld energy; fxch; fcompp.
+// The reclaim tail: the compiler merges branches 1 and 4 (both end push eax)
+// into one shared constructor tail but duplicates it for 2 (push ecx) and 3
+// (push edx); the original routes all four through the tail at 0x415774.
 #include <vector>
 
 struct Vec3 { int x, y, z; };

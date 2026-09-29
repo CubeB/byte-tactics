@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // VTOL attack order handler for a unit target. With flags 0x10008, or with
 // no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
 // player it heads for the map centre. State 0 prepares the order
@@ -7,17 +7,19 @@
 // circles the target, alternating sides, and lands on a free pad when
 // damaged (VTOL_LANDING).
 //
-// Partial: 85.2%. What still differs:
-// - The first _hypot's load order: the original loads unit->z before
-//   order->z (and unit->x before order->x); ours loads the order's first.
-//   No header set changes it, but it flips when the declarations of the
-//   neighbour 0x412d40 (e.g. its `union Fixed`) are added without that
-//   function's body, so it looks like compiler state from the original file.
-// - State 3, after two misses: the original computes the new point's x sum
-//   before loading y and z from a pointer to target->pos (`add ecx, 0x6a`;
-//   `mov edx, [ecx]`; `add edx, edi`; `mov edi, [ecx+4]`). A separate sum
-//   then copy gives that order but folds the pointer into [ecx+0x6a];
-//   operator+, reference locals and inline helpers load all three first.
+// Partial: 97.4%. What still differs:
+// - The first _hypot: writing the arguments negated (order->x - unit->pos.xw)
+//   fixed the sub direction and gained 96.8 -> 97.4, but the two loads of
+//   each difference come out swapped (the compiler emits order->z first, the
+//   original unit->z). It is the same class of compiler-state tie-break as
+//   the sibling 0x411f50; all 128 header sets plus C++ headers, and a sweep
+//   of 0..129 unused extern declarations, leave it unchanged. Reordering the
+//   operands, reference/pointer locals and short temporaries all score worse.
+// - State 3, after two misses: the original consumes edi (off.x) in the x sum
+//   before loading target->pos.y into edi (`mov edx, [ecx]`; `add edx, edi`;
+//   `mov edi, [ecx+4]`); ours loads all three members first and puts y in ebx.
+//   Explicit per-member sums, dropping the `off` local and operator+= all
+//   change the frame or fold the base pointer and score worse.
 // Suspected original bug: that same branch builds a Class_0044e2d0 waypoint
 // and sets its speed, but never passes it to the order (no FUN_004388d0
 // call, unlike every other branch), so the object leaks.
@@ -177,7 +179,7 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         return 2;
     }
-    if (order->range && (int)_hypot(unit->pos.xw - order->x, unit->pos.zw - order->z) >= order->range)
+    if (order->range && (int)_hypot(order->x - unit->pos.xw, order->z - unit->pos.zw) >= order->range)
         return 5;
     int speed = unit->mover->speed;
     unsigned int state = 0;

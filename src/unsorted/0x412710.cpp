@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // VTOL attack order handler ("Attacking"). With flags 0x1000a, or with no
 // target and order flag 0x200, it queues VTOL_SEEKATTACK instead; when out of
 // the order's range it gives up. State 0 prepares the order (FUN_0040f200 is
@@ -6,20 +6,28 @@
 // halfway to the target, state 2 attacks, state 3 pulls away from the target,
 // state 4 lands on a free pad when damaged (VTOL_LANDING) or circles.
 //
-// Partial: 82.2%. What still differs:
-// - State 4's return path: the original calls vector::_Destroy (0x406c00)
-//   out of line before `operator delete`, while the fall-through destructor at
-//   the end of the block is fully inlined. Ours inlines both. Adding inline
-//   helpers (up to 24 trivial ones, 8 more FUN_0040f200 copies, 4 more local
-//   vectors), a pointer element type, an element destructor, or moving the
-//   landing code into an inline helper never produced the out-of-line call.
-// - State 4's second Offset call: the original reloads the spilled distance
-//   into edx straight after the first call (`mov edx, [esp+0x3c]` before
-//   `add esp, 8`); ours reloads it into eax after `mov ebx, eax`.
-// - Name: 0x406c00 is std::vector<Unit*>::_Destroy (#135), so a matching
-//   version must use std::vector<Unit*> for `v`, not Elem_00406c10. That
-//   change alone moves registers in state 4's health test (82.2% to 81.2%),
-//   so it is left for whoever finishes this function.
+// Partial: 93.9%. The one structural difference left is the landing block's
+// destructor: the original calls vector<Unit*>::_Destroy (0x406c00) out of
+// line before `operator delete`, while ours inlines it (its body is empty,
+// `ret 8`). The scope-end destructor on the empty path (0x412c4c) is not
+// called there because the optimizer knows `_First == _Last`; that site
+// already matches. The element type is `Unit*` (see 0x406c00.cpp and
+// docs/consolidation.md), but spelling it that way moves registers in state
+// 4's health test (93.9% to 93.0%), so `Elem_00406c10` is kept here.
+// 0x410e70 (same landing code) got the call by putting the vector one inline
+// level down in a TryLand helper AND having case 0 after case 2 in the
+// source; 0x412710's switch bodies are emitted in source order 0..5
+// (verified: moving case 4 first drops the score to 63.7%), so that trick
+// does not transfer. TryLand here (one level down, any element type) scores
+// 92.0% and still inlines _Destroy.
+//
+// A scoring artefact was rejected: an explicit `v.~vector();` before
+// `return 0;` inflates the size to the original's 1572 by adding zeroing
+// stores and a second no-op delete that the original does not have.
+//
+// Second difference: state 4's Offset call reloads the spilled distance into
+// edx right after the first call (`mov edx, [esp+0x3c]` before `add esp, 8`);
+// ours reloads it into eax after `mov ebx, eax`.
 // What fixed most of it: `Vec3 p = base + off` with a member operator+ built
 // on operator+= (states 1 and 3), a separate sum then copy in state 4, the
 // literal 0 as the second VTOL_SEEKATTACK target, and <memory.h> (found with

@@ -1,20 +1,36 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Starts a path search for the object at +0x58: marks every goal cell the
 // target reports, picks the goal nearest to the start as the probe's aim,
 // runs the straight-line probe (0x40e160) and, when that did not reach a
 // goal, seeds the open heap with the start cell.
 //
-// Partial (85.6%): the structure, stack layout and callee-saved registers
-// match. What differs is scratch-register rotation from the start of the
-// non-goal branch on: the original gives the first temporaries there edx
-// (ours eax), loads width before start.x for the bounds check, loads the
-// object into ecx in the shared finish block (ours edx), and schedules the
-// heap reset stores and the depth store (0x64) earlier in the open-list
-// setup. Tried: the finish label in either branch or after the if, a stored
-// goal result, point/int/short bounds helpers, the node built as a
-// temporary or before/after the heap reset, and cost operand orders; none
-// moved the rotation. An inline helper for the open-list setup exhausts the
-// /Ob2 budget (the node constructor goes out of line).
+// Partial (92.1%): structure, stack layout, callee-saved registers, every
+// branch and the inlined heap/vector code match; only four hunks differ.
+// All four are allocator/scheduler state, not source shape:
+//   1. the virtual Cost call at 0x40e762 uses edx for both argument
+//      temporaries and eax for the vtable (ours eax/edx); the bounds check
+//      that follows loads width into ecx and start.x into eax (ours
+//      start.x ecx / width eax);
+//   2. the inlined Release on the out-of-bounds path loads object into edx
+//      (ours eax) and the deleted goal buffer into eax (ours ecx);
+//   3. the heap reset stores are contiguous right after the start.x/start.y
+//      loads and before the node's y store (ours sink them into the width /
+//      dirty computation), the depth store lands before `shr edx,8` (ours
+//      after `mov ebx,[edx]`) and `mov ebx,[edx]` precedes `and ecx,0x1f`
+//      (ours after);
+//   4. the final Release loads object into ecx before pushing it (ours
+//      edx and pushes later).
+// Tried without effect (all stay at 92.1%): heap.Clear() vs four direct
+// stores vs a local Heap*; the node as a named local, a temporary in Push,
+// or declared before Clear; computing the cell index before Clear; a
+// Point/short local for start; FixMul vs the spelled-out 64-bit multiply;
+// a stored goal result and `!= 0` conditions (slightly worse, 91.8%);
+// Free Release/Finish helpers; a swapped NodeData constructor argument
+// order and a constructor argument-order change (much worse). An inline
+// helper for the open-list setup exhausts the /Ob2 budget (the node
+// constructor goes out of line). All 128
+// tools/headers.py sets also give 92.1%, so this is most likely TU
+// compiler state, the same wall as 0x40d290, 0x408f30 and 0x40cca0.
 #include <vector>
 
 struct Point_0040e630 {

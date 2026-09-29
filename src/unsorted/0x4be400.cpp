@@ -86,6 +86,25 @@
 // edge too (this file). The slot-sharing trick that produced the same shape at
 // 0x4af320 cannot be tried here, because the frame is exactly h (4) + buf
 // (0x100) + fd (0x108) with nothing spare to share.
+//
+// A fifth session (space-bunny-free) built a free scoring generator
+// (build/scratch/0x4be400/gen.py, ~0.35 s per variant, ~500 variants run) over
+// twelve independent knobs: the clamp in four spellings, the inner loop in six
+// shapes, the outer loop in three, the early return versus an `if (h != -1)`
+// wrap, the attrib test in three, the "." / ".." test in three, the entry test
+// in four, the tail in three, `i` as int and long, the handle as int and as a
+// pointer, and a local `int` for the recursion's state argument. Every variant
+// that keeps the bytes is 99.2: the whole family is flat, including the loop
+// shapes that were not previously enumerated (`while (i < d->count)`, `for (;;)`
+// with a break, `if (i < d->count) do {} while`, `for (i = i; ...)`), which all
+// compile to the same graph. Worth recording for the next attempt: the family
+// being flat means the guard's successor is decided after the front end has
+// thrown the shape away, so a source level search cannot reach it.
+// The mechanism, as far as the bytes show: h lives in esi from 0x4be489 and is
+// spilled to [esp+0x10] at 0x4be48e; the file loop body clobbers esi, so the
+// tail's use of h needs `mov esi,[esp+0x10]`. On the guard edge esi still holds
+// h, and the original skips the copy on that edge only, which means MSVC did
+// per edge copy insertion there and did not here.
 // A fourth session (Sonnet 5.5, #1105) confirmed the wall at 99.2%: the dir
 // branch ending in `continue` (file branch after it), the file branch ending in
 // `continue`, `h = h;` before the loop condition, the file loop as a helper that

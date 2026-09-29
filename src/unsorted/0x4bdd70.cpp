@@ -1,4 +1,11 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (600s run): confirmed 97.9% and did not improve on it.
+// Re-tried and ruled out: `if (key)`/`if (key != 0)`/`(int)key` (base moves to edx,
+// key to cl, 91.7), named `hi`/`lo` locals (92 to 95.3), `+`/`^` for `|`, both
+// operand orders, separate output byte locals, ternaries and `key >> 6 | key << 2`
+// (using the byte for the shifts). If the condition is on the byte the allocator
+// puts the shift temp and key in ecx and base in edx; if it is on `w` base stays
+// ecx but the test folds into the `and eax,0xff` flags.
 // Opens a HAPI archive: reads the 20 byte header and checks the "HAPI" magic
 // and version bytes, then checks that the file ends with the Cavedog
 // copyright line (with the year patched to "0000", as the writer 0x4bd160

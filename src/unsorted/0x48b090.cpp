@@ -1,4 +1,25 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Claude Sonnet 5.5 pass (#755, no code change, still 93.2% and 367 bytes):
+// compiler state is not the lever: the declaration-count sweep (0 to 400 in steps of
+// 8) has two states only, 367 bytes and 93.2% (N = 0 to 144 and later) and 369 bytes
+// and 81.7% (the middle), and all 128 header sets of headers.py give 93.2% at best.
+// Frame facts read from the original: [esp+0xc] is the one dword local (`push ecx`),
+// the old state byte is stored there and re-read as a dword (`mov eax,[esp+0xc];
+// and eax,0xff`), `lost` is stored into the dead `mask` argument slot [esp+0x14] and
+// tested from there, `gained` stays in bl. Scored without effect on the operand
+// order in the set/clear branches and on `lost` (cl in the original, al here): the
+// mask as an `unsigned char` parameter (92.3 or 93.2, `unsigned char now` is 69.0%),
+// a local copy `m` of the mask declared before or after `old` (93.2), `lost` spelled
+// `~now & old`, `lost = old; lost &= ~now`, with a `(unsigned char)` on either
+// operand or masked with 0xff (all 93.2), `gained` and `lost` in the other order
+// (75.0, 383 bytes), both as int (70.9), and the packet as a byte buffer with a
+// 16-bit store, with the three stores in each order, or with locals for the id and
+// the state (all 93.2, the constant store stays sunk before the call). Hypothesis
+// left: the original evaluates the heavier operand first (Sethi-Ullman), which puts
+// `old` in eax in the set branch and `~mask` in eax in the clear branch, so both
+// branches are consistent with `old | mask` and `old & ~mask` where `old` and `mask`
+// are the same kind of operand; an int `old` (dword slot, no byte store) was not
+// tried together with a byte `now`.
 // Sets or clears bits of the unit's state byte at +0x10e and reacts to the three
 // bits that mean active (1), building (8) and working (4). The gained and the
 // lost bits are tested separately: each gained bit plays its script event and

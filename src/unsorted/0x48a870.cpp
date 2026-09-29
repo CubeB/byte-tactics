@@ -1,4 +1,17 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Claude Sonnet 5.5 pass (#755): still 86.9% and 255 bytes, code unchanged. Re-checked
+// on top of the list below, none of it moved the bit 19 fold: the declaration-count
+// sweep (0 to 400 in steps of 8, flat at 255 bytes) and all 128 header sets of
+// headers.py (86.9% at best); the outer shift written as a multiply (`* 0x10000`,
+// `* 65536`, `0x10000 *`, an unsigned cast around the sum, a local `h * 0x10000`);
+// `unsigned char` locals for draft and seaLevel in both orders; `(int)(d * 0xffff)`
+// inside the sum; `(d << 16) - d + sea` written out (one expression, a local, or with
+// the parts on separate statements); and accumulating in `unit->pos.y` itself
+// (`pos.y = d * 0xffff; pos.y += sea; pos.y <<= 16;`), which is the only form that
+// keeps the original's eleven instructions without a pointer trick, but adds the
+// intermediate `mov [esi+0x6e], eax` store (265 bytes, 88.3%, the highest score seen but
+// bigger than the original), and a clamp on the product (`if (h < 0) h = 0`, 266
+// bytes, 87.8%). The original has no such store: its product only ever lives in ecx.
 // Places a unit's height (pos.y, 16.16 fixed point) on the ground, at the sea
 // level or on the water surface, depending on the flags in the unit's type
 // (+0x241): bit 12 floats, bit 19 floats on water, bit 20 can leave the water.

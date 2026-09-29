@@ -3203,9 +3203,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x476a60,527,space-bunny-free,#419,matched,100.0,,issue #419
 0x490080,378,space-bunny-free,#420,matched,100.0,,"issue #420, escalated"
 0x490230,301,space-bunny-free,#420,partial,99.2,,"issue #420, escalated"
-0x425d80,1034,,#421,assigned,,,issue #421
-0x4263b0,971,,#421,assigned,,,issue #421
-0x4269d0,842,,#421,assigned,,,issue #421
+0x425d80,1034,deepseek-v4.1-flash,#421,matched,100.0,,issue #421
+0x4263b0,971,deepseek-v4.1-flash,#421,matched,100.0,,issue #421
+0x4269d0,842,deepseek-v4.1-flash,#421,matched,100.0,,issue #421
 0x426e80,6310,deepseek-v4.1-flash,#422,partial,4.1,,issue #422
 0x4288d0,646,deepseek-v4.1-flash,#422,partial,76.7,,issue #422
 0x429870,1938,deepseek-v4.1-flash,#422,matched,100.0,,issue #422

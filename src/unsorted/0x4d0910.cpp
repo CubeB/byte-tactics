@@ -205,6 +205,30 @@
 //     the update, which needs a second live value there, and every candidate
 //     (a tag pointer local, a size pointer local, a guard read) either
 //     rematerialises, changes the frame or pushes ebx.
+// ELEVENTH PASS (deepseek-v4.1-flash, one real check.py run for the baseline
+// plus free check.py --sym scoring of 24 variants). Code unchanged at 94.7%,
+// 206 bytes, the same two preheader diffs. This pass tested the tenth pass's
+// "if and only if pos = 0x14 is NOT the last statement" rule directly, from the
+// pos-after-both-reads shape (which already puts the copy in the strncmp slot
+// and drops to 93.3% / 200 bytes by folding the size update):
+//   * every statement placed after `pos = 0x14;` that folds to no code is
+//     eliminated before the fold decision, so all stay 93.3% / 200 bytes:
+//     `size = size;`, `len = len;`, `pos = pos;`, `(void)size;`, `;`, `{ }`,
+//     `if (size != 0) { }`, `unsigned int q = 0;`, `len = len + 0;`,
+//     `size = size + 0;`, `tag[0] = tag[0];`, `(void)(size + len);`,
+//     `if (len == 0) { }`, `pos = pos + 0;`, `size;` and a repeated
+//     `FUN_004bb7c0(file, &size, 4);` (which is real code, 211 bytes, 37.7%).
+//     So the tenth pass's rule needs a statement that survives to the graph,
+//     and the original's disassembly contains none: there is nothing between
+//     the pos copy and the test.
+//   * extending size's live range through the seek argument (`0xc + size -
+//     size`, `size - size + 0xc`, `(size & 0) | 0xc`, `0xc + (size ^ size)`,
+//     and the len/pos analogues) all constant fold to push 0xc and leave the
+//     memory update, 93.3%.
+// Conclusion of the tenth pass stands and is now stronger: in the shape that
+// fixes the pos copy (pos after both reads) MSVC folds the update, and no
+// no-code statement can intervene between the copy and the test. This is the
+// backend block/fold tie the sibling 0x4d0720 and 0x4d07f0 also record.
 // Bottom line for the next pass: the preheader's statement order is forced by
 // the original (setup, then the two reads, then the pos copy, then the test),
 // and in that order MSVC 5 folds the size update, while every order that keeps

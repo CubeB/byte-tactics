@@ -1,4 +1,23 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// ELEVENTH PASS (deepseek-v4.1-flash, check.py --sym scoring only; the file is
+// unchanged at 97.5%, 205 bytes, the same two-instruction preheader
+// displacement). Only genuinely new negatives, none of which repeats an
+// earlier pass:
+//   * flags. /Gz, /Gr, /G5, /Gd, /GA, /Oi, /Ow, /Ot and /Ox all give the
+//     identical 97.5% / 205 byte diff; /G6 is 93.8%. So the preheader tie is
+//     calling-convention and flag invariant, unlike the guide's 0x44b990.
+//   * a `char* np = name;` local used for every name read and the strncmp is
+//     flat (the stack address rematerialises).
+//   * `for (pos = 0x14; ; pos += 8)` with the increment in the for clause and
+//     the body's trailing `pos += 8` removed is flat.
+//   * `pos = sizeof(unsigned int) * 5;` and `pos = 20;` are flat.
+//   * a live `char* t = target;` copy used in BOTH strncmp tests (so its live
+//     range spans the whole loop) is flat: it still coalesces into the
+//     parameter and the load is not hoisted.
+//   * a `struct M { char* t; } m; m.t = target;` wrapper is flat.
+//   * comma expressions that assign pos inside a strncmp argument
+//     (`(pos = 0x14, target)` as arg2, `(pos = 0x14, 4)` as arg3) drop to
+//     36.6% / 190 bytes, so the assignment cannot ride on the argument setup.
 // NINTH PASS (deepseek-v4.1-flash): no change, still 97.5%, 205 bytes, the same
 // two instruction displacement. This pass focused on the preheader's basic
 // block structure and confirms the residual is exactly the scheduler tie the

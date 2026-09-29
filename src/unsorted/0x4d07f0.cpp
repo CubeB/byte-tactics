@@ -226,6 +226,15 @@
 // the guide (0x4b6570, 0x426200) record: the `total + 8` temp is edx in the
 // original and edi here, and the `mov edi, 0x14` slot plus the tail pops follow
 // from the same state.
+// EIGHTH PASS (deepseek-v4.1-flash): body unchanged, still 88.7% / 275 of 275
+// bytes, the same three hunks. One new negative, scored free with --sym:
+//   * a distinct `lim = total + 8` local (total provably dead after, the loop
+//     compares against lim instead of total): 40.2% / 267 bytes. The extra
+//     local makes the allocator reserve a callee-saved register for the frame
+//     (push ebx appears), moves file to edi and pushes &total to a higher
+//     slot. So the RMW has to stay on the same local; the original's edx is
+//     still the allocator tie the three hunks above describe, not a missing
+//     second variable.
 #include <string.h>
 
 int __stdcall FUN_004bb710(void* file, int pos);

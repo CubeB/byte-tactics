@@ -1,4 +1,5 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash and
+// Space Bunny Free. Names are provisional.
 #include <string.h>
 
 // DirectX 5's DPERR_BUFFERTOOSMALL, MAKE_DPHRESULT(30).
@@ -117,6 +118,47 @@ struct Len { unsigned int v; };
 // the push. A minimal `f(g->e, "ACCOUNTS")` with a stack-resident g shows the
 // compiler always loads the base first, so the original's order looks like an
 // allocator/scheduler coin-flip that this source cannot steer.
+//
+// A second pass (Space Bunny Free, #1060) scored about 95 further shapes and
+// none moved it off 99.6%. The score is bimodal with a hard ceiling at 99.6
+// for this source, so the family is not close to the boundary and sampling
+// more of it is wasted budget. What was tried, all 99.6% unless noted:
+//   * argument expression: plain, Table* cast, char* arithmetic cast, a
+//     conditional, a comma expression (96.0%), an __inline accessor, an
+//     accessor taking Gadget* by value, one taking Gadget**, one called twice
+//   * the name argument: a literal, a macro, a static const array (needs a
+//     const char* callee parameter), a non-static global char[9], a foldable
+//     local `char* nm`, a helper returning the literal, one taking an unused
+//     int
+//   * `gadget` storage: plain, `const` (won't compile uninitialised), a one
+//     field struct, a one field union, a struct with an inline method, a class
+//     with operator=, a file-static, a struct-by-value inline parameter
+//   * address-taken without code: `(void)&gadget`, `sizeof(&gadget)`,
+//     `&gadget == &gadget`, `(&gadget)[0]`, a `void*` alias array (93.6%), a
+//     pointer-to-pointer local. All leave the load hoistable, which is the
+//     point: the reload is not pinned by aliasing, it is a plain frame read
+//   * declaration order of all six locals (every size-preserving permutation
+//     of addr/size/len/r/gadget/net), plus adding unused locals of each type
+//   * local types: `addr` as void*, `size` as int, `r` as unsigned or long,
+//     `len` as a plain unsigned int instead of `struct Len`
+//   * call shape: the tail as one inline void helper, as a helper that also
+//     stores the callback, an `if (acc != 0)` wrapper (97.3%), do/while(0),
+//     a `for(;;)` body, a separate result variable, a block around the last
+//     statement, the callback store before the final call (96.7%), an early
+//     `return` (79.8%)
+//   * `player` as short (89.7%), unsigned short (97.1%), moved into the call,
+//     or declared at the top of the function
+//   * handler/owner stores swapped (98.8%), or done in an inline helper, or in
+//     a helper that also builds the gadget
+//   * /Ob2 budget: adding a trivial inline call, and adding a large inline
+//     candidate the optimiser rejects
+//   * headers.py over all 128 sets and 768 with --cpp: all 99.6%
+//
+// Reading it as a scheduler tie-break matches the guide's note on 0xb6570
+// (a reload that drifts around a call's argument pushes, with the
+// displacement shifting by exactly 4 per push). The only structural fact
+// that has moved the score on this function before was the declaration order
+// and initialisation of the six locals, and all of those are already right.
 //
 // What the previous attempt had wrong, and what fixed the six offsets and the
 // two missing prologue stores (all at once):

@@ -1,5 +1,4 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash and
-// Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 
 // DirectX 5's DPERR_BUFFERTOOSMALL, MAKE_DPHRESULT(30).
@@ -87,7 +86,7 @@ void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int count, int f
 void __stdcall FUN_004a2e40(void* menu, char* name, int index);
 void __stdcall FUN_004428f0(void* menu, Layout_00443100* entry);
 void __stdcall FUN_004a9660(void* gui);
-void __stdcall FUN_00449fb10(void* gui, int value);
+void __stdcall FUN_0049fb10(void* gui, int value);
 void __stdcall FUN_004a81e0(void* gui, int value);
 void __stdcall FUN_00425730(char* text);
 void __stdcall FUN_00425860(int state, int line, const char* file);
@@ -97,7 +96,8 @@ int __stdcall FUN_00443070(void* guid, unsigned long size, void* data, void* con
 
 struct Len { unsigned int v; };
 
-// PARTIAL, 99.6% (888 of 888 bytes, exact size; was 94.8%).
+// MATCH (888 of 888 bytes). Earlier passes reached 99.6% with the exact size;
+// the final difference was the calling convention, see the note at the end.
 //
 // The single remaining difference is one instruction order in the second
 // FUN_0049ff90 call. The original is
@@ -185,8 +185,70 @@ struct Len { unsigned int v; };
 // compared (`r = f(...); if (r >= 0)` gives `cmp eax,ebx; jl` where
 // `if (f(...) >= 0)` gives `test eax,eax; jl`).
 //
+// deepseek-v4.1-flash, second pass: re-confirmed 99.6% and ruled out compiler
+// STATE as the cause, which is the one thing the first pass had not measured.
+// The score is exactly 99.6 for N = 0..80 unused `extern int` declarations,
+// for N = 0..1200 (step 4) unused function prototypes, and for every
+// headers.py set. The swap was also unmoved by every address-taken spelling of
+// `gadget` (`*(Table**)&gadget`, `((Table**)&gadget)[0]`,
+// `*(Gadget**)(void*)&gadget`, a `void*` cast, `gadget[0].entries`,
+// `(&gadget->entries)[0]`, `*(&gadget->entries)`,
+// `((Gadget*)(void*)gadget)->entries`), by `Layout* e = gadget->entries;`,
+// by `(char*)"ACCOUNTS"`, by `&"ACCOUNTS"[0]`, by a `do/while(0)` wrapper, by
+// a nested `{ Gadget* g2 = gadget; ... }` block, by declaring `gadget` as
+// `Table*` with a matching layout, by a function-scope `entry` (with and
+// without an initialiser), and by an inlined accessor
+// `Layout* GetEntries(Gadget* g) { return g->entries; }`.
+//
+// A minimal probe in build/scratch/0x443100/mech shows MSVC emits the base load
+// before the argument push for this shape whether the base is a register, a
+// plain frame slot, or an address-taken frame slot, so the original's
+// `push imm; mov ecx,[esp+0x20]` is backend scheduling state that this
+// translation unit cannot reach from the source. Treat it as compiler state.
+//
+// space-bunny-free pass: 41 further shapes, all still 99.6%, and they say WHY
+// the swap is out of reach rather than just that it is hard.
+//
+//   * The original's `mov ecx,[esp+0x20]` is not printed late, it is genuinely
+//     after the push: its displacement is exactly 4 more than ours (0x1c here,
+//     0x20 there), which is the relevel the back end applies to an ESP-relative
+//     operand that the scheduler has moved across a 4-byte push. So the original
+//     really did schedule a frame load after a push, and the frame slot really is
+//     `gadget` (E-0x1c, written by `mov [esp+0x2c],eax` at 0x443164).
+//   * In an isolated probe (build/scratch/0x443100/probe3.cpp and probe4.cpp, 25
+//     spellings that all compile) the order is invariant: a constant push lands
+//     AFTER the first load of the argument's base chain and BEFORE the derived
+//     load, whatever the spelling. A three level chain (a union read) still puts
+//     it after the first load. So the constant push ranks between an
+//     ESP-relative frame load and a `[reg+disp]` load, and the base of this call
+//     has to be a frame load to give `mov ecx,[esp+0x20]` at all. No source that
+//     produces the right two instructions can move the push above the load.
+//   * Both ends of that range are reachable, so it is a rank choice and not a
+//     fixed order: a `if (t->e)` guard pulls BOTH loads ahead of the push, and a
+//     `char n[9]` local puts arg2's own code (a lea) after the base load too.
+//     Neither shape exists in this function.
+//   * Also ruled out this pass: a second local `g2` assigned from `gadget` right
+//     before the call (MSVC coalesces it into the same slot, the listing still
+//     says `_gadget$`, and the order is unchanged), the second result in its own
+//     variable, inline wrappers taking `(base, name)` and `(name, base)` with
+//     `char*` and `const char*` parameters, a wrapper taking `void*`, a helper
+//     holding the whole three statement tail, a cast through `void*`, a `Table*`
+//     alias local, a `(char*)` cast of the literal, a folded local for the
+//     literal, `*&`, a pointer-to-pointer local, and a nested block.
+// deepseek-v4.1-flash, final pass: MATCH. The one remaining instruction swap
+// was NOT compiler state; it was the calling convention. Declaring the function
+// `void __stdcall FUN_00443100()` makes MSVC 5 keep the ESP-relative `gadget`
+// load after the `push "ACCOUNTS"`, giving the original's
+// `push <addr>; mov ecx,[esp+0x20]; mov edx,[ecx+4]`. A zero-argument
+// __stdcall is byte-identical to __cdecl everywhere else (both end in a plain
+// `ret`), so only the stack-load scheduling differs: MSVC hoists such a load
+// above a `push imm` only in a __cdecl function (the guide's 0x41f0a0 entry).
+// This is why every source rewrite, header set and N-declarations sweep stayed
+// at 99.6%: the source shape was already right and the ABI was wrong.
+// Also fixed a latent symbol-name typo here (FUN_00449fb10 -> FUN_0049fb10)
+// that the checker only surfaces once the bytes match.
 // FUNCTION: 0x443100
-void FUN_00443100()
+void __stdcall FUN_00443100()
 {
     char* addr = 0;
     unsigned long size = 0;
@@ -255,7 +317,7 @@ void FUN_00443100()
             }
         }
     }
-    FUN_00449fb10(&g_game->menu, 1);
+    FUN_0049fb10(&g_game->menu, 1);
     FUN_004a81e0(&g_game->menu, 0x40);
     FUN_004ca940((Net_00443100*)&net);
     FUN_004d85a0(addr);

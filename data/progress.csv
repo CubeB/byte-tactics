@@ -2567,6 +2567,7 @@ address,size,file,symbol,status,similarity
 0x4c1450,18,src/unsorted/0x4c1450.cpp,?FUN_004c1450@@YAHXZ,matched,100.0
 0x4c1470,11,src/unsorted/0x4c1470.cpp,?FUN_004c1470@@YGEPAX@Z,matched,100.0
 0x4c1480,97,src/unsorted/0x4c1480.cpp,?FUN_004c1480@@YGHPAUFont_004c1480@@PAE@Z,matched,100.0
+0x4c14f0,617,src/unsorted/0x4c14f0.cpp,?FUN_004c14f0@@YGXPAVClass_004c6ae0@@PAEHHH@Z,partial,65.0
 0x4c1760,201,src/unsorted/0x4c1760.cpp,?FUN_004c1760@@YGXPAHPAEH@Z,partial,98.8
 0x4c1830,516,src/unsorted/0x4c1830.cpp,?FUN_004c1830@@YGXPAURect_004c1830@@PAEHHH@Z,matched,100.0
 0x4c1a40,20,src/unsorted/0x4c1a40.cpp,?FUN_004c1a40@@YAXXZ,matched,100.0
@@ -2586,6 +2587,7 @@ address,size,file,symbol,status,similarity
 0x4c23e0,129,src/unsorted/0x4c23e0.cpp,?FUN_004c23e0@@YGXPAUObj_004c23e0@@@Z,matched,100.0
 0x4c2470,62,src/unsorted/0x4c2470.cpp,?FUN_004c2470@@YAXXZ,matched,100.0
 0x4c24b0,299,src/unsorted/0x4c24b0.cpp,?FUN_004c24b0@@YGXPAUObj_004c24b0@@@Z,matched,100.0
+0x4c25e0,647,src/unsorted/0x4c25e0.cpp,?FUN_004c25e0@@YGXPAUApp_004c25e0@@@Z,matched,100.0
 0x4c2870,282,src/unsorted/0x4c2870.cpp,?FUN_004c2870@@YAXXZ,partial,98.8
 0x4c2990,229,src/unsorted/0x4c2990.cpp,?FUN_004c2990@@YAXH@Z,matched,100.0
 0x4c2a80,62,src/unsorted/0x4c2a80.cpp,?FUN_004c2a80@@YGHPAUStruct_004c2ac0@@@Z,matched,100.0
@@ -2638,6 +2640,7 @@ address,size,file,symbol,status,similarity
 0x4c5170,24,src/unsorted/0x4c5170.cpp,?FUN_004c5170@@YGXPAD@Z,matched,100.0
 0x4c5190,20,src/unsorted/0x4c5190.cpp,??1Elem_004c5bc0@@QAE@XZ,matched,100.0
 0x4c51b0,40,src/unsorted/0x4c51b0.cpp,??_GElem_004c5bc0@@QAEPAXI@Z,matched,100.0
+0x4c51e0,649,src/unsorted/0x4c51e0.cpp,?insert@?$vector@VClass_004c54a0@@V?$allocator@VClass_004c54a0@@@std@@@std@@QAEXPAVClass_004c54a0@@IABV3@@Z,matched,100.0
 0x4c5470,33,src/unsorted/0x4c5470.cpp,?FUN_004c5470@Class_004c5470@@QAEPAXPAH@Z,matched,100.0
 0x4c54a0,33,src/unsorted/0x4c54a0.cpp,??0Class_004c54a0@@QAE@ABV0@@Z,matched,100.0
 0x4c54d0,32,src/unsorted/0x4c54d0.cpp,??0Class_004c54d0@@QAE@ABVClass_004c91a0@@0@Z,matched,100.0

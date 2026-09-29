@@ -2614,6 +2614,7 @@ address,name
 0x4c5170,FUN_004c5170
 0x4c5190,Elem_004c5bc0::~Elem_004c5bc0
 0x4c51b0,??_GElem_004c5bc0@@QAEPAXI@Z
+0x4c51e0,VClass_004c54a0::?$vector::insert
 0x4c5470,Class_004c5470::FUN_004c5470
 0x4c54a0,Class_004c54a0::Class_004c54a0
 0x4c54d0,Class_004c54d0::Class_004c54d0

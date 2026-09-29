@@ -3787,9 +3787,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c0820,613,,#930,assigned,,,issue #930
 0x4c0c70,897,,#930,assigned,,,issue #930
 0x4c1000,791,,#930,assigned,,,issue #930
-0x4c14f0,617,,#931,assigned,,,issue #931
-0x4c25e0,647,,#931,assigned,,,issue #931
-0x4c51e0,649,,#931,assigned,,,issue #931
+0x4c14f0,617,sonnet-5.5,#931,partial,65.0,,issue #931
+0x4c25e0,647,sonnet-5.5,#931,matched,100.0,,issue #931
+0x4c51e0,649,sonnet-5.5,#931,matched,100.0,,issue #931
 0x4c7310,617,,#932,assigned,,,issue #932
 0x4cac40,640,,#932,assigned,,,issue #932
 0x4cf570,646,,#932,assigned,,,issue #932
@@ -3881,3 +3881,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x49b090,844,,#1070,assigned,,,"issue #1070, escalated"
 0x49d270,774,,#1070,assigned,,,"issue #1070, escalated"
 0x49d580,761,,#1070,assigned,,,"issue #1070, escalated"
+0x4c14f0,617,,#1071,assigned,,,"issue #1071, escalated"

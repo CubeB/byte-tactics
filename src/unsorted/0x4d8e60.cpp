@@ -1,33 +1,36 @@
 // Decompiled by Claude Sonnet 5.5 (skeleton and integration), regions by
-// DeepSeek V4.1 Flash. Names are provisional.
+// deepseek-v4.1-flash. Names are provisional.
 // Crash handler: appends a report (exception record, registers, code bytes at
 // EIP, debug and floating point registers) to ErrorLog.txt next to the exe.
 // Runs once (guard flag), the report is built in one big stack buffer with
 // `sprintf(log + strlen(log), ...)`.
 //
-// STATUS: not a match. `uv run tools/check.py 0x4d8e60` gives 2652 of 2644
-// bytes, 48.8%. The frame (0x143f0), the callee conventions, every string and
-// call and constant already match; what is left is 8 diff hunks, all of them
-// stack slot order and one register choice:
-//  - the original keeps the three small locals at [esp+0x10] = reason (the
-//    string returned by FUN_004d98c0), [esp+0x14] = base (the exe name after
-//    the last backslash, stored as a local in region r2) and [esp+0x18] = file.
-//    Ours puts base at 0x10, file at 0x14, reason at 0x18. Declaration order
-//    made no difference (all 12 orders of file, base, reason and written gave
-//    48.8%), so try usage order, scope (base declared where it is first set,
-//    file assigned later) or types.
-//  - the original does `call CreateFileA; test eax, eax; mov [esp+0x18], eax`
+// STATUS: not a match. `uv run tools/check.py 0x4d8e60` gives 2644 of 2644
+// bytes (exact size), 50.6%. The callee conventions, every string, call and
+// constant match; what is left is stack slot order, register choices and a
+// handful of evaluation-order differences.
+//  - The second argument matters: the signature is
+//    `int __cdecl(EXCEPTION_POINTERS* ep, char* handlerName)`. Callers push
+//    "fatal error handler" (0x4d9c07) and "Global Exception Handler"
+//    (0x4da2aa); the original prints the second stack dword in
+//    "Exception handler called in %s. " (0x4d90c4 reads [esp+0x14408], i.e.
+//    arg1, not arg0). Adding it fixed the byte count to exact (48.8 -> 50.6).
+//  - After that change our _chkstk size is 0x143f4, the original's 0x143f0:
+//    `Class_004d9c60 obj` here is declared with unknown_0[0xc4d0] and likely
+//    needs to be 0x10 smaller (real size <= 0xc4c0) so the frame lands on
+//    0x143f0 again.
+//  - The original keeps the small locals at [esp+0x10] = reason (returned by
+//    FUN_004d98c0), [esp+0x14] = base (exe name after the last backslash),
+//    [esp+0x18] = file. Ours orders them base 0x10, file 0x14, reason 0x18.
+//    Declaration order made no difference (12 orders tried), so the ordering
+//    comes from use/liveness; unresolved.
+//  - The original does `call CreateFileA; test eax, eax; mov [esp+0x18], eax`
 //    and pushes eax again for SetFilePointer, so the handle is never held in
-//    a register; ours does `mov esi, eax` first. Same slot problem as above,
-//    or a comparison written differently (`(file = CreateFileA(...)) != 0`).
-//  - every later hunk is the same slot numbers and shifted jump targets; fix
-//    the first two and rerun check.py to see what is really left.
-// The sprintf arguments in regions r3 to r6 (registers, debug registers, the
-// floating point block) were written from the disassembly and match except
-// through the slot shifts above; region scores from `tools/regcheck.py` are
-// r1 84%, r2 75%, r3 49%, r4 45%, r5 48%, r6 33%, r7 52% (a progress signal,
-// not a match check). r6 is the weakest: recheck the `room` maths and the
-// lstrcpynA source (`obj` is used as the raw byte source).
+//    a register; ours does `mov esi, eax` first.
+//  - `FUN_004ded60(log+strlen(log), 0x7358-strlen(log))` and each sprintf
+//    compute strlen after the other arguments are pushed in the original;
+//    ours hoists some of those loads. r6 (`room` maths, lstrcpynA source) is
+//    the weakest region.
 //
 // Pilot notes: docs/splitting-huge-functions.md and docs/splitting-pilot2-results.md.
 
@@ -57,7 +60,7 @@ void __cdecl FUN_004de110();
 // SHARED end
 
 // FUNCTION: 0x4d8e60
-int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep)
+int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
 {
     char path[1000];
     char name[1000];
@@ -107,12 +110,12 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep)
 
     // REGION r3 begin
     log[0] = 0;
-    sprintf(log + strlen(log), "Exception handler called in %s. ", (char*)ep);
+    sprintf(log + strlen(log), "Exception handler called in %s. ", handlerName);
     FUN_004ded60(log + strlen(log), 0x7358 - strlen(log));
     sprintf(log + strlen(log), "Instruction pointer is %08lX\n", ctx->Eip);
     sprintf(log + strlen(log), "ExceptionCode = %08lX", rec->ExceptionCode);
     sprintf(log + strlen(log), " - %s\n", (char*)file);
-    if (rec->ExceptionCode == 0xc0000005 && rec->NumberParameters > 1) {
+    if (rec->ExceptionCode == 0xc0000005 && rec->NumberParameters >= 2) {
         if (((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1]))
             sprintf(log + strlen(log), "Error: Write to read only memory attempted\n");
         sprintf(log + strlen(log), "Access violation: Illegal %s, data address 0x%08lX\n",
@@ -126,6 +129,7 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep)
     if (rec->NumberParameters != 0) {
         sprintf(log + strlen(log), "Parameters = ");
         for (unsigned int i = 0; i < rec->NumberParameters; i++)
+            // The i % 3 == 3 test is always false (i % 3 is 0..2); kept as-is.
             sprintf(log + strlen(log), "%08lX%c", rec->ExceptionInformation[i],
                     (char)(i == rec->NumberParameters - 1 ? '\n'
                                                           : i % 3 == 3 ? '\n' : '\t'));

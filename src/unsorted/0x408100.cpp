@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: eligibility, position-search and loop-body helpers, grouped result
+// locals, vector constructors/copy operators and direction variants did not improve
+// 83.5%. Preserve this version; the first loop register rotation remains.
 // Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Runs every 90 ticks over the units of this object's group: first gives each

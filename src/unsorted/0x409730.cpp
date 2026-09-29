@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: rating access, clamp, half-rating and pointer getter helpers, plus
+// all 768 header sets, did not improve 99.6%. Remaining differences are still the
+// two SIB base/index encodings; accessor wrappers can disturb STL inline budgeting.
 // Recomputes a player's per-unit-type tables (the object built by 0x409160):
 // resizes the tables at +0x8d and +0x65 to the unit type count, then for each
 // unit type rates it into vec_8d[i] and the three bytes of vec_65[i].

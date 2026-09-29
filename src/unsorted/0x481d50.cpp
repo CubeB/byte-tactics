@@ -119,16 +119,25 @@ inline int Lod_00481d50(Params_00481d50* params)
     return v < 0 ? 0 : v;
 }
 
-// Status: partial, 52.7 percent. The shape below is the closest found. What is
-// still wrong: the stack slots and the register rotation across both branches.
-// The original keeps sx in [esp+0x1c], sy in [esp+0x20], the table pointer in
-// [esp+0x38] and the line pointer in [esp+0x3c]; this version puts sx in
-// [esp+0x20], sy in [esp+0x14], the table in [esp+0x18] and the line in
-// [esp+0x30]. In the else branch the original computes the destination first
-// (ecx) and the source second (edx); every spelling tried here leaves the
-// source in ecx. <windows.h> is required (the family sibling 0x4825b0 matches
-// only with it). The 0x482270 twin is byte-identical apart from the sign of the
-// two explored-map updates and is still unmatched too.
+// Status: partial, 53.5 percent. The body shape is right; what still differs is
+// the local frame slot assignment (and everything downstream of it). Original
+// slots, low to high: j1 0x10, e2 0x14, i 0x18, x 0x1c, y 0x20, e1 0x24,
+// ref 0x28, bestDiff 0x2c, grid 0x30, lod/j 0x34, table 0x38, line 0x3c,
+// num 0x40, halfH/count 0x44. Ours: j1 0x10, y 0x14, table 0x18, i 0x1c,
+// x 0x20, ref 0x24, bestDiff 0x28, j 0x2c, line 0x30, e1 0x34, e2 0x38,
+// grid 0x3c, num 0x40, halfH 0x44. Only j1 (0x10), num (0x40) and halfH (0x44)
+// agree. This is MSVC spilling in a different order, not declaration order: a
+// probe with six address-taken locals confirms first-declared gets the lowest
+// offset, but here only spilled variables get slots, assigned in spill order.
+// The inner loop must be the comma-for, `for (j = 0, j1 = 1; (short)j <
+// (short)num; j++, j1++)`: j1 increments on the `continue` paths too (the
+// original back edge at 0x481f7a bumps both counters). That alone took 52.7 to
+// 53.5. Tried and rejected (free scratch scoring): all locals at function scope
+// in the exact ascending-slot order (42.2, frame shrank to 779 bytes); removing
+// the named `lod` local (identical 52.7); swapping the top declaration order to
+// x, y, halfW, halfH (50.9). <windows.h> is required (family sibling 0x4825b0
+// matches only with it). The 0x482270 twin is byte-identical apart from the sign
+// of the two explored-map updates and is still unmatched at 50.3.
 // FUNCTION: 0x481d50
 void __stdcall FUN_00481d50(Params_00481d50* params)
 {
@@ -164,7 +173,7 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             int bestIdx = 0;
             short j = 0;
             int j1 = 1;
-            for (j = 0; j < num; j++) {
+            for (j = 0, j1 = 1; (short)j < (short)num; j++, j1++) {
                 int e1;
                 int e2;
                 ((Class_004339e0*)line)->FUN_004339e0(j, &e1, &e2);
@@ -185,7 +194,6 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
                         bestDiff = d1;
                     }
                 }
-                j1++;
             }
         }
     } else {

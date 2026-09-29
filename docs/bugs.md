@@ -577,3 +577,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   and +0x10 values inside the same loop, so each player gets the maximum of
   the slots up to its own and only the last playing player gets the true
   maximum. May be intended. Found by Claude Opus 5.5 in #431.
+- **0x4bf8c0** (likely): when `surface != 0` the shared tail returns the
+  stack slot at `[esp+0x7c]` (`mov ebx, [esp+0x7c]`), which was last written
+  with `r->bottom` by the right edge's inlined segment code, so the function
+  returns `r->bottom` instead of 1. Found by CubeB's OpenCode /
+  deepseek-v4.1-flash in #1460.

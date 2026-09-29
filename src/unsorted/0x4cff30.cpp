@@ -1,4 +1,28 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+//
+// Class_004cff30 is a prefix of Class_004cee50 (the 0x294-byte sound object);
+// 0x4cff30 is its "open the devices and cache the volumes" method. The exe's
+// 0x4cfff0 (wave volume) and 0x4d0040 (aux volume) are inlined here by /Ob2,
+// which is what produces the shared `or eax,-1` store and the two epilogues.
+//
+// The one thing that finally decided the callee-saved register permutation:
+// holding the auxGetDevCapsA RESULT in a named local inside the device loop
+//     int r = auxGetDevCapsA(i, &caps, sizeof(caps));
+//     if (r == 0 && caps.wTechnology == AUXCAPS_CDAUDIO) { ... }
+// rather than comparing the call inline. Inline, MSVC 5 gives the values the
+// callee-saved registers in the order (this, aux_count, import address); with
+// the named result the order becomes (import address, this, aux_count), which
+// is the original's: import in edi, `this` in ebx, count in ebp. It is the
+// only one of about twenty forms tried that moves it, and it moves it all the
+// way. The same named result in the WAVE loop instead makes things worse
+// (75.5% at 189 bytes), so it is specifically the aux loop.
+//
+// Ruled out by measurement along the way, so nobody repeats them: named temps
+// for waveOutGetNumDevs, for the two volume getter results, `AUXCAPSA *pc =
+// &caps`, a named `int tech` for caps.wTechnology, `__inline` member
+// accessors, `Class_004cff30 *p = this`, source-level local function pointers
+// for the dllimports, the aux search in its own inlined member, do/while loops
+// and UINT index/count types. All 77.3% or worse.
 #include <windows.h>
 #include <mmsystem.h>
 
@@ -35,29 +59,7 @@ public:
 };
 
 // Picks the first CD-audio auxiliary device, then caches the wave-out and
-// auxiliary volumes (-1 when unavailable). Both volume getters (the exe's
-// 0x4cfff0 and 0x4d0040) are inlined here, which is what produces the shared
-// `or eax,-1` store and the two epilogues.
-//
-// Still differs (77.3%): every instruction matches but for one register
-// permutation. The original keeps `this` in ebx, the aux device count in ebp
-// and the cached dllimport address in edi; this build keeps `this` in edi, the
-// count in ebx and the import address in ebp, and that swap moves the final
-// `mov [reg+0x1c],eax` before `pop edi`. The three registers rotate together
-// (esi is always the loop counter): probing shows that removing a wave loop
-// that reads `this` rotates the phase to `mov ebp,ecx`, and loading the counts
-// into outer locals rotates it far enough to reach `mov ebx,ecx`, but every
-// shape that reaches ebx drops the in-loop reload of `[this+0x10]` that the
-// original has. Nothing else reachable from the file moves it: the getters as
-// member/static/free/inline/out-of-line, value/int&/Class&/Class* parameters
-// (each gives one of the three rotations but never the right one), casts to
-// the sibling classes 0x4cfff0/0x4d0040, a base class, virtuals, early-return
-// range checks, explicit outer checks, do/while vs for, the full
-// Class_004cee50 layout plus its real constructor as a preceding neighbour,
-// definition order, tools/headers.py (128 and 768 sets), int/void* parameters,
-// explicit FARPROC locals and the rtm toolchain all give the same result.
-// Like 0x4732e0.cpp this is compiler state from the original translation unit,
-// reachable only after the regroup-into-TUs phase.
+// auxiliary volumes (-1 when unavailable).
 // FUNCTION: 0x4cff30
 void Class_004cff30::FUN_004cff30()
 {
@@ -68,8 +70,8 @@ void Class_004cff30::FUN_004cff30()
 
     int aux_count = auxGetNumDevs();
     for (int i = 0; i < aux_count; i++) {
-        if (auxGetDevCapsA(i, &caps, sizeof(caps)) == 0 &&
-            caps.wTechnology == AUXCAPS_CDAUDIO) {
+        int result = auxGetDevCapsA(i, &caps, sizeof(caps));
+        if (result == 0 && caps.wTechnology == AUXCAPS_CDAUDIO) {
             aux_device = i;
             break;
         }

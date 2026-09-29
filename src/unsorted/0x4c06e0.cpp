@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Claude Sonnet 5.5 pass (#694): still 74.1%, 200 bytes. Compiler state ruled out:
 // N unused `extern int` declarations (0 to 400 in steps of 8) give 200 bytes and 74.1%
 // for N = 0 to 48 and again from about 296, and a shorter 193 bytes and 59.2%
@@ -65,6 +65,13 @@
 //   followed by `x2 = span->x2;`) and then an `int pitch = surf->pitch;`
 //   after it (74.1%). The clamp on the local is what keeps n in ebx through
 //   the count block instead of spilling it.
+//
+// A fourth pass (#1213, deepseek-v4.1-flash) scored four more dead ends, all
+// below 74.1%: a `start` local with the offset reading `surf->pitch` inline
+// (70.2%, 199 bytes, surf lands in eax and start in ebx), the same with the
+// offset as `row * surf->pitch + start` (70.6%), reusing the top-level `x1`
+// local for the count after the clamp (70.6%), and the shared `off` local
+// (70.6%). So 74.1% still stands.
 //
 // The head shape is the same as 0x4c0b10's, which is also stuck on an
 // ebx/ebp choice at the same two field loads.

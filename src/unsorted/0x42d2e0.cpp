@@ -1,10 +1,10 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// STILL DIFFERS: frame now matches (0x610) and all 32 callees/symbols resolve, but
-// register allocation is off: the original keeps a constant 0 in ebx and caches
-// g_game in esi across whole regions, ours reloads it and uses immediates. The GUI
-// suffix loop is rotated differently (ours duplicates the body). Score ~70.9%.
-// Loads MOVEINFO.TDF (the movement class list), builds the model table,
-// then loads GAMEDATA.TDF/sidedata and the per-unit CANBUILD lists.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// STILL DIFFERS: frame is 0x610 and all 32 callees/symbols resolve, and the two
+// dedup loops now emit the original's not/test/0x800000 shape, but register
+// allocation still differs: the original keeps a constant 0 in ebx and caches
+// g_game in esi across whole regions, ours reloads it into ebx/edi. The GUI
+// suffix loop is rotated and duplicated by MSVC where the original back-jumps.
+// Best score ~74.8%.
 #include <string.h>
 #include <stdio.h>
 
@@ -13,7 +13,7 @@
 class Class_004c2ea0 {
 public:
     int field_0;
-    void* current;                      // +0x4
+    void* current;
     int field_8;
     Class_004c2ea0();
     ~Class_004c2ea0();
@@ -55,28 +55,66 @@ public:
     void FUN_00458180(int size);
 };
 
+union UType_0042b370_flags {
+    unsigned int value;
+    struct {
+        unsigned int b0 : 1;
+        unsigned int b1 : 1;
+        unsigned int b2 : 1;
+        unsigned int b3 : 1;
+        unsigned int b4 : 1;
+        unsigned int b5 : 1;
+        unsigned int canbuild : 1;
+        unsigned int b7 : 1;
+        unsigned int b8 : 1;
+        unsigned int b9 : 1;
+        unsigned int b10 : 1;
+        unsigned int b11 : 1;
+        unsigned int b12 : 1;
+        unsigned int b13 : 1;
+        unsigned int b14 : 1;
+        unsigned int b15 : 1;
+        unsigned int b16 : 1;
+        unsigned int b17 : 1;
+        unsigned int b18 : 1;
+        unsigned int b19 : 1;
+        unsigned int b20 : 1;
+        unsigned int b21 : 1;
+        unsigned int b22 : 1;
+        unsigned int hasgui : 1;
+        unsigned int b24 : 1;
+        unsigned int b25 : 1;
+        unsigned int b26 : 1;
+        unsigned int b27 : 1;
+        unsigned int b28 : 1;
+        unsigned int b29 : 1;
+        unsigned int b30 : 1;
+        unsigned int gui : 1;
+    } bits;
+};
+
 class Class_0042b370 {
 public:
     char unknown_0[0x20];
-    char name[0x60];                    // +0x20
-    char model[0x20];                   // +0x80
+    char name[0x60];
+    char model[0x20];
     char unknown_a0[0x152 - 0xa0];
-    int field_152;                      // +0x152
-    void* field_156;                    // +0x156
+    int field_152;
+    void* field_156;
     char unknown_15a[0x162 - 0x15a];
-    int field_162;                      // +0x162
+    int field_162;
     char unknown_166[0x16e - 0x166];
-    int field_16e;                      // +0x16e
+    int field_16e;
     char unknown_172[0x17a - 0x172];
-    int field_17a;                      // +0x17a
+    int field_17a;
     char unknown_17e[0x18e - 0x17e];
-    void* field_18e;                    // +0x18e
+    void* field_18e;
     char unknown_192[0x21e - 0x192];
-    unsigned short field_21e;           // +0x21e
+    unsigned short field_21e;
     char unknown_220[0x22e - 0x220];
-    unsigned char field_22e;            // +0x22e
+    unsigned char field_22e;
     char unknown_22f[0x241 - 0x22f];
-    unsigned int flags;                 // +0x241
+    UType_0042b370_flags flags;
     char unknown_245[0x249 - 0x245];
 
     Class_0042b370& operator=(const Class_0042b370& other);
@@ -108,20 +146,20 @@ struct Class_00440290 {
 
 struct Game_0042d2e0 {
     char unknown_0[0xc];
-    void* field_c;                      // +0xc
+    void* field_c;
     char unknown_10[0x14377 - 0x10];
-    void** field_14377;                 // +0x14377
-    Class_00458160* field_1437b;        // +0x1437b
+    void** field_14377;
+    Class_00458160* field_1437b;
     char unknown_1437f[0x1438f - 0x1437f];
-    int field_1438f;                    // +0x1438f
-    int field_14393;                    // +0x14393
-    int field_14397;                    // +0x14397
-    Class_0042b370* field_1439b;        // +0x1439b
+    int field_1438f;
+    int field_14393;
+    int field_14397;
+    Class_0042b370* field_1439b;
     char unknown_1439f[0x37e1f - 0x1439f];
-    int field_37e1f;                    // +0x37e1f
-    int field_37e23;                    // +0x37e23
+    int field_37e1f;
+    int field_37e23;
     char unknown_37e27[0x38d71 - 0x37e27];
-    unsigned char field_38d71;          // +0x38d71
+    unsigned char field_38d71;
 };
 #pragma pack(pop)
 
@@ -164,16 +202,19 @@ void FUN_0042d2e0()
         if (!((Class_004c2f60*)&parser)->FUN_004c2f60(path))
             FUN_004b6290("Can't load MOVEINFO.TDF");
 
-        Class_00440320* entry = Class_00440290::DAT_00512358.entries;
-        for (int i = 0; i < 32; i++) {
+        Class_00440320* cls = Class_00440290::DAT_00512358.entries;
+        Class_00440320* cls_end = &Class_00440290::DAT_00512358.entries[32];
+        int i = 0;
+        while (cls < cls_end) {
             sprintf(classbuf, "CLASS%d", i);
             ((Class_004c3e10*)&parser)->FUN_004c3e10();
             if (((Class_004c3410*)&parser)->FUN_004c3410(classbuf)) {
                 ((Class_004c48c0*)parser.current)->FUN_004c48c0(classbuf, "name", 100, DAT_005119b8);
-                entry->field_0 = (int*)FUN_004d8610(classbuf);
-                entry->FUN_00440340(&parser);
+                cls->field_0 = (int*)FUN_004d8610(classbuf);
+                cls->FUN_00440340(&parser);
             }
-            entry++;
+            cls++;
+            i++;
         }
         ((Class_004c3240*)&parser)->FUN_004c3240();
     }
@@ -199,13 +240,13 @@ void FUN_0042d2e0()
 
     FUN_004d8780(g_game->field_1439b);
 
-    Class_0042b370* base = g_game->field_1439b;
-    Class_0042b370* end = base + g_game->field_1438f;
+    Class_0042b370* end = g_game->field_1439b + g_game->field_1438f;
+    Class_0042b370* start = g_game->field_1439b + 1;
 
-    Class_0042b370* p = base + 1;
+    Class_0042b370* p = start;
     Class_0042b370* d = end;
     if (p != end) {
-        while ((p->flags & 0x800000) != 0) {
+        while (~(p->flags.value) & 0x800000) {
             if (++p == end)
                 break;
         }
@@ -213,7 +254,7 @@ void FUN_0042d2e0()
         if (p != end) {
             Class_0042b370* s = p + 1;
             while (s != end) {
-                if ((s->flags & 0x800000) != 0) {
+                if (~(s->flags.value) & 0x800000) {
                     *d = *s;
                     d++;
                 }
@@ -221,41 +262,43 @@ void FUN_0042d2e0()
             }
         }
     }
-    g_game->field_1438f = (int)(d - base) / 585;
+    g_game->field_1438f = (int)(d - g_game->field_1439b) / 585;
 
-    Class_0042b370* last = base + g_game->field_1438f;
+    Class_0042b370* last = g_game->field_1439b + g_game->field_1438f;
     if (g_game->field_1438f - 1 < 0x11) {
-        FUN_00432fb0(base + 1, last, (void*)FUN_0042db60, 0);
+        FUN_00432fb0(start, last, (void*)FUN_0042db60, 0);
     } else {
-        FUN_00432d40(base + 1, last, (void*)FUN_0042db60, 0);
-        Class_0042b370* q = base + 0x11;
-        FUN_00432fb0(base + 1, q, (void*)FUN_0042db60, 0);
+        FUN_00432d40(start, last, (void*)FUN_0042db60, 0);
+        Class_0042b370* q = start + 0x11;
+        FUN_00432fb0(start, q, (void*)FUN_0042db60, 0);
         for (; q != last; q++) {
             Class_0042b370 tmp = *q;
             Class_0042b370* r = q - 1;
-            while (_strcmpi(tmp.name, r->name) < 0) {
-                *(r + 1) = *r;
+            Class_0042b370* w = q;
+            while (_strcmpi(r->name, tmp.name) < 0) {
+                *w = *r;
+                w = r;
                 r--;
             }
-            *(r + 1) = tmp;
+            *w = tmp;
         }
     }
 
     unsigned short index = 0;
     if (g_game->field_1438f > 0) {
-        unsigned int k = 0;
-        do {
-            base[k].field_21e = index;
+        while ((int)index < g_game->field_1438f) {
+            g_game->field_1439b[index].field_21e = index;
             index++;
-            k = index;
-        } while ((int)k < g_game->field_1438f);
+        }
     }
 
-    int c = g_game->field_1438f;
+    unsigned int c = g_game->field_1438f;
     g_game->field_14393 = 0;
-    while (c != 0) {
-        g_game->field_14393++;
-        c >>= 1;
+    if (c) {
+        do {
+            c >>= 1;
+            g_game->field_14393++;
+        } while (c);
     }
 
     g_game->field_14377 = (void**)FUN_004d83b0("MODEL PTRS", g_game->field_1438f * 4);
@@ -286,9 +329,9 @@ void FUN_0042d2e0()
         sprintf(section, "%s0", namebuf);
         FUN_004290f0(path, "guis", section, "GUI");
         if (FUN_004bbc40(path))
-            type->flags |= 0x80000000;
+            type->flags.bits.gui = 1;
         else
-            type->flags &= 0x7fffffff;
+            type->flags.bits.gui = 0;
 
         int suffix = 1;
         int found = 0;
@@ -298,11 +341,11 @@ void FUN_0042d2e0()
             if (!FUN_004bbc40(path))
                 break;
             suffix++;
-            found = true;
+            found = 1;
         }
         if (found)
             type->field_22e = suffix;
-        else if (type->flags & 0x80000000)
+        else if (type->flags.bits.gui)
             type->field_22e = 1;
         else
             type->field_22e = 0;
@@ -323,7 +366,7 @@ void FUN_0042d2e0()
             Class_0042b370* type = &g_game->field_1439b[s];
             type->field_152 = 0;
             type->field_156 = 0;
-            if ((type->flags >> 6) & 1) {
+            if (type->flags.bits.canbuild) {
                 ((Class_004c3e10*)&parser2)->FUN_004c3e10();
                 if (((Class_004c3410*)&parser2)->FUN_004c3410("CANBUILD")
                     && ((Class_004c3410*)&parser2)->FUN_004c3410(type->name)) {

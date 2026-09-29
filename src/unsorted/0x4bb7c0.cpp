@@ -1,30 +1,8 @@
-// Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// Reads up to `size` bytes at the file's position into `buf` and returns the
-// count. A plain file is one fread. A file inside a loaded archive item is read
-// from the item's stream: an uncompressed entry with a single fread (after a
-// seek when the item's stream is elsewhere) and the archive's obfuscation
-// undone in place; a compressed entry in 64 KiB blocks, each block read into a
-// "Compressed Buffer" (offset = the block size table plus the sizes of the
-// blocks before it), un-obfuscated, decompressed by FUN_004d1970 into the
-// "Uncompressed Block" buffer at +0x14 and then copied out (the buffer is kept
-// until the position leaves the block). A decompression error is reported
-// through FUN_004b6290 with a multi-line message. A short read of a
-// compressed block returns -1.
-//
-// NOT MATCHED: 48.8%, 1008 of 1042 bytes. Frame is now 0x40c after making the
-// message buffer 1004 bytes (984 is what the original's layout implies but it
-// left the frame at 0x3f8), which fixed many [esp+N] offsets. The code follows the original's
-// shape (the shared-item test first, compressed path before the uncompressed
-// one, the block loop, the five appended error lines) but the register
-// assignment and frame differ: the original keeps the item in edi and the
-// entry info in esi (here esi and ebx), its frame is 0x40c with the locals at
-// [esp+0x13] (a byte copy of the obfuscation key), 0x14 (n), 0x18 (dst), 0x1c
-// (remaining), 0x20 (compressed buffer), 0x24 (block counter), 0x28 (block
-// count), 0x2c (size table bytes) and 0x30 (block index) followed by the
-// message buffer; declaring locals in that order (item, info, key, n, dst,
-// remaining, comp, counter, blocks, tableSize, b, msg) did not reproduce it.
-// File.pos has to be unsigned (the block index is `shr 16`) but the room test
-// `info->size - pos < n` is signed.
+// Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Partial: 83.5%. Keep the shared read-count return path, 1000-byte message
+// buffer and block-offset helper; these restore the original locals and most
+// decoding/error-reporting instructions. Block-count/table-size allocation,
+// their reloads around memcpy, and the copy/seek tail still differ.
 #include <stdio.h>
 #include <string.h>
 
@@ -72,6 +50,13 @@ static inline int nblocks(int w)
     return w / 65536 + (w % 65536 != 0);
 }
 
+static inline int BlockOffset(File_004bb7c0* file, int& counter, int b, int tableSize)
+{
+    int off = tableSize;
+    for (counter = 0; counter < b; ++counter)
+        off += file->buffer[counter];
+    return off;
+}
 // FUNCTION: 0x4bb7c0
 int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
 {
@@ -98,16 +83,15 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
             while (i < blocks) {
                 b = file->pos >> 16;
                 if (file->buffer2 == 0) {
-                    int off = tableSize;
-                    for (int k = 0; k < b; k++)
-                        off += file->buffer[k];
+                    int k;
+                    int off = BlockOffset(file,k,b,tableSize);
                     off += file->info->offset;
                     fseek(file->shared->fp, off, 0);
                     file->shared->pos = off;
                     file->buffer2 = (unsigned char*)FUN_004d83b0("Uncompressed Block", 0x10000);
-                    comp = (unsigned char*)FUN_004d83b0("Compressed Buffer", file->buffer[b]);
-                    int got = fread(comp, 1, file->buffer[b], file->shared->fp);
-                    if (got != file->buffer[b]) {
+                    comp = (unsigned char*)FUN_004d83b0("Compressed Buffer", file->buffer[k]);
+                    int got = fread(comp, 1, file->buffer[k], file->shared->fp);
+                    if (got != file->buffer[k]) {
                         FUN_004d85a0(file->buffer2);
                         file->buffer2 = 0;
                         FUN_004d85a0(comp);
@@ -121,7 +105,7 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
                     }
                     int err = FUN_004d1970(file->buffer2, comp);
                     if (err) {
-                        char msg[1004];
+                        char msg[1000];
                         sprintf(msg, "[HAPI_readfromfile] Decompression Error: %s\n", FUN_004d1c60(err));
                         sprintf(msg + strlen(msg), "block %d of %d\n", i, blocks);
                         sprintf(msg + strlen(msg), "base name '%s'\n", file->shared->name);
@@ -144,24 +128,26 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
                 remaining -= chunk;
                 i++;
             }
-            return n;
+            goto done;
         }
         int off = file->pos + info->offset;
         if (off != item->pos) {
             fseek(item->fp, off, 0);
-            item->pos = off;
+            file->shared->pos = off;
         }
-        n = fread(buf, 1, n, item->fp);
+        n = fread(buf, 1, n, file->shared->fp);
         unsigned char key = file->shared->node->obfuscate;
         if (key) {
             for (int i = 0; i < n; i++)
                 buf[i] = (unsigned char)(buf[i] ^ 0xff ^ (unsigned char)(i + off) ^ key);
         }
         if (n < 0)
-            return n;
+            goto done;
         file->pos += n;
         file->shared->pos += n;
-        return n;
+        goto done;
     }
-    return fread(buf, 1, size, file->fp);
+    n = fread(buf, 1, size, file->fp);
+done:
+    return n;
 }

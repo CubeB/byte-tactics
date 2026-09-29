@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// GPT-6 retry: chained/reset-helper field initialization and copying unset
+// values through the reset fields did not improve 89.5%. Preserve this version;
+// the zero/minus-one register choices and delayed x87 stores still differ.
 // Loads the current mission: resets the mission state, finds the mission's
 // OTA file (from the campaign list entry MISSION<n> for type 1, or from the
 // map name for types 2 and 3), reads its GlobalHeader block into the fields

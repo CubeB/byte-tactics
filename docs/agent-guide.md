@@ -22,6 +22,22 @@ Work from the repository root: `~/repos/personal/byte-tactics`.
 4. Adjust and repeat. Stop at `MATCH`, or when you run out of attempts for that
    function; leave your best (highest %) version in the file either way.
 
+## Finding a class from an address
+
+When `ctx.py` shows your function using `this` or a class pointer and you need
+the layout, matched code has probably already declared that class:
+
+    uv run tools/unitmap.py --at 0x<addr>
+
+It prints the matched functions nearest the address, the class (unit) they
+belong to, the class's fields with their offsets and the file each came from,
+any offset whose views disagree, and its matched members, which are near copies
+of the function you are writing. `uv run tools/unitgen.py <unit>` writes that
+whole class under `build/units/` (never committed); copy the declaration you need
+into your own file. The map only holds matched members, and it only flags a
+dispute where a file carries a `// +0xN` comment, so an empty dispute list means
+"nothing was flagged", not "the views agree". More in `docs/consolidation.md`.
+
 ## Rules
 
 - Only create or edit `src/unsorted/0x<addr>.cpp` for the addresses you were

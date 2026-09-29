@@ -4,6 +4,80 @@ Things to resolve when the per-function files in `src/unsorted/` are merged
 into real classes and translation units. Agents name unknown classes after
 single addresses, so one real class often appears under several names.
 
+## The unit map
+
+`tools/unitmap.py` groups the matched members under `src/` into the classes
+they belong to and builds a map in memory on every run. A unit is a class whose
+matched members are spread over more than one file in `src/unsorted/`, which is
+the state every class is in before consolidation. For each unit the map gives its
+members in address order, the file defining each, every file that declares the
+class, the union of the field ledgers those declarations give, and every offset
+where two of them disagree.
+
+```sh
+uv run tools/unitmap.py            # summarise and write build/units.json (ignored)
+uv run tools/unitmap.py --list     # the units, largest first
+uv run tools/unitmap.py --at 0x401070   # the unit nearest an address
+```
+
+The map is rebuilt from `data/progress.csv` and `src/` on each run, so nothing
+has to be kept current. `build/units.json` is written for inspection only.
+
+A class whose members already live in one file is not a unit, so a consolidated
+class drops out of the map rather than staying as a one-file entry.
+
+`tools/unitgen.py <unit>` reads the map and writes one candidate file under
+`build/units/`:
+
+- every type the unit's files declare is emitted once. For each name the views
+  are merged: the base list comes from the view that has one, fields and their
+  order from the reference file's view (the layout its matched functions were
+  built against), any field another view declares that a member body actually
+  names is added, and methods are unioned by name, so a view that left one out
+  does not remove it;
+- the reference file (the one carrying the most fields) keeps its order, so
+  `#pragma pack` regions and the order of virtual slots survive;
+- every other file's remaining declarations are inserted above the first place
+  that needs them, rather than at the end;
+- every member's definition is copied from the file that holds it, in address
+  order.
+
+It never invents a line, and it prints the offsets in dispute and any base class
+it could not find. A type whose name no file in the unit declares is not pulled
+in from elsewhere, so a unit that needs one still fails; none does today.
+
+The candidate is the start of a unit, not a match. Merging changes the compiler
+state and the inline budget, so once the file compiles, every function it holds
+has to be re-checked:
+
+```sh
+uv run tools/check.py <address> build/units/<unit>.cpp
+```
+
+Where two declarations disagree, the map records every view and the generator
+says which one it used; that choice is a hypothesis until the checker agrees.
+Regenerate the map after each merge. A disagreement the generator cannot settle
+from the code (for example a field one file reads as an `int` and another indexes
+as a pointer, with a body naming both) is a decision for the reviewer, not for
+the tool.
+
+## Using the map while decompiling
+
+`docs/agent-guide.md` has the short version: `uv run tools/unitmap.py --at
+0x<addr>` names the class nearest an address and prints its ledger, and
+`tools/unitgen.py <unit>` writes that class with its matched members under
+`build/units/`. What the map cannot tell you:
+
+- it only holds matched members, so a class whose methods are all unmatched does
+  not appear, and a class still spelt under several placeholder names is either
+  split between entries or is not a unit at all;
+- a conflict is only found when a file carries a `// +0xN` comment. Two views of
+  one offset that both omit it (compact packed structs) are stored as two fields
+  and reported as clean, so an empty dispute list means "nothing was flagged",
+  not "the views agree";
+- a disputed offset is worth reading before it is used: every view is listed with
+  the file it came from, and settling one is what unblocks the unit.
+
 ## Classes to merge
 
 - `Class_0044cf60` and `Class_0044d010`: both constructors store vtable

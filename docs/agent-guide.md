@@ -1835,3 +1835,13 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   original bytes and check.py compares against those. If a function differs
   only where the exe jumps into padding or has a run of `nop`s no compiler
   would emit, report the address and bytes rather than chasing it (0x4cda00).
+- **0x4e67f0 is the CRT's `_CIacos`**: a call to it is a plain `acos()`
+  (`<math.h>`), not a `__fastcall double` helper (0x49a890).
+- **A test of bits 10 and 22 of a dword** (`shr eax, 0xa; test al, 1`) comes
+  from a bitfield struct over the dword, not from shifting by hand (0x499eb0).
+- **`xor reg, reg; mov reg16, [mem]` before a call** means the callee takes an
+  `unsigned int` loaded from a 16-bit field; declaring the parameter
+  `unsigned short` loses the zero-extend (0x499eb0).
+- **A scripted variant search is cheap**: scoring hundreds of generated
+  statement and operand orders with `check.py <addr> <scratch> --sym` costs no
+  runs, and found 0x49a890's and 0x49abb0's best forms (Sonnet 5.5, #1082).

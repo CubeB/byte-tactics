@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**61.45% of Cavedog's code matched** (522,849 of 850,853 bytes)
+**61.67% of Cavedog's code matched** (524,694 of 850,853 bytes)
 
 `[#########################---------------]`
 
-By count that is 2,957 of the game's 3,267 functions (90.5%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,958 of the game's 3,267 functions (90.5%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,957 | 522,849 |
-| Attempted, not yet matching | 293 | 319,393 |
+| Matched byte-for-byte | 2,958 | 524,694 |
+| Attempted, not yet matching | 292 | 317,548 |
 | Not attempted yet | 17 | 8,611 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 639 of 703 | 89.9% | 18,079 | `#########-` |
 | xl (401 to 600 bytes) | 183 of 226 | 80.3% | 21,729 | `########--` |
 | xxl (601 to 1,000 bytes) | 117 of 195 | 58.9% | 60,351 | `######----` |
-| huge (over 1,000 bytes) | 44 of 161 | 22.3% | 226,971 | `##--------` |
+| huge (over 1,000 bytes) | 45 of 161 | 23.0% | 225,126 | `##--------` |
 
 ### By area
 
@@ -61,7 +61,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x490000` | Config and registry, skirmish summary | 172 of 193 | 54.1% | 27,314 | `#####-----` |
 | `0x4a0000` | GUI layout and GAF | 173 of 201 | 47.9% | 33,446 | `#####-----` |
 | `0x4b0000` | UI controls and file packages | 287 of 314 | 67.5% | 20,110 | `#######---` |
-| `0x4c0000` | TDF parser, CD audio, string handles | 274 of 298 | 67.3% | 17,705 | `#######---` |
+| `0x4c0000` | TDF parser, CD audio, string handles | 275 of 298 | 70.7% | 15,860 | `#######---` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 166 of 197 | 53.4% | 17,550 | `#####-----` |
 | `0x4e0000` | Process exit, psapi | 90 of 93 | 67.1% | 3,885 | `#######---` |
 

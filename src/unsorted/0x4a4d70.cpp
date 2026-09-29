@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 98.7% (661 bytes against 661, six instructions differ). Everything
 // from the prologue to the tail of the marker box matches instruction for
 // instruction. The six that do not are described at the bottom.
@@ -136,6 +136,17 @@
 //    dropped 96.9%, y2 dropped 98.7% with the same two diffs and neither
 //    fixed, x and y2 both dropped 96.9%, all three inlined 87.7%. More
 //    evidence that (b) is not a source-shape problem of its own.
+//
+// Third pass (deepseek-v4.1-flash), all variants scored from one scratch file
+// so they cost no check.py run each:
+//  - The compiler-state N-declaration sweep is a dead end: 128 copies of the
+//    body with 0, 2, 4, ..., 254 unused `extern int` declarations in front all
+//    score 98.7%. Nothing in that range moves either diff.
+//  - Casting the array (`((unsigned char*)me->colours)[(int)param_1 + 0x8b2]`,
+//    the spelling that matched the sibling 0x4a76b0) still 98.7%.
+//  - A `void* surface = entries->surface;` local before the y2 computation
+//    still 98.7%, inlining y2 into the call still 98.7%. Declaring y2 before x
+//    and colour drops to 96.9%.
 
 #pragma pack(push, 1)
 struct Entry_004a4d70 {                // 0x15b bytes

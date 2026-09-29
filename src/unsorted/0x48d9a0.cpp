@@ -43,6 +43,19 @@
 //     bounds differently to defeat common-subexpression elimination 73.6%.
 //   - Casting the second scan's player address through `void*` and reordering
 //     the declarations are both exactly neutral (83.63%, same 627 bytes).
+//   - Declaring the second scan's player pointer as a FUNCTION-SCOPE local
+//     instead of a block-local `q` is also exactly neutral (83.63%, 627 bytes).
+//   - REASSIGNING setA is a total loss: 35.5%. Writing
+//     `setA = (Class_00488d30*)&g_game->players[g_game->localPlayer];` before
+//     the second call, reading the second scan's bounds through setA, and
+//     leaving the third loop's `TestBit(setA, ...)` on the reassigned setA is
+//     the ONLY model that explains gap 2 below (one variable, so the second
+//     scan's address store provably lands in setA's own [esp+0x1c] slot, and
+//     the third loop's `TestBit` provably reads the player address), but it
+//     costs 48 points: MSVC then keeps the player address live in the setA
+//     chain across all three loops and the first loop's two bounds stop folding
+//     into [ecx+eax*2+0x1bca] / [ecx+eax*2+0x1bce]. Do not retry it as written;
+//     the real source had a weaker form of it that MSVC 5 then over-optimised.
 //
 // WHAT IS STILL LEFT, three gaps, all in the second scan and all allocation:
 //   1. The materialised player address. The original does
@@ -63,7 +76,12 @@
 //      Since declaration order does not move these, the slot order follows
 //      MSVC 5's own order of first definition, and the only way to move
 //      `found` up to +0x14 that was found is to initialise it, which costs
-//      more elsewhere (see above).
+//      more elsewhere (see above). Note that the original NEVER STORES
+//      [esp+0x18] either: the third loop's `mov edi, [esp+0x18]` at 0x48db16
+//      reads a local that was never written, exactly as `mov ebx, [esp+0x10]`
+//      reads a never-written counter. So the third loop's player pointer is an
+//      uninitialised local in the original, and that, not the register
+//      allocation, is what MSVC 5 fell into when it reused setA's slot.
 //   3. The out-of-line `found = 1` block. The original's 0x48dc13 is
 //      `mov ebx, [esp+0x10]` / `mov [esp+0x14], 1` / `jmp 0x48db16`: the
 //      `mov ebx, [esp+0x10]` counter reload is duplicated at the second

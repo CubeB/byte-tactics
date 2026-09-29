@@ -1,40 +1,41 @@
-// Decompiled by space-bunny-free, finished by Space Bunny Free. Names are provisional.
-// Partial (63.4%). Every control-flow edge, call target, argument order and
-// field offset now agrees with the original, and the loops, the two averages
-// and the __int64 distance test all have the original's shape. What is left
-// is one cause: MSVC 5's frame layout puts our locals in a different order,
-// so every [esp+N] that names a local differs.
-//   original frame: 0x12/0x13 the two 1-byte temps, 0x14 except, 0x18 flag_a,
-//   0x1c range, 0x20 p, 0x28 the sign word of dz, 0x2c avg_x, 0x34 avg_z,
-//   0x38 here[3].
-//   ours: 0x10 except, 0x18 range, 0x1c/0x20 use_pos/use_flag, 0x24 the
-//   move-order temp, 0x28 avg_x, 0x2c avg_z, 0x30 flag_a, 0x34 p, 0x38 here.
-// Both frames are 0x34 bytes and both put `here` at 0x38, so the frame size
-// and the block structure agree; only the order differs. Reordering the
-// declarations changes nothing at all (MSVC 5 assigns the offsets in the
-// back end, four very different declaration orders all compile to the same
-// 733 bytes), so the order has to be steered by the shape of the code.
-// The other, smaller difference follows from it: because use_pos/use_flag are
-// live across the FUN_00438830 call, the compiler spills them and the tail
-// merge of the two FUN_0043afc0 calls is lost. Writing the call out in both
-// arms instead (with `continue` in the inner one) restores the tail merge but
-// makes MSVC materialise both 64x64 products in memory, which costs more than
-// the spill (54.3%).
-// Known-good detail: the fifth argument of FUN_0043f0e0 is the ADDRESS of
-// g_game->field_2caa (the original emits `add ecx, 0x2caa`), so the call
-// passes `&g_game->field_2caa`; passing the field's value instead costs a
-// point. The field_2cba test is `if (!x) except = 0; else ...` so that the
-// zero store is the fall-through of the `jne` (+1.4 points over the other
-// polarity).
-// One lead left open: the original constructs "Standing_FireOrder" straight
-// into the dead argument-0 slot (lea ecx, [esp+0x48] with the string pushed,
-// then mov al, [esp+0x48]), and reads `entry` nowhere else in the loop, so the
-// first parameter is probably dead after the prologue. Neither spelling
-// reproduces it: a placement new into `entry` keeps `entry` in edi, and a
-// local Class_00438760 temporary gets its own frame slot instead (63.3% either
-// way). The 1-byte buffer in the original stays at esp+0x13 while ours is
-// pushed into the same dead argument slot, which may be the same root cause.
-#include <new.h>
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial (84.9%), both sides exactly 742 bytes. Deepseek-v4.1-flash got here
+// from space-bunny-free's 63.4% by three changes, all on the same shape:
+//   1. Pass flag_a, not `range`, as FUN_0043afc0's second argument. The
+//      original loads the flag_a slot both times (0x48d1c6 and 0x48d1e6, the
+//      latter with one push outstanding so [esp+0x1c] is the +0x18 slot).
+//      `use_flag = range` was only steering the allocator.
+//   2. Write the FUN_0043afc0 call in BOTH arms (`continue` in the inner one)
+//      instead of one call after a shared `use_pos`. That restores the
+//      original's two argument setups, tail-merged into the single call at
+//      0x48d1f4. Note this is what rotates the first loop's count/sum registers
+//      unless the compiler state is right, which is why it used to score 54 to
+//      58%.
+//   3. Declare "Standing_FireOrder" as a plain local (no placement new), so
+//      there is no null test and no `entry` kept in edi.
+// `#include <stdio.h>` is load bearing compiler state: without it this shape
+// is 59.5%, with it 84.9%. tools/headers.py reports several sets give 84.9%
+// (`<stdio.h>` alone, `<stdio.h>`+`<stdlib.h>`, `<string.h>`+`<math.h>`);
+// sweeping N unused `extern int dummyN;` declarations reaches the same 84.9%
+// in two windows, N = 282..309 and 346..373, so the shape is right and only
+// the state differs. Do not commit such declarations; a real header set works.
+// WHAT STILL DIFFERS (all one cause, the frame slot permutation):
+//   original: move 0x12, buf 0x13, except 0x14, flag_a 0x18, range 0x1c,
+//   p 0x20, avg_x 0x2c, avg_z 0x34, here 0x38.
+//   ours: except 0x10, avg_x 0x14, avg_z 0x18, flag_a 0x1c, fire 0x20,
+//   move 0x24, range 0x28, p 0x2c, here 0x38, and the one-byte buf gets the
+//   dead argument-0 slot (0x48) where the original puts the fire object.
+// Because avg_x and avg_z sit in the two slots the original gives flag_a and
+// range, the distance block also swaps their registers (ours ebx=avg_x,
+// edi=avg_z; original edi=avg_x, ebx=avg_z). Everything else in the diff,
+// including every branch target, is just the same permutation. Reordering the
+// declarations did not move it; fixed-byte locals and parameter-slot reuse are
+// the two suspects left.
+// Known-good detail from space-bunny-free: the fifth argument of FUN_0043f0e0
+// is the ADDRESS of g_game->field_2caa (`add ecx, 0x2caa`), and the
+// field_2cba test is written `if (!x) except = 0; else ...` so the zero store
+// is the `jne` fall-through.
+#include <stdio.h>
 
 #pragma pack(push, 1)
 
@@ -149,12 +150,10 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
             kind.index = *FUN_0043f0e0(&buf, mode, u, except, &g_game->field_2caa);
         if (!kind.index)
             continue;
-        new ((Class_00438760*)entry) Class_00438760("Standing_FireOrder");
-        if (kind.index != entry->index || (u->def->flags & 2)) {
+        Class_00438760 fire("Standing_FireOrder");
+        if (kind.index != fire.index || (u->def->flags & 2)) {
             Class_00438760 move("Standing_MoveOrder");
             if (kind.index != move.index || (u->def->flags & 1)) {
-                int* use_pos = pos;
-                int use_flag = range;
                 if (pos && (kind.FUN_00438830()->flags & 2)) {
                     int dx = u->x - avg_x;
                     int dz = u->z - avg_z;
@@ -164,11 +163,11 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
                         here[0] = pos[0] + u->x - avg_x;
                         here[1] = pos[1];
                         here[2] = pos[2] + u->z - avg_z;
-                        use_pos = here;
-                        use_flag = flag_a;
+                        FUN_0043afc0(kind, flag_a, u, except, here, param_5, param_6);
+                        continue;
                     }
                 }
-                FUN_0043afc0(kind, use_flag, u, except, use_pos, param_5, param_6);
+                FUN_0043afc0(kind, flag_a, u, except, pos, param_5, param_6);
             }
         }
     }

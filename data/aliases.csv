@@ -8,3 +8,5 @@ PAUUnit::?$vector::insert,0x408f30,"overload: insert(iterator, size_type, const 
 exception::exception,0x4e8230,"overload: the copy constructor exception(const exception&); the default constructor is 0x4e8190, and the checker gives both one name"
 std::logic_error::logic_error,0x4c35c0,"overload: logic_error(const string&); the copy constructor is 0x4c3950, and the checker gives both one name"
 exception::exception,0x4e81d0,"overload: exception(const char* const&); the default constructor is 0x4e8190 and the copy constructor 0x4e8230"
+Class_004b2fb0::FUN_004b2ac0,0x4b2ac0,"std::map<int,int> tree erase(iterator); 0x4b2340, 0x4b2540 and 0x4b2850 still spell the tree Class_004b2fb0"
+std::HH::HU?$pair::?$_Tree::iterator::_Inc,0x4b3590,"std::map<int,int> tree iterator::_Inc, which the matched callers spell Class_004b3590::FUN_004b3590"

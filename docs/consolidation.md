@@ -80,6 +80,13 @@ the tool.
 
 ## Classes to merge
 
+- `Class_004b2fb0` is the tree of a `std::map<int, int>` (`std::_Tree<int,
+  std::pair<const int, int>, map::_Kfn, std::less<int>, std::allocator<int> >`),
+  and `Class_004b3590` is its iterator. 0x4b2ac0 is its `erase(iterator)` and
+  0x4b3590 its `iterator::_Inc`, now under their real names. 0x4b2340, 0x4b2540
+  and 0x4b2850 still declare the tree by hand under the placeholder names, and
+  two rows in `data/aliases.csv` accept both spellings until those files use
+  `std::map<int, int>`.
 - `Class_0044cf60` and `Class_0044d010`: both constructors store vtable
   `DAT_004fd328` and fill the same fields (+8 packed point, +0xc radius,
   +0x10 radius squared). Probably overloaded constructors of one class.

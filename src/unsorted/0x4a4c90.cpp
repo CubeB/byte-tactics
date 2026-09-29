@@ -1,50 +1,36 @@
-// Decompiled by GPT-5.6-Terra, finished by LongCat 2.5 Preview Free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash. Names are provisional.
 // Draws one side of a GUI entry's rectangle when bit 0 of param_3 is set; the
 // side is chosen by bits 0/1/2 of the entry's flags and the colour comes from
-// the colour table at obj+0x8b2.
+// the index `(int)obj + 0x8b2` into the entry's colour table at +0x1f.
 //
 // Best version (62.4%, 212 of 215 bytes). Everything from the prologue through
 // the `mov [esp+0x1c], ebx` bottom spill and the `mov bl, [esp+0x2c]` param_3
 // test matches the original byte for byte, and so do the two epilogues.
 //
-// What still differs, and why the obvious fixes make it worse:
-// The original evaluates the colour `e->colours[(int)obj + 0x8b2]` inside each
-// of the three flag branches, keeping `obj` live in edx the whole way, so each
-// branch emits `mov eax,[eax+0x1f] / xor ebx,ebx / mov bl,[eax+edx+0x8b2]` and
-// the surface is reloaded from `[edi+0xbc]` in branches A and in the B/C tail.
-// Ours hoists the colour into a byte spill at [esp+0x2c] and the surface into
-// edx before the chain, which clobbers edx. Writing the colour expression
-// textually three times does produce the per-branch loads, but it makes MSVC
-// scalarise the whole Rect: `sub esp,0x10` and the `mov [esp+0x1c], ebx` spill
-// both disappear, and the result drops to 180 bytes / 36.8%. The hoisted form
-// is the only one that keeps the 16-byte frame, and the frame is worth more
-// bytes than the colour loads cost.
+// What still differs: the original evaluates the colour `e->colours[(int)obj +
+// 0x8b2]` inside each of the three flag branches (keeping `obj` live in edx and
+// loading `entries->surface` from [edi+0xbc] per branch); ours hoists the
+// colour into a byte spill and the surface into edx before the chain.
 //
-// Note for the next attempt: the earlier header's claim that the flag chain
-// tests param_3 and that `mov ebx,[eax+0x1b]` is a dead load is wrong. The
-// chain does test e->flags, loaded once into ebx by MSVC and re-tested on bl
-// three times. Ours is correct here too: `[eax+31]` is 0x1f (colours) and
-// `[eax+27]` is 0x1b (flags), so the `test al,1` really is testing the flags.
-// The only genuine differences are the two hoists described above.
-//
-// Variants measured and rejected (all by /Fa listing markers plus a scored
-// --sym build, no check.py run spent on them):
-//   colour per branch, chain on e->flags, 3 or 4 params .... 180 B, 36.8%
-//   same, 5 params (surface/flags/obj/e) .................. 207 B, 45.0%
-//   same, obj passed as Class* instead of int .............. 207 B, 45.0%
-//   colour via a byte pointer, deref in each branch ........ 169-202 B, 43-47%
-//   colour hoisted, surface passed by value (current) ...... 212 B, 62.4%
-//   colour hoisted, surface reloaded per branch ............ 179 B, 59.7%
-//   colour hoisted into a local first (exact 215 B) ........ 215 B, 57.8%
-//   chain on param_3 with a dead e->flags read ............. 117 B, 25.0%
-//   rect inside a struct passed by reference ............... 180 B, 36.8%
-//   rect fields as four plain int locals ................... 180 B, 36.8%
-//   4- and 5-parameter orderings, Rect& and Rect*, int and
-//   Class* obj, surface by value and per branch ........... all 180-207 B
-// The screen used two free markers from the /Fa listing: the
-// `mov DWORD PTR _rect$[...], ebx` bottom store plus `sub esp, 16` (the frame)
-// and the count of `call FUN_004be950` sites (the original has two, ours three).
-// Only the hoisted-colour, surface-by-value form has both.
+// Attempts, all scored with check.py --sym (no real run spent):
+//   colour written inline in each branch (direct FUN calls) ... 180 B, 36.8%
+//     same with a `char* base = (char*)obj` alias ............. 180 B
+//     same with an `int c = e->colours[...]` local per branch . 196 B, 49.1%
+//     same inside a three-way inlined Draw(..., mode, color) .. 259 B, 53.0%
+//     same with three one-edge helpers ........................ 180 B
+//     same with an early return in branch A ................... 180 B
+//   DrawAll(entries, Rect&, e, obj) with colour inside ........ 180 B
+//   DrawAll(entries, Rect*, e, obj) with colour inside ........ 180 B
+//   DrawAll(surface, Rect&, flags, e, obj) 5 params ........... 207 B, 45.0%
+//   current (colour hoisted at the call site) ................. 212 B, 62.4%
+//   colour hoisted into a local, rest as current .............. 215 B, 57.8%
+// Finding: the 16-byte frame appears only when the colour load stays a live
+// value across the flag chain; with the colour inline MSVC reloads obj instead
+// of spilling rect.bottom, so the frame and its [esp+0x1c] store disappear.
+// The mode-helper variant DOES keep the frame but puts obj in ebp (needs a
+// push ebp) and clobbers edi with the surface load. Whoever retries: the goal
+// is obj in edx (loaded before `sub esp,0x10`), flags in ebx reused as the
+// colour, and surface loaded from [edi+0xbc] inside each branch.
 
 #pragma pack(push, 1)
 struct Entry_004a4c90 {                // 0x15b bytes

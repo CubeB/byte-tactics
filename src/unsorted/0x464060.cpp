@@ -1,12 +1,24 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Partial, 87.2%, and exactly the original's 560 bytes. All the code matches
+// Partial, 87.8%, and exactly the original's 560 bytes. All the code matches
 // except two instructions in the rectangle fill, plus the jump table that
-// follows the code once it does. The original computes "add ecx, eax", giving
-// the sum y + t to the register holding y, and emits it after the store of
-// r.top; this version computes "add eax, ecx", giving the sum to the register
-// holding t, and hoists both leas above that store. Tried and rejected:
-// swapping the operands, a temporary for the sum, an inline helper, writing
-// the constant field last, declaring t at an outer scope.
+// follows the code once it does (its bytes only compare equal once the code
+// is identical). The original computes "add ecx, eax", giving the sum y + t to
+// the register holding y, and emits it after the store of r.top; this version
+// computes "add eax, ecx", giving the sum to the register holding t, and
+// hoists both leas above that store.
+// Fixed in the retry: the inner switch on the team nibble needs a
+// "default: show = 0;" (the original's jump table sends 0 and 9..15 to the
+// same show = 0 store as 2, 3, 5, 6 and 7), which took 87.2% to 87.8%.
+// Tried and rejected (none gives "add ecx, eax"): swapping the operands, all 24
+// orders of the four rectangle stores, r.bottom = r.top + t, chained
+// (r.top = y) + t, a temporary for the sum or for y, the rectangle as an
+// aggregate, an int[4], a constructor-like inline helper (by value, pointer,
+// reference, returning the rectangle, containing t and the height as well),
+// wrapping each run of adjacent statements in a static inline function (the
+// trick that finished 0x4644d0), r or t declared at an outer scope, unsigned
+// or long t and y, assignments to t inside the expression, defining the
+// preceding function 0x464000 above, and every header set (with the C++
+// headers too).
 // The mode 1 arm of the switch leaves the flag local uninitialised in the
 // original (see the note on the switch below), which this reproduces exactly.
 #include <math.h>
@@ -100,6 +112,9 @@ void __stdcall FUN_00464060(void* surf)
                 case 5:
                 case 6:
                 case 7:
+                    show = 0;
+                    break;
+                default:
                     show = 0;
                     break;
                 }

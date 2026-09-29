@@ -1,4 +1,18 @@
 // Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Retry notes (Sonnet 5.5, still 98.3%): scripted searches that all failed to
+// beat this file: every single move of each statement in the first block (the
+// stores must keep the original's order anyway), the tick statement at every
+// position among the 24 stores, chained zero assignments, wrapping every run
+// of 1 to 11 adjacent statements (and every pair of runs up to 6 long) in a
+// static inline function, inline helpers with the tick as a by-value, by-
+// reference or pointer parameter, an inline "ensure the ref" helper, a
+// "Stamp" helper for the three tick stores, an explicit "int z = 0" for the
+// zero, defining the preceding function 0x4644d0 above this one, and all 128
+// header sets (also with the C++ headers). Every variant that hoists the tick
+// load above the six zero stores (a local, a parameter) also moves the zero
+// from ebp to ebx (66%), the flip described below; none of the register
+// spellings tried (w and h declaration order and style, multiply order, store
+// order, extra locals) undoes it.
 // Per player slot init: stamps the current tick into three fields, clears 22
 // dwords and six shorts, allocates the 0x34-byte PlayerRef and the squads table,
 // sizes and clears the map-cell buffer at (width/2) * (height/2) rounded up to

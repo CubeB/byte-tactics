@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by Sonnet 5.5. Names are provisional.
 // Resets the game for a new battle. The first loop clears the eleven player
 // slots (0x14b bytes each, at g_game + 0x1b63) while keeping each slot's info
 // pointer, which is read before the clear and written back to the same address
@@ -7,30 +7,14 @@
 // The second loop then gives every slot its default "Player %d First" /
 // "Player %d Second" names and its default state.
 //
-// NOT MATCHING yet: 94.5% (16 diff lines, all in the tail of the second
-// loop). Two scheduling differences remain, both about where MSVC puts the
-// two "reload p->info" loads and the byte clear:
-//   1. The original loads p->info for info->field_94 *after* `mov byte
-//      [ebp-0xa0], 0` and stores info->field_94 after `add ebp, 0x14b`, so
-//      its second reload uses the post-increment form [ebp-0x237]. Here the
-//      first reload is hoisted to the top of the region and both the store
-//      and the second reload land before the increment, so that reload uses
-//      [ebp-0xec]. The statement order is confirmed right (reversing the
-//      info group makes it worse), so this is MSVC 5's own scheduling of the
-//      loop increment; moving the increment, the call cleanup, hoisting the
-//      load through a local, an inline helper, a chained zero assignment and
-//      a reversed statement order all failed to move it.
-//   2. The original loads p->field_21 into `cl` just after the inlined
-//      strcpy and keeps `and cl, 0xfe` next to the store; here the load is
-//      scheduled after the nine zero stores and takes `al` (whose eax is
-//      otherwise the zero register). The `&=` spelling does not matter:
-//      `= x & 0xfe`, a cast, a temp local and an inline helper all compile
-//      identically. (Note: a mask written `0xfffe >> 8` is 0xff, not 0xfe, and
-//      MSVC then deletes the statement as a no-op, which fakes a higher
-//      score while losing three instructions.)
-// The walked player pointer, the `i++, p++` in the for clause and the order
-// of the nine zero stores are all load-bearing: each change costs 3 to 6
-// points, so the statement order in the loop body is believed to be right.
+// What fixed the last two scheduling differences (94.5% before): the two
+// stores "active = 0; type = 0" are an inlined helper (Player::Clear), which
+// stops MSVC hoisting the reload of p->info above them, and the "field_21 &=
+// 0xfe" statement sits before "field_140 = 0", not after it. Statement order
+// was found by scripted move searches over the loop body, then the helper by
+// wrapping each run of adjacent stores in a static inline function. (Note: a
+// mask written 0xfffe >> 8 is 0xff, not 0xfe, and MSVC then deletes the
+// statement as a no-op, which fakes a higher score.)
 
 #include <stdio.h>
 #include <string.h>
@@ -81,6 +65,7 @@ struct Player_004644d0 {
     unsigned short field_144;          // +0x144
     unsigned char field_146;           // +0x146
     char unknown_147[0x14b - 0x147];
+    void Clear() { active = 0; type = 0; }
 };
 
 struct Game_004644d0 {
@@ -126,8 +111,7 @@ void FUN_004644d0()
         sprintf(p->fullName, "Player %d Second", i);
         p->team_108[i] = 1;
         p->team_113[i] = 1;
-        p->active = 0;
-        p->type = 0;
+        p->Clear();
         p->info->field_94 = 0;
         p->info->field_99 = 0;
         p->info->bit4 = 0;
@@ -143,8 +127,8 @@ void FUN_004644d0()
         p->field_6f = 0;
         p->field_71 = 0;
         p->field_144 = 0;
-        p->field_140 = 0;
         p->field_21 &= 0xfe;
+        p->field_140 = 0;
         p->field_4 = -1;
         p->field_146 = 10;
         p->alliance = 5;

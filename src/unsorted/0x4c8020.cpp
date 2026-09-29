@@ -1,5 +1,15 @@
-// Decompiled by GPT-6. Names are provisional.
-// Partial: default depth case uses different temporary stack slots.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Blits one textured span with a depth (Z) buffer. For each pixel it compares
+// the interpolated Z against the depth buffer and, when it passes, writes the
+// palette-mapped texel and the new depth value. Source coordinates are 16.16
+// fixed-point; the u/v/z/light steps are the span deltas divided by the span
+// width. The span is clipped to the left edge and to the target surface's
+// width. The texture width selects the texel layout: 8/16/32/64/128 pick the
+// sub-texel mask, anything else uses the width itself as a row stride. With no
+// depth buffer the four power-of-two formats dispatch to the FUN_004cd8xx span
+// helpers and the remaining formats run inline loops. alue is one
+// function-scope temporary shared by every body; giving it a single slot keeps
+// the per-body loop counters in the slots the original used.
 #include <ddraw.h>
 struct Surface_004c8020 {
     unsigned short width;
@@ -40,6 +50,7 @@ void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surfac
         int v = span[3];
         int z = span[6];
         int light = span[8];
+        int value;
         dest += target->width * row + span[0];
         if (depth) {
             depth += target->width * row + span[0];
@@ -47,7 +58,7 @@ void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surfac
             case 128: {
                 int n = width;
                 do {
-                    int value = z >> 16;
+                    value = z >> 16;
                     if (*depth <= (unsigned char)value) {
                         unsigned int pixel = 0;
                         pixel = src[(u >> 16) + ((v >> 9) & ~127)];
@@ -62,7 +73,7 @@ void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surfac
             case 64: {
                 int n = width;
                 do {
-                    int value = z >> 16;
+                    value = z >> 16;
                     if (*depth <= (unsigned char)value) {
                         unsigned int pixel = 0;
                         pixel = src[(u >> 16) + ((v >> 10) & ~63)];
@@ -77,7 +88,7 @@ void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surfac
             case 32: {
                 int n = width;
                 do {
-                    int value = z >> 16;
+                    value = z >> 16;
                     if (*depth <= (unsigned char)value) {
                         unsigned int pixel = 0;
                         pixel = src[(u >> 16) + ((v >> 11) & ~31)];
@@ -92,7 +103,7 @@ void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surfac
             case 16: {
                 int n = width;
                 do {
-                    int value = z >> 16;
+                    value = z >> 16;
                     if (*depth <= (unsigned char)value) {
                         unsigned int pixel = 0;
                         pixel = src[(u >> 16) + ((v >> 12) & ~15)];
@@ -107,7 +118,7 @@ void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surfac
             case 8: {
                 int n = width;
                 do {
-                    int value = z >> 16;
+                    value = z >> 16;
                     if (*depth <= (unsigned char)value) {
                         unsigned int pixel = 0;
                         pixel = src[(u >> 16) + ((v >> 13) & ~7)];
@@ -122,7 +133,7 @@ void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surfac
             default: {
                 int n = width;
                 do {
-                    int value = z >> 16;
+                    value = z >> 16;
                     if (*depth <= (unsigned char)value) {
                         unsigned int pixel = 0;
                         pixel = src[(u >> 16) + (v >> 16) * texture->width];

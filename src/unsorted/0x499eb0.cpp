@@ -1,5 +1,43 @@
 // Decompiled by GPT-5.6-Terra. Names are provisional.
-// Partial: 85.1%; remaining differences are the early flag RMW and branch register allocation around sound/effect dispatch.
+// Partial: 89.8% (516 of 517 bytes; up from 85.1%). The flag read-modify-write
+// at +0x69 was the whole of the earlier 85.1% gap.
+//
+// WHAT THE RMW IS ABOUT, and it is the mirror of 0x4478b0. The original emits
+// `or byte ptr [esi + 0x69], 2` as ONE instruction. The obvious source, a
+// 1-bit bitfield assigned 1, does not: this file had three bitfields packed
+// into the byte at +0x69 (`unknown_69 : 1`, `flag_69 : 1`,
+// `unknown_69_rest : 6`), and MSVC 5 loads the byte, masks, sets and stores it
+// through `al`, which is three instructions against the original's one.
+//
+// The shape that matches is a PLAIN `unsigned short` field with `|= 2`, not a
+// bitfield. Measured, all with `check.py --sym` after `rm -rf build/obj`:
+//   unsigned short field_69, `|= 2`                      89.8%  <- in the file
+//   unsigned short field_69, `= field_69 | 2`             89.8%
+//   unsigned char field_69, `= 2`                         88.6%
+//   unsigned short flag_69 : 1, `= 1`                     88.6%
+//   unsigned char field_69, `|= 2`                        85.1%  (the old score)
+//   unsigned char flag_69 : 1, `= 1`                      84.5%
+//   unsigned char flag_69 : 1 plus explicit padding       84.5%
+//   unsigned char flag_69 : 2, `= 2`                      79.4%
+//   unsigned short flag_69 : 2, `= 2`                     79.4%
+// So two things are needed together: a plain integer rather than a bitfield,
+// and a word rather than a byte. A bitfield in a word gets 88.6%, a byte with
+// `|=` gets 85.1%, and only the plain word gets the single-instruction RMW.
+//
+// CAVEAT, and it is a real one. A `unsigned short` at +0x69 makes this struct
+// two bytes longer than a byte at +0x69 would, so the field's *width* here is a
+// shape that reproduces the bytes rather than a discovery about the original's
+// declaration. Nothing in this function reads +0x6a, so the extra byte is very
+// likely padding in the containing object and the real declaration may well be a
+// byte or a bitfield. I am recording 89.8% as a better match, not as a better
+// understanding. Do not propagate this width into a sibling that does read the
+// bytes after +0x69 without checking first.
+//
+// What is left is register allocation in one block, 1 byte of length. The `je`
+// and `jne` after `test ebx,ebx` and `test eax,eax` both target 0x499fe5 in the
+// original and 0x499fe6 here, so one instruction before them is a byte shorter
+// in this version, and the same block loads `[edi + 0x7c]` into `ecx` where the
+// original uses `eax`.
 #pragma pack(push, 1)
 
 struct Vec3_00499eb0 {
@@ -39,9 +77,7 @@ struct Projectile_00499eb0 {
     char unknown_56[0x66 - 0x56];
     unsigned char owner;
     char unknown_67[2];
-    unsigned char unknown_69 : 1;
-    unsigned char flag_69 : 1;
-    unsigned char unknown_69_rest : 6;
+    unsigned short field_69;
 };
 
 struct Net_00499eb0 {
@@ -92,7 +128,7 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit_00499eb0* unit
             *(unsigned short*)(g_game + 0x1434b) = *(unsigned short*)((char*)projectile->type + 0xfe);
             *(Projectile_00499eb0**)(g_game + 0x142f7) = 0;
         }
-        projectile->flag_69 = 1;
+        projectile->field_69 = projectile->field_69 | 2;
     }
     if (((Net_00499eb0*)*(void**)(g_game + 0x391e9))->field_d48 && hostile && !unit) {
         if (projectile == *(Projectile_00499eb0**)(g_game + 0x142f7)) {
@@ -100,7 +136,7 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit_00499eb0* unit
             *(unsigned short*)(g_game + 0x1434b) = *(unsigned short*)((char*)projectile->type + 0xfe);
             *(Projectile_00499eb0**)(g_game + 0x142f7) = 0;
         }
-        projectile->flag_69 = 1;
+        projectile->field_69 = projectile->field_69 | 2;
         return;
     }
     FUN_0041c640(type->field_cc, type->field_cc, type->field_d0);

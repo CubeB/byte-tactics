@@ -1,6 +1,10 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
-// Best attempt: 50.7%. MSVC folds the screen-byte shift into a bit test and
-// allocates different registers for subsequent game-state and input copies.
+// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free. Names are provisional.
+// The key test is a plain `unsigned char` shift in the original disassembly
+// (mov cl, [eax+0x37f2f]; shr cl, 1; test cl, 1), which only comes out of a
+// standalone `if` on the second bit of an `unsigned short` bitfield; the
+// storage unit of that bitfield is two bytes, so the padding after it starts
+// at 0x37f31. g_game+0xc is a pointer, the final test reads a byte at +0xf1
+// through it.
 #include <stdio.h>
 
 class Class_00435100 {
@@ -12,17 +16,25 @@ struct Input_00499890 {
     int fields[6];
 };
 
+struct Ctx_00499890 {
+    char unknown_0[0xf1];
+    unsigned char flags;
+};
+
 #pragma pack(push, 1)
 struct Game_00499890 {
-    char unknown_0[0x519];
+    char unknown_0[0xc];
+    Ctx_00499890* unknown_c;
+    char unknown_10[0x519 - 0x10];
     char menu[0x10];
     char unknown_529[0x2c76 - 0x529];
     Input_00499890 selected;
     char unknown_2c8e[0x37ebe - 0x2c8e];
     unsigned short orderFlags;
     char unknown_37ec0[0x37f2f - 0x37ec0];
-    unsigned char screenFlags;
-    char unknown_37f30[0x38a37 - 0x37f30];
+    unsigned short screenBitA : 1;
+    unsigned short screenBitB : 1;
+    char unknown_37f31[0x38a37 - 0x37f31];
     int screenshot;
     char unknown_38a3b[0x38a51 - 0x38a3b];
     unsigned short otherFlags;
@@ -60,9 +72,11 @@ void FUN_00499890()
     char path[0x100];
     int key = FUN_004c1b00();
 
-    if (key == 0x7e && ((g_game->screenFlags >> 1) & 1)) {
-        FUN_004c1ab0();
-        FUN_004b5910();
+    if (key == 0x7e) {
+        if (g_game->screenBitB) {
+            FUN_004c1ab0();
+            FUN_004b5910();
+        }
     }
     if ((g_game->orderFlags & 1) && key == 0xe3) {
         FUN_004c1ab0();
@@ -91,6 +105,6 @@ void FUN_00499890()
     else
         g_game->selected = second;
     FUN_004b6370();
-    if (!(g_game->unknown_0[0xfd] & 8))
+    if (!(g_game->unknown_c->flags & 8))
         g_game->callback();
 }

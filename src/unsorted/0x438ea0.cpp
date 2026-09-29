@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5. Names are provisional.
 // PARTIAL, 54.0% (500 of 505 bytes; was 38.2% at hand-off). Up from 38.2% by
 // five things, all confirmed by check.py, so do not re-sweep any of them:
 //   a. `i = 0;` must be a STATEMENT after `int n = ...`, not an initialiser
@@ -72,6 +72,23 @@
 // slot, the negated offsets kept in callee-saved registers, the x, z, y load
 // order in both inlined point copies, the __max double call for the terrain
 // height, and both draw calls.
+// Claude Sonnet 5.5 pass (#705), nothing beat 54.0% and 500 bytes. Ruled out on
+// top of the list below (all scored, none counted as runs): the declaration-count
+// sweep to N = 400 (two states only, 52.2% and 54.0%, both 500 bytes) and all 128
+// header sets of headers.py (54.0% at best); an inline `RingPoint(out, pos, angle,
+// rad)` helper for the two point computations (53.4%); about 75 respellings of
+// the outer structure and the loop body: declaration order and scope of x2, y2, i,
+// angle, lx and ly (53.3 to 54.0%), `radius <<= 16` instead of `rad` (51.0 to
+// 52.8%), an `a2` copy of the angle (52.8%), guard forms, `++i <= n` and early
+// returns (same bytes), the draw-call argument and x1/y1/x2/y2 order (same), a
+// local copy of `pos` (same), p1 and p2 store orders (48.7 to 54.0%).
+// Leads: (1) on the n < 0 path the original loads x2 and y2 from the counter's
+// stack slot inline (`mov esi,[esp+0x4c]; mov ebx,[esp+0x4c]`), which is what
+// UNINITIALISED x2 and y2 give, but that version is 506 bytes and 45.0% (the block
+// moves after `ret`, it loads `index` or `color` instead of `i`, and the roles
+// shift: radius in ebp, zero in ebx). (2) The roles are swapped against the
+// original: its rad is in ebx and its zero/angle in ebp, ours the other way round;
+// its tail uses `test reg, reg` because no zero register survives there.
 // Draws a ring of n + 1 line segments around a 16.16 map position, where
 // n = radius * pi / 4, and the label of the segment number index * 3 under it.
 #include <stdlib.h>

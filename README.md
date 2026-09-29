@@ -16,17 +16,17 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**57.34% of Cavedog's code matched** (487,844 of 850,853 bytes)
+**57.38% of Cavedog's code matched** (488,253 of 850,853 bytes)
 
 `[#######################-----------------]`
 
-By count that is 2,929 of the game's 3,267 functions (89.7%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,930 of the game's 3,267 functions (89.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,929 | 487,844 |
-| Attempted, not yet matching | 203 | 140,854 |
-| Not attempted yet | 135 | 222,155 |
+| Matched byte-for-byte | 2,930 | 488,253 |
+| Attempted, not yet matching | 205 | 141,859 |
+| Not attempted yet | 132 | 220,741 |
 
 ### By function size
 
@@ -37,7 +37,7 @@ The size bands are the `size:` labels on the issues.
 | small (1 to 64 bytes) | 1,154 of 1,155 | 99.9% | 40 | `##########` |
 | medium (65 to 160 bytes) | 820 of 827 | 99.0% | 834 | `##########` |
 | large (161 to 400 bytes) | 638 of 703 | 89.8% | 18,300 | `#########-` |
-| xl (401 to 600 bytes) | 182 of 226 | 79.9% | 22,138 | `########--` |
+| xl (401 to 600 bytes) | 183 of 226 | 80.3% | 21,729 | `########--` |
 | xxl (601 to 1,000 bytes) | 113 of 195 | 56.7% | 63,571 | `######----` |
 | huge (over 1,000 bytes) | 22 of 161 | 11.7% | 258,126 | `#---------` |
 
@@ -51,7 +51,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | --- | --- | ---: | ---: | ---: | --- |
 | `0x400000` | Unit orders and unit AI | 191 of 210 | 71.8% | 17,144 | `#######---` |
 | `0x410000` | Orders and VTOL states | 211 of 222 | 75.1% | 15,869 | `########--` |
-| `0x420000` | Frontend shell | 132 of 154 | 39.3% | 38,621 | `####------` |
+| `0x420000` | Frontend shell | 133 of 154 | 39.9% | 38,212 | `####------` |
 | `0x430000` | Maps, missions, briefings | 208 of 228 | 61.6% | 23,195 | `######----` |
 | `0x440000` | Multiplayer setup | 233 of 246 | 61.3% | 23,795 | `######----` |
 | `0x450000` | Options and audio menus | 154 of 176 | 54.3% | 28,836 | `#####-----` |

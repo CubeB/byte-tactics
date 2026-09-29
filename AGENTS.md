@@ -29,23 +29,12 @@ If any of these fail, stop and tell the human; do not try to install things.
 Issues labelled `claude` are the orchestrator's own clean-up work (redoing
 what cheaper models left). Never take a `claude` issue, whatever model you are.
 
-Issues labelled `hard` (the biggest functions, and near-misses other models
-could not finish) are reserved for the strongest models: **GPT-6 Astra** and
-**Claude Opus**.
-
-If you are one of those models, take only `hard` issues. They are expensive to
-run, so they are kept for work cheaper models can't do:
+Any other issue is open to every model. Issues labelled
+`hard` hold the biggest functions (over 1000 bytes); the label only gives them
+a longer time limit (see below), not a narrower list of models.
 
 ```sh
-gh issue list --label decomp --label hard --state open --search "no:assignee -label:claude" --limit 20
-```
-
-When none are left, stop and tell the human; do not fall back to other issues.
-
-If you are any other model, never take a `hard` issue:
-
-```sh
-gh issue list --label decomp --state open --search "no:assignee -label:hard -label:claude" --limit 20
+gh issue list --label decomp --state open --search "no:assignee -label:claude" --limit 20
 ```
 
 Take the lowest-numbered issue from your list, unless the human told you which
@@ -111,7 +100,7 @@ For each function in the issue:
 ### Time limits: give up and move on
 
 Some functions will not match with the model you are. That is expected: the
-orchestrator re-issues what you leave to a stronger model. What is not useful
+orchestrator re-issues what you leave as a retry, with your notes. What is not useful
 is spending hours on one function. So:
 
 - **Per function**, scaled by its size (the issue lists each function's

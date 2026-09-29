@@ -57,10 +57,9 @@ Give the lead this prompt:
 > hand its functions to decomp-worker subagents, retry what they leave, and
 > open a pull request. Then pick up the next one, until none are left.
 
-`AGENTS.md` keeps OpenCode models off issues labelled `hard` (functions over
-1000 bytes, and escalated retries); those are for GPT-6 Astra and Claude Opus. To steer a model
-further, add a size label to the prompt, for example "only take `size:medium`
-issues".
+Every model may take any issue, including those labelled `hard` (functions
+over 1000 bytes). To steer a model, add a size label to the prompt, for
+example "only take `size:medium` issues".
 
 For an unattended run, `opencode run` takes the same prompt on the command
 line, with `-m opencode-go/glm-5.3` to choose the lead (check
@@ -78,25 +77,22 @@ cd ~/repos/personal/byte-tactics
 codex
 ```
 
-Choose GPT-6 Astra with `/model` and give it this prompt:
+Choose a model with `/model` and give it this prompt:
 
-> Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue
-> labelled `hard`, decompile it and open a pull request. Then pick up the next
-> `hard` one, until none are left.
+> Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue,
+> decompile it and open a pull request. Then pick up the next one, until none
+> are left.
 
-`AGENTS.md` tells Astra to take only `hard` issues and to stop when they run
-out, so it doesn't spend usage on work cheaper models can do.
+To point it at the biggest functions, add "labelled `hard`" to the prompt.
 
 Codex usage goes quickly on long decompilation sessions. To make it last:
 
-- **One Codex session at a time.** The cheap OpenCode workers cover the
-  161-400 byte band; Astra only needs to keep up with the `hard` queue.
+- **One Codex session at a time.**
 - **Lower reasoning effort.** Set `model_reasoning_effort = "medium"` in
   `~/.codex/config.toml`, or pass `-c model_reasoning_effort="medium"`.
   Raise it again only for a stubborn near-miss.
-- **Stop it when the `hard` queue is empty** rather than giving it other work.
-  Anything a cheaper model leaves goes to an open retry issue first; only
-  what a retry also misses goes to `hard`, for Astra and Opus. For an unattended run, `codex exec "<prompt>"`.
+
+For an unattended run, `codex exec "<prompt>"`.
 
 Codex runs commands in a sandbox. The agent needs network access (for `gh`
 and `git push`) and needs to run Wine. If either is blocked, start Codex with
@@ -112,9 +108,8 @@ What's left is mostly the harder, larger functions.
 
 - **Codex, GPT-6 Astra.** OpenAI reports it solves 88% of a
   binary reverse-engineering benchmark first time. That is not the same task
-  as matching decompilation, but it makes Astra the strongest candidate for
-  the `hard` issues (functions over 1000 bytes, escalated retries), which are
-  reserved for it and Claude Opus.
+  as matching decompilation, but it makes Astra a strong candidate for the
+  `hard` issues (functions over 1000 bytes).
 - **OpenCode.** There is no track record here for any of these models. The
   likeliest candidates are the larger, non-Flash ones (GPT-6 Luna, Kimi K3,
   GLM-5.3, Qwen3.8 Max, MiMo-V2.6-Pro, Grok 4.7). Give two or three of them a
@@ -133,7 +128,7 @@ Run from the main checkout, on `main`:
    - `uv run tools/issues.py --band medium --count 6`
    - `uv run tools/issues.py --band large --count 6`
 
-   Near-misses to retry with a stronger model:
+   Near-misses to retry:
    - `uv run tools/issues.py --addresses ... --title "Near-misses" --label near-miss --escalation`
 2. **Review each pull request.**
    - `tools/review.sh <PR>` checks the pull request out in `.worktrees/pr-<PR>`
@@ -153,17 +148,17 @@ Run from the main checkout, on `main`:
      `--model-for <addr>=<model>` for each function another model (such as a
      worker) wrote. `--escalate retry` opens an ordinary `near-miss` issue any
      model can take for everything left unmatched, including what a retry
-     missed again (since 2026-09-29 retries stay open to every model; only
-     functions over 1000 bytes are `hard`). GPT-6, Astra, Opus and Sonnet
-     partials of functions over 1000 bytes are not escalated. `--escalate claude` is only for when the orchestrator runs
-     Opus workers of its own (step 4).
+     missed again. Since 2026-09-29 every model may take any issue, `hard`
+     included, so every model's leftovers are escalated this way.
+     `--escalate claude` is only for when the orchestrator runs Opus workers
+     of its own (step 4).
    - `uv run tools/progress.py`
    - `uv run tools/calibration.py`
 
    Add any suspected original bugs to `docs/bugs.md` and new techniques to
    `docs/agent-guide.md`, commit and push.
 4. **Clean up what was left** (only while the orchestrator runs Opus workers
-   of its own; otherwise leftovers stay in the retry and `hard` queues).
+   of its own; otherwise leftovers stay in the retry queue).
    Issues labelled `claude` hold what the other agents left unmatched (`gave up`, `not reached`), mostly from the cheap
    OpenCode workers. They are the orchestrator's own work, and every other
    agent is told to skip them. The orchestrator hands them to Claude Opus

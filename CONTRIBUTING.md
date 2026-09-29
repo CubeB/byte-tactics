@@ -29,15 +29,15 @@ Start your agent in the repository folder. Codex and OpenCode both read
 claim an issue, work in its own copy, and open a pull request from your fork.
 Give it this prompt:
 
-> Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue that
-> is meant for you, decompile it and open a pull request. Then pick up the
-> next one, until none are left.
+> Follow AGENTS.md: pick up the lowest-numbered unassigned `decomp` issue,
+> decompile it and open a pull request. Then pick up the next one, until none
+> are left.
 
 `docs/running-agents.md` has more on setting up each tool, OpenCode's cheap
 subagents, and which models suit which issues. In short:
 
-- Issues labelled `hard` (functions over 1000 bytes, and escalated retries) are for
-  GPT-6 Astra and Claude Opus. Agents on other models skip them.
+- Any model may take any `decomp` issue. Issues labelled `hard` hold
+  functions over 1000 bytes and get a longer time limit.
 - Issues labelled `claude` are the maintainers' own clean-up. Leave them alone.
 - Please have one or two issues claimed at a time rather than many.
 
@@ -45,7 +45,7 @@ subagents, and which models suit which issues. In short:
 
 A maintainer re-checks every function in it with `tools/check.py`, fixes up
 anything that matches for the wrong reasons, and merges it. Functions your
-agent could not match are handed to a stronger model with your agent's notes.
+agent could not match go back out as a retry issue, with your agent's notes.
 Your files stay credited through the `// Decompiled by ...` line and the git
 history.
 

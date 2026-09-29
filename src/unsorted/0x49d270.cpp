@@ -5,39 +5,65 @@
 // position. Flag bit 5 spawns a projectile; bits 1, 4, 0/20, 8 dispatch to
 // 0x49cde0, 0x49cc20, 0x49c9c0, or a spawn aimed from the owning unit.
 //
-// Not matched yet (61.6%, own code 752 bytes vs 774).
+// Not matched yet (81.7%, own code 780 bytes vs 774, was 61.6% / 752).
 //
-// The two hoisted addresses the b5 branch needs across its call must be named
-// locals, or ev stays live across FUN_0049c740, takes a callee-saved register
-// and the whole function's allocation rotates:
-//     Vec3* pos = &ev->pos;  void* arg = (char*)ev + 1;
-// That alone was 27.5%.
+// What the source does, in the order the disassembly runs:
+//   b5  : take a free projectile slot, FUN_0049c740(proj, def, ev+1, 0,
+//         teamColor, 0), copy ev->pos into proj->pos, done.
+//   else: unit = unitId ? &units[unitId] : 0, bail if null or !(flags & 0x10000000).
+//         entry = &unit->entries[entryIndex]; entry->f_18 = ev->f_1d;
+//         entry->f_16 = ev->f_1b; owner = ownerId ? &units[ownerId] : 0.
+//         if (ev->b0) found = the first projectile whose player is not the
+//         local player, whose aim equals ev->pos and whose owner->f_a8 equals
+//         ownerId; otherwise found stays null.
+//         b1 -> FUN_0049cde0, b4 -> FUN_0049cc20 (passes found), b0 or b20 ->
+//         FUN_0049c9c0, b8 -> a new projectile aimed back from the unit.
 //
-// The scan loop is the other big lever (55.7% -> 61.5%): it is
-//     Proj* p = g_game->projs; for (int i = 0; i < g_game->projCount; i++)
-//     ... p++ in the body, found = p, break
-// and the three position compares must be spelled x, z, y in that order, not
-// x, y, z: the original reads aim at +0x28, +0x30, +0x2c against ev+0xd,
-// +0x15, +0x11, so the two sides agree but the order is x, z, y.
+// Facts that were wrong or missing before, each worth points:
+//   - the loop's owner test reads unit+0xa8, NOT the +0x66 the b8 branch
+//     reads (`cmp word ptr [edx+0xa8], bx` at 0x49d402). Naming that field
+//     f_a8 instead of reusing f_66 was worth 9 points on its own.
+//   - the b8 tail assigns f_36 before f_3a (0x49d508 then 0x49d505), and
+//     declares FUN_004b70ef/FUN_004b7123's second parameter `unsigned short`,
+//     which is what makes the argument a 16-bit value and drops 4 bytes.
+//   - the position compares are x, z, y, not x, y, z: the original reads aim
+//     at +0x28, +0x30, +0x2c against ev+0xd, +0x15, +0x11.
+//   - the scan is a `static inline` search helper returning a pointer, not a
+//     loop written out here. That is what grows the frame from 3 dwords to
+//     the original's 4, and what puts the +0x2c-biased induction variable
+//     (the walking register aims at aim.y) and the plain cursor in their own
+//     slots: the same "induction variable biased to a middle field, kept in a
+//     stack slot beside the plain iterator" shape as 0x475470, which comes
+//     from the element being read through a reference and the position
+//     passed onward by reference to a further inline helper.
+//   - the two hoisted addresses the b5 branch needs across its call must be
+//     named locals, or ev stays live across FUN_0049c740, takes a callee-saved
+//     register and the whole function's allocation rotates:
+//         Vec3* pos = &ev->pos;  void* arg = (char*)ev + 1;
 //
 // What still differs, all one allocator state rather than independent bugs:
-//   - the original's frame is 4 dwords, mine is 3. The original keeps an
-//     `int ownerId` (loaded as a word, STORED AS A DWORD at [esp+0x18], reloaded
-//     as a word into bx in the loop) so it occupies no register. Mine keeps the
-//     same int in ebp, which pushes `unit` from the original's ebp into my edi.
-//     Forcing the frame slot (taking &ownerId) changed nothing, so the original
-//     got that slot from register pressure I have not reproduced.
-//   - consequently my loop re-reads g_game->projCount in the latch instead of
-//     hoisting the count into edi, and re-reads g_game in the body.
-//   - ev->b0 is materialised into a local instead of `test byte [eax+0x1a],1`.
-//   - the b5 branch reads the projs array pointer at [ev+1+0x141f7], one byte
-//     above the g_game+0x141f7 every other access uses (see the report: this
-//     looks like a genuine miscompile in the original).
-//
-// Tried and did NOT help (do not repeat): spelling the b5 test as
-// `g_game->defs[team].flags.b5` (51.1%, it loses the decomposed
-// edi+esi*4+0x2e04 addressing the original uses); a local `int count` for the
-// loop bound; `&g_game->projs[i]` with no p++ (both flat at 61.6%).
+//   - the caller's `int ownerId` lives in edi here; in the original it is a
+//     stack slot at [esp+0x18] (loaded as a word at 0x49d388, stored as a
+//     DWORD at 0x49d395, reloaded as a word into bx at 0x49d3fd). Because
+//     edi is taken, my loop keeps g_game->projCount in ecx and re-reads it in
+//     the latch instead of hoisting it into edi as the original does
+//     (`cmp esi, edi`, `mov edi, [ebx+0x141f3]` once before the loop). Tried
+//     and flat or worse: taking &ownerId, an array holding it, an
+//     unsigned short ownerId, giving the helper its own ownerId copy, passing
+//     the whole event to the helper, and every parameter order.
+//   - the original re-lays-out the unit and owner lookups the other way round
+//     (test, jne to the computation, the null store in the fall-through, jmp
+//     to the join); mine inverts both branches. Same code, different block
+//     placement.
+//   - in the b8 tail the original loads the type pointer into edx and the
+//     parameter into eax, so it can `push ecx` for the 16-bit colour
+//     un widened; mine loads the parameter into ecx and has to materialise
+//     the colour in edx first (`mov dx, cx`). The original's `push ecx`
+//     passes a value whose upper 16 bits are whatever was in ecx, which is
+//     teamColor's upper half, see the report.
+// The b5 branch, the two hoisted call sites and the b8 stores all match
+// instruction for instruction; the only differences left are the two named
+// above and the branch targets, which move with them.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {
@@ -91,7 +117,9 @@ struct Unit_0049d270 {                // 0x118 bytes
     Entry_0049d270 entries[1];        // +4
     char unknown_20[0x66 - 0x20];
     unsigned short f_66;              // +0x66
-    char unknown_68[0x110 - 0x68];
+    char unknown_68[0xa8 - 0x68];
+    unsigned short f_a8;              // +0xa8
+    char unknown_aa[0x110 - 0xaa];
     UnitFlags_0049d270 flags;         // +0x110
     char unknown_114[0x118 - 0x114];
 };
@@ -145,15 +173,35 @@ extern Game_0049d270* g_game;
 
 static inline int SamePos_0049d270(Vec3_0049d270& a, Vec3_0049d270& b)
 {
-    return a.x == b.x && a.y == b.y && a.z == b.z;
+    return a.x == b.x && a.z == b.z && a.y == b.y;
+}
+
+// The scan is an inlined search helper, not a loop written out here: that is
+// what puts the ownerId comparison's `mov bx, word ptr [esp + 0x18]` (the
+// helper's own parameter slot) and the walking cursor in their own slots, and
+// grows the frame from 3 dwords to the original's 4.
+static inline Proj_0049d270* Find_0049d270(Proj_0049d270* p, int n, int lp,
+                                           Vec3_0049d270& pos, int ownerId)
+{
+    Proj_0049d270* r = 0;
+    for (int i = 0; i < n; i++) {
+        Proj_0049d270& q = p[i];
+        if (q.player != lp
+            && SamePos_0049d270(q.aim, pos)
+            && q.owner->f_a8 == ownerId) {
+            r = &q;
+            break;
+        }
+    }
+    return r;
 }
 
 void __stdcall FUN_0049c740(void*, void*, void*, int, int, void*);
 void __stdcall FUN_0049c9c0(void*, void*, void*, void*, void*);
 void __stdcall FUN_0049cc20(void*, void*, void*, void*, void*, void*);
 void __stdcall FUN_0049cde0(void*, void*, void*, void*, void*);
-int __cdecl FUN_004b70ef(int, int);
-int __cdecl FUN_004b7123(int, int);
+int __cdecl FUN_004b70ef(int, unsigned short);
+int __cdecl FUN_004b7123(int, unsigned short);
 
 // FUNCTION: 0x49d270
 void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
@@ -175,9 +223,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         proj->pos = *pos;
         return;
     }
-    Unit_0049d270* unit = 0;
-    if (ev->unitId)
-        unit = &g_game->units[ev->unitId];
+    Unit_0049d270* unit = ev->unitId ? &g_game->units[ev->unitId] : 0;
     if (!unit)
         return;
     if (!unit->flags.b28)
@@ -185,24 +231,14 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     Entry_0049d270* entry = &unit->entries[ev->entryIndex];
     entry->f_18 = ev->f_1d;
     entry->f_16 = ev->f_1b;
-    Unit_0049d270* owner = 0;
     int ownerId = ev->ownerId;
+    Unit_0049d270* owner = 0;
     if (ownerId)
         owner = &g_game->units[ownerId];
     Proj_0049d270* found = 0;
     if (ev->b0) {
-        Proj_0049d270* p = g_game->projs;
-        for (int i = 0; i < g_game->projCount; i++) {
-            if (p->player != g_game->localPlayer
-                && p->aim.x == ev->pos.x
-                && p->aim.z == ev->pos.z
-                && p->aim.y == ev->pos.y
-                && p->owner->f_66 == ownerId) {
-                found = p;
-                break;
-            }
-            p++;
-        }
+        int n = g_game->projCount;
+        found = Find_0049d270(g_game->projs, n, g_game->localPlayer, ev->pos, ownerId);
     }
     if (def->flags.b1) {
         FUN_0049cde0(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
@@ -226,8 +262,8 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         if (!proj)
             return;
         FUN_0049c740(proj, entry->type, (void*)((char*)ev + 1), 0, g_game->teamColor, unit);
-        proj->f_3a = 0;
         proj->f_36 = unit->f_66;
+        proj->f_3a = 0;
         proj->pos.y = 0;
         proj->pos.x = -FUN_004b70ef(unit->type->param, proj->f_36);
         proj->pos.z = -FUN_004b7123(unit->type->param, proj->f_36);

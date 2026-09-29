@@ -1,98 +1,103 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Not matched yet, 66.0% (870 bytes against 844). Every block is structurally
-// right (the whole prologue, both unit tests, the feature resolution and the
-// four exits are in the original's order and each of them is the right test);
-// what is left is one allocator state. Grouped by block:
+// Not matched yet: 72.8%, 852 bytes against 844. This header was rewritten
+// because the previous one still described the 66.0% / 870-byte state, which
+// the current body no longer has.
 //
-// - ALL BLOCKS (prologue on): the original computes `lea edi, [esi+4]` for the
-//   position pointer and keeps the CELL in ebx; here the position pointer is in
-//   ebx and the cell in edi. Every later difference in the disassembly
-//   (0x49b111 `mov ecx, [edi+4]`, 0x49b1ae the cell reload, 0x49b1c7 the
-//   cell read, 0x49b1ea the units base off edi) follows from that one swap.
-//   Adding a live local to demote a variable one step, or removing one to
-//   promote it, is the guide's item 2; I tried an extra live int, two extra
-//   shorts, a `g_game` local, a `proj->unit` local, a dead-store pair, an
-//   inline accessor for the position, the unit position through a reference,
-//   and three static __inline helpers for the differences. All of them score
-//   66.0% or lower (the g_game local drops to 52.2%, a `unit` local to 59.6%),
-//   so none of them moves this particular pair.
-// - The swap is NOT free to fix, and the two orderings have a measurable cost
-//   either way (build/scratch/0x49b090/{v2,lcs}.cpp and .py): reading the three
-//   differences through the `pos` POINTER instead of through `proj->px.i` is
-//   what makes the original's own prologue (`lea edi, [esi+4] / push edi`), its
-//   whole 64-bit distance block and its radius block come out byte exact, but
-//   it moves the cell one step further down the callee-saved order (ebx ->
-//   ebp) and only the cell register then differs. A true LCS over instructions
-//   (build/scratch/0x49b090/lcs.py) says 165/282 for that against 168/282 for
-//   the version kept here, and check.py's difflib number says 64.9% against
-//   66.0%, so the two metrics agree: neither ordering wins. So the original
-//   must be doing a THIRD thing, and the most likely candidate is that its
-//   distance block reads the position through a pointer that is not the call
-//   argument (a `&proj->pos` recomputed inside the block, or the argument
-//   itself with the block reading a second copy), which would give the cell
-//   the third callee-saved register while still coding the loads off one
-//   register.
-// - Searched for that third thing this run and did not find it
-//   (build/scratch/0x49b090/{w1,w2,w3,x1,x2}.cpp, all scored with --sym, so
-//   none of them cost a real check.py run):
-//     w1 871 bytes 63.2%  pos-pointer reads, differences declared y,x,z
-//     w2 871 bytes 62.5%  pos-pointer reads, differences declared y,z,x
-//     w3 871 bytes 63.2%  as w1 plus a local `Pos* up = &proj->unit->pos`
-//     x1 863 bytes 64.9%  v2 (x,y,z) plus a `Game_0049b090* g = g_game` local
-//     x2 862 bytes 64.9%  the version kept here plus the same g_game local
-//   So the declaration order of the three differences is a real lever and
-//   x,y,z (the order kept here) is the best of the three, and a `g_game`
-//   local is worth 8 bytes of code without moving the score: it lets the two
-//   feature-index arms share ONE `mapping + f * 256` (the original's
-//   0x49b31b join, with 0x49b2d6 `jl` and 0x49b30f `jb` both entering it)
-//   instead of emitting the `shl edx,8 / add` pair twice, but it cannot get
-//   g_game into a register while the cell still occupies edi, so the shared
-//   tail still reloads the global and the win cancels. The 8 bytes is real
-//   though: x2 is 862 against the 870 kept here, all of it the duplicate tail.
-// - The reason the whole rest of the function is stuck is now clear and worth
-//   recording: the original keeps a `Game*` in a CALLEE-SAVED register across
-//   0x49b1ca to 0x49b3ba (`mov eax,[edi+0x14253]`, `[edi+0x14233]`,
-//   `[edi+0x1426f]`, `[edi+0x1427f]`, `[edi+0x391e9]`, `[edi+0x14357]`), which
-//   only fits if the position pointer has already died in the distance block
-//   and freed edi. So the prologue swap is upstream of the g_game local, and
-//   getting both right is one problem, not two.
-// - Distance block: the original computes the differences in the order y, z, x
-//   and keeps x in ebp; x, y, z order scores 66.0% and y, z, x 65.3%, so the
-//   x-first order here is already the better of the two even though it still
-//   loads in a different sequence.
-// - Feature block: the original materialises the resolved map-feature pointer
-//   in ecx and tests it with `test ecx, ecx`, and it puts the `shl edx, 8`
-//   (index * 256) after the count test. This version materialises it in edx
-//   and hoists the shift. `mf = g_game->mapping + f` with a 0x100-byte element
-//   is what gives the shift, and f is already an unsigned short, so the
-//   `shl edx, 8` shape follows; what does not follow is that MSVC keeps it in
-//   ecx.
-// - The `f2` reload path (0x49b2e7) also differs in where g_game comes from
-//   (ecx held in the original, reloaded from memory here).
+// 0x49b090 is the projectile collision test. It looks up the map cell holding
+// the projectile with FUN_004815a0(&proj->pos); if there is none it stores the
+// selected projectile's last position and sound, clears the selection, sets the
+// dead flag and returns. Otherwise: (1) if the projectile is attached to a unit,
+// the 64-bit squared distance is checked against type->radius^2 and the
+// projectile is killed on contact; (2) proj->radius is set to
+// (cell->radius + cell->ground) / 2; (3) the two unit indices in the cell are
+// tested against proj->owner and the height window
+// [type->low + elev, type->high + elev]; (4) the map-feature id is resolved,
+// including the 0xfffe "read the neighbour cell" case, and if the feature is new
+// for this cell the cell coordinates are stored; (5) the 0x8000 and 0x10000 flag
+// rules, the g_game->limit ceiling and the netgame check are applied before the
+// final kill.
 //
-// Layout facts established by probe (build/scratch/0x49b090/probe.cpp):
-// - the projectile's position is a union of three ints at +0x4 and three shorts
-//   at +0x6, +0xa and +0xe, the shorts being the map-cell coordinates the code
-//   divides by 16. Only a union reproduces both views, and `#pragma pack(1)`
-//   is required for it.
-// - the cell is 13 bytes (the `lea [ecx+ecx*2]` / `lea [ecx+eax*4]` pair is
-//   13 * n), with the two unit indices at +0 and +2, radius and ground at +5
-//   and +6, the feature id at +8, and the two cell offsets at +0xa and +0xb.
-// - the unit array stride is 0x118, with owner at +0xff, type at +0x92 and
-//   elevation at +0x6e; the unit's own position is at +0x4, not +0.
-// - the mapping at g_game+0x1426f is an array of 0x100-byte entries indexed
-//   directly by the feature id (the count check at +0x14253 is separate), and
-//   the entry's height is at +0xfa.
-// - the 64-bit distance is the three `(int)(((__int64)v * v) >> 32)` high
-//   products, the standard idiom in this codebase (see 0x40b0d0, 0x401e00),
-//   summed in the order x, y, z.
+// Two fixes moved it from 66.0% / 870 bytes to 72.8% / 852 bytes, and both are
+// counter-intuitive, so do not "tidy" either one away:
 //
-// Suspected original bug:
-// - 0x49b2c8..0x49b2d6 compares the feature id against g_game+0x14253 and
-//   takes the null path when it is out of range, but the 0xfffe reload path
-//   (0x49b2e7..0x49b30f) re-tests only against 0xfffb and skips the count
-//   check entirely, so a feature id from the neighbouring cell can index the
-//   mapping array unchecked. Same reader, two guards, one of them missing.
+// 1. The prologue register swap IS solved, and the fix is in the position
+//    spelling rather than in any register hint. The position must be read
+//    through a NAMED `Pos_0049b090* pos` local whose value is used again after
+//    the cell lookup (as in `int dx = pos->x - proj->unit->pos.x;`), not read
+//    inline as `proj->px.i`. That alone makes the original's own prologue
+//    (`lea edi, [esi+4] / push edi`), its entire 64-bit distance block and its
+//    radius block come out byte exact, including the interleaved load order
+//    (py, px, pz) and the `mov ebp, eax / mov [esp+0x1c], edx` spill sequence.
+//    The previous header concluded from a true longest-common-subsequence over
+//    instructions that neither ordering wins (165/282 against 168/282). That
+//    comparison was sound but it was made before the position was read through
+//    a named local, and with the named local the original's order does win.
+// 2. The cell register is `ebx`, not `ebp`, and about 30 expression-shape
+//    variants (declaration orders, commutativity, control flow, extra locals in
+//    other regions) all failed to move it. The only thing that flipped it was a
+//    change to the SET of live variables: one extra `int` local, declared just
+//    before the `if (cell->unit0)` block and used once inside that block, makes
+//    MSVC 5 give the cell ebx instead of ebp. 64.9% before, 72.8% after. This
+//    is the reusable lesson: in a register-starved function the choice between
+//    ebx and ebp for a long-lived local can be flipped by adding a single live
+//    local in a specific region, and the two orderings are otherwise
+//    indistinguishable to every spelling sweep.
+//
+// 3. The flag word at ProjType+0x111 is a bitfield struct, not a plain unsigned
+//    int. The original tests bit 14 as `test ah, 0x40` and bit 16 as
+//    `test dword ptr [m], 0x10000`, but bit 15 as
+//    `mov eax,[m]; shr eax,0xf; test al,1; je`. ONLY a 1-bit bitfield read
+//    produces the shift form: `flags & 0x8000` and `(flags >> 15) & 1` both
+//    fold to `test ah, 0x80` (probed directly in
+//    build/scratch/0x49b090/probe1..3.cpp). The working spelling is a union of
+//    the raw word with a bitfield view:
+//        union TypeFlags_0049b090 {
+//            unsigned int raw;
+//            struct { unsigned int low : 15; unsigned int b15 : 1;
+//                     unsigned int high : 16; } b;
+//        };
+//    used as `type->flags.raw & 0x4000`, `type->flags.b.b15`,
+//    `type->flags.raw & 0x10000`. Worth about 3 points once the register
+//    layout is right.
+//
+// What still differs, all of it in the last third of the function, and all of it
+// traced to one cause: `g_game` is not kept in edi across the unit blocks and
+// the feature block. In the original edi holds g_game from 0x49b1ca to
+// 0x49b3ba; in the current source the extra local from fix 2 above takes edi
+// and g_game is reloaded (`mov eax,[g_game]; mov ecx,[eax+0x14357]`). That one
+// cause explains all of:
+//   - the duplicated `mapping + f*256` tail, because the original merges both
+//     arms into the shared block at 0x49b31b and this build does not;
+//   - `mf` living in edi instead of ecx;
+//   - `cmp cx, ax` against the original's `cmp dx, ax` at 0x49b3ad;
+//   - the `mov [esp+0x30]` reload of g_game at 0x49b3ad and 0x49b3ba.
+// Two smaller items alongside it:
+//   - `cz` is kept in ax instead of being spilled to [esp+0x30], so the cellZ
+//     test is `cmp word ptr [esi+0x5c], ax` where the original has
+//     `mov ax,[esi+0x5c]; cmp ax, word ptr [esp+0x30]`.
+//   - in the feature block the feature id is zero-extended eagerly
+//     (`xor edx,edx` + `and ecx,0xffff`) where the original defers it to
+//     `mov dx,[ebx+8]` and an `and edx,0xffff` on the taken path only.
+//
+// Where to look next, in order:
+//   1. The g_game-in-edi problem, which is the highest value. Not yet tried: an
+//      extra variable live only in a region where edi is dead (before
+//      0x49b1ca or after 0x49b284), two extra variables whose net register cost
+//      is zero, or a `Game_0049b090*` local declared so the compiler
+//      rematerialises g_game rather than keeping it.
+//   2. Forcing the cz spill to [esp+0x30], for instance by giving cz a second
+//      use, which should also fix the cellX/cellZ compare shape.
+//   3. The reusable harness is in build/scratch/0x49b090/ (gen.py, rg.py,
+//      try*.py, probe*.cpp, sweep1.py). It scores a variant in about 0.3 s
+//      with `check.py --sym`, which is why this pass used no check.py runs at
+//      all.
+//
+// Suspected original bug, still open and now confirmed in the part that does
+// match: 0x49b2c8 to 0x49b2d6 range-checks the map-feature id against
+// g_game+0x14253, but the 0xfffe reload path at 0x49b2e7 to 0x49b30f re-tests
+// only against 0xfffb and skips the count check, so a feature id read from the
+// neighbouring cell indexes g_game->mapping unchecked.
+
 #pragma pack(push, 1)
 
 struct Pos_0049b090 {
@@ -122,13 +127,22 @@ struct MapFeature_0049b090 {
     char unknown_fb[0x100 - 0xfb];
 };
 
+union TypeFlags_0049b090 {
+    unsigned int raw;
+    struct {
+        unsigned int low : 15;
+        unsigned int b15 : 1;
+        unsigned int high : 16;
+    } b;
+};
+
 struct ProjType_0049b090 {
     char unknown_0[0xd6];
     unsigned short radius;             // +0xd6
     char unknown_d8[0xfe - 0xd8];
     unsigned short sound;              // +0xfe
     char unknown_100[0x111 - 0x100];
-    unsigned int flags;                // +0x111
+    TypeFlags_0049b090 flags;          // +0x111
 };
 
 struct UnitType_0049b090 {
@@ -239,9 +253,9 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         return;
     }
     if (proj->unit) {
-        int dx = proj->px.i - proj->unit->pos.x;
-        int dy = proj->py.i - proj->unit->pos.y;
-        int dz = proj->pz.i - proj->unit->pos.z;
+        int dx = pos->x - proj->unit->pos.x;
+        int dy = pos->y - proj->unit->pos.y;
+        int dz = pos->z - proj->unit->pos.z;
         int r = proj->type->radius;
         int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dy * dy) >> 32)
             + (int)(((__int64)dz * dz) >> 32);
@@ -249,9 +263,10 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             FUN_00499eb0(proj, 0);
     }
     proj->radius = (cell->radius + cell->ground) / 2;
+    int oz = proj->py.i;
     if (cell->unit0) {
         Unit_0049b090* u = &g_game->units[cell->unit0];
-        if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
+        if (u->owner != proj->owner && oz < u->type->high + u->elev) {
             FUN_00499eb0(proj, u);
             return;
         }
@@ -266,7 +281,7 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             }
         }
     }
-    if (type->flags & 0x4000)
+    if (type->flags.raw & 0x4000)
         return;
     {
         short cx = proj->px.s.hi / 16;
@@ -296,11 +311,11 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             FUN_00499eb0(proj, 0);
     }
     if (cell->ground > proj->py.s.hi) {
-        if (type->flags & 0x8000) {
+        if (type->flags.b.b15) {
             proj->field_20 = -(proj->field_20 >> 2);
             return;
         }
-    } else if (type->flags & 0x10000) {
+    } else if (type->flags.raw & 0x10000) {
         return;
     } else if (proj->py.s.hi >= g_game->limit) {
         return;

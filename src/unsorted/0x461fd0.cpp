@@ -1,31 +1,181 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Grows both pools of a NetBuffer: a new packet-pointer array of `growbufs` more
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array.
 //
-// Not byte identical yet (63.7%). Established pieces, do not undo:
-//  * the queue rotate uses OUT-OF-LINE pop/push calls exactly as in 0x462ae0
-//    (`int nq = qp->count; while (nq-- > 0) { x = pop(); if (x == c) break;
-//    push(x); }`, MATCHED there);
-//  * the final push of `e` is the INLINED Queue::Push exactly as in 0x461f90
-//    (`queue.Push(e); e->field_10 = 0; field_20 += e->field_8;`, MATCHED there),
-//    done unconditionally, not under `if (push)`;
-//  * per packet: `p->start = n` (the running moved-count, 0 only for the first
-//    packet), `Entry *q = ne + n`, `*e = *c` with `Entry *e = q++`, while-loop;
-//  * the entry-init loop bound is `i <= totalentries - 1`, which is what gives
-//    the original's `lea edx,[esi-1] / cmp / jl` guard (plain `<` gives cmp/jle);
-//  * `totalentries` must stay a named local: recomputing `growpackets + count`
-//    at all three sites flips MSVC's cached-zero register from edi to ebp and
-//    drops to ~48%. The packet-grow section and log calls match.
+// Not byte identical yet: 86.6%, 911 of 919 bytes. This pass is +0.7 points over
+// the 85.9% it inherited. Both changes are in the notes below; do not undo them.
 //
-// What still differs (one cascade): `totalentries` lives in ebp here but in esi
-// in the original, so the init walker/counter are eax/ecx instead of ecx/edx,
-// `ne` is spilled early instead of staying in eax, and the whole packet walk is
-// rotated (p in eax not edx, c in ebp not eax, e spilled not in ebp, n/j slots
-// swapped, plus extra xor/spill instructions).
-// Tried and did NOT work: declaring the local at function top, or reusing `ok`
-// as the entry count (both keep ebp, 63.7% either way); up/down/while/counting
-// init-loop forms (all keep ebp); all 128 header sets (headers.py).
+// Change A (earlier pass, kept): the `operator new[]` result is a short-lived
+// temporary whose live range ENDS at the merge, and the merged variable is a
+// separate name the walk reads:
+//     Entry_00461fd0* ne = (Entry_00461fd0*)operator new[](totalentries * 32);
+//     Entry_00461fd0* base;
+//     if (ne) { <init loop> base = ne; } else { base = 0; }
+//     if (base) { <the packet walk, and `q = base + n`> }
+//     entries = base;
+// The walk must read `base` AND the final `entries =` must read `base`, so that
+// `ne` has no use at all after the merge.
+//
+// Change B (this pass, +0.4): inside the entry loop the latch is
+//     j++;
+//     c = (Entry_00461fd0*)c->field_1c;
+// and NOT the other way round. The original's latch block at 0x4622ca loads j
+// (esi) and then reads `c->field_1c` using eax, which is only possible if the j
+// work was already done. 86.3% alone.
+//
+// Change C (this pass, +0.3): the tail store order is
+//     entries = base;
+//     field_1c = n - 1;
+//     count = totalentries;
+// i.e. `field_1c` BEFORE `count`, the opposite of the original's store order.
+// What it actually buys is the register: it moves `totalentries` out of eax
+// (85.9%) into ecx, one step from the original's edx. 86.2% alone, 86.6% with B.
+//
+// Established pieces from the earlier passes, do not undo:
+//  1. The inner entry loop's field_c guard is an IF WITH A BODY, not an early
+//     exit: `if (c->field_c == (int)p) { ... }`.
+//  2. `n++` comes AFTER `Entry *e = q++; *e = *c;`.
+//  3. `int j = 0;` is declared in the `for` body (just before `p`). +6.7 points,
+//     pure slot allocation. Re-confirmed this pass: every other spelling of `j`
+//     is worse by a lot, see the tried-and-failed list.
+//  4. the queue rotate uses OUT-OF-LINE pop/push calls exactly as in 0x462ae0.
+//  5. the final push of `e` is the INLINED Queue::Push exactly as in 0x461f90.
+//  6. the entry-init loop bound is `i <= totalentries - 1` (the 0x461db0
+//     countdown spelling of that same loop now scores identically, see below).
+//  7. `totalentries` must stay a named local; recomputing it at all three sites
+//     flips MSVC's cached-zero register from edi to ebp and drops to ~48%.
+//
+// What still differs. The original's frame is
+//     0x10 base, 0x14 n, 0x18 i, 0x1c q, 0x20 p, (0x24 UNUSED),
+//     0x28 totalentries, 0x2c total AND j (shared), 0x30 c
+// and ours is
+//     0x10 j, 0x14 base, 0x18 i, 0x1c p, 0x20 q, 0x24 totalentries,
+//     0x28 total, 0x2c n, 0x30 c
+// Two of the nine locals are on the wrong side: the original keeps the OUTER `n`
+// in the low band and lets the INNER `j` share `total`'s slot, while we keep the
+// inner `j` low and let `n` share `total`'s. The low band also has p and q the
+// other way round. One consequence is visible in the walk: the original's
+// `p->count = j` block reloads four slots (j, base, n, i) because n is not in a
+// register, ours reloads three (j, base, i), so we are 8 bytes short overall.
+// Moving `int n = 0;` one scope in or out does not flip it (79.1% / 79.2%), and
+// declaring `q` before `p` does not move q's slot (byte-identical output), so the
+// band assignment is not reachable by declaration order.
+//
+// The entry loop's shape is the other difference. The original has a real
+// loop-top block that only the back edge reaches:
+//     0x4621d8: mov eax,[esp+0x30]   ; c      <- reload
+//     0x4621dc: mov ecx,[esp+0x1c]   ; q      <- reload
+//     0x4621e0: xor edi,edi
+//     0x4621e2: cmp [eax+0xc], edx
+// reached by `jne 0x4621d8` from the latch, while the first iteration jumps
+// straight past it (`jmp 0x4621e2` at 0x4621d6). We put the q reload in the
+// LATCH instead, so our loop top is just the compare and our test is
+// `xor edi,edi / cmp eax,edi / jne` where the original's is `test eax,eax`.
+// Because q's register copy has to be rematerialised either way, this is a block
+// PLACEMENT difference, not a shape difference, and none of the loop rewrites
+// below move it. That same q liveness also costs the original's
+// `shl esi,5 / lea ecx,[esi+ebp]` where we emit
+// `mov ecx,esi / shl ecx,5 / add ecx,ebp`: the original's esi dies at the shift,
+// ours has to preserve n for `p->start`.
+// The original also lays the `c == 0` handler out of line (0x4622f9, a `je` to
+// it) while ours falls into it inline (`jne` past it).
+//
+// Tried this pass and did NOT work (do not repeat), all scored with the free
+// `check.py --sym` path on build/scratch/0x461fd0:
+//  * the field_c guard as an early exit (`if (c->field_c != (int)p) break;`):
+//    69.5%. As `if (cond) {...} else break;` the same. The original really does
+//    need the if-with-a-body form, because its `jne` at 0x4621e5 lands on the
+//    SHARED `p->count = j` block, which is where a `break` would land.
+//  * every other spelling of `j`: declared in the `c != 0` arm (76.9%, and the
+//    original really does store `j = 0` at 0x4621c9), declared uninitialised in
+//    the `for` body with `j = 0;` after `p->start = n` (76.9%) or after
+//    `p->field_10 = q` (76.9%), declared at the `field_0 >= 0` level (86.6% but
+//    byte-identical to the kept build), declared in the `p->count > 0` arm
+//    (86.6%, byte-identical).
+//  * loop rewrites: `while (1) { if (c == 0) break; ... }` (83.6% both ways j is
+//    ordered), `for (; c != 0; c = c->field_1c)` with the latch in the increment
+//    (85.1%), the same with `c = c->field_1c, j++` in the increment (68.9%).
+//  * `q = base + n` written as `(Entry*)((char*)base + n * 32)`,
+//    `(Entry*)((int)base + n * 32)`, or via a named `int off = n << 5;`: all
+//    byte-identical to `base + n`, so the extra `mov ecx,esi` is allocation and
+//    not expression shape. Moving the increment: `e = q; q = q + 1;`,
+//    `*q = *c; e = q; q++;` and `e = q; *e = *c; n++; q++` are all 68.3%.
+//  * `n++` before `*e = *c` (83.6%).
+//  * declaration positions: `c` before the `p->count > 0` test, `q` hoisted to
+//    the `for` body or to the `c` block, `p` before `j`, `q` before `p`, `i`
+//    declared in the `field_0 >= 0` block, `n` inside the `field_0 >= 0` block
+//    (79.1%), `j` at the `field_0 >= 0` level, `unsigned int total`,
+//    `unsigned int totalentries` (81.6%), an `int last = n - 1;` local for both
+//    the field store and the printf argument: every one of these is either
+//    byte-identical to the kept build or worse.
+//  * hoisting `Queue_00461fd0* qp = &queue;` out of the `if (c->field_10 >= 0)`
+//    block to the walk level: 76.9%. Reordering `field_34 = e;` before the
+//    `if (field_34) field_34->field_1c = e;`: 75.5%. Swapping the two
+//    `field_20 -= / +=` statements: 80.7%. Swapping the `field_34 = 0;` and
+//    `field_30 = 0;` initialisers: 86.3%. Reordering `e->field_1c = 0;` before
+//    `e->field_18`: 86.3%.
+//  * `entries = base;` last in the tail group: 86.3%.
+//  * `if (!c)`, `while (c)`, `if (!(c->field_c != (int)p))`,
+//    `if (!field_30)`, `p->start = n;` after the `q` computation,
+//    `e = q; e = q++;`: all byte-identical to the kept build.
+//  * the 0x461db0 countdown spelling of the entry-init loop
+//    (`int k = totalentries - 1; ... while (k >= 0) { ...; k--; }`): 86.6% and
+//    byte-identical to the kept build, which confirms again that the loop SHAPE
+//    is not the lever. With `unsigned int k` and `while (k != 0)`: 82.0%.
+//  * hand-rolling the `memset(np, 0, total * 4)` as a byte loop: 79.0%, so the
+//    builtin really is what the original used.
+//
+// Last pass (space-bunny-free) re-derived the frame layout from `objdump`, which
+// pins the remaining gap to a n/j slot SWAP, and re-tested the two orderings that
+// would fix it. Frame slots, original: base 0x10, n 0x14, i 0x18, q 0x1c, p 0x20,
+// totalentries 0x24, then j in the dead growbufs slot 0x2c and c in the dead
+// growpackets slot 0x30. Ours: j 0x10, base 0x14, i 0x18, p 0x1c, q 0x20,
+// totalentries 0x24, n in the dead slot 0x2c, c 0x30. So `n` and `j` are exactly
+// transposed, and once `j` leaves the frame `base`, `i` and `totalentries` land on
+// the original's slots. Both builds have six frame slots and two dead-arg slots;
+// which variable spills to a dead arg is what differs. Ours keeps `n` in ESI and
+// spills it, the original increments `n` in memory (0x4621eb) and keeps no live
+// register copy. Making `n` a real frame local therefore has to be forced, and
+// every spelling tried either moved the increment to the wrong side of the copy
+// (84.0%, 903 bytes) or demoted the whole walk (76.9% / 75.3%).
+//
+// Tried this pass, free scratch scores, all worse than the kept 86.6%:
+//  * `e = q++; n++; *e = *c;` (n's increment BEFORE the 32-byte copy, which is
+//    where the original puts it, 0x4621f1 before `rep movsd` at 0x462206):
+//    84.0%, 903 bytes. This is the closest variant by SIZE. It does move `n` into
+//    the frame (base 0x10, i 0x14, p 0x18, n 0x1c, q 0x20, j 0x2c, c 0x30) and
+//    it deletes the original's `n = 0` store, so it is the right direction, but
+//    MSVC then keeps n in ESI and emits `inc esi / mov [esp+0x1c], esi` where the
+//    original has `mov edi,[esp+0x14] / inc edi / mov [esp+0x14], edi`, and it
+//    loses the loop-head reload block. Do not retry this alone.
+//  * `int j;` declared uninitialised in the `for` body with `j = 0;` written
+//    between `p->start = n;` and the `q = base + n` computation, so the store
+//    lands at 0x4621c9 where the original has it: 76.9%, 915 bytes.
+//  * that same `j` change plus the `n++` reordering: 75.3%, 905 bytes.
+//  * inverting the `c == 0` test to `c != 0` so the walk is the fallthrough: this
+//    is the layout the original has (`je` to a handler at 0x4622f9, walk falls
+//    through), but it is the single worst edit available, -9 points.
+// Remaining known differences are the `c == 0` handler's block layout, the
+// missing `mov [esp+0x30],c / mov [esp+0x1c],q` reload block at the inner loop
+// head (0x4621d8, the original has a two-entry loop head, ours has one), and
+// the `delete[](entries)` argument, which the original loads into ECX before the
+// call and the total into EDX after, where ours does the reverse.
+//
+// Suspected original bug, second and much clearer one: `n` is stale in ESI at the
+// packet-walk top. `p->start = n` and `p->field_10 = base + n * 32` read ESI at
+// 0x4621c6 and 0x4621cd, but ESI is only ever zeroed, at 0x46217f, before the
+// packet loop. Inside the walk ESI is overwritten three times, as the source
+// pointer for the `rep movsd` (0x462202), as the queue pointer `lea esi,[ebx+0x38]`
+// (0x462223) and as `j` (0x4622ca), and the loop-back edge at 0x4621a4 reloads
+// `c` and `q` from 0x30 and 0x1c but never reloads `n` from 0x14. So for the
+// SECOND and later packets with entries, `p->start` is set to the previous
+// packet's entry count and `p->field_10` points into the middle of the new array.
+// Cavedog's own build shipped this, so either the source read a register the
+// compiler had not kept up, or the original's author relied on n living in a
+// register. A correct build reloads ESI, and that reload is the single byte
+// standing between this file and the original: this build emits it at 0x301
+// (`mov esi, [esp+0x2c]`), the original at 0x4621a4 does not.
 //
 // Suspected original bug: at the packet-walk top, `p->count` is compared with
 // edi (`cmp [edx+8],edi; jle`) and the freshly loaded `c` with edi
@@ -33,6 +183,77 @@
 // with entries is processed, edi keeps elector residue (n+1, e, or the
 // queue-rotate residue), so a later packet's `count > 0` and `c == 0` tests run
 // against garbage. Latent: needs at least two non-empty packets on a grow path.
+
+// Pass deepseek-v4.1-flash, 900s limit: no score movement, kept 86.6%. Every
+// variant below was scored on the free `--sym` path. The wall is the frame band:
+// ours puts the walk's `n` in the dead growbufs arg slot (0x2c) and `j` in the
+// low band at 0x10, the original has `n` at 0x14 and `j` at 0x2c, which also
+// transposes base/j and p/q. None of these beat 86.6:
+//  * `static inline void Bump(int& x) { x++; }` for `n++` (the reference
+//    parameter did NOT force `n` to memory; byte-identical).
+//  * `static inline void Touch(int*) {}` with `Touch(&n);` (address-take
+//    scalarised away; byte-identical).
+//  * `unsigned int n` (byte-identical).
+//  * all walk locals hoisted to the `if (base)` scope in the original's slot
+//    order (base, n, i, q, p, j, c): byte-identical.
+//  * `j` declared before `n`; `p` and `q` declared at the top of the `for` body
+//    with `q` first; `i` hoisted above `n`: all byte-identical.
+// Not kept, all worse:
+//  * tail store order `count` then `field_1c`: 86.3%.
+//  * walk as the `if` then-branch so the `c == 0` handler is out of line (the
+//    original's layout): 84.4%, 912 bytes.
+//  * `n++` before `*e = *c`: 84.0%, 903 bytes. This one DOES move `n` into the
+//    frame and gives base 0x10 and `j` 0x2c, but lands i 0x14, p 0x18, n 0x1c,
+//    q 0x20, so only the base/j half comes right and it loses the loop head.
+//  * `while (c != 0 && c->field_c == (int)p)`: 69.5%.
+//  * the same with the terms reversed: 68.8%.
+//  * `for (; c != 0 && c->field_c == (int)p; c = c->field_1c)`: 69.5%.
+//  * `while (1)` with a `break` on each condition: 83.6%.
+//  * `int n` declared at function scope: 76.4%.
+// The one untried lever I could see is a source construct that makes `n` a
+// memory increment without moving the statement order, which no spelling of a
+// helper, a reference or an address-take achieved here.
+//
+// Pass deepseek-v4.1-flash, 900s limit: kept 86.6%, no movement. Scored on the
+// free `--sym` path. Confirmed the swing of the whole diff is the inner loop
+// SHAPE, not the slot spellings: the two semantically correct forms both
+// compile the original's exit (`jne` to the shared `p->count = j` merge) but
+// collapse to ~69%, while the kept infinite form scores 86.6%.
+//  * `if (c->field_c != (int)p) { break; }` at the top of the loop body, with
+//    `j++` and `c = c->field_1c` at the while level: 69.5%. The original's
+//    block layout exactly (a `jmp` preheader, a separate back-edge reload
+//    block at 0x4621d8, `jne 0x4622e4`), but `break` makes `c` the loop-carried
+//    value and MSVC gives IT `ebp`, moving `base` to memory. The original has
+//    the opposite split (base in ebp, c in memory at 0x30), which is the whole
+//    17-point gap: the reload block wants c spilled, and a `break` keeps it
+//    live in a register.
+//  * `if (c->field_c == (int)p) { <body> }` with `j++`/`c = c->field_1c` at
+//    the while level (same semantics as the kept form, latch outside the if):
+//    69.6%. Same c-in-ebp problem.
+//  * `for (; c != 0; c = c->field_1c) { if (c->field_c != (int)p) break; ... }`:
+//    69.5%.
+//  * explicit `do { ... } while (c != 0);` around the kept if-with-body:
+//    86.6% and byte-identical to the kept build, so MSVC had already rotated
+//    the kept `while`; the explicit spelling changes nothing.
+//  * `j` declared at the `if (base)` scope (outside the for): 86.3%; inside the
+//    `else` arm (the c != 0 branch): 76.9%; swapping the latch to
+//    `c = c->field_1c; j++;`: 86.2%.
+//  * `Entry* q = base + n;` written before `p->start = n;`: 86.6% and
+//    byte-identical.
+//  * `e = q++; n++; *e = *c;` (increment before the copy, as the original's
+//    0x4621f1 is): 84.0%, reconfirmed. It fixes the n increment register and
+//    the base/j slots but elides the `n = 0` store and loses the loop head.
+//  * `e = q++; n++; *e = *c;` examined in the listing: MSVC keeps `n` in ESI
+//    for the first iteration (so no `mov [slot],0` for n), while the original
+//    forces the store at 0x462183 because the increment lands in EDI while
+//    ESI holds the `rep movsd` source. That ESI/EDI split, and the fact that
+//    the original homes the long-lived `n` to a real frame slot while the
+//    short-lived `j` takes the dead growbufs argument slot, is the allocator
+//    state that no source spelling here reproduced.
+// Net: the remaining diffs are one allocator state (which of `base`/`c` takes
+// ebp, and the resulting n/j, p/q, base/j homes). No source-level lever found;
+// the loop shape that fixes the exit is exactly the one that flips ebp to `c`.
+
 #include <string.h>
 
 void* operator new[](unsigned int size);
@@ -129,6 +350,7 @@ public:
     int FUN_00461fd0(int growbufs, int growpackets);
 };
 
+
 // FUNCTION: 0x461fd0
 int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
 {
@@ -187,6 +409,7 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
         if (ok) {
         int totalentries = growpackets + count;
         Entry_00461fd0* ne = (Entry_00461fd0*)operator new[](totalentries * 32);
+        Entry_00461fd0* base;
         if (ne) {
             Entry_00461fd0* q = ne;
             for (int i = 0; i <= totalentries - 1; i++) {
@@ -199,15 +422,17 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                 q->field_1c = 0;
                 q++;
             }
+            base = ne;
         } else {
-            ne = 0;
+            base = 0;
         }
-        if (ne) {
+        if (base) {
         int n = 0;
         if (field_0 >= 0) {
             field_34 = 0;
             field_30 = 0;
             for (int i = 0; i < field_c; i++) {
+                int j = 0;
                 Packet_00461fd0* p = packets[i];
                 if (p->count > 0) {
                     Entry_00461fd0* c = (Entry_00461fd0*)p->field_10;
@@ -216,16 +441,13 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                         p->count = 0;
                     } else {
                         p->start = n;
-                        int j = 0;
-                        Entry_00461fd0* q = ne + n;
+                        Entry_00461fd0* q = base + n;
                         p->field_10 = (int)q;
                         while (c != 0) {
-                            if (c->field_c != (int)p) {
-                                break;
-                            }
-                            n++;
+                            if (c->field_c == (int)p) {
                             Entry_00461fd0* e = q++;
                             *e = *c;
+                            n++;
                             if (c->field_10 >= 0) {
                                 c->field_10 = -1;
                                 c->field_14 = FUN_004b6340();
@@ -254,8 +476,9 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
                             if (field_30 == 0) {
                                 field_30 = e;
                             }
-                            c = (Entry_00461fd0*)c->field_1c;
                             j++;
+                            c = (Entry_00461fd0*)c->field_1c;
+                            }
                         }
                         p->count = j;
                     }
@@ -263,9 +486,9 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
             }
         }
         operator delete[](entries);
-        entries = ne;
-        count = totalentries;
+        entries = base;
         field_1c = n - 1;
+        count = totalentries;
         FUN_00461170("current packet pool index set to: %ld\n", n - 1);
         return 1;
         }

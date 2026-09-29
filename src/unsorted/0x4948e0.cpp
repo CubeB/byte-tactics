@@ -1,13 +1,23 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 37.0% (1362 vs 1418 bytes). Control flow and semantics are in
-// place; the frame is 0xb8 where the original is 0xd0 (24 bytes of locals do
-// not overlap the same way, so every [esp+..] slot is 8..24 too low and the
-// surface parameter lands at +0xcc instead of +0xe4). MSVC also keeps the
-// surface in ebp in the original but reloads it here. Remaining instruction
-// differences: the decreasing-panel arm materializes the clamp constant 1 in
-// esi (mov esi,1) and reuses it for the src-quad constant 1, while this
-// version uses immediate 1; and the "Options" call is laid out inline in the
-// original instead of through the shared tail.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL 56.9% (1475 vs 1418 bytes). Biggest wins over the 37% starting point:
+// declaring the panel rectangle as a real Rect local passed by address (so its
+// four fields become a 16-byte aggregate instead of three dead-eliminated ints),
+// using strcpy so MSVC emits its rep movsd/rep movsb copy, and putting the
+// DAT_0051f2d8 = 0 / 0x7d store AFTER the FUN_0047f1a0("Options", 0) call so the
+// two Options calls stop tail-merging. Still open: the frame is 0xc0 where the
+// original is 0xd0 (16 bytes of locals short), the if-arm clamp constant 1 is
+// materialised in esi in the original and used as an immediate here, and the
+// original keeps the surface in ebp and reloads y out of panel.top into ebx.
+// One register-role swap explains much of the rest: in the original ebx holds
+// y (read back from panel.top) and maxw lives in the frame at +0x10, while
+// here ebx holds maxw and y is spilled, which also pushes the panel rectangle
+// from +0x18 to +0x1c. The original also has a 4-byte slot at +0x28 (the
+// shift-down loop's counter, which this version keeps in a register) and
+// uses +0x54/+0x58, which this version does not.
+// Tried and rejected: `int y = 0x20` (55.6%, frame drops to 0xbc), and
+// declaring maxw before y (56.9%, no change).
+
+#include <string.h>
 
 #pragma pack(push, 1)
 
@@ -98,14 +108,6 @@ void* __stdcall FUN_004b7f30(void* glyphs, int c);
 void __stdcall FUN_004c7580(void* surface, void* pic, Quad_004948e0* dst, Quad_004948e0* src);
 int __cdecl sprintf(char* buf, char* fmt, ...);
 
-static char* CopyString(char* dst, char* src)
-{
-    char* d = dst;
-    while ((*d++ = *src++) != 0)
-        ;
-    return dst;
-}
-
 // FUNCTION: 0x4948e0
 void __stdcall FUN_004948e0(void* surface)
 {
@@ -132,41 +134,52 @@ void __stdcall FUN_004948e0(void* surface)
             q = 1;
         DAT_0051f2d8 -= q;
         if (DAT_0051f2d8 <= 0) {
-            DAT_0051f2d8 = 0;
             FUN_0047f1a0("Options", 0);
+            DAT_0051f2d8 = 0;
         }
     } else if (DAT_0051f2d8 < 0x7d) {
         if (DAT_0051f2d8 == 0)
-            FUN_0047f1a0("Panel", 0);
+            FUN_0047f1a0("Panel", DAT_0051f2d8);
         int q = (0x7d - DAT_0051f2d8) / 4;
         if (q <= 1)
             q = 1;
         DAT_0051f2d8 += q;
         if (DAT_0051f2d8 >= 0x7d) {
-            DAT_0051f2d8 = 0x7d;
             FUN_0047f1a0("Options", 0);
+            DAT_0051f2d8 = 0x7d;
         }
     }
 
-    int x1 = FUN_004b6700() - DAT_0051f2d8;
-    int y1 = 0x20;
-    int x2 = x1 + 0x7d;
-    int y2 = g_game->numPlayers * 0x28 + 0x2e;
-    FUN_004bf4d0(surface, (Rect_004948e0*)&x1, -0x18);
+    Rect_004948e0 panel;
+    panel.left = FUN_004b6700() - DAT_0051f2d8;
+    panel.top = 0x20;
+    panel.right = panel.left + 0x7d;
+    panel.bottom = g_game->numPlayers * 0x28 + 0x2e;
+    FUN_004bf4d0(surface, &panel, -0x18);
 
-    int y = y1;
-    int maxw = x2 - x1 - 6;
+    int y = panel.top;
+    int maxw = panel.right - panel.left - 6;
     char buf[0x54];
-    CopyString(buf, FUN_004c5740("Kills"));
-    FUN_004a50e0(surface, buf, x1 + 2, y, maxw, 0);
-    CopyString(buf, FUN_004c5740("Losses"));
+    strcpy(buf, FUN_004c5740("Kills"));
+    FUN_004a50e0(surface, buf, panel.left + 2, y, maxw, 0);
+    strcpy(buf, FUN_004c5740("Losses"));
     int w = FUN_004a5030(buf);
-    FUN_004a50e0(surface, buf, x2 - w - 2, y, maxw, 0);
+    FUN_004a50e0(surface, buf, panel.right - w - 2, y, maxw, 0);
     y += 0xf;
 
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
-        Player_004948e0* p = g_game->players;
+        Quad_004948e0 dst;
+        dst.p[0].x = panel.left + 7;
+        dst.p[0].y = y + 1;
+        dst.p[1].x = panel.right - 6;
+        dst.p[1].y = y + 1;
+        dst.p[2].x = panel.right - 6;
+        dst.p[2].y = y + 0x25;
+        dst.p[3].x = panel.left + 7;
+        dst.p[3].y = y + 0x25;
+
         int n = 0;
+        Player_004948e0* p = g_game->players;
         for (; n < 10; n++, p++) {
             if (p->field_0 == 0)
                 continue;
@@ -203,26 +216,17 @@ void __stdcall FUN_004948e0(void* surface)
             continue;
         }
 
-        Quad_004948e0 dst;
-        dst.p[0].x = x1 + 7;
-        dst.p[0].y = y + 1;
-        dst.p[1].x = x2 - 6;
-        dst.p[1].y = y + 1;
-        dst.p[2].x = x2 - 6;
-        dst.p[2].y = y + 0x25;
-        dst.p[3].x = x1 + 7;
-        dst.p[3].y = y + 0x25;
         if (n == g_game->localPlayer) {
             Rect_004948e0 hr;
-            hr.left = x1 + 4;
+            hr.left = panel.left + 4;
             hr.top = y - 1;
-            hr.right = x2 - 4;
+            hr.right = panel.right - 4;
             hr.bottom = y + 0x26;
             FUN_004bf4d0(surface, &hr, 0x1f);
             FUN_004bf4d0(surface, &hr, 0x14);
         }
-        unsigned short* frame = (unsigned short*)FUN_004b7f30((void*)g_game->field_148db,
-                                                             p->data->field_96);
+        unsigned short* frame = (unsigned short*)FUN_004b7f30(
+            (void*)g_game->field_148db, p->data->field_96);
         Quad_004948e0 src;
         src.p[0].x = 1;
         src.p[0].y = 1;

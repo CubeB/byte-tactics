@@ -1,22 +1,28 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Rebuilds the list of candidate cells: clears the vector at +0x4d, then
 // walks every map cell and adds (x, y, feature value) for each cell whose
 // feature (index below 0xfffb) has a non-zero value at +0xf0 and bit 1 of
 // its flags byte set. 0x40a260 later sorts these by distance.
 //
-// Partial (81.4%): everything lines up, including which vector helpers
-// /Ob2 leaves out of line (the third size() in the inlined insert, _Ucopy,
-// _Ufill, _Destroy), except that in the reallocating branch of the inlined
-// vector::insert the new buffer (_S) gets ebp and the _Ucopy result (_Q)
-// gets ebx, where the original has _S in ebx and _Q in ebp (so the reloads
-// of x and y after it come out in the other order). Not changed by: the
-// Elem construction (named local, temporary, constructor with int or short
-// parameters, member order, a helper returning Elem), declaration order or
-// types of x, y and w, a pointer-walking inner loop, `continue` instead of
-// nested ifs, a Feature getter, a vector reference, any header set, /Gz, or
-// compiling 0x40a260 and 0x40a5d0 before it in one file. Elem's constructor
-// must take the value as a float parameter: that gives the original's
-// fld/fstp copy of the feature value (a plain field copy uses mov).
+// Partial (88.7%, 645 bytes against the original's 644): only one allocator
+// decision differs. In the reallocating branch of the inlined push_back
+// (vector::insert(_P, 1, _X)) the original keeps the freshly allocated
+// buffer (_S) in ebx and the first _Ucopy result (_Q) in ebp; ours swaps
+// them. The swap costs the extra byte because _End = _S + _N compiles to
+// `lea ecx, [ebx + eax*8]` (3 bytes) in the original but
+// `lea ecx, [ebp + eax*8]` (4 bytes: ebp as a base needs a disp8) in ours,
+// which shifts every later address by one. Every instruction before
+// `mov ebx,eax` (_S, 0x40a8e2) is byte-identical, so the choice is decided
+// by the whole function's IR, not by the source order here.
+//
+// Not changed by: push_back of a temporary or of a named local, an explicit
+// insert(end(), 1, X) or insert(end(), X), a static inline helper returning
+// the Elem by value, casting the coordinates to short, a float local for the
+// value, any of the 128 header sets (tools/headers.py). This is the same
+// wall the guide records for out-of-line vector::insert copies (0x408f30 is
+// an identical 88.7%): treat it as compiler state and move on. Elem's
+// constructor must take the value as a float parameter: that gives the
+// original's fld/fstp copy of the feature value (a plain field copy uses mov).
 #include <vector>
 
 struct Point16 {

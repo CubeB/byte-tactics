@@ -6,8 +6,8 @@
 // and the corner heights are bilinearly interpolated with a plain / 16
 // (MSVC 5 spells that cdq/and 0xf/add/sar 4; there is no second shift).
 //
-// PARTIAL (65.5%, 858 bytes against the original's 857, and the same frame).
-// What is still open, all of it register allocation rather than shape:
+// PARTIAL (77.8%, 857 bytes against 857; Sonnet 5.5 retry #1091 took it from 70.8% with a scripted
+// statement-order hill climb, see the end of this comment). Older notes below said 65.5%.
 //
 //  1. The bilinear block. The original keeps the first tile's low half in
 //     ebx and spills the second tile pointer (esp+0x28) and b1 (esp+0x2c);
@@ -68,6 +68,20 @@
 // still on the stack, so that instruction's esp+0x38 is esp+0x30) and read
 // back at 0x48a736. The epilogue reads .h at +0x60, +0x6c, +0x78, +0x84.
 
+//
+// Sonnet 5.5 retry (#1091), 70.8% to 77.8%: a hill climb over statement positions (moving one
+// statement of the loop body or of the sea-level block at a time, with every statement that
+// touches the same local kept in order and no statement crossing the call it depends on) found two
+// moves worth 3 points each: `int gw = g_game->gridW;` goes before the two bounds checks, and
+// `unsigned n = g_game->frame - u->owner->age;` goes up next to `p`. What still differs, in
+// order of the diff: (1) m and count swap ecx/edx in the prologue (original: m in edx, count in
+// ecx; int n / row-first / return-first spellings did not flip it); (2) the original computes wx
+// before hz (edx = t.x + posx, ebp = wx, then hz in ecx) but every wx-first order scores lower
+// overall; (3) the original keeps `and eax, 0x1f` on the random value and passes p to
+// FUN_004b7123 with a plain `mov eax, [esp+0x28]; push eax`, where this build drops the mask (the
+// short cast makes it dead) and emits `movsx eax, word ptr [esp+0x28]`; short, unsigned short and
+// int spellings of p and of that callee's first parameter all fail to give the pair;
+// (4) u->owner is cached in ebp after the call in the original.
 #include <stdlib.h>
 
 #pragma pack(push, 1)
@@ -188,9 +202,9 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
             int wx = (short)((t.x + u->posx) >> 16);
             int fz = hz & 0xf;
             int fx = wx & 0xf;
+            int gw = g_game->gridW;
             unsigned gx = (unsigned)wx >> 4;
             unsigned gz = (unsigned)hz >> 4;
-            int gw = g_game->gridW;
             if (gx >= gw - 1)
                 return;
             if (gz >= g_game->gridH - 1)
@@ -212,12 +226,12 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
                 hs[k].h = max(H, sea);
                 short p = (short)((((FUN_004b6340() & 0x1f) + k * 8) << 11) + u->fix_lo);
                 int s = u->type->sight / 2;
+                unsigned int n = g_game->frame - u->owner->age;
                 int q = u->owner->sight;
                 if (q >= s)
                     q = s;
                 int w = (int)((((__int64)q << 16) / s));
                 int mm = 2 - (int)((((__int64)w * 2) >> 16));
-                unsigned int n = g_game->frame - u->owner->age;
                 if (n >= 60)
                     n = 60;
                 mm -= (unsigned int)(mm * n) / 60;

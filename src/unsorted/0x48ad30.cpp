@@ -1,4 +1,14 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Sonnet 5.5 retry (#1091): 77.6% (was 74.2%). The +3.4 came from spelling the progress swap
+// `u->ff7 = u->ff6; u->ff6 = v;` (the original loads dl, stores ff6, then ff7). Lead for the loop
+// head: the original guard `xor al,al / cmp al,0xa / jae <latch>` is an in-body `if (i < 10)` test
+// on an initialised counter (`unsigned char i = 0; int off = 0;`, body wrapped in
+// `if (i < 10) { p = ...; if (p->f0 != 0) {...} }`, do-while latch as below): that spelling gives
+// the exact guard, init stores and `mov eax,[ecx+edx+0x1b63]; lea edi,...` head (845 bytes, 72.6%
+// only because the rest shifts). What it still gets wrong: off is carried in edi across the back
+// edge (`mov edi,[esp+0x18]` in the latch, `[edi+ecx+0x1b63]` at the top) where the original reloads
+// it from [esp+0x14] into edx, and the cnt/off slots come out swapped (cnt 0x14, off 0x18).
+// Not kept in this file because the uninitialised do-while below scores higher.
 // The per-tick unit housekeeping loop (called from one place): clears the
 // counter at g_game+0x14353, then for each of the ten 0x14b player records at
 // g_game+0x1b63 walks the unit list (first +0x67, last +0x6b, stride 0x118),
@@ -329,9 +339,8 @@ void __stdcall FUN_0048ad30(void)
                             if (v > 100) {
                                 v = 100;
                             }
-                            unsigned char t = u->ff6;
+                            u->ff7 = u->ff6;
                             u->ff6 = v;
-                            u->ff7 = t;
                         }
                         Player_0048ad30* pl = u->player;
                         if (pl->f0 != 0) {

@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash and Claude Opus 5.5, finished by
+// deepseek-v4.1-flash. Names are provisional.
 // Partial (98.6%). Only the last block differs: the original's out-of-line
 // allocation-failure `return 0` is the real epilogue, scheduled as
 // `pop edi; pop esi; xor eax, eax; pop ebx`, while this version emits
@@ -12,6 +13,21 @@
 // an outer `if (DAT_00506dbc)`) gives the interleaved epilogue but makes MSVC
 // merge the network check's `return 0` into it (84 to 86%). An N-declarations
 // sweep (0 to 400) leaves both shapes unchanged, so the rest is source shape.
+//
+// Retried with more shapes, all still 98.6% with the same one-hunk diff:
+//   - the same helper but with the outer written `if (Setup(...) == 0) goto
+//     fail; return 1; fail: return 0;` (identical bytes to this version);
+//   - a free `static int Setup(Class*, int, int)` helper.
+// A `goto fail` in the outer with no helper (v1) puts the fail return inline
+// after the branch and makes the success `return 1` the interleaved final
+// epilogue (84.1%). Sending the network check to the same label (v5) merges
+// both exits into one early block (82.7%). So the inlined-helper shape is
+// needed for the control flow, and the interleaved schedule seems to need the
+// fail block to be the function's canonical exit (as in 0x461db0, where a
+// labelled `return 0` is shared by three gotos); with a single jump
+// predecessor MSVC emits an ordinary duplicated return block. The original
+// reaches 0x461818 from exactly one `je` (0x46179d) and still interleaves, so
+// the missing lever is elsewhere.
 #include <windows.h>
 
 void* operator new(unsigned int size);

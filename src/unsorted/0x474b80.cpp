@@ -1,6 +1,42 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free. Names are provisional.
 // GPT-6-Luna rechecked the prior best at 84.6%. Its remaining differences are
 // the spills in the fog and mask arms and merged failure blocks below.
+//
+// LONG-CAT 2.5 PREVIEW FREE, second pass. Still 84.6 percent, 309 of 303 bytes,
+// one real check.py run. The argument list is confirmed correct against the
+// original's pushes and both callees' `ret N` (ret 0xc on the function, so
+// three dword stack args after the four pushes, dest/px/py in that order; the
+// 0x4b7f30 and 0x4b8500 call sequences are already byte-identical), so the
+// remaining gap really is register allocation in the two arms, not a wrong
+// argument or a wrong type. About 30 more scratch variants were screened under
+// build/scratch/0x474b80/, none better than 84.6. Rejected, all of them:
+//   * the whole arm written as one `visible = Contains && seen != 0` (81.6;
+//     it keeps the width in a register for the first compare, so the fog arm
+//     loses the original's second `mov ebx,[edx+0x80]` and grows by 4 bytes);
+//   * `int w` instead of `unsigned int w` (84.6, byte-identical, so the width's
+//     signedness is free here), `const unsigned char* seen` (same collapse as
+//     no seen local), `int row` computed with `>> 5` hoisted into a variable,
+//     and the height inlined as `col < (int)w && row < (int)h` (75.2, and it
+//     changes the compare chain);
+//   * a `bool visible` (81.6) and a `unsigned char playerIndex` local feeding
+//     the map lookup and the mask shift (84.6, byte-identical), and moving the
+//     `int visible` declaration before or after the `map` local (both 84.6,
+//     byte-identical). So the function-top declaration order is not a lever;
+//   * hoisting col/row out of both arms into function scope (24.5), and
+//     compensating pressure: fog arm without the `seen` local plus a
+//     `visibilityMask` local in the mask arm (43.6) or a `playerIndex` local
+//     (36.8). The pressure has to come from the fields themselves or the
+//     pre-branch block rotates, exactly as the note below says;
+//   * the arms as value-returning `static inline` helpers. Taking the record
+//     as a pointer parameter is 28.7 (this clobbers), taking the map and
+//     precomputed col/row as parameters is 84.0, one point down and the wrong
+//     byte count. This is the sibling's shape, and it does not work here: the
+//     map pointer is a pointer parameter, which is the shape that spills.
+//     Confirms the guide's rule on helper shapes from the other direction.
+// So the 84.6 percent basin is a single narrow optimum: the three locals per
+// arm, the declaration order inside each arm, and the function-top order are
+// all either fixed or already free, and every attempt to buy register pressure
+// from a different source rotates the pre-branch block instead.
 //
 // NOT a match: 84.6 percent, 309 of 303 bytes. Three check.py runs in all (one
 // on the 84.0 version this file started from, two to confirm this one), plus

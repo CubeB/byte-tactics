@@ -1,90 +1,112 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// GPT-6-Luna tried inlining the visibility arms here. That scored 16.9%, so
-// this keeps the prior best at 66.3%; the register-allocation notes below
-// remain the useful handoff.
+// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free. Names are provisional.
+// LONG-CAT 2.5 PREVIEW FREE, second pass: 66.3 -> 79.8 percent, 290 of 306
+// bytes. Four check.py runs on the file, about 80 scratch scorings of variants
+// under build/scratch/0x4745e0/. NOT A MATCH, but the whole prologue, the rect,
+// the pre-branch block, the flags test, both arms' compare chains, the mask
+// arm's register choices and the entire call sequence are now byte-identical,
+// and the first divergence left is a jump target.
 //
-// NOT A MATCH: 66.3 percent (35 instruction lines still differ). Up from the
-// 60.3 percent this file held before: the whole gain is one line of source,
-// the `w` local at the top of the fog arm. The notes below say why it is there
-// and what is still missing.
+// THE TWO FACTS THAT UNLOCKED IT, both about register PRESSURE, not spelling
+//   1. Write the two arm bodies straight into `Visible`, and give the MASK arm
+//      the sibling 0x474b80's four locals in its order: seen, col, row, w.
+//      That alone is 68.3 [292] and it is what finally puts `g_game` in edi.
+//      Nothing in three rounds had managed that, and the pre-branch block was
+//      otherwise already byte-identical, so every difference in both arms came
+//      from that one register. The combination is what matters, not either
+//      part: the same four locals in a `static inline` helper score 64.0, and
+//      the inline shape with no locals scores 19.4.
+//   2. Add a fifth local to the FOG arm, `unsigned short* m =
+//      g_game->visibilityMask`. Worth 11.5 more points (68.3 -> 79.8, 292 ->
+//      290) and it is the first thing that has ever moved the fog arm at all
+//      in this file. Its declaration order in the arm is a real lever and only
+//      two orders reach 79.8: col,row,w,m and col,row,m,w. With w before the
+//      mask pointer but col/row/w permuted otherwise it drops to 75.8, and any
+//      order starting with w is 45 or worse.
+//   Together they also make the arms' col and width land in the original's
+//   registers: the fog arm has col in ebx, width in ebp, exactly as the
+//   original, where before this pass they were swapped.
 //
-// WHAT MATCHES NOW
-//   * the whole prologue, the rect, the epilogue and the call sequence;
-//   * the pre-branch block, bar one register: the player index is born in edx
-//     (`mov dl,[g_game+0x2a43]`), copied to esi, the player pointer ends up in
-//     edx and the flags byte test gets cl, all as in the original. Those roles
-//     are what the earlier attempts could not get, and they are also what puts
-//     the `r.x2` store in the original's order, so the r.x2 lead closes here;
-//   * the mask arm's test chain and its two `jae`s to one shared fail block;
-//   * the fog arm's `jae fail; jb body` pair and its separate `xor edx,edx`
-//     fail block (no tail merging, as in the original).
+// WHAT IS LEFT (7 lines, all in the two index computations)
+//   * mask arm: the cost of the four locals. Ours loads `seen` before the
+//     tests (`mov ebx,[edx+0x7c]`) and copies the width for the compare
+//     (`mov ebp,edi`; `cmp esi,ebp`); the original loads the width again after
+//     the tests into the register the width already had (`mov edi,[edx+0x80]`,
+//     so `cmp esi,edi` matches) and dies its ptr register into `seen` (`mov
+//     edx,[edx+0x7c]`, so `cmp byte [edi+edx],0`). The index expression itself
+//     is now right: `imul edi,ecx; add edi,esi` is the original's association.
+//   * fog arm: the same thing one step on. Ours keeps the compare's width
+//     register for the index (`imul ebp,ecx; add ebp,ebx`) and folds the
+//     `m` load early into edi; the original re-reads the width into the dying
+//     ptr register (`mov edx,[edx+0x80]; imul edx,ecx`), loads `m` into ecx
+//     after the multiply, and materialises the 16-bit cell into di (g_game's
+//     dead register) and copies it (`xor edi,edi; mov di,...; mov edx,edi`),
+//     where ours zeroes edx and loads dx directly.
+//   * so one lever is left in both arms: the index temp has to land in the
+//     register the ptr dies in (edx), which is also what forbids MSVC folding
+//     the two memory operands into the imul and the add.
 //
-// THE ONE LEVER: the fog arm's `unsigned int w`
-//   Every spelling of the fog arm that reads the map width inline, inside the
-//   guarded expression, compiles with the player index left in cl and the
-//   player pointer in esi, which costs about six lines in the pre-branch block
-//   and then poisons every `[edx+0x80]`, `[edx+0x7c]` and `[edx+0x84]` in
-//   both arms: 52.5 percent, and that is the spelling the two matched
-//   siblings 0x407e90 and 0x408090 use. Declaring `unsigned int w =
-//   p->size.width;` at the top of the arm, before the bounds test, moves the
-//   index into edx/esi and the pointer into edx, which is worth 14 points. It
-//   also materialises the fog arm's index multiply (`imul ebx,ecx` where the
-//   inline form folds it into `imul ebx,[edx+0x80]`), which is what the
-//   original does. g_game in edi and the index in edx look exclusive: every
-//   shape that gets one loses the other, and no spelling moved g_game off ebp
-//   while keeping the index in edx.
+// MEASURED AND REJECTED THIS ROUND (byte counts in brackets; all of these were
+// screened with `check.py --sym` on a scratch file, they are not real runs)
+//   * the sibling 0x474b80's own file shape: one function, `map` and
+//     `int visible` locals at the top, both arms inline, seen/col/row/w in the
+//     mask arm. 20.9 to 24.5 [271-292]. The top-level `visible` local is what
+//     rotates the pre-branch block. Do not retry it here.
+//   * the inline shape with no mask-arm locals: 19.4 [288]; the same shape with
+//     a reference or a pointer to the size sub-struct: 72.1 and 64.6 [288/292];
+//     a `const` map pointer does not compile in VC5 source mode.
+//   * mask arm local sets and orders, all 24 orders of seen/col/row/w: seen,
+//     col, row, w is the only one that reaches 68.3, the rest 62.3 to 67.3
+//     [292]. With col,row only: 79.6 [290], two tenths under the best and with
+//     a folded index. col,row,w: 70.1 [288]. seen,col,row: 76.1 [292].
+//   * mask arm shapes: nested `if (Contains) return ...` (which is what the
+//     original's single shared fail block looks like) 69.7 to 78.4 [294] and
+//     it emits `jb`+`setne`, not the original's `je`; the same with a body
+//     local for `seen` 69.7; `seen` assigned inside the condition 70.1 [288];
+//     a `MapSize&` local 72.1 [288]; `Contains` spelled out by hand so the
+//     `w` local is shared with the compare 72.1, with no `seen` local 42.1, and
+//     with the height also named 70.7; a nested `if` with no locals at all 24.0
+//     [298]; the index as a local before the test 60.3, after it 66.3.
+//   * fog arm local sets: col,row 52.5, col,row,w 68.3, col,row,m 45.5,
+//     col,row,w,m and col,row,m,w 79.8, col,row,hh,m 45.5, and a fifth local
+//     (player index 60.3, height, index, cell value or cell address) either
+//     byte-identical or worse. All 24 orders of col,row,w,m were measured: 79.8
+//     for the two above, 75.8 for every order that starts col,row, 45 for the
+//     rest.
+//   * types and spellings that are byte-identical here and can be ignored:
+//     `int w` in either arm, `const unsigned char* seen`,
+//     `const unsigned short* m`, `col + w*row` and `row * w + col` instead of
+//     `w*row + col`, an index local in the fog arm, a 16-bit `cell` local in
+//     the fog arm, a cell-address local in the mask arm, `&0xff` on the seen
+//     test, `unsigned int Contains`, `int Contains` with the casts inside, and
+//     `int i = w*row+col` in both arms.
+//   * the OLD helper shape, all still 66.3 or less: unsigned col/row 60.0
+//     [301], a local `int hy` for height>>1 56.9 [291], a `unsigned short* m`
+//     local for the mask 49.5 [294], a `seen` local 64.0 [299], `w`+`seen`
+//     65.7 [297], a `Game*` parameter for the fog arm, an index local, a
+//     nested `if`, col/row computed before the map pointer 17.9 [271], the
+//     arms as methods of the map struct, arms taking the map by reference
+//     (does not compile), `wcr` and `cwr` orders in the fog arm 47.0 [302].
 //
-// WHAT IS LEFT, and it is all register allocation in the arms
-//   * `g_game` sits in ebp where the original has it in edi. That single
-//     register is worth about 14 lines, because in the fog arm it cascades:
-//     with g_game in edi the original can put height>>1 and the width in ebp,
-//     col in ebx, the mask pointer in ecx (row's dead register) and the cell
-//     in edi (g_game's dead register), and every one of those then matches.
-//     Nothing tried moved it: index hoisted before the test (60.3), width and
-//     mask locals in the body (52.5), both at the top (49.5, g_game in ecx),
-//     the mask pointer local after the test (52.5, g_game in edi but the index
-//     back in cl), the arms as methods of the map struct (66.3, same as here),
-//     the index passed as a parameter of either arm, a named game pointer
-//     (61.7, g_game in esi), the width hoisted to Visible's scope and passed
-//     in (36.2), col/row hoisted out of the arms (20.8), and the two arms
-//     swapped in the source (56.9).
-//   * the mask arm's body folds its two loads (`imul ecx,[edx+0x80]; add
-//     ecx,[edx+0x7c]`) where the original materialises them (`mov edi,[edx
-//     +0x80]; mov edx,[edx+0x7c]; imul edi,ecx`). The matched 0x407e90 has
-//     the same expression materialised, so something in the original's source
-//     stops the fold, and no local spelling does: `w` or `s` in the body, both
-//     in the body, both before the test, the index into a local, a MapSize*
-//     CSE breaker, `0 != ...`, unsigned col/row, both multiply orders and
-//     `(p->seen + w*row)[col]` all still fold. Only an entry-block local
-//     materialises, and that merges the two width loads into one and adds a
-//     register copy, which costs more than the fold (65.7, 64.0, 59.3, 56.2).
-//     Note the mask arm's local choice is otherwise score-neutral here: the
-//     plain form and every body-local form all score 66.3, so unlike on
-//     0x474b80 the mask arm does not need an extra local of its own.
-//   * the fog arm's height>>1 and col are in ebx and edi where the original
-//     has ebp and ebx, and the cell goes to cx with the `1` in edi where the
-//     original has di and edi. All of it follows from g_game being in ebp.
-//
-// THE INLINED-CALLEE IDEA (tested here, does not work on this function)
-//   Splitting the test's width read into a separate inlined helper, so that it
-//   is not part of the enclosing body's CSE and the body's own read can
-//   survive beside it, changes nothing: the local and the test's read still
-//   merge into one load (checked with a second `InBounds` member beside
-//   `Contains`, with the helper and with the width local in either order).
-//   The two width loads already survive in the plain spelling, so the CSE is
-//   not what keeps them apart here, and the fold is not a local effect: a
-//   body-block local still folds. Consistent with the sibling's result that
-//   MSVC 5 can only spill a named local, never rematerialise it.
-//
-// Ruled out with numbers, all in this round: the `Contains` spelling (every
-// form is byte-identical), the load-CSE breaker for the position (a Pos* q
-// local read in one place and the member in the other, which is what the
-// three fresh movsx per arm need, already in place here), unsigned col/row,
-// the two multiply orders, the index formed before the mask arm's test, the
-// cell pointer formed before the fog arm's test, the index as a parameter, a
-// Pos-level or class-level Visible with the arms as methods (17 to 22 percent,
-// `this` gets clobbered into ebp), a VisExplored taking the map pointer, and
-// hoisting col/row out of the arms.
+// DEAD ENDS, do not repeat
+//   * An inlined function boundary is not a CSE boundary in MSVC 5: splitting
+//     the width read into a helper, or putting each arm in its own
+//     `static inline`, changes nothing about which loads survive. Two
+//     independent rounds and the sibling agree.
+//   * MSVC 5 can only spill a named local, never rematerialise it. So a local
+//     always costs a `mov` (or a fold) and never buys the second read the
+//     original has; and no spelling of a local-free index avoids the fold,
+//     because the fold is decided by the register the index temp gets, not by
+//     the source.
+//   * The arguments are settled, do not re-check them: the decorated name is
+//     `?FUN_004745e0@Class_004745e0@@QAEXPAXFF@Z` and in MSVC's mangling F is
+//     `short`, not float, so (void*, short, short) is right; `ret 0xc` and the
+//     three dword slots at [esp+0x24], [esp+0x28], [esp+0x2c] confirm the
+//     order surface, px, py, and the px/py reads really are 16-bit.
+//   * From the previous rounds, all still valid: the position must be reached
+//     through its own sub-struct in the arms while the header reads the
+//     members (or the other way round), the stride is 0x14b, the fog-flags
+//     test is `(flags & 2) == 2`, and col/row must be `int` computed with
+//     `>> 5`.
 #include <stddef.h>
 
 struct Rect_004b0510 {
@@ -128,33 +150,15 @@ extern Game_004745e0* g_game;
 
 void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
 
-// The two arms of the visibility test. The mask arm is the spelling the
-// matched 0x407e90 uses for the same test; the fog arm is the spelling the
-// matched 0x408090 uses, plus the `w` local described at the top of the file,
-// which is what puts the player index in edx and the player pointer in edx
-// rather than in cl and esi.
-#pragma pack(push, 1)
-static inline int ArmA(Map_004745e0* p, int col, int row)
-{
-    if (p->size.Contains((unsigned int)col, (unsigned int)row) &&
-        p->seen[p->size.width * row + col] != 0)
-        return 1;
-    return 0;
-}
-
-static inline int ArmB(Map_004745e0* p, int col, int row)
-{
-    unsigned int w = p->size.width;
-    if (!p->size.Contains((unsigned int)col, (unsigned int)row))
-        return 0;
-    return (g_game->visibilityMask[w * row + col] &
-            (1 << g_game->playerIndex)) != 0;
-}
-
 // The record's position, with the inlined visibility test that reads it. The
 // two arms re-read x, height and y from the record instead of reusing the
 // values the caller just computed, so the position has to be reached through
-// its own sub-struct here, not through the record's fields.
+// its own sub-struct here, not through the record's fields. The four locals in
+// the mask arm (seen, col, row, w, in that order) and the mask pointer local
+// in the fog arm are what buy edi for g_game, and they are worth 13.5 points
+// between them; see the top of the file. They must be spelled here, not in an
+// inlined helper, and the two arms' local orders are not free.
+#pragma pack(push, 1)
 struct Pos_004745e0 {
     short x;                        // +0
     char unknown_2[2];
@@ -166,13 +170,23 @@ struct Pos_004745e0 {
     {
         Map_004745e0* p = &g_game->players[g_game->playerIndex];
         if ((g_game->flags & 2) == 2) {
+            unsigned char* seen = p->seen;
             int col = x >> 5;
             int row = (y - (height >> 1)) >> 5;
-            return ArmA(p, col, row);
+            unsigned int w = p->size.width;
+            if (p->size.Contains((unsigned int)col, (unsigned int)row) &&
+                seen[w * row + col] != 0)
+                return 1;
+            return 0;
         }
         int col = x >> 5;
         int row = (y - (height >> 1)) >> 5;
-        return ArmB(p, col, row);
+        unsigned int w = p->size.width;
+        unsigned short* m = g_game->visibilityMask;
+        if (!p->size.Contains((unsigned int)col, (unsigned int)row))
+            return 0;
+        return (m[w * row + col] &
+                (1 << g_game->playerIndex)) != 0;
     }
 };
 #pragma pack(pop)

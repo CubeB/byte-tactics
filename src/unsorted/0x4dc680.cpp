@@ -1,6 +1,23 @@
 // Decompiled by space-bunny-free. Names are provisional.
 // check.py: MATCH, 643 of 643 bytes, every reference the linker fills in ok.
 //
+// The call to the out-of-line _Insert (0x4dd430) is declared on Class_004dd430
+// rather than on Class_004dc680, and that is not cosmetic. When 0x4dd430 was
+// matched, data/symbols.csv gave it the canonical name
+// Class_004dd430::FUN_004dd430, and a caller that still spells the reference as
+// a member of Class_004dc680 is then rejected: the bytes are identical but the
+// checker reports "bytes match, but a reference is wrong" and does NOT print
+// MATCH. So a MATCH here can be invalidated by matching one of its callees.
+//
+// The declaration keeps the result slot as an explicit first argument rather
+// than using the class-return-by-hidden-pointer form that 0x4dd430's own file
+// uses for the same four dwords. Switching to the class-return form fixes the
+// name but drops the function to 99.6%, because the caller then needs a
+// temporary and MSVC puts it in the wrong stack slot. So the class qualifier
+// has to be right for the reference and the argument shape has to stay
+// explicit for the codegen; the two are independent, and getting one without
+// the other is easy.
+//
 // The tree's insert for the game's file-record map: the value_type is a 0x30
 // byte record whose first dword is the key, the node is {left, parent, right,
 // value, color} with the color at +0x3c, and DAT_00528a50 is the tree's _Nil
@@ -108,16 +125,22 @@ public:
 
     Class_004dd820 Begin() { return Class_004dd820(head->left); }
 
-    // The tree's out-of-line _Insert (0x4dd430), declared here with the result
-    // slot as an explicit argument: the callee stores the new node's iterator
-    // through it and returns it. (Its own file spells the same four dwords of
-    // arguments as a class return through a hidden pointer, which is the same
-    // call, but then the caller needs a temporary and MSVC puts that in the
-    // wrong stack slot.)
+    Class_004ddbe0 FUN_004dc680(Pair_004dc680* p);
+};
+
+// The tree's out-of-line _Insert (0x4dd430), now that its own file is matched
+// and data/symbols.csv gives it the canonical name Class_004dd430::FUN_004dd430.
+// It is a member of Class_004dd430 returning its iterator by value, so the call
+// passes the tree as `this` and the result comes back in a hidden pointer.
+// Declared on Class_004dd430 (so the reference mangles as the canonical
+// Class_004dd430::FUN_004dd430) but with the result slot spelled as an
+// explicit first argument rather than as a class return. 0x4dd430's own file
+// uses the class-return form for the same four dwords; here the explicit slot
+// is what keeps the caller free of a temporary in the wrong stack slot.
+class Class_004dd430 {
+public:
     Class_004dd820* FUN_004dd430(Class_004dd820* out, Node_004dc680* x,
                                  Node_004dc680* y, const Pair_004dc680* v);
-
-    Class_004ddbe0 FUN_004dc680(Pair_004dc680* p);
 };
 
 // FUNCTION: 0x4dc680
@@ -201,10 +224,10 @@ Class_004ddbe0 Class_004dc680::FUN_004dc680(Pair_004dc680* p)
     it2 = Class_004dd820(y);
     if (less) {
         if (Class_004dd820(y) == Begin())
-            return Class_004ddbe0(*FUN_004dd430((Class_004dd820*)&p, x, y, p), 1);
+            return Class_004ddbe0(*((Class_004dd430*)this)->FUN_004dd430((Class_004dd820*)&p, x, y, p), 1);
         it2.FUN_004dd820();
     }
     if (key_compare(it2.ptr->value.key, p->key))
-        return Class_004ddbe0(*FUN_004dd430((Class_004dd820*)&p, x, y, p), 1);
+        return Class_004ddbe0(*((Class_004dd430*)this)->FUN_004dd430((Class_004dd820*)&p, x, y, p), 1);
     return Class_004ddbe0(it2, 0);
 }

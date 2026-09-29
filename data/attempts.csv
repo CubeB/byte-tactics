@@ -3553,9 +3553,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x45ac20,608,,#722,assigned,,,issue #722
 0x45da90,923,,#722,assigned,,,issue #722
 0x45de30,710,,#722,assigned,,,issue #722
-0x45e100,946,,#723,assigned,,,issue #723
-0x45ead0,632,,#723,assigned,,,issue #723
-0x45fc60,836,,#723,assigned,,,issue #723
+0x45e100,946,deepseek-v4.1-flash,#723,matched,100.0,,issue #723
+0x45ead0,632,deepseek-v4.1-flash,#723,matched,100.0,,issue #723
+0x45fc60,836,deepseek-v4.1-flash,#723,matched,100.0,,issue #723
 0x4609b0,777,space-bunny-free,#724,matched,100.0,,issue #724
 0x461fd0,919,space-bunny-free,#724,partial,38.0,,issue #724
 0x465ac0,865,space-bunny-free,#724,partial,95.8,,issue #724

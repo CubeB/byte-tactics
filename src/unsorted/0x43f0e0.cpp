@@ -1,12 +1,20 @@
-// Decompiled by Claude Sonnet 5.5 with region work by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Picks the order name shown for the cursor over a target: `mode` is the
 // cursor class and the result is the order type, or index 0 when none applies.
-// Not a match yet (39.6% by check.py, 4,340 bytes against 4,420). The prologue
-// up to the switch dispatch is identical; the difference is that the original
-// keeps the unit in ebp and the definition in esi (spilled to the target's
-// argument slot), and ours swaps them, so every case block differs in
-// registers. The bit-test idiom (shr; test cl, 1 against a mask test) is also
-// still mixed in places.
+// Not a match (40.3% by check.py, 4,332 bytes against 4,420; with <windows.h>
+// this was 39.6% -> 40.3%, but the size did not change).
+// The prologue up to the switch dispatch matches except for one register pair:
+// the original loads the unit into ebp and the definition (unit->def) into esi
+// and spills it to [esp+0x20] (arg4's slot); ours is exactly swapped, unit in
+// esi and def in ebp, which is why every case block then differs in registers.
+// The original's friendly/enemy flags live in ebx and eax (zeroed as a pair at
+// entry), and its `target->f110 & 3` test compares directly against 2 (`cmp
+// al, 2`) while ours materialises 2 in dl and re-zeroes ebx inside the case.
+// Declaration order of the locals, and an extra <windows.h>, do not flip the
+// ebp/esi swap. Everything past the prologue is structurally close but register
+// mismatched, so byte similarity stays just above 40%.
+#include <windows.h>
+
 #pragma pack(push, 1)
 class Class_00438760 {
 public:

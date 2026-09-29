@@ -1,6 +1,6 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free. Names are provisional.
 //
-// NOT a match: 56.0% (904 bytes against 909). What still differs, and what was
+// NOT a match: 56.9% (901 bytes against 909). What still differs, and what was
 // tried, is at the bottom of this file. In short: the structure and the callee
 // sequence are right, but the compiler gives us a 0x3c-byte frame where the
 // original has 0x20, and that one allocation difference shifts every [esp+X]
@@ -74,35 +74,36 @@ void __stdcall FUN_0043bc90(Elem_0043c390* from, int count)
 
     Elem_0043c390* _F = v.begin();
     Elem_0043c390* _L = v.end();
+    Elem_0043c390** _Fp = &_F;
     if (_L - _F <= 16) {
         FUN_0043c990(_F, _L, FUN_0043c020, (Elem_0043c390*)0);
         return;
     }
-    for (; 16 < _L - _F; ) {
+    for (; 16 < _L - *_Fp; ) {
         Elem_0043c390* _M = FUN_0043cb20(_F, _L,
-            FUN_0043ca70(*_F, *(_F + (_L - _F) / 2), *(_L - 1),
+            FUN_0043ca70(**(_Fp), *(*_Fp + (_L - *_Fp) / 2), *(_L - 1),
                          FUN_0043c020, FUN_0043c020), FUN_0043c020);
-        if (_L - _M <= _M - _F)
+        if (_L - _M <= _M - *_Fp)
             FUN_0043c720(_M, _L, FUN_0043c020, (Elem_0043c390*)0), _L = _M;
         else
             FUN_0043c720(_F, _M, FUN_0043c020, (Elem_0043c390*)0), _F = _M;
     }
 
     // _Insertion_sort(_F, _F + 16, pred), inlined.
-    if (_F != _F + 16) {
-        for (Elem_0043c390* _M = _F; ++_M != _F + 16; ) {
+    if (*_Fp != *_Fp + 16) {
+        for (Elem_0043c390* _M = *_Fp + 1; _M != *_Fp + 16; ++_M) {
             Elem_0043c390 _V = *_M;
-            if (!FUN_0043c020(_V, *_F))
+            if (!FUN_0043c020(_V, **(_Fp)))
                 FUN_0043c940(_M, _V, FUN_0043c020);
             else {
                 Elem_0043c390* _I = _M;
-                if (_F != _I) {
+                if (*_Fp != _I) {
                     do {
                         --_I;
                         _I[1] = *_I;
-                    } while (_I != _F);
+                    } while (_I != *_Fp);
                 }
-                *_F = _V;
+                **(_Fp) = _V;
             }
         }
     }
@@ -119,45 +120,52 @@ void __stdcall FUN_0043bc90(Elem_0043c390* from, int count)
 }
 
 // ---------------------------------------------------------------------------
-// Still to fix (56.0% baseline, from check.py):
+// Still to fix (56.9% baseline, from check.py):
 //
-// 1. FRAME SIZE. Ours is `sub esp, 0x3c`, the original is `sub esp, 0x20`. Our
-//    locals are the finish pointer at +0x10 and the 25-byte temp at +0x14, so
-//    0x10..0x2c is all we use, yet the frame is 0x3c: MSVC is reserving ~0xf
-//    bytes for a temporary the listing does not name (the by-value struct slots
-//    for the FUN_0043ca70 / FUN_0043c940 calls).  The original reuses two DEAD
-//    INCOMING ARGUMENT SLOTS as locals (+0x34 holds the `first + 16` bound and
-//    +0x38 holds a copy of `first`, both written after `from`/`count` are dead),
-//    which it can only do because the frame has no slack.  Getting the frame to
-//    0x20 is the single upstream cause of most of the remaining diffs, since
-//    every [esp+X] in the sort tail is wrong because of it.
+// 1. FRAME SIZE. Ours is `sub esp, 0x3c`, the original is `sub esp, 0x20`. Every
+//    slot the original puts in a dead INCOMING ARGUMENT slot (+0x34, +0x38) lands
+//    in ours at +0x50, +0x54 instead, and the address computed for the _Median
+//    return slot is `lea eax, [esp + 0x90]` against the original's `[esp + 0x70]`,
+//    a difference of exactly the 0x20 of extra frame. Locals are the finish
+//    pointer at +0x10, the 25-byte temp at +0x14 and the _Median return slot, so
+//    the extra slack is for something the listing never names. Getting the frame
+//    to 0x20 is the single upstream cause of most of the remaining diffs.
 //
-// 2. THE ORIGINAL SPILLS `first` AND KEEPS THE LOOP IV IN A REGISTER.  It does
-//    `mov [esp+0x38], ecx` (a copy of first) after the insert loop and reloads
-//    it at the top of both tail loops; the `first + 16` bound lives in another
-//    stack slot, while the unguarded-insert induction variable lives in ebp.  We
-//    keep `first` in ebx and put the induction variable in memory, so the tail
-//    loops are a register swap away from the original but not there.  Per the
-//    guide, that is a single shared cause: something upstream is demoting first
-//    one step in the callee-saved order.
+// 2. THE ORIGINAL SPILLS `first` AND KEEPS THE LOOP IV IN A REGISTER. It does
+//    `mov [esp+0x38], ecx` (a copy of begin()) right after the size division,
+//    and reloads it at the top of both tail loops; the `first + 16` bound lives
+//    in another dead argument slot, while the insertion-sort induction variable
+//    lives in ebx and the unguarded-insert one in ebp. Taking `&_F` into a
+//    local pointer variable (`_Fp`) does move `first` out of ebx and was worth
+//    0.9 points, but the reloads it produces are of the wrong value: the
+//    original reloads the SAME slot the quicksort loop advanced, while ours
+//    reloads the slot the insert loop never touched.
 //
-// 3. THE INSERT LOOP'S RELOAD ORDER.  The original reloads `end` immediately
+// 3. THE INSERT LOOP'S RELOAD ORDER. The original reloads `end` immediately
 //    after the insert call (before `add esi, 0x19`); we reload both `begin` and
 //    `end` at the latch instead.
 //
-// 4. THE SORT TAIL'S BRANCH POLARITY.  The original's first guarded comparison
-//    ends in `jne` to the shift block with `xor ecx,ecx / test / setl cl / mov
-//    eax,ecx / test / jne`, and uses ecx where we use edx.  Spelled `if (!pred)`
-//    it selects edx; spelled `if (pred)` it selects ecx, which is what the
-//    original wants, so this block is one rewrite away.
+// 4. THE SORT TAIL'S FLAG REGISTER. The original's guarded comparison ends in
+//    `jne` to the shift block with `xor ecx,ecx / test / setl cl / mov eax,ecx
+//    / test / jne`, and uses ecx where we use edx. Spelling `if (pred(...))
+//    { shift }` does move the flag temp to ecx as predicted, but the score
+//    drops from 56.0% to 52.6%, so the original really is spelled with the
+//    `!pred` form and the ecx/edx difference has another cause.
 //
-// Tried and did NOT help / not yet tried: rewriting the unguarded-insert loop
-// with separate `_Next`/`_Last` pointers, and making `first`/`last` named
-// locals assigned after the insert loop (as above, item 2).
+// 5. THE `else` ARM OF THE QUICKSORT. The original picks the shorter side with
+//    `cmp edx, ecx / jg` on the two element counts, and on the `jg` target it
+//    pushes `last` then `esi` (the right half); ours matches the instruction
+//    order but the branch bodies come out in the other order.
 //
-// Tried and made it WORSE: inverting the guarded comparison in the inlined
-// _Insertion_sort to `if (pred(...)) { shift } else FUN_0043c940(...)`. It does
-// move the flag temp from edx to ecx as item 4 predicts, but the score drops
-// from 56.0% to 52.6%, so the original really is spelled with the `!pred`
-// form and the ecx/edx difference is a consequence of something else.
-
+// Tried and did NOT help:
+//   * Declaring FUN_0043ca70 as returning `Elem*` through a hidden first
+//     pointer argument (vA). 53.8%, and the frame stays 0x3c, so the extra
+//     frame is NOT the hidden struct-return slot.
+//   * Inverting the guarded comparison to `if (pred(...)) { shift } else
+//     FUN_0043c940(...)`: moves the flag temp to ecx but drops to 52.6%.
+//   * Initialising the insertion-sort induction variable as `_F + 1` instead of
+//     pre-incrementing in the test: byte-identical output, 56.0% either way.
+//   * Declaring `_L` before `_F`: 53.8%.
+//   * A self-referential `Elem** _Fp = &(*_Fp);` scores 61.7% but is undefined
+//     behaviour (reading an uninitialised pointer); do not use it, the extra
+//     points are an artifact of the UB and not reproducible.

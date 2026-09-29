@@ -25,6 +25,12 @@
 // helpers, `if (text) {}` or `strlen(text);` inside and before the loops, a
 // `char* t = text` walked with the loop, `text` reused to hold the buffer
 // pointer before each send, and an unused `ok` result local.
+//
+// Retry pass (same model): an inline helper for the `text[0] == '+'` test is
+// byte-identical to this file; an inline `while(1)` target search (the shape
+// required in the sibling 0x453010) scores 46.7, a hoisted `int mode` local
+// 46.1, and a live `text` local 46.9, all in the same swapped-register basin.
+// So the diff is not the search shape or the '+' test wording.
 #include <string.h>
 
 #pragma pack(push, 1)

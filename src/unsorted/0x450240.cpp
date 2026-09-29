@@ -33,6 +33,20 @@
 //   all leave 10 as an immediate. Even extra uses of 10 inside the max loop
 //   do not enregister it, so the missing piece is probably something else
 //   in the original source that ties up the scratch registers differently.
+//
+// Notes from a third attempt (deepseek-v4.1-flash, #1332):
+// - Rebuilt the inlined lookup exactly like the matched 0x44fed0 helper
+//   (GetPlayerField_00450240 with the explicit "i != 10" guard, then
+//   FindPlayerIndex, then an inlined GetPlayer). That version is 302 bytes
+//   (original is 305) and the whole instruction stream, guards and all,
+//   lines up; only the registers differ, and it scores 10.1% because every
+//   register operand then mismatches. tools/headers.py tried all 128 sets,
+//   all stay at 10.1%.
+// - The linchpin is the constant 10: the original occupies eax with it for
+//   the whole function, which forces the max-loop countdown into a
+//   callee-saved register (esi), which in turn forces max into ebp (edi holds
+//   g_game). When 10 stays an immediate, edx is free for the countdown and
+//   eax for the loop base, which is exactly our wrong allocation.
 
 #pragma pack(push, 1)
 struct Info_00450240 {

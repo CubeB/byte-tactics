@@ -1,33 +1,92 @@
 // Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
-// Class_0046eba0 is a std::vector<Packet_0046cef0> whose three iterators are
-// byte pointers over 0xe-byte elements (allocator byte, _First +0x4, _Last +0x8,
-// _End +0xc). This is its insert(iterator, size_type, const T&), out of line,
-// and it is the same code as 0x46e640, which is the vector<int> instantiation of
-// the same member. The template's shape is taken from 0x46e640: size() is the
-// null-guarded element count, the copy/fill helpers go through
-// allocator.construct (whose null check is the `test dest,dest` guard inside
-// each of those loops), and fill and copy_backward assign directly, which is
-// why only the _Ucopy and _Ufill loops carry the guard.
+// Class_0046eba0 is a std::vector<Packet_0046cef0>. The toolchain's own
+// VECTOR lays vector<_Ty,_A> out as `_A allocator; iterator _First, _Last,
+// _End;`, which is exactly the 4-byte allocator at +0 and the three iterators
+// at +0x4, +0x8, +0xc seen here. This is its out-of-line
+// insert(iterator, size_type, const _Ty&); 0x46e640 is the vector<int>
+// instantiation of the same member. The only caller is at 0x46cfd3 and pushes
+// (in reverse) `edx`, `1`, `[esi+0x24]`, with ecx = esi+0x1c, i.e.
+// insert(end(), 1, x), which fixes the argument order: arg1 = the iterator,
+// arg2 = the count, arg3 = the value.
 //
-// NOT MATCHING yet (check.py: 925 of 936 bytes, 67.6%). What still differs:
-//   * In every _Ucopy loop this file's source induction variable advances by
-//     ONE byte (`inc eax`) where the original advances by 0xe (`add eax,0xe`),
-//     while the destination advances by 0xe in both. copy_backward had the
-//     same one-byte source step and now uses `_L -= 14` (0x46eee1).
-//   * Consequently the whole realloc path is one live-range step off: the
-//     original keeps _N in the (dead) _M argument home slot [esp+0x20] across
-//     the operator new call, holds _First in edi and uses edx for the _N*14
-//     scaling; this file keeps _N*14 in edi.
-// deepseek-v4.1-flash: the prologue and the first 64 instructions match the
-// original instruction for instruction (this in ebp, _M in ebx); the divergence
-// is the grow path above. The one-byte step is the whole problem: every spelling
-// that makes the source advance by 0xe (>= 14 in the for-header: 53.2%; the same
-// increments as body statements: 59.4%; Packet* locals in _Ucopy: 53.7%; the
-// real <vector> header or the hand-rolled template on Packet* iterators:
-// 62.7%/63.3%) FLIPS the allocator and puts `this` in ebx, moving the whole
-// function. Only the char* byte-pointer model keeps `this` in ebp. A flat
-// N-declarations sweep (0 to 400 unused externs, step 8) on the real-vector
-// model scores 62.7% at every N, so this is not compiler state.
+// The element type is 0xe bytes. That size is why every pointer difference is
+// a REAL signed division (imul 0x92492493; add; sar edx,3; shr eax,0x1f; add)
+// and why the byte-scaled multiplies come out as shl 3; sub; shl 1 (a *7 with
+// the 2 folded into an addressing-mode scale, e.g. `lea edx,[esi+ecx*2]` at
+// 0x46ed45 for _End = _S + _N). A char* model with hand written *14 gets the
+// divides right but cannot make an induction variable step by 0xe.
+//
+// The template's shape is taken from VECTOR and XUTILITY verbatim:
+//   * size() is null guarded, and the three size() uses inside
+//     `size() + (_M < size() ? size() : _M)` are three separate inlined copies,
+//     each with its own `test _First,_First` guard (0x46ebd7, 0x46ebfc,
+//     0x46ec21), plus a fourth after the deallocate (0x46ed43).
+//   * _Ucopy and _Ufill go through allocator.construct, whose null check is the
+//     `test dest,dest` guard at the top of each of those loops. fill and
+//     copy_backward are the free templates, which assign directly, so only the
+//     _Ucopy/_Ufill loops carry the guard.
+//   * copy_backward is XUTILITY's `while (_F != _L) *--_X = *--_L;`, so BOTH
+//     decrements are at the TOP of the loop and the rotated test sits between
+//     them and the copy: 0x46eee1 sub eax,0xe; 0x46eee4 sub ecx,0xe;
+//     0x46eee7 mov edx,eax; 0x46eee9 mov ebx,ecx; 0x46eeeb cmp eax,edi;
+//     copy; 0x46ef05 jne. A for(;;_L -= 14) with the decrement in the third
+//     clause does NOT produce this and costs about half a point.
+//   * `*14` is never written by hand here; the byte step is expressed as
+//     _F += 14, and the source pointer of _Ucopy consequently steps by one
+//     byte (inc eax) where the original steps by 0xe. See "still differs" 1.
+//
+// NOT MATCHING yet (check.py: 68.2%, 924 of 936 bytes, started at 67.6%/925).
+// What still differs, in the order I would attack it next:
+//   1. The _Ucopy source induction variable. Every _Ucopy loop here advances
+//      the SOURCE by one byte (`inc eax`) where the original advances it by
+//      0xe (`add eax,0xe`), while the destination advances by 0xe in both.
+//      Five sites: 0x46ec8c, 0x46ed13, 0x46eea4(+0xec), 0x46eee1(loop head of
+//      the third _Ucopy in branch 2) and branch 3's first _Ucopy. Simply
+//      writing _F += 14 fixes the instruction but FLIPS the whole register
+//      allocation: this goes to 53.2% at 939 bytes with `this` in ebx, the
+//      same collapse as before. A 14-byte Packet* field model gives the step
+//      for free (sizeof is 14, so ++ is add reg,0xe and the difference
+//      divides) but costs a THIRD local dword, sub esp,0xc against the
+//      original's sub esp,8: _Q, the new_finish, gets its own stack slot
+//      because Packet* costs a register the char* model did not. Forcing _Q
+//      away by calling _Ucopy twice duplicates the loop and gives 1002 bytes.
+//      So the 14-byte model is right in principle and one local too fat.
+//   2. The new length is spilled as the ELEMENT COUNT, before the clamp. The
+//      original does `lea eax,[edx+esi]; test eax,eax; mov [esp+0x20],eax;
+//      jge; xor eax,eax; mov edx,eax; shl edx,3; sub edx,eax; shl edx,1;
+//      push edx; call new`, so _N lands in the now-dead _M argument home at
+//      its DEFINITION, before `if (_N < 0) _N = 0`, and is reloaded after the
+//      deallocate for _End = _S + _N*14 (0x46ed2e), re-multiplying as
+//      shl ecx,3; sub ecx,eax with the 2 in the lea scale. This file instead
+//      keeps the value in a register and spills the PRODUCT _N*14 after the
+//      push, so _End reuses it in a plain lea. The multiply is not CSE'd in
+//      the original, so the two are not the same expression to MSVC; a
+//      by-const-reference helper that takes the length's address (which
+//      forces a stack home) changes nothing measurable, 68.2%/924.
+//      This single difference is the keystone: it moves operator new's result
+//      from edx to ecx, which swaps the _Ucopy source and destination
+//      registers through the whole realloc path, makes the original reload
+//      _M_last + _M*14 with a read-modify-write (0x46ee6f) where this file
+//      gets `add dword ptr [esi+8], ebp`, and adds three redundant
+//      `mov edi,[esp+0x20]` reloads.
+//   3. Register selection in the else-if (realloc-in-place) path. The original
+//      holds _M*14 in esi and spills it to [esp+0x1c] at once
+//      (0x46eda9-0x46edb4), leaving ebp free as the copy scratch and the
+//      _Ufill counter in ecx; this file puts _M*14 in ebp, reloads it inside
+//      the copy loop (0x46ede1 region) and has to spill the _Ufill counter to
+//      [esp+0x24] and write it back every iteration.
+//   4. The original stores _M_first to the dead third argument home right
+//      before the deallocate (0x46ed25 `mov [esp+0x28],eax`, a store this
+//      file does not emit at all). MSVC keeps it, so it is not a bug fix to
+//      make; it is another symptom of 2.
+//   5. One extra /14 hoist order: at 0x46edf3 the original emits
+//      sar edx,3; mov ecx,edx; shr ecx,0x1f; add edx,ecx AFTER `mov eax,esi`
+//      while this file emits it before. Pure scheduling.
+//
+// A scratch variant (build/scratch/0x46eba0/v10.cpp) declares _Ucopy
+// result-first, _Ucopy(result, first, last), which lands on EXACTLY 936 bytes
+// (67.1%, 239 diff lines against this file's 230), so the declaration order of
+// _Ucopy is a live axis, but it is not by itself the answer.
 #include <memory>
 #include <xutility>
 
@@ -46,7 +105,7 @@ public:
     typedef std::allocator<Packet_0046cef0> allocator_type;
     typedef unsigned int size_type;
 
-    char unknown_0[4];
+    char unknown_0[4];           // the allocator, +0x0
     char* first;                 // +0x4
     char* last;                  // +0x8
     char* end;                   // +0xc
@@ -73,9 +132,11 @@ public:
     }
     static void copy_backward(char* _F, char* _L, char* _P)
     {
-        // The original decrements the SOURCE by 0xe too (0x46eee1 sub eax,0xe,
-        // 0x46eee4 sub ecx,0xe), not by one byte.
-        for (--_L; _F != _L; _L -= 14) {
+        // XUTILITY's copy_backward is `while (_F != _L) *--_X = *--_L;`: both
+        // decrements at the top of the loop, the rotated test between them
+        // and the copy.
+        while (_F != _L) {
+            _L -= 14;
             _P -= 14;
             *(Packet_0046cef0*)_P = *(Packet_0046cef0*)_L;
         }

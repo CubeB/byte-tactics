@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 #include <windows.h>
 // Plays the sound at soundIds[index] when the position is visible to the local
 // player: explored (fog) map when g_game->flags_14281 has bit 1 set, the shared
@@ -95,6 +95,109 @@ int __stdcall FUN_0047f0c0(int index, int param_2);
 struct Cell_0047f300;
 Cell_0047f300* __stdcall FUN_00481550(int x, int y);
 
+// 86.5% (775 bytes, same size as the original). Everything outside the
+// visibility block is byte exact, and the whole diff is ONE cause: the player
+// pointer.
+//
+// THE CAUSE. The original computes the player pointer in the pre-branch block
+// and keeps it in EAX across the branch:
+//     mov eax,ecx / shl eax,5 / add eax,ecx / lea edx,[eax+eax*4]
+//     lea eax,[ebp+ecx] / lea eax,[eax+edx*2+0x1b63]
+// and both arms then use EAX for it (and reuse EAX as the index accumulator,
+// which is why the original MATERIALISES its second width read: `mov
+// edi,[eax+0x80] / imul edi,ecx`, because a memory operand whose base is the
+// destination cannot be folded). All four callee-saved registers are taken
+// (esi=pos, ebx=sound, ebp=g_game, ecx=pi), so the arm roles in the original
+// are exactly the preference order: ptr=EAX, ty=ECX, tx=EDX, w=EDI. This file
+// gets ptr=EDI and the arm roles rotate with it. Nothing else in the two arms
+// is wrong: instruction for instruction they are the original's, only renamed.
+//
+// The allocator's choice for that pointer is what decides everything, and it
+// has two attractors that no spelling reached eax past (both measured with
+// check.py --sym, so free, in build/scratch/0x47f300/):
+//   * a plain `&&` chain in the arms  -> ptr in EDI, arms rotated  (v1, here)
+//   * MapSize::Contains + a nested if -> ptr in EDX, arm SHAPES exact (v10,
+//     82.3% overall). Contains also fixes the mask arm's `jb` to its body and
+//     stops the two fail blocks being tail merged, exactly as in the original.
+// So the Contains spelling is right and is one step short. What is missing is
+// whatever promotes the pointer from EDX to EAX.
+//
+// Tried and rejected, all free-scored, none moved the pointer to eax:
+//   int/unsigned/short pi, no pi local (index read twice, as in 0x408090),
+//   `g_game->players + pi`, `&g_game->players[pi]`, an explicit
+//   `(char*)g_game + 0x1b63 + pi*0x14b` with every parenthesisation of the
+//   three-term sum, a static inline LocalPlayer(pi) wrapper, the pointer
+//   computed separately in each arm (the address is then NOT hoisted, 61.8%),
+//   one inline IsVisible() wrapping both arms (69.3%), the fog arm as a
+//   ternary, the mask arm as a nested if instead of a guard, `unsigned int tx`,
+//   the nested if without Contains (back to EDI), hoisting visibilityMask.
+//   Declaring ty before tx in the arms costs 4 points and 20 bytes.
+//
+// The v10 (Contains + nested if) shape is the one to build on: it is one
+// register away in the pre-branch block and byte exact in the arm bodies. Its
+// two other costs are known and small: the tail's two loads of width/height
+// come out swapped (`mov edx,[ecx+0x14237]` where the original has
+// `mov edx,[ecx+0x14233]`), worth swapping the two terms of that sum to try,
+// and its arms fold the second width read into the imul, which follows from
+// the pointer register.
+//
+// The p vector store order was worth +0.4: writing p.z before p.y = 0 lets the
+// compiler schedule the p.y store where the original has it.
+
+// Addendum (deepseek-v4.1-flash, second pass): re-swept the two attractors
+// with 80 more free-scored variants, all changes confined to the visibility
+// block:
+//   - 30 combinations of fog and mask arm shapes (the Contains/nested-if
+//     helpers, and direct nested-if, guard, ternary and && spellings);
+//   - pi as int, unsigned and unsigned char; no-pi (player index read twice);
+//   - player as pointer, g_game->players + pi, a reference, an inline
+//     GetPlayer accessor, and declaration followed by assignment;
+//   - the flags test with == 2, != 0, a bare bit test, a char/int/bool local.
+// Result: the pointer's register is a two-state attractor. With the Contains
+// helper arms (the original's arm shapes, v10) it is always EDX; with direct
+// arms it is always EDI. Not one of the 80 variants produced EAX, so the
+// pre-branch block remains exactly one register off and nothing else in the
+// function moves. Every new variant scored at or below v10's 82.3 percent,
+// well under this file's 86.5, so the file is unchanged apart from this note.
+// The earlier conclusion stands: what is still missing is the upstream cause
+// that promotes the pointer from EDX/EDI to EAX.
+
+// Addendum (space-bunny-free, third pass). Free scratch scoring
+// (check.py --sym, all in build/scratch/0x47f300/). Nothing beat 86.5%, but two
+// of the results narrow the cause:
+//   * `int pi` instead of `unsigned char pi` makes the PRE-BRANCH BLOCK nearly
+//     exact, including the zero-extension idiom:
+//         xor ecx,ecx / mov cl,[ebp+0x2a43] / mov eax,ecx / shl eax,5
+//         add eax,ecx / lea edx,[eax+eax*4]
+//     which is what the unsigned char spelling only reaches after a spill and
+//     reload (`mov [esp+0x30],cl / mov ecx,[esp+0x30] / and ecx,0xff`) that
+//     the original does not have. So `pi` really is an int. But it still puts
+//     the pointer in EDI, splits `lea eax,[ebp+ecx]` into `mov eax,ebp / add
+//     eax,ecx`, and moves every block boundary, and the whole function drops
+//     to 79.7% (763 bytes). int/unsigned/short pi and `char pi` all do the
+//     same. The pointer register, not the spill, is what costs the 7 points.
+//   * The original re-reads the width (`mov edi,[eax+0x80]` twice in the fog
+//     arm, `mov eax,[eax+0x80]` in the mask arm) where every spelling here
+//     folds the second read into the `imul`. A local `unsigned int w =
+//     player->exploredWidth` used only by `tx < w` does NOT break the load
+//     CSE: the index expression still reads the field and MSVC merges them
+//     (86.5%, 775 bytes, byte-identical output to the no-w version). Same for
+//     an `int w`, and for hoisting `exploredHeight` into `h`. Per the guide's
+//     item 18, breaking this needs two structurally different expression
+//     trees or two separate pointer locals; neither was found.
+//   * Also measured, all 86.5% or worse and none moving the pointer off EDI:
+//     `bool vis`, a local for the mask word, `>> pi & 1` instead of `& (1<<pi)`
+//     (77.7%), `& ((1<<pi)&0xffff)`, `g_game->players + pi`, swapping the two
+//     arms' order, and `g_game->flags_14281 & 2` as the test (66.5%, the
+//     original compares against 2 explicitly, so keep `== 2`).
+//   * `unsigned int tx` (80.4%), `int pi` + `unsigned int tx` (80.6%), and
+//     writing the test as `!= 2` with the fog arm as the taken one (86.5%,
+//     same output): none of them move the pointer.
+// The two things that must both be true and are not yet true together: `pi`
+// as an int (no spill, `xor ecx,ecx` kept) AND the pointer in EAX. The two
+// spellings that give the right arm shapes put the pointer in EDX, and the two
+// that give the right pre-branch block put it in EDI.
+
 // FUNCTION: 0x47f300
 int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
 {
@@ -147,9 +250,9 @@ int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
         if (((Class_004cfea0*)g_game->sound)->FUN_004cfea0()) {
             Vector3_0047f300 p;
             p.x = pos->x - g_game->scrollX - (g_game->screenTilesX / 2) * 16;
-            p.y = 0;
             p.z = g_game->scrollY + (g_game->screenTilesY / 2) * 16
                 + (pos->y >> 1) - pos->z;
+            p.y = 0;
             ((Class_004cfeb0*)g_game->sound)->FUN_004cfeb0(
                 (float)(((g_game->screenTilesX + g_game->screenTilesY) / 2) * 16),
                 (float)((g_game->width + g_game->height) * 16));

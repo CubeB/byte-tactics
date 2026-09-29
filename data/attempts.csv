@@ -4030,7 +4030,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x48a490,857,sonnet-5.5,#1091,partial,77.8,,"issue #1091, escalated"
 0x48ad30,849,sonnet-5.5,#1091,partial,77.6,,"issue #1091, escalated"
 0x443100,888,deepseek-v4.1-flash,#1093,matched,100.0,,"issue #1093, escalated"
-0x4936f0,994,,#1095,assigned,,,"issue #1095, escalated"
+0x4936f0,994,space-bunny-free,#1095,partial,97.1,,"issue #1095, escalated"
 0x49b090,844,sonnet-5.5,#1097,partial,73.6,,"issue #1097, escalated"
 0x49d270,774,sonnet-5.5,#1097,partial,82.9,,"issue #1097, escalated"
 0x49d580,761,sonnet-5.5,#1097,partial,93.2,,"issue #1097, escalated"
@@ -4146,3 +4146,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x48d790,388,space-bunny-free,#1247,partial,92.2,,"issue #1247, escalated"
 0x4bf4d0,332,,#1250,assigned,,,"issue #1250, escalated"
 0x48d790,388,,#1252,assigned,,,"issue #1252, escalated"
+0x4936f0,994,,#1259,assigned,,,"issue #1259, escalated"

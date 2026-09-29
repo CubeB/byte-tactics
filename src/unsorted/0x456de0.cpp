@@ -1,4 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, then Claude Opus 5.5, finished by
+// This file of the original was built with /Gz, so the function is __stdcall;
+// found by the orchestrator's calling-convention sweep of every partial.
 // space-bunny-free. Names are provisional.
 // Sends the average of the six load-stage percentages (g_game+0x38d6f..74)
 // as a two-byte packet (type 0x2a) to every active player of type 1 or 2,
@@ -95,7 +97,7 @@ static inline int PlayerId(unsigned char i)
 }
 
 // FUNCTION: 0x456de0
-void FUN_00456de0()
+void __stdcall FUN_00456de0()
 {
     Packet_00456de0 packet;
     packet.type = 0x2a;

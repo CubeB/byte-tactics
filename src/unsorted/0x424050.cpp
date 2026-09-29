@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// This file of the original was built with /Gz, so the function is __stdcall;
+// found by the orchestrator's calling-convention sweep of every partial.
 // Partial, 99.1%: the only difference left is the scheduling of the copy of
 // FootprintCentre's result right after the FUN_00485070 call in SmokeAt. The
 // original issues `shl eax, 0x10` first and stores q.x before `push ecx`;
@@ -213,7 +215,7 @@ static inline SmokePos_00424050 SmokeAt_00424050(Spot_00424050* spot, Feature_00
 // (+0x14237), not scanIndex / width, so on non-square maps the seed lands in
 // the wrong row.
 // FUNCTION: 0x424050
-void FUN_00424050()
+void __stdcall FUN_00424050()
 {
     Feature_00424050* types = g_game->features;
     for (int k = 0; k < g_game->featureCount; k++) {

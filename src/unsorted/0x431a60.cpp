@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// This file of the original was built with /Gz, so the function is __stdcall;
+// found by the orchestrator's calling-convention sweep of every partial.
 // Loads gamedata\sidedata.tdf. For every SIDE<n> section, n counting from 0
 // until the section is missing, it reads the side's name, name prefix,
 // commander name and font file (FUN_004292e0's body inlined), its two colours
@@ -185,7 +187,7 @@ void* __stdcall FUN_004bbe50(char* path, int flags);
 void __stdcall FUN_00431950(void* parser, int* out, const char* name, const char* side);
 
 // FUNCTION: 0x431a60
-void FUN_00431a60(void)
+void __stdcall FUN_00431a60(void)
 {
     Class_004c2ea0 parser;
     int side;

@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// This file of the original was built with /Gz, so the function is __stdcall;
+// found by the orchestrator's calling-convention sweep of every partial.
 // Rebuilds the radar picture: fits the map onto 126 pixels along its long side,
 // then blits it onto the stored radar frame, or, when there is none, scales the
 // 8x8 icon map up to twice that size through a temporary picture.
@@ -78,7 +80,7 @@ void* __stdcall FUN_004c69f0(char* name, int width, int height);
 void __stdcall FUN_004c6ac0(void* picture);
 
 // FUNCTION: 0x466780
-void FUN_00466780()
+void __stdcall FUN_00466780()
 {
     int mapWidth = g_game->mapWidth;
     int mapHeight = g_game->mapHeight;

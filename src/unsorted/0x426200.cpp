@@ -1,4 +1,6 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+// This file of the original was built with /Gz, so the function is __stdcall;
+// found by the orchestrator's calling-convention sweep of every partial.
 // Sonnet 5.5 retry (#679), still 97.9%: also flat under every single and
 // every pair of statement moves (4000 sampled pairs), function-scope or
 // in-block declaration of gadget/entries/choice1/choice2 in all 24 orders,
@@ -70,7 +72,7 @@ char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_00426190(void* gadget);
 
 // FUNCTION: 0x426200
-void FUN_00426200()
+void __stdcall FUN_00426200()
 {
     Gadget_00426200* gadget = FUN_004aa8f0(g_game + 0x519, "YESORNO.GUI", 0x100);
     if (gadget != 0) {

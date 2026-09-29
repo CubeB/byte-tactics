@@ -61,6 +61,21 @@
 // the very end, and the last branch (the FUN_0048a490 call) to 0x48a969 just
 // before it; those targets follow from the size of this block, so they move
 // with it.
+//
+// deepseek-v4.1-flash pass (#1283): wall confirmed, code unchanged (86.9%, 255
+// bytes). headers.py with no header and with --cpp (all 128 and 768 sets) never
+// beats 86.9%. A byte scan of the exe for the original's non-folded product
+// `8B C8 C1 E1 10 2B C8` (mov ecx,eax; shl ecx,0x10; sub ecx,eax) and for the
+// whole bit 19 block `33 C0 33 D2 8A 81 2C 02 00 00 8B C8 C1 E1 10 2B C8` finds
+// exactly one hit each (0x48a94b), so there is no sibling copy to learn the
+// source from. The second hit of the product form is 0x458abf inside 0x4589c0,
+// whose own notes record the identical unresolved fold. The pointer-to-local
+// variant was rerun here: 262 bytes, 86.5%, product in eax, g_game hoisted to
+// edx, seaLevel in ecx, i.e. the whole 11-instruction block is a rotation of
+// the original's ecx/eax/edx schedule, matching docs/field-notes.md item 2
+// ("callee-saved register rotation wall"). Nothing in the source spelling
+// controls which register the allocator picks for the multiply result, so this
+// is left as a wall.
 
 #pragma pack(push, 1)
 struct UnitType_0048a870 {

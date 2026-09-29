@@ -1,7 +1,63 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free. Names are provisional.
-// Callers (0x4584b4, 0x458997, 0x4593ff, 0x459476) push the surface pointer as
-// the second argument and the address of a 12-byte {x,y,z} struct as the third,
-// so the argument order is (model, surface, camera, info, vertices, palette, useColor).
+// PARTIAL, 79.6% (up from 74.1%). Callers (0x4584b4, 0x458997, 0x4593ff,
+// 0x459476) push the surface pointer as the second argument and the address of a
+// 12-byte {x,y,z} struct as the third, so the argument order is
+// (model, surface, camera, info, vertices, palette, useColor). `ret 0x1c` is
+// seven dwords, so this is __thiscall with `this` in ecx plus six stack
+// arguments, and every argument list here was checked against the pushes and
+// against the callees' `ret N`: 0x4b7ee0 `ret 4`, 0x4b7f30 `ret 8`,
+// 0x4c0310 and 0x4c7580 `ret 0x10` each. All four are already correct, so the
+// residual below is a genuine allocation difference, not a wrong argument list.
+//
+// WHAT IS SOLVED, and the one change that bought most of it. The vertex loop
+// must walk the DESTINATION with a pointer and index the SOURCE by `i`. That
+// is, `Point* q = projected; for (i = 0; i < n; i++, q++) q->x = ...` with
+// `vertices[i].x` inside, rather than `projected[i].x = ...` with
+// `vertices[i]`. Indexing the destination instead costs 5.5 points
+// (74.1% -> 79.6%) because it is what makes MSVC bias ecx by +4 and hoist
+// `lea ecx,[esp+0xe8]` above the loop-test, and it fixes both stores. I swept
+// the neighbouring shapes: walking the source too (`Vertex* u = vertices`)
+// is 37.8%, `projected + i` inside the body is 74.1%, and biasing the
+// destination by hand (`q = projected + 1`, `q[-1]`, a `short*` with `qx += 2`)
+// is 72.8 / 74.1 / 65.3%. So the win needs BOTH a walked destination AND an
+// indexed source; neither alone does it.
+//
+// FRAME ARITHMETIC, measured not guessed. The `mov eax,0x3f58 / call
+// _alloca_probe` size fixes `projected[2000]` and `poly[25]` exactly: 2000 and
+// 25 reproduce 0x3f58, and I measured EVERY neighbouring size (1994 to 2002
+// and 22 to 28) at 66-67%, i.e. one instruction off, because the frame constant
+// changes. Do not touch these two numbers. `poly[25]` at frame+0x20 and
+// `projected[2000]` at frame+0xe8 are the only two arrays; the other frame dword
+// in use is `off.y` at frame+0x18.
+//
+// WHAT IS STILL DIFFERENT, and it is one register-priority tie I could not
+// break. The whole face loop, its pre-loop test and its copy loop are one
+// block: the original gives the face counter `i` a STACK HOME at frame+0x10
+// (`mov dword ptr [esp+0x10],edi` at 0x458582 and again at 0x458686, reloaded
+// by `mov edi,dword ptr [esp+0x10]` at 0x4585d3), which frees edi for the copy
+// loop's index, and the copy loop then runs edx = indices pointer, ecx = `j`,
+// edi = index. This file keeps `i` in edi, so the copy loop has to use ebx for
+// the index and reloads ebx with `info` afterwards. I could not make MSVC give
+// `i` a home: putting it in a local aggregate (`struct { int i; } c;`) scores
+// exactly 79.6%, a separate declaration for the face counter is 79.6%, a
+// `short` count 79.6%, declaring `int i, j;` together 79.6%. Hoisting
+// `info->faceCount` into a named local, which is what the original's
+// `mov eax,[ebx+8]` before the loop test suggests, is much WORSE (52.2%), as is
+// an explicit `int k = *idx++` (58.0%) and a walked `poly` pointer (71.4%).
+// Ten inner-loop spellings (field-by-field assignment, `idx[j]`, a walked
+// `poly`, a walked `idx`, a hoisted count, y-before-x) all measure 69-79% and
+// none reaches the original's shape. It is a priority tie, not a scheduling
+// accident: do not re-sweep it without a new idea.
+//
+// A MEASURED NEGATIVE worth keeping: the brief's "redundant store is a
+// variable initialiser" lever is dead here. Removing `int found = 0` style
+// initialisers, and hoisting the loop bounds, all lower the score. The one
+// thing that is a genuinely redundant store in the original is
+// `mov dword ptr [esp+0x10],edi` at 0x458582, written before the pre-loop test
+// and then rewritten at the latch; I could not get MSVC to emit it.
+//
+// No suspected bug in the original. The face counter is spilled to the frame
+// and reloaded, which is an allocation artefact, not a mistake.
 extern char* g_game;
 
 #pragma pack(push, 1)
@@ -86,10 +142,13 @@ void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,
     off.a = view->originX - camera->x;
     off.y = view->originY;
     off.b = view->originZ - camera->z;
-    for (i = 0; i < info->vertexCount; i++) {
-        projected[i].x = (short)((vertices[i].x + off.a) >> 16) + 0x80;
-        projected[i].y = (short)((off.b - vertices[i].z) >> 16)
-            - ((short)((vertices[i].y + off.y) >> 16) >> 1) + 0x20;
+    {
+        Point_4584d0* q = projected;
+        for (i = 0; i < info->vertexCount; i++, q++) {
+            q->x = (short)((vertices[i].x + off.a) >> 16) + 0x80;
+            q->y = (short)((off.b - vertices[i].z) >> 16)
+                - ((short)((vertices[i].y + off.y) >> 16) >> 1) + 0x20;
+        }
     }
     int j;
     Face_4584d0* face = info->faces;

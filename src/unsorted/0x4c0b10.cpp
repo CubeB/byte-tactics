@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5. Names are provisional.
 
 // Sibling of 0x4c0a90 (which plots the two end points). Fills the pixels
 // between the span ends: walks the depth ramp at +0x18 and the shade ramp at
@@ -6,44 +6,40 @@
 // surface's depth buffer when it exists, and looks the destination colour up
 // in the 32 x 256 shaded palette table at app+0xc4.
 //
-// PARTIAL, 55.8 percent. What still differs, all of it following from two
-// register choices:
+// PARTIAL, 98.4 percent, 352 of 352 bytes (was 55.8 percent, 344 bytes). Claude
+// Sonnet 5.5 pass (#694). Four changes did all of it:
+//  1. Compiler state: the function is very sensitive to it (with N unused
+//     `extern int` declarations the score runs between 52 and 62 percent and
+//     the size between 334 and 348 bytes, with a period of 32 in N), and
+//     `#include <windows.h>` alone (or `<stdio.h>` with `<math.h>`) reaches the
+//     state that makes the rest work. headers.py reports the same state for many
+//     sets.
+//  2. The span width is a named local, `int w = span->x2 - span->x1;` used by both
+//     divisions (55.8 to 89.3 percent; x1/x2 named locals, the width written out
+//     twice, and reading x2 first all stay at 37 percent). It puts x2 in ebx and
+//     x1 in ebp as the original does.
+//  3. No `color & 0xff` local: the original reloads and masks the colour argument
+//     inside the depth loop (`mov ebx, [esp+0x2c]; and ebx, 0xff`). The old
+//     hoisted `int ci = color & 0xff;` was a hack that flipped the ebx/ebp choice
+//     of the head; with the width local it is not needed and it costs the frame
+//     size (0x10 instead of the original's 0xc).
+//  4. `d++` before `z += dz` in the depth loop (96.1 to 98.4 percent; the other
+//     23 orders of the four increments score 95 to 97.6).
 //
-// 1. The head. The original puts span->x2 in ebx and span->x1 in ebp for the
-//    two divisions:
-//        original: mov ebx,[ecx+4] / mov ebp,[ecx] / sub ebx,ebp / idiv ebx
-//        ours:     mov ebp,[ecx+4] / mov ebx,[ecx] / sub ebp,ebx / idiv ebp
-//    Everything downstream that mentions ebx or ebp follows from it (the
-//    pitch clip wants surf in ebp and x2 in ebx, and later the loop count in
-//    ebx, which we give ebp).
+// What still differs (one operand order): the depth pointer offset. The original
+// does `add edx, ebp; add edi, edx` (row * pitch, which is shared with the colour
+// pointer, plus start), ours does `add ebp, edx; add edi, ebp`. The colour pointer
+// offset above it already matches. Spelled as `d += row * pitch + start`,
+// `d += start + row * pitch`, two statements in either order, `d = d + (...)`,
+// all give identical bytes, so it is a register tie-break rather than an
+// expression order.
 //
-// 2. The depth loop's shade index. The original computes it in ebx and ebp
-//    (which leaves eax free, so `ds` stays in eax for the whole loop and the
-//    loop count is spilled to the span argument slot). We compute it in eax,
-//    so `ds` is spilled to [esp+0x1c] and the frame is 0x10 instead of the
-//    original's 0xc. Every stack reference below the head is shifted by that
-//    one extra dword.
-//
-// A third pass added four spellings of the head's two field loads, none of
-// which moves the ebx/ebp assignment: the span width as a named local with the
-// two fields read x1 then x2, the same with the reads in the order the original
-// emits them, the width written out at both divisions, and the subtraction
-// reversed with a negation at the division. All give 55.8%, and reversing the
-// subtraction is much worse at 34.0%. The two register choices above are the
-// whole remainder.
-//
-// What did move it from 48.2 to 55.8 percent:
-// - `int ci = color & 0xff;` hoisted above the `if (d != 0)` test. That one
-//   extra early use flips MSVC's ebx/ebp preference for the rest of the
-//   function: the pitch clip then loads surf into ebp and span->x2 into ebx,
-//   as the original does.
-// - `p += row * surf->pitch; p += start;` as two statements instead of
-//   `p += row * surf->pitch + start;`, and `while (count--)` in both loops
-//   instead of `do { } while (--count)`.
-//
-// Inert (all of them compile to identical code, 55.8 percent): a `w` temp for
-// the divisor in either form, `start`/`count` declared in any order,
-// `count = span->x2 - span->x1` instead of `span->x2 - start`.
+// Inert: `(app->shade + (si << 8))[color]` and `*(app->shade + (si << 8) + color)`
+// for the shade lookup, do/while for the depth loop (73.2 percent), `for (; count;
+// count--)`, an `int zi`, a `w`-less head with cached z1/s1/x1/x2 locals
+// (47 to 52 percent).
+
+#include <windows.h>
 
 struct Span_004c0b10 {
     int x1;                            // +0x0
@@ -75,8 +71,9 @@ void __stdcall FUN_004c0b10(int row, Span_004c0b10* span, Surface_004c0b10* surf
     unsigned char* p = surf->bits;
     unsigned char* d = surf->depth;
     App_004c0b10* app = FUN_004b6220();
-    int dz = (span->z2 - span->z1) / (span->x2 - span->x1);
-    int ds = (span->s2 - span->s1) / (span->x2 - span->x1);
+    int w = span->x2 - span->x1;
+    int dz = (span->z2 - span->z1) / w;
+    int ds = (span->s2 - span->s1) / w;
     if (span->x1 < 0) {
         span->z1 = span->z1 - dz * span->x1;
         span->s1 = span->s1 - ds * span->x1;
@@ -91,7 +88,6 @@ void __stdcall FUN_004c0b10(int row, Span_004c0b10* span, Surface_004c0b10* surf
         int s = span->s1;
         p += row * surf->pitch;
         p += start;
-        int ci = color & 0xff;
         if (d != 0) {
             d += row * surf->pitch;
             d += start;
@@ -99,18 +95,18 @@ void __stdcall FUN_004c0b10(int row, Span_004c0b10* span, Surface_004c0b10* surf
                 unsigned char zi = z >> 16;
                 if (*d <= zi) {
                     int si = s >> 16;
-                    *p = app->shade[(si << 8) + ci];
+                    *p = app->shade[(si << 8) + color];
                     *d = zi;
                 }
                 p++;
-                z += dz;
                 d++;
+                z += dz;
                 s += ds;
             }
         } else {
             while (count--) {
                 int si = s >> 16;
-                *p++ = app->shade[(si << 8) + ci];
+                *p++ = app->shade[(si << 8) + color];
                 s += ds;
             }
         }

@@ -1,4 +1,22 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5. Names are provisional.
+// Claude Sonnet 5.5 pass (#694): still 74.1%, 200 bytes. Compiler state ruled out:
+// N unused `extern int` declarations (0 to 400 in steps of 8) give 200 bytes and 74.1%
+// for N = 0 to 48 and again from about 296, and a shorter 193 bytes and 59.2%
+// (194 and 66.3% at N = 56) in between, never better; all 128 header sets from
+// headers.py give 74.1% or less. What the original does that ours does not: `surf`
+// is reloaded into ebp (`mov ebp,[esp+0x1c]`) and stays live in ebp until the pitch
+// is re-read right before `imul eax,[row]` (`xor eax,eax; mov ax,[ebp]`), so it
+// overlaps `n` (ebx = x2 - x1, x1 in edx); ours reads the pitch early into edx (so
+// surf dies early and shares ebx with n) and x1 lands in ebp. The original also
+// shares one offset between the two pointers (`add edx,eax; add edi,edx; ...; add
+// esi,edx`) where ours does `lea eax,[edx+ebp]` for the bits and `add edx,ebp` for
+// the depth, and its memset arm loads `color` with `mov al,[esp+0x20]` (no movsx).
+// Scored, all worse than the file: pitch read inline (`row * surf->pitch`, 70.2%),
+// with `n` first (45.0%), a shared `int off` (70.6%; 47.3% with n first), `n`
+// computed before the `if (n > 0)` (44 to 50.6%), the `int pitch` local declared
+// inside the block (68.2 to 70.2%; as `unsigned short` 73.3%), an inlined
+// `Offset(surf, row, x)` helper (47.3 to 70.6%), and `unsigned char color` (72.5%,
+// 204 bytes: a zero-extending load appears but the loop grows).
 // Draws a full horizontal span: every pixel from x1 to x2 gets the colour
 // when it passes the depth test (the depth buffer keeps the integer part of
 // the 16.16 depth), or the row is filled unconditionally when the surface has

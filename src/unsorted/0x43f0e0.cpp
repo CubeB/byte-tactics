@@ -1,18 +1,23 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Picks the order name shown for the cursor over a target: `mode` is the
 // cursor class and the result is the order type, or index 0 when none applies.
-// Not a match (40.3% by check.py, 4,332 bytes against 4,420; with <windows.h>
-// this was 39.6% -> 40.3%, but the size did not change).
-// The prologue up to the switch dispatch matches except for one register pair:
-// the original loads the unit into ebp and the definition (unit->def) into esi
-// and spills it to [esp+0x20] (arg4's slot); ours is exactly swapped, unit in
-// esi and def in ebp, which is why every case block then differs in registers.
-// The original's friendly/enemy flags live in ebx and eax (zeroed as a pair at
-// entry), and its `target->f110 & 3` test compares directly against 2 (`cmp
-// al, 2`) while ours materialises 2 in dl and re-zeroes ebx inside the case.
-// Declaration order of the locals, and an extra <windows.h>, do not flip the
-// ebp/esi swap. Everything past the prologue is structurally close but register
-// mismatched, so byte similarity stays just above 40%.
+// NOT a match (43.7% by check.py; 4,368 bytes against 4,420).
+// Signature: five stack dwords (ret 0x14) = hidden struct-return `out`
+// Class_00438760* first, then mode, unit, target, pos.
+// KNOWN BLOCKER: the original holds `unit` in ebp and `unit->def` in esi
+// (spilling def to the target arg slot [esp+0x20]); ours still swaps them,
+// unit in esi and def in ebp. Original prologue:
+//   push ebx; push ebp; mov ebp,[esp+0x14]; push esi; push edi;
+//   mov edi,[esp+0x20]; ... ; mov esi,[ebp+0x92]
+// Declaration order, a local `Unit* u = unit` copy, and <windows.h> do NOT
+// flip ebp/esi. BEST-SCORING VARIANT (this file) computes def at the top
+// (`Def* def = unit->def;` before the target block), which adds a stack slot
+// (`push ecx`) and lifts the byte score to 43.7%, but the ORIGINAL loads def
+// only after the target block (0x43f131, after the join at 0x43f12d), so this
+// frame shape is not faithful; the structurally faithful variant is the one
+// with `Def* def;` declared and `def = unit->def;` after the if (40.3%).
+// Every case body is otherwise structurally transcribed but register
+// mismatched, so the diff desyncs and the tail jump table lines up wrong.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -209,7 +214,7 @@ static inline int Marked(Thing_0043f0e0* t)
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                                        Unit_0043f0e0* target, Pos_0043f0e0* pos)
 {
-    Def_0043f0e0* def;
+    Def_0043f0e0* def = unit->def;
     int friendly = 0;
     int enemy = 0;
     if (target) {
@@ -220,7 +225,6 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         else
             enemy = 1;
     }
-    def = unit->def;
     switch (mode) {
     case 3: {
         if (!(def->f245 & 0x10))

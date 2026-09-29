@@ -11,6 +11,32 @@
 // Caller (0x48d3e2) loops over candidate units, calls this with
 // (g_game+0x2cc3, *it, target, g_game+0x2caa) and keeps the minimum result,
 // so smaller return values are "better" order candidates and 0x13 is "none".
+//
+// RETRY NOTES (deepseek-v4.1-flash, still 12.8%): the only instructions that
+// align are the shared "pop edi/esi/ebp/ebx/ecx; ret 0x10" epilogues, so the
+// whole score comes from the ~14 return sequences; every body line differs
+// because the register assignment is completely different. Original keeps
+// ebx = g_game, ecx = def, edi = target, esi = friendly, ebp = enemy; unit,
+// mode and pos stay in their argument homes and are reloaded from
+// [esp+0x1c]/[esp+0x18]/[esp+0x24] every use. It also reserves one dummy
+// local with the leading `push ecx`, at [esp+0x10], and spills friendly there
+// (0x43e4a7 store 0, 0x43e4e0 store 1, reloaded at 0x43e9dc just before the
+// shared L43e9e0 block) because the inlined Visible helper reuses esi for pos
+// (mov esi,[esp+0x24] at 0x43e66b / 0x43e8d2 / 0x43eb8b). It likewise spills
+// def into the target argument home [esp+0x20] (0x43e4b3) and re-reads it
+// from there (0x43e9f5, 0x43e7ed, 0x43ea7f, 0x43ead7, 0x43ea83, 0x43ec9a,
+// 0x43ee4f ...). Reproducing that means the source must clobber esi inside the
+// visible block and take def's address-free live range across the switch.
+// Ghidra's three booleans collapse to just friendly (esi) / enemy (ebp):
+// allied[target->player->index] != 0 -> friendly, else enemy (its bVar9 is
+// our enemy). Case map from the 0x43f0a8 jump table: 1=0x43e505,
+// 2=0x43e8bb, 3=0x43e545, 4=0x43e850, 5=0x43e80c, 6=0x43e7d3, 7=0x43e615,
+// 8=0x43e5fa, 9=0x43e5de, 10=0x43f098 (default), 11=0x43e8ae,
+// 12=0x43e65c, 13=0x43e797, 14=0x43e828. Cases 1/2/12 here are still only
+// semantically close, not structurally equal.
+// The last case-1-with-flag block (0x43eb02) and the shared L43edb6 block
+// (0x43edb6) both duplicate the same owner/f110-0x20/f104/ffb/f86->f110 test;
+// they are two separate emitted copies in the original.
 #pragma pack(push, 1)
 
 union Flags110_0043e490 {

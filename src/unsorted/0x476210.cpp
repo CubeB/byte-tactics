@@ -72,6 +72,12 @@
 // the original translation unit's state either. This is compiler state, as
 // the guide says for this family; it needs the regroup-into-original-files
 // phase.
+//
+// deepseek-v4.1-flash (#1401, 2026-09): re-confirmed the same wall. Prepending
+// <windows.h> gives 637 bytes / 89.6%; headers.py tried all 128 combinations of
+// the seven common headers and none match (best still 99.6%). No new source
+// lever: the difference remains the single `lea eax, [edi + edx]` (SIB 0x17)
+// against this build's `[edx + edi]` (SIB 0x3a).
 #include <climits>
 #include <memory>
 #include <xutility>

@@ -1,39 +1,27 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, muse-spark-1.3-free and deepseek-v4.1-flash. Names are provisional.
 //
-// GPT-6 retry with space-bunny-free: no improvement over 88.7%. The worker tried
-// two scan-loop variants in build/scratch/0x4e07e0; the pre-loop stores remain
-// the blocking difference described below.
-// deepseek-v4.1-flash retry, no improvement over 88.7%: the only missing bytes are the
-// three pre-loop stores (mov [pt],esi / mov [shared],ebx / mov [priv],edi) that the
-// original keeps alongside the post-loop ones. Every source that emits both sets makes
-// MSVC rematerialise the three zeros as one scratch register, which spills the loop
-// counter and steals the counter registers, so the block grows to 948-951 bytes. Tried:
-// pre outside + post inside in all 216 store/zero order permutations; chained and single
-// chained assignments; separate counter copy; register/unsigned/signed/temp locals; struct,
-// array and union counter models; inline store/zero helpers (by value, reference, pointer);
-// volatile globals (worse); reordered declarations; preceding functions 0x4e0740/0x4e0790
-// in the same file; and flat N-declaration sweeps (0-3000 extern ints and prototypes) plus
-// headers.py. All 76.7% or lower, so the 88.7% single-post-store form is kept.
 // Reports the process working set into a caller-supplied buffer, with a
 // psapi.dll QueryWorkingSet refresh at most once every ten calls.
 //
-// Still differs (88.7%, 916 of 934 bytes). All five number-formatting blocks,
-// the shared-bit test and the post-scan store order now match. The only
-// remaining code difference is one group of 18 bytes in the scan prologue:
-// the original stores ptn/sharedn/privn into their globals BOTH before the
-// scan loop (mov [pt],esi / test eax,eax / mov [shared],ebx / mov [priv],edi
-// / jbe) and again after it, while this version only keeps the second set,
-// plus the loop-counter copy sits before the total store (mov ebp,eax early)
-// instead of after the pointer lea, and the loop guard is je instead of jbe.
-// The pre-loop stores must be live on the n==0 path, so they belong outside
-// the loop's if-block with the post-loop stores inside; written that way the
-// build grows to 936-951 bytes and spills (loop counter to a stack slot with
-// per-iteration reload/store, or ptn to memory, plus an ebx zero hoist at the
-// top that cascades). Tried: pre-outside+post-inside, split pre (pt outside,
-// shared+priv inside), separate cnt counter assigned early and late, p lea
-// before/after zeroing and inside/outside the guard, guards != 0 / > 0 /
-// >= 1 / plain, zeroing order swaps. A separate-counter variant keeps the pt
-// pre-store but MSVC dead-stores the other two (926 bytes, 88.0%).
+// deepseek-v4.1-flash: 99.4% (934 of 934 bytes, only instruction order in the
+// scan prologue differs). The breakthrough was realising the three counters
+// are not locals: the five number-formatting blocks all reload them from
+// DAT_005295c0/b8/28, so the loop increments the globals directly and MSVC
+// promotes them to esi/ebx/edi, storing the initial zeros before the loop
+// (the n==0 path needs them) and the final values after it. Writing explicit
+// locals with a pre/post store pair made MSVC rematerialise one zero and spill
+// the counter (951 bytes, 76.7%). A separate `cnt = n` assigned just after the
+// pointer lea puts `mov ebp,eax` after `lea edx` like the original.
+//
+// Remaining difference: in the pre-loop zero block the original orders the
+// registers esi, ebx, edi and the globals pt, shared, priv, while this version
+// emits esi, edi, ebx and pt, priv, shared. Both have the same register
+// mapping (pt=esi, shared=ebx, priv=edi); only the emission order differs.
+// The init-store order drives which callee-saved register each counter gets
+// (the second store takes edi, the third ebx), so writing the stores in the
+// original pt, shared, priv order flips `shared` to edi and `priv` to ebx and
+// loses more bytes (98.5%). This looks like compiler state (register pool
+// order) rather than source shape.
 #include <windows.h>
 #include <stdio.h>
 
@@ -100,9 +88,6 @@ char __cdecl FUN_004e07e0(char *dest)
     char shared[20];
     char total[20];
     char pt[20];
-    int ptn;
-    int privn;
-    int sharedn;
     DWORD *p;
     DWORD w;
     DWORD lo;
@@ -132,31 +117,26 @@ char __cdecl FUN_004e07e0(char *dest)
         if (n > DAT_005295d4) {
             DAT_005295d4 = n;
         }
-        ptn = 0;
-        sharedn = 0;
-        privn = 0;
-        DAT_005295c0 = ptn;
-        DAT_005295b8 = sharedn;
-        DAT_00529528 = privn;
-        p = (DWORD *)&ws.WorkingSetInfo[0];
-        if (n != 0) {
+        DAT_005295c0 = 0;
+        DAT_00529528 = 0;
+        DAT_005295b8 = 0;
+        if (n > 0) {
+            p = (DWORD *)&ws.WorkingSetInfo[0];
+            DWORD cnt = n;
             do {
                 w = *p;
                 lo = w & 0xfff;
                 hi = w & 0xfffff000;
                 if (hi >= 0xc0000000 && hi <= 0xe0000000) {
-                    ptn++;
+                    DAT_005295c0++;
                 } else if (lo & 0x100) {
-                    sharedn++;
+                    DAT_005295b8++;
                 } else {
-                    privn++;
+                    DAT_00529528++;
                 }
                 p++;
-            } while (--n);
+            } while (--cnt);
         }
-        DAT_00529528 = privn;
-        DAT_005295b8 = sharedn;
-        DAT_005295c0 = ptn;
         DAT_005295d0 = 10;
     }
     fmt_004e07e0(pt, DAT_005295c0 << 12);

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash. Names are provisional.
 
 // Screen fade: applies a 256 entry translate table to every pixel of `rect` in
 // `surface` (or in the locked screen when `surface` is 0). `level` selects one
@@ -180,6 +180,42 @@
 // The 0x4bf4d0 entry in docs/bugs.md (three failure exits skip the unlock, and
 // `movsx` indexes the table with a sign-extended byte) is confirmed by the
 // disassembly and is reproduced here.
+//
+// DEEPSEEK V4.1 FLASH PASS. The file below is UNCHANGED (333 bytes / 67.7
+// percent); nothing this pass found scored higher on a real object. Two new
+// measurements, both recorded so they are not repeated:
+//
+// HEADERS: `tools/headers.py 0x4bf4d0` tried all 128 sets. The best is 68.4
+// percent with `<windows.h>` (alone or with stdlib/string/memory), and 68.4
+// with `<stdio.h> <string.h>`. No set matches, and none reaches the register
+// allocation. So the (a)/(b) tie is not a header-state tie either.
+//
+// COMPILER STATE, VIA UNUSED DECLARATIONS: this does move ONE thing. Four
+// unused `static` helper functions (or three, or twelve) inserted before the
+// declarations flip the inner-loop table access from `mov bl,[ebx+ebp]` to
+// the original `mov bl,[ebp+ebx]`, giving a 334-byte object at 68.4 percent.
+// A sweep of 1,2,3,4,5,6,8,10,12 unused functions and of 4..512 unused
+// prototypes shows the flip is not monotone (1,2 and 8,10 give 67.7; 3-6 and
+// 12 give 68.4), so it is compiler state, not a source shape. Crucially, in
+// every one of these the ebx/ebp (surface/engine) swap and the eax/ecx
+// (pointer/level) swap are UNCHANGED; the extra byte comes from the `[ebp+ebx]`
+// form needing a disp8=0. Those 334-byte objects are NOT the original source
+// and are not kept here: they are score-gaming with unused functions, and the
+// packet already warns that a higher score on a different object is worse.
+// The 334-byte 68.4 variants live in build/scratch/0x4bf4d0/{w1,d3,d4,d5,d6,d12,
+// p4,p8,p16}.cpp if a future pass wants to study the flip.
+//
+// Also measured this pass, all 333 bytes / 67.7 percent, no change: an
+// `int off = screen.pitch * rect->top;` split of the pointer build; the
+// product with `rect->top` on the left; `pixels + left + product`; a `for
+// (; height != 0; height--)` row loop (329 bytes, still 67.7); pointer
+// hoists for pixels/pitch/top; and inlined helpers `PtrA/PtrB/PtrC` and
+// `HgtA` (each 334 bytes, 68.4 only when the extra unused helpers are left
+// in place to perturb compiler state, see above); a helper returning the
+// final `t` collapses the two null exits (319 bytes, 62.3). Passing `Engine*`
+// into a `static` helper for the default-rect block or for the width/height
+// reads does NOT move engine to ebp here (unlike the earlier `pick` helper),
+// so the (a) tie survives that axis as well.
 
 #include <string.h>
 

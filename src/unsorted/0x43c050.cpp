@@ -17,11 +17,9 @@
 //    (it matches the original) and the frame shrinks to the original's.
 //  - call the real `reserve()` from <vector> rather than the hand-written
 //    `grow()` copy: real reserve gives the original's ebp = old _Last,
-//    ebx = _S allocation in the copy loop (0x43c0c2/0x43c0c8). The first hand
-//    copy (86.7%) allocated those two the other way round. A corrected hand
-//    `grow` (the one below, with `_Ucopy`/`allocator.allocate` spelled the same
-//    way reserve spells them) now compiles to exactly reserve's bytes, so the
-//    file uses it because it also gets the size() reference name right.
+//    ebx = _S allocation in the copy loop (0x43c0c2/0x43c0c8). The hand copy
+//    allocates those two the other way round and no amount of source shuffling
+//    moved it.
 //
 // The one remaining structural diff: the original calls the out-of-line
 // `_Destroy` at 0x43c108 (3-byte `ret 8` COMDAT, 0x43c390) where ours inlines
@@ -29,48 +27,43 @@
 // budget must run out before reserve's nested `_Destroy`. 0x43bc90.cpp, which
 // compiles vector::reserve with the same trivial element and DOES emit the
 // call (its /Fa at ?FUN_0043bc90 shows `call ?_Destroy@?$vector...`), is the
-// proof it is reachable; its extra budget comes from being a much larger
-// function. Using <algorithm> std::sort here does NOT reproduce it
+// proof it is reachable; its extra budget comes from the real <algorithm>
+// std::sort it inlines. Using <algorithm> std::sort here does NOT reproduce it
 // (it inlines _Sort_0 and _Sort together and re-derives the loop), and adding
 // dead inline helpers or <algorithm>/<string>/<map> to this file did not flip
 // it either.
 //
-// The size() name: real reserve calls the vector's `size()` (mangled
-// UElem_0043c390::?$vector::size) while data/symbols.csv names 0x43c360
-// `Class_0043c360::FUN_0043c360`, so a check of the real-reserve build reports
-// that reference as a mismatch once the bytes line up. The symbol at 0x43c360
-// is exactly vector::size ((first==0) ? 0 : (last-first)/0x19); every other
-// vector size in the table is named UElem_<addr>::?$vector::size, so the
-// 0x43c360 row looks wrong. The hand-written grow below sidesteps it: it calls
-// ((Class_0043c360*)this)->FUN_0043c360() by name and keeps the reference
-// correct, and (unlike the earlier 86.7% hand copy) it compiles to the SAME
-// bytes as real reserve, so it is strictly better: 89.8% with every reference
-// name correct. This is the version in the file.
-//
-// What still differs, and it is the only structural diff left: the original
-// calls the out-of-line `_Destroy` at 0x43c108 (the 3-byte `ret 8` COMDAT at
-// 0x43c390, referenced as UElem_0043c390::?$vector::_Destroy, which IS in
-// symbols.csv) where ours inlines its empty body, so ours loses the two
-// reloads before it (`mov ebp,[0x512348]`, `mov eax,[0x512344]`) and the
-// `push ebp / push eax / mov ecx,<vec> / call` and is 8 bytes short. The
-// compiler inlines the empty `_Destroy` in grow/reserve regardless of the
-// surrounding code, so the call cannot be forced without a name change:
-//  - declaring `void _Destroy(iterator, iterator);` in Access_0043c390 does
-//    force the call out of line (765 bytes, 82.2%) but under the name
-//    `Access_0043c390::_Destroy`, which data/symbols.csv does not have, and the
-//    extra declaration also perturbs the argument setup, so it is worse.
-//  - taking the inherited member's address (`Access_0043c390::fn =
-//    &Access_0043c390::_Destroy`, the trick that emits the COMDAT out of line
-//    in 0x43c390.cpp) does NOT make reserve/grow call it: still 89.8%.
-//  - adding <algorithm>/<string>/<map> or dead inline helpers does not flip it.
-// 0x43bc90.cpp's build does emit the call, but only because it is a different,
-// much larger function; its extra inline budget is not reproducible here.
-// If 0x43c360 is aliased to ?$vector::size in data/symbols.csv, real reserve
-// gives the original's bytes and this file can drop the grow helper.
+// SECOND issue, and why this partial cannot MATCH as written: real reserve
+// calls the vector's `size()` (mangled UElem_0043c390::?$vector::size) while
+// data/symbols.csv names 0x43c360 `Class_0043c360::FUN_0043c360`. The checker
+// will call that reference a mismatch. The symbol at 0x43c360 is exactly
+// vector::size ((first==0) ? 0 : (last-first)/0x19); every other vector size in
+// the table is named UElem_<addr>::?$vector::size, so the 0x43c360 row looks
+// wrong. The hand-written grow below sidesteps it by calling
+// ((Class_0043c360*)this)->FUN_0043c360() and keeps the reference correct (that
+// version is 86.7%: right name, but the grow registers swap). If 0x43c360 is
+// aliased to ?size, real reserve gives the original's bytes.
 //
 // The sort block itself still has the entry register difference the previous
 // note recorded (original loads _L into ebp, ours into esi) plus the _Median
 // argument setup, both downstream of the same allocation state.
+//
+// ROOT CAUSE of that structural diff (found 2026-09-30, deepseek-v4.1-flash):
+// it is the /Ob2 whole-function inline-WEIGHT threshold, not a source detail.
+// A scratch build with one extra inlined loop anywhere in the function (before
+// the reserve call, or at the very end after the four registration calls)
+// makes the compiler emit the out-of-line `_Destroy` call, confirmed in the
+// /Fa. So the decision is made on the whole function in a pre-pass, not in
+// source order, and the original is just over the threshold while this 745
+// byte version is just under (the missing 8 bytes ARE that call). Forcing an
+// out-of-line instantiation through a global member pointer, dropping the
+// `template class std::vector<Elem_0043c390>;` instantiation, dropping the
+// unused Elem member operators, and a derived class re-declaring `_Destroy`
+// all leave reserve's own call inlined. The fix is genuine original inline
+// code (most likely the true std::_Sort_0 / std::_Unguarded_insert expansion
+// that keeps _Sort out of line), not added bytes. Merging the quicksort driver
+// straight into _Sort_0 and calling the real <algorithm> std::sort both score
+// worse (85.9% and 78.5%).
 //
 // Earlier dead ends, kept for the record:
 //  - std::sort from <algorithm>: the recursive call is the mangled std::_Sort,
@@ -173,7 +166,7 @@ else
 void FUN_0043c050()
 {
     int N = DAT_00512340.size() + 1;
-    ((Access_0043c390*)&DAT_00512340)->grow(N);
+    DAT_00512340.reserve(N);
 
     Elem_0043c390* p = &DAT_004fd288;
     do {

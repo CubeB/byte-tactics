@@ -3481,7 +3481,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4afa30,552,space-bunny-free,#680,matched,100.0,,"issue #680, escalated"
 0x4b1c00,586,space-bunny-free,#680,partial,13.9,,"issue #680, escalated"
 0x4bc370,314,gpt-5.6-terra,#681,partial,86.4,,"issue #681, escalated"
-0x4a9830,390,,#683,assigned,,,"issue #683, escalated"
+0x4a9830,390,sonnet-5.5,#683,matched,100.0,,"issue #683, escalated"
 0x4ac4c0,325,longcat-2.5-preview-free,#685,partial,67.7,,"issue #685, escalated"
 0x4ac7d0,207,longcat-2.5-preview-free,#685,matched,100.0,,"issue #685, escalated"
 0x4ac8c0,167,longcat-2.5-preview-free,#685,partial,84.7,,"issue #685, escalated"

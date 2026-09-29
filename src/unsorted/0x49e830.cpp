@@ -10,6 +10,14 @@
 //    the original size (1364) but puts bits 8 and 9 in a second byte
 //    register (`or cl, 1` / `or cl, 2`) instead of `or ah, 1` / `or ah, 2`,
 //    so the 16-bit allocation unit has to win and the fold has to lose.
+//    Probed msvc5-sp3 codegen on the isolated block: a 16-bit bitfield
+//    union, a bare 16-bit bitfield struct, `=1` and `|=1` forms, and a
+//    `unsigned short` local with explicit `|=` all fold to a single
+//    `or ecx/edx, 0x3f2`; the original's per-bit `or al/ah` chain was not
+//    reproduced by any of them, so the original source used some construct
+//    (or an interleaved barrier) this model could not identify in the
+//    timebox. The `unsigned short` local form also adds a stack slot and
+//    `push ecx`, so it is strictly worse.
 //  - OpenSemaphoreA and FUN_004b5980 results are compared with a named zero
 //    local (`cmp eax, ebx`) in the original; a named `int lzero = 0` still
 //    emits `test eax, eax`, so the original must reach its zero by a route

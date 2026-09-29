@@ -19,6 +19,15 @@
 //     a segment from the previous point to the current point plus a per-axis
 //     rand()*11/0x8000-5 jitter (rand() returns 0..0x7fff), (short)(nSeg>>16)
 //     segments, two outer passes.
+// RETRY NOTE: sharing the sp Vec3 and the two rect slots across the disjoint
+// kind branches (declared once at function scope) dropped the frame from 0x90
+// to 0x6c, still 4 bytes over the original's 0x68, and raised the score from
+// 13.1% to 13.4%. The remaining gap is the whole-function register allocation:
+// the original keeps g_game in edi (reloaded after calls), p in esi (advanced
+// by adding an offset local, not scaled indexing), &p->pos in ebp, frame0 at
+// [esp+4], time at [esp+8], the projectile offset at [esp+0xc], the index at
+// [esp+0x14]; MSVC here puts g_game in ebp and uses scaled indexing. No
+// instruction run aligns with the original, so no local patch closes it.
 // Every offset and callee argument order below is believed correct.
 //
 // Layout facts:
@@ -144,6 +153,9 @@ static int Abs_0049be60(int v)
 void __stdcall FUN_0049be60(void* surface)
 {
     Game_0049be60* g = g_game;
+    Vec3_0049be60 sp;
+    short rect[4];
+    short clip[4];
     int time = g->time;
     void* frame0 = FUN_004b7f30(g->gaf_1480f, 0);
     int index = 0;
@@ -200,14 +212,12 @@ void __stdcall FUN_0049be60(void* surface)
                         FUN_004be950(surface, x1, y1, x2, y2, color1);
                     }
                 } else if (type->field_10c == 1) {
-                    Vec3_0049be60 sp;
                     sp.x = p->pos.x - (g->scrollX << 16);
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 6) - ((int)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
-                    short rect[4];
                     rect[0] = p->field_34;
                     rect[1] = (short)(p->field_36 + 0x8000);
                     rect[2] = (short)(p->field_38 + 0x8000);
@@ -231,18 +241,15 @@ void __stdcall FUN_0049be60(void* surface)
                         return;
                     FUN_004b9360(surface, g->field_1ab9b, sx, sy);
                 } else if (type->field_10c == 3) {
-                    Vec3_0049be60 sp;
                     sp.x = p->pos.x - (g->scrollX << 16);
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 6) - ((int)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
-                    short clip[4];
                     FUN_0046bae0(surface, &sp, type->field_74, clip);
                 } else if (type->field_10c == 4) {
                     if (type->field_10d < 0xff) {
-                        Vec3_0049be60 sp;
                         sp.x = p->pos.x - (g->scrollX << 16);
                         sp.y = p->pos.y;
                         sp.z = p->pos.z - (g->scrollY << 16);
@@ -277,7 +284,6 @@ void __stdcall FUN_0049be60(void* surface)
                         FUN_004b8500(surface, fs, sx, sy);
                     }
                 } else if (type->field_10c == 6) {
-                    Vec3_0049be60 sp;
                     sp.x = p->pos.x - (g->scrollX << 16);
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g->scrollY << 16);

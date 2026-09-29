@@ -44,6 +44,23 @@
 //  - The scan loop and the text-line loop follow the disassembly closely and
 //    are the place to start; the first ~40 instructions are 1:1 except for
 //    the ebp/esi swap noted above.
+//
+// Third pass (deepseek-v4.1-flash) refined the blocker. param_1 is NOT held in
+// ebp for the whole function in the original: at 0x4a1ddd it reloads param_1
+// from [esp+0xd0] (the parameter's home slot) for `mov bl,[eax+ebp+0x8b2]`,
+// and at 0x4a22f9 it loads it into ebx from the same slot for the corner-blit
+// colour. So the original SPILLS param_1 and reloads it; it is not a clean
+// ebp/esi rotation, and ebp is reused as entries/q inside the same regions.
+// The real blocker is the stack-slot map: the original's frame reaches 0xbc
+// with text scratch slots at 0x58/0x5c (xx,xw), 0x60 (font byte), 0x64
+// (colour), 0x68 (char), and the grid rects at 0x6c (dst) and 0xac (src),
+// plus the clip rect at 0x9c. Register pressure from those live values is
+// what forces param_1 and me (edi, reloaded from [esp+0x50]) to spill; ours
+// keeps both live in callee-saved registers. Passing `surface` instead of a
+// literal 0 to FUN_004b0230 scores the same 21.1%. The grid renderer's
+// FUN_004c7580 setup is interleaved in the original (0x4a2137..0x4a21c8) and
+// must be reproduced as a single straight store sequence, not as two local
+// Rect structs filled before the call.
 #include <windows.h>
 #include <string.h>
 

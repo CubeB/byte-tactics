@@ -1,7 +1,13 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
-// Partial: MSVC reloads the list iterator before the erase-loop bottom test;
-// the original compares its stack slot directly.
+// Decompiled by GPT-5.6-Terra, finished by Sonnet 5.5. Names are provisional.
+//
+// The function must be __fastcall (no arguments, so the code is otherwise
+// unchanged; or the TU was built with /Gr). As a plain __cdecl function MSVC
+// reloads the list iterator before the erase loop's bottom test, `mov edx,[esp+0x10];
+// cmp edx,ebp`, where the original compares the slot directly. The map at +0x00 is
+// the real std::map<unsigned int, Rect_0046e160> so its erase keeps its data/symbols.csv
+// name, as in 0x46d1a0.cpp.
 #include <list>
+#include <map>
 #include <xmemory>
 
 namespace std {
@@ -42,50 +48,12 @@ typedef List_0046ca60::iterator (List_0046ca60::iterator::*PostIncFn_0046ca60)(i
 EraseFn_0046ca60 g_erase_0046ca60 = &List_0046ca60::erase;
 PostIncFn_0046ca60 g_postinc_0046ca60 = &List_0046ca60::iterator::operator++;
 
-struct Node_0046e890 {
-    Node_0046e890* left;
-    Node_0046e890* parent;
-    Node_0046e890* right;
-};
-
-extern Node_0046e890* DAT_0051e598;
-extern int DAT_0051e59c;
-
-class Class_0046ea10 {
-public:
-    Node_0046e890* ptr;
-
-    Class_0046ea10() {}
-    Class_0046ea10(Node_0046e890* p) : ptr(p) {}
-    bool operator==(const Class_0046ea10& o) const { return ptr == o.ptr; }
-    bool operator!=(const Class_0046ea10& o) const { return !(*this == o); }
-};
-
-class Class_0046e890 {
-public:
-    int field_0;
-    Node_0046e890* head;
-    int field_8;
-    int size;
-
-    Class_0046ea10 begin() { return Class_0046ea10(head->left); }
-    Class_0046ea10 end() { return Class_0046ea10(head); }
-    Class_0046ea10 erase(Class_0046ea10 _F, Class_0046ea10 _L);
-
-    void deallocate(void* _P, unsigned int) { operator delete(_P); }
-    void _Freenode(Node_0046e890* _S) { deallocate(_S, 1); }
-
-    ~Class_0046e890()
-    {
-        erase(begin(), end());
-        _Freenode(head);
-        head = 0, size = 0;
-        std::_Lockit Lk;
-        if (--DAT_0051e59c == 0) {
-            _Freenode(DAT_0051e598);
-            DAT_0051e598 = 0;
-        }
-    }
+struct Rect_0046e160 {                 // the map mapped type, 0x10 bytes
+    int x;
+    int y;
+    short w;
+    short h;
+    int unknown_c;
 };
 
 class VecInt_0046ca60 {               // std::vector<int>
@@ -156,7 +124,7 @@ static inline void DestroyR2_0046ca60(Class_0046ded0* _F, Class_0046ded0* _L)
 
 class Class_0046d040 {
 public:
-    Class_0046e890 rects;
+    std::map<unsigned int, Rect_0046e160> rects;
     VecElems_0046ca60 elems;
     std::list<int> ids;
     int field_2c;
@@ -185,7 +153,7 @@ struct Game_0046ca60 {
 extern Game_0046ca60* g_game;
 
 // FUNCTION: 0x46ca60
-void FUN_0046ca60()
+void __fastcall FUN_0046ca60()
 {
     ((Class_0046e160*)g_game->field_2a30)->FUN_0046e160();
     delete g_game->field_2a30;

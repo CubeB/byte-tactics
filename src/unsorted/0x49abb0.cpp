@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. Names are provisional.
 // Partial, 93.7% (576 of 568 bytes; up from 90.9%). Logic, offsets and every branch match.
 // Two things moved it: `(height >> 1) + whole` (not `whole + (height >> 1)`) gives the
 // original's `add edx, ecx` operand order in the half-height test, and the two includes
@@ -52,8 +52,12 @@
 // has to reload it. v3/v4 (one Vec3 by value, the other by pointer) 76.8% and 75.2%,
 // w8 (`const Vec3&`) 75.2%, and a Vec3 class with a user copy constructor does
 // not emit the function at all (0 bytes).
+// GPT-6.1-sol attempted two-field by-value aggregates with 8-byte and padded 12-byte
+// layouts; both changed the frame/register allocation and scored 75.2%. A malformed
+// aggregate call failed to compile. Best remains 93.7%, with the line-of-fire block
+// differences described above.
 // Conclusion: the by-value Vec3 pair is right, and the last 6.3% is one register
-// allocator decision inside the line-of-fire block. It is not an operand order, a
+// allocator decision inside the line-of-fire block. Lead #1431 introduced a local pointer to unit2->pos at the call site; output stayed byte-identical at 93.7%. It is not an operand order, a
 // frame size, a call count or a convention problem, and it is not reachable by
 // reordering the arguments.
 #include <stdlib.h>

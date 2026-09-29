@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Sonnet 5.5 retry (#1080): no change to the code. /Gz and /Gr give the same 80.9%. The original zero in edx is not reachable with an `int zero = 0` local, a local assigned 0 in both arms, or named locals for the call results, the drag flag, the holder and the offset (about 150 variants): MSVC folds every one back to immediates. In 0x4a3ef0 a zero local that is reassigned LATER (`int lines = 0;` then `lines = ...` in one arm), declared after the last call before the block, did create the zero register, so look for a real variable in this block that starts at 0 and is reassigned on some path.
 // Not a match yet, 80.9%. The whole prologue, the entry-address computation,
 // the 24-byte point copy, the FUN_004a23b0 call, both FUN_004ab510 tail
 // blocks (right-button arm down to `mov [ebp+0x94], dx`) and the whole

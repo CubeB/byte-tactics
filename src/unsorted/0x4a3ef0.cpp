@@ -1,64 +1,38 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL, 652 bytes against 629, everything below the entry search matches by
-// construction but nothing is byte identical yet. The gap is register
-// allocation only, and this is what is known about it.
-//
-// What the function is: the list gadget's scroll-up step, the mirror image of
-// 0x4a99c0 (scroll down). It finds the entry of type 2 whose +0x01 byte equals
-// this entry's, then, according to which of the flag bits 0x10, 0x20 and 0x80
-// that entry carries, rescales the scroll window (flag 0x10), recomputes the
-// pixel size of a line from the glyph table (0x20) or from two window fields
-// (0x80), and finally refreshes the gadget with FUN_004a2580. All three arms
-// store +0x142 (the new line size) and +0x136 (the new scroll position).
-//
-// Facts worth keeping:
-// - The array index is param_2, not param_1. At 0x4a3f00 only three pushes have
-//   happened, so [esp+0x1c] is the second argument; at 0x4a414c all four have,
-//   and the tail pushes [esp+0x20] then [esp+0x1c], that is
-//   FUN_004a2580(param_1, param_2). Both callers push the object first.
-// - The entry stride is 0x15b and the entry fields used here are +0x00 type
-//   byte, +0x01 the byte the search matches, +0x17, +0x19, +0x1b (read as a
-//   dword here, and as a byte for bit 0 in the other two arms), +0x28 group,
-//   +0xb6 count (entry 0 only), +0xc0, +0xc6, +0xd6 id, +0xda, +0x136, +0x142.
-// - MSVC 5 spells `x == 0` as a compare against a zeroed register here, twice:
-//   `xor ecx,ecx; cmp eax,ecx` at 0x4a3f4e and `cmp dx,cx` at 0x4a40fb (ecx is
-//   still the zero from 0x4a3f4e). Keep those as `== 0`, not `!x`.
-// - The type 7 loop at 0x4a3f92 is exactly the shape that matched in 0x4a99c0
-//   and 0x4a30c0: counter spilled to [esp+0x10], cursor in eax, group reloaded
-//   inside the loop, `if (i == count + 1) FUN_004c1420(current)` after it.
-// - The float block stores an int temp at [esp+0x10], divides by the int at
-//   [esp+0x14], then overwrites [esp+0x14] with `me->field_19 - 3` and
-//   multiplies, so the source is one double expression, not three statements.
-// - The tail at 0x4a4143/0x4a4145 is shared by all three arms:
-//   `field_136 = field_19 - <size in eax>`; the 0x10 arm reaches 0x4a4145 with
-//   `field_19 - field_142 - 3` already subtracted, so it must be spelled
-//   `me->field_19 - me->field_142 - 3` and not a parenthesised sum.
-//
-// What still differs: the original keeps `entries` in ebp, `me` in esi, the
-// found entry in ebx, the loop index in eax, the loop cursor in edi, count+1 in
-// edx, and loads `me->kind` into cl before the first loop, and it re-reads both
-// parameters from their stack slots instead of ever copying a parameter into a
-// register. Its live set inside the first loop is therefore six values in seven
-// registers. Every spelling tried here gives seven live values, because MSVC
-// copies param_2 into ebx for the final call, and one value too many costs two
-// spills: `entries` is spilled to [esp+0x10] and reloaded inside the first loop
-// (because the byte compare has to use dl), and the type 7 loop spills and
-// reloads its cursor around the counter increment.
-// Shapes tried, all worse or equal: `found` as a separate variable set from a
-// separate index; the index itself as the answer with an
-// `if (found == count + 1) found = 0;` fixup (this adds a compare and a second
-// `add edi, 0x15b`); a `while` loop with the cursor walked by hand; an
-// uninitialised `found`; an explicit cursor versus indexing `entries[i]`; both
-// orders of the two comparisons in the search condition; `int`/`char`/`unsigned
-// char` for the kind local; the loop index declared before or after `found`.
-// A sweep of N unused `extern int dummyN;` declarations in front of this source,
-// N = 0 to 320 in steps of 16, changed neither the code nor the score, so the
-// compiler state is not the lever here and the source shape is.
+// PARTIAL, 56.0% (635 bytes against 629), up from 15.0% (Sonnet 5.5 retry, #1080).
+// The list gadget's scroll-up step, the mirror image of 0x4a99c0: find the entry
+// of type 2 whose +0x01 byte equals this entry's, then, by the flag bits 0x10,
+// 0x20 and 0x80 of that entry, recompute the size of a line (+0x142) and the
+// scroll position (+0x136), and refresh the gadget with FUN_004a2580.
+// What the retry found (each one is worth a lot, check them before anything else):
+// - The entry search is an INLINE FUNCTION with `return i` inside the loop and
+//   `return 0` after it (the original has `xor eax,eax` on the not-found path and
+//   a join, no compare). A `found = i; break;` loop gives a different shape.
+// - The float block is float arithmetic: `(float)step / last * (me->field_19 - 3)`
+//   gives `fild/fidiv/fimul`; with `(double)` casts MSVC emits `fild/fmulp`.
+// - The 0x10 arm's tail is `if (last <= step) field_136 = 0; else field_136 =
+//   me->field_19 - me->field_142 - 3;` (the false arm falls through, `jg` to the
+//   true one), and the arms share the tail `sub edi,eax; mov [esi+0x136],di`.
+// - A zero-initialised local declared right AFTER the search call and assigned
+//   later in the 0x20 arm (`int lines = 0;`) is what makes MSVC keep a zero in a
+//   register for the whole function: `xor ecx,ecx; cmp eax,ecx`, `n = 0` stored
+//   from it, `cmp dx,cx` in the 0x80 arm and `lines` living in ecx in the 0x20
+//   arm. Declared before the search, or inside the arm, it does not happen.
+// What still differs: the original keeps `entries` in ebp, `me` in esi, the found
+// entry in ebx and the zero in ecx (sharing it with the kind byte cl before it).
+// Here the zero takes ebp and `entries` lives in ecx and is spilled to
+// [esp+0x14]. Declaring `lines` as `char` instead gives the original's allocation
+// for the first 40 instructions (77.2%, 633 bytes) but changes what the code
+// computes (the divisor is truncated to a byte), so it is not used. Moving the
+// declarations of every other local (about 600 random placements), the type of
+// `lines`, a `zero` local used for the compares, and `n` at function scope did
+// not help. The original also loads param_1 before `sub esp,8` and re-reads both
+// parameters from their stack slots; ours loads param_2 into edx early.
 //
 // Suspected original bug: in the 0x20 arm the divisor is left as the zero that
-// `xor ecx,ecx` at 0x4a3f4e put in ecx when `e->field_c0 <= 0`
-// (0x4a40b2 jumps over the setup), and 0x4a40d1 divides by it. The 0x80 arm
-// guards its divisors with `test`, this arm does not.
+// the zero register holds when `e->field_c0 <= 0` (the jle at 0x4a40b2 jumps
+// over the setup), and 0x4a40d1 divides by it. The 0x80 arm guards its divisors
+// with `test`, this arm does not.
 
 #pragma pack(push, 1)
 struct Entry_004a3ef0 {                // 0x15b bytes
@@ -112,21 +86,23 @@ int __stdcall FUN_004b7f30(unsigned short* param_1, int param_2);
 int FUN_004c1450();
 void __stdcall FUN_004a2580(Class_004a3ef0* param_1, int param_2);
 
+static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
+{
+    for (int i = 1; i < entries->count + 1; i++) {
+        if (entries[i].type == 2 && entries[i].kind == kind)
+            return i;
+    }
+    return 0;
+}
+
 // FUNCTION: 0x4a3ef0
 void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
 {
     Entry_004a3ef0* entries = param_1->holder->entries;
     Entry_004a3ef0* me = &entries[param_2];
     unsigned char kind = me->kind;
-    Entry_004a3ef0* entry = entries + 1;
-    int i;
-    int found = 0;
-    for (i = 1; i < entries->count + 1; i++, entry++) {
-        if (entry->type == 2 && entry->kind == kind) {
-            found = i;
-            break;
-        }
-    }
+    int found = Find_004a3ef0(entries, kind);
+    int lines = 0;
     if (found != 0) {
         Entry_004a3ef0* e = &entries[found];
         if (e->type == 2) {
@@ -150,18 +126,17 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                 int span = (size + 1 > e->field_da) ? size + 1 : e->field_da;
                 int step = (e->field_19 - 2) / span;
                 int last = e->field_c0;
-                int rows = (int)((double)step / (double)last * (me->field_19 - 3));
+                int rows = (int)((float)step / last * (me->field_19 - 3));
                 me->field_142 = rows;
                 if (me->field_142 < 10) {
                     me->field_142 = 10;
                 }
-                if (last > step) {
-                    me->field_136 = me->field_19 - me->field_142 - 3;
-                } else {
+                if (last <= step) {
                     me->field_136 = 0;
+                } else {
+                    me->field_136 = me->field_19 - me->field_142 - 3;
                 }
             } else if (e->field_1b & 0x20) {
-                int lines = 0;
                 if (e->field_c0 > 0) {
                     int a = *(int*)e->field_c6;
                     int b = *(int*)(a + 0x28);

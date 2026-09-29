@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Sonnet 5.5 retry (#1080): no change to the code. /Gz and /Gr give the same 98.7%. Replacing the SIB operand order (about 150 spellings of the colour byte read, param_1 as int, a local copy of param_1, address-of-field forms) and the surface load (all orders of x, colour, y2 and a surface local) never moved either difference: both look like the same compiler-state effect.
 // PARTIAL, 98.7% (661 bytes against 661, six instructions differ). Everything
 // from the prologue to the tail of the marker box matches instruction for
 // instruction. The six that do not are described at the bottom.

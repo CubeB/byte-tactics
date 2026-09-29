@@ -1,8 +1,14 @@
-// Decompiled by LongCat 2.5 Preview Free. Names are provisional.
-// GAVE UP: Register allocation differences throughout. Original saves `this` on stack
-// and reloads into ebp/edi/ecx/edx at different points, while mine keeps it in a register.
-// Prologue push order differs (original: ecx,esi then edi,ebp,ebx; mine: ecx,esi,edi then ebp,ebx).
-// Result of FUN_004aa8f0 saved at different stack offset. 80.3% match.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free. Names are provisional.
+// MATCH. Notes on the shape, since they are not obvious from the disassembly:
+//  * The object is passed as the FIRST STACK argument; ecx (`this`) is dead on entry,
+//    which is why the prologue saves a register it never reads. The result of
+//    FUN_004aa8f0 is the object that gets the vtable slot at +8, not the argument.
+//  * `push ecx` is the 4-byte frame local, not a save: it holds the FUN_004aa8f0
+//    result, and later the "TITL" entry, whose live ranges do not overlap.
+//  * The empty-path test is `strlen(cwd) == 0`. MSVC 5's inlined strlen leaves
+//    length+1 in ecx after `not ecx`, so the compare against 0 becomes `dec ecx / jne`.
+//    Written as `cwd[0] == 0` it folds to a byte test instead, and as `== 1` it grows
+//    a `cmp ecx, 1`.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -31,7 +37,8 @@ struct Class_004afa30 {
     char unknown_1c[0xcca - 0x1c];  // +0x1c
     int field_cca;                   // +0xcca
 
-    Class_004af5b0* FUN_004afa30(char* gui_name, char* arg2, char* arg3, int arg4);
+    // self is really the first stack argument, not `this`.
+    Class_004af5b0* FUN_004afa30(Class_004afa30* self, char* arg2, char* arg3, char* arg4);
 };
 
 struct Entry_004a0010 {
@@ -54,41 +61,42 @@ Entry_004a0010* __stdcall FUN_004a0200(Entry_004a0010* entries, char* name);
 Entry_004a0010* __stdcall FUN_0049ff10(Entry_004a0010* entries, char* name);
 void __stdcall FUN_0049fa90(Class_004afa30* obj);
 void __stdcall FUN_004af5b0(Class_004af5b0* obj);
-void* FUN_004aa8f0(void* param_1, char* param_2, int param_3);
+void* __stdcall FUN_004aa8f0(void* param_1, char* param_2, int param_3);
+void FUN_004af670();
 
 // FUNCTION: 0x4afa30
-Class_004af5b0* Class_004afa30::FUN_004afa30(char* gui_name, char* arg2, char* arg3, int arg4)
+Class_004af5b0* Class_004afa30::FUN_004afa30(Class_004afa30* self, char* arg2, char* arg3, char* arg4)
 {
-    void* result = FUN_004aa8f0(gui_name, "FILEREQ.GUI", 0);
-    if (result == NULL) {
+    void* gui = FUN_004aa8f0(self, "FILEREQ.GUI", 0);
+    if (gui == NULL) {
         return NULL;
     }
 
     Class_004af5b0* obj = (Class_004af5b0*)FUN_004d83b0((unsigned int)"FILE REQUESTER DATA", 0x24c);
-    obj->gui = gui_name;
-    strcpy(obj->cwd, this->path);
+    obj->gui = (char*)self;
+    strcpy(obj->cwd, arg2);
     FUN_004bb120(obj->cwd);
 
-    if (obj->cwd[0] == '\0') {
+    if (strlen(obj->cwd) == 0) {
         strcpy(obj->cwd, "NO PATH");
     }
 
-    ((void**)result)[2] = (void*)0x4af670;
-    ((void**)result)[3] = obj;
+    ((void**)gui)[2] = (void*)FUN_004af670;
+    ((void**)gui)[3] = obj;
     obj->field_244 = 0;
 
-    Entry_004a0010* entries = (Entry_004a0010*)((char**)this->field_18)[1];
+    Entry_004a0010* entries = (Entry_004a0010*)((char**)self->field_18)[1];
     obj->field_8 = (char*)FUN_004a0010(entries, "NAME");
     obj->field_c = (char*)FUN_004a0010(entries, "MASK");
     obj->field_10 = (char*)FUN_0049ff10(entries, "PATH");
     Entry_004a0010* titl = FUN_004a0180(entries, "TITL");
     obj->field_4 = (void*)FUN_004a0200(entries, "SLID");
 
-    *(short*)((char*)entries + 0x13) = -1;
-    *(short*)((char*)entries + 0x15) = -1;
-    strcpy((char*)titl + 0xb6, arg2);
-
-    this->field_13 = -1;
+    short none = -1;
+    *(short*)((char*)entries + 0x13) = none;
+    *(short*)((char*)entries + 0x15) = none;
+    strcpy((char*)titl + 0xb6, arg4);
+    *(short*)((char*)titl + 0x13) = none;
 
     obj->field_234 = (int)FUN_004d83b0((unsigned int)"FILE NAMES", 0x17700);
     memset((void*)obj->field_234, -1, 0x17700);
@@ -102,13 +110,13 @@ Class_004af5b0* Class_004afa30::FUN_004afa30(char* gui_name, char* arg2, char* a
     FUN_004bb150(arg2);
 
     strcpy((char*)obj->field_8 + 0xb6, arg2);
-    strcpy((char*)obj->field_c + 0xb6, arg2);
+    strcpy((char*)obj->field_c + 0xb6, arg3);
 
     FUN_004bc2e0(obj->drive);
     FUN_004bc320(obj->drive, obj->unknown_134, 0x100);
     FUN_004af5b0(obj);
 
-    FUN_0049fa90(this);
+    FUN_0049fa90(self);
 
     return obj;
 }

@@ -2255,6 +2255,7 @@ address,size,file,symbol,status,similarity
 0x4aa850,128,src/unsorted/0x4aa850.cpp,?FUN_004aa850@@YGXPAVClass_0051fba4@@@Z,matched,100.0
 0x4aa8d0,6,src/unsorted/0x4aa8d0.cpp,?FUN_004aa8d0@@YAHXZ,matched,100.0
 0x4aa8e0,13,src/unsorted/0x4aa8e0.cpp,?FUN_004aa8e0@@YGXPAHH@Z,matched,100.0
+0x4aa8f0,1762,src/unsorted/0x4aa8f0.cpp,?FUN_004aa8f0@@YGPAULayer_004aa8f0@@PAUMenu_004aa8f0@@PBDI@Z,partial,32.7
 0x4aafe0,91,src/unsorted/0x4aafe0.cpp,?FUN_004aafe0@@YGHPAUObject_004aafe0@@@Z,matched,100.0
 0x4ab040,17,src/unsorted/0x4ab040.cpp,?FUN_004ab040@@YGHPAUClass_004ab040@@@Z,matched,100.0
 0x4ab060,50,src/unsorted/0x4ab060.cpp,?FUN_004ab060@@YGHPAUObject_004ab060@@PBD@Z,matched,100.0
@@ -2278,6 +2279,7 @@ address,size,file,symbol,status,similarity
 0x4ab690,20,src/unsorted/0x4ab690.cpp,?FUN_004ab690@@YGXPAXH@Z,matched,100.0
 0x4ab6b0,10,src/unsorted/0x4ab6b0.cpp,?FUN_004ab6b0@@YGHPAUObject@@@Z,matched,100.0
 0x4ab6c0,82,src/unsorted/0x4ab6c0.cpp,?FUN_004ab6c0@@YGXPAUControl_004ab6c0@@PAXPADHH@Z,matched,100.0
+0x4ab720,1015,src/unsorted/0x4ab720.cpp,?FUN_004ab720@@YGHPAUControl_004ab720@@HH@Z,partial,79.7
 0x4abb20,122,src/unsorted/0x4abb20.cpp,?FUN_004abb20@@YGHPAUSub_004abb20@@PAD@Z,matched,100.0
 0x4abba0,44,src/unsorted/0x4abba0.cpp,?FUN_004abba0@@YGXPAUGadget_004abba0@@@Z,matched,100.0
 0x4abbd0,295,src/unsorted/0x4abbd0.cpp,?FUN_004abbd0@@YGHPAUSub_004abbd0@@PAD11@Z,matched,100.0
@@ -2305,6 +2307,7 @@ address,size,file,symbol,status,similarity
 0x4acd00,159,src/unsorted/0x4acd00.cpp,?FUN_004acd00@@YGXPAUClass_004bbbe0@@PADH@Z,matched,100.0
 0x4acda0,55,src/unsorted/0x4acda0.cpp,?FUN_004acda0@@YGXPAUClass_004bbbe0@@H@Z,matched,100.0
 0x4acde0,108,src/unsorted/0x4acde0.cpp,?FUN_004acde0@@YGXPAUClass_004bbbe0@@PAD1H@Z,matched,100.0
+0x4ace50,1280,src/unsorted/0x4ace50.cpp,?FUN_004ace50@@YGXPAUCommon_004ad350@@PAUClass_004bbbe0@@H@Z,matched,100.0
 0x4ad350,407,src/unsorted/0x4ad350.cpp,?FUN_004ad350@@YGXPAUCommon_004ad350@@PAUTree_004ad350@@@Z,matched,100.0
 0x4ad4f0,914,src/unsorted/0x4ad4f0.cpp,?FUN_004ad4f0@@YGXPAUObj_004ad4f0@@PAUClass_004bbbe0@@H@Z,matched,100.0
 0x4ad890,225,src/unsorted/0x4ad890.cpp,?FUN_004ad890@@YGXPAUObj_004ad890@@PAUSource_004ad890@@@Z,matched,100.0

@@ -2230,6 +2230,7 @@ address,name
 0x4acd00,FUN_004acd00
 0x4acda0,FUN_004acda0
 0x4acde0,FUN_004acde0
+0x4ace50,FUN_004ace50
 0x4ad350,FUN_004ad350
 0x4ad4f0,FUN_004ad4f0
 0x4ad890,FUN_004ad890
@@ -4314,6 +4315,7 @@ address,name
 0x51fb9c,DAT_0051fb9c
 0x51fba0,DAT_0051fba0
 0x51fba4,DAT_0051fba4
+0x51fba8,DAT_0051fba8
 0x51fbb8,DAT_0051fbb8
 0x51fbbc,std::HH::HU?$pair::?$_Tree::_Nil
 0x51fbc0,DAT_0051fbc0$S425

@@ -1,17 +1,23 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 89.1% (1013 vs 1004 bytes). The whole body is correct; what remains
-// is register allocation only:
-//  - the "%d/%d/%d %02d:%02d:%02d" sprintf keeps fatTime in eax and fatDate in
-//    ecx; the original has them the other way round (fatDate in eax, loaded
-//    right after the strlen, fatTime in ecx).
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL 92.6% (1005 vs 1013 bytes). The body is correct; what remains is
+// register allocation and one address-mode fold:
+//  - the fat date/time fields: reading fatDate into an `unsigned int` local at
+//    the top of the block is what puts the date in eax and fatTime in ecx, with
+//    the strlen's not/dec ahead of the two loads: that block is now instruction
+//    for instruction the original's. Reading the two WORDs straight in the
+//    sprintf arguments gives the mirror image (fatTime in eax) and is 17 points
+//    worse. What is left there is only that the local reverses the two WORD
+//    slots, so fatDate sits at esp+0xc and fatTime at esp+0x14, the other way
+//    round from the original.
 //  - PE link-time pointer: original does `mov ecx,[eax+0x3c]; add ecx,eax;
-//    lea ebx,[ecx+8]`; MSVC folds ours into `lea ebx,[ecx+eax+8]` whatever the
-//    source split (tried IMAGE_NT_HEADERS and a char* ntBase local).
-//  - GlobalMemoryStatus arg: original loads `lea eax,[esp+0x24]`, ours edx.
-//  - `%d MBytes physical memory` / `Stack goes from` args: eax vs edx roles
-//    swapped around the strlen scan.
-// The `char* p; p = buf + strlen(buf); sprintf(p, ...)` form is needed for
-// every append EXCEPT "%s, run by %s on %s\n", which must stay inline.
+//    lea ebx,[ecx+8]`; MSVC folds ours into `lea ebx,[ecx+eax+8]` for every
+//    spelling tried (IMAGE_NT_HEADERS, an explicit ntBase local, a DWORD
+//    lfanew local, an unsigned int base, `&nt[2]`, `nt + 2`, compound +=).
+//  - the "%d processors" / "1 processor" if/else: the original repeats
+//    `lea edi,[buf]` in both arms, ours hoists it above the `cmp`, and the
+//    original's second arm puts the pointer in edx where ours uses eax.
+//  - GlobalMemoryStatus arg: original loads `lea eax,[esp+0x24]`, ours edx
+//    (a pointer local for &memStatus does not change it).
 #include <windows.h>
 #include <time.h>
 #include <stdlib.h>
@@ -72,10 +78,13 @@ void __cdecl FUN_004ded60(char* dest, int destLen)
             if (FileTimeToLocalFileTime(&ft, &ft)) {
                 if (FileTimeToDosDateTime(&ft, &fatDate, &fatTime)) {
                     p = buf + strlen(buf);
-    sprintf(p,
+                    {
+                        unsigned int d = fatDate;
+                    sprintf(p,
                         "Executable is %d bytes long and dated %d/%d/%d %02d:%02d:%02d\n",
-                        fileSize, fatDate & 0xf, (fatDate >> 5) & 0x1f, (fatDate >> 9) + 1980,
+                        fileSize, d & 0xf, (d >> 5) & 0x1f, (d >> 9) + 1980,
                         fatTime >> 11, (fatTime >> 5) & 0x3f, (fatTime & 0x1f) * 2);
+                    }
                 }
             }
         }

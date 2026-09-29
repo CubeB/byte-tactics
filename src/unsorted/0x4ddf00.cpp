@@ -1,5 +1,5 @@
-// Decompiled by Opus. Names are provisional.
-// Codex / GPT-6 retest in #13:
+// Decompiled by Opus, finished by GPT-6.1-sol. Names are provisional.
+// Codex / GPT-6 retest in #13 and GPT-6.1-sol fix pass in #1338:
 // pointer-typed image bases, DWORD-sized arithmetic, a directory
 // reference and an RVA helper did not fix the final eax/ecx operand order.
 // Constructor of the loaded-image reader (the function-local static at
@@ -40,7 +40,8 @@ public:
 // The count must be stored before debugDirs is cleared (that order makes
 // MSVC reload ntHeaders for the final sum, as the original does). Still
 // different: the original loads imageBase into eax and the RVA into ecx for
-// that sum; every spelling, type and header set tried gives the swapped pair.
+// that sum; pointer/integer spellings, header sets, and reversed addition
+// operands still give the swapped pair. The final diff is only that sum.
 // FUNCTION: 0x4ddf00
 Class_004ddf00::Class_004ddf00(HMODULE m) : Class_004e1560(0)
 {
@@ -57,5 +58,5 @@ Class_004ddf00::Class_004ddf00(HMODULE m) : Class_004e1560(0)
     numDebugDirs = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].Size / sizeof(IMAGE_DEBUG_DIRECTORY);
     debugDirs = 0;
     if (numDebugDirs)
-        debugDirs = (IMAGE_DEBUG_DIRECTORY*)(ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress + imageBase);
+        debugDirs = (IMAGE_DEBUG_DIRECTORY*)(imageBase + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
 }

@@ -1,66 +1,77 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// Still short of MATCH (about 60 percent of instructions match). What differs:
-// the callee saved register ROTATION, which is one allocator state and not a
-// per block problem. The original holds the zero constant in ebp (which then
-// becomes bestidx) and keeps this in esi, spilling this to [esp+0x18] and
-// reusing esi for the list index. This version puts the zero constant in esi
-// (which becomes the index) and keeps this in ebp, so bestidx lands in a
-// stack slot and the frame is 8 dwords instead of 7. Everything downstream
-// (the [esp+0x18] this reloads, the mov edi/edx/ecx choices, setne dl versus
-// cl) follows from that one difference. Tried and did NOT change the
-// rotation: declaring best/bestidx at the top of the function, declaring
-// unit/slot after the while loop, swapping their declaration order, a
-// function level loop index, and an extra reference to this.
-// Layout facts used here: the four entry list is argument 2, the position is
-// argument 3, argument 1 is never read, the table fields are count +0x30,
-// counters +0x34, buffers +0x38, priorities +0xb8, flags +0x138, and the
-// caller's f00 takes the constant at 0x4fcf68 plus an out parameter.
-// Picks a free sound channel from a four entry list of sound objects: a valid
-// one in the list is taken as is, otherwise the object with the highest
-// priority is recycled, or list[0] is cloned when the list has a free slot.
-// The chosen object is then set up and filed in the channel table at +0x38.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Picks a free sound channel from a four entry set of sound objects: a valid
+// one in the set is taken as is, otherwise the one with the highest priority is
+// recycled, or set[0] is cloned when the set has a free slot. The chosen object
+// is then set up and filed in the channel table at +0x38.
+// Layout: argument 1 is the four entry set, argument 2 is passed to the +0x3c
+// method, argument 3 is a position (int x/y/z). Table fields: count +0x30,
+// counter +0x34, buffers +0x38, priorities +0xb8, flags +0x138, factory +0x24.
+//
+// Not MATCH (80.2): the code is byte-identical to the original except for one
+// allocator state. The original keeps this in esi and the shared zero constant
+// in ebp, spilling this to [esp+0x18], so ebp later becomes bestidx and esi is
+// reused as the loop index. This version keeps this in ebp and the zero in esi,
+// so bestidx gets a stack slot at [esp+0x1c] and slot moves to [esp+0x18]. Every
+// other difference (the [esp+0x18] this reload, mov edi/esi choices, the
+// set[bestidx] index) follows from that one rotation.
+// Tried and did NOT change the rotation: the interface calls as virtual
+// __stdcall methods (that fixed 24 points on its own; function-pointer members
+// were wrong) versus data members; an explicit self pointer or reference alias
+// for this; an inline helper for the DAT scan taking this as an argument; the
+// declarations of unit/slot/best/bestidx in every order and at every scope;
+// bestidx declared after the null check; an early-continue loop form; swapping
+// the first loop's condition order; set aliased to a local; and Windows/stdio/
+// stdlib/string/math/dsound headers.
 extern int DAT_0051ff48;
-struct Chan_004cf570;
-struct Unit_004cf570;
+
 struct Info_004fcf68 {
     int dummy;
 };
 extern const Info_004fcf68 DAT_004fcf68;
+
 struct Pos_004cf570 {
     int x, y, z;
 };
 
-struct Unit_004cf570 {
-    int (__stdcall *f00)(Unit_004cf570*, const Info_004fcf68*, Chan_004cf570**);
-    int (__stdcall *f10)(Unit_004cf570*, unsigned int*, unsigned int*);
-    int (__stdcall *f24)(Unit_004cf570*, Unit_004cf570**);
-    int (__stdcall *f30)(Unit_004cf570*, int, int, int);
-    int (__stdcall *f34)(Unit_004cf570*, int);
-    int (__stdcall *f3c)(Unit_004cf570*, Pos_004cf570*);
+// Sound object interface. The original calls it through its vtable as a
+// __stdcall method with the object as the first stack argument (COM style).
+class Unit_004cf570 {
+public:
+    virtual int __stdcall FUN_004cf5e0(const Info_004fcf68* info, Unit_004cf570** out);
+    virtual int __stdcall FUN_004cf5e4();
+    virtual int __stdcall FUN_004cf5e8();
+    virtual int __stdcall FUN_004cf5ec();
+    virtual int __stdcall FUN_004cf5f0(unsigned int* a, unsigned int* b);
+    virtual int __stdcall FUN_004cf5f4();
+    virtual int __stdcall FUN_004cf5f8();
+    virtual int __stdcall FUN_004cf5fc();
+    virtual int __stdcall FUN_004cf600();
+    virtual int __stdcall FUN_004cf604(Unit_004cf570** out);
+    virtual int __stdcall FUN_004cf608();
+    virtual int __stdcall FUN_004cf60c();
+    virtual int __stdcall FUN_004cf610(int a, int b, int c);
+    virtual int __stdcall FUN_004cf614(int a);
+    virtual int __stdcall FUN_004cf618();
+    virtual int __stdcall FUN_004cf61c(int a);
+    virtual int __stdcall FUN_004cf620(int a, int b);
+    virtual int __stdcall FUN_004cf624(int a, int b);
+    virtual int __stdcall FUN_004cf628(int a, int b);
+    virtual int __stdcall FUN_004cf62c(float x, float y, float z, float w);
 };
 
-struct Chan_004cf570 {
-    int (__stdcall *f08)(Chan_004cf570*);
-    int (__stdcall *f40)(Chan_004cf570*, int, int);
-    int (__stdcall *f44)(Chan_004cf570*, int, int);
-    int (__stdcall *f48)(Chan_004cf570*, int, int);
-    int (__stdcall *f4c)(Chan_004cf570*, float, float, float, float);
-};
-
-struct Factory_004cf570 {
-    int pad[5];
-    int (__stdcall *f14)(Factory_004cf570*, Unit_004cf570*, Unit_004cf570**);
+// Factory interface, used to clone a set entry (method at vtable +0x14).
+class Factory_004cf570 {
+public:
+    virtual int __stdcall FUN_004cf630();
+    virtual int __stdcall FUN_004cf634();
+    virtual int __stdcall FUN_004cf638();
+    virtual int __stdcall FUN_004cf63c();
+    virtual int __stdcall FUN_004cf640();
+    virtual int __stdcall FUN_004cf644(Unit_004cf570* src, Unit_004cf570** out);
 };
 
 class Class_004cf180 {
 public:
-    char unknown_0[0x30];
-    int count;
-    char unknown_34[4];
-    void* buffers[0x20];
-    int priority[0x20];
-    int flags[0x20];
-
     void FUN_004cf180();
 };
 
@@ -78,20 +89,21 @@ public:
     Factory_004cf570* field_24;
     int field_28;
     int field_2c;
-    int count;
+    int count;                              // +0x30
     int field_34;
-    Unit_004cf570* buffers[0x20];
-    int priority[0x20];
-    int flags[0x20];
+    Unit_004cf570* buffers[0x20];           // +0x38
+    int priority[0x20];                     // +0xb8
+    int flags[0x20];                        // +0x138
 
-    int FUN_004cf570(int arg1, Unit_004cf570** list, Pos_004cf570* pos);
+    int FUN_004cf570(Unit_004cf570** set, int arg2, Pos_004cf570* pos);
 };
 
 // FUNCTION: 0x4cf570
-int Class_004cf570::FUN_004cf570(int arg1, Unit_004cf570** list, Pos_004cf570* pos)
+int Class_004cf570::FUN_004cf570(Unit_004cf570** set, int arg2, Pos_004cf570* pos)
 {
     Unit_004cf570* unit = 0;
     int slot = 0;
+    int bestidx = 0;
     if (DAT_0051ff48 != 0) {
         for (int i = 0; i < 0x20; i++) {
             if (buffers[i] != 0 && flags[i] == 1)
@@ -101,23 +113,22 @@ int Class_004cf570::FUN_004cf570(int arg1, Unit_004cf570** list, Pos_004cf570* p
     while (count >= field_2c)
         ((Class_004cf180*)this)->FUN_004cf180();
     unsigned int best = 0;
-    int bestidx = 0;
-    if (list == 0)
+    if (set == 0)
         return 0;
     for (int i = 0; i < 4; i++) {
-        if (list[i] != 0) {
+        if (set[i] != 0) {
             Unit_004cf570* c;
-            if (list[i]->f24(list[i], &c) != 0)
+            if (set[i]->FUN_004cf604(&c) != 0)
                 return 0;
             if (c == 0) {
-                unit = list[i];
+                unit = set[i];
                 break;
             }
             unsigned int a, b;
-            list[i]->f10(list[i], &a, &b);
+            set[i]->FUN_004cf5f0(&a, &b);
             if (a > best) {
-                best = a;
                 bestidx = i;
+                best = a;
             }
         } else {
             slot = i;
@@ -125,31 +136,31 @@ int Class_004cf570::FUN_004cf570(int arg1, Unit_004cf570** list, Pos_004cf570* p
     }
     if (unit == 0) {
         if (slot > 0) {
-            if (field_24->f14(field_24, list[0], &unit) != 0)
+            if (field_24->FUN_004cf644(set[0], &unit) != 0)
                 return 0;
-            list[slot] = unit;
+            set[slot] = unit;
         } else {
-            unit = list[bestidx];
-            unit->f34(unit, 0);
+            unit = set[bestidx];
+            unit->FUN_004cf614(0);
         }
     }
-    Chan_004cf570* chan;
-    if (unit->f00(unit, &DAT_004fcf68, &chan) == 0) {
+    Unit_004cf570* chan;
+    if (unit->FUN_004cf5e0(&DAT_004fcf68, &chan) == 0) {
         if (field_4 == 0 || pos == 0) {
-            chan->f48(chan, 2, 0);
+            chan->FUN_004cf628(2, 0);
         } else {
-            chan->f4c(chan, (float)pos->x, (float)pos->y, (float)pos->z, 0.0f);
-            chan->f44(chan, field_8, 0);
-            chan->f40(chan, field_c, 0);
-            chan->f48(chan, 0, 0);
+            chan->FUN_004cf62c((float)pos->x, (float)pos->y, (float)pos->z, 0.0f);
+            chan->FUN_004cf624(field_8, 0);
+            chan->FUN_004cf620(field_c, 0);
+            chan->FUN_004cf628(0, 0);
         }
-        chan->f08(chan);
+        chan->FUN_004cf5e8();
     }
-    if (unit->f34(unit, 0) != 0)
+    if (unit->FUN_004cf614(0) != 0)
         return 0;
-    if (unit->f3c(unit, pos) != 0)
+    if (unit->FUN_004cf61c(arg2) != 0)
         return 0;
-    if (unit->f30(unit, 0, 0, DAT_0051ff48 != 0) != 0)
+    if (unit->FUN_004cf610(0, 0, DAT_0051ff48 != 0) != 0)
         return 0;
     for (int j = 0; j < 0x20; j++) {
         if (buffers[j] == 0) {

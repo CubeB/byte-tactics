@@ -104,6 +104,35 @@
 // registers as the original in every spelling tried, and both movs are byte
 // identical.  Only WHICH of the two registers the add names as its destination
 // differs, so this is one 2-byte choice, not two.
+//
+// THIRD PASS (space-bunny-free, probe files build/scratch/0x4b3770/probe1.cpp
+// and probe2.cpp, scored from /Fa listings, not by check.py).  Two results
+// that narrow it further:
+//  1. It is NOT "the destination is the RIGHT operand": a plain integer add
+//     with the operands written the other way round still names the offset as
+//     the destination.  `(char*)((int)img.buf + (int)h.nameoff)` and
+//     `(char*)((unsigned)h.nameoff + (unsigned)img.buf)` and the `long`
+//     spellings all emit the same two movs in the same order and the same
+//     "add <off>,<base>".  So the swap is not in the frontend's operand order:
+//     the offset is the destination for every ORDER, which pins the cause on
+//     the integer-operand rule of PTRADD/BUSOP rather than on swapops.
+//  2. A NAMED LOCAL for the offset does flip the destination onto the base.
+//     In the probe, `int o = q->off; ... p_strcmpi(name, (char*)q->buf + o);`
+//     emits "mov ecx,[q+4] / mov eax,[q] / add eax,ecx": the base is the
+//     destination, because a local that C1 keeps in a register is not eligible
+//     to be the in-place destination, while the base's anonymous temporary is.
+//     The same holds with `long o` and with the assignment before the `if`.
+//     But in THIS function every such local is folded away by C1 (all six
+//     spellings: function-scope, block-scope, int, long, unsigned and a
+//     pointer-to-header read all end up loading h.nameoff straight into the
+//     add), and where one does survive (assigning it at the top of the
+//     function, scratch t5) the frame grows to 0xb8 and the load comes from
+//     the local's own slot, breaking every stack reference.
+//     Note also that in the probe the surviving local's load is emitted
+//     BEFORE the base's load, where the original has the base first, so even
+//     the winning shape would swap two movs rather than fix the add.  The two
+//     requirements (base in the destination, base loaded first) do not appear
+//     together in any shape found here.
 #include <string.h>
 #include <stdio.h>
 

@@ -81,6 +81,18 @@
 //    unconditional, so when the first loop ran off the end of the list (u already one
 //    past `end`) the scan starts two past it and can never fire. The "next eligible
 //    unit" arm is reachable only when the first loop broke on the 0x10 bit.
+//
+// deepseek-v4.1-flash wall check (issue 1252):
+//  * WALL CONFIRMED as a callee-saved register rotation, not a reference error. The
+//    original hit-block sequence `mov eax,[esi+0x110] / or eax,edx / mov [esi+0x110],eax`
+//    (bytes 8B 86 10 01 00 00 0B C2 89 86 10 01 00 00) occurs exactly once in
+//    TotalA.exe, at file offset 0x8ccc6 = VA 0x48d8c6 (the hit block itself). headers.py
+//    is flat at 92.2% for all 128 header sets. Free scratch variants that kept 92.2% and
+//    the same 392 bytes: named temp `f = u->u.flags | flag`, `u->u.flags = u->u.flags |
+//    flag`, a `short f = flag` copy, and a `p = u` pointer alias. Field-store-first drops
+//    to 71.3%. The residual is exactly the allocator choosing EDI for the OR temp and
+//    rematerialising edx=0x10, where the original spends EAX first and keeps edx live
+//    from 0x48d866. Nothing in the source shapes tried flips that tie.
 #pragma pack(push, 1)
 
 // The object at +0x86 of a unit. Bit 30 of the flags dword at +0x110 is the

@@ -1,22 +1,22 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // Load game screen click handler (sibling of 0x492df0, save game screen).
 //
-// PARTIAL 79.0% (1962 of 1964 bytes) after 4 check runs. The whole control
-// flow, struct layout and call sequence are in place; no block is missing.
-// Remaining differences, all register allocation / codegen shape:
-//   * The flags test at g_game+0x2a44 is written in the original as
-//     `mov cl,[..]; shr cl,2; test cl,1` (3 instructions, 3 sites). With
-//     `unsigned short flags_2a44` and `(flags >> 2) & 1` MSVC folds it to
-//     `test byte ptr [..],4`. An 8-bit field or a bitfield member may be
-//     needed to stop the fold, but the `and word ptr [..],0xfffb` clear in
-//     the BetweenMissions block wants a 16-bit field, so pick carefully.
-//   * The sprintf block keeps the path buffer in ecx/edx where the original
-//     used edx/eax, and the two FUN_0049ff90/FUN_004b6af0 pushes reorder.
-//   * Several `mov ecx,[g_game+0x38d6b]` reloads are scheduled slightly
-//     differently.
-// The struct needs #pragma pack(1); missing the 4-byte pad between the
-// pointer at +0x391e9 and +0x391f1 shifts every later g_game field by 4
-// (it showed up as +0x39237 instead of +0x3923b).
+// MATCHED (1964 of 1964 bytes).
+//
+// The last fault was a one-byte register-allocation difference that showed up
+// as jump targets one byte off: the store `g_game->p38d6b = 0;` after freeing
+// the save object used ecx for the g_game load where the original used the
+// 5-byte `mov eax, [g_game]`. The original source called the already-matched
+// helper 0x432590 (FUN_00432590, "if (obj) { obj->FUN_004b3630(); operator
+// delete(obj); }") and /Ob2 inlined it; reproducing that call through an
+// inline helper, with the field test outside it, gives the original's
+// registers at both delete sites. A bare local pointer could not.
+//
+// The game struct needs #pragma pack(1); missing the 4-byte pad between the
+// pointer at +0x391e9 and +0x391f1 shifts every later g_game field by 4.
+// The flags at +0x2a44 are a bitfield union: reading one gives the original's
+// `mov cl,[..]; shr cl,2; test cl,1` (a plain `(v >> 2) & 1` folds to
+// `test byte ptr [..],4`), and setting one still gives `or byte ptr`.
 #include <stdio.h>
 #include <string.h>
 
@@ -61,7 +61,16 @@ struct Game_00492360 {
     char unknown_29a4[0x2a3c - 0x29a4];
     short field_2a3c;                    // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
-    unsigned short flags_2a44;           // +0x2a44
+    union Flags_2a44 {
+        unsigned short value;
+        struct {
+            unsigned short b0 : 1;
+            unsigned short b1 : 1;
+            unsigned short b2 : 1;
+            unsigned short b3 : 1;
+            unsigned short rest : 12;
+        };
+    } flags_2a44;                        // +0x2a44
     char unknown_2a46[0x2cbe - 0x2a46];
     unsigned char field_2cbe;            // +0x2cbe
     char unknown_2cbf[0x148cf - 0x2cbf];
@@ -79,7 +88,16 @@ struct Game_00492360 {
     int field_391f1;                     // +0x391f1
     void (*field_391f5)();               // +0x391f5
     char unknown_391f9[0x3923b - 0x391f9];
-    unsigned char field_3923b;           // +0x3923b
+    union Flags_3923b {
+        unsigned short value;
+        struct {
+            unsigned short b0 : 1;
+            unsigned short b1 : 1;
+            unsigned short b2 : 1;
+            unsigned short b3 : 1;
+            unsigned short rest : 12;
+        };
+    } flags_3923b;                       // +0x3923b
 };
 #pragma pack(pop)
 
@@ -104,7 +122,7 @@ void __stdcall FUN_0041d4c0();
 char __stdcall FUN_0041d6a0(int flag);
 void __stdcall FUN_0041da30();
 void __stdcall FUN_004257a0();
-void __stdcall FUN_00425860(int code);
+void __stdcall FUN_00425860(int code, int line, char* file);
 void* __stdcall FUN_00432520(char* path);
 void __stdcall FUN_00432590(void* handle);
 void* __stdcall FUN_004325b0(char* path);
@@ -125,6 +143,14 @@ void FUN_004578f0(int param);
 char* __stdcall FUN_004c5740(char* text);
 void FUN_004d85a0(void* p);
 
+__inline void DeleteSave_00492360(Class_004b3630* obj)
+{
+    if (obj) {
+        obj->FUN_004b3630();
+        operator delete(obj);
+    }
+}
+
 // FUNCTION: 0x492360
 void __stdcall FUN_00492360(Gadget_00492360* gadget)
 {
@@ -135,7 +161,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         return;
 
     if (FUN_0049fd60(gadget, "CANCEL")) {
-        if ((g_game->flags_2a44 >> 2) & 1)
+        if (g_game->flags_2a44.b2)
             FUN_0049fa70(g_game->message);
         if (DAT_0051f2e0)
             FUN_004d85a0(DAT_0051f2e0);
@@ -191,15 +217,15 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
             g_game->field_2cbe = 20;
             FUN_004ab400(g_game->message, g_game->p148cf);
         }
-        if ((g_game->flags_2a44 >> 2) & 1)
+        if (g_game->flags_2a44.b2)
             FUN_0049fa70(g_game->message);
         FUN_0047f1a0("SMLBUTTON", 0);
         e = FUN_0049ff90(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", DAT_005091c8,
                 FUN_004b6af0(DAT_0051f2e0, e->field_ba));
-        if ((g_game->flags_2a44 >> 2) & 1)
+        if (g_game->flags_2a44.b2)
             FUN_00491b60();
-        g_game->field_3923b |= 8;
+        g_game->flags_3923b.b3 = 1;
 
         g_game->p38d6b = FUN_004325b0(g_game->saveName);
         if (g_game->p38d6b == 0)
@@ -228,8 +254,8 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         if (((Class_00435a20*)g_game->p391e9)->FUN_00435a20(mission) == 0)
             goto invalid;
         strcpy((char*)g_game->p29a0 + 0x11c, mission);
-        strncpy(g_game->buf391cf,
-                ((Class_004b48a0*)g_game->p38d6b)->FUN_004b48a0("Thumbs", 0), 0x19);
+        char* thumbs = ((Class_004b48a0*)g_game->p38d6b)->FUN_004b48a0("Thumbs", 0);
+        strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
             FUN_0041da30();
         if (((Class_00435100*)g_game->p391e9)->FUN_00435100() == 2) {
@@ -247,7 +273,7 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
             g_game->p29a0->field_114 =
                 ((Class_004b4800*)g_game->p38d6b)->FUN_004b4800("LineOfSightType", 1);
         }
-        g_game->flags_2a44 |= 4;
+        g_game->flags_2a44.b2 = 1;
         g_game->field_391f1 = 2;
         g_game->field_391f5 = FUN_00496bb0;
         FUN_004b4fd0(FUN_004578f0, 0);
@@ -266,25 +292,23 @@ void __stdcall FUN_00492360(Gadget_00492360* gadget)
         FUN_00491d70(1);
         if (((Class_00435100*)g_game->p391e9)->FUN_00435100() == 1 &&
             ((Class_004b48f0*)g_game->p38d6b)->FUN_004b48f0("BetweenMissions")) {
-            g_game->flags_2a44 |= 8;
+            g_game->flags_2a44.b3 = 1;
             if (g_game->p38d6b) {
-                ((Class_004b3630*)g_game->p38d6b)->FUN_004b3630();
-                operator delete(g_game->p38d6b);
+                DeleteSave_00492360((Class_004b3630*)g_game->p38d6b);
                 g_game->p38d6b = 0;
             }
-            g_game->flags_2a44 &= ~4;
+            g_game->flags_2a44.b2 = 0;
             g_game->field_391f1 = 2;
             g_game->field_391f5 = FUN_00496bb0;
             FUN_004b4fd0(FUN_004578f0, 0);
-            FUN_00425860(0xe);
+            FUN_00425860(0xe, 0x48c, "c:\\cavedog\\wargame\\wargame.cpp");
         }
         FUN_004257a0();
         return;
     }
 invalid:
     if (g_game->p38d6b) {
-        ((Class_004b3630*)g_game->p38d6b)->FUN_004b3630();
-        operator delete(g_game->p38d6b);
+        DeleteSave_00492360((Class_004b3630*)g_game->p38d6b);
     }
     g_game->p38d6b = 0;
     FUN_004abd90(gadget, FUN_004c5740("Invalid savegame file"), 0x140, 1, 1);

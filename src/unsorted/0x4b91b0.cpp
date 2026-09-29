@@ -1,4 +1,32 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (second pass, same session model): re-confirmed the
+// prologue is a genuine plateau, and pinned what does and does not reach the
+// allocator here. 24 further spellings of the pitch/count pre-block
+// (h*2*w, 2*h*w, h*(2*w), pitch*h, count*=pitch, w*h then shl, += doubling,
+// unsigned, separate assignments) all give the identical 420-byte body at
+// 51.7 percent; so do 6 loop-head spellings (x/y/base declared at function
+// scope, base as unsigned, while loops, x+base vs base+x). The loop spelling
+// therefore never reaches the allocator. The only spellings that move count
+// into ebx (as the original has it) are the y*w+x index or pitch*h, but each
+// then takes pitch into esi and either spills h (reloaded from [esp+0x38]) or
+// puts it in ebx, so the four callee-saved slots come out permuted. int hw/hh
+// with (short) casts regresses to 35.1 percent, so the short locals are load
+// bearing. Defining the real preceding function (0x4b90a0) above this one in
+// the scratch file changed nothing (still 51.7), as did <string>, <vector>,
+// <map>, <list> and <iostream>.
+// deepseek-v4.1-flash: the falloff quotient's SIGN was wrong. The disassembly's
+// `fisubr dword [esp+0x40]` computes `half_width - dist`, and `fdiv st,st(1)`
+// divides that by `scale`, so the correct expression is
+// `g = (hw - dist) / scale` and the value is
+// `hw + ((int)(dy / g) + hh) * w + (int)(dx / g) - (base + x)` (hw added
+// before the dy term, matching `add ecx,edx`). With the sign fixed the score
+// is unchanged at 51.7 percent, which confirms the remaining gap is only the
+// register rotation, not the arithmetic. The upstream cause is unchanged: the
+// original holds h in esi, pitch (2*w) in edi and count (2*w*h) in ebx across
+// the alloc call; every pre-block declaration order tried here either drops h
+// into memory (pitch takes esi) or reuses esi for count. Sweeps of the
+// pre-block (25 orders), the whole pitch/count/size spelling, and
+// tools/headers.py (128 sets, flat 51.7) did not move it.
 // PARTIAL, 51.7% (420 of 423 bytes; up from 45.6%). The 146-instruction
 // original is matched instruction for instruction in outline, so what is left
 // is register and slot placement, not missing code. About ninety shapes were
@@ -164,8 +192,8 @@ unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
             if ((int)dist >= thresh) {
                 f->cells[base + x] = 0x7d00;
             } else {
-                double g = (dist - hw) / scale;
-                f->cells[base + x] = (unsigned short)((((int)((double)dy / g)) + hh) * w + ((int)((double)dx / g)) + hw - (base + x));
+                double g = (hw - dist) / scale;
+                f->cells[base + x] = (unsigned short)(hw + (((int)((double)dy / g)) + hh) * w + ((int)((double)dx / g)) - (base + x));
             }
         }
         base += w;

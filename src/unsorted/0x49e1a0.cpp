@@ -303,7 +303,6 @@ void __stdcall FUN_0041c150(Unit_0049e1a0* unit);
 // FUNCTION: 0x49e1a0
 void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit)
 {
-    int index;
     unsigned short heading;
     unsigned char i;
     int dz;
@@ -312,15 +311,15 @@ void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit)
     Vec3_0049e1a0 pos;
     Vec3_0049e1a0 aim;
 
-    for (i = 0, index = 0; i < 3; i++, index++) {
+    for (i = 0; i < 3; i++) {
         Entry_0049e1a0* e = &unit->entries[i];
         unsigned char fl = e->flags;
         Target_0049e1a0* attached = e->attached;
         if (!(fl & 2))
             continue;
-        if (e->f_14)
+        if (e->f_14 > 0)
             e->f_14--;
-        if (!FUN_0048a1e0(unit, &pos, index)) {
+        if (!FUN_0048a1e0(unit, &pos, i)) {
             e->flags &= 0xfe;
             continue;
         }
@@ -379,7 +378,8 @@ void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit)
             }
             if (can == 0)
                 continue;
-            if (attached->f60(unit, &e->point, FUN_0048a190(unit, index), &pos) == 0)
+            Unit_0049e1a0* fired = FUN_0048a190(unit, i);
+            if (attached->f60(unit, &e->point, fired, &pos) == 0)
                 continue;
             if (attached->f_111.b28) {
                 e->f_1a--;

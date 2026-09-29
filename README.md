@@ -16,17 +16,17 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**58.65% of Cavedog's code matched** (499,050 of 850,853 bytes)
+**59.42% of Cavedog's code matched** (505,562 of 850,853 bytes)
 
-`[#######################-----------------]`
+`[########################----------------]`
 
-By count that is 2,939 of the game's 3,267 functions (90.0%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,944 of the game's 3,267 functions (90.1%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,939 | 499,050 |
-| Attempted, not yet matching | 231 | 210,165 |
-| Not attempted yet | 97 | 141,638 |
+| Matched byte-for-byte | 2,944 | 505,562 |
+| Attempted, not yet matching | 254 | 249,952 |
+| Not attempted yet | 69 | 95,339 |
 
 ### By function size
 
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 639 of 703 | 89.9% | 18,079 | `#########-` |
 | xl (401 to 600 bytes) | 183 of 226 | 80.3% | 21,729 | `########--` |
 | xxl (601 to 1,000 bytes) | 116 of 195 | 58.5% | 60,997 | `######----` |
-| huge (over 1,000 bytes) | 27 of 161 | 14.4% | 250,124 | `#---------` |
+| huge (over 1,000 bytes) | 32 of 161 | 16.6% | 243,612 | `##--------` |
 
 ### By area
 
@@ -54,9 +54,9 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x420000` | Frontend shell | 138 of 154 | 51.2% | 31,052 | `#####-----` |
 | `0x430000` | Maps, missions, briefings | 208 of 228 | 61.6% | 23,195 | `######----` |
 | `0x440000` | Multiplayer setup | 234 of 246 | 63.9% | 22,201 | `######----` |
-| `0x450000` | Options and audio menus | 155 of 176 | 56.0% | 27,775 | `######----` |
-| `0x460000` | Game and skirmish setup, unit classes | 186 of 212 | 50.3% | 30,576 | `#####-----` |
-| `0x470000` | Campaign and skirmish screens, resource bars | 227 of 259 | 60.5% | 25,088 | `######----` |
+| `0x450000` | Options and audio menus | 156 of 176 | 57.7% | 26,692 | `######----` |
+| `0x460000` | Game and skirmish setup, unit classes | 188 of 212 | 54.3% | 28,110 | `#####-----` |
+| `0x470000` | Campaign and skirmish screens, resource bars | 229 of 259 | 65.2% | 22,125 | `#######---` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 237 of 264 | 59.5% | 25,788 | `######----` |
 | `0x490000` | Config and registry, skirmish summary | 170 of 193 | 48.9% | 30,391 | `#####-----` |
 | `0x4a0000` | GUI layout and GAF | 171 of 201 | 44.2% | 35,813 | `####------` |

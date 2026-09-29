@@ -1,13 +1,18 @@
-// Decompiled by Space Bunny Free. Names are provisional.
-// Fills a 2-bit-per-cell map (field_18, indexed [row >> 4] * width + col) with
-// the footprint passability of this class. Pass 1 walks the map row by row and
-// stores the raw cost of every cell, marking 1 on the outer edge of the usable
-// (3) area; pass 2 reads the map back column by column and marks 1 on the
-// inner edge of that set. Both passes work on one scratch row (or column) of
-// bytes with the two bytes in front of it zeroed and the cells past the end of
-// the row zeroed too, so a footprint wider than 1 sees zeros at the row ends.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Builds the 2-bit-per-cell passability map (field_18) for one footprint.
+// Pass 1 walks the map row by row, filling one scratch row with the raw cost
+// of every cell and marking 1 on the outer edge of the usable (3) area; pass 2
+// reads the map back column by column and marks 1 on the inner edge. Each pass
+// works on a scratch row whose two bytes in front and field_4/field_6 cells
+// past the end are zeroed.
+//
+// <stdio.h> is load bearing: it changes nothing the function uses, but it is
+// what makes MSVC put the pointer first in `v[n]` instead of the index.
+// The extra braces around the two loops are needed because MSVC 5 leaks a
+// for-init variable into the enclosing scope, so the two `int j` clash.
 
 #include <stddef.h>
+#include <stdio.h>
 
 void* operator new(size_t size);
 void operator delete(void* p);
@@ -58,7 +63,6 @@ public:
 
 int __stdcall FUN_0047de60(Class_00440500* obj, Cell_00440500* cell);
 
-
 static inline void setcell(unsigned int* q, int sh, unsigned int val)
 {
     *q = (*q & ~(3 << sh)) | (val << sh);
@@ -67,71 +71,77 @@ static inline void setcell(unsigned int* q, int sh, unsigned int val)
 // FUNCTION: 0x440500
 void Class_00440500::FUN_00440500()
 {
-    int size;
-    if (field_4 + field_10 > field_6 + field_14)
-        size = field_4 + field_10;
+    unsigned char b;
+    unsigned char* p;
+    unsigned char* buf;
+    int n;
+    unsigned char* v;
+    unsigned int size;
+    if (field_10 + field_4 > field_6 + field_14)
+        size = field_10 + field_4;
     else
         size = field_6 + field_14;
-    char* buf = (char*)operator new(size + 3);
-    unsigned char* v = (unsigned char*)buf + 2;
 
+    buf = (unsigned char*)operator new(size + 3);
+    v = buf + 2;
+
+    {
     for (int j = 0; j < field_14; j++) {
         Cell_00440500* c = &g_game->cells[j * field_10];
-        int n;
         for (n = 0; n < field_10; n++, c++)
             v[n] = (unsigned char)FUN_0047de60(this, c);
         v[-2] = 0;
         v[-1] = 0;
         for (n = 0; n <= field_4; n++)
-            v[n + field_10] = 0;
-        unsigned char b = 0;
-        unsigned char* p = v;
-        for (int i = 0; i < field_10; i++) {
-            int e = i + field_4 - 1;
+            (v + n)[field_10] = 0;
+        b = 0;
+        p = v;
+        n = 0;
+        for (; n < field_10; n++, p++) {
+            int e = n + field_4 - 1;
             if (v[e] <= b) {
                 b = v[e];
             } else if (p[-1] <= b) {
                 b = p[0];
-                for (int k = i + 1; k <= e; k++)
-                    if (b >= v[k])
-                        b = v[k];
+                int k;
+                for (k = n + 1; k <= e; k++)
+                    if (b >= v[k]) b = v[k];
             }
-            if (b == 3 && (p[-1] < 3 || v[e + 1] < 3)) {
-                setcell(&field_18[((i >> 4) * field_10 + j)], (i & 0xf) * 2, 1);
-            } else {
-                setcell(&field_18[((i >> 4) * field_10 + j)], (i & 0xf) * 2, b);
-            }
-            p++;
-            i++;
+            if (b == 3 && (p[-1] < 3 || v[e + 1] < 3))
+                setcell(&field_18[(j >> 4) * field_10 + n], (j & 0xf) * 2, 1);
+            else
+                setcell(&field_18[(j >> 4) * field_10 + n], (j & 0xf) * 2, b);
         }
     }
+    }
 
-    for (int jj = 0; jj < field_10; jj++) {
-        int m;
-        for (m = 0; m < field_14; m++)
-            v[m] = (unsigned char)((field_18[((m >> 4) * field_10 + jj)]
-                                    >> ((m & 0xf) * 2)) & 3);
+    {
+    for (int j = 0; j < field_10; j++) {
+        for (n = 0; n < field_14; n++)
+            v[n] = (unsigned char)((field_18[(n >> 4) * field_10 + j]
+                                    >> ((n & 0xf) * 2)) & 3);
         v[-2] = 0;
         v[-1] = 0;
-        for (m = 0; m <= field_6; m++)
-            v[m + field_14] = 0;
-        unsigned char b = 0;
-        for (int i = 0; i < field_14; i++) {
-            int e = i + field_6 - 1;
+        for (n = 0; n <= field_6; n++)
+            (v + n)[field_14] = 0;
+        b = 0;
+        n = 0;
+        for (; n < field_14; n++) {
+            int e = n + field_6 - 1;
             if (v[e] <= b) {
                 b = v[e];
-            } else if (v[i - 1] <= b) {
-                b = v[i];
-                for (int k = i + 1; k <= e; k++)
-                    if (b >= v[k])
-                        b = v[k];
+            } else if (v[n - 1] <= b) {
+                b = v[n];
+                int k;
+                for (k = n + 1; k <= e; k++)
+                    if (b >= v[k]) b = v[k];
             }
-            if (b == 3 && (v[i - 1] < 3 || v[e + 1] < 3)) {
-                setcell(&field_18[((i >> 4) * field_10 + jj)], (i & 0xf) * 2, 1);
-            } else {
-                setcell(&field_18[((i >> 4) * field_10 + jj)], (i & 0xf) * 2, b);
-            }
+            if (b == 3 && (v[n - 1] < 3 || v[e + 1] < 3))
+                setcell(&field_18[(n >> 4) * field_10 + j], (n & 0xf) * 2, 1);
+            else
+                setcell(&field_18[(n >> 4) * field_10 + j], (n & 0xf) * 2, b);
         }
+    }
     }
 
     operator delete(buf);

@@ -1,13 +1,18 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
-// PARTIAL, 29.6%. Structure and semantics below are believed right; the
-// byte diffs are all lowering details:
-//  - ours is 0x38 bytes of locals, original 0x34 (one extra dword);
-//  - the first search computes `lea eax,[esi+ecx*2+0x1b63]` / `[eax+0x27]`
-//    where the original keeps `lea eax,[esi+ecx*2]` / `[eax+0x1b8a]`
-//    (0x1b63 not folded into the base lea), same SIB-order family as
-//    0x445450; <windows.h> did not flip it here;
-//  - stack-slot numbering of the byte index/out/ret slot shifts as a result.
+// PARTIAL, 59.1% (up from 29.6%). The player probe, the target-order branch
+// and the random-branch loop control now match. What still differs:
+//  - ours is 0x38 bytes of locals, original 0x34. The k4 loop spills k4 to a
+//    stack slot where the original keeps it in ebx, and `c`/`packet`/`pkt`
+//    land 4 bytes lower as a result; every `[esp+0x18]` is the original's
+//    `[esp+0x14]`. Giving k4 a register (freeing the one res holds) would
+//    likely fix the whole frame at once;
+//  - `res` stays live in esi across the k4 loop, where the original clobbers
+//    and later reloads it from its stack slot;
+//  - the random-branch collection loop anchors its walking pointer at the
+//    element start (disps 0/0x73/0x27/0x146) where the original anchors at
+//    the state field (disps -0x73/0/0xd3/-0x4c);
+//  - tail loops keep the byte offset in ecx where the original uses eax.
 // Build it with the real MSVC5 <algorithm> std::random_shuffle; do NOT
 // hand-write the shuffle (see the note in the body).
 //
@@ -27,7 +32,10 @@ struct PlayerInfo_004568c0 {
     unsigned short flag_97_0 : 1;            // +0x97 bit 0
     unsigned short rest_97 : 15;
     char unknown_99[0x9b - 0x99];
-    unsigned short field_9b;                 // +0x9b
+    unsigned short pad_9b_a : 6;
+    unsigned short flag_9b_6 : 1;            // +0x9b bit 6
+    unsigned short pad_9b_b : 7;
+    unsigned short flag_9b_14 : 1;           // +0x9b bit 14
 };
 
 class Class_00456030 {
@@ -76,8 +84,7 @@ int __stdcall FUN_00451df0(int id, void* packet, int size);
 static inline unsigned char FindOccupied_004568c0()
 {
     for (unsigned char i = 0; i < 10; i++) {
-        Player_004568c0* p = &g_game->players[i];
-        if (p->state != 0 && p->info->flag_97_0)
+        if (g_game->players[i].state != 0 && g_game->players[i].info->flag_97_0)
             return i;
     }
     return 10;
@@ -99,7 +106,7 @@ int FUN_004568c0()
     int res = ((Class_00456030*)&g_game->players[idx])->FUN_00456030();
     if (res != 0 && g_game->field_2a28 == 0) {
         int* out = g_game->field_29fc;
-        if (g_game->players[g_game->localPlayer].info->field_9b & 0x4000) {
+        if (g_game->players[g_game->localPlayer].info->flag_9b_14) {
             int n = 0;
             for (int k0 = 0; k0 < 10; k0++) {
                 Game_004568c0* g = g_game;
@@ -107,36 +114,41 @@ int FUN_004568c0()
                 if (q->active != 0
                     && (q->state == 1 || q->state == 2 || q->state == 3)
                     && q->field_146 != 10
-                    && (q->info->field_9b & 0x40) == 0)
+                    && (q->info->flag_9b_6) == 0)
                     out[k0] = n++;
                 else
                     out[k0] = -1;
             }
         } else {
             int cand[10];
+            for (int z = 0; z < 10; z++)
+                cand[z] = -1;
             int n = 0;
-            for (int k1 = 0; k1 < 10; k1++) {
-                Game_004568c0* g = g_game;
-                Player_004568c0* q = &g->players[k1];
+            Player_004568c0* q = g_game->players;
+            int cnt = 10;
+            do {
                 if (q->active != 0
                     && (q->state == 1 || q->state == 2 || q->state == 3)
                     && q->field_146 != 10
-                    && (q->info->field_9b & 0x40) == 0)
-                    cand[n++] = k1;
-            }
+                    && (q->info->flag_9b_6) == 0) {
+                    cand[n] = n;
+                    n++;
+                }
+                q = (Player_004568c0*)((char*)q + 0x14b);
+            } while (--cnt);
             if (n > 2 || (__int64)rand() * 2 / 0x8000 != 0)
                 std::random_shuffle(cand, cand + n);
-            int j0 = 0;
+            int* cp = cand;
             for (int k2 = 0; k2 < 10; k2++) {
                 Game_004568c0* g = g_game;
-                Player_004568c0* q = &g->players[k2];
-                if (q->active != 0
-                    && (q->state == 1 || q->state == 2 || q->state == 3)
-                    && q->field_146 != 10) {
-                    if (q->active != 0 && (q->info->field_9b & 0x40))
+                Player_004568c0* q2 = &g->players[k2];
+                if (q2->active != 0
+                    && (q2->state == 1 || q2->state == 2 || q2->state == 3)
+                    && q2->field_146 != 10) {
+                    if (q2->active != 0 && (q2->info->flag_9b_6))
                         out[k2] = -1;
                     else
-                        out[k2] = cand[j0++];
+                        out[k2] = *cp++;
                 } else {
                     out[k2] = -1;
                 }

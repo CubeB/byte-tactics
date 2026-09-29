@@ -1,24 +1,44 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 54.4%. Frame size (0x3f58), array layout (poly[25] at +0x20,
-// projected[2000] at +0xe8) and the face/draw loop skeleton are right. What
-// still differs: (1) the prologue does not spill off.a/off.y/off.b to the
-// same homes and re-read their high words as `movsx r, word ptr [esp+0x16]`
-// (mine keeps off.a in esi and off.b in edi and reads the low halves); the
-// original stores the aggregate then reads the high words from memory.
-// (2) The vertex loop destination: original biases ecx to projected+4 and
-// writes [ecx-4]/[ecx-8]; mine starts at projected and writes [ecx]/[ecx-4].
-// (3) The copy-loop scratch register: original uses ebx for the point value
-// and reloads surface (ebx) after the loop; mine uses ebp and keeps surface
-// in ebx, so the reload order differs. (4) After the copy loop the original
-// reloads edi (i) then ebx (surface); mine reloads ebx then ebp. The flags
-// test is written `test al,2`/`test al,4` instead of the original's
-// shr/test form. Reference near-copy: 0x4584d0 (same callees, same frame,
-// matched at 79.6% by another model).
-
+// PARTIAL, 82.0%. Frame size (0x3f58), the prologue, the vertex loop and the
+// flag dispatch now match the original instruction for instruction. What
+// still differs is one register-priority tie, the same one 0x4584d0 hit:
+// - the face counter `i` keeps edi here, so the pre-loop test is
+//   `cmp edi,[ebp+8]` and there is no `mov [esp+0x10],edi`; the original
+//   spills `i` to [esp+0x10] (0x4212bd and 0x42138e) and reloads it at
+//   0x421307, which frees edi for the copy-loop index.
+// - consequently the copy loop runs `edx = j, ecx = indices, ebx = index`
+//   here vs the original's `ecx = j, edx = indices, edi = index`, and after
+//   it the original reloads `i` then `surface` where this file reloads
+//   `surface` then `arr`.
+// What fixed the prologue: take the address of the offset aggregate once
+// (`short* hp = (short*)&off;`) and read the high words as hp[1]/hp[3]/hp[5].
+// That forces MSVC to spill `off` and emit the original's
+// `movsx r, word ptr [esp+0x16/0x1a/0x1e]` sequence (54.4 -> 64.2).
+// What fixed the vertex loop: make BOTH accesses indexed (`projected[i].x`
+// with `v[i].x`) so MSVC biases the destination by +4, then switch the
+// SOURCE to a walked pointer `Vec3* u = v; for (; ; i++, u++)` with
+// `u->x/u->z/u->y`. Indexed destination plus walked source is byte-exact
+// (73.4 -> 82.0); walked destination plus indexed source and both-walked are
+// both much worse.
+// The flag tests come from the bitfield union Flags_004211d0, copied from the
+// already-partial near-copy 0x4584d0.cpp: it emits the original's
+// `shr ecx,1 / test cl,1` and `shr eax,2 / test al,1` chain.
 struct Point_004211d0 { int x; int y; };
 struct Vec3_004b6cc0 { int x; int y; int z; };
 
 struct Pic_004211d0 { void* pic; int unknown_4; };
+
+struct Flags_004211d0 {
+    union {
+        unsigned int raw;
+        struct {
+            unsigned int a : 1;
+            unsigned int b : 1;
+            unsigned int c : 1;
+            unsigned int rest : 29;
+        } bits;
+    };
+};
 
 struct Face_004211d0 {
     int unknown_0;                   // +0x00
@@ -27,7 +47,7 @@ struct Face_004211d0 {
     unsigned short* indices;         // +0x0c
     Pic_004211d0 pic;                // +0x10
     unsigned short* color;           // +0x18
-    unsigned int flags;              // +0x1c
+    Flags_004211d0 flags;            // +0x1c
 };
 
 struct Arr_00421550 {
@@ -90,18 +110,19 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
     off.y = inner->f1a;
     off.b = inner->f1e - (g_game->cameraZ << 16);
 
-    int sy = (short)(off.b >> 16) - ((short)(off.y >> 16) >> 1) + 0x20;
-    int sx = (short)(off.a >> 16) + 0x80;
+    short* hp = (short*)&off;
+    int sy = hp[5] - (hp[3] >> 1) + 0x20;
+    int sx = hp[1] + 0x80;
     if (!FUN_004b6720(&g_game->viewport[0], sx, sy)) {
         return;
     }
 
     Vec3_004b6cc0* v = inner->f22;
-    Point_004211d0* q = projected;
-    for (i = 0; i < arr->count; i++, q++) {
-        q->x = (short)((v[i].x + off.a) >> 16) + 0x80;
-        q->y = (short)((off.b - v[i].z) >> 16)
-            - ((short)((v[i].y + off.y) >> 16) >> 1) + 0x20;
+    Vec3_004b6cc0* u = v;
+    for (i = 0; i < arr->count; i++, u++) {
+        projected[i].x = (short)((u->x + off.a) >> 16) + 0x80;
+        projected[i].y = (short)((off.b - u->z) >> 16)
+            - ((short)((u->y + off.y) >> 16) >> 1) + 0x20;
     }
 
     int j;
@@ -117,12 +138,12 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
         for (j = 0; j < face->count; j++) {
             poly[j] = projected[*idx++];
         }
-        unsigned int flags = face->flags;
-        if (!(flags & 1)) {
+        Flags_004211d0 flags = face->flags;
+        if (!flags.bits.a) {
             if (face->count == 4) {
                 void* pic;
-                if (flags & 2) {
-                    if (flags & 4) {
+                if (flags.bits.b) {
+                    if (flags.bits.c) {
                         int player = *(int*)(*(int*)(obj->f0 + 0x96) + 0x27);
                         pic = FUN_004b7f30(face->color,
                             *(unsigned char*)(player + 0x96));
@@ -139,3 +160,5 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
         }
     }
 }
+
+

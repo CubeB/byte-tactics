@@ -16,17 +16,17 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**57.38% of Cavedog's code matched** (488,253 of 850,853 bytes)
+**57.61% of Cavedog's code matched** (490,191 of 850,853 bytes)
 
 `[#######################-----------------]`
 
-By count that is 2,930 of the game's 3,267 functions (89.7%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,931 of the game's 3,267 functions (89.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,930 | 488,253 |
-| Attempted, not yet matching | 205 | 141,859 |
-| Not attempted yet | 132 | 220,741 |
+| Matched byte-for-byte | 2,931 | 490,191 |
+| Attempted, not yet matching | 207 | 148,815 |
+| Not attempted yet | 129 | 211,847 |
 
 ### By function size
 
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 638 of 703 | 89.8% | 18,300 | `#########-` |
 | xl (401 to 600 bytes) | 183 of 226 | 80.3% | 21,729 | `########--` |
 | xxl (601 to 1,000 bytes) | 113 of 195 | 56.7% | 63,571 | `######----` |
-| huge (over 1,000 bytes) | 22 of 161 | 11.7% | 258,126 | `#---------` |
+| huge (over 1,000 bytes) | 23 of 161 | 12.3% | 256,188 | `#---------` |
 
 ### By area
 
@@ -51,7 +51,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | --- | --- | ---: | ---: | ---: | --- |
 | `0x400000` | Unit orders and unit AI | 191 of 210 | 71.8% | 17,144 | `#######---` |
 | `0x410000` | Orders and VTOL states | 211 of 222 | 75.1% | 15,869 | `########--` |
-| `0x420000` | Frontend shell | 133 of 154 | 39.9% | 38,212 | `####------` |
+| `0x420000` | Frontend shell | 134 of 154 | 42.9% | 36,274 | `####------` |
 | `0x430000` | Maps, missions, briefings | 208 of 228 | 61.6% | 23,195 | `######----` |
 | `0x440000` | Multiplayer setup | 233 of 246 | 61.3% | 23,795 | `######----` |
 | `0x450000` | Options and audio menus | 154 of 176 | 54.3% | 28,836 | `#####-----` |

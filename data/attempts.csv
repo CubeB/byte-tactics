@@ -4032,7 +4032,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x465ac0,865,,#1090,assigned,,,"issue #1090, escalated"
 0x48a490,857,,#1091,assigned,,,"issue #1091, escalated"
 0x48ad30,849,,#1091,assigned,,,"issue #1091, escalated"
-0x443100,888,,#1093,assigned,,,"issue #1093, escalated"
+0x443100,888,deepseek-v4.1-flash,#1093,matched,100.0,,"issue #1093, escalated"
 0x4936f0,994,,#1095,assigned,,,"issue #1095, escalated"
 0x49b090,844,,#1097,assigned,,,"issue #1097, escalated"
 0x49d270,774,,#1097,assigned,,,"issue #1097, escalated"

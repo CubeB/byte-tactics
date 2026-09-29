@@ -1,4 +1,4 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 81.9% (406 of 427 bytes; up from 54.0%).
 //
 // WHAT IS SOLVED. The piece array starts at list+0x22, not +0x44, with `info`
@@ -106,6 +106,17 @@
 // and `coords.y` is an uninitialised int read out of the save area, but both look
 // like ordinary MSVC artefacts of how the source was written rather than mistakes
 // by Cavedog.
+//
+// deepseek-v4.1-flash confirmation pass. Re-measured the reload family with the
+// one-line `if (list->bitmap != 0)` tail: 423 of 427 bytes, 69.4%. The ONLY
+// difference left in that variant is that the compiler promotes `list` to esi
+// and `x` to edi; the whole tail (ebx=this, the fresh `mov ecx,[esi+0x10]`
+// reload, `mov ecx,ebx` at each call, the loop counter in the dead this slot)
+// matches byte for byte. So the tail-reload and the prologue's esi=edi swap are
+// one tie, exactly as recorded. The doubled `test eax,eax` was retried as
+// `bitmap->field_14 == 0 && bitmap->field_14 == 0` and it still folds to the
+// single test (406 bytes, 81.9%). Both ceilings stand: 81.9% no-reload against
+// 69.4% reload, and 81.9% is kept here.
 extern char* g_game;
 
 struct Vertex_458810 { int x; int y; int z; };

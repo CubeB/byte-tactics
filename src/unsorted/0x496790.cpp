@@ -1,4 +1,4 @@
-// Decompiled by Sonnet 5.5. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by Space Bunny Free. Names are provisional.
 // One pass of the main loop: rolls the per-frame timing buckets over, runs
 // the frame pacing (0x495230) and, when it says frames are due, the
 // simulation step and the three groups of profiled subsystem calls, charging
@@ -6,14 +6,49 @@
 // mouse-capture and hotkey flag handling, the per-frame render step and the
 // periodic "FRAM" marker.
 //
-// NOT MATCHED: 67.2%, 692 of 711 bytes. The structure and the call sequence
-// follow the original (the four timer charges, the frames/paused/else
-// branches, the flag word tests). What still differs: the clear of bit 2 of
-// the word at +0x38d75 (and of bit 4 of +0x37ebe) is `mov cx,[m]; and ecx,
-// 0xfffb; mov [m],cx` in the original but folds to `and word ptr [m], 0xfffb`
-// here, whatever the field type, a local copy of the flag struct or an int
-// temporary. The later blocks are shifted by that and by the register chosen
-// for g_game around the timer charge in the bit 2 block.
+// MATCH (711 of 711). Three changes to the previous 67.2% version, in the
+// order they were found. The previous file's own diagnosis ("the clear of bit
+// 2 folds to a memory `and`, whatever the field type, a local copy of the
+// flag struct or an int temporary") was correct about the symptom and wrong
+// about the cause: the spelling of the clear was never the problem, and no
+// non-volatile spelling of it can produce the original's code.
+//
+// 1. The bit-4 test at the end has to be a bitfield READ of memory, not a
+//    shift of a copy. The previous file tested `flags` held in a local:
+//        unsigned short flags = g_game->word_37ebe;
+//        if ((flags >> 4) & 1) ...
+//    MSVC 5 folds that to `test al, 0x10` (2 bytes), where the original has
+//    `mov dl,al; shr dl,4; test bl,dl` in the else branch (which must keep
+//    `al` for the `and eax, 0xffef` store) and `shr al,4; test bl,al` in the
+//    other (where `al` is dead). Writing the test as `if (g_game->bit4_37ebe)`
+//    reads the 1-bit field, which MSVC 5 does NOT fold, and the compiler then
+//    CSEs the second load against the `mov ax, word ptr [ecx+0x37ebe]` already
+//    done for the 0x800 and 0x65 tests. This one change made 280 bytes of the
+//    function identical, including the whole flag block and the last timer
+//    charge, and it is why the check.py percentage barely moved: with 12
+//    bytes still missing, every jump target in the function was wrong, and
+//    difflib reshuffles the text diff. Read the lengths, not the percentage.
+//
+// 2. The word at g_game+0x38d75 is `volatile`. The original clears bit 2 of it
+//    through a register (`mov cx,[m]; and ecx,0xfffb; mov [m],cx`) and MSVC 5
+//    folds every plain spelling of that store into `and word ptr [m], 0xfffb`,
+//    including a whole-struct copy, a local word, a pointer to the struct and
+//    `m.word = m.word & 0xfffb`. The evidence in the exe is the AGENTS.md
+//    criterion for this field, and it is strong: 0x498556 does
+//    `mov cx,[m]; and ecx,0xfffb; mov [m],cx` and then 0x49856f, with nothing
+//    in between but a reload of g_game, does `mov dx,[m]; or edx,8; mov [m],dx`
+//    on the same location. A non-volatile field would be CSE'd and folded to
+//    `and [m],0xfffb; or [m],8`. The same two shapes are at 0x497c57, 0x498323
+//    and here. The union is what makes this work: the bitfield overlay is not
+//    volatile (so the test at 0x496846 keeps its `mov al,byte; shr al,2;
+//    test bl,al`, an 8-bit container would have folded to `test byte [m],4`),
+//    and the word overlay is (so the clear stays a read-modify-write).
+//
+// 3. Nothing else. The register choice around the timer charges in the bit-2
+//    block (`mov edx,[esi]; mov ecx,eax; sub ecx,edx` rather than the
+//    swapped pair) and the one-byte `mov edx, g_game` before the paused
+//    branch's charge were both fixed by 1 and 2, not by touching the charge
+//    helper.
 #include <stddef.h>
 
 class Class_004618a0 {
@@ -22,10 +57,19 @@ public:
 };
 
 #pragma pack(push, 1)
+// The network flags at +0x38d75. The bitfield overlay is not volatile (so the
+// bit 2 test keeps its load, shift and test) and the word overlay is (so the
+// clear of bit 2 stays a read-modify-write through a register). See the note
+// at the top of this file.
 struct Flags_38d75 {
-    unsigned short pad : 2;
-    unsigned short bit2 : 1;
-    unsigned short rest : 13;
+    union {
+        volatile unsigned short word;   // cleared with &0xfffb
+        struct {
+            unsigned short pad : 2;
+            unsigned short bit2 : 1;
+            unsigned short rest : 13;
+        };
+    };
 };
 
 struct Timers_00496790 {
@@ -141,11 +185,7 @@ void FUN_00496790()
             FUN_00428c20();
             if (g_game->flags_38d75.bit2) {
                 if (FUN_004568c0())
-                {
-                    Flags_38d75 f = g_game->flags_38d75;
-                    f.bit2 = 0;
-                    g_game->flags_38d75 = f;
-                }
+                    g_game->flags_38d75.word &= 0xfffb;
                 CHARGE(0);
             }
             FUN_00428c30();
@@ -177,10 +217,10 @@ void FUN_00496790()
     FUN_0048bae0();
     unsigned short flags = g_game->word_37ebe;
     if ((flags & 0x800) || (flags & 0x65) || g_game->flags_2bee) {
-        if ((flags >> 4) & 1)
+        if (g_game->bit4_37ebe)
             g_game->field_37e9c = 0;
     } else {
-        if ((flags >> 4) & 1) {
+        if (g_game->bit4_37ebe) {
             g_game->bit4_37ebe = 0;
             FUN_0041b2e0();
         }

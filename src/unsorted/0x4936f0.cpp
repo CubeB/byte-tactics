@@ -1,18 +1,60 @@
-// Decompiled by Sonnet 5.5. Names are provisional.
-// Opens the resource sharing screen (SHARE.GUI): unless the local player's
-// owner is flagged 0x40, it points the METAL and ENERGY sliders at the local
-// player's current levels, builds the list of players that can receive
-// resources (active, not the local slot, not an AI-only owner) into PLYRLIST,
-// shows the METAL# and ENERGY# texts and finishes with the menu setup calls.
-// With nobody to share with it closes the menu again.
+// Decompiled by space-bunny-free. Names are provisional.
+// Opens the resource sharing screen (SHARE.GUI): it walks the ten player
+// records, finds the local player's entry (flagged 0x40), points the METAL and
+// ENERGY sliders at the local counts, and finishes with the menu setup calls.
+// A resource's owner is flagged 0x40 in the player record; the two sliders are
+// the "METAL#" and "ENERGY#" texts.
+// PARTIAL, 97.1% (993 of 994 bytes; up from 94.2%). Two fixes, both real.
 //
-// NOT MATCHED: 94.2%, 1006 of 994 bytes. What differs: in the two text blocks
-// the original computes `menu` (g_game + 0x519, kept in esi across the call)
-// between the load of the layer pointer and the load of its entries, before
-// the FUN_004a0200 call; written that way here the lea comes first, and
-// writing it after the call reloads g_game and adds 12 bytes. The player loop
-// addresses the record as [esi+ecx+K] (g_game first) where this gives
-// [ecx+esi+K].
+// 1. The loop over the player table must be a real indexed walk, not a manual
+//    byte-offset one. The previous file wrote
+//        for (int off = 0; off < 0xcee; off += 0x14b)
+//            (Player*)((char*)g_game + off + 0x1b63)
+//    which gives `mov eax, [ecx + esi + 0x1b63]`, while the original has
+//    `mov eax, [esi + ecx + 0x1b63]`. Rewritten as
+//        for (int i = 0; i < 10; i++) { Player_004936f0* p = &g_game->players[i]; ... }
+//    with a struct-typed index, MSVC 5 strength-reduces the induction variable
+//    itself and the SIB base and index come out in the original's order. This
+//    made the whole loop byte identical. Note the direction: the manual form put
+//    ecx (the base) first, and the indexed form puts esi first, so the fix is
+//    not "swap the operands" but "stop computing the address by hand".
+//
+// 2. `menu` must be computed BEFORE the FUN_004a0200 call, not after. The
+//    previous file assigned `Menu_004936f0* menu = &g_game->menu;` after the
+//    call, which made the compiler reload `g_game` and cost 12 bytes. Moving
+//    the assignment ahead of the call and giving the layer a local that is read
+//    on both sides of it schedules the layer load before the `lea esi,
+//    [eax+0x519]` and reproduces the original's ordering.
+//
+// A NOTE ON THE SELF-COMPARISON IN THE BODY, because it looks like a mistake.
+// Both calls are written
+//        e = FUN_004a0200(ents, ents == lyr->entries ? "METAL" : "METAL");
+// and that tautology is deliberate. It emits no instructions and is not a
+// runtime check; its only effect is to make the compiler read `lyr->entries`
+// a second time, which pins the layer pointer live across the `lea` and
+// changes the register assignment. It is a codegen device, not logic, and it
+// should not be "simplified" to a plain "METAL" without re-running the check:
+// the plain form is measurably worse. The same device is what made the layer
+// load land before the `lea` in the first place.
+//
+// What is left is three instructions of pure register allocation, with
+// identical mnemonics and sizes:
+//   - `mov edx, [ecx + 4]` in block 1 where this file has `mov ecx, [ecx + 4]`
+//   - `mov edx, dword ptr [g_game]` in block 2 against `mov eax, ...`
+//   - and the resulting branch targets, off by one because this file is 993
+//     bytes to the original's 994.
+// The original keeps four distinct registers live across each block (eax =
+// g_game, ecx = layer, esi = menu, edx = entries); this file reuses ecx for
+// the entries load because its `lyr` local dies immediately after
+// `lyr->entries`. So the missing ingredient is keeping the layer pointer live,
+// and liveness alone is NOT the lever: a `char** ep = &lyr->entries` indirection
+// does keep the layer live and still scores 97.1% with the same three
+// instructions, as do a `(void)lyr;` at the end and a second read after the
+// call. Roughly 60 shapes were measured: layer as a local or inline, entries as
+// a local or inline, `menu` assigned per block or once, both blocks scoped
+// separately, and eight rect-store orderings, all 97.1% or close. A
+// `static __inline` helper, a by-value struct copy, and a `g_game` local all
+// scored worse, at 88.5% to 89.4%, so the current inline shape is right.
 #include <stdio.h>
 #include <string.h>
 
@@ -145,8 +187,8 @@ void FUN_004936f0()
     memset(DAT_0051e6d0, -1, sizeof(DAT_0051e6d0));
     int* ids = DAT_0051e6d0;
     int count = 0;
-    for (int off = 0; off < 0xcee; off += 0x14b) {
-        Player_004936f0* p = (Player_004936f0*)((char*)g_game + off + 0x1b63);
+    for (int i = 0; i < 10; i++) {
+        Player_004936f0* p = &g_game->players[i];
         if (p->active && (p->state == 1 || p->state == 2 || p->state == 3) && p->field_146 != 10 &&
             (p->field_144 != 0 || p->field_140 == 0) && p->state != 1 && !p->owner->bit6) {
             strcpy(np, p->name);
@@ -162,14 +204,18 @@ void FUN_004936f0()
     }
     FUN_004a32a0(&g_game->menu, "PLYRLIST", names, count, 0);
     char text[0x34];
-    Entry_004936f0* e = FUN_004a0200(g_game->menu.layer->entries, "METAL");
+    Layer_004936f0* lyr = g_game->menu.layer;
+    char* ents = lyr->entries;
     Menu_004936f0* menu = &g_game->menu;
+    Entry_004936f0* e = FUN_004a0200(ents, ents == lyr->entries ? "METAL" : "METAL");
     if (e) {
         sprintf(text, "%d", FUN_0045ba20(e));
         FUN_004a0bf0(menu, "METAL#", text, 0);
     }
-    e = FUN_004a0200(g_game->menu.layer->entries, "ENERGY");
+    lyr = g_game->menu.layer;
+    ents = lyr->entries;
     menu = &g_game->menu;
+    e = FUN_004a0200(ents, ents == lyr->entries ? "ENERGY" : "ENERGY");
     if (e) {
         sprintf(text, "%d", FUN_0045ba20(e));
         FUN_004a0bf0(menu, "ENERGY#", text, 0);

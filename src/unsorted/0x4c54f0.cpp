@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Loads a TDF section into the global map at 0x51fdb8: the section name is
 // compared with the one already loaded, the map is thrown away and rebuilt,
 // then every section of the file contributes one entry keyed by its own
@@ -36,6 +36,15 @@
 // "keys differ" test as a bool in cl with the int form beside it
 // (`xor ecx,ecx; cmp; sete cl; neg cl; sbb ecx,ecx; inc ecx; test cl,cl`),
 // where this file has a plain `test eax,eax`.
+//
+// Tried by deepseek-v4.1-flash, both worse:
+//  - `delete DAT_0051fdb8;` with an implicit destructor: 56.8 percent. The
+//    delete makes the compiler keep the object in a preserved register from
+//    the prologue (`push ebx; mov ebx,[esp+0x22c]` before _strcmpi).
+//  - the same free written out inline inside ~Class_004c5840 instead of
+//    through Free2: 57.0 percent, and the destructor stops being inlined.
+// Keeping the explicit `->~Class_004c5840()` call plus the out-of-line
+// Free2 helper is what holds the 70.2 percent.
 #include <string.h>
 
 extern char DAT_0051fdc0[256];

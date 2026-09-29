@@ -1,14 +1,22 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash. Names are provisional.
 // Builds the local player's selected-unit list, drops the unit at
 // g_game->units[g_game->field_2cba] from it, and returns an order code.
 // With no other selected unit it returns 0xf when arg is 1 and that unit is
 // finished and valid, else 0x13; otherwise it folds 0x13 with FUN_0043e490
 // over the remaining units and returns the minimum.
 //
-// The real vector insertion name is used below. The remaining mismatch is that
-// MSVC 5 still inlines its two-argument wrapper before calling the three-
-// argument overload, because this reconstruction has not reproduced the
-// original translation unit's inline budget.
+// The selection loop uses push_back, not insert(end(), u): push_back puts the
+// two-argument insert at inline depth 1, so /Ob2 leaves the out-of-line
+// two-argument overload as a direct call, exactly as the original does.
+// insert(end(), u) inlines that wrapper and calls the three-argument overload
+// instead (an extra push of the constant 1).
+//
+// The dead Dummy() call sites at the end of the body are the /Ob2 inline budget
+// lever: each direct inline call site consumes budget, and the original's
+// translation unit had roughly thirteen more of them than this source. With
+// fewer, MSVC inlines vector::~vector's _Destroy helper (a no-op for Unit*) and
+// drops the original's out-of-line _Destroy calls; with twelve to fifteen it
+// matches. They compile to nothing.
 #include <vector>
 
 struct Unit;
@@ -84,7 +92,7 @@ int __stdcall FUN_0048d220(char arg)
     Player_0048d220* player = &g_game->players[g_game->player];
     for (Unit* u = player->units_first; u <= player->units_last; u++) {
         if (u->u.bits.selected)
-            vec.insert(vec.end(), u);
+            vec.push_back(u);
     }
 
     if (target != 0)
@@ -107,6 +115,8 @@ int __stdcall FUN_0048d220(char arg)
         if (r < result)
             result = r;
     }
+
+    // /Ob2 inline budget markers; see the header comment.
     Dummy();
     Dummy();
     Dummy();

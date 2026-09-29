@@ -24,6 +24,16 @@
 // Tried without effect: casts replaced by typed members and base classes,
 // inline setters for the reset, int or float spellings of the -1 and 0.0
 // constants, a pointer local for the list, inline wrappers for the getters.
+//
+// Checked by deepseek-v4.1-flash (baseline 89.5%): the whole diff is the
+// constant-register choice. The original keeps ebx = 0 and esi = -1 pinned for
+// the entire body (`xor ebx, ebx` at the top, `or esi, 0xffffffff` after the
+// delete), so `cmp eax, ebx`, `push ebx` and `mov [this+0xa04], ebx` appear
+// where this source emits `test eax, eax`, `push esi` and a later store via
+// esi. Every remaining hunk is that register rename plus the shortened
+// near-jump offsets it causes. Changing case 0/default from `return 0` to
+// `break` (to force a 4-entry table) scored 84.7% and grew the body to 2808
+// bytes, so keep `return 0`.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

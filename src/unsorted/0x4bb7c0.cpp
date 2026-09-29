@@ -1,4 +1,4 @@
-// Decompiled by Sonnet 5.5. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Reads up to `size` bytes at the file's position into `buf` and returns the
 // count. A plain file is one fread. A file inside a loaded archive item is read
 // from the item's stream: an uncompressed entry with a single fread (after a
@@ -11,7 +11,9 @@
 // through FUN_004b6290 with a multi-line message. A short read of a
 // compressed block returns -1.
 //
-// NOT MATCHED: 46.0%, 1008 of 1042 bytes. The code follows the original's
+// NOT MATCHED: 48.8%, 1008 of 1042 bytes. Frame is now 0x40c after making the
+// message buffer 1004 bytes (984 is what the original's layout implies but it
+// left the frame at 0x3f8), which fixed many [esp+N] offsets. The code follows the original's
 // shape (the shared-item test first, compressed path before the uncompressed
 // one, the block loop, the five appended error lines) but the register
 // assignment and frame differ: the original keeps the item in edi and the
@@ -19,7 +21,8 @@
 // [esp+0x13] (a byte copy of the obfuscation key), 0x14 (n), 0x18 (dst), 0x1c
 // (remaining), 0x20 (compressed buffer), 0x24 (block counter), 0x28 (block
 // count), 0x2c (size table bytes) and 0x30 (block index) followed by the
-// message buffer; declaring locals in that order did not reproduce it.
+// message buffer; declaring locals in that order (item, info, key, n, dst,
+// remaining, comp, counter, blocks, tableSize, b, msg) did not reproduce it.
 // File.pos has to be unsigned (the block index is `shr 16`) but the room test
 // `info->size - pos < n` is signed.
 #include <stdio.h>
@@ -118,7 +121,7 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
                     }
                     int err = FUN_004d1970(file->buffer2, comp);
                     if (err) {
-                        char msg[0x3f0];
+                        char msg[1004];
                         sprintf(msg, "[HAPI_readfromfile] Decompression Error: %s\n", FUN_004d1c60(err));
                         sprintf(msg + strlen(msg), "block %d of %d\n", i, blocks);
                         sprintf(msg + strlen(msg), "base name '%s'\n", file->shared->name);

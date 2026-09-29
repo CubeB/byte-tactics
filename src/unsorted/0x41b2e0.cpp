@@ -49,6 +49,21 @@
 // (reloaded inside the loop after the type-flags read clobbers edi) and
 // ebp = canRepair, frame 0x240; ours spills canRepair and makes ebp = g_game,
 // frame 0x244.
+//
+// deepseek-v4.1-flash 2nd session (10 min hard box): still 41.3%. Tried
+// declaring first/count uninitialised and zeroing them at the else-branch
+// start (the original stores them there at 0x41b3a6): 27.2%, much worse.
+// Remaining hunks, first diff first:
+// - 0x41b2e0 prologue: frame 0x244 vs 0x240 and the edi/ebp swap above
+//   (root cause; every later hunk is its cascade).
+// - 0x41b3a6 loop entry: first/count live in [esp+0x10]/[esp+0x14] vs the
+//   original's [esp+0x1c]/[esp+0x20]; the loop latch reloads g_game into edi
+//   (ours uses edi as the zero constant and reloads nothing).
+// - 0x41b54d tail: the nine canX slots land in a different order (ours
+//   0x24,0x28,0x2c,0x30,0x34,0x38,0x3c,0x40,0x44,0x48 vs original
+//   0x24,0x28,0x2c,0x30,0x34,0x38,0x3c,0x40,0x44 plus canRepair in ebp).
+// - 0x41b749 count/first stay in memory in ours; original caches count in ebx
+//   and first in ebp for the whole tail (so `test bl, dl` and `push ebx`).
 
 #include <windows.h>
 #include <stdio.h>

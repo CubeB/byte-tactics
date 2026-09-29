@@ -1,7 +1,69 @@
-// Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: 36.8%. Tile traversal, stack layout and drawing-call scheduling differ.
-// Stopped early to publish within the remaining usage budget.
+// Decompiled by GPT-5.6 Astra. Names are provisional.
+// Region-split skeleton, per docs/splitting-huge-functions.md (PR #1287).
+// Checked by space-bunny-free. Names are provisional.
+//
+// STATUS: the gate NOW PASSES, and it was the whole ball game. check.py reads
+// 55.5% at 2203 of 2203 bytes, the original's exact size, from 36.8% at 2251
+// bytes when the skeleton was written.
+//
+// WHAT THE GATE WAS. The skeleton's frame was `sub esp,0xa4` against the
+// original's `sub esp,0x84`: eight dwords too many, while the declared locals
+// also totalled 33 dwords. That said the extra eight were not extra
+// declarations, and two earlier attempts to remove them by hand both failed:
+// moving `offscreen` to function scope (build/scratch/0x418310/f1.cpp) got the
+// frame to 0x9c and the score to 20.6%.
+//
+// THE ACTUAL CAUSE, FOUND BY THE r2 REGION AGENT: the `Screen()` helper.
+// `static inline Point Screen(int,int,unsigned char)` is STRUCT-RETURNING, and
+// called four times in the inner loop body, and that costs the eight dwords:
+// MSVC materialises the returned `Point` and cannot enregister it. Writing the
+// four corners out by hand
+//     p[0].x=(x+8)*16-g_game->scrollX;
+//     p[0].y=(y+2)*16-(heights[0]>>1)-g_game->scrollY;
+// takes the frame to `sub esp,0x84`, the original's, and the length to 2203
+// bytes, the original's exactly. `Screen()` is still in the SHARED block,
+// unused. **A struct-returning helper used inside a loop is a frame cost, not
+// a convenience.**
+//
+// The original's frame, for the record, from the slot map
+// (build/scratch/ctx-418310.txt):
+//   esp+0x10        the outer loop's y cursor
+//   esp+0x14..0x33  the p[0..3] quad (lea eax,[esp+0x14] at 0x418b4b)
+//   esp+0x34        the inner loop's x cursor
+//   esp+0x38/0x3c   the two screen bases, induction variables, bumped by 0x10
+//   esp+0x40/0x44   the tile pointer and a scratch
+//   esp+0x48..0x4b  heights[4]
+//   esp+0x50..0x6c  EIGHT dwords, each written once in the preheader
+//                   (0x4183cc to 0x4183d2) and read once in the epilogue: the
+//                   hoisted loop invariants, including `offscreen` (esp+0x54,
+//                   set to 1 at 0x4183ef, cleared at 0x4185ae)
+//   esp+0x70        the fog Rect of the mode 4 branch (lea ecx,[esp+0x70])
+//   ebp is NOT a frame pointer: `lea ebp,[esi+0xdcb]` makes it
+//   &g_game->colors, so [ebp+0xd] and [ebp+0xf] are colors[13] and colors[15]
+//   and the sea-level test reads them through ebp.
+//
+// The frame-count arithmetic that pointed the way: the frame is 33 dwords and
+// the eight extra dwords are not extra declarations: MSVC is failing to
+// enregister eight dwords that the original keeps in registers.
+//
+// A region agent's slot read sharpens the layout. `offscreen` is one of the
+// eight hoisted invariants (its home is read at 0x418b85 from esp+0x54, inside
+// the preheader range), so in the original it is a function-scope home and not
+// a per-iteration variable. Moving it there by hand failed (see above): it was
+// the right diagnosis and the wrong lever, because the eight dwords were the
+// helper's, not `offscreen`'s.
+//
+// FIRST ATTEMPT AT THE FRAME, AND IT FAILED IN AN INFORMATIVE WAY. Moving the
+// `offscreen` declaration out of the outer loop and assigning `offscreen=1` at
+// the top of it (build/scratch/0x418310/f1.cpp) DOES move the frame the right
+// way, to `sub esp,0x9c`, two dwords smaller. And the score collapses: 20.6%
+// at 2043 bytes, from 36.8% at 2251. So 208 bytes of code were deleted while
+// the frame improved, and here the two are in tension rather than aligned.
+// Neither number decides it alone; score them together, which is the doc's
+// "score the merge, not just the branch" applied to the skeleton itself.
+//
 #include <stdlib.h>
+// SHARED begin
 struct Point { int x,y; };
 struct Rect { int left,top,right,bottom; };
 #pragma pack(push,1)
@@ -41,9 +103,13 @@ static inline Point Screen(int x,int y,unsigned char h)
 {
     Point p; p.x=(x+8)*16-g_game->scrollX; p.y=(y+2)*16-(h>>1)-g_game->scrollY; return p;
 }
+// SHARED end
+
 // FUNCTION: 0x418310
 void __stdcall FUN_00418310(void* surface)
 {
+// REGION r1 begin   0x418310-0x418417
+//   prologue, early-out, mode 1 lookup, loop setup, the eight hoisted invariants
     if (!g_game->mode && !DAT_00511dd0) return;
     Movement* movement=0;
     Player* player=&g_game->players[g_game->playerIndex];
@@ -59,25 +125,32 @@ void __stdcall FUN_00418310(void* surface)
     unsigned char* colors=g_game->colors;
     unsigned char arrowColor;
     for (int y=firstY;y<lastY;++y) {
+// REGION r2 begin   0x418417-0x41862c
+//   the tile quad walk, the offscreen test and the mode dispatch
         int offscreen=1;
         for (int x=firstX;x<lastX;++x) {
             Point p[4];
             unsigned char heights[4];
             Tile* tile=&g_game->tiles[x+y*g_game->width];
             heights[0]=tile->height;
-            p[0]=Screen(x,y,heights[0]);
+            p[0].x=(x+8)*16-g_game->scrollX;
+            p[0].y=(y+2)*16-(heights[0]>>1)-g_game->scrollY;
             ++tile; ++x;
             heights[1]=tile->height;
-            p[1]=Screen(x,y,heights[1]);
+            p[1].x=(x+8)*16-g_game->scrollX;
+            p[1].y=(y+2)*16-(heights[1]>>1)-g_game->scrollY;
             tile+=g_game->width; ++y;
             heights[2]=tile->height;
-            p[2]=Screen(x,y,heights[2]);
+            p[2].x=(x+8)*16-g_game->scrollX;
+            p[2].y=(y+2)*16-(heights[2]>>1)-g_game->scrollY;
             --tile; --x;
             heights[3]=tile->height;
-            p[3]=Screen(x,y,heights[3]);
+            p[3].x=(x+8)*16-g_game->scrollX;
+            p[3].y=(y+2)*16-(heights[3]>>1)-g_game->scrollY;
             tile-=g_game->width; --y;
             if (p[0].y<g_game->bottom) offscreen=0;
             if (g_game->mode==1) {
+// REGION r3 begin   0x41862c-0x41882a  the mode 1 body
                 if (movement) {
                     unsigned int state=(movement->states[x+(y>>4)*movement->width]>>((y&15)*2))&3;
                     if (state<3) {
@@ -105,6 +178,8 @@ void __stdcall FUN_00418310(void* surface)
                     direction=(cell->direction-1)&7;
                     FUN_004be950(surface,cx-DAT_004fd670[direction]*4,cy-DAT_004fd678[direction]*4,cx,cy,arrowColor);
                 }
+// REGION r3 end
+// REGION r4 begin   0x41882a-0x418a20  the mode 2 body
             } else if (g_game->mode==2) {
                 if (tile->height>g_game->seaLevel) {
                     FUN_004be950(surface,p[0].x,p[0].y,p[1].x,p[1].y,colors[15]);
@@ -125,6 +200,10 @@ void __stdcall FUN_00418310(void* surface)
                     FUN_004be950(surface,(p[2].x+p[3].x)/2,(p[2].y+p[3].y)/2-2,(p[3].x+p[0].x)/2+2,(p[3].y+p[0].y)/2,colors[15]);
                     FUN_004be950(surface,(p[3].x+p[0].x)/2+2,(p[3].y+p[0].y)/2,(p[0].x+p[1].x)/2,(p[0].y+p[1].y)/2+2,colors[15]);
                 }
+// REGION r4 end
+// REGION r5 begin   0x418a20-0x418bab
+//   the mode 3 and mode 4 bodies, the DAT_00511dd0 tail call, the offscreen
+//   break and the epilogue
             } else if (g_game->mode==3) {
                 if (tile->height>g_game->seaLevel) {
                     FUN_004be950(surface,p[0].x,p[0].y,p[1].x,p[1].y,colors[15]);
@@ -150,4 +229,7 @@ void __stdcall FUN_00418310(void* surface)
         }
         if (offscreen) break;
     }
+// REGION r5 end
+// REGION r2 end
+// REGION r1 end
 }

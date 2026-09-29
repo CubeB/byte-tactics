@@ -12,22 +12,18 @@
 // into the window at the current position, which starts at 1 and wraps at
 // 0xfff. The window is freed at the end, the lock released if this thread took
 // it, and the number of bytes written returned.
-// NOT MATCHED yet: check.py says 98.7%, 493 bytes on both sides, and the only
-// difference left is the loop head. The original loads the flag byte first
-// (mov cl,byte ptr [esp + 0x20]) and the mask second (mov dl,byte ptr
-// [esp + 0x10]) before test cl,dl, so its & has the operands in that order;
-// this source always gets the mask loaded first. Tried and ruled out: swapping
-// the operands of the &, (flags & mask) == 0, a goto-shaped test, an int
-// temporary holding the result, a static inline helper taking the two values,
-// swapping the declarations of flags and mask, declaring either register, and
-// typing mask as int, unsigned or unsigned short. Everything else, including
-// the frame (mask at +0x10, own at +0x14, the dest copy at +0x18 and the flag
-// byte in the dead argument slot at +0x20), the spinlock, the reload block and
-// every jump offset, matches byte for byte.
+// The last byte, the operand order of the loop head's flags & mask test, comes
+// from the header block, not from the source: which of the two byte loads MSVC
+// emits first depends on how many declarations the file has seen. With
+// <windows.h>, <stdio.h>, <stdlib.h> and <string.h> this file was one
+// register pair out (98.7%, 493 bytes on both sides, mask loaded first instead
+// of flags). Adding <math.h>, which the function does not use, fixes it and
+// nothing else in the source had to change.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 extern HANDLE DAT_0052a4f8;
 extern long DAT_0052a4fc;

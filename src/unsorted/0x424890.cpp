@@ -1,18 +1,23 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Saves the map's features: the feature type names, then one record per
 // occupied map cell ("3D Features", "Normal Features" or "Animating
 // Features") and the three counts. The load counterpart is 0x424c00.
 //
-// Not matched (91.9%): in the map loop the original keeps the cell pointer
-// in esi and the feature pointer in edi; this version swaps them. Everything
-// else, including the stack layout and the name-copy loop, matches. The
-// allocation is one weighted use away: dropping one f->animN compare, or
-// adding one more read through the cell pointer, gives the original's
-// registers, and so does computing the feature pointer before the 0xfffb
-// test (99.2%, but then the compare comes after the address arithmetic).
-// Declaration order, inline getters, flag field widths, reference/copy
-// locals, loop forms, the N-declarations test (0 to 400 ints, 0 to 6000
-// prototypes) and every tools/headers.py set leave it unchanged.
+// Not matched (99.2%): the only diff is the scheduling of one hunk. Below
+// (f = &g_game->features[c->feature] written before the `if (c->feature <
+// 0xfffb)` test) MSVC emits the address arithmetic before `cmp cx,0xfffb`
+// and gives the original's registers (cell pointer esi, feature pointer
+// edi). The original emits the test first, then `jae`, then the address
+// arithmetic. Writing the definition inside the if (test first) gets the
+// instruction order right but flips the whole loop to cell pointer edi /
+// feature pointer esi (91.9%), plus jump displacements shift by one byte
+// (875 total). That flip is decided globally: an initialised-but-dead
+// pointer before the test (y1), a function-scope or loop-scope index local
+// (v_feat2), an fbase local, a spot local, a static inline accessor
+// (y5), char* arithmetic and all loop forms keep the swapped allocation;
+// the address expression written out at each use (y9) recomputes it at
+// 62.9%. Everything else, the stack layout and the name-copy loop included,
+// is byte-identical. The variants are in build/scratch/0x424890/.
 // <windows.h> is needed (83% without it).
 #include <windows.h>
 #include <string.h>
@@ -162,8 +167,8 @@ void __stdcall FUN_00424890(Class_004b4ba0* file)
     int y = 0;
     Cell_00424890* end = g_game->cells + g_game->width * g_game->height;
     for (Cell_00424890* c = g_game->cells; c < end; c++) {
+        Feature_00424890* f = &g_game->features[c->feature];
         if (c->feature < 0xfffb) {
-            Feature_00424890* f = &g_game->features[c->feature];
             if (!(f->flags & 1)) {
                 Model_00424890 rec;
                 Spot_00424890* s = &g_game->spots[c->spot];

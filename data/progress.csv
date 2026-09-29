@@ -2445,9 +2445,9 @@ address,size,file,symbol,status,similarity
 0x4b8e00,77,src/unsorted/0x4b8e00.cpp,?FUN_004b8e00@@YGPAUBitmap_004b8e00@@IHH@Z,matched,100.0
 0x4b8e50,104,src/unsorted/0x4b8e50.cpp,?FUN_004b8e50@@YGXPAUBitmap_004b8e50@@H@Z,matched,100.0
 0x4b8ec0,475,src/unsorted/0x4b8ec0.cpp,?FUN_004b8ec0@@YGXPAVClass_004c6ae0@@PAUBitmap_004b8ec0@@HH@Z,matched,100.0
-0x4b90a0,260,src/unsorted/0x4b90a0.cpp,?FUN_004b90a0@@YGXPAUBitmap_004b90a0@@0HHH@Z,partial,82.8
+0x4b90a0,260,src/unsorted/0x4b90a0.cpp,?FUN_004b90a0@@YGXPAUBitmap_004b90a0@@0HHH@Z,partial,83.9
 0x4b91b0,423,src/unsorted/0x4b91b0.cpp,?FUN_004b91b0@@YGPAEHHH@Z,partial,51.7
-0x4b9360,341,src/unsorted/0x4b9360.cpp,?FUN_004b9360@@YGXPAXPAUSprite_4b9360@@HH@Z,partial,83.1
+0x4b9360,341,src/unsorted/0x4b9360.cpp,?FUN_004b9360@@YGXPAXPAUSprite_4b9360@@HH@Z,partial,87.3
 0x4b94c0,212,src/unsorted/0x4b94c0.cpp,?FUN_004b94c0@@YGXPAXPAUSprite_004b94c0@@HH@Z,matched,100.0
 0x4b95a0,252,src/unsorted/0x4b95a0.cpp,?FUN_004b95a0@@YGXPAUImage_004b95a0@@0@Z,matched,100.0
 0x4b96a0,54,src/unsorted/0x4b96a0.cpp,?FUN_004b96a0@@YGXPAUImage_004b96a0@@@Z,matched,100.0

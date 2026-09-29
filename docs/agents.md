@@ -1037,7 +1037,6 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #1647 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
 | #1644 | deepseek-v4.1-flash | 3 | 0 | 0 | n/a | n/a | n/a |
 | #1441 | deepseek-v4.1-flash | 3 | 0 | 0 | n/a | n/a | n/a |
-| #1344 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

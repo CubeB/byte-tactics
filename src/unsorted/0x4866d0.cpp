@@ -1,5 +1,20 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6. Names are provisional.
-// Partial: 62.0%. Corrected g_game name/type and depth temporary type. Command and leaderboard register allocation, bit tests, and score comparison still differ.
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 62.0% (1936 vs 1964 bytes). Body structure is right; the whole
+// function differs by callee-saved register allocation, which cascades.
+// Remaining hunks by original address:
+//   0x4866d0  cmd arg goes to ebp, original keeps it in ebx; original loads
+//             ebx immediately after `push ebx`, we push ebx+ebp then load ebp.
+//             Consequence: original never caches g_game in a register, ours
+//             keeps g_game in ebx (e.g. 0x486832 edx vs ebx, 0x4869d1 ecx vs
+//             ebx). Root is 4 live callee-saved values (cmd, unit, credited,
+//             g_game) vs the original's 3; g_game caching pushed cmd to ebp.
+//   0x4867da  depth temporary: original stores cl to [esp+0x14], reloads dword
+//             and `and edx,0xff`; we keep it in a register and push directly.
+//   0x486a98  case 3/leaderboard: original keeps rec in [esp+0x80] and reloads;
+//             ours restructured the FUN_00435100 calls with a value cache.
+//   0x486c74  g_game bit test 0x37f06 (>>7 &1) register differs.
+// Tried: unsigned char depth local (dropped to 56.8%, reverted), swapping the
+// unit/credited declaration order (no change).
 
 extern void* g_game;
 extern char DAT_00508be8[];
@@ -57,8 +72,8 @@ void __stdcall FUN_0047bd70(void* player);
 // FUNCTION: 0x4866d0
 void __stdcall FUN_004866d0(unsigned char* cmd, int param)
 {
-    int credited;
     char* unit;
+    int credited;
 
     if (at<unsigned short>(cmd, 1) == 0)
         unit = 0;

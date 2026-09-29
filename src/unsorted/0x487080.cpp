@@ -1,5 +1,20 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
-// Partial: 49.3%. Corrected packed unit/piece offsets, saved player and constructor arguments, member calling conventions, order-list linking, and piece flag copies. Frame is four bytes short; search and copy register allocation still differ.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 53.4%. SaveRec gained the missing +0xb3 pad byte so rec.flags
+// reads at [esp+0xcc] like the original (was 49.3%).
+// Remaining diffs (all cascade from the first loop's register allocation):
+//   0x4870e8-0x487143  original: n=esi, found=ebp (4-byte), i spilled to
+//                      [esp+0x10]; ours: n=ebp, i=esi, found a byte local.
+//                      bool/int, declaration order, while, for-init, i-first
+//                      variants all stay identical or drop to 45.5% (int found
+//                      moves the id argument from ebx to ebp).
+//   0x487150-0x48718e  player register rotation (orig ecx/edx, ours edx/ecx).
+//   0x48719d           orig lea edx,[esi+0x64]; store [edx+4], ours store [esi+0x68].
+//   0x4872df-0x4873fd  bitfield flag copy rotates al/cl/dl differently.
+//   0x4874b3-0x487524  flag write rotation (orig dh/ah/ch, ours al/dl).
+//   0x487535           orig reads f33 at [esp+0x3f], ours at [esp+0x4b].
+//   0x487605-0x48768c  piece copy anchors: orig edi=&s.f4, eax=[esi+0xc];
+//                      ours edi=&s.f8, eax=[esi+0x10] (same addresses, off anchor).
+//   0x48769d-0x4876b8  epilogue xor eax,eax sits before pop edi in orig.
 
 extern "C" int sprintf(char* buf, const char* fmt, ...);
 
@@ -41,6 +56,7 @@ struct SaveRec_00487080 {
     unsigned char bb0;                  // +0xb0
     unsigned char bb1;                  // +0xb1
     unsigned char bb2;                  // +0xb2
+    unsigned char b3;                   // +0xb3 (unused padding)
     unsigned int flags;                 // +0xb4
 };
 

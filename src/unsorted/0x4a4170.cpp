@@ -1,4 +1,22 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry: no change to the code, still 80.9% and NOT a match.
+// New facts about the remaining diff, so the next attempt does not repeat them:
+// an N-declaration sweep (0 to 400 unused `extern int`) leaves the score flat
+// at 80.9%, so this is source shape, not compiler state. Operand-order
+// respellings change nothing (`0 == obj->field_78`, `0 > e->off`,
+// `0 != obj->holder`, `obj->field_78 == 0` all give byte-identical output).
+// A `int zero = 0;` declared at the top of the focus block and used for the
+// field_78 store, the `e->off < 0` clamp and the holder test still folds the
+// store back to the call result in `eax`, so the zero never survives. `short v`
+// in the wheel arm, a per-arm `old`, a single shared `off` with one
+// `e->off = off` after the if/else, `e->off--`/`e->off++`, `switch`-style
+// conditional stores, an `int f94`, and a `!= 1` spelling of the call test all
+// score below 80.9% (between 47% and 74%), several of them by breaking the
+// shared store at 0x4a427b. What is still unexplained: the original's
+// `xor edx, edx` in BOTH arms of the FUN_004ab5b0 test means the 0 is a phi at
+// the merge, i.e. it is live on both paths, yet every literal-zero spelling
+// the front end sees is folded or rematerialised. A real variable that is 0 on
+// both paths and read after the merge is the only shape left.
 // Sonnet 5.5 retry (#1080): no change to the code. /Gz and /Gr give the same 80.9%. The original zero in edx is not reachable with an `int zero = 0` local, a local assigned 0 in both arms, or named locals for the call results, the drag flag, the holder and the offset (about 150 variants): MSVC folds every one back to immediates. In 0x4a3ef0 a zero local that is reassigned LATER (`int lines = 0;` then `lines = ...` in one arm), declared after the last call before the block, did create the zero register, so look for a real variable in this block that starts at 0 and is reassigned on some path.
 // Not a match yet, 80.9%. The whole prologue, the entry-address computation,
 // the 24-byte point copy, the FUN_004a23b0 call, both FUN_004ab510 tail

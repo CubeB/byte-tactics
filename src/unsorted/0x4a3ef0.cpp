@@ -4,6 +4,30 @@
 // of type 2 whose +0x01 byte equals this entry's, then, by the flag bits 0x10,
 // 0x20 and 0x80 of that entry, recompute the size of a line (+0x142) and the
 // scroll position (+0x136), and refresh the gadget with FUN_004a2580.
+// The one allocator state that is left, and it explains every diff in the file:
+// the original has esi=me, edi=the group loop counter, ebx=the found entry,
+// ebp=entries and the CONSTANT ZERO in ecx. Here it is esi=me, edi=the found
+// entry, ebx=the loop counter, ebp=the constant zero and entries in ecx, which
+// is then spilled to [esp+0x14]. So exactly ONE variable too many is holding a
+// callee-saved register: if the zero would stop needing one, `i` moves to edi,
+// `e` to ebx, `entries` to ebp and the zero to ecx, all five at once, which is
+// the whole diff. The zero gets a callee-saved register because MSVC treats
+// `lines` as a variable with a live range covering the whole function; the
+// original instead value-numbers it as the constant 0 and rematerialises it
+// (that is why the 0x20 arm can divide by whatever happens to be in ecx).
+// Written tries that did NOT produce that, all free scratch scores:
+// - `if (found != lines)` and `if (e->field_da != lines)`: the front end folds
+//   the compare to the literal 0, so it still emits `xor ebp,ebp; test eax,eax`
+//   (56.0% and 54.6%, 631 bytes).
+// - One variable for the group counter AND the 0x20 divisor: MSVC then puts the
+//   counter in memory as a literal 0, spills `entries`, and duplicates the whole
+//   FUN_004a2580 tail into both arms of the 0x10 arm (19.7%, 706 bytes).
+// - The divisor as a local of the 0x20 arm: 41.1%, 561 bytes.
+// - Inlining the span ternary into the step expression (as `(field_da > size+1)
+//   ? field_da : size+1`, the operand order the original's `cmp edx,edi; jle`
+//   needs), inlining the two loads of the 0x20 arm, the size ternary as an
+//   if/else, `unsigned int lines`, and a `holder` local: byte-identical to the
+//   version above, so none of them is a lever on their own.
 // What the retry found (each one is worth a lot, check them before anything else):
 // - The entry search is an INLINE FUNCTION with `return i` inside the loop and
 //   `return 0` after it (the original has `xor eax,eax` on the not-found path and

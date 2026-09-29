@@ -1,5 +1,4 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Sonnet 5.5 retry (#1080): no change to the code. /Gz and /Gr give the same 98.7%. Replacing the SIB operand order (about 150 spellings of the colour byte read, param_1 as int, a local copy of param_1, address-of-field forms) and the surface load (all orders of x, colour, y2 and a surface local) never moved either difference: both look like the same compiler-state effect.
 // PARTIAL, 98.7% (661 bytes against 661, six instructions differ). Everything
 // from the prologue to the tail of the marker box matches instruction for
 // instruction. The six that do not are described at the bottom.
@@ -31,30 +30,112 @@
 //     an `unsigned char` loses the `xor edx,edx` zero extension and drops back
 //     to 87.7%.
 //
-// Suspected original bug: the focused-entry block saves the byte at
-// `field_74 + (char*)me + 0xb6`, zeroes it, measures `me + 0xb6` and restores
-// the byte. The save and the Measure read two DIFFERENT addresses (the first
-// adds the +0x74 pointer, the second does not), so the zeroing never affects
-// the string being measured, and `field_74 + me` is a sum of two unrelated
-// addresses. Both are reproduced as written; see the `blank` local.
+// Suspected original bugs:
 //
-// What still differs, six instructions, all register allocation:
+//  - The colour index. The colour read is `me->colours[(int)param_1 +
+//    0x8b2]`: it indexes the entry's own 16-colour table with the ADDRESS of
+//    the dialog object, so it reads roughly 0x8b2 bytes past a 16-byte array.
+//    The same wrong index is in the matched siblings 0x478790, 0x478b40,
+//    0x4a4c90, 0x4a7830 and 0x4a76b0, so it is Cavedog's, not ours. The
+//    evidence is the instruction itself, `mov dl, byte ptr [ecx + eax +
+//    0x8b2]` at 0x4a4ed4, where ecx is the load of me->colours and eax is the
+//    reload of the first argument.
 //
-//  a. The colour byte's SIB byte. The original has
-//     `mov dl, byte [ecx + eax*1 + 0x8b2]`, ours `byte [eax + ecx*1 + 0x8b2]`,
-//     that is the colour pointer is the SIB base in the original and param_1 is
-//     in ours. The identical expression in an isolated function compiles to
-//     the original's form, so this is a reassociation inside the full function,
-//     not a spelling. It flips to the original's form only when the +0x1f value
-//     is used ONCE: writing the FUN_004a50e0 style argument as `(int)(me + 0x1f)`
-//     (rather than `(int)me->colours`) gives the right SIB but costs three
-//     bytes, 93.3%. A union alias at +0x1f does not break the CSE. Grepping the
-//     exe, `8a 94 01 b2 08 00 00` has four hits and the swapped form has none.
+//  - The focused-entry block saves the byte at
+//    `field_74 + (char*)me + 0xb6`, zeroes it, measures `me + 0xb6` and
+//    restores the byte. The save and the Measure read two DIFFERENT addresses
+//    (the first adds the +0x74 pointer, the second does not), so the zeroing
+//    never affects the string being measured, and `field_74 + me` is a sum of
+//    two unrelated addresses. Both are reproduced as written; see the `blank`
+//    local.
+//
+// What still differs, six instructions, all register allocation. Both are the
+// same kind of difference: the allocator picks a different slot for a value
+// whose live set is identical on both sides, and the instructions up to and
+// including the preceding `push` are byte for byte the same, so nothing local
+// to either block explains them.
+//
+//  a. The colour byte's SIB byte. The original is
+//     `8a 94 01 b2 08 00 00`, that is `byte [ecx + eax*1 + 0x8b2]`, with the
+//     colour pointer in the SIB base and param_1 in the index; ours is
+//     `8a 94 08 ...`, the same instruction with the two registers swapped. The
+//     index is confirmed to be param_1 and not param_2: at 0x4a4ece the reload
+//     is `mov eax, [esp + 0x30]`, and with the four pushed registers, `sub
+//     esp, 0x18` and the `push eax` at 0x4a4ecd in between, `esp + 0x30` is
+//     exactly the first argument's slot. (Using param_2 instead compiles, and
+//     gives 94.0%, but it is not the original: it drops two bytes and moves
+//     `xor edx, edx`.) The isolated identical expression compiles to the
+//     original's form, so the swap is made later than the expression is built.
+//     Everything below was tried and none of it flips the SIB on its own: both
+//     operand orders of the sum (`colours + i + 0x8b2`, `colours + (i +
+//     0x8b2)`, `(colours + 0x8b2) + i`, `(i + 0x8b2) + colours`, the same five
+//     with an explicit deref), the index as an int local with and without the
+//     constant inside it, an unsigned index, `char*` instead of `unsigned
+//     char*` (that one sign-extends the load instead), a local for the colour
+//     pointer used twice, the colour byte in a local, the font in a local, a
+//     union alias at +0x1f, and `(int)(me + 0x1f)` for the FUN_004a50e0 style
+//     argument, which is the only one that reaches the original's SIB and
+//     costs three bytes for it (93.3%). Note that MSVC 5 canonicalises `a + b
+//     + c` so the constant cannot be parked on the pointer side of the add;
+//     the disp32 in a SIB is in any case independent of which register is the
+//     base, so the choice is the allocator's and not forced by the constant.
 //
 //  b. Where the surface load lands. The original is
 //     `push eax` (y2) / `mov eax,[ebx+0xbc]` / `push ecx` / `push edx` /
-//     `push ecx` / `push eax`; ours loads it after two pushes and into edx.
-//     Declaring the surface as a local moves it earlier still and costs 7%.
+//     `push ecx` / `push eax`, that is the load hoisted into the register y2
+//     has just vacated; ours pushes ecx and edx first and then reuses edx for
+//     the load. A local for the surface does not change it. Dropping the y2
+//     and colour locals (inlining both into the call) does produce the
+//     original's hoisted load into eax, but only by moving height into esi and
+//     rebuilding x as a `lea` off a spilled rect.left, which breaks the
+//     Measure block and costs 11%. The three locals in the order
+//     x/colour/y2, y2/colour/x and colour/y2/x were all tried: the last two
+//     move the colour read to ecx (96.9%), the first is what is in the file.
+//     Inlining the colour argument alone (87.7%) and inlining x as well both
+//     break the inlined Measure the same way: its `xor esi,esi / cmp ebp,esi
+//     / mov [esp+0x10],esi` becomes `mov [esp+0x10],0 / test ebp,ebp`, so
+//     that block is only correct for a narrow set of shapes and the two
+//     differences above are probably one allocator state, not two.
+//
+// Second pass, everything here measured with `check.py --sym` (scripts under
+// build/scratch/0x4a4d70: micro2.sh, g2.py, g3.py; one real check.py run):
+//
+//  - `headers.py` is a dead end here: all 128 header sets give 98.7%, none of
+//    them. This is NOT the "base and index swapped in an address" that
+//    <windows.h> fixed on 0x471f90.
+//
+//  - Micro-test calibration of the SIB rule, that is the "isolated identical
+//    expression" claim in (a), measured. In a standalone function taking
+//    `S* me, S* obj`, the body `me->colours[(int)obj + 0x8b2]` puts the
+//    COLOURS POINTER IN THE SIB BASE SLOT, that is the original's form, for
+//    every one of nine spellings: an int index, `(int)obj`, `(unsigned)obj`,
+//    the index hoisted into a local first, `*(me->colours + (int)obj +
+//    0x8b2)`, a cast on the array, and with one extra int parameter, which
+//    pushes the index into EAX, the byte-identical `8a 94 01 b2 08 00 00`.
+//    With the index in EAX the micro-test SIB is 0x01 and with it in EDX the
+//    SIB is 0x11, both with the colours pointer in the base. So the shape of
+//    the colour expression cannot be the lever here and (a)'s conclusion
+//    stands: the swap is decided after the expression is built.
+//
+//  - The one spelling that does flip the SIB in the real function,
+//    `(int)(me + 0x1f)` for the FUN_004a50e0 style argument, does it by
+//    turning the second `mov ecx, [edi+0x1f]` into a `lea` which MSVC then
+//    hoists to the TOP of the block, above `lea ebp, [edi+0xb6]`. So the
+//    older of the two memref operands takes the base slot, and the flip is a
+//    hoisting side effect, not a temp-numbering one. A load cannot be hoisted
+//    across the FUN_004c13a0 call, which is why no load-form of the colour
+//    pointer reaches it. The idea worth trying next: build the memref before
+//    the call to FUN_004c13f0, so the colour pointer is the older operand,
+//    without spilling the colour byte across that call. Hoisting the byte
+//    itself into a local (`int col = me->colours[(int)param_1 + 0x8b2];` and
+//    then the call) is 92.7% and 663 bytes, because the byte then has to live
+//    across the call.
+//
+//  - The tail is insensitive to the order of its three locals: x/colour/y2
+//    (what is in this file) 98.7%, colour/y2/x 96.9%, y2/colour/x 96.9%, x
+//    dropped 96.9%, y2 dropped 98.7% with the same two diffs and neither
+//    fixed, x and y2 both dropped 96.9%, all three inlined 87.7%. More
+//    evidence that (b) is not a source-shape problem of its own.
 
 #pragma pack(push, 1)
 struct Entry_004a4d70 {                // 0x15b bytes

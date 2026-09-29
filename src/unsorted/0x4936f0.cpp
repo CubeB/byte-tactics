@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Opens the resource sharing screen (SHARE.GUI): it walks the ten player
 // records, finds the local player's entry (flagged 0x40), points the METAL and
 // ENERGY sliders at the local counts, and finishes with the menu setup calls.
@@ -64,6 +64,27 @@
 // Both remaining blocks therefore fail for the same reason, and the fix has to
 // be one change that moves the layer, the menu, the entries and g_game into
 // the original's four registers at once.
+//
+// NEW FINDING (deepseek-v4.1-flash), measured on build/scratch/0x4936f0/v3.cpp:
+// the two tail blocks are NOT the same shape in the original. Writing block 2
+// with `menu` computed first and the layer read through it,
+//        menu = &g_game->menu;
+//        lyr = menu->layer;
+//        ents = lyr->entries;
+//        e = FUN_004a0200(ents, ents == lyr->entries ? "ENERGY" : "ENERGY");
+// makes block 2 emit the original's exact prologue
+//        mov edx, dword ptr [0x511de8]   (g_game in edx, 6 bytes)
+//        mov eax, dword ptr [edx + 0x531] (layer in eax)
+//        lea esi, [edx + 0x519]           (menu in esi)
+// so the 994-byte count is reached. Block 1 must keep the `lyr =
+// g_game->menu.layer` shape (g_game in eax, layer in ecx). The only thing left
+// in each block is that the entries load must NOT coalesce onto the layer
+// register: original block 1 wants `mov edx, [ecx+4]` and block 2 wants
+// `mov ecx, [eax+4]`, while every shape tried here emits the base register.
+// With v3 (994 bytes) the score is 94.9% because the register deltas cascade
+// into the calls after each block; the block-1-uniform base stays at 97.1%.
+// Tried and no better for the entries register: second layer pointer (`lyr2`),
+// inline `lyr->entries` as the argument, reusing the top-level layer/entries.
 //
 // The three instructions are, with identical mnemonics and sizes:
 //   - `mov edx, [ecx + 4]` in block 1 where this file has `mov ecx, [ecx + 4]`

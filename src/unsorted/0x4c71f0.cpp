@@ -1,4 +1,20 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
+// Claude Sonnet 5.5 pass (#624): compiler state ruled out (0 to 400 unused `extern
+// int` declarations in steps of 8, all 80.0% and 280 bytes). More source shapes
+// scored, none moved case 1 or case 2: an inline helper `Scale(a, b)` that reads
+// DAT_0051fe40 itself and calls FUN_004b7381(a, b, DAT_0051fe40) in all four cases
+// (80.0%; with the global copied to a local first it is 260 bytes and 58.8%), the
+// last two parameters as one by-value `Range at` (80.0%, identical bytes), and in
+// case 1 a local for size - offset, a `Range* o` alias for the stores, a local for the
+// call result, a local copy of at_high, the call as the last statement or the
+// first (all 80.0%; passing `size` instead of DAT_0051fe40 or putting the call
+// first is 276 bytes, 78.9 and 77.8%). What the original does differently in cases
+// 1 and 2: it loads at_low into edx at the top of the case, before the first push
+// (case 2 `mov edx,[esp+0x18]; push ecx; push eax; push edx`), and in case 1 it
+// loads at_high into ecx only after `push eax(global); push ecx(size-offset)`, i.e.
+// as the last push; ours loads the second parameter early into eax and moves the
+// global into edx. In case 2 the store of at_high is `mov eax,[esp+0x1c]` after the
+// call; ours hoists that load above `add esp, 0xc`.
 //
 // Partial: 80.0%. The search loop, the tail arithmetic, the size test, the
 // jump table, case 0 and case 3 match byte for byte, and cases 1 and 2 differ

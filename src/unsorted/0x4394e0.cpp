@@ -1,4 +1,13 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free and deepseek-v4.1-flash. Names are provisional.
+//
+// Second pass (deepseek-v4.1-flash): confirmed the register swap is the root
+// and it does not respond to source-level changes. Rewriting the snapshot as
+// explicit field stores, `start; start = *out;`, a const Pos, `*(Pos*)out`, a
+// named node local, `(order, *out)`, and an `(int)order | 0` no-op alias all
+// still score 65.2%, i.e. the allocator always gives ebx to start.x and edi to
+// the node parameter. The original does the opposite (node in ebx, start.x in
+// edi), so the prologue, the delta spills into the argument slots and the whole
+// loop register assignment cascade from that one choice.
 // PARTIAL, 65.2%, ours is the same size as the original (601) and the
 // instruction sequence now matches the original one for one. What the function
 // does: it snapshots the position the caller passed in `out`, calls

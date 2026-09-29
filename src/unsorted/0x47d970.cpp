@@ -1,37 +1,31 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5. Names are provisional.
 //
-// PARTIAL: 57.6%. The semantics are recovered and the frame, the bounds checks,
-// the strength-reduced row pointer, the 13-byte cell stride and the whole
-// nested loop shape match. What is left is register allocation: the prologue
-// picks different registers, which cascades into the loop body.
+// PARTIAL: 98.0%, 322 of 322 bytes. One instruction pair differs: the first sum.
+// The original computes the x end as `mov ax, [pos.x]; add ax, [size.x]` and the
+// y end as `mov dx, [size.y]; add dx, [pos.y]`; ours loads `size.x` first for x
+// (the y sum matches). Everything else is byte-identical, including the frame,
+// the strength-reduced row pointer, the 13-byte cell stride and all the register
+// choices.
 //
-// What still differs:
-//  - the two bound sums. The original loads one operand of each into a
-//    register and folds the other: `mov ax, [pos.x]; add ax, [size.x]` and
-//    `mov dx, [size.y]; add dx, [pos.y]`. Ours always loads the size operand
-//    (`mov ax, [size.x]; add ax, [pos.x]`, `mov dx, [size.y]; add dx, [pos.y]`),
-//    so only the y sum lines up. Ruled out: swapping the source operand order,
-//    splitting each sum into an assignment plus `+=`, taking one operand from a
-//    scalar short local, taking both from a Point local, and declaring the
-//    Point before or after the sums; all of them compile to the same form, so
-//    MSVC fixes the operand order of a memory+memory add here;
-//  - `g_game` goes in edi in ours and esi in the original (esi is later reused
-//    for the cell pointer), which also moves `push edi` and the dword load of
-//    the position one instruction later;
-//  - the mask index `n` lives in esi in ours and in the (dead) second argument
-//    slot in the original, and our `bit` is spilled to a byte-sized copy of
-//    that slot instead of staying in dl for the whole loop. The two locals
-//    compete for that slot; declaring them in either order, making `bit` an
-//    int or a char and making `n` unsigned all give the same code, so the
-//    original's choice (the counter in the slot, the mask byte in dl) is not
-//    reachable from the source shapes tried;
-//  - so the cell pointer is in ecx in ours and esi in the original, and the
-//    original does `mov bl, [ecx+edi]; and bl, dl; test bl, bl` where ours
-//    folds the load into `test byte ptr [esi+edi], dl`.
+// The fix that took it from 57.6 to 98.0 percent (Claude Sonnet 5.5, #571): write
+// the mask read with the post-increment inside it, `mask[n++] & bit`, instead of
+// `n++` at the bottom of the loop. The original increments right after the load
+// (`mov ecx,[n]; mov bl,[ecx+edi]; inc ecx; test bl,bl; mov [n],ecx`), and with
+// the increment merged MSVC keeps `n` in the dead `flag` argument slot and gives
+// esi to the cell pointer, as the original does. With `n++` at the bottom it puts
+// `n` in esi and spills `bit`, which cascaded through the whole loop.
 //
-// <windows.h> is included because headers.py names it (with <stdlib.h> and
-// <math.h>) as the closest header set: it is what makes the y sum keep its
-// operand in dx, 55.6% without it.
+// What was tried on the remaining x sum, none of which moved it: `size.x + pos.x`,
+// the two sums in the other order, `xend = pos.x; xend += size.x`, `size.y +
+// pos.y`, explicit `(short)` casts, `int` locals (56.3 percent, worse);
+// tools/headers.py, all 128 sets (best 98.0, the empty set too); and N unused
+// `extern int dummyK;` lines in front of the first pragma, K = 0 to 200 step 4,
+// with and without <windows.h>: 98.0 (K <= 56) or 96.0 (K >= 60) with it, 98.0,
+// 96.0 or 95.0 without, never MATCH. So it is not reachable by the declaration
+// count or the headers tried; the operand order of a memory+memory 16-bit add may
+// depend on state left by the original file's earlier functions.
+//
+// <windows.h> is kept because it is what makes the y sum keep its operand in dx.
 #include <windows.h>
 #pragma pack(push, 1)
 
@@ -88,9 +82,8 @@ int __stdcall FUN_0047d970(Obj_0047d970* obj, int flag)
     for (int y = p.y; y < yend; y++) {
         Cell_0047d970* c = g_game->cells + y * width;
         for (int x = p.x; x < xend; x++) {
-            if ((obj->unit->mask[n] & bit) && c[x].field_0 != 0 && c[x].field_0 != obj->field_a8)
+            if ((obj->unit->mask[n++] & bit) && c[x].field_0 != 0 && c[x].field_0 != obj->field_a8)
                 return 0;
-            n++;
         }
     }
     return 1;

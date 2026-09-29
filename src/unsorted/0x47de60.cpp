@@ -35,6 +35,21 @@
 //    original's two-step unit load and to put g_game in edx. With a plain
 //    pointer the fold comes back but the whole function drops to 68.6%, so the
 //    two effects cannot be had at once from the spellings tried.
+//
+// Claude Sonnet 5.5 pass (#571), all still 86.8 percent and 346 bytes:
+//  - N unused `extern int dummyK;` lines in front of the first pragma, K = 0 to
+//    200 step 4: flat 86.8, so it is the source shape, not compiler state (unlike
+//    0x47d820 in the same issue, which matches for K = 16 to 80);
+//  - the feature test moved into a `static inline int FeatureBlocked(Cell*)`, the
+//    unit check into a `static inline` helper, both, and a slot pointer
+//    (`UnitSlot* slot = &g_game->units[cell->spot]`) instead of the reference;
+//  - spotY and spotX copied into `unsigned char`, `int` or `unsigned int` locals
+//    in either order, and the index as a separate `int idx` local.
+// From the disassembly (0x47dea5 to 0x47deb6): the original zero-extends both
+// byte fields first (`xor eax,eax; xor ecx,ecx`), then loads them, then does
+// `imul eax,[edx+0x14233]; add eax,ecx`, so the width is the memory operand of the
+// multiply. Ours loads the width into eax and copies spotY to ecx. g_game is loaded
+// into edx before `push esi` (0x47de62) and stays there, as in ours.
 #pragma pack(push, 1)
 struct Feature_0047de60 {
     char unknown_0[0xfe];

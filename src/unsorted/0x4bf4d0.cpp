@@ -5,7 +5,48 @@
 // of 32 fade-in tables at +0xc4 (for negative levels, offset by 32) or one of 32
 // fade-out tables at +0xc8.
 //
-// 69.4 percent. Established and matching: the 48-byte surface layout (pitch at
+// 69.4 percent (341 bytes against the original's 332; gave up, Claude Sonnet 5.5
+// pass, about 20 scratch variants). A later pass found three source changes that
+// are structurally right but score LOWER by percentage because everything after
+// them shifts (read the byte counts, not the percentage). Apply all three when
+// you continue, they are not in the code below:
+// 1. `Rect_004bf4d0 r;` declared at FUNCTION scope (next to `screen`), with the
+//    default-rect block assigning into it. That alone makes the default-rect
+//    block interleave loads and stores exactly like the original (top, left,
+//    load width, lea esi, right, load height, bottom).
+// 2. The inner loop is `while (w--) { *row = t[*row]; row++; }`, not
+//    `while (w) {...; w--;}`. The original has `mov ebx,eax; dec eax; test
+//    ebx,ebx; je; inc eax` there, the same shape as the outer `while (height--)`.
+// 3. Fold the table into one pointer, `unsigned char* t = table + (level << 8);
+//    if (t == 0) return 0;` and index `t[*row]`. The original has one register
+//    for it (`add eax,edi; mov ebp,eax; test ebp,ebp`, engine's ebp reused) and
+//    the loop load is `[ebp+ebx]`. Re-evaluating `table + (level << 8)` in the
+//    loop, as below, needs a second register and spills the row counter.
+// With 1 to 3 the file is 333 bytes (67.7 percent) and the loop, the exits, the
+// default-rect block and the tail match apart from register names. What is left,
+// and I could not move it in 20 variants: (a) surface and engine take ebp and
+// ebx the wrong way round (original: surface ebx, engine ebp), and (b) the
+// pixel pointer block has eax/ecx rotated (original loads top into eax, pitch
+// into ecx, imul ecx,eax, leaves the pixel pointer in ecx and level in eax).
+// Measured on (a): declaration order of every local (40 permutations, all
+// identical), a local copy of `surface`, a local copy of `level`, one more or
+// one fewer use of `engine` or `surface`, `screen.pitch * top` against
+// `top * screen.pitch` (all spellings of the pixel pointer compile to the same
+// bytes), `int own = surface == 0;` (worse). The ONE thing that flipped it to
+// the original's roles was moving the table selection into a `static inline`
+// helper that takes (Engine*, int level) and returns `table + (level << 8)`,
+// with `if (table == 0) return 0;` inside each arm. But then the helper's null
+// returns become `xor ebp,ebp; jmp join` plus one `test ebp,ebp` (313 bytes),
+// while the original has three separate exits: two `xor eax,eax; ret` after the
+// `fade_neg`/`fade_pos` null tests and one bare `ret` after the `t == 0` test
+// (eax already 0). So the original probably has inline code with the roles
+// decided by something else in the function; untried: a helper for only the
+// rect/clip part, or for the pixel loop (it might carry surface's weight).
+// The 0x4bf4d0 entry in docs/bugs.md (three failure exits skip the unlock, and
+// `movsx` indexes the table with a sign-extended byte) is confirmed by the
+// disassembly and is reproduced here.
+//
+// Established and matching in the version below: the 48-byte surface layout (pitch at
 // +0x0, pixel pointer at +0xc, clip rect at +0x1c, which is what fixes the
 // frame at 0x40 and the `rep movsd` count at 0xc), the pixel pointer as a
 // signed `char*` against an `unsigned char*` table (the original uses

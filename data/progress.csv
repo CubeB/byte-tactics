@@ -851,12 +851,14 @@ address,size,file,symbol,status,similarity
 0x4427a0,322,src/unsorted/0x4427a0.cpp,?FUN_004427a0@@YAXXZ,matched,100.0
 0x4428f0,125,src/unsorted/0x4428f0.cpp,?FUN_004428f0@@YGXPAUMenu_004428f0@@PAUPlayer_004428f0@@@Z,matched,100.0
 0x442970,185,src/unsorted/0x442970.cpp,?FUN_00442970@@YAXXZ,matched,100.0
+0x442a30,1594,src/unsorted/0x442a30.cpp,?FUN_00442a30@@YGXPAUGadget_00442a30@@@Z,matched,100.0
 0x443070,138,src/unsorted/0x443070.cpp,?FUN_00443070@@YGHABU_GUID@@KPBXPAX@Z,matched,100.0
 0x443100,888,src/unsorted/0x443100.cpp,?FUN_00443100@@YGXXZ,matched,100.0
 0x443480,261,src/unsorted/0x443480.cpp,?FUN_00443480@@YGXPAUGadget_00443480@@@Z,matched,100.0
 0x443590,5,src/unsorted/0x443590.cpp,?FUN_00443590@@YAXXZ,matched,100.0
 0x4435a0,316,src/unsorted/0x4435a0.cpp,?FUN_004435a0@@YGXPAIPAPAD@Z,matched,100.0
 0x4436e0,223,src/unsorted/0x4436e0.cpp,?FUN_004436e0@@YAHXZ,matched,100.0
+0x4437c0,1253,src/unsorted/0x4437c0.cpp,?FUN_004437c0@@YGXPAUSub_004437c0@@@Z,partial,89.6
 0x443cb0,824,src/unsorted/0x443cb0.cpp,?FUN_00443cb0@@YAXXZ,matched,100.0
 0x443ff0,424,src/unsorted/0x443ff0.cpp,?FUN_00443ff0@@YGHH@Z,matched,100.0
 0x4444d0,173,src/unsorted/0x4444d0.cpp,?FUN_004444d0@@YGHPAUEntry_004444d0@@HFHPAD@Z,matched,100.0
@@ -872,6 +874,7 @@ address,size,file,symbol,status,similarity
 0x445300,152,src/unsorted/0x445300.cpp,?FUN_00445300@@YGXPAUEntry_00445300@@@Z,matched,100.0
 0x4453a0,176,src/unsorted/0x4453a0.cpp,?FUN_004453a0@@YGXPAUPlayer_004453a0@@0@Z,matched,100.0
 0x445450,341,src/unsorted/0x445450.cpp,?FUN_00445450@@YAXXZ,matched,100.0
+0x4455b0,1468,src/unsorted/0x4455b0.cpp,?FUN_004455b0@@YAXXZ,partial,90.7
 0x445b70,249,src/unsorted/0x445b70.cpp,?FUN_00445b70@@YGXPAUGui_445b70@@H@Z,matched,100.0
 0x445c70,227,src/unsorted/0x445c70.cpp,?FUN_00445c70@@YGXPAUSub_00445c70@@H@Z,matched,100.0
 0x445d60,187,src/unsorted/0x445d60.cpp,?FUN_00445d60@@YGXPAUSub_00445d60@@H@Z,matched,100.0

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free. Names are
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are
 // provisional.
 //
 // 80.1% (799 bytes against 798). Both non-reallocating branches, the whole

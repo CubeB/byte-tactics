@@ -1,11 +1,11 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // VTOL patrol order handler ("Patrolling"). State 0 prepares the order
 // (FUN_0040f200 is defined here because /Ob2 inlined it), state 1 clears the
 // order's 0xe0 bits, state 2 flies to a point 0x140 units away along the
 // heading to the order's position, lands on a free pad when damaged
 // (VTOL_LANDING, as in 0x412710), or takes the next queued order.
 //
-// Partial: 80.6%. The original calls vector::_Destroy (0x406c00) out of line
+// Partial: 92.2%. The original calls vector::_Destroy (0x406c00) out of line
 // in both of the vector's destructors, which is MSVC 5's /Ob2 inline budget
 // running out. Found with scratch probes: the inliner does all first-level
 // call sites before the calls inside them, and handles later source first,
@@ -19,14 +19,26 @@
 // a flag local, or putting the tail (FUN_0043b700 onward) or the whole case
 // in the helper either keeps that join or changes which calls are inlined.
 // With the vector directly in case 2 (no helper) the return folds but both
-// _Destroy calls are inlined (72.4%), whatever the case order, and wrapping
+// _Destroy calls are inlined (86.5% in best_92's sibling variant in
+// build/scratch/0x410e70/v2_plain.cpp), whatever the case order, and wrapping
 // the vector in a struct with its own destructor does not change that. In
 // that plain version a scratch probe needed about 16 extra trivial inline
 // calls after the landing code before both _Destroy calls went out of line.
-// Putting the whole tail in the helper (so it returns 0/3/2 directly), case
-// 0 or the fly-out part in helpers, or dropping the Offset/FUN_0040f790
-// helpers all move the budget the wrong way (a whole ~vector out of line,
-// or FUN_0040f200 or FUN_0040f790 not inlined).
+// Putting the whole tail in the helper (`return TryLand(...)` so it returns
+// 0/3/2 directly) scores 76.7%: ebx/ebp swap (order becomes ebx, unit ebp)
+// and the empty path's destructor goes out of line as the full ~vector
+// (0x411056) instead of _Destroy+delete, so ours is 19 bytes short. That
+// variant is the only one that emits the landed `xor eax,eax; epilogue`
+// with no test (verified in its dump), but the swap is stable under a
+// member-function helper, __fastcall, parameter swap and order/unit aliases,
+// and headers.py (128 sets, and 768 with --cpp) never changes either variant.
+// A plain inline vector folds the landed return (86.5%) but inlines both
+// _Destroy calls and mis-allocates case 0 (see v9_plain.cpp).
+// Taking vector<Unit*>::_Destroy's address in this TU (the derived-class
+// member-pointer trick from 0x406c00.cpp) does NOT stop the call site from
+// inlining it: the plain version stays at 86.5%.
+// Dropping the Offset/FUN_0040f790 helpers moves the budget the wrong way (a
+// whole ~vector out of line, or FUN_0040f200 or FUN_0040f790 not inlined).
 // No header set changes the result (tools/headers.py).
 #include <vector>
 

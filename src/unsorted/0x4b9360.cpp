@@ -27,10 +27,26 @@
 //    here and width in the original. No source spelling of the product
 //    (operand order, casts, locals, indexing, unsigned) changes that.
 //
+// Claude Sonnet 5.5 pass (#589): 83.1 to 87.3 percent. It is compiler state:
+// scoring this file with N unused `extern int dummyK;` lines in front (not
+// committed) gives 83.1 for N = 8 to 32, 83.9 for 40 to 88 and 87.3 for every N
+// from 96 to 208, and at 87.3 two of the differences below disappear (the
+// `width * height` accumulator and the `cmap[c]` base and index order both match
+// the original). The legitimate way to that state is a header: headers.py finds
+// `<string.h>` alone (also `<windows.h>`, `<ddraw.h>`), so the file includes
+// <string.h>, as a real game file would. The notes above about the two products
+// and `cmap[c]` are therefore obsolete; what is left at 87.3 is the swaps and the
+// surface block. Buffer swap spellings re-scored with <string.h> in scope: a
+// pointer-to-pair local (this file), the same with the two loads reversed
+// (87.3, same), `t = a; a = b; b = t` on the fields directly (67.5), two named
+// temporaries (67.5, 67.5).
+//
 // Draws a sprite with a colour-remap effect: the destination surface is
 // blitted into the sprite's scratch buffer, then the sprite's index table is
 // remapped through that buffer (32000 uses the sprite's flat colour) and the
 // result is drawn with FUN_004b7f90.
+
+#include <string.h>
 
 struct Sprite_4b9360 {
     unsigned short width;        // +0x0

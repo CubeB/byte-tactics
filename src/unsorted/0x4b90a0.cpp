@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5. Names are provisional.
 // Partial, best 82.8% (re-checked by space-bunny-free, no better form found).
 //
 // Byte accounting: ours is 256 bytes, the original 260. Everything matches
@@ -33,6 +33,21 @@
 // and the height (outer count); the second supplies the destination row
 // pointers and the row stride. The dead `mov edx, [esp+0x20]` after the
 // inner loop is a reload of x, present in both.
+//
+// Claude Sonnet 5.5 pass (#589): 82.8 to 83.9 percent by declaring the locals at
+// function scope in the order `yoff, stride, xoff, dp0, dp1` (that is what the
+// file now has). All 120 orders of {xoff, yoff, stride, dp0, dp1} were scored:
+// 60 give 83.9, 60 give 82.8, and the 83.9 ones are exactly those where `stride`
+// is declared before `xoff` (and yoff before dp0/dp1), so the first operand of
+// the row-pointer sum moves. The remaining diff is then only (1) the plane load
+// (`mov esi,[plane0]; add esi,xoff` here, `mov esi,ebx; ...; add esi,eax` in the
+// original, i.e. the original copies xoff and adds the plane afterwards), (2) the
+// `yoff` spill after the guards, and (3) the add destination of the threshold
+// compare. Crossed with all 6 orders of the row-pointer sum and the 4 spellings
+// of the compare (24 files): no change (the two `*dp1 <=` spellings give 82.8).
+// N unused `extern int` declarations, N = 8 to 208 step 8: 83.9 at best, the
+// rest much worse (22 to 68), so it is not the declaration-count state that
+// helped 0x4b9360 in the same issue.
 
 struct Bitmap_004b90a0 {
     unsigned short width;      // +0x0
@@ -49,17 +64,22 @@ struct Bitmap_004b90a0 {
 void __stdcall FUN_004b90a0(Bitmap_004b90a0* src, Bitmap_004b90a0* dst,
                             int x, int y, int level)
 {
-    int xoff = dst->field_4 - src->field_4 + x;
-    int yoff = dst->field_6 - src->field_6 + y;
+    int yoff;
+    int stride;
+    int xoff;
+    unsigned char* dp0;
+    unsigned char* dp1;
+    xoff = dst->field_4 - src->field_4 + x;
+    yoff = dst->field_6 - src->field_6 + y;
     if (xoff < 0 || yoff < 0) {
         return;
     }
     unsigned char* sp0 = src->plane0;
     unsigned char* sp1 = src->plane1;
     for (int row = 0; row < src->height; row++, yoff++) {
-        int stride = dst->width * yoff;
-        unsigned char* dp0 = xoff + dst->plane0 + stride;
-        unsigned char* dp1 = xoff + dst->plane1 + stride;
+        stride = dst->width * yoff;
+        dp0 = xoff + dst->plane0 + stride;
+        dp1 = xoff + dst->plane1 + stride;
         int n = src->width;
         while (n--) {
             unsigned char c = *sp0;

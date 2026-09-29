@@ -46,6 +46,9 @@
 //      keeps the division above the call;
 //   4. the two final stores are emitted mask first, the original does fn
 //      first with each argument loaded just before its own store.
+// Claude Sonnet 5.5 pass (#589): not reworked (no lead beyond the four points
+// above); the same file's sibling 0x4b7760 inlines this body in a record loop and
+// hits the same points 1 to 3, see its notes.
 #include <string.h>
 
 // Release of the reference-counted string handle (0x4c9390).

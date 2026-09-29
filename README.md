@@ -25,8 +25,8 @@ By count that is 2,952 of the game's 3,267 functions (90.4%). The headline count
 | | Functions | Bytes |
 | --- | ---: | ---: |
 | Matched byte-for-byte | 2,952 | 516,005 |
-| Attempted, not yet matching | 290 | 309,582 |
-| Not attempted yet | 25 | 25,266 |
+| Attempted, not yet matching | 293 | 315,389 |
+| Not attempted yet | 22 | 19,459 |
 
 ### By function size
 

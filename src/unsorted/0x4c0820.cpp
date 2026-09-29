@@ -1,34 +1,39 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Fills a closed polygon: scans the vertices for the row range, rasterises
-// every edge that runs downwards from the topmost vertex into per row spans
-// (x1/z1 for the backward walk, x2/z2 for the forward walk), then plots the
-// two end points of each span with FUN_004c0a90.
+// Fills a closed polygon: scans the vertices for the row range, then walks
+// backwards from the topmost vertex rasterising every edge that runs
+// downwards into per row spans (x1/z1), then forwards doing the same for the
+// other side (x2/z2), and finally plots the two end points of each span with
+// FUN_004c0a90.
 //
-// Not matched: 35.9%, 556 bytes against 613. The body is instruction for
-// instruction the original everywhere except the allocation of the four
-// register variables, and that one difference is the whole gap:
-//   * the original's frame is 0x14024 with the span array at [esp+0x34], ours
-//     is 0x1401c with it at [esp+0x2c]. The original has two more scalar
-//     slots: xmin in memory (0x10) and a spill of the second vertex pointer
-//     (0x20). Every displacement in the two rasteriser loops is therefore
-//     8 bytes out, which is most of the lost bytes.
-//   * cause, in the scan loop: the original holds ymin in esi, xmax in edi
-//     and pts in ebx, and keeps count and xmin in memory (count is re-read
-//     from its argument slot on every use, including in the rasterisers);
-//     ours holds pts in esi, xmax in edi, xmin in ebx and count in ebp, and
-//     ymin only in memory. Same six values, different order of preference.
-//     In the rasteriser loops everything is then one register lower than the
-//     original (a/&b, the divisor and the running x are demoted), which is
-//     what forces the extra &b spill.
-// Tried and rejected: <windows.h> (no change at all, 35.9%); declaring and
-// testing xmin before xmax in the scan loop (34.9%, worse).
-// Untested leads: the number of references ymin and count have in the
-// original is the same as here, so the difference is probably in how the
-// original spells the count - 1 wrap in the rasterisers (maybe a modulo, or
-// a separate index local), which would stop count being live across the
-// whole function.
+// Not matched: 40.9% (554 bytes against 613). The instruction sequence of
+// both rasteriser bodies is right, but the whole function is allocated one
+// register out of step, which moves every stack displacement with it:
+//   * frame 0x14024 against our 0x1401c: the original has two more scalar
+//     slots, the second vertex pointer b (+0x20) and a copy of a->y (+0x28,
+//     and +0x24 in the second loop). Ours has neither, so the spans array
+//     sits at [esp+0x2c] instead of [esp+0x34] and every argument slot is
+//     4 bytes lower (0x14034 for pts against 0x1403c).
+//   * the original keeps count in its argument slot and re-reads it on every
+//     use (0x4c088b, 0x4c08c8, 0x4c095a, 0x4c0981, 0x4c0a1c); ours copies it
+//     into ebp. The original's scan loop then has esi=ymin, edi=xmax,
+//     ebx=pts, ebp unused, while ours has esi=pts, edi=xmax, ebx=xmin,
+//     ebp=count. Same six values, different preference order, and the
+//     rasteriser loops are all one register lower as a knock-on effect
+//     (the running x is in ebp, not ebx, so the second vertex pointer takes
+//     edi instead of a stack slot).
+//   * the original computes the row count a second time, as
+//     sub esi, [esp+0x28] (b->y minus a saved a->y), so the divisor
+//     (edi) and the countdown (esi) are two distinct values. Any spelling
+//     that keeps them as one expression makes MSVC 5 CSE them into a single
+//     register.
+// Tried and rejected, all worse or unchanged: <windows.h> (35.9%, no change,
+// from the earlier attempt on this file); declaring a and b before the
+// pts[i].y < pts[j].y test (38.2%); a local int h for the divisor (unchanged,
+// still CSEd); a local int ay = a->y used by the countdown (40.9% but the
+// body spills badly, 617 bytes); spelling the countdown b->y - pts[i].y so it
+// cannot be CSEd with the divisor (28.4%, 615 bytes).
 // Suspected original bug: the scan loop only writes iymin and iymax when it
-// runs, and 0x4c089a reads iymax and 0x4c08af reads iymin without any
+// runs, and 0x4c089a reads iymax and 0x4c08b7 reads iymin without any
 // initialisation, so a caller passing count <= 0 rasterises with two
 // uninitialised stack words (0x4c0865, 0x4c0875 versus 0x4c0962, 0x4c08b7).
 
@@ -83,7 +88,9 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
                 xmin = p->x;
         }
     }
-    if (ymax != ymin) {
+    if (ymax == ymin)
+        return 0;
+    {
         int i = iymin;
         out = spans;
         do {
@@ -110,7 +117,9 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
             if (i < 0)
                 i = count - 1;
         } while (i != iymax);
-        i = iymin;
+    }
+    {
+        int i = iymin;
         out = spans;
         do {
             int j = i + 1;
@@ -136,17 +145,16 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
             if (i >= count)
                 i = 0;
         } while (i != iymax);
-        {
-            int y = ymin;
-            Span_004c0a90* s = spans;
-            while (y < ymax) {
-                if (s->x2 > s->x1)
-                    FUN_004c0a90(y, s, surf, color);
-                s++;
-                y++;
-            }
-        }
-        return 1;
     }
-    return 0;
+    {
+        int y = ymin;
+        Span_004c0a90* s = spans;
+        while (y < ymax) {
+            if (s->x2 - s->x1 > 0)
+                FUN_004c0a90(y, s, surf, color);
+            s++;
+            y++;
+        }
+    }
+    return 1;
 }

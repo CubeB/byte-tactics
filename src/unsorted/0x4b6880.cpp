@@ -54,6 +54,18 @@
 // copy, `mov esi,ebp; neg esi`), while ours loads a temporary into eax at the
 // top and copies it. Everything else (frame, zeroing order, exits, the doubled
 // success stores) matches, and the 2-byte size difference is only this.
+//
+// Retry (Sonnet 5.5, #1107), no gain, 1 official run: /Gr, /Gz and /Gd give the
+// same 88.2% (the function is already __stdcall and the callees are imports).
+// A 3360-file scripted sweep of every declaration/statement order of result,
+// key1..3, sam, doRead, err and the zeroing (key order fixed) topped out at
+// 88.2% (the current shape, sam before doRead); every order with doRead first
+// gives 298 bytes and 82.4%, where the load goes to eax, is copied to ebp, and
+// the mask is negated in eax then moved to esi. Also flat or worse: if/else and
+// KEY_WRITE + 0x13 forms of the mask, sam re-assigned from itself, the mask
+// spelled in every call, and inline helpers taking DWORD, DWORD& or DWORD*.
+// The original loads read straight into ebp (its own register) and copies it to
+// esi for the neg; MSVC here always folds the two into one temporary.
 #include <windows.h>
 
 // FUNCTION: 0x4b6880

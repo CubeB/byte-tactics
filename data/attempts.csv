@@ -3738,7 +3738,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x46cc10,678,space-bunny-free,#885,matched,100.0,,"issue #885, escalated"
 0x4a4c90,215,,#886,assigned,,,"issue #886, escalated"
 0x43b7c0,780,,#887,assigned,,,"issue #887, escalated"
-0x4cda00,307,,#890,assigned,,,"issue #890, escalated"
+0x4cda00,307,space-bunny-free,#890,matched,100.0,,"issue #890, escalated"
 0x4bc370,314,,#891,assigned,,,"issue #891, escalated"
 0x4c5e70,293,sonnet-5.5,#894,matched,100.0,,"issue #894, escalated"
 0x4c5ff0,214,sonnet-5.5,#894,matched,100.0,,"issue #894, escalated"

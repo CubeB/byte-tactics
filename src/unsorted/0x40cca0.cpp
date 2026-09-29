@@ -1,5 +1,12 @@
-// Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: 98.9%. The second inlined copy computes its source with mov/sub/add instead of lea/sub.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 99.5%. This is std::vector<Elem_0040cfb0>::insert(iterator, size_type,
+// const Elem&) from MSVC 5's <vector>, emitted out of line by taking the
+// member's address. The only remaining difference is one pointer sum in the
+// reallocation path's tail _Ucopy(_P, _Last, _Q + _M): the original groups it
+// as (dest + _P) - _Q - _M (lea eax,[ebp+ecx]; sub eax,edx; sub eax,edi) and
+// ours as (dest - _Q) + _P - _M (mov eax,ecx; sub eax,edx; add eax,ebp;
+// sub eax,edi). Both equal _P; it is the compiler's induction-variable
+// canonicalisation, and tools/headers.py tries all 128 header sets at 99.5%.
 #include <vector>
 struct Elem_0040cfb0 { char a, b, c; };
 typedef std::vector<Elem_0040cfb0> Vec;

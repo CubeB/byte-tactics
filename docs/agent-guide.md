@@ -1942,3 +1942,10 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   in it happens on the same paths as in the original: a stray unconditional
   store after an if/else set a flag on the wrong unit, and removing it was
   part of the fix (0x48d790).
+- **MSVC 5 sinks a store only when it is a top-level statement.** Nested in
+  an expression (for example, inside an inline helper whose return value is
+  assigned), the same store is emitted where it stands. So a store in the
+  wrong slot is usually a statement-shape problem, not a scheduling one. The
+  nested form can cost a register elsewhere, so check both together
+  (0x4ba000, 98.7%). A compiler rule seen in one block is a guess until a
+  second block of the same function agrees.

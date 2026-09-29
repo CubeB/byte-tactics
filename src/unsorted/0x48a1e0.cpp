@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 #include <math.h>
 
 class Class_004b07c0 {
@@ -71,31 +71,23 @@ extern Game_0048a1e0* g_game;
 int __stdcall FUN_00485070(Vec3_0048a1e0* pos);
 void __stdcall FUN_0043e3c0(UnitDef_0048a1e0* def, int pos);
 
+// The intact tail block was the last diff. Writing the three adds in their
+// natural x,y,z order made MSVC sink the first product to its use (products
+// came out y,z,x, 91.5%); writing them z,y,x kept the products but ordered the
+// adds z,y,x (96.2%). Passing the three products through a static helper that
+// returns the vector by value makes all three writes land in memory before the
+// adds are read, and the original's x,y,z schedule falls out.
+static Vec3_0048a1e0 offset_0048a1e0(Muzzle_0048a1e0* m, __int64 s)
+{
+    Vec3_0048a1e0 d;
+    d.x = (int)(((__int64)m->offset.x * s) >> 16);
+    d.y = (int)(((__int64)m->offset.y * s) >> 16);
+    d.z = (int)(((__int64)m->offset.z * s) >> 16);
+    return d;
+}
+
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-// A final pass attacked the add block structurally rather than by permutation,
-// as the previous pass recommended, and did not beat 96.2%. The clue followed
-// was that the original's `d.x` and `d.y` occupy frame slots while `d.z` stays
-// in eax, a pattern MSVC produces for three independent component adds, so the
-// idea was to stop the scheduler merging the three adds. Seven shapes, all with
-// `check.py --sym` after `rm -rf build/obj`:
-//
-//   adds in x,y,z order                                91.5%
-//   a fresh Vec3 built up and written back whole       90.1%
-//   a static inline AddVec taking two vectors by value 90.1%
-//   a static inline Add1 per component, x,y,z          91.5%
-//   a static inline Add1 per component, z,y,x          96.2%  (same as the file)
-//   pos->x += d.x three times, x,y,z                  91.5%
-//   pos->x += d.x three times, z,y,x                  96.2%  (same as the file)
-//
-// The pattern across all seven is that anything which perturbs the *statement*
-// shape of the three adds drops about five points, and the two shapes that hold
-// 96.2% are exactly the two orderings already in the file. Together with the
-// previous pass's 36 orderings of the three `_allmul` products against the 36
-// orderings of the three adds, in two shapes each, the permutation space is
-// measured and the add scheduling does not come out of it. A `volatile` on the
-// product locals would block the reordering but is not permitted.
-//
 // FUNCTION: 0x48a1e0
 int __stdcall FUN_0048a1e0(Unit_0048a1e0* unit, Vec3_0048a1e0* pos, int index)
 {
@@ -131,12 +123,10 @@ int __stdcall FUN_0048a1e0(Unit_0048a1e0* unit, Vec3_0048a1e0* pos, int index)
         int scale = (int)(((__int64)dist << 16) / e->target->radius);
         scale = (int)((scale * (__int64)0xcccc) >> 16);
         __int64 s = scale;
-        d.x = (int)(((__int64)def->muzzle->offset.x * s) >> 16);
-        d.y = (int)(((__int64)def->muzzle->offset.y * s) >> 16);
-        d.z = (int)(((__int64)def->muzzle->offset.z * s) >> 16);
-        pos->z = pos->z + d.z;
-        pos->y = pos->y + d.y;
+        d = offset_0048a1e0(def->muzzle, s);
         pos->x = pos->x + d.x;
+        pos->y = pos->y + d.y;
+        pos->z = pos->z + d.z;
     }
     return 1;
 }

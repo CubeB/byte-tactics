@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 // Applies one damage/heal event record (a small struct on the caller's stack:
 // byte type at +0, two unit ids at +1 and +3, an amount at +5, a byte at +7
 // and the event kind at +8) to the unit named by the first id.
@@ -90,35 +90,10 @@ void __stdcall FUN_00494ff0(int flag);
 int __cdecl FUN_004b7123(unsigned short idx, int scale);
 int __cdecl FUN_004b70ef(short idx, int scale);
 
-// PARTIAL, 98.6% (697 of 697 bytes, exact size). Four bytes in one spot.
-//
-// The heal branch's add. The original loads hp into eax, then the amount into
-// edx, then `add eax, edx`, so the FIRST operand gets the add's destination
-// register. This file loads hp into edx, then the amount into eax, and the
-// `add` is identical, so the SECOND operand gets it. The base registers agree
-// (`esi` for hp at +0x108, `edi` for the amount at +5) and so does the load
-// order, hp first in both. Only the eax/edx assignment of the two addends
-// differs, and every jump target already lines up.
-//
-// About forty shapes were measured against it, all with `check.py --sym` after
-// `rm -rf build/obj`, and none moves it:
-//  - operand order both ways, `+=`, seeding a local first, assigning through a
-//    separate statement, and casting the field signed (six more, run as a final
-//    pass: `acc_short` 72.3%, `hp_plus`, `sum_local`, `amt_first_sum`,
-//    `two_step` and `cast_hp` all 98.6% with byte-identical output);
-//  - hoisting the amount to function scope, and a `static inline` helper for
-//    the clamp and for each operand separately;
-//  - embedded member getters on the structs, `getHp()` / `GetAmount()` and the
-//    `static inline` equivalents, which is the one axis that changes the shape
-//    of an operand's tree rather than reordering it. Three of the five did not
-//    compile because the helper was never inserted; the two that did are
-//    byte-identical to the file as written;
-//  - all 128 header sets from tools/headers.py, none of which changes it.
-//
-// This is the guide's "operand order that nothing changes" case, and the
-// explanation it gives is the right one: MSVC 5 is deciding this from
-// compiler state left by earlier functions in the original's translation unit,
-// not from this function's source. Nothing in this file's shape reaches it.
+// The heal branch repeats the sum inside the clamp ternary. With a separate
+// `int v = ...` local MSVC puts the second addend in the accumulator (hp in
+// edx, amount in eax); giving the ternary its own copy of `unit->hp +
+// ev->amount` makes the original put hp in eax and the amount in edx.
 //
 // FUNCTION: 0x489ce0
 void __stdcall FUN_00489ce0(Event_00489ce0* ev)
@@ -134,11 +109,8 @@ void __stdcall FUN_00489ce0(Event_00489ce0* ev)
         return;
 
     if (ev->kind == 10) {
-        int v = unit->hp + ev->amount;
-        unsigned int maxhp = unit->def->maxhp;
-        if (!(v < maxhp))
-            v = maxhp;
-        unit->hp = (short)v;
+        unit->hp = (short)((unsigned int)(unit->hp + ev->amount) < unit->def->maxhp
+                           ? unit->hp + ev->amount : unit->def->maxhp);
         return;
     }
 

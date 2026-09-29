@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash: function-scope a/b/ay and the sibling 0x4c0c70 do-while
+// scan form were tried; they do not move the frame (still 0x1401c against
+// 0x14024) or the ymin/xmin register choice, so this is left at 41.0%.
 // Fills a closed polygon: scans the vertices for the row range, then walks
 // backwards from the topmost vertex rasterising every edge that runs
 // downwards into per row spans (x1/z1), then forwards doing the same for the
@@ -66,6 +69,9 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
 {
     Span_004c0a90 spans[2048];
     Span_004c0a90* out;
+    Point_004c0820* a;
+    Point_004c0820* b;
+    int ay;
     int ymin = 999999;
     int ymax = -999999;
     int xmin = 999999;
@@ -98,8 +104,8 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
             if (j < 0)
                 j = count - 1;
             if (pts[i].y < pts[j].y) {
-                Point_004c0820* a = &pts[i];
-                Point_004c0820* b = &pts[j];
+                a = &pts[i];
+                b = &pts[j];
                 int dx = ((b->x - a->x) << 16) / (b->y - a->y);
                 int x = (a->x << 16) + 0xffff;
                 int y = a->z << 16;
@@ -126,8 +132,8 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
             if (j >= count)
                 j = 0;
             if (pts[i].y < pts[j].y) {
-                Point_004c0820* a = &pts[i];
-                Point_004c0820* b = &pts[j];
+                a = &pts[i];
+                b = &pts[j];
                 int dx = ((b->x - a->x) << 16) / (b->y - a->y);
                 int x = (a->x << 16) + 0xffff;
                 int y = a->z << 16;

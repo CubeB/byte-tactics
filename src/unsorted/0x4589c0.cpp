@@ -1,4 +1,14 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash pass: still 59.3% (857 of 861 bytes). No source spelling
+// moved the first diff, the prologue register split: the original loads the
+// model argument into ebp (`mov ebp,[esp+0x8c]`) and the by-value Pos address
+// into esi, ours loads model into esi and the Pos address into the caller-saved
+// edx. First tried this pass: taking the address of the local Pos into a
+// pointer local (`Pos* pp = &pos; pp->x = 0; ...`) to lengthen its live range,
+// which compiles byte-identically, so the split is allocation-intrinsic.
+// The whole tail follows from it. The `(ya*0xffff + yb) << 16` fold at
+// 0x458abf is the same bar the sibling 0x48a870 hit (see build/scratch/SHARED.md).
 //
 // Result: 59.3% (857 of 861 bytes), from 54.6%. GAVE UP, not MATCH.
 //

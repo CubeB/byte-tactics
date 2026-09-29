@@ -1311,6 +1311,7 @@ address,size,file,symbol,status,similarity
 0x467d70,218,src/unsorted/0x467d70.cpp,?FUN_00467d70@@YAXXZ,matched,100.0
 0x468310,108,src/unsorted/0x468310.cpp,?FUN_00468310@@YGXPAXPAURect_004b0510@@H@Z,matched,100.0
 0x468380,539,src/unsorted/0x468380.cpp,?FUN_00468380@@YGXPAX@Z,matched,100.0
+0x4689c0,803,src/unsorted/0x4689c0.cpp,?FUN_004689c0@@YGXPAVClass_004c6ae0@@@Z,matched,100.0
 0x46a400,36,src/unsorted/0x46a400.cpp,?FUN_0046a400@Class_0046a400@@QAEXH@Z,matched,100.0
 0x46a430,256,src/unsorted/0x46a430.cpp,?FUN_0046a430@@YGXPAXPAUUnit@@HH@Z,matched,100.0
 0x46a530,216,src/unsorted/0x46a530.cpp,?FUN_0046a530@@YGXPAUVec3_0046a530@@PAUUnit_0046a530@@@Z,matched,100.0
@@ -1324,7 +1325,7 @@ address,size,file,symbol,status,similarity
 0x46bce0,542,src/unsorted/0x46bce0.cpp,?FUN_0046bce0@@YAHXZ,matched,100.0
 0x46bf00,27,src/unsorted/0x46bf00.cpp,?FUN_0046bf00@@YGHH@Z,matched,100.0
 0x46bf20,14,src/unsorted/0x46bf20.cpp,?FUN_0046bf20@@YA_NXZ,matched,100.0
-0x46bf30,602,src/unsorted/0x46bf30.cpp,?FUN_0046bf30@@YGHH@Z,partial,40.8
+0x46bf30,602,src/unsorted/0x46bf30.cpp,?FUN_0046bf30@@YGHPAHH@Z,matched,100.0
 0x46c190,259,src/unsorted/0x46c190.cpp,?FUN_0046c190@@YAXXZ,matched,100.0
 0x46c620,486,src/unsorted/0x46c620.cpp,?FUN_0046c620@@YGHH@Z,matched,100.0
 0x46c810,157,src/unsorted/0x46c810.cpp,?FUN_0046c810@@YGHH@Z,matched,100.0
@@ -1335,6 +1336,7 @@ address,size,file,symbol,status,similarity
 0x46c920,317,src/unsorted/0x46c920.cpp,?FUN_0046c920@@YAXXZ,partial,94.2
 0x46ca60,381,src/unsorted/0x46ca60.cpp,?FUN_0046ca60@@YAXXZ,partial,95.1
 0x46cbe0,47,src/unsorted/0x46cbe0.cpp,??0Class_0046cbe0@@QAE@XZ,matched,100.0
+0x46cc10,678,src/unsorted/0x46cc10.cpp,?FUN_0046cc10@Class_0046cc10@@QAEXPAUElem_0046faf0@@0@Z,matched,100.0
 0x46cec0,33,src/unsorted/0x46cec0.cpp,?FUN_0046cec0@Class_0046cec0@@QAEXIPAX@Z,matched,100.0
 0x46cef0,325,src/unsorted/0x46cef0.cpp,?FUN_0046cef0@Class_0046cef0@@QAEXPAUPacket_0046cef0@@HPAXI@Z,matched,100.0
 0x46d040,342,src/unsorted/0x46d040.cpp,??0Class_0046d040@@QAE@H@Z,matched,100.0

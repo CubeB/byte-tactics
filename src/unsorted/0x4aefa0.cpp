@@ -1,4 +1,14 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash, second pass, 72.2 % (unchanged). Confirmed the
+// permutation is allocator-intrinsic: reordering the nine declarations,
+// renaming every local, and respelling the first loop (while with the
+// increment in the body, `i != count`, char** cursor locals) each compile to
+// byte-identical output (882 bytes, 72.2 %). Forcing extra liveness on ptr1
+// (cursor locals kept alongside ptr1, a null test of ptr1 after the loop, a
+// separate `lim = count` loop bound) only added instructions (71.0 to 71.5 %).
+// Nothing here moves the first-loop register choice (original keeps ptr1 in
+// ebx and spills count; this file keeps count in ebp and spills ptr1).
 //
 // 72.2 %. Everything structural is in place, and the
 // one place I expected an MSVC 5 bug to stop me came out byte identical on

@@ -5,7 +5,10 @@
 // in ebp and the playerIndex*0x18 byte offset in ebx (spilled to [esp+0x10]),
 // while this version keeps the offset in ebp and rematerialises g_game out of
 // the global address, so the two spill slots and every [esp+N] frame offset
-// differ. See the note at the bottom.
+// differ. Removing the `game` local (direct g_game->) shrank the frame to 0x90
+// but still gave ebp to the index and edx to g_game, scoring 36.3%; hoisting
+// `game` out of the inner block scored 40.9%. Keeping the block-scoped `game`
+// local is the best of the three.
 #include <windows.h>
 
 #pragma pack(push, 1)

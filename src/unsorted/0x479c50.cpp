@@ -20,6 +20,19 @@
 // a dead `(void)g_game->numPlayers;`. Swapping the two memset calls (75.2) or
 // caching numPlayers (58.5) or `unsigned step` (75.1) made it worse. The y
 // computation before the memsets is what took it from 72.0 to 78.6.
+//
+// Retry also tried, all still 78.6 with byte-identical output: an explicit
+// `char`/`unsigned char`/`int zero` local used in the byte and word stores,
+// `i` and `zero` declared before `step`, records declared before `step`, a
+// named `Game* g = g_game` used for the top block (declared first and after
+// the records), a local `int n = g_game->numPlayers` for step/y, and
+// `static __stdcall` helpers Step_/Y_ taking `g_game`. The memsets moved
+// between step and y (v2) removed `push ebx` and flipped g_game to esi but
+// shuffled the frame (y at 0x154) and dropped to 56.6. The zero constant
+// keeps landing in esi because the anonymous g_game temporary takes ebx in
+// the prologue; per the guide, constants only get the byte registers the
+// variables leave free, so the fix is a source shape that puts g_game
+// somewhere other than ebx.
 #include <windows.h>
 #include <string.h>
 

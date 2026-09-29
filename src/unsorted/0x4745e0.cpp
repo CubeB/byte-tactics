@@ -1,4 +1,12 @@
-// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free and deepseek-v4.1-flash. Names are provisional.
+// DEEPSEEK-V4.1-FLASH: re-confirmed the 79.8 percent file is the optimum of the
+// two documented levers. Screened four more arm spellings (scratch only, no new
+// file runs): the path arm with no `seen` and no `w` locals (fully folded index)
+// is 79.6 [290], the same arm with `seen` only is 76.1 [292], with `w` only is
+// 70.1 [288], and moving the mask pointer local after the Contains test, or
+// dropping it for `g_game->visibilityMask[...]` directly, is 68.3 [292] and
+// rotates the pre-branch block. So both named locals in the path arm and the
+// mask-pointer local in the mask arm are load-bearing; nothing beats 79.8.
 // LONG-CAT 2.5 PREVIEW FREE, second pass: 66.3 -> 79.8 percent, 290 of 306
 // bytes. Four check.py runs on the file, about 80 scratch scorings of variants
 // under build/scratch/0x4745e0/. NOT A MATCH, but the whole prologue, the rect,

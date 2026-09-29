@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Loads the map's features saved by 0x424890: builds a table mapping the
 // saved feature type numbers to the loaded ones (by name), replaces the
 // feature list, then places every saved normal, animating and 3D feature.
@@ -55,6 +55,32 @@
 // and `test esi, esi` where the original compares `cmp esi, ebp`). No new
 // variant was scored inside the hard time box; the notes above are where to
 // start. Superseded attempt, kept as the best version.
+//
+// Retried by deepseek-v4.1-flash (issue 1491), still 69.1%. Three scored
+// variants (check.py --sym, all identical 69.1%): names.begin() replaced by
+// &names[0]; the FeatureName vector built as vector(count, FeatureName());
+// and the same with a distinct function symbol. None moved any byte, so the
+// spelling of the names vector construction is not the lever; the allocator
+// choice is set before it.
+//
+// Remaining diff hunks by original address (the first hunk only shifts a
+// jump target, no bytes differ):
+// - 0x424cd2-0x424cf8 (names fill): ours has an extra `mov edi, eax` after
+//   operator new, stores _First via edi, and an extra `xor ebp, ebp` before
+//   `rep movsd` (the `0 < _N` constant re-materialised per iteration); the
+//   original stores eax directly, keeps the fill cursor in eax and reloads
+//   edi from _First after the loop. Everything downstream shifts by 3 bytes.
+// - 0x424d36-0x424d3a: `add eax, edx` vs ours `add eax, ecx` (scratch reg).
+// - 0x424de6-0x424df7: original reloads count into esi, ours into eax;
+//   original re-zeroes ebp after the record loop, ours keeps ebx=file.
+// - 0x424e13-0x424ecd (FreeFeatureList inlined): original keeps the vector
+//   in ecx and &_First/&_Last in esi/edi and reloads DAT_00511fb4 into ecx;
+//   ours holds it in esi/eax and adds reloads. Original then has
+//   `mov ebp, [esp+0xd8]` (file into ebp) where ours has ebx=file, so the
+//   whole second half uses ebp in the original and ebx/esi here.
+// - 0x424f45-0x4251b0: record loops; from the file-in-ebp difference the
+//   scratch registers (edx/ecx/esi) and the `test`/`cmp` zero tests rotate.
+//   The switch block order at 0x42505c-0x4250c0 differs by laid-out case.
 #include <string.h>
 #include <utility>
 

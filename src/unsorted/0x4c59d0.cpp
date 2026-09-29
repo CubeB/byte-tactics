@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // PARTIAL: 93.3% (check.py), 337 of 367 code bytes identical. This is the
 // game's out-of-line vector::insert for the reallocating case: the three STL
@@ -54,6 +54,22 @@
 // So the residue is a statement shape, not a detail of one of the 720
 // orderings; whoever takes this next should look for the one that makes MSVC
 // flush the _First store after the call.
+//
+// deepseek-v4.1-flash addendum: the VC5 header (toolchain/msvc5-sp3/INCLUDE/
+// VECTOR lines 146-161) spells the tail in the order _End = _S + _N;
+// _Last = _S + size() + _M; _First = _S;, with the return as the outer
+// begin() + _O after the whole if/else, exactly reproducing the original's
+// store order (call size() while _First is old, then store _First, then
+// _Last). Writing that authentic shape (also as the real two-function
+// insert(iterator,const _Ty&) calling the inlined insert(iterator,size_type,
+// const _Ty&)) gives the correct store order but only 84.2%: the register
+// allocator then loads the operator delete argument into edx (the original
+// uses eax and reuses it for _End), and every later register follows, while
+// the body-identical end of the function still matches. So the header is the
+// right statement order but MSVC 5 colours this arm differently than the
+// original; the `_First = s` before the call (which the original clearly did
+// not emit) is a hack that buys the delete/return registers at the cost of
+// the store position.
 #include <stddef.h>
 #include <vector>
 

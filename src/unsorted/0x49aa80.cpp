@@ -1,4 +1,43 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free.
+// Names are provisional.
+//
+// FRAME SIZE IS A SYMPTOM, NOT THE LEVER. A later round concluded that the
+// 8-byte frame deficit (original `sub esp,0x10`, ours `sub esp,8`) was the cause
+// and that forcing the 64-bit `dx` to spill its high word would reach it. That is
+// REFUTED by measurement. Frame size is a consequence of which direction the two
+// subtractions are written, and every source that reaches frame 0x10 scores
+// LOWER:
+//
+//   dx = a3->x - a2->x, dz = a3->z - a2->z (this file)  -> frame  8, 61.8%
+//   dz declared before dx                                 -> frame 12, 60.1%
+//   mixed directions (x: a3-a2, z: a2-a3)                 -> frame 16, 53.6%
+//   int locals + (__int64) cast in the expression        -> frame 20, 48.5%
+//
+// So do not chase the frame. A further ~1500 mechanical variants of expression
+// shape (subtraction direction x declaration order x product order x cast form x
+// wdef position x height-check form x line-of-fire form) all topped out at 61.8%.
+//
+// THE LIVE LEAD is the `a2` register, not the frame. The original holds a2 in
+// esi and a3 in edi across both __allmul calls. This build already gets a3 into
+// edi correctly, but re-reads a2 from its stack slot three times. Since the two
+// are used symmetrically in the tail, that is a register PRIORITY TIE, and per
+// docs/agent-guide.md the fix for a tie is one more genuine use of the loser (or
+// one fewer of the winner) in a natural construct. Spelling changes are exhausted;
+// the answer is more likely structural, i.e. some helper or reference form.
+//
+// FREE TOOLING left in build/scratch/0x49aa80/ (not committed):
+//   probe.py  - frame size plus which registers a2/a3 land in, from the /Fa
+//               listing alone, with NO check.py run. This is the cheap filter:
+//               search for shapes where probe reports a2 in esi AND a3 in edi,
+//               then score only those.
+//   run.py, score.py - normalise an /Fa listing to `opcode operands` (resolving
+//               _sym$[esp+N] and N+[esp+K] to absolute displacements) and diff it
+//               against a hand-written ref.txt of the original's first block.
+//   rscore.py - real check.py --sym scoring for scratch variants, which is free
+//               against the run budget.
+//   sweep*.py - the mechanical sweeps behind the table above.
+//   NOTE: there is no objdump on this machine; these read the /Fa listing, which
+//   is why they work.
 #include <windows.h>   // only for the register allocation it nudges (60.1 -> 61.8)
 //
 // Partial. Offsets, branches, bit tests, the team/height check and both

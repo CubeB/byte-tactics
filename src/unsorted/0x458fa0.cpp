@@ -39,6 +39,13 @@
 // layout and is worse. This is the one remaining diff, so treat it as
 // compiler state, not a source shape.
 //
+// A second deepseek-v4.1-flash pass added: third parameter as `unsigned char`
+// (worse, 81.8%), unsigned loop counters (80.7%), `piece->info` inline with no
+// local (56.9%), a local alias `vp = view` used everywhere, a pointer-to-
+// pointer intermediate for info, swapping the info/v declaration order, and
+// moving the info declaration outside the while. Every one keeps the exact
+// same 84.1% and the identical ebx/ebp swap, so the file stands at 84.1%.
+//
 // Earlier note from space-bunny-free: several scratch variants scored 80-90%
 // but are wrong; they lay the vertex arrays out 4 bytes high at [esp+0x150],
 // where the original uses [esp+0x14c]. Always check the `lea eax, ...` base

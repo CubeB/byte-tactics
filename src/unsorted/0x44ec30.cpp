@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Retry #759 (Sonnet 5.5), still 99.6%, only the lea SIB differs. Ruled out
+// by about 1500 scored scratch variants, none moved that byte: all 5^4 forms
+// of the four _Ucopy sites (original, loop with destination first or source
+// first, helper with destination first or source first); every parameter
+// permutation of a third-site helper (a destination-first order flips the
+// register family to 53%, the source-first orders stay at 99.6%; comparing
+// `_L != _F` only swaps the preheader cmp too); loop forms (for/while,
+// increment order, condition order, construct/placement new/assign); src, dst
+// and end spelled as equivalent expressions; a local copy of _P and a named
+// dest local; declaration order of _N/_S/_Q; all 120 orders of the tail
+// statements; extra vector members and filler functions before the
+// instantiation; other element types; /Ob1, /Ox, /G5, /Gy, /GX, /Zi, /Gs.
+// The real header's Ucopy is identical text, so the operand order is not
+// reachable from this source; it is decided by translation-unit state.
 // std::vector<Elem_0044ec30>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward inlined.
 // Elem_0044ec30 is the 4-byte element (two unsigned shorts) the only caller

@@ -1,0 +1,118 @@
+// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// NOT a match: 80.2% (1208 bytes against 1180). The pool setup, the inlined
+// std::sort over the ten player pointers and the free-list linking all have the
+// right shape. What still differs:
+//  - FUN_00485940 is DEFINED here (not just declared) so MSVC inlines it at the
+//    direct compare sites; that alone took the score from 57.6% to 80.2%. The
+//    out-of-line helpers (FUN_00488920 / 60 / 810) still take it by pointer.
+//  - the pool local is kept in ebx; the original keeps it in ebp.
+//  - call-cleanup: our std::_Sort / std::_Unguarded_partition calls are made
+//    __cdecl (extra `add esp`); the original TU was compiled with __stdcall as
+//    the default (/Gz). Re-checking with /Gz scores 78.5%, so the default flags
+//    are still the better base and the sort tails need to be hand-written with
+//    explicit __stdcall helper declarations (see src/unsorted/0x43bc90.cpp).
+//  - the free-list linking loop keeps slot/end in different registers and the
+//    compiler folds q+0xff into the addressing where the original uses a plain
+//    cursor.
+
+#include <algorithm>
+#include <string.h>
+
+class Class_00435100 {
+public:
+    int FUN_00435100();
+};
+
+struct Player_004854a0 {
+    char unknown_0[4];
+    unsigned int key;                   // +0x4
+    char unknown_8[0x146 - 8];
+    unsigned char field_146;            // +0x146
+    char unknown_147[0x14b - 0x147];
+};
+
+#pragma pack(push, 1)
+struct Game_004854a0 {
+    char unknown_0[0x1b63];
+    unsigned char players[10 * 0x14b];  // +0x1b63, stride 0x14b
+    char unknown_2851[0x1434f - 0x2851];
+    unsigned short field_1434f;         // +0x1434f
+    unsigned short poolCount;           // +0x14351
+    char unknown_14353[0x14357 - 0x14353];
+    unsigned char* pool;                // +0x14357
+    unsigned char* field_1435b;         // +0x1435b
+    void* hotUnits;                     // +0x1435f
+    void* hotRadar;                     // +0x14363
+    char unknown_14367[0x1436f - 0x14367];
+    unsigned short field_1436f;         // +0x1436f
+    char unknown_14371[0x14373 - 0x14371];
+    unsigned int field_14373;           // +0x14373
+    char unknown_14377[0x1439b - 0x14377];
+    unsigned int field_1439b;           // +0x1439b
+    char unknown_1439f[0x37ee6 - 0x1439f];
+    unsigned short unitsPerPlayer;      // +0x37ee6
+    char unknown_37ee8[0x391e9 - 0x37ee8];
+    Class_00435100* mode;               // +0x391e9
+};
+#pragma pack(pop)
+
+extern Game_004854a0* g_game;
+
+void* FUN_004d83b0(const char* name, unsigned int size);
+
+int __stdcall FUN_00485940(Player_004854a0* a, Player_004854a0* b)
+{
+    if (g_game->mode->FUN_00435100() == 3)
+        return a->key < b->key;
+    return a < b;
+}
+
+// FUNCTION: 0x4854a0
+void __stdcall FUN_004854a0(void)
+{
+    g_game->field_1436f = 0;
+    g_game->field_14373 &= 0xfffffffd;
+    g_game->field_1434f = g_game->unitsPerPlayer;
+    g_game->poolCount = (unsigned short)(g_game->unitsPerPlayer * 10 + 1);
+
+    unsigned char* pool = g_game->pool = (unsigned char*)FUN_004d83b0("UNIT MEMORY", g_game->poolCount * 0x118);
+    memset(pool, 0, g_game->poolCount * 0x118);
+
+    unsigned int ten = g_game->unitsPerPlayer * 10;
+    g_game->hotUnits = FUN_004d83b0("HOT UNITS", ten * 2);
+    g_game->hotRadar = FUN_004d83b0("HOT RADAR UNITS", ten * 10);
+    g_game->field_1435b = g_game->pool + g_game->poolCount * 0x118 - 0x118;
+
+    unsigned short n;
+    for (n = 0; n < g_game->poolCount; n++) {
+        *(unsigned short*)(pool + n * 0x118 + 0xa8) = n;
+        *(unsigned int*)(pool + n * 0x118 + 0x92) = g_game->field_1439b;
+    }
+
+    Player_004854a0* v[10];
+    int k;
+    for (k = 0; k < 10; k++)
+        v[k] = (Player_004854a0*)(g_game->players + k * 0x14b);
+
+    std::sort(v, v + 10, FUN_00485940);
+
+    g_game->pool[0xff] = 0xff;
+    *(unsigned int*)(g_game->pool + 0x96) = 0;
+    int i;
+    for (i = 0; i < 10; i++) {
+        Player_004854a0* item = v[i];
+        int c = g_game->unitsPerPlayer * i + 1;
+        unsigned char* slot = pool + c * 0x118;
+        *(unsigned char**)((char*)item + 0x67) = slot;
+        *(unsigned char**)((char*)item + 0x6b) = slot + g_game->unitsPerPlayer * 0x118 - 0x118;
+        *(unsigned short*)((char*)item + 0x6f) = *(unsigned short*)(slot + 0xa8);
+        *(unsigned short*)((char*)item + 0x71) =
+            *(unsigned short*)(*(unsigned char**)((char*)item + 0x6b) + 0xa8);
+        for (unsigned char* q = slot; q <= *(unsigned char**)((char*)item + 0x6b); q += 0x118) {
+            *(void**)(q + 0x96) = item;
+            q[0xff] = *(unsigned char*)((char*)item + 0x146);
+            *(unsigned int*)(q + 0xac) = 0xffffffffu;
+        }
+    }
+}
+

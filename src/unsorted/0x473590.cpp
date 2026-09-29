@@ -56,6 +56,14 @@
 // (85.4), after w (82.0), const-qualified locals (84.0), `unsigned int seen`
 // (compile error), the mask width read moved after the test (39.2), two player
 // pointers (38.1), and the old `else if (row)` hack (70.7).
+//
+// DEEPSEEK-V4.1-FLASH, third pass (issue 1474), scratch scores only. The file
+// below is still the best at 85.4 percent; the two spill stores are the whole
+// difference. Ruled out two more routes: spelling the two arms' position
+// reads differently (mask `q->x` while fog keeps `pos.x`, or the mirror)
+// rotates the pre-branch and scores 18.8 to 24.5 (315 to 323 bytes); a
+// local-free fog arm with the mask arm keeping its `w` local is 40.0 (297
+// bytes), and `seen` declared between col and row is 84.4 (307 bytes).
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);

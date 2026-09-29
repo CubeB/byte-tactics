@@ -86,6 +86,16 @@ Target: 20 minutes of wall clock for one function.
   (register names ignored). It is a progress signal, not a match check: small
   blocks inflate it. `--diff <region>` lists a region's original instructions
   with their best-match score.
+- Until 2026-09-29 `regcheck.py` did not apply our object's relocations, so
+  every call and every string push counted as a mismatch. Region scores in the
+  pilot results and in PRs before then are about 11 points low (0x40fbe0:
+  74.5% exact and 85.5% shape as reported, 85.7% and 96.7% with the fix).
+- **In a function with a switch, address ranges and source blocks do not line
+  up.** MSVC can emit the cases in a different order from the source (0x40fbe0
+  dispatches case 2, case 1, case 0), so a region's address range can hold code
+  written in another region's markers. Its score then measures a different
+  agent's lines, which that region's agent cannot edit. Cut such a function by
+  the emitted order, or score each region by the code its markers produce.
 
 ## Tools
 
@@ -108,9 +118,9 @@ Target: 20 minutes of wall clock for one function.
 | Merge conflicts | 1 | 0 |
 | What held it back | wrong frame and calling conventions in the skeleton | stack slot order (8 diff hunks) |
 
-Pilot 1's draft is on the `pilot-43f0e0` branch of the author's fork and is not
-part of this repository. Pilot 2's function is in `src/unsorted/0x4d8e60.cpp`
-with the remaining work listed at the top of the file.
+Both drafts are in the repository, with the remaining work listed at the top of
+each file: `src/unsorted/0x43f0e0.cpp` (39.6%) and `src/unsorted/0x4d8e60.cpp`
+(48.8%).
 
 ## Open questions
 

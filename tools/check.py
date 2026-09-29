@@ -279,6 +279,27 @@ def normalise(ins, lo: int, hi: int, is_addr) -> str:
     return f"{ins.mnemonic} {HEX.sub(sub, ins.op_str)}".strip()
 
 
+def link_placeholders(orig: Original, sec, start: int, end: int, data: bytes, address: int,
+                      size: int) -> bytes:
+    """Our function's bytes with every field the linker fills in pointed at a
+    placeholder address in the image, so it disassembles as an address like the
+    original's instead of `[0]`, `push 0` or a call to the next instruction."""
+    placeholder = orig.base + 0x1000
+    if address <= placeholder < address + size:
+        placeholder = orig.end - 0x10
+    patched = bytearray(data)
+    for r in sec.relocs:
+        off = r.offset - start
+        if not start <= r.offset < end or off + 4 > len(patched):
+            continue
+        (field,) = struct.unpack_from("<I", patched, off)
+        if r.type == REL_I386_REL32:
+            struct.pack_into("<I", patched, off, (placeholder - (address + off + 4)) & 0xFFFFFFFF)
+        elif r.type == REL_I386_DIR32:
+            struct.pack_into("<I", patched, off, (placeholder + field) & 0xFFFFFFFF)
+    return bytes(patched)
+
+
 def compare(orig: Original, obj: CoffObject, address: int, want: str | None = None,
             qualname: str | None = None, symbols: dict[str, int] | None = None) -> Result:
     symbols = load_symbols() if symbols is None else symbols
@@ -324,23 +345,7 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
                  if i.address - address <= ref.offset < i.address - address + i.size}
     lo, hi = address, address + size
 
-    # For the diff, point every field the linker fills in at a placeholder
-    # address in the image, so it prints as an address like the original's
-    # instead of `[0]`, `push 0` or a call to the next instruction.
-    placeholder = orig.base + 0x1000
-    if lo <= placeholder < hi:
-        placeholder = orig.end - 0x10
-    patched = bytearray(data)
-    for r in sec.relocs:
-        off = r.offset - start
-        if not start <= r.offset < end or off + 4 > len(patched):
-            continue
-        (field,) = struct.unpack_from("<I", patched, off)
-        if r.type == REL_I386_REL32:
-            struct.pack_into("<I", patched, off, (placeholder - (address + off + 4)) & 0xFFFFFFFF)
-        elif r.type == REL_I386_DIR32:
-            struct.pack_into("<I", patched, off, (placeholder + field) & 0xFFFFFFFF)
-    shown_ins = disasm(bytes(patched), address)
+    shown_ins = disasm(link_placeholders(orig, sec, start, end, data, address, size), address)
 
     # An address into the original image written as a plain number matches the
     # bytes but not the meaning: the linker could never move it. Require a symbol.

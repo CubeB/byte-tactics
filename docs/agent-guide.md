@@ -1972,3 +1972,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   original's `lea edx, [ebx+0x6a]` and kept ebx for the unit (0x49abb0).
   Before changing an aggregate's type, check which of its fields the
   original actually stores.
+- **An `#include` can decide operand order.** At 0x482830 adding
+  `#include <string.h>` flipped which operand of a commutative subtraction
+  MSVC 5 scheduled first, taking the function from 87.3% to MATCH, while
+  `windows.h`, `stdio.h` and `math.h` changed nothing. When operand order
+  survives every rewrite of the expression, change something earlier in the
+  file (compare declaring `memcpy` by hand at 0x4bf4d0).
+- **A helper returning a struct by value, called inside a loop, costs frame
+  space.** At 0x418310 `static inline Point Screen(...)` called four times in
+  the inner loop was exactly the eight extra frame dwords; writing it out took
+  the frame and the byte count to the original's (36.8% to 55.5%). When the
+  frame is too big, look for such helpers before working on registers.

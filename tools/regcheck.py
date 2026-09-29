@@ -61,7 +61,10 @@ def main() -> None:
         data = data[:-1]
     size = orig.sizes.get(args.address, len(data))
     theirs = check.disasm(orig.read(args.address, size), args.address)
-    ours = check.disasm(bytes(data), args.address)
+    # Point relocated fields at an image address, as check.py does, so a call
+    # or a string push compares as `<addr>` on both sides instead of mismatching.
+    ours = check.disasm(check.link_placeholders(orig, sec, start, end, bytes(data), args.address, size),
+                        args.address)
     lo, hi = args.address, args.address + size
     in_image = lambda v: orig.base <= v < orig.end
     t_txt = [check.normalise(i, lo, hi, in_image) for i in theirs]

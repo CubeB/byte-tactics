@@ -25,7 +25,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-MARK = re.compile(r"^\s*//\s*REGION\s+(\S+)\s+(begin|end)\s*$")
+# A marker may carry the region's address range after begin/end, as
+# docs/region-brief.md writes them: `// REGION r3 begin   0x40feda-0x4100d0`.
+MARK = re.compile(r"^\s*//\s*REGION\s+(\S+)\s+(begin|end)\b")
 NOT_A_TYPE = {"return", "goto", "else", "case", "delete", "new", "break", "continue", "sizeof",
               "typedef", "using", "throw", "do", "if", "while", "switch", "for"}
 DECL = re.compile(

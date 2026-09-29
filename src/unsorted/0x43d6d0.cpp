@@ -23,6 +23,22 @@
 // xor pair a ^ ((a^b)&3) that MSVC 5 uses for a 2-bit bitfield write. Writing
 // the assignment as a union bitfield (u->bits.mode = m) or as the
 // (m & 3) | (flags & ~3) expression both still give the xor pair.
+//
+// deepseek-v4.1-flash re-checked 2026-09-29 and confirms 52.2% as the best.
+// Newly tried, all scored worse or equal and did not change the `this` = edi
+// allocation or the missing 0xc return temporary:
+//   - Vec3 v; v = f();                         (50.3)
+//   - Vec3 v = (Vec3)f();  Vec3 v = Vec3(f()); (50.3)
+//   - Vec3 t = f(); Vec3 v(t);                 (48.3)
+//   - FUN_0043e060 declared returning a distinct Pos struct with an inlining
+//     converting ctor Vec3(const Pos&): this DOES separate the return buffer
+//     from v (frame sub esp,0x20) but the offsets and allocation shift and the
+//     score falls to 49.1.
+//   - Vec3& pp = p1; instead of Vec3* pp = &p1; (52.2, byte-identical)
+//   - u->flags &= ~3; u->flags |= m & 3;       (51.0)
+//   - int nf = (u->flags & ~3) | (m & 3); u->flags = nf; (51.8)
+// The single remaining cause is still the ownership of ebp by `this`, which
+// the 12-byte return temporary very likely forced in the original.
 
 #include <string.h>
 

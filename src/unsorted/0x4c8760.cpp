@@ -1,22 +1,27 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by
 // space-bunny-free. Names are provisional.
-// PARTIAL, 67.9% (1094 original bytes, 1093 ours).
-// The three raster blocks (min/max scan, both span-edge loops, the dispatch
-// loop) are instruction-for-instruction identical to the original; every
-// remaining diff is the stack frame layout. Measured frame rule for MSVC 5
-// here: alloca = (0x10 gap + scalar locals + defaults) + array size - 0x10, so
-// the original's 0x7d58 needs 0x58 of non-array bytes where we emit 0x54, i.e.
-// exactly ONE extra 4-byte scalar slot (the original has 14 scalar dwords at
-// [esp+0x10]..[esp+0x44]; we emit 13 at [esp+0x10]..[esp+0x40]). The extra one
-// is visible as `x` having its own slot: the original keeps span x at 0x18 and
-// the min/max lowX at 0x14, while we fold x onto lowX's slot. Everything else
-// (defaults at 0x48, spans at 0x68, the two arg slots and the saved-register
-// gap) is then 4 too low, which is why every esp offset in the diff is -4.
-// Gained here: declaring the span-loop `x` and `y1` once in the
-// `if (highY != lowY)` block instead of once per loop (65.3 -> 67.9).
-// Next thing to try: find the construct that stops the allocator folding x onto
-// lowX (a named local live across the min/max loop looks most likely), then
-// reorder the tail so previous sits at 0x44 and nextVertex at 0x38.
+// PARTIAL, 72.5% (1094 original bytes, 1094 ours).
+// The min/max scan and both span-edge loops now emit the same instruction
+// set; every remaining diff is stack frame layout and instruction scheduling.
+// Fixed here: the second span loop writes its u/v through offsets 4 and 5
+// (out = &spans[0][0], out[1]=x, out[4]=u, out[5]=v, out[7]=z), not 2/3 as a
+// first reading of the old source suggested; that is what took it from 67.9
+// to 72.5 and made the byte count exact.
+// What still differs:
+// 1. Frame is 0x7d54, original 0x7d58: exactly one 4-byte scalar slot short.
+//    Original has 14 scalar slots at 0x10..0x44; ours has 13 at 0x10..0x40.
+//    In ours lowX folds onto next's slot 0x10; the original keeps lowX at
+//    0x14 (shared with n) and next at 0x10 (shared with dv). Also the second
+//    span loop's n reuses lowIndex's slot 0x28 in the original, but ours
+//    uses 0x14. Hoisting x/y1/n to function scope, and sharing n between the
+//    two loops, did not change the frame (both stayed 0x7d54).
+// 2. First span loop body order: the original emits `x+=dx` right after
+//    `out[0]=x>>16`, before `out[2]=u`; ours emits it after `out+=10`.
+// 3. Second span loop exit: original does `mov edi,eax; mov eax,[highIndex];
+//    cmp edi,eax`; ours uses ecx for highIndex and `cmp eax,ecx`.
+// Next thing to try: find the declaration/scope construct that makes the
+// allocator give lowX a slot of its own instead of folding it onto next, and
+// that makes the second loop's n reuse lowIndex.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 
@@ -100,7 +105,7 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                     } while(index!=highIndex);
                 }
                 {
-                    int* out=&spans[0][1];
+                    int* out=&spans[0][0];
                     int index=lowIndex;
                     do {
                         int next=(index+1)&3;
@@ -128,12 +133,12 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                             if(y0<y1) {
                                 int n=y1-y0;
                                 do {
-                                    out[0]=x>>16; x+=dx;
-                                    out[2]=u;
+                                    out[1]=x>>16; x+=dx;
+                                    out[4]=u;
 
-                                    out[3]=v;
+                                    out[5]=v;
 
-                                    out[6]=z;
+                                    out[7]=z;
 
                                     out+=10;
                                     u+=du; v+=dv;

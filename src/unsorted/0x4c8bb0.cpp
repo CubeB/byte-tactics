@@ -1,7 +1,7 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial 51.6%. This is a textured/gouraud triangle rasteriser into 10-int
 // span rows, then one FUN_004c8020 call per scanline. The sibling 0x4c8760 is
-// the same algorithm without the light channel and is matched to 65.3%; its
+// the same algorithm without the light channel and is matched to 67.9%; its
 // first edge loop uses the same `previous`/`next` idiom adopted here.
 //
 // Still differs, and it is one systematic cause plus the prologue:
@@ -24,6 +24,9 @@
 // a currentVertex pointer, and prepending the real 0x4c8760 (compiler state).
 // tools/headers.py finds no header set that changes the bytes, and 4 to 64
 // unused `extern int` declarations leave the score at exactly 51.5%.
+// Also tried here: hoisting the block-scope `x`/`y1` (the sibling 0x4c8760's
+// winning change) and hoisting the span `x`/`y1` plus porting its whole loop
+// structure; those scored 51.3 and 36.1 and did not grow the frame either.
 //
 // Fixes that did land: second edge loop writes ints 1,4,5,7,9 of the span row
 // (the row is [xL,xR,uL,vL,uR,vR,zL,zR,lL,lR]), the rasterise guard is

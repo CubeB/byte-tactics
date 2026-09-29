@@ -49,6 +49,58 @@
 //     the loop body, so the instruction sequence stops being the original's
 //     with two registers renamed. This file keeps the exact-shape version,
 //     which is one register fix away from a match, not two.
+//
+// space-bunny-free, second pass, 72.4% / 333 bytes, 1 check.py run, no change.
+// Built the free oracle (build/scratch/0x4ac4c0, d3m.py for 0x4ac4c0) and
+// classified the difference. The whole function is instruction-for-instruction
+// the original's, with only two defects, and their sizes are known exactly:
+//   1. (b) register rename, size neutral: `i` and `s` have the callee-saved
+//      registers swapped (original i=esi, s=edi; here i=edi, s=esi). It touches
+//      24 instructions, all of the same length.
+//   2. (c) three extra instructions at the tail, exactly 8 bytes: the
+//      `if (text == buf) buf[0] = 1;` below emits
+//      `cmp dword ptr [esp+0x18], ebx / jne +3 / mov byte ptr [ebx], 1`.
+//      333 - 325 = 8, that is all of the size difference, so the original
+//      really has no code there.
+// FIRST DIVERGENCE: original 0x4ac547 `xor esi,esi` (i = 0, in the gap between
+// the two halves of the inlined memset) where this file emits `mov esi,ebp`
+// (s = text) in that slot and puts `xor edi,edi` (i = 0) where the original
+// has `mov edi,ebp`. So the register choice and the schedule are ONE decision:
+// the two defs are emitted as a pair that swaps between the gap slot and the
+// slot just after the `mov al,[ebp]` load, and whichever lands in the gap also
+// wins esi (ebp is text, ebx is buf in both). Class (b) with a (d) schedule
+// swap of the same two defs, not (a) and not (c).
+// New negative results, all free-oracle runs, every one the identical 333
+// bytes with the same swap:
+//   * all six orders of the initialised declarations of i, c, s, declarations
+//     split from their assignments, `p` declared first, and `i` declared with
+//     no initialiser at the top of the function and assigned in place. The
+//     emitted order of the two defs is (s = text, c = *text, i = 0) in every
+//     one, so the preheader schedule cannot be reached from source order at
+//     all. Hoisting `int i = 0` to the top of the body does change the
+//     allocation (text takes esi, index takes ebx) but costs 338 bytes/52.2%.
+//   * `unsigned` / `long` for i, `unsigned char*` and `const char*` for s, a
+//     `const char*` parameter, and an explicit cast on the copy: none of them
+//     blocks the copy propagation or moves a def.
+//   * `i += 0;` and `i = i + 0;` as no-op extra references to i: inert.
+//   * compiler state: `extern int dummyN;` blocks for N = 0,1,2,3,4,5,6,7,9,
+//     11,16,24,32,48,64,96,128,192,256, all identical.
+//   * swapping the declarations of `wrapped` and `m` in the inner block: inert.
+//   * spreading three defs across the preheader with fresh locals to probe
+//     which one the scheduler picks for the gap: inert, the two defs always
+//     come out as the same pair.
+// What the copy-propagation question really needs, confirmed here: with the
+// tail hack in place the copy is NOT propagated (text stays in ebp and the
+// `mov esi,ebp` copy survives), and without it the copy IS propagated. So
+// liveness is the only thing that blocks it, and no spelling of the copy
+// blocks it: the comma `(text, text)`, the constant conditional
+// `len ? text : text`, a doubled `s = text; s = text;` and a cast all still
+// propagate (all 321 bytes, 60.8%, `mov ebp,[esp+0x10]` becomes
+// `mov esi,[esp+0x14]`). The original therefore has a use of `text` after the
+// calls that the front end records and the optimiser deletes, which emits
+// nothing; a plain comparison or store cannot be it, since it costs bytes.
+// The register choice between i and s is independent of that: it is the same
+// in the 321-byte variant and in this one.
 #include <string.h>
 
 struct Gadget_004ac4c0;

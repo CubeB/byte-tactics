@@ -1,23 +1,8 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// CD audio transport state machine. This is a member of the CD player
-// object (same layout as 0x4ce260/0x4ceb60) reached through DAT_0051ff14.
-//
-// PARTIAL 69.9%, 1304 vs 1248 bytes. The whole control flow, class layout and
-// all five cases are written; what still differs is codegen only:
-//  * The original shares the two-call epilogue tail: the mode==4 path keeps
-//    its own FUN_004b64d0(DAT_0050b540) call and then `jmp`s to case 0's
-//    second-call block (0x4cdcaa). A `goto tail;` label placed at that second
-//    call makes MSVC 5 merge the FIRST call too and the size drops to 1268
-//    (69.3%), which scores lower, so the duplicated tail is kept here.
-//  * Original keeps 1 in ebx and 0 in edi; ours materialises -1 in ebx
-//    (`or ebx,0xffffffff` hoisted near the top) for the two DAT=-1 stores.
-//    Tried chained `DAT_0050b544 = DAT_0050b540 = -1;`, no effect.
-//  * `cmp eax,edi` (ours `test eax,eax`) after each mci/strcmp check, and the
-//    strcmp loop in cases 1/2/3 reading `cmp dl,[esi]` directly (ours loads
-//    the byte into bl first, because ebx is not the constant 1).
-//  * Every `0x4cdb40 -> cdecl` goto-label target in the diff is an internal
-//    branch, so check.py prints the original target address on the '-' side.
-//
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 69.9%, unchanged in the #1469 retry. Mode 4 and case 0 still
+// duplicate the release tail; a shared label also merges the first call and
+// scores worse. Boolean playing state, alternate tests and headers did not
+// help. FUN_004b64d0 returns int, as in its matched implementation.
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdlib.h>
@@ -26,7 +11,7 @@
 extern int DAT_0050b540;
 extern int DAT_0050b544;
 
-extern void __stdcall FUN_004b64d0(int);
+extern int __stdcall FUN_004b64d0(int);
 
 class Class_004ceb60 {
 public:

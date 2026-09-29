@@ -3881,7 +3881,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x49b090,844,space-bunny-free,#1070,partial,72.8,,"issue #1070, escalated"
 0x49d270,774,space-bunny-free,#1070,partial,81.7,,"issue #1070, escalated"
 0x49d580,761,space-bunny-free,#1070,partial,77.6,,"issue #1070, escalated"
-0x4c14f0,617,,#1071,assigned,,,"issue #1071, escalated"
+0x4c14f0,617,deepseek-v4.1-flash,#1071,matched,100.0,,"issue #1071, escalated"
 0x4758c0,779,space-bunny-free,#1072,partial,88.9,,"issue #1072, escalated"
 0x475bd0,791,space-bunny-free,#1072,partial,91.5,,"issue #1072, escalated"
 0x4dc680,643,space-bunny-free,#1073,matched,100.0,,"issue #1073, escalated"

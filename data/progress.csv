@@ -2583,7 +2583,7 @@ address,size,file,symbol,status,similarity
 0x4c1450,18,src/unsorted/0x4c1450.cpp,?FUN_004c1450@@YAHXZ,matched,100.0
 0x4c1470,11,src/unsorted/0x4c1470.cpp,?FUN_004c1470@@YGEPAX@Z,matched,100.0
 0x4c1480,97,src/unsorted/0x4c1480.cpp,?FUN_004c1480@@YGHPAUFont_004c1480@@PAE@Z,matched,100.0
-0x4c14f0,617,src/unsorted/0x4c14f0.cpp,?FUN_004c14f0@@YGXPAVClass_004c6ae0@@PAEHHH@Z,partial,65.0
+0x4c14f0,617,src/unsorted/0x4c14f0.cpp,?FUN_004c14f0@@YGXPAVClass_004c6ae0@@PAEHHH@Z,matched,100.0
 0x4c1760,201,src/unsorted/0x4c1760.cpp,?FUN_004c1760@@YGXPAHPAEH@Z,partial,98.8
 0x4c1830,516,src/unsorted/0x4c1830.cpp,?FUN_004c1830@@YGXPAURect_004c1830@@PAEHHH@Z,matched,100.0
 0x4c1a40,20,src/unsorted/0x4c1a40.cpp,?FUN_004c1a40@@YAXXZ,matched,100.0

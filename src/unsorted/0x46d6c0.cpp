@@ -1,4 +1,16 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash pass (#1137): confirmed the remaining 4 bytes are the
+// zero source, and that no literal-zero spelling helps. Scratch variants
+// (check.py, all 416 bytes / 58.9%): `int f2 = 0`, `void* f2 = 0` cast to int,
+// `int f2 = 0` hoisted to function scope, the same with `packet->field_6 + f2`
+// at the call, a `void* field_0` with `= 0`, `short f2 = 0`, `char f2 = 0`, and
+// an `int*` base with `p[1] = f2`. Every literal zero drops the extra live
+// value, so `this` stays in ebp (frame 0x34) instead of the original's spill to
+// [esp+0x10] (frame 0x38). Only a non-constant value that happens to be 0 keeps
+// the frame; reading `packet->field_2` does that but adds a `mov ebx,[esi+2]`
+// the original does not have. The zero must come from an opaque expression that
+// the optimizer cannot fold and that does not touch [esi+2].
 //
 // check.py: 83.6%, ours 420 bytes against the original's 416. The prologue,
 // the entry scan, the switch, case 1, case 2 (whole block) and case 4 are all

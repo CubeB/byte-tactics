@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 98.7% (430 of 430 bytes, 154 of 158 instructions). One basic
 // block differs: four instructions in the head of the main loop are in a
 // different order. Everything else matches, including the prologue, the
@@ -132,6 +132,19 @@
 // edge is `jne 0x4ba076` at 0x4ba164 and that target skips the
 // `mov [esp+0x10], ecx` at 0x4ba072, so the width spill is peeled out of
 // the loop and only happens on the first iteration.
+
+// Appended by deepseek-v4.1-flash. Still 98.7%, the same single block. These
+// further shapes were compiled and scored: hoisting one or both stores into
+// the switch condition as a comma expression
+// (`switch (DAT_0051fcaf[n] = c, state)`, `switch (value = c,
+// DAT_0051fcaf[n] = c, state)`, `switch (DAT_0051fcaf[n] = c, value = c,
+// state)`), and chaining the two stores into one assignment
+// (`DAT_0051fcaf[n] = c = *p++`, `value = DAT_0051fcaf[n] = c`,
+// `DAT_0051fcaf[n] = value = c`), with the read fused or split. Every one
+// emitted a byte-identical block to the flat spelling below, so MSVC 5's
+// scheduler is indifferent to store order and to the expression tree here;
+// the original history-store and `sub eax,0` positions are not reachable this
+// way.
 
 extern unsigned char DAT_0051fcaf[];
 extern unsigned char DAT_0051fcb0[];

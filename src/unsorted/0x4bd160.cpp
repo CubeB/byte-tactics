@@ -89,6 +89,49 @@
 // `HapiBuf sb(0, 20)`, `sb = HapiBuf(0)`, explicit ctor re-call (MSVC 5
 // rejects `sb.HapiBuf()`), passing `sb.buf` as the first argument, separate
 // locals instead of the struct, and three `sb.size = 20` statements.
+//
+// THIRD SESSION (space-bunny-free). Score by BYTES, not by the ratio: the file
+// below is 580 of 580 bytes with 27 differing (non-relocated) bytes, and the
+// ratio check.py prints (96.7%) is misleading here. `build/scratch/0x4bd160/
+// probe.py <file>...` reports "size N diff M" for free. Anything that fixes the
+// first block lands at 576 bytes and ~427 differing bytes, because the missing
+// 4 bytes shift every jump target after it, so this file is still the best
+// version and is what is in place.
+//
+// Frame layout, all 21 dwords accounted for, do not disturb it:
+//   X+0x00 extra (char*)   X+0x04 sb.size   X+0x08 sb.buf
+//   X+0x0c year[8]         X+0x14 copyright[0x40]  (0x14+0x40 = 0x54)
+// The original stores 0 to X+8, then 20 to X+4, then the FUN_004d84a0 result
+// to X+8; FUN_004bd3b0(srcname, &X+4, &X+0) overwrites the size, and both
+// fwrite calls read size X+4 and pointer X+8, so h->size (mov eax,[esp+0x20] at
+// 0x4bd1dd) is that same X+4. So the struct is 8 bytes, {size, buf}, and the
+// `= {0}` initialiser is what puts two dead stores BEFORE the `je`.
+//
+// The block needs exactly +8 bytes over `sb.size = 20; sb.buf = f(0,...,20)`:
+// a fresh zero register (xor ecx,ecx), a dead copy (mov eax,ecx) and the zero
+// store (4 bytes). The 20 is size-neutral (push 0x14 + mov [..],0x14 is 10
+// bytes, mov eax,0x14 + push eax + mov [..],eax is also 10), but the 4-byte
+// store form needs a REGISTER source, so the 20 has to be non-constant at the
+// IR level (cf. 0x4b0720, MATCHED, where a computed size is passed in edx).
+//
+// Tried in this session, every one compiles to the SAME 576-byte body
+// (push 20 / push str / push ebp / mov [buf],0 / mov [size],20 / call), i.e.
+// all worse, none kept: the realloc idiom `f(sb.buf, ...)`; a shared
+// `char* z = 0` or `char* nul = 0` local for the NULL argument; the NULL
+// argument spelled `(void*)0`, `0L`, `NULL`, `'\0'`, `(char*)0`, `0u`; the size
+// argument spelled `sb.size`, `(unsigned)20`, `0x14`,
+// `sizeof(struct Hapi_004bd160)`, or the comma expression `(sb.size = 20)`;
+// `sb.buf = 0, sb.size = 20;` and the reverse order; either statement alone in
+// a nested `{ }`; an `__inline void zero_buf(struct HapiBuf*) { b->buf = 0; }`
+// helper; `int` or `unsigned short` for the size field; the ctor
+// `HapiBuf(char* b) { size = 0; buf = b; }` declared after the `if`, and
+// `struct HapiBuf sb = {0,0};` declared after the `if`.
+// The blocker is one allocator decision: the zero for the struct is CSE'd with
+// the `xor ebp,ebp` that `extra = 0` already holds (the original reuses ebp for
+// `extra` and the `cb(0)` argument, but needs a FRESH ecx after the call), both
+// constants are rematerialised as immediates, and both dead stores sink to
+// immediately before the call. What is needed is ONE construct that gives the
+// zero a different node from `extra = 0` and makes the 20 non-constant.
 #include <stdio.h>
 #include <string.h>
 #include <time.h>

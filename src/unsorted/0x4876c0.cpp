@@ -3,14 +3,20 @@
 // byte record; inverse of 0x487080/0x486fd0. Record and Piece field maps are
 // complete and confirmed by the 0x487080 loader.
 //
-// PARTIAL 66.2%. Still differs:
-//  - pos copy at rec+0x2b: original is a 12-byte struct copy that materialises
-//    `lea eax,[ebp+0x6a]`; ours emits three separate loads.
-//  - the rec+0x8f.. field block has the right stores but a rotated register
-//    order: original keeps a live zero in ecx (cmp reg,ecx + setne) and packs
-//    rec.flags into edx; ours uses test/setne and packs into ecx.
+// PARTIAL 66.5%. Still differs:
+//  - pos copy at rec+0x2b: writing `rec.pos = unit->pos` with a Vec3 member
+//    does produce the original's `lea eax,[ebp+0x6a]`, but it then rotates
+//    ecx/edx through the whole rec+0x2b..+0x57 block and scores worse (64.6).
+//    Kept the three scalar stores instead.
+//  - the rec+0x2b..+0x57 field block has the right stores but a rotated
+//    register order: original materialises `lea ecx,[ebp+0x64]` for the
+//    f64/f68 pair and keeps a live zero in ecx (cmp reg,ecx + setne) while
+//    packing rec.flags into edx; ours uses test/setne and packs into ecx.
 //  - the 3x piece copy loop anchors at &piece.f8 / &dest.f4 in the original
-//    but at &piece.obj / &dest.f8 here (both +4); the body instructions match.
+//    but at &piece.obj / &dest.f8 here (both +4); every body instruction and
+//    displacement matches once that base is accounted for. Swapping the f0/f4
+//    assignments raised 66.2 -> 66.5 but did not move the anchor; pointer
+//    variants that forced `lea ecx,[ebp+0x64]` collapsed the rest (40.6).
 //  - rec+0x89/0x8b conditionals: original repeats `ptr != 0` a third time
 //    (kept live zero register), MSVC folds our equivalent chain.
 //  - frame is 0x120 in both.
@@ -300,8 +306,8 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             Piece_004876c0* sp = unit->pieces;
             SavedPiece_004876c0* dp = rec.pieces;
             for (int k = 0; k < 3; k++) {
-                dp[k].f0 = sp[k].f0;
                 dp[k].f4 = sp[k].f8;
+                dp[k].f0 = sp[k].f0;
                 dp[k].f8 = ((Obj_004876c0*)sp[k].obj)->f10a;
                 dp[k].fc = sp[k].f10;
                 dp[k].f10 = sp[k].f14;

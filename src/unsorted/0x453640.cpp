@@ -98,8 +98,8 @@ void FUN_00453640()
 
     memset(DAT_00512c74, 0, 0xa00);
 
-    short count = entry->count;
     int tail = g_game->tail;
+    int count = entry->count;
     int idx = tail;
     for (int n = 1; n < count - 1; n++) {
         if (idx == g_game->head)
@@ -120,6 +120,8 @@ void FUN_00453640()
         } while (idx != g_game->tail);
     }
 
+    // The original searches for the player twice: once for the == 10 test and
+    // again for the index used to fetch the record. Keep it; the bytes do this.
     unsigned char found = FindPlayerIndex_00453640(DAT_005061d8);
     Player_00453640* player;
     if (found == 10)

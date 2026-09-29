@@ -1,6 +1,8 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// PARTIAL 88.7%: the remaining diffs are register allocation and scheduling;
-// the run was cut off by a provider usage limit before the last hunks.
+// Declaring the Msg20 message at function scope (not inside the loop) is what
+// puts its address in eax and fixes the whole send block; the trailing
+// g_game+0x2bee flag is a 1-bit unsigned short bitfield, which is what makes
+// the original emit `or byte ptr [eax+0x2bee], 1` in one instruction.
 #include <windows.h>
 #include <string.h>
 
@@ -36,8 +38,9 @@ struct Game_00456310 {
     char unknown_2a3c[0x2a44 - 0x2a3c];
     unsigned char flags_2a44;          // +0x2a44
     char unknown_2a45[0x2bee - 0x2a45];
-    unsigned char field_2bee;          // +0x2bee
-    char unknown_2bef[0x2c28 - 0x2bef];
+    unsigned short bit0_2bee : 1;      // +0x2bee
+    unsigned short rest_2bee : 15;
+    char unknown_2bf0[0x2c28 - 0x2bf0];
     int table_2c28[10];                // +0x2c28
 };
 
@@ -128,16 +131,15 @@ void FUN_00456310()
         }
     }
 
+    Msg20_00456310 msg;
     if (g_game->flags_2a44 & 1) {
         for (int i = 0; i < 10; i++) {
             Player_00456310* p = &g_game->players[i];
             if (p->active != 0 && (p->state == 1 || p->state == 2)) {
-                Msg20_00456310 msg;
-                Msg20_00456310* mp = &msg;
-                mp->info = *p->info;
-                mp->type = 0x20;
-                mp->info.id = p->id;
-                FUN_00451df0(p->id, (unsigned char*)mp, 0xba);
+                msg.info = *p->info;
+                msg.info.id = p->id;
+                msg.type = 0x20;
+                FUN_00451df0(p->id, (unsigned char*)&msg, 0xba);
 
                 if (p->active != 0 && (p->state == 1 || p->state == 2)) {
                     unsigned char* buf2 = g_game->buffer;
@@ -154,5 +156,5 @@ void FUN_00456310()
         DAT_00513000.FUN_004618a0(1);
     }
 
-    g_game->field_2bee |= 1;
+    g_game->bit0_2bee = 1;
 }

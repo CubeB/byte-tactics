@@ -1,4 +1,5 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are
+// provisional.
 // Slot 0 of Class_00407d40 (vtable 0x4fc9a0), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..179 ticks from now. When the group has units, moves the
@@ -9,20 +10,12 @@
 // that is active or can reach a (FUN_0049aa80), to move to a with the order
 // FUN_0043f0e0 picks.
 //
-// Partial (88.2%): everything matches except the inlined explored-map test.
-// The original computes the index first and keeps the map pointer in ecx:
-//   mov ebx, [ecx+0x80]; imul ebx, eax; mov eax, [ecx+0x7c]; add ebx, edx;
-//   cmp byte ptr [ebx+eax], 0
-// Written as `map->explored[width * ty + tx]`, MSVC folds the pointer into
-// the product (`imul eax, [ecx+0x80]; add eax, [ecx+0x7c]; cmp [eax+edx]`),
-// whatever the operand order, casts, index locals, getters or accessor
-// methods on Map. A method on a {data, MapSize} struct at +0x7c
-// (`data[size.width * y + x]`) does keep the index unfolded, but still puts
-// the product in eax (`imul eax, [ecx+0x80]; mov ecx, [ecx+0x7c]`), and the
-// changed scratch registers rotate every later temporary (68.9%).
-// `unsigned int tx` is not what the original had: it makes the x shift
-// 16-bit (`mov ax, [esi+2]; sar ax, 5; movsx edx, ax`) but happens to give the
-// rest of the function the original's scratch registers (int tx: 69.1%).
+// The explored-map test is the inlined player method 0x475470 describes: a
+// {data, width, height} ByteMap at +0x7c whose Get() keeps `width * y + x`
+// as an unfolded index (the data pointer is loaded after the multiply).
+// The coordinates are plain ints, so `pos->x >> 5` stays a 32-bit sar; the
+// earlier attempt's `unsigned int tx` shortened it to a 16-bit shift. All of
+// the scratch registers then fall into place.
 //
 // The dead std::vector local is the `push 0; call operator delete` after the
 // loop. `delay` must be computed first or the sum folds into one lea (as in
@@ -72,28 +65,34 @@ struct MapSize_00408090 {
     }
 };
 
-struct Map_00408090 {
-    char unknown_0[0x7c];
-    unsigned char* explored;            // +0x7c
-    MapSize_00408090 size;              // +0x80
+struct ByteMap_00408090 {
+    unsigned char* data;                // +0x0
+    MapSize_00408090 size;              // +0x4
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
 };
 
-int __stdcall FUN_00408090(Map_00408090* map, Position_00408090* pos);
+struct Player_00408090 {
+    char unknown_0[0x7c];
+    ByteMap_00408090 explored;          // +0x7c
+};
 
-static inline int IsExplored(Map_00408090* map, Position_00408090* pos)
+int __stdcall FUN_00408090(Player_00408090* player, Position_00408090* pos);
+
+static inline int IsExplored(Player_00408090* player, Position_00408090* pos)
 {
-    unsigned int tx = pos->x >> 5;
+    int tx = pos->x >> 5;
     int ty = (pos->z - (pos->y >> 1)) >> 5;
-    if (map->size.Contains(tx, ty) && map->explored[map->size.width * ty + tx])
+    if (player->explored.size.Contains(tx, ty) && player->explored.Get(tx, ty))
         return 1;
     return 0;
 }
 
-static inline int IsVisible(Map_00408090* map, Position_00408090* pos)
+static inline int IsVisible(Player_00408090* player, Position_00408090* pos)
 {
     if ((g_game->flags & 2) == 2)
-        return IsExplored(map, pos);
-    return FUN_00408090(map, pos);
+        return IsExplored(player, pos);
+    return FUN_00408090(player, pos);
 }
 
 #pragma pack(push, 1)
@@ -113,7 +112,7 @@ struct Unit_00407e90 {
 #pragma pack(pop)
 
 struct Group_00407e90 {
-    Map_00408090* player;               // +0x0
+    Player_00408090* player;            // +0x0
     int id;                             // +0x4
     char unknown_8[0x10 - 0x8];
     std::vector<Unit_00407e90*> units;  // +0x10

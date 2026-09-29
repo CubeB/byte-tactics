@@ -1,4 +1,5 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are
+// provisional.
 // std::vector<Unit*>::insert(iterator, size_type, const T&) from MSVC 5's
 // <vector>, with _Ucopy, _Ufill, fill and copy_backward all inlined. Its
 // callers are push_back sites (0x40ab36 on the vector at +0x5 of the
@@ -7,13 +8,20 @@
 // The element type is settled by 0x40ad80, which calls this, _Ucopy, _Ufill
 // and size on one vector of units (#135; see 0x406c00.cpp).
 //
-// Still differs (88.7%): in the third _Ucopy (_P, _Last into _Q + _M) the
-// original starts the source pointer with `lea eax, [ebx + ecx]` (P + dest,
-// then - Q - M*4); ours computes `mov eax, ecx; ... add eax, ebx`
-// (dest - Q + P - M*4). Everything else is identical. No header set, element
-// type, earlier instantiation order or preceding function changed it; it is
-// probably compiler state from the rest of the original file, whose
-// end-of-file template instantiations this function belongs to.
+// Still differs (89.6%, 546 vs 547 bytes): in the third _Ucopy (_P into
+// _Q + _M) the source start differs. The original computes it as
+// `lea eax, [ebx + ecx]` then `sub eax, edx` / `sub eax, edi`, that is
+// (P + dest) - Q - M; ours computes (dest - Q) + P - M as
+// `mov eax, ecx` / `sub eax, edx` / `add eax, ebx` / `sub eax, edi`. Every
+// other instruction and register is identical. This is the same third-_Ucopy
+// source sum that 0x40d290's note says flips with compiler state, but here it
+// is stuck: all 128 tools/headers.py sets, plain <vector> with 0 to 304 extra
+// dummy declarations, <windows.h> plus <ddraw.h> and/or <math.h>, extra
+// out-of-line member instantiations (size, begin, push_back) and an explicit
+// `template class std::vector<Unit*>;` all give the `mov`/`add` form. A
+// hand-written explicit member specialisation whose third _Ucopy is written
+// as a loop (guide 1833) was not tried; compiler state from the rest of the
+// original translation unit is the likely cause.
 #include <vector>
 
 struct Unit {

@@ -1937,7 +1937,7 @@ address,size,file,symbol,status,similarity
 0x492330,41,src/unsorted/0x492330.cpp,?FUN_00492330@@YGXPAX@Z,matched,100.0
 0x492b10,715,src/unsorted/0x492b10.cpp,?FUN_00492b10@@YGPADPAH@Z,matched,100.0
 0x492de0,8,src/unsorted/0x492de0.cpp,?FUN_00492de0@@YGXHH@Z,matched,100.0
-0x492df0,618,src/unsorted/0x492df0.cpp,?FUN_00492df0@@YGXPAUGadget_00492df0@@@Z,partial,98.4
+0x492df0,618,src/unsorted/0x492df0.cpp,?FUN_00492df0@@YGXPAUGadget_00492df0@@@Z,matched,100.0
 0x493060,363,src/unsorted/0x493060.cpp,?FUN_00493060@@YAXXZ,matched,100.0
 0x4931d0,361,src/unsorted/0x4931d0.cpp,?FUN_004931d0@@YAXXZ,matched,100.0
 0x493340,79,src/unsorted/0x493340.cpp,?FUN_00493340@@YGXPAUObject_00493340@@H@Z,matched,100.0

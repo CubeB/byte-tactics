@@ -1,43 +1,9 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
-// Partial: 89.8% (516 of 517 bytes; up from 85.1%). The flag read-modify-write
-// at +0x69 was the whole of the earlier 85.1% gap.
-//
-// WHAT THE RMW IS ABOUT, and it is the mirror of 0x4478b0. The original emits
-// `or byte ptr [esi + 0x69], 2` as ONE instruction. The obvious source, a
-// 1-bit bitfield assigned 1, does not: this file had three bitfields packed
-// into the byte at +0x69 (`unknown_69 : 1`, `flag_69 : 1`,
-// `unknown_69_rest : 6`), and MSVC 5 loads the byte, masks, sets and stores it
-// through `al`, which is three instructions against the original's one.
-//
-// The shape that matches is a PLAIN `unsigned short` field with `|= 2`, not a
-// bitfield. Measured, all with `check.py --sym` after `rm -rf build/obj`:
-//   unsigned short field_69, `|= 2`                      89.8%  <- in the file
-//   unsigned short field_69, `= field_69 | 2`             89.8%
-//   unsigned char field_69, `= 2`                         88.6%
-//   unsigned short flag_69 : 1, `= 1`                     88.6%
-//   unsigned char field_69, `|= 2`                        85.1%  (the old score)
-//   unsigned char flag_69 : 1, `= 1`                      84.5%
-//   unsigned char flag_69 : 1 plus explicit padding       84.5%
-//   unsigned char flag_69 : 2, `= 2`                      79.4%
-//   unsigned short flag_69 : 2, `= 2`                     79.4%
-// So two things are needed together: a plain integer rather than a bitfield,
-// and a word rather than a byte. A bitfield in a word gets 88.6%, a byte with
-// `|=` gets 85.1%, and only the plain word gets the single-instruction RMW.
-//
-// CAVEAT, and it is a real one. A `unsigned short` at +0x69 makes this struct
-// two bytes longer than a byte at +0x69 would, so the field's *width* here is a
-// shape that reproduces the bytes rather than a discovery about the original's
-// declaration. Nothing in this function reads +0x6a, so the extra byte is very
-// likely padding in the containing object and the real declaration may well be a
-// byte or a bitfield. I am recording 89.8% as a better match, not as a better
-// understanding. Do not propagate this width into a sibling that does read the
-// bytes after +0x69 without checking first.
-//
-// What is left is register allocation in one block, 1 byte of length. The `je`
-// and `jne` after `test ebx,ebx` and `test eax,eax` both target 0x499fe5 in the
-// original and 0x499fe6 here, so one instruction before them is a byte shorter
-// in this version, and the same block loads `[edi + 0x7c]` into `ecx` where the
-// original uses `eax`.
+// Decompiled by GPT-5.6-Terra, finished by claude-sonnet. Names are provisional.
+// Matched. The flags dword at +0x111 is a bitfield struct (bit10 and bit22): a bitfield
+// test gives the original's shr/test al,1. The sound id is passed as unsigned int, which
+// gives the original's xor reg,reg / mov reg16 zero extension. The +0x69 flag is a plain
+// unsigned short OR'd with 2 (see git history for the measurements); its width is a shape
+// that reproduces the single 'or byte ptr [esi+0x69], 2', not a known declaration.
 #pragma pack(push, 1)
 
 struct Vec3_00499eb0 {
@@ -59,7 +25,13 @@ struct ProjectileType_00499eb0 {
     unsigned short sound1;
     unsigned short sound2;
     char unknown_fa[0x111 - 0xfa];
-    unsigned int flags;
+    struct {
+        unsigned int bits0_9 : 10;
+        unsigned int bit10 : 1;
+        unsigned int bits11_21 : 11;
+        unsigned int bit22 : 1;
+        unsigned int bits23_31 : 9;
+    } flags;
 };
 
 struct Unit_00499eb0 {
@@ -109,7 +81,7 @@ void* __stdcall FUN_004815a0(Vec3_00499eb0* position);
 void __stdcall FUN_0041c640(int a, int b, int c);
 void __stdcall FUN_00420a30(Vec3_00499eb0* position, void* value, int a, int b);
 void __stdcall FUN_00472810(Vec3_00499eb0* position, int value);
-void __stdcall FUN_0047f300(unsigned short sound, Vec3_00499eb0* position, int value);
+void __stdcall FUN_0047f300(unsigned int sound, Vec3_00499eb0* position, int value);
 int __stdcall FUN_00499cd0(Projectile_00499eb0* projectile, Unit_00499eb0* unit, float scale);
 void __stdcall FUN_0049a120(Projectile_00499eb0* projectile, Vec3_00499eb0* position);
 
@@ -122,7 +94,7 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit_00499eb0* unit
     unsigned char* value = (unsigned char*)FUN_004815a0(position);
     if (value != 0)
         hostile = value[5] < *(unsigned char*)(g_game + 0x1427f);
-    if (!(type->flags & 0x400000)) {
+    if (!type->flags.bit22) {
         if (projectile == *(Projectile_00499eb0**)(g_game + 0x142f7)) {
             *(Vec3_00499eb0*)(g_game + 0x1433f) = (*(Projectile_00499eb0**)(g_game + 0x142f7))->position;
             *(unsigned short*)(g_game + 0x1434b) = *(unsigned short*)((char*)projectile->type + 0xfe);
@@ -141,17 +113,11 @@ void __stdcall FUN_00499eb0(Projectile_00499eb0* projectile, Unit_00499eb0* unit
     }
     FUN_0041c640(type->field_cc, type->field_cc, type->field_d0);
     if (hostile && !unit) {
-        unsigned int sound = 0;
-        sound = type->sound2;
-        FUN_0047f300(sound, position, 0);
+        FUN_0047f300(type->sound2, position, 0);
         FUN_00420a30(position, type->field_7c, 0, hostile);
     } else {
-        unsigned int sound = 0;
-        sound = type->sound1;
-        FUN_0047f300(sound, position, 0);
-        unsigned int effect = type->flags;
-        effect >>= 10;
-        if (effect & 1)
+        FUN_0047f300(type->sound1, position, 0);
+        if (type->flags.bit10)
             FUN_00472810(position, 9);
         else
             FUN_00420a30(position, type->field_78, 0, hostile);

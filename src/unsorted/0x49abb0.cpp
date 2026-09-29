@@ -1,7 +1,18 @@
 // Decompiled by GPT-5.6-Terra, finished by Space Bunny Free. Names are provisional.
-// Partial: logic and offsets match, but MSVC keeps the weapon and units in
-// different registers and omits the original 0xc-byte local frame around the
-// line-of-fire call.
+// Partial, 93.7% (576 of 568 bytes; up from 90.9%). Logic, offsets and every branch match.
+// Two things moved it: `(height >> 1) + whole` (not `whole + (height >> 1)`) gives the
+// original's `add edx, ecx` operand order in the half-height test, and the two includes
+// below change MSVC's register choice in the sea-level tests (headers.py found them;
+// without them the def pointer and the y word swap registers).
+// What still differs, all in the line-of-fire block: the original copies unit2->pos
+// (x to [esp+0x10], z to [esp+0x18], y kept in ebp) with `lea edx,[ebx+0x6a]`, keeping
+// unit2 in ebx for the second distance tail; here MSVC does `add ebx,0x6a` and reloads
+// ebx from the stack afterwards, so the tail differs by one reload (8 bytes).
+// Tried: by-value and by-pointer Vec3 params in every order, plain-int Vec3, local
+// copies (the copy is then optimised away, frame shrinks to 8), dx/dy/dz statement
+// orders, def pointer locals; pointer params make MSVC merge the two distance tails.
+#include <stdlib.h>
+#include <math.h>
 #pragma pack(push, 1)
 
 union Fixed_0049abb0 {
@@ -98,7 +109,7 @@ int __stdcall FUN_0049abb0(Unit_0049abb0* unit1, Unit_0049abb0* unit2, unsigned 
     if (w->flags.bit16) {
         if (!unit2->def->flags.bit19 && unit2->pos.y.parts.whole > g_game->sea_level)
             return 0;
-        if (unit2->def->flags.bit12 && unit2->pos.y.parts.whole + (unit2->def->height >> 1) > g_game->sea_level)
+        if (unit2->def->flags.bit12 && (unit2->def->height >> 1) + unit2->pos.y.parts.whole > g_game->sea_level)
             return 0;
         return Dist2_0049abb0(&unit1->pos, &unit2->pos) <= w->range * w->range;
     }

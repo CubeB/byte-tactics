@@ -1,4 +1,17 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL: 87.8% (best).  Including <memory.h> instead of <string.h> fixed the
+// two "folded data pointer" diffs in both IsExplored sites and the IsSeen
+// register order all at once (82.2 -> 87.8); windows.h/stdio/stdlib are all
+// worse, headers.py found <memory.h> best.  What still differs, 2 bytes:
+//   1. The flags local: the original loads the full word, does `and ax,2` and
+//      stores `mov word [esp+0x24],ax`; every spelling tried (`unsigned short
+//      flag = g_game->flags;` then `flag & 2`, `short`/`unsigned short local =
+//      flags & 2`, `&=`, casts) gives either `and eax,2` + a dword store, or
+//      narrows the load to `mov al, byte [..]`.  The 16-bit AND plus 16-bit
+//      store is worth exactly the missing 2 bytes.
+//   2. `test edx,edx` (original) vs `test dl,dl` (ours): `char vis` truncates
+//      before the test; `int vis` fixes the test but loses the whole register
+//      assignment (76.1%), so the char spelling is kept.
 // PARTIAL (82.2%, best of many scratch scorings; see notes below).
 // Is point (x, y) or point (x+dx, y+dy) visible to the local player?  The
 // 12-byte Position local (6 shorts, x/y/z among them) is zeroed with an
@@ -29,7 +42,7 @@
 //  - The first visibility result is tested with `test dl,dl` (vis is char)
 //    where the original tests `test edx,edx`; `bool`/`int vis` fixes that test
 //    but loses the whole register assignment (69% and 64%).
-#include <string.h>
+#include <memory.h>
 #pragma pack(push, 1)
 struct MapSize_004658e0 {
     unsigned int width;
@@ -104,3 +117,4 @@ int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, shor
         return IsExplored(m, &pos);
     return IsSeen(m, &pos);
 }
+

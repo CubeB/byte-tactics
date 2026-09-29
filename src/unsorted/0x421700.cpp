@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Re-attempted by deepseek-v4.1-flash (10 minute timebox): no code change was
+// found that improves on 68.8%; the file was left exactly as Opus 5.5 left it.
+// The remaining difference is unchanged and is described in full below.
 // Breaks a unit piece into debris: every four-vertex face of the piece's
 // object (except its selection plate) becomes a debris entry with its own
 // two-sided quad object, a random velocity plus a push along the face

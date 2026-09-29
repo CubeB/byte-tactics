@@ -43,6 +43,18 @@
 // FUN_00422e40's body is inlined as FeatureIndex, but only its
 // `if (i != 0xffff) return i;` spelling gives the original's block order
 // here (its own file uses the other one).
+// Retried by deepseek-v4.1-flash (issue 1323), no improvement, still 69.1%.
+// The worktree had to be repaired first: its orig/TotalA.exe was a zero-byte
+// placeholder (copied from the main checkout) and its .venv cannot be used by
+// uv on Windows, so the checks ran with the main checkout's python and WSL's
+// wcl. The register cascade starts at the `names` vector fill: this version
+// does `mov edi, eax` before the count test and has a stray `xor ebp, ebp`
+// inside the rep movsd loop where the original stores the fresh pointer with
+// `mov [esp+0x38], eax` and only then loads edi. Everything downstream
+// follows from that (file held in ebx instead of ebp for the record loops,
+// and `test esi, esi` where the original compares `cmp esi, ebp`). No new
+// variant was scored inside the hard time box; the notes above are where to
+// start. Superseded attempt, kept as the best version.
 #include <string.h>
 #include <utility>
 

@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free. Names are provisional.
 // Sonnet 5.5 retry (#679), no change to the score (99.6%). What it added:
 // the operand order of that sum is fixed by the order in which the inlined
 // copy's variables are numbered, which the source controls through the
@@ -85,6 +85,36 @@
 // /G3 to /G7, /Gr /Gd /Gs /Gx /Zc /Os /Ot /Oi /Ob1 and /Ob3. The same byte
 // stays wrong for 0x46e640 (vector<int>) and 0x408f30 (vector<Unit*>), so it
 // wants the state of the game's own translation unit, as 0x4732e0.cpp says.
+// Fifth pass (longcat-2.5-preview-free, 20 check runs): characterised, verdict
+// unreachable, same class as 0x46e640. Evidence, all free /Fa screens:
+//   * Isolation micro (build/scratch/0x425210/micro): the growth branch alone
+//     as a free function over the same class emits the identical 544-byte
+//     block, including `lea eax,[ecx+ebx]`. So both the association and the
+//     base/index pick are decided inside the third _Ucopy's loop-block
+//     transformation, not by the other branches, the spill of `this`, or the
+//     tail stores.
+//   * In that micro, the 6 parameter orders of the third _Ucopy give exactly
+//     two shapes: FLP (the header's own order) -> the 544-byte [ecx+ebx], the
+//     other five -> the 545-byte `mov eax,ecx; sub eax,edx; add eax,ebx; sub
+//     eax,edi` association. Parameter order flips the association, never the
+//     base/index pair inside the 544-byte shape.
+//   * TU-state probe, N unused `extern int dummyN;` lines after the includes
+//     (N = 0..400, step 8, mirror of the 0x46e640 probe): 0..56 -> 544 bytes
+//     [ecx+ebx]; 64..312 -> 545 bytes; 320..400 -> 544 bytes [ecx+ebx]. The
+//     periodic two-regime structure is exactly 0x46e640's, and the 544-byte
+//     regime ALWAYS puts the induction variable (ecx) first; [ebx+ecx] never
+//     occurs at any N.
+//   * msvc5-rtm (the unpatched compiler) gives the same [ecx+ebx].
+//   * Surrounding live code screens (member order before/after insert, a
+//     hoisted _Old = size() local, _Last hoisted to a local, a _P copy for
+//     the third copy, _S + (_M + size()) association, a _Sz local): all stay
+//     [ecx+ebx]. The live-node "demote one step" lever would change the
+//     function's (matching) register allocation, so it is not a route to the
+//     wanted byte either.
+// Conclusion: the wanted `lea eax,[ebx+ecx]` needs a compiler state this TU
+// cannot produce (most likely the state of the game's own big translation
+// unit, as 0x4732e0.cpp demonstrated for its function). 99.6% is the ceiling
+// for source-reachable shapes here.
 #include <memory>
 #include <xutility>
 

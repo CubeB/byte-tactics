@@ -5,6 +5,29 @@
 // display in esi and the 'MAIN' tag in edi, ours the other way around, which
 // rotates every operand. Hoisting out/screen/desc to function scope gave 0xf8
 // but scored 31.0%; leaving them in the branches is the better version.
+// Second pass (deepseek-v4.1-flash) settled the original frame layout exactly.
+// With 4 saved regs the locals area is [esp+0x10, esp+0x104); the original
+// assigns: pt @0x10 (8), rect @0x18 (16), src @0x28 (16), out @0x38 (0x30,
+// i.e. the full Out_004c63a0, only fields 0/4/8/c used), screen @0x68 (0x30,
+// used by BOTH the field_dc==0 DDERR path and the field_dc!=0 path), desc
+// @0x98 (108 = 0x6c, dwSize=0x6c, lPitch @+0x10, lpSurface @+0x24). Those
+// sizes sum to exactly 0xf4 with NO overlay, which is why the original frame
+// is 0xf4. Our ddraw.h DDSURFACEDESC is 4 bytes larger than the game's, so a
+// hand-rolled 0x6c Desc_004c63a0 was tried; the frame stayed 0xf8, so the 4
+// extra bytes are NOT desc.
+// Hoisting pt/rect/src/out/screen/desc to function scope kills the overlay
+// (frame 0xc4 -> 0xf8) but is still 4 bytes too big and once pt is
+// function-scope the branch-1 `held` can no longer share pt.x @0x10, so every
+// offset shifts +4 (rect lands at 0x1c instead of 0x18) and the score drops to
+// 31.0%. The original keeps held @0x10 aliasing pt, so pt/rect/src must stay
+// branch-scoped while out/screen/desc must not overlay them.
+// Branch 1 (flags&2==0) is otherwise byte-identical to the original except
+// that MSVC puts `d` in edi and the 0x4d41494e tag in esi, the exact reverse
+// of the original (d in esi, tag in edi); the inlined Lock/Unlock helpers
+// reproduce the original import-pointer order (ebp=InterlockedExchange,
+// ebx=WaitForSingleObject) and must be kept. Manual while(1) loops in place of
+// the helpers scored 29.9% because MSVC then loads WaitForSingleObject before
+// InterlockedExchange.
 // Per-frame display blit. When bit 1 of the display flags at +0xf0 is clear,
 // the cached surface at +0x50 is rendered into the window with GDI (GetDC /
 // BitBlt / ReleaseDC) while holding the 'MAIN' spin lock. Otherwise the object

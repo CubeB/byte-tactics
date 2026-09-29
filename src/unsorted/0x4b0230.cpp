@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial). Names are provisional.
 // Draws a list box's frame. FUN_004a15c0 gives the entry's rectangle; when no
 // bitmap arrives, the "Listbox" piece is looked up in the object's GAF and, if
 // found, the rectangle is grown by 3 on every side. The destination is the
@@ -12,39 +12,34 @@
 // at the origin. The colours are the object's bytes at +0x8b2 (dark), +0x8c3
 // (light) and +0x8c6 (fill).
 //
-// NOT MATCHED (check.py 46.2%, 625 of 631 bytes).  What is still different:
-// 1. The prologue's register assignment, and every later block follows it. The
-//    original gives obj ESI, the entries pointer EDI, bmp EBX (loaded after the
-//    first call) and keeps `index` in the argument home, reloading it for
-//    FUN_004a18c0; this file promotes `index` into a callee-saved register, so
-//    it takes EBX, demotes obj to EBP, and puts bmp in ESI, which rotates the
-//    three colour temporaries, the tile loop and the 3x3 block with it. The
-//    shapes of those blocks are otherwise right.
-// 2. The five local slots below the rect.  This file gets row 0x10, x0 0x14,
-//    h 0x18, ypos 0x1c, height 0x20; the original has row 0x10, x0 0x14,
-//    ypos 0x18, height 0x1c, h 0x20, so only the last three are permuted.  In
-//    the original the slots ascend in the order the code touches them (row and
-//    x0 and ypos in the inner loop, then height and h in the loop latch, which
-//    loads height before h; this file loads h before height there).  The two
-//    dead argument homes (arg1 then arg2) hold y0 then the y counter: giving
-//    the y counter its own local is what puts it in arg2's slot.
-// 3. The row index `(y >= height - h + 1) ? 6 : 3` compiles here to
-//    setl/dec/and 3/add 3 (the same value, opposite polarity).  The original
-//    emits setge/dec/and 0xfffffffd/add 6.  Neither the ?: nor a nested
-//    if/else, nor a chained else-if, nor the two-ternary spelling produced it.
-// 4. At the top of the 3x3 block the original pushes both arguments of
-//    FUN_004b7f30 before the branch to the single-child case, this file pushes
-//    one before and one after.
-// Big win worth keeping: holding `obj->holder->entries` in a local
-// `char* entries` (and using it for both FUN_004a15c0 and FUN_004a18c0) is
-// worth 20 points: it makes entries a value that must live across the first
-// call, which gives it EDI and moves &rect from EAX to ECX as the original has
-// it.  Rejected: spelling the x position as an accumulating `x0 += x` (with the
-// call taking x0) reaches 52.5% of the older baseline and its inner loop is
-// the original's plus one store, but the original reloads x0 from its slot in
-// every iteration and adds x (the only stores to that slot are in the set-up
-// block), so the accumulating form draws the last column in the wrong place.
-
+// NOT MATCHED: check.py 82.9%, 631 of the original's 631 bytes. The prologue, the tile loop
+// and the fill/single-child arms are byte-identical to the original (every
+// register agrees up to the start of the 3x3 block); what still differs is the
+// 3x3 block only: its pre-loop schedule and the register roles of the three
+// temporaries there. The original keeps height in eax, h in ecx and the y
+// counter in edx (the counter lives in the dead `index` argument slot,
+// [esp+0x3c], y0 in the dead `obj` slot [esp+0x38]); this file has y and
+// height rotated. Only the final `y` register rotation and the order of the
+// loads before the `index != 0` test remain (about 40 instructions, all one
+// cause).
+//
+// What moved the score (Sonnet 5.5, #1076), for whoever continues:
+//  * The surface pointer is re-read as obj->holder->entries + 0xbc AFTER the
+//    first call while `entries` stays a local (the original does exactly that:
+//    the reload chain [esi+0x18] -> [eax+4] -> [ecx+0xbc]). 46% to 51%.
+//  * The if/else tree is `bmp != 0 { count > 1 {3x3} else {blit} } else {fill}`,
+//    which puts the fill arm last as in the original, and the single-child arm
+//    is `p = FUN_004b7f30(bmp, 0); FUN_004b7f90(surface, p, 0, 0)` (the call
+//    comes first, not nested in the argument list). 51% to 57%.
+//  * `row = (y < height - h + 1) ? 3 : 6;` gives the original's setge/dec/
+//    and 0xfffffffd/add 6 (the `>= ? 6 : 3` spelling gives setl/and 3/add 3).
+//  * DECLARATION ORDER: all locals declared uninitialised at the top in the
+//    order below and assigned later. That alone flipped the ebx/edi roles of
+//    `bmp` and `entries`/`cell` in the prologue (a random search over orders
+//    found it; the same tie was not movable by any statement rewrite, and an
+//    extra `cell->step_x` reference in the tile loop flipped it too, which is
+//    the same weight tie). 74% to 82%. A random search over declaration order
+//    plus the order of the six statements before the y loop tops out at 83%.
 struct Rect_004b0230 {
     int x0;                          // +0x0
     int y0;                          // +0x4
@@ -109,8 +104,25 @@ int __stdcall FUN_004bf6f0(Surface_004b0230* surface, Rect_004b0230* rect, int c
 // FUNCTION: 0x4b0230
 void __stdcall FUN_004b0230(Object_004b0230* obj, int index, Bits_004b0230* bmp)
 {
+    char* entries;
+    int col;
+    Surface_004b0230* surface;
+    int height;
+    int x;
+    int width;
+    int x0;
     Rect_004b0230 rect;
-    char* entries = obj->holder->entries;
+    Pic_004b0230* tile;
+    int w;
+    int row;
+    int ypos;
+    int y;
+    Pic_004b0230* p;
+    int y0;
+    Cell_004b0230* cell;
+    int h;
+    Pic_004b0230* sub;
+    entries = obj->holder->entries;
     FUN_004a15c0(entries, index, &rect);
 
     if (bmp == 0) {
@@ -125,62 +137,57 @@ void __stdcall FUN_004b0230(Object_004b0230* obj, int index, Bits_004b0230* bmp)
         rect.y1 += 3;
     }
 
-    Surface_004b0230* surface = *(Surface_004b0230**)((char*)entries + 0xbc);
-    Cell_004b0230* cell = (Cell_004b0230*)FUN_004a18c0(entries, index);
+    surface = *(Surface_004b0230**)(obj->holder->entries + 0xbc);
+    cell = (Cell_004b0230*)FUN_004a18c0(entries, index);
 
     if (cell != 0) {
-        for (int x = 0; x < surface->tiles_x; x += cell->step_x) {
-            for (int y = 0; y < surface->tiles_y; y += cell->step_y) {
+        for (x = 0; x < surface->tiles_x; x += cell->step_x) {
+            for (y = 0; y < surface->tiles_y; y += cell->step_y) {
                 FUN_004c6b70(surface, cell, x, y);
             }
         }
         FUN_004b0160(surface, &rect, obj->dark, obj->light, obj->fill);
-    } else if (bmp == 0) {
-        FUN_004bf6f0(surface, &rect, obj->fill);
-        FUN_004b0160(surface, &rect, obj->dark, obj->light, obj->fill);
-    } else if (bmp->count > 1) {
-        Pic_004b0230* sub = FUN_004b7f30(bmp, 0);
-        int w = sub->width;
-        int h = sub->height;
-        int height;
-        int ypos;
-        int x0;
-        int y;
-        int row;
-        int y0;
-        int width;
-        if (index != 0) {
-            y0 = rect.y0;
-            x0 = rect.x0;
-        } else {
-            y0 = 0;
-            x0 = 0;
-        }
-        height = rect.y1 - rect.y0 + 1;
-        width = rect.x1 - rect.x0 + 1;
-        y = 0;
-        while (y < height) {
-            if (y != 0)
-                row = (y >= height - h + 1) ? 6 : 3;
-            else
-                row = 0;
-            if (y + h > height)
-                y = height - h;
-            ypos = y0 + y;
-            for (int x = 0; x < width; x += w) {
-                int col;
-                if (x + w >= width) {
-                    x = width - w;
-                    col = 2;
-                } else {
-                    col = (x != 0) ? 1 : 0;
-                }
-                Pic_004b0230* tile = FUN_004b7f30(bmp, row + col);
-                FUN_004b7f90(surface, tile, x0 + x, ypos);
+    } else if (bmp != 0) {
+        if (bmp->count > 1) {
+            sub = FUN_004b7f30(bmp, 0);
+            w = sub->width;
+            h = sub->height;
+            width = rect.x1 - rect.x0 + 1;
+            if (index != 0) {
+                y0 = rect.y0;
+                x0 = rect.x0;
+            } else {
+                y0 = 0;
+                x0 = 0;
             }
-            y += h;
+            index = 0;
+            height = rect.y1 - rect.y0 + 1;
+            while (index < height) {
+                if (index != 0)
+                    row = (index < height - h + 1) ? 3 : 6;
+                else
+                    row = 0;
+                if (index + h > height)
+                    index = height - h;
+                ypos = y0 + index;
+                for (x = 0; x < width; x += w) {
+                    if (x + w >= width) {
+                        x = width - w;
+                        col = 2;
+                    } else {
+                        col = (x != 0) ? 1 : 0;
+                    }
+                    tile = FUN_004b7f30(bmp, row + col);
+                    FUN_004b7f90(surface, tile, x0 + x, ypos);
+                }
+                index += h;
+            }
+        } else {
+            p = FUN_004b7f30(bmp, 0);
+            FUN_004b7f90(surface, p, 0, 0);
         }
     } else {
-        FUN_004b7f90(surface, FUN_004b7f30(bmp, 0), 0, 0);
+        FUN_004bf6f0(surface, &rect, obj->fill);
+        FUN_004b0160(surface, &rect, obj->dark, obj->light, obj->fill);
     }
 }

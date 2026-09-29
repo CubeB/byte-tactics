@@ -1,65 +1,18 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by Sonnet 5.5. Names are provisional.
 // Click handler of the file requester (FILEREQ.GUI, opened by 0x4afa30).
 // On close (field_60 == -1) it restores the saved drive and directory and
 // frees the request data. Otherwise it acts on the entry the user clicked:
 // LOAD/SWIN enter a directory, CANC accepts, NAME takes the highlighted file,
 // PATH walks one level up and the *DRV entries pick a drive letter.
 //
-// 99.1% (check.py), and the total size is now exact: 945 bytes, same as the
-// original. Only three instructions in the PATH branch still differ, and they
-// are all the same defect: MSVC 5 puts the loop counter in the SIB *base* slot
-// and `req` in the *index* slot, where the original does the opposite.
-//   original  cmp byte [ebp + ecx + 0x23], 0x3a   SIB 0x0d  (base ebp, index ecx)
-//   ours      cmp byte [ecx + ebp + 0x23], 0x3a   SIB 0x29  (base ecx, index ebp)
-// Same address, same length, opposite operand slots; it happens for all three
-// accesses (`cwd[n-1]`, `cwd[n]`, `cwd[n+1]`), and the plain `cwd[n]` in the
-// loop head already agrees (`cmp byte [ecx + edx], 0x5c`, base edx, index ecx).
-//
-// Every source shape tried for the three body accesses keeps the swapped slots
-// (all 945 bytes, all 99.1%):
-//   * `req->cwd[n-1]` / `req->cwd[n+1]` / `req->cwd[n]`, and the same three
-//     spelled as `*(req->cwd + n +- 1)`,
-//   * the same three through the offset-0 field with the constant in the index,
-//     `req->unknown_0[0x23 + n]`, and left associative `*(req->unknown_0 + 0x23 + n)`,
-//   * a block-local `char* cwd = req->cwd` (then the displacement is -1 and the
-//     base is the pointer, which does NOT match: the original's base is `req`),
-//   * a walked `char* p = req->cwd + n` with `p[-1]` / `p[1]` / `*p`,
-//   * a named `int m = n - 1` (MSVC folds it straight back in),
-//   * a named index with the offset in it (`int k = 0x23 + n`, changes the block),
-//   * `((char*)req)[0x23 + n]`, `*((char*)req + 0x23 + n)` and
-//     `*((char*)req + (0x23 + n))`,
-//   * a block-local `char* r = (char*)req` with `r[0x23 + n]`, at the top of the
-//     function and inside the branch, and the whole function rewritten so that
-//     the request pointer itself is a cast-free `char*` local.
-// What does flip the slots is the *register* the pointer ends up in, not the
-// spelling: `char* f = (char*)req + 0x24; f[0x23 + n]` gives the original's
-// order, `[edx + ecx + 0x23]`, because MSVC's lea put `req->cwd` in edx, while
-// the same cast-free subscript on a pointer held in ebp, or a `char* g =
-// (char*)gadget` held in ebx, always gives `[ecx + ebp + 0x23]` /
-// `[ecx + ebx + 0x23]`. So the split
-// tracks which register holds the base pointer (a caller-saved one that came
-// out of a lea behaves like the original, a callee-saved one does not), and the
-// original needs the base to be `req` in ebp. Since ebp is pinned by the rest
-// of the function (`lea edx, [ebp+0x24]`, `[ebp+0x23c]`, `push ebp` for the
-// callback), this looks like a register-role effect inside MSVC's SIB builder
-// that no expression tree of this block reaches.
-//
-// muse-spark-1.3-free follow-up (all scored free via check.py --sym, 945 bytes,
-// 99.1% every time, same 3 SIB diffs): the slot order is not reachable from the
-// source at all. Minimal wcl probes show MSVC 5 ALWAYS emits the int count as
-// the SIB base and the pointer as the index for a (count, pointer) pair, in
-// every register combination tried: [eax+ecx] (p0), [eax+esi] (p1),
-// [ecx+esi] (p4), [ecx+eax] (switch version), [ecx+edx] (this function head).
-// Rule of thumb: lower-numbered register becomes base. The original's body
-// (SIB 0x0d, base ebp over ecx) is the SOLE exception found anywhere, while
-// its own loop head ([ecx+edx], SIB base ecx) follows the rule. Verified the
-// raw bytes with objdump: orig `80 7c 0d 23 3a`. No TU-state effect either:
-// prepending matched sibling 0x4af5b0 above (s2) changes nothing, and neither
-// do <vector>/<map> headers, for- vs while-loop, Yoda comparison, switch on
-// req->cwd[n-1], or an anchor member at +0x23 with (&req->anchor)[n].
-// Per the guide this is the rare "commutative operand order from earlier TU
-// state" bucket: say so and move on. Next step would need the real preceding
-// function in the original TU (binary neighbour 0x4af5b0 did not flip it).
+// MATCH. The last three instructions (the SIB base/index order of the
+// cwd[n-1], cwd[n+1], cwd[n] accesses in the PATH branch) were decided by the
+// order of the function-scope declarations: all locals are declared
+// uninitialised at the top, with `req` LAST (after `n`), and assigned later.
+// With req declared first (or initialised in its declaration) MSVC 5 puts the
+// counter in the SIB base slot; with req numbered after n it puts req there,
+// as the original does. Half of the 720 orders of {entries, drive, result, i,
+// n, req} match, so any order with n before req works.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -113,7 +66,13 @@ void __cdecl FUN_004d85a0(void* data);
 // FUNCTION: 0x4af670
 void __stdcall FUN_004af670(Gadget_004af670* gadget)
 {
-    Req_004af670* req = gadget->layer->req;
+    Entry_004af670* entries;
+    char drive[2];
+    int result;
+    int i;
+    int n;
+    Req_004af670* req;
+    req = gadget->layer->req;
     if (gadget->field_60 == -1) {
         FUN_004bc300(req->save_drive);
         FUN_004bc360(req->save_cwd);
@@ -121,10 +80,9 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
         return;
     }
 
-    Entry_004af670* entries = gadget->layer->entries;
-    char drive[2];
+    entries = gadget->layer->entries;
     drive[1] = 0;
-    int result = 0;
+    result = 0;
 
     if (FUN_004a0300(entries, gadget->field_60, "LOAD")
         || FUN_004a0300(entries, gadget->field_60, "SWIN")) {
@@ -132,14 +90,13 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
                                   FUN_0049ff90(entries, "SWIN")->field_ba);
         if (name[0] == '\\') {
             strcpy(req->selected, name);
-            int i;
             for (i = 0; i < 10; i++) {
                 if (req->selected[i] == ' ') {
                     req->selected[i] = 0;
                     break;
                 }
             }
-            int n = (int)strlen(req->cwd);
+            n = (int)strlen(req->cwd);
             char* tail = req->selected;
             if (n == 3) {
                 tail++;
@@ -155,7 +112,7 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
     } else if (FUN_004a0300(entries, gadget->field_60, "CANC")) {
         result = 1;
     } else if (FUN_004a0300(entries, gadget->field_60, "PATH")) {
-        int n = (int)strlen(req->cwd);
+        n = (int)strlen(req->cwd);
         if (n > 0) {
             while (n > 0) {
                 if (req->cwd[n] == '\\') {
@@ -173,7 +130,7 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
         }
     } else if (FUN_004a0300(entries, gadget->field_60, "NAME")) {
         gadget->field_60 = FUN_0049fdf0(entries, "LOAD", 14);
-        int n = FUN_0049fdf0(entries, "NAME", 3);
+        n = FUN_0049fdf0(entries, "NAME", 3);
         result = 1;
         strcpy(req->selected, entries[n].value);
     } else if (FUN_004a0300(entries, gadget->field_60, "ADRV")) {

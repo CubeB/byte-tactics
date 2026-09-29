@@ -2383,6 +2383,7 @@ address,name
 0x4b7a30,FUN_004b7a30
 0x4b7ac0,FUN_004b7ac0
 0x4b7ad0,FUN_004b7ad0
+0x4b7b00,VClass_004b7e30::?$vector::insert
 0x4b7e00,Class_004b7e00::FUN_004b7e00
 0x4b7e30,Class_004b7e30::Class_004b7e30
 0x4b7e60,FUN_004b7e60

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by mimo-v2.6-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by mimo-v2.6-flash, then by Claude Sonnet 5.5. Names are provisional.
 //
 // PARTIAL: 76.4%. The feature dispatch now matches the original instruction for
 // instruction: `else if (feature != 0xfffe) { blocked = 1; } else { ... }` writes
@@ -59,6 +59,18 @@
 // `Unit_0047dfc0*& unit = g_game->units[cell->spot].unit;`, which reproduces the
 // original's two-step `lea ecx, [edx+ecx*8]; mov ecx, [ecx]` load that a plain
 // pointer folds into a single instruction.
+
+// Claude Sonnet 5.5 (#599): MATCH. The two bytes and the register differences in
+// the prologue were compiler state, not source: the source below was already
+// right. Scoring it with N unused `extern int dummyK;` declarations in front gives
+// 76.4 for N = 84 and below (which is why the old 0 to 82 sweep looked flat) and
+// MATCH at 559 bytes for every N from 92 to 404. tools/headers.py then finds that
+// 30 of the 128 header sets reach the same state, among them <stdio.h>,
+// <stdlib.h>, <string.h> and <math.h> on their own. The earlier note that no
+// header set helped was wrong (or from a version of headers.py that only said
+// "identical bytes"). <stdlib.h> is used here because the neighbouring pathfinder
+// function 0x4851c0 includes it for abs().
+#include <stdlib.h>
 
 #pragma pack(push, 2)
 struct Unit_0047dfc0 {

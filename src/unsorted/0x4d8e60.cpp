@@ -7,6 +7,12 @@
 // The object starts at original frame offset 0x7f30 and has 0xc4d0 bytes;
 // shrinking it is not supported. An extra saved record-pointer slot drives
 // the 4-byte frame excess and the parameter loop still differs.
+// deepseek-v4.1-flash: confirmed. Our .obj spills rec to F+0x20
+// (mov %ebx,0x30(%esp) at .text+0x54, reloaded at +0x4a1) while the original
+// keeps rec in ebx. That one slot is the entire 0x143f4 vs 0x143f0 excess.
+// Also confirmed obj is one 0xc4d0 block; FUN_004d9c60's this is obj+0x10,
+// FUN_004d9ca0's this is obj. Declaration style/order of ctx and rec did not
+// remove the spill (see build/scratch/0x4d8e60/ledger.md).
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

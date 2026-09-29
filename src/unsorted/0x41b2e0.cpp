@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Refreshes the unit menu for the current selection: with a unit set at
 // +0x37e9c that unit alone, otherwise every selected unit of the local
 // player. It combines their order states (fire and move orders, cloak and
@@ -37,6 +37,18 @@
 // first bitfield write (it ends the g_game CSE there) gives canRepair ebp and
 // the 0x240 frame (48.4%), so the missing piece is whatever makes the
 // original rank canRepair above the g_game value kept across the loop.
+//
+// deepseek-v4.1-flash session (brief, hard 10 min timebox): still PARTIAL at
+// 41.3%. Confirmed the baseline with the checker. Tried moving the canRepair
+// declaration to the top of the local list (41.0%, worse) and aliasing g_game
+// through a single local `Game* g = g_game;` used for every access (18.6%,
+// much worse: it hoists the pointer load out of the loop and drops the frame
+// to 0x1e0). Note the local declarations must stay in their current order;
+// declaring canRepair first shifts every stack slot. The remaining gap is
+// exactly the register/frame issue described above: original edi = g_game
+// (reloaded inside the loop after the type-flags read clobbers edi) and
+// ebp = canRepair, frame 0x240; ours spills canRepair and makes ebp = g_game,
+// frame 0x244.
 
 #include <windows.h>
 #include <stdio.h>

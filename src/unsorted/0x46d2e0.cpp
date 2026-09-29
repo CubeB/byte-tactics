@@ -30,6 +30,11 @@
 //     the destination base in edi and hoists all three loads (edi/eax/edx/esi),
 //     the original uses edx for the base and reuses eax for the 0 and the flag,
 //     i.e. it has one live value fewer, which is a consequence of 1.
+// Claude Sonnet 5.5 pass (#601): compiler state is ruled out for the two blocks
+// below. N unused `extern int dummyK;` lines after the include, K = 8 to 400 step
+// 8 (50 builds, check.py --sym, not committed): 88.4 percent and 475 bytes for
+// every K; headers.py, all 128 sets: best is 88.4, the empty set. So it is the
+// source shape, as the notes above conclude.
 #include <yvals.h>
 
 struct Wh_0046d2e0 {                   // 4 bytes, the w/h pair

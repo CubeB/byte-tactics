@@ -61,6 +61,14 @@
 //     countable but the source-anchored one is not among the reachable
 //     values. The original's association therefore needs a compiler state
 //     this file cannot reproduce, most likely its own big translation unit.
+// Claude Sonnet 5.5 pass (#601): the compiler-state probe (N unused `extern int
+// dummyK;` lines after the includes, K = 8 to 400 step 8, scored with check.py
+// --sym, not committed) is NOT flat here, unlike the other two functions in this
+// issue: 546 bytes and 99.6 percent for N = 8 to 56 and again for N = 320 to 400,
+// 547 bytes and 89.6 percent for N = 64 to 312. So the third _Ucopy's code does
+// depend on how many declarations precede it, in a periodic way, but no N gives
+// MATCH (the swapped SIB byte stays). plain headers.py, 128 sets: best 99.6,
+// nothing matches, as the notes above say.
 #include <memory>
 #include <xutility>
 

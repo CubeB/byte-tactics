@@ -52,6 +52,22 @@
 //     class (0x46dad0 is not a caller of 0x46d6c0; the callers are 0x46cef0 and
 //     0x46d500), so the drift silently lowers the effective cap in that method.
 //     Intent: the bump belongs after the filters, next to the state change.
+// Claude Sonnet 5.5 pass (#601): compiler state is ruled out. N unused `extern int
+// dummyK;` lines after the include, K = 8 to 400 step 8 (50 builds, check.py
+// --sym, not committed): 83.6 percent and 420 bytes for every K; headers.py, all
+// 128 sets: best 83.6, the empty set. What the frame says about the zero in
+// point 1: the original spills `this` to [esp+0x10] and has a 0x38 frame, and
+// that is caused by the live `xor ebx, ebx` (a real callee-saved register held
+// across the insert call). Dropping the `field_2` read entirely and storing a
+// literal 0 gives 416 bytes, the original's size, but only 58.9 percent because
+// `this` then stays in ebp and the frame is 0x34; so the read of field_2 into ebx
+// below is what keeps the register pressure right, and the original had some
+// other value in ebx that is 0 at run time. Scored with that change, all 416
+// bytes and 58.9: `pv->tail.field_0 = 0`, the same after `pv->key = 0; pv->key =
+// f6` (a dead first store, to make the constant appear twice), the store written
+// twice, and one before and one after `pv->key = f6`. The value probably comes
+// from a variable that the compiler cannot prove is 0 (the packet field at +2
+// is not it, the original never reads +2).
 #include <vector>
 
 #pragma pack(push, 1)

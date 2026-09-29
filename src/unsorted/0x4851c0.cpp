@@ -1,30 +1,22 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Not matched yet, 75.3%. Still differs from the original in the prologue only:
-// the original loads b.y and b.x and subtracts both differences into eax and
-// ecx before the register pushes, and the second difference stays in ecx
-// across the absolute-value block, while here b.x is loaded later, the
-// difference lands in esi and ecx is reused for the abs temporaries. Every
-// instruction from the loop head on (the cell lookup, the unit interpolation,
-// the loop tail) matches. The two Vec3 arguments are passed by value, which
-// is what keeps the otherwise dead `a.y += dh` store alive in the argument
-// slot; six plain int parameters let MSVC drop it. Ruled out: all six orders
-// of the three difference declarations, static inline helpers per difference,
-// spelling each subtraction as two statements, every header set (headers.py)
-// and the compiler-state probe (0 to 82 unused extern declarations).
-// Claude Sonnet 5.5 pass (#591): the 4 missing bytes are one store,
-// `mov [esp+0x10], ecx` at 0x4851f4. The three local slots [esp+0x10],
-// [esp+0x14], [esp+0x18] (after `push edi`) are the step vector in x, y, z order:
-// dh is stored at the y slot first (0x4851de, before `push edi`), then dx at the x
-// slot right after the abs(dx) block while it is still in ecx (that store is the
-// missing one), and dz/n only after the divisions. So dx has a stack home and is
-// cached in ecx (the original keeps dx in ecx through the abs block and divides
-// from `mov eax, ecx`), where ours enregisters dx in esi and never stores it.
-// Scored, none of it added the store: a Vec3 local `d` with the fields assigned in
-// y, x, z order (75.3, same bytes), in x, y, z order (74.5), `d.x = d.x / n`,
-// abs(dx) and abs(dz) into named locals in both orders (75.3, 72.1), an
-// if-style max (75.0), max with the operands swapped (75.3), all six orders of
-// the three differences again with the new locals (71.3 to 75.3), and a
-// `Steps(dx, dz)` or `Major(dx, dz)` static inline helper (72.1, 75.3).
+// Not matched yet, 84.7% (354 bytes, same size as the original). The only
+// difference left is register allocation in the prologue: the original keeps
+// the x difference in ecx (b.x is loaded into ecx before the register pushes,
+// so `sub ecx, ebx`, the abs block runs in esi, and n ends up in esi), while
+// here the difference lands in esi and the abs temporary and n use ecx.
+//
+// What made the jump from 75.3%: subtract in place on the by-value parameter
+// (b.y -= a.y; b.z -= a.z; b.x -= a.x) and then copy it whole into the step
+// vector (`Vec3 d = b;`). The struct copy is what keeps the original's dead
+// store of the undivided x difference (`mov [esp+0x10], ecx`) and drops the z
+// one; field-by-field copies, a local per difference, a Diff() helper, a
+// `d = b` before the subtractions and an aggregate initialiser all score lower
+// (71 to 82%). The y step is the undivided difference, as the original has it.
+// Scored without changing 84.7%: all six subtraction orders (yzx and yxz are
+// best), the three spellings of the abs maximum, `/=` vs `= x / n`, taking abs
+// and the divisions from b or from d, n/i/c/best declared up front in every
+// order, spelling each subtraction five ways, and 1500 random mixes of in-place
+// and local differences.
 #include <stdlib.h>
 
 #pragma pack(push, 1)
@@ -81,12 +73,13 @@ static inline Cell_004851c0* GetCell(int x, int y)
 // FUNCTION: 0x4851c0
 int __stdcall FUN_004851c0(Vec3_004851c0 a, Vec3_004851c0 b)
 {
-    int dh = b.y - a.y;
-    int dx = b.x - a.x;
-    int dz = b.z - a.z;
-    int n = (abs(dx) < abs(dz) ? abs(dz) : abs(dx)) / 0x100000 + 1;
-    dx /= n;
-    dz /= n;
+    b.y -= a.y;
+    b.z -= a.z;
+    b.x -= a.x;
+    Vec3_004851c0 d = b;
+    int n = (abs(d.x) < abs(d.z) ? abs(d.z) : abs(d.x)) / 0x100000 + 1;
+    d.x /= n;
+    d.z /= n;
     short best = 0;
     for (int i = 0; i <= n; i++) {
         Cell_004851c0* c = GetCell(a.x / 0x100000, a.z / 0x100000);
@@ -98,7 +91,7 @@ int __stdcall FUN_004851c0(Vec3_004851c0 a, Vec3_004851c0 b)
                 if (best < w) best = w;
             }
         }
-        a.x += dx; a.y += dh; a.z += dz;
+        a.x += d.x; a.y += d.y; a.z += d.z;
     }
     return best;
 }

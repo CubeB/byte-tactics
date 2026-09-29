@@ -3052,6 +3052,7 @@ address,size,file,symbol,status,similarity
 0x4e2f90,65,src/unsorted/0x4e2f90.cpp,?FUN_004e2f90@Class_004e2f90@@QAEXPAD0DDD@Z,matched,100.0
 0x4e2fe0,67,src/unsorted/0x4e2fe0.cpp,?FUN_004e2fe0@Class_004e2fe0@@QAEXPADPA_N_N@Z,matched,100.0
 0x4e3030,79,src/unsorted/0x4e3030.cpp,?FUN_004e3030@Class_004e3030@@QAEXPADPAEEEE@Z,matched,100.0
+0x4e3080,833,src/unsorted/0x4e3080.cpp,?FUN_004e3080@@YAEPAXPADNND@Z,matched,100.0
 0x4e33d0,41,src/unsorted/0x4e33d0.cpp,?FUN_004e33d0@@YAXPAXPADNN@Z,matched,100.0
 0x4e3400,423,src/unsorted/0x4e3400.cpp,?FUN_004e3400@@YAXPAXPAD@Z,matched,100.0
 0x4e3710,52,src/unsorted/0x4e3710.cpp,?FUN_004e3710@@YA_NXZ,matched,100.0

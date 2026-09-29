@@ -1,44 +1,91 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL, 82.6% (646 of 644 bytes; up from 60.4%). Everything below the
-// description is settled: the signature was never wrong (`bool __stdcall
-// FUN_0048d9a0(int, int)`, and the 60.4% was entirely allocation), and the three
-// changes that fixed the frame were:
-//   1. the `player` local declared BEFORE the second FUN_00488c50 call and used
-//      only in the third loop, while loops 1 and 2 write the address out as
-//      `g_game->players[g_game->localPlayer]`. That reproduces the original's
-//      frame exactly: the player stored to slot +0x1c before the second call and
-//      reloaded from +0x18 in the third loop. 60.4% to 71.1%.
-//   2. loop 2 given its OWN block-local copy of the address, `Player* q =
-//      &g_game->players[g_game->localPlayer];` inside the match block. That
-//      frees esi, so setB moves to ebp and the player address is materialised in
-//      esi before the loop guard. 71.1% to 82.2%.
-//   3. loop 2's body turned into a `static inline int AnyFlag32(...)` helper
-//      with one `return 1` per path, which puts the `found = 1` store out of
-//      line after the epilogue and moves the second `found = 0` store into the
-//      third loop's preheader, matching 0x48dc13 and 0x48db0e. 82.2% to 82.6%.
+// PARTIAL, 83.6% (627 of 644 bytes; up from 82.6%). The signature was never
+// wrong: `bool __stdcall FUN_0048d9a0(int, int)`, and everything below the
+// description is settled. What moved the file this round was ONE change, the
+// second scan being written out inline in the match block instead of being an
+// out-of-line `static inline` helper assigned to `found`:
 //
-// What is left, two gaps:
-//   - the materialised player address. The original does `lea esi,
-//     [ecx + eax*2 + 0x1b63]` and then loads `[esi+0x67]`/`[esi+0x6b]`; every
-//     variant here folds the constant and does `lea esi, [ecx + eax*2]` with
-//     `[esi+0x1bca]`/`[esi+0x1bce]`. Tried: char* casts, `&players[0] + i`, array
-//     decay, const pointers, inlined getters, and the function-level `player`
-//     local. MSVC 5 only keeps the 0x1b63 in the register when the value is a
-//     REMATERIALISED constant expression rather than a variable, so that is the
-//     axis to attack next.
-//   - one redundant `mov [esp+0x14], ebx` right after the second call, the
-//     duplicated `found = 0` init, which the original does not have; and
-//     correspondingly the original's out-of-line `found = 1` block repeats
-//     `mov ebx, [esp+0x10]` where this file shares one reload in the merge block.
+//   int found;                                  // NOT initialised
+//   ...
+//   if (... && TestBit(setB, u->type)) {
+//       Player_0048d9a0* q = &g_game->players[g_game->localPlayer];
+//       for (v = (Unit32*)q->unitsBegin; v <= (Unit32*)q->unitsEnd; v++) {
+//           if (...) { found = 1; break; }
+//       }
+//       break;
+//   }
 //
-// On the original: the `mov ebx, [esp+0x10]` idiom reloads `cnt` from the saved
-// `edi` slot, and the third loop's player pointer is read from `[esp+0x18]`,
-// which is written only on loop 3's preheader path. The pre-call-2 store of the
-// player address lands on setA's slot +0x1c, so the third loop's bit test can
-// read the wrong pointer. Both look like MSVC 5 frame-allocation artefacts rather
-// than Cavedog mistakes, so no game bug is claimed. The float-comparison
-// inversion noted below is likewise an MSVC 5 idiom, not a Cavedog bug, and the
-// same inversion appears in the matched 0x48be00 and 0x48c9b0.
+// `found` must NOT be initialised at its declaration. With `int found = 0;`
+// the same body scores 82.2%, and with a helper doing `found = AnyFlag32(q,
+// id)` it scores 82.6%: the initialiser makes MSVC 5 store 0 to the slot BOTH
+// before the second FUN_00488c50 call and again right after it (one redundant
+// `mov [esp+0x14], ebx` the original does not have), and the helper form also
+// reorders the merge block so the `found = 0` store lands before the
+// `mov ebx, [esp+0x10]` reload instead of after it. Leaving `found`
+// uninitialised is correct here because every path into the third loop either
+// stores 0 (0x48db0e) or stores 1 (0x48dc17), so the value is always defined.
+//
+// NEGATIVE RESULTS, all measured with tools/check.py's own metric on compiled
+// objects (no check.py run spent):
+//   - Declaration order of {setA, cnt, player, found} is a DEAD axis on this
+//     function. Ten orderings, including `found` before and after `player`,
+//     before and after `cnt`, and before and after the three loop cursors, all
+//     produced byte-identical objects at 627 bytes and 83.63%. This is the
+//     lever that fixed 0x48c390; here it does nothing.
+//   - Passing the second scan's two bounds as arguments
+//     (`AnyFlag32BE(begin, end, id)`) is much worse: 68.2% with `found`
+//     initialised, 68.0% without the block-local `q`.
+//   - Using the function-scope `player` as the second scan's pointer instead of
+//     a fresh `&g_game->players[g_game->localPlayer]` is catastrophic: 54%.
+//   - An `int r` local inside the second scan assigned to `found` afterwards
+//     scores 73.3%; `found = 0;` written before the inline scan 71.1%; a
+//     `do`-style scan with an explicit end pointer 74.1%; spelling the two
+//     bounds differently to defeat common-subexpression elimination 73.6%.
+//   - Casting the second scan's player address through `void*` and reordering
+//     the declarations are both exactly neutral (83.63%, same 627 bytes).
+//
+// WHAT IS STILL LEFT, three gaps, all in the second scan and all allocation:
+//   1. The materialised player address. The original does
+//      `lea esi, [ecx + eax*2 + 0x1b63]` at 0x48da14 and then loads
+//      `[esi+0x67]` and `[esi+0x6b]`; every variant here folds the constant
+//      and does `lea esi, [ecx + eax*2]` with `[esi+0x1bca]` and
+//      `[esi+0x1bce]`. The DEAD store of the same address at 0x48d9e1 DOES get
+//      the 0x1b63 in the `lea` in every variant, so MSVC 5 can form the element
+//      address; it declines to when the address feeds two field loads. Tried:
+//      char* casts, array decay, const, inlined getters, the function-level
+//      `player`, and passing begin/end as two arguments. Still the axis to
+//      attack.
+//   2. Two frame slots are swapped. The original keeps `found` at [esp+0x14]
+//      and the third loop's player pointer at [esp+0x18], and its dead store of
+//      the player address at 0x48d9e1 lands on [esp+0x1c], sharing setA's
+//      slot. This file puts the third loop's player pointer at [esp+0x14] and
+//      `found` at [esp+0x18], and the dead store also lands on [esp+0x18].
+//      Since declaration order does not move these, the slot order follows
+//      MSVC 5's own order of first definition, and the only way to move
+//      `found` up to +0x14 that was found is to initialise it, which costs
+//      more elsewhere (see above).
+//   3. The out-of-line `found = 1` block. The original's 0x48dc13 is
+//      `mov ebx, [esp+0x10]` / `mov [esp+0x14], 1` / `jmp 0x48db16`: the
+//      `mov ebx, [esp+0x10]` counter reload is duplicated at the second
+//      scan's two exits rather than shared in one merge block, which is the
+//      last 17 bytes of code this file is missing.
+//
+// ON THE ORIGINAL. [esp+0x10], [esp+0x14], [esp+0x18] and [esp+0x1c] are the
+// four pushed registers (ebx, ebp, esi, edi), and the function uses all four
+// push slots for its own variables. Two consequences are visible and both
+// look like MSVC 5 frame-allocation artefacts rather than Cavedog mistakes:
+//   - `mov ebx, [esp+0x10]` reloads the counter from the saved-ebx slot, which
+//     nothing ever wrote, so on any path through the first scan's failed bit
+//     test the counter starts from the CALLER's ebx, and the third loop's
+//     `inc ebx` counts from there.
+//   - the store at 0x48d9e1 puts the player address into [esp+0x1c], the slot
+//     that held setA from 0x48d9b9, so the third loop's `TestBit(setA, ...)`
+//     at 0x48db9c reads the player address as the bit set.
+// Re-derive either before believing it; the evidence is the operand lists
+// above. The float-comparison inversion noted below is likewise an MSVC 5
+// idiom, not a Cavedog bug, and the same inversion appears in the matched
+// 0x48be00 and 0x48c9b0.
+//
 // Three scans over the local player's unit list. The first looks for a unit
 // that passes the common test and whose type index (+0xa6) is in the second
 // CTRL_F set; the second re-scans the same list for one of those that also
@@ -49,17 +96,6 @@
 // are read as a byte in the first scan and as a dword in the other two, so the
 // two unit struct views are separate types (see 0x48dc30, which is the same
 // first scan in miniature and matches).
-//
-// Not matching yet (60.4%). All three loop bodies and both CTRL_F bit tests
-// match instruction for instruction. What differs is one allocation decision,
-// made before the first loop: the original keeps the player pointer in its
-// stack home, recomputes g_game + 331*localPlayer + 0x1b63 after the second
-// CTRL_F call and materialises the pointer into esi only where it needs it
-// (0x48d9e1, 0x48da14), while this version promotes the same pointer to ebp
-// across the call (0x48d9da). That promotion is also what forces the extra
-// frame slot at +0x20 and the duplicate store of the counter's zero. Declaring
-// the locals in the original's apparent frame order (cnt, found, player, setA)
-// player address computation interleaving is load bearing.
 // Suspected original bug: MSVC 5 inverts the sense of the float comparison
 // against zero, so `== 0.0f` here tags units whose +0x104 value is NOT 0.0f
 // (same inversion as 0x48be00 and 0x48c9b0, which match with the same code).
@@ -140,20 +176,6 @@ static inline int TestBit(Class_00488d30* set, unsigned short n)
     return set->bits[n >> 5] & (1 << (n & 0x1f));
 }
 
-
-static inline int AnyFlag32(Player_0048d9a0* p, int id)
-{
-    Unit32_0048d9a0* v;
-    for (v = (Unit32_0048d9a0*)p->unitsBegin;
-         v <= (Unit32_0048d9a0*)p->unitsEnd; v++) {
-        if ((v->flags & 0x20) && v->field_104 == 0.0f && v->field_fb == 0
-            && (v->owner == 0 || (v->owner->flags & 0x40000000))
-            && v->field_ac == id && (v->flags & 0x80000000))
-            return 1;
-    }
-    return 0;
-}
-
 // FUNCTION: 0x48d9a0
 bool __stdcall FUN_0048d9a0(int id, int param_2)
 {
@@ -161,24 +183,31 @@ bool __stdcall FUN_0048d9a0(int id, int param_2)
     int cnt = 0;
     Player_0048d9a0* player = &g_game->players[g_game->localPlayer];
     Class_00488d30* setB = FUN_00488c50("CTRL_F");
-    
+
     Unit8_0048d9a0* u;
     Unit32_0048d9a0* v;
     Unit32_0048d9a0* w;
-    int found = 0;
-    
+    int found;
     for (u = g_game->players[g_game->localPlayer].unitsBegin; u <= g_game->players[g_game->localPlayer].unitsEnd; u++) {
         if ((u->flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0
             && (u->owner == 0 || (u->owner->flags & 0x40000000))
             && u->field_ac == id && TestBit(setB, u->type)) {
-                        Player_0048d9a0* q = &g_game->players[g_game->localPlayer];
-
-            found = AnyFlag32(q, id);
+            {
+                Player_0048d9a0* q = &g_game->players[g_game->localPlayer];
+                for (v = (Unit32_0048d9a0*)q->unitsBegin;
+                     v <= (Unit32_0048d9a0*)q->unitsEnd; v++) {
+                    if ((v->flags & 0x20) && v->field_104 == 0.0f && v->field_fb == 0
+                        && (v->owner == 0 || (v->owner->flags & 0x40000000))
+                        && v->field_ac == id && (v->flags & 0x80000000)) {
+                        found = 1;
+                        break;
+                    }
+                }
+            }
             break;
         }
     }
-    
-    
+
     for (w = (Unit32_0048d9a0*)player->unitsBegin;
          w <= (Unit32_0048d9a0*)player->unitsEnd; w++) {
         if ((w->flags & 0x20) && w->field_104 == 0.0f && w->field_fb == 0

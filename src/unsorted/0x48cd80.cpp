@@ -1,11 +1,15 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
-//
-// Not matched: 90.4% (432 bytes vs 428). The prologue and branch A match.
-// Branch B reads dx from g_game->view.x, producing mov edi,[eax+0x2c76]
-// instead of the original mov esi,[esi]. This four-byte difference shifts
-// every following branch target. Replacing the dx expression with p->x makes
-// the compiler keep p in EDI from the prologue, which changes branch A and
-// falls to 71.2%.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 90.4% (432 bytes vs 428). Prologue and branch A match exactly.
+// Branch B needs both hoisted loads out of p (`mov edi,[esi+4]` py,
+// `mov esi,[esi]` px), but that lower-case branch B is the ONLY thing left:
+//   original: mov edi,[esi+4]; mov esi,[esi]; sub ecx,edi; sub eax,esi
+//   ours:     mov esi,[esi+4]; mov edi,[eax+0x2c76]; sub ecx,esi; sub eax,edi
+// Reading p->x anywhere in branch B (loop, locals, reference, second call
+// args) makes MSVC move p from ESI to EDI for the whole function, which wrecks
+// branch A (71.2%). Reading only p->y keeps p in ESI but leaves px a reload of
+// g_game->view.x (this file). A second pointer q = &g_game->view keeps p in ESI
+// but rematerialises q from g_game (79.1%). 128 header sets (headers.py) and
+// all declaration orders tried leave the choice unchanged.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {

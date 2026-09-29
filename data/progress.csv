@@ -2120,7 +2120,7 @@ address,size,file,symbol,status,similarity
 0x4a30c0,244,src/unsorted/0x4a30c0.cpp,?FUN_004a30c0@@YGXPAUClass_004a30c0@@H@Z,matched,100.0
 0x4a31c0,210,src/unsorted/0x4a31c0.cpp,?FUN_004a31c0@@YGXHHPADH@Z,matched,100.0
 0x4a32a0,765,src/unsorted/0x4a32a0.cpp,?FUN_004a32a0@@YGXPAUClass_004a32a0@@PADHHH@Z,partial,61.2
-0x4a35a0,246,src/unsorted/0x4a35a0.cpp,?FUN_004a35a0@@YGXPAUTable_004a35a0@@PADPAURow_004a35a0@@H@Z,partial,96.9
+0x4a35a0,246,src/unsorted/0x4a35a0.cpp,?FUN_004a35a0@@YGXPAUTable_004a35a0@@PADPAURow_004a35a0@@H@Z,matched,100.0
 0x4a36a0,224,src/unsorted/0x4a36a0.cpp,?FUN_004a36a0@@YGXPAUTable_004a36a0@@PADPAHH@Z,matched,100.0
 0x4a3eb0,59,src/unsorted/0x4a3eb0.cpp,?FUN_004a3eb0@@YGXPAUClass_004a3eb0@@H@Z,matched,100.0
 0x4a3ef0,629,src/unsorted/0x4a3ef0.cpp,?FUN_004a3ef0@@YGXPAUClass_004a3ef0@@H@Z,partial,15.0

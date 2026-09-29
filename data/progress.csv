@@ -2604,7 +2604,7 @@ address,size,file,symbol,status,similarity
 0x4c2470,62,src/unsorted/0x4c2470.cpp,?FUN_004c2470@@YAXXZ,matched,100.0
 0x4c24b0,299,src/unsorted/0x4c24b0.cpp,?FUN_004c24b0@@YGXPAUObj_004c24b0@@@Z,matched,100.0
 0x4c25e0,647,src/unsorted/0x4c25e0.cpp,?FUN_004c25e0@@YGXPAUApp_004c25e0@@@Z,matched,100.0
-0x4c2870,282,src/unsorted/0x4c2870.cpp,?FUN_004c2870@@YAXXZ,partial,98.8
+0x4c2870,282,src/unsorted/0x4c2870.cpp,?FUN_004c2870@@YIXXZ,matched,100.0
 0x4c2990,229,src/unsorted/0x4c2990.cpp,?FUN_004c2990@@YAXH@Z,matched,100.0
 0x4c2a80,62,src/unsorted/0x4c2a80.cpp,?FUN_004c2a80@@YGHPAUStruct_004c2ac0@@@Z,matched,100.0
 0x4c2ac0,88,src/unsorted/0x4c2ac0.cpp,?FUN_004c2ac0@@YGHPAUStruct_004c2ac0@@@Z,matched,100.0

@@ -1,6 +1,7 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
 // Claude Sonnet 5.5 pass (#624): compiler state ruled out (0 to 400 unused `extern
-// int` declarations in steps of 8: all 199 bytes and 93.4%). Scored without effect
+// int` declarations in steps of 8: all 199 bytes and 93.4%, and none of the 128
+// header sets of headers.py gets past 93.4%). Scored without effect
 // on the +1 / +5 split (all 193 bytes and 86.1%, i.e. folded to one `lea ecx,
 // [ecx+edx+6]`, and without the `short` they are shorter than the original by the
 // separate `add eax, 5`): a `static inline int* AllocBlock(int len)` that does the

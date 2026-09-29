@@ -83,6 +83,25 @@
 // [esp+0x30] here rather than from post+0x20; both are "an uninitialised
 // slot", 0x10 apart.
 //
+// THIRD PASS (Space Bunny Free). Re-measured both families and added the missing
+// one. Deleting the `bitmap` local entirely and spelling every use as
+// `list->bitmap` (so MSVC reloads wherever it must) is NOT a third family: it
+// scores exactly 69.4%, the same as the tail-only reload, because a single
+// `list->bitmap` read after the 0x4586a0 call is all it takes to promote `list`.
+// The ceiling is therefore two-valued and real: 81.9% (no reload) against 69.4%
+// (reload), and the gap is the esi/edi priority tie, not the loop.
+// On the loop itself, four shapes that try to move the induction variable into
+// the frame slot at post+0x14 the way the original has it, while leaving the
+// prologue's esi=x / edi=list alone, all lose: `for (n = count; n > 0; n--)`
+// over `pieces[n-1]` 78.3%, a `while (n > 0)` with `n--` 79.4%, a manual
+// pointer walk with the counter used only by the test (`piece--; n--;`) 76.9%.
+// A named `Class_004581e0* self = this;` used at both explicit call sites is
+// byte-for-byte identical to the `this` form, 81.9%. So the this-versus-counter
+// choice is not reachable from the loop shape either, which is consistent with
+// the note above that the difference is a register priority tie.
+// Variants live in build/scratch/0x458810/ (v0 this file, v1 tail reload,
+// j reload everywhere, a/b/e/f/i loop shapes, g self copy).
+//
 // No suspected bug in the original. The duplicated `test eax, eax` is redundant
 // and `coords.y` is an uninitialised int read out of the save area, but both look
 // like ordinary MSVC artefacts of how the source was written rather than mistakes

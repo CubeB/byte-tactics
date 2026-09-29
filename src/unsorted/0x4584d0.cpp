@@ -1,4 +1,4 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 79.6% (up from 74.1%). Callers (0x4584b4, 0x458997, 0x4593ff,
 // 0x459476) push the surface pointer as the second argument and the address of a
 // 12-byte {x,y,z} struct as the third, so the argument order is
@@ -58,6 +58,26 @@
 //
 // No suspected bug in the original. The face counter is spilled to the frame
 // and reloaded, which is an allocation artefact, not a mistake.
+//
+// deepseek-v4.1-flash sweep, all measured with a real or free check run, none
+// above 79.6%: the missing `mov [esp+0x10],edi` is one tie between `i` and
+// `info`. Both versions spill exactly two values across the copy loop; the
+// original spills `i` and `surface`, this file spills `info` and `surface`.
+// `surface` loses in both because ebp is the projected-load scratch, so the
+// only free choice is which of `i`/`info` keeps a callee-saved register, and
+// the original picks `info` (ebx) while this file follows the ESI/EDI/EBX/EBP
+// preference and gives edi to `i`. The vertex-loop diff (source biased +4 in
+// this file, destination biased +4 in the original) is the same tie read out
+// in a different block. Sweeps that did NOT move it: walked source and/or
+// walked destination plus bias forms (projected+1, pre-increment, int* copies,
+// struct copy, q[0], q+i, vertices+i); a separate vertex counter (scoped or
+// top-level); a separate or late face counter; `while`/`for(;;)` loop forms;
+// `i`/`j`/`k` init and declaration reordering; `unsigned`/`short` counters; a
+// named copy index (`int k`, 58.0%); a `static inline` copy helper (72.2%);
+// framing `j` in its own scope; STL headers (`<string>`, `<vector>`, `<list>`,
+// `<map>`, `<iostream>`, etc. all drop to 51.4%) and the C headers (all 79.6%).
+// The allocator choice is stable across every one of these, so the next attempt
+// needs a construct that changes the tie, not a re-sweep of loop shape.
 extern char* g_game;
 
 #pragma pack(push, 1)

@@ -9,25 +9,64 @@
 // projectile visible to the current player. Finally the "radar dirty" bit is
 // set in g_game+0x142f1.
 //
-// PARTIAL (49.8%). Structure is right (both loops, all callees, the output
-// records and the final dirty-bit set). What still differs:
-// - My frame is 0x18, the original 0x1c (7 locals): one more live local is
-//   needed across the whole function.
-// - The top `(g_game->field_14281 & 3)` compiles to `test byte ptr`, the
-//   original loads `mov ax` and tests `al`; the 0x37f2f bit test likewise.
-// - The first loop keeps `surface` in a register in places where the original
-//   reloads it from its stack slot.
-// - The inlined radar predicate compiles the byte-array case to `setne`; the
-//   original uses a branch (`je; mov edx,1; jmp; xor edx,edx`).
-// - Unit list iteration: original advances ebx and re-reads unitsEnd at the
-//   bottom; mine keeps the end pointer in eax/ecx differently.
-// - The second loop in the original walks base+0xa in ebx with the element
-//   pointer in a stack slot; mine keeps a single element pointer.
-// - Projectile positions are the high halves of the ints at +4/+8/+0xc. They
-//   are written as `(short)(p->pos >> 16)`; the original may have had a helper.
+// PARTIAL (62.5%). Structure is right, frame is now 0x1c like the original,
+// the inlined radar predicate matches (branch form for the byte-array case,
+// neg/sbb/neg for the bitfield case), and the int bit tests (`shr reg,N;
+// test reg,1`) now come from bitfield structs (flags_110, flags_241, shot
+// flags at +0x111). What still differs:
+// - `int enabled = 1` materialises 1 in a register (`mov eax,1`) and stores
+//   it twice; the original stores the immediate 1 twice and never holds it.
+// - `(field_14281 & 3)` is folded to `test byte ptr [m],3`; the original
+//   loads the word (`mov ax`) and tests `al`. The 0x37f2f bit test now
+//   matches. A bitfield `bit0 | bit1` was tried and was worse.
+// - First loop unit-x multiply: MSVC loads g_game->field_142eb before
+//   u->field_6c; the original loads the unit field first. Source order is
+//   already unit-first, so this is register-allocation state.
+// - Second loop induction: the original keeps the element pointer in
+//   [esp+0x1c] (memory) and element+0xa in ebx, updating both at the bottom;
+//   mine keeps the element pointer in ebx and element+0xa in ebp. The
+//   source has both `p` and `q` incremented each iteration.
+// - Loop-bottom store order differs (i, p, q in a different sequence).
+// - The final `field_142f1 |= 2` compiles to a register read-modify-write;
+//   the original is `or byte ptr [m],2` straight to memory.
 #pragma pack(push, 1)
 
 struct Shot_00466dc0;
+
+union Flags110_00466dc0 {
+    unsigned int all;
+    struct {
+        unsigned int :4;
+        unsigned int bit4 : 1;
+        unsigned int :27;
+    } bits;
+};
+
+struct Flags241_00466dc0 {
+    unsigned int :29;
+    unsigned int bit29 : 1;
+    unsigned int :2;
+};
+
+union Flags111_00466dc0 {
+    unsigned int all;
+    struct {
+        unsigned int :30;
+        unsigned int bit30 : 1;
+        unsigned int :1;
+    } bits;
+};
+
+union Flags14281_00466dc0 {
+    unsigned short all;
+    struct {
+        unsigned short bit0 : 1;
+        unsigned short bit1 : 1;
+        unsigned short :7;
+        unsigned short bit9 : 1;
+        unsigned short :5;
+    } bits;
+};
 
 struct Player_00466dc0 {
     char unknown_0[0x96];
@@ -55,7 +94,7 @@ struct Shot_00466dc0 {
     char unknown_0[0xe0];
     int field_e0;                        // +0xe0
     char unknown_e4[0x111 - 0xe4];
-    unsigned int flags;                  // +0x111
+    Flags111_00466dc0 flags;             // +0x111
 };
 
 struct UnitType_00466dc0 {
@@ -66,7 +105,7 @@ struct UnitType_00466dc0 {
     short field_20a;                     // +0x20a
     short field_20c;                     // +0x20c
     char unknown_20e[0x241 - 0x20e];
-    unsigned int flags_241;              // +0x241
+    Flags241_00466dc0 flags_241;         // +0x241
     unsigned char field_245;             // +0x245
 };
 
@@ -91,7 +130,7 @@ struct Unit_00466dc0 {
     char unknown_100[0xe];
     unsigned char field_10e;             // +0x10e
     char unknown_10f[0x1];
-    unsigned int flags_110;              // +0x110
+    Flags110_00466dc0 flags_110;         // +0x110
     char unknown_114[0x4];
 };
 
@@ -127,7 +166,7 @@ struct Game_00466dc0 {
     char unknown_14233[0x14273 - 0x14233];
     unsigned short* field_14273;         // +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    unsigned short field_14281;          // +0x14281
+    Flags14281_00466dc0 field_14281;     // +0x14281
     char unknown_14283[0x142db - 0x14283];
     void* field_142db;                   // +0x142db
     void* field_142df;                   // +0x142df
@@ -150,7 +189,7 @@ struct Game_00466dc0 {
     void* field_147e3;                   // +0x147e3
     void* field_147e7;                   // +0x147e7
     char unknown_147eb[0x37f2f - 0x147eb];
-    unsigned short field_37f2f;          // +0x37f2f
+    Flags14281_00466dc0 field_37f2f;     // +0x37f2f
 };
 #pragma pack(pop)
 
@@ -173,7 +212,7 @@ static PlayerInfo_00466dc0* PlayerInfo_00466dc0_Get(unsigned char p)
 // halves match the uint8 terrain bitmap and the packed 16-bit bitfield variant.
 static inline int OnRadar_00466dc0(int px, int py)
 {
-    if ((g_game->field_14281 & 2) == 2) {
+    if ((g_game->field_14281.all & 2) == 2) {
         unsigned int x = (unsigned int)(px >> 5);
         unsigned int y = (unsigned int)(py >> 5);
         PlayerInfo_00466dc0* pi = PlayerInfo_00466dc0_Get(g_game->currentPlayer);
@@ -181,7 +220,9 @@ static inline int OnRadar_00466dc0(int px, int py)
             return 0;
         if (y >= (unsigned int)pi->height)
             return 0;
-        return pi->los[y * pi->width + x] != 0;
+        if (pi->los[y * pi->width + x] == 0)
+            return 0;
+        return 1;
     } else {
         unsigned int x = (unsigned int)(px >> 5);
         unsigned int y = (unsigned int)(py >> 5);
@@ -206,9 +247,9 @@ void FUN_00466dc0(void)
     FUN_004c6b70(surface, g_game->field_142df, 0, 0);
 
     int enabled = 1;
-    if ((g_game->field_14281 & 3) != 0)
+    if ((g_game->field_14281.all & 3) != 0)
         enabled = 0;
-    if ((g_game->field_37f2f >> 9) & 1)
+    if (g_game->field_37f2f.bits.bit9)
         enabled = 1;
 
     Unit_00466dc0* u = g_game->units;
@@ -216,7 +257,7 @@ void FUN_00466dc0(void)
     if (u <= end) {
         do {
             if (u->field_a6 != 0) {
-                if (enabled != 0 || (u->flags_110 & 0x300) != 0 ||
+                if (enabled != 0 || (u->flags_110.all & 0x300) != 0 ||
                     u->field_ff == g_game->currentPlayer) {
                     int x = ((int)u->field_6c * (int)g_game->field_142eb) /
                             g_game->field_1422b;
@@ -232,7 +273,7 @@ void FUN_00466dc0(void)
                         FUN_004b7f90(surface,
                             FUN_004b7f30(g_game->field_147e3, 0), x, y);
                     }
-                    if ((u->flags_110 >> 4) & 1) {
+                    if (u->flags_110.bits.bit4) {
                         if ((u->field_10e & 1) != 0 ||
                             (u->type->field_245 & 4) == 0) {
                             if (u->type->field_204 != 0)
@@ -252,12 +293,12 @@ void FUN_00466dc0(void)
                                     (int)g_game->field_142eb * u->type->field_20c /
                                     g_game->field_1422b, base[0xc]);
                         }
-                        if ((u->type->flags_241 >> 29) & 1) {
+                        if (u->type->flags_241.bit29) {
                             Slot_00466dc0* slot = u->slots;
                             int n = 3;
                             do {
                                 Shot_00466dc0* shot = slot->shot;
-                                if ((shot->flags >> 30) & 1) {
+                                if (shot->flags.bits.bit30) {
                                     int r = ((int)g_game->field_142eb *
                                              (shot->field_e0 - 0x200)) /
                                             g_game->field_1422b;
@@ -285,29 +326,35 @@ void FUN_00466dc0(void)
     }
 
     Projectile_00466dc0* p = g_game->projectiles;
-    for (int i = 0; i < g_game->projectileCount; i++) {
-        int px = (short)(p->posx >> 16);
-        int pz = (short)(p->posz >> 16) - ((short)(p->posy >> 16) >> 1);
-        int x = (int)g_game->field_142eb * px / g_game->field_1422b;
-        int y = (int)g_game->field_142ed * pz / g_game->field_1422f;
-        Shot_00466dc0* shot = p->shot;
-        if ((shot->flags & 0x60000000) == 0) {
-            if ((shot->flags & 0x40) == 0) {
-                if (OnRadar_00466dc0(px, pz) ||
-                    p->player == g_game->currentPlayer) {
-                    FUN_004bee60(surface, x, y, base[0xe]);
+    short* q = (short*)((char*)p + 0xa);
+    int i = 0;
+    if (g_game->projectileCount > 0) {
+        do {
+            int px = q[-2];
+            int x = (int)g_game->field_142eb * px / g_game->field_1422b;
+            int py = q[2] - ((int)q[0] >> 1);
+            int y = (int)g_game->field_142ed * py / g_game->field_1422f;
+            Shot_00466dc0* shot = p->shot;
+            if ((shot->flags.all & 0x60000000) == 0) {
+                if ((shot->flags.all & 0x40) == 0) {
+                    if (OnRadar_00466dc0(px, py) ||
+                        p->player == g_game->currentPlayer) {
+                        FUN_004bee60(surface, x, y, base[0xe]);
+                    }
+                }
+            } else {
+                if (OnRadar_00466dc0(px, py) ||
+                    p->owner->field_ff == g_game->currentPlayer) {
+                    FUN_004b7f90(surface,
+                        FUN_004b7f30(g_game->field_147e7,
+                            PlayerInfo_00466dc0_Get(p->player)->data->field_96),
+                        x, y);
                 }
             }
-        } else {
-            if (OnRadar_00466dc0(px, pz) ||
-                p->owner->field_ff == g_game->currentPlayer) {
-                FUN_004b7f90(surface,
-                    FUN_004b7f30(g_game->field_147e7,
-                        PlayerInfo_00466dc0_Get(p->player)->data->field_96),
-                    x, y);
-            }
-        }
-        p = (Projectile_00466dc0*)((char*)p + 0x6b);
+            i++;
+            p = (Projectile_00466dc0*)((char*)p + 0x6b);
+            q = (short*)((char*)q + 0x6b);
+        } while (i < g_game->projectileCount);
     }
 
     g_game->field_142f1 |= 2;

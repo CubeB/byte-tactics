@@ -1,33 +1,39 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL first draft, 27.7% (ours 1842 bytes vs original 2392). This is the
-// per-frame in-game update loop over the ten player slots. It compiles as a
-// complete structural translation of the disassembly and Ghidra pseudo-C, but
-// it has NOT been register-tuned. Best version so far; a later worker should
-// rebuild the two collapsed blocks below before chasing registers.
+// PARTIAL, 66.5% (ours 2408 bytes vs original 2392). This is the per-frame
+// in-game update loop over the ten player slots. The three previously missing
+// blocks are now in: the collapsed 3x3 build-spot nested loop (x/z fixed-point
+// accumulators, Point16 cell, hits counter, 9999 retry with FUN_00421da0 /
+// FUN_00485140), the shared mode-countdown tails (countdown_extra, check230,
+// watch_check, flags82e) and the overlapping byte/word writes at 0x3923b.
+// All callees are __stdcall as in the original, which removed the stray
+// `add esp` cleanups.
 //
 // Still differs:
-//  - The 3x3 build-spot search is collapsed to a single inner pass here. The
-//    original is a nested 3-iteration double loop accumulating
-//    local_c / local_4 (32-bit fixed point, `pos.x << 16` style) and counting
-//    hits (local_2c); our draft reuses pos.x/pos.z and counts hits once.
-//    Restore the two nested loops, the x/z accumulators and the
-//    `local_1c = 9999` retry counter against FUN_00421da0 / FUN_00485140.
-//  - The success path (FUN_00485f50 + FUN_00496e90 + the two float pairs) and
-//    the YESORNO.GUI dialog are present but their local slot assignment and
-//    the DO_004fd540/0x4fd548 double constants are unchecked.
-//  - The mode branch tree uses goto (countdown_extra) to share the countdown
-//    tail; the original shares it by jumping backwards into 0x465881.
-//  - Every `*(unsigned char*)&flags_3923b` write is a guess at the original's
-//    overlapping byte/word writes at 0x3923b; verify with the diff.
+//  - Frame is 0x40; the original is 0x34 (13 dwords of locals). The compiler
+//    placed pi at +0x18 (original +0x14) and hits at +0x14 (original +0x18),
+//    so most `[esp+N]` slots are offset and every jump target after the first
+//    difference is wrong even where the instruction text matches.
+//  - The original tests pi->active/type/field_146 twice in a row and reloads
+//    both; MSVC CSEs our identical second test away, losing the second
+//    `cmp dword [edi],0` / `mov al,[edi+0x73]` pair.
+//  - The loop header: the original has an entry `cmp bl,0xa / jae <inc>` that
+//    our do-while bottom test makes provably dead, so ours drops it.
+//  - The cold mode blocks are in line here; the original puts them after the
+//    function's two rets (0x465643..0x4658d3).
 
 #include <windows.h>
+#include <string.h>
 
 struct Unit_00464f80;
 struct Player_00464f80;
 
 struct Class_0040eb70 { void FUN_0040eb70(); };
 struct Class_00408c40 { void FUN_00408c40(); };
-struct Class_00435100 { int FUN_00435100(); };
+struct Class_00435100 {
+    char unknown_0[0xd44];
+    int field_d44;                     // +0xd44
+    int FUN_00435100();
+};
 struct Class_0048ff40 { int FUN_00490230(); int FUN_00490360(); };
 class Class_0048b090 { public: void FUN_0048b090(int which, int on); };
 
@@ -106,6 +112,30 @@ struct PlayerInfo_00464f80 {           // +0x1b63, stride 0x14b
 
 struct Pos_00464f80 { int x, y, z; };
 
+struct Point16 { short x, y; };
+
+struct UnitDef_00464f80 { char unknown_0[0x249]; };
+
+struct Struct_00496e90 {
+    char unknown_0[0xdc];
+    float width;                       // +0xdc
+    float height;                      // +0xe0
+    char unknown_e4[0x149 - 0xe4];
+    unsigned short flag_149 : 1;       // +0x149
+};
+
+struct Widget_00464f80 {
+    char unknown_0[0xcc];
+    char field_cc[0x10];               // +0xcc
+    char field_dc[0x20];               // +0xdc
+};
+
+struct Dialog_00464f80 {
+    char unknown_0[4];
+    Widget_00464f80* field_4;          // +0x4
+    void* field_8;                     // +0x8
+};
+
 struct Game_00464f80 {
     char unknown_0[0x519];
     char gui[0x1b63 - 0x519];
@@ -147,38 +177,38 @@ struct Game_00464f80 {
 extern Game_00464f80* g_game;
 extern int DAT_0051e53c;
 
-void __cdecl FUN_0040b2c0(int player);
-void __cdecl FUN_004827b0(Unit_00464f80* unit);
-void __cdecl FUN_00466dc0();
-void __cdecl FUN_00467440();
-void __cdecl FUN_00466c20();
-unsigned char __cdecl FUN_00456850();
-unsigned short __cdecl FUN_00488b10(const char* name);
-int __cdecl FUN_004b6c30(int range);
-int __cdecl FUN_0047db70(int type, int a, int b, int c);
-short __cdecl FUN_00421da0(Pos_00464f80* pos, int a, int b);
-int __cdecl FUN_00485140(Pos_00464f80* pos);
-Unit_00464f80* __cdecl FUN_00485f50(unsigned char player, unsigned short typeId,
-                                     Pos_00464f80 pos, int a, int b, int c,
-                                     int d, int e);
-void __cdecl FUN_00496e90(Unit_00464f80* unit, int height, int width);
-void __cdecl FUN_004816a0(int on);
-void __cdecl FUN_0048d630(int on);
-void __cdecl FUN_00401360(PlayerInfo_00464f80* player);
-void __cdecl FUN_004573d0(PlayerInfo_00464f80* player, int a, int b);
-int __cdecl FUN_00457cb0();
-int __cdecl FUN_00457bc0();
-void __cdecl FUN_00450f90();
-void* __cdecl FUN_004aa8f0(char* gui, const char* file, int flags);
-void __cdecl FUN_0049fb10(char* gui, int a);
-void __cdecl FUN_004a0bf0(char* gui, const char* gadget, const char* text, int a);
-void __cdecl FUN_004a81e0(char* gui, int a);
-const char* __cdecl FUN_004c5740(const char* text);
-void __cdecl FUN_004abd90(char* gui, const char* text, int a, int b, int c);
-void __cdecl FUN_00464de0(void* gadget);
+void __stdcall FUN_0040b2c0(int player);
+void __stdcall FUN_004827b0(Unit_00464f80* unit);
+void __stdcall FUN_00466dc0();
+void __stdcall FUN_00467440();
+void __stdcall FUN_00466c20();
+unsigned char __stdcall FUN_00456850();
+unsigned short __stdcall FUN_00488b10(const char* name);
+int __stdcall FUN_004b6c30(int range);
+int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
+short __stdcall FUN_00421da0(Pos_00464f80* pos, int a, int b);
+int __stdcall FUN_00485140(Pos_00464f80* pos);
+Unit_00464f80* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
+                                     int x, int y, int z,
+                                     int a, int b, int c);
+void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
+void __stdcall FUN_004816a0(int on);
+void __stdcall FUN_0048d630(int on);
+void __stdcall FUN_00401360(PlayerInfo_00464f80* player);
+void __stdcall FUN_004573d0(PlayerInfo_00464f80* player, int a, int b);
+int __stdcall FUN_00457cb0();
+int __stdcall FUN_00457bc0();
+void __stdcall FUN_00450f90();
+void* __stdcall FUN_004aa8f0(char* gui, const char* file, int flags);
+void __stdcall FUN_0049fb10(char* gui, int a);
+void __stdcall FUN_004a0bf0(char* gui, const char* gadget, const char* text, int a);
+void __stdcall FUN_004a81e0(char* gui, int a);
+const char* __stdcall FUN_004c5740(const char* text);
+void __stdcall FUN_004abd90(char* gui, const char* text, int a, int b, int c);
+void __stdcall FUN_00464de0(void* gadget);
 
 // FUNCTION: 0x464f80
-void __cdecl FUN_00464f80()
+void __stdcall FUN_00464f80()
 {
     g_game->field_14207->FUN_0040eb70();
     unsigned char bl = 0;
@@ -257,75 +287,57 @@ void __cdecl FUN_00464f80()
                     if (g_game->field_39239 < 0) {
                         if (g_game->field_37ef6 == 2) {
                             unsigned char b = FUN_00456850();
-                            Player_00464f80* lp =
+                            Player_00464f80* self =
                                 g_game->players[b].data;
-                            unsigned short typeId =
-                                FUN_00488b10(&g_game->startPos[0x232 * lp->field_95]);
+                            unsigned short typeId = FUN_00488b10(
+                                &g_game->startPos[0x232 *
+                                    g_game->players[g_game->localPlayer].data->field_95]);
                             int bound = 9999;
-                            Player_00464f80* self = pi->data;
                             int typeOff = typeId * 0x249;
                             Pos_00464f80 pos;
-                            pos.x = 0;
-                            pos.y = 0;
-                            pos.z = 0;
-                            int dx = g_game->screen_hw;
-                            int dy = g_game->screen_hh;
                             do {
                                 int cx = g_game->screen_x / 10;
                                 int cy = g_game->screen_y / 10;
-                                int ox = g_game->screen_x - 2 * cx;
-                                int oy = g_game->screen_y - 2 * cy;
-                                pos.x = (FUN_004b6c30(ox) + cx) << 16;
+                                pos.x = (FUN_004b6c30(g_game->screen_x - 2 * cx) + cx) << 16;
                                 pos.y = 0;
-                                pos.z = (FUN_004b6c30(oy) + cy) << 16;
-                                dx = g_game->screen_hw;
-                                dy = g_game->screen_hh;
+                                pos.z = (FUN_004b6c30(g_game->screen_y - 2 * cy) + cy) << 16;
+                                int hw = g_game->screen_hw;
+                                int hh = g_game->screen_hh;
                                 int hits = 0;
-                                int i = 3;
+                                unsigned int zacc =
+                                    (unsigned int)pos.z - ((unsigned int)hh << 16);
+                                int outer = 3;
                                 do {
-                                    int zz = pos.z - (dx << 16);
-                                    int j = 3;
+                                    unsigned int xacc =
+                                        (unsigned int)pos.x - ((unsigned int)hw << 16);
+                                    int inner = 3;
+                                    Point16 cell;
+                                    cell.y = zacc >> 20;
                                     do {
-                                        int zz2 = zz;
-                                        int r = FUN_0047db70(
-                                            (int)g_game->types + typeOff,
-                                            0, zz2 >> 16, 1);
-                                        if (r != 0)
+                                        cell.x = xacc >> 20;
+                                        if (FUN_0047db70(
+                                                (UnitDef_00464f80*)((char*)g_game->types + typeOff),
+                                                0, cell, 1) != 0)
                                             hits++;
-                                        zz += dy << 16;
-                                    } while (--j != 0);
-                                    (void)i;
-                                    break;
-                                } while (0);
-                                // The 3x3 double loop above is deliberately
-                                // collapsed to one inner pass in this draft;
-                                // the outer two iterations and the local_c /
-                                // local_4 accumulator are not reproduced yet.
-                                if (hits >= 9) {
-                                    if (FUN_00421da0(&pos, 0, 0) == -1) {
-                                        if (g_game->mode->FUN_00435100() != 3)
-                                            break;
-                                    }
-                                }
-                                if ((g_game->mode->FUN_00435100() == 3) ||
-                                    (g_game->list->FUN_00490230() != 0)) {
-                                    if (--bound <= 0)
+                                        xacc += hw << 16;
+                                    } while (--inner != 0);
+                                    zacc += hh << 16;
+                                } while (--outer != 0);
+                                if (hits >= 9 && FUN_00421da0(&pos, 0, 0) == -1) {
+                                    if (g_game->mode->field_d44 == 0)
                                         break;
-                                    continue;
-                                }
-                                if (g_game->field_37ef6 == 2) {
-                                    if (--bound <= 0)
+                                    if (FUN_00485140(&pos) >
+                                        (int)g_game->field_1427f)
                                         break;
-                                    continue;
                                 }
-                                break;
-                            } while (bound > 0);
+                            } while (--bound > 0);
 
                             {
                                 Unit_00464f80* unit = FUN_00485f50(
-                                    g_game->localPlayer, typeId, pos, 0,
-                                    (dx << 16) + 0, 1, 1, 0);
-                                FUN_00496e90(unit, self->field_a3 * 100,
+                                    g_game->localPlayer, typeId, pos.x, pos.y,
+                                    pos.z, 1, 1, 0);
+                                FUN_00496e90((Struct_00496e90*)pi,
+                                             self->field_a3 * 100,
                                              self->field_a1 * 100);
                                 {
                                     float f = (float)self->field_a1 * 100.0f;
@@ -360,26 +372,17 @@ void __cdecl FUN_00464f80()
                                 FUN_004816a0(1);
                                 FUN_0048d630(1);
                             }
+                        } else {
+                            goto watch_check;
                         }
                     }
                 }
             } else {
-                if (g_game->list->FUN_00490230() != 0) {
-countdown_extra:
-                    if (g_game->field_39239 < 0) {
-                        g_game->field_39239 = 4;
-                    } else {
-                        g_game->field_39239--;
-                        if (g_game->field_39239 < 0) {
-                            g_game->flags_3923b |= 4;
-                            *(unsigned char*)&g_game->flags_3923b |= 0x10;
-                            *(unsigned char*)&g_game->flags_3923b |= 0x20;
-                        }
-                    }
-                }
+                goto check230;
             }
         }
 
+    skip508:
         if (pi->active != 0) {
             unsigned char t = pi->type;
             if ((t == 1 || t == 2 || t == 3) && pi->field_146 != 0xa) {
@@ -402,6 +405,73 @@ countdown_extra:
                     FUN_004573d0(pi, 0, 0);
             }
         }
+        goto next;
+
+    watch_check:
+        if (g_game->mode->FUN_00435100() == 3 &&
+            pi->field_22 == 0) {
+            unsigned char wb = FUN_00456850();
+            if ((g_game->players[wb].data->flags_9b & 0x80) != 0 ||
+                FUN_00457bc0() > 0) {
+                pi->data->flags_9b |= 0x40;
+                if (bl == g_game->localPlayer) {
+                    g_game->field_14281 &= 0xfffe;
+                    g_game->field_14281 &= 0xfffd;
+                    FUN_004816a0(1);
+                    FUN_00450f90();
+                    if (FUN_00457bc0() == 0) {
+                        Dialog_00464f80* dlg = (Dialog_00464f80*)
+                            FUN_004aa8f0(g_game->gui, "YESORNO.GUI", 0x900);
+                        if (dlg != 0) {
+                            FUN_0049fb10(g_game->gui, 1);
+                            Widget_00464f80* w = dlg->field_4;
+                            FUN_004a0bf0(g_game->gui, "CHOICE1", "Yes", 0);
+                            FUN_004a0bf0(g_game->gui, "CHOICE2", "No", 0);
+                            FUN_004a0bf0(g_game->gui, "TITLE",
+                                         "You're out!  Continue Watching?", 0);
+                            strcpy(w->field_cc, "CHOICE1");
+                            strcpy(w->field_dc, "CHOICE2");
+                            dlg->field_8 = (void*)FUN_00464de0;
+                            FUN_004a81e0(g_game->gui, 0x40);
+                        }
+                        goto skip508;
+                    }
+                    if (FUN_00457cb0() <= 0)
+                        goto skip508;
+                    FUN_004abd90(g_game->gui,
+                                 FUN_004c5740("You are placed in watch mode"),
+                                 500, 1, 1);
+                    g_game->flags_3923b &= 0xffef;
+                    goto skip508;
+                }
+                goto skip508;
+            }
+        }
+
+    flags82e:
+        g_game->flags_3923b |= 4;
+        g_game->flags_3923b &= 0xffef;
+        if (pi->field_22 == 0)
+            *(unsigned char*)&g_game->flags_3923b |= 0x40;
+        goto skip508;
+
+    check230:
+        if (g_game->list->FUN_00490230() != 0)
+            goto countdown_extra;
+        goto skip508;
+
+    countdown_extra:
+        if (g_game->field_39239 < 0) {
+            g_game->field_39239 = 4;
+        } else {
+            g_game->field_39239--;
+            if (g_game->field_39239 < 0) {
+                g_game->flags_3923b |= 4;
+                *(unsigned char*)&g_game->flags_3923b |= 0x10;
+                *(unsigned char*)&g_game->flags_3923b |= 0x20;
+            }
+        }
+        goto skip508;
 
     next:
         bl++;

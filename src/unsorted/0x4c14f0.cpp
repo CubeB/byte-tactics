@@ -1,28 +1,55 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Draws `text` (a bitmap font string ended by NUL or newline) at x, y into
 // `dst`, or into the locked screen when `dst` is null. When `maxWidth` is not
 // -1 and the text is wider, a copy is cut back one character at a time until
 // it fits. The text's rectangle is checked against the surface's clip rect
 // with FUN_004b6750 and only then drawn by the glyph blitter FUN_004ccf60,
 // which takes the surface's pixels and pitch, the font, the text, the
-// position and the display's three colour fields at +0x208, +0x20c, +0x210.
+// position and the game's three colour fields at +0x208, +0x20c, +0x210.
 //
-// NOT MATCHED: 65.0%, 607 of 617 bytes (free scratch score, 1 real run).
-// What moved it from 59.6%: a long-lived `t = text` local used for every text
-// use (width calls, strncpy, draw) spills the game pointer to its stack slot
-// at [esp+0x10] as in the original, instead of keeping game in ebp; the
-// truncation loop as `while (1)` with two breaks plus a `len` local gives the
-// original's store-before-compare order and removes a duplicated head; the
-// width helper increments its parameter as in 0x4c1830.cpp.
-// What still differs, all one allocation decision: the original keeps the
-// text base in ebp and the width accumulator in edi, with a separate esi
-// walker; here text is in edi and width in ebp, so the spill slots come out
-// as t at +0x10 with game at +0x14 (original: game at +0x10, char temp at
-// +0x14) and the frame is 0x188 not 0x184.
-// Tried and did NOT move it: sibling-exact helper alone, indexed loop,
-// while-loop helper, helper taking game, GetFont accessor, extra xx local,
-// width declared first, game assigned before/after t. The width/text swap
-// survived all of them, so it needs a new lever, not more weight tuning.
+// MATCH. The two changes that got here from the previous 94.5% (608 of 617
+// bytes) version were both needed and neither was enough on its own:
+//
+//  1. No local text pointer at all. The truncated copy is written straight
+//     back into the `text` PARAMETER (`text = buf;`) and the draw passes
+//     `text`, which is what the original's `mov [esp+0x19c], edx` at
+//     0x4c15a1 and its read-back at 0x4c16be and 0x4c1730 are. Every earlier
+//     attempt kept a separate local `unsigned char* t` and scored 608 of 617
+//     bytes: that forced a fresh frame slot, an extra `mov [esp+X], ebp` sunk
+//     between `cmp eax,-1` and its `je` (0x4c156b), and a 0x188 frame against
+//     the original's 0x184. With no local the store lands in the dead
+//     parameter slot and the frame is 0x184.
+//  2. `r.bottom = r.top + height`, not `r.bottom = y + height`. `r` is
+//     address-taken (it is passed to FUN_004b6750), so writing the second
+//     rectangle field from the first makes MSVC reload it after the
+//     FUN_004b6220() call: that is the original's `mov ecx, [esp+0x1c]` /
+//     `add edx, ecx` at 0x4c165b and 0x4c165f, where reading `y` kept it live
+//     in a register instead and also left the tail rotating y and dst into
+//     edi and ebx rather than ebp and edi.
+//
+// Point 1 alone (with `r.bottom = y + ...`) is 615 of 617 bytes at 59.6%, and
+// point 2 alone is 612 of 617 bytes at 70.3%, so the earlier conclusion that
+// no combination of the two existed was wrong: the two are independent.
+//
+// Dead ends, all of which are still in the history of this file and none of
+// which is worth repeating: a local `t` in any form (94.5% at best, 608 of 617
+// bytes) and the four spellings that put a local `t` and a parameter store
+// together (MSVC forwards the copy into the parameter, so all four collapse to
+// the 615-byte form A); declaring `width` first with a separate assignment or
+// with uninitialised declarations assigned in order; an extra live local
+// holding `width`; a separate `keep` local for the rect; reordering the four
+// rect stores including bottom-first; `r.right = width + x`; a brace
+// initialiser for the rect; `if (!dst)` and `dst != 0` with the arms swapped;
+// passing r.left/r.top to the blitter instead of x/y; a separate `clip`
+// variable hoisted out of the screen branch; the height into a local;
+// `game->font` instead of a second FUN_004b6220() call for the height;
+// `const unsigned char*` helper parameters; an explicit walker
+// `unsigned char* s` with `c = s[1]` or `c = *(++s)`; a separate `p`
+// induction variable in the helper; `char* t` instead of `unsigned char* t`
+// (byte-identical to the unsigned form); a local `t` aliased against the
+// parameter; a sweep of 0 to 400 unused `extern int` declarations, which
+// showed the extra slot was not compiler state; and tools/headers.py, which
+// found no header set that matched.
 #include <string.h>
 
 struct Font_004c14f0 {
@@ -86,20 +113,19 @@ static inline int WidthText(Font_004c14f0* font, unsigned char* text)
 void __stdcall FUN_004c14f0(Class_004c6ae0* dst, unsigned char* text, int x, int y, int maxWidth)
 {
     Game_004c14f0* game = FUN_004b6220();
-    unsigned char* t = text;
-    int width = WidthText(game->font, t);
+    int width = WidthText(game->font, text);
     if (maxWidth != -1 && width > maxWidth) {
         unsigned char buf[0x12c];
-        strncpy((char*)buf, (char*)t, 0x12b);
+        strncpy((char*)buf, (char*)text, 0x12b);
         int len = strlen((char*)buf);
-        t = buf;
+        text = buf;
         unsigned char* end = buf + len - 1;
         while (1) {
             *end = 0;
             if (end == buf)
                 break;
             end--;
-            width = WidthText(game->font, t);
+            width = WidthText(game->font, text);
             if (width <= maxWidth)
                 break;
         }
@@ -108,14 +134,14 @@ void __stdcall FUN_004c14f0(Class_004c6ae0* dst, unsigned char* text, int x, int
     r.left = x;
     r.top = y;
     r.right = x + width;
-    r.bottom = y + FUN_004b6220()->font->glyphs[0];
+    r.bottom = r.top + FUN_004b6220()->font->glyphs[0];
     if (dst == 0) {
         Class_004c6ae0 screen;
         if (FUN_004c5e70(&screen) != 0) {
             Rect_004c14f0 clip;
             screen.FUN_004c6ae0(&clip);
             if (FUN_004b6750(&r, &clip))
-                FUN_004ccf60(screen.pixels, screen.pitch, game->font, t, x, y, game->colour1,
+                FUN_004ccf60(screen.pixels, screen.pitch, game->font, text, x, y, game->colour1,
                              game->colour2, game->colour3);
             FUN_004c5fa0(&screen);
         }
@@ -123,7 +149,7 @@ void __stdcall FUN_004c14f0(Class_004c6ae0* dst, unsigned char* text, int x, int
         Rect_004c14f0 clip;
         dst->FUN_004c6ae0(&clip);
         if (FUN_004b6750(&r, &clip))
-            FUN_004ccf60(dst->pixels, dst->pitch, game->font, t, x, y, game->colour1,
+            FUN_004ccf60(dst->pixels, dst->pitch, game->font, text, x, y, game->colour1,
                          game->colour2, game->colour3);
     }
 }

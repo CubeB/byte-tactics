@@ -1,4 +1,17 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1441 worker pass: kept the 76.3% baseline. One more family of attempts,
+// all still exactly 76.3% and 901 bytes (scored free with check.py --sym):
+//   - writing the memset size as a folded product (`sizeof(int) * 44`,
+//     `0xb0 / 4 * 4`, `0x2c * sizeof(int)`, ...) does not create the value 4
+//     early enough to change which constant MSVC hoists; constant folding runs
+//     before value numbering.
+//   - an `int one = 1;` local declared before the memset is const-propagated.
+//   - `(&DAT_00512be4)[0] = 4;` and a dummy second store to a global already
+//     written (MSVC removes the dead first store, so source reordering of the
+//     same global is not observable).
+// Conclusion unchanged: the whole function is byte exact except that the
+// allocator hands the hoisted edx to the constant 1 instead of 4; fixing that
+// one cycle fixes the 14 byte size difference too.
 // Retry #1342 worker pass: kept the 76.3% baseline. Register-handoff scratch variants scored 63.5% and 76.3%, with no improvement.
 //
 // Gave up at 76.3%. What is left is ONE thing: which register the constant 4

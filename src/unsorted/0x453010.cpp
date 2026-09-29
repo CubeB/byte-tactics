@@ -1,4 +1,13 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1441 deepseek-v4.1-flash pass: kept the 85.4% baseline. Confirmed the
+//  tail duplication is not a source-shape or header knob: tools/headers.py tried
+//  all 128 header sets and the best is still 85.4% (<windows.h>, also <ddraw.h>
+//  and three windows+x pairs tie); a separate top-level second `if` (no else-if)
+//  scores 60.1%, a `switch (p->state)` with cases 1/2 scores 68.4%. The exit
+//  block `mov al,[esp+0x20] / mov [edi+0x22],al / mov eax,[esp+0x10] / pops /
+//  ret 8` at 0x4532ff stays copied into the state==2 arm and the state==3
+//  loop-exit arm, and the state==1 arm gets `cmp state,1 / je` instead of a
+//  plain `jmp` to the shared exit.
 // Retry #1342 worker pass: kept the 85.4% baseline. A shared-exit rewrite was incomplete at the ten-minute limit; remaining tail differences are described below.
 //
 // 85.4%, 812 bytes against 772. What still differs: the shared exit tail.

@@ -39,6 +39,16 @@
 //   - int nf = (u->flags & ~3) | (m & 3); u->flags = nf; (51.8)
 // The single remaining cause is still the ownership of ebp by `this`, which
 // the 12-byte return temporary very likely forced in the original.
+//
+// deepseek-v4.1-flash, second pass (same session): the assignment idiom does
+// NOT help either. Both
+//   Vec3 v; v = FUN_0043e060(u->obj, u->index);
+//   Vec3 v; Vec3* p = &v; *p = FUN_0043e060(u->obj, u->index);
+// still let MSVC 5 copy-propagate v into the hidden return buffer (frame
+// sub esp,0x1c, buffer at [esp+0x20], 50.3%). The only construct that
+// separates the buffer is a distinct 12-byte return type with an inlined
+// converting constructor (guide: 0x4dbd00), which lands at frame 0x20 (49.1%)
+// rather than the original 0x28. 52.2% remains the best.
 
 #include <string.h>
 

@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+#include <windows.h>
 #pragma pack(push, 1)
 
 struct Cell_004848e0 {
@@ -64,6 +65,12 @@ void __stdcall FUN_004bf6f0(void* surface, Rect_004848e0* rect, int color);
 void __stdcall FUN_004bfe10(void* surface, Rect_004848e0* rect);
 void __stdcall FUN_004bff20(void* surface, Rect_004848e0* rect, int color);
 
+// The parity sum at 0x484943 is written with one operand read back through
+// g_game (g_game->scrollX) instead of the local. That read is CSE'd with the
+// earlier local, so no reload appears, but it makes MSVC emit the LEA with
+// ebx as base and edi as index, which is the original's encoding. Writing the
+// sum from the two locals alone always gives the mirrored [edi+ebx].
+//
 // FUNCTION: 0x4848e0
 void __stdcall FUN_004848e0(void* surface)
 {
@@ -76,7 +83,7 @@ void __stdcall FUN_004848e0(void* surface)
     int scrollY = g_game->scrollY;
     int scrollX = g_game->scrollX;
     int q = (scrollY + 16) / 32 + (scrollX + 16) / 32;
-    int parity = (scrollY + scrollX) & 1;
+    int parity = (g_game->scrollX + scrollY) & 1;
     int rX = scrollX % 32;
     int rY = scrollY % 32;
     int fx;

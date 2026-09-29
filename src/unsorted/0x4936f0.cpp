@@ -26,6 +26,20 @@
 //    on both sides of it schedules the layer load before the `lea esi,
 //    [eax+0x519]` and reproduces the original's ordering.
 //
+// A NOTE ON WHY THE SELF-COMPARISON IS NEEDED, measured again on this run.
+// Deleting it (`FUN_004a0200(ents, "METAL")`, and also the fully inline
+// `FUN_004a0200(lyr->entries, "METAL")`) makes the scheduler move the
+// `lea esi, [eax + 0x519]` in front of the layer load, so the emitted order
+// becomes lea / layer / entries where the original has layer / lea / entries.
+// With the self-comparison the layer load is pinned to the argument
+// evaluation and the order matches. It does NOT change the register choice:
+// both forms still coalesce the entries load onto the dead layer register.
+//
+// Measured again on this run and no better: routing the two expressions
+// through `__inline` accessors `layer_of(menu)` and `ents_of(lyr)` (97.1%,
+// byte for byte the same tail), and computing `menu` before `lyr` in each
+// block (96.7%, worse). The order layer / menu / entries is forced.
+//
 // A NOTE ON THE SELF-COMPARISON IN THE BODY, because it looks like a mistake.
 // Both calls are written
 //        e = FUN_004a0200(ents, ents == lyr->entries ? "METAL" : "METAL");
@@ -37,8 +51,21 @@
 // the plain form is measurably worse. The same device is what made the layer
 // load land before the `lea` in the first place.
 //
-// What is left is three instructions of pure register allocation, with
-// identical mnemonics and sizes:
+// WHAT IS LEFT IS ONE PROBLEM, NOT THREE, and the 993/994 size gap proves it.
+// An instruction-by-instruction size comparison (see
+// build/scratch/0x4936f0/offs.py) shows that every instruction of the two
+// tail blocks has the same length on both sides, with ONE exception, and it is
+// a register allocation effect rather than a code shape effect:
+//   0x493a43  original  mov edx, dword ptr [0x511de8]   6 bytes  (8B 15)
+//   0x493a43  ours      mov eax, dword ptr [0x511de8]   5 bytes  (A1)
+// A load from an absolute address is 5 bytes in the accumulator form (A1) and
+// 6 bytes in the general form (8B /r), so the whole 1 byte this file is short
+// is the price of putting g_game in eax instead of edx in the second block.
+// Both remaining blocks therefore fail for the same reason, and the fix has to
+// be one change that moves the layer, the menu, the entries and g_game into
+// the original's four registers at once.
+//
+// The three instructions are, with identical mnemonics and sizes:
 //   - `mov edx, [ecx + 4]` in block 1 where this file has `mov ecx, [ecx + 4]`
 //   - `mov edx, dword ptr [g_game]` in block 2 against `mov eax, ...`
 //   - and the resulting branch targets, off by one because this file is 993

@@ -1,15 +1,8 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 68.1%. The linear TDF field load (name/ID through the flags, model,
-// environment explosion, sound fields) is transcribed and the 0x330 frame and
-// prologue match. Remaining differences: (a) many flag/store/call schedules are
-// swapped by one instruction (the store to [ebp+0x111] lands before vs after the
-// next call's pushes), (b) the model block's local buffer offsets differ, and
-// (c) the DAMAGE subtable (std::vector<UEntry> insertion, from 0x42ef7f onward)
-// is not implemented, so the function returns early and the last ~0x380 bytes
-// differ. Frame 0x330 = 0x30 scalars + model[0x100] at +0x40 + gaf[0x100] at
-// +0x140 + path[0x128] at +0x240.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 68.9%. Added the complete DAMAGE table, sorted vector insertion, default damage and final weapon setup. Corrected path buffer to 0x100. STL insertion and register/stack allocation still differ.
 
 #include <string.h>
+#include <vector>
 
 class Class_004c4440 {
 public:
@@ -41,12 +34,27 @@ public:
     char* FUN_004c45e0(int index);
 };
 
+class Class_004c9390 { public: void FUN_004c9390(); };
+class Class_004c91a0 { public: char* ptr; Class_004c91a0(const Class_004c91a0&); ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); } };
+class Class_004c91b0 { public: char* ptr; Class_004c91b0(const char*); ~Class_004c91b0() { ((Class_004c9390*)this)->FUN_004c9390(); } };
+class Class_004c93b0 { public: void* FUN_00432d20(int*); };
+struct Entry_00432cf0 {
+    Class_004c91a0 name;
+    int value;
+    Entry_00432cf0(const Class_004c91a0& n, int v) : name(n), value(v) {}
+    Entry_00432cf0& operator=(const Entry_00432cf0& v) { ((Class_004c93b0*)this)->FUN_00432d20((int*)&v); return *this; }
+};
+#pragma pack(push, 1)
+struct Damage_0042e440 { char pad; std::vector<Entry_00432cf0> entries; };
+#pragma pack(pop)
+void __stdcall FUN_0049e010(void*);
+
 #pragma pack(push, 1)
 struct Weapon_0042e440 {
     char name[0x20];                    // +0x000
     char name2[0x40];                   // +0x020
     char pad_60[4];                     // +0x060
-    void* sub;                          // +0x064
+    Damage_0042e440* sub;                          // +0x064
     int weaponvelocity;                 // +0x068
     int startvelocity;                  // +0x06c
     int weaponacceleration;             // +0x070
@@ -242,7 +250,7 @@ void __stdcall FUN_0042e440(Class_004c4440* parser)
                 i++;
             } while (i < count);
         }
-        char path[0x128];
+        char path[0x100];
         FUN_004290f0(path, "objects3d", model, "3DO");
         void* h = FUN_004cb560(path);
         if (h == 0)
@@ -295,5 +303,35 @@ model_done:
     } else {
         w->soundwater = (short)FUN_00429470(0, model);
     }
-    return;
+    void* damage = ((Class_004c4470*)parser)->FUN_004c4470("DAMAGE");
+    if (!damage) {
+        w->damage = 0;
+    } else {
+        w->damage = (short)((Class_004c46c0*)damage)->FUN_004c46c0("default",0);
+        int index=0;
+        char* key=((Class_004c45e0*)damage)->FUN_004c45e0(index);
+        while (key) {
+            if (_strcmpi(key,"default") != 0) {
+                int value=((Class_004c46c0*)damage)->FUN_004c46c0(key,0);
+                if (!w->sub) w->sub = new Damage_0042e440;
+                Class_004c91b0 name(key);
+                std::vector<Entry_00432cf0>& entries=w->sub->entries;
+                Entry_00432cf0* first=entries.begin();
+                Entry_00432cf0* last=entries.end();
+                while(first!=last) {
+                    Entry_00432cf0* middle=first+(last-first)/2;
+                    if ((unsigned char)(_strcmpi(middle->name.ptr,name.ptr)<0)) first=middle+1;
+                    else last=middle;
+                }
+                if (first==entries.end() || strcmp(first->name.ptr,name.ptr)!=0) {
+                    unsigned int offset=first-entries.begin();
+                    entries.insert(first,1,Entry_00432cf0(*(Class_004c91a0*)&name,0));
+                    first=entries.begin()+offset;
+                }
+                first->value=value;
+            }
+            key=((Class_004c45e0*)damage)->FUN_004c45e0(++index);
+        }
+    }
+    FUN_0049e010(w);
 }

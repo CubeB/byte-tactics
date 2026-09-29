@@ -1,15 +1,6 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (89.0%, 5466 of 5472 bytes). Reads every option from the config
-// tree into g_game; the mirror of FUN_00430f00 (0x430f00), whose struct layout
-// is reused here.
-// Still differs (systematic register allocation, not logic):
-//  - original keeps the constant 0 in ebx (xor ebx,ebx) and 0x10/0x100 in ebp;
-//    ours swaps them (xor ebp,ebp), so every first-half get-result test is
-//    "test eax,eax" instead of the original "cmp eax,ebx".
-//  - the Sound Mode default boolean is neg/sbb/neg/inc in the original; ours
-//    branches.
-//  - cumulative 2 to 6 byte shifts through the body (jmp targets 0x42fe4a vs
-//    0x42fe48 etc). Logic and the file/function sizes are otherwise correct.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 96.9%. Corrected missing Sound Mode default to 1 or 2, restructured the final flag branch and corrected callee return types. Early zero register is ebp instead of ebx; final zero tests and stores still differ.
+
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -138,25 +129,25 @@ extern char DAT_00512ca8[];
 
 int __stdcall FUN_004b69d0(void* section, void* key, void* value);
 int __stdcall FUN_004b69b0(void* section, void* key, void* buf, void* size);
-int __stdcall FUN_004b6a20(void* section, void* key, void* value);
-int __stdcall FUN_004b6a50(void* section, void* key, int value);
+void __stdcall FUN_004b6a20(void* section, void* key, void* value);
+void __stdcall FUN_004b6a50(void* section, void* key, int value);
 int __stdcall FUN_004b6a80(void* buf);
 void __stdcall FUN_00434ab0(int mode);
 int __cdecl FUN_0045b660();
 
 class Class_004cf210 {
 public:
-    int FUN_004cf210(int value);
+    void FUN_004cf210(int value);
 };
 
 class Class_004cfe80 {
 public:
-    int FUN_004cfe80();
+    void FUN_004cfe80();
 };
 
 class Class_004cfe90 {
 public:
-    int FUN_004cfe90();
+    void FUN_004cfe90();
 };
 
 class Class_004cfea0 {
@@ -181,7 +172,7 @@ public:
 
 class Class_00435d30 {
 public:
-    int FUN_00435d30(int arg);
+    void FUN_00435d30(int arg);
 };
 
 // FUNCTION: 0x42f9a0
@@ -274,7 +265,7 @@ void FUN_0042f9a0()
         g_game->soundFlags.soundMode = value;
     } else {
         FUN_004b6a50("Total Annihilation", "Sound Mode",
-                     ((Class_004cfea0*)g_game->sound)->FUN_004cfea0() == 0);
+                     (((Class_004cfea0*)g_game->sound)->FUN_004cfea0() != 0) + 1);
         g_game->soundFlags.soundMode = 1;
     }
     if (FUN_004b69d0("Total Annihilation", "MixingBuffers", &value) != 0) {
@@ -584,15 +575,10 @@ void FUN_0042f9a0()
         value = 0;
     }
     if (value == 0x100) {
-        if (FUN_004b69d0("Total Annihilation", "Games", &value) == 0) {
-            value = 0;
-        }
-        if (value == 1) {
-            g_game->flags_37f2f.bit1 = 1;
-            goto label_430e7f;
-        }
-    }
-    g_game->flags_37f2f.bit1 = 0;
+        if (FUN_004b69d0("Total Annihilation", "Games", &value) == 0) value=0;
+        if (value == 1) g_game->flags_37f2f.bit1=1;
+        else g_game->flags_37f2f.bit1=0;
+    } else g_game->flags_37f2f.bit1=0;
 label_430e7f:
     g_game->flags_37f2f.bit2 = 1;
     g_game->flags_37f2f.bit3 = 1;

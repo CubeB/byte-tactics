@@ -1,19 +1,7 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Scans every "download\*.tdf" file and builds the per-unit download build
-// menu table at g_game+0x391cb (g_game+0x391c7 entries, 0xbd bytes each).
-//
-// PARTIAL (52.9%): the frame size (0x2ac), the callees, all string and global
-// references and the overall control flow are right, but MSVC allocated
-// registers differently: the original keeps the literal 0 in esi, n in ebx
-// and the outer index in edi, while this version keeps 0 in edi, n in esi and
-// the unit index in ebx, which cascades through the whole function. The
-// second half's loops are additionally strength-reduced differently (the
-// original keeps the record offset in ebx and the entry offset in edx, this
-// version swaps them). The stack-slot numbering of n is 0x18 here and 0x10 in
-// the original. Fixing the first-half register choice should pull the tail
-// along; the local declaration order that produces esi=0 is not yet found.
-#include <stdio.h>
-#include <string.h>
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 66.0%. math.h aligns early registers; caching the current unit definition improves the final loop. Count slots and loop induction registers still differ.
+
+#include <math.h>
 #include <vector>
 
 class Class_004c9390 {
@@ -167,14 +155,15 @@ void FUN_0042dcf0()
     FUN_004d8710(g_game->unitDefs);
 
     for (int k = 0; k < g_game->unitDefCount; k++) {
-        char* name = g_game->unitDefs[k].name;
+        UnitDef_0042dcf0* def = &g_game->unitDefs[k];
+        char* name = def->name;
         for (int i = 0; i < g_game->buildListCount; i++) {
             if (_strcmpi(g_game->buildLists[i].entries[0].name, name) == 0
-                && !g_game->unitDefs[k].flags_241.downloadable) {
+                && !def->flags_241.downloadable) {
                 char buf[128];
                 sprintf(buf, "Hey!  Somebody forgot to set downloadable=1 for %s", name);
                 FUN_004d8780(g_game->unitDefs);
-                g_game->unitDefs[k].flags_241.downloadable = 1;
+                def->flags_241.downloadable = 1;
                 FUN_004d8710(g_game->unitDefs);
             }
         }

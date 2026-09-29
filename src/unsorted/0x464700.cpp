@@ -1,4 +1,15 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash retry (still 98.3%): the one hunk is the position of the
+// `cmp eax, ebp` / `mov [esi + 0xf8], edx` pair. Moving `p->ff8 = g_game->ticks;`
+// after the six zero stores gives 96.6 with the pair in the right slot but the
+// scheduler emits every load just in time (the ref load sinks, the third tick's
+// two loads split around the cmp, the 0x90 store hops above the ff8 store);
+// nesting the same store in an expression (`p->f8c = (p->ff8 = g_game->ticks, 0);`)
+// gives byte-for-byte the same 96.6. So the pair follows the ff8 statement's
+// source position, and the original's source must both load the tick early and
+// store it late, which needs a temporary. Every temp rotates the callee-saved
+// pool (zero leaves ebp for ebx), which is the 66.4/70.6 family already noted.
 // Retry notes (Sonnet 5.5, still 98.3%): scripted searches that all failed to
 // beat this file: every single move of each statement in the first block (the
 // stores must keep the original's order anyway), the tick statement at every

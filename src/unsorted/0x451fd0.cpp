@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// Retry #1342 worker pass: kept the 76.3% baseline. Register-handoff scratch variants scored 63.5% and 76.3%, with no improvement.
 //
 // Gave up at 76.3%. What is left is ONE thing: which register the constant 4
 // is given. The store sequence, the store order, the 25 immediate stores and

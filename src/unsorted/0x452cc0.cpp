@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1342 worker pass: kept the 83.6% baseline. Bottom-tested loop and flag-type variants reached at most 67.3%; existing register and flag-load differences remain below.
 //
 // Removes a player (a "drop" / disconnect path): find the player's slot, bail
 // out if the slot is not a local, active player of type 1, 2 or 3, then clear

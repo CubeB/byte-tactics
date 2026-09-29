@@ -1,4 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Retry #1342 worker pass: kept the 85.4% baseline. A shared-exit rewrite was incomplete at the ten-minute limit; remaining tail differences are described below.
 //
 // 85.4%, 812 bytes against 772. What still differs: the shared exit tail.
 //  The original has ONE `mov al,[esp+0x20] / mov [edi+0x22],al / mov eax,[esp+0x10]

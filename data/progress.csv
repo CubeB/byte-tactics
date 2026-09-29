@@ -835,7 +835,7 @@ address,size,file,symbol,status,similarity
 0x440cd0,151,src/unsorted/0x440cd0.cpp,?FUN_00440cd0@@YAHXZ,matched,100.0
 0x440d70,775,src/unsorted/0x440d70.cpp,?FUN_00440d70@@YGXPAUGadget_00440d70@@@Z,matched,100.0
 0x441080,401,src/unsorted/0x441080.cpp,?FUN_00441080@@YAXXZ,matched,100.0
-0x441220,517,src/unsorted/0x441220.cpp,?FUN_00441220@@YGXPAUMenu_00441220@@PAUEntry_00441220@@@Z,partial,97.2
+0x441220,517,src/unsorted/0x441220.cpp,?FUN_00441220@@YGXPAUMenu_00441220@@PAUEntry_00441220@@@Z,matched,100.0
 0x441430,39,src/unsorted/0x441430.cpp,?FUN_00441430@@YAHXZ,matched,100.0
 0x441460,1874,src/unsorted/0x441460.cpp,?FUN_00441460@@YGHPAUGadget_00441460@@@Z,partial,70.8
 0x441bc0,112,src/unsorted/0x441bc0.cpp,?FUN_00441bc0@@YAHXZ,matched,100.0

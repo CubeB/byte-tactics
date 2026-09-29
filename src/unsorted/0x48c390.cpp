@@ -1,48 +1,41 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL, 96.8% (773 of 773 bytes, exact size; up from 91.5%). The worker that
-// produced this died with no report, so these figures are measured from the
-// scratch directory afterwards.
+// MATCH, 773 of 773 bytes. (Was 96.8%: the size was already exact and the whole
+// residual was one group of loads at the head of the function, in a different
+// order. It was a source-STATEMENT ordering problem, not a scheduling problem,
+// and the previous note here called it unfixable after 647 variants. It was not:
+// the previous sweep varied how the two halvings were interleaved with the
+// subtractions, and that is the wrong axis. The axis is the order of the four
+// corner declarations, and only one interleaving works, `ymin, xmin, ymax, xmax`.)
 //
-// What is left is one group of loads and two halvings, in a different order.
-// The original hoists BOTH `[esi + 0x2c96]` and `[esi + 0x2ca6]` up with the
-// other field loads at the head of the group, then does `sar ebx,1 / sub edx,ebx`
-// for the first and `sar eax,1` for the second. This file loads `0x2c96` after
-// the subtractions, halves it in `eax`, and only then loads `0x2ca6`. Same
-// instructions, same operands, different placement: a scheduling tie-break, not
-// a structural difference.
+// The lever, precisely. The original emits, for the group:
+//   mov eax,[0x1431f] scroll_x      mov edi,[0x2c92] rect_x1
+//   mov ebx,[0x2c96] rect_x2        mov ebp,[0x2c9e] rect_y2
+//   mov edx,[0x2c9a] rect_y1        mov ecx,[0x14323] scroll_y
+// then `sar ebx,1`/`sub edx,ebx` and `sar eax,1`/`sub ebx,eax`. So the second
+// corner's fields (0x2c9a and 0x2c96) are hoisted up with the FIRST corner's,
+// not the fourth's. `ymin, ymax, xmin, xmax` puts the second corner third and
+// MSVC sinks its loads below the two `sub`s, which is the 96.8% version.
+// Interleaving them as `ymin, xmin, ymax, xmax` gives the original's grouping,
+// the two spills `mov [esp+0x14],edx` / `mov [esp+0x10],ebp` fall into the
+// original's order at the same time, and it matches.
 //
-// It is measured, not assumed. The scratch directory holds 647 variants, named
-// systematically for the orderings they sweep (`g_p_*` for projection order,
-// `h_sXYyYZx32` for the load/halving interleavings, `i_hw*` for half-width
-// forms). I scored the twenty newest and a forty-one sample spread across the
-// naming space; the best is `g_a_base.cpp`, which is byte-identical to the file
-// as written at 96.8%, and the runners-up cluster at 96.8%, 94.0% and 91.2%.
-// Nothing beat it and nothing matched, so with the size already exact this is
-// the end of the road for the single-file shape.
+// The other half of the fix is dropping the two `sx`/`sy` temporaries. With
+// them, `scroll_x` and `scroll_y` are named locals, which changes which
+// register MSVC gives the second corner's halving; reading `g_game->scroll_x`
+// and `g_game->scroll_y` straight out of the two corner expressions matches.
+// So: `ymin, ymax, xmin, xmax` WITH the temporaries is 96.8%, and
+// `ymin, xmin, ymax, xmax` with them is 88.4%: the two changes are not
+// independent, and the earlier sweep never tried this pair at all.
 //
-// Worth recording from the sweep: the `h_s*` family is bimodal. The
-// `s11*` sub-family (nine of the nine sampled) all sit at 96.8%, and every
-// `s00*` sits at 88.4% and every `s10*` at 87.5%, with the load order of the two
-// halvings changing the score by nothing at all within a sub-family. So the
-// deciding factor is which fields are grouped, not how the halvings are
-// interleaved, and 647 variants of the interleaving was far more search than
-// the question deserved.
 // Rubber-band unit selection: converts the drag rectangle in map units to
 // screen coordinates, marks every unit of the local player inside it
 // selected, then normalises the player's selection state and reports how
 // many units ended up selected.
-// Still differs from the original in 8.5% (size is exact at 773 bytes):
-//  * the six loads of the drag-rectangle corner fields and of scroll_y are
-//    still scheduled slightly differently (the original hoists 0x2c96 and
-//    0x14323 above the two `sub`s, this version hoists 0x2c96 below them),
-//    and the two spills `mov [esp+0x10],ebp` / `mov [esp+0x14],edx` come out
-//    in the opposite order;
-//  * three locals land in the wrong frame slots: the original has
-//    toggle at +0x20, the player pointer at +0x24 and `last` at +0x28, this
-//    version has last at +0x20, toggle at +0x24 and the player at +0x28.
-//    Re-declaring them (uninitialised declarations moved above the min/max
-//    swaps, or `last` left unassigned) was tried and scores 87.0 or worse.
-//  * `mov ecx, [esp+0x30]` vs `mov eax, [esp+0x30]` for the parameter load.
+//
+// Suspected original bug: none. Every field offset, sign and comparison
+// re-derives from the operand bytes, and `0x2c9a`/`0x2c9e` really are `top`
+// and `bottom` while `0x2c92`/`0x2c96` are `left` and `right`, so the halving
+// is applied to the horizontal edges only, as the code implies.
 
 #pragma pack(push, 1)
 struct Unit_0048c390 {
@@ -126,12 +119,10 @@ int __stdcall FUN_0047f1a0(char* msg, int a);
 int __stdcall FUN_0048c390(void* param_1)
 {
     int found = 0;
-    int sx = g_game->scroll_x;
-    int sy = g_game->scroll_y;
-    int ymin = (g_game->rect_x1 - sx) + 0x80;
-    int ymax = (g_game->rect_y2 - sx) + 0x80;
-    int xmin = ((g_game->rect_y1 - (g_game->rect_x2 >> 1)) - sy) + 0x20;
-    int xmax = ((g_game->rect_y3 - (g_game->rect_x3 >> 1)) - sy) + 0x20;
+    int ymin = (g_game->rect_x1 - g_game->scroll_x) + 0x80;
+    int xmin = ((g_game->rect_y1 - (g_game->rect_x2 >> 1)) - g_game->scroll_y) + 0x20;
+    int ymax = (g_game->rect_y2 - g_game->scroll_x) + 0x80;
+    int xmax = ((g_game->rect_y3 - (g_game->rect_x3 >> 1)) - g_game->scroll_y) + 0x20;
     int t;
     if (ymin > ymax) { t = ymin; ymin = ymax; ymax = t; }
     if (xmin > xmax) { t = xmin; xmin = xmax; xmax = t; }

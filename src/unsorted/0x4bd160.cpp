@@ -1,5 +1,8 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by
-// space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// STATUS: partial, 96.7% (one diff hunk), 14 checker invocations before final verification.
+// Still differs: 0x4bd173..0x4bd193, the post-callback fresh ECX zero and EAX size materialization.
+// Tried and rejected: nested-store/helper probes, delayed HapiBuf construction (92.8%), placement construction (70.6%). See build/scratch/0x4bd160/ledger.md.
+//
 //
 // Not matching yet: 580 of 580 bytes, but ONE source construct is still wrong.
 // Everything from 0x4bd038 to the end of the function is byte identical (the

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 
 // Sibling of 0x4c0a90 (which plots the two end points). Fills the pixels
 // between the span ends: walks the depth ramp at +0x18 and the shade ramp at
@@ -38,6 +38,16 @@
 // for the shade lookup, do/while for the depth loop (73.2 percent), `for (; count;
 // count--)`, an `int zi`, a `w`-less head with cached z1/s1/x1/x2 locals
 // (47 to 52 percent).
+//
+// deepseek-v4.1-flash pass: not a compiler-state artefact. A sweep of 0 to 549
+// unused `extern int dummyN;` declarations never reaches MATCH (only 0.888 to
+// 0.924, worse), and every source order tried for the two offsets (`p +=
+// row*pitch; p += start;` vs the swap, single `start + row*pitch` vs `row*pitch
+// + start`, casts, parentheses, `int off` locals, pointer declaration order,
+// count/start declaration order) lands on the same `add ebp, edx`; adding an
+// `off` local changes the frame (4 locals) and drops to 80.8 percent. So the
+// original's `add edx, ebp` is an allocator tie-break on the second use of the
+// multiply result, not reachable from operand order here.
 
 #include <windows.h>
 

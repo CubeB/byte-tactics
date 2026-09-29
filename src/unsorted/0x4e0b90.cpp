@@ -1,28 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-//
-// PARTIAL 79.1% (2102 of 2150 bytes). Memory Status dialog window proc,
-// __thiscall(msg,wParam,lParam), ret 0xc, frame 0x92c (frame size now exact).
-// Same class as the ctor at 0x4e0570 (hwnd +0x00, field_4 +0x04, left +0x08,
-// top +0x0c, time double +0x10, table double[10] +0x18, total double +0x68,
-// index int +0x70, flag_78 +0x78, workingSet unsigned char +0x79).
-// Dispatch is a switch on the unsigned message, cases laid out in reverse
-// source order 0x312, 0x110, 0x111, 0x113. The 0x113 arm builds the whole
-// "Current Allocations..." report from thirteen inlined copies of the
-// decimal-with-commas formatter (same code as fmt_004e07e0 in 0x4e07e0.cpp)
-// plus one big sprintf. The formatter helper and all stack slots line up.
-//
-// Remaining differences:
-//  - `this` lives in esi; the original keeps it in ebx (`mov ebx,ecx` right
-//    after `push ebp`, before `push esi`), so every `[ebx+N]` here is `[esi+N]`
-//    and the prologue/epilogue ordering differs. This is the single biggest
-//    remaining block of diff.
-//  - The "%s,%s" call has its two string arguments in the opposite order:
-//    original is sprintf(req, "%s,%s", b, copy+2) (it leas 0xf6 first,
-//    then 0xb8); this file has (copy+2, b). Swap it.
-//  - The `total*0.1 / >0` fp block must sit right after that branch's sprintf
-//    tail (original 0x4e0e81), not after the seven common formatter calls.
-//  - `req` is char[100] (0x108..0x16b) so buf[2000] lands at 0x16c and the
-//    frame totals 0x92c; keep that if refactoring.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Still differs in x87 rate calculation spills and formatter temporary allocation (88.6%).
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -64,6 +41,14 @@ public:
     void FUN_004e05f0(char on);
 };
 
+struct Rate_004e0b90 {
+    double table[10]; double total; int index; int unknown_5c;
+    void Add(double speed) {
+        total = speed + total - table[index]; table[index] = speed;
+        if (++index == 10) index = 0;
+    }
+};
+
 class Class_004e0b90 {
 public:
     HWND hwnd;                         // +0x00
@@ -71,10 +56,7 @@ public:
     int left;                          // +0x08
     int top;                           // +0x0c
     double time;                       // +0x10
-    double table[10];                  // +0x18
-    double total;                      // +0x68
-    int index;                         // +0x70
-    int unknown_74;                    // +0x74
+    Rate_004e0b90 rates;              // +0x18
     char flag_78;                      // +0x78
     unsigned char workingSet;          // +0x79
 
@@ -188,23 +170,25 @@ int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
         double now = FUN_004e1730();
         double speed = (double)delta / (now - time);
         time = now;
-        total = speed + total - table[index];
-        table[index] = speed;
-        if (++index == 10)
-            index = 0;
+        rates.Add(speed);
         field_4 = DAT_00528a04;
 
         buf[0] = DAT_005119b8;
+        memset(buf + 1, 0, sizeof(buf) - 1);
 
         if (DAT_005289fc != 0) {
             fmt_004e0b90(t, DAT_005289dc + 1000000000);
             strcpy(copy, t);
             fmt_004e0b90(b, DAT_005289fc);
-            sprintf(req, "%s,%s", copy + 2, b);
+            sprintf(req, "%s,%s", b, copy + 2);
         } else {
             fmt_004e0b90(t2, DAT_005289dc);
             sprintf(req, "%s", t2);
         }
+
+        double rate = rates.total * 0.1;
+        if (!(rate > 0.0))
+            rate = 0.0;
 
         fmt_004e0b90(s0, DAT_005289d0);
         fmt_004e0b90(s1, DAT_005289f0);
@@ -214,9 +198,6 @@ int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
         fmt_004e0b90(s5, DAT_00528a1c);
         fmt_004e0b90(s6, DAT_00528a08);
 
-        double rate = total * 0.1;
-        if (!(rate > 0.0))
-            rate = 0.0;
 
         sprintf(buf,
                 "Current Allocations:  %13s\r\n"

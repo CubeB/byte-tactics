@@ -1,23 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 59.6% (1876 vs 1904 bytes, 3 check runs). Structure and all message
-// bodies are transcribed; what still differs is codegen, not control flow:
-//   - The WM_TIMER loop compares the node against the map head through an
-//     STL iterator's operator!= (the original materialises the bool with
-//     sete/neg/sbb/inc); a raw pointer compare gives a plain `cmp; je`. The
-//     iterator version rotates callee-saved registers (info ends in edi not
-//     esi), which scored worse (58.2%), so the raw form is kept.
-//   - The strcmp condition in the same loop is materialised into a bool in the
-//     original; `bool same = a == b || strcmp(...) == 0;` is still folded to a
-//     direct branch.
-//   - MSVC picks edi for the critical section and esi for the map singleton;
-//     the original is the other way round, which rotates every operand in the
-//     WM_TIMER block.
-//   - Case 0x3f4's inlined set iterator _Inc wants `node != set.head` as a bool
-//     too, and its two std::_Lockit slots must land at +0x24/+0x28.
-// Performance status dialog procedure. WM_INITDIALOG fills the two list boxes
-// from the entry array, WM_COMMAND handles the two list boxes and the seven
-// check/toggle controls, WM_TIMER rebuilds the list from the global name table
-// when it changed, and message 0x312 (wParam 10) toggles the window.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Still differs in WM_COMMAND loop allocation and WM_INITDIALOG local layout (76.1%).
 #include <windows.h>
 #include <yvals.h>
 
@@ -34,6 +16,13 @@ struct Node_004df590 {
 };
 
 extern Node_004df590* DAT_005292c4;
+struct Iterator_004df590 {
+    Node_004df590* ptr;
+    Iterator_004df590(Node_004df590* p) : ptr(p) {}
+    bool operator==(const Iterator_004df590& other) const { return ptr == other.ptr; }
+    bool operator!=(const Iterator_004df590& other) const { return !(*this == other); }
+};
+
 
 struct Map_004df590 {
     char compare;                      // +0x0
@@ -128,6 +117,8 @@ public:
     BOOL FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam);
 };
 
+static inline bool NamesEqual_004df590(const char* a, const char* b) { return a == b || strcmp(a,b) == 0; }
+
 // FUNCTION: 0x4df590
 BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -150,7 +141,7 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
             int n = 0;
             for (int j = 0; j < count; j++) {
                 Entry_004df590* e = &entries[j];
-                if (e->flags_8 & mask) {
+                if (entries[j].flags_8 & mask) {
                     if (e->field_0 == *(int*)(DAT_00529e00 + i * 0x10))
                         sel = n;
                     n++;
@@ -177,23 +168,23 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
             if (id >= 0x3ed) {
                 if ((wParam >> 16) != 1)
                     return 0;
-                int b = ((short)wParam == 0x3ee);
+                int b = 0;
+                if ((short)wParam == 0x3ee) b = 1;
                 int sel = (int)SendDlgItemMessageA(hwnd, id, 0x147, 0, 0);
                 int mask = 1 << b;
                 int i = 0;
                 int j = 0;
                 for (int off = 0; j < count; j++, off += 0x10) {
-                    Entry_004df590* e = (Entry_004df590*)((char*)entries + off);
-                    if (e->flags_8 & mask) {
+                    if (entries[j].flags_8 & mask) {
                         if (i == sel) {
-                            *(Entry_004df590*)(DAT_00529e00 + b * 0x10) = *e;
-                            if (DAT_00529dc8 && e->name != 0) {
+                            *(Entry_004df590*)(DAT_00529e00 + b * 0x10) = entries[j];
+                            if (DAT_00529dc8 && entries[j].name != 0) {
                                 int n = 0;
                                 int k = 0;
                                 for (int koff = 0; k < count; k++, koff += 0x10) {
                                     Entry_004df590* e2 = (Entry_004df590*)((char*)entries + koff);
                                     if (e2->flags_8 & ~mask) {
-                                        if (e2->field_0 == (int)e->name) {
+                                        if (e2->field_0 == (int)entries[j].name) {
                                             *(Entry_004df590*)(DAT_00529e10 - b * 0x10) = *e2;
                                             SendDlgItemMessageA(hwnd,
                                                 ((short)wParam == 0x3ed) ? 0x3ee : 0x3ed,
@@ -256,7 +247,7 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
                 ((Class_004e18c0*)&set)->FUN_004e18c0();
                 int j = 0;
                 Node_004df590* node = set.head->left;
-                while (node != set.head) {
+                while (Iterator_004df590(node) != Iterator_004df590(set.head)) {
                     if (j == sel) {
                         selected = *(Value_004df590*)((char*)node + 0xc);
                     }
@@ -304,11 +295,10 @@ BOOL Class_004df590::FUN_004df590(UINT msg, WPARAM wParam, LPARAM lParam)
             Node_004df590* node = info->names.head->left;
             SendDlgItemMessageA(hwnd, 0x3f4, 0x184, 0, 0);
             ((Class_004e18c0*)&set)->FUN_004e18c0();
-            while (node != info->names.head) {
+            while (Iterator_004df590(node) != Iterator_004df590(info->names.head)) {
                 ((Class_004e1990*)&set)->FUN_004e1990(&node->value);
                 SendDlgItemMessageA(hwnd, 0x3f4, 0x180, 0, (LPARAM)node->value.name);
-                if (node->value.name == selected.name
-                    || strcmp(node->value.name, selected.name) == 0)
+                if (NamesEqual_004df590(node->value.name, selected.name))
                     sel = n;
                 n++;
                 ((Class_004e0450*)&node)->FUN_004e0450();

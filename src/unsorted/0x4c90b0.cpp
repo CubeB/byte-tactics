@@ -1,4 +1,13 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Second pass (deepseek-v4.1-flash): no new lever moved the +1/+5 split.
+// Tested and all folded to a single `lea ecx,[ecx+edx+6]` (193 bytes, 86.1%):
+// `static __inline int TotalLen(a,b){return a+b+1;}` with `malloc(TotalLen(n,m)+5)`,
+// `__inline AllocBlock(len)` returning `malloc(len+5)`, `int m`/`int n` swapped,
+// `size_t` casts, and `sizeof(int)+1` spellings. So the split is not an inlining
+// boundary or a type spelling, which rules out the "inlined helper" theory too.
+// headers.py: all 128 header sets, closest 93.4% (<windows.h>, <ddraw.h>). The
+// `short` below is still the only spelling that splits the adds; it is codegen
+// only (see the note further down).
 // Claude Sonnet 5.5 pass (#624): compiler state ruled out (0 to 400 unused `extern
 // int` declarations in steps of 8: all 199 bytes and 93.4%, and none of the 128
 // header sets of headers.py gets past 93.4%). Scored without effect

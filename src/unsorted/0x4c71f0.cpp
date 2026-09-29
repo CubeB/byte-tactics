@@ -1,4 +1,17 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Second pass (#1547, deepseek-v4.1-flash): still 80.0% (280 bytes). Three
+// genuinely new spellings, all 80.0% and the same two hunks, so skip them:
+//   - the function declared as a __thiscall member (unused `this` in ecx): no
+//     change at all, so ecx is not reserved for this when it is never read.
+//   - case 1 with `int g = DAT_0051fe40;` declared BEFORE `out->low = at_low`
+//     and used as the third argument: 276 bytes / 78.9%, worse (the declared
+//     local is scheduled at its declaration, so the global load moves above
+//     the store). The guide's sibling recipe wants the local AFTER the store,
+//     which is already in the ruled-out list above.
+//   - case 2 with `int lo = at_low;` before the call: no change, MSVC folds
+//     the local back and still loads at_low into ecx after the first push.
+//   - case 1 with an inlined `Late(a,b,c)` forwarder: no change.
+// tools/headers.py over 128 sets: none match, closest 80.0% flat.
 // Calling convention checked again (#1188): __stdcall ret 0x10 matches, callee 0x4b7381 is cdecl (add esp,0xc) and is declared so; not the cause. Tried (&at_low)[1] for at_high in case 1: 80.0%, same 280 bytes, case 2 diff unchanged.
 //
 // deepseek-v4.1-flash pass (#1210), no score change, 80.0% (280 bytes). The jump

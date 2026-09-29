@@ -1912,3 +1912,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   flag);`) gives `xor eax, eax; mov [edx+4], eax`, which is what the original
   does. Give the aggregate a constructor rather than assigning the constant to a
   field; verified in three separate shapes on 0x46d2e0.
+- **Two values tied for a register can be separated by one more use**: when
+  the original gives a handle ebx and a path ebp and yours swaps them, a
+  trivial inline wrapper around a call that takes the handle
+  (`static inline int Next(int h, ...) { int r = FUN_004bc640(h, ...); return r; }`)
+  adds a use without adding bytes and flips the tie (0x4bcb50). Dummy uses
+  such as `h = h` are folded away first and do nothing.
+- **Byte-wide `xor cl, cl` and `not cl`** come from an `unsigned char` local
+  set to 0 on one path and `~v` on the other; a ternary or a cast keeps the
+  arithmetic 32-bit (0x4bd160).

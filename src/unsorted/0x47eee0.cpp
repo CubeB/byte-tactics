@@ -1,4 +1,24 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Claude Sonnet 5.5 pass (#746): nothing beat 86.2% (219 bytes). Compiler state is
+// ruled out: the declaration-count sweep (0 to 400 in steps of 8) is 86.2% for every N
+// and all 128 header sets of headers.py give 86.2% at best. What the register plan of
+// the original is (from the zero register's life): list in ebp, the count pointer
+// in edi (`lea edi, [ebp+0x99]`, kept for the whole loop), i in esi, and ebx is BOTH
+// the zero constant (null checks, the `> 0` guard, the final stores) and, inside
+// the loop, the entry pointer `last` (`lea ebx, [esi+ecx]`), which is why the
+// original re-zeroes it (`xor ebx, ebx`) after the loop and stores a literal 0
+// (`mov [ebx+0xc], 0`) where every version of ours reuses a zero register.
+// Scored (all --sym, none counted as runs): the clear loop as inline member
+// functions RemoveLast/Clear (224 bytes, 53.8% and 59.9%), the count pointer as
+// &list->count (53.8%), as a second pointer for the inner loop (69.2%, 224 bytes,
+// the pointer folds into [list+0x99]), `count` reassigned inside the loop (44 to
+// 58%), no `list` local at all (24.7%), a CountPtr(list) inline helper (53.8%),
+// the count as a member of an embedded tail struct (53.8%), and `count` formed
+// before the `if (list)` (84.3%, 213 bytes: lea edi before the null check, DAT
+// loaded before the pushes, but no eax detour after it). The guard in the original
+// reads `[ebp+0x99]` directly while the loop body reads [edi], and the lea before
+// the inner loop is a loop-invariant hoist of `&list->count` merged into edi; no
+// spelling kept that pointer alive without also keeping the eax copy.
 // Best 86.2%. Only the loop prologue still differs (the tail and the
 // back-edge already match):
 //  - ours loads DAT into eax and copies it to ebp; the original loads it

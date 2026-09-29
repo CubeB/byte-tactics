@@ -1,24 +1,38 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
 // Grows both pools of a NetBuffer: a new packet-pointer array of `growbufs` more
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array.
 //
-// Not byte identical yet. Still differs from the original:
-//  * `totalentries` (growpackets + count) lives in a register (ebp) here; the
-//    original keeps it in the stack slot at [esp+0x24] and holds the new[] result
-//    in eax, so ebp is still free for `ne`.
-//  * the entry-init loop's entry guard is `lea edx,[total-1]` / `test` / `jl` plus
-//    a copy of the counter, where the original reuses the same register for the
-//    guard and the down counter (`lea edx,[esi-1] / cmp edx,edi / jl / inc edx`).
-//  * the `ne == 0` phi writes the slot and jumps where the original falls through.
-//  * the packet walk's locals (n, i, q, p, j, c) are still partly in registers;
-//    the original has all six in stack slots because all four callee-saved
-//    registers are taken (ebx=this, ebp=ne/q, esi=&queue, edi=0).
-// Tried and did NOT work: making every `return 0` its own early exit (MSVC then
-// inlines a full epilogue at each site, 3 extra epilogues, 38%); a signed
-// `(int)field_c` compare in the rotate-copy loop (gives `jle`, the original has
-// `jb`, so the pool count must be an unsigned member).
-
+// Not byte identical yet (63.7%). Established pieces, do not undo:
+//  * the queue rotate uses OUT-OF-LINE pop/push calls exactly as in 0x462ae0
+//    (`int nq = qp->count; while (nq-- > 0) { x = pop(); if (x == c) break;
+//    push(x); }`, MATCHED there);
+//  * the final push of `e` is the INLINED Queue::Push exactly as in 0x461f90
+//    (`queue.Push(e); e->field_10 = 0; field_20 += e->field_8;`, MATCHED there),
+//    done unconditionally, not under `if (push)`;
+//  * per packet: `p->start = n` (the running moved-count, 0 only for the first
+//    packet), `Entry *q = ne + n`, `*e = *c` with `Entry *e = q++`, while-loop;
+//  * the entry-init loop bound is `i <= totalentries - 1`, which is what gives
+//    the original's `lea edx,[esi-1] / cmp / jl` guard (plain `<` gives cmp/jle);
+//  * `totalentries` must stay a named local: recomputing `growpackets + count`
+//    at all three sites flips MSVC's cached-zero register from edi to ebp and
+//    drops to ~48%. The packet-grow section and log calls match.
+//
+// What still differs (one cascade): `totalentries` lives in ebp here but in esi
+// in the original, so the init walker/counter are eax/ecx instead of ecx/edx,
+// `ne` is spilled early instead of staying in eax, and the whole packet walk is
+// rotated (p in eax not edx, c in ebp not eax, e spilled not in ebp, n/j slots
+// swapped, plus extra xor/spill instructions).
+// Tried and did NOT work: declaring the local at function top, or reusing `ok`
+// as the entry count (both keep ebp, 63.7% either way); up/down/while/counting
+// init-loop forms (all keep ebp); all 128 header sets (headers.py).
+//
+// Suspected original bug: at the packet-walk top, `p->count` is compared with
+// edi (`cmp [edx+8],edi; jle`) and the freshly loaded `c` with edi
+// (`cmp eax,edi; je`), but edi holds 0 only on walk entry. After any packet
+// with entries is processed, edi keeps elector residue (n+1, e, or the
+// queue-rotate residue), so a later packet's `count > 0` and `c == 0` tests run
+// against garbage. Latent: needs at least two non-empty packets on a grow path.
 #include <string.h>
 
 void* operator new[](unsigned int size);
@@ -40,38 +54,6 @@ struct Entry_00461fd0 {
     int field_1c;                   // +0x1c, next in the global list
 };
 
-class Class_00462370 {
-public:
-    int count;                      // +0x00
-    char unknown_4[4];
-    int writeIdx;                   // +0x08
-    Entry_00461fd0* buf[0x400];     // +0x0c
-
-    int FUN_00462370(Entry_00461fd0* v)
-    {
-        if (count < 0x400) {
-            writeIdx = writeIdx + 1;
-            if (writeIdx >= 0x400) {
-                writeIdx = 0;
-            }
-            buf[writeIdx] = v;
-            count = count + 1;
-            return 1;
-        }
-        return 0;
-    }
-};
-
-class Class_004623b0 {
-public:
-    int count;
-    int index;
-    int unused;
-    Entry_00461fd0* buffer[0x400];
-
-    Entry_00461fd0* FUN_004623b0();
-};
-
 struct Packet_00461fd0 {
     Class_00461fd0* pool;           // +0x00
     int start;                      // +0x04
@@ -79,6 +61,51 @@ struct Packet_00461fd0 {
     int field_c;                    // +0x0c
     int field_10;                   // +0x10
     char unknown_14[0x43e - 0x14];
+};
+
+// Read side of the ring buffer at +0x38 (out of line, cf. 0x462ae0).
+class Class_004623b0 {
+public:
+    int count;                      // +0x00
+    int index;                      // +0x04
+    int unused;                     // +0x08
+    Entry_00461fd0* buffer[0x400];  // +0x0c
+
+    Entry_00461fd0* FUN_004623b0();
+};
+
+// Write side of the ring buffer at +0x38 (out of line, cf. 0x462ae0).
+class Class_00462370 {
+public:
+    int count;                      // +0x00
+    char unknown_4[4];
+    int writeIdx;                   // +0x08
+    Entry_00461fd0* buf[0x400];     // +0x0c
+
+    int FUN_00462370(Entry_00461fd0* value);
+};
+
+// The same ring buffer with the push inlined here (cf. 0x461f90).
+class Queue_00461fd0 {
+public:
+    int count;                      // +0x00
+    char unknown_4[4];
+    int writeIdx;                   // +0x08
+    Entry_00461fd0* buf[0x400];     // +0x0c
+
+    int Push(Entry_00461fd0* value)
+    {
+        if (count < 0x400) {
+            writeIdx = writeIdx + 1;
+            if (writeIdx >= 0x400) {
+                writeIdx = 0;
+            }
+            buf[writeIdx] = value;
+            count = count + 1;
+            return 1;
+        }
+        return 0;
+    }
 };
 
 class Class_00461fd0 {
@@ -97,7 +124,7 @@ public:
     unsigned int count;             // +0x2c, the entry pool count
     Entry_00461fd0* field_30;       // +0x30
     Entry_00461fd0* field_34;       // +0x34
-    Class_00462370 queue;           // +0x38
+    Queue_00461fd0 queue;           // +0x38
 
     int FUN_00461fd0(int growbufs, int growpackets);
 };
@@ -158,95 +185,90 @@ int Class_00461fd0::FUN_00461fd0(int growbufs, int growpackets)
         operator delete[](packets);
         packets = np;
         if (ok) {
-            int totalentries = growpackets + count;
-            Entry_00461fd0* ne = (Entry_00461fd0*)operator new[](totalentries * 32);
-            if (ne) {
-                int i = 0;
-                while (i < totalentries) {
-                    Entry_00461fd0* q = ne + i;
-                    q->field_4 = 0;
-                    q->field_8 = 0;
-                    q->field_c = 0;
-                    q->field_10 = -1;
-                    q->field_14 = 0;
-                    q->field_18 = 0;
-                    q->field_1c = 0;
-                    i = i + 1;
-                }
-            } else {
-                ne = 0;
+        int totalentries = growpackets + count;
+        Entry_00461fd0* ne = (Entry_00461fd0*)operator new[](totalentries * 32);
+        if (ne) {
+            Entry_00461fd0* q = ne;
+            for (int i = 0; i <= totalentries - 1; i++) {
+                q->field_4 = 0;
+                q->field_8 = 0;
+                q->field_c = 0;
+                q->field_10 = -1;
+                q->field_14 = 0;
+                q->field_18 = 0;
+                q->field_1c = 0;
+                q++;
             }
-            if (ne) {
-                int n = 0;
-                if (field_0 >= 0) {
-                    field_34 = 0;
-                    field_30 = 0;
-                    int i = 0;
-                    while (i < field_c) {
-                        Packet_00461fd0* p = packets[i];
-                        if (p->count > 0) {
-                            Entry_00461fd0* c = (Entry_00461fd0*)p->field_10;
-                            if (c == 0) {
-                                p->start = -1;
-                                p->count = 0;
-                            } else {
-                                p->start = 0;
-                                int j = 0;
-                                Entry_00461fd0* q = ne + j * 32;
-                                p->field_10 = (int)q;
-                                do {
-                                    if (c->field_c != (int)p) {
+        } else {
+            ne = 0;
+        }
+        if (ne) {
+        int n = 0;
+        if (field_0 >= 0) {
+            field_34 = 0;
+            field_30 = 0;
+            for (int i = 0; i < field_c; i++) {
+                Packet_00461fd0* p = packets[i];
+                if (p->count > 0) {
+                    Entry_00461fd0* c = (Entry_00461fd0*)p->field_10;
+                    if (c == 0) {
+                        p->start = -1;
+                        p->count = 0;
+                    } else {
+                        p->start = n;
+                        int j = 0;
+                        Entry_00461fd0* q = ne + n;
+                        p->field_10 = (int)q;
+                        while (c != 0) {
+                            if (c->field_c != (int)p) {
+                                break;
+                            }
+                            n++;
+                            Entry_00461fd0* e = q++;
+                            *e = *c;
+                            if (c->field_10 >= 0) {
+                                c->field_10 = -1;
+                                c->field_14 = FUN_004b6340();
+                                Queue_00461fd0* qp = &queue;
+                                int nq = qp->count;
+                                while (nq-- > 0) {
+                                    Entry_00461fd0* x =
+                                        ((Class_004623b0*)qp)->FUN_004623b0();
+                                    if (x == c) {
                                         break;
                                     }
-                                    n = n + 1;
-                                    Entry_00461fd0* e = q;
-                                    *q = *c;
-                                    q = q + 1;
-                                    if (c->field_10 >= 0) {
-                                        c->field_10 = -1;
-                                        c->field_14 = FUN_004b6340();
-                                        int cnt = queue.count;
-                                        while (cnt > 0) {
-                                            cnt = cnt - 1;
-                                            Entry_00461fd0* x =
-                                                ((Class_004623b0*)&queue)->FUN_004623b0();
-                                            if (x == c) {
-                                                break;
-                                            }
-                                            queue.FUN_00462370(x);
-                                        }
-                                        field_20 = field_20 - c->field_8;
-                                        if (queue.FUN_00462370(e)) {
-                                            e->field_10 = 0;
-                                            field_20 = field_20 + e->field_8;
-                                        }
-                                    }
-                                    e->field_c = (int)p;
-                                    e->field_18 = (int)field_34;
-                                    e->field_1c = 0;
-                                    if (field_34) {
-                                        field_34->field_1c = (int)e;
-                                    }
-                                    field_34 = e;
-                                    if (field_30 == 0) {
-                                        field_30 = e;
-                                    }
-                                    j = j + 1;
-                                    c = (Entry_00461fd0*)c->field_1c;
-                                } while (c);
-                                p->count = j;
+                                    ((Class_00462370*)qp)->FUN_00462370(x);
+                                }
+                                field_20 -= c->field_8;
+                                qp->Push(e);
+                                e->field_10 = 0;
+                                field_20 += e->field_8;
                             }
+                            e->field_c = (int)p;
+                            e->field_18 = (int)field_34;
+                            e->field_1c = 0;
+                            if (field_34) {
+                                field_34->field_1c = (int)e;
+                            }
+                            field_34 = e;
+                            if (field_30 == 0) {
+                                field_30 = e;
+                            }
+                            c = (Entry_00461fd0*)c->field_1c;
+                            j++;
                         }
-                        i = i + 1;
+                        p->count = j;
                     }
                 }
-                operator delete[](entries);
-                entries = ne;
-                count = totalentries;
-                field_1c = n - 1;
-                FUN_00461170("current packet pool index set to: %ld\n", n - 1);
-                return 1;
             }
+        }
+        operator delete[](entries);
+        entries = ne;
+        count = totalentries;
+        field_1c = n - 1;
+        FUN_00461170("current packet pool index set to: %ld\n", n - 1);
+        return 1;
+        }
         }
     }
     return 0;

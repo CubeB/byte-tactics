@@ -79,6 +79,25 @@
 // bytes), computing the cell coordinates once above the flag test for the last
 // pair (that merges the two bounds checks), and putting both arms of the last
 // test inside one inline function (same).
+//
+// Addendum by muse-spark-1.3-free (kept the short-ternary version: correct
+// value, 871 bytes, 95.8%. About 20 scratch variants under
+// build/scratch/0x465ac0/, all scored free via check.py --sym):
+//  - `int c = (a == 0); return c;` (scratch u_eq0, u_0eqa) and
+//    `int c = (0 < a);` (scratch w_0lta, u_gt0) both give EXACT size 865 at
+//    97.6%. MSVC 5 folds `X != 0` to the identity `X` (round trip vanishes,
+//    844 bytes) but does not fold `X == 0`, which survives as `test; sete`,
+//    nor `X > 0`, which survives as `test; setg`. Neither is the original's
+//    `test; setne`. Warning: the `== 0` form is semantically INVERTED
+//    (returns 0 when explored); only the `>` forms have correct polarity.
+//    A surviving correct-polarity `test; setne` on the branch-materialised
+//    1/0 was not found. The seen arm keeps its round trip only because its
+//    value arrives untracked via neg/sbb/neg.
+//  - Scheduler tries for the ebx/ebp gap (assign-form subtract, swapped flag
+//    compare, unsigned char flag local, Game* local, UnitDef* locals) all
+//    keep `mov ebp,[g_game]` hoisted above the third-test branch, still
+//    95.8%. Keeping UnitDef* live across the third test rotates u out of ebx
+//    (scratch t_defacross, 860 bytes but 67.9%). headers.py: nothing helps.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

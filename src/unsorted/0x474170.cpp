@@ -1,5 +1,20 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// DEEPSEEK-V4.1-FLASH, second pass. Still not a match at 85.4 percent, 307 of
+// 301 bytes. Confirmed the basin below is the optimum for the two known levers
+// and closed two more escape routes (all measured with `check.py --sym` on
+// scratch copies, no new runs in the file's own history):
+//   * splitting the two arms' position expressions so they are not CSE-able
+//     (fog reads through a `Pos* q`, mask through `pos.`, and the mirror with
+//     the header on the other spelling) scores 20.1 [310]; the pointer local
+//     itself rotates the whole pre-branch block, so this is much worse than
+//     the shared member load it was meant to break.
+//   * dropping the mask arm's `w` local (original re-reads the width, so this
+//     looked right) scores 39.2 [291]; dropping the fog arm's `seen` only is
+//     37.8 [297], dropping the fog arm's `w` only is 40.0 [297].
+// GPT-6 tried all 128 header combinations with no change from 85.4%.
+// So the two spills are load-bearing: no arm spelling without its locals keeps
+// the player pointer in edx, exactly as the note below concludes.
 // 85.4 percent, 307 of 301 bytes. Same function as 0x473590 (the two originals
 // are instruction-for-instruction identical apart from branch targets), so this
 // file also describes 0x473590.

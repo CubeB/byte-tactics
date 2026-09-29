@@ -1,40 +1,50 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Retried by space-bunny-free. No functional rewrite improved the 84.5% draft.
+// A 128-combination header sweep also left the score at 84.5%.
 //
-// NOT A MATCH: 84.5% (300-byte original, ours 305). Prologue, player-pointer
-// arithmetic, the rect, the tail call and, since this retry, the whole mask arm
-// match byte for byte. Only the fog arm differs:
-//   - ours emits an extra `mov edi, [esi+0x80]` before `sub eax, edx` and an
-//     extra `xor edx, edx`; the original loads the width into edx after the
-//     subtraction and has no early zeroing.
-//   - ours builds the index in edi with fogMap in ebx, so the cell address is
-//     [edi+ecx]; the original builds it in edx with fogMap in the just-dead eax,
-//     giving `imul edx, eax; mov eax, [esi+0x7c]; add edx, ecx; [edx+eax]`.
+// NOT A MATCH: 84.5% (300-byte original, ours 305), re-verified by
+// tools/check.py. Everything matches byte for byte except the FIRST arm (the
+// one taken when bit 1 of the flag byte at g_game+0x14281 is set, the `seen`
+// byte map). The second arm, the prologue, the player-pointer arithmetic, the
+// rect, the flags test and the whole tail call are identical.
+//
+// WHAT IS LEFT IN THAT ARM (ours -> original):
+//   - ours materialises the width into edi before `sub eax, edx` and zeroes
+//     edx (`mov edi,[esi+0x80]; sub eax, edx; xor edx,edx; cmp ecx,edi`); the
+//     original lets edx (which held height>>1) die on the sub and reuses it
+//     for the width (`sub eax, edx; mov edx,[esi+0x80]; cmp ecx, edx`).
+//   - ours builds the cell address in edi with the map in ebx
+//     (`imul edi,eax; add edi,ebx; cmp byte [edi+ecx],0`); the original builds
+//     the index in edx and puts the map pointer in the just-dead row register
+//     (`imul edx,eax; mov eax,[esi+0x7c]; add edx,ecx; cmp byte [edx+eax],0`).
 //   - ours ends the taken path with `mov edx,1; xor eax,eax; test edx,edx;
-//     setne al`; the original has a plain `mov eax,1`.
+//     setne al`; the original has a plain `mov eax,1` and a fail block of
+//     `xor eax, eax` after the body.
 //
-// The mask arm was the lever this round. Writing the fail path as an
-// early-return shape (`if (!Contains) visible = 0; else visible = ...;`) is
-// what turns the two `jae` of the old spelling into the original's `jae fail;
-// jb body` with the fail block before the body; a `Contains` method that
-// inlines to `tx < width && ty < height` is enough, the two-arm if/else alone
-// is not.
-//
-// The fog arm is a hard register-allocation knot. Any spelling that produces
-// the original fog arm text (the canonical `if (cond) visible = 1; else
-// visible = 0;`, a `? 1 : 0` ternary, a goto early-exit, or an inlined
-// IsExplored/ArmA helper returning one value per path) also moves g_game out
-// of ebx into edi and rotates this->x/this->y through bp/bx, which then breaks
-// the whole prologue and the mask arm. The shape kept below (a dead
-// `visible = 0` plus a trailing `if (visible) visible = 1; else visible = 0;`)
-// is the only one found that pins g_game in ebx; it costs the extra width load,
-// the early xor and the setne tail. Every other attempt (helpers as free
-// functions or members, with/without a second width pointer, `Contains` vs
-// inline comparisons, bool/unsigned locals, pre-initialising visible before
-// the outer if, an unused-declaration compiler-state sweep, `#include
-// <stddef.h>`) either scored lower or flipped g_game. The original's own
-// sibling 0x4745e0 (same draw-if-visible shape, 66.3% stuck on the same
-// g_game-in-the-wrong-register wall) suggests this is compiler state that a
-// spelling alone may not reach.
+// The blocker is the same register-allocation wall the siblings hit (0x473590
+// 84.0, 0x474170 85.4, 0x474b80 84.6, 0x4745e0 79.8). This retry measured,
+// on top of everything the earlier rounds did:
+//   - Dropping the pinning `if (visible) visible = 1; else visible = 0;` from
+//     the first arm, with any spelling of the tests, drops the whole function
+//     to 67.3% and 296 bytes and rotates the ENTIRE prologue: g_game moves out
+//     of ebx into edi and this->x/this->y swap between bp and bx. The pinning
+//     tail is the only thing found that keeps the prologue byte-identical, and
+//     it is also the direct cause of the 9 extra bytes above (mov edx,1 / xor
+//     eax,eax / test edx,edx / setne al) and of the early xor.
+//   - With the pinning tail in place, the compare spelling is NOT a lever:
+//     `p->size.Contains(col,row)` and a hand-written
+//     `(unsigned)col < p->size.width && (unsigned)row < p->size.height` compile
+//     to the same 305 bytes at 84.5%, as do `p` and `q` in the index
+//     (`p->fogMap[q->size.width*row+col]` == `q->fogMap[q->size.width*row+col]`).
+//   - Also measured with the pinning tail in place, all worse: an index local
+//     `int cell = q->size.width*row+col` (82.9%, 302), the height test before
+//     the width test (80.0%, 299), the cell read through a `static inline`
+//     FogCell(p,col,row) helper (79.8%, 294), the sibling 0x474b80 arm locals
+//     `unsigned char* seen` plus `unsigned int w` (37.7%, 305), and one
+//     `int hit = cond; visible = hit ? 1 : 0;` (65.1%, 318).
+//   - So the mask arm wants NO long-lived visible (so edx is free for the width
+//     and the index) while the prologue wants one. A stronger model may find
+//     the construct that gives both; nothing I tried in this file does.
 #pragma pack(push, 1)
 
 struct Rect_004b0510 {

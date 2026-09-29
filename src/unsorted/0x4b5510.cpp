@@ -1,18 +1,7 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Switches the display between the DirectDraw fullscreen path (mode != 0) and
-// the GDI/DIB windowed path (mode == 0), rebuilding the surfaces, clipper and
-// palette. Returns 1 on success, 0 after releasing the 'MAIN' display lock.
-//
-// PARTIAL (33.3%). Structure and most of the body are right; what still
-// differs:
-//   - frame is 0x4cc, original 0x4d0 (one missing 4-byte local; the original
-//     caches &display->dc in a slot and reloads it, MSVC here folds it away).
-//   - original keeps 0 in ebp for the whole function (xor ebp,ebp at entry,
-//     then cmp eax,ebp / push ebp / mov [field],ebp); here ebp holds `locked`
-//     and the zero uses are immediates (test eax,eax, push 0), which shifts
-//     most of the instruction stream. `locked` needs to land in a stack slot
-//     to free ebp.
-//   - ETAs at 0x4b554b/0x4b5557 differ in which break point spills `locked`.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 87.7%. The lock loop and local frame now follow the original.
+// Remaining differences include zero tests, CreateSurface argument timing
+// and instruction scheduling around display cleanup.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -27,123 +16,142 @@ struct BitmapInfo_004b5510 {
     RGBQUAD bmiColors[256];
 };
 
+struct DirectDrawState {
+    IDirectDraw *ddraw;          // +0x84
+    IDirectDrawSurface *primary; // +0x88
+    IDirectDrawSurface *back;    // +0x8c
+    IDirectDrawClipper *clipper; // +0x90
+    IDirectDrawPalette *palette; // +0x94
+    void *field_98;              // +0x98
+    int field_9c;                // +0x9c
+};
+
 struct Display_004b5510 {
     char unknown_0[0x40];
-    HWND hwnd;                        // +0x40
-    HBITMAP dib;                      // +0x44
-    HDC dc;                           // +0x48
-    HPALETTE hpalette;                // +0x4c
+    HWND hwnd;         // +0x40
+    HBITMAP dib;       // +0x44
+    HDC dc;            // +0x48
+    HPALETTE hpalette; // +0x4c
     char unknown_50[0x84 - 0x50];
-    IDirectDraw* ddraw;               // +0x84
-    IDirectDrawSurface* primary;      // +0x88
-    IDirectDrawSurface* back;         // +0x8c
-    IDirectDrawClipper* clipper;      // +0x90
-    IDirectDrawPalette* palette;      // +0x94
-    void* field_98;                   // +0x98
-    int field_9c;                     // +0x9c
+    DirectDrawState draw;
     char unknown_a0[0xd4 - 0xa0];
-    int width;                        // +0xd4
-    int height;                       // +0xd8
+    int width;  // +0xd4
+    int height; // +0xd8
     char unknown_dc[0xf0 - 0xdc];
-    unsigned short field_f0;          // +0xf0
+    unsigned short field_f0; // +0xf0
     char unknown_f2[0x214 - 0xf2];
-    PALETTEENTRY entries[256];        // +0x214
+    PALETTEENTRY entries[256]; // +0x214
 };
 
 extern LONG DAT_0052a4e8;
 extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
-extern Display_004b5510* DAT_0051fbd0;
+extern Display_004b5510 *DAT_0051fbd0;
 
-int __stdcall FUN_0049f710(int guid, void* display, int zero);
-void __stdcall FUN_004b4ff0(Display_004b5510* d);
-void __stdcall FUN_004c6a60(Class_004c6a60* s, int width, int height, int a, int b);
-int __stdcall FUN_004c5e70(Surface_004b5510* s);
-void __cdecl FUN_004cbbe0(Surface_004b5510* dst, void* src, int x, int y);
-int __stdcall FUN_004c5fa0(Surface_004b5510* s);
-int __stdcall FUN_004ba200(PALETTEENTRY* entries, int start, int count);
+int __stdcall FUN_0049f710(int guid, void *display, int zero);
+void __stdcall FUN_004b4ff0(Display_004b5510 *d);
+void __stdcall FUN_004c6a60(Class_004c6a60 *s, int width, int height, int a, int b);
+int __stdcall FUN_004c5e70(Surface_004b5510 *s);
+void __cdecl FUN_004cbbe0(Surface_004b5510 *dst, void *src, int x, int y);
+int __stdcall FUN_004c5fa0(Surface_004b5510 *s);
+int __stdcall FUN_004ba200(PALETTEENTRY *entries, int start, int count);
 
 // FUNCTION: 0x4b5510
-int __stdcall FUN_004b5510(int mode)
-{
-    int locked;
-    Display_004b5510* d;
+int __stdcall FUN_004b5510(int mode) {
+    struct {
+        int lockResult;
+        HDC *dcSlot;
+    } setup;
+    Display_004b5510 *d;
     DDSURFACEDESC ddsd;
     BitmapInfo_004b5510 bmi;
     Surface_004b5510 surf;
+    DDSCAPS caps;
 
     while (1) {
-        locked = InterlockedExchange(&DAT_0052a4e8, 0x4d41494e);
-        if (locked == 0) {
+        int result = InterlockedExchange(&DAT_0052a4e8, 0x4d41494e);
+        if (result == 0) {
             DAT_0052a4ec = 0x4d41494e;
+            setup.lockResult = 0;
             break;
         }
-        if (DAT_0052a4ec == 0x4d41494e)
+        if (DAT_0052a4ec == 0x4d41494e) {
+            setup.lockResult = result;
             break;
+        }
         WaitForSingleObject(DAT_0052a4f0, INFINITE);
     }
-
     d = DAT_0051fbd0;
-    d->field_9c = 0;
-    FUN_004b4ff0(d);
+    DirectDrawState *dd = &d->draw;
+    DAT_0051fbd0->draw.field_9c = 0;
+    FUN_004b4ff0(DAT_0051fbd0);
 
-    d = DAT_0051fbd0;
-    HDC* pdc = &d->dc;
-    if (*pdc)
-        DeleteDC(*pdc);
-    if (d->hpalette)
-        DeleteObject(d->hpalette);
-    if (d->dib)
-        DeleteObject(d->dib);
-    d->hpalette = 0;
-    d->dib = 0;
-    *pdc = 0;
-    SetWindowPos(d->hwnd, NULL, 0, 0, DAT_0051fbd0->width,
-                 DAT_0051fbd0->height, SWP_NOZORDER | SWP_NOMOVE);
+    Display_004b5510 *cleanup = DAT_0051fbd0;
+    setup.dcSlot = &cleanup->dc;
+    if (*setup.dcSlot)
+        DeleteDC(*setup.dcSlot);
+    if (cleanup->hpalette)
+        DeleteObject(cleanup->hpalette);
+    if (cleanup->dib)
+        DeleteObject(cleanup->dib);
+    cleanup->hpalette = 0;
+    cleanup->dib = 0;
+    *setup.dcSlot = 0;
+    SetWindowPos(d->hwnd, NULL, 0, 0, DAT_0051fbd0->width, DAT_0051fbd0->height,
+                 SWP_NOZORDER | SWP_NOMOVE);
 
     if (mode != 0) {
         DAT_0051fbd0->field_f0 |= 2;
 
-        if (FUN_0049f710(0, &d->ddraw, 0) != 0)
-            goto fail;
-        if (d->ddraw->SetCooperativeLevel(d->hwnd, 0x53) != DD_OK)
-            goto fail;
-        if (d->ddraw->SetDisplayMode(d->width, d->height, 8) != DD_OK)
-            goto fail;
+        if (FUN_0049f710(0, &dd->ddraw, 0) == DD_OK) {
+            if (dd->ddraw->SetCooperativeLevel(d->hwnd, 0x53) == DD_OK) {
+                if (dd->ddraw->SetDisplayMode(DAT_0051fbd0->width, DAT_0051fbd0->height, 8) ==
+                    DD_OK) {
 
-        ZeroMemory(&ddsd, sizeof(ddsd));
-        ddsd.dwSize = sizeof(ddsd);
-        ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
-        ddsd.dwWidth = d->width;
-        ddsd.dwHeight = d->height;
-        ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
-        ddsd.dwBackBufferCount = 1;
-        if (d->ddraw->CreateSurface(&ddsd, &d->primary, NULL) != DD_OK)
-            goto fail;
+                    ZeroMemory(&ddsd, sizeof(ddsd));
+                    ddsd.dwSize = sizeof(ddsd);
+                    ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
+                    ddsd.dwWidth = DAT_0051fbd0->width;
+                    ddsd.dwHeight = DAT_0051fbd0->height;
+                    ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
+                    ddsd.dwBackBufferCount = 1;
+                    if (dd->ddraw->CreateSurface(&ddsd, &dd->primary, NULL) == DD_OK) {
 
-        DDSCAPS caps;
-        caps.dwCaps = DDSCAPS_BACKBUFFER;
-        if (d->primary->GetAttachedSurface(&caps, &d->back) != DD_OK)
-            goto fail;
+                        caps.dwCaps = DDSCAPS_BACKBUFFER;
+                        if (dd->primary->GetAttachedSurface(&caps, &dd->back) == DD_OK) {
 
-        if (d->ddraw->CreateClipper(0, &d->clipper, NULL) != DD_OK)
-            goto fail;
-        d->field_9c = 1;
-        if (d->clipper->SetHWnd(0, d->hwnd) != DD_OK)
-            goto fail;
-        if (d->primary->SetClipper(d->clipper) != DD_OK)
-            goto fail;
+                            dd->field_9c = 1;
+                            if (dd->ddraw->CreateClipper(0, &dd->clipper, NULL) == DD_OK) {
+                                if (dd->clipper->SetHWnd(0, d->hwnd) == DD_OK) {
+                                    if (dd->primary->SetClipper(dd->clipper) == DD_OK) {
 
-        if (d->ddraw->CreatePalette(4, d->entries, &d->palette, NULL) == DD_OK) {
-            if (d->primary->SetPalette(d->palette) != DD_OK)
+                                        if (dd->ddraw->CreatePalette(4, DAT_0051fbd0->entries,
+                                                                     &dd->palette, NULL) == DD_OK) {
+                                            if (dd->primary->SetPalette(dd->palette) != DD_OK)
+                                                goto fail;
+                                        }
+
+                                        if (DAT_0051fbd0->draw.field_98) {
+                                            FUN_004c5e70(&surf);
+                                            FUN_004cbbe0(&surf, DAT_0051fbd0->draw.field_98, 0, 0);
+                                            FUN_004c5fa0(&surf);
+                                        }
+                                    } else
+                                        goto fail;
+                                } else
+                                    goto fail;
+                            } else
+                                goto fail;
+                        } else
+                            goto fail;
+                    } else
+                        goto fail;
+                } else
+                    goto fail;
+            } else
                 goto fail;
-        }
-
-        if (d->field_98) {
-            FUN_004c5e70(&surf);
-            FUN_004cbbe0(&surf, d->field_98, 0, 0);
-            FUN_004c5fa0(&surf);
-        }
+        } else
+            goto fail;
     } else {
         DAT_0051fbd0->field_f0 &= ~2;
 
@@ -151,10 +159,9 @@ int __stdcall FUN_004b5510(int mode)
         d->dc = CreateCompatibleDC(hdc);
         ReleaseDC(d->hwnd, hdc);
 
-        void* bits;
         bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = d->width;
-        bmi.bmiHeader.biHeight = -d->height;
+        bmi.bmiHeader.biWidth = DAT_0051fbd0->width;
+        bmi.bmiHeader.biHeight = -DAT_0051fbd0->height;
         bmi.bmiHeader.biPlanes = 1;
         bmi.bmiHeader.biCompression = 0;
         bmi.bmiHeader.biBitCount = 8;
@@ -162,16 +169,16 @@ int __stdcall FUN_004b5510(int mode)
         bmi.bmiHeader.biClrUsed = 0;
         bmi.bmiHeader.biClrImportant = 0;
         ZeroMemory(bmi.bmiColors, sizeof(bmi.bmiColors));
-        d->dib = CreateDIBSection(d->dc, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, &bits, NULL, 0);
-        FUN_004c6a60((Class_004c6a60*)&d->unknown_50[0], d->width, d->height,
-                     (d->width + 3) & ~3, (int)bits);
+        d->dib = CreateDIBSection(d->dc, (BITMAPINFO *)&bmi, DIB_RGB_COLORS, (void **)&setup.dcSlot,
+                                  NULL, 0);
+        FUN_004c6a60((Class_004c6a60 *)&d->unknown_50[0], DAT_0051fbd0->width, DAT_0051fbd0->height,
+                     (DAT_0051fbd0->width + 3) & ~3, (int)setup.dcSlot);
         SelectObject(d->dc, d->dib);
-        SetWindowPos(d->hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
-                     SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        SetWindowPos(d->hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
-    FUN_004ba200(d->entries, 0, 0x100);
-    if (locked == 0) {
+    FUN_004ba200(DAT_0051fbd0->entries, 0, 0x100);
+    if (setup.lockResult == 0) {
         DAT_0052a4ec = 0;
         InterlockedExchange(&DAT_0052a4e8, 0);
         SetEvent(DAT_0052a4f0);
@@ -179,7 +186,7 @@ int __stdcall FUN_004b5510(int mode)
     return 1;
 
 fail:
-    if (locked == 0) {
+    if (setup.lockResult == 0) {
         DAT_0052a4ec = 0;
         InterlockedExchange(&DAT_0052a4e8, 0);
         SetEvent(DAT_0052a4f0);

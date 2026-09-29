@@ -1,32 +1,8 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 61.4% (original 1544 bytes, ours 1553). Writer counterpart of
-// 0x4b4270 (the HapiBank section reader, whose file pins every layout used
-// here). Writes one 0x20-byte section header, the int/double/string record
-// arrays, the blob records and the blob data into the open archive, optionally
-// replaces the uncompressed body with a compressed one, then rewrites the
-// header in place. Runtime call sequence, all callees, the record sizes and the
-// header field order already line up; what is left is allocation:
-//  * prologue: original does `mov edx,[ecx+4]` (slots) first then
-//    `lea eax,[eax+eax*2]` (index*3), giving `lea ebp,[edx+eax*8]`; ours is the
-//    reverse (`lea edx,[eax+eax*2]` / `mov eax,[ecx+4]` / `lea ebp,[eax+edx*8]`).
-//  * `off` (ftell) lands at esp+0x1c in ours, esp+0x14 in the original, so our
-//    frame is 8 bytes wider in the low locals.
-//  * the append idiom: original spills oldlen (`mov [esp+0x10],ecx`), reloads
-//    buf->len after the strlen and keeps the NAME in esi across FUN_004d8580;
-//    ours keeps oldlen in esi and reloads the name from slot->items1[i] after
-//    the call. Naming the string local or moving the append into a static
-//    helper both made this worse (46.9% / 45.7%).
-//  * the ints loop: original keeps slot in ebp and the item in eax; ours moves
-//    slot to a spill and uses ebp for the item.
-// What fixed the biggest step (43.3 -> 61.4): write `slot->items1[i]` member
-// accesses directly instead of binding an `Item1* it` local; MSVC then reloads
-// the item instead of pinning it in a callee-saved register. The same change in
-// the two blob loops is much worse (27.2%), so those keep their `Item2* it`.
-// The blob record leaves rec[1] unassigned in the flag != 0 arm exactly as the
-// original does (the reader ignores it on that path); keep `int rec[4]`.
-// See the notes at the end of the file too.
-#include <stdio.h>
-#include <string.h>
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 76.5%. Saved file-offset slots, loop register allocation and
+// compression temporaries differ. Cached names plus += length updates and
+// the vector header improve the append loops; the double record is 12 bytes.
+#include <vector>
 #include <io.h>
 
 struct Table_004b3630 {
@@ -105,20 +81,22 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
     fwrite(&h, sizeof(h), 1, file);
 
     {
+        char* name = slot->name;
         int oldlen = buf->len;
-        buf->len = oldlen + strlen(slot->name) + 1;
+        buf->len += strlen(name) + 1;
         buf->data = (char*)FUN_004d8580(buf->data, buf->len);
-        strcpy(buf->data + oldlen, slot->name);
+        strcpy(buf->data + oldlen, name);
         h.strOffset = oldlen;
     }
 
     int i;
     for (i = 0; i < slot->count1; i++) {
         if (slot->items1[i].type == 1) {
+            char* name = slot->items1[i].name;
             int oldlen = buf->len;
-            buf->len = oldlen + strlen(slot->items1[i].name) + 1;
+            buf->len += strlen(name) + 1;
             buf->data = (char*)FUN_004d8580(buf->data, buf->len);
-            strcpy(buf->data + oldlen, slot->items1[i].name);
+            strcpy(buf->data + oldlen, name);
             int rec[2];
             rec[0] = oldlen;
             rec[1] = slot->items1[i].value;
@@ -129,11 +107,12 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
 
     for (i = 0; i < slot->count1; i++) {
         if (slot->items1[i].type == 2) {
+            char* name = slot->items1[i].name;
             int oldlen = buf->len;
-            buf->len = oldlen + strlen(slot->items1[i].name) + 1;
+            buf->len += strlen(name) + 1;
             buf->data = (char*)FUN_004d8580(buf->data, buf->len);
-            strcpy(buf->data + oldlen, slot->items1[i].name);
-            int rec[2];
+            strcpy(buf->data + oldlen, name);
+            int rec[3];
             rec[0] = oldlen;
             *(double*)&rec[1] = *(double*)&slot->items1[i].value;
             fwrite(rec, 0xc, 1, file);
@@ -143,15 +122,16 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
 
     for (i = 0; i < slot->count1; i++) {
         if (slot->items1[i].type == 3) {
+            char* name = slot->items1[i].name;
             int oldlen = buf->len;
-            buf->len = oldlen + strlen(slot->items1[i].name) + 1;
+            buf->len += strlen(name) + 1;
             buf->data = (char*)FUN_004d8580(buf->data, buf->len);
-            strcpy(buf->data + oldlen, slot->items1[i].name);
+            strcpy(buf->data + oldlen, name);
             int rec[2];
             rec[0] = oldlen;
             int oldlen2 = buf->len;
             char* second = (char*)slot->items1[i].value;
-            buf->len = oldlen2 + strlen(second) + 1;
+            buf->len += strlen(second) + 1;
             buf->data = (char*)FUN_004d8580(buf->data, buf->len);
             strcpy(buf->data + oldlen2, second);
             rec[1] = oldlen2;
@@ -173,7 +153,7 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
             int rec[4];
             if (it->flag != 0) {
                 int oldlen = buf->len;
-                buf->len = oldlen + strlen(it->name) + 1;
+                buf->len += strlen(it->name) + 1;
                 buf->data = (char*)FUN_004d8580(buf->data, buf->len);
                 strcpy(buf->data + oldlen, it->name);
                 rec[0] = oldlen;
@@ -227,10 +207,3 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
     fseek(file, 0, 2);
 }
 
-// STILL DIFFERS: register allocation only (see the header comment). The section
-// header field order is pinned against the reader 0x4b4270 (size +0x00,
-// strOffset +0x04, nInts +0x08, nDoubles +0x0c, nStrings +0x10, nBlobs +0x14,
-// compressed +0x18), and the call sequence matches forward. The argument homes
-// esp+0x5c..esp+0x68 are reused by MSVC as the loop counters, the running data
-// offset and the compression handle; ours reuses different slots, which is the
-// main residual.

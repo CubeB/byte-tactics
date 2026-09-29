@@ -1,19 +1,7 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Window procedure of the main application window: translates the custom
-// display messages and forwards the rest to the default handler.
-//
-// PARTIAL, 84.5% (original 1104 bytes, ours 1136). What still differs:
-//  * Control flow and all struct offsets are right. The 32 extra bytes are in
-//    the two button-event arms (0x201/0x202/0x204/0x205 and 0x203/0x206): the
-//    original ends each arm with only the flag store and a `jmp` to a shared
-//    tail (lea &e / store msg / push / call FUN_004c2e30), while ours emits
-//    the whole tail in both arms. Reordering the field stores (flag before
-//    message, or after) did not make MSVC 5 merge the two suffixes.
-//  * The 0x219/0x3b9 handlers load DAT_0051fbd0 into eax then the callback
-//    field into eax, where the original uses ecx for DAT (0x219) / edx (0x3b9).
-//  * The 0x30f/0x311 palette arms use eax/ecx/edx in the opposite roles to the
-//    original (original: edx = DAT in 0x30f, ecx = DAT in 0x311).
-
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 87.8%. Button-event arms now share their message/call tail.
+// Null callback branches still select a different return-one epilogue,
+// and the query-palette branch uses different registers.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -74,6 +62,7 @@ void __stdcall FUN_004c2e30(Event_4b5cc0* ev);
 long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
                             unsigned int lparam)
 {
+    Event_4b5cc0 e;
     switch (msg) {
     case WM_CREATE:
         return 0;
@@ -109,7 +98,6 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
             return 0;
         return DefWindowProcA(hwnd, msg, wparam, lparam);
     case WM_MOUSEMOVE: {
-        Event_4b5cc0 e;
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
@@ -123,27 +111,21 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
     case WM_LBUTTONUP:
     case WM_RBUTTONDOWN:
     case WM_RBUTTONUP: {
-        Event_4b5cc0 e;
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
         e.time = GetTickCount() * DAT_0051fbd0->tickScale / 1000;
         e.flag = 0;
-        e.message = msg;
-        FUN_004c2e30(&e);
-        return 0;
+        goto button_event;
     }
     case WM_LBUTTONDBLCLK:
     case WM_RBUTTONDBLCLK: {
-        Event_4b5cc0 e;
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
         e.time = GetTickCount() * DAT_0051fbd0->tickScale / 1000;
         e.flag = 1;
-        e.message = msg;
-        FUN_004c2e30(&e);
-        return 0;
+        goto button_event;
     }
     case 0x219:
         if (DAT_0051fbd0->callback != 0)
@@ -184,4 +166,8 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
         return 1;
     }
     return DefWindowProcA(hwnd, msg, wparam, lparam);
+button_event:
+    e.message = msg;
+    FUN_004c2e30(&e);
+    return 0;
 }

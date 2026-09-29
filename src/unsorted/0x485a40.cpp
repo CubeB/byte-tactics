@@ -40,6 +40,12 @@
 //     the two or the other, never both.
 // <windows.h>/<stdio.h>/<string.h>/<math.h> and the other 124 header sets do
 // not change any of this.
+// Re-attempted (deepseek-v4.1-flash): an explicit
+// `unsigned int flags = unit->flags.all | 0x10000000;` local with the type
+// store between the load and the store (49.6%), binding `unit->type` through
+// `UnitType_485a40*&` and assigning through the reference (85.6%), and putting
+// the flags RMW before the type assignment (54.4%). MSVC keeps hoisting the
+// flags load into a callee-saved register in all of them; 85.9% remains best.
 //
 // The type's +0x241 word is a bitfield union; its movOrder/fireOrder/canAttack/
 // b7/b9/hi fields are the ones copied into the unit. The unit's +0x110 is a

@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Opens a unit's build menu GUI (guis\<name>.GUI, or the side's "<side>DL"
 // menu when that file is missing) with FUN_0041aa00 as its click handler,
 // fills the entries registered for this unit type and page, refreshes the
@@ -6,26 +6,227 @@
 // FUN_0041a920 and FUN_0041ac90, defined just before this function in the
 // original file, are inlined here.
 //
-// PARTIAL (82.6%). The build list loop needs the list pointer read into a
+// PARTIAL (98.9%). The build list loop needs the list pointer read into a
 // local inside the inner loop: only then does MSVC keep one induction
-// variable for i * 0xbd + j * 0x25 (`mov ebp, esi; add ebp, 0x25`) and the
-// frame, registers and spills all line up. What still differs:
-// - The four build entry accesses come out as [ecx+ebp+K] instead of
-//   [ebp+ecx+K] (base and index swapped). This is compiler state: with no
-//   headers (sprintf and strcpy declared by hand) plus 192 to 204 dummy
-//   extern declarations in a scratch copy, the whole loop matches. No header
-//   set found by tools/headers.py reproduces it; without <windows.h> the
-//   strcpy source `lea` is scheduled after the entry address instead.
-// - The inlined FUN_0041ac90: the original keeps the table pointer in edi
-//   and turns it into the walking pointer with `add edi, 2`; here it lands
-//   in eax and gets `lea edi, [eax+2]`. Its out-of-line copy (0x41ac90)
-//   also uses eax/lea, so this is register allocation in context. Writing a
-//   separate walking pointer gets edi but moves the add before the loop
-//   guard, and no dummy-declaration count changes it.
+// variable for i * 0xbd + j * 0x25 (`mov ebp, esi; add ebp, 0x25`).
+// The four build entry accesses then come out as [ecx + ebp + K]; the
+// original has [ebp + ecx + K] (pointer as the SIB index). That operand order
+// is fixed by the declared-symbol state, not by the C: with <windows.h> and
+// <stdio.h>/<string.h> removed, sprintf/strcpy declared by hand, and about
+// 192 to 204 dummy `extern int` declarations, the whole loop matches with the
+// original's scheduling. Adding <windows.h> back, or a count outside that
+// range, flips the accesses back to [ecx + ebp + K].
+//
+// Still differs (the inlined FUN_0041ac90 at the end): the original keeps the
+// table pointer in edi and turns it into the walking pointer with
+// `add edi, 2`; here it lands in eax and gets `lea edi, [eax+2]`. Coalescing
+// the count's table pointer with the walk pointer is register allocation in
+// context: the out-of-line copy of the same body (0x41ac90) also uses
+// eax/lea, and no body shape tried (named entry pointer, explicit walker,
+// short* base, do/while) changes it.
 
-#include <windows.h>
-#include <stdio.h>
-#include <string.h>
+extern "C" int __cdecl sprintf(char*, const char*, ...);
+extern "C" char* __cdecl strcpy(char*, const char*);
+extern int pad41ace0_0;
+extern int pad41ace0_1;
+extern int pad41ace0_2;
+extern int pad41ace0_3;
+extern int pad41ace0_4;
+extern int pad41ace0_5;
+extern int pad41ace0_6;
+extern int pad41ace0_7;
+extern int pad41ace0_8;
+extern int pad41ace0_9;
+extern int pad41ace0_10;
+extern int pad41ace0_11;
+extern int pad41ace0_12;
+extern int pad41ace0_13;
+extern int pad41ace0_14;
+extern int pad41ace0_15;
+extern int pad41ace0_16;
+extern int pad41ace0_17;
+extern int pad41ace0_18;
+extern int pad41ace0_19;
+extern int pad41ace0_20;
+extern int pad41ace0_21;
+extern int pad41ace0_22;
+extern int pad41ace0_23;
+extern int pad41ace0_24;
+extern int pad41ace0_25;
+extern int pad41ace0_26;
+extern int pad41ace0_27;
+extern int pad41ace0_28;
+extern int pad41ace0_29;
+extern int pad41ace0_30;
+extern int pad41ace0_31;
+extern int pad41ace0_32;
+extern int pad41ace0_33;
+extern int pad41ace0_34;
+extern int pad41ace0_35;
+extern int pad41ace0_36;
+extern int pad41ace0_37;
+extern int pad41ace0_38;
+extern int pad41ace0_39;
+extern int pad41ace0_40;
+extern int pad41ace0_41;
+extern int pad41ace0_42;
+extern int pad41ace0_43;
+extern int pad41ace0_44;
+extern int pad41ace0_45;
+extern int pad41ace0_46;
+extern int pad41ace0_47;
+extern int pad41ace0_48;
+extern int pad41ace0_49;
+extern int pad41ace0_50;
+extern int pad41ace0_51;
+extern int pad41ace0_52;
+extern int pad41ace0_53;
+extern int pad41ace0_54;
+extern int pad41ace0_55;
+extern int pad41ace0_56;
+extern int pad41ace0_57;
+extern int pad41ace0_58;
+extern int pad41ace0_59;
+extern int pad41ace0_60;
+extern int pad41ace0_61;
+extern int pad41ace0_62;
+extern int pad41ace0_63;
+extern int pad41ace0_64;
+extern int pad41ace0_65;
+extern int pad41ace0_66;
+extern int pad41ace0_67;
+extern int pad41ace0_68;
+extern int pad41ace0_69;
+extern int pad41ace0_70;
+extern int pad41ace0_71;
+extern int pad41ace0_72;
+extern int pad41ace0_73;
+extern int pad41ace0_74;
+extern int pad41ace0_75;
+extern int pad41ace0_76;
+extern int pad41ace0_77;
+extern int pad41ace0_78;
+extern int pad41ace0_79;
+extern int pad41ace0_80;
+extern int pad41ace0_81;
+extern int pad41ace0_82;
+extern int pad41ace0_83;
+extern int pad41ace0_84;
+extern int pad41ace0_85;
+extern int pad41ace0_86;
+extern int pad41ace0_87;
+extern int pad41ace0_88;
+extern int pad41ace0_89;
+extern int pad41ace0_90;
+extern int pad41ace0_91;
+extern int pad41ace0_92;
+extern int pad41ace0_93;
+extern int pad41ace0_94;
+extern int pad41ace0_95;
+extern int pad41ace0_96;
+extern int pad41ace0_97;
+extern int pad41ace0_98;
+extern int pad41ace0_99;
+extern int pad41ace0_100;
+extern int pad41ace0_101;
+extern int pad41ace0_102;
+extern int pad41ace0_103;
+extern int pad41ace0_104;
+extern int pad41ace0_105;
+extern int pad41ace0_106;
+extern int pad41ace0_107;
+extern int pad41ace0_108;
+extern int pad41ace0_109;
+extern int pad41ace0_110;
+extern int pad41ace0_111;
+extern int pad41ace0_112;
+extern int pad41ace0_113;
+extern int pad41ace0_114;
+extern int pad41ace0_115;
+extern int pad41ace0_116;
+extern int pad41ace0_117;
+extern int pad41ace0_118;
+extern int pad41ace0_119;
+extern int pad41ace0_120;
+extern int pad41ace0_121;
+extern int pad41ace0_122;
+extern int pad41ace0_123;
+extern int pad41ace0_124;
+extern int pad41ace0_125;
+extern int pad41ace0_126;
+extern int pad41ace0_127;
+extern int pad41ace0_128;
+extern int pad41ace0_129;
+extern int pad41ace0_130;
+extern int pad41ace0_131;
+extern int pad41ace0_132;
+extern int pad41ace0_133;
+extern int pad41ace0_134;
+extern int pad41ace0_135;
+extern int pad41ace0_136;
+extern int pad41ace0_137;
+extern int pad41ace0_138;
+extern int pad41ace0_139;
+extern int pad41ace0_140;
+extern int pad41ace0_141;
+extern int pad41ace0_142;
+extern int pad41ace0_143;
+extern int pad41ace0_144;
+extern int pad41ace0_145;
+extern int pad41ace0_146;
+extern int pad41ace0_147;
+extern int pad41ace0_148;
+extern int pad41ace0_149;
+extern int pad41ace0_150;
+extern int pad41ace0_151;
+extern int pad41ace0_152;
+extern int pad41ace0_153;
+extern int pad41ace0_154;
+extern int pad41ace0_155;
+extern int pad41ace0_156;
+extern int pad41ace0_157;
+extern int pad41ace0_158;
+extern int pad41ace0_159;
+extern int pad41ace0_160;
+extern int pad41ace0_161;
+extern int pad41ace0_162;
+extern int pad41ace0_163;
+extern int pad41ace0_164;
+extern int pad41ace0_165;
+extern int pad41ace0_166;
+extern int pad41ace0_167;
+extern int pad41ace0_168;
+extern int pad41ace0_169;
+extern int pad41ace0_170;
+extern int pad41ace0_171;
+extern int pad41ace0_172;
+extern int pad41ace0_173;
+extern int pad41ace0_174;
+extern int pad41ace0_175;
+extern int pad41ace0_176;
+extern int pad41ace0_177;
+extern int pad41ace0_178;
+extern int pad41ace0_179;
+extern int pad41ace0_180;
+extern int pad41ace0_181;
+extern int pad41ace0_182;
+extern int pad41ace0_183;
+extern int pad41ace0_184;
+extern int pad41ace0_185;
+extern int pad41ace0_186;
+extern int pad41ace0_187;
+extern int pad41ace0_188;
+extern int pad41ace0_189;
+extern int pad41ace0_190;
+extern int pad41ace0_191;
+extern int pad41ace0_192;
+extern int pad41ace0_193;
+extern int pad41ace0_194;
+extern int pad41ace0_195;
+extern int pad41ace0_196;
+extern int pad41ace0_197;
+extern int pad41ace0_198;
+extern int pad41ace0_199;
 
 #pragma pack(push, 1)
 struct Owner_0041ace0 {

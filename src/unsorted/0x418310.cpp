@@ -1,6 +1,23 @@
-// Decompiled by GPT-5.6 Astra. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
 // Region-split skeleton, per docs/splitting-huge-functions.md (PR #1287).
 // Checked by space-bunny-free. Names are provisional.
+//
+// RETRY NOTE (deepseek-v4.1-flash, 55.5%, no variant beat this file). The frame
+// size and byte count are right; the score is stuck because the ORIGINAL walks
+// the quad with two screen-base INDUCTION variables, esp+0x38 and esp+0x3c,
+// bumped by 0x10 at each corner, and derives each vertex as
+//     p[k].x = baseX - scrollX;
+//     p[k].y = baseY - (heights[k]>>1) - scrollY;
+// with x++/y++/x--/y-- and tile += 13, += 13*width, -= 13, -= 13*width. The
+// skeleton recomputes (x+8)*16 and (y+2)*16 per vertex, which is the first
+// divergence (see 0x418401-0x41858e) and cascades into the whole register
+// allocation. The preheader also diverges before that: the original computes
+// lastX = viewWidth + firstX + 1 before lastY = height-1 and the two clamps,
+// while this file loads width first at 0x41838e. Both are statement-shape /
+// declaration-order levers, not register-allocation noise: the original has
+// the loop cursors at esp+0x10 (y) and esp+0x34 (x) with the quad at
+// esp+0x14..0x33, so its declaration order is y, p[4], x, baseX, baseY, tile,
+// heights[4], lastX, offscreen, movement, lastY, player, firstX.
 //
 // STATUS: the gate NOW PASSES, and it was the whole ball game. check.py reads
 // 55.5% at 2203 of 2203 bytes, the original's exact size, from 36.8% at 2251

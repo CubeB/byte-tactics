@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Handles a click on an order button: finds which order the button's name
 // contains and selects that order mode (FUN_00419bc0 inlined), plays the
 // "immediateorders" or "specialorders" sound and returns 1; returns 0 when the
@@ -24,6 +24,15 @@
 // that takes `&button` locally and leaves no code of its own. Passing
 // `&button` to a real function in a branch that is later removed also makes
 // it address-taken, but then it is reloaded after every call.
+//
+// Retry (deepseek-v4.1-flash): confirmed the register pair and the single
+// reload are insensitive to the selection's source form. Roughly 45 shapes
+// scored through compile_source/compare directly (sel local, if/else, `!=`,
+// `*&button`, pointer casts, union/struct/array copies, inline helpers taking
+// `Entry*&`, `Entry* const&`, `Entry**` or by value, moving the `orders`/`arr`
+// declarations, swapping the parameter declaration order) and a 0..44
+// dummy-`extern int` sweep all produced byte-identical output at 84.1%. So
+// this is compiler state, not something the expression can lever.
 #include <string.h>
 
 class Class_00438760 {

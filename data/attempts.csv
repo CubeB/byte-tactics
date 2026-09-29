@@ -3410,7 +3410,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c90b0,195,space-bunny-free,#592,partial,93.4,,"issue #592, escalated"
 0x4b95a0,252,deepseek-v4.1-flash,#595,matched,100.0,,"issue #595, escalated"
 0x4b9d70,234,deepseek-v4.1-flash,#595,partial,58.2,,"issue #595, escalated"
-0x47dfc0,559,,#599,assigned,,,"issue #599, escalated"
+0x47dfc0,559,sonnet-5.5,#599,matched,100.0,,"issue #599, escalated"
 0x46d2e0,475,,#601,assigned,,,"issue #601, escalated"
 0x46d6c0,416,,#601,assigned,,,"issue #601, escalated"
 0x46e640,546,,#601,assigned,,,"issue #601, escalated"

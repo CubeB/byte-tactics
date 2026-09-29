@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: vector element types, destructor declarations, derived/embedded
+// vector wrappers, constructor bodies and orbit-offset variants did not improve
+// 93.9%. The landing _Destroy call and orbit distance reload still differ.
 // VTOL attack order handler ("Attacking"). With flags 0x1000a, or with no
 // target and order flag 0x200, it queues VTOL_SEEKATTACK instead; when out of
 // the order's range it gives up. State 0 prepares the order (FUN_0040f200 is

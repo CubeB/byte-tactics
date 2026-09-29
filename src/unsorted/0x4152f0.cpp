@@ -1,64 +1,10 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// VTOL patrol order handler ("Patrolling"). State 0 prepares the order
-// (FUN_0040f200 is defined here because /Ob2 inlined it). State 1 flies on:
-// when damaged it lands on a random free pad (VTOL_LANDING); with enough
-// energy it helps build or repair an allied unit nearby (visitor
-// Class_004158d0, VTOL_HELPBUILD); otherwise it reclaims features for metal
-// or energy (VTOL_RECLAIM).
-//
-// Partial: 74.9%. What still differs:
-// - The landing block. The original calls vector<Unit*>'s constructor
-//   (0x40c510), the size() inside empty() (0x40c560) and the destructor
-//   (0x40c530, twice) out of line, but inlines the direct size() and
-//   operator[], and inlines all of the second vector<Unit*> (the visitor's
-//   list) further down. Written inline here (plain vector, Class_00410830
-//   wrapper, wrapper with forwarding methods) MSVC inlines everything.
-//   Only the Land helper below plus the Class_00410830 wrapper (a
-//   vector<Unit*> subclass, as in 0x4103e0 and 0x410850, whose out-of-line
-//   constructor is 0x410830) reproduces the calls,
-//   but its return flag leaves a test (mov eax, 1; test eax, eax; je) that the
-//   original lacks: MSVC 5 never threads the helper's last return. Probing
-//   with extra FUN_0040f200 copies shows /Ob2 handles depth-1 call sites in
-//   source order and deeper ones last-first, so the original probably ran out
-//   of inline budget right after the visitor part's depth-2 calls. Many small
-//   inline helpers (even 600) use no budget; big ones (FUN_0040f200 copies,
-//   or a rejected inline Reclaim helper) do. Giving Class_00438760 its real
-//   constructor body inline (as a header might) is rejected by /Ob2 but still
-//   uses budget: the inline-landing version then calls the landing vector's
-//   _Destroy out of line, the right direction but not far enough. What used
-//   the rest of the budget in the original was not found.
-// - The reclaim tail. Here branches 1 and 4 share their constructor tail but
-//   2 and 3 keep their own. An if/else-if chain assigning one
-//   `Class_0043a1f0* node` per branch, then one FUN_0043acb0(unit, node),
-//   merges all four exactly as the original (1 and 4 at push eax, 2 and 3
-//   after it), but then the new pointer takes esi and order/unit move to
-//   edi/ebx; it only gets esi=order, edi=unit, ebx=new when unit and order
-//   have a few more uses (for example the health test repeated in the caller),
-//   which again points at the landing code being inline in the original.
-// - Branches 3 and 4 load the amount before the owner's field (fld [esp+x];
-//   fadd [ecx+0x98]); the original loads the field first. Operand order,
-//   casts and headers do not change it. Branch 2's energy test lacks the
-//   original's fld cap; fmul; fld energy; fxch order.
-// What helped: FUN_0047ea40's range is a 4-byte union passed by value (the
-// original does mov eax, 0xf00000; push eax), and declaring the energy
-// pointer before the metal one gives the right stack slots.
-//
-// Round-12 retry results (deepseek-v4.1-flash), all in build/scratch/0x4152f0/:
-// - Single `Class_0043a1f0* node` assigned per branch then one
-//   FUN_0043acb0(unit, node): 60.1%, register roles collapse.
-// - Landing written inline (no Land helper) with the plain vector subclass:
-//   65.5%, frame drops to 0x40 and esi/edi swap, so the helper's stack home
-//   is what shapes the frame. Do not remove it.
-// - Full std::vector<Unit*,allocator> specialization (0x410850 style) with
-//   pads.empty()/pads.count() and units.inlineEmpty(): 65.3%, the visitor
-//   vector then calls size() out of line. 0x4103e0's specialization has no
-//   user ctor, so it cannot zero the visitor vector.
-// - Swapping so the capacity product is the left operand does not move the
-//   x87 loads; branch 2 still does fld energy; fld cap; fmul; fcompp where
-//   the original does fld cap; fmul; fld energy; fxch; fcompp.
-// The reclaim tail: the compiler merges branches 1 and 4 (both end push eax)
-// into one shared constructor tail but duplicates it for 2 (push ecx) and 3
-// (push edx); the original routes all four through the tail at 0x415774.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Partial: 87.2%. Total's float accumulation restores field-first x87 addition.
+// Landing still has an extra test of the helper's constant success result; keep
+// its helper boundary to preserve the original vector lifecycle calls and frame.
+// Reclaim constructors still share only part of the tail. A selected destination,
+// common QueueReclaim helper, alternate landing branches, capacity temporaries,
+// and real order constructor bodies did not improve this version.
 #include <vector>
 
 struct Vec3 { int x, y, z; };
@@ -148,7 +94,6 @@ int __stdcall FUN_0043b400(Unit*, Unit*, int);
 union Fixed { int v; struct { unsigned short frac; short whole; } p; };
 int __stdcall FUN_0047ea40(Vec3*, Fixed, Vec3**, float*, Vec3**, float*);
 
-// 0x40f200, matched in 0x40f200.cpp; inlined into the state 0 case below.
 void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
 {
     ((Class_004898b0*)unit)->FUN_004898b0(3);
@@ -179,6 +124,12 @@ static inline int Land(Unit* unit, Order* order)
     return 1;
 }
 
+static inline float Total(float base, float amount)
+{
+    float value = base;
+    value += amount;
+    return value;
+}
 // FUNCTION: 0x4152f0
 int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
 {
@@ -243,11 +194,11 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                 order->flags = 0;
-            } else if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
+            } else if (metal && Total(unit->owner->metal, metalAmount) <= unit->owner->metalCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                 order->flags = 0;
-            } else if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
+            } else if (energy && Total(unit->owner->energy, energyAmount) <= unit->owner->energyCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                 order->flags = 0;

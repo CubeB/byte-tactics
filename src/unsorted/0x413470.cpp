@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: range/difference helpers, target-position addition helpers,
+// declaration layout, constructor bodies and coordinate field names did not
+// improve 97.4%. The first hypot and missed-attack waypoint loads still differ.
 // VTOL attack order handler for a unit target. With flags 0x10008, or with
 // no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
 // player it heads for the map centre. State 0 prepares the order

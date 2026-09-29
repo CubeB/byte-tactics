@@ -109,6 +109,19 @@
 // trailing `if (--(*count) <= 0) break;` 76.2; a second block-scoped
 // `&DAT->count` for the shift loop 40.0 at 193 bytes; a `List*` local with
 // `&list->count` 66.7 (everything folds onto one register).
+//
+// deepseek-v4.1-flash second pass: the do/while shape (guard through the base,
+// back edge through `*count`) does reproduce the forwarded back edge
+// (`mov eax,ecx`) and the whole body, but its prologue always loads the global
+// into a scratch and copies it (`mov eax,[DAT]; mov ebp,eax; lea edi,[eax+0x99];
+// mov eax,[ebp+0x99]`), 166 bytes, 85.7%, and the redundant preheader
+// `lea edi,[ebp+0x99]` never appears. Declaring `count` inside the guard
+// (so its first use is after the test), deriving it from `entries`, spelling
+// the guard as `entries[9].field_0`, using a `goto`/`for(;;)` guard, or a
+// static inline shift helper all leave that prologue unchanged. Conversely the
+// base-form `while` (this file) keeps the exact prologue but reloads the count
+// through `[ebp+0x99]` on the back edge. The two are an allocator trade-off,
+// not a spelling: 91.2% is still the best found.
 
 void FUN_004d85a0(int* param_1);
 

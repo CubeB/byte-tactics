@@ -39,6 +39,21 @@
 // Class_004d0130, but ctx.py names it Class_004ceee0::FUN_004ceee0; if the
 // loop is ever fixed the symbol check will want a separate Class_004ceee0 and
 // a cast on `sound`.
+// deepseek-v4.1-flash retry (#1451): confirmed 86.2% (219 bytes) is the ceiling
+// for every shape tried this pass, all scored with --sym (0 counted check runs
+// beyond the confirming one). New shapes scored, all <= 86.2%: count derived
+// from a local list as `&list->count` folds the pointer (53.8%), as
+// `(int*)((char*)list + 0x99)` still folds (53.8%), a `for` loop with the
+// pointer in the init clause folds (53.8%), a `List* const list` folds (53.8%),
+// a pointer-to-pointer route `(**pp)` reproduces the exact 86.2% eax detour,
+// `&DAT->count` with a separate `entries` local (69.2%), and `while(list->count)`
+// with the pointer as the decrement (69.2%). The root difference is unchanged:
+// the original materialises the global into ebp directly (`mov ebp,[DAT]`) and
+// derives edi from ebp, with the extra `lea edi,[ebp+0x99]` rematerialised at
+// the shift-loop preheader; every spelling that derives the count pointer from
+// the global puts the global in eax and copies to ebp (+1 byte, -6 bytes from
+// the missing lea), and every spelling that derives it from the list folds the
+// pointer away. Best remains 86.2%.
 
 #pragma pack(push, 1)
 struct Entry_0047f8c0 {                // 0x11 bytes

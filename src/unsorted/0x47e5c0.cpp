@@ -27,6 +27,17 @@
 // plus all four bounds collapses to the v1 allocation (grid esi, x ecx, y edx).
 // What is still missing is making the y counter outrank the grid pointer for
 // esi (so grid takes edi); no source-level ordering tried made that happen.
+//
+// More retries (deepseek-v4.1-flash): the 67.5% shape is the combined-init
+// `for (int y = (pos.y>>3)-1, ye = (sumy>>3)+1; y <= ye; y++)`, still the best
+// found. Neither operand order in sumx/sumy (`size.x + pos.x` etc.), nor
+// old-style `int x, y;` declarations, nor `while` loops, nor hoisting size.y
+// into its own local, nor computing xend before sumy beats it. They all land
+// in the same allocation: MSVC loads size.y into edi just after the pushes
+// (so the `lea` of the grid pointer takes esi), keeps the x counter in edx and
+// the y counter in ecx. The original instead loads size.y into edx before the
+// pushes, then `lea edi, [eax+0x1429f]` for the grid, and keeps y in esi.
+// What is needed is to stop size.y from occupying edi at the grid lea point.
 
 struct Obj_0047e5c0;
 

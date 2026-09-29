@@ -1,4 +1,13 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (third pass): declaring double scale = lens; BEFORE the
+// count/pitch pair lifts the score from 51.7 to 53.1 percent (best so far). The
+// first diff hunk is still the allocator: the original holds w in ebp, h in esi,
+// pitch (2*w) in edi and count (2*w*h) in ebx across the alloc call and spills f
+// to the arg1 slot; every spelling here instead computes count in esi
+// (imul esi,ebp / shl esi,1), takes ebx for pitch and keeps f in edi, reloading h
+// from its argument slot. To close it, h must win esi over the count temp: all
+// pre-block orderings (scale, count, pitch, f permutations; w*h*2, (w*2)*h,
+// h*(w*2)) give 51.7 or 53.1 and never move count out of esi.
 // deepseek-v4.1-flash (second pass, same session model): re-confirmed the
 // prologue is a genuine plateau, and pinned what does and does not reach the
 // allocator here. 24 further spellings of the pitch/count pre-block
@@ -27,7 +36,7 @@
 // into memory (pitch takes esi) or reuses esi for count. Sweeps of the
 // pre-block (25 orders), the whole pitch/count/size spelling, and
 // tools/headers.py (128 sets, flat 51.7) did not move it.
-// PARTIAL, 51.7% (420 of 423 bytes; up from 45.6%). The 146-instruction
+// PARTIAL, 53.1% (420 of 423 bytes). The 146-instruction
 // original is matched instruction for instruction in outline, so what is left
 // is register and slot placement, not missing code. About ninety shapes were
 // scored with check.py --sym; this is a strong partial and NOT a proven
@@ -158,9 +167,9 @@ extern void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 // FUNCTION: 0x4b91b0
 unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
 {
+    double scale = lens;
     int count = (w * 2) * h;
     int pitch = w * 2;
-    double scale = lens;
     LensFrame_4b91b0* f = (LensFrame_4b91b0*)FUN_004d83b0("LensFrame", count * 2 + 0x18);
     f->pitch = (unsigned short)pitch;
     f->data = f->cells;

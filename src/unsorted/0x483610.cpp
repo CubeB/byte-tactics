@@ -4,17 +4,12 @@
 // and allocates the tile map, plot memory, tile set, sort lists and the
 // mapped and eyeball memory blocks.
 //
-// STATUS: not a match. `uv run tools/check.py 0x483610` gives 1971 of 1975
-// bytes, 94.8%. The frame (0xa4), every stack slot, string and call match;
-// what is left is instruction order:
-//  - r1: the attr_a store (esp+0x4c) comes before the tile_map_src store in
-//    ours, after the attr_b pointer arithmetic in the original.
-//  - r4: the original computes rows into esi and cols into ebx and pushes the
-//    operator delete argument before the two obj stores; ours has the
-//    registers the other way round.
-//  - the attr_a path's second loop stores its count to esp+0x10 on entry.
-//  - `xor ebx, ebx` (the zero point) comes before `xor eax, eax` after the
-//    buffer allocation.
+// STATUS: MATCH (1975/1975 bytes). `uv run tools/check.py 0x483610` prints
+// MATCH. Instruction order was fixed by: moving attr_b ahead of attr_a in the
+// 0x1020 case, hoisting the attr_b plot pointer above the count test, moving
+// `b.n = a.n` inside the attr_a count test, giving the attr_a second loop its
+// own `int n` counter, inverting the zero-size test around operator new, and
+// declaring r4's `int cols, rows;` in that order while assigning rows first.
 // Two constant multiplies survive only because `(x * 65536.0) * 0.0011111111111111111`
 // is parenthesised; without it the compiler folds them into one.
 
@@ -121,8 +116,8 @@ void FUN_00483610()
         info.tile_set_count = tnt[6];
         info.tile_set_src = (int*)(tnt[5] + (int)tnt);
         info.tile_map_src = (int*)(tnt[3] + (int)tnt);
-        info.attr_a = 0;
         info.attr_b = (unsigned char*)(tnt[4] + (int)tnt);
+        info.attr_a = 0;
         info.attr_limit = 0xfc;
         info.feature_flags = info.feature_flags ^ ((tnt[0xf] ^ info.feature_flags) & 1);
         info.feature_data = (unsigned short*)(tnt[0xe] + (int)tnt);
@@ -220,8 +215,8 @@ void FUN_00483610()
     }
     FUN_00421f20(&info.version);
     if (info.attr_b != 0) {
+        unsigned char* q = *(unsigned char**)&tmp0[35];
         if (a.n > 0) {
-            unsigned char* q = *(unsigned char**)&tmp0[35];
             unsigned char* src = info.attr_b;
             for (int i = a.n; i > 0; i--) {
                 q[4] = *src;
@@ -232,7 +227,7 @@ void FUN_00483610()
             }
         }
         if (*(int*)(DAT_00511de8 + 0x38d6b) == 0) {
-            unsigned char* q = *(unsigned char**)&tmp0[35];
+            q = *(unsigned char**)&tmp0[35];
             if (a.n > 0) {
                 unsigned char* src = info.attr_b + 2;
                 do {
@@ -248,8 +243,8 @@ void FUN_00483610()
         if (info.attr_a != 0) {
             unsigned char* q = *(unsigned char**)&tmp0[35];
             unsigned char* src = info.attr_a;
-            b.n = a.n;
             if (a.n > 0) {
+                b.n = a.n;
                 do {
                     q[4] = *src;
                     q[0xc] = (q[0xc] & 0xd7) | 0x50;
@@ -262,15 +257,16 @@ void FUN_00483610()
             }
             if (*(int*)(DAT_00511de8 + 0x38d6b) == 0) {
                 q = *(unsigned char**)&tmp0[35];
-                unsigned short* sp = (unsigned short*)(info.attr_a + 1);
                 if (a.n > 0) {
+                    unsigned short* sp = (unsigned short*)(info.attr_a + 1);
+                    int n = a.n;
                     do {
                         if ((int)*sp < info.attr_limit)
                             FUN_00423c50(q, *sp, 0, 0, 10);
                         q += 0xd;
                         sp += 2;
-                        a.n--;
-                    } while (a.n != 0);
+                        n--;
+                    } while (n != 0);
                 }
                 FUN_00423160();
             }
@@ -308,18 +304,19 @@ void FUN_00483610()
         a.n = 3;
     if (mh % 32 != 0)
         rb = 3;
-    int cols = *(int*)((char*)tmp0 + 0x40) / 2 + a.n;
-    int rows = *(int*)((char*)tmp0 + 0x44) / 2 + rb;
+    int cols, rows;
+    rows = *(int*)((char*)tmp0 + 0x44) / 2 + rb;
+    cols = *(int*)((char*)tmp0 + 0x40) / 2 + a.n;
     obj[1] = cols;
     obj[2] = rows;
     operator delete((void*)obj[0]);
     unsigned int total = (rows * cols + 7U) & 0xfffffff8;
     obj[3] = total;
     int buf;
-    if (total == 0)
-        buf = 0;
-    else
+    if (total != 0)
         buf = (int)operator new(total * 2);
+    else
+        buf = 0;
     obj[0] = buf;
     *(unsigned short*)(DAT_00511de8 + 0x14281) &= 0xfff7;
     b.p.x = 0;

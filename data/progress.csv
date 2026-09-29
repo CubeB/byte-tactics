@@ -1540,6 +1540,7 @@ address,size,file,symbol,status,similarity
 0x4777a0,406,src/unsorted/0x4777a0.cpp,?FUN_004777a0@@YAXXZ,matched,100.0
 0x477940,153,src/unsorted/0x477940.cpp,?FUN_00477940@@YGXPAD@Z,matched,100.0
 0x4779e0,200,src/unsorted/0x4779e0.cpp,?FUN_004779e0@@YGXPAUMenu_004779e0@@H@Z,matched,100.0
+0x478790,944,src/unsorted/0x478790.cpp,?FUN_00478790@@YGXPAUWindow_00478790@@PAUItem_00478790@@@Z,matched,100.0
 0x478b40,364,src/unsorted/0x478b40.cpp,?FUN_00478b40@@YGXPAUWindow_00478b40@@PAUItem_00478b40@@@Z,matched,100.0
 0x478cb0,462,src/unsorted/0x478cb0.cpp,?FUN_00478cb0@@YGXPAUMenu_00478cb0@@@Z,matched,100.0
 0x4794d0,37,src/unsorted/0x4794d0.cpp,?FUN_004794d0@@YAHXZ,matched,100.0
@@ -1578,6 +1579,7 @@ address,size,file,symbol,status,similarity
 0x47c6c0,176,src/unsorted/0x47c6c0.cpp,?FUN_0047c6c0@Class_0047c6c0@@QAEXXZ,matched,100.0
 0x47c770,6,src/unsorted/0x47c770.cpp,?FUN_0047c770@@YAHXZ,matched,100.0
 0x47c780,6,src/unsorted/0x47c780.cpp,?FUN_0047c780@@YAHXZ,matched,100.0
+0x47c790,816,src/unsorted/0x47c790.cpp,?FUN_0047c790@@YGXPAUObj_0047c790@@@Z,matched,100.0
 0x47cac0,33,src/unsorted/0x47cac0.cpp,?FUN_0047cac0@@YGXUPt_0047db20@@0@Z,matched,100.0
 0x47caf0,1,src/unsorted/0x47caf0.cpp,?FUN_0047caf0@@YAXXZ,matched,100.0
 0x47cb00,51,src/unsorted/0x47cb00.cpp,?FUN_0047cb00@Class_0047cb00@@QAEXPAUNode_0047cb00@@@Z,matched,100.0
@@ -1594,6 +1596,7 @@ address,size,file,symbol,status,similarity
 0x47de60,342,src/unsorted/0x47de60.cpp,?FUN_0047de60@@YGHPAUPathfinder_0047de60@@PAUCell_0047de60@@@Z,partial,86.8
 0x47dfc0,559,src/unsorted/0x47dfc0.cpp,?FUN_0047dfc0@@YGHPAUPathfinder_0047dfc0@@HHHH@Z,partial,76.4
 0x47e1f0,224,src/unsorted/0x47e1f0.cpp,?FUN_0047e1f0@@YGIPAVClass_00440830@@HH@Z,matched,100.0
+0x47e2d0,658,src/unsorted/0x47e2d0.cpp,?FUN_0047e2d0@@YGHPAUUnit@@PAUVec3@@@Z,matched,100.0
 0x47e570,75,src/unsorted/0x47e570.cpp,?FUN_0047e570@@YGHPAUStruct_0047e570@@H@Z,matched,100.0
 0x47e5c0,386,src/unsorted/0x47e5c0.cpp,?FUN_0047e5c0@@YGXUPt_0047db20@@0PAVClass_0047db20@@@Z,partial,67.5
 0x47e750,307,src/unsorted/0x47e750.cpp,?FUN_0047e750@@YGXHHHHPAVVisitor_0047e750@@@Z,matched,100.0

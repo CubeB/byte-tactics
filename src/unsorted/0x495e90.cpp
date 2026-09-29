@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 67.9%: in-game command/gadget event dispatcher, original 2292 bytes,
-// ours 2312 (20 bytes long; structure and jump tables agree).
+// PARTIAL 75.7%: in-game command/gadget event dispatcher, original 2292 bytes,
+// ours 2292 (exact size; structure, jump tables and case order agree).
 //
 // What is known to be right:
 // - FUN_004c1ab0 returns the event, 0 means return; FUN_004c1b80(0xf9) returns
@@ -19,30 +19,28 @@
 // - The 0x4963d8 "CTRL_%c" body is sprintf(buf, "CTRL_%c", event - 0x69) then
 //   FUN_0048bf30(buf, key). ebp is the event, not a frame pointer (there is no
 //   mov ebp,esp), so lea reg,[ebp-0x69] is the character for %c.
+// - The `if (key == 0)` blocks are written as `if (key != 0) { then } else`,
+//   with the `key != 0` arm first, so the `key == 0` arm is out of line
+//   (0x496167 je 0x4961a4). Same trick for the nested `field_2cba != 0` test.
+// - The 0x2d/0x5f and 0x2b/0x3d guards are a RAW `if (!(flags_3923b.raw & 2))`
+//   (test byte,2), while the tail and 0xec use the `flags_3923b.b1` bitfield
+//   (mov al; shr; test). The union in this file keeps both spellings.
+// - The 0x496058 body is a 1-bit `!` on a `unsigned short` bitfield, which
+//   yields the not/and/xor expand-in-place toggle.
+// - Case 0xf8 (0x496099): writing the call as one expression
+//   `FUN_00451df0(FUN_0044fdb0(), data, 3)` (no intermediate int) makes MSVC
+//   push the literal 3 before the toggle, as the original does.
 //
-// What made the score jump 52.7 -> 67.9 (one shared upstream cause):
-// - Case 0xad in the original is a std::vector<int> with a POINTER loop over
-//   _First/_Last, not a fixed int[6] count loop. The int[6] count loop occupied
-//   ebx as the counter and ebp as the found flag, which demoted event from ebp
-//   to edi and spilled it. Using std::vector<int> and a begin()/end() iterator
-//   loop freed ebx for the zero constant and snapped the whole function to the
-//   original allocation: event in ebp, zero in ebx, key in esi, found in edi.
-//   The 2nd argument of FUN_00439e30 and the 3rd of FUN_0048cf30 are the first
-//   dword of the Class_00438760 "SELFDESTRUCT" object, not a vector element.
-// - Case 0x1b and the inner test of case 0x31 are laid out with the "then"
-//   block as the fall-through arm; swapping the if/else arms to match the
-//   original's block order gained ~5 points.
-//
-// What still differs (codegen shape, no logic left):
-// - Case 0xf8 builds its 3-byte packet differently: the original stores the
-//   bytes then pushes 3/&buf and calls FUN_0044fdb0 then FUN_00451df0; ours
-//   reorders the flag read after the call.
-// - `cmp eax, ebx` (call result vs the zero register) in case 0x1b is `test
-//   eax, eax` in ours.
-// - Big locals are declared inside their cases (movie search block, path
-//   buffer, self-destruct vector) so their stack slots differ by 0x10 from the
-//   original's shared low region (original: CTRL buffer esp+0x10, findData
-//   esp+0x28, path esp+0x140).
+// What still differs:
+// - Case 0xd7 (0x4961d7) loads g_game into ecx, and `old` into eax; the
+//   original loads g_game into eax (`mov eax, moffs`, one byte shorter) and
+//   `old` into ecx. That one byte later shifts every `jmp 0x4965ce` rel32 in
+//   the function by one, which is most of the remaining diff.
+// - Case 0xab CTRL buffer sits at esp+0x18 here vs esp+0x10 in the original;
+//   the 0xd7 findData/path buffers are 0x10 higher (orig 0x28/0x140, ours
+//   0x38/0x150). MSVC did not merge these case locals into the low slots.
+// - Case 0xad's entry compare is `mov eax,[esp+0x20]; cmp esi,eax` here vs
+//   `cmp esi,[esp+0x20]` in the original (back edge already matches).
 
 #include <windows.h>
 #include <stdio.h>
@@ -73,15 +71,24 @@ struct Flags_00495e90_37ebe {
     unsigned short rest : 13;
 };
 
+struct Flags_00495e90_37f2f {
+    unsigned short b0 : 1;
+    unsigned short b1 : 1;
+    unsigned short rest : 14;
+};
+
 struct Flags_00495e90_38a51 {
     unsigned short b0 : 1;
     unsigned short rest : 15;
 };
 
-struct Flags_00495e90_3923b {
-    unsigned short b0 : 1;
-    unsigned short b1 : 1;
-    unsigned short rest : 14;
+union Flags_00495e90_3923b {
+    unsigned short raw;
+    struct {
+        unsigned short b0 : 1;
+        unsigned short b1 : 1;
+        unsigned short rest : 14;
+    };
 };
 
 struct PlayerData_495e90 {
@@ -122,8 +129,8 @@ struct Game_495e90 {
     char unknown_37ec0[0x37f06 - 0x37ec0];
     Flags_00495e90_37f06 flags_37f06;   // +0x37f06
     char unknown_37f08[0x37f2f - 0x37f08];
-    unsigned char flags_37f2f;          // +0x37f2f
-    char unknown_37f30[0x38a47 - 0x37f30];
+    Flags_00495e90_37f2f flags_37f2f;   // +0x37f2f
+    char unknown_37f31[0x38a47 - 0x37f31];
     int field_38a47;                    // +0x38a47
     unsigned short field_38a4b;         // +0x38a4b
     char unknown_38a4d[0x38a51 - 0x38a4d];
@@ -221,7 +228,8 @@ void FUN_00495e90(void)
     case 0x1b:
         if (g_game->flags_37ebe.b0) {
             g_game->flags_37ebe.b0 = 0;
-            if (FUN_004ab060(&g_game->gui, g_game->field_37ea0) == 0) {
+            int r = FUN_004ab060(&g_game->gui, g_game->field_37ea0);
+            if (r == 0) {
                 g_game->field_37e9c = 0;
                 FUN_004a9660(&g_game->gui);
             }
@@ -262,11 +270,12 @@ void FUN_00495e90(void)
     case 0x38:
     case 0x39:
         if (g_game->flags_37f06.b8) {
-            if (FUN_004c1b80(0xfb) == 0) {
+            if (FUN_004c1b80(0xfb) != 0) {
+                FUN_0041c060(event - 0x31);
+            } else {
                 FUN_0048d9a0(event - 0x30, key);
                 FUN_0047f1a0("SelectSquad", 0);
-            } else
-                FUN_0041c060(event - 0x31);
+            }
         } else {
             if (FUN_004c1b80(0xfb) != 0) {
                 FUN_0048d9a0(event - 0x30, key);
@@ -315,8 +324,7 @@ void FUN_00495e90(void)
         data[1] = 0;
         g_game->flags_38a51.b0 = !g_game->flags_38a51.b0;
         data[2] = (unsigned char)(g_game->flags_38a51.b0);
-        int r = FUN_0044fdb0();
-        FUN_00451df0(r, data, 3);
+        FUN_00451df0(FUN_0044fdb0(), data, 3);
         break;
     }
 
@@ -341,18 +349,18 @@ void FUN_00495e90(void)
         }
         // fall through
     case 0xe3:
-        if (key == 0) {
+        if (key != 0) {
+            if (g_game->field_2cba != 0) {
+                g_game->field_391b9 = 1;
+                g_game->field_391bd = g_game->field_2cba;
+            } else {
+                g_game->field_391b9 = 0;
+            }
+        } else {
             if (!g_game->flags_37ebe.b0) {
                 FUN_00460cc0();
                 g_game->flags_37ebe.b0 = 1;
             }
-            break;
-        }
-        if (g_game->field_2cba == 0) {
-            g_game->field_391b9 = 0;
-        } else {
-            g_game->field_391b9 = 1;
-            g_game->field_391bd = g_game->field_2cba;
         }
         break;
 
@@ -361,7 +369,7 @@ void FUN_00495e90(void)
         break;
 
     case 0xd7:
-        if (((g_game->flags_37f2f >> 1) & 1) != 0) {
+        if (g_game->flags_37f2f.b1) {
             int old = g_game->field_38c53;
             g_game->field_38c53 = 0;
             if (old == 0) {
@@ -389,7 +397,7 @@ void FUN_00495e90(void)
         break;
 
     case 0xec:
-        if ((g_game->flags_37f2f >> 1) & 1) {
+        if (g_game->flags_37f2f.b1) {
             g_game->flags_3923b.b1 = !g_game->flags_3923b.b1;
             if (g_game->flags_3923b.b1) {
                 FUN_004ab190(&g_game->gui, 0);
@@ -402,7 +410,7 @@ void FUN_00495e90(void)
         break;
 
     case 0x5c:
-        if ((g_game->flags_37f2f >> 1) & 1)
+        if (g_game->flags_37f2f.b1)
             FUN_00417b50(0, -1);
         break;
 
@@ -457,8 +465,8 @@ void FUN_00495e90(void)
     case 0xad: {
         std::vector<int> sel;
         FUN_0048ca20(&sel);
-        Class_00438760 order("SELFDESTRUCT");
         int found = 0;
+        Class_00438760 order("SELFDESTRUCT");
         for (std::vector<int>::iterator it = sel.begin(); it != sel.end(); ++it) {
             int r = FUN_00439e30(*it, (int)order.name);
             if (r != 0) {
@@ -499,12 +507,9 @@ void FUN_00495e90(void)
 
     case 0x2d:
     case 0x5f:
-        if (g_game->flags_3923b.b1)
-            break;
-        {
-            unsigned char p = g_game->localPlayer;
-            if (g_game->players[p].valid != 0
-                && (g_game->players[p].data->field_9b & 0x40) != 0)
+        if (!(g_game->flags_3923b.raw & 2)) {
+            Player_495e90* pl = &g_game->players[g_game->localPlayer];
+            if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
                 break;
             if (g_game->field_38a4b <= 1)
                 break;
@@ -514,12 +519,9 @@ void FUN_00495e90(void)
 
     case 0x2b:
     case 0x3d:
-        if (g_game->flags_3923b.b1)
-            break;
-        {
-            unsigned char p = g_game->localPlayer;
-            if (g_game->players[p].valid != 0
-                && (g_game->players[p].data->field_9b & 0x40) != 0)
+        if (!(g_game->flags_3923b.raw & 2)) {
+            Player_495e90* pl = &g_game->players[g_game->localPlayer];
+            if (pl->valid != 0 && (pl->data->field_9b & 0x40) != 0)
                 break;
             if (g_game->field_38a4b >= 0x14)
                 break;

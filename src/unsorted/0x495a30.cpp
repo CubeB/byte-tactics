@@ -3,12 +3,17 @@
 // screen-sized tiles and copies each rendered tile into one big 8-bit surface,
 // saved as a BMP.
 //
-// Best so far: 50.1 percent (956 of 1105 bytes), 3 check runs. The whole
-// structure and every callee name resolve correctly, but the stack frame and
-// register roles differ everywhere:
+// Best so far: 50.6 percent (962 of 1105 bytes). Fixes this round:
+//  - FUN_004d8e50 and FUN_004d85a0 are __cdecl (the original has `add esp,4`
+//    after each call), not __stdcall. That alone took 50.1 -> 50.6.
+//  - the missing Class_004cb940::FUN_004cb940 write call was reconstructed
+//    (args &surf, w, rows, 0, row, 0, flag with rows/oy/off/flag chosen from
+//    var24/m/n/bh); it grows the frame to 0x1b4 vs 0x1b0 and reallocates every
+//    register, scoring 43.9. Saved at build/scratch/0x495a30/withcall.cpp.
+// What still differs:
 //  - frame is 0x1ac; the original is 0x1b0. The filename buffer is at the same
-//    absolute address in both, so the original has one extra 4-byte local at
-//    the bottom of the frame that is not identified.
+//    absolute address in both minus 4, so the original has one extra 4-byte
+//    local somewhere below the filename that is not identified.
 //  - the original keeps the four pre-loop values in S+0x20 (screenTilesX<<4),
 //    S+0x44 (field_37e27), S+0x30 (field_37e2b), S+0x18 ((screenTilesY<<4)-1);
 //    ours keeps three of them in different slots and picks ebx where the
@@ -105,15 +110,26 @@ struct Class_004c6b10 {
     void FUN_004c6b10(Rect_00495a30 r);
 };
 
-struct Class_004cb940 {
-    char unknown_0[0x54];
-    bool FUN_004cb940(Surface_00495a30* image, int x, int rows, int unused_4,
+struct Image_004cb940 {
+    int width;                              // +0x0
+    int unknown_4;
+    int pitch;                              // +0x8
+    unsigned char* pixels;                  // +0xc
+};
+
+class Class_004cb940 {
+public:
+    int width;                              // +0x0
+    int height;                             // +0x4
+    int dataOffset;                         // +0x8
+    void* file;                             // +0xc
+    bool FUN_004cb940(Image_004cb940* image, int x, int rows, int unused_4,
                       int y, int unused_6, int srcY);
 };
 
 void __stdcall FUN_00495930(char* out, const char* dir, const char* name, const char* ext);
 Class_004b8da0* __stdcall FUN_004b8da0(unsigned int name, int width, int height);
-void __stdcall FUN_004d8e50(int param);
+void __cdecl FUN_004d8e50(int param);
 void __stdcall FUN_0049e6f0();
 void __stdcall FUN_004b8a80(Surface_00495a30* dst, void* src);
 void* __stdcall FUN_004b6220();
@@ -124,7 +140,7 @@ void __stdcall FUN_00468cf0(int a, int b);
 void __stdcall FUN_004b7f90(Surface_00495a30* surf, Dst_004b8ae0* pal, int x, int y);
 void __stdcall FUN_004b8e50(void* b, int color);
 void __stdcall FUN_004816a0(int param);
-void __stdcall FUN_004d85a0(void* b);
+void __cdecl FUN_004d85a0(void* b);
 
 // FUNCTION: 0x495a30
 void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)

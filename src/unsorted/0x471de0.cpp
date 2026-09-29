@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Destroys the ten listener lists that 0x471d90 allocates into the game object
 // (used by 0x471eb0, 0x471f40 and 0x471f90): every listener is deleted and
 // erased from the front of its list, the ten vector members are then destroyed
@@ -43,6 +43,11 @@
 //   reference over the ten vectors, erase in a for increment, dummy locals
 //   before, inside or after the `if`, and earlier functions in the same file
 //   that use the same vector type (erase(begin()), the out-of-line destructor).
+// Retried by deepseek-v4.1-flash in #1333, still one byte: headers.py --cpp
+// (C++ headers on top of all 128 sets) and the erase(it, it+1), explicit
+// std::copy+pop_back and static-helper phrasings all score worse or the same
+// 98.6%. Only the plain `it = begin(); while (it != end()) erase(it)` form
+// reproduces the rest of the function.
 #include <vector>
 
 class Listener_00471de0 {

@@ -1,27 +1,65 @@
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
 // Click handler of the file requester (FILEREQ.GUI, opened by 0x4afa30).
 // On close (field_60 == -1) it restores the saved drive and directory and
 // frees the request data. Otherwise it acts on the entry the user clicked:
 // LOAD/SWIN enter a directory, CANC accepts, NAME takes the highlighted file,
 // PATH walks one level up and the *DRV entries pick a drive letter.
 //
-// 90% (check.py). Everything matches up to the PATH branch except the SIB
-// base/index of its two stores and the compare, and the LOAD/SWIN block
-// differs only in register allocation:
-//   - original parks the tail pointer in edi, mine in esi (both reuse esi,
-//     which held the entries pointer, inside this block);
-//   - because of that, mine hoists the destination expression
-//     `cwd + strlen(cwd) - 1` above the source's strlen and spills it to
-//     [esp+0x20], where the original evaluates it after the source strlen,
-//     parks the length in ebx (clobbering the saved parameter, restored at
-//     0x4af9e3) and reaches `dec edi`;
-//   - the one padding byte MSVC puts before the `repne scasb` in the else
-//     block and the slot of the ebx restore inside it follow from those.
-// Twenty source shapes (declaration order and scope of `name`, `i`, `tail`,
-// register, a ternary instead of tail++, the two strlen calls hoisted into
-// temporaries, `&cwd[i]`, `strcat`, a local `char*` for cwd, the branches
-// swapped) all compile to the same 115 differing instructions, so this looks
-// like a register-priority tie rather than a wrong type or argument.
-// Decompiled by space-bunny-free. Names are provisional.
+// 99.1% (check.py), and the total size is now exact: 945 bytes, same as the
+// original. Only three instructions in the PATH branch still differ, and they
+// are all the same defect: MSVC 5 puts the loop counter in the SIB *base* slot
+// and `req` in the *index* slot, where the original does the opposite.
+//   original  cmp byte [ebp + ecx + 0x23], 0x3a   SIB 0x0d  (base ebp, index ecx)
+//   ours      cmp byte [ecx + ebp + 0x23], 0x3a   SIB 0x29  (base ecx, index ebp)
+// Same address, same length, opposite operand slots; it happens for all three
+// accesses (`cwd[n-1]`, `cwd[n]`, `cwd[n+1]`), and the plain `cwd[n]` in the
+// loop head already agrees (`cmp byte [ecx + edx], 0x5c`, base edx, index ecx).
+//
+// Every source shape tried for the three body accesses keeps the swapped slots
+// (all 945 bytes, all 99.1%):
+//   * `req->cwd[n-1]` / `req->cwd[n+1]` / `req->cwd[n]`, and the same three
+//     spelled as `*(req->cwd + n +- 1)`,
+//   * the same three through the offset-0 field with the constant in the index,
+//     `req->unknown_0[0x23 + n]`, and left associative `*(req->unknown_0 + 0x23 + n)`,
+//   * a block-local `char* cwd = req->cwd` (then the displacement is -1 and the
+//     base is the pointer, which does NOT match: the original's base is `req`),
+//   * a walked `char* p = req->cwd + n` with `p[-1]` / `p[1]` / `*p`,
+//   * a named `int m = n - 1` (MSVC folds it straight back in),
+//   * a named index with the offset in it (`int k = 0x23 + n`, changes the block),
+//   * `((char*)req)[0x23 + n]`, `*((char*)req + 0x23 + n)` and
+//     `*((char*)req + (0x23 + n))`,
+//   * a block-local `char* r = (char*)req` with `r[0x23 + n]`, at the top of the
+//     function and inside the branch, and the whole function rewritten so that
+//     the request pointer itself is a cast-free `char*` local.
+// What does flip the slots is the *register* the pointer ends up in, not the
+// spelling: `char* f = (char*)req + 0x24; f[0x23 + n]` gives the original's
+// order, `[edx + ecx + 0x23]`, because MSVC's lea put `req->cwd` in edx, while
+// the same cast-free subscript on a pointer held in ebp, or a `char* g =
+// (char*)gadget` held in ebx, always gives `[ecx + ebp + 0x23]` /
+// `[ecx + ebx + 0x23]`. So the split
+// tracks which register holds the base pointer (a caller-saved one that came
+// out of a lea behaves like the original, a callee-saved one does not), and the
+// original needs the base to be `req` in ebp. Since ebp is pinned by the rest
+// of the function (`lea edx, [ebp+0x24]`, `[ebp+0x23c]`, `push ebp` for the
+// callback), this looks like a register-role effect inside MSVC's SIB builder
+// that no expression tree of this block reaches.
+//
+// muse-spark-1.3-free follow-up (all scored free via check.py --sym, 945 bytes,
+// 99.1% every time, same 3 SIB diffs): the slot order is not reachable from the
+// source at all. Minimal wcl probes show MSVC 5 ALWAYS emits the int count as
+// the SIB base and the pointer as the index for a (count, pointer) pair, in
+// every register combination tried: [eax+ecx] (p0), [eax+esi] (p1),
+// [ecx+esi] (p4), [ecx+eax] (switch version), [ecx+edx] (this function head).
+// Rule of thumb: lower-numbered register becomes base. The original's body
+// (SIB 0x0d, base ebp over ecx) is the SOLE exception found anywhere, while
+// its own loop head ([ecx+edx], SIB base ecx) follows the rule. Verified the
+// raw bytes with objdump: orig `80 7c 0d 23 3a`. No TU-state effect either:
+// prepending matched sibling 0x4af5b0 above (s2) changes nothing, and neither
+// do <vector>/<map> headers, for- vs while-loop, Yoda comparison, switch on
+// req->cwd[n-1], or an anchor member at +0x23 with (&req->anchor)[n].
+// Per the guide this is the rare "commutative operand order from earlier TU
+// state" bucket: say so and move on. Next step would need the real preceding
+// function in the original TU (binary neighbour 0x4af5b0 did not flip it).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -101,11 +139,12 @@ void __stdcall FUN_004af670(Gadget_004af670* gadget)
                     break;
                 }
             }
+            int n = (int)strlen(req->cwd);
             char* tail = req->selected;
-            if ((int)strlen(req->cwd) == 3) {
+            if (n == 3) {
                 tail++;
             }
-            strcpy(req->cwd + (int)strlen(req->cwd) - 1, tail);
+            strcat(req->cwd, tail);
             FUN_004bc360(req->cwd);
         } else {
             result = 1;

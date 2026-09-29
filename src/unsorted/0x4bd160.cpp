@@ -1,4 +1,22 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free. Names are provisional.
+// Still differs, 96.7 percent (580 = 580 bytes), one block after the first
+// `if (cb) cb(0);`:
+//   original: xor ecx,ecx / mov eax,ecx / mov [esp+0x18],ecx / mov eax,0x14 /
+//             push eax / push "Package Data" / push ecx / mov [esp+0x20],eax
+//   ours:     push 0x14 / push "Package Data" / push ebp / mov [esp+0x20],0x14
+//             (and the two zero stores of `= {0}` sit before the `je`).
+// So in the original the header struct is zeroed AFTER the cb call (the only
+// store before it is extra = 0), the zero comes from a fresh `xor ecx,ecx` and
+// not from the ebp zero, and the 0x14 travels in eax (pushed and stored) rather
+// than as an immediate. The dead `mov eax,ecx` looks like a size = 0 store that
+// was removed as dead. Declaring `HapiBuf sb` after the cb call gets the zero
+// into a fresh register (`xor eax,eax`) but the 0x14 stays an immediate; about
+// 150 forms (ctor, Alloc method, inline wrappers of the alloc call and of cb,
+// chained assignments, separate locals, int/pointer field types, zero sources)
+// all land at 92.6 to 96.7.
+// The key encoding was fixed in this pass: an `unsigned char t` local assigned
+// 0 on one path and `~v` (v an unsigned int rotate) on the other gives the
+// original's `xor cl,cl` and `not cl`; a ternary or casts never narrowed.
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -57,7 +75,7 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
         h->a7 = 0;
         h->size = sb.size;
         m = key & 0xff;
-        h->key = (unsigned char)key == 0 ? 0 : ~((m >> 2) | (m << 6));
+        unsigned char t; if ((unsigned char)key == 0) t = 0; else { unsigned int v = (m >> 2) | (m << 6); t = ~v; } h->key = t;
         h->ad = 0;
         h->ae = 0;
         h->extra = off;

@@ -1,88 +1,40 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// PARTIAL, 92.1% (665 bytes against 640). Every instruction from the prologue
-// to the last search loop matches the original, including the two inlined name
-// searches; what is left is one instruction in the third search and the closing
-// float block. Details at the bottom.
-//
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL, 96.0% (659 bytes against 640). Every instruction matches the original
+// except the layout of the closing float block: the original shares one function
+// tail (the store path ends with `jmp 0x4a30a4` over the out of line `fstp st(0)`)
+// while this build duplicates the epilogue into both arms of the inner `if`.
 // What the function is: the list gadget's "put line N of the entry called NAME
 // at the top of the window" step, the one 0x4a99c0 (scroll down) calls at its
-// end with `(char*)me + 2`. It finds the table entry whose +0x02 name matches,
-// stores the line into that entry's +0xba, makes the language entry of the
-// entry's tab (+0x28) current, works out the pixel step of one line from the
-// current font, and when the line has fallen out of the visible window moves the
-// window's top (+0xbc) to it, clamped to +0xbe. It then finds the entry of type
-// 4 that shares this entry's +0x01 byte (the scrollbar), rescales that
-// scrollbar's +0x140 from this entry's +0x136, and stamps +0xcca.
+// end with `(char*)me + 2`.
 //
-// The three structural facts that decide the code, all confirmed against the
-// original and all worth double digit percentages:
+// Structural facts (space-bunny-free) still hold: the two name searches are the
+// `static inline FindEntry` helper (return i / return -1). The third search is
+// the same idea but an inline helper returning 0 (`FindKind`), which is what
+// produces the original's `xor ecx,ecx` at 0x4a3037; a hand-written `int k = 0`
+// instead gives k a stack home and costs double digit percent. The test at
+// 0x4a2f7d is a short circuit OR: `sel > step + last - 1 || sel < last`.
 //
-//  1. Both name searches are the `static inline FindEntry` helper that the
-//     matched siblings 0x4a0090, 0x4a0180, 0x4a0200 and 0x49ff90 use. Written
-//     out by hand as `int found = -1; for (...) { found = i; break; }` the same
-//     function scores 30.8% instead of 86.6%: the helper's `return i` /
-//     `return -1` pair is what puts the -1 into the loop's exit block
-//     (`or ecx,0xffffffff` at 0x4a2e90) and frees the index register, and the
-//     caller's own index has to be declared AFTER the first call so it can have
-//     that register.
-//  2. The test at 0x4a2f7d is a short circuit OR, not an AND. `jg` jumps INTO
-//     the block and the following `cmp di,bx / jge` jumps over it, so the source
-//     is `sel > step + last - 1 || sel < last`.
-//  3. `k` (the type 4 entry's index) and `pkind` (the byte it is matched on)
-//     have to be declared at function scope, and `k` must NOT be initialised.
-//     Declared inside the if, or initialised, MSVC 5 gives one of them a stack
-//     home, pushes a fifth register and moves every [esp+N] displacement
-//     (77.3% and 50.1%). With the pair at function scope the not-found path
-//     compiles to the original's register with one instruction still missing,
-//     see (a) below.
+// Fixed here (deepseek-v4.1-flash): the quotient must be `float`, not `double`
+// (`float q = (float)e3->field_136 * me->field_bc / me->field_be;`). With float,
+// MSVC 5 emits the original's integer-memory FPU forms `fimul [esp+0x18]` /
+// `fidiv [esp+0x18]`; with double it emits fild/fmulp/fdivp, four instructions
+// longer. The compare then has to cast the field to float too, so the single
+// `fcomp st(1)` (not `fld st(1)`/`fcompp`).
 //
 // What still differs:
+//  a. 0x4a30a0. The original store arm is `call _ftol / mov [esi+0x140],ax /
+//     jmp 0x4a30a4` and the equal arm is an out of line `fstp st(0)` falling
+//     into the shared tail at 0x4a30a4. This build tail-duplicates the epilogue
+//     into both arms instead (the store arm ends the function, the equal arm has
+//     its own copy). Tried: `==` with empty then, `!((==))`, goto forms, a temp
+//     short, a ternary, moving `param_1->field_cca = 1;` into the branches;
+//     none make MSVC emit the single shared tail.
 //
-//  a. 0x4a3037. The original's not-found path for the type 4 search is
-//     `xor ecx,ecx`, that is `k` zeroed, which is what `int k = 0;` would give.
-//     With the initialiser present MSVC 5 materialises k in a stack slot
-//     instead and the whole function drops to 77.3%, so the initialiser is left
-//     off here and this one instruction reads a stale argument slot instead of
-//     zero. Behaviourally the original scans entry 0 when the list has no type 4
-//     entry sharing the +0x01 byte; this build indexes whatever is in that slot.
-//     That is the one place where the partial is not behaviour faithful.
-//
-//  b. 0x4a3077 and 0x4a307f. The original multiplies and divides with the
-//     integer memory forms `fimul dword [esp+0x18]` / `fidiv dword [esp+0x18]`;
-//     this file gets `fild` / `fmulp st(1),st` / `fild` / `fdivp st(1),st`, four
-//     instructions longer. MSVC 5 only picks `fimul m32int` when the right
-//     operand is a plain int variable; giving the two divisors int locals does
-//     produce the memory forms, but they then take stack homes of their own and
-//     the temporaries move to +0x20 and +0x10 (76.4%).
-//
-//  c. 0x4a308f to 0x4a30a2. The original is `test ah,0x40 / jne` with the
-//     branch landing on the out of line `fstp st(0)`, and the store arm ending
-//     in an unconditional `jmp` over that `fstp` so the two arms share one copy
-//     of the tail: that is the code for "store when field_140 <= quotient", laid
-//     out the way MSVC lays out an if/else. This file gets `test ah,0x41 / je`
-//     with the branch landing on a second, out of line copy of the whole tail
-//     (the `fstp st(0)` at 0x4a262 here is on the store path instead). Every
-//     relational spelling of `<=` tried here compiles to `test ah,0x41` or
-//     `test ah,0x1`; `!=` does produce 0x40 but then branches the other way
-//     round the block, and writing the statement as a ternary, which is what
-//     would give the if/else layout, makes MSVC spill the quotient to a qword
-//     temporary (`fstp QWORD PTR` / `fcom QWORD PTR`), twelve instructions
-//     worse (73.8%).
-//
-// Second pass (space-bunny-free, 92.1% to 92.6%, 10 runs): the original computes the
-// quotient ONCE (fild 136, fimul bc, fidiv be, fild 140, fcomp st(1), then ftol on the
-// same stack value), and its branch is test ah,0x40 / jne, which is what != gives, so
-// (c) is fixed by writing ield_140 != q (arm layout still differs only because of
-// (b)). Tried for (b): int locals with two full expressions (right layout AND fimul,
-// but locals get homes at +0x20/+0x10, frame +4, 76.9% or worse), (int) casts inline,
-// implicit short operands, and a double q with int locals (this file, fmulp form).
-// fimul appears only when the int locals are used in two separate expressions.
-//
-// Suspected original bugs: none beyond the two edges noted above. The type 4
-// search is unguarded (no entry of type 4 sharing the byte means entry 0 is
-// rescaled), and the second FindEntry result is used without a -1 check, which
-// is safe only because the name matched on the way in and nothing has changed it
-// since.
+// Suspected original bugs: two edges. The type 4 search (`FindKind`) returns 0
+// when no entry of type 4 shares the +0x01 byte, so the rescale then reads and
+// writes entry 0 (the list header) instead of doing nothing. And the second
+// FindEntry result is used without a -1 check, which is safe only because the
+// name matched on the way in and nothing has changed it since.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -147,12 +99,20 @@ static inline int FindEntry(Entry_004a2e40* entries, char* name)
     return -1;
 }
 
+static inline int FindKind(Entry_004a2e40* entries, unsigned char kind)
+{
+    int i;
+    for (i = 1; i < entries->count + 1; i++) {
+        if (entries[i].type == 4 && entries[i].kind == kind)
+            return i;
+    }
+    return 0;
+}
+
 // FUNCTION: 0x4a2e40
 void __stdcall FUN_004a2e40(Class_004a2e40* param_1, char* param_2, int param_3)
 {
     Entry_004a2e40* entries = param_1->holder->entries;
-    int k;
-    unsigned char pkind;
     int found = FindEntry(entries, param_2);
     if (found == -1)
         return;
@@ -187,20 +147,11 @@ void __stdcall FUN_004a2e40(Class_004a2e40* param_1, char* param_2, int param_3)
             me->field_bc = sel;
         if (me->field_bc > me->field_be)
             me->field_bc = me->field_be;
-        int other = FindEntry(entries, param_2);
-        Entry_004a2e40* peer = &entries[other];
-        pkind = peer->kind;
-        for (i = 1; i < entries->count + 1; i++) {
-            if (entries[i].type == 4 && entries[i].kind == pkind) {
-                k = i;
-                break;
-            }
-        }
-        Entry_004a2e40* e3 = &entries[k];
-        int mul = me->field_bc;
-        int div = me->field_be;
-        double q = (double)e3->field_136 * mul / div;
-        if ((double)e3->field_140 != q)
+        Entry_004a2e40* peer = &entries[FindEntry(entries, param_2)];
+        unsigned char pkind = peer->kind;
+        Entry_004a2e40* e3 = &entries[FindKind(entries, pkind)];
+        float q = (float)e3->field_136 * me->field_bc / me->field_be;
+        if ((float)e3->field_140 != q)
             e3->field_140 = (short)q;
     }
     param_1->field_cca = 1;

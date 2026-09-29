@@ -4406,3 +4406,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x4cdb40,1248,,#1469,assigned,,,"issue #1469, escalated"
 0x4d0f60,1304,,#1469,assigned,,,"issue #1469, escalated"
 0x4d8e60,2644,,#1469,assigned,,,"issue #1469, escalated"
+0x47a0e0,1561,longcat-2.5-preview-free,#1464,matched,100.0,,"follow-up PR #1464 to #1001, escalated"
+0x47ae60,2947,longcat-2.5-preview-free,#1464,partial,18.3,,"follow-up PR #1464 to #1001, escalated"
+0x47cc30,1199,space-bunny-free,#1464,partial,61.4,,"follow-up PR #1464 to #1001, escalated"

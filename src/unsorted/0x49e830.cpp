@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
 // WinMain of Total Annihilation.
-// PARTIAL 86.6%, 1344 of 1365 bytes. Full body, control flow and call
+// PARTIAL 86.8%, 1343 of 1365 bytes. Full body, control flow and call
 // sequence match. Remaining differences:
 //  - DAT_0051f522 is a bitfield union and DAT_0051f410 is an `int` bitfield
 //    tested in place at bit 11 (both now match their shapes).
@@ -18,13 +18,18 @@
 //    (or an interleaved barrier) this model could not identify in the
 //    timebox. The `unsigned short` local form also adds a stack slot and
 //    `push ecx`, so it is strictly worse.
+//  - WIN (deepseek-v4.1-flash): the bit-0 toggle needs the 32-bit NOT form.
+//    Writing `...b0 = ...b0 ^ ~DAT_0051fb48` narrows the complement to a byte
+//    (`not dl`); routing it through an `int` local first
+//    (`int notFlags = ~DAT_0051fb48;` then `...b0 = ...b0 ^ notFlags;`) gives
+//    the original's 32-bit `not ecx` and raises 86.6% -> 86.8%.
 //  - OpenSemaphoreA and FUN_004b5980 results are compared with a named zero
 //    local (`cmp eax, ebx`) in the original; a named `int lzero = 0` still
 //    emits `test eax, eax`, so the original must reach its zero by a route
 //    this model does not reproduce yet.
 //  - Everything else still differing is register naming and store
 //    scheduling inside the DAT_0051f3xx block, the inlined strcpy and the
-//    RegSetValueExA tail, plus the branch targets that follow from the 21
+//    RegSetValueExA tail, plus the branch targets that follow from the 22
 //    missing bytes above.
 #include <new>
 #include <string.h>
@@ -215,7 +220,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         return 1;
     FUN_004b52e0(&DAT_0051f320);
     DAT_0051f51a = 0x280;
-    DAT_0051f522.bits.b0 = DAT_0051f522.bits.b0 ^ ~DAT_0051fb48;
+    int notFlags = ~DAT_0051fb48; DAT_0051f522.bits.b0 = DAT_0051f522.bits.b0 ^ notFlags;
     DAT_0051f522.bits.b1 = 1;
     DAT_0051f522.bits.b8 = 1;
     DAT_0051f522.bits.b4 = 1;

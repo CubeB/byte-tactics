@@ -57,6 +57,13 @@
 //   - The prefix copy written out by hand, the fill written out by hand, `int`
 //     instead of `size_type` for _N, and the three pointer stores reordered:
 //     78.8 / 78.9 / 78.9 / 57.0.
+//   - Deleting the trivially-destructible _Destroy loop outright is the only
+//     way to reach the original's exact 632 bytes here, but it drops to 63.0
+//     percent and flips the family (`mov edi, ecx` after the pushes, this in
+//     EDI, _N added as `add eax, edx` rather than `lea edi, [edx + eax]`), so
+//     the loop is a source-level register-allocation lever whose body the
+//     compiler elides; it is not emitted, it is what keeps `this` in ECX.
+//     Moving it before the deallocate (the stock header order) gives 60.6.
 //
 // Previous state: 74.9 percent, 644 bytes against 632. The byte count is 12 too
 // high, so the shape is still wrong somewhere, not just a register order.

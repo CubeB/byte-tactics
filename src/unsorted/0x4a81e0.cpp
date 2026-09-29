@@ -129,6 +129,37 @@
 // callees of that region with the right argument counts; it is not the
 // original logic. The first switch, the second switch, the return values and
 // the frame are in place. Regions r12, r13 and r27 are the roughest.
+//
+// STATUS 30 Sep, deepseek-v4.1-flash. Best 9.4%, no MATCH. The head from
+// 0x4a81e0 through 0x4a82ee (end of the entry-0 clamp) is already correct: the
+// sequence matcher lines it up instruction for instruction, so only two head
+// problems remain, and both are consequences of the missing body:
+//   1. Prologue is 8 bytes too long. Original is
+//        mov eax,[esp+4] / sub esp,0x3c0 / mov eax,[eax+0x18] / push ebx /
+//        push ebp / push esi / test eax,eax / push edi / jne
+//      ours is sub esp / push ebx..edi / mov edi,[esp+0x3d4] / xor ebx,ebx /
+//      mov eax,[edi+0x18] / cmp eax,ebx / jne. The argument load before the
+//      frame and the interleaved `push edi` are the original's parameter
+//      rematerialisation: with the full body ebx=flags, ebp=entries, esi, edi
+//      are all live, so `menu` is never kept in a register and is reloaded
+//      from [esp+0x3d4] at every use (0x4a8308, 0x4a837a, 0x4a83f0, 0x4a8502,
+//      ...). Our skeleton caches menu in edi because its body is too small to
+//      create that pressure. Do not chase this until the body exists.
+//   2. The 8-byte shift moves every branch target, which is why the raw byte
+//      comparison (bytes_match) fails even where the instruction text agrees.
+// Remaining diff hunks by address (original addresses; all are the stubbed
+// case bodies, largest first):
+//   0x4a8b4b-0x4a8ef3  r7  type 1 (button frame, inlined FUN_004a7f70) ~950 B
+//   0x4a8663-0x4a899f  r3  type 4 (SLIDERS)                            ~830 B
+//   0x4a8b4b ..        r6/r8/r9/r10/r11 tails                         ~400 B
+//   0x4a84f2-0x4a8663  r2  type 0/11 (name + GAF)                      ~370 B
+//   0x4a9045-0x4a9135  r12/r13 surface creation + flags                ~240 B
+//   0x4a9434-0x4a95c2  r26/r27 retry + frees                           ~400 B
+//   0x4a899f-0x4a8b4b  r4/r5 TEXTINPUT + LISTBOX                      ~430 B
+// The biggest missing instruction runs are r7 and r3; a next pass should
+// transcribe those two from the disassembly before touching anything else.
+// Verified this run: changing the head to a `layer` local left the frame and
+// the 9.4% unchanged (scheduler/register pressure, not source shape).
 #include <string.h>
 #include <stdio.h>
 

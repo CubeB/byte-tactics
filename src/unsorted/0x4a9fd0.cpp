@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // PARTIAL: 35.5%, 2080 bytes against 2164. Not MATCH.
 //
@@ -63,6 +63,27 @@
 // uses the usual `type == 0 ? 0 : x` form (0x4aa1d9). The two spellings are
 // compiled from different source forms and the doubling one makes the
 // container's hit box twice its stated offset.
+//
+// Prologue, deeper evidence (deepseek-v4.1-flash): compiling this file with
+// /Fa and reading the listing shows MSVC 5 sinks the ebx/esi/edi saves to the
+// first block of the body, right after the early return's jne target, for
+// every spelling tried. The original instead saves ebx, ebp, esi, edi in the
+// entry block before the layer test. Verified in /Fa: the plain
+// `if (menu->layer == 0) return 0;`, a `Layer* layer = menu->layer;` before the
+// branch, `#include <windows.h>`, and the inverted
+// `if (menu->layer != 0) { <body>; return 1; } return 0;` all sink the saves
+// (the inverted form puts them after the `je` that jumps to a return-0 block
+// laid out at the END, so its physical order is wrong as well). So the trigger
+// is not the early-return spelling. The next pass should look for a construct
+// that makes the entry block itself define ebx/esi/edi (a parameter or a value
+// materialised in the prologue), since VC5 saves lazily at the immediate
+// dominator of the register's uses and every use here is dominated by the
+// body-entry block.
+//
+// Remaining diff hunks by address (original): 0x4a9fd3 prologue saves;
+// 0x4aa0d5 entry-0 rectangle register split; 0x4aa5aa/0x4aa6bf type-13 and
+// selection reloads. Everything from 0x4aa820 onward already lines up once the
+// prologue shift is ignored.
 #include <string.h>
 
 #pragma pack(push, 1)

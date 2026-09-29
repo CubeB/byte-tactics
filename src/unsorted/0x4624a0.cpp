@@ -1,6 +1,35 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // Not a match (67.3% with this version; 66.0% without the extra
 // `loc.headFrame = 0;` line, 59.0% for the previous clean-locals version).
+//
+// space-bunny-free pass, re-confirmed the diagnosis and added these results:
+//  - the whole remaining difference is still one register decision. The four
+//    callee-saved registers hold, in the original, esi=this, edi=entry,
+//    ebp=`i` and ebx=THE CONSTANT 0, with `sent` left in the parameter slot
+//    at [esp+0x1c]. This file allocates esi, edi, ebx=`sent`, ebp=`i` and
+//    rematerialises every 0 (`test reg,reg`, `mov [mem],0`), so it is 15
+//    bytes short (555 against 570) purely from `cmp reg,ebx` (2 bytes) against
+//    `test reg,reg` (2 bytes) plus the three `xor ebx,ebx` and the extra
+//    one-byte reloads that follow from it.
+//  - NEW, re-measured here: naming a local `int zero = 0;` at the top of the
+//    function and writing every comparison and every zero store through it
+//    (`force == zero`, `loc.n == zero`, `sent > zero`, `queuedBytes = zero`,
+//    `dpid != zero`, `loc.n != zero`) changes NOTHING: build/scratch/0x4624a0/
+//    e1.cpp (this file plus that `zero` variable) scores 67.3 percent with
+//    the same 555 bytes, i.e. MSVC 5 folds
+//    the variable's single definition back into a constant before the
+//    allocator runs, exactly as the notes below say. Combined with the
+//    `&loc` address escape already in place (so that n and headFrame stay in
+//    memory) this is the one spelling still untried, and it does not help.
+//  - the original's `xor ebx,ebx` appears at the top of BOTH arms of the
+//    `now < nextSend` test and once more before the latch at 0x4626a1, but
+//    `ebx` holds `dpid` in between (0x46263c), and the `queue.count == 0` test
+//    at 0x46269b uses `test eax,eax`, not `cmp eax,ebx`. So ebx is an
+//    enregistered constant that the allocator is free to reuse, not a source
+//    variable: whatever produced it, it is not `x = 0` in the source.
+//  - the two `for`-loop counters are correct: `i` is in ebp and matches, and
+//    the Pop wrap test is the only other difference (`cmp edx,eax` here
+//    against `mov ecx,edx / cmp ecx,eax` there), which is downstream of ebx.
 // The whole remaining difference is still one decision by MSVC 5's register
 // allocator: the original keeps the int constant 0 in ebx for the whole
 // function (every `== 0`, `<= 0` and `= 0` is `cmp reg, ebx` or

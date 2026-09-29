@@ -5,17 +5,28 @@
 // entries vector. On a syntax error it appends a message to the error buffer
 // and calls FUN_004b6290 (which never returns normally).
 //
-// PARTIAL: 39.7%, 1126 bytes against 1115. The whole control flow and every
+// PARTIAL: 36.3%, 1133 bytes against 1115. The whole control flow and every
 // callee are in place. What still differs:
 //  - register allocation: the original puts `this` in ebp and caches &children
-//    in ebx (`lea ebx,[ebp+4]`); ours puts `this` in ebx. The original also
-//    spills this to [esp+0x24] and &children to [esp+0x38], which is what makes
-//    its frame 0x7fc instead of our 0x7f0 and the error buffer land at
-//    [esp+0x3c] instead of [esp+0x30] (three extra dwords before it).
-//  - the two std::vector default constructors: the original stores the empty
-//    allocator byte read from an uninitialised local (`mov al,[esp+7]`), ours
-//    (a hand-declared std::vector with insert left undefined, so the compiler
-//    cannot inline it) omits those two byte stores.
+//    in ebx (`lea ebx,[ebp+4]`); ours puts `this` in ebx and uses ebp as the
+//    zero constant. The original's frame is 0x7fc, ours 0x7f0: the original
+//    spills `this` to [esp+0x24] and &children to [esp+0x38] (3 extra dwords).
+//    Root cause found (DeepSeek V4.1 Flash): the original's inlined vector
+//    default ctors write the allocator byte (`mov al,[esp+7]` / `mov cl,
+//    [esp+0xf]`, then `mov [ebx],al` / `mov [ebp+0x15],cl`). Because `al` is
+//    consumed by `mov [ebx],al` before the compiler needs a zero register, the
+//    original zeroes eax (`xor eax,eax`) and leaves ebp free for `this`. Our
+//    std::vector default ctor emits no allocator-byte store, so the compiler
+//    never needs al, picks ebp as the zero register and puts `this` in ebx.
+//  - the two std::vector default constructors: to reproduce the byte stores,
+//    give allocator a real byte member (`char pad;`) and write the ctor as
+//    `vector(const A& al = A()) : _A(al), _First(0), _Last(0), _End(0) {}`.
+//    That DOES emit `mov al,[esp+7]` / `mov cl,[esp+0xf]` (see
+//    build/scratch/0x4c3e40/v1_padallocator.cpp), but the score drops to 23.2%
+//    because the whole register allocation then flips and the stores become
+//    [ebx+4] / [ebx+0x15] instead of [ebx] / [ebp+0x15]. Likewise a local
+//    reference or pointer to `children` does not make the compiler materialise
+//    &children in ebx (v2_pad_kids.cpp, v3_pad_ptr.cpp both 23.2%).
 //  - the whitespace skip: the original keeps the loaded char in al and tests it
 //    after the pointer increment; ours reloads from the top of the loop.
 //  - the key equality test: original loads the second char into bl before the

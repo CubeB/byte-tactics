@@ -1,4 +1,12 @@
-// Decompiled by GPT-6. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial (97.8%): three scheduler/encoding diffs remain.
+//  - defs[type] addressing is encoded [ecx+eax+0x241], original [eax+ecx+0x241].
+//  - the energyCap/metalCap constant store is scheduled before the _ftol call,
+//    original stores it after the cmp.
+//  - normal uses 100-energy-metal, original 100-metal-energy (same value,
+//    different subtraction order).
+// Using windef min(1000,x) fixes the constant store but flips the final
+// Rating product term order, so the if-form is kept.
 #include <windows.h>
 struct Rating { signed char normal,metal,energy; };
 class Class_00435100 { public: int FUN_00435100(); };
@@ -15,7 +23,6 @@ float __stdcall FUN_00464b10(Player*);
 float __stdcall FUN_00464ab0(Player*);
 float __stdcall FUN_00464af0(Player*);
 int __stdcall FUN_00406ee0(int,unsigned short,int);
-static inline int Min(int a,int b) { return a<b?a:b; }
 static inline float Max(float a,float b) { return a>b?a:b; }
 // FUNCTION: 0x40bb00
 int __stdcall FUN_0040bb00(int player,unsigned short type)
@@ -25,8 +32,10 @@ int __stdcall FUN_0040bb00(int player,unsigned short type)
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;
     if(g_game->mode->FUN_00435100()==1 && (g_game->defs[type].flags&0x20)) return 0;
-    int energyCap=Min((int)p->energyCapacity,1000);
-    int metalCap=Min((int)p->metalCapacity,500);
+    int energyCap=1000;
+    if((int)p->energyCapacity<=1000) energyCap=(int)p->energyCapacity;
+    int metalCap=500;
+    if((int)p->metalCapacity<=500) metalCap=(int)p->metalCapacity;
     int energy=(int)Max(0.0f,(energyCap-p->energy)*0.125f);
     int metal=(int)Max(0.0f,(metalCap-p->metal)*0.25f);
     if(FUN_00464ad0(p)<1.0f) energy+=20;
@@ -35,9 +44,9 @@ int __stdcall FUN_0040bb00(int player,unsigned short type)
     else if(FUN_00464ab0(p)<200.0f) energy+=10;
     if(FUN_00464af0(p)<3.0f) metal+=100;
     else if(FUN_00464af0(p)<5.0f) metal+=20;
-    metal=min(max(0,metal),100);
-    energy=min(max(0,energy-metal),100);
-    int normal=max(0,100-metal-energy);
+    metal=min(max(metal,0),100);
+    energy=min(max(energy-metal,0),100);
+    int normal=max(100-metal-energy,0);
     if(!FUN_00406ee0(player,type,owner->counts[type])) return 0;
     Rating* r=&owner->ratings[type];
     return (normal*r->normal+r->metal*metal+r->energy*energy)*owner->weights[type]/10000;

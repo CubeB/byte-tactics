@@ -1,4 +1,21 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Second pass by deepseek-v4.1-flash: best is 73.1 percent, 622 of 624 bytes.
+// The remaining difference is stack layout plus two scheduling choices:
+//  - our `node` (the erase out-param) occupies frame slot 0x10, so it1 lands at
+//    0x14 and n at 0x1c. In the original `node` is at the parameter home
+//    [esp+0x60], which leaves it1 at 0x10, n at 0x14, it3 at 0x18 and a 4-byte
+//    hole at 0x1c. Fixing that one slot should shift every remaining hunk.
+//  - declaring node as the by-value return buffer of the erase call (whose real
+//    signature is `Iter erase(Iter)`) did NOT move it to the argument area;
+//    MSVC kept the return buffer in the frame at 0x10 (72.9 percent, 626 bytes).
+//  - declaring `LiveEntry* ve = &it1.ptr->entry;` reproduces the original's
+//    single `lea esi,[edx+0xc]`, but the named local grows the frame by 8 and
+//    drops the score to 53.1 percent. The original keeps ve in esi with no slot.
+//  - the original schedules `and edi,0xfffff000` between the DAT_005289f0
+//    subtraction and the `if (blk == 0)` test. Moving the `base` declaration
+//    before that test makes MSVC copy p into esi in the prologue and drops to
+//    15.9 percent.
+//
 // The game's free() for its own heap: under the allocator lock it looks the
 // block up in the live-block map, records the freed header in the debug arena,
 // drops it from the live map, releases the pages it had reserved for the block

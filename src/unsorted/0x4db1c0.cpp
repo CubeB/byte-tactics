@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
 // map (a std::map<unsigned int, Pair_004db000>, the map's value_type being a
 // block's base offset plus its length), erase it, and return the two leftovers
@@ -9,9 +9,9 @@
 // out (the allocator tries to keep allocating from it), DAT_00528a00 counts the
 // wraps around the map, and DAT_00528a54 is the tree's _Nil node.
 //
-// NOT MATCHING yet (59.9%, 618 of 646 bytes). What still differs, measured
+// NOT MATCHING yet (69.3%, 614 of 646 bytes). What still differs, measured
 // against the original at 0x4db1c0:
-//   * 0x4db1c0: the one big cause. The original keeps `this` in ebp and `bytes`
+//   * 0x4db1c0 (the one big cause): the original keeps `this` in ebp and `bytes`
 //     in ebx; we keep them the other way round, and everything downstream
 //     follows: in the second half the original has mark in esi, base in edi,
 //     bytes in ebx and length in ebp, while we have `this` in esi, mark in
@@ -21,11 +21,16 @@
 //     into a register, and that promotion is what steals esi from `mark` and
 //     pushes `bytes` out to the stack. So the fix is one construct that either
 //     demotes `this` or makes it memory-resident, not a per-instruction fix.
-//     Moving the declarations around does not do it: `out` (the erase's out
-//     iterator) and the insert's pair share [esp+0x14] in the original and
-//     `res` sits alone at [esp+0x24], while we get out@0x14, res@0x18, pair
-//     @0x1c, k@0x24, and declaring `res` inside the inner block instead of at
-//     function scope loses 13 points.
+//     The two lowest frame slots are also swapped because of it: the original
+//     spills `this` at [esp+0x10] and keeps the erase's out iterator (which
+//     reuses the dead `cur` slot) at [esp+0x14], while we spill `this` at
+//     [esp+0x14] and put the iterator at [esp+0x10]. Fixing the register
+//     should drag the whole frame back with it, since ebp is then overwritten
+//     by `length` in the success block and `this` is forced to memory.
+//     Tried and inert (all still 69.3%, 614 bytes): a `self = this` copy used
+//     for every access (the copy is coalesced away), a local `n = bytes` with
+//     every use renamed to `n` (also coalesced), and moving `cur`/`k` to
+//     function scope. Declaration order is inert here too.
 //   * 0x4db41a: the original keeps a dead `xor al,al; test al,al; je` and an
 //     unreachable arm that retries with `return FUN_004db1c0(bytes)`. The flag
 //     is a compile-time 0 here, so MSVC folds our `if (ok)` away and the retry
@@ -34,6 +39,11 @@
 //     an inlined helper returning 0 reproduced the dead test.
 //   * 0x4db1df: the query pair lands in [esp+0x24] where the original uses
 //     [esp+0x1c], for the frame-layout reason above.
+//
+// The one scheduling fix found here (by deepseek-v4.1-flash, 59.9% to 69.3%):
+// read `mark = DAT_005289d4` AFTER the erase call FUN_004dc130, not before it.
+// The original loads `mark` into esi at 0x4db2d5, after the call; assigning it
+// before the call changes the scheduler's live ranges and loses 9.4 points.
 //
 // The reservation loop now matches instruction for instruction, including the
 // rotated shape: writing the VirtualAlloc out twice (once before the loop and
@@ -178,7 +188,7 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
                 Class_004dd2a0 out;
                 unsigned int base = cur.ptr->key;
                 unsigned int len = cur.ptr->length;
-                unsigned int mark = DAT_005289d4;
+                unsigned int mark;
                 unsigned int end;
                 Pair_004db000 p;
 
@@ -186,6 +196,7 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
                 // preferring the offset the last allocation used so the free
                 // space stays together.
                 ((Class_004dc130*)this)->FUN_004dc130(&out, cur);
+                mark = DAT_005289d4;
                 if (mark == 0) {
                     mark = base;
                     DAT_005289d4 = mark;

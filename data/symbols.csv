@@ -2317,7 +2317,7 @@ address,name
 0x4b26f0,FUN_004b26f0
 0x4b2840,std::HH::HU?$pair::?$_Tree::begin
 0x4b2850,std::HH::HU?$pair::?$_Tree::insert
-0x4b2ac0,Class_004b2fb0::FUN_004b2ac0
+0x4b2ac0,std::HH::HU?$pair::?$_Tree::erase
 0x4b2fb0,Class_004b2fb0::FUN_004b2fb0
 0x4b3000,std::HH::HU?$pair::?$_Tree::Viterator::?$pair::?$pair
 0x4b3020,std::HH::HU?$pair::?$_Tree::_Insert

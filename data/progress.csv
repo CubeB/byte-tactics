@@ -2334,6 +2334,7 @@ address,size,file,symbol,status,similarity
 0x4ae550,37,src/unsorted/0x4ae550.cpp,?FUN_004ae550@@YGXPAUObj_004ae550@@PAUSource_004ae550@@@Z,matched,100.0
 0x4ae580,141,src/unsorted/0x4ae580.cpp,?FUN_004ae580@@YGXPAUObj_004ae580@@PAUClass_004bbbe0@@H@Z,matched,100.0
 0x4ae610,32,src/unsorted/0x4ae610.cpp,?FUN_004ae610@@YGXPAUStructA_004ae610@@PAUStructB_004ae610@@@Z,matched,100.0
+0x4ae630,1160,src/unsorted/0x4ae630.cpp,?FUN_004ae630@@YGXPAD0@Z,partial,94.8
 0x4aeac0,732,src/unsorted/0x4aeac0.cpp,?FUN_004aeac0@@YGHPAUElem_004aeac0@@PAD@Z,partial,75.3
 0x4aeda0,47,src/unsorted/0x4aeda0.cpp,?FUN_004aeda0@@YGXPAUObj_004aeda0@@H@Z,matched,100.0
 0x4aedd0,259,src/unsorted/0x4aedd0.cpp,?FUN_004aedd0@@YGXPAUObject_004aedd0@@PADH@Z,matched,100.0
@@ -2383,6 +2384,7 @@ address,size,file,symbol,status,similarity
 0x4b0c40,223,src/unsorted/0x4b0c40.cpp,?FUN_004b0c40@Class_004b0c40@@QAEHHPAH000@Z,matched,100.0
 0x4b0d20,55,src/unsorted/0x4b0d20.cpp,?FUN_004b0d20@Class_004b0d20@@QAEXH@Z,matched,100.0
 0x4b0d60,50,src/unsorted/0x4b0d60.cpp,?FUN_004b0d60@Class_004b0d60@@QAEXH@Z,matched,100.0
+0x4b0da0,3666,src/unsorted/0x4b0da0.cpp,?FUN_004b0da0@Class_004b0da0@@QAEXIH@Z,partial,99.5
 0x4b1c00,586,src/unsorted/0x4b1c00.cpp,?FUN_004b1c00@Class_004b1c00@@QAEXH@Z,partial,13.9
 0x4b1e50,5,src/unsorted/0x4b1e50.cpp,?FUN_004b1e50@Class_004b0610@@UAEHH@Z,matched,100.0
 0x4b1e60,5,src/unsorted/0x4b1e50.cpp,?FUN_004b1e60@Class_004b0610@@UAEHH@Z,matched,100.0
@@ -2400,6 +2402,7 @@ address,size,file,symbol,status,similarity
 0x4b26f0,336,src/unsorted/0x4b26f0.cpp,?FUN_004b26f0@@YGHH@Z,matched,100.0
 0x4b2840,14,src/unsorted/0x4b2840.cpp,?begin@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AViterator@12@XZ,matched,100.0
 0x4b2850,624,src/unsorted/0x4b2850.cpp,?insert@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AU?$pair@Viterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@_N@2@ABU?$pair@HH@2@@Z,matched,100.0
+0x4b2ac0,1254,src/unsorted/0x4b2ac0.cpp,?erase@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AViterator@12@V312@@Z,matched,100.0
 0x4b2fb0,79,src/unsorted/0x4b2fb0.cpp,?FUN_004b2fb0@Class_004b2fb0@@QAEXPAUNode_004b2fb0@@@Z,matched,100.0
 0x4b3000,22,src/unsorted/0x4b3000.cpp,??0?$pair@Viterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@_N@std@@QAE@ABViterator@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@1@AB_N@Z,matched,100.0
 0x4b3020,748,src/unsorted/0x4b3020.cpp,?_Insert@?$_Tree@HU?$pair@HH@std@@U_Kfn@?$map@HHU?$less@H@std@@V?$allocator@H@2@@2@U?$less@H@2@V?$allocator@H@2@@std@@QAE?AViterator@12@PAU_Node@12@0ABU?$pair@HH@2@@Z,matched,100.0

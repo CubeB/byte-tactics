@@ -1,4 +1,36 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL, 91.7% (1653 of 1655 bytes, instruction-text score). Branches, field
+// offsets, call targets, stack slots and the whole 0x4992cd..0x4996fb state
+// machine agree with the original; what is left is register roles only.
+// What this session added (deepseek's notes above are superseded):
+// - +0x2cc6 is NOT involved, but +0x2a44 and +0x3923b are bitfield unions now.
+//   +0x2a44: `|= 8` is a byte RMW and `|= <const>` is a WORD RMW, so the field
+//   is `union { unsigned short value; struct { ...b3:1... } bits; }` and the
+//   two statements are `bits.b3 = 1;` and `value |= four;`.
+//   +0x3923b: the original is `mov ax,word[m]; test al,0x14`, a 16-bit load
+//   followed by an 8-bit test, which is what a `||` of two bitfields in a
+//   16-bit storage unit gives: `bits.b2 || bits.b4`. A plain `unsigned short`
+//   local folds to `test byte ptr [m],0x14` and loses the load. This was the
+//   only scoring change of the session (+0.5).
+// What still differs, and everything tried:
+// - the constant 4 lives in edi from 0x499603 to 0x49986b in the original
+//   (`mov edi,4`, `push edi` twice, `or word [m],di`); ours rematerialises it
+//   as `push 4` and `or word [m],4`. Tried and all identical at 91.7%:
+//   int/unsigned/short/unsigned short/char/const local; `four = four`,
+//   `four += 0`, `four *= 1`, `four ^= 0`, `four2 = four`, `if (four == 4)`,
+//   a dead extra `|=`/`&=` use, `static int four = 4`, an enum constant,
+//   `4.0f` and `4.0` initialisers, a local struct with an `int` member built
+//   by a constructor, a bitfield union local, `int four_tab[1] = {4}`, a dead
+//   __inline helper to change the /Ob2 budget, and two __inline helpers
+//   (`Push(n)` / `Or(n)` and one `Mode(n)`) called with the literal 4 so the
+//   constant would arrive through a parameter. MSVC 5 folds every one of them
+//   into an immediate, so I could not find the construct the original used.
+// - the second arm of the +0x39249 block then uses edx where we use eax for
+//   g_game, and builds the FUN_00435a20 argument in ecx before pushing instead
+//   of edx. Both look like knock-on effects of the missing edi live range
+//   (the register allocator never had to preserve a value there), but they
+//   were not separable: the score does not move when the constant is removed
+//   from any single use site.
 // PARTIAL, 91.2% (1651 of 1655 bytes). Every branch, field offset, call and
 // stack slot agrees; what is left is register/scheduling only:
 // - +0x3923b: the original is `mov ax,[mem]; mov edi,4; test al,0x14`, this
@@ -30,6 +62,30 @@ struct View_00499200 {
 struct Struct_00499200_531 {
     int unknown_0;
     int value;                         // +0x4
+};
+
+struct BitFlags16_00499200 {
+    unsigned short b0:1;
+    unsigned short b1:1;
+    unsigned short b2:1;
+    unsigned short b3:1;
+    unsigned short b4:1;
+    unsigned short b5:1;
+    unsigned short b6:1;
+    unsigned short b7:1;
+    unsigned short b8:1;
+    unsigned short b9:1;
+    unsigned short b10:1;
+    unsigned short b11:1;
+    unsigned short b12:1;
+    unsigned short b13:1;
+    unsigned short b14:1;
+    unsigned short b15:1;
+};
+
+union Flags16_00499200 {
+    unsigned short value;
+    BitFlags16_00499200 bits;
 };
 
 class Class_00435100 {
@@ -78,7 +134,7 @@ struct Game_00499200 {
     char unknown_29a4[0x2a3c - 0x29a4];
     unsigned short field_2a3c;         // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
-    unsigned short field_2a44;         // +0x2a44
+    Flags16_00499200 field_2a44;       // +0x2a44
     char unknown_2a46[0x2c76 - 0x2a46];
     View_00499200 view;                // +0x2c76
     char unknown_2c8e[0x2c92 - 0x2c8e];
@@ -118,7 +174,7 @@ struct Game_00499200 {
     int field_391f1;                   // +0x391f1
     void (*field_391f5)(void);         // +0x391f5
     char unknown_391f9[0x3923b - 0x391f9];
-    unsigned short field_3923b;        // +0x3923b
+    Flags16_00499200 field_3923b;      // +0x3923b
     char unknown_3923d[0x39249 - 0x3923d];
     int field_39249;                   // +0x39249
 };
@@ -269,9 +325,8 @@ void FUN_00499200(void)
         }
     }
 
-    unsigned short f = g_game->field_3923b;
     int four = 4;
-    if ((f & 0x14) != 0) {
+    if (g_game->field_3923b.bits.b2 || g_game->field_3923b.bits.b4) {
         if (g_game->net->FUN_00435100() != 3 ||
             (((Class_00435100*)g_game->net)->FUN_00435100() == 3 &&
              FUN_004572a0() != 0)) {
@@ -305,8 +360,8 @@ void FUN_00499200(void)
             char* b = ((Class_004352b0*)g_game->net)->FUN_004352b0();
             ((Class_00435110*)g_game->net)->FUN_00435110(b);
             if (((Class_00435c00*)g_game->net)->FUN_00435c00(a) != 0) {
-                g_game->field_2a44 |= 8;
-                g_game->field_2a44 |= four;
+                g_game->field_2a44.bits.b3 = 1;
+                g_game->field_2a44.value |= four;
             }
         } else {
             unsigned int saved = g_game->field_2a3c;

@@ -1931,3 +1931,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Byte-wide `xor cl, cl` and `not cl`** come from an `unsigned char` local
   set to 0 on one path and `~v` on the other; a ternary or a cast keeps the
   arithmetic 32-bit (0x4bd160).
+- **`cmp; ja exit; jmp top` at the bottom of a loop, with the exit jumping
+  past a block that has its own epilogue, is a guard plus a `do` loop whose
+  hit arm returns**: `if (u <= end) { do { if (hit) { ...; return; } u++; }
+  while (u <= end); }`. A `for` or `while` gives a `jbe top` back edge
+  instead, so "a return inside the loop" fails in every `for` spelling
+  (0x48d790).
+- **A partial can compute the wrong thing, not just the right thing in the
+  wrong bytes.** Before building on a previous attempt, check that each store
+  in it happens on the same paths as in the original: a stray unconditional
+  store after an if/else set a flag on the wrong unit, and removing it was
+  part of the fix (0x48d790).

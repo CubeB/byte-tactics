@@ -1882,7 +1882,12 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   memory directly (`cmp [esp+0x10], ebx`) matched once declared `__fastcall`
   (0x46c920, 0x46ca60; about 400 shape variants had not moved it). A quick way
   to test: score the file with each of `/Gr`, `/Gz` and `/Gd` through
-  tools/wcl before rewriting anything.
+  tools/wcl before rewriting anything:
+  `uv run tools/check.py <addr> --flags "/O2 /Ob2 /MT /Gz"`. 0x44b990 (a
+  "scheduler tie" that resisted many attempts) and 0x4b6570 matched unchanged
+  under `/Gz`, and 0x4c2870 under `/Gr`; declaring the function (and any
+  argument-less callee it shares the file with) `__stdcall` or `__fastcall`
+  then matches at the default flags.
 - **Keep a callee's real name with the real container**: when a hand-written
   tree or vector gives a call the wrong name, use the real `std::map` or
   `std::vector` member as a neighbouring matched file does (0x46d1a0).

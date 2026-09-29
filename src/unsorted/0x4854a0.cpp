@@ -1,22 +1,8 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// NOT a match: 80.2% (1208 bytes against 1180). The pool setup, the inlined
-// std::sort over the ten player pointers and the free-list linking all have the
-// right shape. What still differs:
-//  - FUN_00485940 is DEFINED here (not just declared) so MSVC inlines it at the
-//    direct compare sites; that alone took the score from 57.6% to 80.2%. The
-//    out-of-line helpers (FUN_00488920 / 60 / 810) still take it by pointer.
-//  - the pool local is kept in ebx; the original keeps it in ebp.
-//  - call-cleanup: our std::_Sort / std::_Unguarded_partition calls are made
-//    __cdecl (extra `add esp`); the original TU was compiled with __stdcall as
-//    the default (/Gz). Re-checking with /Gz scores 78.5%, so the default flags
-//    are still the better base and the sort tails need to be hand-written with
-//    explicit __stdcall helper declarations (see src/unsorted/0x43bc90.cpp).
-//  - the free-list linking loop keeps slot/end in different registers and the
-//    compiler folds q+0xff into the addressing where the original uses a plain
-//    cursor.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
+// Partial: 81.2%. std::sort helpers still use cdecl instead of the original stdcall; pool/free-list register allocation also differs. windows.h must precede algorithm.
 
+#include <windows.h>
 #include <algorithm>
-#include <string.h>
 
 class Class_00435100 {
 public:

@@ -1,4 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
+// Calling convention checked again (#1188): __stdcall ret 0x10 matches, callee 0x4b7381 is cdecl (add esp,0xc) and is declared so; not the cause. Tried (&at_low)[1] for at_high in case 1: 80.0%, same 280 bytes, case 2 diff unchanged.
 // Claude Sonnet 5.5 pass (#624): compiler state ruled out (0 to 400 unused `extern
 // int` declarations in steps of 8, all 80.0% and 280 bytes). More source shapes
 // scored, none moved case 1 or case 2: an inline helper `Scale(a, b)` that reads

@@ -17,6 +17,18 @@
 // original also keeps other.ptr in esi from the very first instruction (`push esi`
 // before the emptiness test), which this file matches; only the sum, the position of
 // the n store and the register of the second strcpy destination differ.
+// space-bunny-free pass: convention checked and correct (thiscall, ret 4; malloc and
+// free are cdecl, add esp,4 after each, as declared). A member `static char* Alloc(int
+// len)` with `len + 4 + 1` and the call `Alloc(n + m + 1)` also folds (1 run, worse).
+// Reading of the two facts together (space-bunny-free, from the bytes, not yet
+// tested beyond the ternary above): the +1 and +5 stay apart in the original only
+// when `n + m + 1` is a value MSVC keeps as its own node. Every single-use spelling
+// folds; the one spelling that splits is the one that evaluates the same sum on two
+// paths, which makes it a shared subexpression the reassociator will not reopen.
+// So the original most likely uses `n + m + 1` twice, with the second use removed
+// by the optimiser or living in code this reconstruction lacks. Look for what else
+// could consume that sum (a length store, a bound check) before trying more
+// spellings of the allocation itself.
 // Append of the reference-counted string handle: concatenates other's
 // characters onto this handle's, allocating a new block whose first int is
 // the reference count, then releasing the old block. The handle points at the

@@ -1,4 +1,19 @@
 // Decompiled by space-bunny-free. Names are provisional.
+// UPDATE (69.9 percent, 770 bytes): two changes took it from 61.2. (1) The
+// push ecx frame IS produced by reusing the PARAM_1 slot as the row-fitting
+// counter: param_1 = (Class_004a32a0*)(int)me->height; and the loop and the
+// later remain < 0 tests work on (int)param_1. A modified parameter has a
+// live stack home, so the holder needs a real frame dword, exactly the
+// original's [esp+0x10]. The cast is ugly; the original may have declared the
+// first parameter differently. (2) The +0xda raise is the field compared as
+// (f_da > FH+1) ? f_da :
+// FH+1 (true arm is the field), not the <= form.
+// Still differs: count is in ebx and the zero register in edi in the original;
+// ours has them swapped (edi/ebx), which spills kind to [esp+0x1c] in the
+// type-4 search and puts found in ebx instead of ebp. Tried without effect:
+// swapping f_ba/f_bc order, if (flag), step as a ?:, moving the first store
+// after the height load, reusing name for the text pointer, a shared last
+// local (worse, 51.0). Calling convention (ret 0x14) is correct, not the cause.
 // PARTIAL, 61.2 percent by check.py (769 bytes against the original's 765,
 // 248 instructions against 249). The whole shape is the original's: the
 // entry-name search loop, the "Error in GUI layout" miss path, the font-height
@@ -96,7 +111,7 @@
 //   twice (`mov [esp+0x18], edi` at 0x4a33dc before the row loop and again at
 //   0x4a343a after it) and read twice at 0x4a3562 and 0x4a3579.
 // - The last two arguments are pushed from the stack slots, not from registers:
-//   `push edx` (the `setl` of `remain < 0`), `push esi` (the found index in the
+//   `push edx` (the `setl` of `(int)param_1 < 0`), `push esi` (the found index in the
 //   language list) and `push eax` (the language root) for FUN_004a03f0.
 //
 // Suspected original bug: none found beyond the dead `found == -1` test above,
@@ -204,8 +219,8 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap,
     me->num = (short)count;
     me->bitmap = bitmap;
     me->flags |= 0x10;
-    me->f_da = (short)((me->f_da <= FontHeight_004a32a0() + 1)
-                       ? FontHeight_004a32a0() + 1 : (int)me->f_da);
+    me->f_da = (short)((me->f_da > FontHeight_004a32a0() + 1)
+                       ? (int)me->f_da : FontHeight_004a32a0() + 1);
     if (flag != 0) {
         me->id = flag;
         me->flags |= 0x800;
@@ -213,7 +228,7 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap,
     me->f_bc = 0;
     me->f_ba = 0;
     me->first = (short)(count - 1);
-    int remain = me->height;
+    param_1 = (Class_004a32a0*)(int)me->height;
     int step;
     if (me->f_da == 0) {
         step = FontHeight_004a32a0() + 1;
@@ -221,8 +236,8 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap,
         step = me->f_da;
     }
     for (int j = count - 1; j > -1; j--) {
-        remain -= step;
-        if (remain < 0)
+        param_1 = (Class_004a32a0*)((int)param_1 - step);
+        if ((int)param_1 < 0)
             break;
         me->first = (short)j;
     }
@@ -244,10 +259,10 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap,
     if (DAT_0051fba4->holder != 0) {
         int j2 = FindName_004a32a0(DAT_0051fba4->holder->entries, text);
         if (j2 != -1) {
-            FUN_004a03f0(DAT_0051fba4, j2, remain < 0);
+            FUN_004a03f0(DAT_0051fba4, j2, (int)param_1 < 0);
         }
     }
-    if (remain < 0) {
+    if ((int)param_1 < 0) {
         FUN_004a3ef0(DAT_0051fba4, found);
     }
 }

@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Sonnet 5.5 retry (#1081): /Gz and /Gr give the same 99.6% (it is a method), the
+// third-copy loop written out by hand with the destination declared first is
+// 51%, and 3000 more random variants (helper parameter orders and loop shapes at
+// each _Ucopy/_Ufill site, size and tail spellings) never leave the same one SIB byte.
 // std::vector<Elem_00476210>::insert(iterator, size_type, const T&) from MSVC 5's
 // <vector>, emitted out of line for a 32-byte trivially copyable element. The
 // body is the template with _Ucopy, _Ufill, fill and copy_backward inlined: the

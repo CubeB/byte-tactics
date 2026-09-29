@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Sonnet 5.5 retry (#1081): /Gz and /Gr change nothing (it is a method), and about
+// 700 more variants (deallocate/_Destroy order and spelling, helper parameter
+// orders and loop shapes, manual third-copy loops, size and tail spellings) all
+// stay at 83.0%. The same single cause as 0x476490: _P stays in edx and _S in esi.
 // std::vector<T>::insert(iterator, size_type, const T&) from MSVC 5's <vector>,
 // with _Ucopy, _Ufill, fill and copy_backward inlined. The element is 0x44
 // (68) bytes, so every copy is a rep movsd of 0x11 dwords and every stride is

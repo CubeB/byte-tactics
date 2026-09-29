@@ -2,7 +2,20 @@
 // std::vector<Elem_00476490>::insert(Elem_00476490* _P, size_type _M,
 // const Elem_00476490& _X), the game's reallocating insert.
 //
-// NOT MATCHING: 74.9 percent, 644 bytes against 632. The byte count is 12 too
+// NOT MATCHING: 78.9 percent, 646 bytes against 632 (Sonnet 5.5 retry for #1081).
+// Retry finding: writing _Destroy out as an inline loop with the end cached
+// (`iterator _e = _Last;`) after the deallocate took 75.1 to 78.9 and made the
+// whole tail (delete call, size() recompute, three pointer stores) match except
+// the original's dead spill of _First into the _X argument slot. A scripted
+// sweep of about 700 more variants (helper parameter orders and loop shapes at
+// every _Ucopy/_Ufill site, statement orders, local copies of _P/_M/_X, size
+// expression spellings, manual third-copy loops) never moved it further: the
+// one remaining cause is that the original keeps _P in edx (loaded right after
+// the operator new call, before _First) so the fill counter must be ebp with
+// &_X reloaded, while this build reloads _P into ecx after each rep movsd.
+// Older notes follow.
+//
+// Previous state: 74.9 percent, 644 bytes against 632. The byte count is 12 too
 // high, so the shape is still wrong somewhere, not just a register order.
 //
 // The class below is a hand-written clone of the primary `std::vector` template
@@ -74,7 +87,12 @@ public:
             _Ufill(_Q, _M, _X);
             _Ucopy(_P, _Last, _Q + _M);
             allocator.deallocate(_First, _End - _First);
-            _Destroy(_First, _Last);
+            {
+                iterator _d = _First;
+                iterator _e = _Last;
+                for (; _d != _e; ++_d)
+                    allocator.destroy(_d);
+            }
             _End = _S + _N;
             _Last = _S + size() + _M;
             _First = _S;

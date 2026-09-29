@@ -45,6 +45,24 @@
 //    through Free2: 57.0 percent, and the destructor stops being inlined.
 // Keeping the explicit `->~Class_004c5840()` call plus the out-of-line
 // Free2 helper is what holds the 70.2 percent.
+//
+// Retry by deepseek-v4.1-flash, confirmed all of the above and added three
+// more dead ends, none better than 70.2:
+//  - real `std::vector<Elem_004c5bc0>` member plus `delete DAT_0051fdb8`:
+//    56.4 percent, and it emits a scalar deleting destructor (??
+//    _GElem_004c5bc0@@QAEPAXI@Z) the original does not have.
+//  - explicit `old->~Class_004c5840(); operator delete(old);` with the vector
+//    free inlined in the destructor: 57.0 percent; the whole destruction gets
+//    its own frame and `push ebx; mov ebx,[esp+0x22c]` hoists above _strcmpi.
+//  - the destruction in a static inline helper taking the object pointer:
+//    57.0 percent, same hoist.
+//  - a named `Class_004c5840* old = DAT_0051fdb8;` temp at the call site:
+//    70.2 percent, byte-identical output to the current file, no effect.
+// The surviving problem is unchanged: the original loads the global into eax,
+// tests it, then copies eax to ebx and uses edi = eax+1 for the vector; ours
+// puts the object straight in edi (ebx = object+1). Separating the destruction
+// from the inlined destructor is what triggers the ebx hoist, so the inline
+// destructor is not the thing to change.
 #include <string.h>
 
 extern char DAT_0051fdc0[256];

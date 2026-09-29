@@ -582,3 +582,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   with `r->bottom` by the right edge's inlined segment code, so the function
   returns `r->bottom` instead of 1. Found by CubeB's OpenCode /
   deepseek-v4.1-flash in #1460.
+- **0x4a3ef0** (possible): in the `0x20` arm, when `e->field_c0 <= 0` the
+  `jle` at 0x4a40b2 skips the block that sets up the divisor, and 0x4a40d1
+  then does `idiv ecx` with the register still zero, a divide by zero. The
+  `0x80` arm tests both divisors first, so the check looks forgotten. Found by
+  CubeB's OpenCode / deepseek-v4.1-flash in #1316.
+- **0x4a4170** (possible): `mov ax, [ebp+0x94]` / `sub ax, [ebp+0x7c]` then
+  `add eax, esi` adds a 16-bit difference without sign extension, so the high
+  half of `eax` is whatever a previous call left there, and the sum is stored
+  in `e->off`. Found by CubeB's OpenCode / deepseek-v4.1-flash in #1316.

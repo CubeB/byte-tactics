@@ -1,7 +1,43 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 87.8%. Button-event arms now share their message/call tail.
-// Null callback branches still select a different return-one epilogue,
-// and the query-palette branch uses different registers.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Window procedure of the main application window: translates the custom
+// display messages and forwards the rest to the default handler.
+//
+// PARTIAL, 89.3% (original 1104 bytes, ours 1112). Control flow, every struct
+// offset, every call and the whole jump table now match instruction for
+// instruction except for the two points listed below.
+//
+//  * The two FUN_004c2e30 arms are written as two case bodies that `break` out
+//    of the switch into a shared tail (e.message = msg; FUN_004c2e30(&e)).
+//    That is what makes the compiler duplicate their common prefix and
+//    tail-merge the suffix: 0x4b5cc0+0x23c jumps to the tail and the
+//    0x203/0x206 arm falls straight into it, exactly as the original does.
+//    A `default: return DefWindowProcA(...)` clause is required: without it the
+//    switch's default call is dead-eliminated and the function loses 29 bytes.
+//  * The 0x30f arm's E_FAIL has to be declared BEFORE the hpalette `if` so that
+//    `hr` is live across that branch. That extra liveness is what demotes
+//    DAT_0051fbd0 from edx to ecx and the surface pointer into edx, matching
+//    the original's 0x4b60c4 block. Declaring it after the `if` (the obvious
+//    spelling) gives the right code shape but the wrong registers.
+//
+// What still differs, 2 items, 8 bytes:
+//
+//  1. `je` at 0x4b5f9ad and 0x4b5fd3 (the "callback == 0" jumps out of the
+//     0x219 and 0x3b9 arms) are 6 bytes here and 2 bytes in the original,
+//     because the shared "return 1" block they target is laid out after the
+//     0x30f arm instead of immediately after the 0x3b9 arm. Both layouts have
+//     the same three copies of `mov eax,1 / pop esi / add esp,0x18 / ret 0x10`;
+//     MSVC 5 just picks a different representative to absorb the two
+//     duplicates. Reordering the case labels, spelling the 0x219/0x3b9 returns
+//     as a `break` into a shared `return 1` after the switch, and using `goto`
+//     all leave the representative at the end of the function. Those 8 bytes
+//     are the whole size difference.
+//  2. `mov eax, 0x80004005` (E_FAIL) is hoisted to the top of the 0x30f arm
+//     (ours 0x4b60c3) instead of into the primary/palette block (original
+//     0x4b60ca, after `mov edx, [ecx+0x88]`). Net zero bytes: the 0x30f
+//     primary block is otherwise byte identical. Moving the initialiser back
+//     after the hpalette `if` puts the constant in the right place and breaks
+//     the register allocation again (87.8%).
+
 #include <windows.h>
 #include <ddraw.h>
 
@@ -15,8 +51,8 @@ struct Event_4b5cc0 {
     int flag;       // +0x14
 };
 
-// +0xf0: display state flags, a 16 bit bitfield so a single bit test loads
-// just the byte holding the bit.
+// +0xf0: display state flags, a 16 bit bitfield so the bit 1 test loads just
+// the byte holding the bit.
 union Flags_4b5cc0 {
     unsigned short value;
     struct {
@@ -97,7 +133,7 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
         if (wparam == 0xf100)
             return 0;
         return DefWindowProcA(hwnd, msg, wparam, lparam);
-    case WM_MOUSEMOVE: {
+    case WM_MOUSEMOVE:
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
@@ -106,32 +142,30 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
         e.message = msg;
         FUN_004c2360((int*)&e);
         return 0;
-    }
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP: {
+    case WM_RBUTTONUP:
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
         e.time = GetTickCount() * DAT_0051fbd0->tickScale / 1000;
         e.flag = 0;
-        goto button_event;
-    }
+        break;
     case WM_LBUTTONDBLCLK:
-    case WM_RBUTTONDBLCLK: {
+    case WM_RBUTTONDBLCLK:
         e.x = lparam & 0xffff;
         e.y = (lparam >> 16) & 0xffff;
         e.buttons = wparam;
         e.time = GetTickCount() * DAT_0051fbd0->tickScale / 1000;
         e.flag = 1;
-        goto button_event;
-    }
+        break;
     case 0x219:
         if (DAT_0051fbd0->callback != 0)
             DAT_0051fbd0->callback(0x219, wparam, lparam);
         return 1;
     case 0x30f: {
+        HRESULT hr = E_FAIL;
         if (DAT_0051fbd0->hpalette) {
             HDC dc = GetDC(DAT_0051fbd0->hwnd);
             SelectPalette(dc, DAT_0051fbd0->hpalette, FALSE);
@@ -139,7 +173,6 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
             ReleaseDC(DAT_0051fbd0->hwnd, dc);
             return 1;
         }
-        HRESULT hr = E_FAIL;
         if (DAT_0051fbd0->primary && DAT_0051fbd0->palette)
             hr = DAT_0051fbd0->primary->SetPalette(DAT_0051fbd0->palette);
         return hr == DD_OK ? 1 : 0;
@@ -154,19 +187,16 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
             ReleaseDC(DAT_0051fbd0->hwnd, dc);
             return 0;
         }
-        {
-            HRESULT hr2 = E_FAIL;
-            if (DAT_0051fbd0->primary && DAT_0051fbd0->palette)
-                hr2 = DAT_0051fbd0->primary->SetPalette(DAT_0051fbd0->palette);
-        }
+        if (DAT_0051fbd0->primary && DAT_0051fbd0->palette)
+            DAT_0051fbd0->primary->SetPalette(DAT_0051fbd0->palette);
         return 0;
     case 0x3b9:
         if (DAT_0051fbd0->callback != 0)
             DAT_0051fbd0->callback(0x3b9, wparam, lparam);
         return 1;
+    default:
+        return DefWindowProcA(hwnd, msg, wparam, lparam);
     }
-    return DefWindowProcA(hwnd, msg, wparam, lparam);
-button_event:
     e.message = msg;
     FUN_004c2e30(&e);
     return 0;

@@ -1371,10 +1371,10 @@ address,name
 0x46fb40,UElem_0046faf0::?$vector::_Ufill
 0x46fb80,IURect_0046e160::IU?$pair::?$_Tree::_Insert
 0x46fe60,Class_0046fe60::FUN_0046fe60
-0x46feb0,Class_0046feb0::FUN_0046feb0
-0x46ff10,Class_0046ff10::FUN_0046ff10
-0x46ff70,Class_0046ff70::FUN_0046ff70
-0x46ff90,Class_0046ff90::FUN_0046ff90
+0x46feb0,IURect_0046e160::IU?$pair::?$_Tree::_Lrotate
+0x46ff10,IURect_0046e160::IU?$pair::?$_Tree::_Rrotate
+0x46ff70,IURect_0046e160::IU?$pair::?$_Tree::_Buynode
+0x46ff90,IURect_0046e160::IU?$pair::?$_Tree::iterator::_Dec
 0x470030,FUN_00470030
 0x470040,??4Class_0046eaa0@@QAEAAU0@ABU0@@Z
 0x470250,Class_00470250::FUN_00470250

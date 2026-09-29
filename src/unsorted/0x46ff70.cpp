@@ -1,29 +1,12 @@
-// Decompiled by Opus. Names are provisional.
-// Shaped like std::_Tree<...>::_Buynode(_Nodeptr, _Redbl) from MSVC 5's
-// <xtree> for the std::map<unsigned int, Rect> tree whose _Nil node is
-// DAT_0051e598: allocates a 0x24-byte node and sets its parent and colour.
-// Its one caller (0x46ef50, an inlined insert) sets ecx to the tree. Named
-// as a placeholder method like the rest of that tree's helpers (0x46fe60,
-// 0x46feb0, 0x46ff10, 0x46ff90).
-
-struct Node_0046ff70 {
-    Node_0046ff70* left;               // +0x0
-    Node_0046ff70* parent;             // +0x4
-    Node_0046ff70* right;              // +0x8
-    char value[0x20 - 0xc];            // +0xc (key and Rect)
-    int color;                         // +0x20
+// Decompiled by Opus; renamed to the real std::map member by the orchestrator. Names are provisional.
+// The out-of-line _Tree::_Buynode of the std::map<unsigned int, Rect_0046e160> used by 0x46d040 and 0x46ef50, emitted by an explicit instantiation (it is protected).
+#include <map>
+struct Rect_0046e160 {
+    int x;
+    int y;
+    short w;
+    short h;
+    int unknown_c;
 };
-
-class Class_0046ff70 {
-public:
-    Node_0046ff70* FUN_0046ff70(Node_0046ff70* parent, int color);
-};
-
-// FUNCTION: 0x46ff70
-Node_0046ff70* Class_0046ff70::FUN_0046ff70(Node_0046ff70* parent, int color)
-{
-    Node_0046ff70* node = (Node_0046ff70*)operator new(sizeof(Node_0046ff70));
-    node->parent = parent;
-    node->color = color;
-    return node;
-}
+// FUNCTION: 0x46ff70 ?_Buynode@?$_Tree@IU?$pair@IURect_0046e160@@@std@@U_Kfn@?$map@IURect_0046e160@@U?$less@I@std@@V?$allocator@URect_0046e160@@@3@@2@U?$less@I@2@V?$allocator@URect_0046e160@@@2@@std@@IAEPAU_Node@12@PAU312@W4_Redbl@12@@Z
+template class std::_Tree<unsigned int, std::pair<const unsigned int, Rect_0046e160>, std::map<unsigned int, Rect_0046e160>::_Kfn, std::less<unsigned int>, std::allocator<Rect_0046e160> >;

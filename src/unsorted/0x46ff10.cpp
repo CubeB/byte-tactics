@@ -1,39 +1,12 @@
-// Decompiled by Opus. Names are provisional.
-// Shaped like std::_Tree<...>::_Rrotate(_Nodeptr) from MSVC 5's <xtree>
-// (right rotation of a red-black tree node) under a lock object; DAT_0051e598
-// is the tree's _Nil node and head->parent is the root. Mirror of 0x46feb0.
-#include <yvals.h>
-
-struct Node_0046ff10 {
-    Node_0046ff10* left;            // +0x0
-    Node_0046ff10* parent;          // +0x4
-    Node_0046ff10* right;           // +0x8
+// Decompiled by Opus; renamed to the real std::map member by the orchestrator. Names are provisional.
+// The out-of-line _Tree::_Rrotate of the std::map<unsigned int, Rect_0046e160> used by 0x46d040 and 0x46ef50, emitted by an explicit instantiation (it is protected).
+#include <map>
+struct Rect_0046e160 {
+    int x;
+    int y;
+    short w;
+    short h;
+    int unknown_c;
 };
-
-extern Node_0046ff10* DAT_0051e598;
-
-class Class_0046ff10 {
-public:
-    int unknown_0;
-    Node_0046ff10* head;            // +0x4
-    void FUN_0046ff10(Node_0046ff10* x);
-};
-
-// FUNCTION: 0x46ff10
-void Class_0046ff10::FUN_0046ff10(Node_0046ff10* x)
-{
-    std::_Lockit lock;
-    Node_0046ff10* y = x->left;
-    x->left = y->right;
-    if (y->right != DAT_0051e598)
-        y->right->parent = x;
-    y->parent = x->parent;
-    if (x == head->parent)
-        head->parent = y;
-    else if (x == x->parent->right)
-        x->parent->right = y;
-    else
-        x->parent->left = y;
-    y->right = x;
-    x->parent = y;
-}
+// FUNCTION: 0x46ff10 ?_Rrotate@?$_Tree@IU?$pair@IURect_0046e160@@@std@@U_Kfn@?$map@IURect_0046e160@@U?$less@I@std@@V?$allocator@URect_0046e160@@@3@@2@U?$less@I@2@V?$allocator@URect_0046e160@@@2@@std@@IAEXPAU_Node@12@@Z
+template class std::_Tree<unsigned int, std::pair<const unsigned int, Rect_0046e160>, std::map<unsigned int, Rect_0046e160>::_Kfn, std::less<unsigned int>, std::allocator<Rect_0046e160> >;

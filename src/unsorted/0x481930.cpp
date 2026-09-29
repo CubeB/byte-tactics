@@ -138,9 +138,15 @@ inline int Lod_00481930(Params_00481930* params)
 //      declaration order, not reverse declaration order and not first or last use
 //      (checked against the offset lists the /Fa listing prints). Everything from
 //      bestIdx upwards is a single permutation.
-//   2. In the if branch the original puts bestIdx in ebx and j1 in memory; we keep
-//      bestIdx in memory and j1 in ebx. Since j and the outer counter run in lockstep
-//      MSVC keeps merging them, which is what costs us the `imul eax,[esp+0x1c]` shape.
+//   2. In the if branch the original keeps bestIdx in ebx (zeroed by `xor ebx,ebx` at
+//      0x481a9f and never spilled) and spills BOTH inner counters: j at [esp+0x34] and
+//      j1 at [esp+0x1c]. We keep bestIdx in memory and j1 in ebx and derive j=j1-1
+//      (`lea eax,[ebx-1]`). That is also why our frame is one dword short: the original
+//      needs a slot for j, we fold j into ebx. Ruled out this session: `register` on
+//      bestIdx, swapping the bestIdx/bestDiff declarations, and hoisting
+//      `int j = 0, j1 = 1;` out of the for header (all identical, 53.0). The board
+//      note "original holds the bit in ebx" is wrong: the bit has a home at [esp+0x48]
+//      and is reloaded into edi for each `(bit & *cell)` test; ebx is bestIdx.
 //   3. `table` is memory-resident in the original (`mov [esp+0x3c], eax`, reloaded each
 //      outer iteration); ours parks it in ebp.
 //   4. `(bit & *cell) == 0`: the original ANDs the two registers and tests only DI/BP

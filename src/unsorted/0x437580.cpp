@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // std::vector<Class_00437820>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
 // static vector at 0x5122c0 (see 0x434a30.cpp); its only caller, 0x4373a0,
@@ -23,6 +23,19 @@
 // - 0x437800 is named Class_00437800::Class_00437800 in data/symbols.csv, but
 //   it is Class_00437820::operator= (??4Class_00437820@@QAEAAV0@ABV0@@Z), so
 //   the three operator= references would still be reported wrong.
+//
+// deepseek-v4.1-flash follow-up (still 78.9%):
+// - The whole 10-byte gap (639 vs 649) is inside the reallocating prologue:
+//   the fast path from 0x4376ed to the end is byte-identical. In the original
+//   the first _Ucopy keeps its end (_P) in edi, a callee-saved register, so the
+//   copy-constructor loop needs no reload and _Ufill then takes the count in
+//   ebp and reloads the value; this build (and 0x488fb0's matched twin) keeps
+//   _P in ecx, reloads it after every call, and cascades into the third
+//   _Ucopy dest/src register split. Same source, different allocation.
+// - uv run tools/headers.py 0x437580 --cpp tried 768 header sets, all 78.9%.
+//   Explicitly declaring the element's copy constructor, operator= and
+//   destructor instead of letting them be implicit also leaves 78.9%. This is
+//   TU compiler state, the same wall as 0x408f30 / 0x40cca0 / 0x40d290.
 #include <vector>
 
 class Class_004c9390 {

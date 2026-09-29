@@ -14,11 +14,17 @@
 // non-network case come from rule->startMetal / rule->startEnergy, i.e.
 // [ebp+0xc] / [ebp+0x10] with ebp = g_game->rules + g_game->playerType*0x18.
 //
+// g_game->players[i] (stride 0x14b) starts with a PlayerInfo pointer, so
+// `opts` is a LOAD from that slot, not the address of the array element:
+// mov ebx,[edi+edx*2+0x1b8a].  A plain &players[i] emits lea and cannot match.
+//
 // Still differs: the early opts/rule block keeps the player index in eax where
-// the original keeps it in ecx, and the net==2 branch in the original re-reads
+// the original keeps it in ecx (shl eax,5 / add eax,ecx, here shl ecx,5 /
+// add ecx,eax), and the net==2 branch in the original re-reads
 // g_game->rules->startType instead of using the cached `rule`.  Writing that
-// re-read shifts the whole early allocation and the score drops from 90 to 70,
-// so rule->startType is kept here.
+// re-read gives the right instruction count (1432 vs 1431 bytes) but rotates
+// registers through the whole function and drops the score to 70, so
+// rule->startType is kept here.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -56,6 +62,11 @@ struct Opts_0045f1d0 {                   // 0x14b bytes
     char unknown_a5[0x14b - 0xa5];
 };
 
+struct PlayerEntry_0045f1d0 {            // 0x14b bytes
+    Opts_0045f1d0* info;                 // +0x0
+    char unknown_4[0x14b - 4];
+};
+
 struct Rule_0045f1d0 {                   // 0x18 bytes
     char unknown_0[0xc];
     int startMetal;                      // +0xc
@@ -73,7 +84,7 @@ struct Game_0045f1d0 {
     char unknown_0[0x519];
     Layer_0045f1d0 menu;                 // +0x519
     char unknown_525[0x1b8a - 0x525];
-    Opts_0045f1d0 players[10];           // +0x1b8a
+    PlayerEntry_0045f1d0 players[10];    // +0x1b8a
     char unknown_2878[0x29a0 - 0x2878];
     Rule_0045f1d0* rules;                // +0x29a0
     char unknown_29a4[0x2a42 - 0x29a4];
@@ -119,7 +130,7 @@ void FUN_0045f1d0(int unused8, int unusedc, int unused10)
     layer->handler = FUN_0045f190;
     FUN_004288d0("GameSettings", 0, 0, 0);
     int count = layer->entries->u.count;
-    Opts_0045f1d0* opts = &g_game->players[FUN_00456850() & 0xff];
+    Opts_0045f1d0* opts = g_game->players[FUN_00456850() & 0xff].info;
     Rule_0045f1d0* rule = (Rule_0045f1d0*)((char*)g_game->rules
                                            + g_game->playerType * 0x18);
     char* strs[17] = { "Random", "Fixed", "Disallowed", "Allowed",

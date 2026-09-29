@@ -1,15 +1,7 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 62.7% (1085 vs 1116 bytes). Control flow and all call/global
-// references are right; what still differs is register allocation:
-//   - original computes the first entry address as `lea ecx,[eax*8];
-//     sub ecx,eax; ...` and folds the +2 into `lea eax,[edx+ecx*2+2]`;
-//     ours uses `mov ecx,eax; shl ecx,3; sub ecx,eax` and an extra lea.
-//   - in the TALK parse block the original keeps localPlayer in ecx, g_game
-//     in edx and oldmode in bl (so mode stays at [esp+0x10]); ours puts
-//     g_game in ecx, localPlayer in edx, spills oldmode to a byte slot and
-//     promotes mode to ebx.
-//   - the duplicated FUN_0049fdf0 tail and the FUN_0049fc50 argument use
-//     swapped registers.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 67.3%. Entry addressing, saved-mode register allocation and
+// duplicate tail-call registers still differ. The input gadget and selected
+// entry reload now follow the original, as do signed character conversions.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -84,7 +76,7 @@ extern char DAT_005093ec[];            // "Enemies"
 extern char DAT_00508384[];            // "Allies"
 
 void __stdcall FUN_0047f1a0(char* name, int flag);
-void __stdcall FUN_004a1080(Gadget_00493bf0* obj, char* name, unsigned char value);
+void __stdcall FUN_004a1080(Gadget_00493bf0* obj, char* name, char value);
 int __stdcall FUN_004a0ff0(Gadget_00493bf0* obj, int index);
 int __stdcall FUN_004a0f60(Gadget_00493bf0* obj, char* name);
 Entry_00493bf0* __stdcall FUN_004a0010(Entry_00493bf0* entries, char* name);
@@ -114,8 +106,8 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
     if (_strnicmp(entries[id].name, DAT_0050940c, 8) == 0) {
         FUN_0047f1a0(DAT_00503130, 0);
         g_game->mode_2bf0 = 3;
-        FUN_004a1080(&g_game->gadget, DAT_00509400, g_game->mode_2bf0);
-        int n = atoi(&entries[id].name[8]);
+        FUN_004a1080(gadget, DAT_00509400, g_game->mode_2bf0);
+        int n = atoi(&entries[gadget->field_60].name[8]);
         unsigned char v = (unsigned char)FUN_004a0ff0(gadget, gadget->field_60);
         g_game->field_2bf1[n] = v;
         FUN_0049fa90(gadget);
@@ -166,7 +158,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
             memcpy(saved, g_game->field_2bf1, 10);
             char* to = 0;
             if (p[1] > ' ' && strchr(DAT_005093f4, p[1]) != 0) {
-                if (isdigit((unsigned char)p[0])) {
+                if (isdigit(p[0])) {
                     int d = p[0] - '0';
                     if (d < 0 || d > 9 || g_game->players[d].field_4 == 0)
                         goto clear;
@@ -176,7 +168,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
                     g_game->field_2bf1[d] = 1;
                     to = (char*)&g_game->players[d] + 0x2b;
                 } else {
-                    int c = tolower((unsigned char)p[0]);
+                    int c = tolower(p[0]);
                     if (c == 'a') {
                         mode = 1;
                         to = DAT_00508384;

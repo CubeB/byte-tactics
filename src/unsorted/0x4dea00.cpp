@@ -9,6 +9,13 @@
 //     opposite lea/dec choice in both versions, so this is one allocation decision.
 // Everything else (frame 0xdfc, all local offsets, every call sequence, the merged
 // `sprintf` tail through a `char* str` local) is byte-exact.
+// deepseek-v4.1-flash (this run) retried the open knobs, all stayed 96.6 or worse:
+//  - for-init placement `for (a = addrs; ...)` (96.6), declaration-init
+//    `unsigned long* a = addrs;` (96.6), walk the parameter `addrs` directly (75.0,
+//    853 bytes), swap `(n - 1) == i` in the lines branch (96.2).
+//  - tools/headers.py tried all 128 header sets: closest 96.6, so no header fixes it.
+//  - The whole remaining diff is one MSVC 5 allocation decision that splits across the
+//    two branches; the preheader transposition moves with it, so fix them together.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

@@ -1876,3 +1876,34 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **Keep a callee's real name with the real container**: when a hand-written
   tree or vector gives a call the wrong name, use the real `std::map` or
   `std::vector` member as a neighbouring matched file does (0x46d1a0).
+- **An apparent rematerialisation can be a register role, not a construct**:
+  MSVC 5 will not fold a memory operand whose base register is the destination
+  of the same instruction, so when the accumulator lives in the same register as
+  the base, the load is forced to materialise. A named local can only be
+  spilled, never rematerialised, so an original that re-reads a value after a
+  test is evidence that the value had **no** local at that point. The
+  visibility-gated `Draw` family (0x473590, 0x474170, 0x473a00, 0x4745e0,
+  0x474b80) took about 20 attempts, each looking for a source construct, before
+  this was understood. When a "missing local" or a re-read will not reproduce in
+  a scratch copy, suspect the register roles and stop rewriting the expression.
+- **Integer arithmetic shape is not a register lever**: MSVC 5 canonicalises
+  every parenthesisation of `a + b - c` identically, so re-spelling an integer
+  arithmetic expression never moves the registers it allocates. What does move
+  them is the size of the surrounding code, so when a diff shifts after an
+  unrelated edit, look at the block that grew or shrank rather than at the
+  expression.
+- **Naming an inline accessor is an allocation lever, and it cuts both ways**:
+  routing expressions through `__inline begin()` / `end()` accessors changes how
+  MSVC allocates argument temporaries, and was worth 12 to 25 points on two
+  unrelated functions (on 0x470040 it fixed four diffs across two blocks at
+  once; on 0x46d6c0 it was worth 12.7 points). The right answer differs per
+  site: on 0x46d6c0 the loop had to use the accessors directly while each insert
+  needed its own reference in its own nested block. Use an accessor where
+  call-level indirection is needed and a plain reference where it is not, and
+  expect to try both at each site.
+- **A constructor materialises a constant where a field assignment cannot**:
+  a literal `0` written into a field always compiles to `mov dword [m], 0`, but
+  passing it to a real constructor (`p.first->value = Value_0046d2e0(a, 0, wh,
+  flag);`) gives `xor eax, eax; mov [edx+4], eax`, which is what the original
+  does. Give the aggregate a constructor rather than assigning the constant to a
+  field; verified in three separate shapes on 0x46d2e0.

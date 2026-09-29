@@ -1865,3 +1865,14 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `compile_source` and `compare` from tools/check.py can score hundreds of
   moved-statement variants in parallel at no cost in check runs; a
   move-each-statement hill climb took 0x4644d0 from 94.5% to 99.2% (Sonnet 5.5).
+- **Try the calling convention before more shape variants**: some original
+  files were built with `/Gr` (fastcall default), as others were with `/Gz`
+  (0x424c00). A no-argument free function whose loop reloads a local into a
+  register (`mov ecx, [esp+0x10]; cmp ecx, ebx`) where the original compares
+  memory directly (`cmp [esp+0x10], ebx`) matched once declared `__fastcall`
+  (0x46c920, 0x46ca60; about 400 shape variants had not moved it). A quick way
+  to test: score the file with each of `/Gr`, `/Gz` and `/Gd` through
+  tools/wcl before rewriting anything.
+- **Keep a callee's real name with the real container**: when a hand-written
+  tree or vector gives a call the wrong name, use the real `std::map` or
+  `std::vector` member as a neighbouring matched file does (0x46d1a0).

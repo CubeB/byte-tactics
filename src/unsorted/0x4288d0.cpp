@@ -1,11 +1,13 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PALETTE CACHE. Best: 76.7%. Still differs: after the palette buffer is
-// allocated the original keeps g_game in edx across the cache shift, so its
-// strcpy saves the length in edx and the tail reloads g_game into eax and
-// surface into ebp; ours caches g_game in edx (reloading it after the free
-// calls), uses eax for the length and reloads surface from its slot. The
-// prologue, the name search, the move-to-front and the entry-9 eviction all
-// match byte for byte; only the load-block/tail register allocation differs.
+// PALETTE CACHE. check.py: MATCH (646 bytes).
+// The tail must be a nested `if (param_4 == 0) { ... } return 0;` so both
+// failure exits share one return block at the very end; only then does the
+// original load g_game fresh for the +0x531 test (leaving edx free for the
+// strcpy length) and keep surface in ebp. The name == 0 arm writes surface = 0
+// and jumps to the shared tail, which is what puts that block after the return.
+// Suspected original bug: the name search matches a cached entry whose surface
+// is already 0, moves it to the front, then the alloc path shifts and inserts a
+// second entry with the same name at index 0, leaving a duplicate at index 1.
 #include <string.h>
 
 struct Entry_004288d0 {
@@ -68,29 +70,30 @@ int __stdcall FUN_004288d0(const char* name, int param_2, int param_3, int param
                 strcpy(DAT_005120b8[0].name, name);
             }
         }
-    }
-
-    if (param_4 != 0)
-        goto fail;
-
-    if (*(int*)(g_game + 0x531) != 0) {
-        FUN_004ab290((int)(g_game + 0x519), (int)surface);
-        if (param_3 != 0)
-            FUN_004ba200((unsigned char*)data, 0, 0x100);
     } else {
-        *(void**)(g_game + 0x11eb) = surface;
-        if (name != 0)
-            strcpy(g_game + 0x11ef, name);
+        surface = 0;
+        goto after;
     }
 
-    if (surface == 0 && name != 0)
-        goto fail;
-    if (name == 0) {
-        *(g_game + 0x11ef) = 0;
-        return 1;
+after:
+    if (param_4 == 0) {
+        if (*(int*)(g_game + 0x531) != 0) {
+            FUN_004ab290((int)(g_game + 0x519), (int)surface);
+            if (param_3 != 0)
+                FUN_004ba200((unsigned char*)data, 0, 0x100);
+        } else {
+            *(void**)(g_game + 0x11eb) = surface;
+            if (name != 0)
+                strcpy(g_game + 0x11ef, name);
+        }
+        if (surface != 0 || name == 0) {
+            if (name != 0) {
+                strcpy(g_game + 0x11ef, name);
+                return 1;
+            }
+            *(g_game + 0x11ef) = 0;
+            return 1;
+        }
     }
-    strcpy(g_game + 0x11ef, name);
-    return 1;
-fail:
     return 0;
 }

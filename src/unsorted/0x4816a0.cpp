@@ -1,23 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
-// Best so far: 88.5 percent (640 of 654 bytes). Everything matches except one
-// block, the cx/cy computation in the else arm of the flags bit 4 test. The
-// original emits, in this order:
-//     mov  eax, [esp+0x20]        ; pos.x          -> edi
-//     mov  ecx, [ecx+0x1485b]     ; table, the call's first argument
-//     ...  push ebx / push ecx
-//     movsx eax, [esp+0x2e]       ; high word of pos.y, / 64 -> esi
-//     mov  eax, [esp+0x30]        ; pos.z          -> esi again
-//     mov  [esp+0x40], esi        ; so the y value is spilled to the dead
-//     mov  eax, [esp+0x40]        ; incoming argument slot and reloaded
-// and afterwards both stores are full 32 bit, `movsx edx, word [eax+4]` plus
-// `sub edi, edx`, where this version folds the 16 bit operand into the sub
-// (`sub di, word ptr [eax+4]`) and computes z before y with y in eax.
-// The whole 14 byte difference is that one cause: the original's def order is
-// cx, y, z, so y takes esi and z has to spill it. Every source spelling tried
-// here makes MSVC 5 sink the y computation to its use, which puts z second and
-// leaves y in a scratch register. See the notes at the end of this file.
+// Two levers finished this. First, adding <math.h> to the file (an include is
+// an allocation lever, see 0x482830) stops MSVC 5 sinking the high-word
+// division of pos.y below the pos.z division, which is what produced the
+// original's y-in-esi, z-in-eax schedule and the spill of y to the dead
+// incoming-argument slot at [esp+0x40]. Before that the function was 640 bytes
+// at 88.5 percent. Second, the two cell stores must be written as full 32 bit
+// subtractions (int locals vx, vz) and only truncated at the store; writing
+// `params.field_4[0] = (short)(cx - e->field_4)` narrows the subtraction to
+// `sub di, word ptr [eax+4]` and loses 6 bytes of the original's `movsx edx,
+// word ptr [eax+4]` plus `sub edi, edx`.
 #include <string.h>
+#include <math.h>
 
 #pragma pack(push, 1)
 struct UnitDef_004816a0 {
@@ -167,8 +161,10 @@ void __stdcall FUN_004816a0(int arg)
                 int cx = params.pos.x / 0x200000;
                 int cy = params.pos.z / 0x200000 - y;
                 Entry_004816a0* e = FUN_004b7f30(g_game->field_1485b, i);
-                params.field_4[0] = (short)(cx - e->field_4);
-                params.field_4[1] = (short)(cy - e->field_6);
+                int vx = cx - e->field_4;
+                int vz = cy - e->field_6;
+                params.field_4[0] = (short)vx;
+                params.field_4[1] = (short)vz;
                 *params.field_c = (unsigned char)i;
                 FUN_00482270(&params);
                 FUN_00481930(&params);
@@ -181,23 +177,11 @@ void __stdcall FUN_004816a0(int arg)
     FUN_00466dc0();
 }
 
-// What was tried for the cx/cy block and did NOT move the number, so that
-// nobody repeats it. All of these compile to 640 bytes, the same schedule
-// (x, z, y with y in eax), and score 88.5 percent:
-//   * source order y, cx, cy / cx, y, cy / y, cx, cz, cy -= y / cx, cy, y, cy
-//   * three separate ints cx, ty, cz with the subtraction at the store
-//   * hoisting the 16 bit read into its own `int` or `short` local first
-//   * an `__inline` accessor for that 16 bit read
-//   * a function scope `int y` assigned inside the loop
-//   * dropping the `(short)` cast on the two stores
-// Moving y's definition before the i clamp does keep it early, but then MSVC 5
-// gives it ecx rather than esi and the block gets worse (81.7 percent).
-// Putting the call to FUN_004b7f30 first in the source, so that both of its
-// arguments would be evaluated before the divisions, also gets worse
-// (73.4 percent), so the original's early `push ebx` / `push ecx` pair is not
-// the source's statement order. A local `short*` for params.field_4 loses the
-// two reloads of it that the original has (85.6 percent).
-// The likely lever is still the one the guide calls an allocation lever: some
-// construct that stops MSVC 5 sinking the y definition down to its use, since
-// with the def order cx, y, z the y value would take esi and the z division
-// would have to spill it, which is exactly what the original does.
+// Kept from the earlier partial: none of these source orders or spellings for
+// the coordinate block moved the schedule on their own (all 640 bytes, 88.5
+// percent, y sunk past the pos.z division): y/cx/cy in any order, cx/cy/y,
+// cy -= y, int locals for the three divisions, a short or an int for the high
+// word, an inline accessor for it, a function scope int y, and dropping the
+// (short) cast on the two stores. The schedule only changed once <math.h> was
+// in the file; the store shape only changed once the subtraction results were
+// held in int locals.

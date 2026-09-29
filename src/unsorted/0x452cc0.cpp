@@ -63,6 +63,15 @@
 //   p=ebx, base=esi (52.9%). Only `int i` produces the original's edx
 //   0x14b-stride counter, and it always leaves p in ebx.
 // Best kept in this file: 83.6%, 848 bytes, top-tested while(1).
+// deepseek-v4.1-flash retry #1441: the bottom-tested `for (int i = 0; i < 10;
+// i++)` clearing loop is byte-identical to the original loop through its whole
+// body (`add edx,0x14b / cmp edx,0xcee / jl`); it is 846 bytes and 67.3% only
+// because the flag load then compiles to `mov dl / and edx,1` (2 bytes) instead
+// of `xor eax,eax / mov al,[ecx+0x97] / and eax,1`, shifting every later byte by
+// 2. So the for-loop form is structurally right; if the flag temp ever lands in
+// eax instead of edx, that variant should pass 83.6. Five flag spellings
+// (unsigned char local, int local, two-statement, bitfield b0, union value) all
+// kept it in edx.
 #include <stdio.h>
 #include <string.h>
 

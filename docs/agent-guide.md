@@ -1845,3 +1845,23 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **A scripted variant search is cheap**: scoring hundreds of generated
   statement and operand orders with `check.py <addr> <scratch> --sym` costs no
   runs, and found 0x49a890's and 0x49abb0's best forms (Sonnet 5.5, #1082).
+- **Store order around a call can depend on how `this` is reached**: with a
+  plain local `Display* d = FUN_004b6220();` MSVC puts a struct store before a
+  field load; writing the body as an inline method called on the call's result
+  (`return FUN_004b6220()->LockMe(out);`) lets the store slide between the
+  argument pushes as in the original (0x4c5e70, 0x4c5ff0).
+- **A one-expression inline method of an embedded struct** keeps a null test
+  and the reload after it separate, where a local or a multi-statement helper
+  merges them (`mov eax; cmp eax, edi`) (0x4c5e70).
+- **`test eax, eax` where an inline wrapper gave `cmp eax, edi`**:
+  `switch (x.Lock(&d)) { case 0: break; default: return 0; }` restores the
+  `test` (0x4c5e70).
+- **Two adjacent stores in an inline helper** (`Clear()` doing `active = 0;
+  type = 0;`) can be what reorders them to match (0x4644d0).
+- **A `default:` arm can be read from the jump table**: values that land on
+  the same target as named cases, and the `ja` target, show what `default`
+  does (0x464060).
+- **Search statement orders by script**: a small `uv run` script that calls
+  `compile_source` and `compare` from tools/check.py can score hundreds of
+  moved-statement variants in parallel at no cost in check runs; a
+  move-each-statement hill climb took 0x4644d0 from 94.5% to 99.2% (Sonnet 5.5).

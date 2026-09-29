@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**62.04% of Cavedog's code matched** (527,862 of 850,853 bytes)
+**62.12% of Cavedog's code matched** (528,516 of 850,853 bytes)
 
 `[#########################---------------]`
 
-By count that is 2,962 of the game's 3,267 functions (90.7%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,963 of the game's 3,267 functions (90.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,962 | 527,862 |
-| Attempted, not yet matching | 290 | 317,295 |
+| Matched byte-for-byte | 2,963 | 528,516 |
+| Attempted, not yet matching | 289 | 316,641 |
 | Not attempted yet | 15 | 5,696 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 820 of 827 | 99.0% | 834 | `##########` |
 | large (161 to 400 bytes) | 640 of 703 | 90.1% | 17,726 | `#########-` |
 | xl (401 to 600 bytes) | 184 of 226 | 80.8% | 21,212 | `########--` |
-| xxl (601 to 1,000 bytes) | 117 of 195 | 58.9% | 60,351 | `######----` |
+| xxl (601 to 1,000 bytes) | 118 of 195 | 59.3% | 59,697 | `######----` |
 | huge (over 1,000 bytes) | 47 of 161 | 23.7% | 222,828 | `##--------` |
 
 ### By area
@@ -57,7 +57,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x450000` | Options and audio menus | 156 of 176 | 57.7% | 26,692 | `######----` |
 | `0x460000` | Game and skirmish setup, unit classes | 189 of 212 | 56.0% | 27,065 | `######----` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 230 of 259 | 67.6% | 20,564 | `#######---` |
-| `0x480000` | Unit definitions, COB scripting, TNT map | 238 of 264 | 62.6% | 23,813 | `######----` |
+| `0x480000` | Unit definitions, COB scripting, TNT map | 239 of 264 | 63.6% | 23,159 | `######----` |
 | `0x490000` | Config and registry, skirmish summary | 172 of 193 | 54.1% | 27,314 | `#####-----` |
 | `0x4a0000` | GUI layout and GAF | 173 of 201 | 47.9% | 33,446 | `#####-----` |
 | `0x4b0000` | UI controls and file packages | 287 of 314 | 67.5% | 20,110 | `#######---` |

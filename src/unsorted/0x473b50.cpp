@@ -86,6 +86,24 @@
 // 88.0%, so this is a codegen difference, not a header one. 88.0% looks like
 // this function's ceiling from source alone.
 
+//
+// Retry (Sonnet 5.5, #1135), no gain, 0 official runs: the base registers of the
+// original say how the helper was fed. In block two the original uses [ebp]
+// only for start.x and [ebx+0x20], [ebx+0x24] for start.y and start.z, where
+// the Vec3& helper below gives [ebp+4], [ebp+8]. Passing the six components as
+// separate `int&` parameters (Split(seg.start.x, seg.start.y, ..., seg.end.z)),
+// which makes each address its own this+K node, reproduces every base register
+// of the original (497 bytes, 85.9%: lower than this file only because the
+// y and z loads are then ordered after the e.x store, and the original hoists
+// e.y and s.y above it). Direct `this->seg_34.start.x` member expressions (a
+// macro) hoist the loads too but also forward the stored values and spill
+// (567 bytes, 29%; a statement hill climb of that shape reached 49%).
+// Hill climbs over all single statement moves of both helper shapes are flat
+// (88.0 and 85.9), and 125 spellings of the three per-axis delta/load forms
+// give 85.9 each. So the missing piece is a source shape with the addressing
+// of separate component references and the scheduling freedom of one base
+// pointer. Also tried: a method on a Seg subclass that takes six int* locals
+// from its own fields (503 bytes, 39.9%).
 class Class_00471d70 {
 public:
     void FUN_00471d70(int param_1);

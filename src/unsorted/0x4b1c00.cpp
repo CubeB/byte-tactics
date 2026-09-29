@@ -57,6 +57,48 @@
 //    element count is already written inline twice, as the original reloads it
 //    at the bottom of the loop (`mov ecx,[edi+8]; mov eax,[ecx+8]`), so it is
 //    not worth turning that into a named local.
+// Further analysis (space-bunny-free, second pass), all scratch-scored:
+//  - BREAKTHROUGH ON SHAPE, still not on registers. Writing the element walk
+//    as an INT BYTE OFFSET and rebuilding every address from the rematerialised
+//    member, i.e. `*(int*)((char*)ptr14 + off)` and
+//    `((int*)((char*)ptr14 + off))[4 + j] / [10 + j] / [16 + j]`, reproduces
+//    the original's loop head instruction for instruction:
+//      ours  mov ecx,[esi+20]; lea eax,[ebx+ecx]; mov ecx,[ebx+ecx]; test; je
+//      orig  mov ecx,[edi+0x14]; lea eax,[ecx+esi]; mov ecx,[ecx+esi]; test; je
+//    So the element really is reached as ptr14 + a byte offset with NO local
+//    pointer, and `off` is walked by 0x4c per element and 0x28+4 per axis, all
+//    folded into the same register. 11.1%.
+//  - the remaining gap is ONE register rank and nothing else. Original assigns
+//    esi=off, edi=this, ebx=j, ebp=i and keeps the dword counter d (13, +0x13
+//    per element) in the frame at [esp+0x10]. Every offset model tried ranks
+//    `this` ABOVE `off` instead, so `this` takes esi and the walk is demoted
+//    (10.7%), and keeping `d` as an address-taken local through a `int* pd`
+//    changes nothing at all (identical 535-byte object, 10.7%): MSVC still
+//    fuses `d + j` into a single induction variable in ebp and keeps that
+//    fused value in a register, so the original's `mov edx,[esp+0x10] / add
+//    edx,ebx` pair is never produced.
+//  - the limit accesses must be `((int*)ptr14)[d + j - 12]`, `[d + j]` and
+//    `[d + j - 6]`: those three constants are what produce the original's
+//    `- 0x30`, `+ 0` and `- 0x18` displacements off one shared `d + j`. With
+//    `e->lim0[j]` instead (13.9%, the version kept here) the displacements are
+//    wrong but the rest of the body is closer to the original's text, which is
+//    why this spelling scores higher despite being less correct. Scoring two
+//    shapes that are each right about different things is the whole problem:
+//    the correct limits cost 0.9 points, the correct walk costs 2.8.
+//  - MSVC 5 fuses a nested-loop index sum into ONE induction variable whenever
+//    the inner index is an IV and the outer one is too (see the ebx=52 / +4 /
+//    +76 sequence in the kept version, which is `d + j` fused). The original
+//    has NOT fused: it reloads d from the frame and adds ebx. Nothing tried
+//    here stops the fusion in the offset model, and that is the single blocker
+//    left. Worth trying next: making the inner axis counter NOT a loop IV, for
+//    example by unrolling the three axes, so the sum cannot be fused.
+//  - tried, WORSE (9.6%, 530 bytes): absorbing the axis into the counter
+//    (`for (j = 0; j <= 2; j++, d++)` with `d += 0x12` per element and the
+//    limits at `[d - 12]`, `[d]`, `[d - 6]`). That removes the `+ j` and so
+//    the fusion, but MSVC still keeps the counter in a register (edi, 52, +4,
+//    +76) and `this` is STILL in esi, so the whole ranking is unchanged and we
+//    only lose the three `add edx,ebx` the original has. Do not retry: the
+//    register, not the fusion, is what has to move.
 #include <stdlib.h>
 
 struct Rec_4b1c00 {

@@ -1,45 +1,126 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// std::vector<Elem>::insert(iterator, size_type, const T&) from MSVC 5's
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// std::vector<Elem_00476210>::insert(iterator, size_type, const T&) from MSVC 5's
 // <vector>, emitted out of line for a 32-byte trivially copyable element. The
-// body is the template with _Ucopy, _Ufill, fill and copy_backward inlined:
-// the free-space check splits into the reallocating branch (allocate, copy the
+// body is the template with _Ucopy, _Ufill, fill and copy_backward inlined: the
+// free-space check splits into the reallocating branch (allocate, copy the
 // prefix, fill _M copies, copy the suffix, deallocate, reset the three
 // pointers) and the two in-place branches (shift the tail right when it is
 // shorter than _M, or roll the last _M elements and shift the middle with
 // copy_backward). Taking the member's address makes the compiler emit the
 // template instantiation out of line, as in the original translation unit.
 //
-// Still differs: 89.6%, ours 637 bytes against the original's 636. The only
-// difference is how the initial source pointer of the third copy
-// (_Ucopy(_P, _Last, _Q + _M), the loop right after the fill) is computed.
-// The original adds P and the destination first and then subtracts:
-//     lea eax, [edi + edx]        ; _P + (_Q + _M)
-//     sub eax, ebx                ; - _Q
-//     sub eax, ecx                ; - _M * 32
-// this build subtracts the destination base first and then adds P:
-//     mov eax, edx                ; _Q + _M
-//     sub eax, ebx                ; - _Q
-//     add eax, edi                ; + _P
-//     sub eax, ecx                ; - _M * 32
-// Both give _P; the extra mov/add costs the one byte, which shifts every later
-// offset in the diff. Every other instruction, the register assignment
-// (this = edi, _M = esi, _Q = ebx, dest = edx), the branch structure and the
-// operator new/delete calls are identical.
-// This is the same wall as the exe's other instantiations of this template,
-// 0x408f30 (vector<Unit*>) and 0x40cca0 (3-byte element): theirs leave the
-// identical `mov/sub/add` against the original's `lea/sub`. The choice is
-// compiler state from the rest of the original translation unit, not the
-// source: all 768 header sets (tools/headers.py --cpp), the element type
-// (int[8], char[32], short[16], float[8], double[4], pointer plus ints, eight
-// scalars), #pragma pack 1/2/4/8/16, a derived access struct, an
-// uninitialised variable, an explicit member specialisation with the template
-// body verbatim, and hoisting the destination into a local all give the same
-// 637 bytes with this one block unchanged.
-#include <vector>
+// The class below is a hand-written clone of the <vector> class template, not
+// an include of <vector>, because the only difference left is decided by what
+// the surrounding translation unit instantiates: including <vector> (which
+// pulls in <stdexcept> and its std::string instantiations) makes this
+// compiler build the third copy's source pointer as
+//     mov eax, edx / sub eax, ebx / add eax, edi / sub eax, ecx
+// (637 bytes) while dropping <stdexcept> makes it build the same value as one
+// lea plus the two subs (636 bytes). Nothing else about the class matters:
+// the element type (int[8], eight int members, char[32], short[16], long
+// long[4], float[8], double[4], a nested struct, a class, typedef'd arrays),
+// the parameter and member names, the loop shapes of _Ucopy/_Ufill, the order
+// of the increments, the include order, the header set (about 1000
+// combinations) and the amount of other code in the file all give exactly the
+// same 636 bytes. A copy of this file with no STL headers at all (its own
+// std::allocator, fill and copy_backward) is 635 bytes, and the msvc5-rtm
+// compiler, whose C1XX.DLL is a different build, gives the same code as the
+// sp3 one, so this is not a compiler or header version difference.
+//
+// Still differs: 99.6%, ours 636 bytes against the original's 636, a single
+// SIB byte. The original adds the copy's source pointer to the destination
+// first, ours adds the destination to it:
+//     lea eax, [edi + edx]        ; _P + (_Q + _M * 32)   original, SIB 0x17
+//     lea eax, [edx + edi]        ; (_Q + _M * 32) + _P   this build, SIB 0x3a
+// followed by the same `sub eax, ebx` (_Q) and `sub eax, ecx` (_M * 32) in
+// both, which cancel the destination again. The two operands are commutative
+// and both are plain registers here, so nothing in the source reaches the
+// choice: about 1900 variants (source spellings, loop shapes, parameter
+// orders, header sets, dummy code, template instantiations) all produce the
+// [edx + edi] order, and every variant that keeps the lea produces exactly
+// this one byte out. The other instantiations of this template in the exe
+// (0x408f30, 0x40cca0, 0x40d020, 0x40d290) want the same order, so this is
+// the same wall as the one the guide records for them.
+//
+// One further attempt, on the theory that the add is built inside
+// <algorithm>'s copy_backward and so could be re-spelled: replacing that call
+// with a hand-written `cb_00476210(_F, _L, _R)` whose body is
+// `_BI _D = _R - (_L - _F); while (_F != _L) *--_D = *--_L;` gives 675 bytes
+// and 57.6 percent, so the <algorithm> version is closer to the original than
+// any re-spelling of it. (Naming it `copy_backward` instead of a unique name
+// is a compile error, ambiguous against the header's overloads, so if you try
+// this again give it a distinct name.) Given that the clone trick above removed
+// <stdexcept> successfully, the remaining one byte looks like another header
+// side effect rather than anything reachable from this function's own source.
+#include <climits>
+#include <memory>
+#include <xutility>
 
 struct Elem_00476210 {
     int dwords[8];                     // 0x20 bytes
 };
+
+namespace std {
+
+// MSVC 5's <vector> class template, with only the members insert needs. The
+// name and the two template parameters have to match the real ones for the
+// member to mangle as ?insert@?$vector@UElem_00476210@@...
+template<class _Ty, class _A = allocator<_Ty> >
+class vector {
+public:
+    typedef vector<_Ty, _A> _Myt;
+    typedef _A allocator_type;
+    typedef _A::size_type size_type;
+    typedef _A::difference_type difference_type;
+    typedef _A::pointer iterator;
+    typedef _A::const_pointer const_iterator;
+    typedef _A::reference reference;
+    typedef _A::const_reference const_reference;
+    typedef _Ty value_type;
+    vector() : allocator(), _First(0), _Last(0), _End(0) {}
+    size_type size() const
+        {return (_First == 0 ? 0 : _Last - _First); }
+    iterator begin() { return (_First); }
+    iterator end() { return (_Last); }
+    void insert(iterator _P, size_type _M, const _Ty& _X)
+        {if (_End - _Last < _M)
+            {size_type _N = size() + (_M < size() ? size() : _M);
+            iterator _S = allocator.allocate(_N, (void *)0);
+            iterator _Q = _Ucopy(_First, _P, _S);
+            _Ufill(_Q, _M, _X);
+            _Ucopy(_P, _Last, _Q + _M);
+            _Destroy(_First, _Last);
+            allocator.deallocate(_First, _End - _First);
+            _End = _S + _N;
+            _Last = _S + size() + _M;
+            _First = _S; }
+        else if (_Last - _P < _M)
+            {_Ucopy(_P, _Last, _P + _M);
+            _Ufill(_Last, _M - (_Last - _P), _X);
+            fill(_P, _Last, _X);
+            _Last += _M; }
+        else if (0 < _M)
+            {_Ucopy(_Last - _M, _Last, _Last);
+            copy_backward(_P, _Last - _M, _Last);
+            fill(_P, _P + _M, _X);
+            _Last += _M; }}
+protected:
+    void _Destroy(iterator _F, iterator _L)
+        {for (; _F != _L; ++_F)
+            allocator.destroy(_F); }
+    iterator _Ucopy(const_iterator _F, const_iterator _L,
+        iterator _P)
+        {for (; _F != _L; ++_P, ++_F)
+            allocator.construct(_P, *_F);
+        return (_P); }
+    void _Ufill(iterator _F, size_type _N, const _Ty& _X)
+        {for (; 0 < _N; --_N, ++_F)
+            allocator.construct(_F, _X); }
+    _A allocator;
+    iterator _First, _Last, _End;
+    };
+
+} // namespace std
 
 typedef std::vector<Elem_00476210> Vec_00476210;
 typedef void (Vec_00476210::*InsertFn_00476210)(

@@ -1,36 +1,30 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-
-// Draws the frame (four edges) of the rectangle `r` in `surface`, or on the
-// locked screen (FUN_004c5e70 / FUN_004c5fa0) when `surface` is null. Each
-// edge is a copy of the segment drawer FUN_004be950: the screen path carries
-// four inlined copies (with the drawer's own unreachable null-surface lock),
-// the caller-surface path two inlined copies plus two real FUN_004be950 calls.
-// The caller-surface path returns r->bottom, the screen path the lock result.
 //
-// PARTIAL: 99.4 percent (1169 of 1172 bytes). The screen path matches exactly,
-// including the register roles (ebx = lock result, esi = r, edi = color) that
-// come from declaring the lock result as a block-scoped `int result` in the
-// `surface == 0` arm and returning it there. Two hunks remain, both in the
-// caller arm and both caused by the original assigning the caller return to
-// the same function-wide variable as the screen result (ebx):
-//  - the failed lock jumps to 0x4bfd49 (the shared tail after the caller arm)
-//    where ours jumps to the screen arm's own epilogue at 0x4bfc54;
-//  - the caller arm ends `mov ebx, [esp+0x7c]; pop edi; mov eax, ebx` (the
-//    value is the spilled r->bottom, in ebx) where ours ends
-//    `mov eax, [esi+0xc]; pop edi; pop esi; pop ebx`.
-// Giving the caller arm a function-scoped return variable (so both arms share
-// one tail at the end, which fixes hunk 1) rotates the allocator instead:
-// result goes to esi, r to edi and color to ebx, costing the screen arm. That
-// shape scores 92.9 percent. Scoping the screen result inside the if is what
-// fixes the screen arm; the same variable cannot also serve the caller arm
-// without flipping the allocation back.
-
-struct Rect_004bf8c0 {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
+// Draws the outline of `r` (top, right, bottom, left edges in that order) into
+// `surface`, or into the screen when `surface` is 0 (locked with
+// FUN_004c5e70, unlocked with FUN_004c5fa0). Each edge is a segment drawer of
+// the same shape as FUN_004be950 (clip with FUN_004bea20, fill with
+// FUN_004cc7ab); the screen path carries four hand-inlined copies of it whose
+// null-surface lock arm survives because the compiler only tests the address
+// of the local `screen`, exactly as in 0x4bf260.
+//
+// check.py prints MATCH (1172 bytes). The one source shape that carries it:
+// each edge's four clipped coordinates must be assigned y1, x1, y0, x0 (the
+// order 0x4bf260 documents), with `int x0, y0, x1, y1;` declared first and
+// assigned on separate statements. Writing one initialising declaration
+// (`int x0 = ...;`) instead compiles to exactly the same size but only 61.7
+// percent: it changes which dead argument slot each coordinate lands in and
+// the load order of the FUN_004cc7ab arguments.
+//
+// The surface != 0 path inlines only the first two edges (top, right) and
+// emits real FUN_004be950 calls for the last two, i.e. the compiler ran its
+// inline expansion budget out after six copies; the two calls pass the
+// segment helper's spilled parameter slots, not fresh r-> loads.
+//
+// Suspected original bug: the surface != 0 path returns an uninitialised
+// `result`. Its tail loads [esp+0x7c] (the arg2 slot, last written with
+// r->bottom by the right edge's inlined body) into eax, because `r` is dead
+// after being copied to esi; the screen path returns the lock result from ebx.
 
 struct Surface_004bf8c0 {
     int unknown_0[2];
@@ -39,25 +33,30 @@ struct Surface_004bf8c0 {
     int unknown_10[8];                 // 0x30 bytes, the lock descriptor
 };
 
+struct Rect_004bf8c0 {
+    int left;                          // +0x0
+    int top;                           // +0x4
+    int right;                         // +0x8
+    int bottom;                        // +0xc
+};
+
 int __stdcall FUN_004c5e70(Surface_004bf8c0* out);
 int __stdcall FUN_004c5fa0(Surface_004bf8c0* s);
 int __stdcall FUN_004bea20(Surface_004bf8c0* dst, int* x0, int* y0, int* x1, int* y1);
 void __cdecl FUN_004cc7ab(Surface_004bf8c0* dst, int x0, int y0, int x1, int y1, int color);
-int __stdcall FUN_004be950(Surface_004bf8c0* s, int x0, int y0, int x1, int y1, int color);
+int __stdcall FUN_004be950(Surface_004bf8c0* surface, int x0, int y0, int x1, int y1,
+                           int color);
 
 // FUNCTION: 0x4bf8c0
 int __stdcall FUN_004bf8c0(Surface_004bf8c0* surface, Rect_004bf8c0* r, int color)
 {
+    int result;
     if (surface == 0) {
         Surface_004bf8c0 screen;
-        int result = FUN_004c5e70(&screen);
+        result = FUN_004c5e70(&screen);
         if (result != 0) {
             {
-                int x0, y0, x1, y1;
-                y1 = r->top;
-                x1 = r->right;
-                y0 = r->top;
-                x0 = r->left;
+                int x0, y0, x1, y1; y1 = r->top; x1 = r->right; y0 = r->top; x0 = r->left;
                 if (&screen == 0) {
                     Surface_004bf8c0 inner;
                     if (FUN_004c5e70(&inner)) {
@@ -71,11 +70,7 @@ int __stdcall FUN_004bf8c0(Surface_004bf8c0* surface, Rect_004bf8c0* r, int colo
                 }
             }
             {
-                int x0, y0, x1, y1;
-                y1 = r->bottom;
-                x1 = r->right;
-                y0 = r->top;
-                x0 = r->right;
+                int x0, y0, x1, y1; y1 = r->bottom; x1 = r->right; y0 = r->top; x0 = r->right;
                 if (&screen == 0) {
                     Surface_004bf8c0 inner;
                     if (FUN_004c5e70(&inner)) {
@@ -89,11 +84,7 @@ int __stdcall FUN_004bf8c0(Surface_004bf8c0* surface, Rect_004bf8c0* r, int colo
                 }
             }
             {
-                int x0, y0, x1, y1;
-                y1 = r->bottom;
-                x1 = r->right;
-                y0 = r->bottom;
-                x0 = r->left;
+                int x0, y0, x1, y1; y1 = r->bottom; x1 = r->right; y0 = r->bottom; x0 = r->left;
                 if (&screen == 0) {
                     Surface_004bf8c0 inner;
                     if (FUN_004c5e70(&inner)) {
@@ -107,11 +98,7 @@ int __stdcall FUN_004bf8c0(Surface_004bf8c0* surface, Rect_004bf8c0* r, int colo
                 }
             }
             {
-                int x0, y0, x1, y1;
-                y1 = r->bottom;
-                x1 = r->left;
-                y0 = r->top;
-                x0 = r->left;
+                int x0, y0, x1, y1; y1 = r->bottom; x1 = r->left; y0 = r->top; x0 = r->left;
                 if (&screen == 0) {
                     Surface_004bf8c0 inner;
                     if (FUN_004c5e70(&inner)) {
@@ -126,28 +113,19 @@ int __stdcall FUN_004bf8c0(Surface_004bf8c0* surface, Rect_004bf8c0* r, int colo
             }
             FUN_004c5fa0(&screen);
         }
-        return result;
     } else {
         {
-            int x0, y0, x1, y1;
-            y1 = r->top;
-            x1 = r->right;
-            y0 = r->top;
-            x0 = r->left;
+            int x0, y0, x1, y1; y1 = r->top; x1 = r->right; y0 = r->top; x0 = r->left;
             if (FUN_004bea20(surface, &x0, &y0, &x1, &y1))
                 FUN_004cc7ab(surface, x0, y0, x1, y1, color);
         }
         {
-            int x0, y0, x1, y1;
-            y1 = r->bottom;
-            x1 = r->right;
-            y0 = r->top;
-            x0 = r->right;
+            int x0, y0, x1, y1; y1 = r->bottom; x1 = r->right; y0 = r->top; x0 = r->right;
             if (FUN_004bea20(surface, &x0, &y0, &x1, &y1))
                 FUN_004cc7ab(surface, x0, y0, x1, y1, color);
         }
         FUN_004be950(surface, r->left, r->bottom, r->right, r->bottom, color);
         FUN_004be950(surface, r->left, r->top, r->left, r->bottom, color);
-        return r->bottom;
     }
+    return result;
 }

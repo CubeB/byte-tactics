@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // The red-black tree insert behind std::map<unsigned int, Pair>, the same
 // std::map idiom as 0x4db000 and 0x4db450. DAT_00528a54 is the tree's _Nil
 // node, head->left is begin() and head->parent is the root. The value is
@@ -44,6 +44,17 @@
 // has to be made before the `test bl, bl` branch. Since perturbing the
 // preceding block did not move it, the likely lever is the allocator state
 // entering the block, not the text inside it.
+//
+// Checked by deepseek-v4.1-flash against the real compiler source (this is
+// _Tree::insert, toolchain/msvc5-sp3/INCLUDE/XTREE lines 211-232), which
+// confirms the shape above is the source. Re-scored with check.py --sym, all
+// keeping `it` in eax: the literal STL `iterator _P = iterator(_Y);` form
+// (88.4, and it collapses the frame to three homes because _P is block scoped),
+// `it = Class_004dd2a0(y)` and a named temp plus copy (95.6), comparing
+// `Class_004dd2a0(y) == Begin()` instead of `it == Begin()` (95.6), an early
+// `return` in the rebuild branch in place of the if/else (95.6), and the literal
+// `if (!_Ans) ; else if (...) ... else ...` spelling (95.6). This is the one
+// allocator 2-colouring and no spelling of the else block moves it.
 //
 // Two things this function does that are worth writing down, both confirmed
 // here and neither obvious from the disassembly:

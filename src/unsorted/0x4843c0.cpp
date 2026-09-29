@@ -1,10 +1,20 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial: whole structure (frames, transform, loops and all four edge tails)
-// lines up, but register allocation does not. Ours uses eax/edx where the
-// original keeps values in ebp/edi/ecx, the xEnd/yEnd pair is scheduled in the
-// opposite order, the `bit` and `yEnd` stack slots are swapped, and the tail
-// blocks reload g_game into a different register. Layouts and offsets are all
-// correct (grid at +0x23 relative to MapInfo, players stride 0x14b, etc.).
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Gave up at 77.7% (1294 bytes against 1303). Still differs:
+//  * frame slot order: the original has xEnd at [esp+0x1c], pg at 0x20, info at
+//    0x24 and yEnd at 0x28; ours has pg at 0x1c, info at 0x20, yEnd at 0x24 and
+//    xEnd at 0x28. Hoisting the declarations into the original's order (y0, y,
+//    dxm1, xEnd, pg, info, yEnd, bit) put xEnd, pg, info, yEnd and bit in the
+//    right slots but cost 2.4 points, because `y` then stops being memory
+//    resident. The frame order does not follow declaration order here.
+//  * the visibility mask test: the original does `mov ebp, bit; mov ax, [mask];
+//    and eax, ebp; test ax, ax`, ours keeps the word in ebp and tests
+//    `eax, ebp`. Swapping the operands of the &, and reading the word into a
+//    named local first, both leave it unchanged.
+//  * `i * grid->width` in the tails: the original copies the counter into edx
+//    and multiplies in place (`mov edx, ecx; imul edx, [esi+4]`), ours loads
+//    the width into edx and multiplies by the counter.
+//  * the g_game reload before the scrollX/scrollY loads is in eax, not edi.
+//  * the width/height loads that set up xEnd and yEnd come in the other order.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -38,6 +48,15 @@ struct MapInfo {
     unsigned short* visibilityMask;    // +0x78
 };
 
+union FlagWord {
+    unsigned short raw;
+    struct {
+        unsigned short bit0 : 1;
+        unsigned short bit1 : 1;       // mask 2
+        unsigned short rest : 14;
+    } bits;
+};
+
 struct Game {
     char pad0[0x1bdf];
     PlayerGrid players[10];            // +0x1bdf, stride 0x14b
@@ -46,7 +65,7 @@ struct Game {
     char pad2[0x141fb - 0x2a44];
     MapInfo info;                      // +0x141fb
     char pad3[0x14281 - (0x141fb + 0x7c)];
-    unsigned short flags;              // +0x14281
+    FlagWord flags;                    // +0x14281
     char pad4[0x1431f - 0x14283];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
@@ -79,7 +98,7 @@ void FUN_004843c0(void)
     for (int y = y0; y < yEnd; y++) {
         for (int x = x0; x < xEnd; x++) {
             if (x < pg->width && y < pg->height) {
-                if (pg->cells[y * pg->width + x] == 0 && (g_game->flags & 2)) {
+                if (pg->cells[y * pg->width + x] == 0 && (g_game->flags.raw & 2)) {
                     if (x - x0 < grid->width && y - y0 < grid->height)
                         grid->cells[(y - y0) * grid->width + x - x0].hi |= 1;
                     if (x - x0 - 1 < grid->width && y - y0 < grid->height)
@@ -89,7 +108,7 @@ void FUN_004843c0(void)
                     if (x - x0 - 1 < grid->width && y - y0 - 1 < grid->height)
                         grid->cells[(y - y0 - 1) * grid->width + x - x0 - 1].hi |= 8;
                 }
-                if ((info->visibilityMask[info->width * y / 2 + x] & bit) == 0) {
+                if ((bit & info->visibilityMask[info->width * y / 2 + x]) == 0) {
                     if (x - x0 < grid->width && y - y0 < grid->height)
                         grid->cells[(y - y0) * grid->width + x - x0].lo |= 1;
                     if (x - x0 - 1 < grid->width && y - y0 < grid->height)
@@ -105,7 +124,7 @@ void FUN_004843c0(void)
 
     if (y0 < 0) {
         for (unsigned int i = 0; i < grid->width; i++) {
-            if (g_game->flags & 2) {
+            if (g_game->flags.bits.bit1) {
                 if (grid->cells[i].hi & 4) grid->cells[i].hi |= 1;
                 if (grid->cells[i].hi & 8) grid->cells[i].hi |= 2;
             }
@@ -116,7 +135,7 @@ void FUN_004843c0(void)
 
     if (yEnd > info->height / 2) {
         for (unsigned int i = 0; i < grid->width; i++) {
-            if (g_game->flags & 2) {
+            if (g_game->flags.bits.bit1) {
                 if (grid->cells[(grid->height - 2) * grid->width + i].hi & 1)
                     grid->cells[(grid->height - 2) * grid->width + i].hi |= 4;
                 if (grid->cells[(grid->height - 2) * grid->width + i].hi & 2)
@@ -131,7 +150,7 @@ void FUN_004843c0(void)
 
     if (x0 < 0) {
         for (unsigned int i = 0; i < grid->height; i++) {
-            if (g_game->flags & 2) {
+            if (g_game->flags.bits.bit1) {
                 if (grid->cells[i * grid->width].hi & 8)
                     grid->cells[i * grid->width].hi |= 4;
                 if (grid->cells[i * grid->width].hi & 2)
@@ -146,7 +165,7 @@ void FUN_004843c0(void)
 
     if (xEnd > info->width / 2) {
         for (unsigned int i = 1; i - 1 < grid->height; i++) {
-            if (g_game->flags & 2) {
+            if (g_game->flags.bits.bit1) {
                 if (grid->cells[i * grid->width - 2].hi & 4)
                     grid->cells[i * grid->width - 2].hi |= 8;
                 if (grid->cells[i * grid->width - 2].hi & 1)

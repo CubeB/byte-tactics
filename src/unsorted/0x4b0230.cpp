@@ -52,6 +52,8 @@
 // relative to this file, and the original reloads BOTH the counter and the
 // height at the latch while this file reloads only the height.
 //
+// GPT-6.1-sol, #1369: height-expression order, converting the row loop to a for-loop, and scoping ypos at its use all held or lowered 82.9%. The best remains the original partial above.
+//
 // What moved the score (Sonnet 5.5, #1076), for whoever continues:
 //  * The surface pointer is re-read as obj->holder->entries + 0xbc AFTER the
 //    first call while `entries` stays a local (the original does exactly that:

@@ -1,4 +1,24 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass: no score change, best stays 86.3% / 318 bytes.
+// New evidence for the next attempt:
+// - The source is NOT std::remove_if. A faithful std::remove_if + predicate
+//   reproduces the whole structure but the predicate test compiles to
+//   `sbb ecx,ecx / neg ecx / test cl,cl / jne` (the `!_P(...)` bool), while the
+//   original has the direct `cmp [esi+0x1c],ecx / jb`. So it is a hand loop.
+// - That remove_if build DID reach the desired allocation in the copy: it
+//   spilled the advanced p to a stack slot and reused esi for &d->screenPos,
+//   exactly like the original. It only differed in the predicate bytes and the
+//   spill slot number. So the copy allocation is reachable; it needs the same
+//   extra register pressure (remove_if carried _First/_Last in ebx/ebp across
+//   the loop) from a construct that keeps the direct `expires >= ticks` test.
+// - Tried with no change (all 318 bytes, 86.3%): `Eye* d = p++`, separate
+//   named `sp`/`fp` address locals + pointer stores, `operator=` inlined via
+//   `*p++ = *src`, `p = p + 1`, `++src`, a fresh phase-2 variable, a
+//   function-scope `src`, Vec3/Pos copy temporaries, and byte/short field
+//   hoists. Tried and worse: a function-scope destination `d` (61%), a
+//   function-scope `base = g_game->eyes` (65%), p++ after the stores (66%),
+//   `*p++ = *src` with a free helper (failed to build), and an extra live
+//   local in the copy (56 to 58%).
 // Claude Sonnet 5.5 pass (#554): compiler state ruled out (0 to 400 unused
 // `extern int` declarations in steps of 8, and all 128 header sets from headers.py,
 // all give 318 bytes and 86.3%). Four more source shapes scored without change:

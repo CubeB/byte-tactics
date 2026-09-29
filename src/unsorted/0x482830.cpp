@@ -15,6 +15,28 @@
 // (best 87.3 percent for every set), so the file keeps the 231 byte form, which
 // scores higher than the window.
 //
+// Space Bunny Free pass (#1146): re-checked the same expression against a batch
+// of free scratch scores (build/scratch/0x482830/batch*.py, 13 variants) and the
+// scheduler tie is not reachable from the source shape of the y term. Writing
+// the y difference as two statements (`int y = pos.z / 0x200000; y -= pos.y_hi
+// / 64;`), as two named term locals (`int yz = ...; int yh = ...; int y = yz
+// - yh;`), as `-(pos.y_hi / 64) + pos.z / 0x200000`, with an explicit (int) cast
+// on either side, with the high half read as `((short*)&pos.y)[1]`, with yz read
+// before x, or with the FUN_004b7f30 call written before or between the two
+// divisions all give the same 231 byte 87.3 percent build, so MSVC 5
+// canonicalises them to one tree and the order is picked after that. What does
+// move the number is the ORDER of the two x and y statements, and the three
+// things around them: declaring y before x drops it to 223 bytes and 74.8
+// percent, taking the `y -= entry->field_6; x -= entry->field_4;` pair in the
+// other order 238 bytes and 74.3 percent, storing field_4->y before field_4->x
+// 82.4 percent, and dropping the local table pointer from the clamp 223 bytes
+// and 81.0 percent. So the 231 byte form below is the best known, and the
+// remaining ten bytes are one scheduler tie. Also tried, all still 231 bytes and
+// 87.3 percent, so the tie is not a type or expression-tree question either:
+// `long` for x and y, an `L` suffix on 0x200000, 0x40 instead of 64 for the
+// high half, the two entry offsets read into named `short` locals first, a
+// throwaway live local after the call, and `int yz = ...; int y = yz; y -= ...`.
+//
 // Not a match yet: 87.3 percent, ours is 10 bytes longer (231 against 221).
 // Everything matches except the emission order of the two divisions that make
 // the y coordinate. The original emits pos.z / 0x200000 first and the high

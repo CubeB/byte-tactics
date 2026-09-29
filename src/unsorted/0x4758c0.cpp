@@ -1,59 +1,123 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// std::vector<Class_00473590>::insert(iterator _P, size_type _M, const _Ty& _X)
+// from MSVC 5's <vector>, the 0x34-byte element, with _Ucopy, _Destroy,
+// copy_backward and fill inlined. 0x4737c0 is the only caller and it calls
+// this address, so the member is emitted out of line; taking its address is
+// what makes the compiler instantiate it here. The vector's members are
+// _First at +4, _Last at +8, _End at +0xc. The class is written out (the real
+// <vector> gives 783 bytes, this 779, see below).
 //
-// PARTIAL, 84.0 percent (783 of 779 bytes). std::vector<Class_00473590>::
-// insert(iterator _P, size_type _M, const _Ty& _X) for a 52-byte (0x34)
-// trivially copyable element type, emitted out of line. Taking the member's
-// address makes MSVC 5 instantiate the template here instead of inlining the
-// three-argument insert into its callers (0x4737c0 is the only caller, and it
-// calls this address). The element layout is copied from 0x472e30.cpp and
-// 0x4737c0.cpp; the vector members are _First +4, _Last +8, _End +0xc.
+// PARTIAL, 88.9 percent (779 of 779 bytes). The only difference left is in the
+// reallocation branch, and it is one choice: after `call operator new` the
+// original reloads _P into edx and keeps it there
+//     mov edx, dword ptr [esp + 0x20] / mov ebx, eax / mov eax, [edi + 4] / cmp eax, edx
+// while this build reloads it into ecx and puts the new buffer in edx. With
+// _P in a register the per-element `rep movsd` cannot clobber it, so the
+// original needs no reload inside the copy loop and keeps the _Ufill counter
+// on the stack; with _P in ecx the counter takes edx instead. Everything
+// after that follows: the third _Ucopy picks the source as its induction
+// variable in the original (`sub edx, ebx; add edx, eax; sub edx, ecx`, i.e.
+// _P - new + dest - _M*0x34) and the destination in this build, which is the
+// reassociation family 0x475bd0.cpp and 0x44ec30.cpp record, seen here from
+// the other side.
 //
-// The first branch (the reallocate arm) is the only difference, and it is the
-// known two-spelling allocator wall on this STL template (see 0x40d020.cpp,
-// 0x425480.cpp and 0x4732e0.cpp). After `call operator new` this build loads
-// _P into ECX:
-//     mov ecx,[esp+0x20] / mov [esp+0x18],eax / mov ebx,eax / ...
-// where the original loads it into EDX:
-//     mov edx,[esp+0x20] / ...
-// Everything downstream follows from that one choice. With _P in ecx, the
-// per-element `rep movsd` copy clobbers ecx, so this build reloads _P from the
-// argument slot inside the loop (`mov ecx,[esp+0x1c]`, the extra 4 bytes) and
-// keeps the _Ufill counter in edx; the original instead keeps _P in edx across
-// both copies and spills the _Ufill counter to the stack. The instructions are
-// otherwise identical, and the middle and last branches match byte for byte
-// once the 4-byte length difference is accounted for.
+// The fill is spelled as an explicit `for (size_type _C = _M; 0 < _C; --_C,
+// ++_Q)` in insert rather than as the header's _Ufill call. That is worth four
+// points and the two byte-count differences: with _Ufill the fill counter
+// shares the register the new buffer wants and the function comes out 777
+// bytes with the ecx reload (`mov ecx, [esp + 0x1c]`) inside the first copy
+// loop; with the explicit loop the counter gets its own register, the reload
+// disappears and the size is the original's 779.
 //
-// Things tried that did NOT change the register: element type (13-int array,
-// signed/unsigned shorts, chars, nested structs, class with methods, pointer
-// fields), a hand-written List_004737c0::FUN_004758c0 with the same body (it
-// compiles to exactly this 783-byte code), an explicit member specialization of
-// insert, `iterator _P2 = _P;` locals declared before/inside the arm, a static
-// inline getter for _P, preceding the real 0x475880 _Ucopy in the file, 0 to
-// 512 filler struct/extern declarations, 15 header sets (windows.h, ddraw.h,
-// dsound.h, stdio.h, string.h, math.h, stdlib.h, time.h, memory.h, new.h, io.h
-// and combinations), and /Gz /Gd /G3..G6 /Oy /Oa /Ow /Ob1 /Ox /Gs. This needs
-// the regrouping-into-original-translation-units phase.
-// Also tried without effect (sonnet-5.5 in #940): an explicit instantiation of
-// the whole class (`template class std::vector<T>;`, which needs dummy == and <
-// on the element) gives byte-identical code.
-#include <vector>
+// What did not move it, all measured with check.py --sym: the real <vector>
+// header, with and without `template class std::vector<Class_00473590>;`
+// (84.0 percent, 783 bytes); 768 header sets from tools/headers.py --cpp;
+// fifteen element types, int[13], char[52], short[26], void*[13], char*[13],
+// float[13], a 6x2 array, a nested Vec3 record, a union, a class with an empty
+// member function and one with user-defined operator< / == / !=, all 84.3; the
+// unpatched compiler (BT_TOOLCHAIN=msvc5-rtm), identical; locals holding copies
+// of _P, _M and _X, an extra `size_type _P - _First` that is used for real
+// afterwards, a redundant `if (_P == _First)` after the third copy, the
+// destination of the third _Ucopy bound to a local; _Ucopy, _Ufill, _Destroy
+// and allocator::construct each in turn as a static inline helper or a free
+// function; the whole reallocation arm moved into a `_Grow` helper; the two
+// copies and the fill each as a for loop, a while loop and an end-pointer
+// loop, in all 100 combinations of the three (the fill is the only one of the
+// three that matters, and only as the shape above); reordering the two else-if
+// arms (46.5), an `if (0 == _M) return;` guard (79.6), deallocating before
+// the copies (73.0) and after the member stores (74.5). Nothing in that list
+// puts _P in edx. This is the allocator wall 0x40d020.cpp, 0x425480.cpp and
+// 0x4732e0.cpp record for this same STL template, and it needs the compiler
+// state of the game's own translation unit.
+#include <memory>
+#include <xutility>
 
-struct Vec3_00473590 {
-    int x;
-    int y;
-    int z;
+namespace std {
+template<class _Ty, class _A = allocator<_Ty> >
+class vector {
+public:
+	typedef vector<_Ty, _A> _Myt;
+	typedef _A allocator_type;
+	typedef _A::size_type size_type;
+	typedef _A::difference_type difference_type;
+	typedef _A::pointer _Tptr;
+	typedef _A::const_pointer _Ctptr;
+	typedef _A::reference reference;
+	typedef _A::const_reference const_reference;
+	typedef _A::value_type value_type;
+	typedef _Tptr iterator;
+	typedef _Ctptr const_iterator;
+	size_type size() const
+		{return (_First == 0 ? 0 : _Last - _First); }
+	size_type capacity() const
+		{return (_First == 0 ? 0 : _End - _First); }
+	iterator begin()
+		{return (_First); }
+	iterator end()
+		{return (_Last); }
+	void insert(iterator _P, size_type _M, const _Ty& _X)
+		{if (_End - _Last < _M)
+			{size_type _N = size() + (_M < size() ? size() : _M);
+			iterator _S = allocator.allocate(_N, (void *)0);
+			iterator _Q = _Ucopy(_First, _P, _S);
+			for (size_type _C = _M; 0 < _C; --_C, ++_Q)
+				allocator.construct(_Q, _X);
+			_Ucopy(_P, _Last, _Q + _M);
+			_Destroy(_First, _Last);
+			allocator.deallocate(_First, _End - _First);
+			_End = _S + _N;
+			_Last = _S + size() + _M;
+			_First = _S; }
+		else if (_Last - _P < _M)
+			{_Ucopy(_P, _Last, _P + _M);
+			_Ufill(_Last, _M - (_Last - _P), _X);
+			fill(_P, _Last, _X);
+			_Last += _M; }
+		else if (0 < _M)
+			{_Ucopy(_Last - _M, _Last, _Last);
+			copy_backward(_P, _Last - _M, _Last);
+			fill(_P, _P + _M, _X);
+			_Last += _M; }}
+protected:
+	void _Destroy(iterator _F, iterator _L)
+		{for (; _F != _L; ++_F)
+			allocator.destroy(_F); }
+	iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P)
+		{for (; _F != _L; ++_P, ++_F)
+			allocator.construct(_P, *_F);
+		return (_P); }
+	void _Ufill(iterator _F, size_type _N, const _Ty& _X)
+		{for (; 0 < _N; --_N, ++_F)
+			allocator.construct(_F, _X); }
+	_A allocator;
+	iterator _First, _Last, _End;
 };
+}
 
-struct Class_00473590 {                  // one element, 0x34 bytes
-    void* field_0;                       // +0x00
-    Vec3_00473590 pos1;                  // +0x04
-    Vec3_00473590 pos2;                  // +0x10
-    Vec3_00473590 dir;                   // +0x1c
-    int field_28;                        // +0x28
-    int field_2c;                        // +0x2c
-    int field_30;                        // +0x30
+struct Class_00473590 {
+    void* field_0;
+    int f04, f08, f0c, f10, f14, f18, f1c, f20, f24, f28, f2c, f30;
 };
-
 typedef std::vector<Class_00473590> Vec_00473590;
 typedef void (Vec_00473590::*InsertFn_00473590)(
     Vec_00473590::iterator, Vec_00473590::size_type, const Class_00473590&);

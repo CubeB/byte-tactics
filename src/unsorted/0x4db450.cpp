@@ -68,6 +68,16 @@
 //     `total` to +0x14: 81.8%;
 //   * a real named local for `it` instead of the parameter-slot alias: 81.8%,
 //     so the alias onto the dead `size` slot is load bearing.
+// Added by deepseek-v4.1-flash, both still 92.9% and 444 of 444 bytes with the
+// identical nine-hunk slot rotation this file already had:
+//   * declaring the lower_bound callee as `Class_004dd2a0 FUN_004dc620(const
+//     unsigned int&)` and writing `Class_004dd2a0 n = ...FUN_004dc620(p.offset)`
+//     compiles byte-for-byte the same object as the explicit
+//     `void FUN_004dc620(Class_004dd2a0*, const unsigned int&)` out-param call,
+//     so MSVC 5 elides the copy and the frame is not reachable that way either;
+//   * moving the `it` reference alias to the top of the declaration list (and
+//     deleting it from its old position) changes nothing, so the alias's
+//     position is inert too.
 // Added by space-bunny-free, all 92.9% and 444 of 444 bytes unless stated, so
 // the slot order here is inert to everything a reader would try next:
 //   * the two 4-byte homes are also inert to the LOCAL NAMES. Renaming `n`/`it2`

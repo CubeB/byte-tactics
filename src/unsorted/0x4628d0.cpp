@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, retried by deepseek-v4.1-flash. Names are provisional.
 // Appends `size` bytes at `data` to the buffer's inline storage (at +0x14),
 // fills in the output packet `p`, and bumps the buffer's packet count.
 // `value` is the previously queued packet (0x462710 passes its tail), stored
@@ -15,6 +15,17 @@
 // (`buffer + length`, not `buffer + len`) is what fixes the lea operand order.
 // An N-declarations sweep (0 to 600) and headers.py change nothing, so the
 // difference is in the source, not the compiler state.
+//
+// Retry (deepseek-v4.1-flash) confirmed it: every source form that produces the
+// post-copy reload (`p->offset = length`, `= (int)length`, `= this->length`,
+// local read after the copy, `&buffer[length]` destination, offset via a
+// reference or pointer, `length = length + size` update, an inline helper, and
+// the early-return shape) lands at exactly 90.7%. The reload alone perturbs the
+// global register allocation: `value` goes to ecx and is loaded above the
+// offset store, and the count/length update rotates ecx to edx. Dummy function
+// definitions placed before the target (compiler state) and an early-return
+// guard do not change this (early return drops to 77.3%). All scratch variants
+// that score above this one's 96.6%: none.
 #include <string.h>
 
 void FUN_00461170(const char* fmt, ...);

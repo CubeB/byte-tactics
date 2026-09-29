@@ -1,19 +1,23 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
-// Partial (84.5%). Everything but one register pair matches: the original
-// keeps `this` in esi and the wrapped index ix in edi before the scan (and
-// reloads them into those registers after the "eligible" print), while this
-// version swaps them. The stack slots, the block order and the scan registers
-// all agree.
+// Decompiled by DeepSeek V4.1 Flash and Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial (86.0%, 270 bytes). The original is 272 bytes and keeps `this` in esi
+// and the wrapped index ix in edi; this version has that pair right (so the
+// whole register swap the earlier attempt was stuck on is fixed), but it pays
+// for the flip with one extra `mov edi, [esi]` (a second read of head) and is
+// therefore 2 bytes short, not identical.
 //
-// What fixed the block order (65.7% to 84.5%): the scan is an inline helper,
-// IsReusable, with one `return` per outcome, that also does the empty-buffer
-// test and both debug prints, exactly like the sibling 0x461c20 (which
-// matches). Tried without moving the swap: declaration orders, ix declared in
-// or outside the loop, `++ix`, int ix, a `self` local, a count local, a
-// NextIndex helper, a Grow() wrapper, `break` to a shared reuse tail, printing
-// `head` in the force path, the helper as a member of the buffer class, helper
-// parameter order. An N-declarations sweep (0 to 1200) and headers.py leave it
-// at 84.5%, so the difference is in the source, not the compiler state.
+// Mechanism found: the allocation is decided by whether some value lives across
+// the loop body. Hoisting a loop-spanning copy of head (`int h = head;` before
+// the loop and `h = head;` before the grow call) makes MSVC give edi to that
+// value and esi to `this`; without it MSVC gives edi to `this` and esi to ix
+// (the earlier 84.5% shape, kept in build/scratch/0x461b10/b_base.cpp). The
+// original has esi=this with only one head read per iteration, so its extra
+// live use of `this` must be one that folds away; nothing tried so far folds:
+// helper as a free static or a member of the buffer or of the pool, helper
+// taking (self, buf) or (buf, minRetain), inverted early return, `int ix`,
+// `unsigned long` casts, accessor/getter spellings, a self local, loop-carried
+// ix or buf, buf declared at function scope, helper result in a local,
+// short-circuit `count == 0 || IsReusable(...)` (274 bytes), N-declarations and
+// headers.py. The only lever that moved the pair was a second live head read.
 
 void FUN_00461170(const char* fmt, ...);
 unsigned int FUN_004b6340();
@@ -81,9 +85,10 @@ static inline int IsReusable(Class_004629b0* buf, int minRetain)
 // FUNCTION: 0x461b10
 Class_004629b0* Class_00461b10::FUN_00461b10()
 {
+    int h = head;
     for (;;) {
         if (count > 0) {
-            unsigned int ix = head + 1;
+            unsigned int ix = h + 1;
             if (ix >= count)
                 ix = 0;
             Class_004629b0* buf = array[ix];
@@ -99,6 +104,7 @@ Class_004629b0* Class_00461b10::FUN_00461b10()
                 return buf;
             }
         }
+        h = head;
         if (((Class_00461fd0*)this)->FUN_00461fd0(0x10, 0x320) == 0)
             return 0;
     }

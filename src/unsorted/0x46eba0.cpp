@@ -1,4 +1,4 @@
-// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
 // Class_0046eba0 is a std::vector<Packet_0046cef0> whose three iterators are
 // byte pointers over 0xe-byte elements (allocator byte, _First +0x4, _Last +0x8,
 // _End +0xc). This is its insert(iterator, size_type, const T&), out of line,
@@ -9,21 +9,25 @@
 // each of those loops), and fill and copy_backward assign directly, which is
 // why only the _Ucopy and _Ufill loops carry the guard.
 //
-// NOT MATCHING yet (check.py: 923 of 936 bytes, 67.6%). What still differs:
+// NOT MATCHING yet (check.py: 925 of 936 bytes, 67.6%). What still differs:
 //   * In every _Ucopy loop this file's source induction variable advances by
 //     ONE byte (`inc eax`) where the original advances by 0xe (`add eax,0xe`),
-//     while the destination advances by 0xe in both. The three-branch shape,
-//     the guards, the three size() evaluations, the *14 scalings, the
-//     operator new/delete calls and all three finish paths agree.
+//     while the destination advances by 0xe in both. copy_backward had the
+//     same one-byte source step and now uses `_L -= 14` (0x46eee1).
 //   * Consequently the whole realloc path is one live-range step off: the
-//     original keeps _P in the argument home slot [esp+0x20] across the
-//     operator new call and uses edx for the _N*14 scaling; this file keeps
-//     _N*14 in edi and reloads it.
-// Tried and rejected (all worse, see build/scratch/0x46eba0/):
-//   * v2/v3: the whole class on Packet_0046cef0* iterators, with the
-//     arithmetic left to the compiler (this is 0x46e640's shape verbatim).
-//     941 bytes, 53.2%, and MSVC 5 puts `this` in ebx where the original has
-//     ebp, which moves the whole allocation.
+//     original keeps _N in the (dead) _M argument home slot [esp+0x20] across
+//     the operator new call, holds _First in edi and uses edx for the _N*14
+//     scaling; this file keeps _N*14 in edi.
+// deepseek-v4.1-flash: the prologue and the first 64 instructions match the
+// original instruction for instruction (this in ebp, _M in ebx); the divergence
+// is the grow path above. The one-byte step is the whole problem: every spelling
+// that makes the source advance by 0xe (>= 14 in the for-header: 53.2%; the same
+// increments as body statements: 59.4%; Packet* locals in _Ucopy: 53.7%; the
+// real <vector> header or the hand-rolled template on Packet* iterators:
+// 62.7%/63.3%) FLIPS the allocator and puts `this` in ebx, moving the whole
+// function. Only the char* byte-pointer model keeps `this` in ebp. A flat
+// N-declarations sweep (0 to 400 unused externs, step 8) on the real-vector
+// model scores 62.7% at every N, so this is not compiler state.
 #include <memory>
 #include <xutility>
 
@@ -69,7 +73,9 @@ public:
     }
     static void copy_backward(char* _F, char* _L, char* _P)
     {
-        for (--_L; _F != _L; --_L) {
+        // The original decrements the SOURCE by 0xe too (0x46eee1 sub eax,0xe,
+        // 0x46eee4 sub ecx,0xe), not by one byte.
+        for (--_L; _F != _L; _L -= 14) {
             _P -= 14;
             *(Packet_0046cef0*)_P = *(Packet_0046cef0*)_L;
         }

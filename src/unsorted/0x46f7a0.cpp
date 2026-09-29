@@ -57,6 +57,42 @@
 // /Ob2 inline budget on a dead __inline helper called three times, which was
 // the obvious candidate for the allocator decision and is a no-op here.
 //
+// Fourth run (space-bunny-free), still 80.1%, all free scratch scores except the
+// one baseline. Frame arithmetic pinned down, and a suspected original bug found.
+// THIS FRAME: with sub esp,0xc plus four pushes the frame is 0x1c, so the
+// return address sits at [esp+0x1c] and the three arguments at +0x20 (_P), +0x24
+// (_Ns) and +0x28 (_X). The three locals are [esp+0x10] = this (spilled, because
+// ecx does not survive the operator new call), [esp+0x14] = the allocation
+// element count and [esp+0x18] = the new first pointer; [esp+0x1c] is unused.
+// The two mid-function reads that look odd are just the call-argument slot still
+// pushed: `mov edi,[esp+0x24]` at 0x46f85e is 4 bytes before the `add esp,4`, so
+// it is argument 1, _P, not _Ns. Both loop counters in the reallocating branch
+// live in argument home slots that are dead by then ([esp+0x20] at 0x46f88e,
+// [esp+0x24] at 0x46fa46), which is why the original has no separate frame slot
+// for them and why the register allocator is so tight there.
+// SUSPECTED ORIGINAL BUG: at 0x46f8ca the third loop of the reallocating branch
+// computes its destination as _New_finish + (_P - _New_start) - _Ns*0x5c, which
+// is identically _P, the POINTER INTO THE OLD BUFFER, not into the new one
+// (ebx at 0x46f86c is the operator new result, so `sub edi,ebx` is the new
+// first pointer and not _Myfirst). The tail above _P is therefore copied onto
+// itself, and the tail of the new buffer at [_New_start + _M + _Ns, _Mylast) is
+// never constructed, while _Mylast at 0x46f95b is advanced over it. The
+// disassembly is unambiguous, and the source that produces it is
+// `_Ucopy(_P, _M_finish, _New_start + _Ns + (_P - _New_start) - _Ns)`, i.e. the
+// new buffer is subtracted where _Myfirst belongs.
+// TRIED, no better than 80.1% (free scratch scores): a fully hand-rolled
+// std::vector plus std::allocator, the only way to get the body, the branch
+// structure and the ternary layout all at once. It gets the frame right once
+// the empty allocator is made the FIRST member of the class (an empty member is
+// one byte, so _Myfirst then sits at +4 exactly as the original has it, and that
+// is where VC5's INCLUDE/VECTOR puts it: `vector(...) : allocator(_Al), _First,
+// _Last, _End`) and once placement new is declared inline by hand
+// (`inline void* operator new(unsigned, void*) { return p; }`, since a plain
+// declaration makes every construct site call ??2@YAPAXIPAX@Z instead). It then
+// matches the prologue and both non-reallocating branches, and scores 38.2% on
+// 941 bytes, needing the three capacity ternaries to lay out branch-first
+// (the original jumps to the computation and falls through to the zero) and the
+// /Ob2 budget to keep _Ucopy inlined. Not finished.
 // Third run (muse-spark-1.3-free), still 80.1%, all free scratch scores:
 // emitting insert through a file-scope member pointer global (the 0x408f30
 // recipe) and through a derived access struct both score exactly 80.1% with a

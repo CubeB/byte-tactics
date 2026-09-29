@@ -1,36 +1,12 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // Moves the element selected by node->index to the front (if any), then bubble
 // sorts the remaining elements ascending by the integer average of
 // node->table[3 * index + 1] over each element's `count` ushort indices.
 //
-// Still differs (best 73.6%): every instruction matches except the register
-// that holds the `node` parameter. The original keeps `node` in ebp for the
-// whole function (prologue `push ebp; mov ebp,[esp+0x3c]`, reused for
-// node->table and for the `p` element pointer, reloaded from the argument slot
-// at the loop bottom with `mov ebp,edx`); this compiler puts `node` in edx and
-// then ebp is free for the first sum loop's count, which cascades into the
-// rest of the register assignment. Everything else (struct copies, loop
-// bounds `i < node->count - 1`, signed divisions, local stack slots e@0x10,
-// i@0x14, swapped@0x18, a@0x1c, temp@0x20, frame sub esp,0x30) is identical.
-// Tried with no effect: register/bool/int/unsigned/long types for node,
-// swapped, i and the counts; declaration-order permutations; pointer vs
-// reference parameters; an alias local for node; inline getters and helpers
-// for elems/table/count/average/swap; memcpy and explicit copy helpers; direct
-// node->elems vs a cached elems pointer; all 128 combinations of the common
-// headers; do-while/while/for outer loop forms; names of the parameter and the
-// locals; `register` on the parameter and locals.
-// Retried by deepseek-v4.1-flash with no effect: each common header alone;
-// __thiscall method; Node& parameter; a differently-named local copy of the
-// parameter (`Node* node = param;`) so node is a local, not a parameter;
-// label+goto and for(;;)+break outer loops; an explicit extra use of node to
-// raise its register priority. Worse: re-declaring the two sum loops with the
-// sibling 0x4cb2f0's named locals (`int n`, `unsigned short* p`, `*p++`),
-// whether written inline or as an inlined static helper (48.6%, node lands in
-// eax). Index-based `node->elems[i]` walking also much worse (46.6%). The
-// source structure above is right; the allocator just refuses ebp for node.
-// Note the sibling 0x4cb2f0 (the average helper, no direct callers) is inlined
-// here, and its first sum loop's registers (count in esi, counter in edi) are
-// what falls out of this source once node is in ebp.
+// The one construct that decided the register allocation: each averaging loop
+// caches the index pointer in a local and counts DOWN (`for (k = e->count;
+// k > 0; k--)` over `*q++`). That is what puts `node` in ebp, the way the
+// original holds it, and everything else then falls into place.
 
 struct Elem_004cb4c0 {              // 0x20 bytes
     int unknown_0;                  // +0x0
@@ -68,14 +44,16 @@ void __stdcall FUN_004cb370(Node_004cb4c0* node)
         swapped = 0;
         e = node->elems + 1;
         for (i = 1; i < node->count - 1; i++, e++) {
+            unsigned short* q = e->indices;
             int a = 0;
-            for (int k = 0; k < e->count; k++)
-                a += node->table[e->indices[k] * 3 + 1];
+            for (int k = e->count; k > 0; k--)
+                a += node->table[*q++ * 3 + 1];
             a /= e->count;
             Elem_004cb4c0* p = e + 1;
+            unsigned short* r = p->indices;
             int b = 0;
-            for (int j = 0; j < p->count; j++)
-                b += node->table[p->indices[j] * 3 + 1];
+            for (int j = p->count; j > 0; j--)
+                b += node->table[*r++ * 3 + 1];
             b /= p->count;
             if (a > b) {
                 Elem_004cb4c0 t = *e;

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free. Names are provisional.
 
 // Screen fade: applies a 256 entry translate table to every pixel of `rect` in
 // `surface` (or in the locked screen when `surface` is 0). `level` selects one
@@ -103,6 +103,70 @@
 // - Untried: a helper around only the pixel loop (it might carry (a)'s weight
 //   without collapsing the exits), and giving up `engine` as a variable
 //   altogether by reordering so the two `engine->...` loads are the only uses.
+//
+// MEASURED BY THE LONGCAT PASS (25 more source shapes, all compiled and all
+// free-scored with `check.py --sym`; generators in
+// build/scratch/0x4bf4d0/gen.py, gen2.py, gen3.py, dump.ps1, try.ps1). The
+// body below is UNCHANGED: every shape is the identical 333 bytes / 67.7
+// percent object, except p1, which is worse at 335 bytes / 64.7 percent.
+//
+// (a), the ebx/ebp swap, is flat against nineteen more shapes, so it is now
+// settled as neither a use-count tie nor a declaration-order tie:
+//   - `screen = *surface` instead of `memcpy` (a1); `sizeof(*surface)` and a
+//     literal `0x30` (a7, a8).
+//   - `engine` split into a bare declaration plus a separate assignment, and
+//     fetched after the surface branch instead of before it (a2, a13).
+//   - the branch inverted to `if (surface != 0) memcpy; else lock` (a4), and
+//     the same thing written with a `goto` (a14).
+//   - the table chosen by one conditional expression,
+//     `level < 0x20 ? engine->fade_neg : engine->fade_pos` (a12).
+//   - TWO extra reads of engine->width/height hoisted above the surface branch
+//     (a9) and one read of engine->width (a6). Nothing moves, which finally
+//     kills the "one more use" explanation for (a) as well.
+//   - `surface` aliased through a local declared BEFORE `engine` (a3).
+//   - inlined helper `lock_or_copy(surface, &screen)` doing the null test, the
+//     lock and the copy and returning int (a10); inlined helper
+//     `grab(surface, &screen)` around the copy alone (a11); inlined wrapper
+//     `eng(surface, rect, level)` around FUN_004b6220 whose arguments are
+//     unused, i.e. the guide's "an extra use at a call flips the tie" shape
+//     applied to the other variable (e1). All three give byte-identical
+//     register assignment, so the tie does not break on an added call either.
+//
+// (b), `p` in eax instead of ecx, is flat against fourteen more spellings of
+// the pointer/height block, all producing the same
+// `mov ecx,[esi+4]` / `mov eax,[esp+0x20]` / `imul eax,ecx`:
+//   - the indexing form `&screen.pixels[pitch * top + left]` (g1),
+//     `left + pixels + pitch*top` (g7, p5), `pixels + (left + pitch*top)`
+//     (g8), and `p += left; p += pitch*top` after `p = pixels` (g9, p12).
+//   - a whole-struct copy `Rect_004bf4d0 rr = *rect` used for every field
+//     (b3). MSVC CSEs it back to the same `[esi+n]` loads, so it does not even
+//     change the loads, only the order of the width expression.
+//   - `top` hoisted into a local, before and after `height` (b1, b2, b4, b5),
+//     `pitch` hoisted (p4), and Rect field order permutations.
+//   - the level block hoisted ABOVE the pointer computation (p1). This is the
+//     one shape that does put `level` in eax, the original's register, but it
+//     rewrites the table null test to `cmp ecx,edi / jne` instead of
+//     `test edi,edi / jne` and the row countdown to `lea edx,[ecx+1]`, and
+//     scores 64.7. So (b) is not reachable by moving (b)'s own text around.
+//
+// The one NEW and useful fact of this pass: the pointer block is NOT as
+// canonical as the earlier notes assumed. Declaring memcpy by hand and dropping
+// `#include <string.h>` entirely,
+// `extern "C" void* memcpy(void* d, const void* s, unsigned int n);`, keeps
+// the same 333 bytes and the same 67.7 percent but reallocates the block:
+// `mov ecx,[esi+4]` / `mov eax,ecx` / `imul eax,DWORD PTR [esp+0x20]`, with
+// `screen.pitch` left as a memory operand (f1/f7/f8 in build/scratch). So the
+// allocation there is decided by the EN graph of the WHOLE file, not by the
+// expression. Nobody has yet found the perturbation that puts `p` in ecx; the
+// next attempt should perturb something EARLIER (includes, extra declarations,
+// an unrelated helper) rather than the arithmetic.
+//
+// The "untried" list above is now empty. Both "a helper around only the pixel
+// loop" shapes were measured and are flat: `static inline void
+// fade_rows(p, height, rect, &screen, t)` (e2) and the value-returning
+// `static inline char* fade_row(p, rect, &screen, t)` that does one row and
+// returns `p + screen->pitch` (h3). Both are 333 bytes / 67.7 percent and
+// neither touches the pointer block.
 //
 // Established and matching here: the 48-byte surface layout (pitch at +0x0,
 // pixel pointer at +0xc, clip rect at +0x1c, which fixes the frame at 0x40 and

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 88.4%, and the whole function now compiles to the original's exact
 // 475 bytes, so only the in-block scheduling inside two blocks is left.
 // What is settled (do not undo):

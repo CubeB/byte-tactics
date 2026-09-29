@@ -2839,6 +2839,7 @@ address,name
 0x4cf570,Class_004cf570::FUN_004cf570
 0x4cf800,Class_004cf800::FUN_004cf800
 0x4cf8a0,Class_004cf8a0::FUN_004cf8a0
+0x4cf940,Class_004cfb40::FUN_004cf940
 0x4cfb40,Class_004cfb40::FUN_004cfb40
 0x4cfba0,Class_004cfba0::FUN_004cfba0
 0x4cfbc0,Class_004cfb40::FUN_004cfbc0

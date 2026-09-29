@@ -1,8 +1,9 @@
-// Decompiled by GPT-5.6-Terra, finished by GPT-6. Names are provisional.
-// Partial at 76.0%. The short rows local matches the later CX test and divide.
-// Remaining differences include param_1 in edi, the loop index in esi, and
-// type in eax/edx instead of the original homes. The first floating ratio also
-// stages its short operands in different registers from the original.
+// Decompiled by GPT-5.6-Terra and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// The single test is the loop's pre-test: write the loop body with a fresh
+// char* built from `entries + i*0x15b + 0x140` inside the body so MSVC strength
+// reduces it into the rotated preheader (add ebp,0x29b). Splitting the first
+// float ratio into `float ratio = a * b; result = (int)(ratio / c);` fixes the
+// x87 operand-staging order.
 #include <string.h>
 #include <windows.h>
 
@@ -55,65 +56,64 @@ void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
     Entry_004a2be0* entries = param_1->holder->entries;
     int i = 1;
     char* me = (char*)entries + param_2 * 0x15b;
-    int field_1b = *(int*)(me + 0x1b);
     int type = *(unsigned char*)me;
-    if ((short)entries->count + 1 > 1) {
-        char* entry = (char*)entries + 0x29b;
-        for (; i < (short)entries->count + 1; i++, entry += 0x15b) {
-            if (i != param_2) {
-                if (entry[-0x13f] == me[1]) {
-                    switch ((unsigned char)entry[-0x140]) {
-                    case 2:
-                        if (type == 2) {
-                            *(short*)(entry - 0x84) = *(short*)(me + 0xbc);
-                            *(short*)(entry - 0x86) = *(short*)(me + 0xba);
-                            FUN_004a1b40(param_1, i);
-                        } else if (type == 4) {
-                            int esi_val;
-                            if (*(unsigned char*)(entry - 0x125) & 0x20) {
-                                esi_val = *(short*)(me + 0x136) / (*(short*)(entry - 0x82) + 1);
-                            } else {
-                                esi_val = 0;
-                            }
-                            short rows = *(short*)(entry - 0x66);
-                            if (rows != 0) {
-                                int edx_val = *(short*)(entry - 0x80) -
-                                    *(short*)(entry - 0x127) / rows;
-                                int eax_val = *(short*)(me + 0x140) + esi_val;
-                                int result = (int)((float)edx_val * eax_val /
-                                    (*(short*)(me + 0x136) - 1));
-                                *(short*)(entry - 0x84) = result;
-                            }
-                            FUN_004a1b40(param_1, i);
+    int field_1b = *(int*)(me + 0x1b);
+    for (; i < (short)entries->count + 1; i++) {
+        char* entry = (char*)entries + i * 0x15b + 0x140;
+        if (i != param_2) {
+            if (entry[-0x13f] == me[1]) {
+                switch ((unsigned char)entry[-0x140]) {
+                case 2:
+                    if (type == 2) {
+                        *(short*)(entry - 0x84) = *(short*)(me + 0xbc);
+                        *(short*)(entry - 0x86) = *(short*)(me + 0xba);
+                        FUN_004a1b40(param_1, i);
+                    } else if (type == 4) {
+                        int esi_val;
+                        if (*(unsigned char*)(entry - 0x125) & 0x20) {
+                            esi_val = *(short*)(me + 0x136) / (*(short*)(entry - 0x82) + 1);
+                        } else {
+                            esi_val = 0;
                         }
-                        break;
-                    case 3:
-                        if (type == 2 && field_1b & 8) {
-                            char* line = FUN_004b6af0(*(char**)(me + 0xc2), *(short*)(me + 0xba));
-                            strcpy(entry - 0x8a, line);
-                            FUN_004a4d70(param_1, i);
+                        short rows = *(short*)(entry - 0x66);
+                        if (rows != 0) {
+                            int edx_val = *(short*)(entry - 0x80) -
+                                *(short*)(entry - 0x127) / rows;
+                            int eax_val = *(short*)(me + 0x140) + esi_val;
+                            int result = (int)((float)edx_val * eax_val /
+                                (*(short*)(me + 0x136) - 1));
+                            *(short*)(entry - 0x84) = result;
                         }
-                        break;
-                    case 4:
-                        if (type == 2) {
-                            if (*(short*)(me + 0xc0) > 1) {
-                                int result;
-                                if (*(short*)(me + 0xbe) != 0) {
-                                    short scale = *(short*)(me + 0xbc);
-                                    short height = *(short*)(entry - 0xa);
-                                    short count = *(short*)(me + 0xbe);
-                                    result = (int)((float)scale * height / count);
-                                } else {
-                                    result = 0;
-                                }
-                                if (*(short*)entry != result) {
-                                    *(short*)entry = result;
-                                    FUN_004a2580(param_1, i);
-                                }
-                            }
-                        }
-                        break;
+                        FUN_004a1b40(param_1, i);
                     }
+                    break;
+                case 3:
+                    if (type == 2 && field_1b & 8) {
+                        char* line = FUN_004b6af0(*(char**)(me + 0xc2), *(short*)(me + 0xba));
+                        strcpy(entry - 0x8a, line);
+                        FUN_004a4d70(param_1, i);
+                    }
+                    break;
+                case 4:
+                    if (type == 2) {
+                        if (*(short*)(me + 0xc0) > 1) {
+                            int result;
+                            if (*(short*)(me + 0xbe) != 0) {
+                                short scale = *(short*)(me + 0xbc);
+                                short height = *(short*)(entry - 0xa);
+                                short count = *(short*)(me + 0xbe);
+                                float ratio = (float)scale * height;
+                                result = (int)(ratio / count);
+                            } else {
+                                result = 0;
+                            }
+                            if (*(short*)entry != result) {
+                                *(short*)entry = result;
+                                FUN_004a2580(param_1, i);
+                            }
+                        }
+                    }
+                    break;
                 }
             }
         }

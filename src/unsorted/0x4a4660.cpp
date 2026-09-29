@@ -1,7 +1,26 @@
-// Decompiled by GPT-5.6-Terra, finished by GPT-6. Names are provisional.
-// Partial at 86.8%. The remaining differences include the missing zero
-// register in the prologue, different register choices while inset coordinates
-// are updated, and a stack home for text width where the original reuses edi.
+// Decompiled by GPT-5.6-Terra, finished by GPT-6 and deepseek-v4.1-flash. Names are provisional.
+// Partial at 86.8% (562 bytes against 556).
+//
+// deepseek-v4.1-flash pass: the whole remaining diff is one allocator decision.
+// The original materialises a 32-bit zero in edi at the prologue (`xor edi,edi`)
+// and keeps it live: `cmp ebx,edi` for the surface null test, `cmp
+// [esi+0xd2],edi` for the showText test, `mov [esp+0x38],edi` for the width
+// initial value and `cmp [ecx+0x14],edi` for the first language test. That edi
+// is then reused as the text pointer and restored from the width home after the
+// loop (`lea edi,[esp+0x20]`, `mov edi,[esp+0x38]`). Ours never forms the zero
+// register: it emits `test ebx,ebx`, `mov eax,[esi+0xd2]; test eax,eax` and
+// `mov dword ptr [esp+0x38],0`. Because edi is free here, the allocator then
+// uses it as the rect-inset temporary (`mov edi,[esp+0x14]; add edi,eax`),
+// where the original uses edx/ecx, so the same single decision explains every
+// hunk.
+//
+// Tried and measured (all scratch): width declared at function scope before
+// surface 80.0%, right after surface 80.0%, right after FUN_004c5e70 80.0%,
+// right before the showText test 81.1%, function-scope `int width;` assigned
+// after _itoa 86.8% (identical output), `int width = 0` plus a top-level
+// `char *p` 80.0%, and `headers.py 0x4a4660` (all 128 sets, best 86.8%). The
+// 0x4a3ef0 notes say a zero local declared right after a call is what makes
+// MSVC keep the zero, but none of those placements did here.
 #include <stdlib.h>
 #include <windows.h>
 

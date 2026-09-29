@@ -26,6 +26,24 @@
 //     WORSE: 65.6 -> 65.2 before the bitfield work, 73.0 -> 71.4 after).
 // FUN_0046e330 fills a 0x10-byte struct whose fields live at +0xa (short) and
 // +0xc (int); it is called as FUN_0046e330(item, &info) with ecx = g_game->queue.
+//
+// Remaining diff hunks by original address (all register allocation, no
+// structural difference; ours is 1566 bytes vs the original 1586):
+//   0x44c827  zero constant lands in ebp (`xor ebp,ebp`) where the original
+//             has `xor eax,eax`, so entries goes to ebx vs the original's ebp
+//             and the spill slots shift (0x18/0x1c swapped). Hoisting the
+//             `entries = layer->entries` load changed nothing.
+//   0x44c92b  item-init loop: original keeps 0 in edi, ours reloads ebp.
+//   0x44c9e7  big scan loop: original keeps the 0x249 stride in edi, n in
+//             [esp+0x14] and i in [esp+0x10] (both in memory) and tests the
+//             item flag with `shr ecx,0xf; test cl,1`; ours uses ebp/edi for
+//             the counters and `test ch,0x80`.
+//   0x44cb95  string-copy loop counter moves between [esp+0x10] and [esp+0x14].
+//   0x44cc2b  SCROLLSLIDER block: original caches the menu in eax/esi and keeps
+//             idx in edi; ours reloads g_game+0x519 for the two FUN_0044bfd0
+//             calls and reuses esi.
+//   0x44cd87  Load/Save/Reset tail: ours schedules the address arithmetic
+//             differently (one extra add/load pair).
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

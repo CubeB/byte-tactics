@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL 74.4% (deepseek's 74.0% plus this round's LOGO-loop fix). See the
-// note at the bottom of the file for what still differs.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
+// PARTIAL 74.4% (unchanged this round; see the note at the bottom for what
+// still differs).
 // Inherited from round 16: all callees take __stdcall; FUN_0046dad0 is a
 // __thiscall method (ecx = this); g_game+0x2bee sets go through a 1-bit packed
 // bitfield so MSVC emits `or byte ptr [mem],1` while the clear stays
@@ -376,9 +376,12 @@ void FUN_0044a680()
 //   `g_game->players[i]` with a do-while scored 73.4, so the raw offsets stay.
 // - `(r != 0) ? 4 : 0` at 0x44af80 compiles to neg/sbb/and; the original has
 //   `test al,al / setne bl / and ebx,1 / shl ebx,2 / or edx,ebx`. A
-//   `unsigned int bits; if (r) bits = 1; else bits = 0;` self-correction
-//   plus `bits << 2` still folded to neg/sbb (66.8 on its own base, so the
-//   self-correction alone is not the lever).
+//   `unsigned int bits; if (r) bits=1; else bits=0; bits<<=2;` self-correction
+//   gives neg/sbb/neg/shl (2220 bytes, 74.4), `bits = (r != 0) & 1;
+//   bits <<= 2;` gives neg/sbb/neg/and/shl (no setne), and a
+//   `bool flag = (r != 0); ... ((unsigned)flag << 2)` gives neg/sbb/neg/movzx
+//   (2224, 74.3). None reach setne. `r` must stay unsigned char (FUN_0041d6a0
+//   returns it in al); if it is widened to int the `test al,al` is lost.
 // - In the LOGO block the original computes the pair (left,right) as
 //   `[esp+0x38]` into eax and `[esp+0x40]` into edx; ours has them swapped.
 // - Tried and did NOT work (do not repeat): spelling

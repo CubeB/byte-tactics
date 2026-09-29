@@ -1,22 +1,32 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5 and
+// deepseek-v4.1-flash. Names are provisional.
 //
-// Partial (93.7%): clears the kind byte of every cell in each dirty group of
-// eight cells, then clears the dirty masks. One dirty word covers 256 cells;
-// the last word is bounds-checked against the cell count.
+// Partial (97.5%): clears the kind byte of every cell in each dirty group of
+// eight cells, then clears the dirty masks. One dirty word covers 256 cells
+// (0x400 bytes). Every full block is cleared unconditionally; the last block
+// is bounds-checked against the cell count.
 //
-// Testing `dirty[i]` and then copying it into `bits` (rather than testing
-// `bits`) is what keeps the duplicated `test ebx, ebx` before each group
-// loop. The main loop now matches exactly. What still differs is the start
-// of the last block: the original copies the dirty word into ebx straight
-// after the test, computes `i << 10` in edx and loads the cell array into
-// edi (`add edi, edx`); here the copy comes later, so `i << 10` is built in
-// edi and the cell array goes through ecx. Swapping the add's operands, a
-// static inline row helper, shared or separate `bits`/`p` locals, explicit
-// copies, do/while or for loops, and every header set gave the same code.
+// The first loop's inlined block matches exactly. For the last block the
+// registers now match the original (ebx = dirty word, edx = i << 10, edi =
+// base pointer) but the instruction order does not: the original reads the
+// dirty word and tests it, copies it to ebx, moves i to edx, stores
+// dirty[i] = 0, only then loads cells into edi, shifts edx by 10 and adds.
+// Ours loads cells into edi first (because the base pointer must be live
+// before the block for the allocator to give the shift to edx) and sinks the
+// dirty[i] = 0 store after the add. Declaring the base pointer before the
+// guard and using it inside is what fixes the register choice (97.5% vs
+// 93.7% with the pointer computed inside the guard); the pointer can also be
+// assigned cells inside the guard but then the allocator chooses edi for the
+// shift and ecx for the base again. Explicit byte offsets, int off = i << 10,
+// p += i * 256, a second grid pointer, unsigned i, a separate ClearLast body
+// order, and all 128 tools/headers.py header sets give the same 93.7%/97.5%
+// code.
 //
-// Possible original bug: in the last block the bounds check uses `(i << 8) + k`
-// for every group, without the group's own offset (8 cells per mask bit), so
-// only the first 8 cells of the block are really checked against the count.
+// Possible original bug: in the last block the bounds check starts `c` at
+// `i << 8` again for every group of eight cells instead of at the group's own
+// offset (group g holds cells i*256 + g*8 .. +7). So only the first group is
+// really compared against the count; later groups clear cells past the end of
+// the grid.
 
 struct Cell_0040d900 {
     unsigned char kind;
@@ -52,6 +62,30 @@ struct Grid_0040d900 {
             }
         }
     }
+
+    void ClearLast(int i)
+    {
+        Cell_0040d900* p = cells;
+        if (dirty[i]) {
+            unsigned int bits = dirty[i];
+            dirty[i] = 0;
+            p += i * 256;
+            while (bits) {
+                if (bits & 1) {
+                    int c = i << 8;
+                    Cell_0040d900* q = p;
+                    for (int k = 8; k; k--) {
+                        if (c < count)
+                            q->kind = 0;
+                        c++;
+                        q++;
+                    }
+                }
+                bits >>= 1;
+                p += 8;
+            }
+        }
+    }
 };
 
 class Class_0040d900 {
@@ -69,5 +103,5 @@ void Class_0040d900::FUN_0040d900()
     int i;
     for (i = 0; i < n; i++)
         grid.ClearBlock(i, 0);
-    grid.ClearBlock(i, 1);
+    grid.ClearLast(i);
 }

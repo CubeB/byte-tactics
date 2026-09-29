@@ -4,16 +4,14 @@
 // sliders, the scroll slider, the energy/metal labels and the Load/Save/Reset
 // buttons. Family with 0x44c220 (per-frame update) and 0x44c420 (teardown).
 //
-// Still differs (35.5%, 1492 vs 1586 bytes): structure is right but the stack
-// frame is 0x44 where the original is 0x2c, so several locals are not being
-// reused into one slot; the first item loop's sprintf/copy sequences and the
-// Load/Save/Reset tail differ in register choice and evaluation order.
-// Details worth keeping: the sprintf at 0x44cabf is
-//   sprintf(rec, "%s\r%s %dM  %dE", item, FUN_004c5740(item+0xa0), (int)item->metal,
-//           (int)item->energy);
-// where the two (int) casts of the x87 fields (+0x186 energy, +0x18a metal)
-// are pushed as varargs before the FUN_004c5740 call, leaving the stack
-// balanced by the later `add esp, 0x18` after that sprintf.
+// Still differs (62.0%): the frame is now 0x2c like the original, but the
+// item flag test compiles to `test ch,0x80` where the original has
+// `shr ecx,0xf; test cl,1`, and register allocation differs throughout (the
+// zero constant lands in ebp not eax, layer->entries in esi not ebp, the
+// slider counter in edi not esi). The original keeps no `count` local (it
+// reloads g_game->count everywhere) and FUN_0046e330 fills a 0x10-byte struct
+// whose fields live at +0xa (short) and +0xc (int); it is called as
+// FUN_0046e330(item, &info) with ecx = g_game->queue.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -38,22 +36,13 @@ struct Record_44c7e0 {                 // 0x62-byte slider/picture record
     int field_5e;                      // +0x5e
 };
 
-union Flags_44c7e0 {
-    unsigned int raw;
-    struct {
-        unsigned int low : 15;
-        unsigned int flag : 1;         // bit 15
-        unsigned int high : 16;
-    } bits;
-};
-
 struct Item_44c7e0 {                   // 0x249-byte unit type instance
     char unknown_0[0x20];
     char name[0x166];                  // +0x20
     float field_186;                   // +0x186
     float field_18a;                   // +0x18a
     char unknown_18e[0x245 - 0x18e];
-    Flags_44c7e0 field_245;            // +0x245
+    unsigned int field_245;            // +0x245
 };
 
 struct Gadget_44c7e0 {
@@ -73,13 +62,14 @@ struct Gadget_44c7e0 {
     short field_140;                   // +0x140
     char unknown_142[0x144 - 0x142];
     void* field_144;                   // +0x144
+    short field_148;                   // +0x148
     int field_14a;                     // +0x14a
 };
 
-struct Info_44c7e0 {
-    short pad0;                        // +0x00
-    short field_2;                     // +0x02
-    int field_4;                       // +0x04
+struct Info_44c7e0 {                   // 0x10-byte output of FUN_0046e330
+    char unknown_0[0xa];
+    short field_2;                     // +0xa
+    int field_4;                       // +0xc
 };
 
 struct Inner_44c7e0 {
@@ -101,8 +91,8 @@ struct Game_44c7e0 {
     char unknown_519[0x531 - 0x519];
     Inner_44c7e0* inner;               // +0x531
     char unknown_535[0x1b8a - 0x535];
-    PlayerEntry_44c7e0 players[10];    // +0x1b8a
-    char unknown_2858[0x2a30 - 0x2858];
+    PlayerEntry_44c7e0 players[10];    // +0x1b8a, stride 0x14b
+    char unknown_2878[0x2a30 - 0x2878];
     void* queue;                       // +0x2a30
     char unknown_2a34[0x2a42 - 0x2a34];
     unsigned char localPlayer;         // +0x2a42
@@ -113,7 +103,7 @@ struct Game_44c7e0 {
 };
 
 struct Class_0046e330 {
-    void FUN_0046e330(Info_44c7e0* out, Item_44c7e0* item);
+    void FUN_0046e330(Item_44c7e0* item, Info_44c7e0* out);
 };
 
 #pragma pack(pop)
@@ -150,78 +140,59 @@ int __cdecl FUN_0044c7a0(const void* a, const void* b);
 // FUNCTION: 0x44c7e0
 void FUN_0044c7e0()
 {
-    unsigned char flag;
-    Layer_44c7e0* layer;
-    Gadget_44c7e0* desc;
-    Gadget_44c7e0* pic;
-    Gadget_44c7e0* slider;
-    Gadget_44c7e0* scroll;
-    void* flags;
-    int* picArray;
-    char* textArray;
-    char* dst;
-    char* src;
-    Info_44c7e0 info;
-    char buf[0x20];
-    int i;
-    int n;
-    int count;
-    int off;
-    int idx;
-    Item_44c7e0* item;
-    int value;
+    unsigned int flag = g_game->players[g_game->localPlayer].unit->field_97 & 1;
 
-    flag = g_game->players[g_game->localPlayer].unit->field_97 & 1;
-
-    layer = (Layer_44c7e0*)FUN_004aa8f0((char*)g_game + 0x519, "RESTRICT2.GUI", 0x880);
+    Layer_44c7e0* layer = (Layer_44c7e0*)FUN_004aa8f0((char*)g_game + 0x519, "RESTRICT2.GUI", 0x880);
     layer->handler_8 = (void*)FUN_0044c420;
     layer->field_c = 0;
     layer->handler_1c = (void*)FUN_0044c220;
     DAT_00512768 = 0;
     FUN_004288d0("UnitRestrict5x", 0, 0, 0);
 
-    count = g_game->count;
-    flags = FUN_004d83b0("FLAGS", count);
-    desc = FUN_0049ff90(layer->entries, "DESCLIST");
+    void* entries = layer->entries;
+    void* flags = FUN_004d83b0("FLAGS", g_game->count);
+    Gadget_44c7e0* desc = FUN_0049ff90(entries, "DESCLIST");
     desc->field_ce = (void*)FUN_0044c370;
     desc->field_d6 = flags;
     desc->field_da = 0x20;
     desc->field_1b |= 0x100;
 
-    pic = FUN_0049ff90(layer->entries, "PICLIST");
+    Gadget_44c7e0* pic = FUN_0049ff90(entries, "PICLIST");
     pic->field_d6 = flags;
     pic->field_1b |= 0x180;
     pic->field_da = desc->field_da;
 
-    picArray = (int*)FUN_004d83b0("UNITPICARRAY", count * 0x18);
-    memset(picArray, 0, count * 0x18);
+    int* picArray = (int*)FUN_004d83b0("UNITPICARRAY", g_game->count * 0x18);
+    memset(picArray, 0, g_game->count * 0x18);
 
-    textArray = (char*)FUN_004d83b0("UNITTEXTARRAY", count << 5);
+    char* textArray = (char*)FUN_004d83b0("UNITTEXTARRAY", g_game->count << 5);
     *(int*)textArray = 0;
 
-    DAT_005129b4 = (Record_44c7e0*)FUN_004d83b0("UNITSRESTRICTINFO", count * 0x62);
+    DAT_005129b4 = (Record_44c7e0*)FUN_004d83b0("UNITSRESTRICTINFO", g_game->count * 0x62);
     desc->field_d2 = DAT_005129b4;
-    for (i = 0; i < count; i++)
+    int i;
+    for (i = 0; i < g_game->count; i++)
         DAT_005129b4[i].field_52 = 0;
 
-    DAT_005129b8 = (int*)FUN_004d83b0("UNITSPICS", count << 2);
-    memset(DAT_005129b8, 0, count << 2);
-    memset(DAT_005129b4, 0, count * 0x62);
-    DAT_005129c4 = (int*)FUN_004d83b0("OLDCOUNTS", count << 2);
+    DAT_005129b8 = (int*)FUN_004d83b0("UNITSPICS", g_game->count << 2);
+    memset(DAT_005129b8, 0, g_game->count << 2);
+    memset(DAT_005129b4, 0, g_game->count * 0x62);
+    DAT_005129c4 = (int*)FUN_004d83b0("OLDCOUNTS", g_game->count << 2);
 
-    n = 0;
-    if (count > 1) {
-        i = 1;
-        off = 0x249;
+    int n = 0;
+    i = 1;
+    if (g_game->count > 1) {
+        int off = 0x249;
         do {
-            item = (Item_44c7e0*)((char*)g_game->items + off);
-            if (!item->field_245.bits.flag && item->name != 0) {
-                sprintf(buf, "%s\r%s %dM  %dE", (char*)item,
-                        FUN_004c5740((char*)item + 0xa0),
+            Item_44c7e0* item = (Item_44c7e0*)((char*)g_game->items + off);
+            if (!((item->field_245 >> 15) & 1) && item->name != 0) {
+                Info_44c7e0 info;
+                sprintf((char*)&DAT_005129b4[n], "%s\r%s %dM  %dE",
+                        (char*)item, FUN_004c5740((char*)item + 0xa0),
                         (int)item->field_18a, (int)item->field_186);
                 DAT_005129b4[n].field_52 = i;
-                ((Class_0046e330*)g_game->queue)->FUN_0046e330(&info, item);
-                value = info.field_4;
+                ((Class_0046e330*)g_game->queue)->FUN_0046e330(item, &info);
+                int value = info.field_4;
                 if (value == -1)
                     value = 0x65;
                 DAT_005129b4[n].field_5a = value;
@@ -236,29 +207,24 @@ void FUN_0044c7e0()
 
     qsort(DAT_005129b4, n, 0x62, FUN_0044c7a0);
 
-    dst = textArray;
-    if (count > 0) {
-        i = 0;
-        src = (char*)DAT_005129b4;
-        do {
-            strcpy(dst, src);
-            dst += strlen(src) + 1;
-            src += 0x62;
-            i++;
-        } while (i < count);
+    char* dst = textArray;
+    for (i = 0; i < g_game->count; i++) {
+        strcpy(dst, DAT_005129b4[i].name);
+        dst += strlen(DAT_005129b4[i].name) + 1;
     }
 
     for (i = 0; i < 0xc; i++) {
+        char buf[0x14];
         sprintf(buf, "SLIDER%d", i);
-        slider = FUN_004a0200(layer->entries, buf);
+        Gadget_44c7e0* slider = FUN_004a0200(entries, buf);
         slider->field_14a = (int)slider;
         slider->field_13c = 0x65;
         slider->field_144 = (void*)FUN_0044be70;
     }
 
-    idx = FUN_0049fdf0(g_game->inner->entries, "SCROLLSLIDER", 0xe);
+    int idx = FUN_0049fdf0(g_game->inner->entries, "SCROLLSLIDER", 0xe);
     if (idx != -1) {
-        scroll = FUN_004a0200(g_game->inner->entries, "SCROLLSLIDER");
+        Gadget_44c7e0* scroll = FUN_004a0200(g_game->inner->entries, "SCROLLSLIDER");
         scroll->field_13c = 0xd2;
         scroll->field_144 = (void*)FUN_0044bfd0;
         scroll->field_140 = 0;
@@ -272,13 +238,16 @@ void FUN_0044c7e0()
     FUN_004a35a0(g_game->inner->entries, "PICLIST", picArray, n);
     FUN_0044bfd0((char*)g_game + 0x519, 0);
 
-    item = &g_game->items[desc->field_d2[desc->field_ba].field_52];
-    sprintf(buf, "%d", (int)item->field_186);
-    FUN_004a0bf0((char*)g_game + 0x519, "ENERGYTEXT", buf, 0);
-    sprintf(buf, "%d", (int)item->field_18a);
-    FUN_004a0bf0((char*)g_game + 0x519, "METALTEXT", buf, 0);
+    Item_44c7e0* item = &g_game->items[desc->field_d2[desc->field_ba].field_52];
+    {
+        char buf[0x14];
+        sprintf(buf, "%d", (int)item->field_186);
+        FUN_004a0bf0((char*)g_game + 0x519, "ENERGYTEXT", buf, 0);
+        sprintf(buf, "%d", (int)item->field_18a);
+        FUN_004a0bf0((char*)g_game + 0x519, "METALTEXT", buf, 0);
+    }
 
-    bool enabled = (flag == 0);
+    int enabled = (flag == 0);
     FUN_004a1250((char*)g_game + 0x519, "Load", enabled);
     FUN_004a1250((char*)g_game + 0x519, "Save", enabled);
     FUN_004a1250((char*)g_game + 0x519, "Reset", enabled);

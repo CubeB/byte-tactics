@@ -1,7 +1,14 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// WORK IN PROGRESS: whole function transcribed from the disassembly but not
-// verified; the sort/swap block and the bit set/clear width on g_game+0x2bee
-// are the most likely places to still differ.
+// PARTIAL 74.0% (best within the retry timebox). See the note at the bottom of
+// the file for what still differs.
+// Round-16 retry gains: all callees take __stdcall (was __cdecl, so every call
+// emitted an `add esp`); FUN_0046dad0 is a __thiscall method (ecx = this);
+// g_game+0x2bee sets go through a 1-bit packed bitfield so MSVC emits
+// `or byte ptr [mem],1` while the clear stays `and word ptr [mem],0xfffe`;
+// obj=g_game+0x391e9 is loaded lazily inside the else of FUN_00453d40()==0.
+// Flipping the DAT_00512994 test to `if (DAT != 0) { swap loop } else
+// { FUN_004455b0(); }` keeps the swap loop inline (was emitted out of line
+// after the return, worth ~10 points). `unsigned char b` was worth ~2.5.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,64 +82,70 @@ struct Class_00463c60 { void FUN_00463c60(int param); };
 
 struct Rect_44a680 { int left, top, right, bottom; };
 
+struct Flag2bee_44a680 {
+    unsigned short bit0 : 1;
+    unsigned short rest : 15;
+};
+
 extern Game_44a680* g_game;
 extern int DAT_00512994;
 extern int DAT_005129a4;
 extern unsigned int DAT_005129a8;
 extern unsigned int DAT_0050550c;
 
-int FUN_00453d40();
-unsigned char FUN_00456850();
-void FUN_004455b0();
-void FUN_00448c70();
+extern "C" {
+int __stdcall FUN_00453d40();
+unsigned char __stdcall FUN_00456850();
+void __stdcall FUN_004455b0();
+void __stdcall FUN_00448c70();
 void FUN_00444a20();
-void FUN_00445b70(Gui_44a680* gui, int index);
-void FUN_00445c70(Gui_44a680* gui, int index);
-void FUN_0047f1a0(char* name, int param);
-void FUN_0049fa90(Gui_44a680* gui);
-void FUN_0049fad0(Gui_44a680* gui);
-int FUN_0049fdf0(void* entries, char* name, int type);
-void FUN_004a0570(Gui_44a680* gui, char* name, int param);
-void FUN_004a0bf0(Gui_44a680* gui, char* name, char* text, int param);
-void FUN_004a1250(Gui_44a680* gui, char* name, int param);
-void* FUN_004a0200(void* entries, char* name);
-void* FUN_004a0280(void* entries, char* name);
-void FUN_004a15c0(void* entries, int widget, Rect_44a680* rect);
-int FUN_004a5030(char* text);
-int FUN_004a50b0();
-void FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
-void FUN_004a5d30(Gui_44a680* gui, int flag);
-void FUN_004a9660(void* gui);
-int FUN_004ab060(Gui_44a680* gui, char* name);
-void FUN_0045b9b0(void* entry, int value);
-int FUN_0045ba20(void* entry);
-int FUN_004b6340();
-unsigned char FUN_0041d6a0(int param);
-void FUN_00456310();
-void FUN_00450f90();
-void FUN_00451180();
-int FUN_00456760();
-void FUN_0046dad0(void* obj);
+void __stdcall FUN_00445b70(Gui_44a680* gui, int index);
+void __stdcall FUN_00445c70(Gui_44a680* gui, int index);
+void __stdcall FUN_0047f1a0(char* name, int param);
+void __stdcall FUN_0049fa90(Gui_44a680* gui);
+void __stdcall FUN_0049fad0(Gui_44a680* gui);
+int __stdcall FUN_0049fdf0(void* entries, char* name, int type);
+void __stdcall FUN_004a0570(Gui_44a680* gui, char* name, int param);
+void __stdcall FUN_004a0bf0(Gui_44a680* gui, char* name, char* text, int param);
+void __stdcall FUN_004a1250(Gui_44a680* gui, char* name, int param);
+void* __stdcall FUN_004a0200(void* entries, char* name);
+void* __stdcall FUN_004a0280(void* entries, char* name);
+void __stdcall FUN_004a15c0(void* entries, int widget, Rect_44a680* rect);
+int __stdcall FUN_004a5030(char* text);
+int __stdcall FUN_004a50b0();
+void __stdcall FUN_004a50e0(int a, char* text, int x, int y, int w, int h);
+void __stdcall FUN_004a5d30(Gui_44a680* gui, int flag);
+void __stdcall FUN_004a9660(void* gui);
+int __stdcall FUN_004ab060(Gui_44a680* gui, char* name);
+void __stdcall FUN_0045b9b0(void* entry, int value);
+int __stdcall FUN_0045ba20(void* entry);
+unsigned int __stdcall FUN_004b6340();
+unsigned char __stdcall FUN_0041d6a0(int param);
+void __stdcall FUN_00456310();
+void __stdcall FUN_00450f90();
+void __stdcall FUN_00451180();
+int __stdcall FUN_00456760();
+}
+class Class_0046dad0 { public: void FUN_0046dad0(); };
 
 // FUNCTION: 0x44a680
 void FUN_0044a680()
 {
-    unsigned int b;
+    unsigned char b;
     unsigned int edi;
     Unit_44a680* unit;
     Player_44a680* pl;
-    Class_004358f0* obj;
     void* entries;
 
     g_game->field_38a47++;
 
-    obj = (Class_004358f0*)g_game->field_391e9;
-    edi = 0;
-    unit = 0;
-    if (FUN_00453d40() != 0 || obj->FUN_004358f0() == 0) {
-        g_game->field_2bee |= 1;
+    if (FUN_00453d40() != 0 ||
+        ((Class_004358f0*)g_game->field_391e9)->FUN_004358f0() == 0) {
+        ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
     } else {
         b = FUN_00456850();
+        unit = 0;
+        edi = 0;
         if (b != 10) {
             unit = g_game->players[b].data;
             if (unit->field_a7 >= 2)
@@ -140,8 +153,8 @@ void FUN_0044a680()
             else if (unit->field_a7 == 1 && unit->field_a8 >= 2)
                 edi = 1;
         }
-        if (edi != 0 && ((Class_004373a0*)obj)->FUN_004373a0() != unit->field_a9)
-            g_game->field_2bee |= 1;
+        if (edi != 0 && ((Class_004373a0*)g_game->field_391e9)->FUN_004373a0() != unit->field_a9)
+            ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
     }
 
     pl = &g_game->players[g_game->localPlayer];
@@ -157,10 +170,8 @@ void FUN_0044a680()
         *(int*)((char*)entries + idx * 0x15b + 0x1f) = 0x18;
     }
 
-    if (g_game->field_2bee & 1) {
-        if (DAT_00512994 == 0) {
-            FUN_004455b0();
-        } else {
+    if (((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 != 0) {
+        if (DAT_00512994 != 0) {
             Player_44a680* A = &g_game->players[0];
             Player_44a680* B = &g_game->players[1];
             Player_44a680* end = (Player_44a680*)((char*)g_game + 0x2851);
@@ -205,6 +216,8 @@ void FUN_0044a680()
                 }
                 A = savedA;
             }
+        } else {
+            FUN_004455b0();
         }
 
         if ((unsigned int)g_game->field_2a3c != DAT_0050550c) {
@@ -217,7 +230,7 @@ void FUN_0044a680()
             if (b2 != 10) {
                 Unit_44a680* u2 = g_game->players[b2].data;
                 if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
-                    ((Class_00435a20*)obj)->FUN_00435a20(u2);
+                    ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(u2);
                     FUN_0045b9b0(FUN_004a0200(entries, "MAXUNITS"), u2->maxunits - 0x14);
                     FUN_0045b9b0(FUN_004a0200(entries, "METAL"), u2->metal * 100);
                     FUN_0045b9b0(FUN_004a0200(entries, "ENERGY"), u2->energy * 100);
@@ -241,18 +254,16 @@ void FUN_0044a680()
                     }
                     FUN_00445c70(&g_game->gui, 0);
                 } else if (FUN_004ab060(&g_game->gui, "viewmap.gui") != 0) {
-                    if (strcmp(((Class_00435c30*)obj)->FUN_00435c30(), u2->name) != 0) {
-                        ((Class_00435a20*)obj)->FUN_00435a20(u2);
+                    if (strcmp(((Class_00435c30*)g_game->field_391e9)->FUN_00435c30(), u2->name) != 0) {
+                        ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(u2);
                         FUN_00444a20();
                         FUN_0049fad0(&g_game->gui);
                     }
                 }
             }
         }
-    }
-
-    g_game->field_2bee &= 0xfffe;
-    if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
+        g_game->field_2bee &= 0xfffe;
+        if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
         if (pl->data->flags & 1) {
             int edi2 = ((Class_0046e000*)g_game->field_2a30)->FUN_0046e000();
             int b5 = FUN_00456760();
@@ -264,18 +275,18 @@ void FUN_0044a680()
                 if ((short)w[0x63] < 8) {
                     w[0x63] = w[0x63] + 1;
                     FUN_0049fa90(&g_game->gui);
-                    g_game->field_2bee |= 1;
+                    ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
                 }
                 DAT_005129a4 += 4;
                 if ((short)w[0x63] == 4)
                     FUN_0047f1a0("Panel", 0);
             }
             if ((short)w[0x63] != 0 &&
-                (int)(short)w[0x63] < (int)(*(unsigned short*)((char*)w + 0xbe) - 1)) {
-                g_game->field_2bee |= 1;
+                (int)(short)w[0x63] < (int)(**(unsigned short**)((char*)w + 0xbe) - 1)) {
+                ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
             }
             if (b5 != 0) {
-                g_game->field_2bee |= 1;
+                ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
                 if ((short)w[0x63] == 0) {
                     w[0x63] = 1;
                     DAT_005129a4 = FUN_004b6340();
@@ -297,6 +308,7 @@ void FUN_0044a680()
         }
         FUN_00448c70();
         FUN_0049fa90(&g_game->gui);
+        }
     }
 
     if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
@@ -334,7 +346,7 @@ void FUN_0044a680()
         FUN_004a5d30(&g_game->gui, 0);
     }
 
-    FUN_0046dad0(g_game->field_2a30);
+    ((Class_0046dad0*)g_game->field_2a30)->FUN_0046dad0();
     if (DAT_005129a8 < (unsigned int)FUN_004b6340()) {
         unsigned char r;
         DAT_005129a8 = FUN_004b6340() + 0x3c;
@@ -344,3 +356,18 @@ void FUN_0044a680()
         FUN_00456310();
     }
 }
+
+// Remaining differences (best 74.0%, ours 2217 bytes vs original 2340):
+// - pl (local-player pointer) is not pinned to ebp: the original does
+//   `lea ebp,[esi+eax*2+0x1b63]; mov dword [esp+0x14],ebp; mov al,[ebp+0x22]`,
+//   ours reads field_22 straight off the computed address and spills pl to
+//   [esp+0x1c]. Same for the `entries` spill slot ([esp+0x20] vs [esp+0x1c]).
+// - The first condition loads g_game before the `jne`; ours loads it after.
+// - `(r != 0) ? 4 : 0` compiles to neg/sbb/and; the original has
+//   test al,al / setne bl / and ebx,1 / shl ebx,2 / or edx,ebx (see 0x44af80).
+//   A setne form is needed there.
+// - ~123 bytes of tail/scratch differences remain; everything is present in
+//   the source, the block layout and register choices are what differ.
+// Suspected original bug: the reindex loop after each swap runs
+// `off <= 0xcee` (11 iterations at stride 0x14b), so it reads and writes
+// g_game+0x1ca9 one element past the 10-entry player array.

@@ -1,7 +1,10 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 53.4% (best effort within the 10 minute timebox): full structural
+// PARTIAL 60.5% (best effort within the 10 minute timebox): full structural
 // translation of the battleroom setup handler. See the note at the bottom of
 // the file for what still differs.
+// Round-15 retry gains: flag97 must be `char` (took it from 53.4 to 60.5);
+// g_game+0x2bee and the g_game+0x2c74 bit 0 are 1-bit fields, assigned
+// through a packed bitfield struct so MSVC emits `or byte ptr [mem],1`.
 //
 // Local frame map (esp after prologue = F-0x38):
 //   [esp+0x10] = F-0x28  metal value   (init 1000, overwritten by DAT_00512d74)
@@ -10,6 +13,11 @@
 //   [esp+0x1c] = F-0x1c  player base, later reused for maxunits-20
 //   [esp+0x20] = F-0x18  spilled copy of (info->field_97 & 1)
 //   [esp+0x24] = F-0x14  itoa text buffer
+// Our compile has a 4-byte larger frame (every esp offset past the first is
+// shifted by +4): the entry list pointer that the original keeps in edi, and
+// the byte offset index*0x14b it keeps in a scratch register, both get their
+// own slots here. metalVal/energyVal also land at +0x10/+0x14 instead of the
+// original's +0x10/+0xc.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -144,6 +152,12 @@ struct Battlestart_00449bb0 {
     int field_c8;                   // +0xc8
 };
 
+// +0x2c74, bit 0.
+struct Flag2c74_00449bb0 {
+    unsigned short bit0 : 1;
+    unsigned short rest : 15;
+};
+
 #pragma pack(pop)
 
 // FUNCTION: 0x449bb0
@@ -153,12 +167,12 @@ void FUN_00449bb0(void)
     int energyVal = 1000;
     void* holder = 0;
     int local_1c = 0;
-    int flag97 = 0;
+    char flag97 = 0;
     char text[16];
 
     DAT_00512994 = 0;
     DAT_0050550c = -1;
-    *(unsigned char*)(g_game + 0x2bee) |= 1;
+    ((Flag2c74_00449bb0*)(g_game + 0x2bee))->bit0 = 1;
     memset(g_game + 0x2c28, 0, 0x2c);
 
     int index = *(unsigned char*)(g_game + 0x2a42);
@@ -208,9 +222,7 @@ void FUN_00449bb0(void)
             *(unsigned short*)(g_game + 0x37eea) = (unsigned short)DAT_00512d6c;
         }
 
-        unsigned short old = *(unsigned short*)(g_game + 0x2c74);
-        *(unsigned short*)(g_game + 0x2c74) =
-            (old & 0xfffe) | (DAT_00512d68 != 0 ? 1 : 0);
+        ((Flag2c74_00449bb0*)(g_game + 0x2c74))->bit0 = (DAT_00512d68 != 0);
 
         int v = DAT_00512d78 - 1;
         if (DAT_00512d78 != 0 && v >= 0 && v <= 2) {
@@ -444,21 +456,24 @@ L_a042:
     FUN_004a81e0(g_game + 0x519, 0x40);
 }
 
-// Remaining differences as left by deepseek-v4.1-flash (check.py: 53.4%):
-// - Semantics are complete, but MSVC's frame-slot allocation differs:
-//   original frame map is metalVal@0, energyVal@4, holder@8, local_1c@0xc,
-//   flag97@0x10, text@0x14; ours came out flag97@0, metalVal@4, energyVal@8,
-//   holder@0xc, local_1c@0x10, list@0x14, text@0x18. Renaming/reordering the
-//   declarations did not move flag97 off offset 0. The `list` local also gets
-//   a stack slot where the original keeps the GUI entry table in edi.
-// - `*(unsigned char*)(g_game+0x2bee) |= 1;` compiles to mov/or/mov through
-//   cl here, original has a single `or byte ptr [eax+0x2bee], 1`.
-// - the 0x2c74 bit-0 update in the FUN_0045b660()!=0 path: original emits
-//   xor/and/xor (bit assignment through a bitfield), ours writes mask/or;
-//   declare the field as a 1-bit bitfield in the game struct.
+// Remaining differences as left by deepseek-v4.1-flash (check.py: 60.5%):
+// - Semantics are complete, but MSVC's frame-slot allocation still differs:
+//   the frame is 4 bytes larger, so every esp-relative access after the first
+//   is shifted by +4. The `list` local gets a stack slot where the original
+//   keeps the GUI entry table in edi, and the source keeps `index * 0x14b`
+//   in a scratch register instead of reloading it. metalVal/energyVal land at
+//   +0x10/+0x14 instead of the original's +0x10/+0xc.
+// - flag97 is a `char` here (that was worth 7 points); the original still
+//   tests it as `and ebx,1; cmp bx,si`, i.e. a 16-bit compare in bx, so the
+//   exact declaration/register story is not settled.
+// - `bool c = FUN_0041d6a0(1); ... ((c?1:0)<<2)` produces an extra
+//   neg/sbb normalize; the original has only `test al,al; setne dl`.
+//   Folding it into one expression scored *lower* (59.0), so the original
+//   likely keeps the intermediate in a differently typed local.
 // - the LUP/PLAYERx loops and the FUN_004ab060 block pick different scratch
 //   registers (eax/edx swaps) because of the frame-offset differences above.
 // - FUN_0045ba20's division by 100 and the following /100 both reduce to
 //   multiply by 0x51eb851f + sar 5 + sign fixup; kept as plain /100.
 // - entry/gadget structs are declared from observed offsets only; the real
-//   types are shared with 0x444930's Entry/Holder.
+//   types are shared with 0x444930's Entry/Holder (which already uses the
+//   1-bit `flag0 : 1` field at g_game+0x2bee).

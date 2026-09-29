@@ -28,6 +28,21 @@
 //    rather than merely misordered. Compare the two `push` sequences around the
 //    `call` that takes the stack struct, and check whether the original makes a
 //    call we inline or vice versa.
+// Claude Sonnet 5.5 pass (#589), not applied (the file below still scores best,
+// 59.4 percent): rebuilding this body from 0x4b7620's documented idioms (the
+// NameLess functor call, `!(a == b)` through NameNe, the named
+// Class_004b7b00::FUN_004b7b00 insert, HandlerSlot zeroing, index divided before
+// the call) inside `for (; rec->name; rec++)` gives 373 bytes (original 370, this
+// file 341) but only 42.7 percent, because the alignment shifts. The search
+// half then follows the original closely; what differs is what 0x4b7620's notes
+// list (the `_Last` reload as a memory operand, the temporary's clear, the
+// division sunk below the insert), plus the frame: the original is `sub esp,0x18`
+// with `rec` re-read from [esp+0x2c] inside the loop and ebx as `_Last`, ours is
+// `sub esp,0x1c; push ebx` with rec in ebx. Reading `rec->fn`/`rec->mask` at the
+// end instead of into locals first: 361 bytes, 50.6. Zeroing the two words in
+// the element constructor's initialiser list, with locals or without: 46.8 and
+// 46.6. So the record loop is the 0x4b7620 walls repeated, and the leftover
+// there (the temporary and the index division) is the place to attack first.
 #include <string.h>
 #include <vector>
 

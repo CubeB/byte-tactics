@@ -1,4 +1,18 @@
-// Decompiled by longcat-2.5-preview-free. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// Still differs (24.3%): the frame is 0x1a0 vs the original 0x23c. The original
+// keeps a 60-byte snapshot struct at frame+0x24 (not a char[]; fields at
+// +0x00 FUN_00439df0 result, +0x04 g_game+0x2cba ushort, +0x06/+0x0a..+0x15
+// three weapon ids, +0x16/+0x1a/+0x1e/+0x22 four floats from unit+0xd0/0xcc/
+// 0xe8/0xe4, +0x26 result+0xa8, +0x28 result+0x108, +0x2a g_game+0x2cbc), and
+// two 100-byte buffers at frame+0x174 and frame+0x1d8 fill the frame out.
+// The sprintf buffer is frame+0x74 (reused), the +0x12c declarations here let
+// the allocator pick different slots. Register roles also differ from the
+// first loop on: original holds param_1 in edi, the FUN_004b7f30 bitmap in esi,
+// dy in ebp and the running right-edge in ebx; ours holds param_1 in esi and
+// the bitmap in edi. The blit offset convention is FUN_004b7f90(dst,bmp,
+// [bmp+4]+running, [bmp+6]+dy) (running is the horizontal edge, not y), fixed
+// here. The main per-unit HUD walk 0x46aba3..0x46b8e9 is still an approximation.
 #include <string.h>
 #include <stdio.h>
 
@@ -44,7 +58,7 @@ void __stdcall FUN_0046a860(void* param_1)
             int dy = FUN_004b6710() - 0x20;
             unsigned short* ptr = *(unsigned short**)(g_game + idx * 4 + 0x14833);
             int bmp = FUN_004b7f30(ptr, 0);
-            FUN_004b7f90(param_1, (void*)bmp, (short)*(unsigned short*)(bmp + 6) + dy, (short)*(unsigned short*)(bmp + 4) + y);
+            FUN_004b7f90(param_1, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y, (short)*(unsigned short*)(bmp + 6) + dy);
             y += (short)*(unsigned short*)bmp;
         } while (y < *(int*)(g_game + 0x37e1f));
 
@@ -74,13 +88,13 @@ void __stdcall FUN_0046a860(void* param_1)
         FUN_004c14f0(param_1, (unsigned char*)buf2, 0x208, y2, -1);
 
         int y3 = pfstate - 0x11;
-        sprintf(buf2, "X: %d  Y: %d\n", *(int*)(g_game + 0x14323), *(int*)(g_game + 0x1431f));
+        sprintf(buf2, "X: %d  Y: %d\n", *(int*)(g_game + 0x1431f), *(int*)(g_game + 0x14323));
         FUN_004c14f0(param_1, (unsigned char*)buf2, 0x82, y3, -1);
 
-        sprintf(buf2, "UNITS %d\\%d\n", *(int*)(g_game + 0x14367), *(int*)(g_game + 0x14353));
+        sprintf(buf2, "UNITS %d\\%d\n", *(int*)(g_game + 0x14353), *(int*)(g_game + 0x14367));
         FUN_004c14f0(param_1, (unsigned char*)buf2, 0x108, y3, -1);
 
-        sprintf(buf2, "PACKETS: %d %d %d\n", *(int*)(g_game + 0x1f54), *(int*)(g_game + 0x1e09), *(int*)(g_game + 0x1cbe));
+        sprintf(buf2, "PACKETS: %d %d %d\n", *(int*)(g_game + 0x1cbe), *(int*)(g_game + 0x1e09), *(int*)(g_game + 0x1f54));
         FUN_004c14f0(param_1, (unsigned char*)buf2, 0x190, y3, -1);
 
         int v = *(int*)(g_game + 0x14233) * (short)*(unsigned short*)(g_game + 0x2c90) + (short)*(unsigned short*)(g_game + 0x2c8e);
@@ -150,7 +164,7 @@ void __stdcall FUN_0046a860(void* param_1)
         int idx3 = *(unsigned char*)(ptr2 + 0x95);
         unsigned short* ptr3 = *(unsigned short**)(g_game + idx3 * 4 + 0x14833);
         int bmp = FUN_004b7f30(ptr3, 0);
-        FUN_004b7f90(param_1, (void*)bmp, (short)*(unsigned short*)(bmp + 6) + dy, (short)*(unsigned short*)(bmp + 4) + y);
+        FUN_004b7f90(param_1, (void*)bmp, (short)*(unsigned short*)(bmp + 4) + y, (short)*(unsigned short*)(bmp + 6) + dy);
         y += (short)*(unsigned short*)bmp;
     } while (y < *(int*)(g_game + 0x37e1f));
 

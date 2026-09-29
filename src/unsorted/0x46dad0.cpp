@@ -20,7 +20,12 @@
 //    ~Class_0046eaa0 instead.
 //  - The original's erase compacts in place with an out-of-line
 //    ??4Class_0046eaa0@@ (0x470040) and _Destroy (0x46eaa0); ours calls
-//    _Destroy inline.
+//    _Destroy inline. The compaction bound is the old players._Last, stashed
+//    in the changed slot at [esp+0x1c] (0x46db57) and read back after the
+//    operator= call; the thiscall callee pops its argument, so the post-call
+//    [esp+0x1c] still holds _Last. Then _Destroy(_Last - 0x5c, _Last) and
+//    _Last -= 0x5c, changed = 1. The [esp+0x14]/[esp+0x18] pair hold it and
+//    it + 0x5c, and both are decremented by 0x5c on the erase path.
 //  - The map walk: the original calls _Inc (0x46ea10) directly, ours emits
 //    _Lockit/_Tree::_Nil around std::map<unsigned int,int>::iterator.
 //  - The two `mov ecx, ds:0` / `mov eax, ds:0` sites (0x46ddb5, 0x46de59) are

@@ -19,6 +19,15 @@
 // `entries` land in EBX. The dead `if (entry == 0) return;` is there because
 // one extra live reference there is worth 2.2 points.
 //
+// Correction (deepseek-v4.1-flash, issue 1177): the claim above that the
+// original keeps `entries` in EBX is wrong. Disassembly shows EBX holds the
+// live-across-call first-tolower temp `a` (mov ebx,eax at 0x4a0710), and
+// `entries` is reloaded from the obj-slot spill [esp+0x1c] at 0x4a0752 and
+// 0x4a076a. All four callee-saved registers are loop state in the original
+// (i=ebp, scan=esi, j=edi, a=ebx), so BOTH `entries` ([esp+0x1c]) and `text`
+// ([esp+0x20]) are memory-homed. The remaining lever is to make MSVC rank
+// i/j/scan/a above `text`, not to put `entries` in EBX.
+//
 // Tried this round and rejected (all in build/scratch/0x4a05e0):
 //  a1 swapping the declaration order of `length` and `entry`,
 //  a2 wrapping the second chain in `if (entry->type == type)` (MSVC CSEs both

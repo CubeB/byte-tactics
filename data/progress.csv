@@ -604,6 +604,7 @@ address,size,file,symbol,status,similarity
 0x432cb0,51,src/unsorted/0x432cb0.cpp,?FUN_00432cb0@@YGPAUElem_432cb0@@PAU1@00@Z,matched,100.0
 0x432cf0,33,src/unsorted/0x432cf0.cpp,?construct@?$allocator@UEntry_00432cf0@@@std@@QAEXPAUEntry_00432cf0@@ABU3@@Z,matched,100.0
 0x432d20,27,src/unsorted/0x432d20.cpp,?FUN_00432d20@Class_004c93b0@@QAEPAXPAH@Z,matched,100.0
+0x432d40,612,src/unsorted/0x432d40.cpp,?FUN_00432d40@@YGXPAVClass_0042b370@@0P6GHABV1@1@ZH@Z,partial,82.2
 0x432fb0,244,src/unsorted/0x432fb0.cpp,?FUN_00432fb0@@YGXPAVClass_0042b370@@0P6GHABV1@1@ZPAX@Z,matched,100.0
 0x4330b0,119,src/unsorted/0x4330b0.cpp,?FUN_004330b0@Class_004330b0@@QAEXXZ,matched,100.0
 0x433130,312,src/unsorted/0x433130.cpp,?FUN_00433130@Class_00433130@@QAEXXZ,matched,100.0
@@ -616,6 +617,7 @@ address,size,file,symbol,status,similarity
 0x4335e0,16,src/unsorted/0x4335e0.cpp,?FUN_004335e0@Class_4335e0@@QAEHF@Z,matched,100.0
 0x4335f0,194,src/unsorted/0x4335f0.cpp,?FUN_004335f0@Class_004335f0@@QAEXF@Z,matched,100.0
 0x4336c0,34,src/unsorted/0x4336c0.cpp,??1?$vector@UElem_004336c0@@V?$allocator@UElem_004336c0@@@std@@@std@@QAE@XZ,matched,100.0
+0x4336f0,708,src/unsorted/0x4336f0.cpp,?FUN_004336f0@Class_004336f0@@QAEXPAVClass_004c3e10@@FF@Z,partial,68.5
 0x4339c0,19,src/unsorted/0x4339c0.cpp,?FUN_004339c0@Class_004339c0@@QAEHXZ,matched,100.0
 0x4339e0,36,src/unsorted/0x4339e0.cpp,?FUN_004339e0@Class_004339e0@@QAEXFPAG0@Z,matched,100.0
 0x433a10,24,src/unsorted/0x433a10.cpp,??0?$vector@UElem_00434020@@V?$allocator@UElem_00434020@@@std@@@std@@QAE@ABV?$allocator@UElem_00434020@@@1@@Z,matched,100.0
@@ -647,6 +649,7 @@ address,size,file,symbol,status,similarity
 0x434a60,67,src/unsorted/0x434a30.cpp,_$E3,matched,100.0
 0x434ab0,212,src/unsorted/0x434ab0.cpp,?FUN_00434ab0@@YGXH@Z,matched,100.0
 0x434b90,92,src/unsorted/0x434b90.cpp,?FUN_00434b90@@YAXXZ,matched,100.0
+0x434bf0,886,src/unsorted/0x434bf0.cpp,?FUN_00434bf0@@YGHPAPAXHH@Z,partial,92.0
 0x434f70,118,src/unsorted/0x434f70.cpp,??0Class_00434f70@@QAE@H@Z,matched,100.0
 0x434ff0,259,src/unsorted/0x434ff0.cpp,??1Class_00434f70@@QAE@XZ,matched,100.0
 0x435100,3,src/unsorted/0x435100.cpp,?FUN_00435100@Class_00435100@@QAEHXZ,matched,100.0

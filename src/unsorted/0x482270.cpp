@@ -1,22 +1,35 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
 //
-// Gave up at 50.3% (839 bytes vs 817). What still differs, all of it downstream of
-// ONE cause, the local frame slot assignment: the original lays its 14 frame dwords
-// out as j1, e2, i, x, y, e1, ref, bestDiff, grid, lod/j, table, line, num, count,
-// ours comes out in a different order, and every block that reads a spilled local
-// then differs. Symptoms of that single cause, in the order they appear:
+// Gave up at 51.2% (831 bytes vs 817). One symptom was fixed here: `g_game+0x142f1`
+// is a 1-bit `unsigned short` bitfield (bit 2, mask 4, set with `flagA = 1`), which
+// is what emits the original's `or byte ptr [eax+0x142f1], 4`; as a plain
+// `unsigned char` MSVC 5 reads it into cl and writes it back (+0.9).
+//
+// Everything else is downstream of ONE cause, the local frame slot assignment.
+// From the operand bytes the original's 14 frame dwords are:
+//   0x10 j1, 0x14 e2, 0x18 i/limitX, 0x1c x, 0x20 y, 0x24 e1, 0x28 ref,
+//   0x2c bestDiff, 0x30 grid, 0x34 lod/j/limitY, 0x38 table, 0x3c line,
+//   0x40 num, 0x44 count/halfH.
+// Note the reuse: 0x18 is i (if branch) and limitX (else); 0x34 is lod and j
+// (if branch) and limitY (else); 0x44 is count (if) and halfH (else). So the
+// allocator does reuse slots across exclusive branches and across disjoint
+// lifetimes, which is why the order cannot be read off a flat declaration list.
+// In our build x lands at 0x20 and y at 0x14 (target 0x1c / 0x20), so the frames
+// only partly agree and every block that reads a spilled local then differs.
+// Symptoms, in order:
 //   1. the lod clamp: the original keeps the masked value in ecx and SPILLS it to
 //      [esp+0x34] before the call, then reloads it for the compare, giving a real
 //      branch (`cmp eax,edx / jge`). Ours if-converts the whole if/else into
 //      `test ebp,ebp / setl dl / dec edx / and edx,ebp` plus `push`, and hoists the
 //      callee's `mov ecx, DAT_0051e6a0` above the `mov ecx,0` the mask needs.
-//   2. `g_game->flags_142f1 |= 4` compiles to a cl read-modify-write here instead of
-//      the original's `or byte ptr [eax+0x142f1], 4`.
-//   3. x2/y2 are folded into registers here; the original stores them back over the
+//   2. x2/y2 are folded into registers here; the original stores them back over the
 //      e1/e2 slots (`mov [esp+0x24],eax` / `mov [esp+0x14],edx`).
-// Tried and rejected: the pre-loop `cells[y*w + x]++` written through a named
-// `unsigned char*` (46.3%, worse: it costs `lea eax,[edx+esi]` and drops the
-// `add eax,edx` form the original has).
+//   3. the player-grid increment in the inner loop: original computes `p+0x7c` into
+//      edx then reads `[edx+4]`/`[edx]`; ours folds the base and width into
+//      `[eax+0x80]`/`[eax+0x7c]`.
+// Tried and rejected: declaring halfW/halfH after x/y (49.4%, worse); the pre-loop
+// `cells[y*w + x]++` through a named `unsigned char*` (46.3%, costs
+// `lea eax,[edx+esi]` and drops the original's `add eax,edx`).
 // The register/loop structure of the inner k loop and of the whole else branch is
 // otherwise an exact match for the disassembly.
 #include <windows.h>
@@ -94,8 +107,12 @@ struct Game_482270 {
     char unknown_14283[0x1428f - 0x14283];
     Grid_482270 grid1;                 // +0x1428f
     char unknown_1429f[0x142f1 - 0x1429f];
-    unsigned char flags_142f1;         // +0x142f1
-    char unknown_142f2[0x1485b - 0x142f2];
+    unsigned short f0 : 1;             // +0x142f1 bit 0
+    unsigned short f1 : 1;
+    unsigned short flagA : 1;          // bit 2, mask 4
+    unsigned short f3 : 5;
+    unsigned short fhi : 8;
+    char unknown_142f3[0x1485b - 0x142f3];
     void* losTable;                    // +0x1485b
 };
 
@@ -125,7 +142,7 @@ void __stdcall FUN_00482270(Params_482270* params)
 {
     if (((Player_482270*)params->field_0)->playerIndex == g_game->playerIndex) {
         g_game->flag3 = 0;
-        g_game->flags_142f1 |= 4;
+        g_game->flagA = 1;
     }
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;

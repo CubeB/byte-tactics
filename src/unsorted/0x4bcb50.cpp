@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
 // Recursive directory walk: opens path with the search 0x4bc4b0 and, for every
 // entry whose name is neither "." nor "..", either descends into the
 // subdirectory (the sub-search is not itself recursive, because this function
@@ -105,6 +105,18 @@
 // alternatives: the single pointer variable (loop, tail and state all through
 // `Find_004bcb50* f`, 88.0 because one instruction goes) and the pointer copy
 // taken before the loop (90.2, identical bytes).
+//
+// A third session confirmed the wall from the other side and ruled out the
+// remaining levers, every one scoring the identical 90.2 percent (or 88.0
+// where noted) on the free scratch harness with the same ebx/ebp-only diff:
+// an inlined strcmp helper for the dot checks, hoisting tree->_Last, the
+// child state, fd.attrib or fd.name into locals, the loop as while(1) with a
+// break, nested tail ifs, copying all recursion arguments into locals,
+// `register` on the path, pat as non-const char*, compiling the real adjacent
+// function 0x4bca30 first in the same file, and both tail tests on the int
+// handle with one cast inside (88.0, 438 bytes, the cmp pair folds). The
+// register choice is insensitive to the source, so this file keeps the 90.2
+// version above unchanged.
 #include <io.h>
 #include <stdio.h>
 #include <string.h>

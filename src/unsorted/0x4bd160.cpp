@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free. Names are provisional.
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -33,37 +33,31 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
 {
     char* extra = 0;
     char year[8];
-    struct HapiBuf sb;
+    struct HapiBuf sb = {0};
     char copyright[0x40];
     int off;
     FILE* f;
     int i, n;
     unsigned char* p;
-    unsigned char k;
-    time_t now;
-    struct tm* t;
 
     if (cb)
         cb(0);
 
-    sb.buf = 0;
     sb.size = 20;
     sb.buf = (char*)FUN_004d84a0(0, "Package Data", sb.size);
     off = FUN_004bd3b0(srcname, &sb.size, &extra);
 
     {
         struct Hapi_004bd160* h = (struct Hapi_004bd160*)sb.buf;
+        unsigned int m;
         strncpy(sb.buf, "HAPI", 4);
         h->a4 = 0;
         h->a5 = 0;
         h->a6 = 1;
         h->a7 = 0;
         h->size = sb.size;
-        k = (unsigned char)key;
-        if (!k)
-            h->key = 0;
-        else
-            h->key = (char)~((key & 0xff) >> 2 | (key & 0xff) << 6);
+        m = key & 0xff;
+        h->key = (unsigned char)key == 0 ? 0 : ~((m >> 2) | (m << 6));
         h->ad = 0;
         h->ae = 0;
         h->extra = off;
@@ -83,12 +77,15 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
         cb(0x5f);
     n = (int)sb.size - 20;
     p = (unsigned char*)sb.buf + 20;
-    if (k) {
+    if ((unsigned char)key) {
         for (i = 0; i < n; i++)
-            p[i] = (char)~((unsigned char)(i + 20) ^ k ^ p[i]);
+            p[i] = (char)~((unsigned char)(i + 20) ^ (unsigned char)key ^ p[i]);
     }
     rewind(f);
     fwrite(sb.buf, sb.size, 1, f);
+    {
+    time_t now;
+    struct tm* t;
     now = time(0);
     t = localtime(&now);
     sprintf(year, "%i", t->tm_year + 1900);
@@ -99,5 +96,6 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
     fclose(f);
     if (sb.buf)
         FUN_004d85a0((int*)sb.buf);
+    }
     return 1;
 }

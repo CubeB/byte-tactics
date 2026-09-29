@@ -35,6 +35,17 @@
 // is the ADDRESS of g_game->field_2caa (`add ecx, 0x2caa`), and the
 // field_2cba test is written `if (!x) except = 0; else ...` so the zero store
 // is the `jne` fall-through.
+//
+// Additional attempts by deepseek-v4.1-flash, all no-ops on the permutation:
+// moving avg_x/avg_z (or range, or dx/dz) to function scope as bare
+// declarations assigned later, and making `buf` function scope. All leave
+// every slot where it was (and moving buf drops the score to 83.2% by
+// disturbing the fild block). `tools/headers.py` tried all 128 sets: best is
+// 84.9% (`<stdio.h>` and several others), none match. This agrees with the
+// note above that a flat dummy-declaration sweep only ever reached 84.9%, so
+// the remaining frame permutation is translation-unit compiler state, not
+// source shape; it should resolve when this file is regrouped into its
+// original translation unit in address order.
 #include <stdio.h>
 
 #pragma pack(push, 1)

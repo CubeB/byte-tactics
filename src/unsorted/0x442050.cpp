@@ -48,31 +48,27 @@ void __stdcall FUN_00425860(int state, int line, const char* file);
 void __stdcall FUN_0042f960(void* key, void* buf, int value);
 char* __stdcall FUN_004a0d00(Gadget_00442050* gadget, const char* key, void* out);
 
+// The original build called this helper from both connection paths and /Ob2
+// inlined it at each one; 0x442000 is the out-of-line copy of the same body.
+// Writing the two zero stores inside the helper, rather than inline in the
+// caller, is what makes MSVC 5 schedule the first store after the argument
+// push (`mov [esp+0x1c], ebx`), matching the original. Spelling the same
+// statements inline in FUN_00442050 hoists that store one instruction early.
+static int TryConnect_00442050()
+{
+    int a = 0;
+    int b = 0;
+    int result = FUN_00441c30(&a, &b);
+    if (result >= 0) {
+        g_game->field_39211 = a;
+        g_game->field_39215 = b;
+    }
+    return result;
+}
+
 // FUNCTION: 0x442050
-// Best so far, 98.3%: everything matches except the scheduling of the two
-// `mov dword ptr [esp+..], ebx` zero stores of the local passed as the first
-// argument to FUN_00441c30. The original emits them after `push edx`
-// (offset [esp+0x1c]); MSVC here emits them before `push edx` (offset
-// [esp+0x18]), in both the JOIN branch and the fall-through connect block.
-// Reordering the bitfield writes and the two zero assignments, declaring the
-// locals inline, using &(a = 0) arguments, headers.py and the RTM toolchain
-// all leave the same four bytes different.
-//
-// A second pass added four more arrangements of the two zero assignments around
-// the two bitfield writes, in both the JOIN branch and the connect block: both
-// zeros first, the zeros in the opposite order, both zeros together after the
-// bitfield writes (98.3%, identical bytes), and the JOIN block alone (96.6%).
-// So the interleaved spelling in the file is the best of the family. What is
-// left really is one store's position relative to one `push`: the value `b` is
-// live across the call to FUN_00441c30, so its zero store must precede the call,
-// but whether it lands before or after the argument push is the scheduler's
-// choice, and no arrangement of the source statements moves it. Note that
-// taking `&b` into a pointer local before the store makes it worse in
-// principle, since it fixes the source order as compute-store-push, which is
-// the opposite of what the original does.
 void __stdcall FUN_00442050(Gadget_00442050* gadget)
 {
-    int a, b, r;
     Entry_00442050* entries = gadget->layer->entries;
     if (DAT_00512d90[0] != 0) {
         if (DAT_00512c84 == 0)
@@ -86,14 +82,8 @@ void __stdcall FUN_00442050(Gadget_00442050* gadget)
     }
     else if (FUN_0049fdf0(entries, "JOIN", 0xe) == gadget->field_60) {
         g_game->bit1 = 1;
-        a = 0;
         g_game->bit0 = 0;
-        b = 0;
-        r = FUN_00441c30(&a, &b);
-        if (r >= 0) {
-            g_game->field_39211 = a;
-            g_game->field_39215 = b;
-        }
+        TryConnect_00442050();
         FUN_0047f1a0("Smlbutton", 0);
         goto tcpaddr;
     }
@@ -110,14 +100,8 @@ void __stdcall FUN_00442050(Gadget_00442050* gadget)
     }
 connect:
     g_game->bit0 = 1;
-    a = 0;
     g_game->bit1 = 1;
-    b = 0;
-    r = FUN_00441c30(&a, &b);
-    if (r >= 0) {
-        g_game->field_39211 = a;
-        g_game->field_39215 = b;
-    }
+    TryConnect_00442050();
     FUN_0047f1a0("Smlbutton", 0);
     FUN_004257a0();
 tcpaddr:

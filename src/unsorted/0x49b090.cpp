@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue 1400 retry): reconfirmed 73.6% / 842 bytes against
+// 844, no variant beat it. Scored with check.py --sym: removing oz, using
+// proj->py.i directly twice, drops to 62% / 866 and moves cell to ebp, g to ebx;
+// block-local oz in each unit block is 59.2% / 869; oz = pos->y is 53.1% / 878;
+// an early `unsigned short u1 = cell->unit1` is 61% / 847. The allocator always
+// refuses g_game in edi once proj->py.i is a live value, so the first diff (the
+// hoisted `mov ebp,[esi+8]` plus the g spill) is the whole problem; see below.
 // deepseek-v4.1-flash retry: still 73.6%, 842 bytes against 844, no variant
 // improved on it. Removing the `oz` local (direct proj->py.i in both unit
 // blocks), moving it into the unit0 block, reading it through `pos`, swapping

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Creates or updates a projectile for a remote event. The per-team record at
 // g_game+0x2cf3 (0x115 bytes, 0x100 of them) holds the weapon flags at +0x111;
 // the event gives a team byte, an owning unit id, a per-unit entry index and a
@@ -96,6 +96,16 @@
 // The b5 branch, the two hoisted call sites and the b8 stores all match
 // instruction for instruction; the only differences left are the two named
 // above and the branch targets, which move with them.
+//
+// deepseek-v4.1-flash pass 3: the whole "16-bit ownerId" family (a
+// `unsigned short ownerId` local, an `unsigned short` helper parameter, or
+// dropping the local and passing `ev->ownerId` straight through) all land at
+// exactly 73.1% / 782 bytes: they do produce the original's `mov cx` load and
+// `cmp word ptr [edx+0xa8], bx`, but the allocator then moves the unit pointer
+// from ebp to edi and hoists projCount into ebp instead of edi, and in the
+// local case it also spills `found` to an extra stack slot (frame 0x14). An
+// inlined plain loop instead of the helper is 66.0% / 784. So the helper with
+// an int ownerId (82.9%) stays.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {

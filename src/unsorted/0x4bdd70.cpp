@@ -1,5 +1,24 @@
 // Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash (600s run): confirmed 97.9% and did not improve on it.
+//
+// deepseek-v4.1-flash (second run): the three remaining diffs are ONE allocator
+// decision. Testing the int `w` (this file) keeps the original register roles
+// (base=ecx, key=dl, m=eax) but folds the test into the `and eax,0xff` flags.
+// Testing the byte `key` (in ANY spelling: `if (key)`, `if (key != 0)`,
+// `if ((unsigned char)key)`, `if (key==0) { } else`, do/while(0), ternary,
+// switch, a static inline helper that inlines, a separate copy `k2 = key`) emits
+// the wanted `test al,al` but rotates every role: base=edx, key=al, m=ecx, and
+// costs exactly one byte because `and ecx,0xff` is `81 E1` (6 bytes) where
+// `and eax,0xff` is `25` (5 bytes). The rotation is self-reinforcing: with key
+// in al, m cannot take eax, so it takes ecx, so base falls to edx. ~30 scratch
+// forms tried this run, all 90.4 to 96.2%, none above 97.9%: every declaration
+// order of base/key/m, `m = key` vs `m = key & 0xff` vs `(unsigned char)key`,
+// separate shift temp `t`, reversed shift order `(w << 2) | (w >> 6)` (same
+// 97.9 when the condition stays on w), `unsigned long m`, `int m`, `long`,
+// `k = 0` else forms, ternary, and inline-helper forms. The load/store of the
+// byte plus `mov eax,[esp+0x70]; and eax,0xff` (the dword reload of the byte
+// home, in the dead `name` argument slot) is identical in all of them.
+// deepseek-v4.1-flash (first run): confirmed 97.9% and did not improve on it.
 // Re-tried and ruled out: `if (key)`/`if (key != 0)`/`(int)key` (base moves to edx,
 // key to cl, 91.7), named `hi`/`lo` locals (92 to 95.3), `+`/`^` for `|`, both
 // operand orders, separate output byte locals, ternaries and `key >> 6 | key << 2`

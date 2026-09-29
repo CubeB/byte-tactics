@@ -60,6 +60,31 @@
 // in the third arm, and `char* text = entry->b6.text` hoisted (49.5%, it kills
 // the per-arm `lea esi, [ebp + 0xb6]`). Declaring x `short` scores 65.5%.
 //
+// A second session went after the copy directly and ruled out the whole
+// "named local" family, measured with `check.py --sym` (so none of it cost a
+// real run). Every one of these compiles to BYTE-IDENTICAL code to what is in
+// the file, 697 bytes, 76.7%: `int nx = x;` with the tail storing nx; the same
+// with nx declared before the loop; `short sx = (short)x;` and
+// `unsigned short ux = (unsigned short)x;` as the tail's operand; `int nx = x
+// + 0;`; `int x;` and `int x; int lh;` declared before the loop and only
+// assigned after it (so the register allocator cannot be ordering by
+// declaration); `unsigned int x`; and `int nx = x;` with the copy taken after
+// the line-height computation instead of before. MSVC 5 copy-propagates all of
+// them away, so the copy is NOT a source-level assignment of x.
+//
+// Writing the ternary as an if/else that assigns x in both arms
+// (`if (!entry->type) { x = 0; nx = x; } else { x = entry->x; nx = x; }`) is
+// the one shape that does produce two live values, but MSVC 5 lowers that phi
+// through the STACK: it emits `mov dword ptr [esp + 0x1c], ebx` in both arms,
+// grows the frame by a slot (every argument reference moves from `esp + 0x14`
+// to `esp + 0x18`) and scores 65.4%. So the original's single register copy at
+// the merge point is a phi that MSVC keeps in registers, and no plain C++ local
+// spelling of it survives copy propagation.
+//
+// Swapping the source order of the x ternary and the line-height computation
+// costs a byte and a percent (75.8%), so the order in the file is the right
+// one.
+//
 // Smaller leftovers: the centred arm's text==0 exit is merged with the loop
 // exit in ours and duplicated in the original; the final arm's stores are
 // `mov dx, lh / mov word [+0x13], bx / pop edi / mov word [+0x19], dx` in the

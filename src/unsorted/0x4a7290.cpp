@@ -1,5 +1,6 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
-// GAVE UP at 52.6% (724 of our bytes against 706).  All 24 relocated
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Best so far 55.7% (753 of our bytes against 706; the 52.6% first session
+// below described the 724-byte version).  All 24 relocated
 // references (the 11 callees, DAT_0051fba4) land at the original's offsets and
 // in the original's order, the frame is 0x2c with the same slot map
 // ([esp+0x10] the group counter in the dead first argument slot, [esp+0x14] the
@@ -36,6 +37,24 @@
 // `i` against count+1, so the `return` spelling that scores 51.9% is not what
 // the original said.  Free harness in build/scratch/0x4a7290 (b.sh compiles a
 // variant and free-scores it with no check.py run, d.sh shows the diff).
+// Third session (deepseek-v4.1-flash): 52.6% to 55.7% by taking the group
+// search out from behind the SelectGroup helper and writing it directly in the
+// body with `int n = 0; int i;` declared at FUNCTION scope, the faithful
+// `break` plus the post-loop `if (i == entries->data.count + 1)` (declaring
+// n/i inside the block, or calling the helper, keeps the found path in an
+// out-of-line tail and scores 50.9%).  headers.py tried 128 sets, all 52.6%,
+// and the N-unused-externs sweep 0..400 in steps of 4 is flat at 52.6% (on the
+// 52.6% source), so this is source shape, not compiler state.  Still differs:
+// after the top the allocator gives `entries` ebp and spills the scaled index
+// to [esp+0x40] (reloaded in both button bodies), the loop counter goes to esi
+// and the raw index is kept in ecx; the original instead spills `entries` to
+// [esp+0x10], keeps the scaled index in ebp, the counter in edi and reloads
+// the raw index from its stack slot.  So `entries` outranks the scaled index
+// where the original ranked it below; the swap is the one remaining cause.
+// Tried and worse: helper with goto/return (52.6%), `Entry*&`/`int&` reference
+// parameters (52.6%), a helper returning the found index (50.9%), a `bool` or
+// `int found` flag (42 to 44%), a while form and declaration reorderings (all
+// 50.9 to 55.7%).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -141,6 +160,8 @@ static inline void SelectGroup(Entry_004a7290* entries, int index)
 // FUNCTION: 0x4a7290
 int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
 {
+    int n = 0;
+    int i;
     Entry_004a7290* entries = obj->holder->entries;
     Out_4a15c0 rect;
     if (entries[index].type == 0) {
@@ -152,7 +173,17 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
     rect.x1 = entries[index].x1 + rect.x0 - 1;
     rect.y1 = entries[index].y1 + rect.y0 - 1;
 
-    SelectGroup(entries, index);
+    for (i = 1; i < entries->data.count + 1; i++) {
+        if (entries[i].type == 7) {
+            if (n == entries[index].group) {
+                FUN_004c1420(entries[i].data.list.id);
+                break;
+            }
+            n++;
+        }
+    }
+    if (i == entries->data.count + 1)
+        FUN_004c1420(DAT_0051fba4->current);
 
     Point_004a7290 point;
     memcpy(&point, &obj->point, 24);

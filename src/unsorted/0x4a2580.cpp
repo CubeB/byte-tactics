@@ -1,14 +1,21 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 39.2% (1556 vs 1631 bytes). Structure and all callees are right;
-// what still differs is register allocation and local frame:
-//  - original frame is 0x40; ours is 0x44 (one extra dword; likely `buf` and
-//    the last block's `rect` not sharing a slot, plus n spilled to the
-//    param2 slot).
-//  - original keeps `obj` in ebp for the whole function (frame pointer) and
-//    `entries` in edx/stack; we put `entries` in ebp and spilled `obj`.
-//  - first search loop: original strength-reduces entries[i] to a +0x15b
-//    pointer walk kept in the param2 slot with n in ecx; ours indexes and
-//    spills n to the param slot.
+// PARTIAL, 54.8% (1576 vs 1631 bytes). Structure and all callees are right.
+// Two fixes got here from the 39.2% baseline:
+//  - a single `surface` variable shared across the arms (no per-arm copies),
+//  - the glyph arms fetch their surface through `obj->holder->entries`
+//    directly, which is what the original recomputes in each arm.
+// What still differs:
+//  - original frame is 0x40; ours is 0x44. Locals: original entries at
+//    [esp+0x18] and surface at [esp+0x1c] (adjacent); ours entries at
+//    [esp+0x14] and surface at [esp+0x20], leaving 0x18/0x1c for the arm
+//    scratch. r1/r2: original 0x30/0x40, ours 0x34/0x44.
+//  - original keeps `obj` live in ebp for the whole function and stores
+//    `entries` to the stack; ours spills `obj` and keeps `entries` in ebp.
+//  - first search loop is otherwise identical, but ours spills n to a stack
+//    slot ([esp+0x18] in the baseline, now a register in the current build?
+//    no: ours still uses `xor ecx,ecx` for n correctly, the only mismatch is
+//    the walk pointer slot at [esp+0x5c] vs original [esp+0x58], a knock-on
+//    of the 4-byte frame shift).
 //  - vertical arm: original holds surface in ebp and reloads obj from the
 //    stack after the shared FUN_004b7f90 at 0x4a29ea; ours differs.
 // The first block is the same "select the type 7 entry whose group matches"
@@ -106,6 +113,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
     void* surface = entries->u.head.surface;
+    void* surf;
 
     int n = 0;
     int i = 1;
@@ -129,7 +137,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         FUN_004b0510(surface, r1, obj->field_8b2, obj->field_8c3, obj->field_8c6);
         FUN_004b0590(surface, r2, obj->field_8b2, obj->field_8c3, obj->field_8c6);
     } else if (e->w < e->h) {
-        void* surf = entries->u.head.surface;
+        surf = obj->holder->entries->u.head.surface;
         int y = e->y;
         int x = e->x;
         int limit = y + e->h - 1;
@@ -170,7 +178,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         g = FUN_004b7f30(e->glyphs, e->field_152 + 5);
         FUN_004b7f90(surf, g, x, lim2 - g->height + 1);
     } else {
-        void* surf = entries->u.head.surface;
+        surf = obj->holder->entries->u.head.surface;
         int x = e->x;
         int y = e->y;
         Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);

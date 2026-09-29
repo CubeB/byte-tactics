@@ -22,6 +22,15 @@
 //     in the original; if point.x or y0 ever equals 0x7fffffff they would take a
 //     different path, so a matcher should try to replace them with a construct
 //     that is unobservable.
+// RETRY (deepseek-v4.1-flash) tried: removing the point.x throwaway (33.7%, worse),
+// a separate `py` local for point.y (same 34.9%), swapping the point.y/point.x
+// order in the first bounds test (34.8%), hoisting the y0 declaration to the top
+// (same 34.9%). None moved the allocator choice. Slot map read from the obj:
+// ours y0 0x10, orig_sel 0x14, x0 0x18, y1 0x1c, x1 0x20, entries 0x2c, cnt 0x30,
+// with ebx=point.y, edi=cnt, esi=obj, ebp=me. Original: orig_sel 0x10, entries
+// 0x14, n/span 0x18, step/flag8 0x1c, flags 0x20, x0 0x24, dead y0 0x28, x1 0x2c,
+// y1 0x30, ebx=y0, edi=point.y. The slot order also has to change, not just the
+// register choice, so this is deeper than one allocator state.
 // Tried and did NOT work: plain int rel_x/rel_y instead of struct field updates
 // (18.1%, the rep movsd disappears); a separate loop base pointer to demote
 // `entries` (no change); a separate `Entry* e0` for entry 0 (no change); hoisting

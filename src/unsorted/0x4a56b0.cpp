@@ -1,28 +1,29 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 42.9% (1651 vs 1662 bytes), full transcription, control flow believed
+// PARTIAL 44.8% (1651 vs 1662 bytes), full transcription, control flow believed
 // complete. Big sibling of the matched 0x4a53c0 / 0x4a4d70; same 0x15b-stride
 // entry array, same Measure/LineHeight inlines, same DAT_0051fba4 language
 // table.
 //
-// The frame size is the one thing that did move: with `char buf[0x70]` MSVC
-// sizes the frame as 0x9c, with `char buf[0x80]` as 0xac, the original's size.
-// The buffer's strcpy destination is [esp+0x3c] in both, so MSVC is placing the
-// buffer at [esp+0x2c] and reserving 0x10 more below it than the declared text
-// needs (an overlapping rect slot or a missing 0x10 local). 0x80 is a guess
-// that reproduces the frame, not a claim about the original's declaration.
+// The frame is now right (`sub esp, 0xac`) and buf still lands at [esp+0x3c]:
+// two changes got there. Removing the `Entry* e = &entries[index];` local and
+// indexing entries[index] directly dropped the frame from 0xac+? to 0xb0, and
+// shrinking the array to `char buf[0x7c]` brought it back to 0xac (a plain
+// char buf[0x70] gives 0x9c). 0x7c is a fudge that reproduces the frame, not a
+// claim about the original's declaration.
 //
-// What still differs (all one register-allocation state):
-//  - the tab loop: the original keeps entries in ebx, i in edi and t at
-//    [esp+0x10]; MSVC gives entries in ebp, i in ebx (spilled every iteration),
-//    t in edi. That is four callee-saved live values instead of three, which is
-//    exactly what pushes entries from ebx down to ebp. To flip it t has to
-//    become memory-resident. Tried and none of it flips the loop: swapping the
-//    t/i declaration order, moving both/i/t to the top, unsigned/short/char t,
-//    unsigned i, ++t, hoisting count into a local, an extra `dummy += i` live
-//    value, e = &entries[index] before the loop (that one drops to 23.9%),
-//    e->tab inside the loop, and a `tab` local. An if/else instead of
-//    `if (t==tab) break;` does move entries to ebx but rewrites the branch
-//    (34.1%).
+// What still differs (all one register-allocation state, in the tab loop):
+//  - the original keeps entries in ebx, i in edi, the entry pointer in edx and
+//    t at [esp+0x10], with i's home at [esp+0x14] written only on loop exits.
+//    MSVC gives us entries in ebp, t in edi and i at [esp+0x10]. Three
+//    callee-saved values (ebx,edi,esi) in the original vs four here (ebp,ebx
+//    or edi); t must become memory-resident for the loop to flip.
+//    Tried and none of it flips the loop: swapping the t/i declaration order,
+//    moving both/i/t to the top, unsigned/short/char t, unsigned i, ++t,
+//    hoisting count into a local, an extra `dummy += i` live value, putting
+//    entries[index].tab inside the loop, and a `tab` local. An if/else instead
+//    of `if (t==tab) break;` does move entries to ebx but rewrites the branch
+//    (34.1%).  Direct entries[index] indexing (no `e` pointer) raised the score
+//    to 44.8% but did not flip the loop.
 //  - after the fix above, the `-1` in the not-found arm, the strstr block's y /
 //    pat slots ([esp+0x10] / [esp+0x14] in the original vs [esp+0x18] /
 //    [esp+0x10] here) and the Measure accumulator slots should follow.
@@ -159,78 +160,77 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         i = -1;
     }
 
-    Entry_004a56b0* e = &entries[index];
 
-    if (e->x == -1)
-        e->x = (short)((entries[0].w - Measure_004a56b0(e->b6.text)) / 2);
+    if (entries[index].x == -1)
+        entries[index].x = (short)((entries[0].w - Measure_004a56b0(entries[index].b6.text)) / 2);
 
     Rect_004a56b0 rect;
-    if (e->type == 0) {
+    if (entries[index].type == 0) {
         rect.left = 0;
         rect.top = 0;
     } else {
-        rect.left = e->x;
-        rect.top = e->y;
+        rect.left = entries[index].x;
+        rect.top = entries[index].y;
     }
-    rect.right = e->w + rect.left - 1;
-    rect.bottom = e->h + rect.top - 1;
+    rect.right = entries[index].w + rect.left - 1;
+    rect.bottom = entries[index].h + rect.top - 1;
 
-    if (e->image != 0)
-        FUN_004bf6f0(entries->surface, &rect, obj->colours[e->image]);
+    if (entries[index].image != 0)
+        FUN_004bf6f0(entries->surface, &rect, obj->colours[entries[index].image]);
 
     int x = rect.left;
-    if (e->align & 4) {
-        x = e->w + x - Measure_004a56b0(e->b6.text);
-    } else if (e->align & 2) {
-        x = e->w / 2 + x - Measure_004a56b0(e->b6.text) / 2;
+    if (entries[index].align & 4) {
+        x = entries[index].w + x - Measure_004a56b0(entries[index].b6.text);
+    } else if (entries[index].align & 2) {
+        x = entries[index].w / 2 + x - Measure_004a56b0(entries[index].b6.text) / 2;
     }
 
-    if (i != -1 && (e->align & 8)) {
+    if (i != -1 && (entries[index].align & 8)) {
         FUN_004c13a0(obj->colours[0], FUN_004c13f0());
-        FUN_004c14f0(entries->surface, e->b6.text, x + 1, rect.top + 3, -1);
+        FUN_004c14f0(entries->surface, entries[index].b6.text, x + 1, rect.top + 3, -1);
     }
 
-    FUN_004c13a0(e->colours, FUN_004c13f0());
+    FUN_004c13a0(entries[index].colours, FUN_004c13f0());
 
     if (i == -1) {
         int lh = LineHeight_004a56b0();
         if (rect.bottom - rect.top > lh * 2)
-            FUN_004a51d0(entries->surface, e->b6.text, x, rect.top,
+            FUN_004a51d0(entries->surface, entries[index].b6.text, x, rect.top,
                          rect.right - rect.left + 1,
-                         rect.bottom - rect.top + 1, e->colours);
+                         rect.bottom - rect.top + 1, entries[index].colours);
         else
-            FUN_004a50e0(entries->surface, e->b6.text, x, rect.top,
-                         rect.right - rect.left + 1, e->colours);
+            FUN_004a50e0(entries->surface, entries[index].b6.text, x, rect.top,
+                         rect.right - rect.left + 1, entries[index].colours);
     } else {
-        FUN_004c14f0(entries->surface, e->b6.text, x, rect.top, -1);
+        FUN_004c14f0(entries->surface, entries[index].b6.text, x, rect.top, -1);
     }
 
-    if (e->field_148 & 1) {
+    if (entries[index].field_148 & 1) {
         Entry_004a56b0* entries2 = obj->holder->entries;
         Entry_004a56b0* e2 = &entries2[index];
         Rect_004a56b0 rect2;
-        if (e2->type == 0) {
+        if (entries2[index].type == 0) {
             rect2.left = 0;
             rect2.top = 0;
         } else {
-            rect2.left = e2->x;
-            rect2.top = e2->y;
+            rect2.left = entries2[index].x;
+            rect2.top = entries2[index].y;
         }
-        rect2.right = e2->w + rect2.left - 1;
-        rect2.bottom = e2->h + rect2.top - 1;
-        FUN_004bfe10(e2->surface, &rect2);
-        FUN_004bf4d0(e2->surface, &rect2, -0x14);
+        rect2.right = entries2[index].w + rect2.left - 1;
+        rect2.bottom = entries2[index].h + rect2.top - 1;
+        FUN_004bfe10(entries2[index].surface, &rect2);
+        FUN_004bf4d0(entries2[index].surface, &rect2, -0x14);
         obj->field_14 = obj->field_08;
         return;
     }
 
-    unsigned char c = e->field_147;
+    unsigned char c = entries[index].field_147;
     if (c != 0) {
         char pat[2];
         pat[0] = (char)c;
         pat[1] = 0;
-        char buf[0x80];
-        strcpy(buf, e->b6.text);
+        char buf[0x7c];
+        strcpy(buf, entries[index].b6.text);
         char* p = strstr(buf, pat);
         if (p != 0) {
             *p = 0;

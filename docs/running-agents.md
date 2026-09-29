@@ -152,10 +152,10 @@ Run from the main checkout, on `main`:
    - `uv run tools/record.py <issue> <model> --escalate retry`. Add
      `--model-for <addr>=<model>` for each function another model (such as a
      worker) wrote. `--escalate retry` opens an ordinary `near-miss` issue any
-     model can take for everything left unmatched. When the issue was itself
-     a retry, use `--escalate hard` instead, so GPT-6 Astra and Opus see what
-     two cheaper attempts missed. GPT-6, Astra and Opus partials are not
-     escalated. `--escalate claude` is only for when the orchestrator runs
+     model can take for everything left unmatched, including what a retry
+     missed again (since 2026-09-29 retries stay open to every model; only
+     functions over 1000 bytes are `hard`). GPT-6, Astra, Opus and Sonnet
+     partials of functions over 1000 bytes are not escalated. `--escalate claude` is only for when the orchestrator runs
      Opus workers of its own (step 4).
    - `uv run tools/progress.py`
    - `uv run tools/calibration.py`

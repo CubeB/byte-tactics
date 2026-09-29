@@ -1,12 +1,25 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (21.9%). The four loops and the stack visitor objects are structurally
-// right, but MSVC spills the playerIndex byte (and a pointer) to the stack in
-// this version where the original keeps playerIndex in dl and the PlayerInfo*
-// in ebp; every loop body is byte-shifted from there on. Loop 2 also reads the
-// def signature shorts into a register instead of the original's memory test,
-// and loop 3 bases at u+0xff instead of u+0x92. Likely source-level causes to
-// try next: fewer named locals at the top (compute pl after first/last but do
-// not keep a separate `u`), and inline the def-field reads in the conditions.
+// PARTIAL (27.1%). The five loops and the stack visitor objects are structurally
+// right. Remaining diffs, first hunk first:
+//  - Prologue register assignment: the original keeps g_game in esi,
+//    playerIndex as a zero-extended byte in dl, first=edi, last spilled to
+//    [esp+0x10], pl=ebp. Ours (with `char p`) puts g_game in edx, p sign-
+//    extended in esi, first=edi, last spilled (these two now match) and pl
+//    additionally spilled to [esp+0x18]. With `unsigned char p` the compiler
+//    instead homes p in memory ([esp+0x18]) and scores 21.9; the true source
+//    type must be unsigned char (the original does `mov eax,edx; and eax,0xff`,
+//    a zero-extend), so this is an allocator/source-shape problem, not the type.
+//  - Loop 1: ours zero-extends u->field_ff into a register and compares 32-bit
+//    (`xor ecx,ecx; mov cl,[eax-0x11]; cmp ecx,esi` via the 0x40 constant in
+//    dl); the original compares bytes (`mov cl,[eax-0x11]; cmp cl,dl`).
+//  - Loop 2: ours loads def->field_204 into dx for the !=0 test and reuses it;
+//    the original tests memory (`cmp word ptr [edx+0x204],0`) and reloads.
+//  - Loop 5: ours folds the visibility tests together; the original has two
+//    separate branch shapes (jae/jb) and reloads p2->field_80 for the index.
+// Things tried that did NOT move the score: per-loop `u` (20.5), swapping
+// first/last declaration order, `unsigned int p` (27.0), `int p` (27.0),
+// int/char alias for the compare (18.9), all 128 header sets (headers.py,
+// 21.9 with unsigned char).
 #pragma pack(push, 1)
 
 struct Vec3_00467440 {
@@ -131,7 +144,7 @@ void FUN_00467440(void)
     if (g->field_2a3c < 2) {
         return;
     }
-    unsigned char p = g->playerIndex;
+    char p = g->playerIndex;
     Unit_00467440* first = g->units + 1;
     Unit_00467440* last = g->units_end;
     PlayerInfo_00467440* pl = (PlayerInfo_00467440*)((char*)g + 0x1b63 + (unsigned int)p * 0x14b);

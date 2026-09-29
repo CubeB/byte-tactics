@@ -1,0 +1,16 @@
+window,area,evidence
+0x400000,Unit orders and unit AI,QMove / QPatrol / Guarding / MobileBuild / Reclaim
+0x410000,Orders and VTOL states,VTOL_LANDING / VTOL_SEEKATTACK / Attacking / STOP
+0x420000,Frontend shell,frontend.cpp / Skirmish / FrontendX
+0x430000,"Maps, missions, briefings",Maps / OTA / MULTI MAPS / camps\briefs
+0x440000,Multiplayer setup,Multi / START / ACCOUNTS / PLAYER%d
+0x450000,Options and audio menus,Options / SPEECH / FXVOL / TRACKTYPE
+0x460000,"Game and skirmish setup, unit classes",MOBILE / BUILDING / LOCAL / REMOTE
+0x470000,"Campaign and skirmish screens, resource bars",Campaign / Missions / Metal%d / MOREBAR
+0x480000,"Unit definitions, COB scripting, TNT map",Script%i / MAKESELECTABLE / Number of Units
+0x490000,"Config and registry, skirmish summary",ADVAPI32 / GAMES / summary / OFFSCREEN
+0x4a0000,GUI layout and GAF,GUI / GAF / %s=%s;
+0x4b0000,UI controls and file packages,Listbox / HAPI / Package Data / GDI32
+0x4c0000,"TDF parser, CD audio, string handles",Parse error in .TDF File! / status cdaudio mode
+0x4d0000,"Compression (SQSH), CRT/STL, debug, file I/O",SQSH / Call stack: / KERNEL32 x55
+0x4e0000,"Process exit, psapi",psapi.dll / QueryWorkingSet

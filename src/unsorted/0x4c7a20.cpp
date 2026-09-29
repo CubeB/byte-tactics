@@ -1,20 +1,38 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial (62.8%). Everything from the mask switch onward matches once the
-// stack offsets line up; the only real difference is the prologue frame size:
-// the original is `sub esp,0x1c` (7 locals), ours is `sub esp,0x20` (8),
-// because MSVC keeps the value of span[0] live across the three idivs and
-// spills it to an extra slot (stores eax=span[0] to [esp+0x24] right after the
-// span[1] load). The original instead discards it and reloads `[ebx]` at the
-// left-clip test (`mov edx,[ebx]; test edx,edx`), so span[0] never gets a
-// second slot. Both are semantically identical; the +4 shifts every later
-// offset and flips the register picks in the mask loops (e.g. the 0x80 body
-// computes the source index in eax instead of edx, so `and edx,0xffffff80`
-// becomes the two byte `and al,0x80`, and `imul eax,[esp+0x30]` becomes
-// `imul edx,eax`). Tried and no change: reusing `width` vs a fresh `count`;
-// writing the divisor `(span[1]-span[0])` inline three times (MSVC still CSEs
-// the span[0] load); declaring `src` after the step computations (worse,
-// 61.9%). Next idea: force the reload, e.g. an intermediate that clobbers the
-// value's memory expression, so the frame drops to 0x1c.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Partial (62.8%). Everything from the mask switch onward is structurally
+// identical to the original; the only real difference is the prologue frame
+// size: the original is `sub esp,0x1c` (7 frame slots), ours is `sub esp,0x20`
+// (8), because MSVC keeps the value of span[0] live from the `span[1]-span[0]`
+// width computation all the way to the left-clip test and spills it to an extra
+// slot (an extra `mov [esp+0x24],eax` right after the span[2] load, and the
+// clip test then reads `mov edx,[esp+0x24]` instead of `mov edx,[ebx]`). The
+// original clearly has three separate span[0] values (dead after `sub edi,eax`,
+// one for the three `imul`s inside the clip block, one reloaded at 0x4c7ad0 for
+// `dest`/`mask`), and only the last of them owns slot [esp+0x24] (which the
+// original shares with the span[2] temp, so 7 slots in total). Our source merges
+// all of them into one CSE temp. The +4 shifts every later offset and also flips
+// two register picks that are probably the same allocator state: in the mask
+// loop bodies the source index is in eax instead of edx, so `and edx,0xffffff80`
+// becomes the byte `and al,0x80` and the row term goes through `add ebp,edx`
+// while the index goes in the addressing mode; and `imul eax,[esp+0x30]` becomes
+// `imul edx,eax` with an extra `mov`.
+// Tried, all 62.8% (frame stays 0x20, prologue spill store stays):
+//   - the index written first in the subscript, `src[((x>>9)&~0x7f)+(y>>16)]`
+//   - the full dword masks 0xffffff80/0xc0/0xe0/0xf0/0xf8 instead of ~0x7f...
+//   - a named local for the index inside the 0x80 case
+//   - `int width = span[1] - *span`, and a second `const int*` alias for span
+//     (VNT evidently still unifies the two loads, so the spill store remains)
+//   - the clip test as `!(span[0] >= 0)` and as `0 > span[0]`
+//   - a named local copy of span[0] used by the three `imul`s in the clip block
+//   - a named local x0 for the post-clamp span[0] used by dest and mask, both
+//     declared inside and before the `if (width > 0)` block
+//   - reordering the three `span[k] -= step * span[0]` statements (59.6%)
+//   - the three steps declared and assigned in a different order (41.2%)
+// Moving `span[0] = 0;` to the top of the clip block does drop the frame to
+// `sub esp,0x18` (the store kills the CSE temp), but then the three `-=` read
+// the zeroed element and MSVC folds the whole block away: 43.9%, 1481 bytes.
+// So the remaining puzzle is one value: the original's prologue span[0] temp
+// must not be merged with the clip test's.
 #include <stddef.h>
 
 struct Info_4c7a20 {

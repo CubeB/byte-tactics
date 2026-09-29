@@ -1,6 +1,12 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 21.5% (1183 original bytes, 1167 ours). Timebox hit; full control
+// PARTIAL, 22.0% (1183 original bytes, 1173 ours). Timebox hit; full control
 // flow transcribed, register allocation not matched.
+//
+// Second pass: the first edge loop now uses the sibling 0x4c8760's exact
+// index idiom, an unfixed `previous` plus a fixed copy (`prev`), with the
+// redundant `if (i < 0) i = 3;` after `i = previous;` at the loop bottom.
+// That matches the original's top store of `i-1` to its slot and the
+// reload/re-fix at the loop latch, and was worth 0.5 points.
 // Textured/gouraud quad blitter: walks the quadrilateral dst (screen, 4 points)
 // and src (texture, 4 points), clips it to the surface clip rect and to each
 // scanline, and hands each scanline's span to FUN_004c7310 (the per-column
@@ -8,11 +14,12 @@
 // (0x28 bytes each) reached through a huge chkstk frame.
 //
 // Known remaining differences:
-//  - Frame is 0x7d90, not 0x7d8c: the small-locals area before the clip rect is
-//    one dword too big, so every esp offset and the two arg offsets are shifted
-//    by 4. The cause is register allocation: the original keeps maxx in ebx
-//    across the FUN_004c6ae0 call and minx in ebp, so it needs one fewer
-//    spilled slot; ours spills maxx ([esp+0x14]) and minx ([esp+0x10]) because
+//  - Frame is 0x7d94, not 0x7d8c: the small-locals area before the clip rect is
+//    too big (the added `previous` copy accounts for one dword), so every esp
+//    offset and the argument offsets are shifted. The cause is register
+//    allocation: the original keeps maxx in ebx
+//    across the FUN_004c6ae0 call and minx in ebp, so it needs fewer
+//    spilled slots; ours spills maxx and minx because
 //    MSVC picked ebx as the zero register (`xor ebx,ebx`) instead of the
 //    original's ebp. With ebx taken by the zero, ebp never frees up for minx.
 //  - the min/max loop therefore stores maxy at [esp+0x28] and miny at
@@ -35,6 +42,17 @@
 //    to the cross-check constant 0 (`xor ebx,ebx`) and spills maxx, which also
 //    shifts every esp offset and both arg offsets by 4. Everything else in the
 //    prologue is byte-identical.
+// Third-pass attempts that did NOT move it (all scored 21.2 to 21.5, no
+// better than the 22.0 with the sibling loop idiom):
+//  - all orders of the min/max declarations and leaving minyi/maxyi
+//    uninitialised (the sibling's order lowY, highY, highX, lowX included).
+//  - a separate source pointer local `s = src` used in both edge loops.
+//  - a separate `Point* dq = dst->p` for the min/max scan.
+//  - the redundant bottom fixup added WITHOUT the `previous` copy:
+//    `i = prev; if (i < 0) i = 3;` scored 20.6.
+// maxx only loses its stack slot when the allocator keeps it in a
+// callee-saved register, and it will not do that while ebp is taken by `src`;
+// freeing ebp is the open problem.
 #include <windows.h>
 
 struct Point_004c7580 {
@@ -159,7 +177,8 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
 
     int i = minyi;
     do {
-        int prev = i - 1;
+        int previous = i - 1;
+        int prev = previous;
         if (prev < 0)
             prev = 3;
         int y0 = dst->p[i].y;
@@ -193,7 +212,9 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
                 n--;
             }
         }
-        i = prev;
+        i = previous;
+        if (i < 0)
+            i = 3;
     } while (i != maxyi);
 
     rec = recs;

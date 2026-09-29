@@ -3489,7 +3489,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c2870,282,sonnet-5.5,#687,matched,100.0,,"issue #687, escalated"
 0x4cf940,499,space-bunny-free,#688,partial,91.7,,"issue #688, escalated"
 0x4d1480,493,space-bunny-free,#688,matched,100.0,,"issue #688, escalated"
-0x49c9c0,600,,#689,assigned,,,"issue #689, escalated"
+0x49c9c0,600,sonnet-5.5,#689,matched,100.0,,"issue #689, escalated"
 0x4c35c0,354,deepseek-v4.1-flash,#691,matched,100.0,,"issue #691, escalated"
 0x4c5e70,293,gpt-5.6-terra,#692,partial,97.8,,"issue #692, escalated"
 0x4c5ff0,214,gpt-5.6-terra,#692,partial,97.2,,"issue #692, escalated"

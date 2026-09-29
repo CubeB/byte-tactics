@@ -2008,7 +2008,7 @@ address,size,file,symbol,status,similarity
 0x49c880,147,src/unsorted/0x49c880.cpp,?FUN_0049c880@@YGXPAUUnit_0049c880@@@Z,partial,78.3
 0x49c920,87,src/unsorted/0x49c920.cpp,?FUN_0049c920@@YGXPAUObject_0049c920@@@Z,matched,100.0
 0x49c980,55,src/unsorted/0x49c980.cpp,?FUN_0049c980@@YGXPAUObj_0049c980@@PAUSrc_0049c980@@@Z,matched,100.0
-0x49c9c0,600,src/unsorted/0x49c9c0.cpp,?FUN_0049c9c0@@YGHPAUFire_0049c9c0@@PAUUnit_0049c9c0@@PAUVec3_0049c9c0@@2H@Z,partial,74.6
+0x49c9c0,600,src/unsorted/0x49c9c0.cpp,?FUN_0049c9c0@@YGHPAUFire_0049c9c0@@PAUUnit_0049c9c0@@PAUVec3_0049c9c0@@2H@Z,matched,100.0
 0x49cc20,436,src/unsorted/0x49cc20.cpp,?FUN_0049cc20@@YGHPAUShot_0049cc20@@PAUUnit_0049cc20@@PAUVec3_0049cc20@@2HH@Z,matched,100.0
 0x49cde0,544,src/unsorted/0x49cde0.cpp,?FUN_0049cde0@@YGHPAUShot_0049cde0@@PAUUnit_0049cde0@@PAUVec3_0049cde0@@2H@Z,matched,100.0
 0x49d000,188,src/unsorted/0x49d000.cpp,?FUN_0049d000@@YGHPAUShot_0049d000@@PAUUnit_0049d000@@PAUVec3_0049d000@@@Z,matched,100.0

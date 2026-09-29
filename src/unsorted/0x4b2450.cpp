@@ -18,20 +18,32 @@ struct Pair8_004b2450 {
     int offset;       // +0x04
 };
 
-struct Pair_004b2450 {
-    int key;          // +0x00
-    int value;        // +0x04
+// std::map<int, int>'s tree, written by hand so that _Tree::insert (0x4b2850,
+// which has its own file) stays an out-of-line call under its real name.
+namespace std {
+template<class T1, class T2> struct pair {
+    T1 first;
+    T2 second;
+    pair() {}
+    pair(const T1& a, const T2& b) : first(a), second(b) {}
 };
-
-struct Pairib_004b2450 {
-    int iterator;     // +0x00
-    int inserted;     // +0x04
-};
-
-class Class_004b2850 {
+template<class T> struct less {};
+template<class T> class allocator {};
+template<class K, class T, class Pr = less<K>, class A = allocator<T> > class map {
 public:
-    void FUN_004b2850(Pairib_004b2450* out, Pair_004b2450* value);
+    struct _Kfn {};
 };
+template<class K, class Ty, class Kfn, class Pr, class A> class _Tree {
+public:
+    class iterator {
+    public:
+        int _Ptr;
+    };
+    pair<iterator, bool> insert(const Ty& v);
+};
+}
+typedef std::_Tree<int, std::pair<int, int>, std::map<int, int>::_Kfn,
+                   std::less<int>, std::allocator<int> > Tree_004b2450;
 
 extern char DAT_0051fbc0;
 
@@ -49,12 +61,11 @@ Data_004b2450* __stdcall FUN_004b2450(char* name)
     if (data == 0)
         return 0;
     int sum = FUN_004b6ba0((unsigned char*)data, FUN_004bbc40(name));
-    Pair_004b2450 value;
-    Pairib_004b2450 out;
-    value.key = (int)data;
-    value.value = 0;
-    ((Class_004b2850*)&DAT_0051fbc0)->FUN_004b2850(&out, &value);
-    ((int*)out.iterator)[4] = sum;
+    std::pair<int, int> value;
+    value.first = (int)data;
+    value.second = 0;
+    std::pair<Tree_004b2450::iterator, bool> out = ((Tree_004b2450*)&DAT_0051fbc0)->insert(value);
+    ((int*)out.first._Ptr)[4] = sum;
     data->offset_18 += (int)data;
     data->offset_1c += (int)data;
     for (int i = 0; i < data->count_1; i++)

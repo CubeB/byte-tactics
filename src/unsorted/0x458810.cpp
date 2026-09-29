@@ -1,8 +1,5 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free. Names are provisional.
-// PARTIAL, 81.9% (406 of 427 bytes; up from 54.0%). Read the caveat below
-// before trusting the percentage: the shape that scores 81.9% is one I believe
-// is a miscompilation of the source's intent, and I have recorded it as such
-// rather than presenting the number as progress toward the original.
+// PARTIAL, 81.9% (406 of 427 bytes; up from 54.0%).
 //
 // WHAT IS SOLVED. The piece array starts at list+0x22, not +0x44, with `info`
 // at piece+0, `vertices` at +0x22 and `flags` at +0x28 on a 0x36 stride, under
@@ -24,37 +21,72 @@
 // if (t & 1) ... else ...`, which is the only spelling of about sixteen that emits
 // the extra `and eax,0xff` in the `not al` sequence.
 //
-// THE CAVEAT, and the main remaining puzzle. The original reloads `list->bitmap`
-// into ecx *after* the 0x458586a0 rebuild call, which frees ebx and forces the
-// loop counter into the (by then dead) `this` stack slot rather than ebx. The
-// reload family is semantically correct and reproduces the tail exactly, but it
-// scores 69.4% because the extra load destroys the prologue's x-before-list
-// order. The 81.9% file has no reload, so the pre-call bitmap value is live
-// across the call (`test ebx,ebx` in the tail) and MSVC reloads `this` from two
-// different stack slots, one of which holds the `special` value. That is a
-// miscompilation of this source's intent, and it is what the byte shape at 81.9%
-// requires. I would not read 81.9% as "close to the original": it is a
-// different shape that scores well, and the semantically right one scores 12
-// points lower. Roughly thirty shape knobs could not get the reload and the
-// correct prologue at the same time, and the statement-order knobs are all
-// exhausted (logs in build/scratch/458810/s3.txt and s5.txt).
+// WHERE THE 12 POINTS ARE, restated after a second pass (Space Bunny Free).
+// The earlier note here claimed the 81.9% shape is a miscompilation because it
+// "reloads `this` from two different stack slots, one of which holds the
+// `special` value". THAT IS WRONG, and I have removed it. Recounting the
+// outstanding pushes, all three `this` reloads read post+0x14, which is exactly
+// where the prologue stored `this`:
+//   0x1c  mov [esp+0x14],ecx            esp=post   -> post+0x14, the `this` home
+//   0xe6  mov ecx,[esp+0x14]            esp=post   -> post+0x14  (before the call)
+//   0x114 mov ecx,[esp+0x18]            esp=post-4 -> post+0x14  (after `push ecx`)
+//   0x174 mov ecx,[esp+0x28]            esp=post-0x14 -> post+0x14 (5 pushes)
+// `special` really is at post+0x18, and nothing reads it as `this`. So this
+// file is semantically faithful, and 81.9% is honest progress, not a lucky
+// miscompilation. Keep it.
 //
-// The next thing to try is therefore NOT another statement-order knob. It is to
-// make the tail use a second `List_458810*` copy, or to move the reload so the
-// bitmap's live range ends before the call *without adding a value*, for example
-// by re-reading through a pointer-to-field held in a callee-saved register. The
-// real source very likely re-reads `list->bitmap` after the rebuild, and the
-// prologue's `esi = x` before `edi = list` has to survive that.
+// THE REAL SPLIT, and it is a register-priority tie I could not break.
+// The original does two things at once that this source cannot do at once:
+//   (a) it re-reads `list->bitmap` into ecx AFTER the 0x4586a0 call (0x107),
+//       so the pre-call bitmap value is dead and ebx is freed for `this`;
+//   (b) it still has esi=x, ebp=z, edi=list, ebx=this in the prologue.
+// Spelling the tail as `if (list->bitmap != 0)` is the one-token change that
+// forces (a): it frees ebx, MSVC promotes `this` to ebx, the loop counter is
+// pushed out of ebx into the dead `this` slot at post+0x14, and the WHOLE tail
+// then matches, including both `mov ebx,[esp+0x14]` copies, the `mov ecx,ebx`
+// at each call site and the counter's `mov [esp+0x14],eax / dec / mov`. That
+// variant is 423 of 427 bytes, i.e. four bytes of `lea`/`inc` reordering away.
 //
-// Also still different: the duplicated `test eax, eax; jne` after
-// `mov eax, [ebx+0x14]`, about 3 bytes, four spellings tried with no result; and
-// `coords.y` being read from the arg2 slot at [esp+0x30] rather than its own slot
-// at [esp+0x20].
+// But (a) costs (b): with `this` promoted, MSVC gives `list` to esi and lets
+// `coords.x` have edi, where the original has them the other way round. I
+// measured about forty shapes of the reload family (statement order of
+// x/z/rebuild/owner/visible, coords field order, `list->owner` vs `owner`,
+// `&list->pieces[i]` vs `list->pieces + i`, a second `List*` copy, a second
+// `Bitmap*` copy, a `Bitmap**` pointer-to-field, a `self` copy of `this` used
+// at all three call sites, and declaring the g_game reads directly into
+// `coords.x`/`coords.z`) and EVERY one of them scores exactly 69.4% with the
+// same esi/edi split. It is a priority tie, not a scheduling accident: do not
+// re-sweep it. The no-reload family is equally flat at exactly 81.9% across
+// about twenty-five shapes. Both ceilings are recorded, with the variants, in
+// build/scratch/0x458810/ (v0.cpp is this file, v1.cpp the reload family, and
+// sw1..sw13 the sweeps).
+//
+// FRAME ARITHMETIC worth keeping. Only two locals are inside the 0x18 frame:
+// `rebuild` at post+0x10 and the `this` copy at post+0x14. `special` is at
+// post+0x18 and the Vec3 at post+0x1c..0x27, that is, MSVC put them ON TOP OF
+// the ebx/esi/ebp/edi save area, which is legal because none of those four is
+// read again before its `pop`. That is why the reload of `coords.y` reads
+// post+0x20, i.e. the saved ebp slot: the value in ebp on entry. It is the
+// caller's ebp, not `z`, because the `push ebp` at 0x458819 happens before
+// `mov ebp,[eax+0x14323]`. So the original really does copy an uninitialised
+// int into coords.y, and this file models that with the uninitialised
+// `local_8`; deleting `local_8` and never assigning coords.y drops this file
+// to 71.4%, so the explicit uninitialised local is required.
+//
+// ALSO STILL DIFFERENT. The duplicated `test eax, eax; jne` after
+// `mov eax, [ebx+0x14]` (0x4588bd/0x4588bf, 3 bytes). The byte pattern
+// `85 c0 75 0c 85 c0` has exactly ONE hit in the whole exe, here, so it is not
+// a shared idiom; I tried seven spellings (a doubled `&&` operand, a nested
+// `if (c) if (c)`, `!(c != 0) && !(c != 0)`, and a separate statement) and
+// MSVC 5 folds every one of them, so this one is not reachable from a
+// plausible source spelling. And `coords.y` is read from the arg2 slot at
+// [esp+0x30] here rather than from post+0x20; both are "an uninitialised
+// slot", 0x10 apart.
 //
 // No suspected bug in the original. The duplicated `test eax, eax` is redundant
-// and `local_8` (an uninitialised y) is read from a slot the frame never writes,
-// but both look like ordinary MSVC artefacts of how the source was written rather
-// than mistakes by Cavedog.
+// and `coords.y` is an uninitialised int read out of the save area, but both look
+// like ordinary MSVC artefacts of how the source was written rather than mistakes
+// by Cavedog.
 extern char* g_game;
 
 struct Vertex_458810 { int x; int y; int z; };

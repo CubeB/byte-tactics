@@ -1,6 +1,10 @@
-// Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: 81.1%. Vector subtraction adds an extra pointer copy;
-// construction-effect bounds use different registers and scheduling.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial 91.3%: state 3's "target->pos - Offset(...)" still loads the source
+// through an extra pointer copy (mov edx,ecx) and interleaves the stores, and
+// the bounds[0] box add puts pos.x in edx/min.x in ebp where the original has
+// pos.x in ebp/min.x in edx. Writing either as a direct Vec3 operator- fixes
+// those bytes but flips unit/order in esi/edi across the whole function, so the
+// operator-= based subtraction is kept.
 #include <stdio.h>
 struct Point { short x, y; };
 struct Vec3 {
@@ -87,7 +91,6 @@ static inline void CellToWorld(Point origin, Point c, Vec3* v)
     v->x = (origin.x + c.x * 2) << 19;
     v->z = (origin.y + c.y * 2) << 19;
 }
-
 void __stdcall FUN_0048aac0(Unit*,Unit*,char,char);
 void __stdcall FUN_00414350(Point,Vec3*,Point);
 int __cdecl FUN_004b70ef(short,int);

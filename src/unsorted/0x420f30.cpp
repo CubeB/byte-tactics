@@ -1,16 +1,13 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Best 76.6%. Still differs (same instructions, different registers/order):
-//  - frame is 0x1c not 0x18, and the debris base pointer lands in ebp (then
-//    copied to esi) where the original keeps it in esi directly, so all the
-//    stack slots are shifted by 4.
-//  - in the position update the size/vel loads come out vel-first; original
-//    loads size.x first (pos.x += size.x + vel.x).
-//  - gravity/angle block: original reads g_game into eax, loads all three
-//    spin words, then subtracts gravity; ours interleaves the three angle
-//    adds with the gravity sub.
-//  - the compaction scan keeps its index in eax and pointer in edi; the
-//    original uses edx/eax, and the shift loop recomputes base + i*0x54
-//    instead of reusing the scan pointer.
+// Best 82.7%. The compaction now matches (pointer scan + *e = e[1] loop).
+// Still differs (same instructions, register allocation/order):
+//  - in the position update x, our compiler loads vel.x into eax where the
+//    original loads size.x; likewise pos.z lands in ecx instead of eax, so the
+//    gravity block reuses eax for vel.y instead of reloading it (one fewer
+//    instruction, ours 534 bytes vs 536).
+//  - gravity/angle block: original reads g_game into eax, loads vel.y fresh,
+//    then all three spin words; ours interleaves.
+#include <stdio.h>
 #pragma pack(push, 1)
 
 struct Obj_00420f30 {
@@ -87,6 +84,7 @@ void FUN_00420f30()
 
     int* pCount = &g_game->count;
     Debris_00420f30* d = (Debris_00420f30*)(pCount + 1);
+    Debris_00420f30* base = d;
     int n;
     for (n = 0; n < *pCount; n++, d++) {
         if (d->obj != 0) {
@@ -128,17 +126,17 @@ void FUN_00420f30()
             FUN_004b8b90(&d->ref2);
     }
 
-    Debris_00420f30* base = (Debris_00420f30*)(pCount + 1);
     int removed = 1;
     while (removed) {
         removed = 0;
         int count = *pCount;
+        Debris_00420f30* e = base;
         int k;
-        for (k = 0; k < count; k++) {
-            if (base[k].obj == 0 && base[k].ref1.src == 0 && base[k].ref2.src == 0) {
+        for (k = 0; k < count; k++, e++) {
+            if (e->obj == 0 && e->ref1.src == 0 && e->ref2.src == 0) {
                 int j;
-                for (j = k; j < *pCount - 1; j++)
-                    base[j] = base[j + 1];
+                for (j = k; j < *pCount - 1; j++, e++)
+                    *e = e[1];
                 (*pCount)--;
                 removed = 1;
                 break;

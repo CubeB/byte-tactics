@@ -39,6 +39,13 @@
 //    lookup is exact, but the scratch registers of the call block rotate by
 //    one and the loop tail differs, probably the one temporary that spot 1
 //    is missing), 75.0 and 80.5. tools/headers.py finds nothing higher.
+// DEEPSEEK-V4.1-FLASH screened three more variants (scratch only, no new
+// file runs): <memory.h> swaps this 84.6 basin for the 78.2 one (the byte-map
+// data pointer is materialised, but the call block and loop tail rotate), so
+// the folded-data-pointer diff and the call block are the two sides of one
+// switch; writing the two arms straight into DrawIfVisible (the 0x4745e0
+// shape) collapses the frame to 375 bytes and 37.4; adding a `w`/`m` local
+// pair to IsSeen is byte-identical to this version. 84.6 stands as the best.
 #include <stddef.h>
 #include <vector>
 

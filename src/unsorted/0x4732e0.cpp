@@ -1,4 +1,20 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
+//
+// WALL (deepseek-v4.1-flash, issue 1244, 1 check run): the first diff is the
+// prologue register assignment and it is compiler state. Grepping the exe for
+// the original prologue (`sub esp,8 / push ebx / push ebp /
+// mov ebx,[esp+0x18] / mov ebp,ecx`) gives exactly 3 hits (0x40d020, 0x425480,
+// 0x4732e0); grepping for the build's own variant (`push ebx / mov ebx,ecx /
+// push ebp / mov ebp,[esp+0x18]`) gives 6 (0x408f30, 0x425210, 0x433b20,
+// 0x44ec30, 0x46e640, 0x4c4d70), so both assignments coexist for the same
+// template and the choice is per instantiation. headers.py: 0 of 128 header
+// sets change anything (all 57.9%). Arguments re-verified: the mangled name
+// fixes (iterator, unsigned, const Class_00471cc0*&) and its order; all 17
+// callers call through the member pointer (no direct E8 to 0x4732e0 in .text),
+// so the call sites carry no extra hint, and the two callees ??2/??3 are cdecl.
+// This is the known wall in docs/agent-guide.md (lines 1160 and 1817); the file
+// keeps the best (57.9%) variant.
+//
 // std::vector<Class_00471cc0*>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward inlined; the
 // sixteen push_back sites call it out of line (they inline the count-is-one

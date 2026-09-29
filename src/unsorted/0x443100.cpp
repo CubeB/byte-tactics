@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 
 // DirectX 5's DPERR_BUFFERTOOSMALL, MAKE_DPHRESULT(30).
@@ -94,70 +94,60 @@ void __stdcall FUN_004257e0(char state, int line, char* file);
 int __stdcall FUN_00443070(void* guid, unsigned long size, void* data, void* context);
 
 
-struct Addr { char* p; };
 struct Len { unsigned int v; };
-struct Size { unsigned long v; };
 
-// PARTIAL, 94.8% (888 of 888 bytes, exact size; up from 55.4% at first run).
+// PARTIAL, 99.6% (888 of 888 bytes, exact size; was 94.8%).
 //
-// The one change that moved it: the registry-read length had to become a
-// one-field struct, `struct Len { unsigned int v; } len;`, used as `len.v`.
-// The slots did not move at all, so the gain is not the layout, and the reason
-// is not yet understood. Measured at 93.4% without the wrapper and 94.8% with
-// it, same six offsets either way.
+// The single remaining difference is one instruction order in the second
+// FUN_0049ff90 call. The original is
 //
-// On the `size`/`addr` slot swap, which the previous attempt named as the
-// single blocker. That model is wrong, and the correction matters more than
-// the percentage, so it is worth setting out. The original wants
+//   push "ACCOUNTS"; mov ecx,[esp+0x20]; mov edx,[ecx+4]; push edx; call
 //
-//   size=-40  addr=-36  len=-32  gadget=-28  net=-24  iid=-16
+// (the reload of `gadget` happens after the string push, so it uses the
+// post-push offset), and this file is
 //
-// and this file produces
+//   mov ecx,[esp+0x1c]; push "ACCOUNTS"; mov edx,[ecx+4]; push edx; call
 //
-//   addr=-40  size=-36  len=-32  gadget=-28  net=-24  iid=-16
+// Same two instructions, same total size, one slot earlier. The shape is
+// unique in the whole exe: a byte scan for `push imm32; mov ecx,[esp+d8];
+// mov edx,[ecx+4]; push edx` finds exactly this one site, and every source
+// spelling tried that reaches the same two loads (a local `entries`, an
+// `__inline` accessor, a member getter, comma/assignment expressions, casts,
+// a nested block, and a separate loop pointer) still emits the reload before
+// the push. A minimal `f(g->e, "ACCOUNTS")` with a stack-resident g shows the
+// compiler always loads the base first, so the original's order looks like an
+// allocator/scheduler coin-flip that this source cannot steer.
 //
-// with only `size` and `addr` transposed. Wrapping BOTH of them in one-field
-// structs, `struct Size { unsigned long v; }` and `struct Addr { char* p; }`,
-// produces **exactly** the target layout, all six offsets correct. It scores
-// **84.6%**, ten points worse. So the slot order is not what is costing the
-// six instructions; the shape that gets the slots right costs ten points
-// somewhere else, which is the real blocker and it is not the one described
-// above.
+// What the previous attempt had wrong, and what fixed the six offsets and the
+// two missing prologue stores (all at once):
 //
-// In the 84.6% variant the cost is visible: `xor ebx,ebx` and the two early
-// zero stores of `addr` and `len` (the original has `xor ebx,ebx; push;
-// push; mov [esp+0x20],ebx; mov [esp+0x1c],ebx` before the first call, with
-// `ebx` holding the zero) move to *after* that call, and the two `jl`/`jne`
-// targets shift by four bytes. Adding `int r = 0;` to try to pull the
-// `xor ebx,ebx` back to the prologue does not move it (still 84.6%), and
-// neither does reverting the `Len` wrapper alongside it.
+//   * `size` must be initialised: `unsigned long size = 0;`, declared AFTER
+//     `addr`. Both are then zeroed in the prologue (`addr` at E-0x24 first,
+//     then `size` at E-0x28), which is the original's order, and the two slot
+//     assignments come out right (initialised locals take slots in declaration
+//     order; the previous `size`/`addr` transposition was only the missing
+//     initialiser, not a layout problem). This alone was 94.8% -> 96.5%.
+//   * The `ACCOUNTNAMES` buffer needs TWO pointers: `buffer` for the stores,
+//     and a separate `p` that runs the copy loop. Written with one pointer the
+//     loop pointer is live from the call and goes straight into ebp; with the
+//     second pointer the compiler keeps eax for `DAT_0051298c` and `*buffer`
+//     and only moves to ebp at loop entry, which is what the original does.
+//     96.5% -> 99.6%.
 //
-// Full set measured, all with `check.py --sym` after `rm -rf build/obj`:
-//   no wrappers                     93.4%   addr=-40 size=-36 len=-32
-//   Len only                        94.8%   addr=-40 size=-36 len=-32   <- in the file
-//   Size only                       94.8%   addr=-40 size=-36 len=-32
-//   Addr only                       84.6%   size=-40 addr=-36 len=-32
-//   Size and Addr                   84.6%   size=-40 addr=-36 len=-32   <- exact target layout
-//   Size, Addr and r = 0            84.6%   size=-40 addr=-36 len=-32
-//
-// So: wrap the two out-of-order locals to get the layout, then find whatever
-// costs the ten points, which is about where `r` is zeroed rather than what
-// the offsets are. Everything else is settled and worth keeping: the
-// "frame pointer: yes" flag is a false positive (`sub esp,0x28` plus four
-// pushes, `ebp` a general register), every struct needs `#pragma pack(push,1)`
-// or `menu` lands at `g_game+0x51c` instead of `+0x519`, the DirectPlay local
-// must be the 8-byte `{void* dp; void* dp3;}` rather than the big `Net` type
-// (which gives a 0x4f4-byte frame), `g_game->menu` must be a struct member
-// rather than `void*` so MSVC emits `mov ecx,[g_game]; add ecx,0x519`, and
-// each HRESULT must be assigned to a local before it is compared, since
-// `r = f(...); if (r >= 0)` gives the original's `cmp eax,ebx; jl` where
-// `if (f(...) >= 0)` gives `test eax,eax; jl`.
+// Settled and kept: "frame pointer: yes" is a false positive (sub esp,0x28
+// plus four pushes, ebp is a general register), every struct needs
+// `#pragma pack(push,1)` or `menu` lands at g_game+0x51c, the DirectPlay local
+// must be the 8-byte `{void* dp; void* dp3;}` rather than the big `Net` type,
+// `g_game->menu` must be a struct member so MSVC emits `mov ecx,[g_game]; add
+// ecx,0x519`, and each HRESULT must be assigned to a local before it is
+// compared (`r = f(...); if (r >= 0)` gives `cmp eax,ebx; jl` where
+// `if (f(...) >= 0)` gives `test eax,eax; jl`).
 //
 // FUNCTION: 0x443100
 void FUN_00443100()
 {
-    unsigned long size;
     char* addr = 0;
+    unsigned long size = 0;
     Len len;
     int r;
     Gadget_00443100* gadget;
@@ -203,12 +193,13 @@ void FUN_00443100()
                                 DAT_00512988[i].number[0] = 0;
                             }
                         }
-                        DAT_0051298c = (char*)FUN_004d83b0("ACCOUNTNAMES", 0xa00);
-                        *DAT_0051298c = 0;
-                        char* buffer = DAT_0051298c;
+                        char* buffer = (char*)FUN_004d83b0("ACCOUNTNAMES", 0xa00);
+                        DAT_0051298c = buffer;
+                        *buffer = 0;
+                        char* p = buffer;
                         for (i = 0; i < 20; i++) {
-                            strcpy(buffer, DAT_00512988[i].name);
-                            buffer += strlen(DAT_00512988[i].name) + 1;
+                            strcpy(p, DAT_00512988[i].name);
+                            p += strlen(DAT_00512988[i].name) + 1;
                         }
                         Layout_00443100* entry = FUN_0049ff90(g_game->table->entries, "ACCOUNTS");
                         int player = entry->player;

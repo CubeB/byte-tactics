@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free, confirmed by deepseek-v4.1-flash. Names are provisional.
 // Ground height under a unit's footprint: walks the rectangle of map cells the
 // unit covers and keeps the lowest cell floor over the cells whose footprint
 // mask has bit 3 set, plus the highest floor over the cells with bit 3 and the
@@ -91,6 +91,12 @@
 // taking the extern-padding MATCH, since padding the file with declarations to
 // steer a hash collision is exactly the kind of thing review would undo.
 // Instruction: do not spend another pass on this file's operand order.
+//
+// deepseek-v4.1-flash pass (#1182): reproduced the 99.1 percent single-SIB
+// residual in one check run. Re-read the two matched siblings that walk the same
+// footprint mask: 0x47d970 (renders `mask[n++] & bit`) and 0x47cc30
+// (`mask[index]; index++`) are both partial on the same class of base/index
+// choice, so no shape there transfers. No new source lever, file left unchanged.
 //
 // Guide advice: a base/index SIB-byte swap that no source change moves, and
 // that a count of unused declarations can flip on and off non-monotonically,

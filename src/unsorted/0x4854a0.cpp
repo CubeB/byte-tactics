@@ -1,5 +1,18 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6. Names are provisional.
-// Partial: 81.2%. std::sort helpers still use cdecl instead of the original stdcall; pool/free-list register allocation also differs. windows.h must precede algorithm.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 84.8%. Using the `pool` local (not g_game->pool) for the +0xff and
+// +0x96 writes made the compiler spill pool to [esp+0x14] and reload it into
+// ebp before the free-list loop, which fixed the whole tail block.
+// Remaining diffs:
+//   0x485691, 0x48574b, 0x485778: an extra `add esp, 0xc`/`add esp, 0x10`
+//     after the std::sort helper calls. The original TU was built with /Gz, so
+//     its <xutility>/<algorithm> templates are __stdcall (see 0x488810.cpp,
+//     0x488920.cpp, 0x488960.cpp). The real <algorithm> is __cdecl. Fix by
+//     standing in for <xutility>/<algorithm> with __stdcall templates, as
+//     0x424c00.cpp does for <vector>; that also fixes the jump offsets that
+//     shift by +3/+6 after each call.
+//   0x485894-0x485934: tail loop register allocation. Original keeps `slot` in
+//     esi and zero-extends unitsPerPlayer through edx; ours uses edx/esi the
+//     other way and emits an extra `xor esi, esi`.
 
 #include <windows.h>
 #include <algorithm>
@@ -82,8 +95,8 @@ void __stdcall FUN_004854a0(void)
 
     std::sort(v, v + 10, FUN_00485940);
 
-    g_game->pool[0xff] = 0xff;
-    *(unsigned int*)(g_game->pool + 0x96) = 0;
+    pool[0xff] = 0xff;
+    *(unsigned int*)(pool + 0x96) = 0;
     int i;
     for (i = 0; i < 10; i++) {
         Player_004854a0* item = v[i];

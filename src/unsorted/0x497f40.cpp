@@ -1,17 +1,27 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 50.5% (3487 vs 3463 original bytes), 3 check runs.
+// PARTIAL, 58.8% (3475 vs 3463 original bytes), 6 check runs.
 // Mode-5 ("load game") state handler installed by FUN_00490b30.
 // Three phases: (1) one-time init gated by g_game->flags38d75 bit 0,
 // (2) finish/switch-to-state-6 gated by bit 1, (3) the loading screen with six
 // progress sliders (Textures/Terrain/Units/Animation/3D Data/Explosions).
-// What still differs: the local frame layout is not reproduced. The original
-// frame is 0x234 bytes with the primary gadget object at [esp+0x14] (passed to
-// FUN_004c5e70 at [esp+0x24], FUN_004c6b70 at [esp+0x2c], FUN_004a50e0 at
-// [esp+0x34]), the wsprintf buffer at [esp+0xb4..0x133] and the rect for
-// FUN_004bf6f0 at [esp+0xc4..0xd3]; here they are plain locals so MSVC places
-// them differently. The six sliders are unrolled (not a loop) because each
-// reads a different progress byte (g+0x38d6f..0x38d74 / prev DAT_0051e820..825)
-// and a different y (0x87,0xb1,0xda,0x106,0x130,0x15b).
+// Fixed this pass: the Game struct was missing padding at +0x38a3f (8 bytes)
+// and +0x38a4b (4 bytes) plus 4 bytes before +0x391f1, so every field from
+// +0x38a47 on was shifted by 8/12/4 bytes; FUN_004d85a0 takes the field value
+// (not its address); the players_29a4 zero-fill is a memset (rep stosd); the
+// player flag byte is a ternary, not a stack local.
+// What still differs (first hunk down):
+//   0x497f45  frame size: orig `sub esp,0x234`, ours 0x110. All locals sit
+//             0x114 too low, so every [esp+NN] local reference is off.
+//   0x498113  orig `lea eax,[esp+0x14c]` / `lea ecx,[esp+0x144]`, ours
+//             0x38 / 0x2c (same frame cause).
+//   0x49823d  player-init loop: memset now matches (rep stosd) but the running
+//             offset lands in ecx vs orig eax, and operands render as
+//             [ecx+esi] vs orig [esi+eax].
+//   0x4986xx  wsprintf/_ftol block and the six slider blocks: register choice
+//             and [esp+NN] offsets follow the frame problem above.
+// The six sliders are unrolled (not a loop) because each reads a different
+// progress byte (g+0x38d6f..0x38d74 / prev DAT_0051e820..825) and a different
+// y (0x87,0xb1,0xda,0x106,0x130,0x15b).
 
 #include <windows.h>
 #include <string.h>
@@ -69,13 +79,16 @@ struct Game_00497f40 {
     char unknown_37f23[0x38a37 - 0x37f23];
     unsigned int field_38a37;          // +0x38a37
     int field_38a3b;                   // +0x38a3b
+    char pad_38a3f[0x38a47 - 0x38a3f];
     int field_38a47;                   // +0x38a47
+    char pad_38a4b[0x38a4f - 0x38a4b];
     short field_38a4f;                 // +0x38a4f
     char unknown_38a51[0x38d6f - 0x38a51];
     unsigned char progress[6];         // +0x38d6f
     unsigned short flags38d75;         // +0x38d75
-    char unknown_38d76[0x391e9 - 0x38d76];
+    char unknown_38d77[0x391e9 - 0x38d77];
     int field_391e9;                   // +0x391e9
+    char pad_391ed[0x391f1 - 0x391ed];
     int field_391f1;                   // +0x391f1
     void (*field_391f5)();             // +0x391f5
     int field_391f9;                   // +0x391f9
@@ -218,7 +231,7 @@ void FUN_00497f40(void)
         g_game->field_37e1f = 0x280;
         g_game->field_37e23 = 0x1e0;
         if (FUN_004b6700() != 0x280 || FUN_004b6710() != 0x1e0) {
-            FUN_004d85a0(&g_game->field_37e1b);
+            FUN_004d85a0((void*)g_game->field_37e1b);
             g_game->field_37e1b = 0;
             FUN_004c61f0(0);
             FUN_004c62c0();
@@ -246,9 +259,7 @@ void FUN_00497f40(void)
         g_game->field_37e37 = g_game->field_37e2f - g_game->field_37e27 + 1;
         g_game->field_37e3b = g_game->field_37e33 - g_game->field_37e2b + 1;
         FUN_004288d0((char*)0x509644, 0, 0, 0);
-        for (i = 0; i < 0x23; i++) {
-            *(int*)((char*)g_game + 0x29a4 + i * 4) = 0;
-        }
+        memset((char*)g_game + 0x29a4, 0, 0x23 * 4);
         arrayOffset = 0x29a4;
         playersOffset = 0;
         do {
@@ -258,14 +269,10 @@ void FUN_00497f40(void)
             } else {
                 *(int*)((char*)g_game + arrayOffset) = 1;
             }
-            if (*(int*)pi == 0 || (pi->data->flags & 0x40) == 0) {
-                color = 0;
-            } else {
-                color = 1;
-            }
             arrayOffset += 4;
             playersOffset += 0x14b;
-            *(int*)((char*)g_game + arrayOffset + 0x28) = color;
+            *(int*)((char*)g_game + arrayOffset + 0x28) =
+                (*(int*)pi != 0 && (pi->data->flags & 0x40) != 0) ? 1 : 0;
         } while (arrayOffset < 0x29cc);
         if (!FUN_004b6b20(FUN_00497c70, 0, 0)) {
             FUN_004b6290((char*)0x509620);
@@ -288,7 +295,7 @@ void FUN_00497f40(void)
         FUN_004257a0();
         FUN_00428730();
         if (FUN_004b6700() != g_game->field_37f1b || FUN_004b6710() != g_game->field_37f1f) {
-            FUN_004d85a0(&g_game->field_37e1b);
+            FUN_004d85a0((void*)g_game->field_37e1b);
             g_game->field_37e1b = 0;
             FUN_004c61f0(0);
             FUN_004c62c0();

@@ -29,6 +29,21 @@
 // source shape is still wrong, not the compiler state. The original seems to
 // see the argument as a different value from def: something between the flag
 // test and the call (or a different kind of expression) breaks the CSE.
+//
+// Second pass (deepseek-v4.1-flash worker). Root cause is one register
+// tie-break: the original gives pic->edi and def->esi, ours gives pic->esi and
+// def->eax (then the call argument reuses def in eax instead of rematerializing
+// it). Confirmed the recompute is real: the original recomputes type*65 and
+// defs[type].name from edx(defs)/ecx(type) at the call instead of using the
+// esi=def it already has. Tried this pass, all at 77.0% with the same 4 hunks:
+// reference Def& def = g_game->defs[type]; an extra def2 local; nested ifs; a
+// forward-declared unassigned def; a def assigned from g_game->defs before the
+// pic call; the else order rec.a before rec.b (no byte change, MSVC reorders).
+// Worse: Def* defs = g_game->defs local (65.5%, def shape becomes right but
+// everything after re-allocates), no def local at all (65.9%), arg written as
+// (char*)def + 0x20 (76.3%). A static inline helper DefName(defs, type) for the
+// argument changes nothing (MSVC inlines it and CSEs). So no source shape found
+// that keeps def in esi and forces the argument to rematerialize.
 #pragma pack(push, 1)
 
 struct Entry_0044c0d0 {

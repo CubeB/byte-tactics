@@ -1,15 +1,19 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// STATUS: partial, 27.4% (1459 bytes vs the original 1519). All of the
-// difference is downstream of ONE cause: the original keeps everything in
-// registers except six frame dwords ([0x10] outer, [0x14] recp, [0x18] inner,
-// [0x1c] accum, [0x20] (outer-1)/2, [0x24] outer/2); ours spills to a 0x2c
-// frame, so every block that reads a spilled local differs. The region
-// structure, the two Grid records at g_game+0x1428f/+0x1429f, the 0xa-byte
-// record layout and the formulas are believed right. The stale esi/edi quirk
-// (block <= -1 reuses the previous iteration's grid1 cell pointers) is
-// reproduced with the loop-carried p1/p2 locals.
-// Next step: shrink the live set so MSVC keeps p1/p2 in esi/edi and only the
-// six loop counters spill.
+// STATUS: partial, 45.3% (1422 bytes vs the original 1519). Two things moved it
+// from 27.4%: (1) the main loop's odd order, inside `if (block > -1)` the q
+// value is applied to the PREVIOUS iteration's p1/p2 first, then p1/p2 are
+// recomputed, then cellval is applied to the new p1/p2; on a block <= -1
+// iteration the q step is skipped and cellval hits the stale pointers, which is
+// why the original carries them in esi/edi; (2) cellval declared `int` rather
+// than `unsigned char`, so it stays in bl (`xor ebx,ebx; mov bl,[..]`) instead
+// of being spilled. max()/min() are the windows.h macros; their double
+// evaluation gives the original's reload in the min case.
+// Remaining diff: frame is 0x1c against the original 0x18. v3 still reserves a
+// stack slot for cellval (spilled at the `v+31` temporary because ebp holds
+// g_game there, where the original clobbers ebp) and the four border-flag loops
+// at +0x11a..+0x245 use a different register rotation than the original.
+// Next step: free ebp before the division (or get cellval's slot dropped) to
+// reach the 0x18 frame, then align the border loops.
 #include <new.h>
 #include <windows.h>
 
@@ -188,60 +192,38 @@ void FUN_00482c20(void)
         int accum = 0;
         for (int inner = 0; inner < g_game->height; inner++) {
             int idx = g_game->width * inner + outer;
-            unsigned char cellval = g_game->cells_14287[idx * 0xd + 4];
+            int cellval = g_game->cells_14287[idx * 0xd + 4];
             int v = accum - (cellval >> 1);
             int block = v >> 5;
             if (block > -1) {
                 int q = ((block * 32 + 31) * cellval) / (v + 31);
-                if ((unsigned int)t20 < (unsigned int)grid1->width
-                        && (unsigned int)block < (unsigned int)grid1->height) {
-                    p1 = grid1->cells + (block * grid1->width + t20) * 2;
-                    unsigned char mm = p1[0];
-                    if (mm <= q)
-                        mm = q;
-                    p1[0] = mm;
-                    unsigned char nn = p1[1];
-                    if (nn >= q)
-                        nn = q;
-                    p1[1] = nn;
-                } else {
-                    p1 = 0;
+                if (p1) {
+                    p1[0] = max(p1[0], q);
+                    p1[1] = min(p1[1], q);
                 }
+                if (p2) {
+                    p2[0] = max(p2[0], q);
+                    p2[1] = min(p2[1], q);
+                }
+                if ((unsigned int)t20 < (unsigned int)grid1->width
+                        && (unsigned int)block < (unsigned int)grid1->height)
+                    p1 = grid1->cells + (block * grid1->width + t20) * 2;
+                else
+                    p1 = 0;
                 if (t20 != t24
                         && (unsigned int)t24 < (unsigned int)grid1->width
-                        && (unsigned int)block < (unsigned int)grid1->height) {
+                        && (unsigned int)block < (unsigned int)grid1->height)
                     p2 = grid1->cells + (block * grid1->width + t24) * 2;
-                    unsigned char mm = p2[0];
-                    if (mm <= q)
-                        mm = q;
-                    p2[0] = mm;
-                    unsigned char nn = p2[1];
-                    if (nn >= q)
-                        nn = q;
-                    p2[1] = nn;
-                } else {
+                else
                     p2 = 0;
-                }
             }
-            if (p1 != 0) {
-                unsigned char mm = p1[0];
-                if (mm <= cellval)
-                    mm = cellval;
-                p1[0] = mm;
-                unsigned char nn = p1[1];
-                if (nn >= cellval)
-                    nn = cellval;
-                p1[1] = nn;
+            if (p1) {
+                p1[0] = max(p1[0], cellval);
+                p1[1] = min(p1[1], cellval);
             }
-            if (p2 != 0) {
-                unsigned char mm = p2[0];
-                if (mm <= cellval)
-                    mm = cellval;
-                p2[0] = mm;
-                unsigned char nn = p2[1];
-                if (nn >= cellval)
-                    nn = cellval;
-                p2[1] = nn;
+            if (p2) {
+                p2[0] = max(p2[0], cellval);
+                p2[1] = min(p2[1], cellval);
             }
             accum += 0x10;
         }

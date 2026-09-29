@@ -1,37 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
 //
-// Gave up at 51.2% (831 bytes vs 817). One symptom was fixed here: `g_game+0x142f1`
-// is a 1-bit `unsigned short` bitfield (bit 2, mask 4, set with `flagA = 1`), which
-// is what emits the original's `or byte ptr [eax+0x142f1], 4`; as a plain
-// `unsigned char` MSVC 5 reads it into cl and writes it back (+0.9).
-//
-// Everything else is downstream of ONE cause, the local frame slot assignment.
-// From the operand bytes the original's 14 frame dwords are:
-//   0x10 j1, 0x14 e2, 0x18 i/limitX, 0x1c x, 0x20 y, 0x24 e1, 0x28 ref,
-//   0x2c bestDiff, 0x30 grid, 0x34 lod/j/limitY, 0x38 table, 0x3c line,
-//   0x40 num, 0x44 count/halfH.
-// Note the reuse: 0x18 is i (if branch) and limitX (else); 0x34 is lod and j
-// (if branch) and limitY (else); 0x44 is count (if) and halfH (else). So the
-// allocator does reuse slots across exclusive branches and across disjoint
-// lifetimes, which is why the order cannot be read off a flat declaration list.
-// In our build x lands at 0x20 and y at 0x14 (target 0x1c / 0x20), so the frames
-// only partly agree and every block that reads a spilled local then differs.
-// Symptoms, in order:
-//   1. the lod clamp: the original keeps the masked value in ecx and SPILLS it to
-//      [esp+0x34] before the call, then reloads it for the compare, giving a real
-//      branch (`cmp eax,edx / jge`). Ours if-converts the whole if/else into
-//      `test ebp,ebp / setl dl / dec edx / and edx,ebp` plus `push`, and hoists the
-//      callee's `mov ecx, DAT_0051e6a0` above the `mov ecx,0` the mask needs.
-//   2. x2/y2 are folded into registers here; the original stores them back over the
-//      e1/e2 slots (`mov [esp+0x24],eax` / `mov [esp+0x14],edx`).
-//   3. the player-grid increment in the inner loop: original computes `p+0x7c` into
-//      edx then reads `[edx+4]`/`[edx]`; ours folds the base and width into
-//      `[eax+0x80]`/`[eax+0x7c]`.
-// Tried and rejected: declaring halfW/halfH after x/y (49.4%, worse); the pre-loop
-// `cells[y*w + x]++` through a named `unsigned char*` (46.3%, costs
-// `lea eax,[edx+esi]` and drops the original's `add eax,edx`).
-// The register/loop structure of the inner k loop and of the whole else branch is
-// otherwise an exact match for the disassembly.
+// 55.8% (817 bytes vs 834). The original calls Class_00433500::FUN_00433500
+// ONCE: the if/else only picks the lod index and the (single) call follows.
+// Writing the call inside each arm gives 51.2%. Everything else still differs
+// downstream of the local frame slot assignment: x is at 0x1c as in the target,
+// but y lands at 0x14 (target 0x20) and grid at 0x3c (target 0x30), so the
+// target keeps all four callee-saved registers busy and spills the clamped lod
+// to [esp+0x34] before the FUN_00433520 call, clamping BEFORE it; ours keeps the
+// raw field_8/32 in ebp across the call and clamps after (setl/and). The whole
+// inner-loop and else-branch code shape follows from that one allocator state.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -154,13 +131,12 @@ void __stdcall FUN_00482270(Params_482270* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
-        int lod = Lod_482270(params);
-        void* table;
-        if (lod < ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
-            table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(Lod_482270(params));
+        int idx = Lod_482270(params);
+        if (idx < ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
+            idx = Lod_482270(params);
         else
-            table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(
-                ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1);
+            idx = ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1;
+        void* table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(idx);
         short count = ((Class_004335c0*)table)->FUN_004335c0();
         short i = 0;
         ((Player_482270*)params->field_0)->grid.cells[y * ((Player_482270*)params->field_0)->grid.width + x]++;
@@ -220,8 +196,8 @@ void __stdcall FUN_00482270(Params_482270* params)
             do {
                 if (*src != frame->mask)
                     (*dst)++;
-                src++;
                 dst++;
+                src++;
             } while (--n);
         }
     }

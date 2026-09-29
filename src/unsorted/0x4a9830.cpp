@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, then by Claude Sonnet 5.5. Names are provisional.
 // The list gadget's scroll-up step, the sibling of the scroll-down step
 // 0x4a99c0. It first does what 0x4a99c0 does: picks the entry of type 7 whose
 // group number matches entry `index` and makes that entry's id the current
@@ -9,43 +9,26 @@
 // gadget. A selection on line 0 is not moved, and a line whose text starts
 // with "&G" is not moved either.
 //
-// Partial (89.4%, 393 bytes vs 390): the group loop, the break, the fallback
-// and the whole scroll-up tail now match byte for byte, and writing the loop
-// as `i < entries->count + 1` (rather than the equivalent `i <= count`) is
-// what finally keeps the `n` counter in the dead argument slot and the
-// walking pointer in ecx. The only thing left is the register the merged
-// font-size value lives in. The original keeps it in eax, so `call
-// FUN_004c1450` falls straight into `lea ebx, [eax + 1]` with no copy, and
-// the other arm is `xor ecx, ecx; mov cx, word ptr [eax + 2]; mov eax, ecx;
-// add eax, 2`. This compiler keeps the value in edx and adds one `mov edx,
-// eax` after the call; because of that it sinks the divisor `lea ebx, [edx +
-// 1]` below the `movsx eax, word ptr [edi + 0x19]` and the `mov cx, word ptr
-// [edi + 0xba]` load of `sel` below the `idiv`, where the original has both
-// above it. So the wanted form is the value in eax, the `lea ebx, [eax + 1]`
-// right at the merge, and `sel` loaded before `cdq`.
-//
-// The original's 16-bit intermediate in a whole register (`xor ecx, ecx;
-// mov cx, ..`) is what 0x4a30c0 gets from the same `if/else` spelling of the
-// same expression, so the difference is register allocation rather than the
-// source shape. Nothing tried here puts the value in eax: extra 16-bit, int
-// and pointer locals, a `(int)` cast, swapped branches, swapped addends,
-// A second pass added six more spellings of the one remaining widening, none of
-// which reached the `xor ecx, ecx; mov cx, word ptr [eax + 2]; mov eax, ecx`
-// form: the 16-bit local as a signed `short` (87.5%), with an explicit
-// `(int)` cast on it (87.5%), with the local an `int` (74.3%), with no local at
-// all (74.6%), and with an `(unsigned int)` cast instead of `(int)` (89.4%, the
-// same bytes as the file). So the file's `unsigned short g` plus `size = g + 2`
-// is the best of the family, and the choice between `xor ecx, ecx; mov cx` and
-// `mov ax; and eax, 0xffff` for the same zero-extension is not reachable from
-// the source. It is the guide's "widened returns" note with the roles reversed:
-// there a byte load is masked before a return, here a 16-bit load is zeroed
-// through a second register instead of in place.
-// `size++` versus `size + 1` in the divisor, `unsigned int size`, the `+ 2`
-// folded into the pointer or not, a separate named divisor, and a small
-// `static inline` helper for either arm. Each of those either leaves the
-// value in edx or breaks the group loop's allocation (the walking pointer
-// spills to the stack and `n` moves into ecx, worth about ten points), so
-// the if/else with a 16-bit `g` local is the best of them at 89.4%.
+// MATCH (390 of 390 bytes) with two changes to the earlier 89.4% version
+// (Claude Sonnet 5.5, #683):
+//  1. Compiler state. The value that merges the two font-size arms stayed in edx
+//     (an extra `mov edx, eax`) because the file was built in the wrong compiler
+//     state. Scoring with N unused `extern int` declarations after the includes
+//     gives 391 bytes and 91.3% for N = 24 to 80, 152 to 208 and 288 to 336 (three
+//     windows) and 393 bytes and 89.4% for every other N up to 400. In the
+//     window the merged value is in eax as in the original. headers.py finds that
+//     `<stdlib.h>` or `<stdio.h>` together with `<string.h>` reach it, so the file
+//     includes `<stdlib.h>` too (it is a guess which of them the original had).
+//  2. Source shape, only visible inside the window: the 16-bit read is
+//     `unsigned short* pg = (unsigned short*)FUN_004b7f30(...); size = pg[1] + 2;`.
+//     That gives `xor ecx, ecx; mov cx, word ptr [eax + 2]; mov eax, ecx; add eax, 2`
+//     of the original. The old `unsigned short g = *(unsigned short*)(call + 2)`
+//     gives `mov ax, ...; and eax, 0xffff`, a bare `*(unsigned short*)(call + 2) + 2`
+//     gives 395 bytes, and a pointer local dereferenced at +2 folds the +2 into a
+//     separate `add eax, 2`; only the indexed `pg[1]` keeps the offset in the load.
+//  (The group loop written as `i < entries->count + 1` is what keeps `n` in the
+//  dead argument slot and the walking pointer in ecx.)
+#include <stdlib.h>
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -120,8 +103,8 @@ void __stdcall FUN_004a9830(Class_004a9830* param_1, int index)
     if (DAT_0051fba4->list == 0) {
         size = FUN_004c1450();
     } else {
-        unsigned short g = *(unsigned short*)(FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2);
-        size = g + 2;
+        unsigned short* pg = (unsigned short*)FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49);
+        size = pg[1] + 2;
     }
     size++;
     int step = (me->field_19 - 2) / size;

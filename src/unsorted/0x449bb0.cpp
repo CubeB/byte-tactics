@@ -2,6 +2,13 @@
 // PARTIAL 60.5% (best effort within the 10 minute timebox): full structural
 // translation of the battleroom setup handler. See the note at the bottom of
 // the file for what still differs.
+// Round-16 retry (deepseek-v4.1-flash, 10 min): no gain, best stays 60.5.
+// Remaining diff hunks by original address: 0x449bbf (energy slot [esp+0xc]
+// vs ours [esp+0x14], frame is +4), 0x449bff-0x449c27 (player-base math in
+// edi/scratch regs), 0x449c2e (`and ebx,1; cmp bx,si` vs our `and bl,1`),
+// 0x449c7f (extra neg/sbb from bool FUN_0041d6a0), then cascaded register
+// swaps through 0x449cf7, 0x449e2c, 0x449e6c, 0x449f52, 0x44a0a0, 0x44a130,
+// 0x44a570 and 0x44a5eb. All are downstream of the 4-byte frame difference.
 // Round-15 retry gains: flag97 must be `char` (took it from 53.4 to 60.5);
 // g_game+0x2bee and the g_game+0x2c74 bit 0 are 1-bit fields, assigned
 // through a packed bitfield struct so MSVC emits `or byte ptr [mem],1`.

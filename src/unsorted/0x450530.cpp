@@ -10,6 +10,10 @@
 // at the sites where the original inlined them is what took this from 36.4% to
 // 52.3% (it also moves g_game into edi and matches the reference counts).
 //
+// Re-attempt (deepseek-v4.1-flash, issue 1303): re-verified lever 1 and the
+// strength-reduction question below; no variant beat 52.3%, so the body is
+// unchanged. This is the allocator/scheduler wall described below.
+//
 // Still differs from the original (52.3%):
 //  * The original outer player loop keeps the raw index in ebp and recomputes
 //    i*0x14b from it every iteration (mov eax,ebp; shl eax,5; add eax,ebp;

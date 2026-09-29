@@ -1,17 +1,33 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial 51.5%. Still differs:
-//  - frame is 0x7d5c vs original 0x7d60: the original has one extra live int in
-//    the low temp region (0x10..0x4f vs our 0x10..0x4b), so every param/default
-//    offset is 4 lower. The original keeps highX in edi; we spill it to [esp+0x10].
-//    The original also uses [esp+0x4c] for `index-1` in the first edge loop.
-//  - the null checks use edx as the zero register; original uses ebp (xor ebp,ebp
-//    right after push ebp), which shifts the whole prologue.
-//  - min/max loop and both edge loops still have register/instruction-order diffs.
-//  - highX register/order and the min/max init store order differ.
+// Partial 51.6%. This is a textured/gouraud triangle rasteriser into 10-int
+// span rows, then one FUN_004c8020 call per scanline. The sibling 0x4c8760 is
+// the same algorithm without the light channel and is matched to 65.3%; its
+// first edge loop uses the same `previous`/`next` idiom adopted here.
+//
+// Still differs, and it is one systematic cause plus the prologue:
+//  - frame is 0x7d5c vs original 0x7d60. The original keeps one more live int
+//    in the low temp region: its `defaults`/`spans` start at [esp+0x50] where
+//    ours start at [esp+0x4c], so every default, spans and argument offset is
+//    4 lower. The original's extra slot is [esp+0x4c], the raw `index-1` in
+//    the first edge loop (used twice: for `next` and for the loop update).
+//    Giving the first loop that duplicate (as done here) did NOT grow the
+//    region: MSVC folded it into an existing slot.
+//  - the min/max loop: original keeps lowY in esi, highX in edi, lowX in ebp
+//    and reloads `vertices` from its argument slot; ours keeps `vertices` in
+//    esi and spills highX/lowX/both. That is an allocator decision, not a
+//    source-shape one that reordering fixed.
+//  - the null checks use edx as the zero register; the original zeroes ebp
+//    (`xor ebp,ebp` between push ebp and push esi). Consequence of the above.
+//
+// Ruled out (measured with free --sym scratch runs): moving `bottom` before
+// the guard, early-return null checks, function-scope min/max declarations,
+// a currentVertex pointer, and prepending the real 0x4c8760 (compiler state).
+// tools/headers.py finds no header set that changes the bytes, and 4 to 64
+// unused `extern int` declarations leave the score at exactly 51.5%.
+//
 // Fixes that did land: second edge loop writes ints 1,4,5,7,9 of the span row
 // (the row is [xL,xR,uL,vL,uR,vR,zL,zR,lL,lR]), the rasterise guard is
-// span[1]-span[0]>0 (not !=0 && >=0), and min/max locals are declared at point
-// of use after the default-coords block.
+// span[1]-span[0]>0 (not !=0 && >=0), and the loop temps are function-scope.
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);
 
@@ -20,6 +36,8 @@ void __stdcall FUN_004c8bb0(Surface_4c8bb0* target, Surface_4c8bb0* texture, int
 {
     int defaults[8];
     int spans[800][10];
+    int index, previous;
+    int* out;
     if (target && texture && vertices) {
         if (!coords) {
             coords=defaults;
@@ -44,10 +62,12 @@ void __stdcall FUN_004c8bb0(Surface_4c8bb0* target, Surface_4c8bb0* texture, int
             if(highY>bottom) highY=bottom;
             if(highY!=lowY) {
                 {
-                    int* out=&spans[0][0];
-                    int index=lowIndex;
+                    out=&spans[0][0];
+                    index=lowIndex;
                     do {
-                        int next=(index-1 < 0 ? 3 : index-1);
+                        previous=index-1;
+                        int next=previous;
+                        if(next<0) next=3;
                         int* nextVertex=vertices+next*4;
                         int y0=vertices[index*4+1];
                         int y1=nextVertex[1];

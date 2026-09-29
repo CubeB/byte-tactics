@@ -1,18 +1,22 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 65.3% (1094 original bytes, 1093 ours). Timebox hit.
-// The two span-edge loops and the final dispatch loop now match except for
-// the stack frame. Remaining difference: the alloca constant is 0x7d54, the
-// original is 0x7d58, so every esp offset below the clip rect and the two arg
-// offsets are 4 too small (defaults base 0x44 vs 0x48, spans base 0x64 vs
-// 0x68). The cause is slot allocation, not just size: our lowIndex lands at
-// [esp+0x30] where the original keeps it at [esp+0x28], while minY is at the
-// same [esp+0x24] in both, so one 4-byte local is missing from our small
-// locals region and another variable is packed differently.
-// Two fixes that gained ground: writing the dispatch test as
-// `span[1]-span[0] > 0` (sub+test, not cmp) and, before that, simplifying it
-// to a single comparison. The next thing to try: match the declaration order
-// of lowIndex/highIndex against the du/dv temporaries so the small locals
-// region grows by the missing dword.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by
+// space-bunny-free. Names are provisional.
+// PARTIAL, 67.9% (1094 original bytes, 1093 ours).
+// The three raster blocks (min/max scan, both span-edge loops, the dispatch
+// loop) are instruction-for-instruction identical to the original; every
+// remaining diff is the stack frame layout. Measured frame rule for MSVC 5
+// here: alloca = (0x10 gap + scalar locals + defaults) + array size - 0x10, so
+// the original's 0x7d58 needs 0x58 of non-array bytes where we emit 0x54, i.e.
+// exactly ONE extra 4-byte scalar slot (the original has 14 scalar dwords at
+// [esp+0x10]..[esp+0x44]; we emit 13 at [esp+0x10]..[esp+0x40]). The extra one
+// is visible as `x` having its own slot: the original keeps span x at 0x18 and
+// the min/max lowX at 0x14, while we fold x onto lowX's slot. Everything else
+// (defaults at 0x48, spans at 0x68, the two arg slots and the saved-register
+// gap) is then 4 too low, which is why every esp offset in the diff is -4.
+// Gained here: declaring the span-loop `x` and `y1` once in the
+// `if (highY != lowY)` block instead of once per loop (65.3 -> 67.9).
+// Next thing to try: find the construct that stops the allocator folding x onto
+// lowX (a named local live across the min/max loop looks most likely), then
+// reorder the tail so previous sits at 0x44 and nextVertex at 0x38.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 
@@ -45,6 +49,7 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
             if(lowY<0) lowY=0;
             if(highY>bottom) highY=bottom;
             if(highY!=lowY) {
+                int x; int y1;
                 {
                     int* out=&spans[0][0];
                     int index=lowIndex;
@@ -54,11 +59,11 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                         if (next<0) next=3;
                         int* currentVertex=vertices+index*3;
                         int y0=currentVertex[1];
-                        int y1=vertices[next*3+1];
+                        y1=vertices[next*3+1];
                         if (y0<y1) {
                             int dy=y1-y0;
                             int dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
-                            int x=currentVertex[0]*0x10000+0xffff;
+                            x=currentVertex[0]*0x10000+0xffff;
                             int z=currentVertex[2]*0x10000;
                             int u=coords[index*2]*0x10000;
                             int v=coords[index*2+1]*0x10000;
@@ -101,11 +106,11 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                         int next=(index+1)&3;
                         int* currentVertex=vertices+index*3;
                         int y0=currentVertex[1];
-                        int y1=vertices[next*3+1];
+                        y1=vertices[next*3+1];
                         if (y0<y1) {
                             int dy=y1-y0;
                             int dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
-                            int x=currentVertex[0]*0x10000+0xffff;
+                            x=currentVertex[0]*0x10000+0xffff;
                             int z=currentVertex[2]*0x10000;
                             int u=coords[index*2]*0x10000;
                             int v=coords[index*2+1]*0x10000;

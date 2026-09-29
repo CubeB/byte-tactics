@@ -1,40 +1,29 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Reads the installed DirectX version: first through dsetup.dll's
 // DirectXSetupGetVersion, then, if that fails, through
 // HKLM\Software\Microsoft\DirectX (the "InstalledVersion" DWORD on NT, the
 // "Version" string on Win9x), and compares the result with the wanted version.
 //
-// NOT MATCHING YET (53.7%, 606 of 619 bytes). What still differs, largest
-// cause first:
+// PARTIAL (47.4%, 603 of 619 bytes). The frame is now the original 0xcc
+// (one DWORD size variable shared by both RegQueryValueExA arms, rather than
+// separate size4/size30 which grew the frame to 0xd0). What still differs:
 //
-// 1. THE FRAME IS 0xD0, THE ORIGINAL'S IS 0xCC, so every [esp+X] in the body
-//    is 4 bytes high. The original's local area is exactly full: six dwords at
-//    0x10..0x24, the 30-byte version buffer at 0x28 and OSVERSIONINFOA at 0x48
-//    (0x94 bytes, ending exactly at 0xdb). It shares slots three ways
-//    (dwMaj/hKey, dwMin/size30, lib/size4). This source needs seven dwords:
-//    the two size variables cannot be folded onto dwMaj, dwMin and lib even
-//    when they are block scoped in the !status block and hKey is moved into
-//    it, which is what variant f does. Declaring one `DWORD size` for both
-//    arms, or two, makes no difference to the generated code.
-// 2. REGISTER ROLES. The original holds ebx=majhi, ebp=majlo, edi=minhi,
-//    esi=minlo, and keeps isNT, err, lib and status in memory; here lib is
-//    register allocated and the four values land in esi=ebx=edi=ebp in a
-//    different order. All four orderings of the four assignments were scored
-//    on top of variant f: the one used here (majhi, majlo, minlo, minhi) is
-//    the best at 53.7%; (majhi, minhi, majlo, minlo) gives 34.9% and
-//    (majhi, majlo, minhi, minlo) 33.9%.
-// 3. THE ZEROING OF THE version BUFFER ON THE TWO FAILURE EXITS. Both
-//    failures (0x4b52ba) store 0 to [esp+0x28]..[esp+0x34] from one zeroed
-//    register, interleaved with the pops, which is exactly how MSVC 5 expands
-//    memset(buf, 0, 16) (one zeroed register, four dword stores). The same
-//    block is also entered from the RegQueryValueExA failure, so the two exits
-//    share it. Duplicating `memset(version, 0, 16); return 0;` into both arms
-//    of the source scores 51.0%, so the spelling is close but not right, and
-//    the 4-byte zero of [esp+0x2c] at 0x4b510a (version[4]) is unexplained.
-// 4. Small shapes: the original tests the LoadLibrary result with `test eax,
-//    eax` and only then stores it, and compares call results against a zero
-//    register (`cmp eax, ebp`, `cmp eax, ecx`) where this source sometimes
-//    emits `test eax, eax`.
+// 1. REGISTER ROLES. The original keeps all four version halves in
+//    ebx=majhi, ebp=majlo, edi=minhi, esi=minlo, so lib has nowhere to live
+//    and spills to [esp+0x20]; here lib takes ebp and the allocator spills
+//    two of the four halves to [esp+0x1c]/[esp+0x20] instead. Reordering the
+//    four shift/and assignments (all permutations tried) compiles
+//    byte-identically and does not change this.
+// 2. status is held in a register in places where the original loads
+//    [esp+0x14] (for example `if (!status)` becomes `cmp eax,ebp` here versus
+//    `test eax,eax` on a reloaded value), and lib's load/store slots land one
+//    dword off in spots.
+// 3. The original's two failure exits share a tail that zeroes version[0..15]
+//    with one zeroed register (four stores interleaved with the pops);
+//    spelling that as memset(version,0,16); return 0; in both arms does not
+//    reproduce it.
+// 4. The 4-byte zero store at 0x4b510a (original [esp+0x2c], version[4]) is
+//    unexplained.
 //
 // Two things in the original look like Cavedog's own bugs, kept here as they
 // are: the "installed version is older" arm at 0x4b5233 compares the major
@@ -50,29 +39,20 @@ typedef int (__stdcall *FN_DIRECTXSETUPGETVERSION)(DWORD* major, DWORD* minor);
 // FUNCTION: 0x4b5070
 int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4)
 {
-    unsigned int majhi;
-    unsigned int majlo;
-    unsigned int minhi;
-    unsigned int minlo;
+    unsigned int majhi = 0, majlo = 0, minhi = 0, minlo = 0;
     DWORD status = 0;
-    int isNT;
     HMODULE lib;
-    FARPROC proc;
-    DWORD dwMaj;
-    DWORD dwMin;
-    OSVERSIONINFOA osvi;
-    LONG err;
-    DWORD type;
-    char version[30];
+    int isNT;
 
-    majhi = majlo = minhi = minlo = 0;
     lib = LoadLibraryA("dsetup.dll");
+    isNT = 0;
     if (lib) {
-        proc = GetProcAddress(lib, "DirectXSetupGetVersion");
+        FARPROC proc = GetProcAddress(lib, "DirectXSetupGetVersion");
         if (proc) {
-            dwMaj = 0;
-            dwMin = 0;
-            status = (DWORD)((FN_DIRECTXSETUPGETVERSION)proc)(&dwMaj, &dwMin);
+            DWORD dwMaj = 0;
+            DWORD dwMin = 0;
+
+            status = ((FN_DIRECTXSETUPGETVERSION)proc)(&dwMaj, &dwMin);
             if (status) {
                 majhi = dwMaj >> 16;
                 majlo = dwMaj & 0xffff;
@@ -83,22 +63,27 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
         FreeLibrary(lib);
     }
     if (!status) {
-        HKEY hKey;
-        DWORD size4 = 4;
-        DWORD size30 = 30;
-        majhi = minhi = minlo = 0;
+        HKEY hKey = 0;
+        OSVERSIONINFOA osvi;
+        DWORD type;
+        DWORD size;
+        char version[30];
+
         isNT = 0;
-        osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
+        osvi.dwOSVersionInfoSize = sizeof(osvi);
         if (GetVersionExA(&osvi)) {
             isNT = osvi.dwPlatformId == 2;
         }
-        hKey = 0;
         if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\DirectX", 0, KEY_READ, &hKey) == 0) {
+            LONG err;
+
             status = 0;
             if (isNT) {
-                err = RegQueryValueExA(hKey, "InstalledVersion", 0, &type, (LPBYTE)&status, &size4);
+                size = 4;
+                err = RegQueryValueExA(hKey, "InstalledVersion", 0, &type, (LPBYTE)&status, &size);
             } else {
-                err = RegQueryValueExA(hKey, "Version", 0, &type, (LPBYTE)version, &size30);
+                size = 30;
+                err = RegQueryValueExA(hKey, "Version", 0, &type, (LPBYTE)version, &size);
             }
             RegCloseKey(hKey);
             if (err) {

@@ -10,6 +10,10 @@
 //    src in edi; ours puts c in esi and builds src in esi.
 // TRIED AND REJECTED (do not repeat): doubles/strings `rec = p; p += k;` forms
 // (50-59%), a `double` local for the double argument (50.7%), ternary `e->len =`.
+// Also tried by deepseek-v4.1-flash and rejected (44.6-50.8%): declaring `buf`
+// as `char*` and `p` as `int*` (moves fh from ebx to edi, breaks the prologue);
+// writing the ints loop as direct `p[0]/p[1]`; folding the blob loop into a
+// function-scope `for` counter plus the `e->len` ternary.
 // Frame of the ORIGINAL off the disassembly (B = esp right after sub esp,0x42c):
 //   B+0x00 buf        B+0x04 len (reused by the blob loop counter i)
 //   B+0x08 base       B+0x0c end

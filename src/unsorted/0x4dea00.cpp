@@ -1,95 +1,96 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// NOT MATCHING yet (64.6%). The whole body and every call sequence are right,
-// but MSVC keeps more of the scalar locals in registers than the original:
-// the original has i, addrs, disp, width, err and space all in the frame
-// (i at esp+0x14, addrs at +0x18, disp +0x1c, width +0x20, err +0x24, and
-// space in arg2's home slot), which makes the frame 0xdfc instead of my 0xdf0.
-// That single allocation difference shifts every lea/mov displacement in the
-// body, so the remaining diff is mostly offsets.  One more shape diff: the
-// original computes `n - 1` with `lea ecx, [eax-1]` and compares i against it,
-// mine uses `dec`.
-// Appends a symbolised call stack to a text buffer: one entry per address,
-// with source file and line from imagehelp when "imagehlplines" is on.
-// DATABASE: 0x528acc is SymGetSymFromAddr, 0x528ad4 UnDecorateSymbolName.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// NOT MATCHING yet (96.6%, 850 bytes both). Only two small codegen differences remain:
+//  1. Loop preheader: the original tests `n` BEFORE storing `a = addrs` (the store is
+//     sunk past the guard); mine stores a = addrs first, then tests n. Two instructions
+//     transposed.
+//  2. `i == n - 1` in the lines branch: the original emits
+//     `mov eax,n; lea ecx,[eax-1]; mov eax,i; cmp eax,ecx`; mine emits
+//     `mov ecx,n; mov eax,i; dec ecx; cmp eax,ecx`. The non-lines branch has the
+//     opposite lea/dec choice in both versions, so this is one allocation decision.
+// Everything else (frame 0xdfc, all local offsets, every call sequence, the merged
+// `sprintf` tail through a `char* str` local) is byte-exact.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
 
 extern char FUN_004de4d0();
-extern char FUN_004de550(int addr, void* sym, int* err);
-extern void FUN_004de8a0(char* out, char* name);
+extern char FUN_004de550(unsigned long addr, void* line, int* err);
+extern void FUN_004de8a0(char* out, const char* name);
 
-// The five dwords FUN_004de550 copies out of its own SYMBOL.
-struct Sym20_004dea00 {
-    int size;
-    int typeIndex;
-    int reserved;
-    char* name;
-    int line;
+struct Line_004dea00 {
+    unsigned long SizeOfStruct;
+    void* Key;
+    unsigned long LineNumber;
+    char* FileName;
+    unsigned long Address;
 };
 
-// The symbol buffer handed to SymGetSymFromAddr, plus the two name buffers.
 struct Sym_004dea00 {
-    int size;                        // +0x000
-    int unknown_04;                  // +0x004
-    int unknown_08;                  // +0x008
-    int unknown_0c;                  // +0x00c
-    int nameSize;                    // +0x010
-    char name[0x204];                // +0x014
-    char path[1000];                 // +0x218
-    char undecorated[0x7c0];         // +0x600
+    unsigned long SizeOfStruct;
+    unsigned long Address;
+    unsigned long Size;
+    unsigned long Flags;
+    unsigned long MaxNameLength;
+    char Name[0x204];
 };
 
-typedef BOOL (__stdcall *SymGetSymFromAddr_t)(HANDLE, unsigned long, int*, Sym_004dea00*);
-typedef DWORD (__stdcall *UnDecorateSymbolName_t)(char*, char*, DWORD, DWORD);
+typedef BOOL (__stdcall *SymFn_004dea00)(HANDLE, unsigned long, int*, void*);
+typedef DWORD (__stdcall *UnDecFn_004dea00)(char*, char*, DWORD, DWORD);
 
-extern SymGetSymFromAddr_t DAT_00528acc;
-extern UnDecorateSymbolName_t DAT_00528ad4;
+extern SymFn_004dea00 DAT_00528acc;
+extern UnDecFn_004dea00 DAT_00528ad4;
 
 // FUNCTION: 0x4dea00
-void __cdecl FUN_004dea00(char* dest, int len, int per, int n, unsigned long* addrs)
+void __cdecl FUN_004dea00(char* dest, int space, int per, int n, unsigned long* addrs)
 {
+    unsigned long* a;
     int i = 0;
+    space--;
     char lines = FUN_004de4d0();
-    int space = len - 1;
-    unsigned long* a = addrs;
+    int width;
     int disp;
-    int width = 15;
     int err;
-    char found = 0;
-    Sym20_004dea00 sym20;
+    Line_004dea00 line;
     Sym_004dea00 sym;
+    char path[1000];
+    char undec[2000];
 
     strcpy(dest, lines ? "Call stack:\n" : "Call stack: ");
+    width = 15;
     space -= strlen(dest);
     dest += strlen(dest);
     if (lines)
         width = 800;
 
+    char found = 0;
+    a = addrs;
     for (; i < n; i++, a++) {
+        const char* sep;
         if (space <= width)
             break;
-        const char* sep;
         if (lines) {
-            if (FUN_004de550(*a, &sym20, &err)) {
-                FUN_004de8a0(sym.path, sym20.name);
-                sprintf(dest, "%s(%d) : %08lX", sym.path, sym20.line, *a);
+            if (FUN_004de550(*a, &line, &err)) {
+                FUN_004de8a0(path, line.FileName);
+                sprintf(dest, "%s(%d) : %08lX", path, line.LineNumber, *a);
                 found = 1;
             } else {
                 sprintf(dest, "%08lX", *a);
             }
-            sym.size = 0x218;
-            sym.nameSize = 0x200;
+            sym.SizeOfStruct = 0x218;
+            sym.MaxNameLength = 0x200;
             disp = 0;
             if (DAT_00528acc(GetCurrentProcess(), *a, &disp, &sym)) {
-                if (DAT_00528ad4 && DAT_00528ad4(sym.name, sym.undecorated, 0x7d0, 0) > 0) {
-                    sprintf(dest + strlen(dest), " - %s + %d", sym.undecorated, disp);
+                char* str;
+                if (DAT_00528ad4 && DAT_00528ad4(sym.Name, undec, 0x7d0, 0) > 0) {
+                    str = undec;
                 } else {
-                    if (strcmp(sym.name, "??2@YAPAXI@Z") == 0 ||
-                        strcmp(sym.name, "??2@YAPAXIPBDH@Z") == 0)
-                        strcat(sym.name, " - operator new");
-                    sprintf(dest + strlen(dest), " - %s + %d", sym.name, disp);
+                    if (strcmp(sym.Name, "??2@YAPAXI@Z") == 0 ||
+                        strcmp(sym.Name, "??2@YAPAXIPBDH@Z") == 0)
+                        strcat(sym.Name, " - operator new");
+                    str = sym.Name;
                 }
+                char* end = dest + strlen(dest);
+                sprintf(end, " - %s + %d", str, disp);
                 found = 1;
             }
             if (found || i == n - 1 || i % per == per - 1)

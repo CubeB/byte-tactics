@@ -1,4 +1,12 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash pass (#1182): tested the header lever. The matched sibling
+// 0x47dfc0, which contains the same feature dispatch and the same unit-reference
+// block, only reached MATCH after a header set was added (its file note credits
+// <stdlib.h>). `uv run tools/headers.py 0x47de60` tries all 128 header sets and
+// every one stays at 86.8 percent, so this residual is not reachable by headers
+// alone. The 4-byte difference is still exactly the six-instruction index block
+// at 0x47dea5 to 0x47deb6.
 // Decides whether a unit with the given footprint can stand on one map cell:
 // the cell's feature must not block it, a unit already standing there must not
 // have moved more recently than the mover, and the cell's ground height and

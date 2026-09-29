@@ -1,4 +1,11 @@
-// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (#1182): re-ran the free-scored sweep (operands
+// swapped, augment form, local/pointer/reference aliases of obj, statement
+// order, comma declaration), the static-helper form, and tools/headers.py
+// (128 sets, best <windows.h> 98.0). Every variant is 98.0 with the same
+// two-instruction residual and the total size exactly right, so the file
+// below stays the best version; the choice is not reachable from the source.
+//
 // space-bunny-free pass (#1112): re-derived every stack slot, confirmed the body is
 // the right shape and that the one remaining difference is not reachable from the
 // source. Details below; the body itself is unchanged from the previous passes.

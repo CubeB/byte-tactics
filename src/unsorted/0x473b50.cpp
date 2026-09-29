@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free. Names are provisional.
 // Sibling of 0x4736e0 and 0x4742c0: the same base call with the third
 // argument, the same two 24-byte copies and the same trailing virtual call.
 // This one keeps each 24-byte block as a {point, far point} pair, moves the
@@ -47,8 +47,44 @@
 // without per-component inline helpers) makes MSVC 5 hoist start.y above the
 // start.x store and spill it, 497 bytes turns into 513 to 564. A middle shape
 // (Segment* for end, Vec3* for start) also spills. The two-ref helper is the
-// only shape that stays in registers, so 87.5% is this function's ceiling
-// from source alone.
+// only shape that stays in registers, so 87.5% was the ceiling from source
+// alone as far as that retry could tell.
+//
+// Retry (LongCat 2.5 Preview Free): 88.0%, 497 of 499 bytes. One real gain:
+// the 4/11 x delta has to be a *temporary assigned in its own statement*
+// (`int ddx = e.x - s.x; e.x = ddx;`) placed between the 7/11 z lerp and the
+// `s.z = az` store, not `e.x = e.x - s.x;` after it. That alone is worth half
+// a percent, and it is the only source change in the file. What is left:
+//   - `e.x = bx` and `e.y = by` are still stored before the next component's
+//     loads where the original sinks them past (the aliasing effect above);
+//   - the original's `mov edx, esi; sub ecx, edx` for the z difference, i.e.
+//     the start point copied into a second register rather than subtracted in
+//     place, and `lea edi, [edx + esi]` for the 4/11 z point rather than
+//     `add edx, esi; mov edi, edx`;
+//   - the z delta is `add edx, esi` (7/11 point) then `sub edx, edi` (the
+//     4/11 point), where ours reassociates to `sub edx, edi; add edx, esi`;
+//   - in the second block the original keeps ebp (= this + 0x1c) live only for
+//     start.x and drops back to [ebx+0x20] and [ebx+0x24] for y and z, and
+//     reuses ebp for the x delta; ours holds ebp for all three components.
+// Every one of these is register pressure that follows from the store order,
+// so none of them moves on its own. Measured and rejected (all 497 bytes and
+// 88.0% unless noted, i.e. identical code): the z difference and the deltas
+// through a `static inline int Sub(a, b)`; the same through a `Z(v)` getter
+// and a `Delta(b, a)`; the two lerps through `Lerp4(s,d)`/`Lerp7(s,d)`;
+// `int q4 = dz*4/11` as its own local with the sum written both ways; the 7/11
+// point accumulated with `+=`; `e.z = -az + bz`; a no-op `(int)` cast on
+// either operand; computing bz first, or az last, or ddy next to ddx (that
+// last one is 493 bytes and 74.7%); `e.z` assigned before `s.z` (78.8%).
+// Shapes that keep the values in registers but not in the original's registers,
+// all worse: one Vec3& with the end taken as `(&s)[1]` (503 bytes, 39.9%),
+// one int* with the end at `p+3` (503, 39.9%), Seg* or Seg& (564, 23.6%),
+// a member function on Seg (76 bytes, the body went out of line), Vec3* and
+// Vec3& parameter pairs (497 bytes but the argument order changes the code,
+// 66.3%), swapping the two calls (496 bytes, 49.6%) or the two struct copies
+// (496, 48.0%), and staging the two segments through local Seg temporaries
+// (635, 33.7%). `tools/headers.py` over all 128 header sets also stops at
+// 88.0%, so this is a codegen difference, not a header one. 88.0% looks like
+// this function's ceiling from source alone.
 
 class Class_00471d70 {
 public:
@@ -84,8 +120,11 @@ static inline void Split_00473b50(Vec3_00473b50& s, Vec3_00473b50& e)
     int dz = e.z - sz;
     int az = sz + dz * 4 / 11;
     int bz = sz + dz * 7 / 11;
+    // The x delta needs its own temporary, computed here, between the z lerps
+    // and the s.z store: that is what puts the store where the original has it.
+    int ddx = e.x - s.x;
+    e.x = ddx;
     s.z = az;
-    e.x = e.x - s.x;
     e.y = e.y - s.y;
     e.z = bz - az;
 }

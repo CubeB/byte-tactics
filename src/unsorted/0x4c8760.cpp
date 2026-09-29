@@ -1,5 +1,18 @@
-// Decompiled by GPT-6. Names are provisional.
-// Partial: edge traversal register allocation and instruction order differ.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL, 65.3% (1094 original bytes, 1093 ours). Timebox hit.
+// The two span-edge loops and the final dispatch loop now match except for
+// the stack frame. Remaining difference: the alloca constant is 0x7d54, the
+// original is 0x7d58, so every esp offset below the clip rect and the two arg
+// offsets are 4 too small (defaults base 0x44 vs 0x48, spans base 0x64 vs
+// 0x68). The cause is slot allocation, not just size: our lowIndex lands at
+// [esp+0x30] where the original keeps it at [esp+0x28], while minY is at the
+// same [esp+0x24] in both, so one 4-byte local is missing from our small
+// locals region and another variable is packed differently.
+// Two fixes that gained ground: writing the dispatch test as
+// `span[1]-span[0] > 0` (sub+test, not cmp) and, before that, simplifying it
+// to a single comparison. The next thing to try: match the declaration order
+// of lowIndex/highIndex against the du/dv temporaries so the small locals
+// region grows by the missing dword.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 
@@ -129,7 +142,7 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                 }
                 int* span=&spans[0][0];
                 for(int row=lowY;row<highY;row++) {
-                    if(span[1]!=span[0] && span[1]-span[0]>=0)
+                    if(span[1]-span[0]>0)
                         FUN_004c7a20(row,span,target,texture);
                     span+=10;
                 }

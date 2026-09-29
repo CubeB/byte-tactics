@@ -1,12 +1,24 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 2947-byte skirmish setup dialog handler. Reproduces the entry
-// sequence and the "Start"/"PrevMenu" dispatch only; the long
-// strcmp(control text, "...") chain and the per-branch bodies are unwritten.
-// Frame is sub esp,0x70 with buf at [esp+0x40]; the inline strcmp loops in
-// the original (0x47b138 onward, 2-byte unrolled, sbb/sbb) mean the source
-// used plain strcmp() against string literals.
+// PARTIAL (19.3%): 2947-byte skirmish setup dialog handler. Reproduces the
+// entry sequence and the "Start"/"PrevMenu"/"Player" dispatch only; the long
+// strcmp(control text, "...") chain (Allies/Color/Energy/Metal) and the
+// per-branch bodies are unwritten.
+// Frame is now sub esp,0x70, but buf lands at [esp+0x58] instead of the
+// original [esp+0x40]: the five int locals (setup/count/c2/c1/n) spill to
+// 0x18..0x40, pushing the aggregate up. With low[0x28] buf reaches 0x40 but
+// the frame drops to 0x58. The original keeps every int in a register, so
+// once the Color/Energy branches (which use the itoa buf [esp+0x10], the
+// wsprintf buf [esp+0x1c] and the struct [esp+0x28]) are written the frame
+// falls out naturally and the aggregate workaround can go.
+// Register allocation still differs: original keeps gadget in esi and the
+// layer hwnd in ebp from the prologue; ours puts gadget in ebp because the
+// hwnd is recomputed instead of held in a live local.
+// The inline strcmp loops (0x47b138 onward, 2-byte unrolled, sbb/sbb) mean
+// the source used plain strcmp() against string literals.
 #include <string.h>
 #include <stdlib.h>
+
+struct Frame_0047ae60 { char low[0x40]; char buf[0x30]; };
 
 struct Sub_0047ae60 {
     char unknown_0[4];                 // +0x0
@@ -54,7 +66,7 @@ void FUN_0047aaf0();
 // FUNCTION: 0x47ae60
 void __stdcall FUN_0047ae60(Gadget_0047ae60* gadget)
 {
-    char buf[0x30];
+    Frame_0047ae60 frame;
     char* setup;
     int count;
     int c2;
@@ -64,11 +76,11 @@ void __stdcall FUN_0047ae60(Gadget_0047ae60* gadget)
     if (gadget->field_60 == -1) {
         return;
     }
-    FUN_0049fed0(gadget->field_18->field_4, buf, gadget->field_60);
-    n = atoi(&buf[strlen(buf) - 1]);
+    FUN_0049fed0(gadget->field_18->field_4, frame.buf, gadget->field_60);
+    n = atoi(&frame.buf[strlen(frame.buf) - 1]);
     setup = *(char**)(g_game + 0x29a0);
     *(int*)(setup + 0x224) = n;
-    buf[strlen(buf) - 1] = 0;
+    frame.buf[strlen(frame.buf) - 1] = 0;
 
     if (FUN_0049fd60(gadget, "Start")) {
         FUN_0047f1a0("BigButton", 0);
@@ -195,7 +207,7 @@ void __stdcall FUN_0047ae60(Gadget_0047ae60* gadget)
         return;
     }
 
-    if (strcmp(buf, "Player") == 0) {
+    if (strcmp(frame.buf, "Player") == 0) {
         FUN_0047f1a0("Skirmish", 0);
         FUN_004797e0(1);
         FUN_004ab0a0(gadget);

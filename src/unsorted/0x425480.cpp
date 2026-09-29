@@ -1,81 +1,105 @@
 // Decompiled by Space Bunny Free. Names are provisional.
-// std::vector<Class_004c2ea0*>::insert(iterator, size_type, const T&) from
-// MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward all
-// inlined. The feature list DAT_00511fb4 is this vector type (0x4251e0 is its
-// out-of-line _Destroy); the only call site, 0x4222e0, loads it into ecx and
-// pushes end(), 1 and the address of a new object, so this is the append a
-// push_back compiles to. Taking the member's address makes the compiler emit
-// the template instantiation out of line, as the original file did, and the
-// member pointer has to return void or VC5 resolves the two-argument insert.
+// std::vector<Class_004c2ea0*>::insert(iterator, size_type, const T&), MSVC
+// 5's <vector> written out (as 0x425210.cpp does) with _Ucopy, _Ufill, fill
+// and copy_backward inlined. 0x4222e0 is the only caller (the push_back).
 //
-// Partial (57.9%, 547 of 537 bytes). NOTE: this is not an isolated case, it is
-// the same unsolved problem as src/unsorted/0x4732e0.cpp, which sits at the
-// same 57.9% with the same 547-against-537 byte count and the identical
-// `this` in ebp / count in ebx swap on the same STL template. 0x4732e0's own
-// file records that the earlier attempt there already established this is not
-// reachable from a single file: it tried the unpatched compiler
-// (BT_TOOLCHAIN=msvc5-rtm), the exe's own neighbourhood in emission order in
-// one file, a real caller that inlines the insert, and spelling the default
-// allocator out explicitly, and concluded it needs the regrouping-into-original-
-// translation-units phase. The two should be held for that phase rather than
-// re-issued independently. For contrast the game's other instantiation of the
-// same template, 0x4c4d70, matches at 100% with the *other* assignment
-// (this in ebx, count in ebp), so both variants exist in the exe and only one of
-// them is reachable from a single file.
+// Partial (80.5%, 541 of 537 bytes), up from 57.9% with the real <vector>.
+// What changed: the third _Ucopy of the growth branch is written as a loop in
+// the body with the destination declared BEFORE the source,
+//   { iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ...) }
+// instead of the header's inlined _Ucopy(_P, _Last, _Q + _M). That flips the
+// whole register assignment of the function to the original's (this in ebp,
+// count in ebx), so the "known wall" of the this/count swap is not a wall: it
+// follows the declaration order of the inlined copy's destination and source
+// (helper _Ucopy(dest, src, end) gives the same flip, 71.6%; src before dest
+// gives this in ebx). The same lever moves 0x4732e0 and 0x40d020, which have
+// the same swap, and does nothing for 0x425210 (see that file).
 //
-// The only difference here is which callee-saved
-// register the allocator gives `this` and the count. The original does
-// `push ebx; push ebp; mov ebx, [esp+0x18]; mov ebp, ecx` (count in ebx, this
-// in ebp), this build does `push ebx; mov ebx, ecx; push ebp; mov ebp, [esp+0x18]`
-// (this in ebx, count in ebp), and everything else follows from that: the
-// original's block order, its `mov ebp, [esp+0x10]` reloads in the fill and
-// copy_backward loops, its two reloads against this build's four (which is the
-// whole 10-byte size difference) and the pop order all read as that one swap.
-// A normalised diff with ebx and ebp exchanged instruction for instruction
-// leaves nothing else: same branches, same pointer sums, same
-// operator new[]/operator delete calls.
-//
-// It is the rarer of the two spellings and the build is invariant here, so
-// this is the same wall as 0x4732e0, 0x40d020 and 0x425210. What this attempt
-// added to the list of things that do not move it:
-// - the element type is irrelevant: vector<int*>, vector<void*>, vector<char*>,
-//   vector<short*> and vector<double*> all give this build's assignment, as
-//   do a one-field class, a class with four fields, a class with a constructor
-//   and destructor, a struct, the allocator spelled out, and the pointer taken
-//   from inside a function, through a derived class, from a file-scope static
-//   pointer, both insert overloads, `template class std::vector<...>;` and a
-//   second instantiation of the same vector in the same file
-// - the /Gz <xutility> of the original file (the __stdcall copy, copy_backward,
-//   fill, fill_n, _cpp_min/_cpp_max, mismatch block from 0x424c00.cpp, with
-//   _XUTILITY_ defined) in front of the real <vector>, and the sibling
-//   vector<unsigned short> insert (0x425210) in the same file: unchanged
-// - <windows.h> and <ddraw.h> before <vector>, which is what flips one of the
-//   sum orders in 0x40d290: unchanged
-// - an explicit member specialisation of insert in namespace std, with the
-//   template body written out by hand, so the function is compiled as a plain
-//   function rather than as a template instantiation: same assignment, and
-//   the same mangled name
-// - 100 files with 0, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192,
-//   256, 384, 512 and 768 filler declarations before the instantiation (class
-//   definitions, plain function definitions, inline function definitions,
-//   class definitions with a method, extern variables), testing the "flips
-//   every 256 declarations" state that 0x40d290's notes report: every one
-//   gives the identical 547 bytes
-// - a local copy of <vector> with the body respelled as
-//   `size() + _M > capacity()`, or as the VC6 growth
-//   `capacity() - size() < _M` with `(size() < _M ? _M : size())`: both give
-//   575 bytes, so the codegen moves and the assignment still does not
-// This needs the regrouping-into-original-translation-units phase.
-#include <vector>
+// Still different: (1) the loop bound. The original caches _Last in a register
+// (`mov esi, [ebp+8]; cmp ecx, esi`); here the loop re-reads `mov edx,
+// [ebp+8]` each pass (+4 bytes) because _Last is compared straight from the
+// member. Every way of copying it into a local (`const_iterator _e = _Last;`
+// before, inside or after the block, in any declaration order with _d and _s,
+// for-init, const, or as a helper parameter in any position) puts the
+// registers back to this-in-ebx (58.0%) or drops the unfolded source
+// (71.6%). (2) In the growth branch the original keeps P in ecx and spills S to
+// [esp+0x24]; ours keeps P in esi/edi. (3) The third loop's source start is
+// `sub ecx, edx; add ecx, eax; sub ecx, edi` in the original, `lea eax,
+// [ecx+edi]; sub eax, edx; sub eax, esi` here. The fast branches (second and
+// third) already match instruction for instruction.
+// Tried without effect: dead locals of every kind in front of the loop (they
+// are removed before numbering), 1200 random placements of dead copies, the
+// four _Ucopy sites in all 256 combinations of inline/helper/manual loop,
+// _Ufill and _Destroy with permuted parameters, for/while/count loops, and
+// dozens of dead declarations before the class.
+#include <memory>
+#include <xutility>
 
-class Class_004c2ea0 {                 // the element, only its size is used
+namespace std {
+template<class _Ty, class _A = allocator<_Ty> >
+class vector {
 public:
-    int field_0;
+	typedef vector<_Ty, _A> _Myt;
+	typedef _A allocator_type;
+	typedef _A::size_type size_type;
+	typedef _A::difference_type difference_type;
+	typedef _A::pointer _Tptr;
+	typedef _A::const_pointer _Ctptr;
+	typedef _A::reference reference;
+	typedef _A::const_reference const_reference;
+	typedef _A::value_type value_type;
+	typedef _Tptr iterator;
+	typedef _Ctptr const_iterator;
+
+	size_type size() const
+		{return (_First == 0 ? 0 : _Last - _First); }
+	size_type capacity() const
+		{return (_First == 0 ? 0 : _End - _First); }
+	iterator begin()
+		{return (_First); }
+	iterator end()
+		{return (_Last); }
+	void insert(iterator _P, size_type _M, const _Ty& _X)
+		{if (_End - _Last < _M)
+			{size_type _N = size() + (_M < size() ? size() : _M);
+			iterator _S = allocator.allocate(_N, (void *)0);
+			iterator _Q = _Ucopy(_First, _P, _S);
+			_Ufill(_Q, _M, _X);
+			{ iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ++_d, ++_s) allocator.construct(_d, *_s); }
+			_Destroy(_First, _Last);
+			allocator.deallocate(_First, _End - _First);
+			_End = _S + _N;
+			_Last = _S + size() + _M;
+			_First = _S; }
+		else if (_Last - _P < _M)
+			{_Ucopy(_P, _Last, _P + _M);
+			_Ufill(_Last, _M - (_Last - _P), _X);
+			fill(_P, _Last, _X);
+			_Last += _M; }
+		else if (0 < _M)
+			{_Ucopy(_Last - _M, _Last, _Last);
+			copy_backward(_P, _Last - _M, _Last);
+			fill(_P, _P + _M, _X);
+			_Last += _M; }}
+protected:
+	void _Destroy(iterator _F, iterator _L)
+		{for (; _F != _L; ++_F)
+			allocator.destroy(_F); }
+	iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P)
+		{for (; _F != _L; ++_P, ++_F)
+			allocator.construct(_P, *_F);
+		return (_P); }
+	void _Ufill(iterator _F, size_type _N, const _Ty& _X)
+		{for (; 0 < _N; --_N, ++_F)
+			allocator.construct(_F, _X); }
+	_A allocator;
+	iterator _First, _Last, _End;
 };
+}
 
-typedef std::vector<Class_004c2ea0*> Vec_00425480;
-typedef void (Vec_00425480::*InsertFn_00425480)(
-    Vec_00425480::iterator, Vec_00425480::size_type, Class_004c2ea0* const&);
 
+class Class_004c2ea0 { public: int field_0; };
+typedef std::vector<Class_004c2ea0*> V;
+typedef void (V::*F)(V::iterator, V::size_type, Class_004c2ea0* const&);
 // FUNCTION: 0x425480 ?insert@?$vector@PAVClass_004c2ea0@@V?$allocator@PAVClass_004c2ea0@@@std@@@std@@QAEXPAPAVClass_004c2ea0@@IABQAV3@@Z
-InsertFn_00425480 g_insert_00425480 = &Vec_00425480::insert;
+F g = &V::insert;

@@ -1,4 +1,20 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+// Sonnet 5.5 retry (#679), no change to the score (99.6%). What it added:
+// the operand order of that sum is fixed by the order in which the inlined
+// copy's variables are numbered, which the source controls through the
+// parameter order of the inlined _Ucopy (arguments are bound right to left)
+// or, written as a loop in the body, the declaration order of its locals. The
+// build has four outcomes and no more: destination-first gives this in ebp
+// (the 0x425480 family, 53.8% here), and every source-first shape gives one of
+// `lea eax, [ecx + ebx]` (this file, 99.6%), the 545-byte `mov eax, ecx; sub
+// eax, edx; add eax, ebx` (89.6% to 92.9%) or 99.1% (one extra store of S).
+// The wanted `lea eax, [ebx + ecx]` was not produced by: all 6 parameter
+// orders per _Ucopy site (1296 site combinations), 12 loop/local forms per
+// site in 6000 random combinations of the four sites (inline, helper with the
+// destination or the end first, hand-written loops with 2 or 3 locals in any
+// declaration order), permuted _Ufill and _Destroy parameters, locals hoisted
+// to function scope in all 720 orders, copies of _P for the first _Ucopy, and
+// 3000 random files with up to 60 dead declarations (two outcomes only).
 // std::vector<unsigned short>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward all
 // inlined. 0x424c00 calls it from the first inlined resize() of its feature

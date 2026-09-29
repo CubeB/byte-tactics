@@ -1,4 +1,10 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+// Sonnet 5.5 retry (#679), still 97.9%: also flat under every single and
+// every pair of statement moves (4000 sampled pairs), function-scope or
+// in-block declaration of gadget/entries/choice1/choice2 in all 24 orders,
+// typed 0x15b-byte rows (`rows + i`, `->text`), `(char*)` and `&p[0xb6]`
+// spellings, `unsigned char*` pointers, and a local for
+// g_game + 0x519, which drops to 64.5%.
 // Opens the YESORNO.GUI dialog asking "Close Windows CD Player?", relabels
 // the CHOICE1 / CHOICE2 gadgets, puts the localised "Yes" and "No" on the two
 // gadgets the lookups found, and installs FUN_00426190 as the gadget handler.

@@ -1,4 +1,25 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// BEST SO FAR: 61.4%, ours 1211 bytes vs original 1199. Still differs:
+//  * MSVC gives ebp to a hoisted constant 0 and puts g_game in ebx; the original
+//    keeps g_game in ebp and only materialises the 0 after g_game dies
+//    (`xor ebp,ebp` at 0x47cd58). That single allocation difference cascades into
+//    every other diff below.
+//  * Consequence 1: prologue/bounds block. Original spills size.x to [esp+0x2c]
+//    and tests `movsx ebx,dx / movsx edx,ax / add edx,ebx / cmp edx,eax`; ours
+//    makes size.x the accumulator and reloads g_game->width from ebx.
+//  * Consequence 2: loops 2 and 3 (`(f&3)==1`, `(f&3)==2`) get edi as the column
+//    counter because ebx is busy with g_game, so they spill the row counter to
+//    [esp+0x10] and reload g_game inside the loop. The original reloads size.x
+//    into ebx after each inner loop and keeps the row counter in ebp.
+//  * `mov cx, word [esi+0xa8]` vs ours `mov ax, ...` in the mask loop write.
+// Tried and rejected: `size.x + obj->pos.x` operand order, `g_game->width <= x`
+// form, `mask[index++]`, a separate `int sx = size.x` used in the width test
+// only (folded), and `int sx` used in the width test and the row advance (worse,
+// 59.8% and the size load moves). All left `xor ebp,ebp` hoisted to entry.
+// The mask loop body itself now matches byte for byte, including
+// `inc ebp / mov bl,byte [ecx+ebp-1] / neg al / sbb eax,eax / and al,0xfe /
+// add eax,4 / test bl,al`, which came from keeping `unsigned char m` a local
+// inside the loop body and from `unsigned char bit = obj->bit2 ? 2 : 4;`.
 // PARTIAL. Getting the frame to 0x18 and the register roles (g_game in ebp,
 // size.x in ebx spilled to [esp+0x2c], mask index in ebp, mask byte in bl) is
 // not yet reproduced; ours is 2 bytes larger (1201 vs 1199) and uses a 0xc
@@ -108,12 +129,12 @@ extern Game_0047cc30* g_game;
 void __stdcall FUN_00483210(Point_0047cc30 pos, Point_0047cc30 size);
 void __stdcall FUN_00440a40(Point_0047cc30 pos, Point_0047cc30 size);
 
-// Re-points an object at an owner list, unlinking it from the old list first
-// unless flag +0x86 forbids that.
+
 static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
 {
-    if (obj->owner != nw) {
-        if (obj->field_86 == 0) {
+    if (nw != obj->owner) {
+        int fl = obj->field_86;
+        if (fl == 0) {
             Owner_0047cc30* old = obj->owner;
             if (old != 0) {
                 Obj_0047cc30** pp = &old->first;
@@ -141,7 +162,8 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
     if (obj->pos.x + size.x >= g_game->width || obj->pos.y + size.y >= g_game->height)
         goto remove;
 
-    SetOwner_0047cc30(obj, &g_game->owners[(obj->position.x >> 23) + (obj->position.z >> 23) * g_game->ownerCols]);
+    Position_0047cc30 pp = obj->position;
+    SetOwner_0047cc30(obj, &g_game->owners[(pp.x >> 23) + (pp.z >> 23) * g_game->ownerCols]);
     {
         Cell_0047cc30* cell = &g_game->cells[g_game->width * obj->pos.y + obj->pos.x];
         unsigned int f = obj->flags.all;
@@ -150,8 +172,9 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
         if (f & 0x20000000) {
             for (int j = size.y; j > 0; j--) {
                 for (int i = size.x; i > 0; i--) {
-                    unsigned char m = obj->unit->mask[index++];
-                    unsigned char bit = (obj->bit2 ? 2 : 4);
+                    unsigned char m = obj->unit->mask[index];
+                    index++;
+                    unsigned char bit = obj->bit2 ? 2 : 4;
                     UnitRec_0047cc30* rec;
                     if (m & bit) {
                         unsigned short id = cell->field_0;

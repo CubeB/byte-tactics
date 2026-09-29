@@ -1,8 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 98.8 percent (1561 of 1561 bytes). The only difference is the
-// "all players empty" loop at the top: MSVC put the player count in eax and the
-// player pointer in ecx; the original has the count in ecx and the pointer in
-// eax. Everything else is byte-identical.
+// Decompiled by deepseek-v4.1-flash, finished by longcat-2.5-preview-free. Names are provisional.
 // Skirmish setup screen refresh: fills every player/game-option gadget with the
 // current lobby state (player name, side, allies, metal, energy, colour, the
 // start-location and commander-death rules, mapping and line of sight), then
@@ -99,16 +95,15 @@ void FUN_0047a0e0()
     g_game->table->field_220 = entries[0].field_b6;
     FUN_00479c50();
 
-    int n = g_game->playerCount;
     int empty = 1;
-    if (n > 0) {
+    if (g_game->playerCount > 0) {
         Player_0047a0e0* p = g_game->table->players;
+        int n = g_game->playerCount;
         do {
             if (p->active != 0)
                 empty = 0;
             p++;
-            n--;
-        } while (n != 0);
+        } while (--n != 0);
     }
     if (empty != 0) {
         g_game->table->players[0].active = 1;

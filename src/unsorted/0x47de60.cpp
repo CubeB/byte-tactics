@@ -50,6 +50,59 @@
 // `imul eax,[edx+0x14233]; add eax,ecx`, so the width is the memory operand of the
 // multiply. Ours loads the width into eax and copies spotY to ecx. g_game is loaded
 // into edx before `push esi` (0x47de62) and stays there, as in ours.
+//
+// space-bunny-free pass, 100+ free-scored variants, all 86.8 percent and 346
+// bytes except where noted, and in EVERY one the eight instructions of the
+// index block came out byte-identical, so the fold is not a source-shape effect:
+//  - index expression: both add orders, both multiply orders, a separate
+//    `int idx`, hoisted `unsigned int` leaves, `other = cell; other -= ...`,
+//    `&cell[-k]`, two successive subtractions, `long`/`unsigned`/`short` casts
+//    on the width or the leaves, `1 *` in front, and the two leaves combined
+//    into a nested anonymous struct: all 86.8, all byte-identical in the block;
+//  - the index hoisted into a `static inline int CellIndex(Cell*)`, and a
+//    second one taking the game pointer, and the whole feature test moved into
+//    a `static inline int FeatureBlocked(Cell*)` (the matched 0x47db70's
+//    SteepCell shape), and the 0xfffe arm alone into a helper, and the unit
+//    check into a helper, and all of those together: all 86.8, block unchanged;
+//  - eleven spellings of the unit block (the reference, a plain pointer, a slot
+//    pointer, slot plus reference, slot plus pointer, a local `unsigned short
+//    spot`, a local units pointer, a pre-read `unit->lastTick`, a local
+//    `now`, two separate `if`s, a negated condition): 86.8 for every form that
+//    keeps the original's two-step unit load, 68.6 or 85.3 for the two that do
+//    not, and the fold never appears in any of the eleven;
+//  - `width` redeclared `short`, `unsigned short`, `unsigned int` or `char`:
+//    83.4 to 86.8, all worse or flat;
+//  - declaration order: the two byte fields swapped, either one padded out to
+//    its own member, `feature` declared last, `height` before `width`, the
+//    `blocked` and `feature` declarations swapped, forward-declared
+//    `minHeight`/`maxHeight`/`diff` with the initialisers dropped, a
+//    forward-declared `int idx`, and `unsigned int py, px` leaves: 86.8 flat,
+//    or worse (72.1 to 86.0);
+//  - `#include <string.h>` and `#include <stddef.h>` added ahead of the first
+//    pragma: 86.8 flat (this band needs no include, as the two siblings do);
+//  - N unused `extern int` declarations in front of the first pragma, N = 0, 4,
+//    8, 12, 16, 20, 24, 32, 40, 48, 64, 80: flat 86.8 at every N, so unlike
+//    0x47d820 in the same issue there is no declaration state that folds the
+//    imul here.
+//
+// One apparent improvement is a trap and was not taken: writing the arm as
+// `cell + (cell->spotX - cell->spotY * g_game->width)` scores 94.1 percent at
+// exactly 342 bytes, but the differ shows it is a different instruction
+// sequence, not a closer one: MSVC hoists the width into ecx, computes
+// `imul ecx, eax` with the width as the register operand, adds the spotX
+// difference into eax and then folds the whole 13-byte cell stride into
+// `mov ax, word ptr [edi + ecx*4 + 8]`, so the original's
+// `lea ecx,[eax+eax*2]; lea eax,[eax+ecx*4]; mov ecx,esi; sub ecx,eax` pointer
+// walk is gone. The three instructions that follow the block in the original
+// do not exist in that variant, and reaching 94.1 percent is a coincidence of
+// the size matching, not progress. Every other variant that scored above 86.8
+// did so only by deleting code (45.9 to 86.0), which the size drop shows.
+//
+// Conclusion: the residual survives every source spelling, declaration order
+// and declaration state, and the index block is byte-identical across all of
+// them, so as on 0x47d820 and 0x47d970 this is front-end state in this
+// translation unit rather than a missing source shape. There is no padding
+// lever here to decline either: unlike 0x47d820, no declaration state matched.
 #pragma pack(push, 1)
 struct Feature_0047de60 {
     char unknown_0[0xfe];

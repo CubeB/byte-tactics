@@ -1,29 +1,7 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// Opens a unit's build menu GUI (guis\<name>.GUI, or the side's "<side>DL"
-// menu when that file is missing) with FUN_0041aa00 as its click handler,
-// fills the entries registered for this unit type and page, refreshes the
-// PREV/NEXT buttons, the counts and the ONOFF button, and selects the unit.
-// FUN_0041a920 and FUN_0041ac90, defined just before this function in the
-// original file, are inlined here.
-//
-// PARTIAL (98.9%). The build list loop needs the list pointer read into a
-// local inside the inner loop: only then does MSVC keep one induction
-// variable for i * 0xbd + j * 0x25 (`mov ebp, esi; add ebp, 0x25`).
-// The four build entry accesses then come out as [ecx + ebp + K]; the
-// original has [ebp + ecx + K] (pointer as the SIB index). That operand order
-// is fixed by the declared-symbol state, not by the C: with <windows.h> and
-// <stdio.h>/<string.h> removed, sprintf/strcpy declared by hand, and about
-// 192 to 204 dummy `extern int` declarations, the whole loop matches with the
-// original's scheduling. Adding <windows.h> back, or a count outside that
-// range, flips the accesses back to [ecx + ebp + K].
-//
-// Still differs (the inlined FUN_0041ac90 at the end): the original keeps the
-// table pointer in edi and turns it into the walking pointer with
-// `add edi, 2`; here it lands in eax and gets `lea edi, [eax+2]`. Coalescing
-// the count's table pointer with the walk pointer is register allocation in
-// context: the out-of-line copy of the same body (0x41ac90) also uses
-// eax/lea, and no body shape tried (named entry pointer, explicit walker,
-// short* base, do/while) changes it.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Keep the table pointer in entry form while reading its count. The guarded
+// do/while places the header advance after the empty-list test.
+
 
 extern "C" int __cdecl sprintf(char*, const char*, ...);
 extern "C" char* __cdecl strcpy(char*, const char*);
@@ -361,13 +339,16 @@ static inline Entry_0041ace0* Entries(Table_0041ace0* t)
 // Inlined copy of FUN_0041ac90.
 static inline void UpdateCounts(Menu_0041ace0* menu)
 {
-    Table_0041ace0* t = (Table_0041ace0*)menu->layer->entries;
-    int n = t->count;
-    for (int i = 0; i < n; i++) {
-        if (Entries(t)[i].flags & 4) {
-            FUN_004a1200(menu, i, FUN_00488b10(&Entries(t)[i]) == 0);
-        }
-    }
+    Entry_0041ace0* entry = menu->layer->entries;
+    int n = ((Table_0041ace0*)entry)->count;
+    int i = 0;
+    if (n <= 0)
+        return;
+    entry = (Entry_0041ace0*)((char*)entry + 2);
+    do {
+        if (entry[i].flags & 4)
+            FUN_004a1200(menu, i, FUN_00488b10(&entry[i]) == 0);
+    } while (++i < n);
 }
 
 // FUNCTION: 0x41ace0

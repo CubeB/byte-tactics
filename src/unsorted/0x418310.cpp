@@ -1,4 +1,8 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: scalar/point screen counters, projection and step helpers,
+// function-scope quad homes and guarded do/while loops did not improve 55.5%.
+// Most screen-counter variants add a hoisted row invariant and a four-byte frame
+// increase; keep this best version rather than replacing it with those variants.
 // Region-split skeleton, per docs/splitting-huge-functions.md (PR #1287).
 // Checked by space-bunny-free. Names are provisional.
 //

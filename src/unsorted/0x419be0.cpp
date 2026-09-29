@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: a selection object holding the button parameter by reference
+// or pointer, with ternary/early-return/assignment selection, did not improve
+// 84.1%. The button stack reload and entries/button register swap remain.
 // Handles a click on an order button: finds which order the button's name
 // contains and selects that order mode (FUN_00419bc0 inlined), plays the
 // "immediateorders" or "specialorders" sound and returns 1; returns 0 when the

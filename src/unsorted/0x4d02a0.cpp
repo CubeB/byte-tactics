@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Best attempt, 55.0%. Remaining differences (first diff hunks):
+//   - our `result` local lands at [esp+0x1c], the original keeps it at
+//     [esp+0x14] (original: result=E+0, a=E+4, c=E+8; ours: c=E+0, a=E+4,
+//     result=E+8). Declaration order was tried two ways and did not move it.
+//   - the chunk-search seek argument compiles as `lea eax,[edi+edx]` here but
+//     the original emits `add edx,edi; push edx`.
+//   - the second "data" search emits a slightly longer block, so every label
+//     after 0x4d03a9 is shifted by a few bytes.
 #include <string.h>
 
 struct File_004bb5d0;

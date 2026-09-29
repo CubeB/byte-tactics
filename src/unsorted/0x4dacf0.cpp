@@ -1,10 +1,22 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// NOT A MATCH: 49.7 percent, 700 of 780 bytes. The frame is 0x64 where the
-// original is 0x68, so I have one dword of local too FEW (the notes below were
-// written when the frame was 0x6c, one too many: removing the Pair default
-// constructor removed a home, and the shape improved but the layout is still
-// one dword short). Every difference below is one or two allocation states,
-// not many independent problems.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// NOT A MATCH: 52.6 percent, 773 of 780 bytes. Progress over the 49.7 percent
+// version came from removing the `= 0` initialisers on base/len/key (the
+// original does not zero them, and the extra zero store was the spilled home
+// that both pushed the frame to 0x6c and took the register allocation away from
+// map/wraps) and from splitting the one Pair into the two the original has
+// (p at E+0x30, the lower_bound query q at E+0x38), plus masking n before the
+// negate in pad.
+// The frame is still 0x6c where the original is 0x68: our locals relative to E
+// match the original exactly (res 0x24, lock 0x28, need 0x2c, p 0x30, q 0x38,
+// ins 0x40, rec 0x48) but E sits 4 bytes lower, so the extra dword is reserved
+// above the record, most likely a distinct hidden-return slot for the
+// FUN_004dbd00(cur) erase call (the original aliases it onto E+0x30, the p
+// slot). Changing the local declaration order changes nothing.
+// Worked: want/need split as a Pair; no `= 0` on base/len/key; base loaded from
+// DAT_005289d4 before the `if (base == 0)`; pad = (0 - (n & 0xfff)) & 0xfff.
+// Still differs: frame 0x6c; the record ctor's last argument is pushed as a
+// register (ebp) instead of the immediate 0; a lea lands in ecx where the
+// original uses eax in the commit path.
 // The original's frame (E = esp after `sub esp,0x68` and the four pushes):
 //   0x10 want        0x14 n2 (lower_bound out)   0x18 cur    0x1c b, then
 //   reused as prev  0x20 len   0x24 res   0x28 the CRITICAL_SECTION pointer,
@@ -172,10 +184,11 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
 
     Class_004db610* map = FUN_004db610();
     unsigned int wraps = 0;
-    unsigned int base = 0;
-    unsigned int len = 0;
-    unsigned int key = 0;
+    unsigned int base;
+    unsigned int len;
+    unsigned int key;
     Pair_004dacf0 p;
+    Pair_004dacf0 q;
     Ins_004dacf0 ins;
     Class_004dd2a0 n2;
     Class_004dd2a0 b;
@@ -184,9 +197,9 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
     if (map->count <= wraps)
         goto alloc_new;
 
-    p.offset = DAT_005289d4;
-    p.length = 0;
-    map->FUN_004dc620(&n2, &p);
+    q.offset = DAT_005289d4;
+    q.length = 0;
+    map->FUN_004dc620(&n2, &q);
     map->FUN_004dbeb0(&b);
     if (n2.Neq(n2, b)) {
         b.ptr = n2.ptr;
@@ -215,6 +228,7 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
     key = cur.ptr->key;
     len = cur.ptr->length;
     map->FUN_004dbd00(cur);
+    base = DAT_005289d4;
     if (base == 0) {
         base = key;
         DAT_005289d4 = base;
@@ -254,7 +268,7 @@ use_block:
         LeaveCriticalSection(&lock->cs);
         return 0;
     }
-    unsigned int pad = (0 - n) & 0xfff;
+    unsigned int pad = (0 - (n & 0xfff)) & 0xfff;
     if (FUN_004db760()) {
         FUN_004d82c0((void*)res, FUN_004db7c0(), pad);
         res += pad;

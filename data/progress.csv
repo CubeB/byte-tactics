@@ -437,7 +437,7 @@ address,size,file,symbol,status,similarity
 0x420920,64,src/unsorted/0x420920.cpp,?FUN_00420920@@YAPAUSlot_00420920@@XZ,matched,100.0
 0x420960,193,src/unsorted/0x420960.cpp,?FUN_00420960@@YAXXZ,matched,100.0
 0x420a30,194,src/unsorted/0x420a30.cpp,?FUN_00420a30@@YGXPAUPos_00420a30@@PAUSrc_00420a30@@HH@Z,matched,100.0
-0x420b00,420,src/unsorted/0x420b00.cpp,?FUN_00420b00@@YGXPAX@Z,partial,58.2
+0x420b00,420,src/unsorted/0x420b00.cpp,?FUN_00420b00@@YGXPAX@Z,matched,100.0
 0x420cb0,99,src/unsorted/0x420cb0.cpp,?FUN_00420cb0@@YGPAUCalcedExplosion@@HHH@Z,matched,100.0
 0x420e50,224,src/unsorted/0x420e50.cpp,?FUN_00420e50@@YGXPAUUnit_00420e50@@@Z,matched,100.0
 0x420f30,536,src/unsorted/0x420f30.cpp,?FUN_00420f30@@YAXXZ,partial,76.6

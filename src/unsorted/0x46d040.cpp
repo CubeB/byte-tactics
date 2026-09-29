@@ -1,5 +1,5 @@
 // Decompiled by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
-// The map at +0x00 is the std::map<unsigned int, Value_0046d040> whose tree
+// The map at +0x00 is the std::map<unsigned int, Rect_0046e160> whose tree
 // header lives at 0x46f720 (written out by hand there as
 // Class_0046f720::FUN_0046f720). Because that file named the tree's _Init
 // Class_0046f720::FUN_0046f720, the member is a hand-written Class_0046f720
@@ -17,7 +17,7 @@
 #include <map>
 #include <vector>
 
-struct Value_0046d040 {                // the std::map's value, 0x10 bytes
+struct Rect_0046e160 {                // the std::map's value, 0x10 bytes
     int x;                             // +0x0
     int y;                             // +0x4
     short w;                           // +0x8
@@ -95,9 +95,9 @@ public:
 
     void FUN_0046f720();
 
-    Value_0046d040& operator[](unsigned int key)
+    Rect_0046e160& operator[](unsigned int key)
     {
-        return ((std::map<unsigned int, Value_0046d040>*)this)->operator[](key);
+        return ((std::map<unsigned int, Rect_0046e160>*)this)->operator[](key);
     }
 };
 
@@ -134,7 +134,7 @@ Class_0046d040::Class_0046d040(int param)
     sub2.first = 0;
     sub2.last = 0;
     {
-        Value_0046d040 v;
+        Rect_0046e160 v;
         for (unsigned short i = 1; i < g_game->count; i++) {
             unsigned int key = g_game->defs[i].key;
             v.x = key;

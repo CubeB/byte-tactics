@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // AI path search (the pathfinder object of 0x40df00, 0x40e630 and 0x40eb70):
 // expands one neighbour of the node `from`, stepping in the parent cell's
 // direction turned by `turn` (0..7). A new cell gets a node from the pool
@@ -18,13 +18,21 @@
 // <windows.h> and <ddraw.h> fix the order of from->g and n->penalty in
 // case 1's sum.
 //
-// Still differs: in case 0 the original stores the estimate h to its stack
-// slot (shared with Estimate's `a`) straight after _allshr and uses eax for
-// the cell pointer and the 16-bit steps arithmetic, loading `from` into edx
-// on both sides of the steps if/else. Ours keeps h in eax until d.f, which
-// shifts the registers of the whole case 0 block (flags in dl, from->g in
-// ebx, turn reloaded into ecx). Rewriting h's declaration, the flag test,
-// d.f's expression or the steps assignment did not change it.
+// Still differs (91.3%). Estimate must keep its body as `__int64 v =
+// (__int64)target->Func(x, y) * scale; return (int)(v >> 0x10);` with no
+// named `int a`: that is what makes the caller spill h to the stack after
+// _allshr (and the flags block then uses eax for the cell pointer, cl for the
+// byte, exactly as the original). The one remaining gap is the multiply
+// operand: the original spills `scale` into a named local and does
+// `imul dword ptr [esp+0x10]`, ours reads the member directly as
+// `imul dword ptr [ebp+0x50]`. That moves h to [esp+0x14] and r to
+// [esp+0x10] (swapped vs the original), which shifts the registers of the
+// steps/penalty block (ours cx/ecx, original ax/eax) and the vtable register
+// in the estimate call (ours eax, original edx). Adding a named
+// `int a = scale;` either spills the __int64 multiply (frame grows 0x18 ->
+// 0x1c, score 63.7%) or, in the caller, drops Estimate's inline site and
+// flips FUN_0040f000 from a call to an inline in Update's else.
+// Credit: the __int64-v Estimate body is the key to the h spill.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -240,8 +248,8 @@ public:
 
     int Estimate(int x, int y)
     {
-        int a = scale;
-        return (int)(((__int64)target->Func(x, y) * (__int64)a) >> 0x10);
+        __int64 v = (__int64)target->Func(x, y) * scale;
+        return (int)(v >> 0x10);
     }
 
     short Steps(NodeData_0040da70* from, int turn)

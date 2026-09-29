@@ -1,9 +1,9 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Recomputes a player's per-unit-type tables (the object built by 0x409160):
 // resizes the tables at +0x8d and +0x65 to the unit type count, then for each
 // unit type rates it into vec_8d[i] and the three bytes of vec_65[i].
 //
-// Best so far 88.1%: the code is the same length and every instruction
+// Best so far 99.6%: the code is the same length and every instruction
 // matches except the base/index order of two byte accesses to vec_8d:
 // the original has `mov [esi + ecx], al` (store) and `movsx eax, byte ptr
 // [eax + edx]` (the `(char)vec_8d[i] / 2` read), ours encodes [ecx + esi] and
@@ -14,6 +14,15 @@
 // division order also flips with the number of declarations in the file
 // (it goes wrong with the full class layout), so both are probably compiler
 // state from the rest of the original file.
+//
+// Retry (deepseek-v4.1-flash) left both bytes unchanged: headers.py --cpp
+// (768 sets) all 99.6%, N unused externs and N prototypes swept wide (0-3000)
+// produce only two score bands and the same two SIB lines, and rewriting the
+// accesses as begin()[i], *(begin()+i), operator[](i), data(), element struct,
+// (signed char) / (int) casts and reference bindings all leave the identical
+// two-line diff. A minimal function with a member vector reproduces the
+// swapped order only when a byte read feeds a signed /2, so the trigger is in
+// the expression's value path, not the access itself.
 //
 // Things that were needed to get here:
 // - MSVC 5's inline budget decides which STL calls stay out of line (the

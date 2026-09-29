@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Runs every 90 ticks over the units of this object's group: first gives each
@@ -9,7 +9,7 @@
 // from it when farther), the others to the base itself, or when within 0x140
 // of it, 0x140 onwards in its direction.
 //
-// Partial (75.1%): the control flow, the stack frame and most of both loops
+// Partial (83.5%): the control flow, the stack frame and most of both loops
 // match. What fixed parts of it:
 // - Length() takes a const reference to a temporary (pos - origin): only then
 //   are the three fild operands the temporary's own memory, with a stored 0
@@ -19,12 +19,20 @@
 // - <memory.h> gives the mapWidth-first load order in MapRange().
 // Still different:
 // - loop 1: registers are rotated: the original keeps the unit in ebp, `ok` in
-//   ebx and the range in edi (the iterator's register, spilled); here the unit
-//   is in edi, `ok` in ebp and the range in ebx.
+//   ebx and the iterator in edi (spilled); here the iterator is in esi (spilled
+//   around the idx load), the unit in edi and `ok` in ebp. Loop 2 is already
+//   right (it in edi, unit in esi), which shows the two loops allocate the unit
+//   independently, so the divergence is loop 1's own live ranges.
 // - loop 2: origin is copied to target with origin.y in edi, which the else
 //   branch reuses (here it is reloaded); scratch registers are rotated by one
 //   at the flag12 test; the Direction() results use ebx/ebp swapped; the first
 //   FixMul pushes its operands in the other order (s first).
+// Retry by deepseek-v4.1-flash: every source-level shuffle left the allocator
+// decision untouched (byte-identical output, all 83.5%), so loop 1's register
+// choice is not driven by statement order. Tried without effect: a
+// function-scope unit shared by both loops, a reference unit, a while loop,
+// pos/ok/idx declaration order, converting `ok` to declaration plus assignment,
+// and renaming loop 1's unit.
 // Tried without effect or worse: other header sets, the iterator as a pointer,
 // separate iterators per loop, a unit variable shared by both loops,
 // function-scope ok/idx/kind, `continue` chains instead of the && chain,

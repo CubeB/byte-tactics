@@ -1,15 +1,23 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 83.9%, 1342 of 1365 bytes. Full body transcribed, control flow and
-// call sequence match; remaining differences:
-//  - OpenSemaphoreA result compared with `cmp eax,ebx` in the original (zero
-//    lives in ebx from the start); ours emits `test eax,eax`.
-//  - DAT_0051f522 flag block: original does a 32-bit `not ecx` and seven
-//    single-bit `or al/ah` ops (looks like bitfield accesses on a 16-bit word),
-//    ours narrows to `not dl` and one `or edx,0x3f2`.
-//  - DAT_0051f410 bit-11 test: original `mov eax,[..]; shr eax,0xb; test al,1`,
-//    ours folds to `test ah,8`.
-//  - store scheduling in the DAT_0051f3xx block and register-name choices
-//    (eax/ecx/edx) in the inlined strcpy and RegSetValueExA tail.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// WinMain of Total Annihilation.
+// PARTIAL 86.6%, 1344 of 1365 bytes. Full body, control flow and call
+// sequence match. Remaining differences:
+//  - DAT_0051f522 is a bitfield union and DAT_0051f410 is an `int` bitfield
+//    tested in place at bit 11 (both now match their shapes).
+//  - The seven single-bit sets of bits 1,4,5,6,7,8,9 fold into one
+//    `or edx, 0x3f2`; the original keeps seven `or al/ah, K` ops. Declaring
+//    the fields `unsigned char` stops the fold and lands within one byte of
+//    the original size (1364) but puts bits 8 and 9 in a second byte
+//    register (`or cl, 1` / `or cl, 2`) instead of `or ah, 1` / `or ah, 2`,
+//    so the 16-bit allocation unit has to win and the fold has to lose.
+//  - OpenSemaphoreA and FUN_004b5980 results are compared with a named zero
+//    local (`cmp eax, ebx`) in the original; a named `int lzero = 0` still
+//    emits `test eax, eax`, so the original must reach its zero by a route
+//    this model does not reproduce yet.
+//  - Everything else still differing is register naming and store
+//    scheduling inside the DAT_0051f3xx block, the inlined strcpy and the
+//    RegSetValueExA tail, plus the branch targets that follow from the 21
+//    missing bytes above.
 #include <new>
 #include <string.h>
 #include <stdlib.h>
@@ -92,7 +100,6 @@ extern int DAT_0051f32c;
 extern int DAT_0051f334;
 extern int DAT_0051f51a;
 extern int DAT_0051f51e;
-extern unsigned short DAT_0051f522;
 extern int DAT_0051fb48;
 extern char DAT_0051fb50[];
 extern char DAT_005119b8[];
@@ -100,7 +107,44 @@ extern int DAT_0051f400;
 extern int DAT_0051fb90;
 extern int DAT_00509720;
 extern DWORD DAT_0051fb94;
-extern int DAT_0051f410;
+
+union Word_0051f522 {
+    unsigned short value;
+    struct {
+        unsigned short b0 : 1;
+        unsigned short b1 : 1;
+        unsigned short b2 : 1;
+        unsigned short b3 : 1;
+        unsigned short b4 : 1;
+        unsigned short b5 : 1;
+        unsigned short b6 : 1;
+        unsigned short b7 : 1;
+        unsigned short b8 : 1;
+        unsigned short b9 : 1;
+        unsigned short spare : 6;
+    } bits;
+};
+extern Word_0051f522 DAT_0051f522;
+
+union Dword_0051f410 {
+    int value;
+    struct {
+        unsigned b0 : 1;
+        unsigned b1 : 1;
+        unsigned b2 : 1;
+        unsigned b3 : 1;
+        unsigned b4 : 1;
+        unsigned b5 : 1;
+        unsigned b6 : 1;
+        unsigned b7 : 1;
+        unsigned b8 : 1;
+        unsigned b9 : 1;
+        unsigned b10 : 1;
+        unsigned b11 : 1;
+        unsigned spare : 20;
+    } bits;
+};
+extern Dword_0051f410 DAT_0051f410;
 
 extern const char DAT_005097f4[];
 extern const char DAT_005097e8[];
@@ -144,6 +188,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     MSG msg;
     char buf40[0x34];
     char buf74[0x32];
+    int lzero = 0;
 
     (void)hPrevInstance;
 
@@ -154,23 +199,29 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         atexit(FUN_0049ed90);
     }
     FUN_0041d920();
-    if (OpenSemaphoreA(0x1f0003, FALSE, DAT_0050971c) != NULL)
+    if (OpenSemaphoreA(0x1f0003, lzero, DAT_0050971c) != (HANDLE)lzero)
         return -1;
     CreateSemaphoreA(NULL, 1, 1, DAT_0050971c);
-    srand(time(NULL));
+    srand(time(0));
     if (FUN_0049ee30(lpCmdLine, DAT_0050971c) == 0)
         return 1;
     FUN_004b52e0(&DAT_0051f320);
     DAT_0051f51a = 0x280;
+    DAT_0051f522.bits.b0 = DAT_0051f522.bits.b0 ^ ~DAT_0051fb48;
+    DAT_0051f522.bits.b1 = 1;
+    DAT_0051f522.bits.b8 = 1;
+    DAT_0051f522.bits.b4 = 1;
+    DAT_0051f522.bits.b9 = 1;
+    DAT_0051f522.bits.b5 = 1;
     DAT_0051f51e = 0x1e0;
+    DAT_0051f522.bits.b6 = 1;
     DAT_0051f324 = nCmdShow;
-    DAT_0051f522 ^= (~DAT_0051fb48) & 1;
-    DAT_0051f522 |= 0x3f2;
+    DAT_0051f522.bits.b7 = 1;
     DAT_0051f328 = (int)DAT_00509718;
     DAT_0051f320 = (int)hInstance;
     DAT_0051f32c = (int)DAT_0050971c;
     DAT_0051f334 = 0;
-    if (FUN_004b5980(&DAT_0051f320) == 0)
+    if (FUN_004b5980(&DAT_0051f320) == lzero)
         return 0;
     FUN_004b62d0(0x1e);
     FUN_0041d4c0();
@@ -211,12 +262,12 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     for (;;) {
         for (;;) {
-            if (DAT_0051f400 == 0 && *(int*)g_game->field_10 != 0) {
+            if (DAT_0051f400 == lzero && *(int*)g_game->field_10 != 0) {
                 FUN_00490f80();
                 DAT_0051fb90 = ((Class_004ce680*)g_game->field_10)->FUN_004ce680();
                 ((Class_004ce410*)g_game->field_10)->FUN_004ce410();
                 DAT_00509720 = 1;
-            } else if (DAT_0051f400 != 0 && *(int*)g_game->field_10 == 0
+            } else if (DAT_0051f400 != lzero && *(int*)g_game->field_10 == 0
                        && DAT_00509720 != 0) {
                 ((Class_004ce260*)g_game->field_10)->FUN_004ce260();
                 ((Class_004cd9d0*)g_game->field_10)->FUN_004cd9d0(FUN_00490fe0);
@@ -245,7 +296,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessageA(&msg);
     }
 
-    if ((DAT_0051f410 >> 0xb) & 1) {
+    if (DAT_0051f410.bits.b11) {
         FUN_004c2cc0();
         FUN_004916a0();
     }

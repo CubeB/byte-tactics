@@ -1,6 +1,15 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, best 20.8% (2160 original bytes, 1836 ours) after 1 scoring run.
-// Timebox hit; this is a structural transcription, not a finished match.
+// PARTIAL, gave up: best 21.1% (2160 original bytes, 1839 ours) after 2 scoring
+// runs (20.8 baseline, then <windows.h> plus the surface/fallback split below).
+// Timebox (900 s) hit; this is a structural transcription, not a finished match.
+//
+// Second pass by deepseek-v4.1-flash found the original's early block is
+// `void* surface = holder->surface; if (!surface) surface = obj->fallback;
+//  if (!surface) { if (!(holder->flags10 & 0x80)) FUN_004b0230(...); }
+//  else FUN_004c6d20(...);`
+// which reproduces the otherwise dead `test eax,eax / je` at 0x4a1bee (eax is
+// provably 0 there). It is worth only +0.1%; the match is blocked by the
+// register rotation across the whole function (below), not by this block.
 //
 // Draws one GUI entry (0x15b stride) of a dialog panel. Two mutually exclusive
 // renderers:
@@ -35,6 +44,7 @@
 //  - The scan loop and the text-line loop follow the disassembly closely and
 //    are the place to start; the first ~40 instructions are 1:1 except for
 //    the ebp/esi swap noted above.
+#include <windows.h>
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -170,7 +180,9 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     int bottom = me->h + top - 1;
 
     void* surface = param_1->holder->surface;
-    if (surface == 0 && param_1->fallback == 0) {
+    if (surface == 0)
+        surface = param_1->fallback;
+    if (surface == 0) {
         if (!(param_1->holder->field_10 & 0x80))
             FUN_004b0230(param_1, param_2, 0);
     } else {

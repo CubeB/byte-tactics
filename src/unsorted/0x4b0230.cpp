@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial). Names are provisional.
+// Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial), deepseek-v4.1-flash (partial). Names are provisional.
 // Draws a list box's frame. FUN_004a15c0 gives the entry's rectangle; when no
 // bitmap arrives, the "Listbox" piece is looked up in the object's GAF and, if
 // found, the rectangle is grown by 3 on every side. The destination is the
@@ -69,6 +69,20 @@
 //    extra `cell->step_x` reference in the tile loop flipped it too, which is
 //    the same weight tie). 74% to 82%. A random search over declaration order
 //    plus the order of the six statements before the y loop tops out at 83%.
+//
+// Third pass (deepseek-v4.1-flash, #1369): confirmed the tie is NOT reachable
+// by statement/declaration order. Restructuring so BOTH extents are computed
+// after the if/else does put rect.x0 in esi (the missing half), but the
+// allocator then loads hv (sub->height) BEFORE index and gives hv edx, while
+// the original gives index edx and hv ecx, so it drops to 76.7% (both extents
+// after the branch, H then W) or 74.6% (index test before h, which gets index
+// into edx but hoists y0 into edi and keeps sub in eax). Writing the x0/y0
+// select as ternaries scores 67.8%, a separate loop-counter local is identical
+// to reusing index, an `int cond = index;` copy is folded away, and swapping
+// the if arm order costs 1.7 points. The root cause is the emitted order of
+// the `index` and `hv` loads (index, hv, 0 in the original; hv, index, 0 when
+// both extents follow the branch), which no source reordering tested here
+// changes. Kept the 82.9% version.
 struct Rect_004b0230 {
     int x0;                          // +0x0
     int y0;                          // +0x4

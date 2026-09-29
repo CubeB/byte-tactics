@@ -87,6 +87,24 @@
 // result-first, _Ucopy(result, first, last), which lands on EXACTLY 936 bytes
 // (67.1%, 239 diff lines against this file's 230), so the declaration order of
 // _Ucopy is a live axis, but it is not by itself the answer.
+//
+// deepseek-v4.1-flash pass (#1455): the whole first hunk up to 0x46ec58 (the
+// operator new call) can be matched, store and product register included, by
+// routing the allocation through a member function. A 4-byte nested
+// `struct allocator_type { char _pad[4]; Packet* allocate(size_type, const
+// void*); }` as the +0 member, with allocate inlining the `if (_N < 0) _N = 0;`
+// clamp and `::operator new(_N * 14)`, makes MSVC emit
+// `mov [esp+0x20],eax` (the _M argument home) and the product in edx, and the
+// first _Ucopy then advances the SOURCE by 0xe. build/scratch/0x46eba0/v1.cpp
+// (identical with a free static _Allocate helper) is 944 bytes / 67.1%:
+// everything through 0x46ec72 matches, but the reload of _P after new lands in
+// ebp where the original uses esi and _S lands in esi where the original uses
+// edx, shifting every later register and adding 8 bytes. Calling the free
+// _Allocate directly without the 4-byte allocator member (v2.cpp, 933 bytes /
+// 67.0%) loses the match: the store goes to a fresh [esp+0x14] and the source
+// step is back to `inc eax`. So the allocator member is what forces the arg2
+// home; the remaining problem is downstream register allocation in the realloc
+// path, not the early expression shape.
 #include <memory>
 #include <xutility>
 

@@ -1,4 +1,4 @@
-// Decompiled by GPT-6. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14223];
@@ -74,6 +74,16 @@ Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
 //   list, c plus field_38 as one member struct (stores fold, no lea), self
 //   assignments (removed entirely), every header set (tools/headers.py) and
 //   the RTM compiler all keep c's copy before field_38 or lose the lea.
+//
+// Notes from deepseek-v4.1-flash (2026-09-29): all remaining candidates were
+// compiled with tools/wcl and inspected. c assigned in the body (with or
+// without a named temporary), through `Vec3* pc = &c`, through a
+// `(char*)this + offset` pointer, and through an inline helper taking
+// `Vec3*` all still emit the first c store as `mov [esi+0x2c], ebx`, and the
+// field_38/vtable stores move to before the g_game loads instead of between
+// the lea and the stores. Written-order init lists (`field_38(0), c(g_game)`)
+// are normalised back to declaration order. All 128 header sets from
+// tools/headers.py score 95.5%. Not reproducible from source in the timebox.
 // FUNCTION: 0x407d40
 Class_00407d40::Class_00407d40(Class_00408cb0* p, void* q)
     : Class_00407350(p, q), a(g_game), b(g_game), c(g_game), field_38(0)

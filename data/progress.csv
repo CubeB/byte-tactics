@@ -900,9 +900,9 @@ address,size,file,symbol,status,similarity
 0x447150,552,src/unsorted/0x447150.cpp,?FUN_00447150@@YGXPAUGadget_00447150@@@Z,matched,100.0
 0x447380,1318,src/unsorted/0x447380.cpp,?FUN_00447380@@YGXH@Z,partial,92.7
 0x4478b0,607,src/unsorted/0x4478b0.cpp,?FUN_004478b0@@YAXXZ,matched,100.0
-0x447b10,4306,src/unsorted/0x447b10.cpp,?FUN_00447b10@@YGXPAUEvent@@@Z,partial,6.4
+0x447b10,4306,src/unsorted/0x447b10.cpp,?FUN_00447b10@@YGXPAE@Z,partial,35.4
 0x448bf0,119,src/unsorted/0x448bf0.cpp,?FUN_00448bf0@@YGXH@Z,matched,100.0
-0x448c70,3902,src/unsorted/0x448c70.cpp,?FUN_00448c70@@YAXXZ,partial,13.2
+0x448c70,3902,src/unsorted/0x448c70.cpp,?FUN_00448c70@@YAXXZ,partial,42.6
 0x449bb0,2756,src/unsorted/0x449bb0.cpp,?FUN_00449bb0@@YAXXZ,partial,60.5
 0x44a680,2340,src/unsorted/0x44a680.cpp,?FUN_0044a680@@YAXXZ,partial,74.0
 0x44afb0,104,src/unsorted/0x44afb0.cpp,?FUN_0044afb0@@YGXPAUObj_44afb0@@@Z,matched,100.0

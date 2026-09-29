@@ -1,11 +1,14 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 79.7%: 1011 of 1015 bytes, control flow and all bodies match. What
-// still differs is register encoding only:
-//  - the char-insert default block: our `if (width > entry->w - 4)` loads the
-//    entry into eax, so the later capacity read is missing the original's
-//    `mov eax, ecx` (2 bytes shorter);
-//  - every `text[i]` store compiles to base=index `[eax+ebp]` instead of the
-//    original `[ebp+eax]`, one byte shorter at disp 0 (three loops).
+// PARTIAL 93.7%: all bytes match except the order of the two
+// FUN_004a5030 calls in the char-insert default case. The original emits
+// `push ebp; call FUN(text); ...; call FUN(c)`, ours emits FUN(c) first.
+// The char-insert block's `mov eax, ecx` (entry held in ecx, w in edx) only
+// appears when the width is one combined expression `FUN(text) + FUN(c)`;
+// splitting it into two statements restores the call order but flips the
+// insert block to entry-in-eax, which costs more bytes.
+// The char-insert `int i;` local is declared before `char* text` so MSVC
+// makes the subscript the addressing-mode index, giving the original
+// `[ebp+eax]` instead of `[eax+ebp]` in the copy loops.
 // The entry struct must be padded to 0x15b bytes or MSVC scales the index by
 // 0x13a (compiler uses sizeof(Entry)).
 //
@@ -57,6 +60,7 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
 {
     Holder_004ab720* holder = control->holder;
     Entry_004ab720* entry = &holder->entries[index];
+    int i;
     char* text = entry->text;
     int changed = 0;
     int last = 0;
@@ -79,7 +83,7 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
                 if (control->cursor != 0) {
                     control->cursor--;
                     int n = strlen(text);
-                    for (int i = control->cursor; i < n - 1; i++)
+                    for (i = control->cursor; i < n - 1; i++)
                         text[i] = text[i + 1];
                     text[n - 1] = 0;
                 }
@@ -95,7 +99,7 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
             case 0xef:
                 if (len != 0 && control->cursor < len) {
                     int n = strlen(text);
-                    for (int i = control->cursor; i < n - 1; i++)
+                    for (i = control->cursor; i < n - 1; i++)
                         text[i] = text[i + 1];
                     text[n - 1] = 0;
                 }
@@ -110,10 +114,7 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
                         if (size != 0) {
                             char* src = (char*)GlobalLock(hMem);
                             memset(text, 0, 0x80);
-                            int n = entry->capacity - 1;
-                            if ((int)size < n)
-                                n = size;
-                            memcpy(text, src, n);
+                            memcpy(text, src, (int)size < entry->capacity - 1 ? (int)size : entry->capacity - 1);
                             int width = FUN_004a5030(text);
                             while (width > entry->w) {
                                 if (strlen(text) == 0)
@@ -142,12 +143,11 @@ int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)
                 char c[2];
                 c[0] = (char)key;
                 c[1] = 0;
-                int width = FUN_004a5030(text);
-                width += FUN_004a5030(c);
+                int width = FUN_004a5030(text) + FUN_004a5030(c);
                 if (width > entry->w - 4)
                     break;
                 int n = entry->capacity - 1;
-                for (int i = n; i > control->cursor; i--)
+                for (i = n; i > control->cursor; i--)
                     text[i] = text[i - 1];
                 text[control->cursor] = (char)key;
                 control->cursor++;

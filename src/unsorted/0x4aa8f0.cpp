@@ -14,6 +14,24 @@
 // uninitialised [esp+0x10] at 0x4aac09 / 0x4aac2d and [alloc+4] (zeroed by
 // the memset) at 0x4aaab9. Our frame is also 4 bytes larger (add esp,0x220
 // vs 0x21c). The entry memcpy and the tail are present but unverified.
+//
+// Confirmed local slot map (relative to esp after the four register pushes,
+// i.e. esp = E-0x22c where E is the entry esp):
+//   original: layer [esp+0x10], ret [esp+0x14], mask/alloc [esp+0x18],
+//             rect [esp+0x1c], layerName [esp+0x2c], guiName [esp+0x12c].
+//             Only THREE dwords precede rect, so `entry` has no stack home:
+//             the original keeps it in ebp (xor ebp,ebp at 0x4aa900) and keeps
+//             `flags` in ebx. mask and the malloc pointer share slot 0x18
+//             (mask is dead on the alloc path, so MSVC colours them together).
+//   ours:     layer [esp+0x10], base/i [esp+0x14], n/dst [esp+0x18],
+//             ret [esp+0x1c], rect [esp+0x20], layerName [esp+0x30],
+//             guiName [esp+0x130].
+// The blocker is that our loop temporaries (base, n, i) get stack homes at
+// 0x14/0x18 and push ret to 0x1c, making the frame 0x220. Removing the `mask`
+// local by writing (flags & 0x200) inline did NOT change the frame or the
+// score (still 32.7%), so the extra dword is one of the loop temporaries.
+// The original's prologue also loads `flags` into eax BEFORE saving registers
+// (mov eax,[esp+0x228]; test ah,8) and uses `xor ebp,ebp` for entry = 0.
 #include <string.h>
 
 #pragma pack(push, 1)

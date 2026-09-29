@@ -2305,7 +2305,7 @@ address,size,file,symbol,status,similarity
 0x4ac170,389,src/unsorted/0x4ac170.cpp,?FUN_004ac170@@YGHPAUMenu_004ac170@@PBD111@Z,matched,100.0
 0x4ac300,56,src/unsorted/0x4ac300.cpp,?FUN_004ac300@@YGXPAUObj_4ac300@@@Z,matched,100.0
 0x4ac340,373,src/unsorted/0x4ac340.cpp,?FUN_004ac340@@YGHPAUSub_004ac340@@PAD111H@Z,matched,100.0
-0x4ac4c0,325,src/unsorted/0x4ac4c0.cpp,?FUN_004ac4c0@@YGPADPAUMenu_004ac4c0@@PADHH@Z,partial,72.4
+0x4ac4c0,325,src/unsorted/0x4ac4c0.cpp,?FUN_004ac4c0@@YGPADPAUMenu_004ac4c0@@PADHH@Z,partial,83.1
 0x4ac610,252,src/unsorted/0x4ac610.cpp,?FUN_004ac610@@YGXPAUClass_004ac610@@PAEHHH@Z,matched,100.0
 0x4ac710,179,src/unsorted/0x4ac710.cpp,?FUN_004ac710@@YGXPAUPalEntry_004ac710@@0PAE@Z,matched,100.0
 0x4ac7d0,207,src/unsorted/0x4ac7d0.cpp,?FUN_004ac7d0@@YGXPAUPalette_004ac7d0@@PAUPalEntry_004ac7d0@@1@Z,matched,100.0

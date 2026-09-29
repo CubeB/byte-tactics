@@ -33,6 +33,9 @@ ln -sfn "$ROOT/toolchain" "$DIR/toolchain"
 mkdir -p "$DIR/orig" "$DIR/build"
 ln -sf "$ROOT/orig/TotalA.exe" "$DIR/orig/TotalA.exe"
 [ -d "$ROOT/build/ghidra" ] && ln -sfn "$ROOT/build/ghidra" "$DIR/build/ghidra"
+# Start from the main checkout's compile cache: its keys hash each file's
+# contents, so only the files this PR changes are compiled again.
+[ -d "$ROOT/build/progress" ] && [ ! -d "$DIR/build/progress" ] && cp -r "$ROOT/build/progress" "$DIR/build/"
 
 cd "$DIR"
 changed=$(git diff --name-only "$(git merge-base "pr-$PR" origin/main)" "pr-$PR")

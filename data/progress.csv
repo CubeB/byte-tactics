@@ -1333,8 +1333,8 @@ address,size,file,symbol,status,similarity
 0x46c8c0,3,src/unsorted/0x46c8c0.cpp,?FUN_0046c8c0@@YGXH@Z,matched,100.0
 0x46c8d0,1,src/unsorted/0x46c8d0.cpp,?FUN_0046c8d0@@YAXXZ,matched,100.0
 0x46c8e0,58,src/unsorted/0x46c8e0.cpp,?FUN_0046c8e0@@YGXH@Z,matched,100.0
-0x46c920,317,src/unsorted/0x46c920.cpp,?FUN_0046c920@@YAXXZ,partial,94.2
-0x46ca60,381,src/unsorted/0x46ca60.cpp,?FUN_0046ca60@@YAXXZ,partial,95.1
+0x46c920,317,src/unsorted/0x46c920.cpp,?FUN_0046c920@@YIXXZ,matched,100.0
+0x46ca60,381,src/unsorted/0x46ca60.cpp,?FUN_0046ca60@@YIXXZ,matched,100.0
 0x46cbe0,47,src/unsorted/0x46cbe0.cpp,??0Class_0046cbe0@@QAE@XZ,matched,100.0
 0x46cc10,678,src/unsorted/0x46cc10.cpp,?FUN_0046cc10@Class_0046cc10@@QAEXPAUElem_0046faf0@@0@Z,matched,100.0
 0x46cec0,33,src/unsorted/0x46cec0.cpp,?FUN_0046cec0@Class_0046cec0@@QAEXIPAX@Z,matched,100.0

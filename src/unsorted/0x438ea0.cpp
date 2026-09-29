@@ -1,4 +1,17 @@
-// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// wall: callee-saved register rotation. The original holds pos in edi and rad in
+// ebx; we get pos in ebx and rad in edi, plus the i = 0 store sinks past the
+// guard and materialises two fresh zeros for x2/y2. deepseek-v4.1-flash checked
+// all four levers: (1) the argument list, callers' pushes and every callee ret N
+// re-verified correct; (2) no inherited "original bug" survives re-derivation
+// (the n < 0 path's loads from the counter slot are a known-zero rematerialisation,
+// not a bug); (3) headers.py swept all 768 header sets, best is the current
+// 54.0%; (4) grepping orig/TotalA.exe for the raw bytes of the construct
+// (loop head 8B5C24185355 and the n<0 double load 8B74244C8B5C244C) finds exactly
+// one hit each, this function, so there is no sibling to copy. 14 more targeted
+// respellings (rad/step/index order and scope, unsigned rad/step/angle, a local
+// pos copy, x2/y2 declaration moves, radius*0x10000) all scored 45.0% to 54.0%,
+// none above the current 54.0%. Stop.
 // PARTIAL, 54.0% (500 of 505 bytes; was 38.2% at hand-off). Up from 38.2% by
 // five things, all confirmed by check.py, so do not re-sweep any of them:
 //   a. `i = 0;` must be a STATEMENT after `int n = ...`, not an initialiser

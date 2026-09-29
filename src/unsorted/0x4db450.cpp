@@ -19,11 +19,28 @@
 //                original reuses ONE slot for all four roles.
 //   - esp0-0x10  the begin() out slot (0x4db525, 0x4db539), then the second
 //                erase's hidden return slot (0x4db58a).
-//   - esp0-0x0c  the third erase's hidden return slot, used once (0x4db5d3).
+//   - esp0-0x0c  NOTHING: the one dword of this five-dword frame that the
+//     original never touches (see the correction below).
 //   - esp0-0x08  p.offset, esp0-0x04 p.length: `p` is one 8-byte Pair.
-// So the original has FIVE homes and NO separate spill slot for `this`; this
+// So the original has FOUR homes and NO separate spill slot for `this`; this
 // file has four homes plus a real spill slot at esp0-0x0c. Getting the spill to
 // land on the top slot is the whole remaining problem.
+// CORRECTION to the slot list above (re-derived from the operand bytes: the
+// "third erase" line was wrong). 0x4db5d3's `lea ecx,[esp+0x18]` is not
+// esp0-0x0c. It has the same single outstanding argument push as 0x4db58a's
+// `lea eax,[esp+0x18]`, so both are the same absolute slot, esp0-0x10, the
+// begin() out slot: BOTH erase temporaries share the one begin() slot, and
+// esp0-0x0c is not referenced by any instruction at all. Counting the pushes
+// again for every [esp+N] of the original: disp 0x10 with 4 pushes = esp0-0x14,
+// 0x14 = esp0-0x10, 0x18 with 1 push = esp0-0x10, 0x1c = esp0-0x08, 0x20 =
+// esp0-0x04, 0x28 with 4 pushes = esp0+0x04 (the argument, `size` then `it`),
+// 0x2c with 5 pushes = esp0+0x04. The frame is therefore one dword WIDER than
+// the four homes it uses, which is why `sub esp,0x14` must not be read as "five
+// homes". The whole residual is one allocation state: the original lays the
+// 4-byte homes out as [this-spill + _Ubound result][begin() out + both erase
+// temps][slack] and reuses the spilled `this` slot for the _Ubound result,
+// while this file lays them out as [begin() out + erase temp 1][_Ubound result
+// + erase temp 2][this spill] and gives the spill a dword of its own.
 // Tried and did NOT work (all scored by check.py --sym, all 92.9% or worse):
 //   * permuting the declaration order of `n`, `it2`, `base` and `p` (all 24
 //     orders, with and without the operand swap): no effect at all, so the
@@ -51,6 +68,27 @@
 //     `total` to +0x14: 81.8%;
 //   * a real named local for `it` instead of the parameter-slot alias: 81.8%,
 //     so the alias onto the dead `size` slot is load bearing.
+// Added by space-bunny-free, all 92.9% and 444 of 444 bytes unless stated, so
+// the slot order here is inert to everything a reader would try next:
+//   * the two 4-byte homes are also inert to the LOCAL NAMES. Renaming `n`/`it2`
+//     to aaa/zzz, to zzz/aaa and to q1/q2, declarations and code otherwise
+//     untouched, gives three byte-identical objects. Together with the 24
+//     declaration orders above this rules out both "declaration order" and
+//     "symbol name" as the driver, so the layout is not a hash or source order
+//     effect that a rename or a reorder can reach;
+//   * `base` as a `char*` instead of an `unsigned int`, with
+//     `(unsigned int)(base + len) <= 0x80000000u` and a plain `VirtualFree(base,
+//     ...)`: still `lea edx,[esi + eax]`, so the SIB base/index choice for the
+//     one `lea` difference is NOT driven by the operand being pointer
+//     arithmetic rather than integer addition. This is the natural next guess
+//     for that single instruction and it is wrong;
+//   * the two calls declared as the real STL shapes (the lower_bound returning
+//     the iterator by value into `n`: 55.4% and 438 bytes, it deletes the
+//     `total += len` store; the begin() returning the iterator by value, with
+//     `it2 = *f(&it2)`: 84.1% and 446 bytes, the copy is NOT elided, MSVC emits
+//     the extra store and reorders `total += len` ahead of it). Both are worse
+//     than the explicit out-parameter calls, so the out-parameter spelling in
+//     this file is the right one, not an accident.
 // Grows the allocator: reserves a block of at least `size` bytes with
 // VirtualAlloc (rounded up to 8k, and doubled so the block has room to grow),
 // retrying with half the size while the reservation lands above 2Gb, and then

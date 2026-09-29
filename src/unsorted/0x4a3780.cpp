@@ -37,6 +37,28 @@
 // the loop bound into `last` (26.5%, it changes the latch); flags at function scope
 // (folded away, no slot); declaring every local at the top of the function
 // (no change); spelling the vertical test as `point.y - y0 > y1 - y0` (28.0%).
+// RETRY 2 (deepseek-v4.1-flash), 34.9% -> 38.6%:
+//   - deleted the `int cnt = entries[0].count;` local and reloaded
+//     `entries[0].count` at the two loop bounds and the post-loop
+//     `i == ...` test. The original really does reload it (0x4a3848,
+//     0x4a38b4, 0x4a3c02 all do movsx/mov word [edx+0xb6]), so hoisting was a
+//     regression. Worth +3.3.
+//   - deleted the fake `if (point.x == 0x7fffffff && point.x == 0x7fffffff)`
+//     line in the FUN_004ab570 arm; the original has no branch there. +0.4.
+//   - deleting the fake `if (remain == 0x7fffffff)` line in the row walk was
+//     worse; keep that one.
+//   - rewriting the first search loop as an explicit `Entry* walk` pointer
+//     walk was worse (35.5): the original uses the index form and lets the
+//     allocator strength-reduce.
+// Now ours is 1824 bytes, frame 0x34 against the original 0x3c (2 slots short).
+// The original's 15 FPO local dwords are 0x10 orig_sel, 0x14 entries, 0x18 n
+// then span, 0x1c step then flag8, 0x20 flags, 0x24 x0, 0x28 UNUSED (never
+// referenced anywhere), 0x2c x1, 0x30 y1, 0x34..0x4b point. Ours is 8 lower
+// and shifted (x0 0x14, y1 0x18, x1 0x1c, entries 0x20, n 0x24, walk spill
+// 0x28, point.x 0x2c, point.y 0x30) and still spills the search walk pointer
+// to 0x28 every iteration. Recovering the frame means materialising two more
+// memory locals (the original keeps y0 in ebx yet still has that dead 0x28
+// slot), which is the next thing to chase.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -146,8 +168,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     point.x -= entries[0].field_13;
     point.y -= entries[0].field_15;
     int i;
-    int cnt = entries[0].count;
-    for (i = 1; i < cnt + 1; i++) {
+    for (i = 1; i < entries[0].count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == me->group) {
                 FUN_004c1420(entries[i].field_d6);
@@ -156,7 +177,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
             n++;
         }
     }
-    if (i == cnt + 1)
+    if (i == entries[0].count + 1)
         FUN_004c1420(DAT_0051fba4->current);
 
     int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
@@ -172,7 +193,6 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     if (FUN_004ab570(obj, 1)) {
         if (point.x < x0 || point.x > x1 || point.y < y0 || point.y > y1)
             goto after;
-        if (point.x == 0x7fffffff && point.x == 0x7fffffff) goto after;
         if (me->field_c0 != 0) {
             if (!(me->flags & 0x200))
                 return 1;
@@ -239,7 +259,7 @@ after:
                     if (strncmp(DAT_00502a20, s, 2) == 0)
                         me->field_ba = orig_sel;
                 }
-                for (i = 1; i <= cnt; i++) {
+                for (i = 1; i <= entries[0].count; i++) {
                     Entry_004a3780* e = &entries[i];
                     if (e->type == 2 && e->kind == me->kind) {
                         short v = e->field_c0;

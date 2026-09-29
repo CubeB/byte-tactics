@@ -3940,9 +3940,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x4876c0,1062,,#1005,assigned,,,issue #1005
 0x487bf0,1811,,#1005,assigned,,,issue #1005
 0x48e010,2542,,#1005,assigned,,,issue #1005
-0x491200,1174,,#1006,assigned,,,issue #1006
-0x491ec0,1124,,#1006,assigned,,,issue #1006
-0x492360,1964,,#1006,assigned,,,issue #1006
+0x491200,1174,deepseek-v4.1-flash,#1006,partial,99.6,,issue #1006
+0x491ec0,1124,deepseek-v4.1-flash,#1006,partial,86.4,,issue #1006
+0x492360,1964,deepseek-v4.1-flash,#1006,partial,79.0,,issue #1006
 0x493bf0,1116,,#1007,assigned,,,issue #1007
 0x4942e0,1113,,#1007,assigned,,,issue #1007
 0x4948e0,1418,,#1007,assigned,,,issue #1007
@@ -4354,3 +4354,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x47d2e0,1339,,#1426,assigned,,,"issue #1426, escalated"
 0x481930,1052,,#1426,assigned,,,"issue #1426, escalated"
 0x482c20,1519,,#1426,assigned,,,"issue #1426, escalated"
+0x491200,1174,,#1428,assigned,,,"issue #1428, escalated"
+0x491ec0,1124,,#1428,assigned,,,"issue #1428, escalated"
+0x492360,1964,,#1428,assigned,,,"issue #1428, escalated"

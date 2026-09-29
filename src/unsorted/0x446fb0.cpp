@@ -1,36 +1,57 @@
-// Decompiled by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash. Names are provisional.
-// PARTIAL (best 28.8%, 373 of 414 bytes). Rebuilds the ally GUI list: for the
-// local player it scans all 10 player slots and adds a "LIVEALLY%d" entry
+// Decompiled by deepseek-v4.1-flash, finished by DeepSeek V4.1 Flash, finished by LongCat 2.5 Preview Free. Names are provisional.
+// PARTIAL (best 51.6%, 385 of 414 bytes). Rebuilds the ally GUI list: for the
+// local player it scans all 10 player slots and adds a LIVEALLY%d entry
 // (value = two bytes from the local player's arrays at +0x108/+0x113) for each
 // live ally.
 //
-// The control flow is now understood exactly. The original is:
-//   * the first test of IsAlly (active, flag_9b & 0x40) is pulled out and
-//     duplicated at the top of the loop body (0x447004..0x447021),
-//   * IsAlly is then inlined IN FULL with all seven tests, and the redundant
-//     trailing `field_144 == 0 && field_140 != 0` pair (the one whose result
-//     was already computed at 0x44706a) is dead-code eliminated at 0x447094,
-//   * then IsLive is inlined with the body offset by its own `active` test,
-//     which is DCE'd as well (0x4470b9 starts at `type`).
-// My v5 plain form above lowers to that shape and matches everything except:
-//  * the two DCE'd tests cannot be suppressed: MSVC 5 keeps them (0x447094's
-//    `test ecx,ecx`, 0x4470b9's `cmp byte [..+0x1ca9],0xa` which it also
-//    reloads). The register is provably nonzero there; the optimizer never
-//    propagated the earlier load across the sprintf/other blocks.
-//  * the body's loop entry test is a single fused null check, not the
-//    active-in-eax plus memory-operand form the original uses; putting the
-//    index into its own statement (v7) does not change it either.
-//  * hence the loop is missing 9 instructions (27 bytes) and the register
-//    allocation differs: the original holds g_game in eax, the local player
-//    aliases in ebp/ebx and the index in edi; mine uses ecx/ebp plus two
-//    stack slots.
-//  * my stack frame is already 0x34 (text[44], buffer at esp+0x18 vs esp+0x10).
+// The control flow is now right, the prologue, the loop body, the value
+// computation and the loop back edge all match. What is left:
+//  * the original holds g_game in eax, the byte-offset induction variable in
+//    esi, the index in edi and the two name-array pointers in ebp (field_108)
+//    and ebx (field_113). We hold g_game in ecx and get ebp/ebx the other way
+//    round, so every `mov al,[type] / cmp al` should be `mov cl` / `cmp cl`,
+//    `xor eax,eax / mov al,[localPlayer]` should be ecx, and the three loads
+//    into eax at the loop head should be ecx.
+//  * the original still tests `players[i].active != 0` a second time inside
+//    IsAlly (0x447027) and again at the head of IsLive (0x447094); MSVC 5
+//    merges all three of ours into the single test at the loop head.
 //
-// Tried and rejected (all produce byte-identical code to the plain form, so
-// the exact source spelling does not matter): separate __inline helpers per
-// test, a single big && chain, `continue` chains, a do/while with the body
-// separated from the guard, binding the local player aliases as struct fields
-// instead of pointers, `!`-negated tests, tests ordinary-if and negated.
+// Source shape that matters (all measured, variants in build/scratch/0x446fb0):
+//  * `for (i = 0; i < 10; ++i, ++a, ++b)` with `(*b << 1) | *a` in the body, not
+//    `a[i]` / `b[i]`. That is what produces the two register induction
+//    variables incremented at the back edge and the `mov cl,[ebx] / mov dl,
+//    [ebp]` pair; indexing produces one base plus an 11-byte difference
+//    instead (51.6% against 38.9%). `i < 10` also gives the original's signed
+//    `cmp esi, 0xcee / jl` back edge, where `i != 10` gives `jne`.
+//  * the two name pointers must be written as
+//    `&g_game->players[g_game->localPlayer].field_108[0]` (and .field_113),
+//    with no `lp` intermediate. That is what makes MSVC 5 fold the array base
+//    0x1b63 into the member offset and emit `lea eax,[esi+eax*2]` with no
+//    displacement followed by one lea per array, exactly as the original does.
+//    With an `lp` variable it emits `lea eax,[esi+eax*2+0x1b63]` plus two
+//    3-byte leas: 28.8% instead of 31.5%.
+//  * the buffer is 52 bytes, not 44: the original's frame is 0x34 with the
+//    buffer at the frame bottom, so `lea eax,[esp+0x14]` is the frame base.
+//    44 bytes gives frame 0x2c and `[esp+0x10]`; 48/56/64 pad the frame but
+//    leave the buffer at the wrong offset (37.1%).
+//  * IsAlly must take the player through a local pointer
+//    (`Player_00446fb0* p = &g_game->players[i];`, then `p->...`), and its
+//    `active` test must come from a separate __inline helper. With the indexed
+//    form the compiler keeps `field_144` in di across the whole IsLive block
+//    and emits `mov di,word[..] / test di,di` instead of the original's
+//    memory-operand `cmp word ptr [eax+esi+0x1ca7],0` (36.6% against 38.9%).
+//
+// Tried and rejected, all measured: `<windows.h>` (it changes the sibling
+// 0x446c70 but not this function); putting the matched 0x446f50 in the same
+// file above this one (byte-identical output); an explicit
+// `if (players[i].active == 0) continue;` guard at the top of the loop body
+// (removed outright by MSVC 5); a local variable holding `active` inside
+// IsAlly, or spelling the two `active` tests differently (helper versus
+// direct), which does add the extra test back but at the cost of the memory
+// operand forms (49.6% to 50.4%); declaring `b` before `a` (50.7%, the leas
+// swap but the registers do not follow); the `IsPlaying`/`IsCounted`
+// decomposition used by the sibling 0x446c70 (24.6%, it reorders the two type
+// chains); `a` as `(unsigned char*)lp + 0x108` or as first+0xb.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -78,30 +99,34 @@ int __stdcall FUN_004ab060(Sub_00446fb0* obj, const char* name);
 int __stdcall FUN_004a1080(Sub_00446fb0* obj, char* name, int value);
 void __stdcall FUN_0049fa90(Sub_00446fb0* obj);
 
+__inline int IsActive_00446fb0(int i)
+{
+    return g_game->players[i].active != 0;
+}
+
 __inline int IsAlly_00446fb0(int i)
 {
-    if (g_game->players[i].active == 0)
+    Player_00446fb0* p = &g_game->players[i];
+    if (!IsActive_00446fb0(i))
         return 0;
-    if (g_game->players[i].info->flag_9b & 0x40)
+    if (p->info->flag_9b & 0x40)
         return 0;
-    if (g_game->players[i].active == 0)
+    if (!IsActive_00446fb0(i))
         return 0;
-    if (g_game->players[i].type != 1 && g_game->players[i].type != 2
-        && g_game->players[i].type != 3)
+    if (p->type != 1 && p->type != 2 && p->type != 3)
         return 0;
-    if (g_game->players[i].field_146 == 10)
+    if (p->field_146 == 10)
         return 0;
-    if (g_game->players[i].type != 1 && g_game->players[i].type != 2
-        && g_game->players[i].type != 3)
+    if (p->type != 1 && p->type != 2 && p->type != 3)
         return 0;
-    if (g_game->players[i].field_144 == 0 && g_game->players[i].field_140 != 0)
+    if (p->field_144 == 0 && p->field_140 != 0)
         return 0;
     return 1;
 }
 
 __inline int IsLive_00446fb0(int i)
 {
-    if (g_game->players[i].active == 0)
+    if (!IsActive_00446fb0(i))
         return 0;
     if (g_game->players[i].type != 1 && g_game->players[i].type != 2
         && g_game->players[i].type != 3)
@@ -118,15 +143,13 @@ __inline int IsLive_00446fb0(int i)
 // FUNCTION: 0x446fb0
 void FUN_00446fb0()
 {
-    char text[44];
-    unsigned char p = g_game->localPlayer;
-    Player_00446fb0* lp = &g_game->players[p];
-    unsigned char* a = &lp->field_108[0];   // +0x1c6b
-    unsigned char* b = &lp->field_113[0];   // +0x1c76
+    char text[52];
+    unsigned char* a = &g_game->players[g_game->localPlayer].field_108[0];
+    unsigned char* b = &g_game->players[g_game->localPlayer].field_113[0];
 
-    int i;
     if (FUN_004ab060(&g_game->sub, "ALLIES.GUI") != 0) {
-        for (i = 0; i != 10; ++i, ++a, ++b) {
+        int i;
+        for (i = 0; i < 10; ++i, ++a, ++b) {
             if (IsAlly_00446fb0(i) && i != g_game->localPlayer
                 && IsLive_00446fb0(i)) {
                 sprintf(text, "LIVEALLY%d", i);

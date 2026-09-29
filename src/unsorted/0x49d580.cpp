@@ -1,69 +1,30 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// NOT A MATCH. Best so far: 77.6 percent, 768 of 761 bytes (7 over). Re-measured
-// with check.py after every change below; the numbers in this header are current.
+// NOT A MATCH. Best so far: 93.2 percent, 770 of 761 bytes (Sonnet 5.5, #1097).
 //
-// WHAT THIS PASS CHANGED (50.4 -> 77.6), all established from the disassembly:
-//  - the two fire calls take the f_1b group FIRST:
-//        FUN_0049c9c0(unit, fire, &gunpos, point, target)
-//        FUN_0049cde0(unit, fire, &gunpos, point, target)
-//    The original pushes esi (f_1b) last, so it is arg one. (0x49d76d, 0x49d77c)
-//  - the tail dispatch flags, the packet team byte and the packet >>30 flag all
-//    RE-READ unit->f_c instead of using the `def` local, so `def` is dead well
-//    before the packet. This is the single biggest win (72.4 -> 77.6). (0x49d742,
-//    0x49d7d6, 0x49d830)
-//  - heading and pitch are `short`, not `int`. This is what gives the original's
-//    16-bit `sub ax, word ptr [edi+0x66]` instead of a movsx plus a 32-bit sub.
-//    (0x49d5f3)
-//  - the two parameters are (fire, unit) - the f_66 group is argument one. Only
-//    correct ON TOP of the tail re-read above; on its own it scored worse.
+// Aim a unit's gun at a point and fire it: work out the two aim angles (a
+// ballistic solve when weapon flag bit 1 is set, FUN_0049d910 when bit 0 is),
+// check them, add a random spread, then fire and tell the network.
 //
-// THE EARLIER NOTES IN THIS FILE WERE RIGHT that the two pointers are the two
-// arguments (esi = arg two = the f_1b/gun group, edi = arg one = the f_66/shooter
-// group), and right that argument order alone is not the lever. What the earlier
-// notes got wrong is the claim that nothing structural was missing: re-reading
-// unit->f_c in the tail is worth 27 points on its own.
+// What still differs (one thing): the failure path. The original does
+//     or byte ptr [edi + 0xbb], 0x10     (memory read-modify-write)
+// and returns with the zero already in eax; this build loads the byte into
+// al, ors, stores it and re-zeroes eax (9 bytes more). A void function gives
+// the memory form; anything that returns a value here gives the register form
+// (tried: return 0, return ok, else-nesting, a shared `return ok` at the end,
+// a bitfield for f_bb). Everything else matches instruction for instruction
+// except the branch targets that move with those 9 bytes.
 //
-// WHAT STILL DIFFERS, one coupled MSVC allocation state, not four separate bugs:
-//  - `def` (unit->f_c). The original loads it into ecx and SPILLS it to a real
-//    local at [esp+0x10] (0x49d5a1, 0x49d5a8), reloading it once at 0x49d5fe.
-//    This build keeps it in ebx and spills it into a dead argument home instead,
-//    so every frame offset in that region is four bytes out. The spill is forced
-//    only when def's live range ends before the spread: dropping the spread's
-//    `def->` DOES produce the correct [esp+0x10] spill (verified) but lands def
-//    in edx rather than ecx and scores 75.2, so the two effects pull apart.
-//  - that same choice rotates the two angle slots. The original keeps heading at
-//    E+0x58 and pitch at E+0x5c (the two dead argument homes, E = esp after the
-//    fourth push: S+4 and S+8), confirmed by the d910 out-params at 0x49d637 and
-//    0x49d642. This build puts one angle in a real local and the other in an
-//    argument home.
-//  - the flag read. The original does `mov edx,[ecx+0x111]; shr edx,1; test dl,1`
-//    - def already in ecx, so the flags go straight into the shift register. Every
-//    spelling here loads them into ecx first and copies, because def never lands
-//    in ecx: it either stays in ebx or (when spilled) lands in edx, and the shift
-//    register then conflicts. The bl is the f_8 test reusing ecx: the original
-//    reloads def into that same ecx, nothing here does.
-//  - the divide by 3 of f_b8: the original emits the general signed sequence
-//    `mov eax,0x2aaaaaab; imul edx; sar edx,1` plus the round-toward-zero fixup,
-//    any spelling here emits the non-negative `mov eax,0x55555556; imul edx`. The
-//    dividend is loaded with `xor edx,edx / mov dx`, so it is never negative, yet
-//    MSVC still chose the signed magic. f_b8 as unsigned short, short, int, a cast
-//    to int, and a signed local were all tried; unsigned short is the only one
-//    that keeps the 16-bit load the original has, and it is the one kept.
-//  - `fire->f_bb |= 0x10` is `or byte ptr [edi+0xbb],0x10`, a pure memory
-//    read-modify-write, because the result is dead. Spelling it as
-//    `= (unsigned char)(x | 0x10)` or `= x | 0x10` still round-trips through al.
-//
-// TRIED, flat or worse, do not repeat: swapping the parameter order on its own
-// (43.8); putting the fire arguments back (72.4 vs 77.6); re-reading only the
-// team byte (63.7) or only the >>30 flag without the dispatch flags; f_b8 as
-// short, int, unsigned short local, (int) cast, (int)(short) cast; the divisor
-// spelled (int)3; parts as short/unsigned short; spread as int or unsigned short
-// or an extra (short) cast; the packet fields reordered (type/weapon before the
-// vector copies, or the two vector copies swapped); both ternaries collapsed into
-// one spelling; the two units as an array; heading declared before pitch; p read
-// through three int temporaries; a `const` def; a local holding def->flags.value.
-//
-// Aim a unit's gun at a point and fire it: work out the two aim angles, either
+// What earlier passes got wrong, all corrected here:
+//  - the spread divisor is f_b8 / 12, not / 3: 0x2aaaaaab with `sar edx, 1` is
+//    the signed magic for 12 (this was the "signed magic for 3" mystery).
+//  - `def` is only used for the two flag tests, speed, pitch and the pointer
+//    passed to FUN_0049d910; the spread reads unit->f_c->f_104 afresh. That
+//    made def spill to [esp+0x10] as in the original (77.6 to 87.1).
+//  - FUN_0049d910's weapon parameter is an unsigned char (the argument is built
+//    with `shr al, 2; and al, 3` and pushed whole).
+//  - the spread block uses `range >> 1` inline, not a `half` local (89.7 to 93.2).
+//  - the two fire calls take the f_1b group first; heading and pitch are
+//    `short`; the tail re-reads unit->f_c instead of using def.
 #include <math.h>
 
 #pragma pack(push, 1)
@@ -157,7 +118,7 @@ void __stdcall FUN_0043e240(Unit_0049d580* obj, Vec3_0049d580* out, unsigned cha
 int __cdecl FUN_004b715a(int x, int z);
 int __stdcall FUN_0049a890(int dx, int dy, int dz, int speed, float pitch);
 int __stdcall FUN_0049d910(Unit_0049d580* unit, Weapon_0049d580* target, short* out_heading,
-                           short* out_pitch, int weapon, Vec3_0049d580* point);
+                           short* out_pitch, unsigned char weapon, Vec3_0049d580* point);
 int __stdcall FUN_0049d880(Unit_0049d580* unit, Unit_0049d580* aim, short angle1, short angle2);
 int __stdcall FUN_0049c9c0(Unit_0049d580* fire, Unit_0049d580* unit, Vec3_0049d580* p3,
                            Vec3_0049d580* point, Unit_0049d580* target);
@@ -184,7 +145,7 @@ int __stdcall FUN_0049d580(Unit_0049d580* fire, Unit_0049d580* unit,
             heading = FUN_004b715a(dx, dz) - fire->f_66;
             pitch = FUN_0049a890(dx, dy, dz, def->speed, def->pitch);
             ok = (unsigned short)pitch != 0x8000;
-        } else if (def->flags.value & 1) {
+        } else if (def->flags.b.f0) {
             ok = FUN_0049d910(fire, def, (short*)&heading, (short*)&pitch,
                               unit->f_1b >> 2 & 3, point);
         } else {
@@ -202,15 +163,14 @@ int __stdcall FUN_0049d580(Unit_0049d580* fire, Unit_0049d580* unit,
         Vec3_0049d580 gunpos;
         FUN_0043e240(fire, &gunpos, unit->f_1b >> 2 & 3, -1);
         unit->f_16 += fire->f_66;
-        short spread = def->f_104 - (short)((fire->f_108 << 11) / fire->f_92->divisor) + 0x800;
-        int parts = fire->f_b8 / 3;
+        short spread = unit->f_c->f_104 - (short)((fire->f_108 << 11) / fire->f_92->divisor) + 0x800;
+        int parts = fire->f_b8 / 12;
         if (parts > 1)
             spread = (unsigned short)spread / parts;
         if (spread) {
             unsigned short range = spread;
-            unsigned short half = range >> 1;
-            unit->f_16 += (short)(FUN_004b6c30(range) - half);
-            unit->f_18 += (short)(FUN_004b6c30(range) - half);
+            unit->f_16 += (short)(FUN_004b6c30(range) - (range >> 1));
+            unit->f_18 += (short)(FUN_004b6c30(range) - (range >> 1));
         }
         int fired = 0;
         if ((unit->f_c->flags.value & 1) || (unit->f_c->flags.value & 0x100000))
@@ -252,7 +212,5 @@ int __stdcall FUN_0049d580(Unit_0049d580* fire, Unit_0049d580* unit,
 // at 0x49d745 from that same clobbered slot, so on this path the `target->f_a8` at
 // 0x49d812 and the target handed to FUN_0049c9c0 at 0x49d77d can both be a pointer's
 // low half. `test al, 1` at 0x49d58e means the path is only taken when f_1b bit 0 is
-// set, so this is the laser (flags bit 1) aiming path. A second candidate in the same
-// block: the dividend of the divide by 3 is loaded with only `mov dx` (0x49d6e0),
-// yet the signed magic is used, so any f_b8 above 0x7fff would divide wrongly.
+// set, so this is the laser (flags bit 1) aiming path.
 

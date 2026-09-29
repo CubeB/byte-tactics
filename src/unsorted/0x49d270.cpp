@@ -2,6 +2,10 @@
 // Creates or updates a projectile for a remote event. The per-team record at
 // g_game+0x2cf3 (0x115 bytes, 0x100 of them) holds the weapon flags at +0x111;
 // the event gives a team byte, an owning unit id, a per-unit entry index and a
+// Sonnet 5.5 retry (#1097): 82.9%. `ev->unitId == 0 ? 0 : ...` gave +1.2 points (the original tests
+// then computes). Still differs: original hoists projCount into edi and spills the plain cursor
+// to [esp+0x14], with ownerId an unsigned short spilled from cx; every unsigned short ownerId or
+// n-copy or helper shape tried (about 200 variants) keeps rematerialising projCount instead.
 // position. Flag bit 5 spawns a projectile; bits 1, 4, 0/20, 8 dispatch to
 // 0x49cde0, 0x49cc20, 0x49c9c0, or a spawn aimed from the owning unit.
 //
@@ -223,7 +227,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         proj->pos = *pos;
         return;
     }
-    Unit_0049d270* unit = ev->unitId ? &g_game->units[ev->unitId] : 0;
+    Unit_0049d270* unit = ev->unitId == 0 ? 0 : &g_game->units[ev->unitId];
     if (!unit)
         return;
     if (!unit->flags.b28)
@@ -233,8 +237,7 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     entry->f_16 = ev->f_1b;
     int ownerId = ev->ownerId;
     Unit_0049d270* owner = 0;
-    if (ownerId)
-        owner = &g_game->units[ownerId];
+    if (ownerId) owner = &g_game->units[ownerId];
     Proj_0049d270* found = 0;
     if (ev->b0) {
         int n = g_game->projCount;

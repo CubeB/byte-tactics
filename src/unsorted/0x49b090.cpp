@@ -1,7 +1,14 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// Not matched yet: 72.8%, 852 bytes against 844. This header was rewritten
+// Not matched yet: 73.6%, 842 bytes against 844 (Sonnet 5.5 retry, #1097; was 72.8%). This header was rewritten
 // because the previous one still described the 66.0% / 870-byte state, which
 // the current body no longer has.
+// Retry note: a `Game_0049b090* g = g_game;` local declared just before
+// `if (cell->unit0)` (all later g_game-> uses go through it) gave +0.8 points and the
+// right size. Still differs as described below: `oz` is hoisted into a register
+// (ebp) where the original loads proj->py.i inside each unit block, and g then
+// spills to [esp+0x30] and mf takes edi. About 150 variants (oz and g placement,
+// block-local y, extra locals for ground and height, declaration order of
+// cx/cz/f/mf) never moved it; without oz the cell lands in ebp, with it in ebx.
 //
 // 0x49b090 is the projectile collision test. It looks up the map cell holding
 // the projectile with FUN_004815a0(&proj->pos); if there is none it stores the
@@ -264,15 +271,16 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
     }
     proj->radius = (cell->radius + cell->ground) / 2;
     int oz = proj->py.i;
+    Game_0049b090* g = g_game;
     if (cell->unit0) {
-        Unit_0049b090* u = &g_game->units[cell->unit0];
+        Unit_0049b090* u = &g->units[cell->unit0];
         if (u->owner != proj->owner && oz < u->type->high + u->elev) {
             FUN_00499eb0(proj, u);
             return;
         }
     }
     if (cell->unit1) {
-        Unit_0049b090* u = &g_game->units[cell->unit1];
+        Unit_0049b090* u = &g->units[cell->unit1];
         if (u->owner != proj->owner) {
             if (proj->py.i >= u->type->low + u->elev
                 && proj->py.i <= u->type->high + u->elev) {
@@ -289,13 +297,13 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         unsigned short f = cell->feature;
         MapFeature_0049b090* mf = 0;
         if (f < 0xfffb) {
-            if (f < g_game->featureCount)
-                mf = g_game->mapping + f;
+            if (f < g->featureCount)
+                mf = g->mapping + f;
         } else if (f == 0xfffe) {
-            int n = g_game->width * cell->offY + cell->offX;
+            int n = g->width * cell->offY + cell->offX;
             unsigned short f2 = (cell - n)->feature;
             if (f2 < 0xfffb)
-                mf = g_game->mapping + f2;
+                mf = g->mapping + f2;
         }
         if (mf) {
             if (mf->height + cell->ground <= proj->py.s.hi)
@@ -317,9 +325,9 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         }
     } else if (type->flags.raw & 0x10000) {
         return;
-    } else if (proj->py.s.hi >= g_game->limit) {
+    } else if (proj->py.s.hi >= g->limit) {
         return;
-    } else if (((Net_0049b090*)g_game->net)->field_d48) {
+    } else if (((Net_0049b090*)g->net)->field_d48) {
         return;
     }
     FUN_00499eb0(proj, 0);

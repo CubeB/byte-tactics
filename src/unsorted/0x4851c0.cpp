@@ -11,6 +11,20 @@
 // of the three difference declarations, static inline helpers per difference,
 // spelling each subtraction as two statements, every header set (headers.py)
 // and the compiler-state probe (0 to 82 unused extern declarations).
+// Claude Sonnet 5.5 pass (#591): the 4 missing bytes are one store,
+// `mov [esp+0x10], ecx` at 0x4851f4. The three local slots [esp+0x10],
+// [esp+0x14], [esp+0x18] (after `push edi`) are the step vector in x, y, z order:
+// dh is stored at the y slot first (0x4851de, before `push edi`), then dx at the x
+// slot right after the abs(dx) block while it is still in ecx (that store is the
+// missing one), and dz/n only after the divisions. So dx has a stack home and is
+// cached in ecx (the original keeps dx in ecx through the abs block and divides
+// from `mov eax, ecx`), where ours enregisters dx in esi and never stores it.
+// Scored, none of it added the store: a Vec3 local `d` with the fields assigned in
+// y, x, z order (75.3, same bytes), in x, y, z order (74.5), `d.x = d.x / n`,
+// abs(dx) and abs(dz) into named locals in both orders (75.3, 72.1), an
+// if-style max (75.0), max with the operands swapped (75.3), all six orders of
+// the three differences again with the new locals (71.3 to 75.3), and a
+// `Steps(dx, dz)` or `Major(dx, dz)` static inline helper (72.1, 75.3).
 #include <stdlib.h>
 
 #pragma pack(push, 1)

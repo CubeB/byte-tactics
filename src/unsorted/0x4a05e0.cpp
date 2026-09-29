@@ -119,6 +119,24 @@
 // Open: something makes the original's C1 keep `entries` in a callee-saved
 // register and give `text` a home, while here `text` outranks both `entries`
 // and `j`. Nothing tried this round moves that ranking.
+//
+// Second pass (deepseek-v4.1-flash, issue 1542) confirmed 52.2% is the local
+// maximum. New levers tried and rejected this round (all in
+// build/scratch/0x4a05e0/ds2):
+//  * `register` on entries / text / j: byte-identical to the base (and on a
+//    struct pointer it does not compile),
+//  * `char type` instead of `unsigned char type`: byte-identical,
+//  * `entry = &entries[index];` instead of `entries + index`: byte-identical,
+//  * a foldable extra `if (j > entries->u.count) break;` at the top of the
+//    inner body: 49.2% (and it grows the code),
+//  * reordering the declarations to put i, j, scan first: 49.7%,
+//  * initialising every local at its declaration: 48.9%,
+//  * a dummy static function or global placed before this one, and forward
+//    declarations of the siblings FUN_004a0570 / FUN_004a07d0: byte-identical,
+//  * tools/headers.py: all 128 include sets give 52.2% or less.
+// The single remaining difference is still that MSVC gives the fourth
+// callee-saved register to `text` here and to `j` (with `entries` and `text`
+// both memory-homed) in the original.
 #include <string.h>
 
 int __cdecl tolower(int);

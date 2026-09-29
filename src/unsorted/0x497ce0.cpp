@@ -16,6 +16,17 @@
 // Next step: find the source shape that gives both, likely by making the index
 // operand come back through g_game so MSVC's LEA keeps ebx as base, see the
 // note in 0x4848e0.cpp.
+//
+// Second pass (deepseek-v4.1-flash) tried: a real for-loop with `continue`,
+// the same with nested ifs (no continue), a do-while, `j` declared outside the
+// for, the x2 expression written as slot+x-2 / x+slot-2 / slot+(x-2) /
+// (x-2)+slot / a static inline helper, and all 128 header combinations. Every
+// bounded-loop form (for, do-while) fixes the head/tail exactly (do-while even
+// lands at 595 bytes) but MSVC then assigns the body's first temp to eax and
+// the color1 load to ecx, an ecx<->eax rotation; the unbounded break form is
+// the reverse. Independent of the expression, ours also encodes the first
+// `lea` as [esi+ebx-2] where the original has [ebx+esi-2] (base = slot); that
+// operand order was not movable. Header scans found no improvement.
 #include <stdio.h>
 
 #pragma pack(push, 1)

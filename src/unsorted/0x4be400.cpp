@@ -40,10 +40,52 @@
 //     wants but does not move the edge either).
 // So the edge is not a loop-shape, type, branch-order or local-order effect. The
 // only shape that even touched it is one that adds a live local to the loop
-// (`Entry* e = 0;` before the body, 92.3), and that goes the wrong way. Worth
-// trying next: something that gives the compiler a second definition of the
-// handle inside the outer loop, so the join block at 0x4be66d exists for the
-// directory branch only and the file branch's latch reaches 0x4be672 directly.
+// (`Entry* e = 0;` before the body, 92.3), and that goes the wrong way.
+//
+// A third session (space-bunny-free, about 110 further shapes) confirmed the
+// wall and closed off the "second definition of the handle" idea the second
+// session left open. Every one of these compiles to the same graph, with the
+// guard still jumping to the reload at 0x4be66d:
+//   - the shape of the MATCHED neighbour 0x4bca30, `if (h != -1) { do { } while
+//     (FUN_004bc640(h, &fd) != -1); if (h != 0) { Find* f = (Find*)h; ... } }`,
+//     with the handle block scoped, the whole tail in a block, the epilogue in a
+//     block, `Find* f` assigned in the file branch, and `int t = ...; int h = t;`
+//     or `int hh = h;` for a second name on the handle;
+//   - the loop once more as `while (i < d->count)`, `if (i < d->count) do {} while`,
+//     `for(;;)` with a `break`, an empty `for` init with `i++` in the body, `i !=
+//     d->count`, `d->count > i`, an `if` guard wrapped round the `for`, and a
+//     `goto` that skips the loop (all byte-identical or 94-98);
+//   - the clamp as `i = (i < 0) ? 0 : i + 1;`, as `if (i >= 0) i++; else i = 0;`,
+//     and with `i` declared then assigned;
+//   - the flag update through a local copy of `e->flags`, and the `e` test as a
+//     nested `if` or as two `continue`s;
+//   - the dir branch as `strcmp(...) && strcmp(...)`, as `!(strcmp(...) == 0 ||
+//     strcmp(...) == 0)`, with the operands swapped, and the attrib test as
+//     `(fd.attrib & 0x10) == 0x10` or `& 0x10u` (the last two change the bytes);
+//   - the outer loop as `while (h != -1) { ... }`, as `for (; h != -1; )`, and as
+//     a peeled `if (1) { } while (...) { }`;
+//   - a `static inline` helper for the body and for the whole inner loop (both
+//     add a second char[256] and drop to 91.9, which is worth knowing: the
+//     helper's buffer cannot share the frame slot);
+//   - all 768 sets of tools/headers.py --cpp (best 99.2, every set the same),
+//     12 permutations of the five callee declarations, four orders of the three
+//     local declarations, and dead locals (`int depth = 0;`) in each branch,
+//     which do not even grow the frame;
+//   - 160 random combinations of 19 independent knobs above. The family is
+//     flat at 99.2 for every shape that keeps the bytes, with a second cluster
+//     at 96 and a third at 61 to 75 (the shapes that add a live local to the
+//     loop), and nothing at 100.
+// One reading of the diff that is worth not re-deriving: the fourth line
+// (`-call 0x4be400` / `+call <addr>`) is not a difference. check.py only fills
+// the placeholder addresses into the disassembly once the bytes match, so until
+// they do, every relocated field prints as `<addr>`; the self-call is fine and
+// the guard's displacement is the only wrong byte in the 699.
+// What is left is a back end decision, not a front end one: MSVC 5 either
+// splits the join block and leaves the loop's exit edge pointing past the copy
+// (the original) or puts the copy at the head of the join and retargets that
+// edge too (this file). The slot-sharing trick that produced the same shape at
+// 0x4af320 cannot be tried here, because the frame is exactly h (4) + buf
+// (0x100) + fd (0x108) with nothing spare to share.
 #include <io.h>
 #include <string.h>
 

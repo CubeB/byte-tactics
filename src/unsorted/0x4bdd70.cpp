@@ -8,39 +8,84 @@
 // entry flagged 1, runs FUN_004be010 on its name. With mode 0 the file is
 // closed again and only the in-memory copy stays.
 //
-// NOT MATCHED: 85.8%, 647 of 661 bytes. Two regions differ.
+// NOT MATCHED: 91.0%, 650 of 661 bytes (was 85.8% / 647 when this pass
+// started). Two of the three diff regions are now exact; only the key
+// derivation is left.
 //
-// (1) The failure block. In the original the block (fclose, free, xor eax,eax,
-// epilogue, ret 8) sits inline between the copyright strcmp and the success
-// continuation, the strcmp's `je` jumps over it, and all five header checks
-// `jne` forward into it. Nothing is materialised. Here the checks are an inline
-// helper returning 1, which is the only spelling found that keeps that block
-// inline, but it costs a `jmp` plus a `mov eax,1` (7 bytes). What did NOT work:
-// writing the cleanup out six times (one copy per check, hoping MSVC 5 would
-// tail-merge them) gave 757 bytes, so it merges nothing; collapsing the five
-// header checks into one `||` chain, whether with its own body (625 bytes) or
-// with a `goto` to a label inside the copyright check's `if` (also 625 bytes),
-// makes MSVC invert the `if (f == 0) return 0;` into `je <epilogue>`, so the
-// early return merges with the tail and the whole first block diffs. Getting
-// all of the original at once needs a shape that keeps the fopen failure inline
-// and the cleanup shared, and I did not find it.
+// FIXED, region (1), the failure block, now byte exact. The trick is the
+// last two statements of Bad_004bdd70: writing the strcmp test positively
+// (`if (strcmp(...) == 0) return 0; return 1;` instead of `return
+// strcmp(...)`) is what keeps MSVC 5 from materialising `mov eax, 1`. With
+// the plain `return strcmp(copyright, DAT_004fdbf0)` the helper's other exit
+// has to become the constant 1, and the caller then needs a `jmp` plus that
+// `mov eax, 1` (7 bytes) between the strcmp's `sbb eax, -1` and the shared
+// `test eax, eax`. Spelling the same test as a positive compare lets both
+// failure edges reach the cleanup with the value already in eax, and the five
+// header `jne`s then land on the same inline block the strcmp falls into, at
+// the original's 0x4bded6. Worth remembering: for a helper that returns 0/1,
+// writing `if (cond) return 0; return 1;` beats `return cond` whenever cond's
+// failure path must share a block with the caller's.
 //
-// (2) The key derivation. The original stores the key byte to [esp+0x70] (a
-// reused incoming-argument slot, since `name` is dead), reloads it as a dword
-// and masks with `and eax,0xff` before rotating, then reloads `h->header->key`
-// after storing it and writes the result into the STACK header's key byte at
-// [esp+0x24]. So the source must assign the decoded key into the stack copy of
-// the 20 byte header as well, and must keep an int-width copy of the key alive.
-// Adding `hdr.key = base->key;` plus `unsigned char k = base->key;` (two
-// structurally different read trees, to break the store-to-load forwarding) and
-// a separate `p += 0x14` gets the total SIZE right, 663 against 661 bytes, but
-// it adds one live graph node and demotes both `f` and `h` one step: `f` moves
-// ebx->ebp and `h` ebp->ebx, so the whole prologue and every field store diff
-// (71.9%). With `hdr.key = base->key;` removed again it is back to 647 bytes at
-// 85.0%. The two effects are one allocation problem, not two.
+// ALSO FIXED, incidentally, `unsigned char* p = (unsigned char*)h->header;
+// p += 0x14;` as two statements rather than one expression. That is what
+// produces the original's separate `mov esi, [ebp+8]` / `add esi, 0x14`
+// pair, so the SIB base in the decrypt loop stays `esi` rather than folding
+// the displacement into it.
+//
+// STILL DIFFERS, region (2), the key derivation, 11 bytes. The original is
+//     mov dl, byte ptr [ecx + 0xc]     ; base->key into a BYTE register
+//     mov byte ptr [esp + 0x70], dl    ; stored to the dead `name` arg slot
+//     mov eax, dword ptr [esp + 0x70]  ; re-read as a DWORD
+//     and eax, 0xff
+//     test dl, dl                     ; the test uses the byte copy
+//     mov edx, eax / shr edx, 6 / shl eax, 2 / or edx, eax   ; rotate the INT copy
+//     not dl                          ; ... then complement the STALE byte
+//     mov byte ptr [ecx + 0xc], dl
+// so the rotate is dead code and what is stored is `~key`, not
+// `~((key >> 6) | (key << 2))`. Getting this needs two variables with two
+// different homes at once: a byte local that MSVC 5 puts in the reused
+// incoming-argument slot, and a separate int-width copy of the same byte that
+// is masked with `and eax, 0xff` and rotated in eax/edx while the byte copy
+// in dl carries the `test` and the `not`. Neither variable alone produces
+// both halves.
+//
+// Measured, with the score and the emitted size (original 661):
+//   `unsigned char key` with `(unsigned char)~((key >> 6) | (key << 2))`
+//     91.0% / 650. Everything stays in al/dl, no stack home. This is what is
+//     in the file.
+//   the same with `~(unsigned char)(...)`, `(unsigned char)~(int)` on the
+//     shifts, `unsigned int` shifts, `key & 0xff` inside, or a `static inline`
+//     rotate helper taking an int: all 91.0% / 650, byte-identical output. The
+//     cast position does not move it, so the `not dl` on the stale byte is not
+//     a narrowing-cast artefact of that kind.
+//   function-scope `unsigned char bkey` (which DOES get the `[esp+0x70]`
+//     home, as j2 shows) plus `int key = bkey`: 90.0% / 660, and j2's own diff
+//     is one register class out: `mov al,[edx+0xc]` and the rotate in
+//     al/ecx, where the original has `mov dl,[ecx+0xc]` and eax/edx, and the
+//     original reloads `h->header` into ecx where j2 reloads it into eax.
+//   homing the byte in a struct field (`hdr.unknown_d[0]`): 90.9% / 660, same
+//     shape, wrong slot and an extra `jmp`.
+//   `int key = base->key` with the rotate then a separate
+//     `unsigned char bkey`: 91.1% / 656, closest on size, but it adds a `jmp`
+//     and homes `bkey` at `[esp+0x74]`.
+//   letting the rotate die (`int wide = key; if (wide) wide = ...; key =
+//     (unsigned char)~key;`): 92.0% / 634, the highest score reached here but
+//     27 bytes short, so it is a different function, not a better match.
+//   an array element (`unsigned char keys[1]`) to force a home: 87.7%.
+//   `unsigned char` vs `int` vs `unsigned int` for the key local, key declared
+//     with a separate initialising statement, `key = key ? ... : key`, reading
+//     `base->key` a second time instead of the local: all 91.0% / 650.
+//
+// So the two halves are individually reachable and never together: every
+// spelling that produces the `[esp+0x70]` byte home with the
+// `and eax, 0xff` reload also picks ecx for the base and al/ecx for the
+// rotate, and every spelling that keeps dl for the byte drops the home
+// entirely. That looks like one live-range decision, and I did not find the
+// declaration order that splits it.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
+
 
 #pragma pack(push, 1)
 struct Entry_004bdd70 {                // 9 bytes
@@ -89,7 +134,9 @@ static inline int Bad_004bdd70(FILE* f, Header_004bdd70* hdr, char* copyright)
     fread(copyright, 1, len, f);
     copyright[len] = 0;
     strncpy(copyright + (strstr(DAT_004fdbf0, "0000") - DAT_004fdbf0), "0000", 4);
-    return strcmp(copyright, DAT_004fdbf0);
+    if (strcmp(copyright, DAT_004fdbf0) == 0)
+        return 0;
+    return 1;
 }
 
 // FUNCTION: 0x4bdd70
@@ -122,8 +169,10 @@ File_004bdd70* __stdcall FUN_004bdd70(const char* name, int mode)
         if (key != 0)
             key = ~(unsigned char)((key >> 6) | (key << 2));
         base->key = key;
-        unsigned char k = h->header->key;
-        unsigned char* p = (unsigned char*)h->header + 0x14;
+        hdr.key = h->header->key;
+        unsigned char* p = (unsigned char*)h->header;
+        p += 0x14;
+        unsigned char k = hdr.key;
         int n = hdr.size - 0x14;
         if (k != 0) {
             for (int i = 0; i < n; i++)

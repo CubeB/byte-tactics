@@ -1,4 +1,4 @@
-// Decompiled by Sonnet 5.5. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by Sonnet 5.5. Names are provisional.
 // Draws a bitmap tree scaled by (sx, sy) at x, y into `dst`, or into the
 // locked screen when `dst` is null. A record with a child count draws every
 // child by recursion. A leaf scales its size and origin, clips the
@@ -7,13 +7,10 @@
 // destination pixels with 16.16 steps through the bitmap, blending every
 // pixel that is not the transparent colour through the display's 256x256
 // table at +0xc0.
-//
-// NOT MATCHED: 93.2%, size exact. What differs: the two rect end points
-// `w + left - 1` / `h + top - 1` come out as `[left+w-1]` (operands swapped in
-// the lea), the two loop variables (row and the 16.16 source y) take the
-// dead x/y argument slots in the other order, and the pixel address adds the column before the row base where the original adds the row base first.
-// Tried: operand order of every one of those expressions, declaration order of
-// the loop variables, a row pointer, and casting the pixel address.
+// Matching notes: the three rects are declared before w and h (that decides
+// the base/index order of the rect-edge leas), the loop counters row and fy are
+// declared together and advanced in the for header, and col is declared before
+// rowBase in the body (that decides the order of the pixel address adds).
 #include <windows.h>
 
 struct Rect_004b9740 {
@@ -75,14 +72,14 @@ void __stdcall FUN_004b9740(Class_004c6ae0* dst, Bitmap_004b9740* bmp, int x, in
         for (int i = 0; i < (int)bmp->count; i++)
             FUN_004b9740(dst, ((Bitmap_004b9740**)bmp->field_10)[i], x, y, sx, sy);
     } else {
+        Rect_004b9740 src;
+        Rect_004b9740 dest;
+        Rect_004b9740 bounds;
         int w = (int)(bmp->width * sx);
         int h = (int)(bmp->height * sy);
         int dx = (int)(bmp->dx * sx);
         int dy = (int)(bmp->dy * sy);
         if (w > 0 && h > 0) {
-            Rect_004b9740 src;
-            Rect_004b9740 dest;
-            Rect_004b9740 bounds;
             dest.left = x - dx;
             dest.top = y - dy;
             dest.right = w + dest.left - 1;
@@ -101,21 +98,18 @@ void __stdcall FUN_004b9740(Class_004c6ae0* dst, Bitmap_004b9740* bmp, int x, in
                 src.top = (int)(src.top / sy);
                 src.right = (int)(src.right / sx);
                 src.bottom = (int)(src.bottom / sy);
-                int row = dest.top;
-                int fy = src.top << 16;
-                for (; row <= dest.bottom; row++) {
-                    int rowBase = row * dst->pitch;
+                int fy, row;
+                for (row = dest.top, fy = src.top << 16; row <= dest.bottom; row++, fy += stepY) {
                     int srcRow = (fy >> 16) * bmp->width;
-                    int fx = src.left << 16;
-                    for (int col = dest.left; col <= dest.right; col++) {
+                    int col = dest.left;
+                    int rowBase = row * dst->pitch;
+                    for (int fx = src.left << 16; col <= dest.right; col++, fx += stepX) {
                         unsigned char c = ((unsigned char*)bmp->field_10)[(fx >> 16) + srcRow];
                         if (c != bmp->colour) {
-                            unsigned char* p = dst->pixels + col + rowBase;
+                            unsigned char* p = rowBase + col + dst->pixels;
                             *p = d->blend[(c << 8) + *p];
                         }
-                        fx += stepX;
                     }
-                    fy += stepY;
                 }
             }
         }

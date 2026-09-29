@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-checked by deepseek-v4.1-flash. Names are provisional.
 // Load-game info panel: fills the GAMES menu fields from the selected save.
 //
 // PARTIAL 91.9% (1126 vs 1124 bytes) after 1 real check run, up from 86.4%.
@@ -39,6 +39,11 @@
 //     then `cmp eax,1`.  That one extra `mov` is exactly the 2-byte size
 //     difference.  Moving `gametype` out of the struct into a plain local
 //     changes nothing, so it is the load/compare fold, not the storage.
+//
+// Re-checked by deepseek-v4.1-flash, still 91.9%. Tried headers.py (no header
+// set beats 91.9%), gametype as a plain local (86.7%), removing the entries
+// local and inlining layer->entries twice (84.7%), and declaring index at the
+// top (91.9%, unchanged). The two root causes above are still what remains.
 #include <string.h>
 #include <stdio.h>
 

@@ -4,6 +4,10 @@
 // dwLength store (`lea edx,[esp+0x10]; push edx; mov [esp+0x14],0x20`), while
 // this build stores first (`mov [esp+0x10],0x20; push edx`). Same size, one
 // instruction order; the first call's identical source already matches.
+// This is the scheduler tie the guide warns about (0x4b6570): an address-taken
+// local reload drifting by exactly 4 bytes across a call's argument push.
+// Tried: a second pointer local for the address (same score); /Gz and /Gr
+// (both worse, and they change the mangling, so the original is /Gd).
 #include <string.h>
 #include <windows.h>
 

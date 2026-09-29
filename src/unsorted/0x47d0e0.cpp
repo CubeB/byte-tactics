@@ -33,6 +33,17 @@
 // pointer-arithmetic form, `width * y` and `x + y * width` operand orders, and
 // `short px/py` locals. The condition order and every loop spelling were also
 // swept earlier, before the mask-local fix, and none of them is the lever.
+//
+// DeepSeek V4.1 Flash retried the block with isolated one-function scratch
+// files (scored with --sym, no check.py budget): swap of the multiply
+// operands, `x + y*width` and `x + width*y`, int/short cy/cx locals, a
+// base-pointer local, a second Game* pointer, an inlined GetCell(obj, g_game)
+// helper, an inlined CellIndex(obj, width) helper, and size/index declared
+// before and after the cell pointer. All stay at 80.3% except the declaration
+// reorders, which drop to 79.0%. tools/headers.py tried all 128 header sets:
+// closest is 80.3%, so no header set changes the multiply. The multiply's
+// destination register (pos.y, so `imul eax, [width]`) and the early cells
+// load are a single scheduling choice that no source shape here reaches.
 #pragma pack(push, 1)
 
 struct Point {

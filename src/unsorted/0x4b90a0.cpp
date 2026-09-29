@@ -1,5 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5. Names are provisional.
-// Partial, best 82.8% (re-checked by space-bunny-free, no better form found).
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free. Names are provisional.
+// Partial, best 83.9% (re-checked by space-bunny-free, no better form found).
 //
 // Byte accounting: ours is 256 bytes, the original 260. Everything matches
 // except the row loop head, where the original is 8 bytes longer; in exchange
@@ -48,6 +48,41 @@
 // N unused `extern int` declarations, N = 8 to 208 step 8: 83.9 at best, the
 // rest much worse (22 to 68), so it is not the declaration-count state that
 // helped 0x4b9360 in the same issue.
+//
+// space-bunny-free pass (#1117), 83.9% confirmed again, nothing better found.
+// Independent check of the argument roles and slots, since a misread there
+// would have made every row-pointer form look hopeless: with 2 dword locals and
+// the 4 pushed registers the first argument is read at [esp+0x10] before the
+// pushes and the second at [esp+0x14] after two pushes, both of which resolve
+// to E0+8 and E0+4, so the bitmap at E0+4 is the parameter this file calls
+// `src` (its color key, width and height drive the loops) and the one at E0+8
+// is `dst` (its +4/+6 offsets, its width as the row stride). The file already
+// had the roles the right way round. The three int parameters sit at E0+0xc,
+// E0+0x10 and E0+0x14, and the first two of those slots are reused as the
+// inner and outer loop counters, which is why the level is reloaded from
+// [esp+0x2c] twice inside the inner loop. Nothing is read past the arguments,
+// so there is no over-read bug here.
+// New results this pass, all scored for free with check.py --sym:
+//   * rows written as three statements each, `base + plane` then `+= stride`
+//     for both, and the int sum cast to unsigned char* before adding stride:
+//     all 83.9, the diff in the loop head is unchanged.
+//   * the two row statements in the other order: 83.9, no change.
+//   * dst->plane0 and dst->plane1 read into two locals first: 83.9.
+//   * `stride = yoff * dst->width` instead of `dst->width * yoff`: 83.9.
+//   * `int stride` declared in the loop body instead of at function scope:
+//     82.8, so the function-scope declaration is worth 1.1 points.
+//   * the row count as `while (1) { ...; row++; yoff++; if (row >= h) break; }`
+//     per item 9 of the guide: 78.3, and `yoff++` as its own statement at the
+//     end of the body: 77.4. The `for` form is right.
+//   * the threshold compare hoisted into a local (`int t = *sp1 + level;`):
+//     72.7. It has to stay inline in the condition.
+//   * `stride` inlined into the first row only: 45.2, the imul moves out of
+//     the loop head.
+// The three remaining differences are each a single instruction group and none
+// of them moves under any spelling tried, which supports the reading that the
+// original was not built by this compiler build (or at least not by MSVC 5
+// SP3 with this header state): the row pointers, the yoff spill and the add
+// destination of the threshold compare are all decided by the same allocator.
 
 struct Bitmap_004b90a0 {
     unsigned short width;      // +0x0

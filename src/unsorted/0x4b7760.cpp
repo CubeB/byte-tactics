@@ -1,52 +1,64 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// 59.4 percent, 341 of 370 bytes. The file below is the previous model's work
-// plus the supervisor's; the worker that improved it from 43.2 percent stopped
-// before writing notes, so this is the supervisor's reading of the remaining
-// diff and is not a finished analysis.
+// 73.2 percent, 357 bytes against 370. This is 0x4b7620 (the out-of-line
+// register) inlined into a record loop: same hand-rolled vector, same
+// lower_bound by name, same inlined strcmp equality test, same
+// insert-at-the-search-position, but iterating an array of
+// {const char* name, handler, mask} records whose first null name ends the
+// loop, and writing the record's handler slot into the table entry.
 //
-// The whole function is one inlined copy loop over a container of records, with
-// a 0x18-byte frame. Three groups of difference remain:
-// 1. A struct passed by value is built on the stack, and the original loads and
-//    stores its two fields in the opposite order:
-//        original: mov edx,[ecx+8] ; mov ecx,[ecx+4] ; mov [esp+0x14],ecx
-//                  lea ecx,[esp+0x14] ; mov [esp+0x1c],edx
-//        ours:     mov edx,[ecx+4] ; mov ecx,[ecx+8] ; mov [esp+0x18],ecx
-//                  lea ecx,[esp+0x14] ; mov [esp+0x18],edx
-//    The original also leaves 0x18 unused between the two fields, so its
-//    by-value struct is 12 bytes with padding while ours packs the fields
-//    adjacently from 0x18. This is the guide's "inline helpers taking structs
-//    by value" case: arguments are evaluated right to left, so the field
-//    declaration order in the source decides which copy is loaded first. Worth
-//    trying next: declare the by-value struct with its fields in the order the
-//    original stores them, and check whether the padding at 0x18 comes from
-//    `#pragma pack(2)` on that struct or from a naturally aligned 4-byte field.
-// 2. An ebx/ebp swap through the rest of the loop: the original holds the
-//    second container pointer in ebx and uses ebp for the loop's running value,
-//    ours does the opposite. That is a register-priority difference and is
-//    probably downstream of (1) rather than independent of it.
-// 3. 29 bytes are still missing overall, so something is missing outright
-//    rather than merely misordered. Compare the two `push` sequences around the
-//    `call` that takes the stack struct, and check whether the original makes a
-//    call we inline or vice versa.
-// Claude Sonnet 5.5 pass (#589), not applied (the file below still scores best,
-// 59.4 percent): rebuilding this body from 0x4b7620's documented idioms (the
-// NameLess functor call, `!(a == b)` through NameNe, the named
-// Class_004b7b00::FUN_004b7b00 insert, HandlerSlot zeroing, index divided before
-// the call) inside `for (; rec->name; rec++)` gives 373 bytes (original 370, this
-// file 341) but only 42.7 percent, because the alignment shifts. The search
-// half then follows the original closely; what differs is what 0x4b7620's notes
-// list (the `_Last` reload as a memory operand, the temporary's clear, the
-// division sunk below the insert), plus the frame: the original is `sub esp,0x18`
-// with `rec` re-read from [esp+0x2c] inside the loop and ebx as `_Last`, ours is
-// `sub esp,0x1c; push ebx` with rec in ebx. Reading `rec->fn`/`rec->mask` at the
-// end instead of into locals first: 361 bytes, 50.6. Zeroing the two words in
-// the element constructor's initialiser list, with locals or without: 46.8 and
-// 46.6. So the record loop is the 0x4b7620 walls repeated, and the leftover
-// there (the temporary and the index division) is the place to attack first.
+// What this pass changed (all four moves are load bearing, in this order):
+//   * the hand-rolled Class_004b7b00 vector of 0x4b7620 replaces std::vector,
+//     which is what puts _First in esi, _Last in ebx and the key in ebp;
+//   * the record's handler slot is copied into a local BEFORE the key handle
+//     is constructed, and MASK BEFORE FN. That is the only spelling that
+//     reproduces the original's `mov edx,[ecx+8]; mov ecx,[ecx+4]; mov
+//     [esp+0x14],ecx` (the high word of an 8-byte copy is loaded first, the
+//     stores still go in ascending order). Declaring the copy after the
+//     handle ctor makes MSVC reload rec->h past the call; a struct
+//     initialiser (`HandlerSlot h = rec->h;`) makes it materialise the
+//     address of h and spills that instead, and costs 6 points;
+//   * the search comparison needs a NAMED bool local. Written inline,
+//     `if (_strcmpi(a,b) < 0)` if-converts to a bare `jge` (48 percent);
+//   * the element index is `(first - begin()) / 2`, the same idiom as the
+//     search's midpoint, NOT `/ 12` and not `sizeof`. `/ 12` costs 5 points
+//     and is also what makes MSVC sink the division below the insert.
+//
+// Still differs, in four places, all downstream of one allocator state:
+//   1. the temporary element's two handler words. The original has
+//      `xor edi,edi; xor ebx,ebx` before the name copy constructor and
+//      `mov [esp+0x28],edi; mov [esp+0x30],ebx` after it, i.e. the zeros are
+//      live across the call and live in the two callee-saved registers the
+//      search loop has just vacated. This file forwards the record's
+//      h.fn/h.mask into the temporary instead (2 loads where the original
+//      has 2 xors). Nothing tried recovers the xors: zeroing in the element
+//      constructor (`: h()`) makes MSVC drop the stores altogether, a
+//      separate zeroed local assigned after the constructor still gets
+//      forwarded, field-wise `e.h.fn = 0; e.h.mask = 0` is worse (63
+//      percent), and a `static inline` clearer is the same as the plain one.
+//      0x4b7620 hits the identical wall, so this is a shared MSVC 5
+//      behaviour, not a modelling mistake here;
+//   2. that index division. The original computes it between the copy
+//      constructor and the insert, keeps it in edi across the call and does
+//      `lea edx,[edi+edi*2]; lea esi,[eax+edx*4+4]` after reloading _First.
+//      MSVC 5 always sinks it and re-derives it from `first` after the call.
+//      Routing the index through a `static inline` helper, naming `begin()`,
+//      moving the computation before the temporary, and computing it after
+//      the call were all tried; only feeding the index to the insert call
+//      itself (`FUN_004b7b00(begin()+index, 1, e)`) lifts it above the call,
+//      and that then rebuilds the position argument and loses more;
+//   3. the search comparison's bool lands in ecx (`xor ecx,ecx; setl cl`)
+//      where the original has edx (`xor edx,edx; setl dl`). A thiscall
+//      functor for the comparison does not help: its inlined result is also
+//      ecx, which is what 0x4b7620 wants and this function does not;
+//   4. the "past the end" test uses a memory operand
+//      (`cmp esi, DAT_0051fca1`) where the original loads _Last into ebx,
+//      the register the loop bound has just died in. Same as 0x4b7620's
+//      point 1.
+//
+// Suspected original bug: none found. The `/ 2` in the midpoint and index
+// expressions is a Cavedog idiom that only works because the element is 12
+// bytes, and it is the same idiom in the already matched neighbours.
 #include <string.h>
-#include <vector>
-
-extern "C" int __cdecl _strcmpi(const char* str1, const char* str2);
 
 class Class_004c9390 {
 public:
@@ -57,6 +69,11 @@ public:
 class Class_004c91a0 : public Class_004c9390 {
 public:
     Class_004c91a0(const Class_004c91a0& other);
+
+    bool operator==(const Class_004c91a0& other) const
+    {
+        return strcmp(data, other.data) == 0;
+    }
 };
 
 class Class_004c91b0 : public Class_004c91a0 {
@@ -65,51 +82,83 @@ public:
     ~Class_004c91b0() { FUN_004c9390(); }
 };
 
+struct NameLess_004b7760 {
+    bool operator()(const char* a, const char* b) const
+    {
+        return _strcmpi(a, b) < 0;
+    }
+};
+
+struct NameNe_004b7760 {
+    bool operator()(const Class_004c91a0& a, const Class_004c91a0& b) const
+    {
+        return !(a == b);
+    }
+};
+
+typedef void (__stdcall *Handler_004b7900)(void*);
+
+struct HandlerSlot_004b7900 {
+    Handler_004b7900 fn;               // +0x4
+    int mask;                          // +0x8
+};
+
 struct Elem_004b75d0 {
     Class_004c91a0 name;               // +0x0
-    int value1;                        // +0x4
-    int value2;                        // +0x8
+    HandlerSlot_004b7900 h;            // +0x4
 
-    Elem_004b75d0(const Class_004c91a0& n) : name(n), value1(0), value2(0) {}
+    Elem_004b75d0(const Class_004c91a0& n) : name(n), h() {}
     ~Elem_004b75d0() { name.FUN_004c9390(); }
 };
 
-extern std::vector<Elem_004b75d0> DAT_0051fc99;
+class Class_004b7b00 {
+public:
+    char allocator;                    // +0x0
+    Elem_004b75d0* _First;             // +0x4
+    Elem_004b75d0* _Last;              // +0x8
+    Elem_004b75d0* _End;               // +0xc
 
-struct Rec_004b7760 {
-    char* name;                        // +0x0
-    int value1;                        // +0x4
-    int value2;                        // +0x8
+    Elem_004b75d0* begin() { return _First; }
+    Elem_004b75d0* end() { return _Last; }
+    void FUN_004b7b00(Elem_004b75d0* pos, int n, const Elem_004b75d0& x);
 };
 
-static inline bool Same_004b7760(const char* a, const char* b)
-{
-    return strcmp(a, b) == 0;
-}
+extern Class_004b7b00 DAT_0051fc99;
+
+struct Rec_004b7760 {
+    const char* name;                  // +0x0
+    HandlerSlot_004b7900 h;            // +0x4
+};
 
 // FUNCTION: 0x4b7760
 void __stdcall FUN_004b7760(Rec_004b7760* rec)
 {
     for (; rec->name; rec++) {
-        int v1 = rec->value1;
-        int v2 = rec->value2;
-        Class_004c91b0 name(rec->name);
-        char* key = name.data;
+        HandlerSlot_004b7900 h;
+        h.mask = rec->h.mask;
+        h.fn = rec->h.fn;
+        Class_004c91b0 key(rec->name);
         Elem_004b75d0* first = DAT_0051fc99.begin();
         Elem_004b75d0* last = DAT_0051fc99.end();
+        const char* k = key.data;
         while (first != last) {
             Elem_004b75d0* mid = first + (last - first) / 2;
-            if (_strcmpi(mid->name.data, key) < 0)
+            bool lt = _strcmpi(mid->name.data, k) < 0;
+            if (lt)
                 first = mid + 1;
             else
                 last = mid;
         }
-        if (first == DAT_0051fc99.end() || !Same_004b7760(first->name.data, key)) {
-            Elem_004b75d0 e(name);
-            int index = first - DAT_0051fc99.begin();
-            DAT_0051fc99.insert(first, e);
-            first = DAT_0051fc99.begin() + index;        }
-        int* slot = &first->value1;
-        *slot = v1;
-        slot[1] = v2;    }
+        HandlerSlot_004b7900* slot;
+        if (first == DAT_0051fc99.end() || NameNe_004b7760()(first->name, key)) {
+            Elem_004b75d0 e(key);
+            int index = (first - DAT_0051fc99.begin()) / 2;
+            DAT_0051fc99.FUN_004b7b00(first, 1, e);
+            slot = &DAT_0051fc99.begin()[index].h;
+        } else {
+            slot = &first->h;
+        }
+        slot->fn = h.fn;
+        slot->mask = h.mask;
+    }
 }

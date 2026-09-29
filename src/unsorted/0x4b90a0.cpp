@@ -84,6 +84,20 @@
 // SP3 with this header state): the row pointers, the yoff spill and the add
 // destination of the threshold compare are all decided by the same allocator.
 
+// deepseek-v4.1-flash pass (#1281), 83.9% confirmed a fourth time. The whole
+// 4-byte shortfall is the row-pointer block: the original makes xoff the add
+// destination (`mov esi,ebx; mov eax,[edx+0x10]; add esi,eax; mov eax,ebx`)
+// while this toolchain always canonicalises int+pointer to pointer-first
+// (`mov esi,[edx+0x10]; add esi,ebx`). Tried this pass, all 83.9 and byte for
+// byte the same: the plane fields as `int` with casts, `unsigned int` casts on
+// both addends, separate int/unsigned temps assigned in one statement and
+// materialised in the next (dp0/dp1 first, stride first, stride between),
+// `(unsigned char*)xoff`, `+=` chains, a dst pointer alias, a local plane
+// pointer pair, and recomputing the xoff expression in the row pointer. The
+// yoff spill placement and the threshold add destination move with the same
+// allocator decision. This is the compiler-state plateau the guide describes;
+// it should resolve when the file is regrouped into its original translation
+// unit.
 struct Bitmap_004b90a0 {
     unsigned short width;      // +0x0
     unsigned short height;     // +0x2

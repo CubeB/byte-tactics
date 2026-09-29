@@ -5,6 +5,24 @@
 // not present (a plain strcmp of the element tells) inserts a new 12-byte
 // element, then stores the handler pointer and its mask into the element.
 // Called by 0x406f00 with "plan", "weight" and "limit".
+//
+// This is the out-of-line form of the inner body of 0x4b7760 (the inlined
+// record loop). Element type is Class_004b7e30, the vector is
+// std::vector<Class_004b7e30> (the insert callee's mangled name says so).
+//
+// Best variant so far, 74.4%. What still differs is all downstream of how
+// MSVC 5 inlines std::vector::end(): where the original does
+// `mov ebx,[DAT_0051fc99+8]` directly, ours loads it into eax and then does
+// `mov ebx,eax`. That frees ebx early, so the compiler hoists the zero
+// constant for the new element's fields (`xor ebx,ebx`) into the fall-through
+// path before the inlined strcmp, which in turn makes the inlined strcmp use a
+// memory operand (`cmp dl,[edi]`) instead of the original's `mov bl,[edi]`,
+// and makes the `first == end()` test reload end into eax instead of ebx.
+// A hand-rolled vector class reproduces the loop, the midpoint, the inlined
+// strcmp and the NameNe sequence byte for byte, but then the insert call
+// mangles as our own class instead of VClass_004b7e30::?$vector::insert, so it
+// cannot be used. Feeding the index to the insert position and calling the
+// element constructor field-wise were both tried and lose points.
 #include <string.h>
 #include <vector>
 
@@ -19,6 +37,10 @@ public:
 class Class_004c91a0 : public Class_004c9390 {
 public:
     Class_004c91a0(const Class_004c91a0& other);
+    bool operator==(const Class_004c91a0& other) const
+    {
+        return strcmp(data, other.data) == 0;
+    }
 };
 
 class Class_004c91b0 : public Class_004c91a0 {
@@ -48,10 +70,12 @@ struct NameLess_004b7620 {
     }
 };
 
-static inline bool NameEq_004b7620(const char* a, const char* b)
-{
-    return strcmp(a, b) == 0;
-}
+struct NameNe_004b7620 {
+    bool operator()(const Class_004c91a0& a, const Class_004c91a0& b) const
+    {
+        return !(a == b);
+    }
+};
 
 // FUNCTION: 0x4b7620
 void __stdcall FUN_004b7620(const char* name, Command_004b7620 fn, int flags)
@@ -59,16 +83,15 @@ void __stdcall FUN_004b7620(const char* name, Command_004b7620 fn, int flags)
     Class_004c91b0 key(name);
     Class_004b7e30* first = DAT_0051fc99.begin();
     Class_004b7e30* last = DAT_0051fc99.end();
-    NameLess_004b7620 less;
     const char* k = key.data;
     while (first != last) {
         Class_004b7e30* mid = first + (last - first) / 2;
-        if (less(mid->handle.data, k))
+        if (NameLess_004b7620()(mid->handle.data, k))
             first = mid + 1;
         else
             last = mid;
     }
-    if (first == DAT_0051fc99.end() || !NameEq_004b7620(first->handle.data, key.data)) {
+    if (first == DAT_0051fc99.end() || NameNe_004b7620()(first->handle, key)) {
         Class_004b7e30 e(key);
         int index = first - DAT_0051fc99.begin();
         DAT_0051fc99.insert(first, e);

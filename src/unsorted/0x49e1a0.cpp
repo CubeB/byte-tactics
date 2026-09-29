@@ -1,5 +1,110 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by LongCat 2.5 Preview Free.
-// Names are provisional.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free. Names are provisional.
+// STATUS: partial, 84.7% (ours 969 bytes against the original 969, no MATCH
+// yet). Up from 60.7%. The frame, the whole aim block, the cooldown
+// arithmetic, both script plus sound call pairs and the flag word update all
+// match now. What is left is a handful of register choices and one branch.
+//
+// What it is: the per-unit update of the three weapon slots. unit->entries[3] sits
+// at +0x04, 0x1c bytes per entry, walked with esi += 0x1c (0x49e54c) and a byte
+// counter compared with 3 (0x49e54f). Per slot: decay the cooldown (word at
+// esi-7, entry+0x18), ask FUN_0048a1e0 for the slot's world position, aim the slot
+// (independent-aim path FUN_0043e2e0 + FUN_0049e570 + FUN_004b715a +
+// FUN_0049a890, or the shared path FUN_0049d910), fire the script trigger
+// 0x4b0a70 plus the 0x456200 call, then when the cooldown is zero check the ammo
+// count (entry+0x1e) or store metal and energy ([edi+0xec]+0x8c and +0x98)
+// against the target's cost (target+0xc0 and +0xc4), call the vtable fire
+// function at target+0x60, and either decrement the ammo count (bit 28 of
+// target+0x111) or recompute the cooldown from unit+0xb8, unit+0x108 and
+// unit->type+0x1fa. Finally it sets a bit in the flag word at unit+0xba, calls
+// 0x4012a0 to spend metal and energy when bit 0x10000000 of target+0x111 is
+// clear, or sets 0x10 in unit+0xbb when the range or cost check failed.
+//
+// Frame: __stdcall, ret 4, one stack argument. "sub esp,0x30" plus ebx, ebp, esi
+// and edi, so locals occupy [esp+0x10, esp+0x40) and the argument home slot
+// [esp+0x44] is reused as scratch once edi holds the unit. Slots: +0x10 the loop
+// index (dword), +0x14 the heading (dword), +0x18 the byte loop counter, +0x1c
+// dz, +0x20 dx and +0x24 dy (dwords), +0x28 the slot position Vec3, +0x34 the
+// aim Vec3 out of FUN_0043e2e0, and +0x44 the aim angle (written at 0x49e29c and
+// 0x49e2ce). 12 dwords of locals in total.
+//
+// What the previous attempt had wrong, and what fixed it. The 60.7% draft read
+// its target pointer once into a single local named "attached", so MSVC had one
+// register for it and burned ebp as a zero register. The original keeps TWO
+// live copies: ebx from the loop head (0x49e1bd) and a second load into ebp
+// (0x49e21b) inside the aim block. Declaring a second local for the aim block
+// alone, "Target* t = e->attached;" just inside the "if (!(e->flags & 1))"
+// block, and leaving the outer f60 and b19 tests on the first copy, is what
+// moved 62.9% to 72.7%. Three more changes took it to 84.7%:
+//   - target+0x111 is a BITFIELD, not a plain unsigned int. Declaring
+//     b0:1, b1:1, b2_3:2, b4:1, b5_18:14, b19:1, b20_25:6, b26:1, b27:1, b28:1,
+//     b29_31:3 makes MSVC emit "mov edx,eax / shr edx,0x13 / test dl,1" instead
+//     of "test ecx,0x80000" (worth 1.3 points on its own). Every bit is a
+//     bitfield EXCEPT bit 26, which is the one place the original reads the
+//     word raw ("shr eax,0x1a / and al,1"), so that one use goes through the
+//     f_111_raw() alias (worth a further 0.2). Bitfields cannot be reached
+//     through a union member in MSVC 5 (error C2039), so the alias is a
+//     method returning "*(unsigned int*)&f_111".
+//   - the FUN_0049d910 out parameters are unsigned short* and the weapon
+//     parameter is unsigned char, not int. The byte width is what produces
+//     "shr al,2 / and al,3" at 0x49e2ae instead of a 32-bit shift (1.6 points).
+//   - DAT_00509688[(e->flags >> 2) & 3] is hoisted into a local "char* nm" in
+//     the first script pair only, which is what lets MSVC tail-merge the
+//     FUN_00456200 call the way the original does with the jmp at 0x49e33b
+//     (5.7 points, and the exact 969-byte size came with it). Hoisting it in
+//     the second pair as well scores 82.1%, so only the first one is hoisted.
+//
+// Ranges that now match instruction for instruction: the prologue
+// 0x49e1a0-0x49e1ed; 0x49e22b-0x49e2a0 the whole aim and angle block including
+// the "cmp cx,0x8000" and "setne al"; 0x49e2e8-0x49e33b the first script plus
+// sound pair and its jump into the shared tail; 0x49e35b-0x49e3a6 the second
+// pair; 0x49e393-0x49e3ab the shared tail; 0x49e3ed-0x49e419 the float metal
+// and energy compare; 0x49e468-0x49e4ee the cooldown arithmetic including both
+// magic-multiply idioms; 0x49e4f2-0x49e50b the flag word update; and the
+// epilogue at 0x49e55f-0x49e566. Only jump displacements differ inside those.
+//
+// What still differs, all of it register choice rather than shape (61 of 310
+// instructions):
+//  1. The loop tail. The original reloads the index into ebx at 0x49e545 and
+//     increments it there (0x49e54b, 0x49e555); we keep it in edx. ebx holds
+//     the target at the loop head, so the tail needs a third copy. Four
+//     declaration orders were tried and none moved it; the extra live range
+//     the original wants is not expressible through a source reorder.
+//  2. The b4 test. The original reaches it with "mov edx,eax / shr edx,4 /
+//     test dl,1" reusing the eax that still holds target+0x111 from the b19
+//     test at 0x49e1fd; we reload. Our b4 is a bitfield, and a bitfield read
+//     cannot reuse the parent word that a different bit's read left in eax.
+//  3. The b0 branch's jump target (0x49e2ce) and the two "mov ecx,[esp+0x4c]"
+//     style argument reloads at 0x49e185-0x49e193, which read through a
+//     different outstanding-push depth than ours.
+//  4. The FUN_004012a0 argument registers: ecx and edx in the original at
+//     0x49e51f-0x49e52d, edx and eax in ours. Declaring the parameters int
+//     instead of float, and the flag word as a bare unsigned short, both cost
+//     3.5 points, so the float form is right and only the register pick is
+//     off.
+//  5. The second script pair's name register (edx versus eax) and the
+//     "lea ecx" versus "lea eax" for &e->name at 0x49e1d9.
+//
+// Dead ends recorded so nobody repeats them: a weapon-index local (unsigned
+// char w) drops to 55.7% because MSVC then keeps it live across both pairs;
+// declaring int can without an initialiser, or as a boolean assignment, costs
+// 8 points (the "xor edx,edx / mov edx,1" pair at 0x49e3db and 0x49e419 is what
+// the original does, and it wants the block form); reading target+0x111
+// through e->attached everywhere instead of a cached local drops to 48.1%;
+// short rather than unsigned short locals cost 0.3; the 0x10000000 tests as
+// raw shifts rather than bitfields cost 1.6.
+//
+// The calling convention was checked first and is NOT the cause. The function
+// returns with "ret 4" and has one stack argument, so __stdcall with one
+// argument is correct and was already in place. All 11 callees agree with
+// their ctx.py ret values.
+//
+// ---- NOTES CARRIED OVER from the earlier 73.5% version (LongCat 2.5 Preview
+// Free), kept verbatim below the new notes. Read them as history: this file is
+// 84.7% and exact in size, so the scores, byte counts and 'STILL OPEN' items
+// below describe the OLDER file, and some of them are now fixed or superseded.
+// The facts about what the original does (the eager s->def load, the
+// &s->target argument, the /5 divide, the field widths) are still the useful part.
+//
 //
 // GAVE UP at 73.5% (993 of 969 bytes; ours is 24 bytes LONGER than the
 // original, so the tail is over-long as well as the frame being permuted).
@@ -74,33 +179,12 @@
 //   - removing the `= 0` initialisers (already absent): no change
 //   - all six permutations of the n/heading/i declarations: identical offsets
 //   - a Frame struct to pin the layout: correct offsets, breaks the pointer walk
-#pragma pack(push, 1)
+#include <string.h>
 
-struct Vec3 {
+struct Vec3_0049e1a0 {
     int x;
     int y;
     int z;
-};
-
-struct Unit_0049e1a0;
-struct Def_0049e1a0;
-
-struct Store_0049e1a0 {
-    char unknown_0[0x8c];
-    float metal;                       // +0x8c
-    char unknown_90[0x98 - 0x90];
-    float energy;                      // +0x98
-};
-
-class Class_004012a0 {
-public:
-    char unknown_0[4];
-    float x0;                          // +0x04
-    char unknown_8[0x1c - 8];
-    float y0;                          // +0x1c
-    char unknown_20[0x30 - 0x20];
-    Store_0049e1a0* store;             // +0x30
-    int FUN_004012a0(float dx, float dy);
 };
 
 class Class_004b0a70 {
@@ -109,224 +193,210 @@ public:
                      int param_5, int param_6, int param_7, int param_8);
 };
 
-union Flags_0049e1a0 {
-    struct {
-        unsigned int b0 : 1;
-        unsigned int b1 : 1;
-        unsigned int b2_3 : 2;
-        unsigned int b4 : 1;
-        unsigned int b5_7 : 3;
-        unsigned int b8 : 1;
-        unsigned int b9_18 : 10;
-        unsigned int b19 : 1;
-        unsigned int b20_25 : 6;
-        unsigned int b26 : 1;
-        unsigned int b27 : 1;
-        unsigned int b28 : 1;
-        unsigned int top : 3;
-    } bits;
-    unsigned int all;
+#pragma pack(push, 1)
+struct Store_0049e1a0 {
+    char unknown_0[0x8c];
+    float metal;                        // +0x8c
+    char unknown_90[0x98 - 0x90];
+    float energy;                       // +0x98
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+class Class_004012a0 {
+public:
+    char unknown_0[0x4];
+    float x0;
+    char unknown_8[0x1c - 0x8];
+    float y0;
+    char unknown_20[0x30 - 0x20];
+    Store_0049e1a0* store;              // +0x30
+    int FUN_004012a0(float dx, float dy);
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct Point_0049e1a0 {
+    short x;
+    short z;
 };
 
-struct Def_0049e1a0 {
-    char unknown_0[0x60];
-    int (__stdcall* fire)(Unit_0049e1a0*, void*, void*, void*);   // +0x60
-    char unknown_64[4];
-    int field_68;                      // +0x68
+struct Unit_0049e1a0;
+
+// The unit a slot points at. Its class vtable sits at +0x60.
+struct Target_0049e1a0 {
+    char unknown_00[0x60];
+    int (__stdcall *f60)(Unit_0049e1a0*, Point_0049e1a0*, Unit_0049e1a0*, Vec3_0049e1a0*);
+    char unknown_64[0x68 - 0x64];
+    int f_68;
     char unknown_6c[0xc0 - 0x6c];
-    float cost_metal;                  // +0xc0
-    float cost_energy;                 // +0xc4
-    int field_c8;                      // +0xc8
+    float f_c0;
+    float f_c4;
+    float f_c8;
     char unknown_cc[0xe4 - 0xcc];
-    unsigned short field_e4;           // +0xe4
+    unsigned short f_e4;
     char unknown_e6[0x111 - 0xe6];
-    Flags_0049e1a0 flags;              // +0x111
+    struct { unsigned int b0:1, b1:1, b2_3:2, b4:1, b5_18:14, b19:1,
+                              b20_25:6, b26:1, b27:1, b28:1, b29_31:3; } f_111;
+    unsigned int& f_111_raw() { return *(unsigned int*)&f_111; }
 };
 
-// The three weapon slots, walked by the loop. The same bytes are described in
-// 0x49e070 anchored 0xc later (its `attached` is this `def`); there the loop
-// keeps the flags byte as its induction variable, which is why the offsets
-// here are written as they are.
-struct Slot_0049e1a0 {
-    void* target;                      // +0x00
+struct Entry_0049e1a0 {                // 0x1c bytes
+    Point_0049e1a0 point;              // +0x00
     char* name;                        // +0x04
-    int field_8;                       // +0x08
-    Def_0049e1a0* def;                 // +0x0c
-    int field_10;                      // +0x10
-    unsigned short field_14;           // +0x14
-    short field_16;                    // +0x16
-    short field_18;                    // +0x18
-    unsigned char field_1a;            // +0x1a
+    int f_8;                           // +0x08
+    Target_0049e1a0* attached;         // +0x0c
+    char unknown_10[0x14 - 0x10];
+    unsigned short f_14;               // +0x14, the slot's tick counter
+    short f_16;                        // +0x16
+    short f_18;                        // +0x18
+    unsigned char f_1a;                // +0x1a
     unsigned char flags;               // +0x1b
 };
 
-struct Type_0049e1a0 {
+struct UnitType_0049e1a0 {
     char unknown_0[0x1fa];
-    unsigned int field_1fa;            // +0x1fa
+    unsigned int f_1fa;
 };
 
 struct Unit_0049e1a0 {
-    char unknown_0[4];
-    Slot_0049e1a0 slots[3];            // +0x04
+    char unknown_00[0x4];
+    Entry_0049e1a0 entries[3];         // +0x04
     char unknown_58[0x66 - 0x58];
-    unsigned short field_66;           // +0x66
+    short heading;                     // +0x66
     char unknown_68[0x6a - 0x68];
-    Vec3 pos;                          // +0x6a
+    Vec3_0049e1a0 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
-    Type_0049e1a0* type;               // +0x92
-    char unknown_96[4];
+    UnitType_0049e1a0* type;           // +0x92
+    char unknown_96[0x9a - 0x96];
     Class_004b0a70* script;            // +0x9a
     char unknown_9e[0xb8 - 0x9e];
-    unsigned short field_b8;           // +0xb8
-    // The two flags the code sets overlap: the short OR is done on 0xba..0xbb
-    // and the byte OR on 0xbb alone, so they are one 2 byte cell.
-    union Ba_0049e1a0 {
-        unsigned short field_ba;       // +0xba
-        struct {
-            unsigned char field_ba_lo; // +0xba
-            unsigned char field_bb;    // +0xbb
-        } bytes;
-    } ba;                              // +0xba
-    Class_004012a0 energy;             // +0xbc
-    char unknown_f0[0x18];             // +0xf0
-    short field_108;                   // +0x108
+    unsigned short f_b8;               // +0xb8
+    union {                             // +0xba
+        unsigned short w;
+        unsigned char b[2];
+    } f_ba;
+    Class_004012a0 f_bc;               // +0xbc
+    char unknown_f0[0x108 - 0xf0];
+    short f_108;                       // +0x108
 };
 #pragma pack(pop)
 
 extern char* DAT_00509688[4];
 
-int __stdcall FUN_0048a1e0(Unit_0049e1a0* unit, Vec3* pos, int index);
-void __stdcall FUN_0043e2e0(Unit_0049e1a0* unit, Vec3* out, unsigned char weapon);
-void __stdcall FUN_0049e570(Vec3* a, Vec3* b, int* dx, int* dy, int* dz);
-int __cdecl FUN_004b715a(int x, int z);
-int __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
-int __stdcall FUN_0049d910(Unit_0049e1a0* unit, void* target,
-                          short* out_heading, short* out_pitch, int weapon,
-                          Vec3* point);
-int __stdcall FUN_0049aa80(Unit_0049e1a0* a1, Vec3* a2, Vec3* a3, unsigned char a4);
+int __stdcall FUN_0048a1e0(Unit_0049e1a0* unit, Vec3_0049e1a0* pos, int index);
 Unit_0049e1a0* __stdcall FUN_0048a190(Unit_0049e1a0* obj, int index);
-void __stdcall FUN_0041c150(void* u);
+void __stdcall FUN_0043e2e0(Unit_0049e1a0* unit, Vec3_0049e1a0* out, unsigned char weapon);
+void __stdcall FUN_0049e570(Vec3_0049e1a0* a, Vec3_0049e1a0* b, int* dx, int* dy, int* dz);
+short __cdecl FUN_004b715a(int x, int z);
+unsigned short __stdcall FUN_0049a890(int a, int b, int c, int d, float e);
+int __stdcall FUN_0049d910(Unit_0049e1a0* unit, Target_0049e1a0* target,
+                           unsigned short* out_heading, unsigned short* out_pitch,
+                           unsigned char weapon, Vec3_0049e1a0* point);
+int __stdcall FUN_0049aa80(Unit_0049e1a0* unit, Vec3_0049e1a0* a2,
+                           Vec3_0049e1a0* a3, unsigned char a4);
 int __stdcall FUN_00456200(Unit_0049e1a0* obj, char* name, char field_5,
-                           int field_6, int field_a, int field_e, int field_12);
+                           int field_6, int field_a, unsigned short field_e,
+                           unsigned short field_12);
+void __stdcall FUN_0041c150(Unit_0049e1a0* unit);
 
 // FUNCTION: 0x49e1a0
 void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit)
 {
-    // Declaration order sets the frame slots: the original's locals run
-    // n +0x10, heading +0x14, i +0x18, dz +0x1c, dx +0x20, dy +0x24,
-    // aimPoint +0x28, muzzle +0x34, with pitch in the dead argument slot
-    // at +0x44 (MSVC puts the last local above the return address once the
-    // 0x30-byte frame is full).
-    int pitch;
-    Vec3 muzzle;
-    Vec3 aimPoint;
-    int dy;
-    int dx;
+    int index;
+    unsigned short heading;
+    unsigned char i;
     int dz;
-    unsigned char i = 0;
-    short heading;
-    int n = 0;
+    int dx;
+    int dy;
+    Vec3_0049e1a0 pos;
+    Vec3_0049e1a0 aim;
 
-    for (i = 0, n = 0; i < 3; i++, n++) {
-        Slot_0049e1a0* s = &unit->slots[n];
-        Def_0049e1a0* def = s->def;
-        int fl2;
-        if (!(s->flags & 2)) {
+    for (i = 0, index = 0; i < 3; i++, index++) {
+        Entry_0049e1a0* e = &unit->entries[i];
+        unsigned char fl = e->flags;
+        Target_0049e1a0* attached = e->attached;
+        if (!(fl & 2))
+            continue;
+        if (e->f_14)
+            e->f_14--;
+        if (!FUN_0048a1e0(unit, &pos, index)) {
+            e->flags &= 0xfe;
             continue;
         }
-        if (s->field_14 > 0) {
-            s->field_14--;
-        }
-        if (!FUN_0048a1e0(unit, &aimPoint, n)) {
-            s->flags &= 0xfe;
+        if (attached->f60 == 0)
             continue;
-        }
-        if (def->fire == 0) {
-            continue;
-        }
-        if (def->flags.bits.b19) {
-            int ok;
-            if (s->flags & 1) {
-                continue;
+        if (attached->f_111.b19) {
+            if (!(e->flags & 1)) {
+                Target_0049e1a0* t = e->attached;
+                unsigned short angle;
+                int ok;
+                if (t->f_111.b1) {
+                    FUN_0043e2e0(unit, &aim, (unsigned char)((e->flags >> 2) & 3));
+                    FUN_0049e570(&aim, &pos, &dx, &dy, &dz);
+                    heading = (unsigned short)(FUN_004b715a(dx, dz) - unit->heading);
+                    angle = FUN_0049a890(dx, dy, dz, t->f_68, t->f_c8);
+                    ok = (angle != 0x8000);
+                } else if (t->f_111.b0) {
+                    ok = FUN_0049d910(unit, t, &heading, &angle,
+                                      (unsigned char)(e->flags >> 2 & 3), &pos);
+                } else {
+                    ok = 0;
+                }
+                if (ok) {
+                    e->f_18 = angle;
+                    e->f_16 = heading;
+                    e->f_8 = 0;
+                    char* nm = DAT_00509688[(e->flags >> 2) & 3];
+                    unit->script->FUN_004b0a70(nm, &e->name, 0, 2,
+                                               heading, angle, 0, 0);
+                    FUN_00456200(unit, nm, 2, heading, angle, 0, 0);
+                    e->flags |= 1;
+                }
             }
-            Def_0049e1a0* d = s->def;
-            if (d->flags.bits.b1) {
-                FUN_0043e2e0(unit, &muzzle, (unsigned char)((s->flags >> 2) & 3));
-                FUN_0049e570(&muzzle, &aimPoint, &dx, &dy, &dz);
-                heading = FUN_004b715a(dx, dz) - unit->field_66;
-                pitch = FUN_0049a890(dx, dy, dz, d->field_68, d->field_c8);
-                ok = ((short)pitch != (short)0x8000);
-            } else if (d->flags.bits.b0) {
-                ok = FUN_0049d910(unit, d, (short*)&heading, (short*)&pitch,
-                                  (s->flags >> 2) & 3, &aimPoint);
+        } else {
+            if (attached->f_111.b4
+                && (!attached->f_111.b28 || e->f_1a)
+                && !(e->flags & 1)) {
+                e->f_8 = 0;
+                unit->script->FUN_004b0a70(DAT_00509688[(e->flags >> 2) & 3],
+                                           &e->name, 0, 2, 0, 0, 0, 0);
+                FUN_00456200(unit, DAT_00509688[(e->flags >> 2) & 3], 2, 0, 0, 0, 0);
+                e->flags |= 1;
+            }
+        }
+        if (e->f_14 != 0)
+            continue;
+        if (FUN_0049aa80(unit, &unit->pos, &pos, i)) {
+            int can = 0;
+            if (attached->f_111.b28) {
+                if (e->f_1a)
+                    can = 1;
             } else {
-                ok = 0;
+                if (unit->f_bc.store->metal >= attached->f_c0
+                    && unit->f_bc.store->energy >= attached->f_c4)
+                    can = 1;
             }
-            if (!ok) {
+            if (can == 0)
                 continue;
+            if (attached->f60(unit, &e->point, FUN_0048a190(unit, index), &pos) == 0)
+                continue;
+            if (attached->f_111.b28) {
+                e->f_1a--;
+                FUN_0041c150(unit);
+            } else {
+                int n = unit->f_b8 / 5;
+                if (n > 5)
+                    n = 5;
+                int q = unit->f_108 * 20 / unit->type->f_1fa;
+                int pct = 100 - n * 6;
+                e->f_14 = (short)((120 - q) * (pct * attached->f_e4 / 100) / 100);
             }
-            s->field_18 = (short)pitch;
-            s->field_16 = (short)heading;
-            s->field_8 = 0;
-            unit->script->FUN_004b0a70(DAT_00509688[(s->flags >> 2) & 3], &s->name,
-                                      0, 2, (unsigned short)heading,
-                                      (unsigned short)pitch, 0, 0);
-            FUN_00456200(unit, DAT_00509688[(s->flags >> 2) & 3], 2,
-                         (unsigned short)heading, (unsigned short)pitch, 0, 0);
+            unit->f_ba.w |= ((attached->f_111_raw() >> 26) & 1) ? 0x800 : 0x400;
+            if (!attached->f_111.b28)
+                unit->f_bc.FUN_004012a0(attached->f_c0, attached->f_c4);
         } else {
-            if (!def->flags.bits.b4) {
-                continue;
-            }
-            if ((def->flags.all & 0x10000000) && s->field_1a == 0) {
-                continue;
-            }
-            if (s->flags & 1) {
-                continue;
-            }
-            s->field_8 = 0;
-            unit->script->FUN_004b0a70(DAT_00509688[(s->flags >> 2) & 3], &s->name,
-                                      0, 2, 0, 0, 0, 0);
-            FUN_00456200(unit, DAT_00509688[(s->flags >> 2) & 3], 2, 0, 0, 0, 0);
-        }
-        s->flags |= 1;
-
-        if (s->field_14 != 0) {
-            continue;
-        }
-        if (FUN_0049aa80(unit, &unit->pos, &aimPoint, i)) {
-    int ok;
-    if (def->flags.bits.b28) {
-        ok = (s->field_1a != 0);
-    } else {
-        ok = (unit->energy.store->metal >= def->cost_metal
-              && unit->energy.store->energy >= def->cost_energy);
-    }
-    if (!ok) {
-        continue;
-    }
-    if (def->fire(unit, &s->target, FUN_0048a190(unit, n), &aimPoint) == 0) {
-        continue;
-    }
-    if (def->flags.bits.b28) {
-        s->field_1a--;
-        FUN_0041c150(unit);
-    } else {
-        int shots = unit->field_b8;
-        shots = shots / 5;
-        if (shots > 5) {
-            shots = 5;
-        }
-        int health = unit->field_108 * 20 / unit->type->field_1fa;
-        int rate = (100 - 6 * shots) * (int)def->field_e4 / 100;
-        s->field_14 = (short)((120 - health) * rate / 100);
-    }
-        } else {
-            unit->ba.bytes.field_bb |= 0x10;
-        }
-        fl2 = 0x400 + (def->flags.bits.b26 ? 0x400 : 0);
-        unit->ba.field_ba |= fl2;
-        if (!(def->flags.all & 0x10000000)) {
-            unit->energy.FUN_004012a0(def->cost_metal, def->cost_energy);
+            unit->f_ba.b[1] |= 0x10;
         }
     }
 }

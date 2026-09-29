@@ -43,6 +43,59 @@
 // Other spellings scored this pass, none helped: `*(i++ + unit->mask)`,
 // `(i++)[unit->mask]`, `i[unit->mask]; i++`, an `unsigned char` mask value
 // (88.3), a GetMask() getter (84.1), and helpers taking (unit, i).
+//
+// space-bunny-free pass (#1112), 1 check run. Confirmed the residual is exactly
+// one SIB byte, at exactly the right total size (333 = 333). Every source shape
+// tried scores 99.1% and none moves it, so the source is right and the choice
+// is not in the source text. Measured this pass, all free-scored with score.py:
+//
+// 1. Real headers, one at a time, all 99.1%: <xutility> <climits> <dsound.h>
+//    <list> <algorithm> <utility> <map> <xmemory> <cstring> <cstdio> <cmath>
+//    <vector> <string> <iomanip> <new> <typeinfo> <exception> <assert> <set>
+//    <deque> <limits> <strstream> <iostream> <fstream> <sys/types.h>. So no
+//    header puts this file in the MATCH state, and the answer to #571's "sweep
+//    the declaration set" is negative: a real header is not what moves it.
+// 2. The mask access, re-spelled 12 ways, all 99.1%: `mask[i]; i++` (separate
+//    statement), `*(mask + i++)`, `*(i++ + mask)`, `i++[mask]`, `(i++)[mask]`,
+//    `(unsigned char)mask[i++]`, `unsigned` index, `unsigned int f`,
+//    `const unsigned char* mask`, `char* mask` (82.6, worse), `mask[++i]; i--`
+//    (86.5), a `signed char` temp for the value (79.4), an
+//    `*(unsigned char*)(int i + int mask)` integer-add form, and a
+//    `MaskRef{p}[i]` struct aggregate.
+// 3. The mask pointer as a local, which is where the original's per-row reload
+//    would come from, all worse: hoisted before both loops (46.8), assigned
+//    inside the outer loop (79.1, both declaration positions), walked with
+//    `*m++` (37.1), plus a GetMask(unit, i) helper (29.6).
+// 4. Declaration order, the lever that works elsewhere: `i` first, `i` last,
+//    `i` between the cell pointer and the loops, `i` with `low`/`high`/`high2`
+//    split out one per line, `i` declared after the early return. 99.1, 99.1,
+//    93.5, 99.1, 99.1. A second index variable with `i` on the for-increment
+//    and a row-base offset (`mask[base + i++]`, 50.9) is much worse.
+// 5. Line numbers are not it: 16, 24 and 40 blank lines, and 16, 24 and 40
+//    comment lines, are all 99.1%.
+//
+// The #571 measurement reproduces exactly, and the mechanism is now clearer
+// than "declaration count": it is a hash-state coin flip, not a threshold.
+// `extern int padv_N;` scores 99.1 at N = 0, 2, 4, 8, 12, 85.0 at N = 6, 10,
+// 14, and MATCH at N = 16, 20, 28, 36. `extern void __cdecl padfn_N(void);`
+// crosses over at N = 8 and holds MATCH to 36. `extern int __cdecl
+// padfn_N(int,int);` is MATCH at N = 6, 8, 12, 16, 20, 28 and 67.9 at 36. A
+// typedef or a `static int` flips it at N = 16 and never reverts (MATCH through
+// 64); a struct definition per line does the opposite and is 67.9 at every
+// count. So the same count can flip or not depending on the names, which is
+// what a symbol-hash collision in the front end looks like. One declaration
+// alone (84.1) moves the code as much as a wrong source shape does.
+//
+// That settles it: the MATCH is not reachable from the source, it is a
+// front-end state artifact, and the file below is the correct source. Not
+// taking the extern-padding MATCH, since padding the file with declarations to
+// steer a hash collision is exactly the kind of thing review would undo.
+// Instruction: do not spend another pass on this file's operand order.
+//
+// Guide advice: a base/index SIB-byte swap that no source change moves, and
+// that a count of unused declarations can flip on and off non-monotonically,
+// is front-end symbol-hash state, not a header and not a spelling. Once real
+// headers, real spellings and declaration order are all flat, stop.
 #pragma pack(push, 1)
 
 struct Point {

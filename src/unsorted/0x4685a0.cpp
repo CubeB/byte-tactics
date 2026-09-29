@@ -1,23 +1,18 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// STATUS: partial, 55.2%. Debug overlay for the selected unit ("Unit Builder
-// Probe"): its uid, owner, controller and, for a local player, every type it
-// can build with the build probability and a small bar.
+// STATUS: partial, 81.0%. Debug overlay for the selected unit ("Unit Builder
+// Probe"): uid, owner, controller and, for a local player, every type it can
+// build with build probability and a small bar.
 //
-// WHAT MATCHES: the packed Game/Unit/UnitType/PlayerInfo layout (without
-// #pragma pack(1) every offset drifts by 1..4), the 0x118 stride of Unit, the
-// index computation, the string constants and their argument order, the frame
-// size (buf is char[0x70]), and the overall control flow.
+// The bar is drawn by an inlined helper (the same FUN_00468310 shape as
+// 0x468380's Bar), which is what got prob into a callee-saved register and
+// brought the code size to the original's 1045 bytes; before that it was 60.5%.
 //
-// WHAT STILL DIFFERS, all of it register/slot assignment, no source idea found
-// within the timebox:
-//  - the original keeps `unit` in ebp and the zero constant in ebx; this file
-//    gets the opposite (unit in ebx, zero in ebp). Everything downstream that
-//    names ebp or ebx follows from that one swap.
-//  - the original keeps lineHeight in esi and y in edi; this file swaps them.
-//  - local slots: original has colors at [esp+0x10], unit at [esp+0x14],
-//    lineHeight at [esp+0x18], buf at [esp+0x44]; this file's are shifted
-//    (colors [esp+0x18], unit [esp+0x40], buf lower), which is the 0x10 of
-//    frame difference that remains.
+// WHAT STILL DIFFERS: lineHeight and y are swapped between esi and edi (the
+// original keeps lineHeight in esi and y in edi; this file has the opposite),
+// and the remote/LOCAL string test. The original tests player->f_0 != 0 as part
+// of the remote ternary (0x468754: cmp dword ptr [eax],0 / je REMOTE); writing
+// that check raised the size to 1052, so the exact source form is not settled.
+// Frame size is 0xa4 against the original's 0xb4.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -104,6 +99,18 @@ void __stdcall FUN_004bf8c0(void* surface, void* rect, int color);
 void __stdcall FUN_004bf6f0(void* surface, void* rect, int color);
 void __stdcall FUN_004c14f0(void* dst, const char* text, int x, int y, int maxWidth);
 
+
+static void Bar_004685a0(void* surface, Rect_004685a0* rect, int percent)
+{
+    unsigned char& color = g_game->colors[15];
+    FUN_004bf8c0(surface, rect, color);
+    percent = (percent >= 100) ? 100 : percent;
+    if (percent > 0) {
+        rect->right = (rect->right - rect->left) * percent / 100 + rect->left;
+        FUN_004bf6f0(surface, rect, color);
+    }
+}
+
 // FUNCTION: 0x4685a0
 int __stdcall FUN_004685a0(void* surface)
 {
@@ -138,56 +145,46 @@ int __stdcall FUN_004685a0(void* surface)
     FUN_004c14f0(surface, "Unit Builder Probe", 0x86, y, -1);
     y += lineHeight;
     FUN_004c14f0(surface, "==================", 0x86, y, -1);
-    UnitType_004685a0* type = unit->type;
-    PlayerInfo_004685a0* player = unit->player;
     y += lineHeight;
-    sprintf(buf, "uid: %03d '%s'\n", unit->f_a8, (char*)type);
+    sprintf(buf, "uid: %03d '%s'\n", unit->f_a8, (char*)unit->type);
     FUN_004c14f0(surface, buf, 0x86, y, -1);
-    char* mobile = type->mobile ? "MOBILE" : "BUILDING";
+    char* mobile = unit->type->mobile ? "MOBILE" : "BUILDING";
     char* remote;
-    if (player->controller == 1 || player->controller == 2)
+    if (unit->player->controller == 1 || unit->player->controller == 2)
         remote = "LOCAL";
     else
         remote = "REMOTE";
     y += lineHeight;
-    sprintf(buf, "playerno: %d '%s' %s - %s\n", player->player, player->name, remote, mobile);
+    sprintf(buf, "playerno: %d '%s' %s - %s\n", unit->player->player, unit->player->name, remote, mobile);
     FUN_004c14f0(surface, buf, 0x86, y, -1);
     y += lineHeight;
-    sprintf(buf, "controller: %d\n\n", player->controller);
+    sprintf(buf, "controller: %d\n\n", unit->player->controller);
     FUN_004c14f0(surface, buf, 0x86, y, -1);
     y += lineHeight;
-    if (player->f_0 != 0 && (player->controller == 1 || player->controller == 2)) {
+    if (unit->player->f_0 != 0 && (unit->player->controller == 1 || unit->player->controller == 2)) {
         sprintf(buf, "Units I can build, and the probabilities:\n",
                 ((unit->f_1f & 0x10) ? 'X' : '-'),
                 ((unit->f_3b & 0x10) ? 'X' : '-'),
                 ((unit->f_57 & 0x10) ? 'X' : '-'));
         FUN_004c14f0(surface, buf, 0x86, y, -1);
         int i = 0;
-        if (type->count > 0) {
+        if (unit->type->count > 0) {
             y += lineHeight;
             do {
-                unsigned short id = type->types[i];
+                unsigned short id = unit->type->types[i];
                 int prob = FUN_0040bb00(unit->f_ff, id);
-                unsigned char& color = colors[15];
                 Rect_004685a0 bar;
                 bar.left = 0x88;
                 bar.top = y + 1;
                 bar.right = 0xa2;
                 bar.bottom = bar.top + lineHeight - 6;
-                FUN_004bf8c0(surface, &bar, color);
-                int pct = prob;
-                if (pct >= 100)
-                    pct = 100;
-                if (pct > 0) {
-                    bar.right = (bar.right - bar.left) * pct / 100 + bar.left;
-                    FUN_004bf6f0(surface, &bar, color);
-                }
+                Bar_004685a0(surface, &bar, prob);
                 char* name = (char*)g_game->defs + id * 0x249 + 0x20;
                 sprintf(buf, "       %3d %% - '%s'\n", prob, name);
                 FUN_004c14f0(surface, buf, 0x86, y, -1);
                 y += lineHeight;
                 i++;
-            } while (i < type->count);
+            } while (i < unit->type->count);
         }
     }
     DAT_0051e540 = y;

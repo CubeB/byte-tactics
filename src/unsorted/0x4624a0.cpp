@@ -1,4 +1,11 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (1296): best is now 67.8% (was 67.3%). Moving the
+// per-packet entry declaration out of the for loop to function scope with an
+// = 0 initialiser lifts the byte score by 0.5 points; the missing 15 bytes are
+// still the constant 0 that the original keeps in ebx for the whole function.
+// A literal 0 is rematerialised here; int zero = 0 in many placements and a
+// zero = 0 assignment in both arms of the now-nextSend test (which would
+// explain the two xor ebx,ebx) all fold back to test reg,reg and mov [m],0.
 // Not a match (67.3% with this version; 66.0% without the extra
 // `loc.headFrame = 0;` line, 59.0% for the previous clean-locals version).
 //
@@ -190,6 +197,7 @@ int Class_004624a0::FUN_004624a0(int force)
         return 1;
     int i;
     int sent;
+    Packet_004624a0* entry = 0;
     while (1) {
         loc.headFrame = queue.GetFirst()->frame;
         sent = 0;
@@ -197,7 +205,7 @@ int Class_004624a0::FUN_004624a0(int force)
         for (i = 0; i < loc.n; i++) {
             // Two calls, not one: the original's inlined code has the diamond
             // of a two-return helper and then a second count test of its own.
-            Packet_004624a0* entry = queue.GetFirst();
+            entry = queue.GetFirst();
             queue.Pop();
             if (entry->frame == loc.headFrame) {
                 char* p = (char*)entry->base + entry->offset;

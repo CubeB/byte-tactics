@@ -3991,9 +3991,9 @@ address,size,model,batch,result,similarity,runs,notes
 0x4dc130,1262,,#1026,assigned,,,issue #1026
 0x4dc910,1262,,#1026,assigned,,,issue #1026
 0x4ded60,1013,,#1026,assigned,,,issue #1026
-0x4df590,1904,,#1027,assigned,,,issue #1027
-0x4dfea0,1358,,#1027,assigned,,,issue #1027
-0x4e0b90,2150,,#1027,assigned,,,issue #1027
+0x4df590,1904,deepseek-v4.1-flash,#1027,partial,59.6,,issue #1027
+0x4dfea0,1358,deepseek-v4.1-flash,#1027,matched,100.0,,issue #1027
+0x4e0b90,2150,deepseek-v4.1-flash,#1027,partial,79.1,,issue #1027
 0x4a53c0,748,space-bunny-free,#1074,partial,76.7,,"issue #1074, escalated"
 0x4a7290,706,space-bunny-free,#1074,partial,55.7,,"issue #1074, escalated"
 0x4af320,642,sonnet-5.5,#1076,matched,100.0,,"issue #1076, escalated"
@@ -4409,3 +4409,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x47a0e0,1561,longcat-2.5-preview-free,#1464,matched,100.0,,"follow-up PR #1464 to #1001, escalated"
 0x47ae60,2947,longcat-2.5-preview-free,#1464,partial,18.3,,"follow-up PR #1464 to #1001, escalated"
 0x47cc30,1199,space-bunny-free,#1464,partial,61.4,,"follow-up PR #1464 to #1001, escalated"
+0x4df590,1904,,#1470,assigned,,,"issue #1470, escalated"
+0x4e0b90,2150,,#1470,assigned,,,"issue #1470, escalated"

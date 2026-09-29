@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// STILL DIFFERS: frame now matches (0x610) and all 32 callees/symbols resolve, but
+// register allocation is off: the original keeps a constant 0 in ebx and caches
+// g_game in esi across whole regions, ours reloads it and uses immediates. The GUI
+// suffix loop is rotated differently (ours duplicates the body). Score ~70.9%.
 // Loads MOVEINFO.TDF (the movement class list), builds the model table,
 // then loads GAMEDATA.TDF/sidedata and the per-unit CANBUILD lists.
 #include <string.h>
@@ -42,6 +46,7 @@ public:
 
 class Class_00458160 {
 public:
+    char unknown_0[0x14];
     Class_00458160();
 };
 
@@ -146,9 +151,12 @@ int __stdcall FUN_0042db60(const char* a, const char* b);
 // FUNCTION: 0x42d2e0
 void FUN_0042d2e0()
 {
+    char namebuf[32];
+    char section[32];
     char path[256];
-    char section[100];
-    char namebuf[100];
+    char classbuf[100];
+    char objpath[256];
+    char valbuf[256];
 
     {
         Class_004c2ea0 parser;
@@ -157,17 +165,15 @@ void FUN_0042d2e0()
             FUN_004b6290("Can't load MOVEINFO.TDF");
 
         Class_00440320* entry = Class_00440290::DAT_00512358.entries;
-        int i = 0;
-        while (entry < Class_00440290::DAT_00512358.entries + 32) {
-            sprintf(section, "CLASS%d", i);
+        for (int i = 0; i < 32; i++) {
+            sprintf(classbuf, "CLASS%d", i);
             ((Class_004c3e10*)&parser)->FUN_004c3e10();
-            if (((Class_004c3410*)&parser)->FUN_004c3410(section)) {
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(namebuf, "name", 100, DAT_005119b8);
-                entry->field_0 = (int*)FUN_004d8610(namebuf);
+            if (((Class_004c3410*)&parser)->FUN_004c3410(classbuf)) {
+                ((Class_004c48c0*)parser.current)->FUN_004c48c0(classbuf, "name", 100, DAT_005119b8);
+                entry->field_0 = (int*)FUN_004d8610(classbuf);
                 entry->FUN_00440340(&parser);
             }
             entry++;
-            i++;
         }
         ((Class_004c3240*)&parser)->FUN_004c3240();
     }
@@ -264,10 +270,10 @@ void FUN_0042d2e0()
 
         strncpy(namebuf, type->model, 0x20);
         namebuf[0x1f] = 0;
-        FUN_004290f0(path, "objects3d", namebuf, "3DO");
-        void* model = FUN_004cb560(path);
+        FUN_004290f0(objpath, "objects3d", namebuf, "3DO");
+        void* model = FUN_004cb560(objpath);
         if (model == 0)
-            FUN_004b6290(path);
+            FUN_004b6290(objpath);
         FUN_004cb590(model);
         FUN_0042a140(model, namebuf);
         g_game->field_14377[u] = model;
@@ -284,8 +290,8 @@ void FUN_0042d2e0()
         else
             type->flags &= 0x7fffffff;
 
-        char suffix = 1;
-        bool found = false;
+        int suffix = 1;
+        int found = 0;
         for (;;) {
             sprintf(section, "%s%d", namebuf, suffix);
             FUN_004290f0(path, "guis", section, "GUI");
@@ -296,7 +302,7 @@ void FUN_0042d2e0()
         }
         if (found)
             type->field_22e = suffix;
-        else if ((int)type->flags < 0)
+        else if (type->flags & 0x80000000)
             type->field_22e = 1;
         else
             type->field_22e = 0;
@@ -324,22 +330,22 @@ void FUN_0042d2e0()
                     int count = 0;
                     short* out = list;
                     int k = 1;
-                    sprintf(namebuf, "canbuild%d", k);
+                    sprintf(objpath, "canbuild%d", k);
                     while (((Class_004c48c0*)parser2.current)
-                               ->FUN_004c48c0(section, namebuf, 0x20, DAT_005119b8)) {
-                        short val = FUN_00488b10(section);
+                               ->FUN_004c48c0(valbuf, objpath, 0x20, DAT_005119b8)) {
+                        short val = FUN_00488b10(valbuf);
                         if (val != 0) {
                             *out = val;
                             count++;
                             out++;
                         }
                         k++;
-                        sprintf(namebuf, "canbuild%d", k);
+                        sprintf(objpath, "canbuild%d", k);
                     }
                     type->field_152 = count;
                 }
-                sprintf(section, "CANBUILD %s", type->name);
-                type->field_156 = FUN_004d83b0(section, 0x3c);
+                sprintf(objpath, "CANBUILD %s", type->name);
+                type->field_156 = FUN_004d83b0(objpath, 0x3c);
                 memcpy(type->field_156, list, 0x3c);
             }
         }

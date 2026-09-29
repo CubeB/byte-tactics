@@ -20,6 +20,16 @@
 // tail after the discriminant test matches instruction for instruction.
 // Tried (~1000 scratch variants): statement orders, operand orders, named/inline
 // temporaries, variable reuse, all header sets (headers.py, with and without --cpp).
+//
+// deepseek-v4.1-flash re-attempted (issue #1104): ~60 more scratch variants, all 67.6%
+// or worse. Confirmed headers.py finds no fixing set. Factoring d4 out (v_fact) gives
+// 487 bytes (one short) but 66.4%. The first divergence is fixed before any arithmetic:
+// the original filds g then height, ours filds height then g, and defers `add esp,0x10`
+// to reuse the hypot argument slots for scratch. Swapping the gh operands, splitting gh
+// into a helper, changing the d=d*d / d2 model, naming d4/A/h2, reordering the disc
+// terms, and 2.0*gh all leave the schedule byte-identical at 67.6%. The middle looks
+// like one allocator state seeded by that first g/height load order, not by the disc
+// expression. No check.py MATCH.
 #include <stdio.h>
 #include <math.h>
 

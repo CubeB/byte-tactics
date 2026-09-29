@@ -1,12 +1,36 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
-// PARTIAL. 0x49b720 (1853 bytes) is the per-projectile update pass. This is a
-// first structural transcription straight from the disassembly: the whole
-// control flow and every field offset used are believed right, but register
-// allocation, the frame layout (original has 5 local dwords and keeps the loop
-// offset/count in two of them) and the exact helper-argument order for the
-// heading/velocity trig calls are NOT verified. Expect a low score; the value
-// here is the annotated map of the branches and fields for the next attempt.
+// PARTIAL 28.8%. 0x49b720 (1853 bytes) is the per-projectile update pass. The
+// control flow and every field offset used are believed right; the remaining
+// diff is dominated by register allocation and one extra stack slot.
+//
+// What this pass fixed (17.3 -> 26.8 -> 28.8):
+//   - 0x49b833: the projectile clone was a hand-written byte copy loop; it is a
+//     plain struct assignment `*q = *p;`, which MSVC emits as
+//     rep movsd / movsw / movsb (184 bytes of the original).
+//   - 0x49b720: declaring idx/offset/count/type/s as function-scope locals in
+//     that order gets MSVC to materialise the 0 constant in edi (original does
+//     `xor edi,edi` and uses edi as zero throughout). Before this it picked
+//     ebx/esi and rotated every callee-saved register; the score went up.
+//
+// Remaining diff hunks by original address (nothing structural left that I can
+// see, it is all operand/register selection):
+//   - 0x49b720: frame is 0x18 vs the original 0x14 (one extra dword; count and
+//     offset land on swapped slots: ours count +0x14 / offset +0x18, original
+//     offset +0x14 / count +0x18, so s also drifts +0x24 vs +0x20). Also the
+//     original loads g_game and reads +0x141f3 into eax before `sub esp,0x14`;
+//     ours does `sub esp` first and keeps the loop count in ecx.
+//   - 0x49b744: we emit an extra `jmp` to the loop body (loop peeling) that the
+//     original does not have.
+//   - 0x49b754-0x49b7a6: type lives in ebx (ours) vs esi (original), so the
+//     `ec >= 5 || (counter & 1)` block and every operand using type swap.
+//   - 0x49b7a6-0x49b7e6: the 3-entry array scan; original keeps the index in dl
+//     and zero-extends with `and eax,0xff`; ours keeps it in a byte local at a
+//     shifted offset. Same logic, different registers.
+//   - 0x49b9ae onward (the counter==0 live-projectile branch): pure register
+//     rotation following from the type/zero choices; the branch tree, the
+//     0x49b3e0/0x49b520/0x499eb0 sequence and the select/copy at
+//     0x49b95a/0x49bc8b are believed correct.
 //
 // Layout facts gathered so far:
 //   Projectile stride 0x6b; +0x0 type, +0x4 pos(Vec3), +0x10 start(Vec3),
@@ -99,18 +123,24 @@ int __cdecl FUN_004b7123(int angle, int distance);
 // FUNCTION: 0x49b720
 void FUN_0049b720()
 {
-    int count = *(int*)(g_game + 0x141f3);
+    unsigned char idx;
+    int offset;
+    int count;
+    WType_0049b720* type;
+    int s;
+
+    count = *(int*)(g_game + 0x141f3);
     if (count <= 0) {
         FUN_0049ae20();
         return;
     }
 
-    int offset = 0;
+    offset = 0;
 
     do {
         Proj_0049b720* p = (Proj_0049b720*)(*(int*)(g_game + 0x141f7) + offset);
-        short s = *(short*)((char*)p + 0xa);
-        WType_0049b720* type = p->type;
+        s = *(short*)((char*)p + 0xa);
+        type = p->type;
 
         if (p->counter != 0) {
             unsigned short ec = type->field_ec;
@@ -119,7 +149,7 @@ void FUN_0049b720()
 
             if (ec >= 5 || (p->counter & 1)) {
                 int* arr = p->field_52;
-                unsigned char idx = 0;
+                idx = 0;
                 while (*(int*)((char*)arr + idx * 0x1c + 0x10) != (int)type) {
                     idx++;
                     if (idx >= 3)
@@ -141,11 +171,7 @@ void FUN_0049b720()
             }
 
             if (q != 0) {
-                int i;
-                char* d = (char*)q;
-                char* src = (char*)p;
-                for (i = 0; i < 0x6b; i++)
-                    d[i] = src[i];
+                *q = *p;
                 q->field_42 = *(int*)(g_game + 0x38a47);
                 if ((type->flags >> 0xb) & 1)
                     FUN_0047f300(type->field_f4, &p->pos, 0);

@@ -25,6 +25,13 @@
 //   (`Push(n)` / `Or(n)` and one `Mode(n)`) called with the literal 4 so the
 //   constant would arrive through a parameter. MSVC 5 folds every one of them
 //   into an immediate, so I could not find the construct the original used.
+// - revisited by deepseek-v4.1-flash: `register int four = 4;`, moving the
+//   declaration to the top of the function body (live range across all the
+//   frame-queue calls), splitting it into `int four; four = 4;`, and
+//   `unsigned short four = 4;` all still give 91.7% with byte-identical output
+//   to the version above. The edi live range at 0x499603..0x49986b is not
+//   reproducible from a literal-4 local, so the original evidently built the
+//   value some way MSVC 5 refuses to fold.
 // - the second arm of the +0x39249 block then uses edx where we use eax for
 //   g_game, and builds the FUN_00435a20 argument in ecx before pushing instead
 //   of edx. Both look like knock-on effects of the missing edi live range

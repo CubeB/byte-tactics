@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by longcat-2.5-preview-free. Names are provisional.
 // Sets up the mission briefing dialog (MSNBRIEF.GUI): builds its name from the
 // local player's side, fills the gadget list, picks the planet whose name
 // matches the net object's name, and wires the PANORAMA and PLANET gadgets.

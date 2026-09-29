@@ -1,12 +1,25 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 78.6%: builds the skirmish setup screen's GUI entries. Structure,
 // record layouts, strings and control flow are right; the only remaining
-// difference is register allocation. The original keeps the constant 0 in ebx
-// and the wsprintfA import in esi (reloading it every loop iteration, since
-// the inlined strcpy clobbers esi); MSVC here puts g_game in ebx and the
-// constant 0 in esi, so every zero store/compare names the other register and
-// the prologue pushes 3 registers instead of 4 (1154 vs 1156 bytes).
-// Reordering the y computation before the memsets took it from 72.0 to 78.6%.
+// difference is one allocator choice. The original keeps the constant 0 in ebx
+// (so the four byte stores are `mov byte ptr [esp+N], bl`) and the wsprintfA
+// import in esi, reloading it every loop iteration because the inlined strcpy
+// clobbers esi. This copy keeps g_game in ebx, so the wsprintfA import lives in
+// ebx across the whole loop and the constant 0 is rematerialised into esi
+// (`xor esi,esi` at loop top and mid-loop), which forces immediates for the
+// byte stores and a direct `cmp ebp,[ecx+0x38d81]` at the latch. Both use all
+// four callee-saved registers, so it is a straight swap of the two roles.
+// ebx is the only callee-saved register with a byte sub-register in 32-bit
+// x86; the original's zero must therefore hold ebx once it serves byte stores.
+//
+// Tried and did NOT flip the choice (all scored the same 78.6, byte-identical
+// output): reordering y before/after the memsets, flags before the memsets,
+// rec2 declared before rec1, `int i;` declared at top, for/while/do-while,
+// while(1)+break, separate `int step; step = ...;` assignment, ZeroMemory for
+// memset, `NULL` instead of 0, a StoreByte helper, a named `char zero` local,
+// a dead `(void)g_game->numPlayers;`. Swapping the two memset calls (75.2) or
+// caching numPlayers (58.5) or `unsigned step` (75.1) made it worse. The y
+// computation before the memsets is what took it from 72.0 to 78.6.
 #include <windows.h>
 #include <string.h>
 

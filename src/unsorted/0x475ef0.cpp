@@ -55,6 +55,23 @@
 // and the free-space test, the header set, the element type) all put _P in
 // esi, ecx or ebp. Only a differently shaped branch reaches edx, and then the
 // rest of the branch no longer matches.
+//
+// One more spelling ruled out (space-bunny-free, 66.7%, 849 bytes, so clearly
+// worse than the _Q form above): dropping the _Q local for the real <vector>
+// wording
+//     _Ucopy(_First, _P, _S);
+//     _Ufill(_S + size_type(_P - _First), _M, _X);
+//     _Ucopy(_P, _Last, _S + _M + size_type(_P - _First));
+// gives back a third copy loop bound it recomputes and loses the register
+// rotation, so the _Q local really is what the original used.
+//
+// The only two structural differences left, both inside the first copy loop,
+// are that ours rematerialises _P from the argument slot on every turn
+// (`mov esi, [esp + 0x20]` inside the loop, the single extra byte) and swaps
+// the two spill slots: the original puts _N in [esp+0x18] and _S in [esp+0x14]
+// after the argument push is popped, ours puts _N in [esp+0x14] and _S in
+// [esp+0x1c]. Since ours re-reads _P instead of keeping it, the allocator
+// ranked _P above _S; the original ranks it below every callee-saved register.
 #include <climits>
 #include <memory>
 #include <xutility>

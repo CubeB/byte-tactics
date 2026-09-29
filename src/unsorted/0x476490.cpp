@@ -2,7 +2,9 @@
 // std::vector<Elem_00476490>::insert(Elem_00476490* _P, size_type _M,
 // const Elem_00476490& _X), the game's reallocating insert.
 //
-// NOT MATCHING: 78.9 percent, 646 bytes against 632 (Sonnet 5.5 retry for #1081).
+// NOT MATCHING: 78.9 percent, 646 bytes against 632 (space-bunny-free retry
+// for #1190; the 78.9 itself is from the Sonnet 5.5 retry for #1081 below).
+//
 // Retry finding: writing _Destroy out as an inline loop with the end cached
 // (`iterator _e = _Last;`) after the deallocate took 75.1 to 78.9 and made the
 // whole tail (delete call, size() recompute, three pointer stores) match except
@@ -14,6 +16,47 @@
 // the operator new call, before _First) so the fill counter must be ebp with
 // &_X reloaded, while this build reloads _P into ecx after each rep movsd.
 // Older notes follow.
+//
+// The whole 14-byte difference is one allocator decision, and it is worth
+// naming precisely: the original loads the insert argument _P into EDX right
+// after the operator new call (`mov edx, [esp+0x24]`, before it spills _S) and
+// keeps it in EDX to the end of the suffix copy, where the source pointer is
+// built in place (`sub edx,ebx / add edx,eax / sub edx,ecx` from _P). This
+// build keeps _P in its argument slot, and everything else follows from that:
+//   10 bytes  two extra `mov ecx, [esp+0x20]` reloads of _P, one in the
+//             prefix copy's preheader and one per turn of its loop,
+//   9 bytes   two allocator spills in the tail (`mov [esp+0x20],ecx` and
+//             `mov [esp+0x20],eax`, both into the now-dead _P slot) because
+//             size() has to land in ECX here and in EAX in the original,
+//   -5 bytes  the original's dead `mov [esp+0x2c], eax` (the _First argument
+//             of operator delete spilled over the &_X slot), which this build
+//             elides.
+// Fixing the reload and the two spills without the dead store is the whole job.
+//
+// What this pass added, all scored for free with check.py --sym, none of it
+// moving the number (each is a dead end, do not repeat):
+//   - The clone of 0x476210.cpp's file, which is itself 99.6% (one SIB byte),
+//     scores 60.8% and 636 bytes here. It is a different register family
+//     (`mov edi, ecx` after the four pushes, this in EDI, _P reloaded into EDI
+//     each turn), so the two functions really are one source with two
+//     allocations, as the guide's "register family" note says. Dropping its
+//     default constructor changes nothing (60.8%, 636 bytes), so the family is
+//     not decided by the ctor.
+//   - Writing the third inlined _Ucopy by hand as a loop with the destination
+//     first (the guide's 0x425480 trick) gives 38.8% and 652 bytes, source
+//     first 37.9% and 663: for 0x476490 the stock `_Ucopy(_F, _L, _P)` spelling
+//     is the right family and the guide's trick is exactly wrong here.
+//   - The same with the helper's own parameter order reversed (dest first at
+//     all four sites): 36.6%, 649 bytes.
+//   - `_Destroy(_First,_Last)` written out as a call before the deallocate is
+//     the 0x44ec30/0x46cc10 form and drops to 60.6%; the same call after the
+//     deallocate gives 75.1%. Only the inline loop with the cached end
+//     `_e = _Last`, after the deallocate, reaches this family at all.
+//   - `iterator _p = _P;` used through the whole reallocating branch: 78.9%,
+//     646 bytes, identical, so a named local is not what puts _P in a register.
+//   - The prefix copy written out by hand, the fill written out by hand, `int`
+//     instead of `size_type` for _N, and the three pointer stores reordered:
+//     78.8 / 78.9 / 78.9 / 57.0.
 //
 // Previous state: 74.9 percent, 644 bytes against 632. The byte count is 12 too
 // high, so the shape is still wrong somewhere, not just a register order.

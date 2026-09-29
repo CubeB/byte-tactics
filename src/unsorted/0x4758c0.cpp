@@ -33,6 +33,9 @@
 // dsound.h, stdio.h, string.h, math.h, stdlib.h, time.h, memory.h, new.h, io.h
 // and combinations), and /Gz /Gd /G3..G6 /Oy /Oa /Ow /Ob1 /Ox /Gs. This needs
 // the regrouping-into-original-translation-units phase.
+// Also tried without effect (sonnet-5.5 in #940): an explicit instantiation of
+// the whole class (`template class std::vector<T>;`, which needs dummy == and <
+// on the element) gives byte-identical code.
 #include <vector>
 
 struct Vec3_00473590 {

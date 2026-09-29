@@ -41,14 +41,21 @@ public:
     ~Class_004c91b0() { FUN_004c9390(); }
 };
 
-class Class_004be6c0 {
+// The caller's std::vector<Class_004c91a0>, written by hand so that insert
+// (0x4be6c0, which has its own file) stays an out-of-line call under its real
+// name.
+namespace std {
+template<class T> class allocator;
+template<class T, class A = allocator<T> > class vector {
 public:
-    char unknown_0[4];
-    int* _First;                       // +0x4
-    int* _Last;                        // +0x8
-    int* _End;                         // +0xc
-    void FUN_004be6c0(int* pos, int n, const Class_004c91a0* value);
+    char allocator_;                   // +0x0
+    T* _First;                         // +0x4
+    T* _Last;                          // +0x8
+    T* _End;                           // +0xc
+    void insert(T* pos, unsigned int n, const T& x);
 };
+}
+typedef std::vector<Class_004c91a0> Class_004be6c0;
 
 int __stdcall FUN_004bc4b0(const char* path, FindData_004bca30* fd, int a, int b);
 int __stdcall FUN_004bc640(int handle, FindData_004bca30* fd);
@@ -63,7 +70,7 @@ void __stdcall FUN_004bca30(const char* path, int param_2, Class_004be6c0* param
             if (strcmp(fd.name, ".") != 0 && strcmp(fd.name, "..") != 0
                 && (param_2 == 0 || (fd.attr & 0x10) != 0)) {
                 Class_004c91b0 key(fd.name);
-                param_3->FUN_004be6c0(param_3->_Last, 1, &key);
+                param_3->insert(param_3->_Last, 1, key);
             }
         } while (FUN_004bc640(h, &fd) != -1);
         if (h != 0) {

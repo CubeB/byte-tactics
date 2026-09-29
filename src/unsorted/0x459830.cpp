@@ -1,4 +1,6 @@
-// Decompiled by longcat-2.5-preview-free. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6. Names are provisional.
+// Partial, 48.0%: Packed owner fields, per-vertex shade bias and sampling copy corrected.
+// Frame and projection/face-loop register allocation still differ.
 #include <string.h>
 
 extern char* g_game;
@@ -23,6 +25,7 @@ struct Bitmap_459c70 {
     char* data2;                     // +0x14
 };
 
+#pragma pack(push, 1)
 struct Owner_459c70 {
     char unknown_0[0x92];
     char* field_92;                  // +0x92
@@ -55,7 +58,6 @@ struct PieceInfo_459c70 {
     Face_459c70* faces;              // +0x28
 };
 
-#pragma pack(push, 1)
 struct Piece_459c70 {
     PieceInfo_459c70* info;          // +0x00
     char unknown_4[0x22 - 0x04];
@@ -81,6 +83,7 @@ struct Class_004581e0 {
     void FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
 };
 
+static __inline int shade_bias(List_459c70* list) { return ((*(unsigned int*)(list->owner->field_92+0x241)>>30)&1)?125:50; }
 // FUNCTION: 0x459830
 void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
@@ -88,11 +91,12 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     Vec3 vertex[2000];
     Vec3 poly[25];
 
-    Bitmap_459c70* src = bitmap;
+    Bitmap_459c70* src;
     int mode;
     if ((*(unsigned char*)(g_game + 0x37f06) & 2) != 0
         && (list->owner->field_110 & 0x20000000) != 0
         && useColor != 0) {
+        src = bitmap;
         mode = 1;
         Bitmap_459c70* shadow = this->shadow;
         shadow->width = (unsigned short)(src->width << 1);
@@ -105,6 +109,7 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         memset(shadow->data, 1, shadow->width * shadow->height);
         bitmap = shadow;
     } else {
+        src = bitmap;
         mode = 0;
     }
 
@@ -123,8 +128,6 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         if (n > 0) {
             int offX = (short)bitmap->field_4;
             int offY = (short)bitmap->field_6;
-            int c = (((*(unsigned int*)(*(char**)((char*)list->owner + 0x92)
-                    + 0x241) >> 30) & 1) ? 125 : 50);
             for (int k = 0; k < n; k++) {
                 int x;
                 int y;
@@ -140,7 +143,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
                 }
                 vertex[k].x = x;
                 vertex[k].y = z - (y >> 1);
-                vertex[k].z = (mode ? y / 2 : y) + c;
+                if (mode) vertex[k].z = y/2 + shade_bias(list);
+                else vertex[k].z = y + shade_bias(list);
                 vertex[k].x += offX;
                 vertex[k].y += offY;
                 verts++;
@@ -155,9 +159,9 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         }
         for (; fi < info->faceCount; fi++, face++) {
             unsigned short* idx = face->indices;
-            for (int j = 0; j < face->count; j++) {
-                int k = idx[j];
-                poly[j] = vertex[k];
+            Vec3* q=poly;
+            for (int j = 0; j < face->count; j++, q++, idx++) {
+                *q = vertex[*idx];
             }
             unsigned int fflags = face->flags;
             if ((fflags & 1) != 0) {
@@ -188,12 +192,11 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         if (s != 0) {
             char* d = bitmap->data2;
             for (int y = 0; y < src->height; y++) {
-                for (int x = 0; x < src->width; x++) {
-                    unsigned int c = *s;
-                    s += 2;
-                    *d++ = c;
+                for (unsigned int x = src->width; x != 0; --x) {
+                    *s++ = *d;
+                    d += 2;
                 }
-                s += bitmap->width;
+                d += bitmap->width;
             }
         }
     }

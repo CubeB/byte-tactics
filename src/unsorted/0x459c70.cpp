@@ -1,34 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL, 30.2%. Not finished. Fixed since the previous attempt:
-//  * Owner_459c70 and Face_459c70 need #pragma pack(1): the char* at +0x92
-//    pushed every later field up by 4, so field_104, firstFace, indices,
-//    pic and color were all being read 4 bytes high.
-//  * The 50/125 bias must be recomputed inside the vertex loop, not hoisted:
-//    a __inline helper called in both arms of the doubled-bitmap test.
-//  * The g_game flag is written (x >> 1) & 1, not x & 2 (see below).
-//  * The face walk is an index loop over info->faces + fi, not a
-//    Face* post-increment.
-//  * The three corner vertices must be copied into named Vec3 locals
-//    before the two FUN_004b6f00 calls. That is what sizes the frame: the
-//    three 12-byte vertex temporaries plus the four 12-byte return slots
-//    push it from 0x159bc to the original 0x159d4, which puts all five
-//    arrays and every argument reference at the right offset.
-//  * The `src` local must be assigned inside both arms of the first if,
-//    not before it, so the prologue does not materialise bitmap early.
-// The first two instructions and most of the prologue now line up.
-//
-// Known remaining differences:
-//  * the g_game flag still compiles to a single `test dl, 2`; MSVC 5
-//    folds (x >> 1) & 1 back into a mask every way I could write it
-//    (mask test, != 0, &&, a named local, and a two-bit bitfield), while
-//    the original keeps shr dl, 1 / test dl, 1. This is worth ~2 blocks.
-//  * the per-piece scalar slots are rotated by 8 (mode at +0x28 here vs
-//    +0x20 in the original) and ebx holds useColor across the whole
-//    outer loop here, where the original reloads it from the argument
-//    slot each time.
-#include <string.h>
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Partial, 34.5%: Sampling direction and mutable lighting-vector reads corrected.
+// Frame-slot rotation, per-piece registers and x87 scheduling still differ.
+#include <map>
+#include <memory.h>
+#include <ddraw.h>
 
 extern char* g_game;
+extern float DAT_005065f8;
+extern float DAT_005065fc;
+extern float DAT_00506600;
+extern const float DAT_004fd4cc;
 struct Bitmap_459c70;
 
 struct Vec3 { int x; int y; int z; };
@@ -267,9 +248,9 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
                     int k = idx[j];
                     poly[j] = vertex[k];
                     if ((piece->flags & 4) != 0) {
-                        float v = accum[k][0] * -0.8f + accum[k][1] * 1.0f
-                            + accum[k][2] * 0.25f;
-                        poly[j].shade = ((int)(v * 5.0f)) & 0x1f;
+                        float v = accum[k][0] * DAT_005065f8 + accum[k][1] * DAT_005065fc
+                            + accum[k][2] * DAT_00506600;
+                        poly[j].shade = ((int)(v * DAT_004fd4cc)) & 0x1f;
                     } else {
                         poly[j].shade = 0xf;
                     }
@@ -304,12 +285,11 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
         if (s != 0) {
             char* d = bitmap->data2;
             for (int y = 0; y < src->height; y++) {
-                for (int x = 0; x < src->width; x++) {
-                    unsigned int c = *s;
-                    s += 2;
-                    *d++ = c;
+                for (unsigned int x = src->width; x != 0; --x) {
+                    *s++ = *d;
+                    d += 2;
                 }
-                s += bitmap->width;
+                d += bitmap->width;
             }
         }
     }

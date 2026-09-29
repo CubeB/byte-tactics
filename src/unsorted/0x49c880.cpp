@@ -1,7 +1,15 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash. Names are provisional.
 // Codex / GPT-6 retest in #13:
 // an owner-filtered removal helper and reversing the two predicate
 // terms did not fix the ebx/ebp allocation. Retain the original best partial.
+// deepseek-v4.1-flash in #1334: everything leaves the same 78.3% diff. the
+// original keeps the constant 0 in ebx and `owner` in ebp here, ours swaps
+// them. Tried (all 78.3 or worse, scored for free): for/while/while(1)+break/
+// do-while shapes, continue-style and nested-if predicates, reversed term
+// order, an explicit `int zero = 0`, an owner local copy, `Unit* const owner`,
+// inline Active/Owned/OwnerOf helpers, an extra folded owner compare, and an
+// unused `if (owner)` guard. tools/headers.py tried all 128 header sets: none
+// changed it. Retain this best partial.
 
 struct Vec3_0049c880 {
     int x;

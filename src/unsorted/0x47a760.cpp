@@ -1,12 +1,24 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// PARTIAL 83.3%, 372 vs 368 bytes. Everything matches except the tail of the
-// mark search. The original keeps the search result in eax (cmp eax,esi / je /
-// cmp eax,esi / mov ecx,eax / jge at the top, then or eax,0xffffffff on the
-// normal loop exit and mov eax,ecx on the found path) and lays the found path
-// out of line at the function end. Ours coalesces the loop counter and result
-// into ecx and adds a cmpres before the -1 store. Tried: separate k, k hoisted
-// outside the restart loop, pointer loop, while/do-while shapes, writing to j
-// directly. None beat this. See the pull request for the full list.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Sonnet 5.5. Names are provisional.
+// MATCH (372 of 372 bytes). Marks, for each active player (active 1 or 2), every
+// player slot that shares its team type (or is the player itself), in the entry's
+// `marks` array.
+//
+// What decided it (#743, was 83.3% and 368 bytes): the search for the next mark
+// is written with an out-of-line found path,
+//     for (ii = j; ii < n; ii++) { if (match) goto found; if (ii == i) goto found; }
+//     k = -1; goto done;
+//   found: k = ii;
+//   done:
+// which is what the original has: the normal loop exit falls into `or eax, -1`,
+// and the found path (`mov ebp, [esp+0x14]; mov eax, ecx; jmp`) is laid out after
+// the function's `ret`. The compiler knows `ii >= n` on the normal exit, so it
+// drops the `cmp ecx, esi; jge` the old `k = ii < n ? ii : -1` form needed. The same
+// control flow through an inline helper with early `return ii` gives the right
+// search but the two per-player offsets (players at 0x18, entries at 0x14b) swap
+// registers (71.6%), and `k = ii; break;` on the found paths is 408 bytes. The
+// declaration-count sweep (0 to 400) and all 128 header sets are flat at the old
+// 83.3%, so compiler state is not involved. The goto is a reproduction device: the
+// original was probably an inlined find helper, but no helper form matched.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -72,16 +84,21 @@ void FUN_0047a760()
             for (;;) {
                 Player_0047a760* players = g_game->players;
                 int n = g_game->playerCount;
-                int ii = j;
+                int k;
+                int ii;
                 if (j != n) {
-                    for (; ii < n; ii++) {
+                    for (ii = j; ii < n; ii++) {
                         if (players[ii].type == players[i].type && players[ii].active != 0 && players[ii].type != 5)
-                            break;
+                            goto found;
                         if (ii == i)
-                            break;
+                            goto found;
                     }
                 }
-                int k = (ii < n) ? ii : -1;
+                k = -1;
+                goto done;
+            found:
+                k = ii;
+            done:
                 if (k == -1)
                     break;
                 g_game->entries[i].marks[k] = 1;

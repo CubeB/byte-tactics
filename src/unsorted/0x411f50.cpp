@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
 // outside its range. State 0 prepares the order (FUN_0040f200 is defined here
@@ -7,22 +7,28 @@
 // state 6 flies on and, when the unit is below three quarters of its health,
 // sends it to a random repair pad ("VTOL_LANDING").
 //
-// PARTIAL (84.1%). Same size as the original; what still differs:
-// - The range check's _hypot arguments: the original loads the unit's word
-//   before the order's (`movsx ecx, [esi+0x74]; movsx edx, [edi+0x30]`), ours
-//   loads the order's first. No rewrite or header set changed it, but
-//   compiling the real 0x4118e0 above this function in the same file (as in
-//   the original source file) fixes it, so it is compiler state.
-// - State 2: `lea eax, [eax + edx - 0x2000]` (random + angle) comes out as
-//   `[edx + eax - 0x2000]` whatever the order of the terms.
-// - State 4: the original multiplies `sqrt(...) * 30.0f` first and then
-//   `fimul`s type->field_22; MSVC moves the 30.0f factor last in every
-//   unparenthesised float spelling tried (and then negates it to turn the
-//   `+ 1 + def->field_216` into a `sub`). Parenthesising `(s * 30.0f) * n`
-//   keeps the order but switches to `fild rate` first and `fild; fmulp`
+// PARTIAL (95.8%). Same size as the original; remaining hunks by address:
+// - 0x41208f..0x4120d0, the range-check _hypot: the original loads the unit's
+//   words before the order's (`movsx ecx,[esi+0x74]; movsx edx,[edi+0x30];
+//   movsx eax,[esi+0x6c]`), ours loads the order fields first and uses edx for
+//   the first difference. Declaring dx/dz locals first scored worse (89.8%).
+//   Opus found that compiling the real 0x4118e0 above this function in the
+//   same file fixes it, so this is compiler state carried across functions.
+// - 0x412309: `lea eax,[eax + edx - 0x2000]` (random + angle); ours swaps the
+//   lea base/index to `[edx + eax - 0x2000]`. Re-spelling the sum as
+//   `FUN_004b6c30(0x4000) + angle - 0x2000` does not change it.
+// - 0x4123a8..0x41240a, state 4: the original keeps `def` in ebp and builds
+//   `time = (int)(...) + 1 + def->field_216` with `add ebx,ecx` (ebx = time,
+//   ecx = field_216); ours puts `def` in ebx and reuses it as
+//   `field_216 - time + 1` via `sub ebx,eax`, which is arithmetically wrong.
+//   The FP order also differs: original `fmul 30.0f` then `fimul field_22`,
+//   ours `fimul field_22` then `fmul 30.0f`. Removing the (float) cast on
+//   sqrt made the constant a qword double and dropped the score to 92.1%.
+//   Parenthesising `(s * 30.0f) * n` per Opus gives `fild rate` + `fmulp`
 //   instead of `fidiv`/`fimul`. The 2.0 double in the constant pool (at
-//   0x4fcc48, before 30.0f) confirms `size * 2.0` as written. The def pointer
-//   then lands in ebx instead of ebp.
+//   0x4fcc48, before 30.0f) confirms `size * 2.0` as written.
+// - 0x4126f0..0x41270c, the switch jump table: ours names the table <addr> and
+//   its raw bytes differ because the case blocks above shifted.
 #include <math.h>
 #include <vector>
 

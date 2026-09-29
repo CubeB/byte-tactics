@@ -1825,6 +1825,11 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   since arguments bind right to left). This took 0x425480 from 57.9% to 80.5%
   and 0x4732e0 to 80.5% in scratch (Sonnet 5.5, #679). 0x425210, 0x46e640 and
   0x44ec30 are still one byte out at 99.6%; dead locals never change it.
+  About 1500 variants on 0x44ec30 (every `_Ucopy` form at all four sites, all
+  120 tail orders, file layout, and flags from `/Ob1` to `/G6`) never moved
+  that last byte, so it most likely comes from compiler state set by the rest
+  of the original file, not this function's source. Don't spend a normal budget
+  on it (Sonnet 5.5, #759).
 - **One write and one read of a stack slot on different paths is a bug
   report, not a matching problem**: list each slot's writes and reads in the
   disassembly (a `grep` is enough) before writing source; such a finding

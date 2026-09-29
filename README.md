@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**57.00% of Cavedog's code matched** (484,949 of 850,853 bytes)
+**57.04% of Cavedog's code matched** (485,290 of 850,853 bytes)
 
 `[#######################-----------------]`
 
-By count that is 2,923 of the game's 3,267 functions (89.5%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,924 of the game's 3,267 functions (89.5%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,923 | 484,949 |
-| Attempted, not yet matching | 204 | 134,391 |
+| Matched byte-for-byte | 2,924 | 485,290 |
+| Attempted, not yet matching | 203 | 134,050 |
 | Not attempted yet | 140 | 231,513 |
 
 ### By function size
@@ -36,7 +36,7 @@ The size bands are the `size:` labels on the issues.
 | --- | ---: | ---: | ---: | --- |
 | small (1 to 64 bytes) | 1,154 of 1,155 | 99.9% | 40 | `##########` |
 | medium (65 to 160 bytes) | 820 of 827 | 99.0% | 834 | `##########` |
-| large (161 to 400 bytes) | 636 of 703 | 89.5% | 18,847 | `#########-` |
+| large (161 to 400 bytes) | 637 of 703 | 89.7% | 18,506 | `#########-` |
 | xl (401 to 600 bytes) | 180 of 226 | 79.1% | 23,051 | `########--` |
 | xxl (601 to 1,000 bytes) | 111 of 195 | 55.7% | 65,006 | `######----` |
 | huge (over 1,000 bytes) | 22 of 161 | 11.7% | 258,126 | `#---------` |
@@ -60,7 +60,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x480000` | Unit definitions, COB scripting, TNT map | 233 of 264 | 57.1% | 27,333 | `######----` |
 | `0x490000` | Config and registry, skirmish summary | 169 of 193 | 47.6% | 31,152 | `#####-----` |
 | `0x4a0000` | GUI layout and GAF | 171 of 201 | 44.2% | 35,813 | `####------` |
-| `0x4b0000` | UI controls and file packages | 284 of 314 | 63.0% | 22,877 | `######----` |
+| `0x4b0000` | UI controls and file packages | 285 of 314 | 63.5% | 22,536 | `######----` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 273 of 298 | 64.8% | 19,058 | `######----` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 163 of 197 | 43.0% | 21,432 | `####------` |
 | `0x4e0000` | Process exit, psapi | 89 of 93 | 60.2% | 4,701 | `######----` |

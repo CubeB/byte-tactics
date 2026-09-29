@@ -1,5 +1,5 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// GAVE UP at 51.9% (720 of our bytes against 706).  All 24 relocated
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// GAVE UP at 52.6% (724 of our bytes against 706).  All 24 relocated
 // references (the 11 callees, DAT_0051fba4) land at the original's offsets and
 // in the original's order, the frame is 0x2c with the same slot map
 // ([esp+0x10] the group counter in the dead first argument slot, [esp+0x14] the
@@ -14,7 +14,7 @@
 // edi.  Fixing that needs the parameter to be allocated ebp before the
 // `entries` local; the group search had to become a static inline helper with
 // its own `index` parameter to get that far (see the guide's 0x4523e0 note:
-// 50.9% to 51.9%), and nothing tried since moved it further.  Tried and
+// 50.9% to 51.9%), and nothing tried since moved it further.  This session: chained `rect.x0 = rect.y0 = 0` (right to left stores) 51.9% to 52.6%; GetEntries inline accessor, holder local plus idx copy, and the faithful break plus post-loop `if (i == count + 1)` all at or below 51.9% (the break form is 49 bytes bigger at 50.9%).  Tried and
 // rejected, all at or below 51.9%: no `entries` local at all (MSVC then folds
 // base+offset into one pointer, losing the original's two-register
 // [esi+ebp+off] addressing, 35% on the free differ); `entries` declared after
@@ -22,8 +22,20 @@
 // `entries`, with a static inline accessor; a pointer induction variable in the
 // group loop; `unsigned int index`; argument 3 as `int` or `void*`; and moving
 // the `n`/`i`/`point`/`rel_x`/`rel_y` declarations around (declaration order
-// changed nothing at all).  Free harness in build/scratch/0x4a7290 (b.sh
-// compiles a variant and seqdiff.py scores it with no check.py run).
+// changed nothing at all).  A second session added, all worse or equal:
+// writing the group search directly in the body instead of as the inline
+// helper (51.9%, byte-identical output, so the helper is now free either way);
+// an explicit `p`/`end` pointer pair in the group loop, which drops the
+// redundant counter the original keeps alongside its induction pointer
+// (45.3%); the loop bound in a named `int count` local (38.3%); the compared
+// group byte in a named `int g` local (38.0%, and it costs a reload of
+// `entries` inside the loop); `char entryType` read into a local for the `if`
+// at the top (51.9%, no effect); and the faithful-looking `break` plus a
+// post-loop `if (i > entries->data.count)` (50.6%, 33 bytes bigger), even
+// though the original's tail test `cmp edi,edx / jne` does compare the final
+// `i` against count+1, so the `return` spelling that scores 51.9% is not what
+// the original said.  Free harness in build/scratch/0x4a7290 (b.sh compiles a
+// variant and free-scores it with no check.py run, d.sh shows the diff).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -132,8 +144,7 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
     Entry_004a7290* entries = obj->holder->entries;
     Out_4a15c0 rect;
     if (entries[index].type == 0) {
-        rect.x0 = 0;
-        rect.y0 = 0;
+        rect.x0 = rect.y0 = 0;
     } else {
         rect.x0 = entries[index].x0;
         rect.y0 = entries[index].y0;

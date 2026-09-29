@@ -4,14 +4,28 @@
 // sliders, the scroll slider, the energy/metal labels and the Load/Save/Reset
 // buttons. Family with 0x44c220 (per-frame update) and 0x44c420 (teardown).
 //
-// Still differs (62.0%): the frame is now 0x2c like the original, but the
-// item flag test compiles to `test ch,0x80` where the original has
-// `shr ecx,0xf; test cl,1`, and register allocation differs throughout (the
-// zero constant lands in ebp not eax, layer->entries in esi not ebp, the
-// slider counter in edi not esi). The original keeps no `count` local (it
-// reloads g_game->count everywhere) and FUN_0046e330 fills a 0x10-byte struct
-// whose fields live at +0xa (short) and +0xc (int); it is called as
-// FUN_0046e330(item, &info) with ecx = g_game->queue.
+// Still differs (73.0%). Two things moved the number the most:
+//   * the item field at +0x245 must be a 1-bit BITFIELD (union Flags with
+//     `flag : 1` at bit 15), reusing the shape already solved in 0x44c420.
+//   * naming `void* panel = (char*)g_game + 0x519;` for the ENERGYTEXT /
+//     METALTEXT block (where the original caches the menu address in edi
+//     across the two sprintf/FUN_004a0bf0 pairs) was worth +7 points and
+//     re-shuffled far-away allocation.
+//
+// What is left is all register allocation, no structural diff:
+//   * the shared zero constant lands in ebp not eax at the top, which forces
+//     layer->entries into ebx instead of the original's ebp (and its spill
+//     slot to 0x0c instead of 0x08; textArray gets 0x08 in ours, 0x0c in the
+//     original). The item flag test is still `test ch,0x80` where the original
+//     has `shr ecx,0xf; test cl,1` even with the bitfield.
+//   * the big scan loop: ours keeps i in ebp and the 0x62 record offset in
+//     edi, the original keeps the 0x249 stride in edi, n in [esp+0x14] and i
+//     in [esp+0x10] (both memory) with the items base reloaded each pass.
+//   * the scroll block and the Load/Save/Reset tail reload g_game+0x519 where
+//     the original sometimes caches it (adding a menu local there made it
+//     WORSE: 65.6 -> 65.2 before the bitfield work, 73.0 -> 71.4 after).
+// FUN_0046e330 fills a 0x10-byte struct whose fields live at +0xa (short) and
+// +0xc (int); it is called as FUN_0046e330(item, &info) with ecx = g_game->queue.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,13 +50,22 @@ struct Record_44c7e0 {                 // 0x62-byte slider/picture record
     int field_5e;                      // +0x5e
 };
 
+union Flags_44c7e0 {                   // the dword at +0x245
+    unsigned int raw;
+    struct {
+        unsigned int low : 15;
+        unsigned int flag : 1;         // bit 15
+        unsigned int high : 16;
+    } bits;
+};
+
 struct Item_44c7e0 {                   // 0x249-byte unit type instance
     char unknown_0[0x20];
     char name[0x166];                  // +0x20
     float field_186;                   // +0x186
     float field_18a;                   // +0x18a
     char unknown_18e[0x245 - 0x18e];
-    unsigned int field_245;            // +0x245
+    Flags_44c7e0 field_245;            // +0x245
 };
 
 struct Gadget_44c7e0 {
@@ -157,7 +180,7 @@ void FUN_0044c7e0()
     desc->field_da = 0x20;
     desc->field_1b |= 0x100;
 
-    Gadget_44c7e0* pic = FUN_0049ff90(entries, "PICLIST");
+    Gadget_44c7e0* pic = FUN_0049ff90(layer->entries, "PICLIST");
     pic->field_d6 = flags;
     pic->field_1b |= 0x180;
     pic->field_da = desc->field_da;
@@ -185,7 +208,7 @@ void FUN_0044c7e0()
         int off = 0x249;
         do {
             Item_44c7e0* item = (Item_44c7e0*)((char*)g_game->items + off);
-            if (!((item->field_245 >> 15) & 1) && item->name != 0) {
+            if (!item->field_245.bits.flag && item->name != 0) {
                 Info_44c7e0 info;
                 sprintf((char*)&DAT_005129b4[n], "%s\r%s %dM  %dE",
                         (char*)item, FUN_004c5740((char*)item + 0xa0),
@@ -222,9 +245,10 @@ void FUN_0044c7e0()
         slider->field_144 = (void*)FUN_0044be70;
     }
 
-    int idx = FUN_0049fdf0(g_game->inner->entries, "SCROLLSLIDER", 0xe);
+    void* innerEntries = g_game->inner->entries;
+    int idx = FUN_0049fdf0(innerEntries, "SCROLLSLIDER", 0xe);
     if (idx != -1) {
-        Gadget_44c7e0* scroll = FUN_004a0200(g_game->inner->entries, "SCROLLSLIDER");
+        Gadget_44c7e0* scroll = FUN_004a0200(innerEntries, "SCROLLSLIDER");
         scroll->field_13c = 0xd2;
         scroll->field_144 = (void*)FUN_0044bfd0;
         scroll->field_140 = 0;
@@ -238,13 +262,14 @@ void FUN_0044c7e0()
     FUN_004a35a0(g_game->inner->entries, "PICLIST", picArray, n);
     FUN_0044bfd0((char*)g_game + 0x519, 0);
 
+    void* panel = (char*)g_game + 0x519;
     Item_44c7e0* item = &g_game->items[desc->field_d2[desc->field_ba].field_52];
     {
         char buf[0x14];
         sprintf(buf, "%d", (int)item->field_186);
-        FUN_004a0bf0((char*)g_game + 0x519, "ENERGYTEXT", buf, 0);
+        FUN_004a0bf0(panel, "ENERGYTEXT", buf, 0);
         sprintf(buf, "%d", (int)item->field_18a);
-        FUN_004a0bf0((char*)g_game + 0x519, "METALTEXT", buf, 0);
+        FUN_004a0bf0(panel, "METALTEXT", buf, 0);
     }
 
     int enabled = (flag == 0);

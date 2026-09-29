@@ -1,14 +1,16 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 74.0% (best within the retry timebox). See the note at the bottom of
-// the file for what still differs.
-// Round-16 retry gains: all callees take __stdcall (was __cdecl, so every call
-// emitted an `add esp`); FUN_0046dad0 is a __thiscall method (ecx = this);
-// g_game+0x2bee sets go through a 1-bit packed bitfield so MSVC emits
-// `or byte ptr [mem],1` while the clear stays `and word ptr [mem],0xfffe`;
-// obj=g_game+0x391e9 is loaded lazily inside the else of FUN_00453d40()==0.
-// Flipping the DAT_00512994 test to `if (DAT != 0) { swap loop } else
-// { FUN_004455b0(); }` keeps the swap loop inline (was emitted out of line
-// after the return, worth ~10 points). `unsigned char b` was worth ~2.5.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL 74.4% (deepseek's 74.0% plus this round's LOGO-loop fix). See the
+// note at the bottom of the file for what still differs.
+// Inherited from round 16: all callees take __stdcall; FUN_0046dad0 is a
+// __thiscall method (ecx = this); g_game+0x2bee sets go through a 1-bit packed
+// bitfield so MSVC emits `or byte ptr [mem],1` while the clear stays
+// `and word ptr [mem],0xfffe`.
+// space-bunny-free round: rewriting the LOGO loop so the loop body takes a
+// `Player_44a680* p = &g_game->players[i];` and reads p->field_73 and p->data
+// through it makes MSVC materialise `lea esi,[eax+ebp+0x1b63]`, which also
+// gives the original's `inc edi / add ebp,0x14b / dec ebx` register rotation
+// (i in edi, i*0x14b in ebp, countdown in ebx). Worth 0.4 points; the whole
+// LOGO block is now instruction-identical apart from two stack slots.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -127,6 +129,7 @@ void __stdcall FUN_00451180();
 int __stdcall FUN_00456760();
 }
 class Class_0046dad0 { public: void FUN_0046dad0(); };
+
 
 // FUNCTION: 0x44a680
 void FUN_0044a680()
@@ -315,11 +318,10 @@ void FUN_0044a680()
         FUN_004a5d30(&g_game->gui, 1);
         {
             int i = 0;
-            int off = 0;
             int n = 10;
             do {
-                unsigned char c = *(unsigned char*)((char*)g_game + 0x1bd6 + off);
-                if (c != 0 && c != 4) {
+                Player_44a680* p = &g_game->players[i];
+                if (p->field_73 != 0 && p->field_73 != 4) {
                     Rect_44a680 rect;
                     char buf[20];
                     int widget;
@@ -329,7 +331,7 @@ void FUN_0044a680()
                     sprintf(buf, "LOGO%i", i);
                     widget = FUN_0049fdf0(entries, buf, 0xe);
                     FUN_004a15c0(entries, widget, &rect);
-                    u = *(Unit_44a680**)((char*)g_game + 0x1b8a + off);
+                    u = p->data;
                     sprintf(buf, "%i.%i", u->field_a7, u->field_a8);
                     w = FUN_004a5030(buf);
                     h = FUN_004a50b0();
@@ -339,7 +341,6 @@ void FUN_0044a680()
                                  w, 0);
                 }
                 i++;
-                off += 0x14b;
                 n--;
             } while (n != 0);
         }
@@ -357,17 +358,39 @@ void FUN_0044a680()
     }
 }
 
-// Remaining differences (best 74.0%, ours 2217 bytes vs original 2340):
-// - pl (local-player pointer) is not pinned to ebp: the original does
-//   `lea ebp,[esi+eax*2+0x1b63]; mov dword [esp+0x14],ebp; mov al,[ebp+0x22]`,
-//   ours reads field_22 straight off the computed address and spills pl to
-//   [esp+0x1c]. Same for the `entries` spill slot ([esp+0x20] vs [esp+0x1c]).
-// - The first condition loads g_game before the `jne`; ours loads it after.
-// - `(r != 0) ? 4 : 0` compiles to neg/sbb/and; the original has
-//   test al,al / setne bl / and ebx,1 / shl ebx,2 / or edx,ebx (see 0x44af80).
-//   A setne form is needed there.
-// - ~123 bytes of tail/scratch differences remain; everything is present in
-//   the source, the block layout and register choices are what differ.
+// Remaining differences (best 74.4%, ours 2218 bytes vs original 2340):
+// - Register allocation is one step off through the whole function. The
+//   original holds `entries` in ebx and `pl` in ebp (it spills ebp at
+//   0x44a750 and reloads it with `mov ebp,[esp+0x14]` at 0x44a92f); we spill
+//   `pl` to [esp+0x1c] and re-read it, so the swap loop's A/end run in
+//   ecx/edx like the original but `entries` and `end` swap stack slots
+//   (ours 0x1c/0x18, original 0x18/0x1c). Per technique 2 in the brief this
+//   is ONE allocator state, not three problems: nothing tried (reordering the
+//   declarations of pl/entries, hoisting b2 to function scope) moved it.
+// - The first condition reloads g_game after the test in ours and before it
+//   in the original (`mov eax,[g_game] / test eax,eax / jne`).
+// - The reindex loop after each swap: the original tests the dword at
+//   g_game+0x1b63+off before loading the byte at +0x1bd6+off and never
+//   materialises the +0x1ca9 address; ours loads both up front and emits one
+//   extra `lea edx,[eax+ecx+0x1ca9]`. Rewriting it as
+//   `g_game->players[i]` with a do-while scored 73.4, so the raw offsets stay.
+// - `(r != 0) ? 4 : 0` at 0x44af80 compiles to neg/sbb/and; the original has
+//   `test al,al / setne bl / and ebx,1 / shl ebx,2 / or edx,ebx`. A
+//   `unsigned int bits; if (r) bits = 1; else bits = 0;` self-correction
+//   plus `bits << 2` still folded to neg/sbb (66.8 on its own base, so the
+//   self-correction alone is not the lever).
+// - In the LOGO block the original computes the pair (left,right) as
+//   `[esp+0x38]` into eax and `[esp+0x40]` into edx; ours has them swapped.
+// - Tried and did NOT work (do not repeat): spelling
+//   `g_game->gui.table->entries` inline at the MAXUNITS/METAL/ENERGY call
+//   sites (73.6), dropping the `u2` local for inline
+//   `g_game->players[b2].data` (72.0), both together (67.3). The original
+//   really does reload those after every call, but forcing the reload by
+//   spelling the expression out adds instructions and demotes `entries` out
+//   of ebx.
 // Suspected original bug: the reindex loop after each swap runs
 // `off <= 0xcee` (11 iterations at stride 0x14b), so it reads and writes
-// g_game+0x1ca9 one element past the 10-entry player array.
+// g_game+0x1ca9 one element past the 10-entry player array (players[] runs
+// g_game+0x1b63 to g_game+0x2851, so +0x1ca9 with off=0xcee is
+// g_game+0x2918). The reader of that byte, 0x44a7f2's loop bound
+// `lea ebp,[edx+0x1cae]`, stops one element short, so the 11th write is dead.

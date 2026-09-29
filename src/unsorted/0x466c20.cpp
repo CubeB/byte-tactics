@@ -1,32 +1,31 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: the original is 402 bytes, ours is 402 bytes; the whole prologue is
-// instruction-identical and only the frame slot numbers and the resulting
-// register rotation differ.
-// What is now fixed (was 67.2%):
-//  * `lea eax,[esi+ecx]`: index `g_game->players` with `g_game->viewTeam`
-//    directly (a byte-typed reload), not an `int team` local. With an int local
-//    MSVC emits `mov eax,esi; add eax,ecx`; with the byte index it emits the
-//    original's 2-register LEA.
-//  * `and eax,edi; test ax,ax`: cast the visibility test to `unsigned short`,
-//    `(unsigned short)(g_game->visibilityMask[index] & mask)`. Without the cast
-//    MSVC emits `test edx,eax` and puts the pixel in al.
-// What still differs:
-//  1. Frame slot rotation. The original is dst=+0x4, src=+0x8, mapY=+0xc and
-//     the inner counter j=+0x10. Ours is src=+0x4, mapY=+0x8, dst=+0xc,
-//     j=+0x10 (i, mask, t and halfHeight already land where the original has
-//     them). Every declaration/scope/type/name permutation tried leaves this
-//     rotation unchanged; it appears to be the register allocator's spill
-//     order, not anything source-visible.
-//  2. Because of 1 the loop body's scratch registers rotate one place:
-//     the seenMap chain is `edx/ eax` here vs `eax/edx` there, the pixel lives
-//     in al vs cl, and the store is `mov [ecx],al` vs `mov [edx],cl`.
-//  3. The loop-bottom schedule (original loads i, src, dst then interleaves the
-//     three increments around the store; ours loads dst, src, j).
-// Structure that does match: bit 2 test/clear, bit 1 (pending) set at the end,
-// the esi/ebp/ebx/edi save order, the `height > 0` wrapper, the outer loop as a
-// do/while (counter stored before the wrapper) with the inner `for` rotated
-// into a guarded form, `x / 2` as cdq/sub/sar, and `fog` sunk into the else
-// branch.
+// PARTIAL: best scoring variant, 78.6% (was 76.1% with the do/while outer loop),
+// same 402 byte length, every instruction present. What still differs:
+//   1. The frame slots of the three loop-carried locals are cyclically rotated:
+//      the original has mapY at -24 (E-0x18), src at -28 (E-0x1c) and dst at
+//      -32 (E-0x20); ours has dst=-24, mapY=-28, src=-32. Every other slot
+//      (halfHeight -4, t -8, mask -12, i -16, j -20, fog -33) already matches,
+//      and so does the whole prologue up to the pointer stores.
+//      This does not respond to declaration order at all: reordering the
+//      declarations of src/dst/mapY, moving them into nested blocks, changing
+//      the pixel local to char, ternary vs if/else and pre/post increments all
+//      leave the same three slots on the same three variables. It looks like
+//      the register allocator's spill order, not a source-visible property.
+//   2. Because of 1 the loop body's scratch registers rotate one place: the
+//      seenMap chain is edx/eax here vs eax/edx there, the pixel lives in al vs
+//      cl, and the store is `mov [ecx],al` vs `mov [edx],cl`.
+//   3. The loop-bottom schedule differs slightly (the original loads i, src,
+//      dst then interleaves the three increments around the store).
+// What is confirmed matching in the 78.6% version: the bit 2 test/clear and
+// bit 1 (pending) set, the esi/ebp/ebx/edi save order, `height > 0` guard,
+// the outer loop as `for (i = 0; i < height; i++)` with `mapY = i * halfHeight`
+// (the accumulator spelling produced the same code plus a spurious prologue
+// store), the inner `for` rotated into a guarded form, `x / 2` as cdq/sub/sar,
+// the players indexing `lea edx,[eax+edx*2+0x1b63]` and the fog sunk into the
+// else branch. The `unsigned short` cast on the visibility test is required
+// (without it MSVC emits `test edx,eax`).
+// /Gz (__stdcall) makes no difference for a no-arg function; the sibling
+// 0x466780 matched because it was declared __stdcall, not because of the flag.
 
 #pragma pack(push, 1)
 struct Fx_00466c20 {
@@ -87,26 +86,22 @@ void FUN_00466c20()
         unsigned char* src = *(unsigned char**)((char*)g_game->pictureSurface + 0xc);
         int halfWidth = g_game->rowWidth / 2;
         int halfHeight = g_game->mapHeight2 / 2;
-        int i = 0;
-        if (g_game->height > 0) {
-            int mapY = 0;
-            do {
-                int mapX = 0;
-                for (int j = 0; j < g_game->width; j++, src++, mapX += halfWidth) {
-                    int index = (mapY / g_game->height) * halfWidth + mapX / g_game->width;
-                    unsigned char c;
-                    if (!(unsigned short)(g_game->visibilityMask[index] & mask)) {
-                        c = fog;
-                    } else if (t->seenMap[index]) {
-                        c = *src;
-                    } else {
-                        c = g_game->fx->colorMap[*src];
-                    }
-                    *dst = c;
-                    dst++;
+        for (int i = 0; i < g_game->height; i++) {
+            int mapY = i * halfHeight;
+            int mapX = 0;
+            for (int j = 0; j < g_game->width; j++, src++, mapX += halfWidth) {
+                int index = (mapY / g_game->height) * halfWidth + mapX / g_game->width;
+                unsigned char c;
+                if (!(unsigned short)(g_game->visibilityMask[index] & mask)) {
+                    c = fog;
+                } else if (t->seenMap[index]) {
+                    c = *src;
+                } else {
+                    c = g_game->fx->colorMap[*src];
                 }
-                mapY += halfHeight;
-            } while (++i < g_game->height);
+                *dst = c;
+                dst++;
+            }
         }
         g_game->pending = 1;
     }

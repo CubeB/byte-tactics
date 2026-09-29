@@ -47,6 +47,15 @@
 // table on e->type (case 9 empty, default -> latch), the maxchars clamp, the
 // tail merge of the "text" read that cases 3 and 4 share, the inlined strcpy,
 // and the exit's (short)(i-1) store to obj+0xb6.
+//
+// Rechecked by deepseek-v4.1-flash: headers.py swept all 128 header sets and
+// none changes it. An explicit `Elem* e` induction pointer, a `do/while(1)`
+// (rotates), a goto-built loop, a named `def = 0` default (compiles
+// byte-identically) and `for (i=0;;i++)` (rotates) all leave the same tail
+// duplication. An if/else-if chain instead of the switch scores 75.4% but drops
+// the original 11-entry jump table, so it can never match; the switch version
+// below is the faithful one. The remaining fix is stopping MSVC from
+// tail-duplicating the shared latch into every switch case.
 #include <string.h>
 
 class Class_004c46c0 {

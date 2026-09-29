@@ -3809,7 +3809,11 @@ address,name
 0x4fcdb8,DAT_004fcdb8
 0x4fcdc8,DAT_004fcdc8
 0x4fce18,DAT_004fce18
+0x4fce88,DAT_004fce88
+0x4fcea8,DAT_004fcea8
 0x4fcec8,DAT_004fcec8
+0x4fcee8,DAT_004fcee8
+0x4fcf08,DAT_004fcf08
 0x4fd2c8,??_7Class_0043a1f0@@6B@
 0x4fd2cc,??_7Class_0043a1e0@@6B@
 0x4fd2f8,DAT_004fd2f8

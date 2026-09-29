@@ -69,6 +69,15 @@
 //     temporary (`fstp QWORD PTR` / `fcom QWORD PTR`), twelve instructions
 //     worse (73.8%).
 //
+// Second pass (space-bunny-free, 92.1% to 92.6%, 10 runs): the original computes the
+// quotient ONCE (fild 136, fimul bc, fidiv be, fild 140, fcomp st(1), then ftol on the
+// same stack value), and its branch is test ah,0x40 / jne, which is what != gives, so
+// (c) is fixed by writing ield_140 != q (arm layout still differs only because of
+// (b)). Tried for (b): int locals with two full expressions (right layout AND fimul,
+// but locals get homes at +0x20/+0x10, frame +4, 76.9% or worse), (int) casts inline,
+// implicit short operands, and a double q with int locals (this file, fmulp form).
+// fimul appears only when the int locals are used in two separate expressions.
+//
 // Suspected original bugs: none beyond the two edges noted above. The type 4
 // search is unguarded (no entry of type 4 sharing the byte means entry 0 is
 // rescaled), and the second FindEntry result is used without a -1 check, which
@@ -188,8 +197,11 @@ void __stdcall FUN_004a2e40(Class_004a2e40* param_1, char* param_2, int param_3)
             }
         }
         Entry_004a2e40* e3 = &entries[k];
-        if ((double)e3->field_140 <= (double)e3->field_136 * me->field_bc / me->field_be)
-            e3->field_140 = (short)((double)e3->field_136 * me->field_bc / me->field_be);
+        int mul = me->field_bc;
+        int div = me->field_be;
+        double q = (double)e3->field_136 * mul / div;
+        if ((double)e3->field_140 != q)
+            e3->field_140 = (short)q;
     }
     param_1->field_cca = 1;
 }

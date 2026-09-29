@@ -1,11 +1,19 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial (92.0%). Everything matches except the bFlag block at 0x434c83:
-// the original does `mov eax,1; cmp [esp+0x344],ebp; jne ...; mov ecx,[g_game];
-// mov [esp+0x18],eax; ...; je ...; mov [esp+0x18],ebp`, i.e. it stores 1 only
-// inside the param_2==0 branch. `int bFlag; if (param_2==0 && cond==3) bFlag=1;
-// else bFlag=0;` puts the store/loads in a better order (scratch x4) but was
-// not re-checked before the timebox. Two-byte size excess (888 vs 886) from
-// this block; all relative jumps are shifted accordingly.
+// Partial (92.9%). Size now matches (886). Fixed the bFlag block at 0x434c83:
+// `int bFlag; if (param_2==0) { bFlag=1; if (g_game->...+3 != 3) bFlag=0; }
+// else bFlag=0;` reproduces the original's `mov eax,1; cmp param_2,0; jne;
+// mov [bFlag],eax; ...; je; [bFlag],ebp` exactly.
+// What still differs is only the stack slot assignment of four small locals
+// (all 4 bytes, the code around them is identical). Original relative to the
+// esp after `push ebx`: temp 0x10, count 0x14, bFlag 0x18, i 0x1c,
+// files 0x20..0x2f, parser 0x30. Ours: count 0x10, temp 0x14, bFlag 0x18,
+// files 0x1c..0x2b, i 0x2c, parser 0x30. MSVC allocated the loop counter i
+// before the std::vector in the original and after it here, and swapped
+// count with the vector's allocator temp. Declaration order has no effect
+// (tried i/bFlag/count declared at the top, i initialised early, no count
+// variable; all scored identically), and headers.py finds no header set that
+// changes it. Likely the compiler-state / translation-unit effect noted at
+// the end of docs/AGENTS.md. Every other byte matches.
 #include <string.h>
 #include <vector>
 
@@ -82,9 +90,14 @@ int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
     }
 
     FUN_00491c80(0x14);
-    int bFlag = 0;
-    if (param_2 == 0 && *(int*)(*(int*)(g_game + 0x391e9)) == 3)
+    int bFlag;
+    if (param_2 == 0) {
         bFlag = 1;
+        if (*(int*)(*(int*)(g_game + 0x391e9)) != 3)
+            bFlag = 0;
+    } else {
+        bFlag = 0;
+    }
     int offset = 0;
     DAT_005122dc = 1;
     DAT_005122d4 = (char*)FUN_004d83b0("MULTI MAPS", 1);

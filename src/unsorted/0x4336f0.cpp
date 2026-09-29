@@ -1,18 +1,24 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 68.5%. Class_004336f0 is a std::vector<Elem_00434020> (4-byte
+// PARTIAL 69.3%. Class_004336f0 is a std::vector<Elem_00434020> (4-byte
 // elements) holding one pair of signed shorts per line entry. It reads the
 // "line%d" key from a TDF-style parser via Class_004c48c0, resizes itself to
-// the first comma-separated number and fills the elements from later
-// tokens, negating the a or b half by mode (the four callers at 0x433484
-// pass mode 0..3 for a 16-byte element array).
+// the first comma-separated number and fills the elements from later tokens,
+// negating the a or b half by mode (the four callers at 0x433484 pass mode
+// 0..3). When the parser lookup fails it shrinks the vector to 0.
 //
-// Still differs: (1) the compiler puts the short count in ebx and the
-// int countdown in edi, while the original uses edi for the short and ebp
-// for the countdown (_First temp in ebx there, ebp here); (2) the original's
-// inlined erase in the lookup-failure path keeps a call to
-// UElem_00434020::_Destroy (0x433d90, an empty ret 8), which MSVC removes
-// here. Both are register/inline-choice differences; the source shape is
-// otherwise right (64.8% without the int count local, 57.3% with a for loop).
+// What is still wrong (all register allocation, no source shape left to try):
+//   original: n(short) in edi, its sign-extended int copy in ebp, the loop
+//             index in edi, the _First temp in ebx; the failed-lookup tail
+//             inlines resize(0) and ends with `call UElem_00434020::_Destroy`;
+//   ours:     n(short) in ebx, the int copy in edi, the index in ebx, the
+//             _First temp in ebp; the tail has no _Destroy call (MSVC inlines
+//             the empty trivial-destructor _Destroy away).
+// Tried and no better: no separate int copy (64.8%), int-before-short (65.8%),
+// count before resize (68.5%), erase(begin(), end()) (68.5%), clear() (68.5%),
+// and all 128 header sets (68.5%). resize(0, x) in the failed path is what got
+// 708 -> 704 bytes and 68.5 -> 69.3%. The missing _Destroy call is 4 bytes;
+// making Elem non-trivial to force it adds a destructor call at return, which
+// the original lacks, so the element type really is trivial.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -56,8 +62,8 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
         if (tok == 0)
             return;
         short n = atoi(tok);
-        resize(n, x);
         int count = n;
+        resize(n, x);
         switch (mode) {
         case 0:
             if (n > 0) {
@@ -102,6 +108,6 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
         }
     }
     else {
-        erase(begin(), end());
+        resize(0, x);
     }
 }

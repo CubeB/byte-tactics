@@ -1,9 +1,10 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 // std::vector<Class_004c2ea0*>::insert(iterator, size_type, const T&), MSVC
 // 5's <vector> written out (as 0x425210.cpp does) with _Ucopy, _Ufill, fill
 // and copy_backward inlined. 0x4222e0 is the only caller (the push_back).
 //
-// Partial (80.5%, 541 of 537 bytes), up from 57.9% with the real <vector>.
+// Partial (for-loop form: 80.5%, 541 of 537 bytes), up from 57.9% with the
+// real <vector>.
 // What changed: the third _Ucopy of the growth branch is written as a loop in
 // the body with the destination declared BEFORE the source,
 //   { iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ...) }
@@ -32,6 +33,17 @@
 // four _Ucopy sites in all 256 combinations of inline/helper/manual loop,
 // _Ufill and _Destroy with permuted parameters, for/while/count loops, and
 // dozens of dead declarations before the class.
+// deepseek-v4.1-flash pass: rewrote the growth branch's third _Ucopy as a
+// do-while over the destination-first locals (was a for loop). That drops the
+// redundant `mov esi,[ebp+8]` and the pre-loop `cmp/je`, so ours is 534 bytes
+// against the original's 537 (81.1%, up from 80.5%). The matched-instruction
+// count is unchanged (107 context lines in both diffs); the gain is only three
+// fewer extra instructions. The original's loop is pre-tested with _Last
+// cached in esi, so the faithful for-loop form (80.5%) remains the better
+// structural start and is what the notes above this block describe. Those
+// findings were measured by Space Bunny Free; I confirmed the first _Ucopy
+// spelling has no effect and that no header set (headers.py, 128 sets) moves
+// the score.
 #include <memory>
 #include <xutility>
 
@@ -65,7 +77,7 @@ public:
 			iterator _S = allocator.allocate(_N, (void *)0);
 			iterator _Q = _Ucopy(_First, _P, _S);
 			_Ufill(_Q, _M, _X);
-			{ iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ++_d, ++_s) allocator.construct(_d, *_s); }
+			{ iterator _d = _Q + _M; const_iterator _s = _P; do { allocator.construct(_d, *_s); ++_d; ++_s; } while (_s != _Last); }
 			_Destroy(_First, _Last);
 			allocator.deallocate(_First, _End - _First);
 			_End = _S + _N;

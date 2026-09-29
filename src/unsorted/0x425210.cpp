@@ -48,6 +48,24 @@
 //     <xutility>, by a second std::vector instantiation, by a real caller
 //     that inlines this insert, and by enough unrelated declarations before
 //     the class (see below).
+// Fourth pass (space-bunny-free, 900 s budget, 1 real check run): the file
+// above is unchanged and still scores 99.6%. The guide's advice for this
+// register family ("write the third copy as a loop with the destination
+// declared first, or a _Ucopy helper with the destination parameter first")
+// is measurably WORSE here than the header's own _Ucopy: written out in insert
+// as {iterator _D = _Q + _M; const_iterator _S = _P; for (; _S != _Last;
+// ++_D, ++_S) allocator.construct(_D, *_S);} it gives 537 bytes and 62.7%,
+// with the source declared first 530 bytes and 54.6%, and as a _Ucopy with the
+// destination parameter first and every call site's arguments swapped 507 bytes
+// and 32.1%. That last figure is the interesting one: 507 bytes is not a
+// near-miss, it is the whole function one notch down the register family (this
+// in ebp and _M in ebx, the 0x425480 shape the header's comment records at
+// 53.8%), and the same collapse happens if _Ucopy's body is a plain store,
+// `*_P = *_F`, instead of `allocator.construct(_P, *_F)` (507 bytes, 32.1%).
+// So the allocator's placement new is what holds this register family up, and
+// the two shapes that would move the byte are 37 bytes away, not one: this file
+// is not one byte from a shape the source can reach, it is on a cliff whose
+// edges are the two sizes above.
 // Nothing in the source reaches the wanted order. Measured, all of it giving
 // the same single byte: the destination spelled _Q + _M, _M + _Q, &_Q[_M],
 // (_Q + _M), _Q + _M * 1, _Q + (int)_M, &_Q[0] + _M; the source _P, _P + 0,

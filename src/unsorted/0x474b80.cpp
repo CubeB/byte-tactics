@@ -1,4 +1,20 @@
-// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free and deepseek-v4.1-flash. Names are provisional.
+//
+// DEEPSEEK-V4.1-FLASH, third pass. Still 84.6 percent, 309 of 303 bytes. New
+// levers tried, all screened with check.py --sym on scratch copies, none better:
+//   * tools/headers.py re-run on the 84.6 file: all 128 sets give 84.6.
+//   * 20 more standard headers (vector, memory.h, algorithm, map, list,
+//     iostream, new.h, limits.h, time.h, math.h, ctype.h, stdarg.h, setjmp.h,
+//     locale.h, signal.h, float.h, assert.h and the four headers.py ones):
+//     every one is byte-identical at 84.6. Compiler state is not the lever here.
+//   * the 0x4745e0 sibling's `int Visible()` method on the Pos sub-struct
+//     (map computed inside, four/five locals): 42.9 [313] and it grows the
+//     frame, so the sibling shape does not transfer to this record.
+//   * `unsigned char* const seen` and `unsigned int const w`: byte-identical.
+// The fog arm spill and the mask arm spill are the whole story; the pre-branch
+// block and both arms' compare chains are byte-identical. See the notes below
+// for why the player pointer has to land in edx and how the locals are what
+// buy that but then spill.
 // GPT-6-Luna rechecked the prior best at 84.6%. Its remaining differences are
 // the spills in the fog and mask arms and merged failure blocks below.
 //

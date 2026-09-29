@@ -7,6 +7,22 @@
 // dropping it for `g_game->visibilityMask[...]` directly, is 68.3 [292] and
 // rotates the pre-branch block. So both named locals in the path arm and the
 // mask-pointer local in the mask arm are load-bearing; nothing beats 79.8.
+// DEEPSEEK-V4.1-FLASH, third pass (second-pass retry). Still 79.8, 290 of 306.
+// Screened the one lever the notes left open, pushing the index temp into edx,
+// and it is now measured dead. `uv run tools/headers.py 0x4745e0` tried all 128
+// header sets: best 79.8, no set changes the match, so the header lever is
+// exhausted. The mask arm with the width local used only by the compare and a
+// fresh `p->size.width` re-read in the index (Contains spelled out by hand) is
+// 76.1 [292]: it does force the re-read, but the `w` local is exactly what puts
+// the width in edi, so a fresh read loses that register, `seen` moves into
+// edi, and the index folds anyway. With no mask-arm locals at all the fresh
+// index folds to `imul ecx,[edx+0x80]; add ecx,[edx+0x7c]; cmp [ecx+esi],0`
+// (79.6 [290]). Reordering the mask arm's locals to col,row,seen,w is 78.8
+// [290]. In the fog arm a fresh `p->size.width` in the index is 45.5 [294].
+// So the remaining 7 lines are genuinely a register-allocator choice: the
+// original rematerialises width into edi and loads seen into edx in the body
+// while ours keeps seen in ebx and copies the width to ebp, and every source
+// shape that changes one of those rotates the pre-branch block.
 // LONG-CAT 2.5 PREVIEW FREE, second pass: 66.3 -> 79.8 percent, 290 of 306
 // bytes. Four check.py runs on the file, about 80 scratch scorings of variants
 // under build/scratch/0x4745e0/. NOT A MATCH, but the whole prologue, the rect,

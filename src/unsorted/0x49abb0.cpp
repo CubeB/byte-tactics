@@ -11,6 +11,51 @@
 // Tried: by-value and by-pointer Vec3 params in every order, plain-int Vec3, local
 // copies (the copy is then optimised away, frame shrinks to 8), dx/dy/dz statement
 // orders, def pointer locals; pointer params make MSVC merge the two distance tails.
+//
+// ---- space-bunny-free pass, 23 scratch variants, no improvement, best still 93.7% ----
+// Verified first, both cheap: the call count is 9 in the original and 9 here (4x
+// _allmul, 4x _allshr, 1x FUN_0049a890), so no call is missing. `ret 0xc` against
+// the 3-arg declaration and FUN_0049a890's `ret 0x14` against 5 int args are both
+// right, so the calling convention is NOT the cause.
+// One divergence region, at 0x49ad2c (`je`), class (d)/(c): the whole line-of-fire
+// block is rescheduled and ours carries 3 extra instructions. First divergence is
+// 0x49ad2e `lea edx,[ebx+0x6a]` against our `add ebx,0x6a`, class (c) plus a
+// register-allocation consequence: MSVC turns the by-value `from` aggregate into a
+// live POINTER (ebx, then ebp) and reads the three fields through it, instead of
+// materialising the copy and reading the fields from the source with a lea'd scratch.
+// Killing that `add` is worth 3 instructions: the pointer copy, the reload of ebx
+// from the stack before the second distance tail, and one field access.
+// The frame is `sub esp,0xc` (3 dwords). With no pushes outstanding, [esp+0x10] is
+// the unit1 argument home and [esp+0x18] the weapon argument home, so the original
+// stores the 3-dword `from` copy over two DEAD argument homes and never writes its
+// third dword (from.y stays in ebp). Ours writes exactly the same two slots, so the
+// aggregate home is already right; only the access path is wrong.
+// Best new lead, not enough on its own: making the aggregate copy REAL, by feeding
+// the first by-value parameter from a helper that returns Vec3 by value
+// (`static inline Vec3 CopyPos(Unit* u) { return u->pos; }`), does produce the
+// original's `lea edx,[ebx+0x6a]`, keeps ebx alive and deletes the tail reload. But
+// it scores 92.1% (579 bytes) because MSVC then stores all THREE fields (the return
+// buffer is filled completely), loads w->field_c8 and w->field_68 and pushes them
+// FIRST instead of last, and orders the differences dz, dy, dx instead of dx, dy, dz;
+// its aggregate home also lands 4 bytes higher. So: real copy fixes the register
+// choice, and the next person needs a form that is a real copy without the full
+// three-field store.
+// Everything measured, all scratch variants in build/scratch/0x49abb0/: 93.7%/576 is
+// the ceiling and is byte-stable for w1 (block-scoped `Unit* t = unit2` copy), w2
+// (the two scalar params swapped), w11 (`== -32768` instead of `(short)0x8000`) and
+// v16 (dx/dy/dz in named int locals), all byte-identical to this file. Worse: v2 and
+// w10 (Vec3 param order swapped) 92.1%/579, v5/v8/v12/v13/v14/v15 (a real local copy
+// of unit2->pos, by assignment, by struct-returning helper, or with named dx/dy/dz)
+// 92.1%/579, v1/v7/x3/x5 (the 0x49aa80 form, plain expressions, no by-value Vec3)
+// 49.8%/538 - and that last one shows why the by-value aggregate is load-bearing:
+// without it the line-of-fire block steals edi, the weapon-def pointer, and the tail
+// has to reload it. v3/v4 (one Vec3 by value, the other by pointer) 76.8% and 75.2%,
+// w8 (`const Vec3&`) 75.2%, and a Vec3 class with a user copy constructor does
+// not emit the function at all (0 bytes).
+// Conclusion: the by-value Vec3 pair is right, and the last 6.3% is one register
+// allocator decision inside the line-of-fire block. It is not an operand order, a
+// frame size, a call count or a convention problem, and it is not reachable by
+// reordering the arguments.
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)

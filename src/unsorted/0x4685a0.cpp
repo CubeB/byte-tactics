@@ -1,18 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// STATUS: partial, 81.0%. Debug overlay for the selected unit ("Unit Builder
-// Probe"): uid, owner, controller and, for a local player, every type it can
-// build with build probability and a small bar.
-//
-// The bar is drawn by an inlined helper (the same FUN_00468310 shape as
-// 0x468380's Bar), which is what got prob into a callee-saved register and
-// brought the code size to the original's 1045 bytes; before that it was 60.5%.
-//
-// WHAT STILL DIFFERS: lineHeight and y are swapped between esi and edi (the
-// original keeps lineHeight in esi and y in edi; this file has the opposite),
-// and the remote/LOCAL string test. The original tests player->f_0 != 0 as part
-// of the remote ternary (0x468754: cmp dword ptr [eax],0 / je REMOTE); writing
-// that check raised the size to 1052, so the exact source form is not settled.
-// Frame size is 0xa4 against the original's 0xb4.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+#include <windows.h>
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -140,7 +127,7 @@ int __stdcall FUN_004685a0(void* surface)
     r.right++;
     r.bottom++;
     FUN_004bf8c0(surface, &r, colors[5]);
-    char buf[0x70];
+    char buf[0x80];
     y += 3;
     FUN_004c14f0(surface, "Unit Builder Probe", 0x86, y, -1);
     y += lineHeight;
@@ -148,13 +135,13 @@ int __stdcall FUN_004685a0(void* surface)
     y += lineHeight;
     sprintf(buf, "uid: %03d '%s'\n", unit->f_a8, (char*)unit->type);
     FUN_004c14f0(surface, buf, 0x86, y, -1);
+    y += lineHeight;
     char* mobile = unit->type->mobile ? "MOBILE" : "BUILDING";
     char* remote;
-    if (unit->player->controller == 1 || unit->player->controller == 2)
+    if (unit->player->f_0 != 0 && (unit->player->controller == 1 || unit->player->controller == 2))
         remote = "LOCAL";
     else
         remote = "REMOTE";
-    y += lineHeight;
     sprintf(buf, "playerno: %d '%s' %s - %s\n", unit->player->player, unit->player->name, remote, mobile);
     FUN_004c14f0(surface, buf, 0x86, y, -1);
     y += lineHeight;
@@ -168,18 +155,19 @@ int __stdcall FUN_004685a0(void* surface)
                 ((unit->f_57 & 0x10) ? 'X' : '-'));
         FUN_004c14f0(surface, buf, 0x86, y, -1);
         int i = 0;
+        y += lineHeight;
         if (unit->type->count > 0) {
-            y += lineHeight;
             do {
                 unsigned short id = unit->type->types[i];
                 int prob = FUN_0040bb00(unit->f_ff, id);
+                Def_004685a0* def = &g_game->defs[id];
                 Rect_004685a0 bar;
                 bar.left = 0x88;
                 bar.top = y + 1;
                 bar.right = 0xa2;
                 bar.bottom = bar.top + lineHeight - 6;
                 Bar_004685a0(surface, &bar, prob);
-                char* name = (char*)g_game->defs + id * 0x249 + 0x20;
+                char* name = def->name;
                 sprintf(buf, "       %3d %% - '%s'\n", prob, name);
                 FUN_004c14f0(surface, buf, 0x86, y, -1);
                 y += lineHeight;

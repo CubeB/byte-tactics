@@ -182,8 +182,8 @@ ArmSide:
     goto End;
 
 BigButton:
-    FUN_0047f1a0("bigButton", 0);
     index = 0;
+    FUN_0047f1a0("bigButton", 0);
     if (!FUN_0041d6a0(0)) {
         FUN_004abd90(g_game + 0x519,
                      FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
@@ -214,11 +214,11 @@ BigButton:
         *(unsigned char*)(*(int*)(g_game + 0x1b8a) + 0x96) = 0;
         *(unsigned char*)(*(int*)(g_game + 0x1cd5) + 0x96) = 1;
         FUN_00430f00();
-        if (DAT_0051e668 == 0) {
-            *(unsigned char*)(g_game + 0x2bc0) = 0x0f;
+        if (DAT_0051e668 != 0) {
+            *(unsigned char*)(g_game + 0x2bc0) = 0x10;
             return;
         }
-        *(unsigned char*)(g_game + 0x2bc0) = 0x10;
+        *(unsigned char*)(g_game + 0x2bc0) = 0x0f;
         return;
     }
     goto End;
@@ -269,17 +269,22 @@ End:
     FUN_004ab0a0(menu);
 }
 
-// Remaining differences vs. the original (56.3%, 751 diff lines):
-// - Prologue order: the original loads menu->holder before computing the
-//   playerInfo base and dereferences holder->entries after; register roles
-//   (eax/ecx/edx) are swapped in the first few instructions.
-// - The mission-index local lives in the reused menu parameter slot in the
-//   original (`mov [esp+0x1c], ebx` after two pushes, reloaded at [esp+0x14]);
-//   mine allocates it a separate slot and keeps menu in a register.
+// Remaining differences vs. the original (56.9%):
+// - Prologue scheduling: the original loads menu->holder into eax before the
+//   index byte (mov dl,[ecx+0x2a42]) and dereferences holder->entries after
+//   `push edi`; ours computes playerInfo first and loads holder last. Swapping
+//   the two locals' declaration order makes it worse (52.5%), so the schedule
+//   is not declaration-driven here.
+// - `index` now does share the reused menu parameter slot ([esp+0x1c] after
+//   the two FUN_0047f1a0 arg pushes), matching the original.
 // - The Side0/Arm and Side1/Core blocks recompute the player-data pointer from
-//   g_game+0x2a42 instead of reusing the prologue value; my version reuses it,
+//   g_game+0x2a42 instead of reusing the prologue value; our version reuses it,
 //   and the Difficulty block's g_game temp is in eax instead of ecx.
 // - The two duplicated campaign-menu build blocks and the two duplicated
-//   missions blocks still differ in register allocation and load order.
-// The control flow, all callees, string constants, struct offsets and the
-// overall instruction count (1746 vs 1935 bytes) are otherwise aligned.
+//   missions blocks still differ in register allocation and load order, as does
+//   the BigButton name-selection chain (we materialize the string address in
+//   eax, the original pushes it inside each arm).
+// The control flow, all 23 callees, string constants, struct offsets and the
+// branch polarity of the end-of-game 0x0f/0x10 writes match; the instruction
+// count is 1746 vs 1935, so about 47 instructions are still scheduled
+// differently or missing.

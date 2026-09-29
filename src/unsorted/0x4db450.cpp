@@ -1,4 +1,56 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free. Names are provisional.
+// NOT A MATCH: 92.9%, 444 of 444 bytes, every difference is a stack-slot
+// displacement. Still differs (see the end of this comment):
+//   * The two map iterators get the wrong two frame slots. The original puts
+//     the lower_bound result in the first frame slot ([esp+0x10]) and reuses
+//     that same slot for the spilled `this`; mine puts the begin() result in
+//     the first slot and gives `this` a slot of its own at [esp+0x18], one
+//     dword higher. Every diff below is that one rotation: it is a single
+//     allocation state, not nine independent problems.
+//   * `lea edx, [eax + esi]` versus `lea edx, [esi + eax]`: the operands of
+//     the commutative `base + len` are in the original's order, mine is
+//     reversed. Writing the sum the other way round does not change it.
+// Frame arithmetic, since it pins the target down (esp0 = esp at entry; the
+// four pushes leave esp = esp0-0x24, so the five locals sit at esp0-0x14,
+// -0x10, -0x0c, -0x08, -0x04 and the one stack argument at esp0+0x04):
+//   - esp0-0x14  `this`'s spill at 0x4db459, reloaded at 0x4db4fc, then
+//                overwritten by the _Ubound result (0x4db508/0x4db521) and
+//                passed by address to the final insert (0x4db5e7). The
+//                original reuses ONE slot for all four roles.
+//   - esp0-0x10  the begin() out slot (0x4db525, 0x4db539), then the second
+//                erase's hidden return slot (0x4db58a).
+//   - esp0-0x0c  the third erase's hidden return slot, used once (0x4db5d3).
+//   - esp0-0x08  p.offset, esp0-0x04 p.length: `p` is one 8-byte Pair.
+// So the original has FIVE homes and NO separate spill slot for `this`; this
+// file has four homes plus a real spill slot at esp0-0x0c. Getting the spill to
+// land on the top slot is the whole remaining problem.
+// Tried and did NOT work (all scored by check.py --sym, all 92.9% or worse):
+//   * permuting the declaration order of `n`, `it2`, `base` and `p` (all 24
+//     orders, with and without the operand swap): no effect at all, so the
+//     slot order here is NOT driven by declaration order;
+//   * re-running six declaration orders of `n`, `it2`, `tmp`, `base`, `p` with
+//     a fresh 4-byte home for the third erase's return: every one is 92.9%,
+//     and with `tmp` declared at all the frame grows to `sub esp,0x18` with
+//     the `this` spill given a slot of its own (82.5%). Adding the fifth home
+//     therefore does NOT make MSVC reuse a dead home, it makes the frame wider,
+//     which rules out "one home too few" as the cause;
+//   * swapping the roles, so the _Ubound result lands where begin()'s does and
+//     the other way round (92.9%): the two four-byte homes keep the order they
+//     have whatever the declaration order, so they cannot be permuted from the
+//     source text at all;
+//   * inline `End()` / `Begin()` accessors in place of `Class_004dd2a0(head)`,
+//     and `it = End()` in place of `it.ptr = head` (the idiom 0x4db000 uses):
+//     no effect;
+//   * passing the map's value_type as `const Pair_004db450&` instead of
+//     `const unsigned int&`, and dropping the `(int*)&it2` cast: no effect;
+//   * packing the two iterators into one 8-byte local, to force adjacent
+//     slots: 87.0%, the pair lands at [esp+0x14] and the local at [esp+0x1c];
+//   * declaring the call's two parameters in the other order (value first):
+//     92.2%;
+//   * making the members inherited instead of cast: the base classes shift
+//     `total` to +0x14: 81.8%;
+//   * a real named local for `it` instead of the parameter-slot alias: 81.8%,
+//     so the alias onto the dead `size` slot is load bearing.
 // Grows the allocator: reserves a block of at least `size` bytes with
 // VirtualAlloc (rounded up to 8k, and doubled so the block has room to grow),
 // retrying with half the size while the reservation lands above 2Gb, and then

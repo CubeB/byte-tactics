@@ -17,6 +17,11 @@
 // The reversed pair costs the disp8 byte, so ours is 315 bytes and every
 // following branch target is one byte out. Nothing else differs.
 //
+// Re-attempt (deepseek-v4.1-flash, issue 1228): re-verified lever 1 (the
+// callers' pushes and each callee's ret N) and the SIB base/index slot order
+// against this census. No new lever found, so the body is unchanged. This is a
+// front-end SIB base/index wall, not a source difference.
+//
 // A FREE WAY TO SEARCH THIS (no check.py runs, ~1.5 s per variant): put N
 // copies of this whole function in one file under different names, vary only
 // the construct, compile once with tools/wcl /c /O2 /Ob2 /MT, and read the

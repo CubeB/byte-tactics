@@ -1,20 +1,31 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 41.8% (1651 vs 1662 bytes), first full transcription, control flow
-// believed complete. Big sibling of the matched 0x4a53c0 / 0x4a4d70; same
-// 0x15b-stride entry array, same Measure/LineHeight inlines, same
-// DAT_0051fba4 language table.
+// PARTIAL 42.9% (1651 vs 1662 bytes), full transcription, control flow believed
+// complete. Big sibling of the matched 0x4a53c0 / 0x4a4d70; same 0x15b-stride
+// entry array, same Measure/LineHeight inlines, same DAT_0051fba4 language
+// table.
 //
-// What still differs:
-//  - frame 0x9c vs 0xac. My char buf[0x70] is placed at [esp+0x3c] (same as
-//    the original) yet MSVC sizes the frame as if the buffer were 0x60. The
-//    original has one more 0x10 of frame; I could not find the local.
-//  - register roles in the tab loop: the original keeps entries in ebx, i in
-//    edi and t at [esp+0x10]; MSVC gives me entries in ebp, i in ebx, t in
-//    edi. Swapping the declaration order of t/i changes nothing.
-//  - the strstr block: original keeps y at [esp+0x10] and the search char pair
-//    at [esp+0x14] (i's slot); mine uses [esp+0x18] for the pair and [esp+0x10]
-//    for y, which shifts the whole tail by 4 and changes the Measure
-//    accumulator slots.
+// The frame size is the one thing that did move: with `char buf[0x70]` MSVC
+// sizes the frame as 0x9c, with `char buf[0x80]` as 0xac, the original's size.
+// The buffer's strcpy destination is [esp+0x3c] in both, so MSVC is placing the
+// buffer at [esp+0x2c] and reserving 0x10 more below it than the declared text
+// needs (an overlapping rect slot or a missing 0x10 local). 0x80 is a guess
+// that reproduces the frame, not a claim about the original's declaration.
+//
+// What still differs (all one register-allocation state):
+//  - the tab loop: the original keeps entries in ebx, i in edi and t at
+//    [esp+0x10]; MSVC gives entries in ebp, i in ebx (spilled every iteration),
+//    t in edi. That is four callee-saved live values instead of three, which is
+//    exactly what pushes entries from ebx down to ebp. To flip it t has to
+//    become memory-resident. Tried and none of it flips the loop: swapping the
+//    t/i declaration order, moving both/i/t to the top, unsigned/short/char t,
+//    unsigned i, ++t, hoisting count into a local, an extra `dummy += i` live
+//    value, e = &entries[index] before the loop (that one drops to 23.9%),
+//    e->tab inside the loop, and a `tab` local. An if/else instead of
+//    `if (t==tab) break;` does move entries to ebx but rewrites the branch
+//    (34.1%).
+//  - after the fix above, the `-1` in the not-found arm, the strstr block's y /
+//    pat slots ([esp+0x10] / [esp+0x14] in the original vs [esp+0x18] /
+//    [esp+0x10] here) and the Measure accumulator slots should follow.
 // Everything from the prologue through the first rect (x/y/w/h) is within one
 // register rename of the original; the tail (field_148 image blit, field_147
 // hotkey underline) has the right calls and arguments.
@@ -218,7 +229,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         char pat[2];
         pat[0] = (char)c;
         pat[1] = 0;
-        char buf[0x70];
+        char buf[0x80];
         strcpy(buf, e->b6.text);
         char* p = strstr(buf, pat);
         if (p != 0) {

@@ -4060,7 +4060,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4b9360,341,,#1117,assigned,,,"issue #1117, escalated"
 0x4584d0,461,,#1121,assigned,,,"issue #1121, escalated"
 0x458810,427,,#1121,assigned,,,"issue #1121, escalated"
-0x44b990,635,,#1123,assigned,,,"issue #1123, escalated"
+0x44b990,635,sonnet-5.5,#1123,matched,100.0,,"issue #1123, escalated"
 0x484b50,391,,#1124,assigned,,,"issue #1124, escalated"
 0x485070,208,,#1124,assigned,,,"issue #1124, escalated"
 0x4851c0,354,,#1124,assigned,,,"issue #1124, escalated"

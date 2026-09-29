@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free, further analyzed by deepseek-v4.1-flash. Names are provisional.
 // 99.0% (577 bytes against 577, only two instructions differ, see the end).
 //
 // The original's 0xb4-byte frame, read off the disassembly (offsets are from
@@ -175,6 +175,18 @@
 //
 // 6. It is not an STL instantiation: no template, no container, no
 //    vector<T>::insert.  It is a plain C++ member function.
+//
+// FOURTH PASS (deepseek-v4.1-flash). An independent, scripted sweep scored 37
+// expression spellings (`(int)`/`(unsigned)`/`(long)` casts of either operand,
+// `(char*)(off + (int)base)`, `&base[off]`, derefs of `&img`, every field type
+// for nameoff, and 9 control-flow shapes: `name != 0 && ...`, `if (name)`,
+// `if (name == 0) {} else ...`, a named `char* p` with `p += off` in-block and
+// hoisted, `!strcmpi`) through check.py's library. ALL 46 land on exactly
+// 99.04%, byte for byte the same two-instruction residual. That pins it: the
+// ADD destination is not a source-order choice at all, MSVC 5 always names the
+// RIGHT operand of `ptr + int` as the destination, and only a plain `+` with
+// the pointer on the right (unwritable in C++) reaches `add base, off`.
+// tools/headers.py tried all 128 header sets: none changes it. Left partial.
 #include <string.h>
 #include <stdio.h>
 

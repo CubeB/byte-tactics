@@ -9,26 +9,42 @@
 // out (the allocator tries to keep allocating from it), DAT_00528a00 counts the
 // wraps around the map, and DAT_00528a54 is the tree's _Nil node.
 //
-// NOT MATCHING yet (58.9%, 600 of 646 bytes). What still differs, measured
+// NOT MATCHING yet (59.9%, 618 of 646 bytes). What still differs, measured
 // against the original at 0x4db1c0:
+//   * 0x4db1c0: the one big cause. The original keeps `this` in ebp and `bytes`
+//     in ebx; we keep them the other way round, and everything downstream
+//     follows: in the second half the original has mark in esi, base in edi,
+//     bytes in ebx and length in ebp, while we have `this` in esi, mark in
+//     edi, base in ebx and length in ebp with `bytes` reloaded from [esp+0x30].
+//     The original's `this` is memory-only from 0x4db253 on (it reloads
+//     [esp+0x10] at every call site, straight into ecx), ours is promoted back
+//     into a register, and that promotion is what steals esi from `mark` and
+//     pushes `bytes` out to the stack. So the fix is one construct that either
+//     demotes `this` or makes it memory-resident, not a per-instruction fix.
+//     Moving the declarations around does not do it: `out` (the erase's out
+//     iterator) and the insert's pair share [esp+0x14] in the original and
+//     `res` sits alone at [esp+0x24], while we get out@0x14, res@0x18, pair
+//     @0x1c, k@0x24, and declaring `res` inside the inner block instead of at
+//     function scope loses 13 points.
 //   * 0x4db41a: the original keeps a dead `xor al,al; test al,al; je` and an
 //     unreachable arm that retries with `return FUN_004db1c0(bytes)`. The flag
 //     is a compile-time 0 here, so MSVC folds our `if (ok)` away and the retry
 //     block (0x4db420-0x4db437, 24 bytes) is missing. No spelling of a local
 //     bool, an uninitialised one, a comparison (`!= 0`, `== 1`), a ternary or
 //     an inlined helper returning 0 reproduced the dead test.
-//   * 0x4db390 and 0x4db3a8: the original hoists the VirtualAlloc and
-//     VirtualFree import addresses into ebp and ebx and calls through the
-//     registers; we call `dword ptr [0x4fc1bc]`. Ours keeps `bytes` in ebp
-//     where the original keeps it in ebx, so no callee-saved register is free
-//     for the import addresses.
-//   * 0x4db3e0: the original's reservation loop is rotated, with a second copy
-//     of the VirtualAlloc sequence in the latch and the back edge on the test;
-//     `for (;;)`, `for (init;; incr)`, `for (init; cond; incr)`, `while` and
-//     `do {} while (1)` all come out unrotated here.
-//   * 0x4db1c0: the original keeps `this` in ebp and `bytes` in ebx; we keep
-//     them the other way round, and the query pair lands in [esp+0x24] instead
-//     of [esp+0x1c].
+//   * 0x4db1df: the query pair lands in [esp+0x24] where the original uses
+//     [esp+0x1c], for the frame-layout reason above.
+//
+// The reservation loop now matches instruction for instruction, including the
+// rotated shape: writing the VirtualAlloc out twice (once before the loop and
+// once at its latch) is what produces the second copy at 0x4db3e0, the back
+// edge onto the `if (base)` test at 0x4db3ae, and the import addresses hoisted
+// into ebp and ebx. Writing the two `if (base != 0)` tests as two separate
+// ifs at the same level, rather than nesting the VirtualFree inside one, is
+// what keeps the redundant `test eax,eax` at 0x4db3bd; nesting it, or writing
+// one `if (base != 0 && base + len <= 0x80000000)`, loses it again. Both the
+// success path and the `if (ok)` retry have to be `return`s inside the loop
+// for MSVC to lay the exit block out last.
 #include <windows.h>
 #include <yvals.h>
 
@@ -206,27 +222,30 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
             len = ((bytes + 0x1fff) & 0xffffe000) * 2;
         if (bytes > len)
             len = (bytes + 0x1fff) & 0xffffe000;
+        dsize = len + 0x2000;
+        base = (unsigned int)VirtualAlloc(0, dsize, 0x2000, PAGE_READWRITE);
         for (;;) {
-            dsize = len + 0x2000;
-            base = (unsigned int)VirtualAlloc(0, dsize, 0x2000, PAGE_READWRITE);
-            if (base != 0 && base + len <= 0x80000000u)
-                break;
+            if (base != 0) {
+                if (base + len <= 0x80000000u) {
+                    Pair_004db000 q;
+                    q.offset = base;
+                    q.length = len;
+                    total += len;
+                    FUN_004db000(q);
+                    return FUN_004db1c0(bytes);
+                }
+            }
             if (base != 0)
                 VirtualFree((void*)base, dsize, MEM_RELEASE);
             len = (len >> 1) & 0x7fffe000;
             if (len < 0x10000 || len < bytes) {
                 if (ok)
                     return FUN_004db1c0(bytes);
-                return 0;
+                break;
             }
+            dsize = len + 0x2000;
+            base = (unsigned int)VirtualAlloc(0, dsize, 0x2000, PAGE_READWRITE);
         }
-        total += len;
-        {
-            Pair_004db000 q;
-            q.offset = base;
-            q.length = len;
-            FUN_004db000(q);
-        }
-        return FUN_004db1c0(bytes);
+        return 0;
     }
 }

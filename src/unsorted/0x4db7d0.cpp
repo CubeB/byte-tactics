@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // The game's free() for its own heap: under the allocator lock it looks the
 // block up in the live-block map, records the freed header in the debug arena,
 // drops it from the live map, releases the pages it had reserved for the block
@@ -185,7 +185,7 @@ public:
 
 class Class_004dbd00 {
 public:
-    Class_004dbe10 FUN_004dbd00(Class_004dbe10 it);
+    void FUN_004dbd00(Class_004dbe10* out, void* node);
 };
 
 class Class_004dbbc0 {
@@ -241,32 +241,31 @@ void __cdecl FUN_004db7d0(void* p, int flags)
         DAT_005289f0 -= (blk + 0xfff) & 0xfffff000;
         if (blk == 0)
             blk = 1;
-        VirtualFree((void*)((unsigned int)p & 0xfffff000), FUN_004da8c0(blk),
-                    MEM_DECOMMIT);
+        unsigned int base = (unsigned int)p & 0xfffff000;
+        VirtualFree((void*)base, FUN_004da8c0(blk), MEM_DECOMMIT);
         Pair_004db450 pair;
         pair.length = FUN_004da8a0(blk);
         Class_004db450* alloc = (Class_004db450*)FUN_004db610();
-        pair.offset = (unsigned int)p & 0xfffff000;
+        pair.offset = base;
         Class_004dbe10 n;
         ((Class_004dbd20*)alloc)->FUN_004dbd20(&n, pair.offset);
-        Class_004dbe10 it = node;
         Class_004dbe10 it3;
         ((Class_004dbeb0*)alloc)->FUN_004dbeb0(&it3);
-        if (it == it3)
-            it.ptr = alloc->head;
+        if (node == it3)
+            node.ptr = alloc->head;
         else
-            it.FUN_004dbe10(0);
+            node.FUN_004dbe10(0);
         if (alloc->Neq(n, Class_004dbe10(alloc->head))) {
             if (n.ptr->key == pair.offset + pair.length) {
                 pair.length = pair.length + n.ptr->length;
-                ((Class_004dbd00*)alloc)->FUN_004dbd00(n);
+                ((Class_004dbd00*)alloc)->FUN_004dbd00(&it3, n.ptr);
             }
         }
-        if (alloc->Neq(it, Class_004dbe10(alloc->head))) {
-            if (it.ptr->key + it.ptr->length == pair.offset) {
-                pair.length = pair.length + it.ptr->length;
-                pair.offset = it.ptr->key;
-                ((Class_004dbd00*)alloc)->FUN_004dbd00(it);
+        if (alloc->Neq(node, Class_004dbe10(alloc->head))) {
+            if (node.ptr->key + node.ptr->length == pair.offset) {
+                pair.length = pair.length + node.ptr->length;
+                pair.offset = node.ptr->key;
+                ((Class_004dbd00*)alloc)->FUN_004dbd00(&it3, node.ptr);
             }
         }
         ((Class_004dbbc0*)alloc)->FUN_004dbbc0(&it3, &pair);

@@ -1,33 +1,34 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// PARTIAL (59.1%, 243 differing lines). Per-frame driver of the unit's
-// command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60 list).
-// It re-reads the head each pass; every action that keeps the node relies on
-// the notify callback itself moving it. Structure recovered from the
-// disassembly: due check -> pending mask -> callback -> switch on its result.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL (59.7%, 756 bytes against the original's 780). Per-frame driver of
+// the unit's command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60
+// list, matched, and the source of the Wait_0043b7c0 shape below). The list
+// head is re-read after every node, so a node the callback re-queues is seen
+// again in the same pass. The switch cases are written in the order the
+// original emitted the bodies (3, 1, 0, 2/4, 5/8, 9, 6, 7, default), which is
+// also the order of the jump table at 0x43baa4.
 //
-// What already matches: the whole prologue (unit in edi, node in esi, the
-// list-head address in ebx, spilled to [esp+0x10]), the due check, the
-// 3-iteration FUN_0048a0f0 loop (it only matches as a countdown do/while,
-// which is what frees ebx for the counter and pushes the list-head address
-// into the spill), the case layout order (3, 1, 0, then 5/8, 9, 6, 7,
-// default) and most of the block sizes.
+// What matches byte for byte: the whole prologue (unit in edi, node in esi,
+// the list-head address in ebx, spilled to [esp+0x10]), the due check, the
+// 3-iteration FUN_0048a0f0 countdown loop (it only matches as a do/while,
+// which is what frees ebx for the counter and pushes the head into the
+// spill), the case layout, the tail-merged Wait block shared by cases 3 and
+// 9, both unlink searches, the delete sequence, ClearAll and the two
+// FUN_0043ac60 arms.
 //
-// What still differs (all register allocation, no control-flow difference):
-// - the 16-bit mask in the pending expression: the original loads it with
-//   `mov cx, [edi+0xba]` and keeps it in ecx, ours ends up in eax (and with
-//   `unsigned int mask` even gains a `xor eax,eax; mov ax`). This one choice
-//   cascades into the whole loop: flags6 lands in eax (original) vs ecx
-//   (ours), and the callback table base in ecx (original) vs edx (ours).
-// - the wait tail: the original computes `flags6 |= 1` before rematerialising
-//   g_game, ours reorders it after; original `mov edi,[esi+6]; or edi,1`.
-// - the function's tail: original stores the kind byte with
-//   `mov [esp+0x1c],al` (after `push 0x56`), ours at `[esp+0x18]` before it,
-//   and the original uses edx for `unit->def`.
-// Every source spelling tried (mask as int / as unsigned short / no local,
-// swapped operands, split expression, reordered declarations, case order,
-// loop as for/do-while) leaves these choices unchanged, so the remaining
-// difference is the original's variable/expression shape for the mask, not
-// the control flow.
+// What still differs: one allocator state, seen as an eax/ecx swap in every
+// block. The original keeps the 16-bit mask in ecx and flags6 in eax
+// (`mov cx,word [edi+0xba]` / `mov eax,[esi+6]`); ours keeps the mask in eax
+// and flags6 in ecx. The same swap reappears downstream: the callback-table
+// base is in edx here and ecx in the original, `unit` is reloaded into ecx
+// for the 3-iteration loop instead of eax, `unit->def` into eax instead of
+// edx, `*link` in ClearAll into ecx instead of edx, and the default case's
+// `unit` into edx instead of eax. Tried and rejected: the mask as `int`
+// (55.5%, it also gains a `xor eax,eax; mov ax`), the field read twice with
+// no local at all (identical score, identical code), the `unit` reload for
+// the field_ba store hoisted differently. The one shape that did help was
+// Wait_0043b7c0: with `when = FUN_004b6c30(n) + 0x1e` computed first and
+// `flags6 |= 1` second it tail-merges cases 3 and 9 the way the original does
+// (0x43b951); the other order duplicated the block at both sites (792 bytes).
 
 #pragma pack(push, 1)
 
@@ -38,13 +39,13 @@ struct Player_0043b7c0;
 class Class_0043a1f0 {
 public:
     char unknown_0[4];
-    unsigned char kind;            // +0x4
+    unsigned char kind;            // +0x4, index into DAT_00512344
     unsigned char count;           // +0x5
-    unsigned int flags6;           // +0x6
+    unsigned int flags6;           // +0x6, bit 0 set while the node waits
     unsigned int wakeFrame;        // +0xa
-    Unit_0043b7c0* unit;           // +0xe
+    Unit_0043b7c0* unit;           // +0xe, handed to the callback
     char unknown_12[0x42 - 0x12];
-    unsigned int flags;            // +0x42
+    unsigned int flags;            // +0x42, bit 0x40000 picks the second list
     char unknown_46[0x4a - 0x46];
     Class_0043a1f0* next;          // +0x4a
     unsigned int field_4e;         // +0x4e
@@ -62,7 +63,7 @@ struct Player_0043b7c0 {
 
 struct UnitDef_0043b7c0 {
     char unknown_0[0x230];
-    unsigned char field_230;       // +0x230
+    unsigned char field_230;       // +0x230, the kind of a fresh command
 };
 
 struct Unit_0043b7c0 {
@@ -73,7 +74,7 @@ struct Unit_0043b7c0 {
     UnitDef_0043b7c0* def;         // +0x92
     Player_0043b7c0* player;       // +0x96
     char unknown_9a[0xba - 0x9a];
-    unsigned short field_ba;       // +0xba
+    unsigned short field_ba;       // +0xba, the unit's pending mask
 };
 
 struct Game_0043b7c0 {
@@ -81,6 +82,8 @@ struct Game_0043b7c0 {
     unsigned int frame;            // +0x38a47
 };
 
+// One entry of the callback table, 0x19 bytes: the index arithmetic is
+// kind*5*4 + kind*5 + 4.
 struct Callback_0043b7c0 {
     char unknown_0[4];
     int (__stdcall* notify)(Unit_0043b7c0* unit, Class_0043a1f0* node, unsigned int pending);  // +0x4
@@ -148,12 +151,14 @@ static void ClearAll(Unit_0043b7c0* unit, Class_0043a1f0** pp)
         FUN_00439f80(unit, node);
 }
 
-
-// Puts the node to sleep for `n` milliseconds.
+// Puts the node to sleep for `n` milliseconds. The `when` temporary is what
+// keeps the sum from folding into one lea, and the flag is set after the call
+// so that both call sites tail-merge (as in 0x43bad0).
 static void Wait_0043b7c0(Class_0043a1f0* node, int n)
 {
-    node->wakeFrame = g_game->frame + FUN_004b6c30(n) + 0x1e;
+    unsigned int when = FUN_004b6c30(n) + 0x1e;
     node->flags6 |= 1;
+    node->wakeFrame = g_game->frame + when;
 }
 
 // FUNCTION: 0x43b7c0
@@ -167,11 +172,11 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
             node->wakeFrame = 0xffffffff;
             node->field_4e |= 1;
         }
-        unsigned int mask = unit->field_ba;
+        unsigned short mask = unit->field_ba;
         unsigned int pending = (node->field_4e | mask) & node->flags6;
         if (node->flags6 != 0 && pending == 0)
             return;
-        unit->field_ba = (unsigned short)(~pending & mask);
+        unit->field_ba = (unsigned short)(~pending) & mask;
         node->field_4e &= ~pending;
         node->flags6 = 0;
 
@@ -201,12 +206,6 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
         case 8:
             RemoveAndDelete(unit, pp, node);
             break;
-        case 6:
-            MoveToEnd(pp, node);
-            break;
-        case 7:
-            ClearAll(unit, pp);
-            return;
         case 9:
             node->flags |= 0x800000;
             if (node->next == 0) {
@@ -216,6 +215,12 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
                 RemoveAndDelete(unit, pp, node);
             }
             break;
+        case 6:
+            MoveToEnd(pp, node);
+            break;
+        case 7:
+            ClearAll(unit, pp);
+            return;
         default:
             FUN_00439eb0(unit, 1);
             return;

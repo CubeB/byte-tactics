@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
 // Samples the ground under a unit at its four surrounding terrain
 // vertices and stores the resulting pitch (0x68) and roll (0x70) on the
 // unit, plus a heading (0x64) from the two side vertices. The 0x11/0x04
@@ -165,13 +165,16 @@ void FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 // FUNCTION: 0x48a490
 void __stdcall FUN_0048a490(Unit_0048a490* u)
 {
+    MapRow_0048a490* row;
     MapInfo_0048a490* m = g_game->maps[u->map];
-    MapRow_0048a490* row = m->rows + m->count;
-    if (m->count > -1) {
+    row = m->rows + m->count;
+    if (m->count < 0)
+        return;
+    {
         Pos2_0048a490 t;
         Pos2_0048a490 pts[4];
         Hs_0048a490 hs[4];
-        int k = 0;
+        int k;
         for (k = 0; k < 4; k++) {
             MapVertex_0048a490* v = m->verts + row->ids[k];
             int vx = v->x;
@@ -185,16 +188,16 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
             int wx = (short)((t.x + u->posx) >> 16);
             int fz = hz & 0xf;
             int fx = wx & 0xf;
-            int gx = (unsigned)wx >> 4;
-            int gz = (unsigned)hz >> 4;
+            unsigned gx = (unsigned)wx >> 4;
+            unsigned gz = (unsigned)hz >> 4;
             int gw = g_game->gridW;
             if (gx >= gw - 1)
                 return;
             if (gz >= g_game->gridH - 1)
                 return;
             unsigned char* tb = g_game->hmaps + (gz * gw + gx) * 13;
-            unsigned char* tb1 = tb + g_game->gridW * 13;
             int b0 = tb[4];
+            unsigned char* tb1 = tb + g_game->gridW * 13;
             int b1 = tb1[4];
             int c0 = tb[0x11];
             int c1 = tb1[0x11];
@@ -210,11 +213,12 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
                 short p = (short)((((FUN_004b6340() & 0x1f) + k * 8) << 11) + u->fix_lo);
                 int s = u->type->sight / 2;
                 int q = u->owner->sight;
-                if (q > s)
+                if (q >= s)
                     q = s;
-                int mm = 2 - (int)((((__int64)q << 16) / s) * 2 >> 16);
+                int w = (int)((((__int64)q << 16) / s));
+                int mm = 2 - (int)((((__int64)w * 2) >> 16));
                 unsigned int n = g_game->frame - u->owner->age;
-                if (n > 60)
+                if (n >= 60)
                     n = 60;
                 mm -= (unsigned int)(mm * n) / 60;
                 hs[k].h = FUN_004b7123(p, mm) + hs[k].h;

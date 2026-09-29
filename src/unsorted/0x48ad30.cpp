@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
 // The per-tick unit housekeeping loop (called from one place): clears the
 // counter at g_game+0x14353, then for each of the ten 0x14b player records at
 // g_game+0x1b63 walks the unit list (first +0x67, last +0x6b, stride 0x118),

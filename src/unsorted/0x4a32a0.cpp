@@ -1,6 +1,17 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// UPDATE (69.9 percent, 770 bytes): two changes took it from 61.2. (1) The
-// push ecx frame IS produced by reusing the PARAM_1 slot as the row-fitting
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// UPDATE (78.1 percent, 762 bytes): the type-4 search in the second half is
+// really an inlined helper `FindType(entries, kind)` that returns 0 on a miss
+// (its `return i;` gives `mov ebp, eax; jmp`, its `return 0;` gives
+// `xor ebp, ebp`). Writing the loop out inline instead hoisted the zero to
+// before the loop and spilled the matched byte to the stack; the helper makes
+// the loop and almost everything after it instruction for instruction.
+// Still differs: the first half has `count` in edi and the shared zero in ebx,
+// the original has `count` in ebx and the zero in edi; that swap is what keeps
+// `found` in ebx instead of ebp (ebp is then free for the third search's entry
+// array) and leaves the DAT_0051fba4 reload order in the last block different.
+// The rest of the old notes below are the 69.9 attempt, kept for history.
+//
+// OLD NOTES: The push ecx frame IS produced by reusing the PARAM_1 slot as the row-fitting
 // counter: param_1 = (Class_004a32a0*)(int)me->height; and the loop and the
 // later remain < 0 tests work on (int)param_1. A modified parameter has a
 // live stack home, so the holder needs a real frame dword, exactly the
@@ -202,6 +213,16 @@ static inline int FindName_004a32a0(Entry_004a32a0* entries, char* name)
     return -1;
 }
 
+// The type-4 entry search; returns 0 when nothing matches.
+static inline int FindType_004a32a0(Entry_004a32a0* entries, unsigned char kind)
+{
+    for (int i = 1; i < entries->count + 1; i++) {
+        if (entries[i].type == 4 && entries[i].kind == kind)
+            return i;
+    }
+    return 0;
+}
+
 // FUNCTION: 0x4a32a0
 void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap,
                             int count, int flag)
@@ -246,13 +267,7 @@ void __stdcall FUN_004a32a0(Class_004a32a0* param_1, char* name, int bitmap,
     int i2 = FindName_004a32a0(holder->entries, name);
     Entry_004a32a0* list = holder->entries;
     unsigned char kind = list[i2].kind;
-    int found = 0;
-    for (int k2 = 1; k2 < list->count + 1; k2++) {
-        if (list[k2].type == 4 && list[k2].kind == kind) {
-            found = k2;
-            break;
-        }
-    }
+    int found = FindType_004a32a0(list, kind);
     if (found == -1)
         return;
     char* text = (char*)&holder->entries[found].name;

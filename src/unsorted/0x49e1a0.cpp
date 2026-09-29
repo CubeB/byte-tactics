@@ -93,6 +93,18 @@
 // short rather than unsigned short locals cost 0.3; the 0x10000000 tests as
 // raw shifts rather than bitfields cost 1.6.
 //
+// More dead ends measured by deepseek-v4.1-flash (deepseek-v4.1-flash):
+// writing the bit-26 test as the bitfield member attached->f_111.b26 emits the
+// exact original shape (mov ecx/ebx+0x111, shr ecx,0x1a, and cl,1, neg cl,
+// sbb ecx,ecx, and ecx,0x400, add ecx,0x400, or [edi+0xba],cx) but picks ecx
+// where the original uses eax, and the file scores 86.8 versus 86.9, so the
+// f_111_raw() alias stays. Factory-materialising the b4 test into a local does
+// NOT turn "test al,0x10" into "mov edx,eax / shr edx,4 / test dl,1" (both
+// variants are 86.8). Hoisting a raw "unsigned int f = attached->f_111_raw()"
+// for the b19/b4 pair and spelling them as (f>>19)&1 and (f>>4)&1 explodes the
+// frame to 979 bytes and drops to 74.2%: the extra live range costs more than
+// the two shifts win. So the bitfield-plus-alias split stays the best variant.
+//
 // The calling convention was checked first and is NOT the cause. The function
 // returns with "ret 4" and has one stack argument, so __stdcall with one
 // argument is correct and was already in place. All 11 callees agree with

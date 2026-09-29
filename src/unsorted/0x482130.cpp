@@ -57,6 +57,51 @@
 // (p++, ++p, p += 1, p = p + 1, Eye* d = p++), a copy helper (free function
 // and method), named locals for the two self-pointers and every
 // for/while/do-while spelling all give the same 86.3%.
+// space-bunny-free pass: still 86.3% / 318 bytes, but the gap is now pinned down
+// to ONE fact, and there is a construct that produces the original's block.
+// - The ONLY difference is where the compaction destination lives.  The original
+//   keeps it in esi through the scan and then SPILLS the advanced value to
+//   [esp+0x18] inside the copy block, which frees esi, and both self-pointer
+//   address temps then take esi and edi.  Ours keeps the destination in esi for
+//   the whole loop, so only edi is free and &d->flagB is spilled to [esp+0x14]
+//   instead.  Everything else in the block (the two leas, the ebx = ecx copy,
+//   the reloads, the /36 sign fixup in ecx instead of eax) follows from that
+//   one choice.
+// - The construct that reproduces the original's spill, both address temps in
+//   registers AND the original's slot numbers (end at [esp+0x14], the spilled
+//   destination at [esp+0x18]) is a SECOND variable for the destination, which
+//   the count expression reads and which is assigned from p after the scan:
+//       Eye_00482130* dst;                  // declared with the other locals
+//       ... scan ...
+//       dst = p;
+//       ... Eye_00482130* d = dst; dst++; ...copy...
+//       g_game->count = (int)((char*)dst - (char*)g_game->eyes) / 0x24;
+//   That build is 318 bytes and its phase 2 has the SAME instruction sequence as
+//   the original with esi and edx exchanged: the destination is in edx and src
+//   in esi, where the original has the destination in esi and src in edx.  It
+//   scores 75.5%, so it is NOT a candidate file, but it proves the copy
+//   allocation is reachable and localises what is left: the register preference
+//   between the homed destination and src.  A homed destination always lands in
+//   edx in this compiler state, and an unhomed one always lands in esi and is
+//   never spilled, so the two facts could not be decoupled by any shape I tried.
+// - Tried with no change (all 318 bytes, 86.3%): the second destination
+//   variable before `end` instead of after it, the guard comparing dst instead
+//   of p, `dst = p` written inside the guard, phase 1 using its own pointer so
+//   that phase 2's pointer is a fresh EN, a separate scan pointer, the count as
+//   a plain pointer difference, `p = p;` before the count, the increment as
+//   `p = &p[1]`, `p += 1`, `p = (Eye*)((char*)p + 0x24)`, `d` declared and
+//   assigned on separate lines, the copy through a reference `Eye& d = *p`,
+//   named `sp`/`fp` self-pointer locals, the two self-pointer stores moved to
+//   the start or the end of the block, `if (expired) continue;` instead of the
+//   nested if, and `end` declared before `p` (or both uninitialised at the top,
+//   or `changed` declared last).  Tried and worse: the increment after the
+//   stores, with or without the `d` local (303 bytes, 65.7%), the two
+//   self-pointer stores last (291 bytes, 62.3%), the self-pointer stores first
+//   (317 bytes, 77.5%), the Vec3 copied member by member (269 bytes, 42.5%),
+//   and the second destination variable in any spelling (75.5%).
+// - Home slot numbers do NOT follow declaration order: declaring `end` before
+//   `p`, or `changed` last, leaves [esp+0x10] the changed/src slot, [esp+0x14]
+//   the address-temp spill and [esp+0x18] `end` exactly as before.
 #include <stddef.h>
 
 #pragma pack(push, 1)

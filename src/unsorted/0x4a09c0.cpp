@@ -1,34 +1,32 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
-// Partial: 76.1%. The original keeps the entry-array base and byte offset in
-// separate registers through the string-building loop; this version materializes
-// the entry pointer, changing the later stack and register allocation.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 
 #pragma pack(push, 1)
-struct Entry_004a09c0 {
-    unsigned char state;
-    char unknown_1[0xb6 - 1];
-    char text[0x80];
-    unsigned char count;
+struct Entry_004a09c0 {                // 0x15b bytes
+    unsigned char state;               // +0x00
+    char unknown_1[0x10 - 1];          // name at +0x02
+    char unknown_11[0xb6 - 0x10];
+    char text[0x80];                   // +0xb6
+    unsigned char count;               // +0x136
     char unknown_137;
-    short value;
+    short value;                       // +0x138
     char unknown_13a[0x15b - 0x13a];
 };
 
-struct List_004a09c0 {
-    char unknown_0[4];
-    Entry_004a09c0* entries;
+struct Data_004a09c0 {
+    int unknown_0;
+    Entry_004a09c0* entries;           // +0x04
 };
 
 struct Context_004a09c0 {
     char unknown_0[0x18];
-    List_004a09c0* list;
+    Data_004a09c0* data;               // +0x18
     char unknown_1c[0x64 - 0x1c];
-    int selected;
+    int current;                       // +0x64
     char unknown_68[0x74 - 0x68];
-    int text_length;
+    int length;                        // +0x74
     char unknown_78[0xcca - 0x78];
-    int changed;
+    int changed;                       // +0xcca
 };
 #pragma pack(pop)
 
@@ -36,50 +34,52 @@ char* __stdcall FUN_004c5740(void*);
 void __stdcall FUN_004a05e0(Context_004a09c0*, int);
 
 // FUNCTION: 0x4a09c0
-void __stdcall FUN_004a09c0(Context_004a09c0* context, int index, void* source, int value)
+void __stdcall FUN_004a09c0(Context_004a09c0* context, int index, char* source, int value)
 {
-    if (index != -1 && context->list != 0) {
-        char* entries = (char*)context->list->entries;
-        char* text = FUN_004c5740(source);
-        int offset = index * sizeof(Entry_004a09c0);
-#define ENTRY ((Entry_004a09c0*)(entries + offset))
-        switch (ENTRY->state) {
-        case 5:
-            strncpy(ENTRY->text, text, 0x80);
-            if (ENTRY->count != 0)
-                FUN_004a05e0(context, index);
-            break;
-        case 3:
-            if (text != 0) {
-                strcpy(ENTRY->text, text);
-                if (context->selected == index)
-                    context->text_length = strlen(text);
-            }
-            if (value != 0)
-                ENTRY->value = (short)value;
-            break;
-        case 1:
-            strncpy(ENTRY->text, text, 0x80);
-            FUN_004a05e0((Context_004a09c0*)value, index);
-            if (ENTRY->count != 0) {
-                for (char* p = ENTRY->text; *p != 0; p++) {
-                    if (*p == '|')
-                        *p = 0;
-                }
-                char buffer[0x80];
-                char* dst = buffer;
-                char* src = ENTRY->text;
-                for (int i = 0; i < ENTRY->count; i++) {
-                    char* part = FUN_004c5740(src);
-                    strcpy(dst, part);
-                    dst += strlen(dst) + 1;
-                    src += strlen(src) + 1;
-                }
-                memcpy(ENTRY->text, buffer, 0x80);
-            }
-            break;
+    if (index == -1 || context->data == 0)
+        return;
+    Entry_004a09c0* entries = context->data->entries;
+    char* text = FUN_004c5740(source);
+
+    switch (entries[index].state) {
+    case 5:
+        strncpy(entries[index].text, text, 0x80);
+        if (entries[index].count != 0)
+            FUN_004a05e0(context, index);
+        break;
+    case 3:
+        if (text != 0) {
+            strcpy(context->data->entries[index].text, text);
+            if (context->current == index)
+                context->length = strlen(text);
         }
-#undef ENTRY
-        context->changed = 1;
+        if (value != 0)
+            entries[index].value = (short)value;
+        break;
+    case 1:
+        strncpy(entries[index].text, text, 0x80);
+        FUN_004a05e0(context, index);
+        if (entries[index].count != 0) {
+            char* p = entries[index].text;
+            while (*p != 0) {
+                if (*p == '|')
+                    *p = 0;
+                p++;
+            }
+            Entry_004a09c0* entry = &context->data->entries[index];
+            char temp[0x80];
+            char* dst = temp;
+            char* src = entry->text;
+            int i = 0;
+            while (i < entry->count) {
+                strcpy(dst, FUN_004c5740(src));
+                dst += strlen(dst) + 1;
+                src += strlen(src) + 1;
+                i++;
+            }
+            memcpy(entry->text, temp, 0x80);
+        }
+        break;
     }
+    context->changed = 1;
 }

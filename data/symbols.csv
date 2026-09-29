@@ -3043,6 +3043,7 @@ address,name
 0x4dd770,Class_004dd770::FUN_004dd770
 0x4dd7d0,Class_004dd7d0::FUN_004dd7d0
 0x4dd820,Class_004dd820::FUN_004dd820
+0x4dd8c0,UElem_004dd8c0::?$vector::insert
 0x4ddbe0,Class_004ddbe0::FUN_004ddbe0
 0x4ddc00,Class_004ddc00::FUN_004ddc00
 0x4ddc90,Class_004ddc90::FUN_004ddc90

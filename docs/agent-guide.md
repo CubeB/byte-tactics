@@ -1983,3 +1983,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   the inner loop was exactly the eight extra frame dwords; writing it out took
   the frame and the byte count to the original's (36.8% to 55.5%). When the
   frame is too big, look for such helpers before working on registers.
+- **Stack slots follow declaration order.** MSVC 5 hands out frame slots like a
+  plain stack allocator: each newly declared local takes the next slot below
+  the last one allocated. So you can plan the declaration order that puts every
+  local at the original's `[esp+N]` from a `/Fa` listing, without spending
+  `check.py` runs. Dropping a local (by reusing another's value) frees its slot
+  for a later one (0x4c0c70, 0x4c1000).

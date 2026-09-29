@@ -217,6 +217,16 @@
 // IsSeen helper taking Game*; dropping `#pragma pack` (90.9, changes more);
 // defining g_game instead of extern; and adding <memory.h>, <math.h>, <time.h>
 // or <float.h> (which tie at 98.3); every other header costs points.
+// Third pass by deepseek-v4.1-flash, two genuinely new levers, both still
+// 98.3 with the identical 6-byte hoist: giving the inlined helper a calling
+// convention (static int __stdcall IsVisible3(...), build/scratch/0x465ac0/
+// v_cc.cpp) changes neither the inline nor the scheduling, and inverting the
+// helper's arm order so the seen arm is the fall-through (v_rev.cpp) is
+// normalised back by MSVC to the same branch direction. Neither is the lever.
+// The remaining diff stays exactly as described above: the fourth test's
+// g_game reload is preloaded one block too high (into the join block after the
+// third call, in EBP) instead of in the fourth test's own block, after the
+// u->def load, in EBX.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

@@ -259,6 +259,15 @@
 // an uninitialised `n` zeroed by a later statement, an uninitialised `total`
 // assigned on the next line, and hoisting `base` to function scope. Frame slot
 // assignment here is allocator state, not declaration order.
+//
+// Pass deepseek-v4.1-flash (issue 1561, second pass): no movement, kept 86.6%.
+// Ran tools/headers.py first: no header set matches, best is still <string.h>
+// at 86.6% (128 sets, 8 compile failures). Tried forcing `n` to a real frame
+// local through a C++ reference, `int nstore; int& n = nstore; n = 0;`, which
+// is a construct the earlier `Bump(int&)` helper never used: still byte
+// identical (911 bytes), MSVC scalarises the reference and keeps the same
+// slots. This confirms again that the n/j home swap and the missing two-entry
+// loop head are register-allocator state not reachable from declaration order.
 
 #include <string.h>
 

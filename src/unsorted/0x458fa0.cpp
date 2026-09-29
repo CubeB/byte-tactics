@@ -23,6 +23,22 @@
 // source file's other contents, not this function's source. A renderer file
 // in a DirectDraw game would have included <windows.h>/<ddraw.h> anyway.
 //
+// deepseek-v4.1-flash re-checked that conclusion and confirmed it. The swap
+// survives every source lever tried in build/scratch/0x458fa0: caching
+// vertexCount/faceCount/field_c in locals, hoisting or sinking the bright
+// shade, swapping the two pointer declarations, while/for/do forms, reading
+// view's offsets into locals or through accessors, address-taken pointers to
+// view and info, extra live locals and dead uses to move the allocator, and
+// reordering the vertex-array declarations. The N-declarations test (0 to
+// 1000 unused `extern int`, step 1) only ever toggles between 84.1% and
+// 66.9% (never MATCH), and headers.py --cpp (768 sets, including <string>,
+// <vector>, <map>, <list>, <iostream>) finds no match either. Declaring the
+// real preceding neighbour 0x458dd0 in the same file reproduces the 66.9%
+// vertex-loop layout, not the swap, so the missing state is still elsewhere
+// in the original file. /Gz, /Gr and /Ob1 change nothing; /G6 changes the
+// layout and is worse. This is the one remaining diff, so treat it as
+// compiler state, not a source shape.
+//
 // Earlier note from space-bunny-free: several scratch variants scored 80-90%
 // but are wrong; they lay the vertex arrays out 4 bytes high at [esp+0x150],
 // where the original uses [esp+0x14c]. Always check the `lea eax, ...` base

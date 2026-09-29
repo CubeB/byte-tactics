@@ -2274,10 +2274,10 @@ address,name
 0x4b2fb0,Class_004b2fb0::FUN_004b2fb0
 0x4b3000,std::HH::HU?$pair::?$_Tree::Viterator::?$pair::?$pair
 0x4b3020,std::HH::HU?$pair::?$_Tree::_Insert
-0x4b3310,Class_004b3310::FUN_004b3310
+0x4b3310,std::HH::HU?$pair::?$_Tree::_Lrotate
 0x4b3370,FUN_004b3370
-0x4b33b0,Class_004b33b0::FUN_004b33b0
-0x4b3410,Class_004b3410::FUN_004b3410
+0x4b33b0,std::HH::HU?$pair::?$_Tree::_Rrotate
+0x4b3410,std::HH::HU?$pair::?$_Tree::_Buynode
 0x4b3430,Class_004b3430::FUN_004b3430
 0x4b3490,Class_004b3490::FUN_004b3490
 0x4b34f0,std::HH::HU?$pair::?$_Tree::iterator::_Dec

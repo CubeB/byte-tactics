@@ -9,6 +9,9 @@
 //    Class_004e1a30::FUN_004e1a30 call and gets spilled; ours keeps the new
 //    node in a register across it, so adding one more live reference (see
 //    the guide on allocation demotion) is the next thing to try.
+// GPT-6 retry with longcat-2.5-preview-free: no source change within the 10 minute
+// worker limit. The best file remains the 68.7% version reported by the current
+// checker; the remaining frame-layout and search-loop differences above are unclosed.
 //  * the search loop: the original branches on the strcmp result's own
 //    flags (0x4e22ba `test eax,eax / jge`) and sets the bool in each arm,
 //    ours materialises the bool and re-tests it (`xor bl,bl / test bl,bl`).

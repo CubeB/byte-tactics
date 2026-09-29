@@ -1,5 +1,8 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free and deepseek-v4.1-flash. Names are provisional.
 //
+// GPT-6 retry with space-bunny-free: no improvement over 88.7%. The worker tried
+// two scan-loop variants in build/scratch/0x4e07e0; the pre-loop stores remain
+// the blocking difference described below.
 // deepseek-v4.1-flash retry, no improvement over 88.7%: the only missing bytes are the
 // three pre-loop stores (mov [pt],esi / mov [shared],ebx / mov [priv],edi) that the
 // original keeps alongside the post-loop ones. Every source that emits both sets makes

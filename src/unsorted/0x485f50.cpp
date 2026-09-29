@@ -1,17 +1,20 @@
-// Decompiled by Sonnet 5.5. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free. Names are provisional.
 // Creates a unit of a given type for a player: refuses when the type is not
 // buildable or the player already has its limit of that type, takes the
 // requested unit slot (or the first free one) from the player's unit list,
 // initialises it (FUN_00485e90 inlined) and registers it.
 //
-// NOT MATCHED: 89.1%, 633 of 631 bytes. Two differences left:
-// 1. The player record is addressed as [edx+edi+K] (edx = player * 0x14b) where
-//    the original has [edi+edx+K] (g_game first), everywhere it is used.
-//    players[player], a cached pointer, a byte-offset cast and a reordered
-//    expression all give the same operand order.
-// 2. The 2-bit store at +0x110 costs one more instruction (`mov edx,[arg]; mov
-//    ecx,eax; xor ecx,edx`) than the original's `mov ecx,[arg]; xor ecx,eax`.
-//    An int local, unsigned/char/signed types and `mode & 3` change nothing.
+// Two spellings decide the match, and neither is arbitrary:
+// - #include <windows.h>. With no header the 2-bit store at +0x110 costs one
+//   more instruction (`mov edx,[arg]; mov ecx,eax; xor ecx,edx`) than the
+//   original's `mov ecx,[arg]; xor ecx,eax`, and every jump past the two loops
+//   lands 2 bytes late: 633 bytes against 631.
+// - The two counter updates at the end are written as players[player] rather
+//   than through the byte-offset cast. That array subscript is what puts
+//   g_game in the base register of `[edi+edx+K]`, which the original uses
+//   everywhere the player record is read. The cast spelling gives
+//   `[edx+edi+K]` (a different SIB byte) at all seven sites.
+#include <windows.h>
 
 struct Unit_00485f50;
 
@@ -29,6 +32,11 @@ public:
 class Class_00490520 {
 public:
     void FUN_00490580(Unit_00485f50* unit);
+};
+
+class Class_0048b090 {                  // the unit's own method, under its own name
+public:
+    void FUN_0048b090(int a, int b);
 };
 
 struct Pos_00485f50 {
@@ -77,7 +85,6 @@ struct Unit_00485f50 {                   // 0x118 bytes
     unsigned int bit14 : 1;
     unsigned int unknown_bits2 : 17;
     char unknown_114[0x118 - 0x114];
-    void FUN_0048b090(int a, int b);
 };
 
 struct Player_00485f50 {                 // 0x14b bytes
@@ -181,15 +188,15 @@ found:
         if (type->field_22f == 0)
             FUN_004560c0(unit, unit);
         if (unit->type->bit18)
-            unit->FUN_0048b090(1, 1);
+            ((Class_0048b090*)unit)->FUN_0048b090(1, 1);
         if (unit->type->bit24) {
             unit->field_f5 = 7;
             unit->bit14 = 1;
         }
     }
     FUN_00482ac0(unit);
-    ((Player_00485f50*)((char*)g_game + off + 0x1b63))->field_144++;
-    ((Player_00485f50*)((char*)g_game + off + 0x1b63))->field_140++;
+    g_game->players[player].field_144++;
+    g_game->players[player].field_140++;
     g_game->list->FUN_00490580(unit);
     return unit;
 }

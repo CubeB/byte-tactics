@@ -705,6 +705,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #930 | space-bunny-free | 3 | 0 | 0 | n/a | n/a | n/a |
 | #933 | space-bunny-free | 3 | 0 | 0 | n/a | n/a | n/a |
 | #932 | space-bunny-free | 3 | 1 | 0 | n/a | n/a | n/a |
+| #858 | space-bunny-free | 3 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

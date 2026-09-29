@@ -22,6 +22,27 @@
 // rest of the function then gets wrong) when the index is declared before the
 // cell pointer. Treated as the guide's "operand order that nothing changes"
 // case: one SIB byte, compiler state, move on.
+//
+// Claude Sonnet 5.5 pass (#571): it IS compiler state, and the source below is
+// the right shape. Scoring this file with N unused `extern int dummyK;` lines in
+// front of the first `#pragma pack` (check.py --sym, not committed) gives:
+//   N = 0 to 8      99.1 percent (this file)
+//   N = 16 to 80    MATCH (every step of 8: 16, 24, ... 80)
+//   N = 88 to 528   67.9 percent (a different, worse state; 0x47d820 scores the
+//                   same as with <windows.h> or <stdio.h> in front)
+// So the original file had roughly 16 to 80 declarations in scope before this
+// function, fewer than any C header set gives. Plain headers.py: no set matches
+// (best <memory.h> 85.0, the empty set 99.1, windows.h/stdio.h/stdlib.h 67.9).
+// `headers.py --cpp` printed nothing within 15 minutes (not conclusive). The
+// preceding function, 0x47d2e0 (1339 bytes), is too big to define above this
+// one as the guide suggests, so the remaining lever is a legitimate header or
+// declaration set of about 16 to 80 entries (for example a game header's
+// prototypes) that the original included. Untried: sweeping unused function
+// prototypes instead of extern ints, and pairs like <string.h> plus <math.h>
+// that headers.py covers only as part of its 128 sets.
+// Other spellings scored this pass, none helped: `*(i++ + unit->mask)`,
+// `(i++)[unit->mask]`, `i[unit->mask]; i++`, an `unsigned char` mask value
+// (88.3), a GetMask() getter (84.1), and helpers taking (unit, i).
 #pragma pack(push, 1)
 
 struct Point {

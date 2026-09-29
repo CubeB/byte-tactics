@@ -1,18 +1,15 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// NOT A MATCH. Best so far: 93.2 percent, 770 of 761 bytes (Sonnet 5.5, #1097).
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // Aim a unit's gun at a point and fire it: work out the two aim angles (a
 // ballistic solve when weapon flag bit 1 is set, FUN_0049d910 when bit 0 is),
 // check them, add a random spread, then fire and tell the network.
 //
-// What still differs (one thing): the failure path. The original does
-//     or byte ptr [edi + 0xbb], 0x10     (memory read-modify-write)
-// and returns with the zero already in eax; this build loads the byte into
-// al, ors, stores it and re-zeroes eax (9 bytes more). A void function gives
-// the memory form; anything that returns a value here gives the register form
-// (tried: return 0, return ok, else-nesting, a shared `return ok` at the end,
-// a bitfield for f_bb). Everything else matches instruction for instruction
-// except the branch targets that move with those 9 bytes.
+// The last diff was the failure path's `or byte ptr [edi + 0xbb], 0x10`.
+// That is a 1-bit store, not an `unsigned char` `|=`: declaring +0xba as an
+// `unsigned short` bitfield (bit 12 lands on bit 4 of byte 0xbb) gives the
+// memory read-modify-write and leaves eax holding the zero `ok` already put
+// there, so the `return 0` costs nothing. A plain `unsigned char f_bb |= 0x10`
+// loads through al and needs a fresh `xor eax, eax` (4 extra instructions).
 //
 // What earlier passes got wrong, all corrected here:
 //  - the spread divisor is f_b8 / 12, not / 3: 0x2aaaaaab with `sar edx, 1` is
@@ -86,8 +83,15 @@ struct Unit_0049d580 {
     short f_a8;
     char unknown_aa[0xb8 - 0xaa];
     unsigned short f_b8;              // the aiming inaccuracy
-    char unknown_ba;
-    unsigned char f_bb;
+    union {                           // +0xba, bit 12 is the "cannot aim" flag
+        unsigned short value;
+        struct {
+            unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1;
+            unsigned short b4 : 1, b5 : 1, b6 : 1, b7 : 1;
+            unsigned short b8 : 1, b9 : 1, b10 : 1, b11 : 1;
+            unsigned short b12 : 1, b13 : 1, b14 : 1, b15 : 1;
+        } f;
+    } f_bb;
     char unknown_bc[0x108 - 0xbc];
     short f_108;
 };
@@ -153,7 +157,7 @@ int __stdcall FUN_0049d580(Unit_0049d580* fire, Unit_0049d580* unit,
         }
         if (!ok) {
             unit->f_1b &= 0xfe;
-            fire->f_bb |= 0x10;
+            fire->f_bb.f.b12 = 1;
             return 0;
         }
         if (!FUN_0049d880(fire, unit, heading, pitch)) {

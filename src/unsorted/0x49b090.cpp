@@ -1,4 +1,13 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry: still 73.6%, 842 bytes against 844, no variant
+// improved on it. Removing the `oz` local (direct proj->py.i in both unit
+// blocks), moving it into the unit0 block, reading it through `pos`, swapping
+// which block uses it, adding a second pointer local `q = proj`, and moving
+// `g = g_game` earlier or later all produced the same 842-byte code (MSVC CSEs
+// every spelling of the py load into one hoisted load in ebp). Declaring `g`
+// early or dropping the `g` local entirely scored lower (59.3%, 72.8%). So the
+// py load hoist and the g spill are one allocator state, not source-shape
+// problems, and the notes below about the g-in-edi cause still stand.
 // Not matched yet: 73.6%, 842 bytes against 844 (Sonnet 5.5 retry, #1097; was 72.8%). This header was rewritten
 // because the previous one still described the 66.0% / 870-byte state, which
 // the current body no longer has.

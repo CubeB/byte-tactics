@@ -2,14 +2,42 @@
 // Creates or updates a projectile for a remote event. The per-team record at
 // g_game+0x2cf3 (0x115 bytes, 0x100 of them) holds the weapon flags at +0x111;
 // the event gives a team byte, an owning unit id, a per-unit entry index and a
-// Sonnet 5.5 retry (#1097): 82.9%. `ev->unitId == 0 ? 0 : ...` gave +1.2 points (the original tests
-// then computes). Still differs: original hoists projCount into edi and spills the plain cursor
-// to [esp+0x14], with ownerId an unsigned short spilled from cx; every unsigned short ownerId or
-// n-copy or helper shape tried (about 200 variants) keeps rematerialising projCount instead.
 // position. Flag bit 5 spawns a projectile; bits 1, 4, 0/20, 8 dispatch to
 // 0x49cde0, 0x49cc20, 0x49c9c0, or a spawn aimed from the owning unit.
 //
-// Not matched yet (81.7%, own code 780 bytes vs 774, was 61.6% / 752).
+// Sonnet 5.5 retry (#1097), first pass: 82.9%. `ev->unitId == 0 ? 0 : ...`
+// gave +1.2 points (the original tests then computes).
+//
+// Not matched yet (82.9%, own code 780 bytes vs 774, was 81.7% / 780).
+//
+// Sonnet 5.5 pass 2, the ONE remaining difference, read off the frame layout:
+// the four locals are [esp+0x10]=entry, [esp+0x14]=plain cursor, [esp+0x18]=?, 
+// [esp+0x1c]=def. [esp+0x18] is written exactly once, at 0x49d395, with the
+// value just loaded by `mov cx, word ptr [eax + 0x1f]` (ev->ownerId), and is read
+// twice: as a WORD at 0x49d3fd by the scan loop, and as a DWORD at 0x49d54f by
+// the FUN_0049c9c0 call. So local [esp+0x18] is `ownerId`, NOT `found`, and
+// FUN_0049c9c0's FIRST argument is `ownerId`, not `entry` (Ghidra's pseudo-C says
+// piVar1 there, but piVar1 lives at [esp+0x10], and the b1 branch does read
+// [esp+0x10] at 0x49d448 for its own first argument). `found` is the ESI value:
+// `xor esi,esi` at the join 0x49d428 and `mov esi, [esp+0x14]` in the found block
+// at 0x49d567. So the original splits ownerId(live to the b0/b20 call) into the
+// slot and found(live to the b4 call) into ESI; mine has them the other way
+// round, ownerId in EDI and found in a slot, which is why my latch re-reads
+// projCount instead of hoisting it.
+//
+// Passing ownerId as FUN_0049c9c0's first argument was tried and is WORSE
+// (72.6%): MSVC still keeps ownerId in EDI, and it rotates the locals (entry to
+// [esp+0x14], cursor to [esp+0x10]). Also tried and worse: ownerId declared
+// `unsigned short` (73.1% either way, 782 bytes; it does produce the original's
+// `cmp word ptr [edx+0xa8], bx` but rotates unit into EDI and projCount into
+// EBP); `unsigned short` helper parameter (61.4%); an explicit if/else or a
+// ternary for the owner lookup (both 66.0% and 792 bytes, the smallest the
+// allocator has produced is the unconditional `owner = 0` then conditional
+// assignment used here); the ternary `ev->unitId == 0 ? 0 : ...` replaced by an
+// if/else with a separate unitId local (81.7%); a pointer-walk loop in the scan
+// helper (66.7%); returning from inside the scan loop instead of a saved r
+// (79.5%); dropping the `int n` local (no change); factoring the free-slot
+// allocation into a static inline helper (no change, 82.9%).
 //
 // What the source does, in the order the disassembly runs:
 //   b5  : take a free projectile slot, FUN_0049c740(proj, def, ev+1, 0,

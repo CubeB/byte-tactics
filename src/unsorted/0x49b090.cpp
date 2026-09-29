@@ -16,6 +16,46 @@
 //   and three static __inline helpers for the differences. All of them score
 //   66.0% or lower (the g_game local drops to 52.2%, a `unit` local to 59.6%),
 //   so none of them moves this particular pair.
+// - The swap is NOT free to fix, and the two orderings have a measurable cost
+//   either way (build/scratch/0x49b090/{v2,lcs}.cpp and .py): reading the three
+//   differences through the `pos` POINTER instead of through `proj->px.i` is
+//   what makes the original's own prologue (`lea edi, [esi+4] / push edi`), its
+//   whole 64-bit distance block and its radius block come out byte exact, but
+//   it moves the cell one step further down the callee-saved order (ebx ->
+//   ebp) and only the cell register then differs. A true LCS over instructions
+//   (build/scratch/0x49b090/lcs.py) says 165/282 for that against 168/282 for
+//   the version kept here, and check.py's difflib number says 64.9% against
+//   66.0%, so the two metrics agree: neither ordering wins. So the original
+//   must be doing a THIRD thing, and the most likely candidate is that its
+//   distance block reads the position through a pointer that is not the call
+//   argument (a `&proj->pos` recomputed inside the block, or the argument
+//   itself with the block reading a second copy), which would give the cell
+//   the third callee-saved register while still coding the loads off one
+//   register.
+// - Searched for that third thing this run and did not find it
+//   (build/scratch/0x49b090/{w1,w2,w3,x1,x2}.cpp, all scored with --sym, so
+//   none of them cost a real check.py run):
+//     w1 871 bytes 63.2%  pos-pointer reads, differences declared y,x,z
+//     w2 871 bytes 62.5%  pos-pointer reads, differences declared y,z,x
+//     w3 871 bytes 63.2%  as w1 plus a local `Pos* up = &proj->unit->pos`
+//     x1 863 bytes 64.9%  v2 (x,y,z) plus a `Game_0049b090* g = g_game` local
+//     x2 862 bytes 64.9%  the version kept here plus the same g_game local
+//   So the declaration order of the three differences is a real lever and
+//   x,y,z (the order kept here) is the best of the three, and a `g_game`
+//   local is worth 8 bytes of code without moving the score: it lets the two
+//   feature-index arms share ONE `mapping + f * 256` (the original's
+//   0x49b31b join, with 0x49b2d6 `jl` and 0x49b30f `jb` both entering it)
+//   instead of emitting the `shl edx,8 / add` pair twice, but it cannot get
+//   g_game into a register while the cell still occupies edi, so the shared
+//   tail still reloads the global and the win cancels. The 8 bytes is real
+//   though: x2 is 862 against the 870 kept here, all of it the duplicate tail.
+// - The reason the whole rest of the function is stuck is now clear and worth
+//   recording: the original keeps a `Game*` in a CALLEE-SAVED register across
+//   0x49b1ca to 0x49b3ba (`mov eax,[edi+0x14253]`, `[edi+0x14233]`,
+//   `[edi+0x1426f]`, `[edi+0x1427f]`, `[edi+0x391e9]`, `[edi+0x14357]`), which
+//   only fits if the position pointer has already died in the distance block
+//   and freed edi. So the prologue swap is upstream of the g_game local, and
+//   getting both right is one problem, not two.
 // - Distance block: the original computes the differences in the order y, z, x
 //   and keeps x in ebp; x, y, z order scores 66.0% and y, z, x 65.3%, so the
 //   x-first order here is already the better of the two even though it still

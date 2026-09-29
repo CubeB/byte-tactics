@@ -5,19 +5,39 @@
 // position. Flag bit 5 spawns a projectile; bits 1, 4, 0/20, 8 dispatch to
 // 0x49cde0, 0x49cc20, 0x49c9c0, or a spawn aimed from the owning unit.
 //
-// Not matched yet (55.9% by difflib, own instruction count 780 vs 774 bytes).
-// The prologue matches once the two addresses the b5 branch needs across its
-// call are hoisted into named locals:
+// Not matched yet (61.6%, own code 752 bytes vs 774).
+//
+// The two hoisted addresses the b5 branch needs across its call must be named
+// locals, or ev stays live across FUN_0049c740, takes a callee-saved register
+// and the whole function's allocation rotates:
 //     Vec3* pos = &ev->pos;  void* arg = (char*)ev + 1;
-// Without them ev stays live across FUN_0049c740, MSVC gives it a callee-saved
-// register and the whole function's allocation rotates (that alone was 27.5%).
-// Still different:
-//   - the scan loop is rotated (mine hoists the +0x30 body pointer and jumps to
-//     the latch, the original is a plain bottom-tested for);
-//   - ev->b0 is materialised into a local instead of `test byte [eax+0x1a],1`;
+// That alone was 27.5%.
+//
+// The scan loop is the other big lever (55.7% -> 61.5%): it is
+//     Proj* p = g_game->projs; for (int i = 0; i < g_game->projCount; i++)
+//     ... p++ in the body, found = p, break
+// and the three position compares must be spelled x, z, y in that order, not
+// x, y, z: the original reads aim at +0x28, +0x30, +0x2c against ev+0xd,
+// +0x15, +0x11, so the two sides agree but the order is x, z, y.
+//
+// What still differs, all one allocator state rather than independent bugs:
+//   - the original's frame is 4 dwords, mine is 3. The original keeps an
+//     `int ownerId` (loaded as a word, STORED AS A DWORD at [esp+0x18], reloaded
+//     as a word into bx in the loop) so it occupies no register. Mine keeps the
+//     same int in ebp, which pushes `unit` from the original's ebp into my edi.
+//     Forcing the frame slot (taking &ownerId) changed nothing, so the original
+//     got that slot from register pressure I have not reproduced.
+//   - consequently my loop re-reads g_game->projCount in the latch instead of
+//     hoisting the count into edi, and re-reads g_game in the body.
+//   - ev->b0 is materialised into a local instead of `test byte [eax+0x1a],1`.
 //   - the b5 branch reads the projs array pointer at [ev+1+0x141f7], one byte
 //     above the g_game+0x141f7 every other access uses (see the report: this
 //     looks like a genuine miscompile in the original).
+//
+// Tried and did NOT help (do not repeat): spelling the b5 test as
+// `g_game->defs[team].flags.b5` (51.1%, it loses the decomposed
+// edi+esi*4+0x2e04 addressing the original uses); a local `int count` for the
+// loop bound; `&g_game->projs[i]` with no p++ (both flat at 61.6%).
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {
@@ -166,19 +186,22 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     entry->f_18 = ev->f_1d;
     entry->f_16 = ev->f_1b;
     Unit_0049d270* owner = 0;
-    if (ev->ownerId)
-        owner = &g_game->units[ev->ownerId];
+    int ownerId = ev->ownerId;
+    if (ownerId)
+        owner = &g_game->units[ownerId];
     Proj_0049d270* found = 0;
     if (ev->b0) {
-        int count = g_game->projCount;
-        for (int i = 0; i < count; i++) {
-            Proj_0049d270& proj = g_game->projs[i];
-            if (proj.player != g_game->localPlayer
-                && SamePos_0049d270(proj.aim, ev->pos)
-                && proj.owner->f_66 == ev->ownerId) {
-                found = &g_game->projs[i];
+        Proj_0049d270* p = g_game->projs;
+        for (int i = 0; i < g_game->projCount; i++) {
+            if (p->player != g_game->localPlayer
+                && p->aim.x == ev->pos.x
+                && p->aim.z == ev->pos.z
+                && p->aim.y == ev->pos.y
+                && p->owner->f_66 == ownerId) {
+                found = p;
                 break;
             }
+            p++;
         }
     }
     if (def->flags.b1) {

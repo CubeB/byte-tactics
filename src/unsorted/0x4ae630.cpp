@@ -1,6 +1,8 @@
 // Decompiled by GPT-6. Names are provisional.
-// Partial (94.8%): the two-tab loop counter setup and tab store are reversed.
-// All 1160 bytes are present; the jump table diff is relocation display noise.
+// Partial: 94.8%, unchanged after the #1466 retry. The two-tab loop emits
+// the tab store before mov ebx,2; the original reverses these instructions.
+// Header sweeps, counter types, countdown forms, memset and local declaration
+// order did not improve it. The displayed jump-table diff is relocation noise.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

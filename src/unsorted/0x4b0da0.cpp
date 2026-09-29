@@ -1,6 +1,9 @@
 // Decompiled by GPT-6. Names are provisional.
-// Partial (99.5%): the move opcode uses different temporary stack slots,
-// and opcode 0x10059000 reverses the XOR operand registers. Size is exact.
+// Partial: 99.5%, unchanged after the #1466 retry. The move opcode uses
+// different temporary stack slots. Opcode 0x10059000 reverses the first and
+// second popped operands between ecx and edx before xor ecx,edx. Header
+// sweeps, explicit XOR operands, declaration permutations, argument-array
+// grouping and an inline move helper did not improve either difference.
 #include <stdlib.h>
 
 struct ScriptTable

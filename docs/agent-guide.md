@@ -1814,12 +1814,17 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   deriving from that class (`class Class_00435110 : public Class_00435c00`)
   instead of copying the fields into a new one, so the inherited calls keep
   their established names (0x435110).
-- **Known wall: `vector::insert(iterator, size_type, const T&)`** comes out one
-  byte off, a base/index swap in the third inlined `_Ucopy`'s source `lea`
-  (original `[ebx+ecx]`, ours `[ecx+ebx]`), in both 0x46e640 and 0x44ec30 (99.6%
-  each). Neither header sets nor 0 to 700 unused declarations fix it, so it
-  comes from the source shape. Solve it once and it likely solves every
-  instantiation; until then, don't spend a normal budget on it.
+- **`vector::insert(iterator, size_type, const T&)` register family**: which
+  registers the function uses (`this` in ebp or ebx, and the one-byte `lea`
+  base/index swap) follows the numbering order of the third inlined
+  `_Ucopy`'s destination and source, not headers or dummy declarations. Write
+  that copy as a loop with the destination declared first,
+  `{ iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ++_d,
+  ++_s) allocator.construct(_d, *_s); }`, in the hand-written vector (a helper
+  `_Ucopy(dest, src, end)` with the destination parameter first does the same,
+  since arguments bind right to left). This took 0x425480 from 57.9% to 80.5%
+  and 0x4732e0 to 80.5% in scratch (Sonnet 5.5, #679). 0x425210, 0x46e640 and
+  0x44ec30 are still one byte out at 99.6%; dead locals never change it.
 - **One write and one read of a stack slot on different paths is a bug
   report, not a matching problem**: list each slot's writes and reads in the
   disassembly (a `grep` is enough) before writing source; such a finding

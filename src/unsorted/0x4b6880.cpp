@@ -35,6 +35,25 @@
 //   every shape tried (flag declared first, samDesired computed from the local,
 //   BOOL/unsigned/long flag, a separate `LPDWORD pRead`, passing 0) either
 //   keeps the hoist or loses the frame.
+//
+// A later pass (Claude Sonnet 5.5, #566) scored about 30 more shapes with
+// check.py --sym, all worse or equal, so do not repeat them:
+// - every combination of order (`doRead` before or after `samDesired`), source of
+//   the mask (`doRead` or `read`), type of the flag (`int`, `DWORD`,
+//   `unsigned char`) and declaration (initialised or assigned later): 18 files.
+//   `doRead` first with the mask taken from it gives 298 bytes (one over, 82.4
+//   percent) but the load still goes into eax above `push ebx` and is copied to
+//   ebp; `unsigned char` gives 300 to 301 bytes;
+// - probes meant to stop MSVC unifying the two reads of `read` (the 0x4bfd60
+//   trick): `*(int*)&read`, `read + 0`, `(doRead != 0)`, `doRead = doRead`,
+//   reading the mask through `*(int*)&read`; an inline helper
+//   `REGSAM Access(DWORD)` called with `doRead` or `read`, before or after the
+//   flag. All 298 or 299 bytes, none moved the load.
+// The difference is one fact: the original's load of `read` goes straight into
+// ebp after `push ebp` (the flag's own register, so the mask is computed from a
+// copy, `mov esi,ebp; neg esi`), while ours loads a temporary into eax at the
+// top and copies it. Everything else (frame, zeroing order, exits, the doubled
+// success stores) matches, and the 2-byte size difference is only this.
 #include <windows.h>
 
 // FUNCTION: 0x4b6880

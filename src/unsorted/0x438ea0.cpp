@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Second pass (deepseek-v4.1-flash, issue 1553): re-ran the wall protocol; the
+// argument list, callers' pushes and every callee ret N are correct, headers.py
+// (768 sets) is flat at 54.0%, the exe byte census still finds each construct
+// exactly once in this function only, and the noted n<0 path is a zero
+// rematerialisation, not a bug. Body unchanged at 54.0%.
 // wall: callee-saved register rotation. The original holds pos in edi and rad in
 // ebx; we get pos in ebx and rad in edi, plus the i = 0 store sinks past the
 // guard and materialises two fresh zeros for x2/y2. deepseek-v4.1-flash checked

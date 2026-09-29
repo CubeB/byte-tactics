@@ -1,15 +1,25 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// 90.7% match. Still differs in four spots:
-//  - the inner-loop increment: original keeps the table index in edx and
-//    stores the slot pointer before the index; ours uses esi and stores the
-//    index first (same instructions, different register/order).
-//  - case 1 (READY): original does `or byte [rec+0x13c],1` directly; ours
-//    loads into al, stores +0x138, then ors and stores.
-//  - cases 2/6 (LOGO/RES): original encodes the player access as
-//    `[ecx+eax]` (ecx=g_game, eax=off); ours swaps base/index to `[eax+ecx]`.
-//  - case 3 (SIDE): original materialises the condition in a bool local
-//    (mov esi,1 / xor esi,esi / test / sete), ours computes the 0/1 directly.
-// The jump-table entry address also shows as <addr> in the diff.
+// 94.1% match, 1468 bytes (same size as the original). Three earlier diffs are
+// fixed:
+//  - inner loop is `slot++, t++` (slot pointer stored before the index);
+//  - case 1's flag is a 1-bit `unsigned short` bitfield, which makes MSVC emit
+//    `or byte ptr [ebp+0x13c], 1` straight to memory (an `unsigned char`
+//    bitfield or a plain `|= 1` goes through a register and costs 7 bytes);
+//  - case 3 (SIDE) materialises the condition in an `int` local and negates it
+//    (mov esi,1 / xor esi,esi / xor eax,eax / test esi,esi / sete al).
+// What still differs: the SIB base/index byte of the three player accesses in
+// cases 2, 3 and 6. The original has `[ecx+eax]` (base = the freshly loaded
+// g_game register, index = the running byte offset `off`); ours emits
+// `[eax+ecx]` (base = off, index = g_game). Only the SIB byte differs; the
+// registers, loads and everything else match. Tried and rejected (all scored
+// with check.py --sym): every pointer expression form (int cast, unsigned,
+// reversed operands, char-array subscript, member char-array subscript,
+// union of g_game as a byte array), `unsigned` off, <windows.h> and all 128
+// header sets from tools/headers.py, and reading g_game into a local. The
+// array-index forms `g_game->players[p]` and a local `Game* g = g_game;` do
+// produce the right SIB but change the loop strength reduction / register
+// allocation and drop to 76-82%. The jump-table entry address also shows as
+// <addr> in the diff, which is normal.
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -45,8 +55,9 @@ struct Entry_004455b0 {                // 0x15b-byte array element
     short field_138;                   // +0x138
     unsigned char field_13a;           // +0x13a
     unsigned char unknown_13b;         // +0x13b
-    unsigned char field_13c;           // +0x13c
-    char unknown_13d[0x15b - 0x13d];   // +0x13d
+    unsigned short field_13c : 1;      // +0x13c bit 0
+    unsigned short unknown_13d : 15;   // +0x13c bits 1..15
+    char unknown_13e[0x15b - 0x13e];   // +0x13e
 };
 
 struct Holder_004455b0 {
@@ -110,7 +121,7 @@ void __cdecl FUN_004455b0(void)
 
     *(short*)(base + 0xb6) = DAT_00512764;
     do {
-        for (t = 0, slot = DAT_005054b0; *slot != 0; t++, slot++) {
+        for (t = 0, slot = DAT_005054b0; *slot != 0; slot++, t++) {
             int index = FUN_0049fdf0(base, *slot, 0xe);
             Entry_004455b0* rec = (Entry_004455b0*)(base + 0x15b * index);
             Entry_004455b0* dst;
@@ -139,8 +150,8 @@ void __cdecl FUN_004455b0(void)
                     break;
                 case 1:
                     if (p != g_game->myPlayer) {
+                        dst->field_13c = 1;
                         dst->field_138 = 0;
-                        dst->field_13c |= 1;
                     }
                     break;
                 case 2:
@@ -153,8 +164,8 @@ void __cdecl FUN_004455b0(void)
                 case 3:
                     {
                         Player_004455b0* pl = (Player_004455b0*)((char*)g_game + off);
-                        FUN_004a1450(&g_game->menu, dst->name,
-                                     !(pl->active != 0 && (pl->type == 1 || pl->type == 2)));
+                        int ok = pl->active != 0 && (pl->type == 1 || pl->type == 2);
+                        FUN_004a1450(&g_game->menu, dst->name, !ok);
                     }
                     dst->field_29 = 0;
                     break;

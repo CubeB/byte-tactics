@@ -1,16 +1,9 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (89.6%): still differs from the original in these ways.
-//  - Stack frame is 0x14 bytes, the original reserves 0xbc: the original has
-//    ~168 bytes of locals that are never referenced in the machine code, so
-//    every `sub esp`/`add esp` and the `mov ebp,[esp+0xc8]` argument load
-//    differ (ours [esp+0x20]).
-//  - The compatible-version test compiles to `ja`/`jb` (unsigned) instead of
-//    the original's `jg`/`jl`; `ver` is the zero-extended byte and the two
-//    comparisons still promote to unsigned.
-//  - A few `mov reg,base; add reg,idx` where the original has
-//    `lea reg,[base+idx]` (the `entries[id]` address and one player pointer).
-//  - Register/ordering differences in the flags test (`ch`/`cl` vs the
-//    original's `ah`/`al`) and in the info struct copy vs the desc copy.
+// The 0xbc-byte frame is `Msg_004437c0 msg;`: the group of four dwords is
+// copied out of g_game+0x2b6e at msg+0x99, so the leading pad is real and the
+// trailing pad keeps the struct at 0xbc exactly. The compatible-version test
+// needs `int ver` (zero-extended by the `& 0xff`) to stay a signed compare,
+// `jg`/`jl` rather than `ja`/`jb`.
 // Handler for the SELGAME (multiplayer game list) screen. Processes the
 // UPDATE / PREVMENU / WATCH / JOINGAME / STARTNEW buttons and the per-entry
 // "compatible version" check. param_1 is &g_game->sub (g_game+0x519); its
@@ -69,6 +62,12 @@ struct Info_004437c0 {                 // 16 bytes copied from g_game+0x2b6e
     unsigned int b;
     unsigned int c;
     unsigned int d;
+};
+
+struct Msg_004437c0 {                  // 0xbc bytes
+    char pad_0[0x99];
+    Info_004437c0 group;               // +0x99
+    char pad_1[0x13];
 };
 
 struct Game_004437c0 {
@@ -168,16 +167,16 @@ void __stdcall FUN_004437c0(Sub_004437c0* param_1)
         FUN_0049fdf0(entries, "JOINGAME", 0xe) == param_1->field_60 ||
         entries[param_1->field_60].type == 2) {
         Entry_004437c0* e = FUN_0049ff90(entries, "GAMENAME");
-        Info_004437c0 info;
+        Msg_004437c0 msg;
         unsigned int flags;
-        unsigned int ver;
+        int ver;
         char* pass;
         unsigned int b;
 
         *(Desc_004437c0*)g_game->game_info = g_game->desc[e->selected];
-        info = *(Info_004437c0*)((char*)g_game + 0x2b6e);
-        flags = *(unsigned int*)((char*)&info + 2);
-        ver = *(unsigned int*)((char*)&info + 0xe) & 0xff;
+        msg.group = *(Info_004437c0*)((char*)g_game + 0x2b6e);
+        flags = *(unsigned int*)((char*)&msg.group + 2);
+        ver = *(unsigned int*)((char*)&msg.group + 0xe) & 0xff;
 
         if (ver <= (int)g_game->version && ver >= (int)g_game->version) {
             if ((flags & 0x8000) != 0 || (flags & 0x10) != 0) {

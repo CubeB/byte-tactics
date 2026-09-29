@@ -1,6 +1,29 @@
-// Decompiled by GPT-6 Astra. Names are provisional.
-// Partial: 62.2%. Register allocation and merged order-construction tails differ.
+// Decompiled by GPT-5.6 Astra. Names are provisional.
+// Region-split skeleton, per docs/splitting-huge-functions.md (PR #1287, merged).
+// Checked by space-bunny-free. Names are provisional.
+//
+// STATUS: the gate PASSES, which is the difference from the first pilot.
+// `sub esp,0x54` with ebx/ebp/esi/edi pushed, identical to the original's
+// prologue, and check.py reads 73.2% at 2047 of 1976 bytes. The header's own
+// "62.2%" is stale; run check.py rather than trusting either number, because
+// data/progress.csv and the file header disagreed here too.
+//
+// PER REGION (regcheck, block-wise, layout-independent):
+//   r1 0x40fbe0-0x40fcda   81 insns   91% exact   91% shape
+//   r2 0x40fcda-0x40feda  169 insns   74% exact   88% shape
+//   r3 0x40feda-0x4100d0  135 insns   57% exact   76% shape   <- the room
+//   r4 0x4100d0-0x4102c6  177 insns   74% exact   85% shape
+//   r5 0x4102c6-0x410398   81 insns   91% exact   91% shape
+// Whole function: 74.5% block-wise exact, 85.5% shape. r1 and r5 are nearly
+// done, so the budget goes to r2, r3 and r4.
+//
+// The header this replaces said "register allocation and merged
+// order-construction tails differ". Read that as a pointer to r3 and r4, where
+// the merged `Class_0044e2d0` construction and the aim block live, not as a
+// description of the whole gap.
+//
 #include <stdio.h>
+// SHARED begin
 struct Vec3 {
     int x, y, z;
     Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
@@ -56,9 +79,13 @@ int __cdecl FUN_004b70ef(short, int);
 int __cdecl FUN_004b7123(short, int);
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
+// SHARED end
+
 // FUNCTION: 0x40fbe0
 int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
 {
+// REGION r1 begin   0x40fbe0-0x40fcda
+//   the guard, the water/terrain move, and the state dispatch
     if (order->target && !(flags&0x48)) {
         if (unit->terrain==g_game->water) {
             Vec3 center;
@@ -74,6 +101,8 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
         }
         order->pos=order->target->pos;
         unsigned int state=0; state=order->state;
+// REGION r2 begin   0x40fcda-0x40feda
+//   case 0, the guard order, and case 1
         switch(state) {
         case 0:
             if (unit->motion && (unit->def->flags&0x800)) {
@@ -96,6 +125,16 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
         case 1:
             ((Class_00489800*)unit)->FUN_00489800(3);
             return 1;
+// REGION r2 end
+// REGION r3 begin   0x40feda-0x4100d0
+//   case 2's opening: the attacker test, the three-weapon scan, and the
+//   FUN_004899b0 order-kind test.
+//
+//   This text emits 0x40fd26-0x40fedc, which is the original's r2 range, not
+//   r3's: MSVC lays a switch out as case 2, case 1, case 0, so the region
+//   ranges (which follow the emitted order) and these markers (which follow
+//   the written order) disagree. The code that does emit r3's range, the
+//   MobileBuild order-steal chain at 0x40feda-0x4100d0, sits in the r4 block.
         case 2: {
         Unit* attacker=order->target->attacker;
         if (attacker && !attacker->owner->allied[unit->owner->index] && (flags & 0x10) &&
@@ -121,6 +160,15 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
                     order->flags=0; return 3;
                 }
             }
+// REGION r3 end
+// REGION r4 begin   0x4100d0-0x4102c6
+//   the MobileBuild and VTOL order-steal chain, then the aim and fire block
+//   Known gap: the original has ONE order-construction tail at 0x4100d6,
+//   reached by `jmp` from the VTOL chain (0x4100a7) and by fall-through from
+//   the VTOL_HelpBuild path (0x4100d2). Both `kind` locals already share the
+//   [esp+0x70] home, but our two copies of the tail differ in the first
+//   register (mov edx,[ebx+0x16] vs mov ecx,[ebx+0x16]), so the backend
+//   never merges them. Hoisting one `kind` did not change that.
             if (order->target->order && order->target->order->kind.index && (unit->def->flags&0x40) &&
                 ((Class_004899b0*)unit)->FUN_004899b0(order->target->order->target) &&
                 (order->target->def->flags&0x40) && order->target->order &&
@@ -159,9 +207,14 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
             order->flags|=0xf8;
             return 2;
         }
+// REGION r4 end
         }
+// REGION r1 end
+// REGION r5 begin   0x4102c6-0x410398
+//   the default return and the seek-guard tail
         return 7;
     }
     if (!order->next) FUN_0043ad10(unit,new Class_0043a1f0("VTOL_SEEKGUARD",order->target,&order->pos,0,0,0));
     return 5;
+// REGION r5 end
 }

@@ -113,6 +113,11 @@
 // or worse. The reading that fits the bytes: the reload of the handle is
 // placed on the loop's exit edge and on the strcmp edges only, and the guard edge
 // is left alone because esi still holds h there. No source shape tried moves that.
+// A sixth session (deepseek-v4.1-flash) re-checked and probed one more shape (the
+// inner loop as `if (i < count) do { body; } while (++i < count);` scored with
+// `check.py --sym`): still exactly 99.2, the guard's `jge` still points at the
+// reload at 0x4be66d. The file is left at the best of the flat 99.2 family; the
+// only wrong byte in the 699 is the guard's jump displacement.
 #include <io.h>
 #include <string.h>
 

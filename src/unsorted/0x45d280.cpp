@@ -1,4 +1,14 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash: 88.8 percent (1339 bytes vs 1333), NOT MATCH. Two changes
+// since the 87.2 baseline: FUN_004ce7c0's second parameter is a 1-byte type
+// (char), not int, which drops the per-call `xor eax,eax`; and the UNDO arm's
+// `f` is an int, not unsigned short. Still differs: the UNDO `f` update wants
+// `and ecx,1 / xor ecx,eax` (ours emits extra xor/movzx), the apply tail's
+// `g_game` lands in edx instead of ecx (and the volume-call registers are
+// swapped), the final-block index emits `mov eax,edi; shl eax,3` instead of
+// `lea eax,[edi*8]`, and several pure register picks (g_game in eax vs ecx/edi).
+//
 // The CD-options menu handler (the sibling of 0x45da90, the sound-options
 // handler, which has the same shape): a chain of "command name" tests that
 // drives the CD player, the track-mode page and the volume/undo buttons, with
@@ -159,7 +169,7 @@ public:
 
 class Class_004ce7c0 {
 public:
-    void FUN_004ce7c0(int value, int type);
+    void FUN_004ce7c0(int value, char type);
 };
 
 class Class_004ce7e0 {
@@ -321,7 +331,7 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         ((Class_004ce7a0*)g_game->sound)->FUN_004ce7a0(g_game->field_37f16);
         if ((g_game->flags.byte ^ DAT_00512f46) & 1)
             ((Class_004cdb40*)g_game->sound)->FUN_004cdb40();
-        unsigned short f = g_game->flags.word;
+        int f = g_game->flags.word;
         g_game->flags.word = f ^ (((unsigned char)f ^ DAT_00512f46) & 1);
         ((Class_004ce580*)g_game->sound)->FUN_004ce580(DAT_00512fd9);
         goto apply;

@@ -1,4 +1,31 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// Run of deepseek-v4.1-flash: 77.0%, 820 of 820 bytes. The only source change
+// from the 75.7% version is the width/height block, which now takes pointer
+// locals to the two fields and stores through them:
+//     int h = d->startHeight;
+//     int w = d->startWidth;
+//     int* pw = &d->width;
+//     int* ph = &d->height;
+//     *pw = w;
+//     *ph = h;
+// That moves w out of the incoming-argument spill and into a register (still
+// eax, not the original's edi) and buys 1.3 points, but as a side effect the
+// two updates of the flag word at +0xf0 fold into one `and eax, 0xf3ff` where
+// the original clears bit 11 in place with `and word [esi+0xf0], 0xf7ff` and
+// reloads. Net +1.3.
+//
+// The single upstream cause stays the same: edi is allocated to the wc base
+// address, so w and h cannot both have edi/ebp and the ATOM stays in ax.
+// Tried and did NOT move edi off the wc base (all 75.7% or worse): breaking
+// the &d->wc CSE with a (char*)d + 0x18 cast, with a second WNDCLASSA* local
+// before/after the call, with a static inline accessor, and with a helper
+// that fills all the WNDCLASSA fields; using d->width/d->height or
+// d->startWidth/d->startHeight directly in CreateWindowExA; declaring w/h
+// before the items stores or before the gdi test; inline W/H getters. A
+// diagnostic that moved the RegisterClassA argument to &d->hwnd just moved
+// the edi base to +0x40, so it is the address-of-a-member value itself that
+// wins edi, not the particular member.
 // Brings the application up: reads the work area and the physical memory
 // size, resets the frame timer, the mouse-event queue and the video-mode
 // struct, runs the five per-object initialisers selected by the flag word at
@@ -259,8 +286,10 @@ int __stdcall FUN_004b5980(App_4b5980* d)
     d->flags.value = (d->flags.value & 0xfc03) | ((d->videoFlags & 0x1fe) << 1) | 1;
     int h = d->startHeight;
     int w = d->startWidth;
-    d->width = w;
-    d->height = h;
+    int* pw = &d->width;
+    int* ph = &d->height;
+    *pw = w;
+    *ph = h;
     if (d->flags.bits.has_c4) {
         FUN_004ba610(d);
     } else {

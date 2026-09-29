@@ -26,6 +26,23 @@
 // original loads b.x into ecx before the callee-saved pushes (a.y already
 // owns esi there, and esi is reused for abs(dx)/n), while ours reuses esi for
 // b.x and gives ecx to abs(dx)/n. Nothing tried moves that one choice.
+//
+// Second pass (deepseek-v4.1-flash), still 84.7%: the whole hunk is the one
+// register pair dx=ecx/abs=esi (original) vs dx=esi/abs=ecx (ours). Tried
+// again and ruled out: `Vec3_004851c0 d = b - a` with an inline operator-
+// whose body order is xyz, yxz, yzx, and by-value or const-ref parameters
+// (80.6 to 81.5%); `Vec3 d = b; d -= a;` (82.3%), and the copy before and
+// after the subtractions, `d(b)`, default-construct then assign, d declared
+// at function scope, and field-by-field copies (74.5 to 84.7%): every form
+// that keeps the copy after the in-place subtraction reproduces the byte
+// sequence and the dead `mov [esp+0x10], dx`, so the source shape is right.
+// Also tried: all six subtraction orders, six raw int component locals
+// initialised in the original load order (b.y, b.x, a.x, a.y, a.z, b.z) then
+// subtracted, n computed from the parameter fields before the copy, and a
+// reference alias of b. tools/headers.py confirms no header set beats 84.7%.
+// The original's b.x load is hoisted above the push ebx and above a.y's
+// load, which is a scheduler/allocator decision this source shape does not
+// reach; the instruction sequence is otherwise identical.
 #include <stdlib.h>
 
 #pragma pack(push, 1)

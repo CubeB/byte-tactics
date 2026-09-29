@@ -1,4 +1,11 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free. Names are provisional.
+//
+// NOT a match: 56.0% (904 bytes against 909). What still differs, and what was
+// tried, is at the bottom of this file. In short: the structure and the callee
+// sequence are right, but the compiler gives us a 0x3c-byte frame where the
+// original has 0x20, and that one allocation difference shifts every [esp+X]
+// displacement in the sort tail.
+//
 // Adds `count` copies of a run of 25-byte name records (the run at param_1)
 // to the global std::vector at 0x512340, then sorts the whole table by name.
 // The reserve and the insert are the STL's <vector> (its _Destroy is 0x43c390,
@@ -110,4 +117,47 @@ void __stdcall FUN_0043bc90(Elem_0043c390* from, int count)
         *_Q = _V;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Still to fix (56.0% baseline, from check.py):
+//
+// 1. FRAME SIZE. Ours is `sub esp, 0x3c`, the original is `sub esp, 0x20`. Our
+//    locals are the finish pointer at +0x10 and the 25-byte temp at +0x14, so
+//    0x10..0x2c is all we use, yet the frame is 0x3c: MSVC is reserving ~0xf
+//    bytes for a temporary the listing does not name (the by-value struct slots
+//    for the FUN_0043ca70 / FUN_0043c940 calls).  The original reuses two DEAD
+//    INCOMING ARGUMENT SLOTS as locals (+0x34 holds the `first + 16` bound and
+//    +0x38 holds a copy of `first`, both written after `from`/`count` are dead),
+//    which it can only do because the frame has no slack.  Getting the frame to
+//    0x20 is the single upstream cause of most of the remaining diffs, since
+//    every [esp+X] in the sort tail is wrong because of it.
+//
+// 2. THE ORIGINAL SPILLS `first` AND KEEPS THE LOOP IV IN A REGISTER.  It does
+//    `mov [esp+0x38], ecx` (a copy of first) after the insert loop and reloads
+//    it at the top of both tail loops; the `first + 16` bound lives in another
+//    stack slot, while the unguarded-insert induction variable lives in ebp.  We
+//    keep `first` in ebx and put the induction variable in memory, so the tail
+//    loops are a register swap away from the original but not there.  Per the
+//    guide, that is a single shared cause: something upstream is demoting first
+//    one step in the callee-saved order.
+//
+// 3. THE INSERT LOOP'S RELOAD ORDER.  The original reloads `end` immediately
+//    after the insert call (before `add esi, 0x19`); we reload both `begin` and
+//    `end` at the latch instead.
+//
+// 4. THE SORT TAIL'S BRANCH POLARITY.  The original's first guarded comparison
+//    ends in `jne` to the shift block with `xor ecx,ecx / test / setl cl / mov
+//    eax,ecx / test / jne`, and uses ecx where we use edx.  Spelled `if (!pred)`
+//    it selects edx; spelled `if (pred)` it selects ecx, which is what the
+//    original wants, so this block is one rewrite away.
+//
+// Tried and did NOT help / not yet tried: rewriting the unguarded-insert loop
+// with separate `_Next`/`_Last` pointers, and making `first`/`last` named
+// locals assigned after the insert loop (as above, item 2).
+//
+// Tried and made it WORSE: inverting the guarded comparison in the inlined
+// _Insertion_sort to `if (pred(...)) { shift } else FUN_0043c940(...)`. It does
+// move the flag temp from edx to ecx as item 4 predicts, but the score drops
+// from 56.0% to 52.6%, so the original really is spelled with the `!pred`
+// form and the ecx/edx difference is a consequence of something else.
 

@@ -1,4 +1,29 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Claude Sonnet 5.5 pass (#746): nothing beat 91.2% and 169 bytes. Compiler state is
+// ruled out (declaration-count sweep 0 to 400 in steps of 8 and all 128 header sets
+// of headers.py: 91.2% everywhere). About 40 more shapes were scored:
+//  * every access spelled `list->count` in a guarded do/while (`if (list->count > 0)
+//    do { ... } while (--list->count > 0);`), the same with `while`, or every access
+//    spelled `entries[9].field_0` (the count is entries[9].field_0, 9 * 0x11 = 0x99):
+//    167 bytes, 67.7%: the compiler folds the count into the list base (list in edi,
+//    a zero in ebp, `cmp [edi+0x99], ebp`), so there is no separate count pointer;
+//  * a separate `int* count = &DAT_0051e68c->count` (from the global, not from the
+//    list) with the do/while `--*count > 0` back edge: 161 bytes, 83.2%. The back
+//    edge then forwards (`mov eax, ecx`) as in the original, but the prologue loads
+//    the global into eax first and copies it (`lea edi,[eax+0x99]; mov ebp,eax;
+//    cmp [edi],0`), and the redundant `lea edi,[ebp+0x99]` is still missing. Which of
+//    the guard, `i = ... - 1`, the shift loop's condition and the decrement go through
+//    the count pointer or through `list->count` makes no difference (all 8
+//    combinations 83.2%, one 80.9%), nor does the guard through a local, through
+//    `(char*)list + 0x99` or through `entries[9].field_0`, nor placing the pointer
+//    inside the if;
+//  * the shift loop or the whole removal (free + shift) as a `static inline` helper
+//    taking the list (the hoped-for source of the second `lea edi,[ebp+0x99]`):
+//    83.2%, unchanged;
+//  * this file's while loop with the back edge as `if (--*count <= 0) break;` (83.7%)
+//    or as a `for (;;)` with the guard as an early break (91.2%, same bytes).
+// So the two wanted things (a `list` in ebp with `count` derived from it, and a
+// forwarded back edge) still exclude each other in every spelling tried.
 // Best: 91.2%. The prologue and the tail now match. Two codegen differences remain:
 //  - the loop back-edge reloads the count through the base ([ebp+0x99]) where the
 //    original keeps the decremented value in eax (`mov eax, ecx`);

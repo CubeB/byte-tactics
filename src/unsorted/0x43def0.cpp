@@ -47,6 +47,21 @@
 // and the end (78 to 87%), nested `if (obj && obj->recs) { if (in range)
 // {...} }` (47 to 55%, all zero blocks merge), and the range check plus
 // computation in an inline helper (41%).
+//
+// Follow-up (deepseek-v4.1-flash): all six assignment orders of the range
+// block's `w` were scored. x,y,z merges the two zero blocks (330 bytes,
+// 87.3%); z,x,y is the best (94.2) and already has the original's
+// (x=edx, y=esi, z=ecx) allocation, differing only in the xor emission order
+// (ours ecx before esi, the original esi before ecx). Initializer forms
+// (`Vec3 w = {0,0,0}`, `= {0}`, `= {}`), a chained `w.x = w.y = w.z = 0`, a
+// `memset`, indexing through an `int*`, declaring `w` at function scope, and
+// a dummy `if` after `block` are all 87.3 to 92.6. The two blocks in the
+// original both use dest=edi, x=edx, y=esi, z=ecx; our range block already
+// matches that allocation, our end block does not (dest=edx, x=esi). End
+// forms tried and all 94.2 (identical diff): an inline FlipZ helper (55.7),
+// `Vec3 out` declared at function scope, a pointer to `result`, `int z`/`int
+// x`/`int y` locals in every order, `out.z` first, and reading z back from
+// memory after the negate.
 
 #include <string.h>
 

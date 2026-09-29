@@ -1,5 +1,9 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by GPT-6. Names are provisional.
+// Partial at 86.8%. The remaining differences include the missing zero
+// register in the prologue, different register choices while inset coordinates
+// are updated, and a stack home for text width where the original reuses edi.
 #include <stdlib.h>
+#include <windows.h>
 
 #pragma pack(push, 1)
 struct Entry_004a4660 {

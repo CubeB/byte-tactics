@@ -1,9 +1,10 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
-// Partial: raw selected-entry offsets make the entry-address calculation and
-// ebp/ebx pointers match. The remaining mismatch is register allocation: the
-// compiler keeps param_1 in edi, putting the loop index in esi and type in edx;
-// the original reloads param_1, with index in edi and type in esi (58.3%).
+// Decompiled by GPT-5.6-Terra, finished by GPT-6. Names are provisional.
+// Partial at 76.0%. The short rows local matches the later CX test and divide.
+// Remaining differences include param_1 in edi, the loop index in esi, and
+// type in eax/edx instead of the original homes. The first floating ratio also
+// stages its short operands in different registers from the original.
 #include <string.h>
+#include <windows.h>
 
 #pragma pack(push, 1)
 struct Entry_004a2be0 {                // 0x15b bytes
@@ -74,9 +75,10 @@ void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
                             } else {
                                 esi_val = 0;
                             }
-                            if (*(short*)(entry - 0x66) != 0) {
+                            short rows = *(short*)(entry - 0x66);
+                            if (rows != 0) {
                                 int edx_val = *(short*)(entry - 0x80) -
-                                    *(short*)(entry - 0x127) / *(short*)(entry - 0x66);
+                                    *(short*)(entry - 0x127) / rows;
                                 int eax_val = *(short*)(me + 0x140) + esi_val;
                                 int result = (int)((float)edx_val * eax_val /
                                     (*(short*)(me + 0x136) - 1));
@@ -97,8 +99,10 @@ void __stdcall FUN_004a2be0(Class_004a2be0* param_1, int param_2)
                             if (*(short*)(me + 0xc0) > 1) {
                                 int result;
                                 if (*(short*)(me + 0xbe) != 0) {
-                                    result = (int)((float)*(short*)(me + 0xbc) *
-                                        *(short*)(entry - 0xa) / *(short*)(me + 0xbe));
+                                    short scale = *(short*)(me + 0xbc);
+                                    short height = *(short*)(entry - 0xa);
+                                    short count = *(short*)(me + 0xbe);
+                                    result = (int)((float)scale * height / count);
                                 } else {
                                     result = 0;
                                 }

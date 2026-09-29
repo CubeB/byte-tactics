@@ -20,6 +20,21 @@
 //  - the two per-scanline span loops and the chkstk word are otherwise 1:1;
 //    the record fields (+0 left, +4 right, +8/+0xc left tex, +0x10/+0x14 right
 //    tex) reproduce the original's stores.
+//
+// Extra evidence gathered on a second pass:
+//  - 0x4c8760 is the same edge-traversal/skewed-quad shape (partial, GPT-6);
+//    its min/max loop declares lowY, highY, highX, lowX and leaves the two
+//    index vars uninitialised. Rebuilding this function that way (scratch v1)
+//    scored 13.3% and did not move the zero register off ebx, so the shape is
+//    close but the allocator still spills maxx.
+//  - 0x4c7310 (matched) confirms the span record: rect[0] left, [1] right,
+//    [2]/[3] source at left, [4]/[5] source at right, and confirms
+//    Class_004c6ae0::FUN_004c6ae0 returns the clip Vec4 (this file ignores it).
+//  - the single root cause of the +4 frame is maxx: the original keeps maxx in
+//    ebx (never stored), the zero register in ebp; MSVC here instead gives ebx
+//    to the cross-check constant 0 (`xor ebx,ebx`) and spills maxx, which also
+//    shifts every esp offset and both arg offsets by 4. Everything else in the
+//    prologue is byte-identical.
 #include <windows.h>
 
 struct Point_004c7580 {

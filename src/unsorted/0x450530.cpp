@@ -22,6 +22,14 @@
 //    a 2D char array, while/do-while/i!=10 forms, short/char/unsigned index,
 //    separate ifs, nested else, a switch, and all 128 header sets from
 //    tools/headers.py. See build/scratch/0x450530/.
+// Tried by space-bunny-free and rejected, all scored with check.py --sym:
+// removing the `p` local from the loop head and writing `g_game->players[i]`
+// at each of the four guard tests (the two `lea` at the top of the loop then
+// become one) drops it to 36.9%; hoisting the state into an
+// `unsigned char st` local and testing st three times drops it to 43.9%, even
+// though it is the shape the original's single `mov al` + three compares
+// suggests. Keep `Player* p = &g_game->players[i]` and the three direct
+// `p->state` tests.
 //  * The state dispatch in the original is a second compare chain
 //    (cmp al,1 / je A / cmp al,2 / jne ... / cmp al,1 / jne B) because its
 //    branch bodies are laid out out of line; ours falls through to A, which is

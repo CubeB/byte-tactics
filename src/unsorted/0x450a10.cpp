@@ -1,4 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash. Names are provisional.
+// #1513 retry by Codex / GPT-6.1-sol: checkall reconfirmed 87.6% (837/872 bytes).
+// Prior retry variants in this file and build/scratch/450a10 still give the best result.
 // PARTIAL 87.6%, 837 vs 872 bytes. Everything outside the name-copy block now
 // matches, including the free-slot search (writing that loop as a while loop with
 // a separate "s = i; if (!found) s = 10;" step puts the counter in ecx and the

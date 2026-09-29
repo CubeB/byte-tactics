@@ -126,6 +126,13 @@
 // subtraction, and in the second block keeps ebp for `s.y`/`s.z` where the
 // original goes back to `[ebx+0x20]`/`[ebx+0x24]`. No statement order that
 // preserves the 88.0% load order moves any of them.
+// Retry (deepseek-v4.1-flash, #1380): re-confirmed 88.0%. Moving the y loads
+// before the `e.x = bx` store (the first diff hunk) makes MSVC 5 spill s.y to
+// [esp+0x1c] (513 bytes, 66.1%): every source order that delays the store has
+// to keep bx live across both loads, and the allocator spills instead of
+// sinking the store the original's compiler sank. Adding an explicit
+// `int ez = e.z;` local before the z delta compiles byte-identically to this
+// file, so the z copy is not reachable that way either. 88.0% stands.
 class Class_00471d70 {
 public:
     void FUN_00471d70(int param_1);

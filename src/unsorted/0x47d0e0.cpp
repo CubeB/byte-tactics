@@ -1,42 +1,38 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free. Names are provisional.
-// PARTIAL, 41.9% (508 of 505 bytes; up from 30.4%). The worker that wrote this
-// ran out of steps and produced no report, so the numbers below are measured
-// from the scratch directory after the fact rather than from its account.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 //
-// The shape of the win: `flags` at +0x110 wants to be a *union* of a bitfield
-// struct and an int, and the flag test wants to be written out twice,
+// PARTIAL, 80.3% (507 bytes vs 505). One instruction reverts to a register
+// form instead of the original's memory-operand form, and everything else
+// matches instruction for instruction.
 //
-//     if (obj->flags.bits.flag26 == 0 && obj->flags.all & 0x20000000)
+// Two source shapes were worth real points. First, the inner mask loop must
+// read the footprint byte into a named local before the cell-owner test:
+//     unsigned char m = obj->unit->mask[index];
+//     index++;
+//     if (cell->field_0 == obj->field_a8) cell->field_0 = 0;
+//     if (m & 1) cell->field_c &= 0xfd;
+// Naming `m` (rather than testing `obj->unit->mask[index] & 1` inline) is what
+// lets MSVC keep g_game in ebx: it moved the whole body from 36.4% to 79.0%
+// because obj finally landed in esi, size in edi and g_game in ebx, and every
+// downstream difference (the bx compare temp, ebp as the row-advance scratch,
+// the outer counter spilled to [esp+0x1c], ebp as the case 2 zero) followed
+// from that one allocation. This is the guide's "one shared upstream cause".
+// Second, the mask load and index++ must come BEFORE the cell-owner compare
+// in the source; the reverse order (the reviewer-obvious spelling) scored
+// 65.8%.
 //
-// which is the "write it unidiomatically on purpose" family again, the same
-// shape as 0x4da5b0's duplicated `if (p) *p = 0;` and 0x48a1e0's redundant
-// guard through a second pointer. The bitfield declaration is what produces the
-// original's `shr ecx, 0x1a` rather than a `test` against an immediate, and the
-// redundant second test is what stops MSVC proving the pair equivalent. The loop
-// also wanted `for (i = 0; i < size.x; i++, cell++, index++)` with both
-// pointers advanced in the for-increment, rather than a countdown with
-// post-increments in the body.
-//
-// Measured sweep, all with `check.py --sym` after `rm -rf build/obj`. The
-// spread is narrow and the productive axis is the cell/index iteration, not the
-// size arithmetic:
-//   v3 (in the file)                                    41.9%
-//   v2, v_base, v_cellsize, v_cell_size_i0, v_idx,     39.2%
-//     v_idx2, v_noc, v_size_cell_i0, v_xy, v_xyc
-//   v_size1, v_idx_size_cell_i0, v_xyidx               37.9%
-//   v_inc_expr                                          37.0%
-//   v_sep_pre                                           37.3%
-//   v_sep_post, v_sep_post_u                            38.0%
-//   v1                                                 30.0%
-//   v_cell_size_i1, v_size_idx_cell_i1                  33.2%
-//   v_cell_wsize_i0, v_wsize_cell_i0                   20.6%
-//   v_cell_wsize_i1, v_wsize_cell_i1                   19.3%
-// The two `wsize` families (20.6% and 19.3%) are the clear dead end: widening
-// the width to a `short` costs about twenty points, so the width is a `short`
-// loaded and sign-extended, not something computed at 32 bits. `v_ptr`,
-// `v_ptr_noidx`, `v_wxh_*` and `v_wxh_size_*` produced no score at all and are
-// not worth repeating.
-//
+// What is left is one block: the original computes the cell index as
+//     movsx eax, word ptr [esi+0x78]
+//     imul  eax, dword ptr [ebx+0x14233]
+// so the multiply folds g_game->width into the imul; ours loads the width into
+// eax first, puts pos.y in ecx, and needs a separate `mov eax, [ebx+0x14233]`
+// plus `imul eax, ecx`. That is 2 bytes over and shifts every jump target.
+// It is the same class as the 0x47d820 base/index swap: nothing in the source
+// moves it. Tried and flat at 80.3% or worse: all six declaration orders of
+// size/cell/index, the index declared uninitialised and assigned, size
+// assigned after the cell pointer, a `row`/`idx` intermediate, a `cells + a*b`
+// pointer-arithmetic form, `width * y` and `x + y * width` operand orders, and
+// `short px/py` locals. The condition order and every loop spelling were also
+// swept earlier, before the mask-local fix, and none of them is the lever.
 #pragma pack(push, 1)
 
 struct Point {
@@ -45,22 +41,21 @@ struct Point {
 };
 
 struct Cell_0047db20 {
-    short field_0;                      // +0x0, id of the unit owning the cell
+    short field_0;
     short field_2;
     char unknown_4[0xc - 0x4];
-    unsigned char field_c;              // +0xc
-    char unknown_d[0xd - 0xd];
+    unsigned char field_c;
 };
 
 struct Unit_0047db20 {
     char unknown_0[0x14e];
-    unsigned char* mask;                // +0x14e, one byte per footprint cell
+    unsigned char* mask;
 };
 
 union Flags_0047db20 {
     struct {
         unsigned int unknown_0 : 26;
-        unsigned int flag26 : 1;        // bit 26, tested with shr ecx, 0x1a
+        unsigned int flag26 : 1;
         unsigned int unknown_1 : 5;
     } bits;
     int all;
@@ -68,23 +63,23 @@ union Flags_0047db20 {
 
 struct Obj_0047db20 {
     char unknown_0[0x76];
-    Point pos;                          // +0x76
+    Point pos;
     char unknown_7a[4];
-    Point size;                         // +0x7e
+    Point size;
     int field_82;
     char unknown_86[0x92 - 0x86];
-    Unit_0047db20* unit;                // +0x92
+    Unit_0047db20* unit;
     char unknown_96[0xa8 - 0x96];
-    short field_a8;                     // +0xa8, the owner's own id
+    short field_a8;
     char unknown_aa[0x110 - 0xaa];
-    Flags_0047db20 flags;               // +0x110
+    Flags_0047db20 flags;
 };
 
 struct Game_0047db20 {
     char unknown_0[0x14233];
-    int width;                          // +0x14233
+    int width;
     char unknown_14237[0x14287 - 0x14237];
-    Cell_0047db20* cells;               // +0x14287
+    Cell_0047db20* cells;
     char unknown_1428b[0x142b7 - 0x1428b];
     int field_142b7;
 };
@@ -107,13 +102,16 @@ void __stdcall FUN_0047d0e0(Obj_0047db20* obj)
 {
     if (obj->field_82 != g_game->field_142b7) {
         Point size = obj->size;
-        Cell_0047db20* cell = &g_game->cells[obj->pos.y * g_game->width + obj->pos.x];
         int index = 0;
-        if (obj->flags.bits.flag26 == 0 && obj->flags.all & 0x20000000) {
+        Cell_0047db20* cell = &g_game->cells[obj->pos.y * g_game->width + obj->pos.x];
+        if (obj->flags.all & 0x20000000) {
             for (int j = size.y; j > 0; j--) {
-                for (int i = 0; i < size.x; i++, cell++, index++) {
+                for (int i = size.x; i > 0; i--) {
+                    unsigned char m = obj->unit->mask[index];
+                    index++;
                     if (cell->field_0 == obj->field_a8) cell->field_0 = 0;
-                    if (obj->unit->mask[index] & 1) cell->field_c &= 0xfd;
+                    if (m & 1) cell->field_c &= 0xfd;
+                    cell++;
                 }
                 cell += g_game->width - size.x;
             }
@@ -126,15 +124,17 @@ void __stdcall FUN_0047d0e0(Obj_0047db20* obj)
             FUN_00483210(pad, grown);
         } else if ((obj->flags.all & 3) == 1) {
             for (int j = size.y; j > 0; j--) {
-                for (int i = 0; i < size.x; i++, cell++) {
+                for (int i = size.x; i > 0; i--) {
                     if (cell->field_0 == obj->field_a8) cell->field_0 = 0;
+                    cell++;
                 }
                 cell += g_game->width - size.x;
             }
         } else if ((obj->flags.all & 3) == 2) {
             for (int j = size.y; j > 0; j--) {
-                for (int i = 0; i < size.x; i++, cell++) {
+                for (int i = size.x; i > 0; i--) {
                     if (cell->field_2 == obj->field_a8) cell->field_2 = 0;
+                    cell++;
                 }
                 cell += g_game->width - size.x;
             }
@@ -142,8 +142,8 @@ void __stdcall FUN_0047d0e0(Obj_0047db20* obj)
     }
     obj->flags.all &= ~0x08000000;
     if (obj->flags.bits.flag26) {
-        Class_0047db20 visitor;
         obj->flags.all &= ~0x04000000;
+        Class_0047db20 visitor;
         FUN_0047e5c0(obj->pos, obj->size, &visitor);
     }
     FUN_00440a70(obj);

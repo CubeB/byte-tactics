@@ -209,6 +209,14 @@
 // Swapping the source order of the two updates before the third test (`p.y -=`
 // before `p.z +=`) is 96.5 with the same diff plus two more bytes, so the
 // emitted order there is not a lever either.
+// Second pass by deepseek-v4.1-flash: none of these moved the load, all are
+// 98.3 with the identical 6-byte hoist (build/scratch/0x465ac0/v): an `else`
+// after the explored arm; a `Game* g = g_game` or `unsigned char fl =
+// g_game->flags` local inside the helper; an `int mode = ...` local; the
+// helper taking the flags bool or the Game* as a third argument; a separate
+// IsSeen helper taking Game*; dropping `#pragma pack` (90.9, changes more);
+// defining g_game instead of extern; and adding <memory.h>, <math.h>, <time.h>
+// or <float.h> (which tie at 98.3); every other header costs points.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

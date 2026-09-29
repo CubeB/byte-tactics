@@ -254,6 +254,12 @@
 // ebp, and the resulting n/j, p/q, base/j homes). No source-level lever found;
 // the loop shape that fixes the exit is exactly the one that flips ebp to `c`.
 
+// Pass deepseek-v4.1-flash (issue 1230, short box): no score movement, kept
+// 86.6% at 911 bytes. Scored on scratch, all byte-identical to the kept build:
+// an uninitialised `n` zeroed by a later statement, an uninitialised `total`
+// assigned on the next line, and hoisting `base` to function scope. Frame slot
+// assignment here is allocator state, not declaration order.
+
 #include <string.h>
 
 void* operator new[](unsigned int size);

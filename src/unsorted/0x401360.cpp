@@ -1,30 +1,6 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
-// Per-player economy tick: collects every unit's energy and metal production
-// and demand (computer players on easy/medium get 0.5/0.7 of their income),
-// works out what fraction of each demand the stored resources can cover and
-// carries the unmet part over to the next tick.
-//
-// PARTIAL (about 51%). What already matches: the frame (0x28 of locals, only
-// with the ratio loop written out rather than as a helper), the whole
-// FUN_0048b090 part (the bit 11 test needs the nested `if (u->bit11)` and a
-// call in every branch to get the three separate pushes), the unit loops and
-// the storage clamps. What still differs:
-// - The five float[2] arrays sit at the original's offsets (used 0x10,
-//   backlog 0x18, demand 0x20, produced 0x28, ratio 0x30) only when they are
-//   zeroed in that order; the original still emits the produced[] zeroing
-//   first. The ratio for `demand` really is written into used[] (the original
-//   reuses that slot too).
-// - UseEnergy: the original tests `v < 0` with the positive path falling
-//   through (`fld st(0); fadd [used]`, result in eax copied to edx). Writing
-//   the positive path first gives that, but then MSVC moves the whole
-//   `else if` branch of the 0x20000000 test to the end of the function.
-// - AddIncome: in some call sites the original's plain path is
-//   `fadd [dst]` (v dies there) and the case 0/1 paths share only the final
-//   store; here v stays live (`fld dst; fadd st(1); ...; fstp st(0)`) and
-//   each case stores on its own. The energyMake site already matches.
-// - The accumulation after the loop and the EndTick walker (original walks
-//   from +0xc0, this one from +0xc8) differ in x87 order.
-
+// Decompiled by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// Partial: 68.4%. Income branches and x87 scheduling still differ. Reordered resource resets and accumulation; ddraw.h improves compiler state.
+#include <ddraw.h>
 struct Unit_00401360;
 
 class Class_0048b090 {
@@ -151,19 +127,18 @@ static inline int UseEnergy(Unit_00401360* u, float v)
         return 0;
     }
     u->econ.res[0].used += v;
-    if (u->econ.res[0].backlog > 0)
-        return 0;
+    if (u->econ.res[0].backlog > 0) return 0;
     u->econ.res[0].demand += v;
     return 1;
 }
 
 static inline void EndTick(Res_00401360* r, float ratioDemand, float ratioBacklog)
 {
-    r->lastProduced = r->produced;
     r->lastUsed = r->used;
-    r->backlog = (r->demand - ratioDemand * r->demand) + (r->backlog - ratioBacklog * r->backlog);
-    r->produced = 0;
     r->used = 0;
+    r->lastProduced = r->produced;
+    r->produced = 0;
+    r->backlog = (r->demand - ratioDemand * r->demand) + (r->backlog - ratioBacklog * r->backlog);
     r->demand = 0;
 }
 
@@ -180,14 +155,14 @@ void __stdcall FUN_00401360(Player_00401360* p)
 
     p->storage[1] = 0;
     p->storage[0] = 0;
-    used[0] = 0;
-    used[1] = 0;
-    backlog[0] = 0;
-    backlog[1] = 0;
     demand[0] = 0;
     demand[1] = 0;
     produced[0] = 0;
     produced[1] = 0;
+    backlog[0] = 0;
+    backlog[1] = 0;
+    used[0] = 0;
+    used[1] = 0;
     for (u = p->units; u <= p->units_end; u++) {
         if (!(u->flags & 0x10000000))
             continue;
@@ -243,14 +218,14 @@ void __stdcall FUN_00401360(Player_00401360* p)
         backlog[1] += u->econ.res[1].backlog;
     }
     Econ_00401360* e = p->econ;
-    produced[0] += e->res[0].produced;
-    used[0] += e->res[0].used;
     demand[0] += e->res[0].demand;
+    produced[0] += e->res[0].produced;
     backlog[0] += e->res[0].backlog;
-    produced[1] += e->res[1].produced;
-    used[1] += e->res[1].used;
+    used[0] += e->res[0].used;
     demand[1] += e->res[1].demand;
+    produced[1] += e->res[1].produced;
     backlog[1] += e->res[1].backlog;
+    used[1] += e->res[1].used;
     if (p->flags149 & 1) {
         p->storage[0] += p->storageBonus[0];
         p->storage[1] += p->storageBonus[1];

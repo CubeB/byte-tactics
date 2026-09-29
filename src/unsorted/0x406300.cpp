@@ -1,26 +1,5 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
-// Order handler "Guarding" (earlier attempt by GPT-6 Astra, 73.4%).
-// Partial: 85.3%. What fixed most of it: the two "help" branches each end in
-// their own `new` + FUN_0043acb0 + `order->flags = 0; return 3;` (MSVC merges
-// the tails itself); the extra zero uses before that merge make MSVC keep 0 in
-// ebp for the whole post-loop region (`cmp eax, ebp`, `push ebp`, `mov
-// [ebx+6], ebp`) and duplicate the call tails as the original does. Also
-// needed <windows.h> + <stdio.h> (headers.py) for the case-0 `lea` order and
-// `unit != other->target` for `cmp edi, [ecx+0x16]`.
-// Still different (all in the building/attacking help part and follow tail):
-// - branch 1 stores the kind byte (`mov [esp+0x10], dl`) before jumping to the
-//   shared `new`, and branch 2 copies the "HelpBuild" temporary with `mov al,
-//   [eax]; mov [esp+0x10], al`; ours copies both into dl and merges the store
-//   after `push 0x56` (7 bytes short).
-// - the shared ctor call loads order->target->order twice (`mov ecx, [edx+0x5c];
-//   mov edx, [edx+0x5c]; add ecx, 0x22`); ours loads it once and uses `lea`.
-// - follow block: original does `mov ecx, ebx` before `sar`, then `lea eax,
-//   [esp+0x20]; push eax`; ours computes `lea edx, [esp+0x1c]` first.
-// Tried without effect: else-if between the two help branches (worse),
-// `kind = "HelpBuild"` (flips the case-0 lea back), a 0x406f80-style `ordered`
-// flag (spills it and adds a test). The unused `follow:` label matters: without
-// it the score drops to 82.1%, so the original probably jumped there (goto).
-#include <windows.h>
+// Decompiled by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// Partial: 95.1%. Shared help constructor reuses the order pointer instead of loading it twice. Inline Target/Position accessors and stdio.h align temporary copies and the follow block.
 #include <stdio.h>
 struct Vec3 {
     int x, y, z;
@@ -46,7 +25,7 @@ struct Unit {
     char pada8[0xf0-0xa8]; Unit* attacker; char padf4[0x108-0xf4]; short health;
     char pad10a[6]; unsigned int flags;
 };
-struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; };
+struct Order { Unit* Target() { return target; } Vec3* Position() { return &pos; } char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int radius; char pad3a[8]; unsigned int capabilities; };
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
 #pragma pack(pop)
 int __stdcall FUN_0043b1f0(Unit*, Unit*, int);
@@ -103,7 +82,7 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
         }
         if (order->target->order && order->target->order->kind.index &&
             (unit->def->flags&0x40) && (order->target->def->flags&0x40) &&
-            (order->target->order->capabilities&0x100000) && unit!=order->target->order->target) {
+            (order->target->order->capabilities&0x100000) && unit!=order->target->order->Target()) {
             int building=order->target->order->kind=="MobileBuild" ||
                          order->target->order->kind=="BuildingBuild";
             Order* other=order->target->order;
@@ -112,13 +91,13 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
             if (!building && actionable) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=order->target->order->kind;
-                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
+                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->Target(),order->target->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
             if (building && other->target) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=Class_00438760("HelpBuild");
-                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
+                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->Target(),order->target->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
         }

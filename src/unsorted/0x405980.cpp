@@ -1,28 +1,5 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
-// Partial: 80.4%. Order handler "Reclaim"-style assist: with enough energy it
-// looks for an allied unit to help (visitor 0x405d90); when energy or metal is
-// low it asks FUN_0047ea40 for the best features to reclaim.
-// What now matches (vs the earlier 64.1% attempt):
-// - The visitor is a temporary passed by reference, so it gets its own frame
-//   slot (0x30) that the part-2 locals do not overlap, and `int range` computed
-//   after the vector declaration schedules the vector, visitor and pushes
-//   exactly as the original (a named visitor inside the block shrinks the frame
-//   to 0x24; one at case scope hoists its vtable store above the if).
-// - `int range2` before the part-2 buffers fixes the register choice in the
-//   first reclaim branch (metal pointer in ecx).
-// What still differs:
-// - The part-2 energy test: the original loads energy first (`fld [0x8c]; fld
-//   [0xa4]; fmul`, as in the part-1 test), ours loads energyCapacity*0.2 first
-//   and adds an `fxch`. `>=`/`<`/`!()`, a local Owner*, double casts, inline
-//   helpers and all 64 header sets give the same.
-// - The part-2 setup: the original loads unit->def first but does `movsx`
-//   after the two pointer stores; with range2 ours does `movsx` before them,
-//   and without it the def load moves after the pushes.
-// - Branch 2 (energy below 20%) keeps its own copy of the constructor/
-//   FUN_0043acb0 tail; the original jumps into the tail shared by branches 3
-//   and 4. An if/else-if chain with one `Class_0043a1f0* node` and a single
-//   FUN_0043acb0(unit, node) after it merges the tails exactly (1041 bytes)
-//   but swaps edi/ebp for order and the new pointer (70.1%).
+// Decompiled by Claude Opus 5.5, finished by GPT-6. Names are provisional.
+// Partial: 90.9%. Second energy comparison and range setup differ; the energy reclaim constructor tail remains duplicated.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;
@@ -94,7 +71,7 @@ int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
                 }
             }
         }
-        if (unit->owner->energy < unit->owner->energyCapacity * 0.2 ||
+        if (unit->owner->energyCapacity * 0.2 > unit->owner->energy ||
             unit->owner->metal < unit->owner->metalCapacity * 0.2) {
             int range2 = unit->def->range << 16;
             Vec3 energyPos, metalPos;

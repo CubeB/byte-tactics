@@ -29,6 +29,17 @@
 // layer->entries, swapping the '|' and non-'|' branches, moving the
 // `int y = 0x32` declaration, an extra char buffer, and four further multiply
 // spellings that all produce the identical preheader bytes.
+//
+// deepseek-v4.1-flash added these failed attempts: tools/headers.py (all 128
+// sets, closest 98.7 with <windows.h>), the compiler-state sweep of 0 to 400
+// unused `extern int dummyN;` declarations (flat 98.7 throughout), prepending
+// 0x45f800's text (both its structs only and its full renamed body, flat 98.7),
+// a loop-level `char* v`, an outer `char* vp`, an `int ok` temp for the lookup
+// result, AddLine parameter reordering, `char (&value)[0x80]`, `char value[]`,
+// `unsigned char` buffer, an inlined identity helper around `value` and around
+// FUN_004c5740, an AddText helper wrapping FUN_004ab1b0 (93.4, arg order
+// changed), a Layer* local inside AddLine, and a hoisted `char c`. The single
+// lea/push register pair is compiler state this file cannot reach.
 #include <windows.h>
 #include <string.h>
 

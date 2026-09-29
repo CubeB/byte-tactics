@@ -1,6 +1,10 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, 42.6%: complete map and player refresh; temporary layout,
-// bitfield tests and player-loop register allocation still differ.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash. Names are provisional.
+// Partial, 43.7%: complete map and player refresh. Still differs: the frame is
+// 8 bytes too large (0xdc vs 0xd4), the two top loop temps are in each other's
+// register (ebx/ebp swapped), and player-loop register allocation generally.
+// Fixes that gained points: FUN_00435c40 declared bool (removed a neg/sbb/neg),
+// reading the selected slot pointer before the map-slot local, and clearing
+// local_b8 with 0 instead of & 0xffffff00.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,7 +20,7 @@ struct Class_00435920 { int FUN_00435920(); };
 struct Class_00435a20 { int FUN_00435a20(int); };
 struct Class_00435c20 { int FUN_00435c20(); };
 struct Class_00435c30 { int FUN_00435c30(); };
-struct Class_00435c40 { int FUN_00435c40(); };
+struct Class_00435c40 { bool FUN_00435c40(); };
 struct Class_004373a0 { int FUN_004373a0(); };
 int FUN_00444a20();
 int FUN_00445ed0();
@@ -90,9 +94,9 @@ void FUN_00448c70(void)
   uVar18 = (uint)*(byte *)((int)g_game + 0x2a42);
   local_b0 = 0xffffffff;
   iVar17 = 0;
-  local_b4 = (int)g_game + uVar18 + 0x1b63 + uVar18 * 0x14a;
   local_c0 = (*(byte *)(*(int *)((int)g_game + uVar18 + 0x1b8a + uVar18 * 0x14a) + 0x9b) & 0x20) >>
              5;
+  local_b4 = (int)g_game + uVar18 + 0x1b63 + uVar18 * 0x14a;
   iVar8 = FUN_0049ff90((int)(*(int *)(*(int *)((int)g_game + 0x531) + 4)),(int)("OUTPUT"));
   uVar18 = (uint)*(ushort *)((int)g_game + 0x2a3e);
   uVar4 = *(ushort *)((int)g_game + 0x2a40);
@@ -229,7 +233,7 @@ LAB_0044904e:
   } while (iVar17 < 0xcee);
   FUN_00446c70();
   FUN_00446a50();
-  local_b8 = local_b8 & 0xffffff00;
+  local_b8 = 0;
   iVar8 = *(int *)(*(int *)((int)g_game + 0x531) + 4);
   local_a8 = (int *)((int)g_game + (uint)*(byte *)((int)g_game + 0x2a42) * 0x14b + 0x1b63);
   local_bc = iVar8;

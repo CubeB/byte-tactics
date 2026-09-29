@@ -1,11 +1,37 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// 92.7%. The only differences are register-allocation choices inside the
-// second "PLAYER%d/LOGO%d/ALLY%d/TEAMICONS%d" sprintf block (with `n`, after
-// the big condition) and in the FUN_0049fdf0 index scaling that follows it:
-// the original cycles ecx/edx/eax where ours cycles eax/ecx/edx, semantically
-// identical. The first such block (with `i`) matches byte for byte. The
-// function prologue also schedules `xor edi,edi`/`xor esi,esi` and the i/n
-// stack stores in the other order. Structure and every call are correct.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// 93.5%, and the code is exactly the right size (1318 bytes). Everything from the
+// function entry to the end of the big `if` condition matches byte for byte, and
+// so does everything from the end of the strcat block to the epilogue.
+//
+// What is left is ONE allocator phase, and it is a single cause: from the second
+// "PLAYER%d/LOGO%d/ALLY%d/TEAMICONS%d" sprintf block (the one with `n`, inside the
+// if) onwards the original hands out scratch registers exactly one step later in
+// its rotation than we do. Ours starts that block at eax/ecx/edx/eax, the original
+// at ecx/edx/eax/ecx, and every single allocation after it (the `name` lea, the
+// FUN_0049fdf0 argument pair, the *0x15b scale chain, the entries reload) is off by
+// the same one step, with identical semantics. The first such block (the one with
+// `i`, at the loop top) matches byte for byte, so the phase is right at the loop
+// top and wrong after the condition, with identical code in between: the original
+// must build one more register-holding node across the a0570 group plus the
+// condition than we do, from a node the front end folds away.
+//
+// Tried and did NOT help (all keep 1318 bytes, all stay 93.5%): swapping the
+// declaration order of i and n; `int i = 0, n = 0;` in one statement; unsigned
+// counters; moving the `entries` initialiser; passing `g_game->gui` or
+// `&g_game->gui[0]` instead of `(char*)g_game + 0x519`; a file-scope
+// `static const int 0` as the third a0570 argument; `(unsigned char)` casts on the
+// type/field_146/0xff compares; reading p->type once into a local instead of three
+// times; one-return `&&`/`||` helper bodies; the whole big condition wrapped in
+// one inline helper. Things that change the size and are therefore wrong: dropping
+// the `int act = p->active;` local (-8 bytes, and it is what produces the original's
+// second `test eax,eax`), using `!act` for the repeat check (the two tests fold), a
+// fully inlined condition (-8 bytes), and a shared inline helper for the eight
+// sprintf/a0570 calls (not inlined at all, +98 bytes).
+//
+// The i/n prologue order IS fixed by `for (i = 0, n = 0; i < 10; i++)` with
+// uninitialised `int i; int n;` above it: that is what moved this file 92.7% to
+// 93.5% by putting `xor esi,esi`/`xor edi,edi` and the two stack stores in the
+// original's order.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
@@ -113,8 +139,8 @@ static inline int IsCounted_00447380(Player_00447380* p)
 void __stdcall FUN_00447380(int param_1)
 {
     Entry_00447380* entries = g_game->table->entries;
-    int i = 0;
-    int n = 0;
+    int i;
+    int n;
     Player_00447380* local = &g_game->players[g_game->localPlayer];
     char player[20];
     char teamicons[20];
@@ -123,7 +149,7 @@ void __stdcall FUN_00447380(int param_1)
     char logo[20];
     char name[0x80];
 
-    for (i = 0; i < 10; i++) {
+    for (i = 0, n = 0; i < 10; i++) {
         sprintf(player, "PLAYER%d", i);
         sprintf(logo, "LOGO%d", i);
         sprintf(ally, "ALLY%d", i);

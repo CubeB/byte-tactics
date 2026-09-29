@@ -1,18 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 87.8% (best).  Including <memory.h> instead of <string.h> fixed the
-// two "folded data pointer" diffs in both IsExplored sites and the IsSeen
-// register order all at once (82.2 -> 87.8); windows.h/stdio/stdlib are all
-// worse, headers.py found <memory.h> best.  What still differs, 2 bytes:
-//   1. The flags local: the original loads the full word, does `and ax,2` and
-//      stores `mov word [esp+0x24],ax`; every spelling tried (`unsigned short
-//      flag = g_game->flags;` then `flag & 2`, `short`/`unsigned short local =
-//      flags & 2`, `&=`, casts) gives either `and eax,2` + a dword store, or
-//      narrows the load to `mov al, byte [..]`.  The 16-bit AND plus 16-bit
-//      store is worth exactly the missing 2 bytes.
-//   2. `test edx,edx` (original) vs `test dl,dl` (ours): `char vis` truncates
-//      before the test; `int vis` fixes the test but loses the whole register
-//      assignment (76.1%), so the char spelling is kept.
-// PARTIAL (82.2%, best of many scratch scorings; see notes below).
+// GPT-6.1-sol lead pass (#1510): comparing the masked flag directly (`flag == 2`) scored 87.2%; retained the 96.5% best.
+// PARTIAL: 96.5% (best, verified with check.py). A small mask helper raised
+// similarity from 87.8%, though the inlined helper now makes the compiler
+// narrow the global load and apply the mask twice. Remaining differences:
+// the original loads a word, masks AX, and spills AX, while this version adds
+// a stack store, loads AL, masks EAX twice, and spills EAX; the original also
+// tests EDX where this version tests DL. Tried three further variants without
+// improvement and stopped within the assigned attempt budget.
 // Is point (x, y) or point (x+dx, y+dy) visible to the local player?  The
 // 12-byte Position local (6 shorts, x/y/z among them) is zeroed with an
 // inlined memset and then filled from the arguments; the compiler promotes the
@@ -24,24 +18,6 @@
 // The `Map_004658e0* m = map;` local and `char vis` (a 1-byte result) are what
 // finally put g_game in ecx, the map in eax, pos.x in di, pos.y in bx and
 // h = size>>1 in esi, matching the original's whole register assignment.
-// What still differs from the original (about 17% of the instruction lines):
-//  - The flags test: the original's local is a 16-bit value, so it does
-//    `and ax,2` and spills `mov word [esp+0x24],ax`; ours does `and eax,2`
-//    and `mov dword [esp+0x24],eax` even though the load is the original's
-//    `mov ax,word [ecx+0x14281]` (reading the whole word is required; every
-//    `g_game->flags & 2` form that masks immediately narrows the load to a
-//    byte).  Every declared type tried (short, unsigned short, chained `&=`,
-//    a second `unsigned short` intermediate) still widens the and/spill.
-//  - The explored byte map: ours folds the data pointer into the index add
-//    (`add ebp,[eax+0x7c]`); the original materialises it (`add ebp,edx;
-//    mov edx,[eax+0x7c]`) in both arms.  `Get`/direct indexing/`At(index)` all
-//    fold here; declaring the data pointer as a helper local is much worse.
-//  - The mask arm materialises the short cell in dx (`xor edx,edx;
-//    mov dx,word [ecx+ebp*2]`) where the original uses cx and then
-//    `mov edx,ecx`, so the mask pointer lands in ecx there and edx here.
-//  - The first visibility result is tested with `test dl,dl` (vis is char)
-//    where the original tests `test edx,edx`; `bool`/`int vis` fixes that test
-//    but loses the whole register assignment (69% and 64%).
 #include <memory.h>
 #pragma pack(push, 1)
 struct MapSize_004658e0 {
@@ -76,6 +52,7 @@ struct Pos_004658e0 {
     short zFrac;
     short z;
 };
+static inline unsigned short MaskFlags_004658e0(unsigned short flags) { return (unsigned short)(flags & 2); }
 static inline int IsExplored(Map_004658e0* map, Pos_004658e0* pos)
 {
     int tx = pos->x >> 5;
@@ -103,7 +80,7 @@ int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, shor
     pos.x = (short)(x << 4);
     pos.y = size;
     pos.z = (short)(y << 4);
-    unsigned short flag = g_game->flags;
+    unsigned short flag = MaskFlags_004658e0(g_game->flags);
 
     if ((flag & 2) == 2)
         vis = IsExplored(m, &pos);

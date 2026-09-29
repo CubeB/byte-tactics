@@ -1,31 +1,14 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: best scoring variant, 78.6% (was 76.1% with the do/while outer loop),
-// same 402 byte length, every instruction present. What still differs:
-//   1. The frame slots of the three loop-carried locals are cyclically rotated:
-//      the original has mapY at -24 (E-0x18), src at -28 (E-0x1c) and dst at
-//      -32 (E-0x20); ours has dst=-24, mapY=-28, src=-32. Every other slot
-//      (halfHeight -4, t -8, mask -12, i -16, j -20, fog -33) already matches,
-//      and so does the whole prologue up to the pointer stores.
-//      This does not respond to declaration order at all: reordering the
-//      declarations of src/dst/mapY, moving them into nested blocks, changing
-//      the pixel local to char, ternary vs if/else and pre/post increments all
-//      leave the same three slots on the same three variables. It looks like
-//      the register allocator's spill order, not a source-visible property.
-//   2. Because of 1 the loop body's scratch registers rotate one place: the
-//      seenMap chain is edx/eax here vs eax/edx there, the pixel lives in al vs
-//      cl, and the store is `mov [ecx],al` vs `mov [edx],cl`.
-//   3. The loop-bottom schedule differs slightly (the original loads i, src,
-//      dst then interleaves the three increments around the store).
-// What is confirmed matching in the 78.6% version: the bit 2 test/clear and
-// bit 1 (pending) set, the esi/ebp/ebx/edi save order, `height > 0` guard,
-// the outer loop as `for (i = 0; i < height; i++)` with `mapY = i * halfHeight`
-// (the accumulator spelling produced the same code plus a spurious prologue
-// store), the inner `for` rotated into a guarded form, `x / 2` as cdq/sub/sar,
-// the players indexing `lea edx,[eax+edx*2+0x1b63]` and the fog sunk into the
-// else branch. The `unsigned short` cast on the visibility test is required
-// (without it MSVC emits `test edx,eax`).
-// /Gz (__stdcall) makes no difference for a no-arg function; the sibling
-// 0x466780 matched because it was declared __stdcall, not because of the flag.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol lead pass (#1510): moving the loop counters before the output store via a pixel temporary scored 76.1%; retained the 91.9% best.
+// PARTIAL: best scoring variant, 91.9%, 402 byte original vs 404 bytes ours.
+// Remaining mismatch is loop-bottom scheduling: original increments i, mapX,
+// src, stores through dst, then increments dst. Ours stores through dst before
+// incrementing i and src, and uses eax to increment and save dst. Direct output
+// assignments in each branch fixed the loop-carried local slots and raised the
+// score from 78.6%; post-incrementing dst in those assignments regressed to
+// 84.7%. The condition branches, setup, and loop bodies otherwise match.
+// The `unsigned short` cast on the visibility test is required (without it
+// MSVC emits `test edx,eax`). /Gz makes no difference for this no-arg function.
 
 #pragma pack(push, 1)
 struct Fx_00466c20 {
@@ -91,15 +74,13 @@ void FUN_00466c20()
             int mapX = 0;
             for (int j = 0; j < g_game->width; j++, src++, mapX += halfWidth) {
                 int index = (mapY / g_game->height) * halfWidth + mapX / g_game->width;
-                unsigned char c;
                 if (!(unsigned short)(g_game->visibilityMask[index] & mask)) {
-                    c = fog;
+                    *dst = fog;
                 } else if (t->seenMap[index]) {
-                    c = *src;
+                    *dst = *src;
                 } else {
-                    c = g_game->fx->colorMap[*src];
+                    *dst = g_game->fx->colorMap[*src];
                 }
-                *dst = c;
                 dst++;
             }
         }

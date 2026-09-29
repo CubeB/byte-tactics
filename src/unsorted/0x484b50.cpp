@@ -22,6 +22,22 @@
 // declaring the counter inside the for, a while loop with the increments in the
 // body, spelling 0x80 as 128, and every header set (headers.py) plus the
 // compiler-state probe (0 to 82 unused extern declarations, all 96.9%).
+// Claude Sonnet 5.5 pass (#591), and a warning about the code below: the
+// original's mask is NOT `y & 0xf0`. `mov eax, ebp; and al, 0xf0` keeps the
+// upper 24 bits of y, so it computes `y & ~0xf` (round down to a 16-cell block),
+// and `y & 0xf0` below is only what happens to score 96.9 percent. MSVC 5 emits
+// the short `and al, -16` for `y & ~0xf` only when the value is computed in eax
+// (tiny test: `return (y & ~0xf) + 0x80;` gives `and al,-16; add eax,128`), so the
+// original has the mask as a temporary in eax followed by a 3-address
+// `lea edi,[eax+0x80]`, while ours computes it in place in edi, where there is no
+// byte register, and shares the 0x80 held in ebx (`add edi,ebx`). With `~0xf`
+// (also `-16`, `0xfffffff0`) the file is 388 bytes and scores 86.2 because of
+// `and edi,0xfffffff0`. Scored, all identical to that: a named temporary, `int
+// i` before or after, `z = (t + 0x80) << 16` and the two-statement form, a
+// helper for the mask, a helper for the whole start z, `* 0x10000`. The right
+// answer is the `~0xf` form plus whatever makes the mask temporary and the
+// counter's 0x80 separate values in eax and ebx; whoever finds it should keep
+// `~0xf`.
 #pragma pack(push, 1)
 struct Game_00484b50 {
     char unknown_0[0x14223];

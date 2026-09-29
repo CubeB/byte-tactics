@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
-// Partial (86.1%): a Park-Miller random number generator (seed * 16807 mod
+// Partial (91.1%): a Park-Miller random number generator (seed * 16807 mod
 // 2^31 - 1, with q = seed / 127773 to avoid overflow), then seed % range.
 //
 // Writing q * 2147483647 as the shift form (q << 31) - q gets the order and
@@ -19,6 +19,20 @@
 // signed/unsigned types, the global used directly) gives that same order.
 // Spellings that make the product an in-place statement (`s *= 16807;`)
 // keep the division first but turn the lea chain into imul.
+//
+// deepseek-v4.1-flash, 2026-09: confirmed that the neg IS obtainable. Both a
+// real multiply (`-q * 2147483647`, or a temp `unsigned int t = (q << 31) - q;`)
+// compile to exactly the original's block
+//     mov edx, ecx; neg edx; shl edx, 31; sub edx, ecx
+// so the original source was almost certainly `seed * 16807 - q * 2147483647`
+// (the temp merely blocks MSVC from distributing the -q into the outer sub).
+// The catch is coupled: materialising the product flips the whole allocation.
+// The lea chain for seed * 16807 then becomes hoistable into esi (the mul does
+// not clobber esi), so seed lands in ecx and the final store moves after the
+// div (57.5% for every such spelling, 83 bytes for `s *= 16807` forms). Only
+// the folded shift form keeps seed in esi and the chain in eax, which is the
+// part that matches. Same result for `-q * 0x7fffffff`, Schrage's identity,
+// signed/unsigned q, and t declared at function scope.
 //
 // <windows.h> is needed for the lea chain in seed * 16807: without it (or
 // with only some of it) MSVC emits imul instead. This is compiler heap

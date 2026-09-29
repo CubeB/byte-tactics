@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**60.77% of Cavedog's code matched** (517,092 of 850,853 bytes)
+**60.85% of Cavedog's code matched** (517,738 of 850,853 bytes)
 
 `[########################----------------]`
 
-By count that is 2,953 of the game's 3,267 functions (90.4%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,954 of the game's 3,267 functions (90.4%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,953 | 517,092 |
-| Attempted, not yet matching | 295 | 322,801 |
+| Matched byte-for-byte | 2,954 | 517,738 |
+| Attempted, not yet matching | 294 | 322,155 |
 | Not attempted yet | 19 | 10,960 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 820 of 827 | 99.0% | 834 | `##########` |
 | large (161 to 400 bytes) | 639 of 703 | 89.9% | 18,079 | `#########-` |
 | xl (401 to 600 bytes) | 183 of 226 | 80.3% | 21,729 | `########--` |
-| xxl (601 to 1,000 bytes) | 116 of 195 | 58.5% | 60,997 | `######----` |
+| xxl (601 to 1,000 bytes) | 117 of 195 | 58.9% | 60,351 | `######----` |
 | huge (over 1,000 bytes) | 41 of 161 | 20.6% | 232,082 | `##--------` |
 
 ### By area
@@ -51,7 +51,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | --- | --- | ---: | ---: | ---: | --- |
 | `0x400000` | Unit orders and unit AI | 191 of 210 | 71.8% | 17,144 | `#######---` |
 | `0x410000` | Orders and VTOL states | 211 of 222 | 75.1% | 15,869 | `########--` |
-| `0x420000` | Frontend shell | 138 of 154 | 51.2% | 31,052 | `#####-----` |
+| `0x420000` | Frontend shell | 139 of 154 | 52.2% | 30,406 | `#####-----` |
 | `0x430000` | Maps, missions, briefings | 208 of 228 | 61.6% | 23,195 | `######----` |
 | `0x440000` | Multiplayer setup | 234 of 246 | 63.9% | 22,201 | `######----` |
 | `0x450000` | Options and audio menus | 156 of 176 | 57.7% | 26,692 | `######----` |

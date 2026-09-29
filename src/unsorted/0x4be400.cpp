@@ -86,6 +86,14 @@
 // edge too (this file). The slot-sharing trick that produced the same shape at
 // 0x4af320 cannot be tried here, because the frame is exactly h (4) + buf
 // (0x100) + fd (0x108) with nothing spare to share.
+// A fourth session (Sonnet 5.5, #1105) confirmed the wall at 99.2%: the dir
+// branch ending in `continue` (file branch after it), the file branch ending in
+// `continue`, `h = h;` before the loop condition, the file loop as a helper that
+// takes the shared buf as a parameter (three shapes, so no second char[256]),
+// and the two branches as two separate `if`s all give the same 99.2%
+// or worse. The reading that fits the bytes: the reload of the handle is
+// placed on the loop's exit edge and on the strcmp edges only, and the guard edge
+// is left alone because esi still holds h there. No source shape tried moves that.
 #include <io.h>
 #include <string.h>
 

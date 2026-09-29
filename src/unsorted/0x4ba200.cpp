@@ -1,4 +1,4 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, finished by Sonnet 5.5. Names are provisional.
 // Sets `count` palette entries from `start` (4 bytes each: three colour
 // bytes and a zero) under the 'MAIN' lock. The entries are stored in the
 // display's palette table, scaled by the display's brightness (+0x614) and
@@ -7,22 +7,11 @@
 // display's DC, when the display has a window DC) or handed to the
 // DirectDraw palette object, whose failure returns 0.
 //
-// NOT MATCHED: 66.2%, 708 of 689 bytes. The lock, the brightness scaling
-// loop, the GDI copy loop and every call are right. Two things differ:
-// 1. The frame slot order. The original has held at [esp+0x14], brightness at
-//    0x18, the display pointer at 0x1c and the loop-2 down counter at 0x20;
-//    this build puts brightness at 0x14, held at 0x18, the counter at 0x1c
-//    and the display pointer at 0x20. Declaring the locals in a different
-//    order does not move them, so the order comes from the allocator, not
-//    from the source.
-// 2. Loop 1's register rotation: the original keeps `start` in edx, the
-//    source delta in edi and the count in esi, this build rotates them.
-//    The earlier indexed form `d->entries[i] = ((unsigned int*)src)[i]`
-//    scored 61.7% because it needs a second induction variable in ecx,
-//    which spills the loop bound; the difference form below frees ecx.
-// Also still different: the original reloads the display pointer out of the
-// frame at [esp+0x1c] before storing the new palette, this build keeps it
-// in ebp.
+// MATCHED. What finally worked (after 66.2%): the destination pointer `p` and
+// a second walking source pointer `s` (both advanced in the for header), an
+// `end = start + count` local, and the statement order brightness, p, end, s
+// before the copy loop. Declaring the SetEntries result in a named HRESULT
+// gives the original's `cmp eax, edi` against the hoisted zero.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -84,15 +73,15 @@ int __stdcall FUN_004ba200(unsigned char* src, int start, int count)
     unsigned char local[0x400];
     unsigned char quad[0x400];
     int i;
+    int end;
     d = FUN_004b6220();
     brightness = *(float*)((char*)d + 0x614);
-    // The original walks the destination and reaches the source as a fixed
-    // displacement from it, which keeps ecx free for the loop bound.
     unsigned int* p = d->entries + start;
-    int srcdelta = (char*)src - (char*)p;
-    for (i = start; i < start + count; i++, p++)
-        *p = *(unsigned int*)((char*)p + srcdelta);
-    for (i = start; i < start + count; i++) {
+    end = start + count;
+    unsigned char* s = src;
+    for (i = start; i < end; i++, p++, s += 4)
+        *p = *(unsigned int*)s;
+    for (i = start; i < end; i++) {
         float v0 = src[i * 4] * brightness;
         if (v0 > 255.0)
             v0 = 255.0f;
@@ -107,6 +96,7 @@ int __stdcall FUN_004ba200(unsigned char* src, int start, int count)
         local[i * 4 + 2] = (unsigned char)(int)v2;
         local[i * 4 + 3] = 0;
     }
+
     if (d->field_44 != 0) {
         if (d->palette)
             DeleteObject(d->palette);
@@ -124,7 +114,8 @@ int __stdcall FUN_004ba200(unsigned char* src, int start, int count)
         SetDIBColorTable(d->dc, 0, 0x100, (RGBQUAD*)quad);
         FUN_004d85a0(lp);
     } else if (d->bit2) {
-        if (d->ddPalette->SetEntries(0, start, count, (LPPALETTEENTRY)(local + start * 4)) != 0) {
+        HRESULT hr = d->ddPalette->SetEntries(0, start, count, (LPPALETTEENTRY)(local + start * 4));
+        if (hr != 0) {
             Unlock(held);
             return 0;
         }

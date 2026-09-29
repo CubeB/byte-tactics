@@ -29,6 +29,16 @@
 // Wait_0043b7c0: with `when = FUN_004b6c30(n) + 0x1e` computed first and
 // `flags6 |= 1` second it tail-merges cases 3 and 9 the way the original does
 // (0x43b951); the other order duplicated the block at both sites (792 bytes).
+//
+// Retried by deepseek-v4.1-flash: six re-spellings of the pending block
+// (flags6 local first, OR operands swapped, no mask local, no cast, int
+// pending, mask pre-masked) all score the same 59.7% byte for byte, so the
+// eax/ecx choice is a global allocator rotation, not an expression lever. A
+// normalised opcode diff shows the only real structural gap is case 9: the
+// original keeps the just-stored `flags | 0x800000` in eax and reuses it for
+// the later `test eax, 0x40000` (`mov eax, edx` before loading node->next),
+// where ours re-reads node->flags inside the inlined RemoveAndDelete. That
+// extra live value is the likely source of the rotation.
 
 #pragma pack(push, 1)
 

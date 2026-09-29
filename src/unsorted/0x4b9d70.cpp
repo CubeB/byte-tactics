@@ -86,6 +86,22 @@
 //     that finishes sx; ours puts `x` in EBP and hoists `src->y` above that
 //     add (the y clip itself, x clip, loop and frame are all byte exact).
 //
+//  8. THIS PASS (deepseek-v4.1-flash) confirmed the two halves are mutually
+//     exclusive with this compiler. The plain if/else y clip IS the original's
+//     14-byte block, and it does produce the original's first two loads
+//     (src->x in EDX, dst->x in EAX) at 234 bytes, but it then hoists src->y
+//     into ECX and leaks the x clip before the y tree: 52.7%. The
+//     init-plus-override shape here keeps the block order and scores 80.0% but
+//     loses those two registers. All of these leave the prologue byte
+//     identical at 80.0%: statement order, `int sx = x; sx += ...;`,
+//     `(src->x - dst->x) + x`, `x - (dst->x - src->x)`, a dx local, x/y copied
+//     to locals, declaration-vs-assignment locals, and
+//     `int srcRow = 0, dstRow = sy;`. The sy statement first is 79.6%. An
+//     `else { srcRow = 0; }` on the y clip gives the exact 234 bytes but
+//     74.2%. Dropping <string.h> drops to 56.0%, so the include is part of the
+//     header state and must stay. Nothing reached both the exact y-clip block
+//     and the original's x register at once.
+//
 // Arg slots: the original reads its four incoming values at [esp+0x10],
 // [esp+0x18], [esp+0x1c] and [esp+0x20] after its four pushes, skipping
 // [esp+0x14]. A 4-argument __stdcall declaration compiles to exactly those

@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
 // Opens the network game selection dialog (SELGAME.GUI) and sets up the
 // buffers it needs: a 0x690 byte "GAME DESCRIPTIONS" block, a 0xe74 byte
 // "PLAYER SHARED" block and 15 blocks of 0xa00 bytes named "DATA0" .. "DATA14",
@@ -10,27 +10,19 @@
 // returns. On success the game name is put on the menu, and a connection that
 // came back with an error status (neither 0 nor 2) is reported and cleared.
 //
-// The local buffer is 0x14 bytes, not the 8 the "DATA%d" text needs: the
-// frame is 0x14 bytes and both `lea`es of the buffer are computed from that
-// one array (MSVC 5 emits the second one 8 bytes higher than the first, so at
-// run time FUN_004d83b0 is handed a pointer 8 bytes above the text sprintf
-// just wrote; harmless, because FUN_004d83b0 ignores its name argument and
-// passes only the size on to FUN_004d83c0).
+// Two source shapes are load bearing and are not the obvious spelling:
 //
-// Not a MATCH yet: 98.2% (809 of 824 bytes, same length, every reference
-// resolves). What still differs is the SIB base/index order of the three
-// entry accesses in the gadget loop (the original has `cmp byte [ecx + eax]`
-// where we emit `[eax + ecx]`, with eax the entry table and ecx the index
-// times 0x15b) and the order of the two zeroing instructions before the
-// description table loop (the original has `xor ecx,ecx; xor eax,eax`, we emit
-// them the other way round). The SIB order did not move for: the pointer in a
-// local with a second local per iteration, `&e[i]`, `e + i`, a static inline
-// helper computing `(unsigned char*)e + i * 0x15b`, a char* base with the
-// fields reached through casts, swapping the two stores, and for any
-// declaration or initialisation order of the loop's index and offset. The
-// zeroing order did not move for any of the same changes either. Both are the
-// scheduler tie-break the guide calls compiler state (0x4c1480 against
-// 0x4c1760 is the recorded case).
+// - The gadget loop indexes gadget->entries[i] inline and binds the element to
+//   a reference inside the if. The entries pointer must NOT be held in a named
+//   pointer local: with a local MSVC encodes the load as `[eax + ecx]` (eax the
+//   table, ecx the 0x15b index) and reloads the table between the two stores;
+//   with the inline member access the encoding is the original's `[ecx + eax]`
+//   and one table load is reused for both stores.
+// - The description table loop is `for (j = 0; j < 20; j++)` with the shared
+//   offset computed as `j * 0xb9`. MSVC derives j*0xb9 as its own induction
+//   variable, which is what gives the original's `cmp eax,0xe74`, the
+//   `add eax,0xb9` increment and the `xor ecx,ecx; xor eax,eax` init order.
+//   A separate `off` counter emits the two xors the other way round.
 #include <stdio.h>
 #include <string.h>
 
@@ -120,7 +112,6 @@ void FUN_00443cb0()
     char name[0x14];
     int i;
     int j;
-    int off;
 
     FUN_004257a0();
     Gadget_00443cb0* gadget = FUN_004aa8f0(&g_game->sub, "SELGAME.GUI", 0x80);
@@ -133,20 +124,19 @@ void FUN_00443cb0()
         sprintf(name, "DATA%d", i);
         g_game->data[i] = FUN_004d83b0(name, 0xa00);
     }
-    for (j = 0, off = 0; off < 0xe74; j++) {
+    for (j = 0; j < 20; j++) {
         g_game->desc[j].size = 0xb9;
-        g_game->desc[j].offset = (int)(g_game->shared + off);
-        off += 0xb9;
+        g_game->desc[j].offset = (int)(g_game->shared + j * 0xb9);
     }
     FUN_004a0bf0(&g_game->sub, "PASSWORD", g_game->password, 10);
     FUN_004a0bf0(&g_game->sub, "NICKNAME", g_game->nickname, 10);
     FUN_004a1250(&g_game->sub, "JOIN", 1);
     FUN_004a1250(&g_game->sub, "WATCH", 1);
-    Entry_00443cb0* e = gadget->entries;
-    for (i = 1, e = gadget->entries; i < e->count; e = gadget->entries, i++) {
-        if (e[i].type == 2) {
-            e[i].handler = FUN_00441220;
-            e[i].data = (int)g_game->desc;
+    for (i = 1; i < gadget->entries->count; i++) {
+        if (gadget->entries[i].type == 2) {
+            Entry_00443cb0& e = gadget->entries[i];
+            e.handler = FUN_00441220;
+            e.data = (int)g_game->desc;
         }
     }
     FUN_004a81e0(&g_game->sub, 0x40);

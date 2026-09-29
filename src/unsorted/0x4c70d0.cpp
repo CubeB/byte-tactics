@@ -1,5 +1,16 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// Seventh pass (deepseek-v4.1-flash): no score change, 78.9% (280 bytes). New
+// negative results, so the next attempt can skip them: case 0's store through
+// an `int& low = out->low` reference (the 0x41ba60 lever) does not stop the
+// at_high hoist; neither does nesting the store as `(out->low = 0, FUN(...))`,
+// nor locals for the distance/global/first argument declared after the store.
+// Using the local `size` as case 0's third argument (with or without a `d`
+// local) scores 276 bytes / 77.8% because the compiler then pushes ecx before
+// `sub ecx, eax` and the DAT_0051fef0 reload disappears: the third argument
+// really is the global. So the only remaining difference is still the
+// register-priority rotation described below.
+//
 // Sixth pass (deepseek-v4.1-flash): no score change, 78.9% (280 bytes). Confirmed
 // the remaining difference is not compiler state nor a flag:
 //   - 0, 50, ..., 3000 unused function prototypes before the function: all

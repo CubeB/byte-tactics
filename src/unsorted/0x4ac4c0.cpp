@@ -1,4 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash: 83.1% / 334 bytes (was 72.4%). The one change that
+// matters: the body store is `buf[i] = *s;`, not `buf[i] = c;`. With `c` the
+// optimizer knows c == *s at the loop top and fuses the 0xff test into
+// `cmp byte ptr [..], 0xff`, dropping the load; with `*s` it must materialise
+// the value, yielding the original's `mov al,[..] / cmp al,0xff / mov [..],al`.
+// That also fixes the whole rest of the loop shape; the body is now
+// instruction-for-instruction the original's with only the two known defects
+// below. Removing the tail hack still collapses `text` out of ebp (61.4%),
+// so it is still required. Declaration order of i/c/s remains inert.
+//
+// What still differs (72.4% note, still true):
 // 72.4% match. Builds a word-wrapped copy of `text` in a buffer allocated
 // from the pool: the number of characters per line is width / (width of one
 // digit), and a line is broken at a space or '-' when a word would exceed
@@ -141,7 +152,7 @@ char* __stdcall FUN_004ac4c0(Menu_004ac4c0* menu, char* text, int width, int ind
     while (c != 0) {
         if (*s == (char)0xff)
             break;
-        buf[i] = c;
+        buf[i] = *s;
         char next = s[1];
         i++;
         s++;

@@ -1,20 +1,56 @@
 // Decompiled by space-bunny-free. Names are provisional.
-// NOT A MATCH: 48.5 percent, frame is 0x6c where the original is 0x68, so I
-// have one dword of local too many (every slot below is therefore 4 high) and
-// the whole allocation cascade follows from that. The original's slots are
-// want 0x10, n2 0x14, cur 0x18, b 0x1c, len 0x20, res 0x24, lock 0x28,
-// need 0x2c, the pair 0x30, the _Ubound key 0x38, the insert result 0x40 and
-// the 48-byte record at 0x48, which is larger than the frame and so overlaps
-// the saved registers (0x4d8849 stores the 4th ctor argument to [esi+0x2c],
-// that is P+0x74, the saved edi, and the epilogue pops it into edi, which is
-// dead, so the original gets away with it). Tried and did not help: making the
-// record a block-local instead of a function-local (it was hoisted to the top
-// of the function as a function-local initialiser); one pair instead of two
-// for the _Ubound key and the split pairs.
+// NOT A MATCH: 49.7 percent, 700 of 780 bytes. The frame is 0x64 where the
+// original is 0x68, so I have one dword of local too FEW (the notes below were
+// written when the frame was 0x6c, one too many: removing the Pair default
+// constructor removed a home, and the shape improved but the layout is still
+// one dword short). Every difference below is one or two allocation states,
+// not many independent problems.
+// The original's frame (E = esp after `sub esp,0x68` and the four pushes):
+//   0x10 want        0x14 n2 (lower_bound out)   0x18 cur    0x1c b, then
+//   reused as prev  0x20 len   0x24 res   0x28 the CRITICAL_SECTION pointer,
+//   then `need` (both use that one home)   0x2c NOT referenced at all, a
+//   genuine hole   0x30/0x34 the pair, which is ALSO the hidden-return slot of
+//   FUN_004dbe10, FUN_004dbd80 and FUN_004dbd00 (all three pass &slot first
+//   and 0 second)   0x38/0x3c the lower_bound query pair   0x40 the insert
+//   result, reused for the second map's insert   0x48 the 48-byte record, whose
+//   tail overlaps the four saved registers (0x4d8849 stores the 4th ctor
+//   argument to [esi+0x2c] = E+0x74 = saved edi, which the epilogue pops and
+//   discards, so the original gets away with it).
+// What worked (all scored free with `check.py --sym`):
+//   * `FUN_004da780()` returns the CRITICAL_SECTION pointer itself, and the
+//     size argument is NOT written back: `unsigned int size = n; if (!size)
+//     size = 1;`. That gives the original's `test esi,esi / jne / mov esi,1`
+//     with esi live. Assigning to the parameter instead (v0, 48.5%) produced
+//     `mov [esp+0x80],1`, a store into the argument slot, and turned the
+//     `test` into a `cmp` against the register holding the zero.
+//   * Pair_004dacf0 with NO constructors at all: a user-provided default
+//     constructor zero-initialises the pair at the top of the function, and
+//     the original has no such stores (v0 had three `mov [esp+X],ebp`).
+//   * `if (cur == (Class_004dd2a0(map->head)))`: the original's head test is
+//     `mov ebx,[edi+4] / xor edx,edx / cmp eax,ebx / sete dl / test dl,dl /
+//     je`, i.e. the End() iterator is a VALUE compared through operator==.
+//     Comparing `cur.ptr == map->head` loads the head straight into the cmp
+//     and drops the sete/test (49.7 -> 47.7 when reverted).
+// Tried and did NOT work:
+//   * declaring `wraps` before `map` to swap the esi/edi roles the original has
+//     (map in edi, wraps in esi): no effect at all, 47.7 either way.
+//   * the other change folded into the same run as the head test (both
+//     together): 47.9, worse than the head test alone, so the two do not
+//     compose.
+// Still differs:
+//   * `need` and `want` are in the opposite callee-saved registers (the
+//     original has need in ebx and want in ebp, this file has need in ebp and
+//     want in ebx, and therefore the `cmp` is the other way round).
+//   * the original stores `need` into the lock's home at 0x28 and compares in
+//     registers; this file gives `need` a home of its own, one dword high.
+//   * the original keeps `map->count <= wraps` as `cmp [edi+0xc],esi / jbe`
+//     and does not fold the known zero; this file folds it to `test eax,eax`.
+//   * the trailing half (the two insert calls, VirtualAlloc, the record and
+//     its ctor) has not been revisited since v0.
 // Carve a block out of the reservation allocator: enter the lock, round the
-// request up to 8k (need) and double it (want), then walk the free-block map
-// for a block of at least want bytes, splitting it around the allocation point
-// and committing the pages with VirtualAlloc. Same std::map idiom as 0x4db000,
+// request up (need) and double it (want), then walk the free-block map for a
+// block of at least want bytes, splitting it around the allocation point and
+// committing the pages with VirtualAlloc. Same std::map idiom as 0x4db000,
 // 0x4db450 and 0x4db1c0: the block is the map's value_type, a base and a length.
 #include <windows.h>
 
@@ -34,7 +70,9 @@ struct Node_004dacf0 {
 };
 
 // The map's iterator: one pointer. The three methods are the tree's own
-// (operator--, the postfix operator++ and the set's erase).
+// (operator--, the postfix operator++ and the set's erase). Each takes the
+// hidden return pointer of its class-returning call first and the literal 0
+// second, which is what the original pushes at 0x4dadad and 0x4dae29.
 class Class_004dd2a0 {
 public:
     Node_004dacf0* ptr;
@@ -42,8 +80,7 @@ public:
     Class_004dd2a0() {}
     Class_004dd2a0(Node_004dacf0* q) : ptr(q) {}
     bool operator==(const Class_004dd2a0& o) const { return ptr == o.ptr; }
-    void FUN_004dd2a0();
-    Class_004dd2a0 FUN_004dbe10(int);
+    void FUN_004dbe10(int);
     Class_004dd2a0 FUN_004dbd80(int);
 
     // The original tests the iterators as a value (sete; neg; sbb; inc; test),
@@ -51,42 +88,20 @@ public:
     bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
 };
 
-// The map's value_type: the block's base address and its length, 8 bytes.
+// The map's value_type: the block's base offset and its length, 8 bytes.
+// No constructors: a user-provided default constructor makes MSVC 5 zero the
+// pair where the original has no store at all.
 struct Pair_004dacf0 {
     unsigned int offset;               // +0x0
     int length;                        // +0x4
-
-    Pair_004dacf0() : offset(0), length(0) {}
-    Pair_004dacf0(unsigned int o, int l) : offset(o), length(l) {}
 };
 
 // The insert helpers write an iterator and a flag through their first argument.
 struct Ins_004dacf0 {
     Node_004dacf0* ptr;
     unsigned char inserted;
-
-    Ins_004dacf0() {}
 };
 
-class Class_004dc620 {
-public:
-    void FUN_004dc620(Class_004dd2a0* out, Pair_004dacf0* kv);
-};
-
-class Class_004dbeb0 {
-public:
-    char unknown_0[4];
-    Node_004dacf0* head;               // +0x4
-
-    void FUN_004dbeb0(Class_004dd2a0* out);
-};
-
-class Class_004dbd00 {
-public:
-    Class_004dd2a0 FUN_004dbd00(Class_004dd2a0 it);
-};
-
-// The allocator: the free-block map, its block count and its reserved total.
 class Class_004db610 {
 public:
     char unknown_0[4];
@@ -127,9 +142,6 @@ public:
 class CritSec_004da780 {
 public:
     CRITICAL_SECTION cs;
-
-    CritSec_004da780() { InitializeCriticalSection(&cs); }
-    ~CritSec_004da780() {}
 };
 
 CritSec_004da780* FUN_004da780();
@@ -148,10 +160,11 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
     CritSec_004da780* lock = FUN_004da780();
     EnterCriticalSection(&lock->cs);
     unsigned int res = 0;
-    if (!n)
-        n = 1;
-    unsigned int need = FUN_004da8c0(n);
-    unsigned int want = FUN_004da8a0(n);
+    unsigned int size = n;
+    if (!size)
+        size = 1;
+    unsigned int need = FUN_004da8c0(size);
+    unsigned int want = FUN_004da8a0(size);
     if (want < need) {
         LeaveCriticalSection(&lock->cs);
         return 0;
@@ -160,13 +173,13 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
     Class_004db610* map = FUN_004db610();
     unsigned int wraps = 0;
     unsigned int base = 0;
+    unsigned int len = 0;
+    unsigned int key = 0;
+    Pair_004dacf0 p;
+    Ins_004dacf0 ins;
     Class_004dd2a0 n2;
     Class_004dd2a0 b;
     Class_004dd2a0 cur;
-    Pair_004dacf0 p;
-    Ins_004dacf0 ins;
-    unsigned int len;
-    unsigned int key;
 
     if (map->count <= wraps)
         goto alloc_new;
@@ -176,18 +189,18 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
     map->FUN_004dc620(&n2, &p);
     map->FUN_004dbeb0(&b);
     if (n2.Neq(n2, b)) {
-        Class_004dd2a0 prev = n2;
-        prev.FUN_004dbe10(0);
-        if (DAT_005289d4 >= prev.ptr->key &&
-            want + DAT_005289d4 <= prev.ptr->key + prev.ptr->length)
-            n2 = prev;
+        b.ptr = n2.ptr;
+        b.FUN_004dbe10(0);
+        if (DAT_005289d4 >= b.ptr->key &&
+            want + DAT_005289d4 <= b.ptr->key + b.ptr->length)
+            n2.ptr = b.ptr;
     }
-    cur = n2;
+    cur.ptr = n2.ptr;
 
     for (;;) {
-        if (cur == map->head) {
+        if (cur == (Class_004dd2a0(map->head))) {
             map->FUN_004dbeb0(&b);
-            cur = b;
+            cur.ptr = b.ptr;
             DAT_005289d4 = 0;
             DAT_00528a00++;
             wraps++;
@@ -229,8 +242,11 @@ alloc_new:
     if (base) {
         res = (unsigned int)VirtualAlloc((void*)base, need, MEM_COMMIT,
                                          PAGE_READWRITE);
-        if (res == 0)
-            map->FUN_004db000(Pair_004dacf0(base, want));
+        if (res == 0) {
+            p.offset = base;
+            p.length = want;
+            map->FUN_004db000(p);
+        }
     }
 
 use_block:

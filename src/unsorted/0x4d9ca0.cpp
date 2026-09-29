@@ -1,5 +1,22 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, deepseek-v4.1-flash. Names are provisional.
 // NOT A MATCH: 69.5% best (v18). Correct shapes found this run, allocation still open.
+//
+// deepseek-v4.1-flash (this run): re-derived the whole function from the disassembly and
+// swept ~60 source shapes. The 69.5% body below is still the best. What I confirmed:
+// - The original caches BOTH counts in stack slots: n=count at [esp+0x1c], m=copied at
+//   [esp+0x14], and pc at [esp+0x24]; this is spilled at [esp+0x20] and i lives in ebp.
+//   Frame is 6 dwords (sub esp,0x18); ours is 4 (sub esp,0x10) with this in ebp.
+// - Declaring `int n = count;` (or n+m, or n+m+q) drops the score to 61.1 and shrinks the
+//   code to 629 bytes: the extra local makes MSVC give len ebp and this esi, it does NOT
+//   reproduce the original's spill. Direct member reads for count (below) stay at 69.5.
+// - tools/headers.py: 128 sets tried, all 69.5 (and 72 failed to compile), so no header fix.
+// - N-declarations sweep (0..400 extern int dummies) is FLAT at 69.5, so this is not
+//   compiler state; the source shape or the allocator's choice is what differs.
+// - Declaring r/s/q at function scope, shared vs per-loop i, int vs unsigned len, self
+//   pointer, inverted if/else, while loops, m via a reference: all <= 69.5.
+// Remaining single cause (per the brief's lesson): this must lose ebp to i, and len/n/m/pc
+// must all stay memory-resident. Every construct I found that lowers this's register weight
+// also promotes len into ebp; the two are one decision I could not split from the source.
 //
 // CERTAIN (byte-exact regions in v18, verified against disassembly):
 // - The grouped-bit conditions are SIGNED `i % 8`, not abs(): `i % 8` compiles to

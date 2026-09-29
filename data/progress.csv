@@ -1989,12 +1989,12 @@ address,size,file,symbol,status,similarity
 0x499c70,88,src/unsorted/0x499c70.cpp,?FUN_00499c70@@YGXPAUWeapon_499c70@@PAUUnit_499c70@@@Z,matched,100.0
 0x499cd0,376,src/unsorted/0x499cd0.cpp,?FUN_00499cd0@@YGHPAUWeapon_00499cd0@@PAUUnit_00499cd0@@M@Z,matched,100.0
 0x499e50,91,src/unsorted/0x499e50.cpp,?FUN_00499e50@@YGXPAUUnit_499e50@@@Z,matched,100.0
-0x499eb0,517,src/unsorted/0x499eb0.cpp,?FUN_00499eb0@@YGXPAUProjectile_00499eb0@@PAUUnit_00499eb0@@@Z,partial,89.8
+0x499eb0,517,src/unsorted/0x499eb0.cpp,?FUN_00499eb0@@YGXPAUProjectile_00499eb0@@PAUUnit_00499eb0@@@Z,matched,100.0
 0x49a0c0,85,src/unsorted/0x49a0c0.cpp,?FUN_0049a0c0@@YGXPAXPAUVec3_0049a0c0@@@Z,matched,100.0
 0x49a850,64,src/unsorted/0x49a850.cpp,?FUN_0049a850@@YGHPAUVec3i_0049a850@@@Z,matched,100.0
-0x49a890,488,src/unsorted/0x49a890.cpp,?FUN_0049a890@@YGFHHHHM@Z,partial,44.1
+0x49a890,488,src/unsorted/0x49a890.cpp,?FUN_0049a890@@YGFHHHHM@Z,partial,67.6
 0x49aa80,301,src/unsorted/0x49aa80.cpp,?FUN_0049aa80@@YGHPAUUnit_0049aa80@@PAUVec3_0049aa80@@1H@Z,partial,61.8
-0x49abb0,568,src/unsorted/0x49abb0.cpp,?FUN_0049abb0@@YGHPAUUnit_0049abb0@@0E@Z,partial,90.9
+0x49abb0,568,src/unsorted/0x49abb0.cpp,?FUN_0049abb0@@YGHPAUUnit_0049abb0@@0E@Z,partial,93.7
 0x49adf0,33,src/unsorted/0x49adf0.cpp,?FUN_0049adf0@@YGHHI@Z,matched,100.0
 0x49ae20,356,src/unsorted/0x49ae20.cpp,?FUN_0049ae20@@YAXXZ,matched,100.0
 0x49af90,103,src/unsorted/0x49af90.cpp,?FUN_0049af90@@YGXHPAUPacket_0049af90@@@Z,matched,100.0

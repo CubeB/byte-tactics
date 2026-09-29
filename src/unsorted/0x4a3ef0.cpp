@@ -35,6 +35,21 @@
 // `found == 0`-equivalent compare to a literal test, so the ecx zero must come
 // from a real variable the allocator will not spill.
 //
+// deepseek-v4.1-flash retry (issue 1644, 10 min, ~20 free --sym variants; see
+// build/scratch/0x4a3ef0/ledger.md for the full table). Confirmed the cause of
+// the int-version regression: `int lines` is linear-live from the compare
+// 0x4a3f4e across the 0x10 arm's calls (0x4a3fd3, 0x4a3fed, 0x4a3fff/0x4a400c),
+// so MSVC gives it a callee-saved register (ebp) and spills `entries`, which
+// rewrites the prologue; the char version folds `lines` and has no allocation
+// pressure, which is the only reason its prologue matches. New dead ends (all
+// free --sym): 0x80 arm comparing `field_da != lines` in the char version folds
+// back to `test dx,dx` (77.2, unchanged); `int n = lines`; lines declared
+// inside the found block (36.8); inside the 0x20 arm (32.6); n hoisted to
+// function scope (16 to 18); the `(field_da > size+1) ? ...` span ternary
+// (56.0, byte-identical); hoisting `field_c0`/`field_c6` before the 0x20 test
+// (30, so the original's load order there is not a hoisted local). Nothing
+// keeps `entries` in ebp and a 32-bit `lines` in ecx at once.
+//
 // The previous pass's notes, still accurate for the int version:
 //
 // PARTIAL, 56.0% (635 bytes against 629), up from 15.0% (Sonnet 5.5 retry, #1080).

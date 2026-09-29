@@ -2696,6 +2696,7 @@ address,size,file,symbol,status,similarity
 0x4c7080,72,src/unsorted/0x4c7080.cpp,?FUN_004c7080@@YGXH@Z,matched,100.0
 0x4c70d0,280,src/unsorted/0x4c70d0.cpp,?FUN_004c70d0@@YGXHPAURange@@HH@Z,partial,78.9
 0x4c71f0,280,src/unsorted/0x4c71f0.cpp,?FUN_004c71f0@@YGXHPAURange@@HH@Z,partial,80.0
+0x4c7310,617,src/unsorted/0x4c7310.cpp,?FUN_004c7310@@YGXHPAHPAVClass_004c6ae0@@PAUInfo_4c7310@@@Z,matched,100.0
 0x4c90b0,195,src/unsorted/0x4c90b0.cpp,?FUN_004c90b0@Class_004c90b0@@QAEPAV1@ABV1@@Z,partial,93.4
 0x4c9180,22,src/unsorted/0x4c9180.cpp,??0Class_004c9180@@QAE@XZ,matched,100.0
 0x4c91a0,16,src/unsorted/0x4c91a0.cpp,??0Class_004c91a0@@QAE@ABV0@@Z,matched,100.0
@@ -2752,6 +2753,7 @@ address,size,file,symbol,status,similarity
 0x4caa10,8,src/unsorted/0x4caa10.cpp,?FUN_004caa10@@YGHHHHHHHHHHH@Z,matched,100.0
 0x4caa20,22,src/unsorted/0x4caa20.cpp,?FUN_004caa20@@YGXHH@Z,matched,100.0
 0x4caa40,506,src/unsorted/0x4caa40.cpp,?FUN_004caa40@@YGHPAXPAUPCX_004caa40@@@Z,matched,100.0
+0x4cac40,640,src/unsorted/0x4cac40.cpp,?FUN_004cac40@@YGHPAXPAEHH1@Z,partial,56.0
 0x4caec0,98,src/unsorted/0x4caec0.cpp,?FUN_004caec0@@YGXPADPAUBitmap_004caec0@@@Z,matched,100.0
 0x4caf30,334,src/unsorted/0x4caf30.cpp,?FUN_004caf30@@YGPAUImage_004caf30@@PADPAE@Z,matched,100.0
 0x4cb080,235,src/unsorted/0x4cb080.cpp,?FUN_004cb080@@YGHPADPAI@Z,matched,100.0
@@ -2817,6 +2819,7 @@ address,size,file,symbol,status,similarity
 0x4cf370,348,src/unsorted/0x4cf370.cpp,?FUN_004cf370@Class_004cf370@@QAEPAPAUIDirectSoundBuffer@@PAUFile_004bb5d0@@KHHH@Z,matched,100.0
 0x4cf4d0,103,src/unsorted/0x4cf4d0.cpp,?FUN_004cf4d0@Class_004cf4d0@@QAEXPAPAUIDirectSoundBuffer@@@Z,matched,100.0
 0x4cf540,40,src/unsorted/0x4cf540.cpp,?FUN_004cf540@Class_004cf540@@QAEXHH@Z,matched,100.0
+0x4cf570,646,src/unsorted/0x4cf570.cpp,?FUN_004cf570@Class_004cf570@@QAEHHPAPAUUnit_004cf570@@PAUPos_004cf570@@@Z,partial,54.3
 0x4cf800,153,src/unsorted/0x4cf800.cpp,?FUN_004cf800@Class_004cf800@@QAEHHHHHHHH@Z,matched,100.0
 0x4cf8a0,153,src/unsorted/0x4cf8a0.cpp,?FUN_004cf8a0@Class_004cf8a0@@QAEHHHHHHHH@Z,matched,100.0
 0x4cfb40,82,src/unsorted/0x4cfb40.cpp,?FUN_004cfb40@Class_004cfb40@@QAEXXZ,matched,100.0

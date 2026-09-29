@@ -1,56 +1,52 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
-// 74.6 %. Everything matches except ONE thing: MSVC 5 rotates this loop, the
-// original does not.
+// 75.3 %. Only the loop's bottom block differs.
 //
-// Original (test at the top of the loop, one shared latch at 0x4aed26):
+// The original is a top-tested loop with ONE shared latch at 0x4aed26:
 //   0x4aeb10  mov [esp+0x1c], esi     ; i = 0
 //   0x4aeb14  lea ebp, [eax+0xd6]    ; induction variable = obj + 0xd6
 //   0x4aeb1a  lea ecx, [esp+0x10]    ; LOOP HEAD
-//   0x4aeb1e  call 0x4c3e10
+//   0x4aeb1e  call 0x4c3e10          ; FUN_004c3e10 (reset)
 //   0x4aeb23  push esi
 //   0x4aeb24  lea ecx, [esp+0x14]
-//   0x4aeb28  call 0x4c3490
+//   0x4aeb28  call 0x4c3490          ; FUN_004c3490(i)
 //   0x4aeb2d  test eax, eax
-//   0x4aeb2f  je 0x4aed3c
-//   ... body, every case "jmp 0x4aed26" ...
-//   0x4aed26  mov esi, [esp+0x1c]
+//   0x4aeb2f  je 0x4aed3c            ; exit
+//   ... switch, every case jmps 0x4aed26 ...
+//   0x4aed26  mov esi, [esp+0x1c]    ; SHARED LATCH
 //   0x4aed2a  add ebp, 0x15b
 //   0x4aed30  inc esi
 //   0x4aed31  xor ebx, ebx
 //   0x4aed33  mov [esp+0x1c], esi
 //   0x4aed37  jmp 0x4aeb1a
 //
-// Here MSVC duplicates the guard into the latch and leaves a copy in the
-// preheader, which pushes the "lea ebp,[eax+0xd6]" AFTER the guard (the two
-// calls clobber eax). What is needed is a source shape MSVC will not rotate.
+// The top of our loop matches the original exactly. What still differs: MSVC 5
+// copies the latch (inc esi / add ebp / xor ebx) into every switch case instead
+// of jumping to one shared block. The `while (1) { ...; if (!find) break; ... }`
+// form below is the only shape found that keeps the test at the top; every `for`
+// form (`for (i = 0; reset(), find(i); i++)`, `for (;;)` plus break, a
+// `do { } while (1)`, and a goto-built loop) is rotated by /O2, which duplicates
+// the reset/find guard into the latch instead.
 //
-// Tried, all still rotated: for(;;) with break; for with the guard as a comma
-// expression; while(1); while with the guard; unsigned index; i = 0 before the
-// if; the element pointer at function scope or walking with e++; a named
-// `def = 0` default; def reset in the for-increment; do{}while(0) and
-// while(1){break;} wrappers; goto out of the loop.
+// Tried and still duplicated the latch: an explicit `goto` to a shared label in
+// every case; per-case increments plus a default; `continue` in every case with
+// the increment in a for header; wrapping the condition in a `static inline`
+// helper returning 0/1 (that alone does keep the test at top); an inline helper
+// for the increment; a named `int def = 0` default; an explicit `case 9:` and
+// `default:`; a re-derived element pointer at the latch; replacing the latch's
+// `i++` with `i = i + 1`. None changed the duplication.
 //
-// The two shapes that DO keep the test at the top both duplicate the latch into
-// every switch case (+29 bytes), so they are worse:
-//   i = 0; while (1) { reset; if (!find(i)) break; <body> i++; }
-//   i = 0; while (1) { reset; if (!find(i)) goto done; <body> i++; goto lbl; }
-// Scratch copies: build/scratch/0x4aeac0/v/w4.cpp, vK.cpp, x3.cpp.
+// Case 6 is one register off as a consequence: the original keeps the old
+// hotornot in ecx AFTER the call (`mov ecx,[ebp-0xe]; xor eax,ecx; and eax,1;
+// xor eax,ecx`); ours loads it into esi before the call. All three spellings
+// tried (a local t, one expression, a separate `old` local after the call) put
+// it in esi or edx. Likely snaps once the loop allocation matches.
 //
-// Everything else in the function is byte-identical: the 0x114 frame and its
-// local order (parser 0x8, i 0x14, ret 0x18, path[256] 0x1c), the induction
-// variable folded to obj+0xd6 with stride 0x15b (so Elem_004aeac0 is 0x15b
-// bytes under #pragma pack(1)), `lea esi,[ebp-0xd6]` for the element pointer,
-// ebx holding the literal 0 that MSVC hoisted as the "default" argument and as
-// the field_ce/field_d6/field_144 stores, the 11-entry jump table on
-// e->type (case 9 empty, default -> latch), the maxchars clamp, the tail merge
-// of the "text" read that cases 3 and 4 share, the inlined strcpy, and the
-// exit's (short)(i-1) store to obj+0xb6.
-//
-// Case 6 is one register off from the original: the original gets ecx
-// (`mov ecx,[ebp-0xe]; xor eax,ecx; and eax,1; xor eax,ecx; mov [ebp-0xe],eax`),
-// the two spellings tried here give edx or esi for the old value. All three
-// are the same size, so it does not change the score.
+// Everything else is byte-identical: the 0x114 frame and local order, the
+// induction variable folded to obj+0xd6 with stride 0x15b, the 11-entry jump
+// table on e->type (case 9 empty, default -> latch), the maxchars clamp, the
+// tail merge of the "text" read that cases 3 and 4 share, the inlined strcpy,
+// and the exit's (short)(i-1) store to obj+0xb6.
 #include <string.h>
 
 class Class_004c46c0 {
@@ -175,8 +171,11 @@ int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
     FUN_004baff0(name, path, "GUI");
     if (((Class_004c2f60*)&parser)->FUN_004c2f60(path) == 1) {
         ret = 1;
-        for (i = 0; ((Class_004c3e10*)&parser)->FUN_004c3e10(),
-                    ((Class_004c3490*)&parser)->FUN_004c3490(i); i++) {
+        i = 0;
+        while (1) {
+            ((Class_004c3e10*)&parser)->FUN_004c3e10();
+            if (!((Class_004c3490*)&parser)->FUN_004c3490(i))
+                break;
             void* cur = ((Class_004c3e20*)&parser)->FUN_004c3e20();
             Elem_004aeac0* e = obj + i;
             FUN_004ad350(e, &parser);
@@ -232,6 +231,7 @@ int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
                 e->body.nuttin = parser.current->FUN_004c46c0("nuttin", 0);
                 break;
             }
+            i++;
         }
         obj->body.total = (short)(i - 1);
         ((Class_004c3240*)&parser)->FUN_004c3240();

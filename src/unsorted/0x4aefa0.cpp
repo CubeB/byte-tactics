@@ -1,6 +1,6 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free. Names are provisional.
 //
-// 72.2 % (298 of 300 instructions). Everything structural is in place, and the
+// 72.2 %. Everything structural is in place, and the
 // one place I expected an MSVC 5 bug to stop me came out byte identical on
 // its own: the swap of the second pointer list in the `_strcmpi` branch loads
 // its base from [esp+0x1c] (0x4af0b2, 0x4af189), which in the original holds
@@ -19,6 +19,28 @@
 // trip-count temp, then `end`) and 0x30 (`start`) are right, and the copy
 // loop's `out2` and counter land in the dead parameter slots 0x40 and 0x44
 // as in the original. The frame is the right 0x24.
+//
+// The frame order is NOT the declaration order. Verified: rewriting the nine
+// declarations into exactly the order the original's slots come out in
+// (swapped, ptr2, n, ptr1, buf2, buf1, end, start) leaves every slot
+// unchanged, so MSVC 5 is picking these from something intrinsic (liveness
+// and the first store), not from source order.
+//
+// The first loop names ONE cause for both the slot permutation and the
+// register difference, and it is not the slots. The original SPILLS `count`:
+// it reloads it from the parameter slot 0x44 at the latch compare (0x4af043),
+// which frees the fourth callee-saved register, so `ptr1` keeps a register
+// copy in ebx across the loop and the `ptr2 - ptr1` stride demotes to ebp.
+// This file keeps `count` in ebp (0x4aeffa) and compares against it directly,
+// so it spills `ptr1` instead: the stride gets ebx and `ptr1` is re-read from
+// its slot at 0x4af06d. The same spill is why the bubble loop's setup is one
+// instruction longer here (`mov edx, ecx`, `sub edx, eax`, `lea esi, [eax+4]`)
+// where the original reuses the surviving ebx copy of `ptr1` (`sub eax, ebx`
+// at 0x4af07f, `lea esi, [ebx+4]` at 0x4af07c). So whatever makes MSVC 5
+// treat `count` as the lower priority of the two is the thing to try next: it
+// would fix the first loop, the bubble setup and maybe the frame order at
+// once. Adding a named local live across the `FUN_004b6af0` calls in that
+// loop (the guide's live-node lever) makes it worse, 69.3 %.
 //
 // Knock-on effects of the permutation, all in the first loop and the copy
 // loop: the original keeps ptr1 in ebx and the ptr2-ptr1 stride in ebp and

@@ -1,10 +1,21 @@
-// Decompiled by GPT-5.6-Terra. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash. Names are provisional.
 // Draws the "waiting for other players" progress bars: one bar per connected
 // player, each 620/n wide, with a fill proportional to that player's percent.
-// Partial, 90.4%: a break-on-ineligible player loop preserves most of the
-// original body's register allocation, but its index remains stack-resident.
-// The original scans all ten entries with ecx as a byte offset; direct for and
-// do/while translations moved the full drawing body's temporary registers.
+//
+// Partial, best 90.4% (this break-loop form). The original skips ineligible
+// players and tests the ten-entry bound at the bottom:
+//   0x497ec0  cmp ecx, 0xcee / jl 0x497dec        (ecx holds the byte offset)
+// so the second loop is a real `for (j = 0; j < 10; j++)` with `continue`.
+// Writing it that way reproduces the loop head and tail byte for byte
+// (ecx as a byte-offset induction variable, spilled to [esp+0x10]), but then
+// MSVC picks eax/edx instead of ecx/edx for the body's bar-drawing temporaries,
+// a global ecx<->eax rotation, and the score drops to 80.3%.
+// This break-loop form keeps the body's register allocation right (because the
+// index never occupies ecx) but emits a break instead of a bound test and a
+// stack increment instead of the ecx compare/jl, which is the 90.4% residue.
+// Next step: find the source shape that gives both, likely by making the index
+// operand come back through g_game so MSVC's LEA keeps ebx as base, see the
+// note in 0x4848e0.cpp.
 #include <stdio.h>
 
 #pragma pack(push, 1)

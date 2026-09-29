@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free and deepseek-v4.1-flash. Names are provisional.
 // Partial, 93.7% (576 of 568 bytes; up from 90.9%). Logic, offsets and every branch match.
 // Two things moved it: `(height >> 1) + whole` (not `whole + (height >> 1)`) gives the
 // original's `add edx, ecx` operand order in the half-height test, and the two includes
@@ -56,6 +56,27 @@
 // allocator decision inside the line-of-fire block. It is not an operand order, a
 // frame size, a call count or a convention problem, and it is not reachable by
 // reordering the arguments.
+//
+// ---- deepseek-v4.1-flash pass, 10 scratch variants, best still 93.7% ----
+// Confirmed the guide's own note (docs/agent-guide.md, "A by-value struct
+// argument can decide the register allocation"): a struct-returning helper is
+// the ONLY thing that produces the original's `lea edx,[ebx+0x6a]` and keeps the
+// unit in ebx. Applying it to the FIRST argument (`Id(unit2->pos)` or
+// `CopyPos(unit2)`, the guide's exact recipe) gives 92.1%/579: lea and ebx are
+// right, but the helper's return buffer makes MSVC store all THREE fields of
+// `from` (the original keeps from.y in ebp) and it hoists w->field_c8/field_68
+// ahead of the differences. Applying the same helper to the SECOND argument
+// (`to`, unit1->pos) is optimised away completely and scores exactly this file
+// (93.7%): MSVC forwards the second by-value aggregate no matter what, so it
+// never materialises and never evicts ebx. Both helpers at once is also 93.7%.
+// Also no better: helper result assigned to a local then passed (92.1%), field
+// values copied into locals first (92.1%), pointer params (49.8%), a member
+// function taking the first Vec3 by value (76.8%, frame collapses to 8), and
+// all 128 header sets (headers.py: best 93.7%, no change). So the residual is
+// exactly an ebx live-range split: the original keeps the unit in ebx across
+// the line-of-fire block, ours reuses ebx for `&unit2->pos` (`add ebx,0x6a`)
+// and reloads it once afterwards. Landing a real copy whose y stays in a
+// register without the three-field store is what remains.
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)

@@ -30,6 +30,13 @@
 // terms, and 2.0*gh all leave the schedule byte-identical at 67.6%. The middle looks
 // like one allocator state seeded by that first g/height load order, not by the disc
 // expression. No check.py MATCH.
+//
+// deepseek-v4.1-flash retried (issue #1431): 6 more runs, none above 67.6%. Named
+// locals (A, sum, h2, d4, s2m) drop to 47-53%, a static inline helper for the
+// discriminant to 61.7%. Changing the right term from `(d*d)*((double)gg*sum)` to
+// left-assoc `(d*d)*(double)gg*sum` (the true grouping, per the fcompp order in the
+// disassembly) leaves the output byte-identical at 67.6%: MSVC reassociates either way.
+// The extra 0x8 of frame and the height-before-g fild order are still what differ.
 #include <stdio.h>
 #include <math.h>
 

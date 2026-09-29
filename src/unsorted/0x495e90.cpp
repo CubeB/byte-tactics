@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 52.7%: in-game command/gadget event dispatcher, 2292 bytes (exactly
-// the original size, so the frame and jump table sizes agree).
+// PARTIAL 67.9%: in-game command/gadget event dispatcher, original 2292 bytes,
+// ours 2312 (20 bytes long; structure and jump tables agree).
 //
 // What is known to be right:
 // - FUN_004c1ab0 returns the event, 0 means return; FUN_004c1b80(0xf9) returns
@@ -12,30 +12,42 @@
 //   (0x21/0x23/0x2a/0x60/0x7e all fold to 0x496058; 0xab|0xae..0xbb|0xbd..0xc2
 //   all fold to 0x4963d8; 0x2b|0x3d fold to 0x496570; 0x2d|0x5f fold to
 //   0x496512). Cases written as one chain (0x31..0x39, 0xc5..0xcd, 0xd2..0xd5,
-//   0xe6..0xe9) get one slot. Grouping the five 0x496058 cases as a chain makes
-//   our size come out exactly 2292 while scoring 52.7%.
+//   0xe6..0xe9) get one slot.
 // - Case bodies in memory are NOT in value order. Physical order starts at
 //   0x495ed4 with case 0x1b and ends at 0x496570 with 0x2b/0x3d; writing the
-//   switch in that order raised the score 40.5 -> 52.7.
+//   switch in that order is what makes the jump table line up.
 // - The 0x4963d8 "CTRL_%c" body is sprintf(buf, "CTRL_%c", event - 0x69) then
 //   FUN_0048bf30(buf, key). ebp is the event, not a frame pointer (there is no
 //   mov ebp,esp), so lea reg,[ebp-0x69] is the character for %c.
 //
-// What still differs (all register allocation / codegen shape, no logic left):
-// - Original keeps event in ebp, zero in ebx, key in esi, and uses edi only for
-//   the self-destruct loop count. Ours puts event in edi, zero in ebp and
-//   spills event to [esp+0x10] (needed because our self-destruct loop reuses
-//   edi), so every lea [ebp-N] becomes lea [edi-N] and push ebx becomes push
-//   ebp. If MSVC picks ebp for event these should snap.
-// - Test polarity at +0x37ebe: the original is `test byte ptr [m],1`, ours
-//   loads the word and does `test al,1`.
-// - Big locals are declared inside their cases (movie search block at
-//   esp+0x28, path buffer esp+0x140, self-destruct vector) so their slots move
-//   between cases; offsets were not instrumented.
+// What made the score jump 52.7 -> 67.9 (one shared upstream cause):
+// - Case 0xad in the original is a std::vector<int> with a POINTER loop over
+//   _First/_Last, not a fixed int[6] count loop. The int[6] count loop occupied
+//   ebx as the counter and ebp as the found flag, which demoted event from ebp
+//   to edi and spilled it. Using std::vector<int> and a begin()/end() iterator
+//   loop freed ebx for the zero constant and snapped the whole function to the
+//   original allocation: event in ebp, zero in ebx, key in esi, found in edi.
+//   The 2nd argument of FUN_00439e30 and the 3rd of FUN_0048cf30 are the first
+//   dword of the Class_00438760 "SELFDESTRUCT" object, not a vector element.
+// - Case 0x1b and the inner test of case 0x31 are laid out with the "then"
+//   block as the fall-through arm; swapping the if/else arms to match the
+//   original's block order gained ~5 points.
+//
+// What still differs (codegen shape, no logic left):
+// - Case 0xf8 builds its 3-byte packet differently: the original stores the
+//   bytes then pushes 3/&buf and calls FUN_0044fdb0 then FUN_00451df0; ours
+//   reorders the flag read after the call.
+// - `cmp eax, ebx` (call result vs the zero register) in case 0x1b is `test
+//   eax, eax` in ours.
+// - Big locals are declared inside their cases (movie search block, path
+//   buffer, self-destruct vector) so their stack slots differ by 0x10 from the
+//   original's shared low region (original: CTRL buffer esp+0x10, findData
+//   esp+0x28, path esp+0x140).
 
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 #pragma pack(push, 1)
 
@@ -142,6 +154,7 @@ public:
 class Class_00438760 {
 public:
     Class_00438760(const char* name);
+    char* name;                         // +0
 };
 
 extern Game_495e90* g_game;
@@ -206,22 +219,22 @@ void FUN_00495e90(void)
 
     switch (event) {
     case 0x1b:
-        if (!g_game->flags_37ebe.b0) {
-            if (g_game->field_2cc3 == 1) {
-                FUN_0048bd00();
-                FUN_00491d70(1);
-            } else {
+        if (g_game->flags_37ebe.b0) {
+            g_game->flags_37ebe.b0 = 0;
+            if (FUN_004ab060(&g_game->gui, g_game->field_37ea0) == 0) {
+                g_game->field_37e9c = 0;
+                FUN_004a9660(&g_game->gui);
+            }
+        } else {
+            if (g_game->field_2cc3 != 1) {
                 g_game->field_2cc3 = 1;
                 g_game->field_2cc6 = g_game->field_2cc6 & 0xdf;
                 int handle = FUN_0049fe60(*(int*)(g_game->field_531 + 4), "STOP");
                 if (handle != -1)
                     FUN_004a6a40(&g_game->gui, handle);
-            }
-        } else {
-            g_game->flags_37ebe.b0 = 0;
-            if (FUN_004ab060(&g_game->gui, g_game->field_37ea0) == 0) {
-                g_game->field_37e9c = 0;
-                FUN_004a9660(&g_game->gui);
+            } else {
+                FUN_0048bd00();
+                FUN_00491d70(1);
             }
         }
         break;
@@ -249,19 +262,17 @@ void FUN_00495e90(void)
     case 0x38:
     case 0x39:
         if (g_game->flags_37f06.b8) {
-            if (FUN_004c1b80(0xfb) != 0)
-                FUN_0041c060(event - 0x31);
-            else {
+            if (FUN_004c1b80(0xfb) == 0) {
                 FUN_0048d9a0(event - 0x30, key);
                 FUN_0047f1a0("SelectSquad", 0);
-            }
+            } else
+                FUN_0041c060(event - 0x31);
         } else {
-            if (FUN_004c1b80(0xfb) == 0)
-                FUN_0041c060(event - 0x31);
-            else {
+            if (FUN_004c1b80(0xfb) != 0) {
                 FUN_0048d9a0(event - 0x30, key);
                 FUN_0047f1a0("SelectSquad", 0);
-            }
+            } else
+                FUN_0041c060(event - 0x31);
         }
         break;
 
@@ -444,23 +455,19 @@ void FUN_00495e90(void)
         break;
 
     case 0xad: {
-        int found = 0;
-        int sel[6];
-        FUN_0048ca20(sel);
+        std::vector<int> sel;
+        FUN_0048ca20(&sel);
         Class_00438760 order("SELFDESTRUCT");
-        int i = 0;
-        while (i < 6) {
-            int unit = sel[i];
-            int r = FUN_00439e30(unit, sel[0]);
+        int found = 0;
+        for (std::vector<int>::iterator it = sel.begin(); it != sel.end(); ++it) {
+            int r = FUN_00439e30(*it, (int)order.name);
             if (r != 0) {
                 found = 1;
-                FUN_00439f80(unit, r);
+                FUN_00439f80(*it, r);
             }
-            i++;
         }
         if (found == 0)
-            FUN_0048cf30(g_game->orders_2c76, 0, 0, 0, 0, 0);
-        operator delete(sel);
+            FUN_0048cf30(g_game->orders_2c76, 0, (int)order.name, 0, 0, 0);
         break;
     }
 

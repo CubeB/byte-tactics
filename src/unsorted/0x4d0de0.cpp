@@ -1,25 +1,18 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// LZSS tree walk: walks the 6 byte node array of DAT_00526ff0 (parent, smaller,
-// larger) starting at the root's larger link, comparing the character the
-// candidate node's window position holds against the one at pos, keeping the
-// longest run, and inserting or replacing a node. pos is a window position, so
-// every index is masked with 0xfff into the 0x1011 byte window DAT_00526ff4.
-// The inner loop counts matching bytes up to 0x11: MSVC keeps the running index
-// in the parameter's register and adds it to the loop invariant (cur - pos), so
-// the source needs the subtraction in a local of its own (writing the sum
-// inline lets MSVC fold it back to cur + i and the frame changes).
-// NOT MATCHED yet: 373 bytes original, ours 362, 57.3%. The frame (push ecx as
-// the single local slot, arg1 in ecx, both epilogues), the loop shapes and the
-// instruction order all match, but the register assignment is permuted: the
-// original has cur in esi, delta in edi, diff in edx (and reuses edi for best
-// once the inner loop is done), while this source gives diff in esi, cur in
-// edi, delta in edx. That permutation also moves the tree walk, where the
-// original reloads DAT_00526ff0 in each arm of the larger/smaller choice and
-// this source hoists that load and the index before the test. Swapping the
-// declaration order of cur/best, of delta/diff and inlining (cur - pos + j)
-// were all tried and changed nothing (inlining also loses the frame).
-// The par->smaller == cur test needs its (unsigned short) cast: without it the
-// compare is 32 bit, as in 0x4d0b80.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, re-checked by space-bunny-free. Names are provisional.
+// LZSS tree walk (see 0x4d0b80.cpp and 0x4d0c50.cpp for the same node layout):
+// walks the 6 byte node array of DAT_00526ff0 (parent, smaller, larger) from the
+// root in root_larger, comparing 17 window bytes at cur + n against pos + n and
+// keeping the longest run, then inserts or replaces a node. The window is the
+// 0x1011 byte buffer DAT_00526ff4 and every index is masked with 0xfff.
+// The inner loop index must be (cur + n), not (cur - pos) + j: referencing cur
+// inside the loop is what makes MSVC give cur esi, pos ecx, best edi and the
+// differing byte edx, which put the frame and every tree-walk address in place
+// (57% to 93%, and the file shrank from 362 to the original's 373 bytes).
+// The tree addressing modes ([edx + edi] rather than [edi + edx]) depend on the
+// compiler state: <stdio.h> (or <windows.h>) at the top makes them match the
+// original (tools/headers.py reports 126 sets that do).
+#include <stdio.h>
+
 struct Node_004d0de0 {
     unsigned short parent;   // +0x0
     unsigned short smaller;  // +0x2
@@ -44,10 +37,9 @@ int __stdcall FUN_004d0de0(int pos, int* out)
     int best = 0;
     int cur = DAT_00526ff0->root_larger;
     for (;;) {
-        int n, j, delta, diff;
-        delta = cur - pos;
+        int n, j, diff;
         for (n = 0, j = pos; n < 0x11; n++, j++) {
-            diff = DAT_00526ff4[j & 0xfff] - DAT_00526ff4[(delta + j) & 0xfff];
+            diff = DAT_00526ff4[j & 0xfff] - DAT_00526ff4[(cur + n) & 0xfff];
             if (diff != 0)
                 break;
         }

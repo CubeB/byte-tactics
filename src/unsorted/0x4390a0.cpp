@@ -1,18 +1,19 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 92.7% (1080 bytes vs original 1073). Everything matches except the
-// radius clamp in the first branch:
-//   * `int radius = 8;` must live at the top of the `g_game->field_391bf == 0`
-//     block to put view in edi (as the original does); declaring it inside the
-//     inner `if` instead swaps view to ebp and radius to edi (90.1%).
-//   * But at block scope the compiler gives radius a stack slot
-//     (`mov [esp+0x14], 8` at 0x4390d9 area, reloaded as `mov ebp,[esp+0x14]`)
-//     and rewrites the max as `mov ebp,edx; jae; mov ebp,[esp+0x14]`, where the
-//     original keeps it in ebp and emits `mov ebp,8; cmp edx,8; jb; mov ebp,edx`.
-//   * The original's `cmp edx,8` immediate is unsigned (t unsigned vs int 8,
-//     92.7% version) and the second compare is signed (`cmp ebp,esi; jl`), so
-//     r and radius are `int` and t is `unsigned int`. That part is right.
-// Also note the original reads pos as `node->unit->pos`, not `&unit->pos`;
-// using the unit local makes MSVC emit `lea` and drops the whole match to 49.6%.
+// PARTIAL 92.8% (1082 bytes vs original 1073). The only difference is where
+// MSVC puts the `radius` clamp: the original keeps radius in ebp across the
+// whole block and emits
+//     mov ebp, 8 ; cmp edx,8 ; jb keep ; mov ebp,edx
+// whereas every source shape tried here makes the allocator either spill
+// radius to a stack slot (92.7-92.8%) or hand it edi and push view into ebp
+// (90.1%). Declaring radius after the mincloak block (this file) scores
+// 92.8%; at the top of the block 92.7%; inside the weapon if, or after t,
+// 90.1%; before `r`, 83%.
+// Everything else matches byte for byte, including the clamps' signedness:
+// `t` is unsigned (`cmp edx,8; jb`), `r` and radius are int (`cmp ebp,esi;
+// jl`), and the position is read as `&node->unit->pos` (using the `unit`
+// local makes MSVC emit `lea` and drops the whole match to 49.6%).
+// Suspected bug: the weapon3 test reads slots[0].flags (unit+0x1f) but the
+// range from slots[2].weapon (unit+0x48); slots[2].flags is at unit+0x57.
 #pragma pack(push, 1)
 
 struct Pos_004390a0 {
@@ -105,11 +106,11 @@ void __stdcall FUN_004390a0(void* surface, View_004390a0* view, Node_004390a0* n
     Def_004390a0* def = unit->def;
     int index = 0;
     if (g_game->field_391bf == 0) {
-        int radius = 8;
         short mincloak = def->minCloakDistance;
         if (mincloak != 0 && (unit->field_10e & 4)) {
             FUN_00438ea0(surface, view, &node->unit->pos, mincloak, g_game->field_dda, 0, 0);
         }
+        int radius = 8;
         if ((def->flags & 0x10000000) && def->weapon_220 != 0) {
             int r = def->weapon_220->field_d6;
             r = r >> 1;

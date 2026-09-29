@@ -1,15 +1,33 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
-// PARTIAL. Air-movement counterpart of the ground mover 0x43cd20 (see
-// 0x43dd20, which dispatches on unit->type->flags bit 11). The object is the
-// same 0x2f-byte behaviour holder as 0x43dc00/0x43de30.
+// PARTIAL. Air-movement counterpart of the ground mover 0x43cd20. The object
+// is the same 0x2f-byte behaviour holder as 0x43dc00/0x43de30; its obj pointer
+// sits at +0 and the path object's slot 4 (vtable +0x10) fills two Vec3 and a
+// short heading.
 //
-// Semantics recovered from the disassembly; what still differs is the frame
-// and the register allocation of the x87 block: the original's floating point
-// stack keeps f18, the heading step and the two scaled values live across the
-// _hypot call, and the two dead stores at 0x43d4ae/0x43d4be into the delta
-// Vec3 (overwritten at 0x43d6a1/0x43d6ab) are not reproducible from the
-// expressions below, so the initial delta computation is still wrong.
+// Semantics recovered from the disassembly, score 50.7%. What still differs
+// (all three are one problem seen three ways: the original keeps more values
+// live in fixed registers):
+//  - The original holds this in edi and &p1 in esi, and it has both in the
+//    early-return branch (field_20/field_24 through edi, p1 through esi). Ours
+//    keeps this in esi and materialises &p1 in edi only inside the taken
+//    branch, so edi is pushed after the mode test instead of at entry. A local
+//    Vec3* pointing at p1 (whole function or early block only) compiles away
+//    and does not move it.
+//  - Frame: original sub esp,0x48 (FPO 18 dwords), ours 0x4c; every local
+//    displacement is 4 too high. The original also spills maxd and g to the
+//    incoming argument slot at [esp+0x5c] (E+4) and the high half of the f
+//    quotient to [esp+0x30], which we place inside the frame.
+//  - x87: the original keeps f18, k, the scaled (p1-b) pair, the (pos-a)
+//    deltas and the two hypot results live across the _hypot/_ftol calls in a
+//    specific stack order, visible as the fxch st(n) chain at 0x43d5a0..0x43d5fa
+//    and the rescale at 0x43d618..0x43d62e. Writing the velocity as the two
+//    plain expressions below produces the right values but a different fxch
+//    schedule.
+//
+// The class layout was fixed this round: obj is at +0 (not after the
+// bitfields) and the path object's slot is vtable +0x10, both taken directly
+// from the disassembly.
 
 #include <math.h>
 
@@ -56,7 +74,8 @@ struct Game_0043d290 {
 
 class Class_0043d210 {
 public:
-    char unknown_0[8];
+    void* obj;                                  // +0x0
+    int field_4;                                // +0x4
     Vec3 p1;                                    // +0x8, velocity
     Vec3 p2;                                    // +0x14
     int field_20;                               // +0x20, distance accumulator
@@ -66,8 +85,6 @@ public:
     unsigned char mode : 2;                     // +0x2e bits 0-1
     unsigned char flag : 1;                     // +0x2e bit 2
     unsigned char rest : 5;
-
-    void* obj;                                  // +0x0
 
     void FUN_0043d0d0(Unit_0043d290* unit, Vec3* v);
     void FUN_0043d290(Unit_0043d290* unit);
@@ -82,7 +99,8 @@ public:
     virtual void v0();
     virtual void v1();
     virtual void v2();
-    virtual void v3(Vec3* a, Vec3* b, short* heading);
+    virtual void v3();
+    virtual void v4(Vec3* a, Vec3* b, short* heading);
 };
 
 extern Game_0043d290* g_game;
@@ -106,7 +124,7 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit)
     Vec3 a;
     Vec3 b;
     short heading;
-    ((Iface_0043d290*)obj)->v3(&a, &b, &heading);
+    ((Iface_0043d290*)obj)->v4(&a, &b, &heading);
 
     UnitType_0043d290* type = unit->type;
     const float eps = 1.52587890625e-05f;
@@ -121,7 +139,7 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit)
     float dist = (float)_hypot(p1.x, p1.z) * eps;
     float maxd = (float)type->field_19a * eps;
     if (dist > maxd) {
-        int f = (int)((double)(maxd / dist) * 65536.0);
+        __int64 f = (__int64)((double)(maxd / dist) * 65536.0);
         p1.x = (int)(((__int64)p1.x * f) >> 16);
         p1.z = (int)(((__int64)p1.z * f) >> 16);
         int g = (int)((double)(dist - maxd) * 65536.0);
@@ -130,22 +148,27 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit)
         p1.z -= FUN_004b7123(h, g);
     }
 
-    int dy = unit->pos.y - a.y;
+    int dax = unit->pos.x - a.x;
+    int day = unit->pos.y - a.y;
+    int daz = unit->pos.z - a.z;
+    int dbx = p1.x - b.x;
+    int dbz = p1.z - b.z;
+
     if (unit->field_82 != g_game->field_142b7) {
         int lim;
-        if ((field_20 & 0xfffffffc) < 0x40000)
+        if ((field_20 & -4) < 0x40000)
             lim = 0x10000;
         else
             lim = field_20 >> 2;
-        if (dy <= -lim)
+        if (day <= -lim)
             p1.y = lim;
-        else if (dy >= lim)
+        else if (day >= lim)
             p1.y = -lim;
         else
-            p1.y = -dy;
+            p1.y = -day;
     }
 
-    float hd = (float)_hypot(unit->pos.x - a.x, unit->pos.z - a.z) * eps;
+    float hd = (float)_hypot(dax, daz) * eps;
     short d = (short)(heading - unit->f64.y);
     if (d == 0) {
         field_24 = 0;
@@ -165,8 +188,8 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit)
         hd = 8.0f;
 
     float k = -(float)sqrt((2.0f * f18) / hd);
-    float vx = (float)(p1.x - b.x) * k * eps - (float)(unit->pos.x - a.x) * eps;
-    float vz = (float)(p1.z - b.z) * k * eps - (float)(unit->pos.z - a.z) * eps;
+    float vx = (float)dbx * k * eps - (float)dax * eps;
+    float vz = (float)dbz * k * eps - (float)daz * eps;
     float mag = (float)_hypot(vx, vz);
     if (f18 < mag) {
         vx = vx * (f18 / mag);

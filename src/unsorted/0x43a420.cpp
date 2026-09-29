@@ -1,10 +1,16 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (55.4%): the body matches structurally, but MSVC 5 will not overlap
-// the inlined UTYPENAME key buffer with the later "<name>g" buffer, so our
-// frame is 0x1c8 against the original's 0x164 and every stack-relative offset
-// (and the trailing jump table addresses) differs. The original reuses the
-// snapshot+0x5c / +0x74 slots: buf1 "<name>_name" at +0xf4, UTYPENAME key at
-// +0x74, "<name>g" at +0x54.
+// PARTIAL (66.3%): frame is 0x168 against the original's 0x164, so every
+// stack-relative offset and the trailing jump table addresses still differ.
+// The buffer layout is now right: snapshot at +0x08, "<name>g" is a 0x20
+// buffer at +0x44, the UTYPENAME key is 0x80 at +0x64 and "<name>_name" is
+// 0x80 at +0xe4 (the key does not overlap the "<name>g" buffer; the previous
+// note was wrong). The remaining 4 bytes are one extra temporary: the
+// original reuses +0x00 for its `s` pointer and then for the inlined
+// resolver's `k`, while MSVC gives our `s` +0x04 and keeps `k` at +0x00.
+// Also missing is the original's early `link.FUN_00489690(0)` call, and the
+// original loads `file` into ebx and `name` into esi (ours swaps them).
+// The SaveDesc struct must be inside `#pragma pack(1)` or its +0x0a flags6
+// lands at +0x0c and shifts every later snapshot field.
 // The file-loading constructor of Class_0043a1f0, the mirror of the
 // serialiser FUN_0043a970. Reads a 0x3a-byte snapshot, recovers the kind
 // index either from the "<name>_name" key or, failing that, from the saved
@@ -49,6 +55,7 @@ struct Game_0043a420 {
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
 struct SaveDesc_0043a420 {             // the 0x3a-byte snapshot, read raw
     unsigned short unitType;           // +0x00
     unsigned short ownerType;          // +0x02
@@ -66,6 +73,7 @@ struct SaveDesc_0043a420 {             // the 0x3a-byte snapshot, read raw
     unsigned int flags;                // +0x32
     int field_36;                      // +0x36
 };
+#pragma pack(pop)
 
 // Every file method is a slot of the same parsed-text object, but each is
 // named after its own address, so one class apiece.
@@ -220,16 +228,15 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
     char* s = ((Class_004b48a0*)file)->FUN_004b48a0(buf1, 0);
-    unsigned char kindIndex;
     if (s != 0) {
         Entry_0043a420* e = FUN_0043c6b0(DAT_00512344, DAT_00512348, s, FUN_0043a940, 0);
         if (e == DAT_00512348 || _strcmpi(e->name, s) != 0)
-            kindIndex = 0;
+            desc.kind = 0;
         else
-            kindIndex = (unsigned char)((e - DAT_00512344) / 0x19);
+            desc.kind = (unsigned char)((e - DAT_00512344) / 0x19);
     } else {
-        kindIndex = 0;
-        unsigned int k = 0;
+        int k = 0;
+        int idx = 0;
         Entry_0043a420* p = DAT_00512344;
         if (p <= DAT_00512348) {
             do {
@@ -238,10 +245,11 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
                         break;
                     k++;
                 }
-                kindIndex++;
+                idx++;
                 p++;
             } while (p <= DAT_00512348);
         }
+        desc.kind = (unsigned char)idx;
     }
 
     Unit_0043a420* u;
@@ -251,13 +259,13 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
         u = g_game->units + desc.unitType;
     if (punit != u)
         return;
-    if (kindIndex == 0)
+    if (desc.kind == 0)
         return;
 
     unit = punit;
     link.FUN_00489690(FUN_00487080(desc.ownerType, file));
 
-    kind = kindIndex;
+    kind = desc.kind;
     flag5 = desc.flag5;
     flags6 = desc.flags6;
     last_id = desc.last_id;
@@ -270,14 +278,14 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
     flags = desc.flags;
     field_4e = desc.field_36;
 
-    char* sname = DAT_00512344[kindIndex].name;
+    char* sname = DAT_00512344[desc.kind].name;
     if (strcmp(sname, "MobileBuild") == 0 || strcmp(sname, "VTOL_MobileBuild") == 0 ||
         strcmp(sname, "BuildingBuild") == 0) {
         char key[0x80];
         field_36 = ResolveType_0043a420(file, (unsigned short)field_36, key);
     }
 
-    char buf3[0x80];
+    char buf3[0x20];
     sprintf(buf3, "%s%s", name, "g");
     switch (desc.field_4) {
     case 2:

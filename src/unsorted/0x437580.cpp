@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // std::vector<Class_00437820>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
 // static vector at 0x5122c0 (see 0x434a30.cpp); its only caller, 0x4373a0,
@@ -50,6 +50,13 @@
 //   ecx (reloaded after every copy-constructor call), _M in edi and hoists
 //   &_X into ebp. All four callee-saved registers are allocated differently,
 //   so no local spelling of the instantiation reaches it.
+//
+// deepseek-v4.1-flash retry (still 78.9%, 649 bytes): moved the body out of
+// the class with an explicit member specialization and re-tested element
+// declaration combos (only copy ctor, only operator=, only an inline
+// destructor, copy ctor + destructor). All 78.9% with the identical diff.
+// Hand-expanding the first _Ucopy loop made it worse (673 bytes, 73.5%).
+// The allocation of {_P, _M, _X} over {edi, ebp} is fixed by TU state.
 #include <vector>
 
 class Class_004c9390 {

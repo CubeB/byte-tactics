@@ -1,22 +1,33 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
 // Started by longcat-2.5-preview-free, continued by deepseek-v4.1-flash and GPT-6.
-// Partial: 64.7%, 4239 bytes versus 4247. The frame is now the original 0x23c
-// (char[16] " M:%d" buffer declared between text and amount), and swapping the
-// memcmp arguments to (saved, &snapshot) puts the cmpsb sources in the right
-// registers and adds 0.1%. What still differs is register allocation only:
-// param_1 homes to esi versus the original edi, the first icon loop keeps its
-// bitmap in edi versus the original esi, and the PFSTATE/PFABLE pair spills.
-// The snapshot/resource block is emitted
-// after the strncpy path in the original, so the `snapshot.button == -1` test is
-// written inverted with the strncpy arm first.
-// Still differs: register allocation (see above), so most [esp+N] live-range
-// scheduling and callback reloads disagree even though the frame is exact.
-// Restore the complete 60-byte redraw snapshot
-// and selected-unit HUD, resource/kill/order text, health and progress bars, and target-unit
-// display. Correct weapon pointer offset, font selection, bitmap width signedness, 16-character
-// button termination, build-menu type name and unidentified-object prefix order. Remaining
-// differences include frame layout, register allocation and callback reload
-// scheduling. Header ordering changes this version from 18.7% to 60.0%.
+// Partial: 80.3%, 4217 bytes versus 4247. The frame is the original 0x23c.
+// What this round changed (each one verified by a check.py run):
+// - PFSTATE/PFABLE is one expression `*(int*)(g_game+0x37e23) - pfable - 1` and
+//   y3 = pfstate - 0x10, which reproduces the original sub/dec pair, +5.8.
+// - the local_38 arm is `if (local_38 != 0) {selected} else if (local_5e != 0xffff)
+//   {feature}`, so the selected path is the fall-through like the original, +5.9.
+// - the visible-unit test is `if (visible != 0) {main} else {unidentified}`,
+//   putting the unidentified-object arm at the end like the original, +1.7.
+// - the unit flag pair is a materialised bool, `((unitFlags & 0x20000) |
+//   ((unitFlags >> 1) & 0x20000)) >> 0x11`, computed before the FUN_00435100
+//   call, giving the original shift/or/shift sequence, +2.2.
+// - the " M:%d" and " E:%d" buffers are 16-byte locals inside the feature
+//   branch, so they pack into the inlined rect slot (M lands at [esp+0x74],
+//   the E buffer at [esp+0x18] versus the original [esp+0x14]).
+// Still differs, from the diff hunks:
+// - param_1 homes to esi (original: edi) and the first icon loop keeps its
+//   bitmap in edi (original: esi), a straight swap of the two registers.
+// - the selected-unit pointer takes [esp+0x14] in ours, [esp+0x24] in the
+//   original, and the inlined DrawBar rect copy sits at [esp+0x18] versus
+//   [esp+0x14], so that whole region is one slot off.
+// - the PFSTATE block loads [g_game+0xc] before [g_game+0x37e23] and keeps
+//   g_game in edx; the original loads [0x37e23] into esi first, then [0xc]
+//   into eax, and keeps pfable in ecx.
+// - `(*(int*)(unit+0x110) >> 9) & 1` folds to `test ch,2`; the original
+//   shifts into dl and tests dl,1.
+// Tried and did not help: declaring the buffers at the top of the function,
+// reordering the PFSTATE statements, and `int` versus `unsigned int` for the
+// MOVEORD shift pair (the latter did fix sar/shr in that one spot).
 #include <windows.h>
 #include <stdio.h>
 
@@ -116,7 +127,6 @@ void __stdcall FUN_0046a860(void* param_1) {
     Snapshot_0046a860 snapshot;
     memset(&snapshot, 0, sizeof(snapshot));
     char text[256];
-    char mAmount[16];
     char amount[100];
     char killsText[100];
 
@@ -138,30 +148,29 @@ void __stdcall FUN_0046a860(void* param_1) {
         FUN_004c1420(*(int*)(g_game + 0x391f9));
         FUN_004c13a0(0x53, FUN_004c13f0());
         int pfable = FUN_004c1450();
-        int pfstate = *(int*)(g_game + 0x37e23) - pfable;
-        int y2 = pfstate - 1;
+        void* field_c = *(void**)(g_game + 0xc);
+        int pfstate = *(int*)(g_game + 0x37e23) - pfable - 1;
 
         char* buf2 = text;
-        void* field_c = *(void**)(g_game + 0xc);
         sprintf(buf2, "PFSTATE %d, PFABLE %d\n", *(unsigned char*)((char*)field_c + 0xf0) & 1,
                 *(int*)((char*)field_c + 0x9c));
-        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x82, y2, -1);
+        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x82, pfstate, -1);
 
         if (*(unsigned short*)(g_game + 0x2cba) != 0) {
             int idx = *(unsigned short*)(g_game + 0x2cba) & 0xffff;
             char* unit = *(char**)(g_game + 0x14357) + idx * 0x118;
-            int v = *(int*)(unit + 0x110);
+            unsigned int v = *(int*)(unit + 0x110);
             sprintf(buf2, "MOVEORD: %d FIREORD: %d\n", (v >> 0x12) & 3, (v >> 0x14) & 3);
-            FUN_004c14f0(param_1, (unsigned char*)buf2, 0x108, y2, -1);
+            FUN_004c14f0(param_1, (unsigned char*)buf2, 0x108, pfstate, -1);
         }
 
         sprintf(buf2, "DELTATIME: %d\n", *(int*)(g_game + 0x38a3b));
-        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x190, y2, -1);
+        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x190, pfstate, -1);
 
         sprintf(buf2, "GAMETIME: %d\n", *(int*)(g_game + 0x38a47));
-        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x208, y2, -1);
+        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x208, pfstate, -1);
 
-        int y3 = pfstate - 0x11;
+        int y3 = pfstate - 0x10;
         sprintf(buf2, "X: %d  Y: %d\n", *(int*)(g_game + 0x1431f), *(int*)(g_game + 0x14323));
         FUN_004c14f0(param_1, (unsigned char*)buf2, 0x82, y3, -1);
 
@@ -271,51 +280,117 @@ void __stdcall FUN_0046a860(void* param_1) {
             }
         }
     } else {
-        if (local_38 == 0) {
-            if (local_5e != 0xffff) {
-                int idx = local_5e & 0xffff;
-                char* unit2 = (char*)(*(int*)(g_game + 0x1426f) + idx * 0x100);
-                if ((*(unsigned char*)(unit2 + 0xff) & 4) == 0 ||
-                    (*(unsigned char*)(g_game + 0x3923b) & 2) != 0) {
-                    char* buf3 = mAmount;
-                    if (*(float*)(unit2 + 0xf0) != 0.0f) {
-                        sprintf(buf3, " M:%d", (int)*(float*)(unit2 + 0xf0));
-                    } else {
-                        buf3[0] = 0;
-                    }
-                    char* buf4 = killsText;
-                    if (*(float*)(unit2 + 0xec) != 0.0f) {
-                        sprintf(buf4, " E:%d", (int)*(float*)(unit2 + 0xec));
-                    } else {
-                        buf4[0] = 0;
-                    }
-                    char* name = unit2;
-                    if ((*(unsigned char*)(g_game + 0x3923b) >> 1 & 1) == 0) {
-                        name = unit2 + 0x80;
-                    }
-                    char* buf5 = text;
-                    if ((*(unsigned char*)(unit2 + 0xff) & 2) == 0) {
-                        char* s = FUN_004c5740(name);
-                        sprintf(buf5, "%s %s%s", s, buf3, buf4);
-                    } else {
-                        char* s = FUN_004c5740(name);
-                        strcpy(buf5, s);
-                    }
-                    FUN_004c13a0(0x53, FUN_004c13f0());
-                    FUN_004c14f0(param_1, (unsigned char*)buf5, *(int*)(ebp + 0x1d2),
-                                 *(int*)(ebp + 0x1d6) + iVar5, -1);
-                }
-            }
-        } else {
+        if (local_38 != 0) {
             int idx = local_38 & 0xffff;
             char* unit = *(char**)(g_game + 0x14357) + idx * 0x118;
             if (*(unsigned short*)(unit + 0xa6) != 0) {
                 char* local_220 = g_game + *(unsigned char*)(g_game + 0x2a43) * 331 + 0x1b63;
                 int visible = FUN_00465ac0(local_220, unit);
-                if (visible == 0) {
+                if (visible != 0) {
+                    char* definition = *(char**)(unit + 0x92);
+                    unsigned int unitFlags = *(unsigned int*)(definition + 0x245);
+                    int flagsOk = ((unitFlags & 0x20000) | ((unitFlags >> 1) & 0x20000)) >> 0x11;
+                    int gameMode = ((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100();
+                    if (gameMode == 3 && flagsOk)
+                        strcpy(text, *(char**)(unit + 0x96) + 0x2b);
+                    else
+                        strcpy(text, *(char**)(unit + 0x92));
+                    int titleX = *(int*)(ebp + 0x142) -
+                                 FUN_004c1480((void*)*(int*)(ebp + 0x22e), (unsigned char*)text) / 2;
+                    FUN_004c13a0(0x53, FUN_004c13f0());
+                    FUN_004c14f0(param_1, (unsigned char*)text, titleX, *(int*)(ebp + 0x146) + iVar5,
+                                 -1);
+                    if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) ==
+                            *(unsigned char*)(g_game + 0x2a43) ||
+                        !(*(unsigned int*)(*(char**)(unit + 0x92) + 0x241) & 0x4000)) {
+                        int maximum = *(int*)(*(char**)(unit + 0x92) + 0x1fa);
+                        DrawBar_0046a860(param_1, (Rect_0046a860*)(ebp + 0x152),
+                                         *(short*)(unit + 0x108), maximum, iVar5,
+                                         (unsigned char*)local_28);
+                    }
+                    FUN_00467c00(param_1, *(void**)(unit + 0x96), ebp + 0x132, iVar5);
+                    if (*(unsigned char*)(unit + 0xff) == *(unsigned char*)(g_game + 0x2a43) ||
+                        (*(unsigned char*)(g_game + 0x3923b) & 2)) {
+                        FUN_004c13a0((unsigned char)local_28[10], FUN_004c13f0());
+                        sprintf(amount, "+%.1f", Positive_0046a860(snapshot.values[3]));
+                        FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x182),
+                                     *(int*)(ebp + 0x186) + iVar5, -1);
+                        sprintf(amount, "+%.0f", Positive_0046a860(snapshot.values[1]));
+                        FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x162),
+                                     *(int*)(ebp + 0x166) + iVar5, -1);
+                        FUN_004c13a0((unsigned char)local_28[12], FUN_004c13f0());
+                        sprintf(amount, "-%.1f", Positive_0046a860(snapshot.values[2]));
+                        FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x192),
+                                     *(int*)(ebp + 0x196) + iVar5, -1);
+                        sprintf(amount, "-%.0f", Positive_0046a860(snapshot.values[0]));
+                        FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x172),
+                                     *(int*)(ebp + 0x176) + iVar5, -1);
+                        if ((*(unsigned int*)(unit + 0x110) & 0x80000000) &&
+                            *(unsigned short*)(unit + 0xb8)) {
+                            int killsX = *(int*)(ebp + 0x152);
+                            int killsY = *(int*)(ebp + 0x15e) + iVar5 + 2;
+                            char* plural = FUN_004c5740("kills");
+                            char* singular = FUN_004c5740("kill");
+                            unsigned short kills = *(unsigned short*)(unit + 0xb8);
+                            if (kills > 4)
+                                sprintf(killsText, "%d %s - %s", kills, kills == 1 ? singular : plural,
+                                        FUN_004c5740("Veteran"));
+                            else
+                                sprintf(killsText, "%d %s", kills, kills == 1 ? singular : plural);
+                            FUN_004c13a0(*(unsigned char*)(g_game + 0xdda), FUN_004c13f0());
+                            FUN_004c14f0(param_1, (unsigned char*)killsText, killsX, killsY, -1);
+                        }
+                        if (snapshot.orderName) {
+                            strcpy(amount, FUN_004c5740((char*)snapshot.orderName));
+                            int orderX =
+                                *(int*)(ebp + 0x1a2) -
+                                FUN_004c1480((void*)*(int*)(ebp + 0x22e), (unsigned char*)amount) / 2;
+                            FUN_004c13a0(0x53, FUN_004c13f0());
+                            FUN_004c14f0(param_1, (unsigned char*)amount, orderX,
+                                         *(int*)(ebp + 0x1a6) + iVar5, -1);
+                        }
+                    }
+                    int progress = FUN_00439d20(unit);
+                    if (progress) {
+                        if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) !=
+                            *(unsigned char*)(g_game + 0x2a43))
+                            return;
+                        char* weaponText = FUN_004c5740("Weapon");
+                        int progressX =
+                            *(int*)(ebp + 0x1b2) -
+                            FUN_004c1480((void*)*(int*)(ebp + 0x22e), (unsigned char*)weaponText) / 2;
+                        FUN_004c13a0(0x53, FUN_004c13f0());
+                        FUN_004c14f0(param_1, (unsigned char*)weaponText, progressX,
+                                     *(int*)(ebp + 0x1b6) + iVar5, -1);
+                        DrawBar_0046a860(param_1, (Rect_0046a860*)(ebp + 0x1c2), progress, 100, iVar5,
+                                         (unsigned char*)local_28);
+                        return;
+                    }
+                    if (snapshot.targetType) {
+                        char* target = *(char**)(g_game + 0x14357) + snapshot.targetType * 0x118;
+                        if (!*(unsigned short*)(target + 0xa6) || !FUN_00465ac0(local_220, target))
+                            return;
+                        int targetX = *(int*)(ebp + 0x1b2) -
+                                      FUN_004c1480((void*)*(int*)(ebp + 0x22e),
+                                                   (unsigned char*)*(char**)(target + 0x92)) /
+                                          2;
+                        FUN_004c13a0(0x53, FUN_004c13f0());
+                        FUN_004c14f0(param_1, (unsigned char*)*(char**)(target + 0x92), targetX,
+                                     *(int*)(ebp + 0x1b6) + iVar5, -1);
+                        if (*(unsigned char*)(*(char**)(target + 0x96) + 0x146) ==
+                                *(unsigned char*)(g_game + 0x2a43) ||
+                            !(*(unsigned int*)(*(char**)(target + 0x92) + 0x241) & 0x4000)) {
+                            int maximum = *(int*)(*(char**)(target + 0x92) + 0x1fa);
+                            DrawBar_0046a860(param_1, (Rect_0046a860*)(ebp + 0x1c2),
+                                             *(short*)(target + 0x108), maximum, iVar5,
+                                             (unsigned char*)local_28);
+                        }
+                    }
+                } else {
+                    char* prefix = ((*(int*)(unit + 0x110) >> 9) & 1) != 0 ? "S: " : "R: ";
                     char* s = FUN_004c5740("Unidentified object");
                     char* buf6 = text;
-                    sprintf(buf6, "%s%s", (*(int*)(unit + 0x110) >> 9) & 1 ? "S: " : "R: ", s);
+                    sprintf(buf6, "%s%s", prefix, s);
                     int w = FUN_004c1480((void*)*(int*)(ebp + 0x22e), (unsigned char*)buf6);
                     int yy = *(int*)(ebp + 0x142) - w / 2;
                     FUN_004c13a0(0x53, FUN_004c13f0());
@@ -323,105 +398,42 @@ void __stdcall FUN_0046a860(void* param_1) {
                                  -1);
                     return;
                 }
-                char* definition = *(char**)(unit + 0x92);
-                unsigned int unitFlags = *(unsigned int*)(definition + 0x245);
-                int gameMode = ((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100();
-                if (gameMode == 3 && (unitFlags & 0x60000))
-                    strcpy(text, *(char**)(unit + 0x96) + 0x2b);
-                else
-                    strcpy(text, *(char**)(unit + 0x92));
-                int titleX = *(int*)(ebp + 0x142) -
-                             FUN_004c1480((void*)*(int*)(ebp + 0x22e), (unsigned char*)text) / 2;
-                FUN_004c13a0(0x53, FUN_004c13f0());
-                FUN_004c14f0(param_1, (unsigned char*)text, titleX, *(int*)(ebp + 0x146) + iVar5,
-                             -1);
-                if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) ==
-                        *(unsigned char*)(g_game + 0x2a43) ||
-                    !(*(unsigned int*)(*(char**)(unit + 0x92) + 0x241) & 0x4000)) {
-                    int maximum = *(int*)(*(char**)(unit + 0x92) + 0x1fa);
-                    DrawBar_0046a860(param_1, (Rect_0046a860*)(ebp + 0x152),
-                                     *(short*)(unit + 0x108), maximum, iVar5,
-                                     (unsigned char*)local_28);
-                }
-                FUN_00467c00(param_1, *(void**)(unit + 0x96), ebp + 0x132, iVar5);
-                if (*(unsigned char*)(unit + 0xff) == *(unsigned char*)(g_game + 0x2a43) ||
-                    (*(unsigned char*)(g_game + 0x3923b) & 2)) {
-                    FUN_004c13a0((unsigned char)local_28[10], FUN_004c13f0());
-                    sprintf(amount, "+%.1f", Positive_0046a860(snapshot.values[3]));
-                    FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x182),
-                                 *(int*)(ebp + 0x186) + iVar5, -1);
-                    sprintf(amount, "+%.0f", Positive_0046a860(snapshot.values[1]));
-                    FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x162),
-                                 *(int*)(ebp + 0x166) + iVar5, -1);
-                    FUN_004c13a0((unsigned char)local_28[12], FUN_004c13f0());
-                    sprintf(amount, "-%.1f", Positive_0046a860(snapshot.values[2]));
-                    FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x192),
-                                 *(int*)(ebp + 0x196) + iVar5, -1);
-                    sprintf(amount, "-%.0f", Positive_0046a860(snapshot.values[0]));
-                    FUN_004c14f0(param_1, (unsigned char*)amount, *(int*)(ebp + 0x172),
-                                 *(int*)(ebp + 0x176) + iVar5, -1);
-                    if ((*(unsigned int*)(unit + 0x110) & 0x80000000) &&
-                        *(unsigned short*)(unit + 0xb8)) {
-                        int killsX = *(int*)(ebp + 0x152);
-                        int killsY = *(int*)(ebp + 0x15e) + iVar5 + 2;
-                        char* plural = FUN_004c5740("kills");
-                        char* singular = FUN_004c5740("kill");
-                        unsigned short kills = *(unsigned short*)(unit + 0xb8);
-                        if (kills > 4)
-                            sprintf(killsText, "%d %s - %s", kills, kills == 1 ? singular : plural,
-                                    FUN_004c5740("Veteran"));
-                        else
-                            sprintf(killsText, "%d %s", kills, kills == 1 ? singular : plural);
-                        FUN_004c13a0(*(unsigned char*)(g_game + 0xdda), FUN_004c13f0());
-                        FUN_004c14f0(param_1, (unsigned char*)killsText, killsX, killsY, -1);
-                    }
-                    if (snapshot.orderName) {
-                        strcpy(amount, FUN_004c5740((char*)snapshot.orderName));
-                        int orderX =
-                            *(int*)(ebp + 0x1a2) -
-                            FUN_004c1480((void*)*(int*)(ebp + 0x22e), (unsigned char*)amount) / 2;
-                        FUN_004c13a0(0x53, FUN_004c13f0());
-                        FUN_004c14f0(param_1, (unsigned char*)amount, orderX,
-                                     *(int*)(ebp + 0x1a6) + iVar5, -1);
-                    }
-                }
-                int progress = FUN_00439d20(unit);
-                if (progress) {
-                    if (*(unsigned char*)(*(char**)(unit + 0x96) + 0x146) !=
-                        *(unsigned char*)(g_game + 0x2a43))
-                        return;
-                    char* weaponText = FUN_004c5740("Weapon");
-                    int progressX =
-                        *(int*)(ebp + 0x1b2) -
-                        FUN_004c1480((void*)*(int*)(ebp + 0x22e), (unsigned char*)weaponText) / 2;
-                    FUN_004c13a0(0x53, FUN_004c13f0());
-                    FUN_004c14f0(param_1, (unsigned char*)weaponText, progressX,
-                                 *(int*)(ebp + 0x1b6) + iVar5, -1);
-                    DrawBar_0046a860(param_1, (Rect_0046a860*)(ebp + 0x1c2), progress, 100, iVar5,
-                                     (unsigned char*)local_28);
-                    return;
-                }
-                if (snapshot.targetType) {
-                    char* target = *(char**)(g_game + 0x14357) + snapshot.targetType * 0x118;
-                    if (!*(unsigned short*)(target + 0xa6) || !FUN_00465ac0(local_220, target))
-                        return;
-                    int targetX = *(int*)(ebp + 0x1b2) -
-                                  FUN_004c1480((void*)*(int*)(ebp + 0x22e),
-                                               (unsigned char*)*(char**)(target + 0x92)) /
-                                      2;
-                    FUN_004c13a0(0x53, FUN_004c13f0());
-                    FUN_004c14f0(param_1, (unsigned char*)*(char**)(target + 0x92), targetX,
-                                 *(int*)(ebp + 0x1b6) + iVar5, -1);
-                    if (*(unsigned char*)(*(char**)(target + 0x96) + 0x146) ==
-                            *(unsigned char*)(g_game + 0x2a43) ||
-                        !(*(unsigned int*)(*(char**)(target + 0x92) + 0x241) & 0x4000)) {
-                        int maximum = *(int*)(*(char**)(target + 0x92) + 0x1fa);
-                        DrawBar_0046a860(param_1, (Rect_0046a860*)(ebp + 0x1c2),
-                                         *(short*)(target + 0x108), maximum, iVar5,
-                                         (unsigned char*)local_28);
-                    }
-                }
             }
+        } else if (local_5e != 0xffff) {
+                    int idx = local_5e & 0xffff;
+                    char* unit2 = (char*)(*(int*)(g_game + 0x1426f) + idx * 0x100);
+                    if ((*(unsigned char*)(unit2 + 0xff) & 4) == 0 ||
+                        (*(unsigned char*)(g_game + 0x3923b) & 2) != 0) {
+                        char mText[16];
+                        char* buf3 = mText;
+                        if (*(float*)(unit2 + 0xf0) != 0.0f) {
+                            sprintf(buf3, " M:%d", (int)*(float*)(unit2 + 0xf0));
+                        } else {
+                            buf3[0] = 0;
+                        }
+                        char eText[16];
+                        char* buf4 = eText;
+                        if (*(float*)(unit2 + 0xec) != 0.0f) {
+                            sprintf(buf4, " E:%d", (int)*(float*)(unit2 + 0xec));
+                        } else {
+                            buf4[0] = 0;
+                        }
+                        char* name = unit2;
+                        if ((*(unsigned char*)(g_game + 0x3923b) >> 1 & 1) == 0) {
+                            name = unit2 + 0x80;
+                        }
+                        char* buf5 = text;
+                        if ((*(unsigned char*)(unit2 + 0xff) & 2) == 0) {
+                            char* s = FUN_004c5740(name);
+                            sprintf(buf5, "%s %s%s", s, buf3, buf4);
+                        } else {
+                            char* s = FUN_004c5740(name);
+                            strcpy(buf5, s);
+                        }
+                        FUN_004c13a0(0x53, FUN_004c13f0());
+                        FUN_004c14f0(param_1, (unsigned char*)buf5, *(int*)(ebp + 0x1d2),
+                                     *(int*)(ebp + 0x1d6) + iVar5, -1);
+                    }
         }
     }
 }

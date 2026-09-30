@@ -1,12 +1,18 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // Started by deepseek-v4.1-flash, continued by GPT-6.
-// Partial: 28.1%, ours 1033 bytes versus original 1024. The whole register
+// Partial: 28.9%, ours 1049 bytes versus original 1024. The whole register
 // allocation is relabelled, which is what keeps the diff large: the original
 // keeps `this` in edi and the constant 0 in ebx (xor ebx,ebx right after
 // mov edi,ecx), pointers in ebp and the live-player flag in esi, while ours
 // puts `this` in esi, 0 in ebp and the flag in edi, so almost every
 // instruction shows a register mismatch even where the shape is right.
-// Two concrete layout bugs left: (1) in the map walk the original reads the
+// What did move the score: the vector-cleanup walk is
+// `if (begin != end) { do { scan 10 players; if (!live) { it = players.erase(it);
+// --it; changed = 1; } ++it; } while (it != players.end()); }` (the original
+// decrements the cached iterator so the bottom ++it lands right: 28.1 -> 28.8),
+// and computing (Class_0046cec0*)((char*)this + 0x2c) at each call site instead
+// of hoisting it into a local (28.8 -> 28.9).
+// Three concrete layout bugs left: (1) in the map walk the original reads the
 // node key at [node+0x10] (MSVC5 _Node has _Color/_Isnil before _Value) but
 // our real <map> iterator->first reads [node+0xc], so this function needs a
 // manual node type with the value at +0x10 and the out-of-line _Inc reached
@@ -14,8 +20,16 @@
 // map iteration; (2) the temporary entry is built with a cdecl sequence and
 // an `add esp,4` where the original has the __stdcall Class_0046e5c0 and
 // Class_0046cbe0 calls (the list_b/sub constructors must stay out of line,
-// so /Ob2's budget must run out at the same point). Reload the live game
-// count after the network helper, keep the native nested-vector types and
+// so /Ob2's budget must run out at the same point); (3) in the arg-2 send the
+// original's direct path is NOT a FUN_0046cec0 call: it is
+// `packet.field_2 = 0; FUN_00451bc0(FUN_0044fe00(), DAT_00000000, &packet, 0xe);`
+// (push 0xe / push &packet / push DAT / store [esp+0x2e] / call / push eax /
+// call), but writing that scored 28.7% (1062 bytes) twice, so the earlier
+// FUN_0046cec0 form is kept; the next attempt should retry it together with a
+// fix for the field_2 store position (the original emits it after the three
+// argument pushes, which a plain `packet.field_2 = 0;` statement does not).
+// Reload the live game count after the network helper, keep the native
+// nested-vector types and
 // call the real nested constructor to initialise the entry's three dwords.
 // Vector erase/temporary cleanup and register allocation still differ. 768
 // header sets did not improve the 27.6% version this replaced.
@@ -155,22 +169,25 @@ void Class_0046d860::FUN_0046dad0() {
     if (direct != 0) {
         int changed = 0;
         std::vector<Class_0046eaa0>::iterator it = players.begin();
-        while (it != players.end()) {
-            int live = 0;
-            for (int i = 0; i < 10; i++) {
-                PlayerInfo_0046dad0* p = (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
-                if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1 &&
-                    p->field_4 == it->id) {
-                    live = 1;
-                    break;
+        if (it != players.end()) {
+            do {
+                int live = 0;
+                for (int i = 0; i < 10; i++) {
+                    PlayerInfo_0046dad0* p =
+                        (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
+                    if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1 &&
+                        p->field_4 == it->id) {
+                        live = 1;
+                        break;
+                    }
                 }
-            }
-            if (live != 0) {
+                if (live == 0) {
+                    it = players.erase(it);
+                    --it;
+                    changed = 1;
+                }
                 ++it;
-            } else {
-                it = players.erase(it);
-                changed = 1;
-            }
+            } while (it != players.end());
         }
 
         for (int i = 0; i < 10; i++) {
@@ -179,7 +196,7 @@ void Class_0046d860::FUN_0046dad0() {
                 int found = 0;
                 for (std::vector<Class_0046eaa0>::iterator j = players.begin(); j != players.end();
                      ++j) {
-                    if (j->id == p->field_4) {
+                    if (p->field_4 == j->id) {
                         found = 1;
                         break;
                     }
@@ -219,7 +236,6 @@ void Class_0046d860::FUN_0046dad0() {
         return;
 
     Game_0046dad0* game = (Game_0046dad0*)g_game;
-    Class_0046cec0* sender = (Class_0046cec0*)((char*)this + 0x2c);
 
     if (field_60 >= game->count) {
         Packet_0046dad0 packet;
@@ -227,7 +243,7 @@ void Class_0046d860::FUN_0046dad0() {
         packet.arg = 4;
         packet.field_6 = 0;
         packet.field_a = field_5c;
-        sender->FUN_0046cec0(FUN_00450030(), &packet);
+        ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(FUN_00450030(), &packet);
         return;
     }
 
@@ -242,9 +258,9 @@ void Class_0046d860::FUN_0046dad0() {
             packet.field_6 = 0;
             packet.field_a = v;
             if (direct != 0)
-                sender->FUN_0046cec0(DAT_00000000, &packet);
+                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(DAT_00000000, &packet);
             else
-                sender->FUN_0046cec0(FUN_00450030(), &packet);
+                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(FUN_00450030(), &packet);
         }
         field_60 = 1;
         return;
@@ -264,9 +280,9 @@ void Class_0046d860::FUN_0046dad0() {
             packet.field_6 = def->key;
             packet.field_a = def->y;
             if (direct != 0)
-                sender->FUN_0046cec0(DAT_00000000, &packet);
+                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(DAT_00000000, &packet);
             else
-                sender->FUN_0046cec0(FUN_00450030(), &packet);
+                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(FUN_00450030(), &packet);
         }
         n++;
         field_60++;

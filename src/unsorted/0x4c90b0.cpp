@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass). Names are provisional.
 // Second pass (deepseek-v4.1-flash): no new lever moved the +1/+5 split.
 // Tested and all folded to a single `lea ecx,[ecx+edx+6]` (193 bytes, 86.1%):
 // `static __inline int TotalLen(a,b){return a+b+1;}` with `malloc(TotalLen(n,m)+5)`,
@@ -73,6 +73,35 @@
 //    `#include <windows.h>` does not change it here.
 //  - the original reloads n from the stack right after the first strcpy's
 //    `rep movsd`; this version reloads it after the `rep movsb`.
+//
+// space-bunny-free pass 3 (1795): two things are now settled and one is a lead
+// worth more than this pass had time for.
+// 1. SAME-SIZE CASTS DO NOT BLOCK THE MERGE. All of these fold to one
+//    `lea ecx,[ecx+edx+6]` (193 bytes, 86.1%), so the backend looks straight
+//    through them: `(size_t)(n+m+1) + 5`, `(unsigned)(n+m+1) + 5`,
+//    `(int)(n+m+1) + 5`, `(long)(n+m+1) + 5`, `(__int64)(n+m+1) + 5`,
+//    `n + m + 1 + 5L`, `n + m + 1 + 5U`, an int->char*->int round trip, and a
+//    local `int buf[2]` holding the sum read back as `buf[0] + 5`. A widening
+//    or signedness cast is not the missing node, only a real narrowing is.
+// 2. WRITING THE STRLENS INSIDE THE malloc ARGUMENT DOES NOT SPLIT IT.
+//    `malloc((int)strlen(ptr) + (int)strlen(other.ptr) + 1 + 5)` with the `m`
+//    local still present CSEs against it and folds (193 bytes, 86.1%); with
+//    `m` dropped the first strlen is simply recomputed (205 bytes, 79.5%).
+// 3. THE LEAD: the matched 0x4c91b0 writes
+//    `malloc(strlen(text) + 1 + sizeof(int))` and gets `not ecx; add ecx, 4`:
+//    its `+1` is swallowed by MSVC's strlen+1 idiom and the `+4` survives as a
+//    separate add, so two constants in one `+` chain are NOT always merged by
+//    the front end, and a "special" node blocks that merge for free. Here
+//    both lengths are plain strlen values (`repne scasb; not ecx; dec ecx`,
+//    no absorbed `+1`), so the `+1` is a genuine add that lands in the LEA
+//    displacement. That means the node blocking the `+5` sits between the
+//    `+1` and the `+5` and costs zero instructions, and the only ones found
+//    so far are a narrowing (costs a movsx) and a phi (costs a branch). A
+//    third possibility nobody has tried: a construct that makes MSVC treat
+//    the value as an address operand, so the `+1` goes into the LEA and the
+//    `+5` cannot be folded into a displacement, e.g. a size computed as a
+//    `char*` difference or with the `+1` written as a pointer step
+//    (`chars + n + m + 1` style) rather than as an integer constant.
 #include <string.h>
 #include <stdlib.h>
 

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // GPT-6 retry: remains 84.9%. Byte-index classes and inheritance, and a
 // three-component average position with varied scope/representation, did
 // not improve the saved frame slots. The existing implementation is retained.
@@ -49,6 +49,46 @@
 // the remaining frame permutation is translation-unit compiler state, not
 // source shape; it should resolve when this file is regrouped into its
 // original translation unit in address order.
+// deepseek-v4.1 (this session): the frame permutation is invariant to every
+// source shape tried. Locals renamed, declaration order changed, avg_x/avg_z/
+// range/here/buf moved to function scope, and `int avg[2]` instead of two
+// scalars all compile to the same 752-byte body, byte for byte, so the
+// permutation is not source shape. It IS translation-unit symbol state: N
+// inert `extern int dummy%d;` declarations inserted at the end of the comment
+// header move the allocator through a small set of layouts. Measured with a
+// per-instruction diff of the compiled body against the original (232
+// instructions on both sides, addresses masked, so it counts only real
+// differences):
+//   N = 0 (and N = 20, 50, 300, 450, 500, 700): 41 instructions differ
+//   N = 250 (and 240..260): 35 instructions differ, check.py 87.5%
+//   N = 20, 100..200, 265..300, 350..400, 550..600, 800: 102 differ
+// N = 250 fixed only the distance block's load
+// order (mov ecx,[esi+0x6a] / mov ebp,avg_x / mov ebx,[esi+0x72] /
+// mov edi,avg_z, one step closer to the original's eax/edi/ecx/ebx order) and
+// leaves the frame permutation: ours puts except 0x10, avg_x 0x14, avg_z 0x18,
+// flag_a 0x1c, fire 0x20, move 0x24, range 0x28, p 0x2c, here 0x38, buf 0x48,
+// the original puts move 0x12, buf 0x13, except 0x14, flag_a 0x18, range 0x1c,
+// p 0x20, avg_x 0x2c, avg_z 0x34, here 0x38, fire 0x48. The two one-byte
+// objects (move, buf) end up in dword slots instead of the original's byte
+// pool at 0x12/0x13, and `fire` never takes the dead entry-argument slot.
+// The dummy-declaration probe is NOT shipped: this file is the clean, probe-free
+// version, which is the same 84.9% as origin/main. The probe lives in
+// build/scratch/0x48cf30/ and exists only to show that the frame permutation is
+// translation-unit symbol state; the real fix is for this file to sit in its
+// original translation unit, where the preceding functions and declarations
+// supply that state legitimately.
+// All 768 header sets from tools/headers.py --cpp were tried in this session
+// (best 84.9%, the N = 0 layout), so headers alone cannot supply the state.
+// deepseek-v4.1 (second session): a fifteen-variant statement-shape sweep was
+// run against this same file. Buf scoped inside the if (mode) block, explicit
+// (int) casts on the averages, split declarations with later assignment,
+// unsigned or grouped average declarations, function-scope dx/dz, and
+// avg_x/avg_z at function scope all reproduce the 84.9% body byte for byte.
+// The rest only regress: range declared before the averages 82.8%, buf hoisted
+// above the loop 83.2%, p declared after the sums 70.3%, unsigned count 64.4%,
+// fire/move built as temporaries 62.1%, and an extra math.h include 75.2%.
+// Statement shape therefore does not move the frame permutation; the best
+// version stays this 84.9% one.
 #include <stdio.h>
 
 #pragma pack(push, 1)

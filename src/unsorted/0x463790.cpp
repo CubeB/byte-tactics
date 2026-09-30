@@ -1,63 +1,51 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 67.5% (1015 vs 1040 bytes). Every block is structurally right; the
-// remaining diff is one register-allocation state, not missing logic.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL: 73.3% (1022 vs 1040 bytes). 67.5% -> 73.3% on this pass.
 //
-// deepseek-v4.1-flash retry (10 min): rewrote Pop_00463790 in the positive
-// `if (r->n > 0) { ... } return 0;` form. It still emits `cmp eax, edi / jle`
-// (EDI is the zero register), not the original `test ecx,ecx / jle`, and block 1
-// still uses 0x200 immediates, so the missing loop-preheader `mov edi, 0x200`
-// is not reachable from branch polarity alone. Score unchanged at 67.5%.
+// WHAT MOVED IT: the original materialises the ring bound 0x200 in a REGISTER in
+// block 1's loop pre-header (`mov edi, 0x200`, 0x4637dd) and then compares
+// head+1, n and tail+1 against that register, while the same 0x200 comparisons in
+// blocks 2 and 3 stay immediates. MSVC 5 folds a *local* constant into `cmp`
+// immediates, so no local, static const, sizeof-based or unsigned spelling of the
+// bound can produce that (verified by compiling a standalone loop with
+// tools/wcl: `int cap = 512` used three times in a loop still gives
+// `cmp $0x200,%ecx`).
 //
-// What moved it from 66.0 to 67.5: the scan-loop prologue must read
-//     size -= 4;  int n = 0;  int remaining = size;  char* p = text + 4;
-// in exactly that order. That declaration order is load bearing (reordering any
-// pair drops straight back to 66.0, and putting `p` before `remaining` drops to
-// 50.4). It is what decides which of the two loop-carried counters gets EDI and
-// which gets EBP in the 0x4638f0 scan loop.
+// The one construct that DOES hold a literal in a register: a literal passed as
+// an ARGUMENT to an inlined function. The argument is a temp, and a temp with
+// several uses gets a register; the peephole never folds a temp back into a cmp.
+// Confirmed on the micro-test (`mov $0x200,%esi` then three `cmp %esi,...`), and
+// it reproduces the original here: both ring wraps go through
+//     __inline void Wrap_00463790(int& i, int cap) { if (i >= cap) i = 0; }
+// called with the LITERAL 0x200, and the two call sites must pass the FIELD
+// (r->head, r->tail), not a local copy. Passing a local makes the local
+// address-taken and the register disappears again.
+// With the bound in a register: f8++ gets EDI as the original has it, the pop
+// tests with `test ecx,ecx / jle` against no zero register, the wraps store the
+// immediate 0 (`mov [eax+4],0`, 7 bytes) instead of a 3-byte register store, and
+// the three `cmp ...,0x200` become 2-byte register compares. That is the whole
+// 18-byte size gap and most of the register diff.
 //
-// Remaining diff, all one shared cause: the original materialises the ring bound
-// as a register value (`mov edi, 0x200` at 0x4637dd, loop pre-header) and uses
-// immediate 0 everywhere else in that loop. Because EDI then holds 0x200 rather
-// than zero, the pop's emptiness test becomes `test ecx, ecx / jle` instead of a
-// compare against EDI, the pop's ring pointer lands in EAX instead of ECX, the
-// wrap resets become `mov [eax+4], 0` instead of `mov [eax+4], edi`, and the
-// false arm of the pop lays out out of line instead of in the fall-through.
-// The same zero-vs-0x200 role swap is what puts `n` in EBX/EBP and `remaining`
-// in EBP/EDI through the 0x463a30 and 0x463ad0 loops.
+// Still differs, all downstream of the same allocation state:
+//  * the pop's branch polarity. The original falls THROUGH into the body and puts
+//    the null path out of line (`test ecx,ecx / jle 0x46380a`, with `xor eax,eax`
+//    after the body). The early-return helper here jumps over the null path
+//    (`jg` / `xor eax,eax` / `jmp`). The positive `if (r->n > 0) { ... } return ep;`
+//    form in the helper was tried and is worse (70.0%): it adds an `xor ecx,ecx`
+//    and reorders the head store, so the polarity is not free.
+//  * `size -= 4` is folded into `lea ebp,[ebx-4]`, where the original keeps
+//    `sub ebx,4` in the pre-header and copies with `mov edi,ebx`.
+//  * the 0x4638f0 scan loop still has n and remaining the wrong way round
+//    (ours n=EDI/remaining=EBP, the original n=EBP/remaining=EDI), which cascades
+//    into the scratch-register picks in the 0x463a30 and 0x463ad0 loops.
 //
-// MSVC 5 will not hoist a literal 0x200 into a register here under any source
-// spelling, so the original must have had a real variable. Scored and ruled out
-// (all 67.5%, none produce `mov edi, 0x200`):
-//   `int cap = 0x200` at block scope, at function scope, inside the while body,
-//   `static const int cap`, and an `unsigned short cap`;
-//   the cap expression as `(int)(sizeof(entry) / sizeof(Entry_00463790))`;
-//   a function-local `Class_00463730* self = this` (register hoist, no change);
-//   moving the ring-pointer local `Buffer_00463730* r = rows` to function scope
-//   for blocks 2 and 3 (much worse, 44.1%);
-//   the induction variable of block 1's cancellation loop in a register
-//   (`for (int j = i; j > 0; j--)`, 66.4%);
-//   swapping the `n` and `remaining` declarations (no change, see above);
-//   reading the popped entry as `ep->b`/`ep->c` instead of `Entry e = *ep`
-//   (65.3%);
-//   block 2's tail push as `r->tail++` instead of the `int t` form (no change);
-//   `a4`/`a5` through temporaries, `this->f14` spellings, an extra live
-//   `x - f0` copy in the span clamp (no change);
-//   `tools/headers.py`: 128 header sets, best 67.5, so the header choice is not
-//   load bearing here.
-// Re-tested by space-bunny-free, all still 67.5 or worse, so the allocation state
-// is not reachable from the scan loop's declarations alone:
-//   `int remaining = size;` before `int n = 0` (byte identical, so the tie is not
-//   broken by declaration order), `int remaining = size - 4;` with no `size -= 4`
-//   statement, all six orderings of the n/remaining/p declarations (the two with
-//   p first drop to 66.0), `unsigned int remaining` (61.6), `unsigned int n` (67.1),
-//   `n = n + 1` and `n += 1` for the scan loop's `n++`, splitting the `cc = c`
-//   copy into two statements, `if ((remaining -= w) < 0) break;` (folds to the
-//   same code, so `remaining` has no spare graph node to drop a priority step),
-//   and `f18 = a5;` before `f14 = a4;` (66.7).
-// Everything after the scan loop follows from the same swap: with n in EBP the
-// block-2 push clobbers it, the fall-through tail needs the `mov ebp,[esp+0x24]`
-// reload the skip path does not, the two tails stop being identical and stop
-// tail merging, and that unmerged 16-byte copy is most of the 25 missing bytes.
+// Ruled out on this pass, all 67.5% or worse, so nobody repeats them:
+//  * `int cap = 0x200` as a local in block 1, and as a parameter of Pop called
+//    with that local (a local's value is folded, a literal argument's is not);
+//  * the pop written INLINE in the `if (r->n > 0) { ... }` positive form, the
+//    idiom src/unsorted/0x462f30.cpp shows for the same ring (65.0%): it keeps
+//    the null path in the fall-through but loses the register-resident bound;
+//  * `Wrap_00463790(h, 0x200)` on a local `h` plus re-storing the field
+//    afterwards (67.1%).
 #include <string.h>
 
 void* __cdecl operator new(unsigned int size);
@@ -90,6 +78,13 @@ struct Buffer_00463730 {
 };
 
 
+// Bounded wrap of a ring index, see the note at the top of the file.
+__inline void Wrap_00463790(int& i, int cap)
+{
+    if (i >= cap)
+        i = 0;
+}
+
 static __inline Entry_00463790* Pop_00463790(Buffer_00463730* r)
 {
     if (r->n <= 0)
@@ -97,9 +92,9 @@ static __inline Entry_00463790* Pop_00463790(Buffer_00463730* r)
     r->n--;
     int h = r->head + 1;
     r->head = h;
-    if (h >= 0x200)
-        r->head = 0;
-    return (Entry_00463790*)((char*)r + h * 12);
+    Entry_00463790* ep = (Entry_00463790*)((char*)r + h * 12);
+    Wrap_00463790(r->head, 0x200);
+    return ep;
 }
 
 class Class_00463730 {
@@ -132,9 +127,7 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
             if (r->n < 0x200) {
                 int t = r->tail + 1;
                 r->tail = t;
-                if (t >= 0x200) {
-                    r->tail = 0;
-                }
+                Wrap_00463790(r->tail, 0x200);
                 r->entry[r->tail].b = e.b;
                 r->entry[r->tail].a = x;
                 r->entry[r->tail].c = e.c;

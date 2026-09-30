@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by
-// GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol refinement stopped on watchdog: 99.6% remains best. All 128
 // C-header variants tied; four C++ headers dropped to 89.6%. The partial C++
 // header sweep was stopped at about 118 variants. The source-start LEA's SIB
@@ -53,6 +53,19 @@
 // written is not C++ at all, error C2110 "cannot add two pointers": a lea of
 // two pointers has no C++ spelling, so the original's form is MSVC 5's
 // reassociation of the value, not of this function's source.
+//
+// deepseek-v4.1 (2368, 2026-09): re-walked the wall. A file-scope padding
+// sweep of 29 dummy declaration counts (0 to 1024, step 16/32) toggles only
+// between the 99.6% lea and a 547-byte 89.6% shape whose source pointer is
+//     mov eax, ecx / sub eax, edx / add eax, ebx / sub eax, edi
+// (K <= 48, 384 to 512 and 832 to 1024 give 99.6%; 64 to 352 and 576 to 768
+// give 89.6%; <windows.h> and 300 dummies before the includes give the 89.6%
+// shape). No count gives the original base-ebx lea. Swapping the increments
+// in _Ucopy's loop, a destination local at the third copy, an int cast on _M,
+// &_Q[_M], a while spelling, a dummy pointer loop above the class, and moving
+// begin()/end() after size() all keep the same one byte. Swapping _Ucopy's
+// parameter order (destination first) collapses the function to 526 bytes /
+// 40.0%, so the parameter order reaches the code but not this byte.
 #include <climits>
 #include <memory>
 #include <xutility>

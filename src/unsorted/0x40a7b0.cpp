@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol,
-// finished by space-bunny-free. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Rebuilds the list of candidate cells: clears the vector at +0x4d, then
 // walks every map cell and adds (x, y, feature value) for each cell whose
 // feature (index below 0xfffb) has a non-zero value at +0xf0 and bit 1 of
@@ -41,6 +41,15 @@
 // ahead of this one (scored in build/scratch/0x40a7b0/v1.cpp: still 88.7%,
 // same single hunk). This is the same wall as the out-of-line inserts 0x408f30,
 // 0x40d020 and 0x40d290 the guide records: treat it as compiler state.
+// deepseek-v4.1 retry (88.7% again, 645 of 644 bytes, code unchanged): the swap
+// survived about 100 more variants, including a file-scope padding sweep of
+// K = 0..1200 in steps of 16 (all 88.7%, unlike 0x475bd0 where padding flips
+// the pick), direct 3-arg insert (47.7%), 2-arg insert, while/for and ++x
+// spellings, nested ifs, a reference temp, an array temp, copy-init and
+// field-wise construction, ctor parameter reorder, flat fields instead of
+// Point16, a spelled-out allocator, moving the <vector> include down, and
+// preceding dummy functions that use the same template. The only remaining
+// difference is still ebx (_S) vs ebp (_Q).
 #include <vector>
 
 struct Point16 {

@@ -1,27 +1,16 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 58.8% (3475 vs 3463 original bytes), 6 check runs.
+// PARTIAL, 59.7% (3481 vs 3463 original bytes), 15 total check runs.
 // Mode-5 ("load game") state handler installed by FUN_00490b30.
 // Three phases: (1) one-time init gated by g_game->flags38d75 bit 0,
 // (2) finish/switch-to-state-6 gated by bit 1, (3) the loading screen with six
 // progress sliders (Textures/Terrain/Units/Animation/3D Data/Explosions).
-// Fixed this pass: the Game struct was missing padding at +0x38a3f (8 bytes)
-// and +0x38a4b (4 bytes) plus 4 bytes before +0x391f1, so every field from
-// +0x38a47 on was shifted by 8/12/4 bytes; FUN_004d85a0 takes the field value
-// (not its address); the players_29a4 zero-fill is a memset (rep stosd); the
-// player flag byte is a ternary, not a stack local.
-// What still differs (first hunk down):
-//   0x497f45  frame size: orig `sub esp,0x234`, ours 0x110. All locals sit
-//             0x114 too low, so every [esp+NN] local reference is off.
-//   0x498113  orig `lea eax,[esp+0x14c]` / `lea ecx,[esp+0x144]`, ours
-//             0x38 / 0x2c (same frame cause).
-//   0x49823d  player-init loop: memset now matches (rep stosd) but the running
-//             offset lands in ecx vs orig eax, and operands render as
-//             [ecx+esi] vs orig [esi+eax].
-//   0x4986xx  wsprintf/_ftol block and the six slider blocks: register choice
-//             and [esp+NN] offsets follow the frame problem above.
-// The six sliders are unrolled (not a loop) because each reads a different
-// progress byte (g+0x38d6f..0x38d74 / prev DAT_0051e820..825) and a different
-// y (0x87,0xb1,0xda,0x106,0x130,0x15b).
+// The Game offsets, FUN_004d85a0 argument, player zero-fill, and stack frame
+// size are corrected. The 75-dword palette scratch gives the original 0x234
+// byte frame; smaller arrays shifted the later stack references.
+// What still differs: register and control-flow choices in the player loop,
+// wsprintf/_ftol label block, and six expanded progress-slider blocks. The
+// sliders are unrolled because each reads a different progress byte, prior
+// value byte, and y coordinate.
 
 #include <windows.h>
 #include <string.h>
@@ -197,7 +186,7 @@ void FUN_00497f40(void)
 {
     void* gadget;
     char buf[128];
-    int aux[2];
+    int aux[75];
     void* surfaceHandle;
     int i;
     int playersOffset;

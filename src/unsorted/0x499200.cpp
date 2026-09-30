@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
 // PARTIAL, 91.7% (1653 of 1655 bytes, instruction-text score). Branches, field
 // offsets, call targets, stack slots and the whole 0x4992cd..0x4996fb state
 // machine agree with the original; what is left is register roles only.

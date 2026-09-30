@@ -1,10 +1,10 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 //
-// PARTIAL 28.8%. 0x49b720 (1853 bytes) is the per-projectile update pass. The
+// PARTIAL 29.3%. 0x49b720 (1853 bytes) is the per-projectile update pass. The
 // control flow and every field offset used are believed right; the remaining
 // diff is dominated by register allocation and one extra stack slot.
 //
-// What this pass fixed (17.3 -> 26.8 -> 28.8):
+// What this pass fixed (17.3 -> 26.8 -> 28.8 -> 29.3):
 //   - 0x49b833: the projectile clone was a hand-written byte copy loop; it is a
 //     plain struct assignment `*q = *p;`, which MSVC emits as
 //     rep movsd / movsw / movsb (184 bytes of the original).
@@ -130,14 +130,8 @@ void FUN_0049b720()
     int s;
 
     count = *(int*)(g_game + 0x141f3);
-    if (count <= 0) {
-        FUN_0049ae20();
-        return;
-    }
-
     offset = 0;
-
-    do {
+    while (count > 0) {
         Proj_0049b720* p = (Proj_0049b720*)(*(int*)(g_game + 0x141f7) + offset);
         s = *(short*)((char*)p + 0xa);
         type = p->type;
@@ -150,7 +144,9 @@ void FUN_0049b720()
             if (ec >= 5 || (p->counter & 1)) {
                 int* arr = p->field_52;
                 idx = 0;
-                while (*(int*)((char*)arr + idx * 0x1c + 0x10) != (int)type) {
+                while (1) {
+                    if (*(int*)((char*)arr + idx * 0x1c + 0x10) == (int)type)
+                        break;
                     idx++;
                     if (idx >= 3)
                         break;
@@ -244,8 +240,8 @@ void FUN_0049b720()
                     p->vel.y = p->vel.y - *(int*)(g_game + 0x14263);
                     if ((type->flags >> 0x18) & 1) {
                         if ((p->flags69 & 0x30) == 0) {
-                            unsigned int e;
                             p->field_46 = *(int*)(g_game + 0x38a47) + type->field_fc;
+                            unsigned int e;
                             e = type->flags >> 0x18;
                             p->flags69 = (unsigned short)(((((e & 0xfff0) + 0x10)
                                                             ^ (e & 0xff)) & 0x30) ^ e);
@@ -367,9 +363,9 @@ void FUN_0049b720()
         }
 
     Next:
-        offset += 0x6b;
-        count--;
-    } while (count != 0);
+            offset += 0x6b;
+            count--;
+    }
 
     FUN_0049ae20();
 }

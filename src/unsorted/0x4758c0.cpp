@@ -1,4 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (issue 2393) pass: the faithful form below (real `_Ufill(_Q, _M, _X)`)
+// is 84.3 percent, 777 bytes, and its remaining diff is exactly one register: the
+// allocator puts _P in ecx (reloaded from [esp+0x1c] inside the first copy loop,
+// which needs ecx for the rep count) and the _Ufill counter in edx. The original
+// keeps _P in edx across the first copy, the fill and the third copy start
+// (sub edx,ebx; add edx,eax; sub edx,ecx) and spills the counter to [esp+0x1c].
+// The 88.9 percent version kept in this file is the same allocation with the
+// counter moved by hand onto the advanced _Q, so the two diffs cancel.
+// Cross-check: src/unsorted/0x475bd0.cpp (the 0x3c element sibling, 99.7 percent)
+// uses this same faithful source and also gets the counter in a register and _P
+// reloaded, so the original 0x4758c0 really is the odd one of the three
+// instantiations: it is compiler state, not a source shape. Nothing else tried.
 // deepseek-v4.1 pass (#1186), 88.9 percent, unchanged and still the best: the
 // function is 779 of 779 bytes and the only diff is the register choice for _P
 // in the reallocation arm (original keeps it in edx and the fill counter on the

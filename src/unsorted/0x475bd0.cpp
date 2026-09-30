@@ -61,6 +61,20 @@
 // the original's shape (and the three different shapes of the neighbouring
 // instantiations 0x4758c0 and 0x475ef0) depends on what else the original
 // translation unit had compiled; it needs the regroup-into-original-files phase.
+// Retry 3 (deepseek-v4.1, issue 2393): the last SIB byte is a compiler state
+// toggle and the toggle is a plain declaration count, but only two shapes are
+// reachable. Padding the file at file scope with K dummy declarations flips
+// this function between exactly two forms: K in the first window (0 to 49)
+// gives the 99.7 percent shape above, K from 50 on gives the 91.5 percent
+// four-instruction source pointer (mov eax, ecx / sub eax, edx / add eax, ebx
+// / sub eax, edi). Borders at K = 50, 320, 576, 832, 1088, 1344, 1600, so the
+// pad alternates with period 256 above the first border. The same two shapes
+// for dummy typedefs, dummy static ints and dummy one-line functions, and for
+// padding before the class or after the global. The original's third form
+// (lea eax, [esi + edx] plus the subs) never appears at any K, so it is not a
+// declaration-count state: the file still needs the regroup-into-original-files
+// phase. Also 99.7 with the identical diff this pass: iterator(_Q + _M),
+// &_Q[_M] and (_Q) + (_M) as the third copy's destination.
 #include <memory>
 #include <xutility>
 

@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Retry #1764: GPT-6.1-sol confirmed 89.5% after three worker checks; no MATCH. Constant-register selection, delayed x87 stores and later register ordering remain different.
+// Finished by GPT-6.1-sol.
 // GPT-6 retry: chained/reset-helper field initialization and copying unset
 // values through the reset fields did not improve 89.5%. Preserve this version;
 // the zero/minus-one register choices and delayed x87 stores still differ.

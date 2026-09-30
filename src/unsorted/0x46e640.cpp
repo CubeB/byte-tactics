@@ -1,4 +1,35 @@
-// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass (2409): re-verified 546 bytes / 99.6%, still only the
+// swapped SIB byte at 0x46e708 (original lea eax,[ebx+ecx], ours
+// lea eax,[ecx+ebx]). New measurements, all scored with check.py --sym on
+// scratch copies of this exact file, none reached MATCH:
+//   * dense padding scan, extern int declarations, every count from 1 to 100
+//     and 300 to 420 (the earlier passes stepped by 8): every build is either
+//     546/99.6 (same SIB diff) or 547/89.6. The counts do not fall into two
+//     clean regimes as the older note says: 313 to 317 alternate between the
+//     shapes one count at a time, so the dependence is hash-like, not
+//     monotone, and no count in these ranges gives shape A.
+//   * 12 padding kinds (extern int, static int, typedef, struct, enum,
+//     function body, extern "C", namespace, class, typedef of vector<int>,
+//     global int, mixed) crossed with counts 1 to 32: 384 builds, all either
+//     99.6 or 89.6, same single-byte diff. 240 further builds with random
+//     mixes of those kinds at random counts and at two insertion points
+//     (before namespace std and before the typedef): same result.
+//   * windows.h, and stdio/stdlib/string/math/time headers, in five
+//     positions each: 99.6, the SIB does not flip. The guide's windows.h
+//     SIB note does not apply to this lea.
+//   * 42 exotic spellings of the third _Ucopy call (source as _P+0,
+//     _Last-(_Last-_P), (_P-_Last)+_Last, _First+(_P-_First), _P+(_Q-_Q),
+//     dest as _Q+_M, &_Q[_M], _Q+_M+0, _M+_Q, casts on either argument, the
+//     result stored back into _Q, and loop forms with a forced temp):
+//     anything that keeps 546 bytes keeps exactly this diff.
+//   * class layout knob that does matter: moving _Ufill's definition before
+//     _Ucopy's flips the build to 547/89.6 without touching the lea, which
+//     confirms shape choice is a whole-TU/class-order hash, not a property
+//     of the copy expression.
+// So the remaining byte is a compiler-state artifact: shape A is not
+// reachable from any source spelling of this function in a TU whose only
+// content is this template. Best source kept below unchanged.
 // GPT-6.1-sol review: fresh check.py run confirms the best source is 99.6%;
 // the sole mismatch is the swapped base/index register order in the LEA at
 // 0x46e708. Prior notes below record extensive unsuccessful source-level probes.

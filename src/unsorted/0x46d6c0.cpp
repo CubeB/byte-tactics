@@ -1,4 +1,23 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+//
+// deepseek-v4.1 pass (#2409): tried the shape that 0x46d2e0's notes claim for this
+// same map insert-then-fill idiom: a constructed temporary with a literal 0
+// argument, `head->value = Val_0046d6c0(f6, 0, t.shorts, fc)` (ctors with member
+// init lists on Val and Tail). MSVC 5 does NOT construct it in place here: it
+// builds the 0x14-byte temporary on the stack (`mov [esp+0x48], 0` plus the other
+// three members) and copies it with the 5-dword loop
+// `lea edi,[edx+0x10] / mov ecx,5 / lea esi,[esp+0x44] / rep movsd`, so the frame
+// grows 0x38 -> 0x48 and `this` moves into ebp: 55.6%, 440 bytes. The 0x46d2e0
+// case must have had the value type at 0x10 bytes (4 dwords, no uninitialised
+// member), while here the value is 0x14 bytes and the original writes only 4 of
+// its 5 dwords (node+0x20 is never stored), so a whole-value construction can
+// never be in place. An inline member `void Set(int,int,Shorts,int)` called as
+// `head->value.Set(f6, 0, t.shorts, fc)` is no better: the 0 argument inlines to
+// `mov dword [ecx+0x14], 0` and the base is still folded with a lea (plus the
+// dropped field_2 load shrinks the frame to 0x34, `this` to ebp): 58.9%, 416 bytes.
+// What is still needed: a 0x10-byte constructed write to
+// node+0x10 that starts at displacement 0 (so `add ecx,0x10` is materialised)
+// with the constant 0 in a live callee-saved register.
 //
 // space-bunny-free pass (#1875): the best is still this file at 83.6% / 420 bytes.
 // Three new scratch variants, none better:

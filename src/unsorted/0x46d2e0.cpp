@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol
-// and space-bunny-free. Names are provisional.
+// and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // #1543 retry by Codex / GPT-6.1-sol: verified 88.4% (475/475 bytes) with checkall; no MATCH.
 // The remaining difference is scheduling and register allocation in the pre-insert block and post-insert copy.
 // PARTIAL, 88.4%, and the whole function now compiles to the original's exact
@@ -60,6 +60,24 @@
 // 8 (50 builds, check.py --sym, not committed): 88.4 percent and 475 bytes for
 // every K; headers.py, all 128 sets: best is 88.4, the empty set. So it is the
 // source shape, as the notes above conclude.
+// deepseek-v4.1 pass (#2409), 12 more check runs, still 88.4% (475 bytes).
+// Still missing: exactly the two reloads `mov ecx,[esp+0x38]` (s.v.x) and
+// `mov ecx,[esp+0x44]` (s.v.flag), 8 bytes, with `s.v.y = 0;` removed.
+// Tried this pass, all either 467 bytes or worse, so none of them turns the
+// register copies into loads: reading the fields through a local pointer
+// (`Value_0046d2e0* pv = &s.v`), through a reference local, through
+// `*(unsigned int*)&s.v.x` casts, through non-const member functions
+// (`void StoreX(unsigned int) { x = k; }`), a 4-arg Value ctor, a static copy
+// helper taking pointers and one taking references (both inline to the same
+// struct copy), `char*` punning of the pair, and the pair built by
+// `Pair(key, Value(...))`. Everything the guide lists as a way to break
+// store-to-load forwarding still forwards here.
+// Hoisting the y copy to the top of the loop body (the one statement order the
+// 5040-permutation sweep seems not to have covered, since that sweep had 7
+// statements) gives 466 bytes at 48.9%, and with the h store it gives 464 at
+// 51-53%: it does hoist the y load+store, but it also switches the h load from
+// dx to ax and folds the index into `lea eax,[edx+ecx]`, so it loses more than
+// it gains. Best file remains the 475-byte 88.4% version.
 #include <yvals.h>
 
 struct Wh_0046d2e0 {                   // 4 bytes, the w/h pair

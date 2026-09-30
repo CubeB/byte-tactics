@@ -1,5 +1,6 @@
-// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
-// Partial: 92.6% (431 bytes vs 428), best of v20-v39. Prologue, branch A and
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 92.6% (431 bytes vs 428), best of v20-v39 plus the v40-v88 retry.
+// Prologue, branch A and
 // the whole branch B loop body match; only two instructions differ, in the
 // branch B preheader (both are register/base choices for the p reads):
 //   original: mov edx,[eax+0x14363]; mov eax,[eax+0x1436b]; cmp eax,edi;
@@ -16,6 +17,13 @@
 // (rematerialised from g_game, 79.1%), cast-based address forms (identical).
 // The remaining work is getting `mov edi,[esi+4]` plus `mov eax,[eax+0x1436b]`
 // without re-triggering the whole-function p->EDI reallocation.
+// Retry v40-v88 confirmed: ANY read of p->y (or a branch-local q alias, or a
+// hoisted py/dyv local) in the branch B loop makes MSVC give p=EDI and the
+// zero=ESI, moving branch A's u into p's register and adding a `jmp`; using
+// only g_game->view fields (v42/v56) shifts the p spill slot and also breaks
+// branch A. The exact original (list2 then count2 into EAX, then [esi+4] and
+// [esi]) needs g_game dead before the p reads, but every source spelling that
+// kills g_game there also perturbs the function-wide p/zero assignment.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {

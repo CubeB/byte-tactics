@@ -1,4 +1,12 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (second timeboxed retry): expanded loop-2's flag12
+// Direction() into x,y,z direct stores (the note's suggestion) and got 76.8%,
+// so that hunk is genuinely better as the helper. The _allmul operand tree was
+// retried three more ways (a dx copy local, and both inline __int64 spellings)
+// and every one still compiles to the commuted push order at 0x4084f7, so that
+// multiply cannot be steered from source. The one remaining wall is unchanged:
+// loop 1's unit is in edi and `this` in ebp where the original has unit ebp and
+// this ebx, which rotates the whole loop 1 and loop 2 register map.
 // space-bunny-free: 87.4% by check.py, 309 of 405 original instructions by true
 // LCS, total size now exactly 1221 bytes. Three things moved it off 84.1%:
 // - The inline Direction() assigns its fields in the order x, z, y (NOT x, y, z).

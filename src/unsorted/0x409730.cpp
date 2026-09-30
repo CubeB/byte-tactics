@@ -1,4 +1,14 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash 10-minute retry: three new shapes scored with check.py
+// --sym, none moved the two SIB bytes. A static `StoreByte(vector<unsigned
+// char>&,int,unsigned char)` helper used only at the store site stays 1678
+// bytes and 99.6% with both bytes still swapped; a static `LoadByte(...)` at
+// the read site and an `AtByte(...)` reference helper at both sites both blow
+// the inline budget (1683 bytes, 83.9%); `std::vector<char> vec_8d` with the
+// read as bare `vec_8d[i] / 2` is 98.0%. So neither a helper call boundary nor
+// the element type flips the encoding, consistent with the compiler-state
+// conclusion below.
 //
 // STILL 99.6% (deepseek-v4.1-flash timebox pass): nothing this pass moved the
 // two SIB base/index bytes (0x4099f6 wants [esi + ecx], 0x409b53 wants

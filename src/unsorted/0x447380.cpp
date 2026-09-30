@@ -55,6 +55,20 @@
 // `&player[0]`-style sprintf destinations. So the condition tree shape is inert:
 // the one-step rotation is seeded between the loop-top a0570 group and the body
 // and is not reachable by any condition or helper spelling tried so far.
+// deepseek-v4.1: 95.1% with lstrcpynA placed BEFORE the four body sprintfs.
+// The reorder is semantically identical (the four buffers and `name` do not
+// overlap) but it is NOT the original's order: the exe emits the sprintf group
+// at 0x44752c and lstrcpynA at 0x447578. Its value is as a probe: a call
+// statement in front of the group moves the group's scratch rotation from
+// eax/ecx/edx/eax (93.5% version) to ecx/edx/eax/ecx, which is exactly the
+// original's. So the missing thing is one register-holding node allocated
+// before the group inside the body block, and it is not reachable from
+// condition spellings or dead locals.
+// 95.1% notes: the group now matches; the tail after it is still one step off
+// (lea edx/ecx for lstrcpynA, lea eax/edx for the FUN_0049fdf0 buffer, the
+// *0x15b lea chain and the entries reload), and our fdf0 statement also hoists
+// the entries load above the add esp,0xc. The natural order (lstrcpynA after
+// the group) is the 93.5% version in build/scratch/0x447380/zO.cpp.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
@@ -187,11 +201,11 @@ void __stdcall FUN_00447380(int param_1)
             && (i != g_game->localPlayer || param_1 == 0)
             && (!(g_game->flags_2a44 & 4) || IsCounted_00447380(p))
             && p->info->field_96 != 0xff) {
+            lstrcpynA(name, p->name, 0x80);
             sprintf(player, "PLAYER%d", n);
             sprintf(logo, "LOGO%d", n);
             sprintf(ally, "ALLY%d", n);
             sprintf(teamicons, "TEAMICONS%d", n);
-            lstrcpynA(name, p->name, 0x80);
 
             int idx = FUN_0049fdf0(entries, player, 0xe);
             if (entries[idx].field_0 == 1) {

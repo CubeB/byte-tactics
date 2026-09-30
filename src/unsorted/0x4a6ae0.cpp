@@ -1,7 +1,38 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Prior attempt by space-bunny-free, verified by GPT-6.1-sol.
-// PARTIAL 87.0% (1691 bytes against the original's 1703). Command-button
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free.
+// Names are provisional.
+// Earlier pass by space-bunny-free, verified by GPT-6.1-sol.
+// PARTIAL 87.2% (1691 bytes against the original's 1703). Command-button
 // click/key handler for the 0x15b-byte entry table.
+//
+// space-bunny-free pass: the else-branch of the key handler had an INVERTED
+// condition. It read `if (entry->field_138) { field_138 = 1; FUN_004a5f40;
+// }`, but the original's 0x4a714b is `cmp word ptr [ebp+0x138],0` /
+// `jne 0x4a7163`, i.e. the store and the FUN_004a5f40 only happen when
+// field_138 is ALREADY 0. Fixing it to `if (entry->field_138 == 0)` is
+// worth +0.2 (87.0 -> 87.2) and is a genuine semantic correction.
+//
+// A true-LCS alignment (build/scratch/0x4a6ae0/lcs.py, which is difflib-free
+// and only ever costs a free --sym score) says every remaining difference is
+// EITHER a jump target that moved because the function is 12 bytes short
+// (all of them point at the shared `fail` epilogue) OR one of exactly two
+// content differences:
+//   1. the loop bound: original `movsx eax,word [edi+0xb6]; lea ebp,[eax+1]`
+//      (2 ins, 7 bytes) against our `mov ax,...; inc ax; movsx ebp,ax`
+//      (3 ins, 6 bytes), and
+//   2. the field_138 region, where the original is 3 ins + 15 ins against our
+//      18 ins. That is the whole of the missing 12 bytes.
+// So nothing else in this function is wrong; the register homes (obj=EBX,
+// entry=EBP, entries=EDI, flags=EDX/DH, team=CL) and every call site already
+// match.
+//
+// Retried this pass, all worse (free scratch scores): the semantically correct
+// `if (f138) { if (flags&0x2000) ... else if (inrect) fail; else zero+out; }
+// else if (inrect) { set 1; DAT=0xf; } else fail;` chain, 57.1, confirms the
+// note below; a `short f138 = entry->field_138;` cached across all three
+// tests, 60.3 (spills, recolors the whole region again); `int bound =
+// entries->count + 1;`, 60.4, which does reach `movsx` but allocates the bound
+// to ECX and demotes team to BL and loses flags/DH; and putting
+// `entries->count + 1` straight into the loop test with no named bound, 84.4.
 //
 // deepseek-v4.1-flash retry: materialising the search-loop bound as a
 // single `short bound = entries->count + 1;` (declared right before the
@@ -381,7 +412,7 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             entry->field_138 = (entry->field_138 == 0);
             FUN_004a5f40(obj, index);
         } else if (entry->flags & 0x10) {
-            if (entry->field_138) {
+            if (entry->field_138 == 0) {
                 entry->field_138 = 1;
                 FUN_004a5f40(obj, index);
             }

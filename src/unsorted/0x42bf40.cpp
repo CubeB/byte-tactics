@@ -34,6 +34,15 @@
 // `scratch` local) grew the frame by 4 so every esp+N shifted, 62.3%.
 // Still different: the Class_00438760 temp is read as `mov al,[eax]` in ours
 // where the original loads `mov al,[esp+0x2b]` from its byte-packed slot.
+// Pass 5 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772. The shared
+// zero is NOT register pressure: ebx is untouched in the original from
+// 0x42c0f0 to 0x42ce00, where the constant lives in esi, and ebp holds only
+// unitdef, so ebx was free. Passing `sound` at all 75 getter defaults is
+// byte-identical (MSVC5 value-numbers it to a fresh ebx constant). Declaring
+// `int sound = 0;` at function scope instead of at the first getter costs
+// 58.5% (esi pinned live across the whole body), and moving the declaration
+// down to just before the category getter costs 62.8% (4804 bytes), so the
+// esi-vs-ebx pick is allocator state, not a source shape.
 
 // Still 62.6% (ours 4804 bytes against 4772) after deepseek-v4.1's second pass.
 // Confirmed fixed this pass (both match the original now):

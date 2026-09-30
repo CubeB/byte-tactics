@@ -1,24 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// Best result 86.2% (2240 bytes against 2173). Corrected the compaction polarity (keep elements
-// with bit 23 set), the class loop to a do-while, the index loop to a do-while, and the unit and
-// sidedata loop counters to unsigned short. Declaring the class index before the class pointer
-// fixed the xor edi,edi / mov esi,<table> order at the top and lifted 82.9 to 83.1.
-// The compaction is `if (p == end) d = p; else { while (p != end && !(~p->flags & 0x800000)) p++;
-// d = p; if (p != end) copy-loop; }`: the two-condition while (not the equivalent do-while plus
-// break) keeps the scan and the copy as separate loops and lifted 83.5 to 86.2, close to the
-// original, which still has the entry `cmp/je` instead of our inverted `jne` and keeps d in edi
-// instead of spilling it at [esp+0x10] (stores only at the two loop exits there).
-// 2587 tried and rejected: dropping the `if (p == end) { d = p; } else` wrapper for a plain
-// `while (p != end && ...) p++;` scores 76.9; `do {...} while (1);`, a named `more` temp and
-// swapped guard operands in the GUI/unit loops all compile to the same 2240 bytes / 86.2 as the
-// committed text, and `while (1)` in the GUI loop spills suffix and scores 81.0, so neither loop
-// shape stops the /O2 rotation and the g_game->edi choice is an allocator liveness artifact.
-// Remaining: /O2 peels and rotates the GUI suffix loop (the original keeps one copy of the body
-// and jumps back to it: inc ebx, mov esi,1, jmp top; ours peels iteration 1 and hoists
-// `mov esi,ebx; inc ebx` to the top of the rotated body), the sort tail compares against
-// [esp+0x10] where ours loads it into a register, and the unit loop caches g_game in edi so idiv
-// reads the count in ecx where the original uses idiv dword ptr [ecx + 0x1438f] and reloads g_game
-// at the bottom of the loop.
+// Best result 90.2% (2183 bytes against 2173). The GUI suffix loop must be written as a do-while
+// whose condition re-reads the FUN_004bbc40 result from a local:
+//   more = FUN_004bbc40(path); if (more) { suffix++; found = 1; } while (more);
+// That stops /O2 from peeling the first iteration; for(;;), while(1) and a goto loop all score
+// 86.2 (2240 bytes) because MSVC duplicates the loop body ahead of a rotated loop, and the peeled
+// copy also turns `found = 1` into `mov esi, ebx`. With the do-while the body and the tail match
+// the original instruction for instruction except that ours re-tests eax at the bottom
+// (`test eax, eax / jne`) where the original jumps back unconditionally.
+// The compaction keeps the earlier winning shape: keep bit-23-set elements, scan loop and copy
+// loop separate, `*d = *s` (not `*d++`, which re-allocates the surrounding blocks, 88.2).
+// Remaining: the compaction copy loop spills d to [esp+0x10] and reloads it around every
+// operator= call (the original keeps d in edi and stores it once after the loop, about 6 bytes);
+// the unit loop keeps g_game in edi, so idiv reads a register where the original reloads g_game
+// into ecx at the loop bottom and uses idiv dword ptr [ecx + 0x1438f] (about 2 bytes); and the
+// initial compaction guard is inverted (ours jne, the original je).
 #include <string.h>
 #include <stdio.h>
 
@@ -348,14 +343,16 @@ void FUN_0042d2e0() {
 
         int suffix = 1;
         int found = 0;
-        for (;;) {
+        int more;
+        do {
             sprintf(section, "%s%d", namebuf, suffix);
             FUN_004290f0(path, "guis", section, "GUI");
-            if (!FUN_004bbc40(path))
-                break;
-            suffix++;
-            found = 1;
-        }
+            more = FUN_004bbc40(path);
+            if (more) {
+                suffix++;
+                found = 1;
+            }
+        } while (more);
         if (found)
             type->field_22e = suffix;
         else if (type->flags.bits.gui)

@@ -1,5 +1,6 @@
-// Decompiled by GPT-5.6-Terra, finished by GPT-6 and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by GPT-6 and deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Partial at 86.8% (562 bytes against 556).
+// Retry: the live zero register needed for the original comparisons and width initialization remains unmatched.
 //
 // deepseek-v4.1-flash pass: the whole remaining diff is one allocator decision.
 // The original materialises a 32-bit zero in edi at the prologue (`xor edi,edi`)

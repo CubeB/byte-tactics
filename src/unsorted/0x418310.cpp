@@ -1,4 +1,12 @@
-// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry session 3 (5 scratch probes, all byte-identical to
+// this file, so it stays best at 55.5%). Probes: heights[4] moved into the
+// inner loop body; then p[4] too; y hoisted to function scope with the for-init
+// assigning it; mirroring the original preheader load order (viewWidth before
+// firstX); naming the width-1 clamp through a local. None changed a byte. The
+// low-slot allocation is neither declaration-scope nor statement-order driven,
+// it follows register colouring, so the y-at-esp+0x10 layout still needs a
+// different whole-function shape.
 // GPT-6 retry: scalar/point screen counters, projection and step helpers,
 // function-scope quad homes and guarded do/while loops did not improve 55.5%.
 // Most screen-counter variants add a hoisted row invariant and a four-byte frame

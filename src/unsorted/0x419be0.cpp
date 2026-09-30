@@ -1,4 +1,18 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 3 (still 84.1%, no improvement): the remaining
+// `mov ebp,[esp+0x34]` vs `mov ebp,esi` is allocator state, confirmed again.
+// New variants, every one byte-identical at 84.1% except the first: an
+// `Entry*& button` reference parameter with all 11 index loads routed through
+// a local copy `b` and only the false arm reading the reference (reaches the
+// exact 1329 bytes but 64.1%, the reference forces two levels of addressing);
+// a named element pointer `p = &entries[button->index]` then
+// `p->type == 1 ? p : button`; `const` pointer parameters plus a
+// `*(Entry**)&button` false arm; a local `Entry* b = button` for the index
+// loads with the raw parameter left for the false arm; an inline
+// `Pick(Entry* s, Entry*& b)` returning `s->type == 1 ? s : b`; and an
+// out-parameter inline `Pick2(Entry* s, Entry*& b, Entry*& out)`. The
+// reference forms reproduce the prologue read but add code, so the source
+// shape alone cannot produce this allocation.
 // deepseek-v4.1-flash retry (still 84.1%, no improvement): re-tested the
 // remaining leads from the notes. `*(&button)` and
 // `*(Entry_00419be0**)&button` as the false arm, a `button = button;`

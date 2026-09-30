@@ -1,5 +1,27 @@
-// Decompiled by GPT-6, finished by space-bunny-free. Names are provisional.
-// Partial: 99.5%. Two hunks remain (checked again in #1641):
+// Decompiled by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Body started by GPT-6, continued by space-bunny-free, edited by deepseek-v4.1.
+// deepseek-v4.1-flash #2072: MATCH. The last hunk in case 0x10001000 was the
+// packer swapping the pieces base and the move[] offset between [esp+0x10] and
+// [esp+0x1c]. The fix is that `pieces` is one shared pointer variable declared
+// in the do-block and reused by both 0x10001000 and 0x10002000 (`p = pieces;`
+// then `p[piece]` in each), so the base is a single lifetime and lands in
+// [esp+0x10]; before that, case 0x10001000 had its own `Piece *p;` inside the
+// case block and the base ended up sharing the index's [esp+0x18]. Nothing else
+// changed. Every earlier note below is history: the 99.6%/99.5% hunks and the
+// shapes that failed are kept for reference, do not re-try them.
+// deepseek-v4.1-flash: 99.6%. The 0x10059000 hunk is FIXED by moving the
+// expression into an inline Channel::XorOp() (the inline boundary flips the
+// pop registers to ecx/edx). One hunk remains, in case 0x10001000: the stack
+// packer gives the move[] byte offset [esp+0x10] and reuses [esp+0x18] for the
+// piece base, while the original gives the base [esp+0x10] and the offset
+// [esp+0x1c] (the dword index piece*19+axis keeps [esp+0x18]). The instruction
+// sequence is otherwise byte-identical, so it is a slot pick, not a code shape.
+// Tried with no change: p only in the `if` (current), p declared first in the
+// block, p at function scope, no p at all, an `int&` reference, wrapping the
+// whole body in an inline method, and building the real function 0x4b0d60
+// above this one. p before the stores and p for the stores both cost ~80%.
+// The note below is the earlier attempt; its hunk 2 parts are now fixed.
+// Partial was 99.5%. Two hunks remain (checked again in #1641 and #2072):
 //   1. case 0x10001000 (0x4b0ebf, 0x4b0eec, 0x4b0ef3). The original keeps three
 //      frame slots live across the call: [esp+0x10] = the piece array base,
 //      [esp+0x18] = the dword index piece*19+axis, [esp+0x1c] = the move[]
@@ -18,7 +40,40 @@
 //      of ^ first and hands it ecx; the xor destination is always the left
 //      operand's register. Untried: two named locals with `Push(a ^ b)`
 //      (both pops hoisted out of the expression), which is the only spelling
-//      left that can give the first pop ecx.
+//      left that can give the first pop ecx. Tested in #2072 and it cannot:
+//      `int a = c->Pop(); c->Push(a ^ c->Pop());` and the two-local spellings
+//      `int a = c->Pop(); int b = c->Pop(); c->Push(b ^ a);` / `(a ^ b)` all
+//      compile to the identical edx/ecx pair, so the pick is a function-wide
+//      register allocation decision, not something the local source can steer.
+//      Hunk 1 tested in #2072 as well: the frame slot pick survives moving the
+//      `pieces[piece].move[axis] = c->Pop();` lines before `p = pieces;` (that
+//      costs a lot, 99.5% -> 81.4%) and swapping the `Piece *p;` declaration
+//      order (no change).
+//      Also tried in #2072 (all kept 99.5% with the same two hunks, or worse):
+//      `int a = Pop() ^ Pop(); Push(a);`, `int a = Pop(); a ^= Pop(); Push(a);`,
+//      `int a = Pop(); int b = Pop(); a = a ^ b; Push(a);`,
+//      `int a = Pop(); Push(Pop() ^ a);` for hunk 2; and `p = pieces;` moved
+//      after the second Pop (99.2%) or `p[piece].moveSpeed[...]` (80.5%) for
+//      hunk 1. Using the shared function-scope `value` as the XOR temp does
+//      give the original's ecx-first pop order, but it re-colours the whole
+//      function (86.2%), proof the pick is global allocation. A fresh
+//      function-scope temp (`int t;` next to `value`) keeps 99.5% but does
+//      not flip the order either.
+// deepseek-v4.1-flash #2072 second pass (17 check.py runs, best stays 99.6%): the
+// remaining hunk is only the packer swapping base and offset slots, and it is
+// not reachable from the case body. Same 99.6% with the same hunk: no `p` at
+// all (direct pieces[piece] in the if), `Piece *p = pieces;` at the assignment
+// point instead of a forward declaration, an unused `int index = piece*19+axis;`
+// local, the two *declarations* swapped (axis first), forward declarations with
+// the assignments kept in place, `p` declared in the do-block before the
+// switch, and `(p = pieces)[piece].move[axis]` inside the condition. Worse:
+// `Piece *p = pieces;` before the stores (99.3%, base gets the third slot
+// [esp+0x1c] and the packer stores it early), `int& movep =`
+// pieces[piece].move[axis] (82.3%), `int* movep = &pieces[piece].move[axis]`
+// (82.3%), `Piece *p = pieces + piece;` with p-> (81.4%), p used for both
+// stores (81.6%), `Piece *p = pieces;` between the two stores (99.4%).
+// The emitted instruction stream is identical apart from the slot numbers, so
+// the pick is made by a global pass, not by the shape of this case.
 #include <stdlib.h>
 
 struct ScriptTable
@@ -49,6 +104,11 @@ struct Channel
     void Push(int value)
     {
         stack[++sp] = value;
+    }
+    void XorOp()
+    {
+        int a = Pop();
+        Push(a ^ Pop());
     }
 };
 struct Piece
@@ -139,11 +199,11 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
         int arguments[4];
         do
         {
+            Piece *p;
             unsigned int opcode = table->code[c->pc];
             switch (opcode & 0x100ff000)
             {
             case 0x10001000: {
-                Piece *p;
                 int piece = table->code[c->pc + 1];
                 int axis = table->code[c->pc + 2];
                 pieces[piece].move[axis] = c->Pop();
@@ -162,7 +222,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 pieces[piece].turn[axis] = c->Pop() & 0xffff;
                 pieces[piece].acceleration[axis] = 0;
                 pieces[piece].turnSpeed[axis] = c->Pop() / scale;
-                Piece *p = pieces;
+                p = pieces;
                 int delta = p[piece].turn[axis] - FUN_00480cb0(piece, axis);
                 if (delta == 0)
                     p[piece].turnSpeed[axis] = 0;
@@ -480,7 +540,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 break;
             }
             case 0x10059000: {
-                c->Push(c->Pop() ^ c->Pop());
+                c->XorOp();
                 c->pc++;
                 break;
             }

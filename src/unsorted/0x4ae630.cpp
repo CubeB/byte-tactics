@@ -1,18 +1,13 @@
-// Decompiled by GPT-6, finished by space-bunny-free. Names are provisional.
-// Partial: 94.8%. The only real difference left is in the two-tab loop at
-// 0x4ae7cc: the original emits `mov ebx, 2` and only then
-// `mov byte ptr [esp + 0x13], 9`, ours emits the store first (all other
-// bytes agree; the jump-table difference at 0x4aea8c is relocation noise).
-// Second pass tried: moving the `tab = '\t'` store into the loop body
-// (`while (i-- > 0) { tab = '\t'; ... }` and the
-// `for (i = 2; i > 0; i--) { tab = '\t'; ... }` spellings) DOES get the
-// order right, but MSVC then gives the hoisted store its own temporary home
-// at [esp + 0x1f] (inside the first 100-byte buffer) instead of the shared
-// local at [esp + 0x13], so those score 94.5%. Guarding the in-body store
-// with `if (i == 1)` grows the function to 1168 bytes (89.3%). Header
-// sweeps, counter types, countdown forms and local declaration order did not
-// help. Remaining hunk by address: 0x4ae7cc-0x4ae7d1 (order of the two
-// instructions above) and 0x4aea8c (jump table, relocation only).
+// Decompiled by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Credit: started by GPT-6, continued by space-bunny-free (left at 94.8%).
+// MATCH. The last hunk was the two-tab loop, where the original emits
+// `mov ebx, 2` before `mov byte ptr [esp + 0x13], 9`; the cause is a
+// block-scope definition for both the counter and the char (`int j = 2;`
+// then `char t = '\t';` in one block), which MSVC 5 emits in source order.
+// Loops 1 and 3 must keep the plain `tab = '\t';` plus `for` spelling: an
+// assignment sinks behind the counter and stores first, which is what the
+// original does there. The three block-scope chars (t1, t2, t3) share the
+// one slot at [esp+0x13], so the frame is unchanged.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +28,6 @@ void __stdcall FUN_004ad4f0(void*, Class_004bbbe0*, int);
 // FUNCTION: 0x4ae630
 void __stdcall FUN_004ae630(char* obj, char* name)
 {
-    char tab;
     int index;
     char button[100];
     char slider[100];
@@ -62,16 +56,20 @@ void __stdcall FUN_004ae630(char* obj, char* name)
         FUN_004accd0(out, 1);
         FUN_004bbbe0(out, "{\n", 2);
         sprintf(common, "[%s]", "COMMON");
-        tab = '\t';
-        for (int i = 0; i < 1; i++) FUN_004bbbe0(out, &tab, 1);
+        {
+            char t1 = '\t';
+            for (int i = 0; i < 1; i++) FUN_004bbbe0(out, &t1, 1);
+        }
         FUN_004bbbe0(out, common, strlen(common));
         FUN_004bbbe0(out, "\n", 1);
         FUN_004accd0(out, 2);
         FUN_004bbbe0(out, "{\n", 2);
         FUN_004ace50(p, out, 2);
-        i = 2;
-        tab = '\t';
-        do { FUN_004bbbe0(out, &tab, 1); } while (--i);
+        {
+            int j = 2;
+            char t2 = '\t';
+            do { FUN_004bbbe0(out, &t2, 1); } while (--j);
+        }
         FUN_004bbbe0(out, "}\n", 2);
         switch (*(unsigned char*)p) {
         case 0:
@@ -114,8 +112,10 @@ void __stdcall FUN_004ae630(char* obj, char* name)
             FUN_004acde0(out, "nuttin", _itoa(*(int*)(p + 0xb6), empty, 10), 1);
             break;
         }
-        tab = '\t';
-        for (i = 0; i < 1; i++) FUN_004bbbe0(out, &tab, 1);
+        {
+            char t3 = '\t';
+            for (int i = 0; i < 1; i++) FUN_004bbbe0(out, &t3, 1);
+        }
         FUN_004bbbe0(out, "}\n", 2);
     }
     FUN_004bb5d0(out);

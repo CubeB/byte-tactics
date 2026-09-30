@@ -43,6 +43,16 @@
 // (30.6 percent, it stops being an out-of-line call in the tail too);
 // `if (this != &v)` as the copy guard (64.0 percent against 66.4 for
 // `if (this)`).
+// Retry 4 notes (deepseek-v4.1-flash): re-confirmed that the if/else loop
+// form reproduces the original loop bytes but moves `this` from [esp+0x18] to
+// [esp+0x20] and lock1 from +0x20 to +0x1c, scoring 55.2 percent (799 bytes);
+// the helper-assignment form keeps the frame but materialises the bool then
+// re-tests it, which is the +10 byte loop difference. Calling the comparator as
+// an out-of-line member in the loop (v.key.FUN_004e1a30(x->val.key)) drops the
+// loop to a real call and scores 42.1 percent. Best kept here: the helper's
+// return type changed from bool to int (return 1/0) scored 74.5 percent
+// (821 bytes) vs 74.2 for bool, but the loop fold and the non-multi tail
+// (out-of-line pair ctor at 0x4e253a, ++size ordering) still differ.
 #include <string.h>
 #include <yvals.h>
 
@@ -76,11 +86,11 @@ struct Node_004e2250 {
 
 extern Node_004e2250* DAT_005292c4;
 
-static inline bool Less_004e2250(const char* a, const char* b)
+static inline int Less_004e2250(const char* a, const char* b)
 {
     if (a != b && strcmp(a, b) < 0)
-        return true;
-    return false;
+        return 1;
+    return 0;
 }
 
 class Class_004e2ab0 {

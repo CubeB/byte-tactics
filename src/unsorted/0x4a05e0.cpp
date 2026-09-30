@@ -1,4 +1,32 @@
-// Decompiled by GPT-5.6-Terra, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2413, this pass): best check.py score 61.5%,
+// still no MATCH. The gain is a difflib alignment artifact, not progress: the only
+// source change from the 56.5% base is the exit block using `entry->u.text[i]`
+// instead of `text[i]` (semantically identical). The generated code there is
+// `mov cl,[ebp+esi+0xb6]` against the original's `mov edx,[esp+0x20]; mov al,[ebp+edx]`,
+// so it is further from the original instruction-wise, not closer. The real blocker
+// is unchanged: MSVC gives EBX to `text` here (EBX=a/first-tolower temp in the
+// original), which pushes the first tolower result into EDI and `j` into a stack
+// slot, while the original keeps i=EBP, j=EDI, scan=ESI, a=EBX with both `text`
+// ([esp+0x20]) and `entries` ([esp+0x1c]) memory-homed.
+//
+// Levers tried this pass (all scored with check.py, scratch in build/scratch/0x4a05e0/ds):
+//  * one tolower temp only (`a` compared to tolower(text[i])): 56.5, byte-identical,
+//  * `int a,b;` declared at function scope: 56.5, byte-identical,
+//  * declaration permutations (text last, entries last): 53.4 / 56.5,
+//  * `for (j=0, scan=entries; ...; j++, scan++)`: 52.2 (pointer form),
+//  * `const char* text`, `char* text = 0`: 56.5 / 52.6,
+//  * swapping the two tolower calls per arm: 55.9,
+//  * inner loop indexing `entries[j]` directly with no scan local: 56.5,
+//  * caching `char c = text[i]` before the inner loop: 40.9,
+//  * a dead `if (j < 0) return;` after the inner loop: 60.3 (adds code, 494+ bytes),
+//  * `entry->u.text[i]` in the exit block: 61.5 (the kept variant),
+//  * `if (text == 0) return;` to try to demote text out of EBX: 54.3, EBX still text,
+//  * `unsigned j`: 50.8.
+// The allocation never flipped in any variant. What still differs: the register
+// homes (EBX=text vs EBX=first-tolower temp; j memory vs j=EDI) and everything that
+// follows from it (the [esp+0x1c]/[esp+0x20] slot swap, the `cmp dl,dl / je` redundant
+// compare, and the type==5 arm falling into the common strlen block).
 // Retry #1784: GPT-6.1-sol confirmed 56.5% after twelve worker checks; the final combined check also did not MATCH.
 // GPT-6.1-sol retry #1983: two checks kept 56.5%; a pointer-to-pointer text home compiled identically.
 //
@@ -235,11 +263,11 @@ void __stdcall FUN_004a05e0(Object_004a05e0* obj, int index)
             }
             if (j > entries->u.count) {
                 if (entry->type == 1) {
-                    entry->u.text[0x13a - 0xb6] = text[i];
+                    entry->u.text[0x13a - 0xb6] = entry->u.text[i];
                     return;
                 }
                 if (entry->type == 5) {
-                    entry->u.text[0x147 - 0xb6] = text[i];
+                    entry->u.text[0x147 - 0xb6] = entry->u.text[i];
                     return;
                 }
                 return;

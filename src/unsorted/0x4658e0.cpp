@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1781: GPT-6.1-sol independently confirmed 96.5%; no MATCH. The word flag load/store and EDX versus DL test still differ.
 // GPT-6.1-sol lead pass (#1510): comparing the masked flag directly (`flag == 2`) scored 87.2%; retained the 96.5% best.
 // PARTIAL: 96.5% (best, verified with check.py). A small mask helper raised
 // similarity from 87.8%, though the inlined helper now makes the compiler

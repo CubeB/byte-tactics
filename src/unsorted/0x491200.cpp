@@ -61,6 +61,19 @@
 // local, and first-site perturbations plus `register` declarations). Every one
 // compiled to the same object as the file below: the tie is not reachable from
 // any C++ shape, only from the scheduler's internal node order.
+// A fifth pass (deepseek-v4.1-flash, 10 min) tried 18 more site-2 shapes:
+// no-windows.h manual MEMORYSTATUS/GlobalMemoryStatus, a shared top-level
+// LPMEMORYSTATUS used at both sites, site-2 pointer and int-cast stores,
+// MEMORYSTATUS mem[1] with mem[0] and GlobalMemoryStatus(mem), a union whose
+// store goes through u.dw, comma expressions in both orders, pointer-comma
+// (q = &mem, q->dwLength = 0x20, q) inside and outside the call, casts, a named
+// length local, a comma grouping the store with FUN_004b4fd0, and single-use
+// pointer-returning / two-argument inline helpers. All stay at 99.6% with the
+// same 4-line diff, except (GlobalMemoryStatus(&mem), mem.dwLength = 0x20),
+// which does reach the wanted push-before-store order but then leaves the store
+// one instruction after the call (a 2-line diff). The scheduler will not move a
+// store past a call that may alias mem, so the push shadow at [esp+0x14] is
+// still not reachable from any legal source order.
 
 #include <string.h>
 #include <windows.h>

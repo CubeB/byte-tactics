@@ -1,5 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL (62.8%, 764 bytes against the original's 780). Per-frame driver of
+// PARTIAL (67.8%, 800 bytes against the original's 780). Per-frame driver of
 // the unit's command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60
 // list, matched, and the source of the Wait_0043b7c0 shape below). The list
 // head is re-read after every node, so a node the callback re-queues is seen
@@ -50,6 +50,36 @@
 // (`mov eax,edx` then `mov edx,[esi+0x4a]`, reused as `mov [ecx],edx`).
 // The pending block's eax/ecx rotation and the new-command tail's kind store
 // ordering are also still off.
+//
+// Improved by space-bunny-free: 62.8 -> 67.8 (764 -> 800 bytes) by writing
+// case 9 out in full instead of calling RemoveAndDelete, and by binding the two
+// values it needs to locals *before* the store that makes them:
+//
+//     unsigned int f9 = node->flags | 0x800000;
+//     Class_0043a1f0* next9 = node->next;
+//     node->flags = f9;
+//     if (next9 != 0) { ...inlined unlink using f9 and next9... }
+//     else { node->count = 0; Wait_0043b7c0(node, 0x1e); }
+//
+// That is what makes the case-5/8 unlink and the case-9 unlink share one
+// physical `or 0x10000; delete` tail (case 5's found branch now ends in a
+// `jmp` into case 9's, as in the original), and it puts `next9` in the
+// register the original keeps it in, so the `*link = next` needs no reload.
+// Reading `node->next` before the store (and before the `je`) is required: it
+// is what the original's `mov edx,[esi+0x4a]` before the compare is.
+// The tail of the loop must be inside the `n9 == node` branch: keeping a copy
+// after the loop costs 28 bytes of duplicated delete and drops the score to
+// 64.0. Inverting the test (`if (next9 == 0) { Wait; break; }`) also drops it,
+// 760 bytes but only 64.0, so the original really does branch on `next == 0`
+// into the Wait block.
+//
+// What still differs: 20 bytes, the Wait block of case 3 and the Wait block of
+// case 9's else are emitted separately instead of merging into the one at
+// 0x43b951 (case 3 should be `push 0xf; jmp 0x43b951`). In v0, where case 9
+// called RemoveAndDelete instead of inlining it, the two did merge, so the
+// inline body itself is what breaks the block sharing here. And the global
+// eax/ecx rotation in the pending block (below) is unchanged, which is what
+// makes the two copies differ in register allocation.
 
 #pragma pack(push, 1)
 
@@ -227,15 +257,29 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
         case 8:
             RemoveAndDelete(unit, pp, node);
             break;
-        case 9:
-            node->flags |= 0x800000;
-            if (node->next != 0)
-                RemoveAndDelete(unit, pp, node);
-            else {
+        case 9: {
+            unsigned int f9 = node->flags | 0x800000;
+            Class_0043a1f0* next9 = node->next;
+            node->flags = f9;
+            if (next9 != 0) {
+                Class_0043a1f0* first9 = *pp;
+                Class_0043a1f0** link9 = (f9 & 0x40000) ? &unit->list2 : pp;
+                for (Class_0043a1f0* n9 = *link9; n9 != 0; n9 = n9->next) {
+                    if (n9 == node) {
+                        *link9 = next9;
+                        if (node != first9)
+                            node->flags |= 0x10000;
+                        delete node;
+                        break;
+                    }
+                    link9 = &n9->next;
+                }
+            } else {
                 node->count = 0;
                 Wait_0043b7c0(node, 0x1e);
             }
             break;
+        }
         case 6:
             MoveToEnd(pp, node);
             break;

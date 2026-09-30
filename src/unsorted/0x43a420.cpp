@@ -1,51 +1,50 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
 // Started by deepseek-v4.1-flash, continued by GPT-6, finished by deepseek-v4.1.
-// Partial: 93.8%, exact 1300-byte size and 0x164-byte frame. The two
-// differences below are still what the checker shows (the 2-byte shift is
-// now compensated by the `continue` shape of the fallback loop, so only the
-// loop's own registers and the prologue store are left):
-//  0. fallback loop register roles, still wrong: the original keeps the raw
-//     index in ECX and the filtered (compared) counter in EDX and copies the
-//     result with `mov dl,cl`, while ours compares ECX. All of the plain
-//     break forms give ECX to the compared counter; the `k != desc.kind ->
-//     k++; continue;` form is the one that reaches 93.8% because its two
-//     extra bytes exactly absorb the missing `mov dl,cl`, but it also moves
-//     the end pointer from ESI to EDI and materialises the `continue` jump.
-//     Still open: get ECX on the raw index. A `k++ == desc.kind` compare,
-//     an unsigned char raw index, an else-break, and swapping the two
-//     declarations all leave ECX on the compared counter.
-//  1. prologue scheduling: (see below)
-//  1. prologue scheduling: the original stores the base-class vtable between
-//     the two `push edi` argument pushes of the link member's constructor
-//     (push edi / mov [ebp],0x4fd2cc / push edi / mov ecx,esi / mov byte
-//     [ebp+4],0 / call 0x4895c0); ours emits both pushes and mov ecx,esi
-//     first, then the store. Writing link(0,0) before kind(0) in the init
-//     list, giving Class_0043a1e0 an explicit empty constructor, and calling
-//     the link constructor from the body all leave the order unchanged.
-//  2. the kind fallback scan at 0x43a556: the original keeps the filtered
-//     counter in EDX and the raw-index counter in ECX and copies cl to dl at
-//     the join (mov dl,cl), while ours keeps the filtered counter in ECX and
-//     the raw index in EDX, so ours is 2 bytes shorter and every later branch
-//     target and the jump table shift by 2. Declaration order, do-while /
-//     while / for, unsigned / unsigned short / unsigned char counters, ++i, a
-//     separate result byte and a reversed comparison all still give ECX to
-//     the variable the loop compares, so MSVC5's pick here does not follow
-//     the declaration order or the ++ sites.
-// space-bunny-free re-attacked difference 2 and did not move it. All of the
-// following still score 86.2% with ECX on the compared counter, so MSVC5's
-// pick here follows neither the declaration order, nor the ++ sites, nor the
-// loop shape: hoisting the end pointer into a named local; reading desc.kind
-// into a local first; an extra (dead) reference to either counter before or
-// after the loop; `k++ == desc.kind` folded into the compare; `while(1)` with
-// the bound test at the top; the raw index incremented at the TOP of the body
-// from a -1 seed; the index computed by pointer difference; a `continue` form
-// that duplicates the tail; and swapping the two counter declarations. For
-// difference 1, an explicit empty base ctor (with and without `__inline`),
-// `Class_0043a1e0()` written out in the init list, `kind = 0` as a body
-// statement, and naming link's first argument all leave the order unchanged.
-// Note for whoever picks this up: the whole 2-byte shift cascades through every
-// branch target and the jump table, so difference 2 is worth far more than its
-// 5 diff lines suggest, and it is the one to solve first.
+// Partial: 93.8% (2 real check.py runs this session, all tuning scored free with
+// check.py --sym). Exact 1300-byte size and 0x164-byte frame. Two differences
+// are left, and the first one is the whole ballgame:
+//
+// 0. THE FALLBACK SCAN AT 0x43a556: the original keeps the raw scan index in
+//    ECX and the filtered (compared) counter in EDX, and copies the result
+//    with `mov dl,cl` at the join; ours keeps the compared counter in ECX and
+//    the raw index in EDX, so the store needs no copy. The plain
+//    `if (k == desc.kind) break;` form (not the `continue` form used below)
+//    is otherwise byte-identical in this region: it already gives
+//    ESI = end pointer, EDI = desc.kind, EAX = p, and it is exactly 2 bytes
+//    short, which is only the missing `mov dl,cl`. That 2 bytes shift every
+//    later branch target and the switch jump table, so the plain form scores
+//    86.2% and the `continue` form (which fakes the 2 bytes with an extra
+//    `inc` + `jmp`) scores 93.8%. Fix the register choice and the `continue`
+//    hack becomes unnecessary.
+//    What is known about the cause: MSVC 5 weights register priority by loop
+//    nesting, and the variable used in the loop's COMPARE wins ECX in every
+//    spelling tried (declaration order, int/unsigned short/unsigned char/long
+//    /register on either counter, hoisting the end pointer into a named
+//    local, hoisting desc.kind into a local, for / while(1) / do-while,
+//    ++i vs i = i + 1, and an extra use after the loop: all still give ECX to
+//    the compared counter, 83.7% to 86.2%). Declaration order does move the
+//    two `xor`s, but not the roles. The weighting theory is confirmed
+//    directly: adding ONE in-scope use of the raw index inside the loop (a
+//    byte local assigned from idx each iteration, scratch g1) does flip it,
+//    raw index into ECX with the `mov dl,cl` appearing as in the original,
+//    but it pushes the compared counter out to the stack. So the missing
+//    construct is one extra in-loop USE of the raw index that emits no
+//    instructions. A dead in-loop store of desc.kind does not count: MSVC kills
+//    it before the allocator runs (and the whole function then moves `this`
+//    into esi, 53.9%). A store of desc.kind inside the break arm is also
+//    killed early and changes nothing (86.2%).
+//    Also worth knowing: naming the end pointer (`Entry* last = ...`) is not
+//    neutral, it moves the end pointer to ECX and the compared counter to ESI.
+// 1. PROLOGUE SCHEDULING: the original stores the base-class vtable between
+//    the two `push edi` argument pushes of the link member's constructor
+//    (push edi / mov [ebp],0x4fd2cc / push edi / mov ecx,esi / mov byte
+//    [ebp+4],0 / call 0x4895c0); ours emits both pushes and mov ecx,esi
+//    first, then the store. Writing link(0,0) before kind(0) in the init list,
+//    giving Class_0043a1e0 an explicit empty constructor (with and without
+//    __inline), listing the base explicitly, calling the link constructor
+//    from the body, `kind = 0` as a body statement, naming link's first
+//    argument, and a base constructor taking an unused int (the argument push
+//    is dropped, so the order is unchanged) all leave it alone.
 // Preserve the inclusive fallback-table scan: 0x43a58d uses JBE even though
 // the named lookup passes the same end pointer to exclusive lower_bound.
 #include <stdio.h>

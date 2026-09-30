@@ -1,35 +1,48 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 83.7% (best seen), 1082 bytes versus 1074. Frame is the right 0x48
-// bytes and the mode!=2 early return matches (ebp/ebx are pushed inside the
-// mode==2 arm, as the original does at 0x43d2c3).
-// This session: the speed clamp must be written `if (mag > f18)` (not
-// `mag < f18` nor `f18 < mag`), which keeps the _hypot result in st(0) and
-// gives the original `fcom [esp+0x28] / test ah,0x41 / jne` (74.9 -> 83.7 came
-// from that plus hoisting the FUN_004b70ef/FUN_004b7123 results into locals
-// r1/r2 before the two p1 adds, which keeps r1 in ebp across the second call
-// and sinks the p1 loads). The heading `if (d != 0)` zero case lands after the
-// clamp block (original 0x43d587); removing the `type` local, making scale an
-// explicit __int64, and dropping the `(float)` on the three _hypot calls all
-// scored worse (56.5, 72.6, 71.3). What still differs:
-//   * the three inlined 64-bit scales push `_allmul` args in the other order
-//     (ours: edx,eax,ebp,ebx; original 0x43d345: ebp,ebx,edx,eax), i.e. the
-//     original keeps `scale` live in ebx:ebp across all three multiplies
-//     while our build rematerialises it; writing `(__int64)s * x` in Scale
-//     and the r1/r2 locals did not change the push order;
-//   * the `h` short is spilled to a slot in the original (mov [esp+0x1c],ecx
-//     at 0x43d44e, re-read from the same home at 0x43d460) but we re-read
-//     unit->f64.y, which is one instruction shorter;
-//   * our dax/daz/dbx/dbz slots differ from the original's (0x1c/0x24 and
-//     0x40/0x48, ours 0x14/0x5c and 0x1c/0x20), which also shifts every
-//     fild/fst operand and branch target in the leveling and k blocks;
-//   * the tail keeps p1.x, p1.z and field_20 in registers across the
-//     _hypot/_ftol calls (extra mov ebp,edx / mov edx,ecx copies and an extra
-//     `mov [esp+0x5c],edx` spill) while the original re-loads them from the
-//     object; the original also computes delta.x as `[esi] - old.x`.
-// Previously tried: explicit double casts on every scaling multiply, an
-// integer instead of float hypot for the distance, assigning the sqrt result
-// to k before converting, `__int64` scale, dropping the `type` local, and
-// dropping the `(float)` on the three _hypot calls.
+// PARTIAL: 87.7%, exactly 1074 bytes like the original. Frame is the right
+// 0x48 bytes and the mode!=2 early return matches (ebp/ebx are pushed inside
+// the mode==2 arm, as the original does at 0x43d2c3).
+//
+// The single biggest win this session (83.7 -> 87.7, and 1082 -> 1074 bytes)
+// was writing the steering delta through an inline `Vec3 operator-(const
+// Vec3&)`: `Vec3 delta = p1 - old;`. Written as three `delta.x = p1.x -
+// old.x;`-style assignments the compiler CSEs the just-stored p1.x/p1.z out
+// of the two `p1.x += ...` / `p1.z += ...` statements across the inlined
+// Length() and emits `mov ebp,edx` / `mov edx,ecx` keeps plus an extra spill
+// (1082 bytes). The operator- form reloads both operands, matching the
+// original's `add dword ptr [edi+0x10], eax` and fresh `[esi]` loads. This is
+// the shared upstream cause the brief warns about: one construct fixed the
+// whole tail.
+//
+// Also confirmed: the speed clamp must be `if (mag > f18)` (not `mag < f18`
+// nor `f18 < mag`) to keep the _hypot result in st(0) and give the original
+// `fcom [esp+0x28] / test ah,0x41 / jne`. Vec3::Scale must scale `x * s`
+// (the sibling 0x43d0d0.cpp uses the same order), which makes two of the
+// three inlined _allmul calls push ebp,ebx (scale) before edx,eax (component)
+// as the original does.
+//
+// What still differs (43 instructions, LCS 315/358, all in four clusters):
+//   * the THIRD inlined Scale multiply (p1.z, original 0x43d374) still pushes
+//     edx,eax then ebp,ebx while the original pushes ebp,ebx then edx,eax;
+//     writing Scale as three explicit statements, reversing the operand,
+//     making scale `__int64`, or wrapping the f-scaling in a `ScaleXZ(int)`
+//     method (which DOES fix that call's order) did not move the count.
+//   * the f-scaling multiply (original 0x43d3f5) pushes component-then-f in
+//     our build; the `ScaleXZ` method fixes the first of its two calls but
+//     not the p1.z one.
+//   * the four delta locals get different homes (ours dax 0x14, daz 0x5c,
+//     dbx 0x20, dbz 0x1c; original dax 0x1c, daz 0x24, dbx 0x40, dbz 0x48)
+//     and so every fild/fst operand and branch displacement in the leveling
+//     and k blocks is off by a constant. `h` is a `short` local that spills
+//     and is re-read (matches the original's slot reuse) rather than
+//     re-reading unit->f64.y.
+//   * the tail forwards p1.x into a callee-saved register across Length()
+//     (`mov eax, ebp`) where the original reloads `mov eax, [esi]`.
+// Previously tried and worse or neutral: `(__int64)s * x` in Scale (neutral),
+// int/__int64 f (neutral), swapping the f-multiply operands (neutral),
+// explicit three-statement scaling instead of the Scale method (66%),
+// explicit double casts, integer hypot for the distance, assigning the sqrt
+// result to k first.
 
 #include <math.h>
 
@@ -43,10 +56,17 @@ struct Vec3 {
         double a = x, b = y, c = z;
         return (int)sqrt(a * a + b * b + c * c);
     }
+    Vec3 operator-(const Vec3& o) const {
+        Vec3 r;
+        r.x = x - o.x;
+        r.y = y - o.y;
+        r.z = z - o.z;
+        return r;
+    }
     void Scale(int s) {
-        x = (int)(((__int64)s * x) >> 16);
-        y = (int)(((__int64)s * y) >> 16);
-        z = (int)(((__int64)s * z) >> 16);
+        x = (int)(((__int64)x * s) >> 16);
+        y = (int)(((__int64)y * s) >> 16);
+        z = (int)(((__int64)z * s) >> 16);
     }
 };
 
@@ -149,8 +169,9 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
         p1.x = (int)(((__int64)p1.x * f) >> 16);
         p1.z = (int)(((__int64)p1.z * f) >> 16);
         int g = (int)((double)(dist - maxd) * 65536.0);
-        int r1 = -FUN_004b70ef(unit->f64.y, g);
-        int r2 = -FUN_004b7123(unit->f64.y, g);
+        short h = unit->f64.y;
+        int r1 = -FUN_004b70ef(h, g);
+        int r2 = -FUN_004b7123(h, g);
         p1.x += r1;
         p1.z += r2;
     }
@@ -207,9 +228,6 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
     p1.z += (int)((double)vz * 65536.0);
     field_20 = p1.Length();
 
-    Vec3 delta;
-    delta.x = p1.x - old.x;
-    delta.y = p1.y - old.y;
-    delta.z = p1.z - old.z;
+    Vec3 delta = p1 - old;
     FUN_0043d0d0(unit, &delta);
 }

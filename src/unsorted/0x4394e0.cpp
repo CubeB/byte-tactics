@@ -1,6 +1,39 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. Names are provisional.
 // #1529 retry by Codex / GPT-6.1-sol: checkall reconfirmed 65.2% (601/601 bytes).
 // Four worker checks found no better version; the remaining mismatch is the register/stack-slot rotation described below.
+//
+// Third pass (space-bunny-free, #1881): still 65.2%, the best of six more shapes,
+// so the ebx/edi rotation is still the whole difference. NEW FACT for whoever
+// picks this up, from working out the frame layout by hand (esp = E-0x58 after
+// the call, E = entry esp, so the local slots are E-0x58..E-0x10):
+//  * The snapshot copy at E-0x24/E-0x20 (x, y) and the products at E-0x0c/E-0x08
+//    plus the loop's eight 16.16 spill pairs at E-0x48..E-0x2c are all confirmed
+//    from the 0x4394e0 + 0x4394e4 offsets; the deltas the fild reads are the
+//    three slots E-0x30/E-0x2c/E-0x28 and the loop then reuses those two of them.
+//  * THE Z SNAPSHOT IS NEVER STORED. The slot E-0x1c is read twice (in the
+//    `sub esi, ecx` that makes dz and in the `add eax, edx` that makes p.z) and
+//    never written anywhere in the function: the only pre-call stores are
+//    `mov [esp+0x40], edi` and `mov [esp+0x40+4], ecx` at esp = E-0x64, i.e.
+//    E-0x24 and E-0x20. See the BUG line in the pull request.
+//  * But dropping that store is NOT the fix. Measured with check.py --sym on
+//    build/scratch/0x4394e0/v1.cpp and v2.cpp (all with the same body):
+//    three scalar snapshot locals with an unassigned third, sx, sy, sz: 591
+//    bytes, 47.8%, and the same three declared in reverse order 46.8%. The
+//    struct `Pos start; start.x = out->x; start.y = out->y;` (z left out):
+//    591 bytes, 59.2%. `Pos start; start.x = o->x; ... start.z = o->z;` through
+//    a `Pos* o = out` local: 599 bytes, 57.9%. A `Node* node = order;` local
+//    declared BEFORE the Pos copy: 601 bytes, 64.2%, and after it 64.2%. So
+//    every shape that removes the third store drops 10 bytes and loses points,
+//    and introducing a local copy of the node parameter is worth -1.0: the
+//    allocator is not driven by the declaration order of those two values.
+//  * What the two builds really disagree about is the whole g_game lifetime:
+//    the original keeps g_game in ebp from `mov ebp, g_game` (0x439523) all the
+//    way to anims[21] at 0x4395a8, and folds the timestamp into
+//    `sub eax, [ebx+0x46]`, freeing ebx for the clamp. Ours holds the node in
+//    edi, has to materialise the timestamp into ebp (the register the clamp
+//    result then wants) and reloads g_game for the anims lookup. That is all
+//    downstream of which of {order, start.x} got ebx first, and four passes
+//    have not found the source-level knob for that.
 //
 // Second pass (deepseek-v4.1-flash): confirmed the register swap is the root
 // and it does not respond to source-level changes. Rewriting the snapshot as

@@ -28,6 +28,36 @@
 // to 44.4-45.3%. The index/register and CSE-slot differences remain; this source
 // now has a 0x48 frame versus the original 0x88.
 // GPT-6.1-sol root retest: an 80-byte buffer kept 48.5%; restored the 64-byte best.
+// space-bunny-free pass (2026-09-30), best unchanged at 48.5%, no MATCH. New evidence:
+//  1. FRAME GEOMETRY, measured from the original. `sub esp,0x88` plus 4 pushes, so with
+//     fb = esp after the prologue the locals are: [fb+0x10] = the spilled 24*playerIndex,
+//     [fb+0x14] = the spilled entries pointer, the wsprintf buffer at [fb+0x18] (used by all
+//     12 wsprintf/FUN_004a0570 pairs) and a SECOND buffer at [fb+0x58] used only for the
+//     "Color%d" that goes to FUN_0049fdf0. 0x8+0x40+0x40 = 0x88, so both buffers are 64
+//     bytes and there are exactly TWO 4-byte temps, not three.
+//  2. One shared `if/else` cannot be the cause of the register roles: the ORIGINAL keeps
+//     g_game in ebp and 24*playerIndex in ebx (ebp gets reloaded with the scaled index at
+//     0x479a71), while every spelling tried here puts g_game in ebx and the index in ebp.
+//     That swap is worth the `count`/`myColor` temps too: the original can put both in
+//     ebx (reusing the index's register after the index is spilled at 0x479819), and we
+//     spill them instead. The one common upstream cause is that the two values are
+//     allocated in the opposite order, even though the original's instruction order
+//     (g_game load at 0x479804, then lea/shl, then the players load) is identical to ours.
+//  3. The original keeps `players` in ecx from 0x4798f3 through the whole 6-call
+//     controller==0 block to its last use at 0x479a1c, with no spill and no reload. That
+//     is only possible if the block is not live-through, so the source probably never
+//     names a `players` pointer: it writes g_game->players[...] and lets the CSE in the
+//     optimizer produce 0x4798f3. Naming it (or using g_game-> everywhere) both spill it.
+// Tried and scored: v2 = 48.5% base + a `players`/`myColor` local pair, 2 buffers, the
+//     final FUN_004a0570 hoisted out of the if/else into a `value` variable 42.2%
+//     (the original pushes a literal 0 or 1 in each arm, so the call must stay in both
+//     arms and let MSVC tail-merge it); v3 = same with no `game` alias at all 44.3% (then
+//     g_game lands in edx and is reloaded after every call); v4 = base + a second 48-byte
+//     buffer 43.6% (frame 0x7c, buffers land at 0x4c/0x50, every one of the 12 tail leas
+//     goes wrong); v5 = base + a second 64-byte buffer 44.1% (frame 0x8c: one temp too
+//     many, so the buffers sit at 0x1c/0x5c instead of 0x18/0x58). The frame is 4 bytes
+//     out for want of exactly one fewer stack temp, and that temp is the same allocator
+//     state as item 2.
 #include <windows.h>
 
 #pragma pack(push, 1)

@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..929 ticks from now. A group of fewer than 5 units
@@ -9,6 +9,8 @@
 //
 // Partial (91.1%): everything outside the scatter loop matches. Differences
 // left in the loop preheader and body:
+// GPT-6.1-sol rechecked the saved source and tried an outer guard with for/do-while
+// loops and direct x/z expressions; none improved on 91.1% (6 checks this pass).
 // - The original rotates the loop, so w / 2 and h / 2 (ebp and a stack slot)
 //   are computed after the guard `cmp ecx, ebx; jle`, while this version
 //   computes them before it (`test ecx, ecx; jle`). Moving them into the loop
@@ -154,8 +156,7 @@ void Class_00407a90::FUN_00407380()
                 int dx = FUN_004b6c30(w) - hw;
                 dest.x = pos.x.value + (dx << 16);
                 dest.y = pos.y.value;
-                int dz = FUN_004b6c30(h) - hh;
-                dest.z = pos.z.value + (dz << 16);
+                dest.z = pos.z.value + ((FUN_004b6c30(h) - hh) << 16);
                 if (i == 0)
                     FUN_00480460(((Group_00407ae0*)field_8)->player, ((Group_00407ae0*)field_8)->id,
                                  2, 0, 0, &dest, 0, 0);

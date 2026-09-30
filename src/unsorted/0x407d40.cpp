@@ -1,4 +1,6 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Best retry: 97.8% (296 bytes). Difference: derived vtable store is before
+// the third vector's game loads; pop edi is between its second and third stores.
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14223];
@@ -86,6 +88,9 @@ Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
 // tools/headers.py score 95.5%. Not reproducible from source in the timebox.
 // FUNCTION: 0x407d40
 Class_00407d40::Class_00407d40(Class_00408cb0* p, void* q)
-    : Class_00407350(p, q), a(g_game), b(g_game), c(g_game), field_38(0)
+    : Class_00407350(p, q), a(g_game), b(g_game)
 {
+    Vec3_00407d40 temp(g_game);
+    field_38 = 0;
+    c = temp;
 }

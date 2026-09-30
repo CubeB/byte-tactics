@@ -1,8 +1,9 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Order handler: when the unit has just been built (progress 0), copies the
 // QMove/QPatrol orders queued on the factory (order->target) to the new unit
 // and its fire/move states, else parks it; otherwise a small wait state machine.
 //
+// Retry by GPT-6.1-sol: unchanged best is 87.9%; reversing fire/move stores scored 87.4%, caching target scored 73.9%. Neither matches.
 // Partial (87.9%): only register choices differ. Every hunk is one rotation of
 // the same scratch-register sequence (ours ecx/edx, eax/ecx; original eax/ecx,
 // edx/eax): the first FUN_0043f0e0 argument block, the FUN_0043adc0 call, and
@@ -18,6 +19,12 @@
 // No-change rewrites: headers.py, preceding 0x402d10 in the file, while loop,
 // operand swaps, operator==, operator=, local pos/node/k copies, ternaries,
 // bitfield Ready(), IsHuman helper, nested ifs.
+// Also no effect (deepseek-v4.1-flash): a 101-point sweep of unused
+// `extern int dummyN;` (N = 0..400 step 4) left every point at 87.9%, so this
+// rotation is not reachable through the compiler-state probe; manual
+// `(flags & ~mask) | (target->flags & mask)` masks and an explicit
+// `unsigned char k = node->kind.index` are also 87.9%; a shared
+// `unsigned int f` accumulator for the two bitfield merges drops to 84.7%.
 class Class_00438760 {
 public:
     unsigned char index;

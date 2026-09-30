@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol. Names are provisional.
+// #2403 retry by GPT-6.1-sol: six worker checks kept the 92.2% best. Narrow
+// helper variants kept the same register mismatch or fell to 71.3%; previous
+// mismatch notes below are retained. No MATCH.
 // #1612 retry by Codex / GPT-6.1-sol: checkall reconfirmed 92.2% (392/388 bytes), no MATCH.
 // Three worker checks found no better source; the bitfield variant kept the same register mismatch.
 // GPT-6.1-sol rechecked this best at 92.2% (392 bytes, two runs). A bitfield

@@ -77,6 +77,12 @@
 //   matches the original; the older al note above is stale.)
 // - Frame slots still differ (CTRL buf esp+0x18 vs esp+0x10, the 0xd7
 //   findData/path buffers esp+0x38/0x150 vs esp+0x28/0x140).
+// - Case 0xad's entry test now matches the original's folded
+//   `cmp esi, dword ptr [esp+0x20]`; the old note below is stale.
+// - Tested with buf[8] in case 0xab: the CTRL buffer then lands at esp+0x10
+//   exactly like the original, but the frame drops to 0x224 and the 0xd7/0xad
+//   locals stay 4 bytes high, so the score falls to 77.9%. buf[0x20] keeps the
+//   frame at 0x230 and the score at 79.0%, so it is kept.
 // - Case 0xec (0x4962f8) loads the guard into al where the original uses dl
 //   (`test al,1` is 2 bytes, `test dl,1` is 3). A `char` bitfield base for
 //   Flags_00495e90_37f2f was tried and is much worse (69.6%), so the

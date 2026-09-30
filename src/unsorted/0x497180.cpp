@@ -1,44 +1,51 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
 // deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 //
-// 2797 bytes. Best so far: 80.7% (2822 vs 2797 bytes). No MATCH.
+// 2797 bytes. Best so far: 82.4% (2846 vs 2797 bytes). No MATCH.
+//
+// This pass (deepseek-v4.1, ~12 min, 8 check runs, 80.8 -> 82.4):
+// - The 0x38d75 network flags ARE the volatile field the guide names: writing
+//   `*(volatile unsigned short*)(g_game + 0x38d75) |= 4/2` reproduces the
+//   original's `mov dx,[g+0x38d75]; or edx,4; mov [g+0x38d75],dx` exactly
+//   (80.8 -> 81.7, then 82.0 with both sites).
+// - The bit-6 test at +0x9b is a real 1-bit bitfield: `struct { unsigned short
+//   : 6; unsigned short b6 : 1; ... }` over lp+0x9b gives the original's
+//   `mov al,[lp+0x9b]; shr al,6; test al,1` (82.0 -> 82.3); the plain
+//   `unsigned char v = ..; v >>= 6; if (v & 1)` folds to `test byte ptr,0x40`.
+// - The mission-count clamp reads better with the count on the left:
+//   `if (count > cur)` gives the original's `cmp esi,eax; jle` (82.3 -> 82.4).
+// - Tried and reverted: `unsigned int` byte temps in the case-3 and post-loop
+//   lanes (64.6, they rotate the whole register file, not just the lanes; the
+//   old note had 74.4 for all six lanes), and `int one = 1;` used for the
+//   DAT_005091cc stores (byte-identical to the plain constant: MSVC propagates
+//   the constant, so it cannot force a register-held 1).
+//
+// Still open, in order of how much they cost on the diff:
+// - The nine 0x14281 lane updates: the original zero-extends the byte into a
+//   32-bit register (`xor ebx,ebx; mov bl,[..]`), masks 32-bit (`and ebx,2`,
+//   `and ebx,edi` for the mask 1 lanes) and ORs `or edx,ebx`; ours narrows to
+//   `and bl,2; movzx si,bl`. Every 32-bit-temp spelling tried rotates the
+//   register file globally and scores far lower, so the allocator state at the
+//   switch has to be reproduced first.
+// - `mov edi,1` at the switch (ours `mov edx,1`), which also makes case 3's
+//   16-bit copies `mov dx,[..]` instead of `mov cx,[..]`. The constant is
+//   CSE'd into one register in both; which one is an allocator choice.
+// - One `mov eax,[ecx+ebx+0x1b63]` / `lea esi,[ecx+ebx+0x1b63]` where ours
+//   encodes the base and index the other way round ([ebx+ecx+..]).
 //
 // Earlier passes (still in this file) fixed the Fixed union, the __stdcall
 // declarations, the int sel/sel2 locals and the initial `==3` guard.
 //
-// What the last pass fixed, 78.6 -> 80.7:
+// What the pass before fixed, 78.6 -> 80.8:
 // - The FUN_0041c4c0 call after the 0x9b bit-6 test was duplicated in both
 //   branches here; the original computes the two ints in each arm and has ONE
 //   shared call (`jmp` into a common `push 0; push eax; push esi; call`).
-//   Rewritten as two ints set in the if/else plus one call. Also made the
-//   bit-6 read an `unsigned char` local shifted in its own statement.
-// - Still open: the g_game[0x14281] read-modify-writes. The original zero
-//   extends each byte (`xor edx,edx; mov dl,[p+0x9c]`), masks 32-bit
-//   (`and edx,2/4/1`) and ORs into a word load (`mov cx,[g+0x14281];
-//   and ecx,0xfffd; or ecx,edx`). An `unsigned int` temp does give the 32-bit
-//   AND (`and ecx,2` and `or`), but MSVC then drops the 2-byte xor (it knows
-//   the mask clears the high bits) and the function comes out 2770 bytes:
-//   same instruction shapes, different registers, and the checker scores it
-//   LOWER (75.0), so the narrow `and bl,2; movzx si,bl` form is kept. Shapes
-//   measured with tools/wcl + /Fa in build/scratch/0x497180/{t,u,u2,u3}.asm:
-//   `int`/`unsigned int` temp of the whole byte then `temp & mask` in the OR
-//   gives `and reg,2` and no xor; `unsigned char` temp with an `unsigned int`
-//   flags temp gives the xor but then `and dl,2; movzx dx,dl`.
-// - Also still open: `test byte ptr [..+0x9b],0x40` here vs the original's
-//   `mov al,[..]; shr al,6; test al,1` (all of a local, a shifted local, a
-//   bitfield-free expression and three bitfield shapes fold to the test in
-//   tools/wcl micro-tests, so the original may read a real bitfield there);
-//   `or byte ptr [g+0x38d75],4/2` here vs the original's word load/or/store
-//   (the volatile network-flags signature); edi vs edx for the reused
-//   constant 1; and the extra `(((long long)rand() * 2) / 0x8000)` mul/div.
-//
-// What this pass fixed, in order of how much it moved the number:
+//   Rewritten as two ints set in the if/else plus one call.
 // - The three ten-player walks: indexing a record as
 //   `g_game + 0x1b63 + 0x14b * (unsigned char)i` instead of `* i` stops MSVC
-//   strength-reducing the multiply into a pointer walk. The cast reproduces
-//   the original's `mov eax,ebx; and eax,0xff; ...; lea eax,[edx+ecx*2+..]`
-//   and keeps the counter as a live index (`inc ebx`), not a byte offset.
-//   69.8 -> 78.3, the single biggest win.
+//   strength-reducing the multiply into a pointer walk, reproducing the
+//   original's `mov eax,ebx; and eax,0xff; ...; lea eax,[edx+ecx*2+..]` with a
+//   live index (`inc ebx`). 69.8 -> 78.3, the single biggest win.
 // - `std::random_shuffle(order, order + n)` from <algorithm> replaces the
 //   hand-rolled shuffle loop; the header's _Rm/_Rn scaling loop compiles
 //   byte-exactly. 66.8 -> 68.1.
@@ -48,45 +55,11 @@
 //   FUN_00488310/FUN_0041d1f0. 68.1 -> 69.7.
 // - `rec+0x149` as a 1-bit `unsigned short` bitfield gives the original's
 //   direct `or byte ptr [rec+0x149],1`; a plain `unsigned char |=` goes
-//   through a register (this is guide item 1, and it works here too).
+//   through a register.
 // - The final player-record access goes through a record local (`currec`) so
 //   the pointer chain is `lea ..+0x1b63; mov eax,[rec+0x27];
 //   or byte ptr [eax+0x9b],0x10`, as in the original.
-//
-// This pass (12 min timebox, 3 check runs, 80.7 -> 80.8):
-// - Making the six 0x14281 lane updates use 32-bit temps
-//   (`unsigned int b = *(unsigned char*)(p+0x9c); unsigned int w =
-//   *(unsigned short*)(g_game+0x14281); w = (w & ~2) | (b & 2); store`)
-//   DOES give the original's 32-bit `and reg,2` / `or reg,reg` shape with no
-//   movzx (verified in tools/wcl micro-tests), but in this function it moves
-//   the word into ecx, the byte into edx and g_game into esi, the lanes lose
-//   the 2-byte `xor` (2764 bytes) and the checker scores 74.4. Reverted.
-//   The register file is already committed at the switch, so the lane shape
-//   cannot be fixed before the `mov edi,1` vs `mov edx,1` difference is.
-// - `pos.x.i` before `pos.y.i = 0` (the original's order at 0x4976cd) saved
-//   one instruction move: 80.7 -> 80.8.
-//
-// Known remaining differences:
-// - The `g_game[0x14281]` flag read-modify-writes: the original loads the byte
-//   into a 32-bit register and masks 32-bit (`mov bl,[p+0x9c]; and ebx,2/4/1`),
-//   ours narrows the operand to 16-bit (`and bl,2; movzx si,bl`). Tried this
-//   pass: an int local per statement (77.4), three separate unsigned int
-//   locals (66.6), and a `static inline unsigned int Bit(b,m)` helper (78.6,
-//   unchanged). None reproduces the 32-bit AND, so it looks like an allocator
-//   choice, not a source shape.
-// - The switch keeps its constant `1` in edx here and the original in edi
-//   (`mov edi,1` once, reused as the mask in cases 1 and 2).
-// - `-1` for the `order` fill is hoisted to `mov ebx,-1` at the switch here
-//   (MSVC keeps the constant in a callee-saved register across the function),
-//   where the original emits `or eax,0xffffffff` at the stosd site.
-// - `*(unsigned short*)(g_game + 0x38d75) |= 4` folds to `or byte ptr [..],4`
-//   here; the original loads the word, ORs in a register and stores it back.
-//   That is the volatile-network-flags signature the guide names; left as a
-//   note rather than a volatile declaration.
-// - `if (pl->b9b & 0x40)` here compiles to `test byte ptr [..],0x40`; the
-//   original uses `mov al,[..]; shr al,6; test al,1` for that one test.
-// - the `(rand() * 2) / 0x8000` test came out of the x86 as a 64-bit
-//   __allmul/__alldiv pair, kept literally.
+// - `pos.x.i` before `pos.y.i = 0` (the original's order at 0x4976cd).
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -110,6 +83,12 @@ struct FixedPos_497180 {
 struct RecFlag_497180 {
     unsigned short started : 1;
     unsigned short : 15;
+};
+
+struct PlFlags_497180 {
+    unsigned short : 6;
+    unsigned short b6 : 1;
+    unsigned short : 9;
 };
 
 struct Sub_497180 {
@@ -302,7 +281,7 @@ void __cdecl FUN_00497180(void)
                     def += 6;
                 }
                 int cur = *(int*)(g_game + 0x38d81);
-                if (cur < count)
+                if (count > cur)
                     cur = count;
                 *(int*)(g_game + 0x38d81) = cur;
                 FUN_0047a760();
@@ -314,7 +293,7 @@ void __cdecl FUN_00497180(void)
 
     if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() != 1) {
         if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() == 3) {
-            *(unsigned short*)(g_game + 0x38d75) |= 4;
+            *(volatile unsigned short*)(g_game + 0x38d75) |= 4;
             while ((*(unsigned short*)(g_game + 0x38d75) & 8) == 0)
                 FUN_004b6b50(0x32);
 
@@ -363,11 +342,9 @@ void __cdecl FUN_00497180(void)
 
             unsigned char li = *(unsigned char*)(g_game + 0x2a42);
             char* lp = *(char**)(g_game + 0x1b63 + 0x14b * li + 0x27);
-            unsigned char lpflag = *(unsigned char*)(lp + 0x9b);
-            lpflag = lpflag >> 6;
             int cx;
             int cz;
-            if (lpflag & 1) {
+            if (((PlFlags_497180*)(lp + 0x9b))->b6) {
                 *(unsigned short*)(g_game + 0x14281) &= 0xfffe;
                 *(unsigned short*)(g_game + 0x14281) &= 0xfffd;
                 cx = *(int*)(g_game + 0x37e37) / 2;
@@ -471,5 +448,5 @@ tail:
     }
     FUN_004649d0();
 
-    *(unsigned short*)(g_game + 0x38d75) |= 2;
+    *(volatile unsigned short*)(g_game + 0x38d75) |= 2;
 }

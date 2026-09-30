@@ -1,4 +1,8 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// #1595 retry by Codex / GPT-6.1-sol: checkall reconfirmed 78.9% (280/280 bytes), no MATCH.
+// The attempted if/else rewrite scored 60.4%; restored the earlier best with the jump table.
+// GPT-6.1-sol follow-up: an if/else chain replacing the jump-table switch scored 60.4%; restored the prior 78.9% best.
+
 //
 // Seventh pass (deepseek-v4.1-flash): no score change, 78.9% (280 bytes). New
 // negative results, so the next attempt can skip them: case 0's store through

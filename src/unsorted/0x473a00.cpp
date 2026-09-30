@@ -1,8 +1,31 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // Retried by space-bunny-free. No functional rewrite improved the 84.5% draft.
 // A 128-combination header sweep also left the score at 84.5%.
 //
-// NOT A MATCH: 84.5% (300-byte original, ours 305), re-verified by
+// THIRD PASS (space-bunny-free): the pinning wall is a register-allocation
+// trade, and both halves of it are now measured.
+//   - The `mov eax, 1 / jmp / xor eax, eax / jmp` tail IS reachable: a
+//     `static inline` predicate with one `return 1` and one `return 0`
+//     compiles to exactly those five instructions (read off the asm listing).
+//     MSVC 5 folds every int spelling of the same test (`if (c) v = 1;
+//     else v = 0;`, `v = c ? 1 : 0`, `v = c && d`) into
+//     `xor eax,eax; cmp; setne al` instead, so the constants only survive
+//     behind an early return.
+//   - But the helper form rotates the PROLOGUE (g_game out of ebx into edi,
+//     this->x and this->y swap between bp/bx and bp/di), exactly as every
+//     version without the pinning tail does, and adding the pinning tail on
+//     top of the helper rotates it again (67.3%, 296 bytes). So the original
+//     wants one scratch register more in the first arm than any no-pinning
+//     spelling of ours asks for, and one more callee-saved live value at the
+//     branch than our pinned spelling produces. Nothing tried here gives both.
+//   - Scored this pass, all 305 or 296 bytes: the pinning tail with the map
+//     test as `p->fogMap[...] ? 1 : 0` (85.0%, kept below), the same with
+//     `!= 0` (84.5%), a nested `if (bounds) { if (map) v=1; else v=0; }
+//     else v=0;` (67.3%), a one-`return`-per-path helper (67.3%), the helper
+//     plus the pinning tail (67.3%) and the whole test as one `? 1 : 0`
+//     ternary (67.3%).
+//
+// NOT A MATCH: 85.0% (300-byte original, ours 305), re-verified by
 // tools/check.py. Everything matches byte for byte except the FIRST arm (the
 // one taken when bit 1 of the flag byte at g_game+0x14281 is set, the `seen`
 // byte map). The second arm, the prologue, the player-pointer arithmetic, the
@@ -121,9 +144,8 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
         visible = 0;
-        if (((unsigned int)col < p->size.width && (unsigned int)row < p->size.height) &&
-            p->fogMap[q->size.width * row + col] != 0)
-            visible = 1;
+        if ((unsigned int)col < p->size.width && (unsigned int)row < p->size.height)
+            visible = p->fogMap[q->size.width * row + col] ? 1 : 0;
         if (visible)
             visible = 1;
         else

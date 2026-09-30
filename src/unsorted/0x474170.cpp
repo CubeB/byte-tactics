@@ -1,4 +1,20 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, third pass by
+// space-bunny-free. Names are provisional.
+//
+// SPACE-BUNNY-FREE, third pass (ten minute timebox). Tried the ByteMap {data,
+// size} shape with a member Get() that the matched 0x407e90 and 0x475470 use
+// (the suggestion from 0x4745e0), on the theory that routing the width and
+// seen reads through a member would make them rematerialisable instead of homed
+// locals. It does produce the original's own index shape in the fog arm
+// (`mov ebx,[edx+0x80]; imul ebx,ecx; add ebx,[edx+0x7c]`) with no homed
+// `seen`, but the whole prologue rotates: g_game is hoisted into ebx before the
+// pushes, the player index is built in ecx, the map pointer lands in edi and
+// the flags byte test moves to `dl`, and the score falls to 46.4 percent (291
+// bytes). Scratch only, `build/scratch/0x474170/v1.cpp`. So the ByteMap member
+// method is NOT the missing ingredient here: as at 0x475470 the shape is right
+// and the arm-local pressure is what the original needs, and here, as there,
+// the two cannot both be had. The 85.4 percent version below stays best. This
+// also means the same for the sibling 0x473590, whose code is identical.
 //
 // DEEPSEEK-V4.1-FLASH, second pass. Still not a match at 85.4 percent, 307 of
 // 301 bytes. Confirmed the basin below is the optimum for the two known levers

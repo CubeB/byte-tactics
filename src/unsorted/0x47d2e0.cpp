@@ -11,14 +11,31 @@
 // 16-bit player bitmask +0x14273, sea level +0x1427f, los mode +0x14281,
 // cells +0x14287, local player +0x2a43. Cell stride 0xd.
 //
-// Still differs (23.4%, 1209 vs 1339 bytes): frame is 0x24 vs 0x2c (8 bytes
+// Still differs (24.2%, 1222 vs 1339 bytes): frame is 0x24 vs 0x2c (8 bytes
 // short) and the whole register allocation is wrong from the prologue on. The
 // original reads arg0/arg1 into eax/ecx before the pushes, zeroes both DATs
 // with ebx, keeps g_game in ebp (not edi), and keeps the "is there a los
 // footprint" player bit and several counters in memory slots we dropped into
 // registers. Our version also hoisted the DAT zeroing before the pushes and
-// used a different outer/inner loop register set. No source-level lever tried
-// yet beyond this first structural translation.
+// used a different outer/inner loop register set.
+//
+// Remaining diff hunks by original address (first is 0x47d2e0):
+//   0x47d2e0-0x47d311 prologue: original loads eax=[esp+0x30] (unit) then
+//     ecx=[esp+0x34] (cell) before push ebx, and zeroes both DATs with ebx;
+//     ours zeroes with eax and loads cell before unit.
+//   0x47d311-0x47d358 arg range checks: g_game is ebp in the original, edi in
+//     ours; slot offsets differ because our frame is 8 bytes short.
+//   0x47d38a-0x47d3b0 LOS coords now match in shape; the x/y high-word
+//     extraction was the fix (they read [esp+0x32]/[esp+0x3a], the high 16
+//     bits of the two <<19 values, not the low word).
+//   0x47d3c4-0x47d475 visibility/ok block: same branches, wrong scratch regs
+//     (original keeps the bitmask check in ebp/esi/ebx, ok at [esp+0x10]).
+//   0x47d479-0x47d75b footprint walk: original keeps row/col counters in
+//     slots 4/5, found80 at slot 6, foundFE20 at slot 7 and min6/max5/max5b
+//     as bytes in slots 1/2; ours keeps them in registers so the frame is
+//     short. This is the largest remaining block.
+//   0x47d75b-0x47d818 final range checks: same predicates, spilled slots and
+//     the r/min/max temporaries land in different places.
 #pragma pack(push, 1)
 
 struct Point {
@@ -99,8 +116,8 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
         int wx = (origin.x + cell.x * 2) << 19;
         int wy = (origin.y + cell.y * 2) << 19;
         int r = FUN_00485010(&cell);
-        int x = ((short)wx) >> 5;
-        int y = (((short)wy) - ((short)r >> 1)) >> 5;
+        int x = ((short)(wx >> 16)) >> 5;
+        int y = (((short)(wy >> 16)) - ((short)r >> 1)) >> 5;
         if ((unsigned)x >= los->width || (unsigned)y >= los->height)
             return 0;
         unsigned int bit = 1 << (g_game->player & 0x1f);

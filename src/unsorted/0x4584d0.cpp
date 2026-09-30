@@ -18,6 +18,16 @@
 // loop, where the original spills `i` to [esp+0x10] and keeps `info` in ebx,
 // while this file keeps `i` in edi, spends ebx on the copy-loop index temp and
 // reloads `info` from [esp+0x3f78] once per face.
+//
+// FIFTH PASS (deepseek-v4.1-flash): the two levers the fourth pass listed as
+// untried are both measured dead. (a) The vertex loop as Ghidra's do-while
+// countdown with `int* q = (int*)projected + 1` scores 55.4% with a walked
+// `Vertex*` and 74.1% with `vertices[i]`, both below this for-loop baseline, so
+// the vertex-loop shape is not a separate lever. (b) Hoisting `info->faceCount`
+// into a loop-local `int n` scores 50.5%, much worse. Forcing `i` to have a home
+// with `int* dummy = &i;` is a no-op byte-for-byte (79.6%, the store to
+// [esp+0x10] never appears), so the home is a real allocator eviction, not an
+// address-taken local. Everything still differs at the same two clusters.
 
 // PARTIAL, 79.6% (unchanged by the second and third passes). Callers (0x4584b4, 0x458997, 0x4593ff,
 // 0x459476) push the surface pointer as the second argument and the address of a

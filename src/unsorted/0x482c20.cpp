@@ -14,6 +14,16 @@
 // at +0x11a..+0x245 use a different register rotation than the original.
 // Next step: free ebp before the division (or get cellval's slot dropped) to
 // reach the 0x18 frame, then align the border loops.
+// First hunk (0x482c20 prologue): ours is sub esp,0x1c vs the original sub
+// esp,0x18. Ebp holds g_game across the idiv, so the allocator spills cellval
+// to [esp+0x20] (the `mov dword ptr [esp+0x20], ebx` at 0x482ff6) and the
+// divisor goes to ebx (`lea ebx,[edx+0x1f]; idiv ebx`) where the original uses
+// `lea ebp,[edx+0x1f]; idiv ebp` and reloads g_game with `mov ebp,[<addr>]` at
+// 0x4830f3. That extra slot pushes t20/t24 to +0x24/+0x28, hence the 0x1c
+// frame. Tried a named `dv = v + 31` local; no change (45.3%).
+// Remaining hunks: 0x482c48 prologue field/store order; 0x482d05..0x482d54
+// border-flag loops; 0x482eb1..0x482efd wave loops; 0x482f2a grid1 init;
+// 0x482f5e zero-fill; and the 0x482fd3..0x48314e main loop rotation.
 #include <new.h>
 #include <windows.h>
 

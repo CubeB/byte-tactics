@@ -1,4 +1,4 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
 // Codex / GPT-6 retest in #13:
 // capturing z first and reversing helper argument order did not
 // preserve the position pointer in ecx and tile x in esi.
@@ -13,11 +13,38 @@
 // access, single-declaration locals, or uninitialised cell/result locals
 // (those last three drop to 68.2%). The instruction sequence is otherwise
 // identical, so this is compiler register priority, not source shape.
+// Space Bunny Free retest in #1887: the helper version is still the best of
+// everything tried, at 72.7%, and the whole diff is still the single p/x
+// allocation tie. <windows.h> is the best header of the 128 headers.py tries
+// (all 128 score 68.2% or 72.7%, none match), and the N-declarations test is
+// flat (0 to 5 dummy int locals: 72.7, 72.7, 68.2, 68.2, 72.7, 72.7), which
+// the guide says means the compiler state is already in the right phase and
+// the source shape is wrong rather than the header block. The guide's "go
+// bigger" lever also does not fire here: <string>, <vector>+<map>,
+// <iostream>, no include at all, and 500, 2000 and 4000 extern ints plus
+// 3000 unused prototypes all score 68.2% or 72.7%.
+// About twenty further shapes also stayed at or below 72.7%: the helper
+// taking the position pointer instead of the two tile coordinates (68.2%),
+// one declaration statement for both coordinates, a const reference
+// parameter, a const pointer local, a reference to the position, the raw
+// fixed-point halves in short or int locals, two helpers one per coordinate,
+// a short-to-tile conversion helper, the division written as an explicit
+// round-toward-zero shift (36.6%, wrong size), the bounds check and index
+// inlined in the function (68.2%), the same as a macro, the index in its own
+// local (35.6%, wrong size), y computed before x (59.8%, wrong size),
+// uninitialised locals declared at the top in both orders, throwaway extra
+// uses of x and of y folded away by the optimiser, an early-return helper
+// that fails with two explicit guards (68.2%), the cell address written out
+// in full at each use (50.0%), and the helper failing with `return 0` before
+// the index. The division and both compares are settled: the cdq/and 0xf/add
+// pair is a signed /16 on a short, and the two `test reg,reg / jl` against
+// width and height are signed bounds checks in that order.
 // Returns the average of the two height bytes (+5, +6) of the map cell under
 // a 16.16 fixed-point position, or -1 off the map.
 // Not matched: the original keeps the position pointer in ecx and the tile x
-// in esi; every rewrite tried (locals, helpers, macro, method, header sets)
-// swaps them. <windows.h> only fixes the lea order of the index.
+// in esi; every rewrite tried (locals, helpers, macro, method, header sets,
+// N-declarations, extern counts) swaps them. <windows.h> only fixes the lea
+// order of the index.
 #include <windows.h>
 
 #pragma pack(push, 1)

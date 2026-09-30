@@ -1,18 +1,32 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol retest in #1672: an outer positive-count guard with a do/while
-// scored 19.6%; restored the 78.3% for-loop version. Remaining mismatch is
-// callee-saved register allocation: target keeps zero in ebx and owner in ebp.
-// Codex / GPT-6 retest in #13:
-// an owner-filtered removal helper and reversing the two predicate
-// terms did not fix the ebx/ebp allocation. Retain the original best partial.
-// deepseek-v4.1-flash in #1334: everything leaves the same 78.3% diff. the
-// original keeps the constant 0 in ebx and `owner` in ebp here, ours swaps
-// them. Tried (all 78.3 or worse, scored for free): for/while/while(1)+break/
-// do-while shapes, continue-style and nested-if predicates, reversed term
-// order, an explicit `int zero = 0`, an owner local copy, `Unit* const owner`,
-// inline Active/Owned/OwnerOf helpers, an extra folded owner compare, and an
-// unused `if (owner)` guard. tools/headers.py tried all 128 header sets: none
-// changed it. Retain this best partial.
+// Decompiled by Opus, finished by space-bunny-free. Names are provisional.
+// (Earlier passes: deepseek-v4.1-flash, GPT-6.1-sol, Codex / GPT-6.)
+// 78.3%, and the only difference left is which of two values live across the
+// call to 0x49ae20 gets ebx: the target keeps the constant 0 in ebx and the
+// `owner` parameter in ebp, this build keeps 0 in ebp and `owner` in ebx.
+// The constant needs a callee-saved register because it is live across the
+// call (the `tracked = 0` store) as well as across the loop back edge.
+//
+// space-bunny-free in #1887, and this tie is source-shape insensitive:
+// about sixty rewritten shapes all compile to BYTE-IDENTICAL objects, so none
+// of them is the fix. Tried, all byte-identical or worse: for/while/do-while/
+// while(1)+break/pointer-range loops, an index local instead of a pointer
+// walk, the predicate as &&/nested if/continue/De Morgan/ternary, reversed
+// term order, the whole loop body, the predicate, the untrack test, the flags
+// store and the owner compare each moved into their own static inline helper,
+// an out-of-line helper, `int`/`void*`/`Unit* const`/`unsigned int` parameter
+// types, an unsigned index, a `g_game` alias and a `Game*` local, `active` as
+// int, the constant as a named local or a `static const`, folded duplicate
+// uses of each side, and uninitialised locals / externs / structs / typedefs /
+// enums / unused static functions at counts 0 to 575.
+// tools/headers.py --cpp (all 768 sets, 0 to match) and 337 further header
+// sets outside its list (assert.h, ctype.h, errno.h, float.h, io.h, limits.h,
+// locale.h, setjmp.h, signal.h, stdarg.h, stddef.h, time.h, sys/types.h,
+// excpt.h, winnt.h, objbase.h, ole2.h, mmsystem.h, process.h, share.h,
+// malloc.h, new.h, dos.h, fcntl.h, search.h, direct.h, alone and in pairs and
+// triples) are flat too. The loop shape, the predicate and the inline helper
+// boundary are therefore believed correct; what is missing is a compiler
+// state that orders the two live-across-call values the other way, and no
+// source or declaration change tried here reaches it.
 
 struct Vec3_0049c880 {
     int x;
@@ -68,11 +82,7 @@ static inline void Untrack_0049c880(Projectile_0049c880* proj)
 }
 
 // Removes the projectiles fired by a unit (the caller passes the dying unit).
-// Remaining difference: the original keeps the constant 0 in ebx and `owner`
-// in ebp; here they are swapped. Any extra use of `owner` inside the loop
-// flips them, so the original probably used it once more in a way that folds
-// away; duplicate compares, helper predicates, pointer types, loop shapes,
-// headers and an out-of-line FUN_00499e50 all left it unchanged.
+// Remaining difference: the ebx/ebp tie described at the top of this file.
 // FUNCTION: 0x49c880
 void __stdcall FUN_0049c880(Unit_0049c880* owner)
 {

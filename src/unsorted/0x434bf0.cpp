@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: remains 92.9% (886 bytes). All 768 header combinations,
+// explicit allocator lifetimes, index/count names and local declaration
+// variants left the best score unchanged. Small-local stack slots remain
+// different; the recursive self-call also appears in the checker diff.
 // Partial (92.9%). Size now matches (886). Fixed the bFlag block at 0x434c83:
 // `int bFlag; if (param_2==0) { bFlag=1; if (g_game->...+3 != 3) bFlag=0; }
 // else bFlag=0;` reproduces the original's `mov eax,1; cmp param_2,0; jne;

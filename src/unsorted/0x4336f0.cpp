@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: remains 69.3% (704 of 708 bytes). Tried allocator destructor
+// declarations, a vector specialization, signed element fields and count/index
+// representations. None improved the saved version. Register allocation and
+// the failed-lookup _Destroy call remain different.
 // PARTIAL 69.3%. Class_004336f0 is a std::vector<Elem_00434020> (4-byte
 // elements) holding one pair of signed shorts per line entry. It reads the
 // "line%d" key from a TDF-style parser via Class_004c48c0, resizes itself to

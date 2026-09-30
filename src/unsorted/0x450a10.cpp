@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash, retried by space-bunny-free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash, retried by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // #1513 retry by Codex / GPT-6.1-sol: checkall reconfirmed 87.6% (837/872 bytes).
 // Prior retry variants in this file and build/scratch/450a10 still give the best result.
 // PARTIAL 87.6%, 837 vs 872 bytes. Everything outside the name-copy block now
@@ -63,6 +63,29 @@
 //  The file therefore keeps the old 87.6% form. A spill for the strcpy
 //  destination is the whole remaining gap: get the address into edi at the
 //  copy and nothing else is left to fix.
+// #2104 (deepseek-v4.1, 10 minute box): no gain over 87.6%. Scored the two
+// fresh shapes and left the file as it was:
+//  A. early return `if (result != 0) return 1;` in front of the network copies:
+//     841 bytes, 87.3%. Frame stays 0x4c4 and the three leas schedule exactly
+//     like the original, but MSVC then knows result == 0 at the join, so the
+//     shared gate `test edx,edx` at 0x450c0e and the `jmp 0x450c0e` both
+//     disappear and the network second strcpy tail-merges with the COMPUTER
+//     first one. A redundant second `if (result != 0) return 1;` after the
+//     copies is elided too, same 841 bytes.
+//  B. plain `if (result == 0) { copies }` plus the joint gate: 898 bytes,
+//     81.2%. Flow matches the original instruction for instruction
+//     (mov edx,eax / test edx,edx / jne epilogue / copies / jmp join /
+//     COMPUTER's sunk xor edx,edx before its last rep movsb), but the first
+//     network strcpy schedules its destination lea into the repne scasb shadow
+//     while edi is still the scan cursor, so the lea lands in esi, collides
+//     with the source pointer, and MSVC spills it to the first free 4-byte
+//     slot (0x14, ahead of `size`), which makes the frame 0x4c8 and shifts
+//     every stack offset by 4.
+//  Tried against B: declarations of size/packet/buf/result hoisted to the top
+//     of the function (temp still gets 0x14), and `&p->fullName[0]` /
+//     `&p->name[0]` destinations (identical 898 bytes). The blocked step is
+//     that single scheduler/allocator decision in the first network strcpy.
+
 #include <string.h>
 #include <windows.h>
 

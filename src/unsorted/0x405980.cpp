@@ -1,5 +1,5 @@
-// Decompiled by Claude Opus 5.5, finished by GPT-6. Names are provisional.
-// Partial: 90.9%. Second energy comparison and range setup differ; the energy reclaim constructor tail remains duplicated.
+// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol. Names are provisional.
+// Partial: 90.9%. GPT-6.1-sol rechecked the baseline and a reversed energy threshold (90.3%); kept baseline. Second energy comparison and range setup differ; the energy reclaim constructor tail remains duplicated.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;
@@ -111,3 +111,4 @@ int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
     }
     return 7;
 }
+

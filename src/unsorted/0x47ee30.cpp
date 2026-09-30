@@ -153,6 +153,15 @@
 // through `[ebp+0x99]` on the back edge. The two are an allocator trade-off,
 // not a spelling: 91.2% is still the best found.
 
+// deepseek-v4.1-flash retry: 20 more shapes scored with --sym, none beat 91.2.
+// Guarded do/while with a trailing `(*count)--` and a base-form guard, for-loops,
+// `&entries[9].field_0` count pointers, count declared inside the loop or the for-init
+// clause, and `if (base) while (*count)`: all 85.7 / 83.2 / 67.7. A condition spelled
+// through the count pointer always forces the eax detour; one through the base always
+// reloads on the back edge. The two deltas (missing remat `lea` at 0x47ee79, back edge
+// reload instead of `mov eax,ecx`) are the allocator trade-off already documented above.
+// 91.2% remains best.
+
 void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)

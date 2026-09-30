@@ -1,5 +1,9 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Retry #1733: GPT-6.1-sol re-checked the saved variant at 53.1% (420/423); no MATCH. Register allocation and loop register rotation remain unresolved.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry #1952: GPT-6.1-sol tested pitch/count declaration order and equivalent
+// products. The saved 53.1% (420/423) variant remains best; no MATCH. The
+// prologue still puts the 2*w pitch in ebx/esi work registers and clobbers h,
+// while the original keeps pitch in edi, count in ebx, and h in esi across the
+// allocator call. Loop locals also remain in different registers and stack slots.
 // deepseek-v4.1-flash (third pass): declaring double scale = lens; BEFORE the
 // count/pitch pair lifts the score from 51.7 to 53.1 percent (best so far). The
 // first diff hunk is still the allocator: the original holds w in ebp, h in esi,

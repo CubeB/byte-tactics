@@ -1,5 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 66.5%. Correct callee class and by-value position argument. Frame remains 0x40 versus 0x34; duplicated player guards are folded and cold countdown blocks differ.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// PARTIAL: 79.6% (was 72.2%). The frame is now the original 0x34 and the slot
+// order matches (byte idx 0x10, player 0x14, hits 0x18, cell 0x1c, inner 0x20,
+// outer 0x24, 9999 0x28, typeOff 0x2c, typeId 0x30, self 0x34, pos 0x38/0x3c/
+// 0x40); the old extra slot came from the screen_hw step being spilled, so the
+// step values are now shifted (hw<<16, hh<<16) before the loops and live in
+// edi/ebp. Ours is still 21 bytes shorter and every branch target is shifted.
+// Still differs: the loop head test (cmp bl,0xa / jae taken to the increment)
+// is dropped as provably true even as a while loop, the duplicated player
+// guards (0x464fe1..0x465024) are CSE'd into one copy, the typeId copy is
+// `mov ecx,eax` where the original uses `mov cx,ax`, and two byte flags writes
+// go through dl (mov dl,[eax+0x39x]; or dl,imm; mov [eax+0x39x],dl) where the
+// original uses a direct `or byte ptr [eax+0x39x], imm`.
 #include <windows.h>
 #include <string.h>
 
@@ -191,10 +202,7 @@ void __stdcall FUN_00464f80()
 {
     g_game->field_14207->FUN_0040eb70();
     unsigned char bl = 0;
-    do {
-        if (bl >= 0xa)
-            break;
-
+    while (bl < 0xa) {
         PlayerInfo_00464f80* pi = &g_game->players[bl];
         if (pi->active == 0)
             goto next;
@@ -238,8 +246,7 @@ void __stdcall FUN_00464f80()
         pi->field_f0 += 0x1e;
 
         if (bl == g_game->localPlayer) {
-            int mode = g_game->mode->FUN_00435100();
-            if (mode == 1) {
+            if (g_game->mode->FUN_00435100() == 1) {
                 if (g_game->list->FUN_00490230() == 0) {
                     if (((Class_00490360*)g_game->list)->FUN_00490360() != 0) {
                         if (g_game->field_39239 < 0) {
@@ -265,10 +272,10 @@ void __stdcall FUN_00464f80()
                     g_game->field_39239--;
                     if (g_game->field_39239 < 0) {
                         if (g_game->field_37ef6 == 2) {
-                            unsigned char b = FUN_00456850();
                             Player_00464f80* self =
-                                g_game->players[b].data;
-                            unsigned short typeId = FUN_00488b10(
+                                g_game->players[FUN_00456850()].data;
+                            unsigned short typeId;
+                            typeId = FUN_00488b10(
                                 &g_game->startPos[0x232 *
                                     g_game->players[g_game->localPlayer].data->field_95]);
                             int bound = 9999;
@@ -280,15 +287,15 @@ void __stdcall FUN_00464f80()
                                 pos.x = (FUN_004b6c30(g_game->screen_x - 2 * cx) + cx) << 16;
                                 pos.y = 0;
                                 pos.z = (FUN_004b6c30(g_game->screen_y - 2 * cy) + cy) << 16;
-                                int hw = g_game->screen_hw;
-                                int hh = g_game->screen_hh;
+                                int hw = g_game->screen_hw << 16;
+                                int hh = g_game->screen_hh << 16;
                                 int hits = 0;
                                 unsigned int zacc =
-                                    (unsigned int)pos.z - ((unsigned int)hh << 16);
+                                    (unsigned int)pos.z - (unsigned int)hh;
                                 int outer = 3;
                                 do {
                                     unsigned int xacc =
-                                        (unsigned int)pos.x - ((unsigned int)hw << 16);
+                                        (unsigned int)pos.x - (unsigned int)hw;
                                     int inner = 3;
                                     Point16 cell;
                                     cell.y = zacc >> 20;
@@ -298,9 +305,9 @@ void __stdcall FUN_00464f80()
                                                 (UnitDef_00464f80*)((char*)g_game->types + typeOff),
                                                 0, cell, 1) != 0)
                                             hits++;
-                                        xacc += hw << 16;
+                                        xacc += hw;
                                     } while (--inner != 0);
-                                    zacc += hh << 16;
+                                    zacc += hh;
                                 } while (--outer != 0);
                                 if (hits >= 9 && FUN_00421da0(&pos, 0, 0) == -1) {
                                     if (g_game->mode->field_d44 == 0)
@@ -386,8 +393,7 @@ void __stdcall FUN_00464f80()
     watch_check:
         if (g_game->mode->FUN_00435100() == 3 &&
             pi->field_22 == 0) {
-            unsigned char wb = FUN_00456850();
-            if ((g_game->players[wb].data->flags_9b & 0x80) != 0 ||
+            if ((g_game->players[FUN_00456850()].data->flags_9b & 0x80) != 0 ||
                 FUN_00457bc0() > 0) {
                 pi->data->flags_9b |= 0x40;
                 if (bl == g_game->localPlayer) {
@@ -451,7 +457,7 @@ void __stdcall FUN_00464f80()
 
     next:
         bl++;
-    } while (bl < 0xa);
+    }
 
     if (g_game->mode->FUN_00435100() == 3 &&
         g_game->field_37ef6 != 2 &&

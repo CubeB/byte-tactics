@@ -1,5 +1,77 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 63.4%. Derive projectile coordinate pointer per iteration. Initial enabled/word-flag loads, projectile pointer homes and visibility branch registers still differ.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// PARTIAL 71.3 percent (1641 of 1662 bytes). The whole remaining gap is ONE
+// allocation state, the p versus q register choice in the projectile loop. The
+// original keeps the position pointer q = p + 0xa in ebx, gives p only ecx and
+// reloads p from its stack slot once per iteration at 0x4671c9 (the loop is
+// jmp-ed over that reload at 0x4671c7, and the store back is the latch), so
+// p has a single use in the body (`mov eax, [ecx]`, p->type) while q has five
+// (pos.x, pos.y, pos.z, owner at q+0x48, player at q+0x5c). This file keeps p
+// in ebx and q in ecx, which also pushes the inlined OnRadar's PlayerInfo
+// pointer onto ebp instead of edx.
+//
+// What was measured this session (all free scratch scores, best is 71.3):
+//   1. The fold of p->player and p->owner onto the q base is NOT the lever.
+//      Reading them through a struct pointer biased to q (Tail_00466dc0 at
+//      q+0x48 / q+0x5c) makes MSVC emit exactly the original's
+//      `mov cl, [ebx+0x5c]` and `mov ecx, [ebx+0x48]`, yet p still wins ebx
+//      (70.9 percent, 1641 bytes). The offset reassociation happens anyway.
+//   2. What DOES flip it is passing &p->pos to the inlined OnRadar helper
+//      instead of px and py by value: MSVC then materialises the biased
+//      induction variable, `lea ebx, [ecx+0xa]`, and gives it ebx while p keeps
+//      ecx, which is the original's assignment exactly (v10, build/scratch/
+//      0x466dc0/v10.cpp). But it costs 22 bytes net and drops to 65.4
+//      percent, because the two copies of the helper then re-load the position
+//      fields instead of reusing the registers: the original has
+//      `movsx ebp, [ebx-4]` once and later `sar ebp, 5; sar edi, 5`, while
+//      this shape reloads (`mov ax, [ebx-4]; mov cx, ax; sar cx, 5`).
+//      v1 (the same helper, with px and py still read through an explicit
+//      short* q so the two expression trees differ) is 67.8 percent and 100
+//      bytes long, so the two shapes are NOT the same tree and the load CSE
+//      that the original relies on does not fire.
+//   3. Reading the position through a real struct member of Projectile
+//      (`Position_00466dc0 pos` at +0x4, three shorts at +6, +0xa, +0xe) with
+//      px and py by value gives 70.4 percent (v2) with no second induction
+//      variable at all, and with a named `Position* pos` local 70.9 percent
+//      (v6), but the biased base is then p + 0xe (as in the matched 0x475470)
+//      rather than the original's p + 0xa.
+//   4. Flipping the multiply operands to `px * zoom` (v11) changed nothing
+//      measurable (65.4 percent, same 1684 bytes as v10).
+// So the remaining construct is: the biased induction variable at p + 0xa in
+// ebx, p reloaded from a stack slot, and the inlined helper seeing the
+// position through the same expression tree as the x and y scaling so the
+// three loads are shared. That combination has not been found.
+//
+// New this session (2025, second pass):
+//   - The top-of-function hunk (0x466e0c region) is an independent cluster, not
+//     part of the projectile loop: the original stores the constant 1 as an
+//     immediate twice and reads the flag word with a 16-bit load
+//     (`mov ax, word ptr [esi+0x14281]`) before `test al, 3`. Spelling the two
+//     low bits as `field_14281.bits.bit0 || field_14281.bits.bit1` reproduces
+//     that load and test exactly, but the constant 1 then materialises in ecx
+//     (`mov ecx, 1` + `mov [esp+0x1c], ecx`) instead of two immediate stores,
+//     which cascades into the field_37f2f read (dx instead of cx) and into the
+//     unit loop (`mov al, [ebx+0xff]` instead of `mov dl, ...`), netting 70.4
+//     percent (1643 bytes). A 2-bit bitfield read and `(all & 3)` both narrow
+//     back to `test byte ptr [esi+0x14281], 3`.
+//   - The projectile loop home slots are p=0x18/i=0x1c/q=0x28 here and
+//     q=0x18/p=0x1c/i=0x28 in the original, so the allocator's variable order
+//     differs and not just its register choice. Declaring q first (over an
+//     independent `g_game->projectiles` read, before p and before i) moves the
+//     homes but stays at 70.8 percent (1645 bytes).
+//
+// Still open, smaller:
+//   - `enabled`: the original loads 16 bits (`mov ax, word ptr [esi+0x14281]`)
+//     and stores the constant 1 as an immediate both times; a 16-bit union
+//     read brings the load back but the 1 then materialises in a register
+//     (1643 bytes, 70.4 percent), and a named 16-bit local is folded away.
+//   - the two FUN_004b7f90 calls load `surface` after `push eax` in the
+//     original and before it here.
+// Tried and neutral: reading player and owner through a q-biased struct
+// (70.9), the union-typed +0x14281 field, a named 16-bit local for it, the
+// `!= 0` spelling of the slot->field_e test, plain `p++` for the projectile
+// stride, declaring q before p. Tried and worse: OnRadar taking &p->pos with
+// px and py read through a different tree (v1, 67.8), the same helper with a
+// shared tree (v10 and v11, 65.4), a named `Position* pos` local (v6, 70.9).
 #pragma pack(push, 1)
 
 struct Shot_00466dc0;
@@ -151,7 +223,7 @@ struct Game_00466dc0 {
     char unknown_14233[0x14273 - 0x14233];
     unsigned short* field_14273;         // +0x14273
     char unknown_14277[0x14281 - 0x14277];
-    Flags14281_00466dc0 field_14281;     // +0x14281
+    Flags14281_00466dc0 field_14281;      // +0x14281
     char unknown_14283[0x142db - 0x14283];
     void* field_142db;                   // +0x142db
     void* field_142df;                   // +0x142df
@@ -197,28 +269,33 @@ static PlayerInfo_00466dc0* PlayerInfo_00466dc0_Get(unsigned char p)
 // halves match the uint8 terrain bitmap and the packed 16-bit bitfield variant.
 static inline int OnRadar_00466dc0(int px, int py)
 {
+    PlayerInfo_00466dc0* pi = PlayerInfo_00466dc0_Get(g_game->currentPlayer);
+    int b;
     if ((g_game->field_14281.all & 2) == 2) {
-        unsigned int x = (unsigned int)(px >> 5);
-        unsigned int y = (unsigned int)(py >> 5);
-        PlayerInfo_00466dc0* pi = PlayerInfo_00466dc0_Get(g_game->currentPlayer);
-        if (x >= (unsigned int)pi->width)
-            return 0;
-        if (y >= (unsigned int)pi->height)
-            return 0;
-        if (pi->los[y * pi->width + x] == 0)
-            return 0;
-        return 1;
+        b = (unsigned int)(px >> 5) < (unsigned int)pi->width &&
+            (unsigned int)(py >> 5) < (unsigned int)pi->height &&
+            pi->los[(py >> 5) * pi->width + (px >> 5)] != 0;
     } else {
-        unsigned int x = (unsigned int)(px >> 5);
-        unsigned int y = (unsigned int)(py >> 5);
-        PlayerInfo_00466dc0* pi = PlayerInfo_00466dc0_Get(g_game->currentPlayer);
-        if (x >= (unsigned int)pi->width)
-            return 0;
-        if (y >= (unsigned int)pi->height)
-            return 0;
-        return (g_game->field_14273[y * pi->width + x] &
-                (1 << g_game->currentPlayer)) != 0;
+        if ((unsigned int)(px >> 5) < (unsigned int)pi->width &&
+            (unsigned int)(py >> 5) < (unsigned int)pi->height)
+            b = (g_game->field_14273[(py >> 5) * pi->width + (px >> 5)] &
+                 (1 << g_game->currentPlayer)) != 0;
+        else
+            b = 0;
     }
+    return b;
+}
+
+// Scale a unit's world coordinate by the current zoom, keeping the source
+// order of the multiply so the operand lands in the right register.
+static inline int ScaleX_00466dc0(Unit_00466dc0* u)
+{
+    return (int)g_game->field_142eb * (int)u->field_6c;
+}
+
+static inline int ScaleY_00466dc0(Unit_00466dc0* u)
+{
+    return ((int)u->field_74 - ((int)u->field_70 >> 1)) * (int)g_game->field_142ed;
 }
 
 // FUNCTION: 0x466dc0
@@ -244,10 +321,8 @@ void FUN_00466dc0(void)
             if (u->field_a6 != 0) {
                 if (enabled != 0 || (u->flags_110.all & 0x300) != 0 ||
                     u->field_ff == g_game->currentPlayer) {
-                    int x = ((int)u->field_6c * (int)g_game->field_142eb) /
-                            g_game->field_1422b;
-                    int y = (((int)u->field_74 - ((int)u->field_70 >> 1)) *
-                             (int)g_game->field_142ed) / g_game->field_1422f;
+                    int x = ScaleX_00466dc0(u) / g_game->field_1422b;
+                    int y = ScaleY_00466dc0(u) / g_game->field_1422f;
                     if (u->field_fa == 0 ||
                         (g_game->field_142f0.b.hi & 1) != 0) {
                         FUN_004b7f90(surface,
@@ -288,12 +363,12 @@ void FUN_00466dc0(void)
                                     int r = ((int)g_game->field_142eb *
                                              (shot->field_e0 - 0x200)) /
                                             g_game->field_1422b;
-                                    if (slot->field_e == 0)
-                                        FUN_004c0070(surface, x, y, r, base[0xf]);
-                                    else
+                                    if (slot->field_e != 0)
                                         FUN_004c01a0(surface, x, y, r, base[0xf],
                                                      0x20,
                                                      g_game->field_142f0.b.hi & 1);
+                                    else
+                                        FUN_004c0070(surface, x, y, r, base[0xf]);
                                 }
                                 slot++;
                                 n--;
@@ -314,15 +389,14 @@ void FUN_00466dc0(void)
     Projectile_00466dc0* p = g_game->projectiles;
     int i = 0;
     if (g_game->projectileCount > 0) {
+        short* q = (short*)((char*)p + 0xa);
         do {
-            short* q = (short*)((char*)p + 0xa);
             int px = q[-2];
             int x = (int)g_game->field_142eb * px / g_game->field_1422b;
             int py = q[2] - ((int)q[0] >> 1);
             int y = (int)g_game->field_142ed * py / g_game->field_1422f;
-            Shot_00466dc0* shot = p->shot;
-            if ((shot->flags.all & 0x60000000) == 0) {
-                if ((shot->flags.all & 0x40) == 0) {
+            if ((p->shot->flags.all & 0x60000000) == 0) {
+                if ((p->shot->flags.all & 0x40) == 0) {
                     if (OnRadar_00466dc0(px, py) ||
                         p->player == g_game->currentPlayer) {
                         FUN_004bee60(surface, x, y, base[0xe]);
@@ -339,7 +413,7 @@ void FUN_00466dc0(void)
             }
             i++;
             p = (Projectile_00466dc0*)((char*)p + 0x6b);
-
+            q = (short*)((char*)q + 0x6b);
         } while (i < g_game->projectileCount);
     }
 

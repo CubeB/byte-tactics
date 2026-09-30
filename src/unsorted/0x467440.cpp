@@ -1,5 +1,47 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 29.6%. Unsigned player index, definition reload after range callback, and separate bitmap/bitfield visibility branches. Visitor frame and induction registers still differ.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL: 53.0% (996 of the original's 1015 bytes). Five loops over the unit
+// array (stride 0x118): A clears/sets flags 0x1000/0x700/0x300 from the player
+// index and two "data" records, B ranges over pl->field_67..pl->field_6b and
+// hands a Class_00467840 visitor to FUN_0047e890, C does the same with the two
+// 4-byte visitors (Class_00467960 / Class_00467980), D sets flag 0x1000 and
+// field_b0, E sets flag 0x100 from the per-player cell masks.
+//
+// Biggest lever in this session (43.6% -> 51.6% -> 53.0%): DECLARE EACH VISITOR
+// LAST, after the call arguments have been materialised into locals, and call
+// FUN_0047e890 through those temporaries:
+//     int r = (int)u->def->field_20a << 16;
+//     Vec3_00467440* pp = &u->pos.vec;
+//     Class_00467960 v;
+//     FUN_0047e890(pp, r, &v);
+// That sinks the vptr store to just before the call, exactly where the original
+// has it (after the pushes). Writing the arguments inline instead emits the
+// vtable store at the top of the block; that costs ~8 points.
+//
+// What still differs (53.0%):
+//  - The frame is 0x24 vs the original's 0x28: `pl` is spilled to [esp+0x18]
+//    right before loop A (extra store, and every loop A/B/C jump target is +4).
+//    The original keeps pl in ebp from the prologue through loops B and C. Our
+//    loop B needs one register more than the original's (see next bullet), so
+//    the allocator spills pl and then reuses ebp as a temp.
+//  - Loop B's arithmetic: the original keeps `a` in ax, `b` in di, `t` in ecx
+//    and does `imul ecx,ecx` / `imul edx,edx` in place; ours loads b into cx
+//    early (`mov cx, word[ecx+0x206]`) and needs `mov edi,edx; imul edi,edx`
+//    copies, plus the vptr store lands early. `def` sits in ecx here, in edx
+//    there.
+//  - Loop C's two visitors still share the +0x18 slot (original +0x18/+0x1c),
+//    which is the other half of the 0x24 frame. Declaring both in one scope
+//    gives the right frame but hoists both vptr stores (36.6%).
+//  - Loop E: the original computes x and y INSIDE each arm of the field_14281
+//    mode test (duplicated movsx/sar) and uses ebp for the flags word (u+0x110
+//    via esi = u+0x74); ours hoists x/y and uses bh/edi. The in-arm form was
+//    1030 bytes / 38.2% on the old frame.
+//  - Loop D: original materialises 0x2000 in ebx and 0x1000 in edi, ours the
+//    other way round.
+//
+// Scratch variants scored (check.py <addr> <file>): base42 42.4%, base43 43.6%,
+// loop-B reorder 43.6%, both loop-C visitors in one scope 36.6%, v516 51.6%,
+// v530 (this file) 53.0%.
+
 #pragma pack(push, 1)
 
 struct Vec3_00467440 {
@@ -9,14 +51,14 @@ struct Vec3_00467440 {
 };
 
 union UnitPos_00467440 {
-    Vec3_00467440 vec;                 // +0x0
+    Vec3_00467440 vec;
     struct {
-        short field_6a;
-        short field_6c;                // +0x2
-        short field_6e;
-        short field_70;                // +0x6
-        short field_72;
-        short field_74;                // +0xa
+        short f6a;
+        short f6c;
+        short f6e;
+        short f70;
+        short f72;
+        short f74;
     } half;
 };
 
@@ -31,18 +73,21 @@ struct UnitDef_00467440 {
     unsigned int field_245;            // +0x245
 };
 
-struct Player_00467440 {
+struct PlayerData_00467440 {
     char unknown_0[0x97];
     unsigned char field_97;            // +0x97
     char unknown_98[0x9b - 0x98];
     unsigned char field_9b;            // +0x9b
 };
 
-struct Owner_00467440 {                // u->field_96
-    char unknown_0[0x27];
-    Player_00467440* data;             // +0x27
-    char unknown_2b[0x108 - 0x2b];
-    unsigned char field_108[0x43];     // +0x108
+struct Owner_00467440 {
+    void* field_0;                     // +0x0
+    char unknown_4[0x27 - 0x4];
+    PlayerData_00467440* data;         // +0x27
+    char unknown_2b[0x73 - 0x2b];
+    char field_73;                     // +0x73
+    char unknown_74[0x108 - 0x74];
+    unsigned char field_108[1];        // +0x108
 };
 
 struct Unit_00467440 {
@@ -65,7 +110,7 @@ struct Unit_00467440 {
 struct PlayerInfo_00467440 {
     void* field_0;                     // +0x0
     char unknown_4[0x27 - 0x4];
-    Player_00467440* data;             // +0x27
+    PlayerData_00467440* data;         // +0x27
     char unknown_2b[0x67 - 0x2b];
     Unit_00467440* field_67;           // +0x67
     Unit_00467440* field_6b;           // +0x6b
@@ -120,23 +165,23 @@ bool __stdcall FUN_0040b0d0(int player, Vec3_00467440* p, int range);
 // FUNCTION: 0x467440
 void FUN_00467440(void)
 {
-    Game_00467440* g = g_game;
-    if (g->field_2a3c < 2) {
+    if (g_game->field_2a3c < 2) {
         return;
     }
-    unsigned int p = g->playerIndex;
-    Unit_00467440* first = g->units + 1;
-    Unit_00467440* last = g->units_end;
-    PlayerInfo_00467440* pl = (PlayerInfo_00467440*)((char*)g + 0x1b63 + (unsigned int)p * 0x14b);
+    unsigned char player = g_game->playerIndex;
+    Unit_00467440* first = g_game->units + 1;
+    Unit_00467440* last = g_game->units_end;
+    PlayerInfo_00467440* pl = (PlayerInfo_00467440*)((char*)g_game + 0x1b63
+        + (unsigned int)g_game->playerIndex * 0x14b);
     Unit_00467440* u;
 
     for (u = first; u <= last; u++) {
         if (u->flags & 0x10000000) {
             u->flags &= ~0x1000;
-            if (u->field_ff == p
+            if (u->field_ff == player
                 || (u->field_96->field_108[pl->field_146] != 0
                     && (u->field_96->data->field_97 & 0x40) != 0)
-                || (pl->field_0 != 0 && (pl->data->field_9b & 0x40) != 0)) {
+                || (*(int*)pl != 0 && (pl->data->field_9b & 0x40) != 0)) {
                 u->flags |= 0x300;
             } else {
                 u->flags &= ~0x700;
@@ -146,41 +191,44 @@ void FUN_00467440(void)
 
     for (u = pl->field_67; u <= pl->field_6b; u++) {
         if ((u->flags & 0x10000000) && !(u->flags & 0x4000) && (u->field_10e & 1)) {
-            UnitDef_00467440* def = u->def;
-            if (def->field_204 != 0 || def->field_206 != 0) {
-                short a = def->field_204;
-                short b = def->field_206;
-                int t = a + u->pos.half.field_70 * 2;
+            if (u->def->field_204 != 0 || u->def->field_206 != 0) {
+                short a = u->def->field_204;
+                short b = u->def->field_206;
+                int t = a + u->pos.half.f70 * 2;
+                int r = (int)(a > b ? a : b) << 16;
+                Vec3_00467440* pp = &u->pos.vec;
                 Class_00467840 v;
                 v.field_4 = t * t;
                 v.field_8 = (int)b * (int)b;
                 v.pos = u->pos.vec;
-                FUN_0047e890(&u->pos.vec, (a > b ? (int)a : (int)b) << 16, &v);
+                FUN_0047e890(pp, r, &v);
             }
         }
     }
 
     for (u = first; u <= last; u++) {
         if ((u->flags & 0x10000000) && u->field_ff != pl->field_146 && (u->field_10e & 1)) {
-            UnitDef_00467440* def = u->def;
-            if (def->field_20a != 0) {
+            if (u->def->field_20a != 0) {
+                int r = (int)u->def->field_20a << 16;
+                Vec3_00467440* pp = &u->pos.vec;
                 Class_00467960 v;
-                FUN_0047e890(&u->pos.vec, (int)def->field_20a << 16, &v);
+                FUN_0047e890(pp, r, &v);
             }
             if (u->def->field_20c != 0) {
+                int r2 = (int)u->def->field_20c << 16;
+                Vec3_00467440* pp2 = &u->pos.vec;
                 Class_00467980 v;
-                FUN_0047e890(&u->pos.vec, (int)u->def->field_20c << 16, &v);
+                FUN_0047e890(pp2, r2, &v);
             }
         }
     }
 
     for (u = first; u <= last; u++) {
-        if ((u->flags & 0x10000000) && *(int*)u->field_96 != 0) {
-            char c = *(char*)((char*)u->field_96 + 0x73);
+        if ((u->flags & 0x10000000) && u->field_96->field_0 != 0) {
+            char c = u->field_96->field_73;
             if (c == 1 || c == 2) {
-                UnitDef_00467440* def = u->def;
-                if (def->field_245 & 0x2000) {
-                    if (FUN_0040b0d0(u->field_ff, &u->pos.vec, def->field_208)) {
+                if (u->def->field_245 & 0x2000) {
+                    if (FUN_0040b0d0(u->field_ff, &u->pos.vec, u->def->field_208)) {
                         u->field_b0 = g_game->field_38a47 + 0x5a;
                         u->flags |= 0x1000;
                     }
@@ -192,20 +240,23 @@ void FUN_00467440(void)
     for (u = first; u <= last; u++) {
         unsigned int f = u->flags;
         if ((f & 0x10000000) && !(f & 0x100) && !(u->field_10e & 4)) {
-            Game_00467440* g2 = g_game;
-            unsigned int pi = g2->playerIndex;
+            unsigned char pi = g_game->playerIndex;
             PlayerInfo_00467440* p2 =
-                (PlayerInfo_00467440*)((char*)g2 + 0x1b63 + pi * 0x14b);
-            int x = u->pos.half.field_6c >> 5;
-            int y = (u->pos.half.field_74 - (u->pos.half.field_70 >> 1)) >> 5;
+                (PlayerInfo_00467440*)((char*)g_game + 0x1b63 + (unsigned int)pi * 0x14b);
+            int x = (int)u->pos.half.f6c >> 5;
+            int y = ((int)u->pos.half.f74 - ((int)u->pos.half.f70 >> 1)) >> 5;
             int vis;
-            if ((g2->field_14281 & 2) == 2) {
+            if ((g_game->field_14281 & 2) == 2) {
                 vis = 0;
-                if ((unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84)
-                    if (p2->field_7c[p2->field_80 * y + x] != 0) vis = 1;
+                if ((unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84
+                    && p2->field_7c[p2->field_80 * y + x] != 0) {
+                    vis = 1;
+                }
             } else {
-                if ((unsigned int)x >= p2->field_80 || (unsigned int)y >= p2->field_84) vis = 0;
-                else vis = (g_game->field_14273[p2->field_80 * y + x] & (1 << pi)) != 0;
+                if ((unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84)
+                    vis = (g_game->field_14273[p2->field_80 * y + x] & (1 << pi)) != 0;
+                else
+                    vis = 0;
             }
             if (vis) {
                 u->flags = f | 0x100;

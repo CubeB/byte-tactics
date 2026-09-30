@@ -43,6 +43,18 @@
 // 58.5% (esi pinned live across the whole body), and moving the declaration
 // down to just before the category getter costs 62.8% (4804 bytes), so the
 // esi-vs-ebx pick is allocator state, not a source shape.
+// Pass 6 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772. Re-confirmed the
+// `sound` substitution at all 71 FUN_004c46c0 + 9 FUN_004c4760 defaults is
+// byte-identical (MSVC5 value-numbers the variable back into one constant), and
+// `unsigned int def` on FUN_004c4800's third parameter is byte-identical too, so
+// the int/unsigned split does not break the constant node. New fact: the original
+// really has TWO zero live ranges: esi from 0x42c0f0 to 0x42cc5f (the defaults,
+// the countdown and soundcategory tests; esi is then reused for `sound` and for
+// `defaultWeapon`), and a fresh `xor ebx,ebx` at 0x42ce00 for the weapon null
+// tests, [unitdef+0x14e]=0 and the yard-loop counters. Ours keeps ONE ebx range
+// from 0x42c0ee to the tail, and ebx is untouched in the original between
+// 0x42c0f0 and 0x42ce00, so esi was not picked for lack of ebx: our longer
+// constant live range is what keeps the allocator on ebx.
 
 // Still 62.6% (ours 4804 bytes against 4772) after deepseek-v4.1's second pass.
 // Confirmed fixed this pass (both match the original now):

@@ -18,6 +18,8 @@
 // GPT-6.1-sol retry verification: the saved source still scores 88.7% (645/644 bytes).
 // GPT-6.1-sol refinement: two variants scored 67.1% and 88.2%; restored the
 // best and verified it again at 88.7%. The `_S`/`_Q` allocation swap remains.
+// 2026-09-30 retry check: 88.7% (645/644 bytes); the saved source remains best.
+// This pass again isolated the mismatch to `_S`/`_Q` register allocation.
 // The _S/_Q register swap remains the only difference; the 128-header sweep and
 // prior source-form variants recorded below did not improve it.
 // Partial (88.7%, 645 bytes against the original's 644): only one allocator

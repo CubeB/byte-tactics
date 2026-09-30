@@ -10,6 +10,8 @@
 // C-header variants tied; four C++ headers dropped to 89.6%. The partial C++
 // header sweep was stopped at about 118 variants. The source-start LEA's SIB
 // order remains the single differing byte. No MATCH.
+// 2026-09-30 retry check: 99.6% (546/546 bytes). Alias, single-use offset
+// helper, and hoisted-local variants did not change the SIB operand order.
 // 99.6%, 546 of 546 bytes, ONE SIB byte left (was 89.6%, 546 of 547).
 // The fix is 0x476210's clone trick, and it works here: this file is NOT an
 // include of <vector> but a hand-written copy of the <vector> class template

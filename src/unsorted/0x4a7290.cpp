@@ -1,4 +1,8 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol rechecked this 55.7% best in three check.py runs. A selected-row
+// pointer used for the initial geometry and group lookup was optimizer-folded
+// with identical output; reusing it for later color/text accesses dropped to
+// 45.4%, so the saved direct-access version remains best. No MATCH.
 // Best so far 55.7% (753 of our bytes against 706; the 52.6% first session
 // below described the 724-byte version).  All 24 relocated
 // references (the 11 callees, DAT_0051fba4) land at the original's offsets and

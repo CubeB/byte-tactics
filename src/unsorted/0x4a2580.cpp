@@ -1,4 +1,24 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// 2026-09-30 (deepseek-v4.1): 65.2 -> 67.5 by declaring the function-scope
+// `void* surface` FIRST among the locals (before `entries`/`e`), so it is
+// loaded at entry into a real frame slot ([esp+0x10] for us; the original
+// keeps it at [esp+0x1c]) instead of the freed index home [esp+0x58]. Slot
+// choice for spilled locals is declaration-order sensitive here: moving an
+// unrelated branch local's declaration earlier (`int limit` before `surf` in
+// the h<=w branch) drops to 54.5%, `int n/i` before surface gives 67.3%, a
+// fresh per-branch surface local gives 62.3%, one hoisted shared `int limit`
+// is neutral at 65.2. Still differs (1605 bytes against 1631):
+//  - w<h branch: ours spills its surface to [esp+0x58] and keeps `limit` in
+//    ebp; the original keeps the surface in ebp, `limit` at [esp+0x10] and
+//    the glyph pointers at [esp+0x58] (the freed index home).
+//  - the w<h test: original `mov cx,[w]; mov dx,[h]; cmp cx,dx; jge`, ours
+//    `mov cx,[h]; cmp [w],cx; jge` (flipping `<` to `>` was tried, no change).
+//  - h<=w branch: our spare slot assignments ([esp+0x14] for both the w<h
+//    limit and the h<=w surf) differ from the original's [esp+0x10] limit /
+//    [esp+0x14] surf pattern.
+//  - 26 bytes short, mostly in the flags&4 block, where the three _itoa
+//    argument setups do not tail-merge the way the original's do.
 // Retry 2026-09-30 (deepseek-v4.1-flash): kept the 65.2% v11 form. Re-tested
 // moving the function-scope `surface` load down to just before FUN_004a23b0
 // (the point of first use), which drops to 63.9%, so reverted. No new lever
@@ -145,9 +165,9 @@ static inline const int& Smaller(const int& a, const int& b) { return a < b ? a 
 // FUNCTION: 0x4a2580
 void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
 {
+    void* surface = obj->holder->entries->u.head.surface;
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
-    void* surface = entries->u.head.surface;
     Glyph_004a2580* g;
     Glyph_004a2580* mid;
 

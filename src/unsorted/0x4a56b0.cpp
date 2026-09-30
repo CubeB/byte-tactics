@@ -43,6 +43,18 @@
 // frame+0x10. A named local for the bound does not fix it: the named local then
 // takes edi away from `i` (48.4%), because MSVC gives a named loop-bound local
 // a callee-saved register while an expression gets a scratch.
+// 2026-09-30 retry 2 (deepseek-v4.1): re-trialled the loop, nothing improved on
+// 60.3%. The flipped guard `entries[0].b6.count + 1 <= i` compiles
+// byte-identically to the `i >= ...` winner (MSVC canonicalises the compare, the
+// bound still ends up in memory). The counter as `int t[1]` with t[0] uses is
+// byte-identical too, so MSVC promotes the element and a memory home is not
+// reachable that way. A `const int bound` local steals edi from `i` (48.4%). A
+// second break test at the loop bottom (48.7%) and wrapping the loop in
+// `if (i < count + 1) { while (1) ... }` (49.3%) both reproduce the guarded
+// shape: bound in ecx, counter in edi, index in memory. Every pre-test plus
+// bottom-test shape lands there, so the target allocation (index edi, counter in
+// memory, bound ecx, walk pointer edx) only falls out of the single-test
+// unguarded shape, where MSVC chooses to spill the bound instead of the counter.
 // 2026-09-30 (deepseek-v4.1): the guarded loop was re-tried in the exact shape
 // that MATCHES the sibling 0x4a53c0 (`int i; int t = 0;
 // for (i = 1; i < entries[0].b6.count + 1; i++)`, t in a register there):

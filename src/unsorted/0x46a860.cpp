@@ -92,6 +92,18 @@ static float Positive_0046a860(float value) { return value > 0.0f ? value : 0.0f
 // Tried: nothing new produced a higher score inside the budget (run out of time
 // after mapping the frame with a /Fa listing and re-reading Ghidra's pseudo-C);
 // this 60.0% version is left in place by deepseek-v4.1 as the best so far.
+// Frame mapped exactly from a /Fa listing (offsets from the frame bottom, the
+// first local sits at [esp+0x10]): ours is iVar5 0..4, 8-dword block 4..36,
+// snapshot 36..96, amount 100..200, text 200..456, kills 456..556 (0x22c).
+// The original is the same up to the snapshot, then a 4-byte int 96..100, a
+// char[16] 100..116, text 116..372, amount 372..472, kills 472..572 (0x23c).
+// So exactly two things are off: our `amount` is slotted before `text` (the
+// original has text first) and the char[16] is missing. Adding a char[16] used
+// by the strncpy does land it at [esp+0x74] exactly as in the original, but
+// `amount` still precedes `text`, giving a 0x240 frame, and the score drops.
+// Declaration order (and permutations of it) has zero effect on slot order,
+// verified with /Fa listings, so the order comes out of the code generator's
+// walk, not out of the source text.
 
 // FUNCTION: 0x46a860
 void __stdcall FUN_0046a860(void* param_1) {

@@ -1,4 +1,7 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retest in #1672: an outer positive-count guard with a do/while
+// scored 19.6%; restored the 78.3% for-loop version. Remaining mismatch is
+// callee-saved register allocation: target keeps zero in ebx and owner in ebp.
 // Codex / GPT-6 retest in #13:
 // an owner-filtered removal helper and reversing the two predicate
 // terms did not fix the ebx/ebp allocation. Retain the original best partial.

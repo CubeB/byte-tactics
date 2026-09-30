@@ -7,6 +7,8 @@
 // aggregate and separated coordinate updates scored 56.2% and 71.2%; all 128
 // header combinations topped out at 83.1%. Remaining differences include
 // surface and coordinate register assignment and final rectangle stores.
+// Refinement: moving the surface and rectangle declarations among the
+// coordinate locals, and using a selected-gadget pointer, did not exceed 83.1%.
 // Draws the frame of one cell of the 16x16 "COLS" colour grid gadget
 // (cell index = row * 16 + column, each cell 8 pixels).
 

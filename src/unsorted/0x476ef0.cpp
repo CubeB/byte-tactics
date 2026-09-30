@@ -1,26 +1,6 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// TextRegion paged-text renderer (1124 bytes, __cdecl, no arguments).
-// Structure follows the disassembly: two page scans, a MOREBAR label choice,
-// then a per-line loop that fills one 0x15b-byte gadget entry per text line
-// and draws the '&'-escaped coloured runs.  PARTIAL, 50.7%.
-// Facts recovered from the disassembly (useful for the next attempt):
-//  - the two page scans are exactly FUN_00476e90's body inlined twice; the
-//    calls are FUN_00476e90(DAT_0051e63c, linesPerPage, DAT_0051e64c) and
-//    FUN_00476e90(DAT_0051e63c, linesPerPage, DAT_0051e64c + 1).  The
-//    special cases (param_3 == 0 -> return start) are the `if (DAT_0051e64c
-//    == 0)` / `if (DAT_0051e64c == -1)` arms.  Writing them as real calls
-//    does not get inlined and scores lower (36.9%).
-//  - canonical local slots (E = esp after the four pushes): dv+0x10 scan n /
-//    dst ptr, +0x14 scan n / loop i, +0x18 linesPerPage, +0x1c count,
-//    +0x20 colourState, +0x24 textX, +0x28 dialog, +0x2c e->y (dead spill),
-//    +0x30 gp, +0x34 y, +0x38 divisor, +0x3c..+0xbb buf[0x80].
-// Remaining differences:
-//  - frame 0xb0 vs 0xac: one extra dword local.  Ours spills dialog to a
-//    later slot (original dialog is E+0x28, right after textX), and ours
-//    spills linesPerPage to E+0x10 and y to E+0x18 whereas the original
-//    keeps y in ebx for the whole function and linesPerPage at E+0x18.
-//  - the inner '&' run-copy and the second page scan differ in block order
-//    and register roles (original keeps the run base ebx = buf - line0).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial, 71.3%. Page scans now use an inlineable helper. Corrected coloured-run
+// buffer indexing and the full-width side read; register scheduling still differs.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -58,7 +38,7 @@ struct Game_476ef0 {
     char unknown_51a[0x531 - 0x51a];
     Holder_476ef0* dialog;              // +0x531
     char unknown_535[0x37ef2 - 0x535];
-    unsigned char field_37ef2;          // +0x37ef2
+    int field_37ef2;          // +0x37ef2
 };
 #pragma pack(pop)
 
@@ -86,11 +66,30 @@ void __stdcall FUN_004a0c70(Menu_476ef0* menu, const char* name, int value);
 void __stdcall FUN_004afd80(Menu_476ef0* menu, char* text, int x, int y,
                             int count, int colour, float a, float b);
 
+static char* PageStart_476ef0(char* start, int lines, int page) {
+    if (!page) return start;
+    char* p = start;
+    int found = 0;
+    int count = 0;
+    while (*p != 0) {
+        char c = *p;
+        if (c == (char)0xff) break;
+        if (found) break;
+        ++p;
+        if (c == '\n') {
+            ++count;
+            if (count == page * lines) found = 1;
+        }
+    }
+    return found ? p : 0;
+}
+
 // FUNCTION: 0x476ef0
 void FUN_00476ef0()
 {
     Holder_476ef0* dialog = g_game->dialog;
     Entry_476ef0* gadgets = dialog->entries;
+    int colourState = 1;
     if (DAT_0051e63c == 0)
         return;
 
@@ -117,59 +116,12 @@ void FUN_00476ef0()
     int count = gadgets[0].u.count;
     DAT_0051e64c++;
 
-    char* lineStart;
-    if (DAT_0051e64c == 0) {
-        lineStart = DAT_0051e63c;
-    } else {
-        char* p = DAT_0051e63c;
-        int n = 0;
-        int found = 0;
-        if (*p != 0) {
-            do {
-                char c = *p;
-                if (c == (char)0xff)
-                    break;
-                if (found)
-                    break;
-                p++;
-                if (c == '\n') {
-                    n++;
-                    if (n == linesPerPage * DAT_0051e64c)
-                        found = 1;
-                }
-            } while (*p != 0);
-        }
-        lineStart = found ? p : 0;
-    }
-    if (lineStart == 0) {
+    char* lineStart = PageStart_476ef0(DAT_0051e63c, linesPerPage, DAT_0051e64c);
+    if (!lineStart) {
         DAT_0051e64c = 0;
         lineStart = DAT_0051e63c;
     }
-
-    char* nextPage;
-    if (DAT_0051e64c == -1) {
-        nextPage = DAT_0051e63c;
-    } else {
-        char* q = DAT_0051e63c;
-        int n = 0;
-        int found = 0;
-        if (*DAT_0051e63c != 0) {
-            do {
-                char c = *q;
-                if (c == (char)0xff)
-                    break;
-                if (found)
-                    break;
-                q++;
-                if (c == '\n') {
-                    n++;
-                    if (n == (DAT_0051e64c + 1) * linesPerPage)
-                        found = 1;
-                }
-            } while (*q != 0);
-        }
-        nextPage = found ? q : 0;
-    }
+    char* nextPage = PageStart_476ef0(DAT_0051e63c, linesPerPage, DAT_0051e64c + 1);
 
     if (nextPage == 0) {
         if (DAT_0051e64c == 0)
@@ -183,7 +135,6 @@ void FUN_00476ef0()
     FUN_004a0c70(&g_game->menu, "MOREBAR",
                  DAT_00507b70[g_game->field_37ef2 * 4 + 1]);
 
-    int colourState = 1;
     char buf[0x80];
     Entry_476ef0* e = &gadgets[count];
     for (int i = linesPerPage * DAT_0051e64c;
@@ -199,7 +150,6 @@ void FUN_00476ef0()
         char c = *lineStart;
         y += divisor;
         if (c != '\n') {
-            char* line0 = lineStart;
             for (;;) {
                 if (c == 0 || c == (char)0xff)
                     break;
@@ -218,13 +168,13 @@ void FUN_00476ef0()
                     int k = 0;
                     char* q = lineStart;
                     while (*q != '&') {
-                        buf[q - line0] = *q;
+                        buf[k] = *q;
                         k++;
                         q++;
                         if (k >= 0x7f)
                             break;
                     }
-                    buf[q - line0] = 0;
+                    buf[k] = 0;
                     FUN_004afd80(&g_game->menu, buf, x, ey, count, 0x5e,
                                  1.0f, 0.25f);
                 } else if (c == '&') {

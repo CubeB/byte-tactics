@@ -1,6 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// PARTIAL 75.7%: in-game command/gadget event dispatcher, original 2292 bytes,
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// PARTIAL 78.8%: in-game command/gadget event dispatcher, original 2292 bytes,
 // ours 2292 (exact size; structure, jump tables and case order agree).
+//
+// What this pass changed (75.7% -> 78.8%):
+// - Case 0xd7: hoisting `int old = g_game->field_38c53;` ABOVE the
+//   `flags_37f2f.b1` guard (semantically the same, the read is unconditional)
+//   flips the whole block's allocation. MSVC now keeps g_game in esi and the
+//   flag byte in cl, exactly as the original does, and stops sinking the
+//   field_38c53 load past the branch. The original really does hoist that load:
+//   its live range starts at the block entry even though the guard is first.
+//   With the load inside the guard MSVC gives g_game to ecx, the flag byte to
+//   al, and emits a 6-byte `mov ecx, g_game` where the original has the 5-byte
+//   moffs `mov eax, g_game`. Worth 3.1 points.
 //
 // What is known to be right:
 // - FUN_004c1ab0 returns the event, 0 means return; FUN_004c1b80(0xf9) returns
@@ -31,16 +42,52 @@
 //   `FUN_00451df0(FUN_0044fdb0(), data, 3)` (no intermediate int) makes MSVC
 //   push the literal 3 before the toggle, as the original does.
 //
-// What still differs:
-// - Case 0xd7 (0x4961d7) loads g_game into ecx, and `old` into eax; the
-//   original loads g_game into eax (`mov eax, moffs`, one byte shorter) and
-//   `old` into ecx. That one byte later shifts every `jmp 0x4965ce` rel32 in
-//   the function by one, which is most of the remaining diff.
+// What still differs (measured with tools/check.py, and an LCS alignment of
+// both disassemblies, see build/scratch/0x495e90/):
+// - The code is 3 bytes longer than the original's from 0x4961fb on, so every
+//   later `jmp 0x4965ce` and the shared break target are one high. Two
+//   independent one-line causes account for it exactly:
+//   (a) case 0xd7, +7 bytes. The hoisted load wins the allocation but leaves
+//       `mov eax, [esi + 0x38c53]` before `shr cl, 1` and puts the store below
+//       the `cmp eax, ebx`; the original has flag test, load, store, compare.
+//       Getting the moffs `mov eax, g_game` AND the original's statement order
+//       at once has not been found.
+//   (b) case 0xad, +2 bytes: entry test is `mov eax,[esp+0x20]; cmp esi,eax`
+//       where the original has the folded `cmp esi, dword ptr [esp+0x20]`. The
+//       back edge matches. Tried and did not help: a hoisted
+//       `std::vector<int>::iterator e = sel.end();`, `sel.end() != it`,
+//       `!(it == sel.end())`, `int*` iteration, and a `const&` to sel.
+// - Measured 2026-09-30 with a free LCS diff of the two disassemblies
+//   (build/scratch/0x495e90/sd.py on orig.txt vs ours_now.txt): the +3 is
+//   exactly two deltas, and every other instruction in the body has the same
+//   text and size as the original.
+//   * case 0xd7 entry is 41 bytes in the original, 42 here: `mov esi,
+//     dword ptr [g_game]` is 6 bytes where the original's moffs `mov eax,
+//     g_game` is 5. The original also tests the flag first, then loads
+//     field_38c53 (into ecx), stores, compares; writing `int old` inside the
+//     guard fixes that order but costs the same byte (`mov ecx, g_game`) and
+//     scores 75.7%, so the hoisted form is kept. A local `Game_495e90* g`
+//     for the guard/load/store also scores 78.8%, no better.
+//   * case 0xad entry has one extra `mov eax, [esp + 0x20]` (2 bytes): the
+//     original folds that operand into `cmp esi, dword ptr [esp + 0x20]`.
+//     A hoisted `stop = sel.end()` scores 73.9%, `sel.end() != it` 78.7%, a
+//     `while` form 78.8%. The back edge already matches.
+//   Fixing both deltas should make the whole body line up; MATCH was not
+//   reached in this session. (Corrected note: case 0xec now uses dl and
+//   matches the original; the older al note above is stale.)
+// - Frame slots still differ (CTRL buf esp+0x18 vs esp+0x10, the 0xd7
+//   findData/path buffers esp+0x38/0x150 vs esp+0x28/0x140).
+// - Case 0xec (0x4962f8) loads the guard into al where the original uses dl
+//   (`test al,1` is 2 bytes, `test dl,1` is 3). A `char` bitfield base for
+//   Flags_00495e90_37f2f was tried and is much worse (69.6%), so the
+//   `unsigned short` base is right and the register difference is pure
+//   allocator state. Note the ORIGINAL also picks al for the same test in case
+//   0x5c and cl in case 0xd7, so the choice is per block, not per expression.
 // - Case 0xab CTRL buffer sits at esp+0x18 here vs esp+0x10 in the original;
 //   the 0xd7 findData/path buffers are 0x10 higher (orig 0x28/0x140, ours
-//   0x38/0x150). MSVC did not merge these case locals into the low slots.
-// - Case 0xad's entry compare is `mov eax,[esp+0x20]; cmp esi,eax` here vs
-//   `cmp esi,[esp+0x20]` in the original (back edge already matches).
+//   0x38/0x150). Buffer sizes 8, 0x10, 0x18, 0x1c, 0x20 were all tried: the
+//   CTRL buffer never lands below 0x18 and the frame total changes with it.
+//
 
 #include <windows.h>
 #include <stdio.h>
@@ -368,9 +415,9 @@ void FUN_00495e90(void)
         FUN_00464000();
         break;
 
-    case 0xd7:
+    case 0xd7: {
+        int old = g_game->field_38c53;
         if (g_game->flags_37f2f.b1) {
-            int old = g_game->field_38c53;
             g_game->field_38c53 = 0;
             if (old == 0) {
                 char path[0xf0];
@@ -395,6 +442,7 @@ void FUN_00495e90(void)
             }
         }
         break;
+    }
 
     case 0xec:
         if (g_game->flags_37f2f.b1) {

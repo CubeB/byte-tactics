@@ -1,13 +1,44 @@
-// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash,
-// finished by GPT-6. Names are provisional. PARTIAL 81.2%, 924 of 936 bytes. Replace the old
-// byte-pointer copy loop, which advanced its source by one byte, with typed 14-byte packet
-// pointers. Put the empty allocator at offset zero so the three pointers
-// remain at +4/+8/+0xc. Use its allocate method, preserving the capacity
-// while the allocator clamps its own signed allocation count.
-// A destination-first _Ucopy(_P, _F, _L) improves the register family.
-// The original capacity/new-buffer stack homes and some loop registers
-// still differ. Helper permutations, const/reference forms, capacity-slot
-// variants and 768 header sets did not improve this version further.
+// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and
+// deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free.
+// Names are provisional. PARTIAL 81.2%, 924 of 936 bytes. This is MSVC 5's
+// GPT-6.1-sol refinement: ten checks kept 81.2%; two compile failures. Moving
+// local lifetimes and changing capacity checks scored 80.9% and 55.8%, so the
+// saved best was restored. No MATCH was reached.
+// std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&), the same
+// template as the near-matched 0x476210 (99.6% there, 32-byte element), taken
+// out of line by taking the member's address in that file's translation unit.
+// The empty allocator member is one byte, so the three pointers are at +4, +8
+// and +0xc, which is the layout the original reads. Keep the allocator at
+// offset zero, use its allocate/deallocate, and preserve the capacity while the
+// allocator clamps its own signed allocation count. The destination-first
+// _Ucopy(_P, _F, _L) improves the register family.
+//
+// What is still different, and the two experiments that bracket it:
+// 1. The reallocating branch's tail copy is the source-first
+// _Ucopy(_P, _Last, _Q + _M) of the real <vector>, not the destination-first
+// form above. That spelling builds the 12 bytes this build is missing, the
+// `(_P + dest) - _Q - (_M * 14)` tree at 0x46eceb (sub, add, sub, and the
+// mov eax, esi after it), which the 0x476210 notes already record for the
+// 32-byte case. But spelling it that way here scores worse, not better: with
+// 0x476210's std::vector clone class and its whole insert body verbatim the
+// build is 939 bytes at 63.3%, and with the destination-first head and middle
+// copies plus a source-first tail it is 937 bytes at 73.0%, against 81.2% for
+// this file. Both are the right SIZE (937 or 939 against 936) and the wrong
+// registers, so the tail copy spelling is not what decides the score here.
+// 2. The register family hangs off one decision: the original puts `this` in
+// ebp, spills it to the frame slot [esp+0x10] at 0x46ebbe and then reuses ebp
+// as the 14-byte copy's data temp, which frees ebx for _M. This build puts
+// `this` in ebx, so ebp holds _M for the whole function, the head copy's data
+// temp lands in edi instead of ebp, the head copy's advancing destination lands
+// in esi instead of edx and the tail copy's loop bound lands in edx instead of
+// edi. Every other difference in the first hunk follows from that swap.
+// 3. The two live values are also swapped between homes: the original spills
+// the new capacity _N into the dead arg2 slot at 0x46ec41 and keeps the new
+// buffer in the frame slot [esp+0x18] (0x46ec5c), while this build does the
+// reverse, which is the only difference in that hunk apart from the registers.
+// 4. The original also spills the deallocate argument into the dead arg3 slot
+// at 0x46ed25 (`push eax; mov [esp+0x28], eax; call`), six bytes this build
+// does not have, and that store is never read back.
 #include <memory>
 #include <xutility>
 

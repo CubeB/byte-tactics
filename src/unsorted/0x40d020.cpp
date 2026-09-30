@@ -1,5 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Best semantically equivalent version: 80.5% (536 vs 532 bytes), no MATCH.
+// 2026-09-30 GPT-6.1-sol retry: changing the third-copy source from
+// const_iterator to iterator kept the same 80.5%; restored this best version.
 // The third inlined copy loop and several loop registers/branch offsets still
 // differ. Conditional do/while and while forms also score 80.5%; an unguarded
 // do/while scores 81.1% but copies one element when _P == _Last, so it is not

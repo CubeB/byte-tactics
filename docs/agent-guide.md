@@ -1862,7 +1862,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
 - **One write and one read of a stack slot on different paths is a bug
   report, not a matching problem**: list each slot's writes and reads in the
   disassembly (a `grep` is enough) before writing source; such a finding
-  survives even if the function never matches (0x43cd20).
+  survives even if the function never matches (0x4aa8f0, 0x49be60). Convert
+  each `[esp+N]` to a frame offset first (see "Convert `esp` offsets" below):
+  pending pushes caused most of the false reports so far.
 - **More levers, measured**: `docs/field-notes.md` (CubeB, 47 functions in one
   session) ranks the levers that paid, with the numbers: read the toolchain's
   own headers before inferring (`XTREE`, `DSOUND.H`), treat a "register
@@ -2005,3 +2007,271 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `defs[DAT_005129b4[i].unitType].name`, reloading the field, instead of
   `defs[type].name`). They are then no longer the same value, and MSVC
   recomputes the address instead of sharing it (0x44c0d0, 77.0% to MATCH).
+- **A store that MSVC deletes can still move registers.** At 0x461b10,
+  `unsigned int ix = head; head = ix;` compiles to nothing, yet it changed the
+  live ranges enough to put two values in the original's registers (86.0% to
+  99.0% at the exact byte count, #1844); `#include <memory.h>` then fixed the
+  last swapped pair of reloads (MATCH, #2131), and the store is still in the
+  matched file. A literal `h = h` is dropped too early to matter (0x4bcb50);
+  an assignment from a local holding the same value was not.
+- **A swapped pair of reloads, with everything else exact, is often header
+  state.** Three functions matched by adding one include and changing nothing
+  else: `<memory.h>` at 0x461b10 (the reloads at 0x461bcf/0x461bd3),
+  `<string.h>` at 0x4c7a20, and `<windows.h>` at 0x4bc370 (a SIB base
+  choice). On a small function whose only diff is such an ordering, run
+  tools/headers.py in the first two runs (#2131); if it has already swept every
+  set without a win, go back to source shapes (0x4ac4c0, 0x4ac8c0, #2139).
+- **A dead reload in the original is register work, not a deleted
+  statement.** At 0x453360 two unused `mov eax, [esp+0x14]` reloads are 8 of
+  the 9 differing bytes, and their only effect is to occupy `eax` so that
+  `g_game` goes to `ecx`. /O2 removes every dead expression (eight
+  dead-statement spellings compiled to the same 371 bytes), so the reload is a
+  split of the incoming parameter's live range, and adding dead code will not
+  reproduce it (#2051, #2079, #2588; still unsolved).
+- **Choose which arm falls through.** A value stored just before a branch is
+  reused (`mov eax, ecx`) in the arm MSVC lays out as the fall-through and
+  reloaded in the other. Flipping 0x43b7c0's case 9 so that the arm using the
+  stored `flags | 0x800000` falls through was worth 3.1 points (#2049), and
+  inverting 0x44a680's DAT_00512994 guard so the full path falls through fixed
+  13 points and the size in one edit (#2457). When a branch's shape is right
+  but its edges are not, `if (cond) goto after;` jumps can set the polarity
+  where if/else nesting cannot (0x452cc0, exact 848 bytes, #2237).
+- **Sharing one block between two switch arms**: set the per-arm value in a
+  local before the jump and `goto` the arm that already holds the body
+  (`case 3: waitn = 0xf; goto do_wait;`). At 0x43b7c0 that gave the original's
+  single Wait block, 59.7% to 71.0% (#2080, #2489). Two textually identical
+  inlined copies do not reliably merge, because MSVC can allocate them
+  differently. For a plain two-arm `if` whose long arm ends in a call, the
+  negated test with the short arm first, `if (!(cond)) { short } else { long }`,
+  lets MSVC merge the shared tail (0x4d0f60, 89.1% to 98.4%); inside a switch
+  the same shape duplicated the block instead.
+- **SIB base or index: split the read from the writes.** To put a pointer in
+  the base slot of a load, subscript the memory read with the full index
+  expression (`toupper(pat[stack[i]])`) and keep a separate local
+  (`int idx = stack[i];`) for the stores. At 0x4bc370 this ended seven passes
+  that had called the choice an allocator tie. It needed `#include
+  <windows.h>` as well; without it the same source gives the other SIB byte
+  (MATCH, #2118).
+- **`or reg, reg` with the mask in a register means the mask is a
+  variable.** MSVC 5 folds a constant mask to an immediate (one use) or reloads
+  it with a fresh `mov` (several uses); it never reads a constant back from a
+  copy made before the loop. So `or eax, edx` followed by
+  `or word ptr [edi+N], dx` holds a value computed at run time, and no local
+  initialised to a constant reproduces it (0x48d790, #2137).
+- **Repeat a test to move a load onto another edge.** When 40 or more operand,
+  cast and header variants all give the same mirrored register pair, the
+  operands are not the lever. At 0x4ddf00, assigning the first operand to a
+  `char*` local inside the `if` body and repeating `if (numDebugDirs)` before
+  the use put the image base in `eax` and the RVA in `ecx`, as in the original
+  (MATCH, #2149).
+- **The original can repeat a test that MSVC merges in yours.** Adjacent
+  identical guards survive in the original because they were written
+  differently (0x464f80's duplicated player checks, 0x458810's doubled
+  `test eax, eax`). Make the copies textually different: two spellings of the
+  same conjunct took 0x458810 from 81.9% to 87.6% (#2233), and routing one
+  copy through a single-use inline helper restored 0x464f80's loop head guard
+  (#2479). If yours is 16 or more bytes short with the structure right, look
+  for such a pair (#2157).
+- **A failure `return` that must be the last block**: wrap the region that can
+  fail in `do { ... } while (0);`, ending before the next call, and return
+  after it. MSVC 5 then emits the failure path last, with the register pops
+  before `xor eax, eax; ret`. This matched 0x461750 (#2248) and its sibling
+  0x461020; the inline-helper form in the earlier 0x461750 bullet stopped at
+  98.6%.
+- **A shared zero register belongs to a variable that later changes.** When
+  the original has one `xor esi, esi` at the top and pushes `esi` for dozens of
+  zero arguments, the register is a counter that starts at 0 and is changed
+  later (0x42bf40: the `sound` loop counter serves about 85 zero arguments). A
+  new `int zero = 0;` is constant-folded to `push 0` and never gets a register
+  (#2275). For a long-lived zero in `ebx`, what matters is which values are
+  live across a call: a stack address live across a call makes MSVC keep the
+  zero in `ebx` (the matched 0x435a20), which 0x4624a0 cannot use because only
+  four of its values span a call (#2503).
+- **Consume a global right after loading it.** At 0x4843c0,
+  `int y0 = g_game->scrollY; int ry = y0 % 32; int x0 = g_game->scrollX;
+  int rx = x0 % 32;` (each read immediately before its modulo) let MSVC share
+  one register between the `g_game` temporary and `x0`, giving the original's
+  `mov edi, [g_game]`; loading both globals first left a separate temporary
+  (MATCH, #2276).
+- **The loop form decides where the increments are scheduled.** A `for`
+  loop's increments can land before the body's merged store; at 0x466c20
+  `while (j < g_game->width) { ...; j++; mapX += halfWidth; src++; dst++; }`,
+  with the increments as tail statements, reproduced the original's loop
+  bottom (404 to 402 bytes, MATCH, #2278). When a `continue` must still reach
+  the increments, put them in a `do/while` controlling expression behind an
+  `if` guard, `do { ... } while (j++, j1++, (short)j < (short)num);`; a `for`
+  header adds a second guard test (0x481d50, 53.5% to 79.4%, #2485).
+- **Give a sub-expression a fresh value number to change its operand order.**
+  MSVC 5 value-numbers each expression instance, so the same value written
+  another way is a different value. At 0x4d0f60 the last three differences were
+  operand order only, flat across all 128 header sets; `int k = n0 + 1;`, a
+  hoisted `int f = flags & 0xff;` tested as `!(f & (1 << j))`, and a recomputed
+  `(state.pos + 0x11) & 0xfff` flipped all three (MATCH, #2282). At 0x4c0b10,
+  `d += row * surf->pitch + span->x1;` in place of the cached `start` local
+  (the same value) flipped the destination of the add (MATCH, #2223). This
+  extends the "break a common subexpression" bullet at the end of the guide.
+- **A missing duplicate statement can be what keeps a register live.** At
+  0x499200 a second `field_2a44.value |= four;` at the end of the `else` arm
+  let MSVC tail-merge the two copies into one `or word ptr [eax+0x2a44], di`,
+  which keeps the constant 4 in `edi` for 600 bytes; with one copy it folds to
+  `or byte ptr [..], 4` and `push 4` (#2284). A missing store leaves no trace in
+  a call census; its symptom is a register that will not stay live.
+- **A named intermediate must be used twice.** At 0x4ded60, naming the NT
+  header pointer alone still folds into `lea ebx, [edx+eax+8]`; MSVC keeps
+  `mov ecx, [eax+0x3c]; add ecx, eax; lea ebx, [ecx+8]` only when the pointer
+  has two uses (`&pNT->FileHeader.TimeDateStamp` and a second read of the
+  field). In the same function the two arms are deliberately different, one
+  `p = buf + strlen(buf); sprintf(p, ...)` and one
+  `sprintf(buf + strlen(buf), ...)`; making them alike loses 8 bytes. Try the
+  asymmetric form before unifying two arms (MATCH, #2287).
+- **Declare address locals first, then assign them in order.**
+  `Vec3* op; Vec3* up; op = &order->pos; up = &unit->pos;` fixed both swapped
+  `lea`s at 0x411f50, where declarations with initialisers let MSVC fold the
+  order away (97.1%, #2553).
+- **Route a two-level global chain through a local in each block.** At
+  0x4936f0, `lyr = g_game->menu.layer; ents = lyr->entries;` let MSVC load the
+  entries into the layer's register; `menu = &g_game->menu; lyr = menu->layer;
+  ents = lyr->entries;` in both blocks gave the original's register rotation
+  per block (MATCH, #1865).
+- **Split a chained call on a singleton.** At 0x4daa30,
+  `FUN_004da8d0()->FUN_004dd7d0(key)` evaluates the `lea ecx, [esp+0x10]`
+  argument before the getter; `Class_004dd7d0* tree = FUN_004da8d0();
+  tree->FUN_004dd7d0(key);` calls the getter first and keeps its result in
+  `eax`, which put every later register in place (82.9% to MATCH, #2526). The
+  opposite form, an inline method called on the call's result, was the right
+  one at 0x4c5e70, so try both.
+- **A statement's position decides what is live across a block.** At 0x451fd0
+  a `memset` of the block placed after nine of the fourteen `= 4` stores kept
+  the constant 4 live in `edx` across the `rep stosd`, as in the original
+  (76.3% to 85.9% at the exact size). Every position from 1 to 13 scored the
+  same and only 0 and 14 fell back, so measure a range of positions, not one
+  (#2237).
+- **An x87 clamp with a non-popping `fcom`** (`fcom; fnstsw ax; test ah, 0x41;
+  jne; fstp [home]`) needs the result in a second double,
+  `double b = (a > 0.0) ? a : 0.0;`; `if (!(a > 0.0)) a = 0.0;` gives `fst` plus
+  `fcomp`. A divide emitted as `fxch st(1); fxch st(2); fxch st(1); fdiv st(2)`
+  rather than `fdivp st(1)` needs the quotient computed inside a static inline
+  helper that takes the divisor (0x4e0b90, MATCH, #2073).
+- **A branchy 1/0 tail** (`mov eax, 1; jmp` ... `xor eax, eax; jmp`) rather
+  than `xor eax, eax; cmp; setne al` needs a `static inline` helper with
+  exactly one `return 1` and one `return 0`; every if/else, `? 1 : 0` and `&&`
+  spelling gives `setne` (0x473a00, #2111).
+- **A reversed member-wise subtraction hoists the load.** `b.x = a.x - b.x`
+  (not `b.x -= a.x`) is the only spelling found that loads `b.x` before the
+  prologue's `push ebx`; it costs 2 bytes because `a.x` can no longer be the
+  destination. If your function is 2 bytes long with that hoist right, look
+  for this shape (0x4851c0, #2109).
+- **A loop offset kept in its own variable.** At 0x42dcf0 the `i * 0xbd`
+  offset had to be a real `int off = 0;` advanced with `off += 0xbd`, whose
+  creation order decides which of esi, edi, ebx and ebp it gets; spelling the
+  offset inline did not match (MATCH, #2574). In the same pull request, an
+  `unsigned short` field whose default is 0xffff let MSVC hoist one
+  `mov esi, 0xffff` instead of an `or esi, -1` at each site (0x42e440).
+- **A frame a whole number of dwords off.** MSVC 5 places a big local struct
+  at the top of the frame (its base is the frame top minus its size), so a
+  struct 4 bytes too small moves every `[esp+N]` by 4, and a trailing pad only
+  grows the frame: fix the struct's real size (0x468cf0, #2150). A frame a
+  dword short with an equal call census usually means a struct is missing a
+  field: adding the Bitmap class's 4-byte tail turned `sub esp, 0x44` into the
+  original's 0x48 at 0x483fa0 (#2276), and 0x497f40's 28-byte deficit was one
+  4-byte local plus a `gadget` that is 48 bytes in the original, not 24
+  (#2284).
+- **One stack slot used by several values comes from merged variables, not
+  slot reuse.** MSVC 5 never gives two plain locals the same slot, even when
+  their lives do not overlap (0x4d0910, #2120; an inline helper's slots are the
+  exception already noted). When the original's frame is a dword smaller, look
+  for values the source kept in one variable: 0x4568c0 uses `[esp+0x14]` for an
+  inlined loop's byte counter, a pointer and the returned flag (#2140), and
+  reusing one byte local for two byte temporaries took 0x448c70's frame from
+  0xdc to the original's 0xd4 (#2460).
+- **A zero-initialisation inside a branch can free a slot.** At 0x41b2e0 the
+  original zeroes `first` and `count` in the `else` branch rather than at the
+  top, and that is what frees slot 0x10 for `onOff` (55.8% to 59.6%, #2269).
+  If reordering declarations will not move a slot, check where the original
+  first writes the variable.
+- **Check a packed element's `sizeof` even when a pointer loop has the right
+  stride.** A stray trailing byte is invisible to a walk with an explicit
+  stride but breaks every indexed access; removing the byte at +0x15b fixed
+  0x4a9fd0's indexed reads (#1945).
+- **The twin test has four outcomes.** Compile the same source out of line, or
+  compare with a matched copy of the same template elsewhere in the exe:
+  (1) the twin uses a different instruction shape, so your shape has no
+  matched compilation and the residual is unreachable (0x408f30 with
+  0x4c4d70); (2) the twin agrees with your output, which points to a tie set by
+  the inlining context (0x471de0, whose out-of-line twin 0x470fb0 matches with
+  the opposite SIB byte, #2131), though 0x4d0f60 was in this class and still
+  matched with fresh value numbers (#2282); (3) the twin shows the wanted form,
+  so it is reachable and you are on a plateau (0x425210 with 0x488fb0, 0x4624a0
+  with 0x435a20); (4) no twin can hold the difference (0x453360). Read the
+  twin's notes too: a failure recorded in 0x481930's file pointed at 0x481d50's
+  missing `do/while` (#2485, #2503, #2588).
+- **A six-instruction shared loop latch gets duplicated.** At 0x4aeac0 all
+  nine switch cases jump to one 6-instruction latch in the original, but MSVC 5
+  copies it into every case (+148 bytes); a 7-instruction latch is not copied.
+  /Os, /G3 to /G6, the RTM compiler and about 30 loop and switch shapes all
+  failed, and a whole-exe scan found no other shared latch like it, so do not
+  spend a normal budget on it (#2061, #2250; unsolved).
+- **Two loops merged into one** where the original scans and then copies: a
+  scan loop with a single condition can fold into the copy loop; a
+  two-condition scan, `while (p != end && !(~p->flags.value & 0x800000)) p++;`,
+  kept them apart at 0x42d2e0 (83.5% to 86.2%, #2555).
+- **Stores after a call can stop tails merging.** At 0x47ae60, moving two
+  `field_114 = 1` stores ahead of their `strcpy` calls let seven toggle arms
+  share one inlined `strcpy` tail as in the original (79.9% to 84.2%, 2961 to
+  2868 bytes, #2576).
+- **Aggregate initialisers keep stores that assignments lose.**
+  `struct HapiBuf sb = {20};` is the only shape found that gives 0x4bd160's
+  fresh `xor ecx, ecx` (96.7% to 98.3%, #2187), and `Line_004de550 line =
+  { 0x14 };` keeps 0x4de550's entry test and the initialiser's dead zero store
+  (77.5% to 92.9%, then MATCH, #2526).
+- **Copy STL template text verbatim.** Writing an insertion sort's backward
+  copy exactly as MSVC 5's `<algorithm>` does, `while (_F != _L) *--_X = *--_L;`,
+  flipped the loop test to the original's `cmp ebp, ebx` at 0x43bc90, where an
+  equivalent hand-written loop did not (#2230).
+- **The real `<vector>` can be required for a destructor epilogue.** At
+  0x4223e0 only the real header's two-argument `allocator::deallocate` gives
+  the original's `push ecx` local; a hand-written class with the same layout
+  caps at 59.5% against 63.5%. Whether to hand-roll the vector or use the real
+  header depends on which temporary is wrong, not on a general rule (#2050).
+- **Delete a variable to test whether it matters.** If removing a local
+  entirely gives byte-identical output, no spelling of it will change the
+  register allocation; spend the budget elsewhere (0x4ac4c0, #2139).
+- **A one-byte length difference can be a load encoding.** `mov eax, [G]` has
+  a 5-byte form that only `eax` gets; in any other register the same load is
+  6 bytes, which moves every later jump by one. If your function is exactly one
+  byte long, check which register the global load went to (0x4c71f0, #2094;
+  0x497f40, #2494). The fix is whatever puts that value in `eax`, not the
+  expression.
+- **A near `je` where the original has a short one** (`rel32` against `rel8`)
+  means the code it jumps over is 30 to 40 bytes too long, not a compiler
+  quirk. At 0x4b5cc0 moving the success path into a shared tail made both
+  jumps short (89.3% to 92.7%, #2172), and the function has since matched.
+- **Convert `esp` offsets to frame offsets before reporting a bug or a slot
+  problem.** Every push since the prologue (saved registers, and the arguments
+  of a call being built) adds 4 to an `[esp+N]` operand, a `__stdcall` callee
+  removes its arguments on return, and whether `sub esp, N` comes before or
+  after the register pushes changes the mapping. Most of the suspected bugs
+  that failed review in one batch of 360 pull requests were this mistake: 0x4b5070, 0x4b5510,
+  0x4dea00, 0x4db7d0, 0x4394e0, 0x4a81e0, 0x47e5c0 (retracted in #2228) and
+  a withdrawn 0x43cd20 entry. It also produced a phantom slot transposition at
+  0x438c00 (#2145) and a "local" that was a dead argument slot at 0x461fd0
+  (#2106). In a `__chkstk` function, count from the big buffer's base (#2292).
+- **A correct fix that lowers the score still belongs in the pull request.** At
+  0x450240 adding the missing `i != 10` guard (a nested static inline getter,
+  as in 0x44fe40, 0x44fed0 and 0x450380) dropped the score from 19.9% to 10.2%
+  because the allocation changed (#2051); fixing three real errors at 0x4df590
+  dropped it from 76.1% to 72.4% (#2073); and a higher-scoring 0x406300
+  spelling is semantically wrong (#2539, #2594). Merging keeps the
+  higher-scoring file, so name the correct form, with the lines it changes, in
+  the file header and in the pull request.
+- **A null test compiled as `lea reg, [base+K]; test reg, reg` is a bug to
+  report.** It tests the address of a member array (`if (defs[type].name)`),
+  which is never null, so its false arm is dead; list it under suspected
+  original bugs (0x44c0d0, #1836; 0x44c7e0, #2593).
+- **FUN_004b70ef and FUN_004b7123** (the fixed-point rotation routines) take
+  the `short` angle first, `(short angle, int distance)`; the wrong order shows
+  as a swapped `push` pair in every caller (0x49d270, #2181; see 0x406300.cpp).
+- **The map behind 0x4daa30** is the `std::map` tree whose `_Ubound` is
+  0x4dd7d0 and `_Dec` is 0x4dd820 (`_Nil` is DAT_00528a50; FUN_004da8d0 creates
+  it on first use). Its value_type is the 0x30-byte Class_004d8820, keyed by
+  its first dword; name the iterator Class_004dd820 (#2243, #2526).

@@ -12,7 +12,10 @@ means it looks wrong but the intent is not certain from the code seen so far.
 `g_game->players` has eleven 0x14b-byte slots (+0x1b63 to +0x299c, where the
 next field starts), not ten, so loops over slots 0 to 10 are not overruns and
 an index of 10 is the spare last slot. An earlier entry here that called those
-loops (0x4453a0, 0x445450) an overrun was withdrawn in #413.
+loops (0x4453a0, 0x445450) an overrun was withdrawn in #413. An entry that
+called a stack slot in 0x43cd20 uninitialised (#714) was withdrawn too: it
+misread the push depth, and the writes it named go to two different slots,
+each written before it is read.
 
 ## Bit writer grows its buffer into a single dword (likely)
 
@@ -227,6 +230,56 @@ is `scanIndex / height` (+0x14237), while cells are indexed as
 wrong row (the two `idiv`s on the same index at 0x424137 and 0x424142). Found
 by Claude Opus 5.5 in #275.
 
+## Missing `break` draws 128-wide texture spans twice (likely)
+
+**0x4c7a20**, a span renderer that switches on the texture width (the jump
+table at 0x4c7f88/0x4c7fa0). The unmasked case for width 0x80 calls
+FUN_004cd896 (0x4c7df3) and then runs straight on into the width 0x40 case,
+which calls FUN_004cd8da (0x4c7e0e) with the same arguments; nothing branches
+between them. Both helpers fill the same destination span, the first with a
+128-byte texel row (`shl ebx, 7`) and the second with a 64-byte one
+(`shl ebx, 6`), so every unmasked span of a 128-wide texture is drawn
+correctly and then overwritten with the wrong stride. The masked path handles
+0x80 with its own loop. The function is matched, so the missing `break` is in
+the source. Found by ozgb's Codex / GPT-6 in #2052.
+
+## Gadget navigation clears only a quarter of its table (likely)
+
+**0x4a7960**, which moves the GUI selection with the arrow keys, keeps an
+`int used[200]` table on its stack (0x320 bytes from `[esp+0x28]`) but clears
+it with `mov ecx, 0x32; rep stosd` (0x4a798b), 50 dwords: an element count
+where the byte count 200 was meant, or the other way round. The
+column-snapping loop fills `used[1..count]` in order and, for each gadget,
+scans the entries already filled until it meets a 0, relying on the next slot
+still being clear; from the 50th gadget on that slot holds stack garbage, so
+the scan snaps to a stale value or reads on past the filled entries. Only GUIs
+with 50 or more gadgets are affected. Found by ozgb's OpenCode /
+deepseek-v4.1 in #2151.
+
+## Skirmish starts after the missing-CD warning (likely)
+
+**0x47ae60**, the skirmish menu handler. When the Start check for the
+multiplayer CD fails (FUN_0041d6a0(1) returns 0, so `jne 0x47af2e` at 0x47aef8
+is not taken), it shows "Please insert the Multiplayer CD (Disc 1) and try
+again" (0x5030c0, through 0x4abd90 at 0x47af19) and resets the button
+(0x4ab0a0 at 0x47af29), then falls straight into the Start validation at
+0x47af2e instead of returning. The other failures in the same block (terrain,
+player count, too many players, a single allied group) all end in the shared
+tail at 0x47b0de, which shows the message and returns. So without the CD the
+warning appears and the game starts anyway if the other checks pass. Found by
+ozgb's Codex / GPT-6 in #2020.
+
+## A footprint's second height class is computed and never used (possible)
+
+**0x47d820** walks a unit's footprint mask over the map cells. For cells with
+mask bit 3 it keeps the lowest `field_6`, and for cells with bit 4 it keeps the
+highest `field_5` in a byte local (`[esp+0x13]`, written only at 0x47d901), but
+nothing reads that local: the result (0x47d92a to 0x47d94a) is the bit-3
+minimum if any bit-3 cell was seen, otherwise the water level minus the type's
+`+0x22c`. So bit-4 cells never affect the result; whether they were meant to
+is not known. Found by CubeB's OpenCode / deepseek-v4.1-flash in #1846 and
+Space Bunny Free in #2123.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.
@@ -313,6 +366,100 @@ Things that look wrong in the original but have no effect, kept for the record.
   FUN_004ab0a0(gadget) twice in a row in its load and save branches. Found by
   Claude Opus 5.5 in #211.
 
+- **0x405980**: in the first reclaim branch FUN_004388d0(0) is called twice
+  (0x405bce and 0x405c0e), in the other three branches once; with argument 0 it
+  only releases the order's +0x52 attachment, which the first call has already
+  cleared. Found by ozgb's Cline / deepseek-v4.1 in #2167.
+
+- **0x435da0**: its error format at 0x504d9c reads "Hey, joker!  There is no
+  mission defintion for this mission: %s". Found by ozgb's OpenCode /
+  deepseek-v4.1-flash in #2274.
+
+- **0x43e490** (case 2, 0x43ea36 to 0x43ea7c): calls the predicate
+  FUN_004899b0 and returns 6 if it holds and `target->field_104 != 0`, then
+  calls it again and returns 6 if it holds, so the first test adds nothing; the
+  predicate only reads. Found by ozgb's Cline / deepseek-v4.1 in #2142.
+
+- **0x44c7e0**: `if (item->name)` on each unit type's 0x166-byte name array
+  (`add esi, 0x20; test esi, esi` at 0x44ca6f) is always true, as at 0x44c0d0;
+  probably `name[0]` was meant, to skip unused slots. Found by ozgb's
+  deepseek-v4.1-flash in #2593.
+
+- **0x462f30**: the inlined ring pop reads through a null entry in its empty
+  arm (`xor eax, eax; mov edx, [eax+8]` at 0x462fb5 and 0x463523), but both
+  pops are only reached after a peek has returned an entry. Found by CubeB's
+  OpenCode / deepseek-v4.1-flash in #1837.
+
+- **0x464f80**: the player guard at 0x464fe1 to 0x464ffb (active, type 1 to 3,
+  +0x146 not 10) is repeated verbatim at 0x465001 to 0x465024 with nothing in
+  between. Found by ozgb's Cline / deepseek-v4.1 in #2157.
+
+- **0x46a860**: the veteran line tests `kills > 4` (0x46b30d) and then
+  `kills == 1` (0x46b313) to choose "kill" or "kills"; the singular can never
+  be chosen there. Found by ozgb's Codex / GPT-6 in #1991.
+
+- **0x46d2e0**: copies the never-written `y` of a local (`[esp+0x3c]`, read at
+  0x46d328) into the value it inserts, then overwrites the inserted entry's y
+  with 0 (0x46d483). Found by Space Bunny Free (CubeB) in #2132.
+
+- **0x47ae60**: the Difficulty arm (0x47b92f) plays the sound "SKirmish"
+  (0x502a6c) where the other thirteen arms use "Skirmish" (0x507ccc); 0x41ee8b
+  uses the same misspelt string, and FUN_0047f1a0 looks it up with
+  `_strcmpi`, so both find the same sound. Found by ozgb's deepseek-v4.1-flash
+  in #2576.
+
+- **0x482130**: tests its `changed` local (`mov eax, [esp+0x10]` at 0x48214d)
+  before anything writes it; it is set only when an expired entry is found, so
+  a stale non-zero value only runs the compaction pass, which then finds
+  nothing. Found by ozgb's Cline / deepseek-v4.1 in #2245.
+
+- **0x497f40**: in the `flags & 2` exit path a ten-iteration loop copies each
+  active player's control byte (+0x73) into one stack byte (0x4984c6), and the
+  function then returns. Found by CubeB's OpenCode / deepseek-v4.1-flash in
+  #2284 and ozgb's deepseek-v4.1-flash in #2494.
+
+- **0x4a1b40**: both arms of `if (holder->field_20 == param_2)` (0x4a1fb3) call
+  FUN_004bf4d0 with the same surface, rectangle and colour 0x1e (0x4a1fb8,
+  0x4a1fcb), so the selected row is drawn like the others; a different colour
+  for the selection was probably meant. Found by ozgb's OpenCode /
+  deepseek-v4.1 in #2152.
+
+- **0x4a7960**: the tail that refreshes a type-3 (text) selection is emitted
+  twice in a row (0x4a7c76 to 0x4a7d81, then 0x4a7d86 to 0x4a7e98), so its
+  colour and language setup, the FUN_004ab6c0 redraw and FUN_004c1a40 run
+  twice. Found by ozgb's deepseek-v4.1-flash in #2606.
+
+- **0x4a9fd0** (hit testing): entry 0 is tested by adding the window origin to
+  its own position, which doubles its offsets when its type is not 0
+  (`add eax, eax; add ecx, ecx` at 0x4aa0f5); the normal type-0 header has a
+  local position of 0, so this only shows in a GUI whose first gadget is not a
+  window. Found by ozgb's Codex / GPT-6 in #1945.
+
+- **0x4b91b0**: allocates `4*w*h + 0x18` bytes (`lea eax, [ebx+ebx+0x18]` at
+  0x4b91d0, with `ebx = 2*w*h`) for a buffer of `w*h` 16-bit cells, twice what
+  it needs, as if the byte pitch were doubled again. Its only caller passes 22
+  by 22. Found by CubeB's Codex / GPT-6.1-sol in #1949.
+
+- **0x4bd160**: writes the copyright line with `fprintf(f, buf)` (0x4bd373),
+  the buffer as the format string; the text is the literal "Copyright 0000
+  Cavedog Entertainment" with the year's digits patched in, so no `%` can reach
+  it, but `fputs` was meant. Found by Space Bunny Free (CubeB) in #2067.
+
+- **0x4bfe10**: on the caller-supplied-surface path it returns a local that is
+  never set (C4700 on the matching source), which is the dead `rect` argument
+  slot (`mov esi, [esp+0x50]` at 0x4bff0d), so it returns the rect pointer; all
+  five callers ignore the result. Found by CubeB's Codex / GPT-6.1-sol in
+  #1899, #2296 and #2549.
+
+- **0x4d1670**: tests `DAT_00526ff4 == 0` and prints "Hey! The window buffer
+  ptr is not pointing to anything!" (0x4d1798), although the pointer was
+  allocated and null-checked at the top and nothing in between clears it;
+  0x4d0f60 has the same dead check. Found by ozgb's Cline / deepseek-v4.1 in
+  #2242.
+
+- **0x4d89b0**: `out[0] = 0;` (0x4d89cd) just before `strcpy(out, "\n")`.
+  Found by ozgb's Cline / deepseek-v4.1 in #2242.
+
 ## Possible leaks and unchecked inputs
 
 - **0x413470** (an order handler), state 3 (likely): after two misses it
@@ -376,14 +523,6 @@ Things that look wrong in the original but have no effect, kept for the record.
   the zero-extended word at +0x00, has no guard, so a record with 0 there
   faults with a divide error. Read from the disassembly of a partial match.
   Found by Space Bunny Free in #797.
-- **0x43cd20** (likely): the stack slot `[esp+0x14]` is written only at
-  0x43ce51, on the path where the first `_hypot` exceeds 0x500000; on the
-  other path (`jle` at 0x43cdbd) nothing writes it, yet 0x43d0b4 reads it and
-  passes it negated to `FUN_0043cc20` as the travel amount, so that path moves
-  by an uninitialised value. Separately (possible), the `_alldiv` quotient
-  stored at 0x43d027 is overwritten at 0x43d03a by `field_19a` before any
-  read, so the turn-rate scaling it computes is lost. Read from the
-  disassembly of a partial match. Found by Space Bunny Free in #714.
 - **0x425b80** (likely): a running smoke puff copies the template byte over
   the cell it occupies (`dest[s->pos] = src[s->pos]`), and 0xaa's low nibble
   is 10, so a burnt feature under a puff stops reading as burnt and later
@@ -413,6 +552,12 @@ Things that look wrong in the original but have no effect, kept for the record.
   with a column offset can write past the end of the row (the vertical clip
   does subtract the row). Read from the disassembly of a partial match. Found
   by DeepSeek V4.1 Flash in #374.
+  The count can also go negative: `n = src->width - srcCol` (0x4b9dd2) is
+  only clamped from above, and the copy loop is guarded by `test ebx, ebx; je`
+  and counts down with `dec ebx; jne` (0x4b9e26 to 0x4b9e45), so when `srcCol`
+  exceeds the source width it runs about 2^32 times and faults, where the
+  vertical clip exits. Found by CubeB's OpenCode / deepseek-v4.1-flash in
+  #1841 and Space Bunny Free in #2130.
 - **0x47c530** (likely): the movie summary prints "Total Playback Time" as
   `1000 * totalTime / totalTime`, always 1000, the line above it copied and
   not edited; both divisions are unguarded, so a summary with zero total time
@@ -596,3 +741,148 @@ Things that look wrong in the original but have no effect, kept for the record.
   so the check is always true and its false arm is dead. Probably meant to
   test the first character. Found by CubeB's OpenCode / deepseek-v4.1-flash
   in #1690.
+- **0x4a2580** (likely): the same slip as the recorded 0x4a2480, twice. In the
+  vertical branch the first arrow glyph from FUN_004b7f30 is tested
+  (`test eax, eax` at 0x4a26ec) and a null result skips only the draw
+  (`je 0x4a2701`), after which `mov cx, word ptr [eax+2]` at 0x4a2705 reads its
+  height through the null pointer; the horizontal branch does the same with
+  the width (`je` at 0x4a2900, `mov cx, word ptr [eax]` at 0x4a2917). The
+  later glyph lookups (0x4a271a, 0x4a292b) are not tested at all. A font
+  missing that glyph crashes the scrollbar draw. Found by ozgb's Codex / GPT-6
+  in #1968 (the horizontal site was found while checking it).
+- **0x4aa8f0** (likely): when FUN_004bbc40 reports the GUI file missing or
+  empty (returns 0), `je 0x4aac2d` at 0x4aaa17 skips both stores of the
+  `layer` local (0x4aaa3b and 0x4aaa87), so the code at 0x4aac2d loads that
+  stack slot uninitialised, writes its `+4`, `+0x1c`, `+0x24` and `+0x3b`, links
+  it into the menu (when flag 0x200 is clear) and copies the name to address 2
+  (`ebp` is still 0). A missing GUI file corrupts memory instead of failing.
+  Unconfirmed: when the parser 0x4aeac0 fails, the layer freed at 0x4aac23
+  seems to be written and linked the same way. Found by ozgb's OpenCode /
+  deepseek-v4.1 in #2183.
+- **0x4a2e40** (possible): the inlined search for the list's scrollbar
+  (type 4) returns 0 when there is none (`xor ecx, ecx` at 0x4a3037), and the
+  rescale then reads entry 0's `+0x136` and `+0x140` and may write `+0x140`
+  (0x4a3099); entry 0 is the window's own header entry. The same inlined search
+  in 0x4a6ae0 is followed by `cmp esi, -1` (0x4a6fd6), which can never be
+  true, so the author evidently expected -1; on a miss 0x4a6ae0 also redraws
+  entry 0 and calls entry 0's `+0x144` pointer if it is set
+  (0x4a703c to 0x4a7052). Found by ozgb's Codex / GPT-6 in #1919.
+- **0x4b5070** (likely): the DirectX version check compares the installed
+  version with the wanted one field by field, but when the first field differs
+  from `want0` (argument 1, tested at 0x4b51fd) it returns `majhi >= want1`
+  (`cmp ebx, [esp+0xe4]` at 0x4b5233, argument 2), so a version whose first
+  field differs is judged against the second wanted field. Noted in a comment
+  in 0x4b5070.cpp by ozgb's OpenCode / Space Bunny Free run in #970 but never
+  reported; found again while checking #1940 and confirmed from the
+  disassembly.
+- **0x4c0820** (possible): a polygon fill that starts its extremum search
+  with sentinels (999999 and -999999 at 0x4c083c). With a vertex count of 0 or
+  less the scan is skipped, the degenerate-polygon test (0x4c089a) sees two
+  unequal sentinels and does not return, and the edge walks index the points
+  with the never-written `iymin` (0x4c08b7) and `iymax` (0x4c0962). Its only
+  caller (0x459128) passes a stored count plus 1, so this needs a negative
+  stored count. Found by ozgb's Codex / GPT-6 in #1916.
+- **0x4d1970** (possible): an HPI chunk decoder. Its length variable lives in
+  the dead `data` argument slot and is written only by the method 1 and 2 arms
+  (0x4d1a79, 0x4d1a63); methods 0 and 3 pass the `method >= 4` check but fall
+  straight to the length test at 0x4d1a7d, which then compares `header.size`
+  with the data pointer, so such chunks always fail with 3 and nothing is
+  written. Harmless if HPI files only use methods 1 and 2. Found by ozgb's
+  Cline / deepseek-v4.1 in #2242.
+- **0x4da8d0** (possible, out of memory only): with no out-of-memory handler
+  installed (0x5289bc), a failed GlobalAlloc in the inlined pool carve returns
+  0 (`xor eax, eax` at 0x4da987), and the new node is then written through it
+  (`mov [eax+0x3c], ebx` at 0x4da9b0, then `+4`, `+0` and `+8`). The head-node
+  allocation at 0x4da920 is not tested either, and the pool allocator 0x4ddce0
+  has the same unchecked write (0x4ddd24): the allocator returns 0 where the
+  STL code expects an exception. Found by ozgb's Cline / deepseek-v4.1 in
+  #2242.
+- **0x4ded60** (likely, harmless in effect): the crash-report header builder
+  tests CreateFileA's result against 0 (`test esi, esi; je` at 0x4deee1), but
+  CreateFileA fails with INVALID_HANDLE_VALUE (-1), which then reaches
+  GetFileSize (0x4deeec), GetFileTime and CloseHandle. Since -1 is also the
+  current-process pseudo-handle, those calls just fail and the "Executable is
+  ... bytes" line is skipped. Found by ozgb's Codex / GPT-6 in #1982 and
+  CubeB's OpenCode / deepseek-v4.1-flash in #2287.
+- **0x42f9a0** (likely): reading "NumSkirmishPlayers" from the registry (key
+  0x5044d4), the range test `value > 1 && value <= 10` (0x4307c1 to 0x4307c7)
+  picks between two branches that store the same value to g_game+0x38d81
+  (0x4307cf, 0x4307dd), so any value is accepted; the else branch presumably
+  meant to store a default. Only an edited registry value can be out of range;
+  whether the later loops that run to this count (0x430c06 onwards) then
+  overrun was not checked. Found in ozgb's OpenCode run in #2244, which gives
+  the address of the neighbouring Gamma block (0x4301b7).
+- **0x43a420** (possible): the unit type table DAT_00512344 is a
+  `std::vector` (0x512348 is its end), and the name lookup treats it that way
+  (`cmp esi, eax; je` at 0x43a51f), but the fallback scan for records without
+  a name (0x43a556 to 0x43a598) loops while `p <= end` (`jbe` at 0x43a58d),
+  reading the flag byte of the element past the end, and when no kind matches
+  it leaves with an index two past the last valid one. That index is not
+  rejected (only the name path returns 0) and is used as
+  `DAT_00512344[kind].name` (0x43a66d to 0x43a679) in a `strcmp`. Only a record
+  whose kind is beyond the table (from another version's save, say) reaches
+  it. Found by ozgb's Codex / GPT-6 in #1986 and OpenCode / deepseek-v4.1 in
+  #2179.
+- **0x450a10** (possible): copies the DirectPlay player's names from
+  GetPlayerName's DPNAME with unbounded inlined `strcpy`s, the short name into
+  the 42-byte field at +0x49 (0x450b7e) and the long name into the 30-byte
+  field at +0x2b (0x450ba3), so a long name of 30 characters or more runs into
+  the +0x49 field and one of 72 or more reaches the type byte at +0x73. The
+  names come from the network; whether TA's own UI limits their length was not
+  checked. Found by Space Bunny Free (CubeB) in #2102.
+- **0x453d40** (likely), the network message handler, two findings. The range
+  check at 0x4547f5 (`cmp al, 1; ja; cmp al, 0x2d; jb`) sends the error reply
+  `FUN_00453010(sender, 6)` only when `cmd <= 1 && cmd >= 45`, which can never
+  hold, so `||` was surely meant; out-of-range commands are still dropped by
+  the switch bound, but silently, after the raw byte has indexed the
+  DAT_00512bc0 mask table (0x454758). (The same block also repeats the status
+  test of 0x4547cc at 0x45480e.) And command 20 (0x455649) looks up the player
+  named at packet+3; when there is none the lookup gives 10, the code sets the
+  player pointer to 0 (0x4556ef to 0x4556f5) and then reads `[eax]` at
+  0x45575a, so a type-20 packet naming a player who has left crashes the
+  receiver (when the named unit exists and has flag 0x10000000). Found by
+  ozgb's Codex / GPT-6 in #2002 and deepseek-v4.1-flash in #2458.
+- **0x476ef0** (possible): the coloured-run copy (0x4772bb to 0x4772c9) runs
+  until a `&` or 127 bytes and never tests for the terminator, while the outer
+  loop stops at 0, 0xff and newlines. The write is bounded by the 128-byte
+  buffer, but a run with no closing `&` draws up to 127 following bytes in
+  colour, across line ends, and past the end of the text if it ends sooner.
+  Found by ozgb's Codex / GPT-6 in #1997.
+- **0x482c20** (possible, out of memory only): `operator new(10)` is not
+  tested; a null result is stored to g_game+0x142b7 (0x482c4e) and written
+  through (`mov dword ptr [eax+2], 0x1f` at 0x482c60). The grid buffers
+  allocated at 0x482cc5 and 0x482f62 are not tested either: a null only skips
+  the clearing loop, and the border and fill loops then write through it.
+  Found by ozgb's Codex / GPT-6 in #2035.
+- **0x491ec0** (possible), the load-game preview, two findings. The
+  "Difficulty" value read from the save (0x4b4800 at 0x492259) indexes a
+  three-entry stack table of "Easy", "Medium" and "Hard" with no range check
+  (`mov edx, [esp+eax*4+0x48]` at 0x49225e) and goes to `sprintf("%s")`, so a
+  damaged save passes a neighbouring stack dword as a string. And the result of
+  `FUN_004a0280(..., "RADAR")`, which is 0 after it logs "Error in GUI layout",
+  is kept in `esi` and never tested, so `mov dword ptr [esi+0xc2], 0x51e6f8`
+  at 0x491fd1 writes to address 0xc2 when the gadget is missing; the `je`
+  before it tests the radar image, not the gadget. Six of the twelve callers of
+  FUN_004a0280 do test the result. Found by ozgb's Codex / GPT-6 in #1950 and
+  CubeB's OpenCode / deepseek-v4.1-flash in #2286.
+- **0x49b090** (possible): a cell's feature id is checked against the feature
+  count on the direct path (`cmp edx, [g+0x14253]; jl` at 0x49b2d4), but for
+  the 0xfffe marker the code steps back to the feature's origin cell
+  (0x49b2e7 to 0x49b304), reads its id, checks only that it is below the 0xfffb
+  sentinels (0x49b30a) and indexes the mapping table with it (0x49b31b)
+  without the count check. Found by ozgb's Codex / GPT-6 in #1898.
+- **0x49be60** (likely): for a kind-3 projectile it passes a stack local
+  (`lea ecx, [esp+0x38]` at 0x49c252) as the rotation argument of
+  FUN_0046bae0, which hands it to FUN_004b6cc0 for every vertex, and that reads
+  three angles from it (0x4b6cd6, 0x4b6cf6, 0x4b6d1b); nothing in 0x49be60
+  writes those bytes, so the model is rotated by whatever the stack held. Kind
+  1 builds its angles from the shot's +0x34 to +0x38 (0x49c0fd) and another arm
+  passes `&p->field_34` (0x49c482). Found by ozgb's OpenCode / deepseek-v4.1
+  in #2152.
+- **0x46d6c0** (possible): the sender lookup (0x46d6e8 to 0x46d71d) walks a
+  vector for the player's id and leaves the pointer at `end()` when it is not
+  found (or the vector is empty), and the switch that follows uses it
+  unchecked: case 1 stores to `[end+0x24]` (0x46d73b) and case 4 to
+  `[end+0x2c]` (0x46d7b3). Harmless if messages only come from tracked players.
+  Found while checking the other 0x46d6c0 claim in #2132 (Space Bunny Free,
+  CubeB), which did not hold.

@@ -2,23 +2,22 @@
 // Deletes every entry of the global vector at DAT_00511fb4 (see 0x422460),
 // then the vector itself.
 //
-// Best so far (62.1%): the loop and the delete guard match exactly. What still
-// differs is the inlined ~vector epilogue: the original materialises &_First
-// and &_Last into esi/ebx before the deallocate call and stores immediates
-// (lea esi,[eax+4]; lea ebx,[eax+8]; mov [esi],0; mov [ebx],0; [edi+0xc],0),
-// while this version keeps a zero register in ebx and stores through
-// [this+4]/[this+8] (which also turns the delete null test into cmp reg,reg).
-// Without the trailing DAT_00511fb4 = 0 the zero register disappears and the
-// stores become immediates, so the extra zero use is what makes MSVC coalesce.
-// Keeping the trailing store but spelling the delete as
-// `DAT_00511fb4->~vector(); operator delete(DAT_00511fb4);` scores 62.8% but
-// loses the original's `test eax,eax; mov edi,eax` delete guard, so this file
-// keeps the `delete` form (62.1%); no phrasing tried (local pointer, while
-// loop, explicit destructor, custom vector class) produced both the guard and
-// the lea/immediate epilogue. Scratch variants vA..vQ2 in
-// build/scratch/0x4223e0. A custom vector class cannot reproduce the `push
-// ecx` local: it comes from the real <vector>'s two-argument
-// allocator.deallocate spill, so the real header is required.
+// Best so far (63.5%, variant v12): the whole first half matches byte for
+// byte (the loop, the reload of DAT_00511fb4 inside the delete branch and the
+// inlined deallocate spill `push ecx; mov [esp+0x10],ecx`). What still
+// differs is only the register allocation of the inlined ~vector epilogue:
+// the original holds the deleted vector in eax (and saves it in edi), tests
+// it with `test eax,eax`, computes &_First and &_Last into esi/ebx with `lea`
+// and zeroes the three members with immediates. This version hoists the
+// common zero into ebx (`xor ebx,ebx` before the loop, so the loop's own
+// `test esi,esi` becomes `cmp esi,ebx`), holds the vector in esi and stores
+// through [esi+4]/[esi+8]/[esi+0xc]. The real <vector> is required: its
+// two-argument allocator.deallocate is the only spelling that produces the
+// `push ecx` local (a hand-written class with the same layout loses it and
+// scores 59.5%). The delete form (`delete DAT_00511fb4;`) keeps the original's
+// `test eax,eax; mov edi,eax` guard but scores 62.1%; the explicit
+// `v->~vector(); ::operator delete(v);` form used here scores 63.5% but
+// drops that guard. Scratch variants v1..v13 in build/scratch/0x4223e0.
 #include <vector>
 
 class Class_004c2ea0 {
@@ -38,6 +37,8 @@ void FUN_004223e0()
 {
     for (Class_004c2ea0** p = DAT_00511fb4->begin(); p < DAT_00511fb4->end(); p++)
         delete *p;
-    delete DAT_00511fb4;
+    std::vector<Class_004c2ea0*>* v = DAT_00511fb4;
+    v->~vector();
+    ::operator delete(v);
     DAT_00511fb4 = 0;
 }

@@ -31,6 +31,14 @@
 //  - The two `mov ecx, ds:0` / `mov eax, ds:0` sites (0x46ddb5, 0x46de59) are
 //    dead code behind `direct != 0` inside the direct == 0 branch; reproduced
 //    here as the DAT_00000000 global.
+//  - The filter loop and the add loop use different bases in the original:
+//    the filter loop walks `g_game+0x1b8a+i*0x14b` (i.e. &player.data) and
+//    reads field_0 as [eax-0x27], type as [eax+0x4c], data as [eax], field_4
+//    as [eax-0x23], while the add loop walks `g_game+0x1b63+i*0x14b` and reads
+//    data as [esi+0x27], field_4 as [esi+4]. Rewriting the filter loop with
+//    the +0x1b8a char* base (and swapping the last `it->id` compare order to
+//    `it->id == p->field_4`) drops the score to 22.9%, so the register
+//    allocation, not this addressing, dominates the diff.
 #include <list>
 #include <map>
 #include <vector>

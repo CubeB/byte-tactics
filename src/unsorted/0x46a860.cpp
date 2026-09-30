@@ -13,6 +13,19 @@
 // the bitmap in edi. The blit offset convention is FUN_004b7f90(dst,bmp,
 // [bmp+4]+running, [bmp+6]+dy) (running is the horizontal edge, not y), fixed
 // here. The main per-unit HUD walk 0x46aba3..0x46b8e9 is still an approximation.
+//
+// deepseek-v4.1-flash retry (issue 1579, 10 min box): tried padding the frame
+// with an extra touched local to reach 0x23c; MSVC dead-store-eliminated it and
+// the frame stayed 0x1a0, so the whole body's [esp+0xNN] operands still differ.
+// The only route to a match is transcribing the real locals in declaration
+// order: 60-byte snapshot at frame+0x34..0x70, then the sprintf buffers, then
+// two 100-byte buffers, to total 0x23c. Remaining big hunks, all mismatched:
+//   0x46a89e..0x46aba0 first HUD branch (register roles + local slots)
+//   0x46aba3..0x46acc2 snapshot save + weapon-id loop
+//   0x46acc8..0x46adcb big-text blit loop
+//   0x46adcb..0x46b8e9 main per-unit HUD walk (approximated)
+//   0x46b6f3..0x46b789, 0x46b78c..0x46b8e9 unidentified-object paths
+//   0x46b8ea epilogue (add esp,0x23c vs our 0x1a0)
 #include <string.h>
 #include <stdio.h>
 

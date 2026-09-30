@@ -24,6 +24,21 @@
 //    literal `if (!ans) ; else if (...) return ...; else ...;` of the header
 //    (60.0), which the previous attempt used; both produce the same merge.
 //
+//
+// Second pass note (deepseek-v4.1): the cause of both remaining differences is
+// one register choice. Ours allocates the begin test's bool to al
+// (`mov edx,[ebp+4]; xor eax,eax; cmp edi,[edx]; sete al`); the original uses
+// ecx (`mov eax,[ebp+4]; xor ecx,ecx; cmp edi,[eax]; sete cl`). With the flag
+// in eax our site-A and site-B bodies come out byte-identical, so MSVC merges
+// them behind `jmp 0x4dbc42`; with the flag in ecx the site-B setup shifts to
+// edx/eax (as the original) and the two sites stay separate. The same cascade
+// explains the later key compare (ours edx/eax, original ecx/edx, flag in ecx)
+// and the final return copy (ours edx then cl, original cl then edx).
+// Swapping the == operands (`Class_004dd2a0(head->left) == P`) only swaps the
+// cmp operands, it does not move the flag off al. Making the pair ctor take the
+// bool by value, and passing a named `bool ok = true;`, both compile to the
+// identical 280-byte body, so the `mov cl, 1` materialisation is not reachable
+// from those spellings either; it likely follows from the same allocator state.
 // std::_Tree<unsigned int, pair<unsigned int const, int>, ...>::insert(const
 // value_type&) from MSVC 5's <xtree> (lines 211-232), for the allocator's
 // free-block map whose _Nil sentinel is DAT_00528a54. Hand-written here

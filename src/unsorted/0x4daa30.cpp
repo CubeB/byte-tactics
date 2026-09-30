@@ -8,25 +8,23 @@
 // gets the record of the last key at or below it (8 zero bytes when it is
 // begin(), which costs the extra _Dec).
 //
-// NOT MATCHING: 82.9 percent, 214 of 214 bytes, so the frame, the locals and
-// the branch structure are right. Four hunks remain, all register choices:
-//  - `cs` (the FUN_004da780 result) lives in ebp here, ebx in the original
-//    (push ebx / mov ebx,eax / push ebx vs ebp). Rewriting cs as
-//    `CRITICAL_SECTION& cs = *FUN_004da780();` compiles identically, so the
-//    choice is not the declared type.
-//  - the original calls FUN_004da8d0 BEFORE it evaluates the _Ubound
-//    argument (`call; lea ecx,[esp+0x10]; push ecx; mov ecx,eax`); this file
-//    emits `lea ecx,[esp+0x10]; push ecx; call; mov ecx,eax`.
-//  - the end() compare uses it in esi and the head value in ecx in the
-//    original (`mov esi,[esp+0xc]; mov ecx,[eax+4]; cmp esi,ecx`) and the
-//    other way round here (ecx/esi, `cmp ecx,esi`), so the following copy
-//    starts `add esi,0xc` there and `lea esi,[ecx+0xc]` here.
-// The begin() compare and everything after it match byte for byte, so the
-// inline bool-returning operator== shape (End() = Iter(head),
-// Begin() = Iter(head->left)) is confirmed; only the end() case allocates
-// differently. Tried and worse: explicit `Iter_004dd820(...->head)` temps
-// (76.6 percent, 216 bytes), a `bool isEnd = ...` local (67.1 percent),
-// swapping the rec/it declaration order (no change).
+// MATCH: 214 of 214 bytes. The previous 82.9 percent attempt was one chained
+// call away: the first lookup must go through a named tree local,
+//
+//     Class_004dd7d0* tree = FUN_004da8d0();
+//     it.ptr = tree->FUN_004dd7d0(rec.key);
+//
+// because the chained form FUN_004da8d0()->FUN_004dd7d0(rec.key) evaluates
+// the `lea ecx,[esp+0x10]` argument before the object call and homes the
+// critical section in ebp; the split form calls FUN_004da8d0 first and keeps
+// its result in eax across the lea/push, which flips cs to ebx and every
+// register choice after it (esi for the end() compare and the following
+// `add esi,0xc` copy) falls into place. The iterator type must also be
+// Class_004dd820 (the map's _Dec) rather than an ad hoc name, or the
+// +0xb2 reference check fails.
+// Negative results from the 82.9 percent attempt, still valid: explicit
+// iterator temps, a `bool isEnd = ...` local and swapping the rec/it
+// declaration order all scored worse or changed nothing.
 #include <windows.h>
 
 struct Node_004daa30;
@@ -43,13 +41,13 @@ public:
                    const char* e);
 };
 
-class Iter_004dd820 {
+class Class_004dd820 {
 public:
     Node_004daa30* ptr;            // +0x0
 
-    Iter_004dd820() {}
-    Iter_004dd820(Node_004daa30* q) : ptr(q) {}
-    bool operator==(const Iter_004dd820& o) const { return ptr == o.ptr; }
+    Class_004dd820() {}
+    Class_004dd820(Node_004daa30* q) : ptr(q) {}
+    bool operator==(const Class_004dd820& o) const { return ptr == o.ptr; }
     void FUN_004dd820();
 };
 
@@ -66,8 +64,8 @@ public:
     char unknown_0[4];
     Node_004daa30* head;           // +0x4
 
-    Iter_004dd820 End() { return Iter_004dd820(head); }
-    Iter_004dd820 Begin() { return Iter_004dd820(head->left); }
+    Class_004dd820 End() { return Class_004dd820(head); }
+    Class_004dd820 Begin() { return Class_004dd820(head->left); }
     Node_004daa30* FUN_004dd7d0(const unsigned int& kv);
 };
 
@@ -80,8 +78,9 @@ void __cdecl FUN_004daa30(unsigned int key, Class_004d8820* prev, Class_004d8820
     LPCRITICAL_SECTION cs = FUN_004da780();
     EnterCriticalSection(cs);
     Class_004d8820 rec(key, 0, 0, 0, 0);
-    Iter_004dd820 it;
-    it.ptr = FUN_004da8d0()->FUN_004dd7d0(rec.key);
+    Class_004dd7d0* tree = FUN_004da8d0();
+    Class_004dd820 it;
+    it.ptr = tree->FUN_004dd7d0(rec.key);
     if (it == FUN_004da8d0()->End()) {
         next->key = 0;
         next->field_4 = 0;

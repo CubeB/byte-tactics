@@ -1,35 +1,8 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 44.8% (1651 vs 1662 bytes), full transcription, control flow believed
-// complete. Big sibling of the matched 0x4a53c0 / 0x4a4d70; same 0x15b-stride
-// entry array, same Measure/LineHeight inlines, same DAT_0051fba4 language
-// table.
-//
-// The frame is now right (`sub esp, 0xac`) and buf still lands at [esp+0x3c]:
-// two changes got there. Removing the `Entry* e = &entries[index];` local and
-// indexing entries[index] directly dropped the frame from 0xac+? to 0xb0, and
-// shrinking the array to `char buf[0x7c]` brought it back to 0xac (a plain
-// char buf[0x70] gives 0x9c). 0x7c is a fudge that reproduces the frame, not a
-// claim about the original's declaration.
-//
-// What still differs (all one register-allocation state, in the tab loop):
-//  - the original keeps entries in ebx, i in edi, the entry pointer in edx and
-//    t at [esp+0x10], with i's home at [esp+0x14] written only on loop exits.
-//    MSVC gives us entries in ebp, t in edi and i at [esp+0x10]. Three
-//    callee-saved values (ebx,edi,esi) in the original vs four here (ebp,ebx
-//    or edi); t must become memory-resident for the loop to flip.
-//    Tried and none of it flips the loop: swapping the t/i declaration order,
-//    moving both/i/t to the top, unsigned/short/char t, unsigned i, ++t,
-//    hoisting count into a local, an extra `dummy += i` live value, putting
-//    entries[index].tab inside the loop, and a `tab` local. An if/else instead
-//    of `if (t==tab) break;` does move entries to ebx but rewrites the branch
-//    (34.1%).  Direct entries[index] indexing (no `e` pointer) raised the score
-//    to 44.8% but did not flip the loop.
-//  - after the fix above, the `-1` in the not-found arm, the strstr block's y /
-//    pat slots ([esp+0x10] / [esp+0x14] in the original vs [esp+0x18] /
-//    [esp+0x10] here) and the Measure accumulator slots should follow.
-// Everything from the prologue through the first rect (x/y/w/h) is within one
-// register rename of the original; the tail (field_148 image blit, field_147
-// hotkey underline) has the right calls and arguments.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Gave up at 47.8% (1656 bytes against 1662). Restore recovered 128-byte
+// text buffer and palette bounds. Blit through the entry-array root surface.
+// Remaining tab-loop registers, stack homes, and measurement scheduling.
+#include <windows.h>
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -85,7 +58,7 @@ struct Class_004a56b0 {
     void* field_14;                    // +0x14
     Holder_004a56b0* holder;           // +0x18
     char unknown_1c[0x8b2 - 0x1c];
-    unsigned char colours[3];          // +0x8b2, +0x8b3, +0x8b4
+    unsigned char colours[256];          // +0x8b2, +0x8b3, +0x8b4
 };
 
 struct Rect_004a56b0 { int left, top, right, bottom; };
@@ -207,7 +180,6 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
 
     if (entries[index].field_148 & 1) {
         Entry_004a56b0* entries2 = obj->holder->entries;
-        Entry_004a56b0* e2 = &entries2[index];
         Rect_004a56b0 rect2;
         if (entries2[index].type == 0) {
             rect2.left = 0;
@@ -218,8 +190,8 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         }
         rect2.right = entries2[index].w + rect2.left - 1;
         rect2.bottom = entries2[index].h + rect2.top - 1;
-        FUN_004bfe10(entries2[index].surface, &rect2);
-        FUN_004bf4d0(entries2[index].surface, &rect2, -0x14);
+        FUN_004bfe10(entries2->surface, &rect2);
+        FUN_004bf4d0(entries2->surface, &rect2, -0x14);
         obj->field_14 = obj->field_08;
         return;
     }
@@ -229,7 +201,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         char pat[2];
         pat[0] = (char)c;
         pat[1] = 0;
-        char buf[0x7c];
+        char buf[0x80];
         strcpy(buf, entries[index].b6.text);
         char* p = strstr(buf, pat);
         if (p != 0) {

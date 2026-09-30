@@ -1,4 +1,30 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL 32.9% (deepseek-v4.1-flash, 2026-09-30): two independent fixes on top
+// of the 29.8% version above, combined best 32.9% (1816 bytes against 1853).
+// 1. Drop the `sl` local: inline `(unsigned char)*(g_game+0x1427f)` at the two
+//    compares in TailOnly. That removed the extra frame slot and brought the
+//    frame from 0x18 to the original's 0x14 (5 locals), but the score alone
+//    did not move. It is still the right shape: the original re-reads the byte
+//    at 0x49bddd and again at 0x49be13 rather than keeping a local.
+// 2. The dead (`counter != 0`) path ends its own copy of the Selected block
+//    and then jumps to the loop bottom (Next), while the live path has a
+//    SECOND copy at 0x49bc8b that falls into TailOnly. Writing the Selected
+//    block out twice (inline in the dead path ending `goto Next;`, and the
+//    existing Select: block for the live path) took 29.98 -> 31.7 and moved
+//    the byte count from 1733 to 1824. This is the duplicated-block pattern
+//    from the guide: two caller sites with different tail continuations.
+// 3. `s` is a `short`, not an `int`: 31.7 -> 32.9, 1824 -> 1816 bytes. The
+//    original compares s at 16 bits (`cmp cx, ax` at 0x49b9fa and
+//    `cmp word ptr [ebp+0xa], dx` at 0x49bdf8), and the sign-extended 32-bit
+//    copy is only the stored form. `short s` also stops the 32-bit `and`.
+// Still differs: `type` lands in edi where the original keeps it in esi, the
+// materialised zero lands in esi where the original keeps it in edi, and that
+// single swap cascades through every block (same failure the sibling 0x49b090
+// notes). Also still literal: bit 20 (0x49b9c8 `shr edx,0x14; test dl,1`),
+// bit 23 (0x49bac3 `shr eax,0x17; test al,1`) and bit 0 (0x49bb60
+// `test byte ptr [esi+0x111],1`) want the bitfield-union form, and the idx
+// scan (`xor dl,dl ... inc dl; cmp dl,3`) wants a `char` index.
+
 // PARTIAL 29.8% (deepseek-v4.1-flash retry, issue 1774): original 1853 bytes,
 // ours 1739. Frame is the whole story: original `sub esp,0x14` (5 dword
 // locals), ours `sub esp,0x18` (6). Original slot map after the 4 pushes is
@@ -106,7 +132,7 @@ void FUN_0049b720()
     int offset;
     int count;
     WType_0049b720* type;
-    int s;
+    short s;
 
     count = *(int*)(g_game + 0x141f3);
     offset = 0;
@@ -168,9 +194,19 @@ void FUN_0049b720()
                 }
             }
 
-            if (p->counter == 0)
-                goto Select;
-
+            if (p->counter != 0)
+                goto Next;
+            {
+                Proj_0049b720* sel = *(Proj_0049b720**)(g_game + 0x142f7);
+                if (p == sel) {
+                    *(int*)(g_game + 0x1433f) = sel->pos.x;
+                    *(int*)(g_game + 0x14343) = sel->pos.y;
+                    *(int*)(g_game + 0x14347) = sel->pos.z;
+                    *(short*)(g_game + 0x1434b) = p->type->field_fe;
+                    *(Proj_0049b720**)(g_game + 0x142f7) = 0;
+                }
+                p->flags69 = p->flags69 | 2;
+            }
             goto Next;
         }
 
@@ -329,15 +365,13 @@ void FUN_0049b720()
                 FUN_00472810(&p->pos, 9);
                 p->field_4a = p->field_4a + type->field_fa;
             }
-            {
-                unsigned char sl = *(unsigned char*)(g_game + 0x1427f);
-                if (s > sl && *(short*)((char*)p + 0xa) <= sl) {
-                    void* v = FUN_004815a0(&p->pos);
-                    if (v != 0
-                        && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
-                        && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
-                        FUN_00420a30(&p->pos, type->field_7c, 0, 1);
-                }
+            if (s > (unsigned char)*(g_game + 0x1427f)
+                && *(short*)((char*)p + 0xa) <= (unsigned char)*(g_game + 0x1427f)) {
+                void* v = FUN_004815a0(&p->pos);
+                if (v != 0
+                    && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
+                    && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
+                    FUN_00420a30(&p->pos, type->field_7c, 0, 1);
             }
         }
 

@@ -1,9 +1,18 @@
-// Decompiled by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by deepseek-v4.1-flash, continued by GPT-6, finished by deepseek-v4.1,
 // extended by space-bunny-free. Names are provisional.
-// Partial: 93.8% (real check.py runs: 3 in total for this session, every other
-// experiment scored free with check.py --sym). Exact 1300-byte size and 0x164-byte
-// frame. Two differences are left, and the first one is the whole ballgame:
+// Partial: 94.0%. Retried by deepseek-v4.1-flash: the 94.0 variant below is the
+// plain `if (k == desc.kind) break;` form with `char k`. Its score is 0.2 above
+// the earlier `continue` hack but the gain is alignment luck, NOT a fix: `char k`
+// puts k in CL, so the scan roles are still swapped and `mov dl, cl` is still
+// absent. deepseek-v4.1-flash swept 98 type/order/compiler-form combinations of
+// the plain do/for/while scan (both declaration orders, int/char/short/long/
+// unsigned variants, indexed `DAT_00512344[i]` forms, and `for` with the raw
+// index as the induction variable): every one puts the compared counter in ECX
+// and the raw index in EDX, none emits `mov dl, cl`. The raw-index-as-for-counter
+// forms are much worse (61 to 83%) because MSVC recomputes the pointer instead of
+// strength-reducing it. Exact 1300-byte size and 0x164-byte frame still hold.
+// Two differences are left, and the first one is the whole ballgame:
 //
 // 0. THE FALLBACK SCAN AT 0x43a556: the original keeps the raw scan index in
 //    ECX and the filtered (compared) counter in EDX, and copies the result
@@ -298,21 +307,20 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
             else
                 desc.kind = (unsigned char)(e - DAT_00512344);
         } else {
-            int k = 0;
+            char k = 0;
             int idx = 0;
             Entry_0043a420* p = DAT_00512344;
-            // The `k != desc.kind -> k++; continue;` form (rather than the plain
-            // `if (k == desc.kind) break;`) is what keeps this region 2 bytes
-            // longer than the plain form, which aligns every later branch
-            // target and the switch jump table: 86.2% -> 93.8%.
+            // Plain `break` form with k as a signed char. This scores 94.0,
+            // the highest any correct-semantics spelling has reached, but only
+            // because `char k` puts k in CL and shifts the later bytes; the
+            // scan's register roles are still swapped (ECX = k, EDX = idx)
+            // and `mov dl, cl` is still missing. See the header comment.
             if (p <= DAT_00512348) {
                 do {
                     if (!(p->flag14 & 1)) {
-                        if (k != desc.kind) {
-                            k++;
-                            continue;
-                        }
-                        break;
+                        if (k == desc.kind)
+                            break;
+                        k++;
                     }
                     idx++;
                     p++;

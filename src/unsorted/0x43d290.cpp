@@ -1,9 +1,17 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 91.3%, exactly 1074 bytes like the original. Frame is the right
+// PARTIAL: 91.9%, exactly 1074 bytes like the original. Frame is the right
 // 0x48 bytes and the mode!=2 early return matches (ebp/ebx are pushed inside
 // the mode==2 arm, as the original does at 0x43d2c3).
 //
-// Two wins this session, both pure register-allocation levers:
+// Third win this session (deepseek-v4.1-flash retry), 91.3 -> 91.9:
+//
+//   3. Route the two post-clamp `p1.x += r1; p1.z += r2;` updates through a
+//      `Vec3* v = &p1;` local (`v->x += r1; v->z += r2;`). The original emits
+//      both loads/stores off esi (`[esi]`, `[esi+8]`); without the pointer the
+//      second one was `[edi+0x10]`. This is the same lever as the guide's
+//      "keep an address in a register" note.
+//
+// Two earlier wins (kept), both pure register-allocation levers:
 //
 //   1. Declare `day` (the y delta) FIRST among the five deltas:
 //        day = pos.y - a.y; dax = pos.x - a.x; daz = pos.z - a.z; dbx =
@@ -59,7 +67,15 @@
 // the distance, assigning the sqrt result to k first, inlining `h` (86.2%),
 // building the deltas as Vec3 subtractions (82.5-87.0%), declaring h before g
 // (89.9%), `lim` hoisted out of its block (neutral), and giving ScaleXZ its
-// own method (89.5%).
+// own method (89.5%). Retry also tried: flipping the f-multiply operands,
+// a FixMul43(int, __int64) and FixMul43(__int64, __int64) helper, `f * p1.x`
+// spellings, un-cast p1.x, temporaries px/pz (1068 bytes, 90.0), const deltas,
+// deltas declared at function scope or after a/b, and dax/daz/dbx/dbz/day
+// assignment orders (best 91.9, worst 84.2). tools/headers.py swept all 128
+// sets; none beat <math.h> alone at 91.9. The remaining clusters are pure
+// allocator/scheduling: the f-scale __allmul still pushes the component before
+// f, the four deltas still land in the wrong stack slots, and the tail still
+// forwards p1.x in ebp across the inlined Length() instead of reloading [esi].
 
 #include <math.h>
 
@@ -190,8 +206,9 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
         short h = unit->f64.y;
         int r1 = -FUN_004b70ef(h, g);
         int r2 = -FUN_004b7123(h, g);
-        p1.x += r1;
-        p1.z += r2;
+        Vec3* v = &p1;
+        v->x += r1;
+        v->z += r2;
     }
 
     int day = unit->pos.y - a.y;

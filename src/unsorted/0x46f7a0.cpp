@@ -1,75 +1,107 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// GPT-6.1-sol refinement: six invocations kept 80.1%, including one compile
-// failure. Three assignment-operator variants did not improve the best source.
-// No MATCH was reached.
-// PARTIAL 80.1%, 799 of 798 bytes, and every remaining difference is one
-// register-allocation decision, described exactly below.
-// 768 header combinations and allocator construct specializations, including
-// static cdecl/stdcall/fastcall forms, did not improve the saved implementation.
-// The copy assignment's base must remain a struct to preserve its U mangling.
-//
-// The single extra byte is at 0x46f94e: the original reloads the count from
-// its incoming argument slot and adds (`mov eax,[esp+0x24]; add eax,edx`, 2 +
-// 2 bytes) where this file keeps the count in a register and uses
-// `lea eax,[ecx+edx]` (3 bytes). Both compute _Last = _S + size() + _M.
-//
-// Root cause, narrowed by an instruction-by-instruction alignment of both
-// bodies: at the new[] call all four callee-saved registers are spoken for
-// (esi and ebx walk the prefix, ebp holds the count, edi/ecx hold the
-// insertion pointer), so exactly one of the two values must live in memory,
-// and C1 picks opposite ones.
-//   original: p is loaded once after new[] into edi (0x46f85e) and never
-//     reloaded, while the inlined _Ufill counter _N gets a stack home in the
-//     first argument's slot: `mov [esp+0x20], ebp` (0x46f88e), reload at
-//     0x46f8a2, store back at 0x46f8aa. That slot is free because p is already
-//     in edi.
-//   ours: the argument slot stays p's home, reloaded at 0x46f87c inside the
-//     prefix loop and again at 0x46f8aa, and the _Ufill counter is copied
-//     into edi instead of the slot.
-// Everything downstream follows from that: the suffix loop then walks the
-// source in esi and the destination in edi, the mirror image of the original's
-// 0x46f8d0 loop, and the epilogue reloads the count into ecx rather than eax.
-//
-// The previous copy-on-itself diagnosis was incorrect. In the prefix loop,
-// ebx advances from the new buffer start to its prefix finish (0x46f881).
-// esi = ebx + inserted bytes is therefore the correct suffix destination.
-// edi is the old-buffer source: the transformations at 0x46f8ca cancel back
-// to its prior value. At 0x46f8d4/0x46f8d5 the constructor receives edi as
-// its source argument and esi in ecx as its destination. The suffix is
-// constructed in the new buffer, not copied onto itself.
-//
-// Deleting Class_0046ded0::operator= so the implicit one (a bare call to the
-// base's) is emitted instead scores far worse: the prologue then stores a
-// different `this` and the whole body shifts.
-#include <vector>
+// deepseek-v4.1-flash: replaced the <vector> include with a hand-written clone
+// of the vector class template (the trick that matched 0x476210). The clone
+// compiles to exactly 798 bytes, the original's size, and lifts this function
+// from 80.1% (799 bytes) to 83.8%. Six include-set variants (<climits>,
+// <memory>+<xutility>, all four, <windows.h> first) and three source variants
+// (a cached _Q + _M local, an indexed _Ufill loop, reordered pointer stores)
+// all scored 83.8% or worse, so the clone was kept.
+// Still differs: the reallocation branch's register allocation. The original
+// keeps _P in edi across the prefix loop and the _Ufill loop and spills the
+// _Ufill counter to [esp+0x20]; ours keeps the counter in edi and reloads _P
+// from [esp+0x20]. Everything downstream (suffix loop direction, the tail
+// block, the in-place branch's scratch registers) follows from that one
+// choice. Earlier notes: the copy assignment's base must remain a struct to
+// preserve its U mangling; every remaining difference is this single
+// register-allocation decision.
+#include <algorithm>
+#include <memory>
+#include <xutility>
 
-struct Class_0046eaa0 {                // 0x5c bytes, the base subobject
+struct Class_0046eaa0 {
 public:
     char unknown_0[0x5c];
-
     Class_0046eaa0& operator=(const Class_0046eaa0& rhs);
 };
 
-class Class_0046ded0 : public Class_0046eaa0 {   // 0x5c bytes, no members
+class Class_0046ded0 : public Class_0046eaa0 {
 public:
     Class_0046ded0(const Class_0046ded0& other);
     ~Class_0046ded0();
-
     Class_0046ded0& operator=(const Class_0046ded0& rhs)
     {
         return (Class_0046ded0&)Class_0046eaa0::operator=(rhs);
     }
 };
 
-// One indirect call, so insert is emitted as its own out-of-line copy.
-typedef void (std::vector<Class_0046ded0>::*InsertFn_0046f7a0)(Class_0046ded0*,
-                                        std::vector<Class_0046ded0>::size_type,
-                                        const Class_0046ded0&);
+namespace std {
 
-void __cdecl FUN_0046f7b0(std::vector<Class_0046ded0>* v, Class_0046ded0* p,
-                  std::vector<Class_0046ded0>::size_type n, const Class_0046ded0& x)
+template<class _Ty, class _A = allocator<_Ty> >
+class vector {
+public:
+    typedef vector<_Ty, _A> _Myt;
+    typedef _A allocator_type;
+    typedef _A::size_type size_type;
+    typedef _A::difference_type difference_type;
+    typedef _A::pointer iterator;
+    typedef _A::const_pointer const_iterator;
+    typedef _A::reference reference;
+    typedef _A::const_reference const_reference;
+    typedef _Ty value_type;
+    vector() : allocator(), _First(0), _Last(0), _End(0) {}
+    size_type size() const
+        {return (_First == 0 ? 0 : _Last - _First); }
+    iterator begin() { return (_First); }
+    iterator end() { return (_Last); }
+    void insert(iterator _P, size_type _M, const _Ty& _X)
+        {if (_End - _Last < _M)
+            {size_type _N = size() + (_M < size() ? size() : _M);
+            iterator _S = allocator.allocate(_N, (void *)0);
+            iterator _Q = _Ucopy(_First, _P, _S);
+            _Ufill(_Q, _M, _X);
+            _Ucopy(_P, _Last, _Q + _M);
+            _Destroy(_First, _Last);
+            allocator.deallocate(_First, _End - _First);
+            _End = _S + _N;
+            _Last = _S + size() + _M;
+            _First = _S; }
+        else if (_Last - _P < _M)
+            {_Ucopy(_P, _Last, _P + _M);
+            _Ufill(_Last, _M - (_Last - _P), _X);
+            fill(_P, _Last, _X);
+            _Last += _M; }
+        else if (0 < _M)
+            {_Ucopy(_Last - _M, _Last, _Last);
+            copy_backward(_P, _Last - _M, _Last);
+            fill(_P, _P + _M, _X);
+            _Last += _M; }}
+protected:
+    void _Destroy(iterator _F, iterator _L)
+        {for (; _F != _L; ++_F)
+            allocator.destroy(_F); }
+    iterator _Ucopy(const_iterator _F, const_iterator _L,
+        iterator _P)
+        {for (; _F != _L; ++_P, ++_F)
+            allocator.construct(_P, *_F);
+        return (_P); }
+    void _Ufill(iterator _F, size_type _N, const _Ty& _X)
+        {for (; 0 < _N; --_N, ++_F)
+            allocator.construct(_F, _X); }
+    _A allocator;
+    iterator _First, _Last, _End;
+    };
+
+} // namespace std
+
+typedef std::vector<Class_0046ded0> Vec_0046f7a0;
+typedef void (Vec_0046f7a0::*InsertFn_0046f7a0)(
+    Vec_0046f7a0::iterator, Vec_0046f7a0::size_type,
+    const Class_0046ded0&);
+
+void __cdecl FUN_0046f7b0(Vec_0046f7a0* v, Class_0046ded0* p,
+                  Vec_0046f7a0::size_type n, const Class_0046ded0& x)
 {
-    InsertFn_0046f7a0 f = &std::vector<Class_0046ded0>::insert;
+    InsertFn_0046f7a0 f = &Vec_0046f7a0::insert;
     (v->*f)(p, n, x);
 }
 

@@ -1,4 +1,6 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial, 48.7%. Restored player and campaign-holder reloads around callbacks.
+// Remaining differences include duplicated mission blocks and branch/register scheduling.
 // Click handler for the single-player Campaign screen. Dispatches on the gadget
 // name (Start/Campaign/Missions/bigButton, PrevMenu, Difficulty, Side0/Arm,
 // Side1/Core) and rebuilds the campaign or missions list, checking the campaign
@@ -139,6 +141,8 @@ CoreSide:
     *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 1;
     *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 0;
     if (DAT_00507b6c == 0) {
+        playerInfo = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+        Holder_00477ab0* campaignHolder = *(Holder_00477ab0**)(g_game + 0x531);
         int side = *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95);
         if (DAT_0051e65c) {
             FUN_004d85a0(DAT_0051e65c);
@@ -147,7 +151,7 @@ CoreSide:
         FUN_0047f1a0("smlbutton", 0);
         int count = FUN_00476a60(&DAT_0051e65c, side);
         FUN_004a32a0(g_game + 0x519, "Campaign", DAT_0051e65c, count, 0);
-        index = FUN_0049fdf0(entries, "Campaign", 2);
+        index = FUN_0049fdf0(campaignHolder->entries, "Campaign", 2);
         FUN_004a2be0(g_game + 0x519, index);
         FUN_0049fa90(g_game + 0x519);
     }
@@ -165,6 +169,8 @@ ArmSide:
     *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 0;
     *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 1;
     {
+        playerInfo = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+        Holder_00477ab0* campaignHolder = *(Holder_00477ab0**)(g_game + 0x531);
         int side = *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95);
         if (DAT_0051e65c) {
             FUN_004d85a0(DAT_0051e65c);
@@ -173,7 +179,7 @@ ArmSide:
         FUN_0047f1a0("smlbutton", 0);
         int count = FUN_00476a60(&DAT_0051e65c, side);
         FUN_004a32a0(g_game + 0x519, "Campaign", DAT_0051e65c, count, 0);
-        index = FUN_0049fdf0(entries, "Campaign", 2);
+        index = FUN_0049fdf0(campaignHolder->entries, "Campaign", 2);
         FUN_004a2be0(g_game + 0x519, index);
         FUN_0049fa90(g_game + 0x519);
     }
@@ -269,32 +275,4 @@ MissionsArm:
 End:
     FUN_004ab0a0(menu);
 }
-
-// Remaining differences vs. the original (75.7%):
-// - Prologue now matches: the holder load and entries dereference had to come
-//   before the player-base arithmetic in source (idx byte into a local first),
-//   which is what put menu->holder into eax before the mov dl,[ecx+0x2a42].
-// - The two duplicated missions blocks and the FUN_004a0570 call: passing
-//   `menu` (not g_game+0x519) to FUN_004a0570 stopped the compiler merging the
-//   two identical missions build blocks into one, which recovered ~0x60 bytes
-//   of the original's duplicated code.
-// - Still differing (first hunks only):
-//   0x477bcd..0x477c28: BigButton name-selection. We materialize the string
-//     address in eax and share one call; the original pushes the literal inside
-//     each arm and loads ECX from g_game separately on the Arm path. Writing
-//     the call inside each branch compiles to the same code as the local-name
-//     form, so this needs a different source shape.
-//   0x477e54 / 0x47807f: the Side0/Side1 blocks recompute the player base from
-//     g_game+0x2a42 and load holder from g_game+0x531; we reuse the prologue
-//     playerInfo (shorter). Adding the recompute changes register allocation
-//     across the whole function and scores much worse (60.3%).
-//   0x477f1a / 0x47815c: the two missions blocks have holder in edi and menuSub
-//     in esi in the original; ours picks the opposite in the Arm copy, and the
-//     test-argument of FUN_0049fdf0 comes from entries (esi) instead of
-//     holder->entries. Declaration order does not move it.
-// Control flow, all 23 callees, every string constant, struct offsets and the
-// end-of-game 0x0f/0x10 branch polarity match. Ours is 1802 bytes vs 1935; the
-// shortfall is mostly the two Side-block recomputes that the allocator will
-// not accept without wrecking the rest of the function.
-
 

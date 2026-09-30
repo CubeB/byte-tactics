@@ -195,6 +195,13 @@ public:
 // zero stores / zeroPair pointer / flags RMW between the stores (all neutral),
 // temps for the FUN_004b7f90 rect args (neutral), declaring flags38d75 as a
 // 4-bit bitfield (drops to 50.2%).
+// 2498 note: the original's per-bar `mov cl,[progress]; and ecx,0xff` (12 bytes)
+// instead of our `xor ecx,ecx; mov cl,[progress]` (8 bytes) is reproduced by
+// reading the progress byte through a byte-typed LOCAL (prog = progress[i];
+// rect[2] = prog*7/2+0xcd): `and ecx,0xff` then appears and the bar block
+// schedules correctly. But any extra local shifts the frame by 4 (gadget moves
+// +0x24 -> +0x28), which costs far more than it wins (84.0 -> 80.6), so the
+// byte must live inside the existing 20-byte rect slot or the Screen hole.
 // FUNCTION: 0x497f40
 void FUN_00497f40(void)
 {

@@ -40,6 +40,25 @@
 //   coalesced duplicate pointer temp. Removing the gp local instead gives 1656
 //   bytes at 94.7% (it rotates the second tail block's base registers), so gp is
 //   load-bearing for the tail and only its first use's register differs.
+// deepseek-v4.1 session 2 (issue #2498) added ~40 more shapes, all of which
+// compile byte-identically to the 98.4% base: offsetof-style constant, `& 0xffff`,
+// `+ 0u`, a reference to the field, a pointer to the field, a reinterpret_cast
+// ushort pointer, `&*g_game`, a typedef'd pointer type, a nested scope around
+// the calls, `(void)gp->field_2a3c;` re-read (dead), a second dead pointer local,
+// an explicit `__stdcall`, truthiness instead of `!= 0`, `(void (*)(void))` on the
+// hook store, `&g_game->field_519[0]`, and defining gp as the first statement of
+// the enclosing `if (field_39249 != 0)` block (gp is rematerialised back to the
+// same code). Only shapes that ADD a graph node move anything, and every one of
+// them lands in one of exactly two attractor states, both wrong:
+//   A (this file): 0x4997a0 eax, 0x4997bb eax, tail block 2 (eax, ecx, edx).
+//   B (no gp, or the read through a pointer-to-pointer / chain / int arithmetic):
+//     0x4997a0 eax, 0x4997bb ecx, tail block 2 (edx, eax, ecx), 1656 bytes at 94.7.
+// The original is A's tail with B's first load bumped one register on: (edx, eax).
+// Making gp live across the two calls (so it is used again for the FUN_004a9660
+// argument) is the only thing that gives 0x4997a0 a 6-byte form, but it goes to a
+// callee-saved register and also displaces `mov edi, 4`, giving 1648 bytes at 95.0.
+// So the last byte needs one extra *invisible* temp in the allocator's view of the
+// block that ends at 0x499717, which no source shape tried so far produces.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

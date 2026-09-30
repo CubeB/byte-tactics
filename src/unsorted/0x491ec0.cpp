@@ -1,14 +1,36 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-checked by deepseek-v4.1-flash, finished by GPT-6, refined by deepseek-v4.1-flash. Names are provisional.
-// MATCH: 1124 bytes. The lone residual was MSVC 5 loading the second
-// `gametype` read into EAX (`mov eax,[esp+0x10]; push 0; cmp eax,1`) where the
-// original compares its stack home directly (`push 0; cmp dword ptr
-// [esp+0x14],1`). Every source shape, type and header set stayed at 96.0
-// (see build/scratch/0x491ec0/ledger.md): a non-volatile scalar is always
-// promoted to a register for a compare. The fix is the calling convention,
-// not the expression. The original TU was built with /Gz, so declaring
-// FUN_00491ec0 `__stdcall` (no arguments, so the body is otherwise unchanged)
-// changes MSVC 5's register policy and folds the compare into a memory
-// operand. Same lever as 0x46c920 (needed __fastcall) and 0x4c2870.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Started by deepseek-v4.1-flash, space-bunny-free and GPT-6; kept as they left it.
+// Partial: 96.0%, 1126 bytes versus 1124 (one extra instruction).
+// The only difference is the second gametype test at 0x492078: the original
+// emits `push 0 / cmp dword ptr [esp+0x14], 1 / jne` (direct memory compare)
+// while ours emits `mov eax, dword ptr [esp+0x10] / push 0 / cmp eax, 1 /
+// jne`, 2 bytes longer. Every other instruction is identical and only the
+// jump targets shift by 2, so the frame is right (0x144, 81 locals) and the
+// locals sit at the original slots (gametype 0x10, name 0x14, diffs 0x48,
+// path 0x54).
+// Tried and rejected, all 96.0 percent or worse: plain locals instead of the
+// Buf struct (90.8, name buffer drifts to esp+0x20), gametype split out of
+// the struct in two declaration orders, an int/union alias for the second
+// read, Buf& / Buf* indirection, an int temp or a bool temp for the second
+// test, `1 == gametype`, an unsigned cast, (int) cast of the field address,
+// `!= 1` with the arms swapped, and inlining the single-use fname temp. A
+// switch for the second test costs 4 bytes (`mov eax,[..] / dec eax / je`).
+// A minimal repro with the same flags shows MSVC5 always reloads a
+// call-result local into a register at its second use after intervening
+// calls, using the memory form only at a later use in another block, so this
+// looks like a function-wide allocator decision, not a local source lever.
+// deepseek-v4.1-flash re-checked every local lever by compiling each variant to
+// /Fa and reading the selector output: a separate `int gametype`, `char name`
+// and `char* diffs[3]`, a struct field read as `b.gametype`, an initialized
+// copy, a temp before the FUN_004a0bf0 call, a pointer local, nested blocks,
+// reordered first-test arms, reordered struct fields, a switch, and every pure
+// `== 1` spelling (`1 ==`, `== 1U`, `== 0x1`, `- 1 == 0`, `!(gametype - 1)`,
+// `== 1 ? 1 : 0`) all emit `mov eax,[esp+0x10] / push 0 / cmp eax,1`. The
+// direct memory compare appears only when the condition has a SECOND unproven
+// operand (`gametype == 1 && players`, or `&& menu`), as
+// `cmp [esp+0x14],1 / jne / test ..,.. / je`, which adds a test the original
+// does not have. So the memory-versus-register choice is upstream allocation,
+// not the condition expression, and `&&` arms cannot be folded away.
 
 #include <string.h>
 #include <stdio.h>

@@ -1,8 +1,26 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial: 99.6%, 1174 bytes. The second GlobalMemoryStatus schedules
-// dwLength before the argument push; the original pushes first. A 768-set
+// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 99.6%, 1174 bytes. The whole body is byte-identical except the second
+// GlobalMemoryStatus: ours emits
+//     lea edx,[esp+0x10]; mov dword ptr [esp+0x10],0x20; push edx; call esi
+// while the original fills the call delay slot,
+//     lea edx,[esp+0x10]; push edx; mov dword ptr [esp+0x14],0x20; call esi
+// (the first GlobalMemoryStatus already has the original's order). A 768-set
 // header sweep, 20 call/init variants and 12 type/layout variants did not
-// resolve that single instruction-order difference.
+// resolve it; neither did declaring the function __stdcall (it still emits
+// ?FUN_00491200@@YGXXZ and the same order), a nested-block copy of mem, a
+// second MEMORYSTATUS local, a pointer local, a store through *(DWORD*)&mem,
+// a comma expression, and single-use inline helpers for set-then-call. The
+// store is free to move all over the neighbouring block (writing the store
+// before FUN_004b4fd0 even moves it into that call's delay slot at
+// [esp+0x18]), so only the scheduler's tie-break differs; the frame, every
+// esp+N slot and every other instruction are correct.
+// A second deepseek-v4.1-flash pass added: an N-declaration sweep 0..2400 (all
+// 99.6%), a check of the other push+store-shadow sites in the exe (0x4b5980 and
+// this function's first call both have a preceding push; 0x490aa0, the plain
+// single-call sibling, is also store-before-push), and about 70 scratch variants
+// (pointer/reference locals, union, inline helpers, ternaries, comma operator,
+// sizeof, array form, declaration order, volatile diagnostics). None moved the
+// store into the push shadow.
 
 #include <string.h>
 #include <windows.h>

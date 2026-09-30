@@ -1,4 +1,17 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry 6 (deepseek-v4.1-flash, issue 2826): no change, 99.7%, the same one SIB
+// byte ([esi+edx] original, [edx+esi] ours). New measurements with check.py
+// --sym: any second std::vector<T>::insert instantiation in this file (1 to 4
+// extra address-taken instantiations, placed before or after the target) flips
+// the whole reallocation arm to the 91.5% four-instruction source pointer, so
+// rebuilding the immediately preceding sibling 0x4758c0 above this one is not
+// the answer. Unused function prototypes at N = 0, 100, ..., 3200 alternate the
+// same two shapes (99.7 / 91.5), never a third, matching the earlier extern-int
+// sweep. Thirteen more spellings of the third _Ucopy (destination and _M locals,
+// casts, &_Q[_M], iterator(...), manual element-pointer loops) are all 99.7% or
+// worse (manual loops 72%). The SIB base/index order is chosen after the
+// optimizer's reassociation of the strength-reduced copy and no caller-visible
+// spelling reaches it; this needs the regroup-into-original-files phase.
 // Retry 5 (deepseek-v4.1-flash, issue 2784): still 99.7%, the same one SIB
 // byte. Three more variants, all measured with check.py --sym: replacing
 // _Ufill in the reallocation arm with an explicit `for (_C = _M; 0 < _C;

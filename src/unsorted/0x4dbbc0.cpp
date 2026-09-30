@@ -1,93 +1,79 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
+// PARTIAL, 87.4% (311 of 311 bytes; every instruction is in place).
+// This is std::map<unsigned int, int, less, PoolAlloc>::insert(const
+// value_type&) from MSVC 5's <map> (lines 87-89), not the tree's own insert:
+//     _Pairib insert(const value_type& _X)
+//         {_Imp::_Pairib _Ans = _Tr.insert(_X);
+//          return (_Pairib(_Ans.first, _Ans.second)); }
+// with <xtree>'s _Tree::insert (TreeInsert below, lines 211-232) inlined into
+// it. Writing the tree's insert alone (the earlier attempt, 66%) cannot
+// reproduce the `mov cl, 1` tails: they are the `_Ans.second` copy of a
+// constant `true`, forwarded through the local `_Ans`. The local is also what
+// gives the original its 0x10 byte frame, and _Insert (0x4dce60, which the
+// real template reproduces byte for byte) is the out-of-line call at three
+// sites because the inlined insert is nested one level down.
 //
-// Still differs at 66.1% (311 vs 280 bytes): every byte through the lock
-// destructor and the whole loop matches; the differences start at the
-// _Multi test.
-//  * the three `return Class_004ddbe0(FUN_004dce60(...), true);` sites fold the
-//    bool to `mov byte ptr [eax + 4], 1`, while the original materialises it as
-//    `mov cl, 1` / `mov byte ptr [eax + 4], cl`. Tried ctor by value, by
-//    const bool&, an unsigned char second, member-init list, body assignment,
-//    in-class and out-of-class definitions, and a `bool t = true;` local at
-//    each site (that one drops to 51.5% and shrinks the frame), all fold or
-//    miss in some other way.
-//  * because our Multi site and begin() site compile to byte-identical
-//    argument setups (V in ecx, the _Insert return buffer in edx), MSVC merged
-//    their call+copy tails behind a `jmp`; the original's sites hold V in
-//    ecx / edx / eax respectively, so its three copies stay separate. The
-//    original's extra `mov cl, 1` live range is the likely reason its
-//    allocator coloured the sites differently, so fixing the first point may
-//    also un-merge these.
-//  * remaining register choices follow from that: begin() test in al
-//    (original cl), final key compare zeroes eax (original ecx), last site
-//    copy-back in ecx/dl (original edx/cl), and the last site's lea order.
-//  * the natural `if (ans) { ... }` spelling above scores 66.1 against the
-//    literal `if (!ans) ; else if (...) return ...; else ...;` of the header
-//    (60.0), which the previous attempt used; both produce the same merge.
-//
-//
-// Second pass note (deepseek-v4.1): the cause of both remaining differences is
-// one register choice. Ours allocates the begin test's bool to al
-// (`mov edx,[ebp+4]; xor eax,eax; cmp edi,[edx]; sete al`); the original uses
-// ecx (`mov eax,[ebp+4]; xor ecx,ecx; cmp edi,[eax]; sete cl`). With the flag
-// in eax our site-A and site-B bodies come out byte-identical, so MSVC merges
-// them behind `jmp 0x4dbc42`; with the flag in ecx the site-B setup shifts to
-// edx/eax (as the original) and the two sites stay separate. The same cascade
-// explains the later key compare (ours edx/eax, original ecx/edx, flag in ecx)
-// and the final return copy (ours edx then cl, original cl then edx).
-// Swapping the == operands (`Class_004dd2a0(head->left) == P`) only swaps the
-// cmp operands, it does not move the flag off al. Making the pair ctor take the
-// bool by value, and passing a named `bool ok = true;`, both compile to the
-// identical 280-byte body, so the `mov cl, 1` materialisation is not reachable
-// from those spellings either; it likely follows from the same allocator state.
-// std::_Tree<unsigned int, pair<unsigned int const, int>, ...>::insert(const
-// value_type&) from MSVC 5's <xtree> (lines 211-232), for the allocator's
-// free-block map whose _Nil sentinel is DAT_00528a54. Hand-written here
-// because the tree's _Insert (0x4dce60), iterator::_Dec (0x4dd2a0) and the
-// pair<iterator,bool> constructor (0x4ddbe0) are already matched under
-// provisional Class_ names, which the real template instantiation would not
-// reference. The tree object has <xtree>'s layout: allocator at +0,
-// key_compare at +1, head at +4, _Multi at +8, _Size at +0xc.
+// What still differs (all one register-assignment choice, repeated at the four
+// exits): the original copies `_Ans` into the return slot with `first` in edx
+// and the byte in cl (`mov edx,[eax]; mov eax,[ret]; mov cl,1; mov [eax],edx;
+// mov [eax+4],cl`, and at the false exit loads the byte before the dword); we
+// get first in ecx and the byte in dl. Tried without effect: ctor params by
+// value / `const unsigned char&` / `int`, an implicit copy ctor, `return ans;`,
+// a named `out` local, `second(s), first(f)` initialiser order, a second
+// constructor with no bool, headers.py (128 header sets) and 0-400 unused
+// declarations in front.
+// The real template, compiled with a pool allocator, gives the same flag
+// registers (cl for the begin() test, eax for the head) and `mov dl, 1`; the
+// original calls the out-of-line pair constructor (0x4ddbe0) at the false exit
+// where the real template inlines it, so the original's inliner had run out of
+// budget by then. The hand-written classes here stand in for the template's so
+// that callee names match symbols.csv (Class_004dce60 = _Insert, Class_004dd2a0
+// = iterator::_Dec, Class_004ddbe0 = pair<iterator, bool>'s constructor).
 #include <yvals.h>
 
+struct Pair_004dbbc0 {
+    unsigned int offset;
+    int length;
+};
+
 struct Node_004dbbc0 {
-    Node_004dbbc0* left;               // +0x0
-    Node_004dbbc0* parent;             // +0x4
-    Node_004dbbc0* right;              // +0x8
-    unsigned int key;                  // +0xc
-    int length;                        // +0x10
-    int color;                         // +0x14
+    Node_004dbbc0* left;
+    Node_004dbbc0* parent;
+    Node_004dbbc0* right;
+    Pair_004dbbc0 value;
+    int color;
 };
 
-extern Node_004dbbc0* DAT_00528a54;    // the tree's _Nil sentinel
+extern Node_004dbbc0* DAT_00528a54;
 
-struct Pair_004dbbc0 {                 // the map's value_type
-    unsigned int offset;               // +0x0
-    int length;                        // +0x4
+struct Kfn_004dbbc0 {
+    const unsigned int& operator()(const Pair_004dbbc0& x) const { return x.offset; }
 };
 
-struct Less_004dbbc0 {                 // the key ordering
+struct Less_004dbbc0 {
     bool operator()(const unsigned int& a, const unsigned int& b) const
     {
         return a < b;
     }
 };
 
-class Class_004dd2a0 {                 // the tree's iterator
+class Class_004dd2a0 {
 public:
-    Node_004dbbc0* ptr;                // +0x0
+    Node_004dbbc0* ptr;
 
     Class_004dd2a0() {}
     Class_004dd2a0(Node_004dbbc0* p) : ptr(p) {}
 
     bool operator==(const Class_004dd2a0& o) const { return ptr == o.ptr; }
+    Node_004dbbc0* Mynode() const { return ptr; }
 
-    void FUN_004dd2a0();               // iterator::operator-- (_Dec)
+    void FUN_004dd2a0();
 };
 
-class Class_004ddbe0 {                 // pair<iterator, bool>
+class Class_004ddbe0 {
 public:
-    Class_004dd2a0 first;              // +0x0
-    bool second;                       // +0x4
+    Class_004dd2a0 first;
+    bool second;
 
     Class_004ddbe0();
     Class_004ddbe0(const Class_004dd2a0& f, const bool& s);
@@ -97,51 +83,64 @@ public:
 };
 
 inline Class_004ddbe0::Class_004ddbe0() {}
+inline Class_004ddbe0::Class_004ddbe0(const Class_004ddbe0& o) : first(o.first), second(o.second) {}
 inline Class_004ddbe0::Class_004ddbe0(const Class_004dd2a0& f, const bool& s)
     : first(f), second(s) {}
-inline Class_004ddbe0::Class_004ddbe0(const Class_004ddbe0& o)
-    : first(o.first), second(o.second) {}
 
-class Class_004dce60 {                 // the tree (std::map-shaped)
+class Class_004dce60 {
 public:
-    unsigned char allocator;           // +0x0 (empty pool allocator)
-    Less_004dbbc0 key_compare;         // +0x1 (empty key ordering)
-    Node_004dbbc0* head;               // +0x4 (_Head)
-    bool multi;                        // +0x8 (_Multi)
-    int size;                          // +0xc (_Size)
+    unsigned char allocator;
+    Less_004dbbc0 key_compare;
+    Node_004dbbc0* head;
+    bool multi;
+    int size;
+
+    static Node_004dbbc0*& Left(Node_004dbbc0* p) { return p->left; }
+    static Node_004dbbc0*& Right(Node_004dbbc0* p) { return p->right; }
+    static const unsigned int& Key(Node_004dbbc0* p) { return Kfn_004dbbc0()(p->value); }
+    Node_004dbbc0*& Root() { return head->parent; }
+    Node_004dbbc0*& Lmost() { return Left(head); }
+    Class_004dd2a0 begin() { return Class_004dd2a0(Lmost()); }
 
     Class_004dd2a0 FUN_004dce60(Node_004dbbc0* x, Node_004dbbc0* y,
                                 const Pair_004dbbc0* v);
 
+    Class_004ddbe0 TreeInsert(const Pair_004dbbc0& V);
     Class_004ddbe0 FUN_004dbbc0(const Pair_004dbbc0& V);
 };
 
-// FUNCTION: 0x4dbbc0
-Class_004ddbe0 Class_004dce60::FUN_004dbbc0(const Pair_004dbbc0& V)
+inline Class_004ddbe0 Class_004dce60::TreeInsert(const Pair_004dbbc0& V)
 {
+    Node_004dbbc0* X = Root();
     Node_004dbbc0* Y = head;
-    bool ans = true;
-    Node_004dbbc0* X = head->parent;
+    bool Ans = true;
     {
-        std::_Lockit lock;
+        std::_Lockit Lk;
         while (X != DAT_00528a54) {
             Y = X;
-            ans = key_compare(V.offset, X->key);
-            X = ans ? X->left : X->right;
+            Ans = key_compare(Kfn_004dbbc0()(V), Key(X));
+            X = Ans ? Left(X) : Right(X);
         }
     }
     if (multi)
         return Class_004ddbe0(FUN_004dce60(X, Y, &V), true);
     Class_004dd2a0 P = Class_004dd2a0(Y);
-    if (ans) {
-        if (P == Class_004dd2a0(head->left))
-            return Class_004ddbe0(FUN_004dce60(X, Y, &V), true);
+    if (!Ans)
+        ;
+    else if (P == begin())
+        return Class_004ddbe0(FUN_004dce60(X, Y, &V), true);
+    else
         P.FUN_004dd2a0();
-    }
-    bool lt = key_compare(P.ptr->key, V.offset);
-    if (lt)
+    if (key_compare(Key(P.Mynode()), Kfn_004dbbc0()(V)))
         return Class_004ddbe0(FUN_004dce60(X, Y, &V), true);
     Class_004ddbe0 res;
     res.FUN_004ddbe0(P, false);
     return res;
+}
+
+// FUNCTION: 0x4dbbc0
+Class_004ddbe0 Class_004dce60::FUN_004dbbc0(const Pair_004dbbc0& V)
+{
+    Class_004ddbe0 ans = TreeInsert(V);
+    return Class_004ddbe0(ans.first, ans.second);
 }

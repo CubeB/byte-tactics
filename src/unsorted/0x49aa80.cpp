@@ -15,6 +15,8 @@
 // GPT-6.1-sol retry: moving the weapon lookup after the two difference
 // assignments drops the score to 39.8%. Explicit register aliases for a2/a3
 // compile to the same 66.1% code. Best source remains the array version above.
+// GPT-6.1-sol retry #2038: five checks kept 66.1%; aliases and separate
+// coordinate locals matched the same code.
 //
 // FRAME SIZE IS A SYMPTOM, NOT THE LEVER. A later round concluded that the
 // 8-byte frame deficit (original `sub esp,0x10`, ours `sub esp,8`) was the cause

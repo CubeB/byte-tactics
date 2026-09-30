@@ -1,5 +1,9 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 32.5%: control flow and struct offsets transcribed, but the frame is
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// PARTIAL 34.0%: widening the escaped Surface local to 0x60 bytes restores the
+// original 0xf4 frame (the 0x30-byte form scored 32.5%). Still differs in
+// register allocation and branch layout, especially the display/tag register
+// swap and the DirectDraw branches. Five check.py invocations this pass.
+// Earlier PARTIAL 32.5% notes: control flow and struct offsets transcribed, but the frame is
 // 0xc4 vs the original 0xf4 (MSVC overlays the `out` and `screen` locals) and
 // the two long-lived callee-saved values are swapped: original holds the
 // display in esi and the 'MAIN' tag in edi, ours the other way around, which
@@ -38,7 +42,7 @@
 #include <ddraw.h>
 
 struct Surface_004c63a0 {
-    int data[12];
+    int data[24];
 };
 
 struct Out_004c63a0 {

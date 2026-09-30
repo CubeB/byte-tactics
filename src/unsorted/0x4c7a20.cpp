@@ -1,5 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Partial (62.8%). Everything from the mask switch onward is structurally
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Partial (62.8%). GPT-6.1-sol retry: a reference alias for the initial span[0] produced the same score. No better variant found. Everything from the mask switch onward is structurally
 // identical to the original; the only real difference is the prologue frame
 // size: the original is `sub esp,0x1c` (7 frame slots), ours is `sub esp,0x20`
 // (8), because MSVC keeps the value of span[0] live from the `span[1]-span[0]`
@@ -199,3 +199,4 @@ void __stdcall FUN_004c7a20(int row, int* span, Surf_4c7a20* surf, Info_4c7a20* 
         }
     }
 }
+

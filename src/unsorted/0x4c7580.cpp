@@ -1,5 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 22.0% (1183 original bytes, 1173 ours). Timebox hit; full control
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// PARTIAL, 22.0% (1183 original bytes, 1173 ours). GPT-6.1-sol retry: 3 check.py runs, best unchanged at 22.0%. Full control
 // flow transcribed, register allocation not matched.
 //
 // Second pass: the first edge loop now uses the sibling 0x4c8760's exact

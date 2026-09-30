@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by gpt-6-luna. Names are provisional.
 // Finds the highest field_4 among the active players of type 1 or 3, then
 // looks that player up by field_4 and sets bit 0 of its info flags. The
 // player lookup is inlined and its index search appears twice.
@@ -96,6 +96,26 @@
 // - The 19.9% body is byte-structurally closest (5 pushes, frame 0x14, the
 //   byte index at [esp+0x10]); all the 0x44fed0-shaped tails drop the ebp push
 //   (frame 0x10) and shift that slot, which is why they sit at 10.1%.
+//
+// Twin test, finished by gpt-6-luna: matched 0x450380 uses the same nested
+// getter and duplicate index search. Its disassembly preserves the entry
+// guards but compares the index against immediate 10; the current output also
+// has immediate bounds, while this target uses AL from its prologue load. This
+// is an inlining-context tie: the matched twin agrees with our immediate form
+// and disagrees with the target's AL reuse. Its notes say the nested getter is
+// what preserves the redundant i != 10 guard; they provide no precedent for
+// keeping 10 in a register.
+//
+// Positional trials by gpt-6-luna: passing a shared limit to the two searches
+// with its initialization before or after the scan stayed at 19.9%, and
+// reordering the max, pointer, and countdown declarations also stayed at
+// 19.9%. An explicit max != -1 outer guard fell to 19.7%. MSVC folds the
+// shared limit back to immediate 10; the best version remains the original
+// 19.9% body above. Remaining difference: the original keeps 10 in eax/al,
+// which changes the countdown and pointer registers, and has entry guards from
+// the nested getter.
+// Suspected original bug: the second search can return sentinel 10, which is
+// used unconditionally as players[10] before dereferencing its info pointer.
 
 #pragma pack(push, 1)
 struct Info_00450240 {

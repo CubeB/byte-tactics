@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (2026-09-30): confirmed 99.7 is the ceiling for
+// this shape. Re-scored the three statement orders cleanly in isolated files
+// (c/h/d, h/c/d, d/c/h) and all are 99.3, so no permutation reaches the
+// original load,h,d,push6,store. Plain (non-struct) locals for lockResult and
+// dcSlot move the homes to 0x10/0x14 and the &temp to 0x14, so the struct
+// wrapper is required for the 0x14/0x18 slot pair. Nothing new beat 99.7.
 // deepseek-v4.1-flash session, still 99.7 (1017 bytes), only the 0x4b55af
 // reload rotation. New shapes tried, all inert at 99.7 unless noted:
 //   * a `static HDC& DcRef(Display*)` accessor for the dc store, and

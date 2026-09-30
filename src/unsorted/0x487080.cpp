@@ -27,7 +27,13 @@
 // `int found` instead of `bool found` scores 45-59 and spills the wrong local; bool
 // found leaves ebp free so n lands in ebp. Using the loop index i for Script%i (which
 // the original does) scored 46.6 with bool found and 59.6 with int found; neither beats
-// keeping rec.f3b.
+// keeping rec.f3b. This session re-confirmed 60.6 as a local maximum: unsigned loop
+// index (60.6), found declared before n (60.6), found as unsigned char (60.6),
+// int/bool/BYTE found with `found = 0` statement or `if (found == 0)` (all 45.5,
+// MSVC then reserves a zero register and the frame shrinks to 0xfc), i scoped in the
+// for (60.6), `i != n` / `n > i` conditions (60.6). The exact trigger for the
+// original allocation (n=esi, bool-like found=ebp, loop i spilled at [esp+0x10] and
+// live to the Script%i sprintf) is still unidentified.
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 

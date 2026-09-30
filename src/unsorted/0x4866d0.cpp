@@ -77,6 +77,16 @@
 // an `unsigned char` local spilled to [esp+0x14] then reloads/widens it
 // (`mov [esp+0x14],cl; mov edx,[esp+0x14]; and edx,0xff`); ours keeps it in a
 // register. Fixing the allocation above is the prerequisite for that to help.
+//
+// Pass 4 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. Checked the
+// assumption behind the int-credited lever: with `int credited` the allocator
+// gives unit=esi, credited=edi, cmd=ebp and leaves ebx completely free until
+// the leaderboard (g_game scratch stays in edx). So ebx is NOT taken by g_game
+// or by any 4th long-lived variable; MSVC simply prefers ebp over ebx for the
+// third long-lived local. Also re-confirmed char* cmd (63.3) and
+// int-credited-declared-first (63.7) are worse. Reaching the original's
+// cmd=ebx needs something that changes the allocator's register preference,
+// not the g_game/ebx occupancy as previously guessed.
 extern void* g_game;
 extern char DAT_00508be8[];
 extern char DAT_00508bf0[];

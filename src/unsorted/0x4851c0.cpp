@@ -47,6 +47,22 @@
 // owns esi there, and esi is reused for abs(dx)/n), while ours reuses esi for
 // b.x and gives ecx to abs(dx)/n. Nothing tried moves that one choice.
 //
+// deepseek-v4.1-flash third pass (retry), still 84.7%, 354 bytes. Re-derived
+// the allocator tie precisely: original has dx in ecx (b.x loaded into ecx
+// before `push ebx`) and abs(dx)/n in esi; ours has dx in esi and abs(dx)/n in
+// ecx. Scored every sign/operand-order spelling of the x and z subtractions
+// (`b.f -= a.f`, `b.f = a.f - b.f`, `b.f = -a.f + b.f`, `b.f = b.f + -a.f`):
+// the reversed x form (`b.x = a.x - b.x`) is again the only one that hoists
+// `mov ecx, [b.x]` above the pushes (it reproduces `mov ecx, [esp+0x1c]`), but
+// it then costs `mov esi, ebx; sub esi, ecx` (356 bytes, 75.5%) because a.x
+// owns ebx and is loop-live; every other mixed form is 84.7% or lower. Also
+// re-tested: n computed from the raw parameters before the differences (77.4%),
+// d declared before n (77.4%), separate y/x/z int locals rebuilt into d with
+// every division order (62.3 to 69.6%), and the earlier forms. The `b.x`
+// hoist and the ecx/esi assignment are one allocator decision that no spelling
+// reached; the instruction sequence after the first two instructions is
+// identical. Everything below the division (the whole loop) is byte-identical.
+//
 // Second pass (deepseek-v4.1-flash), still 84.7%: the whole hunk is the one
 // register pair dx=ecx/abs=esi (original) vs dx=esi/abs=ecx (ours). Tried
 // again and ruled out: `Vec3_004851c0 d = b - a` with an inline operator-

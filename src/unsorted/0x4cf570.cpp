@@ -1,5 +1,15 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Issue 2304 retry: baseline 80.2% confirmed; delaying best initialization scored 79.5%.
+// Issue 2486 retry by deepseek-v4.1-flash: still 80.2%. The original's zero
+// constant in ebp is really bestidx's initial 0 coalesced with the constant;
+// ebp is reused as bestidx after the set loop. this keeps esi except inside
+// the set loop, where the index i reuses esi and this is spilled to [esp+0x18]
+// and reloaded after. This version instead keeps this in ebp forever and
+// bestidx in memory ([esp+0x1c]) with the constant in esi, so it is 4 bytes
+// short. Tried this retry: the count loop as a label/goto (68.4%, +17 bytes),
+// a static inline wrapper around FUN_004cf180 taking this as an argument (no
+// change), bestidx declared before unit/slot (no change), and initialising
+// unit/slot from bestidx to force coalescing (no change).
 // Remaining mismatch is the this/zero/bestidx register allocation rotation described below.
 // GPT-6.1-sol retry in #1928: 6 direct checks kept 80.2%. Delayed
 // initialization, explicit self guard, and reusing bestidx for the zero guard

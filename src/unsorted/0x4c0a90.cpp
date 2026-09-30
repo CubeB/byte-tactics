@@ -1,4 +1,7 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retest in #1718: baseline verified at 86.5 percent.
+// Inline surface pitch arithmetic and splitting the signed row product from the x1 add both reduce the match (49.5 and 56.6 percent); restored the best source.
+
 // Codex / GPT-6 retest in #13:
 // split row and x offsets, unsigned offsets and wider colour
 // parameters did not reproduce the original repeated sum and registers.

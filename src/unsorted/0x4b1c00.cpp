@@ -1,19 +1,13 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
-// BEST 24.0% after 3 check.py runs (586 bytes original, 564 ours). No MATCH.
-// The element is Data_004b1ec0 (0x4c):
-// flag + six Vec3 of 3 ints, same shape the matched sibling 0x4b1ec0 uses.
-// Value arrays are block.e[1], e[3], e[5]; the limits are block.e[0], e[2], e[4],
-// reached through a dword index k (0xd, +0x13 per element). Writing the values as
-// ptr14[i].block.e[n].v[j] and the limits as ((int*)ptr14)[k + j + c] took the
-// score from 13.9% to 24.0%. What still differs:
-//  - k is strength-reduced to a BYTE counter (stored 0x34, +0x4c) instead of the
-//    original's dword index (0xd, +0x13) used as [base + (k+j)*4 + c]; the
-//    original never scales k early.
-//  - the value IV is not fused: ours keeps esi = element offset and ebx = 4*j
-//    separately ([esi+ebx-0x18]); the original fuses 4*j into esi
-//    ([esi+ecx-0x18], base reloaded into ecx) after a one-time add esi,0x28.
-//  - frame is 0x1c (7 locals) vs 0x18 (6), and `this` lands in a different rank.
-// A while-loop rewrite and all 128 headers kept the score at 24.0%.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// BEST 25.0% (586 bytes original, 569 ours). No MATCH.
+// Added the final per-element flag check that sets field_18, which was absent in
+// the inherited draft. Rewriting the guarded outer loop as do/while removed its
+// duplicate entry test and raised the score from 24.3%. An inner do/while tied.
+// Main remaining differences are register and stack allocation: the
+// target uses a 0x18-byte frame, keeps the dword index k at 0xd and advances it
+// by 0x13, and uses a byte-offset cursor advanced by 0x4c per record. MSVC folds
+// k into a byte counter in this source; callback and inner-loop register
+// lifetimes also diverge.
 #include <stdlib.h>
 
 struct Vec3_004b1c00 {
@@ -66,10 +60,11 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
 
     int k = 0xd;
     int i = 0;
-    while (i < field_8->count) {
+    do {
         if (ptr14[i].flag != 0) {
             ptr14[i].flag = 0;
-            for (int j = 0; j <= 2; j++) {
+            int j = 0;
+            do {
                 if (ptr14[i].block.e[1].v[j] != 0) {
                     int v = FUN_00480c30(i, j) + param_1 * ptr14[i].block.e[1].v[j];
                     int lim = ((int*)ptr14)[k + j - 12];
@@ -128,9 +123,12 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
                     }
                     FUN_00480ce0(i, j, r & 0xffff);
                 }
-            }
+                j++;
+            } while (j <= 2);
+            if (ptr14[i].flag != 0)
+                field_18 = 1;
         }
         k += 0x13;
         i++;
-    }
+    } while (i < field_8->count);
 }

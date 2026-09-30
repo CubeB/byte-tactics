@@ -1,5 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, retries by GPT-6.1-sol and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// Retry (deepseek-v4.1-flash, issue 2879): re-confirmed the wall. Tried a
+// Player* base cached outside the loop (base = g_game->players, then
+// &base[i]): 42.0%, worse. Tried `int i = 0;` declared before the for and
+// `Player* p = g_game->players + i`: both byte-identical to this 52.3% source,
+// so the induction spill is decided by the allocator, not by the loop form.
+// Untried lever: make the body's calls clobber edi the way the original does
+// (|or edi,-1| materializes msg.arg), which is what stops the original from
+// caching g_game and frees ebp for the raw counter. No source shape found for
+// it.
 // Retry (deepseek-v4.1-flash, issue 2408): re-tested the outer induction wall.
 // Variants tried and scored with check.py --sym, all identical bytes (52.3%):
 // guard via direct g_game->players[i] with p moved after the active test, p as

@@ -1,4 +1,30 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, deepseek-v4.1-flash. Names are provisional.
+// space-bunny-free retry: retained 69.5%; found the n/m/q plateau is one register
+// SHORT of the original, not a different function. Declaring n=count, m=copied and
+// q=pc as function-scope locals (build/scratch/0x4d9ca0/v1.cpp, 60.7%, 629 bytes)
+// DOES reproduce the original's frame: `sub esp,0x18`, `this` spilled to a slot,
+// and slots copied=0x14, r=0x18, count=0x1c, i=0x10 all matching the original's
+// 0x14/0x18/0x1c and 0x10. Two things are left, and only one is structural:
+//   (a) EBP holds `len` where the original holds `i`; i is memory-resident at 0x10.
+//   (b) this/pc take slots 0x24/0x20 where the original takes 0x20/0x24.
+// Ladder in v1: esi=this, edi=scratch, ebx=p, ebp=len, memory={i,r,n,m,q,this}.
+// Ladder in the original: esi=count/scratch, edi=scratch, ebx=p, ebp=i,
+// memory={len,r,n,m,q,this}. So the whole function is ONE allocator decision
+// (does `i` outrank `len` for EBP?) and I could not move it. Levers tried today,
+// all byte-identical to v1 or v0, i.e. MSVC5 ignores them here:
+//   declaration order of p/i/n/m/q/len (12 orders, a1..b3: all 60.7, all 629 bytes,
+//     so the ladder is NOT declaration-order driven);
+//   `int i;` with no initialiser (f1, 60.7); one `int i` per block (e3, 59.8);
+//   `register int i` (e8, 60.7); two live copies of count, guard on one and loop
+//     bound on the other (f7, f8, 60.7); m moved into the second block (f6, 60.0);
+//   `&len` taken into a local pointer (e1, 60.7) and len reached through a
+//     one-field local struct plus a reference (h1, 60.7) or i likewise (h2, 60.7):
+//     len still lands in ebp, so scalar replacement puts it back;
+//   from the v0 (69.5) side, adding one more dead local (z/y/u/e/w: c6..c10) leaves
+//     the code byte-identical, so dead locals are removed before the allocator and
+//     are NOT a pressure lever; only `n` moves it (59.4%), and downwards.
+// Conclusion for the next attempt: the lever has to change len's or i's LIVE RANGE,
+// not its type, count or order. Nothing in the source above does that.
 // GPT-6 retry: retained 69.5%. Whole-formatter wrappers and per-loop
 // append helpers did not improve allocation; original spill pattern remains.
 // NOT A MATCH: 69.5% best (v18). Correct shapes found this run, allocation still open.

@@ -88,7 +88,49 @@
 // block of at least want bytes, splitting it around the allocation point and
 // committing the pages with VirtualAlloc. Same std::map idiom as 0x4db000,
 // 0x4db450 and 0x4db1c0: the block is the map's value_type, a base and a length.
+// deepseek-v4.1-flash pass 2 (best 55.6 with `#include <memory.h>` added, 55.2
+// without; tools/headers.py picks <windows.h> <memory.h> as the closest set and
+// the 55.6 state is the same one 28 to 52 unused declarations reach): moved
+// `unsigned int res = 0;` from the
+// top of the locals down to just after `cur` and spelled the size fixup
+// `if (size == 0) size = 1;` (which restores the original's `test esi,esi /
+// jne / mov esi,1`; `if (size < 1)` had folded it to `cmp esi,1 / jae` and was
+// what the earlier 52.2 version used). Those two moves took lock/map from ebx
+// to edi and pushed the code from 52.2 to 55.2 percent.
+// What is left is ONE register choice and its cascade: MSVC materialises the
+// constant 0 in ebp at the size test (`xor ebp,ebp / cmp esi,ebp`) and then
+// reuses ebp for `DAT_005289d4 = 0`, `q.length = 0` and the two zero pushes.
+// The original never keeps 0 in a register: it stores the 0s as immediates and
+// uses esi (wraps, just zeroed) for `q.length` and the FUN_004dbe10 argument.
+// Because ebp is held by that constant here, `want` is pushed out to ebx, and
+// with ebx occupied the find path's iterator temporaries land in edx/ecx where
+// the original uses ebx and the head test's flag lands in cl where the
+// original uses dl. Give ebp to `want` and the whole function should snap into
+// place; the original's callee-saved homes are edi = lock then map, esi = size
+// then wraps, ebp = want, with ebx left for temporaries and `need` and `res`
+// memory only.
+// Tried this pass, all scored with check.py --sym:
+//   * demoting `res` by reading it once into a separate variable (`blk`,
+//     `void* blk`, or a plain copy): 48.0, the compiler coalesces the copy and
+//     keeps res in ebp; `res` declared at the very top again (w1): 51.1.
+//   * `if (n == 0)`, `if (!size)`, `size = n ? n : 1`: all still materialise
+//     the ebp zero (55.2/53.7/55.2).
+//   * replacing the loop's `DAT_005289d4 = 0` with `= wraps`, and/or
+//     `q.length = wraps`, to remove the constant: 52.2 and worse; the constant
+//     still appears.
+//   * swapping the need/want declarations, declaring need+want before size,
+//     declaring res after wraps, after ins, after b, after cur: 53.7 to 55.2.
+//   * a dummy-declaration sweep of N = 0..400 in steps of 4 flips between
+//     exactly two states, 55.6 and 46.8, with no intermediate value, so the
+//     source shape is the only thing left to change.
+//   * defining the real preceding function 0x4dabb0 above this one (the guide's
+//     state technique) gives 55.6, the same state as the dummy sweep, so it
+//     buys 0.4 points and is not worth the extra code here.
+// The zero-register theory to try next: make `res = 0` not a foldable
+// constant, or get the size test to emit `test` before any zero exists. Every
+// spelling of the fixup tried so far emits the cmp.
 #include <windows.h>
+#include <memory.h>
 
 extern unsigned int DAT_005289d4;
 extern unsigned int DAT_00528a00;
@@ -199,9 +241,8 @@ void __cdecl FUN_004d82c0(void* at, int value, unsigned int count);
 unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     CritSec_004da780* lock = FUN_004da780();
     EnterCriticalSection(&lock->cs);
-    unsigned int res = 0;
     unsigned int size = n;
-    if (size < 1)
+    if (size == 0)
         size = 1;
     unsigned int need = FUN_004da8c0(size);
     unsigned int want = FUN_004da8a0(size);
@@ -221,6 +262,7 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     Class_004dbe10 n2;
     Class_004dbe10 b;
     Class_004dbe10 cur;
+    unsigned int res = 0;
 
     if (map->count <= wraps)
         goto alloc_new;

@@ -1,4 +1,7 @@
 // Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, sixth pass by space-bunny-free. Names are provisional.
+// #2343 retry by GPT-6.1-sol: baseline remains 99.6% after four check.py
+// invocations. Restrict, byte-offset, and single-use destination probes left
+// the SIB operand order at 0x4252d1 unchanged. No MATCH.
 // GPT-6.1-sol refinement: five checks kept 99.6%. Three twin-inspired source
 // start expressions scored 57.2%, 61.2% and 66.4%; the exact best was restored.
 // Only the SIB operand order at 0x4252d1 remains different. No MATCH.

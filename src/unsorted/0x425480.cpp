@@ -1,7 +1,8 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol refinement: seven checks kept the 81.1% PR best. The tested loop,
-// increment, cached-size, and parameter-order variants scored 70.2% or lower.
-// The remaining register choice in the growth branch is described below.
+// #2343 retry by GPT-6.1-sol: five checks kept the prior 81.1% best, no MATCH.
+// Reverse comparison and split destination initialization made no difference;
+// explicit while(1)/break scored 79.7%. Growth branch loop guard, register
+// allocation, and _Last reload remain different.
 // std::vector<Class_004c2ea0*>::insert(iterator, size_type, const T&), MSVC
 // 5's <vector> written out (as 0x425210.cpp does) with _Ucopy, _Ufill, fill
 // and copy_backward inlined. 0x4222e0 is the only caller (the push_back).
@@ -148,5 +149,6 @@ protected:
 class Class_004c2ea0 { public: int field_0; };
 typedef std::vector<Class_004c2ea0*> V;
 typedef void (V::*F)(V::iterator, V::size_type, Class_004c2ea0* const&);
+// GPT-6.1-sol final pass: five checker runs total (including baseline and final verification); reverse compare and separate destination increment stayed 81.1%, while (1)/break fell to 79.7%. Best remains the saved 534-byte do-while (81.1%); the head guard, _Last cache and growth-branch register assignment still differ.
 // FUNCTION: 0x425480 ?insert@?$vector@PAVClass_004c2ea0@@V?$allocator@PAVClass_004c2ea0@@@std@@@std@@QAEXPAPAVClass_004c2ea0@@IABQAV3@@Z
 F g = &V::insert;

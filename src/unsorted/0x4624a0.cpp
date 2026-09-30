@@ -1,5 +1,52 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// deepseek-v4.1-flash retry 3 (issue 2865, timeboxed): 70.8 -> 77.9 percent
+// (555 of 570 bytes). Two source levers:
+//  (a) Set the packet counter with a separate `sent = 0;` statement at the top
+//      of the while body (before the headFrame read) instead of in the for-init
+//      comma expression. That spills `sent` to the argument home [esp+0x1c]
+//      (`inc dword ptr [esp+0x1c]` in the success path) and frees ebp for `i`,
+//      which is the register/space split the original has. (Placing the same
+//      store after the headFrame read or after the log call scores 73.4.)
+//  (b) Wrap the whole body in `if (now >= nextSend || force != 0) { ... }` with
+//      one trailing `return 1;` after the while loop, instead of an early
+//      `return 1;` inside the now/nextSend test. Now every early return-1 path
+//      shares a single epilogue like the original (0x4626cb) instead of the
+//      first one being emitted inline.
+// Residual, all downstream of keeping the extracted-packet pointer `q` live
+// across the logging call: q takes ebx (`lea ebx,[base+offset+0x14]`), so ebx
+// is no longer the constant 0 and needs a `xor ebx,ebx` restore; that also
+// turns the counter into load/inc/store rather than `inc dword ptr [esp+0x1c]`.
+// The original recomputes base+offset+0x14 for FUN_004614e0 (q dead across the
+// call), but writing that here collapses the allocation back to 51.8 percent
+// (546 bytes), so q-live is kept. Also the loop-top count test is register-form
+// (`mov eax,[esi+0x38]`) where the original tests memory (`cmp [esi+0x38],ebx`).
+//
+// deepseek-v4.1-flash retry 2 (issue 2865, timeboxed): lifted 67.8 -> 70.8
+// percent (556 of 570 bytes). The lever was the twin 0x435a20's "what is live
+// across a call": keep an ADDRESS live across the extracted-packet logging
+// call. `char* q = (char*)entry->base + entry->offset + 0x14;` used for the
+// `data="%s"` byte (as `*q`) and `q + 1` in the log call, then passed as-is to
+// FUN_004614e0, keeps q (a heap address) live across the "extracted packet"
+// call. MSVC then spills the packet counter to the argument slot and starts
+// keeping the constant 0 in ebx (`cmp reg, ebx`, `mov [esi+0x20], ebx`), which
+// is the whole old 15-byte gap. Recomputing the FUN_004614e0 argument from
+// `entry->base + entry->offset + 0x14` instead of reusing q falls straight
+// back to 67.8 (address dead across the call), which confirms the mechanism.
+// `loc.headFrame = 0;` must now be DELETED (it added 5 bytes and dropped the
+// score); the deleted store and the combined `for (i = 0, sent = 0; ...)`
+// init were the other two changes. headers.py is flat at 70.8.
+// Residual (all downstream of one register choice, `sent` still takes ebp
+// where the original keeps `sent` in the argument slot and `i` in ebp):
+//  - the inner for counter `i` lives at [esp+0x1c] here, `sent` in ebp; the
+//    original is the exact opposite (i in ebp, `inc dword ptr [esp+0x1c]` for
+//    sent). Swapping declaration order, decl scope, for-init comma order,
+//    unsigned/long/reference spellings, and hoisting `i = 0` before the log
+//    call all leave the allocation unchanged.
+//  - the force==0 return is emitted inline here; the original branches to the
+//    shared return-1 block at the bottom (`je 0x4626cb`).
+//  - the send block colours dpid in eax instead of ebx/ebp.
+//
 // deepseek-v4.1-flash retry (2557, timeboxed): best remains 67.8 percent (555
 // of 570 bytes). Measured with check.py --sym on scratch copies, none better:
 //  - reordering the inlined Pop to load readIdx before count--: identical.
@@ -311,13 +358,9 @@ int Class_004624a0::FUN_004624a0(int force)
     unsigned int now = FUN_004b6340();
     FUN_00461170("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",
                  dpid, ticks, nextSend, now);
-    if (now < nextSend) {
-        if (force == 0)
-            return 1;
-    }
+    if (now >= nextSend || force != 0) {
     nextSend = now + ticks;
     Locals_004624a0 loc;
-    loc.headFrame = 0;
     loc.n = (int)&loc;
     loc.n = queue.count;
     if (loc.n == 0)
@@ -326,8 +369,8 @@ int Class_004624a0::FUN_004624a0(int force)
     int sent;
     Packet_004624a0* entry = 0;
     while (1) {
-        loc.headFrame = queue.GetFirst()->frame;
         sent = 0;
+        loc.headFrame = queue.GetFirst()->frame;
         FUN_00461170("assigning packets to frame number: %ld\n", frame);
         for (i = 0; i < loc.n; i++) {
             // Two calls, not one: the original's inlined code has the diamond
@@ -335,13 +378,13 @@ int Class_004624a0::FUN_004624a0(int force)
             entry = queue.GetFirst();
             queue.Pop();
             if (entry->frame == loc.headFrame) {
-                char* p = (char*)entry->base + entry->offset;
+                char* q = (char*)entry->base + entry->offset + 0x14;
                 FUN_00461170("extracted packet (len=%ld, type=%d, data=\"%s\")\n",
-                             entry->size, (unsigned char)p[0x14], p + 0x15);
+                             entry->size, (unsigned char)*q, q + 1);
                 entry->queued = frame;
                 entry->time = FUN_004b6340();
                 if (DAT_00513000.FUN_004614e0(
-                        (unsigned char*)((char*)entry->base + entry->offset + 0x14),
+                        (unsigned char*)q,
                         entry->size) == 0)
                     return 0;
                 sent = sent + 1;
@@ -368,4 +411,6 @@ int Class_004624a0::FUN_004624a0(int force)
             continue;
         return 1;
     }
+    }
+    return 1;
 }

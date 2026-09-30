@@ -88,6 +88,19 @@
 // uninitialised and assigning it in each arm, or hoisting `f94` out of the
 // drag arm, both cost the shared store (73.5% and 73.7%).
 
+// deepseek-v4.1 retry (issue 2461): no improvement, still 80.9%. New measured
+// fact: naming the FUN_004ab5b0 result in an int local before the test
+// (`int ok = FUN_004ab5b0(obj, 3); if (ok == 0)`) DOES materialize the wanted
+// 32-bit zero in EDX and reproduces the original per-arm `xor edx, edx` plus
+// `mov [ebp+0x78], edx`, but it also turns the call test itself into
+// `xor edx, edx` / `cmp eax, edx` instead of `test eax, eax`, which costs 5
+// bytes, drops the printed score to 75.1% and raises the differing-instruction
+// count from 83 to 114, so the two halves are not separable from the source.
+// A `union { int full; short word; }` zero (the 0x4a3ef0 trick) gets a memory
+// home here (725 bytes, 73.7%). Re-confirmed dead ends: plain int/short/pointer
+// zero locals, phi-shaped zero locals, named-zero comparisons, and reference
+// aliases of field_78 all stay byte-identical at 80.9%.
+
 #pragma pack(push, 1)
 struct Entry_004a4170 {                // 0x15b bytes, the table of 0x4a23b0
     char unknown_00[0x13];

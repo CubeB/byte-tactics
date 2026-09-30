@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass (issue 2461): 18 further variants scored through the
+// checker's own compile/compare pipeline, no MATCH, best stays 98.7%. New
+// negative results: the six remaining local permutations x/y2/colour and
+// y2/x/colour also print 98.7% (same two hunks), a static-helper colour read
+// costs 92.7% and 663 bytes (the byte then lives across the FUN_004c13f0
+// call), and declaring FUN_004be950's colour parameter int instead of
+// unsigned char falls to 87.5% and 667 bytes, so this file's prototype is
+// already the right one.
 // GPT-6.1-sol refinement: nine checks preserved 98.7% as best; wrappers around
 // the colour and surface reads did not resolve the two allocation differences.
 // Retry #1758: GPT-6.1-sol confirmed 98.7% after five checks; no MATCH. The colour-load SIB operand order and marker-call surface-load/push order still differ.

@@ -61,6 +61,19 @@
 // allocator decision inside the line-of-fire block. Lead #1431 introduced a local pointer to unit2->pos at the call site; output stayed byte-identical at 93.7%. It is not an operand order, a
 // frame size, a call count or a convention problem, and it is not reachable by
 // reordering the arguments.
+// DeepSeek V4.1 Flash pass (issue 1732): 25 scratch variants, no gain, best still 93.7%.
+// Established: the from=x/z stores already land in the original's [esp+0x10]/[esp+0x18]
+// slots; the whole 8-byte gap is 2 instructions: `mov ebp,ebx` (the inliner materialises
+// &from in ebx/ebp instead of the original's scratch edx) plus the resulting from.x
+// reload `mov ebx,[esp+0x10]` and the tail `mov ebx,[esp+0x24]` unit2 reload. The
+// original keeps ebx=unit2 and reads from.x straight from [ebx+0x6a]. Only the FIRST
+// by-value aggregate param (from=unit2) keeps this shape: making unit2 the second
+// aggregate param, or a CopyPos struct-return helper for unit2, makes MSVC fully copy
+// all three fields into [esp+0x18..0x20] and scores 92.1 (579). CopyPos for unit1
+// (second param) or both scores 93.7 (576, byte-identical). Direct expressions (49.8),
+// one by-value + one pointer/reference (76.8/75.2), pointer params (49.8), named dx/dy/dz
+// temps, param-order permutations of s/f all stay flat or worse. It is the register the
+// inliner picks for &from, not the expression.
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)

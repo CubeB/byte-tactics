@@ -2,6 +2,12 @@
 // GPT-6.1-sol refinement: eight checks kept the 84.9% PR best. The attempted
 // local counter assignments scored 84.3% or 55.7%, so the exact best source
 // was restored and independently verified. No MATCH was reached.
+// GPT-6.1-sol issue 2308 refinement: five check.py invocations, including
+// baseline and one compile failure. Moving `n = 0` ahead of rect width/height
+// kept 84.9%; assigning it in each rect branch dropped to 84.3%. Restored the
+// best source. Rect initialization still differs: target carries zero in eax
+// through both branches and reloads x0/y0 after the join; MSVC stores zero
+// immediately and keeps x0/y0 live.
 // space-bunny-free second pass: 55.7% to 84.9% (702 of our bytes against 706).
 // Two source changes, both now in the file, and the whole top-of-function
 // register allocation that three earlier sessions failed to reach:

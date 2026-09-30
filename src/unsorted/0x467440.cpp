@@ -50,6 +50,16 @@
 // t 52.7%, loop E x/y duplicated into both arms of the field_14281 test 52.5%
 // (1013 bytes, closest byte count, but it still anchors the loop at u+0x6c
 // where the original uses u+0x74, so it was not kept).
+//
+// Session 3 (deepseek-v4.1): the loop E anchor moves from u+0x6c to u+0x74,
+// matching the original's lea and [base+N] offsets, when y is computed BEFORE
+// x in the source (write the f74 expression first, then the f6c one). The
+// py-pointer spelling (short* py = &u->pos.half.f74; py[-4], py[-2], py[0])
+// moves it identically. That y-first form is the current file, still 53.0%;
+// the residual loop E diff is register names and load scheduling only.
+// Combining y-first with x/y duplicated into both arms of the field_14281
+// test: 1016 bytes / 52.4% (plain) and 1012 bytes / 52.8% (py-pointer), so
+// neither was kept over the current file.
 
 #pragma pack(push, 1)
 
@@ -252,8 +262,8 @@ void FUN_00467440(void)
             unsigned char pi = g_game->playerIndex;
             PlayerInfo_00467440* p2 =
                 (PlayerInfo_00467440*)((char*)g_game + 0x1b63 + (unsigned int)pi * 0x14b);
-            int x = (int)u->pos.half.f6c >> 5;
             int y = ((int)u->pos.half.f74 - ((int)u->pos.half.f70 >> 1)) >> 5;
+            int x = (int)u->pos.half.f6c >> 5;
             int vis;
             if ((g_game->field_14281 & 2) == 2) {
                 vis = 0;

@@ -1,5 +1,36 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL 72.4 percent (1641 of 1662 bytes). In the projectile loop the owner
+// PARTIAL 78.1 percent (1646 of 1662 bytes), up from 72.4 this session. The
+// top-of-function hunk is FIXED: writing the flag as an if/else
+//     int enabled;
+//     if (bit0 || bit1) enabled = 0; else enabled = 1;
+//     if (bit9) enabled = 1;
+// (bitfields, not (all & 3) != 0) made MSVC hoist the else assignment as an
+// immediate `mov dword ptr [esp+0x1c], 1` before the load, emit
+// `mov ax, word ptr [esi+0x14281]` + `test al, 3`, and stop materialising the
+// shared constant 1 into a register. That removed the 5-byte size deficit and
+// with it every branch-displacement hunk in the unit loop.
+//
+// Remaining gap, exactly two sites:
+//   1. 0x4671c9 loop preheader / tail: the original keeps q (the `p + 0xa`
+//      short pointer) in ebx, reloads p from [esp+0x1c] once per iteration
+//      (`mov ecx, [esp+0x1c]`) and folds both tail reads onto ebx; this file
+//      keeps p in ebx and loads q from [esp+0x1c] each iteration, so the whole
+//      projectile-loop body and both inlined OnRadar copies are scheduled
+//      differently (homes here are p=0x18, q=0x1c; the original is p=0x1c,
+//      q=0x18). Both tail reads through q (v2) gave the original homes but
+//      still p-in-ebx at 72.1 with the old top.
+//   2. The ScaleX multiply at the first unit-loop use: the original evaluates
+//      `movsx eax, [ebx+0x6c]` (u->field_6c) before `movsx ecx, [esi+0x142eb]`
+//      (zoom); this file gets the reverse order. Swapping the operands in
+//      ScaleX_00466dc0 changed nothing (MSVC canonicalises the commutative
+//      imul), so the order is the allocator's.
+//
+// Measured this session: `unsigned short flags = g_game->field_14281.all;`
+// folds away completely (identical 72.4 bytes); `enabled = (int)1u;` folds to
+// the same constant node (no change); bitfield `bit0 || bit1` alone trades the
+// correct `mov ax`/`test al,3` for a materialised constant and scores 71.4.
+// Earlier sessions: q-based reads alone 70.9; `bits.bit0 || bits.bit1` with the
+// old top 70.4 to 70.8; OnRadar taking &p->pos costs 22 bytes (65.4).
 // and player reads now go through the q base (struct Tail_00466dc0, owner at
 // q+0x48) instead of through p, which is what lifted this file from 71.7 to
 // 72.4. The remaining gap is still the base-register decision: the preheader
@@ -262,7 +293,7 @@ static inline int OnRadar_00466dc0(int px, int py)
 // order of the multiply so the operand lands in the right register.
 static inline int ScaleX_00466dc0(Unit_00466dc0* u)
 {
-    return (int)g_game->field_142eb * (int)u->field_6c;
+    return (int)u->field_6c * (int)g_game->field_142eb;
 }
 
 static inline int ScaleY_00466dc0(Unit_00466dc0* u)
@@ -280,9 +311,11 @@ void FUN_00466dc0(void)
     void* surface = g_game->field_142db;
     FUN_004c6b70(surface, g_game->field_142df, 0, 0);
 
-    int enabled = 1;
-    if ((g_game->field_14281.all & 3) != 0)
+    int enabled;
+    if (g_game->field_14281.bits.bit0 || g_game->field_14281.bits.bit1)
         enabled = 0;
+    else
+        enabled = 1;
     if (g_game->field_37f2f.bits.bit9)
         enabled = 1;
 

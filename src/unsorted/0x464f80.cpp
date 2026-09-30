@@ -25,6 +25,25 @@
 // chain, at 2417 bytes / 79.5%, still under this file's 79.7. The plain
 // respellings (g_game->players[bl] inline, casts, signed char temp) all stay
 // CSE'd at 2376 bytes / 79.7.
+// Pass 4 (deepseek-v4.1, 4 more check runs on variants): the duplicate guard
+// group is the whole 31-byte front deficit (original group2 spans 0x465001 to
+// 0x465029; ours has one shared type chain). Three respellings tried and all
+// CSE'd to byte-identical 2376-byte output: (a) reading the second group
+// through `char* pb = (char*)pi` with raw int/byte accesses, (b) a single-use
+// `static int guard2(PlayerInfo*)` helper returning 1/0, called as
+// `if (!guard2(pi)) continue;`, (c) same as (a) but re-taking
+// `pi = &g_game->players[bl]` before the second group: this one does emit 2401
+// bytes but drops to 75.6%, so it stays out. The loop shape is the same story:
+// the original's head guard and every `continue` share one address (0x4655a6,
+// the rotated increment block `inc bl / cmp bl,0xa / mov [esp+0x10],bl /
+// jb 0x464fab`), while ours has the continue target 0xb bytes before the
+// head-exit target. Still open: that merge, the `mov cx,ax` vs `mov ecx,eax`
+// typeId copy (ours also spills the raw call result to [esp+0x30], +4 bytes),
+// and the `or byte ptr [eax+0x3923b],0x10` that ours writes through dl.
+// Pass 5 (deepseek-v4.1): that dl write is NOT caused by the `(unsigned char*)`
+// cast: declaring flags_3923b as `union { unsigned short w; unsigned char b; }`
+// and using `.b` for the byte wise writes is byte-identical (2376 / 79.7%),
+// so the load-modify-store there is a scheduler choice, not a type-alias one.
 // Previous note: Still differs: the loop head test (cmp bl,0xa / jae taken to
 // the increment)
 // is dropped as provably true even as a while loop, the duplicated player
@@ -181,7 +200,7 @@ struct Game_00464f80 {
     Class_0048ff40* list;              // +0x391ed
     char unknown_391f1[0x39239 - 0x391f1];
     short field_39239;                 // +0x39239
-    unsigned short flags_3923b;        // +0x3923b
+    union { unsigned short w; unsigned char b; } flags_3923b;  // +0x3923b
 };
 
 #pragma pack(pop)
@@ -245,8 +264,8 @@ void __stdcall FUN_00464f80()
         if (pi->active == 0)
             continue;
         {
-            unsigned char t = pi->type;
-            if (t != 1 && t != 2 && t != 3)
+            unsigned char t2 = pi->type;
+            if (t2 != 1 && t2 != 2 && t2 != 3)
                 continue;
         }
         if (pi->field_146 == 0xa)
@@ -282,9 +301,9 @@ void __stdcall FUN_00464f80()
                         } else {
                             g_game->field_39239--;
                             if (g_game->field_39239 < 0) {
-                                g_game->flags_3923b |= 4;
-                                g_game->flags_3923b &= 0xffef;
-                                *(unsigned char*)&g_game->flags_3923b |= 0x40;
+                                g_game->flags_3923b.w |= 4;
+                                g_game->flags_3923b.w &= 0xffef;
+                                g_game->flags_3923b.b |= 0x40;
                             }
                         }
                     }
@@ -399,7 +418,7 @@ void __stdcall FUN_00464f80()
             if ((t == 1 || t == 2 || t == 3) && pi->field_146 != 0xa) {
                 if ((pi->field_144 != 0 || pi->field_140 == 0) &&
                     (t == 1 || t == 2)) {
-                    if ((g_game->flags_3923b & 4) == 0 &&
+                    if ((g_game->flags_3923b.w & 4) == 0 &&
                         g_game->field_39239 < 0) {
                         FUN_00401360(pi);
                     }
@@ -451,7 +470,7 @@ void __stdcall FUN_00464f80()
                     FUN_004abd90(g_game->gui,
                                  FUN_004c5740("You are placed in watch mode"),
                                  500, 1, 1);
-                    g_game->flags_3923b &= 0xffef;
+                    g_game->flags_3923b.w &= 0xffef;
                     goto skip508;
                 }
                 goto skip508;
@@ -459,10 +478,10 @@ void __stdcall FUN_00464f80()
         }
 
     flags82e:
-        g_game->flags_3923b |= 4;
-        g_game->flags_3923b &= 0xffef;
+        g_game->flags_3923b.w |= 4;
+        g_game->flags_3923b.w &= 0xffef;
         if (pi->field_22 == 0)
-            *(unsigned char*)&g_game->flags_3923b |= 0x40;
+            g_game->flags_3923b.b |= 0x40;
         goto skip508;
 
     check230:
@@ -476,9 +495,9 @@ void __stdcall FUN_00464f80()
         } else {
             g_game->field_39239--;
             if (g_game->field_39239 < 0) {
-                g_game->flags_3923b |= 4;
-                *(unsigned char*)&g_game->flags_3923b |= 0x10;
-                *(unsigned char*)&g_game->flags_3923b |= 0x20;
+                g_game->flags_3923b.w |= 4;
+                g_game->flags_3923b.b |= 0x10;
+                g_game->flags_3923b.b |= 0x20;
             }
         }
         goto skip508;
@@ -494,9 +513,9 @@ void __stdcall FUN_00464f80()
         }
         g_game->field_39239--;
         if (g_game->field_39239 < 0) {
-            g_game->flags_3923b |= 4;
-            g_game->flags_3923b &= 0xffef;
-            *(unsigned char*)&g_game->flags_3923b |= 0x40;
+            g_game->flags_3923b.w |= 4;
+            g_game->flags_3923b.w &= 0xffef;
+            g_game->flags_3923b.b |= 0x40;
         }
     }
 }

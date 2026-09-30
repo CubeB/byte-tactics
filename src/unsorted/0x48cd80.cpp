@@ -1,16 +1,21 @@
-// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// Partial: 90.4% (432 bytes vs 428). Prologue and branch A match exactly.
-// GPT-6.1-sol verified 90.4% after five check runs and kept this best variant.
-// Branch B needs both hoisted loads out of p (`mov edi,[esi+4]` py,
-// `mov esi,[esi]` px), but that lower-case branch B is the ONLY thing left:
-//   original: mov edi,[esi+4]; mov esi,[esi]; sub ecx,edi; sub eax,esi
-//   ours:     mov esi,[esi+4]; mov edi,[eax+0x2c76]; sub ecx,esi; sub eax,edi
-// Reading p->x anywhere in branch B (loop, locals, reference, second call
-// args) makes MSVC move p from ESI to EDI for the whole function, which wrecks
-// branch A (71.2%). Reading only p->y keeps p in ESI but leaves px a reload of
-// g_game->view.x (this file). A second pointer q = &g_game->view keeps p in ESI
-// but rematerialises q from g_game (79.1%). 128 header sets (headers.py) and
-// all declaration orders tried leave the choice unchanged.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Partial: 92.6% (431 bytes vs 428), best of v20-v39. Prologue, branch A and
+// the whole branch B loop body match; only two instructions differ, in the
+// branch B preheader (both are register/base choices for the p reads):
+//   original: mov edx,[eax+0x14363]; mov eax,[eax+0x1436b]; cmp eax,edi;
+//             mov edi,[esi+4]; mov esi,[esi]; mov [esp+0x18],eax
+//   ours:     mov ecx,[eax+0x1436b]; mov edx,[eax+0x14363]; cmp ecx,edi;
+//             mov esi,[esi]; mov edi,[eax+0x2c7a]; mov [esp+0x18],ecx
+// Reading p->x (first statement) makes p die on `mov esi,[esi]`, which is the
+// original's dying-register load, but the second read g_game->view.y must then
+// be rematerialised from EAX, so g_game stays live and count2 takes ECX.
+// Reading both fields from p (v20 dy-first 71.2%, v21 dx-first 72.7%) moves p
+// to EDI for the whole function and the zero to ESI, which wrecks branch A.
+// Also tried: dy-first with the y read from p (90.4%, p dies on the wrong
+// load), q = p copies and a Point& alias (fold into p, 71.2%), q = &g_game->view
+// (rematerialised from g_game, 79.1%), cast-based address forms (identical).
+// The remaining work is getting `mov edi,[esi+4]` plus `mov eax,[eax+0x1436b]`
+// without re-triggering the whole-function p->EDI reallocation.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {
@@ -102,8 +107,8 @@ unsigned short __stdcall FUN_0048cd80(void)
         int best = 99999;
         Slot_0048cd80* s = g_game->list2;
         for (int i = g_game->count2; i > 0; i--) {
-            int dy = s->y - p->y;
-            int dx = s->x - g_game->view.x;
+            int dx = s->x - p->x;
+            int dy = s->y - g_game->view.y;
             int d = dx * dx + dy * dy;
             if (d < 4 && d < best) {
                 best = d;

@@ -72,6 +72,23 @@
 // `lea edx` / `push edx` pair above. docs/agent-guide.md already describes this
 // shape (an address-taken local whose displacement drifts by 4 per argument
 // push): a scheduler tie-break, not a source-level lever.
+// deepseek-v4.1 (issue #2465 rerun) ran 27 further check.py runs on that hunk.
+// New families tried, all byte-identical at 98.7 with the same lea ecx /
+// push ecx pair: address spellings `value + 0`, `0 + value`, `value - 0`,
+// `&*(value + 0)`, `value + sizeof(value) - sizeof(value)`,
+// `value + (y - y)`, `value + (page->first * 0)`, `&value[0 * y]`,
+// `(char*)((int)value)`, `(char*)((unsigned)value)`;
+// constant-propagation locals (`int which = 0;` as FUN_004b6af0's second
+// argument, `int xx = 0x28, ww = 0x4e, aa = 2;` as the outer arguments);
+// a `static void __stdcall` (not inline) helper; a while-loop scan with an
+// empty body and a pre-increment scan (both lose bytes); `&page->blank[0]`
+// in the strcpy; and the key/value pair wrapped in one anonymous struct
+// local (`buf.key` / `buf.value`), which keeps the frame and every offset
+// but still picks ecx. The one variation that moves the lea is splitting
+// the text into `char* t = FUN_004c5740(FUN_004b6af0(value, 0));`, which
+// hoists the lea to [esp+0x34] and still picks ecx (96.0), so the address
+// temporary is not the lever: MSVC 5 always prefers ecx here and the
+// original evidently had something occupying ecx at the merge.
 #include <windows.h>
 #include <string.h>
 

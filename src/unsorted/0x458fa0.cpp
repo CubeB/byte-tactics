@@ -66,6 +66,17 @@
 // __thiscall member shrinks it to 452 bytes and drops to 66.9% (the vertex loop
 // loses the batched loads), so the implicit `this` variable is part of the
 // allocator state, and this function must stay a member.
+// 2026-09-30 second deepseek-v4.1 pass: 40 more runs, every one still exactly
+// 84.1% with the same swap: register/const on the pointers, a reference
+// parameter for view, void*/unsigned/long third param and callee prototype
+// changes, a fresh view alias inside the loop, an explicit destination pointer
+// (58.9%), all countdown and `!=` vertex-loop counter forms (62.3%, so the
+// countdown shape is wrong), `d++` at the body end, `*tmp` and declaration
+// order swaps in the copy loop, class virtuals and an empty base,
+// `#pragma pack(push,1)` around every struct and at file scope, reordering the
+// struct definitions, typedef signatures, and dummy type/function/data symbols
+// of eight kinds. /Oa, /Oi- and /Og change nothing; /Os drops to 8.7%. The
+// verdict stands: the ebx/ebp tie is not reachable from this file's text.
 // Earlier note from space-bunny-free: several scratch variants scored 80-90%
 // but are wrong; they lay the vertex arrays out 4 bytes high at [esp+0x150],
 // where the original uses [esp+0x14c]. Always check the `lea eax, ...` base

@@ -112,6 +112,21 @@
 // g_game->flags_2a44 and an empty `if (p->active) {}` read before the group are
 // all eliminated before register allocation and leave the phase untouched.
 // build/scratch/0x447380/rank.py reproduces check.py's difflib score locally.
+// deepseek-v4.1 pass (issue 2762): re-verified against the original. This file
+// keeps the 95.1% probe on purpose (the comment above says why it is not the
+// original's statement order). The natural order is in
+// build/scratch/0x447380/nat.cpp and scores 93.51%: its body group starts one
+// rotation step early (eax/ecx/edx/eax vs ecx/edx/eax/ecx) and everything to
+// 0x447600 follows it, realigning inside the inlined strcat. The probe spends
+// one allocation in front of the group (so the group matches) and the tail is
+// still one step off: ours emits player->edx and entries->eax for the
+// FUN_0049fdf0 pair, then the chain ecx/edx/ecx/edx, where the original has
+// player->eax, entries->ecx and edx/ecx/edx/ecx, and ours hoists the entries
+// reload above `add esp,0xc`. Six further tail spellings were tried this pass
+// (`char* pbuf = player;`, `char* dst = name;`, `int idx;` assigned on its own
+// line, a local `Entry_00447380* ent = entries;`, `(char*)player`, `&player[0]`)
+// and all six stay at 95.06% / 1318 bytes, so the pair's register choice is not
+// reachable from the call expression's spelling.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

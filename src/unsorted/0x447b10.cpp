@@ -1,5 +1,29 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
 // (earlier passes by deepseek-v4.1-flash and GPT-6)
+// This pass (deepseek-v4.1, 2026-09-30, 2 check runs): tried the two shape fixes
+// the baseline diff pointed at, both kept because neither lowered the score.
+//  - `uVar7 - player[2] < 0x1f` -> `<= 0x1e`: the original emits
+//    `cmp eax,0x1e / jbe`, we emitted `cmp eax,0x1f / jb`. One byte smaller
+//    now (4382 vs 4383), same 45.7%.
+//  - `*(short *)(... + 0x9b) < 0` -> `(*(ushort *)(... + 0x9b) >> 0xf & 1) != 0`
+//    (0x447d32 in the original is `mov cx,word[+0x9b] / shr ecx,0xf / test cl,1`).
+//    MSVC5 still picks its own shape, so this hunk did NOT improve; the exact
+//    original shape is still missing.
+// Still differs, in reading order:
+//  - scalar stack slots do not match: original frame+0 is the player pointer,
+//    +4 iVar8, +8 bVar1, +0xc/+0x10 temps, +0x14 iVar5/FUN_00457a50 result.
+//    Ours: +0 pointer, +4 unused, +8 iVar8, +0xc iVar5, +0x10 bVar1, +0x14 temp.
+//    All the other agents' experiments (declaration order, one fused pointer,
+//    single 292-byte struct for the two arrays) are recorded below.
+//  - the loop pointer lives in esi for us, in ebx for the original, so every
+//    `[ebx+..]` in the 10-iteration walk is `[esi+..]` here, and the index temp
+//    is stored 4 bytes high ([esp+0x30] vs [esp+0x24]).
+//  - the can't-add-another-player block (0x448313 in the original) is emitted
+//    inline in our build and reached at 0x448bd2, so the loop's block order
+//    differs.
+//  - `je 0x447e3d` vs our `je 0x447deb` and the surrounding switch shape of the
+//    PLAYER%d arm differ (original compares `al,2` after `cmp [ebx],0`).
+//  - the original's inlined 0x40/0x519 string copies at the tail are missing.
 // Partial, 45.7% (deepseek-v4.1, 2026-09-30): a plausible full dispatcher.
 // BIG LEVER FOUND: scalar stack slots follow DECLARATION ORDER. Declaring
 // `int iVar8;` first (it is the first local the original stores, at frame+4)
@@ -193,7 +217,7 @@ void __stdcall FUN_00447b10(byte *param_1)
         }
         else if (cVar2 != '\0') {
           if (((*player == 0) || (cVar2 != '\x02')) ||
-             (uVar7 = FUN_004b6340(), uVar7 - player[2] < 0x1f)) {
+             (uVar7 = FUN_004b6340(), uVar7 - player[2] <= 0x1e)) {
             if (((iVar5 != 0) && (*player != 0)) && (*(char *)((int)player + 0x73) == '\x03')) {
               FUN_00446080((int)(uVar17));
             }
@@ -205,7 +229,8 @@ void __stdcall FUN_00447b10(byte *param_1)
           goto LAB_00447e27;
         }
         bVar4 = FUN_00456850();
-        if (*(short *)(*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a) + 0x9b) < 0) {
+        if ((*(ushort *)(*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a) + 0x9b) >>
+             0xf & 1) != 0) {
           iVar20 = 1;
           iVar6 = 1;
           iVar5 = 500;

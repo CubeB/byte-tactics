@@ -1,5 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// BEST SO FAR: 64.5%, ours 1204 bytes vs original 1199. Frame is now 0x18 and
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, further by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (#1571): `tools/headers.py` found `<windows.h>` takes
+// this from 64.5% to 66.5% (ours now 1202 bytes vs the original 1199). That is
+// the best of the 128 header sets; the file keeps the include. All the remaining
+// hunks are the same register-role differences listed below (the header only
+// removed two bytes elsewhere). Free-scored this pass and rejected: a separate
+// `int w = size.x` used for the bounds, inner counter, advance and grown.x (47.0,
+// 1208 bytes), the same as `short w` (64.5, no change, the compiler CSEs it back
+// to size.x), swapping the two negative checks (63.9), inverting the owner test
+// to `active != 0 && type == 3` with the bad path in the else (62.6), using
+// `g_game->cells` instead of the `game` local for the cell base (61.2), and
+// dropping the `game` local entirely (61.2). Without windows.h those last two
+// score 62.7, so the include is load bearing twice over.
+//
+// BEST SO FAR: 66.5%, ours 1202 bytes vs original 1199. Frame is now 0x18 and
 // g_game is in ebp, both matching. What fixed it: introducing a named
 // `Game_0047cc30* game = g_game;` local assigned right after the two negative
 // checks. That gave the loaded pointer a live range starting at the bounds test,
@@ -28,6 +41,7 @@
 // `inc ebp / mov bl,byte [ecx+ebp-1] / neg al / sbb eax,eax / and al,0xfe /
 // add eax,4 / test bl,al`, which came from keeping `unsigned char m` a local
 // inside the loop body and from `unsigned char bit = obj->bit2 ? 2 : 4;`.
+#include <windows.h>
 #pragma pack(push, 1)
 
 struct Obj_0047cc30;

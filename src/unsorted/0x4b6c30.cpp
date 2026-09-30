@@ -44,6 +44,10 @@
 // algebraic dependency form `(seed+q)*16807-q*16807` to make the seed product wait
 // for q. Both preserved the wrong evaluation schedule and scored 57.5%; writing the
 // equivalent final update as `seed*16807 + (q<<31) + q` did too. Baseline retained.
+// GPT-6.1-sol refinement (issue 2309): baseline check remained 91.1%. A fresh
+// correction local `q * 0x80000001u` scored 57.5% by moving seed*16807 before
+// quotient calculation; restored this 91.1% version. The remaining mismatch is
+// the neg/shl/sub ordering for the quotient correction and the following branch.
 #include <windows.h>
 
 extern unsigned int DAT_0051fc88;

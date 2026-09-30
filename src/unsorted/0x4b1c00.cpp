@@ -1,5 +1,6 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// BEST 24.0% (586 bytes original, 564 ours). The element is Data_004b1ec0 (0x4c):
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// BEST 24.0% after 3 check.py runs (586 bytes original, 564 ours). No MATCH.
+// The element is Data_004b1ec0 (0x4c):
 // flag + six Vec3 of 3 ints, same shape the matched sibling 0x4b1ec0 uses.
 // Value arrays are block.e[1], e[3], e[5]; the limits are block.e[0], e[2], e[4],
 // reached through a dword index k (0xd, +0x13 per element). Writing the values as
@@ -12,6 +13,7 @@
 //    separately ([esi+ebx-0x18]); the original fuses 4*j into esi
 //    ([esi+ecx-0x18], base reloaded into ecx) after a one-time add esi,0x28.
 //  - frame is 0x1c (7 locals) vs 0x18 (6), and `this` lands in a different rank.
+// A while-loop rewrite and all 128 headers kept the score at 24.0%.
 #include <stdlib.h>
 
 struct Vec3_004b1c00 {
@@ -63,7 +65,8 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
         return;
 
     int k = 0xd;
-    for (int i = 0; i < field_8->count; i++) {
+    int i = 0;
+    while (i < field_8->count) {
         if (ptr14[i].flag != 0) {
             ptr14[i].flag = 0;
             for (int j = 0; j <= 2; j++) {
@@ -128,5 +131,6 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
             }
         }
         k += 0x13;
+        i++;
     }
 }

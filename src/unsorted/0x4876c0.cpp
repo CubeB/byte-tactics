@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Saves every live unit (g_game+0x14357..+0x1435b, stride 0x118) as a 0xb8
 // byte record; inverse of 0x487080/0x486fd0. Record and Piece field maps are
 // complete and confirmed by the 0x487080 loader.

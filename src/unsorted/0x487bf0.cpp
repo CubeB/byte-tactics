@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// PARTIAL, 44.4% (1847 vs 1811 original bytes), 3 scored checks. Remaining mismatch is the large parser switch and its branch-local temporaries.
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>

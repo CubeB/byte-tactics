@@ -1,12 +1,12 @@
-// Decompiled by Opus, finished by GPT-6.1-sol. Names are provisional.
-// Codex / GPT-6 retest in #13 and GPT-6.1-sol fix pass in #1338:
-// pointer-typed image bases, DWORD-sized arithmetic, a directory
-// reference and an RVA helper did not fix the final eax/ecx operand order.
+// Decompiled by Opus, finished by GPT-6.1-sol and space-bunny-free. Names are provisional.
 // Constructor of the loaded-image reader (the function-local static at
 // 0x528a78, built by 0x4de0a0 from GetModuleHandle(0)): maps the module's
 // own file through the memory-mapped-file base class (0x4e1560), then finds
 // the image's debug directory, which 0x4ddfa0 and 0x4ddfe0 search for the FPO
 // records.
+// The last block's eax/ecx pair is won by writing the sum through a `char*`
+// local assigned inside the if-body and read after a second test of
+// numDebugDirs, not as one expression over the members (see the note below).
 #include <windows.h>
 
 class Class_004e1590 {
@@ -39,24 +39,12 @@ public:
 
 // The count must be stored before debugDirs is cleared (that order makes
 // MSVC reload ntHeaders for the final sum, as the original does).
-// PARTIAL 91.7% (158/158 bytes, identical instruction sequence, one eax/ecx
-// pair swapped). Original final block:
-//   mov edx,[esi+0x20] / mov eax,[esi+0x18] / mov ecx,[edx+0xa8]
-//   add ecx,eax / mov [esi+0x24],ecx
-// Ours gives the same loads in the same order but: mov ecx,[esi+0x18],
-// mov eax,[edx+0xa8], add eax,ecx, mov [esi+0x24],eax. Only the register
-// pair of the commutative `imageBase + RVA` differs.
-// Measured with no effect on the swap: reversed operands, both operand
-// orders cast to unsigned int/int/long, (char*)/(unsigned char*) imageBase,
-// (void*)/(char*)/(unsigned int) debugDirs, both a free-function and a
-// static-inline RVA helper (args either way), a ternary and an if/else
-// spelling, all 128 header sets tools/headers.py tries (<windows.h> best),
-// and an unused `extern int dummyN;` prefix sweep for N = 0..400 step 4.
-// Reversing source order changes nothing either, so MSVC canonicalises the
-// commutative operands and only the allocator's free-register state chooses
-// eax vs ecx. This is the guide's "operand order that no rewrite changes"
-// case: compiler state from earlier functions of the original translation
-// unit, not the source shape.
+// `base` and the second `if (numDebugDirs)` are what pick the registers: the
+// load of imageBase then lands in EAX and the data-directory RVA in ECX, so
+// the sum is `add ecx, eax`, exactly as the original does. Written any other
+// way (a local assigned before the if, a one-expression sum over the members,
+// any cast of either operand) MSVC always gives the mirror image
+// `mov ecx,[base] / mov eax,[rva] / add eax,ecx`, whatever the header set.
 // FUNCTION: 0x4ddf00
 Class_004ddf00::Class_004ddf00(HMODULE m) : Class_004e1560(0)
 {
@@ -73,5 +61,9 @@ Class_004ddf00::Class_004ddf00(HMODULE m) : Class_004e1560(0)
     numDebugDirs = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].Size / sizeof(IMAGE_DEBUG_DIRECTORY);
     debugDirs = 0;
     if (numDebugDirs)
-        debugDirs = (IMAGE_DEBUG_DIRECTORY*)(imageBase + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
+    {
+        char* base = (char*)imageBase;
+        if (numDebugDirs)
+            debugDirs = (IMAGE_DEBUG_DIRECTORY*)((char*)base + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
+    }
 }

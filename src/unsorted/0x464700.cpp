@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: best remains 98.3% (473 bytes). An equivalent `if (p->ref != 0) {} else` preserved the same diff; the conditional-expression form `p->ref = p->ref ? p->ref : new PlayerRef` scored 61.3%; moving the third tick store after the first six clears scored 96.6%. Restored the 98.3% source.
+// Further refinement: moving the allocation guard after the six clears scored
+// 68.9%; an empty `p->ref == 0` guard scored 97.5%. Restored 98.3%; no MATCH.
 //
 // deepseek-v4.1-flash retry (still 98.3%): the one hunk is the position of the
 // `cmp eax, ebp` / `mov [esi + 0xf8], edx` pair. Moving `p->ff8 = g_game->ticks;`
@@ -285,8 +288,9 @@ void __stdcall FUN_00464700(Player_00464700* p)
     p->fe4 = 0;
     p->fd0 = 0;
     p->fd8 = 0;
-    if (!p->ref)
+    if (!p->ref) {
         p->ref = new PlayerRef;
+    }
     p->ref->Reset(p->team);
     p->flags &= 0xfffe;
     p->ffc = 0;

@@ -1,4 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// TIMEBOXED RETRY (deepseek-v4.1-flash): still 99.7% (1017 = 1017), the one
+// rotation at 0x4b55af remains: original is load,h,d,push6,store; ours is
+// h,d,load,push6,store. New finding from the c/h/d ordering experiment
+// (scratch v1.cpp, free --sym diff): with the dc store first in the source
+// the list becomes load,push6,store,h,d. Together with the baseline
+// (h,d,load,push6,store) this shows `push 6` always lands immediately BEFORE
+// the `mov [edx],ebp` store at that store's tree slot, and every other tree
+// keeps its source order. So the original's tree order is [load, h, d, store]
+// with the load a SEPARATE tree at the block head. Scoring was cut short:
+// build/scratch/0x4b5510/v3..v6.cpp (named copy `HDC *slot = setup.dcSlot;`
+// placed before/between/after the handle stores, and with the handle stores as
+// one chain tree) were written but NOT scored when the timebox fired; v4 is
+// the most promising untested shape (trees [load, HD, store], expected load,
+// push6, store... verify before trusting). The named copy needs EDX coloring;
+// every prior spelling got EAX and recolored the SetWindowPos block (96.4).
 // Last session (deepseek-v4.1-flash retry, timebox cut short): still 99.7%,
 // same single rotation at 0x4b55af (reload of [esp+0x14] must sit at the block
 // head above the hpalette/dib stores). New idea formed but NOT yet scored: the

@@ -101,6 +101,49 @@
 //    to 71.3%. The residual is exactly the allocator choosing EDI for the OR temp and
 //    rematerialising edx=0x10, where the original spends EAX first and keeps edx live
 //    from 0x48d866. Nothing in the source shapes tried flips that tie.
+//
+// space-bunny-free pass (issue 1883, second visit, measured with /Fa):
+//  * The recorded "callee-saved rotation set" wall is WRONG for this function.
+//    The original pushes and pops ebx, ebp, esi, edi, in that order, and so
+//    does this build, so there is no rotation to reproduce. z1 below is the
+//    only shape found that changes the set (it pops ecx instead of ebx), and
+//    it is provably not the original.
+//  * The residual is ONE decision, not a rotation: does the 0x10 mask copy
+//    written at 0x48d866 stay live in EDX inside the hit block? The original
+//    says yes (`or eax, edx`, then `or word ptr [edi+..], dx`); this build
+//    re-materialises it (`mov edx, 0x10` as the block's first instruction) and
+//    that extra definition is the whole 4 bytes. It also shifts the scratch
+//    rotation by one, which is why the container lands in EDI and both g_game
+//    loads in EAX here, against EAX/EAX/EDI in the original.
+//  * Why the original's allocation is what it is: in that block ESI (u), EBX
+//    (found) and ECX (t->end) are live, so only EAX and EDI are free for the
+//    three temps. With the mask pinned in EDX the original's EAX, EAX, EDI is
+//    exactly that; with the mask rematerialised the first def inside the block
+//    consumes a rotation step and the rest slides to EDI, EAX, EAX.
+//  * Measured on the block alone: trimmed to one temp (only the unit RMW) this
+//    build already puts the container in EAX, the original's choice, and folds
+//    the mask to `or al, 16`. With two temps it rematerialises and moves the
+//    container to EDI. So it is the mask, not the RMW spelling, that decides.
+//  * The original's register form (`or eax, edx`) is the tell: MSVC 5 emits the
+//    register form only for a mask it cannot rematerialise, i.e. a variable.
+//    A constant mask in a loop-reachable block is either folded to an immediate
+//    (one use) or re-materialised into a register (two or more uses), and is
+//    never read from the copy made before the loop. A micro test confirms it:
+//    a mask arriving as a function parameter gives `or WORD PTR [eax], dx`,
+//    while every local spelling gives the folded or rematerialised form.
+//  * Tried this pass, all still 92.2% / 392 bytes with the same single diff:
+//    the RMW as `|= flag`, `= x | flag`, an explicit temporary, the bitfield,
+//    and a `p = u` alias; the mask as unsigned short, short, char, int,
+//    const int, each with and without a cast in the RMW; `g_game->flags` as a
+//    16-bit bitfield written directly (that one turns the fallback into an
+//    in-place `or [mem], reg`, so it is wrong); the three hit-block statements
+//    as an inlined helper taking the mask; the field store and the game word
+//    in either order; the mask declared before the first loop.
+//  * The one shape that does remove the remat is z1: hold a `second` pointer
+//    set inside the loop, test it after, so the hit block is not dominated by
+//    the loop header. The remat goes, but then MSVC folds both mask uses to
+//    immediates (`or esi, 16`, `or BYTE PTR [..], 16`) and the callee-saved set
+//    rotates to pop ecx, so the original is not that either.
 #pragma pack(push, 1)
 
 // The object at +0x86 of a unit. Bit 30 of the flags dword at +0x110 is the

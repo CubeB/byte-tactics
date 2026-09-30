@@ -1,4 +1,18 @@
-// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass (#2438): swept the inert-declaration state that fixed the
+// sibling 0x47d820 (16 to 80 unused `extern int` lines in front of the first
+// `#pragma pack`). For this function that lever reaches only the y sum:
+//   N = 0..58 and 200..300     98.0, x loads [ecx+0x7e], y loads [ecx+0x80]
+//   N = 59..180, 340..420, 600, 900   96.0, only y flips to
+//                              `mov dx,[ecx+0x78] / add dx,[ecx+0x80]`
+// The x sum is `mov ax,[ecx+0x7e] / add ax,[ecx+0x76]` in every one of those
+// 51 states, and no state reaches MATCH. Also tried and unchanged at 98.0
+// (all free-scored scratch, none committed): two distinct field types for pos
+// and size (same layout, different leaf symbols), a wrapper struct holding
+// both, and dead statements before the sums (a read of field_a8, a Point copy
+// of size, an int local). Source operand order and `+=` were re-confirmed
+// dead. So the declaration state moves the y add but nothing reaches the x
+// add, and the body below stays the best version.
 // space-bunny-free pass (#1856): settled the residual with a new instrument
 // instead of more spellings. A scratch TU holding a dozen copies of this body
 // (one per spelling, all in one object) compiles in a single pass, and parsing

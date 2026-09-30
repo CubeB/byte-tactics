@@ -139,6 +139,24 @@
 //    (it copies the byte into ecx and loads the width into eax, so the width
 //    is the left side of `*` in the generated code no matter how it is
 //    written).
+// deepseek-v4.1 pass (#2438), 28 check runs, all 86.8 percent and 346 bytes
+// with the eight-instruction block byte-identical, except the unsigned short
+// cast at 85.2:
+//  - the index expression: both multiply orders, both add orders (again),
+//    `iy * g_game->width + ix` through `unsigned int` and `short` locals,
+//    a separate `unsigned int idx` and `int idx`, casts on the whole sum,
+//    `&cell[-k]` and a char-pointer scale-by-0xd spelling: flat, so the
+//    expression is not the lever, as the earlier passes found;
+//  - unused `extern int dummyN;` padding in front of the first pragma at the
+//    odd counts N = 1, 3, 5, 7, 9, 11, 13, 15 (the earlier sweeps used step 4
+//    only), and `N = 0..15` combined with the two multiply orders: flat, so
+//    unlike 0x47d820 there is no declaration state that folds the imul here.
+// The matched sibling 0x47dfc0 has this exact expression and folds the imul as
+// `xor ecx,ecx; xor edx,edx; mov cl,[esi+0xa]; mov dl,[esi+0xb];
+// imul ecx,[edi+0x14233]; add ecx,edx`, i.e. its pair is (ecx, edx) because in
+// its loop eax holds the pending `blocked` value while g_game sits in edi. Our
+// function needs the pair (eax, ecx) with g_game in edx, and that pinned pair
+// is what makes c1 copy the byte out of eax and load the width into it.
 #pragma pack(push, 1)
 struct Feature_0047de60 {
     char unknown_0[0xfe];

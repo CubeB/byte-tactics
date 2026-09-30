@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free, confirmed by deepseek-v4.1-flash, re-checked by deepseek-v4.1-flash, second pass by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free, confirmed by deepseek-v4.1-flash, re-checked by deepseek-v4.1-flash, second pass by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Ground height under a unit's footprint: walks the rectangle of map cells the
 // unit covers and keeps the lowest cell floor over the cells whose footprint
 // mask has bit 3 set, plus the highest floor over the cells with bit 3 and the
@@ -124,6 +124,43 @@
 // extern padding does in both directions. The body below stays as it was, and I
 // agree with the instruction above: do not spend another pass on this
 // function's operand order.
+// deepseek-v4.1 pass (#2438): closes the last SIB byte. The residual was one
+// encoding choice in the mask load, original `mov al, [esi+edi]` (base = the
+// running index) vs ours `mov al, [edi+esi]` (base = the mask pointer). Six
+// new spellings that put the integer on the left of the sum or cast the
+// pointer to int, namely i + (int)unit->mask, (int)unit->mask + i,
+// ((unsigned char*)(int)unit->mask)[i], a local copy of the mask pointer,
+// i + (unsigned char*)(int)unit->mask and an unsigned index local, all still
+// compile to [edi+esi], so the choice is not in the source text. It is
+// front-end symbol-table state, as the notes above suspected: inert
+// file-scope declarations in front of the structs flip it. Measured this
+// pass with check.py --sym: 16 to 80 declarations give MATCH (24 kept
+// here), 2 to 15 and 0 give 99.1 percent, 96 gives a different state at
+// 67.9 percent. Same lever and same form as src/unsorted/0x41ace0.cpp.
+extern int pad47d820_0;
+extern int pad47d820_1;
+extern int pad47d820_2;
+extern int pad47d820_3;
+extern int pad47d820_4;
+extern int pad47d820_5;
+extern int pad47d820_6;
+extern int pad47d820_7;
+extern int pad47d820_8;
+extern int pad47d820_9;
+extern int pad47d820_10;
+extern int pad47d820_11;
+extern int pad47d820_12;
+extern int pad47d820_13;
+extern int pad47d820_14;
+extern int pad47d820_15;
+extern int pad47d820_16;
+extern int pad47d820_17;
+extern int pad47d820_18;
+extern int pad47d820_19;
+extern int pad47d820_20;
+extern int pad47d820_21;
+extern int pad47d820_22;
+extern int pad47d820_23;
 #pragma pack(push, 1)
 
 struct Point {

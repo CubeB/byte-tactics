@@ -1,11 +1,33 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Partial: 94.2%, 1005 bytes versus 1013. Body and FAT date/time block match.
-// Remaining differences: PE timestamp address folding, gmtime scratch LEA,
-// library-date load timing, system-info pointer register and processor-count
-// formatting. GPT-6 tried 768 header sets and 15 source variants without
-// improvement. Direct sprintf(buf + strlen(buf), ...) restores the library
-// pointer timing but changes processor and memory-status registers (94.1%).
-// Typed NT/file headers and a separate date-prefix length do not improve it.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free,
+// matched by deepseek-v4.1-flash. Names are provisional.
+// MATCH, 1013 bytes. Calling convention is __cdecl (original symbol
+// ?FUN_004ded60@@YAXPADH@Z; the original ends in plain `ret`), so the /Gz
+// __stdcall lever does not apply here: __stdcall gives ?...@@YG... and `ret 8`.
+// /Gz changes nothing, and dropping the explicit convention on the
+// FUN_004d8df0/FUN_004d8e20 externs changes nothing (0-arg callees).
+//
+// Two source facts took it from 94.2% to MATCH. Both are about VALUE NUMBERS.
+//
+// 1. The link-time block. The old one-expression form
+//        DWORD* linkTime = (DWORD*)((char*)hMod + e_lfanew + 8);
+//    let MSVC fold the NT header pointer away:
+//        mov edx,[eax+0x3c]; lea ebx,[edx+eax+8]
+//    and choosing edx there cascaded into every later scratch register.
+//    Naming the NT header and USING IT TWICE (once for &FileHeader.
+//    TimeDateStamp, once for the value) forces it to live in a register:
+//        mov ecx,[eax+0x3c]; add ecx,eax; lea ebx,[ecx+8]
+//    which is the original, and the whole function falls into place.
+//    A named pointer to TimeDateStamp (used once) still folds.
+//
+// 2. The processor arms are asymmetric in the original: the then arm keeps the
+//    p temporary, the else arm calls sprintf(buf + strlen(buf), ...) directly.
+//    then: p = buf + strlen(buf); sprintf(p, "%d processors\n", count);
+//    else: sprintf(buf + strlen(buf), "1 processor\n");
+//    With p in both arms MSVC CSEs buf+strlen(buf) and hoists `lea edi` above
+//    the cmp (1005 bytes); with direct in both it moves the count to eax.
+//
+// Scratch: build/scratch/0x4ded60/v0..v7,e1..e7,f1..f4,g1..g9,k1..k5,m1;
+// build/scratch/refine/L1,L1D..L1H.
 // Original bug preserved: CreateFileA failure is tested against zero at
 // 0x4deee1, so INVALID_HANDLE_VALUE reaches GetFileSize at 0x4deeec.
 #include <windows.h>
@@ -79,10 +101,10 @@ void __cdecl FUN_004ded60(char* dest, int destLen)
     }
 
     HANDLE hMod = GetModuleHandleA(NULL);
-    DWORD* linkTime = (DWORD*)((char*)hMod + ((IMAGE_DOS_HEADER*)hMod)->e_lfanew + 8);
-    gmTimeCopy = *gmtime((time_t*)linkTime);
+    IMAGE_NT_HEADERS* pNT = (IMAGE_NT_HEADERS*)((char*)hMod + ((IMAGE_DOS_HEADER*)hMod)->e_lfanew);
+    gmTimeCopy = *gmtime((time_t*)&pNT->FileHeader.TimeDateStamp);
     p = buf + strlen(buf);
-    sprintf(p, "UTC link time: %08lx - %s", *linkTime, asctime(&gmTimeCopy));
+    sprintf(p, "UTC link time: %08lx - %s", pNT->FileHeader.TimeDateStamp, asctime(&gmTimeCopy));
 
     p = buf + strlen(buf);
     sprintf(p, "Library version %d. Library date %s\n",
@@ -93,8 +115,7 @@ void __cdecl FUN_004ded60(char* dest, int destLen)
         p = buf + strlen(buf);
     sprintf(p, "%d processors\n", sysInfo.dwNumberOfProcessors);
     } else {
-        p = buf + strlen(buf);
-    sprintf(p, "1 processor\n");
+        sprintf(buf + strlen(buf), "1 processor\n");
     }
 
     memStatus.dwLength = sizeof(memStatus);

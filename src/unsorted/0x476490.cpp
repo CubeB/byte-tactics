@@ -1,5 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // GPT-6 retry: 78.9%, 646 of 632 bytes; pointer and buffer constness did not change the saved register family or spilled insertion pointer.
+// GPT-6.1-sol refinement: verified the 78.9% best with check.py. Moving the
+// suffix _Ucopy before _Ufill changes the emitted control-flow layout and drops
+// to 33.3% (640 bytes); restored the original order. The remaining allocator
+// mismatch is still _P being reloaded from the argument slot instead of kept
+// in EDX through the reallocating copies.
 // std::vector<Elem_00476490>::insert(Elem_00476490* _P, size_type _M,
 // const Elem_00476490& _X), the game's reallocating insert.
 //

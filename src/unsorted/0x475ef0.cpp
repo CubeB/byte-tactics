@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Refinement issue #2306: best remains 83.0% (795/794 bytes). The reallocating branch allocates _P in esi instead of edx, shifting spills and copy-loop registers; all other branches match.
 // GPT-6 retry: 83.0%, 795 of 794 bytes; pointer and buffer constness and allocator pointer typedef variants did not change the saved register family.
 // Sonnet 5.5 retry (#1081): /Gz and /Gr change nothing (it is a method), and about
 // 700 more variants (deallocate/_Destroy order and spelling, helper parameter

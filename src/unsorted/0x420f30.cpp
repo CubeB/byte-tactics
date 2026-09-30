@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Best 82.7%. The compaction now matches (pointer scan + *e = e[1] loop).
 // Still differs (same instructions, register allocation/order):
 //  - in the position update x, our compiler loads vel.x into eax where the
@@ -7,6 +7,8 @@
 //    instruction, ours 534 bytes vs 536).
 //  - gravity/angle block: original reads g_game into eax, loads vel.y fresh,
 //    then all three spin words; ours interleaves.
+// GPT-6.1-sol tried spin locals, reordered z arithmetic, cached gravity, and
+// left-associated y arithmetic; none improved the 82.7% best.
 #include <stdio.h>
 #pragma pack(push, 1)
 

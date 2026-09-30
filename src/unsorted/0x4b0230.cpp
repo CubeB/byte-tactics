@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial), deepseek-v4.1-flash (partial). Names are provisional.
+// Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial), deepseek-v4.1-flash (partial), verified by GPT-6.1-sol. Names are provisional.
+// #1700 retry by Codex / GPT-6.1-sol: checkall reconfirmed 82.9% (631/631 bytes), no MATCH.
+// Both direct checks and all 128 headers.py combinations left the 3x3 tiling mismatch unchanged.
 // Draws a list box's frame. FUN_004a15c0 gives the entry's rectangle; when no
 // bitmap arrives, the "Listbox" piece is looked up in the object's GAF and, if
 // found, the rectangle is grown by 3 on every side. The destination is the

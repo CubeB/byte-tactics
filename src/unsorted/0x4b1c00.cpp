@@ -1,5 +1,12 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // BEST 25.0% (586 bytes original, 569 ours). No MATCH.
+// Retry pass (deepseek-v4.1-flash) tried and rejected, all scoring below the
+// 25.0% above: flattening the record to int* with a byte cursor (11.4%),
+// keeping i/off/k as three explicit counters and inlining the byte-offset
+// expression at every access (10.7%), a persistent int* rec over a byte
+// offset (11.4%), a local for block2's e[5] (11.0%), and a local bounds
+// pointer for the k-indexed limits (24.9%). The ptr14[i].block.e[N].v[j] form
+// is what makes MSVC keep a byte offset plus a reloaded base, which is closest.
 // Added the final per-element flag check that sets field_18, which was absent in
 // the inherited draft. Rewriting the guarded outer loop as do/while removed its
 // duplicate entry test and raised the score from 24.3%. An inner do/while tied.
@@ -11,7 +18,9 @@
 // target uses a 0x18-byte frame, keeps the dword index k at 0xd and advances it
 // by 0x13, and uses a byte-offset cursor advanced by 0x4c per record. MSVC folds
 // k into a byte counter in this source; callback and inner-loop register
-// lifetimes also diverge.
+// lifetimes also diverge. Ours materialises a zero in edx up front where the
+// target uses ebp and "test"; block2 becomes load/add/store instead of
+// "add dword ptr [..], reg"; block3 spills e[3] to a stack local.
 #include <stdlib.h>
 
 struct Vec3_004b1c00 {

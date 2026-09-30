@@ -1,7 +1,12 @@
 // Decompiled by Opus. Names are provisional.
+// Verified by GPT-6.1-sol for #1705: best retained score 83.1%; not a MATCH.
 // Codex / GPT-6 retest in #13:
 // a rectangle constructor, a drawing helper, coordinate updates and
 // reordered rectangle stores changed register allocation without a match.
+// GPT-6.1-sol retry in #1705: the retained baseline scores 83.1%. Pair
+// aggregate and separated coordinate updates scored 56.2% and 71.2%; all 128
+// header combinations topped out at 83.1%. Remaining differences include
+// surface and coordinate register assignment and final rectangle stores.
 // Draws the frame of one cell of the 16x16 "COLS" colour grid gadget
 // (cell index = row * 16 + column, each cell 8 pixels).
 

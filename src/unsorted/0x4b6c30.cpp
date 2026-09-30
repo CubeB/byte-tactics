@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5. Names are provisional.
+// Verified by GPT-6.1-sol for #1705: best retained score 91.1%; not a MATCH.
 // Partial (91.1%): a Park-Miller random number generator (seed * 16807 mod
 // 2^31 - 1, with q = seed / 127773 to avoid overflow), then seed % range.
 //

@@ -4,6 +4,16 @@
 // separate cursor. The median takes one predicate, matching its 0x5c stack cleanup. Current
 // score: 75.6%. Older 76.8% attempt below had these semantic errors and is superseded.
 //
+// deepseek-v4.1-flash retry (measured baseline 75.6%, 909 vs 896 bytes; the 56.9% in
+// data/progress.csv is stale). The single biggest concrete difference the earlier note missed:
+// reserve must emit the out-of-line call to vector<Elem>::_Destroy (0x43c390). That function is
+// a 3-byte `ret 8`, so the call is a pure /Ob2 inline-budget artifact, not semantics: we elide
+// the empty loop, the original did not. A user-declared Elem destructor makes MSVC inline a real
+// destroy loop instead (+33 bytes, 71.1%), so the dtor route is wrong. Everything else is the
+// begin/end colouring (original keeps begin in ecx and end in ebp from the prologue; ours uses
+// ebx) plus the inlined _Sort_0 slot choice (original homes _F at [esp+0x38] and _L at
+// [esp+0x10]; ours swaps them: _L at [esp+0x38], _F at [esp+0x34]).
+//
 // NOT a match: 76.8% (933 bytes against 909). Adds `count` copies of a run of
 // 25-byte name records (the run at param_1) to the global std::vector at
 // 0x512340, then sorts the whole table with the introsort from MSVC 5's
@@ -28,7 +38,10 @@
 //     in ours.
 // Tried and did NOT change the score: a `Access_0043c390& v` local reference,
 // a static inline `Sort_0043bc90` helper, `_Fp = &_F`, and reloading _FF with
-// `DAT_00512340.begin()` (that last one dropped to 60.2%).
+// `DAT_00512340.begin()` (that last one dropped to 60.2%). Also flat on the
+// retry: begin/end in locals for the sort, `reserve(count + size())`, making
+// InsertionInline not `inline`, and the real std::sort (905 bytes but 56.3%,
+// it inlines far more of the recursive _Sort) or std::_Sort (38.8%).
 
 #include <algorithm>
 #include <string.h>

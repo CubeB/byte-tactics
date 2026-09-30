@@ -90,6 +90,19 @@
 // x = edx, y = esi (the same tuple the object-init blocks use) and the range
 // block wants its two xors emitted y before z.
 
+// Fourth pass (deepseek-v4.1-flash): the two return hunks are a front-end
+// independent tie. The prefix through the loop (0x43def0 to 0x43dffb) is
+// byte-identical, so only the final statements can differ, yet `return
+// result;`, field-copying into a fresh `Vec3 out` in all 6 field orders,
+// forcing `int x/y/z` locals first (MSVC coalesces them away), `return
+// Vec3(x, y, z)`, `0 - result.z`, `return *p` for `Vec3* p = &result`, and
+// declaring `out` at function scope all compile to the same 94.2% bytes. An
+// explicit out-parameter signature `void f(Vec3* out, ...)` moves obj out of
+// edi and scores 52.1%; giving Vec3 a copy constructor scores 50%. The range
+// block's xor emission order (ours edx, ecx, esi vs edx, esi, ecx) is likewise
+// fixed before the block, whose instructions are identical. 24 variants
+// scored, none above 94.2%.
+
 #include <string.h>
 
 struct Vec3 {

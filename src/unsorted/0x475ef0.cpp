@@ -73,6 +73,8 @@
 // after the argument push is popped, ours puts _N in [esp+0x14] and _S in
 // [esp+0x1c]. Since ours re-reads _P instead of keeping it, the allocator
 // ranked _P above _S; the original ranks it below every callee-saved register.
+// Refinement: a register alias, reference alias, reversed realloc branch, and
+// cached free-space local did not improve the retained 83.0% result.
 #include <climits>
 #include <memory>
 #include <xutility>

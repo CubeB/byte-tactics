@@ -79,6 +79,9 @@
 // the seven common headers and none match (best still 99.6%). No new source
 // lever: the difference remains the single `lea eax, [edi + edx]` (SIB 0x17)
 // against this build's `[edx + edi]` (SIB 0x3a).
+// GPT-6.1-sol refinement: following the shared SIB-order finding, declared fresh
+// destination/source locals immediately before the third _Ucopy call, destination
+// first. The variant remained 99.6% with the same SIB byte; restored the best form.
 #include <climits>
 #include <memory>
 #include <xutility>

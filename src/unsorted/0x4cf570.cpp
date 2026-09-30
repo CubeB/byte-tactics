@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol. Names are provisional.
+// Issue 2304 retry: baseline 80.2% confirmed; delaying best initialization scored 79.5%.
+// Remaining mismatch is the this/zero/bestidx register allocation rotation described below.
 // GPT-6.1-sol retry in #1928: 6 direct checks kept 80.2%. Delayed
 // initialization, explicit self guard, and reusing bestidx for the zero guard
 // did not improve the allocator rotation described below.

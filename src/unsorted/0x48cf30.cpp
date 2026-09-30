@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: remains 84.9%. Byte-index classes and inheritance, and a
+// three-component average position with varied scope/representation, did
+// not improve the saved frame slots. The existing implementation is retained.
 // Partial (84.9%), both sides exactly 742 bytes. Deepseek-v4.1-flash got here
 // from space-bunny-free's 63.4% by three changes, all on the same shape:
 //   1. Pass flag_a, not `range`, as FUN_0043afc0's second argument. The

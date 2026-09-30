@@ -1,4 +1,29 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// 80.4% (was 80.0%). The `&&`-free else arm needs the re-test of the byte, but
+//  * the one written on the local `c` is folded away by MSVC 5 (it still knows
+//    al == '&' on that edge), so it is `else if (*lineStart == '&')`: the load is
+//    CSE'd with the loop-top load and only the `cmp al, 0x26 / jne` survives,
+//    which is exactly the original's dead re-test at 0x4772fe. That is +4 bytes.
+// Still open (unchanged from the previous notes):
+//  * Scan 2 allocates `found` in memory ([esp+0x10]) and `count` in memory
+//    ([esp+0x14]), while scan 1 of the same inlined helper gets registers
+//    (ebp and ecx). At scan 2 ebp/esi/edi/ebx are all taken (lineStart,
+//    gadgets, gp, y) and only eax/ecx/edx are free, so the original's shape is
+//    a register-pressure effect, not a source shape. The original also
+//    materialises the constant 0 once in edx and uses it four times
+//    (0x47706b, 0x47706f, 0x47707d, 0x47708a), which is why its `if (!page)`
+//    test is `cmp eax, edx` and not `test eax, eax`.
+//  * Frame slot permutation: ours is dst,i,lines,colourState,count,textX,
+//    divisor,ey,dialog,y,gp; the original's is dst,i,lines,count,colourState,
+//    textX,dialog,ey,gp,y,divisor. NOT declaration-order driven: moving
+//    `int count` above `int colourState` leaves the emitted map unchanged
+//    (verified with a /Fa listing aligned against the .obj).
+//  * The original's frame has two loads of never-stored slots ([esp+0x28] for
+//    dialog at 0x4771b4 and [esp+0x30] for gp at 0x4771ac, whose stores went to
+//    0x24 and 0x38), an MSVC 5 frame-renumbering bug. We reproduce the same
+//    anomaly on the same two variables, just at other offsets.
+//  * In the else arm the original orders the three instructions
+//    `inc ebp / mov [colourState], 1 / dec ebx`; ours emits the store last.
 // Partial, 80.0% (was 71.3%). The page-scan merge and the window-copy loop are
 // now fixed:
 //  * Page scans: MSVC merges `while (*p) { char c = *p; ... }` into one
@@ -12,7 +37,10 @@
 //    `while (*q != '&')` form rotates and duplicates the '&' test). The outer
 //    text loop must be `while (1)` (a `for(;;)` is rotated so the `c == 0`
 //    break moves to the latch), and `if (c == '&') { if (colourState) ... else
-//    ... }` (not `&&` / `else if (c == '&')`, which re-tests the byte).
+//    ... }` (not `&&`). NOTE, corrected: the else arm DOES need a re-test of
+//    the byte, and `else if (c == '&')` does not produce one, because the test
+//    is then on the local and MSVC 5 still knows al == '&' on that edge. It
+//    has to be `else if (*lineStart == '&')`; see the note at the top.
 // Remaining differences (all in the second inline scan and the frame):
 // 1) the second scan keeps a live zero register in edx in the original, so it
 //    emits `xor edx,edx; cmp ebp,edx`, `inc eax; cmp eax,edx` and
@@ -212,7 +240,7 @@ void FUN_00476ef0()
                         buf[k] = 0;
                         FUN_004afd80(&g_game->menu, buf, x, ey, count, 0x5e,
                                      1.0f, 0.25f);
-                    } else {
+                    } else if (*lineStart == '&') {
                         lineStart++;
                         colourState = 1;
                     }

@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry by GPT-6.1-sol (issue 2405): nine check.py invocations in this pass, best remains 70.2%; no MATCH. Treating DAT_005119b8 as a char array scored 68.7%, reversing the initial _strcmpi operands scored 69.6%, and spelling the global teardown inline scored 57.0%; all were reverted. The current saved version is the 70.2% source below. Remaining differences are the destructor/global teardown register sequence, char-copy length register, call argument/register ordering, and the bool materialization around the key comparison, described above.
 // Retry #1769: the saved best remains 70.2% after seven worker checks; the final batch did not MATCH. Lower-scoring local-copy, bool and split-condition trials were reverted.
 // Loads a TDF section into the global map at 0x51fdb8: the section name is
 // compared with the one already loaded, the map is thrown away and rebuilt,

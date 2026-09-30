@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// #2405 retry by GPT-6.1-sol: three checks confirmed the 93.3% best; one WSL
+// invocation returned no output. A separate size local dropped to 80.9% and
+// was reverted. The reallocating tail still differs in register and store order.
 // Retry #1769: GPT-6.1-sol confirmed 93.3% (337/367 code bytes) after three normal checks; the final batch did not MATCH. The reallocating tail still changes register and store order.
 //
 // PARTIAL: 93.3% (check.py), 337 of 367 code bytes identical. This is the

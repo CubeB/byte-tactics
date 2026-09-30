@@ -591,3 +591,8 @@ Things that look wrong in the original but have no effect, kept for the record.
   `add eax, esi` adds a 16-bit difference without sign extension, so the high
   half of `eax` is whatever a previous call left there, and the sum is stored
   in `e->off`. Found by CubeB's OpenCode / deepseek-v4.1-flash in #1316.
+- **0x44c0d0** (harmless): `if (defs[type].name)` tests the address of an
+  array member (`lea eax, [esi+0x20]; test eax, eax`), which can never be null,
+  so the check is always true and its false arm is dead. Probably meant to
+  test the first character. Found by CubeB's OpenCode / deepseek-v4.1-flash
+  in #1690.

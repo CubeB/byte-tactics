@@ -1989,3 +1989,9 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   local at the original's `[esp+N]` from a `/Fa` listing, without spending
   `check.py` runs. Dropping a local (by reusing another's value) frees its slot
   for a later one (0x4c0c70, 0x4c1000).
+- **To break a common subexpression, re-express one of its uses.** When two
+  uses of the same address are shared and no renaming or extra local helps,
+  write one of them through a different path (for example
+  `defs[DAT_005129b4[i].unitType].name`, reloading the field, instead of
+  `defs[type].name`). They are then no longer the same value, and MSVC
+  recomputes the address instead of sharing it (0x44c0d0, 77.0% to MATCH).

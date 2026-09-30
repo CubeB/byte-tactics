@@ -1,40 +1,32 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL: 84.2% (ours 2868 bytes vs the original 2947, so 79 bytes short).
-// Frame, prologue, the first count loop, the three error-message sites that
-// share the "call FUN_004c5740 then FUN_004abd90 then FUN_004ab0a0" tail at
-// 0x47b0cb, and the toggle-arm region now match in shape.
-//  - Fixed here (79.9 -> 84.2): the LineOfSight arm's two "field_114 = 1"
-//    stores must be written BEFORE the strcpy call. Written after it, the
-//    compiler sinks the store past the inlined strcpy, which stopped all seven
-//    toggle-arm message sites (CommanderDeath, StartLocation, Mapping,
-//    LineOfSight x3) from merging into one inlined strcpy tail; we then had
-//    three copies of the tail instead of the original's single copy at
-//    0x47b88b.
-//  - The Difficulty arm legitimately calls FUN_0047f1a0("SKirmish", 0): the
-//    original pushes 0x502a6c (the typo'd literal), not 0x507ccc "Skirmish".
-//    Do not correct it.
-//  - Remaining: the c2/c1 player count block. The original tests c2 right after
-//    the first loop (jl to the shared error stub at 0x47b0bf) and keeps g_game
-//    in edi, so the tallies land in esi/edx; ours keeps g_game in esi and
-//    re-emits both compares after the second loop (tallies edi/edx). Two
-//    separate identical error ifs score 75.4 (the blocks do not merge and the
-//    terrain jump retargets), and a goto to one shared label will not compile
-//    ("jump bypasses initialization of local variable"), so it cannot be
-//    written that way directly. Re-tried the two-if version: 2921 bytes, 75.4
-//    again, so the original really has ONE error stub and one "||" test, only
-//    laid out as loop1 / test1 / loop2 / test2; MSVC sinks test1 past loop2 for
-//    us. Also no help: "char* gg = g_game;" before that block is coalesced into
-//    the same register (still esi, the original uses edi), and writing the test
-//    as "if (!(c2 >= 1 && c1 >= 1))" emits byte-identical code to "c2 < 1 ||
-//    c1 < 1".
-//  - Energy/Metal clamp arms: the original loads *p into ecx, materialises the
-//    store address into eax, and encodes -500 as "add ecx, 0xfffffe0c"; ours
-//    emits lea ecx / mov eax / sub eax, 0x1f4. Writing the store address as a
-//    pointer or splitting the load did not move the picks; reading the value as
-//    (*t)->players[player].energy also compiles byte-identically.
-//  - Scattered scalar tie-breaks: "mov edx, [esp + 0x84]" (original) vs
-//    "mov eax, [esp + 0x84]" in the Color tail, and menu staying in a
-//    callee-saved register in arms where the original reloads it.
+// PARTIAL: 85.5% (ours 2868 bytes vs the original 2947).
+// What fixed 84.2 -> 85.5: the c2/c1 player count block. The original lays it
+// out loop1 / test-c2 / loop2 / test-c1 with ONE shared error stub at
+// 0x47b0bf (both "jl 0x47b0bf"). "if (c2 < 1 || c1 < 1)" and two separate ifs
+// both put the compares after the second loop (75.4). The fix is to nest:
+//   loop1 counts c2; if (c2 >= 1) { loop2 counts c1; if (c1 >= 1) { ...success,
+//   return; } } then the single players-computer error block falls at the end.
+// This yields test-c2 right after loop1 and a single shared error stub, matching
+// the original block order (error stub sits after the success return).
+// LineOfSight's two "field_114 = 1" stores must precede the strcpy so the seven
+// toggle-arm message tails merge into one strcpy tail at 0x47b88b.
+// The Difficulty arm calls FUN_0047f1a0("SKirmish", 0): the original pushes
+// 0x502a6c (the typo'd literal), not 0x507ccc "Skirmish". Do not correct it.
+// STILL DIFFERS (register-allocation tie-breaks):
+//  - Energy/Metal clamp arms: original "mov ecx,[..]; lea eax,[..]; add ecx,
+//    0x1f4 / add ecx,0xfffffe0c; mov [eax],ecx" (value in ecx, address in eax
+//    reusing the base reg). Ours is the mirror "lea ecx; mov eax; add eax; mov
+//    [ecx],eax". Tried the double-dereference form (recompute the store address
+//    after the load): that dropped to 79.6%. Compound "v += -0x1f4" is flat
+//    (still sub eax,0x1f4 vs the original add ecx,0xfffffe0c). Keeping the
+//    value load first and the address second is the wall.
+//  - menu reload: the original keeps menu in its stack home and reloads
+//    "mov edx,[esp+0x84]; push edx" before each FUN_004ab0a0 / FUN_004a0bf0;
+//    ours keeps menu in a callee-saved register in the toggle/Energy/Metal arms
+//    ("push esi"/"push ebp"). The Color tail is a pure scratch-reg tie-break
+//    ("mov edx,[esp+0x84]" original vs "mov eax,[esp+0x84]" ours).
+//  - g_game reload in the toggle arms lands in a different scratch register
+//    (original mov edx / ours mov ecx or mov eax).
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -182,66 +174,67 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
                 p++;
             }
         }
-        int c1 = 0;
-        if (n2 > 0) {
-            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
-            for (; n2 > 0; n2--) {
-                if (p->active == 1)
-                    c1++;
-                p++;
+        if (c2 >= 1) {
+            int c1 = 0;
+            if (n2 > 0) {
+                Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
+                for (; n2 > 0; n2--) {
+                    if (p->active == 1)
+                        c1++;
+                    p++;
+                }
+            }
+            if (c1 >= 1) {
+                int maxPlayers = (*(Class_00437300**)(g_game + 0x391e9))->FUN_00437300();
+                if ((int)(unsigned short)*(short*)(g_game + 0x2a3c) > maxPlayers) {
+                    FUN_004abd90(g_game + 0x519,
+                                 FUN_004c5740("There are too many players enabled for this map"),
+                                 0x1e0, 1, 1);
+                    FUN_004ab0a0(menu);
+                    return;
+                }
+
+                if (FUN_00479760() != 0) {
+                    FUN_004abd90(g_game + 0x519,
+                                 FUN_004c5740("All players may not be in the same allied group."),
+                                 0x1e0, 1, 1);
+                    FUN_004ab0a0(menu);
+                    return;
+                }
+
+                int n3 = *(int*)(g_game + 0x38d81);
+                c2 = 0;
+                if (n3 > 0) {
+                    Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
+                    for (int i = n3; i > 0; i--) {
+                        if (p->active == 2)
+                            c2++;
+                        p++;
+                    }
+                }
+                c1 = 0;
+                if (n3 > 0) {
+                    Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
+                    for (; n3 > 0; n3--) {
+                        if (p->active == 1)
+                            c1++;
+                        p++;
+                    }
+                }
+                *(short*)(g_game + 0x2a3c) = c1 + c2;
+
+                FUN_0047a760();
+                FUN_0041da30();
+                FUN_00430f00();
+                *(char*)(g_game + 0x2bc0) = 2;
+                FUN_00491c80(0x14);
+                return;
             }
         }
-        if (c2 < 1 || c1 < 1) {
-            FUN_004abd90(g_game + 0x519,
-                         FUN_004c5740("There must be at least one player and one computer opponent"),
-                         0x1e0, 1, 1);
-            FUN_004ab0a0(menu);
-            return;
-        }
-
-        int maxPlayers = (*(Class_00437300**)(g_game + 0x391e9))->FUN_00437300();
-        if ((int)(unsigned short)*(short*)(g_game + 0x2a3c) > maxPlayers) {
-            FUN_004abd90(g_game + 0x519,
-                         FUN_004c5740("There are too many players enabled for this map"),
-                         0x1e0, 1, 1);
-            FUN_004ab0a0(menu);
-            return;
-        }
-
-        if (FUN_00479760() != 0) {
-            FUN_004abd90(g_game + 0x519,
-                         FUN_004c5740("All players may not be in the same allied group."),
-                         0x1e0, 1, 1);
-            FUN_004ab0a0(menu);
-            return;
-        }
-
-        int n3 = *(int*)(g_game + 0x38d81);
-        c2 = 0;
-        if (n3 > 0) {
-            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
-            for (int i = n3; i > 0; i--) {
-                if (p->active == 2)
-                    c2++;
-                p++;
-            }
-        }
-        c1 = 0;
-        if (n3 > 0) {
-            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
-            for (; n3 > 0; n3--) {
-                if (p->active == 1)
-                    c1++;
-                p++;
-            }
-        }
-        *(short*)(g_game + 0x2a3c) = c1 + c2;
-
-        FUN_0047a760();
-        FUN_0041da30();
-        FUN_00430f00();
-        *(char*)(g_game + 0x2bc0) = 2;
-        FUN_00491c80(0x14);
+        FUN_004abd90(g_game + 0x519,
+                     FUN_004c5740("There must be at least one player and one computer opponent"),
+                     0x1e0, 1, 1);
+        FUN_004ab0a0(menu);
         return;
     }
 

@@ -22,6 +22,14 @@
 //      computes (p.z>>23)*cols with p.z in EDX; the original does
 //      lea ecx,[esi+0x6a]; mov edx,ecx, indexes everything through edx and
 //      keeps p.z in EAX so the multiply is `imul eax,[ebp+0x142a3]`.
+// Second session (space-bunny-free, timeboxed): no new score, still 80.9%.
+// New analysis: in every commutative op the original accumulates the LEFT
+// operand (add edx,ebx with edx=pos.x, imul eax,[cols] with eax=z>>23) while
+// ours accumulates the RIGHT one (mov ecx,ebx / add ecx,edx, mov eax,[cols] /
+// imul eax,edx), so the fix is likely one source shape that flips that
+// choice, fixing both diff regions at once. Unscored scratch variants v1..v8
+// under build/scratch/0x47cc30/ try separate vs combined ifs, both operand
+// orders and an int sx = pos.x; sx += size.x accumulator form.
 // Tried and all WORSE or equal: `obj->pos.x + size.x` in both operand
 // orders (MSVC 5 canonicalises them identically), `g_game->width <= ...`,
 // named sx/sy locals at function scope and inside a block, `sx = pos.x;

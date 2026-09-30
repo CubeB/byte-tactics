@@ -117,21 +117,36 @@ void __stdcall FUN_004bf4d0(void* surface, Rect_004a1b40* rect, int id);
 void __stdcall FUN_004c7580(void* surface, void* bitmap, Quad_004a1b40* dst,
                             Quad_004a1b40* src);
 
-// Partial (16.3%), not MATCH. Attribution: started by deepseek-v4.1-flash, then GPT-6.
-// First divergence is the prologue: the original homes param_1 in ebp
-//   (sub esp,0xbc / push ebx / push ebp / mov ebp,[esp+0xc8] / xor ebx,ebx / push esi / push edi)
-// while ours homes param_1 in edi and pushes esi,edi before loading it, so every
-// later [esp+N] drifts by 4 (flag is at esp+0x18 here, esp+0x14 in the original).
-// The entries pointer then lands in esi here vs edi there, and the entries base in
-// ebp here vs on the stack in the original, so the register allocation of the whole
-// function differs. Frame size (0xbc) and the address-arithmetic lea chain are right.
-// Tried: moving top=0 into the type==0 branch (+0.3%); no effect on the param_1 register.
-// What is left: get param_1 into ebp and the entry pointer into edi; the two renderer
-// branches (text at 0x4a1c5c, cell grid at 0x4a2052) should then need only local sweeps.
+// Partial (18.6%), not MATCH. Attribution: started by deepseek-v4.1-flash, then GPT-6,
+// edited by deepseek-v4.1 (issue 2379).
+// Frame size (0xbc), ret 8, the &entries[param_2] lea chain and the overall branch
+// structure are right; the differences are prologue register assignment and stack slots.
+// Original prologue: sub esp,0xbc / push ebx / push ebp / mov ebp,[esp+0xc8] /
+//   xor ebx,ebx / push esi / push edi, i.e. param_1 is loaded into ebp and ebx holds the
+//   zero used for flag=0 and for top=0. Ours loads param_1 into another register
+//   (eax/ebx depending on the variant) and zeroes into edi, so every [esp+N] drifts.
+// Original slot map (verified from the disassembly, all offsets relative to esp after
+// the four pushes): 0x10 line/tab counter (both share one slot, disjoint ranges),
+// 0x14 flag, 0x18 x1, 0x1c cy, 0x20 x2, 0x24 cy2, 0x28 y, 0x2c q, 0x30 yoff, 0x34 h,
+// 0x38 entries, 0x3c lh, 0x40..0x4c bounds (left,top,right,bottom), 0x50 me, 0x54 step,
+// 0x60 font byte, 0x64 col, 0x68 glyph char temp. Ours: entries=0x10, flag=0x1c,
+// h=0x2c, bounds=0x38..0x44, me=0x48, so the whole frame is reshuffled, not shifted.
+// Original keeps me in edi, q in ebp, step in ebx, x1 in esi, x2 in ecx, step=ebx in the
+// loop tail; ours uses different roles, so most of the text loop (0x4a1c5c) differs.
+// The loop bottom is 0x4a1ff3: yoff+=step, line++ (slot 0x10), y++, h-=step, h<lh exit.
+// Tried and rejected: dropping the `holder` local for fresh param_1->holder derefs
+// (18.6% -> 17.9%, but the original does reload [ebp+0x18] twice at 0x4a1b53/0x4a1b6c, so
+// a `holder` local is closer over the whole function); hoisting the tab counter `t` to
+// the top (neutral); removing <windows.h> (18.6% -> 15.6%, include is needed).
+// Open question worth solving next: the highlight call at 0x4a1fbe passes esp+0x1c after
+// the 0x1e id was pushed, i.e. rowRect+8, and both of its arms (0x4a1fb8/0x4a1fcb) pass
+// the same pointer. Either the original really indexes past rowRect or its highlight rect
+// is a second rect whose slot overlaps rowRect (mutually exclusive branches).
 //
 // FUNCTION: 0x4a1b40
 void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 {
+    int t;
     int flag = 0;
     Rect_004a1b40 bounds;
     int& top = bounds.top;
@@ -187,7 +202,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     if ((flags & 0x10) != 0 && me->text != 0 && me->field_c0 != 0) {
         // ---- text-line renderer ----
         int i = 1;
-        int t = 0;
+        t = 0;
         for (; i < entries->b6.count + 1; i++) {
             if (entries[i].type == 7) {
                 if (t == me->tab) {

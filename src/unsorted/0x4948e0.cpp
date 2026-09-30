@@ -51,6 +51,19 @@
 // `framepic` fed in both arms (66.0).  Earlier sessions: 67.5, 65.6, 69.5,
 // 65.2, 66.6.
 
+// Retry (deepseek-v4.1-flash): the y slot at 0x18 is forced by MSVC mutating
+// ebx during the dst quad build (`add ebx,0x25`), where the original uses a
+// scratch register (`lea eax,[ebx+1]` then `lea eax,[ebx+0x25]`).  Measured
+// this session: a pointer-walk do-while cleanup matches the original's cleanup
+// shape much more closely and shrinks us to 1426 bytes (original 1418) but
+// reallocates g_game from edx to eax and scores 73.5%; the indexed for-j
+// cleanup kept here scores 78.1% (1451 bytes).  Grouping the dst stores by
+// expression scores 55.6% (maxw form) / 76.6% (right-6 form), x from
+// panel.left+maxw scores 62.8%, and explicit y+1/y+0x25 temporaries are
+// byte-identical to this version.  NOTE: ctx.py/objdump print the encoded
+// [esp+N] displacement, so a live push shifts the real baseline slot by 4;
+// maxw is baseline 0x10 and i baseline 0x14.
+//
 #include <string.h>
 
 #pragma pack(push, 1)

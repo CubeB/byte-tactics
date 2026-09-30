@@ -1,8 +1,10 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by Opus, finished by GPT-6.1-sol. Names are provisional.
 // Codex / GPT-6 retest in #13:
 // byte temporaries, encoding helpers and the preceding compression
 // entry points did not change the XOR operand order. The baseline remains
 // 96.2%, with the original copying the index byte before XORing memory.
+// GPT-6.1-sol retest: current best scores 98.5%. An explicit byte temporary
+// produces the same code; the encrypt loop still reverses the XOR operands.
 // Builds a "SQSH" compressed chunk: header, then the (optionally
 // compressed and encrypted) data.
 #include <string.h>

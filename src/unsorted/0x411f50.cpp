@@ -77,6 +77,33 @@
 // same swap: original keeps the flags parameter (ebx) through the state-4 test
 // and gives def ebp; VC5 reuses the dead ebx here. Forcing flags live with a
 // named copy (d1..d4) did not move it.
+//
+// deepseek-v4.1 session 5 (same 97.1%, 12 differing lines, size still 1980): the
+// negation fold is a backend decision, not a source spelling. New evidence from
+// build/scratch/0x411f50 (v1..v11, w1..w9, x1..x8, y2..y6, z1..z3, g1..g6,
+// q1..q3):
+//  - Replacing the literal with a non-const file-scope float (v1) is the only
+//    shape found that BLOCKS the negation: the sum then compiles to the positive
+//    `lea ebx,[eax+ecx+1]`, but the FP order stays `fimul` then `fmul` and the
+//    constant becomes a new data symbol, so it cannot match (93.6%).
+//  - Every parenthesised shape that puts the constant multiply first, that is
+//    `(S * 30.0f) * f22` in all cast/local/operand-order spellings (x2, x6, x8,
+//    q1..q3), does give the original's `fmul [30.0f]` first (93.2%), but VC5 then
+//    also reloads rate and turns `fidiv` into `fxch`/`fdivp` and renders the
+//    integer multiply as `fild [esp+0x30]; fmulp st(1)` instead of
+//    `fimul [esp+0x30]`. So the positive product and the `fimul`/`fidiv` pair are
+//    mutually exclusive from this expression.
+//  - Statement splits, compound assignment (`time = f216 + 1; time += t`), an int
+//    or unsigned short copy of field_22, `1 + f216 + t`, `t + f216 + 1`, an
+//    inline helper over size/rate and a helper over all four values all compile
+//    to the identical negated bytes (97.1%).
+//  - def in ebx vs ebp is a CONSEQUENCE of the fold, not its cause: in the
+//    negated form the sum register only becomes live at the `sub`, after def's
+//    last use, so VC5 reuses ebx for def; in the original the ftol result goes to
+//    ebx immediately, conflicts with def and pushes def to ebp.
+// What still differs: the state-4 hunk at 0x4123ad and 0x4123ec (fmul/fimul
+// order, `sub`/`-30.0f` versus `inc`/`add`/`+30.0f`, def in ebx), plus the
+// unresolved switch jump table address at 0x4126f0.
 #include <list>
 #include <windows.h>
 #include <math.h>

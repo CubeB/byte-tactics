@@ -1,8 +1,14 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are
-// provisional. Gave up at 56.1% (2289 bytes against 2173). Correct the double division of the
-// compacted pointer difference, 16-entry insertion-sort prefix, comparison direction, cached sort
-// end, signed shift and full-width loading counters. The inherited 74.8% version had semantic
-// errors. Remaining frame size, registers, GUI suffix-loop rotation and stack slots differ.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by
+// deepseek-v4.1-flash. Names are provisional. Best 57.8% (2274 bytes against 2173, frame 0x614
+// against 0x610). Fixed the compaction loop, whose bit23 test was inverted: the original stops on
+// the first element with bit23 clear (`~flags & 0x800000`) and copies elements with bit23 set.
+// The inherited version summed/copied the opposite set. Still differs: the GUI suffix loop is
+// rotated by our compiler (three sprintf/FUN_004290f0/FUN_004bbc40 triples against the original's
+// two; original has 66 calls, ours 69), the whole frame is one dword too big with every local after
+// t/v shifted +4, the CLASS loop bound is `jl` in the original but `jb` here, and operator new is
+// followed by `cmp eax,ebx` (shared zero register) in the original but `test eax,eax` here.
+// Signature note: the disassembly ends in a plain `ret`, so the target is __cdecl, not the
+// `?FUN_0042d2e0@@YGXPAX@Z` the issue reports.
 #include <string.h>
 #include <stdio.h>
 
@@ -244,7 +250,9 @@ void FUN_0042d2e0() {
     Class_0042b370* p = start;
     Class_0042b370* d = end;
     if (p != end) {
-        while (~(p->flags.value) & 0x800000) {
+        while (1) {
+            if (~(p->flags.value) & 0x800000)
+                break;
             if (++p == end)
                 break;
         }
@@ -252,7 +260,7 @@ void FUN_0042d2e0() {
         if (p != end) {
             Class_0042b370* s = p + 1;
             while (s != end) {
-                if (~(s->flags.value) & 0x800000) {
+                if (!(~(s->flags.value) & 0x800000)) {
                     *d = *s;
                     d++;
                 }

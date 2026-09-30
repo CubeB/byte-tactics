@@ -1,17 +1,12 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 92.8% (1082 bytes vs original 1073). The only difference is where
-// MSVC puts the `radius` clamp: the original keeps radius in ebp across the
-// whole block and emits
-//     mov ebp, 8 ; cmp edx,8 ; jb keep ; mov ebp,edx
-// whereas every source shape tried here makes the allocator either spill
-// radius to a stack slot (92.7-92.8%) or hand it edi and push view into ebp
-// (90.1%). Declaring radius after the mincloak block (this file) scores
-// 92.8%; at the top of the block 92.7%; inside the weapon if, or after t,
-// 90.1%; before `r`, 83%.
-// Everything else matches byte for byte, including the clamps' signedness:
-// `t` is unsigned (`cmp edx,8; jb`), `r` and radius are int (`cmp ebp,esi;
-// jl`), and the position is read as `&node->unit->pos` (using the `unit`
-// local makes MSVC emit `lea` and drops the whole match to 49.6%).
+// The animated-radius clamp has to be a single ternary
+//     int radius = (t < 8) ? 8 : t;
+// Any if-form makes MSVC spill radius (radius homed in the view argument slot
+// and the 8 store hoisted above the flags test) and swap view into ebp, which
+// costs the whole block. The ternary keeps radius in ebp and view in edi and
+// reproduces the original `mov ebp,8 / cmp edx,8 / jb / mov ebp,edx` exactly.
+// `t` is unsigned (jb), r and radius are int (jl), and the position is read as
+// `&node->unit->pos` (a `unit` local makes MSVC emit `lea` and drops to 49.6%).
 // Suspected bug: the weapon3 test reads slots[0].flags (unit+0x1f) but the
 // range from slots[2].weapon (unit+0x48); slots[2].flags is at unit+0x57.
 #pragma pack(push, 1)
@@ -110,13 +105,11 @@ void __stdcall FUN_004390a0(void* surface, View_004390a0* view, Node_004390a0* n
         if (mincloak != 0 && (unit->field_10e & 4)) {
             FUN_00438ea0(surface, view, &node->unit->pos, mincloak, g_game->field_dda, 0, 0);
         }
-        int radius = 8;
         if ((def->flags & 0x10000000) && def->weapon_220 != 0) {
             int r = def->weapon_220->field_d6;
             r = r >> 1;
             unsigned int t = (g_game->frame % 60) * r * 2 / 60;
-            if (radius <= t)
-                radius = t;
+            int radius = (t < 8) ? 8 : t;
             if (radius >= r)
                 radius = r;
             FUN_00438ea0(surface, view, &node->unit->pos, radius, g_game->field_dd7, 0, 0);

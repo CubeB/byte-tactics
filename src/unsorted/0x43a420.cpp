@@ -1,16 +1,19 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (66.3%): frame is 0x168 against the original's 0x164, so every
-// stack-relative offset and the trailing jump table addresses still differ.
-// The buffer layout is now right: snapshot at +0x08, "<name>g" is a 0x20
-// buffer at +0x44, the UTYPENAME key is 0x80 at +0x64 and "<name>_name" is
-// 0x80 at +0xe4 (the key does not overlap the "<name>g" buffer; the previous
-// note was wrong). The remaining 4 bytes are one extra temporary: the
-// original reuses +0x00 for its `s` pointer and then for the inlined
-// resolver's `k`, while MSVC gives our `s` +0x04 and keeps `k` at +0x00.
-// Also missing is the original's early `link.FUN_00489690(0)` call, and the
-// original loads `file` into ebx and `name` into esi (ours swaps them).
+// PARTIAL (85.7%, 1300 bytes, frame 0x164): the frame, the buffer layout and
+// the switch now match (the snapshot is at +0x18, "<name>_name" 0x80 at +0xf4,
+// the UTYPENAME key 0x80 at +0x74, "<name>g" 0x20 at +0x54, and `s` shares
+// +0x10 with the inlined resolver's `k`).  Only two hunks remain:
+//   - 0x43a556..0x43a59a: the kind-recovery loop keeps its counter `k` in ecx
+//     and `idx` in edx; the original has k in edx and idx in ecx, so the
+//     original ends with an extra `mov dl, cl` (2 bytes) before `test dl, dl`.
+//     Every later jump target is 2 bytes low because of this.  Swapping the
+//     declarations does not move it; it is register allocation.
+//   - 0x43a7e1: our store of the FUN_004b48a0 result to [esp+0x10] is
+//     hoisted above the `je`; the original stores it inside the taken branch.
 // The SaveDesc struct must be inside `#pragma pack(1)` or its +0x0a flags6
-// lands at +0x0c and shifts every later snapshot field.
+// lands at +0x0c and shifts every later snapshot field.  The switch needs an
+// explicit `case 0` and `case 1` (each with its own body) or MSVC subtracts 2
+// from field_4 and emits a 5-entry table instead of the original 7.
 // The file-loading constructor of Class_0043a1f0, the mirror of the
 // serialiser FUN_0043a970. Reads a 0x3a-byte snapshot, recovers the kind
 // index either from the "<name>_name" key or, failing that, from the saved
@@ -120,6 +123,8 @@ public:
     Class_004895c0* next;              // +0x8
     void* value;                       // +0xc
 
+    void SetValue(void* v) { value = v; }
+
     Class_004895c0(void* o, int v);
     void FUN_00489690(void* v);
 };
@@ -209,6 +214,8 @@ static unsigned short ResolveType_0043a420(Class_004b4ba0* file, unsigned short 
 Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char* name)
     : kind(0), link(0, 0)
 {
+    link.SetValue(this);
+    link.FUN_00489690(0);
     field_4a = 0;
     attached = 0;
     created = g_game->ticks;
@@ -227,29 +234,31 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
 
     char buf1[0x80];
     sprintf(buf1, "%s%s", name, "_name");
-    char* s = ((Class_004b48a0*)file)->FUN_004b48a0(buf1, 0);
-    if (s != 0) {
-        Entry_0043a420* e = FUN_0043c6b0(DAT_00512344, DAT_00512348, s, FUN_0043a940, 0);
-        if (e == DAT_00512348 || _strcmpi(e->name, s) != 0)
-            desc.kind = 0;
-        else
-            desc.kind = (unsigned char)((e - DAT_00512344) / 0x19);
-    } else {
-        int k = 0;
-        int idx = 0;
-        Entry_0043a420* p = DAT_00512344;
-        if (p <= DAT_00512348) {
-            do {
-                if (!(p->flag14 & 1)) {
-                    if (k == desc.kind)
-                        break;
-                    k++;
-                }
-                idx++;
-                p++;
-            } while (p <= DAT_00512348);
+    {
+        char* s = ((Class_004b48a0*)file)->FUN_004b48a0(buf1, 0);
+        if (s != 0) {
+            Entry_0043a420* e = FUN_0043c6b0(DAT_00512344, DAT_00512348, s, FUN_0043a940, 0);
+            if (e == DAT_00512348 || _strcmpi(e->name, s) != 0)
+                desc.kind = 0;
+            else
+                desc.kind = (unsigned char)(e - DAT_00512344);
+        } else {
+            int k = 0;
+            int idx = 0;
+            Entry_0043a420* p = DAT_00512344;
+            if (p <= DAT_00512348) {
+                do {
+                    if (!(p->flag14 & 1)) {
+                        if (k == desc.kind)
+                            break;
+                        k++;
+                    }
+                    idx++;
+                    p++;
+                } while (p <= DAT_00512348);
+            }
+            desc.kind = (unsigned char)idx;
         }
-        desc.kind = (unsigned char)idx;
     }
 
     Unit_0043a420* u;
@@ -302,6 +311,12 @@ Class_0043a1f0::Class_0043a1f0(Unit_0043a420* punit, Class_004b4ba0* file, char*
         return;
     case 6:
         attached = new Class_0044d930((int)this, file, buf3);
+        return;
+    case 0:
+        attached = 0;
+        return;
+    case 1:
+        attached = 0;
         return;
     default:
         attached = 0;

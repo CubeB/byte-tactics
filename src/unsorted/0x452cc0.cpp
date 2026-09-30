@@ -1,5 +1,18 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial: 84.3%, 848 bytes (the exact original size). Still open:
+// RETRY deepseek-v4.1-flash: no improvement this pass. Confirmed the do/while
+// form reproduces the original bottom test (`xor edx,edx` preheader, no entry
+// test, `cmp edx,0xcee; jl` at the foot) but drops the file to 846 bytes and
+// 67.3%: the flag byte load becomes `mov dl,[ecx+0x97]; and edx,1` instead of
+// the original `xor eax,eax; mov al,[ecx+0x97]; and eax,1`, which shifts every
+// later byte and destroys the score. That 2-byte/latch pair is the whole
+// remaining problem; the register rotation is downstream of it. Tried on top
+// of the do/while (each still 846 / 67.3, i.e. byte-identical): flag as
+// unsigned int, flag split into `int flag = x; flag &= 1;`, flag via a byte
+// temp, +0x97 declared as a 1-bit bitfield union member read as `p->data->b0`,
+// a named `PlayerData* d = p->data`, and p computed as
+// `g_game->players + FUN_0044fe40(id)` instead of `&g_game->players[...]`.
+// None changed the flag encoding or the rotation. Earlier notes below stand.
 //  * the player/slot/game register rotation: the original keeps g_game in ebx,
 //    the player pointer in esi and the slot byte in edi; ours allocates
 //    ebx=player, esi=slot, edi=g_game. Two extra uses of g_game (one inside

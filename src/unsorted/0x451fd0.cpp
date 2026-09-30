@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial: 85.9%, 915 bytes, exactly the original's size. The store sequence,
 // every immediate and the whole prologue and epilogue match; what is left is
 // only the register the allocator hands to three of the hoisted constants.
@@ -32,6 +32,16 @@
 // the source order and the original's source has the same interleaving. The
 // only remaining freedom is the allocator's register choice, which no source
 // shape tried so far moves.
+//
+// deepseek-v4.1-flash retry, all flat at 85.9% with the byte-identical diff:
+// making 4 and 2 one reassigned variable `int v` (int v = 4; ... v = 2; and
+// every 4/2 store through v), which should have kept EDX continuously live
+// across the birth of 1 and so forced 1 into ESI; the same per constant
+// (one/six/two declared at first use and reused for every store); declaring
+// one, six and two at the very top of the function; and declaring two just
+// before the memset so it is live across the rep stosd. MSVC 5 splits these
+// pseudo-registers back into per-store constants, so all of them compile to
+// the same 915 bytes. The fix is in the allocator, not the source shape.
 
 #include <string.h>
 

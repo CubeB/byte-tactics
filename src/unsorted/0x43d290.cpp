@@ -59,6 +59,16 @@
 //     and swapping the operands in source were all neutral.
 //   * the tail forwards p1.x into ebp across the inlined Length() (`mov eax,
 //     ebp`) where the original reloads `mov eax, [esi]`.
+//
+// 4.1-flash retry (this round only touched scratch, scored with --sym):
+// the original's dax/daz live 8 bytes apart at 0x1c/0x24 and dbx/dbz at
+// 0x40/0x48, each pair with a never-written middle dword, which looks like a
+// 12-byte Vec3 whose y is dead (same idiom as the 0x43cd20 notes). Modelling
+// them as `Vec3 da; da.x=..; da.z=..;` plus a separate `day` compiles to 1068
+// bytes, 83.9% (day first) / 86.7% (original order), so that shape collapses
+// the frame and is not it. Swapping the f-multiply operands or using an
+// `int f` is byte-identical to this file (91.9); named `__int64` component
+// temps drop to 90.0 and 1068 bytes.
 // Previously tried and worse or neutral: moving the dax/day/daz assignments
 // before the distance check (66%, changes code order), `(__int64)s * x` in
 // Scale (neutral), the scale computation as one expression (neutral), int/

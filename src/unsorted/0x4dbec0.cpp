@@ -56,6 +56,35 @@
 // `if (!_Ans) ; else if (...) ... else ...` spelling (95.6). This is the one
 // allocator 2-colouring and no spelling of the else block moves it.
 //
+// One more pass (space-bunny-free) added no fix and three flat results, so
+// do not spend them again:
+//  - tools/headers.py 0x4dbec0: all 128 header sets score exactly 95.6%. The
+//    header set does not mirror the two scratch registers here, unlike the
+//    0x41bde0 case in the guide;
+//  - the guide's "compiler state" sweep, N unused `extern int dummyI;` in front
+//    for N = 0 to 400 in steps of 4 (101 compiles, all 95.6%): completely
+//    inert, so the remaining difference is not reachable by changing what the
+//    compiler knows before this function;
+//  - fresh spellings, all worse or inert: the iterator ctor-initialised inside
+//    the else arm, `Class_004dd2a0 it(y);` (88.4%, the local loses its stack
+//    home and the frame drops to three), the begin() test written as a direct
+//    member compare, `it.ptr == head->left` (89.1%, and 88.2% together with
+//    the next one, so the `operator==` call and the separate value load are
+//    load bearing), the final test with the operands swapped,
+//    `p->offset > it.ptr->key` (93.8%), the begin() result bound to a named
+//    bool (89.8%), and the insert arm as an early `return` with the else arm as
+//    a bare block (95.6%, inert, like the if/else it replaces).
+//
+// What the nine instructions are, reduced to one bit: the register is chosen
+// for the *local*, at its birth, not for a later temporary. The original
+// assigns the address-taken iterator's enregistered copy to ecx, this file to
+// eax, and the other eight instructions are all consequences (the reload of p
+// takes whichever is left, and `out` follows p into the closing store). So the
+// one thing to move is the local's register, and the two spellings that change
+// how that local is born (ctor init, raw member compare) both break it, which
+// leaves the field store plus the `operator==` call as the only shape that
+// holds the local together at all.
+//
 // Two things this function does that are worth writing down, both confirmed
 // here and neither obvious from the disassembly:
 //  - The null test on the destination address, `lea eax,[edx+0xc]; cmp eax,ebx;

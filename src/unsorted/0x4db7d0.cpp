@@ -1,4 +1,24 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Third pass by space-bunny-free: still 73.1 percent, 622 of 624 bytes, same
+// first hunk (`lea ecx,[esp+0x10]` wanted, this file lays `it1` down at 0x14).
+// Two new things were tried, both worse, and both are the natural next moves:
+//  * The reference-alias trick the MATCHED sibling 0x4db450 uses to land a
+//    local on a dead parameter's home (`Class_004dd2a0& it =
+//    *(Class_004dd2a0*)&size;`) applied to the erase out-param, i.e.
+//    `Class_004dbe10& node = *(Class_004dbe10*)&p;` with
+//    `FUN_004dc910((Class_004dbe10*)&p, it1.ptr)`. The CALL is then exactly
+//    the original's `lea edx,[esp+0x60]`, but only if `p` is dead first, and
+//    `p` is not: its last use is the `base` mask. Hoisting the `base` copy
+//    above the erase to kill it scores 36.8 percent and rewrites the whole
+//    prologue (MSVC loads `p` from [esp+4] before the `sub esp`, the frame
+//    shrinks to 0x48, and `EnterCriticalSection` loses the `push esi` shape).
+//  * The same alias, but with the copy and the mask split the way the original
+//    schedules them (`unsigned int base = (unsigned int)p;` before the erase,
+//    `base &= 0xfffff000;` after the `DAT_005289f0` subtraction, so the load
+//    lands where 0x4db8c0 has it and the `and` where 0x4db8fd has it): 54.5
+//    percent, 620 bytes. So the split is not what breaks it; making `p` die
+//    before the erase is. `p` has to stay live in its home until the copy, and
+//    a local cannot take a home that is still live, which is the wall.
 // Second pass by deepseek-v4.1-flash: best is 73.1 percent, 622 of 624 bytes.
 // The remaining difference is stack layout plus two scheduling choices:
 //  - our `node` (the erase out-param) occupies frame slot 0x10, so it1 lands at

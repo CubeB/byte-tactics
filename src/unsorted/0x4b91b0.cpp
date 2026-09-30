@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1733: GPT-6.1-sol re-checked the saved variant at 53.1% (420/423); no MATCH. Register allocation and loop register rotation remain unresolved.
 // deepseek-v4.1-flash (third pass): declaring double scale = lens; BEFORE the
 // count/pitch pair lifts the score from 51.7 to 53.1 percent (best so far). The
 // first diff hunk is still the allocator: the original holds w in ebp, h in esi,

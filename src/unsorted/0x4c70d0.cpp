@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2878): confirmed 78.9% (280/280 bytes),
+// only the case 0/1/2 argument-register rotations differ. New levers all inert:
+// case1 folded-liveness `out->high = at_high - at_high`, an explicit case1
+// first-arg local, case0 call-before-store (75.7%, 276 bytes), case2 keeping
+// at_low live (78.1%, 288 bytes); `__thiscall` is rejected by cl5 (C4234). The
+// residual is a front-end argument-walk tie no source shape moves.
 // GPT-6.1-sol refinement after PR #2138: single-use output helper,
 // address-taken at_low/at_high, and inline global getter all held at 78.9%;
 // no score gain. Cases 0-2 still differ in argument register rotations.

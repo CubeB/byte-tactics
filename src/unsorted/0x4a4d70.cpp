@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1758: GPT-6.1-sol confirmed 98.7% after five checks; no MATCH. The colour-load SIB operand order and marker-call surface-load/push order still differ.
 // GPT-6 retry: retained 98.7%. 768 header sets and inline colour/surface
 // accessors did not resolve the SIB order and final surface-load scheduling.
 // PARTIAL, 98.7% (661 bytes against 661, six instructions differ). Everything

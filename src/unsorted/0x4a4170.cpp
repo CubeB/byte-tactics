@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1758: GPT-6.1-sol confirmed 80.9% after four checks; no MATCH. The focus==index block still changes zero rematerialization, register allocation and branch layout.
 // GPT-6 retry: retained 80.9%. Full-width/partial-width zero value variants
 // did not recover the original edx zero; detailed previous notes remain below.
 // deepseek-v4.1-flash retry: no change to the code, still 80.9% and NOT a match.

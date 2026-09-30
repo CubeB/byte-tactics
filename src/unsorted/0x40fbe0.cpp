@@ -1,26 +1,37 @@
-// Decompiled by GPT-5.6 Astra. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
 // Region-split skeleton, per docs/splitting-huge-functions.md (PR #1287, merged).
 // Checked by space-bunny-free. Names are provisional.
 //
-// STATUS: the gate PASSES, which is the difference from the first pilot.
-// `sub esp,0x54` with ebx/ebp/esi/edi pushed, identical to the original's
-// prologue, and check.py reads 73.2% at 2047 of 1976 bytes. The header's own
-// "62.2%" is stale; run check.py rather than trusting either number, because
-// data/progress.csv and the file header disagreed here too.
+// STATUS: partial. check.py reads 75.0% (ours 1918 bytes vs original 1976).
+// Prologue `sub esp,0x54` + ebx/ebp/esi/edi is identical.
 //
-// PER REGION (regcheck, block-wise, layout-independent):
-//   r1 0x40fbe0-0x40fcda   81 insns   91% exact   91% shape
-//   r2 0x40fcda-0x40feda  169 insns   74% exact   88% shape
-//   r3 0x40feda-0x4100d0  135 insns   57% exact   76% shape   <- the room
-//   r4 0x4100d0-0x4102c6  177 insns   74% exact   85% shape
-//   r5 0x4102c6-0x410398   81 insns   91% exact   91% shape
-// Whole function: 74.5% block-wise exact, 85.5% shape. r1 and r5 are nearly
-// done, so the budget goes to r2, r3 and r4.
+// Progress by deepseek-v4.1-flash: the MobileBuild/VTOL order-steal tail is now
+// ONE construction site (a shared `Class_00438760 kind` plus a single
+// `FUN_0043acb0(unit,new Class_0043a1f0(kind,other->target,&other->pos,...))`
+// after the if/else). That merged the previously duplicated tail and took the
+// score from 73.2% (2047 bytes) to 75.0% (1918 bytes), so the shrink confirms
+// the original really has one tail at 0x4100d6.
 //
-// The header this replaces said "register allocation and merged
-// order-construction tails differ". Read that as a pointer to r3 and r4, where
-// the merged `Class_0044e2d0` construction and the aim block live, not as a
-// description of the whole gap.
+// Remaining diff hunks (first diff first):
+//   0x40fce9  `order->pos = order->target->pos`: original emits
+//             `add eax,0x6a` (consumes target in eax) and copies via
+//             ecx/edi; ours emits `lea ecx,[eax+0x6a]` and copies via edi/ebp.
+//             Pure register-allocation, not fixable from source so far.
+//   0x40fdd8-0x40fe62  three-weapon scan: original keeps a byte loop counter
+//             at [esp+0x1c] AND a separate index in ebp (FUN_0049abb0 gets the
+//             byte, FUN_0048a190/FUN_0048a060 get ebp) plus the weapon pointer
+//             at [esp+0x20]; ours has one counter and extra reloads. Likely the
+//             source walked `Weapon* weapon` alongside an index.
+//   0x40fedc-0x40ffb3  zero/branch registers differ (original keeps 0 in ebp,
+//             building/actionable in edi/edx; ours uses ebp for building,
+//             edi for `other`).
+//   0x40ffb3-0x4100d6  building/actionable: our shared `buildOrder` flag adds a
+//             redundant `mov eax,1; test eax,eax`; original re-tests
+//             building/actionable directly at 0x4100a9/0x4100b1. Also our
+//             kind temp lands at [esp+0x1c], original at [esp+0x70] (the flags
+//             argument home slot).
+//   0x41013b+  aim block and the 0x4102c6 default: eax/edx and ah/ch roles
+//             swapped.
 //
 #include <stdio.h>
 // SHARED begin
@@ -163,34 +174,34 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
 // REGION r3 end
 // REGION r4 begin   0x4100d0-0x4102c6
 //   the MobileBuild and VTOL order-steal chain, then the aim and fire block
-//   Known gap: the original has ONE order-construction tail at 0x4100d6,
-//   reached by `jmp` from the VTOL chain (0x4100a7) and by fall-through from
-//   the VTOL_HelpBuild path (0x4100d2). Both `kind` locals already share the
-//   [esp+0x70] home, but our two copies of the tail differ in the first
-//   register (mov edx,[ebx+0x16] vs mov ecx,[ebx+0x16]), so the backend
-//   never merges them. Hoisting one `kind` did not change that.
+//   The original's ONE tail at 0x4100d6 is now reproduced by a single
+//   construction after the if/else (see STATUS). What still differs is the
+//   `buildOrder` flag the compiler materialises (extra test eax,eax) and the
+//   frame slot of `kind`.
             if (order->target->order && order->target->order->kind.index && (unit->def->flags&0x40) &&
                 ((Class_004899b0*)unit)->FUN_004899b0(order->target->order->target) &&
                 (order->target->def->flags&0x40) && order->target->order &&
                 (order->target->order->capabilities&0x100000) && unit!=order->target->order->target) {
-                int building=order->target->order->kind=="MobileBuild" || order->target->order->kind=="BuildingBuild" || order->target->order->kind=="VTOL_MobileBuild";
                 Order* other=order->target->order;
+                int building=other->kind=="MobileBuild" || other->kind=="BuildingBuild" || other->kind=="VTOL_MobileBuild";
                 int actionable=((other->capabilities&0x200) && other->target) || (other->capabilities&0x400);
+                Class_00438760 kind;
+                int buildOrder=0;
                 if (!building && actionable) {
-                    Class_00438760 kind=other->kind;
+                    kind=other->kind;
                     if (kind=="REPAIRUNIT") kind=Class_00438760("VTOL_REPAIRUNIT");
                     if (kind=="RECLAIM") kind=Class_00438760("VTOL_RECLAIM");
                     if (kind=="RECLAIMUNIT") kind=Class_00438760("VTOL_RECLAIMUNIT");
                     if (kind=="HELPBUILD") kind=Class_00438760("VTOL_HELPBUILD");
                     ((Class_004388d0*)order)->FUN_004388d0(0);
-                    FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
-                    order->flags=0; return 3;
-                }
-                if (building && other->target) {
+                    buildOrder=1;
+                } else if (building && other->target) {
                     ((Class_004388d0*)order)->FUN_004388d0(0);
-                    Class_00438760 kind;
                     kind=Class_00438760("VTOL_HelpBuild");
-                    FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
+                    buildOrder=1;
+                }
+                if (buildOrder) {
+                    FUN_0043acb0(unit,new Class_0043a1f0(kind,other->target,&other->pos,0,0,0));
                     order->flags=0; return 3;
                 }
             }

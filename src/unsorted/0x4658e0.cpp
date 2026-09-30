@@ -1,14 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Retry #1781: GPT-6.1-sol independently confirmed 96.5%; no MATCH. The word flag load/store and EDX versus DL test still differ.
-// GPT-6.1-sol lead pass (#1510): comparing the masked flag directly (`flag == 2`) scored 87.2%; retained the 96.5% best.
-// PARTIAL: 96.5% (best, verified with check.py). A small mask helper raised
-// similarity from 87.8%, though the inlined helper now makes the compiler
-// narrow the global load and apply the mask twice. Remaining differences:
-// the original loads a word, masks AX, and spills AX, while this version adds
-// a stack store, loads AL, masks EAX twice, and spills EAX; the original also
-// tests EDX where this version tests DL. GPT-6.1-sol refinement used eight
-// check.py invocations, no improvement; the best remains 96.5%. A cast of vis
-// to int also emitted identical bytes.
+// MATCH (469 bytes). The 96.5% partial compared a masked local, which loaded a
+// byte, masked EAX twice and spilled a dword. Testing the global inline,
+// `(g_game->flags & 2) == 2`, makes MSVC load the word, mask AX, spill AX and
+// compare the spilled word; the two identical tests share the one load. The
+// result local must be `unsigned int vis`, not `char` or `int`: char narrows
+// the test to `test dl, dl`, and `int` rotates the callee-saved assignment
+// (size/pos.y/pos.x shift registers), while `unsigned int` gives the original's
+// `test edx, edx` and keeps esi = size>>1, bx = pos.z, di = pos.x.
 // Is point (x, y) or point (x+dx, y+dy) visible to the local player?  The
 // 12-byte Position local (6 shorts, x/y/z among them) is zeroed with an
 // inlined memset and then filled from the arguments; the compiler promotes the
@@ -17,9 +15,8 @@
 // the game flags word at g_game+0x14281 is set the player's explored byte map
 // at +0x7c (width +0x80, height +0x84) is used, otherwise the shared
 // visibility bit mask at +0x14273 with this player's bit (g_game+0x2a43).
-// The `Map_004658e0* m = map;` local and `char vis` (a 1-byte result) are what
-// finally put g_game in ecx, the map in eax, pos.x in di, pos.y in bx and
-// h = size>>1 in esi, matching the original's whole register assignment.
+// The `Map_004658e0* m = map;` local is what puts the map in eax and lets the
+// pointer stay in eax across both visibility evaluations.
 #include <memory.h>
 #pragma pack(push, 1)
 struct MapSize_004658e0 {
@@ -54,7 +51,6 @@ struct Pos_004658e0 {
     short zFrac;
     short z;
 };
-static inline unsigned short MaskFlags_004658e0(unsigned short flags) { return (unsigned short)(flags & 2); }
 static inline int IsExplored(Map_004658e0* map, Pos_004658e0* pos)
 {
     int tx = pos->x >> 5;
@@ -76,15 +72,13 @@ static inline int IsSeen(Map_004658e0* map, Pos_004658e0* pos)
 int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, short size)
 {
     Map_004658e0* m = map;
-    char vis;
+    unsigned int vis;
     Pos_004658e0 pos;
     memset(&pos, 0, sizeof(pos));
     pos.x = (short)(x << 4);
     pos.y = size;
     pos.z = (short)(y << 4);
-    unsigned short flag = MaskFlags_004658e0(g_game->flags);
-
-    if ((flag & 2) == 2)
+    if ((g_game->flags & 2) == 2)
         vis = IsExplored(m, &pos);
     else
         vis = IsSeen(m, &pos);
@@ -92,7 +86,7 @@ int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, shor
         return 1;
     pos.x = (short)(pos.x + (dx << 4));
     pos.z = (short)(pos.z + (dy << 4));
-    if ((flag & 2) == 2)
+    if ((g_game->flags & 2) == 2)
         return IsExplored(m, &pos);
     return IsSeen(m, &pos);
 }

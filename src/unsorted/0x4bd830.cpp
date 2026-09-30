@@ -1,14 +1,22 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// Partial. Frame is 0x122c, original 0x123c: 16 bytes (4 slots) of scalars are
-// missing, so every local offset is 0x10 low (name buffer at esp+0x34 vs the
-// original's esp+0x44). Original's scalar slots are dataptr +0x10, remaining
-// +0x14, data +0x18, tp +0x1c, nameoff +0x20, table/pos +0x24, clen +0x28,
-// file +0x2c, n +0x30, i +0x34, pos +0x38, recoff +0x3c, packlen +0x40; slots
-// +0x00..+0x0f are unused. Body structure (path strcpy/strcat, entry loop,
-// uncompressed 0x1000 chunk copy, compressed block table with FUN_004d1820,
-// table re-obfuscation, fclose/free, progress callback) matches; register
-// allocation still differs because of the frame. nblocks(size) inline and the
-// entry pointer reused as `long* dataptr` are in place.
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, 56.4%. Frame size and the name/full/buffer offsets now match the
+// original (0x123c, esp+0x44/0x148/0x24c). What still differs is stack-slot
+// coloring and register allocation in the entry loop: the original keeps
+// nameoff at +0x20 and i at +0x34 and recoff as a real slot +0x3c, while MSVC
+// here colors nameoff to +0x28 and i to +0x38 and rematerialises *recoff as
+// *(base+off+4); consequently base lands in ebx (original ebp) and the entry
+// pointer in ebp (original ebx), and all downstream register choices follow.
+// Tried: branch order (fixed, see below), for-loop with an inline count deref
+// (exact 1332-byte size but 51.8%, shifts the frame to 0x1238), count as a
+// local with do-while (best 56.4%), assignment order i/nameoff/recoff swapped
+// (no change). The entry loop has nameoff += 9 and i++ in the latch, the
+// count is the inline deref *(unsigned*)(base + off).
+// Body structure (path strcpy/strcat, entry loop, uncompressed 0x1000 chunk
+// copy, compressed block table with FUN_004d1820, table re-obfuscation,
+// fclose/free, progress callback) matches. nblocks(size) inline and the entry
+// pointer reused as `long* dataptr` are in place. The flags test puts the
+// compressed path first (if (flags) { compressed } else { uncompressed }),
+// which is what made the original fall through into compression.
 #include <stdio.h>
 #include <string.h>
 #include <io.h>
@@ -96,9 +104,9 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
 
     unsigned count = *(unsigned*)(base + off);
     if (count != 0) {
-        recoff = (int*)(base + off + 4);
-        nameoff = 0;
         i = 0;
+        nameoff = 0;
+        recoff = (int*)(base + off + 4);
         do {
             Entry_004bd830* e = (Entry_004bd830*)(base + nameoff + *recoff);
             strcpy(full, name);
@@ -118,20 +126,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                 }
                 *(unsigned*)(dataptr + 1) = size;
                 *((char*)dataptr + 8) = (char)flags;
-                if ((char)flags == 0) {
-                    while (size != 0) {
-                        unsigned chunk = size < 0x1000 ? size : 0x1000;
-                        FUN_004bb7c0(file, buffer, chunk);
-                        pos = ftell(f);
-                        if ((char)key != 0) {
-                            for (unsigned j = 0; j < chunk; j++)
-                                buffer[j] = (unsigned char)~((char)pos + (char)j
-                                            ^ (char)key ^ buffer[j]);
-                        }
-                        fwrite(buffer, chunk, 1, f);
-                        size -= chunk;
-                    }
-                } else {
+                if ((char)flags != 0) {
                     int blocks = nblocks(size);
                     table = (int*)FUN_004d83b0("Block Sizes", blocks * 4);
                     fwrite(table, blocks, 4, f);
@@ -172,7 +167,20 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     FUN_004d85a0(table);
                     FUN_004d85a0(pack);
                     FUN_004d85a0(data);
-                }
+} else {
+                    while (size != 0) {
+                        unsigned chunk = size < 0x1000 ? size : 0x1000;
+                        FUN_004bb7c0(file, buffer, chunk);
+                        pos = ftell(f);
+                        if ((char)key != 0) {
+                            for (unsigned j = 0; j < chunk; j++)
+                                buffer[j] = (unsigned char)~((char)pos + (char)j
+                                            ^ (char)key ^ buffer[j]);
+                        }
+                        fwrite(buffer, chunk, 1, f);
+                        size -= chunk;
+                    }
+}
                 if (file->shared == 0) {
                     fclose(file->fp);
                 } else {

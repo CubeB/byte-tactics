@@ -1,17 +1,25 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-// Best 86.7 percent (1154 vs 1148 bytes). What still differs, all register
-// allocation:
+// Best 88.3 percent (1152 vs 1148 bytes). What still differs, all register
+// allocation (semantics are believed correct):
 //  - the top block loads out[0] into esi then copies to eax; the original
 //    loads into eax and copies to esi (byte-neutral), and the original spills
 //    root to [esp+0x18] just before the realloc call, ours earlier.
 //  - the base+root address is emitted as [ebx+esi]; the original as [esi+ebx]
 //    (initial header store and the first-pass count increment).
-//  - at the second allocator call ours reloads out[1] into eax instead of
-//    keeping base in ebx for the count read and the root+4 store.
-//  - the name allocator call computes strlen+1+nameOff as not/dec/lea+1, the
-//    original as not/add (reordering the expression did not change it here).
-//  - the entry pointer for the name/flags stores is recomputed instead of the
-//    original's single eax, and the file/dir data store address likewise.
+//  - the second allocator block: we do `mov esi,[ebp]` where the original does
+//    `mov eax,[ebp]; mov esi,eax`, and the count read is [ebx+edi] vs the
+//    original's [edi+ebx] (keeping base in ebx).
+//  - the name allocator call now reads `not ecx; lea eax,[ecx+ebx]` (nlen temp),
+//    the original `not ecx; add ecx,ebx; push ecx` (byte-neutral, different reg).
+//    Tried nameOff+nlen, nlen+=nameOff, nameOff+strlen+1: all the same lea.
+//  - the entry name/flags store pointer is computed as (ent+entries)+base and
+//    the leaf data address folds the new allocation into the store
+//    ([ecx+eax+4] vs add ecx,eax then [ecx+4]); the `*total += size` store is
+//    a load/add/store instead of the original `add [eax],ecx`.
+// Tried and rejected (all scored below 88.3): moving the entries declaration to
+// its point of use (86.9), out[0]=root+8 with/without an nsize temp (83.5),
+// (unsigned)base in the header address (88.2), #include <windows.h> (no change),
+// a size temp for the leaf branch (87.0-87.2).
 #include <io.h>
 #include <string.h>
 
@@ -85,9 +93,10 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
     }
 
     entries = out[0];
-    out[0] = entries + *(unsigned int*)((char*)out[1] + root) * 9;
-    out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
-    *(unsigned int*)((char*)out[1] + root + 4) = entries;
+    out[0] = entries + *(unsigned int*)(base + root) * 9;
+    char* nb = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
+    out[1] = (unsigned int)nb;
+    *(unsigned int*)(nb + root + 4) = entries;
 
     h = FUN_004bc4b0(buf, &fd, -1, 1);
     if (h != -1) {
@@ -95,7 +104,8 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
         do {
             if (strcmp(fd.name, DAT_00502910) != 0 && strcmp(fd.name, DAT_0050a548) != 0) {
                 unsigned int nameOff = out[0];
-                out[0] = nameOff + strlen(fd.name) + 1;
+                unsigned int nlen = strlen(fd.name) + 1;
+                out[0] = nlen + nameOff;
                 out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
                 strcpy((char*)out[1] + nameOff, fd.name);
                 Entry_004bd3b0* e = (Entry_004bd3b0*)((char*)out[1] + entries + ent);

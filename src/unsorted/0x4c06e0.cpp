@@ -115,6 +115,14 @@
 // the count block still differs (surf into ebp with x1 in edx there, versus
 // surf into ebx with x1 in ebp here).
 
+// Seventh pass (#2426, deepseek-v4.1-flash): baseline 74.1% re-confirmed. Inlining
+// `surf->pitch` (dropping the `int pitch` local so the surface pointer would stay
+// live into the offset, the shape the original register use implies) gives 70.2% /
+// 202 bytes in both addition orders and also through an explicit `Surface* s` local
+// used from the clamp onward (70.2%, 202 bytes); using `s` for the p/d init too is
+// the same. So the pitch-local shape is required and the residual stays the
+// ebx/ebp colouring of `surf` in the count block.
+
 #include <string.h>
 
 struct Span_004c06e0 {

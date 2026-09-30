@@ -74,6 +74,16 @@ public:
     void FUN_004d9ca0();
 };
 
+// deepseek-v4.1 (third run, 10-minute box): re-read the disassembly and re-measured the
+// allocator priority. The frame slots are certain (len=frame+0, m=copied=+4, r/q=+8,
+// n=count/s=+0xc, this=+0x10, pc=+0x14) and the original really does keep this, m, pc,
+// len and the walkers in memory with ONLY p=ebx, i=ebp and a temporary n=esi.
+// Confirmed again that adding `int n = count;` (variant a, 59.4%, frame 0x14) makes MSVC
+// give EBP to len and ESI to this, i.e. our allocator ranks len > this > n while the
+// original ranks i > n > len/this; no source-level lever found in the time box for that
+// priority flip, so the 69.5% body below stands (ours: frame 0x10, this=ebp, i=esp+0x18,
+// r=esp+0x14, len=esp+0x10; every mid-body [esp+N] is therefore 4 low).
+//
 // FUNCTION: 0x4d9ca0
 void Class_004d9ca0::FUN_004d9ca0()
 {

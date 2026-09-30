@@ -1,16 +1,26 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
-// provisional. GPT-6 retry: shared inline RIFF chunk search, plus correct global stdcall
-// declaration for FUN_004d01b0. Current score is 56.3%, not MATCH; result
-// stack slot and chunk-loop scheduling still differ. Earlier notes below
-// refer to the previous 55.0% implementation.
-// Best attempt, 55.0%. Remaining differences (first diff hunks):
-//   - our `result` local lands at [esp+0x1c], the original keeps it at
-//     [esp+0x14] (original: result=E+0, a=E+4, c=E+8; ours: c=E+0, a=E+4,
-//     result=E+8). Declaration order was tried two ways and did not move it.
-//   - the chunk-search seek argument compiles as `lea eax,[edi+edx]` here but
-//     the original emits `add edx,edi; push edx`.
-//   - the second "data" search emits a slightly longer block, so every label
-//     after 0x4d03a9 is shifted by a few bytes.
+// Decompiled by deepseek-v4.1. Names are provisional.
+// Earlier attempts by space-bunny-free, deepseek-v4.1-flash and GPT-6, kept below.
+// Best so far: 56.8 percent, 906 bytes against the original 895, NOT a match.
+// What still differs (all inside the kind == 2 RIFF body):
+//   - the chunk search is scheduled differently: the original emits
+//     `mov edx,[esp+0x38]; add edx,edi; push edx` for the seek argument while
+//     ours emits `lea eax,[edi+edx]; push eax`, and the lea temps for &id and
+//     &size rotate eax,ecx,edx in the original but ecx,edx,eax here.
+//   - our copy 2 loop exit emits an extra `jmp` before `xor eax,eax` and an
+//     extra `jmp` after it, so every label after 0x4d0490 is shifted.
+//   - at the FUN_004cf940 / FUN_004cf8a0 call sites the original loads `this`
+//     after the argument pushes (`mov ecx,[esp+0x2c]`), ours loads it from
+//     [esp+0x1c] before them, and the p3/p4 loads pick ecx/edx instead of
+//     the original edx/ecx.
+// Tried: shared inline FindChunk helper (current, best), plain __stdcall
+// FUN_004d01b0 (56.3 percent), __thiscall free function (MSVC5 rejects with
+// C4234), result/chunk locals declared both ways (slots already agree).
+// NAMING NOTE: the original calls 0x4d01b0 as a __thiscall method
+// (`push esi; mov ecx,edi; call 0x4d01b0`, and 0x4d01b0 never reads ecx), but
+// data/symbols.csv names 0x4d01b0 as the bare `FUN_004d01b0`, so check.py
+// reports our member reference as a name mismatch once the bytes match. The
+// orchestrator should add the class-qualified name for 0x4d01b0 to
+// data/symbols.csv.
 #include <string.h>
 
 struct File_004bb5d0;
@@ -33,7 +43,7 @@ class Class_004d02a0 {
     int FUN_004d02a0(char* path, int mode, int p3, int p4);
 };
 
-int __stdcall FUN_004d01b0(File_004bb5d0* file);
+struct Class_004d01b0 { int FUN_004d01b0(File_004bb5d0* file); };
 File_004bb5d0* __stdcall FUN_004bb5b0(char* path);
 int __stdcall FUN_004bb5d0(File_004bb5d0* file);
 int __stdcall FUN_004bb710(File_004bb5d0* file, int pos);
@@ -75,7 +85,7 @@ int Class_004d02a0::FUN_004d02a0(char* path, int mode, int p3, int p4) {
     File_004bb5d0* file = FUN_004bb5b0(path);
     if (file == 0)
         return result;
-    int kind = FUN_004d01b0(file);
+    int kind = ((Class_004d01b0*)this)->FUN_004d01b0(file);
     int size = FUN_004bbd00(file);
     switch (kind) {
     case 0:

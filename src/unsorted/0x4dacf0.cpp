@@ -1,9 +1,24 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
-// provisional. GPT-6 retry: repaired shared page commitment for reused blocks, zeroed base on
+// Decompiled by deepseek-v4.1. Names are provisional.
+// Started by space-bunny-free, continued by deepseek-v4.1-flash and GPT-6; deepseek-v4.1 retry.
+// NOT A MATCH: measured 51.1 percent, ours 777 bytes against the original 780, frame 0x68 (correct,
+// and every callee/data reference resolves at the same place). The body is instruction for
+// instruction right except for register allocation:
+//   * the original homes lock/need/want/wraps in edi/ebx/ebp/esi and keeps res (E+0x24) in memory
+//     only; this build homes lock and map in ebx, want in edi, res in ebp and need in memory at
+//     E+0x20, and the loop counter wraps shares ebp as the zero source.
+//   * consequences of that one difference: `cmp dword ptr [map+0xc],esi / jbe` becomes
+//     `cmp dword ptr [map+0xc],ebp / jbe`; `push 0` for the record ctor's last argument becomes
+//     `push ebp`; the pad branch's `lea eax,[ebx+edi]` becomes `lea ecx,[ebx+edi]`; the b iterator
+//     home slides from E+0x1c to E+0x10 (n2 stays at E+0x14); the early `mov dword ptr [esp+0x24],0`
+//     becomes `xor ebp,ebp / mov [esp+0x24],ebp`.
+//   * tried without effect: removing the `= 0` initialisers on base/len/key, splitting one Pair into
+//     the two the original has, swapping the iterator declarations, `wraps` before `map`, the
+//     `!(a == b)` Neq form, and changing the local declaration order. Every attempt leaves the
+//     ebx/ebp/edi assignment as above, so this looks like MSVC5 allocator state the local source
+//     does not steer (same class as 0x4a6ae0 and 0x4866d0).
+// GPT-6 retry: repaired shared page commitment for reused blocks, zeroed base on
 // failed reservation, fixed the 48-byte record layout and iterator hidden-return ABI, and corrected
-// matched callee owners. Earlier notes below describe the superseded reconstruction. Correct frame
-// size is now 0x68; register allocation and temporary lifetimes still differ. NOT A MATCH: 52.6
-// percent, 773 of 780 bytes. Progress over the 49.7 percent version came from removing the `= 0`
+// matched callee owners. Earlier notes below describe the superseded reconstruction. Progress over the 49.7 percent version came from removing the `= 0`
 // initialisers on base/len/key (the original does not zero them, and the extra zero store was the
 // spilled home that both pushed the frame to 0x6c and took the register allocation away from
 // map/wraps) and from splitting the one Pair into the two the original has

@@ -78,6 +78,10 @@
 // std::copy+pop_back and static-helper phrasings all score worse or the same
 // 98.6%. Only the plain `it = begin(); while (it != end()) erase(it)` form
 // reproduces the rest of the function.
+// Retried by deepseek-v4.1-flash in #2412, still 98.6%, same one byte: a saved
+// `Listener* p = *it; delete p;` local keeps the byte; the index form
+// (`lists[i][j]` + `erase(begin()+j)`) and the `front()`/`erase(begin())`
+// while-loop drop to 37.8% (they lose a stack local and the whole frame).
 #include <vector>
 
 class Listener_00471de0 {

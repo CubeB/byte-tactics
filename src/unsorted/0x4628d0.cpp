@@ -37,6 +37,14 @@
 // definitions placed before the target (compiler state) and an early-return
 // guard do not change this (early return drops to 77.3%). All scratch variants
 // that score above this one's 96.6%: none.
+//
+// Retry (deepseek-v4.1-flash, 2nd): headers.py over the member-reload variant is
+// flat at 90.7% across all 128 sets. The reload forces one global two-register
+// rotation: the value load is hoisted to ecx above the offset store (so the
+// 96.6% baseline's mov eax,[esp+0x24] after the store is lost), count+1 moves to
+// edx and the final count reload to eax. Removing the `len` local is what makes
+// the reload appear, but it always drags the rotation with it; the reload-free
+// 96.6% baseline is the best register-identical shape.
 #include <string.h>
 
 void __cdecl FUN_00461170(const char* fmt, ...);

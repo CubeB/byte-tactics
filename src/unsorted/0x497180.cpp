@@ -1,27 +1,46 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
+// deepseek-v4.1-flash. Names are provisional.
 //
-// 2797 bytes, transcribed from the disassembly and Ghidra's pseudo-C inside a
-// short timebox. Retry best: 49.7% (2823 vs 2797 bytes) after 4 check.py
-// runs; no MATCH. A scoped-local variation stayed at 49.7%, and changing the
-// initial selector to int fell to 47.0%, so the original file is retained.
+// 2797 bytes. Best so far: 66.8% (2749 vs 2797 bytes). No MATCH.
+//
+// What was fixed this pass, in order of how much it moved the number:
+// - `Fixed_497180` was a struct with both an int and a two-short struct, so
+//   sizeof was 8 and FixedPos was 24. It must be a UNION of 4 bytes. That made
+//   `pos`/`start` 12 bytes, turned the `start = pos` copies from a 24-byte
+//   `rep movsd` back into three dword moves, dropped the frame from 0x54 to the
+//   original 0x4c and put every local at the original offset (perfCount S+4,
+//   pos S+0xc, start S+0x18, order S+0x24). 49.7 -> 62.6.
+// - Every free `FUN_*` with `ret N` was declared __cdecl here, so the caller
+//   cleaned the stack and every call site carried a spurious `add esp,N`
+//   (22 in all). Declaring them __stdcall (and FUN_00456850 as returning
+//   unsigned char) removed them and fixed the string call's stack slot.
+// - `sel`/`sel2` as `unsigned char` were homed in memory and reloaded. As
+//   `int sel = FUN_00456850()` they stay in a register (`and eax,0xff`), which
+//   is what the original does.
+// - The initial `==3` guard indexes the CURRENT player (`g_game[0x2a42]`), not
+//   the freshly read `sel`; the disassembly loads [ecx+0x2a42] for the test.
+// - `p[0x96] == 0xff` as `unsigned char` compares against the immediate; the
+//   signed `== -1` spelling materialised 0xff in bl first. 62.6 -> 66.8.
+//
 // Known remaining differences:
-// - frame is 0x54 vs the original 0x4c, and the whole local block is shifted
-//   down by 8 (perfCount at S+0xc vs S+4, pos at S+0x10 vs S+8, order at
-//   S+0x28 vs S+0x20). The original packs `pos` immediately after a 4-byte
-//   slot holding perfCount (S+4..S+0xb overlaps pos S+8..S+0x13); MSVC only
-//   overlaps those if the source scoping makes the lifetimes disjoint. Moving
-//   pos/start into the second-dispatch ==3 block and order into the ==2 else
-//   branch (checked) did not change the frame, so the original likely declared
-//   them in an order or nesting not yet reproduced. This one shift alone
-//   penalises every local-relative instruction.
-// - the three ten-player walks each carry a redundant `cmp idx,10; jae` guard
-//   before the body (an inlined bounds-checked accessor in the original);
-//   written here as `if ((unsigned char)i < 10)` wrappers.
-// - case 3 (skirmish/game start) is the bulk of the function and its register
-//   allocation (g_game in esi/ebp vs edx, the zero in ebx) is unverified.
-// - `unsigned char sel = FUN_00456850()` spills al to [esp+0x10] and reloads;
-//   the original keeps the zero-extended value in a register (`and eax,0xff;
-//   mov esi,eax`). Making sel `int` made the checker score worse.
+// - The `g_game[0x14281]` flag read-modify-writes: the original masks the
+//   source with the DESTINATION bit (`mov bl,[p+0x9c]; and ebx,2/4/1; ...;
+//   or edx,ebx`, with a `xor ebx,ebx` before), while manual masks here give
+//   `and bl,2; movzx si,bl` and a bitfield-union model (tried, 59.7%) gives
+//   `shr bl,1; and bl,1; movzx si,bl`. 12 redundant movzx remain. Neither the
+//   manual nor the bitfield spelling reproduces the 32-bit AND yet.
+// - The switch keeps its constant `1` in edx here and the original in edi
+//   (`mov edi,1` once, reused as the mask in cases 1 and 2).
+// - `-1` for the `order` fill is hoisted to `mov ebx,-1` at the switch here
+//   (MSVC keeps the constant in a callee-saved register across the function),
+//   where the original emits `or eax,0xffffffff` at the stosd site.
+// - `*(unsigned short*)(g_game + 0x38d75) |= 4` folds to `or byte ptr [..],4`
+//   here; the original loads the word, ORs in a register and stores it back.
+//   That is the volatile-network-flags signature the guide names; left as a
+//   note rather than a volatile declaration.
+// - The three ten-player walks carry an extra `cmp reg,10; jae` guard (an
+//   inlined bounds-checked accessor in the original), written here as
+//   `if ((unsigned char)i < 10)` wrappers.
 // - the `(rand() * 2) / 0x8000` test came out of the x86 as a 64-bit
 //   __allmul/__alldiv pair, kept literally.
 #include <windows.h>
@@ -29,7 +48,7 @@
 #include <stdio.h>
 #include <time.h>
 
-struct Fixed_497180 {
+union Fixed_497180 {
     int i;                              // 16.16
     struct {
         short frac;
@@ -93,32 +112,32 @@ extern int DAT_005091cc;
 extern int DAT_00506dbc;
 extern Class_004618a0 DAT_00513000;
 
-void FUN_004b6ca0(int x);
-void FUN_004b6b50(int x);
-int FUN_004b6c30(int x);
-int FUN_00456850();
+void __stdcall FUN_004b6ca0(int x);
+void __stdcall FUN_004b6b50(int x);
+int __stdcall FUN_004b6c30(int x);
+unsigned char __stdcall FUN_00456850();
 void FUN_00431740();
 void FUN_00453d40();
-void FUN_00465fb0(void* mission);
+void __stdcall FUN_00465fb0(void* mission);
 void FUN_0047a760();
 void FUN_004917d0();
 void FUN_00465e30();
-void FUN_004816a0(int x);
-void FUN_00432610(void* mission);
+void __stdcall FUN_004816a0(int x);
+void __stdcall FUN_00432610(void* mission);
 void FUN_00488310();
 void FUN_0041d1f0();
-void FUN_004288d0(int a, int b, int c, int d);
+void __stdcall FUN_004288d0(int a, int b, int c, int d);
 void FUN_00450f90();
 void FUN_00451180();
 void FUN_00464f80();
-void FUN_0046c620(int x);
+void __stdcall FUN_0046c620(int x);
 void FUN_004649d0();
-void FUN_0041c4c0(int x, int y, int z);
-unsigned short FUN_00488b10(const char* name);
-void FUN_00496ee0(int team, int startpos);
-void FUN_00485f50(unsigned char team, unsigned short id, FixedPos_497180 pos, int a, int b,
-    int c);
-Gadget_497180* FUN_004aa8f0(Sub_497180* sub, const char* name, int flags);
+void __stdcall FUN_0041c4c0(int x, int y, int z);
+unsigned short __stdcall FUN_00488b10(const char* name);
+void __stdcall FUN_00496ee0(int team, int startpos);
+void __stdcall FUN_00485f50(unsigned char team, unsigned short id, FixedPos_497180 pos, int a,
+    int b, int c);
+Gadget_497180* __stdcall FUN_004aa8f0(Sub_497180* sub, const char* name, int flags);
 void __stdcall FUN_00494890(Gadget_497180* gadget);
 void __cdecl operator delete(void* p);
 
@@ -173,18 +192,19 @@ void FUN_00497180(void)
         DAT_005091cc = 1;
         *(unsigned short*)(g_game + 0x38a51) &= 0xfffe;
 
-        unsigned char sel = (unsigned char)FUN_00456850();
-        if (*(unsigned char*)(g_game + 0x1b63 + 0x14b * sel + 0x21) & 2) {
+        int sel = FUN_00456850();
+        unsigned char cur = *(unsigned char*)(g_game + 0x2a42);
+        if (*(unsigned char*)(g_game + 0x1b63 + 0x14b * cur + 0x21) & 2) {
             do {
                 char* p = *(char**)(g_game + 0x1b63 + 0x14b * *(unsigned char*)(g_game + 0x2a42) + 0x27);
                 if (DAT_00506dbc)
                     DAT_00513000.FUN_004618a0(1);
                 FUN_00453d40();
-                sel = (unsigned char)FUN_00456850();
+                sel = FUN_00456850();
                 FUN_004b6b50(0x32);
                 if (sel == 10)
                     continue;
-                if (*(char*)(p + 0x96) == -1)
+                if (*(unsigned char*)(p + 0x96) == 0xff)
                     continue;
                 if (*(char*)(p + 0x8f) == 0)
                     continue;
@@ -195,10 +215,10 @@ void FUN_00497180(void)
 
         ((Class_00435a20*)*(void**)(g_game + 0x391e9))
             ->FUN_00435a20(*(void**)(g_game + 0x1b63 + 0x14b * sel + 0x27));
-        if ((unsigned char)FUN_00456850() == 10)
+        if (FUN_00456850() == 10)
             break;
 
-        unsigned char sel2 = (unsigned char)FUN_00456850();
+        int sel2 = FUN_00456850();
         char* p2 = *(char**)(g_game + 0x1b63 + 0x14b * sel2 + 0x27);
         DAT_005091cc = (*(unsigned short*)(p2 + 0x9b) >> 0xd) & 1;
         *(int*)(g_game + 0x37ef6) = (*(unsigned short*)(p2 + 0x9b) >> 0xb) & 3;
@@ -248,7 +268,7 @@ void FUN_00497180(void)
             while ((*(unsigned short*)(g_game + 0x38d75) & 8) == 0)
                 FUN_004b6b50(0x32);
 
-            unsigned char sel = (unsigned char)FUN_00456850();
+            int sel = FUN_00456850();
             char* pl = *(char**)(g_game + 0x1b63 + 0x14b * sel + 0x27);
             *(unsigned short*)(g_game + 0x14281) =
                 (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffe) |

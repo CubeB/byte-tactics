@@ -1,8 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 77.2%. One-child tree updates are inlined in the executable;
-// supplying the matched helper body restores those missing blocks. Local
-// control-state grouping improves stack slots, but packet-loop registers
-// and several control-flow details still differ.
+// Partial: 84.1%. One-child tree updates are inlined in the executable;
+// supplying the matched helper body restores those missing blocks. The
+// byte-copy loop must be a plain `while (n0 < 0x11)` with the src check
+// inside (do-while gets rotated), and the lit/lenstack `n` assignment must
+// live inside each branch. Still differs: the window pointer sits in ebp
+// where the original keeps it in esi, so `n` spills to [esp+0x24] and mask
+// lands at [esp+0x28] instead of the original [esp+0x24]; the encode-loop
+// register/slot swap and a few operand orders (edx+eax vs eax+edx) remain.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,8 +50,8 @@ int __stdcall FUN_004d0de0(int pos, int *out);
 // FUNCTION: 0x4d0f60
 int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
     unsigned char flags;
-    unsigned int mask;
     int n;
+    unsigned int mask;
     int accum;
     unsigned char *end;
     unsigned char *base;
@@ -74,8 +78,8 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         }
         WaitForSingleObject(DAT_0052a4f8, -1);
     }
-    end = src + len;
     base = dest;
+    end = src + len;
     DAT_00526ff4 = (char *)calloc(1, 0x1011);
     if (DAT_00526ff4 == 0) {
         printf("Could not alloc decompression window.\n");
@@ -108,13 +112,16 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         DAT_00526ff0->nodes[1].larger = 0;
         DAT_00526ff0->nodes[1].smaller = 0;
     }
-    state.count = 0;
-    do {
-        if (src >= end)
-            break;
-        DAT_00526ff4[state.count + 1] = *src++;
-        state.count++;
-    } while (state.count < 0x11);
+    {
+        int n0 = 0;
+        while (n0 < 0x11) {
+            if (src >= end)
+                break;
+            DAT_00526ff4[n0 + 1] = *src++;
+            n0++;
+        }
+        state.count = n0;
+    }
     state.cur = 0;
     accum = 0;
     mask = 1;
@@ -125,11 +132,12 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
             state.cur = state.count;
         if (state.cur <= 1) {
             lit[mask] = DAT_00526ff4[state.pos];
+            n = 1;
         } else {
             lenstack[mask] = (unsigned short)(((state.cur - 2) & 0xf) | (accum << 4));
             flags |= (unsigned char)mask;
+            n = state.cur;
         }
-        n = state.cur <= 1 ? 1 : state.cur;
         mask <<= 1;
         if (mask & 0x100) {
             *dest++ = flags;

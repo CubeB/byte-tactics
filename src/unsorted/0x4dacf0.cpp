@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by space-bunny-free, continued by deepseek-v4.1-flash and GPT-6; deepseek-v4.1 retry.
-// NOT A MATCH: measured 51.1 percent, ours 777 bytes against the original 780, frame 0x68 (correct,
+// NOT A MATCH: measured 52.2 percent, ours 778 bytes against the original 780, frame 0x68 (correct,
 // and every callee/data reference resolves at the same place). The body is instruction for
 // instruction right except for register allocation:
 //   * the original homes lock/need/want/wraps in edi/ebx/ebp/esi and keeps res (E+0x24) in memory
@@ -77,6 +77,12 @@
 //     and does not fold the known zero; this file folds it to `test eax,eax`.
 //   * the trailing half (the two insert calls, VirtualAlloc, the record and
 //     its ctor) has not been revisited since v0.
+// deepseek-v4.1-flash retry: spelling `if (!size)` as `if (size < 1)` is the
+// only change that scored better (52.2 percent, 778 bytes) because MSVC folds
+// the `size = 1` fixup into the test (`cmp esi,1`). tools/headers.py (128 sets)
+// and a dummy-declaration sweep of N = 0..400 all stay flat at 51.1/51.5, and
+// every res/need/want declaration-order permutation keeps lock in ebx and the
+// zero from `res = 0` in ebp, so the edi/ebx/ebp rotation above still stands.
 // Carve a block out of the reservation allocator: enter the lock, round the
 // request up (need) and double it (want), then walk the free-block map for a
 // block of at least want bytes, splitting it around the allocation point and
@@ -195,7 +201,7 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     EnterCriticalSection(&lock->cs);
     unsigned int res = 0;
     unsigned int size = n;
-    if (!size)
+    if (size < 1)
         size = 1;
     unsigned int need = FUN_004da8c0(size);
     unsigned int want = FUN_004da8a0(size);

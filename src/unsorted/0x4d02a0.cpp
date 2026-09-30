@@ -1,17 +1,17 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // Earlier attempts by space-bunny-free, deepseek-v4.1-flash and GPT-6, kept below.
-// Best so far: 56.8 percent, 906 bytes against the original 895, NOT a match.
+// Finished by deepseek-v4.1-flash: rewrote the FindChunk loop as `for (;;)` with
+// an early `return size`, which removed the two extra `jmp` instructions at the
+// end of the second chunk search (906 -> 897 bytes).
+// Best so far: 56.9 percent, 897 bytes against the original 895, NOT a match.
 // What still differs (all inside the kind == 2 RIFF body):
 //   - the chunk search is scheduled differently: the original emits
 //     `mov edx,[esp+0x38]; add edx,edi; push edx` for the seek argument while
 //     ours emits `lea eax,[edi+edx]; push eax`, and the lea temps for &id and
 //     &size rotate eax,ecx,edx in the original but ecx,edx,eax here.
-//   - our copy 2 loop exit emits an extra `jmp` before `xor eax,eax` and an
-//     extra `jmp` after it, so every label after 0x4d0490 is shifted.
 //   - at the FUN_004cf940 / FUN_004cf8a0 call sites the original loads `this`
-//     after the argument pushes (`mov ecx,[esp+0x2c]`), ours loads it from
-//     [esp+0x1c] before them, and the p3/p4 loads pick ecx/edx instead of
-//     the original edx/ecx.
+//     after the argument pushes (`mov ecx,[esp+0x2c]`), ours loads it before
+//     them, and the p3/p4 loads pick ecx/edx instead of the original edx/ecx.
 // Tried: shared inline FindChunk helper (current, best), plain __stdcall
 // FUN_004d01b0 (56.3 percent), __thiscall free function (MSVC5 rejects with
 // C4234), result/chunk locals declared both ways (slots already agree).
@@ -68,7 +68,9 @@ static inline unsigned int FindChunk(File_004bb5d0* file, const char* tag) {
     FUN_004bb7c0(file, &id, 4);
     FUN_004bb7c0(file, &size, 4);
     offset = 20;
-    while (strncmp((char*)&id, tag, 4) != 0) {
+    for (;;) {
+        if (strncmp((char*)&id, tag, 4) == 0)
+            return size;
         FUN_004bb710(file, size + offset);
         offset += size;
         if (offset >= limit)
@@ -77,7 +79,6 @@ static inline unsigned int FindChunk(File_004bb5d0* file, const char* tag) {
         FUN_004bb7c0(file, &size, 4);
         offset += 8;
     }
-    return size;
 }
 // FUNCTION: 0x4d02a0
 int Class_004d02a0::FUN_004d02a0(char* path, int mode, int p3, int p4) {

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // PARTIAL 93.7%: all bytes match except the order of the two
 // FUN_004a5030 calls in the char-insert default case. The original emits
 // `push ebp; call FUN(text); ...; call FUN(c)`, ours emits FUN(c) first.
@@ -6,6 +6,8 @@
 // appears when the width is one combined expression `FUN(text) + FUN(c)`;
 // splitting it into two statements restores the call order but flips the
 // insert block to entry-in-eax, which costs more bytes.
+// Tried split-call, static-helper, and explicit-width variants: best remains
+// the original 93.7% version.
 // The char-insert `int i;` local is declared before `char* text` so MSVC
 // makes the subscript the addressing-mode index, giving the original
 // `[ebp+eax]` instead of `[eax+ebp]` in the copy loops.
@@ -54,6 +56,7 @@ void __stdcall FUN_004a4d70(Control_004ab720* control, int index);
 int __stdcall FUN_004a5030(char* text);
 int FUN_004c1ab0();
 void* FUN_004b6220();
+
 
 // FUNCTION: 0x4ab720
 int __stdcall FUN_004ab720(Control_004ab720* control, int index, int key)

@@ -1,4 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (2047) note: this is still the best version (67.8%, 555 vs 570
+// bytes). The one thing still differing is the original's `int 0` held in ebx
+// for the whole function (`cmp reg, ebx`, `cmp [esi+0x38], ebx`, `mov [esi+0x3c],
+// ebx`, `mov [esi+0x20], ebx`), which also forces `sent` (the packet counter)
+// out of registers into the argument home slot `[esp+0x1c]` (`inc dword ptr
+// [esp+0x1c]`). Ours folds every 0 to `test reg,reg` / `mov [mem],0` per block
+// and enregisters `sent` in ebx instead, which is the whole 15-byte gap.
+// New experiment this pass: scratch/0x4624a0/v1.cpp reuses `force` itself as
+// the counter and escapes its address (`force = (int)&force;` right after
+// `nextSend = now + ticks;`, the same dead-store trick that already pins
+// `Locals_004624a0` to memory). That does move the counter back to the argument
+// slot, but the escape costs 4 bytes and the score fell to 65.2% (559 bytes),
+// so it is not the answer; the constant 0 still never reaches ebx.
+
 // space-bunny-free second pass (1642): still 67.8 percent, 555 against 570
 // bytes, still the single missing ebx = 0 register. New results, all measured
 // with check.py --sym on scratch copies (no check.py runs spent):
@@ -112,6 +126,45 @@
 //  - the extracted-packet block loads `[edi+4]`/`[edi+0xc]` in the opposite
 //    order, and the send block puts dpid in eax/edx instead of ebx/ebp.
 //
+// deepseek-v4.1 fourth pass (2047): still 67.8 percent, 555 against 570 bytes.
+// Seven check.py runs on scratch copies, every one byte-identical to this file
+// (67.8 percent): `int sent = 0;` at function scope instead of `int sent;`
+// (v20), `Packet_004624a0* entry;` without the `= 0` (v21), a Pop that caches
+// the index in a temp (v22), an `int zero = 0;` local used at every
+// zero comparison and store (v30), and the same zero threaded into the inlined
+// GetFirst as a parameter (v31). One shape regressed: a Push that caches
+// `writeIdx + 1` in a temp (v23) and the Pop+Push combination (v24) drop to
+// 546 bytes and 52.4 percent, so the index must stay written as
+// `writeIdx = writeIdx + 1;` with the wrap test on the member.
+// Flag probe (free, scratch scoring): `/Oa` gives 550 bytes / 40.8 percent and
+// `/Ow /Oa` 550 bytes / 59.9 percent, both worse than the default flags, so the
+// constant-in-ebx choice is not a flag artifact of aliasing assumptions.
+// Still missing: the whole 15-byte gap is the allocator keeping the literal 0
+// in ebx (`cmp reg, ebx`, `mov [esi+0x3c], ebx`, `mov [esi+0x20], ebx`) with
+// `sent` spilled to the dead argument home `[esp+0x1c]` (so `inc dword ptr
+// [esp+0x1c]`), plus the original's `jmp` after the `force == 0` test (ours
+// falls through) and the original's `mov ecx, edx; cmp ecx, eax` copies in the
+// two index wraps. Naming or escaping `sent` does not bring 0 into a register.
+
+// deepseek-v4.1 third pass (2047): still 67.8 percent, 555 against 570 bytes;
+// the file is unchanged because every variant scored lower or equal. Measured
+// with check.py this pass:
+//  - removing the `loc.headFrame = 0;` store (the original has no store of 0 to
+//    [esp+0x14] before the loop, so the source's init was dead there): 547
+//    bytes but 66.5 percent, so the store must stay to keep the byte alignment.
+//  - forcing `sent` into memory by taking its address (`sent = (int)&sent;`):
+//    559 bytes, 61.6 percent. The escape does push it out of ebx, but the
+//    constant 0 still does not appear in a register and the extra code costs
+//    more than it buys.
+//  - `unsigned int sent;` instead of `int sent;`: byte-identical, 67.8 percent.
+//  - `int sent = 0;` declared inside the while body (shorter live range):
+//    byte-identical, 67.8 percent.
+//  - `int sent; int i;` swapped declaration order: byte-identical, 67.8 percent.
+// Conclusion for the next pass: the missing 15 bytes are one allocator choice
+// (constant 0 kept in ebx, `sent` spilled to the argument slot) that no source
+// spelling of `sent` reached. The next lever to try is a source shape that
+// makes the zero uses heavier than the counter: e.g. more zero comparisons in
+// the same block, or the counter living in a member instead of a local.
 // Previous worker's notes (space-bunny-free, 59.0%): the inlined Pop wording
 // was tried in both shapes (0x4623b0 and 0x4623e0); a flat 0-120
 // unused-declaration sweep stayed flat, so the remaining gap is source shape,

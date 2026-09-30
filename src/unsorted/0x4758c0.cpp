@@ -1,4 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass (#1186), 88.9 percent, unchanged and still the best: the
+// function is 779 of 779 bytes and the only diff is the register choice for _P
+// in the reallocation arm (original keeps it in edx and the fill counter on the
+// stack at [esp+0x1c]; this build rematerializes _P from its home slot into ecx
+// every iteration, so the counter gets edx instead). Eight more check.py --sym
+// runs, all on top of the best 88.9 state, all at 88.9 with identical bytes:
+// the faithful `_Ufill(_Q, _M, _X)` alone is 84.3 (777 bytes), a local copy of
+// _P used for the first and third copies is 88.9, a copy of _P made before
+// allocator.allocate is 88.9, the fill destination in a fresh local _F instead
+// of advancing _Q is 84.3 (777), the counter hoisted to the arm start or
+// declared before _Q is 88.9, `_Q + _M` as `&_Q[_M]` is 88.9, the third copy's
+// destination bound to a local _D is 88.9. Nothing in this family makes the
+// allocator keep _P live across the fill, which matches the previous pass and
+// the sibling instantiations 0x475bd0 / 0x475ef0: it is translation-unit
+// compiler state, not a source shape.
 // Sonnet 5.5 pass (#1099), read this first:
 //  - The explicit fill loop below advances _Q itself and the third copy then
 //    uses `_Q + _M`, so as written it would place the tail 2*_M elements in.

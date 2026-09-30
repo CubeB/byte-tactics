@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // GPT-6 retry: eligibility, position-search and loop-body helpers, grouped result
 // locals, vector constructors/copy operators and direction variants did not improve
 // 83.5%. Preserve this version; the first loop register rotation remains.
@@ -12,7 +12,7 @@
 // from it when farther), the others to the base itself, or when within 0x140
 // of it, 0x140 onwards in its direction.
 //
-// Partial (83.5%): the control flow, the stack frame and most of both loops
+// Partial (83.8%): the control flow, the stack frame and most of both loops
 // match. What fixed parts of it:
 // - Length() takes a const reference to a temporary (pos - origin): only then
 //   are the three fild operands the temporary's own memory, with a stored 0
@@ -20,16 +20,33 @@
 // - The range is an inline MapRange() assigned to a local before
 //   `origin.y = pos.y`; written in the comparison it is computed after _ftol.
 // - <memory.h> gives the mapWidth-first load order in MapRange().
-// Still different:
-// - loop 1: registers are rotated: the original keeps the unit in ebp, `ok` in
-//   ebx and the iterator in edi (spilled); here the iterator is in esi (spilled
-//   around the idx load), the unit in edi and `ok` in ebp. Loop 2 is already
-//   right (it in edi, unit in esi), which shows the two loops allocate the unit
-//   independently, so the divergence is loop 1's own live ranges.
-// - loop 2: origin is copied to target with origin.y in edi, which the else
-//   branch reuses (here it is reloaded); scratch registers are rotated by one
-//   at the flag12 test; the Direction() results use ebx/ebp swapped; the first
-//   FixMul pushes its operands in the other order (s first).
+// - The second loop's else branch ends with three in-place `d.x += u->pos.x`
+//   style adds and `target = d;`, not `target = u->pos + d;` (+0.3).
+//
+// Still different, hunk by hunk (addresses in the original):
+// - 0x40812f-0x4082c6, loop 1: registers rotated by one. The original keeps
+//   `this` in ebx, the unit in ebp, the iterator in edi (spilled to esp+0x14)
+//   and `ok` in ebx only after `this` dies; here `this` stays in ebx, the unit
+//   is in edi, `ok` in ebp and the iterator in esi. Everything downstream in
+//   the hunk (the MapRange value, the ok test, the two calls) rotates with it.
+//   Loop 2 already allocates correctly (it in edi, unit in esi), so the two
+//   loops take their own decisions and this is loop 1's own live ranges.
+// - 0x408334: the `u->def` load sits before the three `target = origin` stores
+//   instead of after them (pure scheduling of the flag12 test).
+// - 0x4083c8/0x4083d4 and 0x4084df/0x4084f3: the Direction() results land in
+//   ebp/ebx swapped, and in the len<0x100000 branch the two calls are issued
+//   in the other order relative to the negations.
+// - 0x408461-0x40849a, loop 2's else branch: the original does
+//   `sub eax, [esi+0x6a]` (x straight from memory) then reuses the register it
+//   loaded u->pos.y into; here the three loads and two of the three subs are
+//   hoisted above the first store. A plain `Vec3 d = origin - u->pos;` and a
+//   member-at-a-time form both hoist (the latter is worse, 82.7%), so the
+//   members have to land in registers that are already live: eax/edi/edx hold
+//   origin.x/y/z, and the subtraction must consume them in that order.
+// - 0x4084f7: _allmul's first pair is pushed s-first; no source-level
+//   FixMul operand order changes it (all four orders emit the same code).
+// - 0x40855b: the final `u->pos + d` is done in the same order but into
+//   ecx/edx/edi instead of edi/ecx/edx.
 // Retry by deepseek-v4.1-flash: every source-level shuffle left the allocator
 // decision untouched (byte-identical output, all 83.5%), so loop 1's register
 // choice is not driven by statement order. Tried without effect: a
@@ -236,7 +253,10 @@ void Class_004085d0::FUN_00407380()
                         d.y = FixMul(d.y, s);
                         d.z = FixMul(d.z, s);
                     }
-                    target = u->pos + d;
+                    d.x += u->pos.x;
+                    d.y += u->pos.y;
+                    d.z += u->pos.z;
+                    target = d;
                 }
                 Class_00438760 kind = FUN_0043f0e0(9, u, 0, &target);
                 FUN_0043adc0(kind, 0, u, 0, &target, 0, 0);

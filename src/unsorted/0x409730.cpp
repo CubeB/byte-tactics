@@ -1,4 +1,32 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+//
+// Still 99.6% (space-bunny-free pass): the code is the same 1678 bytes and every
+// instruction matches except these two hunks, both the SIB base/index order of a
+// byte access to vec_8d (a different SIB byte, not a different instruction):
+//   0x4099f6  orig `mov byte ptr [esi + ecx], al`   ours `mov byte ptr [ecx + esi], al`
+//             (the store of the clamped rating: base should be the vector pointer)
+//   0x409b53  orig `movsx eax, byte ptr [eax + edx]`  ours `movsx eax, byte ptr [edx + eax]`
+//             (the `(char)vec_8d[i] / 2` read: base should be the vector pointer)
+// What this pass added (all scored with check.py --sym, all still 99.6% or worse):
+// - The trigger is NOT the access form but the surrounding function. A 6-line
+//   minimal member reproduces both orders: `v[i]` encodes base=index var, index=
+//   pointer, while a NAMED POINTER LOCAL (`unsigned char* q = v.begin(); q[i]`)
+//   encodes base=pointer, index=index var, for both the byte store and the byte
+//   read feeding a signed /2, with no headers involved. But inserting exactly
+//   that local pointer into this function (v1-v3, 9 variants: local in a block,
+//   value split into a temp first, `char*` cast, unsigned pointer with and
+//   without the `(char)` cast, `&v[0]`, `v.begin()`, the read split into
+//   `int c` first) leaves both SIB bytes swapped; only the reference form
+//   `unsigned char& r = vec_8d[i]; r = ...` changes the code at all, and it is
+//   much worse (1679 bytes, 84.6%). So MSVC5's swap decision here is made on the
+//   full expression/register-pressure state, not on the subscript.
+// - `unsigned char& r = vec_8d[i]` forces the address into a register first
+//   (two extra movs, the pointer kept in ebp) and is never right for a
+//   single-use subscript.
+// - A named pointer local hoists `mov <ptr>, [this+0x91]` to the top of the block
+//   when its initializer is written before the value expression (1675 bytes,
+//   86.6%); writing the value into a temp first puts it back in place.
+//
 // GPT-6 retry: rating access, clamp, half-rating and pointer getter helpers, plus
 // all 768 header sets, did not improve 99.6%. Remaining differences are still the
 // two SIB base/index encodings; accessor wrappers can disturb STL inline budgeting.

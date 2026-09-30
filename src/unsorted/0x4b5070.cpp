@@ -1,8 +1,20 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // Reads the installed DirectX version: first through dsetup.dll's
 // DirectXSetupGetVersion, then, if that fails, through
 // HKLM\Software\Microsoft\DirectX (the "InstalledVersion" DWORD on NT, the
 // "Version" string on Win9x), and compares the result with the wanted version.
+//
+// This retry (deepseek-v4.1) fixed the tail to the original's nested-if shape
+// (the shared `sbb eax,eax / inc eax` tree at 0x4b5233/0x4b523a now matches)
+// and steered the register permutation with the declaration/assignment order
+// of the four halves: declaring and assigning minhi, majlo, minlo, majhi gives
+// ebp=majhi, esi=majlo, edi=minhi with minlo spilled to [esp+0x20] (53.6%,
+// 603 of 619 bytes); the original needs ebx=majhi, ebp=majlo, edi=minhi,
+// esi=minlo with lib kept in memory, and every order tried so far either
+// spills minlo or lets lib take ebp (declaration majhi, majlo, minhi, minlo
+// gave esi=majhi, edi=majlo, minlo=ebx, minhi spilled, lib=ebp, 48.6%; order
+// minlo, minhi, majlo, majhi gave ebx=majhi, esi=majlo, ebp=minhi, edi=minlo,
+// 50.6%). The setup path must assign majhi last to reach ebx/ebp.
 //
 // PARTIAL (48.6%, 599 of 619 bytes). The frame is now the original 0xcc
 // (one DWORD size variable shared by both RegQueryValueExA arms, rather than
@@ -46,7 +58,7 @@ typedef int (__stdcall *FN_DIRECTXSETUPGETVERSION)(DWORD* major, DWORD* minor);
 int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4)
 {
     int isNT = 0;
-    unsigned int minlo = 0, minhi = 0, majlo = 0, majhi = 0;
+    unsigned int minhi = 0, majlo = 0, minlo = 0, majhi = 0;
     DWORD status;
     HMODULE lib;
 
@@ -60,10 +72,10 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
 
             status = ((FN_DIRECTXSETUPGETVERSION)proc)(&dwMaj, &dwMin);
             if (status) {
-                majhi = dwMaj >> 16;
+                minhi = dwMin >> 16;
                 majlo = dwMaj & 0xffff;
                 minlo = dwMin & 0xffff;
-                minhi = dwMin >> 16;
+                majhi = dwMaj >> 16;
             }
         }
         FreeLibrary(lib);
@@ -110,14 +122,14 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
     if (isNT) {
         return majlo >= (unsigned int)want4;
     }
-    if (majhi != (unsigned int)want0) {
-        return majhi >= (unsigned int)want1;
-    }
-    if (majlo != (unsigned int)want1) {
+    if (majhi == (unsigned int)want0) {
+        if (majlo == (unsigned int)want1) {
+            if (minhi == (unsigned int)want2) {
+                return minlo >= (unsigned int)want3;
+            }
+            return minhi >= (unsigned int)want2;
+        }
         return majlo >= (unsigned int)want1;
     }
-    if (minhi != (unsigned int)want2) {
-        return minhi >= (unsigned int)want2;
-    }
-    return minlo >= (unsigned int)want3;
+    return majhi >= (unsigned int)want1;
 }

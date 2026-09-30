@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol refinement reached 61.5% (seven checks total). Moving the blob-loop
 // counter init outside its positive-count guard raised 61.1% to 61.5%; pointer
 // operand reordering, a static section-name helper, and a pretested loop did
@@ -15,6 +15,20 @@
 //    src in edi; ours puts c in esi and builds src in esi.
 // TRIED AND REJECTED (do not repeat): doubles/strings `rec = p; p += k;` forms
 // (50-59%), a `double` local for the double argument (50.7%), ternary `e->len =`.
+//
+// deepseek-v4.1 pass: 62.8% (747 bytes). Two fixes landed: the blob-loop record
+// fields a/b are used in the calls (the rec[0]/rec[1] reloads are gone), and the
+// final `e->len` reset now goes through a zero-initialised temp
+// (`int n = 0; if (e->size < 0) n = e->size; e->len = n;`) so MSVC reuses one
+// register for the 0 (the original's `xor edx,edx` before the movsb and its
+// single store after the test). Re-measured and still worse: doubles `rec` form
+// 52.1%, ints `p[0]/p[1]` with a late `p += 2` 50.9%, `int rl = h.reclen;` read
+// between the idx calls and the slot store 59.7%. What still differs: image is
+// loaded into edi after the `je` where the original loads it at 0x4b42a7; the
+// blob loop keeps c in esi and builds src in esi, the original keeps c in ebx
+// and builds src in edi (which is why the original reloads base into edx and
+// ours into ebx); and the blob loop's `e->len += h.reclen` reloads where the
+// original reuses the memcpy's size in eax.
 // Also tried by deepseek-v4.1-flash and rejected (44.6-50.8%): declaring `buf`
 // as `char*` and `p` as `int*` (moves fh from ebx to edi, breaks the prologue);
 // writing the ints loop as direct `p[0]/p[1]`; folding the blob loop into a
@@ -197,18 +211,18 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
         if (h.nBlobs > 0) {
             do {
                 int* rec = p;
-                int a, b, c, idx;
+                p += 4;
+                int a = rec[0];
+                int b = rec[1];
+                int c = rec[2];
+                int idx;
                 char* src;
                 Entry_004b4270* e;
-                p += 4;
-                a = rec[0];
-                b = rec[1];
-                c = rec[2];
                 h.reclen = rec[3];
                 if (a < 0)
-                    idx = ((Class_004b49d0*)this)->FUN_004b49d0(rec[1], 1);
+                    idx = ((Class_004b49d0*)this)->FUN_004b49d0(b, 1);
                 else
-                    idx = ((Class_004b4a80*)this)->FUN_004b4a80(*image + rec[0], 1);
+                    idx = ((Class_004b4a80*)this)->FUN_004b4a80(*image + a, 1);
                 ((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index].current = idx;
                 src = (char*)(buf + (c - base) - 0x20);
                 e = &((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index]
@@ -221,9 +235,10 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
                 e->len += h.reclen;
                 e = &((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index]
                         .entries[((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index].current];
-                e->len = 0;
+                int newLen = 0;
                 if (e->size < 0)
-                    e->len = e->size;
+                    newLen = e->size;
+                e->len = newLen;
                 i++;
             } while (i < h.nBlobs);
         }

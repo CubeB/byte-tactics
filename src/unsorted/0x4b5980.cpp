@@ -19,6 +19,12 @@
 // scoring 87.9%; using the existing pointer for that update also scored 87.9%.
 // The 88.8% direct-field version is restored below.
 //
+// deepseek-v4.1 run: 88.8% base restored after two experiments. (a) An
+// `unsigned int f = (d->flags.value & 0xfc03) | ((d->videoFlags & 0x1fe) << 1) | 1;`
+// local does put the flag word in eax as the original has it, but MSVC then folds the
+// mask to `and eax,0xfc02` (the `| 1` makes bit 0 of the mask dead) and the extra live
+// eax rotates every later bit test, 79.5%. (b) Swapping the two `|` operands and
+// testing `d->flags.value & 0x40` instead of the bitfield gives 77.1%.
 // What still differs:
 //  * scheduling of the videoFlags load in the first flag block: the original
 //    `mov cx,[esi+0x202]` sits between the scratch[0] and scratch[1] stores,

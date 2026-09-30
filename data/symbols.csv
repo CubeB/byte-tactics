@@ -3020,9 +3020,11 @@ address,name
 0x4da860,FUN_004da860
 0x4da8a0,FUN_004da8a0
 0x4da8c0,FUN_004da8c0
+0x4da8d0,FUN_004da8d0
 0x4da9f0,FUN_004da9f0
 0x4daa30,FUN_004daa30
 0x4dab10,FUN_004dab10
+0x4dabb0,FUN_004dabb0
 0x4dacf0,FUN_004dacf0
 0x4db000,Class_004db000::FUN_004db000
 0x4db760,FUN_004db760

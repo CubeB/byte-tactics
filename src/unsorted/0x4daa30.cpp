@@ -75,7 +75,7 @@ Class_004dd7d0* FUN_004da8d0();
 LPCRITICAL_SECTION FUN_004da780();
 
 // FUNCTION: 0x4daa30
-void FUN_004daa30(unsigned int key, Class_004d8820* prev, Class_004d8820* next)
+void __cdecl FUN_004daa30(unsigned int key, Class_004d8820* prev, Class_004d8820* next)
 {
     LPCRITICAL_SECTION cs = FUN_004da780();
     EnterCriticalSection(cs);

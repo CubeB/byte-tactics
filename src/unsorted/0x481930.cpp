@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 64.8%. Correct 16-bit coordinate output types and mask tests. Initialise upper output halves, which the original subsequently discards; these stores and frame/counter allocation still differ.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -30,7 +31,7 @@ public:
 
 class Class_004339e0 {
 public:
-    void FUN_004339e0(short i, int* a, int* b);
+    void FUN_004339e0(short i, unsigned short* a, unsigned short* b);
 };
 
 extern char DAT_0051e6a0[];
@@ -106,59 +107,6 @@ inline int Lod_00481930(Params_00481930* params)
     return v < 0 ? 0 : v;
 }
 
-// Status: partial, 53.0 percent (1072 bytes vs 1052). Fog-of-war visibility bitmask
-// reveal; sibling of 0x4825b0 / 0x481d50 / 0x482270 (same Params, same gate on the
-// bitfield at g_game+0x14281 bit 2) but it toggles the 16-bit per-player bit at
-// g_game->visibilityMask (0x14273) instead of decrementing an explored map.
-// What moved the number (from 37.4):
-//   1. The lod table lookup must be ONE call with a ternary ARGUMENT, not the call
-//      duplicated in both arms (guide item 27 is backwards here). The original has a
-//      single `push eax` at the diamond join (0x481a1c); duplicating the call gives
-//      two pushes and a tail merge. The ternary's two arms must each be a full
-//      Lod(params) expression, not a shared named local: the original recomputes the
-//      whole `/32` + clamp in the true arm (0x4819f0..0x481a0a) even though the
-//      first copy is still live in ebp across the FUN_00433520 call.
-//   2. Outer declaration order `changed, bit, halfW, halfH, x, y` (NOT x, y, changed).
-//      With x/y first MSVC gives bit and halfW stack homes and we end up with 16 frame
-//      slots and a different prologue store order; with this order they stay in
-//      registers, the frame shrinks, and x lands in ebp and y in eax exactly as the
-//      original does. Worth 8 points on its own.
-//   3. The two out-params of Class_004339e0 are declared `int y2; int x2;` and the call
-//      is `(j, &x2, &y2)`; the second pushed pointer (lower frame slot) is the one that
-//      gets y added. Swapping them costs 5 points.
-//   4. The inner scan is a `for (j = 0, j1 = 1; (short)j < (short)num; j++, j1++)`, not
-//      a do/while: MSVC otherwise folds the inner counter into the outer one and emits
-//      `lea eax, [ebx-1]` where the original has its own memory counter. Worth 1.3.
-// What still differs, all one frame-allocation cause plus register choice:
-//   1. Frame slots. Original (17 dwords): y 0x10, x 0x14, changed 0x18, j1 0x1c,
-//      y2 0x20, grid/frame 0x24, x2 0x28, ref 0x2c, bestDiff/row 0x30, bestIdx/nx 0x34,
-//      i/limitX 0x38, table 0x3c, line 0x40, halfW 0x44, bit 0x48, num 0x4c,
-//      count/stride 0x50. Ours matches y, x, grid, x2, ref, bestDiff and is shifted
-//      from bestIdx up. I could NOT derive MSVC 5's slot assignment order: it is not
-//      declaration order, not reverse declaration order and not first or last use
-//      (checked against the offset lists the /Fa listing prints). Everything from
-//      bestIdx upwards is a single permutation.
-//   2. In the if branch the original keeps bestIdx in ebx (zeroed by `xor ebx,ebx` at
-//      0x481a9f and never spilled) and spills BOTH inner counters: j at [esp+0x34] and
-//      j1 at [esp+0x1c]. We keep bestIdx in memory and j1 in ebx and derive j=j1-1
-//      (`lea eax,[ebx-1]`). That is also why our frame is one dword short: the original
-//      needs a slot for j, we fold j into ebx. Ruled out this session: `register` on
-//      bestIdx, swapping the bestIdx/bestDiff declarations, and hoisting
-//      `int j = 0, j1 = 1;` out of the for header (all identical, 53.0). The board
-//      note "original holds the bit in ebx" is wrong: the bit has a home at [esp+0x48]
-//      and is reloaded into edi for each `(bit & *cell)` test; ebx is bestIdx.
-//   3. `table` is memory-resident in the original (`mov [esp+0x3c], eax`, reloaded each
-//      outer iteration); ours parks it in ebp.
-//   4. `(bit & *cell) == 0`: the original ANDs the two registers and tests only DI/BP
-//      (it knows the result fits in 16 bits); we materialise `and edx, 0xffff` first.
-// Tried and rejected (all scored equal or worse, free scratch scoring):
-//   `if (v < 0) v = 0;` instead of `v < 0 ? 0 : v` in Lod (43.0, no change);
-//   outer orders (x,y,changed,bit,halfW,halfH) 46.8, (changed,x,y,bit,halfW,halfH)
-//   47.1, (changed,bit,halfH,halfW,x,y) 49.9, (changed,bit,halfW,halfH,y,x) 46.6;
-//   swapping the bestDiff/bestIdx declarations (no change); hoisting j out of the
-//   `if (num > 0)`; `int i` instead of `short i` for the outer loop; a `while` outer
-//   loop; else-branch declaration order (limitY before limitX, ny before nx) 43.8 and
-//   (stride, off, i) 49.8; explicit `(unsigned short)` casts on the mask tests.
 // FUNCTION: 0x481930
 void __stdcall FUN_00481930(Params_00481930* params)
 {
@@ -179,7 +127,7 @@ void __stdcall FUN_00481930(Params_00481930* params)
                                       : ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1);
             short count = ((Class_004335c0*)table)->FUN_004335c0();
             unsigned short* cell = &g_game->visibilityMask[halfW * y + x];
-            if ((bit & *cell) == 0) {
+            if ((unsigned short)(bit & *cell) == 0) {
                 *cell ^= bit;
                 changed = 1;
             }
@@ -190,10 +138,10 @@ void __stdcall FUN_00481930(Params_00481930* params)
                 int bestDiff = -1;
                 int bestIdx = 0;
                 if (num > 0) {
-                    for (int j = 0, j1 = 1; (short)j < (short)num; j++, j1++) {
-                        int y2;
-                        int x2;
-                        ((Class_004339e0*)line)->FUN_004339e0((short)j, &x2, &y2);
+                    for (short j = 0, j1 = 1; (short)j < (short)num; j++, j1++) {
+                        int y2 = 0;
+                        int x2 = 0;
+                        ((Class_004339e0*)line)->FUN_004339e0((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
                         x2 += x;
                         y2 += y;
                         if ((unsigned)(short)x2 < grid->width &&
@@ -205,7 +153,7 @@ void __stdcall FUN_00481930(Params_00481930* params)
                             if (d0 * bestIdx > bestDiff * j1) {
                                 unsigned short* q = &g_game->visibilityMask[
                                     halfW * (short)y2 + (short)x2];
-                                if ((bit & *q) == 0) {
+                                if ((unsigned short)(bit & *q) == 0) {
                                     *q ^= bit;
                                     changed = 1;
                                 }
@@ -242,7 +190,7 @@ void __stdcall FUN_00481930(Params_00481930* params)
                 if (nx < limitX) {
                     int n = limitX - nx;
                     do {
-                        if (*src != frame->mask && (bit & *dst) == 0) {
+                        if (*src != frame->mask && (unsigned short)(bit & *dst) == 0) {
                             changed = 1;
                             *dst ^= bit;
                         }

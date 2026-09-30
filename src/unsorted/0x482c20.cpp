@@ -1,29 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// STATUS: partial, 45.3% (1422 bytes vs the original 1519). Two things moved it
-// from 27.4%: (1) the main loop's odd order, inside `if (block > -1)` the q
-// value is applied to the PREVIOUS iteration's p1/p2 first, then p1/p2 are
-// recomputed, then cellval is applied to the new p1/p2; on a block <= -1
-// iteration the q step is skipped and cellval hits the stale pointers, which is
-// why the original carries them in esi/edi; (2) cellval declared `int` rather
-// than `unsigned char`, so it stays in bl (`xor ebx,ebx; mov bl,[..]`) instead
-// of being spilled. max()/min() are the windows.h macros; their double
-// evaluation gives the original's reload in the min case.
-// Remaining diff: frame is 0x1c against the original 0x18. v3 still reserves a
-// stack slot for cellval (spilled at the `v+31` temporary because ebp holds
-// g_game there, where the original clobbers ebp) and the four border-flag loops
-// at +0x11a..+0x245 use a different register rotation than the original.
-// Next step: free ebp before the division (or get cellval's slot dropped) to
-// reach the 0x18 frame, then align the border loops.
-// First hunk (0x482c20 prologue): ours is sub esp,0x1c vs the original sub
-// esp,0x18. Ebp holds g_game across the idiv, so the allocator spills cellval
-// to [esp+0x20] (the `mov dword ptr [esp+0x20], ebx` at 0x482ff6) and the
-// divisor goes to ebx (`lea ebx,[edx+0x1f]; idiv ebx`) where the original uses
-// `lea ebp,[edx+0x1f]; idiv ebp` and reloads g_game with `mov ebp,[<addr>]` at
-// 0x4830f3. That extra slot pushes t20/t24 to +0x24/+0x28, hence the 0x1c
-// frame. Tried a named `dv = v + 31` local; no change (45.3%).
-// Remaining hunks: 0x482c48 prologue field/store order; 0x482d05..0x482d54
-// border-flag loops; 0x482eb1..0x482efd wave loops; 0x482f2a grid1 init;
-// 0x482f5e zero-fill; and the 0x482fd3..0x48314e main loop rotation.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 57.7%. Reset coarse record pointer per row, use record constructors and array construction, and preserve grid cell reloads. Remaining border-loop and division registers differ.
 #include <new.h>
 #include <windows.h>
 
@@ -37,6 +13,7 @@ struct Grid_482c20 {
 };
 
 struct Rec_482c20 {
+    Rec_482c20() { a = 0; b = 0; flags = 0; field_6 = 0; }
     unsigned char a;                    // +0x0
     unsigned char b;                    // +0x1
     int flags;                          // +0x2
@@ -71,15 +48,7 @@ extern Game_482c20* g_game;
 // FUNCTION: 0x482c20
 void FUN_00482c20(void)
 {
-    Rec_482c20* rec = (Rec_482c20*)operator new(10);
-    if (rec != 0) {
-        rec->a = 0;
-        rec->b = 0;
-        rec->flags = 0;
-        rec->field_6 = 0;
-    } else {
-        rec = 0;
-    }
+    Rec_482c20* rec = new Rec_482c20;
     g_game->field_142b7 = rec;
     g_game->field_142b7->flags = 0x1f;
 
@@ -96,19 +65,7 @@ void FUN_00482c20(void)
     int count2 = (h2 * w2 + 7) & 0xfffffff8;
     grid2->field_c = count2;
 
-    unsigned char* cells2;
-    if (count2 == 0 || (cells2 = (unsigned char*)operator new(count2 * 10)) == 0) {
-        cells2 = 0;
-    } else {
-        Rec_482c20* q = (Rec_482c20*)cells2;
-        for (int z = count2; z > 0; z--) {
-            q->a = 0;
-            q->b = 0;
-            q->flags = 0;
-            q->field_6 = 0;
-            q++;
-        }
-    }
+    unsigned char* cells2 = count2 == 0 ? 0 : (unsigned char*)new Rec_482c20[count2];
     grid2->cells = cells2;
 
     for (unsigned int lb1 = 0; lb1 < (unsigned int)grid2->width; lb1++)
@@ -125,8 +82,9 @@ void FUN_00482c20(void)
 
     {
         unsigned char* cellp = g_game->cells_14287;
-        unsigned char* recp = cells2;
+        unsigned char* row = cells2;
         for (int y = 0; y < g_game->height; y++) {
+            unsigned char* recp = row;
             for (int x = 0; x < g_game->width; x++) {
                 if (cellp[5] > recp[0])
                     recp[0] = cellp[5];
@@ -135,7 +93,7 @@ void FUN_00482c20(void)
                 cellp += 0xd;
             }
             if ((y & 7) == 7)
-                recp += grid2->width * 10;
+                row += grid2->width * 10;
         }
     }
 
@@ -189,9 +147,9 @@ void FUN_00482c20(void)
     else
         cells1 = (unsigned char*)operator new(count1 * 2);
     grid1->cells = cells1;
-    for (int hf = 0; hf < count1; hf++) {
-        cells1[hf * 2] = 0;
-        cells1[hf * 2 + 1] = 0xff;
+    for (int hf = 0; hf < grid1->field_c; hf++) {
+        grid1->cells[hf * 2] = 0;
+        grid1->cells[hf * 2 + 1] = 0xff;
     }
 
     for (int outer = 0; outer < g_game->width; outer++) {

@@ -1,41 +1,6 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-//
-// PARTIAL first pass. Build-site scan: walks the unit's footprint (origin at
-// Unit+0x14a, mask at +0x14e) over the map cells and accumulates
-//   min(cell+6) over mask bit 3, max(cell+5) over mask bit 3,
-//   max(cell+5) over mask bit 4,
-// then range-checks the floors against the type's draft/limits at +0x228,
-// +0x22c, +0x1be, +0x1c0. arg1 is a Point (cell), arg2 a type id compared
-// against cell->field_0, arg3 a PlayerInfo los view (los +0x7c, w +0x80,
-// h +0x84). g_game width +0x14233, height +0x14237, type table +0x1426f,
-// 16-bit player bitmask +0x14273, sea level +0x1427f, los mode +0x14281,
-// cells +0x14287, local player +0x2a43. Cell stride 0xd.
-//
-// Still differs (24.2%, 1222 vs 1339 bytes): frame is 0x24 vs 0x2c (8 bytes
-// short) and the whole register allocation is wrong from the prologue on. The
-// original reads arg0/arg1 into eax/ecx before the pushes, zeroes both DATs
-// with ebx, keeps g_game in ebp (not edi), and keeps the "is there a los
-// footprint" player bit and several counters in memory slots we dropped into
-// registers. Our version also hoisted the DAT zeroing before the pushes and
-// used a different outer/inner loop register set.
-//
-// Remaining diff hunks by original address (first is 0x47d2e0):
-//   0x47d2e0-0x47d311 prologue: original loads eax=[esp+0x30] (unit) then
-//     ecx=[esp+0x34] (cell) before push ebx, and zeroes both DATs with ebx;
-//     ours zeroes with eax and loads cell before unit.
-//   0x47d311-0x47d358 arg range checks: g_game is ebp in the original, edi in
-//     ours; slot offsets differ because our frame is 8 bytes short.
-//   0x47d38a-0x47d3b0 LOS coords now match in shape; the x/y high-word
-//     extraction was the fix (they read [esp+0x32]/[esp+0x3a], the high 16
-//     bits of the two <<19 values, not the low word).
-//   0x47d3c4-0x47d475 visibility/ok block: same branches, wrong scratch regs
-//     (original keeps the bitmask check in ebp/esi/ebx, ok at [esp+0x10]).
-//   0x47d479-0x47d75b footprint walk: original keeps row/col counters in
-//     slots 4/5, found80 at slot 6, foundFE20 at slot 7 and min6/max5/max5b
-//     as bytes in slots 1/2; ours keeps them in registers so the frame is
-//     short. This is the largest remaining block.
-//   0x47d75b-0x47d818 final range checks: same predicates, spilled slots and
-//     the r/min/max temporaries land in different places.
+#include <vector>
+// PARTIAL: 32.2%. Cache game for the footprint scan, reloading after terrain lookup. Remaining frame, height extrema and feature-lookup registers differ.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
 #pragma pack(push, 1)
 
 struct Point {
@@ -109,22 +74,24 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     Point origin = unit->origin;
     if (cell.x < 1 || cell.y < 1)
         return 0;
-    if (cell.x + origin.x >= g_game->width || cell.y + origin.y >= g_game->height)
+    Game_0047d2e0* game = g_game;
+    if (cell.x + origin.x >= game->width || cell.y + origin.y >= game->height)
         return 0;
     int ok = 1;
     if (los != 0) {
         int wx = (origin.x + cell.x * 2) << 19;
         int wy = (origin.y + cell.y * 2) << 19;
         int r = FUN_00485010(&cell);
+        game = g_game;
         int x = ((short)(wx >> 16)) >> 5;
         int y = (((short)(wy >> 16)) - ((short)r >> 1)) >> 5;
         if ((unsigned)x >= los->width || (unsigned)y >= los->height)
             return 0;
-        unsigned int bit = 1 << (g_game->player & 0x1f);
-        unsigned short m = g_game->field_14273[y * los->width + x];
+        unsigned int bit = 1 << (game->player & 0x1f);
+        unsigned short m = game->field_14273[y * los->width + x];
         if ((m & bit) == 0)
             return 0;
-        if ((g_game->losFlags & 2) == 2) {
+        if ((game->losFlags & 2) == 2) {
             if ((unsigned)x < los->width && (unsigned)y < los->height
                 && los->field_7c[y * los->width + x] != 0)
                 ok = 1;
@@ -132,7 +99,7 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
                 ok = 0;
         } else {
             if ((unsigned)x < los->width && (unsigned)y < los->height)
-                ok = (g_game->field_14273[y * los->width + x] & bit) != 0;
+                ok = (game->field_14273[y * los->width + x] & bit) != 0;
             else
                 ok = 0;
         }
@@ -143,7 +110,7 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     int foundFE20 = 0;
     unsigned char max5b = 0;
     int index = 0;
-    Cell_0047d2e0* c = &g_game->cells[(cell.y * g_game->width + cell.x)];
+    Cell_0047d2e0* c = &game->cells[(cell.y * game->width + cell.x)];
     for (int row = 0; row < origin.y; row++) {
         for (int col = 0; col < origin.x; col++) {
             DAT_0051e688 += c->field_7;
@@ -170,17 +137,17 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
                     rr = 0;
                 else if (v >= 0xfffb) {
                     if (v == 0xfffe) {
-                        Cell_0047d2e0* ref = c - (c->field_a * g_game->width + c->field_b);
+                        Cell_0047d2e0* ref = c - (c->field_a * game->width + c->field_b);
                         unsigned short v2 = (unsigned short)ref->field_8;
                         if (v2 >= 0xfffb)
                             rr = 0;
                         else
-                            rr = (g_game->field_1426f[v2 * 0x100 + 0xfe] & 0x40) >> 6;
+                            rr = (game->field_1426f[v2 * 0x100 + 0xfe] & 0x40) >> 6;
                     } else {
                         rr = 1;
                     }
-                } else if ((int)v < g_game->field_14253) {
-                    rr = (g_game->field_1426f[v * 0x100 + 0xfe] & 0x40) >> 6;
+                } else if ((int)v < game->field_14253) {
+                    rr = (game->field_1426f[v * 0x100 + 0xfe] & 0x40) >> 6;
                 } else {
                     rr = 1;
                 }
@@ -192,13 +159,13 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
                 if (c != 0) {
                     unsigned short v = (unsigned short)c->field_8;
                     if (v < 0xfffb) {
-                        if ((int)v < g_game->field_14253)
-                            e = g_game->field_1426f + v * 0x100;
+                        if ((int)v < game->field_14253)
+                            e = game->field_1426f + v * 0x100;
                     } else if (v == 0xfffe) {
-                        Cell_0047d2e0* ref = c - (c->field_a * g_game->width + c->field_b);
+                        Cell_0047d2e0* ref = c - (c->field_a * game->width + c->field_b);
                         unsigned short v2 = (unsigned short)ref->field_8;
                         if (v2 < 0xfffb)
-                            e = g_game->field_1426f + v2 * 0x100;
+                            e = game->field_1426f + v2 * 0x100;
                     }
                 }
                 if (e != 0 && (e[0xff] & 2))
@@ -210,13 +177,13 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
                 if (c != 0) {
                     unsigned short v = (unsigned short)c->field_8;
                     if (v < 0xfffb) {
-                        if ((int)v < g_game->field_14253)
-                            e = g_game->field_1426f + v * 0x100;
+                        if ((int)v < game->field_14253)
+                            e = game->field_1426f + v * 0x100;
                     } else if (v == 0xfffe) {
-                        Cell_0047d2e0* ref = c - (c->field_a * g_game->width + c->field_b);
+                        Cell_0047d2e0* ref = c - (c->field_a * game->width + c->field_b);
                         unsigned short v2 = (unsigned short)ref->field_8;
                         if (v2 < 0xfffb)
-                            e = g_game->field_1426f + v2 * 0x100;
+                            e = game->field_1426f + v2 * 0x100;
                     }
                 }
                 if (e != 0 && (e[0xfe] & 0x20))
@@ -224,13 +191,13 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
             }
             c++;
         }
-        c += g_game->width - origin.x;
+        c += game->width - origin.x;
     }
     if (found80 && !foundFE20)
         return 0;
     unsigned char r;
     if (max5 < min6) {
-        r = g_game->seaLevel - unit->field_22c;
+        r = game->seaLevel - unit->field_22c;
     } else {
         if ((int)(unsigned)unit->field_228 < (int)(max5 - min6))
             return 0;
@@ -238,10 +205,10 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     }
     if (max5b > r)
         return 0;
-    if ((int)min6 < (int)(g_game->seaLevel - unit->field_1be))
+    if ((int)min6 < (int)(game->seaLevel - unit->field_1be))
         return 0;
     unsigned char mx = max5 > max5b ? max5 : max5b;
-    if ((int)mx > (int)(g_game->seaLevel - unit->field_1c0))
+    if ((int)mx > (int)(game->seaLevel - unit->field_1c0))
         return 0;
     DAT_0051e684 = r;
     return 1;

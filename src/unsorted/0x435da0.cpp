@@ -118,6 +118,28 @@
 // - Tried with no effect on the threshold: `tidalStrength = -1;`,
 //   `=(float)-1`, `!= 0` forms of the buffer/briefing tests, a top-of-function
 //   named `int v = -1`, `headers.py` over all 128 header sets (best 92.7%).
+// deepseek-v4.1 retry 3 (issue #2362): with the four `= -1` stores restored the
+// body is exactly 2740 bytes and the whole diff is the constant-register pick:
+// we get `xor esi, esi` (0 in esi) and `or eax, -1` for the four stores, the
+// original has `xor ebx, ebx` (0 in ebx) and `or esi, -1`. The deleted object
+// pointer follows the constant: original esi, ours edi.
+// New measured fact: the original's -1 register is not only used by those four
+// stores. It is still live at 0x4360ce and 0x43622b, where the inlined strcpy
+// count is `mov ecx, esi` instead of `or ecx, -1`, i.e. two of the six
+// `or ecx, -1` in our build are register copies in the original (and the
+// original reloads -1 as `or esi, -1` at 0x43612f/0x436195 after the strcpy
+// clobbers esi with its copy pointer). So the -1 register must be live across
+// the whole switch, which is the same weight threshold as before, not a
+// missed statement: a multiset compare of every instruction naming the zero
+// register over the diff stream shows cmp 10, mov_store 12, push 6, xor 2 on
+// both sides (the only difference is which register).
+// Also re-measured without a flip: four stores placed before the
+// `new Class_0048df90` assignment (80.4%, order is wrong there),
+// `tidalStrength = -1;` as an int, `gravity = 0 - 1;`, `lavaWorld = 0 - 0;`,
+// `noSeaLevelTrigger = 0 - 0;`, `lavaWorld = noSeaLevelTrigger = 0;`,
+// `planet[0] = description[0] = 0;`, `if (found != 0)`, `if (found > 0)`
+// (the last three only lose 0.1%): none of them moves a constant into a
+// different register, all stay at 0 in esi / -1 rematerialised in eax.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

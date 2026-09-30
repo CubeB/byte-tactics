@@ -6,6 +6,13 @@
 // helper and neutral arithmetic did not alter the best code. Case 0, 1 and 2
 // argument register scheduling still differs.
 // #1595 retry by Codex / GPT-6.1-sol: checkall reconfirmed 78.9% (280/280 bytes), no MATCH.
+// deepseek-v4.1-flash (#2325 retry): still 78.9%. 21 fresh --sym shapes (argument
+// locals in every order, comma-folded stores, folded-zero liveness, g-first,
+// casts, +0 probes) were inert, and so were all 128 header sets and a 0..400
+// dummy-declaration sweep (every one 78.9%). The residual is a front-end
+// argument-walk tie, not header or prototype state. Case 0 alone is one byte
+// off (the accumulator-form load noted below); cases 1-3 and the jump table
+// match byte for byte.
 //
 // Eighth pass (space-bunny-free): no score change, 78.9% (280 bytes), 1 check.py
 // run. Still short of a match, but the case 0 rotation is now pinned down from

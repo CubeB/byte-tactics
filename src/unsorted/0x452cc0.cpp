@@ -1,8 +1,22 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 83.6%, 848 bytes. Player/slot/game register rotation, the
-// flag-load register and the clearing-loop latch still differ. The native
-// bottom-tested loop is 846 bytes and 67.3%; 768 header sets, alternate
-// flag types and existing inline predicate helpers did not improve it.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Partial: 84.3%, 848 bytes (the exact original size). Still open:
+//  * the player/slot/game register rotation: the original keeps g_game in ebx,
+//    the player pointer in esi and the slot byte in edi; ours allocates
+//    ebx=player, esi=slot, edi=g_game. Two extra uses of g_game (one inside
+//    the clearing loop, one before the b2 test) and a function-scope
+//    `Game* g = g_game;` local did not move the priority order.
+//  * the clearing loop: the original is bottom-tested (preheader
+//    `xor edx,edx`, no entry test, `cmp edx,0xcee; jl` at the foot), ours is
+//    top-tested with `while (1) { if (i >= 10) break; ... }`. A `do/while`
+//    gives the original latch but then drops to 846 bytes and 67.3%, because
+//    the flag load degenerates to a partial `mov dl, byte ptr [ecx+0x97]`
+//    instead of `xor eax,eax; mov al, ...; and eax,1`. So one still has to
+//    force the full zero extension of the flag.
+//  * the b2 arm is fixed: writing it as three `if (cond) goto after_remove;`
+//    plus a trailing `goto do_remove;` (instead of `if (a||b) goto L;`) makes
+//    MSVC emit the original's `cmp al,2; je L; jmp S`.
+// 768 header sets, alternate flag types and the existing inline predicate
+// helpers (IsActive12 and friends) did not help.
 
 #include <stdio.h>
 #include <string.h>
@@ -171,11 +185,18 @@ void __stdcall FUN_00452cc0(int id)
     FUN_00486f10(FindPlayerIndex_00452cc0(id));
 
     if (g_game->flags.b2) {
-        if (p->active != 0 && (p->type == 1 || p->type == 2))
+        if (p->active == 0)
+            goto do_remove;
+        if (p->type == 1)
             goto after_remove;
-    } else if (p->active != 0 && (p->type == 1 || p->type == 2)) {
-        FUN_004ca780((char*)g_game + 0x14, p->id);
+        if (p->type == 2)
+            goto after_remove;
+        goto do_remove;
     }
+    if (p->active != 0 && (p->type == 1 || p->type == 2))
+        FUN_004ca780((char*)g_game + 0x14, p->id);
+
+do_remove:
     ((Class_00463c60*)p)->FUN_00463c60(0);
     p->active = 0;
     p->id = -1;
@@ -210,3 +231,4 @@ after_remove:
             r->data->flags |= 1;
     }
 }
+

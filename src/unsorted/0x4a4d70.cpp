@@ -4,6 +4,9 @@
 // Retry #1758: GPT-6.1-sol confirmed 98.7% after five checks; no MATCH. The colour-load SIB operand order and marker-call surface-load/push order still differ.
 // GPT-6 retry: retained 98.7%. 768 header sets and inline colour/surface
 // accessors did not resolve the SIB order and final surface-load scheduling.
+// GPT-6.1-sol retry: the best remains 98.7%. A live colour-pointer alias
+// fell to 96.9%; making the font and y2 values explicit locals left the same
+// two mismatches, so those shapes were discarded.
 // PARTIAL, 98.7% (661 bytes against 661, six instructions differ). Everything
 // from the prologue to the tail of the marker box matches instruction for
 // instruction. The six that do not are described at the bottom.
@@ -322,4 +325,3 @@ void __stdcall FUN_004a4d70(Class_004a4d70* param_1, int param_2)
         FUN_004be950(entries->surface, x, rect.top, x, y2, colour);
     }
 }
-

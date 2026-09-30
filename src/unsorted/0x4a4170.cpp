@@ -1,5 +1,9 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
 // Retry #1758: GPT-6.1-sol confirmed 80.9% after four checks; no MATCH. The focus==index block still changes zero rematerialization, register allocation and branch layout.
+// GPT-6.1-sol refinement: six checks found no improvement. A local zero copied
+// from field_78 or derived as focus+1 folds to the same immediate; focus-index
+// and off-old produce larger, worse code (49.0% and 51.8%). An int* alias for
+// field_78 is byte-identical to baseline at 80.9%. Keep the 80.9% source below.
 // GPT-6 retry: retained 80.9%. Full-width/partial-width zero value variants
 // did not recover the original edx zero; detailed previous notes remain below.
 // deepseek-v4.1-flash retry: no change to the code, still 80.9% and NOT a match.

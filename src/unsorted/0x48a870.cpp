@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry (#1616): still 86.9%; explicit shift/subtract tied the existing best.
 // Claude Sonnet 5.5 pass (#755): still 86.9% and 255 bytes, code unchanged. Re-checked
 // on top of the list below, none of it moved the bit 19 fold: the declaration-count
 // sweep (0 to 400 in steps of 8, flat at 255 bytes) and all 128 header sets of

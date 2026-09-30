@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol. Names are provisional.
+// Retry #1769: the saved best remains 70.2% after seven worker checks; the final batch did not MATCH. Lower-scoring local-copy, bool and split-condition trials were reverted.
 // Loads a TDF section into the global map at 0x51fdb8: the section name is
 // compared with the one already loaded, the map is thrown away and rebuilt,
 // then every section of the file contributes one entry keyed by its own
@@ -63,6 +64,11 @@
 // puts the object straight in edi (ebx = object+1). Separating the destruction
 // from the inlined destructor is what triggers the ebx hoist, so the inline
 // destructor is not the thing to change.
+// Retry by GPT-6.1-sol: the 70.2 percent version remains best. A fresh local
+// copy of section did not change codegen; materializing strcmp equality before
+// the last-entry test scored 69.6 percent; splitting that last-entry test into
+// a separate insertion path scored 57.2 percent and emitted a scalar deleting
+// destructor. Keep the original short-circuit condition.
 #include <string.h>
 
 extern char DAT_0051fdc0[256];

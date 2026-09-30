@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 //
 // deepseek-v4.1-flash retry (still 98.3%): the one hunk is the position of the
 // `cmp eax, ebp` / `mov [esi + 0xf8], edx` pair. Moving `p->ff8 = g_game->ticks;`
@@ -10,6 +10,7 @@
 // source position, and the original's source must both load the tick early and
 // store it late, which needs a temporary. Every temp rotates the callee-saved
 // pool (zero leaves ebp for ebx), which is the 66.4/70.6 family already noted.
+// GPT-6.1-sol retry (5 checker invocations): baseline 98.3%. An empty `if (p->ref == 0) {}` inserted after the first six clears lowers this to 97.5% and moves the ref load below the block; duplicating an identical clear in both `if (p->ref)` arms drops to 63.3% and rotates the zero register. Restored the 98.3% best.
 // Retry notes (Sonnet 5.5, still 98.3%): scripted searches that all failed to
 // beat this file: every single move of each statement in the first block (the
 // stores must keep the original's order anyway), the tick statement at every

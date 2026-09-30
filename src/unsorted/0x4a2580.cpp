@@ -1,4 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry 2026-09-30 (deepseek-v4.1-flash): kept the 65.2% v11 form. Re-tested
+// moving the function-scope `surface` load down to just before FUN_004a23b0
+// (the point of first use), which drops to 63.9%, so reverted. No new lever
+// found; remaining diff is the two-slot swap described below plus the w<h
+// branch keeping obj in ebp instead of the branch surface.
 // Gave up near 62.3% (1605 bytes against 1631). Reload glyph pointers
 // after callbacks. Reference-returning minimum helpers recover remaining-count
 // stores, and shared glyph locals improve allocation. Remaining extra frame

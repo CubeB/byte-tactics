@@ -1,4 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry note (deepseek-v4.1-flash): computing point.y before point.x (swapping
+// the two adjustment statements) raised the score from 34.7% to 35.4% with the
+// same 1841-byte output, confirming that source statement order moves the
+// allocator. Declaring `int flags;` at function scope while leaving its
+// assignment in place, and swapping the declaration order of n and x1, both
+// changed nothing (still 35.4%). Still differs: frame is 0x34 against the
+// original's 0x3c because this version has seven scalar slots where the
+// original has nine. The two missing slots are `flags` (original frame 0x10,
+// kept in a register here because point.x/point.y are rotated: this version
+// keeps point.y in esi and reloads point.x into edi, the original keeps
+// point.y in edi and reloads point.x into esi, so no callee-saved register is
+// left free to force the flags spill) and a dead 4-byte slot the original
+// allocates at frame 0x18 and never touches.
 // Earlier attempts by deepseek-v4.1-flash, space-bunny-free and GPT-6 are kept
 // below this line. Still partial: the frame is 0x34 where the original has
 // 0x3c, so every esp+N offset is 8 low and the callee-saved registers differ.
@@ -197,8 +210,8 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     int y1 = me->field_19 + y0 - 4;
     y0 += 2;
     Point_004a3780 point = obj->point;
-    point.x -= entries[0].field_13;
     point.y -= entries[0].field_15;
+    point.x -= entries[0].field_13;
     int i;
     for (i = 1; i < entries[0].count + 1; i++) {
         if (entries[i].type == 7) {

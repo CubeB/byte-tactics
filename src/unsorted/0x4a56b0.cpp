@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-09-30 retry (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. Confirmed
+// again that every guarded loop shape (while (i < bound), for (; i < bound; i++),
+// declaration order either way) is the 49.3% mirror: i lands in memory, the tab
+// counter t in edi, bound in ecx, pointer in edx. The winning unguarded
+// `while (1)` + explicit `break` keeps i in edi but MSVC does not hoist the bound
+// to a register, so it spills the bound to [esp+0x14] and gives the free edx to t
+// (original: bound ecx, t in memory). An explicit `Entry* e = &entries[1]` with
+// e++ copy-propagates away and is byte-identical to the 60.3% version, so it does
+// not consume edx. Variants tried with --sym and no better than 60.3%: guarded
+// while/for (49.3%), named `int cnt` bound (48.4%), explicit index pointer (60.3%,
+// identical), x assigned in all three arms as an explicit phi (42.5%, grows the
+// frame), a named nx temp (identical) and `unsigned int i` (identical).
 // PARTIAL: 60.3%, 1649 against 1662 bytes. What the function does: it walks the
 // entry list of a layout object looking for the entry whose tab number matches
 // entry[index]'s tab, sets the language from that entry, then lays the text out

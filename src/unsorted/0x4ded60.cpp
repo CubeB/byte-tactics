@@ -6,6 +6,25 @@
 // improvement. Direct sprintf(buf + strlen(buf), ...) restores the library
 // pointer timing but changes processor and memory-status registers (94.1%).
 // Typed NT/file headers and a separate date-prefix length do not improve it.
+//
+// Follow-up (deepseek-v4.1-flash): the four remaining hunks are one global
+// register-allocation cascade, not four independent fixes. Writing the two
+// processor arms as direct sprintf(buf + strlen(buf), ...) instead of via the
+// p temporary gives 1012 bytes and fixes the library-date load timing and the
+// GlobalMemoryStatus pointer register (both hunks disappear) but moves the
+// processor count into eax and the GetSystemInfo pointer into edx. Keeping the
+// p temporary in both arms gives 1005 bytes with the processor arms close (the
+// count stays in edx) but leaves library and GlobalMemoryStatus wrong. Mixed
+// forms (p temporary in the then arm, direct in the else arm) reproduce the
+// then arm byte for byte, but the else arm gets lea eax where the original has
+// lea edx, and the tail stays wrong. So the processor arms' source form
+// decides the whole function's allocation; the original pulls the count into
+// edx AND keeps the tail allocation that only the direct form gives.
+// A DWORD/unsigned procCount local does not change either result. The
+// linkTime fold (mov ecx,[eax+0x3c]; add ecx,eax; lea ebx,[ecx+8]) is
+// unchanged by written-out two-step pointers and by IMAGE_NT_HEADERS; a
+// separate asctime(&gmTimeCopy) statement is byte-identical to the nested call.
+// Scratch: build/scratch/0x4ded60/v0..v7,e1..e7,f1..f4,g1..g9,k1..k5,m1.
 // Original bug preserved: CreateFileA failure is tested against zero at
 // 0x4deee1, so INVALID_HANDLE_VALUE reaches GetFileSize at 0x4deeec.
 #include <windows.h>

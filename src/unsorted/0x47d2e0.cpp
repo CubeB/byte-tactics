@@ -1,4 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry (gave up, 45.6% kept). Better reading of the LOS prologue, which
+// scores 42.0% here but does not beat the file below: pos.x/pos.z are fixed-point
+// unions (`value = (origin + cell*2) << 19`, then `.parts.whole >> 5`) and the height
+// is `FUN_00485010(&cell) << 16` read back through its high word (`>> 1` then
+// `- ` from pos.z's whole part). The original stores h, the 1<<player bit and max5b
+// into the dead `los` home slot [esp+0x4c], which is why its frame is 0x2c and ours
+// 0x30. Writing through `*(int*)&los` reproduces that slot reuse but forces memory
+// traffic (41.2%). Early-return helper functions for the cell checks: 38.9%.
 // PARTIAL 45.6%. Reconstructed from the disassembly. The two changes that moved the
 // score most, both worth about 9 points on their own: caching the cell stride in a
 // local `int width = g_game->width;` used for the cell pointer and the row advance

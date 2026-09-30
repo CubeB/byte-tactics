@@ -1,27 +1,17 @@
-// Decompiled by space-bunny-free. Names are provisional.
-// NOT A MATCH (66.4 percent, 801 bytes against our 830). Still differs:
-//  * our frame is 0x1c where the original's is 0x18: the original keeps the
-//    new node in a slot at [esp+0x10] and the hint node at [esp+0x14], we
-//    keep the hint at [esp+0x18] and have no slot for the new node at all
-//    (4 slots against the original's 6). Every spill in the rest of the
-//    function is then 4 or 8 out of step, which is most of the diff. The
-//    original's extra live local is a node pointer that is live ACROSS the
-//    Class_004e1a30::FUN_004e1a30 call and gets spilled; ours keeps the new
-//    node in a register across it, so adding one more live reference (see
-//    the guide on allocation demotion) is the next thing to try.
-// GPT-6 retry with longcat-2.5-preview-free: no source change within the 10 minute
-// worker limit. The best file remains the 68.7% version reported by the current
-// checker; the remaining frame-layout and search-loop differences above are unclosed.
-//  * the search loop: the original branches on the strcmp result's own
-//    flags (0x4e22ba `test eax,eax / jge`) and sets the bool in each arm,
-//    ours materialises the bool and re-tests it (`xor bl,bl / test bl,bl`).
-//    An if/else form with `ans = true/false` in the arms was tried earlier
-//    against the old tail and was worse, but not against this one.
-//  * ++size: the original does the increment into ecx and stores it after
-//    the `y == head` compare; we keep the size in esi and store before.
-// Shaped like std::map<Key, Val>::insert(const value_type&) from MSVC 5's
-// <xtree>, with the _Tree::_Insert body inlined on the _Multi path (the
-// out-of-line copy of it is 0x4e2620, the _Lrotate/_Rrotate copies are
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// NOT A MATCH (68.7 percent, 801 bytes against our 837). Still differs:
+//  * our frame is one dword too big: the original keeps `this` at [esp+0x18]
+//    and `_Y` at [esp+0x14], we keep `_Y` at [esp+0x18] and `this` at
+//    [esp+0x1c], so an extra live local sits at [esp+0x14]. Every spill after
+//    that is 4 out of step, which is most of the diff.
+//  * the search loop: the original branches on the strcmp result's own flags
+//    (0x4e22ba `test eax,eax / jge`) and sets the bool in each arm, ours
+//    materialises the bool and re-tests it (`xor bl,bl / test bl,bl`).
+//  * ++size: the original does the increment into ecx and stores it after the
+//    `y == head` compare; we keep the size in esi and store before.
+// Shaped like std::_Tree<...>::insert(const value_type&) from MSVC 5's
+// <xtree> (lines 211-232), with the _Insert body inlined on the _Multi path
+// (the out-of-line copy of it is 0x4e2620, the _Lrotate/_Rrotate copies are
 // 0x4e2950/0x4e29b0 and the _Buynode copy is 0x4e2a30). DAT_005292c4 is the
 // tree's _Nil node, head->parent is the root, the colour is the int at +0x204
 // (_Red == 0) and the key is the char* at +0 of the 0x1f8 byte value, which is
@@ -73,7 +63,9 @@ extern Node_004e2250* DAT_005292c4;
 
 static inline bool Less_004e2250(const char* a, const char* b)
 {
-    return a != b && strcmp(a, b) < 0;
+    if (a != b && strcmp(a, b) < 0)
+        return true;
+    return false;
 }
 
 class Class_004e2ab0 {

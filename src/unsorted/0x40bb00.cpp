@@ -1,5 +1,5 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial (97.8%): three scheduler/encoding diffs remain.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Partial (97.8%, eight checks in this retry): three scheduler/encoding diffs remain.
 //  - defs[type] addressing is encoded [ecx+eax+0x241], original [eax+ecx+0x241].
 //  - the energyCap/metalCap constant store is scheduled before the _ftol call,
 //    original stores it after the cmp.

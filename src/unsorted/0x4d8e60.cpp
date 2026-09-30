@@ -1,4 +1,16 @@
 // Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (issue #2875): verified 64.4% (2648 of 2644 bytes),
+// stopped early per the fleet watchdog. Remaining diff is argument scheduling:
+// the original computes strlen(dest) before evaluating sprintf's other
+// arguments while our build interleaves them; and file/reason stack slots are
+// swapped versus the original (ours reason F+0x18, file F+0x14; original
+// reason F+0x10, base F+0x14, file F+0x18, written F+0x1c).
+// Suspected original bugs: (1) the `i % 3 == 3` test in the parameters loop is
+// always false (i % 3 is 0..2), so the per-three newline never fires; (2) the
+// CreateFileA result is compared != 0 when INVALID_HANDLE_VALUE is (HANDLE)-1,
+// so a failed open can pass the check.
+// Advice: REGION comment blocks with locals declared at point of use kept the
+// frame exact while iterating on scheduling.
 // Partial: 64.4%. Fixed the 50.6% version's frame excess. Removing the
 // "for (i=0; i<rec->NumberParameters; i++) rec->ExceptionInformation[i]"
 // form (which MSVC strength-reduced onto ebx, forcing rec into a stack spill

@@ -1,10 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash.
-// Names are provisional.
-// 80.8 percent, 363 bytes against 370. This is 0x4b7620's body inlined into a
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free,
+// deepseek-v4.1-flash. Names are provisional.
+// 83.8 percent, 363 bytes against 370. This is 0x4b7620's body inlined into a
 // loop over {const char* name, handler, mask} records: intern the name with
 // Class_004c91b0, lower_bound over the file-local std::vector<Class_004b7e30>
 // with an _strcmpi functor, insert at the search position when the exact-case
 // name is absent, then store the record's handler and mask into the element.
+//
+// The outer `for (; rec->name; rec++)` (not `while (rec->name) { ...; rec++; }`)
+// is load bearing: a for-loop increment runs after the body's locals are
+// destroyed, which puts the record increment after the key destructor call as
+// the original does (80.8 -> 83.8 percent).
 //
 // The std::vector<Class_004b7e30> form (not a hand-rolled vector) is load
 // bearing: it lifts the index division above the insert, because the index is
@@ -13,20 +18,19 @@
 // as the original does; the inline `_strcmpi(a,b) < 0` spelling puts it in ecx.
 //
 // Still differs, all downstream of one register assignment:
-//   1. original keeps _Last in ebx and the key pointer in ebp; MSVC 5 puts
-//      _Last in ebp and the key in ebx here. The hand-rolled vector spelling
-//      gets ebx/ebp right but then sinks the index division below the insert
-//      and puts the lower_bound bool in ecx.
-//   2. the temporary element's two handler words. The original zeroes them
-//      into two callee-saved registers (xor edi,edi / xor ebx,ebx) before the
-//      name copy constructor and stores them after it; here one eax is zeroed
-//      after the call.
+//   1. original keeps _Last in ebx and the key pointer (key.data) in ebp; MSVC 5
+//      puts _Last in ebp and the key pointer in ebx here. Tried separately:
+//      moving the `k` declaration, `char*` vs `const char*`, a temporary
+//      functor, declaring first/last uninitialised in both orders, and a
+//      single-use inline Find helper. All stay at 83.8 percent, so it is not a
+//      simple weighted use.
+//   2. because ebx holds the key here it is not free at the insert, so the
+//      temporary element's two handler words are zeroed with one `xor eax,eax`
+//      after the copy constructor; the original has ebx free (key is in ebp)
+//      and zeroes them with `xor edi,edi / xor ebx,ebx` before the call.
 //   3. the element address after the insert: original `lea esi,[eax+edx*4+4]`
-//      (straight at first->h) and stores [esi]/[esi+4]; here the element base
-//      is kept and the stores are [esi+4]/[esi+8].
-//   4. the record increment sits before the temporary's destructor call here
-//      and after it in the original.
-//   2 and 3 are the same wall 0x4b7620 hits.
+//      (straight at first->field_4) and stores [esi]/[esi+4]; here the element
+//      base is kept and the stores are [esi+4]/[esi+8]. Same wall as 0x4b7620.
 #include <string.h>
 #include <vector>
 
@@ -91,7 +95,7 @@ struct Rec_004b7760 {
 // FUNCTION: 0x4b7760
 void __stdcall FUN_004b7760(Rec_004b7760* rec)
 {
-    while (rec->name) {
+    for (; rec->name; rec++) {
         int mask = rec->mask;
         Handler_004b7760 fn = rec->fn;
         Class_004c91b0 key(rec->name);
@@ -114,6 +118,5 @@ void __stdcall FUN_004b7760(Rec_004b7760* rec)
         }
         first->field_4 = (int)fn;
         first->field_8 = mask;
-        rec++;
     }
 }

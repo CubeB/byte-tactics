@@ -1,5 +1,18 @@
 // Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 //
+// Pass (deepseek-v4.1-flash, #2437 retry): still 80.0%, 280 bytes. Four more
+// source shapes, every one byte-identical to the body below, so none is kept:
+// `int* ph = &at_high;` used as case 1's first argument (the address-taken
+// load is folded straight back to the slot and still hoists into eax);
+// inline `Range::SetLow`/`SetHigh` methods for the case 1 stores; the stores
+// through `(Range*)(int)out` to defeat aliasing knowledge; and a `Pair`
+// sub-object layout for Range (the 0x463610 member-sub-object lever). All four
+// leave case 1 with at_high hoisted into eax before `mov [esi],edx` and the
+// global in edx, and case 2 with at_low in ecx after `push ecx`. That closes
+// the aliasing, inline-method and sub-object readings on top of the earlier
+// passes, so the residual really is the arg1-vs-arg3 register priority tie
+// already documented by the sibling 0x4c70d0.
+//
 // Pass (deepseek-v4.1, #2097 retry): still 80.0%, 280 bytes, six check.py runs.
 // New shapes, every one byte-identical to the body below, so none is kept: the
 // case 1 store folded into the call as a comma expression in argument 3,

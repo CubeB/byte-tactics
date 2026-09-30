@@ -125,6 +125,20 @@
 // transparent; only a real memory value blocks it, and a load would cost bytes
 // the original has not got, so what is still missing is a construct that yields
 // the value `n + m + 1` as a value the front end will not re-fold with the `+5`.
+// deepseek-v4.1-flash pass (2437): 40 more spellings, all folded to one lea
+// (+6, 193 bytes, 86.1%), so the split is not reachable by wording: every
+// parenthesisation of 1 + sizeof(int) + 1 in any order (including
+// `(n + m + 1) + (sizeof(int) + 1)`, `n + m + 1 + sizeof(int) + sizeof(char)`,
+// `(n + m + 1) + (int)(char)5`), an `enum { ONE = 1 }` constant, a 32-bit
+// bitfield and a union round trip, a struct-return helper, `const`/`const&`
+// locals, an address-taken local (`int* lp = &len; *lp + 5`), a `size_t` or
+// `unsigned` mixed with an `int` length, pointer-difference and `&((char*)0)[k]`
+// forms, and `__inline` helpers `Pad5()`/`Pad4()`/`TotalLen()` (also constant
+// first). `unsigned short`/`char` narrowings are worse (202/203 bytes). The
+// `short` below stays the best at 199 bytes / 93.4%; the residual is exactly
+// the four diffs listed above (early n store, movsx, lea operand order, jump).
+// The one mechanism still untested is a value the front end keeps opaque that
+// costs zero instructions; no such spelling was found.
 #include <string.h>
 #include <stdlib.h>
 

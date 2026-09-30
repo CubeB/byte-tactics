@@ -1,17 +1,20 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free. Names are provisional.
-// 77.6%, not MATCH (was 66.0%). Fixed by (a) writing the four entry stores of the
-// first loop as four separate g_game->buildLists[i].entries[j] expressions, so each
-// reloads the list pointer after the preceding call exactly as the original does,
-// and (b) indexing unitDefs through one local base pointer (defs[k]) in the last
-// loop, which makes &unitDefs[k].flags_241 the induction variable (add esi,0x241
-// before the loop) and derives the name from it with lea edi,[esi-0x221].
-// Still differs: a one-step permutation of the callee-saved registers in every
-// loop (the original keeps g_game in EDI and the loop counters in EBP, ours keeps
-// g_game in ESI/EBP and the counters in EBX/EBP), the frame slot of the file
-// count (original [esp+0x10], ours [esp+0x18], with the loop-3 countdown and the
-// loop-4 unit counter swapped the other way), and the address form inside the
-// innermost loop of the max-page scan (original: lea esi,[ebx+eax] then
-// [esi+edx+4]; ours: lea ecx,[edi+ebp] then [ecx+eax+4] and a second lea).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Edited by deepseek-v4.1: 97.3%, not MATCH (was 77.6%). One fix this round:
+// `int c; int i;` are declared at the top of the body, before `int n = files.size();`,
+// and the last two loops reuse that one counter `c`. A group of scalar locals gets
+// its esp slots in reverse declaration order, so with the counters declared after n
+// the file count n landed in [esp+0x18]/EBP instead of the original [esp+0x10]/EBX;
+// declaring them first moved n to 0x10/EBX and cascaded the whole group (the max-page
+// scan and the downloadable scan, g_game into EDI, the lea esi,[ebx+eax] addressing),
+// lifting 77.6 -> 97.3.
+// Still differs, only in the downloadable scan (0x42e037-0x42e04b and 0x42e0ad):
+// the original inits its build-list counter first (xor ebp,ebp; test ecx,ecx; jle;
+// lea edi,[esi-0x221]; xor ebx,ebx), keeping the counter in EBP and the i*0xbd byte
+// offset in EBX, while MSVC here inits the offset first (xor ebx,ebx; test; lea edi;
+// jle; xor ebp,ebp) and swaps them (counter EBX, offset EBP), which also flips the
+// `inc`/`add ebx,0xbd`/`cmp` trio at the bottom of that loop. Reusing the function
+// scope `i` for that inner counter scores the same 97.3%; phase B already matches
+// with the counter EBP / offset EBX, so the difference is local to this loop.
 
 #include <math.h>
 #include <vector>
@@ -114,6 +117,8 @@ void __cdecl FUN_0042be30();
 // FUNCTION: 0x42dcf0
 void FUN_0042dcf0()
 {
+    int c;
+    int i;
     char path[256];
     char unitbuf[256];
     std::vector<Class_004c91a0> files;
@@ -124,7 +129,7 @@ void FUN_0042dcf0()
     g_game->buildListCount = n;
     g_game->buildLists = (BuildList_0042dcf0*)FUN_004d83b0("DOWNLOADMENU", n * 0xbd);
 
-    for (int i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
         Class_004c2ea0 parser;
         FUN_004290f0(path, "download", files[i].p, "TDF");
         if (((Class_004c2f60*)&parser)->FUN_004c2f60(path)) {
@@ -153,7 +158,7 @@ void FUN_0042dcf0()
 
     FUN_004d8780(g_game->unitDefs);
     for (unsigned short u = 0; u < g_game->unitDefCount; u++) {
-        for (int c = 0; c < n; c++) {
+        for (c = 0; c < n; c++) {
             for (int d = 0; d < g_game->buildLists[c].count; d++) {
                 if (g_game->buildLists[c].entries[d].typeId == u) {
                     if (g_game->unitDefs[u].field_22e < g_game->buildLists[c].entries[d].page)
@@ -165,15 +170,15 @@ void FUN_0042dcf0()
     FUN_004d8710(g_game->unitDefs);
 
     UnitDef_0042dcf0* defs = g_game->unitDefs;
-    for (int k = 0; k < g_game->unitDefCount; k++) {
-        char* name = defs[k].name;
+    for (c = 0; c < g_game->unitDefCount; c++) {
+        char* name = defs[c].name;
         for (int i = 0; i < g_game->buildListCount; i++) {
             if (_strcmpi(g_game->buildLists[i].entries[0].name, name) == 0
-                && !defs[k].flags_241.downloadable) {
+                && !defs[c].flags_241.downloadable) {
                 char buf[128];
                 sprintf(buf, "Hey!  Somebody forgot to set downloadable=1 for %s", name);
                 FUN_004d8780(g_game->unitDefs);
-                defs[k].flags_241.downloadable = 1;
+                defs[c].flags_241.downloadable = 1;
                 FUN_004d8710(g_game->unitDefs);
             }
         }

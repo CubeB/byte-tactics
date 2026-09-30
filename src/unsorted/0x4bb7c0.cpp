@@ -1,8 +1,15 @@
 // Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
-// Partial: 83.5%. Keep the shared read-count return path, 1000-byte message
-// buffer and block-offset helper; these restore the original locals and most
-// decoding/error-reporting instructions. Block-count/table-size allocation,
-// their reloads around memcpy, and the copy/seek tail still differ.
+// Partial: 98.6% (1042 bytes, exact size). Everything matches except two
+// pure register-choice diffs, both involving ebx:
+//   1. the clamped size temp that feeds `blocks` is in esi here, ebx in the
+//      original (mov ebx,[esp+0x14]; mov [esp+0x1c],ebx; lea esi,[ebx+eax-1]);
+//   2. the non-compressed `off` is accumulated in ebx here
+//      (mov ebx,[esi]; add ebx,eax) where the original accumulates in eax and
+//      copies (add eax,[esi]; mov ebx,eax).
+// The block-count/table-size order is load bearing: writing tableSize as
+// ((size % 65536 != 0) + size / 65536) * 4 (modulo first) makes blocks land in
+// esi and tableSize in edi as the original does. The helper form
+// size / 65536 + (size % 65536 != 0) puts them the other way round (83.5%).
 #include <stdio.h>
 #include <string.h>
 
@@ -78,7 +85,7 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
             remaining = n;
             i = 0;
             blocks = (((n + file->pos - 1) & 0xffff0000) - (file->pos & 0xffff0000) >> 16) + 1;
-            tableSize = nblocks(info->size) * 4;
+            tableSize = ((info->size % 65536 != 0) + info->size / 65536) * 4;
             dst = buf;
             while (i < blocks) {
                 b = file->pos >> 16;

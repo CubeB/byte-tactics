@@ -1,9 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, and GPT-6.1-sol. Names are provisional.
 // Partial: 61.0%, 832 bytes versus 817. The distance counter advances even
 // for out-of-bounds points. Grid accessors recover the receiver-relative
 // addressing. Remaining differences include the LOD clamp timing, local
 // frame slots and register allocation in both branches. Two 768-set header
 // sweeps did not improve the result.
+// GPT-6.1-sol retry in #1932: four checks kept 61.0%; the reversed coordinate
+// declaration tied, while do-while conversions scored 59.1%. Neighbor coordinates
+// need a signed 16-bit cast before an unsigned bounds check (movsx AX then cmp).
 #include <windows.h>
 
 #pragma pack(push, 1)

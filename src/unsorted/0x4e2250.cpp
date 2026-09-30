@@ -1,5 +1,13 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// NOT A MATCH (73.4 percent, 801 bytes against our 811). Now differs only in:
+// NOT A MATCH (73.4 percent, 801 bytes against our 811). Retry 2 kept this
+// version: I tried transcribing the exact MSVC 5 <XTREE> insert() source
+// (toolchain/msvc5-sp5/INCLUDE/XTREE lines 211-232) with _Insert returning
+// the iterator by value through its hidden pointer, and with the search arm
+// written as both `if/else` and inline `a != b && strcmp(...) < 0` forms. All
+// scored the same 73.4 or worse (54.9 for the inline form, which also lost
+// the frame layout). The search-loop merge and the final out-of-line pair
+// ctor call at 0x4e253a still do not fall out of any source shape I tried.
+// Now differs only in:
 //  * Class_004e2a10's ctor is defined inline here (it is pair<iterator,bool>
 //    from UTILITY, whose ctor is defined in the class). That makes the _Multi
 //    return collapse to the original's two direct stores `mov [eax],ecx /

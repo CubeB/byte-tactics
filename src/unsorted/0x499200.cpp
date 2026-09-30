@@ -59,6 +59,18 @@
 // callee-saved register and also displaces `mov edi, 4`, giving 1648 bytes at 95.0.
 // So the last byte needs one extra *invisible* temp in the allocator's view of the
 // block that ends at 0x499717, which no source shape tried so far produces.
+// deepseek-v4.1 session 3 (issue #2565): 10 more byte-neutral shapes, all land on the
+// same 98.4% base (1654 bytes) with `mov eax, dword ptr [<addr>]` at 0x4997a0, so the
+// byte is NOT reachable by spelling the read: an `unsigned short tmp` plus a
+// `unsigned int saved = tmp` two-vertex form, the `register` keyword on both locals,
+// `g_game + 0` as the initializer, a self-assignment `gp = gp;`, a C++ `static_cast`
+// around the field, `*(&gp->field_2a3c)`, a comma expression `(gp = g_game, ...)`, a
+// truthiness test on field_39249 plus a `Class_00435100&` alias for the call, and a
+// `gp` assignment inside the arm (instead of an initializer) next to a named local
+// for the FUN_00435100 result. Making `saved` itself an `unsigned short` changes the
+// tail and is worse: 1652 bytes at 98.3%. The else block's first pick is sticky eax,
+// so the original's 6-byte `mov edx` needs an allocator-visible value that this source
+// never creates, not another spelling of the read.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

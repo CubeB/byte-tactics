@@ -1,5 +1,24 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free and GPT-6.1-sol. Names are provisional.
-// Best: 51.1% after 3 checks; `(flags & 0x10) != 0` improved 0.1 points. Still differs because MSVC keeps `order` in ecx instead of reloading it from its argument slot, shifting the division and draw-call registers.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free. Names are provisional.
+// Best: 51.1% (unchanged; the pointer experiment below scored 49.9%). The push order in the original IS edi, esi, ebp, ebx and the pop order IS ebx, ebp, esi, edi, exactly as the build emits, so the residual is NOT a callee-saved rotation. The first difference is a single scratch-register swap at the top: the original loads `order` into EDX and puts the type-index copy in ECX, ours loads `order` into ECX and puts the copy in EDX. Everything after (which register holds level, which the two `imul`s scratch in, whether `surface` stays in ebx or is reloaded from its argument slot, and which argument slot each dead local lands in) follows from that one swap.
+//
+// SLOT MAP, decoded from the original and worth keeping (the earlier passes got
+// this wrong in places). The prologue does `sub esp, 0x30` and THEN pushes
+// edi/esi/ebp/ebx, so with B = esp after the four pushes the saved registers are
+// at [B, B+0x10) and the 0x30 bytes of locals are at [B+0x10, B+0x40), i.e. a
+// displacement D in the body is local D-0x10. That makes every stack slot in the
+// original legible, and it confirms the struct shapes already used here:
+//   local+0x00  colour2 (a byte store, later read as a dword)
+//   local+0x04  dx, then reused for ix2 = bx - dx
+//   local+0x08  ix1 = ax + dx
+//   local+0x0c  iy1 = az + dz
+//   local+0x10  &order->pos (the final `*out = *that` reads it)
+//   local+0x14 .. local+0x30  the 28-byte box: lo.x, lo.y, lo.z, pad, hi.x,
+//               hi.y, hi.z. The whole-part reads are at +0x16, +0x1e, +0x26,
+//               +0x1a, +0x2e, which pins lo as a 16-byte Vec3q (x,y,z,pad) and
+//               hi as a 12-byte Vec3f (x,y,z) whose y is never read.
+// The dead argument slots are reused: the view slot (E+8) holds `level` and then
+// dz, the order slot (E+0xc) holds colour1 and then colour2, and the surface
+// slot (E+4) holds bx + 1.
 // Draws the on-screen bounding box of the object's unit type. `order` is one of
 // the per-unit list objects that 0x439b30 walks (type index at +0x36, 16.16
 // position at +0x22, owner at +0xe, timestamp at +0x46). The box corners are the
@@ -81,10 +100,24 @@
 // instead of `push ebx`, the `mov edx, ebp` / `sub edx, ebx` pair, and the
 // `order->owner` load hoisted into the middle of the first division.
 //
-// The next thing to try is whatever stops MSVC keeping `order` live in ecx
-// across the projection: a source that forces a re-materialisation of the
-// pointer, or a use of `order` that a store in between invalidates (the
-// static-inline-helper trick that took 0x4a76b0 from 84.9 to 100 percent).
+// A SIXTH PASS checked the "callee-saved rotation" wall and found it void: the
+// original pushes edi, esi, ebp, ebx and pops ebx, ebp, esi, edi, which is
+// exactly what the build emits, so there is no rotation to reproduce. What is
+// left is one scratch-register swap at the top of the body, as described
+// above. Two experiments, both scored with `check.py --sym`:
+//   `Vec3f* pos = &order->pos;` used for the pos.y read and for `*out = *pos`
+//     (49.9 percent, WORSE by 1.2) - this does reproduce the original's
+//     `lea ecx, [edx+0x22]; mov [esp+0x20], ecx; ...; mov edx, [ecx+4]` shape,
+//     but it moves the &order->pos spill to local+0x0c instead of local+0x10
+//     and leaves `order` in ecx anyway, so the register swap survives.
+//   128 header sets (`tools/headers.py`): flat at 51.1 percent, none better.
+//
+// The thing still worth trying is whatever stops MSVC spending ECX on `order`
+// at the top: it is the parameter's live range crossing the two divisions, and
+// since neither the pointer shape nor any spelling of the clamp nor any
+// statement order moves it, the lever is probably the ORDER in which the three
+// pos components and the index are first read, or the fact that ours reads
+// pos.y through `order` (the original reads it through a pointer to pos).
 #include <stdlib.h>
 #include <memory.h>
 

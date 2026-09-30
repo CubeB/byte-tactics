@@ -1,17 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
-// Best 54.8% (1048 bytes against 1046). Remaining diffs are compiler-driven local slots:
-// px/py land 4 bytes above the original (w2 takes 0x14, px 0x18) and p2/rem1/rem2 land
-// lower (p2 0x24, rem1 0x2c, rem2 0x30 against 0x2c/0x30/0x34), so the prologue emits
-// px and py in parallel while the original finishes px (store included) before starting py.
-// Tried: computing px/py before rx/ry, do-while loops with counters in memory, struct 0x18.
-// Second pass re-derived the exact frame: the original uses w1 0x10, px 0x14, w2 0x18,
-// ay 0x1c, ax 0x20, py 0x24, stride 0x28, p2 0x2c, rem1 0x30, rem2 0x34, n 0x38,
-// stride2 0x3c; ours always lands w1 0x10, w2 0x14, px 0x18, ay 0x1c, ax 0x20,
-// p2 0x24, py 0x28, rem1 0x2c, rem2 0x30, stride 0x34. Nine declaration orders of the
-// top-level ints (bare and with initializers) all produce that same map, so the slot
-// order here is not declaration-driven; making p2 function-scope only pushed w2/px to
-// 0x18/0x1c and p2 to 0x14 (50.3%). The px-before-py division schedule of the original
-// (store px before starting py, reload px for rx) also did not reproduce.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Best 57.4% (1042 bytes against 1046). The frame map is confirmed, not guessed: the two
+// stores before `push edi` at 0x483fcc are relative to the pre-push esp, so they land at
+// final-esp 0x20 (viewX/ax) and 0x1c (viewY/ay). Original final frame: w1 0x10, px 0x14,
+// w2 0x18, ay 0x1c, ax 0x20, py 0x24, stride 0x28, p2 0x2c, rem1 0x30, rem2 0x34,
+// n 0x38, stride2 0x3c. Two changes got 54.8 -> 57.4: (1) compute rem1 between w1 and w2
+// so the compiler interleaves w1/rem1/w2/rem2 as the original does, (2) compute rx
+// immediately after px so px is stored before py starts. Ours now allocates w1 0x10,
+// stride 0x14, px 0x18, ay 0x1c, ax 0x20, rem1 0x2c, rem2 0x30, py 0x34: px/w2 and
+// stride/rem1/rem2 still land in the wrong slots, and the py path still is not spilt to
+// 0x24 and reloaded. Tried: bare declarations in the original slot order at the top
+// (57.0%), `>>5` instead of `/32` (53.7%), swapping the viewX/viewY declaration order
+// (57.0%), p2 function-scope (50.3%). The second diff hunk is the final blit loop, whose
+// pointer/counter arrangement also differs.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -66,12 +66,12 @@ void __stdcall FUN_00483fa0(void* surface)
     int ay = g_game->viewY;
     int sy = g_game->scrollY;
     int px = sx / 32;
-    int py = sy / 32;
     int rx = sx - px * 32;
+    int py = sy / 32;
     int ry = sy - py * 32;
     int w1 = (g_game->viewW + rx) / 32;
-    int w2 = (g_game->viewH + ry) / 32;
     int rem1 = g_game->viewW - w1 * 32 + rx;
+    int w2 = (g_game->viewH + ry) / 32;
     int rem2 = g_game->viewH - w2 * 32 + ry;
     if (rem1 != 0)
         w1++;

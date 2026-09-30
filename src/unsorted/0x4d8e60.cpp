@@ -1,19 +1,20 @@
-// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Partial: 50.6%, retaining the best-scoring implementation. The original
-// formats reason at 0x4d9171: [esp+0x1c] before the 12-byte sprintf cleanup
-// is the reason slot at frame offset 0x10. This file instead formats file.
-// Correcting it scores 40.2%; grouping buffers/state, pointer loops and header
-// sweeps did not recover the loss. This is a known semantic mismatch.
-// The object starts at original frame offset 0x7f30 and has 0xc4d0 bytes;
-// shrinking it is not supported. An extra saved record-pointer slot drives
-// the 4-byte frame excess and the parameter loop still differs.
-// deepseek-v4.1-flash: confirmed. Our .obj spills rec to F+0x20
-// (mov %ebx,0x30(%esp) at .text+0x54, reloaded at +0x4a1) while the original
-// keeps rec in ebx. That one slot is the entire 0x143f4 vs 0x143f0 excess.
-// Also confirmed obj is one 0xc4d0 block; FUN_004d9c60's this is obj+0x10,
-// FUN_004d9ca0's this is obj. Declaration style/order of ctx and rec did not
-// remove the spill (see build/scratch/0x4d8e60/ledger.md).
-// GPT-6.1-sol retested reference, direct, register-hinted and region-scoped record pointers; none improved the 50.6% best.
+// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 64.4%. Fixed the 50.6% version's frame excess. Removing the
+// "for (i=0; i<rec->NumberParameters; i++) rec->ExceptionInformation[i]"
+// form (which MSVC strength-reduced onto ebx, forcing rec into a stack spill
+// at F+0x20 and an 0x143f4 frame) and using an explicit advancing pointer
+// (unsigned long* info = rec->ExceptionInformation; i++, info++) keeps rec in
+// ebx and restores the exact original frame: path F+0x20, name F+0x408,
+// log F+0x7f0, exe F+0x7b48, obj F+0x7f30, size 0x143f0.
+// The remaining 1087 diff lines are mostly argument-scheduling differences:
+// the original computes the strlen(dest) before evaluating sprintf's other
+// arguments, the compiler here interleaves them; and `file` is kept in esi
+// (with slots reason/file swapped: ours reason F+0x18, file F+0x14; original
+// reason F+0x10, base F+0x14, file F+0x18, written F+0x1c). Formatting reason
+// at 0x4d9171 instead of (char*)file scores 40.2%, so (char*)file is retained.
+// Tried: swapping name/exe and scalar declaration orders, function-scope base
+// pointer, reason-vs-file format, explicit pointer variants. The explicit
+// pointer loop is the only one that moved the score.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,7 +37,6 @@ char* __cdecl FUN_004d98c0(int code);
 void __cdecl FUN_004da3f0(char* buf, int size);
 void __cdecl FUN_004ded60(char* dst, int size);
 void __cdecl FUN_004de110();
-// SHARED end
 
 // FUNCTION: 0x4d8e60
 int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
@@ -107,11 +107,13 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     sprintf(log + strlen(log), "ExceptionAddress = %08lX\n", rec->ExceptionAddress);
     if (rec->NumberParameters != 0) {
         sprintf(log + strlen(log), "Parameters = ");
-        for (unsigned int i = 0; i < rec->NumberParameters; i++)
+        unsigned int n = rec->NumberParameters;
+        unsigned long* info = rec->ExceptionInformation;
+        for (unsigned int i = 0; i < n; i++, info++)
             // The i % 3 == 3 test is always false (i % 3 is 0..2); kept as-is.
-            sprintf(log + strlen(log), "%08lX%c", rec->ExceptionInformation[i],
-                    (char)(i == rec->NumberParameters - 1 ? '\n'
-                                                          : i % 3 == 3 ? '\n' : '\t'));
+            sprintf(log + strlen(log), "%08lX%c", *info,
+                    (char)(i == n - 1 ? '\n'
+                                      : i % 3 == 3 ? '\n' : '\t'));
     }
     sprintf(log + strlen(log), "\n");
     sprintf(log + strlen(log), "Registers:\n");

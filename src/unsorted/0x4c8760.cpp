@@ -51,6 +51,20 @@
 //    if(highY!=lowY) block, are all inert (dv stays at 0x38).
 // So the 0x10/0x14 crossover is a live-range decision, not a declaration one,
 // exactly as the earlier passes concluded. Nothing left to try by hand.
+// Fourth pass (deepseek-v4.1-flash, timeboxed, no new variants scored): the
+// original's per-loop slot split proves the two edge loops use SEPARATE
+// variables in the source: loop1 next at 0x10 (shared with dv1/dv2) but loop2
+// next at 0x14 (shared with lowX/n1), and n1 at 0x14 while n2 is at 0x28
+// (with lowIndex). So next and n are block-scoped per loop, while dv, du, dx,
+// x, y1, out merge across the loops. The known block-scoped-next experiment
+// reproduced that sharing but shrank the frame to 0x7d54; the extra merged
+// slot is most likely n1+n2 merging with each other once they become two
+// block locals. Next step: block-scope next AND keep n1/n2 from merging
+// (a lifetime that spans both loops), then re-check. Also still open: the
+// y0 fixup multiplies emit `mov ecx,[mem]; imul ecx,ebp` (delta left) in the
+// original but `mov ecx,ebp; imul ecx,[mem]` (y0 left) in ours for the same
+// `dx*y0` source text, and the loop body schedule puts `x+=dx` right after
+// `out[0]=x>>16` in the original but after `out+=10` in ours.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

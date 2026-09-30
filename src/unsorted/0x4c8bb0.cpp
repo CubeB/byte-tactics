@@ -1,5 +1,18 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial 51.6%. This is a textured/gouraud triangle rasteriser into 10-int
+// Partial 54.1% (best this file has reached; check.py prints 54.1).
+// deepseek-v4.1-flash pass: confirmed by disassembly that the original's
+// missing slot [esp+0x4c] is the raw `index-1` of the first edge loop, stored
+// at loop head (0x4c8cfc) and reloaded at the loop tail (0x4c8e9c) where the
+// code does index=previous; if(index<0) index=3 (fixup re-applied at the
+// tail). Tried on top of the current body: (a) sibling 0x4c8760 loop shape
+// with currentVertex/nextVertex pointer locals plus live previous (41.9%,
+// frame still 0x7d5c), (b) minimal live-previous change
+// (previous=index-1; next=previous; if(next<0) next=3; ... tail
+// index=previous; if(index<0) index=3) (50.2%, frame still 0x7d5c; the
+// compiler folds previous into the tail fixup instead of spilling it, same
+// as the earlier passes reported below). The 16th slot remains unreachable.
+//
+// This is a textured/gouraud triangle rasteriser into 10-int
 // span rows, then one FUN_004c8020 call per scanline. The sibling 0x4c8760 is
 // the same algorithm without the light channel and is matched to 67.9%; its
 // first edge loop uses the same `previous`/`next` idiom adopted here.

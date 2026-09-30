@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 52.6%. Skirmish player-slot click handler. All calls, strings, struct
 // offsets, the switch dispatch and the free-colour loop shape now match. What
 // still differs is register allocation and the frame: the original keeps g_game
@@ -9,6 +9,11 @@
 // but still gave ebp to the index and edx to g_game, scoring 36.3%; hoisting
 // `game` out of the inner block scored 40.9%. Keeping the block-scoped `game`
 // local is the best of the three.
+// deepseek-v4.1-flash retried a direct `g_game->` rewrite (no `game` local):
+// frame shrank to 0x8c (one extra slot) but g_game still landed in edx, the
+// index in ebp, and it scored 34.5%; the version below remains the best.
+// Target needs g_game in ebp, the byte offset in ebx (spilled to [esp+0x10]),
+// and only two scalar slots before the two 64-byte buffers.
 #include <windows.h>
 
 #pragma pack(push, 1)

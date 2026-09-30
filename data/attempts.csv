@@ -4867,7 +4867,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4cf570,646,gpt-6.1-sol,#1928,partial,80.2,,"issue #1928, escalated"
 0x425210,544,gpt-6.1-sol,#1931,partial,99.6,,"issue #1931, escalated"
 0x425480,537,gpt-6.1-sol,#1931,partial,81.1,,"issue #1931, escalated"
-0x482270,817,,#1932,assigned,,,"issue #1932, escalated"
+0x482270,817,gpt-6.1-sol,#1932,partial,61.0,,"issue #1932, escalated"
 0x402da0,537,,#1934,assigned,,,"issue #1934, escalated"
 0x407ae0,601,,#1934,assigned,,,"issue #1934, escalated"
 0x407d40,296,,#1934,assigned,,,"issue #1934, escalated"
@@ -5122,3 +5122,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x425480,537,,#2343,assigned,,,"issue #2343, escalated"
 0x4876c0,1062,,#2344,assigned,,,"issue #2344, escalated"
 0x487bf0,1811,,#2344,assigned,,,"issue #2344, escalated"
+0x482270,817,,#2345,assigned,,,"issue #2345, escalated"

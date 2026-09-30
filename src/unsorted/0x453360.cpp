@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // PARTIAL (54.4% with the current check.py diff), best found. Sends a
 // chat/text message (type 5, up to 64 characters) to the players selected
 // by the game's chat mode at +0x2bf0. The whole control flow, every offset
@@ -46,6 +46,24 @@
 // required in the sibling 0x453010) scores 46.7, a hoisted `int mode` local
 // 46.1, and a live `text` local 46.9, all in the same swapped-register basin.
 // So the diff is not the search shape or the '+' test wording.
+//
+// Retry pass 3 (space-bunny-free, #1683): still 54.4%, 371 of 380 bytes,
+// and every variant below compiles to exactly the same 371 bytes, so the
+// rotation is not decided inside the search helper or by its parameter list:
+// a `Game* g = g_game;` local with the counter declared before it, the same
+// with the pointer first, a helper taking `Game*`, a helper with a second
+// dead counter, the whole mode-3 and default loops moved into static inline
+// helpers that take an unused `char* text`, a folded ternary argument
+// (`int n = text ? 0x41 : 0x41;`), a comma expression in the for-init
+// (`for (int i = 0, k = (text, 0); ...)`), a dead `(text, 0);` statement and
+// a dead `char* dead = (text, 0);` at the top of each branch. MSVC 5 /O2
+// folds every one of those away, so the original's dead `mov eax,[esp+0x14]`
+// is not a discarded expression: it has to be a reload MSVC still believes
+// it needs, i.e. a register split of `text` whose remaining uses were
+// removed, which in turn is what keeps g_game in ecx and the search counter
+// in eax. Reproducing that needs a value that is live into the branch blocks
+// and whose only use is one MSVC can delete while the block's copy stays.
+// Still missing: the two dead text reloads and the eax/ecx home of g_game.
 #include <string.h>
 
 #pragma pack(push, 1)

@@ -3,6 +3,22 @@
 // looks that player up by field_4 and sets bit 0 of its info flags. The
 // player lookup is inlined and its index search appears twice.
 //
+// space-bunny-free (second pass, issue 1683) kept this 19.9% version rather
+// than the 10.1% structural alternative, because the project rule is to keep
+// the best-scoring variant. The alternative is preserved in
+// build/scratch/0x450240/ and is worth knowing about: it uses the nested
+// GetPlayerField helper with the `i != 10` entry guard and the pointer-walk
+// max loop, giving 302 of 305 bytes with the entire instruction stream
+// aligned, differing only in the prologue (a missing `push ebp`, and
+// `mov eax,0xa; mov esi,eax` where the original has `mov edx,0xa`). Its
+// problem is that the older shape kept here is structurally dead in MSVC:
+// this build deletes both entry guards and hoists `or reg,-1` (292 bytes).
+// So the open question is narrower than it looks: the quasi-variable 10 must
+// be enregistered in eax, after which the countdown becomes a register copy
+// and the four search bounds read al. Counted vs index loop sharing the
+// literal, indexed array spelling, type changes, helper shapes, declaration
+// order and all 128 header sets all failed to enregister it.
+//
 // PARTIAL (19.9%): the instruction sequence and struct offsets are right, but
 // MSVC picks different registers here. The original keeps g_game in edi, max
 // in ebp, the max-loop countdown in esi and the constant 10 in eax/al (the

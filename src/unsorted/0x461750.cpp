@@ -1,9 +1,33 @@
 // Decompiled by DeepSeek V4.1 Flash and Claude Opus 5.5, finished by
-// deepseek-v4.1-flash. Names are provisional.
-// Partial (98.6%). Only the last block differs: the original's out-of-line
-// allocation-failure `return 0` is the real epilogue, scheduled as
+// deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+// Partial (98.6%), 2 bytes. Only the last block differs: the original's
+// out-of-line allocation-failure `return 0` is the real epilogue, scheduled as
 // `pop edi; pop esi; xor eax, eax; pop ebx`, while this version emits
 // `xor eax, eax; pop edi; pop esi; pop ebx` there.
+// Third pass (space-bunny-free): everything below is still 98.6% with the
+// same one-hunk diff unless a percentage is given.
+//   - a `goto fail` inside the helper, with `e` and `n` hoisted uninitialised
+//     to the top of the helper so no jump skips an initialiser: byte-identical
+//     to this file, so the source order of the return statement is not the
+//     lever either;
+//   - `if (field_b318 != 0) {} else if (...) {} else {}` instead of the nested
+//     `if`, and a `goto ready` for the "already allocated" arm (both 98.6%);
+//   - an explicit `if (Setup(...)) return 1; else return 0;` in the outer
+//     (85.7%, 204 bytes): the fail block moves up next to the network check;
+//   - the failure arm assigning to a local the outer returns at the end
+//     (`int r = 0; if (Setup(...)) r = 1; return r;`, 76.1%): the return
+//     becomes `mov eax, edi` and the network check moves;
+//   - the network check inside the helper, the outer written only
+//     `return Setup(arg1, arg2);` (84.1%, 208 bytes): the fail block is then
+//     emitted early, and the interleaved schedule lands on the success block
+//     (`pop edi; pop esi; mov eax, 1; pop ebx; ret 8`), which is the
+//     function's last block entered by fall-through after the call. So the
+//     interleaving is not tied to the fail return, it goes to the last block;
+//   - `if (DAT_00506dbc == 0) return 0; return Setup(arg1, arg2);` (73.9%):
+//     MSVC drops ebx from the prologue and reorders the first blocks.
+// Untried: making the fail block a fall-through rather than a `je` target
+// while keeping the alloc path after it, which needs the body reordered so
+// that a block ending in a call falls into the fail return.
 //
 // What got it from 86.5% to 98.6%: the body after the network check is an
 // inline helper whose failure `return 0` the caller tests with

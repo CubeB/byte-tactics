@@ -1,9 +1,17 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 73.2% (1525 vs 1519 bytes). Layout follows the matched 0x41d920:
+// PARTIAL: 76.6% (1525 vs 1519 bytes). Layout follows the matched 0x41d920:
 // grid1 at +0x1428f and grid2 at +0x1429f (the +0x10/+0x14 words are the
 // separate g_game fields 0x142af/0x142b3). The function allocates both
 // passability grids, marks their borders, propagates row and column maxima
 // twice, then fills the smoothed values.
+// 75.5% -> 76.6%: the FIRST row-max loop must NOT go through a separate
+// `res` local. `if (prev < m) prev = m; p[1] = prev; prev = m;` (updating prev
+// in place and storing it) is worth 3.1 points. The SAME rewrite applied to
+// the second, column-max loop scores 73.7, so the two sites genuinely differ
+// and only the first one takes it.
+// 73.2% -> 73.5%: `grid1->cells = count1 ? new(count1*2) : 0;` as one
+// ternary statement, and the fourth border loop written `lb4 + 1 < height`
+// instead of `lb4 < height`.
 // 64.1% -> 73.2%: the passability pass re-applies q to the freshly assigned
 // p1/p2 cells inside the valid-range branch, not just to the cells carried
 // over from the previous row. Adding `p1[0] = max(p1[0], q); p1[1] =
@@ -11,24 +19,46 @@
 // the original's second max/min pair. That also released the register
 // pressure that had spilled `cellval` to the stack, so the frame is now the
 // original 0x18 and `idiv` uses ebp.
-// What still differs:
-//  - loop counter slots are permuted: ours has outer=[esp+0x1c],
-//    accum=[esp+0x14], cells2/grid1=[esp+0x10]; the original has
-//    outer=[esp+0x10], cells2/grid1=[esp+0x14], accum=[esp+0x1c]. Hoisting
-//    `outer` to function scope and reordering the accum/p1/p2 declarations
-//    did not move them (all scored a flat 73.2), so this is not a plain
-//    declaration-order lever.
-//  - the outer loop carries an extra `jmp`/`xor esi,esi` at its head where
-//    the original zeroes p1 at the loop bottom.
+// What still differs (all confirmed with check.py --sym, 1521 vs 1519 bytes):
+//  - STACK SLOT PERMUTATION, the largest single cause. The original uses
+//    [esp+0x10] = the column-max loop counter, reused as the big loop's outer
+//    counter; [esp+0x14] = cells2, reused as grid1; [esp+0x18] = inner;
+//    [esp+0x1c] = accum, reused as the fill counter; [0x20]/[0x24] = t20/t24.
+//    Ours has cells2/grid1 at [0x10] and accum/outer at [0x14]/[0x1c], i.e.
+//    exactly the 0x10 and 0x14 words swapped. Moving the counter declaration
+//    to the very top of the function moves it to [0x14] (73.2 -> 72.7), so the
+//    frame is NOT laid out in declaration order and not in first-store order
+//    either: the original's [0x10] variable is first stored at 0x482eae, well
+//    AFTER cells2's first store at 0x482cfb, yet gets the lower slot. This is
+//    the one thing I could not move.
+//  - the outer loop carries an extra `jmp` + `xor esi,esi` at its head where
+//    the original zeroes p1 (esi) at the inner loop's latch. Writing an
+//    explicit `p1 = 0;` at the end of the inner body reproduces the latch
+//    position but collapses the whole loop (76.6 -> 54.1), so the original
+//    does not have that statement in any spelling I found.
+//  - `accum` is memory resident in the original ([esp+0x1c], loaded and
+//    stored each iteration); in ours it round-trips through ebx. The original
+//    has all eight registers live in the inner body (g_game=ebp, p1=esi,
+//    p2=edi, cellval=ebx, q=eax, block=ecx, v=edx, plus accum), so it had no
+//    register to keep it in. Adding a live reference to force that spill is
+//    the obvious next lever.
 //  - the two max/min fill loops keep the same instruction sequence but with
-//    `prev`/`res`/`m` in different registers (ours prev in dl, original
-//    prev in cl with a bl copy of it).
-//  - the grid2 setup swaps which of field_14227/field_14223 lands in edi
-//    versus eax, and the fourth border loop uses a different induction
-//    register.
-// Earlier steps: 61.4% removed a redundant `row` local and stored
-// grid2->field_10 before field_14; 64.1% wrote
-// `grid2->cells = cond ? new Rec[n] : 0;` then read it back.
+//    `prev` in dl where the original has it in cl with a bl copy of it.
+//  - the grid2 setup swaps which of field_14227 / field_14223 lands in edi
+//    versus eax, and the grid1 setup loads &grid1 into ecx where the original
+//    uses ebx.
+// Tried and rejected (all scored worse, do not repeat):
+//  - hoisting `p1`/`p2` out of the outer loop to function scope: 73.2 -> 53.4.
+//  - `p1 = 0;` at the end of the inner body: 76.6 -> 54.1.
+//  - applying the no-`res`-local rewrite to the SECOND (column) max loop as
+//    well as the first: 76.6 -> 73.7.
+//  - reading h2/w2 back out of grid2->field_14/field_10 instead of keeping
+//    the locals: 76.6 -> 70.7.
+//  - declaring `cells2` inside the block that uses it: 76.6 -> 69.5.
+//  - a named local for the `operator delete` argument: neutral.
+//  - reordering the big loop's declarations (p1/p2/accum before t20/t24):
+//    neutral at 76.6.
+//  - `prev <= m` instead of `prev < m` in the first max loop: neutral.
 #include <new.h>
 #include <windows.h>
 
@@ -109,7 +139,7 @@ void FUN_00482c20(void)
         ((Rec_482c20*)grid2->cells)[(grid2->height - 1) * grid2->width + lb2].flags |= 2;
     for (unsigned int lb3 = 0; lb3 < (unsigned int)grid2->height; lb3++)
         ((Rec_482c20*)grid2->cells)[lb3 * grid2->width].flags |= 4;
-    for (unsigned int lb4 = 0; lb4 < (unsigned int)grid2->height; lb4++)
+    for (unsigned int lb4 = 0; lb4 + 1 < (unsigned int)grid2->height; lb4++)
         ((Rec_482c20*)grid2->cells)[(lb4 + 1) * grid2->width - 1].flags |= 8;
 
     for (int d = 0; d < grid2->field_c; d++)
@@ -138,10 +168,9 @@ void FUN_00482c20(void)
             unsigned char m = p[0];
             if (m <= t)
                 m = t;
-            unsigned char res = prev;
-            if (prev <= m)
-                res = m;
-            p[1] = res;
+            if (prev < m)
+                prev = m;
+            p[1] = prev;
             prev = m;
             p += 10;
         }
@@ -174,12 +203,7 @@ void FUN_00482c20(void)
     operator delete(grid1->cells);
     int count1 = (h1 * w1 + 7) & 0xfffffff8;
     grid1->field_c = count1;
-    unsigned char* cells1;
-    if (count1 == 0)
-        cells1 = 0;
-    else
-        cells1 = (unsigned char*)operator new(count1 * 2);
-    grid1->cells = cells1;
+    grid1->cells = count1 != 0 ? (unsigned char*)operator new(count1 * 2) : 0;
     for (int hf = 0; hf < grid1->field_c; hf++) {
         grid1->cells[hf * 2] = 0;
         grid1->cells[hf * 2 + 1] = 0xff;

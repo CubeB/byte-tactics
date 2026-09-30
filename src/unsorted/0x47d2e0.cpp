@@ -1,18 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL: 36.8% (best). Rewritten from the disassembly: logic, block order and the second
-// inlined terrain-entry lookup (static helper) now follow the original; reading g_game-> fields
-// directly instead of through a cached Game* local gained 3.4 points (33.4 -> 36.8).
-// Still differs: the frame is 0x20 vs the original 0x2c, so every local slot is 12 bytes off;
-// the original spills both LOS temporaries (wx at [esp+0x30], wy at [esp+0x38]) because ebx=0,
-// ebp=g_game, esi=origin.x/cols and edi=los are all live across the FUN_00485010 call, while ours
-// keeps wx/wy in esi/edi and caches g_game in a register across the call.
-// Tried this session: an explicit `int cols = origin.x` local used as the column bound (the
-// original keeps exactly that value in its [esp+0x18] slot and reloads esi from it before the
-// loop) plus reassigning function-scope x/y across the call, an `int r` truncated with
-// `(short)r >> 1` to force the original's shl eax,0x10 idiom, and moving min6/max5 up to the
-// ok declaration (that one dropped to 34.1%). None moved the frame or the prologue: ours keeps
-// homing unit to ebx with the zero in eax, and leaves x/y in esi/edi instead of spilling them.
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL 45.6%. Reconstructed from the disassembly. The two changes that moved the
+// score most, both worth about 9 points on their own: caching the cell stride in a
+// local `int width = g_game->width;` used for the cell pointer and the row advance
+// (36.8 -> 44.9), and reading the footprint mask as `int m = unit->mask[index++];`
+// instead of a byte plus a separate increment (44.9 -> 45.6). The first also fixed the
+// prologue so unit lands in eax and the constant zero in ebx, as in the original.
+// Still differs: the frame is 0x24 against the original 0x2c, so the original spills
+// the two LOS temporaries (wx at [esp+0x30], wy at [esp+0x38]) while we keep them in
+// esi/edi; and g_game is read into a register (edi) where the original keeps it in
+// ebp for the loop. Tried and worse: moving or caching width/height across the LOS
+// block (42.1), locals for cell.x/cell.y (39.5), a `game` local for g_game (34.7),
+// countdown loops (34.4), an if/else for the losFlags else arm (36.8, still if-folded
+// to setne/mov 1), and an int w[2] array for wx/wy (45.1). Do not repeat those.
 #pragma pack(push, 1)
 
 struct Point {
@@ -103,23 +102,21 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     Point origin = unit->origin;
     if (cell.x < 1 || cell.y < 1)
         return 0;
-    
     int cols = origin.x;
-    if (cell.x + cols >= g_game->width)
+    int width0 = g_game->width;
+    if (cell.x + cols >= width0)
         return 0;
     if (cell.y + origin.y >= g_game->height)
         return 0;
     int ok = 1;
-    int x = 0;
-    int y = 0;
-    int row;
-    int col;
+    int x;
+    int y;
     if (los != 0) {
-        x = (origin.x + cell.x * 2) << 19;
-        y = (origin.y + cell.y * 2) << 19;
+        int wx = (origin.x + cell.x * 2) << 19;
+        int wy = (origin.y + cell.y * 2) << 19;
         int r = FUN_00485010(&cell);
-        x = (short)(x >> 16) >> 5;
-        y = ((short)(y >> 16) - ((short)r >> 1)) >> 5;
+        x = (short)(wx >> 16) >> 5;
+        y = ((short)(wy >> 16) - ((short)r >> 1)) >> 5;
         if ((unsigned)x >= los->width || (unsigned)y >= los->height)
             return 0;
         unsigned int bit = 1 << g_game->player;
@@ -142,12 +139,14 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     int found80 = 0;
     int foundFE20 = 0;
     int index = 0;
-    Cell_0047d2e0* c = &g_game->cells[cell.y * g_game->width + cell.x];
+    int width = g_game->width;
+    Cell_0047d2e0* c = &g_game->cells[cell.y * width + cell.x];
+    int row;
+    int col;
     for (row = 0; row < origin.y; row++) {
         for (col = 0; col < cols; col++) {
             DAT_0051e688 += c->field_7;
-            unsigned char m = unit->mask[index];
-            index++;
+            int m = unit->mask[index++];
             if (m & 8) {
                 if (c->field_6 < min6)
                     min6 = c->field_6;
@@ -196,7 +195,7 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
             }
             c++;
         }
-        c += g_game->width - origin.x;
+        c += width - cols;
     }
     if (found80 && !foundFE20)
         return 0;

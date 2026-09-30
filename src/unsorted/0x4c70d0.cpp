@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
+// GPT-6.1-sol follow-up: six checks kept 78.9% (280/280 bytes). A forwarding
+// helper and neutral arithmetic did not alter the best code. Case 0, 1 and 2
+// argument register scheduling still differs.
 // #1595 retry by Codex / GPT-6.1-sol: checkall reconfirmed 78.9% (280/280 bytes), no MATCH.
 //
 // Eighth pass (space-bunny-free): no score change, 78.9% (280 bytes), 1 check.py

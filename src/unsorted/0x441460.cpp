@@ -12,7 +12,9 @@
 //     [esp+0x10],edx) and falls through to the cd98 compare, while MSVC deletes
 //     that store here. Writing the chain as an if/else-if or as
 //     `A != 0 && B != 0` is worse: MSVC proves both arms dead and drops the 98
-//     and b8 compares entirely (5 compares instead of 8, 1796 bytes).
+//     and b8 compares entirely (5 compares instead of 8, 1796 bytes). Giving the
+//     chain its own dead local (`int n`) is score-neutral: the store dies either
+//     way.
 //   * count is stored to [esp+0x10] before the FUN_004c9e50 call here, while the
 //     original stores ebx only in the count>0 branch just before the loop
 //     (a separate loop local `int n = count` does not change that).
@@ -23,6 +25,54 @@
 //     value stays live to `and ebp,0xffff`), and (flags >> 15) & 1 folds to
 //     `test ah,0x80` where the original keeps `mov edx,eax / shr edx,0xf /
 //     test dl,1`.
+//
+// What the p[4..11] diffs really are (measured this session, all free scratch
+// scores, none of it better than 80.5%):
+//   * ONE cause, not several: the original register-allocates the struct copy's
+//     dword 0 to EBP and dword 2 to EBX for the WHOLE loop body, so `and ebp,
+//     0xffff` (p[5]), `and ebx, 0xffff` (p[7]), `mov cl,bh` (p[10]) and
+//     `shr ebx,9` (p[11]) all read those two registers. Our compile instead
+//     parks the p[] string cursors in EBP/EBX and re-loads every settings dword
+//     from the frame, so all 14 of those diffs are one allocation decision.
+//   * the settings word at SETBUF+0 is the one carrying bits 4, 9, 11, 12 and 15
+//     (the DM test is `and eax,0x1800 / test ax,ax / cmp ax,0x800`, which is the
+//     LOW word) and is also the "%d" number for p[5]; the word at SETBUF+2
+//     carries bit 8 (p[10] Blk/Gray, read as `mov cl,bh` = bit 24 of the dword).
+//     So this file's names are one word off: offset 0 is the flags word, not
+//     field_0. Renaming offset 0 to `flags` and offset 2 to `field_2` makes
+//     p[10] and p[11] come out on the right BITS but scores 80.2%, so the extra
+//     perturbation it causes elsewhere outweighs it.
+//   * p[11] really is bit 9 of the word at offset 0, not bit 9 of the word at
+//     offset 2 (`shr ebx,9 / test bl,1` on the dword at SETBUF+0).
+//     Spelling it `(SETBUF->field_0 >> 9) & 1` is score-neutral.
+//   * promoting the flags to an `unsigned int` local does NOT restore the
+//     original's 32-bit shift: MSVC inserts `and eax,0xffff` first and still
+//     folds to `test ah,0x80`.
+//   * the settings copy is a clean 16-byte/4-dword copy to buf+0x119; the
+//     original simply places the 4th store after the two pushes, because edx and
+//     ebx have to survive the `rep movsd`. Making it a real local struct
+//     (`char buf[0x119]; Settings s;` with `#define SETBUF (&s)`) instead of
+//     the pointer costs 8%: 72.6%, 1773 bytes. The pointer form is right.
+//
+// Things tried here that did NOT work, so nobody repeats them (all free scratch
+// scores against 80.5%):
+//   * `Settings_00441460* sb = (Settings*)(buf + 0x119);` as a named local
+//     pointer instead of the `SETBUF` macro: 80.5%, byte-identical output. The
+//     allocation lever from the guide (0x498da0's `Rect* lim`) does not fire
+//     here; buf+0x119 is a constant offset, so the macro already is a constant.
+//   * `int f0 = SETBUF->field_0; int f8 = SETBUF->field_8;` taken right after
+//     the struct copy and used at p[5] and p[7], to add the live nodes the guide
+//     says keep a value in a callee-saved register: 63.7%. The two extra
+//     locals cost more frame than the promotion is worth.
+//   * a separate loop counter `int left = count;` initialised inside
+//     `if (count > 0)` with `while (--left)`, which is the shape the original's
+//     `mov [esp+0x10],ebx` in the count>0 block suggests: 76.3%. The `count`
+//     store still lands before the FUN_004a9660 call.
+//   * a separate dead local for the provider-guid compare result: 80.5%, and the
+//     store is still deleted (only the SECOND chain's `sbb/sbb/mov` survives,
+//     which is why ours is 62 bytes short of the original).
+//   * promoting the flags word to an `unsigned int` local to stop the
+//     `test ah,0x80` fold: MSVC inserts `and eax,0xffff` and folds anyway.
 #include <string.h>
 #include <stdio.h>
 

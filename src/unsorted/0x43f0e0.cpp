@@ -1,4 +1,18 @@
-// Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (51.3%, 4356 vs 4420 bytes): the whole of case 3 onward was
+// shifted by one allocator choice: ours gave esi to the target->def temporary and put the
+// node pointer in ecx, the original gives esi to node and keeps tdef in edx. Declaring
+// `Def* tdef = target->def;` early, right after `Node* node = unit->f10;` inside the
+// flag_31 block (it is otherwise only declared at the reach computation) changes the
+// allocator: tdef takes esi and def moves to edx, scoring 51.3% against 50.4%. It does
+// break the previously byte-exact prologue/guard region (mode moves edx -> ecx, def
+// esi -> edx), so the prologue now differs too, but the net alignment is better. Every
+// other spelling tried left the code bytes identical at 50.4%: removing the tdef local
+// entirely, routing the two loads through static inline getters, swapping the reach
+// operand order, char/bool friendly/enemy, and every header set (headers.py tops out at
+// 50.5% with <memory.h>). Declaring tdef at the top of case 3 or before the f245 test
+// scores 47.7%. Node still lands in ecx in this version; the remaining diffs are the
+// node/tdef/intermediate scratch picks and two constant materialisations.
 // deepseek-v4.1 pass 4 (50.4%): tried Pick as `cond ? vtol : ground` (43.0%, 4472 bytes) and as
 // `name = ground; if (bit) name = vtol;` (45.4%, 4444 bytes); both are worse than the current
 // `name = vtol; if (!bit) name = ground;`, so it is restored. Restructuring case 2 to the
@@ -275,6 +289,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         flags.raw = unit->f110;
         if (flags.flag_31) {
             Node_0043f0e0* node = unit->f10;
+            Def_0043f0e0* tdef = target->def;
             if (!enemy) {
                 if (node->f111bits.flag_17)
                     break;
@@ -288,7 +303,6 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 if (node->f111 & 0x20000)
                     break;
             }
-            Def_0043f0e0* tdef = target->def;
             int reach = tdef->f170 + target->f70;
             if (reach >= g_game->threshold)
                 goto reached;

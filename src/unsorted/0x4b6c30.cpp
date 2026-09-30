@@ -40,6 +40,10 @@
 // state, not the header's contents: 2700 to 5400 unused prototypes in place
 // of <windows.h> flip it the same way. Defining the preceding functions of
 // the file (0x4b69b0 to 0x4b6ba0) changes nothing.
+// GPT-6.1-sol refinement: tried the direct negative-shift form `-q << 31` and an
+// algebraic dependency form `(seed+q)*16807-q*16807` to make the seed product wait
+// for q. Both preserved the wrong evaluation schedule and scored 57.5%; writing the
+// equivalent final update as `seed*16807 + (q<<31) + q` did too. Baseline retained.
 #include <windows.h>
 
 extern unsigned int DAT_0051fc88;

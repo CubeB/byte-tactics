@@ -23,7 +23,9 @@ if [ "${2:-}" = "--clean" ]; then
     exit 0
 fi
 
-git -C "$ROOT" fetch -q origin "+pull/$PR/head:pr-$PR"
+# REVIEW_NOFETCH=1: the caller has fetched the PR and main already (several
+# reviews at once must not race to update the same refs).
+[ -n "${REVIEW_NOFETCH:-}" ] || git -C "$ROOT" fetch -q origin "+pull/$PR/head:pr-$PR"
 if [ ! -d "$DIR" ]; then
     git -C "$ROOT" worktree add -q --detach "$DIR" "pr-$PR"
 else
@@ -47,7 +49,7 @@ outside=$(echo "$changed" | grep -v '^src/unsorted/.*\.cpp$' || true)
 # Check the PR as it will be after merging: with everything merged since it
 # branched, and with names rebuilt from all matched files (a caller and its
 # callee in the same PR can disagree on a name, and only the rebuild shows it).
-git fetch -q origin main
+[ -n "${REVIEW_NOFETCH:-}" ] || git fetch -q origin main
 if ! git merge -q --no-edit origin/main >/dev/null 2>&1; then
     git merge --abort 2>/dev/null || true
     # Most conflicts are with the conventions the switch to /Gz wrote (#2290)

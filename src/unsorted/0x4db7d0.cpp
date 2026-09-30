@@ -1,4 +1,24 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Fifth pass by deepseek-v4.1: 81.3 percent, 615 of 624 bytes. Two changes to
+// the previous 73.1 percent best: hoist the arena entry pointer into
+// `LiveEntry* ve = &it1.ptr->entry;` used by BOTH arena arms, declared just
+// before the `FUN_004da9f0()` call (that alone is 80.8; declaring it before the
+// arena call, as here, is 81.3). `ve` also gives the rep movsd arm its source
+// in esi and stops the insert arm re-deriving the entry address.
+// What still differs: `node` (the Class_004dc910::erase out-param) sits in the
+// frame at [esp+0x10] with `it1` at [esp+0x18], while the original keeps node
+// in the `p` incoming-argument home [esp+0x60] and `it1` at [esp+0x10], so the
+// erase call is `lea edx,[esp+0x60]` there and every node/it1 read is 0x50/8
+// off here (all remaining hunks). Alias forms of the original slot were tried
+// again this pass and all fail the same way: `Class_004dbe10& node =
+// *(Class_004dbe10*)&p;` (declared late, v1, or first thing in the block, v4,
+// copying the MATCHED sibling 0x4db450) and the same via the unused `flags`
+// home (v5) all load p before `sub esp`, shrink the frame to 0x48, invert the
+// `if (p)` early-out and score 53.7 to 55 percent. Hoisting the `base` mask
+// above the erase to kill p's last use scores 15.9 (kills the 0x4db8c0 p
+// reload) and 18.3 with ve; adding the missing `node = n;` store after
+// FUN_004dbd20 to the ve build gives 623 bytes but 76.3 percent, so the store
+// is not worth it while node is in the wrong home.
 // Fourth pass by deepseek-v4.1: confirmed the missing instruction at 0x4db95e
 // (`mov [esp+0x64],eax` with one push pending, so it targets [esp+0x60]: the
 // original really does copy n into `node` between the lower_bound call and the
@@ -278,12 +298,12 @@ void __cdecl FUN_004db7d0(void* p, int flags)
             FUN_004d8310((char*)p - off, FUN_004db7c0(), off);
         else
             FUN_004d8310((char*)p + blk, FUN_004db7c0(), off);
+        LiveEntry* ve = &it1.ptr->entry;
         Container_004da9f0<int>* arena = FUN_004da9f0();
         if (arena->field_10 < 0x2000) {
-            ((Class_004dd8c0*)arena)->FUN_004dd8c0(arena->field_8, 1,
-                                                  &it1.ptr->entry);
+            ((Class_004dd8c0*)arena)->FUN_004dd8c0(arena->field_8, 1, ve);
         } else {
-            arena->field_4[arena->field_10 & 0x1fff] = it1.ptr->entry;
+            arena->field_4[arena->field_10 & 0x1fff] = *ve;
         }
         arena->field_10++;
         Class_004dbe10 node;

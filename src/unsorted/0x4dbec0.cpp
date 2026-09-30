@@ -125,6 +125,21 @@
 // temporary, alias or scope in either arm; the colouring is a function-wide
 // allocator decision that this source cannot reach.
 //
+// Fifth pass (deepseek-v4.1) confirms the note above: 260 further check runs,
+// none of them moved the birth register. Singles that stay byte-identical at
+// 95.6 percent: `key_compare` in the loop instead of the raw `<`, `++size` and
+// `size++`, `x = head->parent`, `y = this->head`, top-level `const` on either
+// parameter, a by-value `Less::operator()` signature, the tail store as a comma
+// expression, a fused `while (q != head->parent && q->parent->color == 0)`
+// guard, the loop's x update as an if/else, the node/it declarations swapped,
+// a const-qualified Begin and `(*it.ptr).key` / `(*p).offset` operand spellings.
+// Moving the `it` declaration into the else arm drops to 88.4 percent (the frame
+// re-homes), and every two- and three-way combination of the inert singles
+// (175 builds) is byte-identical at 95.6 percent too. So the one remaining
+// difference really is a function-wide allocator 2-colouring: the original
+// keeps the iterator temp in ecx and the `p` reload in eax, this source gives
+// the temp eax and the reload ecx, and no reachable spelling flips it.
+//
 // Two things this function does that are worth writing down, both confirmed
 // here and neither obvious from the disassembly:
 //  - The null test on the destination address, `lea eax,[edx+0xc]; cmp eax,ebx;

@@ -20,6 +20,21 @@
 // diff is unchanged and is all the one cause described below, the this/bytes
 // tie (ebx vs ebp). Tried this pass and inert: `unsigned int n = bytes` used
 // in the search test or the success block (still 69.3%), char flag.
+// PASS deepseek-v4.1 (second visit): still 74.4%, 646 of 646 bytes, 6 hunks,
+// all of them the this/bytes register swap below. Tried and inert this pass:
+// declaring `Pair_004db000 p` at function scope (74.4%, identical output),
+// writing a `self = this` copy and using it for every member access and every
+// cast call (74.4%, coalesced away), `unsigned int n = bytes` used in the loop
+// test, the `mark > base + len` test and `end = mark + n` (74.0%), a `(int)`
+// cast on the loop's length test (74.0%), and hoisting `int tries` out of the
+// do-loop with `tries = 0` written before the latch (74.4%). The sibling
+// matched 0x4db000 and 0x4db450 both keep `this` in ebp as well, so ebp for
+// `this` is this allocator's normal choice here; in our compile it is the
+// parameter `bytes` that wins ebp, i.e. the two values trade registers as a
+// pair, and nothing in the source body moves the pair. The likeliest lever left
+// is the front end's value creation order for the entry block (the original's
+// `bytes` has to be numbered before `this`), which no ordinary declaration or
+// use ordering reached.
 // NOT MATCHING yet (was 69.3%, now 74.4% with `bool ok;`)., 614 of 646 bytes). What still differs, measured
 // against the original at 0x4db1c0:
 //   * 0x4db1c0 (the one big cause): the original keeps `this` in ebp and `bytes`

@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, muse-spark-1.3-free and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, muse-spark-1.3-free and deepseek-v4.1-flash,
+// finished by space-bunny-free. Names are provisional.
 //
 // Reports the process working set into a caller-supplied buffer, with a
 // psapi.dll QueryWorkingSet refresh at most once every ten calls.
@@ -13,15 +14,22 @@
 // the counter (951 bytes, 76.7%). A separate `cnt = n` assigned just after the
 // pointer lea puts `mov ebp,eax` after `lea edx` like the original.
 //
-// Remaining difference: in the pre-loop zero block the original orders the
-// registers esi, ebx, edi and the globals pt, shared, priv, while this version
-// emits esi, edi, ebx and pt, priv, shared. Both have the same register
-// mapping (pt=esi, shared=ebx, priv=edi); only the emission order differs.
-// The init-store order drives which callee-saved register each counter gets
-// (the second store takes edi, the third ebx), so writing the stores in the
-// original pt, shared, priv order flips `shared` to edi and `priv` to ebx and
-// loses more bytes (98.5%). This looks like compiler state (register pool
-// order) rather than source shape.
+// Remaining difference (4 instructions out of 934, 99.4%): in the pre-loop
+// zero block the original orders the registers esi, ebx, edi and the globals
+// pt, shared, priv, while this version emits esi, edi, ebx and pt, priv,
+// shared. Both have the same register mapping (pt=esi, shared=ebx,
+// priv=edi); only the emission order differs.
+//
+// space-bunny-free: the pool order for these three promoted globals is fixed
+// at (esi, edi, ebx) and no source shape moves it. Verified unchanged at
+// 99.4% by: writing the stores in the original pt, shared, priv order (which
+// does fix the store order but flips the loop-body inc order to esi, edi,
+// ebx, 98.5%); reordering the extern declarations, both c0/b8/28 first and
+// b8/c0/28 first; and declaring the three counters unsigned instead of int.
+// The xors follow the register-assignment order and the stores follow source
+// order, and the allocator derives both from the first source mention, so
+// store order and register order cannot be steered independently. This is
+// compiler state, not source shape.
 #include <windows.h>
 #include <stdio.h>
 

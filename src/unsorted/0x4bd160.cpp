@@ -1,4 +1,22 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash session: still 98.3%, same single difference
+// (0x4bd17b..0x4bd198). New shapes tried this session, all scored with
+// check.py: plain separate assignments `sb.size = 20; sb.buf = 0;` and the
+// reverse (92.6%, MSVC folds both to immediates); `struct HapiBuf sb = {0};`
+// placed AFTER the if (92.4% to 97.1%) so the dead size-zero store is not
+// hoisted past the je; aggregate plus a computed first argument
+// `(char*)(key & 0)`, `(key ^ key)`, `(key - key)` (all 93.8%, early buf
+// store via ebp but no dead `mov eax, ecx`); passing `*(char**)&sb.buf`,
+// `*pp` or `pb->buf` (94.1%); a local `int`/`unsigned`/pointer zero (98.3%,
+// CSEs into ebp); `memset(&sb.buf, 0, 4)` (93.8%); `#include <windows.h>`
+// (98.3%, no change); and a `static HapiBuf MakeB()` helper returned by value.
+// The helper result is the first shape that gives the original's FRESH
+// `xor ecx, ecx` zero (no ebp CSE) but both member stores still sink below
+// the three argument pushes and the dead `mov eax, ecx` is absent. The dead
+// copy plus the early buf store look like a front-end value copy for a store
+// that the next `mov eax, 0x14` makes dead, and no plain assignment, computed
+// zero or by-value helper body tested reproduces it.
 // Best remains 98.3% after an additional source variant; still differs only in
 // the buffer initialization sequence at 0x4bd17b..0x4bd198, as detailed below.
 // GPT-6.1-sol refinement (issue 2310): the existing 98.3% source remains best.

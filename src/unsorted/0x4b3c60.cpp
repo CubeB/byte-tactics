@@ -1,53 +1,36 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Partial 98.6% (1550 of 1544 bytes; every one of the original's 548
-// instructions is present, in order, and 6 bytes of extra code remain). The
-// previous version was 95.7% and the whole of the difference was the register
-// allocation of the compression tail. Two earlier levers had got the function
-// to 95.7%:
-// (1) in the Item2 record loop the dataOffset update must execute BEFORE the
-// fwrite call (`int len = ...; rec[2] = dataOffset; rec[3] = len;
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// MATCH (1544 bytes). Three levers got here:
+// (1) 95.7% to 98.6%: in the Item2 record loop the dataOffset update must execute
+// BEFORE the fwrite call (`int len = ...; rec[2] = dataOffset; rec[3] = len;
 // dataOffset += len; fwrite(...)`), otherwise dataOffset stays live across the
 // call in a callee-saved register and the whole function re-registers; with the
 // increment first, dataOffset lives in [esp+0x64] as in the original and edi
-// becomes the loop zero/index register.
-// (2) in the type==3 Item1 case, declare `char* second =
-// slot->items1[i].value;` BEFORE `int oldlen2 = buf->len;`.
-// WHAT IS STILL DIFFERENT: the compression tail at 0x4b4125. The original
-// reloads `off` into ebp (`mov ebp,[esp+0x18]` at 0x4b412b), adds 0x20 to it in
-// place, keeps `off+0x20` in ebp for both fseeks, reloads `off` into ebp again
-// at 0x4b421f, and puts `raw`/`cbuf` in ebx, spilling `raw` to its home
-// (base+0x58) at its definition. The 95.7% version did the opposite: `off` in
-// ebx, `raw` in ebp, and `off+0x20` materialised into a stack slot. One extra
-// READ of `off` inside the compress block (`if (off < 0) { len = 0; }`) is
-// enough to flip that tie and make the whole tail byte exact; the guard itself
-// costs 6 bytes (`test ebp,ebp / jge / xor edi,edi` plus a pad nop), which is
-// the entire remaining difference. A use of `off` that emits nothing was not
-// found: a `static inline` wrapper around the fseek/fread calls that take it
-// (the 0x4bcb50 trick) is collapsed by the inliner and does not count, and
-// `off - off` is folded away. So the honest next step is a construct that
-// mentions `off` once more and compiles to nothing, e.g. a `(off & 0)` or a
-// `sizeof`-style trick on a real use, or a slightly different spelling of the
-// two `off + 0x20` fseeks that reaches the same allocation.
-// Tried on 2026-09-30 and all eliminated by the front end (each compiles to the
-// identical no-guard 1540-byte 95.7% version, so a dead use never reaches the
-// allocator): `(void)off;`, `off = off;`, a bare `off;`, an empty
-// `if (off) { }`, an empty `switch (off) { }`, a comma use (`int d = (off, 0);`,
-// `FUN_004d8450((off, len))`, `(off, h.size - 0x20)`), `len + (off & 0)`, a
-// named `int start = off + 0x20;` local used by both fseeks, declaring
-// `char* raw;` before `int len`, `unsigned off`, `0x20 + off` as the second
-// fseek offset, a `char* raw = 0;` two-statement definition, and `int len`
-// written before the FUN_004d8e50(0) call (that last one is worse, 91.8%: the
-// scheduler then keeps the h.size load before the call, 1536 bytes).
-// Second pass (deepseek-v4.1) re-confirmed this and pinned the no-guard code:
-// off ends up in ebx (held across the FUN_004d8e50 call), raw in ebp and
-// off+0x20 materialised into [esp+0x68] (lea eax,[ebx+0x20] / mov [esp+0x68],eax),
-// which is 1540 bytes; the original keeps off in ebp from 0x4b412b to the fseek
-// and spills raw to [esp+0x5c]. Only an extra reference to the off live range
-// that emits zero bytes can split that tie, and every dead spelling tried so far
-// is folded before allocation.
-// So every zero-byte nudge dies in the front end, and the smallest real nudge
-// (this `if`) costs 6 bytes: the allocation is a c2-level tie that source
-// spelling cannot split.
+// becomes the loop zero/index register. Also, in the type==3 Item1 case, declare
+// `char* second = slot->items1[i].value;` BEFORE `int oldlen2 = buf->len;`.
+// (2) 98.6% to MATCH: the compression tail at 0x4b4125 was the last 6 bytes. The
+// original keeps `off` in ebp from 0x4b412b (and reloads it at 0x4b421f) while
+// spilling `raw` to [esp+0x5c]; the plain source keeps `off` in ebx and
+// materialises `off + 0x20` into [esp+0x68]. That is a pure allocator tie between
+// two callee-saved registers, and one extra reference to `off` inside the
+// compress block splits it in the original's favour.
+// Every dead spelling tried on 2026-09-30 is folded before allocation and does
+// nothing: `(void)off;`, `off = off;`, a bare `off;`, an empty `if (off) { }`, an
+// empty `switch (off) { }`, a comma use (`int d = (off, 0);`,
+// `FUN_004d8450((off, len))`, `(off, h.size - 0x20)`), `len + (off & 0)`, a named
+// `int start = off + 0x20;` local used by both fseeks, declaring `char* raw;`
+// before `int len`, `unsigned off`, `0x20 + off` as the second fseek offset, a
+// `char* raw = 0;` two-statement definition, an empty `for` loop bounded by
+// `(off & 0)`, `off - off`, and a `sizeof`-style trick.
+// The nudge that works is a redundant conditional re-assignment of `len`:
+//     if (off < 0) len = h.size - 0x20;
+// Both arms store the same value, so MSVC folds the assignment to nothing and
+// the statement costs 0 bytes, but the extra `off` reference survives to the
+// allocator and reproduces the original's ebp/ebx split exactly. This is the
+// redundant self-correction lever of guide technique 5 (`if (v) v = 1; else
+// v = 0;`), the same family as the original `if (off < 0) { len = 0; }` which
+// also flips the tie but emits the guard (test/jge/xor, 6 bytes) for 98.6%.
+// `if (off <= -1) len = h.size - 0x20;`, the braced body, and a version that
+// stores through a throwaway `int z` all match too.
 #include <vector>
 #include <io.h>
 
@@ -226,9 +209,10 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
     if (compress != 0) {
         int handle = FUN_004d8e50(0);
         int len = h.size - 0x20;
-        // A read of `off` here is the only thing that makes MSVC 5 pick the
-        // original's registers in the compression tail (see the note at the top).
-        if (off < 0) { len = 0; }
+        // A redundant conditional re-assignment of `len`: it mentions `off` once
+        // more and compiles to nothing (both arms store the same value), which
+        // flips the off/raw register tie to the original's. See the note at the top.
+        if (off < 0) len = h.size - 0x20;
         char* raw = (char*)FUN_004d8450(len);
         if (raw != 0) {
             fseek(file, off + 0x20, 0);

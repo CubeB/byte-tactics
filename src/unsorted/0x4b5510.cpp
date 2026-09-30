@@ -60,6 +60,44 @@
 //     (h/c/d, d/c/h) put the reload in the right place but move one handle
 //     store, 99.3, and c/d/h keeps the reload first while pushing both handle
 //     stores after the `push 6`, also 99.3.
+//
+// space-bunny-free session: the remaining diff is a scheduler tie and the file
+// stays at 99.7 (1017 = 1017, one 3-instruction rotation). New measurements,
+// all in build/scratch/0x4b5510 (free --sym scores, one real check.py run):
+//   - `HDC *slot = setup.dcSlot;` immediately before the two handle stores and
+//     `*slot = 0;` after them (the copy that does put the reload at the block
+//     head) collapses to 62.2% and grows the function to 1024 bytes. The extra
+//     live graph node demotes the constant 0 out of EBP (docs/agent-guide.md
+//     item on "any extra live reference demotes a variable one step"): all ten
+//     DirectDraw result tests turn from `cmp eax, ebp` into `test eax, eax`,
+//     `xor ebp, ebp` moves after the first call, and EBP is reused for a
+//     surface pointer. So a live pointer copy CANNOT be used to buy the
+//     rotation while the HRESULT-in-EBP trick is in place, and that is why
+//     every copy spelling measured by earlier sessions scored 88 to 96.
+//   - The inline-helper form of the same idea (a `__inline void ZeroDc(HDC **)`
+//     called as `ZeroDc(&setup.dcSlot)`, so the reload becomes an argument
+//     temporary) is 89.3% and 1009 bytes for the same reason: the argument
+//     temporary is a live node too, and EBP is lost again.
+//   - `cleanup->dib = cleanup->hpalette = 0;` (one chain instead of two
+//     statements, inner assignment emitted first so the store order stays
+//     0x4c then 0x44) is byte exact at 1017 and reproduces the baseline diff
+//     exactly, which proves the two handle stores are a SINGLE tree and that
+//     the reload still sorts after that whole tree. `cleanup->hpalette =
+//     cleanup->dib = 0;` emits 0x44 then 0x4c and scores 99.3, confirming the
+//     chain is emitted innermost first. The comma form
+//     `a = 0, b = 0, *c = 0;` is byte identical to the baseline.
+//   - `*((HDC **)&cleanup->dib)[1] = 0;` for the hpalette store emits
+//     `mov [edi + 0x48], ebp`, 99.3, so 0x4c really is a separate field and
+//     not the second word of a two-word pair with 0x44.
+// Conclusion of this session, worth not repeating: the reload is at the block
+// head in the original only if it is its OWN tree coming from an earlier
+// source statement. Every dead earlier use of `setup.dcSlot` is deleted by the
+// front end before the scheduler runs (so a CSE with the store's address load
+// cannot preserve it either), and every live one costs the EBP constant. The
+// [load, push 6, store] triple always moves as one unit with the source
+// position of the dc-store statement, which is why all six statement orders
+// keep the same rotation somewhere in the block. This is the same scheduler
+// tie-break the guide records for 0x4b6570, so it was left alone.
 #include <windows.h>
 #include <ddraw.h>
 

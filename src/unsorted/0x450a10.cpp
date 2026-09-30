@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash, retried by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash, retried by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // #1513 retry by Codex / GPT-6.1-sol: checkall reconfirmed 87.6% (837/872 bytes).
 // Prior retry variants in this file and build/scratch/450a10 still give the best result.
 // PARTIAL 87.6%, 837 vs 872 bytes. Everything outside the name-copy block now
@@ -85,6 +85,36 @@
 //     of the function (temp still gets 0x14), and `&p->fullName[0]` /
 //     `&p->name[0]` destinations (identical 898 bytes). The blocked step is
 //     that single scheduler/allocator decision in the first network strcpy.
+//
+// #2452 retry (deepseek-v4.1-flash): found a better shape, now 90.5% (870/872).
+// Both paths keep the semantically right form (result live in edx across the
+// network copies, one gate after the join). The four copies now go through a
+// single static inline helper written as strlen + memcpy:
+//
+//     static inline void CopyStr_00450a10(char* d, const char* s) {
+//         unsigned long n = (unsigned long)strlen(s) + 1;
+//         memcpy(d, s, n);
+//     }
+//
+// That is what gets the destination computed late: MSVC's strlen+memcpy chain
+// emits `mov esi,<src>; mov edi,esi; repne scasb; ...; lea edi,[dst]` so the
+// destination lea lands directly in edi (no hoisted temp, no spill), and the
+// frame stays 0x4c4. Calling strcpy directly always hoists the destination lea
+// one slot early (into edx when free, into esi and spilled when edx holds
+// result), which is the old 87.6%/81.2% split. Tried and scored: strcpy direct
+// in every destination spelling, a helper that calls strcpy, a destination
+// helper returning p->fullName, (void) casts, comma forms, and a source local;
+// all hoist and stay at 81.2%.
+// What still differs (2 bytes, 870 vs 872): the strlen+memcpy fusion keeps the
+// source in esi from the start, so each copy reads
+//     mov esi,[src]; or ecx,-1; mov edi,esi; repne scasb; not ecx; mov eax,ecx;
+//     lea edi,[dst]; ...
+// where the original strcpy intrinsic reads
+//     mov edi,[src]; or ecx,-1; repne scasb; not ecx; sub edi,ecx; mov eax,ecx;
+//     mov esi,edi; lea edi,[dst]; ...
+// i.e. the original saves 4 bytes (sub+mov esi) and spends 2 (mov edi,esi),
+// net 2 per copy. The blocked step is getting MSVC to keep the canonical
+// strcpy scan form while still evaluating the destination last.
 
 #include <string.h>
 #include <windows.h>
@@ -179,6 +209,12 @@ static inline unsigned char FindSlot_00450a10(int id)
     return 10;
 }
 
+static inline void CopyStr_00450a10(char* d, const char* s)
+{
+    unsigned long n = (unsigned long)strlen(s) + 1;
+    memcpy(d, s, n);
+}
+
 // FUNCTION: 0x450a10
 int __stdcall FUN_00450a10(int param_1)
 {
@@ -230,15 +266,12 @@ int __stdcall FUN_00450a10(int param_1)
         size = 0x400;
         result = FUN_004ca7c0(g_game->net, param_1, buf, &size);
         if (result == 0) {
-            strcpy(p->fullName, ((DPNAME*)buf)->lpszShortNameA);
-            strcpy(p->name, ((DPNAME*)buf)->lpszLongNameA);
-        }
-        else {
-            result = 0;
+            CopyStr_00450a10(p->fullName, ((DPNAME*)buf)->lpszShortNameA);
+            CopyStr_00450a10(p->name, ((DPNAME*)buf)->lpszLongNameA);
         }
     } else {
-        strcpy(p->fullName, "COMPUTER");
-        strcpy(p->name, "COMPUTER");
+        CopyStr_00450a10(p->fullName, "COMPUTER");
+        CopyStr_00450a10(p->name, "COMPUTER");
         result = 0;
     }
     if (result) {

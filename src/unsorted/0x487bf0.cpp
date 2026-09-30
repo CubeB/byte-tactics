@@ -1,54 +1,66 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
-// PARTIAL 60.4% (ours 1847 bytes vs 1811). Frame, command buffer and the five
-// per-case Class_00438760 temporaries match the original exactly.
-// NEW EVIDENCE THIS SESSION (space-bunny-free), all measured, none of it helps:
-//   - The original NEVER calls Class_00438760's copy constructor. In the M, U, G,
-//     P and A-with-floats arms it passes the 4-byte object straight out of the
-//     FUN_0043f0e0 result slot (0x487d65 `mov ecx,[esp+0x48]`, 0x487e35
-//     `mov edx,[esp+0x44]`, 0x487f96 `mov edx,[esp+0x44]`, 0x487f12
-//     `mov ecx,[esp+0x50]`), while only the string-literal arms build the object
-//     in place with `mov ecx,esp; push "..."; call 0x438760`. So the class is
-//     trivially copyable and the copy ctor declaration below is wrong.
-//     DELETING it is nevertheless WORSE: 48.0%, and the frame grows from 0x140
-//     to 0x14c (three extra dwords of locals, buf 0x50 -> 0x5c). Hoisting one
-//     shared `Class_00438760 out;` to function scope instead gets the size to
-//     1807 bytes, closest of anything tried, but only 40.8%: the score here is
-//     decided by block layout, not by size.
-//   - Declaring `int count;` before `int move, fire` instead of after changes
-//     nothing (exactly 60.4%), so the EBP contest below is not settled by
-//     declaration order.
-// THE ONE REMAINING CAUSE, restated from the disassembly by space-bunny-free:
-// the original holds the walk pointer `text` in ebp for the whole outer loop, so
-// its latch at 0x487e50 is just `mov al,[ebp]; cmp al,bl; jne 0x487c1b`, and it
-// writes the parameter home [esp+0x158] at each update (0x487c68, 0x487c76) with
-// the single reload at 0x487e49 after the G case clobbers ebp. Ours instead gives
-// ebp to `count` (strcspn's result), keeps `text` in eax across the switch and so
-// spills it to [esp+0x158]; the latch therefore becomes `mov edx,[home]; mov
-// al,[edx]; cmp al,bl; jne $L1038` plus a separate reload block. Because of the
-// callee-saved preference ESI(unit), EDI(processed), EBX(zero), EBP, `text` and
-// `count` are competing for the same last slot and the loser is memory-resident.
-// Flipping that single choice is worth the remaining ~40%.
-// Tried again by space-bunny-free, all byte-identical to the 60.4% baseline:
-//   - `char* text2 = text;` used for the whole loop instead of the parameter
-//     (1827 bytes but 22.9%: MSVC then never folds the two walks together);
-//   - `processed = 1;` before the MAKESELECTABLE call in the S case, which is
-//     what the original's `mov edi,1` at 0x48820a between the argument pushes
-//     looks like. It makes things WORSE (60.2%), so the assignment really does
-//     come after the call in the source, like the D case at 0x4881e0;
-//   - swapping the O-case extraction order (fire before move), and hoisting the
-//     flags load into a named `unsigned int fl`, both exactly 60.4%, so the
-//     fire-first emission is not decided by the order of the two statements.
-// Other diffs: the local slots after pos (original count 0x18 / move 0x28 /
-// selected 0x2c / f3 0x34 / fire 0x38, with pos at 0x1c..0x24; ours leaves 0x18
-// empty because count is in ebp, then selected 0x28 / fire 0x30 / move 0x34),
-// and the switch's block placement (the original's loop latch sits between the G
-// and P blocks at 0x487e50; ours puts it at the end, shared with the default arm).
-// The one remaining structural cause, restated from the listing dumped with a
-// standalone disasm of our own object (build/scratch/0x487bf0/v0.asm): our loop
-// needs TWO predecessors for the body block, so it emits `jmp 0x487c24` plus a
-// separate reload block `mov ebp,[esp+0x158]` at 0x487c1b/0x487c1d, and the
-// after-loop block lands at 0x488250 past the I arm instead of at 0x487e5b next
-// to the latch. Both are consequences of `text` being memory-resident, not causes.
+// PARTIAL 62.1% (ours 1847 bytes vs 1811), improved from 60.4% by space-bunny-free.
+// WHAT CHANGED (space-bunny-free): the strcspn length and the B case's "%d" are
+// ONE variable, not two. The original stores the strcspn result at esp0+8 and the
+// B case's initial "n = 1" and its sscanf "%d" also land on esp0+8 (0x487c4f,
+// 0x488009, 0x488088, 0x4880e1/0x4880f5), so a single function-scope `int n`
+// does both. That drops one live variable, `text` wins the last callee-saved
+// slot (ebp) instead of losing it to `count`, and the loop latch moves back to
+// its right place: the emitted block order is now
+//   prologue, isspace, strcspn/strncpy, dispatch, O, M, U, G,
+//   latch, after-loop, P, A, B, W, D, S, I
+// which is exactly the original's. Every per-case body matched before only by
+// luck of the diff; now the frame, the four Class_00438760 slots and the
+// strncpy/strcspn sequence all line up.
+// STILL WRONG, in rough order of size:
+//   1. The five cases that build a Class_00438760 with FUN_0043f0e0 (M, U, G,
+//      P and the A-with-floats arm) still emit an extra `lea eax,[...]/mov
+//      ecx,esp/push eax/call copy-ctor` pair before FUN_0043adc0, because the
+//      copy constructor is declared. The original never calls it: it reads the
+//      4-byte object straight out of the FUN_0043f0e0 result slot (0x487d65
+//      `mov ecx,[esp+0x48]`, 0x487e35 `mov edx,[esp+0x44]`, 0x487f12
+//      `mov ecx,[esp+0x50]`, 0x487f96 `mov edx,[esp+0x44]`), so the class is
+//      trivially copyable and the declaration is simply wrong.
+//      Deleting the declaration is NOT a net win, though, and the reason is
+//      measured: the frame grows from 0x144 to 0x150 (pos moves 4 bytes down to
+//      esp0+8 and the Class slots move from esp0+0x48.. to esp0+0x48... all the
+//      way past the original's esp0+0x30..0x3c), which drops the score to
+//      49.7% even though the total size drops to 1807, the closest of anything
+//      tried. Declaring the copy ctor INLINE with a foldable body
+//      (`: index(other.index) {}`) still emits the same out-of-line call pair,
+//      exactly 62.1% and 1847 bytes, so that is not the way out either.
+//      Re-ordering the function-scope declarations to the original's slot order
+//      (f1, f2, n, pos, move, selected, the two block floats, fire, all hoisted
+//      to function scope) is also exactly neutral at 62.1% and 1847 bytes, so
+//      MSVC 5's local slot assignment here is not driven by declaration order
+//      and item 2 below has to be attacked some other way.
+//   2. The frame is 0x144, the original is 0x140, and the local slots run in a
+//      different order. Original: f1 esp0+0, f2 esp0+4, n esp0+8, pos
+//      esp0+0x0c..0x14, move esp0+0x18, selected esp0+0x1c, the W case's
+//      float esp0+0x20, the P case's third float esp0+0x24, fire esp0+0x28,
+//      the four Class slots esp0+0x30/0x34/0x38/0x3c, buf esp0+0x40..0x13f.
+//      Ours: selected esp0+0x18, fire esp0+0x20, move esp0+0x28, Class slots
+//      from esp0+0x40, buf esp0+0x44. So `move` and `fire` are allocated in
+//      the opposite order; MSVC 5 assigns local slots by declaration order,
+//      and the original's order (move, selected, two floats, fire) is a
+//      declaration order our source does not have.
+//   3. Slot +0x20 (ours) / +0x28 (original) is `fire`, yet the P case
+//      zero-initialises a float there (0x487eb5 `mov dword ptr [esp+0x48],0`)
+//      while sscanf writes its third "%f" to esp0+0x24 (0x487e9c `lea eax,
+//      [esp+0x34]`). So the original really does keep two distinct floats in
+//      the P arm, not one `f3 = 0.0f`.
+//   4. The original's P arm scans from `buf + 5` (0x487eab `lea eax,[esp+0x5d]`)
+//      where we scan from `buf + 1`. Changing ours to buf + 5 scored exactly
+//      the same 62.1%, so it is free but not yet load bearing.
+//   5. The original's P arm is also missing one push we emit (it has 5 pushes,
+//      we have 6), so one of its "%f" arguments is computed but not passed.
+//   6. In the original the M arm passes `esp0+0x10` (= &pos.y) as FUN_0043adc0's
+//      5th argument while U, P and A pass `esp0+0x0c` (= &pos), which looks
+//      like an off-by-one-struct in Cavedog's own code rather than a construct
+//      we can write.
+//   7. Our A, B and W arms tail-merge their if/else sub-arms into the parent;
+//      the original keeps them as separate blocks (A's else at 0x487fb3, B's
+//      "w" arm at 0x4880e1, W's "a" arm at 0x488184).
 
 #include <ctype.h>
 #include <stdio.h>
@@ -94,17 +106,17 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
     float f1, f2;
     Vec3_00487bf0 pos;
     int move, fire;
+    int n;
     int selected = 0;
     int processed = 0;
-    int count;
 
     while (*text != 0) {
         while (isspace(*text))
             text++;
-        count = strcspn(text, ",");
-        strncpy(buf, text, count);
-        text += count;
-        buf[count] = 0;
+        n = strcspn(text, ",");
+        strncpy(buf, text, n);
+        text += n;
+        buf[n] = 0;
         if (*text == ',')
             text++;
 
@@ -192,7 +204,7 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
         }
         case 'B':
         case 'b': {
-            int n = 1;
+            n = 1;
             if (buf[1] == 'w' || buf[1] == 'W') {
                 sscanf(buf + 2, " %d", &n);
                 FUN_0043adc0(Class_00438760("BUILDWEAPON"), 1, unit, 0, 0, 0, n);

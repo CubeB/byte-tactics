@@ -57,6 +57,19 @@
 // wants a 0 in ecx before the bool, and keep dx live across the bool (in the
 // original edx still holds unit->fb8 when the bool is evaluated, in ours that
 // store has already retired).
+// deepseek-v4.1-flash (run 4): no further gain, still 74.0. Confirmed the
+// remaining diff is the single allocator decision above and that it is not
+// compiler state: headers.py tried all 128 sets (best 74.0) and a sweep of 0 to
+// 400 unused `extern int` declarations in front of the function was flat at
+// 74.0 (so the source shape, not the compiler's state, is what is missing). All
+// 24 orderings of {rec.f23, rec.f3d, rec.f3f, rec.f27} score at most 74.0 (best
+// pABCD/pACBD; any ordering with rec.f3f after rec.f27 drops to 70.1). Locals
+// for f108/fb8 (`short` and `int`), a `void*` vtable local, `unit->vtable ? 1
+// : 0`, an explicit guarded rec.f27, and spelling the rec.f86 / rec.f_f0 guards
+// as plain `a && ...` or `a ? ...` all scored 70.1 to 74.0, none higher. The
+// lever is still getting the shared zero constant into ecx instead of edx,
+// which needs the rec.f3f load (unit->fb8) live across the rec.f27 compare;
+// source reordering of these statements alone does not produce it.
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);

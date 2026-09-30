@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash and space-bunny-free. Names are provisional.
 // 99.0% (577 bytes against 577, only two instructions differ, see the end).
 //
 // The original's 0xb4-byte frame, read off the disassembly (offsets are from
@@ -200,6 +200,51 @@
 //     0x18e add edx,ecx / push edx   (original)
 //     0x18e add ecx,edx / push ecx   (ours)
 // Nothing in this pass changed the file; 99.0% is the best.
+//
+// SIXTH PASS (space-bunny-free).  The `add` destination rule is now MEASURED,
+// not assumed, and it closes the last open hypothesis.  Probes are in
+// build/scratch/0x4b3770/probe.cpp, probe2.cpp, probe3.cpp (/Fa listings
+// probe.lst, probe2.lst, probe3.lst), all compiled with the checker's flags.
+//
+//   A. With BOTH operands reloadable constant-address loads, the INT always
+//      takes the add destination.  `char* + int`, `char* + (unsigned)int`,
+//      `char* + (int+0)`, `char* + (int*1)`, `char* + (int&0xffff)`,
+//      `*(char**)&img`, a `char*` field instead of `void*`, the operands
+//      written in either order, `(int)base + off`, `off + (int)base`, a
+//      subscript, `&subscript` and a named local with `+=` all emit
+//      "mov <base>,mem / mov <int>,mem / add <int>,<base>".  Source order of the
+//      two operands changes which load comes first, never the destination.
+//   B. The base takes the destination ONLY when the pointer operand is an
+//      INDIRECT through a REGISTER, i.e. not reloadable.  Measured twice:
+//        probe2 q2  `p->buf` with p a parameter:  mov ecx,[p] / mov edx,[ecx]
+//                                                        / mov ecx,[off]
+//                                                        / add edx,ecx
+//        probe2 q6  same with p kept live in esi across the call: same shape,
+//                   still `add ecx,edx` with ecx holding the base.
+//      That is the original's operand order and register roles, but it needs
+//      the extra `mov <reg>,[p]`, so it cannot be it: the original loads the
+//      base straight from [esp+0x10].
+//   C. Reading the base through a pointer-to-local does not help, because C1
+//      copy-propagates it back to a constant address and the node becomes
+//      reloadable again.  Measured (probe3 s1..s4), all four of
+//        `Img* p = &img; ... p->buf`        (address also passed to a call)
+//        `Img& r = img; ... r.buf`
+//        `(&img)->buf`
+//        `void** pp = &img.buf; ... *pp`
+//      fold to ONE direct `mov edx,[esp+0x10]` and then put the INT back in
+//      the add destination.  So the "non-reloadable base" route needs a real
+//      register, which costs an instruction the original does not have.
+//   D. A constant offset is the one case where the base is the destination,
+//      because the offset folds into the addressing mode / the immediate
+//      (`mov edx,[buf] / add edx,imm`), and 0x4b39c0's `lea <dst>,[base+off]`
+//      is the both-in-registers case.  The original's `add edx,ecx` with a
+//      register source is in neither class.
+//
+// So for this function the residual is unreachable by any spelling of
+// `pointer + int` where the pointer is read straight out of the frame, which
+// is what the original does.  0x4b4270's `*image + h.strOffset` is case B and
+// therefore reachable in principle; it differs there only in register roles,
+// and it is still unmatched, so the same wall is likely structural.
 #include <string.h>
 #include <stdio.h>
 

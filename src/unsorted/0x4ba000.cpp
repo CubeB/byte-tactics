@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1733: GPT-6.1-sol verified 98.7% (430/430); no MATCH. The remaining loop-head history store and state normalization order is unresolved.
 // PARTIAL, 98.7% (430 of 430 bytes, 154 of 158 instructions). One basic
 // block differs: four instructions in the head of the main loop are in a
 // different order. Everything else matches, including the prologue, the

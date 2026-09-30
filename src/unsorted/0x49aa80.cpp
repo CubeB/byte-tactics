@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free,
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
 // retried by deepseek-v4.1-flash. Names are provisional.
 //
 // RETRY RESULT (deepseek-v4.1-flash): best is 66.1%, up from 61.8%, by
@@ -12,6 +12,9 @@
 // argument slot. d[1] assigned before d[0] scores 45.9%, two separate
 // initialized locals score 61.8%, `int` temps with casts score 61.8%.
 // Everything below is the earlier notes; only the array spelling is new.
+// GPT-6.1-sol retry: moving the weapon lookup after the two difference
+// assignments drops the score to 39.8%. Explicit register aliases for a2/a3
+// compile to the same 66.1% code. Best source remains the array version above.
 //
 // FRAME SIZE IS A SYMPTOM, NOT THE LEVER. A later round concluded that the
 // 8-byte frame deficit (original `sub esp,0x10`, ours `sub esp,8`) was the cause

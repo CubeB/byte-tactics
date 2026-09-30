@@ -18,6 +18,7 @@
 // and using players+i. The first two changes regressed; the pointer forms
 // tied at 52.3%. Replaced state-2's static GetPlayerId helper with the external
 // FUN_0044ffd0 call, which regressed to 42.2%; restored this best version.
+// Retry (GPT-6.1-sol, issue 2027): fresh Player-reference local tied at 52.3%;`n// the saved best source remains unchanged.
 //
 // Still differs from the original (52.3%):
 //  * The original outer player loop keeps the raw index in ebp and recomputes

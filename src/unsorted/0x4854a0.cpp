@@ -1,22 +1,28 @@
-// Decompiled by DeepSeek V4.1 Flash, GPT-6, GPT-6.1-sol, finished by DeepSeek V4.1 Flash. Names are provisional.
-// Partial: 94.3% (was 84.8%). This translation unit stands in for
-// <algorithm> with __stdcall instantiations, because the original was built
-// with /Gz and its std::_Sort / std::_Unguarded_partition /
-// std::_Unguarded_insert are callee-clean (0x488810, 0x488920, 0x488960).
-// That removed the spurious `add esp, 0xc`/`add esp, 0x10` after the sort
-// helpers at 0x485691/0x48574b/0x48576d/0x485778 and all the jump offsets
-// that shifted with them. The std headers are still included for their
-// __cdecl helper templates (copy_backward) and type traits.
-// Remaining diff only in the tail copy loop (0x485894-0x485934): the original
-// keeps `slot` in esi and the zero-extended unitsPerPlayer in edx, while ours
-// keeps slot in edx, unitsPerPlayer in esi and hoists an extra `xor esi, esi`.
-// Explicit `end` locals, unsigned c, and while-loop forms all fell to 90.3%.
+// Decompiled by DeepSeek V4.1 Flash, GPT-6, GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// MATCH. This translation unit stands in for <algorithm> with __stdcall
+// instantiations, because the original was built with /Gz and its sort helpers
+// are callee-clean (0x488810, 0x488920, 0x488960). The three helper templates
+// carry their real global names (FUN_00488810/FUN_00488920/FUN_00488960) so
+// the recursive and out-of-line calls at 0x485691/0x48574b/0x48576d/0x485778
+// reference the names data/symbols.csv already has, while the body and
+// one-level inline stay exactly as the std:: originals. The std headers are
+// included for their __cdecl helper templates (copy_backward) and type traits.
+// The tail free-list loop is written with the item fields themselves (no
+// `slot` local): reading `item->0x67` back for the start and `item->0x6b` for
+// the end leaves the compiler's edx/esi roles exactly as the original (slot in
+// esi, zero-extended unitsPerPlayer in edx). A named `slot` local makes it put
+// slot in edx, unitsPerPlayer in esi and hoist `xor esi, esi`, 94.3%.
 
 #include <windows.h>
 #include <iterator>
 #include <xutility>
 
 #define _ALGORITHM_
+
+template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488810(_RI _F, _RI _L, _Pr _P, _Ty *);
+template<class _RI, class _Ty, class _Pr> _RI __stdcall FUN_00488960(_RI _F, _RI _L, _Ty _Piv, _Pr _P);
+template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488920(_RI _L, _Ty _V, _Pr _P);
+
 namespace std {
 const int _CHUNK_SIZE = 7;
 const int _SORT_MAX = 16;
@@ -39,27 +45,10 @@ template<class _RI, class _Ty, class _Pr> inline void __stdcall _Sort_0(_RI _F, 
     {if (_L - _F <= _SORT_MAX)
         _Insertion_sort(_F, _L, _P);
     else
-        {_Sort(_F, _L, _P, (_Ty *)0);
+        {FUN_00488810(_F, _L, _P, (_Ty *)0);
         _Insertion_sort(_F, _F + _SORT_MAX, _P);
         for (_F += _SORT_MAX; _F != _L; ++_F)
-            _Unguarded_insert(_F, _Ty(*_F), _P); }}
-template<class _RI, class _Ty, class _Pr> inline void __stdcall _Sort(_RI _F, _RI _L, _Pr _P, _Ty *)
-    {for (; _SORT_MAX < _L - _F; )
-        {_RI _M = _Unguarded_partition(_F, _L, _Median(_Ty(*_F),
-            _Ty(*(_F + (_L - _F) / 2)), _Ty(*(_L - 1)), _P), _P);
-        if (_L - _M <= _M - _F)
-            _Sort(_M, _L, _P, _Val_type(_F)), _L = _M;
-        else
-            _Sort(_F, _M, _P, _Val_type(_F)), _F = _M; }}
-template<class _RI, class _Ty, class _Pr> inline _RI __stdcall _Unguarded_partition(_RI _F, _RI _L, _Ty _Piv, _Pr _P)
-    {for (; ; ++_F)
-        {for (; _P(*_F, _Piv); ++_F)
-            ;
-        for (; _P(_Piv, *--_L); )
-            ;
-        if (_L <= _F)
-            return (_F);
-        iter_swap(_F, _L); }}
+            FUN_00488920(_F, _Ty(*_F), _P); }}
 template<class _RI, class _Pr> inline void __stdcall _Insertion_sort(_RI _F, _RI _L, _Pr _P)
     {_Insertion_sort_1(_F, _L, _P, _Val_type(_F)); }
 template<class _RI, class _Ty, class _Pr> inline void __stdcall _Insertion_sort_1(_RI _F, _RI _L, _Pr _P, _Ty *)
@@ -67,15 +56,35 @@ template<class _RI, class _Ty, class _Pr> inline void __stdcall _Insertion_sort_
         for (_RI _M = _F; ++_M != _L; )
             {_Ty _V = *_M;
             if (!_P(_V, *_F))
-                _Unguarded_insert(_M, _V, _P);
+                FUN_00488920(_M, _V, _P);
             else
                 {copy_backward(_F, _M, _M + 1);
                 *_F = _V; }}}
-template<class _RI, class _Ty, class _Pr> inline void __stdcall _Unguarded_insert(_RI _L, _Ty _V, _Pr _P)
+}
+
+template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488920(_RI _L, _Ty _V, _Pr _P)
     {for (_RI _M = _L; _P(_V, *--_M); _L = _M)
         *_L = *_M;
     *_L = _V; }
-}
+
+template<class _RI, class _Ty, class _Pr> _RI __stdcall FUN_00488960(_RI _F, _RI _L, _Ty _Piv, _Pr _P)
+    {for (; ; ++_F)
+        {for (; _P(*_F, _Piv); ++_F)
+            ;
+        for (; _P(_Piv, *--_L); )
+            ;
+        if (_L <= _F)
+            return (_F);
+        std::iter_swap(_F, _L); }}
+
+template<class _RI, class _Ty, class _Pr> void __stdcall FUN_00488810(_RI _F, _RI _L, _Pr _P, _Ty *)
+    {for (; std::_SORT_MAX < _L - _F; )
+        {_RI _M = FUN_00488960(_F, _L, std::_Median(_Ty(*_F),
+            _Ty(*(_F + (_L - _F) / 2)), _Ty(*(_L - 1)), _P), _P);
+        if (_L - _M <= _M - _F)
+            FUN_00488810(_M, _L, _P, std::_Val_type(_F)), _L = _M;
+        else
+            FUN_00488810(_F, _M, _P, std::_Val_type(_F)), _F = _M; }}
 
 #include <algorithm>
 
@@ -163,13 +172,15 @@ void __stdcall FUN_004854a0(void)
     for (i = 0; i < 10; i++) {
         Player_004854a0* item = v[i];
         int c = g_game->unitsPerPlayer * i + 1;
-        unsigned char* slot = pool + c * 0x118;
-        *(unsigned char**)((char*)item + 0x67) = slot;
-        *(unsigned char**)((char*)item + 0x6b) = slot + g_game->unitsPerPlayer * 0x118 - 0x118;
-        *(unsigned short*)((char*)item + 0x6f) = *(unsigned short*)(slot + 0xa8);
+        *(unsigned char**)((char*)item + 0x67) = pool + c * 0x118;
+        *(unsigned char**)((char*)item + 0x6b) =
+            *(unsigned char**)((char*)item + 0x67) + g_game->unitsPerPlayer * 0x118 - 0x118;
+        *(unsigned short*)((char*)item + 0x6f) =
+            *(unsigned short*)(*(unsigned char**)((char*)item + 0x67) + 0xa8);
         *(unsigned short*)((char*)item + 0x71) =
             *(unsigned short*)(*(unsigned char**)((char*)item + 0x6b) + 0xa8);
-        for (unsigned char* q = slot; q <= *(unsigned char**)((char*)item + 0x6b); q += 0x118) {
+        for (unsigned char* q = *(unsigned char**)((char*)item + 0x67);
+             q <= *(unsigned char**)((char*)item + 0x6b); q += 0x118) {
             *(void**)(q + 0x96) = item;
             q[0xff] = *(unsigned char*)((char*)item + 0x146);
             *(unsigned int*)(q + 0xac) = 0xffffffffu;

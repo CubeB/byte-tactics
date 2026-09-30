@@ -1,19 +1,28 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // Retry #1766: GPT-6.1-sol confirmed the bool `credited` variant at 63.0% after eight worker invocations; final batch did not MATCH.
+// Round 2 (deepseek-v4.1): int best 52.6%, short mine + int best 52.8% (both reverted),
+// folding shapes for `(uchar >> 6 & 1)` (char cast, 1-bit bitfield struct) are
+// byte-identical: MSVC folds them to `test byte [..],0x40`, so the original's
+// `mov cl,[..]; shr cl,6; test cl,1` has some other source and is still unmatched.
 // Partial: 63.0% (1916 vs 1964 bytes). Body structure is right; the whole
 // function differs by callee-saved register allocation, which cascades.
 // Remaining hunks by original address:
-//   0x4866d0  cmd arg goes to ebp, original keeps it in ebx; original loads
-//             ebx immediately after `push ebx`, we push ebx+ebp then load ebp.
-//             Consequence: original never caches g_game in a register, ours
-//             keeps g_game in ebx (e.g. 0x486832 edx vs ebx, 0x4869d1 ecx vs
-//             ebx). Root is 4 live callee-saved values (cmd, unit, credited,
-//             g_game) vs the original's 3; g_game caching pushed cmd to ebp.
+//   0x4866d0  cmd arg is homed in edi (reloaded there at 0x486d24), original
+//             homes it in ebx across its first live range (entry to the switch)
+//             and only reloads edi for the tail. Consequence: the original never
+//             caches g_game in a callee-saved register and reuses ebx as scratch
+//             (0x486a03, 0x486ac7), while ours keeps g_game in ebp (0x486832 ebp
+//             vs edx, 0x4869d1 ebp vs ebx), which pushes the leaderboard counter
+//             into edi; the counter sharing edi is what colors cmd's first range
+//             edi instead of ebx. Root is callee-saved pressure.
 //   0x4867da  depth temporary: original stores cl to [esp+0x14], reloads dword
 //             and `and edx,0xff`; we keep it in a register and push directly.
-//   0x486a98  case 3/leaderboard: original keeps rec in [esp+0x80] and reloads;
-//             ours restructured the FUN_00435100 calls with a value cache.
-//   0x486c74  g_game bit test 0x37f06 (>>7 &1) register differs.
+//   0x486a98  case 3/leaderboard: original keeps rec in [esp+0x80] and reloads it,
+//             spills the widened rank (int) in [esp+0x10], holds mine in edi and
+//             best in edx as ints; ours caches the FUN_00435100 result, keeps
+//             mine in [esp+0x10] and best as a byte in dl.
+//   0x486c74  g_game bit test 0x37f06 (>>7 &1): original emits mov al/shr al,7/
+//             test al,1 off edx, ours folds to `test byte [ebp+0x37f06],0x80`.
 // Tried: unsigned char depth local (dropped to 56.8%, reverted), swapping the
 // unit/credited declaration order (no change).
 

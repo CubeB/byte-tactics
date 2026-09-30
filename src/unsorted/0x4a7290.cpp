@@ -1,8 +1,45 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol rechecked this 55.7% best in three check.py runs. A selected-row
-// pointer used for the initial geometry and group lookup was optimizer-folded
-// with identical output; reusing it for later color/text accesses dropped to
-// 45.4%, so the saved direct-access version remains best. No MATCH.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// space-bunny-free second pass: 55.7% to 84.9% (702 of our bytes against 706).
+// Two source changes, both now in the file, and the whole top-of-function
+// register allocation that three earlier sessions failed to reach:
+// (1) each button body takes ONE fresh pointer from the holder,
+//     `Entry* ep = obj->holder->entries;`, and uses it for the 0x4a15c0 and
+//     0x4a1810 arguments and for colourIndex/text/maxLength.  Written as
+//     `obj->holder->entries` four times, MSVC rematerialises [ebx+0x18] and
+//     [eax+4] again for every use (three loads per body) and keeps the
+//     geometry `entries` in ebp, which is what 55.7% was.  With one local it
+//     loads the pointer once into edi, exactly like the original, and then
+//     72.4%.  Note this is NOT the "reusing a downstream pointer" that scored
+//     45.4%: that reused the selected-row pointer from the geometry, this is a
+//     fresh load of the holder inside each branch.
+// (2) `int n = 0; int i;` declared AFTER the rect block, not at the top of the
+//     function.  That is where the original zeroes the group counter
+//     (0x4a72ee, from the eax the rect test already zeroed).  Declared at the
+//     top, n is zeroed before the prologue's pushes and the store lands in the
+//     frame slot 0x10 that the original gives to `entries`; declared after the
+//     rect, n takes the dead argument slot 0x40 and `entries` takes 0x10, and
+//     the prologue, the multiply chain, the group loop and both button bodies
+//     all match instruction for instruction.  84.9%.
+// What still differs, all in the rect block, is one decision: the original
+// keeps the n = 0 zero in a register (xor eax, eax in BOTH paths of the
+// if/else, then `mov [esp+0x40], eax` at the join) and therefore has to re-read
+// rect.x0 and rect.y0 from the stack after the join
+// (`mov edx, [esp+0x14]`, `mov ecx, [esp+0x18]`).  Ours stores the immediate
+// (`mov [esp+0x40], 0`), keeps x0 in eax and y0 in ecx, and emits no reload,
+// so ours is 4 bytes shorter and the rest of that block is scheduled
+// differently.  The zero has to be routed through a register for the reloads
+// to appear, and the register is not free at the join precisely because ours
+// still has x0 and y0 in registers there.
+// Tried this session, all at or below 84.9%: `n` and `i` initialised in the
+// for header (`for (i = 1, n = 0; ...)`, byte-identical to the file), the
+// zero-fill as two statements `rect.x0 = 0; rect.y0 = 0;` (84.6%, 698 bytes),
+// the x1/y1 pair written as a `static inline SetSize(Out*, Entry*, int)`
+// helper taking `&rect` (84.9%, byte-identical, folded), and taking the
+// address of `entries` through a `static inline Entry* Base(Entry*&)` (55.7%,
+// byte-identical: the address-of is folded away and creates no stack home, so
+// a reference parameter is NOT a way to force one).
+// Earlier sessions' notes follow.
+
 // Best so far 55.7% (753 of our bytes against 706; the 52.6% first session
 // below described the 724-byte version).  All 24 relocated
 // references (the 11 callees, DAT_0051fba4) land at the original's offsets and
@@ -164,8 +201,6 @@ static inline void SelectGroup(Entry_004a7290* entries, int index)
 // FUNCTION: 0x4a7290
 int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
 {
-    int n = 0;
-    int i;
     Entry_004a7290* entries = obj->holder->entries;
     Out_4a15c0 rect;
     if (entries[index].type == 0) {
@@ -177,6 +212,8 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
     rect.x1 = entries[index].x1 + rect.x0 - 1;
     rect.y1 = entries[index].y1 + rect.y0 - 1;
 
+    int n = 0;
+    int i;
     for (i = 1; i < entries->data.count + 1; i++) {
         if (entries[i].type == 7) {
             if (n == entries[index].group) {
@@ -199,23 +236,23 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
 
     obj->field_68 = index;
     if (FUN_004ab510(obj, 1)) {
-        FUN_004a15c0((char*)obj->holder->entries, index, &rect);
-        FUN_004c13a0(obj->colors[obj->holder->entries[index].colourIndex], FUN_004c13f0());
-        FUN_004a1810(obj->holder->entries, index);
+        Entry_004a7290* ep = obj->holder->entries;
+        FUN_004a15c0((char*)ep, index, &rect);
+        FUN_004c13a0(obj->colors[ep[index].colourIndex], FUN_004c13f0());
+        FUN_004a1810(ep, index);
         FUN_0049fc50(obj, index);
         obj->holder->field_20 = index;
-        FUN_004ab6c0(obj, index, obj->holder->entries[index].data.text,
-                     obj->holder->entries[index].maxLength, 0);
+        FUN_004ab6c0(obj, index, ep[index].data.text, ep[index].maxLength, 0);
         FUN_004c1a40();
         FUN_004ab690(obj, 1);
     } else if (FUN_004ab510(obj, 2)) {
-        FUN_004a15c0((char*)obj->holder->entries, index, &rect);
-        FUN_004c13a0(obj->colors[obj->holder->entries[index].colourIndex], FUN_004c13f0());
-        FUN_004a1810(obj->holder->entries, index);
+        Entry_004a7290* ep = obj->holder->entries;
+        FUN_004a15c0((char*)ep, index, &rect);
+        FUN_004c13a0(obj->colors[ep[index].colourIndex], FUN_004c13f0());
+        FUN_004a1810(ep, index);
         FUN_0049fc50(obj, index);
         obj->holder->field_20 = index;
-        FUN_004ab6c0(obj, index, obj->holder->entries[index].data.text,
-                     obj->holder->entries[index].maxLength, 0);
+        FUN_004ab6c0(obj, index, ep[index].data.text, ep[index].maxLength, 0);
         FUN_004c1a40();
         FUN_004ab690(obj, 2);
     }

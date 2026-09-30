@@ -1,6 +1,27 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol, finished by
+// space-bunny-free. Names are provisional.
 // GPT-6.1-sol recheck: baseline retained at 76.7%; no MATCH. The register-copy
 // mismatch described below remains the dominant difference.
+// Second pass (space-bunny-free, issue 1921): still 76.7%, no MATCH. Two more
+// leads closed, both negative, and one of them explains the right arm.
+//
+// `tools/headers.py 0x4a53c0 <file> --cpp`, all 768 header sets, scores 76.7%
+// for every one of them (none, <windows.h>, <stdio.h>, <stdlib.h>, <string.h>
+// and the C++ headers are all the same file). The register tie below is NOT a
+// compiler-state accident reachable through the includes, unlike the SIB swap
+// on 0x4a4d70, so the remaining hope is only a source shape.
+//
+// `tools/regcheck.py 0x4a53c0` (register-insensitive alignment) says exact
+// 88.0% and shape 91.3% over 275 instructions, so most of the 33 missing
+// bytes are the three duplicated Measure-exit tails of the centred arm, not a
+// wholesale misreading.
+//
+// The two-register reading of the original (esi = old x, ebx = the new x that
+// every arm stores) can be written down in C++, and it does not survive:
+// `int nx = x;` with `nx` assigned in all three arms and a pre-call
+// `int t = entry->w + x;` in the right arm scores 62.7% and 683 bytes, that
+// is SHORTER than the 697 here, so the extra `mov ebx, esi` never appears:
+// MSVC 5 still copy-propagates the phi and the temporaries only cost bytes.
 //
 // PARTIAL: 76.7%, 697 against 748 bytes. What the function does: it walks the
 // entry list of a layout object looking for the n-th tab stop (entries whose
@@ -46,6 +67,19 @@
 //     (ours `mov edi, eax / sar edi,1 / add edi, ebx` with the width in ebx,
 //     the original `mov ebx, eax / sar ebx,1 / add ebx, esi` with the width
 //     in edi), again because edi is the only register the original had free.
+//
+// The right arm is the readable one, and it says the narrowing is a
+// CONSEQUENCE of the tie rather than a separate mistake. Ours is
+//`entry->w + x - Measure(text)` stored to a 16-bit field, and every leaf is
+//16-bit known, so MSVC computes the whole chain in 16 bits and sinks it past
+//the call: the `w` load is duplicated into both Measure exits and the add and
+//sub follow the call. The original computes `w + x` in 32 bits BEFORE the
+//`lea esi, [entry->b6]`, which only makes sense as a value that has to live
+//across the call, that is a real 32-bit local or a cross-register add. Forcing
+//it with `int t = entry->w + x;` does reproduce the 32-bit form but costs the
+//three separate Measure-exit tails (62.7%), so the tie and the narrowing have
+//to be fixed together, and the tie is not reachable from the source shapes
+//tried so far.
 //
 // Spelling the arms with a named temporary reproduces the original's 32-bit
 // arithmetic but costs far more than it wins: `int nx = x + entry->w;` scores

@@ -61,6 +61,33 @@
 // PosY/Row/Idx/Mul helpers. So the original's `movsx eax,[esi+0x78];
 // imul eax,[ebx+0x14233]` is an allocator outcome for a short operand, not a
 // source-shape difference, and nothing in the source reaches it.
+//
+// deepseek-v4.1 third pass (still 80.3%, 507 vs 505, 24 more check.py runs;
+// all variants below compiled to a byte-identical 507-byte stream, so MSVC 5
+// canonicalizes the whole block and none of them is a lever):
+//   - multiply operand swap `g_game->width * obj->pos.y`, `obj->pos.x +
+//     g_game->width * obj->pos.y`, `(int)g_game->width * obj->pos.y`,
+//     `(unsigned)g_game->width * obj->pos.y` (Z2), `(unsigned short)` y cast;
+//   - named intermediates: `int idx = y * width;` + `idx + x`,
+//     `int px = obj->pos.x;` + `... + px`, `int row`/`int cy`, `unsigned idx`;
+//   - pointer forms: `&g_game->cells[row]` then `cell += x`; `&cells[x]` then
+//     `cell += y * width`; `cells + y * width + x`; `cells + (y * width + x)`;
+//     `Cell* base = g_game->cells;` then `&base[...]`;
+//     `(Cell*)((int)cells + idx * 0xd)`; `int* pw = &g_game->width` and
+//     `short* py = &obj->pos.y` (the optimizer folds both pointers back);
+//   - prologue reorders: `int index = 0;` before the cell statement (80.3),
+//     size before cell (79.0), cell before both (79.0);
+//   - `#include <windows.h>`: identical;
+//   - a second use of a live `y` local (`pad.y = y - 1;`) makes the local live
+//     across the loops and drops to 64.5% (int) / 64.3% (short), so the
+//     original's y is definitely not a surviving local.
+// New evidence from the MATCHed neighbour 0x47db70: its original folds the
+// width into imul only because its LHS comes from the zero-extend byte idiom
+// (`xor eax,eax; mov al,[..]`), which leaves the value in eax before the
+// multiply. A sign-extended `movsx` operand never takes that path here, and
+// 0x47d820 (99.1%) shows the same reg,reg form for a `short y` local. The
+// remaining 2 bytes are the scheduler choosing eax for the width load first
+// (right-to-left at the multiply node); no source shape tried reaches it.
 #pragma pack(push, 1)
 
 struct Point {

@@ -1,9 +1,23 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 68.8%, 1756 bytes versus 1692. The scalar vertex conversions
-// retain the best outer-loop registers, but the x87 materialization and
-// local frame differ. A 768-set header sweep, 24 aggregate/copy/order
-// variants and seven explicit hidden-result ABI variants did not improve it.
-
+// Decompiled by deepseek-v4.1. Names are provisional.
+// Partial: 70.9%, 1769 bytes versus 1692 (best of a Claude Opus 5.5 start plus
+// deepseek-v4.1 work). Structural walk is right, but the local frame is 0xa0
+// instead of the original 0x90 and the local layout differs: the original
+// packs piece/count/verts/unit/desc at [esp+0x20..0x30] and i/primoffset at
+// [esp+0x1c]/[esp+0x14], ours puts them 4 higher/lower respectively. The
+// original also unpacks the FUN_004b6eb0 call results back into the shared
+// float scratch slots ([esp+0x58..0x7c]) instead of keeping a 12-byte Vec3f
+// local, so its _ftol/fld scheduling differs. What helped: declaring ab/n
+// without an initializer and assigning on the next line (68.8 -> 70.9). What
+// did not: a byte-offset two-pointer vertex-copy loop (64.1), unpacking the
+// inner FUN_004b6eb0 into separate floats (67.1), splitting the float-vertex
+// declarations (no change).
+// Still differs: the frame is 0xa8 vs the original 0x90, 0x18 too big. Writing
+// the three (int)(n.f * 65535.0f) results as plain ints (nx, ny, nz) shrinks
+// the frame to 0x9c (12 bytes of the excess are the 12-byte ni local), and the
+// original really does keep nx/ny in ebx/ebp and spill nz into the reused
+// [esp+0x10] slot, but that variant scored 70.5 so it is reverted here; the
+// float scratch layout (9 vertex floats plus ab/n) is what the second 12 bytes
+// of excess have to come from.
 #include <windows.h>
 #include <memory.h>
 
@@ -209,8 +223,10 @@ void __stdcall FUN_00421700(Header_00421700* param)
             float cx = v[2].x * (1.0f / 65535.0f);
             float cy = v[2].y * (1.0f / 65535.0f);
             float cz = v[2].z * (1.0f / 65535.0f);
-            Vec3f_00421700 ab = FUN_004b6eb0(Vec3f_00421700(bx, by, bz), Vec3f_00421700(ax, ay, az));
-            Vec3f_00421700 n = FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(Vec3f_00421700(bx, by, bz), Vec3f_00421700(cx, cy, cz)), ab));
+            Vec3f_00421700 ab;
+            ab = FUN_004b6eb0(Vec3f_00421700(bx, by, bz), Vec3f_00421700(ax, ay, az));
+            Vec3f_00421700 n;
+            n = FUN_004b6ff0(FUN_004b6f70(FUN_004b6eb0(Vec3f_00421700(bx, by, bz), Vec3f_00421700(cx, cy, cz)), ab));
             d->vel.x += FUN_004b6c30(200) * (short)(n.x * 512.0f);
             d->vel.z -= FUN_004b6c30(200) * (short)(n.z * 512.0f);
             Vec3_00421700 ni;

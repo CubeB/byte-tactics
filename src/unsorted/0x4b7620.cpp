@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // Registers one named handler in the file-local sorted handler table (created
 // by 0x4b75a0, destroyed by 0x4b7ad0). It binary-searches the table
 // case-insensitively with _strcmpi for the name, and if the exact-case name is
@@ -23,6 +23,19 @@
 // mangles as our own class instead of VClass_004b7e30::?$vector::insert, so it
 // cannot be used. Feeding the index to the insert position and calling the
 // element constructor field-wise were both tried and lose points.
+//
+// Second pass (deepseek-v4.1-flash) tried every source-order lever that usually
+// moves MSVC 5's register choice, all of them compiled to the exact same 304
+// bytes as the variant above: last declared before first; the k local declared
+// before first/last; std::vector<...>::iterator typedefs for first/last/mid;
+// a local reference to the vector; `while (first < last)`; mid declared outside
+// the loop; and a static inline Find(first, last, k) helper called with
+// begin()/end() (both a named k and key.data). Reassigning `last = end()` after
+// the loop (so the post-loop test reads the named local) does make the compiler
+// load _Last straight into ebx, but it also spills that local to a new frame
+// slot and grows the prologue (69.2%). The remaining wall is that MSVC keeps
+// the loop's end value in eax across the loop entry and only materialises ebx
+// afterwards, which lets it hoist `xor ebx,ebx` past the inlined strcmp.
 #include <string.h>
 #include <vector>
 
@@ -97,7 +110,6 @@ void __stdcall FUN_004b7620(const char* name, Command_004b7620 fn, int flags)
         DAT_0051fc99.insert(first, e);
         first = DAT_0051fc99.begin() + index;
     }
-    int* slot = &first->field_4;
-    *slot = (int)fn;
-    slot[1] = flags;
+    first->field_4 = (int)fn;
+    first->field_8 = flags;
 }

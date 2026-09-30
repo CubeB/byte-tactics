@@ -1,5 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial, best 83.9% (re-checked by space-bunny-free, no better form found).
+//
+// deepseek-v4.1-flash second pass (#1615): 83.9% again. Lever 6/7 tried with no
+// change: reusing the parameters x and y themselves as the loop counters (the
+// original's counters occupy the arg2/arg3 slots, which our `row`/`n` locals
+// already get coloured into) scores 82.8 because xoff's add is then sunk below
+// the inner-loop width load; splitting the two row statements into
+// `dp0 = xoff + plane0; dp1 = xoff + plane1; dp0 += stride; dp1 += stride;`
+// is byte for byte the old 256-byte form (MSVC still loads the plane into esi
+// first), and <string.h> alone is 22.3. Confirms the reading that the three
+// remaining differences are all one allocator decision this build does not take.
 //
 // Byte accounting: ours is 256 bytes, the original 260. Everything matches
 // except the row loop head, where the original is 8 bytes longer; in exchange

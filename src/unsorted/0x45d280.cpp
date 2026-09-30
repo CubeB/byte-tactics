@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial, 91.5%, 1339 vs 1333 bytes. Best UNDO flag-update shape so far:
 // `unsigned short f = game->flags.word; int b = (unsigned char)f ^ DAT_00512f46;
 // game->flags.word = f ^ (b & 1);` with the `game = g_game;` reload kept in the
@@ -56,6 +56,17 @@
 //     an in-place memory xor instead of a load/keep/store of the word.
 // So the wanted form is a word in EAX, D in DL, an 8-bit xor into CL and a
 // 32-bit mask, with the word stored back from CX rather than xored in place.
+// deepseek-v4.1-flash retry: ~30 more spellings of the UNDO flip tried (int,
+// unsigned int, short, char and byte temps, fused and split, bitfield writes,
+// explicit bool, both member-read orders, local DAT copies, no-cast forms, the
+// literal Ghidra shape). None beat 91.5; the closest were the no-cast fused
+// form (90.5, 1336 B) and the current int-temp form (91.5, 1339 B). The target
+// byte-xor plus 32-bit mask only appears when MSVC leaves f in EAX; every form
+// that keeps `game` in EDI (needed for the two identical blocks around the
+// callback) spends EAX on the other temp, so f lands in EBP and the byte xor
+// becomes `mov eax,ebp / and eax,0xff`. The downstream register choices
+// (TRACKMODE cmp al/cl, RESTORE store edx/eax, lea vs mov+shl) shift with the
+// same allocation, so they are consequences and not separately fixable.
 #include <string>
 #include <windows.h>
 

@@ -1,5 +1,5 @@
-// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial, 62.0% (real check, deepseek-v4.1-flash retry). Matched: the
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Partial, 62.0% (real check, deepseek-v4.1 retry). Matched: the
 // g_game+0x37f06 shadow flag as an unsigned-short bitfield gives the
 // original's `shr dl,1; test dl,1`; the owner shade helper with a bool gives
 // `shr edx,0x1e; and dl,1; neg dl; sbb edx,edx`; the vertex loop is a plain
@@ -15,7 +15,23 @@
 // original puts it out of line. Tried and did NOT help: nested ifs for the
 // shadow condition (drops to 57.9), useColor-tested-first (59.3), a second
 // `Bitmap* bmp`/`List* lp` local, an `int uc = useColor` local, and `src`
-// declared before `mode` (all 61.2 or less).
+// declared before `mode` (all 61.2 or less). deepseek-v4.1 retry: the wall
+// is src/useColor register allocation. Original stores the saved bitmap to
+// a memory slot (mov [esp+0x20],esi at 0x45988f) and reloads it in the tail,
+// and useColor lives in ebx (reloaded at 0x459b12 after the vertex loop
+// clobbers ebx with offX). Ours always enregisters src: ebp when
+// `src = bitmap` is at function scope (baseline), ebx when the assignment
+// moves inside the branch (61.2), and ebx again when src is a 1-element
+// array or when the branch reads bitmap-> instead of src-> (61.2); giving
+// src an initialiser `= 0` drops to 54.5 by shifting the counter slot, and
+// writing the face vertex copy as `poly[j] = vertex[face->indices[j]]`
+// (which is what the original's edi/edx induction shape looks like) drops
+// to 55.3, so the moving idx/q pointers stay. Swapping the src/shadow
+// declaration order changes nothing (62.0). useColor ends up in esi in all
+// variants, so the p-loop, vertex, face and tail blocks rotate registers.
+// The four locals sit at 0x14 mode, 0x18 pieces, 0x1c info, 0x20 src,
+// 0x24 counter in the original; ours puts the counter at 0x20 and src
+// (spill) at 0x24.
 #include <string.h>
 
 extern char* g_game;
@@ -117,8 +133,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     Vec3 poly[25];
 
     int mode;
-    Bitmap_459c70* src = bitmap;
     bool shadow = ((Flags_459830*)(g_game + 0x37f06))->b1;
+    Bitmap_459c70* src = bitmap;
     if (shadow
         && (list->owner->field_110 & 0x20000000) != 0
         && useColor != 0) {

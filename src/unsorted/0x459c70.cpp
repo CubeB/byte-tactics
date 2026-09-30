@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // Partial, 34.8%: Sampling direction and mutable lighting-vector reads corrected.
 // A 128-set header sweep found no match; <ddraw.h> alone is best (34.8%).
 // A materialized shifted-flag local did not improve the score.
@@ -55,6 +55,16 @@
 // in the `&&`). Still differing: bmp/useColor land in ebp/esi where the
 // original uses esi/eax, the mode local sits at 0x28 vs 0x20, and the
 // vertex/normal/polygon loop register rotations and x87 scheduling.
+// deepseek-v4.1 (this run), 36.5%: five structural probes, none better than the
+// base. Ascending weight clear scored 34.4 (still rolled, never the original's
+// rep stosd); dropping the early `bmp = bitmap` init so both arms assign it
+// scored 34.9; using piece->flags directly instead of the pflags local, a
+// while (--p) piece loop, addressing pieces as list->pieces[p] with no pointer
+// local, and swapping the src/mode declarations all scored the same 36.5 and
+// compile to the same size. The piece induction pointer stays biased in every
+// spelling we tried (base +0x4a toward flags, +0x44 toward vertices) while the
+// original uses the unbiased pieces base +0x22, so the whole loop body's
+// [ecx+0x28]/[ecx]/[ecx+0x22] offsets stay misaligned.
 #include <ddraw.h>
 
 extern char* g_game;

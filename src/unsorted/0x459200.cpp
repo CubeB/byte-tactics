@@ -1,8 +1,16 @@
-// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
-// Partial (45.7%): address-taken 16-byte vector copy fixed the frame size;
-// declaring dx/dy as short improved the score. Remaining differs: this lands
-// in ebx instead of edi, vector copy/writeback allocation differs at entry,
-// and branch allocation/control flow diverges from 0x459288 onward.
+// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1. Names are provisional.
+// Partial (49.4%, 1516 vs 1506 bytes): address-taken 16-byte vector copy fixed
+// the frame size; declaring dx/dy as short improved the score; not caching
+// unit->sprites in a local (deref it at every use) keeps the unit in ebp/esi
+// and gained 3.7 points. Remaining diffs: this lands in ebx instead of edi (the
+// original keeps this in edi and screen y in ebx, ours is swapped), the vector
+// copy/writeback and the dx slot land 4 bytes low (ours dx at esp+0x10 where
+// the original spills f, its f slot pushes dx to esp+0x14), the original spills
+// f to esp+0x10 while ours rematerializes owner->field_92->flags, and the
+// second-half sprite loop still orders the d subtraction loads differently.
+// Tried with no gain: gameFlags local reused for the >>3 test, one function
+// scope int f, unused int spare. Tried and worse: plain 12-byte cv (41.7),
+// pad-first 16-byte cv (45.2), int* op for owner pos in the sprite loop (40.2).
 struct Vec3;
 struct Model_459200;
 struct Team_459200;
@@ -144,7 +152,7 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
                         }
                     }
                 }
-                if ((g_game->field_37f06 >> 3) & 1) {
+                if ((gameFlags >> 3) & 1) {
                     if (!(f & 0x81000)) {
                         ((Class_0045a470*)this)->FUN_0045a470(bmp);
                         FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
@@ -172,12 +180,11 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
         Unit_459200* unit = model->owner->list_head;
         while (unit) {
             if (!(unit->flags & 0x20000)) {
-                Model_459200* sprites = unit->sprites;
-                for (int i = sprites->count - 1; i >= 0; i--) {
-                    Piece_459200* piece = &sprites->pieces[i];
+                for (int i = unit->sprites->count - 1; i >= 0; i--) {
+                    Piece_459200* piece = &unit->sprites->pieces[i];
                     if (piece->flags & 1) {
-                        ((Class_004584d0*)this)->FUN_004584d0(sprites, param_2, &cv.value, piece->field_0, piece->field_22,
-                                     sprites->owner->kind, useColor);
+                        ((Class_004584d0*)this)->FUN_004584d0(unit->sprites, param_2, &cv.value, piece->field_0, piece->field_22,
+                                     unit->sprites->owner->kind, useColor);
                     }
                 }
             }
@@ -203,7 +210,7 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
                             FUN_004b8500(param_2, model->field_14, v.p.x.whole + 0x85, y);
                         }
                     } else {
-                        if ((g_game->field_37f06 >> 3) & 1) {
+                        if ((gameFlags >> 3) & 1) {
                             if (!(f & 0x81000)) {
                                 ((Class_0045a470*)this)->FUN_0045a470(bmp);
                                 if (g_game->field_1427f - dx > 0) {
@@ -228,17 +235,16 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
         Unit_459200* unit = model->owner->list_head;
         while (unit) {
             if (!(unit->flags & 0x20000)) {
-                Model_459200* sprites = unit->sprites;
-                ((Class_004581e0*)this)->FUN_004586a0(sprites,1,-1);
-                if (sprites->bitmap) {
-                    ((Class_00458d30*)this)->FUN_00458dd0(sprites->bitmap,sprites);
+                ((Class_004581e0*)this)->FUN_004586a0(unit->sprites,1,-1);
+                if (unit->sprites->bitmap) {
+                    ((Class_00458d30*)this)->FUN_00458dd0(unit->sprites->bitmap,unit->sprites);
                     d.v[0] = unit->pos_x - model->owner->pos_x;
                     d.v[1] = unit->pos_y - model->owner->pos_y;
                     d.v[2] = unit->pos_z - model->owner->pos_z;
                     int ddx = d.p.x.whole;
                     int ddy = d.p.y.whole;
                     int ddz = d.p.z.whole;
-                    FUN_004b90a0(sprites->bitmap, this->bitmap, ddx, ddz - (ddy >> 1), ddy);
+                    FUN_004b90a0(unit->sprites->bitmap, this->bitmap, ddx, ddz - (ddy >> 1), ddy);
                 }
             }
             unit = unit->list_next;

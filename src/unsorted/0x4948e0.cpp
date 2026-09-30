@@ -1,13 +1,66 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 70.2% (best variant, unchanged). The one upstream cause left is a
-// register-allocation cascade: our `y` is spilled to stack slot E[0x18] and
-// the original keeps it in ebx, so panel and every later local sit 4 bytes
-// high. Every rewrite that moved this instead made it worse: draw block before
-// the cleanup guard (67.5), pointer-walk cleanup counter (65.6), char buf[80]
-// (69.5), y declared only for the outer loop (65.2). Rectangle stack slots and
-// the player-loop registers still differ. The score buffer is 100 bytes;
-// source corners are initialized before the translation calls, and
-// panel.right is restored after shading.
+// Decompiled by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Partial: 78.1% (real check.py run; 1451 bytes vs the original 1418).  The
+// frame is 0xd0 in both and the layout matches up to 0x14 (maxw at 0x10, i at
+// 0x14), but everything from the panel up is 4 bytes high, because this version
+// gives the y local a stack slot at 0x18 while the original keeps y purely in
+// ebx and starts the panel rect at 0x18 (see 0x494a61: mov [esp+0x18],eax with
+// esp at the frame base, and 0x494a7d: lea edx,[esp+0x18] to pass &panel).
+// That one dword is the whole remaining puzzle: it moves about forty stack
+// references, and with it the draw loop's strength reduction changes too.
+//
+// THE ORIGINAL'S LOCAL MAP (frame base = esp after the four pushes, frame 0xd0,
+// so 0x00-0x0f is unused and 0xd0-0xdf are the saved registers): 0x10 maxw,
+// 0x14 i, 0x18 panel (4 dwords), 0x28 a 4-byte counter the cleanup loop alone
+// writes, 0x2c dst quad, 0x4c hr rect, 0x5c src quad, 0x7c buf.  Nothing
+// written in this version reproduces the counter at 0x28 or the absence of a y
+// slot: see the list of attempts at the bottom.
+//
+// NEW THIS SESSION (all checked against the disassembly):
+//  - The cleanup loop reuses the SEARCH counter as its own counter, in memory:
+//    0x494dcb `mov [esp+0x28],edi` stores edi (the search index, 10 there),
+//    and the latch is 0x494e33 `mov ecx,[esp+0x28] / add eax,0x14b / dec ecx
+//    / mov [esp+0x28],ecx / jne`.  So the source is a pointer walk whose
+//    condition is the search counter itself, and every failing test reaches that
+//    latch, i.e. one && chain with the pointer bump in the latch:
+//      Player* q = g_game->players;
+//      do { if (checks-as-one-&&-chain) q->field_148--; q++; } while (--n);
+//    build/scratch/0x4948e0/v7.cpp is that version: it is 1426 bytes (25 closer
+//    than this file), it gets the pointer walk, the latch and `mov edx,edi`
+//    right, and it scores 73.2% only because the frame stays 0xd0 with the
+//    panel still 4 high.
+//  - The src quad is initialised to only four fields, not four others: the
+//    original stores 1 to 0x60 (p[0].y), 0x64 (p[1].x), 0x78 (p[3].y) and 0x6c
+//    (p[2].x) at 0x494aa5-0x494ab4 and never touches p[0].x, p[1].y or p[3].x.
+//    This file initialises p[0].x, p[0].y, p[3].x, p[1].y instead, which is
+//    three wrong stores (v11.cpp, 77.1%).
+//  - dst.p[1].x and dst.p[2].x come from panel.left + maxw, not from
+//    panel.right - 6: 0x494b99 reads maxw (frame+0x10) and adds panel.left.
+//  - The `Losses` label is right-aligned against panel.TOP, not panel.right.
+//    At 0x494b4d esp is frame-12 (the inlined strcpy's `push 0`, maxw, y and
+//    the ret 4 of FUN_004a5030), so `mov ecx,[esp+0x2c]` is frame+0x1c, which
+//    is the slot 0x494a6c filled with the constant 0x20 and 0x494a98 loaded
+//    into ebx as y.  `Kills` meanwhile is drawn at panel.left+2
+//    (0x494ae3 `mov edx,[esp+0x1c]` = frame+0x18, then `add edx,2`).  Writing
+//    panel.top there does emit the same load, but MSVC then folds the constant,
+//    so this file keeps panel.right and stays 4 bytes high instead.
+// Tried and worse: v7 cleanup (73.2), v7 + chained dst stores (66.2, and the
+// frame drops to 0xcc), v7 + panel.left+maxw + panel.top (66.2), those three
+// without the chaining (58.0), the src-quad fix on this file (77.1),
+// char buf[84] instead of 100 (77.1, and the frame does not move, so the
+// buffer is not what sets the frame size), y += 0x28 moved into the for
+// increment clause (77.6 and 73.5 on v7, frame unchanged), the cleanup block
+// turned into an explicit else (73.2).  This session: hoisting `int n;` before
+// `Quad dst;` and driving the cleanup with it as a do-while pointer walk scores
+// 72.3 (frame 0xd0, panel still at 0x1c, so n did NOT take a hoisted slot);
+// `int y = 0x20;` drops y's slot and moves panel to 0x18 but also swaps the
+// maxw/i slots and shrinks the frame to 0xcc (67.5), and that same constant y
+// with the hoisted-n cleanup is 63.6 (frame 0xcc, y folded into immediates).
+// So the missing slot at 0x28 is n's home, needed only when the cleanup reuses
+// n as its counter with edi taken over by i, and y must stay a register-only
+// (ebx) variable for the panel to land at 0x18.  Earlier sessions: draw block
+// before the cleanup guard 67.5, pointer-walk cleanup counter 65.6, buf[80]
+// 69.5, y declared only for the outer loop 65.2, v1..v5 66.6.
+
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -161,6 +214,7 @@ void __stdcall FUN_004948e0(void* surface)
     y += 0xf;
 
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
+        int n;
         Quad_004948e0 dst;
         dst.p[0].x = panel.left + 7;
         dst.p[0].y = y + 1;
@@ -171,9 +225,8 @@ void __stdcall FUN_004948e0(void* surface)
         dst.p[3].x = panel.left + 7;
         dst.p[3].y = y + 0x25;
 
-        int n = 0;
         Player_004948e0* p = g_game->players;
-        for (; n < 10; n++, p++) {
+        for (n = 0; n < 10; n++, p++) {
             if (p->field_0 == 0)
                 continue;
             unsigned char c = p->field_73;

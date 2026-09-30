@@ -1,21 +1,35 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by
-// space-bunny-free. Names are provisional.
-// Partial: 68.5% (1102 of 1116 bytes). Still differing:
-//  * entries lives in ESI where the original keeps it in EBX. Every other
-//    saved-mode difference here (the atoi index in ESI, oldmode in BL, mode in
-//    [esp+0x10] rather than EBX, and the tail's ebx/ecx/edx) is downstream of
-//    that one rotation. A throwaway `lay` local and moving the `n` and `mode`
-//    declarations around do not demote it.
-//  * the 0x37f2f bit 1 test: the original materialises `shr dl,1` and does
-//    `test al,dl`; every spelling tried folds to `test byte ptr [ecx+x],2`.
-//  * the players[d] address in the digit branch: the original splits it as
-//    base g_game+d with index 330*d, ours as base g_game with index 331*d.
-//  * `lea ecx,[eax*8]` versus `mov ecx,eax / shl ecx,3` at the _strnicmp site.
-//  * the mode/oldmode and g_game scratch registers of the tail block.
-// What did work (kept below): the third argument of FUN_004a1080 is an int,
-// not a char, so the reload of mode_2bf0 zero-extends through `xor edx,edx`
-// and `mov dl`; and `saved` is a 10-byte struct copy, which leaves the three
-// loads ahead of the three stores the original has.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
+// Partial: 73.7% (1088 of 1116 bytes). Still differing:
+//  * The working chat mode lives in a register (BL) in ours; the original spills
+//    it to [esp+0x10] as a dword and keeps the restored copy (oldmode) in BL.
+//    Swapping the two roles/types, hoisting either declaration to function
+//    scope, using an int[1] or a one-int struct for mode, and initialising
+//    oldmode from mode or from memory were all tried; MSVC scalar-replaces the
+//    aggregate and keeps the register assignment. This one difference cascades
+//    into the whole saved-mode block and the tail's scratch registers.
+//  * The first _strnicmp site wants `lea ecx,[eax*8]` and `lea edx,[ebx+eax]`;
+//    ours emits `mov ecx,eax / shl ecx,3` and `mov edx,ebx / add edx,eax`.
+//    The second site (after atoi) already uses the shl/mov form and matches.
+//  * The 0x37f2f bit 1 test: the original materialises `mov dl,[m]; shr dl,1;
+//    test al,dl`; every spelling tried (`flags & bit1`, `flags & (m>>1)`,
+//    byte/word/int bitfield storage) folds to `test cl,2`.
+//  * The tail's g_game scratch registers (ecx/eax and edx/ecx).
+// What worked (kept below): declaring oldmode before lstrcpynA (rather than
+// inside the strlen block) stops the compiler claiming ESI for entries at the
+// top of the function, which fixed the whole callee-saved rotation; and making
+// the working mode an unsigned char scored marginally higher than an int.
+// Follow-up (deepseek-v4.1-flash): the full 2x2 type matrix, mode int/unsigned
+// char crossed with oldmode int/unsigned char, each at both placements (before
+// lstrcpynA and at the top of the strlen block) and with and without an
+// (unsigned char) cast on the store, was scored. Declaring oldmode at the top of
+// the strlen block always costs 5 to 8 points (entries moves to ESI, the rest is
+// downstream). Every other combination lands at 71.9 to 73.7 and none moves the
+// working mode out of BL. Function-scope declarations of mode and/or oldmode,
+// reversing the declaration order, a pointer local for g_game+0x2bf0, and a
+// redundant `mode = mode;` before the store were also tried; all score 73.7 or
+// below. So the mode-in-memory / oldmode-in-BL split did not flip from any of
+// these source levers.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -161,8 +175,9 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
     }
     if (FUN_0049fd60(gadget, DAT_00506578)) {
         Entry_00493bf0* talk = FUN_004a0010(entries, DAT_00506578);
-        int mode = g_game->mode_2bf0;
+        unsigned char mode = g_game->mode_2bf0;
         lstrcpynA(buf, (char*)talk + 0xb6, 0x100);
+        unsigned char oldmode = g_game->mode_2bf0;
         char* p = buf;
         while (*p && *p == ' ')
             p++;
@@ -178,7 +193,6 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
                 mode = 0;
         }
         if (strlen(p) != 0) {
-            unsigned char oldmode = g_game->mode_2bf0;
             Player_00493bf0* base = &g_game->players[g_game->localPlayer];
             Saved_00493bf0 saved = *(Saved_00493bf0*)g_game->field_2bf1;
             char* to = 0;
@@ -194,20 +208,22 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
                     to = (char*)&g_game->players[d] + 0x2b;
                 } else {
                     int c = tolower(p[0]);
-                    if (c == 'a') {
+                    if (c != 'a') {
+                        if (c == 'e') {
+                            mode = 2;
+                            to = DAT_005093ec;
+                        } else {
+                            goto after;
+                        }
+                    } else {
                         mode = 1;
                         to = DAT_00508384;
-                    } else if (c == 'e') {
-                        mode = 2;
-                        to = DAT_005093ec;
-                    } else {
-                        goto after;
                     }
                     p += 2;
                 }
             }
 after:
-            g_game->mode_2bf0 = (unsigned char)mode;
+            g_game->mode_2bf0 = mode;
             memset(buf2, 0, sizeof(buf2));
             FUN_00463e50(base, p, 4, to);
             *(Saved_00493bf0*)g_game->field_2bf1 = saved;

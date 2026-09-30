@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol. Names are provisional.
 // Sibling of 0x4736e0 and 0x4742c0: the same base call with the third
 // argument, the same two 24-byte copies and the same trailing virtual call.
 // This one keeps each 24-byte block as a {point, far point} pair, moves the
@@ -133,6 +133,32 @@
 // sinking the store the original's compiler sank. Adding an explicit
 // `int ez = e.z;` local before the z delta compiles byte-identically to this
 // file, so the z copy is not reachable that way either. 88.0% stands.
+// Retry (deepseek-v4.1, #1903), 9 runs, no gain, 88.0% (499 vs 497) stands.
+// Confirmed the two remaining hunks are scheduling, not source shape:
+//   - moving the y loads above the `e.x = bx` store (the shape the original's
+//     instruction order hints at) spills exactly one slot: 513 bytes, 66.1%,
+//     because sx still occupies esi when the s.y load wants a register;
+//   - computing the z 7/11 lerp before its 4/11 one, moving it down after the
+//     `e.x`/`e.y` delta stores (the original's order, at 0x473c41), swapping
+//     the `s.x`/`e.x` stores and giving the y delta its own `ddy` temporary all
+//     compile to this identical 497-byte 88.0% body, so the compiler
+//     reassociates and schedules them the same whatever the statement order.
+// Retry (deepseek-v4.1, #1903, 10 min, 30+ check runs), 88.0% (499 vs 497)
+// stands, no gain. The remaining four hunks are unreachable from any
+// two-reference spelling tried, all of which compile to this same 497-byte
+// body byte for byte (confirmed by diff line count, not just the score):
+//   - load hoisting inside the component blocks (y loads between the x 7/11
+//     lerp and the e.x store; z loads likewise), which the earlier notes
+//     already found spills (85.3% with them, 87.0% with the z pair only);
+//   - explicit `int ez = e.z;`/`int ey = e.y;` temporaries, `-sz + e.z`,
+//     a separate `int dz; dz = e.z - sz;`, and field-vs-local spellings of
+//     the z delta all compile to the identical body;
+//   - a `ddz`/`ddy` temporary, or moving the `s.z = az;` store before the x
+//     delta block, change nothing (87.5% for the latter).
+// Flag probe: /O2 /Ob2 /MT /G5, /GB and /G4 are byte-identical to the
+// default build (88.0%), /G6 (P6 scheduling) drops it to 77.5%, so the
+// original is not a different /G setting. `static void` (no inline) is not
+// inlined at all (21.8%), so the helper really must be `inline`.
 class Class_00471d70 {
 public:
     void FUN_00471d70(int param_1);

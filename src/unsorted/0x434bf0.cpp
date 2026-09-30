@@ -29,6 +29,9 @@
 // first-reference order, so the swap has to come from a change in the IL shape.
 // GPT-6.1-sol refinement: a named std::allocator passed to the vector constructor
 // left the checker at 92.9%, so the original default-construction form is retained.
+// GPT-6.1-sol refinement: declaring count and i before files, initializing count
+// to zero, and deriving count from end()-begin() did not improve the frame-slot
+// permutation; end()-begin() instead reduced the score to 70.7%.
 #include <string.h>
 #include <vector>
 

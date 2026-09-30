@@ -72,6 +72,20 @@
 // Also tried this pass and flat at 80.3 with the lever: named x2 local,
 // `slot + (x - 2)`, `x + slot - 2`, nested-if instead of continue, explicit
 // `off += 0x14b` byte-offset for loop, j at function scope, j before x in source.
+//
+// Fifth pass (deepseek-v4.1-flash): corrected the diagnosis. In the bounded
+// for+continue form the ecx/eax/edx 3-cycle is confined to the loop head and
+// body; the code after the loop (the "%i %s" branch and the final blit) is
+// byte-identical to the original, so the earlier "whole-function phase" note is
+// wrong and there is no post-loop rotation to cancel. Also flat at 80.3:
+// extern dummy sweep N=0..400 step 4 (so it is not compiler symbol state),
+// comma init `j=0,x=11` in the for clause, x=11 before/after j=0, j declared
+// before x, goto-based increment+test loop, `j != 10`, `j <= 9`, bottom
+// `if (j>=10) break`, local `fill` for the percent divide, local w=slot-2,
+// color locals, and pc hoisted to function scope. `r.x2 = x + ...` (re-reading
+// x instead of r.x1) drops to 590 bytes / 80.6%. The 91.0% break-loop form
+// below remains the best; its whole residue is the break + in-memory increment
+// tail versus the original's bound test.
 #include <stdio.h>
 
 #pragma pack(push, 1)

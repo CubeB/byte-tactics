@@ -65,6 +65,25 @@
 // original but `mov ecx,ebp; imul ecx,[mem]` (y0 left) in ours for the same
 // `dx*y0` source text, and the loop body schedule puts `x+=dx` right after
 // `out[0]=x>>16` in the original but after `out+=10` in ours.
+// Fifth pass (deepseek-v4.1-flash, timebox fired before scoring a variant):
+// liveness analysis of the original disassembly explains the crossing. In
+// original loop1, `next` (index) is last read at coords[next*2+1] (0x4c8936)
+// and dv is defined at 0x4c894a, all later next-vertex reads going through
+// the pointer at 0x38 (vertices+next*3), so next1 and dv are strictly
+// disjoint and share 0x10. Ours makes the same pointer temp but keeps next as
+// one variable for BOTH loops and the allocator never merges it with dv
+// (ours: temp 0x10, next 0x14, dv 0x38). n1 and n2 never merge in either
+// build despite being disjoint (n2 keeps lowIndex's 0x28, n1 cannot), so the
+// allocator is not plain disjoint-range merging. The /Fa listing shows ours
+// emits `mov ecx,ebp; imul ecx,[dx]` for literal `x-=dx*y0` while the
+// original emits `mov ecx,[dx]; imul ecx,ebp` (equal length); `z-=dz*y0`
+// already matches via `mov edx,eax; imul edx,ebp`. Next attempts: (a) named
+// `int* nextVertex=vertices+next*3` used for every nv[] access with `next`
+// dead after coords[next*2+1], next block-scoped per loop (separate names
+// next1/next2) while keeping n1/n2 apart; (b) fixup products written `y0*dx`
+// to test the imul operand-order rule. Sibling 0x4c8bb0.cpp (matched, same
+// algorithm with a light channel) is the reference for declaration/scope
+// structure producing the original slot table.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

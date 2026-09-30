@@ -1,5 +1,24 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial 54.1% (best this file has reached; check.py prints 54.1).
+// Final retry (deepseek-v4.1-flash, timeboxed), what still differs unchanged:
+// the 16th frame slot [esp+0x4c] (raw index-1 of the first edge loop, one
+// store at 0x4c8cfc, one reload at 0x4c8e9c) and the prologue register set
+// (original: zero in ebp, vertices reloaded from its arg slot, texture pinned
+// in ecx, highX in edi and lowX in ebp with no slots; ours: zero in edx,
+// vertices pinned in ebp, highX/lowX spilled at 0x10/0x14). Analysis this
+// pass: the whole register set falls out of vertices NOT being a pinned
+// register in the original (its min/max loop walks in edx and the edge loops
+// reload [esp+0x7d7c] twice within three instructions), so the zero constant
+// takes ebp; ours pins vertices in ebp so zero falls to edx and one body
+// register stays free, which is also why the compiler can fold the raw
+// index-1 into the tail fixup instead of spilling it. v1 (first loop as
+// while(1) with a tail break, raw kept as `previous=index-1; next=previous;
+// if(next<0) next=3;` and tail `index=previous; if(index<0) index=3;
+// if(index==highIndex) break;`) still compiled to the 15-slot 0x7d5c frame
+// (score line not captured before the timebox). Untried idea: stop pinning
+// vertices by making every access reload it (no local that spans the body),
+// e.g. recompute vertices+N*4 expressions at each use, to flip the global
+// register allocation to the original's {zero=ebp, walk=edx} set.
 // deepseek-v4.1-flash pass: confirmed by disassembly that the original's
 // missing slot [esp+0x4c] is the raw `index-1` of the first edge loop, stored
 // at loop head (0x4c8cfc) and reloaded at the loop tail (0x4c8e9c) where the

@@ -147,6 +147,27 @@
 // FindFrom in the args 78.0, and the three-induction k4 loop with the new tail
 // 83.4. The remaining work is making the k4 loop keep a byte counter in ebx
 // while `res` stays in edi.
+// deepseek-v4.1-flash (this pass): ran the two candidate source shapes side by
+// side. The shape the original used is almost certainly the helper form: both
+// PlayerId_004568c0 and FindFrom_004568c0 inlined, the test written as
+// `if (active && state == 3) {...} else if (active && (state==1||state==2))`
+// (no outer active wrapper). That reproduces the redundant active re-test at
+// 0x456c7c, `cmp bl,0xa` / `inc ebx` and the 1310-byte size exactly (variants
+// wX/wX2, 1312 bytes). It scores 83.4 only because it swaps two registers
+// globally: our build homes the FUN_00456030 result in ebp and the
+// players[] IV in edi, where the original has res in edi and the IV in ebp.
+// That swap already shows at 0x456942 (mov ebp,eax vs mov edi,eax), so it is
+// one allocator decision, not a k4-local one. The swap appears exactly when
+// the k4 loop keeps a live byte counter in ebx; the manual `to`/`from` form
+// (this file, no counter) keeps res in edi and the IV in ebp but cannot
+// produce the counter, and every attempt to add the counter (helper call, a
+// named unsigned char pi, PlayerId in the args, a pointer local) demotes res.
+// Tested and no better than 86.5: wX/wX2 83.4, w1/w2 83.4, y3 83.4, y2 (res
+// kept live across k4) 83.0, vC 83.4, vE/vG 82.7, z2 81.9, vA/vB/vF 80.4,
+// vD 80.5, z1 78.0, y1 78.8, vG2 79.9, vG4 77.6. Defining the real preceding
+// function (0x4568b0, the empty `ret 0xc` stub) above this one changed
+// nothing (86.5). The remaining work is still the one k4-loop allocator
+// decision: keep a live byte counter in ebx while res stays in edi.
 #include <stdlib.h>
 #include <algorithm>
 

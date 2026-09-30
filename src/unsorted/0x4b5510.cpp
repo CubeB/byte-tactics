@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
 // Partial: 87.7%. The lock loop and local frame now follow the original.
-// Remaining differences include zero tests, CreateSurface argument timing
+// Retry verification: 3 check.py runs, best 87.7%; explicit HRESULT zero comparisons did not improve it. Header sweep was stopped without finding a better variant. Remaining differences include zero tests, CreateSurface argument timing
 // and instruction scheduling around display cleanup.
 #include <windows.h>
 #include <ddraw.h>

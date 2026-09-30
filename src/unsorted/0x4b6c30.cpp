@@ -48,6 +48,20 @@
 // correction local `q * 0x80000001u` scored 57.5% by moving seed*16807 before
 // quotient calculation; restored this 91.1% version. The remaining mismatch is
 // the neg/shl/sub ordering for the quotient correction and the following branch.
+// deepseek-v4.1-flash, 2026-10 (finishing): materialising the correction, with
+// either `corr = q * 2147483647;` or `corr = (q << 31) - q;` and then
+// `seed = seed * 16807 - corr;`, emits the exact target block
+//     mov edx, ecx; neg edx; shl edx, 0x1f; sub edx, ecx; sub eax, edx
+// so the `neg` does not need a real multiply, only a materialised value. The
+// catch stays the same: materialising flips seed into ecx and the product into
+// esi, computed before the division's mul (103 bytes, 57.5%). The inline shift
+// form keeps seed in esi and the product in eax (99 bytes, 91.1%) but MSVC
+// distributes the subtraction instead. Statement-reuse (t = q*C; t = seed*16807
+// - t;), `long`/`int` types, a helper for the quotient or the correction, and
+// the global read directly for the product all give the identical 103-byte /
+// 57.5% form. Sweeps: headers.py 768 sets and 0 to 10000 unused prototypes are
+// flat at 91.1%, so this is the compiler-state tie the guide describes, not a
+// source spelling.
 #include <windows.h>
 
 extern unsigned int DAT_0051fc88;

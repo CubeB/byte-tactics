@@ -26,6 +26,12 @@
 // original is MSVC's tail duplication, not a second `return`; writing that
 // `return` explicitly moves `push esi` to the top (66.3 percent).
 //
+// deepseek-v4.1-flash retry (#2558): reconfirmed 74.9 percent (265/267).
+// Calling convention is right (both ends `ret 8`, __stdcall, mangled YGH).
+// The lone ordering difference is that MSVC hoists the two r.bottom / r.top
+// stack loads above the `mov eax, [edi+0xcc]` table load in the locked arm
+// (which then drags the eax/ecx/edx roles with it). Statement-level locals
+// for table/h/w and every argument spelling tried here did not move it.
 // What still differs: only register choice and load order inside the two
 // argument blocks. Else arm: the original loads r.top before pushing
 // field_cc and r.bottom after (so field_cc goes in edx), ours loads r.bottom

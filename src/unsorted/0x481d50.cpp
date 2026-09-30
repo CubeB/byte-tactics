@@ -1,17 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, re-tried by
-// space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-//
-// deepseek-v4.1-flash session: started from the 79.4 file, verified it is
-// still the best. Tried (all with check.py --sym, none beat 79.4):
-//   flipping the limitX/limitY ternary arms to `? width : halfX - x` (79.1),
-//   declaring y before x (79.1, swaps the two movsx loads instead of the two
-//   slots), a ByteMap pointer local for the else dst (49.6, global reshuffle),
-//   the at() helper form for the else dst (78.9), at() with dst before src
-//   (38.6, moves g_game from ecx to edi), short x/y (40.5). The else branch
-//   structure and the x (0x1c) / y (0x20) slot pair remain the blockers.
-// Partial, 79.4 percent (824 bytes vs 821; the file was already at 79.1 when
-// this attempt started, not the 53.5 the packet says). This attempt's one fix,
-// worth 0.3, is the inner loop's shape:
+// space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Partial, 94.7 percent (822 bytes vs 821). This attempt fixed the whole else
+// branch: the limit expressions are plain if/else on the negated condition
+// (`if (x + frame->width >= halfW) limitX = halfW - x; else limitX = width;`)
+// so the raw width lands out of line, and dst is declared before src (the
+// original computes the explored-map pointer first, then the frame pointer).
+// Remaining diffs, all allocator state: (1) the x/y frame slots are still
+// swapped (original x 0x1c, y 0x20; ours y 0x1c, x 0x20); (2) `bestDiff * j1`
+// loads 0x2c-then-imul-0x10 in the original, 0x10-then-imul-0x2c here;
+// (3) the explored base: original does `add edx,0x7c` on the map pointer and
+// reuses it, ours folds the fields into [edx+0x80] and [edx+0x7c]; (4) the
+// exit label is one byte later because the function is 1 byte long.
 //   the original materialises `j1 = 1` in the loop PREHEADER, below the
 //   `jle` that guards the loop (`test ax,ax / jle / mov [esp+0x10],1 / jmp`),
 //   while every other initialiser (bestIdx, bestDiff, j) is stored above it.
@@ -249,8 +248,16 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
         int ref = *params->field_c;
         Frame_00481d50* frame =
             FUN_004b7f30((unsigned short*)g_game->losTable, ref);
-        int limitX = (x + frame->width < halfW) ? halfW - x : frame->width;
-        int limitY = (y + frame->height < halfH) ? halfH - y : frame->height;
+        int limitX;
+        if (x + frame->width >= halfW)
+            limitX = halfW - x;
+        else
+            limitX = frame->width;
+        int limitY;
+        if (y + frame->height >= halfH)
+            limitY = halfH - y;
+        else
+            limitY = frame->height;
         int nx = x < 0 ? -x : 0;
         int ny = y < 0 ? -y : 0;
         if (ny >= limitY)
@@ -258,16 +265,15 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
         if (nx >= limitX)
             return;
         for (int i = ny; i < limitY; i++) {
-            unsigned char* src = frame->data + i * frame->width + nx;
             unsigned char* dst =
                 ((Map_00481d50*)params->field_0)->explored.data + (y + i) * ((Map_00481d50*)params->field_0)->explored.size.width + nx + x;
-            int n = limitX - nx;
-            do {
+            unsigned char* src = frame->data + i * frame->width + nx;
+            for (int j = nx; j < limitX; j++) {
                 if (*src != frame->mask)
                     (*dst)--;
                 dst++;
                 src++;
-            } while (--n);
+            }
         }
     }
 }

@@ -2292,7 +2292,7 @@ address,size,file,symbol,status,similarity
 0x4ab690,20,src/unsorted/0x4ab690.cpp,?FUN_004ab690@@YGXPAXH@Z,matched,100.0
 0x4ab6b0,10,src/unsorted/0x4ab6b0.cpp,?FUN_004ab6b0@@YGHPAUObject@@@Z,matched,100.0
 0x4ab6c0,82,src/unsorted/0x4ab6c0.cpp,?FUN_004ab6c0@@YGXPAUControl_004ab6c0@@PAXPADHH@Z,matched,100.0
-0x4ab720,1015,src/unsorted/0x4ab720.cpp,?FUN_004ab720@@YGHPAUControl_004ab720@@HH@Z,partial,93.7
+0x4ab720,1015,src/unsorted/0x4ab720.cpp,?FUN_004ab720@@YGHPAUControl_004ab720@@HH@Z,matched,100.0
 0x4abb20,122,src/unsorted/0x4abb20.cpp,?FUN_004abb20@@YGHPAUSub_004abb20@@PAD@Z,matched,100.0
 0x4abba0,44,src/unsorted/0x4abba0.cpp,?FUN_004abba0@@YGXPAUGadget_004abba0@@@Z,matched,100.0
 0x4abbd0,295,src/unsorted/0x4abbd0.cpp,?FUN_004abbd0@@YGHPAUSub_004abbd0@@PAD11@Z,matched,100.0

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Sibling of 0x4736e0 and 0x4742c0: the same base call with the third
 // argument, the same two 24-byte copies and the same trailing virtual call.
 // This one keeps each 24-byte block as a {point, far point} pair, moves the
@@ -20,7 +20,7 @@
 // writing the subtraction against the field, or leaving one of the two out of
 // a temporary, does not.
 //
-// Still differs (87.5%, 497 of 499 bytes), all of it scheduling inside the two
+// Still differs (88.0%, 497 of 499 bytes), all of it scheduling inside the two
 // copies of the helper:
 //   - the 7/11 point is stored just before the next component's loads, where
 //     the original sinks the store past them (x and y, in both blocks);

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL, 98.4% (1654 of 1655 bytes). Every branch, field offset, call target,
 // stack slot, jump target and register role now agrees with the original except
 // ONE instruction: at 0x4997a0 the original loads g_game with
@@ -30,6 +30,16 @@
 //   +0x2a3c store-back as well (95.2%). Declaring `saved` in the enclosing
 //   block with the load there too also fixes every role but moves the load to
 //   0x499709, nine bytes early.
+// - deepseek-v4.1 tried 14 more byte-neutral spellings; every one compiles
+//   byte-identically to the base above, so the pick is not reachable through the
+//   read's shape: an `(unsigned int)` cast, `&*g_game`, an indexed ushort form
+//   (`((unsigned short*)gp)[0x151e]`), an address-arithmetic form
+//   (`gp->unknown_29a4 + 0x98`), a through-`void`/`char` cast pointer, a
+//   `register` pointer, `unsigned int const four`, a named local for the
+//   FUN_00435100 and FUN_00435c00 results, a named `one` for FUN_00491d70, and a
+//   coalesced duplicate pointer temp. Removing the gp local instead gives 1656
+//   bytes at 94.7% (it rotates the second tail block's base registers), so gp is
+//   load-bearing for the tail and only its first use's register differs.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

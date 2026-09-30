@@ -1,5 +1,43 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
 // #1595 retry by Codex / GPT-6.1-sol: checkall reconfirmed 78.9% (280/280 bytes), no MATCH.
+//
+// Eighth pass (space-bunny-free): no score change, 78.9% (280 bytes), 1 check.py
+// run. Still short of a match, but the case 0 rotation is now pinned down from
+// both ends, and two earlier "negatives" in this file need qualifying.
+//   - The size of the gap is one instruction, and it is only in case 0: the
+//     original's `mov eax, ds:[0x51fef0]` is the 5-byte accumulator form while
+//     ours is the 6-byte `mov edx, ds:[0x51fef0]`, because cl 5 only uses the
+//     accumulator form for eax. That single byte is why every `je`/`ja` target
+//     in ours is 0x4c71d2 where the original says 0x4c71d1, and why the
+//     jump table lands at 0x4c71d9 instead of 0x4c71d8. Cases 1, 2 and 3 are
+//     the same size as the original, so a case 0 match is worth chasing alone.
+//   - The "g local" spellings are NOT all equal. `int g = DAT_0051fef0;` as a
+//     real local (before or after the store) makes cl 5 forward the value
+//     still sitting in ecx into the third argument: the reload disappears
+//     entirely, the block becomes `push ecx; sub ecx, eax; push ecx; ...`,
+//     and the third push vanishes. Only writing DAT_0051fef0 inline in the
+//     argument keeps the reload. So the original's reload is cl 5 refusing to
+//     forward across `mov [esi], 0`, which is an aliasing decision, and the
+//     inline global is the only spelling that reproduces it.
+//   - New spellings measured this pass, all byte-identical to the body below
+//     (at_high hoisted into eax, the global reload into edx, so no diff at
+//     all): `Range& out` (with `out.low`), `unsigned at_low/at_high`,
+//     `unsigned value` too, `int* out` with `out[0]`/`out[1]`, an explicit
+//     `default: return;` before case 3, `(int)` casts on both the first
+//     argument and the global, `int d = size - offset;`, and `int g =
+//     DAT_0051fef0;` placed after the store. Using `hi - value` in place of
+//     the `offset` local restructures the block (as earlier passes found).
+//   - What is left is one fact about cl 5's front end, not a missing value:
+//     in the emitted IR of this body the first argument (the at_high load) is
+//     walked and register-allocated BEFORE the third argument (the global
+//     reload), so it takes the register that `sub ecx, eax` frees. The
+//     original allocates in the opposite order, which is why the global lands
+//     in the freed eax and at_high only finds a register after `push ecx`.
+//     Nothing in the source spelling tried so far (locals, references, casts,
+//     wrappers, unsigned, aliases) changes that walk order, so the next pass
+//     should look for a source shape that changes the argument list's tree
+//     shape rather than its spelling, e.g. a helper whose parameters the
+//     inliner re-orders, or a case body that is not a plain call statement.
 // The attempted if/else rewrite scored 60.4%; restored the earlier best with the jump table.
 // GPT-6.1-sol follow-up: an if/else chain replacing the jump-table switch scored 60.4%; restored the prior 78.9% best.
 

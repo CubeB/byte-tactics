@@ -1,6 +1,36 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// Eighth pass (deepseek-v4.1-flash, retry #2896, 74.8%, 0 counting runs, all
+// scored with check.py --sym on scratch copies). Still the same two open
+// items: frame 0x40 against 0x44 and the ebx<->edi rename (ours unit=ebx /
+// ppos=edi, original unit=edi / ppos=ebx). Tried and rejected this pass, all
+// <= 74.8:
+//   - ppos declared before the v5 call (71.0), before the v3 call (70.9),
+//     between the ax and az lines (74.8), forward-declared at the top with
+//     the assignment left in place (74.8), declared with ax/az/gap1 up front
+//     (74.8): the declaration point does not move the allocator, which
+//     follows first definition in the flow graph.
+//   - `Vec3& ppos = unit->pos;` with `.` access: compile error (the call
+//     site needs a `Vec3*`).
+//   - `static inline Vec3* PosOf(Unit*)` and `(Vec3*)((char*)unit + 0x6a)`:
+//     byte-identical to the file (74.8).
+//   - first delta through ppos for x and z (62.0) or only z (62.0): unit
+//     leaves the callee-saved set.
+//   - recompute deltas through ppos (46.2), ppos removed entirely with every
+//     access spelled unit->pos (63.5).
+//   - single select + one tail call, `int amount; if..else`: 62.4, and the
+//     disassembly shows unit in ebp (lea edi,[ebp+0x6a]), confirming the
+//     earlier note.
+//   - `(int)(((__int64)(unsigned short)adiff * field_20) / max_turn)` (the
+//     one-operand `imul ecx` the original has): 70.3, so the byte-count
+//     optimum still prefers the int product spelled here even though the
+//     original multiplies in 64 bits.
+//   - naming the hasPath==0 amount in a local before the turn store: 72.7.
+// Conclusion unchanged: with this source shape the ebx<->edi swap is an
+// allocator tie-break no source rewrite has moved, and every rewrite that
+// moves it loses the frame or the ppos=ebx assignment.
+//
 // Seventh pass (deepseek-v4.1-flash, retry, ~15 scratch/check runs, 74.8%,
 // 964 bytes). Two changes raised the score:
 //  1) computing the recompute delta as az first then ax

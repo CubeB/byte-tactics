@@ -1,5 +1,19 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// deepseek-v4.1-flash retry, 2026-10-01. State: 59.0% (original 920 bytes,
+// ours 889); no improvement, the version below is the best. The frame is 0x20
+// against the original's 0x28, and the first call has no return temporary.
+// Tried this pass, all <= 59.0%: a user copy constructor (init-list, body,
+// pointer-cast body, declared-only), a destructor, both together, a const
+// return type, direct-init `Vec3 v(f())`, a single-use static helper, a
+// distinct return struct with a converting ctor or converting operator=,
+// assignment `Vec3 v; v = f();` (plain, with ctor, with operator=), two-step
+// and const-reference forms. MSVC 5 elides the copy in every one and the frame
+// stays 0x20. The distinct-return-struct form does create a real temporary
+// (frame 0x24) but places it 12 bytes below v, the opposite of the original.
+// Clamp forms: reference-returning inline max alone 51.8, as an assignment
+// 58.3, `*(cond ? &v.y : &lim)` 58.3, so the direct store still wins.
+//
 // deepseek-v4.1-flash, 2026-09-30. State: 59.0% (check.py: original 920 bytes,
 // ours 889). Best so far; up from the 58.5% this file held at the start of the
 // pass. Two changes, both copy-construction:

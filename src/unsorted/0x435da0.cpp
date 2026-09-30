@@ -1,4 +1,14 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 5 (issue #2525, 10-minute box): re-confirmed the
+// earlier retry-4 measurements. This is the HONEST complete source: 2740 bytes,
+// the original size, 89.5%, no MATCH. (A 95.0% variant existed only by adding
+// two stores the original does not have, an allocator lever; those were removed.)
+// This retry found
+// no new real lever: the whole honest diff is the constant-register choice
+// (we get esi=0 / eax=-1; original ebx=0 / esi=-1) plus the two delayed x87
+// fstp stores after killmul and MeteorDensity. No source spelling tried here
+// moved either: chained stores, `-1L`/`~0`/(unsigned)-1, planet[0]=desc[0]=0,
+// lavaWorld=noSeaLevelTrigger=0, and int local for -1 all stay at 89.5%.
 // deepseek-v4.1-flash retry 4 (issue #2362): the four `= -1` stores are back in
 // the body, so this source is complete (the earlier 92.7% file was 28 bytes
 // short and scored higher only because four mismatching lines left the
@@ -481,8 +491,6 @@ int Class_00435c00::FUN_00435da0(char* map)
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(numPlayers, "numplayers", 0x80, DAT_005119b8);
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(planet, "Planet", 0x80, DAT_005119b8);
     g_game->noMovie = parser.current->FUN_004c46c0("nomovie", 0);
-    field_c1c = -1;                    // allocator lever, not in the original
-    field_c20 = 0;                     // allocator lever, not in the original
     ((Class_004c48c0*)parser.current)->FUN_004c48c0(desc, "missiondescription", 0x80, "No description available");
     strcpy(lower, desc);
     _strlwr(lower);

@@ -1,4 +1,6 @@
 // Decompiled by Sonnet 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #2949 retry by GPT-6.1-sol: a fresh check reconfirmed 99.2% (699/699); the
+// guard branch still targets 0x4be66d instead of the original 0x4be671.
 // Walks a directory tree (the search 0x4bc4b0 allocates, the same one 0x4bcb50
 // uses) and, for every plain file, marks the matching entry of every open
 // HAPI archive: the entry named "path + file name" is looked up with

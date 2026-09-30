@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free and GPT-6.1-sol. Names are provisional.
+// Best: 51.1% after 3 checks; `(flags & 0x10) != 0` improved 0.1 points. Still differs because MSVC keeps `order` in ecx instead of reloading it from its argument slot, shifting the division and draw-call registers.
 // Draws the on-screen bounding box of the object's unit type. `order` is one of
 // the per-unit list objects that 0x439b30 walks (type index at +0x36, 16.16
 // position at +0x22, owner at +0xe, timestamp at +0x46). The box corners are the
@@ -10,7 +11,7 @@
 // owner's colour, then the same rectangle offset one pixel outward in the
 // alternate colour. Finally the object's position is copied to `out`.
 //
-// PARTIAL, 51.0 percent (was 44.7). Three fixes, all confirmed with check.py;
+// PARTIAL, 51.1 percent (was 44.7). Three fixes, all confirmed with check.py;
 // do not re-sweep any of them:
 //  1. The world box is 28 BYTES, not 32. `lo` is a 16-byte Vec3q (x, y, z, pad)
 //     and `hi` is a 12-byte Vec3f (x, y, z), not another Vec3q: the frame is
@@ -221,7 +222,7 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* 
 
     unsigned char color1;
     unsigned char color2;
-    if (order->owner->flags.bits.b4) {
+    if ((order->owner->flags.flags & 0x10) != 0) {
         color1 = g_game->color_dce;
         color2 = g_game->color_dd5;
     } else {

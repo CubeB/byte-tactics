@@ -1,4 +1,6 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Started by an earlier partial (Claude Opus 5.5, GPT-6, deepseek-v4.1-flash);
+// this version keeps that work and was re-verified by deepseek-v4.1.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
 // outside its range. State 0 prepares the order (FUN_0040f200 is defined here
@@ -7,10 +9,80 @@
 // state 6 flies on and, when the unit is below three quarters of its health,
 // sends it to a random repair pad ("VTOL_LANDING").
 //
-// Partial: 96.6%, same 1980-byte size. Remaining differences include the
-// random-angle LEA operand order, turn-delay register allocation and multiply
-// order, and switch relocations. The delay subtraction is equivalent: VC5
-// folds the sign into a -30.0f constant, then subtracts the converted result.
+// Partial: 96.8%, same 1980-byte size, after the state-2 turn sum was moved to
+// the state-2 case below as `Offset(FUN_004b6c30(0x4000) + angle - 0x2000,
+// radius)`. That is the spelling of the matched sibling 0x412710 (state 1
+// there); it removed the whole `lea eax, [edx + eax - 0x2000]` hunk. What
+// still differs (checked against build/scratch/0x411f50/ctx.txt):
+//  - 0x4121d7 and 0x4122b0: the two `lea` copies of &unit->pos and &order->pos
+//    are swapped. The original materialises &order->pos (ebp) first and
+//    &unit->pos (ebx) second; ours does the reverse. Same pushes, same
+//    registers, both leas are hoisted above the _hypot call. Tried and
+//    rejected this session: explicit `Vec3* to/from` locals (folded away,
+//    byte-identical) and `(Vec3*)&unit->fixedPos` as the first argument
+//    (byte-identical). The matched sibling 0x412710 emits the same pair only
+//    because its FUN_0048a980 call is not inside an if body, so its leas are
+//    not hoisted into the condition's FP slots; there the argument walk order
+//    survives, here the hoisted pair is a codegen tie. Case 5 shows why its
+//    pair looks ordered: its earlier `FUN_0048a0a0(unit, &order->pos, 0)`
+//    statement already fixed &order->pos in ebx at 0x412488, so only
+//    &unit->pos (ebp) is left for the FUN_0048a980 args. In cases 1 and 2
+//    nothing precedes the pair, and the original emits it right-to-left
+//    (arg2 &order->pos -> ebp, then arg1 &unit->pos -> ebx) while VC5 emits it
+//    left-to-right for every source shape tried so far.
+//  - 0x4123ad and 0x4123ec: state 4, the turn-time formula. The original keeps
+//    unit->def in ebp (mov ebp,[esi+0x92]) and computes
+//    `(int)(sqrt(size * 2.0 / rate) * 30.0f * unit->type->field_22) + 1 +
+//    def->field_216` as `fmul [30.0]`, `fimul [field_22]`, `inc ebx`,
+//    `add ebx, ecx`; VC5 rewrites our spelling into
+//    `field_216 - (int)(sqrt(...) * field_22 * -30.0f) + 1` (fmul of the -30.0f
+//    constant, `sub ebx, eax`) and puts def in ebx. Earlier passes tried five
+//    rewrites; this session tried eleven more source shapes in
+//    build/scratch/0x411f50/micro*.cpp: the (int) result in its own int local,
+//    that local passed to an inline helper, the sum split over two statements,
+//    `+ def->field_216 + 1`, `1 + ...`, `f216 + 1 + t`, an `unsigned short`
+//    copy of field_216, `(int)(float)(...)`, an `unsigned` sum and a sum whose
+//    field_216 load is a separate local. Every shape materialises the sum in a
+//    local first and every one compiles to the negated -30.0f form. The
+//    positive +30.0f form appears only when the sum is folded into an `lea`
+//    inside a call argument, and the original computes the sum before the
+//    if/else (inc/add before the target test), so that shape cannot be used.
+//    tools/headers.py over all 128 header sets gave 96.6% for every set (64
+//    sets fail to compile without <list>/<vector>), so header state does not
+//    flip it either. This session added seven more shapes (build/scratch/
+//    0x411f50/varA..varP.cpp): naming the product `float sp = (float)sqrt(size
+//    * 2.0 / rate) * 30.0f;` does flip VC5 to the original's constant-first
+//    multiply order, but it then rewrites fidiv into fdivp/fxch, the field_22
+//    multiply into fild/fmulp and the sum into a single `lea [eax+ecx+1]`,
+//    which is 55 differing lines against 21 here at the same 96.8%; and
+//    writing the sum as `(f216 + 1) - (int)(x * -30.0f)` or as
+//    `f216 + (1 - (int)(x * -30.0f))` compiles to the identical negated bytes,
+//    so VC5 normalises the sign and the association after instruction
+//    selection, not from the source spelling.
+//  - 0x4126f0: the switch jump table address still shows as <addr>; check.py
+//    resolves relocations only once the code matches, so this may not be a real
+//    difference.
+//
+// Re-verified by deepseek-v4.1-flash: still 96.8% (1980 bytes), first line
+// credit kept. This session re-ran the N-declarations sweep (nd1..nd24 flat at
+// 96.6%, nd60 down to 93.9%, nd180+ shorter and 83 to 86%) and ~40 more shapes
+// in build/scratch/0x411f50/ (cA..cG, h3..h9, kA..kC, q1..q6): pinning the
+// product in a float local, reordering the two multiply operands, int/double/
+// short/size variants, an inline AngleTo() helper and Vec3* locals for the
+// case-1/2 leas. Every one lands on the same 96.8% bytes. The float order IS
+// reachable in a function whose size/rate are parameters: `float x =
+// (float)sqrt(size * 2.0 / rate) * 30.0f;` then `(int)(x * field_22)` gives the
+// original's `fidiv`/`fmul [30.0]`/`fimul [field_22]` (mf.cpp f3), and a micro
+// reproducing the whole state-4 body gives the original's positive sum when the
+// field_22 multiply becomes `fild`/`fmulp` (micro12 m1/m5/m8/m9/m10). Here every
+// shape that keeps `fidiv` reassociates to `fimul field_22; fmul -30.0`, and
+// every shape that keeps +30.0 turns the field_22 multiply into `fild`/`fmulp`
+// and folds the sum into `lea [eax+ecx+1]`, so the two requirements look coupled
+// to file-wide compiler state (the original source's neighbouring functions),
+// not to the state-4 expression. The def-in-ebp vs def-in-ebx difference is the
+// same swap: original keeps the flags parameter (ebx) through the state-4 test
+// and gives def ebp; VC5 reuses the dead ebx here. Forcing flags live with a
+// named copy (d1..d4) did not move it.
 #include <list>
 #include <windows.h>
 #include <math.h>
@@ -206,8 +278,7 @@ int __stdcall FUN_00411f50(Unit* unit, Order* order, unsigned int flags)
         int dist = (int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z);
         int angle = FUN_0048a980(&unit->pos, &order->pos);
         int radius = dist / 2;
-        angle += FUN_004b6c30(0x4000) - 0x2000;
-        Vec3 dest = unit->pos + Offset(angle, radius);
+        Vec3 dest = unit->pos + Offset(FUN_004b6c30(0x4000) + angle - 0x2000, radius);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
         ((Class_0044e730*)obj)->FUN_0044e730(0x1e0);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);

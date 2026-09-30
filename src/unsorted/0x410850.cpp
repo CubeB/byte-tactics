@@ -1,10 +1,39 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 89.9%, 1050 bytes versus 1051. Remaining differences include
-// health-test register rotation, kind return-buffer placement, position-add
-// code generation and the final vector destruction call. 768 header sets
-// did not improve it. Inlining the native allocator/destroy/deallocate body
-// improved the final destructor but changed earlier destructor call sites
-// and dropped the whole-function score to 86.0%; that variant was rejected.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// (base version by GPT-6 Astra; deepseek-v4.1 re-verified and extended the notes)
+// Partial: 90.3%, 1050 bytes versus 1051. Still differing:
+//  1) case 1 health test: original has def in edx, health in ecx, bound in eax
+//     and cmp ecx,eax; ours uses eax/edx/ecx and cmp edx,ecx (same length).
+//  2) the Class_00438760 return buffer of FUN_0043f0e0 sits at [esp+0x64]
+//     (unit's dead argument home) in the original and at [esp+0x68] (order's
+//     home) here, so the later reload of kind is [esp+0x6c]/[esp+0x70] too.
+//  3) the case 1 tail: the original's pos temp is at [esp+0x1c] and it stores
+//     x, y, z after the push; ours lands it at [esp+0x10] (reusing the water
+//     block's Direction temp slot) and stores y, x, z with a spill of x. The
+//     final `or dl, 0xf8` also wants edx, and the last call is
+//     `operator delete[]([esp+0x4c])` (the vector's LAST pointer) in the
+//     original where we emit the out-of-line ~vector().
+// Tried and rejected (all scored lower): the inline `order->pos + Offset(...)`
+//     with a member operator+ (78.7%): it fixes region 3's three direct loads
+//     but MSVC then gives ESI to `order` and EDI to `unit` instead of the
+//     other way round, which costs far more. Field-wise reads of order->pos
+//     written straight in the body do the same (76.8%), but routing them
+//     through the one-argument PosOf() helper below keeps the parameter
+//     register roles and scores 90.3%. Naming the offset `off` costs nothing
+//     there; a named `dir` local in the water block (79.2%) and passing
+//     -FUN_004b70ef()/-FUN_004b7123() straight into a helper (77.3%) both
+//     lose the esi/edi roles. Region 2 alone did not move under any spelling
+//     tried. A named `bound` local for the health compare is unchanged at
+//     89.9%, as is reversing the compare to (maxHealth>>2)*3 > (unsigned)health.
+//     "Sum into a temporary, then copy" for the tail (87.0%) loses the roles too.
+// Tried after the 90.3% state: PosOf() inlined by hand at the case 1 tail,
+//     field-wise pos.x=order->pos.x+off.x in statement order (78.2% and 78.7%:
+//     both flip esi to order and edi to unit), an inline ~vector() body
+//     `delete[] first` with the derived class dtor left implicit (89.1%) or
+//     declared out-of-line (89.0%): the first fixes the tail's inlined
+//     delete[] but inlines the three pads destroy sites too. 90.3% remains best.
+// Suspected original bug: none. The final delete[] takes [esp+0x4c], which is
+//     the units vector's first pointer (inlineEmpty reads first at +4 and last
+//     at +8 of the object at [esp+0x48]), so it is a correct inlined ~vector().
 #include <vector>
 struct Unit;
 namespace std {
@@ -49,6 +78,8 @@ struct Unit {
     char pad10a[6]; unsigned int flags;
 };
 struct Order { char pad0[4]; Class_00438760 kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; };
+static inline Vec3 PosOf(Order* o) { Vec3 r; r.x=o->pos.x; r.z=o->pos.z; r.y=o->pos.y; return r; }
+static inline Vec3 MovePos(Order* o, const Vec3& off) { Vec3 r=PosOf(o); r.x+=off.x; r.z+=off.z; return r; }
 class Class_0043a1f0 { public: char data[0x56]; Class_0043a1f0(Class_00438760, Unit*, Vec3*, int, int, int); };
 class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*, const Vec3&); };
 struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x14233]; int water; };
@@ -139,7 +170,10 @@ int __stdcall FUN_00410850(Unit* unit, Order* order, int flags)
             return 3;
         }
         if (flags&0xe0) order->angle+=-FUN_004b6c30(0x2000)-0x4000;
-        Vec3 pos=order->pos+Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
+        Vec3 off=Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
+        Vec3 pos=PosOf(order);
+        pos.x+=off.x;
+        pos.z+=off.z;
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
         ((Class_004388d0*)order)->FUN_004388d0((int)move);

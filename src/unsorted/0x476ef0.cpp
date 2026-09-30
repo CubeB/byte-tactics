@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry pass: still 80.4% (1124 vs 1112). Tested
+// build/scratch/0x476ef0/vA (colourState=0 moved to block entry), vB (else arm
+// store before lineStart++), vC (both): all score identically, and vA still
+// does not emit the missing dead `mov [esp+0x20], 0` (MSVC drops it whichever
+// order it is written). The dominant remaining difference is the MSVC 5
+// frame-renumbering permutation, not the source: comparing objdump of our
+// build/obj/unsorted/0x476ef0.obj against the exe shows our two mismatched
+// store/load variable pairs (dialog store 0x2c load 0x30, gp store 0x40 load
+// 0x38) are the same phenomenon as the original's (dialog store 0x24 load
+// 0x28, gp store 0x38 load 0x30), just shifted, while linesPerPage (0x18) and
+// textX (0x24) already land in the original slots. Chasing the pair offsets
+// with declaration reorders was the previous pass's dead end too.
 // Timebox note (deepseek-v4.1-flash final pass): stopped at 80.4%, unchanged
 // from the file this pass inherited (1124 original bytes vs 1112 ours).
 // What still differs (all confirmed in the last check.py diff):

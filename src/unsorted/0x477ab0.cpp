@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial, 72.9% (1914 vs 1935 bytes). Campaign screen click handler.
 // Remaining diff is BLOCK PLACEMENT, not shape. Verified against our own
 // object file (build/obj/unsorted/0x477ab0.obj): MSVC 5 emits
@@ -40,6 +40,19 @@
 // where the original uses ecx; the esi/edi holder/menuSub assignment is
 // swapped in the Missions rebuild block. Those look like register colouring
 // falling out of the block placement, not separate shape errors.
+// Retry by deepseek-v4.1-flash (10 min timebox): scored v1..vI scratch copies,
+// all <= 72.9%. Tried: inverted last Start test as `if (!FUN(menu,"Start"))
+// goto PrevMenu;` (v1 nested, vD flat), flat `if (DAT_0051e668 == 0) goto
+// CampaignPair;` test1, `||` for the outer pair, a do/while(0) break wrapper,
+// and an explicit else. None moved CampaignPair/BigButton up to the original
+// 0x9b/0xbd: the compiler still keeps the inner redundant DAT test as
+// `je CampaignPair` (PrevMenu fallthrough) and sinks CampaignPair+BigButton to
+// the end. Inverting the last Start test only relocates the whole PrevMenu /
+// Difficulty / side-handler group and drops the score to 62.3%. The sibling
+// matched handlers 0x4775a0 and 0x478cb0 write the same dispatch as an
+// if/else-if chain with the action body inlined once per clause; duplicating
+// the 0x15a-byte BigButton body 4 times did not look like it would tail-merge
+// and was not tried. Best remains 72.9%.
 
 #pragma pack(push, 1)
 struct Entry_00477ab0 {

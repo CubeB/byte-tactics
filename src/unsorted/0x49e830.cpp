@@ -74,6 +74,22 @@
 //    (HANDLE)lzero)` and `int bGameOk = FUN_004b5980(...); if (bGameOk ==
 //    lzero)` give `cmp eax, ebx`, while the inline forms give
 //    `test eax, eax`. Those two changes took 86.8% -> 87.3% -> 87.7%.
+//  - space-bunny-free (retry): four msvc5-sp3 /Fa probes on the isolated
+//    block narrow the cause and close one door. (1) MSVC 5 merges consecutive
+//    `field = 1` sets of one bitfield container into ONE or of the combined
+//    mask (`or WORD PTR x, 0x3f2`, or `or eax,0x3f2` once the container has
+//    been widened to 32 bits), and it does NOT narrow an or to byte width for
+//    a 16-bit container, so the original's `or al/ah` pair cannot come from
+//    `unsigned short` bitfields however they are spelled. (2) With
+//    `unsigned char` bitfields MSVC emits one byte or PER CONTIGUOUS SOURCE
+//    RUN, which is exactly the original's pattern of singletons, so byte
+//    containers are right and the fold is right to lose. (3) DEAD END, do not
+//    retry: a struct that MIXES the types, `unsigned char b0:1` followed by
+//    `unsigned short b1:1...`, does not overlay the two containers, MSVC 5 puts
+//    the short container at OFFSET 2 and emits `or WORD PTR x+2, 0x1f9`. There
+//    is no source form that gives a byte-container read and a word-container
+//    or chain in one register. (4) `unsigned short v = x; v |= 2; v |= 0x100;
+//    ...` pushes v to a stack slot and then merges, so it is worse.
 //  - deepseek-v4.1: what is left is the flags block above (12 lines) and the
 //    g_game field-store register rotation (ecx/edx/eax/ecx in the original,
 //    edx/eax/ecx/edx here, driven by the inlined strcpy below saving its

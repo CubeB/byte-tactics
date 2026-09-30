@@ -1,21 +1,25 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
-// Retry (deepseek-v4.1-flash, issue 2730): still 18.6%, no new lever. check.py's
-// difflib shows only 84 of 593 original instructions match (longest matching run 4),
-// so this is not a local residual: the entire body is a register+frame permutation
-// (param_1 ebp vs ours eax, zero ebx vs ours edi, me edi vs ours esi, entries 0x38
-// vs ours 0x64, me 0x50 vs ours 0x28). headers.py tried all 128 sets, every one
-// exactly 18.6%, so the state is not header-driven. Removing the int& aliases into
-// bounds compiles byte-identically (2103 bytes, 18.6%).
-// STATUS (deepseek-v4.1-flash, issue 2551): best is 18.6%, not MATCH. What still
-// differs: the prologue register assignment (original puts param_1 in ebp and the
-// zero/top phi in ebx; ours loads param_1 into a volatile register and zeroes edi),
-// and from there the stack slot map and the text-loop register roles (see the long
-// note above the function). Ideas tried this round: declaring the holder local
-// after the if so the source re-reads param_1->holder twice like 0x4a1b53/0x4a1b6c
-// (17.9%, worse than 18.6%, so the two loads do not come from that alone); moving
-// the t/flag/bounds declarations to mimic the original frame slot order
-// (0x10=t/line ... 0x68=char temp, which is exactly reverse declaration order)
-// scored 18.6% unchanged, so slot order is not decided by declaration order alone.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// STATUS (deepseek-v4.1-flash, issue 2934): best 26.6%, not MATCH.
+// What moved it: (1) restore the TWO holder loads. The original reads
+// [param_1+0x18] at 0x4a1b53 and again at 0x4a1b6c, because the store
+// [holder+0x14]=1 may alias holder, so there is no single holder local spanning
+// the store. Two-load alone is check.py 17.9% but aligns better (27.1% true LCS
+// vs 23.9%). (2) two lenient locals that MSVC may re-load: `int keepW = me->w;`
+// and `short keepC0 = me->field_c0;`. The original re-reads me->w (0x4a1bb5 and
+// 0x4a1d35) and me->field_c0 (0x4a1c6a and 0x4a1f96); declaring a local for each
+// is semantically free and changes the allocator state, 18.6 -> 26.6. keepW alone
+// is 25.2 and keepC0 alone is 17.9, so both are load bearing. The three changes
+// only work together: the same two locals on the original single holder load score
+// 18.8, so the two holder loads are needed as well.
+// Suspected original bug: the highlight call at 0x4a1fb6 has both arms dead
+// identical (0x4a1fb8 and 0x4a1fcb both push 0x1e and lea the same [esp+0x1c]),
+// so `holder->field_20 == param_2` has no effect on the output.
+// What still differs: the body is a one-step register rotation. Original has
+// param_1=ebp, me=edi, zero=ebx, and an extra esi home; ours has me=esi,
+// zero=edi, param_1=ebx. So one more long-lived node ahead of `me` is missing.
+// Adding speculative locals for type/flags/da/text/d6/ba/tab did not help. Frame
+// is 0xc0 against the original 0xbc. Tried and rejected: keepW used for x2 still
+// (17.9, the local must stay live into the loop); more persistent locals.
 #include <windows.h>
 #include <string.h>
 
@@ -170,10 +174,10 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     int& right = bounds.right;
     int& bottom = bounds.bottom;
 
-    Holder_004a1b40* holder = param_1->holder;
-    if (holder != 0)
-        holder->field_14 = 1;
+    if (param_1->holder != 0)
+        param_1->holder->field_14 = 1;
 
+    Holder_004a1b40* holder = param_1->holder;
     Entry_004a1b40* entries = holder->entries;
     Entry_004a1b40* me = &entries[param_2];
 
@@ -185,7 +189,8 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
         left = me->x;
         top = me->y;
     }
-    right = me->w + left - 1;
+    int keepW = me->w;
+    right = keepW + left - 1;
     bottom = me->h + top - 1;
 
     void* surface = holder->surface;
@@ -214,8 +219,9 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     int xx;
     int xw;
     unsigned int flags = (unsigned int)me->flags;
+    short keepC0 = me->field_c0;
 
-    if ((flags & 0x10) != 0 && me->text != 0 && me->field_c0 != 0) {
+    if ((flags & 0x10) != 0 && me->text != 0 && keepC0 != 0) {
         // ---- text-line renderer ----
         int i = 1;
         t = 0;
@@ -239,7 +245,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 
         for (;;) {
             int x1 = left + 2;
-            int x2 = x1 + me->w - 2;
+            int x2 = x1 + keepW - 2;
             int cy = top + yoff + 2;
             int cy2 = cy + step;
             Rect_004a1b40 rowRect = {x1, cy, x2, cy2};
@@ -312,7 +318,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
                              -0x16);
             } else if ((me->flags & 0x100) == 0 &&
                        me->field_ba == line + me->bc.field_bc &&
-                       me->field_c0 != 0) {
+                       keepC0 != 0) {
                 // both arms (0x4a1fb8 and 0x4a1fcb) pass the same rect and id,
                 // the arm is chosen by holder->field_20 == param_2
                 if (param_1->holder->field_20 == param_2)

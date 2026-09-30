@@ -1,10 +1,26 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, 48.7%. Restored player and campaign-holder reloads around callbacks.
-// Remaining differences include duplicated mission blocks and branch/register scheduling.
-// Click handler for the single-player Campaign screen. Dispatches on the gadget
-// name (Start/Campaign/Missions/bigButton, PrevMenu, Difficulty, Side0/Arm,
-// Side1/Core) and rebuilds the campaign or missions list, checking the campaign
-// CD. Status: partial. See note at the bottom for what still differs.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Partial, 72.9% (1914 vs 1935 bytes). Campaign screen click handler.
+// Remaining diff is BLOCK PLACEMENT, not shape. Verified against our own
+// object file (build/obj/unsorted/0x477ab0.obj): MSVC 5 emits
+// `mov eax,[0x51e668]; xor ebx,ebx; cmp eax,ebx; je 0x606` at offset 0x66,
+// then the Missions/Start gadget calls inline, then `cmp [0x51e668],ebx`
+// and `je 0x606`, exactly like the original. The divergence is the target:
+// the original's Campaign/Start pair sits at 0x477b4b (offset 0x9b) and its
+// BigButton block right after at 0x477b6d (offset 0xbd), so all four
+// gadget-test branches are 2-byte shorts (74/75), while our build sinks the
+// Campaign/Start pair and the whole BigButton body to offsets 0x606/0x620,
+// making those same branches 6-byte near forms (0f 84 / 0f 85) and costing
+// 16 bytes at those sites. The zero register in ebx is NOT a diff: our build
+// already keeps `xor ebx,ebx` function-wide (see SHARED 0x4624a0: it is a
+// compiler constant-in-register choice, not a source variable).
+// Tried and rejected: `if (FUN(menu,"Missions") || FUN(menu,"Start")) goto`
+// for the inner pair (byte-identical to the two separate ifs: 1914 bytes,
+// 72.9%), for the outer pair with an explicit `goto PrevMenu` fallthrough
+// (62.3%; the extra jump makes the layout worse), and both at once (62.3%).
+// Next idea: the sink is caused by the `goto BigButton` graph (the original
+// source very likely used a single if/else-if chain with no labels); a
+// nesting that keeps BigButton as the fallthrough of the last gadget test
+// should bring it up to 0xbd.
 
 #pragma pack(push, 1)
 struct Entry_00477ab0 {
@@ -73,10 +89,9 @@ void __stdcall FUN_004ab0a0(void* menu);
 // FUNCTION: 0x477ab0
 void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
 {
-    unsigned char idx0 = *(unsigned char*)(g_game + 0x2a42);
     Entry_00477ab0* entries = menu->holder->entries;
-    char* playerInfo = g_game + 0x14b * idx0;
-    int index = 0;
+    char* playerInfo = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+    int index;
 
     if (menu->current == -1) {
         FUN_004d85a0(DAT_0051e65c);
@@ -91,13 +106,55 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
             goto BigButton;
         if (FUN_0049fd60(menu, "Start"))
             goto BigButton;
+        if (DAT_0051e668 != 0)
+            goto PrevMenu;
     }
-    if (DAT_0051e668 != 0)
-        goto PrevMenu;
     if (FUN_0049fd60(menu, "Campaign"))
         goto BigButton;
     if (FUN_0049fd60(menu, "Start"))
         goto BigButton;
+
+BigButton:
+    index = 0;
+    FUN_0047f1a0("bigButton", 0);
+    if (!FUN_0041d6a0(0)) {
+        FUN_004abd90(g_game + 0x519,
+                     FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
+                     200, 1, 1);
+        FUN_004ab0a0(g_game + 0x519);
+        return;
+    }
+    FUN_0041d4c0();
+    FUN_0041da30();
+    {
+        char* name;
+        if (DAT_00507b6c == 0) {
+            Entry_00477ab0* e = FUN_0049ff90(entries, "Campaign");
+            name = FUN_004b6af0(e->text, e->selected);
+        } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
+            name = "Arm Campaign";
+        } else {
+            name = "Core Campaign";
+        }
+        ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(name);
+    }
+    if (DAT_0051e668 != 0) {
+        Entry_00477ab0* e = FUN_0049ff90(entries, "Missions");
+        index = e->selected;
+    }
+    if (((Class_00435c00*)*(void**)(g_game + 0x391e9))->FUN_00435c00(index) != 0) {
+        FUN_00491c80(0x14);
+        *(unsigned char*)(*(int*)(g_game + 0x1b8a) + 0x96) = 0;
+        *(unsigned char*)(*(int*)(g_game + 0x1cd5) + 0x96) = 1;
+        FUN_00430f00();
+        if (DAT_0051e668 != 0) {
+            *(unsigned char*)(g_game + 0x2bc0) = 0x10;
+            return;
+        }
+        *(unsigned char*)(g_game + 0x2bc0) = 0x0f;
+        return;
+    }
+    goto End;
 
 PrevMenu:
     if (FUN_0049fd60(menu, "PrevMenu")) {
@@ -141,9 +198,9 @@ CoreSide:
     *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 1;
     *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 0;
     if (DAT_00507b6c == 0) {
-        playerInfo = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+        char* pi = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+        int side = *(unsigned char*)(*(int*)(pi + 0x1b8a) + 0x95);
         Holder_00477ab0* campaignHolder = *(Holder_00477ab0**)(g_game + 0x531);
-        int side = *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95);
         if (DAT_0051e65c) {
             FUN_004d85a0(DAT_0051e65c);
             DAT_0051e65c = 0;
@@ -151,12 +208,29 @@ CoreSide:
         FUN_0047f1a0("smlbutton", 0);
         int count = FUN_00476a60(&DAT_0051e65c, side);
         FUN_004a32a0(g_game + 0x519, "Campaign", DAT_0051e65c, count, 0);
-        index = FUN_0049fdf0(campaignHolder->entries, "Campaign", 2);
-        FUN_004a2be0(g_game + 0x519, index);
+        FUN_004a2be0(g_game + 0x519, FUN_0049fdf0(campaignHolder->entries, "Campaign", 2));
         FUN_0049fa90(g_game + 0x519);
     }
-    if (DAT_0051e668 != 0)
-        goto MissionsCore;
+    if (DAT_0051e668 != 0) {
+        FUN_0049ff90(entries, "Campaign");
+        {
+            Holder_00477ab0* holder = *(Holder_00477ab0**)(g_game + 0x531);
+            void* menuSub = g_game + 0x519;
+            if (DAT_0051e660) {
+                FUN_004d85a0(DAT_0051e660);
+                DAT_0051e660 = 0;
+            }
+            Entry_00477ab0* e = FUN_0049ff90(holder->entries, "Campaign");
+            char* text = FUN_004b6af0(e->text, e->selected);
+            ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(text);
+            index = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
+            FUN_004a32a0(menuSub, "Missions", DAT_0051e660, index, 0);
+            FUN_004a2be0(g_game + 0x519, FUN_0049fdf0(holder->entries, "Missions", 2));
+            FUN_0049fa90(g_game + 0x519);
+        }
+        FUN_004ab0a0(menu);
+        return;
+    }
     goto End;
 
 ArmSide:
@@ -169,9 +243,9 @@ ArmSide:
     *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 0;
     *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 1;
     {
-        playerInfo = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+        char* pi = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+        int side = *(unsigned char*)(*(int*)(pi + 0x1b8a) + 0x95);
         Holder_00477ab0* campaignHolder = *(Holder_00477ab0**)(g_game + 0x531);
-        int side = *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95);
         if (DAT_0051e65c) {
             FUN_004d85a0(DAT_0051e65c);
             DAT_0051e65c = 0;
@@ -179,100 +253,29 @@ ArmSide:
         FUN_0047f1a0("smlbutton", 0);
         int count = FUN_00476a60(&DAT_0051e65c, side);
         FUN_004a32a0(g_game + 0x519, "Campaign", DAT_0051e65c, count, 0);
-        index = FUN_0049fdf0(campaignHolder->entries, "Campaign", 2);
-        FUN_004a2be0(g_game + 0x519, index);
+        FUN_004a2be0(g_game + 0x519, FUN_0049fdf0(campaignHolder->entries, "Campaign", 2));
         FUN_0049fa90(g_game + 0x519);
     }
     FUN_004a0570(menu, "Campaign", DAT_00507b6c == 0);
-    if (DAT_0051e668 != 0)
-        goto MissionsArm;
-    goto End;
-
-BigButton:
-    index = 0;
-    FUN_0047f1a0("bigButton", 0);
-    if (!FUN_0041d6a0(0)) {
-        FUN_004abd90(g_game + 0x519,
-                     FUN_004c5740("Please insert the Campaign CD (Disc 2) and try again"),
-                     200, 1, 1);
-        FUN_004ab0a0(g_game + 0x519);
-        return;
-    }
-    FUN_0041d4c0();
-    FUN_0041da30();
-    {
-        char* name;
-        if (DAT_00507b6c == 0) {
-            Entry_00477ab0* e = FUN_0049ff90(entries, "Campaign");
-            name = FUN_004b6af0(e->text, e->selected);
-        } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) != 0) {
-            name = "Core Campaign";
-        } else {
-            name = "Arm Campaign";
-        }
-        ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(name);
-    }
     if (DAT_0051e668 != 0) {
-        Entry_00477ab0* e = FUN_0049ff90(entries, "Missions");
-        index = e->selected;
-    }
-    if (((Class_00435c00*)*(void**)(g_game + 0x391e9))->FUN_00435c00(index) != 0) {
-        FUN_00491c80(0x14);
-        *(unsigned char*)(*(int*)(g_game + 0x1b8a) + 0x96) = 0;
-        *(unsigned char*)(*(int*)(g_game + 0x1cd5) + 0x96) = 1;
-        FUN_00430f00();
-        if (DAT_0051e668 != 0) {
-            *(unsigned char*)(g_game + 0x2bc0) = 0x10;
-            return;
+        FUN_0049ff90(entries, "Campaign");
+        {
+            Holder_00477ab0* holder = *(Holder_00477ab0**)(g_game + 0x531);
+            void* menuSub = g_game + 0x519;
+            if (DAT_0051e660) {
+                FUN_004d85a0(DAT_0051e660);
+                DAT_0051e660 = 0;
+            }
+            Entry_00477ab0* e = FUN_0049ff90(holder->entries, "Campaign");
+            char* text = FUN_004b6af0(e->text, e->selected);
+            ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(text);
+            index = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
+            FUN_004a32a0(menuSub, "Missions", DAT_0051e660, index, 0);
+            FUN_004a2be0(g_game + 0x519, FUN_0049fdf0(holder->entries, "Missions", 2));
+            FUN_0049fa90(g_game + 0x519);
         }
-        *(unsigned char*)(g_game + 0x2bc0) = 0x0f;
-        return;
     }
-    goto End;
-
-MissionsCore:
-    FUN_0049ff90(entries, "Campaign");
-    {
-        int holder = *(int*)(g_game + 0x531);
-        void* menuSub = g_game + 0x519;
-        if (DAT_0051e660) {
-            FUN_004d85a0(DAT_0051e660);
-            DAT_0051e660 = 0;
-        }
-        Entry_00477ab0* e = FUN_0049ff90(*(Entry_00477ab0**)(holder + 4), "Campaign");
-        char* text = FUN_004b6af0(e->text, e->selected);
-        ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(text);
-        index = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
-        FUN_004a32a0(menuSub, "Missions", DAT_0051e660, index, 0);
-        index = FUN_0049fdf0(*(Entry_00477ab0**)(holder + 4), "Missions", 2);
-        FUN_004a2be0(g_game + 0x519, index);
-        FUN_0049fa90(g_game + 0x519);
-    }
-    FUN_004ab0a0(menu);
-    return;
-
-MissionsArm:
-    FUN_0049ff90(entries, "Campaign");
-    {
-        int holder = *(int*)(g_game + 0x531);
-        void* menuSub = g_game + 0x519;
-        if (DAT_0051e660) {
-            FUN_004d85a0(DAT_0051e660);
-            DAT_0051e660 = 0;
-        }
-        Entry_00477ab0* e = FUN_0049ff90(*(Entry_00477ab0**)(holder + 4), "Campaign");
-        char* text = FUN_004b6af0(e->text, e->selected);
-        ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(text);
-        index = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
-        FUN_004a32a0(menuSub, "Missions", DAT_0051e660, index, 0);
-        index = FUN_0049fdf0(*(Entry_00477ab0**)(holder + 4), "Missions", 2);
-        FUN_004a2be0(g_game + 0x519, index);
-        FUN_0049fa90(g_game + 0x519);
-    }
-    FUN_004ab0a0(menu);
-    return;
 
 End:
     FUN_004ab0a0(menu);
 }
-

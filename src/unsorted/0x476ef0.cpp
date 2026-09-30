@@ -1,6 +1,33 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, 71.3%. Page scans now use an inlineable helper. Corrected coloured-run
-// buffer indexing and the full-width side read; register scheduling still differs.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Partial, 71.3%. Page scans use an inlineable helper; coloured-run buffer
+// indexing and the full-width side read are right. Remaining differences:
+// 1) both inlined page scans: the original tests the loop guard with a memory
+//    compare (`cmp byte ptr [p],0` then `je`) and loads the byte again in the
+//    body (`mov al,[p]`), ours merges the two into `mov al,[p]; test al,al`.
+//    Tried: guarded do/while, hoisting `char c`, `unsigned char* p`, `k < 0x7f`
+//    loop form; the first three compile identically, the last is much worse.
+// 2) 4-byte local homes are permuted: colourState/count are [esp+0x1c]/[esp+0x20]
+//    here but [esp+0x20]/[esp+0x1c] in the original; divisor is [esp+0x28] here,
+//    [esp+0x38] there; `dialog` is stored at [esp+0x2c] here, [esp+0x24] there
+//    (the original re-reads a split live-range home [esp+0x28] that nothing
+//    writes; ours does the same trick at [esp+0x30]); gp is stored at [esp+0x40]
+//    here, [esp+0x38] there. Sizes and order of the stores already agree.
+// 3) the original keeps `mov dword ptr [esp+0x20],0` (colourState = 0) between
+//    `cmp al,0x52` and `jne`; ours dead-store-eliminates it.
+// 4) the second inline initialises its count with an immediate in the original
+//    (`mov dword ptr [esp+0x14],0`); ours reuses the zero register edx.
+// 5) the window-copy loop (0x4772b1) is NOT rotated in the original (the '&'
+//    test is the loop head, the k limit is the latch); every source form tried
+//    for it (do/while, for(;;) with two breaks, plain while) is inverted and/or
+//    peeled by MSVC5 into test-at-latch order (70.7%). Same for the page-scan
+//    guard: an explicit `if (*p != 0) { do/while }` keeps the cmp-mem form but
+//    costs 4.6% elsewhere (66.7%), and `p[0]` reads compile identically to `*p`.
+// Tried by deepseek-v4.1 (all no better): `for(;;){ if (*p==0) break; ... }` for both
+// page scans (still merges into `mov al,[p]; test al,al`, 70.7%). Reordering the count
+// declaration (int count; before colourState, assigned later) does not move the slots
+// (71.3%). #include <windows.h> is much worse (68.5%). The slot permutation above is
+// not declaration-order driven; the phantom [esp+0x28]/[esp+0x30] re-reads come from
+// MSVC5 splitting dialog/gp into a store home and a lower read home.
 #include <string.h>
 
 #pragma pack(push, 1)

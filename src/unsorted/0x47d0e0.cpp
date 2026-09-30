@@ -1,4 +1,4 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // PARTIAL, 80.3% (507 bytes vs 505). One instruction reverts to a register
 // form instead of the original's memory-operand form, and everything else
@@ -88,6 +88,18 @@
 // 0x47d820 (99.1%) shows the same reg,reg form for a `short y` local. The
 // remaining 2 bytes are the scheduler choosing eax for the width load first
 // (right-to-left at the multiply node); no source shape tried reaches it.
+//
+// deepseek-v4.1-flash final pass (still 80.3%, 507 vs 505): this retry added
+// more structural spellings, all scored with --sym so no check.py budget was
+// spent: the index as a named int with `idx *= width` and `idx = idx * width`,
+// a `Cell* cell = &cells[x]; cell += y * width` split, `int& w = g_game->width`
+// then `y * w`, `int* wp = &g_game->width` then `y * *wp`, a pointer-add form
+// `&cells[y * width] + x`, a `long row` temporary, and moving `Point size`
+// after the cell statement (with an uninitialised-then-assigned spelling).
+// Every one produced a byte-identical 507-byte stream to the source already in
+// this file: the multiply block canonicalises, so the 2-byte gap is a fixed
+// MSVC 5 allocator choice for a sign-extended short operand. Nothing left to
+// try; this stays a partial.
 #pragma pack(push, 1)
 
 struct Point {

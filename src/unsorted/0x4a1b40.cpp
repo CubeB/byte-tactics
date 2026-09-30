@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2730): still 18.6%, no new lever. check.py's
+// difflib shows only 84 of 593 original instructions match (longest matching run 4),
+// so this is not a local residual: the entire body is a register+frame permutation
+// (param_1 ebp vs ours eax, zero ebx vs ours edi, me edi vs ours esi, entries 0x38
+// vs ours 0x64, me 0x50 vs ours 0x28). headers.py tried all 128 sets, every one
+// exactly 18.6%, so the state is not header-driven. Removing the int& aliases into
+// bounds compiles byte-identically (2103 bytes, 18.6%).
 // STATUS (deepseek-v4.1-flash, issue 2551): best is 18.6%, not MATCH. What still
 // differs: the prologue register assignment (original puts param_1 in ebp and the
 // zero/top phi in ebx; ours loads param_1 into a volatile register and zeroes edi),

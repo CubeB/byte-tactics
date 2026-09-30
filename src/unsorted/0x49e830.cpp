@@ -49,6 +49,18 @@
 //    fold the seven bit sets into one `or eax/word ptr, 0x3f2`; that fold is
 //    a backend constant merge the original somehow blocked, and no source
 //    form found in this timebox prevented it.
+//  - deepseek-v4.1-flash (retry): the or-chain root cause is now clear. The
+//    original's per-bit ors alternate low/high byte (al, ah, al, ah, al, al,
+//    al), so no two same-register ors are adjacent and MSVC5's constant-merge
+//    peephole never fires. Reproducing that requires the 16-bit value resident
+//    in ax (a word load) while the individual fields use byte-granular storage
+//    units. `unsigned char` bitfields stop the fold (1366-1367 bytes, 86.0-86.5)
+//    but land the low byte in cl and the high byte in a second byte register
+//    (al or cl, never ah) and emit two byte stores instead of one word store.
+//    Adding a `.value` word toggle makes it worse (85.7, 1389 bytes). Every
+//    variant tried this session (vA-vI in build/scratch/0x49e830/) scored below
+//    this 87.7% folded baseline. The value-in-ax plus byte-granular-fields
+//    combination was not reachable from source.
 //  - deepseek-v4.1: the `mov ecx,[esp+0xbc]` for nCmdShow sits after the
 //    hoisted `push &DAT_0051f320` in the original but before it here, which
 //    is a scheduler choice, not a frame difference ([esp+0xb0] for

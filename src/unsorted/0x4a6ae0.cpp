@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
 // PARTIAL 50.0% (1685 bytes against the original's 1703). Greenfield.
 // Command-button click/key handler for the 0x15b-byte entry table.
 //
@@ -36,7 +36,8 @@
 // has no extra bound compare) scored 49.8% (v12/v13/v19), so those locals
 // are NOT here. A named `int n = count + 1` loop bound scored 50.0% but
 // turned the original's `lea` bound into `inc` (v18), so it is not here
-// either.
+// either. Reordering the declarations of `entry` and `entries` and assigning
+// them separately also stayed at 50.0%; the EBX/EBP swap remains unresolved.
 #pragma pack(push, 1)
 
 struct Class_004a6ae0;

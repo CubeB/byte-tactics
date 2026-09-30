@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
 // outside its range. State 0 prepares the order (FUN_0040f200 is defined here
@@ -7,28 +7,12 @@
 // state 6 flies on and, when the unit is below three quarters of its health,
 // sends it to a random repair pad ("VTOL_LANDING").
 //
-// PARTIAL (95.8%). Same size as the original; remaining hunks by address:
-// - 0x41208f..0x4120d0, the range-check _hypot: the original loads the unit's
-//   words before the order's (`movsx ecx,[esi+0x74]; movsx edx,[edi+0x30];
-//   movsx eax,[esi+0x6c]`), ours loads the order fields first and uses edx for
-//   the first difference. Declaring dx/dz locals first scored worse (89.8%).
-//   Opus found that compiling the real 0x4118e0 above this function in the
-//   same file fixes it, so this is compiler state carried across functions.
-// - 0x412309: `lea eax,[eax + edx - 0x2000]` (random + angle); ours swaps the
-//   lea base/index to `[edx + eax - 0x2000]`. Re-spelling the sum as
-//   `FUN_004b6c30(0x4000) + angle - 0x2000` does not change it.
-// - 0x4123a8..0x41240a, state 4: the original keeps `def` in ebp and builds
-//   `time = (int)(...) + 1 + def->field_216` with `add ebx,ecx` (ebx = time,
-//   ecx = field_216); ours puts `def` in ebx and reuses it as
-//   `field_216 - time + 1` via `sub ebx,eax`, which is arithmetically wrong.
-//   The FP order also differs: original `fmul 30.0f` then `fimul field_22`,
-//   ours `fimul field_22` then `fmul 30.0f`. Removing the (float) cast on
-//   sqrt made the constant a qword double and dropped the score to 92.1%.
-//   Parenthesising `(s * 30.0f) * n` per Opus gives `fild rate` + `fmulp`
-//   instead of `fidiv`/`fimul`. The 2.0 double in the constant pool (at
-//   0x4fcc48, before 30.0f) confirms `size * 2.0` as written.
-// - 0x4126f0..0x41270c, the switch jump table: ours names the table <addr> and
-//   its raw bytes differ because the case blocks above shifted.
+// Partial: 96.6%, same 1980-byte size. Remaining differences include the
+// random-angle LEA operand order, turn-delay register allocation and multiply
+// order, and switch relocations. The delay subtraction is equivalent: VC5
+// folds the sign into a -30.0f constant, then subtracts the converted result.
+#include <list>
+#include <windows.h>
 #include <math.h>
 #include <vector>
 

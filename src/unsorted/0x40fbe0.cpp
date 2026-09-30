@@ -1,38 +1,8 @@
-// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
-// Region-split skeleton, per docs/splitting-huge-functions.md (PR #1287, merged).
-// Checked by space-bunny-free. Names are provisional.
-//
-// STATUS: partial. check.py reads 75.0% (ours 1918 bytes vs original 1976).
-// Prologue `sub esp,0x54` + ebx/ebp/esi/edi is identical.
-//
-// Progress by deepseek-v4.1-flash: the MobileBuild/VTOL order-steal tail is now
-// ONE construction site (a shared `Class_00438760 kind` plus a single
-// `FUN_0043acb0(unit,new Class_0043a1f0(kind,other->target,&other->pos,...))`
-// after the if/else). That merged the previously duplicated tail and took the
-// score from 73.2% (2047 bytes) to 75.0% (1918 bytes), so the shrink confirms
-// the original really has one tail at 0x4100d6.
-//
-// Remaining diff hunks (first diff first):
-//   0x40fce9  `order->pos = order->target->pos`: original emits
-//             `add eax,0x6a` (consumes target in eax) and copies via
-//             ecx/edi; ours emits `lea ecx,[eax+0x6a]` and copies via edi/ebp.
-//             Pure register-allocation, not fixable from source so far.
-//   0x40fdd8-0x40fe62  three-weapon scan: original keeps a byte loop counter
-//             at [esp+0x1c] AND a separate index in ebp (FUN_0049abb0 gets the
-//             byte, FUN_0048a190/FUN_0048a060 get ebp) plus the weapon pointer
-//             at [esp+0x20]; ours has one counter and extra reloads. Likely the
-//             source walked `Weapon* weapon` alongside an index.
-//   0x40fedc-0x40ffb3  zero/branch registers differ (original keeps 0 in ebp,
-//             building/actionable in edi/edx; ours uses ebp for building,
-//             edi for `other`).
-//   0x40ffb3-0x4100d6  building/actionable: our shared `buildOrder` flag adds a
-//             redundant `mov eax,1; test eax,eax`; original re-tests
-//             building/actionable directly at 0x4100a9/0x4100b1. Also our
-//             kind temp lands at [esp+0x1c], original at [esp+0x70] (the flags
-//             argument home slot).
-//   0x41013b+  aim block and the 0x4102c6 default: eax/edx and ah/ch roles
-//             swapped.
-//
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Partial: callback order-pointer reloads corrected; weapon scan registers,
+// position copying and order-kind temporaries still differ. The inherited
+// 75.0% attempt cached the other order across a callback; the corrected
+// shared construction currently scores 74.5%.
 #include <stdio.h>
 // SHARED begin
 struct Vec3 {
@@ -186,7 +156,6 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
                 int building=other->kind=="MobileBuild" || other->kind=="BuildingBuild" || other->kind=="VTOL_MobileBuild";
                 int actionable=((other->capabilities&0x200) && other->target) || (other->capabilities&0x400);
                 Class_00438760 kind;
-                int buildOrder=0;
                 if (!building && actionable) {
                     kind=other->kind;
                     if (kind=="REPAIRUNIT") kind=Class_00438760("VTOL_REPAIRUNIT");
@@ -194,17 +163,19 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
                     if (kind=="RECLAIMUNIT") kind=Class_00438760("VTOL_RECLAIMUNIT");
                     if (kind=="HELPBUILD") kind=Class_00438760("VTOL_HELPBUILD");
                     ((Class_004388d0*)order)->FUN_004388d0(0);
-                    buildOrder=1;
+                    goto BuildOrder;
                 } else if (building && other->target) {
                     ((Class_004388d0*)order)->FUN_004388d0(0);
                     kind=Class_00438760("VTOL_HelpBuild");
-                    buildOrder=1;
+                    goto BuildOrder;
                 }
-                if (buildOrder) {
-                    FUN_0043acb0(unit,new Class_0043a1f0(kind,other->target,&other->pos,0,0,0));
+                goto Aim;
+                BuildOrder: {
+                    FUN_0043acb0(unit,new Class_0043a1f0(kind,order->target->order->target,&order->target->order->pos,0,0,0));
                     order->flags=0; return 3;
                 }
             }
+            Aim:
             if (flags&0xe0) order->angle+=-FUN_004b6c30(0x2000)-0x4000;
             short angle=order->angle;
             Vec3 pos;

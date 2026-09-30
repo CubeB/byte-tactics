@@ -1,21 +1,10 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 89.9% (1050 of 1051 bytes).
-// Remaining hunks, all allocation-level, no source rewrite tried moved them:
-//  1) case 1 entry: original def->edx, health->ecx, threshold->eax with
-//     `cmp ecx,eax`; ours def->eax, health->edx, threshold->ecx. One-register
-//     rotation. Reversing the comparison changed only the branch opcode
-//     (jbe) and not the rotation; dropping the (unsigned int) cast and a
-//     short hp local were identical. headers.py --cpp over 768 sets: no change.
-//  2) frame is 4 bytes small, so the FUN_0043f0e0 return buffer is at
-//     [esp+0x68] not [esp+0x64], and the later reload at [esp+0x70] not
-//     [esp+0x6c].
-//  3) order->pos + offset: original loads the three pos components and adds;
-//     ours emits `lea ecx,[edi+0x22]` then reloads the fields.
-//  4) final path frees the units buffer with `operator delete` alone
-//     (??3) and stores the flag with or dl,0xf8; ours calls the vector
-//     destructor and uses or al,0xf8.
-//  5) case 0: original walks def in edx and tests `test ch,8`; ours uses eax
-//     and `test ah,8`; the order->pos copy uses different name registers.
+// Partial: 89.9%, 1050 bytes versus 1051. Remaining differences include
+// health-test register rotation, kind return-buffer placement, position-add
+// code generation and the final vector destruction call. 768 header sets
+// did not improve it. Inlining the native allocator/destroy/deallocate body
+// improved the final destructor but changed earlier destructor call sites
+// and dropped the whole-function score to 86.0%; that variant was rejected.
 #include <vector>
 struct Unit;
 namespace std {

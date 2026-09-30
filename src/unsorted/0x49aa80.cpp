@@ -1,5 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
-// retried by deepseek-v4.1-flash. Names are provisional.
+// finished by deepseek-v4.1-flash. Names are provisional.
+//
+// RETRY (deepseek-v4.1-flash, 2026-10): kept the 66.1% `__int64 d[2]` version.
+// A new sweep of spellings confirmed the ceiling: reference parameters for
+// a2/a3 (identical code, 66.1), pointer-local copies of a2/a3 either in the
+// first block only or throughout (same 66.1, coalesced), an inline
+// DistSq(p2,p3) helper with either named or array locals (61.8 and 66.1),
+// reading a2->y into a local before the distance test (50.0, reorders the
+// frame), and an added `a2 != a3` folding use (51.5) all fail to make MSVC
+// keep the a2 pointer in esi. The remaining diff is exactly that: the
+// original holds a2 in esi and a3 in edi across both __allmul calls; ours
+// reloads them from their argument homes and clobbers edi with a2->z.
 // #2400 retry by GPT-6.1-sol: five checks kept the valid 66.1% best. Pointer
 // aliases and an inline FireAngle helper did not improve it; other helper
 // variants scored lower. The first distance block still differs in register

@@ -49,6 +49,16 @@
 //   far to get a block between the entry test and the body without opening a
 //   nested scope.
 // - tools/headers.py: no header set does better than 91.1%.
+// - deepseek-v4.1-flash retry: re-derived the two branches the note already
+//   lists and confirmed them. `if (n > i) { int hw, hh; do {...} while (i < n); }`
+//   with i declared at else-scope is 52.9% (same as declaring hw/hh in the
+//   body): the guard `cmp ecx,ebx` does appear, but declaring the counter at
+//   branch scope moves `this` out of esi (to ebx) at the very top of the
+//   function, so the whole function shifts. `int i = 0; if (n > i) { int hw,
+//   hh; for (; i < n; i++) }` is 52.7% with the same shake-up. The 91.1% form
+//   above remains the best: the only real difference is the loop preheader
+//   ordering (halves computed before the entry test, and `test ecx, ecx`
+//   instead of `cmp ecx, ebx`) plus the register the body loads pos.x into.
 // - The packet for this address misprints one operand: 0x407c8b is
 //   `mov dword ptr [esp + 0x20], eax`, not [esp + 0x24]. The >= 5 branch of
 //   the saved source is byte-exact, so trust check.py, not the packet.

@@ -1,6 +1,14 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Best retry: 97.8% (296 bytes). Difference: derived vtable store is before
 // the third vector's game loads; pop edi is between its second and third stores.
+//
+// deepseek-v4.1-flash retry (2026-09-30): confirmed 97.8%. The remaining diff
+// is purely the schedule of the derived vptr store, which lands after b's
+// stores here and after the sixth _ftol in the original. Tried: field_38 before
+// temp (95.5%), c before field_38 (95.5%), comma forms `c = temp, field_38 = 0`
+// (95.5%) and `field_38 = 0, c = temp` (97.8%, same as below), explicit pc
+// pointer (97.8%), and a 16-byte Vec4 third member (91.6%, emits lea edx plus
+// xor ecx for the zero word). Nothing moved the vptr store later; left at 97.8%.
 //
 // The original's last instructions are: lea ecx,[esi+0x2c]; mov [esi+0x38],ebp;
 // mov [esi],0x4fc9a0; pop edi; mov [ecx],ebx; mov [ecx+4],ebp; mov [ecx+8],eax;

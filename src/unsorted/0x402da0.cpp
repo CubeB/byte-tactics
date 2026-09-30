@@ -1,4 +1,12 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, verified by GPT-6.1-sol, retried by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// Retry by deepseek-v4.1-flash: still 87.9%, only the per-temporary register
+// rotation differs. Tested, no gain: swapped branch order (87.4), bool queued
+// (74.7), queued=1 before the FUN_0043adc0 call (77.4), plain unsigned char
+// kind with a cast at the call (87.9, same rotation), Class copy to pass kind
+// by value (87.9), local Class temp then copy .index (75.4), int kind local
+// (69.7), copy-ctor initialisers and kind.index != 0 (both 87.9). No source
+// shape reaches the original temp colouring; leave as is.
 // Order handler: when the unit has just been built (progress 0), copies the
 // QMove/QPatrol orders queued on the factory (order->target) to the new unit
 // and its fire/move states, else parks it; otherwise a small wait state machine.

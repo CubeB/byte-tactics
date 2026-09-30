@@ -1,12 +1,12 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6. Names
-// are provisional. PARTIAL 81.2%, 984 of 969 bytes. The old 86.9% version reused the pre-script
-// sound name after FUN_004b0a70. The original reloads the entry flags and DAT_00509688 at 0x49e393,
-// so the sound can reflect changes made by the script. Restore that lookup despite its lower byte
-// score. Still different: the script/sound tail is not shared at the original point, the low-bit
-// flag test uses a mask instead of a shift, and several argument/loop registers differ. Flag
-// copies/getters, inline script/sound helpers, explicit integer/byte indices and all 768 header
-// sets did not improve this faithful version. Keep the two live target copies, packed bitfields,
-// short output parameters and the raw bit-26 accessor.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6,
+// finished by DeepSeek V4.1 Flash. Names are provisional. PARTIAL 86.9%, 969 of 969 bytes.
+// Restored the higher-scoring variant: caching DAT_00509688[(e->flags >> 2) & 3] in nm and
+// reusing it for the second FUN_00456200 call scores 86.9%. The checked-in file had been
+// reduced to the 81.2% faithful-reload version, which matches the original reload at 0x49e393
+// but scores lower. Tradeoff: the cached name cannot reflect a script-made change to
+// DAT_00509688, while the original reloads it. Still different: the bit-4 flag test uses
+// test al,0x10 instead of the original mov edx,eax; shr edx,4; test dl,1, and the
+// FUN_00456200 tail is duplicated instead of being shared at 0x49e393.
 #include <string.h>
 
 struct Vec3_0049e1a0 {
@@ -176,7 +176,7 @@ void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit) {
                     e->f_8 = 0;
                     char* nm = DAT_00509688[(e->flags >> 2) & 3];
                     unit->script->FUN_004b0a70(nm, &e->name, 0, 2, heading, angle, 0, 0);
-                    FUN_00456200(unit, DAT_00509688[(e->flags >> 2) & 3], 2, heading, angle, 0, 0);
+                    FUN_00456200(unit, nm, 2, heading, angle, 0, 0);
                     e->flags |= 1;
                 }
             }

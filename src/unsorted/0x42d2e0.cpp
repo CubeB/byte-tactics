@@ -8,6 +8,11 @@
 // break) keeps the scan and the copy as separate loops and lifted 83.5 to 86.2, close to the
 // original, which still has the entry `cmp/je` instead of our inverted `jne` and keeps d in edi
 // instead of spilling it at [esp+0x10] (stores only at the two loop exits there).
+// 2587 tried and rejected: dropping the `if (p == end) { d = p; } else` wrapper for a plain
+// `while (p != end && ...) p++;` scores 76.9; `do {...} while (1);`, a named `more` temp and
+// swapped guard operands in the GUI/unit loops all compile to the same 2240 bytes / 86.2 as the
+// committed text, and `while (1)` in the GUI loop spills suffix and scores 81.0, so neither loop
+// shape stops the /O2 rotation and the g_game->edi choice is an allocator liveness artifact.
 // Remaining: /O2 peels and rotates the GUI suffix loop (the original keeps one copy of the body
 // and jumps back to it: inc ebx, mov esi,1, jmp top; ours peels iteration 1 and hoists
 // `mov esi,ebx; inc ebx` to the top of the rotated body), the sort tail compares against

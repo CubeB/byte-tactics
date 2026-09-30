@@ -1,8 +1,24 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#2889): 62.0 -> 66.8. The lever is the source
+// position of `src = bitmap`. Declaring `Bitmap_459c70* src;` uninitialised
+// at function scope and assigning it late in the shadow branch, immediately
+// before `bitmap = shadow;`, makes MSVC give useColor ebx (matching the
+// original, 0x45985b / 0x459b08) instead of esi. Reads in the shadow setup
+// must stay on `bitmap` (so `src = bitmap` can be sunk to the end of the
+// branch, and the compiler hoists the src store to 0x4598c0 as in the
+// original). Assigning src at the top of the branch (A) is 61.2; moving the
+// `bitmap = shadow` store before the memsets (E) is 61.4; dropping the shadow
+// local and reassigning bitmap early (K/R) is 55.7/58.6. What still differs:
+// list lands in edx (original esi, reloaded at 0x459951), the saved bitmap
+// stays in ebp after the branch where the original reloads it from
+// [esp+0x5f18] (0x45999f), so the vertex-loop bitmap loads and the face-loop
+// induction (fi edi vs ebx) rotate; the src slot is [esp+0x24] and the p
+// counter [esp+0x20] (original src 0x20, counter 0x24). Same allocator family
+// as sibling 0x458fa0.
 // deepseek-v4.1 retry (#2650): the 62.0% wall is still the src/useColor
 // register home, and the new experiments say it is not source-reachable from
 // this file. `src` and the `bitmap` parameter are copy-propagated into ONE
-// variable: writing `src->width` or `bitmap->width` in the save branch gives
+// variable: writing `bitmap->width` or `bitmap->width` in the save branch gives
 // byte-identical output (62.0, 1037 bytes). `Bitmap* src;` uninitialised and
 // assigned in the branch, and a separate `sh`/`dst` local for this->shadow,
 // both give 61.2 (1047 bytes); taking src's address (address-taken forces a
@@ -170,20 +186,21 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
 
     int mode;
     bool shadow = ((Flags_459830*)(g_game + 0x37f06))->b1;
-    Bitmap_459c70* src = bitmap;
+    Bitmap_459c70* src;
     if (shadow
         && (list->owner->field_110 & 0x20000000) != 0
         && useColor != 0) {
         Bitmap_459c70* shadow = this->shadow;
         mode = 1;
-        shadow->width = (unsigned short)(src->width << 1);
-        shadow->height = (unsigned short)(src->height << 1);
+        shadow->width = (unsigned short)(bitmap->width << 1);
+        shadow->height = (unsigned short)(bitmap->height << 1);
         shadow->unknown_9[0] = 0;
         shadow->colorKey = 1;
-        shadow->field_4 = (short)(src->field_4 << 1);
-        shadow->field_6 = (short)(src->field_6 << 1);
+        shadow->field_4 = (short)(bitmap->field_4 << 1);
+        shadow->field_6 = (short)(bitmap->field_6 << 1);
         memset(shadow->data2, 0, shadow->width * shadow->height);
         memset(shadow->data, 1, shadow->width * shadow->height);
+        src = bitmap;
         bitmap = shadow;
     } else {
         mode = 0;
@@ -263,8 +280,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         char* s = src->data2;
         if (s != 0) {
             char* d = bitmap->data2;
-            for (int y = 0; y < src->height; y++) {
-                for (unsigned int x = src->width; x != 0; --x) {
+            for (int y = 0; y < bitmap->height; y++) {
+                for (unsigned int x = bitmap->width; x != 0; --x) {
                     *s++ = *d;
                     d += 2;
                 }

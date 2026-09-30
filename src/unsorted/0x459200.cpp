@@ -22,7 +22,13 @@
 // second half keeps its own shade bool in a byte slot
 // ([esp+0x4c]). Tried and worse this run: 12-byte cv before the register fix
 // (44.7), int diff local + int value (60.8), component-wise cv copy and
-// `Vec3 cv = v` initialisation (69.1, no change).
+// `Vec3 cv = v` initialisation (69.1, no change). deepseek-v4.1-flash retry:
+// making field_37f06 an unsigned short and testing `field & 4` gives the
+// original `mov ax,word; test al,4` in the second half but the first half
+// rematerialises `test byte [..],4`, net 68.5; inlining the bright ternary
+// alone gives 1509 bytes but 68.5 due to the changed value expression. The
+// first half keeps al live only when f is spilled to [esp+0x10]; ours keeps f
+// in edx so the compiler rematerialises gf.
 struct Vec3;
 struct Model_459200;
 struct Team_459200;

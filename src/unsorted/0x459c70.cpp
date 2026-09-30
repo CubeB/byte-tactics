@@ -93,6 +93,20 @@
 // in ebp/eax and spills `bmp` at 0x24 while the original's mode is at 0x20 and
 // its src at 0x28), and read useColor from [esp+0x159f4] again later instead of
 // holding it in a callee-saved register.
+// deepseek-v4.1-flash retry (2889), 36.5% base kept, 6 check runs, five probes:
+//  * reassigning the `bitmap` parameter to the shadow instead of the `bmp`
+//    local removes the entire early esi/ebx preload and makes the first nine
+//    prologue lines byte-exact, but the compiler then caches useColor in ebp
+//    and src never reaches [esp+0x28]: 35.3.
+//  * same without the redundant join `src = bitmap`: 34.4.
+//  * with `src = bitmap` moved late (after the first inlined memset) and
+//    `bitmap = shadow` between the memsets: 34.2 to 35.4. In every one the
+//    src slot lands at 0x2c and mode at 0x28 (original 0x28 and 0x20), and
+//    useColor is cached in a callee-saved register.
+// The blocker is the register/slot allocation cascade: the original keeps the
+// arm's bitmap copy in ebp so src is live to the tail and useColor must be
+// re-read; our build frees ebp/ebx for useColor and spills src straight to
+// the stack. The base `bmp` local still scores best despite the preload.
 #include <ddraw.h>
 
 extern char* g_game;

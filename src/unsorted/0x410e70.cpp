@@ -58,6 +58,14 @@
 // Direct switch and inverted-branch spellings stayed tied; a void helper with a
 // flags check scored 73.4%, and returning order->flags scored 71.0%. The
 // remaining landing-path join after vector cleanup is unchanged.
+// deepseek-v4.1-flash retry (2 check.py runs, kept this 92.5% source): the
+// join is structural to the tested helper return. Scratch variants all stayed
+// at 839 bytes: goto-tail (92.5%, identical), inverted polarity with
+// `if (TryLand()) return 0;` before the tail (92.2%), and a fully inline
+// plain vector (86.5%, return folds but _Destroy inlines and case 0 / the
+// empty test shuffle registers). MSVC always materialises the helper's
+// result and branches on it, so only an inline landing block gives the
+// sequential `xor eax,eax; ret`, which then loses the out-of-line _Destroy.
 #include <vector>
 
 struct Vec3 {

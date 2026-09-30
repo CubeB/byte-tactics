@@ -9,6 +9,16 @@
 // kept this 91.3% source. Direct component subtraction, reversed bounds
 // addition, and explicit component arithmetic scored lower. The movement
 // subtraction and bounds operand/register ordering still differ.
+// deepseek retry pass: 4 more checker runs, all scratch variants scored
+// lower than this 91.3% file: sum-then-copy subtraction (variantA) 72.3%,
+// direct field operator- (variantC) 71.5% (flips unit/order esi/edi),
+// split pos= then pos-= (variantD) 80.7% (bigger, 1024 bytes). The two
+// remaining diffs are unchanged: (1) state-3 target->pos - Offset(...) uses
+// an extra mov edx,ecx pointer copy and interleaves its stores where the
+// original loads x/y/z into edx/edi/ecx, subs x then z, pushes 0x36, then
+// stores x/y/z (this shifts every later branch target by +2); (2) the
+// bounds[0] pos+min add has pos.x in edx / min.x in ebp where the original
+// has pos.x in ebp / min.x in edx. Both are MSVC register/schedule ties.
 #include <stdio.h>
 struct Point { short x, y; };
 struct Vec3 {

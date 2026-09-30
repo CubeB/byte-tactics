@@ -45,6 +45,26 @@
 // The prologue and the loop want opposite things from the same store: the
 // original delays the store in the prologue and delays the reload in the
 // loop, and no single source shape reproduced both.
+// #1879 space-bunny-free pass: still 88.1% (10 of 59 instructions). All 128
+// header sets score 88.1% (headers.py), so no include fixes it. The exact
+// remaining diff, worked hunk by hunk:
+//   prologue, ours emits  L surf / S surf / L g->x / L grid->y / A / A,
+//           original has  L surf / L g->x / S surf / A / L grid->y / A.
+//   loop,      ours emits  L surf / lea y+7 / lea &r / S right / ...
+//           original has  lea y+7 / lea &r / S right / L surf / ...
+// i.e. the one p.surface memory access is exactly one slot EARLIER in ours
+// in both places, and everything else in the function is already right.
+// Ten more shapes scored with --sym, none better: the surface and the rect
+// as two separate locals in both declaration orders (84.7%, and the two
+// coordinate loads swap registers), the comma statement
+// (p.surface = gadgets->surface, x0 += gadgets->x), the pair declared after
+// the coordinates, the pair reached through a pointer, a void*& to its
+// surface member, a one-member wrapper struct for the rect, the surface
+// copied to a local at the top of the outer loop (75.0%), the add before
+// the store (76.3%), and the store first of all (79.7%) are all 88.1% or
+// worse. The pair aggregate really is the right shape (it is what puts
+// p.surface at esp+0x10 and &p.r at esp+0x14), so this stays a scheduler
+// tie in the p.surface node that no source shape reached.
 #pragma pack(push, 1)
 struct Gadget_004ac8c0 {               // 0x15b bytes
     char unknown_0[0x13];

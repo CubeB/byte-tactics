@@ -113,6 +113,34 @@
 // nothing; a plain comparison or store cannot be it, since it costs bytes.
 // The register choice between i and s is independent of that: it is the same
 // in the 321-byte variant and in this one.
+//
+// space-bunny-free, third pass, 83.1% / 334 bytes, 1 check.py run, no change.
+// headers.py: 128 header sets, none better than 83.1%, so the include lever is
+// dead here (nothing in this function is frame-layout sensitive).
+// Four scratch variants scored, all with the same first divergence (the i/s
+// callee-saved swap) and no size change:
+//   1. `s = text` moved inside `if (c) { ... }`, i.e. the loop preheader made
+//      conditional. This EMPTIES the memset-gap slot: the `rep stosb` half is
+//      now adjacent to `and ecx, 3` and both defs (`xor edi,edi`, `mov esi,ebp`)
+//      move down after `mov al,[ebp]`. Same 83.1%, same swap. So the gap slot is
+//      a slot the scheduler may leave empty, not "where i = 0 belongs".
+//   2. the `c` variable deleted altogether (`while (*s)`, `if (*s == (char)0xff)`,
+//      `if (*s == '\n')`, store `buf[i] = *s`): BYTE-IDENTICAL to this file, 83.1%.
+//      So `c` is not a register candidate at all, and the two `mov al,[edi]`
+//      reloads come purely from the aliasing stores, not from a live char.
+//   3. `c = *s` at the top of the body with `buf[i] = c` (the shape that would
+//      cost `s` one reference): much worse, 50.4% / 344 bytes. MSVC then loads
+//      `*buf` instead of `*text` for the entry test (`mov al,[ebx]`), adds a
+//      `mov esi, ebx` and reorders the preheader. Do not retry.
+//   4. `buf[i++] = '\r'` / `buf[i++] = '\n'` instead of store-then-increment:
+//      identical bytes. So one fewer reference to `i` does not flip the
+//      allocator, in either direction.
+// Conclusion for whoever picks this up: the swap needs one MORE surviving
+// reference to `i` (or one fewer to `s`) inside the loop, not a moved def. The
+// only untried spelling that could add one is a use the back end deletes rather
+// than the tree optimiser, e.g. a second `p = buf + i` in the `c == '\n'` arm,
+// where `mov [esp+0x14], eax` is already emitted. The tail hack must stay until
+// that is found: without it the head collapses (see above).
 #include <string.h>
 
 struct Gadget_004ac4c0;

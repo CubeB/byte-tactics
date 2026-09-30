@@ -1,6 +1,10 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol retry: rechecked at 61.1% after five checks. Direct ints (50.3%) and reordered capacity operands (61.1%) did not improve; restored the best. Remaining differences are loop register allocation and the blob-copy state noted below.
-// PARTIAL: 61.1% (737 bytes original, ours 755). Frame, prologue, the early
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol refinement reached 61.5% (seven checks total). Moving the blob-loop
+// counter init outside its positive-count guard raised 61.1% to 61.5%; pointer
+// operand reordering, a static section-name helper, and a pretested loop did
+// not help. Remaining differences are loop register allocation and blob-copy
+// state below.
+// PARTIAL: 61.5% (737 bytes original, ours 755). Frame, prologue, the early
 // name test, the compressed branch, the ints loop and the tail of the blob loop
 // all match. What still differs is ONE allocator state in the loop bodies:
 //  * `image` is loaded into edi at its first use where the original loads it at
@@ -189,8 +193,8 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
                 p += 2;
             }
         }
+        int i = 0;
         if (h.nBlobs > 0) {
-            int i = 0;
             do {
                 int* rec = p;
                 int a, b, c, idx;

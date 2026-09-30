@@ -1,5 +1,11 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by
-// GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (2546, 2026-09): re-tested the SIB wall. _Ucopy
+// parameters as iterator/const_iterator, the exact library _Construct spelling,
+// _Ufill while/for/count-down spellings, include sets and orders, a source or
+// destination local at the third copy, and a free-template _Ucopy/_Ufill
+// restructure all stay at 99.6% with the same single lea SIB byte (or worse).
+// The remaining byte is the commutative lea operand order described below.
 // GPT-6.1-sol refinement stopped on watchdog: 99.6% remains best. All 128
 // C-header variants tied; four C++ headers dropped to 89.6%. The partial C++
 // header sweep was stopped at about 118 variants. The source-start LEA's SIB

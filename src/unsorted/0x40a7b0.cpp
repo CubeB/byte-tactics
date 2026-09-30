@@ -1,5 +1,15 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol,
-// finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash retry: still 88.7% (645 vs 644 bytes), only the _S/_Q
+// register pick in the reallocating push_back differs (original _S in ebx,
+// _Q in ebp; ours swapped, so `lea ecx,[ebp+eax*8]` costs one extra byte).
+// This pass re-confirmed it is not reachable from this file's source: adding
+// <memory>, <xutility>, <algorithm>, <memory.h> or <windows.h> (all 88.7%),
+// a named Elem local, field-wise construction, (short) casts, a while/++x
+// loop, an ElemVec reference or pointer alias, a `float val` local, a 2-arg
+// insert, both static-inline helpers (void AddCell and Elem MakeCell) all
+// scored 88.7% or worse. The only remaining difference is the ebx/ebp swap.
 // Rebuilds the list of candidate cells: clears the vector at +0x4d, then
 // walks every map cell and adds (x, y, feature value) for each cell whose
 // feature (index below 0xfffb) has a non-zero value at +0xf0 and bit 1 of

@@ -1,35 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 66.5% (ours 2408 bytes vs original 2392). This is the per-frame
-// in-game update loop over the ten player slots. The three previously missing
-// blocks are now in: the collapsed 3x3 build-spot nested loop (x/z fixed-point
-// accumulators, Point16 cell, hits counter, 9999 retry with FUN_00421da0 /
-// FUN_00485140), the shared mode-countdown tails (countdown_extra, check230,
-// watch_check, flags82e) and the overlapping byte/word writes at 0x3923b.
-// All callees are __stdcall as in the original, which removed the stray
-// `add esp` cleanups.
-//
-// Still differs:
-//  - Frame is 0x40; the original is 0x34 (13 dwords of locals). The compiler
-//    placed pi at +0x18 (original +0x14) and hits at +0x14 (original +0x18),
-//    so most `[esp+N]` slots are offset and every jump target after the first
-//    difference is wrong even where the instruction text matches.
-//  - The original tests pi->active/type/field_146 twice in a row and reloads
-//    both; MSVC CSEs our identical second test away, losing the second
-//    `cmp dword [edi],0` / `mov al,[edi+0x73]` pair.
-//  - The loop header: the original has an entry `cmp bl,0xa / jae <inc>` that
-//    our do-while bottom test makes provably dead, so ours drops it.
-//  - The cold mode blocks are in line here; the original puts them after the
-//    function's two rets (0x465643..0x4658d3).
-//
-// Remaining diff hunks by original address:
-//  0x464f80  frame 0x40 vs 0x34 and every [esp+N] slot after +0x14 drifts.
-//  0x464f9e  missing entry guard `cmp bl,0xa / jae 0x4655a6` (dead in ours).
-//  0x464fe4  duplicated type/0x73 test: original reloads [edi+0x73] twice.
-//  0x465001  duplicated `cmp dword [edi],0`: CSE'd away in ours.
-//  0x46500a  duplicated `cmp byte [edi+0x146],0xa`: CSE'd away in ours.
-//  0x465643  cold mode blocks scheduled inline in ours, outlined after the
-//            two rets in the original.
-
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 66.5%. Correct callee class and by-value position argument. Frame remains 0x40 versus 0x34; duplicated player guards are folded and cold countdown blocks differ.
 #include <windows.h>
 #include <string.h>
 
@@ -43,7 +13,8 @@ struct Class_00435100 {
     int field_d44;                     // +0xd44
     int FUN_00435100();
 };
-struct Class_0048ff40 { int FUN_00490230(); int FUN_00490360(); };
+struct Class_0048ff40 { int FUN_00490230(); };
+struct Class_00490360 { int FUN_00490360(); };
 class Class_0048b090 { public: void FUN_0048b090(int which, int on); };
 
 #pragma pack(push, 1)
@@ -188,9 +159,9 @@ extern int DAT_0051e53c;
 
 void __stdcall FUN_0040b2c0(int player);
 void __stdcall FUN_004827b0(Unit_00464f80* unit);
-void __stdcall FUN_00466dc0();
-void __stdcall FUN_00467440();
-void __stdcall FUN_00466c20();
+void FUN_00466dc0();
+void FUN_00467440();
+void FUN_00466c20();
 unsigned char __stdcall FUN_00456850();
 unsigned short __stdcall FUN_00488b10(const char* name);
 int __stdcall FUN_004b6c30(int range);
@@ -198,8 +169,7 @@ int __stdcall FUN_0047db70(UnitDef_00464f80* type, int a, Point16 cell, int c);
 short __stdcall FUN_00421da0(Pos_00464f80* pos, int a, int b);
 int __stdcall FUN_00485140(Pos_00464f80* pos);
 Unit_00464f80* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
-                                     int x, int y, int z,
-                                     int a, int b, int c);
+                                     Pos_00464f80 pos, int a, int b, int c);
 void __stdcall FUN_00496e90(Struct_00496e90* obj, int height, int width);
 void __stdcall FUN_004816a0(int on);
 void __stdcall FUN_0048d630(int on);
@@ -271,7 +241,7 @@ void __stdcall FUN_00464f80()
             int mode = g_game->mode->FUN_00435100();
             if (mode == 1) {
                 if (g_game->list->FUN_00490230() == 0) {
-                    if (g_game->list->FUN_00490360() != 0) {
+                    if (((Class_00490360*)g_game->list)->FUN_00490360() != 0) {
                         if (g_game->field_39239 < 0) {
                             g_game->field_39239 = 4;
                         } else {
@@ -288,7 +258,7 @@ void __stdcall FUN_00464f80()
                 }
             } else if ((pi->active == 0 ||
                         (pi->data->flags_9b & 0x40) == 0) &&
-                       g_game->list->FUN_00490360() != 0) {
+                       ((Class_00490360*)g_game->list)->FUN_00490360() != 0) {
                 if (g_game->field_39239 < 0) {
                     g_game->field_39239 = 4;
                 } else {
@@ -343,8 +313,7 @@ void __stdcall FUN_00464f80()
 
                             {
                                 Unit_00464f80* unit = FUN_00485f50(
-                                    g_game->localPlayer, typeId, pos.x, pos.y,
-                                    pos.z, 1, 1, 0);
+                                    g_game->localPlayer, typeId, pos, 1, 1, 0);
                                 FUN_00496e90((Struct_00496e90*)pi,
                                              self->field_a3 * 100,
                                              self->field_a1 * 100);
@@ -352,12 +321,11 @@ void __stdcall FUN_00464f80()
                                     float f = (float)self->field_a1 * 100.0f;
                                     if (unit->owner->active != 0 &&
                                         unit->owner->control == 2) {
-                                        if (g_game->field_37eee == 0)
-                                            f = unit->field_bc - f * -0.5;
-                                        else if (g_game->field_37eee == 1)
-                                            f = unit->field_bc - f * -0.7;
-                                        else
-                                            f = unit->field_bc + f;
+                                        switch (g_game->field_37eee) {
+                                        case 0: f = unit->field_bc - f * -0.5; break;
+                                        case 1: f = unit->field_bc - f * -0.7; break;
+                                        default: f = unit->field_bc + f; break;
+                                        }
                                     } else {
                                         f = unit->field_bc + f;
                                     }
@@ -367,12 +335,11 @@ void __stdcall FUN_00464f80()
                                     float f = (float)self->field_a3 * 100.0f;
                                     if (unit->owner->active != 0 &&
                                         unit->owner->control == 2) {
-                                        if (g_game->field_37eee == 0)
-                                            f = unit->field_d4 - f * -0.5;
-                                        else if (g_game->field_37eee == 1)
-                                            f = unit->field_d4 - f * -0.7;
-                                        else
-                                            f = unit->field_d4 + f;
+                                        switch (g_game->field_37eee) {
+                                        case 0: f = unit->field_d4 - f * -0.5; break;
+                                        case 1: f = unit->field_d4 - f * -0.7; break;
+                                        default: f = unit->field_d4 + f; break;
+                                        }
                                     } else {
                                         f = unit->field_d4 + f;
                                     }

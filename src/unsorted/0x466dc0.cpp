@@ -1,42 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Draws the radar/minimap. The first loop walks the unit list (stride 0x118):
-// for each unit visible to the current player it blits the unit's radar logo
-// (and the "high" logo when the unit id matches g_game+0x2cba), draws the four
-// weapon-range circles of the unit type and, for units with the 0x20000000
-// flag, up to three turret markers, then appends a 10-byte blip record
-// (short id, int x, int y) to the buffer at g_game+0x14363. The second loop
-// walks the projectile array (stride 0x6b) and blits a logo for every
-// projectile visible to the current player. Finally the "radar dirty" bit is
-// set in g_game+0x142f1.
-//
-// PARTIAL (62.8%). Structure is right, frame is 0x1c like the original,
-// the inlined radar predicate matches (branch form for the byte-array case,
-// neg/sbb/neg for the bitfield case), the int bit tests (`shr reg,N;
-// test reg,1`) come from bitfield structs (flags_110, flags_241, shot flags
-// at +0x111), and the final "radar dirty" set now matches as an
-// `or byte ptr [m],2` (the byte at 0x142f1 is the high byte of a 1-bit
-// `unsigned short` bitfield starting at 0x142f0: region 0x142f0 + bit 9).
-// What still differs, by original address:
-// - 0x466e0c: `int enabled = 1` materialises 1 in a register (`mov eax,1`)
-//   and stores it twice (`mov [esp+0x1c],eax`); the original stores the
-//   immediate 1 twice and never holds it. Because eax survives the first
-//   test, the constant is CSE'd; the original's `mov ax,[0x14281]` clobbers
-//   eax so it cannot.
-// - 0x466e14: `(field_14281 & 3)` is folded to `test byte ptr [m],3`; the
-//   original loads the word (`mov ax,word ptr [esi+0x14281]`) and tests
-//   `al`. The 0x37f2f bit test (0x466e23) now matches. A bitfield
-//   `bit0 | bit1` was tried and was worse.
-// - 0x466e83 (first loop): MSVC loads g_game->field_142eb before
-//   u->field_6c; the original loads the unit field first. Source order is
-//   already unit-first, so this is register-allocation state.
-// - 0x4671c0 (second loop induction): the original keeps the element
-//   pointer in [esp+0x1c] (memory) and element+0xa in ebx, reloading the
-//   element pointer into ecx at the loop top and updating both at the
-//   bottom; mine keeps the element pointer in ebx and element+0xa in ebp.
-//   This is the biggest remaining block (roughly 0x4671a0-0x46742f).
-// - Loop-bottom store order differs (i, p, q in a different sequence).
-// - The inlined radar predicate in the second loop (0x46721a onward and
-//   0x4673xx) has inverted branch shapes and different scratch regs.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 63.4%. Derive projectile coordinate pointer per iteration. Initial enabled/word-flag loads, projectile pointer homes and visibility branch registers still differ.
 #pragma pack(push, 1)
 
 struct Shot_00466dc0;
@@ -349,10 +312,10 @@ void FUN_00466dc0(void)
     }
 
     Projectile_00466dc0* p = g_game->projectiles;
-    short* q = (short*)((char*)p + 0xa);
     int i = 0;
     if (g_game->projectileCount > 0) {
         do {
+            short* q = (short*)((char*)p + 0xa);
             int px = q[-2];
             int x = (int)g_game->field_142eb * px / g_game->field_1422b;
             int py = q[2] - ((int)q[0] >> 1);
@@ -376,7 +339,7 @@ void FUN_00466dc0(void)
             }
             i++;
             p = (Projectile_00466dc0*)((char*)p + 0x6b);
-            q = (short*)((char*)q + 0x6b);
+
         } while (i < g_game->projectileCount);
     }
 

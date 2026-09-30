@@ -1,25 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (27.1%). The five loops and the stack visitor objects are structurally
-// right. Remaining diffs, first hunk first:
-//  - Prologue register assignment: the original keeps g_game in esi,
-//    playerIndex as a zero-extended byte in dl, first=edi, last spilled to
-//    [esp+0x10], pl=ebp. Ours (with `char p`) puts g_game in edx, p sign-
-//    extended in esi, first=edi, last spilled (these two now match) and pl
-//    additionally spilled to [esp+0x18]. With `unsigned char p` the compiler
-//    instead homes p in memory ([esp+0x18]) and scores 21.9; the true source
-//    type must be unsigned char (the original does `mov eax,edx; and eax,0xff`,
-//    a zero-extend), so this is an allocator/source-shape problem, not the type.
-//  - Loop 1: ours zero-extends u->field_ff into a register and compares 32-bit
-//    (`xor ecx,ecx; mov cl,[eax-0x11]; cmp ecx,esi` via the 0x40 constant in
-//    dl); the original compares bytes (`mov cl,[eax-0x11]; cmp cl,dl`).
-//  - Loop 2: ours loads def->field_204 into dx for the !=0 test and reuses it;
-//    the original tests memory (`cmp word ptr [edx+0x204],0`) and reloads.
-//  - Loop 5: ours folds the visibility tests together; the original has two
-//    separate branch shapes (jae/jb) and reloads p2->field_80 for the index.
-// Things tried that did NOT move the score: per-loop `u` (20.5), swapping
-// first/last declaration order, `unsigned int p` (27.0), `int p` (27.0),
-// int/char alias for the compare (18.9), all 128 header sets (headers.py,
-// 21.9 with unsigned char).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 29.6%. Unsigned player index, definition reload after range callback, and separate bitmap/bitfield visibility branches. Visitor frame and induction registers still differ.
 #pragma pack(push, 1)
 
 struct Vec3_00467440 {
@@ -144,7 +124,7 @@ void FUN_00467440(void)
     if (g->field_2a3c < 2) {
         return;
     }
-    char p = g->playerIndex;
+    unsigned int p = g->playerIndex;
     Unit_00467440* first = g->units + 1;
     Unit_00467440* last = g->units_end;
     PlayerInfo_00467440* pl = (PlayerInfo_00467440*)((char*)g + 0x1b63 + (unsigned int)p * 0x14b);
@@ -187,9 +167,9 @@ void FUN_00467440(void)
                 Class_00467960 v;
                 FUN_0047e890(&u->pos.vec, (int)def->field_20a << 16, &v);
             }
-            if (def->field_20c != 0) {
+            if (u->def->field_20c != 0) {
                 Class_00467980 v;
-                FUN_0047e890(&u->pos.vec, (int)def->field_20c << 16, &v);
+                FUN_0047e890(&u->pos.vec, (int)u->def->field_20c << 16, &v);
             }
         }
     }
@@ -218,13 +198,14 @@ void FUN_00467440(void)
                 (PlayerInfo_00467440*)((char*)g2 + 0x1b63 + pi * 0x14b);
             int x = u->pos.half.field_6c >> 5;
             int y = (u->pos.half.field_74 - (u->pos.half.field_70 >> 1)) >> 5;
-            bool vis;
+            int vis;
             if ((g2->field_14281 & 2) == 2) {
-                vis = (unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84
-                    && p2->field_7c[p2->field_80 * y + x] != 0;
+                vis = 0;
+                if ((unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84)
+                    if (p2->field_7c[p2->field_80 * y + x] != 0) vis = 1;
             } else {
-                vis = (unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84
-                    && (g2->field_14273[p2->field_80 * y + x] & (1 << pi)) != 0;
+                if ((unsigned int)x >= p2->field_80 || (unsigned int)y >= p2->field_84) vis = 0;
+                else vis = (g_game->field_14273[p2->field_80 * y + x] & (1 << pi)) != 0;
             }
             if (vis) {
                 u->flags = f | 0x100;

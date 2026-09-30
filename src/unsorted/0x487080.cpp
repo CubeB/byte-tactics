@@ -1,52 +1,21 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
-// Partial: still 59.9% (unchanged from GPT-6.1-sol's best). Direct check.py runs this
-// session: 1 real run plus 3 free scratch scores; no MATCH.
-// This session re-derived the record layout and call shape from the disassembly but every
-// combination that fixed one of them lost the whole first loop's register allocation
-// (59.9% -> 40%), so the previous file is kept. Findings for the next attempt:
-//
-// Proven from the disassembly but NOT yet applied together (each was tried only in the
-// losing combination, so they are still untried INDIVIDUALLY):
-//  * FUN_00485f50 takes SEVEN arguments and the Vec3 is built from THREE separate loads.
-//    Stack order (lowest first): 12-byte Vec3 at [esp], rec+0x04 (char* name), the result of
-//    FUN_00488b10(rec.name), 1, (rec.flags>>4)&3, rec.id, rec.player. The three Vec3 words
-//    come from rec+0x2b, rec+0x33 and rec+0x37 (NOT 0x2b/0x2f/0x33). The previous file
-//    passes rec.player first and omits the name argument, and reads the Vec3 through
-//    *(Vec3*)&rec.f2b. This alone is worth ~8 wrong instructions plus 4 missing pushes.
-//  * SaveRec field offsets, all re-derived: gap[4] at +0x00, name[0x1c] at +0x04,
-//    unsigned char player at +0x20, unsigned short id at +0x21, int f23 at +0x23 (the
-//    order count the do/while compares against), int f27 at +0x27 (the flag guarding
-//    FUN_0043de30), then f2b +0x2b, f2f +0x2f, f33 +0x33, f37 +0x37, f3b +0x3b,
-//    f3d +0x3d, f3f +0x3f, pieces +0x41 (unchanged from +0x89 on).
-//  * "Script%i" takes the FIRST loop's index i, i.e. [esp+0x10] in the original, NOT
-//    rec.f3b. That is the whole reason the original spills i to a stack slot and reads it
-//    back at 0x4875d0, so this edit is what frees `i` from the register allocator.
-//  * rec.flags and unit->flags are re-read from the stack for every bitfield update (20
-//    times); the original has no `unsigned int f` / `unsigned int u` temporaries, which is
-//    most of the 33-byte size shortfall (1595 vs 1562). Writing unit->flags = (...) |
-//    (unit->flags & mask) directly lets MSVC keep the running value in a register and
-//    reload only after the intervening unit->field_b0 store at 0x487424.
-//  * rec.b8d must be `char`, not `unsigned char`: 0x4871ed uses movsx.
-//
-// THE blocker, stated as one allocation (per the "group the diffs" rule): the original's
-// first loop allocates esi=n, ebp=found, i spilled to [esp+0x10]. This file allocates
-// esi=i, ebp=n, found as a byte local. int found moves found to memory too (40% variant),
-// so neither the type nor the extra use of i after the loop is the lever. What is left to
-// try is making `i` a poor register candidate while making `found` a good one: e.g. give
-// `n` an extra live reference so it takes esi first, or move the `int n = ...` declaration
-// so it is defined before `found`, or spell the loop as `while (i < n) { ... i++; }` with
-// the break, or make the index a variable that is also live across FUN_00480250.
-//
-// Suspected original bug (not reproduced, just noted): at 0x48757c `operator new(0x56)`
-// can return 0; the `test eax,eax / je 0x48759b` arm only zeroes eax, and 0x48759d then
-// dereferences it with `test dword ptr [eax + 0x42], 0x40000`, i.e. a read of address
-// 0x42. The source-level guard that reproduces it is `if (p) p = p->FUN(...)` followed by
-// an unguarded `p->flags` test, which is what this file already spells.
-// (original: n in esi, found in ebp, i spilled to [esp+0x10]; ours: n in ebp,
-// i in esi, found in a byte local), player argument register rotation, repeated
-// flag-copy register allocation, record-field stack offsets, piece-copy anchors,
-// and the epilogue xor/pop order. An int found flag dropped to 45.5%; keeping
-// found as bool and player as int is the best tested version.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1766 deepseek-v4.1-flash: 60.6%. The single gain was fixing the
+// order-count and FUN_0043de30 guard to the correct record fields: the count
+// is rec+0x23 (f23) and the guard is rec+0x27 (f27), not rec+0x33. The old
+// attempt read +0x33 for both, which is the second coordinate of rec.pos.
+// Tried and rejected (all scored on scratch, worse than 60.6): removing the
+// `player` local and recomputing (rec.flags>>4)&3 twice (41.3); modelling
+// rec+0x2b..+0x3b as Vec3 pos plus an {int,short} sub-struct copied whole
+// (47.1); `char` instead of `unsigned char` for rec+0x8d combined with the
+// Script%i argument (59.6); an explicit `else p = 0;` after operator new
+// (46.6); `int found` (46.6). Note `Script%i` in the original takes the search
+// index i, not rec+0x3b, and rec+0x8d is sign-extended at the FUN_0048aac0
+// call, but both changes only ever cost points at this compiler state.
+// Remaining differences: first loop register allocation (original n in esi,
+// found in ebp, i spilled to [esp+0x10]; ours n in ebp, i in esi, found in a
+// byte local), the FUN_00485f50 argument register rotation, the 0x110 flags
+// block rotation, the 3x piece-copy anchors, and the failure epilogue's
+// xor/pop order.
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
@@ -61,7 +30,8 @@ struct SaveRec_00487080 {
     char name[0x20];
     unsigned char player;                    // +0x0
     unsigned short id;                  // +0x21
-    char gap_23[0x2b - 0x23];
+    int f23;                            // +0x23
+    int f27;                            // +0x27
     int f2b;                            // +0x2b
     int f2f;                            // +0x2f
     int f33;                            // +0x33
@@ -321,13 +291,13 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->flags = u;
 
     ((Class_00401110*)&unit->info)->FUN_00401110(unit, file);
-    if (rec.f33 != 0)
+    if (rec.f27 != 0)
         ((Class_0043d210*)unit->vtable)->FUN_0043de30(unit, file);
 
     Order_00487080** normal=(Order_00487080**)&unit->listHead;
     Order_00487080** special=(Order_00487080**)&unit->listTail;
     int k = 0;
-    if (rec.f33 > 0) {
+    if (rec.f23 > 0) {
         do {
             sprintf(name, "u%04xm%04x", unit->id, k);
             Order_00487080* p = (Order_00487080*)operator new(0x56);
@@ -336,7 +306,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
             if (p->flags & 0x40000) { *special=p; special=&p->next; }
             else { *normal=p; normal=&p->next; }
             k++;
-        } while (k < rec.f33);
+        } while (k < rec.f23);
     }
     if (unit->listHead != 0)
         ((Class_004388b0*)unit->listHead)->FUN_004388b0();

@@ -1,4 +1,24 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Third pass (space-bunny-free), still 84.7%, and a new fact about the tie:
+// writing the x difference with the operands the other way round
+// (`b.x = a.x - b.x`) is the only rewrite found that makes MSVC hoist b.x's
+// load above `push ebx` into ecx, and it then reproduces the original's
+// first ten instructions byte for byte, `mov ecx, [esp+0x1c]` ... `sub ecx,
+// ebx` included. It cannot be the source: with a.x as the minuend the
+// destination can no longer be a.x's own register (ebx is live across the
+// loop), so the compiler copies it first and the function grows two bytes
+// (`mov esi, ebx; sub esi, ecx`) and drops to 75.5%. So the original really
+// is `<hoisted temp> - <loop-live register>`, i.e. `b.x -= a.x`, and the hoist
+// of that one load is a scheduling decision no spelling reached. All 48
+// combinations of the three subtraction orders and the two operand orders of
+// each subtraction were scored this pass: the unflipped y-first orders stay
+// best at 84.7%, the flipped ones are 67.5 to 75.5% and 354 to 358 bytes.
+// Also re-scored this pass, all 354 bytes but worse: the house-style inline
+// `operator-` (free const-ref, as at 0x40beb0, and a const member, as at
+// 0x404730) with its body in x,y,z / y,x,z / z,y,x order (80.6 to 81.5%, all
+// still stopping after the second instruction), a pointer to b modified in
+// place (81.5%), the comma-operator and `-a.x` spellings of the same
+// in-place subtractions (84.7%, identical code).
 // Not matched yet, 84.7% (354 bytes, same size as the original). The only
 // difference left is register allocation in the prologue: the original keeps
 // the x difference in ecx (b.x is loaded into ecx before the register pushes,

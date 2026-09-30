@@ -13,6 +13,17 @@
 // a named `PlayerData* d = p->data`, and p computed as
 // `g_game->players + FUN_0044fe40(id)` instead of `&g_game->players[...]`.
 // None changed the flag encoding or the rotation. Earlier notes below stand.
+// RETRY deepseek-v4.1-flash (pass 2): confirmed the flag encoding cannot be
+// forced from the source. On the bottom-tested loop (`for (i=0;i<10;i++)` and
+// `do {} while (i<10)` both give the original latch at 846 / 67.3), tried
+// `unsigned int flag = p->data->flags; flag &= 1;`, a 1-bit bitfield read
+// (`p->data->b0` via a union), a `(flags & 1) != 0` form, and the `register`
+// keyword on p/slot. Every one still emits `mov dl,[ecx+0x97]; and edx,1`,
+// because p=ebx, game=edi, slot=esi; the missing `xor eax,eax; mov al` is a
+// downstream symptom of that coloring. Also tried `Game* g = g_game;` (early
+// and everywhere, 51-63%), a ternary p, an array-base local, and an
+// extra g_game reference in the fi==10 arm (all worse, 50-65%). Base stays
+// the best at 848 bytes / 84.3%.
 //  * the player/slot/game register rotation: the original keeps g_game in ebx,
 //    the player pointer in esi and the slot byte in edi; ours allocates
 //    ebx=player, esi=slot, edi=g_game. Two extra uses of g_game (one inside

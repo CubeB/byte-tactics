@@ -42,6 +42,20 @@
 // before the memset so it is live across the rep stosd. MSVC 5 splits these
 // pseudo-registers back into per-store constants, so all of them compile to
 // the same 915 bytes. The fix is in the allocator, not the source shape.
+//
+// deepseek-v4.1-flash second retry, all flat at 85.9% with the same three
+// register hunks: every header set (tools/headers.py, 128 sets); the
+// N-declarations test (N unused `extern int dummyN;` for N = 0..400, all
+// 85.9%, so the difference is not compiler symbol-table state); routing the
+// 1/6/2 stores through `(unsigned char)`/`(short)` casts and through a
+// `static inline int id(int)` (MSVC folds both back); the memset value through
+// an `int zero` local; and declaring the 1 and 2 globals `unsigned`. Merging
+// 4 and 2 into one reassigned `int v` drops to 85.3% / 914 bytes (MSVC keeps
+// the variable in EDX but emits a different tail), so it is not the shape
+// either. In the original the free list gives 4 EDX, then 7 ECX, then 1 ESI,
+// 6 EDI, 2 EDX; ours reuses 4's just-freed EDX for 1 (so 6 ESI, 2 EDI). That
+// is a one-slot rotation of the same three registers, and nothing that keeps
+// all 915 bytes fixed moves it.
 
 #include <string.h>
 

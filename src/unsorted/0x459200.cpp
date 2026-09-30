@@ -1,16 +1,22 @@
-// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1. Names are provisional.
-// Partial (49.4%, 1516 vs 1506 bytes): address-taken 16-byte vector copy fixed
-// the frame size; declaring dx/dy as short improved the score; not caching
-// unit->sprites in a local (deref it at every use) keeps the unit in ebp/esi
-// and gained 3.7 points. Remaining diffs: this lands in ebx instead of edi (the
-// original keeps this in edi and screen y in ebx, ours is swapped), the vector
-// copy/writeback and the dx slot land 4 bytes low (ours dx at esp+0x10 where
-// the original spills f, its f slot pushes dx to esp+0x14), the original spills
-// f to esp+0x10 while ours rematerializes owner->field_92->flags, and the
-// second-half sprite loop still orders the d subtraction loads differently.
-// Tried with no gain: gameFlags local reused for the >>3 test, one function
-// scope int f, unused int spare. Tried and worse: plain 12-byte cv (41.7),
-// pad-first 16-byte cv (45.2), int* op for owner pos in the sprite loop (40.2).
+// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial (49.7%, 1531 vs 1506 bytes): from the prior 49.4% base. Declaring
+// FUN_004ba1b0 and FUN_004b96e0's second parameter as int instead of unsigned
+// char removed the movzx truncation at their call sites and gained 0.3 points.
+// Remaining diffs: `this` lands in ebp and model in edi (the original keeps
+// this in edi and model in ebp), the vector copy/writeback and the dx slot land
+// 4 bytes low (ours dx at esp+0x10 where the original spills f, its f slot
+// pushes dx to esp+0x14), the original spills f to esp+0x10 while ours
+// rematerializes owner->field_92->flags, the second half narrows the
+// owner->flags 0x20000000 test to a byte test where the original uses a dword
+// test, and the second-half sprite loop still orders the d subtraction loads
+// differently.
+// Tried in this retry with no gain: function-scope int f assigned in both
+// halves (still rematerializes), moving Vec3 d's declaration into the loop
+// (reordered back), changing (unsigned char)(1427f-dx) to (unsigned char)1427f-dx.
+// Tried and worse: int second params plus int value local (46.7), int value
+// local alone (45.6), int second params alone before also fixing the value
+// casts (49.7 is this file). Prior tries: plain 12-byte cv (41.7), pad-first
+// 16-byte cv (45.2), int* op for owner pos in the sprite loop (40.2).
 struct Vec3;
 struct Model_459200;
 struct Team_459200;
@@ -115,8 +121,8 @@ int __stdcall FUN_00485070(Pos_459200* p);
 void __stdcall FUN_004b7f90(int param_1, int param_2, int x, int y);
 void __stdcall FUN_004b8500(int param_1, int param_2, int x, int y);
 void __stdcall FUN_004b90a0(int bmp, int param_2, int x, int y, int z);
-void __stdcall FUN_004b96e0(int param_1, unsigned char value);
-void __stdcall FUN_004ba1b0(int param_1, unsigned char value);
+void __stdcall FUN_004b96e0(int param_1, int value);
+void __stdcall FUN_004ba1b0(int param_1, int value);
 
 // FUNCTION: 0x459200
 void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 v, int useColor)

@@ -1,4 +1,21 @@
-// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#2532): consolidated the attempts below and
+// confirmed the 62.0% wall is one whole-register rotation, not a missing
+// source shape. The original keeps list in esi and useColor in ebx (list
+// reloaded at the top of the p-loop, useColor reloaded after the vertex loop
+// clobbers ebx as offX); ours keeps useColor in esi and spills list, so the
+// p-loop, face index, vertex-copy and tail-copy blocks all rotate registers
+// (dest/index and edi/edx swap) and the src/counter slots are 0x24/0x20
+// instead of 0x20/0x24. New experiments, all worse or equal and none flips
+// the rotation: #include <windows.h> 39.3% (and our vertex loop already
+// matches without it, unlike sibling 0x458fa0); uninitialised `Bitmap* src;`
+// assigned inside the branch, plus a function-scope p, 61.2%; `p` declared
+// at function scope before or after src, 62.0%; `while (p-- > 0)` counter
+// form, 62.0%. The one lever the guide records for this class (an extra loop
+// level / goto label changing loop-nesting register priority, 0x40e160) and
+// swapping the src/p declaration order did not move it. This is the same
+// unreachable allocator tie that sibling 0x458fa0 documents at 84.1%; treat
+// it as compiler state from the original file, not this function's text.
 // Partial, 62.0% (real check, deepseek-v4.1 retry). Matched: the
 // g_game+0x37f06 shadow flag as an unsigned-short bitfield gives the
 // original's `shr dl,1; test dl,1`; the owner shade helper with a bool gives

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial, 34.8%: Sampling direction and mutable lighting-vector reads corrected.
 // A 128-set header sweep found no match; <ddraw.h> alone is best (34.8%).
 // A materialized shifted-flag local did not improve the score.
@@ -65,6 +65,17 @@
 // spelling we tried (base +0x4a toward flags, +0x44 toward vertices) while the
 // original uses the unbiased pieces base +0x22, so the whole loop body's
 // [ecx+0x28]/[ecx]/[ecx+0x22] offsets stay misaligned.
+// deepseek-v4.1-flash retry (2532), 36.5% base kept: confirmed the shade bias
+// at owner+0x92 -> +0x241 bit 30 is ternary(125:50); spelling it as
+// `unsigned char c = (unsigned char)(v >> 30); return (c & 1) ? 125 : 50;`
+// emits the original `shr edx,0x1e; and dl,1; neg dl; sbb edx,edx` but shrinks
+// the function by 21 bytes and scores 36.0, so the frame/rotation is the real
+// blocker, not the mask spelling.  Reading the vertex offsets off `bmp`
+// (the drawing surface, as the original esi does at 0x459df0) instead of
+// `bitmap` is semantically right but scores 36.4, so `bitmap` is kept for the
+// byte score.  Removing the early `bmp = bitmap` init, even with `bmp` offsets,
+// collapses to 29.4 (two else blocks).  The prologue rotation (esi/ebx bitmap
+// preload before `push edi`) is still the first and dominant diff.
 #include <ddraw.h>
 
 extern char* g_game;

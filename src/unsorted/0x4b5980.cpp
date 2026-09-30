@@ -1,4 +1,21 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// RETRY of deepseek-v4.1-flash: 89.2%, 827 of 820 bytes (7 over). The one gain
+// over the 88.8% below is the tail test: writing the FUN_004b5510 result into a
+// local (`int r = FUN_004b5510(...); if (r != 0)`) makes MSVC emit the
+// original's `cmp eax,ebx; jne` instead of `test eax,eax; jne`.
+// What still differs at 89.2%:
+//  * scheduling of the videoFlags load in the first flag block (`mov cx,[+0x202]`
+//    between the scratch[0]/scratch[1] stores in the original, later in ours).
+//  * the second flag block picks dx/cx for videoFlags/flag-word where the
+//    original picks cx/ax, so ours reloads `mov al,[+0xf0]` and uses `or ecx,1`
+//    in place of the original `or al,1` (about 15 bytes over in that block).
+//  * `d->wc.style = 8` is emitted just before RegisterClassA (`mov [eax],8`)
+//    instead of the original's `mov [esi+0x18],8` between the wndProc store and
+//    the mode-copy stores. Moving style earlier in the source (five positions
+//    tried) forces a 4-byte spill and swaps the width/height registers, 72.4%.
+//    Rewriting the flags expression in five forms, a videoFlags local, and
+//    direct startWidth/startHeight all compile identically or worse.
 //
 // Run of deepseek-v4.1-flash: 88.8%, 827 of 820 bytes (7 over). Change from
 // the previous 86.0%: both writes to the flag word at +0xf0 now go through a
@@ -256,7 +273,8 @@ int __stdcall FUN_004b5980(App_4b5980* d)
             if (d->hwnd != 0) {
                 ShowWindow(d->hwnd, d->nCmdShow);
                 UpdateWindow(d->hwnd);
-                if (FUN_004b5510(d->videoFlags & 1) != 0) {
+                int r = FUN_004b5510(d->videoFlags & 1);
+                if (r != 0) {
                     return 1;
                 }
             }

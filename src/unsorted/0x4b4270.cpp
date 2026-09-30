@@ -1,38 +1,31 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
-// GPT-6.1-sol refinement reached 61.5% (seven checks total). Moving the blob-loop
-// counter init outside its positive-count guard raised 61.1% to 61.5%; pointer
-// operand reordering, a static section-name helper, and a pretested loop did
-// not help. Remaining differences are loop register allocation and blob-copy
-// state below.
-// PARTIAL: 61.5% (737 bytes original, ours 755). Frame, prologue, the early
-// name test, the compressed branch, the ints loop and the tail of the blob loop
-// all match. What still differs is ONE allocator state in the loop bodies:
-//  * `image` is loaded into edi at its first use where the original loads it at
-//    0x4b42a7, before the test.
-//  * the doubles loop wants `int* rec = p; p += 3;` (0x4b43bf) but any such
-//    spelling drops the whole function to ~50%, so the plain p form is kept.
-//  * in the blob loop the original keeps c in ebx and reclen in esi and builds
-//    src in edi; ours puts c in esi and builds src in esi.
-// TRIED AND REJECTED (do not repeat): doubles/strings `rec = p; p += k;` forms
-// (50-59%), a `double` local for the double argument (50.7%), ternary `e->len =`.
-//
-// deepseek-v4.1 pass: 62.8% (747 bytes). Two fixes landed: the blob-loop record
-// fields a/b are used in the calls (the rec[0]/rec[1] reloads are gone), and the
-// final `e->len` reset now goes through a zero-initialised temp
-// (`int n = 0; if (e->size < 0) n = e->size; e->len = n;`) so MSVC reuses one
-// register for the 0 (the original's `xor edx,edx` before the movsb and its
-// single store after the test). Re-measured and still worse: doubles `rec` form
-// 52.1%, ints `p[0]/p[1]` with a late `p += 2` 50.9%, `int rl = h.reclen;` read
-// between the idx calls and the slot store 59.7%. What still differs: image is
-// loaded into edi after the `je` where the original loads it at 0x4b42a7; the
-// blob loop keeps c in esi and builds src in esi, the original keeps c in ebx
-// and builds src in edi (which is why the original reloads base into edx and
-// ours into ebx); and the blob loop's `e->len += h.reclen` reloads where the
-// original reuses the memcpy's size in eax.
-// Also tried by deepseek-v4.1-flash and rejected (44.6-50.8%): declaring `buf`
-// as `char*` and `p` as `int*` (moves fh from ebx to edi, breaks the prologue);
-// writing the ints loop as direct `p[0]/p[1]`; folding the blob loop into a
-// function-scope `for` counter plus the `e->len` ternary.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL 74.8% (737 bytes original, ours 742). Prologue, frame, the early name
+// test, the compressed branch and now the ints and strings loops match. The
+// deepseek-v4.1-flash pass landed three fixes on top of the 62.8% attempt:
+//  * blob store: an `int need = h.reclen + e->len;` local with `if (e->size < need)`
+//    made the size/len loads and the compare match the original (62.8 -> 71.7).
+//  * blob record: dropping the `int a/b` locals and using `rec[0]/rec[1]` inline
+//    put the loads in better registers (71.7 -> 73.1).
+//  * ints and strings loops: `int a = p[0]; int b = p[1]; p += k;` with the
+//    call using a/b matched the original's load order (73.1 -> 74.8).
+// What still differs (all allocator, no structural differences left):
+//  * `image` is loaded into edi after the `je` at 0x4b42e0 where the original
+//    loads it at 0x4b42a7, before the test. Everything after is shifted 3 bytes.
+//  * the doubles loop wants the original's `rec = p; p += 3;` shape (0x4b43bf)
+//    but rec form still measures 73.9%, below the direct form kept here.
+//  * the blob loop keeps c in esi and builds src in esi; the original keeps c
+//    in ebx and builds src in edi, so the original reloads base into edx and
+//    ours into ebx/edi. One allocator state.
+// Also tried and rejected this pass: inline rec[0]/rec[1] in the ints loop
+// (61.2%), local `double d` (58.8%), moving p += k after the call (63.4%),
+// swapping the reclen/c assignment order (74.8%, unchanged), adding `int b`
+// unconditionally (74.4%), `char* sect = *image + h.strOffset` before the test
+// (70.8%, it also hoists the strOffset load the original keeps lazy).
+// Previously rejected (do not repeat): doubles/strings `rec = p; p += k;` forms
+// (50-59%), a `double` local (50.7%), ternary `e->len =`, `char* buf`/`int* p`
+// (breaks the prologue), direct ints `p[0]/p[1]` with a late `p += 2` (50.9%),
+// `int rl = h.reclen;` between the idx calls and the slot store (59.7%).
+
 // Frame of the ORIGINAL off the disassembly (B = esp right after sub esp,0x42c):
 //   B+0x00 buf        B+0x04 len (reused by the blob loop counter i)
 //   B+0x08 base       B+0x0c end
@@ -190,9 +183,10 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
         p = (int*)buf;
         {
             for (int i = 0; i < h.nInts; i++) {
-                int* rec = p;
+                int a = p[0];
+                int b = p[1];
                 p += 2;
-                ((Class_004b4630*)this)->FUN_004b4630(*image + rec[0], rec[1]);
+                ((Class_004b4630*)this)->FUN_004b4630(*image + a, b);
             }
         }
         {
@@ -203,8 +197,10 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
         }
         {
             for (int i = 0; i < h.nStrings; i++) {
-                ((Class_004b4750*)this)->FUN_004b4750(*image + p[0], *image + p[1]);
+                int a = p[0];
+                int b = p[1];
                 p += 2;
+                ((Class_004b4750*)this)->FUN_004b4750(*image + a, *image + b);
             }
         }
         int i = 0;
@@ -212,24 +208,23 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
             do {
                 int* rec = p;
                 p += 4;
-                int a = rec[0];
-                int b = rec[1];
                 int c = rec[2];
                 int idx;
                 char* src;
                 Entry_004b4270* e;
                 h.reclen = rec[3];
-                if (a < 0)
-                    idx = ((Class_004b49d0*)this)->FUN_004b49d0(b, 1);
+                if (rec[0] < 0)
+                    idx = ((Class_004b49d0*)this)->FUN_004b49d0(rec[1], 1);
                 else
-                    idx = ((Class_004b4a80*)this)->FUN_004b4a80(*image + a, 1);
+                    idx = ((Class_004b4a80*)this)->FUN_004b4a80(*image + rec[0], 1);
                 ((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index].current = idx;
                 src = (char*)(buf + (c - base) - 0x20);
                 e = &((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index]
                         .entries[((Class_004b49d0*)this)->table->slots[((Class_004b49d0*)this)->table->index].current];
-                if (h.reclen + e->len > e->size) {
-                    e->buffer = (char*)FUN_004d8580(e->buffer, h.reclen + e->len);
-                    e->size = h.reclen + e->len;
+                int need = h.reclen + e->len;
+                if (e->size < need) {
+                    e->buffer = (char*)FUN_004d8580(e->buffer, need);
+                    e->size = need;
                 }
                 memcpy(e->buffer + e->len, src, h.reclen);
                 e->len += h.reclen;

@@ -1,9 +1,24 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Reads the installed DirectX version: first through dsetup.dll's
 // DirectXSetupGetVersion, then, if that fails, through
 // HKLM\Software\Microsoft\DirectX (the "InstalledVersion" DWORD on NT, the
 // "Version" string on Win9x), and compares the result with the wanted version.
 //
+//
+// deepseek-v4.1-flash retry: best is 54.6% (603 of 619 bytes). Still differs:
+// 1. lib takes ebx and majlo is spilled to the stack home at [esp+0x20]; the
+//    original keeps ebx=majhi, ebp=majlo, edi=minhi, esi=minlo and puts lib in
+//    memory. Every halves declaration/statement order tried (24 permutations,
+//    including the original zero order minlo/majhi/majlo/minhi) and the types
+//    int/DWORD/unsigned long leave lib in ebx; the allocator spills whichever
+//    half is assigned last in the DirectXSetup extraction (majlo).
+// 2. status lands at [esp+0x1c] and dwMin at [esp+0x14]; the original has
+//    status at [esp+0x14] and dwMin at [esp+0x1c]. Function-scope declaration
+//    order and moving dwMaj/dwMin to function scope did not swap them (a
+//    function-scope DWORD dwMaj=0 first version scored 46.0%).
+// 3. The shared failure tail (zeroing the version buffer, interleaved with the
+//    pops at 0x4b52ba) and the 4-byte zero at version[4] (0x4b510a) are still
+//    not reproduced by spelling the exits as memset(version,0,16); return 0;.
 // This retry (deepseek-v4.1) fixed the tail to the original's nested-if shape
 // (the shared `sbb eax,eax / inc eax` tree at 0x4b5233/0x4b523a now matches)
 // and steered the register permutation with the declaration/assignment order
@@ -58,7 +73,7 @@ typedef int (__stdcall *FN_DIRECTXSETUPGETVERSION)(DWORD* major, DWORD* minor);
 int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4)
 {
     int isNT = 0;
-    unsigned int minhi = 0, majlo = 0, minlo = 0, majhi = 0;
+    unsigned int minlo = 0, minhi = 0, majhi = 0, majlo = 0;
     DWORD status;
     HMODULE lib;
 

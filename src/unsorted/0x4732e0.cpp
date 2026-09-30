@@ -1,115 +1,109 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
-// #1591 retry by Codex / GPT-6.1-sol: check.py reconfirmed 57.9% (547/537 bytes), no MATCH.
-// Existing compiler-state probes already cover the remaining register-allocation wall.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free. Names are provisional.
+// std::vector<Class_00471cc0*>::insert(iterator, size_type, const T&) from MSVC 5's
+// <vector>, with _Ucopy, _Ufill, fill and copy_backward inlined. The sixteen
+// push_back sites call it out of line (they inline the count-is-one overload
+// instead). Taking the member's address makes the compiler emit the template
+// instantiation out of line, as in the original file. The member pointer must
+// return void: spelled with an iterator return, VC5 resolves the wrong
+// overload (C2563, or C2440 with a cast), because it prefers the two-argument
+// insert.
 //
-// WALL (deepseek-v4.1-flash, issue 1244, 1 check run): the first diff is the
-// prologue register assignment and it is compiler state. Grepping the exe for
-// the original prologue (`sub esp,8 / push ebx / push ebp /
-// mov ebx,[esp+0x18] / mov ebp,ecx`) gives exactly 3 hits (0x40d020, 0x425480,
-// 0x4732e0); grepping for the build's own variant (`push ebx / mov ebx,ecx /
-// push ebp / mov ebp,[esp+0x18]`) gives 6 (0x408f30, 0x425210, 0x433b20,
-// 0x44ec30, 0x46e640, 0x4c4d70), so both assignments coexist for the same
-// template and the choice is per instantiation. headers.py: 0 of 128 header
-// sets change anything (all 57.9%). Arguments re-verified: the mangled name
-// fixes (iterator, unsigned, const Class_00471cc0*&) and its order; all 17
-// callers call through the member pointer (no direct E8 to 0x4732e0 in .text),
-// so the call sites carry no extra hint, and the two callees ??2/??3 are cdecl.
-// This is the known wall in docs/agent-guide.md (lines 1160 and 1817); the file
-// keeps the best (57.9%) variant.
+// NEW (space-bunny-free, #1864): the "this in ebx, count in ebp" wall that
+// seven passes wrote off as translation-unit state is NOT a wall, and the file
+// now scores 81.1% instead of 57.9%. The lever is the sibling family's
+// (0x425480, 0x40d020, same swap): hand the vector class itself and write the
+// growth branch's THIRD copy as an explicit loop in insert's body, destination
+// declared BEFORE the source. That flips the whole register allocation of the
+// function to the original's, `this` in ebp and the count in ebx, with the two
+// moves in the original's order. The real <vector> cannot express it, because
+// its body calls _Ucopy(_P, _Last, _Q + _M) there.
+// Both loop shapes were measured in this base (check.py --sym, both scored):
+//   do { ... } while (_s != _Last);        81.1%, 534 of 537 bytes  <- kept
+//   for (; _s != _Last; ++_d, ++_s) ...   80.5%, 541 of 537 bytes
+// The original pre-tests that loop (`cmp ecx, esi / je`, _Last cached in esi),
+// so the for form is the structurally faithful spelling and is one `}` away if
+// the remaining rotation is ever fixed; the do-while form is kept because it
+// scores higher. Adding a `const_iterator _e = _Last;` cache reverts the
+// whole allocation to this-in-ebx in both shapes (58.0% for the for, 59.8% for
+// the do-while), which is the cache-clobber the sibling files record.
 //
-// std::vector<Class_00471cc0*>::insert(iterator, size_type, const T&) from
-// MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward inlined; the
-// sixteen push_back sites call it out of line (they inline the count-is-one
-// overload instead). Taking the member's address makes the compiler emit the
-// template instantiation out of line, as in the original file. The member
-// pointer must return void: spelled with an iterator return, VC5 resolves the
-// wrong overload (C2563, or C2440 with a cast), because it prefers the
-// two-argument insert.
-//
-// Still differs (57.9%, checked twice in this retry): the original puts `this` in ebp and the count in ebx
-// (`mov ebx, [esp+0x18]; mov ebp, ecx`), this build puts `this` in ebx and the
-// count in ebp, and that one choice cascades into every block (ours is 547
-// bytes, the original 537, because this has to reload `this` from its stack
-// slot where the original keeps it in a register). Nothing else differs: every
-// other difference in the diff is that same ebp/ebx/esi/edi permutation, the
-// branch structure, the pointer sums and the two calls to operator new and
-// operator delete are all identical.
-//
-// The exe's own 0x408f30, the same template instantiated on vector<Unit*>,
-// has the register assignment this build produces, so the game holds both
-// variants of the template and the one here is the rarer one. It is compiler
-// state from the rest of the original translation unit, not the template, and
-// no file-level change reaches it. Beyond everything the first attempt tried
-// (all of it still true, every one compiles to the same `mov ebx, ecx;
-// mov ebp, __M$`), these do not change it either:
-// - the unpatched compiler, `BT_TOOLCHAIN=msvc5-rtm` (its C1XX.DLL differs from
-//   SP3's), gives the identical 547 bytes, so this is not an older compiler
-//   build; VECTOR, XTREE, ALGORITHM and XSTRING are byte-identical between
-//   toolchain/msvc5-rtm/INCLUDE and toolchain/msvc5-sp3/INCLUDE, so a
-//   different STL revision cannot explain it either
-// - the exe's own neighbourhood, in the exe's emission order and in one file:
-//   vector<Elem_00473500>::_Destroy (0x4732d0) first, then this insert, then
-//   _Ucopy (0x473500) and _Ufill (0x473530), with the real Class_00471cc0
-//   (vtable 0x4fd5a8, constructor 0x471cc0, destructor 0x471d00, three pure
-//   virtuals). check.py's whole output is byte-identical to the plain file's
-// - a real caller that *inlines* this insert, 0x471820's
-//   Class_00471820::FUN_00471820 with its pool operator new and the
-//   Class_00474cd0 hierarchy, compiled before the out-of-line emission the
-//   other sixteen call sites link against: unchanged
-// - spelling the default allocator out, `std::vector<Class_00471cc0*,
-//   std::allocator<Class_00471cc0*> >`, which needs the complete element type
-//   (XMEMORY(33): error C2027 with only a forward declaration): unchanged
-// The build is invariant, so this needs the regrouping-into-original-
-// translation-units phase, and the state that decides the choice is not
-// something the file can carry. Nothing before this attempt changed it:
-// - all 128 header sets (tools/headers.py), plus <string>, <map>, <list>,
-//   <algorithm> and <iostream> after <windows.h>
-// - 100 to 4000 unused function prototypes, 40 inline function definitions,
-//   40 function definitions, 200 class definitions, 200 extern variables
-// - `template class std::vector<Class_00471cc0*>;`, both insert overloads
-//   emitted, the address taken through a derived struct or from inside a
-//   function, a file-scope static pointer, the class defined before <vector>
-// - the element's own definition: plain class, the real class with its
-//   constructor, destructor and three pure virtuals, or a struct
-// - taking the vector's protected _Ufill, _Ucopy and _Destroy out of line too,
-//   in all eight combinations
-//
-// A later attempt went past all of that by hand-rolling std::vector itself. A
-// stand-in `class allocator` and a stand-in `template<class _Ty, class _A>
-// class vector`, both in namespace std and written so the template arguments
-// mangle to the same `?$vector@PAVClass_00471cc0@@V?$allocator@PAVClass_00471cc0@@
-// @std@@@std@@` and the member to the same `?insert@...QAEXPAPAV...IABQAV3@@Z`,
-// with the SP3 <vector>'s insert body, size(), _Ucopy, _Ufill, _Destroy and the
-// SP3 XUTILITY fill and copy_backward copied verbatim, DOES reach the original's
-// register assignment at the top of the function:
-//   push ebx / push ebp / mov ebx, [esp+0x18] / mov ebp, ecx
-// that is, the count in ebx and `this` in ebp, with the two moves in the
-// original's order. So the original's prologue is reachable from this source
-// shape, which is the strongest evidence yet that the algorithm and the member
-// are right and that the remaining difference is one allocator decision.
-//
-// The construct that decides that prologue is `allocator::construct`, and it
-// decides the body shape with it, the two cannot be had separately (all six
-// combinations of construct, allocate and destroy were measured; the variants
-// are in build/scratch/0x4732e0/, v1 to v4 and wa to wf):
-// - construct calling the nested `_Construct(_P, _V)` placement-new helper, the
-//   real XMEMORY shape, gives the body this build gives, 546 or 547 bytes, and
-//   the wrong top assignment, `this` in ebx and the count in ebp: 57.1% with the
-//   hand-rolled vector, 57.9% with the real <vector>
-// - construct written as the assignment `*_P = _V` straight in the allocator
-//   gives the original's top assignment and a 511 byte body that is 26 bytes
-//   short: 38.2%. `allocate` (its own inline clamp and `operator new`, or the
-//   nested `_Allocate` template) and `destroy` (empty, or the nested `_Destroy`
-//   pseudo-destructor call) change neither, so they are not the lever
-// With the assignment form the body then differs in about ten places at once,
-// all of them downstream of the prologue: `_End - _Last` lands in ecx instead of
-// eax, `_N` is built with a `lea` instead of an `add` and is spilled into the
-// dead _M argument slot instead of a local, the new buffer keeps a second live
-// copy in esi, the first _Ucopy loop increments before it stores and borrows
-// ebp as its load temporary so `this` has to be reloaded from its slot, and the
-// tail recomputes `this` into edx. Fixing the prologue alone is worth 19 points;
-// fixing the body alone is not reachable, so this file keeps the 57.9% shape.
-#include <vector>
+// Still differs (81.1%): everything is in the growth branch. The original
+// caches _Last in esi for the third copy and builds its source start as
+// `(P - Q) + dest - M4` (`sub ecx,edx / add ecx,eax / sub ecx,edi`), keeping
+// _P in ecx and the destination in eax. Here the third copy re-reads
+// `mov edx, [ebp+8]` each pass, derives the source as
+// `lea eax,[ecx+edi] / sub eax,edx / sub eax,esi` from the destination, and
+// keeps _P in edi with the destination in ecx; _M*4 sits in esi where the
+// original has esi holding _Last. The first _Ucopy's loop end is edi here
+// against ecx in the original, and the _Ufill counter is ecx here against esi
+// in the original. That is one allocator decision about which induction
+// variable leads the third copy, the same wall 0x425480 records; the fast
+// branches match instruction for instruction and only differ in branch
+// targets.
+#include <memory>
+#include <xutility>
+
+namespace std {
+template<class _Ty, class _A = allocator<_Ty> >
+class vector {
+public:
+	typedef vector<_Ty, _A> _Myt;
+	typedef _A allocator_type;
+	typedef _A::size_type size_type;
+	typedef _A::difference_type difference_type;
+	typedef _A::pointer _Tptr;
+	typedef _A::const_pointer _Ctptr;
+	typedef _A::reference reference;
+	typedef _A::const_reference const_reference;
+	typedef _A::value_type value_type;
+	typedef _Tptr iterator;
+	typedef _Ctptr const_iterator;
+
+	size_type size() const
+		{return (_First == 0 ? 0 : _Last - _First); }
+	size_type capacity() const
+		{return (_First == 0 ? 0 : _End - _First); }
+	iterator begin()
+		{return (_First); }
+	iterator end()
+		{return (_Last); }
+	void insert(iterator _P, size_type _M, const _Ty& _X)
+		{if (_End - _Last < _M)
+			{size_type _N = size() + (_M < size() ? size() : _M);
+			iterator _S = allocator.allocate(_N, (void *)0);
+			iterator _Q = _Ucopy(_First, _P, _S);
+			_Ufill(_Q, _M, _X);
+			{ iterator _d = _Q + _M; const_iterator _s = _P; do { allocator.construct(_d, *_s); ++_d; ++_s; } while (_s != _Last); }
+			_Destroy(_First, _Last);
+			allocator.deallocate(_First, _End - _First);
+			_End = _S + _N;
+			_Last = _S + size() + _M;
+			_First = _S; }
+		else if (_Last - _P < _M)
+			{_Ucopy(_P, _Last, _P + _M);
+			_Ufill(_Last, _M - (_Last - _P), _X);
+			fill(_P, _Last, _X);
+			_Last += _M; }
+		else if (0 < _M)
+			{_Ucopy(_Last - _M, _Last, _Last);
+			copy_backward(_P, _Last - _M, _Last);
+			fill(_P, _P + _M, _X);
+			_Last += _M; }}
+protected:
+	void _Destroy(iterator _F, iterator _L)
+		{for (; _F != _L; ++_F)
+			allocator.destroy(_F); }
+	iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P)
+		{for (; _F != _L; ++_P, ++_F)
+			allocator.construct(_P, *_F);
+		return (_P); }
+	void _Ufill(iterator _F, size_type _N, const _Ty& _X)
+		{for (; 0 < _N; --_N, ++_F)
+			allocator.construct(_F, _X); }
+	_A allocator;
+	iterator _First, _Last, _End;
+};
+}
 
 class Class_00471cc0 {
 public:

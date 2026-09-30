@@ -33,6 +33,15 @@
 // call the real nested constructor to initialise the entry's three dwords.
 // Vector erase/temporary cleanup and register allocation still differ. 768
 // header sets did not improve the 27.6% version this replaced.
+// Retry by deepseek-v4.1-flash: tools/headers.py --cpp (768 header sets) is
+// flat at 28.9%, no set beats the base file. Variants tried and all flat or
+// worse: boolean guard spellings (`if (disabled)`), an explicit char* alias
+// for the player scan, and hoisting `changed` to the top of the function
+// (24.8%). The whole-file register rotation this=esi / zero=ebp / pinfo=edi /
+// vecptr=eax versus the original this=edi / zero=ebx / pinfo=esi / vecptr=ebp
+// is untouched by any of these, and the ~200-byte entry-construction and
+// destructor region (Class_0046eaa0 entry, list_a inlined, list_b out of line
+// at 0x46e5c0, sub at 0x46cbe0) still emits a different instruction sequence.
 #include <list>
 #include <map>
 #include <vector>

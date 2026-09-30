@@ -1,6 +1,8 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
 // Started by longcat-2.5-preview-free, continued by deepseek-v4.1-flash and GPT-6.
 // Partial: 80.3%, 4217 bytes versus 4247. The frame is the original 0x23c.
+// deepseek-v4.1-flash retry stopped on the shared-board WATCHDOG; 80.3% is the
+// best variant found and is unchanged by this round (4 experiments, all worse).
 // What this round changed (each one verified by a check.py run):
 // - PFSTATE/PFABLE is one expression `*(int*)(g_game+0x37e23) - pfable - 1` and
 //   y3 = pfstate - 0x10, which reproduces the original sub/dec pair, +5.8.
@@ -89,37 +91,35 @@ static void DrawBar_0046a860(void* surface, Rect_0046a860* bounds, int value, in
 }
 static float Positive_0046a860(float value) { return value > 0.0f ? value : 0.0f; }
 
-// What still differs (deepseek-v4.1, stopped on the 10-minute budget at 60.0%):
-// - Frame is 0x22c, the original's is 0x23c (16 bytes short), so every [esp+N] is
-//   off. Original layout: iVar5 [esp+0x10]; a 8-dword Rect/pointer block at
-//   [esp+0x14..0x34]; the 60-byte snapshot at [esp+0x34..0x70]; a 4-byte int at
-//   [esp+0x70]; char[16] at [esp+0x74]; the 256-byte text buffer at [esp+0x84];
-//   the 100-byte buffer at [esp+0x184]; the kills buffer at [esp+0x1e8] (84
-//   bytes, it must stop at the 0x23c frame end). This file's buffers land near
-//   [esp+0xd8]/[esp+0xe0] instead, so roughly 20 extra dwords of address-taken
-//   locals (the local_60/local_38/local_5e references and the block scalars)
-//   push them up. Rebuild the local set to exactly the list above first.
-// - Prologue homes param_1 in edi (mov edi,[esp+0x250]); ours picks esi.
-// - In the first do/while icon loop the original keeps the returned bitmap in
-//   esi and reuses edi for param_1; ours swaps them, so the two pushes after the
-//   two movsx come out reversed (push esi / push edi versus push edi / push esi).
-// - After FUN_004c1450 the original keeps PFABLE in ecx (add eax,ecx /
-//   mov edx,[g_game+0x37e23] before the ecx spill); ours lets it fall to ebx.
-// Tried: nothing new produced a higher score inside the budget (run out of time
-// after mapping the frame with a /Fa listing and re-reading Ghidra's pseudo-C);
-// this 60.0% version is left in place by deepseek-v4.1 as the best so far.
-// Frame mapped exactly from a /Fa listing (offsets from the frame bottom, the
-// first local sits at [esp+0x10]): ours is iVar5 0..4, 8-dword block 4..36,
-// snapshot 36..96, amount 100..200, text 200..456, kills 456..556 (0x22c).
-// The original is the same up to the snapshot, then a 4-byte int 96..100, a
-// char[16] 100..116, text 116..372, amount 372..472, kills 472..572 (0x23c).
-// So exactly two things are off: our `amount` is slotted before `text` (the
-// original has text first) and the char[16] is missing. Adding a char[16] used
-// by the strncpy does land it at [esp+0x74] exactly as in the original, but
-// `amount` still precedes `text`, giving a 0x240 frame, and the score drops.
-// Declaration order (and permutations of it) has zero effect on slot order,
-// verified with /Fa listings, so the order comes out of the code generator's
-// walk, not out of the source text.
+// State after the deepseek-v4.1-flash retry: 80.3%, 4217 versus 4247 bytes.
+// The frame is 0x23c in both and the local slots already match the original
+// (/Fa listing: iVar5 0x10, snapshot 0x34, text 0x84, amount 0x184, kills
+// 0x1e8), so this is no longer a frame-layout problem. What is left is a long
+// tail of register and scheduling choices, from the check.py diff:
+// - Prologue homes param_1 in edi (mov edi,[esp+0x250]); ours picks esi, and
+//   the first do/while icon loop keeps the bitmap in edi where the original
+//   uses esi. A straight swap of the two registers.
+// - After FUN_004c1450 the original loads [g_game+0x37e23] into esi first, then
+//   [g_game+0xc] into eax, and keeps pfable in ecx; ours loads 0xc first, keeps
+//   g_game in edx and field_c in ecx. Reordering the source so pfstate is
+//   computed before field_c drops the whole function to 73.3%, so the current
+//   (field_c first) order is the better one.
+// - In the MOVEORD block ours folds `unit + 0x110` into one mov with an
+//   addressing mode; the original materialises the unit pointer with a
+//   separate lea first.
+// - `int y3 = pfstate - 0x10` emits `add esi,-0x10` here, `sub esi,0x10` in the
+//   original.
+// - The four snapshot.values copies become integer movs here, but the original
+//   uses four fld/fstp pairs.
+// - `(*(int*)(unit+0x110) >> 9) & 1` folds to `test ah,2`; the original does
+//   `shr edx,9` then `test dl,1`.
+// - The type*0x249+base table pointer and the two sprintf call setups pick
+//   different registers; one early return duplicates the full epilogue in the
+//   original (about 30 bytes, our size gap) where ours jumps to the shared one.
+// Tried this round and reverted (all scored lower or neutral): pfstate before
+// field_c (73.3), splitting the strncpy base pointer into a named local (80.3,
+// no change), moving the strncpy name into a dedicated char[17] (75.3, 0x240
+// frame), and hoisting the type table pointer before _strcmpi (79.9).
 
 // FUNCTION: 0x46a860
 void __stdcall FUN_0046a860(void* param_1) {

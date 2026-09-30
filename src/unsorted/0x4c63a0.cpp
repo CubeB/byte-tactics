@@ -1,5 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
-// PARTIAL 50.7%. Remaining differences: display/tag registers, local overlays and DirectDraw branch layout. Surface locals are 48 bytes and the native descriptor is 108 bytes.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL 74.2% (was 50.7%). Frame now matches the original (sub esp, 0xf4; desc ends exactly at [esp+0x104]).
+// Fixed here: (1) branch ORDER. The original lays the (flags&2)==0 BitBlt path first (falling into a
+//     tail-merged Unlock), then the field_dc!=0 bmp path, then the field_dc==0 flip/Blt path out of line.
+//     Writing it as if(!(flags&2)){...} else if(field_dc!=0){...} else{...} was worth +22 points.
+// (2) The Blt-path locals must live in an ELSE block so they overlay the earlier held/bmp slot at
+//     [esp+0x10]; at function scope they pushed everything +4 (frame 0xf8).
+// (3) The Blt retry loop needs one reused result variable r (restores assign into it) to get a single
+//     back-edge; the direct-test form rotated the loop and emitted the Blt call twice.
+// Remaining: a register permutation. The original keeps 0 in ebp and the Lock result/bmp in ebx for the
+// whole field_dc!=0 branch (so the inlined Lock uses ebp=InterlockedExchange, ebx=WaitForSingleObject,
+// result ebx). Ours uses ebx as the 0, which swaps the Lock imports (ebx=Interlocked, ebp=Wait) and lands
+// the result in ebp, pushing dd to edi and the restore result to eax. Downstream that flips every
+// cmp/test/zero operand from ebp to ebx. This is one upstream fact, not many.
+// Surface locals are 48 bytes and the native descriptor is 108 bytes (0x6c).
 
 #include <windows.h>
 #include <ddraw.h>
@@ -135,7 +148,44 @@ void FUN_004c63a0(void)
         return;
     }
 
-    if (d->field_dc == 0) {
+    if (d->field_dc != 0) {
+        Surface_004c63a0* bmp = d->field_bc;
+        if (bmp->data[0] != FUN_004b6700())
+            return;
+        if (bmp->data[1] != FUN_004b6710())
+            return;
+
+        LONG held = Lock();
+
+        desc.dwSize = sizeof(desc);
+        unsigned long lr = d->field_88->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
+        if (lr == 0) {
+
+            out.field_0 = d->field_d4;
+            out.field_4 = d->field_d8;
+            out.field_8 = desc.lPitch;
+            out.field_c = (int)desc.lpSurface;
+            FUN_004c67c0(d, bmp);
+            FUN_004cbbe0((Surface_004c63a0*)&out, bmp, 0, 0);
+            if (d->field_1ce != 0 && d->field_1d2 != 0)
+                FUN_004c6b70(bmp, (Surface_004c63a0*)d->field_1be, d->field_1b6, d->field_1ba);
+            d->field_88->Unlock(0);
+        } else if (lr == 0x887601c2) {
+            Display_004c63a0* dd = FUN_004b6220();
+            if (dd->field_44 == 0) {
+                if (d->field_88->Restore() == 0) {
+                    if (d->surface->Restore() == 0) {
+
+                        FUN_004c5e70(&screen);
+                        FUN_004cbbe0(&screen, dd->field_98, 0, 0);
+                        UnlockScreen();
+                    }
+                }
+            }
+        }
+        Unlock(held);
+        return;
+    } else {
         if (d->field_9c != 0 && (flags & 1) != 0) {
             d->field_88->Flip(0, 1);
             return;
@@ -149,56 +199,24 @@ void FUN_004c63a0(void)
         ClientToScreen(d->hwnd, &pt);
         OffsetRect(&rect, pt.x, pt.y);
 
+        LONG r;
         for (;;) {
-            int r = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
-            if (r == 0) return;
+            r = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
+            if (r == 0) break;
             if (r != 0x887601c2) continue;
             Display_004c63a0* dd = FUN_004b6220();
-            if (dd->field_44 != 0) return;
-            if (d->field_88->Restore() != 0) continue;
-            if (d->surface->Restore() != 0) continue;
-
-            FUN_004c5e70(&screen);
-            FUN_004cbbe0(&screen, dd->field_98, 0, 0);
-            UnlockScreen();
-            return;
-        }
-        return;
-    }
-
-    Surface_004c63a0* bmp = d->field_bc;
-    if (bmp->data[0] != FUN_004b6700())
-        return;
-    if (bmp->data[1] != FUN_004b6710())
-        return;
-
-    LONG held = Lock();
-
-    desc.dwSize = sizeof(desc);
-    unsigned long lr = d->field_88->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
-    if (lr == 0) {
-
-        out.field_0 = d->field_d4;
-        out.field_4 = d->field_d8;
-        out.field_8 = desc.lPitch;
-        out.field_c = (int)desc.lpSurface;
-        FUN_004c67c0(d, bmp);
-        FUN_004cbbe0((Surface_004c63a0*)&out, bmp, 0, 0);
-        if (d->field_1ce != 0 && d->field_1d2 != 0)
-            FUN_004c6b70(bmp, (Surface_004c63a0*)d->field_1be, d->field_1b6, d->field_1ba);
-        d->field_88->Unlock(0);
-    } else if (lr == 0x887601c2) {
-        Display_004c63a0* dd = FUN_004b6220();
-        if (dd->field_44 == 0) {
-            if (d->field_88->Restore() == 0) {
-                if (d->surface->Restore() == 0) {
-
-                    FUN_004c5e70(&screen);
-                    FUN_004cbbe0(&screen, dd->field_98, 0, 0);
-                    UnlockScreen();
-                }
+            if (dd->field_44 != 0) {
+                r = 0;
+            } else {
+                r = d->field_88->Restore();
+                if (r != 0) continue;
+                r = d->surface->Restore();
+                if (r != 0) continue;
+                FUN_004c5e70(&screen);
+                FUN_004cbbe0(&screen, dd->field_98, 0, 0);
+                UnlockScreen();
             }
+            if (r != 0) continue;
         }
     }
-    Unlock(held);
 }

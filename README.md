@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**67.74% of Cavedog's code matched** (576,381 of 850,853 bytes)
+**67.81% of Cavedog's code matched** (576,937 of 850,853 bytes)
 
 `[###########################-------------]`
 
-By count that is 3,011 of the game's 3,267 functions (92.2%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,012 of the game's 3,267 functions (92.2%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,011 | 576,381 |
-| Attempted, not yet matching | 253 | 271,952 |
+| Matched byte-for-byte | 3,012 | 576,937 |
+| Attempted, not yet matching | 252 | 271,396 |
 | Not attempted yet | 3 | 2,520 |
 
 ### By function size
@@ -37,7 +37,7 @@ The size bands are the `size:` labels on the issues.
 | small (1 to 64 bytes) | 1,154 of 1,155 | 99.9% | 40 | `##########` |
 | medium (65 to 160 bytes) | 821 of 827 | 99.2% | 676 | `##########` |
 | large (161 to 400 bytes) | 652 of 703 | 91.9% | 14,465 | `#########-` |
-| xl (401 to 600 bytes) | 189 of 226 | 83.0% | 18,757 | `########--` |
+| xl (401 to 600 bytes) | 190 of 226 | 83.5% | 18,201 | `########--` |
 | xxl (601 to 1,000 bytes) | 126 of 195 | 63.6% | 53,441 | `######----` |
 | huge (over 1,000 bytes) | 69 of 161 | 36.0% | 187,093 | `####------` |
 
@@ -59,7 +59,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x470000` | Campaign and skirmish screens, resource bars | 231 of 259 | 69.5% | 19,408 | `#######---` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 243 of 264 | 72.7% | 17,378 | `#######---` |
 | `0x490000` | Config and registry, skirmish summary | 174 of 193 | 57.7% | 25,196 | `######----` |
-| `0x4a0000` | GUI layout and GAF | 179 of 201 | 54.8% | 29,054 | `#####-----` |
+| `0x4a0000` | GUI layout and GAF | 180 of 201 | 55.6% | 28,498 | `######----` |
 | `0x4b0000` | UI controls and file packages | 292 of 314 | 79.9% | 12,440 | `########--` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 279 of 298 | 76.6% | 12,694 | `########--` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 176 of 197 | 66.2% | 12,725 | `#######---` |

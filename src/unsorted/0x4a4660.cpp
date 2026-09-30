@@ -1,27 +1,23 @@
 // Decompiled by GPT-5.6-Terra, finished by GPT-6 and deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
-// Partial at 86.8% (562 bytes against 556).
-// Retry: the live zero register needed for the original comparisons and width initialization remains unmatched.
+// MATCH 100% (556 bytes), found by deepseek-v4.1-flash.
 //
-// deepseek-v4.1-flash pass: the whole remaining diff is one allocator decision.
-// The original materialises a 32-bit zero in edi at the prologue (`xor edi,edi`)
-// and keeps it live: `cmp ebx,edi` for the surface null test, `cmp
-// [esi+0xd2],edi` for the showText test, `mov [esp+0x38],edi` for the width
-// initial value and `cmp [ecx+0x14],edi` for the first language test. That edi
-// is then reused as the text pointer and restored from the width home after the
-// loop (`lea edi,[esp+0x20]`, `mov edi,[esp+0x38]`). Ours never forms the zero
-// register: it emits `test ebx,ebx`, `mov eax,[esi+0xd2]; test eax,eax` and
-// `mov dword ptr [esp+0x38],0`. Because edi is free here, the allocator then
-// uses it as the rect-inset temporary (`mov edi,[esp+0x14]; add edi,eax`),
-// where the original uses edx/ecx, so the same single decision explains every
-// hunk.
+// The whole residual at 86.8% was the live zero register in edi. The original
+// materialises a 32-bit zero at the prologue (`xor edi,edi`) and keeps it
+// live: `cmp ebx,edi` for the surface null test, `cmp [esi+0xd2],edi` for the
+// showText test, `mov [esp+0x38],edi` for the width initial value and
+// `cmp [ecx+0x14],edi` for the first language test. edi is then reused as the
+// text pointer and reloaded from the width home after the loop. Writing the
+// width measurement inline never forms that register: MSVC emits `test ebx,ebx`
+// and immediate-zero stores. Moving the measurement into a `static inline`
+// helper (exactly the shape of Measure_004a4d70 in 0x4a4d70) makes the inliner
+// hoist the helper's `int width = 0` zero into edi at the function prologue and
+// reuse it for every later zero, which also pushes the rect-inset temporary off
+// edi onto edx/ecx. One source shape explains every hunk.
 //
-// Tried and measured (all scratch): width declared at function scope before
-// surface 80.0%, right after surface 80.0%, right after FUN_004c5e70 80.0%,
-// right before the showText test 81.1%, function-scope `int width;` assigned
-// after _itoa 86.8% (identical output), `int width = 0` plus a top-level
-// `char *p` 80.0%, and `headers.py 0x4a4660` (all 128 sets, best 86.8%). The
-// 0x4a3ef0 notes say a zero local declared right after a call is what makes
-// MSVC keep the zero, but none of those placements did here.
+// Measured dead ends (all scratch, free --sym): inline measurement with width
+// declared/initialised at every position, `char *p = 0` or `int zero = 0` at
+// function scope (constant-propagated away), reversing every comparison,
+// `while`/`for` loop forms and `char *q` loop pointer: all 86.8% or worse.
 #include <stdlib.h>
 #include <windows.h>
 
@@ -81,6 +77,27 @@ int __stdcall FUN_004c1480(int, char *);
 int FUN_004c1450();
 void __stdcall FUN_004c5fa0(void *);
 
+
+static inline int Measure_004a4660(char *text)
+{
+    int width = 0;
+    char *p = text;
+    if (p == 0)
+        return 0;
+    if (DAT_0051fba4->language == 0)
+        return FUN_004c1480(FUN_004c1440(), text);
+    char *q = text;
+    while (*q != 0) {
+        char ch = *q;
+        Glyph_004a4660 *glyph = (Glyph_004a4660 *)FUN_004b7f30(
+            DAT_0051fba4->language->glyphs, (unsigned char)ch);
+        if (glyph != 0)
+            width += glyph->width;
+        ++q;
+    }
+    return width;
+}
+
 // FUNCTION: 0x4a4660
 void __stdcall FUN_004a4660(Class_004a4660 *obj, int index)
 {
@@ -113,21 +130,7 @@ void __stdcall FUN_004a4660(Class_004a4660 *obj, int index)
     if (entry->showText != 0) {
         char text[20];
         _itoa(entry->number, text, 10);
-        int width = 0;
-        char *p = text;
-        if (p != 0) {
-            if (DAT_0051fba4->language == 0) {
-                width = FUN_004c1480(FUN_004c1440(), text);
-            } else {
-                while (*p != 0) {
-                    char ch = *p;
-                    Glyph_004a4660 *glyph = (Glyph_004a4660 *)FUN_004b7f30(
-                        DAT_0051fba4->language->glyphs, (unsigned char)ch);
-                    if (glyph != 0) width += glyph->width;
-                    ++p;
-                }
-            }
-        }
+        int width = Measure_004a4660(text);
         int height;
         if (DAT_0051fba4->language == 0) {
             height = FUN_004c1450();

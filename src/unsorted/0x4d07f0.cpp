@@ -1,4 +1,27 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// TENTH PASS (space-bunny-free, 600s: headers.py first, one real check.py run
+// for the baseline, then four free check.py --sym probes). Body unchanged:
+// still 88.7% / 275 of 275 bytes, the same three hunks, re-confirmed by a real
+// run. headers.py: 128 sets, none matches, closest 88.7% (<windows.h>,
+// <string.h>, <ddraw.h> and those pairs), so the header set is not the lever.
+// Four new negatives, all scored free:
+//   * the exit phi pre-seeded, `n = 0;` before the walk with the two exits
+//     keeping only `n = len;` and a bare `break;`: 52.0% / 276 bytes, so
+//     pre-seeding n costs the whole exit shape.
+//   * the 0x10 byte fmt buffer as a `#pragma pack(1)` struct with named
+//     format/channels/rate/bits fields and the three stores reading the
+//     fields: 81.4% / 275 bytes. The packed struct is worse than the char
+//     array plus three casts, so the buffer really is a char[0x10].
+//   * the whole tail (the 0x10 read and the three stores) inside a
+//     `static __inline void ReadFmt(...)` helper, called before `return 1;`:
+//     byte identical, 88.7%, the identical three hunks including the pop
+//     placement, so the epilogue diff does not come from the tail's
+//     statement list at all.
+//   * the tail moved into the then arm of `if (n >= 0x10) { ... return 1; }
+//     return 0;` instead of the early `if (n < 0x10) return 0;`: 85.6% /
+//     275 bytes, so that inversion is not free either.
+// The three hunks below are therefore still one backend allocator/scheduler
+// state, as every earlier pass concluded.
 // PARTIAL: 88.7% (ours 275 bytes, original 275, code size exact, 1 real
 // check.py run this pass plus the baseline). The whole
 // RIFF/WAVE chunk walk, the rotated loop, the len/0 exit phi, the 0x10 byte

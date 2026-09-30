@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // PARTIAL: 94.7%, 206 bytes (code size exact). Walks a chunked file's marker
 // table looking for the record tagged "data" and returns that record's 4 byte
 // header field (the record length), or 0 when the walk runs past the table.
@@ -251,6 +251,39 @@
 // and in that order MSVC 5 folds the size update, while every order that keeps
 // the register form misplaces the pos copy. That is the single blocker, and it
 // is a graph level decision, not register allocation.
+//
+// THIRTEENTH PASS (space-bunny-free: headers.py first (no set matches, closest
+// <windows.h> / <string.h> / <ddraw.h> at 94.7%), then one real check.py run for
+// the baseline and free check.py --sym scoring of four variants). Code
+// unchanged, still 94.7%, 206 bytes, still the same two preheader diffs
+// (confirmed again below, run 1). Two new experiments, both aimed at the
+// update's fold rather than at spelling variants:
+//   * The tenth pass's rule generalises past the pos placement: the update
+//     folds to `add dword ptr [size],8` whenever the `pos = 0x14` def is the
+//     last def of the preheader, whatever causes that. Writing the update as
+//     the seek's second argument expression, `FUN_004bb710(file, (size += 8,
+//     0xc));` (build/scratch/0x4d0910/v3.cpp, v4.cpp), puts the update inside
+//     the call's own tree and folds it at 93.3% / 200 bytes with pos after both
+//     reads AND with pos between the two reads, so with that comma the two
+//     shapes collapse to one state. Conclusion: the fold and the copy's slot
+//     are both decided by where the pos def lands in the preheader's tree list,
+//     and the comma is a second, independent way to reach the same fold, not a
+//     way around it.
+//   * The "two locals in one stack slot" theory of the unfurled update is dead:
+//     reading the header into one unsigned int and storing `size = tmp + 8` into
+//     another (build/scratch/0x4d0910/v1.cpp, v2.cpp) is 42.1% / 199 bytes, not
+//     a near miss. MSVC 5 gives the two locals distinct slots: `len` moves to
+//     [esp+0x18], `file` comes out of esi into eax/edi and ebx is pushed, so the
+//     whole frame and allocation change. Locals that are not simultaneously
+//     live do NOT share a stack slot here, so an unfurled update can never be
+//     had by spelling the load and the store through two names.
+// The preheader's source statement list is byte-for-byte forced by the
+// original's disassembly (seek 4, read size, size += 8, seek 0xc, read tag,
+// read len, pos = 0x14, test), and no statement can be added, removed, moved or
+// merged without changing bytes the original does not have. The residual is
+// therefore the backend's choice of tree-list slot for the pos def, the same
+// allocator plus scheduler tie 0x4d0720 records.
+
 #include <string.h>
 
 int __stdcall FUN_004bb710(void* file, int pos);

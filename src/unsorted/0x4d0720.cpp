@@ -1,4 +1,39 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// THIRTEENTH PASS (space-bunny-free: headers.py first, one real check.py run
+// for the baseline, then free check.py --sym probes. No change: still 97.5%,
+// 205 bytes, the same two instruction preheader displacement, verified by a
+// fresh run of the unchanged file.)
+//   * headers.py: 128 sets, no match, closest 97.5% (<windows.h>, <string.h>,
+//     <ddraw.h> and the pairs), confirming the eleventh pass.
+//   * NEW, and it settles an ambiguity every earlier pass left open: the
+//     original's frame arithmetic. esp is S = E0-20 after the prologue, so
+//         [esp+0x0c] = E0-8   total (local)
+//         [esp+0x10] = E0-4   name[4] (local)
+//         [esp+0x14] = E0+0   the RETURN ADDRESS slot, reached only as
+//                             &name AFTER the `push 4`, i.e. at esp = S-4
+//         [esp+0x18] = E0+4   the `off` local, in the dead first argument slot
+//         [esp+0x1c] = E0+8   the `target` argument
+//     so the off local really is in the dead file argument slot (esi keeps the
+//     live copy), and the strncmp's first argument is `name`, four bytes at
+//     E0-4, not the return address. The identical trick appears in the
+//     sibling 0x4d0910 (`push 4` then `lea eax,[esp+0x10]` = its tag), which
+//     is the proof that the 0x14 lea belongs to the tag and not to a second
+//     buffer. There is no out-of-frame read and no bug here.
+//   * NEW negative: the loop's match exit as `goto found;` to a trailing
+//     `found: return off;` (build/scratch/0x4d0720/g1.cpp) is byte identical
+//     at 97.5% / 205 bytes with the identical diff, so the two separate
+//     epilogues do not depend on the exit being a `return` inside the loop,
+//     and the preheader fault is independent of the exit block shape too.
+//   * The preheader in the original is, instruction for instruction, the latch
+//     with the induction update substituted (push 4 / lea / push ebx / push
+//     lea / <induction op> / call) plus one parameter load at its head, and
+//     the only thing this source cannot produce is that head load: MSVC 5
+//     emits the def of the callee-saved ebx at its use (after the lea, one
+//     push late, displacement 0x20) for every source shape tried, while the
+//     sibling 0x4d0910 needs no load there at all (its strncmp argument is
+//     the string constant "data") and its preheader already matches. So the
+//     blocker is a single backend decision: where a parameter copy into a
+//     callee-saved register is materialised inside a rotated loop preheader.
 // TWELFTH PASS (deepseek-v4.1-flash): body unchanged at 97.5%, 205 bytes, the
 // same two-instruction preheader displacement. headers.py was rerun first: no
 // header set matches, closest is 97.5%. Six fresh probes, all scored without

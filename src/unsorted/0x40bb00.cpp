@@ -1,16 +1,14 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol issue 1994 refinement: eight checks kept 97.8%; no MATCH.
-// Reversing the chained subtraction operands emitted identical code. The
-// existing notes below describe the remaining operand-order and store-schedule
-// differences; no tested variant improved the retained source.
-// Partial (97.8%, eight checks in this retry): three scheduler/encoding diffs remain.
-//  - defs[type] addressing is encoded [ecx+eax+0x241], original [eax+ecx+0x241].
-//  - the energyCap/metalCap constant store is scheduled before the _ftol call,
-//    original stores it after the cmp.
-//  - normal uses 100-energy-metal, original 100-metal-energy (same value,
-//    different subtraction order).
-// Using windef min(1000,x) fixes the constant store but flips the final
-// Rating product term order, so the if-form is kept.
+// deepseek-v4.1 issue 2638: applied the SHARED.md recipe (min(1000,cap) for the
+// caps, fresh clamped locals metal2/energy2), 97.8% to 99.6%. One hunk remains.
+// Partial (99.6%): defs[type] addressing is encoded [ecx+eax+0x241], the
+// original has [eax+ecx+0x241]. EAX holds the defs pointer and ECX the scaled
+// type in both, so only the SIB base/index slot differs. twenty-one spellings
+// (subscript vs pointer arithmetic, both subscript orders, (Def*) and
+// (unsigned char) casts, explicit char* index arithmetic with sizeof(Def) and
+// the literal 585, the address of the member, 0x20 on either side, a nested if, a
+// local for type, a Def* local in a helper and an inlined flag getter) all
+// emit the same mirrored SIB, and headers.py finds no header set that flips it.
 #include <windows.h>
 struct Rating { signed char normal,metal,energy; };
 class Class_00435100 { public: int FUN_00435100(); };
@@ -36,10 +34,8 @@ int __stdcall FUN_0040bb00(int player,unsigned short type)
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;
     if(g_game->mode->FUN_00435100()==1 && (g_game->defs[type].flags&0x20)) return 0;
-    int energyCap=1000;
-    if((int)p->energyCapacity<=1000) energyCap=(int)p->energyCapacity;
-    int metalCap=500;
-    if((int)p->metalCapacity<=500) metalCap=(int)p->metalCapacity;
+    int energyCap=min(1000,(int)p->energyCapacity);
+    int metalCap=min(500,(int)p->metalCapacity);
     int energy=(int)Max(0.0f,(energyCap-p->energy)*0.125f);
     int metal=(int)Max(0.0f,(metalCap-p->metal)*0.25f);
     if(FUN_00464ad0(p)<1.0f) energy+=20;
@@ -48,10 +44,10 @@ int __stdcall FUN_0040bb00(int player,unsigned short type)
     else if(FUN_00464ab0(p)<200.0f) energy+=10;
     if(FUN_00464af0(p)<3.0f) metal+=100;
     else if(FUN_00464af0(p)<5.0f) metal+=20;
-    metal=min(max(metal,0),100);
-    energy=min(max(energy-metal,0),100);
-    int normal=max(100-metal-energy,0);
+    int metal2=min(max(metal,0),100);
+    int energy2=min(max(energy-metal2,0),100);
+    int normal=max(100-metal2-energy2,0);
     if(!FUN_00406ee0(player,type,owner->counts[type])) return 0;
     Rating* r=&owner->ratings[type];
-    return (normal*r->normal+r->metal*metal+r->energy*energy)*owner->weights[type]/10000;
+    return (normal*r->normal+r->metal*metal2+r->energy*energy2)*owner->weights[type]/10000;
 }

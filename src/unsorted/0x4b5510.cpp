@@ -1,4 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Last session (deepseek-v4.1-flash retry, timebox cut short): still 99.7%,
+// same single rotation at 0x4b55af (reload of [esp+0x14] must sit at the block
+// head above the hpalette/dib stores). New idea formed but NOT yet scored: the
+// reload may be spill-code placement of a named `HDC *pdc = &cleanup->dc;` live
+// across the three DeleteObject calls (all four callee-saved registers are
+// taken, so pdc spills to [esp+0x14] and the spill pass may reload at the top
+// of the block, not at the use). Scratch files build/scratch/0x4b5510/va.cpp
+// and vb.cpp hold that shape (pdc used at the if-check, the DeleteDC arg and
+// the store) but the timebox fired before scoring. If a later session retries,
+// score va.cpp first with --sym; if it fixes the rotation it should be 100.
 // deepseek-v4.1-flash retry (2026-09-30): confirmed 99.7 is the ceiling for
 // this shape. Re-scored the three statement orders cleanly in isolated files
 // (c/h/d, h/c/d, d/c/h) and all are 99.3, so no permutation reaches the

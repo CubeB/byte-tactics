@@ -1,4 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// GPT-6 retry: 61.1% (857 of 861 bytes), not MATCH. A memset-based Pos
+// constructor restores model in ebp and the rotated child loop. Position
+// setup, child-bound stack slots and fixed-point arithmetic still differ.
+// Constructor, layout, temporary-argument and 768 header variants tested.
+// Earlier attempts and their measurements are preserved below.
 //
 // deepseek-v4.1-flash pass: still 59.3% (857 of 861 bytes). No source spelling
 // moved the first diff, the prologue register split: the original loads the
@@ -181,7 +186,12 @@ struct Model_4589c0;
 
 union Fixed { int value; struct { unsigned short fraction; short whole; }; };
 
-struct Pos_4589c0 { int x; int y; int z; };
+struct Pos_4589c0 {
+    int x;
+    int y;
+    int z;
+    Pos_4589c0() { memset(this, 0, sizeof(*this)); }
+};
 
 #pragma pack(push, 2)
 struct Owner_4589c0 {
@@ -296,9 +306,6 @@ void Class_00459200::FUN_004589c0(Image_4589c0* bmp, Model_4589c0* model)
     int maxY = 0;
     int minX = 0;
     Pos_4589c0 pos;
-    pos.x = 0;
-    pos.y = 0;
-    pos.z = 0;
     ((Class_00458310*)this)->FUN_00458310(&minX, &maxX, &minY, &maxY, model, pos);
     Child_4589c0* child = model->owner->firstChild;
     while (child != 0) {
@@ -308,9 +315,6 @@ void Class_00459200::FUN_004589c0(Image_4589c0* bmp, Model_4589c0* model)
             int cminY = 0;
             int cmaxY = 0;
             Pos_4589c0 cpos;
-            cpos.x = 0;
-            cpos.y = 0;
-            cpos.z = 0;
             ((Class_00458310*)this)->FUN_00458310(&cminX, &cmaxX, &cminY, &cmaxY,
                                                   child->model, cpos);
             int* op = &model->owner->x;

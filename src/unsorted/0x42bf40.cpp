@@ -1,5 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
 // Pass 3 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772.
+// Pass 4 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772. Substituting the
+// live `sound` variable (provably 0 at every default site) for the literal 0 at
+// the 70 FUN_004c46c0 / 8 FUN_004c4760 default arguments compiles to a
+// BYTE-IDENTICAL object: MSVC5 value-numbers the variable back to constant 0 and
+// still materialises that constant in ebx (`xor ebx,ebx` + `push ebx`) rather than
+// reusing the esi that holds `sound`. The shared zero's register is therefore an
+// allocator liveness decision, not a source-shape decision; no local declaration
+// or argument form tried so far makes MSVC5 pick esi for it.
+// Still differing (first divergence onwards): the Class_00438760 temp is read as
+// `mov al,[eax]` where the original reads `mov al,[esp+0x2b]` (its byte-packed
+// slot), and in the FUN_004c46c0/FUN_004c4800 float region our pushes are
+// scheduled one dword earlier than the original's, so our esp stays 4 to 8 bytes
+// deeper and every [esp+N] there is off by one pushed dword; the tail jumps then
+// land 20 bytes late (ours 0x42d11b, original 0x42d154).
 // Confirmed: the original's single `xor esi,esi` at 0x42c0f0 initialises the
 // soundcategory loop counter (`int sound = 0;`), which stays in esi across the
 // whole function; the original then serves every zero default argument from

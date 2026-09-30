@@ -1,15 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// Best result 83.1% (2257 bytes against 2173). Corrected the compaction polarity (keep elements
+// Best result 86.2% (2240 bytes against 2173). Corrected the compaction polarity (keep elements
 // with bit 23 set), the class loop to a do-while, the index loop to a do-while, and the unit and
 // sidedata loop counters to unsigned short. Declaring the class index before the class pointer
 // fixed the xor edi,edi / mov esi,<table> order at the top and lifted 82.9 to 83.1.
+// The compaction is `if (p == end) d = p; else { while (p != end && !(~p->flags & 0x800000)) p++;
+// d = p; if (p != end) copy-loop; }`: the two-condition while (not the equivalent do-while plus
+// break) keeps the scan and the copy as separate loops and lifted 83.5 to 86.2, close to the
+// original, which still has the entry `cmp/je` instead of our inverted `jne` and keeps d in edi
+// instead of spilling it at [esp+0x10] (stores only at the two loop exits there).
 // Remaining: /O2 peels and rotates the GUI suffix loop (the original keeps one copy of the body
-// and jumps back to it), the compaction is rewritten as a single pass with d spilled to
-// [esp+0x10] (the original keeps d in edi and runs two loops: a scan that breaks on the first
-// element with bit 23 clear, then a copy loop over the following bit-23-set elements), the sort
-// tail loads [esp+0x10] before ebp += 0x249 where the original compares against memory, and the
-// unit loop caches g_game in edi so idiv reads the count in ecx where the original uses
-// idiv dword ptr [ecx + 0x1438f] and reloads g_game at the bottom of the loop.
+// and jumps back to it: inc ebx, mov esi,1, jmp top; ours peels iteration 1 and hoists
+// `mov esi,ebx; inc ebx` to the top of the rotated body), the sort tail compares against
+// [esp+0x10] where ours loads it into a register, and the unit loop caches g_game in edi so idiv
+// reads the count in ecx where the original uses idiv dword ptr [ecx + 0x1438f] and reloads g_game
+// at the bottom of the loop.
 #include <string.h>
 #include <stdio.h>
 
@@ -252,11 +256,8 @@ void FUN_0042d2e0() {
     if (p == end) {
         d = p;
     } else {
-        do {
-            if (~(p->flags.value) & 0x800000)
-                break;
+        while (p != end && !(~(p->flags.value) & 0x800000))
             p++;
-        } while (p != end);
         d = p;
         if (p != end) {
             for (Class_0042b370* s = p + 1; s != end; s++) {

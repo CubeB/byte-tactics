@@ -1,22 +1,36 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Partial, 34.8%: Sampling direction and mutable lighting-vector reads corrected.
-// A 128-set header sweep found no match; <ddraw.h> alone is best (34.8%).
-// A materialized shifted-flag local did not improve the score.
-// GPT-6.1-sol refinement: unsigned weight counters scored 29.3%, and narrowing
-// the shifted shade bit into a byte local scored 31.2%; both were reverted.
-// Frame-slot rotation, per-piece registers and x87 scheduling still differ.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Partial, 34.7% (was 34.5%). Semantics are right end to end; the whole frame
+// slot layout and the per-block register rotation are still off.
 // Tried (deepseek-v4.1-flash): modelling the piece flags, the g_game+0x37f06
 // shadow flag and the owner+0x241 bit as packed 1-bit bitfields. The negated
 // piece flag matched `test byte ptr [m],1`, but every positive flag access
 // still folded to `test dl,2`/`and edx,0x40000000` and the frame slots shifted
-// (mode moved 0x20 to 0x28). That packed-bitfield variant scored lower than
-// the masked-int form and is not used.
+// (mode moved 0x20 to 0x28), so the masked-int spelling scored higher and is
+// kept.
+// Changed (space-bunny-free, +0.2):
+//  * vertex[k].x and vertex[k].y are now stored AFTER the mode branch, matching
+//    the original's spill of x to [esp+0x34] at 0x459e44 and the shared
+//    `sub ecx,edx` tail at 0x459e83.
+//  * vertex[k].z keeps its own mode test after that tail, matching the original
+//    re-reading [esp+0x20] at 0x459e85 instead of testing mode once.
+//  * the weight clear counts down (`for (z = n; z; ) weight[--z] = 0;`), which
+//    is the shape that let MSVC drop the extra `test edx,edx` reload.
+// Tried and NOT kept (space-bunny-free): every spelling of the 0x37f06 bit
+// (unsigned char/unsigned short bitfields, 3-bit field & 2, plain, negated,
+// local pointer or inline cast) all still emit `test dl,2`, never the original's
+// `shr dl,1; test dl,1`, and all score at or below the masked-int 34.1-34.2.
+// Leaving `src` unassigned on the else path (which the original's read of
+// [esp+0x28] at 0x459d5e suggests) drops to 33.4, so the slot must be written
+// in both arms; the rotation is decided elsewhere.
 // Remaining diff hunks (original addresses):
 //   0x459c89 flag test: original `shr dl,1; test dl,1`, ours `test dl,2`, and
 //            the whole prologue register rotation (list edx vs eax, useColor
 //            eax vs esi, mode slot 0x20 vs 0x28) follows from it.
-//   0x459e27 vertex loop: extra `test edx,edx` before the `rep stosd` zeroing,
-//            offX/offY slot rotation (0x3c/0x2c vs ours).
+//   0x459d21 src spill: original stores src to 0x28 before the second memset,
+//            ours uses ebx.
+//   0x459df0 vertex loop: original reads offX/offY from esi (bitmap) into
+//            0x3c/0x2c and sets up the accum/vertex induction pointers before
+//            the rep stosd; ours reloads the bitmap and re-tests n.
 //   0x459e95 shade bias: original `shr edx,0x1e; and dl,1; neg dl; sbb edx,edx`,
 //            ours `and edx,0x40000000; neg edx; sbb edx,edx`.
 //   0x459ef2 accum zeroing: zero register ecx vs eax, independent local layout.
@@ -174,8 +188,8 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
         if (n > 0) {
             int offX = (short)bitmap->field_4;
             int offY = (short)bitmap->field_6;
-            for (int z1 = 0; z1 < n; z1++)
-                weight[z1] = 0;
+            for (int z1 = n; z1 != 0; )
+                weight[--z1] = 0;
             for (int k = 0; k < n; k++) {
                 int x;
                 int y;
@@ -184,15 +198,16 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
                     x = (short)(verts->x >> 16) << 1;
                     y = (short)(verts->y >> 16) << 1;
                     z = (short)(-verts->z >> 16) << 1;
-                    vertex[k].x = x;
-                    vertex[k].y = z - (y >> 1);
-                    vertex[k].z = (y / 2) + shade_bias(list);
                 } else {
                     x = (short)(verts->x >> 16);
                     y = (short)(verts->y >> 16);
                     z = (short)(-verts->z >> 16);
-                    vertex[k].x = x;
-                    vertex[k].y = z - (y >> 1);
+                }
+                vertex[k].x = x;
+                vertex[k].y = z - (y >> 1);
+                if (mode) {
+                    vertex[k].z = (y / 2) + shade_bias(list);
+                } else {
                     vertex[k].z = y + shade_bias(list);
                 }
                 vertex[k].shade = shade & 0x1f;

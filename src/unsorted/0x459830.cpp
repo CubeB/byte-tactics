@@ -1,13 +1,21 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial, 55.0% (real check). The unsigned-short bitfield for the
-// g_game+0x37f06 shadow flag now gives the original's `shr dl,1; test dl,1`,
-// the owner-parameter shade helper with a bool gives `shr edx,0x1e; and dl,1;
-// neg dl; sbb edx,edx`, and indexing list->pieces[p] inline (no pointer local)
-// keeps the loop base at +0x22 instead of +0x44.
-// Remaining differences: useColor lands in esi instead of ebx, so the mode=0
-// path reloads list/bitmap; the vertex-projection loop has a duplicate
-// `test eax,eax; jle` guard and offX/offY come out in swapped registers
-// (edx/ebx); the face-clip and bitmap-copy loops still differ in registers.
+// Partial, 62.0% (real check, deepseek-v4.1-flash retry). Matched: the
+// g_game+0x37f06 shadow flag as an unsigned-short bitfield gives the
+// original's `shr dl,1; test dl,1`; the owner shade helper with a bool gives
+// `shr edx,0x1e; and dl,1; neg dl; sbb edx,edx`; the vertex loop is a plain
+// `for` with the offX/offY reads written as `(short)bitmap->field_4/6` inside
+// the body (removed the explicit `if (n > 0)`, whose guard MSVC duplicated);
+// and `src = bitmap` initialised at function scope plus the declaration order
+// `int mode; Bitmap* src = bitmap;` moved the early bitmap load up to match.
+// Remaining: useColor is still live in esi where the original has list/bitmap
+// in esi and useColor in ebx, so the p-loop, firstFace, vertex and face blocks
+// all rotate their registers (list edx vs esi, fi ebx vs edi, offX/offY
+// swapped); the stack slot for info (0x24 vs 0x1c) and src (0x24 vs 0x20)
+// differ; the face flags test keeps the clip path as fall-through where the
+// original puts it out of line. Tried and did NOT help: nested ifs for the
+// shadow condition (drops to 57.9), useColor-tested-first (59.3), a second
+// `Bitmap* bmp`/`List* lp` local, an `int uc = useColor` local, and `src`
+// declared before `mode` (all 61.2 or less).
 #include <string.h>
 
 extern char* g_game;
@@ -108,15 +116,14 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     Vec3 vertex[2000];
     Vec3 poly[25];
 
-    Bitmap_459c70* src;
     int mode;
+    Bitmap_459c70* src = bitmap;
     bool shadow = ((Flags_459830*)(g_game + 0x37f06))->b1;
     if (shadow
         && (list->owner->field_110 & 0x20000000) != 0
         && useColor != 0) {
         Bitmap_459c70* shadow = this->shadow;
         mode = 1;
-        src = bitmap;
         shadow->width = (unsigned short)(src->width << 1);
         shadow->height = (unsigned short)(src->height << 1);
         shadow->unknown_9[0] = 0;
@@ -141,30 +148,26 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         PieceInfo_459c70* info = list->pieces[p].info;
         Vec3* verts = list->pieces[p].vertices;
         int n = info->vertexCount;
-        if (n > 0) {
-            int offY = (short)bitmap->field_6;
-            int offX = (short)bitmap->field_4;
-            for (int k = 0; k < n; k++) {
-                int x;
-                int y;
-                int z;
-                if (mode) {
-                    x = (short)(verts->x >> 16) << 1;
-                    y = (short)(verts->y >> 16) << 1;
-                    z = (short)(-verts->z >> 16) << 1;
-                } else {
-                    x = (short)(verts->x >> 16);
-                    y = (short)(verts->y >> 16);
-                    z = (short)(-verts->z >> 16);
-                }
-                vertex[k].x = x;
-                vertex[k].y = z - (y >> 1);
-                if (mode) vertex[k].z = y/2 + shade_bias(list->owner);
-                else vertex[k].z = y + shade_bias(list->owner);
-                vertex[k].x += offX;
-                vertex[k].y += offY;
-                verts++;
+        for (int k = 0; k < n; k++) {
+            int x;
+            int y;
+            int z;
+            if (mode) {
+                x = (short)(verts->x >> 16) << 1;
+                y = (short)(verts->y >> 16) << 1;
+                z = (short)(-verts->z >> 16) << 1;
+            } else {
+                x = (short)(verts->x >> 16);
+                y = (short)(verts->y >> 16);
+                z = (short)(-verts->z >> 16);
             }
+            vertex[k].x = x;
+            vertex[k].y = z - (y >> 1);
+            if (mode) vertex[k].z = y/2 + shade_bias(list->owner);
+            else vertex[k].z = y + shade_bias(list->owner);
+            vertex[k].x += (short)bitmap->field_4;
+            vertex[k].y += (short)bitmap->field_6;
+            verts++;
         }
 
         Face_459c70* face = info->faces;

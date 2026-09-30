@@ -1,10 +1,40 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Partial, 65.6 percent (825 bytes vs 821). This session's two fixes, worth
+// 59.3 to 65.6, both in the LOD-table block:
+//   1. the table index must be the *ternary* form of the sibling function
+//      (`Lod(params) < FUN_00433520() - 1 ? Lod(params) : FUN_00433520() - 1`)
+//      with the clamp inlined, not a named `lod` local. That alone made the
+//      prologue, the flag block, the x/y loads and the map update match.
+//   2. limitX/limitY are `(x + frame->width < halfW) ? halfW - x : frame->width`
+//      and `(y + frame->height < halfH) ? halfH - y : frame->height`; with the
+//      arms the other way round the branch polarity and both stores moved.
+// Frame slots now agree with the target for j1 0x10, dx 0x24, ref 0x28,
+// bestDiff 0x2c, grid 0x30, j/limitY 0x34, table 0x38, line 0x3c, num 0x40 and
+// halfH/count 0x44. Still different (original -> ours): dy 0x14 -> 0x18,
+// i/limitX 0x18 -> 0x1c, x 0x1c -> 0x20, y 0x20 -> 0x14 (y is the only variable
+// out of order in the allocator's list; swapping it back would fix all four),
+// and the Lod clamp: the original evaluates max(field_8/32, 0) *before* the
+// FUN_00433520 call and keeps it in a slot (`mov [esp+0x34], ecx` at 0x481e05,
+// `mov eax, [esp+0x34]` at 0x481e16) so y stays in ebp (`imul edx, ebp` at
+// 0x481e75); ours hoists only the raw division into ebp across the call and
+// clamps after it (`test ebp,ebp; setl dl`), so y is memory resident and the
+// x/y/dy/i slots shift. The else branch also differs: ours hoists
+// `n = limitX - nx` out of the outer loop (with its own slot 0x44), keeps
+// limitX at 0x34 and limitY at 0x30, has nx/ny in eax/edi where the original
+// has edi/eax, and loads the explored base with [reg+0x7c] displacements where
+// the original materialises `add edx, 0x7c`.
+// Tried and rejected this session: `int i` for the grid-loop cursor (60.4),
+// `int j` (33.0), `#include <math.h>` (62.5), `#include <string.h>` (no change),
+// reversed condition `Count() - 1 > Lod(params)` (identical bytes), subscript
+// form `&explored.data[...]` for dst (identical bytes), reversed compare
+// `bestDiff * j1 < d0 * bestIdx` (64.9), named `lod` reused in the then-arm
+// (63.8, 798 bytes), dst declared before src in the else branch (32.8: it
+// reshuffles the whole prologue, g_game moves from ecx to edi). Earlier
+// attempts, all below the current best (see the previous note in git history):
+// statement-form clamp, no `= 1` on j1, ascending-slot declaration order.
+// <windows.h> is required.
 #include <windows.h>
 #include <stdio.h>
-
-// Retry: the 128-set header sweep found no match. Adding <stdio.h> reproduces the
-// best 53.6% result (813 bytes), a slight improvement over the prior 53.5% source.
-// Other attempts in the retry notes and shared board did not improve this variant.
 
 #pragma pack(push, 1)
 
@@ -48,6 +78,7 @@ struct MapSize_00481d50 {
 struct ByteMap_00481d50 {
     unsigned char* data;               // +0x0
     MapSize_00481d50 size;             // +0x4
+    unsigned char& at(int x, int y) { return data[y * size.width + x]; }
 };
 
 struct Map_00481d50 {
@@ -72,12 +103,6 @@ struct Grid_00481d50 {
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
     int field_c;                       // +0xc
-};
-
-struct Vec3_00481d50 {
-    int x;
-    int y;
-    int z;
 };
 
 struct Game_00481d50 {
@@ -124,25 +149,6 @@ inline int Lod_00481d50(Params_00481d50* params)
     return v < 0 ? 0 : v;
 }
 
-// Status: partial, 53.5 percent. The body shape is right; what still differs is
-// the local frame slot assignment (and everything downstream of it). Original
-// slots, low to high: j1 0x10, e2 0x14, i 0x18, x 0x1c, y 0x20, e1 0x24,
-// ref 0x28, bestDiff 0x2c, grid 0x30, lod/j 0x34, table 0x38, line 0x3c,
-// num 0x40, halfH/count 0x44. Ours: j1 0x10, y 0x14, table 0x18, i 0x1c,
-// x 0x20, ref 0x24, bestDiff 0x28, j 0x2c, line 0x30, e1 0x34, e2 0x38,
-// grid 0x3c, num 0x40, halfH 0x44. Only j1 (0x10), num (0x40) and halfH (0x44)
-// agree. This is MSVC spilling in a different order, not declaration order: a
-// probe with six address-taken locals confirms first-declared gets the lowest
-// offset, but here only spilled variables get slots, assigned in spill order.
-// The inner loop must be the comma-for, `for (j = 0, j1 = 1; (short)j <
-// (short)num; j++, j1++)`: j1 increments on the `continue` paths too (the
-// original back edge at 0x481f7a bumps both counters). That alone took 52.7 to
-// 53.5. Tried and rejected (free scratch scoring): all locals at function scope
-// in the exact ascending-slot order (42.2, frame shrank to 779 bytes); removing
-// the named `lod` local (identical 52.7); swapping the top declaration order to
-// x, y, halfW, halfH (50.9). <windows.h> is required (family sibling 0x4825b0
-// matches only with it). The 0x482270 twin is byte-identical apart from the sign
-// of the two explored-map updates and is still unmatched at 50.3.
 // FUNCTION: 0x481d50
 void __stdcall FUN_00481d50(Params_00481d50* params)
 {
@@ -160,16 +166,15 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             return;
         if ((unsigned)y >= grid->height)
             return;
-        int lod = Lod_00481d50(params);
-        void* table;
-        if (lod < ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
-            table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(Lod_00481d50(params));
-        else
-            table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(
-                ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1);
+        void* table = ((Class_00433500*)DAT_0051e6a0)
+                          ->FUN_00433500(
+                              (Lod_00481d50(params) <
+                               ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
+                                  ? Lod_00481d50(params)
+                                  : ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1);
         short count = ((Class_004335c0*)table)->FUN_004335c0();
         short i = 0;
-        ((Map_00481d50*)params->field_0)->explored.data[y * ((Map_00481d50*)params->field_0)->explored.size.width + x]--;
+        ((Map_00481d50*)params->field_0)->explored.at(x, y)--;
         int ref = *params->field_c;
         for (i = 0; i < count; i++) {
             void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
@@ -179,21 +184,21 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             short j = 0;
             int j1 = 1;
             for (j = 0, j1 = 1; (short)j < (short)num; j++, j1++) {
-                int e1;
-                int e2;
-                ((Class_004339e0*)line)->FUN_004339e0(j, &e1, &e2);
-                int x2 = x + e1;
-                int y2 = y + e2;
-                if ((unsigned)(short)x2 >= grid->width)
+                int dx;
+                int dy;
+                ((Class_004339e0*)line)->FUN_004339e0(j, &dx, &dy);
+                dx += x;
+                dy += y;
+                if ((unsigned)(short)dx >= grid->width)
                     continue;
-                if ((unsigned)(short)y2 >= grid->height)
+                if ((unsigned)(short)dy >= grid->height)
                     continue;
                 unsigned char* cell =
-                    grid->cells + ((short)y2 * grid->width + (short)x2) * 2;
+                    grid->cells + ((short)dy * grid->width + (short)dx) * 2;
                 int d1 = cell[1] - ref;
                 int d0 = cell[0] - ref;
                 if (d0 * bestIdx > bestDiff * j1) {
-                    ((Map_00481d50*)params->field_0)->explored.data[(short)y2 * ((Map_00481d50*)params->field_0)->explored.size.width + (short)x2]--;
+                    ((Map_00481d50*)params->field_0)->explored.at((short)dx, (short)dy)--;
                     if (d1 * bestIdx > bestDiff * j1) {
                         bestIdx = j1;
                         bestDiff = d1;
@@ -205,8 +210,8 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
         int ref = *params->field_c;
         Frame_00481d50* frame =
             FUN_004b7f30((unsigned short*)g_game->losTable, ref);
-        int limitX = (x + frame->width < halfW) ? frame->width : halfW - x;
-        int limitY = (y + frame->height < halfH) ? frame->height : halfH - y;
+        int limitX = (x + frame->width < halfW) ? halfW - x : frame->width;
+        int limitY = (y + frame->height < halfH) ? halfH - y : frame->height;
         int nx = x < 0 ? -x : 0;
         int ny = y < 0 ? -y : 0;
         if (ny >= limitY)

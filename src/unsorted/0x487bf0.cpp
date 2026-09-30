@@ -1,5 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// PARTIAL, 44.4% (1847 vs 1811 original bytes), 3 scored checks. Remaining mismatch is the large parser switch and its branch-local temporaries.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
+// PARTIAL 44.9%. Restored the 256-byte command buffer and removed extra kind initialization stores. Parser switch and temporary allocation still differ.
+
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +26,7 @@ class Class_00438760 {
 public:
     unsigned char index;
     Class_00438760(const char* name);
-    Class_00438760() { index = 0; }
+    Class_00438760() {}
 };
 
 void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit_00487bf0* owner,
@@ -39,7 +40,7 @@ void __stdcall FUN_0048aac0(Unit_00487bf0* unit, int target, int a, int b);
 // FUNCTION: 0x487bf0
 void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* table)
 {
-    char buf[240];
+    char buf[256];
     float f1, f2;
     Vec3_00487bf0 pos;
     int processed = 0;

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
 // Class_0048ff40::FUN_0048e010, the victory/defeat condition registration
 // function (counterpart of 0x48ff40). All ~18 registration blocks plus the two
 // "if none registered" defaults are here, written from the disassembly and the
@@ -235,7 +235,7 @@ public:
 // AllUnitsKilled (vtable 0x4fd800, listener vtable 0x4fd7f8).
 class Class_0048f840 : public Condition_0048ff40, public Listener_0048ff40 {
 public:
-    virtual int FUN_0048f7e0();
+    virtual int FUN_0048ea00();
     virtual void FUN_0048f840(void* file);
     virtual void FUN_0048f880(void* file);
     virtual void FUN_0048f790(void* event);

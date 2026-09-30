@@ -1,9 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // Saves every live unit (g_game+0x14357..+0x1435b, stride 0x118) as a 0xb8
 // byte record; inverse of 0x487080/0x486fd0. Record and Piece field maps are
 // complete and confirmed by the 0x487080 loader.
 //
-// PARTIAL 73.7%. Three of the four big register-rotation diffs came from one
+// PARTIAL 74.0%. Three of the four big register-rotation diffs came from one
 // lever: what MSVC materialised as the source address of the rec+0x2b block.
 //  - `rec.pos = unit->pos` (Vec3 member) reproduces the original's
 //    `lea eax,[ebp+0x6a]`; a packed {int,short} copy for f64/f68 reproduces
@@ -24,6 +24,39 @@
 //    that is the root of the remaining rotation in the rec+0x8f..+0xb3 field
 //    block (ours loads the first accumulators into ecx/eax swapped).
 //  - ours is 3 bytes short of the original 1062.
+//
+// deepseek-v4.1 (attempt 2): confirmed the diff is ONE allocator decision, not
+// a statement-order problem. The original emits `xor ecx,ecx; cmp esi,ecx;
+// setne al` for rec.f27 and then reuses ecx as the zero for the rec.f86 and
+// rec.f_f0 guards, the rec.f89 = 0 arm and the (b & 0xf) mask; ours allocates
+// that zero to edx instead, which rotates every scratch register in the
+// rec+0x8f..+0xbb field block and inside the 3x piece copy.
+// Tried and scored, all worse or equal to 73.7:
+//  - 6 permutations of the rec.f3f / rec.f23 / rec.f27 statements (73.7 at
+//    best, 70.1 at worst): the dx load and store of rec.f3f move with them but
+//    the zero register does not change, so the lever is upstream of that
+//    group.
+//  - rec.f27 written as `unit->vtable ? 1 : 0` and as a 3-way ternary: 73.7
+//    and lower, same zero register.
+//  - rec.f8b moved after rec.fa7 (71.2) and rec.fa3 moved to the head of the
+//    field block (71.2, and 23 bytes shorter): worse.
+//  - the id8b block hoisted above the rec.f86 block: 71.3, 26 bytes shorter.
+// deepseek-v4.1 (attempt 3): 73.7 -> 74.0 by putting `rec.f23 = n;` before
+// rec.f3d/rec.f3f. Confirmed root of the remaining rotation: at the bool the
+// original emits `xor ecx,ecx` and keeps dx = unit->fb8 live across it (its
+// rec.f3f store lands after `cmp eax,ecx`), while ours stores rec.f3f at once
+// and sinks the rec.f3d store below the bool, so ecx is still live holding
+// unit->f108 and the zero lands in edx instead. Steered and failed:
+// rec.f3f-reload-temp across the bool (70.1), f23/f3f/f27/f3d (69.4), f3f/f3d
+// source swap (74.0 tie), inverted ternaries (73.3), reloaded unit->f_f0 in
+// the id8b ternary (73.5). Piece loop: f0-first order (72.2) and obj-first
+// with f0/f4 after (73.3) both lose the `lea esi,[ebp+0xc]` anchor, so keep
+// the deref-first form. Next idea: find the statement that pins dx across the
+// bool in the original's scheduler window (the f3f store is the only use).
+// Next idea: give the zero its ecx identity from a statement that already
+// wants a 0 in ecx before the bool, and keep dx live across the bool (in the
+// original edx still holds unit->fb8 when the bool is evaluated, in ours that
+// store has already retired).
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
@@ -261,10 +294,9 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
 
             rec.pos = unit->pos;
             rec.s = unit->s64;
-            rec.f3d = unit->f108;
-
-            rec.f3f = unit->fb8;
             rec.f23 = n;
+            rec.f3d = unit->f108;
+            rec.f3f = unit->fb8;
             rec.f27 = (unit->vtable != 0);
 
             Unit_004876c0* a = (Unit_004876c0*)unit->f86;

@@ -1,5 +1,32 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
-// PARTIAL 44.9%. Restored the 256-byte command buffer and removed extra kind initialization stores. Parser switch and temporary allocation still differ.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// PARTIAL 60.4% (ours 1847 bytes vs 1811). Frame, command buffer and the five
+// per-case Class_00438760 temporaries match the original exactly.
+// THE ONE REMAINING CAUSE, restated from the disassembly by space-bunny-free:
+// the original holds the walk pointer `text` in ebp for the whole outer loop, so
+// its latch at 0x487e50 is just `mov al,[ebp]; cmp al,bl; jne 0x487c1b`, and it
+// writes the parameter home [esp+0x158] at each update (0x487c68, 0x487c76) with
+// the single reload at 0x487e49 after the G case clobbers ebp. Ours instead gives
+// ebp to `count` (strcspn's result), keeps `text` in eax across the switch and so
+// spills it to [esp+0x158]; the latch therefore becomes `mov edx,[home]; mov
+// al,[edx]; cmp al,bl; jne $L1038` plus a separate reload block. Because of the
+// callee-saved preference ESI(unit), EDI(processed), EBX(zero), EBP, `text` and
+// `count` are competing for the same last slot and the loser is memory-resident.
+// Flipping that single choice is worth the remaining ~40%.
+// Tried again by space-bunny-free, all byte-identical to the 60.4% baseline:
+//   - `char* text2 = text;` used for the whole loop instead of the parameter
+//     (1827 bytes but 22.9%: MSVC then never folds the two walks together);
+//   - `processed = 1;` before the MAKESELECTABLE call in the S case, which is
+//     what the original's `mov edi,1` at 0x48820a between the argument pushes
+//     looks like. It makes things WORSE (60.2%), so the assignment really does
+//     come after the call in the source, like the D case at 0x4881e0;
+//   - swapping the O-case extraction order (fire before move), and hoisting the
+//     flags load into a named `unsigned int fl`, both exactly 60.4%, so the
+//     fire-first emission is not decided by the order of the two statements.
+// Other diffs: the local slots after pos (original count 0x18 / move 0x28 /
+// selected 0x2c / f3 0x34 / fire 0x38, with pos at 0x1c..0x24; ours leaves 0x18
+// empty because count is in ebp, then selected 0x28 / fire 0x30 / move 0x34),
+// and the switch's block placement (the original's loop latch sits between the G
+// and P blocks at 0x487e50; ours puts it at the end, shared with the default arm).
 
 #include <ctype.h>
 #include <stdio.h>
@@ -27,6 +54,7 @@ public:
     unsigned char index;
     Class_00438760(const char* name);
     Class_00438760() {}
+    Class_00438760(const Class_00438760& other);
 };
 
 void __stdcall FUN_0043adc0(Class_00438760 kind, int remove, Unit_00487bf0* owner,
@@ -43,13 +71,15 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
     char buf[256];
     float f1, f2;
     Vec3_00487bf0 pos;
-    int processed = 0;
+    int move, fire;
     int selected = 0;
+    int processed = 0;
+    int count;
 
     while (*text != 0) {
         while (isspace(*text))
             text++;
-        int count = strcspn(text, ",");
+        count = strcspn(text, ",");
         strncpy(buf, text, count);
         text += count;
         buf[count] = 0;
@@ -59,8 +89,8 @@ void __stdcall FUN_00487bf0(Unit_00487bf0* unit, char* text, Table_00487bf0* tab
         switch (buf[0]) {
         case 'O':
         case 'o': {
-            int move = (unit->flags >> 0x12) & 3;
-            int fire = (unit->flags >> 0x14) & 3;
+            move = (unit->flags >> 0x12) & 3;
+            fire = (unit->flags >> 0x14) & 3;
             sscanf(buf + 1, " %d %d", &move, &fire);
             unit->flags = (unit->flags & 0xffc3ffff)
                           | ((((fire & 3) << 2) | (move & 3)) << 0x12);

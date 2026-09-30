@@ -73,6 +73,16 @@
 //     which is why ours is 62 bytes short of the original).
 //   * promoting the flags word to an `unsigned int` local to stop the
 //     `test ah,0x80` fold: MSVC inserts `and eax,0xffff` and folds anyway.
+//   * the chain-1 `count = memcmp(...) != 0;` spelling re-tried: writing the
+//     bare `count = memcmp(...)` (the original stores the SIGN via sbb/sbb, so
+//     the value is the memcmp result, not a bool) compiles BYTE-IDENTICALLY
+//     here (1810 bytes, 80.6%), and giving the chain its own unused `int sig`
+//     local is byte-identical too. The chain-1 store at 0x4414c1 survives in
+//     the original because the value is USED there; in our build the value is
+//     provably unread (count is overwritten by the FUN_004c9e50 result), so the
+//     whole sbb pair plus store is dropped and chain 1 keeps only the cmp
+//     against zero. The lever is a genuine later use of that value, not the
+//     memcmp spelling.
 #include <string.h>
 #include <stdio.h>
 

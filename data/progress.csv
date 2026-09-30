@@ -2633,7 +2633,7 @@ address,size,file,symbol,status,similarity
 0x4bc300,32,src/unsorted/0x4bc300.cpp,?FUN_004bc300@@YGHPAD@Z,matched,100.0
 0x4bc320,52,src/unsorted/0x4bc320.cpp,?FUN_004bc320@@YGPADPAD0H@Z,matched,100.0
 0x4bc360,16,src/unsorted/0x4bc360.cpp,?FUN_004bc360@@YGXPBD@Z,matched,100.0
-0x4bc370,314,src/unsorted/0x4bc370.cpp,?FUN_004bc370@@YGHPBD0@Z,partial,86.4
+0x4bc370,314,src/unsorted/0x4bc370.cpp,?FUN_004bc370@@YGHPBD0@Z,matched,100.0
 0x4bc4b0,389,src/unsorted/0x4bc4b0.cpp,?FUN_004bc4b0@@YGHPBDPAXHD@Z,matched,100.0
 0x4bc640,447,src/unsorted/0x4bc640.cpp,?FUN_004bc640@@YGHPAUFind_004bc640@@PAU_finddata_t@@@Z,matched,100.0
 0x4bc8d0,84,src/unsorted/0x4bc8d0.cpp,?FUN_004bc8d0@@YGHPAUFind_004bc8d0@@@Z,matched,100.0

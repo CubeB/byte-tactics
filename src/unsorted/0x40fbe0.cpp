@@ -24,6 +24,13 @@
 // `order->target->order->...` inline in the VTOL kind-comparison chain loses
 // badly (61.9%, 2009 bytes) because it drops the EDI cache of `other` without
 // freeing a callee-saved register for the zero constant.
+// deepseek-v4.1 (2nd pass, 4 check runs): swapping the weapon-loop local
+// declarations (i before the Weapon* walk) and adding an explicit zero local
+// for the r3 constant arguments are byte-neutral (75.8%, 1971); field-wise
+// order->pos=order->target->pos is worse (75.7%, 1967). The remaining 5-byte
+// deficit is the copy site (add eax,0x6a vs lea ecx,[eax+0x6a], -2) plus the
+// weapon-loop pointer, which the original keeps in ECX across the branch-back
+// (mov al,[ecx] at 0x40fdd8) while ours re-loads it from its slot every trip.
 #include <stdio.h>
 // SHARED begin
 struct Vec3 {

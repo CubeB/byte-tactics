@@ -31,6 +31,17 @@
 //     `delete[] first` with the derived class dtor left implicit (89.1%) or
 //     declared out-of-line (89.0%): the first fixes the tail's inlined
 //     delete[] but inlines the three pads destroy sites too. 90.3% remains best.
+// Tried in a later pass, all reverted: removing the named `range` local and
+//     passing unit->def->searchRange<<16 straight to FUN_0047e890 drops to
+//     87.3% (the slot that local occupies is needed), and dropping the named
+//     `kind` local by inlining FUN_0043f0e0 into the Class_0043a1f0 argument
+//     list drops to 81.8% (1050 -> 1047 bytes), so kind's [esp+0x64] slot is
+//     load-bearing. Spelling the case 0 test as
+//     `unit->motion!=0 && (unit->def->flags&0x800)!=0` and hoisting the health
+//     cast into `unsigned int hp=(unsigned int)unit->health;` both leave the
+//     output byte-for-byte identical at 90.3%. Reordering/renaming PosOf's
+//     load order is not a lever either: hunk 4 is the front end's copy from
+//     PosOf's temp into pos, which collapses into the same slot.
 // Suspected original bug: none. The final delete[] takes [esp+0x4c], which is
 //     the units vector's first pointer (inlineEmpty reads first at +4 and last
 //     at +8 of the object at [esp+0x48]), so it is a correct inlined ~vector().

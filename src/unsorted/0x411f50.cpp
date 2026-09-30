@@ -1,6 +1,10 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1. Names are provisional.
 // Started by an earlier partial (Claude Opus 5.5, GPT-6, deepseek-v4.1-flash);
 // this version keeps that work and was re-verified by deepseek-v4.1.
+// deepseek-v4.1 session 3: the two remaining state-4 sum spellings
+// `def->field_216 + 1 + (int)(...)` and `(int)(...) + (def->field_216 + 1)`
+// compile byte-identically to the current line, so the integer sum is
+// normalised by VC5 (still 96.8%, same 21-line diff).
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
 // outside its range. State 0 prepares the order (FUN_0040f200 is defined here

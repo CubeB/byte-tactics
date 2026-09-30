@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, improved by Claude Opus 5.5. Names are provisional.
+// Decompiled by space-bunny-free, improved by Claude Opus 5.5, edited by deepseek-v4.1. Names are provisional.
 //
 // Returns the world position of animation piece `index` of `obj` (with z
 // negated, as the callers add it to obj->pos at +0x6a):
@@ -62,6 +62,33 @@
 // `Vec3 out` declared at function scope, a pointer to `result`, `int z`/`int
 // x`/`int y` locals in every order, `out.z` first, and reading z back from
 // memory after the negate.
+
+// Sweep (deepseek-v4.1): the 6 orders of the null block crossed with the 6 of
+// the range block were all scored. The range block keeps the original's
+// (x = edx, y = esi, z = ecx) allocation only when z is assigned first:
+// z,x,y = 94.2 and z,y,x = 91.7. Every other order pushes x into ecx and drops
+// to 79.5-92.6, and z,x,y in both blocks merges the two zero tails into one
+// (330 bytes, 87.3) just like x,y,z in both. So z,x,y is the unique order for
+// the range block, and its only remaining difference is that its two xors come
+// out x,z,y where the original emits x,y,z. Chained (w.x = w.y = w.z = 0) and
+// comma (w.z = 0, w.x = 0, w.y = 0) spellings are 92.6, not better. The end
+// block is stuck the same way: `Vec3 out` assigned field by field, `result.z =
+// -result.z` then `Vec3 out = result`, and an inline MakeVec3(x, y, -z) helper
+// all give this same 94.2 diff (dest in edx instead of edi, esi reloaded for
+// y), while `Vec3 out = result; out.z = -out.z;` alone is 55.7.
+
+// Third pass (deepseek-v4.1): the neighbouring matched file 0x43d210.cpp shows
+// the original Vec3 carries a ctor (Vec3 zero(0, 0, 0) uses zeroed registers),
+// so Vec3 was retried as a class: `Vec3 v(0, 0, 0); return v;` in the null
+// block, `Vec3 w(0, 0, 0); return w;` in the range block and `return
+// Vec3(result.x, result.y, -result.z);` at the end are byte-identical to the
+// POD field-assignment forms (all four combinations, 94.2, both hunks
+// unchanged, 359 bytes); declaring one `result` at function scope and zeroing
+// it from both blocks is also 94.2 with the identical diff. Only x,y,z in the
+// range block moves bytes: it merges the two zero tails into one (330 bytes,
+// 87.3). So both hunks are allocator state: the end block wants dest = edi,
+// x = edx, y = esi (the same tuple the object-init blocks use) and the range
+// block wants its two xors emitted y before z.
 
 #include <string.h>
 

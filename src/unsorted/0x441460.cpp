@@ -1,19 +1,24 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (70.8%). Frame now matches (`sub esp,0x1b4`) and the quit chain
-// shape is close. What still differs:
-//  * local layout: the original keeps the record-settings block as a 16-byte
-//    plain local at esp+0x1a1, reached through dword loads at +2,+6,+0xa,+0xe
-//    (that is `s[i] >> 16` folded into a load at the field). Modelled here as
-//    `unsigned long s[4]` read with shifts/masks, which reproduces the dword
-//    loads but the compiler still orders/aligns the locals differently, so
-//    several [esp+N] offsets are off by a few bytes.
-//  * provider memcmp chain: the original inlines the four-way GUID compare
-//    twice (the D compare runs in both blocks); ours emits a shorter chain
-//    and the jump targets differ (0x4414c5 vs 0x4414b1).
-//  * the 15-game fill loop uses `mov edx,4` / `[edx+eax+0x2a43]` and the
-//    pointer slots start at esp+0x10 in ours vs esp+0x14 (xor edx,edx) in the
-//    original.
-//  * tail register allocation (ebx vs esi for the game count).
+// PARTIAL (best 71.2%). Frame matches (`sub esp,0x1b4`) and the game fill loop
+// now matches the original's `xor edx,edx` / `[eax+edx+0x2a47]` /
+// `cmp edx,0x3c` shape (loop was `i=1..15`; it is `i=0..13` filling p[1..14]).
+// The provider memcmp chain was rewritten as a flat `if (A||B) goto chain2`
+// which reproduces the original's first three jumps.
+// Remaining diff hunks:
+//  * 0x4415c4: SIB operand order only, ours `[edx+eax+0x2a47]` vs original
+//    `[eax+edx+0x2a47]`; not source-controllable (see guide/board note on
+//    scale-1 int index encoding).
+//  * 0x4414bc/0x4414c1: the original keeps a dead store of the memcmp(D)
+//    result at [esp+0x10] on both chains (the value is overwritten at
+//    0x4415ee by the game count). Our source stores to the same later-reused
+//    `count`, so MSVC5 eliminates the dead store; needs the original's real
+//    local (probably a separate result variable that escapes).
+//  * 0x4415d8-0x4419e3 loop body: the record-settings block is a 16-byte local
+//    at esp+0x1a1 read as overlapping dwords at +2,+6,+8,+0xa,+0xe (`>>16`
+//    folded into the load). Modelled as `unsigned long s[4]` kept in
+//    registers with explicit shifts, and the names buffer lands at esp+0x78
+//    instead of esp+0x68, so most [esp+N] offsets differ by 0x10.
+//  * 0x44158e tail: game count lives in esi in ours, ebx in the original.
 #include <stdio.h>
 #include <string.h>
 
@@ -85,14 +90,15 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget)
 
     {
         Guid_00441460* guid = (Guid_00441460*)g_game->provider;
-        if (memcmp(guid, &DAT_004fcdc8, 0x10) != 0 &&
-            memcmp(guid, &DAT_004fcda8, 0x10) != 0) {
-            if (memcmp(guid, &DAT_004fcd98, 0x10) == 0) {
-                message = "Updating...";
-                goto done;
-            }
-            count = memcmp(guid, &DAT_004fcdb8, 0x10);
+        if (memcmp(guid, &DAT_004fcdc8, 0x10) == 0 ||
+            memcmp(guid, &DAT_004fcda8, 0x10) == 0)
+            goto chain2;
+        if (memcmp(guid, &DAT_004fcd98, 0x10) == 0) {
+            message = "Updating...";
+            goto done;
         }
+        count = memcmp(guid, &DAT_004fcdb8, 0x10);
+    chain2:
         if (memcmp(guid, &DAT_004fcdc8, 0x10) == 0) {
             message = "Connecting  (ESC to abort)";
             goto done;
@@ -122,9 +128,9 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget)
         return 0;
     }
 
-    for (i = 1; i < 16; i++) {
-        p[i] = (char*)g_game->data[i];
-        memset(p[i], 0, 0xa00);
+    for (i = 0; i < 14; i++) {
+        p[i + 1] = (char*)g_game->data[i + 1];
+        memset(p[i + 1], 0, 0xa00);
     }
 
     p[0] = (char*)g_game->desc + 0x18;

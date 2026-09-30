@@ -12,6 +12,20 @@
 // (g_game+0x2cc3, *it, target, g_game+0x2caa) and keeps the minimum result,
 // so smaller return values are "better" order candidates and 0x13 is "none".
 //
+// REMAINING DIFF HUNKS BY ADDRESS: 0x43e490-0x43e4eb (prologue plus the
+// friendly/enemy classification; ours allocates ebp=target, esi=unit,
+// edi=def, ecx=friendly, ebx=enemy while the original keeps edi=target,
+// eax/stack=unit, ecx=def, esi=friendly, ebp=enemy and ebx=g_game), then
+// 0x43e4eb (switch dispatch; original re-reads mode from its argument home
+// [esp+0x18] and reuses [esp+0x20] for the spilled def, ours uses a frame
+// local), and every case body: the two Visible/Lookup inline copies
+// (0x43e66b, 0x43e8d2, 0x43eb8b, 0x43ee66) and the L43e9e0 / L43edb6 shared
+// blocks. Only the pop/ret epilogues (0x43e560, 0x43e58f, 0x43e5ac, ...)
+// align. A `Game* g = g_game;` local was tried: it spilled g into a second
+// frame local (`sub esp,8`, ours 3148 bytes) and dropped the score to 11.9%,
+// so the original must keep g_game resident in ebx across the outer body,
+// which the local form did not reproduce.
+//
 // RETRY NOTES (deepseek-v4.1-flash, still 12.8%): the only instructions that
 // align are the shared "pop edi/esi/ebp/ebx/ecx; ret 0x10" epilogues, so the
 // whole score comes from the ~14 return sequences; every body line differs

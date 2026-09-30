@@ -3,6 +3,10 @@
 // Added the final per-element flag check that sets field_18, which was absent in
 // the inherited draft. Rewriting the guarded outer loop as do/while removed its
 // duplicate entry test and raised the score from 24.3%. An inner do/while tied.
+// A raw dword-record rewrite scored 12.6%; passing param_1 to the three virtual
+// callbacks scored 22.4%, so the original callback arguments remain in the best
+// version. Remaining mismatch includes the 0x18 target frame versus the 0x1c
+// source frame, local/register allocation, and callback argument lifetimes.
 // Main remaining differences are register and stack allocation: the
 // target uses a 0x18-byte frame, keeps the dword index k at 0xd and advances it
 // by 0x13, and uses a byte-offset cursor advanced by 0x4c per record. MSVC folds

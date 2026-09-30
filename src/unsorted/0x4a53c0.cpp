@@ -1,4 +1,15 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry: focused on forcing the missing `mov ebx, esi`
+// (the two live copies of x, esi from the ternary and ebx as its home for the
+// tail). Tried, all scored with check.py --sym and none beat 697 bytes 76.7%:
+// ternary polarity flip (`entry->type ? entry->x : 0`, 76.3%), `== 0`/`!= 0`
+// spellings (76.7%/76.3%), explicit `(int)` cast, `(unsigned char)` condition,
+// comma-declared `int x = ..., lh;`, `long x`, `short`-free variants, the
+// final store recomputing the ternary (75.0%, 729 bytes), the arm expression
+// inlined from the ternary (48.8%), and the `x = 0; if (type) x = entry->x;`
+// init form (75.5%). None changed which register the ternary materialises in,
+// so the ebx/esi copy and the downstream 16-bit folding of the right arm
+// remain. Leaving the best (697 bytes, 76.7%) in place.
 // GPT-6.1-sol refinement: four checks retained the 76.7% best; no MATCH. A
 // sequential right-base local (x; += w; -= Measure) fell to 62.7%. Explicit
 // casts, if/else x assignment and an explicit null check did not help. The

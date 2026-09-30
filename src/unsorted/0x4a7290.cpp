@@ -1,4 +1,19 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue 2547): 84.9% to 85.8% (702 bytes). The only
+// change is the rect zero-fill, now `rect.x0 = 0; rect.x0 = rect.y0 = rect.x0;`
+// (the dead first store lets MSVC keep the zero as an expression value). That
+// moves the branch to xor eax,eax / xor ecx,ecx / mov [0x18],eax /
+// mov [0x14],ecx, still two xors and still y0-before-x0. Tried this session and
+// all at or below 85.8%: two separate `= 0` statements (84.6%, 698 bytes,
+// immediate stores), `rect.y0 = rect.x0 = 0` (698), comma form (698), a named
+// zero temp as int/unsigned/short (84.6%, 698 each, always folded to immediate
+// stores), `rect.x0 = rect.y0 = (short)0` (84.9%), `rect.x0 = (rect.y0 = 0)`
+// (84.9%), `rect.x0 = 0; rect.y0 = rect.x0;` (698), and putting `n = 0` in both
+// if/else arms with `int n;` after rect (85.1%, 706 bytes, but this shoves
+// `entries` out of esi into edi). Still differs: the target reaches the join
+// with a single zero in eax (xor eax,eax / mov [0x14],eax / mov [0x18],eax,
+// xor eax,eax in the else, then mov [0x40],eax) and reloads x0/y0; ours keeps
+// the two-xor form and stores n as an immediate, 4 bytes shorter.
 // GPT-6.1-sol refinement: eight checks kept the 84.9% PR best. The attempted
 // local counter assignments scored 84.3% or 55.7%, so the exact best source
 // was restored and independently verified. No MATCH was reached.
@@ -213,7 +228,7 @@ int __stdcall FUN_004a7290(Object_004a7290* obj, int index, char* text)
     Entry_004a7290* entries = obj->holder->entries;
     Out_4a15c0 rect;
     if (entries[index].type == 0) {
-        rect.x0 = rect.y0 = 0;
+        rect.x0 = 0; rect.x0 = rect.y0 = rect.x0;
     } else {
         rect.x0 = entries[index].x0;
         rect.y0 = entries[index].y0;

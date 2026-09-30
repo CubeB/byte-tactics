@@ -1,5 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, re-tried by
-// space-bunny-free. Names are provisional.
+// space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash session: started from the 79.4 file, verified it is
+// still the best. Tried (all with check.py --sym, none beat 79.4):
+//   flipping the limitX/limitY ternary arms to `? width : halfX - x` (79.1),
+//   declaring y before x (79.1, swaps the two movsx loads instead of the two
+//   slots), a ByteMap pointer local for the else dst (49.6, global reshuffle),
+//   the at() helper form for the else dst (78.9), at() with dst before src
+//   (38.6, moves g_game from ecx to edi), short x/y (40.5). The else branch
+//   structure and the x (0x1c) / y (0x20) slot pair remain the blockers.
 // Partial, 79.4 percent (824 bytes vs 821; the file was already at 79.1 when
 // this attempt started, not the 53.5 the packet says). This attempt's one fix,
 // worth 0.3, is the inner loop's shape:

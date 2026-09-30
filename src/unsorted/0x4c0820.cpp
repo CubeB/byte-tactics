@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
-// provisional. PARTIAL 59.8%, 608 of 613 bytes. Cache edge start/end heights before testing
+// provisional. PARTIAL 60.7%, 608 of 613 bytes. Cache edge start/end heights before testing
 // descent, keep the row countdown separate from the divisor, and share the height locals across
 // both edge walks. The scan uses a guarded do-while with explicit index and point increments. This
 // improves the previous 41.0% and reproduces the original 0x14024-byte stack allocation. Remaining
@@ -7,6 +7,13 @@
 // register rather than its original slot. 768 header sets, count representations and paired
 // extremum indices did not improve the saved version. Count <= 0 still reaches uninitialized
 // extremum indices, as does the original (0x4c08b7 and 0x4c0962).
+// GPT-6.1-sol refinement: best is now 60.7% after 11 checks (baseline was
+// 59.8%). Initializing the point cursor and index before the count guard gave
+// the gain; moving just the index outside returned to baseline. Loop spelling,
+// sentinel order, final-loop local order, and sequential count-then-decrement
+// variants did not improve it. No check printed MATCH. Remaining differences
+// are the entry register assignment (count in ebx instead of eax, points in edi
+// instead of ebx), extremum/register placement, and corresponding stack slots. Swapping the initial p/i assignments again kept 60.7%.
 
 struct Point_004c0820 {
     int x;
@@ -43,13 +50,17 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
     int ay;
     int y0, y1;
     int ymin = 999999;
+    int xmax = -999999;
     int ymax = -999999;
     int xmin = 999999;
-    int xmax = -999999;
     int iymin, iymax;
+    int y;
+    Span_004c0a90* s;
+    int i;
+    Point_004c0820* p;
+    i = 0;
+    p = pts;
     if (count > 0) {
-        Point_004c0820* p = pts;
-        int i = 0;
         do {
             if (p->y < ymin) {
                 ymin = p->y;
@@ -74,8 +85,10 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
         out = spans;
         do {
             int j = i - 1;
-            if (j < 0)
-                j = count - 1;
+            if (j < 0) {
+                j = count;
+                j--;
+            }
             a = &pts[i];
             b = &pts[j];
             y0 = a->y;
@@ -97,8 +110,10 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
                 } while (--rows);
             }
             i = i - 1;
-            if (i < 0)
-                i = count - 1;
+            if (i < 0) {
+                i = count;
+                i--;
+            }
         } while (i != iymax);
     }
     {
@@ -134,8 +149,8 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
         } while (i != iymax);
     }
     {
-        int y = ymin;
-        Span_004c0a90* s = spans;
+        s = spans;
+        y = ymin;
         while (y < ymax) {
             if (s->x2 - s->x1 > 0)
                 FUN_004c0a90(y, s, surf, color);

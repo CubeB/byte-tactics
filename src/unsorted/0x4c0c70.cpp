@@ -7,6 +7,9 @@
 // Remaining differences are prologue scheduling and clipping-register choices.
 // Sharing every temporary instead is worse. Two 768-header sweeps and
 // surface getters/clamping helpers did not resolve the remaining differences.
+// GPT-6.1-sol refinement: reference aliases, a height accessor, changing the
+// maxRow declaration point, and moving the surface alias after the scan all
+// kept 94.5%. The root pass tried the equivalent pitch-bound form; it scored 86.6%, so the original source shape is restored below.
 
 struct Span_004c0c70 {
     int x1; // +0x0

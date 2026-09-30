@@ -1,33 +1,52 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial 91.3%: state 3's "target->pos - Offset(...)" still loads the source
-// through an extra pointer copy (mov edx,ecx) and interleaves the stores, and
-// the bounds[0] box add puts pos.x in edx/min.x in ebp where the original has
-// pos.x in ebp/min.x in edx. Writing either as a direct Vec3 operator- fixes
-// those bytes but flips unit/order in esi/edi across the whole function, so the
-// operator-= based subtraction is kept.
-// GPT-6.1-sol retry pass: 7 checker runs and all 128 header combinations
-// kept this 91.3% source. Direct component subtraction, reversed bounds
-// addition, and explicit component arithmetic scored lower. The movement
-// subtraction and bounds operand/register ordering still differ.
-// deepseek-v4.1-flash retry pass: 15 scratch variants scored with --sym, all
-// <= 91.3%. An explicit-component Vec3 operator- (r.x=x-v.x; r.y=y-v.y;
-// r.z=z-v.z;) does reproduce the original state-3 register pattern
-// (edx/edi/ecx, subs before stores) but flips unit/order in esi/edi across
-// the whole function (74.7%); the same flip hits a free-function or by-value
-// subtraction helper (73.3% / 67.7%). In-place (pos-=off), named-off and
-// explicit-pointer forms also score lower (80.7-86.6%). For bounds[0],
-// min+pos, a reference/local min, and a pointer-taking Add helper all keep
-// the same x-register tie (edx/ebp swapped).
-// Previous deepseek retry: 4 more checker runs, all scratch variants scored
-// lower than this 91.3% file: sum-then-copy subtraction (variantA) 72.3%,
-// direct field operator- (variantC) 71.5% (flips unit/order esi/edi),
-// split pos= then pos-= (variantD) 80.7% (bigger, 1024 bytes). The two
-// remaining diffs are unchanged: (1) state-3 target->pos - Offset(...) uses
-// an extra mov edx,ecx pointer copy and interleaves its stores where the
-// original loads x/y/z into edx/edi/ecx, subs x then z, pushes 0x36, then
-// stores x/y/z (this shifts every later branch target by +2); (2) the
-// bounds[0] pos+min add has pos.x in edx / min.x in ebp where the original
-// has pos.x in ebp / min.x in edx. Both are MSVC register/schedule ties.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Partial 91.3%, 2 real check runs this pass. Two diffs remain, both register
+// ties inside state 3:
+//   (1) "target->pos - Offset(angle,range)" is one instruction (2 bytes) too
+//       long. Original: mov edx,[ecx]; mov edi,[ecx+4]; mov ecx,[ecx+8];
+//       sub edx,ebp; sub ecx,eax; push 0x36; then the three stores. Ours adds
+//       "mov edx,ecx" and interleaves the loads, the first store and the
+//       subs. That extra mov is a direct consequence of our x landing in the
+//       same register as the Vec3 base (ecx): MSVC 5 will not fold a memory
+//       operand whose base register is the destination of the same
+//       instruction, so the base is materialised into edx first. The original
+//       puts x in edx and lets the base die on the third load. The +2 bytes
+//       shift every later branch target and the jump table.
+//   (2) bounds[0] = pos + def->min puts pos.x in edx / min.x in ebp where the
+//       original has pos.x in ebp / min.x in edx.
+// space-bunny-free pass, 14 scratch variants scored free with --sym, all <=
+// 91.3%. Biggest finding: 0x413d80 is a MATCHING sibling whose state 4 is this
+// function's state 3, character for character, and it compiles that block with
+// the explicit-component operator- "Vec3 r; r.x=x-v.x; r.y=y-v.y; r.z=z-v.z;
+// return r;" and a plain "Unit* target" at Order+0x16. Porting that operator-
+// here makes our state-3 block byte exact (edx/edi/ecx, subs before the
+// stores) but flips esi/edi (order and unit trade places) across the whole
+// function and costs 12 bytes in the bounds[1] block: 71.5%. That flip is one
+// allocator state, not two bugs, so the two remaining diffs above are very
+// likely a single cause as well. The UnitRef plus Get() model of Order+0x16
+// is load bearing: 0x413d80's plain "Unit* target" grows this function by
+// 12 bytes and drops it to 87.7%.
+// Worth knowing: the esi/edi flip comes from the by-value RETURN, not from
+// the explicit component arithmetic. An out-param
+// Sub(const Vec3&,const Vec3&,Vec3*) keeps esi=order and edi=unit and gets
+// x into edx where the original has it, so diff (1) is nearly solved there,
+// but it rotates edi/ebx through the build-rate block and the bounds blocks
+// instead (86.6%). v0 and that variant are two points in the same allocator
+// state, one with the state-3 block right and the rate block right, the
+// other the reverse.
+// Also tried and worse, so nobody repeats them: no named temp, the ctor
+// argument spelled out inline (76.1%); explicit components into pos with a
+// named off (82.8%) and with a hoisted target pointer (80.5%) and the same
+// without the named temp (74.7%); "Vec3 r; r.x=x-v.x; r.y=y; r.z=z-v.z;"
+// (71.5%); "Vec3 r=*this; r.x-=v.x; r.z-=v.z;" (86.6%, it does fix
+// bounds[0] but rotates edi/ebx through both bounds blocks); operator-= over
+// x and z only (91.3%, output byte identical); Offset writing through a
+// pointer (91.3%, output byte identical).
+// Earlier passes: GPT-6.1-sol used 7 runs and all 128 header combinations
+// without moving off 91.3%. deepseek-v4.1-flash used 15 scratch variants
+// (explicit operator- 74.7%, free-function 73.3%, by-value helper 67.7%,
+// in-place pos-=off, named-off and explicit-pointer forms 80.7-86.6%, and
+// min+pos, a reference or local min and a pointer-taking Add helper for
+// bounds[0], all of which keep the same edx/ebp tie).
 #include <stdio.h>
 struct Point { short x, y; };
 struct Vec3 {

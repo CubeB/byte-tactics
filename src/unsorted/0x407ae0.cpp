@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..929 ticks from now. A group of fewer than 5 units
@@ -31,6 +31,19 @@
 //   in ebp, as the notes said. Declaring w and h in ONE statement is
 //   byte-identical to two statements, so that split is not a statement
 //   boundary effect either.
+// - deepseek-v4.1: both remaining ideas collapse the whole allocation, so the
+//   91.1% form is a hard local optimum. Declaring hw and hh inside the loop
+//   body (LICM then hoists them into the preheader after the entry test) is
+//   52.9%: `this` leaves esi for ebx and the loop counter takes ebp. Dropping
+//   the `dx` local and inlining the FUN_004b6c30(w) call into the dest.x
+//   expression is 52.0% (595 bytes) with the same shake-up. Writing the loop
+//   as `for (int i = 0; n > i; i++)` is 90.2%: it only swaps the bottom test
+//   to `cmp eax,ebx; jg` and moves the `if (i == 0)` test, while our top guard
+//   stays `test ecx,ecx`. The `cmp ecx,ebx` form is part of the block split,
+//   not of the loop condition's spelling. An early `if (n <= 0) return;` plus
+//   a do-while is 59.0% (`this` moves to ebp), and moving w and h into the
+//   loop with the halves is 19.5% (frame drops to 0x20: the divisions are not
+//   hoisted).
 // - Untried: making the halves depend on something LICM cannot hoist out of
 //   the body (a value reloaded from the group), which is the only way seen so
 //   far to get a block between the entry test and the body without opening a
@@ -167,7 +180,8 @@ void Class_00407a90::FUN_00407380()
         } else {
             int n = FUN_004b6c30(2) + 2;
             int w = g_game->baseX / 8, h = g_game->baseY / 8;
-            int hw = w / 2, hh = h / 2;
+            int hw = w / 2;
+            int hh = h / 2;
             for (int i = 0; i < n; i++) {
                 int dx = FUN_004b6c30(w) - hw;
                 dest.x = pos.x.value + (dx << 16);

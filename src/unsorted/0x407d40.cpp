@@ -1,4 +1,4 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Best retry: 97.8% (296 bytes). Difference: derived vtable store is before
 // the third vector's game loads; pop edi is between its second and third stores.
 //
@@ -104,6 +104,20 @@ Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
 // the lea and the stores. Written-order init lists (`field_38(0), c(g_game)`)
 // are normalised back to declaration order. All 128 header sets from
 // tools/headers.py score 95.5%. Not reproducible from source in the timebox.
+//
+// Notes from deepseek-v4.1 (2026-09-30): the `mov [ecx], ebx` versus
+// `mov [esi+0x2c], ebx` choice is an ADJACENCY peephole, proven by experiment:
+// make the third member a 16-byte struct built with `*this = C4(ax,0,az,0)`
+// and the emitted tail is `lea edx,[esi+0x2c]; xor ecx,ecx; mov [edx],ebx`
+// (store NOT folded, because xor ecx,ecx sits between the lea and the store).
+// So an intervening node kills the fold, and the original's IR must have the
+// [esi+0x38] store between the lea and the first c store. Nothing that emits
+// it there was found: the full init list (a,b,c,field_38) puts the stores and
+// pop edi exactly right but the store adjacent to the lea folds (297 bytes),
+// field_38 in the list with c in the body unfolds nothing (flag/vptr stores
+// land before the c compute), and comma/parenthesised single statements
+// (`field_38 = 0, c = Vec3(g_game)`, `c = Vec3(g_game), field_38 = 0`,
+// `field_38 = (c = Vec3(g_game), 0)`) all score 95.5%.
 //
 // Notes from space-bunny-free: also tried, all worse than the version below.
 // The vector's own constructor rewritten to assign x, y and z separately drops

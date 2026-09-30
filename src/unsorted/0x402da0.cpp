@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Order handler: when the unit has just been built (progress 0), copies the
 // QMove/QPatrol orders queued on the factory (order->target) to the new unit
 // and its fire/move states, else parks it; otherwise a small wait state machine.
@@ -42,6 +42,11 @@
 // the live register) vs our edx, and the value copy edx vs our ecx. Tried
 // here and flat: extended dummy-declaration sweep, and a class with no
 // user-declared default ctor (did not compile, so untested).
+// deepseek-v4.1 retry: six more source shapes were flat at 87.9% (explicit
+// `kind.index = 0;` after the declaration, ctor body-assignment form, node
+// hoisted with for(;;), inlined IsKind() helper, `kind.index != 0`), and one
+// line of two ctors, `= Class_00438760()`, node->pos and int* position params
+// were WORSE (87.4%), so the residual really is per-temp colour choice.
 class Class_00438760 {
 public:
     unsigned char index;

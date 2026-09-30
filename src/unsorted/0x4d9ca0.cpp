@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: retained 69.5%. Whole-formatter wrappers and per-loop
+// append helpers did not improve allocation; original spill pattern remains.
 // NOT A MATCH: 69.5% best (v18). Correct shapes found this run, allocation still open.
 //
 // deepseek-v4.1-flash (second run): re-derived from the disassembly and re-tested the

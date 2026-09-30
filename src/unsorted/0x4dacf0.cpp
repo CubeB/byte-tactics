@@ -1,8 +1,11 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// NOT A MATCH: 52.6 percent, 773 of 780 bytes. Progress over the 49.7 percent
-// version came from removing the `= 0` initialisers on base/len/key (the
-// original does not zero them, and the extra zero store was the spilled home
-// that both pushed the frame to 0x6c and took the register allocation away from
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
+// provisional. GPT-6 retry: repaired shared page commitment for reused blocks, zeroed base on
+// failed reservation, fixed the 48-byte record layout and iterator hidden-return ABI, and corrected
+// matched callee owners. Earlier notes below describe the superseded reconstruction. Correct frame
+// size is now 0x68; register allocation and temporary lifetimes still differ. NOT A MATCH: 52.6
+// percent, 773 of 780 bytes. Progress over the 49.7 percent version came from removing the `= 0`
+// initialisers on base/len/key (the original does not zero them, and the extra zero store was the
+// spilled home that both pushed the frame to 0x6c and took the register allocation away from
 // map/wraps) and from splitting the one Pair into the two the original has
 // (p at E+0x30, the lower_bound query q at E+0x38), plus masking n before the
 // negate in pad.
@@ -38,7 +41,7 @@
 //   * Pair_004dacf0 with NO constructors at all: a user-provided default
 //     constructor zero-initialises the pair at the top of the function, and
 //     the original has no such stores (v0 had three `mov [esp+X],ebp`).
-//   * `if (cur == (Class_004dd2a0(map->head)))`: the original's head test is
+//   * `if (cur == (Class_004dbe10(map->head)))`: the original's head test is
 //     `mov ebx,[edi+4] / xor edx,edx / cmp eax,ebx / sete dl / test dl,dl /
 //     je`, i.e. the End() iterator is a VALUE compared through operator==.
 //     Comparing `cur.ptr == map->head` loads the head straight into the cmp
@@ -73,86 +76,91 @@ extern unsigned int DAT_005289d0;
 extern unsigned int DAT_00528a04;
 
 struct Node_004dacf0 {
-    Node_004dacf0* left;               // +0x0
-    Node_004dacf0* parent;             // +0x4
-    Node_004dacf0* right;              // +0x8
-    unsigned int key;                  // +0xc
-    int length;                        // +0x10
-    int color;                         // +0x14
+    Node_004dacf0* left;   // +0x0
+    Node_004dacf0* parent; // +0x4
+    Node_004dacf0* right;  // +0x8
+    unsigned int key;      // +0xc
+    int length;            // +0x10
+    int color;             // +0x14
 };
 
-// The map's iterator: one pointer. The three methods are the tree's own
-// (operator--, the postfix operator++ and the set's erase). Each takes the
-// hidden return pointer of its class-returning call first and the literal 0
-// second, which is what the original pushes at 0x4dadad and 0x4dae29.
-class Class_004dd2a0 {
-public:
+class Class_004dbe10 {
+  public:
     Node_004dacf0* ptr;
 
-    Class_004dd2a0() {}
-    Class_004dd2a0(Node_004dacf0* q) : ptr(q) {}
-    bool operator==(const Class_004dd2a0& o) const { return ptr == o.ptr; }
-    void FUN_004dbe10(int);
-    Class_004dd2a0 FUN_004dbd80(int);
+    Class_004dbe10() {}
+    Class_004dbe10(Node_004dacf0* q) : ptr(q) {}
+    bool operator==(const Class_004dbe10& o) const { return ptr == o.ptr; }
+    Class_004dbe10* FUN_004dbe10(Class_004dbe10*, int);
+    Class_004dbe10* FUN_004dbd80(Class_004dbe10*, int);
 
     // The original tests the iterators as a value (sete; neg; sbb; inc; test),
     // which MSVC 5 only does for a `!` applied to a bool-returning member.
-    bool Neq(Class_004dd2a0 a, Class_004dd2a0 b) { return !(a == b); }
+    bool Neq(Class_004dbe10 a, Class_004dbe10 b) { return !(a == b); }
 };
 
-// The map's value_type: the block's base offset and its length, 8 bytes.
-// No constructors: a user-provided default constructor makes MSVC 5 zero the
-// pair where the original has no store at all.
 struct Pair_004dacf0 {
-    unsigned int offset;               // +0x0
-    int length;                        // +0x4
+    unsigned int offset; // +0x0
+    int length;          // +0x4
 };
 
-// The insert helpers write an iterator and a flag through their first argument.
 struct Ins_004dacf0 {
     Node_004dacf0* ptr;
     unsigned char inserted;
 };
 
 class Class_004db610 {
-public:
+  public:
     char unknown_0[4];
-    Node_004dacf0* head;               // +0x4
+    Node_004dacf0* head; // +0x4
     char unknown_8[4];
-    int count;                         // +0xc
-    int total;                         // +0x10
+    int count; // +0xc
+    int total; // +0x10
     char unknown_14[20];
 
     void FUN_004dbbc0(Ins_004dacf0* out, Pair_004dacf0* v);
-    bool FUN_004db450(unsigned int size);
-    Node_004dacf0* FUN_004db1c0(unsigned int size);
-    void FUN_004db000(Pair_004dacf0 p);
-
-    void FUN_004dc620(Class_004dd2a0* out, Pair_004dacf0* kv);
-    void FUN_004dbeb0(Class_004dd2a0* out);
-    Class_004dd2a0 FUN_004dbd00(Class_004dd2a0 it);
 };
 
-// The record the second map keeps for every live block: 48 bytes.
-class Class_004d8820 {
-public:
-    unsigned int base;                 // +0x0
-    unsigned int size;                 // +0x4
-    unsigned int count;                // +0x8
-    char unknown_c[0x24];              // +0xc
-    unsigned int tag;                  // +0x2c
+class Class_004db450 {
+  public:
+    bool FUN_004db450(unsigned int);
+};
+class Class_004db000 {
+  public:
+    Node_004dacf0* FUN_004db1c0(unsigned int);
+    void FUN_004db000(Pair_004dacf0);
+};
+class Class_004dbd00 {
+  public:
+    Class_004dbe10 FUN_004dbd00(Class_004dbe10);
+};
+class Class_004dbeb0 {
+  public:
+    Class_004dbe10* FUN_004dbeb0(Class_004dbe10*);
+};
+class Class_004dc620 {
+  public:
+    Class_004dbe10* FUN_004dc620(Class_004dbe10*, Pair_004dacf0*);
+};
 
-    Class_004d8820(unsigned int a, unsigned int b, unsigned int c,
-                   unsigned int d, unsigned int e);
+class Class_004d8820 {
+  public:
+    unsigned int base;    // +0x0
+    unsigned int size;    // +0x4
+    unsigned int count;   // +0x8
+    char unknown_c[0x20]; // +0xc
+    unsigned int tag;     // +0x2c
+
+    Class_004d8820(unsigned int a, unsigned int b, unsigned int c, unsigned int d, const char* e);
 };
 
 class Class_004dc680 {
-public:
+  public:
     void FUN_004dc680(Ins_004dacf0* out, Class_004d8820* v);
 };
 
 class CritSec_004da780 {
-public:
+  public:
     CRITICAL_SECTION cs;
 };
 
@@ -167,8 +175,7 @@ int FUN_004db7c0();
 void FUN_004d82c0(void* at, int value, unsigned int count);
 
 // FUNCTION: 0x4dacf0
-unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
-{
+unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2) {
     CritSec_004da780* lock = FUN_004da780();
     EnterCriticalSection(&lock->cs);
     unsigned int res = 0;
@@ -190,29 +197,28 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
     Pair_004dacf0 p;
     Pair_004dacf0 q;
     Ins_004dacf0 ins;
-    Class_004dd2a0 n2;
-    Class_004dd2a0 b;
-    Class_004dd2a0 cur;
+    Class_004dbe10 n2;
+    Class_004dbe10 b;
+    Class_004dbe10 cur;
 
     if (map->count <= wraps)
         goto alloc_new;
 
     q.offset = DAT_005289d4;
     q.length = 0;
-    map->FUN_004dc620(&n2, &q);
-    map->FUN_004dbeb0(&b);
+    ((Class_004dc620*)map)->FUN_004dc620(&n2, &q);
+    ((Class_004dbeb0*)map)->FUN_004dbeb0(&b);
     if (n2.Neq(n2, b)) {
         b.ptr = n2.ptr;
-        b.FUN_004dbe10(0);
-        if (DAT_005289d4 >= b.ptr->key &&
-            want + DAT_005289d4 <= b.ptr->key + b.ptr->length)
+        b.FUN_004dbe10((Class_004dbe10*)&p, 0);
+        if (DAT_005289d4 >= b.ptr->key && want + DAT_005289d4 <= b.ptr->key + b.ptr->length)
             n2.ptr = b.ptr;
     }
     cur.ptr = n2.ptr;
 
     for (;;) {
-        if (cur == (Class_004dd2a0(map->head))) {
-            map->FUN_004dbeb0(&b);
+        if (cur == (Class_004dbe10(map->head))) {
+            ((Class_004dbeb0*)map)->FUN_004dbeb0(&b);
             cur.ptr = b.ptr;
             DAT_005289d4 = 0;
             DAT_00528a00++;
@@ -220,14 +226,14 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
         }
         if (cur.ptr->length >= want)
             break;
-        cur.FUN_004dbd80(0);
+        cur.FUN_004dbd80((Class_004dbe10*)&p, 0);
         if (wraps >= 2)
             goto alloc_new;
     }
 
     key = cur.ptr->key;
     len = cur.ptr->length;
-    map->FUN_004dbd00(cur);
+    ((Class_004dbd00*)map)->FUN_004dbd00(cur);
     base = DAT_005289d4;
     if (base == 0) {
         base = key;
@@ -248,22 +254,23 @@ unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2)
         map->FUN_004dbbc0(&ins, &p);
     }
     DAT_005289d4 = base + want;
-    goto use_block;
+    goto commit_block;
 
 alloc_new:
-    if (map->FUN_004db450(want))
-        base = (unsigned int)map->FUN_004db1c0(want);
+    if (((Class_004db450*)map)->FUN_004db450(want))
+        base = (unsigned int)((Class_004db000*)map)->FUN_004db1c0(want);
+    else
+        base = 0;
+commit_block:
     if (base) {
-        res = (unsigned int)VirtualAlloc((void*)base, need, MEM_COMMIT,
-                                         PAGE_READWRITE);
+        res = (unsigned int)VirtualAlloc((void*)base, need, MEM_COMMIT, PAGE_READWRITE);
         if (res == 0) {
             p.offset = base;
             p.length = want;
-            map->FUN_004db000(p);
+            ((Class_004db000*)FUN_004db610())->FUN_004db000(p);
         }
     }
 
-use_block:
     if (res == 0) {
         LeaveCriticalSection(&lock->cs);
         return 0;

@@ -20,25 +20,37 @@
 //    cVar3/iVar12 address arithmetic in the original (mov cl,[eax+edx*2+0x1ca9]
 //    after the mov ecx,8 setup, movsb last). Moving it after those two
 //    statements took 48.0 -> 48.1.
-// The frame is still 0x210 vs the original 0x214, and the 4 bytes sit at the
-// top of the locals region: ours homes param_1/param_2 at [esp+0x224]/
-// [esp+0x228] and the original at [esp+0x228]/[esp+0x22c]; every other esp+N
-// (0x10, 0x34, 0x74, 0xac, 0x128...) already agrees.
-// WHAT STILL DIFFERS: the prologue, where the original keeps the local_1b0
-// pointer (= g_game+0xdcb) in ebx for the whole function (lea ebx,[eax+0xdcb]
-// at 0x468d49, then [ebx+0xf] at both FUN_004be950 calls and mov ebx,
-// [esp+0x228] reloads of param_1 at 0x469b02/0x469d31/0x469f29), while ours
-// keeps g_game in ebx and writes [ebx+0xdda]. Tried: moving the store before
-// the memcpy (lea ecx, 45.0%), an extra scalar pointer local declared before
-// the struct (40.6%), and assigning from an iVar11 copy (mov ebx,[g_game],
-// 47.0%); none produced the ebx role. Because ebx is taken by g_game, ours
-// keeps param_1 in ebx and does not reload it from its home slot.
-// Rest is register picks/scheduling, e.g. the OverlayRect argument copy at the
-// first FUN_004c6b10 call uses eax as the destination copy pointer and
-// edx/ecx as the source (original: mov edx,esp destination, ecx source, eax
-// temp), the timer updates at the tail reorder, and the address CSE in the
-// local_1ac region (ours lea eax,[eax+edx*2] then mov al,[eax+0x1ca9]; the
-// original keeps eax+edx*2 in the addressing mode of both mov cl and lea ebp).
+// deepseek-v4.1, 48.1 -> 51.6 (five independent fixes):
+// 1. The /8 and /16 remainders: the original's bodies use the cdq form
+//    (cdq / and edx,7 / add eax,edx / sar eax,3), i.e. plain `x / 8`, not the
+//    hand-written `(x + (x >> 0x1f & 7)) >> 3` shift form (49.3).
+// 2. The four 99999.0 comparisons are against a FLOAT constant in the original
+//    (fcomp dword ptr), so 99999.0f / -99999.0f (49.3).
+// 3. The big struct is 4 bytes too small: local_100 is 256 bytes in the
+//    original, not 252, which makes the frame 0x214 and moves the param homes
+//    to [esp+0x228]/[esp+0x22c], matching (49.4).
+// 4. Float compare operand order: the original loads local_1ab (not local_193)
+//    first, so the source reads `local_1ab > local_193`, and likewise the
+//    `> 0.0f` guards and `local_1a3 >= -99999.0f` put the memory operand on
+//    the left (50.0, 51.1).
+// 5. The two FUN_004658e0 calls pass full 32-bit values in the original (it
+//    does mov ebx,[esp+0x14] and pushes ebp, with no movsx), so drop the
+//    (short) narrowing casts on puVar9 / iVar12 / L.local_210 (51.6).
+// Also worth trying next: the original keeps the row and column loop counters
+// in the struct fields L.local_210 (row, inc per row) and L.local_208 (column),
+// reading them back with mov/movsx, rather than in the registers our version
+// uses; the original also reads the spilled local_1b4 byte back for the
+// *0x14b index (mov eax,[esp+0x70] / and eax,0xff) instead of re-reading
+// g_game+0x2a43.
+// WHAT STILL DIFFERS: register picks and scheduling inside the region bodies.
+// The original keeps the local_1b0 pointer (= g_game+0xdcb) in ebx for the
+// whole function (lea ebx,[eax+0xdcb] at 0x468d49, [ebx+0xf] at both
+// FUN_004be950 calls) and reloads param_1 into ebx at 0x469b02/0x469d31/
+// 0x469f29; ours keeps g_game in ebx, writes [ebx+0xdda], and reloads param_1
+// into eax/edi/esi. Also outstanding: the pDVar1[14] += DVar7 - *pDVar1 tick
+// updates (ours hoists the *pDVar1 store), the OverlayRect argument copy at the
+// first FUN_004c6b10 call (ours uses eax as destination), and the address CSE
+// in the local_1ac region.
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -144,7 +156,7 @@ struct OverlayLocals {
   int local_174;
   byte local_170 [32];
   byte local_150 [80];
-  byte local_100 [252];
+  byte local_100 [256];
 
 };
 #pragma pack(pop)
@@ -214,7 +226,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   lVar26 = (int)*(float*)(iVar12+0x8c);
   iVar21 = (int)lVar26 - (int)lVar25;
   if (iVar21 < 0) {
-    iVar21 = (int)(iVar21 + (iVar21 >> 0x1f & 7U)) >> 3;
+    iVar21 = iVar21 / 8;
     if (iVar21 == 0) {
       iVar21 = -1;
     }
@@ -223,7 +235,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     iVar21 = 0;
   }
   else {
-    iVar21 = (int)(iVar21 + (iVar21 >> 0x1f & 7U)) >> 3;
+    iVar21 = iVar21 / 8;
     if (iVar21 == 0) {
       iVar21 = 1;
     }
@@ -233,7 +245,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   lVar26 = (int)*(float*)(iVar12+0x98);
   iVar21 = (int)lVar26 - (int)lVar25;
   if (iVar21 < 0) {
-    iVar21 = (int)(iVar21 + (iVar21 >> 0x1f & 7U)) >> 3;
+    iVar21 = iVar21 / 8;
     if (iVar21 == 0) {
       iVar21 = -1;
     }
@@ -242,7 +254,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     iVar21 = 0;
   }
   else {
-    iVar21 = (int)(iVar21 + (iVar21 >> 0x1f & 7U)) >> 3;
+    iVar21 = iVar21 / 8;
     if (iVar21 == 0) {
       iVar21 = 1;
     }
@@ -250,10 +262,10 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   L.local_193 = *(float *)(iVar12 + 0xa4);
   L.local_18f = *(float *)(iVar12 + 0xa8);
   L.local_19f = (float)(iVar21 + (int)lVar25);
-  if (L.local_193 < L.local_1ab) {
+  if (L.local_1ab > L.local_193) {
     L.local_1ab = L.local_193;
   }
-  if (L.local_18f < L.local_19f) {
+  if (L.local_19f > L.local_18f) {
     L.local_19f = L.local_18f;
   }
   if (*(uint *)(iVar12 + 0xf8) < *(uint *)(iVar11 + 0x38a47)) {
@@ -292,13 +304,13 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     L.local_180 = *(undefined4 *)(iVar11 + 0x5a);
     L.local_17c = *(undefined4 *)(iVar11 + 0x5e);
     puVar9 = L.local_208;
-    if (0.0 < *(float *)(iVar12 + 0xa4)) {
+    if (*(float *)(iVar12 + 0xa4) > 0.0f) {
       lVar25 = (int)(((int)L.local_180-(int)L.local_188)*L.local_1ab / *(float*)(iVar12+0xa4)+(int)L.local_188);
       L.local_180 = (undefined4)lVar25;
       FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_188),(int)((byte)*(undefined4 *)(iVar11 + 0x222)));
       puVar9 = L.local_208;
-      if ((0.0 < *(float *)(iVar12 + 0xe8)) &&
-         (*(float *)(iVar12 + 0xe8) < *(float *)(iVar12 + 0x8c))) {
+      if ((*(float *)(iVar12 + 0xe8) > 0.0f) &&
+         (*(float *)(iVar12 + 0x8c) > *(float *)(iVar12 + 0xe8))) {
         L.local_200 = *(uint *)(iVar11 + 0x52);
         L.local_1fc = *(int *)(iVar11 + 0x56);
         L.local_1f8 = *(undefined4 *)(iVar11 + 0x5a);
@@ -316,12 +328,12 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     sprintf((char*)L.local_170,"%d",(int)*(float*)(iVar12+0xa4));
     iVar21 = FUN_004c1480((int)(*(int *)(iVar11 + 0x22e)),(int)(L.local_170));
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0xb2) - iVar21),(int)(*(int *)(iVar11 + 0xb6)),(int)(-1));
-    if (L.local_1a7 <= 99999.0) sprintf((char*)L.local_170,"%d",(int)L.local_1a7);
+    if (L.local_1a7 <= 99999.0f) sprintf((char*)L.local_170,"%d",(int)L.local_1a7);
     else sprintf((char*)L.local_170,"%dK",(int)L.local_1a7/1000);
     iVar21 = FUN_004c13f0();
     FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 10)),(int)(iVar21));
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0xf2)),(int)(*(int *)(iVar11 + 0xf6)),(int)(-1));
-    if (-99999.0 <= L.local_1a3) sprintf((char*)L.local_170,"%d",(int)L.local_1a3);
+    if (L.local_1a3 >= -99999.0f) sprintf((char*)L.local_170,"%d",(int)L.local_1a3);
     else sprintf((char*)L.local_170,"%dK",(int)L.local_1a3/1000);
     iVar21 = FUN_004c13f0();
     FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 0xc)),(int)(iVar21));
@@ -330,12 +342,12 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     L.local_184 = *(undefined4 *)(iVar11 + 0x76);
     L.local_180 = *(undefined4 *)(iVar11 + 0x7a);
     L.local_17c = *(undefined4 *)(iVar11 + 0x7e);
-    if (0.0 < *(float *)(iVar12 + 0xa8)) {
+    if (*(float *)(iVar12 + 0xa8) > 0.0f) {
       lVar25 = (int)(((int)L.local_180-(int)L.local_188)*L.local_19f / *(float*)(iVar12+0xa8)+(int)L.local_188);
       L.local_180 = (undefined4)lVar25;
       FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_188),(int)((byte)*(undefined4 *)(iVar11 + 0x226)));
-      if ((0.0 < *(float *)(iVar12 + 0xe4)) &&
-         (*(float *)(iVar12 + 0xe4) < *(float *)(iVar12 + 0x98))) {
+      if ((*(float *)(iVar12 + 0xe4) > 0.0f) &&
+         (*(float *)(iVar12 + 0x98) > *(float *)(iVar12 + 0xe4))) {
         L.local_200 = *(uint *)(iVar11 + 0x72);
         L.local_1fc = *(int *)(iVar11 + 0x76);
         L.local_1f8 = *(undefined4 *)(iVar11 + 0x7a);
@@ -391,7 +403,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     } while (iVar13 < *(int *)(iVar8 + 0x1424f));
   }
   L.local_210 = *(int *)(iVar8 + 0x1424f);
-  L.local_1b8 = ((int)(iVar21 + (iVar21 >> 0x1f & 0xfU)) >> 4) + -0x10;
+  L.local_1b8 = iVar21 / 16 - 0x10;
   if (L.local_1b8 < 0) {
     L.local_1bc = -L.local_1b8;
     L.local_210 = L.local_210 + L.local_1b8;
@@ -404,7 +416,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     L.local_210 = (*(int *)(iVar8 + 0x14237) - L.local_1b8) + -1;
   }
   L.local_204 = *(int *)(iVar8 + 0x1424b);
-  L.local_208 = (ushort *)(((int)(iVar12 + (iVar12 >> 0x1f & 0xfU)) >> 4) + -10);
+  L.local_208 = (ushort *)(iVar12 / 16 - 10);
   if ((int)L.local_208 < 0) {
     L.local_204 = L.local_204 + (int)L.local_208;
     L.local_208 = (ushort *)0x0;
@@ -420,7 +432,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       uVar4 = *puVar9;
       iVar21 = *(int *)(iVar12 + 0x14357);
       iVar13 = (int)*(short *)(iVar21 + 0x74 + (uint)uVar4 * 0x118) - *(int *)(iVar12 + 0x14323);
-      iVar13 = ((int)(iVar13 + (iVar13 >> 0x1f & 0xfU)) >> 4) + 0x10;
+      iVar13 = iVar13 / 16 + 0x10;
       if ((-1 < iVar13) && (iVar13 < *(int *)(iVar8 + 0x1424f))) {
         piVar16 = (int *)(*(int *)(iVar8 + 0x141ff) + iVar13 * 4);
         psVar2 = (short *)(*(int *)(iVar8 + 0x14203) + iVar13 * 2);
@@ -458,7 +470,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
                 FUN_0046a610((int)(L.local_1f0),(int)(iVar21),(int)((int)puVar9),(int)(iVar12));
               }
               else {
-                bVar23 = FUN_004658e0((int)(iVar11),(int)((short)puVar9),(int)((short)iVar12),(int)(*(short *)(iVar13 + 0x94)),(int)(*(short *)(iVar13 + 0x96)),(int)((ushort)*(byte *)(iVar21 + 4)));
+                bVar23 = FUN_004658e0((int)(iVar11),(int)puVar9,(int)iVar12,(int)(*(short *)(iVar13 + 0x94)),(int)(*(short *)(iVar13 + 0x96)),(int)((ushort)*(byte *)(iVar21 + 4)));
                 if (bVar23 != 0) {
                   FUN_0046a610((int)(L.local_1f0),(int)(iVar21),(int)((int)puVar9),(int)(iVar12));
                 }
@@ -514,7 +526,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
              (((iVar13 = *(int *)((int)g_game + 0x1426f) + (uint)*(ushort *)(iVar12 + 8) * 0x100,
                (*(byte *)(iVar13 + 0xff) & 8) == 0 ||
                ((*(byte *)(iVar12 + 0xc) >> 3 & 0xf) == L.local_1b4)) ||
-              (bVar23 = FUN_004658e0((int)(iVar11),(int)((short)puVar9),(int)((short)L.local_210),(int)(*(short *)(iVar13 + 0x94)),(int)(*(short *)(iVar13 + 0x96)),(int)((ushort)*(byte *)(iVar12 + 4))),
+              (bVar23 = FUN_004658e0((int)(iVar11),(int)puVar9,(int)L.local_210,(int)(*(short *)(iVar13 + 0x94)),(int)(*(short *)(iVar13 + 0x96)),(int)((ushort)*(byte *)(iVar12 + 4))),
               bVar23 != 0)))) {
             FUN_0046a610((int)(L.local_1f0),(int)(iVar12),(int)((int)puVar9),(int)(iVar21));
           }

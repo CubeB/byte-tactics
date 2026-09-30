@@ -1,5 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 64.8%. Correct 16-bit coordinate output types and mask tests. Initialise upper output halves, which the original subsequently discards; these stores and frame/counter allocation still differ.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free. Names are provisional.
+// PARTIAL: 71.0% (1047 of 1052 bytes). Fixed this session, all in the branch
+// that selects the LOD frame index:
+//  1. The else branch needs the UNCLAMPED lod/32 - 5, then the clamp. Clamping
+//     inside the helper first (as before) emitted sets/dec/and before the -5.
+//     A separate unclamped helper for that site was worth 0.8.
+//  2. The inner j loop needs NO `if (num > 0)` wrapper: a single `for` test
+//     gives the original's one `test ax,ax / jle` instead of two. Worth 2.9.
+//  3. With (2) in place the coordinate outputs no longer want `= 0`, and
+//     dropping the zero stores was worth 2.5. This is the trap: on its own,
+//     removing those initialisers COST 5.6 points. It only pays once the
+//     duplicated loop test is gone, because both perturb the same allocation.
+// Still different: the inner loop's two induction variables are allocated the
+// wrong way round (ours puts j1 in ebx and bestIdx in a frame slot, the
+// original puts bestIdx in ebx and j1 at [esp+0x1c], with j in ecx), and
+// because ours folds j into j1-1 the frame is one dword short (0x40 not
+// 0x44). The lod clamp is also sunk past the FUN_00433520 call here, so the
+// first copy in the frame is the raw value. See NOTES at the bottom.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -101,9 +117,14 @@ extern Game_00481930* g_game;
 
 Frame_00481930* __stdcall FUN_004b7f30(LosTable_00481930* table, int index);
 
+inline int LodRaw_00481930(Params_00481930* params)
+{
+    return params->field_8 / 32;
+}
+
 inline int Lod_00481930(Params_00481930* params)
 {
-    int v = params->field_8 / 32;
+    int v = LodRaw_00481930(params);
     return v < 0 ? 0 : v;
 }
 
@@ -135,12 +156,13 @@ void __stdcall FUN_00481930(Params_00481930* params)
             for (short i = 0; (short)i < count; i++) {
                 void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
                 short num = ((Class_004339c0*)line)->FUN_004339c0();
-                int bestDiff = -1;
+                int j1 = 1;
                 int bestIdx = 0;
-                if (num > 0) {
-                    for (short j = 0, j1 = 1; (short)j < (short)num; j++, j1++) {
-                        int y2 = 0;
-                        int x2 = 0;
+                int bestDiff = -1;
+                {
+                    for (short j = 0; (short)j < (short)num; j++) {
+                        j1++;
+                        int y2, x2;
                         ((Class_004339e0*)line)->FUN_004339e0((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
                         x2 += x;
                         y2 += y;
@@ -168,7 +190,7 @@ void __stdcall FUN_00481930(Params_00481930* params)
             }
         }
     } else {
-        int lod = Lod_00481930(params) - 5;
+        int lod = LodRaw_00481930(params) - 5;
         if (lod < 0)
             lod = 0;
         else if (lod >= g_game->losTable->count)
@@ -208,3 +230,22 @@ void __stdcall FUN_00481930(Params_00481930* params)
         g_game->flags_142f1 |= 4;
     }
 }
+// NOTES for the next attempt (all of these were tried and did NOT help, so do
+// not repeat them):
+//  * Naming the clamped lod in a local (`int lod = Lod(params); if (lod < ...)`)
+//    does not force the clamp before the call. MSVC 5 still sinks the mask
+//    sequence past the call and keeps only the RAW value live in ebp.
+//  * The clamp helper spelled `if (v < 0) v = 0; return v;` instead of
+//    `v < 0 ? 0 : v` is worse by 3.1: the original really is the ternary, which
+//    if-converts to sets/dec/and.
+//  * Nesting the two lod helpers (a clamped one calling an unclamped one) makes
+//    no difference at all, as the guide's "an inlined boundary is not a CSE
+//    boundary" note predicts. Only the caller's spelling matters.
+//  * `int j, j1` instead of `short j` for the inner counters: worse by 10.
+//  * `int count` / `int num` instead of `short`: worse by 0.3.
+//  * Reordering the `bestIdx` / `bestDiff` initialisers: catastrophic, 28.9%.
+//  * Hoisting a shared `int rhs = bestDiff * j1;` for the two comparisons
+//    changes nothing: the original already reuses the product in eax.
+//  * Moving `j1++` to the end of the loop body instead of the top: no change.
+//  * Wrapping the loop in a bare brace block instead of `if (num > 0)`: needed
+//    for fix (2) above; the block itself is otherwise free.

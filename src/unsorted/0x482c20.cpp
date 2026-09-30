@@ -1,5 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 57.7%. Reset coarse record pointer per row, use record constructors and array construction, and preserve grid cell reloads. Remaining border-loop and division registers differ.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL: 59.8% (1469 vs 1519 bytes). The Game grid layout follows the
+// matched 0x41d920 (grid1 at +0x1428f, grid2 at +0x1429f as grid2+field_142af
+// +field_142b3), and the two grid2 max-scans now use the original's
+// `if (m <= t) m = t; if (prev <= m) res = m;` branch polarity. What still
+// differs is register allocation: the original keeps g_game in eax and b in
+// edi in the grid2 setup (ours: g_game ecx, b eax), keeps cells_14287 in ebx
+// across the four edge loops, and its big final loop needs one fewer stack
+// slot (frame 0x18 vs our 0x1c), with the outer counter at [esp+0x10] and
+// grid1 at [esp+0x14]. The 0x482c20 wrapper also allocates grid2 cells with
+// a call to scalar operator new plus an inlined constructor loop
+// (no ??_H vector-constructor-iterator call).
 #include <new.h>
 #include <windows.h>
 
@@ -10,6 +20,15 @@ struct Grid_482c20 {
     int width;                          // +0x4
     int height;                         // +0x8
     int field_c;                        // +0xc
+};
+
+struct Grid2_482c20 {
+    unsigned char* cells;               // +0x0
+    int width;                          // +0x4
+    int height;                         // +0x8
+    int field_c;                        // +0xc
+    int field_10;                       // +0x10
+    int field_14;                       // +0x14
 };
 
 struct Rec_482c20 {
@@ -29,15 +48,11 @@ struct Game_482c20 {
     int height;                         // +0x14237
     char unknown_1423b[0x1427f - 0x1423b];
     unsigned char field_1427f;          // +0x1427f
-    char unknown_14280;
-    unsigned char field_14281;          // +0x14281
-    char unknown_14282[0x14287 - 0x14282];
+    char unknown_14280[0x14287 - 0x14280];
     unsigned char* cells_14287;         // +0x14287
     char unknown_1428b[0x1428f - 0x1428b];
     Grid_482c20 grid1;                  // +0x1428f
-    Grid_482c20 grid2;                  // +0x1429f
-    int field_142af;                    // +0x142af
-    int field_142b3;                    // +0x142b3
+    Grid2_482c20 grid2;                 // +0x1429f
     Rec_482c20* field_142b7;            // +0x142b7
 };
 
@@ -52,21 +67,26 @@ void FUN_00482c20(void)
     g_game->field_142b7 = rec;
     g_game->field_142b7->flags = 0x1f;
 
-    Grid_482c20* grid2 = &g_game->grid2;
+    Grid2_482c20* grid2 = &g_game->grid2;
     int b = g_game->field_14227 * 0x10000;
     int a = g_game->field_14223 * 0x10000;
-    g_game->field_142b3 = b;
+    grid2->field_14 = b;
     int h2 = (b + 0x7fffff) >> 0x17;
     int w2 = (a + 0x7fffff) >> 0x17;
-    g_game->field_142af = a;
+    grid2->field_10 = a;
     grid2->width = w2;
     grid2->height = h2;
     operator delete(grid2->cells);
     int count2 = (h2 * w2 + 7) & 0xfffffff8;
     grid2->field_c = count2;
 
-    unsigned char* cells2 = count2 == 0 ? 0 : (unsigned char*)new Rec_482c20[count2];
+    unsigned char* cells2;
+    if (count2 == 0)
+        cells2 = 0;
+    else
+        cells2 = (unsigned char*)new Rec_482c20[count2];
     grid2->cells = cells2;
+    unsigned char* cellp = g_game->cells_14287;
 
     for (unsigned int lb1 = 0; lb1 < (unsigned int)grid2->width; lb1++)
         ((Rec_482c20*)grid2->cells)[lb1].flags |= 1;
@@ -81,7 +101,6 @@ void FUN_00482c20(void)
         grid2->cells[d * 10] = g_game->field_1427f;
 
     {
-        unsigned char* cellp = g_game->cells_14287;
         unsigned char* row = cells2;
         for (int y = 0; y < g_game->height; y++) {
             unsigned char* recp = row;
@@ -101,12 +120,12 @@ void FUN_00482c20(void)
         unsigned char* p = (unsigned char*)grid2->cells + r * grid2->width * 10;
         unsigned char prev = 0;
         for (unsigned int fr = 1; fr < (unsigned int)grid2->width; fr++) {
-            unsigned char m = p[0];
             unsigned char t = p[10];
-            if (t > m)
+            unsigned char m = p[0];
+            if (m <= t)
                 m = t;
             unsigned char res = prev;
-            if (m > prev)
+            if (prev <= m)
                 res = m;
             p[1] = res;
             prev = m;
@@ -119,12 +138,12 @@ void FUN_00482c20(void)
         unsigned char* p = (unsigned char*)grid2->cells + i * 10;
         unsigned char prev = 0;
         for (unsigned int gc = 1; gc < (unsigned int)grid2->height; gc++) {
-            unsigned char m = p[1];
             unsigned char t = p[grid2->width * 10 + 1];
-            if (t > m)
+            unsigned char m = p[1];
+            if (m <= t)
                 m = t;
             unsigned char res = prev;
-            if (m > prev)
+            if (prev <= m)
                 res = m;
             p[1] = res;
             prev = m;

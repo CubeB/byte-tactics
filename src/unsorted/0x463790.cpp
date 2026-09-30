@@ -38,6 +38,20 @@
 //   `x - f0` copy in the span clamp (no change);
 //   `tools/headers.py`: 128 header sets, best 67.5, so the header choice is not
 //   load bearing here.
+// Re-tested by space-bunny-free, all still 67.5 or worse, so the allocation state
+// is not reachable from the scan loop's declarations alone:
+//   `int remaining = size;` before `int n = 0` (byte identical, so the tie is not
+//   broken by declaration order), `int remaining = size - 4;` with no `size -= 4`
+//   statement, all six orderings of the n/remaining/p declarations (the two with
+//   p first drop to 66.0), `unsigned int remaining` (61.6), `unsigned int n` (67.1),
+//   `n = n + 1` and `n += 1` for the scan loop's `n++`, splitting the `cc = c`
+//   copy into two statements, `if ((remaining -= w) < 0) break;` (folds to the
+//   same code, so `remaining` has no spare graph node to drop a priority step),
+//   and `f18 = a5;` before `f14 = a4;` (66.7).
+// Everything after the scan loop follows from the same swap: with n in EBP the
+// block-2 push clobbers it, the fall-through tail needs the `mov ebp,[esp+0x24]`
+// reload the skip path does not, the two tails stop being identical and stop
+// tail merging, and that unmerged 16-byte copy is most of the 25 missing bytes.
 #include <string.h>
 
 void* __cdecl operator new(unsigned int size);

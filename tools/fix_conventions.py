@@ -141,7 +141,7 @@ def main() -> None:
             changed += 1
             if not args.dry_run:
                 path.write_bytes("".join(out).encode("latin-1"))
-            print(f"{edits:3d}  {path.relative_to(ROOT)}")
+            print(f"{edits:3d}  {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}")
     print(f"{changed} files {'would change' if args.dry_run else 'changed'}")
 
 

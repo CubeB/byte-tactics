@@ -50,7 +50,17 @@ outside=$(echo "$changed" | grep -v '^src/unsorted/.*\.cpp$' || true)
 git fetch -q origin main
 if ! git merge -q --no-edit origin/main >/dev/null 2>&1; then
     git merge --abort 2>/dev/null || true
-    echo "!! does not merge cleanly with origin/main; checking the PR branch alone"
+    # Most conflicts are with the conventions the switch to /Gz wrote (#2290)
+    # or with a later landing on the same file. Keep the PR's side of each
+    # conflicting hunk; the checks below catch anything that gets worse, and
+    # the orchestrator commits the checked result instead of merging the PR.
+    clash=$(git merge-tree --write-tree --name-only origin/main HEAD 2>/dev/null | sed -n '2,/^$/p' | tr '\n' ' ' || true)
+    if git merge -q --no-edit -X ours origin/main >/dev/null 2>&1; then
+        echo "== conflicts with origin/main resolved in favour of the PR: $clash"
+    else
+        git merge --abort 2>/dev/null || true
+        echo "!! does not merge cleanly with origin/main; checking the PR branch alone"
+    fi
 fi
 # A PR branched before the switch to /Gz (#2290) was written for the __cdecl
 # default; score it with the conventions that landing it will write back.
@@ -58,7 +68,7 @@ if ! git show "pr-$PR:tools/check.py" 2>/dev/null | grep -q '^DEFAULT_FLAGS = ".
     cpp=$(echo "$changed" | grep '^src/.*\.cpp$' | while read -r f; do [ -f "$f" ] && echo "$f"; done || true)
     if [ -n "$cpp" ]; then
         echo "== written for the old __cdecl default: adding explicit conventions"
-        uv run --quiet tools/fix_conventions.py $cpp | tail -1 | sed 's/^/  /'
+        uv run --quiet "$ROOT/tools/fix_conventions.py" $cpp | tail -1 | sed 's/^/  /'
     fi
 fi
 echo "== whole project after merging"

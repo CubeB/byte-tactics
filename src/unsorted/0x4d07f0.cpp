@@ -235,6 +235,22 @@
 //     slot. So the RMW has to stay on the same local; the original's edx is
 //     still the allocator tie the three hunks above describe, not a missing
 //     second variable.
+// NINTH PASS (deepseek-v4.1-flash, one real check.py run for the baseline plus
+// free scoring; body unchanged, still 88.7% / 275 of 275 bytes, the same three
+// hunks). Genuinely new evidence:
+//   * the sibling ORIGINAL 0x4d02a0 (the AI file reader) contains the identical
+//     chunk walk at 0x4d030f and emits `mov edi,[esp+0x14] / push 0xc /
+//     add edi,8 / push esi / mov [esp+0x1c],edi`, i.e. edi again, for the exact
+//     same statement and the same 275 byte walk. So the default register for
+//     `total + 8` is edi, and 0x4d07f0's original edx is the anomaly, fixed by
+//     that one function's allocator state. That is as strong a proof as this
+//     kind of tie gets that the register is not a property of the source.
+//   * a persistent `unsigned int* ptotal` local used for the read call and for
+//     the update was scored free (build/scratch/0x4d07f0/vA.cpp): byte
+//     identical, 88.7%. The address rematerialises, so no register is held.
+//     The temp can only leave edi for edx if edi AND ecx are both reserved at
+//     the update, and no reachable source value occupies both; this matches the
+//     allocator order (edi, then ecx, then edx) the sibling 0x4d0910 derived.
 #include <string.h>
 
 int __stdcall FUN_004bb710(void* file, int pos);

@@ -75,6 +75,15 @@
 // in the third arm, and `char* text = entry->b6.text` hoisted (49.5%, it kills
 // the per-arm `lea esi, [ebp + 0xb6]`). Declaring x `short` scores 65.5%.
 //
+// deepseek-v4.1-flash retry 2 (all --sym, none counted): the lh block as one
+// ternary, lh declared before x, `long x`, unary-plus and comma-operator
+// temporaries, `(int)(short)(...)`, a pointer store through `&x`, and switch
+// on `align & 7` (53.3%). A second named copy used only by the tail
+// (`int xb = x;` + tail), a third declaring it before x and assigning late,
+// and arms using the copy all collapse to the same 697 bytes: copy
+// propagation removes the extra variable before register allocation, so the
+// two-register split cannot be reached from a plain second assignment.
+//
 // A second session went after the copy directly and ruled out the whole
 // "named local" family, measured with `check.py --sym` (so none of it cost a
 // real run). Every one of these compiles to BYTE-IDENTICAL code to what is in

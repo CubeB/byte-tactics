@@ -14,6 +14,25 @@
 // with a single zero in eax (xor eax,eax / mov [0x14],eax / mov [0x18],eax,
 // xor eax,eax in the else, then mov [0x40],eax) and reloads x0/y0; ours keeps
 // the two-xor form and stores n as an immediate, 4 bytes shorter.
+// deepseek-v4.1-flash issue 2904 retry: still 85.8% (702 of 706). Reconfirmed
+// the plateau and mapped the only lever left. Any source that puts a named
+// `int n` before the rect block, so the zero could be a real phi, moves
+// `entries` out of esi into edi and caps at 85.1% with an early n store and two
+// zero registers in the if arm: `int n = 0;` before rect 75.3% (694 bytes),
+// `int n;` declared before rect with n = 0 in both arms 85.1% (706),
+// `rect.x0 = n = 0; rect.y0 = n;` 85.1%, `rect.x0 = rect.y0 = n = 0;` 84.3%,
+// `n = ZeroRect(&rect)` via a static inline int-returning helper 85.1%. Keeping
+// n declared after the rect keeps entries in esi and reaches 85.8% only with a
+// dead store; the triple chain `rect.x0 = rect.y0 = rect.x0 = 0;` scores the
+// same 702 bytes / 85.8%, and 12 other dead-store spellings land at 84.6 to
+// 85.8%. Routing &rect through a static inline helper or a local pointer
+// (`Out_4a15c0* pr = &rect;`) gives 84.6% and does not force the x0/y0 reloads.
+// Still differs, all in the rect block: the target if arm is one
+// `xor eax,eax` feeding both stores in x0-then-y0 order and leaves that zero in
+// eax for the `mov [esp+0x40],eax` n store at the join, so its else arm xor's
+// eax too and x0/y0 have to be re-read (`mov edx,[esp+0x14]`,
+// `mov ecx,[esp+0x18]`); ours has two zero registers, stores y0 before x0,
+// folds n to `mov [esp+0x40],0` and keeps x0/y0 live, which is 4 bytes shorter.
 // GPT-6.1-sol refinement: eight checks kept the 84.9% PR best. The attempted
 // local counter assignments scored 84.3% or 55.7%, so the exact best source
 // was restored and independently verified. No MATCH was reached.

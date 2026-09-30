@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #1947: baseline, /Gz, and /Gr checks all confirmed 87.8%.
+// Refinement: add/store reorderings scored 82.6%, 77.9%, and 44.7%; the PR best
+// was restored and independently verified. No MATCH.
 // Partial, 87.8%, and exactly the original's 560 bytes. All the code matches
 // except two instructions in the rectangle fill, plus the jump table that
 // follows the code once it does (its bytes only compare equal once the code

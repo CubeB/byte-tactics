@@ -31,6 +31,16 @@
 // frame+0x10. A named local for the bound does not fix it: the named local then
 // takes edi away from `i` (48.4%), because MSVC gives a named loop-bound local
 // a callee-saved register while an expression gets a scratch.
+// 2026-09-30 (deepseek-v4.1): the guarded loop was re-tried in the exact shape
+// that MATCHES the sibling 0x4a53c0 (`int i; int t = 0;
+// for (i = 1; i < entries[0].b6.count + 1; i++)`, t in a register there):
+// 49.3%, ours 1656 bytes. MSVC folds the preheader to `cmp ecx, 1`, puts i in
+// memory and t in edi, the mirror image of the target (i in edi with a home
+// at [esp+0x14], t in memory at [esp+0x10], bound in ecx, entry ptr in edx).
+// The home slot of i is genuine: the original writes edi to [esp+0x14] at both
+// loop exits (0x4a5731, 0x4a5739) and reloads it at 0x4a599b after the
+// Measure calls clobber edi. So the 60.3% `while (1)` shape already has the
+// right i/t split and only the bound-vs-t register choice is inverted.
 // Also tried and byte-identical to the winner: `t = t + 1`, a named `int lang`
 // for the call argument, `int i; i = 1;` instead of `int i = 1;`, a named
 // `int cnt` for `entries[0].b6.count`, `!(i < ...)` for the bound test, and a

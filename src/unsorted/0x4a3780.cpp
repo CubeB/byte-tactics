@@ -80,6 +80,16 @@
 // step and flags to slots of their own and leaves frame offset 0x18 dead,
 // while this version keeps flags in ecx and shares one slot between the loop
 // pointer and step. No single source construct found so far forces it.
+// Re-probed by deepseek-v4.1 under a 10 minute limit (still 34.7%/1841 bytes):
+// * Moving the `point` copy below the span/step computation drops to 21.1%
+//   (1794 bytes): the copy is then emitted last and the whole setup reshuffles.
+// * Declaring n, span, step, flag8, flags, x0, y0, x1, y1 up front (before the
+//   point copy, assignments left where they are) grows the frame to 0x38 but
+//   only reaches 27.7%: MSVC hoists the arg load above the frame setup and
+//   colours `entries` into ebx, so 0x38 is an allocator attractor (same one
+//   `int i = 1;` early reaches), not the original 0x3c shape.
+// * Declaring span/step/flag8 early while keeping the copy first changes
+//   nothing at all (identical 1841 bytes, 34.7%).
 #include <string.h>
 
 

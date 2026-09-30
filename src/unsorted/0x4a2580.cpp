@@ -19,6 +19,21 @@
 // 60.1% (v12), and dropping the reload chain in w<h drops to 52.8% (v13), so
 // only the w<h branch wants this form.
 //
+// 2026-09-30 (deepseek-v4.1), retried four allocator levers, all worse than the
+// 65.2% above, so the file keeps the v11 form:
+//  - w<h with its own `void* vsurf` local (the ebp surface the original shows):
+//    62.3%. Same for a distinct local name; a shared local is what the
+//    allocator awards the freed param home slot.
+//  - `surface` declared after the loop counters: 64.8%, slot assignment
+//    unchanged ([esp+0x58] surface, [esp+0x14] walking pointer).
+//  - `(int)e->w < (int)e->h` and `e->h > e->w`: 64.8%, same single hunk.
+//  - explicit `Entry_004a2580* p = entries;` used by the scan loop: identical
+//    codegen, p is optimised into the same induction pointer.
+// The original's `mov cx,[w]; mov dx,[h]; cmp cx,dx` versus ours
+// `mov cx,[h]; cmp [w],cx` is not steerable from the condition text; it is the
+// same global allocation choice that puts surface at [esp+0x1c] there and
+// [esp+0x58] here (the freed `index` home slot), so ebp keeps obj here and
+// holds the branch surface there.
 // Still differs (1605 bytes against 1631):
 //  - slot swap: the original homes the loop's walking entry pointer at the dead
 //    index slot [esp+0x58] and `surface` at [esp+0x1c]; ours homes `surface` at

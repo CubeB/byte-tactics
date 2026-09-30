@@ -1,4 +1,28 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue 2905, 10 min, ~25 free --sym variants, all
+// scored with check.py --sym). No variant beat the 93.1% already in this file.
+// Confirmed the whole diff is two 2-byte arms that cancel in total size:
+//   * 0x10 arm denominator: the two-statement `int other = e->field_da; int
+//     denominator = size + 1; if (other > denominator) denominator = other;`
+//     gives the original `movsx edx / lea edi,[eax+1] / cmp edx,edi / jle /
+//     mov edi,edx` (+2 bytes vs the ternary here).
+//   * 0x20 arm: the original loads `e->field_c6` into edx BEFORE `test eax,eax`
+//     and zero-extends into ecx (`xor ecx,ecx; mov cx,[edx+2]; imul ecx,eax`);
+//     every source shape here loads it after the test into ecx and then copies
+//     to ecx (`mov ecx,[ebx+0xc6]; ... xor edx,edx; mov dx,...; mov ecx,edx`),
+//     +2 bytes. The copy disappears only when b lands in edx, which needs ecx
+//     to hold the live zero at the load, which needs the pointer load hoisted
+//     before the test.
+// Tried and rejected (free --sym scores): helper with an unconditional
+// pointer/value local (602 bytes, 34.7%, reshapes the prologue so the search's
+// `kind` leaves cl); passing the pointer as a helper parameter (same reshape);
+// function-scope `int lines = 0` with a pointer local or an unconditional `a`
+// load (633 bytes, 60.1%, lines falls to ebp); function-scope `int lines = 0`
+// with an inline `if (count > 0)` body (635 bytes, 61.4%, lines in ebp); a
+// ternary divisor (629 bytes, 92.6%, turns `test eax,eax` into `cmp eax,ecx`);
+// arm-local int/unsigned-short temporaries (633 bytes, 74.9%); union vs plain
+// int and every helper body spelling (629 bytes, 93.1%, unchanged). headers.py
+// (128 sets) changes nothing. The 0x10 fix plus the 0x20 fix would be a MATCH.
 // Retry #1758 (deepseek-v4.1, issue 2461): best stays 93.1% (629 bytes both).
 // The 0x10 arm is now solved exactly: `int other = e->field_da; int
 // denominator = size + 1; if (other > denominator) denominator = other;`

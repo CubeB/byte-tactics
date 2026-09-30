@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1 pass (issue 2461): 18 further variants scored through the
 // checker's own compile/compare pipeline, no MATCH, best stays 98.7%. New
 // negative results: the six remaining local permutations x/y2/colour and
@@ -170,6 +170,24 @@
 //  - A `void* surface = entries->surface;` local before the y2 computation
 //    still 98.7%, inlining y2 into the call still 98.7%. Declaring y2 before x
 //    and colour drops to 96.9%.
+//
+// Fourth pass (deepseek-v4.1-flash retry, issue 2905), scored with
+// check.py --sym from scratch copies:
+//  - The colour SIB is not reachable by re-associating the sum. The pointer
+//    plus index form (`*(unsigned char*)((int)me->colours + (int)param_1 +
+//    0x8b2)`), the index-plus-pointer form, the int-plus-int-then-cast form,
+//    an explicit `(int)` cast on the loaded byte, a constant-first subscript,
+//    a hoisted `int idx` local before the FUN_004c13f0 call, and an `int font`
+//    local in place of the nested call all print 98.7% at 661 bytes. The only
+//    spelling that moves it drops the +0x8b2 constant (94.6%, 657 bytes),
+//    which is not the original.
+//  - FUN_004be950's colour parameter must stay `unsigned char`: declaring it
+//    `int` gives 87.5% and 667 bytes.
+//  - A `void* surface = entries->surface;` local between the y2 computation
+//    and the call also stays 98.7%, so hunk (b)'s late surface load is not
+//    sourced by a source-level local either.
+// The two hunks are unchanged from the third pass and look like one backend
+// allocator/scheduling state set elsewhere in the original translation unit.
 
 #pragma pack(push, 1)
 struct Entry_004a4d70 {                // 0x15b bytes

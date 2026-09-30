@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash retry (#2905), two quick scratch checks, no change: 80.9%.
+// Still the single edx-zero decision in the focus==index block. Declaring
+// FUN_004ab5b0 bool (Ghidra hints bool) makes it worse (69.9%); naming the
+// call result reintroduces the xor/cmp at the call test (75.1%). No new shape
+// found that keeps a live zero in edx; best source is the 80.9% one below.
 // deepseek-v4.1 retry (#2430), five further checks, no change: 80.9%, same two
 // hunks. The remaining diff is one backend decision (the constant 0 keeps a
 // register, edx, across the focus block) and every "real variable" reading of

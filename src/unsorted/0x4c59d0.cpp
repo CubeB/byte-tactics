@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // Retry #1769: GPT-6.1-sol confirmed 93.3% (337/367 code bytes) after three normal checks; the final batch did not MATCH. The reallocating tail still changes register and store order.
 //
 // PARTIAL: 93.3% (check.py), 337 of 367 code bytes identical. This is the
@@ -71,6 +71,20 @@
 // original; the `_First = s` before the call (which the original clearly did
 // not emit) is a hack that buys the delete/return registers at the cost of
 // the store position.
+//
+// deepseek-v4.1 addendum: nine more tail shapes were compiled and measured.
+// Every shape that puts `_First = s;` after the size() call gets the right
+// store position but only 412 bytes / 80.9%: MSVC then forwards s into the
+// return (`lea eax, [edi + eax*8]`, off in eax) instead of the original's
+// reload (`mov esi, [esi+4]; lea eax, [esi + edi*8]`, off in edi). This
+// includes the header's exact order, the order with an `iterator t = s +
+// FUN_004c5ba0() + 1;` temp stored afterwards, the temp plus an explicit
+// `iterator r = _First + off;` before the _Last store, and the same with
+// begin(). Putting `_First = s;` back before the call restores 415 bytes but
+// also restores the wrong store position (93.3%). A separate `size_type k`
+// local costs 3 bytes and drops to 82.4%. So the residue is the register the
+// allocator picks for off (edi in the original, eax here) plus the _First
+// reload it forces; no statement order tried reproduces it.
 #include <stddef.h>
 #include <vector>
 

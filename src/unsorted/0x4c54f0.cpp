@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // Retry #1769: the saved best remains 70.2% after seven worker checks; the final batch did not MATCH. Lower-scoring local-copy, bool and split-condition trials were reverted.
 // Loads a TDF section into the global map at 0x51fdb8: the section name is
 // compared with the one already loaded, the map is thrown away and rebuilt,
@@ -64,6 +64,15 @@
 // puts the object straight in edi (ebx = object+1). Separating the destruction
 // from the inlined destructor is what triggers the ebx hoist, so the inline
 // destructor is not the thing to change.
+// Three more dead ends from deepseek-v4.1 (all below 70.2, best kept):
+//  - `delete DAT_0051fdb8;` with an in-class inline destructor: 57.0 percent.
+//    It forces `push ebx; mov ebx,[esp+0x22c]` (section) before _strcmpi and
+//    shrinks the frame from 0x224 to 0x220.
+//  - an explicit `w->~Vec_004c54f0()` call instead of `w->Free2()`: 69.6 percent.
+//    MSVC turns it into a `push 0; call` deleting-destructor call, never the
+//    inlined free the original has.
+//  - the insert written as one expression, `&Class_004c54d0(key, Class_004c9180())`,
+//    with FUN_004c93f0 hoisted after the if: 68.9 percent, 545 bytes.
 // Retry by GPT-6.1-sol: the 70.2 percent version remains best. A fresh local
 // copy of section did not change codegen; materializing strcmp equality before
 // the last-entry test scored 69.6 percent; splitting that last-entry test into

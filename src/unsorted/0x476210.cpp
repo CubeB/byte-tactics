@@ -83,6 +83,14 @@
 // GPT-6.1-sol refinement: following the shared SIB-order finding, declared fresh
 // destination/source locals immediately before the third _Ucopy call, destination
 // first. The variant remained 99.6% with the same SIB byte; restored the best form.
+// deepseek-v4.1 (#2496, 2026-09): the lea is the affine flatten of
+// src + dst - _Q - _M*32 and its leaf order is not source reachable. Swapping
+// _Ucopy's declared parameter order to (iterator _P, const_iterator _F,
+// const_iterator _L) with the calls reordered accordingly collapses to 65.3%
+// (645 bytes); ++_F,++_P, `_L != _F`, `*_P = *_F` instead of construct,
+// `&_P[0]`, `&_Q[_M]` and a fresh source local all stay 99.6% with the same
+// [edx + edi] byte. Still differs: only `lea eax, [edi + edx]` (SIB 0x17)
+// against this build's `lea eax, [edx + edi]` (SIB 0x3a).
 #include <climits>
 #include <memory>
 #include <xutility>

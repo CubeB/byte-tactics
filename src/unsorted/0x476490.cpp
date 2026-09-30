@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 retry: still 78.9%, 646 of 632 bytes. Four more variants, each
+// scored with check.py: a const_iterator local copy of _P used as the prefix
+// bound and the suffix source, an iterator local copy of _P, passing the fill
+// source as `_Xp[0]` through a `const T* _Xp = &_X`, and a `_P - _First`
+// distance local. All four compile to exactly the same 646 bytes, so MSVC
+// folds the locals away and the EDX-versus-memory decision for _P is taken
+// before those spellings matter. Note for the next attempt: the original's
+// third copy is the four-instruction `sub edx,ebx / add edx,eax / sub edx,ecx`
+// form (with `mov edx,[esp+0x24]` as the pre-load) that the full <vector>
+// header produced in the 0x476210 retry, not the `lea` form the clone here
+// emits, which is independent evidence that _P really is pre-loaded into EDX
+// in the original.
 // GPT-6 retry: 78.9%, 646 of 632 bytes; pointer and buffer constness did not change the saved register family or spilled insertion pointer.
 // GPT-6.1-sol refinement: verified the 78.9% best with check.py. Moving the
 // suffix _Ucopy before _Ufill changes the emitted control-flow layout and drops

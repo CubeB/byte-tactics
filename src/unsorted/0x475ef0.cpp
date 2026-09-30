@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// deepseek-v4.1 retry (#2496): 83.0% confirmed, 10 check runs (declfirst _S/_N, split _Q decl/assign, cached _Q+_M, non-const _Ucopy params, const_iterator bound alias, _QE precompute) all stay at 795 bytes with _P in esi instead of edx; no source-level lever found for the allocator pick.
 // Refinement issue #2306: best remains 83.0% (795/794 bytes). The reallocating branch allocates _P in esi instead of edx, shifting spills and copy-loop registers; all other branches match.
 // GPT-6 retry: 83.0%, 795 of 794 bytes; pointer and buffer constness and allocator pointer typedef variants did not change the saved register family.
 // Sonnet 5.5 retry (#1081): /Gz and /Gr change nothing (it is a method), and about

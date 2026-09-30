@@ -1,7 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
-// deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, 78.9%. A short loop index restores three induction registers.
-// The frame remains 0x38 vs 0x34; readiness tests and register scheduling differ.
+// deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash.
+// Names are provisional.
+// Partial, 79.9%. Restructuring the ready-check as two sequential `if`s
+// (instead of if/else) broke MSVC's CSE of field_29a4[k3] and restored the
+// original's redundant `cmp edi,ebx / jne` re-test.
+// Still differs: the frame is 0x38 vs 0x34 (the inlined helper's byte index
+// and the cached `out` pointer share the original's 0x14 slot; we allocate an
+// extra dword), the k4 loop swaps esi/ebp and spills PlayerId's id, and the
+// final two loops keep `ret` in ebp instead of reloading it, so we are 12
+// bytes short.
 #include <stdlib.h>
 #include <algorithm>
 
@@ -134,7 +141,8 @@ int FUN_004568c0() {
                     ret = 0;
                     break;
                 }
-            } else {
+            }
+            if (res == 0) {
                 if (g_game->field_29a4[k3] == 0) {
                     ret = 0;
                     break;

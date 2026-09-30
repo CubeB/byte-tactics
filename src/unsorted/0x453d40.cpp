@@ -1,6 +1,31 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, 14.3%: player messages and most byte commands are restored. Commands 28, 33
-// and 39 remain missing. Frame, switch layout and register allocation still differ.
+// Partial, 14.3%. Structural census from deepseek-v4.1-flash (best kept version):
+//   - frame: original `sub esp,0x51c` (327 dword locals); ours `sub esp,0x318`.
+//     The 0x204 (516 byte) deficit is missing arms plus missing large locals.
+//   - original is 8944 bytes: code ends near 0x455f80, then the switch jump
+//     table at 0x455f84 (43 entries, command 2..44).
+//   - call instructions: original 106, ours 88. The 18 missing calls are all in
+//     the three absent command arms: cmd 28 (0x454ec4, ~670B), cmd 33 (0x4559f5,
+//     ~1094B, holds 2 of the original's 4 FUN_00451df0 sites) and cmd 39
+//     (0x45525a, ~250B, sprintf + FUN_004c5740 + a 12x FUN_00463ca0 loop).
+//     Per-callee deficits: FUN_0044ffd0 19 vs 13, FUN_00451df0 4 vs 1,
+//     FUN_00453010 14 vs 13, FUN_00463ca0 3 vs 1.
+//   - switch dispatch: `add eax,-2; cmp eax,0x2a; ja 0x455f50;
+//     jmp dword ptr [eax*4 + 0x455f84]`, so table index i is command i+2.
+//     Commands with no arm (jump to 0x455f50): 3, 4, 37, 43. Present here:
+//     2, 5..36, 38..42, 44. Adding cmd 39 fixed the call census but dropped the
+//     text ratio to 10.6%, because its new local moved every other frame slot.
+//     Fix the frame and loop shape first, then add the arms.
+//   - cmd 39 body: q = NetworkPlayer_453d40(*(int*)(bytes+1)); if (q)
+//     sprintf(text, DAT_00506290, q+0x2b, FUN_004c5740(DAT_0050658c));
+//     then `for (i=12;i;--i) FUN_00463ca0(text, 8, 0, q[0x146]);`.
+//   - receive loop shape: top is 0x453d94 (packet = *(g_game+0x2a38);
+//     r = FUN_004534e0(); [esp+0xf0] = r; if (r == 0) goto cond; ...);
+//     cond at 0x455f50 (test r; jne top), so it is a do/while(r) with the test
+//     at the bottom, not the current `while (receiving && FUN_004534e0())`.
+//   - the zero-init loop reloads g_game every iteration in the original; our
+//     source shape lets MSVC hoist g_game into a register instead.
+// Frame, switch layout and register allocation still differ.
 #include <string.h>
 
 extern char* g_game;

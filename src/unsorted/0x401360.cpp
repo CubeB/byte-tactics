@@ -1,5 +1,5 @@
-// Decompiled by Claude Opus 5.5, finished by GPT-6. Names are provisional.
-// Partial: 68.4%. Income branches and x87 scheduling still differ. Reordered resource resets and accumulation; ddraw.h improves compiler state.
+// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol. Names are provisional.
+// Partial: 68.4%. Income branches and x87 scheduling still differ. Reordered resource resets and accumulation; ddraw.h improves compiler state. GPT-6.1-sol tested branch order, income algebra, and local declaration order at 68.4%; reset order scored 67.7%, retaining this best variant.
 #include <ddraw.h>
 struct Unit_00401360;
 

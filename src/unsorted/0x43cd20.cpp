@@ -1,6 +1,38 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by
 // space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 //
+// Sixth pass (deepseek-v4.1, 4 more runs, 72.0%, 962 bytes): naming the
+// FUN_0048a980 result first is the big lever,
+//   short ang = (short)FUN_0048a980(ppos, &p[1]);
+//   short diff = ang - unit->heading;
+// lifts 61.1 to 72.0 and rotates the callee-saved assignment from
+// unit=ebp/ppos=ebx to unit=EBX/ppos=EDI (original unit=edi/ppos=ebx), so the
+// remaining register diff is a straight ebx<->edi swap. Still open: the frame
+// is 0x40 against 0x44, and the tail else branch is laid out after the
+// epilogue (two epilogues, +19 bytes) instead of inline before the shared
+// call. `(__int64)(unsigned short)adiff * field_20` (64-bit imul before the
+// divide, instead of the int product cast up) scores 67.5, so the int-product
+// spelling stays. All other variants measured this pass were byte-identical.
+//
+// Fifth pass (deepseek-v4.1, 8 further check runs, 61.1%): the q numerator
+// must be spelled with a named int temp and a 64-bit shift, not a multiply:
+//   int t = (int)(((__int64)field_20 * field_20) >> 16);
+//   int q = (int)(((__int64)t << 16) / (2 * rate));
+// `* 0x10000` makes VC5 emit _allmul with a constant (939 bytes, 60.9) where
+// the original does cdq + _allshl 16 after the _allshr; the temp form lifts
+// this to 61.1 and 936 bytes. Register allocation is unchanged (unit ebp,
+// original edi; frame 0x40 against 0x44):
+//   - A first-delta Vec3 temp (v6/v9: `Vec3 d; d.x=..; d.z=..;` and
+//     `int d[3]` with members 0 and 2) compiles byte-identical to the plain
+//     int ax/az form: VC5 coalesces both temps into one slot and the frame
+//     stays 0x40, so the missing 4 bytes are NOT reclaimable this way.
+//   - A local copy `Unit_0043cc20* u = unit;` for the whole main path, a
+//     `Vec3& ppos` reference and moving ppos between ax and az all compile
+//     byte-identical to this file (60.9 at the time).
+//   - Replacing the two tail calls with a common `amount` select (if/else or
+//     ternary) collapses the duplicated epilogue but drops to 52.2 (915
+//     bytes): the original really lays out the two calls separately.
+//
 // Fourth pass notes (deepseek-v4.1, 14 further check runs). Still 60.9%; the
 // frame stays 0x40 against the original 0x44 and `unit` stays in ebp against
 // the original edi. New measurements:
@@ -207,7 +239,8 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
     az = p[1].z - unit->pos.z;
     int d1 = (int)(((__int64)ax * ax) >> 32) + (int)(((__int64)az * az) >> 32);
 
-    short diff = FUN_0048a980(ppos, &p[1]) - unit->heading;
+    short ang = (short)FUN_0048a980(ppos, &p[1]);
+    short diff = ang - unit->heading;
     int sdiff = diff;
     int adiff = abs(sdiff);
 
@@ -232,7 +265,8 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
     int turned = (int)(((__int64)((unsigned short)adiff * field_20)
                         / unit->type->max_turn));
     int rate = unit->type->field_19a;
-    int q = (int)(((( (__int64)field_20 * field_20) >> 16) * 0x10000) / (2 * rate));
+    int t = (int)(((__int64)field_20 * field_20) >> 16);
+    int q = (int)(((__int64)t << 16) / (2 * rate));
     int r = (int)(((__int64)q * q) >> 32);
     int lim = (int)(((__int64)turned * turned) >> 32) * 4;
 

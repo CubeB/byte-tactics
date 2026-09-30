@@ -1,5 +1,59 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 //
+// deepseek-v4.1, 2026-09-30. State: 58.5% (check.py: original 920 bytes, ours
+// 900). Up from the 53.1% this file held before.
+//
+// THE LEVER (this is the whole story of this pass): `this` is now in ebp, as
+// the original has it. It flipped when the flag path stopped writing the three
+// trig results straight into `pp->x/y/z` and materialised them in a local Vec3
+// first:
+//     Vec3 vec;
+//     vec.x = -FUN_004b70ef(angle, half);
+//     vec.y = 0;
+//     vec.z = -FUN_004b7123(angle, half);
+//     *pp = vec;
+// Writing `pp->x = -FUN_004b70ef(...); pp->y = 0; pp->z = ...;` (53.1%) let
+// MSVC rematerialise pp as this+8 and kept writing [edi+8]/[edi+0xc]/[edi+0x10]
+// with this in edi; the three stores through pp above make the pointer's live
+// range cross both __cdecl trig calls, and the allocator then homes `this` to
+// ebp and leaves edi free, which is exactly the original: ebp = this,
+// edi = nx/v.x, ebx = nz, ny spilled.
+// Also tried this pass, all <= 58.5%: the same block with a constructor
+// `Vec3 vec(-sin, 0, -cos); *pp = vec;` (58.1 / 900), with `p1 = vec;` instead
+// of `*pp` (58.1), with `vec.z`/`vec.y` swapped (58.5, byte-identical), with
+// vec declared at function scope (58.5, byte-identical), `ny` declared before
+// `nx` (58.5), `pos.y` used instead of the `ny` local in the early-out test
+// (58.5), POD Vec3 with the user copy constructor removed (54.9 / 881, the
+// frame drops to 0x20 and ebp goes back to nz), a reference-returning inline
+// max for the sea level clamp, alone (56.4 / 914) and on top of this version
+// (56.4 / 914), direct field stores for the null path's `p1 = zero;`
+// (55.7 / 889), the sums read without `pp` (`p1.x + u->pos.x`, pp declared
+// after, 53.0 / 891), `Vec3 pos(nx, ny, nz);` (53.1, identical), an explicit
+// `v.x = t.x; v.y = t.y; v.z = t.z;` copy (53.1, byte-identical), a named
+// `TargetData_0043d6d0* td = u->obj->field_0;` local (51.5 / 881).
+//
+// WHAT STILL DIFFERS (these are now offsets, not allocation):
+// a. Frame is 0x2c, the original's is 0x28. The extra dword is the homes of
+//    `ny` (ours [esp+0x1c] inside the frame) and of the FUN_0043e180 sret
+//    buffer (ours [esp+0x20], original [esp+0x1c]): the original spills ny into
+//    the middle of the FUN_0043e060 sret buffer ([esp+0x30]) and keeps `cell`
+//    in the parameter home slot [esp+0x3c] (ours has cell at [esp+0x10] and the
+//    flag path's cell at [esp+0x40], the same slot shifted by the 4 extra
+//    bytes). Every esp+N below 0x3c is 4 higher than the original's.
+// b. The by-value Vec3 argument of FUN_0048a9f0: ours still calls the user copy
+//    constructor (ecx = esp, source = the address of v) where the original
+//    emits three stores, and ours builds the argument from v's memory while
+//    the original passes v.x in edi. Removing the copy constructor (which is
+//    what forces the separate sret temp and the 0x28 frame without the vec
+//    trick) collapses the frame to 0x20 and loses the ebp for `this`.
+// c. The b19 sea level clamp: the original selects the ADDRESS of each arm
+//    (`lea eax,[esp+0x24]` / `mov [esp+0x3c],eax; lea eax,[esp+0x3c]` /
+//    `mov ecx,[eax]`) and so never stores back to v.y; ours is a direct
+//    `cmp ...; jg; mov [esp+0x28],eax` store.
+// d. The FUN_0043e060 return copy: ours loads into ecx/eax/edi and stores
+//    v.z last; the original loads into edi/ecx/eax (v.x into edi first) and
+//    stores v.z last from eax.
+//
 // NOT MATCHED (52.2%). The logic and the call sequence are believed correct;
 // what still differs is register allocation and one stack slot.
 //
@@ -305,9 +359,11 @@ void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
         if (field_20 > half) {
             field_20 = half;
             unsigned short angle = u->f64.y;
-            pp->x = -FUN_004b70ef(angle, half);
-            pp->y = 0;
-            pp->z = -FUN_004b7123(angle, half);
+            Vec3 vec;
+            vec.x = -FUN_004b70ef(angle, half);
+            vec.y = 0;
+            vec.z = -FUN_004b7123(angle, half);
+            *pp = vec;
         }
         u->pos.x = pos.x;
         u->pos.y = pos.y;

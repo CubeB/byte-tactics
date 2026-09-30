@@ -1,5 +1,7 @@
 // Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol recheck: baseline retained at 76.7%; no MATCH. The register-copy
+// GPT-6.1-sol refinement: three variants kept 76.7%; no MATCH. Explicit casts
+// in right-aligned arithmetic, if/else assignment for x, and an explicit p
+// null check did not improve the best source. The register-copy
 // mismatch described below remains the dominant difference.
 //
 // PARTIAL: 76.7%, 697 against 748 bytes. What the function does: it walks the

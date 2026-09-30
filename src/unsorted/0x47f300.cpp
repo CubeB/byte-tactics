@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 #include <windows.h>
 // Plays the sound at soundIds[index] when the position is visible to the local
 // player: explored (fog) map when g_game->flags_14281 has bit 1 set, the shared
@@ -197,6 +197,94 @@ Cell_0047f300* __stdcall FUN_00481550(int x, int y);
 // as an int (no spill, `xor ecx,ecx` kept) AND the pointer in EAX. The two
 // spellings that give the right arm shapes put the pointer in EDX, and the two
 // that give the right pre-branch block put it in EDI.
+
+// Addendum (space-bunny-free, fourth pass). Baseline re-confirmed with a real
+// check.py run: 86.5%, 775 bytes, same size as the original. Free scratch
+// scoring (check.py --sym) of 40 more variants, all in build/scratch/0x47f300/;
+// nothing beat the file, so the file is unchanged apart from this note.
+// New results worth recording:
+//   * The Contains spelling re-measured, this time with the players[] array
+//     given its real 0x14b stride (a Map type without the 0x88..0x14b tail
+//     silently shrinks players[10] and shifts every g_game offset, which is
+//     what makes a hand-rolled Map score 59 percent): 81.3% with Contains in
+//     both arms, 81.3% in the mask arm only, 78.9% in the fog arm only, all
+//     765-769 bytes. Same 82-ish plateau as before, and in every one of them
+//     the player pointer is in EDX, never EAX. Without Contains it is always
+//     EDI. So Contains and EAX are two different attractors, as measured.
+//   * The Map type WITHOUT Contains, i.e. `map->size.width` /
+//     `map->size.height` / `map->fog` read directly, scores 85.7% at the
+//     original's 775 bytes: one point under the file, and it is the closest
+//     anyone has got to the original with a nested-struct spelling.
+//   * Item 18's "two identical pointer values via a second local" does NOT
+//     break the width load CSE here: a second `Player* p2 = player;` used for
+//     the two width reads compiles to byte-identical output to the file
+//     (86.5%, 775 bytes). The two pointer live ranges are coalesced into one
+//     register, so the base is the same register and the two loads merge again.
+//   * A named `unsigned int w` local does not break the CSE either, and which
+//     arm it is in changes the score: fog arm only 81.3% (771 bytes), mask arm
+//     only 83.2% (775 bytes), both arms 84.4% (775 bytes), so the mask arm's
+//     named local is the closest of the three but still 3 points under.
+//   * A named `unsigned char* fog` local in the fog arm collapses the arm:
+//     65.4%, 779 bytes. Do not try it.
+//   * `int vis` as a `char` or a `bool` is 79.1% (772 bytes): the arms are
+//     fine but the 1/0 pair at the arm exit changes. Keep `int vis`.
+//   * Writing either arm as a plain `&&` expression (`vis = a && b && c;`)
+//     instead of an if/else is a large regression, 61.7% (776 bytes) for the
+//     mask arm and for both arms: the mask arm's three-way `&&` tail-merges
+//     the two fail blocks and the fog arm's loses its 1/0 pair.
+//   * Hoisting tx/ty above the branch so both arms share them is 56.1%
+//     (756 bytes). The arms genuinely compute them twice.
+//   * No pi local (`&g_game->players[g_game->playerIndex]`, index read again
+//     for the shift) is 80.2% (763 bytes); a second `Player* base` plus
+//     `base[pi]` spellings are 70.5% (778 bytes). `unsigned char pi` in the
+//     file is still the best of the index spellings.
+//   * Free of effect, output byte-identical to the file (86.5%): declaring ty
+//     before tx in both arms, the fog byte test without `!= 0`, the mask value
+//     compared with `!= 0` instead of a ternary, the pointer spelled
+//     `(Player*)((char*)g_game->players + pi * 0x14b)`, and the fog arm as one
+//     `? 1 : 0` ternary. Note that ty-before-tx is 85.7%, NOT identical, so
+//     the two are not the same variant.
+//
+// The one register that is still wrong is unchanged: the player pointer is
+// built in EDI where the original builds it in EAX, and because it is the
+// base register of the materialised width load the whole arm rotation follows
+// from it. The original's arm roles (ptr, ty, tx, width) map exactly onto
+// (EAX, ECX, EDX, EDI), which is the register preference order, so the
+// original's allocator simply gave the pointer the top register and the
+// widest live range in the block gets it. Nothing in the source shape moved
+// that in 220-odd variants now.
+
+// Addendum (deepseek-v4.1, fifth pass). Baseline re-confirmed: 86.5%, 775 bytes.
+// New free-scored variants, all in build/scratch/0x47f300/, none beat the file:
+//   * the two-inline-helper split of the matched 0x4658e0 pattern
+//     (IsExplored/IsSeen taking the player pointer, `char vis`): with a second
+//     read of g_game->playerIndex for the shift it is 76.2%, with the index
+//     passed in as an argument 68.4%. Neither moves the pointer off EDI.
+//   * four guard-style mask arms (nested if on the cheap first test, as in the
+//     MATCHED 0x408090): int pi 66.5%, unsigned char pi 64.3%, short pi 66.3%,
+//     and with the pointer spelled `g_game->players + pi` 64.3/66.5%. The
+//     guard form in the mask arm alone is far below the file's plain `&&`
+//     arms, so the file's arm shape stays.
+// Conclusion unchanged: the only thing left is the player pointer's home
+// register (EDI in every spelling measured so far, EAX in the original). The
+// matched siblings that compute `&g_game->players[byte]` (0x401070) do put it
+// in EAX, but they have no byte index that must stay live to the mask shift,
+// and in this function that live ECX (plus ebp/esi/ebx held by g_game/pos/
+// sound) leaves the allocator a different starting set.
+
+// Addendum (deepseek-v4.1, sixth pass, 1 real check run). Baseline re-confirmed
+// unchanged: 86.5%, 775 bytes, same size as the original. This pass re-read the
+// original disassembly end to end and confirms the single remaining difference
+// is the player pointer's home register: the original ends the address chain
+// with `lea eax,[eax+edx*2+0x1b63]` and reads width/explored through EAX in
+// both arms (re-loading [eax+0x80] three times), while every spelling here ends
+// in EDI (or EDX with the Contains-style arms) and folds the width re-load into
+// the imul. The pre-branch pi zero-extension is a second, smaller tell: the
+// original is `xor ecx,ecx / mov cl,[ebp+0x2a43]` (int pi), which the int-pi
+// variant reaches exactly, but int pi then splits `lea eax,[ebp+ecx]` into
+// `mov eax,ebp / add eax,ecx` and drops the function to 79.7% (763 bytes). No
+// new variant was found that puts the pointer in EAX; the file stays at its
+// best 86.5%.
 
 // FUNCTION: 0x47f300
 int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)

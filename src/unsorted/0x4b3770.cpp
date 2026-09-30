@@ -11,6 +11,17 @@
 // does (non-reloadable base read through a register) costs an extra `mov` the
 // original does not have. Left partial at 99.0%.
 //
+// EIGHTH PASS (deepseek-v4.1-flash). Independently re-scored 13 more
+// spellings through check.py's own compiled pipeline (script in
+// build/scratch/0x4b3770/score.py), all still exactly 577 bytes and 99.0%
+// with the same two-instruction residual: making Image_004b3770::buf a plain
+// `int` (so the sum is a genuine int+int add, not a PTRADD) changes nothing,
+// and neither do `off + base`, `base + off + 0`, `base + (+off)`,
+// `*(int*)&buf + off`, `(unsigned)buf + off`, `base - (0 - off)` or
+// `base + off*1`. This confirms the seventh pass: MSVC 5 names the second
+// operand of this add as the destination and loads the base first, and no
+// same-value respelling moves it. Left partial at 99.0%.
+//
 // The original's 0xb4-byte frame, read off the disassembly (offsets are from
 // E0, the esp right after "sub esp,0xb4" plus the four register pushes, so a
 // "[esp+X]" in the body is E0+X-0x10):

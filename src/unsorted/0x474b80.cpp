@@ -1,4 +1,46 @@
-// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+//
+// SPACE-BUNNY-FREE, fourth pass. Still 84.6 percent, 309 of 303 bytes, unchanged:
+// no variant beat the version below (all screened with check.py --sym on scratch
+// copies, so no check.py runs were spent on them). New facts, all worth having:
+//   * tools/headers.py re-run: all 128 sets give 84.6 again, "(none of them)"
+//     included. Confirms the earlier two passes.
+//   * the `short width` / `*(int *)&width` idea is DEAD, from the original's
+//     own instructions, not from a trial: the fog arm's compare is
+//     `cmp edi, ebx` with `mov ebx, dword ptr [edx + 0x80]` materialised
+//     before it, and the row compare is `cmp ecx, dword ptr [edx + 0x84]`, so
+//     +0x80 and +0x84 are dword-typed in BOTH the test and the index. A narrow
+//     field read through an int lvalue cannot produce a materialised dword for
+//     the compare, and a `char` bitfield cannot share a slot with the width
+//     either: `seen` (+0x7c) and `width` (+0x80) are in different dwords, and
+//     both are read as full dwords. Both suggestions in the brief are ruled out.
+//   * the fully local-free arms (287 bytes, 39.4) fail for ONE reason, and it
+//     is the pre-branch g_game register: the local-free shape hoists
+//     `mov ebx, dword ptr [0x511de8]` to the very top and keeps g_game in ebx,
+//     which frees the fog arm's ebx, so MSVC puts the map in EDI and folds the
+//     index into ECX (`imul ecx, dword ptr [edi+0x80]; add ecx, dword ptr
+//     [edi+0x7c]; cmp byte ptr [ecx+edx],0`, 3 instructions where the
+//     original has 5). The original keeps g_game in ecx because its arms need
+//     ebx. So the fog arm's EBX is the thing to buy, and the `w`/`seen` locals
+//     buy it and then spill. That is a closed loop, not a search space.
+//   * the original's two arms are local-free, and this is now certain from the
+//     arm bodies: the fog arm spills NOTHING and the mask arm spills `col`
+//     (`sar ecx,5; mov dword ptr [esp+0x18],ecx; ...; mov ebx,[esp+0x18]`)
+//     into the dead `dest` argument slot, which this file's mask arm already
+//     reproduces exactly. So the 6-byte gap is 10 bytes of local spills in our
+//     two arms against 7 bytes of tail-merged fail block in ours. Each arm's
+//     spill is bought with one of its own three locals, and each is the price
+//     of the pre-block shape. Confirms the "one requirement, not two" note
+//     below from the other side.
+//   * a row-pointer local in the fog arm (`unsigned char* base = map->seen +
+//     w * row;` then `base[col] != 0`, with col, row, w still named) is 291
+//     bytes and 29.9 percent: the extra pointer local is the pressure, and the
+//     pre-block rotates, so `base` cannot replace `seen`.
+//   * dropping ONLY the mask arm's `w` local, with the fog arm's `seen` local
+//     left in place, is 297 bytes and 39.6 percent. So the fog arm's `seen`
+//     local does not on its own hold the original's pre-block: the pre-block
+//     and the mask arm's `w` local are a pair, exactly as the ordering notes
+//     below say. Best screen this pass: 84.6 (the file below).
 //
 // DEEPSEEK-V4.1-FLASH, third pass. Still 84.6 percent, 309 of 303 bytes. New
 // levers tried, all screened with check.py --sym on scratch copies, none better:

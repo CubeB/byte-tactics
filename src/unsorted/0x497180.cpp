@@ -49,6 +49,17 @@
 // so edx is enough; the original's `and reg,edi` inside the post-call lanes
 // keeps it live across them and that is what forces edi.
 //
+// This pass (deepseek-v4.1, 12 min, 4 check runs): two fresh angles, both worse.
+// - Case 1/2 lanes with `unsigned int` byte temps (b0/b1/b2 locals, 6 lanes):
+//   77.9%, it still emits `and bl,imm; movzx si,bl` and rotates the file.
+// - Case-3-tail lanes with `unsigned int m = *(uc*)(p2+0x9c) & 2;` temps:
+//   79.8% (2827 bytes vs the 2846 baseline), closer in size but wrong regs.
+// The const 1 cannot be kept live across a call by source means: `one` is a
+// known constant, so every use folds to an immediate, and the register it is
+// cached in (edx here, edi in the original) is a whole-function allocator
+// decision. Fixing the case-1/2 lanes therefore needs the other 49 bytes of
+// code size corrected first, not a local respelling.
+//
 // Still open, in order of how much they cost on the diff:
 // - The nine 0x14281 lane updates: the original zero-extends the byte into a
 //   32-bit register (`xor ebx,ebx; mov bl,[..]`), masks 32-bit (`and ebx,2`,

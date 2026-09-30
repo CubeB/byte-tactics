@@ -1,7 +1,63 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Gave up at 47.8% (1656 bytes against 1662). Restore recovered 128-byte
-// text buffer and palette bounds. Blit through the entry-array root surface.
-// Remaining tab-loop registers, stack homes, and measurement scheduling.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// PARTIAL: 60.3%, 1649 against 1662 bytes. What the function does: it walks the
+// entry list of a layout object looking for the entry whose tab number matches
+// entry[index]'s tab, sets the language from that entry, then lays the text out
+// (right/centre/left), draws the text, and finally either draws a bevel
+// rectangle or highlights a single character in the string.
+//
+// What moved the number this session, and it is the one thing every earlier
+// session missed: the loop must be written as an UNGUARDED `while (1)` with the
+// bound test as the first statement and an explicit `break`, NOT as a `for`.
+//     while (1) {
+//         if (i >= entries[0].b6.count + 1)
+//             break;
+//         ...
+//         i++;
+//     }
+// That alone took 49.3% to 60.3%. It is what puts the loop counter `i` in edi,
+// which is what the original does. With a `for` (or with a plain
+// `while (i < ...)`) MSVC 5 keeps `i` memory resident, folds the preheader test
+// to the constant `cmp ecx, 1`, and hands edi to the tab counter `t` instead;
+// every later edi/i use then differs and the whole tail shifts. So the
+// register-allocation question that three earlier sessions gave up on is
+// actually a LOOP SHAPE question, not a variable-ordering question. Declaration
+// order, `t++` vs `t = t + 1`, `i <= count`, a named bound, a named tab value
+// and a hoisted `Entry*` are all byte-identical to the winning shape.
+//
+// Still differs (see the diff): the original keeps the loop bound
+// `entries[0].b6.count + 1` in ecx and spills the tab counter `t` to
+// frame+0x10, with `i`'s home at frame+0x14. This version keeps the bound in a
+// memory temp at frame+0x14 and puts `t` in edx, with `i`'s home at
+// frame+0x10. A named local for the bound does not fix it: the named local then
+// takes edi away from `i` (48.4%), because MSVC gives a named loop-bound local
+// a callee-saved register while an expression gets a scratch.
+// Also tried and byte-identical to the winner: `t = t + 1`, a named `int lang`
+// for the call argument, `int i; i = 1;` instead of `int i = 1;`, a named
+// `int cnt` for `entries[0].b6.count`, `!(i < ...)` for the bound test, and a
+// dead `t = t;` in the break arm. Worse: hoisting `entries[index].tab` into a
+// named local (37.2% as `int`, 35.6% as `signed char`), an
+// `Entry_004a56b0* e = &entries[i]` (50.2%), a hoisted `void* surf` (50.3%),
+// a guarded `do/while` (49.3%) and two independent `if`s instead of `else if`
+// (27.8%, the second arm then also runs on the right-align path).
+//
+// The SECOND remaining difference, and the one that shifts the most bytes: the
+// original resolves the x phi (right-align / centre-align / no-align) in
+// REGISTERS, with the incoming x in ecx and the outgoing x in ebp
+// (`mov ebp, ecx` at 0x4a587e, then each arm rewrites ebp from ecx). Here MSVC
+// gives x a stack home at frame+0x1c (`mov dword ptr [esp+0x1c], ebp`) and
+// reloads it after every call, which costs one extra dword slot and so pushes
+// the whole rect down by four (ours 0x20/0x24/0x28/0x2c, the original
+// 0x1c/0x20/0x24/0x28). It also makes the right arm compute `w - measure` and
+// add x afterwards instead of the original's `w + x` before the call and
+// `- measure` after. This is the same "phi through the stack" problem the
+// matched sibling 0x4a53c0 hit, and none of these moved it: `short x` (52.3%),
+// `int x; x = rect.left;` as a separate statement, a full ternary chain, the
+// arms as `if (!(align&4)) { if (align&2) ... } else ...` (55.5%), a named
+// `int mw` for each Measure result, an extra `int x2 = x` copy used by the
+// first draw call (53.6%), a named `int w`, and hoisting the surface pointer
+// (50.3%). The centre arm also reassociates: the original computes
+// `w/2 + x` and then `- measure/2`, we compute `w/2 - measure/2` and then
+// `+ x`, and the `align & 2` test must stay a separate `else if` block.
 #include <windows.h>
 #include <string.h>
 
@@ -117,9 +173,11 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
     obj->field_14 = obj->field_0c;
     Entry_004a56b0* entries = obj->holder->entries;
 
-    int t = 0;
     int i = 1;
-    for (; i < entries[0].b6.count + 1; i++) {
+    int t = 0;
+    while (1) {
+        if (i >= entries[0].b6.count + 1)
+            break;
         if (entries[i].type == 7) {
             if (t == entries[index].tab) {
                 FUN_004c1420(entries[i].language);
@@ -127,6 +185,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
             }
             t++;
         }
+        i++;
     }
     if (i == entries[0].b6.count + 1) {
         FUN_004c1420(DAT_0051fba4->current);
@@ -201,7 +260,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         char pat[2];
         pat[0] = (char)c;
         pat[1] = 0;
-        char buf[0x80];
+        char buf[0x7c];
         strcpy(buf, entries[index].b6.text);
         char* p = strstr(buf, pat);
         if (p != 0) {

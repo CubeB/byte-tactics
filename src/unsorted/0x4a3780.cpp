@@ -1,10 +1,87 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
-// Gave up at 34.7% (1841 bytes against 1832). Remove artificial allocation
-// expression. Scroll down selects using visible-row count. Variable-height
-// rows dereference the bitmap pointer at +0x28. Preserve short narrowing and
-// read flags after writing the current index. Remaining local slots and
-// callee-saved-register allocation differ throughout.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Earlier attempts by deepseek-v4.1-flash, space-bunny-free and GPT-6 are kept
+// below this line. Still partial: the frame is 0x34 where the original has
+// 0x3c, so every esp+N offset is 8 low and the callee-saved registers differ.
+// The original has 9 scalar slots before the 6-dword point copy (0x10 orig_sel,
+// 0x14 entries, 0x18 n/span, 0x1c step/flag8, 0x20 flags, 0x24 x0, 0x28 dead,
+// 0x2c x1, 0x30 y1) while this version puts x0/x1/y1 in 0x14/0x1c/0x18 and
+// keeps step and flags in registers, which also shifts the point copy to
+// [esp+0x2c] instead of [esp+0x34].
+// Measured again by space-bunny-free: 34.7%, unchanged. The frame is still 0x34
+// against the original's 0x3c and that one cause explains most of the diff, so
+// every fix below was tried only as a way to raise the slot count.
+// Findings worth carrying over:
+// * The original's real local slots, offset from the bottom of the 0x3c frame,
+//   are 0x00 orig_sel, 0x04 entries (reused later as the row pointer), 0x08 n
+//   then span, 0x0c step then flag8, 0x10 flags, 0x14 x0, 0x18 NEVER TOUCHED,
+//   0x1c x1, 0x20 y1, and the 24-byte point copy at 0x24. So the original has
+//   nine scalar slots, eight live and one dead, where this file has seven.
+//   0x18 being dead but allocated is the clue: some source local survived frame
+//   allocation and then died in the optimiser.
+// * Our slot at frame offset 0x14 is shared by n, span, step, flag8, remain and
+//   itemp, so this version's allocator is merging more aggressively than the
+//   original's.  The original keeps step (live across the whole 0x10-flag block,
+//   read at [esp+0x1c] 0x4a3b35) in a slot of its own, and keeps flags (stored
+//   0x4a3b03, read 0x4a3b7e) in a slot of its own.
+// * The original keeps point.y in EDI and the first loop's index in ESI.  Here
+//   it is the other way round (point.y in ESI, index in EDI), which is why our
+//   loop pointer spills to [esp+0x28] and the original recomputes it with
+//   lea/add instead.  Fixing that is worth points on its own.
+// * Original `y1` is `f19 + y0 - 1` then `-= 3` (0x4a3820 lea, 0x4a3829 sub).
+//   Writing it as `f19 + y0 - 4`, and even splitting it into two statements with
+//   nothing between them, both fold straight back to `lea [ecx+ebx-4]`.
+// * `me->field_c0` is read once into a SHORT local (0x4a395b `mov si, word ptr
+//   [ebp+0xc0]` / `test si,si`; 0x4a39be `movsx ecx,si`; 0x4a39c6 `dec esi`
+//   storing si).  Reading it into `short nsel` reproduces that shape in the
+//   first block but does not move the percentage.
+// * Hoisting `int flags = me->flags;` above the FUN_004ab570 call to try to make
+//   it spill into a slot of its own is WORSE, 28.9% and 1834 bytes: MSVC then
+//   keeps the loaded flags in a register through the whole prologue and every
+//   epilogue shifts.  Do not repeat that.
+// Re-checked by deepseek-v4.1: still 34.7%, 1856 bytes against the original's
+// 1832.  New measured facts from a fresh disassembly of this exact file:
+// * span and step DO get memory slots here, but at [esp+0x2c] and [esp+0x30]
+//   (the original has span at [esp+0x18] and step at [esp+0x1c]); [esp+0x2c] is
+//   also where our 6-dword point copy starts, so the copy and span share the
+//   same frame dword and the post-call compare at 0x4a393c reloads that slot.
+//   Making point.x/point.y live in registers instead (the original keeps
+//   point.y in edi across the FUN_004ab570 call) is what frees the two slots
+//   the original's frame has.
+// * Slot map of the original, frame offset = [esp+N] - 0x10 with a 0x3c frame
+//   and four pushes: 0x00 orig_sel, 0x04 entries, 0x08 n then span,
+//   0x0c step then flag8, 0x10 flags, 0x14 x0, 0x18 dead, 0x1c x1, 0x20 y1,
+//   0x24 the 24-byte point copy.  Ours has orig_sel at 0x00 like the original
+//   ([esp+0x10], already correct), x0 at 0x04, y1 at 0x08, x1 at 0x0c, n at
+//   0x14 and the point copy at 0x1c, i.e. six scalar slots against nine.
+// * Ours also emits 24 extra bytes (1856 vs 1832) and two extra jumps near
+//   0x4a38e5/0x4a390e/0x4a3911, at the `list == 0 ? FUN_004c1450() : ...`
+//   and `field_da == 0 ? size + 1 : field_da` ternaries, where the original
+//   falls through on one arm and has no jmp.
+// Re-probed by deepseek-v4.1-flash at a 900s wall: the frame size and the
+// register rotation were attacked directly, with no improvement over 34.7%.
+// Measured facts from that run:
+// * Moving `int i = 1;` before the point copy raises the frame to 0x38 but
+//   drops the score to 27.9%: the allocator then demotes y0 to a stack slot
+//   and gives i ebx. Every position tried for i (before x1, before point, at
+//   function top, and `int i = 1; for (; ...)` with the init pulled out of the
+//   for) reaches that same 27.9% once i is born before the point copy, so the
+//   0x34 frame and 34.7% are the better branch of the allocator.
+// * Declaring x0,y0,x1,y1 together, caching me->field_c0 in a `short nsel`,
+//   reading me->field_da into a `short da` for the span choice, and swapping
+//   the loop compare to `me->group == n` all leave the bytes unchanged.
+// * <stdlib.h>, <stdio.h> and all 128 header sets headers.py tries change
+//   nothing; headers.py reports 34.7% as the ceiling for every set.
+// * The matched siblings 0x4a9830 and 0x4a99c0 share this function's group
+//   loop, size/step and FUN_004b6af0/strncmp blocks, but their exact loop form
+//   (`int n = 0; int i = 1; for (; i < entries->count + 1; i++)`) is what
+//   raises our frame to 0x38 and costs points here, so this original did not
+//   use that form.
+// The remaining diff is one global allocator colouring: the original spills
+// step and flags to slots of their own and leaves frame offset 0x18 dead,
+// while this version keeps flags in ecx and shares one slot between the loop
+// pointer and step. No single source construct found so far forces it.
 #include <string.h>
+
 
 #pragma pack(push, 1)
 struct Entry_004a3780 {                // 0x15b bytes

@@ -1,8 +1,38 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Gave up near 61.3% (1605 bytes against 1631). Reload glyph pointers
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1. Names are provisional.
+// Gave up near 62.3% (1605 bytes against 1631). Reload glyph pointers
 // after callbacks. Reference-returning minimum helpers recover remaining-count
 // stores, and shared glyph locals improve allocation. Remaining extra frame
 // slot, glyph spills, and branch/scheduling differences.
+//
+// 2026-09-30 (deepseek-v4.1), 61.3% -> 62.3%: give each branch its own
+// `void* surf` local instead of one function-scope one. That puts the h<=w
+// surface at [esp+0x14] (frame 0x04, shared with lc) and the glyph pointers in
+// the dead index home slot [esp+0x58], exactly as the original. Source kept as
+// build/scratch/0x4a2580/v3.cpp.
+//
+// 2026-09-30 (deepseek-v4.1), 62.3% -> 65.2%: the w<h branch must not declare
+// its own `void* surf`; assign the function-scope `surface` instead
+// (`surface = obj->holder->entries->u.head.surface;`) and draw through it.
+// That removes the extra frame dword (frame is now 0x40, buf at [esp+0x20] as
+// in the original) and kills the whole +4 offset family of diffs. Source kept
+// as build/scratch/0x4a2580/v11.cpp. Doing the same in the h<=w branch drops to
+// 60.1% (v12), and dropping the reload chain in w<h drops to 52.8% (v13), so
+// only the w<h branch wants this form.
+//
+// Still differs (1605 bytes against 1631):
+//  - slot swap: the original homes the loop's walking entry pointer at the dead
+//    index slot [esp+0x58] and `surface` at [esp+0x1c]; ours homes `surface` at
+//    [esp+0x58] and the pointer at [esp+0x14]. The original keeps the w<h
+//    surface in ebp (and reloads the obj parameter into ebp after the branch at
+//    0x4a29ef) while ours spills it to [esp+0x58] and keeps `limit` in ebp.
+//    Writing `limit`/`t` as plain ifs instead of the Smaller() helper removes
+//    the reference temps but not the extra allocation (56.1%), so this is the
+//    allocator's pick, not a source-order lever.
+//  - the branch test: original is `mov cx,[ebx+0x17]; mov dx,[ebx+0x19];
+//    cmp cx,dx; jge` (both operands in registers), ours loads h into cx and
+//    compares w from memory; flipping `<` to `>` did not change it.
+//  - ours is 26 bytes shorter, most of it in the flags&4 block (the -430/+434
+//    hunk), where the two _itoa call sites are not fully tail-merged.
 #include <ddraw.h>
 #include <string.h>
 #include <stdlib.h>
@@ -98,7 +128,6 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
     void* surface = entries->u.head.surface;
-    void* surf;
     Glyph_004a2580* g;
     Glyph_004a2580* mid;
 
@@ -125,21 +154,21 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         FUN_004b0510(surface, r1, obj->field_8b2, obj->field_8c3, obj->field_8c6);
         FUN_004b0590(surface, r2, obj->field_8b2, obj->field_8c3, obj->field_8c6);
     } else if (e->w < e->h) {
-        surf = obj->holder->entries->u.head.surface;
         int y = e->y;
+        surface = obj->holder->entries->u.head.surface;
         int x = e->x;
         int limit = y + e->h - 1;
         g = FUN_004b7f30(e->glyphs, e->field_152);
         if (g != 0)
-            FUN_004b7f90(surf, g, x, y);
+            FUN_004b7f90(surface, g, x, y);
         y += g->height;
         mid = FUN_004b7f30(e->glyphs, e->field_152 + 1);
         while (y + mid->height <= limit) {
-            FUN_004b7f90(surf, mid, x, y);
+            FUN_004b7f90(surface, mid, x, y);
             y += mid->height;
         }
         Glyph_004a2580* last = FUN_004b7f30(e->glyphs, e->field_152 + 2);
-        FUN_004b7f90(surf, last, x, limit - last->height + 1);
+        FUN_004b7f90(surface, last, x, limit - last->height + 1);
         x += last->width / 2;
         g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
         x -= g->width / 2;
@@ -151,20 +180,20 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         lim2 = Smaller(lim2, t);
         if (ybase > lim2 - lc + 1)
             ybase = lim2 - lc + 1;
-        FUN_004b7f90(surf, g, x, ybase);
+        FUN_004b7f90(surface, g, x, ybase);
         lc -= g->height;
         ybase += g->height;
         mid = FUN_004b7f30(e->glyphs, e->field_152 + 4);
         while (ybase <= lim2 - mid->height) {
-            FUN_004b7f90(surf, mid, x, ybase);
+            FUN_004b7f90(surface, mid, x, ybase);
             lc -= mid->height;
             ybase += mid->height;
         }
-        FUN_004b7f90(surf, mid, x, lim2 - mid->height);
+        FUN_004b7f90(surface, mid, x, lim2 - mid->height);
         g = FUN_004b7f30(e->glyphs, e->field_152 + 5);
-        FUN_004b7f90(surf, g, x, lim2 - g->height + 1);
+        FUN_004b7f90(surface, g, x, lim2 - g->height + 1);
     } else {
-        surf = obj->holder->entries->u.head.surface;
+        void* surf = obj->holder->entries->u.head.surface;
         int x = e->x;
         int y = e->y;
         Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);

@@ -201,6 +201,16 @@ public:
 // rect, last (after namebuf), or as a 20-byte rect struct with `char pad[3];
 // unsigned char prog;`, the frame still grows by 4 (73.1 / 72.4 / 72.7), so
 // the original's `and ecx,0xff` bar blocks stay unmatched.
+// 2637 pass note: micro-tests with the real compiler show the per-bar
+// `mov cl,[m]; and ecx,0xff` widening needs an unsigned char value that sits
+// in a register before being widened; plain loads, casts, `& 0xff` and
+// int/byte locals all give `xor ecx,ecx; mov cl,[m]`, and the two-use byte
+// local that does produce it always keeps a stack slot (`mov [esp+X],cl;
+// mov ecx,[esp+X]; and ecx,0xff`). Any added byte local costs the exact
+// 0x234 frame (measured: 3431 -> 3502 bytes, 73.1%). Flash reads already
+// match with the byte-pointer form; writing `(DAT_0051e6c8 >> n) & 0xff`
+// instead is byte-identical to the current file (diff unchanged, so the
+// original's `mov ecx,[0x51e6c8]; and ecx,0xff` is already reproduced).
 // 2498 note: the original's per-bar `mov cl,[progress]; and ecx,0xff` (12 bytes)
 // instead of our `xor ecx,ecx; mov cl,[progress]` (8 bytes) is reproduced by
 // reading the progress byte through a byte-typed LOCAL (prog = progress[i];

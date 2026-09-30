@@ -81,6 +81,15 @@
 // tail and is worse: 1652 bytes at 98.3%. The else block's first pick is sticky eax,
 // so the original's 6-byte `mov edx` needs an allocator-visible value that this source
 // never creates, not another spelling of the read.
+// deepseek-v4.1 session 5 (issue #2637) tried the two shapes that could keep the
+// hoisted address node AND `mov edi, 4`: (a) `unsigned short* fp = &g_game->field_2a3c;`
+// after the four declaration, used for the load and the store-back, gives
+// `lea edi, [ecx + 0x2a3c]` at 0x499603 (fp steals edi because it is live across
+// the two calls) plus `push 4` twice, 1636 bytes at 95.2; (b) keeping the gp
+// pointer live across the else arm's calls forces ebp into the prologue (push ebp,
+// all stack slots shift) and drops the function to 1629 bytes at 75.0. A pointer
+// live across a call is always callee-saved here, so it can never be the original's
+// edx: the 0x4997a0 pick needs a short-lived value, not a live one.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

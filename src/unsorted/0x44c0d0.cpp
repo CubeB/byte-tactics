@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, revised by Claude Opus 5.5. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, revised by Claude Opus 5.5, finished by
+// deepseek-v4-flash. Names are provisional.
 // Loads the unit portrait ("unitpics/<name>.PCX") for one unit per call, the
 // index counting up in DAT_00512768. On the first call it initialises the two
 // parallel output arrays: DAT_00512978 (image pointers from DAT_005129b8) and
@@ -9,41 +10,30 @@
 // array inside the unit definition (lea eax, [esi+0x20]; test eax, eax), which
 // can never be null. Kept as the original has it.
 //
-// STILL DIFFERS (77.0%; DeepSeek's version 76.3%). The original keeps def
-// (&defs[type]) in esi and pic in edi, and at the FUN_004290f0 call it does
-// not reuse def: it rebuilds
-// defs[type].name from defs (edx) and type (ecx), which are still live
-// (mov eax, ecx; shl eax, 6; add eax, ecx; lea ecx, [edx+eax*8];
-// lea edx, [eax+ecx+0x20]). Every shape tried here lets MSVC reuse def (or
-// the name address) for the call argument, which also leaves def in a scratch
-// register and moves pic to esi. What was tried, all without the recompute:
-// def->name or defs[type].name or g_game->defs[type].name as the argument;
-// defs/type/def as locals or not; C-style declarations in all 120 orders;
-// scoped def with early returns; inline getters and validity helpers (one or
-// several returns); a real bitfield for the +0x245 bit; casts on the index or
-// to another struct view; `register`; an inlined empty call or a store to
-// path between the test and the call. Declaring `Def* defs = g_game->defs;`
-// as a local gives the original's defs + t*8 + t shape for &defs[type] (edx
-// for defs), but then scores lower overall (61.3%). The N-declarations test
-// (0 to 400 unused externs) is flat for both this shape and DeepSeek's, so the
-// source shape is still wrong, not the compiler state. The original seems to
-// see the argument as a different value from def: something between the flag
-// test and the call (or a different kind of expression) breaks the CSE.
+// MATCHED (335 bytes). The old 4-hunk wall was one compiler decision. The
+// original keeps the def base in esi and rematerialises the FUN_004290f0 name
+// argument from defs (edx) and type (ecx) instead of reusing the base. Neither
+// a local `def` nor a local `defs` breaks that CSE: MSVC folds every spelling
+// of `defs[type].name` back to the condition's temporary.
 //
-// Second pass (deepseek-v4.1-flash worker). Root cause is one register
-// tie-break: the original gives pic->edi and def->esi, ours gives pic->esi and
-// def->eax (then the call argument reuses def in eax instead of rematerializing
-// it). Confirmed the recompute is real: the original recomputes type*65 and
-// defs[type].name from edx(defs)/ecx(type) at the call instead of using the
-// esi=def it already has. Tried this pass, all at 77.0% with the same 4 hunks:
-// reference Def& def = g_game->defs[type]; an extra def2 local; nested ifs; a
-// forward-declared unassigned def; a def assigned from g_game->defs before the
-// pic call; the else order rec.a before rec.b (no byte change, MSVC reorders).
-// Worse: Def* defs = g_game->defs local (65.5%, def shape becomes right but
-// everything after re-allocates), no def local at all (65.9%), arg written as
-// (char*)def + 0x20 (76.3%). A static inline helper DefName(defs, type) for the
-// argument changes nothing (MSVC inlines it and CSEs). So no source shape found
-// that keeps def in esi and forces the argument to rematerialize.
+// What breaks it: index the body argument by the *reloaded* entry field,
+//     FUN_004290f0(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
+// The reloaded load is CSE'd to the same register, but the value numbering no
+// longer ties this address to the condition's `defs[type].name`, so MSVC
+// rebuilds the whole address from defs/type at the call, which then forces the
+// condition base into esi and pic into edi. Identical to `defs[(int)DAT..]`.
+//
+// After that only one hunk was left, the else branch: the original loads
+// pic->field_17 (`mov cx, [edi+0x17]`) before storing rec.b = 0x20. Source
+// order rec.a (field_17) before rec.b produces exactly that; rec.b first makes
+// MSVC emit the 0x20 store first. So `rec.a = pic->field_17;` comes first.
+//
+// History: earlier passes (77.0%/76.3%) tried def->name / defs[type].name /
+// g_game->defs[type].name as the argument, defs/type/def as locals in many
+// orders, scoped def with early returns, inline getters and validity helpers,
+// a real bitfield for the +0x245 bit, casts, `register`, a store to path
+// between test and call, a local `Def* defs` (65.5%), no def local (65.9%)
+// and (char*)def + 0x20 (76.3%). None moved the recompute.
 #pragma pack(push, 1)
 
 struct Entry_0044c0d0 {
@@ -125,9 +115,9 @@ void FUN_0044c0d0()
     int i = DAT_00512768++;
     if (i < g_game->count) {
         int type = DAT_005129b4[i].unitType;
-        Def_0044c0d0* def = &g_game->defs[type];
-        if (def->name && ((unsigned char)(def->field_245 >> 15) & 1) == 0) {
-            FUN_004290f0(path, "unitpics", g_game->defs[type].name, "PCX");
+        Def_0044c0d0* defs = g_game->defs;
+        if (defs[type].name && ((unsigned char)(defs[type].field_245 >> 15) & 1) == 0) {
+            FUN_004290f0(path, "unitpics", defs[DAT_005129b4[i].unitType].name, "PCX");
             void* img = FUN_004caf30(path, 0);
             *(void**)DAT_00512978 = img;
             DAT_00512978 += 4;
@@ -135,8 +125,8 @@ void FUN_0044c0d0()
                 FUN_004b8ae0(&rec, img);
                 rec.flag8 = 9;
             } else {
-                rec.b = 0x20;
                 rec.a = pic->field_17;
+                rec.b = 0x20;
                 rec.d = 0;
             }
             *(Record_0044c0d0*)DAT_0051297c = rec;

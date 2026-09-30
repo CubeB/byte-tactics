@@ -1635,7 +1635,7 @@ address,size,file,symbol,status,similarity
 0x47acb0,31,src/unsorted/0x47acb0.cpp,?FUN_0047acb0@@YGXPAX0@Z,matched,100.0
 0x47acd0,346,src/unsorted/0x47acd0.cpp,?FUN_0047acd0@@YGXH@Z,matched,100.0
 0x47ae30,45,src/unsorted/0x47ae30.cpp,?FUN_0047ae30@@YAXXZ,matched,100.0
-0x47ae60,2947,src/unsorted/0x47ae60.cpp,?FUN_0047ae60@@YGXPAUMenu_0047ae60@@@Z,partial,49.0
+0x47ae60,2947,src/unsorted/0x47ae60.cpp,?FUN_0047ae60@@YGXPAUMenu_0047ae60@@@Z,partial,65.5
 0x47b9f0,437,src/unsorted/0x47b9f0.cpp,?FUN_0047b9f0@@YGXPAUCheat_0047b9f0@@@Z,matched,100.0
 0x47bbb0,441,src/unsorted/0x47bbb0.cpp,?FUN_0047bbb0@@YAXXZ,matched,100.0
 0x47bd70,117,src/unsorted/0x47bd70.cpp,?FUN_0047bd70@@YGXPAUPlayer_0047bd70@@@Z,matched,100.0

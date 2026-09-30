@@ -1,22 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 2947-byte skirmish setup dialog handler. Full control-flow chain
-// transcribed (Start validation, PrevMenu, Player/Side/Allies/Color/Energy/
-// Metal dispatch, CommanderDeath/StartLocation/Mapping/LineOfSight, SelectMap,
-// Difficulty). Best score 49.0%.
-// Remaining diff hunks:
-//   0x47ae60-0x47aea4: frame is sub esp,0x74 instead of 0x70 (one int, probably
-//     `player` or `cmd`, spills where the original keeps every int in a
-//     register), so buf is at [esp+0x54] instead of [esp+0x40]; the entries
-//     pointer lands in ebx, the original keeps it in ebp and the menu arg in
-//     esi. Fixing the frame arithmetic first would shift all the later slots.
-//   0x47af91-0x47b08b: the two player-count loops use a different reload of the
-//     table pointer (ours re-reads [g_game+0x29a0] into eax vs the original's
-//     edi/esi live copies) and the c1 counter loop's register pairing differs.
-//   0x47b0fa-0x47b9e0: the strcmp dispatch chain is present but the two 12-byte
-//     scratch buffers at [esp+0x10]/[esp+0x1c], whose roles swap between the
-//     Energy and Metal branches, and the FUN_0049fdf0 index-to-entry scaling
-//     (index * 0x15b) still allocate differently.
-
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 65.5%. Player argument, callback table reloads and callee names corrected. Remaining frame, player-count registers and GUI-entry scaling differ.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -72,18 +55,14 @@ struct Menu_0047ae60 {
     int field_60;                      // +0x60
 };
 
-class Class_0047ae60 {
-public:
-    int FUN_00435a20(char* name);
-    int FUN_00437300();
-};
+class Class_00435a20 { public: int FUN_00435a20(char* name); };
+class Class_00437300 { public: int FUN_00437300(); };
 
 struct Frame_0047ae60 {
-    char pd[0x10];                     // +0x00
-    char sA[0xc];                      // +0x10
-    char sB[0xc];                      // +0x1c
-    int ev[6];                         // +0x28
-    char bf[0x30];                     // +0x40
+    char sA[0xc];
+    char sB[0xc];
+    int ev[6];
+    char bf[0x30];
 };
 #pragma pack(pop)
 
@@ -138,6 +117,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         }
         FUN_0041d4c0();
 
+        table = *(Table_0047ae60**)(g_game + 0x29a0);
         int n = 0;
         int count = *(int*)(g_game + 0x38d81);
         if (count > 0) {
@@ -151,7 +131,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         }
         *(short*)(g_game + 0x2a3c) = n + 1;
 
-        if ((*(Class_0047ae60**)(g_game + 0x391e9))->FUN_00435a20(table->mapName) == 0) {
+        if ((*(Class_00435a20**)(g_game + 0x391e9))->FUN_00435a20((*(Table_0047ae60**)(g_game + 0x29a0))->mapName) == 0) {
             FUN_004abd90(g_game + 0x519,
                          FUN_004c5740("The terrain for the selected map does not exist."),
                          0x1e0, 1, 1);
@@ -159,6 +139,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             return;
         }
 
+        table = *(Table_0047ae60**)(g_game + 0x29a0);
         int c2 = 0;
         count = *(int*)(g_game + 0x38d81);
         if (count > 0) {
@@ -195,8 +176,8 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             return;
         }
 
-        if ((int)(unsigned short)*(short*)(g_game + 0x2a3c) >
-            (*(Class_0047ae60**)(g_game + 0x391e9))->FUN_00437300()) {
+        int maxPlayers = (*(Class_00437300**)(g_game + 0x391e9))->FUN_00437300();
+        if ((int)(unsigned short)*(short*)(g_game + 0x2a3c) > maxPlayers) {
             FUN_004abd90(g_game + 0x519,
                          FUN_004c5740("There are too many players enabled for this map"),
                          0x1e0, 1, 1);
@@ -212,6 +193,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             return;
         }
 
+        table = *(Table_0047ae60**)(g_game + 0x29a0);
         c2 = 0;
         count = *(int*)(g_game + 0x38d81);
         if (count > 0) {
@@ -251,7 +233,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
 
     if (strcmp(frame.bf, "Player") == 0) {
         FUN_0047f1a0("Skirmish", 0);
-        FUN_004797e0(1);
+        FUN_004797e0(player);
         FUN_004ab0a0(menu);
         return;
     }
@@ -303,7 +285,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             if (*q == 0x2bc)
                 *q = 0x1f4;
             wsprintfA(frame.sB, "Energy%d", player);
-            _itoa(*q, frame.sA, 10);
+            _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].energy, frame.sA, 10);
             FUN_004a0bf0(menu, frame.sB, frame.sA, 10);
         }
         if (menu->holder->field_37 == 2) {
@@ -315,7 +297,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
                 v = 0xc8;
             *p = v;
             wsprintfA(frame.sB, "Energy%d", player);
-            _itoa(*p, frame.sA, 10);
+            _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].energy, frame.sA, 10);
             FUN_004a0bf0(menu, frame.sB, frame.sA, 10);
         }
         FUN_004ab0a0(menu);
@@ -336,7 +318,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             if (*q == 0x2bc)
                 *q = 0x1f4;
             wsprintfA(frame.sA, "Metal%d", player);
-            _itoa(*q, frame.sB, 10);
+            _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].metal, frame.sB, 10);
             FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
         }
         if (menu->holder->field_37 == 2) {
@@ -348,7 +330,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
                 v = 0xc8;
             *p = v;
             wsprintfA(frame.sA, "Metal%d", player);
-            _itoa(*p, frame.sB, 10);
+            _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].metal, frame.sB, 10);
             FUN_004a0bf0(menu, frame.sA, frame.sB, 10);
         }
         FUN_004ab0a0(menu);
@@ -361,7 +343,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         t->field_108 ^= 1;
         int index = FUN_0049fdf0(entries, "CommanderDeath", 1);
         Entry_0047ae60* e = &entries[index];
-        if (t->field_108 != 0)
+        if ((*(Table_0047ae60**)(g_game + 0x29a0))->field_108 != 0)
             strcpy(e->text, FUN_004c5740("Game ends when commander is destroyed."));
         else
             strcpy(e->text, FUN_004c5740("Game continues after Commander is destroyed."));
@@ -376,7 +358,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         t->field_118 ^= 1;
         int index = FUN_0049fdf0(entries, "StartLocation", 1);
         Entry_0047ae60* e = &entries[index];
-        if (t->field_118 != 0)
+        if ((*(Table_0047ae60**)(g_game + 0x29a0))->field_118 != 0)
             strcpy(e->text, FUN_004c5740("Commanders are placed at pre-determined locations."));
         else
             strcpy(e->text, FUN_004c5740("Commanders are randomly placed on the battle field."));
@@ -391,7 +373,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         t->field_10c ^= 1;
         int index = FUN_0049fdf0(entries, "Mapping", 1);
         Entry_0047ae60* e = &entries[index];
-        if (t->field_10c != 0)
+        if ((*(Table_0047ae60**)(g_game + 0x29a0))->field_10c != 0)
             strcpy(e->text, FUN_004c5740("Terrain is blacked out until explored."));
         else
             strcpy(e->text, FUN_004c5740("Terrain is visible."));

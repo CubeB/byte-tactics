@@ -1,17 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// STILL DIFFERS: frame is 0x610 and all 32 callees/symbols resolve, and the two
-// dedup loops now emit the original's not/test/0x800000 shape, but register
-// allocation still differs: the original keeps a constant 0 in ebx and caches
-// g_game in esi across whole regions, ours reloads it into ebx/edi. The GUI
-// suffix loop is rotated and duplicated by MSVC where the original back-jumps.
-// Best score ~74.8%.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are
+// provisional. Gave up at 56.1% (2289 bytes against 2173). Correct the double division of the
+// compacted pointer difference, 16-entry insertion-sort prefix, comparison direction, cached sort
+// end, signed shift and full-width loading counters. The inherited 74.8% version had semantic
+// errors. Remaining frame size, registers, GUI suffix-loop rotation and stack slots differ.
 #include <string.h>
 #include <stdio.h>
 
 #pragma pack(push, 1)
 
 class Class_004c2ea0 {
-public:
+  public:
     int field_0;
     void* current;
     int field_8;
@@ -20,38 +18,38 @@ public:
 };
 
 class Class_004c2f60 {
-public:
+  public:
     int FUN_004c2f60(char* file);
 };
 
 class Class_004c3e10 {
-public:
+  public:
     void FUN_004c3e10();
 };
 
 class Class_004c3410 {
-public:
+  public:
     int FUN_004c3410(char* name);
 };
 
 class Class_004c3240 {
-public:
+  public:
     void FUN_004c3240();
 };
 
 class Class_004c48c0 {
-public:
+  public:
     int FUN_004c48c0(char* dst, char* key, int size, char* def);
 };
 
 class Class_00458160 {
-public:
+  public:
     char unknown_0[0x14];
     Class_00458160();
 };
 
 class Class_00458180 {
-public:
+  public:
     void FUN_00458180(int size);
 };
 
@@ -94,7 +92,7 @@ union UType_0042b370_flags {
 };
 
 class Class_0042b370 {
-public:
+  public:
     char unknown_0[0x20];
     char name[0x60];
     char model[0x20];
@@ -187,8 +185,7 @@ void __stdcall FUN_00432d40(void* start, void* end, void* cmp, int param);
 int __stdcall FUN_0042db60(const char* a, const char* b);
 
 // FUNCTION: 0x42d2e0
-void FUN_0042d2e0()
-{
+void FUN_0042d2e0() {
     char namebuf[32];
     char section[32];
     char path[256];
@@ -209,7 +206,8 @@ void FUN_0042d2e0()
             sprintf(classbuf, "CLASS%d", i);
             ((Class_004c3e10*)&parser)->FUN_004c3e10();
             if (((Class_004c3410*)&parser)->FUN_004c3410(classbuf)) {
-                ((Class_004c48c0*)parser.current)->FUN_004c48c0(classbuf, "name", 100, DAT_005119b8);
+                ((Class_004c48c0*)parser.current)
+                    ->FUN_004c48c0(classbuf, "name", 100, DAT_005119b8);
                 cls->field_0 = (int*)FUN_004d8610(classbuf);
                 cls->FUN_00440340(&parser);
             }
@@ -262,20 +260,21 @@ void FUN_0042d2e0()
             }
         }
     }
-    g_game->field_1438f = (int)(d - g_game->field_1439b) / 585;
+    g_game->field_1438f = (int)(d - g_game->field_1439b);
 
-    Class_0042b370* last = g_game->field_1439b + g_game->field_1438f;
-    if (g_game->field_1438f - 1 < 0x11) {
+    start = g_game->field_1439b + 1;
+    Class_0042b370* last = d;
+    if (last - start <= 0x10) {
         FUN_00432fb0(start, last, (void*)FUN_0042db60, 0);
     } else {
         FUN_00432d40(start, last, (void*)FUN_0042db60, 0);
-        Class_0042b370* q = start + 0x11;
+        Class_0042b370* q = start + 0x10;
         FUN_00432fb0(start, q, (void*)FUN_0042db60, 0);
         for (; q != last; q++) {
             Class_0042b370 tmp = *q;
             Class_0042b370* r = q - 1;
             Class_0042b370* w = q;
-            while (_strcmpi(r->name, tmp.name) < 0) {
+            while (_strcmpi(tmp.name, r->name) < 0) {
                 *w = *r;
                 w = r;
                 r--;
@@ -284,15 +283,16 @@ void FUN_0042d2e0()
         }
     }
 
-    unsigned short index = 0;
-    if (g_game->field_1438f > 0) {
-        while ((int)index < g_game->field_1438f) {
-            g_game->field_1439b[index].field_21e = index;
-            index++;
+    {
+        unsigned short index = 0;
+        if (g_game->field_1438f > 0) {
+            while ((int)index < g_game->field_1438f) {
+                g_game->field_1439b[index].field_21e = index;
+                index++;
+            }
         }
     }
-
-    unsigned int c = g_game->field_1438f;
+    int c = g_game->field_1438f;
     g_game->field_14393 = 0;
     if (c) {
         do {
@@ -303,7 +303,7 @@ void FUN_0042d2e0()
 
     g_game->field_14377 = (void**)FUN_004d83b0("MODEL PTRS", g_game->field_1438f * 4);
 
-    for (unsigned short u = 1; u < g_game->field_1438f; u++) {
+    for (int u = 1; u < g_game->field_1438f; u++) {
         Class_0042b370* type = &g_game->field_1439b[u];
         g_game->field_38d71 = (unsigned char)((int)(u * 100) / g_game->field_1438f);
         type->field_21e = u;
@@ -362,14 +362,14 @@ void FUN_0042d2e0()
         FUN_004b6290("Can't load GAMEDATA.TDF");
     } else {
         short* list = (short*)FUN_004d83b0("TEMP UTYPE LIST", 0x3c);
-        for (unsigned short s = 1; s < g_game->field_1438f; s++) {
+        for (int s = 1; s < g_game->field_1438f; s++) {
             Class_0042b370* type = &g_game->field_1439b[s];
             type->field_152 = 0;
             type->field_156 = 0;
             if (type->flags.bits.canbuild) {
                 ((Class_004c3e10*)&parser2)->FUN_004c3e10();
-                if (((Class_004c3410*)&parser2)->FUN_004c3410("CANBUILD")
-                    && ((Class_004c3410*)&parser2)->FUN_004c3410(type->name)) {
+                if (((Class_004c3410*)&parser2)->FUN_004c3410("CANBUILD") &&
+                    ((Class_004c3410*)&parser2)->FUN_004c3410(type->name)) {
                     int count = 0;
                     short* out = list;
                     int k = 1;

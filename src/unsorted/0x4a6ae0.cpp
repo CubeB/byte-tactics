@@ -1,7 +1,24 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Prior attempt by space-bunny-free, verified by GPT-6.1-sol.
-// PARTIAL 84.4% (1687 bytes against the original's 1703). Command-button
+// PARTIAL 87.0% (1691 bytes against the original's 1703). Command-button
 // click/key handler for the 0x15b-byte entry table.
+//
+// deepseek-v4.1-flash retry: materialising the search-loop bound as a
+// single `short bound = entries->count + 1;` (declared right before the
+// loop, used in `found >= bound`) lifts 84.4 -> 87.0. The bytes become
+// `mov ax,[edi+0xb6]; inc ax; movsx ebp,ax` (original: `movsx eax,
+// [edi+0xb6]; lea ebp,[eax+1]`). Every other way of naming the bound
+// (`int` / `unsigned short` / `short n; int bound = n+1` / putting the
+// +1 back in the condition) recolors the whole search block and drops to
+// 60.4. The one-`short` local fits the existing frame (sub esp stays
+// 0x28, same as the original) where an `int` local forces a reload.
+//
+// The field_138 region cannot be moved out of line without losing the
+// obj=EBX / entry=EBP homes: every if/else form (clean else-if, nested
+// if/else, the semantically correct `if (f138 == 0) A else B/D`) flips
+// obj to EBP and entry to EBX and scores 57 to 60. The sequential-if
+// form below is what keeps the homes, so it stays even though its A
+// block is inline while the original jumps to it out of line.
 //
 // deepseek-v4.1 round 3 (2611): writing the `field_138 == 0` bailout after
 // the field_138 rect-set block as `goto fail` instead of `return 0` lifts
@@ -320,8 +337,9 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             goto fail;
         unsigned char team = entry->team;
         int found = 1;
+        short bound = entries->count + 1;
         for (;;) {
-            if (found >= entries->count + 1) {
+            if (found >= bound) {
                 found = 0;
                 break;
             }

@@ -1,49 +1,25 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
-// Earlier version by space-bunny-free, GPT-6.1-sol and GPT-6 kept below; 47.2%.
-// deepseek-v4.1 lifted it to PARTIAL 61.4% with three source-level facts:
-//   * MSVC5 sizes this frame as (four bytes per live scalar slot) + (declared bytes
-//     of the local array), so `int used[200]` with SIX live scalars gives exactly
-//     `sub esp, 0x338` with the array at [esp+0x28]: the original's prologue, both
-//     argument reads ([esp+0x34c]/[esp+0x350]) and every array access now match.
-//     Declaring the array (and its zero loop) FIRST in the body is what puts the
-//     `rep stosd` before the count load, as in the original; with the array declared
-//     after layer/entries the count is hoisted and the frame rotated (51.3%).
-//   * the big scan loop walks a pointer based at entry+0x17 (x1): type via
-//     [b-0x17], field_1b via [b+4], field_29 via [b+0x12], field_13c via [b+0x125],
-//     field_157 via [b+0x140], x0/y0 as [b-4]/[b-2] and x1/y1 as [b]/[b+2].
-//     An entry-based pointer scores 51.3%; this scores 61.4%.
-//   * the sixth live scalar (which is what pushes the array to [esp+0x28]) comes from
-//     hoisting `int* up = used + 1;` above the dir switch. Defining it after the first
-//     loop drops back to five slots and 0x334 (55.9%).
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Earlier low-scoring versions by space-bunny-free, GPT-6.1-sol and GPT-6 (47.2%).
+// deepseek-v4.1 facts that still hold and are relied on here:
+//   * MSVC5 sizes this frame as six live scalar slots plus 200 ints: sub esp,0x338,
+//     array at [esp+0x28]. The zero loop clears only the first 50 ints (rep stosd 0x32).
+//   * the scan loop walks a pointer based at entry[1].x1 (entry+0x172): type via
+//     [b-0x17], field_1b via [b+4], field_13c via [b+0x125], field_157 via [b+0x140],
+//     x0/y0 as [b-4]/[b-2] and x1/y1 as [b]/[b+2].
+// Current status: PARTIAL 70.6% (this file is the best variant; scratch scores:
+// vA 69.6, vB 67.3, vD 68.6, vE 70.6).
 // Still differs (why this is not a match):
-//   * scalar slots are still rotated: ours has out@0x14, cnt@0x1c, layer@0x20,
-//     entries@0x24; the original has out/start@0x10, remaining/up@0x14, entries@0x18,
-//     bound@0x1c, layer@0x20, cnt@0x24. The original's peak of six live scalars is in
-//     the dir-switch loop, ours is in the first loop, so its slot reuse never happens
-//     here. Declaration-order permutations tried so far move index into ebx (correct)
-//     but not the slot numbers.
-//   * registers: original homes layer in esi (ours eax) and the scan walk in ebp
-//     (ours edi); the original's loop-1 walk pointer is ebp-based like ours.
-//   * the two type==3 tails: the original indexes the saved `entries` local (slot
-//     0x18) and reloads menu->layer->field_20; writing that out here costs a seventh
-//     slot and drops to 27.5%.
-// Earlier notes: array 196/197 with five slots give frames 0x328/0x334 (47.2%);
-// a Walk view based at entries+0x172 with `int used[196]` scored 44.2%.
-// Tried by deepseek-v4.1 (all below this file, reverted):
-//   * moving the layer/index/entries loads above the zero loop (which is the
-//     order the original disassembly shows) makes MSVC5 hoist the count load
-//     above the `rep stosd`, puts index in ebp instead of ebx and grows the
-//     function to 1440 bytes: 53.6%. The zero-loop-first shape here scores
-//     higher even though the prologue order then differs.
-//   * using the saved `entries` local in the tail (`entries[menu->layer->field_20]`,
-//     which is what the original's `mov edx, [esp+0x18]` shows) keeps entries
-//     live across loop 2 and rotates every slot: 34.3%. The fresh
-//     menu->layer->entries reload used here scores higher.
-// These two say the remaining gap is slot live-range shaping, not statement
-// order: the original keeps entries at [esp+0x18] into the tail AND has the
-// count at [esp+0x24] with up sharing [esp+0x14] with `remaining` (up is born
-// only at loop 2), while every source shape tried here either drops to five
-// slots (frame 0x334) or rotates the set.
+//   * prologue order: the original reads menu->layer, index and entries, tests
+//     index == -1, THEN runs the rep stosd zero loop, THEN loads cnt. Running the
+//     zero loop first (as here) is what keeps the rest at 70.6%; moving it after
+//     the scalar loads (vA, the original order) makes MSVC hoist the cnt load above
+//     rep stosd and use edi instead of ebp for the scan walk, dropping to 69.6%.
+//   * scalar slot rotation: ours has entries@0x18 (correct), cnt@0x20, layer@0x24;
+//     the original has entries@0x18, layer@0x20, cnt@0x24, i.e. layer and cnt are
+//     swapped. Declaring cnt early (vE) scores the same 70.6 and does not move them.
+//   * loop1 inner search: ours strength-reduces q to used+2 and reads [ecx]; the
+//     original keeps q=used+1 and reads [ecx+4] (one extra instruction).
+//   * ours is 1436 bytes against the original 1404, mostly from the points above.
 //
 #pragma pack(push, 1)
 

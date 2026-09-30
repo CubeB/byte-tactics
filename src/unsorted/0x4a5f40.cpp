@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
-// Started by space-bunny-free, improved by GPT-6.1-sol, GPT-6.
+// Started by space-bunny-free, improved by GPT-6.1-sol, GPT-6,
+// finished by deepseek-v4.1-flash.
 // PARTIAL 54.6%. Fixed the big gaf/colours branch order (original tests
 // `me->gaf != 0` first and falls into the gaf path; the previous version had
 // the colours path first, which shifted the whole 0x4a6071..0x4a6248 region).
@@ -25,6 +26,14 @@
 // in ebp, so the frame stays 0xd4; an int& accumulator instead grows it to
 // 0xdc. The original keeps menu/surface/me/p live across the inlined glyph loop
 // and spills the accumulator at [esp+0x20]; MSVC5 spills something else here.
+// Tried and rejected (deepseek-v4.1-flash, all scored lower):
+//  - dropping the redundant `&& me->field_137 != 0` (51.6%); the original's
+//    `xor eax,eax; mov al,[0x137]; test eax,eax` comes from the loop test, and
+//    the extra byte test is harmless.
+//  - advancing `text` in place, no `char* p` and no `text = p` (42.5%).
+//  - both `&&` removal and no-p together (43.1%). Keeping p and the store is
+//    clearly closer; the store lands in ebp-relative memory in our build only
+//    because our slot map differs, so it is a symptom of the frame, not a bug.
 #include <windows.h>
 #include <stdio.h>
 

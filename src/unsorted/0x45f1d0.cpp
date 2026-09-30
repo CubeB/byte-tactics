@@ -1,5 +1,25 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 91.1%. Fresh rules pointer and correct callee classes retained. Initial player-index arithmetic and string-array store scheduling still differ.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// PARTIAL: 93.301% (orig 1431 bytes, ours 1430). The seven string option
+// arrays, their frame offsets, their store order and the 24-byte Rule stride
+// all match; the whole function matches except two spots:
+//  (1) the first basic block (~96 bytes). The original builds the player
+//      index in ecx, runs the *33/*165 scale in eax/edx, loads g_game into
+//      eax and copies it to edi (edi = g_game + index), then reads playerType
+//      into ecx, rules into edx, opts into ebx and only then rule into ebp.
+//      We keep g_game in ecx and the index in eax, which swaps the roles of
+//      eax/ecx/edx for the whole block and reorders the rule/opts loads.
+//      Every declaration order tried (opts before rule, no game local, rule
+//      via a named playerType, players[] via a PlayerEntry pointer, index as
+//      int/unsigned char) either reproduces this exact code or drops the
+//      score to ~71%, because it also changes the register that every later
+//      g_game reload uses.
+//  (2) the tail loop preheader: the original loads layer->entries
+//      (mov edx,[esi+4]) before the saved count ([esp+0x14]); ours loads
+//      them in the opposite order. Same length, two instruction swap only.
+// Note: Rule_0045f1d0 (24 bytes, startMetal at +0xc, startEnergy at +0x10)
+// and RuleSet_0045f1d0 (startType at +0x118) are the SAME memory: the exe
+// walks g_game->rules with a 24-byte stride for metal and energy but reads
+// startType from element 0, i.e. it ignores playerType for that field.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -42,7 +62,14 @@ struct PlayerEntry_0045f1d0 {            // 0x14b bytes
     char unknown_4[0x14b - 4];
 };
 
-struct Rule_0045f1d0 {                   // 0x18 bytes
+struct Rule_0045f1d0 {                   // 0x18 bytes, the record g_game->rules is
+    char unknown_0[0xc];                 //   walked with (stride 24)
+    int startMetal;                      // +0xc
+    int startEnergy;                     // +0x10
+    char unknown_18[0x18 - 0x14];
+};
+
+struct RuleSet_0045f1d0 {                // +0x118 startType, read from element 0
     char unknown_0[0xc];
     int startMetal;                      // +0xc
     int startEnergy;                     // +0x10
@@ -59,7 +86,7 @@ struct Game_0045f1d0 {
     char unknown_525[0x1b8a - 0x525];
     PlayerEntry_0045f1d0 players[10];    // +0x1b8a
     char unknown_2878[0x29a0 - 0x2878];
-    Rule_0045f1d0* rules;                // +0x29a0
+    RuleSet_0045f1d0* rules;              // +0x29a0
     char unknown_29a4[0x2a42 - 0x29a4];
     unsigned char playerType;            // +0x2a42
     char unknown_2a43[0x14281 - 0x2a43];
@@ -98,56 +125,61 @@ char* __cdecl _itoa(int value, char* buf, int radix);
 // FUNCTION: 0x45f1d0
 void FUN_0045f1d0()
 {
+
+
     Layer_0045f1d0* layer = FUN_004aa8f0(&g_game->menu, "GAMEOPTIONS.GUI", 0x1881);
     Entry_0045f1d0* entries = layer->entries;
     layer->handler = FUN_0045f190;
     FUN_004288d0("GameSettings", 0, 0, 0);
     int count = layer->entries->u.count;
     unsigned int index = FUN_00456850() & 0xff;
-    Game_0045f1d0* game = g_game;
-    Rule_0045f1d0* rule = (Rule_0045f1d0*)((char*)game->rules + game->playerType * 0x18);
-    Opts_0045f1d0* opts = game->players[index].info;
-    char* strs[17] = { "Random", "Fixed", "Disallowed", "Allowed",
-                       "Mapped", "Unmapped", "Disallowed", "Allowed",
-                       "Game Continues", "Game Ends", "Deathmatch",
-                       "Easy", "Medium", "Hard",
-                       "True", "Circular", "Permanent" };
     char num[0x40];
+    Game_0045f1d0* game = g_game;
+    Rule_0045f1d0* rule = &((Rule_0045f1d0*)game->rules)[game->playerType];
+    Opts_0045f1d0* opts = game->players[index].info;
+    char* deathStrs[3] = { "Game Continues", "Game Ends", "Deathmatch" };
+    char* locStrs[2] = { "Random", "Fixed" };
+    char* mapStrs[2] = { "Mapped", "Unmapped" };
+    char* losStrs[3] = { "True", "Circular", "Permanent" };
+    char* cheatStrs[2] = { "Disallowed", "Allowed" };
+    char* watchStrs[2] = { "Disallowed", "Allowed" };
+    char* diffStrs[3] = { "Easy", "Medium", "Hard" };
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Commander Death:"), 0x12, 0x5a, 0x6e, 2);
-    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[8 + g_game->commanderDeath]), 0x8c, 0x5a,
-                 0x78, 2);
+    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(deathStrs[g_game->commanderDeath]), 0x8c,
+                 0x5a, 0x78, 2);
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Starting Locations:"), 0x12, 0x6c, 0x6e, 2);
     if (g_game->net->FUN_00435100() == 2) {
-        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[g_game->rules->startType]), 0x8c, 0x6c,
-                     0x78, 2);
+        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(locStrs[g_game->rules->startType]), 0x8c,
+                     0x6c, 0x78, 2);
     } else {
-        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[opts->u.b.b14]), 0x8c, 0x6c,
+        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(locStrs[opts->u.b.b14]), 0x8c, 0x6c,
                      0x78, 2);
     }
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Mapping Mode:"), 0x12, 0x7e, 0x6e, 2);
-    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[4 + g_game->los.lb.l0]), 0x8c, 0x7e,
-                 0x78, 2);
+    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(mapStrs[g_game->los.lb.l0]), 0x8c, 0x7e, 0x78, 2);
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Line of Sight:"), 0x12, 0x90, 0x6e, 2);
     unsigned short losFlags = g_game->los.losFlags;
     int losIdx = !(losFlags & 2) ? 2 : (int)(((unsigned char)~losFlags >> 2) & 1);
-    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[0xe + losIdx]), 0x8c, 0x90, 0x78, 2);
+    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(losStrs[losIdx]), 0x8c, 0x90, 0x78, 2);
     int y;
     if (g_game->net->FUN_00435100() == 3) {
         FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Cheat Codes:"), 0x12, 0xa2, 0x6e, 2);
-        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[2 + opts->u.b.b13]), 0x8c,
+        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(cheatStrs[opts->u.b.b13]), 0x8c,
                      0xa2, 0x78, 2);
         FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Watching:"), 0x12, 0xb4, 0x6e, 2);
-        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[6 + opts->u.b.b7]), 0x8c, 0xb4, 0x78, 2);
+        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(watchStrs[opts->u.b.b7]), 0x8c, 0xb4,
+                     0x78, 2);
         y = 0xc6;
     } else {
         FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Difficulty:"), 0x12, 0xa2, 0x6e, 2);
-        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[0xb + g_game->difficulty]), 0x8c, 0xa2,
+        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(diffStrs[g_game->difficulty]), 0x8c, 0xa2,
                      0x78, 2);
         y = 0xb4;
     }
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Map:"), 0x12, y, 0x6e, 2);
-    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(((Class_00435c30*)g_game->net)->FUN_00435c30()), 0x8c, y, 0x78,
-                 2);
+    FUN_004ab1b0(layer, "TEXT",
+                 FUN_004c5740(((Class_00435c30*)g_game->net)->FUN_00435c30()), 0x8c, y,
+                 0x78, 2);
     y += 0x12;
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Starting Metal:"), 0x12, y, 0x6e, 2);
     if (g_game->net->FUN_00435100() == 3) {

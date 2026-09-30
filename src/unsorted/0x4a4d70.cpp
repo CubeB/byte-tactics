@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol refinement: nine checks preserved 98.7% as best; wrappers around
 // the colour and surface reads did not resolve the two allocation differences.
 // Retry #1758: GPT-6.1-sol confirmed 98.7% after five checks; no MATCH. The colour-load SIB operand order and marker-call surface-load/push order still differ.
@@ -7,6 +7,13 @@
 // GPT-6.1-sol retry: the best remains 98.7%. A live colour-pointer alias
 // fell to 96.9%; making the font and y2 values explicit locals left the same
 // two mismatches, so those shapes were discarded.
+// deepseek-v4.1 retry: held 98.7% over six checks. Inlining the y2 temp
+// into the FUN_004be950 call, a standalone `void* surface = entries->surface;`
+// statement placed right before that call, naming the FUN_004c13f0 result and
+// the colours pointer as locals, and rewriting the colour subscript as a casted
+// pointer sum (`*((unsigned char*)me->colours + (int)param_1 + 0x8b2)`) all
+// compile to the identical 661-byte body, so the front end absorbs them and the
+// two hunks below are unchanged by local source reshaping.
 // PARTIAL, 98.7% (661 bytes against 661, six instructions differ). Everything
 // from the prologue to the tail of the marker box matches instruction for
 // instruction. The six that do not are described at the bottom.

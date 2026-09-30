@@ -1,4 +1,27 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 retry (#2430, 12 check runs, 93.1% kept in the file). The
+// remaining diff is two coupled hunks:
+// (a) 0x10 arm denominator. The original is `movsx edx,[ebx+0xda];
+// lea edi,[eax+1]; sub ecx,2; cmp edx,edi; jle 0x4a4033; mov edi,edx`, i.e.
+// size+1 is the destination and field_da is the temp in edx. Every source
+// shape tried lowers to `movsx edi,[ebx+0xda]; inc eax; cmp edi,eax; jg;
+// mov edi,eax` instead: the ternary (present file), `if (denominator <
+// field_da)`, an if/else with an uninitialised denominator, and the reversed
+// ternary `(size + 1 >= e->field_da) ? size + 1 : e->field_da`. MSVC always
+// makes field_da the destination and channels size+1 through `inc eax`,
+// because eax (size) is dead after the lea and free for the temp.
+// (b) 0x20 arm. The original is `mov edx,[ebx+0xc6]` (hoisted before `test
+// eax,eax`), then `mov ecx,[edx]; mov edx,[ecx+0x28]; xor ecx,ecx;
+// mov cx,[edx+2]; imul ecx,eax`. The present `lines.full =
+// LineSize_004a3ef0(e, count)` gives a 2-byte-longer variant of that with
+// the zero-extension in edx plus `mov ecx,edx`. Declaring `int* p =
+// e->field_c6;` before the `if (count > 0)` reproduces the original inner
+// sequence exactly, but MSVC then spills p and the `lines` union to
+// [esp+0x10] (two extra stores at entry, a reload and a jmp, +13 bytes,
+// 83.3%). Passing the pointer into the helper as a call argument instead
+// rewrites the entry allocation so `kind` leaves cl (35.8%).
+// The two hunks cancel in size (0x10 is 2 bytes short, 0x20 is 2 bytes long),
+// so they must be fixed together or not at all.
 // Retry #1758: GPT-6.1-sol best is 93.1% after refinement; latest best check confirmed no MATCH. A single-use helper for the conditional divisor fixes shared-zero stack setup. The 0x10 denominator register choice and 0x20 pointer/divisor sequence still differ.
 // GPT-6.1-sol pass: best measured score 80.9% (650 source bytes vs 629,
 // nine checker runs). The 0x10 arm improved by computing its numerator before

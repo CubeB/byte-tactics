@@ -1,4 +1,29 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 retry (#2430), five further checks, no change: 80.9%, same two
+// hunks. The remaining diff is one backend decision (the constant 0 keeps a
+// register, edx, across the focus block) and every "real variable" reading of
+// it folds to the same immediates:
+//   - `int z = e->field_157;` used for all five zero uses (store to field_78,
+//     its compare, the off clamp cmp+store, the holder compare): after the
+//     `if (field_157) return;` guard MSVC proves z is 0 and folds it, 80.9%.
+//   - `int z = 0;` declared before the FUN_004a23b0 call, so its live range
+//     crosses a call and the backend would have to rematerialise it after:
+//     still folded to immediates, 80.9%.
+//   - the per-arm phi (`if (...) { z = 0; ... } else { z = 0; }`): the two
+//     constant defs value-number to one constant and fold, 80.9%.
+// Note the counts: the original gives the constant 0 a register for five uses,
+// ours has only two unavoidable ones (the clamp's cmp and store); the store to
+// field_78 becomes `mov [ebp+0x78], eax` off the known-zero call result, and
+// both `!= 0` tests become load+`test`. Those extra register uses are the
+// difference, and they disappear because the compiler already has a zero in
+// eax. A shape that keeps a live value in eax at 0x4a420d, or adds a third
+// immediate-zero use inside the block, was not found. Checked in #2430 and also
+// worse: naming the FUN_004ab5b0 result (`int r = ...; if (!r)`) shrinks the
+// function to 709 bytes and 75.1%, and the `!= 0` spelling of the drag test is
+// byte-identical. The second hunk (tail) follows from the same decision: with no
+// live zero, MSVC gives the two `field_78 = 0` stores in the FUN_004ab510 arms a
+// register zero (edi), which kills p.y and forces `mov edi, [esp+0x34]` before
+// `cmp edi, [esp+0x24]`; the original keeps p.y in edi and stores immediates.
 // Retry #1758: GPT-6.1-sol confirmed 80.9% after four checks; no MATCH. The focus==index block still changes zero rematerialization, register allocation and branch layout.
 // GPT-6.1-sol refinement: six checks found no improvement. A local zero copied
 // from field_78 or derived as focus+1 folds to the same immediate; focus-index

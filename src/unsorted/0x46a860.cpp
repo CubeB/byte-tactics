@@ -1,5 +1,12 @@
-// Decompiled by longcat-2.5-preview-free, finished by deepseek-v4.1-flash and GPT-6. Names are
-// provisional. Partial: 60.0%, 4206 bytes versus 4247. Restore the complete 60-byte redraw snapshot
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
+// Started by longcat-2.5-preview-free, continued by deepseek-v4.1-flash and GPT-6.
+// Partial: 60.9%, 4202 bytes versus 4247. The snapshot/resource block is emitted
+// after the strncpy path in the original, so the `snapshot.button == -1` test is
+// written inverted with the strncpy arm first.
+// Still differs: the frame is 0x22c versus the original 0x23c (16 bytes short), the
+// text/amount/kills buffers sit 0x54 above the original's slots, param_1 homes to
+// esi instead of edi, and the two icon loops swap the bitmap and param_1 registers.
+// Restore the complete 60-byte redraw snapshot
 // and selected-unit HUD, resource/kill/order text, health and progress bars, and target-unit
 // display. Correct weapon pointer offset, font selection, bitmap width signedness, 16-character
 // button termination, build-menu type name and unidentified-object prefix order. Remaining
@@ -65,6 +72,26 @@ static void DrawBar_0046a860(void* surface, Rect_0046a860* bounds, int value, in
     }
 }
 static float Positive_0046a860(float value) { return value > 0.0f ? value : 0.0f; }
+
+// What still differs (deepseek-v4.1, stopped on the 10-minute budget at 60.0%):
+// - Frame is 0x22c, the original's is 0x23c (16 bytes short), so every [esp+N] is
+//   off. Original layout: iVar5 [esp+0x10]; a 8-dword Rect/pointer block at
+//   [esp+0x14..0x34]; the 60-byte snapshot at [esp+0x34..0x70]; a 4-byte int at
+//   [esp+0x70]; char[16] at [esp+0x74]; the 256-byte text buffer at [esp+0x84];
+//   the 100-byte buffer at [esp+0x184]; the kills buffer at [esp+0x1e8] (84
+//   bytes, it must stop at the 0x23c frame end). This file's buffers land near
+//   [esp+0xd8]/[esp+0xe0] instead, so roughly 20 extra dwords of address-taken
+//   locals (the local_60/local_38/local_5e references and the block scalars)
+//   push them up. Rebuild the local set to exactly the list above first.
+// - Prologue homes param_1 in edi (mov edi,[esp+0x250]); ours picks esi.
+// - In the first do/while icon loop the original keeps the returned bitmap in
+//   esi and reuses edi for param_1; ours swaps them, so the two pushes after the
+//   two movsx come out reversed (push esi / push edi versus push edi / push esi).
+// - After FUN_004c1450 the original keeps PFABLE in ecx (add eax,ecx /
+//   mov edx,[g_game+0x37e23] before the ecx spill); ours lets it fall to ebx.
+// Tried: nothing new produced a higher score inside the budget (run out of time
+// after mapping the frame with a /Fa listing and re-reading Ghidra's pseudo-C);
+// this 60.0% version is left in place by deepseek-v4.1 as the best so far.
 
 // FUNCTION: 0x46a860
 void __stdcall FUN_0046a860(void* param_1) {
@@ -205,7 +232,27 @@ void __stdcall FUN_0046a860(void* param_1) {
         y += *(unsigned short*)bmp;
     } while (y < *(int*)(g_game + 0x37e1f));
 
-    if (local_60 == -1) {
+    if (snapshot.button != -1) {
+        // strncpy path
+        char* buf7 = text;
+        strncpy(buf7, (char*)(*(int*)(*(int*)(g_game + 0x531) + 4) + local_60 * 0x15b + 2), 0x10);
+        buf7[0x10] = 0;
+        unsigned short type = FUN_00488b10(buf7);
+        if (type != 0) {
+            int base = *(int*)(g_game + 0x1439b);
+            if (_strcmpi(buf7, "CORBUILD") != 0) {
+                char* buf8 = text;
+                sprintf(buf8, "%s  M:%d E:%d", (char*)(type * 0x249 + base),
+                        (int)*(float*)(type * 0x249 + base + 0x186),
+                        (int)*(float*)(type * 0x249 + base + 0x18a));
+                FUN_004c14f0(param_1, (unsigned char*)buf8, *(int*)(ebp + 0x1d2),
+                             *(int*)(ebp + 0x1d6) + iVar5, -1);
+                FUN_004c14f0(param_1, (unsigned char*)(type * 0x249 + base + 0x40),
+                             *(int*)(ebp + 0x1e2), *(int*)(ebp + 0x1e6) + iVar5, -1);
+                return;
+            }
+        }
+    } else {
         if (local_38 == 0) {
             if (local_5e != 0xffff) {
                 int idx = local_5e & 0xffff;
@@ -356,26 +403,6 @@ void __stdcall FUN_0046a860(void* param_1) {
                                          (unsigned char*)local_28);
                     }
                 }
-            }
-        }
-    } else {
-        // strncpy path
-        char* buf7 = text;
-        strncpy(buf7, (char*)(*(int*)(*(int*)(g_game + 0x531) + 4) + local_60 * 0x15b + 2), 0x10);
-        buf7[0x10] = 0;
-        unsigned short type = FUN_00488b10(buf7);
-        if (type != 0) {
-            int base = *(int*)(g_game + 0x1439b);
-            if (_strcmpi(buf7, "CORBUILD") != 0) {
-                char* buf8 = text;
-                sprintf(buf8, "%s  M:%d E:%d", (char*)(type * 0x249 + base),
-                        (int)*(float*)(type * 0x249 + base + 0x186),
-                        (int)*(float*)(type * 0x249 + base + 0x18a));
-                FUN_004c14f0(param_1, (unsigned char*)buf8, *(int*)(ebp + 0x1d2),
-                             *(int*)(ebp + 0x1d6) + iVar5, -1);
-                FUN_004c14f0(param_1, (unsigned char*)(type * 0x249 + base + 0x40),
-                             *(int*)(ebp + 0x1e2), *(int*)(ebp + 0x1e6) + iVar5, -1);
-                return;
             }
         }
     }

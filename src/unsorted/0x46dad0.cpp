@@ -1,10 +1,24 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 28.1%, 1033 bytes versus 1024. Correct native nested-vector
-// and tree types, call the real nested constructor to initialise its three
-// dwords, and reload the live game count after the network helper. Vector
-// erase/temporary cleanup and register allocation still differ. Call the
-// native map increment through its member pointer to retain the original
-// out-of-line helper. 768 header sets did not improve the prior 27.6% version.
+// Decompiled by deepseek-v4.1. Names are provisional.
+// Started by deepseek-v4.1-flash, continued by GPT-6.
+// Partial: 28.1%, ours 1033 bytes versus original 1024. The whole register
+// allocation is relabelled, which is what keeps the diff large: the original
+// keeps `this` in edi and the constant 0 in ebx (xor ebx,ebx right after
+// mov edi,ecx), pointers in ebp and the live-player flag in esi, while ours
+// puts `this` in esi, 0 in ebp and the flag in edi, so almost every
+// instruction shows a register mismatch even where the shape is right.
+// Two concrete layout bugs left: (1) in the map walk the original reads the
+// node key at [node+0x10] (MSVC5 _Node has _Color/_Isnil before _Value) but
+// our real <map> iterator->first reads [node+0xc], so this function needs a
+// manual node type with the value at +0x10 and the out-of-line _Inc reached
+// through the real std::map iterator's member pointer (0x46ea10), not a real
+// map iteration; (2) the temporary entry is built with a cdecl sequence and
+// an `add esp,4` where the original has the __stdcall Class_0046e5c0 and
+// Class_0046cbe0 calls (the list_b/sub constructors must stay out of line,
+// so /Ob2's budget must run out at the same point). Reload the live game
+// count after the network helper, keep the native nested-vector types and
+// call the real nested constructor to initialise the entry's three dwords.
+// Vector erase/temporary cleanup and register allocation still differ. 768
+// header sets did not improve the 27.6% version this replaced.
 #include <list>
 #include <map>
 #include <vector>

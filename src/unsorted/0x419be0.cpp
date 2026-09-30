@@ -1,7 +1,8 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // GPT-6 retry: a selection object holding the button parameter by reference
 // or pointer, with ternary/early-return/assignment selection, did not improve
 // 84.1%. The button stack reload and entries/button register swap remain.
+// GPT-6.1-sol retry: Rechecked at 84.1%. A reference parameter for button and an explicit index/selected-pointer temporary both produced the same initial register assignment and score. The mismatch remains button/entries in esi/edi instead of edi/esi, affecting repeated calls and branch offsets.
 // Handles a click on an order button: finds which order the button's name
 // contains and selects that order mode (FUN_00419bc0 inlined), plays the
 // "immediateorders" or "specialorders" sound and returns 1; returns 0 when the

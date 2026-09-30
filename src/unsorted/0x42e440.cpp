@@ -1,5 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, GPT-6 retry: 75.8%, not MATCH. Original 3923 bytes.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, GPT-6.1-sol. Names are provisional.
+// Partial: model selection checks a nested flag at g_game+0x391e9+0xd44;
+// vector code, bitfield scheduling and locals still differ. Best score 76.9%.
 // Allocator construction stays out of line, vector destruction calls
 // FUN_00432c20, and shifting/filling calls FUN_00432cb0/FUN_00432c80.
 // Bitfield instruction scheduling, vector copy loops and stack homes differ.
@@ -350,9 +351,9 @@ void __stdcall FUN_0042e440(Class_004c4440* parser) {
     if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "model", 0x100, DAT_005119b8) == 0) {
         w->text = 0;
     } else {
-        unsigned char count = w->id;
         unsigned char i = 0;
-        if (count > 0) {
+        unsigned char count = w->id;
+        if (i < count) {
             do {
                 if (_strcmpi(model, g_game->weapons[i].model) == 0) {
                     g_game->weapons[w->id].model[0] = 0;
@@ -383,7 +384,7 @@ model_done:
         w->anim1 = r;
     }
     w->anim2 = 0;
-    if (*(int*)((char*)g_game + 0x391e9) != 0) {
+    if (*(int*)(*(char**)((char*)g_game + 0x391e9) + 0xd44) != 0) {
         if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) !=
                 0 &&
             ((Class_004c48c0*)parser)

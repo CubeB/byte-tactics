@@ -1,8 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// GPT-6 retry: 96.9%, not MATCH. Prefix/tail inline helpers, registry return
-// types and register-qualified zero/counter variants do not improve it.
-// Remaining differences are the initial zero register and final zero tests.
-// Partial: 96.9%. Corrected missing Sound Mode default to 1 or 2, restructured the final flag branch and corrected callee return types. Early zero register is ebp instead of ebx; final zero tests and stores still differ.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Best: 97.6%, not MATCH. Final branch locals align one zero comparison, but
+// the compiler places xor esi after the Games lookup instead of DisplaymodeDepth.
+// Earlier registry reads use test eax,eax instead of the original cmp eax,ebx;
+// the PlayMovie and AllMissions tail comparisons also still differ.
 
 #include <windows.h>
 #include <stdio.h>
@@ -574,11 +574,14 @@ void FUN_0042f9a0()
     } else {
         g_game->playMovie = 1;
     }
-    if (FUN_004b69d0("Total Annihilation", "DisplaymodeDepth", &value) == 0) {
-        value = 0;
+    int displayDepthRead = FUN_004b69d0("Total Annihilation", "DisplaymodeDepth", &value);
+    int zero = 0;
+    if (displayDepthRead == zero) {
+        value = zero;
     }
     if (value == 0x100) {
-        if (FUN_004b69d0("Total Annihilation", "Games", &value) == 0) value=0;
+        int gamesRead = FUN_004b69d0("Total Annihilation", "Games", &value);
+        if (gamesRead == zero) value=zero;
         if (value == 1) g_game->flags_37f2f.bit1=1;
         else g_game->flags_37f2f.bit1=0;
     } else g_game->flags_37f2f.bit1=0;

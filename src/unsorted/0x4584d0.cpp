@@ -1,5 +1,8 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by
-// deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol refinement: five checker invocations in this pass. Baseline reproduced at 79.6%.
+// A single-use inline face-count getter was byte-identical (79.6%). A by-value
+// projected-point helper changed frame allocation and fell to 44.4%; discarded.
 // FOURTH PASS (deepseek-v4.1): nine variants, none above the 79.6% baseline, so
 // this file is unchanged. The face loop rewritten as the Ghidra do-while shape
 // (`if (i < info->faceCount) do { ...; i++; face++; } while (i < info->faceCount);`)

@@ -1,4 +1,7 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// GPT-6.1-sol retest in #2859: seven checks kept the 87.6% best. Declaration
+// order was unchanged; result alias and tail reload scored lower. Remaining
+// reload, coordinate-slot, counter, and loop-result differences are below.
 // PARTIAL, 87.6% (410 of 427 bytes; up from 81.9%).
 //
 // WHAT IS SOLVED. The piece array starts at list+0x22, not +0x44, with `info`

@@ -1,4 +1,10 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: 61.1% (857/861 bytes), not MATCH. Kept this valid best.
+// Tested aggregate Pos initialization (56.2%) and explicit zeroing of both Pos
+// locals (59.3%); explicit zeroing of only the first Pos scored 62.0% but left
+// child cpos uninitialized, so it is not a valid candidate. Main remaining
+// differences are the Pos/model register allocation, child-bound frame slots,
+// and the y-offset multiply/shift sequence documented below.
 // GPT-6 retry: 61.1% (857 of 861 bytes), not MATCH. A memset-based Pos
 // constructor restores model in ebp and the rotated child loop. Position
 // setup, child-bound stack slots and fixed-point arithmetic still differ.

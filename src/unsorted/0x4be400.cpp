@@ -168,6 +168,21 @@
 // clamp as `if (i >= 0) i++; else i = 0;` is 98.0. A fresh loop variable and a
 // goto change the block graph and drop hard. The one wrong byte stays the
 // guard's `jge` displacement; no source shape moves it.
+// An eleventh session (deepseek-v4.1-flash, 10 minute timebox) re-ran the
+// baseline and probed the block-graph angle directly, all scored with
+// `check.py --sym`: a top-break `for (;;) { if (i >= d->count) break; body;
+// i++; }` (a shape whose guard edge and latch edge are logically distinct, so
+// the compiler could have reloaded only on the latch), a `do {} while` with the
+// same top break, an `if (i < d->count) do {} while`, a `goto`-based guard with
+// a label at the outer condition, a dead `else { i = i; }` on the guard path,
+// a labelled else, `(i = FUN_004bc640(...))` and `(r = ...)` spellings of the
+// condition, `(int)(Find*)h`/`>= 0`/`-1 !=`/`!==` comparisons and the guard as
+// `!(i >= d->count)`. Every one that keeps the 699 bytes is byte-identical to
+// this file with the same single `jge` byte; the rest are 97 to 74 or 701
+// bytes (the top-break shapes still get rotated onto the same guard and latch
+// blocks, and the `for(;;)` forms that are not rotated emit an extra test and
+// go to 94.9). This confirms yet again that the entry guard's target is decided
+// after the source shape is gone, so no C++ spelling reaches it.
 
 #include <io.h>
 #include <string.h>

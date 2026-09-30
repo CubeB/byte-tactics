@@ -1,10 +1,14 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-checked by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 96.0%, 1126 bytes versus 1124. File-open failure now reaches
-// the common field-clearing block, as at 0x491f83. This also restores the
-// original games/entries/index registers. The second gametype comparison
-// still loads into EAX instead of comparing its stack home directly. Two
-// 768-set header sweeps, 25 condition/type variants and 16 buffer/layout
-// variants did not remove the extra load.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-checked by deepseek-v4.1-flash, finished by GPT-6, refined by deepseek-v4.1-flash. Names are provisional.
+// MATCH: 1124 bytes. The lone residual was MSVC 5 loading the second
+// `gametype` read into EAX (`mov eax,[esp+0x10]; push 0; cmp eax,1`) where the
+// original compares its stack home directly (`push 0; cmp dword ptr
+// [esp+0x14],1`). Every source shape, type and header set stayed at 96.0
+// (see build/scratch/0x491ec0/ledger.md): a non-volatile scalar is always
+// promoted to a register for a compare. The fix is the calling convention,
+// not the expression. The original TU was built with /Gz, so declaring
+// FUN_00491ec0 `__stdcall` (no arguments, so the body is otherwise unchanged)
+// changes MSVC 5's register policy and folds the compare into a memory
+// operand. Same lever as 0x46c920 (needed __fastcall) and 0x4c2870.
 
 #include <string.h>
 #include <stdio.h>
@@ -73,7 +77,7 @@ Class_004b48a0* __stdcall FUN_00432520(char* name);
 void __stdcall FUN_00432590(Class_004b48a0* obj);
 
 // FUNCTION: 0x491ec0
-void FUN_00491ec0()
+void __stdcall FUN_00491ec0()
 {
     Menu_00491ec0* menu = &g_game->menu;
     Layer_00491ec0* layer = g_game->menu.layer;

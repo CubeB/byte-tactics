@@ -1,4 +1,13 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry 4 (deepseek-v4.1-flash, issue 2521): still 99.7%, one instruction. The
+// remaining diff is the identical one described below: the original's third
+// copy source pointer is `lea eax, [esi + edx]`, this build emits
+// `lea eax, [edx + esi]` (same sum, base/index swapped). Adding one header at
+// the top (<windows.h>, <stdio.h>, <string.h>, <math.h>, <stdlib.h>, <stddef.h>,
+// <memory.h>, <xmemory>, <algorithm>) kept the function at 99.7% with the same
+// diff, consistent with the earlier 225/3800 header sweep. No new source
+// spelling was found; this is the compiler-state SIB case from the guide and
+// needs the regroup-into-original-files phase.
 // Retry 2 (deepseek-v4.1, issue 1186, 17 more check.py runs): the mirror lea is
 // immune to the destination spelling. Still 99.7% with the identical diff for:
 // _Q + 1 * _M, _Q + _M + 0, this->_Last, static_cast<iterator>(_Q + _M),

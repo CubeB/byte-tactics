@@ -1,4 +1,14 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#2521): swept unused `extern int dummyN;`
+// declarations for N = 0..700 step 4 on both this 88.9 percent version and the
+// semantically faithful `_Ufill(_Q, _M, _X)` version (84.3 percent). No N beats
+// either best; the score only drops (to 80.8 here, 84.0 faithful) for some N,
+// so the remaining diff is genuine compiler state in the original translation
+// unit, not a source shape. Still differs only in the reallocation arm: the
+// original keeps _P in edx (reloaded from [esp+0x20] after operator new) and
+// _S in ebx, spilling the _Ufill counter to [esp+0x1c]; this build puts _S in
+// edx and reloads _P into ecx, so the first copy's rep count clobbers it and
+// the counter takes the other register. Best kept here is 88.9 percent.
 // deepseek-v4.1 (issue 2393) pass: the faithful form below (real `_Ufill(_Q, _M, _X)`)
 // is 84.3 percent, 777 bytes, and its remaining diff is exactly one register: the
 // allocator puts _P in ecx (reloaded from [esp+0x1c] inside the first copy loop,

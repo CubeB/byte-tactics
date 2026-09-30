@@ -2,7 +2,7 @@
 // Draws the "waiting for other players" progress bars: one bar per connected
 // player, each 620/n wide, with a fill proportional to that player's percent.
 //
-// Partial, best 90.4% (this break-loop form). The original skips ineligible
+// Partial, best 91.0% (this break-loop form). The original skips ineligible
 // players and tests the ten-entry bound at the bottom:
 //   0x497ec0  cmp ecx, 0xcee / jl 0x497dec        (ecx holds the byte offset)
 // so the second loop is a real `for (j = 0; j < 10; j++)` with `continue`.
@@ -58,6 +58,20 @@
 // byte-identical here but not necessarily written the way Cavedog wrote it
 // (see the note in 0x4581e0 about a load order that flips with unrelated code
 // placed before it in the same file).
+//
+// Fourth pass (deepseek-v4.1-flash): the LEA operand order IS movable, just not
+// by changing the expression. Declaring `int x;` BEFORE `int slot = 620 /
+// countA;` (and assigning `x = 11;` later, right before the loop) makes MSVC
+// emit `lea ecx, [ebx + esi - 2]` with base ebx = slot, exactly the original,
+// where declaring x after slot gives `[esi + ebx - 2]` (base esi = x). This
+// raised 90.4 to 91.0. The same lever applied to the bounded for form fixes its
+// LEA order too but the body dest register is still eax instead of ecx, so the
+// bounded form stays at 80.3 and the break-vs-bound loop residue (head
+// `xor ecx,ecx` + `mov [esp+0x10],ecx`; tail `mov ecx,[esp+0x10]; add ecx,0x14b;
+// cmp ecx,0xcee; mov [esp+0x10],ecx; jl`) remains the whole 9% gap.
+// Also tried this pass and flat at 80.3 with the lever: named x2 local,
+// `slot + (x - 2)`, `x + slot - 2`, nested-if instead of continue, explicit
+// `off += 0x14b` byte-offset for loop, j at function scope, j before x in source.
 #include <stdio.h>
 
 #pragma pack(push, 1)
@@ -134,13 +148,14 @@ void __stdcall FUN_00497ce0(void* surface)
                 countB++;
         }
 
+        int x;
         int slot = 620 / countA;
         Rect_00497ce0 r;
         r.x1 = 10;
         r.y1 = 420;
         r.y2 = 435;
         int j = 0;
-        int x = 11;
+        x = 11;
         while (1) {
             PlayerRec_00497ce0* q = &g_game->players[j];
             if (!(q->present && (q->team == 1 || q->team == 2 || q->team == 3) && q->kind != 10))

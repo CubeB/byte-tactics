@@ -71,8 +71,9 @@ void __stdcall FUN_004ab0a0(void* menu);
 // FUNCTION: 0x477ab0
 void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
 {
-    char* playerInfo = g_game + 0x14b * *(unsigned char*)(g_game + 0x2a42);
+    unsigned char idx0 = *(unsigned char*)(g_game + 0x2a42);
     Entry_00477ab0* entries = menu->holder->entries;
+    char* playerInfo = g_game + 0x14b * idx0;
     int index = 0;
 
     if (menu->current == -1) {
@@ -176,7 +177,7 @@ ArmSide:
         FUN_004a2be0(g_game + 0x519, index);
         FUN_0049fa90(g_game + 0x519);
     }
-    FUN_004a0570(g_game + 0x519, "Campaign", DAT_00507b6c == 0);
+    FUN_004a0570(menu, "Campaign", DAT_00507b6c == 0);
     if (DAT_0051e668 != 0)
         goto MissionsArm;
     goto End;
@@ -238,8 +239,8 @@ MissionsCore:
         index = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
         FUN_004a32a0(menuSub, "Missions", DAT_0051e660, index, 0);
         index = FUN_0049fdf0(*(Entry_00477ab0**)(holder + 4), "Missions", 2);
-        FUN_004a2be0(menuSub, index);
-        FUN_0049fa90(menuSub);
+        FUN_004a2be0(g_game + 0x519, index);
+        FUN_0049fa90(g_game + 0x519);
     }
     FUN_004ab0a0(menu);
     return;
@@ -259,8 +260,8 @@ MissionsArm:
         index = ((Class_00435760*)*(void**)(g_game + 0x391e9))->FUN_00435760(&DAT_0051e660);
         FUN_004a32a0(menuSub, "Missions", DAT_0051e660, index, 0);
         index = FUN_0049fdf0(*(Entry_00477ab0**)(holder + 4), "Missions", 2);
-        FUN_004a2be0(menuSub, index);
-        FUN_0049fa90(menuSub);
+        FUN_004a2be0(g_game + 0x519, index);
+        FUN_0049fa90(g_game + 0x519);
     }
     FUN_004ab0a0(menu);
     return;
@@ -269,22 +270,31 @@ End:
     FUN_004ab0a0(menu);
 }
 
-// Remaining differences vs. the original (56.9%):
-// - Prologue scheduling: the original loads menu->holder into eax before the
-//   index byte (mov dl,[ecx+0x2a42]) and dereferences holder->entries after
-//   `push edi`; ours computes playerInfo first and loads holder last. Swapping
-//   the two locals' declaration order makes it worse (52.5%), so the schedule
-//   is not declaration-driven here.
-// - `index` now does share the reused menu parameter slot ([esp+0x1c] after
-//   the two FUN_0047f1a0 arg pushes), matching the original.
-// - The Side0/Arm and Side1/Core blocks recompute the player-data pointer from
-//   g_game+0x2a42 instead of reusing the prologue value; our version reuses it,
-//   and the Difficulty block's g_game temp is in eax instead of ecx.
-// - The two duplicated campaign-menu build blocks and the two duplicated
-//   missions blocks still differ in register allocation and load order, as does
-//   the BigButton name-selection chain (we materialize the string address in
-//   eax, the original pushes it inside each arm).
-// The control flow, all 23 callees, string constants, struct offsets and the
-// branch polarity of the end-of-game 0x0f/0x10 writes match; the instruction
-// count is 1746 vs 1935, so about 47 instructions are still scheduled
-// differently or missing.
+// Remaining differences vs. the original (75.7%):
+// - Prologue now matches: the holder load and entries dereference had to come
+//   before the player-base arithmetic in source (idx byte into a local first),
+//   which is what put menu->holder into eax before the mov dl,[ecx+0x2a42].
+// - The two duplicated missions blocks and the FUN_004a0570 call: passing
+//   `menu` (not g_game+0x519) to FUN_004a0570 stopped the compiler merging the
+//   two identical missions build blocks into one, which recovered ~0x60 bytes
+//   of the original's duplicated code.
+// - Still differing (first hunks only):
+//   0x477bcd..0x477c28: BigButton name-selection. We materialize the string
+//     address in eax and share one call; the original pushes the literal inside
+//     each arm and loads ECX from g_game separately on the Arm path. Writing
+//     the call inside each branch compiles to the same code as the local-name
+//     form, so this needs a different source shape.
+//   0x477e54 / 0x47807f: the Side0/Side1 blocks recompute the player base from
+//     g_game+0x2a42 and load holder from g_game+0x531; we reuse the prologue
+//     playerInfo (shorter). Adding the recompute changes register allocation
+//     across the whole function and scores much worse (60.3%).
+//   0x477f1a / 0x47815c: the two missions blocks have holder in edi and menuSub
+//     in esi in the original; ours picks the opposite in the Arm copy, and the
+//     test-argument of FUN_0049fdf0 comes from entries (esi) instead of
+//     holder->entries. Declaration order does not move it.
+// Control flow, all 23 callees, every string constant, struct offsets and the
+// end-of-game 0x0f/0x10 branch polarity match. Ours is 1802 bytes vs 1935; the
+// shortfall is mostly the two Side-block recomputes that the allocator will
+// not accept without wrecking the rest of the function.
+
+

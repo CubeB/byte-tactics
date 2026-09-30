@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
-// Partial, 46.2%: the old 40.0% ceiling was the frame layout, now fixed.
+// Partial, 48.1% (deepseek-v4.1: 46.2% partial then three fixes below).
 // The big local struct sits at the TOP of the locals region, so its base is
 // 0x10 + (bytes of scalar slots below it); the original has exactly one scalar
 // slot (the fild/fistp conversion scratch at [esp+0x10]), giving base 0x14 and
@@ -10,14 +10,35 @@
 // local_1b0 after the 48-byte memcpy instead of before it (as the original's
 // instruction order shows: mov ecx,0xc / lea edi / mov esi / lea ebx /
 // rep movsd / mov [esp+0x74],ebx) gave 45.3 -> 46.2.
-// The frame is now 0x210 (was 0x214): 4 bytes of scalars + 0x20c struct.
-// WHAT STILL DIFFERS: no structural gap remains; the rest is register picks
-// and scheduling inside the region bodies, e.g. the OverlayRect argument copy
-// at the first FUN_004c6b10 call uses eax as the destination copy pointer and
+// deepseek-v4.1 additions, 46.2 -> 48.1:
+// 1. The two FUN_004be950 calls in the 0x14280 == 2 branch: the original folds
+//    +0x80 into iVar21 and +0x20 into iVar12 in the definitions (its code does
+//    add edi,0x80 / add esi,0x20 right after the loads and then passes
+//    edi+2, esi, edi-2, esi and edi, esi-2, edi, esi+2), not into the call
+//    arguments. Moving the constants there took 46.2 -> 48.0.
+// 2. The 33-byte memcpy of g_game+0x37e3f into local_1ac comes after the
+//    cVar3/iVar12 address arithmetic in the original (mov cl,[eax+edx*2+0x1ca9]
+//    after the mov ecx,8 setup, movsb last). Moving it after those two
+//    statements took 48.0 -> 48.1.
+// The frame is still 0x210 vs the original 0x214, and the 4 bytes sit at the
+// top of the locals region: ours homes param_1/param_2 at [esp+0x224]/
+// [esp+0x228] and the original at [esp+0x228]/[esp+0x22c]; every other esp+N
+// (0x10, 0x34, 0x74, 0xac, 0x128...) already agrees.
+// WHAT STILL DIFFERS: the prologue, where the original keeps the local_1b0
+// pointer (= g_game+0xdcb) in ebx for the whole function (lea ebx,[eax+0xdcb]
+// at 0x468d49, then [ebx+0xf] at both FUN_004be950 calls and mov ebx,
+// [esp+0x228] reloads of param_1 at 0x469b02/0x469d31/0x469f29), while ours
+// keeps g_game in ebx and writes [ebx+0xdda]. Tried: moving the store before
+// the memcpy (lea ecx, 45.0%), an extra scalar pointer local declared before
+// the struct (40.6%), and assigning from an iVar11 copy (mov ebx,[g_game],
+// 47.0%); none produced the ebx role. Because ebx is taken by g_game, ours
+// keeps param_1 in ebx and does not reload it from its home slot.
+// Rest is register picks/scheduling, e.g. the OverlayRect argument copy at the
+// first FUN_004c6b10 call uses eax as the destination copy pointer and
 // edx/ecx as the source (original: mov edx,esp destination, ecx source, eax
-// temp), the timer updates at the tail reorder (ours stores [esi],eax before
-// sub ecx,edx; original reads both first), and several loop latches reload a
-// home our build keeps in a register.
+// temp), the timer updates at the tail reorder, and the address CSE in the
+// local_1ac region (ours lea eax,[eax+edx*2] then mov al,[eax+0x1ca9]; the
+// original keeps eax+edx*2 in the addressing mode of both mov cl and lea ebp).
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -157,6 +178,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   float10 fVar24;
   int lVar25;
   int lVar26;
+
   OverlayLocals L;
 
   L.local_178 = (*(int *)((int)g_game + 0x37e1f) + 0x80) / 2;
@@ -174,19 +196,19 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   *pDVar1 = DVar7;
   FUN_00483fa0((int)((ushort *)L.local_1f0));
   FUN_00418310((int)(L.local_1f0));
-  iVar21 = (int)*(short *)((int)g_game + 0x2cac) - *(int *)((int)g_game + 0x1431f);
+  iVar21 = (int)*(short *)((int)g_game + 0x2cac) - *(int *)((int)g_game + 0x1431f) + 0x80;
   iVar12 = ((int)*(short *)((int)g_game + 0x2cb4) - ((int)*(short *)((int)g_game + 0x2cb0) >> 1))
-           - *(int *)((int)g_game + 0x14323);
+           - *(int *)((int)g_game + 0x14323) + 0x20;
   if (*(char *)((int)g_game + 0x14280) == '\x02') {
-    FUN_004be950((int)(L.local_1f0),(int)(iVar21 + 0x7e),(int)(iVar12 + 0x20U),(int)(iVar21 + 0x82),(int)(iVar12 + 0x20U),(int)((uint)*(byte *)(iVar11 + 0xdda)));
-    FUN_004be950((int)(L.local_1f0),(int)(iVar21 + 0x80U),(int)(iVar12 + 0x1e),(int)(iVar21 + 0x80U),(int)(iVar12 + 0x22),(int)((uint)*(byte *)(iVar11 + 0xdda)));
+    FUN_004be950((int)(L.local_1f0),(int)(iVar21 + -2),(int)(iVar12),(int)(iVar21 + 2),(int)(iVar12),(int)((uint)*(byte *)(iVar11 + 0xdda)));
+    FUN_004be950((int)(L.local_1f0),(int)(iVar21),(int)(iVar12 + -2),(int)(iVar21),(int)(iVar12 + 2),(int)((uint)*(byte *)(iVar11 + 0xdda)));
   }
   FUN_004c69c0((int)((int *)L.local_1f0));
   iVar11 = (int)g_game;
   uVar19 = (uint)*(byte *)((int)g_game + 0x2a43);
-  memcpy(&L.local_1ac,g_game+0x37e3f,33);
-  cVar3 = *(char*)(g_game+uVar19*0x14b+0x1ca9);
   iVar12 = (int)g_game+uVar19*0x14b+0x1b63;
+  cVar3 = *(char*)(g_game+uVar19*0x14b+0x1ca9);
+  memcpy(&L.local_1ac,g_game+0x37e3f,33);
   L.local_1ac = cVar3;
   lVar25 = (int)L.local_1ab;
   lVar26 = (int)*(float*)(iVar12+0x8c);

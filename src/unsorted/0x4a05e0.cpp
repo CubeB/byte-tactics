@@ -1,5 +1,6 @@
 // Decompiled by GPT-5.6-Terra, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Retry #1784: GPT-6.1-sol confirmed 56.5% after twelve worker checks; the final combined check also did not MATCH.
+// GPT-6.1-sol retry #1983: two checks kept 56.5%; a pointer-to-pointer text home compiled identically.
 //
 // Best checked source this pass: 56.5% (check.py, 488 bytes against the original's 494); no MATCH. The scan-index form scan = entries + j raises the reported score, but the disassembly still differs broadly and this appears to be a similarity-alignment artifact, not a close match. The
 // control flow, the two inlined strlens, the two tolower pairs and both loop

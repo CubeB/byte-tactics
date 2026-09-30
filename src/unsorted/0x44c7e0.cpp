@@ -1,49 +1,8 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Builds the "RESTRICT2.GUI" unit-restriction dialog: two lists (DESCLIST /
-// PICLIST), the per-unit picture/text/restriction scratch arrays, twelve
-// sliders, the scroll slider, the energy/metal labels and the Load/Save/Reset
-// buttons. Family with 0x44c220 (per-frame update) and 0x44c420 (teardown).
-//
-// Still differs (73.0%). Two things moved the number the most:
-//   * the item field at +0x245 must be a 1-bit BITFIELD (union Flags with
-//     `flag : 1` at bit 15), reusing the shape already solved in 0x44c420.
-//   * naming `void* panel = (char*)g_game + 0x519;` for the ENERGYTEXT /
-//     METALTEXT block (where the original caches the menu address in edi
-//     across the two sprintf/FUN_004a0bf0 pairs) was worth +7 points and
-//     re-shuffled far-away allocation.
-//
-// What is left is all register allocation, no structural diff:
-//   * the shared zero constant lands in ebp not eax at the top, which forces
-//     layer->entries into ebx instead of the original's ebp (and its spill
-//     slot to 0x0c instead of 0x08; textArray gets 0x08 in ours, 0x0c in the
-//     original). The item flag test is still `test ch,0x80` where the original
-//     has `shr ecx,0xf; test cl,1` even with the bitfield.
-//   * the big scan loop: ours keeps i in ebp and the 0x62 record offset in
-//     edi, the original keeps the 0x249 stride in edi, n in [esp+0x14] and i
-//     in [esp+0x10] (both memory) with the items base reloaded each pass.
-//   * the scroll block and the Load/Save/Reset tail reload g_game+0x519 where
-//     the original sometimes caches it (adding a menu local there made it
-//     WORSE: 65.6 -> 65.2 before the bitfield work, 73.0 -> 71.4 after).
-// FUN_0046e330 fills a 0x10-byte struct whose fields live at +0xa (short) and
-// +0xc (int); it is called as FUN_0046e330(item, &info) with ecx = g_game->queue.
-//
-// Remaining diff hunks by original address (all register allocation, no
-// structural difference; ours is 1566 bytes vs the original 1586):
-//   0x44c827  zero constant lands in ebp (`xor ebp,ebp`) where the original
-//             has `xor eax,eax`, so entries goes to ebx vs the original's ebp
-//             and the spill slots shift (0x18/0x1c swapped). Hoisting the
-//             `entries = layer->entries` load changed nothing.
-//   0x44c92b  item-init loop: original keeps 0 in edi, ours reloads ebp.
-//   0x44c9e7  big scan loop: original keeps the 0x249 stride in edi, n in
-//             [esp+0x14] and i in [esp+0x10] (both in memory) and tests the
-//             item flag with `shr ecx,0xf; test cl,1`; ours uses ebp/edi for
-//             the counters and `test ch,0x80`.
-//   0x44cb95  string-copy loop counter moves between [esp+0x10] and [esp+0x14].
-//   0x44cc2b  SCROLLSLIDER block: original caches the menu in eax/esi and keeps
-//             idx in edi; ours reloads g_game+0x519 for the two FUN_0044bfd0
-//             calls and reuses esi.
-//   0x44cd87  Load/Save/Reset tail: ours schedules the address arithmetic
-//             differently (one extra add/load pair).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Gave up at 80.5% (1592 bytes against 1586). Remaining shared-zero
+// register, scan-loop induction registers and tail scheduling differ. Reload
+// item pointers after callbacks and preserve the scroll-panel pointer.
+// A version with a fresh scroll panel scored 82.6%, but was less faithful.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -226,13 +185,13 @@ void FUN_0044c7e0()
         int off = 0x249;
         do {
             Item_44c7e0* item = (Item_44c7e0*)((char*)g_game->items + off);
-            if (!item->field_245.bits.flag && item->name != 0) {
+            if (((unsigned char)(item->field_245.raw >> 15) & 1) == 0 && item->name != 0) {
                 Info_44c7e0 info;
                 sprintf((char*)&DAT_005129b4[n], "%s\r%s %dM  %dE",
-                        (char*)item, FUN_004c5740((char*)item + 0xa0),
+                        (char*)g_game->items + off, FUN_004c5740((char*)item + 0xa0),
                         (int)item->field_18a, (int)item->field_186);
                 DAT_005129b4[n].field_52 = i;
-                ((Class_0046e330*)g_game->queue)->FUN_0046e330(item, &info);
+                ((Class_0046e330*)g_game->queue)->FUN_0046e330((Item_44c7e0*)((char*)g_game->items + off), &info);
                 int value = info.field_4;
                 if (value == -1)
                     value = 0x65;
@@ -263,6 +222,7 @@ void FUN_0044c7e0()
         slider->field_144 = (void*)FUN_0044be70;
     }
 
+    void* scrollPanel = (char*)g_game + 0x519;
     void* innerEntries = g_game->inner->entries;
     int idx = FUN_0049fdf0(innerEntries, "SCROLLSLIDER", 0xe);
     if (idx != -1) {
@@ -273,8 +233,8 @@ void FUN_0044c7e0()
         FUN_0045b9b0(scroll, 0);
         scroll->field_14a = (int)g_game;
     }
-    FUN_0044bfd0((char*)g_game + 0x519, idx);
-    FUN_0049fa90((char*)g_game + 0x519);
+    FUN_0044bfd0(scrollPanel, idx);
+    FUN_0049fa90(scrollPanel);
 
     FUN_004a32a0((char*)g_game + 0x519, "DESCLIST", textArray, n, 0);
     FUN_004a35a0(g_game->inner->entries, "PICLIST", picArray, n);

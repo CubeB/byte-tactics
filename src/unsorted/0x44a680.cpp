@@ -1,16 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 74.4% (unchanged this round; see the note at the bottom for what
-// still differs).
-// Inherited from round 16: all callees take __stdcall; FUN_0046dad0 is a
-// __thiscall method (ecx = this); g_game+0x2bee sets go through a 1-bit packed
-// bitfield so MSVC emits `or byte ptr [mem],1` while the clear stays
-// `and word ptr [mem],0xfffe`.
-// space-bunny-free round: rewriting the LOGO loop so the loop body takes a
-// `Player_44a680* p = &g_game->players[i];` and reads p->field_73 and p->data
-// through it makes MSVC materialise `lea esi,[eax+ebp+0x1b63]`, which also
-// gives the original's `inc edi / add ebp,0x14b / dec ebx` register rotation
-// (i in edi, i*0x14b in ebp, countdown in ebx). Worth 0.4 points; the whole
-// LOGO block is now instruction-identical apart from two stack slots.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Gave up at 78.4% (2327 bytes against 2340). Remaining initial local-slot
+// order, player-compaction registers and branch placement differ. Reload
+// player data and GUI tables across callbacks; cache the energy text panel.
+#include <string>
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -231,22 +224,23 @@ void FUN_0044a680()
         if ((pl->data->flags & 1) == 0) {
             unsigned char b2 = FUN_00456850();
             if (b2 != 10) {
-                Unit_44a680* u2 = g_game->players[b2].data;
                 if (FUN_004ab060(&g_game->gui, "LOUNGE2.GUI") != 0) {
+                    Unit_44a680* u2 = g_game->players[b2].data;
                     ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(u2);
-                    FUN_0045b9b0(FUN_004a0200(entries, "MAXUNITS"), u2->maxunits - 0x14);
-                    FUN_0045b9b0(FUN_004a0200(entries, "METAL"), u2->metal * 100);
-                    FUN_0045b9b0(FUN_004a0200(entries, "ENERGY"), u2->energy * 100);
+                    FUN_0045b9b0(FUN_004a0200(g_game->gui.table->entries, "MAXUNITS"), g_game->players[b2].data->maxunits - 0x14);
+                    FUN_0045b9b0(FUN_004a0200(g_game->gui.table->entries, "METAL"), g_game->players[b2].data->metal * 100);
+                    FUN_0045b9b0(FUN_004a0200(g_game->gui.table->entries, "ENERGY"), g_game->players[b2].data->energy * 100);
                     FUN_00445b70(&g_game->gui, 0);
                     {
-                        void* e = FUN_004a0200(entries, "ENERGY");
+                        Gui_44a680* energyPanel = &g_game->gui;
+                        void* e = FUN_004a0200(g_game->gui.table->entries, "ENERGY");
                         if (e != 0) {
                             int v = FUN_0045ba20(e);
                             char buf[20];
                             int shown = v / 100 * 100;
                             Unit_44a680* lu;
                             _itoa(shown, buf, 10);
-                            FUN_004a0bf0(&g_game->gui, "ENERGYTEXT", buf, 0);
+                            FUN_004a0bf0(energyPanel, "ENERGYTEXT", buf, 0);
                             lu = g_game->players[g_game->localPlayer].data;
                             lu->energy = (unsigned short)(shown / 100);
                             if (lu->flags & 1) {
@@ -257,8 +251,9 @@ void FUN_0044a680()
                     }
                     FUN_00445c70(&g_game->gui, 0);
                 } else if (FUN_004ab060(&g_game->gui, "viewmap.gui") != 0) {
+                    Unit_44a680* u2 = g_game->players[b2].data;
                     if (strcmp(((Class_00435c30*)g_game->field_391e9)->FUN_00435c30(), u2->name) != 0) {
-                        ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(u2);
+                        ((Class_00435a20*)g_game->field_391e9)->FUN_00435a20(g_game->players[b2].data);
                         FUN_00444a20();
                         FUN_0049fad0(&g_game->gui);
                     }

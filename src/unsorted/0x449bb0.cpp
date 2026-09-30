@@ -1,31 +1,8 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 60.5% (best effort within the 10 minute timebox): full structural
-// translation of the battleroom setup handler. See the note at the bottom of
-// the file for what still differs.
-// Round-16 retry (deepseek-v4.1-flash, 10 min): no gain, best stays 60.5.
-// Remaining diff hunks by original address: 0x449bbf (energy slot [esp+0xc]
-// vs ours [esp+0x14], frame is +4), 0x449bff-0x449c27 (player-base math in
-// edi/scratch regs), 0x449c2e (`and ebx,1; cmp bx,si` vs our `and bl,1`),
-// 0x449c7f (extra neg/sbb from bool FUN_0041d6a0), then cascaded register
-// swaps through 0x449cf7, 0x449e2c, 0x449e6c, 0x449f52, 0x44a0a0, 0x44a130,
-// 0x44a570 and 0x44a5eb. All are downstream of the 4-byte frame difference.
-// Round-15 retry gains: flag97 must be `char` (took it from 53.4 to 60.5);
-// g_game+0x2bee and the g_game+0x2c74 bit 0 are 1-bit fields, assigned
-// through a packed bitfield struct so MSVC emits `or byte ptr [mem],1`.
-//
-// Local frame map (esp after prologue = F-0x38):
-//   [esp+0x10] = F-0x28  metal value   (init 1000, overwritten by DAT_00512d74)
-//   [esp+0x14] = F-0x24  energy value  (init 1000, overwritten by DAT_00512d70)
-//   [esp+0x18] = F-0x20  holder returned by FUN_004aa8f0
-//   [esp+0x1c] = F-0x1c  player base, later reused for maxunits-20
-//   [esp+0x20] = F-0x18  spilled copy of (info->field_97 & 1)
-//   [esp+0x24] = F-0x14  itoa text buffer
-// Our compile has a 4-byte larger frame (every esp offset past the first is
-// shifted by +4): the entry list pointer that the original keeps in edi, and
-// the byte offset index*0x14b it keeps in a scratch register, both get their
-// own slots here. metalVal/energyVal also land at +0x10/+0x14 instead of the
-// original's +0x10/+0xc.
-
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Gave up at 70.1% (2745 bytes against 2756). Remaining flag widths,
+// register allocation and stack slots differ. Correct GUI-entry stride is
+// 0x15b and text buffer is 20 bytes. Preserve panel pointers across callbacks
+// and reload player data where the original reloads it.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,7 +27,7 @@ extern const char* DAT_00505518[];
 extern const char* DAT_005054b0[];
 
 extern "C" {
-int __stdcall FUN_0041d6a0(int);
+unsigned char __stdcall FUN_0041d6a0(int);
 void __stdcall FUN_004288d0(const char*, int, int, int);
 void __stdcall FUN_00428b60(void);
 void FUN_00447b10(void);
@@ -138,6 +115,7 @@ struct GuiEntry_00449bb0 {
     char unknown_27[0xb6 - 0x27];
     char text[0x138 - 0xb6];        // +0xb6
     unsigned short field_138;       // +0x138
+    char unknown_13a[0x15b - 0x13a];
 };
 
 // Gadget created by FUN_004a0200.
@@ -170,12 +148,12 @@ struct Flag2c74_00449bb0 {
 // FUNCTION: 0x449bb0
 void FUN_00449bb0(void)
 {
-    int metalVal = 1000;
     int energyVal = 1000;
+    int metalVal = 1000;
     void* holder = 0;
     int local_1c = 0;
     char flag97 = 0;
-    char text[16];
+    char text[20];
 
     DAT_00512994 = 0;
     DAT_0050550c = -1;
@@ -196,8 +174,8 @@ void FUN_00449bb0(void)
     info->field_8b = *(unsigned short*)(g_game + 0x37f1b);
     info->field_8d = *(unsigned short*)(g_game + 0x37f1f);
 
-    bool c = FUN_0041d6a0(1) != 0;
-    info->field_9d = (info->field_9d & 0xfffb) | ((c ? 1 : 0) << 2);
+    unsigned char c = FUN_0041d6a0(1);
+    info->field_9d = (info->field_9d & 0xfffb) | ((unsigned int)(c != 0) << 2);
 
     holder = FUN_004aa8f0(g_game + 0x519, "LOUNGE2.GUI", 0);
     ((Holder_00449bb0*)holder)->callback = (void*)&FUN_00447b10;
@@ -236,7 +214,7 @@ void FUN_00449bb0(void)
             *(int*)(g_game + 0x39229) = v;
             *(int*)(g_game + 0x37ef6) = v;
             PlayerInfo_00449bb0* pi =
-                *(PlayerInfo_00449bb0**)(g_game + index * 0x14b + 0x1b8a);
+                *(PlayerInfo_00449bb0**)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a);
             pi->field_9b = (pi->field_9b & 0xe7ff) | ((v & 3) << 0xb);
         }
 
@@ -319,9 +297,9 @@ L_a042:
         mem->field_23 = a;
     }
     sprintf(mem->text, "%d",
-            *(unsigned short*)(*(int*)(g_game + index * 0x14b + 0x1b8a) + 0x99));
+            *(unsigned short*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x99));
 
-    flag97 = (*(unsigned char*)(*(int*)(g_game + index * 0x14b + 0x1b8a) + 0x97)) & 1;
+    flag97 = (*(unsigned char*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x97)) & 1;
     FUN_0046c8e0((short)flag97);
 
     int startArg = ((Class_0046e000*)*(int*)(g_game + 0x2a30))->FUN_0046e000();
@@ -346,6 +324,7 @@ L_a042:
     FUN_004a0bf0(g_game + 0x519, "ENERGYTEXT", "0", 0);
 
     {
+        char* metalPanel = g_game + 0x519;
         GuiEntry_00449bb0* gadgets =
             (GuiEntry_00449bb0*)*(int*)(*(int*)(g_game + 0x531) + 4);
         int mi = FUN_0049fdf0(gadgets, "METAL", 0xe);
@@ -357,13 +336,14 @@ L_a042:
             FUN_0045b9b0(g, (short)metalVal);
             g->field_14a = g_game;
         }
-        FUN_00445c70(g_game + 0x519, mi);
-        FUN_0049fa90(g_game + 0x519);
+        FUN_00445c70(metalPanel, mi);
+        FUN_0049fa90(metalPanel);
     }
 
     {
         GuiEntry_00449bb0* gadgets =
             (GuiEntry_00449bb0*)*(int*)(*(int*)(g_game + 0x531) + 4);
+        char* maxPanel = g_game + 0x519;
         int mu = (int)(*(unsigned short*)(g_game + 0x37eea)) - 0x14;
         local_1c = mu;
         int ui = FUN_0049fdf0(gadgets, "MAXUNITS", 0xe);
@@ -375,8 +355,8 @@ L_a042:
             FUN_0045b9b0(g, (short)local_1c);
             g->field_14a = g_game;
         }
-        FUN_00445b70(g_game + 0x519, ui);
-        FUN_0049fa90(g_game + 0x519);
+        FUN_00445b70(maxPanel, ui);
+        FUN_0049fa90(maxPanel);
     }
 
     if (flag97 == 0 || (*(unsigned char*)(g_game + 0x2c74) & 1) != 0) {
@@ -386,6 +366,7 @@ L_a042:
     }
 
     {
+        char* energyPanel = g_game + 0x519;
         int list2 = *(int*)(*(int*)(g_game + 0x531) + 4);
         int ei = FUN_0049fdf0((void*)list2, "ENERGY", 0xe);
         if (ei != -1) {
@@ -399,12 +380,12 @@ L_a042:
         }
 
         Gadget_00449bb0* ge =
-            (Gadget_00449bb0*)FUN_004a0200((void*)list2, "ENERGY");
+            (Gadget_00449bb0*)FUN_004a0200(*(void**)(*(char**)(energyPanel + 0x18) + 4), "ENERGY");
         if (ge != 0) {
             int amount = (FUN_0045ba20(ge) / 100) * 100;
             _itoa(amount, text, 10);
-            FUN_004a0bf0(g_game + 0x519, "ENERGYTEXT", text, 0);
-            PlayerInfo_00449bb0* pi = info;
+            FUN_004a0bf0(energyPanel, "ENERGYTEXT", text, 0);
+            PlayerInfo_00449bb0* pi = *(PlayerInfo_00449bb0**)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a);
             pi->field_a1 = (short)(amount / 100);
             if ((pi->field_97 & 1) != 0) {
                 FUN_00450f90();
@@ -462,25 +443,3 @@ L_a042:
     FUN_0049fb10(g_game + 0x519, 1);
     FUN_004a81e0(g_game + 0x519, 0x40);
 }
-
-// Remaining differences as left by deepseek-v4.1-flash (check.py: 60.5%):
-// - Semantics are complete, but MSVC's frame-slot allocation still differs:
-//   the frame is 4 bytes larger, so every esp-relative access after the first
-//   is shifted by +4. The `list` local gets a stack slot where the original
-//   keeps the GUI entry table in edi, and the source keeps `index * 0x14b`
-//   in a scratch register instead of reloading it. metalVal/energyVal land at
-//   +0x10/+0x14 instead of the original's +0x10/+0xc.
-// - flag97 is a `char` here (that was worth 7 points); the original still
-//   tests it as `and ebx,1; cmp bx,si`, i.e. a 16-bit compare in bx, so the
-//   exact declaration/register story is not settled.
-// - `bool c = FUN_0041d6a0(1); ... ((c?1:0)<<2)` produces an extra
-//   neg/sbb normalize; the original has only `test al,al; setne dl`.
-//   Folding it into one expression scored *lower* (59.0), so the original
-//   likely keeps the intermediate in a differently typed local.
-// - the LUP/PLAYERx loops and the FUN_004ab060 block pick different scratch
-//   registers (eax/edx swaps) because of the frame-offset differences above.
-// - FUN_0045ba20's division by 100 and the following /100 both reduce to
-//   multiply by 0x51eb851f + sar 5 + sign fixup; kept as plain /100.
-// - entry/gadget structs are declared from observed offsets only; the real
-//   types are shared with 0x444930's Entry/Holder (which already uses the
-//   1-bit `flag0 : 1` field at g_game+0x2bee).

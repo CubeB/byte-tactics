@@ -85,10 +85,13 @@ struct Sub_00441460 {
 };
 
 #pragma pack(push, 1)
+// flags is a 32-bit member at offset 2 in the original: the field_0/flags/field_4
+// words are read as the unaligned dwords [SETBUF+0] and [SETBUF+2], which is why
+// the copy stores 4 dwords and the reads are `mov ecx,0xffff`-masked. This shape
+// is 80.6% (1810 bytes) against 80.5% for the three-short spelling.
 struct Settings_00441460 {
     unsigned short field_0;
-    unsigned short flags;
-    unsigned short field_4;
+    unsigned int flags;
     unsigned short field_6;
     unsigned short field_8;
     unsigned short field_a;

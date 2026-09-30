@@ -1,23 +1,70 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, 63.3%. Clears 15 buffers, displays flags/count in native order and calls the
-// locale getter with no arguments. Packed settings retain the native field offsets.
-// Frame, dead comparison stores and record-setting loads remain different.
-#include <vector>
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
+// finished by space-bunny-free. Names are provisional.
+// 77.1%, not a MATCH. What is now byte exact (verified against the disassembly
+// with every [esp+X] resolved to a frame offset):
+//   * the whole local frame layout: counter at S+0x10, p[0..20] at S+0x14,
+//     names at S+0x68, buf at S+0x88, the 16 byte settings copy at S+0x1a1
+//     (so it is the cast target (Settings*)(buf + 0x119), not a separate local);
+//   * g_game->data[] is at +0x2a47 and desc at +0x2aa7; the zeroing loop is
+//     `i = 0; do { i++; p[i] = data[i]; memset(...); } while (i < 15);`
+//     (the for (i = 1; i < 16; i++) form gets loop-rotated and encodes the
+//     base 4 low: [edx+eax+0x2a43] / [esp+edx+0x10] and cmp edx,0x40),
+//     so 77.1% -> 77.7% with 1815 -> 1812 bytes; p[0] is set inside the if;
+//   * the record walk: p[0] points at rec+0x14 and rec = p[0] - 0x14, so the
+//     record is {settings[0x10]; int field_10; char name[0x20]; char name2[0x20]}
+//     and the loop step is 0x54.
+// Still differs:
+//   * sub/add esp is 0x1a4 against the original's 0x1b4. Every local ADDRESS
+//     matches, so the original simply has 0x10 more bytes of frame that nothing
+//     in the disassembly ever names. An unused char[0x14], an unused
+//     Settings_00441460 and an unused int[4] local are all dropped by the
+//     MSVC 5 front end and do not grow the frame.
+//   * the flags word is read as a bitfield in the original: bit 15 becomes
+//     "mov eax,flags / mov edx,eax / shr edx,0xf / test dl,1" and bit 8 becomes
+//     "mov cl,bh / test cl,1", which is the 32 bit storage unit bitfield
+//     extraction shape. A 32 bit bitfield union reproduces the spirit of it but
+//     scored 74.7%, so (flags >> N) & 1 is left in place.
+//   * the original keeps field_0 in ebp and field_8 in ebx from the struct load
+//     at the top of the loop all the way to their sprintf; here both are re-read
+//     from the copy. Naming them as locals made it worse (72.9%).
+//   * the provider-guid chain: the original's third compare jumps straight to
+//     the "Updating..." assignment, skipping the fourth compare and the dead
+//     store, while here MSVC routes it through the fourth compare and the store.
+#include <string.h>
+#include <stdio.h>
 
 struct Guid_00441460 {
     unsigned long d1, d2, d3, d4;
 };
-struct Net_00441460 {
-    char unknown_0[0x4cd];
-};
+
 struct Sub_00441460 {
     char unknown_0[0x10];
 };
 
 #pragma pack(push, 1)
+struct Settings_00441460 {
+    unsigned short field_0;
+    unsigned short flags;
+    unsigned short field_4;
+    unsigned short field_6;
+    unsigned short field_8;
+    unsigned short field_a;
+    unsigned short field_c;
+    unsigned short version;
+};
+
+struct Record_00441460 {
+    Settings_00441460 settings;
+    int field_10;
+    char name[0x20];
+    char name2[0x20];
+};
+
 struct Game_00441460 {
-    char unknown_0[0x14];
-    Net_00441460 net;
+    char unknown_0;
+    signed char field_1;
+    char unknown_2[0x14 - 2];
+    char unknown_14[0x4cd];
     char unknown_4e1[0x4fd - 0x4e1];
     int field_4fd;
     char unknown_501[0x519 - 0x501];
@@ -25,25 +72,12 @@ struct Game_00441460 {
     char unknown_529[0x2a47 - 0x529];
     void* data[16];
     char unknown_2a87[0x2aa7 - 0x2a87];
-    char* desc;
+    void* desc;
     char unknown_2aab[0x37e1b - 0x2aab];
     int field_37e1b;
     char unknown_37e1f[0x39201 - 0x37e1f];
     char provider[0x10];
     char unknown_39211[1];
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct Settings_00441460 {
-    unsigned short field_0;
-    unsigned short flags;
-    unsigned short field_2;
-    unsigned short players;
-    unsigned short energy;
-    unsigned short metal;
-    unsigned short field_4;
-    unsigned short version;
 };
 #pragma pack(pop)
 
@@ -63,144 +97,136 @@ void __stdcall FUN_004abd90(Sub_00441460* sub, char* text, int a, int b, int c);
 void __stdcall FUN_004ab170(Sub_00441460* sub, int a, int b);
 void __stdcall FUN_004c69a0(int a);
 void FUN_004c63a0();
-int __stdcall FUN_004c9e50(Net_00441460* net, char* desc, int a);
+int __stdcall FUN_004c9e50(char* net, void* desc, int a);
 void __stdcall FUN_004a9660(Sub_00441460* sub);
-void __stdcall FUN_004a32a0(Sub_00441460* sub, char* name, char* text, int count, int flag);
+void __stdcall FUN_004a32a0(Sub_00441460* sub, const char* name, char* text, int count, int flag);
 char* FUN_0049f580();
 int __stdcall FUN_0049fdf0(void* entries, const char* name, int type);
-void __stdcall FUN_00441220(Sub_00441460* sub, void* entry);
+void __stdcall FUN_00441220(Sub_00441460* sub, char* entry);
 
 // FUNCTION: 0x441460
 int __stdcall FUN_00441460(Gadget_00441460* gadget) {
     int count;
+    int i;
     char* p[21];
     char names[0x20];
-    char temp[0x129];
-    Settings_00441460 settings;
-    char* message;
-    int i;
+    char buf[0x129];
+    const char* msg;
+#define temp (buf)
+#define SETBUF ((Settings_00441460*)(buf + 0x119))
 
-    {
-        Guid_00441460* guid = (Guid_00441460*)g_game->provider;
-        if (memcmp(guid, &DAT_004fcdc8, 0x10) == 0 || memcmp(guid, &DAT_004fcda8, 0x10) == 0)
-            goto chain2;
-        if (memcmp(guid, &DAT_004fcd98, 0x10) == 0) {
-            message = "Updating...";
-            goto done;
-        }
-        count = memcmp(guid, &DAT_004fcdb8, 0x10);
-    chain2:
-        if (memcmp(guid, &DAT_004fcdc8, 0x10) == 0) {
-            message = "Connecting  (ESC to abort)";
-            goto done;
-        }
-        if (memcmp(guid, &DAT_004fcda8, 0x10) == 0) {
-            message = "Updating...";
-            goto done;
-        }
-        if (memcmp(guid, &DAT_004fcd98, 0x10) == 0) {
-            message = "Connecting  (ESC to abort)";
-            goto done;
-        }
-        count = memcmp(guid, &DAT_004fcdb8, 0x10);
-        message = "Connecting  (ESC to abort)";
-    done:;
+    if (memcmp(g_game->provider, &DAT_004fcdc8, 0x10) == 0
+        || memcmp(g_game->provider, &DAT_004fcda8, 0x10) == 0)
+        goto second;
+    if (memcmp(g_game->provider, &DAT_004fcd98, 0x10) == 0) {
+        msg = "Updating...";
+        goto shown;
     }
-
-    FUN_004abd90(&g_game->sub, FUN_004c5740(message), 0x96, 0, 1);
+    count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
+second:
+    if (memcmp(g_game->provider, &DAT_004fcdc8, 0x10) == 0) {
+        msg = "Connecting  (ESC to abort)";
+        goto shown;
+    }
+    if (memcmp(g_game->provider, &DAT_004fcda8, 0x10) == 0) {
+        msg = "Updating...";
+        goto shown;
+    }
+    if (memcmp(g_game->provider, &DAT_004fcd98, 0x10) == 0) {
+        msg = "Connecting  (ESC to abort)";
+        goto shown;
+    }
+    count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
+    msg = "Connecting  (ESC to abort)";
+shown:
+    FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);
     FUN_004ab170(&g_game->sub, g_game->field_37e1b, 0);
     FUN_004c69a0(g_game->field_37e1b);
     FUN_004c63a0();
     FUN_004c63a0();
 
-    count = FUN_004c9e50(&g_game->net, g_game->desc, 0);
+    count = FUN_004c9e50((char*)&g_game->unknown_14, g_game->desc, 0);
     FUN_004a9660(&g_game->sub);
-    if (count < 0) {
+    if (count < 0)
         return 0;
-    }
 
-    for (i = 0; i < 15; i++) {
-        p[i + 1] = (char*)g_game->data[i + 1];
-        memset(p[i + 1], 0, 0xa00);
-    }
+    i = 0;
+    do {
+        i++;
+        p[i] = (char*)g_game->data[i];
+        memset(p[i], 0, 0xa00);
+    } while (i < 15);
 
     p[0] = (char*)g_game->desc + 0x18;
-    for (i = 0; i < count; i++) {
-        char* q;
-        char* rec;
-        settings = *(Settings_00441460*)(p[0] - 0x14);
-        memcpy(names, p[0], 0x20);
-        rec = names;
+    if (count > 0) {
+        do {
+            Record_00441460* rec = (Record_00441460*)(p[0] - 0x14);
+            char* e;
+            *SETBUF = rec->settings;
+            memcpy(names, p[0], 0x20);
 
-        strncpy(p[1], names, 0x10);
-        p[1][0x10] = 0;
-        p[1] += strlen(p[1]) + 1;
+            strncpy(p[1], names, 0x10);
+            p[1][0x10] = 0;
+            p[1] += strlen(p[1]) + 1;
+            sprintf(p[2], "%d/%d", SETBUF->flags & 0xf, rec->field_10);
+            p[2] += strlen(p[2]) + 1;
 
-        sprintf(p[2], "%d/%d", settings.flags & 0xf, *(int*)(p[0] - 4));
-        p[2] += strlen(p[2]) + 1;
-
-        memset(temp, 0, 0x80);
-        strncpy(temp, names + 0x10, 0xf);
-        q = temp + strlen(temp);
-        while (q != temp) {
-            q--;
-            if (*q != ' ')
-                break;
-            *q = 0;
-        }
-        if (FUN_0049f580() != 0) {
-            if (_strcmpi(FUN_0049f580(), "english") != 0) {
-                _strlwr(temp);
-                strncpy(temp, FUN_004c5740(temp), 0x80);
-                temp[0x7f] = 0;
+            memset(temp, 0, 0x80);
+            strncpy(temp, names + 0x10, 0xf);
+            e = temp + strlen(temp);
+            while (e != temp) {
+                e--;
+                if (*e != ' ')
+                    break;
+                *e = 0;
             }
-        }
-        strcpy(p[3], temp);
-        p[3] += strlen(p[3]) + 1;
+            if (FUN_0049f580() != 0) {
+                if (_strcmpi(FUN_0049f580(), "english") != 0) {
+                    _strlwr(temp);
+                    strncpy(temp, FUN_004c5740(temp), 0x80);
+                    temp[0x7f] = 0;
+                }
+            }
+            strcpy(p[3], temp);
+            p[3] += strlen(p[3]) + 1;
 
-        if ((int)(settings.version & 0xff) < (int)*(signed char*)((char*)g_game + 1)) {
-            sprintf(p[4], "%s", FUN_004c5740("VER!"));
-        } else {
-            const char* t;
-            if (settings.flags & 0x8000)
-                t = "Lock";
-            else if (settings.flags & 0x10)
-                t = "Play";
+            if ((SETBUF->version & 0xff) >= (int)g_game->field_1) {
+                if ((SETBUF->flags >> 15) & 1)
+                    msg = "Lock";
+                else if ((SETBUF->flags >> 4) & 1)
+                    msg = "Play";
+                else
+                    msg = "Open";
+                sprintf(p[4], "%s", FUN_004c5740(msg));
+            } else {
+                sprintf(p[4], "%s", FUN_004c5740("VER!"));
+            }
+            p[5] = p[4] + strlen(p[4]) + 1;
+            sprintf(p[5], "%d", SETBUF->field_0);
+            p[5] += strlen(p[5]) + 1;
+            sprintf(p[6], "%d", SETBUF->field_a * 100);
+            p[6] += strlen(p[6]) + 1;
+            sprintf(p[7], "%d", SETBUF->field_8 * 100);
+            p[7] += strlen(p[7]) + 1;
+            sprintf(p[8], "%d", SETBUF->field_6);
+            p[8] += strlen(p[8]) + 1;
+
+            if ((SETBUF->flags & 0x1800) == 0)
+                msg = "No";
+            else if ((SETBUF->flags & 0x1800) == 0x800)
+                msg = "Yes";
             else
-                t = "Open";
-            sprintf(p[4], "%s", FUN_004c5740(t));
-        }
-        p[4] += strlen(p[4]) + 1;
+                msg = "DM";
+            sprintf(p[9], "%s", FUN_004c5740(msg));
+            p[9] += strlen(p[9]) + 1;
 
-        sprintf(p[5], "%d", settings.field_0);
-        p[5] += strlen(p[5]) + 1;
+            sprintf(p[10], "%s", FUN_004c5740((SETBUF->flags >> 8) & 1 ? "Blk" : "Gray"));
+            p[10] += strlen(p[10]) + 1;
+            sprintf(p[11], "%s", FUN_004c5740((SETBUF->flags >> 9) & 1 ? "No" : "Yes"));
+            p[11] += strlen(p[11]) + 1;
 
-        sprintf(p[6], "%d", settings.metal * 100);
-        p[6] += strlen(p[6]) + 1;
-
-        sprintf(p[7], "%d", settings.energy * 100);
-        p[7] += strlen(p[7]) + 1;
-
-        sprintf(p[8], "%d", settings.players);
-        p[8] += strlen(p[8]) + 1;
-
-        if ((settings.flags & 0x1800) == 0) {
-            sprintf(p[9], "%s", FUN_004c5740("No"));
-        } else if ((settings.flags & 0x1800) == 0x800) {
-            sprintf(p[9], "%s", FUN_004c5740("Yes"));
-        } else {
-            sprintf(p[9], "%s", FUN_004c5740("DM"));
-        }
-        p[9] += strlen(p[9]) + 1;
-
-        sprintf(p[10], "%s", FUN_004c5740((settings.flags & 0x100) ? "Blk" : "Gray"));
-        p[10] += strlen(p[10]) + 1;
-
-        sprintf(p[11], "%s", FUN_004c5740((settings.flags & 0x200) ? "No" : "Yes"));
-        p[11] += strlen(p[11]) + 1;
-
-        p[0] += 0x54;
-        (void)rec;
+            p[0] += 0x54;
+        } while (--count);
     }
 
     FUN_004a32a0(&g_game->sub, "GAMENAME", (char*)g_game->data[1], g_game->field_4fd, 0);
@@ -214,11 +240,8 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget) {
     FUN_004a32a0(&g_game->sub, "PING", (char*)g_game->data[8], g_game->field_4fd, 0);
     FUN_004a32a0(&g_game->sub, "FULLMAP", (char*)g_game->data[10], g_game->field_4fd, 0);
 
-    {
-        int idx = FUN_0049fdf0(gadget->entries, "GAMENAME", 2);
-        if (idx != -1) {
-            FUN_00441220(&g_game->sub, gadget->entries + idx * 0x15b);
-        }
-    }
+    i = FUN_0049fdf0(gadget->entries, "GAMENAME", 2);
+    if (i != -1)
+        FUN_00441220(&g_game->sub, gadget->entries + i * 0x15b);
     return 1;
 }

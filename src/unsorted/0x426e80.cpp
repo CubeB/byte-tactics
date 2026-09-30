@@ -1,26 +1,40 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // Started by deepseek-v4.1-flash, continued by GPT-6 and GPT-6.1-sol (verified 39.4%); the deepseek-v4.1 tail-merge pass reached 43.8%.
-// Partial, best verified score 43.8% (6254/6310 bytes, ours 56 bytes short), not MATCH.
-// Waiting on the tail-merge pass: the sync stores now go through one `unsigned char sv`
-// variable (matching Ghidra's uVar9) and LAB_00427f8f is shared by the sv=0 and sv=0x11
-// paths, which is what makes MSVC keep sv in bl (score 40.3 -> 43.8). The remaining tails
-// (LAB_00427603/0042789a/00427915/00428418 and the 0xf/0xd inline pair) still compile to
-// immediate stores because every path reaching them sets the same constant.
-// The first divergence is the prologue: ours emits `push ebp` and the early `je` target is 0x426eca
-// vs the original 0x426ec9, so every later byte is shifted by one. The original uses only ebx/esi/edi.
-// What still differs, in order of appearance:
-//  - The original keeps a zeroed ebx and reuses it as the zero source: it does `xor ebx,ebx` then
-//    `push ebx` (not `push 0`) and `mov byte ptr [..+0x2bbf], bl` (not an immediate). Writing literal
-//    0/1 stores makes MSVC materialise immediates instead, which changes register allocation and
-//    forces the ebp spill (seen as the extra `xor ebp,ebp` in the memcmp-or at state 0x10 / substate 0).
-//    Restoring one shared substate variable that the compiler can keep in bl is the next step to try.
-//  - The original reads the FE flag as `mov dl,[esi+0xf0]; shr dl,1; test dl,1; je`; ours folds it to
-//    `test byte ptr [esi+0xf0], 2`, so `((d->field_f0 >> 1) & 1)` is not the exact source form yet
-//    (possibly a 1-bit bitfield at bit 1, or a char temp holding the shifted value).
-//  - The outer and nested switch layout, the tail-merged exits that store 0x2bbf/0x2bc0, and the
-//    shared LAB exits still differ; writing the tails inline added 28 bytes (6338 vs 6310).
+// Partial, best verified score 43.9% (6306/6310 bytes, ours 4 bytes short), not MATCH.
+// deepseek-v4.1 pass 2 (this file): +32 bytes from a real source fix and +20 more from a
+// data fix, score stays 43.9 because the layout shift is still the `push ebp` in our prologue.
+//  - Fixed: g_game+0x2ba2 is NOT zeroed. The original copies 16 bytes from DAT_004fdaf0
+//    (0x4fdaf0, four dword loads in the alternating eax/ecx pattern of an inlined 16-byte
+//    copy) into g_game+0x2ba2/6/a/e. Writing four `= 0` stores there built immediate stores
+//    and cost 20 bytes. That was the last correctness bug known in this file.
+//  - Fixed: the 0x571/0x578 block is two separate FUN_004256d0 calls (0x578 in the
+//    FUN_00450d80()==0 arm, 0x572 in the else arm) which MSVC merges into one call site
+//    (0x427cd3) with the pushed line number still per-arm. A single shared
+//    FUN_004256d0(0x578) after the if/else is wrong and was 32 bytes short.
+//  - Tried, no effect (all compile to the same bytes, 43.9%): unsigned char instead of int v
+//    in case 0, char vs unsigned char for the sync variable, literal `= 1` stores instead of
+//    `sv = 1`, and one single variable (the top-of-function substate char) for both the
+//    substate read and the sync writes. Only the last of those is kept, because it reads
+//    closer to the original's use of bl for the substate byte and the sync stores.
+//    FUN_004257e0(c, 0x9b, ...) in all six places at once (that one overshot to 6366 bytes
+//    and 43.2%, so at most some of the six are FUN_004257e0 and the rest FUN_004256d0).
+// Still differs (first divergence onward):
+//  - The prologue: ours saves ebp (push ebp / pop ebp at all ~40 exits) so every later byte
+//    is shifted by one and our je target is 0x426eca vs the original 0x426ec9. The original
+//    never uses ebp; MSVC lifted a constant 1 into ebx before the `jmp [ecx*4+table]`
+//    dispatch (mov $1,%ebx), which is where our extra register pressure comes from. The
+//    original instead materialises a zero in ebx (`xor ebx,ebx`) at the head of every
+//    tail/sync block and reuses bl for both sync stores and for `push ebx` arguments to
+//    FUN_004257e0(syncvalue, 0x9b, FRONTEND); ours folds those to `mov byte ptr [..],0` and
+//    `push 0`. Steering that is the whole remaining diff: the sync tails (LAB_00427603,
+//    004275f2, 0042789a, 00427915, 00427f0f, 00427f88/00427f8f, 00427f8f) compile to
+//    immediates unless the value has to survive a call in a callee-saved register.
+//  - The FE flag read: original `mov dl,[esi+0xf0]; shr dl,1; test dl,1; je`; ours folds to
+//    `test byte ptr [esi+0xf0], 2`, so `((d->field_f0 >> 1) & 1)` is still not the exact
+//    source form (1-bit bitfield at bit 1, or a char temp holding the shifted value).
 // NOTE (kept from the previous attempt): the original at 0x4270ba selects substate 1 for zero and
 // substate 6 for nonzero, the reverse of a naive reading.
+
 
 #include <string.h>
 #include <stdio.h>
@@ -31,6 +45,7 @@ extern char DAT_004fcdb8[];
 extern char DAT_004fcda8[];
 extern char DAT_004fcdc8[];
 extern char DAT_00511fb8[];
+extern int DAT_004fdaf0[4];
 
 struct Class_004b6220 {
     char unknown_0[0xf0];
@@ -106,20 +121,18 @@ void FUN_00426e80(void)
 {
     char buf[256];
     int uVar7;
-    unsigned char sv;
 
     char c = g_game[0x2bc0];
     if (c != g_game[0x2bbf]) {
         FUN_004256d0(0xa3, FRONTEND);
-        sv = c;
-        g_game[0x2bbf] = sv;
-        g_game[0x2bc0] = sv;
+        g_game[0x2bbf] = c;
+        g_game[0x2bc0] = c;
     }
 
     switch ((unsigned char)g_game[0x2bbe]) {
     case 0: {
         Class_004b6220* d = FUN_004b6220();
-        int v = 0;
+        unsigned char v = 0;
         FUN_004c22d0(v);
         if (((d->field_f0 >> 1) & 1) != 0) {
             if (*(int*)(g_game + 0x3923d) != v) {
@@ -127,9 +140,8 @@ void FUN_00426e80(void)
                 FUN_004256d0(0x3dc, FRONTEND);
                 g_game[0x2bbe] = 1;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = v;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                g_game[0x2bbf] = v;
+                g_game[0x2bc0] = v;
                 *(int*)(g_game + 0x3923d) = v;
                 FUN_00430f00();
                 return;
@@ -162,13 +174,13 @@ void FUN_00426e80(void)
                 FUN_004256d0(0x403, FRONTEND);
                 g_game[0x2bbe] = 0x10;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = 0;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004256d0(0x404, FRONTEND);
-                sv = 0x12;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0x12;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004c22d0(1);
                 return;
             }
@@ -177,16 +189,16 @@ void FUN_00426e80(void)
             FUN_004263b0();
             if (DAT_00512c80 == 0) {
                 FUN_004256d0(0x40d, FRONTEND);
-                sv = 1;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 1;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004c22d0(1);
                 return;
             }
             FUN_004256d0(0x40f, FRONTEND);
-            sv = 6;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 6;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_004c22d0(1);
             return;
         case 1:
@@ -207,9 +219,9 @@ void FUN_00426e80(void)
             FUN_004256d0(0x425, FRONTEND);
             g_game[0x2bbe] = 0;
             FUN_004256d0(0x9b, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         case 8:
             FUN_004c69a0(*(int*)(g_game + 0x37e1b));
@@ -234,9 +246,9 @@ void FUN_00426e80(void)
     case 4:
         if (g_game[0x2bbf] == 0) {
             FUN_004256d0(0x443, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 1;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         }
         if (g_game[0x2bbf] == 1) {
@@ -249,9 +261,9 @@ void FUN_00426e80(void)
     case 5:
         if (g_game[0x2bbf] == 0) {
             FUN_004256d0(0x443, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 1;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         }
         if (g_game[0x2bbf] == 1) {
@@ -261,9 +273,9 @@ void FUN_00426e80(void)
             FUN_004256d0(0x45b, FRONTEND);
             g_game[0x2bbe] = 2;
             FUN_004256d0(0x9b, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_00490b30(2);
             return;
         }
@@ -275,9 +287,9 @@ void FUN_00426e80(void)
             FUN_004777a0();
             FUN_004644d0();
             FUN_004256d0(0x47c, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 1;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         case 1:
             uVar7 = *(int*)(g_game + 0x37e1b);
@@ -291,13 +303,13 @@ void FUN_00426e80(void)
             FUN_004256d0(0x485, FRONTEND);
             g_game[0x2bbe] = 8;
             FUN_004256d0(0x9b, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_004256d0(0x486, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 1;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         case 0xb:
             FUN_0042f9a0();
@@ -309,27 +321,27 @@ void FUN_00426e80(void)
             FUN_004256d0(0x497, FRONTEND);
             g_game[0x2bbe] = 10;
             FUN_004256d0(0x9b, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_00460160();
             FUN_004256d0(0x499, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 1;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         case 0xe:
             FUN_00478240(1);
             FUN_004256d0(0x4a2, FRONTEND);
             g_game[0x2bbe] = 8;
             FUN_004256d0(0x9b, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_004256d0(0x4a3, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 1;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         default: return;
         }
@@ -383,26 +395,26 @@ void FUN_00426e80(void)
                 FUN_004256d0(0x505, FRONTEND);
                 g_game[0x2bbe] = 8;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = 0;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004256d0(0x506, FRONTEND);
-                sv = 1;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 1;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 return;
             case 0xc:
                 FUN_00478240(1);
                 FUN_004256d0(0x50a, FRONTEND);
                 g_game[0x2bbe] = 8;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = 0;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004256d0(0x50b, FRONTEND);
-                sv = 1;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 1;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 return;
             case 0xd:
                 FUN_004c2470();
@@ -426,21 +438,21 @@ void FUN_00426e80(void)
                 FUN_004256d0(0x52d, FRONTEND);
                 g_game[0x2bbe] = 0x10;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = 0;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004256d0(0x52e, FRONTEND);
-                sv = 0x12;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0x12;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 return;
             }
             FUN_00444580();
             if (FUN_00443ff0(-1) != 0) {
                 FUN_004256d0(0x534, FRONTEND);
-                sv = 2;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 2;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 return;
             }
             goto LAB_0042789a;
@@ -450,13 +462,13 @@ void FUN_00426e80(void)
                 FUN_004256d0(0x547, FRONTEND);
                 g_game[0x2bbe] = 0x14;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = 0;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004256d0(0x548, FRONTEND);
-                sv = 1;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 1;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_00443100();
                 return;
             }
@@ -464,13 +476,13 @@ void FUN_00426e80(void)
                 FUN_004256d0(0x54e, FRONTEND);
                 g_game[0x2bbe] = 0x14;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = 0;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004256d0(0x54f, FRONTEND);
-                sv = 1;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 1;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_00442560();
                 return;
             }
@@ -478,13 +490,13 @@ void FUN_00426e80(void)
                 FUN_004256d0(0x555, FRONTEND);
                 g_game[0x2bbe] = 0x14;
                 FUN_004256d0(0x9b, FRONTEND);
-                sv = 0;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004256d0(0x556, FRONTEND);
-                sv = 1;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 1;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_004421f0();
                 return;
             }
@@ -500,13 +512,13 @@ void FUN_00426e80(void)
             FUN_004256d0(0x55d, FRONTEND);
             g_game[0x2bbe] = 0x10;
             FUN_004256d0(0x9b, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_004256d0(0x55e, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         case 3:
             FUN_004256d0(0x564, FRONTEND);
@@ -516,9 +528,9 @@ void FUN_00426e80(void)
             FUN_004256d0(0x53b, FRONTEND);
             g_game[0x2bbe] = 10;
             FUN_004256d0(0x9b, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_00460160();
             goto LAB_00427915;
         }
@@ -528,21 +540,20 @@ void FUN_00426e80(void)
         case 0:
             FUN_004c9790(1);
             FUN_004256d0(0x587, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            g_game[0x2bbf] = 1;
+            g_game[0x2bc0] = 1;
             FUN_004644d0();
             if (memcmp(g_game + 0x39201, DAT_004fcdc8, 16) == 0 ||
                 memcmp(g_game + 0x39201, DAT_004fcdb8, 16) == 0) {
                 if (g_game[0x2aaf] & 1) {
                     FUN_004256d0(0x58f, FRONTEND);
-                    sv = 0x11;
+                    c = 0x11;
                     goto LAB_00427f8f;
                 }
-                *(int*)(g_game + 0x2ba2) = 0;
-                *(int*)(g_game + 0x2ba6) = 0;
-                *(int*)(g_game + 0x2baa) = 0;
-                *(int*)(g_game + 0x2bae) = 0;
+                *(int*)(g_game + 0x2ba2) = DAT_004fdaf0[0];
+                *(int*)(g_game + 0x2ba6) = DAT_004fdaf0[1];
+                *(int*)(g_game + 0x2baa) = DAT_004fdaf0[2];
+                *(int*)(g_game + 0x2bae) = DAT_004fdaf0[3];
             }
             FUN_00443cb0();
             goto SHOW_ERROR;
@@ -586,16 +597,16 @@ SHOW_ERROR:
                 if (FUN_004436e0() != 0) {
                     FUN_004ab0a0((int)(g_game + 0x519));
                     FUN_004256d0(0x5c1, FRONTEND);
-                    sv = 0x14;
-                    g_game[0x2bbf] = sv;
-                    g_game[0x2bc0] = sv;
+                    c = 0x14;
+                    g_game[0x2bbf] = c;
+                    g_game[0x2bc0] = c;
                     return;
                 }
                 FUN_004256d0(0x5c4, FRONTEND);
             } else FUN_004256d0(0x5c7, FRONTEND);
-            sv = 0x15;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0x15;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             return;
         case 0x15: {
             char* player = *(char**)(g_game + (unsigned char)g_game[0x2a42] * 0x14b + 0x1b8a);
@@ -638,9 +649,9 @@ SHOW_ERROR:
             if ((g_game[0x2a44] & 4) != 0) {
                 FUN_0046ca60();
                 FUN_004256d0(0x605, FRONTEND);
-                sv = 0x11;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0x11;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 FUN_00450f90();
                 return;
             }
@@ -648,9 +659,9 @@ SHOW_ERROR:
             FUN_0046c620(1);
             FUN_0046c620(2);
             FUN_004256d0(0x5ff, FRONTEND);
-            sv = 1;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 1;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
             FUN_00450f90();
             return;
         case 1:
@@ -666,9 +677,9 @@ SHOW_ERROR:
                     sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", 0x613, FRONTEND);
                     FUN_004abd90(g_game + 0x519, buf, 500, 1, 1);
                 }
-                sv = 0x11;
-                g_game[0x2bbf] = sv;
-                g_game[0x2bc0] = sv;
+                c = 0x11;
+                g_game[0x2bbf] = c;
+                g_game[0x2bc0] = c;
                 return;
             }
             return;
@@ -725,16 +736,17 @@ SHOW_ERROR:
                 FUN_004256d0(0x577, FRONTEND);
                 g_game[0x2bbe] = 0xf;
                 FUN_004257e0(0, 0x9b, FRONTEND);
+                FUN_004256d0(0x578, FRONTEND);
             } else {
                 g_game[0x2a44] |= 1;
                 FUN_004256d0(0x571, FRONTEND);
                 g_game[0x2bbe] = 0x10;
                 FUN_004257e0(0, 0x9b, FRONTEND);
+                FUN_004256d0(0x572, FRONTEND);
             }
-            FUN_004256d0(0x578, FRONTEND);
-            sv = 0;
-            g_game[0x2bbf] = sv;
-            g_game[0x2bc0] = sv;
+            c = 0;
+            g_game[0x2bbf] = c;
+            g_game[0x2bc0] = c;
         }
         uVar7 = *(int*)(g_game + 0x37e1b);
         goto LAB_0042809a;
@@ -747,40 +759,40 @@ LAB_004272c7:
     FUN_004256d0(0x44a, FRONTEND);
     g_game[0x2bbe] = 2;
     FUN_004256d0(0x9b, FRONTEND);
-    sv = 0;
-    g_game[0x2bbf] = sv;
-    g_game[0x2bc0] = sv;
+    c = 0;
+    g_game[0x2bbf] = c;
+    g_game[0x2bc0] = c;
     FUN_00490b30(2);
     return;
 
 LAB_004275f2:
     FUN_004256d0(0x9b, FRONTEND);
 LAB_00427603:
-    sv = 0;
-    g_game[0x2bbf] = sv;
-    g_game[0x2bc0] = sv;
+    c = 0;
+    g_game[0x2bbf] = c;
+    g_game[0x2bc0] = c;
     return;
 
 LAB_0042789a:
     FUN_004256d0(0x536, FRONTEND);
-    sv = 1;
-    g_game[0x2bbf] = sv;
-    g_game[0x2bc0] = sv;
+    c = 1;
+    g_game[0x2bbf] = c;
+    g_game[0x2bc0] = c;
     return;
 
 LAB_00427f88:
     FUN_004256d0(0x5b3, FRONTEND);
-    sv = 0;
+    c = 0;
 LAB_00427f8f:
-    g_game[0x2bbf] = sv;
-    g_game[0x2bc0] = sv;
+    g_game[0x2bbf] = c;
+    g_game[0x2bc0] = c;
     return;
 
 LAB_00427f0f:
     FUN_004256d0(0x9b, FRONTEND);
-    sv = 0;
-    g_game[0x2bbf] = sv;
-    g_game[0x2bc0] = sv;
+    c = 0;
+    g_game[0x2bbf] = c;
+    g_game[0x2bc0] = c;
     return;
 
 LAB_004275e0:
@@ -793,9 +805,9 @@ LAB_00427762:
     goto LAB_004275f2;
 LAB_00427915:
     FUN_004256d0(0x53d, FRONTEND);
-    sv = 1;
-    g_game[0x2bbf] = sv;
-    g_game[0x2bc0] = sv;
+    c = 1;
+    g_game[0x2bbf] = c;
+    g_game[0x2bc0] = c;
     return;
 LAB_0042809a:
     FUN_004c69a0(uVar7);

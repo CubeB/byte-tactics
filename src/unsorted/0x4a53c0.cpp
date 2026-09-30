@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol recheck: baseline retained at 76.7%; no MATCH. The register-copy
+// mismatch described below remains the dominant difference.
 //
 // PARTIAL: 76.7%, 697 against 748 bytes. What the function does: it walks the
 // entry list of a layout object looking for the n-th tab stop (entries whose

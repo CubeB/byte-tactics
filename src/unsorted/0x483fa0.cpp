@@ -11,7 +11,12 @@
 // 0x24 and reloaded. Tried: bare declarations in the original slot order at the top
 // (57.0%), `>>5` instead of `/32` (53.7%), swapping the viewX/viewY declaration order
 // (57.0%), p2 function-scope (50.3%). The second diff hunk is the final blit loop, whose
-// pointer/counter arrangement also differs.
+// pointer/counter arrangement also differs. Retry (deepseek-v4.1-flash): a from-scratch
+// rewrite in the exact original statement order scored 50.8%; making p1/p2 function-scope
+// moved p2 into the frame but dropped to 49.4%. MSVC 5 assigns these slots by code, not by
+// declaration order: reordering declarations left every local's offset unchanged, so the
+// frame cannot be forced by declaration order. The remaining gap is the allocator giving
+// w2/p2/n/stride2 no slots and shifting px/stride/rem1/rem2/py.
 #include <windows.h>
 
 #pragma pack(push, 1)

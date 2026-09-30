@@ -8,6 +8,40 @@
 // That one dword is the whole remaining puzzle: it moves about forty stack
 // references, and with it the draw loop's strength reduction changes too.
 //
+// TWO CORRECTIONS TO THE NOTES THAT WERE HERE BEFORE (both cost real runs):
+//  1. The src quad init in THIS file (p[0].x, p[0].y, p[3].x, p[1].y = 1) is
+//     RIGHT.  The four stores at 0x494aa5/aa9/aad/ab4 are at esp = frame-4
+//     (one push at 0x494a9c), so they land at frame+0x5c, +0x60, +0x74, +0x68.
+//     With src at frame+0x5c that is p[0].x, p[0].y, p[3].x, p[1].y.  Reading
+//     those displacements as if esp were the frame base makes them look like
+//     p[2].x and p[3].y and suggests a "fix" that is actually a regression
+//     (tried, 77.1%).
+//  2. `Losses` IS right-aligned against panel.right, not panel.top.  At
+//     0x494b4d esp is frame-0xc (three pushes at 0x494b45/46/47, FUN_004a5030
+//     ret 4), so 0x494b54's [esp+0x2c] is frame+0x20 = panel.right.
+//  The frame size rule, measured across buf[64..120]: MSVC 5 emits
+//  sub esp,(0x7c + sizeof(buf) - 0x10), so the original's 0xd0 with buf at
+//  frame+0x7c means its buffer really is 100 bytes, and the 16 bytes at
+//  frame+0x00-0x0f are not a missing local, they are where the four pushed
+//  registers land.  buf[84] therefore gives 0xc0 and loses about forty
+//  references.  Original local map: 0x10 maxw, 0x14 i, 0x18 panel, 0x28 the
+//  cleanup loop's counter, 0x2c dst, 0x4c hr, 0x5c src, 0x7c buf.
+//  This file's map: 0x10 maxw, 0x14 i, 0x18 y, 0x1c panel, 0x2c dst, 0x4c hr,
+//  0x5c src, 0x7c buf - dst/hr/src/buf already agree, only the scalars differ.
+//  WHY y gets a slot here and not in the original: this file stores y once,
+//  dead, right after `y += 0xf` (mov [esp+0x18],ebx), and MSVC then keeps a
+//  memory home for it.  Give that slot to the cleanup counter instead (v8 in
+//  build/scratch layout: y 0x10+0x14, panel 0x18, counter 0x28, frame 0xc0) and
+//  y spills to TWO slots, which pushes i out of memory into edx and loses
+//  another twenty points.  The register order is the ESI,EDI,EBX,EBP one: the
+//  original gives ESI to the player pointer p, EDI to the search counter n,
+//  EBX to y and leaves maxw in memory; as soon as p is not kept in a register
+//  the whole chain shifts and y takes ESI, spills, and i is demoted with it.
+//  So the lever to pull is: make the SEARCH loop keep p in a register (the
+//  original hoists `lea esi,[edx+0x1b63]` to 0x494b88, before the loop, and
+//  both the index and the pointer are induction variables in the latch), not
+//  anything about y's type or spelling.
+//
 // THE ORIGINAL'S LOCAL MAP (frame base = esp after the four pushes, frame 0xd0,
 // so 0x00-0x0f is unused and 0xd0-0xdf are the saved registers): 0x10 maxw,
 // 0x14 i, 0x18 panel (4 dwords), 0x28 a 4-byte counter the cleanup loop alone

@@ -1,9 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, GPT-6 retry: 39.4%, not MATCH. All state bodies are transcribed.
-// Outer/inner jump-table layout, shared exits, register allocation and the
-// multiplayer player-flag update still differ. The prior 40.6% variant selected
-// the wrong DAT_00512c80 substates; this version retains the corrected branch.
-// Original 0x4270ba selects substate 1 for zero and substate 6 for nonzero.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Retry #1779: GPT-6.1-sol confirmed 39.4% (6242/6310 bytes) after seven worker checks; the final checker did not MATCH.
+// Partial, best verified score 39.4%, not MATCH. The state bodies are transcribed,
+// but the outer and nested switch layout, shared exits, and register allocation
+// still differ. Original 0x4270ba selects substate 1 for zero and substate 6 for nonzero.
 
 #include <string.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // STILL PARTIAL: 85.9% (775 bytes vs the original 774). The remaining diff is
 // one allocator state, not semantics: the original keeps the 16-bit ownerId in
 // the [esp+0x18] slot (16-bit load into cx, DWORD store, `and edx, 0xffff`, a
@@ -136,6 +136,15 @@
 // if/else is 66.0 / 792, and `found` as an if/else rather than a ternary is the
 // same 85.9. What is needed is for MSVC to keep ownerId in the [esp+0x18] slot
 // while leaving unit in ebp and found in esi.
+// deepseek-v4.1-flash retry: 85.9% again, no variant beat it. Tried
+// `unsigned short ownerId` (reproduces `mov cx,[eax+0x1f]`, `cmp cx,si`,
+// `and edx,0xffff` and a dword spill of the dirty ecx, but grows the frame to
+// 0x14 and moves unit into edi: 75.3 / 773), `short ownerId` (73.6),
+// `unsigned short ownerId` with a `unsigned short&` helper parameter (75.3),
+// no ownerId local at all with the helper reading `ev->ownerId` (75.3), the
+// early-return helper (82.5 / 768), and a reference helper parameter with
+// `int ownerId` (85.9, no change). Declaring ownerId as `int` is still the
+// best allocator state, and headers.py confirms no header set changes it.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {

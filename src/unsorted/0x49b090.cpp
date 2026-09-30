@@ -1,4 +1,17 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue 2421 retry, 10 min): current body scores 82.3% / 847 bytes against 844, and
+// nothing in this retry beat it, so the body is unchanged. Tried and scored lower or equal: unit0
+// operand swap `u->elev + u->type->high` (same bytes, same diff), `int` cx/cz (81.7/82.2), cz declared
+// first (80.2), extra `(void)cz` use (equal), two fresh locals gu/gf instead of reusing `g` (equal),
+// the whole feature block written with direct `g_game->` (81.1: this DOES put g_game in edi, but it
+// changes the feature-block expression shapes and duplicates the mapping tail anyway), direct `g_game->`
+// only after the flags test (81.1), `g = g_game;` moved inside the block after the flags test (76.3),
+// `g` left uninitialised and assigned (equal), local sum/fresh-elev spellings of the unit0 high test
+// (69.3/79.7/81.6), rewriting the feature block with a shared `f` index (equal), a flag + single
+// `mapping + f` tail (75.3), and adding `g = g_game;` in the cellX/cellZ store branch (82.0 / 856).
+// What still differs is unchanged: g_game is not kept in edi after 0x49b284 (ours copies it to ecx and
+// spills to [esp+0x30], and cz takes edi), plus the unit0 elev/high pair is swapped, the mapping tail
+// is duplicated instead of merged at 0x49b31b, and the final block reloads g from [esp+0x30].
 // deepseek-v4.1-flash (issue 1715): 73.6% -> 81.9% (855 bytes against 844). Three changes, all in the
 // source shape, none of them register hints: (1) delete the `int oz = proj->py.i;` local and read
 // `proj->py.i` directly in the unit0 test, which removes the hoisted `mov ebp,[esi+8]`; (2) declare

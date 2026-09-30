@@ -33,6 +33,15 @@
 // the prologue; per the guide, constants only get the byte registers the
 // variables leave free, so the fix is a source shape that puts g_game
 // somewhere other than ebx.
+//
+// Retry (deepseek-v4.1-flash): headers.py tried all 128 header sets and none
+// beat 78.6 (best <windows.h>). An explicit `int zero` local used in the byte,
+// word and dword zero stores is still constant-folded, so the zero value lands
+// in esi and the byte stores take an immediate; ebx goes to g_game/wsprintfA.
+// The remaining hunks are exactly the esp+0x14/shape from the diff: original
+// `xor ebx, ebx` + `mov byte [esp+N], bl`, ours `xor esi, esi` +
+// `mov byte [esp+N], 0`, and the wsprintfA import hoisted to ebx instead of
+// reloaded into esi each iteration.
 #include <windows.h>
 #include <string.h>
 

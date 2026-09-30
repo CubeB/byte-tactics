@@ -231,6 +231,26 @@
 //     the mask arm's extra `mov ebx,[edx+0x80]` + `mov [esp+0x1c],ebx`
 //     against the original's single reload, plus one fail block the original
 //     keeps per arm (ours tail-merges them, 4 bytes back). Not solved.
+// DEEPSEEK-V4.1-FLASH, sixth pass, 84.6 percent unchanged (13 scratch scorings,
+// no new full check.py run needed, the file below is still best). New levers
+// tried, all dead, and the wall is now stated as a coupling rather than a
+// missing trick:
+//   * the pin is the PAIR of locals, proved by removing exactly one of each:
+//     fog `w` local with `map->seen` re-read in the index is 297 bytes / 28.4
+//     (B), fog `seen` local with `map->size.width` re-read in the index is 311
+//     bytes / 38.0 (C), and both re-read is 297 bytes / 37.8 (D). Every one
+//     rotates the pre-block (g_game hoisted to ebx, map to edi, pos.x hoisted
+//     above the jne). Keeping `w` but moving its only use into Contains (F1)
+//     is 38.0, so the index must dereference the local to pin.
+//   * breaking the cross-arm pos.x CSE per arm, with a `short*` cast, a
+//     `((short*)this)[3]` array lvalue, or a `q->x` pointer, all canonicalise
+//     to the same tree (E1/E2/H1/H2, 297 bytes, 15 to 40 percent); MSVC folds
+//     the aliases before register allocation, so this is not a lever either.
+//   * `register` on seen and w is byte-identical (309 bytes, G3).
+// The coupling: to hold the original pre-block the index must read BOTH locals,
+// which makes seen live across the tests in a register-starved arm and forces
+// the spill; the original holds the pre-block with re-reads and no spill, so
+// some allocator state we cannot reach from source is doing the pinning.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);

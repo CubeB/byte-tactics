@@ -1,5 +1,17 @@
 // Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free,
 // deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// DEEPSEEK-V4.1-FLASH (sixth pass, 2026-09-30, retry): 9 scratch variants, no
+// gain, best stays 79.8 [294]. The one genuinely new lever this pass was
+// tools/headers.py run ON the fog-arm-exact variant (the pure 0x408090 body,
+// 296 bytes / 26.3 percent): all 128 header sets are flat at 26.3, so the
+// pre-branch rotation is not compiler symbol state. Also measured dead:
+// a `MapSize*` local (26.3, byte-identical to the pure body, MSVC forwards the
+// pointer so no pressure appears), a `Map*` copy local (same), a type-punned
+// `*(unsigned int*)((char*)p + 0x80)` width read with the m local (49.5 [298],
+// byte-identical to the fresh member read), and `m` declared before the test
+// with `w` declared after it (49.5 [298]). So `m` alone with any fresh width
+// gives 49.5, `w`+`m` gives 79.8 but merges, and no shape has both. The wall
+// is confirmed allocator-only.
 // DEEPSEEK-V4.1 (fifth pass, 2026-09-30): 8 scratch variants, no gain, 79.8
 // [294] remains best. Two new data points on the fog arm rotation:
 //   * a reference to the player record (`Map_004745e0& pl = g_game->

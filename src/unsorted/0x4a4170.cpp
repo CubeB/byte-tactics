@@ -1,4 +1,13 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (#2961 retry): still 80.9%. The residual is the single
+// edx zero in the `focus == index` block: the original keeps constant 0 in edx for
+// five uses with two per-arm `xor edx,edx`; ours rematerialises it as
+// `mov [ebp+0x78],eax` plus test/immediates and cascades the tail allocation.
+// ~17 shapes (phi-0 locals of several types, zero from a proven-zero field,
+// store/assign reorder, reload) all value-number back to the constant or score
+// worse. Suspected bug (stands from the file note): `mov ax,[ebp+0x94];
+// sub ax,[ebp+0x7c]; add eax,esi` narrows to 16 bits then adds a 32-bit value
+// without sign-extending ax, so the high half is garbage.
 // deepseek-v4.1-flash retry (#2905), two quick scratch checks, no change: 80.9%.
 // Still the single edx-zero decision in the focus==index block. Declaring
 // FUN_004ab5b0 bool (Ghidra hints bool) makes it worse (69.9%); naming the

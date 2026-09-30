@@ -1,5 +1,14 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry (issue 2905, 10 min, ~25 free --sym variants, all
+// deepseek-v4.1-flash (#2961 retry): still 93.1%. The 0x10 arm needs the
+// two-statement denominator (+2 -> 631 bytes/90.6%). The 0x20 arm needs
+// `e->field_c6` hoisted to edx before `test eax,eax` (-2); every source shape
+// that makes a live local/param there kills the function-wide shared ecx constant
+// zero and reshapes the prologue (602-604 bytes, ~35%). Single-expression spelling
+// compiles byte-identically to the base. headers.py 128 sets flat.
+// Suspected bug: the 0x20 arm divides by the zero register at 0x4a40d1 when
+// `e->field_c0 <= 0` (the jle at 0x4a40b2 skips the setup), an unguarded
+// divide-by-zero, unlike the 0x80 arm which tests both divisors.
 // scored with check.py --sym). No variant beat the 93.1% already in this file.
 // Confirmed the whole diff is two 2-byte arms that cancel in total size:
 //   * 0x10 arm denominator: the two-statement `int other = e->field_da; int

@@ -1,5 +1,16 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1 pass (issue 2461): 18 further variants scored through the
+// deepseek-v4.1-flash (#2961 retry): still 98.7%. Six-instruction allocator tie:
+// colour SIB base/index swapped (`[ecx+eax+0x8b2]` original vs `[eax+ecx+0x8b2]`
+// ours) and the surface load not hoisted before the final FUN_004be950 pushes.
+// Font/colour locals, casts, void*/unsigned char* aliases, inline helpers and
+// hoists are flat or worse; matched siblings 0x4a7830/0x4a76b0 keep the class
+// pointer live in edi across the FUN_004c13f0 call so it becomes the SIB index,
+// here param_1 is reloaded to eax and becomes the base. SIB choice tracks the
+// argument's register class/liveness, not the subscript spelling.
+// Suspected bugs: the colour index uses the dialog object's address (reads ~0x8b2
+// bytes past), same in siblings 0x478790/0x478b40/0x4a4c90/0x4a7830/0x4a76b0; and
+// the focused block blanks `field_74 + (char*)me + 0xb6` but measures `me + 0xb6`.
 // checker's own compile/compare pipeline, no MATCH, best stays 98.7%. New
 // negative results: the six remaining local permutations x/y2/colour and
 // y2/x/colour also print 98.7% (same two hunks), a static-helper colour read

@@ -216,6 +216,32 @@
 // into a `static` helper for the default-rect block or for the width/height
 // reads does NOT move engine to ebp here (unlike the earlier `pick` helper),
 // so the (a) tie survives that axis as well.
+//
+// DEEPSEEK V4.1 FLASH, SECOND PASS. Body still 333 bytes / 67.7 percent. Three
+// measurements, all new, all negative, recorded so they are not repeated:
+//
+// 1. The apparent use-count axis of (a) is dead for real, not just for
+//    CSE'd-away reads. Adding a call that truly consumes `engine` after the
+//    FUN_004b6220 call (`sink_004bf4d0(engine);`, 342 bytes / 59.6 percent)
+//    still leaves engine in ebx; adding a second call consuming `surface`
+//    (351 bytes / 58.9 percent) also leaves surface in ebp. So the earlier
+//    "extra read did nothing" results were not a CSE artefact: neither
+//    variable's use count decides the ebx/ebp tie. The guide's 0x4bcb50
+//    pattern (one more use flips the tie) does not apply to (a).
+// 2. Unused declarations before the function do not flip (a) or (b). Swept
+//    unused global int arrays (1..64 elements), unused struct definitions
+//    (1..16), unused function prototypes (1,2,3,4,8) and unused `extern int`
+//    (1,2,4,8). Every one is the same object, 333 bytes / 67.7 percent, except
+//    the struct counts 2,3,8,16 and 8 prototypes, which are the already
+//    recorded 334-byte / 68.4 percent `[ebp+ebx]` disp8 flip. No count moves
+//    the allocator.
+// 3. `register` on the parameters (`register Surface_004bf4d0* surface`,
+//    `register Rect_004bf4d0* rect`) is ignored by MSVC 5 here: identical
+//    bytes, 333 / 67.7.
+//
+// The call sites (22 of them, all pushing surface, rect, level in that order)
+// confirm the signature and the NULL surface/default rect idiom used below;
+// they carry no register information.
 
 #include <string.h>
 

@@ -116,6 +116,21 @@
 // net 2 per copy. The blocked step is getting MSVC to keep the canonical
 // strcpy scan form while still evaluating the destination last.
 
+// #2884 retry (deepseek-v4.1-flash): could not beat 90.5% but ruled out the
+// tempting shortcut. A single inline helper reading
+// `static inline void CS(Player* p, const char* s) { strcpy(p->fullName, s); }`
+// used for ALL FOUR copies scores 91.7% (875B), but it is WRONG: the name and
+// COMPUTER-name copies then also write p->fullName. The reason it "helps" is
+// that the two network copies share one destination expression, so MSVC CSEs it
+// and keeps it in edi, giving the canonical `sub edi,ecx; mov esi,edi; lea edi`
+// scan for free. With correct, distinct destinations (per-member helpers, or an
+// offset parameter) the destination is hoisted again and the score drops to
+// 81.2%. Direct strcpy still gives the canonical source scan but hoists the
+// destination lea into esi and spills it (frame 0x4c8). Plain strlen+memcpy
+// helper (this file) remains the best correct shape: 90.5%, gap is the
+// source-in-esi scan (`mov edi,esi` where the original has
+// `sub edi,ecx; mov esi,edi`), 2 bytes total.
+
 #include <string.h>
 #include <windows.h>
 

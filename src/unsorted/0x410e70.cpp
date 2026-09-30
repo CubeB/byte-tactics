@@ -5,19 +5,33 @@
 // heading to the order's position, lands on a free pad when damaged
 // (VTOL_LANDING, as in 0x412710), or takes the next queued order.
 //
-// Partial: 92.2%. The original calls vector::_Destroy (0x406c00) out of line
+// Partial: 92.5%. The original calls vector::_Destroy (0x406c00) out of line
 // in both of the vector's destructors, which is MSVC 5's /Ob2 inline budget
 // running out. Found with scratch probes: the inliner does all first-level
 // call sites before the calls inside them, and handles later source first,
 // so the budget runs out for _Destroy only when the vector sits one level
 // down (the TryLand helper) and case 0 (with the inlined FUN_0040f200) comes
 // after case 2 in the source. That gives exactly the original's calls.
-// What still differs: the landed path. TryLand returns 1 and the caller
-// returns 0, so ours sets eax = 1 after the destructor and joins the
-// not-landed path's test (`mov eax, 1; xor edi, edi; jmp`); the original
-// returns 0 straight after the destructor. Returning bool, 0/1 swapped, -1,
-// a flag local, or putting the tail (FUN_0043b700 onward) or the whole case
+// What still differs: the landed path (839 bytes vs the original's 824).
+// TryLand returns 1 and the caller 0, so MSVC materialises the inlined result
+// and tests it: after the destructor ours does `mov eax, 1; xor edi, edi; jmp`
+// to a shared `cmp eax, edi`, whose fall-through arm is `xor eax, eax; ret`;
+// the original returns 0 straight after the destructor with no test. Inverting
+// the helper's polarity (return 0 for landed, 1 for not, the shape in this
+// file) moves the test after the tail and is worth 0.3%, but it still joins.
+// A scratch probe (build/scratch/0x410e70/probe2.cpp, probe3.cpp) with the
+// same one-level-down vector helper but a trivial destructor DOES emit the
+// direct landed return, so the join is not inherent to the helper shape; it
+// only appears once the real vector destructor is inlined at both sites with
+// _Destroy out of line, i.e. it tracks the same /Ob2 budget state that keeps
+// _Destroy out of line. Returning bool, `== 1`, `> 0`, -1, a flag local, a
+// negated caller, or putting the tail (FUN_0043b700 onward) or the whole case
 // in the helper either keeps that join or changes which calls are inlined.
+// Making the landed return a reload (`return order->flags;` after the store)
+// removes the signal entirely, so the helper always returns 0: it scores
+// 93.7% but the landed path falls through into the tail, so it is not a match.
+// A second helper for the tail (so TryLand returns 0 landed / NextOrder
+// otherwise) is byte-identical to the whole-case helper at 76.7%.
 // With the vector directly in case 2 (no helper) the return folds but both
 // _Destroy calls are inlined (86.5% in best_92's sibling variant in
 // build/scratch/0x410e70/v2_plain.cpp), whatever the case order, and wrapping
@@ -162,10 +176,10 @@ static inline int TryLand(Unit* unit, Order* order)
             Unit* target = v[FUN_004b6c30(v.size())];
             FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
             order->flags = 0;
-            return 1;
+            return 0;
         }
     }
-    return 0;
+    return 1;
 }
 
 // FUNCTION: 0x410e70
@@ -183,15 +197,16 @@ int __stdcall FUN_00410e70(Unit* unit, Order* order, int flags)
         ((Class_0044e730*)obj)->FUN_0044e730(0x150);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags |= 0xe0;
-        if (TryLand(unit, order))
-            return 0;
-        Unit* next = FUN_0043b700(unit);
-        if (next && FUN_0043b1f0(unit, next, 0)) {
-            order->flags = 0;
-            return 3;
+        if (TryLand(unit, order)) {
+            Unit* next = FUN_0043b700(unit);
+            if (next && FUN_0043b1f0(unit, next, 0)) {
+                order->flags = 0;
+                return 3;
+            }
+            ((Class_00439e80*)order)->FUN_00439e80(0x1e);
+            return 2;
         }
-        ((Class_00439e80*)order)->FUN_00439e80(0x1e);
-        return 2;
+        return 0;
     }
     case 1:
         order->field_4e &= ~0xe0;

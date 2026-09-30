@@ -3,7 +3,7 @@
 // the previously shared pointer/index/dx locals. This improves the earlier 73.3%, 809-byte version.
 // Remaining differences include clipping register choices, ymin/out and imin/lasty stack-slot swaps
 // and scheduling. Partial temporary-sharing combinations, all 24 bound declaration orders, 768
-// header sets and surface getters did not improve this version.
+// header sets and surface getters did not improve this version. GPT-6.1-sol refinement variants kept 76.0%; reversing the pitch-bound comparison scored 74.3%. The best source is restored, with ymin/out and imin/lasty allocation shifts remaining.
 
 struct Surface_004c1000 {
     unsigned short pitch;   // +0x0, also the clip width

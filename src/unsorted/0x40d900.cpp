@@ -1,5 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5,
-// deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1.
+// deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1,
+// finished by deepseek-v4.1-flash.
 // Names are provisional.
 //
 // Partial (98.7%): clears the kind byte of every cell in each dirty group of
@@ -56,6 +57,20 @@
 // edi, and by then the load is already scheduled. Load-first spellings
 // (`Cell* p = cells;` first, even before the `bits` load: 98.7%) all give the
 // original's registers with the load three slots early.
+//
+// round 3 (deepseek-v4.1-flash): the outcome is a binary switch. Load-first
+// (`p = cells;` before the store) keeps base in edi and offset in edx (98.7%)
+// but schedules the base load first; every store-first spelling gives 93.7%
+// with base in ecx and offset in edi. Still 93.7/unchanged after: a separate
+// `unsigned int off = i << 10;` before or after the store, byte arithmetic
+// `(char*)cells + i*0x400` or `+ (i << 10)`, `i << 8` element indexing,
+// `cells + 0` then `p = (char*)p + (i<<10)`, `p = &p[i * 256]`, the comma
+// form `p = (dirty[i] = 0, cells)`, shared function-scope locals for both
+// blocks, an `unsigned` index and parameter, and a `bits ? cells : cells`
+// ternary (worse: +2 bytes). Adding an inline member helper (a `BlockAt` or
+// `PutZero` method, or a sub-object `TakeDirty`) is inlined but shifts the
+// whole loop's allocation (ebp/ecx swap, +2 bytes), so it is worse.
+// Only the base-load slot in the last block still differs.
 //
 // Possible original bug: in the last block the bounds check starts `c` at
 // `i << 8` again for every group of eight cells instead of at the group's own

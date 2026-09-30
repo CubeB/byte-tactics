@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // std::vector<unsigned char>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward all
 // inlined. 0x409160 calls it from the inlined resize() of the vector at
@@ -62,6 +62,12 @@
 // one all land on either 93.3% (4 hunks) or 92.8% (5 hunks, the extra hunk is
 // the third _Ucopy's source start at the @@ -77 region). The two realloc-tail
 // sums are invariant under every lever tried, here and in 0x408f30.
+// Retry 2026-09-30 (deepseek-v4.1-flash): headers.py 128 include sets again
+// top out at 93.3% (`<math.h>`, `<ddraw.h>`, `<windows.h> <math.h>`,
+// `<windows.h> <ddraw.h>`, `<stdio.h> <math.h>`); adding <math.h> to this
+// file gives the 92.8% triple, so the two extra windows.h/ddraw.h includes
+// stay. The four hunks (one jump-offset hunk plus the three realloc-tail
+// sums) are unchanged, so this stays a register-scheduling near-miss.
 #include <windows.h>
 #include <ddraw.h>
 #include <vector>

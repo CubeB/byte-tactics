@@ -1,10 +1,10 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Starts a path search for the object at +0x58: marks every goal cell the
 // target reports, picks the goal nearest to the start as the probe's aim,
 // runs the straight-line probe (0x40e160) and, when that did not reach a
 // goal, seeds the open heap with the start cell.
 //
-// Partial (92.1%): structure, stack layout, callee-saved registers, every
+// Partial (92.8%): structure, stack layout, callee-saved registers, every
 // branch and the inlined heap/vector code match; only four hunks differ.
 // All four are allocator/scheduler state, not source shape:
 //   1. the virtual Cost call at 0x40e762 uses edx for both argument
@@ -13,11 +13,13 @@
 //      start.x ecx / width eax);
 //   2. the inlined Release on the out-of-bounds path loads object into edx
 //      (ours eax) and the deleted goal buffer into eax (ours ecx);
-//   3. the heap reset stores are contiguous right after the start.x/start.y
-//      loads and before the node's y store (ours sink them into the width /
-//      dirty computation), the depth store lands before `shr edx,8` (ours
-//      after `mov ebx,[edx]`) and `mov ebx,[edx]` precedes `and ecx,0x1f`
-//      (ours after);
+//   3. the heap reset stores are a contiguous group in the original,
+//      placed right after the start.x/start.y loads and before the node's
+//      y store; ours now emits the same four stores contiguously (this is
+//      the hunk the reordering below improved) but after the flags store
+//      and before the dir computation. The depth store still lands after
+//      `mov ebx,[edx]` (original: before `shr edx,8`) and `mov ebx,[edx]`
+//      still follows `and ecx,0x1f` (original: precedes it);
 //   4. the final Release loads object into ecx before pushing it (ours
 //      edx and pushes later).
 // Tried without effect (all stay at 92.1%): heap.Clear() vs four direct
@@ -44,6 +46,20 @@
 // call site (92.1), Release(object) with the object as a parameter (92.1), and
 // the de Morgan bounds test written out at the tail (909 bytes, 80.3). The four
 // hunks never moved, so they stay allocator state, not source shape.
+// deepseek-v4.1-flash retry: a brute statement-order search over the tail
+// block (all 180 orders of Clear/node/index/dirty/flags/dir keeping index
+// first of the three that use it) found one improvement: moving heap.Clear()
+// after the dirty and flags stores groups the four heap-reset stores into one
+// contiguous block and takes the score to 92.8%. Every other order is at or
+// below 92.1%. Variants tried at 92.8 or below with no further gain: explicit
+// four-store Clear forms (three internal orders), short sx/sy node locals,
+// the node declared before Clear, a `static inline void ClearHeap(Heap*)`
+// free helper, reversed Cost multiply, and adding <windows.h>/<string.h>/
+// <memory.h>. The clear group still lands one block later than the original
+// (after flags, before dir) and the two Release sites and the Cost/bounds
+// registers are unchanged. The original's clear group sits before the node
+// pos stores; no source order of these six statements reaches that slot, so
+// it remains scheduler state.
 #include <vector>
 
 struct Point_0040e630 {
@@ -323,11 +339,11 @@ void Class_0040e630::FUN_0040e630(Target_0040e630* t)
             if (probe >= cost)
                 goto finish;
         }
-        heap.Clear();
         NodeData_0040e630 d(start.x, start.y, 0, cost, 100);
         unsigned int i = grid.width * start.y + start.x;
         grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);
         grid.cells[i].flags |= 1;
+        heap.Clear();
         grid.cells[i].dir = ((object->heading + 0x1000) >> 13) & 7;
         grid.cells[i].node = heap.Push(d);
         field_44 = 4;

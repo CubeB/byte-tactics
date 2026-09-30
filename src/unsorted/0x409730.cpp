@@ -1,4 +1,27 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Additional pass (deepseek-v4.1): the read site rewritten as a braced block with
+// `unsigned char* p8 = vec_8d.begin(); x += (char)p8[i] / 2;` recompiles to the
+// identical 1678 bytes with the identical two SIB diffs (the single-use local is
+// propagated back into the subscript), an explicit `(unsigned char)` cast around
+// the clamped store value is neutral at 99.6%, and an `unsigned int` loop index
+// is much worse (1683 bytes, 83.9%, the loop guard turns into a 64-bit compare).
+// The two SIB base/index bytes remain the whole work list.
+//
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+//
+// (deepseek-v4.1-flash): key negative finding. The two swapped accesses are NOT
+// a subscript-form problem and NOT a vector-container problem. A named pointer
+// local `unsigned char* q = vec_8d.begin(); q[i]` DOES produce the original's
+// base order for both sites, but only when it is the ONLY use in the loop. Adding
+// the other site back keeps the original base: store via exact-width pointer on
+// plain form like `*(&vec_8d[i])`, and `unsigned char* q = vec_8d.begin(); p[i]`
+// on the store form. At the read, `unsigned char& r = vec_8d[i]` (an element
+// reference) also yields the original base order. HOWEVER every construct that
+// fixes one of the two accesses makes the pointer local survive into the vast
+// mid-function region (it spills to a stack slot and its reload shifts a dozen
+// unrelated instructions, 1679-1690 bytes, 52-85%), whereas the original has no
+// such live pointer there. The free scratch scoring (`check.py --sym`) makes
+// this cheap to test: the variants are in build/scratch/0x409730/exp/. Remaining
+// diff is still exactly the two SIB base/index bytes.
 //
 // Still 99.6% (space-bunny-free pass): the code is the same 1678 bytes and every
 // instruction matches except these two hunks, both the SIB base/index order of a
@@ -23,9 +46,52 @@
 // - `unsigned char& r = vec_8d[i]` forces the address into a register first
 //   (two extra movs, the pointer kept in ebp) and is never right for a
 //   single-use subscript.
+// - Second space-bunny-free pass, header set is already optimal: adding
+//   <string>, <list>, <map>, <set>, <deque>, <algorithm>, <iostream> or
+//   <xstring> (before or after <vector>) scores 99.2 / 98.0 / 97.6 / 99.6, never
+//   100, so the missing header is not the cause here. `<memory>` and `<new>`
+//   are neutral at 99.6%, so they are also free to add.
+// - Ten more access forms, all with the identical two-line diff: a named
+//   `unsigned char* p8 = vec_8d.begin()` at the top of the loop body is a
+//   disaster (51.0%, and 48.8% with the stored value split into a temp), even
+//   used at only ONE of the two sites (the read alone 99.6%, the store alone
+//   86.6% because the block reshuffles a dozen unrelated instructions).
+//   Neutral at 99.6% with the same diff: `vec_8d[(unsigned)i]`,
+//   `*(vec_8d.begin() + i)`, an `int k = i` copy for the store, and reading
+//   `(char)vec_8d[i]` into a local first. Worse: an `unsigned char` value temp
+//   before the store (85.1%), a `unsigned char& Rating(int)` member used at
+//   both sites (83.9%, the accessor changes the inline budget), and making
+//   vec_8d a `std::vector<char>` so the read needs no cast (98.0%). Binding
+//   the vector itself to a reference inside the loop body, `v8[i]`, is 73.7%.
+// - So the swap is decided before the subscript is even formed: the register
+//   roles are already identical (pointer and index in the same two registers),
+//   the definition order of the two registers is inconsistent between the two
+//   sites, and the register NUMBERS are inconsistent too, which rules out both
+//   definition order and register number as the rule. It has to be the
+//   operand-tree order or some per-function state the front end carries.
 // - A named pointer local hoists `mov <ptr>, [this+0x91]` to the top of the block
 //   when its initializer is written before the value expression (1675 bytes,
 //   86.6%); writing the value into a temp first puts it back in place.
+//
+// deepseek-v4.1 near-miss pass (all scored with check.py --sym, every one of them
+// 99.6% or worse, the two SIB bytes unchanged unless noted): the access FORM is
+// irrelevant here. Byte-identical 1678-byte results, i.e. both SIBs still swapped,
+// for `i * 1` / `1 * i` as the index, `*&vec_8d[i]`, an inline cast pointer
+// `((unsigned char*)vec_8d.begin())[i]`, the pointer-to-array forms
+// `(*(unsigned char (*)[1])vec_8d.begin())[i]` and
+// `((unsigned char (*)[1])vec_8d.begin())[i][0]`, and a 1-byte-struct element
+// (`vec_8d[i].value`, 98.0%, which behaves like the char-vector result). Moving the
+// /2 inside the cast, `x += (char)(vec_8d[i] / 2)`, changes the read to
+// `mov al, [edx+eax]; movsx edx, al` (1677 bytes, 94.1%): the value tree changes,
+// the SIB order does not. A `char` cast on the clamped store value is neutral.
+// New finding: a pointer whose tree node is a real VARIABLE (assigned by a comma
+// expression in the same statement, `p8 = vec_8d.begin(), p8[i] = ...`) does flip
+// the store SIB to the original `[esi + ecx]`, but the extra variable reshuffles
+// the schedule (1675 bytes, 86.6%, the pointer load hoists and a register moves
+// from eax to ebx), and the read site needs braces plus the same trick for the
+// 86.6% copy; there is no variant that flips both bytes while keeping the 1678-byte
+// schedule. Remaining work list is unchanged: 0x4099f6 `[esi + ecx]` vs
+// `[ecx + esi]` and 0x409b53 `[eax + edx]` vs `[edx + eax]`.
 //
 // GPT-6 retry: rating access, clamp, half-rating and pointer getter helpers, plus
 // all 768 header sets, did not improve 99.6%. Remaining differences are still the

@@ -1,7 +1,22 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// GPT-6 retry: eligibility, position-search and loop-body helpers, grouped result
-// locals, vector constructors/copy operators and direction variants did not improve
-// 83.5%. Preserve this version; the first loop register rotation remains.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// space-bunny-free: 87.4% by check.py, 309 of 405 original instructions by true
+// LCS, total size now exactly 1221 bytes. Three things moved it off 84.1%:
+// - The inline Direction() assigns its fields in the order x, z, y (NOT x, y, z).
+//   x,y,z puts the flag12 branch's `d.y = 0` and the negation of d.z in the wrong
+//   order (neg eax before `add esp,8`, the xor after it) and leaves a 2-byte-long
+//   function. x,z,y schedules the xor into the second call's argument gap exactly
+//   as the original does, and the three results land in edi/ebp/ebx like the
+//   original. Expanding the OTHER Direction() call (loop 2, the len<0x100000 one)
+//   into direct d.x/d.y/d.z stores is still right, 84.1% on its own but the two
+//   together are what match; expanding this one instead of keeping the struct
+//   return costs 19 points (67.3%).
+// - The tail of the len<0x1400000 branch is three separate
+//   `target.x = u->pos.x + d.x;` component stores. NOT `target = u->pos + d`
+//   (85.2%: one `mov ebx, [esp+0x18]` and the add/store order move) and NOT the
+//   in-place `d.x += u->pos.x` form (84.1%). The component stores are what put
+//   pos.x/y/z in edi/ecx/edx and add into them, as at 0x40855b.
+// Still one diff, the first loop's register rotation, and it is the whole of the
+// rest (see the hunk list below).
 // Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Runs every 90 ticks over the units of this object's group: first gives each
@@ -12,53 +27,57 @@
 // from it when farther), the others to the base itself, or when within 0x140
 // of it, 0x140 onwards in its direction.
 //
-// Partial (83.8%): the control flow, the stack frame and most of both loops
-// match. What fixed parts of it:
+// Earlier findings that still hold:
 // - Length() takes a const reference to a temporary (pos - origin): only then
 //   are the three fild operands the temporary's own memory, with a stored 0
 //   for y, as in the original.
 // - The range is an inline MapRange() assigned to a local before
 //   `origin.y = pos.y`; written in the comparison it is computed after _ftol.
 // - <memory.h> gives the mapWidth-first load order in MapRange().
-// - The second loop's else branch ends with three in-place `d.x += u->pos.x`
-//   style adds and `target = d;`, not `target = u->pos + d;` (+0.3).
+// - Loop 2's else branch computes the difference into registers already holding
+//   origin.x/y/z (eax/edi/edx), member by member; a plain `Vec3 d = origin -
+//   u->pos;` hoists the loads and scores worse.
 //
-// Still different, hunk by hunk (addresses in the original):
-// - 0x40812f-0x4082c6, loop 1: registers rotated by one. The original keeps
-//   `this` in ebx, the unit in ebp, the iterator in edi (spilled to esp+0x14)
-//   and `ok` in ebx only after `this` dies; here `this` stays in ebx, the unit
-//   is in edi, `ok` in ebp and the iterator in esi. Everything downstream in
-//   the hunk (the MapRange value, the ok test, the two calls) rotates with it.
-//   Loop 2 already allocates correctly (it in edi, unit in esi), so the two
-//   loops take their own decisions and this is loop 1's own live ranges.
+// Still different (addresses in the original). The size is exact, so all of it
+// is register choice and two scheduling spots:
+// - 0x40812f-0x4082c6, loop 1: registers rotated. The original keeps `this` in
+//   ebx, the unit in ebp, the iterator in edi (spilled to esp+0x14) and `ok` in
+//   ebx only after `this` dies; here `this` is in ebp, the unit in edi, `ok` in
+//   ebx and the iterator in esi, sharing esi with `idx`. Everything downstream
+//   in the hunk (the MapRange value, the ok test, the two calls) rotates with
+//   it. In loop 2 the same rotation is one step smaller: the unit is in esi
+//   (right) but `this` is in ebp and the iterator in ebx, where the original
+//   has `this` in ebx, the iterator in edi and edi unused. Promoting `this` one
+//   step in the callee-saved order is therefore worth the whole rest, and no
+//   source-level shuffle tried so far moves it.
 // - 0x408334: the `u->def` load sits before the three `target = origin` stores
 //   instead of after them (pure scheduling of the flag12 test).
-// - 0x4083c8/0x4083d4 and 0x4084df/0x4084f3: the Direction() results land in
-//   ebp/ebx swapped, and in the len<0x100000 branch the two calls are issued
-//   in the other order relative to the negations.
-// - 0x408461-0x40849a, loop 2's else branch: the original does
-//   `sub eax, [esi+0x6a]` (x straight from memory) then reuses the register it
-//   loaded u->pos.y into; here the three loads and two of the three subs are
-//   hoisted above the first store. A plain `Vec3 d = origin - u->pos;` and a
-//   member-at-a-time form both hoist (the latter is worse, 82.7%), so the
-//   members have to land in registers that are already live: eax/edi/edx hold
-//   origin.x/y/z, and the subtraction must consume them in that order.
-// - 0x4084f7: _allmul's first pair is pushed s-first; no source-level
-//   FixMul operand order changes it (all four orders emit the same code).
-// - 0x40855b: the final `u->pos + d` is done in the same order but into
-//   ecx/edx/edi instead of edi/ecx/edx.
-// Retry by deepseek-v4.1-flash: every source-level shuffle left the allocator
-// decision untouched (byte-identical output, all 83.5%), so loop 1's register
-// choice is not driven by statement order. Tried without effect: a
-// function-scope unit shared by both loops, a reference unit, a while loop,
-// pos/ok/idx declaration order, converting `ok` to declaration plus assignment,
-// and renaming loop 1's unit.
-// Tried without effect or worse: other header sets, the iterator as a pointer,
-// separate iterators per loop, a unit variable shared by both loops,
-// function-scope ok/idx/kind, `continue` chains instead of the && chain,
-// (*it)-> instead of a unit local, direct temporaries as FUN_0043adc0
-// arguments, a Scale helper, FixMul operand orders, TooFar() helpers, and
-// Length(d) versus Length(origin - u->pos) in each branch.
+// - 0x4084f7: _allmul's first pair is pushed s-first; no source-level FixMul
+//   operand order changes it (all four orders emit the same code).
+// History: two deepseek-v4.1-flash retries and a GPT-6 retry took this from
+// 83.5% to 84.1% (the second one by expanding the loop-2 else-branch
+// Direction() call into direct d.x/d.y/d.z stores, angle in an int local, which
+// is kept here) without ever moving the allocator.
+// Tried without effect: a function-scope unit shared by both loops, a reference
+// unit, a while loop, pos/ok/idx declaration order, converting `ok` to
+// declaration plus assignment, renaming loop 1's unit, swapping the two
+// function-scope declarations, a `Class_00407350* self = this;` copy with every
+// field access routed through it (byte-identical output), the iterator as a
+// pointer, separate iterators per loop, function-scope ok/idx/kind, `continue`
+// chains instead of the && chain, (*it)-> instead of a unit local, direct
+// temporaries as FUN_0043adc0 arguments, a Scale helper, FixMul operand orders,
+// TooFar() helpers, and Length(d) versus Length(origin - u->pos) in each branch.
+// deepseek-v4.1 (2092) retried the last rotation with: one iterator variable per
+// for-scope (86.4%), an inline `Player()` accessor for every field_10 read
+// (86.9%), an inline `Units()` accessor for every field_8 read (87.4, same
+// bytes), and four shapes that compile to the identical 1221 bytes (ok
+// pre-initialised to 0, unsigned ok, pos hoisted to the loop-body top, `const u`)
+// plus a stray idx local (no change). The rotation is therefore not steered by
+// the loop-1 locals, their declaration order or their initialisers.
+// Tried and worse: other header sets, the x,y,z or z,y,x orders of Direction()'s
+// fields (85.6% and 85.4%), `target = u->pos + d` (85.2%), the in-place
+// `d.x += u->pos.x` tail (84.1%), expanding the loop-2 flag12 Direction() call
+// into direct stores (67.3%).
 #include <memory.h>
 #include <vector>
 #include <math.h>
@@ -175,8 +194,8 @@ static inline Vec3 Direction(short angle, int scale)
 {
     Vec3 v;
     v.x = -FUN_004b70ef(angle, scale);
-    v.y = 0;
     v.z = -FUN_004b7123(angle, scale);
+    v.y = 0;
     return v;
 }
 
@@ -246,17 +265,24 @@ void Class_004085d0::FUN_00407380()
                 int len = Length(d);
                 if (len < 0x1400000) {
                     if (len < 0x100000) {
-                        d = Direction(FUN_004b6c30(0x10000), 0x1400000);
+                        {
+                            // Expanded copy of the inlined Direction() call: writing
+                            // the three components of d directly avoids the extra
+                            // copy and the swapped y/z allocation.
+                            int ang = FUN_004b6c30(0x10000);
+                            d.x = -FUN_004b70ef(ang, 0x1400000);
+                            d.y = 0;
+                            d.z = -FUN_004b7123(ang, 0x1400000);
+                        }
                     } else {
                         int s = FixDiv(0x1400000, len);
                         d.x = FixMul(s, d.x);
                         d.y = FixMul(d.y, s);
                         d.z = FixMul(d.z, s);
                     }
-                    d.x += u->pos.x;
-                    d.y += u->pos.y;
-                    d.z += u->pos.z;
-                    target = d;
+                    target.x = u->pos.x + d.x;
+                    target.y = u->pos.y + d.y;
+                    target.z = u->pos.z + d.z;
                 }
                 Class_00438760 kind = FUN_0043f0e0(9, u, 0, &target);
                 FUN_0043adc0(kind, 0, u, 0, &target, 0, 0);

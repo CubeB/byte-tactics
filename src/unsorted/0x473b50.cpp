@@ -1,4 +1,13 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+
+// Retry (deepseek-v4.1-flash, #2615): no gain, 88.0% stays. A Vec3 method
+// Split()/Sub() pair (two inlined methods, the same shape the matched
+// siblings 0x4736e0/0x4742c0 use) compiles to 511 bytes, 78.5%, and the
+// free helper with the e.x/e.y stores moved after the next component's
+// loads compiles to 533 bytes, 54.3%. The store-sinking hunks come from
+// eax/ebp being clobbered after the rep-movsd copies: block one's pointer
+// register (eax) is reused by the division magic constant, block two's
+// (ebp) is not, so only block two keeps the start pointer for y and z.
 // Refinement (GPT-6.1-sol): best remains 88.0% (497/499 bytes), no MATCH.
 // Reversing the inline helper's Vec3 reference parameter order and reversing
 // each call's arguments emits byte-identical code. Remaining differences are

@@ -4,7 +4,12 @@
 // Most screen-counter variants add a hoisted row invariant and a four-byte frame
 // increase; keep this best version rather than replacing it with those variants.
 // Region-split skeleton, per docs/splitting-huge-functions.md (PR #1287).
-// Checked by space-bunny-free. Names are provisional.
+// Checked by space-bunny-free; verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: the saved 55.5% source (2203 bytes) remains best after
+// three variants. Explicit screen-base induction variables scored 51.5% at
+// 2187 bytes; moving the lastX clamp ahead of firstX/lastY scored 52.7% at
+// 2207 bytes; spelling the width clamp as a ternary stayed at 55.5%. Restored
+// the original source shape because equal score did not justify replacing it.
 //
 // RETRY NOTE (deepseek-v4.1-flash, 55.5%, no variant beat this file). The frame
 // size and byte count are right; the score is stuck because the ORIGINAL walks

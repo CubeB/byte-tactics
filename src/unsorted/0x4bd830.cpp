@@ -1,4 +1,31 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, 56.4% (best actually printed by check.py; this file is that best
+// version, kept as is because the rewrite below was never scored when the
+// timebox fired). What still differs: stack-slot assignment in the entry loop
+// (original nameoff +0x20, i +0x34, recarr +0x3c; ours nameoff +0x28,
+// i +0x38) and the register choices that follow from it (base in ebp, entry
+// pointer in ebx in the original).
+// This session's disassembly analysis (not yet compiled): the loop latch at
+// 0x4bdd33 re-derefs the count inline (cmp eax,[edx+ebp] with off reloaded
+// from the arg slot), so count must NOT be a local; the precheck at 0x4bd8bc
+// compares i against the count before nameoff/recarr stores (they are
+// initialised inside the guard: if (i < *(unsigned*)(base+off)) { nameoff=0;
+// recarr=base+off+4; do {...} while (i < *(unsigned*)(base+off)); } with
+// nameoff+=9; i++ as the last body statements in that order). The entry
+// flags test at 0x4bd93c is test byte [ebx+8],1 / je leaf, i.e. the TRUE
+// branch (e->flags & 1) is the recursive call laid out inline first and the
+// leaf is the jump target, opposite of the branch order in this file. The
+// uncompressed size loop precheck is test/jbe (unsigned > 0) while its latch
+// is sub/jne, so likely while (size > 0) with unsigned size. An untested
+// rewrite with all of these lives at build/scratch/0x4bd830/variant.cpp;
+// it also makes clen and the xor loops signed (jl/jle in the original) and
+// declares the 13 scalar slots in the order dataptr, remain, databuf, tp,
+// nameoff, table, clen, file, n, i, pos, recarr, packlen. Slot map recovered
+// from the original (frame slots at esp+0x10..+0x40): +0x10 dataptr,
+// +0x14 remain, +0x18 databuf, +0x1c tp, +0x20 nameoff, +0x24 table base,
+// +0x28 clen, +0x2c file, +0x30 n, +0x34 i, +0x38 pos, +0x3c recarr,
+// +0x40 packlen (the +0x24 "unused" dword is in fact table, read at 0x4bdb62).
+// Older notes follow.
 // Partial, 56.4%. Frame size and the name/full/buffer offsets now match the
 // original (0x123c, esp+0x44/0x148/0x24c). What still differs is stack-slot
 // coloring and register allocation in the entry loop: the original keeps

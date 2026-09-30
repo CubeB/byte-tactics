@@ -20,6 +20,27 @@
 // its point of use (86.9), out[0]=root+8 with/without an nsize temp (83.5),
 // (unsigned)base in the header address (88.2), #include <windows.h> (no change),
 // a size temp for the leaf branch (87.0-87.2).
+//
+// Session 2 (deepseek-v4.1-flash) findings:
+//  - The 4-byte size excess (1152 vs 1148) is exactly the DOUBLE read of
+//    fd.size in the leaf: base emits two `mov ...,[esp+0x34]` (one for node.size,
+//    one reloading for *total += size). Reading fd.size once via a local `fsz`
+//    makes the size exactly 1148 but the score drops to 87.9%, because fsz then
+//    lands in edi and `*total += fsz` stays a load/add/store (the known stuck
+//    `add [eax],ecx`) while node.size is stored from edi. So the right size and
+//    the best score are currently mutually exclusive here.
+//  - Tried and rejected: `nsize = root + 8` single-read (83.6), `out[0] += 8`
+//    capture (88.3, prologue still `mov esi,[ebp]; mov eax,esi`), `out[0] =
+//    (root = out[0]) + 8` (81.8, gives `lea eax,[esi+8]`), param_2 as a
+//    HapiBuf{size,buf} struct with out->size/out->buf (87.9, prologue unchanged),
+//    `root + base` instead of `base + root` for the header/inc SIB (flat 88.3),
+//    #include <windows.h> (flat 88.3).
+//  - The prologue `mov eax,[mem]; mov esi,eax` vs our `mov esi,[mem]; mov eax,esi`
+//    would not flip with struct access, += capture, or an assignment-expression;
+//    it recurs at the second allocator block too. The name-allocator `add
+//    ecx,ebx; push ecx` vs `lea eax,[ecx+ebx]; push eax` and the `add [eax],ecx`
+//    for *total += size are also stuck (see board). Semantics are believed
+//    correct throughout; what differs is register allocation and scheduling.
 #include <io.h>
 #include <string.h>
 

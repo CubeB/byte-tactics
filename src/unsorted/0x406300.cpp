@@ -110,6 +110,23 @@
 // bytes by spilling a named local. The original's schedule, ECX for the first
 // `->order` and EDX for the second, is exactly what a NON foldable second access
 // allocates to naturally, since EDX (the target pointer) is dead by then.
+// Round 7 (deepseek-v4.1, scratch sweep.py, 60 variants at once): a full 7x7 grid of
+// correct-semantics spellings (target: `->target`, `->Target()`, `((Order*)chain)->target`,
+// `(*(Order**)((char*)t+0x5c))->target`, `other->target`; pos: `->Position()`, `&->pos`,
+// the (Order*) cast, `(Vec3*)((char*)chain+0x22)`, `&(*(Order**)...)->pos`, `other->...`)
+// plus comma/deref exotics. Every one stays at 1145 or 1149 bytes with ONE `[reg+0x5c]`
+// load; the best correct spelling is 95.1 (A2_B1), never 1152. Two structural facts came
+// out of it: (a) whichever argument is spelled as a FOLD (a `(char*)ptr + const` address
+// that never dereferences the chain) makes the other argument load once and the result is
+// 1149, which is why the cast in the target argument scores 96.2 while being WRONG; the
+// current target argument `((Order*)((char*)order->target+0x5c))->Target()` reads
+// Unit+0x72 (= Unit::pos.z) as a Unit* and must not be kept as the final answer. (b) The
+// twin 0x40fbe0 gets away with the two-load tail because at its BuildOrder block ESI
+// (unit), EDI, EBX (order) and EBP (0) are all live and EAX holds the `new` result, so
+// only ECX and EDX are free: the compiler must compute the pos in place (add on the
+// chain register) and then re-load the chain for the target. Here ESI is free after
+// `other` dies at 0x406629, so VC5 always finds the one-load schedule. A source shape
+// that keeps a value in ESI across the tail was not found in rounds 1..7.
 #include <stdio.h>
 struct Vec3 {
     int x, y, z;

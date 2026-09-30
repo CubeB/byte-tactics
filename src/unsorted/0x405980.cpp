@@ -39,6 +39,17 @@
 //    so the frame and every following [esp+N] move by 2. Left the `capE*0.2 > energy` form, which
 //    keeps 1081 bytes and 90.9%; the remaining gap is the +41 bytes below 0x405b98 (our 4th block
 //    inlines the new/ctor tail the original jumps to at 0x405d01) plus this fxch.
+// 7. Checked in a scratch compile loop (tools/wcl plus a local disassembler, both in
+//    build/scratch/0x405980/) that the un-merged tail is POSITIONAL, not content-based: whichever
+//    of the three FUN_004388d0/new/FUN_0043acb0/flags=0/return-3 blocks sits SECOND in the source
+//    gets its own inline copy of the ctor tail, in every arrangement tried (A,B,C,D and A,C,B,D
+//    and A,B,D,C), whichever condition and whichever pointer it uses. So the original's three-way
+//    share is not reachable by reordering, by per-branch or hoisted `Class_0043a1f0*` locals, by
+//    `energy < capE*0.2` (1083 bytes, 89.9%), by `!(energy >= capE*0.2)` (1081, 90.9%) or by the
+//    `energy >= capE*0.2 && metal >= capM*0.2` guard (both FP tests then get an fxch and a second
+//    return-2 epilogue, 1094, 89.1%). The remaining byte differences are the gate's fld order
+//    (ours loads capE and multiplies first; the original loads energy first, then capE, then
+//    multiplies, byte-neutral but unfixed) and this one extra copy of the tail.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;

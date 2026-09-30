@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: kind-7 lightning interpolation and stack/register layout still differ.
 //
 // PARTIAL. 0x49be60 (2272 bytes) is the projectile render pass: it walks the
 // 300-entry projectile array (count g_game+0x141f3, base g_game+0x141f7,
@@ -233,7 +234,7 @@ void __stdcall FUN_0049be60(void* surface)
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
-                    int sy = (int)*(short*)((char*)&sp + 6) - ((int)p->field_5e >> 1) + 0x20;
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
                     rect[0] = p->field_34;
                     rect[1] = (short)(p->field_36 + 0x8000);
@@ -262,7 +263,7 @@ void __stdcall FUN_0049be60(void* surface)
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
-                    int sy = (int)*(short*)((char*)&sp + 6) - ((int)p->field_5e >> 1) + 0x20;
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
                     FUN_0046bae0(surface, &sp, type->field_74, clip);
                 } else if (type->field_10c == 4) {
@@ -305,7 +306,7 @@ void __stdcall FUN_0049be60(void* surface)
                     sp.y = p->pos.y;
                     sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
-                    int sy = (int)*(short*)((char*)&sp + 6) - ((int)p->field_5e >> 1) + 0x20;
+                    int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
                     FUN_0046bae0(surface, &sp, type->field_74, &p->field_34);
                 } else if (type->field_10c == 7) {

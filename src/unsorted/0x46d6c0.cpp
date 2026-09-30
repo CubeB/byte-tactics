@@ -1,4 +1,8 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol follow-up (#1543): rechecked the 83.6% best. `f2 = direct` and `f2 = !direct`
+// both fell to 58.9% because constant propagation shrinks the frame and changes registers.
+// Remaining mismatch: the else path is 4 bytes longer; it loads packet+2 into ebx instead
+// of zeroing ebx, and splits node-value stores rather than keeping one base in ecx.
 //
 // deepseek-v4.1-flash pass (#1137): confirmed the remaining 4 bytes are the
 // zero source, and that no literal-zero spelling helps. Scratch variants

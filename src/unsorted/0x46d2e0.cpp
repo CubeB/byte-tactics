@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// #1543 retry by Codex / GPT-6.1-sol: verified 88.4% (475/475 bytes) with checkall; no MATCH.
+// The remaining difference is scheduling and register allocation in the pre-insert block and post-insert copy.
 // PARTIAL, 88.4%, and the whole function now compiles to the original's exact
 // 475 bytes, so only the in-block scheduling inside two blocks is left.
 // What is settled (do not undo):
@@ -40,6 +42,7 @@
 struct Wh_0046d2e0 {                   // 4 bytes, the w/h pair
     short w;                            // +0x0
     short h;                            // +0x2
+
 };
 
 struct Value_0046d2e0 {                 // 0x10 bytes, the map's value

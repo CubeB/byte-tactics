@@ -54,6 +54,10 @@
 // Dropping the Offset/FUN_0040f790 helpers moves the budget the wrong way (a
 // whole ~vector out of line, or FUN_0040f200 or FUN_0040f790 not inlined).
 // No header set changes the result (tools/headers.py).
+// GPT-6.1-sol retry pass: 9 checker runs kept this 92.5% source.
+// Direct switch and inverted-branch spellings stayed tied; a void helper with a
+// flags check scored 73.4%, and returning order->flags scored 71.0%. The
+// remaining landing-path join after vector cleanup is unchanged.
 #include <vector>
 
 struct Vec3 {

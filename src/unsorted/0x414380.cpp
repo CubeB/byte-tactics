@@ -5,6 +5,10 @@
 // pos.x in ebp/min.x in edx. Writing either as a direct Vec3 operator- fixes
 // those bytes but flips unit/order in esi/edi across the whole function, so the
 // operator-= based subtraction is kept.
+// GPT-6.1-sol retry pass: 7 checker runs and all 128 header combinations
+// kept this 91.3% source. Direct component subtraction, reversed bounds
+// addition, and explicit component arithmetic scored lower. The movement
+// subtraction and bounds operand/register ordering still differ.
 #include <stdio.h>
 struct Point { short x, y; };
 struct Vec3 {

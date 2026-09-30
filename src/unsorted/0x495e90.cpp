@@ -1,8 +1,29 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL 78.8%: in-game command/gadget event dispatcher, original 2292 bytes,
+// PARTIAL 79.6%: in-game command/gadget event dispatcher, original 2292 bytes,
 // ours 2292 (exact size; structure, jump tables and case order agree).
 //
-// What this pass changed (75.7% -> 78.8%):
+// What this pass changed (79.0% -> 79.6%), THE STACK FRAME:
+// Both remaining frame-slot differences were ONE cause, the size of the two
+// buffers in case 0xd7 and the CTRL buffer in case 0xab. Measured with the
+// scratch scorer in build/scratch/0x495e90/score.py (buf size -> frame,
+// CTRL buf, findData, path):
+//   buf[0x20] path[0xf0]  frame 0x230  CTRL 0x18  findData 0x38  path 0x150
+//   buf[0x18] path[0xf0]  frame 0x228  CTRL 0x18  findData 0x30  path 0x148
+//   buf[0x10] path[0xf0]  frame 0x220  CTRL 0x10  findData 0x28  path 0x140
+//   buf[8]    path[0xf0]  frame 0x224  CTRL 0x10  findData 0x2c  path 0x144
+//   buf[0x10] path[0x100] frame 0x230  CTRL 0x10  findData 0x28  path 0x140
+// The last row is the original, exactly. MSVC5 sizes the frame as
+// (top of the highest local) MINUS 0x10, so a `char path[0xf0]` placed at
+// 0x140 only yields `sub esp,0x220`; the original's path buffer is 0x100
+// bytes, and `char buf[0x10]` is what lets the CTRL buffer share slot 0x10
+// with case 0xf8's `data[4]`. That single pair of sizes fixes the CTRL lea
+// (esp+0x18 -> 0x10), the two 0xd7 leas (0x38 -> 0x28, 0x150 -> 0x140), the
+// atoi argument lea (0x51 -> 0x41) and keeps the frame at 0x230 at the same
+// time. Every diff hunk in the checker that was not a `jmp 0x4965ce` ->
+// `jmp 0x4965cf` target shift is gone; see build/scratch/0x495e90/itxt.py,
+// which reproduces the checker's instruction-text diff offline.
+//
+// What the earlier passes changed (75.7% -> 78.8%):
 // - Case 0xd7: hoisting `int old = g_game->field_38c53;` ABOVE the
 //   `flags_37f2f.b1` guard (semantically the same, the read is unconditional)
 //   flips the whole block's allocation. MSVC now keeps g_game in esi and the
@@ -42,57 +63,61 @@
 //   `FUN_00451df0(FUN_0044fdb0(), data, 3)` (no intermediate int) makes MSVC
 //   push the literal 3 before the toggle, as the original does.
 //
-// What still differs (measured with tools/check.py, and an LCS alignment of
-// both disassemblies, see build/scratch/0x495e90/):
-// - The code is 3 bytes longer than the original's from 0x4961fb on, so every
-//   later `jmp 0x4965ce` and the shared break target are one high. Two
-//   independent one-line causes account for it exactly:
-//   (a) case 0xd7, +7 bytes. The hoisted load wins the allocation but leaves
-//       `mov eax, [esi + 0x38c53]` before `shr cl, 1` and puts the store below
-//       the `cmp eax, ebx`; the original has flag test, load, store, compare.
-//       Getting the moffs `mov eax, g_game` AND the original's statement order
-//       at once has not been found.
-//   (b) case 0xad, +2 bytes: entry test is `mov eax,[esp+0x20]; cmp esi,eax`
-//       where the original has the folded `cmp esi, dword ptr [esp+0x20]`. The
-//       back edge matches. Tried and did not help: a hoisted
+// What still differs (measured with tools/check.py, and an instruction-text
+// LCS alignment of both disassemblies, see build/scratch/0x495e90/):
+// - There is now exactly ONE delta left in the whole function: case 0xd7's
+//   entry is 37 bytes here against 36 in the original, so the code from
+//   0x496202 on, and therefore every `jmp 0x4965ce` and the shared break
+//   target, sits one byte high. Everything else, including the epilogue,
+//   the tail (`push ebp / call FUN_004956c0`), the 0xad block and the two
+//   jump tables, is byte for byte the original.
+//     original: mov eax,[g_game] / mov cl,[eax+0x37f2f] / shr cl,1 / test cl,1
+//               / je / mov ecx,[eax+0x38c53] / mov [eax+0x38c53],ebx
+//               / cmp ecx,ebx / jne            (36 bytes)
+//     here:     mov esi,[g_game] / mov cl,[esi+0x37f2f] / shr cl,1
+//               / test cl,1 / je / mov eax,[esi+0x38c53] / cmp eax,ebx
+//               / mov [esi+0x38c53],ebx / jne  (37 bytes)
+//   Two things are wrong at once: the pointer needs EAX for the 5-byte moffs
+//   form (any other register is 6 bytes), and the store must come BEFORE the
+//   compare. The store-before-compare only happens when the `int old` load is
+//   inside the guard; the EAX choice only happens when the `int old` load is
+//   hoisted above it. Every spelling tried couples them the wrong way:
+//     `int old` hoisted (kept, 79.6%)  flag in CL as the original, pointer ESI.
+//     `int old` inside the guard       original's order, but `mov ecx,[g_game]`
+//                                     and the flag byte in AL, 2288 bytes.
+//     local `Game_495e90* g` hoisted, `int old` hoisted   ESI / CL, wrong order.
+//     local `Game_495e90* g` inside the guard             ESI / AL, 2260 bytes.
+//     `int old` hoisted + a named `unsigned short keep` for the flag: MSVC
+//       folds the 1-bit compare into `test dl,2`, a different shape, 2288.
+//   Reading either value into a named local (technique 8) does not decouple
+//   them either. The reading to try next is a construct that makes the
+//   g_game load a value the allocator ranks ABOVE the bitfield byte temp but
+//   still lets its web die at the branch, so it never becomes ESI.
+// - An older note claimed case 0xad needed +2 bytes at its entry test. That
+//   is stale: with the corrected frame the 0xad block is exact.
+// - Older notes on this file:
+//   (a) Case 0xad entry is `mov eax,[esp+0x20]; cmp esi,eax` where the
+//       original has the folded `cmp esi, dword ptr [esp + 0x20]`. STALE.
+//       Tried and did not help: a hoisted
 //       `std::vector<int>::iterator e = sel.end();`, `sel.end() != it`,
 //       `!(it == sel.end())`, `int*` iteration, and a `const&` to sel.
-// - Measured 2026-09-30 with a free LCS diff of the two disassemblies
-//   (build/scratch/0x495e90/sd.py on orig.txt vs ours_now.txt): the +3 is
-//   exactly two deltas, and every other instruction in the body has the same
-//   text and size as the original.
-//   * case 0xd7 entry is 41 bytes in the original, 42 here: `mov esi,
-//     dword ptr [g_game]` is 6 bytes where the original's moffs `mov eax,
-//     g_game` is 5. The original also tests the flag first, then loads
-//     field_38c53 (into ecx), stores, compares; writing `int old` inside the
-//     guard fixes that order but costs the same byte (`mov ecx, g_game`) and
-//     scores 75.7%, so the hoisted form is kept. A local `Game_495e90* g`
-//     for the guard/load/store also scores 78.8%, no better.
-//   * case 0xad entry has one extra `mov eax, [esp + 0x20]` (2 bytes): the
-//     original folds that operand into `cmp esi, dword ptr [esp + 0x20]`.
-//     A hoisted `stop = sel.end()` scores 73.9%, `sel.end() != it` 78.7%, a
-//     `while` form 78.8%. The back edge already matches.
-//   Fixing both deltas should make the whole body line up; MATCH was not
-//   reached in this session. (Corrected note: case 0xec now uses dl and
-//   matches the original; the older al note above is stale.)
-// - Frame slots still differ (CTRL buf esp+0x18 vs esp+0x10, the 0xd7
-//   findData/path buffers esp+0x38/0x150 vs esp+0x28/0x140).
-// - Case 0xad's entry test now matches the original's folded
-//   `cmp esi, dword ptr [esp+0x20]`; the old note below is stale.
+// - Frame slots now agree with the original exactly.
 // - Tested with buf[8] in case 0xab: the CTRL buffer then lands at esp+0x10
 //   exactly like the original, but the frame drops to 0x224 and the 0xd7/0xad
-//   locals stay 4 bytes high, so the score falls to 77.9%. buf[0x20] keeps the
-//   frame at 0x230 and the score at 79.0%, so it is kept.
+//   locals stay 4 bytes high. STALE as a dead end: buf[0x10] WITH path[0x100]
+//   gets every offset right (see the top of this file). The frame and the slot
+//   offsets are two separate constraints, which is why searching buffer sizes
+//   on one of them alone kept looking like a dead end.
 // - Case 0xec (0x4962f8) loads the guard into al where the original uses dl
 //   (`test al,1` is 2 bytes, `test dl,1` is 3). A `char` bitfield base for
 //   Flags_00495e90_37f2f was tried and is much worse (69.6%), so the
 //   `unsigned short` base is right and the register difference is pure
 //   allocator state. Note the ORIGINAL also picks al for the same test in case
 //   0x5c and cl in case 0xd7, so the choice is per block, not per expression.
-// - Case 0xab CTRL buffer sits at esp+0x18 here vs esp+0x10 in the original;
-//   the 0xd7 findData/path buffers are 0x10 higher (orig 0x28/0x140, ours
-//   0x38/0x150). Buffer sizes 8, 0x10, 0x18, 0x1c, 0x20 were all tried: the
-//   CTRL buffer never lands below 0x18 and the frame total changes with it.
+// - The buffer sizes 8, 0x10, 0x18, 0x1c, 0x20 were all tried for `buf` while
+//   `path` stayed 0xf0, and no CTRL buffer landed below 0x18. STALE: the CTRL
+//   buffer needs BOTH buf[0x10] and path[0x100], because the frame size and
+//   the slot offsets are computed independently.
 //
 
 #include <windows.h>
@@ -426,7 +451,7 @@ void FUN_00495e90(void)
         if (g_game->flags_37f2f.b1) {
             g_game->field_38c53 = 0;
             if (old == 0) {
-                char path[0xf0];
+                char path[0x100];
                 char findData[0x118];
                 sprintf(path, "%s\\MOVIE*", g_game->field_38a53);
                 int h = FUN_004bc4b0(path, findData, -1, 1);
@@ -501,7 +526,7 @@ void FUN_00495e90(void)
     case 0xc0:
     case 0xc1:
     case 0xc2: {
-        char buf[0x20];
+        char buf[0x10];
         sprintf(buf, "CTRL_%c", event - 0x69);
         FUN_0048bf30(buf, key);
         break;

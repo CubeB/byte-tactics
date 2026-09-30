@@ -1,7 +1,25 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
-// deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash.
+// Names are provisional.
 //
-// 2797 bytes. Best so far: 82.4% (2846 vs 2797 bytes). No MATCH.
+// 2797 bytes. Best so far: 82.8% (2846 vs 2797 bytes). No MATCH.
+//
+// This pass (deepseek-v4.1-flash, ~20 min): re-scored the baseline and the
+// prior lane experiments in build/scratch/0x497180/. Two small wins, both from
+// build/scratch/0x497180/vQ.cpp:
+// - A shared `int one = 1;` before the switch (used in the case-1/2 mask lanes
+//   and the two `DAT_005091cc = one;` case-2/3 stores) changed the xor-lane
+//   allocation in cases 1/2 from edx/esi to ecx/edx and was worth 82.4 -> 82.7.
+// - The mission-count loop rewritten as `int i = 0; while (i < 10) { if (...)
+//   count = i + 1; i++; def += 6; }` puts `i++` before the `def += 6` pointer
+//   add, matching the original's `lea esi,[eax+1]; inc eax; add edx,0x18`, for
+//   82.7 -> 82.8. A plain `for` gives the pointer add first.
+// - Confirmed by isolated /Fa probes that the winner lane shape is
+//   `unsigned int m = *(unsigned char*)(p+off) & M; w = (w & ~M) | m;`
+//   (`and ebx,2` 32-bit, no movzx). Applying it to any subset of the lanes
+//   (p2 only 80.5, pl only 81.0, p2+pl 78.7, all 12 75.0) still loses to the
+//   current 16-bit form, so the remaining lane gap is one allocation state,
+//   not a source-shape problem. Do not re-run those.
 //
 // This pass (deepseek-v4.1, ~12 min, 8 check runs, 80.8 -> 82.4):
 // - The 0x38d75 network flags ARE the volatile field the guide names: writing
@@ -19,6 +37,17 @@
 //   old note had 74.4 for all six lanes), and `int one = 1;` used for the
 //   DAT_005091cc stores (byte-identical to the plain constant: MSVC propagates
 //   the constant, so it cannot force a register-held 1).
+//
+// This pass (deepseek-v4.1, second 12 min, 8 check runs): confirmed the
+// 32-bit byte temp is what the original lanes use (it is the only spelling
+// that makes MSVC emit the `xor r,r; mov r8,mem` zero-extension idiom at
+// 0x497303/0x497353/0x49737a), but MSVC then rewrites `(w & ~2) | (b & 2)` as
+// `xor b,w; and b,2; xor b,w` and moves g_game to esi and the byte to
+// eax/ecx/edx: 73.3% with all nine lanes, 80.2% with case 3 only and 76.0%
+// with just the two shift lanes (case 1/2), all worse than 82.4%. Read it as
+// a live-range effect: here the const 1 in edx dies before the case-3 calls,
+// so edx is enough; the original's `and reg,edi` inside the post-call lanes
+// keeps it live across them and that is what forces edi.
 //
 // Still open, in order of how much they cost on the diff:
 // - The nine 0x14281 lane updates: the original zero-extends the byte into a
@@ -183,6 +212,7 @@ void __cdecl FUN_00497180(void)
     srand((unsigned)time(NULL));
     *(int*)(g_game + 0x38a47) = 0;
 
+    int one = 1;
     switch (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100()) {
     case 1: {
         DAT_005091cc = 0;
@@ -190,35 +220,35 @@ void __cdecl FUN_00497180(void)
         *(int*)(g_game + 0x37ef6) = *(int*)base;
         *(unsigned short*)(g_game + 0x14281) =
             (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffb) |
-                ((*(unsigned char*)(base + 0xc) & 1) << 2));
+                ((*(unsigned char*)(base + 0xc) & one) << 2));
         unsigned short v = *(unsigned short*)(g_game + 0x14281);
         unsigned char b = *(unsigned char*)(base + 4);
-        *(unsigned short*)(g_game + 0x14281) = (unsigned short)(((v ^ b) & 1) ^ v);
+        *(unsigned short*)(g_game + 0x14281) = (unsigned short)(((v ^ b) & one) ^ v);
         *(unsigned short*)(g_game + 0x14281) =
             (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffd) |
-                ((*(unsigned char*)(base + 8) & 1) << 1));
+                ((*(unsigned char*)(base + 8) & one) << 1));
         FUN_00431740();
         break;
     }
     case 2: {
         char* base = (char*)*(void**)(g_game + 0x29a0) + 0x108;
         *(unsigned short*)(g_game + 0x37ee6) = *(unsigned short*)(g_game + 0x37eec);
-        DAT_005091cc = 1;
+        DAT_005091cc = one;
         *(int*)(g_game + 0x37ef6) = *(int*)base;
         *(unsigned short*)(g_game + 0x14281) =
             (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffb) |
-                ((*(unsigned char*)(base + 0xc) & 1) << 2));
+                ((*(unsigned char*)(base + 0xc) & one) << 2));
         unsigned short v = *(unsigned short*)(g_game + 0x14281);
         unsigned char b = *(unsigned char*)(base + 4);
-        *(unsigned short*)(g_game + 0x14281) = (unsigned short)(((v ^ b) & 1) ^ v);
+        *(unsigned short*)(g_game + 0x14281) = (unsigned short)(((v ^ b) & one) ^ v);
         *(unsigned short*)(g_game + 0x14281) =
             (unsigned short)((*(unsigned short*)(g_game + 0x14281) & 0xfffd) |
-                ((*(unsigned char*)(base + 8) & 1) << 1));
+                ((*(unsigned char*)(base + 8) & one) << 1));
         break;
     }
     case 3: {
         *(unsigned short*)(g_game + 0x37ee6) = *(unsigned short*)(g_game + 0x37eec);
-        DAT_005091cc = 1;
+        DAT_005091cc = one;
         *(unsigned short*)(g_game + 0x38a51) &= 0xfffe;
 
         int sel = FUN_00456850();
@@ -275,9 +305,11 @@ void __cdecl FUN_00497180(void)
             if (((Class_00435100*)*(void**)(g_game + 0x391e9))->FUN_00435100() == 2) {
                 int count = 0;
                 int* def = (int*)*(void**)(g_game + 0x29a0);
-                for (int i = 0; i < 10; i++) {
+                int i = 0;
+                while (i < 10) {
                     if (*def == 1 || *def == 2)
                         count = i + 1;
+                    i++;
                     def += 6;
                 }
                 int cur = *(int*)(g_game + 0x38d81);

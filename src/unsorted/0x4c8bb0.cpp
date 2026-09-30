@@ -1,4 +1,4 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial 51.6%. This is a textured/gouraud triangle rasteriser into 10-int
 // span rows, then one FUN_004c8020 call per scanline. The sibling 0x4c8760 is
 // the same algorithm without the light channel and is matched to 67.9%; its
@@ -48,6 +48,13 @@
 // Hoisting the block-scope `x`/`y1` (the sibling 0x4c8760's
 // winning change) and hoisting the span `x`/`y1` plus porting its whole loop
 // structure; those scored 51.3 and 36.1 and did not grow the frame either.
+//
+// This pass (deepseek-v4.1-flash): confirmed the missing [esp+0x4c] slot is
+// the first loop's raw index-1. Keeping `previous` live across the body (with
+// `index=previous; if(index<0) index=3;`) still compiles to a 15-slot frame
+// (0x7d5c, spans 0x6c): MSVC proves index==next and drops previous. Mirroring
+// 0x4c8760's winning loop verbatim did not transfer here (44.4%, frame shrank
+// to 1239 bytes). So the 0x4c slot is not reachable by making `previous` live.
 //
 // Fixes that did land: second edge loop writes ints 1,4,5,7,9 of the span row
 // (the row is [xL,xR,uL,vL,uR,vR,zL,zR,lL,lR]), the rasterise guard is

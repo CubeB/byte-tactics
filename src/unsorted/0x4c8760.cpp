@@ -1,5 +1,5 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by
-// space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-6, finished by space-bunny-free, finished by GPT-6.1-sol,
+// finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 87.3% (1094 original bytes, 1094 ours).
 // Fixed this pass: hoisting all four shared edge-walk temps (next, dv, dx, du)
 // to function scope, ahead of the min/max locals, restored the frame from
@@ -32,6 +32,25 @@
 // next=index-1; previous=next; is inert. So the slot table follows the
 // allocator's live-range order, not declaration order, and the crossing
 // needs a change to a lifetime, not to a declaration.
+// Third pass (deepseek-v4.1-flash retry), all measured with free --sym runs:
+// The single primary divergence is lowX: original puts it at 0x14, we put it
+// at 0x10; every other diff follows from that (our unnamed `vertices+next*3`
+// temp then reuses 0x10, forcing next to 0x14 and dv to 0x38, where the
+// original has next/dv at 0x10 and the next-vertex pointer at 0x38).
+//  - All 24 declaration-order permutations of lowY/highY/highX/lowX: inert.
+//  - All 24 permutations of their four assignment statements: max 87.3, never
+//    better (13 land at 86.7 or 87.0 because the store order changes).
+//  - Block-scoping `next` inside both edge loops (two locals) DOES reproduce
+//    the original's sharing pattern exactly (dv shares loop1 next's slot;
+//    loop2 next shares lowX's slot) but the frame drops to 0x7d54 and the
+//    whole scalar arena shifts: 67.9%. Any shadowed/block `next` variant hits
+//    the same 67.9% attractor.
+//  - An explicit `int* nextVertex` local (variant D) still lands in 0x10 and
+//    scores 81.9%.
+//  - Hoisting x/y1 to function scope, and moving dv or dv+dx into the
+//    if(highY!=lowY) block, are all inert (dv stays at 0x38).
+// So the 0x10/0x14 crossover is a live-range decision, not a declaration one,
+// exactly as the earlier passes concluded. Nothing left to try by hand.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

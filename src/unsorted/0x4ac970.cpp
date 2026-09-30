@@ -9,6 +9,11 @@
 // surface and coordinate register assignment and final rectangle stores.
 // Refinement: moving the surface and rectangle declarations among the
 // coordinate locals, and using a selected-gadget pointer, did not exceed 83.1%.
+// GPT-6.1-sol issue 2309 refinement: reordered the x/y initializers, then
+// tried reading grid x through an explicit grid pointer before computing y.
+// Both retained 83.1%. A pointer rewrite compile probe failed on a duplicate
+// x local. Six checker invocations total. Remaining diffs are surface and
+// coordinate register assignment, followed by rect stack slots/stores.
 // Draws the frame of one cell of the 16x16 "COLS" colour grid gadget
 // (cell index = row * 16 + column, each cell 8 pixels).
 

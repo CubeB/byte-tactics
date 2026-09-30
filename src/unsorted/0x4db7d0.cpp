@@ -1,4 +1,18 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Fourth pass by deepseek-v4.1: confirmed the missing instruction at 0x4db95e
+// (`mov [esp+0x64],eax` with one push pending, so it targets [esp+0x60]: the
+// original really does copy n into `node` between the lower_bound call and the
+// end() call, i.e. `node = n;` after FUN_004dbd20). Adding that store, with
+// `node` declared at function scope so it can be written early, gives 72.8
+// percent and 630 bytes (the store is right, the layout still is not, so the
+// extra load/reg pressure costs more than the hunk gains).
+// Also re-tested the two ways to free `p`'s home for `node`: moving the whole
+// `base = p & 0xfffff000` above the erase kills the 0x4db8c0 reload and drops to
+// 15.9 percent (619 bytes); the same move plus the reference alias scores 45.9
+// percent (628 bytes). So the reload at 0x4db8c0 is the load-bearing shape: `p`
+// must still be read from its home after the arena branch, and MSVC will not
+// hand that home to an address-taken neighbour while that read is live. This
+// file (73.1 percent, 622 of 624 bytes) is the best variant found.
 // Third pass by space-bunny-free: still 73.1 percent, 622 of 624 bytes, same
 // first hunk (`lea ecx,[esp+0x10]` wanted, this file lays `it1` down at 0x14).
 // Two new things were tried, both worse, and both are the natural next moves:

@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by
+// deepseek-v4.1. Names are provisional.
 // The red-black tree insert behind std::map<unsigned int, Pair>, the same
 // std::map idiom as 0x4db000 and 0x4db450. DAT_00528a54 is the tree's _Nil
 // node, head->left is begin() and head->parent is the root. The value is
@@ -84,6 +85,45 @@
 // how that local is born (ctor init, raw member compare) both break it, which
 // leaves the field store plus the `operator==` call as the only shape that
 // holds the local together at all.
+//
+// Second pass (deepseek-v4.1) confirms that reading and rules out four more
+// spellings, all byte-identical at 95.6 percent (621 bytes): the compare's
+// first operand read through an inline `_Mynode()` accessor, the iterator
+// declared inside the else arm, the birth written as `it = Class_004dd2a0(y)`,
+// and the whole else arm wrapped in a block with the iterator outside it. A
+// by-value inline compare helper is byte-identical too but keeps the same
+// colouring. A helper around the insert call that takes the iterator as an
+// unused parameter is 91.5 (650 bytes, the extra layer is not folded), and
+// `--it` through an inlined `operator--` is 95.6 and byte-identical. The
+// matched sibling 0x4db000 has the same idiom and reloads its iterator into
+// ecx, but its birth is a plain `mov [esp+0x18], edi` with no temp copy, so
+// the 0x4dbec0 birth does go through a value copy and only the choice of that
+// copy's register is left.
+//
+// Third pass (deepseek-v4.1) ruled out five more spellings, none of which moves
+// the birth register: the final compare as a raw `it.ptr->key < p->offset`
+// (94.0 percent, 615 bytes, worse: it drops the Less functor and 6 bytes), the
+// birth as `Class_004dd2a0 t(y); it = t;`, the tail store as
+// `out->field_0 = Class_004dd2a0(it);`, an explicit `else` around the
+// `it.FUN_004dd2a0();` call, and the birth cast through `(Node_004dbec0*)(void*)`
+// (the last four byte-identical at 95.6 percent). Together with the sweeps
+// above (128 header sets, 101 dummy externs) this says the tie-break is not
+// reachable from declarations, headers, context or any spelling of the two
+// statements that surround it, and the file is left at its best score.
+//
+// Fourth pass (deepseek-v4.1) added nine more inert spellings, all byte
+// identical at 95.6 percent (621 bytes): `out` aliased to a named pointer
+// local either at the top of the else arm or only in the closing arm, the
+// compared key bound to a local, the node pointer bound to a local before
+// the compare, `y` copied through a named node temp before the birth, `p`
+// copied to a named local at the top of the else arm, the closing store as
+// `*(Class_004dd2a0*)&out->field_0 = it;`, as `out->field_0 = it.ptr;` and as
+// `out->field_0 = Class_004dd2a0(it);`, a named `out` alias in the rebuild
+// branch, and the loop key read through a `const unsigned int&`. Binding the
+// insert result to a named iterator is 87.6 percent (652 bytes, the temporary
+// gains its own home). So the birth register is not steerable by any operand,
+// temporary, alias or scope in either arm; the colouring is a function-wide
+// allocator decision that this source cannot reach.
 //
 // Two things this function does that are worth writing down, both confirmed
 // here and neither obvious from the disassembly:

@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and
-// space-bunny-free. Names are provisional.
+// space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
 // map (a std::map<unsigned int, Pair_004db000>, the map's value_type being a
 // block's base offset plus its length), erase it, and return the two leftovers
@@ -10,7 +10,17 @@
 // out (the allocator tries to keep allocating from it), DAT_00528a00 counts the
 // wraps around the map, and DAT_00528a54 is the tree's _Nil node.
 //
-// NOT MATCHING yet (69.3%, 614 of 646 bytes). What still differs, measured
+// PASS deepseek-v4.1: 69.3% -> 74.4%, frame 614 -> 646 bytes, exactly the
+// original frame, from one line: `bool ok;` left UNINITIALISED. That keeps the
+// original's dead `xor al,al; test al,al; je` arm at 0x4db41a and its duplicate
+// `return FUN_004db1c0(bytes)` tail (24 bytes) that `bool ok = false;` folds
+// away; `char ok = 0;` folds it away too. The arm now differs only in how the
+// flag is read: `mov al,[esp+0x30]` here (the uninitialised slot aliases the
+// bytes parameter slot, C4700) vs `xor al,al` in the original. The remaining
+// diff is unchanged and is all the one cause described below, the this/bytes
+// tie (ebx vs ebp). Tried this pass and inert: `unsigned int n = bytes` used
+// in the search test or the success block (still 69.3%), char flag.
+// NOT MATCHING yet (was 69.3%, now 74.4% with `bool ok;`)., 614 of 646 bytes). What still differs, measured
 // against the original at 0x4db1c0:
 //   * 0x4db1c0 (the one big cause): the original keeps `this` in ebp and `bytes`
 //     in ebx; we keep them the other way round, and everything downstream
@@ -171,7 +181,7 @@ public:
 unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
 {
     Class_004dd2a0 res;
-    bool ok = false;
+    bool ok;
     int tries = 0;
     if (size > 0) {
         Pair_004db000 k;

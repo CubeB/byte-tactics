@@ -1,7 +1,27 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
 // STATUS: partial, 96.7% (one diff hunk), 14 checker invocations before final verification.
 // Still differs: 0x4bd173..0x4bd193, the post-callback fresh ECX zero and EAX size materialization.
 // Tried and rejected: nested-store/helper probes, delayed HapiBuf construction (92.8%), placement construction (70.6%). See build/scratch/0x4bd160/ledger.md.
+//
+// FOURTH SESSION (space-bunny-free, 0x4bd160). No improvement: the file below
+// is still the best variant (580 of 580 bytes, 96.7%). Four more variants were
+// measured, all worse, in build/scratch/0x4bd160/:
+//   A1.cpp / A2.cpp / A3.cpp: replacing the `= {0}` aggregate initialiser with a
+//     separate `sb.buf = 0;` statement after the if (A3), or also passing
+//     sb.buf as the first argument (A1, A2), or also declaring FUN_004bd3b0's
+//     second parameter as `struct HapiBuf*` so the whole aggregate's address
+//     escapes (A1). All three move the frame: MSVC 5 picks ESI instead of EBP as
+//     the zero register, drops `xor ebp, ebp` from the prologue, and adds a
+//     22nd local dword (`mov [esp+0x24], esi`). So the aggregate initialiser is
+//     what pins the frame at 21 dwords, and the whole-struct escape is not what
+//     keeps the zero store from sinking past the call.
+//   E1.cpp: the m_L2 shape (aggregate declared after the if) plus sb.buf as the
+//     first argument, inside a block. Far worse: the prologue loses
+//     `xor ebp, ebp` entirely and every zero becomes an immediate
+//     (`test eax, eax`, `mov [esp+0x10], 0`, `push 0`).
+// Conclusion unchanged: the remaining 8 bytes need one construct that zeroes
+// only sb.buf after the callback, with the zero and the 20 both live in
+// registers, and nothing tried so far keeps the frame while doing it.
 //
 //
 // Not matching yet: 580 of 580 bytes, but ONE source construct is still wrong.

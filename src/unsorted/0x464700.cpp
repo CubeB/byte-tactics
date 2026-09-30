@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol retry: best remains 98.3% (473 bytes). An equivalent `if (p->ref != 0) {} else` preserved the same diff; the conditional-expression form `p->ref = p->ref ? p->ref : new PlayerRef` scored 61.3%; moving the third tick store after the first six clears scored 96.6%. Restored the 98.3% source.
 // Further refinement: moving the allocation guard after the six clears scored
 // 68.9%; an empty `p->ref == 0` guard scored 97.5%. Restored 98.3%; no MATCH.
@@ -170,6 +170,25 @@
 // unfixed question for whoever tries next is whether the pool can be pinned
 // some other way, or whether a hoisted value can be produced without an
 // enregistered local at all. Everything else in the function already matches.
+//
+// deepseek-v4.1 retry (still 98.3%, runs: 12). New negative results, all 473
+// bytes and all scratch in build/scratch/0x464700/: (A) `p->ff8 = g_game->ticks
+// + (six zero stores, 0)`, (B) the ff8 statement moved after the six stores,
+// (C) `p->ff8 = (six zero stores, g_game->ticks)`, (D) the same with the store
+// slotted between fac and fb4, (G) `p->ff8 = (g_game->ticks, six stores,
+// g_game->ticks)` (the discarded first comma operand is dropped by the front
+// end, so this is B), (I) the same with the operands of the `+` reversed. Every
+// one of them gives 96.6 with an identical shape: the ff8 STORE lands in the
+// original's slot, but the ticks load and the cmp stay down at the statement
+// (ac, b4, ref load, bc, c4, cc, d4, g_game load, cmp, ticks load, 0x90 store,
+// ff8 store), i.e. MSVC will not hoist a load above the may-aliasing stores
+// and the store always travels with the statement that contains the load. So
+// the store can be placed either with the loads (v1, this file) or after the
+// six clears (A/B/C/G/I/96.6), never split from them, without a named local.
+// (E) `int z = 0;` plus `int t = g_game->ticks;` for the six clears and the
+// store, and (E3) the same with `z` declared after the two tick loads, both
+// 66.4: any local rotates the pool (`xor ebx, ebx` instead of `xor ebp, ebp`),
+// so the 98.3 percent body stays the best.
 
 
 #include <string.h>

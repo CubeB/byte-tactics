@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol retry in #1947: baseline, /Gz, and /Gr checks all confirmed 87.8%.
 // Refinement: add/store reorderings scored 82.6%, 77.9%, and 44.7%; the PR best
 // was restored and independently verified. No MATCH.
@@ -37,6 +37,20 @@
 // headers.py set, and defining 0x464000 above are all flat at 87.8. The
 // remainder is allocator and scheduler state from the original file's earlier
 // contents, not a source shape in this block.
+// deepseek-v4.1 retry (still 87.8, 3 hunks, file unchanged otherwise): the
+// add destination is decided before scheduling, so no store order can move it.
+// Also flat at 87.8: an inline AddI(y,t) / AddI(t,y) helper, (int)(y + t),
+// 0 + (y + t), (y + t) + 0, 0 + y + t, y - -t, a copy of y, a sum local built
+// by += at three block positions, r.left + t / r.top + t, a Rect* view, and
+// the store orders left,top,right,bottom and top,left,right,bottom. Bottom
+// before right in source reorders the whole store run (83.1, 7 hunks), and
+// long(y) / a braced sum block give 87.2. Everything that scores 87.8 compiles
+// to the exact same bytes: lea edx, [eax+0x8a]; add eax, ecx; mov [esp+0x24],
+// ecx, with the store of r.bottom using eax. The original instead stores
+// r.top first and then does add ecx, eax (destination = the register holding
+// y, which is only legal once the store has consumed y), so the allocator
+// picked a different destination for the same value. No source shape tried by
+// four models reaches that pick; treat 87.8 as this block's cap.
 // Second deepseek-v4.1-flash retry (still 87.8, 3 hunks): the two-instruction
 // gap is scheduling, not spelling. In ours the sum fills the x87 fild/fmul
 // latency slot (`lea edx`+`add eax, ecx` above the `r.top` store); the

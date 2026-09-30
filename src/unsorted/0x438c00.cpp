@@ -243,6 +243,25 @@ void __stdcall FUN_004be950(void* surface, int x0, int y0, int x1, int y1, int c
 // original's `mov ecx,[eax+0x110]; shr ecx,4; test cl,1` is reached by
 // neither, so it needs a shape not yet found).
 //
+// PASS 9 (deepseek-v4.1-flash, 2026-10-01): 52.2 percent, unchanged. Thirty
+// more shapes measured with `check.py --sym`, all 52.2 or below, confirming the
+// entry register choice is closed to source shape here:
+//   index declared uninitialised at the top (before the type read)  52.2
+//   index as an `int`                                                50.4
+//   a local `Order* o = order;` used for every order read           52.2
+//   `Order& order` reference parameter                              52.2
+//   `Order* const order`                                            52.2
+//   `&g_game->types[index]` array indexing instead of pointer add    52.2
+//   `types` cached in a local first                                 52.2
+//   a local `View* v = view;` (top, after test, and at first use)   52.2
+//   a local `void* s = surface;` used for all eight calls           52.2
+//   `order->owner` and `order->timestamp` hoisted into locals       52.2 / 51.3
+//   a `static inline` GetType/GetDef for the top two reads         51.8 (both
+//                                                                   52.2 combined)
+//   the guard read twice (`if (order->type == 0)` then the index)   52.2 (CSE)
+// All produce the same 647-byte body, so the divergence stays the single
+// ecx/edx assignment at 0x438c00 described above.
+//
 // FUNCTION: 0x438c00
 void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* order,
                             Vec3f_00438c00* out, int unused)

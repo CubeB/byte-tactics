@@ -115,6 +115,15 @@
 //    all left that unchanged.
 //  - A timestamp helper and a snapshot-return helper were each inlined but left the same register assignment at 65.2%. The original register swap remains unresolved.
 //    it.
+// RETRY (deepseek-v4.1-flash, 2026-10-01, 10 min): the ebx(order)/edi(start.x)
+// swap is still the whole residual and no shape tried here moved it (two-local
+// copies o2 = order used at the call / at the timestamp, call arg evaluation
+// order, const Pos, separate assignment, node copies: all 65.2 with the same
+// prologue). ONE improvement did land: declaring the three deltas in the order
+// dy, dz, dx (rather than dx, dy, dz) raises the checker score 65.2 -> 66.7
+// (and p_yzx combined with the p.x/y/z store order xyz is the best of all 36).
+// It does not touch the prologue; the gain is in the sqrt/timestamp block.
+// A full 6x6 sweep of delta-declaration order x p.x/y/z store order was scored.
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,9 +197,9 @@ void __stdcall FUN_004394e0(void* surface, View_004394e0* view,
         return;
 
     int t = __max(g_game->frame - order->timestamp, 0);
-    int dx = out->x.value - start.x.value;
     int dy = out->y.value - start.y.value;
     int dz = out->z.value - start.z.value;
+    int dx = out->x.value - start.x.value;
     int dist = (int)sqrt((double)dx * dx + (double)dy * dy + (double)dz * dz);
     if (dist < 0x10000)
         return;

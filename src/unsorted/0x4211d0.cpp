@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// PARTIAL, 82.0%. Lead probes: taking the face index address and using it
+// through a pointer kept 82.0%; hoisting faceCount scored 75.8%, reversing the
+// loop comparison scored 81.3%, and reversing the firstFace branch scored 80.0%.
+// Restored this best version.
 // PARTIAL, 82.0%. Frame size (0x3f58), the prologue, the vertex loop and the
 // flag dispatch now match the original instruction for instruction. What
 // still differs is one register-priority tie, the same one 0x4584d0 hit:

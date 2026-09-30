@@ -1,68 +1,67 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
+// deepseek-v4.1-flash. Names are provisional.
 //
-// PARTIAL, 76.2% (up from 59.1%). The frame is byte exact (0x34 locals, with
-// idx/out/ret/k4 sharing the dword at +0x14 as the original has them), the
-// player probe, both target-order branches, the candidate collection loop, the
-// shuffle inline and the k3 done-scan loop all match in shape. What still
-// differs:
-//  - the k4 loop keeps its index in a stack slot and uses an element pointer
-//    plus a field_29d0 offset where the original has three register inductions
-//    (ebx index, esi field_29d0 offset, ebp players byte offset), and it hoists
-//    the packet stores past the active test;
-//  - `res` ends up in ebp where the original reloads it into edi, and the k3
-//    loop then uses edi as its zero constant where the original uses ebx;
-//  - the k3 loop's first arm ends in an unconditional jmp where the original
-//    re-tests `res`, and the original's first `cmp [eax],0` is not hoisted.
+// PARTIAL, 77.2%. The frame is byte exact (0x34 locals). Best of the variants
+// tried: index-based k4 loop with an `unsigned char` index keeps the frame but
+// leaves the index spilled at esp+0x10, where the original has it in ebx with
+// ebp = 0x14b*index and esi = 0x29d0 + 4*index. Using `int k4` produces those
+// three inductions but grows the frame to 0x38 and scores 77.1, so it was not
+// kept. Other remaining hunks:
+//  - 0x456b60..0x456bc5: res lands in ebx/ebp, so the k3 loop's zero constant
+//    is edi instead of ebx and 29a4 is reloaded into ebp; original re-tests res
+//    after the 29d0 test and the first cmp [eax],0 is not hoisted.
+//  - 0x456bc5..0x456cc6 (k4): see above; packet[0]/packet[1] stores are right.
+//  - 0x456cc6..0x456d44 (k5) and 0x456d50..0x456dc9 (k6): register swaps only.
 #include <stdlib.h>
 #include <algorithm>
 
 #pragma pack(push, 1)
 struct PlayerInfo_004568c0 {
     char unknown_0[0x97];
-    unsigned short flag_97_0 : 1;            // +0x97 bit 0
+    unsigned short flag_97_0 : 1;
     unsigned short rest_97 : 15;
     char unknown_99[0x9b - 0x99];
     unsigned short pad_9b_a : 6;
-    unsigned short flag_9b_6 : 1;            // +0x9b bit 6
+    unsigned short flag_9b_6 : 1;
     unsigned short pad_9b_b : 7;
-    unsigned short flag_9b_14 : 1;           // +0x9b bit 14
+    unsigned short flag_9b_14 : 1;
 };
 
 class Class_00456030 {
 public:
-    int field_0;                             // +0x0
+    int field_0;
     char unknown_4[0x73 - 0x4];
-    char field_73;                           // +0x73
+    char field_73;
     int FUN_00456030();
 };
 
 class Player_004568c0 {
 public:
-    int active;                              // +0x00
-    int id;                                  // +0x04
+    int active;
+    int id;
     char unknown_8[0x27 - 0x8];
-    PlayerInfo_004568c0* info;               // +0x27
+    PlayerInfo_004568c0* info;
     char unknown_2b[0x73 - 0x2b];
-    unsigned char state;                     // +0x73
+    unsigned char state;
     char unknown_74[0x146 - 0x74];
-    unsigned char field_146;                 // +0x146
-    unsigned char field_147;                 // +0x147
+    unsigned char field_146;
+    unsigned char field_147;
     char unknown_148[0x14b - 0x148];
 };
 
 struct Game_004568c0 {
     char unknown_0[0x1b63];
-    Player_004568c0 players[10];             // +0x1b63
+    Player_004568c0 players[10];
     char unknown_2851[0x29a4 - 0x2851];
-    int field_29a4[10];                      // +0x29a4
+    int field_29a4[10];
     char unknown_29cc[0x29d0 - 0x29cc];
-    int field_29d0[10];                      // +0x29d0
+    int field_29d0[10];
     char unknown_29f8[0x29fc - 0x29f8];
-    int field_29fc[10];                      // +0x29fc
+    int field_29fc[10];
     char unknown_2a24[0x2a28 - 0x2a24];
-    int field_2a28;                          // +0x2a28
+    int field_2a28;
     char unknown_2a2c[0x2a42 - 0x2a2c];
-    unsigned char localPlayer;               // +0x2a42
+    unsigned char localPlayer;
 };
 #pragma pack(pop)
 
@@ -163,27 +162,26 @@ int FUN_004568c0()
     }
     if (res != 0) {
         for (unsigned char k4 = 0; k4 < 10; k4++) {
-            Game_004568c0* g = g_game;
-            if (g->field_29d0[k4] == 0) {
+            if (g_game->field_29d0[k4] == 0) {
                 unsigned char packet[2];
                 packet[0] = 0x1e;
-                packet[1] = (unsigned char)g->field_29fc[k4];
-                Player_004568c0* q = &g->players[k4];
-                if (q->active != 0) {
-                    if (q->state == 3) {
+                packet[1] = (unsigned char)g_game->field_29fc[k4];
+                if (g_game->players[k4].active != 0) {
+                    if (g_game->players[k4].state == 3) {
                         int to = PlayerId_004568c0(k4);
                         int from = -1;
-                        unsigned char* sp = &g->players[0].state;
-                        for (int j = 0; j < 10; j++, sp += 0x14b) {
-                            if (*sp == 1) {
-                                from = g->players[j].id;
+                        for (int j = 0; j < 10; j++) {
+                            if (g_game->players[j].state == 1) {
+                                from = g_game->players[j].id;
                                 break;
                             }
                         }
                         FUN_00451bc0(from, to, packet, 2);
-                    } else if (q->active != 0 && (q->state == 1 || q->state == 2)) {
-                        q->field_147 = packet[1];
-                        g->field_29d0[k4] = 1;
+                    } else if (g_game->players[k4].active != 0
+                               && (g_game->players[k4].state == 1
+                                   || g_game->players[k4].state == 2)) {
+                        g_game->players[k4].field_147 = packet[1];
+                        g_game->field_29d0[k4] = 1;
                     }
                 }
             }

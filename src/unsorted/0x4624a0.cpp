@@ -1,4 +1,36 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// space-bunny-free second pass (1642): still 67.8 percent, 555 against 570
+// bytes, still the single missing ebx = 0 register. New results, all measured
+// with check.py --sym on scratch copies (no check.py runs spent):
+//  - headers.py: all 128 header sets; the best are 67.8 percent for <none>,
+//    <windows.h>, <stdio.h> and <stdlib.h>. Headers are not the lever.
+//  - scratch/0x4624a0/vA.cpp: reuse the parameter `force` itself as the sent
+//    counter (`force = 0; ... force = force + 1; if (force > 0) ...`) instead
+//    of a separate `int sent;`. Byte for byte the same allocation as this file
+//    (555 bytes, 67.8 percent, `sent` still in ebx, `inc ebx`, `test ebx,ebx`),
+//    so the original's use of the dead argument slot for the counter is a
+//    frame-slot allocation decision, not a source level parameter reuse.
+//  - scratch/0x4624a0/vB.cpp: put the counter in the escaped local struct as a
+//    third member. 551 bytes but only 58.9 percent: the third slot changes
+//    `sub esp, 8` to `sub esp, 0xc` and moves every stack reference, which
+//    confirms the two dword frame is exactly `n` plus `headFrame` and the
+//    counter really does live in the argument slot.
+//  - frame arithmetic, worth writing down: at entry ESP = S, so [esp+0x18] is
+//    the return address, [esp+0x1c] is the single argument, and the two locals
+//    are [esp+0x10] and [esp+0x14]. So `n` is the first local, `headFrame` the
+//    second, and `sent` shares the dead argument slot: three memory variables,
+//    no third local slot.
+//  - the missing web: this build does enregister constants locally (the inlined
+//    Pop region gets `xor ecx,ecx` for both `count <= 0` and `writeIdx = 0`),
+//    so MSVC 5 can hold 0 in a register. What it will not do is keep one 0
+//    live across the whole function, which is what the original does (one ebx
+//    from 0x4624d5/0x4624e1 through 0x46262e, then reused for dpid at
+//    0x46263c). `xor ebx,ebx` in both arms of the now<nextSend test, and once
+//    more at 0x46269f, is that web being rematerialised per block, so the
+//    source must name a 0 valued variable that C1 refuses to fold, and every
+//    spelling tried so far (plain int, unsigned, bitfield, address taken,
+//    two definitions) folds or spills.
+//
 // deepseek-v4.1-flash retry (1296): best is now 67.8% (was 67.3%). Moving the
 // per-packet entry declaration out of the for loop to function scope with an
 // = 0 initialiser lifts the byte score by 0.5 points; the missing 15 bytes are

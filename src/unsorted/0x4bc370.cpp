@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Case-insensitive wildcard match of a string against a pattern that may
 // contain '?' (any one character) and '*' (zero or more characters). The
 // pattern positions still alive after each input character are kept in a
@@ -339,6 +339,28 @@
 // in the base slot, and nothing tried in six passes, several hundred free
 // compiles, moves it. Anyone picking this up should start from the free
 // harness above rather than spending check.py runs.
+// Seventh pass (deepseek-v4.1-flash, issue 1569): ran tools/headers.py 0x4bc370
+// (128 sets, all 86.4%) and ~50 free compiles in build/scratch/0x4bc370/mine2/,
+// scored on the SIB byte with probe2.py..probe4.py. The body is unchanged.
+// Genuinely new shapes tried, all still `0f be 4c 05 00`:
+//  * struct/array reinterpretations of the pattern: ((char(*)[1])pat)[idx][0],
+//    ((char(*)[2])pat)[idx][0], *((char*)&pat[idx]), *&pat[idx].
+//  * index-domain casts inside the subscript: (size_t)idx, (unsigned)idx,
+//    (int)idx, *(idx + (const char*)pat), ((const char*)(int)pat)[idx],
+//    *((char*)((int)pat + idx)).
+//  * order shapes that create the pat load node before the index load node
+//    (pat[stack[i]] first, then `int idx = stack[i];`), an assignment-in-
+//    expression (pat[idx = stack[i]]), a separate int j = idx staging local,
+//    and declaration-then-assignment of pc. All 120 instructions, SIB 0x05.
+//  * a second pointer that forces a re-read of the parameter slot:
+//    const char** pp = &pat; (*pp)[idx], and the const-qualified form. No flip.
+//  * dummy typedefs and dummy struct definitions before the function (type
+//    table perturbation): no flip.
+//  * dropping <ctype.h> for `extern "C" int toupper(int);` gives 117
+//    instructions (the macro-free toupper, 3 fewer than ctype.h's) but the SIB
+//    is still 0x05, so the declaration of toupper is not the lever either.
+// Nothing in seven passes moves the slot order, which matches the header
+// census: 0x4bc3cb is the only pointer-in-base scale-1 SIB in the executable.
 #include <ctype.h>
 
 // FUNCTION: 0x4bc370

@@ -1,4 +1,33 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// space-bunny-free pass (issue 1885, 10 min, 2 check.py runs, 6 free --sym
+// variants): 80.9% -> 89.3%, 635 bytes against 629. Two findings, both worth
+// trying first next time.
+// 1. The 0x20 arm's divisor is a TERNARY, not an if. Writing the union store
+//    as `lines.full = (e->field_c0 > 0) ? W * e->field_c0 : 0;` (one
+//    statement, the whole deref chain inline) is what produces the original's
+//    `movsx eax,[ebx+0xc0]; mov edx,[ebx+0xc6]; test eax,eax; jle` plus the
+//    `xor ecx,ecx; mov cx,[edx+2]; imul ecx,eax` and the phi that makes the
+//    `idiv ecx` fall out of the merge. As an if/else with the loads in
+//    separate locals it does not (80.9% -> 87.8% on this change alone). The
+//    false arm materialises no zero of its own: the constant 0 MSVC keeps in
+//    ecx from 0x4a3f4e dominates that edge, so the phi picks ecx up for free.
+// 2. The 0x10 arm's span value must be loaded BEFORE the denominator is
+//    computed. `int span = e->field_da;` sitting between the `numerator` and
+//    `denominator` declarations gives the original's
+//    `movsx ecx,[ebx+0x19]; movsx edx,[ebx+0xda]; lea edi,[eax+1]; sub ecx,2`
+//    order, where the inline `if (e->field_da > denominator)` form loads
+//    field_da into the dying eax instead of edx (87.8% -> 89.3%).
+// What still differs: the 0x20 arm's test. The original sign-extends field_c0
+// to the full 32 bits (`movsx eax, word [ebx+0xc0]`, `test eax,eax`) and loads
+// field_c6 before the test; here MSVC narrows the compare to 16 bits
+// (`mov ax, word [ebx+0xc0]; cmp ax, cx`) and loads field_c6 after it, so 6
+// bytes of extra code shift every later jump target. Measured dead ends (free
+// --sym): hoisting `int rows = e->field_c0; int* p = e->field_c6;` in front of
+// the ternary 80.4%, hoisting only the `p` local 79.2%, a plain `int lines`
+// 58.9%, and dropping the unused `lines.word = 0;` store 58.9% (that store is
+// load-bearing: without it MSVC gives the zero a callee-saved register, which
+// is the regression every earlier pass recorded). The union is what makes
+// `cmp eax,ecx` at 0x4a3f50 appear at all, so it stays.
 // Retry #1758: GPT-6.1-sol best is 80.9% after nine worker checks; final combined check confirmed no MATCH. Numerator-before-denominator ordering improved the 0x10 arm.
 // GPT-6.1-sol pass: best measured score 80.9% (650 source bytes vs 629,
 // nine checker runs). The 0x10 arm improved by computing its numerator before
@@ -191,7 +220,6 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
     int found = Find_004a3ef0(entries, kind);
     union { int full; short word; } lines;
     lines.full = 0;
-    lines.word = 0;
     if (found != 0) {
         Entry_004a3ef0* e = &entries[found];
         if (e->type == 2) {
@@ -213,8 +241,9 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                 int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
                     : (*(unsigned short*)(FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
                 int numerator = e->field_19 - 2;
+                int span = e->field_da;
                 int denominator = size + 1;
-                if (e->field_da > denominator) denominator = e->field_da;
+                if (span > denominator) denominator = span;
                 int step = numerator / denominator;
                 int last = e->field_c0;
                 int rows = (int)((float)step / last * (me->field_19 - 3));
@@ -228,11 +257,9 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                     me->field_136 = me->field_19 - me->field_142 - 3;
                 }
             } else if (e->field_1b & 0x20) {
-                if (e->field_c0 > 0) {
-                    int a = *(int*)e->field_c6;
-                    int b = *(int*)(a + 0x28);
-                    lines.full = *(unsigned short*)(b + 2) * e->field_c0;
-                }
+                lines.full = (e->field_c0 > 0)
+                    ? *(unsigned short*)(*(int*)(*(int*)e->field_c6 + 0x28) + 2) * e->field_c0
+                    : 0;
                 int s = e->field_19 * me->field_19 / lines.full;
                 me->field_142 = s;
                 if (*(unsigned char*)((char*)me + 0x1b) & 1) {
@@ -255,3 +282,4 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
     }
     FUN_004a2580(param_1, param_2);
 }
+

@@ -140,6 +140,31 @@
 //    fixed, x and y2 both dropped 96.9%, all three inlined 87.7%. More
 //    evidence that (b) is not a source-shape problem of its own.
 //
+// Fourth pass (space-bunny-free): still 98.7%, the same two diffs, no change
+// to the body. What this pass adds:
+//  - The matched sibling 0x4a5f40 (MATCH, same draw-one-entry shape) spells
+//    this very call `FUN_004c13a0(me->colours[(int)menu + 0x8b2],
+//    FUN_004c13f0());` and compiles to the original's SIB, `8a 94 01`, at
+//    0x4a66ff, with identical instructions around it (call, load colours,
+//    push font, reload param, xor, load byte, push, call). The one structural
+//    difference: all four instances in 0x4a5f40 sit in the ELSE arm of an
+//    if/else, ours is straight-line. So the spelling is confirmed right and
+//    the graph shape (a branch, two blocks joining before the call) is what
+//    puts the colours pointer in the base slot. No straight-line spelling is
+//    known to do that.
+//  - The marker-box surface load is always sunk to its point of use here, into
+//    whichever register died last (edx normally, ecx if the tail locals move),
+//    so the original's early `mov eax,[ebx+0xbc]` is not reachable by hoisting
+//    a `void*` local: before the y2 computation it lands in edx (98.7%), and,
+//    the new try, immediately after `int y2 = height + rect.top;`, where eax is
+//    the only free register and so the original's register is available, MSVC 5
+//    still sinks the load to the push and takes edx (98.7%). Moving the tail
+//    locals to the top of the function (0x4a5f40 declares all its locals up
+//    front) only moves the sunk load into ecx: 661 bytes, same two hunks.
+//  - `me->colours[0x8b2 + (int)param_1]` and the index cast to `unsigned`
+//    are both 661 bytes with the same two hunks: the SIB does not depend on the
+//    spelling of the index at all, only on the graph shape.
+//
 // Third pass (deepseek-v4.1-flash), all variants scored from one scratch file
 // so they cost no check.py run each:
 //  - The compiler-state N-declaration sweep is a dead end: 128 copies of the

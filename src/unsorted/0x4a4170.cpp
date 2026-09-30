@@ -1,4 +1,24 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free and deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Still 80.9%, no MATCH (issue 1885, space-bunny-free). Five more zero-register
+// shapes were free-scored and all land on exactly 80.9% (714 bytes in, 714 out),
+// so none of them is the missing shape: (1) `union { int full; short word; } z;
+// z.full = 0; z.word = 0;` used at all five zero sites, 73.7%; (2) `int z;` with
+// `z = 0` written in BOTH arms of the FUN_004ab5b0 test and read at the
+// field_78 store, the arm test, the clamp and the holder test; (3) the same but
+// `int z = 0;` declared right after FUN_004a23b0 (the 0x4a3ef0 shape) with
+// `z = index` after the last zero use to keep it a real variable; (4) as (3)
+// with the arm test left as plain truthiness; (5) `int z = 0` used only for the
+// field_78 store. Every one of them still emits `mov eax, [ebp+0x78]; test
+// eax, eax` and rematerialises the 0 as an immediate, so the original's `xor
+// edx, edx` in both arms of the FUN_004ab5b0 test is NOT a local zero of any
+// width, position or spelling: it needs a source construct that defeats MSVC's
+// constant propagation at that join, and none of the above does.
+// The `add esi, eax` at 0x4a418e is NOT an index-used-twice overrun bug here
+// (unlike 0x45f800 and 0x4609b0, which index a 0x15a record the same way): it is
+// MSVC's own split of 346*i + i for `&entries[index]` with a 0x15b record. A
+// `char probe[(sizeof(Entry_004a4170) == 0x15a) ? 1 : -1];` probe fails to
+// compile and the 0x15b one compiles, so the stride is 347, `mov ecx, [ebx +
+// 0x157]` is the record's last dword and nothing here reads past an entry.
 // Retry #1758: GPT-6.1-sol confirmed 80.9% after four checks; no MATCH. The focus==index block still changes zero rematerialization, register allocation and branch layout.
 // GPT-6 retry: retained 80.9%. Full-width/partial-width zero value variants
 // did not recover the original edx zero; detailed previous notes remain below.

@@ -1,33 +1,36 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
-// Partial, 71.3%. Page scans use an inlineable helper; coloured-run buffer
-// indexing and the full-width side read are right. Remaining differences:
-// 1) both inlined page scans: the original tests the loop guard with a memory
-//    compare (`cmp byte ptr [p],0` then `je`) and loads the byte again in the
-//    body (`mov al,[p]`), ours merges the two into `mov al,[p]; test al,al`.
-//    Tried: guarded do/while, hoisting `char c`, `unsigned char* p`, `k < 0x7f`
-//    loop form; the first three compile identically, the last is much worse.
-// 2) 4-byte local homes are permuted: colourState/count are [esp+0x1c]/[esp+0x20]
-//    here but [esp+0x20]/[esp+0x1c] in the original; divisor is [esp+0x28] here,
-//    [esp+0x38] there; `dialog` is stored at [esp+0x2c] here, [esp+0x24] there
-//    (the original re-reads a split live-range home [esp+0x28] that nothing
-//    writes; ours does the same trick at [esp+0x30]); gp is stored at [esp+0x40]
-//    here, [esp+0x38] there. Sizes and order of the stores already agree.
-// 3) the original keeps `mov dword ptr [esp+0x20],0` (colourState = 0) between
-//    `cmp al,0x52` and `jne`; ours dead-store-eliminates it.
-// 4) the second inline initialises its count with an immediate in the original
-//    (`mov dword ptr [esp+0x14],0`); ours reuses the zero register edx.
-// 5) the window-copy loop (0x4772b1) is NOT rotated in the original (the '&'
-//    test is the loop head, the k limit is the latch); every source form tried
-//    for it (do/while, for(;;) with two breaks, plain while) is inverted and/or
-//    peeled by MSVC5 into test-at-latch order (70.7%). Same for the page-scan
-//    guard: an explicit `if (*p != 0) { do/while }` keeps the cmp-mem form but
-//    costs 4.6% elsewhere (66.7%), and `p[0]` reads compile identically to `*p`.
-// Tried by deepseek-v4.1 (all no better): `for(;;){ if (*p==0) break; ... }` for both
-// page scans (still merges into `mov al,[p]; test al,al`, 70.7%). Reordering the count
-// declaration (int count; before colourState, assigned later) does not move the slots
-// (71.3%). #include <windows.h> is much worse (68.5%). The slot permutation above is
-// not declaration-order driven; the phantom [esp+0x28]/[esp+0x30] re-reads come from
-// MSVC5 splitting dialog/gp into a store home and a lower read home.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, 80.0% (was 71.3%). The page-scan merge and the window-copy loop are
+// now fixed:
+//  * Page scans: MSVC merges `while (*p) { char c = *p; ... }` into one
+//    `mov al,[p]; test al,al`, so the original's memory guard cannot come from
+//    one pointer. Writing the helper with TWO pointers that advance together,
+//    condition on `p` and body read on `q`, breaks the load CSE: the guard and
+//    latch become `cmp byte ptr [p],0` and the body keeps its own `mov al,[q]`.
+//    Scan 1 is byte exact this way.
+//  * Window copy loop: `while (k < 0x7f) { if (*q == '&') break; buf[k] = *q;
+//    k++; q++; }` gives the original's top-tested '&' / latch k limit (the
+//    `while (*q != '&')` form rotates and duplicates the '&' test). The outer
+//    text loop must be `while (1)` (a `for(;;)` is rotated so the `c == 0`
+//    break moves to the latch), and `if (c == '&') { if (colourState) ... else
+//    ... }` (not `&&` / `else if (c == '&')`, which re-tests the byte).
+// Remaining differences (all in the second inline scan and the frame):
+// 1) the second scan keeps a live zero register in edx in the original, so it
+//    emits `xor edx,edx; cmp ebp,edx`, `inc eax; cmp eax,edx` and
+//    `cmp byte ptr [eax],0`; ours has `test ebp,ebp`, `lea eax,[edx+1];
+//    test eax,eax` and `cmp byte ptr [eax],dl`. `if (lineStart == 0)`, a named
+//    zero pointer local and an `(int)` cast do not change it.
+// 2) 4-byte local homes are permuted: count/colourState are [esp+0x1c]/[esp+0x20]
+//    here but swapped there; dialog/gp/divisor occupy [esp+0x30]/[esp+0x38]/
+//    [esp+0x28] here but [esp+0x28]/[esp+0x30]/[esp+0x38] there (a rotation).
+//    Not declaration-order driven: declaring count before colourState, dumping
+//    locals, or reordering the found/count initialisations does not move them.
+// 3) the entry pointer `e = &gadgets[count]` is computed after the loop guard
+//    in the original (MSVC's loop-invariant preheader) and before it here.
+//    Moving the assignment into the loop or recomputing it from the loop index
+//    is far worse (60% / 46%).
+// Tried and no better: tools/headers.py (no set matches, best 80%), guarded
+// do/while scans, `unsigned char`/`char`, `p[0]`, `for(;;)`, swapping the
+// helper's found/count declarations (75.8%), `#include <windows.h>` (68.5%).
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -96,19 +99,21 @@ void __stdcall FUN_004afd80(Menu_476ef0* menu, char* text, int x, int y,
 static char* PageStart_476ef0(char* start, int lines, int page) {
     if (!page) return start;
     char* p = start;
+    char* q = start;
     int found = 0;
     int count = 0;
-    while (*p != 0) {
-        char c = *p;
+    while (*p) {
+        char c = *q;
         if (c == (char)0xff) break;
         if (found) break;
         ++p;
+        ++q;
         if (c == '\n') {
             ++count;
             if (count == page * lines) found = 1;
         }
     }
-    return found ? p : 0;
+    return found ? q : 0;
 }
 
 // FUNCTION: 0x476ef0
@@ -177,36 +182,40 @@ void FUN_00476ef0()
         char c = *lineStart;
         y += divisor;
         if (c != '\n') {
-            for (;;) {
-                if (c == 0 || c == (char)0xff)
+            while (1) {
+                if (c == 0)
                     break;
-                if (c == '&' && colourState != 0) {
-                    char code = lineStart[1];
-                    lineStart++;
-                    colourState = 0;
-                    int sel = code == 'R' ? 3
-                            : code == 'Y' ? 2
-                            : code == 'G' ? 1 : 3;
-                    lineStart++;
-                    colourState =
-                        DAT_00507b70[g_game->field_37ef2 * 4 + sel];
-                    int x = FUN_004c1480(FUN_004c1440(), e->u.text) + textX;
-                    int ey = e->y;
-                    int k = 0;
-                    char* q = lineStart;
-                    while (*q != '&') {
-                        buf[k] = *q;
-                        k++;
-                        q++;
-                        if (k >= 0x7f)
-                            break;
+                if (c == (char)0xff)
+                    break;
+                if (c == '&') {
+                    if (colourState != 0) {
+                        char code = lineStart[1];
+                        lineStart++;
+                        colourState = 0;
+                        int sel = code == 'R' ? 3
+                                : code == 'Y' ? 2
+                                : code == 'G' ? 1 : 3;
+                        lineStart++;
+                        colourState =
+                            DAT_00507b70[g_game->field_37ef2 * 4 + sel];
+                        int x = FUN_004c1480(FUN_004c1440(), e->u.text) + textX;
+                        int ey = e->y;
+                        int k = 0;
+                        char* q = lineStart;
+                        while (k < 0x7f) {
+                            if (*q == '&')
+                                break;
+                            buf[k] = *q;
+                            k++;
+                            q++;
+                        }
+                        buf[k] = 0;
+                        FUN_004afd80(&g_game->menu, buf, x, ey, count, 0x5e,
+                                     1.0f, 0.25f);
+                    } else {
+                        lineStart++;
+                        colourState = 1;
                     }
-                    buf[k] = 0;
-                    FUN_004afd80(&g_game->menu, buf, x, ey, count, 0x5e,
-                                 1.0f, 0.25f);
-                } else if (c == '&') {
-                    lineStart++;
-                    colourState = 1;
                 }
                 *dst++ = *lineStart++;
                 c = *lineStart;

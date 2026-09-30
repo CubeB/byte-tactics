@@ -153,6 +153,35 @@
 // for next), the Wait immediate push (`mov eax,0xf; push eax` vs `push 0xf`,
 // +4 at each of the two entries), and the case-7 ClearAll / case-6 MoveToEnd
 // preload (`mov ecx,[ebx]` before `mov eax,ebx`).
+//
+// Improved by deepseek-v4.1-flash (retry): 71.4 -> 76.0 (776 -> 772 bytes) by
+// declaring the pending mask as `int mask = unit->field_ba;` instead of
+// `unsigned short`. The 16-bit type made MSVC keep the mask in a 16-bit
+// register and zero-extend it with a separate `and edx,0xffff`, and that in
+// turn put the whole allocator one slot off downstream: the callback-table
+// base came out in edx (original: ecx) and the pending block's mask/flags6
+// were swapped. The int mask emits `xor eax,eax; mov ax,[edi+0xba]` instead,
+// and the callback table base, the 3-iteration loop, unit->def and the
+// ClearAll link all land in the original's registers. Together with the
+// goto-Wait shape already here this is the best found.
+//
+// Tried in this retry, all at or below 76.0: unsigned short and unsigned int
+// casts of the mask, a flags6 local before and after the mask, the mask
+// declared after pending, inline field_ba with no local, the two pending
+// stores swapped, the kind local and the int kind local in the new-command
+// tail, assignment-in-condition for the tail kind, and the two-literal Wait
+// form (still no tail merge, 768 bytes, 71.7). Scoring scratch variants with
+// `check.py <addr> <file>` does not count against the run limit.
+//
+// What still differs at 76.0 (772 vs 780): the pending block's registers are
+// rotated (ours: field_4e edx, flags6 ecx, mask eax; original: mask ecx,
+// field_4e edi, flags6 eax) and its two stores are scheduled differently;
+// case 9 ORs into eax and loads node->next early where the original ORs into
+// edx, copies to eax, then reuses edx for next; the Wait immediate is still
+// `mov eax,imm; push eax` at both entries (original `push imm`, +4 each, the
+// missing 8 bytes); and the new-command tail re-reads unit->def for the ctor
+// where the original spills the already-tested byte into the dead unit
+// argument slot ([esp+0x18] before the push vs [esp+0x1c] after it).
 
 #pragma pack(push, 1)
 
@@ -298,7 +327,7 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
             node->wakeFrame = 0xffffffff;
             node->field_4e |= 1;
         }
-        unsigned short mask = unit->field_ba;
+        int mask = unit->field_ba;
         unsigned int pending = (node->field_4e | mask) & node->flags6;
         if (node->flags6 != 0 && pending == 0)
             return;

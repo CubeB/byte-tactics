@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
 // space-bunny-free retry: retained 69.5%; found the n/m/q plateau is one register
 // SHORT of the original, not a different function. Declaring n=count, m=copied and
 // q=pc as function-scope locals (build/scratch/0x4d9ca0/v1.cpp, 60.7%, 629 bytes)
@@ -84,6 +84,23 @@
 //   so forcing them all into locals is the wrong model; the spill of `this`
 //   likely needs a different pressure lever (single shared upstream cause per
 //   brief lesson: the ebp/esi swap and the missing spill are one decision).
+//
+// deepseek-v4.1-flash (fourth run, 10-minute box): retained 69.5%; nothing new matched.
+// Re-derived the prologue and confirmed the target allocation again: original has
+// p=ebx and i=ebp only, with this=slot 0x20, len=slot 0x10, count=slot 0x1c,
+// copied=slot 0x14, pc=slot 0x24; ours keeps this=ebp and i in memory. Tested this
+// run, all strictly worse or byte-identical to the 69.5 body:
+//   - declaring all locals uninitialised at function scope in two orders (u1, u2:
+//     59.4 each, 629 bytes), so the "uninitialised locals take callee-saved
+//     registers in declaration order" lever does not reach the i/this pair here;
+//   - `register int i` (69.5, byte-identical), an outer `for(;;) {...; break;}`
+//     wrapper (59.8), two block-scoped loop counters i1/i2 (60.7), a foldable
+//     `int ix = i; i = ix;` use inside each loop (69.5, folded away);
+//   - caching count as an unsigned local (vD 59.4), caching only count and keeping
+//     copied direct (59.4), unsigned m / unsigned long len types (both 69.5).
+// The n-declaration variants keep landing frame 0x18 with this=esi, len=ebp and
+// i=edi, i.e. MSVC ranks this/len above i; the original ranks i above both and
+// spills them. No source lever found in the box.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

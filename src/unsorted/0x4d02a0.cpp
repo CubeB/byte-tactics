@@ -1,26 +1,19 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
-// Earlier attempts by space-bunny-free, deepseek-v4.1-flash and GPT-6, kept below.
-// Finished by deepseek-v4.1-flash: rewrote the FindChunk loop as `for (;;)` with
-// an early `return size`, which removed the two extra `jmp` instructions at the
-// end of the second chunk search (906 -> 897 bytes).
-// Best so far: 56.9 percent, 897 bytes against the original 895, NOT a match.
-// What still differs (all inside the kind == 2 RIFF body):
-//   - the chunk search is scheduled differently: the original emits
-//     `mov edx,[esp+0x38]; add edx,edi; push edx` for the seek argument while
-//     ours emits `lea eax,[edi+edx]; push eax`, and the lea temps for &id and
-//     &size rotate eax,ecx,edx in the original but ecx,edx,eax here.
-//   - at the FUN_004cf940 / FUN_004cf8a0 call sites the original loads `this`
-//     after the argument pushes (`mov ecx,[esp+0x2c]`), ours loads it before
-//     them, and the p3/p4 loads pick ecx/edx instead of the original edx/ecx.
-// Tried: shared inline FindChunk helper (current, best), plain __stdcall
-// FUN_004d01b0 (56.3 percent), __thiscall free function (MSVC5 rejects with
-// C4234), result/chunk locals declared both ways (slots already agree).
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Earlier attempts by space-bunny-free, deepseek-v4.1-flash and GPT-6.
+// Fixed by deepseek-v4.1-flash: all 895 bytes now match (was 897 bytes at
+// 56.9 percent). In the FindChunk helper the locals must be declared
+// `unsigned int limit, id, offset, size;` with offset before size. With size
+// first, MSVC picked edx as the destination of `size + offset` and emitted
+// `lea eax,[edi+edx]` instead of the original `mov edx,[esp+0x38]; add
+// edx,edi`, which then rotated every later lea register. All locals stay
+// unsigned so the two chunk tests keep `jb` / `jle`.
+// check.py reports 100.0% bytes but not MATCH: the only failing reference is
+// the callee name (see NAMING NOTE below).
 // NAMING NOTE: the original calls 0x4d01b0 as a __thiscall method
 // (`push esi; mov ecx,edi; call 0x4d01b0`, and 0x4d01b0 never reads ecx), but
 // data/symbols.csv names 0x4d01b0 as the bare `FUN_004d01b0`, so check.py
-// reports our member reference as a name mismatch once the bytes match. The
-// orchestrator should add the class-qualified name for 0x4d01b0 to
-// data/symbols.csv.
+// reports our member reference as a name mismatch. The orchestrator should add
+// the class-qualified name for 0x4d01b0 to data/symbols.csv.
 #include <string.h>
 
 struct File_004bb5d0;
@@ -60,7 +53,7 @@ struct WaveFormat {
 };
 
 static inline unsigned int FindChunk(File_004bb5d0* file, const char* tag) {
-    unsigned int limit, id, size, offset;
+    unsigned int limit, id, offset, size;
     FUN_004bb710(file, 4);
     FUN_004bb7c0(file, &limit, 4);
     limit += 8;

@@ -1,5 +1,10 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by space-bunny-free, continued by deepseek-v4.1-flash and GPT-6; deepseek-v4.1 retry.
+// deepseek-v4.1-flash retry 2 (best 55.6, unchanged): swept the `res` declaration position
+// (right after size, after map, after wraps) all stay 55.6; before lock drops to 51.5 because
+// lock moves to ebx. The blocker is unchanged: `res = 0` compiles to `xor ebp,ebp` and ebp is
+// then reused for the `map->count` compare, so `want` cannot take ebp; the original stores the
+// 0s as immediates and compares against the just-zeroed esi (wraps).
 // NOT A MATCH: measured 52.2 percent, ours 778 bytes against the original 780, frame 0x68 (correct,
 // and every callee/data reference resolves at the same place). The body is instruction for
 // instruction right except for register allocation:

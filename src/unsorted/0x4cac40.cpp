@@ -1,4 +1,8 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, improved and verified by GPT-6.1-sol. Names are provisional.
+// Best score is 86.2% after five check.py runs. The row guard uses
+// rows = height - 1; if (rows >= 0) { ++rows; do ... while (--rows); } to
+// reproduce the original signed dec/test/jl/inc sequence. Remaining codegen
+// differences are documented below; no MATCH was reached.
 // NOT MATCHING: 76.6% (632 of 640 bytes). What still differs is listed at the
 // bottom of this file.
 //
@@ -57,13 +61,13 @@ int __stdcall FUN_004cac40(void* filename, unsigned char* data, int width, int h
 {
     Header_004cac40 hdr;
     Class_004bbbe0* file = (Class_004bbbe0*)FUN_004bb2c0(filename);
+    int total;
     unsigned char* row;
     unsigned char* p;
     int rows;
     int run;
     int n;
     int wrote;
-    int total;
     unsigned char cur;
     unsigned char curmem;
     unsigned char t;
@@ -93,9 +97,10 @@ int __stdcall FUN_004cac40(void* filename, unsigned char* data, int width, int h
     if (FUN_004bbbe0(file, &hdr, 0x80) != 0x80)
         goto out;
 
+    rows = height - 1;
     row = data;
-    rows = height;
-    if (rows > 0) {
+    if (rows >= 0) {
+        ++rows;
         do {
             cur = *row;
             run = 1;

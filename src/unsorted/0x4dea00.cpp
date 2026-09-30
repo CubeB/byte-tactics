@@ -1,4 +1,14 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2857): re-confirmed 97.3%. The two
+// inversions are the guide's scheduler tie-break class (deferred `add esp,0xc`
+// around a call's pushes); 11 new source shapes (sep scope, addrs[i] temporaries,
+// casts, deref form, while-loop, split found chain, ternary sep, `int k=i`,
+// `(void)n;`) plus headers.py all stay at 97.3, so it is not source-reachable.
+// BUG: `found` is declared before the loop and only ever set to 1, never reset
+// per iteration, so once any address resolves a symbol every later separator
+// becomes "\n" (cmp bl,bl/jne at 0x4dec73 and the mov bl,1 stores at
+// 0x4deb29/0x4dec6f, with no zeroing store in the loop). It looks like it should
+// be reset each iteration, but the shipping code keeps it sticky.
 // NOT MATCHING yet (97.3%, 850 bytes both). Two codegen differences remain, both the
 // same MSVC 5 allocation decision applied in opposite directions:
 //  1. lines branch, `i == n - 1`: original emits `mov eax,n; lea ecx,[eax-1]; mov eax,i;

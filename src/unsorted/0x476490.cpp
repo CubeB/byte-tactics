@@ -1,4 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (10 min): retained 78.9 percent, 646/632 bytes. No
+// gain from an empty element destructor (neutral at 646), stock MSVC6-style
+// _S + (_P - _First) fill/suffix destinations (40.0 percent, 678 bytes), the
+// 0x476210 file text with the element type swapped and _Destroy moved after
+// the deallocate (75.1 percent, 642 bytes), or the empty-destructor plus
+// _Destroy after deallocate (78.9 percent, 646 bytes). The wall is unchanged:
+// the allocator keeps _P in the argument slot and reloads it into ecx, while
+// the original preloads it into edx after the operator new call.
 // deepseek-v4.1 retry: still 78.9%, 646 of 632 bytes. Four more variants, each
 // scored with check.py: a const_iterator local copy of _P used as the prefix
 // bound and the suffix source, an iterator local copy of _P, passing the fill

@@ -1,4 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (10 min): no improvement on the retained 83.0%
+// (795/794). Tried <windows.h> added (82.9%, 796 bytes), a late `_P3 = _P`
+// local for the third copy (83.0%, _P stays in esi), and reusing a cached
+// `_S2 = _Q + _M` destination (75.3%). The ceiling remains the allocator
+// putting the iterator _P in esi instead of edx in the reallocating branch.
 // deepseek-v4.1 retry (#2496): 83.0% confirmed, 10 check runs (declfirst _S/_N, split _Q decl/assign, cached _Q+_M, non-const _Ucopy params, const_iterator bound alias, _QE precompute) all stay at 795 bytes with _P in esi instead of edx; no source-level lever found for the allocator pick.
 // Refinement issue #2306: best remains 83.0% (795/794 bytes). The reallocating branch allocates _P in esi instead of edx, shifting spills and copy-loop registers; all other branches match.
 // GPT-6 retry: 83.0%, 795 of 794 bytes; pointer and buffer constness and allocator pointer typedef variants did not change the saved register family.

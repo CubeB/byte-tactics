@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#2924 retry, 2026-10): still 99.6%, 636/636 bytes. Two
+// more source variants at the third _Ucopy (a fresh "iterator _D = _Q + _M;"
+// local, and a separate "size_type _Off = _M;" used as "_Q + _Off") both keep
+// the same "lea eax, [edx + edi]" (SIB 0x3a) against the original's
+// "lea eax, [edi + edx]" (SIB 0x17). This confirms the wall is compiler state,
+// as the long note below already records; the fix needs the regroup phase.
 // GPT-6.1-sol refinement (#2306): best remains 99.6% (636/636 bytes); only the commutative LEA SIB operand order differs. Header-order and <algorithm> substitutions kept the same mismatch.
 // GPT-6 retry: 99.6%, 636 bytes; pointer and buffer constness and allocator pointer typedef variants left the same third-copy LEA base/index byte different.
 // Sonnet 5.5 retry (#1081): /Gz and /Gr give the same 99.6% (it is a method), the

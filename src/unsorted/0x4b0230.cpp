@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial), deepseek-v4.1-flash (partial), verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial), deepseek-v4.1-flash (partial), verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // #2316 retry by OpenCode / GPT-6.1-sol: checkall scored 82.9% (631/631 bytes), no MATCH. Moving the width calculation after the origin branch scored 79.9%; a single-use width helper stayed at 82.9%. The remaining mismatch is register and stack-slot allocation in the 3x3 tiling block, including the loop latch. Best source retained.
 // #1700 retry by Codex / GPT-6.1-sol: checkall reconfirmed 82.9% (631/631 bytes), no MATCH.
 // Both direct checks and all 128 headers.py combinations left the 3x3 tiling mismatch unchanged.
@@ -108,6 +108,13 @@
 // declarations) leave the slots exactly where they are, so the frame order is
 // not declaration order nor first-use order either; both halves of the mismatch
 // (3x3 registers and the two slots) stay unexplained by any source shape tested.
+// #2678 retry by deepseek-v4.1-flash: re-confirmed 82.9% (631/631). Corrected
+// scratch generator (an earlier one silently dropped the FUN_004b7f30 call, so
+// its low scores were invalid) and re-ran the statement orders. Both extents
+// after the origin branch score 76.7 (H then W), 81.2 (index=0 before H,W or H,
+// index=0, W) and 79.9 (W then H); hoisting x0/y0 before the branch and testing
+// `index == 0` scores 77.8 to 79.9. None reach the original's index-in-edx,
+// h-in-ecx, height-in-eax allocation. Best stays this 82.9% body.
 //
 struct Rect_004b0230 {
     int x0;                          // +0x0

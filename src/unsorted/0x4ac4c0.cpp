@@ -141,6 +141,26 @@
 // than the tree optimiser, e.g. a second `p = buf + i` in the `c == '\n'` arm,
 // where `mov [esp+0x14], eax` is already emitted. The tail hack must stay until
 // that is found: without it the head collapses (see above).
+//
+// deepseek-v4.1-flash, fourth pass, 83.1% / 334 bytes, no change. New negative
+// results (all scored with --sym, so no check.py budget):
+//   * The 9-byte tail `cmp [esp+0x18],ebx / jne +3 / mov [ebx],1` is exactly the
+//     whole size gap (334 - 325 = 9), so the original has no such instructions.
+//   * Removing the tail (even with a late dead use of `text`, `text[0]=text[0]`,
+//     `s = text`, `buf[i] = text - text`) leaves 322 bytes / 61.4% and reshuffles
+//     the whole preheader: text -> esi (not ebp), index -> ebx, len -> edi. Every
+//     zero-byte spelling of the late use folds at the tree level, so it does not
+//     extend `text`'s live range and ebp is freed.
+//   * `char* s = text + 0;`, `&text[0]`, `(char*)((int)text + 0)` and `register`
+//     on i or s all compile to the identical 334 bytes: the i/s copy is not
+//     blocked by a non-trivial copy expression.
+//   * The full 24 permutations of the four declarations i, c, s, p scored: 83.1%
+//     except the 12 with `p` first, which score 82.4%. Declaration order never
+//     flips the i/s registers.
+// Next lever to try: a construct the tree optimiser keeps but the instruction
+// selector emits as zero bytes (an inline helper reading `text`, or a use in an
+// existing comparison), which is the only shape that satisfies both the ebp
+// liveness and the 325-byte size at once.
 #include <string.h>
 
 struct Gadget_004ac4c0;

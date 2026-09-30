@@ -1,5 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
 // space-bunny-free and GPT-6.1-sol. Names are provisional.
+// finished by deepseek-v4.1-flash (89.8% retry).
+// deepseek-v4.1-flash #2401 retry: raised 88.1% -> 89.8% (167/167 bytes) by
+// splitting the surface assignment: `void* s = gadgets->surface;` then
+// `int gx = gadgets->x;` then `p.surface = s;` then `x0 += gx;`. That makes
+// the compiler emit the original order in the prologue: L gadgets->x (it
+// hoists this load above the store), S p.surface, A x0. The prologue is now
+// byte-identical except that grid->y is loaded into eax instead of edx. The
+// loop regressed slightly: it now computes y+7 (bottom) first into eax and
+// x+7 (right) second into ecx, where the original computes x+7 first; the
+// surface reload is in the original slot (after the right store). Both
+// remaining hunks are register/scheduler tie-breaks in the same y (ebx)
+// node; all shapes tried here (separate locals, extra temps for both
+// coordinates, reference to the grid, reindexing gadgets[index].y) stay at
+// 89.8% or below. See the history below for the earlier 88.1% analysis.
 // #1610 retry by Codex / GPT-6.1-sol: checkall reconfirmed 88.1% (167/167 bytes), no MATCH.
 // The inline helper probe produced identical diffs; the surface access schedule remains different.
 // Draws the 16x16 "COLS" colour grid of a gadget, each cell 8x8 pixels; the
@@ -113,8 +127,10 @@ void __stdcall FUN_004ac8c0(Object_004ac8c0* obj)
     Pair_004ac8c0 p;
     int y = gadgets->y;
     int x0 = grid->x;
-    p.surface = gadgets->surface;
-    x0 += gadgets->x;
+    void* s = gadgets->surface;
+    int gx = gadgets->x;
+    p.surface = s;
+    x0 += gx;
     y += grid->y;
     for (int row = 0; row < 16; row++) {
         int x = x0;

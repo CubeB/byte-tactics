@@ -1,4 +1,12 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (short retry, kept 96.1%): VECTOR lines 52-55 confirm
+// ~vector() is {_Destroy(_First,_Last); deallocate(_First,_End-_First);
+// zeros;}. The original keeps NO zero stores in either path (dead after the
+// scope, eliminated) and its empty path is just `push ebp / call operator
+// delete / add esp,4` at 0x412c4c, so only the landed site needs the
+// out-of-line _Destroy (this=&v at [esp+0x1c], args _First@0x20/_Last@0x24).
+// Budget markers flip the later (empty) site first, never the earlier landed
+// one, which is why the explicit-destructor form below stays the best shape.
 // deepseek-v4.1-flash retry (1 real check.py run, kept 96.1%): the landing
 // block's out-of-line _Destroy call is NOT reachable with the /Ob2 budget
 // levers that fixed the matched 0x48d220. Measured with the free scratch

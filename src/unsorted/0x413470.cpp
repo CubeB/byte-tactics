@@ -101,6 +101,25 @@
 // original really scheduled the two sums differently and the source edit that
 // produced it is not the one that produces this schedule. Add() as a
 // per-member helper scores 97.1%. Best kept: baseline, 97.4%.
+// deepseek-v4.1 (issue #2361) seventh retry: baseline reconfirmed at 97.4%,
+// same two regions. Checked the matched sibling 0x4034a0, which spells this
+// exact test `_hypot(unit->pos.xh - order->x, unit->pos.zh - order->z)` with
+// the unit side FIRST (the negation of our line 261): that spelling here drops
+// to 96.8 and emits the order (esi) movsx first in both differences, with the
+// sub destination following the esi operand, so the original's unit-first load
+// pair is not reachable from the operand order. <memory.h>, which the matched
+// 0x412710 notes as the header that fixes its first hypot load order, was
+// added in both positions (before and after <math.h>): order-first stays 97.4
+// and unit-first stays 96.8, so the header set is not the lever here either.
+// What still differs (both pure scheduling, 1864 bytes in both):
+// - 0x413675: the range-check _hypot issues the four movsx in the order
+//   unit,order / unit,order; ours (and the negated spelling) always starts
+//   with the order (esi) load into edx.
+// - 0x413950: the state-3 waypoint keeps off.x consumed before pos.y is
+//   loaded, so it reuses edi for pos.y and ecx for pos.z and hoists push 0x36
+//   between the two adds; ours loads pos.y into ebx before the adds and
+//   pushes after them (member-wise p.x/p.y/p.z sums score 93.7 and shrink
+//   the frame by 4 bytes, so the sum must stay a Vec3 local plus operator+).
 #include <math.h>
 #include <vector>
 

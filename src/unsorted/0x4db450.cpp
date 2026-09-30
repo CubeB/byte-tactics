@@ -153,6 +153,25 @@
 // pair temp sits at temp0/temp1 here instead of temp1/temp2. The emitted
 // instruction sequence is otherwise identical, so that one allocation state is
 // not steered by anything the declaration list or the call spelling can reach.
+// UPDATED by deepseek-v4.1-flash (retry, issue 2942): 93.5% -> 97.4%, still 444
+// of 444 bytes. The lever was the ERASE declaration, not the declaration list:
+// `FUN_004dc130` must be declared with its real by-value signature
+// `Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it)` and its result DISCARDED
+// (`((Class_004dc130*)this)->FUN_004dc130(n);`), replacing the previous
+// out-parameter spelling `void FUN_004dc130(Class_004dd2a0* out, ...)` that
+// passed `&it2` explicitly. With the by-value spelling MSVC treats the hidden
+// return pointer as a compiler temporary, and that alone flips the permanent
+// local order so `n` lands at esp0-0x14 and `it2` at esp0-0x10, which is the
+// original: the four n/it2 hunks collapse. Tried with it and inert/worse:
+// declaring `n` and `it2` at their point of use (97.4%, same), assigning the
+// erase result to `it2` (`it2 = FUN_004dc130(n)`, 456 bytes, 87.2%), and
+// wrapping the map block in a scope (93.5%). What still differs (four hunks,
+// all displacement-only): the spilled `this` sits at esp0-0x0c here but
+// esp0-0x14 in the original (sharing `n`'s dead home), and both erase hidden
+// return temps sit at esp0-0x0c here but esp0-0x10 in the original (sharing
+// `it2`'s dead home). So the original's temporaries reuse the dead permanent
+// slots while this compile gives them the one unused frame dword instead; that
+// residual is a temp-pool allocation state, not a source shape.
 #include <windows.h>
 
 struct Node_004db450 {
@@ -189,7 +208,7 @@ public:
 
 class Class_004dc130 {
 public:
-    void FUN_004dc130(Class_004dd2a0* out, Class_004dd2a0 it);
+    Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it);
 };
 
 // begin(), out of line: it stores the tree's first node through its argument.
@@ -259,14 +278,14 @@ bool Class_004db450::FUN_004db450(unsigned int size)
     if (Neq(n, Class_004dd2a0(head))) {
         if (n.ptr->key == p.offset + p.length) {
             p.length = p.length + n.ptr->length;
-            ((Class_004dc130*)this)->FUN_004dc130(&it2, n);
+            ((Class_004dc130*)this)->FUN_004dc130(n);
         }
     }
     if (Neq(it, Class_004dd2a0(head))) {
         if (it.ptr->key + it.ptr->length == p.offset) {
             p.length = p.length + it.ptr->length;
             p.offset = it.ptr->key;
-            ((Class_004dc130*)this)->FUN_004dc130(&it2, it);
+            ((Class_004dc130*)this)->FUN_004dc130(it);
         }
     }
     ((Class_004dbec0*)this)->FUN_004dbec0(&it2, &p);

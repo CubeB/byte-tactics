@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // Draws the "waiting for other players" progress bars: one bar per connected
 // player, each 620/n wide, with a fill proportional to that player's percent.
 //
@@ -27,6 +27,37 @@
 // the reverse. Independent of the expression, ours also encodes the first
 // `lea` as [esi+ebx-2] where the original has [ebx+esi-2] (base = slot); that
 // operand order was not movable. Header scans found no improvement.
+//
+// Third pass (space-bunny-free) measured the rotation exactly. In every
+// bounded form the loop head and tail are byte-identical to the original
+// (including `mov ecx,[esp+0x10]` on the body's path only), but the whole
+// rest of the function is rotated by one register in the same direction:
+// original ecx -> ours eax, original edx -> ours ecx, original eax -> ours
+// edx. It is a whole-function phase, not a body-local choice: the code after
+// the loop (`lea ecx,[esp+0x34]` for the sprintf buffer, `mov edx,[esp+0xa4]`
+// for the surface) is rotated too, while everything before the loop head is
+// not. So the seed is the second loop's own basic blocks, and no source edit
+// inside the body moves it. Measured, all bounded forms score 79-80%:
+//   for + continue                    80.3%  (594 bytes, head/tail exact)
+//   do-while (second pass)            595 bytes, same rotation
+//   x + slot - 2 instead of slot + x - 2  80.3% (the lea base/index is
+//       invariant to the order of the two terms, so it cannot be fixed here)
+//   IV init (`int j = 0`) before/after x = 11   80.3% (the store order
+//       `mov [esp+0x10],ecx` / `mov esi,0xb` is not movable either)
+//   unsigned index                    79.8%
+//   bound in a local `const unsigned n = 10`   79.8% (test still byte-offset)
+//   aggregate rect init {10,420,0,435} 78.4%
+//   one index shared by both loops    79.2%
+//   percent temp inlined (no `pc`)     79.2%
+//   pointer walk `q < g_game->players + 10`    74.8%  (and `q != ...`, same)
+//   all 128 header sets on the bounded form     80.3% for every one of them
+// The pointer-walk result is informative: a pointer induction variable is
+// lowered differently and loses the `lea`/`mov` pair at the head, so the index
+// form (`g_game->players[j]`) is the right one, it just needs a phase seed we
+// have not found. Next idea: the seed may sit in the first loop, which is
+// byte-identical here but not necessarily written the way Cavedog wrote it
+// (see the note in 0x4581e0 about a load order that flips with unrelated code
+// placed before it in the same file).
 #include <stdio.h>
 
 #pragma pack(push, 1)

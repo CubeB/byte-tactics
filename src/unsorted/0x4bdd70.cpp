@@ -1,4 +1,22 @@
 // Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1-flash. Names are provisional.
+// space-bunny-free (second pass): still 97.9%, no scratch variant beat it (5 free
+// --sym scorings). Two new facts for the key block:
+//   - A pure `unsigned char key` (no int copy) drops the byte's slot store AND
+//     the `mov eax,[esp+0x70]; and eax,0xff` reload: MSVC keeps the byte in a
+//     register only (`mov al,[ecx+0xc]; test al,al; mov dl,al; shl dl,2; shr
+//     al,6; or dl,al; not dl; mov [ecx+0xc],al`, 91.7%). So the original really
+//     does have a byte local and a dword local sharing slot 0x70, and the
+//     `and eax,0xff` is the dword one.
+//   - With the condition on the byte (`if (key)`) the `and eax,0xff` stays in
+//     eax but everything else moves one register down: base=edx, key=cl, shift
+//     temp=ecx (the byte condition needs cl, not dl). Splitting the rotate into
+//     two temps (`unsigned int hi = w >> 6; w = w << 2; key = (unsigned
+//     char)~(hi | w);`) does give the wanted `shl eax, 2` and a byte `not` (95.3%)
+//     but keeps the cl/edx roles. Reversing the shift order with the byte
+//     condition is 91.7% and 2 bytes long. The only form with the original's
+//     roles (base=ecx, key=dl, w=eax) is the one with the condition on `w`,
+//     which folds the test into the `and`. Both the wanted `test dl,dl` and the
+//     wanted roles cannot be had at once with any spelling tried.
 // deepseek-v4.1-flash (600s run): confirmed 97.9% and did not improve on it.
 //
 // deepseek-v4.1-flash (second run): the three remaining diffs are ONE allocator

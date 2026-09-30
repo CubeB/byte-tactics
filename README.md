@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**64.17% of Cavedog's code matched** (545,978 of 850,853 bytes)
+**64.28% of Cavedog's code matched** (546,910 of 850,853 bytes)
 
 `[##########################--------------]`
 
-By count that is 2,982 of the game's 3,267 functions (91.3%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,983 of the game's 3,267 functions (91.3%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,982 | 545,978 |
-| Attempted, not yet matching | 270 | 299,179 |
+| Matched byte-for-byte | 2,983 | 546,910 |
+| Attempted, not yet matching | 269 | 298,247 |
 | Not attempted yet | 15 | 5,696 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 820 of 827 | 99.0% | 834 | `##########` |
 | large (161 to 400 bytes) | 642 of 703 | 90.4% | 17,176 | `#########-` |
 | xl (401 to 600 bytes) | 187 of 226 | 82.1% | 19,695 | `########--` |
-| xxl (601 to 1,000 bytes) | 125 of 195 | 63.0% | 54,373 | `######----` |
+| xxl (601 to 1,000 bytes) | 126 of 195 | 63.6% | 53,441 | `######----` |
 | huge (over 1,000 bytes) | 54 of 161 | 27.2% | 212,757 | `###-------` |
 
 ### By area
@@ -61,7 +61,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x490000` | Config and registry, skirmish summary | 173 of 193 | 55.8% | 26,320 | `######----` |
 | `0x4a0000` | GUI layout and GAF | 177 of 201 | 51.4% | 31,229 | `#####-----` |
 | `0x4b0000` | UI controls and file packages | 287 of 314 | 67.5% | 20,110 | `#######---` |
-| `0x4c0000` | TDF parser, CD audio, string handles | 277 of 298 | 74.2% | 13,978 | `#######---` |
+| `0x4c0000` | TDF parser, CD audio, string handles | 278 of 298 | 75.9% | 13,046 | `########--` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 167 of 197 | 55.4% | 16,765 | `######----` |
 | `0x4e0000` | Process exit, psapi | 90 of 93 | 67.1% | 3,885 | `#######---` |
 

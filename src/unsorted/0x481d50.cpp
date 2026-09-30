@@ -1,5 +1,10 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 #include <windows.h>
+#include <stdio.h>
+
+// Retry: the 128-set header sweep found no match. Adding <stdio.h> reproduces the
+// best 53.6% result (813 bytes), a slight improvement over the prior 53.5% source.
+// Other attempts in the retry notes and shared board did not improve this variant.
 
 #pragma pack(push, 1)
 

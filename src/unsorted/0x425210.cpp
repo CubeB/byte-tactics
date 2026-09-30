@@ -150,6 +150,16 @@
 // influence the base/index pick, and with both operands unscaled registers
 // the pick is decided by the order the loop optimiser built the affine source
 // expression, which no source shape here reaches.
+// Seventh pass (deepseek-v4.1-flash, 10 min budget, 5 scratch scores, 0 new
+// check.py runs on the file): still 99.6%, same single SIB byte. Two more
+// spellings tested and both stayed on the 544-byte plateau with
+// `lea eax,[ecx+ebx]`: swapping _Ucopy's increments to `++_F, ++_P` (99.6%),
+// and commuting the third copy's destination to `_M + _Q` (99.6%). Written
+// out as a named `iterator _R = _Q + _M;` before the call also stayed 99.6%,
+// and moving the destination increment into the construct argument
+// (`allocator.construct(_P++, *_F)`) dropped to 547 bytes / 47.2%. None of
+// the source levers move the base/index pick, matching the earlier verdict
+// that the wanted `[ebx+ecx]` needs a compiler state this TU cannot reach.
 #include <memory>
 #include <xutility>
 

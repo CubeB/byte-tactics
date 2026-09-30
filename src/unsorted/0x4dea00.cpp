@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, second pass
+// by space-bunny-free. Names are provisional.
 // NOT MATCHING yet (96.6%, 850 bytes both). Only two small codegen differences remain:
 //  1. Loop preheader: the original tests `n` BEFORE storing `a = addrs` (the store is
 //     sunk past the guard); mine stores a = addrs first, then tests n. Two instructions
@@ -16,6 +17,21 @@
 //  - tools/headers.py tried all 128 header sets: closest 96.6, so no header fixes it.
 //  - The whole remaining diff is one MSVC 5 allocation decision that splits across the
 //    two branches; the preheader transposition moves with it, so fix them together.
+// space-bunny-free (second pass, 3 scratch variants, no check.py run spent):
+//  - NEW FINDING on the non-lines branch: it does NOT use the loop counter. At 0x4decb2
+//    it loads eax from [esp+0x20], the `width` slot (0xf or 0x320), and reuses that eax
+//    for both `cmp eax,ecx` (ecx = n-1) and `cdq/idiv ecx` (per). The lines branch uses
+//    [esp+0x14] (= i) for the same two tests. So the source really is
+//    `if (width == n - 1 || width % per == per - 1)` in the non-lines branch: a
+//    copy/paste slip in Cavedog's code, see the BUG note below.
+//  - Writing that faithfully scores 71.8% (847 bytes): the two extra `width` references
+//    make MSVC 5 re-order every local (i/width swap 0x14/0x18, entry block rewritten),
+//    so the original's slot priority is not plain reference count and something else in
+//    the source keeps i at 0x14 and width at 0x20 while width is read in the loop.
+//  - Pre-loop guard `if (n <= 0) return;` to get the test before `a = addrs`: 83.6%
+//    (856 bytes, MSVC 5 keeps the redundant test and duplicates the preheader), and with
+//    the loop turned into `for (;;)` it is 89.0% (847 bytes). Both worse; the guard is
+//    not the shape the original used.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

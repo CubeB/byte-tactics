@@ -1,19 +1,31 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1. Names are provisional.
-// PARTIAL 74.4%. Frame is right (0xf4 = pt@0x00 reused by held/bmp, rect@0x08,
-// src@0x18, out@0x28, screen@0x58, desc@0x88) and the branch nesting now matches
-// (flags&2 test, then field_dc!=0 as the fall-through, then the field_dc==0 path).
-// What still differs (ours 1124 bytes vs the original 1051):
+// PARTIAL 81.0%. Frame is right (0xf4: pt@0x10 reused by held/bmp, rect@0x18,
+// src@0x28, out@0x38, screen@0x68, desc@0x98, all [esp+N]). The tail loop now has
+// the original's shape: `int hr; for(;;){ hr = Blt(...); if (hr==0) return; if (hr
+// != 0x887601c2) continue; dd = FUN_004b6220(); if (dd->field_44 == 0) { hr =
+// field_88->Restore(); if (hr==0) { hr = surface->Restore(); if (hr==0) { ...;
+// UnlockScreen(); } } } else { hr = 0; } if (hr != 0) continue; return; }` keeps
+// hr in edi and dd in ebx exactly as the original (0x4c6722-0x4c67aa), and that
+// alone took the file from 74.7 to 81.0.
+// What still differs (ours 1129 bytes vs the original 1051):
 //  - the two inlined Lock()/Unlock(held) pairs are not merged. The original keeps
 //    ONE Unlock body (0x4c663f) and branch 1 jumps into it (mov eax,[esp+0x10];
 //    test eax,eax; jmp 0x4c6639), and its bmp-path Lock() loads ebp=InterlockedExchange,
-//    ebx=WaitForSingleObject, edi=0x4d41494e with held ending in ebx; ours loads
-//    ebx=InterlockedExchange, ebp=WaitForSingleObject and keeps held in ebp, so
-//    the two Unlock bodies differ (call ebp vs call ebx) and MSVC emits both
-//    (~0x2c + 0x20 bytes). Swapping the register pair is allocator state: it is
-//    coupled to the zero register (original xor ebp,ebp / cmp ecx,ebp, ours
-//    xor ebx,ebx / cmp ecx,ebx) and to ebx holding held; no source shape tried
-//    (helper vs open-coded unlock, scoping, statement order) moved it.
-//  - branch 1 uses ebx for &d->cached and edi for the HDC; ours has edi/ebx swapped.
+//    ebx=WaitForSingleObject with held ending in ebx; ours loads ebx=InterlockedExchange,
+//    ebp=WaitForSingleObject and keeps held in ebp, so the two Unlock bodies differ
+//    (call ebp vs call ebx) and MSVC emits both (~0x2c + 0x20 bytes).
+//  - ours also repeats the whole Blt block once at the loop tail (the trailing
+//    `if (hr != 0) continue;` back edge is not folded onto the loop top).
+//  - branch 1's jne displacements are 4 bytes wider because of those extra bytes.
+// The zero register now matches (xor ebp,ebp / cmp ecx,ebp in the field_dc test),
+// but that did not move the bmp-path Lock's (iel,wfso,held) trio off (ebx,ebp,ebp).
+// Tested this pass: making the Unlock ONE shared statement (if / else if / else
+// plus a single trailing Unlock(held)) DOES unify the bmp Lock to the original's
+// (ebp,ebx,ebx), which shows the original's shared Unlock body really is one
+// source-level statement; but then held needs a function-wide memory home at
+// [esp+0x10], the field_bc temp moves to 0x14 and the frame becomes 0xf8: 67.6%.
+// Hoisting a single `LONG held;` while keeping the two Unlock call sites is
+// byte-identical to this file. A do-while form of the Blt loop scores 41.3%.
 // The locals must stay scoped as they are (desc/out inside the field_dc!=0 block,
 // rect/pt plus the Blt loop in a nested block, screen at function scope): declaring
 // them at function scope makes the frame 0xf8 and shifts every [esp+N] by 4.
@@ -209,15 +221,21 @@ void FUN_004c63a0(void)
         if (hr != 0x887601c2)
             continue;
         Display_004c63a0* dd = FUN_004b6220();
-        if (dd->field_44 != 0)
-            return;
-        if (d->field_88->Restore() != 0)
+        if (dd->field_44 == 0) {
+            hr = d->field_88->Restore();
+            if (hr == 0) {
+                hr = d->surface->Restore();
+                if (hr == 0) {
+                    FUN_004c5e70(&screen);
+                    FUN_004cbbe0(&screen, dd->field_98, 0, 0);
+                    UnlockScreen();
+                }
+            }
+        } else {
+            hr = 0;
+        }
+        if (hr != 0)
             continue;
-        if (d->surface->Restore() != 0)
-            continue;
-        FUN_004c5e70(&screen);
-        FUN_004cbbe0(&screen, dd->field_98, 0, 0);
-        UnlockScreen();
         return;
     }
     }

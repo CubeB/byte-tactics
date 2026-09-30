@@ -1,7 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
 // Partial: 76.5%. Saved file-offset slots, loop register allocation and
 // compression temporaries differ. Cached names plus += length updates and
 // the vector header improve the append loops; the double record is 12 bytes.
+// Retry: reordered the saved file offset without changing codegen; 128 header sets gave no improvement.
 #include <vector>
 #include <io.h>
 
@@ -206,4 +207,3 @@ void Class_004b3750::FUN_004b3c60(int index, FILE* file, Buffer_004b3c60* buf, i
     fwrite(&h, sizeof(h), 1, file);
     fseek(file, 0, 2);
 }
-

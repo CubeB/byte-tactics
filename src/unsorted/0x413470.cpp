@@ -17,6 +17,22 @@
 // GPT-6 retry: range/difference helpers, target-position addition helpers,
 // declaration layout, constructor bodies and coordinate field names did not
 // improve 97.4%. The first hypot and missed-attack waypoint loads still differ.
+// deepseek-v4.1 (issue #2541) eighth retry: 98.0%, up from 97.4. Region 1
+// (the range-check _hypot) is FIXED by binding short references to the two
+// order fields, `short& ox = order->x; short& oz = order->z;`, and spelling
+// the call unit-first: (int)_hypot(unit->pos.xw - ox, unit->pos.zw - oz).
+// The references keep both values live so MSVC materialises the unit (edi)
+// movsx pair first, exactly like the original; every direct spelling of the
+// same subtraction (order-first 97.4, swapped-argument 96.8/97.4, unit-first
+// 96.8, int locals 91.2, short locals 90.3, inline helper 96.8) emits the
+// [esi] (order) load first instead. Only region 2 is left: the state-3
+// misses>=2 waypoint at 0x41394b-0x41396a, where the original consumes edi
+// (off.x) via `add edx, edi` before loading target->pos.y back into edi and
+// pushes the 0x36 new size between the loads, while ours hoists all three
+// pos loads, uses ebx for pos.y, then adds and pushes. Vec3& to
+// target->pos (98.0, identical), declared-then-assigned off/p (98.0,
+// identical), member-wise int references (94.6), member-wise p.x/p.y/p.z
+// (93.7) and `p = off; p += target->pos;` (93.0) all fail. Best kept: 98.0%.
 // VTOL attack order handler for a unit target. With flags 0x10008, or with
 // no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
 // player it heads for the map centre. State 0 prepares the order
@@ -276,7 +292,9 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         return 2;
     }
-    if (order->range && (int)_hypot(order->x - unit->pos.xw, order->z - unit->pos.zw) >= order->range)
+    short& ox = order->x;
+    short& oz = order->z;
+    if (order->range && (int)_hypot(unit->pos.xw - ox, unit->pos.zw - oz) >= order->range)
         return 5;
     int speed = unit->mover->speed;
     unsigned int state = 0;

@@ -157,6 +157,23 @@
 // 93.9%. The landing _Destroy call and orbit distance reload still differ.
 // GPT-6.1 probe: moving the landing block into an inlined TryLand helper kept
 // the function at 1572 bytes but scored 93.8%, so the direct block is retained.
+// deepseek-v4.1 (session 2541, 1 real check.py run, kept 96.1%): the /Ob2
+// decision order is now pinned down with free scratch scores
+// (build/scratch/0x412710/sweep*.py). Empty-inline markers (Dummy()) placed at
+// the top, at `case 4:`, before `if (!v.empty())`, inside the landed block,
+// after the block and before `return 7`, 8..48 each, never flip the NATURAL
+// landed implicit destructor (always 93.9% / 1548); 40 markers at the very end
+// flip the EMPTY path's destructor instead (1568 bytes, 92.7%) and 41 blow the
+// frame up (1616 bytes, 81.8%), so the landed site is simply not reachable by
+// budget. Two more spellings of the statement-level explicit destructor measure
+// byte-identical to `v.~vector();` at 96.1% / 1572: `return (v.~vector(), 0);`
+// and `std::vector<Unit*>* pv = &v; pv->~vector();`, so the site is not a
+// construct difference either. One level down, TryLand(unit, order) with
+// `if (!TryLand(...)) return 0;` is 94.7% / 1572 with the inlined `return 1`
+// cost visible (`xor ebp,ebp; mov eax,1; cmp eax,ebp`); `bool ok = !v.empty();`
+// before the test is 87.3% / 1556. So the landed destructor still differs as
+// described below: the original calls `PAUUnit::?$vector::_Destroy` (0x406c00)
+// out of line there while ours inlines its empty loop.
 // VTOL attack order handler ("Attacking"). With flags 0x1000a, or with no
 // target and order flag 0x200, it queues VTOL_SEEKATTACK instead; when out of
 // the order's range it gives up. State 0 prepares the order (FUN_0040f200 is

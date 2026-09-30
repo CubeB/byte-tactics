@@ -27,6 +27,12 @@
 // Also tried here: growing defaults to 9 or 10 ints and biasing its pointer
 // by one did not align both arrays; those scored 39.9%, 37.7%, and 47.2%.
 // Reordering declarations and taking the address of `previous` were neutral.
+// 2026-09-30 (deepseek-v4.1-flash): exact `index=previous; if(index<0)index=3;`
+// loop-tail (48.2%), function-scope `previous,next` declared first (48.4%), and
+// the 0x4c8760 board lever of hoisting `next,dv,dx,du` ahead of the min/max
+// locals (32.1%) all failed to grow the frame; MSVC 5 CSEs `previous` onto
+// `next`. Root is register assignment: the original keeps `vertices` in edx and
+// zeroes ebp, while this source keeps `vertices` in ebp and zeroes edx.
 // Hoisting the block-scope `x`/`y1` (the sibling 0x4c8760's
 // winning change) and hoisting the span `x`/`y1` plus porting its whole loop
 // structure; those scored 51.3 and 36.1 and did not grow the frame either.

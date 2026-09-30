@@ -1,30 +1,28 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by
 // space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
-// PARTIAL, 72.5% (1094 original bytes, 1094 ours).
+// PARTIAL, 87.3% (1094 original bytes, 1094 ours).
+// Fixed this pass: hoisting all four shared edge-walk temps (next, dv, dx, du)
+// to function scope, ahead of the min/max locals, restored the frame from
+// 0x7d54 to the original 0x7d58 (one extra scalar slot) and took 72.5 to 87.3.
 // The min/max scan and both span-edge loops now emit the same instruction
-// set; every remaining diff is stack frame layout and instruction scheduling.
-// Fixed here: the second span loop writes its u/v through offsets 4 and 5
-// (out = &spans[0][0], out[1]=x, out[4]=u, out[5]=v, out[7]=z), not 2/3 as a
-// first reading of the old source suggested; that is what took it from 67.9
-// to 72.5 and made the byte count exact.
-// What still differs:
-// 1. Frame is 0x7d54, original 0x7d58: exactly one 4-byte scalar slot short.
-//    Original has 14 scalar slots at 0x10..0x44; ours has 13 at 0x10..0x40.
-//    In ours lowX folds onto next's slot 0x10; the original keeps lowX at
-//    0x14 (shared with n) and next at 0x10 (shared with dv). Also the second
-//    span loop's n reuses lowIndex's slot 0x28 in the original, but ours
-//    uses 0x14. Hoisting x/y1/n to function scope, and sharing n between the
-//    two loops, did not change the frame (both stayed 0x7d54).
+// set; every remaining diff is stack slot assignment and instruction order.
+// What still differs (12 diff hunks, all downstream of the slot crossing):
+// 1. The allocator crosses two slot pairs. Original: {next,dv} at 0x10,
+//    {lowX,n1} at 0x14, {currentVertex} at 0x38. Ours: {lowX,n1} and
+//    {currentVertex} at 0x10, {next} at 0x14, {dv} at 0x38. The frame size and
+//    slot count now match, only which variable gets which offset differs.
+//    Moving the hoisted temp block to the top, after lowIndex, or splitting
+//    next/dv from dx/du (v2, v3, v4) all stayed 87.3, so the position of the
+//    temp block is inert once hoisted.
 // 2. First span loop body order: the original emits `x+=dx` right after
 //    `out[0]=x>>16`, before `out[2]=u`; ours emits it after `out+=10`.
 // 3. Second span loop exit: original does `mov edi,eax; mov eax,[highIndex];
 //    cmp edi,eax`; ours uses ecx for highIndex and `cmp eax,ecx`.
 // Tried a rowEnd temporary, reversing lowIndex/highIndex declaration order,
-// and rewriting the final for loop as while; none changed the 72.5% score.
-// The 128-set header sweep also found no improvement. A remaining approach is
-// to find the declaration/scope construct that makes the allocator give lowX
-// its own slot instead of folding it onto next, and makes the second loop's n
-// reuse lowIndex.
+// rewriting the final for loop as while, and three temp-block orderings; none
+// changed the score. The 128-set header sweep also found no improvement. The
+// remaining approach is to find the declaration/scope construct that makes
+// the allocator give {next,dv} slot 0x10 and {lowX,n1} slot 0x14.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 
@@ -33,6 +31,7 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
 {
     int defaults[8];
     int spans[800][10];
+    int next, dv, dx, du;
     int lowY, highY, highX, lowX;
     int lowIndex, highIndex;
     if (target && texture && vertices) {
@@ -63,21 +62,21 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                     int index=lowIndex;
                     do {
                         int previous=index-1;
-                        int next=previous;
+                        next=previous;
                         if (next<0) next=3;
                         int* currentVertex=vertices+index*3;
                         int y0=currentVertex[1];
                         y1=vertices[next*3+1];
                         if (y0<y1) {
                             int dy=y1-y0;
-                            int dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
+                            dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
                             x=currentVertex[0]*0x10000+0xffff;
                             int z=currentVertex[2]*0x10000;
                             int u=coords[index*2]*0x10000;
                             int v=coords[index*2+1]*0x10000;
 
-                            int du=(coords[next*2]*0x10000-u)/dy;
-                            int dv=(coords[next*2+1]*0x10000-v)/dy;
+                            du=(coords[next*2]*0x10000-u)/dy;
+                            dv=(coords[next*2+1]*0x10000-v)/dy;
                             int dz=(vertices[next*3+2]*0x10000-z)/dy;
 
                             if(y0<0) {
@@ -111,20 +110,20 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                     int* out=&spans[0][0];
                     int index=lowIndex;
                     do {
-                        int next=(index+1)&3;
+                        next=(index+1)&3;
                         int* currentVertex=vertices+index*3;
                         int y0=currentVertex[1];
                         y1=vertices[next*3+1];
                         if (y0<y1) {
                             int dy=y1-y0;
-                            int dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
+                            dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
                             x=currentVertex[0]*0x10000+0xffff;
                             int z=currentVertex[2]*0x10000;
                             int u=coords[index*2]*0x10000;
                             int v=coords[index*2+1]*0x10000;
 
-                            int du=(coords[next*2]*0x10000-u)/dy;
-                            int dv=(coords[next*2+1]*0x10000-v)/dy;
+                            du=(coords[next*2]*0x10000-u)/dy;
+                            dv=(coords[next*2+1]*0x10000-v)/dy;
                             int dz=(vertices[next*3+2]*0x10000-z)/dy;
 
                             if(y0<0) {

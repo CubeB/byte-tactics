@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
 // Partial, 48.1% (deepseek-v4.1: 46.2% partial then three fixes below).
 // The big local struct sits at the TOP of the locals region, so its base is
@@ -42,7 +42,27 @@
 // uses; the original also reads the spilled local_1b4 byte back for the
 // *0x14b index (mov eax,[esp+0x70] / and eax,0xff) instead of re-reading
 // g_game+0x2a43.
-// WHAT STILL DIFFERS: register picks and scheduling inside the region bodies.
+// deepseek-v4.1-flash retry, 51.6 -> 52.9:
+// 1. Re-read of the player index: the original reads the spilled local_1b4
+//    back for the g_game + idx*0x14b base (`mov eax,[esp+0x70]; and eax,0xff`
+//    right after `mov byte ptr [esp+0x70], al`), so use L.local_1b4 in the
+//    iVar12 = g_game + (uint)L.local_1b4*0x14b line instead of re-reading
+//    g_game+0x2a43. 51.6 -> 52.9.
+// Tried and reverted (worse): (a) dropping the early `iVar11 = (int)g_game`
+// and reading `L.local_1b0[0xf]` for the FUN_004be950 args to try to get the
+// original's `lea ebx,[eax+0xdcb]` (50.4); (b) making the two
+// `*(char*)(...[0x96]+0x146) == local_1b4` comparisons byte (the original
+// does `cmp byte ptr [ecx+0x146], bl`, ours sign-extends to int via
+// `movsx`/`and 0xff`/`cmp ecx,ebx`) (52.8, size 12 smaller but a hair lower).
+// WHAT STILL DIFFERS: the same large register/scheduling issues as before plus
+// the earlier `lea ebx,[eax+0xdcb]` vs `add eax,0xdcb`, the address CSE in the
+// local_1ac region, and the 99999.0 compare flag idiom (`test ah,0x41; jne`
+// vs our `test ah,1; je`, same semantics, different emitted form).
+// NEXT: the byte compare above is likely right semantically but needs the
+// surrounding register picks (edi/esi swap, ebp/ebx) to also line up before it
+// scores; the `[esp+0x70]` byte reads should use bVar5 (byte) on both sides
+// only once the block's base registers match.
+// OLD NOTES (kept):
 // The original keeps the local_1b0 pointer (= g_game+0xdcb) in ebx for the
 // whole function (lea ebx,[eax+0xdcb] at 0x468d49, [ebx+0xf] at both
 // FUN_004be950 calls) and reloads param_1 into ebx at 0x469b02/0x469d31/
@@ -385,7 +405,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   *pDVar1 = DVar7;
   iVar8 = (int)g_game;
   L.local_1b4 = *(byte *)(g_game+0x2a43);
-  iVar12 = (int)g_game + (uint)*(byte *)((int)g_game + 0x2a43) * 0x14b;
+  iVar12 = (int)g_game + (uint)L.local_1b4 * 0x14b;
   iVar11 = iVar12 + 0x1b63;
   FUN_004c1420((int)(*(int *)((int)g_game + 0x3816b +
                        (uint)*(byte *)(*(int *)(iVar12 + 0x1b8a) + 0x95) * 0x232)));

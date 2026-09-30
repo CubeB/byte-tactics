@@ -1,12 +1,38 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6. Names
-// are provisional. PARTIAL 81.2%, 984 of 969 bytes. The old 86.9% version reused the pre-script
-// sound name after FUN_004b0a70. The original reloads the entry flags and DAT_00509688 at 0x49e393,
-// so the sound can reflect changes made by the script. Restore that lookup despite its lower byte
-// score. Still different: the script/sound tail is not shared at the original point, the low-bit
-// flag test uses a mask instead of a shift, and several argument/loop registers differ. Flag
-// copies/getters, inline script/sound helpers, explicit integer/byte indices and all 768 header
-// sets did not improve this faithful version. Keep the two live target copies, packed bitfields,
-// short output parameters and the raw bit-26 accessor.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6, finished
+// by space-bunny-free. Names are provisional. PARTIAL 81.4%, 972 of 969 bytes (was 984).
+// GPT-6.1-sol refinement: six checks kept 81.4%. Reusing the full flag word
+// and changing the bit-26 expression did not improve the best source. No MATCH.
+// Remaining diff hunks, by address:
+//  - 0x49e1c2, 0x49e1ed, 0x49e1f7, 0x49e215, 0x49e2d4, 0x49e3ae, 0x49e420, 0x49e441, 0x49e51d,
+//    0x49e538: the loop-jump target 0x49e541 reads as 0x49e544, only the 3 extra bytes.
+//  - 0x49e33d: the bit-4 flag test. The original keeps the shift (`mov edx, eax; shr edx, 4;
+//    test dl, 1`), a mask test (`test al, 0x10`) is what a 1-bit field in a boolean context folds
+//    to. Bit 19 folds to a shift in both builds because its mask needs more than a byte.
+//  - 0x49e370: the bit-4 path's script call. The original passes the name in edx with
+//    `lea ecx, [esi-0x17]` and loads unit->script after it; ours reuses eax for the name, takes
+//    edx for the lea and hoists the ecx load above the pushes. A local for unit->script does not
+//    move it.
+//  - 0x49e38b: the sound call is not tail-merged into the bit-19 path's tail at 0x49e393, so the
+//    second DAT_00509688 lookup, the FUN_00456200 call and `e->flags |= 1` are emitted twice.
+//    MSVC 5 merges identical block ends, so the two copies must be textually equal: in the
+//    original the post-script lookup is `mov al,[esi]; push 2; shr eax,2; and eax,3;
+//    mov ecx,[eax*4+DAT]` in both paths, in ours it is that in path A and `mov cl,[esi]; push 0;
+//    shr ecx,2; and ecx,3; mov edx,[ecx*4+DAT]` in path B. A static inline helper for the call
+//    plus the flag store (the four zero pushes then being its arguments) compiles to the same two
+//    blocks, so the fix has to make the allocator choose eax in path B, not just the source.
+//  - 0x49e3b9: FUN_0049aa80's arguments. Original (i, &pos, &unit->pos) = (edx, eax, ecx), ours
+//    = (eax, ecx, edx): the same one-step rotation of the temp registers.
+//  - 0x49e4f2: the bit-26 flag OR. The original is `shr eax,0x1a; and al,1; neg al; sbb eax,eax;
+//    and eax,0x400; add eax,0x400; or word [edi+0xba],ax` (a shift extract plus a branchless
+//    0/1 -> 0x400). `b26 ? 0x800 : 0x400` gives exactly that, in ecx; `b26 * 0x400 + 0x400` (this
+//    file) gives a 12 byte shorter `inc ecx; shl ecx,0xa` and scores better; `b26 ? 0x400 : 0`
+//    + 0x400 gives `mov dl,cl; inc edx; shl edx,0xa`. The raw-dword accessor folds the extract to
+//    a 0x4000000 mask.
+//  - 0x49e51f: FUN_004012a0's arguments, original (edx, ecx) loaded as ecx = +0xc4, edx = +0xc0,
+//    ours as edx = +0xc4, eax = +0xc0: the same rotation again.
+// The rotation in the last three hunks follows the last register the previous block pushed: with
+// the duplicate sound tail in place, path B's block ends on `push eax` and its next temp takes
+// ecx, so fixing the merge is probably what fixes all three.
 #include <string.h>
 
 struct Vec3_0049e1a0 {
@@ -217,7 +243,7 @@ void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit) {
                 int pct = 100 - n * 6;
                 e->f_14 = (short)((120 - q) * (pct * attached->f_e4 / 100) / 100);
             }
-            unit->f_ba.w |= ((attached->f_111_raw() >> 26) & 1) ? 0x800 : 0x400;
+            unit->f_ba.w |= 0x400 * (attached->f_111.b26 + 1);
             if (!attached->f_111.b28)
                 unit->f_bc.FUN_004012a0(attached->f_c0, attached->f_c4);
         } else {

@@ -1,8 +1,49 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
-// provisional. GPT-6 retry: corrected sort cursor lifetimes and median-call ABI. Quicksort now
-// preserves the original end for the insertion tail, and unguarded insertion shifts through a
-// separate cursor. The median takes one predicate, matching its 0x5c stack cleanup. Current
-// score: 75.6%. Older 76.8% attempt below had these semantic errors and is superseded.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
+// deepseek-v4.1. Names are provisional.
+//
+// deepseek-v4.1 (2026-09-30, rerun): baseline 75.9% / 896 bytes confirmed
+// unchanged. New probes, none better: declaring the global as a plain
+// `Vec_0043c390` instead of the Access class ties at exactly 75.9% / 896; a
+// `Vec_0043c390&` local for every access drops to 73.8%; giving the sort
+// helpers the real <algorithm> two-level shape (`sort` wrapper and
+// `_Insertion_sort` -> `_Insertion_sort_1`) gives 73.7% / 899; adding
+// code-free inline helper calls at the three `_Sort` call sites gives 73.8% /
+// 896 without flipping the call below. The 13-byte size gap is still exactly
+// reserve's out-of-line `call _Destroy` (0x43c390) plus the 4-byte `_First`
+// spill it removes, so /Ob2 sits one inline-weight unit under the threshold.
+//
+// deepseek-v4.1 (2026-09-30): 75.9% (896 bytes against 909), best so far. The one
+// change over the 75.6% below is the insertion sort's copy_backward written
+// exactly as MSVC 5's <algorithm> template, `while (_F != _L) *--_X = *--_L;`,
+// which flips that loop's cmp to the original's `cmp ebp, ebx` (75.6 -> 75.9).
+// Still differs:
+//  * prologue and reserve: the original loads _First into ecx before `sub esp`
+//    and _Last into ebp between the ebx and esi pushes; ours loads _First into
+//    ebx after `push ebx` and _Last into ecx. Reserve's rebuild keeps the new
+//    _Last in ebp in the original, so its push_back loop pushes ebp and reloads
+//    it after each insert call; ours stores it and reloads [vec+8] into ecx at
+//    the top of every iteration.
+//  * downstream of the same allocation: the original homes the sort's _F/_L in
+//    [esp+0x38]/[esp+0x10] (the dead count and _N slots), ours in
+//    [esp+0x34]/[esp+0x38], and the insertion tail's slot numbers follow.
+//  * the original calls _Destroy (0x43c390, a 3-byte `ret 8` for this trivial
+//    element) out of line from reserve; ours inlines the empty body. That call
+//    is exactly the 13-byte size gap. Same whole-function inline-weight
+//    threshold documented in 0x43c050.cpp.
+// Tried on top of 75.9 with no byte change: reserve argument via a named local
+// (`int N = DAT_00512340.size() + count;`), a plain `extern Vec_0043c390`
+// global without the Access derived class, `_Val_type`-shaped inline calls for
+// the recursive _Sort arguments, and an explicit
+// `template class std::vector<Elem_0043c390>;` (with the dummy operators so it
+// compiles). Worse: explicit `insert(end(), 1, *p)` (73.8), header-shaped
+// _Copy_backward/_Insertion_sort_1 templates (73.8), real <algorithm> std::sort
+// (57.2 at 905 bytes).
+//
+// Older note (GPT-6, 75.6% version, kept for the record): corrected sort cursor
+// lifetimes and median-call ABI; quicksort preserves the original end for the
+// insertion tail and unguarded insertion shifts through a separate cursor; the
+// median takes one predicate, matching its 0x5c stack cleanup. The older 76.8%
+// attempt sketched below had those semantic errors and is superseded.
 //
 // NOT a match: 76.8% (933 bytes against 909). Adds `count` copies of a run of
 // 25-byte name records (the run at param_1) to the global std::vector at
@@ -67,6 +108,13 @@ static int __stdcall FUN_0043c020(const Elem_0043c390& a, const Elem_0043c390& b
     return _strcmpi(a.name, b.name) < 0 ? 1 : 0;
 }
 
+template <class _BI1, class _BI2>
+_BI2 CopyBackward_0043bc90(_BI1 _F, _BI1 _L, _BI2 _X) {
+    while (_F != _L)
+        *--_X = *--_L;
+    return (_X);
+}
+
 static inline void InsertionInline(Elem_0043c390* _F, Elem_0043c390* _L) {
     if (_F != _L)
         for (Elem_0043c390* _M = _F; ++_M != _L;) {
@@ -74,10 +122,7 @@ static inline void InsertionInline(Elem_0043c390* _F, Elem_0043c390* _L) {
             if (!FUN_0043c020(_V, *_F))
                 FUN_0043c940(_M, _V, FUN_0043c020);
             else {
-                for (Elem_0043c390* _i = _M; _i != _F;) {
-                    --_i;
-                    _i[1] = *_i;
-                }
+                CopyBackward_0043bc90(_F, _M, _M + 1);
                 *_F = _V;
             }
         }

@@ -1,4 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (2026-09-30, independent rerun): baseline 89.8% (745/753)
+// reproduced. Evidence: 0x43c390 MATCHES as the empty (3-byte `ret 8`)
+// out-of-line copy, so the element type really is trivial (its
+// `for (; _F != _L; ++_F) allocator.destroy(_F);` loop is removed by VC5) and
+// the missing call is pure inliner bookkeeping, not a type difference.
+// Probes, all worse: an empty user destructor `~Elem() {}` (775 bytes, 81.9%,
+// _Destroy becomes a loop with ??_G); a declared-only destructor `~Elem();`
+// (900 bytes, 72.1%, the loop is inlined at the call site); one extra inline
+// helper (zero-trip loop) right after `reserve(N)` DOES restore the
+// out-of-line `call _Destroy` (765 bytes, 82.2%) but flips the _First/_Last
+// pair into eax/ecx and reorders the `_End = _S + N` / `size()` stores, so the
+// net is worse; the same helper at the end of the function does not flip
+// _Destroy at all, it makes MSVC drop a bigger inline instead (688 bytes,
+// 70.9%). The 89.8% shape below is still the best.
+//
 // GPT-6 retry: retained 89.8%. Native insert spellings and 768 header sets
 // did not recover the missing out-of-line _Destroy call. The vector::size
 // symbol discrepancy described below still needs orchestrator review.
@@ -165,6 +180,10 @@ else
     for (_F += 16; _F != _L; ++_F)
         _Unguarded_insert_0043c050(_F, _Ty(*_F), _P); }}
 
+template<class _RI, class _Pr>
+inline void sort_0043c050(_RI _F, _RI _L, _Pr _P)
+{_Sort_0_0043c050(_F, _L, _P, (Elem_0043c390*)0); }
+
 // FUNCTION: 0x43c050
 void FUN_0043c050()
 {
@@ -177,7 +196,7 @@ void FUN_0043c050()
         ++p;
     } while (p != &DAT_004fd2a1);
 
-    _Sort_0_0043c050(DAT_00512340.begin(), DAT_00512340.end(), FUN_0043c020, (Elem_0043c390*)0);
+    sort_0043c050(DAT_00512340.begin(), DAT_00512340.end(), FUN_0043c020);
 
     FUN_00406bf0();
     FUN_00415b20();

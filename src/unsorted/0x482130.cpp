@@ -121,6 +121,28 @@
 // allocator prefers the rematerialisable g_game (edi) as the first victim, and
 // no source shape tried changes it. Likely needs the original's translation
 // unit context rather than another rewrite of this body.
+// space-bunny-free pass (issue 1805): still 86.3% / 318 bytes, no score change.
+// headers.py (all 128 header sets) again gives 86.3% and no MATCH.
+// What this pass adds is a mechanism for the tie, not a fix:
+// - The original's compaction destination HAS a stack home ([esp+0x18], written
+//   as `mov [esp+0x18], esi` right after `add esi, 0x24`). Ours has no home for
+//   p at all: p stays in esi for the whole loop and the &d->flagB address is the
+//   only value C1 has to spill (to [esp+0x14]). C1 will not invent a home for a
+//   register-only local, so when &d->screenPos needs a register it takes the
+//   rematerialisable g_game (edi) instead of spilling p, and that single choice
+//   cascades into the rest of the block (which lea gets which register, the
+//   reload order at the tail, and eax versus ecx in the /36 sign fixup).
+//   Forcing the original allocation therefore means getting p homed.
+// - Tried with no change (318 bytes, 86.3%): `Eye* p;` declared without an
+//   initialiser and assigned on the next line (still promoted straight into
+//   esi, no home). Tried and worse: moving `d->flagB = src->flagB;` up next to
+//   `d->flagPtr = &d->flagB;` so the &d->flagB temp dies early and needs no
+//   slot (285 bytes, 51.8%), which also confirms the store order in that block
+//   is fixed by the original.
+// - Frame slot numbers are NOT handed out in code order: ours gives [esp+0x14]
+//   (the &d->flagB temp, spilled second) to the lower slot and [esp+0x18] to
+//   `end` (spilled first). So the slot numbers here cannot be steered by
+//   declaration order, only by which value gets spilled first.
 #include <stddef.h>
 
 #pragma pack(push, 1)

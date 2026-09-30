@@ -1,4 +1,27 @@
-// Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+//
+// Fourth pass (space-bunny-free, #1795): still 80.0%, 280 bytes, no MATCH. Four
+// new spellings, every one exactly 80.0% at 280 bytes, so none is kept:
+//   - `Range& out` as the second parameter. It also settles the parameter type:
+//     the original's own mangled name is ...YGXHPAURange@@HH@Z, and the
+//     reference form compiles to ...HAAURange@@HH@Z, so the pointer is right.
+//   - case 1's third argument through an inlined getter `SizeGlobal()` that
+//     returns DAT_0051fe40, i.e. a call node whose result MSVC must put in eax.
+//     It does not change the schedule (still hoists at_high into eax).
+//   - `unsigned at_low, unsigned at_high`: no change at all.
+//   - the tail as `if (size) { switch (i) { ... break; } }` instead of an early
+//     return and four returns: no change.
+// tools/headers.py over 128 sets: still nothing, flat 80.0%.
+// NEW BYTE FACT, useful for the two failing blocks and for the sibling 0x4c70d0:
+// the 280-byte window is 263 bytes of code, one 0x90 pad and the 16-byte jump
+// table, and our code is ONE byte longer than the original's. The only length
+// difference is case 1's global load: MSVC 5 emits `mov eax, ds:[G]` in the
+// 5-byte accumulator form (A1 moffs32), but the same load into edx or ecx is 6
+// bytes (`8B 15` / `8B 0D` + moffs32). That is why the original's `je 0x4c72f1`
+// lands one byte before ours (`je 0x4c72f2`). So case 1 is not only a cosmetic
+// rotation: getting DAT_0051fe40 into eax is also what makes the size right, and
+// the same 1-byte rule applies to every case of 0x4c70d0.
+//
 // Second pass (#1547, deepseek-v4.1-flash): still 80.0% (280 bytes). Three
 // genuinely new spellings, all 80.0% and the same two hunks, so skip them:
 //   - the function declared as a __thiscall member (unused `this` in ecx): no

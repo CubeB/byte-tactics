@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial), deepseek-v4.1-flash (partial), verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// #2316 retry by OpenCode / GPT-6.1-sol: checkall scored 82.9% (631/631 bytes), no MATCH. Moving the width calculation after the origin branch scored 79.9%; a single-use width helper stayed at 82.9%. The remaining mismatch is register and stack-slot allocation in the 3x3 tiling block, including the loop latch. Best source retained.
 // #1700 retry by Codex / GPT-6.1-sol: checkall reconfirmed 82.9% (631/631 bytes), no MATCH.
 // Both direct checks and all 128 headers.py combinations left the 3x3 tiling mismatch unchanged.
 // Draws a list box's frame. FUN_004a15c0 gives the entry's rectangle; when no

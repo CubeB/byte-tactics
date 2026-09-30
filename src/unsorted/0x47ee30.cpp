@@ -52,6 +52,35 @@
 // forwarded back edge at once, plus the redundant `lea edi,[ebp+0x99]` before
 // the shift loop, which none of the scored shapes produced.
 //
+// space-bunny-free second pass (1958): the file below still scores 91.2%, but the
+// do/while family is now known to reproduce the body EXACTLY, so the whole
+// problem is the prologue, not the loop. Scored here (check.py --sym, no runs):
+//   guarded `if (base > 0) do { ... (*count)--; } while (*count > 0);` with
+//   `int* count = &DAT_0051e68c->count; Entry* entries = DAT_0051e68c->e;`
+//   and a base-form guard (`*(int*)((char*)entries+0x99)`, `entries[9].f0`, or
+//   `DAT_0051e68c->count`): 166 bytes, 85.7% in all three spellings, and its
+//   diff against the original is EXACTLY two hunks:
+//     1. the prologue: ours hoists `mov eax,[DAT]` above the four pushes, copies
+//        it with `mov ebp,eax` and does `lea edi,[eax+0x99]`, the original does
+//        `mov ebp,[DAT]` and `lea edi,[ebp+0x99]` (+2 bytes);
+//     2. the missing rematerialised `lea edi,[ebp+0x99]` at 0x47ee79 (-6).
+//   The forwarded back edge (`mov eax,ecx`) and the entire body, including the
+//   shift loop, are byte-identical in that shape. So the store and the test MUST
+//   be the pointer node; the guard must be the base node; and the count address
+//   must be derived from ebp. MSVC derives the count address from ebp only when
+//   the global load lands in ebp by itself, which it only does when nothing else
+//   needs a register for the global first: with `List* list = DAT; Entry*
+//   entries = list->e;` the guard is `mov ecx,[ebp+0x99]` (ecx, not eax) and the
+//   `lea edi` is sunk INSIDE the guard block (from eax) -- 166 bytes, 82.5%.
+//   New data points, all worse: `for(;;)` with a base-form early break and a
+//   pointer-form tail (91.2%, byte-identical to this file, so the two-exit form
+//   is not what the do/while gets its shape from); `entries` declared before
+//   `count` with the guard `entries[9].f0` (83.2%, the guard folds to
+//   `cmp [edi],0`); the count from a second `List*` local (85.7%); the guard
+//   reading `DAT_0051e68c->count` directly (83.2%); a second count pointer used
+//   only as the shift loop's limit (44.6%, 189 bytes); `*count = i` instead of
+//   `(*count)--` (65.1%). All 128 header sets stay at 91.2% (headers.py).
+//
 // space-bunny-free pass: the two remaining deltas are exactly, and only,
 //   (a) class (c), an instruction present in the original and absent here:
 //       `lea edi,[ebp+0x99]` at 0x47ee79, the preheader of the shift loop

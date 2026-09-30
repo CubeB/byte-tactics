@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free, confirmed by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free, confirmed by deepseek-v4.1-flash, re-checked by deepseek-v4.1-flash. Names are provisional.
 // Ground height under a unit's footprint: walks the rectangle of map cells the
 // unit covers and keeps the lowest cell floor over the cells whose footprint
 // mask has bit 3 set, plus the highest floor over the cells with bit 3 and the
@@ -97,6 +97,15 @@
 // footprint mask: 0x47d970 (renders `mask[n++] & bit`) and 0x47cc30
 // (`mask[index]; index++`) are both partial on the same class of base/index
 // choice, so no shape there transfers. No new source lever, file left unchanged.
+//
+// deepseek-v4.1-flash second pass (#1609): re-ran headers.py (128 sets, best
+// <memory.h> 85.0, empty set 99.1) and read the raw bytes. The original load is
+// 8a 04 3e = SIB base esi (i), index edi (unit->mask); ours is base edi, index
+// esi. Three address-expression spellings that should have put i in the base
+// slot were tried and all still compile to base=mask: `i++[unit->mask]`,
+// `i[unit->mask]; i++;`, and `register int i`. MSVC 5 canonicalises the pointer
+// into the base slot, so (as the notes above concluded) the encoding is not a
+// function of the source. File left as the correct source, 99.1%.
 //
 // Guide advice: a base/index SIB-byte swap that no source change moves, and
 // that a count of unused declarations can flip on and off non-monotonically,

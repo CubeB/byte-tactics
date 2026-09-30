@@ -1,5 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// BEST 75.2% (532 of 708 bytes, our size now equals the original's 708).
+// BEST 75.2% (532 of 708 bytes, source size matches the original).
+// GPT-6.1-sol refinement: tried all 24 switch case orderings and several
+// count/default variants; none beat this source. Remaining mismatch is the
+// earlier-noted register rotation: original uses edi for index and ebp for
+// count; MSVC assigns ebx for index and edi for count.
 //
 // What this pass fixed: declaring the loop index ONCE before the switch
 // (`int i = 0;` beside `short n` and `int count`) instead of once inside each

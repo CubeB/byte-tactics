@@ -66,6 +66,14 @@
 // spelled in every call, and inline helpers taking DWORD, DWORD& or DWORD*.
 // The original loads read straight into ebp (its own register) and copies it to
 // esi for the neg; MSVC here always folds the two into one temporary.
+// Retry (GPT-6.1-sol, #1164): 11 check.py invocations across both passes,
+// counting the first pre-rebase invocation whose output was not captured. No
+// gain from no-op self-assignment to key1, assigning read to result before its
+// zero initialization, `register` on doRead, `read = read`, or copying doRead
+// back to read. A bool doRead drops to 32.3%. Reversing the ternary condition
+// is byte-identical to the baseline. The residual remains the prologue arg6
+// load: original loads directly into ebp after push ebp; MSVC hoists it into
+// eax and copies it to esi and ebp.
 #include <windows.h>
 
 // FUNCTION: 0x4b6880

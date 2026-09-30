@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash, recheck pass for issue #2876: this run had NO shell or compiler in its
+// tool runtime (only browser and opencode tools were exposed), so tools/check.py and tools/ctx.py
+// could not be run and no new score could be measured. The code below is left byte-for-byte as the
+// known best 15.2% (6448 of 8944 bytes). Confirmed from docs/bugs.md and the disassembly notes
+// that the source already faithfully reproduces the original including its bugs, so none of these
+// may be "fixed": the always-false command range check at 0x4547f5 (kept as `cmd < 2 && cmd > 0x2c`),
+// the duplicated sender status test at 0x45480e, and the command-20 null-player read crash at
+// 0x45575a (FindPlayer_453d40 returning 10 leaves q=0 and `*(int*)q` reads address 0). What still
+// differs and where the next real gain lives: the frame and local slot ORDER. Our frame is 0x318
+// against the original 0x51c. The notes below already tried adding the three missing bodies
+// (cases 28, 33, 39) to reach 0x51c and got the right total but the wrong per-slot order (9.6%,
+// worse), so a future pass must match the compiler's local draw order (see the "original draw
+// order" list below), not the total frame size. Register/operand fixes via headers.py are the
+// only safe lever once a shell is available again.
 // deepseek-v4.1, second pass, best 15.2% (6448 bytes of 8944). Three order fixes paid:
 // (1) the loop flag is not a separate local. The original
 // stores FUN_004534e0()'s result at [esp+0xf0], and case 8 writes 0 to that same slot

@@ -113,6 +113,26 @@
 // 86.0) did not help. The byte counter and `res` in edi look mutually
 // exclusive in this source shape, so the next step is a construct that keeps
 // the k4 counter live without demoting res.
+// deepseek-v4.1-flash (last pass, out of time): left the 86.5% body as is and
+// only analysed the remaining k4 loop diff. Findings for whoever continues:
+// (1) the original's `to` and `from` both end in a shared `or reg,-1` tail
+// block fed by two `je`s, which is the inlined early-return helper shape, not
+// `int to = -1; if (...) to = ...;` (our form hoists the or before the tests);
+// the from scan is an early-return helper too (jmp notfound / mov reg,id /
+// jmp after / or reg,-1). (2) The original re-tests active in the else branch
+// (0x456c7c) and reloads state there, so the condition must be
+// `if (active && state == 3) {...} else if (active && (state==1||state==2))`
+// as one combined first test, not an outer active wrapper. (3) The k4 byte
+// counter in ebx with `cmp bl,0xa` and `and eax,0xff` needs the unsigned char
+// narrowing of PlayerId, so the k4 site must call PlayerId_004568c0(k4) or
+// index through an unsigned char. Variants vA (byte pi + early-return to +
+// FindFrom helper), vB (helper-in-args with early-return FindFrom) and vC
+// (restructure only) were generated under build/scratch/0x4568c0/ but the
+// timebox fired before any were scored. Best remains 86.5% here.
+// Remaining difference at 86.5%: the k4 loop body only (missing ebx counter
+// and inc ebx, folded `k4 != 10` into `cmp esi,0x29f8`, to in ebx and from in
+// edi instead of edi/edx, missing else-branch active re-test), plus two lea
+// order swaps in the cand/k2 init regions.
 // deepseek-v4.1 (this pass): reordering the tail so the res==0 send loop is
 // the fall-through path (matching the original's `test eax,eax / jne`) lifts
 // the file from 86.0% to 86.5%. The k4 loop's inline-PlayerId shape itself

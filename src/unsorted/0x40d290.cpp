@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
 // std::vector<unsigned char>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward all
 // inlined. 0x409160 calls it from the inlined resize() of the vector at

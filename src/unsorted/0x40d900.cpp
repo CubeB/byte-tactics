@@ -1,5 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5 and
-// deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5,
+// deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
 //
 // Partial (97.5%): clears the kind byte of every cell in each dirty group of
 // eight cells, then clears the dirty masks. One dirty word covers 256 cells

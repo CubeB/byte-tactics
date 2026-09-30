@@ -1,7 +1,10 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
-// Gave up at 86.7% (1302 bytes against 1303). Remaining game-pointer
-// reload uses EAX instead of EDI and the last border-loop counter initializes
-// before its guard. The visibility test and local slots now match.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// MATCH. Two upstream facts closed the 86.7% gap: (1) the two scroll loads must
+// be interleaved with their modulo uses (y0, ry, x0, rx rather than x0, y0, ry,
+// rx), which makes MSVC coalesce the g_game address temp with x0 in edi and
+// turns the 5-byte mov eax,[g_game] into the original 6-byte mov edi,[g_game];
+// (2) the last border loop is a guarded do-while, not a for-loop, so its
+// counter init lands after the unsigned guard (jbe) instead of before it.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -72,9 +75,9 @@ void FUN_004843c0(void)
 
     memset(grid->cells, 0, grid->count * 2);
 
-    int x0 = g_game->scrollX;
     int y0 = g_game->scrollY;
     int ry = y0 % 32;
+    int x0 = g_game->scrollX;
     int rx = x0 % 32;
     if (rx < 16) x0 = x0 / 32 - 1; else x0 = x0 / 32;
     if (ry < 16) y0 = y0 / 32 - 1; else y0 = y0 / 32;
@@ -151,17 +154,21 @@ void FUN_004843c0(void)
     }
 
     if (xEnd > info->width / 2) {
-        for (unsigned int i = 1; i - 1 < grid->height; i++) {
-            if (g_game->flags.bits.bit1) {
-                if (grid->cells[i * grid->width - 2].hi & 4)
-                    grid->cells[i * grid->width - 2].hi |= 8;
-                if (grid->cells[i * grid->width - 2].hi & 1)
-                    grid->cells[i * grid->width - 2].hi |= 2;
-            }
-            if (grid->cells[i * grid->width - 2].lo & 4)
-                grid->cells[i * grid->width - 2].lo |= 8;
-            if (grid->cells[i * grid->width - 2].lo & 1)
-                grid->cells[i * grid->width - 2].lo |= 2;
+        if (grid->height > 0) {
+            unsigned int i = 1;
+            do {
+                if (g_game->flags.bits.bit1) {
+                    if (grid->cells[i * grid->width - 2].hi & 4)
+                        grid->cells[i * grid->width - 2].hi |= 8;
+                    if (grid->cells[i * grid->width - 2].hi & 1)
+                        grid->cells[i * grid->width - 2].hi |= 2;
+                }
+                if (grid->cells[i * grid->width - 2].lo & 4)
+                    grid->cells[i * grid->width - 2].lo |= 8;
+                if (grid->cells[i * grid->width - 2].lo & 1)
+                    grid->cells[i * grid->width - 2].lo |= 2;
+                i++;
+            } while (i - 1 < grid->height);
         }
     }
 }

@@ -1,5 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Gave up at 50.4% (1037 bytes against 1046). Remaining register and local-slot differences.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, retried by deepseek-v4.1-flash. Names are provisional.
+// Best 53.1% (1037 bytes against 1046). Frame now matches at 0x48 once the
+// Bitmap sprite struct gets its 4-byte tail field (unknown_14), which was the
+// missing dword. What still differs: the original spills px to [esp+0x14] and
+// RELOADS it after computing py, while MSVC keeps px in eax and consumes it for
+// rx immediately; the slot layout is therefore shifted (ours px at 0x18, w2 at
+// 0x2c). Forcing the px,py,rx,ry source order makes the schedule worse (51.5),
+// so the residual is register pressure from a live value we do not model, not
+// the statement order. Call census matches: 4x FUN_004b8150 + 1x FUN_004c6e70.
 // The fourth saved-register push occurs after the viewport-origin stores.
 // Both origins are initialized; preserve X across the second edge loop.
 // Edge loops guard nonpositive counts and game state reloads after drawing.
@@ -41,6 +48,7 @@ struct Bitmap_00483fa0 {
     unsigned char kind;                // +0xb
     int unknown_c;                     // +0xc
     unsigned char* data;               // +0x10
+    int unknown_14;
 };
 
 extern Game_00483fa0* g_game;

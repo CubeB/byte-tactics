@@ -1717,7 +1717,7 @@ address,size,file,symbol,status,similarity
 0x4804e0,40,src/unsorted/0x4804e0.cpp,?FUN_004804e0@@YGHHHH@Z,matched,100.0
 0x480510,83,src/unsorted/0x480510.cpp,?FUN_00480510@@YG?AUPoint_00480510@@U1@0F@Z,matched,100.0
 0x480570,49,src/unsorted/0x480570.cpp,?FUN_00480570@@YGHUPoint_00480570@@0@Z,matched,100.0
-0x4805b0,366,src/unsorted/0x4805b0.cpp,?FUN_004805b0@@YGXPAUPoint_004805b0@@U1@1@Z,partial,64.5
+0x4805b0,366,src/unsorted/0x4805b0.cpp,?FUN_004805b0@@YGXPAUPoint_004805b0@@U1@1@Z,partial,66.2
 0x480720,78,src/unsorted/0x480720.cpp,?FUN_00480720@@YGDUPoint_00480720@@0@Z,matched,100.0
 0x480770,932,src/unsorted/0x480770.cpp,?FUN_004b0680@Class_00485e30@@QAEHHHHHH@Z,matched,100.0
 0x480b20,268,src/unsorted/0x480b20.cpp,?FUN_004b0670@Class_00485e30@@QAEXHH@Z,matched,100.0

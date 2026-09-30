@@ -1607,7 +1607,7 @@ address,size,file,symbol,status,similarity
 0x4777a0,406,src/unsorted/0x4777a0.cpp,?FUN_004777a0@@YGXXZ,matched,100.0
 0x477940,153,src/unsorted/0x477940.cpp,?FUN_00477940@@YGXPAD@Z,matched,100.0
 0x4779e0,200,src/unsorted/0x4779e0.cpp,?FUN_004779e0@@YGXPAUMenu_004779e0@@H@Z,matched,100.0
-0x477ab0,1935,src/unsorted/0x477ab0.cpp,?FUN_00477ab0@@YGXPAUMenu_00477ab0@@@Z,partial,48.7
+0x477ab0,1935,src/unsorted/0x477ab0.cpp,?FUN_00477ab0@@YGXPAUMenu_00477ab0@@@Z,partial,72.9
 0x478240,1348,src/unsorted/0x478240.cpp,?FUN_00478240@@YGXH@Z,matched,100.0
 0x478790,944,src/unsorted/0x478790.cpp,?FUN_00478790@@YGXPAUWindow_00478790@@PAUItem_00478790@@@Z,matched,100.0
 0x478b40,364,src/unsorted/0x478b40.cpp,?FUN_00478b40@@YGXPAUWindow_00478b40@@PAUItem_00478b40@@@Z,matched,100.0

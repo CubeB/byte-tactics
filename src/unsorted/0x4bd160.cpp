@@ -1,6 +1,10 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Best remains 98.3% after an additional source variant; still differs only in
 // the buffer initialization sequence at 0x4bd17b..0x4bd198, as detailed below.
+// GPT-6.1-sol refinement (issue 2310): the existing 98.3% source remains best.
+// Returning HapiBuf from an inline initializer scored 93.4%; copying the
+// initialized sb.buf through a local scored 94.1%. The remaining mismatch is
+// still the buffer setup at 0x4bd17b..0x4bd198.
 //
 // 98.3%: 580 of 580 bytes, and every byte from 0x4bd198 to the end is identical
 // to the original. The whole remaining difference is the eight instructions of

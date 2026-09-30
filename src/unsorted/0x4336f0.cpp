@@ -1,28 +1,32 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// GPT-6 retry: remains 69.3% (704 of 708 bytes). Tried allocator destructor
-// declarations, a vector specialization, signed element fields and count/index
-// representations. None improved the saved version. Register allocation and
-// the failed-lookup _Destroy call remain different.
-// PARTIAL 69.3%. Class_004336f0 is a std::vector<Elem_00434020> (4-byte
-// elements) holding one pair of signed shorts per line entry. It reads the
-// "line%d" key from a TDF-style parser via Class_004c48c0, resizes itself to
-// the first comma-separated number and fills the elements from later tokens,
-// negating the a or b half by mode (the four callers at 0x433484 pass mode
-// 0..3). When the parser lookup fails it shrinks the vector to 0.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// BEST 75.2% (532 of 708 bytes, our size now equals the original's 708).
 //
-// What is still wrong (all register allocation, no source shape left to try):
-//   original: n(short) in edi, its sign-extended int copy in ebp, the loop
-//             index in edi, the _First temp in ebx; the failed-lookup tail
-//             inlines resize(0) and ends with `call UElem_00434020::_Destroy`;
-//   ours:     n(short) in ebx, the int copy in edi, the index in ebx, the
-//             _First temp in ebp; the tail has no _Destroy call (MSVC inlines
-//             the empty trivial-destructor _Destroy away).
-// Tried and no better: no separate int copy (64.8%), int-before-short (65.8%),
-// count before resize (68.5%), erase(begin(), end()) (68.5%), clear() (68.5%),
-// and all 128 header sets (68.5%). resize(0, x) in the failed path is what got
-// 708 -> 704 bytes and 68.5 -> 69.3%. The missing _Destroy call is 4 bytes;
-// making Elem non-trivial to force it adds a destructor call at return, which
-// the original lacks, so the element type really is trivial.
+// What this pass fixed: declaring the loop index ONCE before the switch
+// (`int i = 0;` beside `short n` and `int count`) instead of once inside each
+// of the four case bodies. MSVC 5 then copies the `i = 0` into each case arm
+// anyway (it can: only one arm runs) and, more importantly, spends one inline
+// expansion less, so `vector<Elem_00434020>::_Destroy` in the failed-lookup
+// tail stays an out-of-line CALL (as the original has) instead of being
+// inlined to nothing. That restored the 5 missing bytes:
+// 0x433985 mov eax,[esi+8] / mov ecx,esi / push eax / push edi /
+// call 0x433d90 (_Destroy) / mov [esi+8],edi, and with it the whole tail
+// register choice (edi holds _First there, exactly as the original) instead of
+// ecx plus a dead spill to [esp+0x10].
+//
+// What still differs (register rotation only, every instruction is the right
+// one with the right operands):
+//   original: loop index and the short n in edi, the int count in ebp, the
+//             reloaded _First in ebx;
+//   ours:     index and short n in ebx, count in edi, _First in ebp.
+// MSVC 5 hands the same three callee-saved registers out one step round, so the
+// only way on is a source change that shifts its scratch-register weights
+// (the order in which the four case bodies are written, how `n - size()` is
+// spelled, and so on). Declaration order of n/count/i does NOT change it
+// (tried i before n, and count+i before n: all three give the same 75.2%).
+// Tried and no better: a single-use static helper around the failed-path
+// resize (unchanged, 69.3%), the failed path written first with an early
+// return (668 bytes, 42.9%), unsigned int for count (unchanged), and all 128
+// header sets.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -67,11 +71,11 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
             return;
         short n = atoi(tok);
         int count = n;
+        int i = 0;
         resize(n, x);
         switch (mode) {
         case 0:
             if (n > 0) {
-                int i = 0;
                 do {
                     (*this)[i].a = atoi(strtok(0, ", "));
                     (*this)[i].b = -atoi(strtok(0, ", "));
@@ -81,7 +85,6 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
             return;
         case 1:
             if (n > 0) {
-                int i = 0;
                 do {
                     (*this)[i].b = atoi(strtok(0, ", "));
                     (*this)[i].a = atoi(strtok(0, ", "));
@@ -91,7 +94,6 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
             return;
         case 2:
             if (n > 0) {
-                int i = 0;
                 do {
                     (*this)[i].a = -atoi(strtok(0, ", "));
                     (*this)[i].b = atoi(strtok(0, ", "));
@@ -101,7 +103,6 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
             return;
         case 3:
             if (n > 0) {
-                int i = 0;
                 do {
                     (*this)[i].b = -atoi(strtok(0, ", "));
                     (*this)[i].a = atoi(strtok(0, ", "));

@@ -1,23 +1,32 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// GPT-6 retry: remains 92.9% (886 bytes). All 768 header combinations,
-// explicit allocator lifetimes, index/count names and local declaration
-// variants left the best score unchanged. Small-local stack slots remain
-// different; the recursive self-call also appears in the checker diff.
-// Partial (92.9%). Size now matches (886). Fixed the bFlag block at 0x434c83:
-// `int bFlag; if (param_2==0) { bFlag=1; if (g_game->...+3 != 3) bFlag=0; }
-// else bFlag=0;` reproduces the original's `mov eax,1; cmp param_2,0; jne;
-// mov [bFlag],eax; ...; je; [bFlag],ebp` exactly.
-// What still differs is only the stack slot assignment of four small locals
-// (all 4 bytes, the code around them is identical). Original relative to the
-// esp after `push ebx`: temp 0x10, count 0x14, bFlag 0x18, i 0x1c,
-// files 0x20..0x2f, parser 0x30. Ours: count 0x10, temp 0x14, bFlag 0x18,
-// files 0x1c..0x2b, i 0x2c, parser 0x30. MSVC allocated the loop counter i
-// before the std::vector in the original and after it here, and swapped
-// count with the vector's allocator temp. Declaration order has no effect
-// (tried i/bFlag/count declared at the top, i initialised early, no count
-// variable; all scored identically), and headers.py finds no header set that
-// changes it. Likely the compiler-state / translation-unit effect noted at
-// the end of docs/AGENTS.md. Every other byte matches.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Partial (92.9%, size 886 = the original's). Every instruction matches except
+// the frame offsets of five locals; the code around them is identical, only the
+// `esp+` displacements differ. Frame map (offsets from esp while the four
+// callee-saved registers are pushed, so the return address is at 0x10 and the
+// three arguments at 0x340/0x344/0x348):
+//
+//   slot   original        ours
+//   0x10   count           allocator temp
+//   0x14   allocator temp  count
+//   0x18   bFlag           bFlag
+//   0x1c   loop index i    (files, the std::vector)
+//   0x20   files (16 B)    loop index i
+//   0x30   parser          parser          (identical from here up)
+//
+// The two pairs are each swapped, so the fix is one ordering decision in MSVC's
+// local-slot numbering, not a spelling. What is NOT a difference: the odd
+// `mov al, byte ptr [esp+0x13]` / `mov byte ptr [esp+0x2c], al` pair at 0x434cca.
+// That is the std::vector's own constructor: in this game's headers
+// `vector(const _A& _Al = _A()) : allocator(_Al), _First(0), _Last(0), _End(0)`
+// puts the empty `std::allocator` first, so the object is 16 bytes (allocator
+// byte at +0, _First/_Last/_End at +4/+8/+0xc) and copying the default
+// argument's temporary allocator is a one-byte copy out of a 4-byte temp slot.
+// It is reproduced automatically by #include <vector>; do not add a local for it.
+// Tried and all still 92.9%: declaring the loop index above the vector and
+// using `for (i = 0; ...)`, declaring the count before the vector, giving the
+// vector an explicit `std::allocator<Class_004c91a0>()` argument, and gpt-6's
+// 768 header sets. MSVC5 does not number these slots in declaration order or in
+// first-reference order, so the swap has to come from a change in the IL shape.
 #include <string.h>
 #include <vector>
 

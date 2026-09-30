@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**62.89% of Cavedog's code matched** (535,095 of 850,853 bytes)
+**63.02% of Cavedog's code matched** (536,168 of 850,853 bytes)
 
 `[#########################---------------]`
 
-By count that is 2,971 of the game's 3,267 functions (90.9%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 2,972 of the game's 3,267 functions (91.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 2,971 | 535,095 |
-| Attempted, not yet matching | 281 | 310,062 |
+| Matched byte-for-byte | 2,972 | 536,168 |
+| Attempted, not yet matching | 280 | 308,989 |
 | Not attempted yet | 15 | 5,696 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 640 of 703 | 90.1% | 17,726 | `#########-` |
 | xl (401 to 600 bytes) | 187 of 226 | 82.1% | 19,695 | `########--` |
 | xxl (601 to 1,000 bytes) | 120 of 195 | 60.3% | 58,300 | `######----` |
-| huge (over 1,000 bytes) | 50 of 161 | 25.0% | 219,163 | `###-------` |
+| huge (over 1,000 bytes) | 51 of 161 | 25.4% | 218,090 | `###-------` |
 
 ### By area
 
@@ -52,7 +52,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x400000` | Unit orders and unit AI | 193 of 210 | 74.6% | 15,477 | `#######---` |
 | `0x410000` | Orders and VTOL states | 212 of 222 | 76.7% | 14,839 | `########--` |
 | `0x420000` | Frontend shell | 140 of 154 | 52.8% | 29,986 | `#####-----` |
-| `0x430000` | Maps, missions, briefings | 209 of 228 | 62.6% | 22,583 | `######----` |
+| `0x430000` | Maps, missions, briefings | 210 of 228 | 64.4% | 21,510 | `######----` |
 | `0x440000` | Multiplayer setup | 237 of 246 | 69.1% | 18,963 | `#######---` |
 | `0x450000` | Options and audio menus | 156 of 176 | 57.7% | 26,692 | `######----` |
 | `0x460000` | Game and skirmish setup, unit classes | 189 of 212 | 56.0% | 27,065 | `######----` |

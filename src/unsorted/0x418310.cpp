@@ -123,6 +123,21 @@
 // is the preheader (ours hoists the width load into edi because firstY was
 // coloured ecx instead of the original's edi), i.e. it is downstream of the same
 // whole-function allocation problem, not a statement-order fix.
+//
+// deepseek-v4.1-flash retry (3 check runs, 55.5%, 2203 bytes, no improvement).
+// Two new shape probes, both worse, both recorded so they are not repeated:
+//   - Four separate `Point p0..p3` (contiguous, passed as &p0) instead of
+//     `Point p[4]`: 30.3%, 2233 bytes. The array form is correct.
+//   - Faithful baseX/baseY/tile induction exactly as the disassembly spells it
+//     (baseX/baseY initialised from firstX/firstY before the inner loop, the
+//     body doing ++x/++tile/baseX+=16 then tile+=width/++y/baseY+=16 then the
+//     mirrored decrements, and x++/baseX+=16 in the for-increment): 37.7%,
+//     2264 bytes. The induction spelling is NOT what the source used, or its
+//     declaration scope is wrong; the recompute form with compiler-generated
+//     induction temps is closer.
+// Still the same one-slot divergence: y must sit at esp+0x10 (below p[4] at
+// esp+0x14) and baseX must precede baseY at esp+0x38/0x3c; ours keeps p at
+// esp+0x10 and y at esp+0x34. Everything from esp+0x50 up already matches.
 
 #include <stdlib.h>
 // SHARED begin

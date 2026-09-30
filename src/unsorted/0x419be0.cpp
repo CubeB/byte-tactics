@@ -1,4 +1,15 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (still 84.1%, no improvement): re-tested the
+// remaining leads from the notes. `*(&button)` and
+// `*(Entry_00419be0**)&button` as the false arm, a `button = button;`
+// self-store before the selection, and `Entry_00419be0* const` parameters
+// (the last also changes the mangled name to QAU...) all leave the body
+// byte-identical to the current 1327-byte version. The inverted
+// `type != 1 ? button : &entries[..]` scores 83.8%. Rewriting the whole chain
+// with the sibling's inlined `Contains(entries, text, index)` helper (owning
+// its own char name[32], no hoisted index) is also 84.1%. Still only
+// `mov ebp, [esp+0x34]` vs `mov ebp, esi` (the button home-slot reload) and
+// the esi/edi parameter roles remain.
 // deepseek-v4.1 retry (84.1%, unchanged): the whole remaining diff is one
 // instruction plus the register names it drags with it. Check says original
 // 1329 bytes vs ours 1327, and the 2 bytes are exactly the encoding gap

@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, second pass
-// by space-bunny-free. Names are provisional.
+// by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // NOT MATCHING yet (96.6%, 850 bytes both). Only two small codegen differences remain:
 //  1. Loop preheader: the original tests `n` BEFORE storing `a = addrs` (the store is
 //     sunk past the guard); mine stores a = addrs first, then tests n. Two instructions
@@ -32,6 +32,28 @@
 //    (856 bytes, MSVC 5 keeps the redundant test and duplicates the preheader), and with
 //    the loop turned into `for (;;)` it is 89.0% (847 bytes). Both worse; the guard is
 //    not the shape the original used.
+// deepseek-v4.1 (this run, 9 check.py runs):
+//  - `if (n > 0) { a = addrs; for (...) }` wrapper (my best guess for the preheader
+//    order) scores 83.6%, 856 bytes: MSVC 5 emits the guard AND the loop entry test
+//    (test esi,esi twice) and picks edi for `a`, so the wrapper is not the shape.
+//  - The literal `width == n - 1 || width % per == per - 1` source (the non-lines
+//    branch really does read the width slot: eax is loaded once from [esp+0x20] and
+//    used for both the cmp and the cdq/idiv) scores 71.8%, 847 bytes, no matter how
+//    the locals are declared (width first, i first, long/unsigned i, unsigned width:
+//    68.7 to 71.8%). With the extra width reads MSVC 5 re-ranks the homes to
+//    width@0x14, i@0x18, a@0x1c and sinks the `width = 15` store, so the original
+//    source must contain some additional reference to i (or fewer to width) that
+//    keeps i@0x14 while the same C statement still reads width. Blocked on that
+//    allocation decision, plus the preheader transposition it moves with.
+// deepseek-v4.1 (third run, 5 check.py runs + 4 scratch scores): re-tested the loop
+//  shape and the else condition. do-while under `if (n > 0)` scores 92.5 (860 bytes:
+//  the guard test is duplicated and the homes move to 0x1c/0x20), `for (a = addrs;
+//  i < n; i++, a++)` is unchanged at 96.6, and the literal `width` else condition is
+//  71.8 (847 bytes: i moves to 0x18 and width gets a register instead of a home).
+//  New evidence on the preheader: the original's `a = addrs` load and store sit in the
+//  block that is only reached when n > 0, and the loop does not re-test n there, so the
+//  guard is a source-level n > 0 test whose loop entry test the compiler dropped. No
+//  for/do-while/while spelling tried so far reproduces that block split.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

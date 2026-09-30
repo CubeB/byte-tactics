@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // Partial: 59.6% (was 55.8), 1533 bytes versus 1512. <vector>/<windows.h> plus
 // declaration order onOff,u,cloak,first,count,flags recovers the 0x240 frame.
 // Original slot map: onOff=0x10, loop u=0x14, cloak=0x18, first=0x1c, count=0x20,
@@ -40,6 +40,25 @@
 // byte-identical at 59.6%; while+continue is 26.2%; declaring first/count after
 // player is 56.6-57.3%. Keeping the initializers at declaration (prologue
 // stores) is the only shape that reaches 59.6%.
+//
+// deepseek-v4.1, fourth pass: still 59.6%, 1533 bytes versus 1512. What still
+// differs: the original keeps a second live zero in ESI created at 0x41b33e
+// and uses it for cmp ax,si at 0x41b344, cmp word [edx+ecx*8+0xa6],si at
+// 0x41b37b, mov word [edi+0x37e9c],si at 0x41b394 and the else-branch
+// first=0/count=0 stores at 0x41b3a6/0x41b3aa, while EBP=0 serves only the
+// nine flag stores; on the if-branch the original keeps first in EBP and count
+// in EBX (mov ebp,eax / mov ebx,1) instead of spilling them to
+// [esp+0x1c]/[esp+0x20], and its tail bit writes accumulate in EDX/EBX and
+// store with dx/bx/ax where ours always accumulate in EAX/EDX and store ax/dx.
+// New experiments this pass, all byte-identical to the 59.6% output: moving
+// the first=0/count=0 declarations to after the nine flag initialisers, the
+// condition spelled `if (g_game->unitIndex)` instead of `!= 0`, and routing
+// the compare through a live `int zero = 0;` local. Sinking first=0/count=0
+// into the else (the original's position, right before `last = unitsEnd`)
+// reproduces the known 32.8% shape with EBP = &players[i] and a 0x244 frame,
+// so the sink is not reachable without losing the 0x240 frame. Remaining work
+// needs allocator state the source cannot steer: the ESI/EBP zero split and
+// the first/count register homes.
 
 #include <vector>
 #include <windows.h>

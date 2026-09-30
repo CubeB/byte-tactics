@@ -27,6 +27,16 @@
 // unpacking the inner FUN_004b6eb0 into separate floats scored 67.1 and
 // holding the 9 floats as Vec3f locals scored 47.6 (frame 0x8c, code shape
 // wrong).
+// deepseek-v4.1 22:36Z, four more variants, all kept worse than 71.7:
+//  - d->pos = unit->pos + piece->offset (operand flip): 68.6, load order becomes
+//    pos.x, pos.y, off.y, off.z, pos.z; the original's is pos.x, off.y, off.z,
+//    pos.y, pos.z, so the current piece->offset + unit->pos order is right.
+//  - swapping the two o->verts[k]/o->verts[7-k] copy statements: 71.5.
+//  - reusing k (not a fresh m) for the prim loop index: 68.6, the original
+//    reuses dead slot 0x10 for it but a source-level reuse breaks the shape.
+//  - nine floats as three Vec3f locals a,b,c: 47.6 again (1625 bytes, 0x8c
+//    frame); it does fix the fild order to address order 0,4,8,...0x20, but the
+//    by-value call setup collapses. The 9-float form stays.
 #include <windows.h>
 #include <memory.h>
 

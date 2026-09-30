@@ -1,5 +1,5 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by
-// space-bunny-free. Names are provisional.
+// space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
 // PARTIAL, 72.5% (1094 original bytes, 1094 ours).
 // The min/max scan and both span-edge loops now emit the same instruction
 // set; every remaining diff is stack frame layout and instruction scheduling.
@@ -19,9 +19,12 @@
 //    `out[0]=x>>16`, before `out[2]=u`; ours emits it after `out+=10`.
 // 3. Second span loop exit: original does `mov edi,eax; mov eax,[highIndex];
 //    cmp edi,eax`; ours uses ecx for highIndex and `cmp eax,ecx`.
-// Next thing to try: find the declaration/scope construct that makes the
-// allocator give lowX a slot of its own instead of folding it onto next, and
-// that makes the second loop's n reuse lowIndex.
+// Tried a rowEnd temporary, reversing lowIndex/highIndex declaration order,
+// and rewriting the final for loop as while; none changed the 72.5% score.
+// The 128-set header sweep also found no improvement. A remaining approach is
+// to find the declaration/scope construct that makes the allocator give lowX
+// its own slot instead of folding it onto next, and makes the second loop's n
+// reuse lowIndex.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

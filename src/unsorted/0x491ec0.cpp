@@ -1,49 +1,11 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-checked by deepseek-v4.1-flash. Names are provisional.
-// Load-game info panel: fills the GAMES menu fields from the selected save.
-//
-// PARTIAL 91.9% (1126 vs 1124 bytes) after 1 real check run, up from 86.4%.
-// Control flow, struct layout, frame offsets and the whole call sequence match;
-// every remaining difference is one of two root causes.
-//
-// What was fixed to get here (all worth points together):
-//  * The prologue wants the layer pointer computed from `g_game` itself, not
-//    from the `menu` local: `mov eax,[g_game]; lea ebx,[eax+0x519];
-//    mov eax,[eax+0x531]`.  Writing `g_game->menu.layer` as its own
-//    expression (a `layer` local) keeps `eax` live across the `lea`, which is
-//    what produces that exact schedule.  `menu->layer->entries` instead gives
-//    `mov ecx,[eax+0x531]` hoisted above `push ebx`.
-//  * The failure block (the six `FUN_004a0bf0` calls plus `FUN_004a0880`) is
-//    ONE block reached from four tests, so the `if (file != 0)` must have no
-//    else arm: falling out of the outer then-block lands on the outer else.
-//  * The "MISSION" assignment is duplicated in the `gametype == 1` and the
-//    `else` arm.  MSVC tail merges them and emits the original's layout:
-//    then-arm `jmp` to the merged block, else-arm falling into it.
-//  * `path` must be 0x100 bytes so the frame is `sub esp, 0x144` (with the
-//    4-byte `gametype` field in the same aggregate, the totals are 0x148).
-//    `gametype` is the first member of the `Buf` struct, which puts it at
-//    [esp+0x10], name at [esp+0x14] and diffs at [esp+0x48] as the original has.
-//  * `FUN_0049fa90(&g_game->menu)` at the end, not the `menu` local: the
-//    original rematerialises `mov edx,[g_game]; add edx,0x519`.
-//
-// Still differing, both from single upstream causes:
-//  1. Register roles for `games`/`entries`/`index`.  Original: menu=ebx,
-//     games=ebp, entries=esi (then index coalesced into esi), edi saved late
-//     for the inlined strcpy.  Ours: menu=ebx, games=esi, entries=edi,
-//     index=ebp, so the prologue push order, the `mov ax,[ebp+0xba]` /
-//     `push esi` in the failure block and the epilogue pop order all follow.
-//     Three attempts at promoting `entries` over `games` (use `entries` for
-//     the RADAR lookup, 83.4%; keep the `layer` local alive and use
-//     `layer->entries`, 82.8%) all made it worse.
-//  2. The second read of `gametype`: original `cmp dword ptr [esp+0x14],1`
-//     straight out of the frame after the `push 0`, ours `mov eax,[esp+0x10]`
-//     then `cmp eax,1`.  That one extra `mov` is exactly the 2-byte size
-//     difference.  Moving `gametype` out of the struct into a plain local
-//     changes nothing, so it is the load/compare fold, not the storage.
-//
-// Re-checked by deepseek-v4.1-flash, still 91.9%. Tried headers.py (no header
-// set beats 91.9%), gametype as a plain local (86.7%), removing the entries
-// local and inlining layer->entries twice (84.7%), and declaring index at the
-// top (91.9%, unchanged). The two root causes above are still what remains.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-checked by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 96.0%, 1126 bytes versus 1124. File-open failure now reaches
+// the common field-clearing block, as at 0x491f83. This also restores the
+// original games/entries/index registers. The second gametype comparison
+// still loads into EAX instead of comparing its stack home directly. Two
+// 768-set header sweeps, 25 condition/type variants and 16 buffer/layout
+// variants did not remove the extra load.
+
 #include <string.h>
 #include <stdio.h>
 
@@ -202,8 +164,10 @@ void FUN_00491ec0()
                     diffs[((Class_004b4800*)file)->FUN_004b4800("Difficulty", 0)]);
             FUN_004a0bf0(menu, "DIFF", name, 0);
             FUN_00432590(file);
+            goto done;
         }
-    } else {
+    }
+    {
         FUN_004a0880(menu, index, DAT_005119b8);
         FUN_004a0bf0(menu, "SIDE", DAT_005119b8, 0);
         FUN_004a0bf0(menu, "DIFF", DAT_005119b8, 0);
@@ -212,6 +176,7 @@ void FUN_00491ec0()
         FUN_004a0bf0(menu, "GAMETYPE", DAT_005119b8, 0);
         FUN_004a0bf0(menu, "TIME", DAT_005119b8, 0);
     }
+done:
     FUN_0049fa90(&g_game->menu);
 #undef gametype
 #undef name

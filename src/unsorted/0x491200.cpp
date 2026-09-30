@@ -1,13 +1,9 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// 99.6%, 1174 of 1174 bytes. Only difference left: at the second
-// GlobalMemoryStatus call the original schedules the argument push before the
-// dwLength store (`lea edx,[esp+0x10]; push edx; mov [esp+0x14],0x20`), while
-// this build stores first (`mov [esp+0x10],0x20; push edx`). Same size, one
-// instruction order; the first call's identical source already matches.
-// This is the scheduler tie the guide warns about (0x4b6570): an address-taken
-// local reload drifting by exactly 4 bytes across a call's argument push.
-// Tried: a second pointer local for the address (same score); /Gz and /Gr
-// (both worse, and they change the mangling, so the original is /Gd).
+// Partial: 99.6%, 1174 bytes. The second GlobalMemoryStatus schedules
+// dwLength before the argument push; the original pushes first. A 768-set
+// header sweep, 20 call/init variants and 12 type/layout variants did not
+// resolve that single instruction-order difference.
+
 #include <string.h>
 #include <windows.h>
 

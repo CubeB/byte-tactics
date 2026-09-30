@@ -54,6 +54,15 @@
 // (85.4), after w (82.0), const-qualified locals (84.0), `unsigned int seen`
 // (compile error), the mask width read moved after the test (39.2), two player
 // pointers (38.1), and the old `else if (row)` hack (70.7).
+//
+// DEEPSEEK-V4.1-FLASH, third pass (ten minute timebox, scratch scorings only):
+// re-confirmed the basin. Removing either arm local rotates the prologue even
+// when the other arm keeps its locals: fog arm with the `w` local but the index
+// back to `map->seen[map->size.width * row + col]` is 37.8 [297], with both
+// locals and that member-width index is 38.2 [309], with only the `seen` local
+// and the member-width index is 40.0 [297]. A `Player_00473590& map` reference
+// instead of the pointer is byte-identical at 85.4. So the seen spill really is
+// load-bearing and the best version stays this one.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);

@@ -1,9 +1,24 @@
-// Decompiled by GPT-6. Names are provisional.
-// Partial: 99.5%, unchanged after the #1466 retry. The move opcode uses
-// different temporary stack slots. Opcode 0x10059000 reverses the first and
-// second popped operands between ecx and edx before xor ecx,edx. Header
-// sweeps, explicit XOR operands, declaration permutations, argument-array
-// grouping and an inline move helper did not improve either difference.
+// Decompiled by GPT-6, finished by space-bunny-free. Names are provisional.
+// Partial: 99.5%. Two hunks remain (checked again in #1641):
+//   1. case 0x10001000 (0x4b0ebf, 0x4b0eec, 0x4b0ef3). The original keeps three
+//      frame slots live across the call: [esp+0x10] = the piece array base,
+//      [esp+0x18] = the dword index piece*19+axis, [esp+0x1c] = the move[]
+//      byte offset. We reuse the now-dead index slot [esp+0x18] for the piece
+//      array, so only two slots appear and the two live values swap offsets.
+//      Declaring the `p` pointer local at function scope instead of inside the
+//      case block (so its slot is reserved early) changes nothing: MSVC5 gives
+//      an enregistered local its spill slot lazily, at its first spill point,
+//      so declaration scope does not move it. Note [esp+0x14] is never touched
+//      by the original even though case 0x10002000 needs the same three slots
+//      in the same order, so the free-slot search skips it.
+//   2. case 0x10059000 (0x4b1866). The original loads the first pop into ecx
+//      and the second into edx before `xor ecx,edx`; we load them the other
+//      way round. `Push(Pop() ^ Pop())` compiles identically to
+//      `int a=Pop(); Push(a ^ Pop())`, so MSVC5 evaluates the right operand
+//      of ^ first and hands it ecx; the xor destination is always the left
+//      operand's register. Untried: two named locals with `Push(a ^ b)`
+//      (both pops hoisted out of the expression), which is the only spelling
+//      left that can give the first pop ecx.
 #include <stdlib.h>
 
 struct ScriptTable
@@ -465,8 +480,7 @@ void Class_004b0da0::FUN_004b0da0(unsigned int channel, int elapsed)
                 break;
             }
             case 0x10059000: {
-                int a = c->Pop();
-                c->Push(a ^ c->Pop());
+                c->Push(c->Pop() ^ c->Pop());
                 c->pc++;
                 break;
             }

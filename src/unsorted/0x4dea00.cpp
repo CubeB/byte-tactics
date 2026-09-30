@@ -1,59 +1,25 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, second pass
-// by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// NOT MATCHING yet (96.6%, 850 bytes both). Only two small codegen differences remain:
-//  1. Loop preheader: the original tests `n` BEFORE storing `a = addrs` (the store is
-//     sunk past the guard); mine stores a = addrs first, then tests n. Two instructions
-//     transposed.
-//  2. `i == n - 1` in the lines branch: the original emits
-//     `mov eax,n; lea ecx,[eax-1]; mov eax,i; cmp eax,ecx`; mine emits
-//     `mov ecx,n; mov eax,i; dec ecx; cmp eax,ecx`. The non-lines branch has the
-//     opposite lea/dec choice in both versions, so this is one allocation decision.
-// Everything else (frame 0xdfc, all local offsets, every call sequence, the merged
-// `sprintf` tail through a `char* str` local) is byte-exact.
-// deepseek-v4.1-flash (this run) retried the open knobs, all stayed 96.6 or worse:
-//  - for-init placement `for (a = addrs; ...)` (96.6), declaration-init
-//    `unsigned long* a = addrs;` (96.6), walk the parameter `addrs` directly (75.0,
-//    853 bytes), swap `(n - 1) == i` in the lines branch (96.2).
-//  - tools/headers.py tried all 128 header sets: closest 96.6, so no header fixes it.
-//  - The whole remaining diff is one MSVC 5 allocation decision that splits across the
-//    two branches; the preheader transposition moves with it, so fix them together.
-// space-bunny-free (second pass, 3 scratch variants, no check.py run spent):
-//  - NEW FINDING on the non-lines branch: it does NOT use the loop counter. At 0x4decb2
-//    it loads eax from [esp+0x20], the `width` slot (0xf or 0x320), and reuses that eax
-//    for both `cmp eax,ecx` (ecx = n-1) and `cdq/idiv ecx` (per). The lines branch uses
-//    [esp+0x14] (= i) for the same two tests. So the source really is
-//    `if (width == n - 1 || width % per == per - 1)` in the non-lines branch: a
-//    copy/paste slip in Cavedog's code, see the BUG note below.
-//  - Writing that faithfully scores 71.8% (847 bytes): the two extra `width` references
-//    make MSVC 5 re-order every local (i/width swap 0x14/0x18, entry block rewritten),
-//    so the original's slot priority is not plain reference count and something else in
-//    the source keeps i at 0x14 and width at 0x20 while width is read in the loop.
-//  - Pre-loop guard `if (n <= 0) return;` to get the test before `a = addrs`: 83.6%
-//    (856 bytes, MSVC 5 keeps the redundant test and duplicates the preheader), and with
-//    the loop turned into `for (;;)` it is 89.0% (847 bytes). Both worse; the guard is
-//    not the shape the original used.
-// deepseek-v4.1 (this run, 9 check.py runs):
-//  - `if (n > 0) { a = addrs; for (...) }` wrapper (my best guess for the preheader
-//    order) scores 83.6%, 856 bytes: MSVC 5 emits the guard AND the loop entry test
-//    (test esi,esi twice) and picks edi for `a`, so the wrapper is not the shape.
-//  - The literal `width == n - 1 || width % per == per - 1` source (the non-lines
-//    branch really does read the width slot: eax is loaded once from [esp+0x20] and
-//    used for both the cmp and the cdq/idiv) scores 71.8%, 847 bytes, no matter how
-//    the locals are declared (width first, i first, long/unsigned i, unsigned width:
-//    68.7 to 71.8%). With the extra width reads MSVC 5 re-ranks the homes to
-//    width@0x14, i@0x18, a@0x1c and sinks the `width = 15` store, so the original
-//    source must contain some additional reference to i (or fewer to width) that
-//    keeps i@0x14 while the same C statement still reads width. Blocked on that
-//    allocation decision, plus the preheader transposition it moves with.
-// deepseek-v4.1 (third run, 5 check.py runs + 4 scratch scores): re-tested the loop
-//  shape and the else condition. do-while under `if (n > 0)` scores 92.5 (860 bytes:
-//  the guard test is duplicated and the homes move to 0x1c/0x20), `for (a = addrs;
-//  i < n; i++, a++)` is unchanged at 96.6, and the literal `width` else condition is
-//  71.8 (847 bytes: i moves to 0x18 and width gets a register instead of a home).
-//  New evidence on the preheader: the original's `a = addrs` load and store sit in the
-//  block that is only reached when n > 0, and the loop does not re-test n there, so the
-//  guard is a source-level n > 0 test whose loop entry test the compiler dropped. No
-//  for/do-while/while spelling tried so far reproduces that block split.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// NOT MATCHING yet (97.3%, 850 bytes both). Two codegen differences remain, both the
+// same MSVC 5 allocation decision applied in opposite directions:
+//  1. lines branch, `i == n - 1`: original emits `mov eax,n; lea ecx,[eax-1]; mov eax,i;
+//     cmp eax,ecx`; ours emits `mov ecx,n; mov eax,i; dec ecx; cmp eax,ecx` (one byte
+//     shorter, which also moves the else-branch target from 0x4dec9d to 0x4dec9b).
+//  2. non-lines branch, same source `i == n - 1`: original emits `mov ecx,n; mov eax,i;
+//     dec ecx; cmp eax,ecx`; ours emits `mov eax,n; lea ecx,[eax-1]; mov eax,i; cmp`.
+//     The sprintf value is loaded into eax in the original, edx in ours.
+// Everything else is byte-exact, including the frame (0xdfc), the loop preheader, all
+// calls and the strcat/sprintf tail.
+// What fixed the preheader and the a=addrs sink: writing the element accesses as
+// addrs[i] (no explicit `unsigned long* a` in the loop). MSVC strength-reduces it and
+// emits `a = addrs` inside the n > 0 guard block, matching the original.
+// deepseek-v4.1-flash retries (scratch --sym only, all below the 97.3 best): swapping
+// `i == n-1` to `n-1 == i` in either or both branches (96.9/96.9/96.6), swapping the ||
+// operands (91.4/96.1), adding `found ||` to the else (93.8), ternary sep (78.5),
+// `for (i = 0; ...)` (85.5), unsigned i (89.7), a temp local for addrs[i] (97.3),
+// default-then-if sep (93.6), an extra pointer induction variable (97.3).
+// tools/headers.py tried all 128 header sets, closest 97.3.
+// The remaining flip is one allocator decision per branch; no source spelling tried
+// reproduces it while keeping i at 0x14 and width at 0x20.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
@@ -88,7 +54,6 @@ extern UnDecFn_004dea00 DAT_00528ad4;
 // FUNCTION: 0x4dea00
 void __cdecl FUN_004dea00(char* dest, int space, int per, int n, unsigned long* addrs)
 {
-    unsigned long* a;
     int i = 0;
     space--;
     char lines = FUN_004de4d0();
@@ -108,23 +73,22 @@ void __cdecl FUN_004dea00(char* dest, int space, int per, int n, unsigned long* 
         width = 800;
 
     char found = 0;
-    a = addrs;
-    for (; i < n; i++, a++) {
+    for (; i < n; i++) {
         const char* sep;
         if (space <= width)
             break;
         if (lines) {
-            if (FUN_004de550(*a, &line, &err)) {
+            if (FUN_004de550(addrs[i], &line, &err)) {
                 FUN_004de8a0(path, line.FileName);
-                sprintf(dest, "%s(%d) : %08lX", path, line.LineNumber, *a);
+                sprintf(dest, "%s(%d) : %08lX", path, line.LineNumber, addrs[i]);
                 found = 1;
             } else {
-                sprintf(dest, "%08lX", *a);
+                sprintf(dest, "%08lX", addrs[i]);
             }
             sym.SizeOfStruct = 0x218;
             sym.MaxNameLength = 0x200;
             disp = 0;
-            if (DAT_00528acc(GetCurrentProcess(), *a, &disp, &sym)) {
+            if (DAT_00528acc(GetCurrentProcess(), addrs[i], &disp, &sym)) {
                 char* str;
                 if (DAT_00528ad4 && DAT_00528ad4(sym.Name, undec, 0x7d0, 0) > 0) {
                     str = undec;
@@ -143,7 +107,7 @@ void __cdecl FUN_004dea00(char* dest, int space, int per, int n, unsigned long* 
             else
                 sep = " ";
         } else {
-            sprintf(dest, "%08lX", *a);
+            sprintf(dest, "%08lX", addrs[i]);
             if (i == n - 1 || i % per == per - 1)
                 sep = "\n";
             else

@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. edited by deepseek-v4.1. Names are provisional.
 // Retry #1736: GPT-6.1-sol verified the saved source at 93.7% (576/568); no MATCH. The line-of-fire block still reloads unit2 after copying its position.
 // Partial, 93.7% (576 of 568 bytes; up from 90.9%). Logic, offsets and every branch match.
 // Two things moved it: `(height >> 1) + whole` (not `whole + (height >> 1)`) gives the
@@ -74,6 +74,13 @@
 // one by-value + one pointer/reference (76.8/75.2), pointer params (49.8), named dx/dy/dz
 // temps, param-order permutations of s/f all stay flat or worse. It is the register the
 // inliner picks for &from, not the expression.
+// deepseek-v4.1 pass (issue 2357): v1 Dist2 taking Unit* instead of Vec3*, v2 inline
+// definition order swapped, v3 named `short angle` local, v4 a local `Unit* u2`, v6 both
+// helpers declared `static` without `inline`, v7 named s/f locals: all byte-identical to
+// this file at 93.7%/576, so the spill of unit2 and the ebx vs edx choice for &from are
+// not reachable from those. v5 (one `&&` condition instead of nested ifs) drops the
+// original's `shr eax,1; test al,1` for `test al,2`, so the nested-if shape is load-bearing:
+// 574 bytes but 93.0%. Still 3 extra instructions in the line-of-fire block.
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)

@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
 // GPT-6.1-sol retry: 61.1% (857/861 bytes), not MATCH. Kept this valid best.
+// GPT-6.1-sol issue #2322 refinement: rechecked the baseline, tried a guarded do/while child traversal (no change), and tested passing the three zero Pos fields as scalar arguments (53.1% with literal zeros; 55.1% via initialized locals). Both scalar-call variants are semantically equivalent but worse; restored the 61.1% version. No MATCH. Remaining mismatch is in register/frame allocation and the fixed-point offset sequence described below.
 // GPT-6.1-sol refinement after PR #2160: memberwise and initializer-list Pos
 // zeroing scored 59.3%, while(1) with early break scored 56.4%; a continue
 // child loop and Model* alias held 61.1% with no change. Two malformed edits

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 
 // Sibling of 0x4c0a90 (which plots the two end points). Fills the pixels
 // between the span ends: walks the depth ramp at +0x18 and the shade ramp at
@@ -6,8 +6,8 @@
 // surface's depth buffer when it exists, and looks the destination colour up
 // in the 32 x 256 shaded palette table at app+0xc4.
 //
-// PARTIAL, 98.4 percent, 352 of 352 bytes (was 55.8 percent, 344 bytes). Claude
-// Sonnet 5.5 pass (#694). Four changes did all of it:
+// MATCH, 352 of 352 bytes (was 55.8 percent, 344 bytes). Claude Sonnet 5.5 pass
+// (#694) did four changes:
 //  1. Compiler state: the function is very sensitive to it (with N unused
 //     `extern int` declarations the score runs between 52 and 62 percent and
 //     the size between 334 and 348 bytes, with a period of 32 in N), and
@@ -26,28 +26,28 @@
 //  4. `d++` before `z += dz` in the depth loop (96.1 to 98.4 percent; the other
 //     23 orders of the four increments score 95 to 97.6).
 //
-// What still differs (one operand order): the depth pointer offset. The original
-// does `add edx, ebp; add edi, edx` (row * pitch, which is shared with the colour
-// pointer, plus start), ours does `add ebp, edx; add edi, ebp`. The colour pointer
-// offset above it already matches. Spelled as `d += row * pitch + start`,
-// `d += start + row * pitch`, two statements in either order, `d = d + (...)`,
-// all give identical bytes, so it is a register tie-break rather than an
-// expression order.
+// Resolved (deepseek-v4.1-flash): the last two instructions, the depth pointer
+// offset. The original does `add edx, ebp; add edi, edx` (row * pitch, shared
+// with the colour pointer, plus start), every spelling that reads the cached
+// `start` local gives `add ebp, edx; add edi, ebp` instead. Writing the offset
+// as `d += row * surf->pitch + span->x1;` (dereferencing the span rather than
+// the cached start, same value because start is span->x1 after the clamp)
+// flips the commutative add destination to edx and matches.
 //
 // Inert: `(app->shade + (si << 8))[color]` and `*(app->shade + (si << 8) + color)`
 // for the shade lookup, do/while for the depth loop (73.2 percent), `for (; count;
 // count--)`, an `int zi`, a `w`-less head with cached z1/s1/x1/x2 locals
 // (47 to 52 percent).
 //
-// deepseek-v4.1-flash pass: not a compiler-state artefact. A sweep of 0 to 549
-// unused `extern int dummyN;` declarations never reaches MATCH (only 0.888 to
-// 0.924, worse), and every source order tried for the two offsets (`p +=
-// row*pitch; p += start;` vs the swap, single `start + row*pitch` vs `row*pitch
-// + start`, casts, parentheses, `int off` locals, pointer declaration order,
-// count/start declaration order) lands on the same `add ebp, edx`; adding an
-// `off` local changes the frame (4 locals) and drops to 80.8 percent. So the
-// original's `add edx, ebp` is an allocator tie-break on the second use of the
-// multiply result, not reachable from operand order here.
+// deepseek-v4.1-flash pass: not a compiler-state artefact and not operand
+// order. A sweep of 0 to 549 unused `extern int dummyN;` declarations never
+// reaches MATCH (only 0.888 to 0.924, worse). For the depth offset, `d +=
+// row*pitch; d += start;` in either order, `d += row*pitch + start`, `d +=
+// start + row*pitch`, `d = d + row*pitch + start`, `d = (unsigned char*)((int)d
+// + ...)`, `&d[...]` and assigning a fresh `q` local all give `add ebp, edx`.
+// Only reading `span->x1` in place of the cached local moves the destination
+// into edx. An `int off` local changes the frame (4 locals) and drops to 80.8
+// percent.
 
 #include <windows.h>
 
@@ -99,8 +99,7 @@ void __stdcall FUN_004c0b10(int row, Span_004c0b10* span, Surface_004c0b10* surf
         p += row * surf->pitch;
         p += start;
         if (d != 0) {
-            d += row * surf->pitch;
-            d += start;
+            d += row * surf->pitch + span->x1;
             while (count--) {
                 unsigned char zi = z >> 16;
                 if (*d <= zi) {

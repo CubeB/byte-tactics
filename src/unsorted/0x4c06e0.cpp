@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // Claude Sonnet 5.5 pass (#694): still 74.1%, 200 bytes. Compiler state ruled out:
 // N unused `extern int` declarations (0 to 400 in steps of 8) give 200 bytes and 74.1%
 // for N = 0 to 48 and again from about 296, and a shorter 193 bytes and 59.2%
@@ -75,6 +75,45 @@
 //
 // The head shape is the same as 0x4c0b10's, which is also stuck on an
 // ebx/ebp choice at the same two field loads.
+
+//
+// Fifth pass (#2034, deepseek-v4.1): baseline re-confirmed at 74.1%, then about
+// 35 more source shapes swept with a script (each scored by check.py), none above
+// 74.1%. Two findings that narrow the remaining gap:
+// - The loop increment order is source order. The original emits inc edi; inc esi;
+//   add ecx,eax (both pointers, then z += slope); the file's `p++; z += slope; d++;`
+//   emits inc edi; add ecx,reg; inc esi. Writing `p++; d++; z += slope;` does move
+//   the add after the two incs, but the slope is then reloaded per iteration into
+//   ebp, which swaps one mismatch for another, so the score stays 74.1%.
+// - The slope is spilled to [esp+0x18] in both versions. The original reloads it
+//   once before the loop (`mov eax,[esp+0x18]`, then `add ecx,eax` in the body) and
+//   uses eax for it; ours reloads it inside the loop (`mov ebp,[esp+0x18]` with the
+//   reordered increments, `mov edx,[esp+0x18]` in the file). Explicit pre-loop
+//   copies (`char c = color; int s = slope;` used in the body) are coalesced away
+//   and change nothing, so the load placement is the allocator's, not the source's.
+// Also scored and all at 74.1% or below: a z1 local used by the count block (65.9%),
+// the same keeping span->z1 (66.3%), a counter copy / for / while loop (50 to 50.6%),
+// a slope copy (74.1%), `int len` for the guard (50.3%), an offset local (64.7%),
+// `memset(p, (unsigned char)color, n)` (72.5%), a char local for memset (74.1%),
+// the pitch loaded inline instead of hoisted (70.2%), x2/pitch locals as unsigned
+// short (68.6%), a field read in the clamp (66.3%), pointer-order and offset-order
+// swaps (74.1%), and `span->z1 -= slope * span->x1;` (74.1%). Every variant that
+// ties 74.1% emits identical bytes, so the file is already at a fixed point of the
+// shapes tried: what is left is one register-coloring decision (surf reloaded into
+// ebp with x1 in edx and the pitch in eax, versus surf in ebx here).
+
+// Sixth pass (#2034, deepseek-v4.1): the 0x4c0b10 MATCH recipe does not
+// transfer to this function. Applying its head and tail (int w, int start,
+// int count, while (count--), unsigned char color, the depth offset reading
+// span->x1) scores 44.7 to 52.3% in all combinations, worse than the 74.1%
+// baseline, which must keep the x1/x2 locals and the count read from the span.
+// Also scored and worse: inline surf->pitch with a separate `int i = n` loop
+// counter (46.8%), the same with char color (49.4%), `int n` before the guard
+// with the pitch local declared after it (45.0%), the two-step offsets (48.0 to
+// 50.6%), and unsigned char color (72.5%, 204 bytes, scored in the fifth pass). The
+// 74.1% file is unchanged and is a local optimum: only the register colouring of
+// the count block still differs (surf into ebp with x1 in edx there, versus
+// surf into ebx with x1 in ebp here).
 
 #include <string.h>
 

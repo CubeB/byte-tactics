@@ -209,6 +209,13 @@
 // /Fa<out>.lst <file>` lists every local's frame slot by name (`_minX$ = -96`),
 // which is far quicker than diffing, and it is the only way to see the slot
 // ORDER problem in point 2 above.
+// deepseek-v4.1-flash retry #2965: still 61.8% (857/861), not MATCH. Reconfirmed
+// the memset Pos ctor is required: `x=0;y=0;z=0;` moves model from ebp to esi
+// (esi already carries the child node) and drops to 60.4. Remaining diffs are
+// unchanged from the notes below: the prologue register split (original loads
+// model into ebp before `mov esi,esp` and expands the zeroing as three separate
+// xors; ours zeroes first in compact eax form with the Pos address in edx), the
+// downstream frame allocation, the y-offset fold, and the post-loop clip spills.
 #include <string.h>
 
 struct Child_4589c0;

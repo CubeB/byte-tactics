@@ -1,21 +1,15 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL: 93.301% (orig 1431 bytes, ours 1430). The seven string option
-// arrays, their frame offsets, their store order and the 24-byte Rule stride
-// all match; the whole function matches except two spots:
-//  (1) the first basic block (~96 bytes). The original builds the player
-//      index in ecx, runs the *33/*165 scale in eax/edx, loads g_game into
-//      eax and copies it to edi (edi = g_game + index), then reads playerType
-//      into ecx, rules into edx, opts into ebx and only then rule into ebp.
-//      We keep g_game in ecx and the index in eax, which swaps the roles of
-//      eax/ecx/edx for the whole block and reorders the rule/opts loads.
-//      Every declaration order tried (opts before rule, no game local, rule
-//      via a named playerType, players[] via a PlayerEntry pointer, index as
-//      int/unsigned char) either reproduces this exact code or drops the
-//      score to ~71%, because it also changes the register that every later
-//      g_game reload uses.
-//  (2) the tail loop preheader: the original loads layer->entries
-//      (mov edx,[esi+4]) before the saved count ([esp+0x14]); ours loads
-//      them in the opposite order. Same length, two instruction swap only.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// The key lever was the top-of-function register allocation. The original
+// loads g_game into eax and copies it to edi (edi = g_game + index) after the
+// *33/*165 players scale, reading playerType and rules afterwards. Two source
+// details reproduce it: `opts` is computed before `rule`, and the player index
+// is masked in its own statement:
+//     unsigned int index = FUN_00456850();
+//     index &= 0xff;
+// Writing `FUN_00456850() & 0xff` in one statement, adding a `Game* game`
+// local, or swapping opts/rule each flip the global allocation (g_game to
+// ecx/edx) and cost 20+ points. The split mask keeps the index in ecx so the
+// players scale lands in eax, which is exactly the original's preference.
 // Note: Rule_0045f1d0 (24 bytes, startMetal at +0xc, startEnergy at +0x10)
 // and RuleSet_0045f1d0 (startType at +0x118) are the SAME memory: the exe
 // walks g_game->rules with a 24-byte stride for metal and energy but reads
@@ -132,11 +126,11 @@ void FUN_0045f1d0()
     layer->handler = FUN_0045f190;
     FUN_004288d0("GameSettings", 0, 0, 0);
     int count = layer->entries->u.count;
-    unsigned int index = FUN_00456850() & 0xff;
+    unsigned int index = FUN_00456850();
+    index &= 0xff;
     char num[0x40];
-    Game_0045f1d0* game = g_game;
-    Rule_0045f1d0* rule = &((Rule_0045f1d0*)game->rules)[game->playerType];
-    Opts_0045f1d0* opts = game->players[index].info;
+    Opts_0045f1d0* opts = g_game->players[index].info;
+    Rule_0045f1d0* rule = &((Rule_0045f1d0*)g_game->rules)[g_game->playerType];
     char* deathStrs[3] = { "Game Continues", "Game Ends", "Deathmatch" };
     char* locStrs[2] = { "Random", "Fixed" };
     char* mapStrs[2] = { "Mapped", "Unmapped" };

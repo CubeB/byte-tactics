@@ -1,31 +1,43 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 66.0% (1006 vs 1040 bytes). Structure and all four blocks are
-// correct; the remaining diff is register allocation, not missing logic.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// PARTIAL: 67.5% (1015 vs 1040 bytes). Every block is structurally right; the
+// remaining diff is one register-allocation state, not missing logic.
 //
-// Two changes moved it from 62.6 to 66.0: the first (cancellation) loop must be
-// `int i = rows->n; while (i--) { ... }`, whose MSVC 5 codegen is the
-// `mov ecx,eax / dec eax / test ecx,ecx / je` (the guide's documented
-// `while (n--)` shape) where a plain `for (i=n; i!=0; i--)` gave `cmp eax,edi`.
-// Then the ring pop MUST be a `static __inline` helper with an early
-// `return 0;`: inlined, it reproduces the original's branchy
-// `test ecx,ecx / jle / ... / jmp / xor eax,eax` pop. Written inline as an
-// `ep = 0` initialiser followed by a conditional assign it is if-converted to
-// `xor edx,edx` and the whole allocation shifts.
+// What moved it from 66.0 to 67.5: the scan-loop prologue must read
+//     size -= 4;  int n = 0;  int remaining = size;  char* p = text + 4;
+// in exactly that order. That declaration order is load bearing (reordering any
+// pair drops straight back to 66.0, and putting `p` before `remaining` drops to
+// 50.4). It is what decides which of the two loop-carried counters gets EDI and
+// which gets EBP in the 0x4638f0 scan loop.
 //
-// Remaining diff, all one shared cause: the original materialises the ring
-// bound `mov edi,0x200` in EDI and uses immediate 0 for the resets
-// (`mov [eax+4],0`, `mov [eax+8],0`, `test ecx,ecx`), while ours keeps the zero
-// in EDI (`cmp eax,edi`, `mov [eax+8],edi`) and uses immediate 0x200. That one
-// zero-vs-0x200 role swap cascades into `f8++` landing in EBX instead of EDI,
-// `n` landing in EDI, `remaining` in EBP (original: `n`=EBP, `remaining`=EDI,
-// `remaining`=EBX in the tail loop), and the a6 tail loop swapping EBX/EBP/EDI.
+// Remaining diff, all one shared cause: the original materialises the ring bound
+// as a register value (`mov edi, 0x200` at 0x4637dd, loop pre-header) and uses
+// immediate 0 everywhere else in that loop. Because EDI then holds 0x200 rather
+// than zero, the pop's emptiness test becomes `test ecx, ecx / jle` instead of a
+// compare against EDI, the pop's ring pointer lands in EAX instead of ECX, the
+// wrap resets become `mov [eax+4], 0` instead of `mov [eax+4], edi`, and the
+// false arm of the pop lays out out of line instead of in the fall-through.
+// The same zero-vs-0x200 role swap is what puts `n` in EBX/EBP and `remaining`
+// in EBP/EDI through the 0x463a30 and 0x463ad0 loops.
 //
-// Tried and scored, none beat 66.0%: if/else or single-return form for the pop
-// helper (63.5%), pointer `(char*)r + h*12` vs `&r->entry[h-1]` (same), a
-// function-local `int cap = 0x200` used for the three first-loop bounds (folds
-// straight back to immediates), a `static __inline` push helper (same 1006
-// bytes), swapping or hoisting the `n`/`remaining` declarations to function
-// scope, and computing `remaining` before memcpy (57.0%).
+// MSVC 5 will not hoist a literal 0x200 into a register here under any source
+// spelling, so the original must have had a real variable. Scored and ruled out
+// (all 67.5%, none produce `mov edi, 0x200`):
+//   `int cap = 0x200` at block scope, at function scope, inside the while body,
+//   `static const int cap`, and an `unsigned short cap`;
+//   the cap expression as `(int)(sizeof(entry) / sizeof(Entry_00463790))`;
+//   a function-local `Class_00463730* self = this` (register hoist, no change);
+//   moving the ring-pointer local `Buffer_00463730* r = rows` to function scope
+//   for blocks 2 and 3 (much worse, 44.1%);
+//   the induction variable of block 1's cancellation loop in a register
+//   (`for (int j = i; j > 0; j--)`, 66.4%);
+//   swapping the `n` and `remaining` declarations (no change, see above);
+//   reading the popped entry as `ep->b`/`ep->c` instead of `Entry e = *ep`
+//   (65.3%);
+//   block 2's tail push as `r->tail++` instead of the `int t` form (no change);
+//   `a4`/`a5` through temporaries, `this->f14` spellings, an extra live
+//   `x - f0` copy in the span clamp (no change);
+//   `tools/headers.py`: 128 header sets, best 67.5, so the header choice is not
+//   load bearing here.
 #include <string.h>
 
 void* __cdecl operator new(unsigned int size);
@@ -126,9 +138,10 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
     memcpy(text, src, size);
     f14 = a4;
     f18 = a5;
-    char* p = text + 4;
-    int remaining = size - 4;
+    size -= 4;
     int n = 0;
+    int remaining = size;
+    char* p = text + 4;
     while (remaining > 0) {
         unsigned char c = *p;
         unsigned char cc = c;

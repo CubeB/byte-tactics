@@ -42,6 +42,11 @@
 // names vector with an explicit default argument, one counter per tail loop
 // and literal byte offsets were all scored through check.py at 69.1%.
 
+// #2847 retry by GPT-6.1-sol: seven checks kept the 69.1% best. A tail file
+// alias emitted identical code; a local vector pointer and null-check variants
+// scored lower. The destruction/record loops still differ in register lifetime,
+// reloads, and switch scheduling.
+
 #include <string.h>
 #include <utility>
 

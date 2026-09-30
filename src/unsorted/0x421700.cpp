@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
+// #2847 retry by GPT-6.1-sol: five attempts kept the 71.7% best. Reordering
+// locals dropped to 71.2%; the frame, x87 schedule, local slots, and loop
+// register/control flow still differ. One compiler launch failed; one run was silent.
 // Partial: 71.7%, 1759 bytes versus the original 1692 (best of a Claude Opus
 // 5.5 start plus deepseek-v4.1 work). The structure is right: every call, the
 // vel/spin sequence, the two-pointer vertex copy and the trailing prim loop

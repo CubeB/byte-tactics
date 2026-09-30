@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// #2847 retry by GPT-6.1-sol: the six checker attempts preserved the 59.6%
+// best. Masked-word stores and XOR assignment reduced the score; live-zero,
+// first/count stack homes, and tail bit-write registers still differ.
 // Partial: 59.6% (was 55.8), 1533 bytes versus 1512. <vector>/<windows.h> plus
 // declaration order onOff,u,cloak,first,count,flags recovers the 0x240 frame.
 // Original slot map: onOff=0x10, loop u=0x14, cloak=0x18, first=0x1c, count=0x20,

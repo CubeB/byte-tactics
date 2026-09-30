@@ -7,13 +7,20 @@
 //
 // Best result so far: 32.7 % (1754 vs 1762 bytes), first pass.
 //
-// What still differs: register allocation and the local-slot map. The
-// original keeps the freshly allocated entry block in [esp+0x18] and the
-// layer in [esp+0x10]; [esp+0x10] is only ever stored on the flags&0x200
-// path (0x4aaa3b), which makes the flags&0x200==0 path look like it reads an
-// uninitialised [esp+0x10] at 0x4aac09 / 0x4aac2d and [alloc+4] (zeroed by
-// the memset) at 0x4aaab9. Our frame is also 4 bytes larger (add esp,0x220
-// vs 0x21c). The entry memcpy and the tail are present but unverified.
+// What still differs: our frame is 4 bytes larger (sub esp,0x220 vs 0x21c)
+// and the register allocation differs. ROOT CAUSE of the frame excess (see
+// build/scratch/0x4aa8f0/ledger.md): our compiler caches the `flags`
+// parameter in ebx for the whole function, so the PANEL-search `base` and the
+// focus-name `dst` pointers cannot use ebx and spill to [esp+0x14]/[esp+0x18].
+// The original never caches flags: it reloads it at each use (0x4aaa1d,
+// 0x4aab29, 0x4aabdf) and keeps base ([esp+... ] mov ebx,[edi+4] at 0x4aaab9)
+// and dst (lea ebx,[ebp+0xec] at 0x4aae2e) and `e->w` (0x4aa942) in ebx.
+// Freeing ebx removes both temps, moves ret to [esp+0x14] and rect to
+// [esp+0x1c], shrinks the frame to 0x21c and aligns every esp-relative
+// operand. Removing the `mask` local or reordering declarations did not help
+// (v1/v2, both 32.6/32.7%). The body loops must test base->count / entry->count
+// from memory on every iteration, not a saved limit. The entry memcpy and the
+// tail are present but unverified.
 //
 // Confirmed local slot map (relative to esp after the four register pushes,
 // i.e. esp = E-0x22c where E is the entry esp):

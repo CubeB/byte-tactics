@@ -1,4 +1,21 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// RETRY deepseek-v4.1-flash (issue 2433): re-confirmed the growth branch wall
+// from scratch, 9 scored variants, none above the 81.1% do-while base in this
+// file. New measurements this pass: a for-loop with the destination declared
+// first is 541 bytes / 80.5% (not 537); swapping the two increments in the
+// do-while, or the comparison order `_Last != _s`, stays 81.1% (identical
+// bytes); pre-testing the do-while with `if (_s != _Last)` is 541 / 80.5%;
+// source-first for and do-while are 531 / 72.4% and 524 / 55.2%; using the _P
+// parameter itself as the third-copy induction variable (mutating _P, in
+// do-while, for and while shapes) is 529 bytes / 59.9% for all three, because
+// it reverts `this` to ebx, confirming the source-copy local is what keeps the
+// this=ebp allocation. Writing the construct as `if (_d) *_d = *_s;` is byte
+// identical to the allocator.construct spelling. The blocker is unchanged:
+// our third copy colors dest in ecx and src in eax with _Last reloaded, while
+// the original colors dest in eax and src in ecx with _Last cached in esi and
+// _M*4 in edi. That single coloring decision also keeps P in ecx in the
+// original versus edi here.
 // std::vector<Class_00471cc0*>::insert(iterator, size_type, const T&) from MSVC 5's
 // <vector>, with _Ucopy, _Ufill, fill and copy_backward inlined. The sixteen
 // push_back sites call it out of line (they inline the count-is-one overload

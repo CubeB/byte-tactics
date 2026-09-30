@@ -1,12 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
-// Partial, 34.5%: Sampling direction and mutable lighting-vector reads corrected.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Partial, 34.8%: Sampling direction and mutable lighting-vector reads corrected.
+// A 128-set header sweep found no match; <ddraw.h> alone is best (34.8%).
+// A materialized shifted-flag local did not improve the score.
+// GPT-6.1-sol refinement: unsigned weight counters scored 29.3%, and narrowing
+// the shifted shade bit into a byte local scored 31.2%; both were reverted.
 // Frame-slot rotation, per-piece registers and x87 scheduling still differ.
 // Tried (deepseek-v4.1-flash): modelling the piece flags, the g_game+0x37f06
 // shadow flag and the owner+0x241 bit as packed 1-bit bitfields. The negated
 // piece flag matched `test byte ptr [m],1`, but every positive flag access
 // still folded to `test dl,2`/`and edx,0x40000000` and the frame slots shifted
-// (mode moved 0x20 to 0x28), so the masked-int spelling scored higher (34.5)
-// and is kept.
+// (mode moved 0x20 to 0x28). That packed-bitfield variant scored lower than
+// the masked-int form and is not used.
 // Remaining diff hunks (original addresses):
 //   0x459c89 flag test: original `shr dl,1; test dl,1`, ours `test dl,2`, and
 //            the whole prologue register rotation (list edx vs eax, useColor
@@ -21,8 +25,6 @@
 //   0x45a246 polygon loop: index slots differ, fadd direction at 0x45a195.
 //   0x45a3a3 branch layout: firstFace test takes the opposite branch direction.
 //   0x45a419 end copy loop: register assignment differs.
-#include <map>
-#include <memory.h>
 #include <ddraw.h>
 
 extern char* g_game;
@@ -135,7 +137,9 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
 
     Bitmap_459c70* src;
     int mode;
-    if (((*(unsigned char*)(g_game + 0x37f06) >> 1) & 1) != 0
+    unsigned char renderFlags = *(unsigned char*)(g_game + 0x37f06);
+    renderFlags >>= 1;
+    if ((renderFlags & 1) != 0
         && (list->owner->field_110 & 0x20000000) != 0
         && useColor != 0) {
         mode = 1;
@@ -236,9 +240,9 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
                 unsigned short* idx = f->indices;
                 for (int j = 0; j < f->count; j++) {
                     int k = idx[j];
-                    accum[k][0] += normal[i][0];
-                    accum[k][1] += normal[i][1];
-                    accum[k][2] += normal[i][2];
+                    accum[k][0] = normal[i][0] + accum[k][0];
+                    accum[k][1] = normal[i][1] + accum[k][1];
+                    accum[k][2] = normal[i][2] + accum[k][2];
                     weight[k]++;
                 }
             }

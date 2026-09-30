@@ -1,18 +1,8 @@
-// Decompiled by space-bunny-free, finished by GPT-6 and deepseek-v4.1-flash. Names are provisional.
-// Partial (40.9%): argument/layout errors corrected; allocation still differs.
-// deepseek-v4.1-flash retry (0x459200, 1506 bytes) did not improve on this
-// version; hoisting the cached team flags (`f`) to function scope produced
-// identical code. Remaining differs:
-//   0x459200  frame is 0x1c, original is 0x20: original keeps 8 locals
-//             (0x10 team flags, 0x14 dx, 0x18/0x1c/0x20 d vec,
-//             0x24/0x28/0x2c cv vec) while ours spills only 7.
-//   0x45920b  `this` lands in ebx, original keeps it in edi (mov edi,ecx).
-//   0x45923e  original writes the modified Vec3 back into the by-value
-//             argument slots (v.x = owner->pos_x - v.x etc.) and keeps the
-//             unmodified copy in cv; ours orders these differently.
-//   0x459257  dx (v.p.y.whole) is not spilled to a local in ours.
-//   0x459288  first branch (bitmap->field_14 == 0) and 0x45949d second branch
-//             register allocation differ throughout after the prologue.
+// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
+// Partial (45.7%): address-taken 16-byte vector copy fixed the frame size;
+// declaring dx/dy as short improved the score. Remaining differs: this lands
+// in ebx instead of edi, vector copy/writeback allocation differs at entry,
+// and branch allocation/control flow diverges from 0x459288 onward.
 struct Vec3;
 struct Model_459200;
 struct Team_459200;
@@ -127,19 +117,21 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
     if (bmp == 0)
         return;
 
-    Vec3_459200 cv = v;
+    struct CvBuffer_459200 { Vec3_459200 value; int unused; } cv;
+    cv.value = v;
     Vec3_459200 d;
     v.v[0] = model->owner->pos_x - v.v[0];
     v.v[1] = model->owner->pos_y;
     v.v[2] = model->owner->pos_z - v.v[2];
     int altitude = FUN_00485070((Pos_459200*)&model->owner->pos_x);
-    int dx = v.p.y.whole;
-    int dy = v.p.z.whole;
+    short dx = v.p.y.whole;
+    short dy = v.p.z.whole;
     int z = dy - (dx >> 1) + 0x20;
     int y = dy - (altitude >> 1) + 0x20;
 
     if (*(int*)(bmp+0x14) == 0) {
-        if (g_game->field_37f06 & 4) {
+        unsigned short gameFlags = g_game->field_37f06;
+        if (gameFlags & 4) {
             int f = model->owner->field_92->flags;
             if (!(f & 0x2000000)) {
                 if (*(unsigned char*)((char*)model->owner+0x113) & 0x20) {
@@ -173,7 +165,7 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
         for (int i = model->count - 1; i >= 0; i--) {
             Piece_459200* piece = &model->pieces[i];
             if ((piece->flags & 1) && !(piece->flags & 2)) {
-                ((Class_004584d0*)this)->FUN_004584d0(model, param_2, &cv, piece->field_0, piece->field_22,
+                ((Class_004584d0*)this)->FUN_004584d0(model, param_2, &cv.value, piece->field_0, piece->field_22,
                              model->owner->kind, useColor);
             }
         }
@@ -184,7 +176,7 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
                 for (int i = sprites->count - 1; i >= 0; i--) {
                     Piece_459200* piece = &sprites->pieces[i];
                     if (piece->flags & 1) {
-                        ((Class_004584d0*)this)->FUN_004584d0(sprites, param_2, &cv, piece->field_0, piece->field_22,
+                        ((Class_004584d0*)this)->FUN_004584d0(sprites, param_2, &cv.value, piece->field_0, piece->field_22,
                                      sprites->owner->kind, useColor);
                     }
                 }
@@ -195,7 +187,8 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
     }
 
     {
-        if (g_game->field_37f06 & 4) {
+        unsigned short gameFlags = g_game->field_37f06;
+        if (gameFlags & 4) {
             int f = model->owner->field_92->flags;
             if (!(f & 0x2000000)) {
                 if ((f >> 30) & 1) {

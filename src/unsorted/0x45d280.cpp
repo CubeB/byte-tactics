@@ -1,58 +1,9 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-//
-// deepseek-v4.1-flash: 90.1 percent (1338 bytes vs 1333), NOT MATCH.
-//
-// The CD-options menu handler (the sibling of 0x45da90, the sound-options
-// handler, which has the same shape): a chain of "command name" tests that
-// drives the CD player, the track-mode page and the volume/undo buttons, with
-// a shared tail for the CD arms and another for the UNDO/RESTORE arms.
-//
-// What this pass changed (88.8 -> 90.1):
-//  - The UNDO arm's flag update is `int f = flags.word; flags.word = f ^
-//    ((f ^ DAT_00512f46) & 1)` with NO `(unsigned char)` cast. Adding the cast
-//    makes the whole `& 1` narrow to a byte (`and cl,1`) and pulls in an
-//    `xor eax,eax`; removing it also let the apply tail's two volume calls
-//    match. `unsigned short f` and `short f` both score 85.2: they make MSVC
-//    use the clear-bit-then-set ("and dx,0xfffe / movzx") rewrite.
-//  - The TRACKMODE arm must NOT cache the mode in a local; the original
-//    reloads `g_game->field_37f16` and re-loads g_game for the compare, so
-//    compare the field directly each time. (This kept the score but is the
-//    faithful source.)
-//
-// Earlier findings (space-bunny-free's, still true):
-//  - The else-if chain is TWO statements, not one: `if (NOTRAK) ... else if
-//    (TRACKMODE) ... else if (TRACKTYPE) ...` and then a separate `if (CDPLAY)
-//    ... else if ...` chain, then `if (UNDO)`, `if (RESTORE)`, then the
-//    fall-through block.
-//  - The shared tails are `goto` labels placed at the END of the last arm of
-//    their chain (cd_tail inside the CDSTOP arm, apply inside the RESTORE arm).
-//  - The two bit tests have to be `g_game->prefs` on an `unsigned char`
-//    bitfield (a word bitfield gives `test word`) and `g_game->loaded` on an
-//    `unsigned short` bitfield (the store is `and word [...], 0xfffe`).
-//
-// Still different, in program order:
-//  1. UNDO arm (~+8 bytes). Original: `mov ax, word [g_game+0x37f14]` (no
-//     zero-extend), `mov dl, byte [DAT]`, `mov cl, al`, `xor cl, dl`,
-//     `and ecx, 1` (32-bit), `xor ecx, eax`, `mov word, cx`. Ours keeps the
-//     byte test in al (not dl), reads g_game into edx (not edi), and MSVC
-//     rewrites the update as clear-bit-0-then-set: `xor eax,eax; and cl,1;
-//     mov ax,word; movzx cx,cl; and eax,0xfffe; xor eax,ecx`. Tried `unsigned
-//     short`, `short`, `(unsigned char)` cast, a local `x`; the clear/set
-//     rewrite wins whenever f's upper bits are known. This arm's allocation
-//     also propagates to the apply tail, so it has to be fixed first.
-//  2. Apply tail: ours emits `push ecx` (the arg slot) before `fild
-//     [g_game+0x37f08]`, the original after. Pure scheduling.
-//  3. Final block: original `lea eax, [edi*8]; add ebp, edi; sub eax, edi`
-//     for the `entries += i; entries[i].state` address; ours `mov eax, edi;
-//     add ebp, edi; shl eax, 3; sub eax, edi`. Same value, MSVC picked the
-//     shift form. (The TRACKTYPE arm at 0x45d777 DOES use `mov ecx,eax;
-//     shl ecx,3` and matches, so this is a per-site instruction-selection
-//     difference.)
-//  4. TRACKMODE mode compare: original holds g_game in ecx and the byte in al
-//     (`mov ecx,[g_game]; mov al,[ecx+0x37f16]; cmp al,3`), ours eax/cl.
-//     Register pick only.
-//  5. Jump targets (`je 0x45d64b` vs 0x45d64f etc.) are the +5-byte size
-//     difference and will resolve when the code is byte-identical.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Partial, 90.7%, 1327 vs 1333 bytes. Keeps the game pointer on the no-call
+// UNDO branch and reloads it after the callback. The flag update still differs,
+// along with volume argument scheduling, final gadget addressing and mode registers.
+#include <string>
+#include <windows.h>
 
 #pragma pack(push, 1)
 
@@ -310,10 +261,12 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         ((Class_004ce3e0*)g_game->sound)->FUN_004ce3e0(DAT_00512f75);
         g_game->field_37f16 = DAT_00512f48;
         ((Class_004ce7a0*)g_game->sound)->FUN_004ce7a0(g_game->field_37f16);
-        if ((g_game->flags.byte ^ DAT_00512f46) & 1)
-            ((Class_004cdb40*)g_game->sound)->FUN_004cdb40();
-        int f = g_game->flags.word;
-        g_game->flags.word = f ^ ((f ^ DAT_00512f46) & 1);
+        Game_0045d280* game = g_game;
+        if ((game->flags.byte ^ DAT_00512f46) & 1) {
+            ((Class_004cdb40*)game->sound)->FUN_004cdb40();
+            game = g_game;
+        }
+        game->flags.word ^= (game->flags.byte ^ DAT_00512f46) & 1;
         ((Class_004ce580*)g_game->sound)->FUN_004ce580(DAT_00512fd9);
         goto apply;
     }

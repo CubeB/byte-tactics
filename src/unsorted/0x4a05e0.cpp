@@ -1,4 +1,7 @@
 // Decompiled by GPT-5.6-Terra, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// #2970 retry by GPT-6.1-sol: seven checks retained the 61.5% best; initializing
+// entries at assignment and nested positive guards did not change the register
+// and stack allocation mismatch. No MATCH.
 // Retry (deepseek-v4.1-flash, issue 2413, this pass): best check.py score 61.5%,
 // still no MATCH. The gain is a difflib alignment artifact, not progress: the only
 // source change from the 56.5% base is the exit block using `entry->u.text[i]`

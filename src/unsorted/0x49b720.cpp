@@ -1,54 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 32.9% (deepseek-v4.1-flash, 2026-09-30): two independent fixes on top
-// of the 29.8% version above, combined best 32.9% (1816 bytes against 1853).
-// 1. Drop the `sl` local: inline `(unsigned char)*(g_game+0x1427f)` at the two
-//    compares in TailOnly. That removed the extra frame slot and brought the
-//    frame from 0x18 to the original's 0x14 (5 locals), but the score alone
-//    did not move. It is still the right shape: the original re-reads the byte
-//    at 0x49bddd and again at 0x49be13 rather than keeping a local.
-// 2. The dead (`counter != 0`) path ends its own copy of the Selected block
-//    and then jumps to the loop bottom (Next), while the live path has a
-//    SECOND copy at 0x49bc8b that falls into TailOnly. Writing the Selected
-//    block out twice (inline in the dead path ending `goto Next;`, and the
-//    existing Select: block for the live path) took 29.98 -> 31.7 and moved
-//    the byte count from 1733 to 1824. This is the duplicated-block pattern
-//    from the guide: two caller sites with different tail continuations.
-// 3. `s` is a `short`, not an `int`: 31.7 -> 32.9, 1824 -> 1816 bytes. The
-//    original compares s at 16 bits (`cmp cx, ax` at 0x49b9fa and
-//    `cmp word ptr [ebp+0xa], dx` at 0x49bdf8), and the sign-extended 32-bit
-//    copy is only the stored form. `short s` also stops the 32-bit `and`.
-// Still differs: `type` lands in edi where the original keeps it in esi, the
-// materialised zero lands in esi where the original keeps it in edi, and that
-// single swap cascades through every block (same failure the sibling 0x49b090
-// notes). Also still literal: bit 20 (0x49b9c8 `shr edx,0x14; test dl,1`),
-// bit 23 (0x49bac3 `shr eax,0x17; test al,1`) and bit 0 (0x49bb60
-// `test byte ptr [esi+0x111],1`) want the bitfield-union form, and the idx
-// scan (`xor dl,dl ... inc dl; cmp dl,3`) wants a `char` index.
-
-// PARTIAL 29.8% (deepseek-v4.1-flash retry, issue 1774): original 1853 bytes,
-// ours 1739. Frame is the whole story: original `sub esp,0x14` (5 dword
-// locals), ours `sub esp,0x18` (6). Original slot map after the 4 pushes is
-// 0x10=idx(byte), 0x14=offset, 0x18=count, 0x1c=type, 0x20=s; ours is
-// 0x10=idx, 0x14=type, 0x18=offset, 0x1c=count, 0x20=unnamed temp, 0x24=s.
-// The extra unnamed slot is the root cause: it displaces `type` to 0x14 and
-// swaps eax/ecx/edx on offset/count throughout.
-// Call census is EQUAL (22 calls: 420a30*1, 43e240*1, 472810*2, 47f300*1,
-// 4815a0*1, 499eb0*3, 49ae20*1, 49b090*1, 49b3e0*1, 49b520*1, 4b6c30*2,
-// 4b70ef*3, 4b7123*4), so the 114-byte deficit is schedule/encoding (near
-// jumps over a 1.9 KB body), not a missing call block.
-// Highest-value untried levers for the next worker:
-// 1. Drop the unnamed 0x20 temp. Candidate: rewrite the idx scan as a
-//    do{...}while(idx<3) over a char index instead of while(1) with two breaks,
-//    matching the original's `xor dl,dl / inc dl / cmp dl,3 / mov [esp+0x10],dl
-//    / jb`.
-// 2. ProjType+0x111 flags are a BITFIELD union, exactly as in the matched
-//    sibling 0x49b090.cpp. Original uses shift form for bits 20 (0x49b9c8
-//    `shr edx,0x14; test dl,1`) and 23 (0x49bac3 `shr eax,0x17; test al,1`) and
-//    a byte test for bit 0 (0x49bb60 `test byte ptr [esi+0x111],1`). Our plain
-//    `unsigned int fl` plus `fl & 0x100000` / `fl & 0x800000` / `fl & 1` emit a
-//    32-bit test instead. Bits 21/24/3/5/8 already match.
-// 3. Outer loop is a rotated `do{...}while(--count)` guarded by `if(count>0)`;
-//    our form already yields the dec/jne bottom.
+// PARTIAL 31.8%. Frame is now 0x14 and short/angle/sl types corrected. Remaining
+// diffs are register roles: original keeps the loop zero in EDI and the type
+// pointer in ESI, ours has them swapped (zero in ESI, type in EDI), which makes
+// MSVC re-zero the zero register at the loop top (jmp preheader) and use direct
+// immediate stores and test reg,reg instead of cmp reg,edi. The original also
+// emits "shr N; test cl,1" for the type flag bits (bits 0,1,3,5,8,11,12,20,21,
+// 23,24) but direct "test [mem],mask" for bits 13,16,18; a full bitfield union
+// for every bit scored worse (30.4%) because it moved s into EDI.
 // Restored unsigned lifetime/speed comparisons and projectile flags/definition reloads.
 
 #pragma pack(push, 1)
@@ -101,7 +59,7 @@ struct Proj_0049b720 {
     void* field_56;                    // +0x56
     char unknown_5a[0x60 - 0x5a];
     short counter;                     // +0x60
-    short field_62;                    // +0x62
+    unsigned short field_62;            // +0x62
     short field_64;                    // +0x64
     char unknown_66[0x69 - 0x66];
     unsigned short flags69;            // +0x69
@@ -122,8 +80,8 @@ void __stdcall FUN_00472810(Vec_0049b720* pos, int value);
 void* __stdcall FUN_004815a0(Vec_0049b720* pos);
 void __stdcall FUN_00420a30(Vec_0049b720* pos, void* value, int a, int b);
 int __stdcall FUN_004b6c30(int range);
-int __cdecl FUN_004b70ef(int angle, int distance);
-int __cdecl FUN_004b7123(int angle, int distance);
+int __cdecl FUN_004b70ef(short angle, int distance);
+int __cdecl FUN_004b7123(unsigned short angle, int distance);
 
 // FUNCTION: 0x49b720
 void FUN_0049b720()
@@ -135,11 +93,12 @@ void FUN_0049b720()
     short s;
 
     count = *(int*)(g_game + 0x141f3);
+    if (count > 0) {
     offset = 0;
-    while (count > 0) {
+    do {
         Proj_0049b720* p = (Proj_0049b720*)(*(int*)(g_game + 0x141f7) + offset);
-        s = *(short*)((char*)p + 0xa);
         type = p->type;
+        s = *(short*)((char*)p + 0xa);
 
         if (p->counter != 0) {
             unsigned short ec = type->field_ec;
@@ -194,19 +153,9 @@ void FUN_0049b720()
                 }
             }
 
-            if (p->counter != 0)
-                goto Next;
-            {
-                Proj_0049b720* sel = *(Proj_0049b720**)(g_game + 0x142f7);
-                if (p == sel) {
-                    *(int*)(g_game + 0x1433f) = sel->pos.x;
-                    *(int*)(g_game + 0x14343) = sel->pos.y;
-                    *(int*)(g_game + 0x14347) = sel->pos.z;
-                    *(short*)(g_game + 0x1434b) = p->type->field_fe;
-                    *(Proj_0049b720**)(g_game + 0x142f7) = 0;
-                }
-                p->flags69 = p->flags69 | 2;
-            }
+            if (p->counter == 0)
+                goto Select;
+
             goto Next;
         }
 
@@ -365,19 +314,21 @@ void FUN_0049b720()
                 FUN_00472810(&p->pos, 9);
                 p->field_4a = p->field_4a + type->field_fa;
             }
-            if (s > (unsigned char)*(g_game + 0x1427f)
-                && *(short*)((char*)p + 0xa) <= (unsigned char)*(g_game + 0x1427f)) {
-                void* v = FUN_004815a0(&p->pos);
-                if (v != 0
-                    && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
-                    && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
-                    FUN_00420a30(&p->pos, type->field_7c, 0, 1);
+            {
+                int sl = *(unsigned char*)(g_game + 0x1427f);
+                if (s > sl && *(short*)((char*)p + 0xa) <= (short)sl) {
+                    void* v = FUN_004815a0(&p->pos);
+                    if (v != 0
+                        && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
+                        && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
+                        FUN_00420a30(&p->pos, type->field_7c, 0, 1);
+                }
             }
         }
 
     Next:
             offset += 0x6b;
-            count--;
+    } while (--count);
     }
 
     FUN_0049ae20();

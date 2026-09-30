@@ -1,80 +1,35 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// Header sweeps (128 C and 768 C/C++ combinations) found no improvement.
-// 94.7% now (2026-09-30). The one upstream fact the earlier sessions missed:
-// `g_game->field_2a44.value |= four;` is present in BOTH arms of the
-// field_39249 if/else, not only in the then arm. With both copies, MSVC 5
-// tail-merges them into the shared `or word [eax+0x2a44], di` at 0x49982a that
-// exists in the original, and that shared tail (two OR uses plus the two
-// FUN_004ce690 `push edi`) is what keeps the constant 4 live in edi from
-// 0x499603 to 0x49986b. With only the then-arm copy MSVC constant-folded it to
-// `or byte [..],4` and rematerialised `push 4`, losing the whole edi live
-// range. This single statement recovered +3.0 points (91.7 -> 94.7).
-// Remaining at 94.7%: only register roles inside the else arm, a consistent
-// cyclic permutation of the allocator's preference order (original edx/eax/ecx
-// for the saved-load base, the FUN_004a9660(g_game+0x519) address and the
-// table[0x14] value; ours eax/ecx/edx). Because ours uses `add ecx,0x519`
-// (6 bytes) instead of the original's `add eax,0x519` (5-byte 05 form), ours is
-// 1 byte longer (1656 vs 1655). Everything up to line 294 of the listing is
-// byte-identical, including the shared OR tail and the edi range.
-// Tried and flat at 94.7%: local for the FUN_00435100 result; unsigned
-// short/int/long/explicit-cast saved; explicit unsigned short* locals for the
-// 2a3c load and store (91.4, adds instructions); saved at function scope;
-// casts on the a9660 / 29a0 / 35a20 arguments (void*, &a[0], (char*)g+off);
-// `register`; unsigned int/unsigned short four; value|=four re-expressed as a
-// read/or/write and with a (unsigned short) cast; x1 inverted if/else with the
-// arms swapped (88.9); a single shared OR guarded by a bool doOr (90.9);
-// moving the else OR before FUN_0047a760 (93.9). headers.py 128 sets: 94.7 max.
-// The residual looks like pure allocator state and is not reachable from the
-// source spelling we could find.
-// PARTIAL, 91.7% (1653 of 1655 bytes, instruction-text score). Branches, field
-// offsets, call targets, stack slots and the whole 0x4992cd..0x4996fb state
-// machine agree with the original; what is left is register roles only.
-// What this session added (deepseek's notes above are superseded):
-// - +0x2cc6 is NOT involved, but +0x2a44 and +0x3923b are bitfield unions now.
-//   +0x2a44: `|= 8` is a byte RMW and `|= <const>` is a WORD RMW, so the field
-//   is `union { unsigned short value; struct { ...b3:1... } bits; }` and the
-//   two statements are `bits.b3 = 1;` and `value |= four;`.
-//   +0x3923b: the original is `mov ax,word[m]; test al,0x14`, a 16-bit load
-//   followed by an 8-bit test, which is what a `||` of two bitfields in a
-//   16-bit storage unit gives: `bits.b2 || bits.b4`. A plain `unsigned short`
-//   local folds to `test byte ptr [m],0x14` and loses the load. This was the
-//   only scoring change of the session (+0.5).
-// What still differs, and everything tried:
-// - the constant 4 lives in edi from 0x499603 to 0x49986b in the original
-//   (`mov edi,4`, `push edi` twice, `or word [m],di`); ours rematerialises it
-//   as `push 4` and `or word [m],4`. Tried and all identical at 91.7%:
-//   int/unsigned/short/unsigned short/char/const local; `four = four`,
-//   `four += 0`, `four *= 1`, `four ^= 0`, `four2 = four`, `if (four == 4)`,
-//   a dead extra `|=`/`&=` use, `static int four = 4`, an enum constant,
-//   `4.0f` and `4.0` initialisers, a local struct with an `int` member built
-//   by a constructor, a bitfield union local, `int four_tab[1] = {4}`, a dead
-//   __inline helper to change the /Ob2 budget, and two __inline helpers
-//   (`Push(n)` / `Or(n)` and one `Mode(n)`) called with the literal 4 so the
-//   constant would arrive through a parameter. MSVC 5 folds every one of them
-//   into an immediate, so I could not find the construct the original used.
-// - revisited by deepseek-v4.1-flash: `register int four = 4;`, moving the
-//   declaration to the top of the function body (live range across all the
-//   frame-queue calls), splitting it into `int four; four = 4;`, and
-//   `unsigned short four = 4;` all still give 91.7% with byte-identical output
-//   to the version above. The edi live range at 0x499603..0x49986b is not
-//   reproducible from a literal-4 local, so the original evidently built the
-//   value some way MSVC 5 refuses to fold.
-// - the second arm of the +0x39249 block then uses edx where we use eax for
-//   g_game, and builds the FUN_00435a20 argument in ecx before pushing instead
-//   of edx. Both look like knock-on effects of the missing edi live range
-//   (the register allocator never had to preserve a value there), but they
-//   were not separable: the score does not move when the constant is removed
-//   from any single use site.
-// PARTIAL, 91.2% (1651 of 1655 bytes). Every branch, field offset, call and
-// stack slot agrees; what is left is register/scheduling only:
-// - +0x3923b: the original is `mov ax,[mem]; mov edi,4; test al,0x14`, this
-//   source folds to `test byte ptr [mem],0x14` because the value is single
-//   use. A plain `unsigned short` local folds for pointer-based loads; the
-//   16-bit load only survives when the field is a direct global.
-// - the constant 4 stays in edi across the whole +0x3923b arm (`push edi`,
-//   `or word [mem],di`); here MSVC rematerialises it as immediates.
-// - register-role swaps when building the +0x519 argument and the
-//   FUN_00435a20 argument (original uses eax/edx, ours ecx).
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// PARTIAL, 98.4% (1654 of 1655 bytes). Every branch, field offset, call target,
+// stack slot, jump target and register role now agrees with the original except
+// ONE instruction: at 0x4997a0 the original loads g_game with
+// `mov edx, dword ptr [0x511de8]` (6 bytes) and we emit the 5-byte A1 form
+// `mov eax, dword ptr [0x511de8]`; that single byte shifts every later address
+// by one. What moved the number this session, from 91.7%:
+// - the `|= 4` is NOT inside `if (net->FUN_00435c00(a) != 0)`. The original's
+//   `or word ptr [eax + 0x2a44], di` sits at 0x49982a, the tail of the ELSE arm
+//   of `if (net->FUN_00435100() == 1)`, and the inner `if` tail-merges into it
+//   (`jmp 0x49982a`). Writing the statement out in full at the end of BOTH arms
+//   makes MSVC place the constant in edi across the whole tail, which is what
+//   finally produced `mov edi, 4` (a plain `int four = 4;` local is folded to
+//   immediates and yields `push 4` instead). 91.7% to 94.7%.
+// - the saved +0x2a3c value is read through a named pointer local
+//   (`Game_00499200* gp = g_game; unsigned int saved = gp->field_2a3c;`).
+//   That extra graph node is what puts g_game in eax for the FUN_004a9660
+//   argument, in ecx for the FUN_004ab400 table entry, in edx for the
+//   FUN_00435a20 argument and in eax/ecx/edx for the three tail stores, all of
+//   which the plain `g_game->field_2a3c` spelling got wrong. 94.7% to 98.4%.
+// Still differs, and everything tried for the last byte:
+// - the base register of the +0x2a3c load. `gp = g_game` still lands in eax
+//   (MSVC prefers eax for the short A1 encoding of a global). Tried and all
+//   identical at 98.4%: a reference (`Game_00499200& game = *g_game`), a
+//   `char*` plus offset cast, a `const` pointer, a signed `int saved`, an
+//   explicit `(unsigned short)` cast, a `static inline` getter with and without
+//   a pointer parameter, a split `unsigned int saved;` declaration before the
+//   pointer, a `saved = 0` first statement, a second identical pointer local,
+//   and the pointer local in the enclosing block instead (95.6%) or used for the
+//   +0x2a3c store-back as well (95.2%). Declaring `saved` in the enclosing
+//   block with the load there too also fixes every role but moves the load to
+//   0x499709, nine bytes early.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.
@@ -398,7 +353,8 @@ void FUN_00499200(void)
                 g_game->field_2a44.value |= four;
             }
         } else {
-            unsigned int saved = g_game->field_2a3c;
+            Game_00499200* gp = g_game;
+            unsigned int saved = gp->field_2a3c;
             FUN_00491b60();
             FUN_00491d70(1);
             FUN_004a9660(g_game->field_519);

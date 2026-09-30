@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // Starts a path search for the object at +0x58: marks every goal cell the
 // target reports, picks the goal nearest to the start as the probe's aim,
 // runs the straight-line probe (0x40e160) and, when that did not reach a
@@ -31,6 +31,13 @@
 // constructor goes out of line). All 128
 // tools/headers.py sets also give 92.1%, so this is most likely TU
 // compiler state, the same wall as 0x40d290, 0x408f30 and 0x40cca0.
+// Also tried by deepseek-v4.1, all at or below 92.1%: InBounds written as
+// `width > x && height > y` (90.4), an IsGoal bool local (91.8), Cost
+// without its `s` local (87.8), the index computed before Clear (73.6, it
+// grows/swaps a frame slot), a Point copy of start (61.7), and two Release
+// local-temp orders (92.1 each); the four hunks below never move.
+// deepseek-v4.1 re-run: tried unsigned-local InBounds operands (frame 909B, 80.3%);
+// the best version stays this one at 92.1%.
 #include <vector>
 
 struct Point_0040e630 {

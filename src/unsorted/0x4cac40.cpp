@@ -1,10 +1,15 @@
-// Decompiled by space-bunny-free, improved and verified by GPT-6.1-sol. Names are provisional.
-// Best score is 86.2% after five check.py runs. The row guard uses
+// Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol. Names are provisional.
+// Best score is 86.2%. The row guard uses
 // rows = height - 1; if (rows >= 0) { ++rows; do ... while (--rows); } to
 // reproduce the original signed dec/test/jl/inc sequence. Remaining codegen
 // differences are documented below; no MATCH was reached.
-// NOT MATCHING: 76.6% (632 of 640 bytes). What still differs is listed at the
-// bottom of this file.
+// GPT-6.1-sol retry in #1928: 5 additional checks kept 86.2%. Reordering
+// the row/total declarations produced no code change. Remaining byte scratch
+// mapping, row/total spills, outer guard and duplicated cleanup are noted below.
+// Refinement in issue-1928-r1: five worker checks and one local variant check
+// kept 86.2%. Expanding the chunk-size ternary to an if/else produced the same
+// score but changed unrelated stack-slot and epilogue choices, so the best
+// source was restored. No MATCH was reached.
 //
 // What the function does. It opens `filename` through FUN_004bb2c0, writes a
 // 128 byte fixed header, run length compresses `height` rows of `width` bytes

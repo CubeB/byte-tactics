@@ -1,5 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free,
-// deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // 83.8 percent, 363 bytes against 370. This is 0x4b7620's body inlined into a
 // loop over {const char* name, handler, mask} records: intern the name with
 // Class_004c91b0, lower_bound over the file-local std::vector<Class_004b7e30>
@@ -31,6 +30,26 @@
 //   3. the element address after the insert: original `lea esi,[eax+edx*4+4]`
 //      (straight at first->field_4) and stores [esi]/[esi+4]; here the element
 //      base is kept and the stores are [esi+4]/[esi+8]. Same wall as 0x4b7620.
+//
+// Second pass (space-bunny-free) added these negative results:
+//   4. MSVC 5 always folds a +4 member offset into the store displacement, in
+//      every spelling: a nested `Pair pr` member with `pr.fn = ..; pr.mask = ..`,
+//      `first->pr = pr` (whole struct copy), `Pair& pr = first->pr`, `Pair* pr =
+//      &first->pr`, and `int* pr = &first->field_4; pr[0] = ..; pr[1] = ..` all
+//      come back as `lea esi,[eax+edx*4]` + `mov [esi+4]`/`mov [esi+8]`. Only a
+//      real 4-byte pointer expression (something MSVC cannot decompose into
+//      base+index+disp) can hold elem+4 in esi, so the original's stores are
+//      almost certainly not written as `elem->field_4 = fn; elem->field_8 = m;`
+//      on a 12-byte element. The nested-struct form also reorders the two stores
+//      at the top of the body (mask before fn), which the original does not do.
+//   5. for the ebx/ebp wall, the sibling 0x4b7620 allocates esi=begin, ebx=end,
+//      ebp=name with `name` a *parameter*; here `k` is a local copy of
+//      key.data. Making the name parameter-shaped does not move it: a static
+//      inline `Find(const char* k)` that loads begin/end itself, and declaring
+//      `k` before first/last, both give the identical 363 bytes with last in ebp.
+//      The other direction is much worse: a comparator taking the two string
+//      objects (`less(mid->handle, key)`, no k) drops to 49.4 percent, and
+//      #include <algorithm> does not compile at all, so std::lower_bound is out.
 #include <string.h>
 #include <vector>
 

@@ -94,6 +94,39 @@
 // SP3 with this header state): the row pointers, the yoff spill and the add
 // destination of the threshold compare are all decided by the same allocator.
 
+// space-bunny-free pass (#1857), 83.9% again, 1 check run, 1 free --sym score.
+// This pass only had to settle what the original really does at 0x4b9111, the
+// address the recorded rule was cited from, so I re-read the bytes instead of
+// guessing. The full block is
+//     mov esi, ebx              ; esi = xoff, copied out of ebx
+//     mov cx, [edx]             ; dst->width
+//     imul ecx, eax             ; stride = dst->width * yoff
+//     mov eax, [edx+0x10]       ; dst->plane0
+//     add esi, eax              ; <-- the differing add
+//     mov eax, ebx              ; eax = xoff again, for the second row
+//     mov ebx, [edx+0x14]       ; dst->plane1 (xoff's register is now free)
+//     add esi, ecx              ; esi = (xoff + plane0) + stride
+//     add eax, ebx
+//     add eax, ecx              ; eax = (xoff + plane1) + stride
+// so the source really is a plain `int + pointer` in a two-term chain, the int
+// is the first operand of the first add, the result is used only as a row
+// pointer, and it is not a pointer difference, an index multiply or a char*
+// advanced by a value read through another type. The recorded rule
+// ("int + pointer ALWAYS canonicalises pointer-first") therefore HOLDS here,
+// and the row-pointer shape is not reachable by re-spelling it.
+// The escape the rule does not cover is an all-integer sum, so I scored that
+// (free, check.py --sym, no run spent): with the plane fields read as ints and
+// the whole row address built as one integer sum, cast to unsigned char* only
+// at the end, `dp0 = (unsigned char*)(xoff + (int)dst->plane0 + stride);`, the
+// result is byte for byte the same 256-byte code and the same diff. So MSVC 5
+// SP3 reorders the terms of `xoff + plane + stride` to (plane + xoff) + stride
+// even when no pointer type is left in the tree, which puts the rule's real
+// scope beyond int+pointer: it is the term order of the whole sum, and the
+// original's is the source order. That also explains the third difference (the
+// threshold add, `add edx, ebx` against our `add ebx, edx`) as the same single
+// ordering decision, and the yoff store placement with it.
+// The 83.9% file is unchanged; nothing I tried beat it.
+//
 // deepseek-v4.1-flash pass (#1281), 83.9% confirmed a fourth time. The whole
 // 4-byte shortfall is the row-pointer block: the original makes xoff the add
 // destination (`mov esi,ebx; mov eax,[edx+0x10]; add esi,eax; mov eax,ebx`)

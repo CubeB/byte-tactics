@@ -1,4 +1,28 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash, 2026-09-30. State: 59.0% (check.py: original 920 bytes,
+// ours 889). Best so far; up from the 58.5% this file held at the start of the
+// pass. Two changes, both copy-construction:
+//   - `Vec3 t = FUN_0043e060(...); Vec3 v = t;` replaced by the direct
+//     `Vec3 v = FUN_0043e060(...)`. The two-step made MSVC emit the user copy
+//     constructor call and an extra 4-byte frame slot (frame 0x2c); the direct
+//     form drops that and lands at frame 0x20, keeping `this` in ebp.
+//   - the user copy constructor was removed from Vec3 (now a POD), which makes
+//     the flag path's `*pp = vec;` emit the original's three straight stores
+//     instead of a ctor call, and shortens the diff by 7 lines for the same
+//     59.0%.
+//
+// WHAT STILL DIFFERS: frame is 0x20, the original's is 0x28, so every esp+N
+// below the args is 8 lower than the original's. The original keeps a separate
+// 12-byte temporary for the FUN_0043e060 return at [esp+0x30] and copies it
+// into `v` at [esp+0x20] with interleaved load-store pairs (edi/ecx/eax); ours
+// passes &v straight to the callee, so the six-instruction copy is absent
+// (this is the bulk of the 889-vs-920 byte gap). The b19 sea-level clamp is a
+// direct store in ours, an address select in the original (`lea eax,[esp+0x24]`
+// / spill lim / `mov ecx,[eax]`). Tried and worse or equal this pass: a
+// reference-returning inline max for the clamp (56.4), POD on top of the old
+// two-step (54.9), and `Vec3 t = f(); Vec3 v; v = t;` / `Vec3 v(t);` (58.5).
+// headers.py: all 128 sets tie at 59.0.
 //
 // deepseek-v4.1, 2026-09-30. State: 58.5% (check.py: original 920 bytes, ours
 // 900). Up from the 53.1% this file held before.
@@ -191,7 +215,6 @@ struct Vec3 {
     int x, y, z;
     Vec3() {}
     Vec3(int a, int b, int c) : x(a), y(b), z(c) {}
-    Vec3(const Vec3& o) : x(o.x), y(o.y), z(o.z) {}
 };
 
 struct Point {
@@ -292,8 +315,7 @@ public:
 void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
 {
     if (u->obj != 0) {
-        Vec3 t = FUN_0043e060(u->obj, u->index);
-        Vec3 v = t;
+        Vec3 v = FUN_0043e060(u->obj, u->index);
         if (u->type->b19) {
             int lim = (u->type->draft * 0xffff + g_game->seaLevel) << 16;
             v.y = v.y > lim ? v.y : lim;

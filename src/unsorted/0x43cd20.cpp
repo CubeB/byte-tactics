@@ -1,5 +1,31 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by
-// space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
+// deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// Seventh pass (deepseek-v4.1-flash, retry, ~15 scratch/check runs, 74.8%,
+// 964 bytes). Two changes raised the score:
+//  1) computing the recompute delta as az first then ax
+//     (`az = p[1].z - unit->pos.z; ax = p[1].x - unit->pos.x;`)
+//     and swapping the order of the bx/bz statements: 72.0 to 74.8.
+//  2) with (1) in place the whole main path is now a pure ebx<->edi rename of
+//     the original (ours unit=ebx/ppos=edi, original unit=edi/ppos=ebx).
+// Measured and rejected:
+//   - the tail really is ONE call in the original (0x43d0c0, amount selected
+//     into eax by the two `jle` arms). Both `int amount; if..else..` and the
+//     same select as a ternary argument give 984-986 bytes, 61.4-62.4%, and
+//     move unit to ebp.
+//   - ppos introduced before the first delta (first reference to ppos earlier
+//     than to unit) gives 62.0-62.4%, so the allocator's choice follows
+//     reference order, not a source declaration order we can flip.
+//   - a local `Unit_0043cc20* u = unit;` copy is scalarised (byte-identical).
+//   - a Vec3 first-delta temp (with dead y) and int[3] with dead index 1 are
+//     scalarised too: same 964 bytes.
+//   - tools/headers.py: 128 sets, best 74.8% (<math.h> etc), and a sweep of
+//     N unused extern declarations from 0 to 200 in steps of 8 is flat at
+//     74.8%, so this is not compiler state.
+// Still differs: frame 0x40 against 0x44 (the array sits 4 bytes lower, and
+// every stack slot is off by 4), and the ebx/edi rename. The hasPath==0 arm
+// loads unit after the turn store here, before it in the original. First
+// delta args use one slot pair in ours, 8-bytes-apart in the original.
 //
 // Sixth pass (deepseek-v4.1, 4 more runs, 72.0%, 962 bytes): naming the
 // FUN_0048a980 result first is the big lever,
@@ -235,8 +261,8 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
         }
     }
 
-    ax = p[1].x - unit->pos.x;
     az = p[1].z - unit->pos.z;
+    ax = p[1].x - unit->pos.x;
     int d1 = (int)(((__int64)ax * ax) >> 32) + (int)(((__int64)az * az) >> 32);
 
     short ang = (short)FUN_0048a980(ppos, &p[1]);
@@ -244,8 +270,8 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
     int sdiff = diff;
     int adiff = abs(sdiff);
 
-    int bx = p[2].x - ppos->x;
     int bz = p[2].z - ppos->z;
+    int bx = p[2].x - ppos->x;
     int d2 = (int)(((__int64)bx * bx) >> 32) + (int)(((__int64)bz * bz) >> 32);
 
     if (diff != 0) {

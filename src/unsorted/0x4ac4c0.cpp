@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash, space-bunny-free, deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol rechecked at 83.1% (334 bytes, 4 checks). An inline identity helper and windows.h changed nothing. Remaining mismatch: loop index/source pointer use esi/edi swapped versus the original, plus an 8-byte tail liveness hack.
 // deepseek-v4.1-flash: 83.1% / 334 bytes (was 72.4%). The one change that
 // matters: the body store is `buf[i] = *s;`, not `buf[i] = c;`. With `c` the
 // optimizer knows c == *s at the loop top and fuses the 0xff test into

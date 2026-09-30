@@ -1,5 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
-// space-bunny-free. Names are provisional.
+// space-bunny-free and GPT-6.1-sol. Names are provisional.
+// #1610 retry by Codex / GPT-6.1-sol: checkall reconfirmed 88.1% (167/167 bytes), no MATCH.
+// The inline helper probe produced identical diffs; the surface access schedule remains different.
 // Draws the 16x16 "COLS" colour grid of a gadget, each cell 8x8 pixels; the
 // cell index (0..255) is the fill colour. Inverse of 0x4acbe0, sibling of
 // 0x4ac970 (which draws one cell's frame).
@@ -38,6 +40,8 @@
 //   them moves the scheduler tie;
 // - the colour as a running counter (o_running, x1, x2) or as
 //   (row << 4) + col (x3): 64% to 75%, the counter costs an extra local.
+// An inline AddXAfterSurface helper was also tested; it scored the same
+// 88.1% and emitted identical mismatches, so this best variant is retained.
 // The prologue and the loop want opposite things from the same store: the
 // original delays the store in the prologue and delays the reload in the
 // loop, and no single source shape reproduced both.

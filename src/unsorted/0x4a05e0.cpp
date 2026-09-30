@@ -1,6 +1,7 @@
-// Decompiled by GPT-5.6-Terra, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry #1784: GPT-6.1-sol confirmed 56.5% after twelve worker checks; the final combined check also did not MATCH.
 //
-// Gave up at 52.2% (check.py, 488 bytes against the original's 494). The
+// Best checked source this pass: 56.5% (check.py, 488 bytes against the original's 494); no MATCH. The scan-index form scan = entries + j raises the reported score, but the disassembly still differs broadly and this appears to be a similarity-alignment artifact, not a close match. The
 // control flow, the two inlined strlens, the two tolower pairs and both loop
 // shapes are right. What is left is one allocator state, clearest in the
 // prologue:
@@ -217,8 +218,8 @@ void __stdcall FUN_004a05e0(Object_004a05e0* obj, int index)
 
     for (i = 0; i < length; i++) {
         if (text[i] != ' ') {
-            scan = entries;
-            for (j = 0; j <= entries->u.count; j++, scan++) {
+            for (j = 0; j <= entries->u.count; j++) {
+                scan = entries + j;
                 if (scan->type == 1) {
                     int a = tolower((signed char)scan->u.text[0x13a - 0xb6]);
                     int b = tolower((signed char)text[i]);

@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol review: fresh check.py run confirms the best source is 99.6%;
+// the sole mismatch is the swapped base/index register order in the LEA at
+// 0x46e708. Prior notes below record extensive unsuccessful source-level probes.
 // std::vector<int>::insert(iterator, size_type, const T&) from MSVC 5's
 // <vector>, with _Ucopy, _Ufill, _Destroy, fill and copy_backward all
 // inlined. Its one caller, 0x46d6c0, walks the 0x5c-byte entries of a

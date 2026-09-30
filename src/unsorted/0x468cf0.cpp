@@ -1,5 +1,27 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// CURRENT STATUS: partial 53.1% (deepseek-v4.1-flash retry). Two fixes this pass:
+// 1. The `/8` remainder middle branch: the original emits `test eax,eax; jle`
+//    (the trailing zero-case is the forward jump target), so the middle branch
+//    must read `else if (iVar21 > 0) { divide; if==0 -> 1 } else { iVar21=0 }`
+//    with the zero case LAST, not `else if (iVar21 <= 0) { 0 } else { divide }`
+//    (which gives `cmp eax,1; jge` / `jg` fall-through). 52.9 -> 53.0 -> 53.1.
+// WHAT STILL DIFFERS (large, register/scheduling, not source-controllable here):
+// - Prologue: original does `lea ebx,[eax+0xdcb]` and keeps that pointer in ebx
+//   for the whole function; ours does `add eax,0xdcb` and uses eax, reloading
+//   g_game. Also `[ebx+0xf]` vs our `[ebx+0xdda]` (base reg is g_game not the
+//   g_game+0xdcb pointer).
+// - The add that forms `iVar21 + lVar25` for the local_1ab/local_19f updates:
+//   original `add eax,esi` / `mov [esp+0x10],eax`; ours `add esi,eax` /
+//   `mov [esp+0x10],esi` (commuted result register). Swapping the operand order
+//   `(int)lVar25 + iVar21` did NOT change it (tied at 53.1).
+// - movsx/lea ordering in the cVar3/iVar12 address arithmetic (ours splits
+//   `lea eax,[eax+edx*2]`/`lea ebp,[eax+0x1b63]`, original folds
+//   `mov cl,[eax+edx*2+0x1ca9]`/`lea ebp,[eax+edx*2+0x1b63]`).
+// - The 99999.0 compare flag idiom (`test ah,0x41; jne` vs our `test ah,1; je`).
+// - The pDVar1[14] += DVar7 - *pDVar1 tick update and the OverlayRect argument
+//   copy at the first FUN_004c6b10 (ours uses eax as destination).
+// No obvious original bug spotted in this pass.
 // Partial, 48.1% (deepseek-v4.1: 46.2% partial then three fixes below).
 // The big local struct sits at the TOP of the locals region, so its base is
 // 0x10 + (bytes of scalar slots below it); the original has exactly one scalar
@@ -251,14 +273,14 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       iVar21 = -1;
     }
   }
-  else if (iVar21 < 1) {
-    iVar21 = 0;
-  }
-  else {
+  else if (iVar21 > 0) {
     iVar21 = iVar21 / 8;
     if (iVar21 == 0) {
       iVar21 = 1;
     }
+  }
+  else {
+    iVar21 = 0;
   }
   L.local_1ab = (float)(iVar21 + (int)lVar25);
   lVar25 = (int)L.local_19f;
@@ -270,14 +292,14 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       iVar21 = -1;
     }
   }
-  else if (iVar21 < 1) {
-    iVar21 = 0;
-  }
-  else {
+  else if (iVar21 > 0) {
     iVar21 = iVar21 / 8;
     if (iVar21 == 0) {
       iVar21 = 1;
     }
+  }
+  else {
+    iVar21 = 0;
   }
   L.local_193 = *(float *)(iVar12 + 0xa4);
   L.local_18f = *(float *)(iVar12 + 0xa8);

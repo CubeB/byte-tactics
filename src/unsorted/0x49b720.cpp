@@ -1,55 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 32.9% (deepseek-v4.1-flash, 2026-09-30): two independent fixes on top
-// of the 29.8% version above, combined best 32.9% (1816 bytes against 1853).
-// 1. Drop the `sl` local: inline `(unsigned char)*(g_game+0x1427f)` at the two
-//    compares in TailOnly. That removed the extra frame slot and brought the
-//    frame from 0x18 to the original's 0x14 (5 locals), but the score alone
-//    did not move. It is still the right shape: the original re-reads the byte
-//    at 0x49bddd and again at 0x49be13 rather than keeping a local.
-// 2. The dead (`counter != 0`) path ends its own copy of the Selected block
-//    and then jumps to the loop bottom (Next), while the live path has a
-//    SECOND copy at 0x49bc8b that falls into TailOnly. Writing the Selected
-//    block out twice (inline in the dead path ending `goto Next;`, and the
-//    existing Select: block for the live path) took 29.98 -> 31.7 and moved
-//    the byte count from 1733 to 1824. This is the duplicated-block pattern
-//    from the guide: two caller sites with different tail continuations.
-// 3. `s` is a `short`, not an `int`: 31.7 -> 32.9, 1824 -> 1816 bytes. The
-//    original compares s at 16 bits (`cmp cx, ax` at 0x49b9fa and
-//    `cmp word ptr [ebp+0xa], dx` at 0x49bdf8), and the sign-extended 32-bit
-//    copy is only the stored form. `short s` also stops the 32-bit `and`.
-// Still differs: `type` lands in edi where the original keeps it in esi, the
-// materialised zero lands in esi where the original keeps it in edi, and that
-// single swap cascades through every block (same failure the sibling 0x49b090
-// notes). Also still literal: bit 20 (0x49b9c8 `shr edx,0x14; test dl,1`),
-// bit 23 (0x49bac3 `shr eax,0x17; test al,1`) and bit 0 (0x49bb60
-// `test byte ptr [esi+0x111],1`) want the bitfield-union form, and the idx
-// scan (`xor dl,dl ... inc dl; cmp dl,3`) wants a `char` index.
-
-// PARTIAL 29.8% (deepseek-v4.1-flash retry, issue 1774): original 1853 bytes,
-// ours 1739. Frame is the whole story: original `sub esp,0x14` (5 dword
-// locals), ours `sub esp,0x18` (6). Original slot map after the 4 pushes is
-// 0x10=idx(byte), 0x14=offset, 0x18=count, 0x1c=type, 0x20=s; ours is
-// 0x10=idx, 0x14=type, 0x18=offset, 0x1c=count, 0x20=unnamed temp, 0x24=s.
-// The extra unnamed slot is the root cause: it displaces `type` to 0x14 and
-// swaps eax/ecx/edx on offset/count throughout.
-// Call census is EQUAL (22 calls: 420a30*1, 43e240*1, 472810*2, 47f300*1,
-// 4815a0*1, 499eb0*3, 49ae20*1, 49b090*1, 49b3e0*1, 49b520*1, 4b6c30*2,
-// 4b70ef*3, 4b7123*4), so the 114-byte deficit is schedule/encoding (near
-// jumps over a 1.9 KB body), not a missing call block.
-// Highest-value untried levers for the next worker:
-// 1. Drop the unnamed 0x20 temp. Candidate: rewrite the idx scan as a
-//    do{...}while(idx<3) over a char index instead of while(1) with two breaks,
-//    matching the original's `xor dl,dl / inc dl / cmp dl,3 / mov [esp+0x10],dl
-//    / jb`.
-// 2. ProjType+0x111 flags are a BITFIELD union, exactly as in the matched
-//    sibling 0x49b090.cpp. Original uses shift form for bits 20 (0x49b9c8
-//    `shr edx,0x14; test dl,1`) and 23 (0x49bac3 `shr eax,0x17; test al,1`) and
-//    a byte test for bit 0 (0x49bb60 `test byte ptr [esi+0x111],1`). Our plain
-//    `unsigned int fl` plus `fl & 0x100000` / `fl & 0x800000` / `fl & 1` emit a
-//    32-bit test instead. Bits 21/24/3/5/8 already match.
-// 3. Outer loop is a rotated `do{...}while(--count)` guarded by `if(count>0)`;
-//    our form already yields the dec/jne bottom.
-// Restored unsigned lifetime/speed comparisons and projectile flags/definition reloads.
+// PARTIAL 33.0%. Size 1847 vs original 1853. Control flow and instruction shapes
+// now match; remaining diffs are scratch-register rotations at the top (count in
+// ecx vs eax, s in ebx vs edx, counter in cx vs ax, ec in dx vs cx).
+// Key fixes: the Select block is emitted twice (counter==0 path ends at Next,
+// live path ends at TailOnly), and the type flags tests use a 1-bit bitfield
+// union, which makes MSVC emit the original's mov/shr/test sequence instead of
+// folding (x>>N)&1 to test reg,imm.
 
 #pragma pack(push, 1)
 
@@ -57,6 +13,16 @@ struct Vec_0049b720 {
     int x;
     int y;
     int z;
+};
+
+union UF_0049b720 {
+    unsigned int raw;
+    struct {
+        unsigned int b0:1,b1:1,b2:1,b3:1,b4:1,b5:1,b6:1,b7:1;
+        unsigned int b8:1,b9:1,b10:1,b11:1,b12:1,b13:1,b14:1,b15:1;
+        unsigned int b16:1,b17:1,b18:1,b19:1,b20:1,b21:1,b22:1,b23:1;
+        unsigned int b24:1,b25:1,b26:1,b27:1,b28:1,b29:1,b30:1,b31:1;
+    } bits;
 };
 
 struct WType_0049b720 {
@@ -79,7 +45,7 @@ struct WType_0049b720 {
     unsigned short field_fc;           // +0xfc
     unsigned short field_fe;           // +0xfe
     char unknown_100[0x111 - 0x100];
-    unsigned int flags;                // +0x111
+    UF_0049b720 flags;                 // +0x111
 };
 
 struct Proj_0049b720 {
@@ -132,11 +98,12 @@ void FUN_0049b720()
     int offset;
     int count;
     WType_0049b720* type;
-    short s;
+    int s;
 
     count = *(int*)(g_game + 0x141f3);
-    offset = 0;
-    while (count > 0) {
+    if (count > 0) {
+        offset = 0;
+        do {
         Proj_0049b720* p = (Proj_0049b720*)(*(int*)(g_game + 0x141f7) + offset);
         s = *(short*)((char*)p + 0xa);
         type = p->type;
@@ -174,7 +141,7 @@ void FUN_0049b720()
             if (q != 0) {
                 *q = *p;
                 q->field_42 = *(int*)(g_game + 0x38a47);
-                if ((type->flags >> 0xb) & 1)
+                if (type->flags.bits.b11)
                     FUN_0047f300(type->field_f4, &p->pos, 0);
                 if (type->field_e6 != 0)
                     q->field_46 = *(int*)(g_game + 0x38a47) + type->field_e6;
@@ -194,9 +161,7 @@ void FUN_0049b720()
                 }
             }
 
-            if (p->counter != 0)
-                goto Next;
-            {
+            if (p->counter == 0) {
                 Proj_0049b720* sel = *(Proj_0049b720**)(g_game + 0x142f7);
                 if (p == sel) {
                     *(int*)(g_game + 0x1433f) = sel->pos.x;
@@ -211,12 +176,12 @@ void FUN_0049b720()
         }
 
         // counter == 0: live behaviour
-        if ((type->flags >> 0x15) & 1)
+        if (type->flags.bits.b21)
             p->field_64 = p->field_64 + 0x400;
 
         {
-            unsigned int fl = type->flags;
-            if (fl & 0x100000) {
+            unsigned int fl = type->flags.raw;
+            if ((fl >> 0x14) & 1) {
                 if (p->field_46 > *(int*)(g_game + 0x38a47)) {
                     if (!(fl & 0x10000)
                         || s < (short)(unsigned char)*(g_game + 0x1427f)) {
@@ -227,11 +192,11 @@ void FUN_0049b720()
                                 p->field_3a = type->field_68;
                         }
                         int flag = 0;
-                        unsigned int f = type->flags;
-                        if ((f >> 0x18) & 1) {
+                        UF_0049b720 f = type->flags;
+                        if (f.bits.b24) {
                             if (p->flags69 & 0x30)
                                 flag = 1;
-                        } else if ((f >> 0xc) & 1) {
+                        } else if (f.bits.b12) {
                             flag = 1;
                         }
                         if (flag) {
@@ -249,18 +214,18 @@ void FUN_0049b720()
                         p->vel.y = p->vel.y - *(int*)(g_game + 0x14263);
                         p->pitch = 0;
                     }
-                } else if (fl & 0x800000) {
+                } else if ((fl >> 0x17) & 1) {
                     FUN_00499eb0(p, 0);
                 } else {
                     p->vel.y = p->vel.y - *(int*)(g_game + 0x14263);
-                    if ((type->flags >> 0x18) & 1) {
+                    if (type->flags.bits.b24) {
                         if ((p->flags69 & 0x30) == 0) {
                             p->field_46 = *(int*)(g_game + 0x38a47) + p->type->field_fc;
                             unsigned int e;
                             e = p->flags69;
                             p->flags69 = (unsigned short)(((((e & 0xfff0) + 0x10)
                                                             ^ (e & 0xff)) & 0x30) ^ e);
-                            if (!(p->type->flags & 0x2000)) {
+                            if (!(p->type->flags.raw & 0x2000)) {
                                 p->field_56 = 0;
                                 p->field_4e = 0;
                             }
@@ -270,12 +235,12 @@ void FUN_0049b720()
                 goto ApplyVel;
             }
 
-            if (fl & 1) {
+            if (type->flags.raw & 1) {
                 if (p->field_46 > *(int*)(g_game + 0x38a47)) {
                     p->pos.x += p->vel.x;
                     p->pos.y += p->vel.y;
                     p->pos.z += p->vel.z;
-                    if ((type->flags >> 3) & 1) {
+                    if (type->flags.bits.b3) {
                         if (p->flags69 & 1) {
                             p->start.x += p->vel.x;
                             p->start.y += p->vel.y;
@@ -290,7 +255,7 @@ void FUN_0049b720()
                 goto Select;
             }
 
-            if ((fl >> 1) & 1) {
+            if (type->flags.bits.b1) {
                 if (type->field_e6 == 0)
                     goto Drift;
                 if (p->field_46 > *(int*)(g_game + 0x38a47)) {
@@ -299,7 +264,7 @@ void FUN_0049b720()
                     p->pos.z += p->vel.z;
                     goto Drift2;
                 }
-                if (fl & 0x800000) {
+                if (type->flags.bits.b23) {
                     FUN_00499eb0(p, 0);
                     goto TailOnly;
                 }
@@ -307,9 +272,9 @@ void FUN_0049b720()
                 goto Select;
             }
 
-            if ((fl >> 8) & 1)
+            if (type->flags.bits.b8)
                 goto Drift;
-            if ((fl >> 5) & 1) {
+            if (type->flags.bits.b5) {
                 p->pos.x += p->vel.x;
                 p->pos.y += p->vel.y;
                 p->pos.z += p->vel.z;
@@ -359,25 +324,27 @@ void FUN_0049b720()
     TailOnly:
         if (!(p->flags69 & 2)) {
             int gt = *(int*)(g_game + 0x38a47);
-            if ((type->flags & 0x40000)
+            if ((type->flags.raw & 0x40000)
                 && p->field_46 > gt
                 && p->field_4a < (unsigned int)gt) {
                 FUN_00472810(&p->pos, 9);
                 p->field_4a = p->field_4a + type->field_fa;
             }
-            if (s > (unsigned char)*(g_game + 0x1427f)
-                && *(short*)((char*)p + 0xa) <= (unsigned char)*(g_game + 0x1427f)) {
-                void* v = FUN_004815a0(&p->pos);
-                if (v != 0
-                    && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
-                    && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
-                    FUN_00420a30(&p->pos, type->field_7c, 0, 1);
+            {
+                unsigned short sl = *(unsigned char*)(g_game + 0x1427f);
+                if (s > sl && *(short*)((char*)p + 0xa) <= sl) {
+                    void* v = FUN_004815a0(&p->pos);
+                    if (v != 0
+                        && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
+                        && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
+                        FUN_00420a30(&p->pos, type->field_7c, 0, 1);
+                }
             }
         }
 
     Next:
             offset += 0x6b;
-            count--;
+        } while (--count);
     }
 
     FUN_0049ae20();

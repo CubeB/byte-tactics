@@ -1,4 +1,23 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1 retry (#2650): the 62.0% wall is still the src/useColor
+// register home, and the new experiments say it is not source-reachable from
+// this file. `src` and the `bitmap` parameter are copy-propagated into ONE
+// variable: writing `src->width` or `bitmap->width` in the save branch gives
+// byte-identical output (62.0, 1037 bytes). `Bitmap* src;` uninitialised and
+// assigned in the branch, and a separate `sh`/`dst` local for this->shadow,
+// both give 61.2 (1047 bytes); taking src's address (address-taken forces a
+// memory home) gives 61.0, which shows the enregistration of the bitmap
+// value, not the source shape, drives the rotation. An extra throwaway
+// `useColor != (int)0x80000000` compare scored 62.7 but did NOT move
+// useColor out of esi, so that 0.7 is diff alignment, not progress (not
+// kept). Same throwaway inside the p-loop guard: 55.1. Splitting the guard
+// into `int c = ...; if (useColor != -1 && useColor != c && owner->f != 0)
+// continue;` is byte-identical to the || form (62.0). What still differs:
+// original has useColor in ebx (reloaded after the vertex and face arms),
+// list in esi (reloaded at the p-loop top), the saved bitmap in [esp+0x20]
+// memory only, and the vertex loop reads offX/offY from the [esp+0x5f18]
+// slot; ours keeps bitmap/src in ebp, useColor in esi, list in edx, and
+// puts the counter at [esp+0x20] and the src spill at [esp+0x24].
 // deepseek-v4.1-flash retry (#2532): consolidated the attempts below and
 // confirmed the 62.0% wall is one whole-register rotation, not a missing
 // source shape. The original keeps list in esi and useColor in ebx (list

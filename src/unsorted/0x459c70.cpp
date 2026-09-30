@@ -76,6 +76,23 @@
 // byte score.  Removing the early `bmp = bitmap` init, even with `bmp` offsets,
 // collapses to 29.4 (two else blocks).  The prologue rotation (esi/ebx bitmap
 // preload before `push edi`) is still the first and dominant diff.
+// deepseek-v4.1 retry (2650), 36.5% base kept, 8 check runs, four probes tried:
+//  * reassigning the `bitmap` parameter to the shadow and dropping the `src`
+//    local (the original stores the original bitmap at 0x28 and the shadow into
+//    the parameter slot at 0x159e8, and gives FUN_004b95a0 (original, shadow))
+//    scored 36.1: mode landed at 0x24 and the pre-branch `bmp = bitmap` store
+//    moved out of the test chain.
+//  * the same with `bmp` declared uninitialized and assigned only in the arm
+//    scored 35.4 (its extra store forced a bigger prologue), and the full
+//    parameter-only version (draw calls on `bitmap`, no `bmp` local) 35.1.
+//  * `memset(weight, 0, n * 4)` in place of the descending clear scored 35.9
+//    even though the original's 0x459e08/0x459e25 really is a rep stosd; the
+//    loop shape is not the blocker, the frame/rotation is.
+// Still the dominant diff: the arm must load `bitmap` from [esp+0x159e8] only
+// after the antiAlias/owner-flag/useColor tests, keep it in esi (ours keeps it
+// in ebp/eax and spills `bmp` at 0x24 while the original's mode is at 0x20 and
+// its src at 0x28), and read useColor from [esp+0x159f4] again later instead of
+// holding it in a callee-saved register.
 #include <ddraw.h>
 
 extern char* g_game;

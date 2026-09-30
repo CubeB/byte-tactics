@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL 94.5%, 897 bytes. Share y0, y1, x, dx and dz across the two
 // edge walks, but retain block-local z/shade values. Declare bounds in the
 // order maxX, minY, maxY, minX. Both together restore all original local

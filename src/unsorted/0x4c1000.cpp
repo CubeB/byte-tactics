@@ -1,5 +1,7 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are
-// provisional. PARTIAL 76.0%, 797 of 791 bytes. Share y0/y1 between the two edge walks alongside
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are
+// provisional. PARTIAL 76.1%, 795 of 791 bytes. (deepseek-v4.1: computing lasty before the
+// pitch/ymax guards beats 76.0%; the ymin<->out (0x18/0x20) and imin<->lasty (0x2c/0x34) slot swaps
+// and the surf-in-eax register pick survive every guard-block reorder tried.) Share y0/y1 between the two edge walks alongside
 // the previously shared pointer/index/dx locals. This improves the earlier 73.3%, 809-byte version.
 // Remaining differences include clipping register choices, ymin/out and imin/lasty stack-slot swaps
 // and scheduling. Partial temporary-sharing combinations, all 24 bound declaration orders, 768
@@ -68,13 +70,13 @@ int __stdcall FUN_004c1000(Surface_004c1000* surf, Vertex_004c1000* verts, int c
         if (x < xmin)
             xmin = x;
     }
+    int lasty = (int)surf->field_2 - 1;
     if (xmin > (int)surf->pitch - 1) {
         return 0;
     }
     if (ymax < 0) {
         return 0;
     }
-    int lasty = (int)surf->field_2 - 1;
     if (ymin > lasty) {
         return 0;
     }

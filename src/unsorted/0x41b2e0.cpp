@@ -1,9 +1,15 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 55.8%, 1537 bytes versus 1512. <vector>/<windows.h>, an
-// early canRepair declaration and reordered first/onOff/cloak/count locals
-// recover the original 0x240 frame, game in EDI and canRepair in EBP.
-// Remaining first/count/onOff/cloak/cursor slots and tail register allocation
-// differ. A 768-set header sweep and 80 local/type/lifetime variants were tried.
+// Partial: 59.6% (was 55.8), 1533 bytes versus 1512. <vector>/<windows.h> plus
+// declaration order onOff,u,cloak,first,count,flags recovers the 0x240 frame.
+// Original slot map: onOff=0x10, loop u=0x14, cloak=0x18, first=0x1c, count=0x20,
+// canMove=0x24, canLoad=0x28, canReclaim=0x2c, canAttack=0x30, canCapture=0x34,
+// canDefend=0x38, canBlast=0x3c, canStop=0x40, canPatrol=0x44, canRepair=EBP,
+// fireOrder=EBX, moveOrder=EDX. Ours still puts first=0x10, cloak=0x14,
+// onOff=0x18, u=0x1c, and spills canRepair to stack instead of EBP. MSVC sank
+// the original first/count zero-inits into the else branch (offsets 0x1c/0x20);
+// ours emits them in the prologue, which is why first takes 0x10. The
+// unitIndex test also differs (original reuses esi=0 with cmp ax,si). A 768-set
+// header sweep and 80 local/type/lifetime variants were tried by earlier models.
 
 #include <vector>
 #include <windows.h>
@@ -133,23 +139,24 @@ static inline Unit_0041b2e0* GetUnit(unsigned short index)
 void FUN_0041b2e0()
 {
     g_game->orders.refresh = 1;
-    int canRepair = 0;
-    int canLoad = 0;
-    int canStop = 0;
-    Unit_0041b2e0* first = 0;
-    int fireOrder = 4;
-    int moveOrder = 4;
-    Player_0041b2e0* player = &g_game->players[g_game->localPlayer];
-    int canMove = 0;
-    int canDefend = 0;
     int onOff = 3;
-    int canBlast = 0;
-    int canPatrol = 0;
+    Unit_0041b2e0* u;
     int cloak = 3;
+    Unit_0041b2e0* first = 0;
     int count = 0;
+    int canMove = 0;
+    int canLoad = 0;
     int canReclaim = 0;
     int canAttack = 0;
     int canCapture = 0;
+    int canDefend = 0;
+    int canBlast = 0;
+    int canStop = 0;
+    int canPatrol = 0;
+    int canRepair = 0;
+    int fireOrder = 4;
+    int moveOrder = 4;
+    Player_0041b2e0* player = &g_game->players[g_game->localPlayer];
     if (g_game->unitIndex != 0) {
         count = 1;
         first = GetUnit(g_game->unitIndex);
@@ -159,7 +166,7 @@ void FUN_0041b2e0()
         }
     } else {
         Unit_0041b2e0* last = player->unitsEnd;
-        for (Unit_0041b2e0* u = player->unitsBegin; u <= last; u++) {
+        for (u = player->unitsBegin; u <= last; u++) {
             if (u->typeIndex == 0)
                 continue;
             UnitFlags_0041b2e0 flags = u->flags;

@@ -33,6 +33,18 @@
 // uninitialised `int i; int n;` above it: that is what moved this file 92.7% to
 // 93.5% by putting `xor esi,esi`/`xor edi,edi` and the two stack stores in the
 // original's order.
+//
+// DeepSeek V4.1 Flash retry, all flat at 93.5% (or worse) and all still 1318
+// bytes unless noted: `while (i < 10) {...; i++;}` (69.3%), `n = 0;` before the
+// for (92.5%), reversed `g_game->localPlayer != i` (93.2%), `(flags & 4) == 0`,
+// `!param_1`, a hoisted `int cond;` holding the whole condition, single-line
+// IsPlaying bodies, IsCounted with an `int r` result local (-4 bytes, 74.0%),
+// `p` declared before the sprintf block (-17 bytes... +17 bytes, 65.8%),
+// IsType as `(unsigned char)(p->type - 1) < 3` (-44 bytes, 76.6%), and an
+// Info96 helper. The one-step scratch rotation that begins at the second
+// sprintf block is unchanged by all of them; the extra register-holding node
+// the original builds across the loop-top a0570 group plus the condition is
+// still not identified.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

@@ -1,6 +1,37 @@
-// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// Partial, 65.6 percent (825 bytes vs 821). This session's two fixes, worth
-// 59.3 to 65.6, both in the LOD-table block:
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, re-tried by
+// space-bunny-free. Names are provisional.
+// Partial, 79.4 percent (824 bytes vs 821; the file was already at 79.1 when
+// this attempt started, not the 53.5 the packet says). This attempt's one fix,
+// worth 0.3, is the inner loop's shape:
+//   the original materialises `j1 = 1` in the loop PREHEADER, below the
+//   `jle` that guards the loop (`test ax,ax / jle / mov [esp+0x10],1 / jmp`),
+//   while every other initialiser (bestIdx, bestDiff, j) is stored above it.
+//   That only happens if the source puts the `j1 = 1` inside the guarded
+//   region, so the inner loop must be `if ((short)num > 0) { int j1 = 1;
+//   do { ... } while (j++, j1++, (short)j < (short)num); }`: the `if` gives
+//   the guard, the comma expression in the controlling expression keeps the
+//   two increments in the bottom block AND keeps `continue` jumping to them
+//   (a do-while with the increments in the body would skip them). A nested
+//   -if spelling with the increments in the body scores the same 79.4.
+// Still different, in order of size:
+//   1. the x/y frame slots are swapped: original x 0x1c, y 0x20, ours y 0x1c,
+//      x 0x20. This is the lod/ebp story from the previous notes and it is
+//      NOT the declaration order: declaring y before x scores 79.1, i.e. the
+//      pair moves together or not at all.
+//   2. `bestDiff * j1` is built `mov eax,[0x2c] / imul eax,[0x10]` in the
+//      original and `mov eax,[0x10] / imul eax,[0x2c]` here, and the source
+//      operand order (`j1 * bestDiff`, either or both compares) does not move
+//      it, so MSVC5 canonicalises the multiply and this is allocator state.
+//   3. the whole else branch: limitX/limitY land in 0x34/0x30 here and
+//      0x18/0x34 in the original, `n = limitX - nx` is hoisted here (its own
+//      slot 0x44) and computed inside the row loop there, nx/ny are swapped
+//      (original: edi = nx, eax = ny = the row index; ours: eax = nx, edi =
+//      the row index), the two row guards are in the other order, and the map
+//      base is reached as `mov edx,[ebx] / add edx,0x7c / imul ecx,[edx+4]`
+//      in the original but as two separate loads `mov ebx,[esi+0x7c] /
+//      imul ecx,[esi+0x80]` here.
+// Earlier attempts, all below the current best:
+// The LOD-table block, from the previous session, worth 59.3 to 65.6:
 //   1. the table index must be the *ternary* form of the sibling function
 //      (`Lod(params) < FUN_00433520() - 1 ? Lod(params) : FUN_00433520() - 1`)
 //      with the clamp inlined, not a named `lod` local. That alone made the
@@ -143,11 +174,7 @@ extern Game_00481d50* g_game;
 
 Frame_00481d50* __stdcall FUN_004b7f30(unsigned short* table, int index);
 
-inline int Lod_00481d50(Params_00481d50* params)
-{
-    int v = params->field_8 / 32;
-    return v < 0 ? 0 : v;
-}
+
 
 // FUNCTION: 0x481d50
 void __stdcall FUN_00481d50(Params_00481d50* params)
@@ -168,9 +195,9 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             return;
         void* table = ((Class_00433500*)DAT_0051e6a0)
                           ->FUN_00433500(
-                              (Lod_00481d50(params) <
-                               ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
-                                  ? Lod_00481d50(params)
+                              (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32) <
+                                      ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1
+                                  ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
                                   : ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1);
         short count = ((Class_004335c0*)table)->FUN_004335c0();
         short i = 0;
@@ -182,28 +209,31 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             int bestDiff = -1;
             int bestIdx = 0;
             short j = 0;
-            int j1 = 1;
-            for (j = 0, j1 = 1; (short)j < (short)num; j++, j1++) {
-                int dx;
-                int dy;
-                ((Class_004339e0*)line)->FUN_004339e0(j, &dx, &dy);
-                dx += x;
-                dy += y;
-                if ((unsigned)(short)dx >= grid->width)
-                    continue;
-                if ((unsigned)(short)dy >= grid->height)
-                    continue;
-                unsigned char* cell =
-                    grid->cells + ((short)dy * grid->width + (short)dx) * 2;
-                int d1 = cell[1] - ref;
-                int d0 = cell[0] - ref;
-                if (d0 * bestIdx > bestDiff * j1) {
-                    ((Map_00481d50*)params->field_0)->explored.at((short)dx, (short)dy)--;
-                    if (d1 * bestIdx > bestDiff * j1) {
-                        bestIdx = j1;
-                        bestDiff = d1;
+            if ((short)num > 0) {
+                int j1 = 1;
+                do {
+                    int dx;
+                    int dy;
+                    ((Class_004339e0*)line)->FUN_004339e0(j, &dx, &dy);
+                    dx += x;
+                    dy += y;
+                    if ((unsigned)(short)dx >= grid->width)
+                        continue;
+                    if ((unsigned)(short)dy >= grid->height)
+                        continue;
+                    unsigned char* cell =
+                        grid->cells + ((short)dy * grid->width + (short)dx) * 2;
+                    int d1 = cell[1] - ref;
+                    int d0 = cell[0] - ref;
+                    if (d0 * bestIdx > bestDiff * j1) {
+                        ((Map_00481d50*)params->field_0)
+                            ->explored.at((short)dx, (short)dy)--;
+                        if (d1 * bestIdx > bestDiff * j1) {
+                            bestIdx = j1;
+                            bestDiff = d1;
+                        }
                     }
-                }
+                } while (j++, j1++, (short)j < (short)num);
             }
         }
     } else {
@@ -226,8 +256,8 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
             do {
                 if (*src != frame->mask)
                     (*dst)--;
-                src++;
                 dst++;
+                src++;
             } while (--n);
         }
     }

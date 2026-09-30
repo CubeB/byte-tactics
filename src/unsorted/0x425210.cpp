@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol. Names are provisional.
 // Sonnet 5.5 retry (#679), no change to the score (99.6%). What it added:
 // the operand order of that sum is fixed by the order in which the inlined
 // copy's variables are numbered, which the source controls through the

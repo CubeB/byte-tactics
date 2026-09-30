@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol. Names are provisional.
 // std::vector<Class_004c2ea0*>::insert(iterator, size_type, const T&), MSVC
 // 5's <vector> written out (as 0x425210.cpp does) with _Ucopy, _Ufill, fill
 // and copy_backward inlined. 0x4222e0 is the only caller (the push_back).
@@ -75,6 +75,7 @@
 // sibling family records (0x4732e0, 0x40d020, and the one-byte walls of
 // 0x425210 / 0x44ec30 / 0x46e640). The 534-byte do-while is the best shape;
 // keep it.
+// GPT-6.1-sol verified the saved source with check.py: 81.1%, no MATCH.
 #include <memory>
 #include <xutility>
 

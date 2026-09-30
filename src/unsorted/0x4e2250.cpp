@@ -1,30 +1,31 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// NOT A MATCH (73.4 percent, 801 bytes against our 811). Retry 2 kept this
-// version: I tried transcribing the exact MSVC 5 <XTREE> insert() source
-// (toolchain/msvc5-sp5/INCLUDE/XTREE lines 211-232) with _Insert returning
-// the iterator by value through its hidden pointer, and with the search arm
-// written as both `if/else` and inline `a != b && strcmp(...) < 0` forms. All
-// scored the same 73.4 or worse (54.9 for the inline form, which also lost
-// the frame layout). The search-loop merge and the final out-of-line pair
-// ctor call at 0x4e253a still do not fall out of any source shape I tried.
-// Now differs only in:
-//  * Class_004e2a10's ctor is defined inline here (it is pair<iterator,bool>
-//    from UTILITY, whose ctor is defined in the class). That makes the _Multi
-//    return collapse to the original's two direct stores `mov [eax],ecx /
-//    mov byte [eax+4],1`, but MSVC then also inlines it on the non-multi tail,
-//    so we no longer emit the original's out-of-line call at 0x4e253a.
-//  * the search loop: the original branches on the strcmp result's own flags
-//    (0x4e22ba `test eax,eax / jge`) and sets the bool in each arm, ours
-//    materialises the bool and re-tests it (`xor bl,bl / test bl,bl`).
-//  * the non-multi tail's `if (ans)` arm is still laid out differently, and
-//    ++size: the original increments into ecx and stores after the `y == head`
-//    compare, we keep the size in esi and store before.
-// With the inline ctor the frame aligns: `this` at [esp+0x18], `_Y` at
-// [esp+0x14], so the 4-byte-offset diff the previous note described is gone.
+// NOT A MATCH (74.2 percent, 801 bytes against our 811). Retry 3
+// (deepseek-v4.1-flash) gained only the `test al,al` fix by declaring
+// Class_004e1a30::FUN_004e1a30 as returning bool (was int), worth +0.8
+// percent. Everything else from retry 2 still stands.
+// The search loop is now the only source-level difference left in the first
+// half: the original branches on the strcmp result's own flags
+// (0x4e22ba `test eax,eax / jge`) and writes the bool in each arm
+// (`mov ebp,[ebp] / mov bl,1` vs `mov ebp,[ebp+8] / xor bl,bl`), i.e. it was
+// written as `if (a != b && strcmp(a,b) < 0) { x = x->left; ans = true; }
+// else { x = x->right; ans = false; }`. Writing exactly that DOES produce the
+// 801's loop shape, but it changes MSVC's global register/stack allocation:
+// `this` moves from [esp+0x18] to [esp+0x20], the first _Lockit from
+// [esp+0x20] to [esp+0x1c], and the key pointer lands in edx instead of edi.
+// That drops the score to 55 percent even though the loop bytes match. All
+// four combinations (assignment from an inlined helper vs if/else, int vs
+// bool compare result) were scored: helper-assignment keeps the frame and
+// stays at 74.2, if/else gets the loop and loses the frame at 55.
+// So the frame/register allocation is the real blocker, not the loop shape.
+// The non-multi tail is also still wrong: the original calls the
+// pair<iterator,bool> ctor out of line at 0x4e253a (and 0x4e2a10 inlined only
+// on the _Multi path), and lays the `if (ans)` arm out with the ++size stored
+// before the `y == head` compare rather than after.
 // Shaped like std::_Tree<...>::insert(const value_type&) from MSVC 5's
-// <xtree> (lines 211-232), with the _Insert body inlined on the _Multi path
-// (the out-of-line copy of it is 0x4e2620, the _Lrotate/_Rrotate copies are
-// 0x4e2950/0x4e29b0 and the _Buynode copy is 0x4e2a30). DAT_005292c4 is the
+// <xtree> (lines 211-232); the exact XTREE source is at
+// toolchain/msvc5-sp3/INCLUDE/XTREE. The out-of-line _Insert is 0x4e2620
+// (ret 0x10, four stack args: hidden return slot, _X, _Y, _V), _Lrotate and
+// _Rrotate are 0x4e2950/0x4e29b0, _Buynode is 0x4e2a30. DAT_005292c4 is the
 // tree's _Nil node, head->parent is the root, the colour is the int at +0x204
 // (_Red == 0) and the key is the char* at +0 of the 0x1f8 byte value, which is
 // also where the key_compare instance lives, so the compare calls take the
@@ -37,9 +38,11 @@
 // where the out-parameter is a dead local reused from the _Lockit's slot.
 // Reproduced here deliberately on the first path.
 // Tried and rejected: a converting ctor from `Node*&` on the iterator type
-// (MSVC 5 in this version mangles `*r` in a mem-initializer); the if/else
-// search loop against the old two-iterator tail; `if (this != &v)` as the
-// copy guard (64.0 percent against 66.4 for `if (this)`).
+// (MSVC 5 in this version mangles `*r` in a mem-initializer); making
+// FUN_004e1a30 an inline member operator() and calling it in the loop
+// (30.6 percent, it stops being an out-of-line call in the tail too);
+// `if (this != &v)` as the copy guard (64.0 percent against 66.4 for
+// `if (this)`).
 #include <string.h>
 #include <yvals.h>
 
@@ -48,7 +51,7 @@ enum Redbl_004e2250 { _Red = 0, _Black = 1 };
 class Class_004e1a30 {
 public:
     char* name;                                 // +0x0
-    int FUN_004e1a30(const Class_004e1a30& other) const;
+    bool FUN_004e1a30(const Class_004e1a30& other) const;
 };
 
 struct Val_004e2250 {

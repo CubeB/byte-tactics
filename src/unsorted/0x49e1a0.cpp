@@ -1,19 +1,24 @@
 // Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6,
-// finished by deepseek-v4.1-flash. Names are provisional. PARTIAL 86.9%, 969 of 969 bytes.
+// finished by deepseek-v4.1-flash. Names are provisional. PARTIAL 87.4%, 969 of 969 bytes.
 // Best variant keeps DAT_00509688[(e->flags >> 2) & 3] cached in a local and reuses it for
-// FUN_00456200: 86.9%. The faithful version that reloads the global twice in each arm (so
-// the original's shared tail at 0x49e393 is reproduced in spirit) scored 81.2% because MSVC
-// duplicated both FUN_00456200 calls instead of merging their common suffix.
-// Retry findings on top of 86.9%: splitting the else arm into nested `if (b4) { if (...) }`
-// grew the function to 975 bytes (80.5%); reading the flags through a local copy of the
-// bitfield struct changed nothing; writing the bit-26 update as
-// `unsigned char extra = attached->f_111.b26; ... |= (extra ? 0x800 : 0x400)` reproduces the
-// original's `shr eax,0x1a; and al,1; neg al; sbb eax,eax; ...` shape exactly (86.8%) but the
-// scratch register comes out ecx instead of eax. headers.py tried 128 header sets, all 86.9%.
-// Still different: the bit-4 test uses `test al,0x10` instead of the original
-// `mov edx,eax; shr edx,4; test dl,1`; the bit-26 value lands in ecx not eax, and the
-// FUN_004012a0 argument loads use edx/eax instead of the original ecx/edx; the FUN_00456200
-// tail is duplicated instead of shared at 0x49e393.
+// FUN_00456200. The faithful version that reloads the global twice in each arm scored lower
+// (81.2% originally, 84.6% with the fixes below) because MSVC duplicated both FUN_00456200
+// calls instead of merging their common suffix at 0x49e393.
+// What fixed 86.9% -> 87.4%: write the bit-26 update as
+// `int m = (attached->f_111.b26) ? 0x800 : 0x400; unit->f_ba.w |= m;`. That materializes the
+// ternary in eax, giving the original's
+// `mov eax,[ebx+0x111]; shr eax,0x1a; and al,1; neg al; sbb eax,eax; and eax,0x400;
+//  add eax,0x400; or [edi+0xba],ax`, and as a side effect the FUN_004012a0 argument loads
+// become `mov ecx,[ebx+0xc4]; mov edx,[ebx+0xc0]` as in the original.
+// Still different: (1) the else-arm bit-4 test uses `test al,0x10` instead of the original
+// `mov edx,eax; shr edx,4; test dl,1`. Forcing the shr shape needs a byte local
+// (`unsigned char b4 = attached->f_111.b4;`), which gives the right instructions but in ecx
+// and drops the score to 83.9% because the length change shifts every branch. (2) The
+// FUN_00456200 tail merges only at `push edi`; the original merges from `push 2` through the
+// name load at 0x49e393. (3) In the b19 arm the cached name is kept in ebp; the original
+// reloads DAT_00509688 into eax for FUN_004b0a70 and into ecx for FUN_00456200. Using inline
+// expressions for both fixes (3) but the tail then does not merge and the score is 84.6%.
+// headers.py tried 128 header sets, all 86.9%.
 #include <string.h>
 
 struct Vec3_0049e1a0 {
@@ -226,7 +231,8 @@ void __stdcall FUN_0049e1a0(Unit_0049e1a0* unit) {
                 int pct = 100 - n * 6;
                 e->f_14 = (short)((120 - q) * (pct * attached->f_e4 / 100) / 100);
             }
-            unit->f_ba.w |= ((attached->f_111_raw() >> 26) & 1) ? 0x800 : 0x400;
+            int m = (attached->f_111.b26) ? 0x800 : 0x400;
+            unit->f_ba.w |= m;
             if (!attached->f_111.b28)
                 unit->f_bc.FUN_004012a0(attached->f_c0, attached->f_c4);
         } else {

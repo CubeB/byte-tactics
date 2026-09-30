@@ -1,4 +1,15 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue 2893 retry, 10 min): body left at 82.3% / 847 bytes against 844, still the
+// best. This pass tried ~35 more source shapes, all CSE'd or scored lower: feature-block ternaries
+// (v_tern1/v_tern2, equal), branch reorder 0xfffe-first (80.6), `mf = 0` init with conditional assigns
+// (79.1), a single mapping tail via an fi sentinel (79.3), named `map`/`fc` feature locals (80.6/73.7),
+// redundant callee-saved aliases c2/p2/t2 (equal) and a second g2 (75.2), `int f` (81.1), `int cx/cz`
+// (81.7), `unsigned short` cx/cz (81.2/81.5), moving cx/cz inside `if (mf)` (77.5), unit0 spellings
+// `u->elev + u->type->high`, subtraction, `>` and hi/el/sum temps (equal/81.6/81.3/79.7/69.3), inlining
+// cx/cz at both uses (76.9/75.8/63.1), a named `owner` local (63.5), `py` local (76.6), reference g
+// (78.0), no-g direct g_game (81.1), direct g_game only in the feature block (75.2). Every spelling of
+// the feature block CSEs to the same 847 bytes, so the g-in-edi vs cz-in-edi split is a global
+// allocation choice that no source shape tried reaches; the mapping tail stays duplicated.
 // deepseek-v4.1-flash (issue 2421 retry, 10 min): current body scores 82.3% / 847 bytes against 844, and
 // nothing in this retry beat it, so the body is unchanged. Tried and scored lower or equal: unit0
 // operand swap `u->elev + u->type->high` (same bytes, same diff), `int` cx/cz (81.7/82.2), cz declared

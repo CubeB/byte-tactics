@@ -145,6 +145,17 @@
 // early-return helper (82.5 / 768), and a reference helper parameter with
 // `int ownerId` (85.9, no change). Declaring ownerId as `int` is still the
 // best allocator state, and headers.py confirms no header set changes it.
+// deepseek-v4.1-flash retry 2: still 85.9%, nothing beat it. Tried ushort
+// ownerId local alone (75.3, frame grows to 0x14, unit to edi, projCount to
+// ebp), short local alone (73.6), ushort helper parameter alone (59.2),
+// ownerId read before the unit lookup with int (71.2) and ushort (59.9), an
+// explicit `int n = g_game->projCount` passed to the helper (60.8) and the
+// same with ushort (71.1), an inline for-loop instead of the helper (40.7 and
+// 16.3), and a forced 16-bit compare via `*(unsigned short*)&ownerId` or a
+// plain cast (both 59.2). The blocker is unchanged: MSVC keeps ownerId in edi
+// and spills found, so projCount cannot take edi, while the original spills
+// the 16-bit ownerId into [esp+0x18], keeps found in esi and hoists projCount
+// into edi.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {

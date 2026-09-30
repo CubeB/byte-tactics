@@ -1,4 +1,6 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-sol. Names are provisional.
+// #1704 retry by Codex / GPT-6.1-sol: checkall reconfirmed 87.2% (1610/1504 bytes), no MATCH.
+// A lead helper-inversion edit failed to compile; restored and rechecked this prior best.
 // Partial: 87.2%. Total's float accumulation restores field-first x87 addition.
 // Landing still has an extra test of the helper's constant success result; keep
 // its helper boundary to preserve the original vector lifecycle calls and frame.

@@ -1,10 +1,35 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 72.3%, 1086 bytes versus 1074. Correct floating-point vector
-// length (the inherited integer squares could overflow), type reloads after
-// hypot calls, 32-bit conversion before sign extension, and zero-vector
-// assignment. The sqrt result is converted when assigned to k, without an
-// additional cast on the call. The frame is now the original 0x48 bytes;
-// scaling operand order, early-return saves and x87 scheduling still differ.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 83.7% (best seen), 1082 bytes versus 1074. Frame is the right 0x48
+// bytes and the mode!=2 early return matches (ebp/ebx are pushed inside the
+// mode==2 arm, as the original does at 0x43d2c3).
+// This session: the speed clamp must be written `if (mag > f18)` (not
+// `mag < f18` nor `f18 < mag`), which keeps the _hypot result in st(0) and
+// gives the original `fcom [esp+0x28] / test ah,0x41 / jne` (74.9 -> 83.7 came
+// from that plus hoisting the FUN_004b70ef/FUN_004b7123 results into locals
+// r1/r2 before the two p1 adds, which keeps r1 in ebp across the second call
+// and sinks the p1 loads). The heading `if (d != 0)` zero case lands after the
+// clamp block (original 0x43d587); removing the `type` local, making scale an
+// explicit __int64, and dropping the `(float)` on the three _hypot calls all
+// scored worse (56.5, 72.6, 71.3). What still differs:
+//   * the three inlined 64-bit scales push `_allmul` args in the other order
+//     (ours: edx,eax,ebp,ebx; original 0x43d345: ebp,ebx,edx,eax), i.e. the
+//     original keeps `scale` live in ebx:ebp across all three multiplies
+//     while our build rematerialises it; writing `(__int64)s * x` in Scale
+//     and the r1/r2 locals did not change the push order;
+//   * the `h` short is spilled to a slot in the original (mov [esp+0x1c],ecx
+//     at 0x43d44e, re-read from the same home at 0x43d460) but we re-read
+//     unit->f64.y, which is one instruction shorter;
+//   * our dax/daz/dbx/dbz slots differ from the original's (0x1c/0x24 and
+//     0x40/0x48, ours 0x14/0x5c and 0x1c/0x20), which also shifts every
+//     fild/fst operand and branch target in the leveling and k blocks;
+//   * the tail keeps p1.x, p1.z and field_20 in registers across the
+//     _hypot/_ftol calls (extra mov ebp,edx / mov edx,ecx copies and an extra
+//     `mov [esp+0x5c],edx` spill) while the original re-loads them from the
+//     object; the original also computes delta.x as `[esi] - old.x`.
+// Previously tried: explicit double casts on every scaling multiply, an
+// integer instead of float hypot for the distance, assigning the sqrt result
+// to k before converting, `__int64` scale, dropping the `type` local, and
+// dropping the `(float)` on the three _hypot calls.
 
 #include <math.h>
 
@@ -19,9 +44,9 @@ struct Vec3 {
         return (int)sqrt(a * a + b * b + c * c);
     }
     void Scale(int s) {
-        x = (int)(((__int64)x * s) >> 16);
-        y = (int)(((__int64)y * s) >> 16);
-        z = (int)(((__int64)z * s) >> 16);
+        x = (int)(((__int64)s * x) >> 16);
+        y = (int)(((__int64)s * y) >> 16);
+        z = (int)(((__int64)s * z) >> 16);
     }
 };
 
@@ -124,9 +149,10 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
         p1.x = (int)(((__int64)p1.x * f) >> 16);
         p1.z = (int)(((__int64)p1.z * f) >> 16);
         int g = (int)((double)(dist - maxd) * 65536.0);
-        short h = unit->f64.y;
-        p1.x -= FUN_004b70ef(h, g);
-        p1.z -= FUN_004b7123(h, g);
+        int r1 = -FUN_004b70ef(unit->f64.y, g);
+        int r2 = -FUN_004b7123(unit->f64.y, g);
+        p1.x += r1;
+        p1.z += r2;
     }
 
     int dax = unit->pos.x - a.x;
@@ -151,9 +177,7 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
 
     float hd = (float)_hypot(dax, daz) * eps;
     short d = (short)(heading - unit->f64.y);
-    if (d == 0) {
-        field_24 = 0;
-    } else {
+    if (d != 0) {
         unsigned short max = unit->type->max_turn;
         if (d >= (int)max)
             field_24 = max;
@@ -163,6 +187,8 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
             field_24 = d;
         unit->f64.y = (short)(unit->f64.y + field_24);
         unit->moved = 1;
+    } else {
+        field_24 = 0;
     }
 
     if (hd < 8.0f)
@@ -172,7 +198,7 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
     float vx = (float)dbx * k * eps - (float)dax * eps;
     float vz = (float)dbz * k * eps - (float)daz * eps;
     float mag = (float)_hypot(vx, vz);
-    if (f18 < mag) {
+    if (mag > f18) {
         vx = vx * (f18 / mag);
         vz = vz * (f18 / mag);
     }

@@ -1,27 +1,33 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL: 79.9%. Frame, prologue, the first count loop (through the terrain
-// check) and the third count loop (active==2 then active==1, sum stored to
-// g_game+0x2a3c) match byte for byte. 2961 bytes vs the original 2947, so what
-// is left is allocator state in the two-loop blocks and the shared tails:
-//  - 0x47af91 c2/c1 check: the original keeps g_game in edi (and reloads it
-//    into esi at 0x47b04c) with the active==2 tally in esi, and tests c2 right
-//    after the first loop (jl 0x47b0bf) before the second loop runs; ours keeps
-//    g_game in esi with the tally in edi, and both compares land after the
-//    second loop. Writing the block with a fresh count local and real for
-//    loops (for (i = n2; i > 0; i--) then for (; n2 > 0; n2--)) fixed the
-//    ecx=count / edx=copy assignment (77.8 -> 79.9). Caching g_game in a local,
-//    guarding loop2 with c2 > 0, and a goto-based shared error block (71.8, it
-//    also lost the cross-jumped error tail) did not move the esi/edi pick.
-//  - Energy/Metal clamp arms: the original loads *p into ecx and materialises
-//    the address into eax for the store; ours materialises the address into
-//    ecx and loads into eax. Loading through a raw expression instead of the
-//    pointer dropped to 74.1, so the pointer form stays.
-//  - shared tails: the "FUN_004c5740; strcpy; FUN_004a0090(g_game+0x519);
-//    FUN_004ab0a0(menu)" block is ours at 0x47b79e, the original's at 0x47b88b,
-//    and several error tails reload menu from [esp+0x84] in the original where
-//    ours pushes esi/ebp.
-// Fixed here: c2<1 and c1<1 must be one "||" test (one shared error block, two
-// "jl" to it).
+// PARTIAL: 84.2% (ours 2868 bytes vs the original 2947, so 79 bytes short).
+// Frame, prologue, the first count loop, the three error-message sites that
+// share the "call FUN_004c5740 then FUN_004abd90 then FUN_004ab0a0" tail at
+// 0x47b0cb, and the toggle-arm region now match in shape.
+//  - Fixed here (79.9 -> 84.2): the LineOfSight arm's two "field_114 = 1"
+//    stores must be written BEFORE the strcpy call. Written after it, the
+//    compiler sinks the store past the inlined strcpy, which stopped all seven
+//    toggle-arm message sites (CommanderDeath, StartLocation, Mapping,
+//    LineOfSight x3) from merging into one inlined strcpy tail; we then had
+//    three copies of the tail instead of the original's single copy at
+//    0x47b88b.
+//  - The Difficulty arm legitimately calls FUN_0047f1a0("SKirmish", 0): the
+//    original pushes 0x502a6c (the typo'd literal), not 0x507ccc "Skirmish".
+//    Do not correct it.
+//  - Remaining: the c2/c1 player count block. The original tests c2 right after
+//    the first loop (jl to the shared error stub at 0x47b0bf) and keeps g_game
+//    in edi, so the tallies land in esi/edx; ours keeps g_game in esi and
+//    re-emits both compares after the second loop (tallies edi/edx). Two
+//    separate identical error ifs score 75.4 (the blocks do not merge and the
+//    terrain jump retargets), and a goto to one shared label will not compile
+//    ("jump bypasses initialization of local variable"), so it cannot be
+//    written that way directly.
+//  - Energy/Metal clamp arms: the original loads *p into ecx, materialises the
+//    store address into eax, and encodes -500 as "add ecx, 0xfffffe0c"; ours
+//    emits lea ecx / mov eax / sub eax, 0x1f4. Writing the store address as a
+//    pointer or splitting the load did not move the picks.
+//  - Scattered scalar tie-breaks: "mov edx, [esp + 0x84]" (original) vs
+//    "mov eax, [esp + 0x84]" in the Color tail, and menu staying in a
+//    callee-saved register in arms where the original reloads it.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -284,7 +290,8 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0x10);
-            int v = *p + 0x1f4;
+            int v = *p;
+            v += 0x1f4;
             if (v >= 0x2710)
                 v = 0x2710;
             *p = v;
@@ -300,7 +307,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0x10);
-            int v = *p - 0x1f4;
+            int v = *p + -0x1f4;
             if (v <= 0xc8)
                 v = 0xc8;
             *p = v;
@@ -317,7 +324,8 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0xc);
-            int v = *p + 0x1f4;
+            int v = *p;
+            v += 0x1f4;
             if (v >= 0x2710)
                 v = 0x2710;
             *p = v;
@@ -333,7 +341,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0xc);
-            int v = *p - 0x1f4;
+            int v = *p + -0x1f4;
             if (v <= 0xc8)
                 v = 0xc8;
             *p = v;
@@ -397,15 +405,15 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
         if (t->field_110 == 0) {
             t->field_110 = 1;
-            strcpy(e->text, FUN_004c5740("Terrain elevations affect a unit's view."));
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_114 = 1;
+            strcpy(e->text, FUN_004c5740("Terrain elevations affect a unit's view."));
         } else if (t->field_114 == 1) {
             t->field_114 = 0;
             strcpy(e->text, FUN_004c5740("Terrain elevations do not affect a unit's view."));
         } else {
             t->field_110 = 0;
-            strcpy(e->text, FUN_004c5740("All mapped terrain is visible."));
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_114 = 1;
+            strcpy(e->text, FUN_004c5740("All mapped terrain is visible."));
         }
         FUN_004a0090(g_game + 0x519);
         FUN_004ab0a0(menu);
@@ -421,7 +429,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
     }
 
     if (FUN_0049fd60(menu, "Difficulty")) {
-        FUN_0047f1a0("Skirmish", 0);
+        FUN_0047f1a0("SKirmish", 0);
         int d = *(int*)(g_game + 0x37eee);
         if (d == 0) {
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_228 = 1;

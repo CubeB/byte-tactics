@@ -1,160 +1,135 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
-// STATUS: partial, 96.7% (one diff hunk), 14 checker invocations before final verification.
-// Still differs: 0x4bd173..0x4bd193, the post-callback fresh ECX zero and EAX size materialization.
-// Tried and rejected: nested-store/helper probes, delayed HapiBuf construction (92.8%), placement construction (70.6%). See build/scratch/0x4bd160/ledger.md.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 //
-// FOURTH SESSION (space-bunny-free, 0x4bd160). No improvement: the file below
-// is still the best variant (580 of 580 bytes, 96.7%). Four more variants were
-// measured, all worse, in build/scratch/0x4bd160/:
-//   A1.cpp / A2.cpp / A3.cpp: replacing the `= {0}` aggregate initialiser with a
-//     separate `sb.buf = 0;` statement after the if (A3), or also passing
-//     sb.buf as the first argument (A1, A2), or also declaring FUN_004bd3b0's
-//     second parameter as `struct HapiBuf*` so the whole aggregate's address
-//     escapes (A1). All three move the frame: MSVC 5 picks ESI instead of EBP as
-//     the zero register, drops `xor ebp, ebp` from the prologue, and adds a
-//     22nd local dword (`mov [esp+0x24], esi`). So the aggregate initialiser is
-//     what pins the frame at 21 dwords, and the whole-struct escape is not what
-//     keeps the zero store from sinking past the call.
-//   E1.cpp: the m_L2 shape (aggregate declared after the if) plus sb.buf as the
-//     first argument, inside a block. Far worse: the prologue loses
-//     `xor ebp, ebp` entirely and every zero becomes an immediate
-//     (`test eax, eax`, `mov [esp+0x10], 0`, `push 0`).
-// Conclusion unchanged: the remaining 8 bytes need one construct that zeroes
-// only sb.buf after the callback, with the zero and the 20 both live in
-// registers, and nothing tried so far keeps the frame while doing it.
+// 98.3%: 580 of 580 bytes, and every byte from 0x4bd198 to the end is identical
+// to the original. The whole remaining difference is the eight instructions of
+// the buffer setup at 0x4bd17b..0x4bd198:
 //
+//   original                        ours
+//   xor  ecx, ecx                   mov  eax, 0x14
+//   mov  eax, ecx                   mov  [sb.buf], ebp      (early)
+//   mov  [sb.buf], ecx              push eax / push str / push ebp
+//   mov  eax, 0x14                  mov  [sb.size], eax
+//   push eax / push str / push ecx  mov  [sb.buf], ebp      (extra, dead)
+//   mov  [sb.size], eax             call
+//   call
 //
-// Not matching yet: 580 of 580 bytes, but ONE source construct is still wrong.
-// Everything from 0x4bd038 to the end of the function is byte identical (the
-// relocation-filled call targets and string addresses aside). The only diff is
-// the block at 0x4bd173..0x4bd193, which the original writes as
+// Three linked things remain, and by the "one upstream cause" lesson they are
+// one problem: the original rematerialises the buffer's 0 into a FRESH ecx
+// after the `if (cb) cb(0)` merge, where ours keeps reusing the ebp zero that
+// `extra = 0` already holds; the original carries a dead `mov eax, ecx`, the
+// fingerprint of that 0 being materialised in eax for a store; and its buffer
+// store is scheduled before the size is materialised, where ours lands after.
+// Fixing the fresh-zero register should fix all three.
 //
-//     je  ; push ebp; call eax; add esp,4
-//     xor ecx,ecx ; mov eax,ecx ; mov [esp+0x18],ecx    <- sb.buf = 0
-//     mov eax,0x14 ; push eax ; push <"Package Data"> ; push ecx
-//     mov [esp+0x20],eax                               <- sb.size = 20, sunk
-//     call FUN_004d84a0
+// The source as it stands is `struct HapiBuf sb = {20}; sb.buf = 0;`. The
+// aggregate gives the register-materialised size (`mov eax,0x14`, shared by the
+// push and the store, which the original has), and the explicit `sb.buf = 0`
+// is the only early buffer store; the aggregate's own zero-fill of `sb.buf` is
+// the extra dead store at the end.
 //
-// and this file writes (same length, 8 bytes of prologue difference either way):
+// Everything tried this session, scored free with `check.py --sym`:
+//   98.3%  this file, and byte-identical variants using a local `char* b = 0`,
+//          an inline `char* Zero()`, `(char*)0`, or a literal 0 argument.
+//   96.7%  the previous file (kept below in history): `struct HapiBuf sb = {0}`
+//          before the if, then `sb.size = 20; sb.buf = FUN(sb.buf, ...)`; that
+//          keeps a dead `sb.size = 0` store before the je.
+//   94.1%  `sb = {20}` alone: the buffer store sinks past the pushes.
+//   92.6%  `struct HapiBuf sb; sb.buf = 0; sb.size = 20;`, `sb = {0}` after the
+//          if, `sb = {20,0}`, every constructor shape (1-arg size, 2-arg, both
+//          member-init orders), an inline `Zero()`, an inline `sb.Zero()`,
+//          `sb.buf = sb.buf`, and separate `size`/`buf` locals: all compile to
+//          576 bytes with both stores grouped after the argument pushes.
+//   48.8%  separate `unsigned size; char* buf;` locals (frame drops to 0x50).
+// Not tried: any construct that gives the buffer's zero a node distinct from
+// `extra = 0` (an inlined helper returning it, a by-value struct copy, ...).
 //
-//     mov [esp+0x14],ebp ; mov [esp+0x18],ebp ; je      <- two zero stores
-//     push ebp ; call eax ; add esp,4
-//     push 0x14 ; push <"Package Data"> ; push ebp
-//     mov [esp+0x20],0x14 ; call FUN_004d84a0
+// deepseek-v4.1 added: `struct HapiBuf sb = {20};` ALONE is the construct that
+// produces the original's fresh `xor ecx,ecx` (the explicit `sb.buf = 0;`
+// statement always CSEs the zero into ebp, the register that already holds
+// `extra = 0`, which is what leaves the extra store in this file). Its codegen,
+// verified with objdump on the object, is
+//     mov eax,0x14 / xor ecx,ecx / push eax / push str / push ecx
+//     mov [esp+0x20],eax / mov [esp+0x24],ecx / call        (94.1%)
+// i.e. the right values in the right registers but BOTH member stores sunk
+// below the three argument pushes, where the original stores buf=0 (0x18)
+// before the pushes and sinks only the size=20 store. So the remaining problem
+// is store scheduling, not the constant or its register.
+// Also measured this session (each compiled and objdumped):
+//   98.3%  `struct HapiBuf sb = {20}; sb.buf = (char*)0;` and
+//          `{20}; char* z = 0; sb.buf = z;` (same as the file: ebp, two stores)
+//   97.1%  `{0}; sb.buf = 0; sb.size = 20;` (three zero stores, one early)
+//   94.1%  `{20}; struct HapiBuf t = {20}; struct HapiBuf sb = t;` (copy)
+//   92.6%  `{20, 0}`, `{20, (char*)0}`, `{0}; sb.size = 20;`, and
+//          plain assignments (`sb.size = 0; sb.buf = 0; sb.size = 20;`), which
+//          all fold the constants into immediates (mov [mem],0x14) instead of
+//          the original's `mov eax,0x14` shared by the push and the store.
+// A micro file (same shapes, stores kept alive by an escape after the call)
+// shows `{20}` always emits eax=20 first and both stores last, and that an
+// array initialiser `unsigned sb[2] = {20};` gives the identical shape, so the
+// dead `mov eax,ecx` is not explained by the array form either.
 //
-// So three things are needed, and they must come from ONE construct: the
-// sb.buf = 0 store has to happen AFTER the if (cb) cb(0) block, both constants
-// have to be materialised into registers (eax for 20, ecx for 0) instead of
-// immediates, and the ONE zero has to be a FRESH register (ecx), not the ebp
-// zero that extra = 0 already holds, because the original reuses that same ecx
-// for both the sb.buf store and the pushed NULL argument. This file CSEs the
-// ctor's 0, the argument's 0 and extra = 0 into one ebp value.
+// deepseek-v4.1, second session (each variant compiled with tools/wcl /O2 /Ob2
+// /MT and objdumped, scoring 576 bytes / under 98.3% unless noted):
+//   98.3%  unchanged file (the best): `{20}` + explicit `sb.buf = 0;` gives the
+//          early buf store but through ebp, and keeps the aggregate's second
+//          buf store after the pushes.
+//   576    `{20}; sb.buf = FUN(sb.buf, ...)` (no explicit zero): arg forwarding
+//          uses the aggregate's fresh ecx zero for `push ecx`, but BOTH stores
+//          stay after the pushes (mov [esp+0x20],eax / mov [esp+0x24],ecx).
+//   576    `{20}; sb.buf = FUN((char*)(sb.size - sb.size), ...)`: the member
+//          reference in the argument HOISTS the buf store before the pushes and
+//          drops the second buf store (exactly the original's schedule), but the
+//          zero folds into ebp and the dead `mov eax,ecx` pair is absent. Same
+//          for `(char*)(unsigned int)(sb.size - sb.size)` and `(char*)q` copies.
+//   576    `{20, 0}`, `{20, (char*)0}`, ctor `HapiBuf() { size = 20; buf = 0; }`
+//          and `HapiBuf() : size(20), buf(0) {}`: all fold to immediate stores.
+//   580    `{20}; sb.buf = (char*)(sb.size - 20);` inserts a `lea ecx,[eax-0x14]`
+//          and a late pointer store, so a computed zero in the statement is not
+//          the original's shape either.
+// Conclusion: the original's early `mov [esp+0x18],ecx` plus dead `mov eax,ecx`
+// is a front end value copy (a zero node distinct from the `extra = 0` ebp
+// zero) that no plain assignment, aggregate, ctor or computed-zero spelling
+// tested reproduces. Everything from 0x4bd198 to the end is already identical.
 //
-// Measured this session (all via the free scratch scorer, all WORSE than the
-// 96.7% here, so none was kept):
-//   build/scratch/0x4bd160/k_D0_assign_temp.cpp and k_G0_local_ctor_after.cpp
-//     93.6%: "sb = HB1(0, 20); sb.buf = FUN_004d84a0(0, "Package Data", 20);"
-//     with a two-argument constructor gets 20 into eax and 0x14 shared between
-//     the push and the store, but still pushes ebp, still sinks BOTH field
-//     stores past the three pushes, and has no `mov eax,ecx`.
-//   build/scratch/0x4bd160/m_L2.cpp  92.6%: declaring `struct HapiBuf sb = {0}`
-//     AFTER the if (cb) cb(0) statement kills the dead size = 0 store and puts
-//     the single remaining zero store after the call, which is the right block,
-//     but MSVC still sinks it past the three argument pushes and still folds
-//     the constants to immediates.
-//   build/scratch/0x4bd160/g_A0_ctor_buf0.cpp  91.2%: a constructor that only
-//     sets buf = 0 keeps the store in the right ORDER (it is not sunk past the
-//     callback) but the store lands BEFORE the `je`, not after it.
-//   Separate locals instead of a struct (unsigned size; char* buf, declared
-//     between extra and year) drop the frame to `sub esp,0x50` and the whole
-//     body shifts: 48.8%. The struct is load bearing.
-//   Passing sb.buf as the first argument, a shared `char* nul = 0` variable, a
-//     two-argument constructor, `sb.size = 20` written twice, and the
-//     aggregate `{20, 0}`: all 71% to 93.6%, none better.
+// deepseek-v4.1 (second session, 20 more shapes dumped instruction by
+// instruction) confirms the diagnosis and narrows it: the 94.1% `{20}` shape is
+// the ONLY construct that materialises the buffer's zero fresh (`xor ecx,ecx`)
+// instead of folding it into the live ebp zero, and it always sinks BOTH member
+// stores below the argument pushes. Every attempt to flush that zero early
+// (an explicit `sb.buf = 0`, a zeroed local declared before or after the if,
+// inlined helpers that store-and-return, `SetBuf(&sb,0)`, `memset`, reading the
+// aggregate member into a temporary, assignment-expression arguments such as
+// `FUN(sb.buf = 0, ..., sb.size = 20)`, constructor and struct-returning
+// initialisers, computed-zero right-hand sides like `sb.size - sb.size`,
+// `key ^ key`, `i = 0`) either re-CSEs the zero into ebp (the 98.3% here, two
+// stores) or folds the size into an immediate store (576 bytes). Writing the
+// aggregate before the `if` makes the front end emit both stores before the je
+// with an immediate size, so the original's early flush is not a statement
+// order effect either. The `mov eax,ecx` plus early flush look like a front end
+// value-copy (an inlined call result materialised for a store) that no plain
+// assignment spelling reproduces.
 //
-// Second session (space-bunny-free). Scored by BYTE difference against the
-// original rather than by difflib, which is misleading here: the current file
-// is 580 of 580 bytes with only 27 masked bytes different, and every byte from
-// 0x4bd198 to the end is identical AT THE SAME OFFSETS. The whole remaining
-// problem is the 8 bytes at 0x4bd173..0x4bd193 and their 8-byte replacement.
-// `build/scratch/0x4bd160/probe.py <file>...` reports size + differing byte
-// count for free; `idiff.py <file>` prints an LCS aligned instruction diff.
+// deepseek-v4.1 tried (all scored with check.py against scratch copies):
+//   92.6%  `char* buf = 0; unsigned size = 0; size = 20;` then an
+//          uninitialised `struct HapiBuf sb;` assigned from both: the frame
+//          drops to 0x50 (576 bytes) and everything shifts, so separate
+//          locals cannot carry the original frame; MSVC also folds both
+//          stores to immediates and keeps the ebp zero.
+//   97.1%  `buf`/`size` locals plus `struct HapiBuf sb = {20};` and
+//          `sb.size = size;`: frame is right but the size push becomes
+//          `push 0x14` and both member stores land after the pushes.
+//   97.4%  zero produced through a union member (`union { unsigned s;
+//          char* p; } u; u.s = 0; sb.buf = u.p;`): same 98.3% layout but
+//          the union gets its own slot, so one more instruction.
+//   98.3%  `*(char**)&sb.buf = 0;`, identical to the explicit assignment.
+// Conclusion: the fresh `xor ecx,ecx` is a property of the aggregate's own
+// zero-fill (the `{20}` alone produces it), while any explicit `= 0`
+// statement CSEs into ebp; the dead `mov eax,ecx` looks like a value copy
+// from a second target that the optimizer dropped, which no plain
+// assignment spelling reproduces.
 //
-// The best alternative found, `build/scratch/0x4bd160/T4.cpp` (96.9% by
-// difflib, 39 bytes different), is worth knowing about because it fixes the
-// ORDER and gets a constant into a register: declaring `sb` AFTER the
-// `if (cb) cb(0)` statement with a constructor `HapiBuf(char* b) : buf(b) {}`
-// and calling `HapiBuf sb(0)` puts `mov [sb.buf], 0` in exactly the right
-// place, and writing `sb.size = 20` a SECOND time after the FUN_004d84a0
-// statement makes MSVC sink that store into the call sequence and share the
-// register holding 20 with the pushed argument. What it still gets wrong:
-//
-//   original                       T4
-//   xor  ecx, ecx                  mov  esi, 0x14
-//   mov  eax, ecx                  mov  [esp+0x18], ebp     <- the ctor's store
-//   mov  [esp+0x18], ecx           push esi / push name / push ebp
-//   mov  eax, 0x14                 mov  [esp+0x20], esi
-//   push eax / push name / push ecx
-//   mov  [esp+0x20], eax
-//                                   plus one extra `mov [esp+0x20], esi` at +0x4a
-//
-// So three things are still missing, and by the lesson in the brief they are
-// probably ONE cause: (1) the 0 must be materialised in a FRESH register
-// (ecx) instead of being CSE'd with the `xor ebp,ebp` zero that `extra = 0`
-// already holds, and the dead `mov eax,ecx` is the fingerprint of a source
-// construct that wanted 0 in eax; (2) the 20 temp must land in eax, not esi;
-// (3) the second `sb.size = 20` must not produce a store at all. Adjacent
-// duplicate `sb.size = 20` statements are merged by MSVC back into one store
-// (T1, U1: 576 bytes, everything after the region shifted), so the duplicate
-// that keeps the first store alive has to straddle the call statement, which
-// is what forces the extra store at +0x4a.
-// Tried and no better: `HapiBuf sb(0)` with `size` also in the ctor,
-// `HapiBuf sb(0, 20)`, `sb = HapiBuf(0)`, explicit ctor re-call (MSVC 5
-// rejects `sb.HapiBuf()`), passing `sb.buf` as the first argument, separate
-// locals instead of the struct, and three `sb.size = 20` statements.
-//
-// THIRD SESSION (space-bunny-free). Score by BYTES, not by the ratio: the file
-// below is 580 of 580 bytes with 27 differing (non-relocated) bytes, and the
-// ratio check.py prints (96.7%) is misleading here. `build/scratch/0x4bd160/
-// probe.py <file>...` reports "size N diff M" for free. Anything that fixes the
-// first block lands at 576 bytes and ~427 differing bytes, because the missing
-// 4 bytes shift every jump target after it, so this file is still the best
-// version and is what is in place.
-//
-// Frame layout, all 21 dwords accounted for, do not disturb it:
-//   X+0x00 extra (char*)   X+0x04 sb.size   X+0x08 sb.buf
-//   X+0x0c year[8]         X+0x14 copyright[0x40]  (0x14+0x40 = 0x54)
-// The original stores 0 to X+8, then 20 to X+4, then the FUN_004d84a0 result
-// to X+8; FUN_004bd3b0(srcname, &X+4, &X+0) overwrites the size, and both
-// fwrite calls read size X+4 and pointer X+8, so h->size (mov eax,[esp+0x20] at
-// 0x4bd1dd) is that same X+4. So the struct is 8 bytes, {size, buf}, and the
-// `= {0}` initialiser is what puts two dead stores BEFORE the `je`.
-//
-// The block needs exactly +8 bytes over `sb.size = 20; sb.buf = f(0,...,20)`:
-// a fresh zero register (xor ecx,ecx), a dead copy (mov eax,ecx) and the zero
-// store (4 bytes). The 20 is size-neutral (push 0x14 + mov [..],0x14 is 10
-// bytes, mov eax,0x14 + push eax + mov [..],eax is also 10), but the 4-byte
-// store form needs a REGISTER source, so the 20 has to be non-constant at the
-// IR level (cf. 0x4b0720, MATCHED, where a computed size is passed in edx).
-//
-// Tried in this session, every one compiles to the SAME 576-byte body
-// (push 20 / push str / push ebp / mov [buf],0 / mov [size],20 / call), i.e.
-// all worse, none kept: the realloc idiom `f(sb.buf, ...)`; a shared
-// `char* z = 0` or `char* nul = 0` local for the NULL argument; the NULL
-// argument spelled `(void*)0`, `0L`, `NULL`, `'\0'`, `(char*)0`, `0u`; the size
-// argument spelled `sb.size`, `(unsigned)20`, `0x14`,
-// `sizeof(struct Hapi_004bd160)`, or the comma expression `(sb.size = 20)`;
-// `sb.buf = 0, sb.size = 20;` and the reverse order; either statement alone in
-// a nested `{ }`; an `__inline void zero_buf(struct HapiBuf*) { b->buf = 0; }`
-// helper; `int` or `unsigned short` for the size field; the ctor
-// `HapiBuf(char* b) { size = 0; buf = b; }` declared after the `if`, and
-// `struct HapiBuf sb = {0,0};` declared after the `if`.
-// The blocker is one allocator decision: the zero for the struct is CSE'd with
-// the `xor ebp,ebp` that `extra = 0` already holds (the original reuses ebp for
-// `extra` and the `cb(0)` argument, but needs a FRESH ecx after the call), both
-// constants are rematerialised as immediates, and both dead stores sink to
-// immediately before the call. What is needed is ONE construct that gives the
-// zero a different node from `extra = 0` and makes the 20 non-constant.
+// Frame layout (21 dwords, do not disturb): X+0x00 extra, X+0x04 sb.size,
+// X+0x08 sb.buf, X+0x0c year[8], X+0x14 copyright[0x40].
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -166,8 +141,8 @@ int __stdcall FUN_004bd830(char* path, void* buf, int off, FILE* f,
                            void (__cdecl* cb)(int), char* extra, int key, int flags);
 
 struct HapiBuf {
-    unsigned int size;          // +0x00
-    char* buf;                  // +0x04
+    unsigned int size;
+    char* buf;
 };
 
 struct Hapi_004bd160 {
@@ -189,7 +164,6 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
 {
     char* extra = 0;
     char year[8];
-    struct HapiBuf sb = {0};
     char copyright[0x40];
     int off;
     FILE* f;
@@ -198,9 +172,9 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
 
     if (cb)
         cb(0);
-
-    sb.size = 20;
-    sb.buf = (char*)FUN_004d84a0(0, "Package Data", sb.size);
+    struct HapiBuf sb = {20};
+    sb.buf = 0;
+    sb.buf = (char*)FUN_004d84a0(sb.buf, "Package Data", sb.size);
     off = FUN_004bd3b0(srcname, &sb.size, &extra);
 
     {
@@ -263,3 +237,4 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
     }
     return 1;
 }
+

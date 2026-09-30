@@ -1,5 +1,30 @@
-// Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6. Names are provisional.
-// PARTIAL 46.6%. Remaining differences: shared draw tails, register allocation and stack locals. Restored selected text cursor, conditional final colour and original 128-byte buffer.
+// Decompiled by deepseek-v4.1. Names are provisional.
+// Started by space-bunny-free, improved by GPT-6.1-sol, GPT-6.
+// PARTIAL 54.6%. Fixed the big gaf/colours branch order (original tests
+// `me->gaf != 0` first and falls into the gaf path; the previous version had
+// the colours path first, which shifted the whole 0x4a6071..0x4a6248 region).
+// Still differs:
+//  - frame size: original `sub esp,0xd8`, ours 0xd4, so every [esp+N] below the
+//    buffer is 4 off (border 0x40 vs 0x3c, textw 0x48 vs 0x40, t 0x18 vs 0x1c,
+//    me 0x1c vs 0x20). The original has one extra dword temp around [esp+0x20]
+//    (the inlined text-width accumulator), our Measure_ helper folds it away.
+//  - the inlined width loop in Measure_004a5f40 picks edx for the sum and ecx
+//    for the count; the original uses ecx for the sum and edx for the count,
+//    giving `jge` where we emit `jl` (same semantics, different registers).
+//  - the shared FUN_004b7f30 tail: the original pushes the index at each of the
+//    four branch sites then jumps to `push eax; call`; ours jumps to a single
+//    tail, so the `push ecx` before several `jmp 0x4a616c` sites is missing.
+//  - the `text`/`pass` locals land at 0x4c/0x50 in the original, 0x48/... in
+//    ours (same frame-size cause).
+//  - several later blocks (the field_138 gloss / strchr path) differ in
+//    register allocation only.
+// Tried and rejected (deepseek-v4.1): the frame dword cannot be steered from
+// the source. Reordering the declarations (x moved to four different places)
+// gives a byte-identical slot profile, and giving the inlined Measure its own
+// function-level accumulator (plain local, or assigned through) still keeps it
+// in ebp, so the frame stays 0xd4; an int& accumulator instead grows it to
+// 0xdc. The original keeps menu/surface/me/p live across the inlined glyph loop
+// and spills the accumulator at [esp+0x20]; MSVC5 spills something else here.
 #include <windows.h>
 #include <stdio.h>
 
@@ -187,15 +212,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
 
     textw = FUN_004a5d50(menu, index);
     surface = *(void**)((char*)entries + 0xbc);
-    if (me->gaf == 0) {
-        if (me->field_13c & 1) {
-            FUN_004b04b0(surface, &rect, menu->colour_8b2, menu->colour_8c5, menu->colour_8c5);
-        } else if (me->field_138 != 0) {
-            FUN_004b04b0(surface, &rect, menu->colour_8b2, menu->colour_8c3, menu->colour_8c6);
-        } else {
-            FUN_004b04e0(surface, &rect, menu->colour_8b2, menu->colour_8c3, menu->colour_8c6);
-        }
-    } else {
+    if (me->gaf != 0) {
         Glyph_004a5f40* glyph;
         if (me->field_13c & 1) {
             if (me->flags & 0x100) {
@@ -236,6 +253,14 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             else
                 FUN_004b7f90(surface, glyph, glyph->xoff + rect.left,
                              glyph->yoff + rect.top);
+        }
+    } else {
+        if (me->field_13c & 1) {
+            FUN_004b04b0(surface, &rect, menu->colour_8b2, menu->colour_8c5, menu->colour_8c5);
+        } else if (me->field_138 != 0) {
+            FUN_004b04b0(surface, &rect, menu->colour_8b2, menu->colour_8c3, menu->colour_8c6);
+        } else {
+            FUN_004b04e0(surface, &rect, menu->colour_8b2, menu->colour_8c3, menu->colour_8c6);
         }
     }
 

@@ -1,5 +1,35 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol, finished by GPT-6. Names are provisional.
-// PARTIAL 47.2%. Restored original 200-element navigation array. Remaining differences include switch tails, stack locals and register allocation.
+// Decompiled by deepseek-v4.1. Names are provisional.
+// Earlier version by space-bunny-free, GPT-6.1-sol and GPT-6 kept below; 47.2%.
+// deepseek-v4.1 lifted it to PARTIAL 61.4% with three source-level facts:
+//   * MSVC5 sizes this frame as (four bytes per live scalar slot) + (declared bytes
+//     of the local array), so `int used[200]` with SIX live scalars gives exactly
+//     `sub esp, 0x338` with the array at [esp+0x28]: the original's prologue, both
+//     argument reads ([esp+0x34c]/[esp+0x350]) and every array access now match.
+//     Declaring the array (and its zero loop) FIRST in the body is what puts the
+//     `rep stosd` before the count load, as in the original; with the array declared
+//     after layer/entries the count is hoisted and the frame rotated (51.3%).
+//   * the big scan loop walks a pointer based at entry+0x17 (x1): type via
+//     [b-0x17], field_1b via [b+4], field_29 via [b+0x12], field_13c via [b+0x125],
+//     field_157 via [b+0x140], x0/y0 as [b-4]/[b-2] and x1/y1 as [b]/[b+2].
+//     An entry-based pointer scores 51.3%; this scores 61.4%.
+//   * the sixth live scalar (which is what pushes the array to [esp+0x28]) comes from
+//     hoisting `int* up = used + 1;` above the dir switch. Defining it after the first
+//     loop drops back to five slots and 0x334 (55.9%).
+// Still differs (why this is not a match):
+//   * scalar slots are still rotated: ours has out@0x14, cnt@0x1c, layer@0x20,
+//     entries@0x24; the original has out/start@0x10, remaining/up@0x14, entries@0x18,
+//     bound@0x1c, layer@0x20, cnt@0x24. The original's peak of six live scalars is in
+//     the dir-switch loop, ours is in the first loop, so its slot reuse never happens
+//     here. Declaration-order permutations tried so far move index into ebx (correct)
+//     but not the slot numbers.
+//   * registers: original homes layer in esi (ours eax) and the scan walk in ebp
+//     (ours edi); the original's loop-1 walk pointer is ebp-based like ours.
+//   * the two type==3 tails: the original indexes the saved `entries` local (slot
+//     0x18) and reloads menu->layer->field_20; writing that out here costs a seventh
+//     slot and drops to 27.5%.
+// Earlier notes: array 196/197 with five slots give frames 0x328/0x334 (47.2%);
+// a Walk view based at entries+0x172 with `int used[196]` scored 44.2%.
+//
 #pragma pack(push, 1)
 
 struct Entry_004a7960 {                // 0x15b bytes
@@ -89,15 +119,17 @@ static inline void DoSelect(Menu_004a7960* menu, Entry_004a7960* entries, int se
 // FUNCTION: 0x4a7960
 void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
 {
+    int used[200];
+    for (int k = 0; k < 50; k++)
+        used[k] = 0;
+
     Layer_004a7960* layer = menu->layer;
     int index = layer->field_20;
     Entry_004a7960* entries = layer->entries;
     if (index == -1)
         return;
 
-    int used[200];
-    for (int k = 0; k < 50; k++)
-        used[k] = 0;
+    int* up = used + 1;
 
     int cnt = entries->data.count + 1;
     if (cnt > 1) {
@@ -154,25 +186,28 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
     int i;
     int pos;
     {
-        int* up = used + 1;
-        Entry_004a7960* e = entries + 1;
+        char* b = (char*)&entries[1].x1;
         for (i = 1; i < cnt; i++) {
-            if (e->field_29 != 0 && !(e->field_1b & 0x400)
-                && !(e->type == 1 && (e->field_13c & 1))
-                && !(e->type == 4 && e->field_157 != 0)) {
-                if (e->type == 3 || e->type == 4 || e->type == 1
-                    || e->type == 6 || e->type == 2) {
-                    if (!(e->type == 4 && e->x1 < e->y1)) {
-                        if (!(e->type == 2 && (e->field_1b & 0x100))
-                            && !(e->type == 1 && (e->field_13c & 1))) {
+            if (*(signed char*)(b + 0x12) != 0 && !(*(int*)(b + 4) & 0x400)
+                && !(*(unsigned char*)(b - 0x17) == 1 && (*(unsigned char*)(b + 0x125) & 1))
+                && !(*(unsigned char*)(b - 0x17) == 4 && *(int*)(b + 0x140) != 0)) {
+                if (*(unsigned char*)(b - 0x17) == 3 || *(unsigned char*)(b - 0x17) == 4
+                    || *(unsigned char*)(b - 0x17) == 1
+                    || *(unsigned char*)(b - 0x17) == 6
+                    || *(unsigned char*)(b - 0x17) == 2) {
+                    if (!(*(unsigned char*)(b - 0x17) == 4
+                          && *(short*)b < *(short*)(b + 2))) {
+                        if (!(*(unsigned char*)(b - 0x17) == 2 && (*(int*)(b + 4) & 0x100))
+                            && !(*(unsigned char*)(b - 0x17) == 1
+                                 && (*(unsigned char*)(b + 0x125) & 1))) {
                             switch (dir) {
                             case 0:
                             case 1:
-                                pos = e->x0 + e->y0 * 5000;
+                                pos = *(short*)(b - 4) + *(short*)(b - 2) * 5000;
                                 break;
                             case 2:
                             case 3:
-                                pos = e->y0 + *up * 5000;
+                                pos = *(short*)(b - 2) + *up * 5000;
                                 break;
                             }
                             switch (dir) {
@@ -200,7 +235,7 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
                 }
             }
             up++;
-            e = (Entry_004a7960*)((char*)e + 0x15b);
+            b += 0x15b;
         }
     }
 

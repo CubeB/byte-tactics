@@ -1,44 +1,42 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
-// PARTIAL 50.0%. Header sweep found no improvement. Remaining differences include object/entry register allocation and branch layout.
-// PARTIAL 50.0% (1685 bytes against the original's 1703). Greenfield.
-// Command-button click/key handler for the 0x15b-byte entry table.
+// Decompiled by deepseek-v4.1. Names are provisional.
+// Prior attempt by space-bunny-free, verified by GPT-6.1-sol.
+// PARTIAL 84.2% (1695 bytes against the original's 1703). Command-button
+// click/key handler for the 0x15b-byte entry table.
 //
-// What is right: the rect build, the 24-byte point copy, both FUN_004ab510
-// hit-test tails, the flags 0x10/0x40/8/0x100 arms, the "button still down"
-// arm, the type-4 same-team search and its callback, and the whole
-// focus!=index block, all follow the original instruction for instruction.
-// The single shared `goto fail` block at the end is worth 2.7%: every
-// conditional early-out jumps to it (this file `jne 0x7119`, the original
-// `jne 0x717b`), because MSVC 5 will not merge two identical `return 0`s,
-// so the original's shared 0x4a717b epilogue is a real goto target.
+// What finally moved the object/entry register home: writing the
+// field_138 / flags-0x2000 region as sequential `if`s instead of an
+// if/else-if/else chain (vO). The original tests field_138 twice, so it is
+// a sequence of statements, not a chain:
+//     if (entry->field_138) { A }
+//     if (entry->field_138 == 0) return 0;
+//     if (entry->flags & 0x2000) { B } else { C }
+// That form also puts obj in EBX and entry in EBP, exactly as the original
+// (the older chain form homed obj in EBP and left the search block reading
+// entry->team as `mov bl,...` instead of the original's `mov cl,...`).
+// An `int flags = entry->flags;` plus `unsigned char team = entry->team;`
+// hoisted just before the search block is what the original has: it keeps
+// flags in EDX (`test dh,0x18` then `test dh,0x10`) and team in CL across
+// the loop, and the loop's no-match path is a plain `xor esi,esi` reached
+// from the pre-test, which needs the `for(;;) { if (found >= count+1)
+// { found = 0; break; } ... }` form.
 //
-// The remaining diff is ONE allocator decision: the original keeps obj in
-// EBX and the entry pointer in EBP; this file has obj in EBP and entry in
-// EBX, and every [ebx+...]/[ebp+...] in the function follows from that. The
-// prologue differs by one instruction: the original loads obj with
-// `mov ebx,[esp+0x30]` right after `push ebx`, this file loads it into EBP
-// after `push ebp`. Nothing else changes. The two already-matched
-// entry-table neighbours, 0x4a0340 and 0x4a6a40, put param_1 in EBP and the
-// entries pointer in EBX, so this file agrees with their allocator; the
-// original of this function ranks obj above the pointer.
+// What still differs (all in the field_138 region, plus two register
+// picks): the original loads the first test as `mov ax,[ebp+0x138];
+// test ax,ax` and re-tests that same AX after the 0x2000 body; this file
+// emits two memory compares and an extra `jmp` over its early `return 0`,
+// so the 0x2000 body lands at the end of the function here (original:
+// inline, right after the first test) and A sits before B. The loop bound
+// is `movsx ebp,[...count]; inc ebp` here, the original has `movsx
+// eax,[...count]; lea ebp,[eax+1]` (hoisting `int bound = count + 1` or
+// naming it costs 24%: it recolors the whole search block).
 //
-// Free-scratch tries that did NOT move the swap, byte-identical or below:
-// header sweep (headers.py, 128 sets, flat at 47.3% on the earlier 47.3%
-// source); holder local briefly (v2) and live to the end (v7/v22 39.4%);
-// `entry = entries + index` (v3); `entry = &obj->holder->entries[index]`
-// (v8); no `entry` local, `entries[index].` written out (v9 46.7%); no
-// `entries` local, `obj->holder->entries` written out (v16 49.7%); a local
-// copy of obj (v23 50.0%) and a reference to it (v24 no compile); `int i =
-// index;` (v17); a trailing `return 0;` (v6); `entry` uninitialised and
-// assigned after the guard (v20); an `Entry&` reference (v14); `entry +=
-// index` (v15).
-// Caching the search block's flags in an int and its team in a char (the
-// original holds flags in EDX and team in CL across the loop, and its loop
-// has no extra bound compare) scored 49.8% (v12/v13/v19), so those locals
-// are NOT here. A named `int n = count + 1` loop bound scored 50.0% but
-// turned the original's `lea` bound into `inc` (v18), so it is not here
-// either. Reordering the declarations of `entry` and `entries` and assigning
-// them separately also stayed at 50.0%; the EBX/EBP swap remains unresolved.
+// Free-scratch tries that did NOT help on top of the current form:
+// if/else-if/else chains (vD 52.7, vE 42.2, vK 57.4), A moved after the
+// B/C decision (vS 72.6), named loop bound (vQ2 60.0), while-with-&& loop
+// (vA 50.0), flags/team locals with the old chain (vH 58.6), hoisted bound
+// inside the loop (vQ 84.2 flat). Earlier 50.0%-era tries (entry/entries
+// form swaps, point-coord locals, deferred entry, header sweep) are
+// recorded in build/scratch/SHARED.md.
 #pragma pack(push, 1)
 
 struct Class_004a6ae0;
@@ -255,45 +253,52 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             FUN_004a5f40(obj, index);
             return 0;
         }
-        if (entry->field_138 != 0) {
-            if (entry->flags & 0x2000) {
-                if (DAT_0051fbb0 == FUN_004b6340())
-                    goto fail;
-                DAT_0051fbb0 = FUN_004b6340();
-                if (DAT_0051fbac > 0) {
-                    DAT_0051fbac -= 1;
-                    return 0;
-                }
-            } else {
-                if (point.x >= r.left && point.x <= r.right
-                    && point.y >= r.top && point.y <= r.bottom)
-                    goto fail;
-                entry->field_138 = 0;
-                FUN_004a5f40(obj, index);
-                return 0;
-            }
-        } else {
+        if (entry->field_138) {
             if (!(point.x >= r.left && point.x <= r.right
                   && point.y >= r.top && point.y <= r.bottom))
                 goto fail;
             entry->field_138 = 1;
             DAT_0051fbac = 0xf;
         }
-        FUN_004a5f40(obj, index);
-        if (!(entry->flags & 0x1800))
-            goto fail;
-        int found = 1;
-        for (; found < entries->count + 1; found++) {
-            if (entries[found].state == 4 && entries[found].team == entry->team)
-                break;
+        if (entry->field_138 == 0) {
+            return 0;
         }
-        if (found == entries->count + 1)
-            found = 0;
+        if (entry->flags & 0x2000) {
+            if (DAT_0051fbb0 == FUN_004b6340())
+                goto fail;
+            DAT_0051fbb0 = FUN_004b6340();
+            if (DAT_0051fbac > 0) {
+                DAT_0051fbac -= 1;
+                return 0;
+            }
+        } else {
+            if (point.x >= r.left && point.x <= r.right
+                && point.y >= r.top && point.y <= r.bottom)
+                goto fail;
+            entry->field_138 = 0;
+            FUN_004a5f40(obj, index);
+            return 0;
+        }
+        FUN_004a5f40(obj, index);
+        int flags = entry->flags;
+        if (!(flags & 0x1800))
+            goto fail;
+        unsigned char team = entry->team;
+        int found = 1;
+        for (;;) {
+            if (found >= entries->count + 1) {
+                found = 0;
+                break;
+            }
+            if (entries[found].state == 4 && entries[found].team == team)
+                break;
+            found++;
+        }
         if (found == -1)
             goto fail;
         Entry_004a6ae0* f = &entries[found];
         short off = f->field_140;
-        if (entry->flags & 0x1000) {
+        if (flags & 0x1000) {
             if (off > 0)
                 f->field_140 = off - 1;
         } else {
@@ -323,7 +328,7 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             entry->field_138 = (entry->field_138 == 0);
             FUN_004a5f40(obj, index);
         } else if (entry->flags & 0x10) {
-            if (entry->field_138 == 0) {
+            if (entry->field_138) {
                 entry->field_138 = 1;
                 FUN_004a5f40(obj, index);
             }

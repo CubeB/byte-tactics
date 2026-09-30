@@ -1,4 +1,33 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// space-bunny-free retry (#1910, 5 runs): still 78.9%, 646 of 632 bytes. Nothing
+// new beats the clone, but these four are settled and should not be retried:
+//   - headers.py: all 128 header sets score exactly 78.9%, so no unused header is
+//     the fix (same result as 0x475ef0).
+//   - The toolchain's REAL <vector> is at toolchain/msvc5-sp3/INCLUDE/VECTOR, and
+//     including it (nothing hand-written at all, stock insert, stock order) gives
+//     60.7% and 637 bytes in a DIFFERENT family: `mov edi, ecx` after the four
+//     pushes, this in EDI, _P reloaded into EDI each turn. So the hand-written
+//     clone below is still the better base for this function, and the missing
+//     <stdexcept> (which is what moved the third copy's LEA on 0x476210 and
+//     0x475ef0) does not move it here.
+//   - Storing the three pointers in the order the original EMITS them
+//     (`_End = _S + _N; _First = _S; _Last = _S + size() + _M;`, which relies on
+//     size() reading the old _First/_Last) gives 57.1% and 662 bytes, and the same
+//     order with `size_type _n = size();` hoisted above the three stores gives
+//     58.2% and 640 bytes. The header's own `_End / _Last / _First` order is right.
+//   - A second, unrelated `std::vector<other>::insert` instantiation placed above
+//     this one (the 0x4581e0 "compiler state from earlier code" lever) changes
+//     nothing but the size: 78.8% and 648 bytes.
+// What the remaining difference is, stated as one register and nothing else: the
+// original keeps the insert argument _P in EDX for the whole reallocating branch,
+// so the prefix copy never reloads its bound, the fill loop's counter can be ebp
+// with &_X rematerialised from [esp+0x28], and the suffix copy's source is built
+// in place on _P. This build puts _P in ecx across the prefix copy and reloads it
+// into eax for the suffix copy, and the whole 14-byte difference follows from
+// that one choice: 3 reloads of _P where the original has 1, the hoisted `&_X`
+// into ebp where the original rematerialises it, the old _Last load hoisted above
+// the delete call where the original sinks it into the else arm, and the two dead
+// allocator spills into the now-dead _P slot.
 // GPT-6 retry: 78.9%, 646 of 632 bytes; pointer and buffer constness did not change the saved register family or spilled insertion pointer.
 // std::vector<Elem_00476490>::insert(Elem_00476490* _P, size_type _M,
 // const Elem_00476490& _X), the game's reallocating insert.

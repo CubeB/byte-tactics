@@ -79,6 +79,33 @@
 // the seven common headers and none match (best still 99.6%). No new source
 // lever: the difference remains the single `lea eax, [edi + edx]` (SIB 0x17)
 // against this build's `[edx + edi]` (SIB 0x3a).
+//
+// space-bunny-free retry (#1910): still 99.6%, ours 636 bytes against the
+// original's 636, the same single SIB byte, unchanged. 21 more variants
+// screened free with `check.py --sym` (0.5 s each) and none moved it:
+//   * the destination in a local, `_M + _Q`, `size_type(_M)`, a static helper
+//     returning `_Q + _M`, a copy of _P as the source, `_P + _M` in a local,
+//     a `char *` local for the destination and a `char *` cast of it all fold
+//     back to the same tree and still give 99.6% (the local and the helper are
+//     CSE'd, so the add is rebuilt identically);
+//   * the 0x4ddf00 trick (a `char *` operand assigned inside an if-body with
+//     the test repeated) does not survive here: 65.7%, and moving the same
+//     destination local above the fill is 62.0%, both because the extra local
+//     gives the compiler a second `lea ebp, [edx + eax]` to hoist;
+//   * replacing <algorithm>'s fill and copy_backward with hand-written ones
+//     (six loop shapes, with and without a local pointer) leaves both the
+//     636-byte size and this SIB byte exactly as they were, so the
+//     fill/copy_backward instantiations in this file do not decide it;
+//   * a second, smaller vector's insert emitted in the same file gives
+//     637 bytes / 89.6% on either side of this one, so the sibling
+//     instantiation form of compiler state does not reach it either.
+// Reading the tree settles what the byte is: the suffix _Ucopy's source
+// pointer is built as `(_P + dest) - _Q - (_M*32)` with dest = `_Q + _M*32`,
+// so the original and this build emit the same lea first and the same two
+// subs after it, and the only freedom left is which of the two commutative
+// add children (the iterator _P, or the destination node) C1 puts in the
+// lea's base slot. Nothing in this function's source reaches that choice, so
+// it stays for the regroup-into-original-files phase like its siblings.
 #include <climits>
 #include <memory>
 #include <xutility>

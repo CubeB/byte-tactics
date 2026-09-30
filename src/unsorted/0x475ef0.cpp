@@ -73,6 +73,36 @@
 // after the argument push is popped, ours puts _N in [esp+0x14] and _S in
 // [esp+0x1c]. Since ours re-reads _P instead of keeping it, the allocator
 // ranked _P above _S; the original ranks it below every callee-saved register.
+//
+// space-bunny-free retry (#1910): still 83.0% (795 of 794). tools/headers.py
+// tried 128 header sets, all 83.0%, so no unused header is the fix. The frame
+// map, useful for reading this and its siblings, is: ebp is clobbered (it
+// holds this from `mov ebp, ecx`), so the four pushed registers sit at
+// [esp+0], [esp+4], [esp+8], [esp+0xc], the three spilled temps at [esp+0x10],
+// [esp+0x14] and [esp+0x18], the return address at [esp+0x1c] and the three
+// arguments (_P, _M, &_X) at [esp+0x20], [esp+0x24] and [esp+0x28]. Note
+// [esp+0x10] holds this, not the old ebp, and the epilogue's four pops plus
+// `add esp, 0xc` land exactly on the return address.
+//
+// The one-byte difference and the whole register family come from a single
+// allocator decision, now pinned down: the original does NOT consider _P
+// rematerialisable, so it keeps _P in edx from the reload right after
+// operator new (0x475fa1) to the end of the suffix copy. That is why
+//   * the prefix copy needs no bound reload, while ours re-reads _P from
+//     [esp+0x20] on every turn (the one extra instruction, 795 vs 794);
+//   * the suffix copy's source is built from the register that already holds
+//     _P (`sub edx, ebx / add edx, eax / sub edx, ecx`), while ours must lea
+//     _P in from its home;
+//   * _N and _S get the two temp slots in the opposite order ([esp+0x18] and
+//     [esp+0x14] in the original, [esp+0x14] and [esp+0x18] here);
+//   * with edx busy on _P, the fill loop is register starved in the original:
+//     it keeps its COUNT in a callee-saved ebp and rematerialises &_X from
+//     [esp+0x28] on every turn, while ours hoists &_X into ebp and puts the
+//     count in edx.
+// Ours holds one register fewer across the branch and prefers a reload, so
+// every attempt to change that by respelling operands runs into the same
+// wall; this pass's size_type() casts on the fill count and the suffix
+// destination scored 83.0% again (scored for free with check.py --sym).
 #include <climits>
 #include <memory>
 #include <xutility>

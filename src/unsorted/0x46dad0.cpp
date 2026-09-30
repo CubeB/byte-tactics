@@ -1,119 +1,104 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial reconstruction. Per-object scheduler tick for the 0x5c-byte entries
-// of the std::vector at +0x10 (allocator byte +0x10, _First +0x14, _Last
-// +0x18, _End +0x1c).
-//
-// direct != 0: drop every entry whose owner is no longer a live player
-// (PlayerInfo at g_game+0x1b63, stride 0x14b: field_0 nonzero, type at +0x73
-// == 3, data->field_94 == 1), then add an entry for every live player with
-// none, and if anything changed re-run FUN_0046d970 for every map key.
-//
-// direct == 0: walk the 0x249-byte unit defs at g_game+0x1439b four at a time,
-// sending a 0x1a/2 packet per def, or one 0x1a/1 or 0x1a/4 packet.
-//
-// STILL DIFFERS (best 27.4%, 1153 bytes against 1024):
-//  - Frame 0x80 against 0x7c, and the whole register allocation: the original
-//    keeps `this` in edi and zero in ebx, ours uses ebx/ebp.
-//  - The original builds the temporary entry at [esp+0x30] with its four
-//    sub-vector destructors at [esp+0x34], [esp+0x44], [esp+0x6c], [esp+0x7c];
-//    the last overlaps the saved-register slots. Ours emits one out-of-line
-//    ~Class_0046eaa0 instead.
-//  - The original's erase compacts in place with an out-of-line
-//    ??4Class_0046eaa0@@ (0x470040) and _Destroy (0x46eaa0); ours calls
-//    _Destroy inline. The compaction bound is the old players._Last, stashed
-//    in the changed slot at [esp+0x1c] (0x46db57) and read back after the
-//    operator= call; the thiscall callee pops its argument, so the post-call
-//    [esp+0x1c] still holds _Last. Then _Destroy(_Last - 0x5c, _Last) and
-//    _Last -= 0x5c, changed = 1. The [esp+0x14]/[esp+0x18] pair hold it and
-//    it + 0x5c, and both are decremented by 0x5c on the erase path.
-//  - The map walk: the original calls _Inc (0x46ea10) directly, ours emits
-//    _Lockit/_Tree::_Nil around std::map<unsigned int,int>::iterator.
-//  - The two `mov ecx, ds:0` / `mov eax, ds:0` sites (0x46ddb5, 0x46de59) are
-//    dead code behind `direct != 0` inside the direct == 0 branch; reproduced
-//    here as the DAT_00000000 global.
-//  - The filter loop and the add loop use different bases in the original:
-//    the filter loop walks `g_game+0x1b8a+i*0x14b` (i.e. &player.data) and
-//    reads field_0 as [eax-0x27], type as [eax+0x4c], data as [eax], field_4
-//    as [eax-0x23], while the add loop walks `g_game+0x1b63+i*0x14b` and reads
-//    data as [esi+0x27], field_4 as [esi+4]. Rewriting the filter loop with
-//    the +0x1b8a char* base (and swapping the last `it->id` compare order to
-//    `it->id == p->field_4`) drops the score to 22.9%, so the register
-//    allocation, not this addressing, dominates the diff.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 28.1%, 1033 bytes versus 1024. Correct native nested-vector
+// and tree types, call the real nested constructor to initialise its three
+// dwords, and reload the live game count after the network helper. Vector
+// erase/temporary cleanup and register allocation still differ. Call the
+// native map increment through its member pointer to retain the original
+// out-of-line helper. 768 header sets did not improve the prior 27.6% version.
 #include <list>
 #include <map>
 #include <vector>
 
 struct Data_0046dad0 {
     char unknown_0[0x94];
-    unsigned char field_94;            // +0x94
+    unsigned char field_94; // +0x94
 };
 
 #pragma pack(push, 1)
 struct PlayerInfo_0046dad0 {
-    int field_0;                       // +0x0
-    int field_4;                       // +0x4
+    int field_0; // +0x0
+    int field_4; // +0x4
     char unknown_8[0x27 - 0x8];
-    Data_0046dad0* data;               // +0x27
+    Data_0046dad0* data; // +0x27
     char unknown_2b[0x73 - 0x2b];
-    unsigned char type;                // +0x73
+    unsigned char type; // +0x73
 };
 
-struct Packet_0046dad0 {               // 0xe bytes
-    unsigned char type;                // +0x0
-    unsigned char arg;                 // +0x1
-    int field_2;                       // +0x2
-    int field_6;                       // +0x6
-    int field_a;                       // +0xa
+struct Packet_0046dad0 { // 0xe bytes
+    unsigned char type;  // +0x0
+    unsigned char arg;   // +0x1
+    int field_2;         // +0x2
+    int field_6;         // +0x6
+    int field_a;         // +0xa
 };
 
-struct Def_0046dad0 {                  // 0x249 bytes
+struct Def_0046dad0 { // 0x249 bytes
     char unknown_0[0x13e];
-    unsigned int key;                  // +0x13e
-    int y;                             // +0x142
+    unsigned int key; // +0x13e
+    int y;            // +0x142
     char unknown_146[0x249 - 0x146];
 };
 
 struct Game_0046dad0 {
     char unknown_0[0x1438f];
-    int count;                         // +0x1438f
+    int count; // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    Def_0046dad0* defs;                // +0x1439b
+    Def_0046dad0* defs; // +0x1439b
 };
 #pragma pack(pop)
 
-struct Elem_0046dad0 {
+struct Rect_0046e160 {
+    int x, y;
+    short w, h;
+    int unknown_c;
+};
+
+struct Elem_004702a0 {
     int value;
 };
 
-struct Class_00470560 {                // 0x2c bytes, the entry's +0x30 member
+#pragma pack(push, 2)
+struct Elem_0046faf0 {
+    int a, b, c;
+    short d;
+};
+#pragma pack(pop)
+void __stdcall FUN_00470030(int);
+namespace std {
+template <> inline void allocator<Elem_0046faf0>::destroy(Elem_0046faf0* p) {
+    FUN_00470030((int)p);
+}
+}
+
+struct Class_0046cbe0 { // 0x2c bytes, the entry's +0x30 member
     int field_0;
     int field_4;
     int field_8;
-    std::vector<Elem_0046dad0> list_c; // +0xc
-    std::vector<Elem_0046dad0> list_d; // +0x1c
+    std::vector<Elem_0046faf0> list_c; // +0xc
+    std::vector<Elem_0046faf0> list_d; // +0x1c
 
-    Class_00470560& operator=(const Class_00470560& src);
+    Class_0046cbe0();
 };
 
 struct Class_0046eaa0 {                // 0x5c bytes, one vector element
     int id;                            // +0x0
-    std::vector<Elem_0046dad0> list_a; // +0x4
-    std::vector<Elem_0046dad0> list_b; // +0x14
+    std::vector<Elem_004702a0> list_a; // +0x4
+    std::vector<Elem_004702a0> list_b; // +0x14
     int field_24;                      // +0x24
     int field_28;                      // +0x28
     int field_2c;                      // +0x2c
-    Class_00470560 sub;                // +0x30
+    Class_0046cbe0 sub;                // +0x30
 
     Class_0046eaa0& operator=(const Class_0046eaa0& src);
 };
 
 class Class_0046cec0 {
-public:
+  public:
     void FUN_0046cec0(unsigned int param_1, void* param_2);
 };
 
 class Class_0046d4c0 {
-public:
+  public:
     void FUN_0046d4c0(void* target, Packet_0046dad0* packet, int unused);
 };
 
@@ -129,28 +114,27 @@ void __stdcall FUN_00451bc0(int a, unsigned int b, void* c, int d);
 // vector subclass to keep the call out of line (it is the out-of-line
 // vector<Class_0046eaa0>::insert).
 class Vec_0046d860 : public std::vector<Class_0046eaa0> {
-public:
+  public:
     void FUN_0046f7a0(iterator where, size_type n, const Class_0046eaa0& x);
 };
 
 class Class_0046d860 {
-public:
-    std::map<unsigned int, int> map;        // +0x00
-    std::vector<Class_0046eaa0> players;    // +0x10
-    std::list<unsigned int> queue;          // +0x20
+  public:
+    std::map<unsigned int, Rect_0046e160> map; // +0x00
+    std::vector<Class_0046eaa0> players;       // +0x10
+    std::list<unsigned int> queue;             // +0x20
     char unknown_2c[0x58 - 0x2c];
-    int direct;                             // +0x58
-    int field_5c;                           // +0x5c
-    int field_60;                           // +0x60
-    int disabled;                           // +0x64
+    int direct;   // +0x58
+    int field_5c; // +0x5c
+    int field_60; // +0x60
+    int disabled; // +0x64
 
     void FUN_0046dad0();
     void FUN_0046d970(unsigned int key, int y);
 };
 
 // FUNCTION: 0x46dad0
-void Class_0046d860::FUN_0046dad0()
-{
+void Class_0046d860::FUN_0046dad0() {
     if (disabled != 0)
         return;
 
@@ -160,10 +144,9 @@ void Class_0046d860::FUN_0046dad0()
         while (it != players.end()) {
             int live = 0;
             for (int i = 0; i < 10; i++) {
-                PlayerInfo_0046dad0* p =
-                    (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
-                if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1
-                    && p->field_4 == it->id) {
+                PlayerInfo_0046dad0* p = (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
+                if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1 &&
+                    p->field_4 == it->id) {
                     live = 1;
                     break;
                 }
@@ -177,12 +160,11 @@ void Class_0046d860::FUN_0046dad0()
         }
 
         for (int i = 0; i < 10; i++) {
-            PlayerInfo_0046dad0* p =
-                (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
+            PlayerInfo_0046dad0* p = (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
             if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1) {
                 int found = 0;
-                for (std::vector<Class_0046eaa0>::iterator j = players.begin();
-                     j != players.end(); ++j) {
+                for (std::vector<Class_0046eaa0>::iterator j = players.begin(); j != players.end();
+                     ++j) {
                     if (j->id == p->field_4) {
                         found = 1;
                         break;
@@ -208,8 +190,11 @@ void Class_0046d860::FUN_0046dad0()
         }
 
         if (changed != 0) {
-            for (std::map<unsigned int, int>::iterator k = map.begin();
-                 k != map.end(); ++k) {
+            typedef std::map<unsigned int, Rect_0046e160>::_Imp Tree;
+            typedef void (Tree::iterator::*Increment)();
+            Increment increment = &Tree::iterator::_Inc;
+            for (std::map<unsigned int, Rect_0046e160>::iterator k = map.begin(); k != map.end();
+                 (k.*increment)()) {
                 FUN_0046d970(k->first, 0);
             }
         }
@@ -235,7 +220,7 @@ void Class_0046d860::FUN_0046dad0()
     if (field_60 == 0) {
         if (FUN_00450030() == -1)
             return;
-        int v = game->count - 1;
+        int v = ((Game_0046dad0*)g_game)->count - 1;
         if (disabled == 0) {
             Packet_0046dad0 packet;
             packet.type = 0x1a;

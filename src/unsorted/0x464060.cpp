@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Partial, 87.8%, and exactly the original's 560 bytes. All the code matches
 // except two instructions in the rectangle fill, plus the jump table that
 // follows the code once it does (its bytes only compare equal once the code
@@ -19,6 +19,7 @@
 // or long t and y, assignments to t inside the expression, defining the
 // preceding function 0x464000 above, and every header set (with the C++
 // headers too).
+// Additional retry: a local initialized from y then incremented by t, storing top then using r.bottom += t, and saving y, adding t into y, storing it, then restoring y all canonicalized to the same add eax, ecx. The compiler did not preserve an accumulating destination register.
 // The mode 1 arm of the switch leaves the flag local uninitialised in the
 // original (see the note on the switch below), which this reproduces exactly.
 // Retried by deepseek-v4.1-flash: all 24 store orders, four inline setters, a

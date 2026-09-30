@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Window procedure of the main application window: translates the custom
 // display messages and forwards the rest to the default handler.
 //
@@ -37,6 +37,36 @@
 //     primary block is otherwise byte identical. Moving the initialiser back
 //     after the hpalette `if` puts the constant in the right place and breaks
 //     the register allocation again (87.8%).
+//
+// Follow-up (deepseek-v4.1-flash, same model, second session): both remaining
+// diffs come from ONE cause, the 8-byte size gap. The gap is exactly the two
+// `je` at 0x4b5f6d and 0x4b5fd3: the original targets the return-1 block right
+// after the 0x3b9 arm (0x4b5fe9, distance 124, short jump), ours targets the
+// 0x30f hpalette return-1 block instead (offset 0x405, distance > 127, rel32).
+// MSVC 5's code folding picks that block as the representative for the
+// `mov eax,1 / pop esi / add esp,0x18 / ret 0x10` tail; the 0x30f arm then also
+// keeps its own copy. The E_FAIL hoist is a consequence, not a cause: the same
+// two long `je` appear in the variant that moves E_FAIL after the hpalette
+// `if` (87.8%).
+//
+// Everything tried against the fold choice, with no effect (all still 1112
+// bytes / 89.3%): every source order of the 0x219/0x30f/0x311/0x3b9 cases;
+// `goto` to a shared `ret1:` label placed right after the 0x3b9 call; an
+// explicit `break` to a labelled return; inline helpers returning 1; braces
+// around every case body; if/else instead of two `if`s; `return TRUE`,
+// `return (DD_OK==DD_OK)?1:0`, `return +1`, `return !!1` and ten other
+// spellings that all fold to `mov eax,1`; moving `HRESULT hr` to function
+// scope; <ddraw.h>/<windows.h>/<stdio.h>/<stdlib.h>/<string.h> alone and in
+// pairs (headers.py: no set fixes it); a sweep of 0..800 unused `extern int`
+// declarations (flat at 89.3%, so it is not compiler state).
+//
+// The one thing that does flip the fold to the 0x3b9 block and makes the size
+// 1104 is changing the hpalette early return to a different value, for example
+// `return DD_OK ? 1 : 0;` (DD_OK is 0), which scores 92.4%. That is not a
+// candidate because it returns 0 where the original returns 1; it is recorded
+// here only as proof of the diagnosis: the fold target is the whole cause.
+// Whichever model finishes this needs a construct that emits `mov eax,1` for
+// the 0x30f hpalette path yet keeps that byte-identical block out of the fold.
 
 #include <windows.h>
 #include <ddraw.h>

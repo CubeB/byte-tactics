@@ -1,7 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Partial: 87.7%. The lock loop and local frame now follow the original.
-// Retry verification: 3 check.py runs, best 87.7%; explicit HRESULT zero comparisons did not improve it. Header sweep was stopped without finding a better variant. Remaining differences include zero tests, CreateSurface argument timing
-// and instruction scheduling around display cleanup.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Partial: 99.3%. Byte count is exact (1017 = 1017) and every instruction is the
+// right one; only two adjacent pairs are swapped, both 2-instruction scheduler
+// tie-breaks in the display-cleanup block (listed at the bottom of this file).
+// The original holds the constant 0 in a callee-saved register (ebp) and tests
+// every HRESULT against it with `cmp eax, ebp`, so all ten DirectDraw call
+// results go through one named `HRESULT hr` local (see docs/agent-guide.md on
+// 0x4b6880). That one change took this function from 87.7% to 99.3% and fixed
+// the size, the missing `xor eax,eax` and the CreateSurface argument timing too.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -67,6 +72,7 @@ int __stdcall FUN_004b5510(int mode) {
     BitmapInfo_004b5510 bmi;
     Surface_004b5510 surf;
     DDSCAPS caps;
+    HRESULT hr;
 
     while (1) {
         int result = InterlockedExchange(&DAT_0052a4e8, 0x4d41494e);
@@ -103,10 +109,12 @@ int __stdcall FUN_004b5510(int mode) {
     if (mode != 0) {
         DAT_0051fbd0->field_f0 |= 2;
 
-        if (FUN_0049f710(0, &dd->ddraw, 0) == DD_OK) {
-            if (dd->ddraw->SetCooperativeLevel(d->hwnd, 0x53) == DD_OK) {
-                if (dd->ddraw->SetDisplayMode(DAT_0051fbd0->width, DAT_0051fbd0->height, 8) ==
-                    DD_OK) {
+        hr = FUN_0049f710(0, &dd->ddraw, 0);
+        if (hr == DD_OK) {
+            hr = dd->ddraw->SetCooperativeLevel(d->hwnd, 0x53);
+            if (hr == DD_OK) {
+                hr = dd->ddraw->SetDisplayMode(DAT_0051fbd0->width, DAT_0051fbd0->height, 8);
+                if (hr == DD_OK) {
 
                     ZeroMemory(&ddsd, sizeof(ddsd));
                     ddsd.dwSize = sizeof(ddsd);
@@ -115,19 +123,26 @@ int __stdcall FUN_004b5510(int mode) {
                     ddsd.dwHeight = DAT_0051fbd0->height;
                     ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
                     ddsd.dwBackBufferCount = 1;
-                    if (dd->ddraw->CreateSurface(&ddsd, &dd->primary, NULL) == DD_OK) {
+                    hr = dd->ddraw->CreateSurface(&ddsd, &dd->primary, NULL);
+                    if (hr == DD_OK) {
 
                         caps.dwCaps = DDSCAPS_BACKBUFFER;
-                        if (dd->primary->GetAttachedSurface(&caps, &dd->back) == DD_OK) {
+                        hr = dd->primary->GetAttachedSurface(&caps, &dd->back);
+                        if (hr == DD_OK) {
 
                             dd->field_9c = 1;
-                            if (dd->ddraw->CreateClipper(0, &dd->clipper, NULL) == DD_OK) {
-                                if (dd->clipper->SetHWnd(0, d->hwnd) == DD_OK) {
-                                    if (dd->primary->SetClipper(dd->clipper) == DD_OK) {
+                            hr = dd->ddraw->CreateClipper(0, &dd->clipper, NULL);
+                            if (hr == DD_OK) {
+                                hr = dd->clipper->SetHWnd(0, d->hwnd);
+                                if (hr == DD_OK) {
+                                    hr = dd->primary->SetClipper(dd->clipper);
+                                    if (hr == DD_OK) {
 
-                                        if (dd->ddraw->CreatePalette(4, DAT_0051fbd0->entries,
-                                                                     &dd->palette, NULL) == DD_OK) {
-                                            if (dd->primary->SetPalette(dd->palette) != DD_OK)
+                                        hr = dd->ddraw->CreatePalette(4, DAT_0051fbd0->entries,
+                                                                      &dd->palette, NULL);
+                                        if (hr == DD_OK) {
+                                            hr = dd->primary->SetPalette(dd->palette);
+                                            if (hr != DD_OK)
                                                 goto fail;
                                         }
 
@@ -193,3 +208,16 @@ fail:
     }
     return 0;
 }
+
+// Still differing, both two-instruction swaps of a pair that MSVC 5 5.x emits in
+// the other order, and both inside the cleanup block just after FUN_004b4ff0:
+//   0x4b556d..0x4b5573  original: lea ebx,[esi+0x84] / push ecx
+//                       ours:     push ecx / lea ebx,[esi+0x84]
+//   0x4b55af..0x4b55b3  original: mov edx,[esp+0x10...+0x14] first, then the two
+//                       hpalette/dib zero stores; ours: the two stores, then the
+//                       reload of &cleanup->dc.
+// Tried and rejected: `DirectDrawState *dd` declared before or after the
+// field_9c store (no change), after the FUN_004b4ff0 call (worse), and declaring
+// `cleanup` before the call (MSVC then copies esi to edi, 93.1%).
+// Field_98 is the display's saved back buffer: FUN_004c5e70/FUN_004cbbe0/
+// FUN_004c5fa0 are called on a fresh 0x30-byte surface only when it is set.

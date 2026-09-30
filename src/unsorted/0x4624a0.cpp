@@ -1,4 +1,32 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+//
+// space-bunny-free third pass: still 67.8 percent (555 of 570 bytes), unchanged.
+// TWIN TEST: the matched 0x435a20 (100 percent) has exactly this shape (an
+// `xor ebx,ebx` in its prologue, then `mov [mem],ebx` for a 0 store and
+// `cmp reg,ebx` much later), so this is outcome type 3, a plateau rather than a
+// wall: the wanted allocation exists. Its own notes name the lever: WHAT IS
+// LIVE ACROSS A CALL. There a stack address live across a call makes C1 park
+// the long-lived 0 in ebx; handed a non-address instead, the 0 is
+// rematerialised and everything else moves. Here nothing in this source is
+// live across a call except `this`, `entry`, `i` and the counter, which is why
+// the counter takes the fourth callee-saved register.
+// Measured this pass, all with check.py on a scratch copy:
+//  - scratch/0x4624a0/vC.cpp respells the inlined Pop and Push in the shape
+//    the original itself shows (`r = idx + 1; idx = r; if (r >= 0x400) idx = 0`,
+//    giving `mov [m],idx / cmp / jl / mov [m],0 / jmp`): 552 bytes, 65.3
+//    percent, so that source form is ruled out and the current diamond shape
+//    stays.
+//  - the 15-byte gap itemised: three one-use literal zeros (the original has
+//    `mov [esi+0x3c],ebx`, `mov [esi+0x40],ebx`, `mov [esi+0x20],ebx`, 3 bytes
+//    each, where we emit `mov [m],0`, 7 to 10 bytes each) plus nine `cmp reg,
+//    ebx` against our `test reg,reg`. Two further differences are layout, not
+//    allocation: the original's redundant `jmp 0x4624e3` after the force test
+//    and its `mov ecx,edx; cmp ecx,eax` copies in the two index wraps.
+// Making the zero non-rematerialisable did NOT work: escaping the counter
+// (scratch v1, `force = (int)&force;`) does push the counter out of ebx into
+// the argument home, but the zero still never enters a register and the escape
+// costs 4 bytes.
+//
 // deepseek-v4.1 (2047) note: this is still the best version (67.8%, 555 vs 570
 // bytes). The one thing still differing is the original's `int 0` held in ebx
 // for the whole function (`cmp reg, ebx`, `cmp [esi+0x38], ebx`, `mov [esi+0x3c],

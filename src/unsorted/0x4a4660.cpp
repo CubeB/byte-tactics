@@ -1,6 +1,23 @@
-// Decompiled by GPT-5.6-Terra, finished by GPT-6 and deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by GPT-6 and deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
 // Partial at 86.8% (562 bytes against 556).
 // Retry: the live zero register needed for the original comparisons and width initialization remains unmatched.
+//
+// space-bunny-free pass (third): the edi zero is a promoted CONSTANT node, not a
+// variable, so the "is the zero dynamic" test comes out negative here. With
+// `int width = 0;` at function entry MSVC 5 emits `mov dword ptr [esp+0x10],0`
+// in the prologue, grows the frame by a dword (sub esp,0x28) and still writes
+// `test ebx,ebx` for the surface null test: 68.9%. A local initialised to 0 is
+// NOT unified with the literal 0 by the value tracker, so the original cannot be
+// comparing against a named zero variable. Also ruled out: the source position
+// of the init. The loop reads and writes [esp+0x38] (`mov eax,[esp+0x38]; add
+// eax,edx; mov [esp+0x38],eax`), so the `width = 0` store at 0x4a4797 is live
+// and has to be at that source position, which means the edi zero has been live
+// in a register since the prologue: it is the constant 0 promoted to a register
+// with its def hoisted into the entry block. Counting literal-0 uses in both
+// versions gives the same seven (surface null, showText, width init, language
+// null twice, p != 0, push 0), so "more uses" is not the lever either, which
+// matches the guide's unsolved 0x450240 note: a whole-function constant only
+// takes the registers the variables leave free.
 //
 // deepseek-v4.1-flash pass: the whole remaining diff is one allocator decision.
 // The original materialises a 32-bit zero in edi at the prologue (`xor edi,edi`)

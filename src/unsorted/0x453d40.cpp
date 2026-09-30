@@ -85,7 +85,7 @@ extern char DAT_00505dc4[];
 extern char DAT_005065c4[];
 extern char DAT_0050658c[];
 extern char DAT_00506290[];
-int sprintf(char*, const char*, ...);
+int __cdecl sprintf(char*, const char*, ...);
 void __stdcall FUN_00452cc0(int);
 char* __stdcall FUN_004c5740(char*, ...);
 void __stdcall FUN_0047f1a0(char*, int);

@@ -128,6 +128,26 @@
 // kept for the score (96.1% at the original's 1572 bytes, against 93.9% /
 // 1548 without it), but the honest state is "the landing block's destructor is
 // one construct away": an ordinary `~vector()` with `_Destroy` out of line.
+// deepseek-v4.1 (session 2580, 2 real check.py runs plus 8 free --sym scratch
+// scores): four more destructor shapes measured, all worse than the explicit
+// `v.~vector();`. (1) the vector as a member of a local struct
+// (`struct LandVec { std::vector<Unit*> v; };`, destruction then a member
+// call): 93.0% / 1548 bytes, _Destroy still inlined. (2) the whole landing
+// block one inline level down in a TryLand helper (the 0x410e70 shape):
+// 94.7% / 1572, _Destroy still inlined and the inlined `return 1` costs the
+// `xor ebp,ebp; mov eax,1; cmp eax,ebp` bytes. (3) `v.~vector();` one level
+// down in a helper `static inline int Landed(std::vector<Unit*>& v) { v.~vector();
+// return 0; }`, called as `return Landed(v);` (and the `&v` pointer form):
+// 95.2% / 1572, the destructor is not affected at all and the health test's
+// registers move (edx/ecx instead of ecx/eax). (4) a pre-destructor call on the
+// empty path (`v.~vector();` before FUN_0040b530, so the implicit one is the
+// second): 90.8% / 1564. (5) the hint's single-destructor-site shape (landed
+// flag, vector in an inner scope whose only exit both paths flow through):
+// 81.6% / 1576, the extra state variable and join cost far more than the one
+// _Destroy call could win back. Distance reload: a named `int dist = speed << 16;`
+// before the FUN_004b6c30(2) angle call is 95.4% (register damage), after the
+// angle expression 96.1% (unchanged diff), so the reload order is downstream of
+// the same frame/budget state that keeps _Destroy inlined, not fixable alone.
 // Best: 96.1% (1572 vs 1572 bytes), by adding an explicit `v.~vector();`
 // right before `return 0;` in state 4's landed path. That makes MSVC emit the
 // whole destructor instead of folding it away, so the size finally matches the

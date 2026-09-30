@@ -136,6 +136,14 @@
 //   between the two adds; ours loads pos.y into ebx before the adds and
 //   pushes after them (member-wise p.x/p.y/p.z sums score 93.7 and shrink
 //   the frame by 4 bytes, so the sum must stay a Vec3 local plus operator+).
+// deepseek-v4.1 (issue #2580) ninth retry: baseline reconfirmed 98.0, up from
+// 97.4 in issue #2541. An inline member-wise helper `VecAdd(a, b)` returning a
+// fresh Vec3 keeps the 1864-byte frame and lands the interleaved shape closer
+// (97.7), so the member-wise DAG is the right direction, but as a named local it
+// still differs more than the operator+ baseline; passing that helper straight
+// into the constructor drops to 93.4, plain member-wise statements to 94.3
+// (frame -4) and swapping the operands to 94.4 (frame +8). Best kept: 98.0%.
+
 #include <math.h>
 #include <vector>
 

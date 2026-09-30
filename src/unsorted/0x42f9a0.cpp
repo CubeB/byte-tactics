@@ -1,8 +1,26 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// GPT-6 retry: 96.9%, not MATCH. Prefix/tail inline helpers, registry return
-// types and register-qualified zero/counter variants do not improve it.
-// Remaining differences are the initial zero register and final zero tests.
-// Partial: 96.9%. Corrected missing Sound Mode default to 1 or 2, restructured the final flag branch and corrected callee return types. Early zero register is ebp instead of ebx; final zero tests and stores still differ.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6; retry confirmed by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+//
+// deepseek-v4.1 retry #3 (1852): MATCH, 5472 of 5472 bytes.
+// The last 27 register-name hunks were NOT a free allocator pick. The compare
+// fold was solved earlier by writing a call result into a NAMED local before the
+// test (`int ok = FUN_004b69d0(...); if (ok != 0)`), because the direct spelling
+// `if (FUN_004b69d0(...) != 0)` folds to `test eax,eax`. That trick was applied
+// at every early option site, including two where the original does NOT fold:
+// Gamma (0x4301a5, `test eax,eax / mov ebx,0xa`) and SwitchAlt (0x430215), where
+// the constant 10 kills the ebx zero beforehand, so those two compares fold and
+// the tail (PlayMovie, AllMissions, after the skirmish loop) gets a fresh
+// `xor esi,esi` zero source instead. Reverting exactly those two sites to the
+// direct spelling flipped the early zero register from esi to ebx and removed
+// all 27 hunks at once: `xor ebx,ebx` at 0x42f9be, every early `cmp eax,ebx`,
+// the two `mov dword ptr [..+0x37efa/0x37ef2], ebx` zero stores, `push ebx`,
+// `mov esi,2` at 0x42fdc0 (with `or word ptr [..],si` for the Sound Mode mask)
+// and `cmp dword ptr [esp+0x10], esi`. So the esi-vs-ebx pick was not allocator
+// state at all, it was caused by those two extra register compares keeping the
+// early zero live past 0x4301a5.
+// Sites that keep the named-local spelling: the 23 early options up to
+// DitheredFog, plus PlayMovie and AllMissions in the tail. Everything else
+// (the middle options, the whole multi/skirmish block and the six skirmish
+// player-loop sites) uses the direct spelling because the original folds there.
 
 #include <windows.h>
 #include <stdio.h>
@@ -186,80 +204,93 @@ void FUN_0042f9a0()
     char buf[256];
     int i;
 
-    if (FUN_004b69d0("Total Annihilation", "Interface Type", &value) != 0) {
+    int ok1 = FUN_004b69d0("Total Annihilation", "Interface Type", &value);
+    if (ok1 != 0) {
         if (value > 1) value = 1;
         g_game->interfaceType = value;
     } else {
         g_game->interfaceType = 0;
         FUN_004b6a50("Total Annihilation", "Interface Type", g_game->interfaceType);
     }
-    if (FUN_004b69d0("Total Annihilation", "DisplaymodeWidth", &value) != 0) {
+    int ok2 = FUN_004b69d0("Total Annihilation", "DisplaymodeWidth", &value);
+    if (ok2 != 0) {
         g_game->displaymodeWidth = value;
     } else {
         g_game->displaymodeWidth = 0x280;
         FUN_004b6a50("Total Annihilation", "DisplaymodeWidth", g_game->displaymodeWidth);
     }
-    if (FUN_004b69d0("Total Annihilation", "DisplaymodeHeight", &value) != 0) {
+    int ok3 = FUN_004b69d0("Total Annihilation", "DisplaymodeHeight", &value);
+    if (ok3 != 0) {
         g_game->displaymodeHeight = value;
     } else {
         g_game->displaymodeHeight = 0x1e0;
         FUN_004b6a50("Total Annihilation", "DisplaymodeHeight", g_game->displaymodeHeight);
     }
-    if (FUN_004b69d0("Total Annihilation", "side", &value) != 0) {
+    int ok4 = FUN_004b69d0("Total Annihilation", "side", &value);
+    if (ok4 != 0) {
         g_game->side = value;
     } else {
         g_game->side = 0;
         FUN_004b6a50("Total Annihilation", "side", g_game->side);
     }
-    if (FUN_004b69d0("Total Annihilation", "Difficulty", &value) != 0) {
+    int ok5 = FUN_004b69d0("Total Annihilation", "Difficulty", &value);
+    if (ok5 != 0) {
         g_game->difficulty = value & 0xffff;
     } else {
         g_game->difficulty = 1;
         FUN_004b6a50("Total Annihilation", "Difficulty", g_game->difficulty);
     }
-    if (FUN_004b69d0("Total Annihilation", "scrollspeed", &value) != 0) {
+    int ok6 = FUN_004b69d0("Total Annihilation", "scrollspeed", &value);
+    if (ok6 != 0) {
         g_game->scrollspeed = (unsigned char)value;
     } else {
         g_game->scrollspeed = 0x20;
         FUN_004b6a50("Total Annihilation", "scrollspeed", g_game->scrollspeed);
     }
-    if (FUN_004b69d0("Total Annihilation", "SingleCommanderDeath", &value) != 0) {
+    int ok7 = FUN_004b69d0("Total Annihilation", "SingleCommanderDeath", &value);
+    if (ok7 != 0) {
         g_game->singleCommanderDeath = value;
     } else {
         g_game->singleCommanderDeath = 1;
         FUN_004b6a50("Total Annihilation", "SingleCommanderDeath", g_game->singleCommanderDeath);
     }
-    if (FUN_004b69d0("Total Annihilation", "SingleMapping", &value) != 0) {
+    int ok8 = FUN_004b69d0("Total Annihilation", "SingleMapping", &value);
+    if (ok8 != 0) {
         g_game->singleMapping = value;
     } else {
         g_game->singleMapping = 1;
         FUN_004b6a50("Total Annihilation", "SingleMapping", g_game->singleMapping);
     }
-    if (FUN_004b69d0("Total Annihilation", "SingleLineOfSight", &value) != 0) {
+    int ok9 = FUN_004b69d0("Total Annihilation", "SingleLineOfSight", &value);
+    if (ok9 != 0) {
         g_game->singleLineOfSight = value;
     } else {
         g_game->singleLineOfSight = 1;
         FUN_004b6a50("Total Annihilation", "SingleLineOfSight", g_game->singleLineOfSight);
     }
-    if (FUN_004b69d0("Total Annihilation", "SingleLOSType", &value) != 0) {
+    int ok10 = FUN_004b69d0("Total Annihilation", "SingleLOSType", &value);
+    if (ok10 != 0) {
         g_game->singleLOSType = value;
     } else {
         g_game->singleLOSType = 1;
         FUN_004b6a50("Total Annihilation", "SingleLOSType", g_game->singleLOSType);
     }
-    if (FUN_004b69d0("Total Annihilation", "screenchat", &value) != 0) {
+    int ok11 = FUN_004b69d0("Total Annihilation", "screenchat", &value);
+    if (ok11 != 0) {
         g_game->screenchat = value;
     } else {
         g_game->screenchat = 1;
         FUN_004b6a50("Total Annihilation", "screenchat", g_game->screenchat);
     }
-    if (FUN_004b69d0("Total Annihilation", "damagebars", &value) != 0) {
+    int ok12 = FUN_004b69d0("Total Annihilation", "damagebars", &value);
+    if (ok12 != 0) {
         g_game->flags_37f06.damagebars = value;
     } else {
         g_game->flags_37f06.damagebars = 0;
         FUN_004b6a50("Total Annihilation", "damagebars", g_game->flags_37f06.damagebars);
     }
-    if (FUN_004b69d0("Total Annihilation", "Sound Mode", &value) != 0) {
+    int ok13 = FUN_004b69d0("Total Annihilation", "Sound Mode", &value);
+    if (ok13 != 0) {
         if (value == 2) {
             ((Class_004cfe80*)g_game->sound)->FUN_004cfe80();
         } else {
@@ -271,55 +302,65 @@ void FUN_0042f9a0()
                      (((Class_004cfea0*)g_game->sound)->FUN_004cfea0() != 0) + 1);
         g_game->soundFlags.soundMode = 1;
     }
-    if (FUN_004b69d0("Total Annihilation", "MixingBuffers", &value) != 0) {
+    int ok14 = FUN_004b69d0("Total Annihilation", "MixingBuffers", &value);
+    if (ok14 != 0) {
         ((Class_004cf210*)g_game->sound)->FUN_004cf210(value);
     } else {
         ((Class_004cf210*)g_game->sound)->FUN_004cf210(8);
     }
-    if (FUN_004b69d0("Total Annihilation", "RestoreVolume", &value) != 0) {
+    int ok15 = FUN_004b69d0("Total Annihilation", "RestoreVolume", &value);
+    if (ok15 != 0) {
         g_game->soundFlags.restoreVolume = value;
     } else {
         g_game->soundFlags.restoreVolume = 0;
     }
     if (g_game->soundFlags.restoreVolume) {
-        if (FUN_004b69d0("Total Annihilation", "WaveOutVolume", &value) != 0) {
+        int ok16 = FUN_004b69d0("Total Annihilation", "WaveOutVolume", &value);
+        if (ok16 != 0) {
             ((Class_004d0070*)g_game->sound)->FUN_004d0070(value);
         }
-        if (FUN_004b69d0("Total Annihilation", "CDAudioVolume", &value) != 0) {
+        int ok17 = FUN_004b69d0("Total Annihilation", "CDAudioVolume", &value);
+        if (ok17 != 0) {
             ((Class_004d00d0*)g_game->sound)->FUN_004d00d0(value, 0);
         }
     }
-    if (FUN_004b69d0("Total Annihilation", "Anti-Alias", &value) != 0) {
+    int ok18 = FUN_004b69d0("Total Annihilation", "Anti-Alias", &value);
+    if (ok18 != 0) {
         g_game->flags_37f06.antiAlias = value;
     } else {
         g_game->flags_37f06.antiAlias = 1;
         FUN_004b6a50("Total Annihilation", "Anti-Alias", g_game->flags_37f06.antiAlias);
     }
-    if (FUN_004b69d0("Total Annihilation", "Shadows", &value) != 0) {
+    int ok19 = FUN_004b69d0("Total Annihilation", "Shadows", &value);
+    if (ok19 != 0) {
         g_game->flags_37f06.shadows = value;
     } else {
         g_game->flags_37f06.shadows = 1;
         FUN_004b6a50("Total Annihilation", "Shadows", g_game->flags_37f06.shadows);
     }
-    if (FUN_004b69d0("Total Annihilation", "FeatureShadows", &value) != 0) {
+    int ok20 = FUN_004b69d0("Total Annihilation", "FeatureShadows", &value);
+    if (ok20 != 0) {
         g_game->flags_37f06.featureShadows = value;
     } else {
         g_game->flags_37f06.featureShadows = 1;
         FUN_004b6a50("Total Annihilation", "FeatureShadows", g_game->flags_37f06.featureShadows);
     }
-    if (FUN_004b69d0("Total Annihilation", "VehicleShadows", &value) != 0) {
+    int ok21 = FUN_004b69d0("Total Annihilation", "VehicleShadows", &value);
+    if (ok21 != 0) {
         g_game->flags_37f06.vehicleShadows = value;
     } else {
         g_game->flags_37f06.vehicleShadows = 1;
         FUN_004b6a50("Total Annihilation", "VehicleShadows", g_game->flags_37f06.vehicleShadows);
     }
-    if (FUN_004b69d0("Total Annihilation", "Shading", &value) != 0) {
+    int ok22 = FUN_004b69d0("Total Annihilation", "Shading", &value);
+    if (ok22 != 0) {
         g_game->flags_37f06.shading = value;
     } else {
         g_game->flags_37f06.shading = 1;
         FUN_004b6a50("Total Annihilation", "Shading", g_game->flags_37f06.shading);
     }
-    if (FUN_004b69d0("Total Annihilation", "DitheredFog", &value) != 0) {
+    int ok23 = FUN_004b69d0("Total Annihilation", "DitheredFog", &value);
+    if (ok23 != 0) {
         g_game->flags_37f06.ditheredFog = value;
     } else {
         g_game->flags_37f06.ditheredFog = 0;
@@ -569,16 +610,19 @@ void FUN_0042f9a0()
             g_game->options->players[i].energy = 1000;
         }
     }
-    if (FUN_004b69d0("Total Annihilation", "PlayMovie", &value) != 0) {
+    int ok26 = FUN_004b69d0("Total Annihilation", "PlayMovie", &value);
+    if (ok26 != 0) {
         g_game->playMovie = value;
     } else {
         g_game->playMovie = 1;
     }
-    if (FUN_004b69d0("Total Annihilation", "DisplaymodeDepth", &value) == 0) {
+    int ok27 = FUN_004b69d0("Total Annihilation", "DisplaymodeDepth", &value);
+    if (ok27 == 0) {
         value = 0;
     }
     if (value == 0x100) {
-        if (FUN_004b69d0("Total Annihilation", "Games", &value) == 0) value=0;
+        int ok28 = FUN_004b69d0("Total Annihilation", "Games", &value);
+        if (ok28 == 0) value=0;
         if (value == 1) g_game->flags_37f2f.bit1=1;
         else g_game->flags_37f2f.bit1=0;
     } else g_game->flags_37f2f.bit1=0;
@@ -586,7 +630,8 @@ label_430e7f:
     g_game->flags_37f2f.bit2 = 1;
     g_game->flags_37f2f.bit3 = 1;
     g_game->flags_37f2f.bit4 = 0;
-    if (FUN_004b69d0("Total Annihilation", "AllMissions", &value) != 0) {
+    int ok29 = FUN_004b69d0("Total Annihilation", "AllMissions", &value);
+    if (ok29 != 0) {
         g_game->missionFlags.allMissions = value;
         return;
     }

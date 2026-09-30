@@ -1,8 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, GPT-6 retry: 75.8%, not MATCH. Original 3923 bytes.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Partial, deepseek-v4.1 retry: 83.3%, not MATCH. Original 3923 bytes, ours 3919.
+// Fixed this round: the model/explosion/sound/damage arms now match the original's
+// layout (the big arm inline, the small arm out of line), the lava check is the
+// double deref *(int*)(*(int*)(g_game+0x391e9)+0xd44), the model search uses a count
+// local for the weapon index, and the search is a `for` loop (a do/while made MSVC
+// peel the first iteration).
+// Still differs: (1) the search count byte lives at [esp+0x14] here, [esp+0x10] in the
+// original; (2) the soundstart -1 arm materialises esi as `or esi,-1` per site instead
+// of one hoisted `mov esi,0xffff`; (3) five bitfield assignments schedule `push 0`,
+// the `or` and the store one slot differently; (4) the fstp of minbarrelangle is sunk
+// into the next call's argument pushes in the original, not here; (5) the inlined
+// vector insert swaps esi/edi (ours first=edi last=esi, original first=esi last=ebx,
+// vector base cached on the stack at [esp+0x10]); a FindEntry helper and direct
+// w->sub->entries access both scored worse (80.7%, 80.4%), so this looks like an
+// allocator tie in the original's exact <vector> instantiation.
 // Allocator construction stays out of line, vector destruction calls
 // FUN_00432c20, and shifting/filling calls FUN_00432cb0/FUN_00432c80.
-// Bitfield instruction scheduling, vector copy loops and stack homes differ.
 // construct does not use an allocator receiver in the original, so its
 // declaration uses the equivalent two-argument stdcall ABI.
 
@@ -347,20 +360,15 @@ void __stdcall FUN_0042e440(Class_004c4440* parser) {
     w->shakeduration = (int)(((Class_004c4760*)parser)->FUN_004c4760("shakeduration", 0.0) * 30.0);
 
     char model[0x100];
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "model", 0x100, DAT_005119b8) == 0) {
-        w->text = 0;
-    } else {
+    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "model", 0x100, DAT_005119b8) != 0) {
+        unsigned char i;
         unsigned char count = w->id;
-        unsigned char i = 0;
-        if (count > 0) {
-            do {
-                if (_strcmpi(model, g_game->weapons[i].model) == 0) {
-                    g_game->weapons[w->id].model[0] = 0;
-                    g_game->weapons[w->id].text = g_game->weapons[i].text;
-                    goto model_done;
-                }
-                i++;
-            } while (i < count);
+        for (i = 0; i < count; i++) {
+            if (_strcmpi(model, g_game->weapons[i].model) == 0) {
+                g_game->weapons[count].model[0] = 0;
+                g_game->weapons[count].text = g_game->weapons[i].text;
+                goto model_done;
+            }
         }
         char path[0x100];
         FUN_004290f0(path, "objects3d", model, "3DO");
@@ -369,8 +377,10 @@ void __stdcall FUN_0042e440(Class_004c4440* parser) {
             FUN_004b6290(path);
         FUN_004cb590(h);
         FUN_0042a140(h, model);
-        g_game->weapons[w->id].text = h;
-        strcpy(g_game->weapons[w->id].model, model);
+        g_game->weapons[count].text = h;
+        strcpy(g_game->weapons[count].model, model);
+    } else {
+        w->text = 0;
     }
 model_done:
     w->anim1 = 0;
@@ -383,7 +393,7 @@ model_done:
         w->anim1 = r;
     }
     w->anim2 = 0;
-    if (*(int*)((char*)g_game + 0x391e9) != 0) {
+    if (*(int*)(*(char**)((char*)g_game + 0x391e9) + 0xd44) != 0) {
         if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) !=
                 0 &&
             ((Class_004c48c0*)parser)
@@ -404,25 +414,23 @@ model_done:
             w->anim2 = r;
         }
     }
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundstart", 0x100, DAT_005119b8) == 0) {
-        w->soundstart = (short)0xffff;
-    } else {
+    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundstart", 0x100, DAT_005119b8) != 0) {
         w->soundstart = (short)FUN_00429470(0, model);
-    }
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundhit", 0x100, DAT_005119b8) == 0) {
-        w->soundhit = (short)0xffff;
     } else {
+        w->soundstart = 0xffff;
+    }
+    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundhit", 0x100, DAT_005119b8) != 0) {
         w->soundhit = (short)FUN_00429470(0, model);
-    }
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundwater", 0x100, DAT_005119b8) == 0) {
-        w->soundwater = (short)0xffff;
     } else {
+        w->soundhit = 0xffff;
+    }
+    if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundwater", 0x100, DAT_005119b8) != 0) {
         w->soundwater = (short)FUN_00429470(0, model);
+    } else {
+        w->soundwater = 0xffff;
     }
     void* damage = ((Class_004c4470*)parser)->FUN_004c4470("DAMAGE");
-    if (!damage) {
-        w->damage = 0;
-    } else {
+    if (damage != 0) {
         w->damage = (short)((Class_004c46c0*)damage)->FUN_004c46c0("default", 0);
         int index = 0;
         char* key = ((Class_004c45e0*)damage)->FUN_004c45e0(index);
@@ -451,6 +459,8 @@ model_done:
             }
             key = ((Class_004c45e0*)damage)->FUN_004c45e0(++index);
         }
+    } else {
+        w->damage = 0;
     }
     FUN_0049e010(w);
 }

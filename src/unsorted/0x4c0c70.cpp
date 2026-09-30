@@ -10,6 +10,13 @@
 // GPT-6.1-sol refinement: reference aliases, a height accessor, changing the
 // maxRow declaration point, and moving the surface alias after the scan all
 // kept 94.5%. The root pass tried the equivalent pitch-bound form; it scored 86.6%, so the original source shape is restored below.
+// deepseek-v4.1-flash: all 5 residual hunks are one eax/ecx rotation. The
+// original keeps the surface pointer in ecx (live across the pitch and height
+// reads) and uses eax for maxY and maxRow; ours swaps the two. No change from:
+// dropping/keeping the sf alias, unsigned short* views, thiscall Width()/Height()
+// accessors, merged || condition, reference parameter, swapped or negated pitch
+// comparisons, &spans[0] and cast forms for the edge-walk cursor lea, reordering
+// locals, dummy prefix functions, or headers.py (128 sets, all 94.5%).
 
 struct Span_004c0c70 {
     int x1; // +0x0

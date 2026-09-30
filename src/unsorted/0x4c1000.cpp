@@ -1,9 +1,14 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are
 // provisional. PARTIAL 76.0%, 797 of 791 bytes. Share y0/y1 between the two edge walks alongside
 // the previously shared pointer/index/dx locals. This improves the earlier 73.3%, 809-byte version.
 // Remaining differences include clipping register choices, ymin/out and imin/lasty stack-slot swaps
 // and scheduling. Partial temporary-sharing combinations, all 24 bound declaration orders, 768
 // header sets and surface getters did not improve this version. GPT-6.1-sol refinement variants kept 76.0%; reversing the pitch-bound comparison scored 74.3%. The best source is restored, with ymin/out and imin/lasty allocation shifts remaining.
+// deepseek-v4.1-flash pass: the sibling 0x4c0c70 shape (bound order maxX,minY,maxY,minX with
+// block-scoped edge walks) scores 74.5%. Permuting the declaration order of imin/imax/i/out/j/k/a/b/dxdy
+// (reverse, out-first, dxdy-first, imin-last, i-last) leaves the compiled bytes byte-identical, so MSVC
+// 5 assigns these stack slots from code shape, not declaration order. The two remaining mismatches are
+// exactly the pairwise slots ymin<->out (0x18/0x20) and imin<->lasty (0x2c/0x34).
 
 struct Surface_004c1000 {
     unsigned short pitch;   // +0x0, also the clip width

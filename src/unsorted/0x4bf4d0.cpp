@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Rechecked for issue #2332 by GPT-6.1-sol: best remains 89.6% (3 check.py
+// invocations in this pass). Replacing memcpy with aggregate assignment emitted
+// identical code and did not improve the score. The remaining diff is primarily
+// the engine/surface register swap (original engine=ebp, surface=ebx; ours
+// engine=ebx, surface=ebp), which also changes pointer setup and final cleanup;
+// the null test after forming t is optimized away, and the height-loop branch
+// lands four bytes earlier. check.py did not print MATCH.
 
 // Screen fade: applies a 256 entry translate table to every pixel of `rect` in
 // `surface` (or in the locked screen when `surface` is 0). `level` selects one

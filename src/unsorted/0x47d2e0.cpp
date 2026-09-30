@@ -12,6 +12,12 @@
 // block (42.1), locals for cell.x/cell.y (39.5), a `game` local for g_game (34.7),
 // countdown loops (34.4), an if/else for the losFlags else arm (36.8, still if-folded
 // to setne/mov 1), and an int w[2] array for wx/wy (45.1). Do not repeat those.
+// 10-minute pass (deepseek-v4.1) found no further gain: the frame cannot be
+// grown to the original 0x2c from source. Declaring wx/wy at function scope or
+// inside the block leaves them in registers (frame stays 0x24, same 45.6); with
+// no width cache the frame is only 0x20 and the score falls to 37.2, so keep the
+// cache. The original frame has 11 dwords with wx/wy in memory because g_game
+// (ebp) and origin.x (esi) stay live across the FUN_00485010 call there.
 // Retry finding: the ebp/edi swap (original has cell.y in edi and g_game in ebp, we
 // have cell.y in ebp and g_game in edi) traces to g_game's live range. Keeping g_game
 // live across the FUN_00485010 call through a `game` local (declared after the cell

@@ -29,6 +29,11 @@
 // Tried without effect: casts replaced by typed members and base classes,
 // inline setters for the reset, int or float spellings of the -1 and 0.0
 // constants, a pointer local for the list, inline wrappers for the getters.
+// Also tried without effect (deepseek-v4.1-flash): named `old`/`fresh` locals
+// for the delete/new (the 0x434ff0 idiom), a named `int zero = 0` used in the
+// field stores and the pointer compares, and a named `int unset = -1` (alone or
+// live across the `new` call). All four compile byte-identical to this version,
+// so MSVC folds them and they cannot steer the constant registers.
 //
 // Checked by deepseek-v4.1-flash (baseline 89.5%): the whole diff is the
 // constant-register choice. The original keeps ebx = 0 and esi = -1 pinned for

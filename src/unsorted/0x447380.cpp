@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // GPT-6 retry: helper return types and member forms did not improve 93.5%.
 // 93.5%, and the code is exactly the right size (1318 bytes). Everything from the
 // function entry to the end of the big `if` condition matches byte for byte, and
@@ -45,6 +45,16 @@
 // sprintf block is unchanged by all of them; the extra register-holding node
 // the original builds across the loop-top a0570 group plus the condition is
 // still not identified.
+// deepseek-v4.1 sweep, all flat at 93.5% / 1318 bytes (scratch vA..vZ in
+// build/scratch/0x447380/): splitting the && chain at the cond2/cond3 and at the
+// cond4 boundary (nested ifs), a folded `&& 1`, `!x` vs `x == 0` for param_1, for
+// flags_2a44, and in all three inline helpers, `IsPlaying(...) != 0`, swapped
+// `0xff != p->info->field_96` compare operands, reference parameters for the
+// helpers, a reference local for p, a dead `PlayerInfo_00447380* info = p->info;`
+// first statement in the body, an `int idx;` declared at the top of the body, and
+// `&player[0]`-style sprintf destinations. So the condition tree shape is inert:
+// the one-step rotation is seeded between the loop-top a0570 group and the body
+// and is not reachable by any condition or helper spelling tried so far.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

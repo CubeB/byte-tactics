@@ -1,9 +1,13 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash. Names are provisional.
-// Partial, 43.8%: signed ring-distance comparison and >= 30 wrap improve branches.
-// Frame remains 8 bytes too large; top-loop and player-loop registers differ.
-// Partial, 43.7%: complete map and player refresh. Still differs: the frame is
-// 8 bytes too large (0xdc vs 0xd4), the two top loop temps are in each other's
-// register (ebx/ebp swapped), and player-loop register allocation generally.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Partial, 47.4%: the frame now matches at 0xd4 (all four buffers at 0x48/0x68/0x7c/0xb0).
+// How: dropping the local_a4/local_a0 temporaries (the PING widget pointer stays in iVar17 and
+// the player byte stride is recomputed inline) took 0xdc -> 0xd8, then reusing the existing byte
+// local bVar6 for the four iVar17+0x29 byte temps removed the last dedicated slot (0xd8 -> 0xd4).
+// Still differs: the scalar slots are rotated by one (our local_c0 sits at 0x28 where the
+// original has its first slot at 0x24, and our local_b4 pointer lands at 0x44 instead of the
+// original's 0x30 via lea eax,[esi+eax*2+0x1b63]), the top-loop ebx/ebp pair is swapped
+// (we zero ebx for iVar17 and use ebp for the 0x2a40 ushort), and the player-loop register
+// allocation and the map-refresh region shape still differ.
 // Fixes that gained points: FUN_00435c40 declared bool (removed a neg/sbb/neg),
 // reading the selected slot pointer before the map-slot local, and clearing
 // local_b8 with 0 instead of & 0xffffff00.
@@ -71,7 +75,6 @@ void FUN_00448c70(void)
   byte *pbVar11;
   byte *pbVar12;
   int iVar13;
-  undefined1 uVar14;
   uint uVar15;
   uint uVar16;
   int iVar17;
@@ -86,8 +89,6 @@ void FUN_00448c70(void)
   uint local_b0;
   byte *local_ac;
   int *local_a8;
-  int local_a4;
-  int local_a0;
   byte local_9c [32];
   char local_7c [20];
   byte local_68 [52];
@@ -241,8 +242,7 @@ LAB_0044904e:
   local_bc = iVar8;
   do {
     uVar18 = local_b8 & 0xff;
-    local_a0 = uVar18 * 0x14b;
-    piVar2 = (int *)((int)g_game + 0x1b63 + local_a0);
+    piVar2 = (int *)((int)g_game + 0x1b63 + uVar18 * 0x14b);
     if ((*piVar2 == 0) ||
        (((((cVar3 = *(char *)((int)piVar2 + 0x73), cVar3 != '\x01' && (cVar3 != '\x02')) &&
           (cVar3 != '\x03')) || (*(char *)((int)piVar2 + 0x146) == '\n')) &&
@@ -324,12 +324,12 @@ LAB_0044904e:
       iVar17 = FUN_004a0280((int)(iVar8),(int)(local_d4));
       if (iVar17 != 0) {
         if ((*(char *)(*(int *)((int)piVar2 + 0x27) + 0x96) == -1) && (local_c0 == 0)) {
-          uVar14 = 0;
+          bVar6 = 0;
         }
         else {
-          uVar14 = 1;
+          bVar6 = 1;
         }
-        *(undefined1 *)(iVar17 + 0x29) = uVar14;
+        *(undefined1 *)(iVar17 + 0x29) = bVar6;
         *(uint *)(iVar17 + 200) = (uint)(local_c0 == 0) | *(uint *)(iVar17 + 200) & 0xfffffffe;
         *(undefined4 *)(iVar17 + 0xbe) = *(undefined4 *)((int)g_game + 0x148db);
         *(ushort *)(iVar17 + 0xc6) = (ushort)*(byte *)(*(int *)((int)piVar2 + 0x27) + 0x96);
@@ -347,12 +347,12 @@ LAB_0044904e:
         sprintf(local_7c,"SIDE%d",uVar18);
         if ((*(int *)(iVar8 + 0x1b63) == 0) ||
            ((*(byte *)(*(int *)(iVar8 + 0x1b8a) + 0x9b) & 0x40) == 0)) {
-          uVar14 = *(undefined1 *)(*(int *)(iVar8 + 0x1b8a) + 0x95);
+          bVar6 = *(undefined1 *)(*(int *)(iVar8 + 0x1b8a) + 0x95);
         }
         else {
-          uVar14 = 2;
+          bVar6 = 2;
         }
-        FUN_004a1080((int)((int)g_game + 0x519),(int)(local_7c),(int)(uVar14));
+        FUN_004a1080((int)((int)g_game + 0x519),(int)(local_7c),(int)(bVar6));
         *(undefined1 *)(iVar17 + 0x29) = 1;
         if ((*piVar2 == 0) ||
            (((*(char *)((int)piVar2 + 0x73) != '\x01' && (*(char *)((int)piVar2 + 0x73) != '\x02'))
@@ -380,24 +380,24 @@ LAB_0044904e:
                  (((iVar13 == 0 || (*(char *)((int)piVar2 + 0x73) != '\x03')) ||
                   (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) != '\x02')))))))))))))) &&
            ((*local_a8 == 0 || ((*(byte *)(*(int *)((int)local_a8 + 0x27) + 0x9b) & 0x40) == 0)))) {
-          uVar14 = 1;
+          bVar6 = 1;
         }
         else {
-          uVar14 = 0;
+          bVar6 = 0;
         }
-        *(undefined1 *)(iVar17 + 0x29) = uVar14;
+        *(undefined1 *)(iVar17 + 0x29) = bVar6;
         FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_c0));
       }
       sprintf(local_d4,"TEAMICONS%d",(byte)local_b8);
       iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
       if (iVar17 != 0) {
         if ((*piVar2 == 0) || ((*(byte *)(*(int *)((int)piVar2 + 0x27) + 0x9b) & 0x40) == 0)) {
-          uVar14 = 1;
+          bVar6 = 1;
         }
         else {
-          uVar14 = 0;
+          bVar6 = 0;
         }
-        *(undefined1 *)(iVar17 + 0x29) = uVar14;
+        *(undefined1 *)(iVar17 + 0x29) = bVar6;
         if ((*piVar2 == 0) ||
            (((*(char *)((int)piVar2 + 0x73) != '\x01' && (*(char *)((int)piVar2 + 0x73) != '\x02'))
             || (local_c0 != 0)))) {
@@ -430,7 +430,6 @@ LAB_0044904e:
       }
       sprintf(local_d4,"PING%d",(byte)local_b8);
       iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-      local_a4 = iVar17;
       if (((*piVar2 == 0) || (*(char *)((int)piVar2 + 0x73) != '\x03')) ||
          (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) != '\x01')) {
         FUN_004a0bf0((int)((int)g_game + 0x519),(int)(local_d4),(int)("n/a"),(int)(0));
@@ -448,7 +447,6 @@ LAB_0044904e:
             pcVar9 = "";
           }
           strcat((char*)local_ac,pcVar9);
-          iVar17=local_a4;
           iVar8=local_bc;
         }
         if ((uint)piVar2[5] <= local_b0) {
@@ -477,7 +475,7 @@ LAB_00449a19:
       sprintf(local_d4,"READY%d",(byte)local_b8);
       iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
       if (iVar17 != 0) {
-        bVar6 = *(byte *)(*(int *)((int)g_game + 0x1b8a + local_a0) + 0x9b);
+        bVar6 = *(byte *)(*(int *)((int)g_game + 0x1b8a + (uint)(byte)local_b8 * 0x14b) + 0x9b);
         *(undefined1 *)(iVar17 + 0x29) = 1;
         *(ushort *)(iVar17 + 0x138) = bVar6 >> 5 & 1;
         if ((*piVar2 == 0) || (*(char *)((int)piVar2 + 0x73) != '\x01')) {

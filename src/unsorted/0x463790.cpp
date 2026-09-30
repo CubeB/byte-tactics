@@ -1,51 +1,32 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL: 73.3% (1022 vs 1040 bytes). 67.5% -> 73.3% on this pass.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL: 73.6% (1022 vs 1040 bytes).
 //
-// WHAT MOVED IT: the original materialises the ring bound 0x200 in a REGISTER in
-// block 1's loop pre-header (`mov edi, 0x200`, 0x4637dd) and then compares
-// head+1, n and tail+1 against that register, while the same 0x200 comparisons in
-// blocks 2 and 3 stay immediates. MSVC 5 folds a *local* constant into `cmp`
-// immediates, so no local, static const, sizeof-based or unsigned spelling of the
-// bound can produce that (verified by compiling a standalone loop with
-// tools/wcl: `int cap = 512` used three times in a loop still gives
-// `cmp $0x200,%ecx`).
+// The `mov edi, 0x200` loop-preheader hoist in block 1 is NOT from the
+// literal-argument inline-helper trick: it appears whenever block 1 has three
+// uses of the literal 0x200 (head wrap, r->n < 0x200, tail wrap). Writing the
+// two wraps as plain `if (h >= 0x200) r->head = 0;` on the same local keeps the
+// hoist and makes block 1 byte-identical to the original except for one
+// register pair: ours has r in ECX and the head/index in EAX, the original has
+// r in EAX and the head/index in ECX. That plain-wrap form scores 72.5% here
+// only because the line diff aligns differently; it is structurally closer to
+// the original than the 73.6% Wrap_00463790 form kept in this file.
 //
-// The one construct that DOES hold a literal in a register: a literal passed as
-// an ARGUMENT to an inlined function. The argument is a temp, and a temp with
-// several uses gets a register; the peephole never folds a temp back into a cmp.
-// Confirmed on the micro-test (`mov $0x200,%esi` then three `cmp %esi,...`), and
-// it reproduces the original here: both ring wraps go through
-//     __inline void Wrap_00463790(int& i, int cap) { if (i >= cap) i = 0; }
-// called with the LITERAL 0x200, and the two call sites must pass the FIELD
-// (r->head, r->tail), not a local copy. Passing a local makes the local
-// address-taken and the register disappears again.
-// With the bound in a register: f8++ gets EDI as the original has it, the pop
-// tests with `test ecx,ecx / jle` against no zero register, the wraps store the
-// immediate 0 (`mov [eax+4],0`, 7 bytes) instead of a 3-byte register store, and
-// the three `cmp ...,0x200` become 2-byte register compares. That is the whole
-// 18-byte size gap and most of the register diff.
+// Also with the plain-wrap form the Pop polarity is correct:
+// `test ecx,ecx / jle <null>` with the null path out of line at the end
+// (`...; mov eax,edx; jmp; xor eax,eax`).
 //
-// Still differs, all downstream of the same allocation state:
-//  * the pop's branch polarity. The original falls THROUGH into the body and puts
-//    the null path out of line (`test ecx,ecx / jle 0x46380a`, with `xor eax,eax`
-//    after the body). The early-return helper here jumps over the null path
-//    (`jg` / `xor eax,eax` / `jmp`). The positive `if (r->n > 0) { ... } return ep;`
-//    form in the helper was tried and is worse (70.0%): it adds an `xor ecx,ecx`
-//    and reorders the head store, so the polarity is not free.
-//  * `size -= 4` is folded into `lea ebp,[ebx-4]`, where the original keeps
-//    `sub ebx,4` in the pre-header and copies with `mov edi,ebx`.
-//  * the 0x4638f0 scan loop still has n and remaining the wrong way round
-//    (ours n=EDI/remaining=EBP, the original n=EBP/remaining=EDI), which cascades
-//    into the scratch-register picks in the 0x463a30 and 0x463ad0 loops.
+// Remaining differences are one register-allocator rotation:
+//  * block 1 (0x4637e2) r/index swap described above.
+//  * the 0x4638db scan-loop init: ours n=EDI/remaining=EBP, the original
+//    n=EBP/remaining=EDI. Our `size -= 4` becomes `lea ebp,[ebx-4]` while the
+//    original does `sub ebx,4` and `mov edi,ebx`. Writing `remaining = size - 4`,
+//    `size = size - 4`, or swapping the declaration order does not change it.
+//  * these cascade into the 0x463a30 and 0x463ad0 loops.
 //
-// Ruled out on this pass, all 67.5% or worse, so nobody repeats them:
-//  * `int cap = 0x200` as a local in block 1, and as a parameter of Pop called
-//    with that local (a local's value is folded, a literal argument's is not);
-//  * the pop written INLINE in the `if (r->n > 0) { ... }` positive form, the
-//    idiom src/unsorted/0x462f30.cpp shows for the same ring (65.0%): it keeps
-//    the null path in the fall-through but loses the register-resident bound;
-//  * `Wrap_00463790(h, 0x200)` on a local `h` plus re-storing the field
-//    afterwards (67.1%).
+// Ruled out (all worse than 67.5%): an int-returning Wrap that also does the
+// increment (loses the EDI hoist), fully inlining the pop without a helper
+// (entry copy moves to EDX), the old 0x4638f0 helper idioms, and `int cap`
+// locals (folded to immediates).
 #include <string.h>
 
 void* __cdecl operator new(unsigned int size);
@@ -87,14 +68,15 @@ __inline void Wrap_00463790(int& i, int cap)
 
 static __inline Entry_00463790* Pop_00463790(Buffer_00463730* r)
 {
-    if (r->n <= 0)
-        return 0;
-    r->n--;
-    int h = r->head + 1;
-    r->head = h;
-    Entry_00463790* ep = (Entry_00463790*)((char*)r + h * 12);
-    Wrap_00463790(r->head, 0x200);
-    return ep;
+    if (r->n > 0) {
+        r->n--;
+        int h = r->head + 1;
+        r->head = h;
+        Entry_00463790* ep = (Entry_00463790*)((char*)r + h * 12);
+        Wrap_00463790(r->head, 0x200);
+        return ep;
+    }
+    return 0;
 }
 
 class Class_00463730 {

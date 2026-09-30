@@ -18,6 +18,15 @@
 // int-pointer tail walk (40.1%), reordering flag/cur/prev (35.6-41.7%), declaring
 // flag/a at point of use, long/unsigned types, moving flag/entry decls, `(void)a`,
 // the Previous/Next helpers as if-statements, and 128 header sets via headers.py.
+// Retry pass (deepseek-v4.1-flash) tried, no gain: reordering a/cur/flag (41.7%),
+// signed i/len (43.3%), an `int a = 0` top init (43.3%, folded away), and biasing
+// the first loop pointer to &entries[0].tail.buffer (char* + 0x28, +0x34 stride,
+// id at -0x28). That last one does reproduce the original lea base ebx+0x48 but
+// still scores 43.3% with the same diff size, so it is not in this file. The root
+// is register allocation: the original keeps a long-lived zero in edi (cmp reg,edi)
+// plus ebp=tick and esi=walk, which frees no callee-saved register and forces the
+// raw `a` to [esp+0x1c]; ours keeps edi=tick, ebp=walk, no zero register, so `a`
+// stays in a register and the frame is sub esp,0xc instead of 0x10.
 #include <string.h>
 
 struct RingEntry_00462f30 {

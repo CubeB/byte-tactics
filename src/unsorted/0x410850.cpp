@@ -1,47 +1,44 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
 // (base version by GPT-6 Astra; deepseek-v4.1 re-verified and extended the notes)
-// Partial: 90.3%, 1050 bytes versus 1051. Still differing:
+// Partial: 91.0%, 1046 bytes versus 1051. The case 1 tail's pos temp now lands at
+//     [esp+0x1c] with no early store and stores x, y, z in order (was 90.3%
+//     with an early x store at [esp+0x10] and stores y, x, z), by building the
+//     sums into a temporary Vec3 and then copying it: `Vec3 sum; sum.x=pos.x
+//     +off.x; sum.y=pos.y; sum.z=pos.z+off.z; pos=sum;` (a `sum=PosOf(order)`
+//     temp costs 4 bytes, 87.0%).
+// Still differing, five hunks, all one global colouring or outgoing-arg slot:
 //  1) case 1 health test: original has def in edx, health in ecx, bound in eax
 //     and cmp ecx,eax; ours uses eax/edx/ecx and cmp edx,ecx (same length).
 //  2) the Class_00438760 return buffer of FUN_0043f0e0 sits at [esp+0x64]
-//     (unit's dead argument home) in the original and at [esp+0x68] (order's
-//     home) here, so the later reload of kind is [esp+0x6c]/[esp+0x70] too.
-//  3) the case 1 tail: the original's pos temp is at [esp+0x1c] and it stores
-//     x, y, z after the push; ours lands it at [esp+0x10] (reusing the water
-//     block's Direction temp slot) and stores y, x, z with a spill of x. The
-//     final `or dl, 0xf8` also wants edx, and the last call is
-//     `operator delete[]([esp+0x4c])` (the vector's LAST pointer) in the
-//     original where we emit the out-of-line ~vector().
+//     (the dead flags argument home) in the original and at [esp+0x68] (a slot
+//     above the argument homes) here, so the later reload of kind is
+//     [esp+0x6c]/[esp+0x70] too.
+//  3) the tail's two sums: original `add ecx, ebx` / `add edx, eax` (the sum
+//     lands in the order->pos register); ours `add ebx, ecx` / `add eax, edx`
+//     (the sum lands in the offset register, same value, same store slots).
+//  4) the tail ends with an out-of-line ~vector() call where the original
+//     inlines `operator delete(units.first)`: `mov edx,[esp+0x4c]; push edx;
+//     call ??3@YAXPAX@Z; add esp,4` (also the source of the last byte, since
+//     `or dl,0xf8` is 3 bytes and our `or al,0xf8` is 2).
+//  5) case 0's def/flags rotation is mirrored (ours edx/eax/test ah, original
+//     eax/ecx/test ch) and its pos copy uses eax/ecx/edx where the original
+//     uses ecx/edx/eax.
 // Tried and rejected (all scored lower): the inline `order->pos + Offset(...)`
 //     with a member operator+ (78.7%): it fixes region 3's three direct loads
 //     but MSVC then gives ESI to `order` and EDI to `unit` instead of the
 //     other way round, which costs far more. Field-wise reads of order->pos
 //     written straight in the body do the same (76.8%), but routing them
 //     through the one-argument PosOf() helper below keeps the parameter
-//     register roles and scores 90.3%. Naming the offset `off` costs nothing
-//     there; a named `dir` local in the water block (79.2%) and passing
+//     register roles and scores 90.3% or better. Naming the offset `off` costs
+//     nothing there; a named `dir` local in the water block (79.2%) and passing
 //     -FUN_004b70ef()/-FUN_004b7123() straight into a helper (77.3%) both
 //     lose the esi/edi roles. Region 2 alone did not move under any spelling
 //     tried. A named `bound` local for the health compare is unchanged at
 //     89.9%, as is reversing the compare to (maxHealth>>2)*3 > (unsigned)health.
-//     "Sum into a temporary, then copy" for the tail (87.0%) loses the roles too.
-// Tried after the 90.3% state: PosOf() inlined by hand at the case 1 tail,
-//     field-wise pos.x=order->pos.x+off.x in statement order (78.2% and 78.7%:
-//     both flip esi to order and edi to unit), an inline ~vector() body
-//     `delete[] first` with the derived class dtor left implicit (89.1%) or
-//     declared out-of-line (89.0%): the first fixes the tail's inlined
-//     delete[] but inlines the three pads destroy sites too. 90.3% remains best.
-// Tried in a later pass, all reverted: removing the named `range` local and
-//     passing unit->def->searchRange<<16 straight to FUN_0047e890 drops to
-//     87.3% (the slot that local occupies is needed), and dropping the named
-//     `kind` local by inlining FUN_0043f0e0 into the Class_0043a1f0 argument
-//     list drops to 81.8% (1050 -> 1047 bytes), so kind's [esp+0x64] slot is
-//     load-bearing. Spelling the case 0 test as
-//     `unit->motion!=0 && (unit->def->flags&0x800)!=0` and hoisting the health
-//     cast into `unsigned int hp=(unsigned int)unit->health;` both leave the
-//     output byte-for-byte identical at 90.3%. Reordering/renaming PosOf's
-//     load order is not a lever either: hunk 4 is the front end's copy from
-//     PosOf's temp into pos, which collapses into the same slot.
+//     An inline ~vector() body (delete[] or operator delete, 82.5%, also with a
+//     derived Class_00410830 dtor left out-of-line, 88.9%) breaks the three
+//     pads destroy sites, which the original emits as calls to 0x40c530, so
+//     the unit's dtor stays declared-only here.
 // Suspected original bug: none. The final delete[] takes [esp+0x4c], which is
 //     the units vector's first pointer (inlineEmpty reads first at +4 and last
 //     at +8 of the object at [esp+0x48]), so it is a correct inlined ~vector().
@@ -183,8 +180,11 @@ int __stdcall FUN_00410850(Unit* unit, Order* order, int flags)
         if (flags&0xe0) order->angle+=-FUN_004b6c30(0x2000)-0x4000;
         Vec3 off=Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
         Vec3 pos=PosOf(order);
-        pos.x+=off.x;
-        pos.z+=off.z;
+        Vec3 sum;
+        sum.x=pos.x+off.x;
+        sum.y=pos.y;
+        sum.z=pos.z+off.z;
+        pos=sum;
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
         ((Class_004388d0*)order)->FUN_004388d0((int)move);

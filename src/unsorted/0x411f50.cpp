@@ -13,27 +13,19 @@
 // state 6 flies on and, when the unit is below three quarters of its health,
 // sends it to a random repair pad ("VTOL_LANDING").
 //
-// Partial: 96.8%, same 1980-byte size, after the state-2 turn sum was moved to
-// the state-2 case below as `Offset(FUN_004b6c30(0x4000) + angle - 0x2000,
-// radius)`. That is the spelling of the matched sibling 0x412710 (state 1
-// there); it removed the whole `lea eax, [edx + eax - 0x2000]` hunk. What
-// still differs (checked against build/scratch/0x411f50/ctx.txt):
-//  - 0x4121d7 and 0x4122b0: the two `lea` copies of &unit->pos and &order->pos
-//    are swapped. The original materialises &order->pos (ebp) first and
-//    &unit->pos (ebx) second; ours does the reverse. Same pushes, same
-//    registers, both leas are hoisted above the _hypot call. Tried and
-//    rejected this session: explicit `Vec3* to/from` locals (folded away,
-//    byte-identical) and `(Vec3*)&unit->fixedPos` as the first argument
-//    (byte-identical). The matched sibling 0x412710 emits the same pair only
-//    because its FUN_0048a980 call is not inside an if body, so its leas are
-//    not hoisted into the condition's FP slots; there the argument walk order
-//    survives, here the hoisted pair is a codegen tie. Case 5 shows why its
-//    pair looks ordered: its earlier `FUN_0048a0a0(unit, &order->pos, 0)`
-//    statement already fixed &order->pos in ebx at 0x412488, so only
-//    &unit->pos (ebp) is left for the FUN_0048a980 args. In cases 1 and 2
-//    nothing precedes the pair, and the original emits it right-to-left
-//    (arg2 &order->pos -> ebp, then arg1 &unit->pos -> ebx) while VC5 emits it
-//    left-to-right for every source shape tried so far.
+// Partial: 97.1% (deepseek-v4.1 session 4), same 1980-byte size. Session 4 fixed
+// BOTH remaining lea-order hunks (0x4121d7, 0x4122b0) by giving cases 1 and 2
+// explicit pointer locals that are declared without an initialiser and then
+// ASSIGNED, with &order->pos assigned before &unit->pos:
+//     Vec3* op; Vec3* up; op = &order->pos; up = &unit->pos;
+// In case 1 they sit before the `if`, in case 2 before the `int dist` hypot, so
+// both are live across the _hypot call; VC5 then materialises the pair in
+// assignment order (lea ebp,[edi+0x22] then lea ebx,[esi+0x6a]) and the earlier
+// right-to-left-looking pair vanished. A single declaration with initialisers
+// does not do this (it is folded away, 96.8%); the declared-then-assigned form
+// is what keeps the value live and orders the leas, and the same form applied
+// to unit->def / size / rate in state 4 changes nothing (97.1% either way).
+// What still differs (checked against build/scratch/0x411f50/ctx.txt):
 //  - 0x4123ad and 0x4123ec: state 4, the turn-time formula. The original keeps
 //    unit->def in ebp (mov ebp,[esi+0x92]) and computes
 //    `(int)(sqrt(size * 2.0 / rate) * 30.0f * unit->type->field_22) + 1 +
@@ -41,28 +33,26 @@
 //    `add ebx, ecx`; VC5 rewrites our spelling into
 //    `field_216 - (int)(sqrt(...) * field_22 * -30.0f) + 1` (fmul of the -30.0f
 //    constant, `sub ebx, eax`) and puts def in ebx. Earlier passes tried five
-//    rewrites; this session tried eleven more source shapes in
-//    build/scratch/0x411f50/micro*.cpp: the (int) result in its own int local,
-//    that local passed to an inline helper, the sum split over two statements,
+//    rewrites plus eleven more source shapes in build/scratch/0x411f50/micro*.cpp
+//    and varA..varP.cpp: the (int) result in its own int local, that local
+//    passed to an inline helper, the sum split over two statements,
 //    `+ def->field_216 + 1`, `1 + ...`, `f216 + 1 + t`, an `unsigned short`
 //    copy of field_216, `(int)(float)(...)`, an `unsigned` sum and a sum whose
-//    field_216 load is a separate local. Every shape materialises the sum in a
+//    field_216 load is a separate local: every shape materialises the sum in a
 //    local first and every one compiles to the negated -30.0f form. The
 //    positive +30.0f form appears only when the sum is folded into an `lea`
 //    inside a call argument, and the original computes the sum before the
 //    if/else (inc/add before the target test), so that shape cannot be used.
 //    tools/headers.py over all 128 header sets gave 96.6% for every set (64
 //    sets fail to compile without <list>/<vector>), so header state does not
-//    flip it either. This session added seven more shapes (build/scratch/
-//    0x411f50/varA..varP.cpp): naming the product `float sp = (float)sqrt(size
-//    * 2.0 / rate) * 30.0f;` does flip VC5 to the original's constant-first
-//    multiply order, but it then rewrites fidiv into fdivp/fxch, the field_22
-//    multiply into fild/fmulp and the sum into a single `lea [eax+ecx+1]`,
-//    which is 55 differing lines against 21 here at the same 96.8%; and
-//    writing the sum as `(f216 + 1) - (int)(x * -30.0f)` or as
-//    `f216 + (1 - (int)(x * -30.0f))` compiles to the identical negated bytes,
-//    so VC5 normalises the sign and the association after instruction
-//    selection, not from the source spelling.
+//    flip it either. Naming the product `float sp = (float)sqrt(size * 2.0 /
+//    rate) * 30.0f;` does flip VC5 to the original's constant-first multiply
+//    order, but it then rewrites fidiv into fdivp/fxch, the field_22 multiply
+//    into fild/fmulp and the sum into a single `lea [eax+ecx+1]`, which is 55
+//    differing lines against 12 here at the same 97.1%; and writing the sum as
+//    `(f216 + 1) - (int)(x * -30.0f)` or as `f216 + (1 - (int)(x * -30.0f))`
+//    compiles to the identical negated bytes, so VC5 normalises the sign and
+//    the association after instruction selection, not from the source spelling.
 //  - 0x4126f0: the switch jump table address still shows as <addr>; check.py
 //    resolves relocations only once the code matches, so this may not be a real
 //    difference.
@@ -265,11 +255,15 @@ int __stdcall FUN_00411f50(Unit* unit, Order* order, unsigned int flags)
             return 1;
         }
         break;
-    case 1:
+    case 1: {
         ((Class_00489800*)unit)->FUN_00489800(3);
         ((Class_004898b0*)unit)->FUN_004898b0(0);
+        Vec3* op;
+        Vec3* up;
+        op = &order->pos;
+        up = &unit->pos;
         if ((int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z) < 0x1e00000) {
-            int angle = FUN_0048a980(&unit->pos, &order->pos);
+            int angle = FUN_0048a980(up, op);
             Vec3 dest = unit->pos + Offset(angle, 0x8c00000);
             Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
             ((Class_0044e730*)obj)->FUN_0044e730(0x3c0);
@@ -278,9 +272,14 @@ int __stdcall FUN_00411f50(Unit* unit, Order* order, unsigned int flags)
             return 1;
         }
         return 1;
+    }
     case 2: {
+        Vec3* op2;
+        Vec3* up2;
+        op2 = &order->pos;
+        up2 = &unit->pos;
         int dist = (int)_hypot(order->pos.x - unit->pos.x, order->pos.z - unit->pos.z);
-        int angle = FUN_0048a980(&unit->pos, &order->pos);
+        int angle = FUN_0048a980(up2, op2);
         int radius = dist / 2;
         Vec3 dest = unit->pos + Offset(FUN_004b6c30(0x4000) + angle - 0x2000, radius);
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);

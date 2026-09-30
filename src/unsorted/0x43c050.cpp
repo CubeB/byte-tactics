@@ -1,5 +1,20 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// RETRY 2 (deepseek-v4.1-flash, 2026-09-30, 10 min): 89.8% -> 92.0% (753
+// against 732 bytes). The fix was in `_Sort_0043c050`: write the loop test as
+// `_L - _F > 16` instead of `16 < _L - _F`. That spelling makes MSVC 5 fold
+// the `_Sort_0` `if (_L - _F <= 16)` test together with the inlined `_Sort`
+// entry test, so the redundant `cmp edx, 0x10 / mov ebp, esi / jle` prologue
+// (7 bytes) disappears and the sort's `_F` home lands in ebp/esi the way the
+// original has it. The same loop merged by hand into `_Sort_0`, and the
+// inverted `if (_L - _F > 16) { ... } else ...` form, are both worse (85.9%
+// and 90.1%). What still differs: reserve's out-of-line `_Destroy` call is
+// still inlined empty (the tail reloads `_First` into eax/ecx instead of
+// ebp/eax), and the sort block is missing the `mov esi, ebx` copy so its
+// post-loop `_F` reload lands in eax instead of esi. The nudge experiments
+// (a zero-trip inline helper at seven positions) still just trade this for a
+// worse global allocation (v6/v8: 84.3% at 752 bytes).
+//
 // RETRY (deepseek-v4.1-flash, 2026-09-30, 10 min): retained the 89.8% / 745 byte
 // version. Confirmed once more that the only missing bytes are reserve's
 // out-of-line `call _Destroy` (0x43c390) plus the register reallocation it
@@ -172,7 +187,7 @@ int __stdcall FUN_0043c020(const Elem_0043c390& a, const Elem_0043c390& b)
 
 template<class _RI, class _Ty, class _Pr>
 void _Sort_0043c050(_RI _F, _RI _L, _Pr _P, _Ty *)
-{for (; 16 < _L - _F; )
+{for (; _L - _F > 16; )
     {_RI _M = FUN_0043cb20(_F, _L,
         FUN_0043ca70(_Ty(*_F), _Ty(*(_F + (_L - _F) / 2)), _Ty(*(_L - 1)), _P), _P);
     if (_L - _M <= _M - _F)

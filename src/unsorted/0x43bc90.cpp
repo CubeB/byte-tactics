@@ -31,6 +31,15 @@
 // the Access class (26.6, wrong insert/name resolution), `push_back(from[i])`
 // (69.5).
 //
+// deepseek-v4.1-flash (retry 2, 10 min): the 83.6 version is still the best.
+// Tested against it, all worse: begin()/end() read into locals before the
+// reserve call (68.1, reserve stops inlining cleanly), the same with an index
+// loop (68.1), pointer loop with inline end() (73.8, 896 bytes), and pointer
+// loop with the explicit `ins` iterator (82.6, 918 bytes). The 909-byte index
+// loop with `ins` stays the best; the remaining gap is still the prologue
+// allocation: original ecx=begin before `sub esp`, ebp=end after push ebp,
+// ours ecx=end/ebx=begin.
+//
 // deepseek-v4.1 (2026-09-30, rerun): baseline 75.9% / 896 bytes confirmed
 // unchanged. New probes, none better: declaring the global as a plain
 // `Vec_0043c390` instead of the Access class ties at exactly 75.9% / 896; a

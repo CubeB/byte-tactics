@@ -107,6 +107,17 @@
 //    (a redundant move, load or store), not at the source shape.
 //  - Preceding dummy functions in the same TU (small, large, or with the same
 //    loop) change nothing either.
+// Fourth pass (deepseek-v4.1): the do-while form
+//   do { reset(); if (!find(i)) break; ...body...; } while (i++, 1);
+// keeps ONE shared latch (all case breaks jump to 0x4aed2a, no copies:
+// 756 bytes total vs our 880), because MSVC only duplicates into
+// predecessors ending in an UNCONDITIONAL jmp and here the back-edge is the
+// loop condition. But /O2 rotates that loop (guard moves to the bottom, an
+// entry test is peeled), which is a different layout from the original, and
+// scores 74.6%. The original has the guard at the top AND a shared latch,
+// so the source shape must be a top-tested loop whose bottom is still not
+// an unconditional-jmp predecessor of the latch; not found within the
+// timebox. Scratch variant kept at build/scratch/0x4aeac0/v1.cpp.
 #include <string.h>
 
 class Class_004c46c0 {

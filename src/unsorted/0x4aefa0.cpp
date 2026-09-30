@@ -168,6 +168,26 @@
 // backslash (0x4af03f) instead of only the first, and if no line is absolute
 // the sort is skipped entirely while the buffers are still rebuilt (the jump
 // at 0x4af05a). So the split index is the LAST absolute path, not the first.
+// deepseek-v4.1, sixth pass, still 72.2 % (882 of 895 bytes). New evidence on
+// which value the allocator keeps across the first loop: the original uses
+// ptr1 in ebx AFTER the loop at 0x4af07c (`lea esi,[ebx+4]`, the pass 1 cursor)
+// and 0x4af14a (`lea esi,[ebx+edx*4+4]`, the pass 2 cursor), so ptr1 stays in
+// ebx across the whole first loop while `count` is re-read from the argument
+// slot at the latch (0x4af043 `mov eax,[esp+0x44]`). Our body does the
+// opposite: ptr1 is home in edi and edi is recycled as the loop cursor, so ptr1
+// is re-read from its slot at both of those sites and count is promoted to ebp.
+// Twenty source shapes were compiled and measured this pass, every one a
+// byte-identical 882-byte body at 72.2 %: `i != count` and `count > i` guards,
+// `*ptr1[i]` for the backslash test, `i = 0;` split out of the for initializer,
+// the increment moved into the body, `register int i`, `for (n = -1, i = 0; ...)`,
+// `if (list2 != 0)`, a separate `i1` index for the first loop only, point-of-use
+// declarations for buf1/buf2/ptr1/ptr2, `char** const cp = ptr1;` used for the
+// store with the test still on ptr1 (MSVC folds cp into ptr1), a static
+// single-use FillLists helper that gets inlined back to the same code,
+// reordering the whole local declaration list, and `#include <windows.h>`.
+// The pass 1 setup also confirms the slots: 0x10 ptr2, 0x14 ptr1, 0x18 swapped,
+// 0x1c n, with keys (arg3) at 0x40 overwritten by ptr2-ptr1 and the pass 1 trip
+// count at 0x2c.
 #include <string.h>
 
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);

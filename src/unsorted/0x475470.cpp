@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free and Claude Opus 5.5. Names are provisional.
+// Decompiled by space-bunny-free and Claude Opus 5.5, verified by GPT-6.1-sol. Names are provisional.
 // Slot 2 (FUN_00472e30) of Class_00474cd0 (vtable 0x4fd618, see 0x474cd0.cpp),
 // the fog-culled twin of Class_004750b0::FUN_00472e30 (0x475700). Every
 // 32-byte record of the vector at +0xc is drawn through an inlined record
@@ -46,6 +46,8 @@
 // switch; writing the two arms straight into DrawIfVisible (the 0x4745e0
 // shape) collapses the frame to 375 bytes and 37.4; adding a `w`/`m` local
 // pair to IsSeen is byte-identical to this version. 84.6 stands as the best.
+// GPT-6.1-sol rechecked this version (84.6) and tested a local alias for the
+// byte-map data pointer; the generated code and score were unchanged.
 #include <stddef.h>
 #include <vector>
 

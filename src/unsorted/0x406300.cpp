@@ -1,4 +1,19 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// deepseek-v4.1 pass (round 7): still 96.2% (1149 vs 1152), the shared tail is the
+// only difference and it is still down to one missing load, not to size. New probes:
+// the double `mov ecx,[edx+0x5c]; mov edx,[edx+0x5c]` idiom exists exactly twice in
+// the image (here at 0x40665e and at 0x4100ea), so the twin 0x40fbe0 has the same
+// open problem: its source also CSEs the pair down to one load, so it is not the
+// answer to copy. `(*(Order**)((char*)order->target+0x5c))->target` is STILL CSE'd
+// with the typed `order->target->order` load (1145 bytes, 92.1%, and it recolors the
+// case 0 block: eax/ecx swap in the width sum and the kind byte moves to [esp+0x14]),
+// because the front end lowers both to the same field load. Raw `order->target->order->target`
+// with `&order->target->order->pos` is 1145, 88.9, same recoloring. Only the char* cast
+// keeps the rest of the function intact. What is needed: a spelling for the target
+// argument that loads `order->target->order` a second time into edx (ecx keeps the
+// `add ecx,0x22` base) yet leaves every other register assignment alone, so the
+// 3-byte gap closes without recoloring the case 0 and follow blocks.
+
 // Partial: 96.2% (1152 vs 1149 bytes), verified by a real check.py run. The only
 // remaining diff is the shared build/help tail, and it is now down to register
 // choice, not to size: casting the INTERMEDIATE pointer in the target argument,

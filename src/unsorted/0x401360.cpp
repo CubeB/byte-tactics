@@ -40,6 +40,14 @@
 // `fld dword ptr [dst]; fadd st(1)` form at some of those sites. So the slot layout (orig used@0x10, backlog@0x18, demand@0x20, produced@0x28;
 // ours produced@0x10, used@0x18, backlog@0x20, demand@0x28) is not a declaration/init-order lever.
 // Still differs: the original materialises the helper result in eax (`mov eax,1; mov edx,eax` / `xor eax,eax; ...; mov edx,eax`) as an inlined callee return, ours assigns edx directly; ours also hoists the backlog compare above the `used += v` store. Ours is 67 bytes shorter (2172 vs 2239). In the tail the demand-ratio argument to EndTick is read from [esp+0x10] in the original while ours reads a different array slot (0x18/0x14 order swaps in the accumulation block at ~0x401889).
+// deepseek-v4.1-flash run 3 (10 min box, 1 check run): re-read the full 2239-byte original listing against the
+// diff. The whole surviving difference is upstream of the byte-count gap, in the two inlined UseEnergy copies:
+// the original keeps the energyUse value (fchs'ed to -v in the negative arm) LIVE on the x87 stack for the
+// whole inlined body and pops it once in the shared tail block at 0x4016c3, so its plain AddIncome tail is
+// `fld [dst]; fadd st(1); fstp [dst]` (non-popping fadd) only where that leftover must survive; the first
+// copy, whose value is consumed, has the folded `fadd [dst]` at 0x401472 instead. Ours never keeps v live,
+// which both drops the pop and lets the backlog fcomp sink in front of the `used += v` fstp. No source shape
+// reached that in this box; file left at the run-2 best.
 // deepseek-v4.1-flash run 2 (900s): baseline 77.2 confirmed. Tried and rejected, all 77.2 or worse:
 // normalization loop with indexed compares and `have` only for the subtracts (77.1); a `float& have`
 // reference; `*have = *have - take`; `for (i = 0; i != 2; i++)`; `take` declared before `have`;

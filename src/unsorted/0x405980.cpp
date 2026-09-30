@@ -73,6 +73,22 @@
 //    capE and multiplies first, the original loads energy first) and the FUN_0047ea40 setup's
 //    register order. Everything else, including the switch, the vector teardown, the return
 //    epilogues and the case-0 block, is byte-for-byte the original's instruction text.
+// 10. edited by deepseek-v4.1 (third pass): the twin 0x4152f0's evidence that a by-value
+//    `static inline int Reclaim(Unit*, Order*, Vec3*)` makes MSVC5 emit ONE shared ctor tail
+//    for every branch was applied here for B/C/D (A kept inline, its extra FUN_004388d0 makes
+//    it unmixable): the tail DOES collapse to one copy but the helper also hoists the `new`,
+//    giving 1018 bytes at 79.3% (1040 - 22), so the original's B/C/D-only share is not a helper.
+// 11. The gate's second energy test in the `!(energy >= capE*0.2) || metal < capM*0.2` form
+//    does reproduce the original's `test ah,0x41; je <body>` mask but loads capE first, adds
+//    `fxch st(1)` and ends at 1083 bytes / 90.2%, i.e. worse than the file's
+//    `capE*0.2 > energy` form (1081, 91.2%). Remaining work is unchanged: one extra inline
+//    ctor tail (+41 bytes) and the register order inside the FUN_0047ea40 setup and the gate.
+// 12. Correction to item 1: the original's gate is the OR form, not `&&`. The metal test at
+//    0x405b39 falls through to 0x405b5a (the body) when metal < capM*0.2, so with
+//    `je 0x405b5a` on the energy test the body runs when energy < capE*0.2 OR
+//    metal < capM*0.2, exactly the `||` written at line 157. The C-level oddity is only the
+//    operand order: the original's second test is the `energy >= capE*0.2` shape (`fld energy`
+//    first, `test ah,0x41; je`) whose branch happens to target the body.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;

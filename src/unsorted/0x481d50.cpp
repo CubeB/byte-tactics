@@ -1,76 +1,17 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, re-tried by
-// space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// Partial, 94.7 percent (822 bytes vs 821). This attempt fixed the whole else
-// branch: the limit expressions are plain if/else on the negated condition
-// (`if (x + frame->width >= halfW) limitX = halfW - x; else limitX = width;`)
-// so the raw width lands out of line, and dst is declared before src (the
-// original computes the explored-map pointer first, then the frame pointer).
-// Remaining diffs, all allocator state: (1) the x/y frame slots are still
-// swapped (original x 0x1c, y 0x20; ours y 0x1c, x 0x20); (2) `bestDiff * j1`
-// loads 0x2c-then-imul-0x10 in the original, 0x10-then-imul-0x2c here;
-// (3) the explored base: original does `add edx,0x7c` on the map pointer and
-// reuses it, ours folds the fields into [edx+0x80] and [edx+0x7c]; (4) the
-// exit label is one byte later because the function is 1 byte long.
-//   the original materialises `j1 = 1` in the loop PREHEADER, below the
-//   `jle` that guards the loop (`test ax,ax / jle / mov [esp+0x10],1 / jmp`),
-//   while every other initialiser (bestIdx, bestDiff, j) is stored above it.
-//   That only happens if the source puts the `j1 = 1` inside the guarded
-//   region, so the inner loop must be `if ((short)num > 0) { int j1 = 1;
-//   do { ... } while (j++, j1++, (short)j < (short)num); }`: the `if` gives
-//   the guard, the comma expression in the controlling expression keeps the
-//   two increments in the bottom block AND keeps `continue` jumping to them
-//   (a do-while with the increments in the body would skip them). A nested
-//   -if spelling with the increments in the body scores the same 79.4.
-// Still different, in order of size:
-//   1. the x/y frame slots are swapped: original x 0x1c, y 0x20, ours y 0x1c,
-//      x 0x20. This is the lod/ebp story from the previous notes and it is
-//      NOT the declaration order: declaring y before x scores 79.1, i.e. the
-//      pair moves together or not at all.
-//   2. `bestDiff * j1` is built `mov eax,[0x2c] / imul eax,[0x10]` in the
-//      original and `mov eax,[0x10] / imul eax,[0x2c]` here, and the source
-//      operand order (`j1 * bestDiff`, either or both compares) does not move
-//      it, so MSVC5 canonicalises the multiply and this is allocator state.
-//   3. the whole else branch: limitX/limitY land in 0x34/0x30 here and
-//      0x18/0x34 in the original, `n = limitX - nx` is hoisted here (its own
-//      slot 0x44) and computed inside the row loop there, nx/ny are swapped
-//      (original: edi = nx, eax = ny = the row index; ours: eax = nx, edi =
-//      the row index), the two row guards are in the other order, and the map
-//      base is reached as `mov edx,[ebx] / add edx,0x7c / imul ecx,[edx+4]`
-//      in the original but as two separate loads `mov ebx,[esi+0x7c] /
-//      imul ecx,[esi+0x80]` here.
-// Earlier attempts, all below the current best:
-// The LOD-table block, from the previous session, worth 59.3 to 65.6:
-//   1. the table index must be the *ternary* form of the sibling function
-//      (`Lod(params) < FUN_00433520() - 1 ? Lod(params) : FUN_00433520() - 1`)
-//      with the clamp inlined, not a named `lod` local. That alone made the
-//      prologue, the flag block, the x/y loads and the map update match.
-//   2. limitX/limitY are `(x + frame->width < halfW) ? halfW - x : frame->width`
-//      and `(y + frame->height < halfH) ? halfH - y : frame->height`; with the
-//      arms the other way round the branch polarity and both stores moved.
-// Frame slots now agree with the target for j1 0x10, dx 0x24, ref 0x28,
-// bestDiff 0x2c, grid 0x30, j/limitY 0x34, table 0x38, line 0x3c, num 0x40 and
-// halfH/count 0x44. Still different (original -> ours): dy 0x14 -> 0x18,
-// i/limitX 0x18 -> 0x1c, x 0x1c -> 0x20, y 0x20 -> 0x14 (y is the only variable
-// out of order in the allocator's list; swapping it back would fix all four),
-// and the Lod clamp: the original evaluates max(field_8/32, 0) *before* the
-// FUN_00433520 call and keeps it in a slot (`mov [esp+0x34], ecx` at 0x481e05,
-// `mov eax, [esp+0x34]` at 0x481e16) so y stays in ebp (`imul edx, ebp` at
-// 0x481e75); ours hoists only the raw division into ebp across the call and
-// clamps after it (`test ebp,ebp; setl dl`), so y is memory resident and the
-// x/y/dy/i slots shift. The else branch also differs: ours hoists
-// `n = limitX - nx` out of the outer loop (with its own slot 0x44), keeps
-// limitX at 0x34 and limitY at 0x30, has nx/ny in eax/edi where the original
-// has edi/eax, and loads the explored base with [reg+0x7c] displacements where
-// the original materialises `add edx, 0x7c`.
-// Tried and rejected this session: `int i` for the grid-loop cursor (60.4),
-// `int j` (33.0), `#include <math.h>` (62.5), `#include <string.h>` (no change),
-// reversed condition `Count() - 1 > Lod(params)` (identical bytes), subscript
-// form `&explored.data[...]` for dst (identical bytes), reversed compare
-// `bestDiff * j1 < d0 * bestIdx` (64.9), named `lod` reused in the then-arm
-// (63.8, 798 bytes), dst declared before src in the else branch (32.8: it
-// reshuffles the whole prologue, g_game moves from ecx to edi). Earlier
-// attempts, all below the current best (see the previous note in git history):
-// statement-form clamp, no `= 1` on j1, ascending-slot declaration order.
+// space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash.
+// Names are provisional.
+// Partial, 99.3 percent (821 bytes). The whole function matches byte for byte
+// except one instruction pair: the original builds `bestDiff * j1` as
+// `mov eax,[esp+0x2c] / imul eax,[esp+0x10]` (bestDiff first), ours as
+// `mov eax,[esp+0x10] / imul eax,[esp+0x2c]` (j1 first). Source operand order
+// (`bestDiff * j1`, `j1 * bestDiff`, a temp, either or both compares), an
+// unsigned j1, and 128 header sets (tools/headers.py) leave it unchanged, so
+// it is compiler state from the rest of the original translation unit.
+// Everything else, including the else branch, matches: taking
+// `ByteMap_00481d50* ex = &((Map_00481d50*)params->field_0)->explored;`
+// inside the row loop makes MSVC materialise `add edx,0x7c` and load the
+// data/width fields off it, which fixed the last structural difference.
 // <windows.h> is required.
 #include <windows.h>
 #include <stdio.h>
@@ -265,8 +206,8 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
         if (nx >= limitX)
             return;
         for (int i = ny; i < limitY; i++) {
-            unsigned char* dst =
-                ((Map_00481d50*)params->field_0)->explored.data + (y + i) * ((Map_00481d50*)params->field_0)->explored.size.width + nx + x;
+            ByteMap_00481d50* ex = &((Map_00481d50*)params->field_0)->explored;
+            unsigned char* dst = ex->data + (y + i) * ex->size.width + nx + x;
             unsigned char* src = frame->data + i * frame->width + nx;
             for (int j = nx; j < limitX; j++) {
                 if (*src != frame->mask)

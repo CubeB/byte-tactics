@@ -1,21 +1,31 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free. Names are provisional.
-// PARTIAL: 71.0% (1047 of 1052 bytes). Fixed this session, all in the branch
-// that selects the LOD frame index:
-//  1. The else branch needs the UNCLAMPED lod/32 - 5, then the clamp. Clamping
-//     inside the helper first (as before) emitted sets/dec/and before the -5.
-//     A separate unclamped helper for that site was worth 0.8.
-//  2. The inner j loop needs NO `if (num > 0)` wrapper: a single `for` test
-//     gives the original's one `test ax,ax / jle` instead of two. Worth 2.9.
-//  3. With (2) in place the coordinate outputs no longer want `= 0`, and
-//     dropping the zero stores was worth 2.5. This is the trap: on its own,
-//     removing those initialisers COST 5.6 points. It only pays once the
-//     duplicated loop test is gone, because both perturb the same allocation.
-// Still different: the inner loop's two induction variables are allocated the
-// wrong way round (ours puts j1 in ebx and bestIdx in a frame slot, the
-// original puts bestIdx in ebx and j1 at [esp+0x1c], with j in ecx), and
-// because ours folds j into j1-1 the frame is one dword short (0x40 not
-// 0x44). The lod clamp is also sunk past the FUN_00433520 call here, so the
-// first copy in the frame is the raw value. See NOTES at the bottom.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free. Names are provisional.
+// PARTIAL: 81.5% (1052 of 1052 bytes, so every jump target lines up again and
+// what is left is real instructions). This session's fixes:
+//  1. THE LOD CLAMP MUST BE WRITTEN OUT, NOT CALLED AS AN inline FUNCTION.
+//     Spelling `max(lod, 0)` as the `Lod_00481930(params)` helper made MSVC 5
+//     materialise the RAW lod in ebp across the FUN_00433520 call and sink the
+//     clamp after it (`mov ebp,eax / sar ebp,5 / call / xor edx,edx /
+//     test ebp,ebp / setl dl / dec edx / and edx,ebp`). Writing the same clamp
+//     literally at all three sites (the comparison and both ternary arms)
+//     gives the original's order: clamp first, in ebp, call second, and the
+//     `mov ecx,0 / sets cl` form. That is worth exactly 1 byte of size, and
+//     because every internal branch target is built from the offsets, that one
+//     byte moved EVERY later jump: 71.0% -> 81.2%. Note this is the opposite
+//     of the guide's "an inlined function boundary is not a CSE boundary": the
+//     two spellings agree on values, but the helper's SHAPE steers the
+//     scheduler's choice of what to hoist across the call.
+//  2. In the inner mask loop the two pointer bumps must be written
+//     `dst++; src++;` (visibility mask first), the reverse of the natural
+//     reading order, to get `add edx,2` before `inc ecx`. Worth 0.3.
+// Still different, and all of it register allocation (see NOTES at the bottom):
+//  * the first visibility cell: the original computes `halfW * y + x` with the
+//    product in edi, halfW's own register (`imul edi, [esp+0x10]`), ours puts
+//    it in eax (`mov eax, [esp+0x10] / imul eax, edi`);
+//  * the inner loop gives ebx to j1 and a frame slot to bestIdx, the original
+//    gives ebx to bestIdx and a frame slot to j1;
+//  * the else branch is one register choice: the original keeps the LOS frame
+//    pointer in ecx (slot 0x24) with limitX in 0x38, ours keeps it in edx
+//    (slot 0x38) with limitX in 0x24, and that one swap moves every reload.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -140,12 +150,13 @@ void __stdcall FUN_00481930(Params_00481930* params)
     if (g_game->flag2 == 1) {
         Grid_00481930* grid = &g_game->grid1;
         if ((unsigned)x < grid->width && (unsigned)y < grid->height) {
-            void* table = ((Class_00433500*)DAT_0051e6a0)
-                              ->FUN_00433500(
-                                  (Lod_00481930(params) <
-                                   ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
-                                      ? Lod_00481930(params)
-                                      : ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1);
+            void* table =
+                ((Class_00433500*)DAT_0051e6a0)
+                    ->FUN_00433500(
+                        (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32) <
+                                ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1
+                            ? (params->field_8 / 32 < 0 ? 0 : params->field_8 / 32)
+                            : ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1);
             short count = ((Class_004335c0*)table)->FUN_004335c0();
             unsigned short* cell = &g_game->visibilityMask[halfW * y + x];
             if ((unsigned short)(bit & *cell) == 0) {
@@ -156,12 +167,11 @@ void __stdcall FUN_00481930(Params_00481930* params)
             for (short i = 0; (short)i < count; i++) {
                 void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
                 short num = ((Class_004339c0*)line)->FUN_004339c0();
-                int j1 = 1;
                 int bestIdx = 0;
+                int j1 = 1;
                 int bestDiff = -1;
                 {
                     for (short j = 0; (short)j < (short)num; j++) {
-                        j1++;
                         int y2, x2;
                         ((Class_004339e0*)line)->FUN_004339e0((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
                         x2 += x;
@@ -185,6 +195,7 @@ void __stdcall FUN_00481930(Params_00481930* params)
                                 }
                             }
                         }
+                        j1++;
                     }
                 }
             }
@@ -216,8 +227,8 @@ void __stdcall FUN_00481930(Params_00481930* params)
                             changed = 1;
                             *dst ^= bit;
                         }
-                        src++;
                         dst++;
+                        src++;
                     } while (--n);
                 }
                 i++;
@@ -247,5 +258,103 @@ void __stdcall FUN_00481930(Params_00481930* params)
 //  * Hoisting a shared `int rhs = bestDiff * j1;` for the two comparisons
 //    changes nothing: the original already reuses the product in eax.
 //  * Moving `j1++` to the end of the loop body instead of the top: no change.
+//  * Swapping the declaration order of bestIdx / j1 (bestIdx first) and moving
+//    j1++ from the body top to the body bottom together: 71.0%, same score but
+//    1051 bytes instead of 1047. MSVC5 still gives ebx to j1 and spills bestIdx
+//    (`mov ebx, 1` before the num guard, `imul edx, [esp+0x20]`), so the
+//    original's ebx-held bestIdx is not reachable by declaration order.
+//  * `for (j = 0; j < num; j++, j1++)` (both increments in the for-increment
+//    clause, bestIdx/bestDiff/j1 order): 70.7%, worse.
+//  The remaining diff is the register allocator's choice of loop-carried
+//  candidate for ebx (bestIdx in the original, j1 here) plus the knock-on
+//  scheduling of the lod clamp before vs after the FUN_00433520 call.
 //  * Wrapping the loop in a bare brace block instead of `if (num > 0)`: needed
 //    for fix (2) above; the block itself is otherwise free.
+// Tried again on the 81.5% base, all neutral or worse (the score column is
+// check.py's, and 81.2 was the base before the pointer-bump fix):
+//  * the lod clamp as a named local compared against a fresh helper call in the
+//    arms (81.2, no change), both arms using the local (71.8, and the size
+//    collapses to 1026 because the second FUN_00433520 call disappears), a
+//    separate statement before the `if` (64.4), the count side named too
+//    (70.8, size 1010). So no spelling of a local gets the clamp above the
+//    call: only dropping the helper altogether does.
+//  * the whole min-with-call as its own inline helper (62.8 for the two-armed
+//    if/else form, 70.7 for the one with a named local): duplicating the call
+//    in both arms of a real `if` is much worse than the ternary here, the
+//    opposite of the guide's item 27 for this shape.
+//  * `y * halfW + x` and a named `int idx`, `row` or `hw` for the first
+//    visibility cell: all exactly neutral, MSVC 5 picks that multiply's
+//    destination from register pressure, not from the source's operand order.
+//  * the inner loop: `for (j = 0; j < num; j++, j1++)`, `j1++` at the top of
+//    the body, one combined declaration, `unsigned int` for the counters,
+//    hoisting either side of the comparison into a local, and the reversed
+//    comparison `bestDiff * j1 < d0 * bestIdx`: all 81.2, i.e. none of them
+//    touch the ebx choice. Declaring j1 before bestIdx is 74.5, moving
+//    bestDiff into the middle 80.9, `int j` instead of `short j` 73.8, and
+//    `short j1` 76.x: types and declaration order all steer it, none of them
+//    onto the original's split.
+//  * the else branch: naming fw/fh (59.4), if/else instead of the ternary
+//    (75.2), declaring limitY before limitX (79.0), an accessor local for
+//    &frame->width, a second `Frame*` alias, `(int)(unsigned short)frame->width`
+//    in the clamp, and every parenthesisation of `frame->data + i*w + nx` with
+//    a data or width or frame-pointer local: all neutral or worse. The frame
+//    pointer keeps landing in edx rather than ecx, and `frame->data` keeps
+//    being materialised into a register instead of folded into the final
+//    `add ecx, [edi+0x10]`.
+//  * writing the two bumps as `*src++ = *src; *dst++ = *dst;`: neutral. The
+//    order of the two STATEMENTS is what counts, not the form.
+// Re-tried on the 81.5% base by space-bunny-free, ALL neutral (81.5, 122 diff
+// lines, exactly as the base), so none of these is the missing construct:
+//  * hoisting `int rhs = bestDiff * j1;` for the two comparisons. This was the
+//    most promising idea left, because the allocator's choice of ebx looks like
+//    a reference-count priority: j1 has 4 refs (2 imul reads, the `mov ebx,
+//    [esp+0x1c]` read, and the increment) against bestIdx's 3 (2 imul reads and
+//    the write), so j1 wins the callee-saved slot. Cutting j1 down to 2 refs
+//    does NOT flip it, which kills the reference-count theory.
+//  * `j1++` as the first statement of the inner body (the original's init at
+//    0x481abc is below the `jle`, which is what the rotated-loop peel looks
+//    like, so the top-of-body spelling seemed worth a test).
+//  * `g_game->visibilityMask + halfW * y + x` instead of the indexed form, and
+//    `g_game->width` through a local: the first cell's `imul` destination is
+//    not reachable from the source's shape at all.
+//  * `halfW > x + frame->width` and `halfH > y + frame->height` (swapping the
+//    `<` for a `>`, per the guide's item 16, to flip which ternary arm is the
+//    fall-through in the limitY clamp): 81.2 each, so the limitY `jl` polarity
+//    is not under source control either.
+//  * a second `Frame_00481930*` alias used in the inner loop, and
+//    `if (limitY > ny)` for the row guard.
+// Worse, for the record: declaring j1 before bestIdx (74.8), `changed = 0` at
+// the top of the else branch rather than just before the row guard (75.5), one
+// combined `int bestIdx = 0, bestDiff = -1, j1 = 1;` (81.2), the reversed
+// comparison `bestDiff * j1 < d0 * bestIdx` (81.2), and nx/ny written as
+// `if (nx < 0) nx = 0;` after a bare `-x` (57.1).
+// What the diff still looks like, for the next attempt: the three regions are
+// (a) the first cell's `imul` destination, (b) which of j1/bestIdx inherits
+// ebx from `bit`, (c) the else branch's frame pointer, which the original keeps
+// in ecx and slot 0x24 and we keep in edx and slot 0x38. (b) and (c) are the
+// same slot-allocation story: swapping which variable holds ebx also swaps
+// 0x1c and 0x20 for j1 and y2, and swapping the else branch's frame slot
+// 0x24/0x38 moves every reload. A construct that moves ALL THREE at once is
+// wanted, not three local fixes.
+// deepseek-v4.1 swept 37 more shapes against this base. 22 came out
+// byte-identical (81.5) and the other 15 were worse, so none of these is the
+// missing construct. Neutral: adding
+// <stdio.h>, <stdlib.h>, <string.h>, <stddef.h> (any order), `x + halfW * y`
+// and `(short)x2 + halfW * (short)y2` in the two visibility cells,
+// `x + halfW * y` in both at once, `g_game->visibilityMask + (halfW * y + x)`,
+// reversed conditions on both loops, assignment instead of initialisation for
+// `frame` and for `j1`, ctor-style `int bestIdx(0)` / `int j1(1)`, j1 declared
+// inside the bare block, `int changed` declared last, `unsigned int changed`,
+// and a detached `Frame_00481930* frame;` declaration. Worse: `j1 = 1` moved
+// inside an `if ((short)num > 0)` wrapper (76.1, adds a second guard test),
+// `short j = 0` hoisted above bestIdx's declaration (74.5), x/y declared
+// before halfW/halfH (78.3), the cell line moved above the count line (69.7,
+// 1046 bytes), `ref` loaded before the cell (73.6), x/y as `short` (67.9,
+// 1085), bit declared last (58.4), x/y last (59.7), <math.h> (78.7),
+// WIN32_LEAN_AND_MEAN (78.7), and dropping <windows.h> altogether (36.4: the
+// file needs it). Conclusion: (a), (b) and (c) are not reachable from the
+// source shape of this inner block at all; the next attempt should look for a
+// different construct, most likely one that makes bestIdx and j1 be born in
+// different extended basic blocks (the original's `j1 = 1` store sits in the
+// preheader below the `jle`, ours sits in the guard block with bestIdx), or a
+// different source for the outer loop that moves ebx's first free point.

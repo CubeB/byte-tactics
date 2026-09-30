@@ -1,15 +1,34 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 59.8% (1469 vs 1519 bytes). The Game grid layout follows the
-// matched 0x41d920 (grid1 at +0x1428f, grid2 at +0x1429f as grid2+field_142af
-// +field_142b3), and the two grid2 max-scans now use the original's
-// `if (m <= t) m = t; if (prev <= m) res = m;` branch polarity. What still
-// differs is register allocation: the original keeps g_game in eax and b in
-// edi in the grid2 setup (ours: g_game ecx, b eax), keeps cells_14287 in ebx
-// across the four edge loops, and its big final loop needs one fewer stack
-// slot (frame 0x18 vs our 0x1c), with the outer counter at [esp+0x10] and
-// grid1 at [esp+0x14]. The 0x482c20 wrapper also allocates grid2 cells with
-// a call to scalar operator new plus an inlined constructor loop
-// (no ??_H vector-constructor-iterator call).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL: 73.2% (1525 vs 1519 bytes). Layout follows the matched 0x41d920:
+// grid1 at +0x1428f and grid2 at +0x1429f (the +0x10/+0x14 words are the
+// separate g_game fields 0x142af/0x142b3). The function allocates both
+// passability grids, marks their borders, propagates row and column maxima
+// twice, then fills the smoothed values.
+// 64.1% -> 73.2%: the passability pass re-applies q to the freshly assigned
+// p1/p2 cells inside the valid-range branch, not just to the cells carried
+// over from the previous row. Adding `p1[0] = max(p1[0], q); p1[1] =
+// min(p1[1], q);` (and the p2 twin) after each pointer assignment restored
+// the original's second max/min pair. That also released the register
+// pressure that had spilled `cellval` to the stack, so the frame is now the
+// original 0x18 and `idiv` uses ebp.
+// What still differs:
+//  - loop counter slots are permuted: ours has outer=[esp+0x1c],
+//    accum=[esp+0x14], cells2/grid1=[esp+0x10]; the original has
+//    outer=[esp+0x10], cells2/grid1=[esp+0x14], accum=[esp+0x1c]. Hoisting
+//    `outer` to function scope and reordering the accum/p1/p2 declarations
+//    did not move them (all scored a flat 73.2), so this is not a plain
+//    declaration-order lever.
+//  - the outer loop carries an extra `jmp`/`xor esi,esi` at its head where
+//    the original zeroes p1 at the loop bottom.
+//  - the two max/min fill loops keep the same instruction sequence but with
+//    `prev`/`res`/`m` in different registers (ours prev in dl, original
+//    prev in cl with a bl copy of it).
+//  - the grid2 setup swaps which of field_14227/field_14223 lands in edi
+//    versus eax, and the fourth border loop uses a different induction
+//    register.
+// Earlier steps: 61.4% removed a redundant `row` local and stored
+// grid2->field_10 before field_14; 64.1% wrote
+// `grid2->cells = cond ? new Rec[n] : 0;` then read it back.
 #include <new.h>
 #include <windows.h>
 
@@ -71,21 +90,17 @@ void FUN_00482c20(void)
     int b = g_game->field_14227 * 0x10000;
     int a = g_game->field_14223 * 0x10000;
     grid2->field_14 = b;
+    grid2->field_10 = a;
     int h2 = (b + 0x7fffff) >> 0x17;
     int w2 = (a + 0x7fffff) >> 0x17;
-    grid2->field_10 = a;
     grid2->width = w2;
     grid2->height = h2;
     operator delete(grid2->cells);
     int count2 = (h2 * w2 + 7) & 0xfffffff8;
     grid2->field_c = count2;
 
-    unsigned char* cells2;
-    if (count2 == 0)
-        cells2 = 0;
-    else
-        cells2 = (unsigned char*)new Rec_482c20[count2];
-    grid2->cells = cells2;
+    grid2->cells = count2 != 0 ? (unsigned char*)new Rec_482c20[count2] : 0;
+    unsigned char* cells2 = grid2->cells;
     unsigned char* cellp = g_game->cells_14287;
 
     for (unsigned int lb1 = 0; lb1 < (unsigned int)grid2->width; lb1++)
@@ -101,9 +116,8 @@ void FUN_00482c20(void)
         grid2->cells[d * 10] = g_game->field_1427f;
 
     {
-        unsigned char* row = cells2;
         for (int y = 0; y < g_game->height; y++) {
-            unsigned char* recp = row;
+            unsigned char* recp = cells2;
             for (int x = 0; x < g_game->width; x++) {
                 if (cellp[5] > recp[0])
                     recp[0] = cellp[5];
@@ -112,7 +126,7 @@ void FUN_00482c20(void)
                 cellp += 0xd;
             }
             if ((y & 7) == 7)
-                row += grid2->width * 10;
+                cells2 += grid2->width * 10;
         }
     }
 
@@ -193,16 +207,22 @@ void FUN_00482c20(void)
                     p2[1] = min(p2[1], q);
                 }
                 if ((unsigned int)t20 < (unsigned int)grid1->width
-                        && (unsigned int)block < (unsigned int)grid1->height)
+                        && (unsigned int)block < (unsigned int)grid1->height) {
                     p1 = grid1->cells + (block * grid1->width + t20) * 2;
-                else
+                    p1[0] = max(p1[0], q);
+                    p1[1] = min(p1[1], q);
+                } else {
                     p1 = 0;
+                }
                 if (t20 != t24
                         && (unsigned int)t24 < (unsigned int)grid1->width
-                        && (unsigned int)block < (unsigned int)grid1->height)
+                        && (unsigned int)block < (unsigned int)grid1->height) {
                     p2 = grid1->cells + (block * grid1->width + t24) * 2;
-                else
+                    p2[0] = max(p2[0], q);
+                    p2[1] = min(p2[1], q);
+                } else {
                     p2 = 0;
+                }
             }
             if (p1) {
                 p1[0] = max(p1[0], cellval);

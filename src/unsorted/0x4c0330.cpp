@@ -1,4 +1,24 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+//
+// MATCHED (space-bunny-free, 1 check run, 10-minute box). The last instruction
+// is fixed, so the whole file now matches byte for byte at 932 of 932 bytes.
+// The old note (A) below is SOLVED, and the answer is the type pun in the
+// fill: the 4th parameter stays `unsigned char` (the mangled name ends in E)
+// but the value handed to `memset` is an `int` lvalue over the same slot:
+//
+//     memset(dst, *(int *)&color, w);
+//
+// MSVC 5 then treats the fill value as a 32-bit value that happens to be read
+// as a single byte, and its inlined `memset` emits exactly the original's
+// `mov al, byte ptr [esp+0x14080]`. Every other spelling (plain `color`,
+// `(unsigned char)color`, `(unsigned)color`, `color | 0`, `color * 1`,
+// `+color`, `~~color`, `*(unsigned char *)&color`) emits a dword load plus
+// `and eax, 0xff`, and a `char` value gives `movsx`; see the fillblock.py and
+// fillvars.py sweeps in build/scratch/0x4c0330/. An `int` PARAMETER also emits
+// the right instruction but changes the mangled name, so the pun is the only
+// spelling that satisfies both. Nothing else in the function changed: the
+// bounds-loop order, both walk loops and the frame are as the notes below
+// describe.
 //
 // THIS SESSION (deepseek-v4.1-flash, 10-minute box): 80.6 -> 98.8, 933 of 932
 // bytes. The one remaining instruction is item (A) below; everything else
@@ -32,7 +52,7 @@
 // note's `y<minY,y>maxY,x>maxX,x<minX` IS this order; with the new walk shape
 // it is now free (worth 92.4 -> 98.6) instead of costing the min/max homes.
 //
-// STILL DIFFERS (A), one instruction, the whole 1-byte size excess:
+// STILL DIFFERS (A) - SOLVED THIS SESSION, kept for the record:
 //   original: `mov al, byte ptr [esp+0x14080]`
 //   ours:     `movsx eax, byte ptr [esp+0x14080]`
 // (with the plain `unsigned char` param it is `mov eax,[...]; and eax,0xff`,
@@ -333,7 +353,7 @@ int __stdcall FUN_004c0330(Class_004c6ae0* surface, Point_004c0330* points, int 
             s->left = clip.left;
         int w = s->right - s->left;
         if (w > 0)
-            memset(surface->pixels + surface->pitch * i + s->left, (char)color, w);
+            memset(surface->pixels + surface->pitch * i + s->left, *(int *)&color, w);
         s++;
     }
     if (locked)

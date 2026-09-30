@@ -1,10 +1,13 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol,
+// finished by space-bunny-free. Names are provisional.
 // Rebuilds the list of candidate cells: clears the vector at +0x4d, then
 // walks every map cell and adds (x, y, feature value) for each cell whose
 // feature (index below 0xfffb) has a non-zero value at +0xf0 and bit 1 of
 // its flags byte set. 0x40a260 later sorts these by distance.
 //
 // GPT-6.1-sol retry verification: the saved source still scores 88.7% (645/644 bytes).
+// GPT-6.1-sol refinement: two variants scored 67.1% and 88.2%; restored the
+// best and verified it again at 88.7%. The `_S`/`_Q` allocation swap remains.
 // The _S/_Q register swap remains the only difference; the 128-header sweep and
 // prior source-form variants recorded below did not improve it.
 // Partial (88.7%, 645 bytes against the original's 644): only one allocator
@@ -26,6 +29,18 @@
 // an identical 88.7%): treat it as compiler state and move on. Elem's
 // constructor must take the value as a float parameter: that gives the
 // original's fld/fstp copy of the feature value (a plain field copy uses mov).
+//
+// space-bunny-free retry (88.7% again, 645 of 644 bytes, nothing changed): the
+// only difference is which of the two dead callee-saved registers takes the
+// fresh buffer (_S) and which takes the first _Ucopy result (_Q) in the
+// reallocating push_back. Both are free there (the x counter is spilled at
+// [esp+0x10], the y counter at [esp+0x18]), and the loop tails, the spills and
+// both stack slots are byte-identical, so it is one allocator decision. Not
+// reached by tools/headers.py (128 sets, all 88.7%), nor by defining the real
+// neighbour 0x40a5d0 of the same class and translation unit in the same file
+// ahead of this one (scored in build/scratch/0x40a7b0/v1.cpp: still 88.7%,
+// same single hunk). This is the same wall as the out-of-line inserts 0x408f30,
+// 0x40d020 and 0x40d290 the guide records: treat it as compiler state.
 #include <vector>
 
 struct Point16 {

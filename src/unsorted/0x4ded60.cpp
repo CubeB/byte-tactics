@@ -1,7 +1,13 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL 94.2%. Body and fat date/time block are exact. Remaining:
-// PE link-time fold, gmtime block lea placement, Library date load register,
-// GetSystemInfo/GlobalMemoryStatus lea register, processor-count if/else.
+// Partial: 94.2%, 1005 bytes versus 1013. Body and FAT date/time block match.
+// Remaining differences: PE timestamp address folding, gmtime scratch LEA,
+// library-date load timing, system-info pointer register and processor-count
+// formatting. GPT-6 tried 768 header sets and 15 source variants without
+// improvement. Direct sprintf(buf + strlen(buf), ...) restores the library
+// pointer timing but changes processor and memory-status registers (94.1%).
+// Typed NT/file headers and a separate date-prefix length do not improve it.
+// Original bug preserved: CreateFileA failure is tested against zero at
+// 0x4deee1, so INVALID_HANDLE_VALUE reaches GetFileSize at 0x4deeec.
 #include <windows.h>
 #include <time.h>
 #include <stdlib.h>

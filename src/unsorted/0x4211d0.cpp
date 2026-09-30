@@ -1,5 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by
-// space-bunny-free. Names are provisional.
+// space-bunny-free, retried by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry (#2451), still 90.6%. The diff of this version is now only
+// the first-face setup (original: branches, `add esi,0x20; mov edi,1` or
+// `xor edi,edi`; ours: setne/shl/add) and the ecx/edx swap in the copy loop,
+// which follows from it (the setne sequence leaves ecx in use, so the copy
+// loop's first temp lands in ecx instead of edx). Note that this 90.6% version
+// already has the original's `i` spill at [esp+0x10] and `arr` in ebp; the
+// branchy spelling (`if (arr->firstFace != -1) { face++; i = 1; } else i = 0;`)
+// has the original's instructions but loses it (82.0%, 459 bytes: arr evicted
+// instead of i). Not tried before, all no change (90.6% or 82.0% as before):
+// `register` on arr, i and j; idx and j declared at function scope in either
+// order, `for (idx = face->indices, j = 0; ...)`, a while-form copy loop; a
+// sweep of 0..500 unused declarations on the branchy spelling; headers.py on
+// the branchy spelling. Siblings 0x4584d0, 0x459830 and 0x459c70 use the
+// branchy spelling and stop at the same tie, so they share this problem.
 // PARTIAL, 90.6% (refined by GPT-6.1-sol). Changing the first-face setup to
 // `i = arr->firstFace == -1 ? 0 : 1; face += i;` moves the score from 82.0% to
 // 90.6%. The remaining main difference starts at the outer face-loop setup:

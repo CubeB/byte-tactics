@@ -17,6 +17,14 @@
 // accessors, merged || condition, reference parameter, swapped or negated pitch
 // comparisons, &spans[0] and cast forms for the edge-walk cursor lea, reordering
 // locals, dummy prefix functions, or headers.py (128 sets, all 94.5%).
+// deepseek-v4.1-flash retry (#2960): the 0x4c0a90 lever (an unsigned short
+// pitch local keeping surf in ecx) does not transfer here because the local is
+// optimized away: unsigned short pitch/height locals, int pitch local, const
+// pointer, reference alias (sf.pitch) and no-alias direct surf-> use all give
+// the identical 897-byte 94.5% image. The surf pointer load at 0x4c0cf0 is a
+// free eax/ecx tie (ebx/ebp/edi/edx all live there); the compiler picks eax,
+// then maxY takes ecx and the height zero-extend needs an extra `mov eax,esi`.
+// This looks like an allocator tie-break, not a source-shape lever.
 
 struct Span_004c0c70 {
     int x1; // +0x0

@@ -301,7 +301,11 @@ def link_placeholders(orig: Original, sec, start: int, end: int, data: bytes, ad
 
 
 def compare(orig: Original, obj: CoffObject, address: int, want: str | None = None,
-            qualname: str | None = None, symbols: dict[str, int] | None = None) -> Result:
+            qualname: str | None = None, symbols: dict[str, int] | None = None,
+            quick: bool = False) -> Result:
+    """Compare one function of our object with the original. `quick` stops once
+    the bytes are compared: the result has the symbol and bytes_match but no
+    references, score or diff (tools/progress.py's first pass needs no more)."""
     symbols = load_symbols() if symbols is None else symbols
     ALIAS_MAP.clear()
     ALIAS_MAP.update(load_aliases())
@@ -315,6 +319,8 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
     size = orig.sizes.get(address, len(data))
     theirs = orig.read(address, size)
     bytes_match = len(data) == len(theirs) and all(not m or a == b for a, b, m in zip(data, theirs, mask))
+    if quick:
+        return Result(address, name, size, len(data), bytes_match, 1.0 if bytes_match else 0.0)
 
     by_name = {s.name: s for s in obj.symbols}
     by_addr = {v: k for k, v in symbols.items()}
@@ -345,8 +351,6 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
                  if i.address - address <= ref.offset < i.address - address + i.size}
     lo, hi = address, address + size
 
-    shown_ins = disasm(link_placeholders(orig, sec, start, end, data, address, size), address)
-
     # An address into the original image written as a plain number matches the
     # bytes but not the meaning: the linker could never move it. Require a symbol.
     if bytes_match:
@@ -358,6 +362,9 @@ def compare(orig: Original, obj: CoffObject, address: int, want: str | None = No
                 if 0x401000 <= v < orig.end:
                     refs.append(Ref(i.address - address, f"{v:#x}", v, "mismatch",
                                     "hard-coded address: declare the global/vtable/function and refer to it by name"))
+        # Matching bytes score 1.0 with no diff, so skip the text comparison.
+        return Result(address, name, size, len(data), True, 1.0, refs, "")
+    shown_ins = disasm(link_placeholders(orig, sec, start, end, data, address, size), address)
     in_image = lambda v: orig.base <= v < orig.end
     ours_txt = [normalise(i, lo, hi, in_image) for i in shown_ins]
     theirs_txt = [normalise(i, lo, hi, in_image) for i in disasm(theirs, address)]

@@ -198,7 +198,7 @@ def main() -> None:
         obj = objects[src]
         if address not in game or isinstance(obj, str):
             continue
-        res = compare(orig, obj, address, qualname=qualname, symbols=symbols)
+        res = compare(orig, obj, address, qualname=qualname, symbols=symbols, quick=True)
         own = base_name(res.symbol) if res.symbol else ""
         if res.bytes_match and own and not own.startswith("$") and address not in named:
             symbols.setdefault(own, address)

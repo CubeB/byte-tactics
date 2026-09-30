@@ -1,24 +1,30 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and space-bunny-free. Names are provisional.
 // Saves the map's features: the feature type names, then one record per
 // occupied map cell ("3D Features", "Normal Features" or "Animating
 // Features") and the three counts. The load counterpart is 0x424c00.
 //
-// Not matched (99.2%): the only diff is the scheduling of one hunk. Below
-// (f = &g_game->features[c->feature] written before the `if (c->feature <
-// 0xfffb)` test) MSVC emits the address arithmetic before `cmp cx,0xfffb`
-// and gives the original's registers (cell pointer esi, feature pointer
-// edi). The original emits the test first, then `jae`, then the address
-// arithmetic. Writing the definition inside the if (test first) gets the
-// instruction order right but flips the whole loop to cell pointer edi /
-// feature pointer esi (91.9%), plus jump displacements shift by one byte
-// (875 total). That flip is decided globally: an initialised-but-dead
-// pointer before the test (y1), a function-scope or loop-scope index local
-// (v_feat2), an fbase local, a spot local, a static inline accessor
-// (y5), char* arithmetic and all loop forms keep the swapped allocation;
-// the address expression written out at each use (y9) recomputes it at
-// 62.9%. Everything else, the stack layout and the name-copy loop included,
-// is byte-identical. The variants are in build/scratch/0x424890/.
-// <windows.h> is needed (83% without it).
+// Not matched (99.2%): the only diff is the scheduling of one hunk. The
+// original tests first and computes the address after the branch:
+//     mov cx,[esi+8] ; cmp cx,0xfffb ; jae ; mov edi,[edx+0x1426f] ; ...
+// Defining f = &g_game->features[c->feature] before the `if (c->feature <
+// 0xfffb)` test keeps the original''s registers (cell esi, feature edi) but
+// MSVC emits the address arithmetic before the cmp. Moving the definition
+// after the test gives the right order and flips the whole loop to cell edi
+// / feature esi. Second pass (space-bunny-free): that flip is not a local
+// choice, it follows whether the pointer''s definition shares the loop-top
+// basic block with the test. Every spelling with the definition after the
+// test gives the swap: inside the if (91.9%), declared at function scope and
+// assigned in the if (91.9%), declared at loop scope and assigned in the if
+// (91.9%), a continue before the definition (91.5%), a while loop with the
+// pointer declared before the loop (91.9%), a for without an init clause
+// (91.9%), and a local unsigned short index used by both the test and the
+// address (85.8%, 875 bytes, the swap plus one extra byte). So on this MSVC
+// the two orders are mutually exclusive: textually-before gives esi/edi and
+// textually-after gives edi/esi. Everything else, the stack layout and the
+// name-copy loop included, is byte-identical. The variants tried are in
+// build/scratch/0x424890/ (vA is this file and is the best, vB to vT score
+// lower).
+// <windows.h> is needed (83% without it); headers.py finds no better set.
 #include <windows.h>
 #include <string.h>
 #include <vector>
@@ -226,3 +232,6 @@ void __stdcall FUN_00424890(Class_004b4ba0* file)
     ((Class_004b4630*)file)->FUN_004b4630("Number of 3D Features", modelCount);
     ((Class_004b4630*)file)->FUN_004b4630("Number of Animating Features", animCount);
 }
+
+
+

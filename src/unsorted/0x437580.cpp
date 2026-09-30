@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and space-bunny-free. Names are provisional.
 // std::vector<Class_00437820>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
 // static vector at 0x5122c0 (see 0x434a30.cpp); its only caller, 0x4373a0,
@@ -36,6 +36,25 @@
 //   Explicitly declaring the element's copy constructor, operator= and
 //   destructor instead of letting them be implicit also leaves 78.9%. This is
 //   TU compiler state, the same wall as 0x408f30 / 0x40cca0 / 0x40d290.
+//
+// space-bunny-free (still 78.9%): the twin settles what is left. The game's
+// other insert of the same element shape, 0x488fb0, has THIS build's exact
+// register family (edi the third _Ucopy's destination, esi its source and
+// its end, _Q reloaded into ecx after every call), while 0x437580 is the
+// mirror image (edi the source, esi the destination). The two originals are
+// otherwise identical instruction for instruction: same helpers, same element
+// size, same argument slots. The one value that ties the two loops together
+// is _Q: it is the first loop's end AND the third inlined _Ucopy's source,
+// so whichever of edi/esi the third _Ucopy gives its source is the register
+// _Q survives in from the first loop, and the original never reloads it. The
+// remaining gap is that esi/edi tie, and the game's own two copies disagree
+// about it, so no source in this file can decide it (see "the esi/edi
+// priority tie" in docs/agent-guide.md). Note also that the third inlined
+// _Ucopy copies [_Q, _Endofstorage) to _New, not [_Mid, _Endofstorage): the
+// compiler forms the end as _Q - _Mid + _New - _M * 8, which is where
+// `sub edi, ebx / add edi, esi / sub edi, eax` comes from.
+// uv run tools/headers.py 0x437580 (the default 128 sets): nothing above
+// 78.9%.
 #include <vector>
 
 class Class_004c9390 {

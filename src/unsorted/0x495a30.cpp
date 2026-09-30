@@ -1,30 +1,14 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Writes a large screenshot ("BIGSHOT", caller 0x417600): renders the map in
-// screen-sized tiles and copies each rendered tile into one big 8-bit surface,
-// saved as a BMP.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Writes a large screenshot ("BIGSHOT", caller 0x417600) by rendering map
+// tiles and copying them into one large BMP surface.
 //
-// Best so far: 50.6 percent (962 of 1105 bytes). Fixes this round:
-//  - FUN_004d8e50 and FUN_004d85a0 are __cdecl (the original has `add esp,4`
-//    after each call), not __stdcall. That alone took 50.1 -> 50.6.
-//  - the missing Class_004cb940::FUN_004cb940 write call was reconstructed
-//    (args &surf, w, rows, 0, row, 0, flag with rows/oy/off/flag chosen from
-//    var24/m/n/bh); it grows the frame to 0x1b4 vs 0x1b0 and reallocates every
-//    register, scoring 43.9. Saved at build/scratch/0x495a30/withcall.cpp.
-// What still differs:
-//  - frame is 0x1ac; the original is 0x1b0. The filename buffer is at the same
-//    absolute address in both minus 4, so the original has one extra 4-byte
-//    local somewhere below the filename that is not identified.
-//  - the original keeps the four pre-loop values in S+0x20 (screenTilesX<<4),
-//    S+0x44 (field_37e27), S+0x30 (field_37e2b), S+0x18 ((screenTilesY<<4)-1);
-//    ours keeps three of them in different slots and picks ebx where the
-//    original picks ecx for screenTilesX.
-//  - the viewFlags block: the original loads with `mov cx,[14281]`, copies to
-//    eax, masks 0xffff, and keeps both saved bits in registers, storing only
-//    the scrollX/scrollY pair to S+0x34/S+0x2c. Ours stores fl itself and
-//    recomputes, so the tail's restore uses a different xor/and sequence (two
-//    restores instead of the original's xor-form for bit 0 plus and/or for
-//    bit 1).
-// Callee call sequence, argument order and the loop control flow all match.
+// Best so far: 55.0 percent after four checks in this pass. Adding the
+// unknown trailing dword to Class_004cb7f0 grows the frame from 0x1ac to the
+// original 0x1b0 and improves the score. This field is inferred from frame
+// size, not confirmed from another use of the class.
+// Still differs: pre-loop values do not use the original stack slots/registers;
+// the viewFlags save/restore differs; the inner-loop and tail register choices
+// also differ. Callee order, arguments and main loop control flow are close.
 #pragma pack(push, 1)
 struct Game_00495a30 {
     char unknown_0[0x1423b];
@@ -59,6 +43,7 @@ struct Class_004cb7c0 {
 
 struct Class_004cb7f0 : public Class_004cb7c0 {
     bool FUN_004cb7f0(const char* name, int width, int height);
+    int unused_10;
 };
 
 struct Class_004cb7d0 {

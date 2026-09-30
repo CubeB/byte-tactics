@@ -1,26 +1,26 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
 // Earlier attempt by deepseek-v4.1-flash, finished by GPT-6; continued here.
-// Best 72.1% (2764 bytes; frame is 0x2c where the original allocates 0x28).
-// The two field_97 sites drove the gain: the original keeps the branch flag in
-// a 16-bit register (`mov bl,[ebp+0x97]; and ebx,1; cmp bx,si` at 0x449c21,
-// `test bx,bx` at 0x44a005 and 0x44a162), while the value passed to
-// FUN_0046c8e0 at 0x44a124 is a SEPARATE 4-byte local (`mov al,[ecx+0x97];
-// and eax,1; movsx edx,ax; push edx; mov [esp+0x24],eax`), so the source has
-// two variables: `short flag97` for the branches and an `int flagStart` cast
-// to short at the call. Splitting them raised 72.0 to 72.1.
-// Remaining diff: flag97 gets a write-through home slot (`mov [esp+0x20],ebx`)
-// and its mask runs in CL (`and cl,1; mov bl,cl`) where the original masks EBX
-// directly, which is also where the extra 4 bytes of frame go; the 0x1b8a
-// player lookup folds where the original builds lea 0x1b63 then loads [.+0x27];
-// the 0x449fd0 else-if bit writes pick cx/dx opposite to the original; the
-// DAT_00512d78 guard uses lea plus the test flags where the original has
-// dec eax; test eax,eax; jl; and one later region spills edi.
-// Tried and rejected: short flag97 alone (67.6), int flagStart alone (71.3),
-// unsigned short flag97 or an explicit (short) cast (both 72.1, no change),
-// moving the text buffer's declaration into its block (no change), --v in the
-// DAT_00512d78 guard (71.6), struct-typed players array (71.6), int locals for
-// the five else-if bit writes (67.6), bool locals (67.6), recomputing the list
-// expression at later uses (67.9).
+// Best 74.1% (2763 bytes; frame is 0x2c where the original allocates 0x28).
+// Gains this round: the three gadget blocks now store `(short)val` and pass the
+// field itself to FUN_0045b9b0 (72.1 -> 73.5), the five field_97-else bit writes
+// read plain `char` from g_game (removes the zero-extend pairs, 73.5 -> 73.7),
+// and the DAT_00512d78 guard is a nested if with `int v = DAT_00512d78 - 1;`
+// inside `if (DAT_00512d78 != 0)` (dec eax / test eax,eax / jl, 73.7 -> 74.1).
+// Remaining diff: the flag97 setup still runs in CL (`mov cl,[ebp+0x97];
+// and cl,1; mov bl,cl`) instead of `mov bl,[ebp+0x97]; and ebx,1`, and it
+// writes a home slot the original never writes; four of the five
+// field_97-else writes sign-extend a byte instead of `and ecx,1`; the
+// 0x1b8a player lookup folds instead of `lea ecx,[edx+ecx*2+0x1b63]` plus
+// `mov ecx,[ecx+0x27]`; the 0x512d80/0x512d84 bit writes keep the mask in
+// cx and the bit in dx (original: opposite); and the METAL/MAXUNITS/ENERGY
+// gadget blocks pick different scratch registers even though the instruction
+// shapes now agree. The extra 4 bytes of frame show up as [esp+0x2c]/[esp+0x30]
+// where the original has [esp+0x28]/[esp+0x2c] (the _itoa text buffer sits one
+// slot too high); declaring text first, inlining `(int*)(*(int*)(g_game+0x531)+4)`
+// at the MEMx/tail uses, and an int flagStart used by the later guards all
+// scored lower and were reverted.
+// Also tried and rejected: bitfield-typed field_97 (no code change), short
+// Gadget::field_140 (72.3), flag97 declared at first use (no change).
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,13 +104,21 @@ struct Holder_00449bb0 {
     void* game;                     // +0x0c
 };
 
+// Player slot in the array at g_game+0x1b63, stride 0x14b; +0x27 is the
+// pointer to its PlayerInfo (so g_game+0x1b8a is players[i].data).
+struct Player_00449bb0 {
+    char unknown_0[0x27];
+    struct PlayerInfo_00449bb0* data;   // +0x27
+    char unknown_2b[0x14b - 0x2b];
+};
+
 // Local player info, stride 0x14b (see 0x444930 for the same array).
 struct PlayerInfo_00449bb0 {
     char unknown_0[0x8b];
     short field_8b;                 // +0x8b
     short field_8d;                 // +0x8d
     char unknown_8f[0x97 - 0x8f];
-    unsigned char field_97;         // +0x97
+    unsigned char field_97 : 1;     // +0x97, bit 0
     char unknown_98[0x99 - 0x98];
     unsigned short field_99;        // +0x99
     unsigned short field_9b;        // +0x9b (bits 8-10 are the second byte)
@@ -168,10 +176,9 @@ void FUN_00449bb0(void)
 {
     int energyVal = 1000;
     int metalVal = 1000;
+    char text[20];
     void* holder = 0;
     int local_1c = 0;
-    short flag97 = 0;
-    char text[20];
 
     DAT_00512994 = 0;
     DAT_0050550c = -1;
@@ -183,7 +190,7 @@ void FUN_00449bb0(void)
     PlayerInfo_00449bb0* info =
         *(PlayerInfo_00449bb0**)(local_1c + 0x1b8a);
 
-    flag97 = info->field_97 & 1;
+    short flag97 = info->field_97;
     *(unsigned short*)(g_game + 0x37ee8) = 0;
     if (flag97 != 0) {
         *(unsigned short*)(g_game + 0x37eea) = *(unsigned short*)(g_game + 0x37eec);
@@ -227,13 +234,15 @@ void FUN_00449bb0(void)
 
         ((Flag2c74_00449bb0*)(g_game + 0x2c74))->bit0 = (DAT_00512d68 != 0);
 
-        int v = DAT_00512d78 - 1;
-        if (DAT_00512d78 != 0 && v >= 0 && v <= 2) {
-            *(int*)(g_game + 0x39229) = v;
-            *(int*)(g_game + 0x37ef6) = v;
-            PlayerInfo_00449bb0* pi =
-                *(PlayerInfo_00449bb0**)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a);
-            pi->field_9b = (pi->field_9b & 0xe7ff) | ((v & 3) << 0xb);
+        if (DAT_00512d78 != 0) {
+            int v = DAT_00512d78 - 1;
+            if (v >= 0 && v <= 2) {
+                *(int*)(g_game + 0x39229) = v;
+                *(int*)(g_game + 0x37ef6) = v;
+                PlayerInfo_00449bb0* pi =
+                    ((Player_00449bb0*)(g_game + 0x1b63))[*(unsigned char*)(g_game + 0x2a42)].data;
+                pi->field_9b = (pi->field_9b & 0xe7ff) | ((v & 3) << 0xb);
+            }
         }
 
         if (DAT_00512d70 != 0) {
@@ -257,10 +266,10 @@ void FUN_00449bb0(void)
             }
         }
         if (DAT_00512d80 != 0) {
-            info->field_9b = (info->field_9b & 0xdfff) | (((DAT_00512d80 == 2) & 1) << 0xd);
+            info->field_9b = (((DAT_00512d80 == 2) & 1) << 0xd) | (info->field_9b & 0xdfff);
         }
         if (DAT_00512d84 != 0) {
-            info->field_9b = (info->field_9b & 0xbfff) | (((DAT_00512d84 == 1) & 1) << 0xe);
+            info->field_9b = (((DAT_00512d84 == 1) & 1) << 0xe) | (info->field_9b & 0xbfff);
         }
         if (DAT_00512d88 != 0) {
             info->field_9b = (info->field_9b & 0xfeff) | (((DAT_00512d88 == 1) & 1) << 8);
@@ -274,16 +283,16 @@ void FUN_00449bb0(void)
             ((*(unsigned char*)(g_game + 0x3922d) & 1) << 8);
         info->field_9b =
             (info->field_9b & 0xfdff) |
-            ((*(unsigned char*)(g_game + 0x39231) & 1) << 9);
+            ((g_game[0x39231] & 1) << 9);
         info->field_9b =
             (info->field_9b & 0xfbff) |
-            ((*(unsigned char*)(g_game + 0x39235) & 1) << 0xa);
+            ((g_game[0x39235] & 1) << 0xa);
         info->field_9b =
             (info->field_9b & 0xbfff) |
-            ((*(unsigned char*)(*(int*)(g_game + 0x29a0) + 0x118) & 1) << 0xe);
+            (((*(char**)(g_game + 0x29a0))[0x118] & 1) << 0xe);
         info->field_9b =
             (info->field_9b & 0xe7ff) |
-            ((*(unsigned char*)(g_game + 0x39229) & 3) << 0xb);
+            ((g_game[0x39229] & 3) << 0xb);
     }
 
     if (flag97 != 0) {
@@ -321,7 +330,7 @@ L_a042:
     sprintf(mem->text, "%d",
             *(unsigned short*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x99));
 
-    int flagStart = (*(unsigned char*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x97)) & 1;
+    int flagStart = (*(PlayerInfo_00449bb0**)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a))->field_97;
     FUN_0046c8e0((short)flagStart);
 
     int startArg = ((Class_0046e000*)*(int*)(g_game + 0x2a30))->FUN_0046e000();
@@ -354,8 +363,8 @@ L_a042:
             Gadget_00449bb0* g = (Gadget_00449bb0*)FUN_004a0200(gadgets, "METAL");
             g->field_13c = 0x2711;
             g->field_144 = (void*)&FUN_00445c70;
-            g->field_140 = (unsigned short)metalVal;
-            FUN_0045b9b0(g, (short)metalVal);
+            g->field_140 = (short)metalVal;
+            FUN_0045b9b0(g, g->field_140);
             g->field_14a = g_game;
         }
         FUN_00445c70(metalPanel, mi);
@@ -373,8 +382,8 @@ L_a042:
             Gadget_00449bb0* g = (Gadget_00449bb0*)FUN_004a0200(gadgets, "MAXUNITS");
             g->field_13c = local_1c;
             g->field_144 = (void*)&FUN_00445b70;
-            g->field_140 = (unsigned short)local_1c;
-            FUN_0045b9b0(g, (short)local_1c);
+            g->field_140 = (short)local_1c;
+            FUN_0045b9b0(g, g->field_140);
             g->field_14a = g_game;
         }
         FUN_00445b70(maxPanel, ui);
@@ -394,10 +403,10 @@ L_a042:
         if (ei != -1) {
             Gadget_00449bb0* g =
                 (Gadget_00449bb0*)FUN_004a0200((void*)list2, "ENERGY");
-            g->field_140 = (unsigned short)energyVal;
             g->field_13c = 0x2711;
             g->field_144 = (void*)&FUN_00445d60;
-            FUN_0045b9b0(g, (short)energyVal);
+            g->field_140 = (short)energyVal;
+            FUN_0045b9b0(g, g->field_140);
             g->field_14a = g_game;
         }
 
@@ -409,7 +418,7 @@ L_a042:
             FUN_004a0bf0(energyPanel, "ENERGYTEXT", text, 0);
             PlayerInfo_00449bb0* pi = *(PlayerInfo_00449bb0**)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a);
             pi->field_a1 = (short)(amount / 100);
-            if ((pi->field_97 & 1) != 0) {
+            if (pi->field_97 != 0) {
                 FUN_00450f90();
                 FUN_00451180();
             }

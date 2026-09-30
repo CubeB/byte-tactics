@@ -1,6 +1,31 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
 // Third pass (deepseek-v4.1, issue 1962): 79.3 kept as best. Flipped the reindex loop address spelling three ways (g_game + 0x1b63 + off, off + g_game + 0x1b63, g_game + (0x1b63 + off)); all emit the same `[eax + ecx + 0x1b63]` SIB with base=off/eax while the original encodes base=g_game/ecx, although g_game is in ecx in ours too, so the base/index pick is not reachable from the expression form. Everything below still stands.
 
+// Fifth pass (deepseek-v4.1, issue 2388): 79.7 -> 92.7, size now exactly 2340
+// bytes. Two source changes did it, both fixing real differences from the
+// original listing rather than register luck:
+// 1. the battlestart lookup must spell the first argument out as
+//    g_game->gui.table->entries instead of the cached `entries` local
+//    (79.7 -> 84.9); the original reloads the whole gui/table chain there
+//    (ctx: mov ecx,[g_game] / mov edx,[ecx+0x531] / mov eax,[edx+4]).
+// 2. the DAT_00512994 guard must be written as
+//    `if (DAT_00512994 == 0) { FUN_004455b0(); } else { <compaction loop> }`,
+//    the inverted form, so the call is emitted right after the test with a
+//    `jmp` over the loop (84.9 -> 92.7). The natural `!= 0` order puts the
+//    call at the join and shifts the whole loop back.
+// Still differing (8 hunks, all other hunks are this file's remaining work):
+// - the first `if`: the original hoists `mov eax,[g_game]` between `test eax,eax`
+//   and the `jne` so both arms share it; ours emits the jne first and reloads
+//   g_game in each arm.
+// - the reindex loop keeps `lea edx,[eax+ecx+0x1ca9]` for the `= i` store
+//   (original issues three separate base+index+disp references) and swaps
+//   base/index (`[eax+ecx+0x1b63]` vs original `[ecx+eax+0x1b63]`).
+// - the MAXUNITS/METAL/ENERGY block: the original keeps the value temporaries
+//   in edi/edi/esi and pushes the value after the inner call; ours uses
+//   ecx/eax/eax and pushes it before (named locals, u2, hex and pointer forms
+//   all measured worse: 88.1 / 87.8 / 62.0).
+// - after the join ours runs 2 bytes ahead until the MAXUNITS block absorbs
+//   it, so the join/loop-exit jump targets are off by 2.
 // Fourth pass (space-bunny-free, issue 1962): confirmed 79.3% with a real
 // check.py run and could not move it. Root cause of the largest remaining
 // cluster (four diffs in three blocks) identified below: `pl` is only ever
@@ -247,7 +272,7 @@ void FUN_0044a680()
             ((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 = 1;
     }
 
-    pl = g_game->players + g_game->localPlayer;
+    { unsigned char lp = g_game->localPlayer; pl = g_game->players + lp; }
     if (pl->field_22 != 0) {
         g_game->field_2bc0 = 3;
         FUN_004a9660(&g_game->gui);
@@ -261,7 +286,9 @@ void FUN_0044a680()
     }
 
     if (((Flag2bee_44a680*)((char*)g_game + 0x2bee))->bit0 != 0) {
-        if (DAT_00512994 != 0) {
+        if (DAT_00512994 == 0) {
+            FUN_004455b0();
+        } else {
             Player_44a680* A = &g_game->players[0];
             Player_44a680* B = &g_game->players[1];
             Player_44a680* end = (Player_44a680*)((char*)g_game + 0x2851);
@@ -309,8 +336,6 @@ void FUN_0044a680()
                 }
                 A = savedA;
             }
-        } else {
-            FUN_004455b0();
         }
 
         if ((unsigned int)g_game->field_2a3c != DAT_0050550c) {
@@ -365,7 +390,7 @@ void FUN_0044a680()
             unsigned short* w;
 
             FUN_004a1250(&g_game->gui, "SYNCHING", 1);
-            w = (unsigned short*)FUN_004a0280(entries, "battlestart");
+            w = (unsigned short*)FUN_004a0280(g_game->gui.table->entries, "battlestart");
             if ((short)w[0x63] > 0 && DAT_005129a4 < FUN_004b6340()) {
                 if ((short)w[0x63] < 8) {
                     w[0x63] = w[0x63] + 1;

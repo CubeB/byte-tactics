@@ -27,6 +27,16 @@
 //  swap and the downstream tail schedule resist every source shape tried; the
 //  variant that wins item offset in edi does so by giving the desc gadget ebp
 //  instead of ebx, which costs more than it gains.
+// Third session (deepseek-v4.1) re-checked this baseline at 84.9% and tried:
+//  (E1) an explicit record byte offset roff used for the sprintf target and the
+//  three record stores: 82.7%, 1598 bytes; the ebp/edi roles still do not flip,
+//  so the allocator keeps the 0x249 item offset in ebp even when the 0x62 record
+//  offset has more uses. (E2) a plain for-loop with off at function scope: 78.3%,
+//  1588 bytes. (E3) FUN_004a35a0(g_game->inner, ...) instead of inner->entries,
+//  which is what the original pushes at 0x44ccd8: 83.3%, 1595 bytes, the extra
+//  deref actually helps the register assignment. (E4) a panel2 local for the
+//  0x44cc91 FUN_0044bfd0/FUN_0049fa90 pair: 81.6%, 1585 bytes. All four scored
+//  below this file, so this file is kept.
 // Second session (deepseek-v4.1-flash) confirmed this baseline at 84.6% and
 // tried: (W1) moving "int n = 0;" out of the declaration into a plain
 // "n = 0;" statement (identical 1596 bytes, the merge with xor edi,edi is not

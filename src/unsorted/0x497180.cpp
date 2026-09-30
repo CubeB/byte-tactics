@@ -1,7 +1,10 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 //
 // 2797 bytes, transcribed from the disassembly and Ghidra's pseudo-C inside a
-// short timebox. Not matched. Known remaining differences:
+// short timebox. Retry best: 49.7% (2823 vs 2797 bytes) after 4 check.py
+// runs; no MATCH. A scoped-local variation stayed at 49.7%, and changing the
+// initial selector to int fell to 47.0%, so the original file is retained.
+// Known remaining differences:
 // - frame is 0x54 vs the original 0x4c, and the whole local block is shifted
 //   down by 8 (perfCount at S+0xc vs S+4, pos at S+0x10 vs S+8, order at
 //   S+0x28 vs S+0x20). The original packs `pos` immediately after a 4-byte
@@ -18,7 +21,7 @@
 //   allocation (g_game in esi/ebp vs edx, the zero in ebx) is unverified.
 // - `unsigned char sel = FUN_00456850()` spills al to [esp+0x10] and reloads;
 //   the original keeps the zero-extended value in a register (`and eax,0xff;
-//   mov esi,eax`). Making sel `int` (no & 0xff) may avoid the spill.
+//   mov esi,eax`). Making sel `int` made the checker score worse.
 // - the `(rand() * 2) / 0x8000` test came out of the x86 as a 64-bit
 //   __allmul/__alldiv pair, kept literally.
 #include <windows.h>

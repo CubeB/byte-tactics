@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // PARTIAL 75.7%: in-game command/gadget event dispatcher, original 2292 bytes,
 // ours 2292 (exact size; structure, jump tables and case order agree).
 //

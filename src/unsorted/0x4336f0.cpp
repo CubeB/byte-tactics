@@ -1,28 +1,41 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// BEST 79.3% (this file, 732 bytes). The exact-shape 75.2% attempt (708 bytes,
-// only the three register names rotated) is preserved at
-// build/scratch/0x4336f0/base.cpp.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass 2: swept all subsets of arms switched to
+// top-tested loops and all combinations of which arms test n vs count in a
+// do-while. BEST 86.1% (708 bytes, s01): case 0 keeps the exact-shape
+// `if (n > 0) do {} while (--count)`, case 1 is `if (n > 0) while
+// (count > 0) {}` (adds one redundant `test ebp,ebp / jle` pair), cases 2 and
+// 3 drop the n-guard and use `while (count > 0)` (their one `test ebp,ebp`
+// replaces the original `test di,di`). That is three top-tested arms, the
+// minimum that flips MSVC 5 to the original edi/ebp/ebx allocation. Using
+// count-guards with do-while arms instead of while arms does NOT flip it
+// (best 81.4%), so the top-tested-loop tree, not the mere count test, is the
+// trigger. Remaining diffs are those three arm tests plus the move of
+// `mov ebx,[esi+4]` before the first strtok call and the resulting address
+// shifts.
+// BEST 80.1% (724 bytes). Builds on the 79.3% pass (all four loop arms as
+// `while (count > 0) { body; i++; count--; }`, 732 bytes) and the exact-shape
+// 75.2% attempt (all four arms as `do { body; i++; } while (--count)`, 708
+// bytes, register rotation only).
 //
-// deepseek-v4.1 pass: writing the four loop arms as
-// `while (count > 0) { body; i++; count--; }` instead of `do { body; i++; }
-// while (--count);` flips MSVC 5's register assignment for the whole function
-// to the original's: short n and the byte index in edi, the int count in ebp,
-// the reloaded _First in ebx, and the failed-path tail back to ecx/edx. It
-// costs one extra `test ebp,ebp / jle` pair per arm (top-tested loop), so the
-// object is 732 bytes; the remaining diff is exactly those four redundant arm
-// tests, `dec ebp; jne` jumping back to the count test, and the tail's
-// internal rotation. Removing the extra test while keeping the allocation is
-// the whole job that is left.
-// Tried in this pass, all unchanged at 75.2% (708 bytes) or worse: resize(n)
-// one-arg, resize with an inline temporary Elem(), resize(count,...), count as
-// long, (int)n and (short)atoi cast spellings, named reference v = *this,
-// x declared first, i declared first, split i declaration, (void)count before
-// the switch, count = count self-assign, for-based and while-based counted
-// loops (732/704 bytes, 67.8-69.3%), while (--count > 0) (68.3%),
-// for (;;) with break (996 bytes).
+// What this pass fixed: the register allocation flips to the original's
+// (short n and the byte index in edi, the int count in ebp, the reloaded
+// _First in ebx) only when at least three of the four switch arms are written
+// as top-tested `while (count > 0)` loops. Writing just one or two arms that
+// way leaves the rotation wrong (74-75%); writing three arms gets the correct
+// allocation with only three redundant `test ebp,ebp / jle` pairs (724 bytes)
+// instead of four (732 bytes). The best three-arm choice is to keep case 0 as
+// the exact-shape `do {} while (--count)` arm (mask 0b1110: cases 1, 2 and 3
+// top-tested), because leaving the first arm in the original shape delays the
+// first address shift furthest down the function, so the most bytes line up.
+//
+// What still differs: the three redundant arm tests (`test ebp,ebp / jle`
+// before `xor edi,edi`, one in each of cases 1, 2, 3) and the resulting later
+// address shifts. The instruction shapes and every operand are otherwise the
+// original's. Removing those three tests while keeping this allocation is the
+// whole job that is left.
 //
 // Earlier notes follow.
-// BEST 75.2% (532 of 708 bytes, source size matches the original).
+// BEST 75.2% (708 bytes, source size matches the original).
 // GPT-6.1-sol refinement: tried all 24 switch case orderings and several
 // count/default variants; none beat this source. Remaining mismatch is the
 // earlier-noted register rotation: original uses edi for index and ebp for
@@ -55,6 +68,11 @@
 // return (668 bytes, 42.9%), unsigned int for count (unchanged), and all 128
 // header sets. Refinement pass: moving count/i declarations and initializers
 // across resize, then swapping their initialization order, all stayed 75.2%.
+// deepseek-v4.1-flash pass: swept all 15 non-empty subsets of the four arms
+// converted to top-tested loops; 1- and 2-arm subsets stay at the wrong
+// allocation (74-75%), 3- and 4-arm subsets flip it (79.7-80.1%). Also
+// re-ran headers.py --cpp over the exact-shape base: all 768 header sets stay
+// at 75.2%, confirming the compiler-state tie.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -102,46 +120,41 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
         Elem_00434020 x;
         resize(n, x);
         switch (mode) {
-        case 0:
-            if (n > 0) {
-                while (count > 0) {
-                    (*this)[i].a = atoi(strtok(0, ", "));
-                    (*this)[i].b = -atoi(strtok(0, ", "));
-                    i++;
-                    count--;
-                }
-            }
-            return;
-        case 1:
-            if (n > 0) {
-                while (count > 0) {
-                    (*this)[i].b = atoi(strtok(0, ", "));
-                    (*this)[i].a = atoi(strtok(0, ", "));
-                    i++;
-                    count--;
-                }
-            }
-            return;
-        case 2:
-            if (n > 0) {
-                while (count > 0) {
-                    (*this)[i].a = -atoi(strtok(0, ", "));
-                    (*this)[i].b = atoi(strtok(0, ", "));
-                    i++;
-                    count--;
-                }
-            }
-            return;
-        case 3:
-            if (n > 0) {
-                while (count > 0) {
-                    (*this)[i].b = -atoi(strtok(0, ", "));
-                    (*this)[i].a = atoi(strtok(0, ", "));
-                    i++;
-                    count--;
-                }
-            }
-            return;
+            case 0:
+                    if (n > 0) {
+    do {
+                            (*this)[i].a = atoi(strtok(0, ", "));
+                            (*this)[i].b = -atoi(strtok(0, ", "));
+                            i++;
+                        } while (--count);
+                    }
+                return;
+            case 1:
+                    if (n > 0) {
+    while (count > 0) {
+                            (*this)[i].b = atoi(strtok(0, ", "));
+                            (*this)[i].a = atoi(strtok(0, ", "));
+                            i++;
+                            count--;
+                        }
+                    }
+                return;
+            case 2:
+while (count > 0) {
+                        (*this)[i].a = -atoi(strtok(0, ", "));
+                        (*this)[i].b = atoi(strtok(0, ", "));
+                        i++;
+                        count--;
+                    }
+                return;
+            case 3:
+while (count > 0) {
+                        (*this)[i].b = -atoi(strtok(0, ", "));
+                        (*this)[i].a = atoi(strtok(0, ", "));
+                        i++;
+                        count--;
+                    }
+                return;
         }
     }
     else {

@@ -40,6 +40,15 @@
 // statement swap 91.8%, for-init 86.8%). The homes come out in a fixed IL order
 // (count, allocator temp, bFlag, files, i) that source reordering does not
 // touch, so the swap needs a change in the IL shape that was not found here.
+// deepseek-v4.1-flash follow-up: still 92.9%. The permutation is invariant to
+// declaration and statement order: `int count;`/`int i;` before the vector,
+// count zeroed or left uninitialised before it, `files` declared first at the
+// top of the slow path, and moving the count store earlier all reproduce the
+// exact same 886-byte home assignment (count 0x10, allocator temp 0x14, bFlag
+// 0x18, files 0x1c, i 0x2c). Inlining files.size() in the loop condition drops
+// to 74.7% (857 bytes). MSVC5 assigns these homes from its own free-list order,
+// not from the source: the two swaps (count<->allocator temp and files<->i) are
+// a compiler-state tie. Best kept at 92.9%.
 
 #include <string.h>
 #include <vector>

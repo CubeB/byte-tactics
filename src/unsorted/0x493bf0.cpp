@@ -1,7 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Partial: 67.3%. Entry addressing, saved-mode register allocation and
-// duplicate tail-call registers still differ. The input gadget and selected
-// entry reload now follow the original, as do signed character conversions.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by
+// space-bunny-free. Names are provisional.
+// Partial: 68.5% (1102 of 1116 bytes). Still differing:
+//  * entries lives in ESI where the original keeps it in EBX. Every other
+//    saved-mode difference here (the atoi index in ESI, oldmode in BL, mode in
+//    [esp+0x10] rather than EBX, and the tail's ebx/ecx/edx) is downstream of
+//    that one rotation. A throwaway `lay` local and moving the `n` and `mode`
+//    declarations around do not demote it.
+//  * the 0x37f2f bit 1 test: the original materialises `shr dl,1` and does
+//    `test al,dl`; every spelling tried folds to `test byte ptr [ecx+x],2`.
+//  * the players[d] address in the digit branch: the original splits it as
+//    base g_game+d with index 330*d, ours as base g_game with index 331*d.
+//  * `lea ecx,[eax*8]` versus `mov ecx,eax / shl ecx,3` at the _strnicmp site.
+//  * the mode/oldmode and g_game scratch registers of the tail block.
+// What did work (kept below): the third argument of FUN_004a1080 is an int,
+// not a char, so the reload of mode_2bf0 zero-extends through `xor edx,edx`
+// and `mov dl`; and `saved` is a 10-byte struct copy, which leaves the three
+// loads ahead of the three stores the original has.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -39,6 +53,18 @@ struct Player_00493bf0 {               // 0x14b bytes
     char unknown_8[0x14b - 0x8];
 };
 
+struct Saved_00493bf0 {                 // 10 bytes
+    int a;                            // +0x00
+    int b;                            // +0x04
+    short c;                          // +0x08
+};
+
+struct Bit_00493bf0 {
+    unsigned char bit0 : 1;            // +0x00
+    unsigned char bit1 : 1;
+    unsigned char bits2_7 : 6;
+};
+
 struct Flags16_00493bf0 {
     unsigned short bits0_7 : 8;
     unsigned short bit8 : 1;
@@ -59,7 +85,7 @@ struct Game_00493bf0 {
     char unknown_2bfc[0x37ebe - 0x2bfc];
     unsigned short flags_37ebe;        // +0x37ebe
     char unknown_37ec0[0x37f2f - 0x37ec0];
-    unsigned char field_37f2f;         // +0x37f2f
+    Bit_00493bf0 field_37f2f;          // +0x37f2f
 };
 #pragma pack(pop)
 
@@ -76,7 +102,7 @@ extern char DAT_005093ec[];            // "Enemies"
 extern char DAT_00508384[];            // "Allies"
 
 void __stdcall FUN_0047f1a0(char* name, int flag);
-void __stdcall FUN_004a1080(Gadget_00493bf0* obj, char* name, char value);
+void __stdcall FUN_004a1080(Gadget_00493bf0* obj, char* name, int value);
 int __stdcall FUN_004a0ff0(Gadget_00493bf0* obj, int index);
 int __stdcall FUN_004a0f60(Gadget_00493bf0* obj, char* name);
 Entry_00493bf0* __stdcall FUN_004a0010(Entry_00493bf0* entries, char* name);
@@ -142,7 +168,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
             p++;
         if (*p == '+') {
             int flags = 1;
-            if ((g_game->field_37f2f >> 1) & 1)
+            if (flags & g_game->field_37f2f.bit1)
                 flags = 7;
             if (DAT_005091cc)
                 flags |= 2;
@@ -154,8 +180,7 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
         if (strlen(p) != 0) {
             unsigned char oldmode = g_game->mode_2bf0;
             Player_00493bf0* base = &g_game->players[g_game->localPlayer];
-            unsigned char saved[10];
-            memcpy(saved, g_game->field_2bf1, 10);
+            Saved_00493bf0 saved = *(Saved_00493bf0*)g_game->field_2bf1;
             char* to = 0;
             if (p[1] > ' ' && strchr(DAT_005093f4, p[1]) != 0) {
                 if (isdigit(p[0])) {
@@ -185,7 +210,7 @@ after:
             g_game->mode_2bf0 = (unsigned char)mode;
             memset(buf2, 0, sizeof(buf2));
             FUN_00463e50(base, p, 4, to);
-            memcpy(g_game->field_2bf1, saved, 10);
+            *(Saved_00493bf0*)g_game->field_2bf1 = saved;
             g_game->mode_2bf0 = oldmode;
         }
 clear:

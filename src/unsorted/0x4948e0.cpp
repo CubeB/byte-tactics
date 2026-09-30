@@ -1,6 +1,13 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Partial: 77.8%. Rectangle stack slots and player-loop register/control-flow
-// layout still differ. The two stat paths use a shared sprintf call.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 70.2% (best variant, unchanged). The one upstream cause left is a
+// register-allocation cascade: our `y` is spilled to stack slot E[0x18] and
+// the original keeps it in ebx, so panel and every later local sit 4 bytes
+// high. Every rewrite that moved this instead made it worse: draw block before
+// the cleanup guard (67.5), pointer-walk cleanup counter (65.6), char buf[80]
+// (69.5), y declared only for the outer loop (65.2). Rectangle stack slots and
+// the player-loop registers still differ. The score buffer is 100 bytes;
+// source corners are initialized before the translation calls, and
+// panel.right is restored after shading.
 #include <string.h>
 
 #pragma pack(push, 1)

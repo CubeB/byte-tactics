@@ -44,6 +44,17 @@
 // closest is 80.3%, so no header set changes the multiply. The multiply's
 // destination register (pos.y, so `imul eax, [width]`) and the early cells
 // load are a single scheduling choice that no source shape here reaches.
+//
+// deepseek-v4.1-flash second pass (also 80.3%, no new lever helped): in
+// isolation, MSVC 5 emits the memory-operand form `imul eax, [width]` only
+// when the other operand is a *zero-extended byte* (it keeps the byte in eax
+// via `xor eax,eax; mov al,[..]`, as 0x47db70 proves at 0x47dcb9). For a
+// sign-extended `short` it always sign-extends into a scratch register and
+// uses the reg,reg form (`movsx esi,[y]; mov eax,[width]; imul eax,esi`),
+// whatever the source order, casts, int/short/Point locals, or inlined
+// PosY/Row/Idx/Mul helpers. So the original's `movsx eax,[esi+0x78];
+// imul eax,[ebx+0x14233]` is an allocator outcome for a short operand, not a
+// source-shape difference, and nothing in the source reaches it.
 #pragma pack(push, 1)
 
 struct Point {

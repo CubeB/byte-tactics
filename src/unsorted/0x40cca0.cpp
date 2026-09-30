@@ -2,6 +2,8 @@
 // Refinement by GPT-6.1-sol: best remains 99.5%; two element-type variants
 // left the same pointer-sum grouping in _Ucopy; a prior 128-header sweep also
 // found no match.
+// 2026-09-30 GPT-6.1-sol retry: manual vector-clone variants failed before
+// compile; the saved source still checks at 99.5% (781/781).
 // deepseek-v4.1: the full 768-set tools/headers.py --cpp sweep, a char[3] and
 // an unsigned char element, a class instead of a struct (which mangles as V,
 // not U, so it cannot be used), an explicit `template class

@@ -1,77 +1,9 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Retry #1342 worker pass: kept the 83.6% baseline. Bottom-tested loop and flag-type variants reached at most 67.3%; existing register and flag-load differences remain below.
-//
-// Removes a player (a "drop" / disconnect path): find the player's slot, bail
-// out if the slot is not a local, active player of type 1, 2 or 3, then clear
-// the two per-team tables of every local player at that player's team number,
-// tell the network layer, clear the slot and hand leadership to the highest
-// numbered remaining local player.
-//
-// Best match so far: 83.6% with a top-tested while(1) clearing loop. Every
-// instruction sequence matches except (a) the callee-saved register rotation
-// in the first half (original has p in esi, slot byte in edi, g_game base in
-// ebx; this file has p in ebx, slot in esi, base in edi), (b) the flag load
-// uses edx (mov dl / and edx,1) where the original uses eax (xor eax,eax /
-// mov al / and eax,1), and (c) the clearing-loop latch (top-tested cmp/jge
-// plus jmp back, the original is bottom-tested add/cmp/jl). The tail
-// (network call, b2 branch, best-id loop, all three FindPlayer scans) matches
-// exactly, so (c) and the b2 branch shape are knock-ons of (a), not separate
-// problems.
-//
-// Diagnosis for whoever picks this up:
-// - Referencing p->field_146 inside the clearing loop (either store) DOES put
-//   p in esi, slot in edi and base in ebx (scratch z01/z02/f01/f02), but the
-//   extra dereference always emits a per-iteration reload (the q stores may
-//   alias p, so no CSE) and the loop body register roles swap. A bare
-//   (void)p in the loop, (void)p before the loop, and slot + (p - p) as index
-//   all fold away with no effect, so only a real load through p moves it.
-// - Moving the slot init inside the loop (so the p reference hoists) does not
-//   hoist: MSVC keeps the per-iteration load and also hoists constant 3 into
-//   ebx (scratch s01/s03). A Game* game = g_game local takes esi but leaves p
-//   in ebx (scratch w05/b02). A data-pointer local, split inits, flag-first
-//   order, p ternary, ClearSlot/IsActive12/PlayerAt/GetSlot/HasFlag inline
-//   helpers, and extra Windows/C headers all leave the rotation unchanged.
-// - for-form clearing loop plus the mixed index miscompiles the stride to
-//   0x296 (5 iterations, semantically wrong, scratch f01/f02); while-form
-//   plus mixed keeps 0x14b (scratch z01, 75.1%). The for-form with plain slot
-//   indexing has the right loop shape but the wrong tail (scan block order),
-//   which suggests the tail order is also a knock-on of the rotation.
-// - Prepending the matched preceding function 0x452c40 changes nothing, so
-//   the state is not from the previous function in the exe.
-// The natural construct that references p in the loop region with zero
-// emitted code (or otherwise promotes p above slot) is still unknown.
-//
-// deepseek-v4.1-flash (same run, 900s): re-confirmed all of the above and
-// added these negative results, so nobody repeats them:
-// - headers.py tried all 128 header sets; every one is 83.6%, so the
-//   <stdio.h>/<string.h> pair is not the lever here (unlike 0x452960).
-// - The clearing loop's form: for, do-while, `while (i != 10)`, label+goto
-//   and a top-tested `while (1)` all give the SAME callee-saved rotation
-//   (p=ebx, slot=esi, base=edi). The bottom-tested forms produce the
-//   original's `add edx,0x14b / cmp edx,0xcee / jl` but are 846 bytes and
-//   score 67.3 (the 2-byte shift misaligns everything after the loop), so
-//   the 848-byte top-tested while(1) keeps the higher checker score.
-// - Any p reference that survives dead-code elimination inside the loop
-//   (a store value, an `if (p->id == -2)`), and the 0x4523e0-style
-//   `unsigned char&` reference for slot, move p to esi and base to ebx (the
-//   original rotation) but always emit extra per-iteration code, so the
-//   score drops.
-// - Dead locals and pointer copies of p (plain, (void), address-taken) fold
-//   away with no effect; so do inline helpers PlayerAt/ClearSlot/Is123/Slot.
-// - The clearing loop counter type IS a lever: `unsigned char i` gives
-//   p=edi, base=edx (49.4%, wrong stride), `unsigned short i` gives
-//   p=ebx, base=esi (52.9%). Only `int i` produces the original's edx
-//   0x14b-stride counter, and it always leaves p in ebx.
-// Best kept in this file: 83.6%, 848 bytes, top-tested while(1).
-// deepseek-v4.1-flash retry #1441: the bottom-tested `for (int i = 0; i < 10;
-// i++)` clearing loop is byte-identical to the original loop through its whole
-// body (`add edx,0x14b / cmp edx,0xcee / jl`); it is 846 bytes and 67.3% only
-// because the flag load then compiles to `mov dl / and edx,1` (2 bytes) instead
-// of `xor eax,eax / mov al,[ecx+0x97] / and eax,1`, shifting every later byte by
-// 2. So the for-loop form is structurally right; if the flag temp ever lands in
-// eax instead of edx, that variant should pass 83.6. Five flag spellings
-// (unsigned char local, int local, two-statement, bitfield b0, union value) all
-// kept it in edx.
+// Partial: 83.6%, 848 bytes. Player/slot/game register rotation, the
+// flag-load register and the clearing-loop latch still differ. The native
+// bottom-tested loop is 846 bytes and 67.3%; 768 header sets, alternate
+// flag types and existing inline predicate helpers did not improve it.
+
 #include <stdio.h>
 #include <string.h>
 

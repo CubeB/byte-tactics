@@ -1,63 +1,8 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Retry #1441 deepseek-v4.1-flash pass: kept the 85.4% baseline. Confirmed the
-//  tail duplication is not a source-shape or header knob: tools/headers.py tried
-//  all 128 header sets and the best is still 85.4% (<windows.h>, also <ddraw.h>
-//  and three windows+x pairs tie); a separate top-level second `if` (no else-if)
-//  scores 60.1%, a `switch (p->state)` with cases 1/2 scores 68.4%. The exit
-//  block `mov al,[esp+0x20] / mov [edi+0x22],al / mov eax,[esp+0x10] / pops /
-//  ret 8` at 0x4532ff stays copied into the state==2 arm and the state==3
-//  loop-exit arm, and the state==1 arm gets `cmp state,1 / je` instead of a
-//  plain `jmp` to the shared exit.
-// Retry #1342 worker pass: kept the 85.4% baseline. A shared-exit rewrite was incomplete at the ten-minute limit; remaining tail differences are described below.
-//
-// 85.4%, 812 bytes against 772. What still differs: the shared exit tail.
-//  The original has ONE `mov al,[esp+0x20] / mov [edi+0x22],al / mov eax,[esp+0x10]
-//  / pop x4 / add esp,8 / ret 8` block at 0x4532ff and every path reaches it
-//  with a jump (0x4531a2, 0x45320d, 0x4532f4, plus six `je`). Here MSVC 5
-//  sinks a private copy of that block into each path whose only successor is
-//  the exit, so the state==2 path and the state==3 `c` loop path each carry
-//  25-27 bytes of epilogue the original does not have, and the state==1 path
-//  costs a 5-byte re-test (`cmp byte ptr [edi+0x73],1 / je`) where the
-//  original has a 2-byte `jmp`. Everything else, including the `mov bl,3`
-//  constant, the three copies of the find-active helper and the [eax+esi]
-//  base/index roles in all three players loops, is byte exact.
-//
-//  The `if (p->state == 1) { ... } if (p->state != 1) { ... }` pair below
-//  (rather than if/else) is worth 1.3 points and 11 bytes: it gives the
-//  state==1 arm a fall-through successor that jumps to the shared exit, which
-//  stops one of the three sinkings. Swapping the two tests, or writing the
-//  second as `== 2`, makes no difference: MSVC reorders them back.
-//
-// Tried and rejected (all scored with check.py --sym, none better than 85.4%):
-//  - goto to a `done:` label before the tail, with 2 or with 3 goto sites:
-//    MSVC turns the gotos back into the same CFG, byte-identical output to
-//    the if/else form (84.1%). A label anywhere in the function also
-//    collapses the frame from `sub esp, 8` to `push ecx` (result moves to
-//    ebp, msg to ebx, every [esp+N] shifts by 4, 55.7%).
-//  - The shared tail is NOT reachable by any source-level change to the tail
-//    itself: `return p->field_22 = value, result;`, `return result;` vs
-//    `return tail2;` with an extra local, a `value` local, `do{}while(0)`
-//    around the chain, an `else {}` on the chain, an always-false `else if`,
-//    a nested `else { if (...) }`, and `switch`/`break` forms all compile to
-//    exactly the same 823 bytes / 84.1%. The decision is made on the CFG in
-//    brbranch, before any of that is visible, so only the shape of the
-//    if/else chain moves it.
-//  - `while (1) { if (i >= 10) break; ... i++; }` in place of the state==1
-//    players loop: 817 bytes, 81.1%. Same form in the state==3 `c` loop
-//    (where the `for` is already correct): 819 bytes, 79.1%.
-//  - `result = p->field_22 == 0;` for `result = 1`: 834 bytes, 66.4%.
-//  - Splitting the state==3 nested `if` into `else if` + a second `else`:
-//    836 bytes, 74.7%.
-//  - `Player* q = &g_game->players[i];` in the state==1 loop: MSVC promotes
-//    q to an induction variable and the whole loop changes.
-//  - The `while (1)` form of the find-active helper is required; a plain
-//    `for` rotates and puts the found block out of line (75.4%).
-//  - Extra STL headers (<string>, <vector>, <map>, <list>, <iostream>) with
-//    <windows.h>: change inlining (756/807 bytes), all worse. <string> alone
-//    matches <windows.h> at 84.1% but adds nothing.
-//  - headers.py picked <windows.h>; it is load bearing for the [eax+esi]
-//    base/index roles in the loops and raised the score from 81.3% to 84.1%.
-#include <windows.h>
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// MATCH: select the state branch once with if/else. <iostream> gives
+// the shared return block instead of duplicating it into separate arms.
+
+#include <iostream>
 
 #pragma pack(push, 1)
 struct PlayerInfo_00453010 {
@@ -154,8 +99,7 @@ int __stdcall FUN_00453010(int id, unsigned char value)
                 }
             }
             result = 1;
-        }
-        if (p->state != 1) {
+        } else {
             *(int*)(msg + 1) = p->id;
             FUN_00451df0(FindActiveId_00453010(), msg, 6);
             FUN_00452cc0(p->id);

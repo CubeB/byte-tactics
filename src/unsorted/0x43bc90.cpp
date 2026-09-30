@@ -1,5 +1,11 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#2950 retry): still 83.6% (909 bytes, exact). Root cause:
+// both versions hoist one global pointer into ecx before `sub esp`; the original
+// hoists `_First` (0x512344) and keeps the `_Last` load inside the size() ternary
+// branch, ours hoists `_Last` (0x512348) out of the branch and puts `_First` in ebx.
+// That single scheduling choice cascades into every downstream slot. All
+// reserve-argument/insert-loop rewrites tie or drop; headers.py 128 sets flat.
 //
 // deepseek-v4.1-flash (2026-09-30 retry): 75.9% -> 83.6% (909 bytes, exact
 // size). Two source changes over the previous best, both in the insert loop:

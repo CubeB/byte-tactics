@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#2950 retry): still 92.0% (732 of 753 bytes). The only code
+// gap is a trivially-empty out-of-line callee (ret N COMDAT) plus the register spill
+// that call forces; removing the explicit template instantiation scores 89.3%,
+// named size_type/`_FF = _F`/insert-loop forms are byte-identical or worse. This is
+// the /Ob2 whole-function inline-weight threshold, not source-reachable.
 //
 // RETRY 2 (deepseek-v4.1-flash, 2026-09-30, 10 min): 89.8% -> 92.0% (753
 // against 732 bytes). The fix was in `_Sort_0043c050`: write the loop test as

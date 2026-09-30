@@ -20,7 +20,7 @@ struct Net_4ca8c0 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4ca8c0
 int __stdcall FUN_004ca8c0(Net_4ca8c0* net, void* callback, void* address, unsigned long size, void* context)

@@ -13,7 +13,7 @@ struct Node_004e04e0 {
 extern Node_004e04e0* DAT_005292c4;
 
 // FUNCTION: 0x4e04e0
-Node_004e04e0* FUN_004e04e0(Node_004e04e0* p)
+Node_004e04e0* __cdecl FUN_004e04e0(Node_004e04e0* p)
 {
     std::_Lockit lock;
     while (p->left != DAT_005292c4)

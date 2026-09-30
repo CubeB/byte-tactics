@@ -39,9 +39,9 @@ struct Game_00483dd0 {
 
 extern Game_00483dd0* g_game;
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 void FUN_00422170();
-void operator delete(void* p);
+void __cdecl operator delete(void* p);
 
 // FUNCTION: 0x483dd0
 void FUN_00483dd0()

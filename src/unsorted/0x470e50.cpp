@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 #include <vector>
 
-void FUN_004d85a0(int* p);
+void __cdecl FUN_004d85a0(int* p);
 
 class Class_00470e50 {
 public:

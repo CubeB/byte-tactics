@@ -11,7 +11,7 @@ public:
     Class_0044d450* FUN_0044d450(unsigned char flag);
 };
 
-void operator delete(void* ptr);
+void __cdecl operator delete(void* ptr);
 
 // FUNCTION: 0x44d450
 Class_0044d450* Class_0044d450::FUN_0044d450(unsigned char flag)

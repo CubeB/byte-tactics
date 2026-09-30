@@ -36,8 +36,8 @@ void __stdcall FUN_004ab400(Obj_004ab400* p, Src_004ab400* src);
 void FUN_004c2870();
 void __stdcall FUN_00434ab0(int param);
 void FUN_004c1a40();
-void FUN_004578f0(int param);
-void __stdcall FUN_004b4fd0(void (*callback)(int), int param);
+void __cdecl FUN_004578f0(int param);
+void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void FUN_00496bb0();
 
 // FUNCTION: 0x496a60

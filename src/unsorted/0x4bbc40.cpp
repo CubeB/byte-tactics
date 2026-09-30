@@ -36,7 +36,7 @@ struct Class_004bbc40
 };
 
 extern void* __stdcall FUN_004bb2e0(char* param_1, const char* param_2);
-extern void FUN_004d85a0(void* param_1);
+extern void __cdecl FUN_004d85a0(void* param_1);
 
 // FUNCTION: 0x4bbc40
 long __stdcall FUN_004bbc40(char* param_1)

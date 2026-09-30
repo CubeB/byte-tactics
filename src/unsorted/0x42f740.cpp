@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 struct Slot_0042f740 {
     int count;                         // +0x00

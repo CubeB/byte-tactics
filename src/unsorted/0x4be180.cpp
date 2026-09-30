@@ -25,7 +25,7 @@ struct State_004be180 {
 };
 
 State_004be180* FUN_004b6220(void);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 static void FreeRecord_004be180(Record_004be180* p)
 {

@@ -27,7 +27,7 @@ struct Elem_004c5bc0 {
     Class_004c91a0 b;                  // +0x4 value
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 void* __cdecl FUN_004d83b0(char* name, int size);

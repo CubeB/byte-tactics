@@ -35,7 +35,7 @@ struct Node_004df380 {
 
 extern Node_004df380* DAT_005292c4;
 
-Node_004df380* FUN_004e04e0(Node_004df380* p);
+Node_004df380* __cdecl FUN_004e04e0(Node_004df380* p);
 
 class Iter_004df380 {
 public:

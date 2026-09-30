@@ -3,7 +3,7 @@
 // (the class declarations are copied from there; field_0 holds the name).
 #include <string.h>
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 struct Class_00440320 {
     int* field_0;

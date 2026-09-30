@@ -2,10 +2,10 @@
 // strdup() through the game's allocator.
 #include <string.h>
 
-void* FUN_004d83c0(unsigned int size);
+void* __cdecl FUN_004d83c0(unsigned int size);
 
 // FUNCTION: 0x4d8610
-char* FUN_004d8610(char* s)
+char* __cdecl FUN_004d8610(char* s)
 {
     if (!s)
         return 0;

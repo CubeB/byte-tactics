@@ -35,7 +35,7 @@ struct Net_4ca5d0 {
 extern int DAT_0050a780;
 extern GUID DAT_004fcd78;
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 int FUN_004b6220();
 extern "C" HRESULT __stdcall DirectPlayCreate(GUID* sp, void** dp, void* unknown);
 

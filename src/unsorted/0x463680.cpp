@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-extern void operator delete(void* p);
+extern void __cdecl operator delete(void* p);
 
 class Class_00463680 {
 public:

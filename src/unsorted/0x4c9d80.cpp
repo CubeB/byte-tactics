@@ -33,7 +33,7 @@ struct Net_4c9d80 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4c9d80
 int __stdcall FUN_004c9d80(Net_4c9d80* net, unsigned long player, void* data, unsigned long* size)

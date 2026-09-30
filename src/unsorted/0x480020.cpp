@@ -1,5 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash. Names are provisional.
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 struct Entry_00480020 {                // 0x11 bytes

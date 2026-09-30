@@ -11,7 +11,7 @@ struct Find_004bc8d0 {
 };
 #pragma pack(pop)
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // Closes the search handle (if open) and frees the search; -1 for no search.
 // FUNCTION: 0x4bc8d0

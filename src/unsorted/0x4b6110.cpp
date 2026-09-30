@@ -35,7 +35,7 @@ void __stdcall FUN_004ba6e0(Display_004b6110* obj);
 void __stdcall FUN_004ba730(Display_004b6110* obj);
 void __stdcall FUN_004be070(void* item);
 void __stdcall FUN_004b4ff0(Display_004b6110* obj);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4b6110
 void __stdcall FUN_004b6110(Display_004b6110* d)

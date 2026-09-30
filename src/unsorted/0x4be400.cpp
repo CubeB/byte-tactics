@@ -180,7 +180,7 @@ Display_004be400* FUN_004b6220();
 Entry_004be400* __stdcall FUN_004bb4e0(Table_004be400* table, char* name);
 int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
 int __stdcall FUN_004bc640(int handle, struct _finddata_t* fd);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4be400
 void __stdcall FUN_004be400(char* path, int state, int recursive)

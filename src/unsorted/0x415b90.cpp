@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern void operator delete(void*);
+extern void __cdecl operator delete(void*);
 
 struct Class_00415b90 {
     char unknown_0[0xc];

@@ -65,9 +65,9 @@ struct Net_004c9920 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004c9740(int);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4c9920
 int __stdcall FUN_004c9920(Net_004c9920* net, char* name, int a3, int a4, int a5, int a6, int a7)

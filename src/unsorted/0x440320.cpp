@@ -4,7 +4,7 @@
 // Its one caller (0x42bf40) constructs a local entry with 0x4402e0 and calls
 // this on it (ecx) when the local goes out of scope.
 
-void FUN_004d85a0(int*);
+void __cdecl FUN_004d85a0(int*);
 
 struct Class_004402e0 {
     int* field_0;

@@ -96,7 +96,7 @@ void __stdcall FUN_0049fa90(void* menu);
 void __stdcall FUN_004a0570(void* menu, const char* name, int value);
 Entry_00478240* __stdcall FUN_0049ff90(Entry_00478240* entries,
                                        const char* name);
-void FUN_004d85a0(int* p);
+void __cdecl FUN_004d85a0(int* p);
 void __stdcall FUN_0047f1a0(const char* name, int value);
 int __stdcall FUN_00476a60(int** p, int value);
 void __stdcall FUN_004a32a0(void* menu, const char* name, int* data, int count,

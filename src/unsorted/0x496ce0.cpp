@@ -48,8 +48,8 @@ int __stdcall FUN_00451df0(int player, void* data, int size);
 unsigned int FUN_004b6340();
 void FUN_00456310();
 void FUN_00497f40();
-void __stdcall FUN_004b4fd0(void (*callback)(int), int param);
-void FUN_004578f0(int param);
+void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
+void __cdecl FUN_004578f0(int param);
 
 // FUNCTION: 0x496ce0
 void FUN_00496ce0()

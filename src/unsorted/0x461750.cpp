@@ -30,7 +30,7 @@
 // the missing lever is elsewhere.
 #include <windows.h>
 
-void* operator new(unsigned int size);
+void* __cdecl operator new(unsigned int size);
 
 extern int DAT_00506dbc;
 

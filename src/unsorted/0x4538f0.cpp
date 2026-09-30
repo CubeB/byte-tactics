@@ -47,7 +47,7 @@ extern int DAT_005061d8;
 extern char DAT_005119b8[];
 
 void __stdcall FUN_0047f1a0(char* name, int param_2);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_0049fd60(Gadget_004538f0* gadget, char* name);
 Entry_004538f0* __stdcall FUN_004a0010(Entry_004538f0* entries, char* name);
 void __stdcall FUN_00463e50(Player_004538f0* from, char* text, int param_3, char* to);

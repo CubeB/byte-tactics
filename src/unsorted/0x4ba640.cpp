@@ -5,7 +5,7 @@ struct Class_004ba640 {
     void* field_c4;
 };
 
-extern void FUN_004d85a0(void* param);
+extern void __cdecl FUN_004d85a0(void* param);
 
 // FUNCTION: 0x4ba640
 void __stdcall FUN_004ba640(Class_004ba640* obj)

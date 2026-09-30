@@ -15,7 +15,7 @@ struct File_004bb710 {
     int* buffer2;                      // +0x14
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4bb710
 long __stdcall FUN_004bb710(File_004bb710* file, long pos)

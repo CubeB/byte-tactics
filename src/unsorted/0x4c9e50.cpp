@@ -59,7 +59,7 @@ struct Net_004c9e50 {
 
 extern int DAT_0051ff0c;
 
-void FUN_004c9740(const char* text);
+void __cdecl FUN_004c9740(const char* text);
 int __stdcall FUN_004c9c50();
 int __cdecl FUN_004c1b00();
 int __cdecl FUN_004c1ab0();

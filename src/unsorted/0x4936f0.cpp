@@ -110,7 +110,7 @@ Entry_004936f0* __stdcall FUN_004a0200(char* entries, char* name);
 void __stdcall FUN_00493340(void* entry, int param_2);
 void __stdcall FUN_00493390(void* entry, int param_2);
 void __stdcall FUN_0045b9b0(void* entry, int param_2);
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall FUN_004a9660(Menu_004936f0* menu);
 void __stdcall FUN_004a32a0(Menu_004936f0* menu, char* name, char* text, int count, int flag);
 int __stdcall FUN_0045ba20(Entry_004936f0* entry);

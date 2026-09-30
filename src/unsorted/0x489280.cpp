@@ -40,7 +40,7 @@ struct UnitType_00489280 {
 };
 #pragma pack(pop)
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 char* __stdcall FUN_004c5740(const char* text);
 int FUN_004b6330();
 

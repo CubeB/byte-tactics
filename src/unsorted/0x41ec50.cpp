@@ -95,7 +95,7 @@ extern Game_0041ec50* g_game;
 
 void FUN_004257a0();
 void __stdcall FUN_004c6ac0(void* image);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 void FUN_00450e20();
 Display_0041ec50* FUN_004b6220();
 int __stdcall FUN_0049fd60(Gadget_0041ec50* gadget, char* name);

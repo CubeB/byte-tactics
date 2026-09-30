@@ -99,7 +99,7 @@ struct Game_0045e100 {
 
 extern Game_0045e100* g_game;
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 void FUN_0045cae0();
 void __stdcall FUN_0045e5e0(int param_1);
 int __stdcall FUN_0049fd60(Gui_0045e100* gui, char* name);

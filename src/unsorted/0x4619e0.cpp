@@ -17,7 +17,7 @@ public:
 
 extern int DAT_00506dbc;
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 // FUNCTION: 0x4619e0
 void Class_004619e0::FUN_004619e0(int rate)

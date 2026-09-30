@@ -2,7 +2,7 @@
 
 extern void FUN_004dfd10();
 extern void FUN_004dfd00();
-extern const char* FUN_004d9f60(const char*);
+extern const char* __cdecl FUN_004d9f60(const char*);
 
 // FUNCTION: 0x4dfe80
 void FUN_004dfe80() {

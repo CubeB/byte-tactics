@@ -52,8 +52,8 @@ void FUN_004c2870();
 void FUN_00496ce0();
 void FUN_00496db0();
 void FUN_00497f40();
-void FUN_004578f0(int param);
-void __stdcall FUN_004b4fd0(void (*callback)(int), int param);
+void __cdecl FUN_004578f0(int param);
+void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void __stdcall FUN_004ab170(Sub_00496bb0* sub, unsigned int* param_2, int* param_3);
 
 // FUNCTION: 0x496bb0

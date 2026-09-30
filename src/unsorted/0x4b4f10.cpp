@@ -3,17 +3,17 @@
 // the game's own allocator.
 #include <stddef.h>
 
-void* FUN_004d8660(size_t size);
-void FUN_004d8670(void* p);
+void* __cdecl FUN_004d8660(size_t size);
+void __cdecl FUN_004d8670(void* p);
 
 // FUNCTION: 0x4b4f10
-void* operator new(size_t size)
+void* __cdecl operator new(size_t size)
 {
     return FUN_004d8660(size);
 }
 
 // FUNCTION: 0x4b4f20
-void operator delete(void* p)
+void __cdecl operator delete(void* p)
 {
     FUN_004d8670(p);
 }

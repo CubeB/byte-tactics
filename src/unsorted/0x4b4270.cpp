@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 
-extern int _strcmpi(const char* s1, const char* s2);
+extern int __cdecl _strcmpi(const char* s1, const char* s2);
 
 struct File_004b4270 {            // the open archive
     void* field_0;                // +0x00

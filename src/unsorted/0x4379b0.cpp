@@ -3,8 +3,8 @@
 // allocates a "CMemoryCache CCH" block of the given size and makes it one
 // free chunk covering the whole block.
 
-void FUN_004d85a0(int* param_1);
-void* FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(int* param_1);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 struct Chunk_004379b0 {
     Chunk_004379b0* next;              // +0x0

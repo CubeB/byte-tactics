@@ -14,7 +14,7 @@ extern void* DAT_005129b0;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bc930(const char* path, int flag);
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall FUN_004af320(char* path, void* buffer, char* p3, int p4, int p5, int p6);
 void __stdcall FUN_004a32a0(void* menu, char* name, void* text, int value, int flag);
 

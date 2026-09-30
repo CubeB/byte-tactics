@@ -1,8 +1,8 @@
 // Decompiled by Sonnet. Names are provisional.
 
-extern void operator delete(void* p);
+extern void __cdecl operator delete(void* p);
 
-void FUN_004d85a0(void* param_1);
+void __cdecl FUN_004d85a0(void* param_1);
 
 class Class_0040eb30 {
 public:

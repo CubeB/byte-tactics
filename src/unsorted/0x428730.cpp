@@ -25,7 +25,7 @@ extern Game_00428730* g_game;
 extern Entry_00428730 DAT_005120b8[10];
 
 void __stdcall FUN_004c6ac0(void* param_1);
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x428730
 void FUN_00428730()

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <vector>
 
-extern void operator delete(void*);
+extern void __cdecl operator delete(void*);
 
 class Class_004c9390 {
 public:
@@ -10,7 +10,7 @@ public:
     void FUN_004c9390();
 };
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 struct Elem_0042f3a0 {
     Class_004c9390 handle;

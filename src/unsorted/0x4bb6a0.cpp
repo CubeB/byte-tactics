@@ -14,7 +14,7 @@ struct File_004bb6a0 {
     char name[0x100];                  // +0x18
 };
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x4bb6a0
 File_004bb6a0* __stdcall FUN_004bb6a0(char* path)

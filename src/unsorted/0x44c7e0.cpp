@@ -117,7 +117,7 @@ extern int DAT_005129c0;
 
 void* __stdcall FUN_004aa8f0(void* menu, const char* name, int size);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 Gadget_44c7e0* __stdcall FUN_0049ff90(void* entries, char* name);
 int __stdcall FUN_0049fdf0(void* entries, char* name, int type);
 Gadget_44c7e0* __stdcall FUN_004a0200(void* entries, char* name);

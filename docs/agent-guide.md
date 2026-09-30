@@ -117,8 +117,21 @@ The `// FUNCTION: 0x<addr>` line must sit directly above the definition.
   class/struct. A function that only uses `ecx` (not `edx`) as an input
   is a `__thiscall` method, not `__fastcall`: both compile the same, but
   Cavedog wrote methods, and the name you choose is what callers will use.
-  Free functions default to `__cdecl`; write `__stdcall`
-  explicitly when needed.
+- **The original was built with `/Gz`, and so is `check.py`** (#2290): a free
+  function with no convention written is `__stdcall`. 2308 of the exe's
+  functions with stack arguments clean up their own stack and only 78 leave
+  it to the caller, so leave the convention out unless the exe shows caller
+  cleanup (a plain `ret` in the callee, `add esp, N` after the call), and
+  then write `__cdecl`. The CRT headers already say `__cdecl`; a CRT function
+  or `operator new`/`delete` you declare by hand needs it written, and so does
+  a function passed to `atexit` and a function pointer whose target is
+  `__cdecl`. For a function with no stack arguments the ABI cannot show the
+  convention; the emitted-shape rule further down (a load hoisted across a
+  `push imm` happens only in `__cdecl`) is the test there.
+- Files written before the switch said `__stdcall` everywhere it was needed
+  and left `__cdecl` implicit; `tools/fix_conventions.py` wrote the `__cdecl`
+  back. A residual that survives every rewrite of a free function is often
+  its convention or a callee's: check `ret N` against your declaration first.
 
 ## Getting MSVC 5 to produce the same code
 
@@ -1676,7 +1689,7 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   _First) / sizeof(T)` body is that vector's `size() const`, not a helper to
   match with a hand-written struct. If your object emits the COMDAT under
   `?size@?$vector@...` and it matches, that is the name (0x470560, 0x471160).
-- **A `/Gz` file calls every `<xutility>` and `<vector>` template
+- **Under `/Gz` every `<xutility>` and `<vector>` template is called
   `__stdcall`**: a stray `add esp, N` after a template call means the real
   `__cdecl` header is in scope. Use the `_XUTILITY_` plus `__stdcall` stand-in
   from `0x424c00.cpp` (0x470560 needed it for `std::copy`).
@@ -1891,19 +1904,16 @@ name (`std::_Lockit::_Lockit` is 0x4e39b0).
   `compile_source` and `compare` from tools/check.py can score hundreds of
   moved-statement variants in parallel at no cost in check runs; a
   move-each-statement hill climb took 0x4644d0 from 94.5% to 99.2% (Sonnet 5.5).
-- **Try the calling convention before more shape variants**: some original
-  files were built with `/Gr` (fastcall default), as others were with `/Gz`
-  (0x424c00). A no-argument free function whose loop reloads a local into a
-  register (`mov ecx, [esp+0x10]; cmp ecx, ebx`) where the original compares
-  memory directly (`cmp [esp+0x10], ebx`) matched once declared `__fastcall`
-  (0x46c920, 0x46ca60; about 400 shape variants had not moved it). A quick way
-  to test: score the file with each of `/Gr`, `/Gz` and `/Gd` through
-  tools/wcl before rewriting anything:
-  `uv run tools/check.py <addr> --flags "/O2 /Ob2 /MT /Gz"`. 0x44b990 (a
-  "scheduler tie" that resisted many attempts) and 0x4b6570 matched unchanged
-  under `/Gz`, and 0x4c2870 under `/Gr`; declaring the function (and any
-  argument-less callee it shares the file with) `__stdcall` or `__fastcall`
-  then matches at the default flags.
+- **Try the calling convention before more shape variants**, even for a
+  function with no arguments: the convention still changes what MSVC 5 emits.
+  A no-argument free function whose loop reloads a local into a register
+  (`mov ecx, [esp+0x10]; cmp ecx, ebx`) where the original compares memory
+  directly (`cmp [esp+0x10], ebx`) matched once declared `__fastcall`
+  (0x46c920, 0x46ca60; about 400 shape variants had not moved it), and
+  0x4c2870 likewise. The default is `__stdcall` (`/Gz`, see "Reading the
+  calling convention"), so try `__cdecl` and `__fastcall` on the function and
+  its argument-less callees in the same file: 0x4e1730 and 0x4c63a0 need
+  `__cdecl` although they take no arguments.
 - **Keep a callee's real name with the real container**: when a hand-written
   tree or vector gives a call the wrong name, use the real `std::map` or
   `std::vector` member as a neighbouring matched file does (0x46d1a0).

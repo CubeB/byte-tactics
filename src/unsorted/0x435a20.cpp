@@ -72,7 +72,7 @@ public:
 
 int FUN_0049f580(void);
 char* __stdcall FUN_004c5740(char* text);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x435a20
 int Class_00435a20::FUN_00435a20(char* map)

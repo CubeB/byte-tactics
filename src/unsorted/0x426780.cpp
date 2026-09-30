@@ -8,8 +8,8 @@ void __stdcall FUN_004c6890(int a, int b);
 void FUN_004c63a0();
 void __stdcall FUN_004c22d0(int param);
 int FUN_004c1ab0(void);
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
 class Class_0047bf20 {
 public:

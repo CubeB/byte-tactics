@@ -4,7 +4,7 @@
 // The class declarations are copied from that file; the entry constructor is
 // inlined as a loop.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 struct Class_00440320 {
     int* field_0;

@@ -6,7 +6,7 @@ struct Struct_004c6ac0 {
     unsigned char flags;               // +0x2c
 };
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4c6ac0
 void __stdcall FUN_004c6ac0(Struct_004c6ac0* obj)

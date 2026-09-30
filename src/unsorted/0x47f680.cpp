@@ -4,7 +4,7 @@
 // expiry and plays the entry's sound. Either way it then drops the head entry
 // of the nine-entry list and frees its data.
 
-void FUN_004d85a0(void* param_1);
+void __cdecl FUN_004d85a0(void* param_1);
 void FUN_0049f620();
 
 #pragma pack(push, 1)

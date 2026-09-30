@@ -1,7 +1,7 @@
 // Decompiled by Haiku. Names are provisional.
 
 extern void* DAT_004fd2f8;
-extern void operator delete(void*);
+extern void __cdecl operator delete(void*);
 
 class Class_0044d910 {
 public:

@@ -219,7 +219,7 @@ void FUN_004c1a40();
 int __stdcall FUN_004c1b80(int a);
 void FUN_00499880();
 void FUN_00496bb0();
-void FUN_004578f0();
+void __cdecl FUN_004578f0();
 
 // FUNCTION: 0x499200
 void FUN_00499200(void)

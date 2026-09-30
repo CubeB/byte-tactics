@@ -9,7 +9,7 @@ struct Item_00470ae0 {
     int unknown_0;
 };
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 class Class_00470ae0 {
 public:

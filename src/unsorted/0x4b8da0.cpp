@@ -15,7 +15,7 @@ struct Class_004b8da0 {
     unsigned char pixels[1];  // +0x18
 };
 
-void* FUN_004d83b0(unsigned int param_1, unsigned int param_2);
+void* __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2);
 
 // FUNCTION: 0x4b8da0
 Class_004b8da0* __stdcall FUN_004b8da0(unsigned int param_1, int width, int height)

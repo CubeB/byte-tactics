@@ -108,8 +108,8 @@ public:
     iterator FUN_004c59d0(iterator p, const Elem_004c5bc0& x);
 };
 
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
 void __stdcall FUN_004c5d60(Elem_004c5bc0* p, const Elem_004c5bc0& value);
 void __stdcall FUN_004c5cd0(Elem_004c5bc0* first, Elem_004c5bc0* last, const Elem_004c5bc0& x);

@@ -71,7 +71,7 @@ struct Unit {
 };
 #pragma pack(pop)
 
-void* operator new(unsigned int size);
+void* __cdecl operator new(unsigned int size);
 
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char relation, Unit* unit, Unit* target, Vec3* pos);
 

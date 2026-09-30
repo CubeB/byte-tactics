@@ -115,7 +115,7 @@ struct App_4b5cc0 {
 };
 
 extern App_4b5cc0* DAT_0051fbd0;
-extern void (*DAT_0051fc78)(int);
+extern void (__cdecl *DAT_0051fc78)(int);
 extern int DAT_0051fc7c;
 
 void __stdcall FUN_004b5510(int param);

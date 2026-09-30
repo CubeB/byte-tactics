@@ -12,10 +12,10 @@
 //    then forced to zero and partially re-set by the loop below.
 #include <string.h>
 
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 extern char* g_game;
 extern int DAT_005119e8[10];

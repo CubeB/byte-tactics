@@ -22,7 +22,7 @@ extern Game_0042a440* g_game;
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bc930(const char* path, int flag);
-void* FUN_004d83b0(const char* tag, int size);
+void* __cdecl FUN_004d83b0(const char* tag, int size);
 int __stdcall FUN_004bc4b0(const char* path, FindData_0042a440* fd, int a, int b);
 int __stdcall FUN_004bc640(int handle, FindData_0042a440* fd);
 void __stdcall FUN_004bc8d0(int handle);

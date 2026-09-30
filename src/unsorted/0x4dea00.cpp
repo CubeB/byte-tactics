@@ -37,8 +37,8 @@
 #include <windows.h>
 
 extern char FUN_004de4d0();
-extern char FUN_004de550(unsigned long addr, void* line, int* err);
-extern void FUN_004de8a0(char* out, const char* name);
+extern char __cdecl FUN_004de550(unsigned long addr, void* line, int* err);
+extern void __cdecl FUN_004de8a0(char* out, const char* name);
 
 struct Line_004dea00 {
     unsigned long SizeOfStruct;

@@ -41,7 +41,7 @@ void __stdcall FUN_004b8a80(Surface_4665d0* surface, void* pic);
 void __stdcall FUN_004b7f90(Surface_4665d0* surface, short* frame, int x, int y);
 void __stdcall FUN_004c6890(Surface_4665d0* surface, int mode);
 void __stdcall FUN_004c7580(Surface_4665d0* surface, void* pic, Quad_4665d0* dst, Quad_4665d0* src);
-void FUN_004d85a0(void* pic);
+void __cdecl FUN_004d85a0(void* pic);
 
 // FUNCTION: 0x4665d0
 void __stdcall FUN_004665d0(Pic_4665d0* pic, int x, int y, int w, int h)

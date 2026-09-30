@@ -14,7 +14,7 @@ extern EventEntry DAT_0050d980[];
 extern EventEntry DAT_00529e00;        // "Event0"
 extern EventEntry DAT_00529e10;        // "Event1"
 
-void FUN_004e1b10(int arg);
+void __cdecl FUN_004e1b10(int arg);
 unsigned char FUN_004e1680(void);
 int FUN_004e39a0(void);
 

@@ -37,8 +37,8 @@ struct Net_4ca100 {
 
 extern Guid_4ca100* DAT_0050a788[4];
 
-void FUN_004c9740(int);
-void* FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004c9740(int);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 char* __stdcall FUN_004b6af0(char* text, int n);
 
 // FUNCTION: 0x4ca100

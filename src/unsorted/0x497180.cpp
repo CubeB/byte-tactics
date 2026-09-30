@@ -142,7 +142,7 @@ void __stdcall FUN_00494890(Gadget_497180* gadget);
 void __cdecl operator delete(void* p);
 
 // FUNCTION: 0x497180
-void FUN_00497180(void)
+void __cdecl FUN_00497180(void)
 {
     LARGE_INTEGER perfCount;
     FixedPos_497180 pos;

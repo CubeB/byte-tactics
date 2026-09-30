@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Frees one of the three buffers at +0x8 and clears it and field_14.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 struct Obj_004aeda0 {
     char unknown_0[8];

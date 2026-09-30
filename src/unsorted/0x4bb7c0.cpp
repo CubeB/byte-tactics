@@ -44,8 +44,8 @@ struct File_004bb7c0 {
 };
 #pragma pack(pop)
 
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 long __stdcall FUN_004bb710(File_004bb7c0* file, long pos);
 int __stdcall FUN_004d1970(unsigned char* dst, unsigned char* src);
 char* __stdcall FUN_004d1c60(int code);

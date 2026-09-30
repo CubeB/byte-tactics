@@ -66,7 +66,7 @@ char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004abd90(Menu_0047aaf0* menu, char* text, int width, int a, int b);
 Layer_0047aaf0* __stdcall FUN_004aa8f0(Menu_0047aaf0* menu, const char* name, int flags);
 void __stdcall FUN_0047a910(void* gadget);
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_004aefa0(char* items, int b, int c, int count);
 void __stdcall FUN_004a32a0(Menu_0047aaf0* menu, char* name, char* items, int count, int flag);

@@ -70,8 +70,8 @@ struct File_004bb2e0 {
 };
 
 State_004bb2e0* FUN_004b6220(void);
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 Entry_004bb2e0* __stdcall FUN_004bb4e0(List_004bb2e0* list, char* name);
 
 // Whole pixels of a 16.16 size, rounded up.

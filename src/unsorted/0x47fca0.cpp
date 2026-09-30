@@ -2,7 +2,7 @@
 // Pops the front entry of the list: fires the sound for entry 0 (re-arming the
 // repeat timer when it is due), frees its data, shifts the rest down.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 struct Entry_0047fca0 {                // 0x11 bytes

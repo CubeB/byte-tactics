@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 
 // FUNCTION: 0x4de810
-bool FUN_004de810(char* dir, char* name)
+bool __cdecl FUN_004de810(char* dir, char* name)
 {
     struct _stat st;
     char path[1000];

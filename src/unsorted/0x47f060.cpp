@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <dsound.h>
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 class Class_004cf4d0 {
 public:

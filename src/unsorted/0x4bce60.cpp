@@ -2,7 +2,7 @@
 #include <string.h>
 
 int FUN_004b6220(void);
-extern "C" int _chdir(const char* path);
+extern "C" int __cdecl _chdir(const char* path);
 
 // FUNCTION: 0x4bce60
 int __stdcall FUN_004bce60(char* path)

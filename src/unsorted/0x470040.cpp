@@ -19,8 +19,8 @@ struct Elem_004702a0 {
 };
 
 int* __stdcall FUN_004702d0(int* first, int* last, int* dest);
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
 class Class_00470250 : public std::vector<Elem_004702a0> {
 public:

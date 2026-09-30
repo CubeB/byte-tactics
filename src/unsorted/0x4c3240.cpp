@@ -33,7 +33,7 @@ struct Elem_004c5bc0 {
     ~Elem_004c5bc0();
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 class Class_004c42a0 {

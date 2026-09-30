@@ -150,7 +150,7 @@ void __stdcall FUN_004c1420(int);
 char* __stdcall FUN_004c5740(void*);
 void FUN_004c2470();
 void FUN_004c2870();
-void FUN_004d85a0(Layer_004a9fd0*);
+void __cdecl FUN_004d85a0(Layer_004a9fd0*);
 
 // FUNCTION: 0x4a9fd0
 int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)

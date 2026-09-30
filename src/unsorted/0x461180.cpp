@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 class Class_0044f940 {
 public:

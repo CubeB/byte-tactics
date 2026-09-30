@@ -35,9 +35,9 @@ extern int DAT_00512c8c;
 
 int __stdcall FUN_004ca450(void* net);
 int FUN_0045b660(void);
-void* FUN_004d83b0(char* tag, int size);
+void* __cdecl FUN_004d83b0(char* tag, int size);
 void __stdcall FUN_00491c80(int n);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 unsigned __stdcall FUN_00451770(void* args);
 Obj_00451640* FUN_004b6220();
 void FUN_004b5910();

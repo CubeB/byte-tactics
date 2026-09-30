@@ -4,7 +4,7 @@
 extern char* g_game;
 
 int* __stdcall FUN_00429330(const char* name);
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x42a400
 int FUN_0042a400()

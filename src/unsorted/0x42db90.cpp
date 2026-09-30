@@ -37,7 +37,7 @@ struct Game_0042db90 {
 extern Game_0042db90* g_game;
 
 void __cdecl FUN_004d8780(void* param_1);
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall FUN_004b2540(void* param_1);
 
 // FUNCTION: 0x42db90

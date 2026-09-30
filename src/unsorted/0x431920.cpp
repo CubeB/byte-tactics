@@ -7,7 +7,7 @@ struct Game {
 };
 #pragma pack(pop)
 
-extern void FUN_004d85a0(int);
+extern void __cdecl FUN_004d85a0(int);
 extern Game* g_game;
 
 // FUNCTION: 0x431920

@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Starts the worker thread (0x4c2990) that 0x4c2ac0 stops.
 
-void FUN_004c2990(void* param_1);
+void __cdecl FUN_004c2990(void* param_1);
 int __stdcall FUN_004b6b20(void* param_1, unsigned int param_2, void* param_3);
 
 #pragma pack(push, 1)

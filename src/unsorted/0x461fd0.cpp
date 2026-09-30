@@ -317,11 +317,11 @@
 
 #include <string.h>
 
-void* operator new[](unsigned int size);
-void operator delete[](void* ptr);
+void* __cdecl operator new[](unsigned int size);
+void __cdecl operator delete[](void* ptr);
 
 unsigned int FUN_004b6340();
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 class Class_00461fd0;
 

@@ -4,7 +4,7 @@
 // Class_004c9390::FUN_004c9390 in data/symbols.csv and called as a plain
 // method by every other caller) then conditionally frees this.
 
-extern void operator delete(void*);
+extern void __cdecl operator delete(void*);
 
 class Class_004c9390 {
 public:

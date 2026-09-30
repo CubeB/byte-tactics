@@ -48,7 +48,7 @@ public:
 };
 
 extern int FUN_004b6330();
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4b0610
 Class_004b0610::Class_004b0610()

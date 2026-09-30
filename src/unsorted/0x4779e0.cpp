@@ -51,7 +51,7 @@ struct Game_004779e0 {
 extern Game_004779e0* g_game;
 extern char* DAT_0051e660;
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 Layout_004779e0* __stdcall FUN_0049ff90(Layout_004779e0* entries, char* name);
 char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int count, int flag);

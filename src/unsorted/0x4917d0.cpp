@@ -122,7 +122,7 @@ void FUN_00464990();
 void FUN_0044f6a0();
 void FUN_00420620();
 void FUN_00419560();
-void* FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 unsigned int FUN_004b6340();
 
 // FUNCTION: 0x4917d0

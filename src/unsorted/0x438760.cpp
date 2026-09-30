@@ -1,7 +1,7 @@
 // Decompiled by space-bunny-free. Names are provisional.
 #include <string.h>
 
-extern int _strcmpi(const char*, const char*);
+extern int __cdecl _strcmpi(const char*, const char*);
 
 #pragma pack(push, 1)
 struct Entry_00438760 {

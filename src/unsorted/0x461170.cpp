@@ -3,6 +3,6 @@
 // the release build compiled the body out.
 
 // FUNCTION: 0x461170
-void FUN_00461170(const char* fmt, ...)
+void __cdecl FUN_00461170(const char* fmt, ...)
 {
 }

@@ -9,7 +9,7 @@ struct File_004be070 {
     int* buffer;                       // +0x8
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4be070
 void __stdcall FUN_004be070(File_004be070* f)

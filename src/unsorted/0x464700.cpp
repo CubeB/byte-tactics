@@ -252,8 +252,8 @@ struct Game_00464700 {
 #pragma pack(pop)
 
 extern Game_00464700* g_game;
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 void __stdcall FUN_00480190(Player_00464700* p);
 void __stdcall FUN_0040b320(int player);
 

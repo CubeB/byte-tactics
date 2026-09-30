@@ -21,7 +21,7 @@ struct FindHandle_004bcd10 {
 
 FindHandle_004bcd10* __stdcall FUN_004bc4b0(const char* path, FindData_004bcd10* fd, int a, int b);
 int __stdcall FUN_004bc640(FindHandle_004bcd10* handle, FindData_004bcd10* fd);
-void FUN_004d85a0(FindHandle_004bcd10* p);
+void __cdecl FUN_004d85a0(FindHandle_004bcd10* p);
 
 // Walks the search opened by FUN_004bc4b0 and stops on the `index`-th entry
 // that is neither "." nor ".." (skipping entries that fail the flag test when

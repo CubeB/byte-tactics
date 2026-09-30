@@ -34,8 +34,8 @@ struct File_004bbff0 {
 
 long __stdcall FUN_004bb710(File_004bbff0* file, long pos);
 int __stdcall FUN_004bb7c0(File_004bbff0* file, void* buf, int size);
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4bbff0
 void* __stdcall FUN_004bbff0(char* name, File_004bbff0* file, unsigned int* outSize)

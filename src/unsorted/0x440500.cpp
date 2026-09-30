@@ -14,8 +14,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-void* operator new(size_t size);
-void operator delete(void* p);
+void* __cdecl operator new(size_t size);
+void __cdecl operator delete(void* p);
 
 #pragma pack(push, 1)
 struct Cell_00440500 {

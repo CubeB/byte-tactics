@@ -23,7 +23,7 @@ extern const char DAT_005091d4[];      // "OFFSCREEN"
 int FUN_004b6700();
 int FUN_004b6710();
 void __stdcall FUN_004b5940(int x, int y);
-void FUN_004d85a0(int param_1);
+void __cdecl FUN_004d85a0(int param_1);
 void __stdcall FUN_004c61f0(int param_1);
 void FUN_004c62c0();
 int __stdcall FUN_004c69f0(const char* name, int width, int height);

@@ -2,7 +2,7 @@
 
 extern char* g_game;
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x481500
 void FUN_00481500()

@@ -7,7 +7,7 @@ struct Struct_4bb7a0 {
     long field_c;
 };
 
-long ftell(void*);
+long __cdecl ftell(void*);
 
 // FUNCTION: 0x4bb7a0
 long __stdcall FUN_004bb7a0(Struct_4bb7a0* param_1)

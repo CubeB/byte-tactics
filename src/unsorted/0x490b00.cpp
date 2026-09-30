@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Releases the offscreen object created by 0x490ac0.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall FUN_004c61f0(int param_1);
 void FUN_004c62c0();
 

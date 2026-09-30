@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <dsound.h>
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 class Class_004cf4d0 {
 public:

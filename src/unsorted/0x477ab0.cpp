@@ -65,7 +65,7 @@ void __stdcall FUN_004a1110(void* menu, char* name, int flag);
 int __stdcall FUN_00476a60(int** out, int side);
 void __stdcall FUN_004a32a0(void* menu, char* name, int* data, int count, int flag);
 void __stdcall FUN_004a0570(void* menu, char* name, int flag);
-void FUN_004d85a0(void* ptr);
+void __cdecl FUN_004d85a0(void* ptr);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004abd90(char* dest, char* text, int param_3, int param_4, int param_5);
 void __stdcall FUN_004ab0a0(void* menu);

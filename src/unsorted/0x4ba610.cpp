@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern void* FUN_004d83b0(const char* param_1, int param_2);
+extern void* __cdecl FUN_004d83b0(const char* param_1, int param_2);
 extern const char DAT_0050a43c[];
 
 struct Obj_004ba610 {

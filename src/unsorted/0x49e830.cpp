@@ -167,9 +167,9 @@ extern const char DAT_005097a8[];
 extern const char DAT_00504ab8[];
 
 void FUN_0049e700();
-void FUN_0049ed90();
-void FUN_004da1d0(int param_1);
-void FUN_004d8e50(void (*param_1)());
+void __cdecl FUN_0049ed90();
+void __cdecl FUN_004da1d0(int param_1);
+void __cdecl FUN_004d8e50(void (*param_1)());
 void FUN_0041d920();
 void FUN_0041d4c0();
 void FUN_00428bb0();

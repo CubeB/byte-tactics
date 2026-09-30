@@ -84,7 +84,7 @@ extern Game_0045e5e0* g_game;
 Layer_0045e5e0* __cdecl FUN_0045cfc0();
 void FUN_0045ce80();
 void FUN_00428b60();
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 Layer_0045e5e0* __stdcall FUN_004aa8f0(Menu_0045e5e0* menu, char* name, int flags);
 void __stdcall FUN_004288d0(char* name, int a, int b, int c);
 void __stdcall FUN_0049fa50(Menu_0045e5e0* menu);

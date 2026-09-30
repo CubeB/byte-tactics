@@ -35,7 +35,7 @@ struct Game_00420960 {
 
 extern Game_00420960* g_game;
 extern Class_00437a00 DAT_00511f80;
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x420960
 void FUN_00420960(void)

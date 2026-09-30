@@ -156,7 +156,7 @@ struct Range {
     int high;
 };
 
-int FUN_004b7381(int a, int b, int c);
+int __cdecl FUN_004b7381(int a, int b, int c);
 
 // FUNCTION: 0x4c71f0
 void __stdcall FUN_004c71f0(int value, Range* out, int at_low, int at_high)

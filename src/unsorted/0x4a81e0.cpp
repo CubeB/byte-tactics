@@ -144,7 +144,7 @@ char* __stdcall FUN_004c5740(char* key);
 void* __stdcall FUN_004c69f0(char* name, int width, int height);
 void __stdcall FUN_004c6ac0(void* obj);
 void __stdcall FUN_004c6b70(void* dst, void* bmp, int x, int y);
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // The memory-resident scalars. &L.i escapes to FUN_004bbe50, which keeps the
 // whole struct in memory. entries is deliberately not a field; it lives in

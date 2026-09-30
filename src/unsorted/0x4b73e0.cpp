@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-int atoi(const char* str);
+int __cdecl atoi(const char* str);
 
 struct Class_004b73e0
 {

@@ -11,8 +11,8 @@
 #include <string.h>
 #include <io.h>
 
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_004aefa0(char* names, char* sizes, void* times, int count);
 int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
 int __stdcall FUN_004bc640(int handle, struct _finddata_t* fd);

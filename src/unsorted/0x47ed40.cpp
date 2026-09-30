@@ -62,7 +62,7 @@ extern char DAT_00508a78[]; // "Error:  Sound system initialization failed."
 unsigned int __stdcall FUN_0049f5a0(char* key, int defaultValue);
 int FUN_0049f610(void);
 void __stdcall FUN_004b6290(char* text);
-void* operator new(size_t size);
+void* __cdecl operator new(size_t size);
 
 // The direct sound buffer's result goes into a local: comparing the call
 // directly with 0 gives `test eax, eax`, the original compares with the

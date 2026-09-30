@@ -55,7 +55,7 @@ inline void _Destroy(Elem_004c2f60* p)
 }
 }
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 void* __cdecl FUN_004d83b0(char* name, int size);

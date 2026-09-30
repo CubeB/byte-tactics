@@ -57,7 +57,7 @@ struct Net_4c9a70 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4c9a70
 int __stdcall FUN_004c9a70(Net_4c9a70* net, char* password, unsigned long maxPlayers,

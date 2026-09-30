@@ -42,7 +42,7 @@ struct Net_4c97b0 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 extern int DAT_0050a780;
 
 // FUNCTION: 0x4c97b0

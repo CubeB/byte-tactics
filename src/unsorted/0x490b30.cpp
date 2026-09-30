@@ -13,9 +13,9 @@ struct Game_00490b30 {
 
 extern Game_00490b30* g_game;
 
-void __stdcall FUN_004b4fd0(void (*callback)(int), int param);
-void FUN_004578f0(int param);
-void FUN_004609a0(int param);
+void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
+void __cdecl FUN_004578f0(int param);
+void __cdecl FUN_004609a0(int param);
 void FUN_00496a60();
 void FUN_00496b10();
 void FUN_00496bb0();

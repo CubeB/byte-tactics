@@ -139,7 +139,7 @@ struct Object_00485d40 {
 
 extern Game_00485d40* g_game;
 
-void* operator new(size_t size);
+void* __cdecl operator new(size_t size);
 ObjectState_00485d40* __stdcall FUN_0045a950(Class_0045ae80* obj, Data_00485d40* data, int player);
 ObjectState_00485d40* __stdcall FUN_0045a8d0(Class_0045ae80* obj);
 

@@ -26,7 +26,7 @@ extern void** DAT_0051e550;
 
 void __stdcall FUN_004c9b70(void* p);
 void __stdcall FUN_004caa20(int param_1, int param_2);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x46c190
 void FUN_0046c190()

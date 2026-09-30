@@ -30,8 +30,8 @@
 //    redundant test, which is what the original has.
 #include <windows.h>
 
-void* operator new(unsigned int size);
-void FUN_00461170(const char* fmt, ...);
+void* __cdecl operator new(unsigned int size);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 class Class_00462470 {
 public:

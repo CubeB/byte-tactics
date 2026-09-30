@@ -11,7 +11,7 @@ size_t __cdecl FUN_004d8360(void* p);
 void __cdecl FUN_004da840(int param_1);
 
 // FUNCTION: 0x4d85b0
-void FUN_004d85b0(void* p)
+void __cdecl FUN_004d85b0(void* p)
 {
     if (p) {
         CRITICAL_SECTION* cs = FUN_004da780();

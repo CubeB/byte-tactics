@@ -21,7 +21,7 @@ extern Game_00461900* g_game;
 extern Class_0044f940 DAT_005129d0;  // net condenser
 extern int DAT_005129f1;
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 static inline int SendTo(int from, int to, void* data, int size)
 {

@@ -28,13 +28,13 @@
 // not work; exactly one of the pair has to keep the plain `?:` shape.
 #include <windows.h>
 
-extern bool FUN_004e38e0(DWORD a, void* out);
-extern bool FUN_004e3930(DWORD a, __int64 b);
+extern bool __cdecl FUN_004e38e0(DWORD a, void* out);
+extern bool __cdecl FUN_004e3930(DWORD a, __int64 b);
 extern char DAT_00529e9c;
 extern int DAT_00529ea0;
 
 // FUNCTION: 0x4e3750
-bool FUN_004e3750(unsigned int effect, unsigned int level, char f1, char f2)
+bool __cdecl FUN_004e3750(unsigned int effect, unsigned int level, char f1, char f2)
 {
     __int64 val;
     if (level > 1)

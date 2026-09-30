@@ -5,7 +5,7 @@
 // embedded Class_00462d30 destructor and the two array destructors in the same
 // order as the original.
 
-void operator delete(void*);
+void __cdecl operator delete(void*);
 
 struct Obj_00462d30 {
     int a, b, c;

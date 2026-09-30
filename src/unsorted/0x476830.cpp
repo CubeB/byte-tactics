@@ -15,7 +15,7 @@ struct Game_476830 {
 #pragma pack(pop)
 
 extern Game_476830* g_game;
-char* FUN_004d83b0(char* name, int size);
+char* __cdecl FUN_004d83b0(char* name, int size);
 
 // FUNCTION: 0x476830
 char* FUN_00476830()

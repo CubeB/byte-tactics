@@ -93,7 +93,7 @@ void __stdcall FUN_004ab1b0(Layer_0045f1d0* layer, char* type, char* text, int x
 void __stdcall FUN_0045f190(void*);
 void __stdcall FUN_0049fb10(Layer_0045f1d0* menu, int flag);
 void __stdcall FUN_004a81e0(Layer_0045f1d0* menu, int flag);
-char* _itoa(int value, char* buf, int radix);
+char* __cdecl _itoa(int value, char* buf, int radix);
 
 // FUNCTION: 0x45f1d0
 void FUN_0045f1d0()

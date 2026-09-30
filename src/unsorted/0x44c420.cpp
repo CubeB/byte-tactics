@@ -99,7 +99,7 @@ void __stdcall FUN_0044bfd0(Menu_0044c420* menu, int value);
 void FUN_0044bc10();
 void FUN_0044b990();
 void __stdcall FUN_004c6ac0(Struct_004c6ac0* obj);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 int FUN_00457a50();
 
 // FUNCTION: 0x44c420

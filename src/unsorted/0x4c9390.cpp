@@ -7,7 +7,7 @@
 // calls it that way as a plain method, so that established name is kept
 // here rather than renamed to Class_004c91a0::~Class_004c91a0.
 
-extern "C" void free(void*);
+extern "C" void __cdecl free(void*);
 
 class Class_004c9390 {
 public:

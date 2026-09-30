@@ -1,7 +1,7 @@
 // Decompiled by Opus. Names are provisional.
 // Frees the `count` packets assigned from index `start` (wrapping at the
 // pool size), removing each from its owning queue, then resets the range.
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 struct Packet_004629b0;
 

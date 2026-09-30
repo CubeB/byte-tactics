@@ -2,7 +2,7 @@
 // Returns 1 when the buffer can be reused: none of its packets is still
 // queued, and none was sent within the last `minRetain` game ticks.
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 unsigned int FUN_004b6340();
 
 class Class_00462a60;

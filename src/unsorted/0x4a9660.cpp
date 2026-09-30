@@ -25,7 +25,7 @@ struct Gui_004a9660 {
 void FUN_004c2470();
 void __stdcall FUN_004a81e0(Gui_004a9660* gui, int value);
 void FUN_004c2870();
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4a9660
 void __stdcall FUN_004a9660(Gui_004a9660* gui)

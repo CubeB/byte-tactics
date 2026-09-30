@@ -77,7 +77,7 @@ extern char* DAT_0051f2e8;
 extern char* DAT_0051f2ec;
 
 void __stdcall FUN_004ab190(Gadget_00492df0* menu, int flag);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_0049fd60(Gadget_00492df0* gadget, char* name);
 void __stdcall FUN_0049fa70(void* menu);
 void __stdcall FUN_0047f1a0(char* name, int param_2);

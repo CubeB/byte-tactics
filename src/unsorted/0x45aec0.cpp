@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-void* FUN_004d83b0(char* name, int size);
+void* __cdecl FUN_004d83b0(char* name, int size);
 
 #pragma pack(push, 2)
 

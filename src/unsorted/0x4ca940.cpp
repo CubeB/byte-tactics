@@ -13,7 +13,7 @@ struct Net_004ca940 {
     Iface_004ca940* dp;                // +0x4
 };
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // Releases the DirectPlay interface, then the lobby interface.
 // FUNCTION: 0x4ca940

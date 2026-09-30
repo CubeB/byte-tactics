@@ -4,7 +4,7 @@
 // the undocumented default are Cavedog's own additions. FUN_004c9740 is the
 // trace stub, so the argument is re-read from the stack after the call.
 
-extern void FUN_004c9740(const char*);
+extern void __cdecl FUN_004c9740(const char*);
 
 // FUNCTION: 0x4c9530
 char* __stdcall FUN_004c9530(int error)

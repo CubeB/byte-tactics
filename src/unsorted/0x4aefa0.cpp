@@ -121,8 +121,8 @@
 // at 0x4af05a). So the split index is the LAST absolute path, not the first.
 #include <string.h>
 
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 char* __stdcall FUN_004b6af0(char* list, int index);
 int __cdecl _strcmpi(const char* a, const char* b);
 

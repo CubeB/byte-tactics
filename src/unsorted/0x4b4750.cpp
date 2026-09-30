@@ -29,8 +29,8 @@ public:
     int FUN_004b4910(const char* param_1, int param_2);
 };
 
-void FUN_004d85a0(int* param_1);
-char* FUN_004d8610(char* s);
+void __cdecl FUN_004d85a0(int* param_1);
+char* __cdecl FUN_004d8610(char* s);
 
 class Class_004b4750 {
 public:

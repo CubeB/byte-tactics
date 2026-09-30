@@ -5,7 +5,7 @@ struct Obj_004aef80 {
     int* field_4;                      // +0x4
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4aef80
 void __stdcall FUN_004aef80(Obj_004aef80* obj)

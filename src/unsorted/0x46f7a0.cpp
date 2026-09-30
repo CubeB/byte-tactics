@@ -37,7 +37,7 @@ typedef void (std::vector<Class_0046ded0>::*InsertFn_0046f7a0)(Class_0046ded0*,
                                         std::vector<Class_0046ded0>::size_type,
                                         const Class_0046ded0&);
 
-void FUN_0046f7b0(std::vector<Class_0046ded0>* v, Class_0046ded0* p,
+void __cdecl FUN_0046f7b0(std::vector<Class_0046ded0>* v, Class_0046ded0* p,
                   std::vector<Class_0046ded0>::size_type n, const Class_0046ded0& x)
 {
     InsertFn_0046f7a0 f = &std::vector<Class_0046ded0>::insert;

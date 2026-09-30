@@ -33,7 +33,7 @@ struct Net_004ca990 {
     DirectPlay_004ca990* dp;           // +0x4
 };
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4ca990
 int __stdcall FUN_004ca990(Net_004ca990* net, unsigned long player, void* data, unsigned long* size)

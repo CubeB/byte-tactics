@@ -125,7 +125,7 @@ struct Menu_004ac4c0 {
     Dialog_004ac4c0* dialog;
 };
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall FUN_004a1810(Gadget_004ac4c0* gadgets, int index);
 int __stdcall FUN_004a5030(unsigned char* text);
 int FUN_004c1440();

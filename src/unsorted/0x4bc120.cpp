@@ -29,7 +29,7 @@ struct File_004bc120 {
     int* buffer2;             // +0x14
 };
 
-void FUN_004d85a0(void* param_1);
+void __cdecl FUN_004d85a0(void* param_1);
 File_004bc120* __stdcall FUN_004bb2e0(char* param_1, const char* param_2);
 long __stdcall FUN_004bb710(File_004bc120* param_1, long param_2);
 long __stdcall FUN_004bb7c0(File_004bc120* param_1, void* param_2, long param_3);

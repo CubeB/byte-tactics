@@ -5,7 +5,7 @@ public:
     void FUN_004b3630(void);
 };
 
-extern void* FUN_004d8460(int, int);
+extern void* __cdecl FUN_004d8460(int, int);
 
 class Class_004b3750 {
 public:

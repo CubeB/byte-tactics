@@ -1,8 +1,8 @@
 // Decompiled by Haiku. Names are provisional.
 
 extern char DAT_0052a4e4;
-extern void atexit(void*);
-extern void FUN_00463bd0();
+extern void __cdecl atexit(void*);
+extern void __cdecl FUN_00463bd0();
 
 // FUNCTION: 0x463ba0
 void FUN_00463ba0()

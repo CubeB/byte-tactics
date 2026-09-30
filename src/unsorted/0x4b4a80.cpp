@@ -1,7 +1,7 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 #include <string.h>
 
-extern int _strcmpi(const char*, const char*);
+extern int __cdecl _strcmpi(const char*, const char*);
 
 struct Entry_004b4a80 {              // 0x14 bytes
     int used;                       // +0x00

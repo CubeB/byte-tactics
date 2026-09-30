@@ -26,7 +26,7 @@
 //  - ours is 3 bytes short of the original 1062.
 #include <string.h>
 
-extern "C" int sprintf(char* buf, const char* fmt, ...);
+extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
 struct Vec3_004876c0 {
     int x, y, z;

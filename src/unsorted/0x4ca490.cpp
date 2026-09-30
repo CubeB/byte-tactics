@@ -40,8 +40,8 @@ struct Net_4ca490 {
 extern GUID DAT_004fce18;              // IID_IDirectPlayLobby2A
 extern int DAT_0050a780;
 
-void FUN_004c9740(int);
-void* FUN_004d83b0(unsigned int name, unsigned int size);
+void __cdecl FUN_004c9740(int);
+void* __cdecl FUN_004d83b0(unsigned int name, unsigned int size);
 extern "C" HRESULT __stdcall DirectPlayLobbyCreateA(GUID* lpGUID,
                                                     DirectPlayLobby_4ca490** lplpDPL,
                                                     void* lpUnkOuter, void* lpReserved,

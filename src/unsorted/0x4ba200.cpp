@@ -38,8 +38,8 @@ extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 
 Display_004ba200* FUN_004b6220(void);
-void* FUN_004d83b0(const char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 
 static inline LONG Lock()
 {

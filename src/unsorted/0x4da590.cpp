@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern char* strrchr(const char*, int);
+extern char* __cdecl strrchr(const char*, int);
 
 // FUNCTION: 0x4da590
 char* __cdecl FUN_004da590(char* param_1)

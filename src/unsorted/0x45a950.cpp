@@ -44,7 +44,7 @@ struct ObjectState_0045a950 {
 int __stdcall FUN_0045ae80(Class_0045ae80* obj);
 void* __stdcall FUN_0045aec0(ObjectState_0045a950* state, Class_0045ae80* obj, int parent);
 void* __stdcall FUN_0045af90(ObjectState_0045a950* state, Class_0045ae80* obj, void* parent);
-void* FUN_004d83b0(char* name, int size);
+void* __cdecl FUN_004d83b0(char* name, int size);
 
 // FUNCTION: 0x45a950
 ObjectState_0045a950* __stdcall FUN_0045a950(Class_0045ae80* obj, BuildList_0045a950* list, int player)

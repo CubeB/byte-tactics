@@ -60,7 +60,7 @@ struct Net_4ca250 {
 
 extern Guid_4ca250 DAT_004fdaf0;
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 int __stdcall FUN_004ca5d0(Net_4ca250* net, Guid_4ca250* sp, Guid_4ca250* application);
 int __stdcall FUN_004ca100(Guid_4ca250* sp, void* connection, unsigned long size, void* name, unsigned long flags, void* context);
 

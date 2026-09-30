@@ -12,7 +12,7 @@ struct Game_00499a30 {
 
 extern Game_00499a30* g_game;
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x499a30
 void FUN_00499a30(void)

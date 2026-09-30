@@ -42,8 +42,8 @@ void __stdcall FUN_004a32a0(void* menu, char* name, char* text, int value, int f
 void __stdcall FUN_004af320(char* path, char* list, char* sizes, int mode, int flag, int what);
 char* __stdcall FUN_004b6af0(char* text, int n);
 int __stdcall FUN_004bc930(const char* path, int flag);
-void* FUN_004d83b0(const char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 

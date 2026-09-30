@@ -117,7 +117,7 @@ extern char* DAT_0051f2e4;
 extern char* DAT_0051f2e8;
 extern char* DAT_0051f2ec;
 
-void operator delete(void* p);
+void __cdecl operator delete(void* p);
 void __stdcall FUN_0041d4c0();
 char __stdcall FUN_0041d6a0(int flag);
 void __stdcall FUN_0041da30();
@@ -137,11 +137,11 @@ Entry_00492360* __stdcall FUN_0049ff90(Entry_00492360* entries, char* name);
 void __stdcall FUN_004ab0a0(Gadget_00492360* menu);
 void __stdcall FUN_004ab400(void* menu, void* data);
 void __stdcall FUN_004abd90(void* menu, char* message, int a, int b, int c);
-void __stdcall FUN_004b4fd0(void (*callback)(int), int param);
+void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 char* __stdcall FUN_004b6af0(char* text, int n);
-void FUN_004578f0(int param);
+void __cdecl FUN_004578f0(int param);
 char* __stdcall FUN_004c5740(char* text);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 __inline void DeleteSave_00492360(Class_004b3630* obj)
 {

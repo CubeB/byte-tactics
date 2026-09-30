@@ -23,7 +23,7 @@ struct File_004bbd30 {
 File_004bbd30* __stdcall FUN_004bb2e0(const char* name, const char* mode);
 long __stdcall FUN_004bb710(File_004bbd30* file, long pos);
 int __stdcall FUN_004bb7c0(File_004bbd30* file, void* buffer, unsigned int size);
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4bbd30
 void* __stdcall FUN_004bbd30(char* name, void* buffer, long pos, unsigned int size)

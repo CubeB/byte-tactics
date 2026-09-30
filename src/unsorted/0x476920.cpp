@@ -3,7 +3,7 @@
 
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bc930(const char* path, int flag);
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* data);
 int __stdcall FUN_004af320(char* path, void* buffer, char* p3, int p4, int p5, int p6);
 char* __stdcall FUN_004b6af0(char* text, int n);

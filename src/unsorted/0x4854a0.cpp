@@ -58,7 +58,7 @@ struct Game_004854a0 {
 
 extern Game_004854a0* g_game;
 
-void* FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
 int __stdcall FUN_00485940(Player_004854a0* a, Player_004854a0* b)
 {

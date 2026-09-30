@@ -8,7 +8,7 @@ int __stdcall FUN_004bbc40(char* path);
 void* __stdcall FUN_004bbe50(char* path, int flags);
 void __stdcall FUN_004b6290(char* path);
 void __stdcall FUN_004bab00(unsigned int* param_1);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 unsigned int* __stdcall FUN_004badf0(void* palette);
 int __stdcall FUN_004bc290(char* filename, void* data, int size);
 

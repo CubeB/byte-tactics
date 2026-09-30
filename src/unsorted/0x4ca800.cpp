@@ -45,7 +45,7 @@ struct Net_4ca800 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4ca800
 int __stdcall FUN_004ca800(Net_4ca800* net, unsigned long id, void* name, unsigned long flags)

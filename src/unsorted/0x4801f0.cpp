@@ -16,7 +16,7 @@ struct Owner_004801f0 {
     Class_00480160* squads;            // +0x78
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x4801f0
 void __stdcall FUN_004801f0(Owner_004801f0* owner)

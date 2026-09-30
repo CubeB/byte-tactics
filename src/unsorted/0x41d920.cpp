@@ -5,7 +5,7 @@
 #include <string.h>
 #include <new.h>
 
-void FUN_004d83a0(int);
+void __cdecl FUN_004d83a0(int);
 
 #pragma pack(push, 1)
 class Class_00463be0 {

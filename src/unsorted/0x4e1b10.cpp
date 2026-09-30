@@ -28,7 +28,7 @@ extern unsigned int DAT_00529e00;
 extern unsigned int DAT_00529e10;
 
 // FUNCTION: 0x4e1b10
-void FUN_004e1b10(int readOnly)
+void __cdecl FUN_004e1b10(int readOnly)
 {
     Class_004e2be0 key(readOnly, "PerformanceSettings", "CavedogLibrary");
     ((Class_004e2fe0*)&key)->FUN_004e2fe0("EnabledInRelease", &DAT_00529dd8, 0);

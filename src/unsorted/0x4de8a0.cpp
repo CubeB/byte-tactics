@@ -15,7 +15,7 @@ extern char DAT_00528ae4;
 extern char DAT_00528ae8[0x1e8];
 extern char DAT_00528ed0[0x1e8];
 
-bool FUN_004de810(char* dir, char* name);
+bool __cdecl FUN_004de810(char* dir, char* name);
 
 // FUNCTION: 0x4de8a0
 void __cdecl FUN_004de8a0(char* out, char* name)

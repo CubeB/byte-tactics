@@ -81,7 +81,7 @@ struct Game_00445110 {
 extern Game_00445110* g_game;
 
 Gui_00445110* __stdcall FUN_004aa8f0(Sub_00445110* sub, const char* name, int flags);
-void* FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 Entry_00445110* __stdcall FUN_0049ff90(void* entries, const char* name);
 int __stdcall FUN_0049fdf0(void* entries, const char* name, int flag);
 void __stdcall FUN_004a36a0(Gui_00445110* gui, const char* name, void** items, int count);

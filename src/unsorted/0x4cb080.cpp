@@ -19,7 +19,7 @@ int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 int __stdcall FUN_004bb710(void* file, int pos);
 int __stdcall FUN_004bb5d0(void* file);
 void __stdcall FUN_004caa40(void* file, PCX_004cb080* pcx);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4cb080
 int __stdcall FUN_004cb080(char* path, unsigned int* out)

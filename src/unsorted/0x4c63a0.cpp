@@ -78,9 +78,9 @@ extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 extern int DAT_0051fe00;
 
-Display_004c63a0* FUN_004b6220(void);
-int FUN_004b6700(void);
-int FUN_004b6710(void);
+Display_004c63a0* __cdecl FUN_004b6220(void);
+int __cdecl FUN_004b6700(void);
+int __cdecl FUN_004b6710(void);
 int __stdcall FUN_004c5e70(Surface_004c63a0* out);
 void __stdcall FUN_004c6b70(Surface_004c63a0* dst, Surface_004c63a0* bmp, int x, int y);
 void __stdcall FUN_004c67c0(Display_004c63a0* obj, void* dst);
@@ -132,7 +132,7 @@ struct Desc {
 };
 
 // FUNCTION: 0x4c63a0
-void FUN_004c63a0(void)
+void __cdecl FUN_004c63a0(void)
 {
     Display_004c63a0* d = FUN_004b6220();
     unsigned short flags = d->flags;

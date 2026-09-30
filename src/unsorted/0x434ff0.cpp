@@ -15,7 +15,7 @@ struct Game_00434ff0 {
 
 extern Game_00434ff0* g_game;
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 class Class_0048dfb0 {
 public:

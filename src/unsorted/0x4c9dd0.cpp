@@ -44,9 +44,9 @@ struct Net_4c9dd0 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004c9740(int);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4c9dd0
 int __stdcall FUN_004c9dd0(Net_4c9dd0* net)

@@ -27,7 +27,7 @@
 // FUN_004629b0() (0x461ecb) is redundant: that method sets count to 0 itself
 // (0x4629b0.cpp).
 
-void* operator new(unsigned int size);
+void* __cdecl operator new(unsigned int size);
 
 class Class_00462470;
 

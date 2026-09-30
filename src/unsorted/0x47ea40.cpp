@@ -31,8 +31,8 @@ union Fixed {
 
 extern Game* g_game;
 
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
 void* __stdcall FUN_004815a0(Vec3* pos);
 unsigned short __stdcall FUN_00421e60(void* cell);

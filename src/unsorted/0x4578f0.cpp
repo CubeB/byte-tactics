@@ -63,11 +63,11 @@ extern Game_004578f0* g_game;
 void __stdcall FUN_00452cc0(int dpid);
 void FUN_0046c190();
 int __stdcall FUN_004c9f90(Net_4c9f90* net);
-void __stdcall FUN_004b4fd0(void (*callback)(int), int param);
+void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void __stdcall FUN_004b6230(char* message);
 
 // FUNCTION: 0x4578f0
-void FUN_004578f0()
+void __cdecl FUN_004578f0()
 {
     if (g_game->leaving) {
         for (int i = 0; i < 10; i++) {

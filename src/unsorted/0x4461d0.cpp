@@ -65,7 +65,7 @@ struct Gui_004461d0 {
 
 extern Game_004461d0* g_game;
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_0049fd60(Gui_004461d0* gui, char* name);
 Gadget_004461d0* __stdcall FUN_0049ff90(Gadget_004461d0* gadgets, char* name);
 void __stdcall FUN_0047f1a0(char* name, int param_2);

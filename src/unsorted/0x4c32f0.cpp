@@ -28,7 +28,7 @@ struct Elem_004c42a0 {
     Handle_004c42a0 value;                  // +0x4
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 class Class_004c42a0 {

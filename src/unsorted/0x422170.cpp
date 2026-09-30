@@ -40,7 +40,7 @@ struct Game_00422170 {
 
 extern Game_00422170* g_game;
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_0045aaa0(void* obj);
 
 // FUNCTION: 0x422170

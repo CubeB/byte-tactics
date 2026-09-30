@@ -63,7 +63,7 @@ void* __stdcall FUN_0044b4e0(int* out);
 void __stdcall FUN_004a32a0(Menu_0044b690* menu, char* name, char* text, int value, int flag);
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 void __stdcall FUN_0044b230(char* filename);
-void FUN_004d85a0(char* p);
+void __cdecl FUN_004d85a0(char* p);
 
 // FUNCTION: 0x44b690
 void __stdcall FUN_0044b690(Menu_0044b690* menu)

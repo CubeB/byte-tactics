@@ -19,7 +19,7 @@ struct FindHandle_004bc930 {
 
 int __stdcall FUN_004bc4b0(const char* path, FindData_004bc930* fd, int a, int b);
 int __stdcall FUN_004bc640(int handle, FindData_004bc930* fd);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4bc930
 int __stdcall FUN_004bc930(const char* path, int flag)

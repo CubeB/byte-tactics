@@ -42,7 +42,7 @@ char __stdcall FUN_0041d6a0(int param_1);
 int FUN_004c1ab0(void);
 void FUN_004c63a0();
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_0047f1a0(char* name, int param_2);
 void __stdcall FUN_00491c80(int param_1);
 int __stdcall FUN_0049fd60(Gadget_00425d80* gadget, char* name);

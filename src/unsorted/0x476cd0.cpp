@@ -1,8 +1,8 @@
 // Decompiled by space-bunny-free. Names are provisional.
 #include <string.h>
 
-void* FUN_004d83b0(const char* tag, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(const char* tag, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x476cd0
 char* __stdcall FUN_00476cd0(char* s)

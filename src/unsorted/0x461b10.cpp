@@ -16,7 +16,7 @@
 // store, a temporary value, an unsigned long/int ix, a pointer store, and a
 // separate return local all keep the same 99.0%.
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 unsigned int FUN_004b6340();
 
 struct Packet_004629b0;

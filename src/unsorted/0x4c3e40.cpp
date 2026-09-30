@@ -162,7 +162,7 @@ class Class_004c3e40 {
 };
 #pragma pack(pop)
 
-char* FUN_004d8610(char* text);
+char* __cdecl FUN_004d8610(char* text);
 char* FUN_004b6ba0(char* text, int len);
 void FUN_004b6290(char* text);
 

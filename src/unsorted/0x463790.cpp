@@ -2,8 +2,8 @@
 // PARTIAL: 62.6%. Preserve pointer-returning ring pop and unsigned spacing comparison. Remaining count-loop and ring-entry register allocation differ.
 #include <string.h>
 
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
 // Bit reader, see src/unsorted/0x415dc0.cpp.
 class Class_00415dc0 {

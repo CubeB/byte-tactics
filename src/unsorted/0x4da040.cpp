@@ -4,7 +4,7 @@
 // ("0x...") or decimal.
 #include <stdio.h>
 
-char* FUN_004d9f60(char* name);
+char* __cdecl FUN_004d9f60(char* name);
 
 class Class_004da040 {
 public:

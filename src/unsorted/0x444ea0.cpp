@@ -73,7 +73,7 @@ struct Game_00444ea0 {
 extern Game_00444ea0* g_game;
 extern char* DAT_00512990;
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall FUN_00434bf0(char** out, int param_2, int param_3);
 char* __stdcall FUN_004c5740(char* text);
 void __stdcall FUN_004abd90(Menu_00444ea0* menu, char* text, int width, int a, int b);

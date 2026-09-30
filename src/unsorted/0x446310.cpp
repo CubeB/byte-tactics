@@ -49,8 +49,8 @@ struct Game_00446310 {
 
 extern Game_00446310* g_game;
 
-void* FUN_004d83b0(const char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_004b5370(Class_00446310* obj);
 void __stdcall FUN_0045e4c0(Class_00446310* obj);
 void FUN_00450f90(void);

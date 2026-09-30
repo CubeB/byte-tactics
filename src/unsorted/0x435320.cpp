@@ -6,8 +6,8 @@
 
 int __stdcall FUN_004bbc40(char* path);
 void __stdcall FUN_004bbd30(char* filename, void* buffer, int offset, int size);
-void* FUN_004d83b0(const char* tag, int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(const char* tag, int size);
+void __cdecl FUN_004d85a0(void* p);
 
 class Class_00435320 {
 public:

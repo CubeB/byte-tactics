@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
 
-extern void FUN_004d85a0(void* ptr);
+extern void __cdecl FUN_004d85a0(void* ptr);
 
 struct Obj_004ba730 {
 public:

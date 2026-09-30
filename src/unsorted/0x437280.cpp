@@ -4,7 +4,7 @@
 // two clearing stores together instead of letting them sink past the next
 // load.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 struct Buffer_00437280 {
     int* data;

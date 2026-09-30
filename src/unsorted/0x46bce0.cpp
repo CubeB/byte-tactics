@@ -32,7 +32,7 @@ extern ScoreBoard_0046bce0** DAT_0051e57c;
 extern char** DAT_0051e550;
 
 void FUN_0046c190();
-void* FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 
 // FUNCTION: 0x46bce0
 int FUN_0046bce0()

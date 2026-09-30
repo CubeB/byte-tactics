@@ -63,7 +63,7 @@ int __stdcall FUN_004ab0a0(int);
 int __stdcall FUN_004abd90(int,int,int,int,int);
 int FUN_004b6340();
 int __stdcall FUN_004c5740(int);
-int FUN_004d85a0(int);
+int __cdecl FUN_004d85a0(int);
 void FUN_00444ba0();
 // FUNCTION: 0x447b10
 void __stdcall FUN_00447b10(byte *param_1)

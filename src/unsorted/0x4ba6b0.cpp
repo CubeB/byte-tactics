@@ -5,7 +5,7 @@ struct Struct_004ba6b0 {
     void* gray_table;                  // +0xcc
 };
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x4ba6b0
 int __stdcall FUN_004ba6b0(Struct_004ba6b0* obj)

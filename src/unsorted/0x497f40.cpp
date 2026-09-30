@@ -96,7 +96,7 @@ extern "C" unsigned char DAT_0051e823, DAT_0051e824, DAT_0051e825;
 
 void FUN_00497c70();
 void FUN_00499200();
-void FUN_004609a0(int);
+void __cdecl FUN_004609a0(int);
 void __cdecl FUN_004257a0();
 void __cdecl FUN_00428730();
 void __cdecl FUN_00430f00();
@@ -122,7 +122,7 @@ void __stdcall FUN_004a50e0(void*, char*, int, int, int, int);
 void __stdcall FUN_004a9660(void*);
 void __stdcall FUN_004ab400(void*, void*);
 void __stdcall FUN_004ac7d0(void*, void*, void*);
-void __stdcall FUN_004b4fd0(void (*)(int), int);
+void __stdcall FUN_004b4fd0(void (__cdecl *)(int), int);
 void __stdcall FUN_004b5940(int, int);
 void __stdcall FUN_004b6290(char*);
 int __stdcall FUN_004b6b20(void (*)(void), int, int);

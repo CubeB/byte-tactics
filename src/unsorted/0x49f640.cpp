@@ -1,7 +1,7 @@
 // Decompiled by Sonnet. Names are provisional.
 #include <windows.h>
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 extern int* DAT_0051fba0;
 extern int DAT_0051fb9c;

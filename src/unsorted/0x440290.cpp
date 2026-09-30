@@ -4,7 +4,7 @@
 // destructor it registers with atexit. MSVC guards the destructor of a static
 // data member with a "$S" flag, which is the byte right after the table.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 struct Class_00440320 {
     int* field_0;

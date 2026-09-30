@@ -49,7 +49,7 @@ void __stdcall FUN_0047f090(char* text, int param_2, int param_3);
 void __stdcall FUN_0049fa90(Menu_00478cb0* menu);
 void FUN_00476ef0();
 void __stdcall FUN_004afcf0(char* menu);
-void FUN_004d85a0(void* param_1);
+void __cdecl FUN_004d85a0(void* param_1);
 
 // FUNCTION: 0x478cb0
 void __stdcall FUN_00478cb0(Menu_00478cb0* menu)

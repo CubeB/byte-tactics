@@ -64,7 +64,7 @@ struct Net_4c9890 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(const char* fmt, ...);
+void __cdecl FUN_004c9740(const char* fmt, ...);
 
 // FUNCTION: 0x4c9890
 int __stdcall FUN_004c9890(Net_4c9890* net, char* name, char* data, int d, int c, int b, int a)

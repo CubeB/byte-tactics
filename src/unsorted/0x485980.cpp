@@ -1,7 +1,7 @@
 // Decompiled by Space Bunny Free. Names are provisional.
 
 void __stdcall FUN_004864b0(void* unit, int param_2);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 #pragma pack(push, 1)
 struct Unit_00485980 {

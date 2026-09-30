@@ -109,7 +109,7 @@ void __stdcall FUN_004c6890(int param_1, int param_2);
 void FUN_004c63a0();
 Layer_0041f0a0* __stdcall FUN_004aa8f0(Menu_0041f0a0* menu, const char* name, int flags);
 void __stdcall FUN_0041ec50(void* gadget);
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __stdcall FUN_004288d0(const char* name, int a, int b, int c);
 void __stdcall FUN_004a76b0(Menu_0041f0a0* menu, const char* name);
 int __stdcall FUN_0041eaa0(int names, char* flags, int count);

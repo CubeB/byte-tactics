@@ -2,10 +2,10 @@
 #include <windows.h>
 
 int FUN_004d9f50(void);
-HGLOBAL FUN_004da480(int id);
+HGLOBAL __cdecl FUN_004da480(int id);
 
 // FUNCTION: 0x4da4f0
-int FUN_004da4f0(int id, HWND parent, DLGPROC proc, LPARAM param)
+int __cdecl FUN_004da4f0(int id, HWND parent, DLGPROC proc, LPARAM param)
 {
     HGLOBAL mem = FUN_004da480(id);
     if (mem == 0)

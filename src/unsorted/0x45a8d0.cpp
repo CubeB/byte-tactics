@@ -21,7 +21,7 @@ struct ObjectState_0045a8d0 {
 
 int __stdcall FUN_0045ae80(Class_0045ae80* obj);
 int __stdcall FUN_0045aec0(ObjectState_0045a8d0* state, Class_0045ae80* obj, int parent);
-void* FUN_004d83b0(char* name, int size);
+void* __cdecl FUN_004d83b0(char* name, int size);
 
 // FUNCTION: 0x45a8d0
 ObjectState_0045a8d0* __stdcall FUN_0045a8d0(Class_0045ae80* obj)

@@ -48,7 +48,7 @@ void* __stdcall FUN_004aa8f0(void* obj, const char* name, int size);
 void __stdcall FUN_004a9660(void* obj);
 OutEntry_00453a50* __stdcall FUN_0049ff90(void* entries, char* name);
 int FUN_004a50b0();
-void* FUN_004d83b0(char* name, int size);
+void* __cdecl FUN_004d83b0(char* name, int size);
 void __stdcall FUN_004a32a0(void* obj, char* name, void* p, int count, int flags);
 int __stdcall FUN_0049fdf0(void* entries, char* name, int type);
 void __stdcall FUN_004a7190(void* obj, int index);

@@ -3,7 +3,7 @@
 // game object built by 0x41d920).
 #include <string.h>
 
-void FUN_004d83a0(int);
+void __cdecl FUN_004d83a0(int);
 
 #pragma pack(push, 1)
 struct Grid_00463be0 {

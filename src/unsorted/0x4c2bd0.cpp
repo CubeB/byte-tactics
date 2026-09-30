@@ -24,9 +24,9 @@ struct Obj_004c2bd0 {
 };
 #pragma pack(pop)
 
-void FUN_004c2990(void* param_1);
+void __cdecl FUN_004c2990(void* param_1);
 int FUN_004b6220(void);
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void* __stdcall FUN_004c69f0(char* name, int width, int height);
 int __stdcall FUN_004b6b20(void* param_1, unsigned int param_2, void* param_3);
 

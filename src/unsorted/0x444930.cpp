@@ -64,7 +64,7 @@ extern "C" Entry_00444930* __stdcall FUN_0049ff90(Entry_00444930* entries, char*
 extern "C" void __stdcall FUN_0047f1a0(char* str, int flag);
 extern "C" void __stdcall FUN_004ab0a0(Gadget_00444930* gadget);
 extern "C" void __stdcall FUN_004526c0(int value);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x444930
 void __stdcall FUN_00444930(Gadget_00444930* param_1)

@@ -10,7 +10,7 @@
 #include <dsound.h>
 #include <string.h>
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 class Class_004cf230 {
 public:

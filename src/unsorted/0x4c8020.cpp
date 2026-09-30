@@ -19,10 +19,10 @@ struct Surface_004c8020 {
 };
 struct Display_004c8020 { char pad[0xc4]; unsigned char* palette; };
 Display_004c8020* FUN_004b6220();
-void FUN_004cd896(unsigned char*, unsigned char*, int, int, int, int, int);
-void FUN_004cd8da(unsigned char*, unsigned char*, int, int, int, int, int);
-void FUN_004cd91e(unsigned char*, unsigned char*, int, int, int, int, int);
-void FUN_004cd962(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl FUN_004cd896(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl FUN_004cd8da(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl FUN_004cd91e(unsigned char*, unsigned char*, int, int, int, int, int);
+void __cdecl FUN_004cd962(unsigned char*, unsigned char*, int, int, int, int, int);
 
 // FUNCTION: 0x4c8020
 void __stdcall FUN_004c8020(int row, int* span, Surface_004c8020* target, Surface_004c8020* texture)

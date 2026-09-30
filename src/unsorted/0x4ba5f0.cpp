@@ -8,7 +8,7 @@ struct Struct_4ba5f0
 };
 #pragma pack(pop)
 
-extern void FUN_004d85a0(void*);
+extern void __cdecl FUN_004d85a0(void*);
 
 // FUNCTION: 0x4ba5f0
 void __stdcall FUN_004ba5f0(Struct_4ba5f0* param)

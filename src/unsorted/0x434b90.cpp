@@ -2,7 +2,7 @@
 // Frees a global buffer, clears three globals and deletes the object at
 // g_game+0x391e9.
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 class Class_00434f70 {
 public:

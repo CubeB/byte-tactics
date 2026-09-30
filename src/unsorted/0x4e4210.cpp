@@ -1,6 +1,6 @@
 // Decompiled by Haiku. Names are provisional.
-extern void FUN_004e4280();
-extern int atexit(void (*func)());
+extern void __cdecl FUN_004e4280();
+extern int __cdecl atexit(void (*func)());
 
 // FUNCTION: 0x4e4210
 void FUN_004e4210()

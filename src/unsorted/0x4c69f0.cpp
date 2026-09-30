@@ -27,7 +27,7 @@ struct Class_004c6a60 {
     unsigned char pixels[1];           // +0x30
 };
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 static inline void Init(Class_004c6a60* s, int width, int height, int a, int b)
 {

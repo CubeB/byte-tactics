@@ -30,7 +30,7 @@ struct Table_004b3630 {
     Slot_004b3630* slots;           // +0x04
 };
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 class Class_004b3630 {
 public:

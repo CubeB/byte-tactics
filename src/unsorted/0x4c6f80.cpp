@@ -42,7 +42,7 @@ public:
     int FUN_004b4c80(void* dst, int len);
 };
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 void __cdecl FUN_004d85a0(void* ptr);
 
 static inline Surface_004c6f80* NewSurface(char* name, int w, int h)

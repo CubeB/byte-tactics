@@ -6,7 +6,7 @@
 extern char* DAT_0050c908[19];
 
 // FUNCTION: 0x4da0e0
-bool FUN_004da0e0(const char* arg)
+bool __cdecl FUN_004da0e0(const char* arg)
 {
     for (char** p = DAT_0050c908; p < DAT_0050c908 + 19; p++) {
         if (_strnicmp(*p, arg, strlen(*p)) == 0)

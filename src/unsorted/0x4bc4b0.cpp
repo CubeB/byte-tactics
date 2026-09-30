@@ -12,8 +12,8 @@ struct Find_004bc4b0 {
 };
 #pragma pack(pop)
 
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 int __stdcall FUN_004bc640(Find_004bc4b0* f, void* fd);
 long __cdecl _findfirst(const char* spec, void* fileinfo);
 

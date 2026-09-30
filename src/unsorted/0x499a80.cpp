@@ -9,7 +9,7 @@ struct Game_00499a80 {
 
 extern Game_00499a80* g_game;
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x499a80
 void FUN_00499a80(void)

@@ -84,8 +84,8 @@ void __stdcall FUN_00483210(Point_00483610 pos, Point_00483610 size);
 void FUN_00482c20();
 void FUN_004833b0();
 void FUN_00422040();
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 // SHARED end
 
 // FUNCTION: 0x483610

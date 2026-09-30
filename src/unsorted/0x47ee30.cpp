@@ -124,7 +124,7 @@
 // through `[ebp+0x99]` on the back edge. The two are an allocator trade-off,
 // not a spelling: 91.2% is still the best found.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 struct Entry_0047f8c0 {                // 0x11 bytes

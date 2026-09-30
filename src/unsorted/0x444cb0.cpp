@@ -82,7 +82,7 @@ char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_0047f1a0(char* str, int flag);
 void __stdcall FUN_004ab0a0(Gadget_00444cb0* gadget);
 void __stdcall FUN_0046c620(int msg);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 void FUN_00450f90(void);
 void FUN_00451180(void);
 

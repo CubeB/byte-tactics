@@ -33,7 +33,7 @@ public:
 
 extern Display_00417a60* FUN_004b6220();
 void FUN_004b5910();
-void FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x417a60
 void __stdcall FUN_00417a60(Class_004b73e0* args)

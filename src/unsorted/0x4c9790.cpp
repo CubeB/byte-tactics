@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-extern void FUN_004c9740(const char*);
+extern void __cdecl FUN_004c9740(const char*);
 extern int DAT_0050a780;
 
 // FUNCTION: 0x4c9790

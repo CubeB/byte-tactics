@@ -28,7 +28,7 @@ extern char* g_game;
 short __stdcall FUN_00422e40(char* name);
 void* __stdcall FUN_00440420(char* name);
 char* __stdcall FUN_0049e5b0(char* name);
-void* FUN_004d83b0(char* name, int size);
+void* __cdecl FUN_004d83b0(char* name, int size);
 
 class Class_004c2ea0 {
   public:

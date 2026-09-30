@@ -170,9 +170,9 @@ struct Game_0048a490 {
 extern Game_0048a490* g_game;
 
 unsigned int FUN_004b6340();
-int FUN_004b7123(int a, int b);
-int FUN_004b715a(int x, int y);
-void FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
+int __cdecl FUN_004b7123(int a, int b);
+int __cdecl FUN_004b715a(int x, int y);
+void __cdecl FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 

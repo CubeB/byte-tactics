@@ -46,7 +46,7 @@ struct Obj_00462d90 {
     Obj_00462d90() { field_0 = 0; field_4 = 0; field_8 = -1; }
 };
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 struct Tail_00462d90 {
     int field_0;                           // +0x18

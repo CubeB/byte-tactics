@@ -90,8 +90,8 @@ struct MissionFeature_00436c30 {
 
 extern char DAT_005119b8[];
 
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 
 class Class_00436c30 {
 public:

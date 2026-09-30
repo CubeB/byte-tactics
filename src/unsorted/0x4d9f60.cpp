@@ -6,7 +6,7 @@
 #include <ctype.h>
 
 // FUNCTION: 0x4d9f60
-char* FUN_004d9f60(char* name)
+char* __cdecl FUN_004d9f60(char* name)
 {
     if (!name) return 0;
     char* cmd = GetCommandLineA();

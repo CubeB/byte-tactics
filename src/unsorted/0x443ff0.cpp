@@ -31,7 +31,7 @@ extern Guid_443ff0 DAT_004fcda8;
 extern Guid_443ff0 DAT_004fcd98;
 extern Guid_443ff0 DAT_004fcdc8;
 extern Guid_443ff0 DAT_004fcdb8;
-void* FUN_004d83b0(const char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
 int FUN_0045b660();
 // FUNCTION: 0x443ff0
 int __stdcall FUN_00443ff0(int index)

@@ -119,9 +119,9 @@ extern unsigned char DAT_00529e00[];
 extern unsigned char DAT_00529e10[];
 extern char* DAT_0050d660;
 
-void FUN_004e1b10(int flag);
-void FUN_004e3400(HWND hwnd, char* name);
-void FUN_004da5b0(HWND hwnd, const char* url, const char* ext);
+void __cdecl FUN_004e1b10(int flag);
+void __cdecl FUN_004e3400(HWND hwnd, char* name);
+void __cdecl FUN_004da5b0(HWND hwnd, const char* url, const char* ext);
 
 class Class_004df590 {
 public:

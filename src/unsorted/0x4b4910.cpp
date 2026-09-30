@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 #include <string.h>
 
-extern int _strcmpi(const char*, const char*);
+extern int __cdecl _strcmpi(const char*, const char*);
 
 struct Value_004b4910 {                // 0x10 bytes
     char* name;                        // +0x00

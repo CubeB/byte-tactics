@@ -38,7 +38,7 @@ extern Class_004618a0 DAT_00513000;
 void __stdcall FUN_00452cc0(int id);
 void FUN_0046c190();
 int __stdcall FUN_004c9f90(void* net);
-void __stdcall FUN_004b4fd0(void (*callback)(int), int param);
+void __stdcall FUN_004b4fd0(void (__cdecl *callback)(int), int param);
 void __stdcall FUN_004b6230(char* message);
 
 static inline int IsPlaying(Player_00450e20* player)

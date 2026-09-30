@@ -1,7 +1,7 @@
 // Decompiled by Haiku. Names are provisional.
 
 extern void FUN_004e1410();
-extern char* FUN_004d9f60(char*);
+extern char* __cdecl FUN_004d9f60(char*);
 extern void FUN_004e1400();
 
 extern char DAT_0050d220[];

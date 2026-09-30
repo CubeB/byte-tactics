@@ -10,7 +10,7 @@ struct Game_0042a3b0 {
 
 extern Game_0042a3b0* g_game;
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x42a3b0
 void FUN_0042a3b0()

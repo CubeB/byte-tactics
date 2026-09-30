@@ -7,7 +7,7 @@ struct Class_00470a90 {
 };
 
 extern Class_00470a90 DAT_0051e610;
-extern void FUN_00471ca0();
+extern void __cdecl FUN_00471ca0();
 
 // FUNCTION: 0x471c80
 void FUN_00471c80()

@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-void FUN_004c9740(int param_1);
+void __cdecl FUN_004c9740(int param_1);
 
 class Iface_4ca590 {
 public:

@@ -61,7 +61,7 @@ struct Class_00463730 {
                      int flag);
 };
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 int __stdcall FUN_004c9530(int rc);

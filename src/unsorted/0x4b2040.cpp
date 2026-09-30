@@ -25,8 +25,8 @@ public:
     int FUN_004b4c80(void* dst, int len);
 };
 
-char* FUN_004d83b0(const char* text, int value);
-void FUN_004d85a0(void* ptr);
+char* __cdecl FUN_004d83b0(const char* text, int value);
+void __cdecl FUN_004d85a0(void* ptr);
 
 struct Table_004b2040 {
     char unknown_0[8];

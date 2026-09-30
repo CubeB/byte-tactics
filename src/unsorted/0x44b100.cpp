@@ -3,7 +3,7 @@
 extern int* DAT_005129ac;
 extern int* DAT_005129b0;
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x44b100
 void FUN_0044b100()

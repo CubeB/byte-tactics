@@ -5,8 +5,8 @@
 
 #include <string.h>
 
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* data);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* data);
 
 #pragma pack(push, 1)
 struct Unit_0047fad0;

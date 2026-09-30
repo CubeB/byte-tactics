@@ -2,7 +2,7 @@
 // Frees the buffer of each of the five entries at g_game+0x3816b and clears
 // the pointers.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 struct Entry_00431a20 {

@@ -21,7 +21,7 @@ struct Net_004ca450 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4ca450
 unsigned int __stdcall FUN_004ca450(Net_004ca450* net)

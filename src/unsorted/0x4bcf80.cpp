@@ -49,8 +49,8 @@ struct File_004bcf80 {
 File_004bcf80* __stdcall FUN_004bb2e0(char* filename, const char* mode);
 long __stdcall FUN_004bb710(File_004bcf80* file, long pos);
 int __stdcall FUN_004bb7c0(File_004bcf80* file, void* buf, int size);
-void* FUN_004d83b0(char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 
 // Drops one reference on a handle, closing and freeing whatever it still holds.
 static void Close_004bcf80(File_004bcf80* f)

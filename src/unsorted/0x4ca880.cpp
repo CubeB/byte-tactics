@@ -31,7 +31,7 @@ struct Net_4ca880 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4ca880
 int __stdcall FUN_004ca880(Net_4ca880* net, void* elements, unsigned long count, void* address,

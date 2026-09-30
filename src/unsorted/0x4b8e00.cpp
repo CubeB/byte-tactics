@@ -14,7 +14,7 @@ struct Bitmap_004b8e00 {
     unsigned char* plane1;          // +0x14
 };
 
-void* FUN_004d83b0(unsigned int param_1, unsigned int param_2);
+void* __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2);
 
 // FUNCTION: 0x4b8e00
 Bitmap_004b8e00* __stdcall FUN_004b8e00(unsigned int heap, int width, int height)

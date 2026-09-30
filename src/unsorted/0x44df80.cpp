@@ -4,7 +4,7 @@
 // restore this object's own vtable, conditionally operator delete, and
 // return `this`.
 
-extern void operator delete(void*);
+extern void __cdecl operator delete(void*);
 extern void* DAT_004fd2f8[];
 
 class Class_00489650 {

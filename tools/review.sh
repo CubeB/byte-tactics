@@ -52,6 +52,15 @@ if ! git merge -q --no-edit origin/main >/dev/null 2>&1; then
     git merge --abort 2>/dev/null || true
     echo "!! does not merge cleanly with origin/main; checking the PR branch alone"
 fi
+# A PR branched before the switch to /Gz (#2290) was written for the __cdecl
+# default; score it with the conventions that landing it will write back.
+if ! git show "pr-$PR:tools/check.py" 2>/dev/null | grep -q '^DEFAULT_FLAGS = ".*/Gz'; then
+    cpp=$(echo "$changed" | grep '^src/.*\.cpp$' | while read -r f; do [ -f "$f" ] && echo "$f"; done || true)
+    if [ -n "$cpp" ]; then
+        echo "== written for the old __cdecl default: adding explicit conventions"
+        uv run --quiet tools/fix_conventions.py $cpp | tail -1 | sed 's/^/  /'
+    fi
+fi
 echo "== whole project after merging"
 uv run --quiet tools/progress.py | tail -1 | sed 's/^/  /'
 git show origin/main:data/progress.csv > build/main-progress.csv

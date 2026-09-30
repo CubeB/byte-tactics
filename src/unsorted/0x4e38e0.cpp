@@ -7,7 +7,7 @@ extern bool DAT_00529e9c;
 extern HANDLE DAT_00529e98;
 
 // FUNCTION: 0x4e38e0
-bool FUN_004e38e0(DWORD a, void* out)
+bool __cdecl FUN_004e38e0(DWORD a, void* out)
 {
     DWORD in = a;
     if (!DAT_00529e9c) {

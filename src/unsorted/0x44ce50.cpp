@@ -2,7 +2,7 @@
 
 extern void* DAT_004fd2f8[];
 
-extern void operator delete(void* p);
+extern void __cdecl operator delete(void* p);
 
 class Class_0044ce50 {
 public:

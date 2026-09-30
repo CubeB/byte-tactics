@@ -22,7 +22,7 @@ struct Owner_00480190 {
     Class_00480160* squads;            // +0x78
 };
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 
 // FUNCTION: 0x480190
 void __stdcall FUN_00480190(Owner_00480190* owner)

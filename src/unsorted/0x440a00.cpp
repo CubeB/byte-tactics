@@ -1,6 +1,6 @@
 // Decompiled by Sonnet. Names are provisional.
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 extern char DAT_00512370[];
 extern char DAT_00512770[];

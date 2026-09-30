@@ -146,8 +146,8 @@ struct Callback_0043b7c0 {
 extern Game_0043b7c0* g_game;
 extern Callback_0043b7c0* DAT_00512344;
 
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 int __stdcall FUN_0048a0f0(Unit_0043b7c0* unit, int index);
 int __stdcall FUN_004b6c30(int n);
 void __stdcall FUN_00439eb0(Unit_0043b7c0* unit, int all);

@@ -3,7 +3,7 @@
 // FUN_004e1a80 (a GlobalAlloc wrapper), and returns it. It is a placement
 // new into that block: the constructor is 0x4e17c0.
 
-inline void* operator new(unsigned int, void* p) { return p; }
+inline void* __cdecl operator new(unsigned int, void* p) { return p; }
 
 class Class_004e17c0 {
 public:
@@ -11,7 +11,7 @@ public:
     Class_004e17c0();
 };
 
-void* FUN_004e1a80(unsigned int size);
+void* __cdecl FUN_004e1a80(unsigned int size);
 
 extern Class_004e17c0* DAT_00529e7c;
 

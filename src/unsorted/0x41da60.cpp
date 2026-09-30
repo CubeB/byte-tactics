@@ -40,7 +40,7 @@ struct Game_0041da60 {
 
 extern Game_0041da60* g_game;
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 Display_0041da60* FUN_004b6220();
 void __stdcall FUN_004290f0(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall FUN_004bbc40(char* path);

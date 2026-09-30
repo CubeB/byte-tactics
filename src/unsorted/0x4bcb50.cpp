@@ -99,7 +99,7 @@ typedef std::vector<Class_004c91a0> Class_004be6c0;
 int __stdcall FUN_004bc4b0(const char* path, struct _finddata_t* fd, int state, char recursive);
 int __stdcall FUN_004bc640(Find_004bcb50* f, struct _finddata_t* fd);
 int __stdcall FUN_004bc370(const char* str, const char* pat);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_004bcb50(char* path, const char* pat, Class_004be6c0* tree, int state, int recursive);
 
 

@@ -128,7 +128,7 @@ public:
     void FUN_004dbec0(Class_004dd2a0* out, Pair_004db000* p);
 };
 
-Node_004dd1b0* FUN_004dd1b0(Node_004dd1b0* p);
+Node_004dd1b0* __cdecl FUN_004dd1b0(Node_004dd1b0* p);
 
 // The tree's operator++, with _Min left out of line. Its _Lockit takes over the
 // stack slot the iterator local used, which is how the original gets everything

@@ -20,7 +20,7 @@ struct Record_004be270 {
 };
 
 State_004be270* FUN_004b6220(void);
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4be270
 void __stdcall FUN_004be270(Record_004be270* pRecord)

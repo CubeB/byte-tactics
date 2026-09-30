@@ -55,7 +55,7 @@ public:
     void FUN_00463610(long id);
 };
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 // FUNCTION: 0x463610
 void Class_004635b0::FUN_00463610(long id)

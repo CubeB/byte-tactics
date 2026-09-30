@@ -34,7 +34,7 @@ struct Elem_004c5bc0 {
     Class_004c91a0 b;                  // +0x4 value
 };
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 struct Inner_004c51b0 {

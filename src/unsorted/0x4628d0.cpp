@@ -28,7 +28,7 @@
 // that score above this one's 96.6%: none.
 #include <string.h>
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 
 class Class_004628d0;
 

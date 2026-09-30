@@ -118,8 +118,8 @@ void __stdcall FUN_004a2be0(Class_004a6ae0* obj, int index);
 int FUN_004b6340();
 int __stdcall FUN_004c1b80(int param);
 void FUN_004c1ab0();
-int tolower(int c);
-int toupper(int c);
+int __cdecl tolower(int c);
+int __cdecl toupper(int c);
 
 // FUNCTION: 0x4a6ae0
 int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)

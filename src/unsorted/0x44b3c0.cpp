@@ -30,7 +30,7 @@ char* __stdcall FUN_004b6af0(char* text, int n);
 void __stdcall FUN_0044b140(char* path);
 void __stdcall FUN_0044bfd0(void* menu, int flag);
 void __stdcall FUN_004ab0a0(void* menu);
-void FUN_004d85a0(void* param_1);
+void __cdecl FUN_004d85a0(void* param_1);
 
 // FUNCTION: 0x44b3c0
 void __stdcall FUN_0044b3c0(Menu_44b3c0* menu)

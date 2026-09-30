@@ -112,8 +112,8 @@ struct File_004bdd70 {                 // 0x118 bytes
 
 extern char DAT_004fdbf0[];            // "Copyright 0000 Cavedog Entertainment"
 
-void* FUN_004d83b0(const char* name, unsigned int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(const char* name, unsigned int size);
+void __cdecl FUN_004d85a0(void* p);
 void __stdcall FUN_004be010(int name, int base);
 
 static inline int Bad_004bdd70(FILE* f, Header_004bdd70* hdr, char* copyright)

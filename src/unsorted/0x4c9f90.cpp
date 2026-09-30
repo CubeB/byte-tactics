@@ -17,7 +17,7 @@ struct Net_4c9f90 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4c9f90
 int __stdcall FUN_004c9f90(Net_4c9f90* net)

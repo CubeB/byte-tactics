@@ -10,7 +10,7 @@ struct ExceptionName {
 };
 
 // FUNCTION: 0x4d98c0
-char* FUN_004d98c0(unsigned long code)
+char* __cdecl FUN_004d98c0(unsigned long code)
 {
     ExceptionName table[24] = {
         {0x40010005, "Control-C"},

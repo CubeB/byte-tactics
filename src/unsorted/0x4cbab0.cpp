@@ -18,7 +18,7 @@ extern LONG DAT_0052a4ec;
 extern HANDLE DAT_0052a4f0;
 
 App_004cbab0* FUN_004b6220(void);
-void FUN_004d8e60(int param_1, int param_2);
+void __cdecl FUN_004d8e60(int param_1, int param_2);
 void __stdcall FUN_004b4ff0(App_004cbab0* app);
 void FUN_004c5df0(void);
 

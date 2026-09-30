@@ -6,8 +6,8 @@
 // from the width/height locals. That makes MSVC 5 keep the table cursor in esi
 // and the size in edi; reading the locals instead gives edi/esi swapped.
 
-void* operator new(unsigned int size);
-void operator delete(void* p);
+void* __cdecl operator new(unsigned int size);
+void __cdecl operator delete(void* p);
 
 #pragma pack(push, 1)
 struct Game_00440940 {

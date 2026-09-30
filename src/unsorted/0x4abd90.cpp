@@ -70,7 +70,7 @@ void __stdcall FUN_004a0570(Menu_004abd90* menu, const char* name, int flag);
 void __stdcall FUN_0049fb10(Menu_004abd90* menu, int flag);
 void __stdcall FUN_0049fa90(Menu_004abd90* menu);
 void __stdcall FUN_004a9fd0(Menu_004abd90* menu);
-void FUN_004d85a0(char* text);
+void __cdecl FUN_004d85a0(char* text);
 void __stdcall FUN_004abd00(void* gadget);
 
 // FUNCTION: 0x4abd90

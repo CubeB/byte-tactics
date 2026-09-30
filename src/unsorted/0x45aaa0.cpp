@@ -16,7 +16,7 @@ struct Game_0045aaa0 {
 
 extern Game_0045aaa0* g_game;
 
-void FUN_004d85a0(void* p);
+void __cdecl FUN_004d85a0(void* p);
 
 #pragma pack(push, 2)
 struct Entry_0045aaa0 {

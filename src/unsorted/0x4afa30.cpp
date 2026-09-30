@@ -50,7 +50,7 @@ struct Entry_004a0010 {
 };
 #pragma pack(pop)
 
-void* FUN_004d83b0(unsigned int param_1, unsigned int param_2);
+void* __cdecl FUN_004d83b0(unsigned int param_1, unsigned int param_2);
 void __stdcall FUN_004bb120(char* path);
 void __stdcall FUN_004bb150(char* path);
 void __stdcall FUN_004bc2e0(char* buf);

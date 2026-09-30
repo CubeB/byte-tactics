@@ -15,7 +15,7 @@ struct Game_0042a570 {
 
 extern Game_0042a570* g_game;
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 // FUNCTION: 0x42a570
 void FUN_0042a570()

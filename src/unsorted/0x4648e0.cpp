@@ -41,7 +41,7 @@ extern Game_004648e0* g_game;
 
 char* __stdcall FUN_004bbe50(const char* name, int* size);
 int __stdcall FUN_004b7a30(char* text, int len, Class_004b74f0* vars, int param_4);
-void FUN_004d85a0(char* text);
+void __cdecl FUN_004d85a0(char* text);
 void __stdcall FUN_00409f80(int player);
 void __stdcall FUN_0040a040(int player);
 

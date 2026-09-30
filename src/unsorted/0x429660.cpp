@@ -14,7 +14,7 @@ extern Game_00429660* g_game;
 void* __stdcall FUN_004bb5b0(char* path);
 void __stdcall FUN_004b6290(char* path);
 int __stdcall FUN_004bbd00(void* file);
-void* FUN_004d83b0(char* name, int size);
+void* __cdecl FUN_004d83b0(char* name, int size);
 int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 int __stdcall FUN_004bb5d0(void* file);
 

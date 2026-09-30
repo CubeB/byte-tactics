@@ -86,8 +86,8 @@ struct Game_0047eee0 {
 extern List_0047f8c0* DAT_0051e68c;
 extern Game_0047eee0* g_game;
 
-void operator delete(void* p);
-void FUN_004d85a0(int* data);
+void __cdecl operator delete(void* p);
+void __cdecl FUN_004d85a0(int* data);
 
 // FUNCTION: 0x47eee0
 void FUN_0047eee0()

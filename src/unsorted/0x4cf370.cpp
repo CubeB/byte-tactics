@@ -10,7 +10,7 @@
 
 struct File_004bb5d0;
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 int __stdcall FUN_004bb7c0(File_004bb5d0* file, void* buf, int size);
 
 class Class_004cf370 {

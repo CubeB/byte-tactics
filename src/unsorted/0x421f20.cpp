@@ -56,7 +56,7 @@ struct Game_00421f20 {
 
 extern Game_00421f20* g_game;
 
-void* FUN_004d83b0(char* name, unsigned int size);
+void* __cdecl FUN_004d83b0(char* name, unsigned int size);
 unsigned short __stdcall FUN_004224b0(char* name);
 
 // FUNCTION: 0x421f20

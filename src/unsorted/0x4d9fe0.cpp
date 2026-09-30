@@ -2,7 +2,7 @@
 // A command-line switch: `on` is set from the default, then forced on by
 // either on-switch and off by either off-switch (off wins).
 
-char* FUN_004d9f60(char* name);
+char* __cdecl FUN_004d9f60(char* name);
 
 class Class_004d9fe0 {
 public:

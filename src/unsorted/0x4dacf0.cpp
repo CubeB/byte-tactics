@@ -165,17 +165,17 @@ class CritSec_004da780 {
 };
 
 CritSec_004da780* FUN_004da780();
-unsigned int FUN_004da8a0(unsigned int size);
-unsigned int FUN_004da8c0(unsigned int size);
+unsigned int __cdecl FUN_004da8a0(unsigned int size);
+unsigned int __cdecl FUN_004da8c0(unsigned int size);
 Class_004db610* FUN_004db610();
 Class_004dc680* FUN_004da8d0();
-void FUN_004da7d0(unsigned int size);
+void __cdecl FUN_004da7d0(unsigned int size);
 char FUN_004db760();
 int FUN_004db7c0();
-void FUN_004d82c0(void* at, int value, unsigned int count);
+void __cdecl FUN_004d82c0(void* at, int value, unsigned int count);
 
 // FUNCTION: 0x4dacf0
-unsigned int FUN_004dacf0(unsigned int n, unsigned int arg2) {
+unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     CritSec_004da780* lock = FUN_004da780();
     EnterCriticalSection(&lock->cs);
     unsigned int res = 0;

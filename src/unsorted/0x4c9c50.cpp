@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 struct Guid_4c9c50 {
     int d1;

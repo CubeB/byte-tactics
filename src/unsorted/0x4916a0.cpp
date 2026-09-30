@@ -38,7 +38,7 @@ void FUN_0042f8c0();
 void FUN_0042a3b0();
 void FUN_0047eee0();
 void FUN_0042a010();
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 void __stdcall FUN_004c61f0(int param_1);
 void FUN_004c62c0();
 void FUN_0043c350();

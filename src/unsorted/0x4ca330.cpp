@@ -22,7 +22,7 @@ struct Net_4ca330 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 char* __stdcall FUN_004b6af0(char* text, int n);
 
 // FUNCTION: 0x4ca330

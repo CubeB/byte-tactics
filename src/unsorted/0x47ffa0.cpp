@@ -1,6 +1,6 @@
 // Decompiled by Opus. Names are provisional.
 
-void FUN_004d85a0(int* param_1);
+void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)
 struct Entry_0047ffa0 {

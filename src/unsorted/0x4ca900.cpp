@@ -13,7 +13,7 @@ struct Net_004ca900 {
 
 extern GUID DAT_004fcd78;              // IID_IDirectPlay3A
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 
 // FUNCTION: 0x4ca900
 HRESULT __stdcall FUN_004ca900(GUID* sp, Net_004ca900* net)

@@ -16,7 +16,7 @@ struct Net_4ca400 {
 };
 #pragma pack(pop)
 
-void FUN_004c9740(int);
+void __cdecl FUN_004c9740(int);
 BOOL __stdcall FUN_004ca330(GUID* sp, char* name, DWORD major, DWORD minor, void* context);
 
 // FUNCTION: 0x4ca400

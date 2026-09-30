@@ -7,7 +7,7 @@ public:
     int field_cc;
 };
 
-void FUN_004d85a0(int param);
+void __cdecl FUN_004d85a0(int param);
 
 // FUNCTION: 0x4ba6e0
 void __stdcall FUN_004ba6e0(Class_004ba6e0* obj)

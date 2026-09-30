@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <ddraw.h>
 
-void FUN_00461170(const char* fmt, ...);
+void __cdecl FUN_00461170(const char* fmt, ...);
 unsigned int FUN_004b6340();
 
 class Class_004629b0 {

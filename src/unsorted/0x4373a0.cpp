@@ -112,8 +112,8 @@ int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 int __stdcall FUN_004bb710(void* file, int pos);
 int __stdcall FUN_004bb5d0(void* file);
 int __stdcall FUN_004b6ba0(unsigned char* data, int len);
-void* FUN_004d83b0(const char* tag, int size);
-void FUN_004d85a0(void* p);
+void* __cdecl FUN_004d83b0(const char* tag, int size);
+void __cdecl FUN_004d85a0(void* p);
 
 // FUNCTION: 0x4373a0
 int Class_004373a0::FUN_004373a0()

@@ -66,7 +66,7 @@ class Class_0043dd10 {
 public:
     void FUN_0043dd10();
 };
-void operator delete(void* p);
+void __cdecl operator delete(void* p);
 void __stdcall FUN_00450380(int id);
 void __stdcall FUN_0047bd70(void* player);
 

@@ -133,7 +133,7 @@ void __stdcall FUN_0042e1d0(void* param_1);
 void __stdcall FUN_0042e260(void* param_1);
 void __stdcall FUN_0042e2f0(void* param_1);
 void __stdcall FUN_0042e300(void* param_1);
-void* FUN_004d83b0(const char* name, int size);
+void* __cdecl FUN_004d83b0(const char* name, int size);
 void FUN_0042f9a0();
 int __stdcall FUN_0042f980(const char* name, void* buf, int* size);
 void FUN_00490fe0();
@@ -152,11 +152,11 @@ void __stdcall FUN_004aeee0(void* param_1, const char* name);
 void __stdcall FUN_004aedd0(void* param_1, const char* name, int param_3);
 void __stdcall FUN_004c13d0(int param_1);
 void __stdcall FUN_004c1420(int param_1);
-void __stdcall FUN_004b4fd0(void (*param_1)(), int param_2);
+void __stdcall FUN_004b4fd0(void (__cdecl *param_1)(), int param_2);
 void FUN_004287b0();
 int __stdcall FUN_0049f5a0(const char* name, int param_2);
 void FUN_00496a60();
-void FUN_004578f0();
+void __cdecl FUN_004578f0();
 
 // FUNCTION: 0x491200
 void FUN_00491200()

@@ -9,7 +9,7 @@
 // and the epilogue xor/pop order. An int found flag dropped to 45.5%; keeping
 // found as bool and player as int is the best tested version.
 
-extern "C" int sprintf(char* buf, const char* fmt, ...);
+extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
 struct Vec3_00487080 {
     int x, y, z;

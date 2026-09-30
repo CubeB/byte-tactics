@@ -1,7 +1,7 @@
 // Decompiled by Sonnet. Names are provisional.
 #include <windows.h>
 
-HWND FUN_004da540(int id, HWND parent, DLGPROC proc, LPARAM param);
+HWND __cdecl FUN_004da540(int id, HWND parent, DLGPROC proc, LPARAM param);
 BOOL CALLBACK FUN_004e06a0(HWND, UINT, WPARAM, LPARAM);
 
 extern char DAT_0050d6b4[]; // "Performance dialog failed to open"

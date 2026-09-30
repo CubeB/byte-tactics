@@ -34,6 +34,13 @@
 // headers.py set, and defining 0x464000 above are all flat at 87.8. The
 // remainder is allocator and scheduler state from the original file's earlier
 // contents, not a source shape in this block.
+// Second deepseek-v4.1-flash retry (still 87.8, 3 hunks): the two-instruction
+// gap is scheduling, not spelling. In ours the sum fills the x87 fild/fmul
+// latency slot (`lea edx`+`add eax, ecx` above the `r.top` store); the
+// original fills that slot with the `r.top` store and only then accumulates in
+// ecx. Free-scored `int bottom = y + t;` and `r.left`-before-`r.top` (87.2)
+// confirm neither the temp nor the store order reaches it. See
+// build/scratch/0x464060/ledger.md.
 #include <math.h>
 #pragma pack(push, 1)
 

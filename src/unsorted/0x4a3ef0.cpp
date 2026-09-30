@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Retry #1758: GPT-6.1-sol best is 80.9% after nine worker checks; final combined check confirmed no MATCH. Numerator-before-denominator ordering improved the 0x10 arm.
+// Retry #1758: GPT-6.1-sol best is 93.1% after refinement; latest best check confirmed no MATCH. A single-use helper for the conditional divisor fixes shared-zero stack setup. The 0x10 denominator register choice and 0x20 pointer/divisor sequence still differ.
 // GPT-6.1-sol pass: best measured score 80.9% (650 source bytes vs 629,
 // nine checker runs). The 0x10 arm improved by computing its numerator before
 // selecting the denominator. Remaining differences include zero initialization
@@ -182,6 +182,17 @@ static inline int Find_004a3ef0(Entry_004a3ef0* entries, unsigned char kind)
     return 0;
 }
 
+static inline int LineSize_004a3ef0(Entry_004a3ef0* e, int count)
+{
+    int lines = 0;
+    if (count > 0) {
+        int a = *(int*)e->field_c6;
+        int b = *(int*)(a + 0x28);
+        lines = *(unsigned short*)(b + 2) * count;
+    }
+    return lines;
+}
+
 // FUNCTION: 0x4a3ef0
 void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
 {
@@ -213,8 +224,7 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                 int size = (DAT_0051fba4->list == 0) ? FUN_004c1450()
                     : (*(unsigned short*)(FUN_004b7f30(DAT_0051fba4->list->field_0c, 0x49) + 2) + 2);
                 int numerator = e->field_19 - 2;
-                int denominator = size + 1;
-                if (e->field_da > denominator) denominator = e->field_da;
+                int denominator = (e->field_da > size + 1) ? e->field_da : size + 1;
                 int step = numerator / denominator;
                 int last = e->field_c0;
                 int rows = (int)((float)step / last * (me->field_19 - 3));
@@ -228,11 +238,8 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                     me->field_136 = me->field_19 - me->field_142 - 3;
                 }
             } else if (e->field_1b & 0x20) {
-                if (e->field_c0 > 0) {
-                    int a = *(int*)e->field_c6;
-                    int b = *(int*)(a + 0x28);
-                    lines.full = *(unsigned short*)(b + 2) * e->field_c0;
-                }
+                int count = e->field_c0;
+                lines.full = LineSize_004a3ef0(e, count);
                 int s = e->field_19 * me->field_19 / lines.full;
                 me->field_142 = s;
                 if (*(unsigned char*)((char*)me + 0x1b) & 1) {

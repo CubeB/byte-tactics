@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol refinement: nine checks preserved 98.7% as best; wrappers around
+// the colour and surface reads did not resolve the two allocation differences.
 // Retry #1758: GPT-6.1-sol confirmed 98.7% after five checks; no MATCH. The colour-load SIB operand order and marker-call surface-load/push order still differ.
 // GPT-6 retry: retained 98.7%. 768 header sets and inline colour/surface
 // accessors did not resolve the SIB order and final surface-load scheduling.
@@ -320,3 +322,4 @@ void __stdcall FUN_004a4d70(Class_004a4d70* param_1, int param_2)
         FUN_004be950(entries->surface, x, rect.top, x, y2, colour);
     }
 }
+

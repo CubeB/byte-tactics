@@ -1,4 +1,29 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Seventh pass (deepseek-v4.1-flash): baseline re-confirmed 86.5%, 775 bytes.
+// Tried in free scratch (build/scratch/0x47f300/), none beat the file:
+//   v20 no player local, direct g_game->players[pi].field indexing: 56.0%, 804 bytes.
+//   v22 `Player_0047f300* const player`: byte-identical to the file (86.5%).
+//   v23 local `Game* game = g_game;`, v24 pointer declared then assigned,
+//   v25 reference, v26 `g_game->players + pi`, v39 `vis` declared first,
+//   v40 pointer declared uninitialised at the top: all byte-identical (86.5%).
+//   v36 an inlined member `GetWidth()`: 85.7%. v35 a foldable null check:
+//   66.9%. v41/v43 `int pi`: 79.7% direct arms, 83.4% with Contains arms.
+// CONTAINS IS THE RIGHT ARM SHAPE. A nested ByteMap (`data` +0x7c, `size`
+// +0x80/+0x84) with `MapSize::Contains(tx,ty)` and `ByteMap::Get(tx,ty)` (the
+// matched 0x4658e0 spelling) reproduces the original's SECOND materialised
+// width read in the fog arm (`mov edi,[p+0x80]; imul edi,ecx`), which the
+// direct `player->exploredWidth * ty + tx` spelling CSEs away. With unsigned
+// char pi it is 81.6% (785 bytes) and the arm bodies are exact: pos.y in edi,
+// pointer in EDX, flags test in AL. With int pi it is 83.4% (773 bytes).
+// The single remaining difference in the Contains version is the same one: the
+// pointer is homed in EDX there (EDI is taken by the arm temps), EDI in the
+// direct spelling (arms then rotate onto EAX), and EAX in the original. All
+// three are the register allocator's tie-break among the three free registers
+// (eax, edx, edi) at 0x47f403; the original's flags byte then lands in DL and
+// ours in AL whenever the pointer takes EDX. An inline `GetPlayer` accessor
+// (v46) changes nothing; an accessor that re-reads playerIndex (v47) reaches
+// 84.0% (773 bytes) but adds the extra index load. Nothing tried promotes the
+// pointer to EAX. The parent register work and this file's 86.5% remain best.
 // GPT-6.1-sol refinement: source remains at 86.5% (775 bytes); no MATCH.
 // Two `int pi` scratch variants scored 79.7% and 80.2%; the best unsigned-char
 // source is retained. The player pointer still lands in EDI instead of EAX,

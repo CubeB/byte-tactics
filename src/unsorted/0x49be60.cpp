@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1. Names are provisional.
+// (started by deepseek-v4.1-flash, retried by GPT-6, retried by deepseek-v4.1)
 // Partial: kind-7 lightning interpolation and stack/register layout still differ.
 //
 // PARTIAL. 0x49be60 (2272 bytes) is the projectile render pass: it walks the
@@ -46,6 +47,62 @@
 //   register allocation is still swapped (original: edi = g_game, esi = p,
 //   ebp = &p->pos; here ebp = g_game/scratch). The relocated call set and every
 //   struct offset now match, so the remaining gap is instruction selection.
+//
+// RETRY NOTE (deepseek-v4.1, pass 4): three shapes tried, all 29.1% or worse.
+//   (a) `Vec3* pos = &p->pos;` used everywhere: 27.8% but it MOVED frame0 to
+//       the original's slot [esp+0x14] (= frame+0x04) and made
+//       `lea ebp,[esi+4]` appear, proof that the original really holds a
+//       &p->pos pointer in ebp; every other slot then shifted +4 (time at
+//       frame+0x14 instead of +0x10), so the win did not carry.
+//   (b) same pointer only inside the visibility test and the FUN_00408090
+//       call: 29.1%, 2208 bytes (4 bytes worse than baseline), no layout change.
+//   (c) hoisting `int visible;` to function scope: byte-for-byte the baseline.
+//   So the whole gap is one allocator decision: in the baseline frame0 lives in
+//   BOTH ebp and [esp+0x14], pushing index to frame+0x18 and the frame to 0x6c
+//   (every stack offset +4); the original keeps frame0 memory-only at
+//   frame+0x04. In the original the four callee-saved registers are all held
+//   (edi g_game, esi p, ebp &p->pos, ebx type), which is what forces frame0
+//   into a slot; our baseline leaves ebp free for frame0 because the pos
+//   addresses are folded into esi-relative operands.
+//
+// RETRY NOTE (deepseek-v4.1, pass 3, best 29.1%): decoded the exact frame map
+// and one real extra store. The prologue is `sub esp,0x68` then push
+// ebx,ebp,esi,edi, so the post-prologue esp is frame-0x10: a local seen as
+// [esp+N] is at frame offset N-0x10, [esp+0x78] is the return address and
+// [esp+0x7c] is the `surface` argument. The 0x68-byte frame is one shared
+// scratch region, every kind branch reusing the same slots:
+//   +0x00 color1 (kind 0) / gaf (kind 4 switch) / nSeg (kind 7, int)
+//   +0x04 frame0, +0x08 time, +0x0c byte offset, +0x14 index
+//   +0x10 color2 (kind 0) / sx (kind 5); +0x18 (field_36>>1) temp (kind 0) /
+//        &p->start (kind 7); +0x1c palette color (kind 7) / sy (kind 5)
+//   +0x20..0x27 kind 1 rect (4 shorts; rect[3] is NEVER written, the original
+//        copies field_34+field_36 as one dword then `add word [esp+0x32],0x8000`)
+//   +0x28..0x2f kind 3 rect (never written anywhere: passed uninitialised)
+//   +0x30/+0x34 nSeg as __int64 (kind 7 divides by the full 64-bit value)
+//   +0x38/+0x3c/+0x40 sp Vec3 (kinds 1,3,4,6) and cur Vec3 (kind 7)
+//   +0x44/+0x48/+0x4c kind 7 point P, +0x50/0x54/0x58 dx,dy,dz then stepY,stepZ
+//        (dx keeps +0x50, stepX stays in ebx), +0x5c/+0x60/+0x64 a second copy
+//        of P (called D below) used for the line start
+// Removed `rect[3] = 0;`: the original has no store to [esp+0x36] at all, so
+// that was pure extra code (our file shrank 2212 -> 2204 bytes, score steady).
+// Kind 4's switch is a real jump table at 0x49c72c, indexed field_10d with
+// `cmp ecx,4 / ja` default, case bodies in source order 0,1,2,3,4.
+// Kind 4 frame divisor: `(time - p->field_42) % *(unsigned short*)gaf`
+// (cdq/idiv, so the `%` is signed).
+// Still differs (nothing lines up, every instruction run is permuted):
+//   - register roles: original edi=g_game (reloaded from [0x511de8] after every
+//     call, including the tiny `mov edi,[0x511de8]` at 0x49c052 before the loop
+//     tail), esi=p, ebp=&p->pos (lea ebp,[esi+4], so the source really does hold
+//     a pos pointer local, not `p->pos.x` expressions), ebx=type (mov ebx,[esi]).
+//     Ours puts g_game in ebp and indexes the projectile array scaled.
+//   - frame 0x6c vs 0x68 (one extra spilled dword).
+//   - 2204 bytes vs 2272: about 68 bytes of code are missing, none of it
+//     identified; the kind 7 loop below is semantically close but the original
+//     adds the rand() jitter in place to the high shorts of P (the dword at
+//     +0x44/+0x48/+0x4c) and copies P to +0x5c/+0x60/+0x64 before advancing cur.
+//   - the loop is entered through an extra `jmp` in ours.
+// Recomputed but left as-is: the abs() of the kind 0 diagonal really is the
+// inlined `(v ^ (v>>31)) - (v>>31)` form, ours inlines too.
 //
 // Layout facts:
 //   Projectile stride 0x6b. type at +0x0; pos Vec3 (16.16) at +0x4; start
@@ -239,7 +296,6 @@ void __stdcall FUN_0049be60(void* surface)
                     rect[0] = p->field_34;
                     rect[1] = (short)(p->field_36 + 0x8000);
                     rect[2] = (short)(p->field_38 + 0x8000);
-                    rect[3] = 0;
                     FUN_0046bae0(surface, &sp, type->field_74, rect);
                     Sprite_0049be60* s = (Sprite_0049be60*)type->field_74;
                     if (s->field_30 != 0 && time < p->field_46) {

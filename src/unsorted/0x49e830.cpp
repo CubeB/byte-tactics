@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // WinMain of Total Annihilation.
-// PARTIAL 86.8%, 1343 of 1365 bytes. Full body, control flow and call
+// PARTIAL 87.7%, 1345 of 1365 bytes. Full body, control flow and call
 // sequence match. Remaining differences:
 //  - DAT_0051f522 is a bitfield union and DAT_0051f410 is an `int` bitfield
 //    tested in place at bit 11 (both now match their shapes).
@@ -31,6 +31,34 @@
 //    scheduling inside the DAT_0051f3xx block, the inlined strcpy and the
 //    RegSetValueExA tail, plus the branch targets that follow from the 22
 //    missing bytes above.
+//  - deepseek-v4.1: the `mov dl, byte [0x51f522]` first access shows the
+//    original b0 assignment is a byte-typed bitfield read; a union member
+//    `struct { unsigned char c0 : 1; } byte0` compiles to that byte read but
+//    MSVC then emits a byte store plus a separate `or word ptr [0x51f522]`
+//    word RMW, so it is worse than the current word-typed b0 access.
+//    Isolated msvc5-sp3 probes (16-bit bitfield struct, char-based struct,
+//    union of both, `= 1`, `|= 1`, `unsigned short` local with `|=`) all
+//    fold the seven bit sets into one `or eax/word ptr, 0x3f2`; that fold is
+//    a backend constant merge the original somehow blocked, and no source
+//    form found in this timebox prevented it.
+//  - deepseek-v4.1: the `mov ecx,[esp+0xbc]` for nCmdShow sits after the
+//    hoisted `push &DAT_0051f320` in the original but before it here, which
+//    is a scheduler choice, not a frame difference ([esp+0xb0] for
+//    hInstance matches).
+//  - deepseek-v4.1: writing `size20 = 0x32; hKey = NULL; size14 = 0x32;`
+//    (that order) fixes the two swapped stores at [esp+0x34]/[esp+0x24]
+//    and raised 86.8% to 87.1%.
+//  - deepseek-v4.1: both zero compares that the original does as
+//    `cmp eax, ebx` only come out that way when the call result is first
+//    bound to a named local: `HANDLE hSem = OpenSemaphoreA(...); if (hSem !=
+//    (HANDLE)lzero)` and `int bGameOk = FUN_004b5980(...); if (bGameOk ==
+//    lzero)` give `cmp eax, ebx`, while the inline forms give
+//    `test eax, eax`. Those two changes took 86.8% -> 87.3% -> 87.7%.
+//  - deepseek-v4.1: what is left is the flags block above (12 lines) and the
+//    g_game field-store register rotation (ecx/edx/eax/ecx in the original,
+//    edx/eax/ecx/edx here, driven by the inlined strcpy below saving its
+//    low-bit count in edx instead of eax); every other hunk is only a branch
+//    target shifted by the 20 missing bytes.
 #include <new>
 #include <string.h>
 #include <stdlib.h>
@@ -212,7 +240,8 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         atexit(FUN_0049ed90);
     }
     FUN_0041d920();
-    if (OpenSemaphoreA(0x1f0003, lzero, DAT_0050971c) != (HANDLE)lzero)
+    HANDLE hSem = OpenSemaphoreA(0x1f0003, lzero, DAT_0050971c);
+    if (hSem != (HANDLE)lzero)
         return -1;
     CreateSemaphoreA(NULL, 1, 1, DAT_0050971c);
     srand(time(0));
@@ -234,7 +263,8 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     DAT_0051f320 = (int)hInstance;
     DAT_0051f32c = (int)DAT_0050971c;
     DAT_0051f334 = 0;
-    if (FUN_004b5980(&DAT_0051f320) == lzero)
+    int bGameOk = FUN_004b5980(&DAT_0051f320);
+    if (bGameOk == lzero)
         return 0;
     FUN_004b62d0(0x1e);
     FUN_0041d4c0();
@@ -254,8 +284,8 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     FUN_00428bb0();
     FUN_00491200();
 
-    hKey = NULL;
     size20 = 0x32;
+    hKey = NULL;
     size14 = 0x32;
     if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, DAT_005097b0, 0, 0xf003f, &hKey) == 0) {
         if (RegQueryValueExA(hKey, NULL, NULL, &type, (LPBYTE)buf40, &size20) == 0) {

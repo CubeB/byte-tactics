@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1. Names are provisional.
 // Partial: corner decoration coordinates and register allocation still differ.
 #include <windows.h>
 #include <string.h>
@@ -42,6 +42,8 @@ struct Holder_004a1b40 {
     char unknown_08[0x10 - 0x08];
     int field_10;                       // +0x10
     int field_14;                       // +0x14
+    char unknown_18b[0x20 - 0x18];
+    int field_20;                       // +0x20
     char unknown_18[0x24 - 0x18];
     void* surface;                      // +0x24
 };
@@ -115,6 +117,18 @@ void __stdcall FUN_004bf4d0(void* surface, Rect_004a1b40* rect, int id);
 void __stdcall FUN_004c7580(void* surface, void* bitmap, Quad_004a1b40* dst,
                             Quad_004a1b40* src);
 
+// Partial (16.3%), not MATCH. Attribution: started by deepseek-v4.1-flash, then GPT-6.
+// First divergence is the prologue: the original homes param_1 in ebp
+//   (sub esp,0xbc / push ebx / push ebp / mov ebp,[esp+0xc8] / xor ebx,ebx / push esi / push edi)
+// while ours homes param_1 in edi and pushes esi,edi before loading it, so every
+// later [esp+N] drifts by 4 (flag is at esp+0x18 here, esp+0x14 in the original).
+// The entries pointer then lands in esi here vs edi there, and the entries base in
+// ebp here vs on the stack in the original, so the register allocation of the whole
+// function differs. Frame size (0xbc) and the address-arithmetic lea chain are right.
+// Tried: moving top=0 into the type==0 branch (+0.3%); no effect on the param_1 register.
+// What is left: get param_1 into ebp and the entry pointer into edi; the two renderer
+// branches (text at 0x4a1c5c, cell grid at 0x4a2052) should then need only local sweeps.
+//
 // FUNCTION: 0x4a1b40
 void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 {
@@ -124,16 +138,17 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     int& left = bounds.left;
     int& right = bounds.right;
     int& bottom = bounds.bottom;
-    top = 0;
 
-    if (param_1->holder != 0)
-        param_1->holder->field_14 = 1;
+    Holder_004a1b40* holder = param_1->holder;
+    if (holder != 0)
+        holder->field_14 = 1;
 
-    Entry_004a1b40* entries = param_1->holder->entries;
+    Entry_004a1b40* entries = holder->entries;
     Entry_004a1b40* me = &entries[param_2];
 
     int h = me->h;
     if (me->type == 0) {
+        top = 0;
         left = 0;
     } else {
         left = me->x;
@@ -142,11 +157,11 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     right = me->w + left - 1;
     bottom = me->h + top - 1;
 
-    void* surface = param_1->holder->surface;
+    void* surface = holder->surface;
     if (surface == 0)
         surface = param_1->fallback;
     if (surface == 0) {
-        if (!(param_1->holder->field_10 & 0x80))
+        if (!(holder->field_10 & 0x80))
             FUN_004b0230(param_1, param_2, 0);
     } else {
         FUN_004c6d20(entries->bc.surface, surface, &bounds,
@@ -165,6 +180,8 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
         step = me->field_da;
 
     int yoff = 0;
+    int xx;
+    int xw;
     unsigned int flags = (unsigned int)me->flags;
 
     if ((flags & 0x10) != 0 && me->text != 0 && me->field_c0 != 0) {
@@ -188,8 +205,6 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
         char* q = FUN_004b6af0(me->text, me->bc.field_bc);
         int y = me->bc.field_bc;
         int line = 0;
-        int xx;
-        int xw;
 
         for (;;) {
             int x1 = left + 2;
@@ -267,9 +282,12 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
             } else if ((me->flags & 0x100) == 0 &&
                        me->field_ba == line + me->bc.field_bc &&
                        me->field_c0 != 0) {
-                // both disassembly arms (0x4a1fb8 and 0x4a1fcb) pass the same
-                // rect and id; only the branch on holder+0x20 differs.
-                FUN_004bf4d0(entries->bc.surface, &rowRect, 0x1e);
+                // both arms (0x4a1fb8 and 0x4a1fcb) pass the same rect and id,
+                // the arm is chosen by holder->field_20 == param_2
+                if (param_1->holder->field_20 == param_2)
+                    FUN_004bf4d0(entries->bc.surface, &rowRect, 0x1e);
+                else
+                    FUN_004bf4d0(entries->bc.surface, &rowRect, 0x1e);
             } else {
                 FUN_004c13a0((int)col, (int)(font & 0xff));
             }

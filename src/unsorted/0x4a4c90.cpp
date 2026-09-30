@@ -3,34 +3,14 @@
 // side is chosen by bits 0/1/2 of the entry's flags and the colour comes from
 // the index `(int)obj + 0x8b2` into the entry's colour table at +0x1f.
 //
-// Best version (62.4%, 212 of 215 bytes). Everything from the prologue through
-// the `mov [esp+0x1c], ebx` bottom spill and the `mov bl, [esp+0x2c]` param_3
-// test matches the original byte for byte, and so do the two epilogues.
-//
-// What still differs: the original evaluates the colour `e->colours[(int)obj +
-// 0x8b2]` inside each of the three flag branches (keeping `obj` live in edx and
-// loading `entries->surface` from [edi+0xbc] per branch); ours hoists the
-// colour into a byte spill and the surface into edx before the chain.
-//
-// Attempts, all scored with check.py --sym (no real run spent):
-//   colour written inline in each branch (direct FUN calls) ... 180 B, 36.8%
-//     same with a `char* base = (char*)obj` alias ............. 180 B
-//     same with an `int c = e->colours[...]` local per branch . 196 B, 49.1%
-//     same inside a three-way inlined Draw(..., mode, color) .. 259 B, 53.0%
-//     same with three one-edge helpers ........................ 180 B
-//     same with an early return in branch A ................... 180 B
-//   DrawAll(entries, Rect&, e, obj) with colour inside ........ 180 B
-//   DrawAll(entries, Rect*, e, obj) with colour inside ........ 180 B
-//   DrawAll(surface, Rect&, flags, e, obj) 5 params ........... 207 B, 45.0%
-//   current (colour hoisted at the call site) ................. 212 B, 62.4%
-//   colour hoisted into a local, rest as current .............. 215 B, 57.8%
-// Finding: the 16-byte frame appears only when the colour load stays a live
-// value across the flag chain; with the colour inline MSVC reloads obj instead
-// of spilling rect.bottom, so the frame and its [esp+0x1c] store disappear.
-// The mode-helper variant DOES keep the frame but puts obj in ebp (needs a
-// push ebp) and clobbers edi with the surface load. Whoever retries: the goal
-// is obj in edx (loaded before `sub esp,0x10`), flags in ebx reused as the
-// colour, and surface loaded from [edi+0xbc] inside each branch.
+// The breakthrough (from 62.4% to MATCH) was the colour parameter of
+// FUN_004be950: declared `int`, not `unsigned char`. An unsigned char argument
+// gives a bare `mov bl,[eax+edx+0x8b2]`; the int parameter forces the
+// zero-extension `xor ebx,ebx / mov bl,[...]` the original has, and that extra
+// use of ebx is what pushes obj into edx and spills y2, producing the 16-byte
+// frame the unsigned-char versions could not reproduce. With the correct type
+// the three calls in the if/else-if chain are written out in full (the last
+// two tail-merge into one call site) and everything falls into place.
 
 #pragma pack(push, 1)
 struct Entry_004a4c90 {                // 0x15b bytes
@@ -63,7 +43,7 @@ struct Rect_004a4c90 {
 };
 
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2,
-                            unsigned char color);
+                            int color);
 
 static inline void FillRect_004a4c90(Entry_004a4c90* e, Rect_004a4c90* r)
 {
@@ -78,17 +58,6 @@ static inline void FillRect_004a4c90(Entry_004a4c90* e, Rect_004a4c90* r)
     r->y2 = e->h - 1 + r->y1;
 }
 
-static inline void DrawAll_004a4c90(void* surface, Rect_004a4c90& r, int flags,
-                                    unsigned char color)
-{
-    if (flags & 1)
-        FUN_004be950(surface, r.x1, r.y1, r.x2, r.y1, color);
-    else if (flags & 2)
-        FUN_004be950(surface, r.x1, r.y1, r.x1, r.y2, color);
-    else if (flags & 4)
-        FUN_004be950(surface, r.x1, r.y1, r.x2, r.y2, color);
-}
-
 // FUNCTION: 0x4a4c90
 void __stdcall FUN_004a4c90(Class_004a4c90* obj, int index, unsigned char param_3)
 {
@@ -97,7 +66,14 @@ void __stdcall FUN_004a4c90(Class_004a4c90* obj, int index, unsigned char param_
     Rect_004a4c90 rect;
     FillRect_004a4c90(e, &rect);
     if (param_3 & 1) {
-        DrawAll_004a4c90(entries->surface, rect, e->flags,
+        if (e->flags & 1)
+            FUN_004be950(entries->surface, rect.x1, rect.y1, rect.x2, rect.y1,
+                         e->colours[(int)obj + 0x8b2]);
+        else if (e->flags & 2)
+            FUN_004be950(entries->surface, rect.x1, rect.y1, rect.x1, rect.y2,
+                         e->colours[(int)obj + 0x8b2]);
+        else if (e->flags & 4)
+            FUN_004be950(entries->surface, rect.x1, rect.y1, rect.x2, rect.y2,
                          e->colours[(int)obj + 0x8b2]);
     }
 }

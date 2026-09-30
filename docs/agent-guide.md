@@ -228,8 +228,12 @@ effect, the missing piece is usually a helper that was inlined:
   (`arr[i].field`) in the source; adding the offset yourself moves the `add`
   before the guard. A `cmp ptr, end; jl` loop over a global array is a signed
   `int i` for-loop that MSVC turned into a pointer loop.
-- For `imul reg, [mem]`, the register operand is the left side of `*` in the
-  source.
+- For `imul reg, [mem]`, the register operand is usually the left side of `*`
+  in the source, but not always. The fold itself depends on the operand: a
+  zero-extended byte folds into `imul reg, [mem]`, while a sign-extended
+  short was always loaded into a register first (0x47d0e0, #1861). And at
+  0x47de60 both operand orders compiled to the same bytes (#2123). If swapping
+  the operands changes nothing, operand order is not the lever.
 - **`ret N` with no matching stack reads**: the function has unused trailing
   parameters. Declare them (`int unused`) instead of fighting the cleanup.
 - **Return types**: `mov al, cl` at the end means a `bool`/`char` return;

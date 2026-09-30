@@ -1,4 +1,15 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// deepseek-v4.1-flash (issue 1715): 73.6% -> 81.9% (855 bytes against 844). Three changes, all in the
+// source shape, none of them register hints: (1) delete the `int oz = proj->py.i;` local and read
+// `proj->py.i` directly in the unit0 test, which removes the hoisted `mov ebp,[esi+8]`; (2) declare
+// `Game_0049b090* g = g_game;` and reassign `g = g_game;` immediately before the 0x4000 flags test,
+// which is what makes MSVC emit the single `mov edi,[g_game]` reload at 0x49b284 instead of keeping a
+// spilled g; (3) replace `MapFeature* mf = 0;` with an uninitialised `mf` and explicit `else mf = 0;`
+// in every arm, which moves the `xor` out of the declaration and lands the feature-id load at the
+// original's position. Still differs (all ~11 bytes): MSVC homes the new g in ecx and re-spills it to
+// [esp+0x30] so the cellZ temp takes edi (`mov ecx,edi` + `mov [esp+0x30],ecx` extra), the unit0
+// elev/high pair is swapped (ours ecx=elev,ebp=high; original ebp=elev,ecx=high), and the
+// `mapping + f` tail is duplicated instead of merged at 0x49b31b. Ledger has the scored variants.
 // GPT-6 retry: <windows.h> improves to 75.2%, not MATCH. Collision and
 // feature lookup helper, width and reference variants did not improve the
 // baseline. Game/height allocation and feature tail still differ.
@@ -291,11 +302,10 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             FUN_00499eb0(proj, 0);
     }
     proj->radius = (cell->radius + cell->ground) / 2;
-    int oz = proj->py.i;
     Game_0049b090* g = g_game;
     if (cell->unit0) {
         Unit_0049b090* u = &g->units[cell->unit0];
-        if (u->owner != proj->owner && oz < u->type->high + u->elev) {
+        if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
             FUN_00499eb0(proj, u);
             return;
         }
@@ -310,21 +320,28 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             }
         }
     }
+    g = g_game;
     if (type->flags.raw & 0x4000)
         return;
     {
         short cx = proj->px.s.hi / 16;
         short cz = proj->pz.s.hi / 16;
         unsigned short f = cell->feature;
-        MapFeature_0049b090* mf = 0;
+        MapFeature_0049b090* mf;
         if (f < 0xfffb) {
             if (f < g->featureCount)
                 mf = g->mapping + f;
+            else
+                mf = 0;
         } else if (f == 0xfffe) {
             int n = g->width * cell->offY + cell->offX;
             unsigned short f2 = (cell - n)->feature;
             if (f2 < 0xfffb)
                 mf = g->mapping + f2;
+            else
+                mf = 0;
+        } else {
+            mf = 0;
         }
         if (mf) {
             if (mf->height + cell->ground <= proj->py.s.hi)

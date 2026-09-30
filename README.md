@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**67.19% of Cavedog's code matched** (571,651 of 850,853 bytes)
+**67.32% of Cavedog's code matched** (572,807 of 850,853 bytes)
 
 `[###########################-------------]`
 
-By count that is 3,006 of the game's 3,267 functions (92.0%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,007 of the game's 3,267 functions (92.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,006 | 571,651 |
-| Attempted, not yet matching | 258 | 276,682 |
+| Matched byte-for-byte | 3,007 | 572,807 |
+| Attempted, not yet matching | 257 | 275,526 |
 | Not attempted yet | 3 | 2,520 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 651 of 703 | 91.8% | 14,779 | `#########-` |
 | xl (401 to 600 bytes) | 188 of 226 | 82.5% | 19,293 | `########--` |
 | xxl (601 to 1,000 bytes) | 126 of 195 | 63.6% | 53,441 | `######----` |
-| huge (over 1,000 bytes) | 66 of 161 | 34.6% | 190,973 | `###-------` |
+| huge (over 1,000 bytes) | 67 of 161 | 35.0% | 189,817 | `####------` |
 
 ### By area
 
@@ -56,7 +56,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x440000` | Multiplayer setup | 238 of 246 | 69.7% | 18,628 | `#######---` |
 | `0x450000` | Options and audio menus | 159 of 176 | 63.2% | 23,227 | `######----` |
 | `0x460000` | Game and skirmish setup, unit classes | 192 of 212 | 57.4% | 26,183 | `######----` |
-| `0x470000` | Campaign and skirmish screens, resource bars | 230 of 259 | 67.6% | 20,564 | `#######---` |
+| `0x470000` | Campaign and skirmish screens, resource bars | 231 of 259 | 69.5% | 19,408 | `#######---` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 242 of 264 | 70.8% | 18,558 | `#######---` |
 | `0x490000` | Config and registry, skirmish summary | 174 of 193 | 57.7% | 25,196 | `######----` |
 | `0x4a0000` | GUI layout and GAF | 179 of 201 | 54.8% | 29,054 | `#####-----` |

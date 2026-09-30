@@ -99,6 +99,20 @@
 // lands in esi as in the original, at 83.4, and its only remaining difference
 // is that `res` gets ebp instead of edi (the players walk and `to` take the
 // other slot of that pair). Swapping the out/res declarations does not move it.
+// deepseek-v4.1-flash (this pass) confirmed the manual-expansion form at
+// 86.0% (1266 bytes) is the best of everything tried. Every variant that
+// restores the byte counter ebx in the k4 loop (PlayerId called as an inlined
+// helper, with the from scan either an inlined helper or a local loop) gets the
+// original's `xor ebx,ebx` / `cmp bl,0xa` / `inc ebx` and usually the original's
+// 1310-byte IV structure, but it moves `res` from edi to ebp, which costs about
+// 12 points and reshuffles the whole tail. A byte or short `pi` local instead
+// forces the frame to 0x38 (79.9). Named `to` (83.9) and a FindFrom returning
+// through a local `r` (83.9) also grow the frame to 0x38. FindFrom with an
+// unsigned char `j` (75.1), non-inline helpers (83.4), <string.h> (83.4),
+// dummy-extern sweeps N = 0..384 (flat 83.4) and headers.py (all 128 sets
+// 86.0) did not help. The byte counter and `res` in edi look mutually
+// exclusive in this source shape, so the next step is a construct that keeps
+// the k4 counter live without demoting res.
 #include <stdlib.h>
 #include <algorithm>
 

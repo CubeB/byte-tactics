@@ -69,6 +69,19 @@
 // the last-entry test scored 69.6 percent; splitting that last-entry test into
 // a separate insertion path scored 57.2 percent and emitted a scalar deleting
 // destructor. Keep the original short-circuit condition.
+// Retry by deepseek-v4.1-flash (10-minute timebox): v0 70.2 percent stays best.
+// Attempts v1 to v7 all flat or worse, so the residual is not a local detail:
+//   v1 swap p/e declaration (e first): 70.2; v3 compute w after p/e: 70.2;
+//   v4 w as (char*)s+1: 70.2; v7 for(;p!=e;p++): 70.2 (all byte-identical to v0).
+//   v2 use `this` directly (w=(char*)this+1, delete this): 57.0, destructor
+//   stops inlining; v5 destruction written inline in the caller: 57.0;
+//   v6 w declared after the loop: 56.8.
+// Every register symptom traces to the FIRST hunk: the original loads the
+// global into eax, so the object's home becomes ebx and w (eax+1) becomes edi;
+// ours loads straight into edi, so edi is the object and ebx is edi+1. That
+// flips every later scratch register too (dl vs cl for the flag byte, eax vs
+// edx for the strcpy length, and the arg-load order before 0x4c2f60). Free2
+// stays out of line; inlining it costs the whole frame and drops to 57.
 #include <string.h>
 
 extern char DAT_0051fdc0[256];

@@ -1,41 +1,21 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
 // finished by space-bunny-free. Names are provisional.
-// 77.1%, not a MATCH. What is now byte exact (verified against the disassembly
-// with every [esp+X] resolved to a frame offset):
-//   * the whole local frame layout: counter at S+0x10, p[0..20] at S+0x14,
-//     names at S+0x68, buf at S+0x88, the 16 byte settings copy at S+0x1a1
-//     (so it is the cast target (Settings*)(buf + 0x119), not a separate local);
-//   * g_game->data[] is at +0x2a47 and desc at +0x2aa7; the zeroing loop is
-//     `i = 0; do { i++; p[i] = data[i]; memset(...); } while (i < 15);`
-//     (the for (i = 1; i < 16; i++) form gets loop-rotated and encodes the
-//     base 4 low: [edx+eax+0x2a43] / [esp+edx+0x10] and cmp edx,0x40),
-//     so 77.1% -> 77.7% with 1815 -> 1812 bytes; p[0] is set inside the if;
-//   * the record walk: p[0] points at rec+0x14 and rec = p[0] - 0x14, so the
-//     record is {settings[0x10]; int field_10; char name[0x20]; char name2[0x20]}
-//     and the loop step is 0x54.
+// 80.4%, not a MATCH (was 77.7%). Now byte exact: the whole local frame (buf must
+// be sized 0x139 so the compiler reserves the original's 0x1b4 frame and the
+// parameter reads at [esp+0x1d0]), the settings copy at SETBUF = buf+0x119, and
+// the record walk reading field_10 straight from p[0]-4 (keeping a `rec` local
+// alive made MSVC park it in ebp and cost 2%).
 // Still differs:
-//   * sub/add esp is 0x1a4 against the original's 0x1b4. Every instruction
-//     displacement is identical, but the post-prologue esp differs by 0x10, so
-//     the original's locals all sit 0x10 higher in absolute memory: the extra
-//     frame is at the BOTTOM (offsets 0x0..0xf, below count at [esp+0x10]) and
-//     nothing in the disassembly ever names it, only the [esp+0x1d0] parameter
-//     load shows it. An unused char[0x14], an unused Settings_00441460 and an
-//     unused int[4] local are all dropped by the MSVC 5 front end and do not
-//     grow the frame.
-//   * FPO reports 109 dwords of locals for the original against 105 here, so
-//     one 4-dword local of the original is still unaccounted for; measured with
-//     tools/wcl ... /Fas: _count$=-420, _p$=-416, _names$=-332, _buf$=-300.
-//   * the flags word is read as a bitfield in the original: bit 15 becomes
-//     "mov eax,flags / mov edx,eax / shr edx,0xf / test dl,1" and bit 8 becomes
-//     "mov cl,bh / test cl,1", which is the 32 bit storage unit bitfield
-//     extraction shape. A 32 bit bitfield union reproduces the spirit of it but
-//     scored 74.7%, so (flags >> N) & 1 is left in place.
-//   * the original keeps field_0 in ebp and field_8 in ebx from the struct load
-//     at the top of the loop all the way to their sprintf; here both are re-read
-//     from the copy. Naming them as locals made it worse (72.9%).
-//   * the provider-guid chain: the original's third compare jumps straight to
-//     the "Updating..." assignment, skipping the fourth compare and the dead
-//     store, while here MSVC routes it through the fourth compare and the store.
+//   * the provider-guid chain: the original keeps a dead-looking `count = memcmp`
+//     store at the end of the FIRST chain (sbb edx,edx / sbb edx,-1 / mov
+//     [esp+0x10],edx) and falls through to the cd98 compare, while MSVC deletes
+//     that store here and jumps straight to the second chain.
+//   * count is stored to [esp+0x10] before the FUN_004c9e50 call here, while the
+//     original stores ebx only in the count>0 branch just before the loop.
+//   * the zeroing loop loads g_game->data[i] as [edx+eax+0x2a47] against the
+//     original's [eax+edx+0x2a47] (same registers, swapped ModRM base/index).
+//   * the "Updating/Connecting" and strlwr/FUN_004c5740 text blocks are laid out
+//     in a different order, so their local [esp+X] offsets drift by 4.
 #include <string.h>
 #include <stdio.h>
 
@@ -116,7 +96,7 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget) {
     int i;
     char* p[21];
     char names[0x20];
-    char buf[0x129];
+    char buf[0x139];
     const char* msg;
 #define temp (buf)
 #define SETBUF ((Settings_00441460*)(buf + 0x119))
@@ -166,15 +146,14 @@ shown:
     p[0] = (char*)g_game->desc + 0x18;
     if (count > 0) {
         do {
-            Record_00441460* rec = (Record_00441460*)(p[0] - 0x14);
             char* e;
-            *SETBUF = rec->settings;
+            *SETBUF = ((Record_00441460*)(p[0] - 0x14))->settings;
             memcpy(names, p[0], 0x20);
 
             strncpy(p[1], names, 0x10);
             p[1][0x10] = 0;
             p[1] += strlen(p[1]) + 1;
-            sprintf(p[2], "%d/%d", SETBUF->flags & 0xf, rec->field_10);
+            sprintf(p[2], "%d/%d", SETBUF->flags & 0xf, ((Record_00441460*)(p[0] - 0x14))->field_10);
             p[2] += strlen(p[2]) + 1;
 
             memset(temp, 0, 0x80);

@@ -1,11 +1,16 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
 // Started by longcat-2.5-preview-free, continued by deepseek-v4.1-flash and GPT-6.
-// Partial: 60.9%, 4202 bytes versus 4247. The snapshot/resource block is emitted
+// Partial: 64.7%, 4239 bytes versus 4247. The frame is now the original 0x23c
+// (char[16] " M:%d" buffer declared between text and amount), and swapping the
+// memcmp arguments to (saved, &snapshot) puts the cmpsb sources in the right
+// registers and adds 0.1%. What still differs is register allocation only:
+// param_1 homes to esi versus the original edi, the first icon loop keeps its
+// bitmap in edi versus the original esi, and the PFSTATE/PFABLE pair spills.
+// The snapshot/resource block is emitted
 // after the strncpy path in the original, so the `snapshot.button == -1` test is
 // written inverted with the strncpy arm first.
-// Still differs: the frame is 0x22c versus the original 0x23c (16 bytes short), the
-// text/amount/kills buffers sit 0x54 above the original's slots, param_1 homes to
-// esi instead of edi, and the two icon loops swap the bitmap and param_1 registers.
+// Still differs: register allocation (see above), so most [esp+N] live-range
+// scheduling and callback reloads disagree even though the frame is exact.
 // Restore the complete 60-byte redraw snapshot
 // and selected-unit HUD, resource/kill/order text, health and progress bars, and target-unit
 // display. Correct weapon pointer offset, font selection, bitmap width signedness, 16-character
@@ -111,6 +116,7 @@ void __stdcall FUN_0046a860(void* param_1) {
     Snapshot_0046a860 snapshot;
     memset(&snapshot, 0, sizeof(snapshot));
     char text[256];
+    char mAmount[16];
     char amount[100];
     char killsText[100];
 
@@ -218,7 +224,7 @@ void __stdcall FUN_0046a860(void* param_1) {
     }
 
     char* saved = (char*)(g_game + 0x37e60);
-    if (memcmp(&snapshot, saved, sizeof(snapshot)) == 0) {
+    if (memcmp(saved, &snapshot, sizeof(snapshot)) == 0) {
         return;
     }
     memcpy(saved, &snapshot, sizeof(snapshot));
@@ -271,7 +277,7 @@ void __stdcall FUN_0046a860(void* param_1) {
                 char* unit2 = (char*)(*(int*)(g_game + 0x1426f) + idx * 0x100);
                 if ((*(unsigned char*)(unit2 + 0xff) & 4) == 0 ||
                     (*(unsigned char*)(g_game + 0x3923b) & 2) != 0) {
-                    char* buf3 = amount;
+                    char* buf3 = mAmount;
                     if (*(float*)(unit2 + 0xf0) != 0.0f) {
                         sprintf(buf3, " M:%d", (int)*(float*)(unit2 + 0xf0));
                     } else {

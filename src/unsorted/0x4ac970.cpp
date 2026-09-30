@@ -1,4 +1,22 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by Opus, finished by space-bunny-free. Names are provisional.
+// space-bunny-free retry in #1901: still 83.1%, and the residual is a single
+// mirror-image register pair plus the store order it causes. The original puts
+// the surface pointer in edi and the x accumulator in ebx, and keeps the left
+// value in ebx across the whole `cell / 16` chain so that right = left + 7 is
+// computed before top but stored after the call arguments are pushed. Every
+// spelling that reproduces that store order (left, top, right, bottom) raises
+// the register pressure by one and MSVC spills the cell argument to ebp and
+// moves the rect one slot up, which costs far more than the pair swap:
+//   left/top/right/bottom, four aggregate expressions  58.3%
+//   left/top/right/bottom with y/x locals, right from the struct  65.0%
+//   left/top/right/bottom, both recomputed  68.3%
+//   left/right/top/bottom (this file)  83.1%
+// also all 83.1%: swapping the x operands, a col/row pair of temps, and a
+// `grid = &gadgets[index]` pointer; 71.2% for swapping the y operands or
+// declaring x before y; 74.6% for a second syntactic read of gadgets->surface
+// (one load, two uses, to weight the pointer the other way). tools/headers.py
+// tried all 128 header sets: every one is 83.1%. The frame is 16 bytes for the
+// address-taken rect only, so the surface really is register-resident.
 // Verified by GPT-6.1-sol for #1705: best retained score 83.1%; not a MATCH.
 // Codex / GPT-6 retest in #13:
 // a rectangle constructor, a drawing helper, coordinate updates and

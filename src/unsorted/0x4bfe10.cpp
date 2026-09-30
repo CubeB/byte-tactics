@@ -26,6 +26,15 @@
 // original is MSVC's tail duplication, not a second `return`; writing that
 // `return` explicitly moves `push esi` to the top (66.3 percent).
 //
+// space-bunny-free second pass: still 74.9% (265/267), no MATCH. Three more
+// levers left the diff byte for byte identical: a ``int table = g->field_cc;``
+// local assigned inside each clip if-body, the else-arm dst respelt as
+// ``r.top * surface->pitch + r.left + (int)surface->pixels`` (the shape the
+// locked arm shows MSVC wants, since there it keeps left in a register and
+// adds pixels second), and an added #include <string.h>. So the two
+// FUN_004cced5 argument blocks are insensitive to operand order, hoisting and
+// headers; what is left is the operand-type or helper shape, not the spelling.
+//
 // What still differs: only register choice and load order inside the two
 // argument blocks. Else arm: the original loads r.top before pushing
 // field_cc and r.bottom after (so field_cc goes in edx), ours loads r.bottom

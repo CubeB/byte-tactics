@@ -64,6 +64,31 @@
 // rotates the pre-branch and scores 18.8 to 24.5 (315 to 323 bytes); a
 // local-free fog arm with the mask arm keeping its `w` local is 40.0 (297
 // bytes), and `seen` declared between col and row is 84.4 (307 bytes).
+//
+// SPACE-BUNNY-FREE, fourth pass (issue 1831), scratch scores only, no
+// improvement: the file below is still the best at 85.4 percent, 307 of 301
+// bytes, and the 128 header sets are exhausted (headers.py: no set beats
+// 85.4). Tried the ByteMap `Get()` route that fixed 0x4745e0, with the
+// Player record reshaped to `unsigned char* data + MapSize size` at +0x7c as
+// in 0x4745e0.cpp and 0x475470.cpp, so that both index reads become
+// rematerialisable: no `seen`/`w` locals at all, fog arm through
+// `map->explored.Get(col,row)` = `data[size.width*row+col]`, mask arm through
+// a fresh `map->explored.size.width * row + col`.
+//   * both arms local free: 46.4 percent, 291 bytes.
+//   * fog arm local free, mask arm keeping its `w` local: 39.6 percent.
+//   * both local free plus a `MapSize& size` reference for the tests: 44.4.
+//   * both local free plus an `unsigned char who = g_game->playerIndex` header
+//     local feeding both the players index and the mask shift: 45.9, 303 bytes.
+// So the Get() shape that made 0x4745e0's mask arm byte-exact does NOT transfer
+// here: `Get()` is what kills the arm locals, and the arm locals are exactly
+// what pins the pre-branch block. With the arms local free MSVC hoists
+// `mov ebx,[g_game]` to the top, keeps the player index in ecx instead of
+// edx/edi, puts the map pointer in edi instead of edx, loads fogFlags into dl
+// after the map lea instead of cl before it, and the whole pre-branch rotates
+// (that is where the 40 to 46 percent comes from, not from the arms).
+// Confirms the conclusion already at the top of this file from the other
+// direction: the two spill stores are not removable, they are the price of the
+// register allocation that holds the pre-branch in place.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);

@@ -45,6 +45,10 @@
 // in esi; every rewrite tried (locals, helpers, macro, method, header sets,
 // N-declarations, extern counts) swaps them. <windows.h> only fixes the lea
 // order of the index.
+// GPT-6.1-sol retest in #2483: the 72.7% baseline remains best. Reversing
+// coordinate evaluation scored 59.8%; a separate GetX helper scored 68.2%.
+// Const qualification and uninitialized x/y declarations both scored 72.7%
+// but retained the same pointer/x register swap.
 #include <windows.h>
 
 #pragma pack(push, 1)

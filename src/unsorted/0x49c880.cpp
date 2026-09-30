@@ -1,4 +1,7 @@
 // Decompiled by Opus, finished by space-bunny-free. Names are provisional.
+// GPT-6.1-sol retest in #2483: three checks kept the 78.3% best. A nested
+// active check with a local owner pointer produced identical code. The target
+// keeps zero in EBX and owner in EBP; this source reverses those registers.
 // (Earlier passes: deepseek-v4.1-flash, GPT-6.1-sol, Codex / GPT-6.)
 // 78.3%, and the only difference left is which of two values live across the
 // call to 0x49ae20 gets ebx: the target keeps the constant 0 in ebx and the

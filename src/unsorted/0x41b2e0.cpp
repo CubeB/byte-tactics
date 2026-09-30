@@ -1,73 +1,12 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// Refreshes the unit menu for the current selection: with a unit set at
-// +0x37e9c that unit alone, otherwise every selected unit of the local
-// player. It combines their order states (fire and move orders, cloak and
-// on/off: one value, or "mixed") and the orders their types allow into the
-// order bitfield at +0x37ebe, then opens the unit's build menu page
-// (<type name><page>.GUI, through FUN_0041ace0) for a single builder, or
-// closes the menu when nothing is selected. If neither happened, the orders
-// menu (FUN_0041b0f0) is opened instead.
-//
-// PARTIAL (41.3%). The control flow, the loop body (including the onOff
-// "mixed" block MSVC moves to the end of the function) and every bitfield
-// write match; what differs is register allocation and the frame:
-// - The original keeps canRepair in ebp for the whole function (frame 0x240)
-//   and caches g_game in edi, reloading it inside the loop after edi is used
-//   for the type flags. Here canRepair gets a stack slot (frame 0x244),
-//   g_game takes ebp for the whole top and loop, and a zero constant takes
-//   edi (the original has one in esi at the top only).
-// - Outside the loop the original has count in ebx (so the buildPage test
-//   becomes `test bl, dl`) and first in ebp, with memory homes only inside
-//   the loop ([esp+0x20], [esp+0x1c]); here both stay in memory, first
-//   cached in ebx for the tail.
-// - The nine canX stack slots come out in a different order. It does not
-//   follow declaration order, names or use counts; moving one final write
-//   reshuffles it, so it depends on the rest of the source.
-// Found so far: first/count initialised at the top (their homes are written
-// at the else-branch start, as in the original), and the loop end read into
-// its own local before the loop (the original loads unitsEnd before
-// unitsBegin). Declaration order only matters within about 240 to 250 diff
-// lines once those are in place (about 700 random orders tried). The
-// dummy-declaration test and tools/headers.py are flat. Did not help:
-// loop-only copies of first/count, a tail helper taking (first, count),
-// extra folded uses of canRepair or count, other canRepair types, in-place
-// flag reads, page declared at the top, goto or inverted-if forms, chained
-// initialisations, canRepair initialised in the else branch.
-// Lead: a throwaway store through a global pointer between the loop and the
-// first bitfield write (it ends the g_game CSE there) gives canRepair ebp and
-// the 0x240 frame (48.4%), so the missing piece is whatever makes the
-// original rank canRepair above the g_game value kept across the loop.
-//
-// deepseek-v4.1-flash session (brief, hard 10 min timebox): still PARTIAL at
-// 41.3%. Confirmed the baseline with the checker. Tried moving the canRepair
-// declaration to the top of the local list (41.0%, worse) and aliasing g_game
-// through a single local `Game* g = g_game;` used for every access (18.6%,
-// much worse: it hoists the pointer load out of the loop and drops the frame
-// to 0x1e0). Note the local declarations must stay in their current order;
-// declaring canRepair first shifts every stack slot. The remaining gap is
-// exactly the register/frame issue described above: original edi = g_game
-// (reloaded inside the loop after the type-flags read clobbers edi) and
-// ebp = canRepair, frame 0x240; ours spills canRepair and makes ebp = g_game,
-// frame 0x244.
-//
-// deepseek-v4.1-flash 2nd session (10 min hard box): still 41.3%. Tried
-// declaring first/count uninitialised and zeroing them at the else-branch
-// start (the original stores them there at 0x41b3a6): 27.2%, much worse.
-// Remaining hunks, first diff first:
-// - 0x41b2e0 prologue: frame 0x244 vs 0x240 and the edi/ebp swap above
-//   (root cause; every later hunk is its cascade).
-// - 0x41b3a6 loop entry: first/count live in [esp+0x10]/[esp+0x14] vs the
-//   original's [esp+0x1c]/[esp+0x20]; the loop latch reloads g_game into edi
-//   (ours uses edi as the zero constant and reloads nothing).
-// - 0x41b54d tail: the nine canX slots land in a different order (ours
-//   0x24,0x28,0x2c,0x30,0x34,0x38,0x3c,0x40,0x44,0x48 vs original
-//   0x24,0x28,0x2c,0x30,0x34,0x38,0x3c,0x40,0x44 plus canRepair in ebp).
-// - 0x41b749 count/first stay in memory in ours; original caches count in ebx
-//   and first in ebp for the whole tail (so `test bl, dl` and `push ebx`).
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 55.8%, 1537 bytes versus 1512. <vector>/<windows.h>, an
+// early canRepair declaration and reordered first/onOff/cloak/count locals
+// recover the original 0x240 frame, game in EDI and canRepair in EBP.
+// Remaining first/count/onOff/cloak/cursor slots and tail register allocation
+// differ. A 768-set header sweep and 80 local/type/lifetime variants were tried.
 
+#include <vector>
 #include <windows.h>
-#include <stdio.h>
-#include <string.h>
 
 #pragma pack(push, 1)
 struct UnitType_0041b2e0 {
@@ -194,23 +133,23 @@ static inline Unit_0041b2e0* GetUnit(unsigned short index)
 void FUN_0041b2e0()
 {
     g_game->orders.refresh = 1;
+    int canRepair = 0;
     int canLoad = 0;
     int canStop = 0;
-    int onOff = 3;
+    Unit_0041b2e0* first = 0;
     int fireOrder = 4;
     int moveOrder = 4;
     Player_0041b2e0* player = &g_game->players[g_game->localPlayer];
     int canMove = 0;
     int canDefend = 0;
-    int cloak = 3;
+    int onOff = 3;
     int canBlast = 0;
     int canPatrol = 0;
+    int cloak = 3;
     int count = 0;
-    Unit_0041b2e0* first = 0;
     int canReclaim = 0;
     int canAttack = 0;
     int canCapture = 0;
-    int canRepair = 0;
     if (g_game->unitIndex != 0) {
         count = 1;
         first = GetUnit(g_game->unitIndex);

@@ -1,86 +1,11 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// Loads the map's features saved by 0x424890: builds a table mapping the
-// saved feature type numbers to the loaded ones (by name), replaces the
-// feature list, then places every saved normal, animating and 3D feature.
-//
-// Not matched (69.1%). The control flow, the stack layout, every call and
-// the out-of-line/inline split of the remap vector's members now agree with
-// the original; what differs is register allocation:
-// - after operator new for `names` this version copies _First into edi
-//   (`mov edi, eax`) and keeps it there; the original stores eax straight
-//   to the vector and reloads edi at the loop join (it also has no
-//   `xor ebp, ebp` inside the fill loop). Every rewrite of the names part
-//   tried keeps the copy, even with the rest of the function removed.
-// - the original keeps `count` in esi through the name loop and re-zeroes
-//   ebp after it; the zero register (ebp) then lives on through the inlined
-//   FUN_004223e0 part, where the original also keeps &_First/&_Last of the
-//   deleted vector in esi/edi (`lea esi, [ecx+4]`), the same unexplained
-//   pattern as 0x4223e0, and still has the vector in ecx for its _Destroy
-//   (this version adds a `mov ecx, esi`). Here `file` is reloaded into ebx
-//   instead of ebp, which rotates the scratch registers in the record loops.
-// <windows.h> makes it worse (62.7%); no header set or N-declarations
-// count changes these.
-//
-// The remap table is a std::vector<unsigned short> (the resize value
-// temporary is stored as a dword, which only a scalar gives) and
-// DAT_00511fb4 a std::vector<Class_004c2ea0*>. This file of the original
-// was compiled with /Gz, so <xutility>'s template functions were __stdcall
-// there, and the second resize calls std::copy (0x4256a0) out of line
-// without cleaning the stack. With the real <xutility>'s __cdecl copy in
-// scope MSVC 5 cannot call a __stdcall std::copy (C2568), so the block below
-// stands in for <xutility> with its templates declared __stdcall.
-// The real <vector> for both tables (#335) gets every call's name right but
-// not the original's inline budget: the second resize inlines copy (64.3%)
-// or, with the __stdcall block, leaves its erase out of line (64.6%), and
-// extra or fewer inline calls after it did not give the original's split.
-// So both vectors are explicit specialisations here that write out the
-// members this function inlines and declare the ones it calls out of line,
-// under their real names (size 0x4251f0, insert 0x425210, erase 0x425430,
-// _Destroy 0x425470 and 0x4251e0): resize1 is the first inlined resize
-// (third size() and erase out of line), resize2 the second (erase inline,
-// std::copy and _Destroy out of line). The same layout with the old
-// placeholder names (a free __stdcall FUN_004251e0) scored 69.2%.
-// FUN_00422e40's body is inlined as FeatureIndex, but only its
-// `if (i != 0xffff) return i;` spelling gives the original's block order
-// here (its own file uses the other one).
-// Retried by deepseek-v4.1-flash (issue 1323), no improvement, still 69.1%.
-// The worktree had to be repaired first: its orig/TotalA.exe was a zero-byte
-// placeholder (copied from the main checkout) and its .venv cannot be used by
-// uv on Windows, so the checks ran with the main checkout's python and WSL's
-// wcl. The register cascade starts at the `names` vector fill: this version
-// does `mov edi, eax` before the count test and has a stray `xor ebp, ebp`
-// inside the rep movsd loop where the original stores the fresh pointer with
-// `mov [esp+0x38], eax` and only then loads edi. Everything downstream
-// follows from that (file held in ebx instead of ebp for the record loops,
-// and `test esi, esi` where the original compares `cmp esi, ebp`). No new
-// variant was scored inside the hard time box; the notes above are where to
-// start. Superseded attempt, kept as the best version.
-//
-// Retried by deepseek-v4.1-flash (issue 1491), still 69.1%. Three scored
-// variants (check.py --sym, all identical 69.1%): names.begin() replaced by
-// &names[0]; the FeatureName vector built as vector(count, FeatureName());
-// and the same with a distinct function symbol. None moved any byte, so the
-// spelling of the names vector construction is not the lever; the allocator
-// choice is set before it.
-//
-// Remaining diff hunks by original address (the first hunk only shifts a
-// jump target, no bytes differ):
-// - 0x424cd2-0x424cf8 (names fill): ours has an extra `mov edi, eax` after
-//   operator new, stores _First via edi, and an extra `xor ebp, ebp` before
-//   `rep movsd` (the `0 < _N` constant re-materialised per iteration); the
-//   original stores eax directly, keeps the fill cursor in eax and reloads
-//   edi from _First after the loop. Everything downstream shifts by 3 bytes.
-// - 0x424d36-0x424d3a: `add eax, edx` vs ours `add eax, ecx` (scratch reg).
-// - 0x424de6-0x424df7: original reloads count into esi, ours into eax;
-//   original re-zeroes ebp after the record loop, ours keeps ebx=file.
-// - 0x424e13-0x424ecd (FreeFeatureList inlined): original keeps the vector
-//   in ecx and &_First/&_Last in esi/edi and reloads DAT_00511fb4 into ecx;
-//   ours holds it in esi/eax and adds reloads. Original then has
-//   `mov ebp, [esp+0xd8]` (file into ebp) where ours has ebx=file, so the
-//   whole second half uses ebp in the original and ebx/esi here.
-// - 0x424f45-0x4251b0: record loops; from the file-in-ebp difference the
-//   scratch registers (edx/ecx/esi) and the `test`/`cmp` zero tests rotate.
-//   The switch block order at 0x42505c-0x4250c0 differs by laid-out case.
+// Partial: 69.1%, 1514 bytes versus 1496. Names allocation keeps its
+// result in EDI and rematerializes zero inside the fill loop; the original
+// uses EAX as the fill cursor and reloads EDI afterward. Feature-list
+// destruction and subsequent record-loop registers also differ. Twelve
+// allocator ABI variants and twelve native vector fill variants did not
+// improve it. The specialized remap members retain the original inline split.
+
 #include <string.h>
 #include <utility>
 

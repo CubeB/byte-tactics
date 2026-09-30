@@ -118,6 +118,14 @@
 // so the source shape must be a top-tested loop whose bottom is still not
 // an unconditional-jmp predecessor of the latch; not found within the
 // timebox. Scratch variant kept at build/scratch/0x4aeac0/v1.cpp.
+//
+// Fifth pass (deepseek-v4.1-flash): tested the tail-MERGE hypothesis, that the
+// original writes `i++` at the end of every case and MSVC merges the identical
+// tails into one shared latch rather than duplicating it. Writing `i++` in all
+// ten cases plus an explicit `default: i++; break;` and no shared increment
+// gives 860 bytes and 36.2% (the whole allocation scrambles; the switch layout
+// is not preserved), so the shared post-switch `i++` remains the best form at
+// 75.3%. The only remaining difference is still the 8 copied latches.
 #include <string.h>
 
 class Class_004c46c0 {

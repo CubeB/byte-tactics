@@ -1,5 +1,43 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash,
-// finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash, seventh pass, still 72.2 % (882 of 895 bytes). The rest
+// of the function is byte identical; only the first loop and the four low
+// frame slots differ (see below). New variants tried this pass, all scored with
+// check.py --sym, none better:
+//   - first loop with a `char** p1` cursor for the ptr1 store and the backslash
+//     test still on `ptr1[i]`: 900 bytes, 55.2 % (the cursor and the base both
+//     stay live, so MSVC puts the test on the base and adds a reload).
+//   - `p1[i]` alias for the store with the test on `ptr1[i]`: 882 bytes, 72.2 %,
+//     byte identical (MSVC folds the alias into ptr1).
+//   - both lists walked with `*p1++` / `*p2++` cursors and the test on the
+//     cursor: 911 bytes, 52.6 %.
+//   - `int n = -1;` and `int swapped = 0;` initialisers at the declarations
+//     instead of the later assignment: 884 bytes, 71.6 % (worse, the
+//     initialiser moves a slot).
+// The block below is a byte-identical 882-byte body, so the compiler state for
+// this shape is fixed. The decision to reproduce is still the preheader one:
+// the original loads `count` into edx (scratch) for the guard only, keeps ptr1
+// in ebx, the ptr2-ptr1 stride in ebp, the cursor in edi and `i` in esi, so
+// the latch reloads `count` from the parameter slot [esp+0x44] (0x4af043).
+// This file instead keeps `count` in ebp, gives the stride ebx, and spills ptr1
+// to slot 0x1c: MSVC coalesced ptr1's birth register with the loop cursor
+// (edi), so ptr1's base is not live across the loop and loses the callee-saved
+// register to count. That is why the frame slots come out
+// 0x10 swapped / 0x14 ptr2 / 0x18 n / 0x1c ptr1 here, instead of the original
+// 0x10 ptr2 / 0x14 ptr1 / 0x18 swapped / 0x1c n. Everything else (the two
+// allocation sizes and call order, both bubble passes, the start/end split at
+// the last absolute path, the join loop with the inlined strcpy and the two
+// memcpy calls, and the four frees in ptr2/ptr1/buf2/buf1 order) is identical.
+//
+// Prior passes already exhausted: every declaration order of the nine locals
+// (24 permutations, no slot change), renaming/retyping (unsigned, const) every
+// local, register on the pointers, do/while and while(1)+break rewrites, a
+// distinct index variable per loop, `i != count` / `count > i`, an extra
+// `if (count > 0)` guard (flips the tie but costs 2 instructions, 916 bytes),
+// `*p++` cursor shapes, point-of-use declarations, a static single-use
+// FillLists helper, and 128 header sets via headers.py. The one untried lever
+// noted by earlier passes is a shape that keeps ptr1's base live across the
+// loop without adding instructions; I did not find it.
 //
 // deepseek-v4.1, fifth pass, still 72.2 % (882 of 895 bytes). Everything that
 // follows is a byte-identical 882-byte body (verified with check.py on scratch

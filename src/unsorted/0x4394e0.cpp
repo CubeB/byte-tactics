@@ -1,4 +1,17 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1. Names are provisional.
+// #2391 retry by deepseek-v4.1 (8 check.py runs, best 65.2%, same as the four
+// earlier attempts): confirmed the ebx(<->)edi swap is allocation-driven and
+// immune to more shapes than the notes list. Byte-identical output (same 601
+// bytes, same 65.2%) for: a `Node_004394e0* node = order;` local before the
+// snapshot (and used at the call and the timestamp), a `snap(order, out)` and a
+// `snap(out, order)` inline helper returning *out, a `memcpy(&start, out, 12)`
+// snapshot, and a callee prototype with the order/out parameters swapped so the
+// call expression evaluates order before out. Worse: explicit member stores in
+// declaration order 58.9% (599 bytes), reverse member order 58.9%, an early
+// `int* ts = (int*)((char*)order + 0x46)` address-of use of order before the
+// snapshot 61.7%. The print `mov ebx,[esp+0x60]` before `push edi` versus
+// `push edi; mov edi,[esp+0x64]` is not reachable from the statement order of
+// the copy, the call arguments or the callee declaration.
 // #1529 retry by Codex / GPT-6.1-sol: checkall reconfirmed 65.2% (601/601 bytes).
 // Four worker checks found no better version; the remaining mismatch is the register/stack-slot rotation described below.
 //

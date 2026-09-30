@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1. Names are provisional.
 // Best: 51.1% (unchanged; the pointer experiment below scored 49.9%). The push order in the original IS edi, esi, ebp, ebx and the pop order IS ebx, ebp, esi, edi, exactly as the build emits, so the residual is NOT a callee-saved rotation. The first difference is a single scratch-register swap at the top: the original loads `order` into EDX and puts the type-index copy in ECX, ours loads `order` into ECX and puts the copy in EDX. Everything after (which register holds level, which the two `imul`s scratch in, whether `surface` stays in ebx or is reloaded from its argument slot, and which argument slot each dead local lands in) follows from that one swap.
 //
 // SLOT MAP, decoded from the original and worth keeping (the earlier passes got
@@ -216,6 +216,22 @@ void __stdcall FUN_004be950(void* surface, int x0, int y0, int x1, int y1, int c
 // declaration-count window), the `order` lifetime looks settled rather than
 // unexplored. It would need something outside the source.
 //
+// PASS 7 (deepseek-v4.1, 2026-09-30): 52.2 percent, up from 51.1. The four
+// precomputed locals ix1/ix2/iy1/iy2 were WRONG: the original recomputes
+// `bx - dx` at each call site (see 0x438daf: mov eax,[esp+0x2c]; mov
+// ecx,[esp+0x14]; sub eax,ecx; mov [esp+0x18],eax) and shares one slot for
+// the x pair, so the eight FUN_004be950 calls must be written with the
+// arithmetic inline (`ax + dx - 1`, `bx - dx + 1`, `az + dz - 1`, ...).
+// That is +1.1 points and +1 byte (647 vs 646). Still partial: the first
+// divergence is still the top-of-body register swap (original order->edx,
+// index->ecx; ours order->ecx, index->edx) which cascades. Also checked and
+// neutral (byte-identical to the 51.1 build): `if (order->type == 0)` plus a
+// second direct `order->type` read instead of the index local (CSE), and
+// `((flags >> 4) & 1)` both inline and through an `unsigned int flags`
+// local (MSVC5 folds every spelling to `test byte ptr [..], 0x10`; the
+// original's `mov ecx,[eax+0x110]; shr ecx,4; test cl,1` is reached by
+// neither, so it needs a shape not yet found).
+//
 // FUNCTION: 0x438c00
 void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* order,
                             Vec3f_00438c00* out, int unused)
@@ -263,18 +279,14 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* 
         color2 = g_game->color_dd4;
     }
 
-    int ix1 = ax + dx;
-    int ix2 = bx - dx;
-    int iy1 = az + dz;
-    int iy2 = bz - dz;
-    FUN_004be950(surface, ix1 - 1, az - 1, ix1 - 1, bz + 1, color1);
-    FUN_004be950(surface, ix2 + 1, az - 1, ix2 + 1, bz + 1, color1);
-    FUN_004be950(surface, ax - 1, iy1 - 1, bx + 1, iy1 - 1, color1);
-    FUN_004be950(surface, ax - 1, iy2 + 1, bx + 1, iy2 + 1, color1);
-    FUN_004be950(surface, ix1, az, ix1, bz, color2);
-    FUN_004be950(surface, ix2, az, ix2, bz, color2);
-    FUN_004be950(surface, ax, iy1, bx, iy1, color2);
-    FUN_004be950(surface, ax, iy2, bx, iy2, color2);
+    FUN_004be950(surface, ax + dx - 1, az - 1, ax + dx - 1, bz + 1, color1);
+    FUN_004be950(surface, bx - dx + 1, az - 1, bx - dx + 1, bz + 1, color1);
+    FUN_004be950(surface, ax - 1, az + dz - 1, bx + 1, az + dz - 1, color1);
+    FUN_004be950(surface, ax - 1, bz - dz + 1, bx + 1, bz - dz + 1, color1);
+    FUN_004be950(surface, ax + dx, az, ax + dx, bz, color2);
+    FUN_004be950(surface, bx - dx, az, bx - dx, bz, color2);
+    FUN_004be950(surface, ax, az + dz, bx, az + dz, color2);
+    FUN_004be950(surface, ax, bz - dz, bx, bz - dz, color2);
 
     *out = order->pos;
 }

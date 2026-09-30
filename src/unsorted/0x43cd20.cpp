@@ -1,5 +1,35 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by
-// space-bunny-free. Names are provisional.
+// space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+//
+// Fourth pass notes (deepseek-v4.1, 14 further check runs). Still 60.9%; the
+// frame stays 0x40 against the original 0x44 and `unit` stays in ebp against
+// the original edi. New measurements:
+//   - The original's 17-dword frame has a HOLE at [esp+0x28]: the first
+//     _hypot's two int args live at [esp+0x24] and [esp+0x2c], 8 bytes apart
+//     with the middle dword never written anywhere in the function, i.e. the
+//     shape of a 12-byte Vec3 temp whose y member is dead (a Vec3 delta).
+//     Ours coalesces both args into the parameter slot (free once `unit` is
+//     enregistered), which is exactly the missing 4 bytes.
+//   - The original's d1 deltas are plain scalars (z into the reused parameter
+//     slot, x in a register), so the Vec3 temp is only the first _hypot's
+//     argument pair, and the pull-back recompute is genuinely separate.
+//   - Tried and measured (all <= 60.9, most byte-identical to the file):
+//     a local `Vec3* ppos` declared before the ax/az pair and used for it
+//     (unit moves to eax, 52.6); `Vec3 d = p[1] - *ppos;` with x,y,z and
+//     x,0,z operator- bodies and with `p[1] - unit->pos` (unit eax, 52.6);
+//     removing ppos entirely (unit lands in EDI, frame 0x3c, 50.7, so the
+//     allocator can choose edi but never with ppos also live); `<< 16` for
+//     the `* 0x10000` in q (emits _allshl like the original but shrinks the
+//     frame to 0x3c, 57.4); `rate + rate` for `2 * rate` (identical);
+//     unsigned short temp for the turned product (identical); ax/az declared
+//     before the v3 call, swap of the ax/az statements, ppos declared and
+//     assigned on separate lines, `if (obj->v5() == 0)` with `turn = 0`,
+//     ppos->x used for different operands (all byte-identical, 60.9).
+//   - Conclusion: at this source shape the ebp/edi swap is an allocator
+//     tie-break (same pattern as 0x4a6ae0 / 0x4866d0 on the shared board);
+//     every rewrite that changes it also loses the ppos=ebx assignment or the
+//     frame. What is still needed is a source shape that keeps unit in edi
+//     AND ppos in ebx AND the 0x44 frame at the same time.
 //
 // NOT MATCHED (53.5%, 940 bytes against 943). Semantically correct. The frame
 // is 0x3c here, the original's is 0x44 (the earlier 45.2% note's 0x38 is stale).
@@ -150,11 +180,12 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
 
     Vec3 p[3];
     obj->v3(p, 0, 3);
-    Vec3* ppos = &unit->pos;
 
-    int ax = p[1].x - ppos->x;
-    int az = p[1].z - ppos->z;
+    int ax = p[1].x - unit->pos.x;
+    int az = p[1].z - unit->pos.z;
     int gap1 = (int)_hypot(ax, az);
+
+    Vec3* ppos = &unit->pos;
 
     int dz;
     if (gap1 > 0x500000) {

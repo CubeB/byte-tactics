@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 //
 // NOT MATCHED (52.2%). The logic and the call sequence are believed correct;
 // what still differs is register allocation and one stack slot.
@@ -75,6 +75,59 @@
 //    [esp+0x1c], overlapping v, so only the FIRST call keeps a buffer of its
 //    own: the first result is copied out of it and it is never reused, while v
 //    is dead by the second call.
+//
+// deepseek-v4.1 pass (this file, 53.1% checked): the frame size, the slot of
+// `v` ([esp+0x20]) and the slot of the FUN_0043e060 return temporary
+// ([esp+0x2c]) all MATCH the original in this version, so note 1 above is
+// stale here: the temporary is present and it comes from the user copy
+// constructor on Vec3. What really differs is the register allocation and the
+// small-local slots. Measured this pass (check.py % / differing instructions
+// out of 294 / bytes):
+//   - the file as it stands:  53.1 / 168 / 889
+//   - POD Vec3 (no copy ctor): 47.4 / 184 / 895. It does fix two real things,
+//     the copy becomes interleaved load-store pairs like the original and the
+//     by-value argument stops calling the ctor (the original builds it with
+//     three stores), but the frame then shrinks to 0x20 and the two 12-byte
+//     objects swap (temp [esp+0x18], v [esp+0x24]). Same for `Vec3 v = t;`,
+//     `Vec3 v; v = t;` and `Vec3 v = FUN_0043e060(...)`.
+//   - a reference-returning inline max for the clamp DOES reproduce the
+//     original's address select and drops the store to v.y, but alone it is
+//     52.0 / 179, and with `int m = mode;` declared first 51.9 / 177.
+//   - `int m = mode;` moved above `Vec3* pp = &p1;` (the m store and the mode
+//     read are then emitted at the top of the block): 53.0 / 166 / 892. Lowest
+//     instruction edit distance of the whole pass, but the mode read position
+//     is wrong and its m/ny slots move (m 0x14 -> 0x3c, ny 0x3c -> 0x10).
+//   - all six declaration orders of the three sums: 53.1, 53.1, 53.8, 53.4,
+//     53.1, 53.1, but the emitted order never reaches the original's
+//     nx, ny, nz, and the 53.8 one (ny, nx, nz) differs in 169 instructions
+//     against the file's 168, so it is difflib re-alignment, not progress.
+//   - headers.py: all 128 header sets and all 768 --cpp sets tie or lose; the
+//     best is 53.1 (the file's own <string.h> set). No TU-state lever here.
+//   - 19 different counts of inert `extern int dummyN;` declarations before the
+//     include (0..250): every one is byte-identical to the file, so the
+//     allocator state is not reachable through the TU symbol table either.
+//   - removing `#include <string.h>` changes codegen: 52.2 / 166 / 893.
+//   - declaration order alone moves nothing: `Point draft;` declared early and
+//     assigned late, or `Vec3 pos;` first, compile byte-identically; inline
+//     accessors for the two `mode` reads, `memcpy(&v, &t, sizeof(Vec3))` and
+//     three field assignments for the copy are byte-identical too; putting the
+//     null path first (source inverted) collapses to 39.1.
+//   - making `pp` a real variable fails: `(Vec3*)((char*)this + 8)`, a
+//     function-scope `Vec3* pp;` assigned in the null path, `Vec3& pp = p1;`,
+//     a fresh `Vec3* qq = &p1;` inside the flags block and `(void)&pp;` are
+//     all byte-identical, MSVC rematerialises this+8. Splitting either path
+//     into an in-class inline member helper is byte-identical too.
+// What is left, in order of size:
+//   a. `this` is in edi (original `mov ebp,ecx` at 0x43d6db), and the whole
+//      second block follows: original nx=edi, nz=ebx, ours nx=ebx, nz=ebp.
+//   b. the first block's copy is load-load-load-store-store-store (inlined user
+//      copy ctor) where the original interweaves load-store pairs, reusing edi
+//      for t.x straight into the argument build.
+//   c. small-local slots: original m@[esp+0x10], draft@[esp+0x14], a dead
+//      `&p1` store at [esp+0x18] (dereferenced only for p1.z) and cell in the
+//      parameter home slot [esp+0x3c]; ours cell@0x10, m@0x14, draft@0x18 and
+//      the ny spill at [esp+0x3c]. Note the original's pp=&p1 is NOT copy
+//      propagated and keeps a home, while ours is.
 
 #include <string.h>
 
@@ -84,6 +137,7 @@ struct Vec3 {
     int x, y, z;
     Vec3() {}
     Vec3(int a, int b, int c) : x(a), y(b), z(c) {}
+    Vec3(const Vec3& o) : x(o.x), y(o.y), z(o.z) {}
 };
 
 struct Point {
@@ -184,7 +238,8 @@ public:
 void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
 {
     if (u->obj != 0) {
-        Vec3 v = FUN_0043e060(u->obj, u->index);
+        Vec3 t = FUN_0043e060(u->obj, u->index);
+        Vec3 v = t;
         if (u->type->b19) {
             int lim = (u->type->draft * 0xffff + g_game->seaLevel) << 16;
             v.y = v.y > lim ? v.y : lim;

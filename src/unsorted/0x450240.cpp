@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // Finds the highest field_4 among the active players of type 1 or 3, then
 // looks that player up by field_4 and sets bit 0 of its info flags. The
 // player lookup is inlined and its index search appears twice.
@@ -74,6 +74,28 @@
 // - Best kept here is the guard-less 19.9% body; the correct-structure body is
 //   build/scratch/0x450240/v1.cpp (10.2%). Next attempt should try to move
 //   g_game into edi while keeping the nested getter.
+//
+// Notes from a fifth attempt (deepseek-v4.1, #2057):
+// - 22 more source shapes were compiled and eyeballed in the prologue search
+//   (build/scratch/0x450240/variants*.py, batch1..3.txt): index-for max loop,
+//   pointer-range loop, for/while countdowns, byte counters, a max scan as an
+//   inline helper taking the count, an inline helper returning the count 10,
+//   sizeof-based count, type constant in a byte variable, search helpers with
+//   byte and int count parameters, hand-written searches, and the 0x44fed0 /
+//   0x450380 tail shapes. None emits "mov eax, 0xa" plus "mov esi, eax"; all
+//   keep mov edx, 0xa and immediate "cmp bl, 0xa". So the max loop and the
+//   lookup text are not what moves 10 into eax; some value that produces 10
+//   (not a folded literal) is the missing piece.
+// - MSVC 5 does hoist byte constants out of loops when they are compared
+//   against a memory byte: the sibling 0x4464d0 loop
+//   (g_game->players[i].active != 0; g_game->players[i].state == 3) emits
+//   "mov bl, 0x3" outside the loop and "cmp BYTE PTR [eax+esi*1+0x1bd6], bl"
+//   inside it, and our 19.9% body reproduces that hoist for the type 3 test.
+//   The original 0x450240 hoists the sentinel 10 the same way, which needs a
+//   use of 10 as a value, not as a compare immediate.
+// - The 19.9% body is byte-structurally closest (5 pushes, frame 0x14, the
+//   byte index at [esp+0x10]); all the 0x44fed0-shaped tails drop the ebp push
+//   (frame 0x10) and shift that slot, which is why they sit at 10.1%.
 
 #pragma pack(push, 1)
 struct Info_00450240 {

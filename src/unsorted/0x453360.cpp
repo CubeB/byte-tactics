@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL (54.4% with the current check.py diff), best found. Sends a
 // chat/text message (type 5, up to 64 characters) to the players selected
 // by the game's chat mode at +0x2bf0. The whole control flow, every offset
@@ -46,6 +46,41 @@
 // required in the sibling 0x453010) scores 46.7, a hoisted `int mode` local
 // 46.1, and a live `text` local 46.9, all in the same swapped-register basin.
 // So the diff is not the search shape or the '+' test wording.
+//
+// Retry pass 3 (deepseek-v4.1, #2057): the whole function is byte-identical
+// except for ONE anchor. After `call strncpy` the original reloads g_game
+// into ECX (`mov ecx,[0x511de8]`) and puts the search counter in EAX
+// (`xor eax,eax`); ours swaps them (g_game EAX, counter ECX), which rotates
+// every operator in all three arms and the found-target code (`mov edx,eax;
+// mov edi,ecx` vs `mov edx,ecx; mov edi,eax`). The only other difference is
+// the two dead `mov eax,[esp+0x14]` reloads of `text` at the top of the
+// mode-3 and default arms (8 bytes of the 9 byte gap), and by elimination the
+// argument slot is the only thing [esp+0x14] can hold (no frame: 4 pushes
+// only, and no store to [esp+0x14] exists anywhere in the function).
+// Tried this pass, all landing in the same EAX basin (54.4% unless noted):
+// search helper as for/while/do-while, while(1) form (51.7), pointer-walk
+// helper over players[] with the id still indexed by i, helper taking the
+// count / taking char* / returning the index instead of the id (51.2),
+// target initialised -1 with the search written in place (46.7, target then
+// spills to [esp+0x14]) and the same with the counter hoisted to function
+// scope (46.7), `target = FindTarget()` split into a declaration plus
+// assignment, mode read first (`g_game->mode == 0 || text[0] == '+'`),
+// switch on mode (50.4), inlined send helpers taking (from,to), taking
+// (from,to,text) with text unused, taking the packet, whole arms as inlined
+// helpers taking (from), empty/pointer-returning inlined helpers called with
+// `text` at both arm tops, a real neighbour function (0x453320's body) before
+// and after ours in the file, and dead `for (char* p = text; *p; p++)` skip
+// loops at the arm tops (50.6, kept by the compiler and it moves the '+' test
+// into dl, so `text` is not what the original reloads there).
+// Reading of the anchor: the original has EAX taken at 0x45338c by something
+// that survives the call (the strncpy return value, or a value the inliner
+// materialised), so g_game lands in ECX; nothing in these arms reproduces a
+// bare dword load of an otherwise unused value. The earlier passes also
+// ruled out header sets (all 128), N unused externs, member/__fastcall
+// helpers and function-scope locals, so this looks like front-end allocator
+// state (the VC5 inliner's or the symbol table's), not a spelling of these
+// loops.
+#include <iostream>
 #include <string.h>
 
 #pragma pack(push, 1)

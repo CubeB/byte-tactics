@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial (92.9%, size 886 = the original's). Every instruction matches except
 // the frame offsets of five locals; the code around them is identical, only the
 // `esp+` displacements differ. Frame map (offsets from esp while the four
@@ -49,6 +49,15 @@
 // to 74.7% (857 bytes). MSVC5 assigns these homes from its own free-list order,
 // not from the source: the two swaps (count<->allocator temp and files<->i) are
 // a compiler-state tie. Best kept at 92.9%.
+// deepseek-v4.1-flash (second pass) confirmation that the two swaps are not
+// source-order: a 32-variant declaration/statement-order sweep (count and i
+// declared before files, at function top, before FUN_00491c80; unsigned and
+// size_t count; explicit std::allocator local; dummy locals; count computed
+// before the DAT_005122e0 store; nested blocks) all reproduce the identical
+// 886-byte frame (count 0x10, temp 0x14, bFlag 0x18, files 0x1c, i 0x2c). An
+// N-declarations sweep (N = 0..256, step 8) is flat, and defining the real
+// neighbouring function 0x434b90 above this one changes nothing, so the
+// permutation is not front-end compiler state. Best kept at 92.9%.
 
 #include <string.h>
 #include <vector>

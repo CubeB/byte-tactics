@@ -1,4 +1,32 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// space-bunny-free pass: kept the 86.1% file unchanged (it is the best known)
+// and mapped what is left with a byte-exact diff (relocation fields masked),
+// because check.py's difflib score hides one whole class of difference.
+//
+// Remaining difference 1: the three extra `test ebp,ebp / jle` pairs. Confirmed
+// still present with every loop spelling I tried in the 3-top-tested arms
+// (`while (count > 0)`, `for (; count > 0; count--)`, `for (; count; --count)`),
+// so it is not the spelling of the top test, only its existence. Also confirmed
+// the allocation flip is NOT sensitive to any declaration shape: 7 decl sets
+// (count before n, `int count = (short)atoi(tok)`, resize(count) vs resize(n)
+// vs resize((int)n), unsigned count, long count, i declared before count) all
+// give byte-identical code, 85.9% on the difflib scale, same 712 bytes.
+// So the edi/ebp/ebx rotation really is bought only by the extra top tests.
+//
+// Remaining difference 2, which NO score has shown before: in all four arms the
+// original emits `call strtok; mov ebx,[esi+4]; add esp,8` (the reload of
+// _First lands immediately AFTER the call) where every variant here, including
+// the 4-do-while one, emits `mov ebx,[esi+4]` BEFORE the two pushes, i.e. it is
+// hoisted above the strtok call. Both slots are legal (a load cannot cross a
+// call, and in the original neither load is hoisted past its own strtok), so
+// this is a scheduler tie-break, not a missing instruction: difflib matches the
+// two `mov ebx, dword ptr [esi+4]` texts to each other and scores them equal,
+// but the bytes are 6 out of place in each of the 8 loads. That is why the
+// text score never reached 100% even where the instruction multiset matches.
+// Writing the store through a local pointer (`Elem* p = &(*this)[i]; p->a = ...`)
+// puts the load even earlier, drops the function to 696 bytes and makes the
+// allocation flip back (68.1% / 79.1%), so the pointer form is not it either.
+//
 // deepseek-v4.1-flash pass 2: swept all subsets of arms switched to
 // top-tested loops and all combinations of which arms test n vs count in a
 // do-while. BEST 86.1% (708 bytes, s01): case 0 keeps the exact-shape

@@ -1,12 +1,25 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 84.1%. One-child tree updates are inlined in the executable;
-// supplying the matched helper body restores those missing blocks. The
-// byte-copy loop must be a plain `while (n0 < 0x11)` with the src check
-// inside (do-while gets rotated), and the lit/lenstack `n` assignment must
-// live inside each branch. Still differs: the window pointer sits in ebp
-// where the original keeps it in esi, so `n` spills to [esp+0x24] and mask
-// lands at [esp+0x28] instead of the original [esp+0x24]; the encode-loop
-// register/slot swap and a few operand orders (edx+eax vs eax+edx) remain.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by DeepSeek V4.1 Flash. Names are provisional.
+// MATCH (1304 bytes). One-child tree updates are inlined in the executable;
+// supplying the matched helper body restores those blocks. The byte-copy loop
+// must be a plain `while (n0 < 0x11)` with the src check inside (do-while gets
+// rotated). What took it from 84.1% to 99.2%:
+//  - the encode loop is `while (n > 0) { ...; n--; }`, not `do/while (--n)`;
+//    the while form keeps n in ebp and frees esi for the window (the residual
+//    was the register-allocation cascade, not the loop body);
+//  - in the `cur <= 1` arm `n = 1;` must be written BEFORE the lit store;
+//  - the main byte-output loop is `int f = flags & 0xff; if (!(f & (1 << j)))`
+//    with the lit arm as the then-block;
+//  - the inner window update is `if (src >= end) state.count--; else ...`.
+// The last 0.8% was three operand-order-only instructions, size already exact:
+//  - preload loop: name the index `int k = n0 + 1; DAT_00526ff4[k] = *src++;`
+//    rather than the inline `DAT_00526ff4[n0 + 1]`; materialising the index
+//    flips the SIB base back to the global so it emits `[edx+eax+1]`.
+//  - main byte-output loop: hoisting `int f = flags & 0xff;` above the `if`
+//    and testing `!(f & (1 << j))` emits `test esi,eax` (flags first); the
+//    inline `!((1 << j) & (flags & 0xff))` always emits `test eax,esi`.
+//  - window store: recompute the index inline,
+//    `DAT_00526ff4[(state.pos + 0x11) & 0xfff] = *src++;`, instead of using
+//    the `p17` local; that flips `[esi+edx]` to `[edx+esi]`.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,7 +130,7 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         while (n0 < 0x11) {
             if (src >= end)
                 break;
-            DAT_00526ff4[n0 + 1] = *src++;
+            { int k = n0 + 1; DAT_00526ff4[k] = *src++; }
             n0++;
         }
         state.count = n0;
@@ -131,8 +144,8 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         if (state.cur > state.count)
             state.cur = state.count;
         if (state.cur <= 1) {
-            lit[mask] = DAT_00526ff4[state.pos];
             n = 1;
+            lit[mask] = DAT_00526ff4[state.pos];
         } else {
             lenstack[mask] = (unsigned short)(((state.cur - 2) & 0xf) | (accum << 4));
             flags |= (unsigned char)mask;
@@ -142,18 +155,18 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         if (mask & 0x100) {
             *dest++ = flags;
             for (j = 0; j < 8; j++) {
-                if ((flags & 0xff) & (1 << j)) {
+                int f = flags & 0xff;
+                if (!(f & (1 << j))) {
+                    *dest++ = lit[1 << j];
+                } else {
                     *dest++ = (unsigned char)lenstack[1 << j];
                     *dest++ = (unsigned char)(lenstack[1 << j] >> 8);
-                } else {
-                    *dest++ = lit[1 << j];
                 }
             }
             mask = 1;
             flags = 0;
         }
-        if (n > 0) {
-            do {
+        while (n > 0) {
                 int p17 = (state.pos + 0x11) & 0xfff;
                 if (DAT_00526ff0->nodes[p17].parent != 0) {
                     if (DAT_00526ff0->nodes[p17].larger == 0) {
@@ -166,14 +179,14 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
                         FUN_004d0b80(p17, q);
                     }
                 }
-                if (src < end)
-                    DAT_00526ff4[p17] = *src++;
-                else
+                if (src >= end)
                     state.count--;
+                else
+                    DAT_00526ff4[(state.pos + 0x11) & 0xfff] = *src++;
                 state.pos = (state.pos + 1) & 0xfff;
                 if (state.count != 0)
                     state.cur = FUN_004d0de0(state.pos, &accum);
-            } while (--n != 0);
+            n--;
         }
     }
     lenstack[mask] = 0;
@@ -189,11 +202,11 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         }
         *dest++ = flags;
         for (j = 0; j < cnt; j++) {
-            if ((flags & 0xff) & (1 << j)) {
+            if (!((1 << j) & (flags & 0xff))) {
+                *dest++ = lit[1 << j];
+            } else {
                 *dest++ = (unsigned char)lenstack[1 << j];
                 *dest++ = (unsigned char)(lenstack[1 << j] >> 8);
-            } else {
-                *dest++ = lit[1 << j];
             }
         }
     }

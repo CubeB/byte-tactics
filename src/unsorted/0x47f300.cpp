@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol refinement: source remains at 86.5% (775 bytes); no MATCH.
+// Two `int pi` scratch variants scored 79.7% and 80.2%; the best unsigned-char
+// source is retained. The player pointer still lands in EDI instead of EAX,
+// rotating register assignments in both visibility arms.
 #include <windows.h>
 // Plays the sound at soundIds[index] when the position is visible to the local
 // player: explored (fog) map when g_game->flags_14281 has bit 1 set, the shared

@@ -227,6 +227,38 @@
 // g_game reload is preloaded one block too high (into the join block after the
 // third call, in EBP) instead of in the fourth test's own block, after the
 // u->def load, in EBX.
+//
+// Fourth pass, space-bunny-free, free scratch scores (build/scratch/0x465ac0/
+// gen7.py, gen8.py). All 98.3 with exactly the same 6-byte hoist, so none of
+// these is the lever either:
+//   - the p.x update moved into the third test's else arm,
+//     `if (IsVisible2(..)) { return 1; } else { p.x -= u->def->f176; }`: MSVC
+//     normalises the else away completely, byte for byte the same code.
+//   - a `&& 1` on the fourth test's condition, a `do { p.x -= ..; } while (0)`
+//     around the update, and `(p.x -= f176, IsVisible3(..)) ? 1 : 0` as the
+//     condition: all three are meant to give the fourth test's temps a deeper
+//     statement level, and all three fold back to the same level, so MSVC 5
+//     does NOT keep a level for a `&&` or `?:` whose extra operand is a
+//     constant. That kills the "give the flags test a deeper level" idea for
+//     every constant-folding spelling; a level with a real second operand
+//     would have to add an instruction the original does not have.
+//   - IsSeen taking the Game pointer as a parameter, and IsSeen re-deriving
+//     `Game* g = g_game;` into a local of its own: 98.3, the flags read and the
+//     mask read still share one hoisted temp.
+//   - IsSeen with two named locals for the mask word and the player bit: 94.8
+//     and 862 bytes, the mask load is then emitted differently, so the two
+//     reads must stay inside one expression.
+// headers.py: all 128 sets, 98.3 for no header and for <memory.h>, 85.5 for
+// <stdio.h>, <stdlib.h> and <string.h>; nothing there.
+//
+// One thing this pass settles, so nobody re-measures it: the ODD position of
+// the original's load, between `mov eax,[ebx+0x92]` and `mov ecx,[eax+0x176]`
+// in the middle of the p.x statement, is NOT a source-order effect. It shows
+// up unchanged even with the IsSeen arm deleted (the load then sits exactly
+// there, and the rest of the function scores 71.2), so MSVC puts a CSE temp
+// after the first temp of the block that kills the register it wants. Only
+// which BLOCK it goes in is still wrong, exactly as the notes above say; the
+// intra-block order comes for free once that is right.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

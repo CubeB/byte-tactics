@@ -1,4 +1,50 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// THIS PASS: no movement, kept 86.6% (911 of 919 bytes). Scratch runs are free
+// (`check.py <addr> <file> --sym FUN_00461fd0`), all three below were scored that
+// way. Two corrections to the notes above, and one new confirmed dead end.
+//
+// CORRECTION 1: the "stale n in ESI" bug claim further down is WRONG, for a
+// reason that also fixes the frame map. Every slot this function touches was
+// re-derived from the prologue by hand: `sub esp,0x18` plus four pushes puts the
+// steady esp at entry_esp-0x28, so the six local dwords are at [esp+0x10] to
+// [esp+0x24], the RETURN ADDRESS is at [esp+0x28], the two arguments at
+// [esp+0x2c] and [esp+0x30]. That makes the original's map exact:
+//   0x10 base, 0x14 n, 0x18 i, 0x1c q, 0x20 p, 0x24 totalentries,
+//   0x28 UNUSED, 0x2c arg1 = total, reused by j, 0x30 arg2 = c.
+// It is legal C1 behaviour: `total` is the last use of growbufs (0x46202f) and
+// growbufs is never read again, so the dead argument slot is recycled for
+// `total` and then for `j`; `ret 8` pops the arguments, so nothing is broken.
+// The "0x28 total" in the notes above does not exist: both builds store `total`
+// at 0x2c.
+// CORRECTION 2: since the original DOES reload n at the top of the next packet,
+// the register copy esi is in sync and the n increments are ordinary. There is
+// also no stale-edi bug: the exit block at 0x4622e4 is reached with edi = 0
+// from either the `xor edi,edi` at 0x4622e2 or the `xor edi,edi` at 0x4621e0 in
+// the loop head, and the 0x4622f9 path keeps edi = 0 from 0x46210f, so the
+// packet-loop top really does compare against a hard zero. The `p->count = j`
+// block reloads n only to restore esi as n's register copy for the next
+// packet, which is why the original needs 4 reloads there and we emit 3.
+// The two "suspected original bug" notes above should be deleted; nothing in
+// this function is wrong.
+//
+// This pass, all worse than the kept 86.6%, scored on scratch:
+//  * `e = q++; n++; *e = *c;` (n's increment before the 32-byte copy, where the
+//    original puts it, 0x4621f1 before `rep movsd` at 0x462206), with every
+//    walk local hoisted to the `if (base)` scope as uninitialised declarations
+//    in the original's slot order (n, i, q, p, j, c) and assigned at the same
+//    statements as before: 84.0%, 903 bytes. This DOES give base 0x10 and j
+//    0x2c, the two slots the kept build has transposed, but it deletes the
+//    original's `n = 0` store (0x462183) and lands i 0x14, p 0x18, n 0x1c,
+//    q 0x20. So the increment order is right for n's REGISTER and wrong for
+//    n's home: our n stays in esi and gets `inc esi`, the original's is a
+//    memory read-modify-write (`mov edi,[esp+0x14] / inc edi / mov [esp+0x14],edi`).
+//  * that variant plus declaring `q` before `p`: 84.0% and byte-identical, which
+//    re-confirms in a NEW allocator state (n home in the frame rather than in a
+//    dead arg slot) that p/q declaration order does not move the homes.
+//  * that variant plus moving `j = 0;` into the `c != 0` arm after
+//    `p->start = n;` (the original's store at 0x4621c9): 75.3%, 905 bytes. The
+//    two levers are anti-correlated: with n++ first the j store must stay at the
+//    top of the packet body, with n++ last it must move into the else arm.
 // Grows both pools of a NetBuffer: a new packet-pointer array of `growbufs` more
 // packets and a new entry array of `growpackets` more entries, then moves every
 // entry that still belongs to a packet into the new entry array.

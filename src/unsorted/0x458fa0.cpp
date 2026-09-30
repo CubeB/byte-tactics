@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry (#1616): unchanged at 84.1%; the remaining mismatch is the documented ebx/ebp allocation swap.
 // Best result: 84.1% (455 of 455 bytes). The body now compiles to the
 // original except for one global register swap: MSVC puts the `view` pointer
 // in ebx and the face `info` pointer in ebp, while the original keeps view in

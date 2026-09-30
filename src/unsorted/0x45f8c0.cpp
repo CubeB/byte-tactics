@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: 3 checks retained 98.7%; only the first line-buffer LEA register still differs (EDX in the original, ECX here).
 // Fills a help page (gamedata/help.TDF, node "Help", keys "Line<n>"): for every
 // line of the page it looks the line up, cuts it at the '|' into a left and a
 // right half and adds two TEXT entries for them, 0x12 pixels lower each time.

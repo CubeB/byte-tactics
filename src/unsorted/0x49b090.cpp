@@ -1,21 +1,15 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
-// deepseek-v4.1 (issue 1900): giving every arm of the feature lookup an explicit
-// `else mf = 0;` (so the `f < featureCount` test falls through into the shared
-// `mapping + f * 256` tail instead of jumping over a duplicated copy) moved
-// 76.4% -> 78.0%, 841 -> 842 bytes against the original's 844. Still differs:
-// g_game is loaded into edi at 0x49b1ca and immediately spilled to [esp+0x30],
-// so the feature block reads g from memory (original keeps it in edi), cz stays
-// in ax instead of [esp+0x30] (`cmp [esi+0x5c], ax` vs `mov ax,[esi+0x5c];
-// cmp ax,[esp+0x30]`), and mf takes edi where the original has it in ecx.
-// deepseek-v4.1 retry: removing the `int oz = proj->py.i;` hoist (direct
-// proj->py.i in both unit blocks) deleted the extra `mov ebp,[esi+8]` diff and
-// moved 73.6% -> 76.4%, 841 bytes against 844. The whole remaining diff is one
-// allocator choice: ours gives edi to `mf` and homes `g` at [esp+0x30], the
-// original keeps g_game in edi and has mf in ecx, cz in [esp+0x30] and f in dx.
-// That cascades into the unit0 elev/high swap (ecx/ebp), the `imul ecx,[edx+N]`
-// memory operand and every feature-block hunk. Variants tried and reverted:
-// no g local, direct g_game-> uses (73.4%, 851 bytes); mf with no initializer
-// plus per-branch `mf = 0` (70.8%, 853 bytes).
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// deepseek-v4.1-flash (issue 1715): 73.6% -> 81.9% (855 bytes against 844). Three changes, all in the
+// source shape, none of them register hints: (1) delete the `int oz = proj->py.i;` local and read
+// `proj->py.i` directly in the unit0 test, which removes the hoisted `mov ebp,[esi+8]`; (2) declare
+// `Game_0049b090* g = g_game;` and reassign `g = g_game;` immediately before the 0x4000 flags test,
+// which is what makes MSVC emit the single `mov edi,[g_game]` reload at 0x49b284 instead of keeping a
+// spilled g; (3) replace `MapFeature* mf = 0;` with an uninitialised `mf` and explicit `else mf = 0;`
+// in every arm, which moves the `xor` out of the declaration and lands the feature-id load at the
+// original's position. Still differs (all ~11 bytes): MSVC homes the new g in ecx and re-spills it to
+// [esp+0x30] so the cellZ temp takes edi (`mov ecx,edi` + `mov [esp+0x30],ecx` extra), the unit0
+// elev/high pair is swapped (ours ecx=elev,ebp=high; original ebp=elev,ecx=high), and the
+// `mapping + f` tail is duplicated instead of merged at 0x49b31b. Ledger has the scored variants.
 // GPT-6 retry: <windows.h> improves to 75.2%, not MATCH. Collision and
 // feature lookup helper, width and reference variants did not improve the
 // baseline. Game/height allocation and feature tail still differ.
@@ -326,6 +320,7 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             }
         }
     }
+    g = g_game;
     if (type->flags.raw & 0x4000)
         return;
     {
@@ -345,8 +340,9 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
                 mf = g->mapping + f2;
             else
                 mf = 0;
-        } else
+        } else {
             mf = 0;
+        }
         if (mf) {
             if (mf->height + cell->ground <= proj->py.s.hi)
                 mf = 0;

@@ -1,11 +1,34 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 24.0%, 3796 bytes versus 5248. Expanded resource/background
-// loading, slider end buttons, text/list initialization, animation lookup
-// and the matched button-frame selection pattern from 0x4a7f70. The earlier
-// incomplete slider stub scored 26.6%; this fuller version preserves more
-// behavior. Font/text tails, surface creation, redraw details and teardown
-// remain incomplete. Further register/frame matching needs the missing body.
-
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
+// deepseek-v4.1. Names are provisional.
+// Partial: 26.2%, 3776 bytes versus the original 5248. What still differs:
+//
+// - Prologue. The frame is now exactly 0x3c0 like the original, and param_1
+//   sits at [esp+0x3d4], but the original is `mov eax,[esp+4]; sub esp,0x3c0;
+//   mov eax,[eax+0x18]; push ebx; push ebp; push esi; test eax,eax; push edi`
+//   and reloads param_1 from [esp+0x3d4] at every later use, while ours homes
+//   it in edi (`mov edi,[esp+0x3d4]`) and tests it after all four pushes.
+//   That single register choice shifts every following byte of the entry block
+//   and is what still keeps the score down: the original homes the layer
+//   pointer (entries) in ebp and the flags argument in ebx, we use ebx and eax.
+//   The allocator only picks those registers when the whole body is present, so
+//   this should fall out once the missing blocks below are filled in.
+// - Missing bodies. 0x4a9065..0x4a90d0 (the "SAVE UNDER" tail of the forced
+//   path) and 0x4a90d1..0x4a95d1 (the flags&1 == 0 path) have no counterpart
+//   here; together they are roughly 1280 bytes, most of the byte deficit, and
+//   the block from 0x4a82f7 onwards is emitted in a different order than this
+//   file, so the diff never fully resynchronises.
+// - Fixed this round: the small pre-loop now walks a pointer with
+//   `add eax,0x15b` while keeping the index in ecx (0x4a8321), and the big
+//   entry loop indexes `entries[L.i].field` directly instead of through a
+//   pointer local, which is what makes MSVC emit the shl/sub/lea stride chain
+//   and keep the array base in ebp (0x4a83d1). The last text buffer is
+//   char[0x6c] because the original's buffer at esp+0x350 ends exactly at the
+//   frame end 0x3c0. 24.0 -> 26.2 in this round.
+// - Scal_004a81e0 below matches the original's scalar slots only in shape:
+//   the original keeps i at [esp+0x1c] and the menu+0x9b6 pointer at
+//   [esp+0x2c]; ours land elsewhere because the frame still has 4 bytes of
+//   compiler temporaries the original does not appear to need.
+//
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -169,7 +192,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
     char textbuf[0x100];
     char buf1[0x100];
     char buf2[0x100];
-    char buf3[0x80];
+    char buf3[0x6c];
 
     if (!menu->layer)
         return 0;
@@ -202,9 +225,11 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
     while (FUN_004c1ab0() != 0)
         ;
     if (menu->field_70 != 0) {
-        for (L.i = 0; L.i <= entries[0].u.count; L.i++)
-            if (entries[L.i].type == 1)
-                entries[L.i].field_13a = 0;
+        Entry_004a81e0* walk = entries;
+        for (L.i = 0; L.i <= entries[0].u.count; L.i++, walk++) {
+            if (walk->type == 1)
+                walk->field_13a = 0;
+        }
     }
     if (entries[0].w > FUN_004b6700())
         return 0;
@@ -213,28 +238,27 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
 
     entries[0].u.assets.archive = 0;
     L.name9b6 = menu->str_9b6;
-    for (L.i = 0; L.i <= entries[0].u.count; L.i++) {
-        L.e = &entries[L.i];
+    for (L.i = 0; L.i < entries[0].u.count + 1; L.i++) {
         buf2[0] = 0;
         if (menu->str_9b6[0])
             strcpy(buf2, menu->str_9b6);
         L.p4 = 0;
-        if (L.e->resourceFlags & 1) {
-            L.e->archive = 0;
-            L.e->gaf = 0;
+        if (entries[L.i].resourceFlags & 1) {
+            entries[L.i].archive = 0;
+            entries[L.i].gaf = 0;
             buf1[0] = 0;
             if (menu->str_ab6[0])
                 strncpy(buf1, menu->str_ab6, 0x100);
-            strcat(buf1, L.e->name);
+            strcat(buf1, entries[L.i].name);
             strcat(buf1, "_gadget");
             FUN_004baff0(buf1, buf1, "GAF");
             if (FUN_004bbc40(buf1)) {
-                L.e->archive = FUN_004b8c60(buf1);
-                if (L.e->archive)
-                    L.e->gaf = (GafEntry_004a81e0*)FUN_004b8d40(L.e->archive, L.e->name);
+                entries[L.i].archive = FUN_004b8c60(buf1);
+                if (entries[L.i].archive)
+                    entries[L.i].gaf = (GafEntry_004a81e0*)FUN_004b8d40(entries[L.i].archive, entries[L.i].name);
             }
         }
-        switch (L.e->type) {
+        switch (entries[L.i].type) {
         case 0:
         case 11: {
             if (entries[0].y < 0)
@@ -271,7 +295,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
         }
 
         case 4: {
-            L.e->field_13b = 0;
+            entries[L.i].field_13b = 0;
             GafEntry_004a81e0* sliders = 0;
             if (entries[0].u.assets.archive)
                 sliders = (GafEntry_004a81e0*)FUN_004b8d40(entries[0].u.assets.archive, "SLIDERS");
@@ -283,16 +307,16 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                         frame->yoff = 0;
                         frame->xoff = 0;
                     }
-                    int orientation = L.e->w > L.e->h ? 10 : 0;
+                    int orientation = entries[L.i].w > entries[L.i].h ? 10 : 0;
                     Glyph_004a81e0* frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, orientation);
-                    if (L.e->w < L.e->h)
-                        L.e->w = frame->w;
+                    if (entries[L.i].w < entries[L.i].h)
+                        entries[L.i].w = frame->w;
                     else
-                        L.e->h = frame->h;
-                    L.e->sliderStyle = (unsigned char)orientation;
+                        entries[L.i].h = frame->h;
+                    entries[L.i].sliderStyle = (unsigned char)orientation;
                 }
             }
-            L.e->sliderGaf = sliders;
+            entries[L.i].sliderGaf = sliders;
             if (sliders != 0) {
                 Entry_004a81e0* active = menu->layer->entries;
                 active[0].u.count++;
@@ -301,16 +325,16 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                 created->type = 1;
                 created->field_29 = 1;
                 Entry_004a81e0* firstEnd = &entries[active[0].u.count];
-                firstEnd->x = L.e->x;
-                firstEnd->y = L.e->y;
+                firstEnd->x = entries[L.i].x;
+                firstEnd->y = entries[L.i].y;
                 firstEnd->gaf = sliders;
-                firstEnd->field_13b = L.e->sliderStyle + 6;
-                firstEnd->group = L.e->group;
-                Glyph_004a81e0* frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, L.e->sliderStyle + 6);
+                firstEnd->field_13b = entries[L.i].sliderStyle + 6;
+                firstEnd->group = entries[L.i].group;
+                Glyph_004a81e0* frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, entries[L.i].sliderStyle + 6);
                 firstEnd->w = frame->w;
                 firstEnd->h = frame->h;
                 firstEnd->flags = 0x3400;
-                firstEnd->field_29 = L.e->field_29;
+                firstEnd->field_29 = entries[L.i].field_29;
                 active = menu->layer->entries;
                 active[0].u.count++;
                 created = &active[active[0].u.count];
@@ -318,31 +342,31 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                 created->type = 1;
                 created->field_29 = 1;
                 Entry_004a81e0* secondEnd = &entries[active[0].u.count];
-                secondEnd->field_29 = L.e->field_29;
-                frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, L.e->sliderStyle + 8);
+                secondEnd->field_29 = entries[L.i].field_29;
+                frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, entries[L.i].sliderStyle + 8);
                 secondEnd->gaf = sliders;
-                secondEnd->y = L.e->x;
-                secondEnd->field_13b = L.e->sliderStyle + 8;
-                secondEnd->group = L.e->group;
+                secondEnd->y = entries[L.i].x;
+                secondEnd->field_13b = entries[L.i].sliderStyle + 8;
+                secondEnd->group = entries[L.i].group;
                 secondEnd->flags = 0x2c00;
                 secondEnd->w = frame->w;
                 secondEnd->h = frame->h;
-                frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, L.e->sliderStyle + 6);
-                if (L.e->w > L.e->h) {
-                    secondEnd->x = L.e->x - frame->w + L.e->w;
-                    L.e->w += (short)(-2 * frame->w);
-                    L.e->x += frame->w;
-                    frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, L.e->sliderStyle + 5);
-                    L.e->sliderThumb = frame->w;
-                    L.e->field_136 = L.e->w - L.e->sliderThumb - 4;
+                frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, entries[L.i].sliderStyle + 6);
+                if (entries[L.i].w > entries[L.i].h) {
+                    secondEnd->x = entries[L.i].x - frame->w + entries[L.i].w;
+                    entries[L.i].w += (short)(-2 * frame->w);
+                    entries[L.i].x += frame->w;
+                    frame = (Glyph_004a81e0*)FUN_004b7f30(sliders, entries[L.i].sliderStyle + 5);
+                    entries[L.i].sliderThumb = frame->w;
+                    entries[L.i].field_136 = entries[L.i].w - entries[L.i].sliderThumb - 4;
                 } else {
-                    secondEnd->y = L.e->y - frame->h + L.e->h;
-                    secondEnd->x = L.e->x;
-                    L.e->h += (short)(-2 * frame->h);
-                    L.e->y += frame->h;
+                    secondEnd->y = entries[L.i].y - frame->h + entries[L.i].h;
+                    secondEnd->x = entries[L.i].x;
+                    entries[L.i].h += (short)(-2 * frame->h);
+                    entries[L.i].y += frame->h;
                 }
             } else {
-                L.e->field_136 = (L.e->w > L.e->h ? L.e->w : L.e->h) - 6;
+                entries[L.i].field_136 = (entries[L.i].w > entries[L.i].h ? entries[L.i].w : entries[L.i].h) - 6;
             }
             break;
         }
@@ -356,10 +380,10 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                     frame->xoff = 0;
                 }
             }
-            L.e->inputGaf = input;
-            if (L.e->field_138 >= 0x80)
-                L.e->field_138 = 0x7f;
-            memset(L.e->u.text, 0, 0x80);
+            entries[L.i].inputGaf = input;
+            if (entries[L.i].field_138 >= 0x80)
+                entries[L.i].field_138 = 0x7f;
+            memset(entries[L.i].u.text, 0, 0x80);
             break;
         }
         case 2: {
@@ -371,55 +395,55 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                     frame->xoff = 0;
                 }
             }
-            L.e->u.list.gaf = list;
+            entries[L.i].u.list.gaf = list;
             for (int j = 1; j <= entries[0].u.count; j++) {
                 Entry_004a81e0* other = &entries[j];
-                if (j != L.i && other->type == 2 && other->group == L.e->group) {
-                    short scroll = other->u.list.scroll > L.e->u.list.scroll ? other->u.list.scroll : L.e->u.list.scroll;
-                    L.e->u.list.scroll = scroll;
+                if (j != L.i && other->type == 2 && other->group == entries[L.i].group) {
+                    short scroll = other->u.list.scroll > entries[L.i].u.list.scroll ? other->u.list.scroll : entries[L.i].u.list.scroll;
+                    entries[L.i].u.list.scroll = scroll;
                     other->u.list.scroll = scroll;
                 }
             }
             break;
         }
         case 12: {
-            strncpy(textbuf, L.e->name, 0x10);
+            strncpy(textbuf, entries[L.i].name, 0x10);
             textbuf[0x10] = 0;
-            L.e->colours = 0;
-            L.e->u.animation.firstFrame = 0;
+            entries[L.i].colours = 0;
+            entries[L.i].u.animation.firstFrame = 0;
             GafEntry_004a81e0* animation = 0;
             if (entries[0].u.assets.archive)
                 animation = (GafEntry_004a81e0*)FUN_004b8d40(entries[0].u.assets.archive, textbuf);
             if (animation == 0)
                 animation = (GafEntry_004a81e0*)FUN_004b8d40(menu->gaf, textbuf);
             if (animation != 0)
-                L.e->u.animation.firstFrame = (Glyph_004a81e0*)FUN_004b7f30(animation, 0);
+                entries[L.i].u.animation.firstFrame = (Glyph_004a81e0*)FUN_004b7f30(animation, 0);
             break;
         }
 
         case 1: {
-            L.e->colours = 0;
-            if ((L.e->flags & 0x1800) || (L.e->resourceFlags & 1))
+            entries[L.i].colours = 0;
+            if ((entries[L.i].flags & 0x1800) || (entries[L.i].resourceFlags & 1))
                 break;
             FUN_004a05e0(menu, L.i);
             GafEntry_004a81e0* entry = 0;
-            strncpy(textbuf, L.e->name, 0x10);
+            strncpy(textbuf, entries[L.i].name, 0x10);
             textbuf[0xf] = 0;
-            L.e->field_13b = 0;
+            entries[L.i].field_13b = 0;
             if (entries[0].u.assets.archive)
                 entry = (GafEntry_004a81e0*)FUN_004b8d40(entries[0].u.assets.archive, textbuf);
             if (entry == 0 && menu->gaf != 0) {
                 entry = (GafEntry_004a81e0*)FUN_004b8d40(menu->gaf, textbuf);
                 if (entry == 0) {
-                    if (L.e->flags & 0x80) {
+                    if (entries[L.i].flags & 0x80) {
                         entry = (GafEntry_004a81e0*)FUN_004b8d40(menu->gaf, "CHECKBOX");
-                    } else if (L.e->stage != 0) {
-                        int n = L.e->stage < 4 ? L.e->stage : 4;
+                    } else if (entries[L.i].stage != 0) {
+                        int n = entries[L.i].stage < 4 ? entries[L.i].stage : 4;
                         sprintf(stagebuf, "stagebuttn%d", n);
                         entry = (GafEntry_004a81e0*)FUN_004b8d40(menu->gaf, stagebuf);
-                        if (L.e->stage == 1) {
-                            L.e->stage = 2;
-                            L.e->flags |= 0x4000;
+                        if (entries[L.i].stage == 1) {
+                            entries[L.i].stage = 2;
+                            entries[L.i].flags |= 0x4000;
                         }
                     } else {
                         strcpy(stagebuf, "BUTTONS0");
@@ -436,21 +460,21 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                         }
                         for (int j = 0; j < entry->count; j += 4) {
                             Glyph_004a81e0* frame = (Glyph_004a81e0*)FUN_004b7f30(entry, j);
-                            int distance = abs(L.e->h - frame->h) + abs(L.e->w - frame->w);
+                            int distance = abs(entries[L.i].h - frame->h) + abs(entries[L.i].w - frame->w);
                             if (distance < best) {
-                                L.e->field_13b = (unsigned char)j;
+                                entries[L.i].field_13b = (unsigned char)j;
                                 best = distance;
                             }
                         }
                     }
                 }
             }
-            L.e->gaf = entry;
+            entries[L.i].gaf = entry;
             if (entry != 0) {
-                Glyph_004a81e0* frame = (Glyph_004a81e0*)FUN_004b7f30(entry, L.e->field_13b);
+                Glyph_004a81e0* frame = (Glyph_004a81e0*)FUN_004b7f30(entry, entries[L.i].field_13b);
                 if (frame != 0) {
-                    L.e->w = frame->w;
-                    L.e->h = frame->h;
+                    entries[L.i].w = frame->w;
+                    entries[L.i].h = frame->h;
                 }
             }
             break;
@@ -462,16 +486,16 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
             break;
 
         case 8:
-            strncpy(buf2, L.e->name, 0x10);
+            strncpy(buf2, entries[L.i].name, 0x10);
             { int fileSize; FUN_004bbe50(buf2, &fileSize); }
             break;
 
         case 13:
-            L.e->field_138 = (short)FUN_004b6340();
+            entries[L.i].field_138 = (short)FUN_004b6340();
             break;
 
         case 5:
-            if (L.e->field_136 != 0)
+            if (entries[L.i].field_136 != 0)
                 FUN_004a05e0(menu, L.i);
             break;
 
@@ -500,10 +524,9 @@ after_entries:
     }
 
     for (L.i = 1; L.i <= entries[0].u.count; L.i++) {
-        L.e = &entries[L.i];
-        if (L.e->field_29 == 0)
+        if (entries[L.i].field_29 == 0)
             continue;
-        switch (L.e->type) {
+        switch (entries[L.i].type) {
         case 11:
             FUN_004b0230(menu, L.i, 0);
             break;
@@ -515,7 +538,7 @@ after_entries:
                 FUN_004a5f40(menu, L.i);
             break;
         case 2:
-            L.e->field_136 = 0;
+            entries[L.i].field_136 = 0;
             if (DAT_0051fba4->language == 0)
                 FUN_004c1450();
             else
@@ -527,7 +550,7 @@ after_entries:
             FUN_004a4d70(menu, L.i);
             break;
         case 4:
-            L.e->field_136 = 0;
+            entries[L.i].field_136 = 0;
             FUN_004a3ef0(menu, L.i);
             break;
         case 5:
@@ -567,9 +590,8 @@ after_entries:
         }
         FUN_004c6ac0(0);
         for (L.i = 0; L.i <= entries[0].u.count; L.i++) {
-            L.e = &entries[L.i];
-            if (L.e->gaf != 0)
-                FUN_004d85a0((int*)L.e->gaf);
+            if (entries[L.i].gaf != 0)
+                FUN_004d85a0((int*)entries[L.i].gaf);
         }
     }
 

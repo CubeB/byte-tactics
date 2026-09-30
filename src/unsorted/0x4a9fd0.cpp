@@ -1,19 +1,76 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 41.6%, 2176 bytes versus 2164. Removed a trailing byte to
-// restore the 0x15b entry stride, represented the palette index as an int,
-// and captured the active entries/current index across callbacks before
-// restoring current. Remaining prologue saves, rectangle registers and
-// selection/local slots differ. Two 768-set header sweeps found no improvement.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6,
+// edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
 //
-// deepseek-v4.1-flash notes (not finished): structure is complete. The call
-// census matches the original exactly (61 refs, every target and count), the
-// frame matches (sub esp,0x34 and ret 4), and 128 header sets plus three
-// shape variants scored flat or worse. The gap is register allocation:
-// original keeps the loop counter i in ebx, p in edi and spills the cached
-// entries pointer to [esp+0x18] and sel to the incoming-arg slot [esp+0x48];
-// ours does the reverse (entries stays in ebx, i and p are spilled). The
-// first diff is the shrink-wrapped prologue: ours sinks push edi/esi/ebx
-// past the early `ret 4`, the original pushes all four first.
+// Partial: 43.7%, 2204 bytes versus 2164. Best so far; every earlier attempt is
+// in build/scratch/0x4a9fd0/.
+//
+// What still differs, in order of how much it is worth:
+//
+// 1. The prologue, and it is still one allocation state, not six bugs. The
+//    original does sub esp,0x34 / push ebx / push ebp / mov ebp,[esp+0x40] /
+//    push esi / push edi and its early "layer == 0" exit pops all four. Ours
+//    pushes only ebp at the top (to home the parameter) and sinks push edi /
+//    push esi / push ebx below that early return, so every address in the body
+//    is 4 bytes low. MSVC5 shrink-wraps the saves whenever ebx, esi and edi
+//    are all dead in the entry block, and they are, in every spelling tried:
+//    `if (layer == 0) return 0;` first, last, inverted, and with locals
+//    declared before it. Note the original's order, push ebx BEFORE push ebp:
+//    ebp is saved second because it is being used to home the stack parameter,
+//    so this is the shape of a function whose register allocator gave ebp the
+//    parameter and ebx, esi, edi to body variables.
+// 2. Register roles in the entry loop. The original keeps the induction
+//    variable i in EBX and the walk pointer p in EDI (each with a spill slot,
+//    [esp+0x10] and [esp+0x14], reloaded after any call at 0x4aa541), and it
+//    keeps `entries` MEMORY RESIDENT, reloading it from [esp+0x18] every
+//    iteration. Ours keeps `entries` in EBX for the whole loop, so i is memory
+//    resident and p lands in ESI. That single difference also explains the
+//    inner clamp: with `entries` gone from a register the original can keep
+//    both derived edges live (right in EDX, bottom in ESI, 0x4aa1fa..0x4aa214)
+//    whereas ours spills one of them and reloads point.y from [ebp+0x40]. The
+//    lever is still "get `entries` out of EBX", not the clamp spelling.
+// 3. Slot assignment. The original uses [esp+0x10] for i and [esp+0x48] for
+//    sel. [esp+0x48] is not a frame local at all: post-prologue esp is
+//    esp0-0x44, so [esp+0x44] is the return address and [esp+0x48] is the
+//    stack argument slot, which MSVC reuses for a scratch spill once the
+//    parameter has been homed into ebp. Ours puts sel at [esp+0x10] and i at
+//    [esp+0x48], so exactly one variable is in the argument slot in both, but
+//    it is the wrong one. Every other slot already agrees (p 0x14, entries
+//    0x18, key 0x1c, elapsed 0x20, bias 0x24, saved 0x28, point 0x2c/0x30).
+// 4. The first entry clamp. The original spills both derived edges, right to
+//    [esp+0x34] and bottom to [esp+0x38], and loads point.y into EDI before
+//    building them (0x4aa0fd); ours keeps right in EDI and reloads point.y
+//    from [ebp+0x40] after the call argument is built. This is (2) again.
+// 5. The 14-byte text shift. The original builds the address with
+//    `lea ecx,[eax+edx]`, keeping the layer base in EDX and the index in EAX.
+//    Spelling it as `menu->layer->text[n] = menu->layer->text[n+1]` changes
+//    nothing; giving the base its own `char*` local makes MSVC strength-reduce
+//    the whole loop into a pointer walk and is much worse.
+// 6. Case 5 (type 5) matches the original's shape: sel is set to -1 before the
+//    name search, so the "not found" test compares against the same
+//    materialised -1 the three deselect arms use. Writing the constant out as
+//    a separate `int notfound = -1` scores identically, so the spelling is
+//    not pinned down.
+//
+// This session (space-bunny-free) moved 42.2 -> 43.7 with two source changes,
+// both about WHERE a variable's live range starts:
+//   * hoisting `int i = 1;` out of the `for` header and declaring it next to
+//     `int sel`, so i is a real local and not a front-end loop temp: +1.0;
+//   * moving that same `int i = 1;` ABOVE the early `if (menu->layer == 0)
+//     return 0;`, so its live range starts at function entry: +0.5. MSVC5
+//     still shrink-wraps, but the shape changes favourably.
+//
+// Things that did NOT work, so nobody repeats them:
+//   * Giving the text shift a `char*` base local (strength-reduces the loop).
+//   * Hoisting a `Layer* lay = menu->layer;` local above the early return to
+//     try to pin the prologue: score neutral at 43.2.
+//   * Declaring `int i;` above the early return but keeping `for (i = 1; ...)`:
+//     42.2, the gain really does need the initialiser there.
+//   * Moving `int sel = menu->field_60;` above the early return too (both
+//     variables live from entry): 42.7, worse, and it drops 4 bytes.
+//   * An `int elapsed = 0` pre-initialiser (the original assigns 0 only in the
+//     else arm, and the extra store is a real byte); naming pt->x and pt->y as
+//     locals before the first clamp; two 768-set header sweeps (earlier
+//     sessions); removing the `saved` copy of menu->field_68.
 
 #include <windows.h>
 #include <string.h>
@@ -165,6 +222,8 @@ void __cdecl FUN_004d85a0(Layer_004a9fd0*);
 // FUNCTION: 0x4a9fd0
 int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
 {
+    int i = 1;
+
     if (menu->layer == 0)
         return 0;
 
@@ -186,7 +245,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
         key = FUN_004a9b90(menu, key);
         if (key != 0) {
             for (int n = 0; n < 0xe; n++)
-                ((char*)menu->layer)[0x28 + n] = ((char*)menu->layer)[0x29 + n];
+                menu->layer->text[n] = menu->layer->text[n + 1];
             menu->layer->field_36 = (char)toupper(key);
             if (menu->layer->cb3b != 0)
                 menu->layer->cb3b(menu);
@@ -223,16 +282,17 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
         point.x -= entries->x;
         point.y -= entries->y;
 
-        int elapsed = 0;
+        int elapsed;
         if (FUN_004b6340() - DAT_0051fbb4 > 0) {
             elapsed = 1;
             DAT_0051fbb4 = FUN_004b6340();
+        } else {
+            elapsed = 0;
         }
 
         int bias = 0xffffffe1 - (int)entries;
         unsigned char* p = (unsigned char*)entries + 0x17a;
-        int i;
-        for (i = 1; i < entries->u_b6.anim.count + 1; i++) {
+        for (; i < entries->u_b6.anim.count + 1; i++) {
             Entry_004a9fd0* e = (Entry_004a9fd0*)(p - 0x1f);
             if (e->field_29 != 0) {
                 int x, y;
@@ -274,6 +334,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                     break;
                 case 5:
                     if (FUN_004a4440(menu, i, key) != 0) {
+                        sel = -1;
                         int found = -1;
                         int j;
                         for (j = 1; j < entries->u_b6.anim.count + 1; j++) {
@@ -282,7 +343,9 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                                 break;
                             }
                         }
-                        if (found == -1) {
+                        if (found == entries->u_b6.anim.count + 1)
+                            found = -1;
+                        if (found == sel) {
                             sel = i;
                         } else {
                             Entry_004a9fd0* me;

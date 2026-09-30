@@ -59,6 +59,16 @@
 // callee-saved register and also displaces `mov edi, 4`, giving 1648 bytes at 95.0.
 // So the last byte needs one extra *invisible* temp in the allocator's view of the
 // block that ends at 0x499717, which no source shape tried so far produces.
+// deepseek-v4.1 session 4 (issue #2598): 25 more shapes, all byte-neutral at 1654
+// bytes / 98.4% (so the pick is not reachable from the read, the arm boundary, or
+// the condition): nested FUN_004352b0 argument, pointer-to-field temp, dead field
+// read, char*/void* address forms, a second dead pointer local, function-scope
+// `a`/`b`/`r`/`f`/`gp`/`saved` declarations (declaring a then-arm value in the
+// enclosing block does NOT reserve its register into the else arm), the then-arm
+// bit set through a named pointer or a named constant, named netMode used in the
+// else arm through a folded mask, `switch`/negated-condition rewrites (both change
+// the emitted bytes), casts on the condition, and long/const-pointer variants.
+// Score still 1655 vs 1654 bytes, one instruction: 0x4997a0 edx vs eax.
 // deepseek-v4.1 session 3 (issue #2565): 10 more byte-neutral shapes, all land on the
 // same 98.4% base (1654 bytes) with `mov eax, dword ptr [<addr>]` at 0x4997a0, so the
 // byte is NOT reachable by spelling the read: an `unsigned short tmp` plus a

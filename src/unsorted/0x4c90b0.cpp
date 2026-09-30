@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass). Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass), edited by deepseek-v4.1. Names are provisional.
 // Second pass (deepseek-v4.1-flash): no new lever moved the +1/+5 split.
 // Tested and all folded to a single `lea ecx,[ecx+edx+6]` (193 bytes, 86.1%):
 // `static __inline int TotalLen(a,b){return a+b+1;}` with `malloc(TotalLen(n,m)+5)`,
@@ -102,6 +102,29 @@
 //    `+5` cannot be folded into a displacement, e.g. a size computed as a
 //    `char*` difference or with the `+1` written as a pointer step
 //    (`chars + n + m + 1` style) rather than as an integer constant.
+// deepseek-v4.1 pass (2097): the +1/+5 split resists every pure-arithmetic
+// spelling. Newly tested and all folded to one `lea ecx,[ecx+edx+6]` (193
+// bytes, 86.1%), i.e. worse than the `short` version kept below: the operand
+// orders `n + 1 + m + 5`, `1 + 4 + n + m + 1`, `n + m + 1 + 1 + 4`,
+// `m + n + sizeof(int) + 1 + 1`, `n + m + sizeof(char) + sizeof(int) +
+// sizeof(char)`, a `len += sizeof(int) + 1;` second statement, the multiply
+// `sizeof(char) * (n + m + 1 + sizeof(int))`, the address-operand form
+// `(size_t)((char*)(n + m + 1) + 5)`, and `static`/`static inline` helpers
+// `AllocBlock(int len)`, `AllocBlock(int a, int b)` and `AllocChars(int len)`
+// called with `n + m + 1` or `(n, m)`. The one new variant that keeps the two
+// adds apart without a movsx is a file-scope `static int term = 1;` used as
+// `n + m + term + sizeof(int) + 1`: the front end cannot substitute the static,
+// and the backend emits `mov eax,[term]; add eax,ecx; lea ecx,[eax+edx+5]`
+// (200 bytes, 91.0%). That pins the mechanism down: the front end folds
+// constants only within one parse tree (here `sizeof(int) + 1` folds to a
+// single +5, exactly as in the matched 0x4c9230 `malloc(len + 1 + sizeof(int))`
+// -> `lea eax,[edi+5]`), so the original's `+1` and `+5` must come from two
+// trees, one of whose values the front end could not substitute and the backend
+// then folded the `+1` into the address of `n + m`. A plain local (promoted
+// front end), a helper call, a cast and every constant spelling are all
+// transparent; only a real memory value blocks it, and a load would cost bytes
+// the original has not got, so what is still missing is a construct that yields
+// the value `n + m + 1` as a value the front end will not re-fold with the `+5`.
 #include <string.h>
 #include <stdlib.h>
 

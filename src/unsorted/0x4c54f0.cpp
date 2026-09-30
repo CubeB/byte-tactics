@@ -1,5 +1,16 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // Retry #1769: the saved best remains 70.2% after seven worker checks; the final batch did not MATCH. Lower-scoring local-copy, bool and split-condition trials were reverted.
+// deepseek-v4.1-flash (#2405): still 70.2%. The residual is the destruction block's
+// register rotation: the original loads the global into eax, tests it, then copies
+// eax->ebx and computes edi = eax+1; ours loads straight into edi and computes
+// ebx = edi+1. The inlined ~Class_004c5840 spelling is required (every alternate
+// destructor spelling drops to ~57). Merging the FUN_004c93f0(value) assignment after
+// both the find and insert branches is semantically right but flips the branch layout
+// (68.5); forcing the "keys differ" test into a real bool scores 68.7. headers.py and
+// a 0..400 dummy-declaration sweep are both flat.
+// Suspected original bug: the map owner is constructed with an uninitialised stack
+// byte as its count/flag (`mov dl, byte [esp+0x17]` at 0x4c556a; that slot is never
+// written in this function), so `new Class_004c5840(flag)` has a garbage argument.
 // Loads a TDF section into the global map at 0x51fdb8: the section name is
 // compared with the one already loaded, the map is thrown away and rebuilt,
 // then every section of the file contributes one entry keyed by its own

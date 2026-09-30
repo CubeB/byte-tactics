@@ -1,5 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // Retry #1769: GPT-6.1-sol confirmed 93.3% (337/367 code bytes) after three normal checks; the final batch did not MATCH. The reallocating tail still changes register and store order.
+// deepseek-v4.1-flash (#2405): still 93.3%. The authentic VC5 header store order
+// (`_End = s + n; _Last = s + size() + 1; _First = s;`) puts the stores right but
+// drops to 412 bytes/80.9% because C1 forwards `s` and uses eax for `off`. A
+// hand-written std::vector clone (flat members and _Vector_val base forms) changed
+// nothing, and headers.py --cpp is flat over all 768 sets. The residue is one
+// C1 per-function allocation tie in the reallocating tail (delete arg eax vs edx,
+// `off` home edi vs eax/ecx, forced _First reload).
 //
 // PARTIAL: 93.3% (check.py), 337 of 367 code bytes identical. This is the
 // game's out-of-line vector::insert for the reallocating case: the three STL

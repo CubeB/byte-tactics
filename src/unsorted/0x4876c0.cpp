@@ -70,6 +70,23 @@
 // lever is still getting the shared zero constant into ecx instead of edx,
 // which needs the rec.f3f load (unit->fb8) live across the rec.f27 compare;
 // source reordering of these statements alone does not produce it.
+// deepseek-v4.1-flash (run 6): no further gain, still 74.0. NEW FINDING on the
+// rec.f89 ternary: the original's arm layout (`cmp eax,ecx; jne <f_a8 arm>`;
+// zero arm falls through first) is what `rec.f89 = unit->f86 == 0 ? 0 :
+// a->f_a8;` produces, NOT the `!= 0 ? a->f_a8 : 0` form in this file, which
+// inverts the layout (`je` to the zero arm). Inverting the ternary makes that
+// block structurally identical to the original (only the zero register
+// differs) but scores 73.3 alone vs 74.0 for this file, so the base form is
+// kept as the best scorer. Also confirmed the pair-reversal rule: whichever
+// of rec.f3d/rec.f3f is written SECOND in source is loaded FIRST and stored
+// immediately at its load, while the first-written one's load stays late and
+// its store is deferred past the rec.f27 compare. So f3f-then-f3d (v2) gives
+// the original's exact store placement (f3d immediate, f3f deferred past the
+// compare) but flips the temps (f108 in edx, fb8 in ecx) because f108's load
+// is hoisted above the s.b load while ecx still holds &s64; the shared zero
+// then still lands in edx. The original has f108 in cx loaded just AFTER the
+// s.b load (cx freed by it) and the zero reuses that dying ecx. No source
+// spelling found that stops the hoist of the second-written pair member.
 // deepseek-v4.1-flash (run 5): no further gain, still 74.0. Writing
 // `rec.f3f = unit->fb8;` before `rec.f3d = unit->f108;` gives the original's
 // store order (f3d early at the f108 load, f3f deferred past the rec.f27

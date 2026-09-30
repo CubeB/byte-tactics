@@ -1,8 +1,23 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Partial, 40.0%: rendering and overlay logic is present, but the function's
-// register allocation, temporary/frame layout and x87 scheduling still differ.
-// The 128-set header sweep did not improve the score. Resource fields remain
-// packed for the original 33-byte snapshot comparison.
+// Decompiled by deepseek-v4.1. Names are provisional.
+// (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// Partial, 46.2%: the old 40.0% ceiling was the frame layout, now fixed.
+// The big local struct sits at the TOP of the locals region, so its base is
+// 0x10 + (bytes of scalar slots below it); the original has exactly one scalar
+// slot (the fild/fistp conversion scratch at [esp+0x10]), giving base 0x14 and
+// local_178 at [esp+0xac]. Ours had two (the piVar10 home was the extra one);
+// computing g_game+0x141fb inline at each use freed that slot, which moved
+// every struct field back by 4 and took the file 40.0 -> 45.3. Assigning
+// local_1b0 after the 48-byte memcpy instead of before it (as the original's
+// instruction order shows: mov ecx,0xc / lea edi / mov esi / lea ebx /
+// rep movsd / mov [esp+0x74],ebx) gave 45.3 -> 46.2.
+// The frame is now 0x210 (was 0x214): 4 bytes of scalars + 0x20c struct.
+// WHAT STILL DIFFERS: no structural gap remains; the rest is register picks
+// and scheduling inside the region bodies, e.g. the OverlayRect argument copy
+// at the first FUN_004c6b10 call uses eax as the destination copy pointer and
+// edx/ecx as the source (original: mov edx,esp destination, ecx source, eax
+// temp), the timer updates at the tail reorder (ours stores [esi],eax before
+// sub ecx,edx; original reads both first), and several loop latches reload a
+// home our build keeps in a register.
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -148,8 +163,8 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   L.local_174 = *(int *)((int)g_game + 0x37e23) / 2;
   FUN_004c69a0((int)(*(undefined4 *)((int)g_game + 0x37e1b)));
   iVar11 = (int)g_game;
-  L.local_1b0 = (byte *)((int)g_game + 0xdcb);
   memcpy(L.local_1f0,*(void**)(g_game+0x37e1b),48);
+  L.local_1b0 = (byte *)((int)g_game + 0xdcb);
   FUN_004c2470();
   ((Class_004c6b10*)L.local_1f0)->FUN_004c6b10(*(OverlayRect*)(g_game+0x37e27));
   iVar12 = (int)g_game;
@@ -335,7 +350,6 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   pDVar1[14] += DVar7 - *pDVar1;
   *pDVar1 = DVar7;
   iVar8 = (int)g_game;
-  piVar10 = (int *)((int)g_game + 0x141fb);
   L.local_1b4 = *(byte *)(g_game+0x2a43);
   iVar12 = (int)g_game + (uint)*(byte *)((int)g_game + 0x2a43) * 0x14b;
   iVar11 = iVar12 + 0x1b63;
@@ -350,7 +364,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     do {
       iVar14 = *(int *)(iVar8 + 0x1424b) * iVar13;
       iVar13 = iVar13 + 1;
-      *(int *)(*(int *)(iVar8 + 0x141ff) + -4 + iVar13 * 4) = *piVar10 + iVar14 * 4;
+      *(int *)(*(int *)(iVar8 + 0x141ff) + -4 + iVar13 * 4) = *(int *)((int)g_game + 0x141fb) + iVar14 * 4;
       *(undefined2 *)(*(int *)(iVar8 + 0x14203) + -2 + iVar13 * 2) = 0;
     } while (iVar13 < *(int *)(iVar8 + 0x1424f));
   }
@@ -451,7 +465,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     L.local_1b8 = L.local_1bc - L.local_1b8;
     do {
       iVar12 = 0;
-      piVar16 = (int *)(*piVar10 + (L.local_1b8 + L.local_210) * *(int *)(iVar8 + 0x1424b) * 4);
+      piVar16 = (int *)(*(int *)((int)g_game + 0x141fb) + (L.local_1b8 + L.local_210) * *(int *)(iVar8 + 0x1424b) * 4);
       if (*(short *)(L.local_20c + *(int *)(iVar8 + 0x14203)) != 0) {
         do {
           iVar21 = *piVar16;
@@ -502,7 +516,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     if (0 < *(int *)(iVar8 + 0x1424f)) {
       do {
         iVar12 = 0;
-        piVar16 = (int *)(*piVar10 + *(int *)(iVar8 + 0x1424b) * L.local_204 * 4);
+        piVar16 = (int *)(*(int *)((int)g_game + 0x141fb) + *(int *)(iVar8 + 0x1424b) * L.local_204 * 4);
         iVar11 = L.local_204;
         if (*(short *)(*(int *)(iVar8 + 0x14203) + L.local_204 * 2) != 0) {
           do {

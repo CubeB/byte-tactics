@@ -1,4 +1,17 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (issue #1897) fifth retry: baseline reconfirmed 97.4%, same two
+// regions. Negating both hypot arguments (unit->pos.xw - order->x, ...) scores
+// 96.8: the compiler still emits the [esi] (order) movsx first, this time into
+// edx with `sub eax, edx`, and shifts the spill to [esp+0x50]/fild [esp+0x50],
+// so the load pair is base-register driven, not operand driven. Sixth retry by
+// deepseek-v4.1 (issue #1897) re-confirmed both spellings and their exact
+// schedules: with `unit->pos.xw - order->x` first the compiler still issues the
+// esi-based (order) movsx first but into edx with `sub eax, edx`, then spills
+// eax through [esp+0x50] and filds it before the second spill, so even the
+// destination register follows the base register, not the source operand.
+// State-3 waypoint variants: sum passed straight to the constructor (92.8, temp moves down 0xc),
+// member-wise p.x/p.y/p.z into a fresh local (93.7, frame -4), explicit += on a
+// copy of target->pos (93.0, frame +4), all worse. Best kept: baseline.
 // #1704 retry by Codex / GPT-6.1-sol: checkall reconfirmed 97.4%, no MATCH.
 // Eight worker checks found no improvement over the existing source.
 // GPT-6 retry: range/difference helpers, target-position addition helpers,
@@ -12,7 +25,18 @@
 // circles the target, alternating sides, and lands on a free pad when
 // damaged (VTOL_LANDING).
 //
-// Partial: 97.4%. What still differs:
+// Partial: 97.4%. deepseek-v4.1 (issue #1897) retry: still 97.4%, confirmed by
+// disassembling our own object. MSVC5's load order in `a - b` follows the
+// memory operand, not the source operand order: for this compare it always
+// loads the order-based side (esi) first into edx and the unit-based side
+// (edi) second, so negating the hypot arguments only flips the sub direction
+// (96.8), and negating just the z difference scores 96.6. The remaining
+// region-B hunk is pure scheduling: the original defers the pos.y/pos.z loads
+// until after `add edx, edi` and reuses the freed edi for pos.y, while ours
+// hoists both loads and uses ebx; the explicit member-wise form (93.7), a
+// Vec3& reference local (96.5) and a member-wise operator+ (89.8) all differ
+// more.
+// What still differs:
 // - The first _hypot: writing the arguments negated (order->x - unit->pos.xw)
 //   fixed the sub direction and gained 96.8 -> 97.4, but the two loads of
 //   each difference come out swapped (the compiler emits order->z first, the
@@ -25,9 +49,58 @@
 //   `mov edi, [ecx+4]`); ours loads all three members first and puts y in ebx.
 //   Explicit per-member sums, dropping the `off` local and operator+= all
 //   change the frame or fold the base pointer and score worse.
+// deepseek-v4.1 (issue #1897) second retry: check.py baseline reconfirmed
+// 97.4%; the operand-negation experiment (a2.cpp, 96.8%) was re-read and shows
+// the compiler always loads the order (esi) side into edx first, so the
+// original edx <- [edi+0x74] / eax <- [esi+0x30] pair is a register tie-break
+// no source operand order reaches. The jump-table diff line
+// (`jmp dword ptr [eax*4 + <addr>]` vs `+ 0x413ba8`) is separate: the checker
+// renders `<addr>` for an address outside the function region, and the last
+// hunk is that same 16-byte table plus padding, so that table is not byte-for
+// byte where the original keeps it.
 // Suspected original bug: that same branch builds a Class_0044e2d0 waypoint
 // and sets its speed, but never passes it to the order (no FUN_004388d0
 // call, unlike every other branch), so the object leaks.
+// deepseek-v4.1-flash (issue #1897) third retry: baseline reconfirmed 97.4%.
+// Exactly 25 of 1864 bytes differ, in only two regions: 0x413675..0x41368d
+// (the range-check _hypot) and 0x413950..0x413966 (the state-3 first
+// waypoint). The jump-table hunks the checker prints are only placeholder
+// rendering of the DIR32 table entries; those bytes are masked and do not
+// count. For the _hypot: unit-first operands (96.8), mixed operand order
+// (97.1), two named int locals for the two differences (91.0), (short) casts
+// (91.8), a Vec3& to unit->pos (81.6), a Unit* local (97.4, identical) and
+// short/pointer locals (90.3) all fail. For the state-3 waypoint: explicit
+// member sums (93.0), operator+= (93.0), assigning p field by field (93.5),
+// an int speed<<16 local (97.4, identical), inlining Offset (97.4), a Unit*
+// target local (93.5), a Vec3* target local (92.8) and passing the sum
+// straight to the constructor (92.8) all fail. Both hunks are one allocator
+// tie-break: MSVC fuses each difference as movsx into edx/ecx for the
+// esi-based (order) operand and movsx into eax for the edi-based (unit)
+// operand, and in the waypoint it reuses edi for pos.y instead of hoisting
+// pos.y to ebx before consuming off.x. No source spelling tried reaches the
+// opposite assignment. The sibling 0x412d40 MATCHES with the reverse roles
+// (unit in esi, order in edi), so the tie-break depends on context, not on
+// operand order.
+// deepseek-v4.1 (issue #1897) fourth retry: baseline reconfirmed at 97.4%,
+// 25 masked bytes, still the two regions above. Region 1 (range-check _hypot,
+// 8 bytes): the four operand-order/negation combinations were re-measured
+// (25, 25, 47, 47 bytes; 97.4, 97.4, 96.8, 96.8%) and the instruction streams
+// show MSVC fixes the register pair by memory operand here, so [esi+0x30] and
+// [esi+0x2e] (the order side) are always issued first into edx/ecx and only
+// the sub destination follows the source. The matched siblings 0x412d40 and
+// 0x412710 both load their Order object first too (it is the edi-base there),
+// so the original 413470 is the odd one out: it loads [edi+0x74] (unit) first.
+// Nested-if, a local range, an != 0 test and swapped arguments each lose the
+// whole body (500+ byte diff, frame shrinks to 0x30), so no shape tried
+// reaches it. Region 2 (state-3 waypoint, 17 bytes): a Vec3& to
+// order->target->pos plus member-wise p.x/p.y/p.z assignment does reproduce
+// the original's interleaved schedule (load x, push 0x36, add off.x, then load
+// y and z) but accumulates into off.x's register and issues the p.x store
+// early: 34 bytes, 96.5%. The matching sibling site at 0x413a1e (same sum with
+// - off) uses the hoisted form with ebx for y, exactly like our build, so the
+// original really scheduled the two sums differently and the source edit that
+// produced it is not the one that produces this schedule. Add() as a
+// per-member helper scores 97.1%. Best kept: baseline, 97.4%.
 #include <math.h>
 #include <vector>
 

@@ -1,12 +1,58 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-sol. Names are provisional.
-// #1704 retry by Codex / GPT-6.1-sol: checkall reconfirmed 87.2% (1610/1504 bytes), no MATCH.
-// A lead helper-inversion edit failed to compile; restored and rechecked this prior best.
-// Partial: 87.2%. Total's float accumulation restores field-first x87 addition.
-// Landing still has an extra test of the helper's constant success result; keep
-// its helper boundary to preserve the original vector lifecycle calls and frame.
-// Reclaim constructors still share only part of the tail. A selected destination,
-// common QueueReclaim helper, alternate landing branches, capacity temporaries,
-// and real order constructor bodies did not improve this version.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free. Names are provisional.
+// #1704 retry by Codex / GPT-6.1-Sol: checkall reconfirmed 87.2% (1610/1504 bytes), no MATCH.
+// #1897 by deepseek-v4.1-flash: 1604/1504 bytes, still 87.2%, 23 hunks.
+// #1897 by space-bunny-free: 87.2% again, 1604/1504. No improvement, but the size
+// overshoot was finally pinned to ONE construct (item 3). Everything below is the
+// current state; the first two items are the older attempts, kept because they are
+// still the two open problems.
+//
+// PARTIAL. The 100 byte overshoot is the whole story; most hunks are only jmp targets
+// shifted by it, so fix the size and the rest follows.
+//
+// What still differs:
+// 1. Land()'s inline expansion keeps a dead "mov eax,1; test eax,eax; je" of the helper's
+//    constant success result, and the pads vector destructor is emitted right after the
+//    empty() test instead of on the shared path at 0x415474 (12 bytes). See item 6.
+// 2. The four VTOL_RECLAIM branches. The original cross-jumps ALL FOUR onto one shared
+//    ctor tail at 0x415773/0x415774. Here only branches 3 and 4 share a tail; branches 1
+//    and 2 each carry a private full copy of it, which is the entire 100 byte overshoot.
+//    (An earlier note in this file had 1 and 2 the other way round; it is the reverse.)
+//    Branch 2's float compare is separately unmatched: `energy < energyCapacity * 0.2`
+//    keeps the original's `test ah,0x41 / jne` but loads energy first, while the reversed
+//    `energyCapacity * 0.2 > energy` reproduces the original's load schedule (fld cap,
+//    fmul, fld energy) but emits `test ah,1 / je` and no `fxch st(1)`. Both score 87.2%.
+//
+// space-bunny-free findings (build/scratch/0x4152f0/v0..v5.cpp, all scored free with --sym):
+// 3. THE 100 BYTE OVERSHOOT IS ONE CONSTRUCT. Factor the four VTOL_RECLAIM bodies into a
+//    by-VALUE inline helper, `static inline int Reclaim(Unit*, Order*, Vec3* pos)`, and the
+//    size collapses from 1604 to 1514 bytes (original 1504): MSVC then emits ONE shared
+//    tail for all four branches, exactly as the original does. But the score FALLS to
+//    65.1%, and the reason is a single allocation casualty, not the merge. With the
+//    pointer arriving as a helper parameter its live range starts before the two calls,
+//    so it takes EBP, and EBP is the original's ZERO CONSTANT. Everything downstream then
+//    differs: no `xor ebp,ebp`, `push 0` instead of `push ebp`, `test edx,edx` instead of
+//    `cmp edx,ebp`, `sub eax,0` instead of `sub eax,ebp`, and `mov ebp,[esi+6]` for
+//    `order->flags = 0`. So the trade is: helper = right size, wrong EBP; four textual
+//    bodies = right EBP, ~100 bytes duplicated. Winning needs the pointer back in a
+//    scratch register WHILE the helper keeps the merge. That is the whole remaining task.
+// 4. Taking the pointer BY REFERENCE instead (`Vec3** pp`, called as
+//    `Reclaim(unit,order,&metal)`) does put the pointer back in EAX/ECX and restores EBP
+//    as the zero constant, so the emission is then byte-identical to the four-textual-bodies
+//    version, but MSVC stops merging again: 1593 bytes, 85.5%. Adding `int zero = 0;`
+//    inside the helper and using it for every 0 changes nothing at all (65.1%, 1514 bytes):
+//    MSVC 5 folds that local away completely, so it cannot be used to win the EBP contest.
+// 5. `Vec3* target = 0;` with one shared body after the four-condition if/else-if chain
+//    does NOT get duplicated: 1405 bytes, 58.3%. The four arms are single assignments,
+//    too cheap for MSVC 5's tail duplication, so the original really does have four
+//    textual bodies and the merge has to come from somewhere else.
+// 6. Not the cause of item 1: the dead `mov eax,1; test eax,eax; je` is a pure consequence
+//    of the `if (Land(...)) return 0;` at the call site. Inlining the landing block as
+//    `if (!pads.empty()) { ...; order->flags = 0; return 0; }` (the shape 0x4103e0.cpp
+//    uses, with `if ((unsigned int)unit->health < (maxHealth>>2)*3)` as the outer test)
+//    does place the pads destructor correctly, but frees one stack dword (`sub esp,0x40`
+//    instead of 0x44) and swaps the ESI/EDI roles, giving 56.8%. Two effects, one cause.
+// 7. headers.py: 128 header sets, every one 87.2%, so the header choice is not a lever
+//    here.
 #include <vector>
 
 struct Vec3 { int x, y, z; };
@@ -192,22 +238,27 @@ int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                 order->flags = 0;
-            } else if (unit->owner->energy < unit->owner->energyCapacity * 0.2 && energy) {
+                return 3;
+            }
+            if (unit->owner->energy < unit->owner->energyCapacity * 0.2 && energy) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                 order->flags = 0;
-            } else if (metal && Total(unit->owner->metal, metalAmount) <= unit->owner->metalCapacity) {
+                return 3;
+            }
+            if (metal && Total(unit->owner->metal, metalAmount) <= unit->owner->metalCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                 order->flags = 0;
-            } else if (energy && Total(unit->owner->energy, energyAmount) <= unit->owner->energyCapacity) {
+                return 3;
+            }
+            if (energy && Total(unit->owner->energy, energyAmount) <= unit->owner->energyCapacity) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 FUN_0043acb0(unit, new Class_0043a1f0("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                 order->flags = 0;
-            } else {
-                return 2;
+                return 3;
             }
-            return 3;
+            return 2;
         }
         return 2;
     }

@@ -1,4 +1,29 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Timebox note (deepseek-v4.1-flash final pass): stopped at 80.4%, unchanged
+// from the file this pass inherited (1124 original bytes vs 1112 ours).
+// What still differs (all confirmed in the last check.py diff):
+//  * The original emits `mov dword ptr [esp+0x20], 0` (colourState = 0) right
+//    after `cmp al, 0x52` in the '&' colour arm; ours drops that store
+//    entirely (MSVC 5 treats it as dead before the unconditional
+//    `colourState = DAT_00507b70[...]` overwrite). That is 8 of the 12 missing
+//    bytes and the single biggest win left.
+//  * Scan 2 of the inlined page helper: original keeps a live zero register
+//    (xor edx,edx at 0x477069) used for `cmp ebp,edx`, `mov [DAT],edx`,
+//    `cmp eax,edx`, `mov [esp+0x10],edx`, while `mov [esp+0x14], 0` and the
+//    loop guard `cmp byte ptr [eax], 0` use immediates. Ours has exactly the
+//    mirror image (test forms plus register forms where the original uses
+//    immediates).
+//  * Else arm store order: original `inc ebp / mov [slot],1 / dec ebx`; ours
+//    `inc ebp / dec ebx / mov [slot],1`.
+//  * Frame slot permutation and the e = &gadgets[count] preheader placement
+//    (see the notes below, unchanged).
+// Untested scratch variants prepared in build/scratch/0x476ef0/ before the
+// timebox fired (none scored, base.cpp is this file): vA.cpp moves
+// `colourState = 0;` to the first statement of the `if (colourState != 0)`
+// block (maybe schedules the store before the ternary join where DSE cannot
+// see the kill); vB.cpp swaps the else arm to `colourState = 1; lineStart++;`;
+// vC.cpp is both; vD.cpp puts `colourState = 0;` after the ternary. Score them
+// with check.py --sym first.
 // 80.4% (was 80.0%). The `&&`-free else arm needs the re-test of the byte, but
 //  * the one written on the local `c` is folded away by MSVC 5 (it still knows
 //    al == '&' on that edge), so it is `else if (*lineStart == '&')`: the load is

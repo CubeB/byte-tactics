@@ -21,6 +21,25 @@
 // source very likely used a single if/else-if chain with no labels); a
 // nesting that keeps BigButton as the fallthrough of the last gadget test
 // should bring it up to 0xbd.
+// Stopped (timebox) with the file unchanged at 72.9%. New analysis from the
+// disassembly: the original's last Start test is `test eax,eax; je 0x477cc7`
+// (branch on FALSE to PrevMenu, BigButton is the fallthrough of the TRUE
+// path), and test4 is `jne 0x477cc7` (Campaign pair is its FALSE fallthrough).
+// Our source writes `if (Start) goto BigButton;` directly before the
+// `BigButton:` label (both edges merge, so the compiler sees a degenerate
+// branch and sinks Campaign/BigButton to 0x606/0x620 and inverts test4 to
+// `je 0x606` with PrevMenu as the fallthrough). Ideas NOT yet scored (copies
+// in build/scratch/0x477ab0/v1..v3.cpp, stopped before any check run):
+// v1: spell the last test inverted, `if (!FUN_0049fd60(menu,"Start")) goto
+// PrevMenu;` so BigButton is the natural fallthrough of the TRUE edge;
+// v2: v1 plus a flat `if (DAT_0051e668 == 0) goto CampaignPair;` for test1;
+// v3: untouched control. Secondary diffs that remain even in matched regions:
+// our build CSEs the campaign holder across FUN_004d85a0 (`mov eax,[esi+4]`)
+// where the original reloads `mov ecx,[g_game]; mov edx,[ecx+0x531];
+// mov eax,[edx+4]`, and the Difficulty block uses eax as the g_game base
+// where the original uses ecx; the esi/edi holder/menuSub assignment is
+// swapped in the Missions rebuild block. Those look like register colouring
+// falling out of the block placement, not separate shape errors.
 
 #pragma pack(push, 1)
 struct Entry_00477ab0 {

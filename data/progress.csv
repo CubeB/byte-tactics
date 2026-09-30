@@ -2230,7 +2230,7 @@ address,size,file,symbol,status,similarity
 0x4a4930,65,src/unsorted/0x4a4930.cpp,?FUN_004a4930@@YGXPAUGameState_4a4930@@H@Z,matched,100.0
 0x4a4980,462,src/unsorted/0x4a4980.cpp,?FUN_004a4980@@YGXPAUClass_004a4980@@H@Z,matched,100.0
 0x4a4b50,309,src/unsorted/0x4a4b50.cpp,?FUN_004a4b50@@YGHPAUClass_004a4b50@@H@Z,matched,100.0
-0x4a4c90,215,src/unsorted/0x4a4c90.cpp,?FUN_004a4c90@@YGXPAUClass_004a4c90@@HE@Z,partial,62.4
+0x4a4c90,215,src/unsorted/0x4a4c90.cpp,?FUN_004a4c90@@YGXPAUClass_004a4c90@@HE@Z,matched,100.0
 0x4a4d70,661,src/unsorted/0x4a4d70.cpp,?FUN_004a4d70@@YGXPAUClass_004a4d70@@H@Z,partial,98.7
 0x4a5010,31,src/unsorted/0x4a5010.cpp,?FUN_004a5010@@YGPAXE@Z,matched,100.0
 0x4a5030,113,src/unsorted/0x4a5030.cpp,?FUN_004a5030@@YGHPAE@Z,matched,100.0

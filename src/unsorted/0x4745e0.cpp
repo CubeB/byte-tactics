@@ -1,5 +1,46 @@
 // Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free,
-// deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+// deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// DEEPSEEK-V4.1 (fifth pass, 2026-09-30): 8 scratch variants, no gain, 79.8
+// [294] remains best. Two new data points on the fog arm rotation:
+//   * a reference to the player record (`Map_004745e0& pl = g_game->
+//     players[g_game->playerIndex]`, Contains/index through pl, mask through
+//     g_game) is 26.3 [296] and rotates exactly like the no-local body:
+//     `this` -> edx, p -> esi, playerIndex -> ecx, rect and pre-branch with
+//     them (prologue `mov edx,ecx`). Same byte count and score as the
+//     no-local arm, so the rotation follows the fog arm's pointer shape, not
+//     the missing live value alone.
+//   * a `Game* g = g_game` local live across Contains with fresh
+//     `g->visibilityMask[p->explored.size.width * row + col]` and
+//     `1 << g->playerIndex` is 18.2 [301], worse (extra register pressure
+//     spills the rect).
+// Also re-measured, all byte-identical to the file below at 79.8 [294]: a
+// `unsigned short` cell local, an `int` cell local, and the m/w declaration
+// order swapped (m first). A live w with a hand-spelled Contains against w
+// (fresh width in the index) is 39.4 [294], the same rotation as the 49.5
+// m-local variant: any spelling that drops the fresh first width read moves
+// the pre-branch.
+
+// DEEPSEEK-V4.1 (fourth pass, 9 variants, no code change: the file below is the
+// best measured shape, 79.8 percent, 294 of 306 bytes, mask arm byte-identical).
+// New measurements, all with check.py --sym on scratch copies, all byte-compare:
+//   * the pure 0x408090 body in the fog arm (col, row, Contains, then
+//     `g_game->visibilityMask[p->explored.size.width * row + col]`) is 26.3
+//     [296] and its fog arm IS the original's shape: fresh width into edx, mask
+//     pointer loaded from g_game in edi between the imul and the add, cell into
+//     edi (`xor edi,edi; mov di,...`) then copied to edx. But the whole function
+//     rotates: this moves to edx, p to esi, playerIndex to ecx, and the rect and
+//     pre-branch with them. The `m` local is what pins this to eax, and where it
+//     is declared is what pins the load position; no spelling found gives both.
+//   * the same with the mask local kept hoisted and a fresh `p->size.width` in
+//     the index is 49.5 [298]: the m load stays hoisted into edi, p is esi, and
+//     the fresh width FOLDS, `imul edx, dword ptr [esi+0x80]` (the fold lands in
+//     the row register, so no separate load and no `mov edx,edi`); a second
+//     width local (v8) and the col,row,m,w order (v9) are byte-identical to the
+//     file below at 79.8 [294], so the second width read is CSE'd or spilled.
+//   * no spelling of the index (index local, address local, `col + w*row`,
+//     `row * w + col`, cell local, two width locals) changes the file's bytes.
+// The remaining 12 bytes are the allocator picking the file's index temp (ebp,
+// the compare's dead width register) instead of edx (the map pointer's).
 // SPACE-BUNNY-FREE, third pass. Same 79.8 percent (290 of 306 bytes), but the
 // two remaining arms are no longer the same problem: the mask arm is now
 // BYTE-IDENTICAL, and all that is left is the fog arm. The lever was the one

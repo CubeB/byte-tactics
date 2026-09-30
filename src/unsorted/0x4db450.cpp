@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol. Names are provisional.
 // NOT A MATCH: 92.9%, 444 of 444 bytes, every difference is a stack-slot
 // displacement. Still differs (see the end of this comment):
 //   * The two map iterators get the wrong two frame slots. The original puts

@@ -53,6 +53,19 @@
 //   the pointer chain is `lea ..+0x1b63; mov eax,[rec+0x27];
 //   or byte ptr [eax+0x9b],0x10`, as in the original.
 //
+// This pass (12 min timebox, 3 check runs, 80.7 -> 80.8):
+// - Making the six 0x14281 lane updates use 32-bit temps
+//   (`unsigned int b = *(unsigned char*)(p+0x9c); unsigned int w =
+//   *(unsigned short*)(g_game+0x14281); w = (w & ~2) | (b & 2); store`)
+//   DOES give the original's 32-bit `and reg,2` / `or reg,reg` shape with no
+//   movzx (verified in tools/wcl micro-tests), but in this function it moves
+//   the word into ecx, the byte into edx and g_game into esi, the lanes lose
+//   the 2-byte `xor` (2764 bytes) and the checker scores 74.4. Reverted.
+//   The register file is already committed at the switch, so the lane shape
+//   cannot be fixed before the `mov edi,1` vs `mov edx,1` difference is.
+// - `pos.x.i` before `pos.y.i = 0` (the original's order at 0x4976cd) saved
+//   one instruction move: 80.7 -> 80.8.
+//
 // Known remaining differences:
 // - The `g_game[0x14281]` flag read-modify-writes: the original loads the byte
 //   into a 32-bit register and masks 32-bit (`mov bl,[p+0x9c]; and ebx,2/4/1`),
@@ -325,8 +338,8 @@ void __cdecl FUN_00497180(void)
                 unsigned char st = *(unsigned char*)(rec + 0x73);
                 if (st != 1 && st != 2)
                     continue;
-                pos.y.i = 0;
                 pos.x.i = (FUN_004b6c30(*(int*)(g_game + 0x14223) - 0xa0) + 0x50) << 16;
+                pos.y.i = 0;
                 pos.z.i = (FUN_004b6c30(*(int*)(g_game + 0x14227) - 0xa0) + 0x50) << 16;
                 if (*(int*)rec != 0 &&
                     (*(unsigned char*)(*(char**)(rec + 0x27) + 0x9b) & 0x40))

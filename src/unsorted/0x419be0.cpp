@@ -213,6 +213,53 @@
 // prologue from the /Fa listing in about six seconds, which is the fast way
 // to test this; a variant file is `//SUB old => new` lines then `//SEL` and
 // the replacement selection statement.
+// space-bunny-free, fourth pass, still 84.1%, code unchanged (2 real runs, ~30 free
+// scratch scores). Every shape listed below produces BYTE-IDENTICAL output at
+// 84.1%, so the head cannot be moved from the expression at all:
+// * the sibling's own signature: first parameter declared `Menu_00419be0*`
+//   (index at +0x60) with `(Entry_00419be0*)button` in the false arm. This was
+//   the one lead the notes above left open; it is now REFUTED, the cast tree
+//   makes no difference at all.
+// * an inlined helper carrying the selection, with the fallback arm by value
+//   (`Fall(button)`, `Fall2(button)` with a live body), by reference
+//   (`Entry_00419be0*&`), by pointer-to-pointer (`Entry_00419be0**` fed
+//   `&button`) and with the TRUE arm by reference. All of them are substituted
+//   by the inliner: the listing still says `mov ebp, esi`, so a reference or a
+//   `&button` does NOT survive as a home-slot read. That is the mechanism the
+//   66.6% lvalue-`?:` variant uses, and it only works because its RETURN is a
+//   reference, which forces the addresses out; a by-value return does not.
+//   Note for anyone re-deriving that variant: it cannot be written without a
+//   named temporary, because `&entries[button->index]` is a prvalue and VC5
+//   refuses to bind it to `Entry_00419be0*&` (error C2664), and the temporary
+//   is exactly the extra stack store that costs it 18 points.
+// * a local copy of the parameter for the 11 index reads with the raw parameter
+//   left for the false arm, in three spellings: `void* b = (void*)button`,
+//   `Entry_00419be0* b = &button[0]`, `char* b = (char*)button` with the reads
+//   cast back. The listing shows `_button$` in all three: VC5 coalesces every
+//   copy to the parameter, so the two variables never exist.
+// * `&entries[0]` in place of `entries` as the first argument of FUN_0049fed0,
+//   in the first call and in all eleven, i.e. the cheapest way to add a live
+//   graph node to `entries` and break the use-count tie. Folded away.
+// * `register` on the local and on both parameters.
+// * `char name[16]` scores 80.9%, so the 32-byte buffer is confirmed.
+// * the 6 permutations of the three local declarations reproduce the 46.9% /
+//   84.1% split already in the notes and add nothing.
+// Two pieces of new evidence for whoever retries:
+// * The inverted ternary `type != 1 ? button : &entries[i]` shows VC5 hoists the
+//   FIRST arm's assignment above the address computation, so arm order is
+//   observable. The original assigns `ebp` from the address first and from
+//   `button` second, exactly as our form does, so the home-slot read is not an
+//   "arm position" effect.
+// * `mov ebp, [esp+0x34]` cannot be a spill reload. A spilled value would be
+//   reloaded before its eleven later uses as well, and the frame is only 0x20
+//   with the name buffer at [esp+0x10], so there is no local at [esp+0x34] and
+//   the original never stores there: it is a materialisation of a value that
+//   was NOT promoted to a register in that one leaf block, while the same value
+//   is promoted everywhere else. That is a register-priority decision, which is
+//   why the two diffs are one: `button` has 11 register uses in the original and
+//   12 in ours, so the allocator's ranking puts `entries` first there and
+//   parameter 1 first here. Nothing found so far can make `button` a second
+//   variable or `entries` a thirteenth user, and that is what it would take.
 #include <string.h>
 
 class Class_00438760 {

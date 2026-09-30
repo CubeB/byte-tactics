@@ -1,4 +1,4 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 //
 // PARTIAL, 80.3% (507 bytes vs 505). One instruction reverts to a register
 // form instead of the original's memory-operand form, and everything else
@@ -19,6 +19,12 @@
 // Second, the mask load and index++ must come BEFORE the cell-owner compare
 // in the source; the reverse order (the reviewer-obvious spelling) scored
 // 65.8%.
+//
+// GPT-6.1-sol pass: confirmed 80.3% (507 vs 505 bytes). A signed/unsigned
+// game-width declaration and explicit cellIndex multiply/add statements both
+// compile to the same register/register multiply and two-byte-longer block.
+// Restored the original best source. Remaining difference is the multiply
+// operand scheduling described below; all loop bodies otherwise match.
 //
 // What is left is one block: the original computes the cell index as
 //     movsx eax, word ptr [esi+0x78]

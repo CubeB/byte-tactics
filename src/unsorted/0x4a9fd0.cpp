@@ -4,6 +4,16 @@
 // and captured the active entries/current index across callbacks before
 // restoring current. Remaining prologue saves, rectangle registers and
 // selection/local slots differ. Two 768-set header sweeps found no improvement.
+//
+// deepseek-v4.1-flash notes (not finished): structure is complete. The call
+// census matches the original exactly (61 refs, every target and count), the
+// frame matches (sub esp,0x34 and ret 4), and 128 header sets plus three
+// shape variants scored flat or worse. The gap is register allocation:
+// original keeps the loop counter i in ebx, p in edi and spills the cached
+// entries pointer to [esp+0x18] and sel to the incoming-arg slot [esp+0x48];
+// ours does the reverse (entries stays in ebx, i and p are spilled). The
+// first diff is the shrink-wrapped prologue: ours sinks push edi/esi/ebx
+// past the early `ret 4`, the original pushes all four first.
 
 #include <windows.h>
 #include <string.h>

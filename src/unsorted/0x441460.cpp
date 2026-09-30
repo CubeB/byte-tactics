@@ -1,30 +1,18 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (best 71.2%). Frame matches (`sub esp,0x1b4`) and the game fill loop
-// now matches the original's `xor edx,edx` / `[eax+edx+0x2a47]` /
-// `cmp edx,0x3c` shape (loop was `i=1..15`; it is `i=0..13` filling p[1..14]).
-// The provider memcmp chain was rewritten as a flat `if (A||B) goto chain2`
-// which reproduces the original's first three jumps.
-// Remaining diff hunks:
-//  * 0x4415c4: SIB operand order only, ours `[edx+eax+0x2a47]` vs original
-//    `[eax+edx+0x2a47]`; not source-controllable (see guide/board note on
-//    scale-1 int index encoding).
-//  * 0x4414bc/0x4414c1: the original keeps a dead store of the memcmp(D)
-//    result at [esp+0x10] on both chains (the value is overwritten at
-//    0x4415ee by the game count). Our source stores to the same later-reused
-//    `count`, so MSVC5 eliminates the dead store; needs the original's real
-//    local (probably a separate result variable that escapes).
-//  * 0x4415d8-0x4419e3 loop body: the record-settings block is a 16-byte local
-//    at esp+0x1a1 read as overlapping dwords at +2,+6,+8,+0xa,+0xe (`>>16`
-//    folded into the load). Modelled as `unsigned long s[4]` kept in
-//    registers with explicit shifts, and the names buffer lands at esp+0x78
-//    instead of esp+0x68, so most [esp+N] offsets differ by 0x10.
-//  * 0x44158e tail: game count lives in esi in ours, ebx in the original.
-#include <stdio.h>
-#include <string.h>
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial, 63.3%. Clears 15 buffers, displays flags/count in native order and calls the
+// locale getter with no arguments. Packed settings retain the native field offsets.
+// Frame, dead comparison stores and record-setting loads remain different.
+#include <vector>
 
-struct Guid_00441460 { unsigned long d1, d2, d3, d4; };
-struct Net_00441460 { char unknown_0[0x4cd]; };
-struct Sub_00441460 { char unknown_0[0x10]; };
+struct Guid_00441460 {
+    unsigned long d1, d2, d3, d4;
+};
+struct Net_00441460 {
+    char unknown_0[0x4cd];
+};
+struct Sub_00441460 {
+    char unknown_0[0x10];
+};
 
 #pragma pack(push, 1)
 struct Game_00441460 {
@@ -46,6 +34,7 @@ struct Game_00441460 {
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
 struct Settings_00441460 {
     unsigned short field_0;
     unsigned short flags;
@@ -56,8 +45,12 @@ struct Settings_00441460 {
     unsigned short field_4;
     unsigned short version;
 };
+#pragma pack(pop)
 
-struct Gadget_00441460 { int unknown_0; char* entries; };
+struct Gadget_00441460 {
+    int unknown_0;
+    char* entries;
+};
 
 extern Game_00441460* g_game;
 extern Guid_00441460 DAT_004fcdc8;
@@ -73,25 +66,23 @@ void FUN_004c63a0();
 int __stdcall FUN_004c9e50(Net_00441460* net, char* desc, int a);
 void __stdcall FUN_004a9660(Sub_00441460* sub);
 void __stdcall FUN_004a32a0(Sub_00441460* sub, char* name, char* text, int count, int flag);
-char* FUN_0049f580(const char* key = 0);
+char* FUN_0049f580();
 int __stdcall FUN_0049fdf0(void* entries, const char* name, int type);
 void __stdcall FUN_00441220(Sub_00441460* sub, void* entry);
 
 // FUNCTION: 0x441460
-int __stdcall FUN_00441460(Gadget_00441460* gadget)
-{
+int __stdcall FUN_00441460(Gadget_00441460* gadget) {
     int count;
     char* p[21];
     char names[0x20];
     char temp[0x129];
-    unsigned long s[4];
+    Settings_00441460 settings;
     char* message;
     int i;
 
     {
         Guid_00441460* guid = (Guid_00441460*)g_game->provider;
-        if (memcmp(guid, &DAT_004fcdc8, 0x10) == 0 ||
-            memcmp(guid, &DAT_004fcda8, 0x10) == 0)
+        if (memcmp(guid, &DAT_004fcdc8, 0x10) == 0 || memcmp(guid, &DAT_004fcda8, 0x10) == 0)
             goto chain2;
         if (memcmp(guid, &DAT_004fcd98, 0x10) == 0) {
             message = "Updating...";
@@ -128,7 +119,7 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget)
         return 0;
     }
 
-    for (i = 0; i < 14; i++) {
+    for (i = 0; i < 15; i++) {
         p[i + 1] = (char*)g_game->data[i + 1];
         memset(p[i + 1], 0, 0xa00);
     }
@@ -137,19 +128,15 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget)
     for (i = 0; i < count; i++) {
         char* q;
         char* rec;
+        settings = *(Settings_00441460*)(p[0] - 0x14);
         memcpy(names, p[0], 0x20);
         rec = names;
-
-        s[0] = *(unsigned long*)(p[0] - 0x14);
-        s[1] = *(unsigned long*)(p[0] - 0x10);
-        s[2] = *(unsigned long*)(p[0] - 0xc);
-        s[3] = *(unsigned long*)(p[0] - 8);
 
         strncpy(p[1], names, 0x10);
         p[1][0x10] = 0;
         p[1] += strlen(p[1]) + 1;
 
-        sprintf(p[2], "%d/%d", *(int*)(p[0] - 4), (s[0] >> 16) & 0xf);
+        sprintf(p[2], "%d/%d", settings.flags & 0xf, *(int*)(p[0] - 4));
         p[2] += strlen(p[2]) + 1;
 
         memset(temp, 0, 0x80);
@@ -157,11 +144,12 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget)
         q = temp + strlen(temp);
         while (q != temp) {
             q--;
-            if (*q != ' ') break;
+            if (*q != ' ')
+                break;
             *q = 0;
         }
         if (FUN_0049f580() != 0) {
-            if (_strcmpi(FUN_0049f580("english"), "english") != 0) {
+            if (_strcmpi(FUN_0049f580(), "english") != 0) {
                 _strlwr(temp);
                 strncpy(temp, FUN_004c5740(temp), 0x80);
                 temp[0x7f] = 0;
@@ -170,13 +158,13 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget)
         strcpy(p[3], temp);
         p[3] += strlen(p[3]) + 1;
 
-        if ((int)((s[3] >> 16) & 0xff) < (int)*(signed char*)((char*)g_game + 1)) {
+        if ((int)(settings.version & 0xff) < (int)*(signed char*)((char*)g_game + 1)) {
             sprintf(p[4], "%s", FUN_004c5740("VER!"));
         } else {
             const char* t;
-            if ((s[0] >> 16) & 0x8000)
+            if (settings.flags & 0x8000)
                 t = "Lock";
-            else if ((s[0] >> 16) & 0x10)
+            else if (settings.flags & 0x10)
                 t = "Play";
             else
                 t = "Open";
@@ -184,31 +172,31 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget)
         }
         p[4] += strlen(p[4]) + 1;
 
-        sprintf(p[5], "%d", (s[0] & 0xffff));
+        sprintf(p[5], "%d", settings.field_0);
         p[5] += strlen(p[5]) + 1;
 
-        sprintf(p[6], "%d", (s[2] >> 16) * 100);
+        sprintf(p[6], "%d", settings.metal * 100);
         p[6] += strlen(p[6]) + 1;
 
-        sprintf(p[7], "%d", (s[2] & 0xffff) * 100);
+        sprintf(p[7], "%d", settings.energy * 100);
         p[7] += strlen(p[7]) + 1;
 
-        sprintf(p[8], "%d", (s[1] >> 16));
+        sprintf(p[8], "%d", settings.players);
         p[8] += strlen(p[8]) + 1;
 
-        if (((s[0] >> 16) & 0x1800) == 0) {
+        if ((settings.flags & 0x1800) == 0) {
             sprintf(p[9], "%s", FUN_004c5740("No"));
-        } else if (((s[0] >> 16) & 0x1800) == 0x800) {
+        } else if ((settings.flags & 0x1800) == 0x800) {
             sprintf(p[9], "%s", FUN_004c5740("Yes"));
         } else {
             sprintf(p[9], "%s", FUN_004c5740("DM"));
         }
         p[9] += strlen(p[9]) + 1;
 
-        sprintf(p[10], "%s", FUN_004c5740(((s[0] >> 16) & 0x100) ? "Blk" : "Gray"));
+        sprintf(p[10], "%s", FUN_004c5740((settings.flags & 0x100) ? "Blk" : "Gray"));
         p[10] += strlen(p[10]) + 1;
 
-        sprintf(p[11], "%s", FUN_004c5740(((s[0] >> 16) & 0x200) ? "No" : "Yes"));
+        sprintf(p[11], "%s", FUN_004c5740((settings.flags & 0x200) ? "No" : "Yes"));
         p[11] += strlen(p[11]) + 1;
 
         p[0] += 0x54;

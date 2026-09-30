@@ -13,6 +13,13 @@
 // Also confirmed obj is one 0xc4d0 block; FUN_004d9c60's this is obj+0x10,
 // FUN_004d9ca0's this is obj. Declaration style/order of ctx and rec did not
 // remove the spill (see build/scratch/0x4d8e60/ledger.md).
+// deepseek-v4.1-flash (issue 1712 retry): the spill is MSVC assigning ebx to
+// the ExceptionInformation walk pointer over rec. Four explicit named-pointer
+// spellings (info[i], *p++, declared first or last) all still spilled and lost
+// 4 to 8 bytes (48.8%); the pointer-register spelling is not the lever. The
+// original keeps rec in ebx and the walk pointer in a stack slot; candidate
+// untried lever is the known semantic mismatch (file vs reason at the " - %s\n"
+// sprintf) changing reason's live range. See the ledger.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

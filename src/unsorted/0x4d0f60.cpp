@@ -1,12 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 84.1%. One-child tree updates are inlined in the executable;
-// supplying the matched helper body restores those missing blocks. The
-// byte-copy loop must be a plain `while (n0 < 0x11)` with the src check
-// inside (do-while gets rotated), and the lit/lenstack `n` assignment must
-// live inside each branch. Still differs: the window pointer sits in ebp
-// where the original keeps it in esi, so `n` spills to [esp+0x24] and mask
-// lands at [esp+0x28] instead of the original [esp+0x24]; the encode-loop
-// register/slot swap and a few operand orders (edx+eax vs eax+edx) remain.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Partial: 99.2% (1304 bytes, exact size). One-child tree updates are inlined
+// in the executable; supplying the matched helper body restores those blocks.
+// The byte-copy loop must be a plain `while (n0 < 0x11)` with the src check
+// inside (do-while gets rotated). What took it from 84.1% to 99.2%:
+//  - the encode loop is `while (n > 0) { ...; n--; }`, not `do/while (--n)`;
+//    the while form keeps n in ebp and frees esi for the window (the residual
+//    was the register-allocation cascade, not the loop body);
+//  - in the `cur <= 1` arm `n = 1;` must be written BEFORE the lit store;
+//  - both byte-output loops read best with the negated condition written
+//    first (`if (!((1 << j) & (flags & 0xff))) { lit } else { len }`);
+//  - the inner window update is `if (src >= end) state.count--; else ...`.
+// Still differs, all three are pure encoding order with identical shapes and
+// registers: `mov [edx+eax+1],cl` (base=window) where we emit `[eax+edx+1]`,
+// `test esi,eax` where we emit `test eax,esi`, and `mov [edx+esi],cl` where we
+// emit `[esi+edx]`. All 128 headers.py sets and every commutative-operand
+// respelling are flat, so this is translation-unit state (needs the original
+// neighbours in this TU), not a source difference.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,8 +140,8 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         if (state.cur > state.count)
             state.cur = state.count;
         if (state.cur <= 1) {
-            lit[mask] = DAT_00526ff4[state.pos];
             n = 1;
+            lit[mask] = DAT_00526ff4[state.pos];
         } else {
             lenstack[mask] = (unsigned short)(((state.cur - 2) & 0xf) | (accum << 4));
             flags |= (unsigned char)mask;
@@ -142,18 +151,17 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         if (mask & 0x100) {
             *dest++ = flags;
             for (j = 0; j < 8; j++) {
-                if ((flags & 0xff) & (1 << j)) {
+                if (!((1 << j) & (flags & 0xff))) {
+                    *dest++ = lit[1 << j];
+                } else {
                     *dest++ = (unsigned char)lenstack[1 << j];
                     *dest++ = (unsigned char)(lenstack[1 << j] >> 8);
-                } else {
-                    *dest++ = lit[1 << j];
                 }
             }
             mask = 1;
             flags = 0;
         }
-        if (n > 0) {
-            do {
+        while (n > 0) {
                 int p17 = (state.pos + 0x11) & 0xfff;
                 if (DAT_00526ff0->nodes[p17].parent != 0) {
                     if (DAT_00526ff0->nodes[p17].larger == 0) {
@@ -166,14 +174,14 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
                         FUN_004d0b80(p17, q);
                     }
                 }
-                if (src < end)
-                    DAT_00526ff4[p17] = *src++;
-                else
+                if (src >= end)
                     state.count--;
+                else
+                    DAT_00526ff4[p17] = *src++;
                 state.pos = (state.pos + 1) & 0xfff;
                 if (state.count != 0)
                     state.cur = FUN_004d0de0(state.pos, &accum);
-            } while (--n != 0);
+            n--;
         }
     }
     lenstack[mask] = 0;
@@ -189,11 +197,11 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
         }
         *dest++ = flags;
         for (j = 0; j < cnt; j++) {
-            if ((flags & 0xff) & (1 << j)) {
+            if (!((1 << j) & (flags & 0xff))) {
+                *dest++ = lit[1 << j];
+            } else {
                 *dest++ = (unsigned char)lenstack[1 << j];
                 *dest++ = (unsigned char)(lenstack[1 << j] >> 8);
-            } else {
-                *dest++ = lit[1 << j];
             }
         }
     }

@@ -1,8 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 69.9%, unchanged in the #1469 retry. Mode 4 and case 0 still
-// duplicate the release tail; a shared label also merges the first call and
-// scores worse. Boolean playing state, alternate tests and headers did not
-// help. FUN_004b64d0 returns int, as in its matched implementation.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, retried by deepseek-v4.1-flash.
+// Names are provisional. Partial 76.0% (was 69.9%): case 0's playing test is
+// better as two statements (`playing = mci(); if (playing == 0) playing =
+// strcmp(...) == 0;`) than as a ternary, which makes MSVC keep 0 in ebx and
+// emit cmp eax,ebx / sbb eax,-1 instead of the ternary's test / sbb eax,ebx
+// with -1 in ebx. The same change at cases 1 to 3 and the mode block is worse
+// (71.3%) or size-exact but lower (74.3%), so it stays case 0 only. What still
+// differs: the mode block's bool uses a zero register (xor edi,edi; cmp) where
+// the original tests eax directly, the inline strcmp in cases 1 to 3 loads
+// [esi] into bl instead of using the memory operand, the mode loop reloads
+// `this` (edx) from [esp+0x10] each iteration where the original hoists it,
+// and the stop tail emits a jmp plus an ebp reload before done. FUN_004b64d0
+// returns int, as in its matched implementation.
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdlib.h>
@@ -78,8 +86,9 @@ void Class_004cdb40::FUN_004cdb40()
             if (field_20c == 0)
                 return;
             field_20c = 0;
-            playing = mciSendStringA("status cdaudio mode", buf, 0x40, 0) == 0
-                    ? strcmp(buf, "playing") == 0 : 0;
+            playing = mciSendStringA("status cdaudio mode", buf, 0x40, 0);
+            if (playing == 0)
+                playing = strcmp(buf, "playing") == 0;
             if (playing == 0)
                 return;
             mciSendStringA("stop cdaudio", 0, 0, 0);

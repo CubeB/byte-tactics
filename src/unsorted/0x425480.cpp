@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
 // std::vector<Class_004c2ea0*>::insert(iterator, size_type, const T&), MSVC
 // 5's <vector> written out (as 0x425210.cpp does) with _Ucopy, _Ufill, fill
 // and copy_backward inlined. 0x4222e0 is the only caller (the push_back).
@@ -76,6 +76,36 @@
 // 0x425210 / 0x44ec30 / 0x46e640). The 534-byte do-while is the best shape;
 // keep it.
 // GPT-6.1-sol verified the saved source with check.py: 81.1%, no MATCH.
+// space-bunny-free pass (10 min budget, 1 check run): unchanged, still 81.1%,
+// and the recorded _Ucopy / realloc-grouping wall stands. What the pass adds:
+// - The function's whole difference is 3 bytes in ONE loop. Every other diff
+// hunk in check.py is a pure jump target shifted by 3 (our 534 against the
+// original's 537); the growth branch's third copy is 37 bytes in the original
+// and 34 here, and that is the entire 3.
+// - The split starts EARLIER than the notes assume, in the first _Ucopy's
+// loop. Its instructions are byte for byte the original's, but the registers
+// differ: original {source eax, dest edx, bound _P in ecx, copy temp in esi},
+// ours {source eax, dest edx, bound _P in edi, copy temp in ecx}. The original
+// leaves edi free and ours leaves esi free, and every later choice follows:
+// the original's fill loads &_X into edi, its M4 into edi again, and the
+// third copy caches _Last in esi, which is the temp esi died in. So one
+// register chosen in the first inlined loop decides the rotation of the whole
+// growth branch; the third copy's shape is a symptom, not the cause. That
+// also explains why every source lever on the third copy behaves as it does.
+// - The third copy's source start is the same value either way (_P, since the
+// sum cancels): the original seeds it in _P's own register (`sub ecx,edx;
+// add ecx,eax; sub ecx,edi`) after a pre-test `cmp ecx,esi` against a _Last
+// cached in esi, ours seeds it from the destination (`lea eax,[ecx+edi];
+// sub eax,edx; sub eax,esi`) in a do-while with _Last re-read from the member.
+// Making it pre-tested forces the source register to hold _P, which is exactly
+// the original's shape, but the allocator then puts the _Last cache where the
+// source derivation wants to land, as the notes above record.
+// - Measured this pass, no better than the saved file: _Ucopy's and _Ufill's
+// bodies as the plain store *_P = *_F / *_F = *_X instead of
+// allocator.construct, 503 bytes and 33.4%. That is the same collapse
+// 0x425210's notes report for its own register family, so the XMEMORY
+// placement new is what holds the this-in-ebp family up in this file too, and
+// a hand-rolled allocator cannot be the missing piece.
 #include <memory>
 #include <xutility>
 

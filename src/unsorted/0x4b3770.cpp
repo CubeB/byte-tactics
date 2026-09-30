@@ -1,5 +1,15 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
 // 99.0% (577 bytes against 577, only two instructions differ, see the end).
+//
+// SEVENTH PASS (deepseek-v4.1-flash). Confirmed the residual is unchanged:
+// 206 of 208 instructions byte identical, the only diff at 0x18e/0x190:
+//   0x18e add edx,ecx / push edx   (original)
+//   0x18e add ecx,edx / push ecx   (ours)
+// All six prior passes agree that with a base reloaded from the frame MSVC 5
+// always names the int/offset as the add destination, so no spelling of
+// `pointer + int` reaches the original's `add base, off`; the one shape that
+// does (non-reloadable base read through a register) costs an extra `mov` the
+// original does not have. Left partial at 99.0%.
 //
 // The original's 0xb4-byte frame, read off the disassembly (offsets are from
 // E0, the esp right after "sub esp,0xb4" plus the four register pushes, so a

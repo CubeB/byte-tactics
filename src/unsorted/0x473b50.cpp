@@ -172,6 +172,15 @@
 // default build (88.0%), /G6 (P6 scheduling) drops it to 77.5%, so the
 // original is not a different /G setting. `static void` (no inline) is not
 // inlined at all (21.8%), so the helper really must be `inline`.
+// Retry (deepseek-v4.1-flash, 2808): no gain, 88.0% (497 vs 499) stays. New
+// measurement: the six-`int&` helper Split(sx,sy,sz,ex,ey,ez) does reproduce
+// the original's per-component base registers (block two uses [ebx+0x20..]
+// instead of [ebp+4..]) but only reaches 85.9%, and any order that moves the
+// `e0 = bx` / `e1 = by` stores after the next component's loads spills to 521
+// bytes (62.0%). Statement-order sweeps of the two-ref helper are flat at
+// 88.0% (swapping the s.z/e.x stores drops to 79.9%). The scheduling diffs
+// listed above are a codegen artefact this toolchain will not reproduce from
+// source.
 class Class_00471d70 {
 public:
     void FUN_00471d70(int param_1);

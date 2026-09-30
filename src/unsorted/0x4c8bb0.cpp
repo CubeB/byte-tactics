@@ -1,4 +1,4 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial 51.6%. This is a textured/gouraud triangle rasteriser into 10-int
 // span rows, then one FUN_004c8020 call per scanline. The sibling 0x4c8760 is
 // the same algorithm without the light channel and is matched to 67.9%; its
@@ -24,16 +24,24 @@
 // a currentVertex pointer, and prepending the real 0x4c8760 (compiler state).
 // tools/headers.py finds no header set that changes the bytes, and 4 to 64
 // unused `extern int` declarations leave the score at exactly 51.5%.
-// Also tried here: growing defaults to 9 or 10 ints and biasing its pointer
-// by one did not align both arrays; those scored 39.9%, 37.7%, and 47.2%.
-// Reordering declarations and taking the address of `previous` were neutral.
-// Hoisting the block-scope `x`/`y1` (the sibling 0x4c8760's
+// Also tried here: hoisting the block-scope `x`/`y1` (the sibling 0x4c8760's
 // winning change) and hoisting the span `x`/`y1` plus porting its whole loop
 // structure; those scored 51.3 and 36.1 and did not grow the frame either.
 //
 // Fixes that did land: second edge loop writes ints 1,4,5,7,9 of the span row
 // (the row is [xL,xR,uL,vL,uR,vR,zL,zR,lL,lR]), the rasterise guard is
 // span[1]-span[0]>0 (not !=0 && >=0), and the loop temps are function-scope.
+//
+// Retry (deepseek-v4.1-flash) still 51.6%. The missing 16th scalar slot is the
+// raw index-1 (`previous`) at [esp+0x4c] (stored 0x4c8cfc, reloaded 0x4c8e9c).
+// All of these left the frame at 0x7d5c, so the allocator coalesced previous
+// with next every time: rewriting both walks in 0x4c1000 style with shared
+// i/j/k/a/b/dxdy; hoisting every per-walk scalar (dy,x,u,v,z,light,du,dv,dz,dl)
+// to function scope; the walk1 update as `index=previous; if(index<0) index=3;`
+//; `int next=index-1` computed independently of previous; and hoisting `bottom`
+// above the bounds check. Next lever not tried: an early local array or escaped
+// aggregate to force `previous` to spill, or a shape where `next` is live only
+// briefly so it cannot share previous's slot.
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);
 

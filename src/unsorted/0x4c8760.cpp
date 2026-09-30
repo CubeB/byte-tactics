@@ -1,30 +1,26 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by
-// space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
-// PARTIAL, 72.5% (1094 original bytes, 1094 ours).
-// The min/max scan and both span-edge loops now emit the same instruction
-// set; every remaining diff is stack frame layout and instruction scheduling.
-// Fixed here: the second span loop writes its u/v through offsets 4 and 5
-// (out = &spans[0][0], out[1]=x, out[4]=u, out[5]=v, out[7]=z), not 2/3 as a
-// first reading of the old source suggested; that is what took it from 67.9
-// to 72.5 and made the byte count exact.
-// What still differs:
-// 1. Frame is 0x7d54, original 0x7d58: exactly one 4-byte scalar slot short.
-//    Original has 14 scalar slots at 0x10..0x44; ours has 13 at 0x10..0x40.
-//    In ours lowX folds onto next's slot 0x10; the original keeps lowX at
-//    0x14 (shared with n) and next at 0x10 (shared with dv). Also the second
-//    span loop's n reuses lowIndex's slot 0x28 in the original, but ours
-//    uses 0x14. Hoisting x/y1/n to function scope, and sharing n between the
-//    two loops, did not change the frame (both stayed 0x7d54).
-// 2. First span loop body order: the original emits `x+=dx` right after
-//    `out[0]=x>>16`, before `out[2]=u`; ours emits it after `out+=10`.
-// 3. Second span loop exit: original does `mov edi,eax; mov eax,[highIndex];
-//    cmp edi,eax`; ours uses ecx for highIndex and `cmp eax,ecx`.
-// Tried a rowEnd temporary, reversing lowIndex/highIndex declaration order,
-// and rewriting the final for loop as while; none changed the 72.5% score.
-// The 128-set header sweep also found no improvement. A remaining approach is
-// to find the declaration/scope construct that makes the allocator give lowX
-// its own slot instead of folding it onto next, and makes the second loop's n
-// reuse lowIndex.
+// space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL, 87.3% (1094 original bytes, 1094 ours). Frame now matches the
+// original at 0x7d58 (14 scalar slots 0x10..0x44). The winning change was
+// hoisting the shared edge-walk temporaries `next`, `dv`, `dx`, `du` to
+// function scope ahead of the min/max locals, so lowX stopped folding onto
+// next's slot and the scalar region grew the missing dword. Up from 72.5.
+// Fixed earlier: the second span loop writes its u/v through offsets 4 and 5
+// (out = &spans[0][0], out[1]=x, out[4]=u, out[5]=v, out[7]=z), and the
+// rasterise guard is `span[1]-span[0] > 0`.
+// What still differs (one allocator swap of the low temp region):
+//   original: 0x10 next,dv | 0x14 lowX,n1 | 0x38 nextVertex
+//   ours:     0x10 lowX,n1,nextVertex | 0x14 next | 0x38 dv
+// (n1 = first loop counter). Ours gives lowX 0x10 and pushes next to 0x14;
+// the original gives next/dv 0x10 and leaves 0x14 for lowX/n1. The
+// `test eax,eax` vs `test edx,edx` at the first loop head and the second
+// loop exit using ecx instead of eax for highIndex follow from that swap.
+// Tried and flat at 87.3: 24 declaration-order permutations of the min/max
+// locals, moving those locals inside the outer if, splitting lowX out,
+// reordering next/dv/dx/du, hoisting z, hoisting x/y1, sharing n between the
+// loops. Hoisting dz dropped to 76.2, an explicit nextVertex pointer to 67.4.
+// Next: force lowX's live range to extend past the edge loops (or next's to
+// start before the scan) so the allocator cannot pick 0x10 for lowX.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 
@@ -33,6 +29,7 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
 {
     int defaults[8];
     int spans[800][10];
+    int next, dv, dx, du;
     int lowY, highY, highX, lowX;
     int lowIndex, highIndex;
     if (target && texture && vertices) {
@@ -63,21 +60,21 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                     int index=lowIndex;
                     do {
                         int previous=index-1;
-                        int next=previous;
+                        next=previous;
                         if (next<0) next=3;
                         int* currentVertex=vertices+index*3;
                         int y0=currentVertex[1];
                         y1=vertices[next*3+1];
                         if (y0<y1) {
                             int dy=y1-y0;
-                            int dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
+                            dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
                             x=currentVertex[0]*0x10000+0xffff;
                             int z=currentVertex[2]*0x10000;
                             int u=coords[index*2]*0x10000;
                             int v=coords[index*2+1]*0x10000;
 
-                            int du=(coords[next*2]*0x10000-u)/dy;
-                            int dv=(coords[next*2+1]*0x10000-v)/dy;
+                            du=(coords[next*2]*0x10000-u)/dy;
+                            dv=(coords[next*2+1]*0x10000-v)/dy;
                             int dz=(vertices[next*3+2]*0x10000-z)/dy;
 
                             if(y0<0) {
@@ -111,20 +108,20 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                     int* out=&spans[0][0];
                     int index=lowIndex;
                     do {
-                        int next=(index+1)&3;
+                        next=(index+1)&3;
                         int* currentVertex=vertices+index*3;
                         int y0=currentVertex[1];
                         y1=vertices[next*3+1];
                         if (y0<y1) {
                             int dy=y1-y0;
-                            int dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
+                            dx=((vertices[next*3]-currentVertex[0])*0x10000)/dy;
                             x=currentVertex[0]*0x10000+0xffff;
                             int z=currentVertex[2]*0x10000;
                             int u=coords[index*2]*0x10000;
                             int v=coords[index*2+1]*0x10000;
 
-                            int du=(coords[next*2]*0x10000-u)/dy;
-                            int dv=(coords[next*2+1]*0x10000-v)/dy;
+                            du=(coords[next*2]*0x10000-u)/dy;
+                            dv=(coords[next*2+1]*0x10000-v)/dy;
                             int dz=(vertices[next*3+2]*0x10000-z)/dy;
 
                             if(y0<0) {

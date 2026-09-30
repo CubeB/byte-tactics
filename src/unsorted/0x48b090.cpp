@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol retry (#1616): an int old / byte now variant scored 67.0%, so the prior 93.2% version remains best. The previous notes still describe the register and packet-store differences.
 // Claude Sonnet 5.5 pass (#755, no code change, still 93.2% and 367 bytes):
 // compiler state is not the lever: the declaration-count sweep (0 to 400 in steps of
@@ -53,8 +53,37 @@
 //    version sinks the constant store past the argument pushes, just before
 //    the call. Reordering the field assignments and aggregate initialisation
 //    both leave the store sunk.
+// deepseek-v4.1 pass 2 (#2008, 12 more check.py runs, best stays 93.2 at 367):
+// the clear branch wants `~(mask & 0xff) & old`, which is the only spelling that
+// gives the original's dword mask read and `and eax,0xff; not eax; and eax,edx`,
+// but every `(mask & 0xff)` spelling (in one branch or both) makes MSVC hoist
+// the mask load above the `je` and share it (363 bytes, 80.7 to 82.4), so the
+// original must read the mask twice through a form not CSE-able with itself.
+// Writing lost in place (`old &= ~now`) gives the original's `not al; and cl,al`
+// but moves lost's spill from the dead mask slot [esp+0x14] to old's slot
+// [esp+0xc] (91.5, 367). Declaring lost before gained (75.0), `lost = old`
+// followed by `lost &= ~now` (93.2, unchanged), swapping the OR operands
+// (93.2, identical code), `(old | mask) & 0xff` (93.2, identical) and
+// `(old | mask) % 256` (77.0, 376) do not move hunk 1 either. The packet 0x11
+// store was reordered in source and is still sunk (93.2).
 // The rest of the function (every call, both list walks, the frame, one dword
 // of locals with `int now` in it) matches exactly.
+//
+// deepseek-v4.1 pass (#2008, no code change, still 93.2% at 367 bytes, 22
+// check.py runs this pass and the same 16 diff lines every time). Measured:
+// dropping the outer cast of the clear branch keeps the whole thing at dword
+// width (`mov edx,[esp+0x14]; and edx,0xff; not edx; and eax,edx`, old in eax)
+// and only swaps the two registers (92.3, 367 bytes); an `unsigned char mask`
+// parameter compiles byte for byte like the cast (93.2); writing the mask first
+// in both branches flips nothing (92.3); declaring `now` before `old`, splitting
+// `old`'s declaration from its assignment, and a compound form (`int now = old;
+// now |= ...`, 78.8 and 354 bytes) change nothing. One `(mask & 0xff)` spelling
+// in a single branch makes MSVC hoist the mask load above the `je` and drop the
+// clear branch's `and edx,0xff` (82.4, 363 bytes), so the two branches must not
+// read the mask as the same expression, but with a cast on each side the mask
+// still reaches eax first. The packet `0x11` store is sunk to just before the
+// call for a struct in any field order and for a byte array in any store order,
+// so its placement is a scheduler decision that source order does not reach.
 
 #pragma pack(push, 1)
 

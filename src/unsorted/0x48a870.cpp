@@ -1,4 +1,26 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass (#2008): 88.8%, 262 bytes, one byte over. New best shape for
+// the bit 19 block: `int h; int* p = &h; *p = unit->type->draft * 0xffff;
+// unit->pos.y = (*p + g_game->seaLevel) << 16;`. Taking h's address is the only
+// construct found that stops MSVC folding `(x * 0xffff + y) << 16` into
+// `(y - x) << 16`, and with the fold blocked the block's last three instructions
+// match the original (`add ecx,eax / shl ecx,0x10 / mov [esi+0x6e],ecx`). What
+// still differs, all inside that block: the multiply lands in eax (original: ecx),
+// so `shl eax,0x10 / sub eax,ecx` replaces `shl ecx,0x10 / sub ecx,eax`; the
+// g_game load is hoisted to the top of the block and goes to edx (the original
+// loads it after the multiply into eax, `mov eax,[0x511de8]` being the 5 byte A1
+// form against our 6 byte `mov edx,...`, which is exactly the one byte of size);
+// and the sea byte loads into ecx (original: edx, whose `xor edx,edx` is hoisted
+// above the draft load). The same 262 byte shape and the same eax/ecx/edx rotation
+// came out of every spelling tried this pass, all screened with `check.py --sym`:
+// `(*p + sea)` and `(sea + *p)`, `*p += sea`, a seeded `*p = 0`, `unsigned char`
+// and `unsigned int` locals for the sea, the explicit `*p = draft << 16;
+// *p -= draft`, and a Pos* pointing at unit->pos (88.3%, 265 bytes). Plain locals,
+// struct and union members and int[1] all fold back to 255 bytes at 86.9%. The
+// immediate predecessor of this form, `*p += g_game->seaLevel;`, is byte identical
+// except it accumulates the sum into eax (86.5%). This is the same allocator wall
+// the sibling 0x4589c0 reports at 0x458abf; no source spelling controls which
+// register receives the multiply result.
 // GPT-6.1-sol retry (#1616): still 86.9%; explicit shift/subtract tied the existing best.
 // Claude Sonnet 5.5 pass (#755): still 86.9% and 255 bytes, code unchanged. Re-checked
 // on top of the list below, none of it moved the bit 19 fold: the declaration-count
@@ -133,7 +155,10 @@ void __stdcall FUN_0048a870(Unit_0048a870* unit)
                     unit->pos.y = FUN_00485070(&unit->pos) << 16;
                 }
             } else if (unit->type->on_water) {
-                unit->pos.y = (unit->type->draft * 0xffff + g_game->seaLevel) << 16;
+                int h;
+                int* p = &h;
+                *p = unit->type->draft * 0xffff;
+                unit->pos.y = (*p + g_game->seaLevel) << 16;
             } else {
                 FUN_0048a490(unit);
             }

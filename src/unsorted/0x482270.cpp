@@ -35,6 +35,15 @@
 // GPT-6.1-sol refinement: explicit signed-16 locals also tied at 61.0%; the
 // `>> 5` form fell to 58.1% and shared max-LOD temporaries fell to 60.0%.
 // The best source was retained. No MATCH was reached.
+// deepseek-v4.1-flash retry in #2819: tried swapping the x/y declaration
+// order (each load order), combined and split declarations, renaming both
+// coordinates, declaring them before/after halfW/halfH, a dummy local
+// between them, short coordinates (collapsed to 40%), and every combination
+// of common headers (headers.py, 128 sets). The x slot stays 0x20 and y stays
+// 0x1c in every variant: the mapping is tied to which params->field_4[] index
+// each value comes from, not to name, declaration order or type. Branch-2
+// reorderings (limitY first 76.9%, nx/ny first 72.6%, dst before src 39.0%)
+// all score worse, so the current src-first form was kept. Best stays 79.1%.
 #include <windows.h>
 
 #pragma pack(push, 1)

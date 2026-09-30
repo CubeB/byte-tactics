@@ -37,6 +37,19 @@
 //  deref actually helps the register assignment. (E4) a panel2 local for the
 //  0x44cc91 FUN_0044bfd0/FUN_0049fa90 pair: 81.6%, 1585 bytes. All four scored
 //  below this file, so this file is kept.
+// Fourth session (deepseek-v4.1) found the mechanism behind the scan-loop swap:
+// the register the record offset gets is decided by the loop's *use counters*.
+// Writing the loop in the original's shape (index form g_game->items[i] for the
+// flags load and the name check, the item pointer only inside the block) does
+// put the 0x249 item offset in edi, exactly as the original, and the 0x62
+// record offset then reuses the register freed by the spilled `entries` local;
+// but that same reshape moves the desc gadget from ebx to ebp (the original
+// keeps desc in ebx and the record offset in ebp), and the whole-function
+// register rotation costs more than the loop gains: 81.9% at 1609 bytes for
+// the block-local item pointer, 80.5% at 1606 bytes for the full index form,
+// 77.9% at 1623 bytes for index form only on the flags test, 81.5% when i is
+// declared before n. So the ebp/edi roles are a function-wide coloring tie
+// broken by desc: as long as desc keeps ebx the record offset wins edi.
 // Second session (deepseek-v4.1-flash) confirmed this baseline at 84.6% and
 // tried: (W1) moving "int n = 0;" out of the declaration into a plain
 // "n = 0;" statement (identical 1596 bytes, the merge with xor edi,edi is not

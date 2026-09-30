@@ -1,66 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, gave up: best 21.1% (2160 original bytes, 1839 ours) after 2 scoring
-// runs (20.8 baseline, then <windows.h> plus the surface/fallback split below).
-// Timebox (900 s) hit; this is a structural transcription, not a finished match.
-//
-// Second pass by deepseek-v4.1-flash found the original's early block is
-// `void* surface = holder->surface; if (!surface) surface = obj->fallback;
-//  if (!surface) { if (!(holder->flags10 & 0x80)) FUN_004b0230(...); }
-//  else FUN_004c6d20(...);`
-// which reproduces the otherwise dead `test eax,eax / je` at 0x4a1bee (eax is
-// provably 0 there). It is worth only +0.1%; the match is blocked by the
-// register rotation across the whole function (below), not by this block.
-//
-// Draws one GUI entry (0x15b stride) of a dialog panel. Two mutually exclusive
-// renderers:
-//   - flags bit 0x10 set (and entry text + field_c0 non zero): the text-line
-//     renderer. It picks the entry of type 7 whose tab (+0x28) matches, runs
-//     FUN_004b6af0 over the entry text to break lines, measures each line
-//     through the language glyph list, applies the alignment bits 1/2/4 of
-//     +0x1b, and draws with FUN_004a50e0/FUN_004a51d0.
-//   - otherwise, if flags & 0xa0: the cell-grid renderer. It saves the clip
-//     rect (FUN_004c6ae0), sets the entry rect as clip (FUN_004c6b10),
-//     walks the cell array at +0xc6 (stride 4 when bit 7 of flags is clear,
-//     stride 0x18 when set) and blits each cell bitmap (FUN_004c7580).
-// The struct shapes (Class/Holder/Entry with the 0x15b stride, +0x13 x,
-// +0x15 y, +0x17 w, +0x19 h, +0x1b flags, +0x1f colours, +0x28 tab,
-// +0xb6 count, +0xbc surface for entry 0, +0xba/+0xbc/+0xc0/+0xc2/+0xc6/
-// +0xd6/+0xda for the current entry) come from the matched siblings 0x4a4d70,
-// 0x4a4660, 0x4a4c90 and 0x4a4980; the colour read is the same buggy
-// `me->colours[(int)param_1 + 0x8b2]` as those files.
-//
-// Known remaining differences:
-//  - Frame is 0x88 vs the original 0xbc and the callee-saved rotation is off
-//    by one: we hold param_1 in esi, me in ebp, entries in ebx; the original
-//    holds param_1 in ebp, me in edi and reloads me from [esp+0x50] after
-//    calls. The missing 0x34 bytes are the stacked rects the grid path keeps
-//    at [esp+0x6c]/[esp+0xac] plus the text-path scratch slots [esp+0x58],
-//    [esp+0x5c], [esp+0x60], [esp+0x64], [esp+0x68] which are not modelled
-//    as named locals.
-//  - The four FUN_004be950 corner blits (0x4a22f1..0x4a23ab) and the two
-//    rectangles fed to FUN_004c7580 at 0x4a213c are only approximate.
-//  - The selection-highlight arms in both renderers pass &left as the rect;
-//    the original builds a separate 4-dword rect on the stack.
-//  - The scan loop and the text-line loop follow the disassembly closely and
-//    are the place to start; the first ~40 instructions are 1:1 except for
-//    the ebp/esi swap noted above.
-//
-// Third pass (deepseek-v4.1-flash) refined the blocker. param_1 is NOT held in
-// ebp for the whole function in the original: at 0x4a1ddd it reloads param_1
-// from [esp+0xd0] (the parameter's home slot) for `mov bl,[eax+ebp+0x8b2]`,
-// and at 0x4a22f9 it loads it into ebx from the same slot for the corner-blit
-// colour. So the original SPILLS param_1 and reloads it; it is not a clean
-// ebp/esi rotation, and ebp is reused as entries/q inside the same regions.
-// The real blocker is the stack-slot map: the original's frame reaches 0xbc
-// with text scratch slots at 0x58/0x5c (xx,xw), 0x60 (font byte), 0x64
-// (colour), 0x68 (char), and the grid rects at 0x6c (dst) and 0xac (src),
-// plus the clip rect at 0x9c. Register pressure from those live values is
-// what forces param_1 and me (edi, reloaded from [esp+0x50]) to spill; ours
-// keeps both live in callee-saved registers. Passing `surface` instead of a
-// literal 0 to FUN_004b0230 scores the same 21.1%. The grid renderer's
-// FUN_004c7580 setup is interleaved in the original (0x4a2137..0x4a21c8) and
-// must be reproduced as a single straight store sequence, not as two local
-// Rect structs filled before the call.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: corner decoration coordinates and register allocation still differ.
 #include <windows.h>
 #include <string.h>
 
@@ -74,7 +13,7 @@ struct Entry_004a1b40 {                 // 0x15b bytes
     short w;                            // +0x17
     short h;                            // +0x19
     int flags;                          // +0x1b
-    unsigned char* colours;             // +0x1f
+    int colours;             // +0x1f
     char unknown_23[0x28 - 0x23];
     char tab;                           // +0x28
     char unknown_29[0xb6 - 0x29];
@@ -141,12 +80,15 @@ struct Rect_004a1b40 {
     int bottom;
 };
 
+struct Point_004a1b40 { int x; int y; };
+struct Quad_004a1b40 { Point_004a1b40 points[4]; };
+
 struct Class_004c6ae0 {
     void FUN_004c6ae0(Rect_004a1b40* rect);
 };
 
 struct Class_004c6b10 {
-    void FUN_004c6b10(int left, int top, int right, int bottom);
+    void FUN_004c6b10(Rect_004a1b40 rect);
 };
 
 #pragma pack(pop)
@@ -170,14 +112,19 @@ void __stdcall FUN_004a51d0(void* surface, char* text, int x, int y, int maxw,
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2,
                             unsigned char colour);
 void __stdcall FUN_004bf4d0(void* surface, Rect_004a1b40* rect, int id);
-void __stdcall FUN_004c7580(void* surface, void* bitmap, Rect_004a1b40* dst,
-                            Rect_004a1b40* src);
+void __stdcall FUN_004c7580(void* surface, void* bitmap, Quad_004a1b40* dst,
+                            Quad_004a1b40* src);
 
 // FUNCTION: 0x4a1b40
 void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 {
     int flag = 0;
-    int top = 0;
+    Rect_004a1b40 bounds;
+    int& top = bounds.top;
+    int& left = bounds.left;
+    int& right = bounds.right;
+    int& bottom = bounds.bottom;
+    top = 0;
 
     if (param_1->holder != 0)
         param_1->holder->field_14 = 1;
@@ -186,15 +133,14 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     Entry_004a1b40* me = &entries[param_2];
 
     int h = me->h;
-    int left;
     if (me->type == 0) {
         left = 0;
     } else {
         left = me->x;
         top = me->y;
     }
-    int right = me->w + left - 1;
-    int bottom = me->h + top - 1;
+    right = me->w + left - 1;
+    bottom = me->h + top - 1;
 
     void* surface = param_1->holder->surface;
     if (surface == 0)
@@ -203,7 +149,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
         if (!(param_1->holder->field_10 & 0x80))
             FUN_004b0230(param_1, param_2, 0);
     } else {
-        FUN_004c6d20(entries->bc.surface, surface, (Rect_004a1b40*)&left,
+        FUN_004c6d20(entries->bc.surface, surface, &bounds,
                      &left);
     }
 
@@ -238,16 +184,19 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
             FUN_004c1420(DAT_0051fba4->current);
 
         FUN_004c1440();
-        int font = FUN_004c13f0();
+        unsigned char font = (unsigned char)FUN_004c13f0();
         char* q = FUN_004b6af0(me->text, me->bc.field_bc);
         int y = me->bc.field_bc;
         int line = 0;
+        int xx;
+        int xw;
 
         for (;;) {
             int x1 = left + 2;
             int x2 = x1 + me->w - 2;
             int cy = top + yoff + 2;
             int cy2 = cy + step;
+            Rect_004a1b40 rowRect = {x1, cy, x2, cy2};
 
             int w;
             if (q == 0) {
@@ -266,7 +215,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
                 }
             }
 
-            unsigned int col = (unsigned int)me->colours[(int)param_1 + 0x8b2];
+            unsigned int col = (unsigned int)*((unsigned char*)param_1 + 0x8b2 + me->colours);
             if (me->field_d6 != 0) {
                 if (*((char*)me->field_d6 + y) == 1)
                     flag = 1;
@@ -276,8 +225,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
                 q += 2;
             }
 
-            int xx;
-            int xw;
+            flags = (unsigned int)me->flags;
             if (flags & 1) {
                 xx = x1;
                 xw = x2 - x1 + 1;
@@ -308,20 +256,20 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 
             if (flag) {
                 flag = 0;
-                FUN_004bf4d0(entries->bc.surface, (Rect_004a1b40*)&left,
+                FUN_004bf4d0(entries->bc.surface, &rowRect,
                              -0x13);
-                FUN_004bf4d0(entries->bc.surface, (Rect_004a1b40*)&left,
+                FUN_004bf4d0(entries->bc.surface, &rowRect,
                              -0x14);
-                FUN_004bf4d0(entries->bc.surface, (Rect_004a1b40*)&left,
+                FUN_004bf4d0(entries->bc.surface, &rowRect,
                              -0x15);
-                FUN_004bf4d0(entries->bc.surface, (Rect_004a1b40*)&left,
+                FUN_004bf4d0(entries->bc.surface, &rowRect,
                              -0x16);
-            } else if ((flags & 0x100) == 0 &&
+            } else if ((me->flags & 0x100) == 0 &&
                        me->field_ba == line + me->bc.field_bc &&
                        me->field_c0 != 0) {
                 // both disassembly arms (0x4a1fb8 and 0x4a1fcb) pass the same
                 // rect and id; only the branch on holder+0x20 differs.
-                FUN_004bf4d0(entries->bc.surface, (Rect_004a1b40*)&left, 0x1e);
+                FUN_004bf4d0(entries->bc.surface, &rowRect, 0x1e);
             } else {
                 FUN_004c13a0((int)col, (int)(font & 0xff));
             }
@@ -341,7 +289,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
         void* surf = entries->bc.surface;
         Rect_004a1b40 clip;
         ((Class_004c6ae0*)surf)->FUN_004c6ae0(&clip);
-        ((Class_004c6b10*)surf)->FUN_004c6b10(left, top, right, bottom);
+        ((Class_004c6b10*)surf)->FUN_004c6b10(bounds);
 
         int row = me->bc.field_bc;
         int* colPtr = 0;
@@ -357,25 +305,21 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 
         for (;;) {
             void* cell;
-            if (yoff == 0) {
+            if (bp == 0) {
                 cell = *(void**)(*colPtr + 0x28);
             } else {
                 cell = cellPtr;
                 cellPtr += 0x18;
             }
             if (cell != 0 && *(int*)((char*)cell + 0x10) != 0) {
-                Rect_004a1b40 dst;
-                Rect_004a1b40 src;
-                dst.left = x1;
-                dst.top = yy;
-                dst.right = right;
-                dst.bottom = yEnd - 1;
-                src.left = 0;
-                src.top = 0;
-                src.right = *(unsigned short*)cell - 1;
-                src.bottom = *((unsigned short*)cell + 1) - 1;
+                Quad_004a1b40 dst = {{{x1, yy}, {right, yy},
+                    {right, yEnd - 1}, {x1, yEnd - 1}}};
+                int width = *(unsigned short*)cell - 1;
+                int height = *((unsigned short*)cell + 1) - 1;
+                Quad_004a1b40 src = {{{1, 1}, {width, 1},
+                    {width, height}, {1, height}}};
                 FUN_004c7580(surf, cell, &dst, &src);
-            }
+                Rect_004a1b40 rowRect = {x1, yy, right, yEnd - 1};
             if ((*((unsigned char*)me->field_d6 + row) & 1) == 0) {
                 if ((*((unsigned char*)me->field_d6 + row) & 2) != 0) {
                     unsigned char c = param_1->colour_8be;
@@ -385,20 +329,21 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
                     FUN_004be950(surf, x1 + 2, yy + 2, right - 2, yEnd - 2, c);
                 }
             } else {
-                FUN_004bf4d0(surf, (Rect_004a1b40*)&left, -0x14);
+                FUN_004bf4d0(surf, &rowRect, -0x14);
             }
 
-            if ((flags & 0x100) == 0 && me->field_ba == row + me->bc.field_bc) {
+            }
+            if ((me->flags & 0x100) == 0 && me->field_ba == row) {
                 Rect_004a1b40 hl;
                 hl.left = x1;
                 hl.top = yy;
-                hl.right = 0;
-                hl.bottom = 0;
+                hl.right = x1 + *(unsigned short*)cell - 1;
+                hl.bottom = yy + *((unsigned short*)cell + 1) - 1;
                 FUN_004bf4d0(surf, &hl, 0x14);
             }
 
             row++;
-            if (yoff == 0)
+            if (bp == 0)
                 colPtr++;
             yy += step;
             yEnd += step;
@@ -407,7 +352,6 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
             if (row >= me->field_c0)
                 break;
         }
-        ((Class_004c6b10*)surf)->FUN_004c6b10(clip.left, clip.top, clip.right,
-                                              clip.bottom);
+        ((Class_004c6b10*)surf)->FUN_004c6b10(clip);
     }
 }

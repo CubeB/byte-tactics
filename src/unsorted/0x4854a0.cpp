@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry #1766: GPT-6.1-sol confirmed 84.8% after four worker checks; final batch still did not MATCH. Remaining differences are std::sort stack cleanup and tail-loop registers.
 // Partial: 84.8%. Using the `pool` local (not g_game->pool) for the +0xff and
 // +0x96 writes made the compiler spill pool to [esp+0x14] and reload it into
 // ebp before the free-list loop, which fixed the whole tail block.

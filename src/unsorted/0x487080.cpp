@@ -1,20 +1,13 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 53.4%. SaveRec gained the missing +0xb3 pad byte so rec.flags
-// reads at [esp+0xcc] like the original (was 49.3%).
-// Remaining diffs (all cascade from the first loop's register allocation):
-//   0x4870e8-0x487143  original: n=esi, found=ebp (4-byte), i spilled to
-//                      [esp+0x10]; ours: n=ebp, i=esi, found a byte local.
-//                      bool/int, declaration order, while, for-init, i-first
-//                      variants all stay identical or drop to 45.5% (int found
-//                      moves the id argument from ebx to ebp).
-//   0x487150-0x48718e  player register rotation (orig ecx/edx, ours edx/ecx).
-//   0x48719d           orig lea edx,[esi+0x64]; store [edx+4], ours store [esi+0x68].
-//   0x4872df-0x4873fd  bitfield flag copy rotates al/cl/dl differently.
-//   0x4874b3-0x487524  flag write rotation (orig dh/ah/ch, ours al/dl).
-//   0x487535           orig reads f33 at [esp+0x3f], ours at [esp+0x4b].
-//   0x487605-0x48768c  piece copy anchors: orig edi=&s.f4, eax=[esi+0xc];
-//                      ours edi=&s.f8, eax=[esi+0x10] (same addresses, off anchor).
-//   0x48769d-0x4876b8  epilogue xor eax,eax sits before pop edi in orig.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry #1766: GPT-6.1-sol confirmed the `int player` variant at 59.9% after eight worker checks; final batch did not MATCH.
+// Partial: best score 59.9% after changing the reused player value from
+// unsigned char to int. Direct check.py runs: 8; no MATCH.
+// Remaining differences include the first loop's register allocation
+// (original: n in esi, found in ebp, i spilled to [esp+0x10]; ours: n in ebp,
+// i in esi, found in a byte local), player argument register rotation, repeated
+// flag-copy register allocation, record-field stack offsets, piece-copy anchors,
+// and the epilogue xor/pop order. An int found flag dropped to 45.5%; keeping
+// found as bool and player as int is the best tested version.
 
 extern "C" int sprintf(char* buf, const char* fmt, ...);
 
@@ -206,7 +199,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     if (!found)
         return 0;
 
-    unsigned char player = (rec.flags >> 4) & 3;
+    int player = (rec.flags >> 4) & 3;
     unit = FUN_00485f50(rec.player, FUN_00488b10(rec.name), *(Vec3_00487080*)&rec.f2b, 1, (rec.flags >> 4) & 3, rec.id);
     if (unit == 0)
         return 0;

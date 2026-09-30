@@ -1,5 +1,6 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 62.0% (1936 vs 1964 bytes). Body structure is right; the whole
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry #1766: GPT-6.1-sol confirmed the bool `credited` variant at 63.0% after eight worker invocations; final batch did not MATCH.
+// Partial: 63.0% (1916 vs 1964 bytes). Body structure is right; the whole
 // function differs by callee-saved register allocation, which cascades.
 // Remaining hunks by original address:
 //   0x4866d0  cmd arg goes to ebp, original keeps it in ebx; original loads
@@ -73,7 +74,7 @@ void __stdcall FUN_0047bd70(void* player);
 void __stdcall FUN_004866d0(unsigned char* cmd, int param)
 {
     char* unit;
-    int credited;
+    bool credited;
 
     if (at<unsigned short>(cmd, 1) == 0)
         unit = 0;

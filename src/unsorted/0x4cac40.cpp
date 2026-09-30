@@ -1,8 +1,11 @@
-// Decompiled by space-bunny-free, improved and verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol. Names are provisional.
 // Best score is 86.2% after five check.py runs. The row guard uses
 // rows = height - 1; if (rows >= 0) { ++rows; do ... while (--rows); } to
 // reproduce the original signed dec/test/jl/inc sequence. Remaining codegen
 // differences are documented below; no MATCH was reached.
+// GPT-6.1-sol retry in #1928: 5 additional checks kept 86.2%. Reordering
+// the row/total declarations produced no code change. Remaining byte scratch
+// mapping, row/total spills, outer guard and duplicated cleanup are noted below.
 // NOT MATCHING: 76.6% (632 of 640 bytes). What still differs is listed at the
 // bottom of this file.
 //

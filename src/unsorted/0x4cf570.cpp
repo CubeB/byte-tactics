@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #1928: 6 direct checks kept 80.2%. Delayed
+// initialization, explicit self guard, and reusing bestidx for the zero guard
+// did not improve the allocator rotation described below.
 // Picks a free sound channel from a four entry set of sound objects: a valid
 // one in the set is taken as is, otherwise the one with the highest priority is
 // recycled, or set[0] is cloned when the set has a free slot. The chosen object

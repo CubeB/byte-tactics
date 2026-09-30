@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// #2959 retry by GPT-6.1-sol: six checks reconfirmed 70.2%; strlen/memcpy and
+// other variants did not improve the saved source. No MATCH.
 // Retry #1769: the saved best remains 70.2% after seven worker checks; the final batch did not MATCH. Lower-scoring local-copy, bool and split-condition trials were reverted.
 // deepseek-v4.1-flash (#2405): still 70.2%. The residual is the destruction block's
 // register rotation: the original loads the global into eax, tests it, then copies

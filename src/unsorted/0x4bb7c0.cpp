@@ -1,4 +1,5 @@
-// Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash, GPT-6, and GPT-6.1-sol. Names are provisional.
+// Retry #1764: GPT-6.1-sol confirmed 98.6% after ten worker checker invocations; no MATCH. The compressed-size and table-offset register pairs still differ.
 // Partial: 98.6% (1042 bytes, exact size). Everything matches except two
 // pure register-choice diffs, both involving ebx:
 //   1. the clamped size temp that feeds `blocks` is in esi here, ebx in the

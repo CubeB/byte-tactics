@@ -1,4 +1,55 @@
-// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free,
+// deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+// SPACE-BUNNY-FREE, third pass. Same 79.8 percent (290 of 306 bytes), but the
+// two remaining arms are no longer the same problem: the mask arm is now
+// BYTE-IDENTICAL, and all that is left is the fog arm. The lever was the one
+// the matched sibling 0x407e90 / 0x475470 already use: the +0x7c cell map is a
+// ByteMap {data, size} with the member `unsigned char Get(int x, int y) { return
+// data[size.width * y + x]; }`, NOT a `seen` pointer plus a `width` local.
+// With Get() inlined, the mask arm compiles to exactly the original's nine
+// instructions, including the two late loads (`mov edi,[edx+0x80]`,
+// `mov edx,[edx+0x7c]`) and the unfolded `imul edi,ecx; add edi,esi; cmp byte
+// [edi+edx],0`. That supersedes three rounds of conclusions below: the four
+// mask-arm locals (seen, col, row, w) were never load-bearing, they were a
+// workaround for the same lack of register pressure, and the mask pointer
+// local in the fog arm is the only one of the two that really is.
+//
+// WHY THE FOUR LOCALS WERE A DEAD END: they made the allocator put `w` in a
+// register and the index temp then multiplies in place into it (`imul
+// ebp,ecx`). The original cannot do that: `imul edx,[edx+0x80]` is not
+// encodable, so a width that is still in memory has to be materialised into a
+// register of its own, and MSVC 5 picks the map pointer's dying register. A
+// named local is the one shape that always has a register, so any spelling with
+// a local for the width is dead by construction.
+//
+// WHAT IS LEFT (the fog arm only, 4 instructions):
+//   ours: mov edi,[edi+0x14273] (hoisted); ... imul ebp,ecx; add ebp,ebx;
+//          xor edx,edx; mov dx,word ptr [edi+ebp*2]
+//   orig: ... mov edx,[edx+0x80]; imul edx,ecx; mov ecx,[edi+0x14273];
+//          add edx,ebx; xor edi,edi; mov di,word ptr [ecx+edx*2]; mov edx,edi
+// The original's fog arm is literally the body of the matched 0x408090
+// (width re-read into the dying map pointer register, mask pointer loaded
+// after the multiply into the dead row register, cell materialised into dead
+// g_game's register with the zero-then-16-bit-load pair), and with no locals
+// at all that is exactly what the compiler emits here too, but the frame then
+// rotates: the map pointer is computed before the branch into edx and `this`
+// ends up in edx as well, so the whole pre-branch block (`xor edx,edx`,
+// `mov dl,[edi+0x2a43]`, the 33*index and 0x14b-stride leas) comes out
+// differently. Something live across the fog arm's Contains call is what keeps
+// `this` in eax, and the mask pointer local hoisted into edi at the top of the
+// arm is the only spelling measured that does it (39.4 / 49.5 / 19.2 percent
+// for the five alternatives below, all of which rotate the pre-branch block).
+// MEASURED THIS PASS, all in this file, all byte-compare with check.py --sym:
+//   ByteMap::Get in the mask arm, fog arm col,row,w,m (the current file) 79.8
+//     [294], mask arm exact;
+//   the same with no fog locals at all (the pure 0x408090 body) 26.3 [296];
+//   with only the m local 49.5 [298]; with the m local declared after the
+//     Contains call 19.2 [292]; with no m local (g_game->visibilityMask
+//     indexed directly) 19.2 [292]; with `unsigned int* wp = &...width` in
+//     place of w 49.5 [298]; with the fog compare hand-spelled as
+//     `(unsigned int)col >= w` and a fresh width in the index 39.4 [294].
+//   So the fog arm needs a value live across Contains AND a width read that is
+//   not in a register, and no single declaration gives both.
 // DEEPSEEK-V4.1-FLASH: re-confirmed the 79.8 percent file is the optimum of the
 // two documented levers. Screened four more arm spellings (scratch only, no new
 // file runs): the path arm with no `seen` and no `w` locals (fully folded index)
@@ -51,6 +102,8 @@
 //   original, where before this pass they were swapped.
 //
 // WHAT IS LEFT (7 lines, all in the two index computations)
+//   SUPERSEDED FOR THE MASK ARM by ByteMap::Get (see the top of this file);
+//   what is written below still describes the fog arm.
 //   * mask arm: the cost of the four locals. Ours loads `seen` before the
 //     tests (`mov ebx,[edx+0x7c]`) and copies the width for the compare
 //     (`mov ebp,edi`; `cmp esi,ebp`); the original loads the width again after
@@ -151,10 +204,16 @@ struct MapSize_004745e0 {
     }
 };
 
+struct ByteMap_004745e0 {
+    unsigned char* data;            // +0x7c
+    MapSize_004745e0 size;          // +0x80
+
+    unsigned char Get(int tx, int ty) { return data[size.width * ty + tx]; }
+};
+
 struct Map_004745e0 {               // one entry of g_game->players
     char unknown_0[0x7c];
-    unsigned char* seen;            // +0x7c
-    MapSize_004745e0 size;
+    ByteMap_004745e0 explored;      // +0x7c
     char unknown_88[0x14b - 0x88];
 };
 
@@ -177,11 +236,11 @@ void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
 // The record's position, with the inlined visibility test that reads it. The
 // two arms re-read x, height and y from the record instead of reusing the
 // values the caller just computed, so the position has to be reached through
-// its own sub-struct here, not through the record's fields. The four locals in
-// the mask arm (seen, col, row, w, in that order) and the mask pointer local
-// in the fog arm are what buy edi for g_game, and they are worth 13.5 points
-// between them; see the top of the file. They must be spelled here, not in an
-// inlined helper, and the two arms' local orders are not free.
+// its own sub-struct here, not through the record's fields. The mask arm must
+// go through ByteMap::Get (see ByteMap_004745e0) or its index folds and it
+// stops matching; the mask pointer local `m` in the fog arm is what buys edi
+// for g_game and holds the pre-branch block in place, and the two arms' local
+// orders are not free. See the top of the file for what is still open.
 #pragma pack(push, 1)
 struct Pos_004745e0 {
     short x;                        // +0
@@ -194,20 +253,18 @@ struct Pos_004745e0 {
     {
         Map_004745e0* p = &g_game->players[g_game->playerIndex];
         if ((g_game->flags & 2) == 2) {
-            unsigned char* seen = p->seen;
             int col = x >> 5;
             int row = (y - (height >> 1)) >> 5;
-            unsigned int w = p->size.width;
-            if (p->size.Contains((unsigned int)col, (unsigned int)row) &&
-                seen[w * row + col] != 0)
+            if (p->explored.size.Contains((unsigned int)col, (unsigned int)row) &&
+                p->explored.Get(col, row))
                 return 1;
             return 0;
         }
         int col = x >> 5;
         int row = (y - (height >> 1)) >> 5;
-        unsigned int w = p->size.width;
+        unsigned int w = p->explored.size.width;
         unsigned short* m = g_game->visibilityMask;
-        if (!p->size.Contains((unsigned int)col, (unsigned int)row))
+        if (!p->explored.size.Contains((unsigned int)col, (unsigned int)row))
             return 0;
         return (m[w * row + col] &
                 (1 << g_game->playerIndex)) != 0;

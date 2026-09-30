@@ -1,6 +1,8 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol. Names are provisional.
-// NOT A MATCH: 92.9%, 444 of 444 bytes, every difference is a stack-slot
-// displacement. Still differs (see the end of this comment):
+// Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// NOT A MATCH: 93.5% (deepseek-v4.1), 444 of 444 bytes, every remaining
+// difference is a stack-slot displacement. Still differs (see the end of this
+// comment, and the UPDATED note below for what deepseek-v4.1 changed and why
+// the old 92.9% claims about declaration order were wrong):
 //   * The two map iterators get the wrong two frame slots. The original puts
 //     the lower_bound result in the first frame slot ([esp+0x10]) and reuses
 //     that same slot for the spilled `this`; mine puts the begin() result in
@@ -106,6 +108,38 @@
 // touches. Same std::map idiom as 0x4db000: the block is the map's value_type,
 // a base pointer and a length, and the _Ubound result plus the decremented
 // iterator are compared with the tree's head (End()).
+// UPDATED by deepseek-v4.1: the residual is now EIGHT hunks at 93.5% (was nine at
+// 92.9%). The fix was declaration order after all: with `unsigned int len` and
+// `unsigned int base` declared BEFORE `Pair_004db450 p` and the two iterators
+// declared LAST, the commutative `base + len` in the 2Gb test compiles to the
+// original `lea edx,[eax + esi]` instead of `lea edx,[esi + eax]`, so the
+// earlier note that declaration order is inert is WRONG (that note only ever
+// permuted the four dword locals n/it2/base/p; moving `len` in front of `base`
+// is what flips the SIB base/index choice). What is still wrong is only the
+// home rotation: the original keeps the spilled `this` AND the _Ubound result
+// in the first frame dword (esp0-0x14) and the begin() result in esp0-0x10,
+// leaving esp0-0x0c unused, while this file gives esp0-0x14 to the begin()
+// result, esp0-0x10 to the _Ubound result and esp0-0x0c to the `this` spill.
+// Everything else (444 of 444 bytes) is identical. Tried here and inert:
+// a named `self = this` local instead of the parameter (same 9 hunks), the
+// _Ubound destination declared as `Node_004db450*` (worse, 85.4%, and it also
+// loses the Neq idiom), n and it2 in one declaration statement (92.9%),
+// n/it2 declared after len+base+p in the ORIGINAL order (93.5%, this file).
+// Added by deepseek-v4.1 (all 93.5%, 444 of 444 bytes, the same eight hunks):
+//   * declaration orders len/base/n/it2/p, len/base/n/p/it2, len/base/it2/n/p,
+//     n/it2/len/base/p, p/n/it2/len/base, n/len/base/it2/p and
+//     len/n/it2/base/p: byte-identical objects, so the slot rotation is not
+//     reachable by reordering the declaration block;
+//   * declaring n, it2, p and base at their point of use (a seed pattern from
+//     the board) is inert too, and so is an extra dead 4-byte local;
+//   * the erase and the insert declared as by-value-returning STL shapes
+//     (`it2 = f(x)`): 456 bytes, 87.2%, the hidden return pointer grows the
+//     frame to 0x18.
+// The single root difference left: it2 lands at temp0 here and temp1 in the
+// original (n and the spilled `this` follow it one slot down), so the erase
+// pair temp sits at temp0/temp1 here instead of temp1/temp2. The emitted
+// instruction sequence is otherwise identical, so that one allocation state is
+// not steered by anything the declaration list or the call spelling can reach.
 #include <windows.h>
 
 struct Node_004db450 {
@@ -173,11 +207,11 @@ public:
 // FUNCTION: 0x4db450
 bool Class_004db450::FUN_004db450(unsigned int size)
 {
-    Class_004dd2a0 n;
-    Class_004dd2a0 it2;
+    unsigned int len = 0x10000000;
     unsigned int base;
     Pair_004db450 p;
-    unsigned int len = 0x10000000;
+    Class_004dd2a0 n;
+    Class_004dd2a0 it2;
     // Once the reservation loop is done the parameter is dead, and the original
     // reuses its stack slot for the map iterator.
     Class_004dd2a0& it = *(Class_004dd2a0*)&size;

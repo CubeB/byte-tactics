@@ -4,6 +4,14 @@
 // diff is the 29-byte PROLOGUE (the order of the six field/argument loads) plus
 // the one extra byte that shifts every later jump target.
 //
+// Retry (deepseek-v4.1-flash, issue 2414): re-confirmed 80.0%, no variant
+// improved it. Two suspects found while reading the clips:
+//   * n is clamped to dst->width without subtracting dstCol, so when dstCol > 0
+//     the loop writes up to dstCol bytes past the destination row end (the
+//     vertical clip does account for dstRow).
+//   * the inner loop guards n == 0 rather than n <= 0, so a negative n
+//     (srcCol > src->width) counts down through wraparound instead of stopping.
+//
 // WHAT IS STILL WRONG, precisely: the original's prologue is
 //     movsx edx,[esi+4] / movsx eax,[edi+4] / mov ecx,[esp+0x1c] / sub edx,eax
 //     movsx eax,[edi+6] / add ecx,edx / movsx edx,[esi+6] / sub eax,edx

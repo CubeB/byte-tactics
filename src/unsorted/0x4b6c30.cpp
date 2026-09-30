@@ -1,4 +1,14 @@
-// Decompiled by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, 2026-10): confirmed the neg/shl/sub target block
+// appears for EVERY spelling whose correction is a real multiply tree, inline
+// or materialised: ((-q)<<31)-q, q*0x7fffffff, q*-2147483647, -q*2147483648,
+// (0u-q)<<31, q*0x80000000+q, and a left-operand correction. All of them
+// produce the correct 11-byte block but hoist the seed*16807 lea chain before
+// the division and take ecx for seed / esi for the product (103 bytes, 57.5%).
+// The folded shift form ((q<<31)-q) keeps seed in esi and the chain in eax but
+// distributes the subtraction (99 bytes, 91.1%, retained). A dummy-declaration
+// sweep 0..400 (step 8) on the neg form is flat at 57.5%, so compiler state is
+// not the tie. The mismatch is the single allocation/scheduling tie below.
 // Verified by GPT-6.1-sol for #1705: best retained score 91.1%; not a MATCH.
 // Partial (91.1%): a Park-Miller random number generator (seed * 16807 mod
 // 2^31 - 1, with q = seed / 127773 to avoid overflow), then seed % range.

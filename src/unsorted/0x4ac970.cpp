@@ -1,4 +1,4 @@
-// Decompiled by Opus. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash. Names are provisional.
 // Verified by GPT-6.1-sol for #1705: best retained score 83.1%; not a MATCH.
 // Codex / GPT-6 retest in #13:
 // a rectangle constructor, a drawing helper, coordinate updates and
@@ -14,6 +14,13 @@
 // Both retained 83.1%. A pointer rewrite compile probe failed on a duplicate
 // x local. Six checker invocations total. Remaining diffs are surface and
 // coordinate register assignment, followed by rect stack slots/stores.
+// deepseek-v4.1-flash issue 2930 retry: 96.6%. Two changes to the baseline:
+// x is `unsigned int` (not int), and rect.right/rect.bottom are written as
+// rect.left + 7 / rect.top + 7 instead of repeating the full coordinate
+// expression. That puts surface in edi and x in ebx and matches the original
+// store scheduling. The only remaining diff is the pair of y loads: the
+// original puts gadgets->y in ecx and gadgets[index].y in edx, ours swaps
+// those two scratch registers (the sum still lands in ecx either way).
 // Draws the frame of one cell of the 16x16 "COLS" colour grid gadget
 // (cell index = row * 16 + column, each cell 8 pixels).
 
@@ -55,11 +62,11 @@ void __stdcall FUN_004ac970(Object_004ac970* obj, int cell, int color)
     int index = FUN_0049fdf0(gadgets, "COLS", 6);
     void* surface = gadgets->surface;
     int y = gadgets->y + gadgets[index].y;
-    int x = gadgets[index].x + gadgets->x;
+    unsigned int x = gadgets[index].x + gadgets->x;
     Rect_004ac970 rect;
     rect.left = x + (cell % 16) * 8;
-    rect.right = x + (cell % 16) * 8 + 7;
     rect.top = y + (cell / 16) * 8;
+    rect.right = rect.left + 7;
     rect.bottom = rect.top + 7;
     FUN_004bf8c0(surface, &rect, color);
 }

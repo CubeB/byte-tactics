@@ -1,6 +1,28 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // #1705 retry by Codex / GPT-6.1-sol: check.py reconfirmed 74.9% (265/267 bytes), no MATCH.
 // A success-convention rewrite failed to compile due malformed edit formatting; the saved best was restored.
+//
+// #2930 retry by deepseek-v4.1-flash: reconfirmed 74.9 percent (265/267), no MATCH.
+// This retry exhaustively re-checked that the missing 2 bytes are not reachable
+// from the source text. Scored (check.py --sym, so not counted): 8 spellings of
+// the two destination sums (pixels-first, left-first, parenthesised groupings,
+// pointer arithmetic with int and unsigned char* dst prototypes); pitch, pixels,
+// h, w and dst as locals; a `static int` offset helper inlined in both arms;
+// rect-field access through a `Rect*` local; `screen` declared at function scope;
+// `r = *rect` as copy-init vs assignment; `(r.bottom + 1) - r.top` and
+// `(r.right + 1) - r.left`; `pitch * top` vs `top * pitch`; a single
+// uninitialised `result` with no `status`; and the 0x4bfd60 codegen probes
+// `((int*)&surface)[1]` (same as status) and `((int*)&rect)[0]` (271 bytes,
+// 59.7). Every expression, type and spelling variant produced a byte-identical
+// 265-byte object (md5 9d113e3576254ce02129c141038045d3). Only changing which
+// stack slot the else arm reads moves the object, and neither probe reaches the
+// original. Conclusion: the eax/ecx/edx role split and the
+// `add eax,[screen.pixels]` fold are compiler state from the original
+// translation unit, not a source choice (docs/agent-guide.md, "Operand order
+// that nothing changes" and the vector::insert register-state note). A later
+// attempt should focus on a different spelling of the else-arm return value,
+// which is the only lever found; `((int*)&rect)[0]` proves that spelling can
+// move the whole allocation.
 
 // Translates every pixel of `rect` in `surface` through the byte table at
 // g_game+0xcc (FUN_004cced5), or in the locked screen (FUN_004c5e70 /

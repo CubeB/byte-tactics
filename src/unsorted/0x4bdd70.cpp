@@ -1,124 +1,12 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// deepseek-v4.1 (third run, 15:32-15:41Z): still 97.9%, this file stays the best
-// variant. The three remaining diffs (missing `test dl, dl`, the `lea edx,
-// [eax*4]` shift form, and the trailing `mov eax, [ebp+8]` reload) are one
-// allocator decision; 30 more spellings were scored this run, all 91.2 to 94.9%.
-// New facts, all reproducible:
-//   * The writer 0x4bd160 (its `t = (m >> 2) | (m << 6); k = ~t;` block at
-//     0x4bd1f6) shows the same rotate with the shr copy and the shl in place.
-//     For THIS function the only spelling that yields both the wanted
-//     `test dl, dl` and the original roles comes from that if/else shape:
-//     `m = key & 0xff; if ((unsigned char)key == 0) { key = 0; } else {
-//     q = (m >> 6) | (m << 2); key = (unsigned char)~q; }` (variant b5). It
-//     scores 94.7% at 663 bytes: the test is there but the shifts stay in the
-//     `lea edx, [eax*4]; shr eax, 6` order, and the trailing reload is eax.
-//     The `key = 0;` then-arm costs nothing (self-assignment, elided), and the
-//     empty then (`if (...) ; else`) or `if ((unsigned char)key != 0)` rotate
-//     the roles again (91.7%).
-//   * `hi = m >> 6; lo = m << 2; key = (unsigned char)~(hi | lo);` DOES emit
-//     the original `mov edx, eax; shr edx, 6; shl eax, 2`, but only because the
-//     front end narrows the `|` to a byte: it then writes `or al, dl` and
-//     `not al` (variant c3, 665 bytes, 94.1%). Giving the `|` a 32-bit consumer
-//     (a separate int q, variants d1/d4/d5) makes the SSA folder rebuild the
-//     chain and the order reverts to the lea form, so the two wanted halves
-//     (32-bit `or edx, eax` + shr-copy order) never appear together.
-//   * Aiming at the missing test with boolean spellings (`if (key && w)`,
-//     `if (w && key)`, `(key & 0xff) && w`) adds a second test and rotates the
-//     roles (91.3 to 91.5%). `(m & 0xff) >> 6` and `(m >> 6) & 0xff` keep the
-//     mask in the code (666 to 668 bytes).
-//   * A pure 8-bit rotate is reachable (`key = ~((m >> 6) | (m << 2))` assigned
-//     straight to the byte, variant c5): VC5 narrows the whole chain to
-//     `mov cl, al; shl cl, 2; shr eax, 6; or cl, al; not cl`, 661 bytes, but
-//     base moves to edx and the score is 94.9%. So the byte store wants the
-//     32-bit or, not the narrowed one.
-// Nothing above beat the `if (w)` form already in the file (97.9%, 661 bytes).
-
-// space-bunny-free (second pass): still 97.9%, no scratch variant beat it (5 free
-// --sym scorings). Two new facts for the key block:
-//   - A pure `unsigned char key` (no int copy) drops the byte's slot store AND
-//     the `mov eax,[esp+0x70]; and eax,0xff` reload: MSVC keeps the byte in a
-//     register only (`mov al,[ecx+0xc]; test al,al; mov dl,al; shl dl,2; shr
-//     al,6; or dl,al; not dl; mov [ecx+0xc],al`, 91.7%). So the original really
-//     does have a byte local and a dword local sharing slot 0x70, and the
-//     `and eax,0xff` is the dword one.
-//   - With the condition on the byte (`if (key)`) the `and eax,0xff` stays in
-//     eax but everything else moves one register down: base=edx, key=cl, shift
-//     temp=ecx (the byte condition needs cl, not dl). Splitting the rotate into
-//     two temps (`unsigned int hi = w >> 6; w = w << 2; key = (unsigned
-//     char)~(hi | w);`) does give the wanted `shl eax, 2` and a byte `not` (95.3%)
-//     but keeps the cl/edx roles. Reversing the shift order with the byte
-//     condition is 91.7% and 2 bytes long. The only form with the original's
-//     roles (base=ecx, key=dl, w=eax) is the one with the condition on `w`,
-//     which folds the test into the `and`. Both the wanted `test dl,dl` and the
-//     wanted roles cannot be had at once with any spelling tried.
-// deepseek-v4.1-flash (600s run): confirmed 97.9% and did not improve on it.
-//
-// deepseek-v4.1-flash (second run): the three remaining diffs are ONE allocator
-// decision. Testing the int `w` (this file) keeps the original register roles
-// (base=ecx, key=dl, m=eax) but folds the test into the `and eax,0xff` flags.
-// Testing the byte `key` (in ANY spelling: `if (key)`, `if (key != 0)`,
-// `if ((unsigned char)key)`, `if (key==0) { } else`, do/while(0), ternary,
-// switch, a static inline helper that inlines, a separate copy `k2 = key`) emits
-// the wanted `test al,al` but rotates every role: base=edx, key=al, m=ecx, and
-// costs exactly one byte because `and ecx,0xff` is `81 E1` (6 bytes) where
-// `and eax,0xff` is `25` (5 bytes). The rotation is self-reinforcing: with key
-// in al, m cannot take eax, so it takes ecx, so base falls to edx. ~30 scratch
-// forms tried this run, all 90.4 to 96.2%, none above 97.9%: every declaration
-// order of base/key/m, `m = key` vs `m = key & 0xff` vs `(unsigned char)key`,
-// separate shift temp `t`, reversed shift order `(w << 2) | (w >> 6)` (same
-// 97.9 when the condition stays on w), `unsigned long m`, `int m`, `long`,
-// `k = 0` else forms, ternary, and inline-helper forms. The load/store of the
-// byte plus `mov eax,[esp+0x70]; and eax,0xff` (the dword reload of the byte
-// home, in the dead `name` argument slot) is identical in all of them.
-// deepseek-v4.1-flash (first run): confirmed 97.9% and did not improve on it.
-// Re-tried and ruled out: `if (key)`/`if (key != 0)`/`(int)key` (base moves to edx,
-// key to cl, 91.7), named `hi`/`lo` locals (92 to 95.3), `+`/`^` for `|`, both
-// operand orders, separate output byte locals, ternaries and `key >> 6 | key << 2`
-// (using the byte for the shifts). If the condition is on the byte the allocator
-// puts the shift temp and key in ecx and base in edx; if it is on `w` base stays
-// ecx but the test folds into the `and eax,0xff` flags.
-// Opens a HAPI archive: reads the 20 byte header and checks the "HAPI" magic
-// and version bytes, then checks that the file ends with the Cavedog
-// copyright line (with the year patched to "0000", as the writer 0x4bd160
-// does). It loads the whole header block, decrypts everything past the header
-// with the key byte from the header (which is itself stored rotated and
-// complemented), turns the directory's offsets into pointers and, for every
-// entry flagged 1, runs FUN_004be010 on its name. With mode 0 the file is
-// closed again and only the in-memory copy stays.
-//
-// NOT MATCHED: 97.9%, 661 of 661 bytes. Three differences remain, all in the
-// key derivation (0x4bdf29 to 0x4bdf4c), each a consequence of the same thing:
-//   - the original tests the byte copy (`test dl, dl`), here the test is the
-//     flags of `and eax, 0xff` (the condition must be written on the int
-//     copy `w` to get base in ecx and the key in dl; `if (key)` puts the base
-//     in edx and the key in cl and costs 6 points);
-//   - the original computes `mov edx, eax; shr edx, 6; shl eax, 2; or edx,
-//     eax` (shift right first, into a copy, then shift left in place), here
-//     `lea edx, [eax*4]; shr eax, 6; or edx, eax`;
-//   - the next reload of h->header goes into ecx in the original, eax here.
-// What worked (91.0% to 97.9%): the byte local `key` plus an int copy `w`
-// (that pair produces the original's byte home in the dead `name` slot and
-// the `and eax, 0xff` reload), the rotate done on `w` alone
-// (`w = (w >> 6) | (w << 2); key = ~w;`, which keeps the shifts 32-bit and
-// narrows only the `not`), the condition on `w`, and the decrypt loop's
-// locals declared in a nested block in the order k, i, n, p (that order gives
-// `[esi + eax]` instead of `[eax + esi]`). Tried without effect: helper
-// functions and member functions for the rotate, `?:` forms, `+` or `^` for
-// `|`, `w * 4` for `w << 2`, every declaration order of base, key and w,
-// int and unsigned w, char types for the result.
-// deepseek-v4.1 (10 minute run): the shift order is reachable, the register
-// roles are not. `unsigned int m = w; m >>= 6;` does emit the original's
-// `mov edx, eax; shr edx, 6` (the copy appears because w is still live for the
-// left shift), but VC5 then narrows the whole tree to bytes when the OR feeds
-// the byte directly (`key = ~(m | (w << 2))` gives `shl al, 2; or al, dl;
-// not al; mov dl, al`). Storing the OR to a dword local first, or accumulating
-// it with `m |= w << 2`, removes the narrowing and VC5 goes back to commuting
-// the OR: `lea edx, [eax*4]; shr eax, 6; or edx, eax`. `m += w << 2` keeps the
-// copy and the shift right first but folds the add into `lea edx, [edx +
-// eax*4]` (94.9%). So VC5 only keeps the original's order on the byte path.
-// Every spelling with the condition on the byte (key, key != 0, or via the F2
-// shape) still rotates the roles: base edx, key cl, m ecx, 663 bytes.
-// 0x4bdd70: 97.9%, 661 of 661 bytes.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// MATCH. The key derivation needed a separate byte local `key` for the
+// condition and an unsigned int `w` for the rotate, with the rotate split
+// into `unsigned int hi = w >> 6; w = w << 2; hi = hi | w;` and a *second*
+// byte local `r` fed by `key` to receive `(unsigned char)~hi`. That extra
+// byte copy pins the allocator to the original roles (base=ecx, key=dl,
+// w=eax, hi=edx) and yields the original `test dl, dl` before the branch.
+// With `key = (unsigned char)~hi` the byte lands in al and the whole block
+// rotates (90.6%); with the condition on `w` the test folds into `and`.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -204,8 +92,9 @@ File_004bdd70* __stdcall FUN_004bdd70(const char* name, int mode)
         Header_004bdd70* base = h->header;
         unsigned char key = base->key;
         unsigned int w = key;
-        if (w) { w = (w >> 6) | (w << 2); key = ~w; }
-        base->key = key;
+        unsigned char r = key;
+        if (key) { unsigned int hi = w >> 6; w = w << 2; hi = hi | w; r = (unsigned char)~hi; }
+        base->key = r;
         hdr.key = h->header->key;
         {
         unsigned char k;

@@ -1,4 +1,4 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Walks a directory tree (the search 0x4bc4b0 allocates, the same one 0x4bcb50
 // uses) and, for every plain file, marks the matching entry of every open
 // HAPI archive: the entry named "path + file name" is looked up with
@@ -157,6 +157,17 @@
 // displacement); the tenth (hoisting `strcpy(buf, path)` above the clamp)
 // is 85.2 because it breaks the loop tail. The family stays flat and the
 // guard's target is still a back end copy-insertion choice.
+// A tenth session (deepseek-v4.1-flash, 10 minute timebox) re-ran the baseline
+// and probed the register-allocation angle the 0x4bcb50 solution used: a dead
+// `int r` assigned to the outer `while`'s FUN_004bc640 call (99.2), an `int r`
+// declared at the top with the same assignment, and the handle passed as a
+// `Find*` with an early `f` used in the clamp, the recursion and the condition
+// (99.2). New spellings of the inner loop (`if (i < d->count) do {} while
+// (++i < d->count)`, `for(;i<d->count;++i)`) and a goto-based guard landing on
+// a label before the outer condition (96.1) are also 99.2 or worse, and the
+// clamp as `if (i >= 0) i++; else i = 0;` is 98.0. A fresh loop variable and a
+// goto change the block graph and drop hard. The one wrong byte stays the
+// guard's `jge` displacement; no source shape moves it.
 
 #include <io.h>
 #include <string.h>

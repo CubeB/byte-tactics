@@ -1,22 +1,23 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL: 41.6% (best of 4 free scratch variants, the starting point and this pass).
-// Still differs: the frame is sub esp,0xc against sub esp,0x10 (three spilled locals
-// instead of four: original homes i/entry in [esp+0x10], tick in [esp+0x14], flag in
-// [esp+0x18] and a in [esp+0x1c]; ours homes i/entry, flag and tick, so every local
-// and argument slot is 4 bytes low). This pass fixed two real structural differences:
-// the ring-pop block now declares `RingEntry* ee = 0` outside the `if (r->n > 0)` and
-// assigns len/src after it (the original really does load ee->size/ee->data through
-// the null ee on the r->n <= 0 path, at 0x462fb5 and 0x463523), and the first loop is
-// now a Ring_00462f30** walk (pb = &entries[0].tail.buffer, pb += 0x34, id via
-// ((int*)pb)[-10], tail dwords via ((int*)pb)[1]/[2]), which produced the original
-// `lea esi,[ebx+0x48]` / `cmp [esi-0x28],-1` / `[esi+4]` [esi+8]` shape. The rest is
-// register allocation: the original keeps a long-lived zero in edi (cmp eax,edi,
-// mov [eax+4],edi), tick in ebp and the walk in esi, while ours has the walk in ebp,
-// tick in edi, edi reused as entry and no zero register, so nearly every comparison
-// and store in the loop and in the flag block uses immediates instead of edi.
-// Tried and rejected: a `int zero = 0;` local used for the loop comparisons (41.1%),
-// (void)&a to force `a` into a fourth slot (optimised away, unchanged), and 128 header
-// sets via headers.py (all 41.6%).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL: 43.3%. Still differs: the frame is sub esp,0xc against sub esp,0x10 (three
+// spilled locals instead of four: original homes i/entry in [esp+0x10], tick in
+// [esp+0x14], flag in [esp+0x18] and a in [esp+0x1c]; ours homes i/entry, flag and
+// tick, so every local and argument slot is 4 bytes low). That 4-byte shift is the
+// bulk of the remaining diff, plus register allocation: the original keeps a
+// long-lived zero in edi (cmp eax,edi, mov [eax+4],edi), tick in ebp and the walk in
+// esi, while ours has the walk in ebp, tick in edi and no zero register, so
+// comparisons/stores use immediates instead of edi.
+// Earlier passes fixed: the ring-pop block declares `RingEntry* ee = 0` outside the
+// `if (r->n > 0)` and assigns len/src after it (the original really loads
+// ee->size/ee->data through the null ee on the r->n <= 0 path, 0x462fb5 and
+// 0x463523), and the first loop walks &entries[0].tail.buffer (+0x34, id at [-0x28]).
+// This pass fixed: the prev normalization `prev = a; if (prev >= -1) prev = -2;`
+// (an if-statement, not `(a < -1) ? a : -2`, which let MSVC keep a in a register and
+// gave the -0x1c slot), 42.2 -> 43.3%.
+// Tried without gain (all 43.3% or worse): `int zero = 0` (41.1%), a `p += 13`
+// int-pointer tail walk (40.1%), reordering flag/cur/prev (35.6-41.7%), declaring
+// flag/a at point of use, long/unsigned types, moving flag/entry decls, `(void)a`,
+// the Previous/Next helpers as if-statements, and 128 header sets via headers.py.
 #include <string.h>
 
 struct RingEntry_00462f30 {
@@ -137,9 +138,9 @@ int Class_00462d30::FUN_00462f30(void* packet, void* dest, unsigned int* size)
                 r->n--;
                 h = r->head + 1;
                 r->head = h;
+                ee = (RingEntry_00462f30*)((char *)r + h * 12);
                 if (h >= 0x200)
                     r->head = 0;
-                ee = (RingEntry_00462f30*)((char *)r + h * 12);
             }
             len = ee->size;
             src = ee->data;
@@ -246,7 +247,9 @@ int Class_00462d30::FUN_00462f30(void* packet, void* dest, unsigned int* size)
                 flag = entry->field_c > 0;
                 a = entry->field_8 - 1;
                 cur = *(int*)buffer;
-                prev = (a < -1) ? a : -2;
+                prev = a;
+                if (prev >= -1)
+                    prev = -2;
                 if (prev != cur && prev - cur > -1) {
                     if (entry->field_c <= 0) {
                         if (entry->field_10 < length) {

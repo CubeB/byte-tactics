@@ -1,6 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 67.5% (1015 vs 1040 bytes). Every block is structurally right; the
 // remaining diff is one register-allocation state, not missing logic.
+//
+// deepseek-v4.1-flash retry (10 min): rewrote Pop_00463790 in the positive
+// `if (r->n > 0) { ... } return 0;` form. It still emits `cmp eax, edi / jle`
+// (EDI is the zero register), not the original `test ecx,ecx / jle`, and block 1
+// still uses 0x200 immediates, so the missing loop-preheader `mov edi, 0x200`
+// is not reachable from branch polarity alone. Score unchanged at 67.5%.
 //
 // What moved it from 66.0 to 67.5: the scan-loop prologue must read
 //     size -= 4;  int n = 0;  int remaining = size;  char* p = text + 4;

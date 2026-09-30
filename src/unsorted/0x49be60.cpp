@@ -1,6 +1,27 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
-// (started by deepseek-v4.1-flash, retried by GPT-6, retried by deepseek-v4.1)
+// (started by deepseek-v4.1-flash, retried by GPT-6, retried by deepseek-v4.1,
+//  retried again by deepseek-v4.1-flash)
 //
+// PASS 6 (deepseek-v4.1-flash, best 39.2%, 2284 bytes vs original 2272).
+// One real fix: the kind 1 rect fill is a combined dword copy plus folded add,
+// exactly as pass 3 decoded: `*(int*)&rect[0] = *(int*)&p->field_34;` then
+// `rect[1] += 0x8000;` (gives `mov [esp+0x30],edx` / `add word [esp+0x32],0x8000`)
+// and only rect[2] gets a separate `mov ax,[p+0x38]` / `add ax,0x8000` store.
+// That alone raised 38.0 -> 39.2.
+// Tried and rejected here (all lower than 39.2):
+//   - visible as `if (...) visible = 1; else visible = 0;` on its own: 37.6;
+//     on top of the rect fix: 39.0. The current `visible = 0; if (...) = 1;`
+//     spills visible to the stack slot [esp+0x10] where the original keeps it
+//     in eax (mov eax,1 / xor eax,eax), but the spill shape scores better here,
+//     presumably because it colours the low frame slots like the original.
+//   - row computed before col in the los test: 38.0 / 39.2-neutral (byte count
+//     unchanged), so the col/row register roles (ours ebx=col edx=row, original
+//     edx=col ecx=row) are not moved by declaration order.
+// What still differs (unchanged from pass 5): frame 0x68 vs ours 0x64, every
+// loop-body slot +4 (ours time frame+0x0c vs original +0x08), loop pointers
+// swapped (original p in esi / pos in ebp via `lea ebp,[esi+4]`, ours the
+// reverse), and the loop tail/re-entry uses an extra jmp and slot reloads in
+// ours. These look allocator-only; no declaration-order trick moved them.
 // PASS 5 (deepseek-v4.1, best 38.0%, 2296 bytes vs original 2272). Three real
 // fixes landed on top of the 29.1% handoff:
 //   1. kind 7 jitter is 64-bit: `(int)(((__int64)rand() * 11) / 0x8000) - 5`,
@@ -321,8 +342,8 @@ void __stdcall FUN_0049be60(void* surface)
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
-                    rect[0] = p->field_34;
-                    rect[1] = (short)(p->field_36 + 0x8000);
+                    *(int*)&rect[0] = *(int*)&p->field_34;
+                    rect[1] += 0x8000;
                     rect[2] = (short)(p->field_38 + 0x8000);
                     FUN_0046bae0(surface, &sp, type->field_74, rect);
                     Sprite_0049be60* s = (Sprite_0049be60*)type->field_74;

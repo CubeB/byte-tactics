@@ -1,6 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // WinMain of Total Annihilation.
-// PARTIAL 87.7%, 1345 of 1365 bytes. Full body, control flow and call
+// PARTIAL 87.7%, 1345 of 1365 bytes. Best kept here; scratch probes this
+// session all scored lower (unsigned-char single-struct bits -> 86.0% with
+// byte RMWs in cl/al, local union copy -> 78.5% with the copy spilled to a
+// stack slot and frame 0x9c). To get the original's `or al,/or ah,` byte
+// chain on one ax register (byte ors a full-reg merge will not fold) the two
+// bytes must be coalesced into ax via a word load+store; every source form
+// tried either folded to `or eax,0x3f2` (unsigned short bits) or split the
+// bytes into separate byte registers (unsigned char bits). Not solved here.
+// Full body, control flow and call
 // sequence match. Remaining differences:
 //  - DAT_0051f522 is a bitfield union and DAT_0051f410 is an `int` bitfield
 //    tested in place at bit 11 (both now match their shapes).

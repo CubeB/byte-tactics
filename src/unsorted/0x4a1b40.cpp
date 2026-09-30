@@ -1,5 +1,14 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
-// Partial: corner decoration coordinates and register allocation still differ.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
+// STATUS (deepseek-v4.1-flash, issue 2551): best is 18.6%, not MATCH. What still
+// differs: the prologue register assignment (original puts param_1 in ebp and the
+// zero/top phi in ebx; ours loads param_1 into a volatile register and zeroes edi),
+// and from there the stack slot map and the text-loop register roles (see the long
+// note above the function). Ideas tried this round: declaring the holder local
+// after the if so the source re-reads param_1->holder twice like 0x4a1b53/0x4a1b6c
+// (17.9%, worse than 18.6%, so the two loads do not come from that alone); moving
+// the t/flag/bounds declarations to mimic the original frame slot order
+// (0x10=t/line ... 0x68=char temp, which is exactly reverse declaration order)
+// scored 18.6% unchanged, so slot order is not decided by declaration order alone.
 #include <windows.h>
 #include <string.h>
 

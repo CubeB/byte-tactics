@@ -67,8 +67,24 @@
 // 95.1% notes: the group now matches; the tail after it is still one step off
 // (lea edx/ecx for lstrcpynA, lea eax/edx for the FUN_0049fdf0 buffer, the
 // *0x15b lea chain and the entries reload), and our fdf0 statement also hoists
-// the entries load above the add esp,0xc. The natural order (lstrcpynA after
-// the group) is the 93.5% version in build/scratch/0x447380/zO.cpp.
+// the entries load above the add esp,0xc.
+//
+// STILL DIFFERS (deepseek-v4.1, final state of this attempt): the natural
+// statement order (four body sprintfs, then lstrcpynA, kept as
+// build/scratch/0x447380/nat.cpp) emits the group at eax/ecx/edx/eax and is
+// then uniformly exactly ONE rotation step early for the whole run from the
+// group through the FUN_0049fdf0 chain and the FUN_0049ff10 argument pair
+// (lstrcpynA dst ecx vs edx, player lea edx vs eax, entries eax vs ecx, the
+// chain ecx/edx vs edx/ecx); it realigns inside the inlined strcat block and
+// matches again from 0x447601 to the epilogue. Adding one allocator step
+// before the body group would fix the whole region at once, but the step
+// cannot come from moving lstrcpynA (that also removes one step after the
+// group, so the tail stays at the natural phase, which is what the 95.1
+// variant shows) and it cannot come from a dead expression: p->active,
+// p->type, p->field_146, p->info->field_96, p->name, entries, entries->field_0,
+// g_game->flags_2a44 and an empty `if (p->active) {}` read before the group are
+// all eliminated before register allocation and leave the phase untouched.
+// build/scratch/0x447380/rank.py reproduces check.py's difflib score locally.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

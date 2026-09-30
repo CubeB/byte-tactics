@@ -1,5 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by
 // space-bunny-free. Names are provisional.
+// PARTIAL, 90.6% (refined by GPT-6.1-sol). Changing the first-face setup to
+// `i = arr->firstFace == -1 ? 0 : 1; face += i;` moves the score from 82.0% to
+// 90.6%. The remaining main difference starts at the outer face-loop setup:
+// original branches to increment `face` and stores the counter in the frame;
+// this version forms `face + i` with a shift/add. In the polygon copy loop,
+// original uses edx for indices and ecx for j, while this version uses ecx for
+// indices and edx for j. Tried `face++` under `if (i)`, which scored 82.5%.
 // PARTIAL, 82.0% (fourth pass: unchanged). What still differs is ONE eviction:
 // the original spills the face counter `i` to frame+0x10 (`mov [esp+0x10],edi`
 // at 0x4212bd, reloaded by `mov edi,[esp+0x10]` at 0x421307, stored again at
@@ -152,13 +159,9 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
     }
 
     int j;
+    i = arr->firstFace == -1 ? 0 : 1;
     Face_004211d0* face = arr->faces;
-    if (arr->firstFace != -1) {
-        face++;
-        i = 1;
-    } else {
-        i = 0;
-    }
+    face += i;
     for (; i < arr->faceCount; i++, face++) {
         unsigned short* idx = face->indices;
         for (j = 0; j < face->count; j++) {
@@ -186,5 +189,3 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
         }
     }
 }
-
-

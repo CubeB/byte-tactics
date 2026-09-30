@@ -1,4 +1,38 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1, second pass, best 15.2% (6448 bytes of 8944). Three order fixes paid:
+// (1) the loop flag is not a separate local. The original
+// stores FUN_004534e0()'s result at [esp+0xf0], and case 8 writes 0 to that same slot
+// (0x4553c3: mov dword ptr [esp+0xf0], 0) before or-ing 4 into g_game+0x2a44, then falls
+// into the loop test at 0x455f50 (mov eax,[esp+0xf0]; test eax,eax; jne 0x453d94). So the
+// body is a do-while whose condition is the call result, not "receiving = 1" plus a second
+// call in the while condition; that rewrite removed one local and gave 14.4 -> 14.5.
+// (2) hoisting `char* player = g_game + 0x1b63 + 0x14b * from;` above `recipient` and
+//     `++messages` (the original computes it into edi at 0x453e8e, before the sender test
+//     at 0x453ece) gave 14.5 -> 15.1: statement order, not the frame, moved the register
+//     allocation of the whole loop head.
+// (3) the original has a redundant extra copy of the sender status test (0x45480e:
+//     cmp cl,1/cmp cl,2/cmp cl,3, jne continue, cl already holding player[0x73]); adding
+//     `if (player[0x73] != 1 && != 2 && != 3) continue;` before the recipient check gave
+//     15.1 -> 15.2. So this function's source is full of duplicated conditions; look for
+//     extra copies of a test in the disassembly before assuming one condition.
+// Confirmed original slots (frame 0x51c): packet [esp+0x10], from (byte, stored from bl at
+// 0x455f78) [esp+0x14], sender (dword) [esp+0x1c], messages [esp+0x70] (read back at
+// 0x455f69 for the return), send-loop index [esp+0xb4], FUN_004534e0 result [esp+0xf0],
+// receive-loop index [esp+0x110]. Our build has packet 0x10, sender 0x14, from 0x24,
+// messages 0x48, the FUN_004534e0 result 0x44, send index 0xb8, so the permutation is not
+// declaration order: MSVC5 put sender below from and messages above both. The three missing
+// bodies and the declaration order of the inlined FindPlayer copies are what fix that layout.
+// Also: our zeroing loop uses a register zero (xor esi,esi) where the original uses an
+// immediate 0 store, a register-pressure symptom, not a source difference to chase now.
+// BIGGEST remaining structural gap: the sender != 0 guard is not an if with an empty else.
+// The original's sender != 0 path starts at 0x45473f (the DAT_00512bc0 mode mask), and the
+// sender == 0 path (0x453ed4..0x453f1a) is real code: it checks *recipient != 0, then
+// recipient[0x73] == 1 or 2, then recipient[0x73] == 1 again (the compiler emits a
+// duplicate cmp bl,1), then packet[0] and dispatches a SMALL switch with only cases 3
+// (0x45413f), 5 (0x453f20) and 0x102 (0x454425), everything else continues. Those three
+// bodies look like copies of the big switch's cases 3/5/0x102 that only run for our own
+// looped-back commands. Adding that branch is the next real gain; it is ~30 instructions
+// and shifts everything after it.
 // Partial, 14.3%: player messages and most byte commands are restored. Commands 28, 33
 // and 39 remain missing. Frame, switch layout and register allocation still differ.
 // Re-checked by deepseek-v4.1 at 09:04Z, still 14.3% (6420 of 8944 bytes), no variant
@@ -187,14 +221,17 @@ int FUN_00453d40() {
         *(int*)(g_game + 0x1a28 + off) = 0;
     } while (--n);
     int* packet = *(int**)(g_game + 0x2a38);
-    while (receiving && FUN_004534e0() != 0) {
+    do {
+        receiving = FUN_004534e0();
+        if (!receiving)
+            break;
         int sender = *(int*)(g_game + 0x4c9);
         unsigned char from = FindPlayer_453d40(sender);
         unsigned char to = FindPlayer_453d40(*(int*)(g_game + 0x4cd));
+        char* player = g_game + 0x1b63 + 0x14b * from;
         char* recipient = g_game + 0x1b63 + 0x14b * to;
         ++messages;
         if (sender != 0) {
-            char* player = g_game + 0x1b63 + 0x14b * from;
             unsigned char* bytes = (unsigned char*)packet;
             unsigned char cmd = bytes[0];
             int mode = *(int*)(g_game + 0x391f1);
@@ -212,6 +249,8 @@ int FUN_00453d40() {
                 FUN_00453010(sender, 6);
                 continue;
             }
+            if (player[0x73] != 1 && player[0x73] != 2 && player[0x73] != 3)
+                continue;
             if (!*(int*)recipient ||
                 (recipient[0x73] != 1 && recipient[0x73] != 2 && recipient[0x73] != 3) ||
                 recipient[0x146] == 10)
@@ -592,7 +631,7 @@ int FUN_00453d40() {
                 memcpy(g_game + 0x471, packet + 1, 0x50);
             break;
         }
-    }
+    } while (receiving);
     FUN_00450980();
     FUN_00453c20();
     return messages;

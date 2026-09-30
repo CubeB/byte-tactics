@@ -88,6 +88,17 @@
 // `to` 83.9; from loop as a helper 78.0; (unsigned char) casts on k4 79.3 and
 // 79.9; a byte pi local 83.9; unsigned char k4 82.7; j at function scope
 // 83.9; the previous helper-call form of `to` 83.9.
+// deepseek-v4.1 (frame pass): the helper-call form of `to` really is the
+// original shape (it reproduces xor ebx,ebx / cmp bl,0xa / inc ebx, the fresh
+// `and eax,0xff` address computation and the else branch's reload), but with
+// named `to`/`from` locals it makes k4 need a stack home at esp+0x18, so the
+// frame goes to 0x38 and the score drops to 83.9. Writing the from scan as an
+// inlined helper and passing it straight to the call
+// (FUN_00451bc0(FindFrom_004568c0(), PlayerId_004568c0(k4), packet, 2))
+// removes that home: the frame is the original 0x34 and the field_29d0 walk
+// lands in esi as in the original, at 83.4, and its only remaining difference
+// is that `res` gets ebp instead of edi (the players walk and `to` take the
+// other slot of that pair). Swapping the out/res declarations does not move it.
 #include <stdlib.h>
 #include <algorithm>
 

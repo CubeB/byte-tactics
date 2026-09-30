@@ -1,5 +1,12 @@
 // Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free,
 // deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (#2963 retry): still 79.8% (294 of 306). Fog arm only: the
+// original rematerialises width into edx (`mov edx,[edx+0x80]; imul edx,ecx`) and
+// keeps a separate per-arm fail block; ours folds width into ebp and tail-merges
+// the fail blocks. Restructuring Visible() to an assigned `visible` local is
+// byte-identical; moving/removing the width local and hand-spelling the compare
+// score 39.4-49.5. The two requirements (a value live across Contains to pin
+// `this` to eax, and the width rematerialisation) are mutually exclusive here.
 // DEEPSEEK-V4.1-FLASH (sixth pass, 2026-09-30, retry): 9 scratch variants, no
 // gain, best stays 79.8 [294]. The one genuinely new lever this pass was
 // tools/headers.py run ON the fog-arm-exact variant (the pure 0x408090 body,

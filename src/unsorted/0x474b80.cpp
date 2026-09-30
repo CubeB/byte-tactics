@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (#2963 retry): still 84.6% (309 of 303). Fog arm spills `seen`
+// (`mov ecx,[edx+0x7c]; mov [esp+0x18],ecx` then reload) where the original
+// rematerialises `mov edx,[edx+0x7c]`; mask arm spills `w` the same way; our two
+// fail blocks tail-merge into one `xor edx,edx; jmp`. The original keeps the player
+// pointer in edx because its arms carry no seen/w local pressure, but every
+// local-free spelling rotates the pre-branch (g_game to ebx, map to edi, hoisted
+// pos.x) and scores 24-47.
 //
 // SPACE-BUNNY-FREE, fourth pass. Still 84.6 percent, 309 of 303 bytes, unchanged:
 // no variant beat the version below (all screened with check.py --sym on scratch

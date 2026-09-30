@@ -1,8 +1,36 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, GPT-6 retry: 60.0%, not MATCH, original 1115 bytes, ours 1090.
-// The allocator byte copies and 0x7fc frame are now present. The compiler
-// caches the entries vector in ebx rather than the children vector, changing
-// constructor stores, lookup registers, stack homes and error-path allocation.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6 and space-bunny-free.
+// Names are provisional.
+// Partial: 60.0%, not MATCH, original 1115 bytes, ours 1090.
+// What is already right: the 0x7fc frame, the 27 byte string copy plus the
+// 0x315 byte tail zeroing, all eight vector member stores and their offsets,
+// the 0x4340 calls, the four inlined strcat error paths, the sprintf tail.
+// Remaining hunks, by address:
+//  0x4c3e46/0x4c3e4e: two loads of one uninitialised frame byte (offset 7),
+//    the first before the pushes, the second after; ours loads both late.
+//  0x4c3e53: the original caches &children in ebx for the whole loop, ours
+//    precomputes both lea eax,[ebp+4] and lea ebx,[ebp+0x15] and keeps the
+//    entries vector in ebx, so 0x4c3f4a, 0x4c3f56, 0x4c4014 and 0x4c4058
+//    read the wrong base.
+//  0x4c3e62: the original emits xor eax,eax and interleaves mov ecx,6 with
+//    the two init blocks (second allocator byte before its three pointers);
+//    ours emits xor ecx,ecx, then all six pointers, then the second byte.
+//  0x4c3e96/0x4c3e9a: homes for this and &children sit at frame 0x14/0x28 in
+//    the original and 0x1c/0x28 in ours, which shifts every later slot.
+//  0x4c3ed5: the whitespace skip stores the new pointer one instruction
+//    later than the original (scheduling only).
+//  0x4c3f0f: argument registers for the first 0x4340 call (ecx vs edx).
+//  0x4c3f5d: binary search uses lo=edi, hi=esi, mid=ebp and a cached key.ptr
+//    in ebx, ours uses lo=esi, hi=ebp, mid=edi and reloads the key.
+//  0x4c3fe0: the original puts the 0x9180 temp at frame 0x1c, which is also
+//    the pair's second member, the pair at 0x18 and two more temporaries at
+//    0x20 and 0x24; ours has 0x08, 0x14, 0x18.
+//  0x4c40b8: ours folds *current != '{' into cmp byte ptr [ecx],0x7b and
+//    reorders the whitespace skip store.
+//  0x4c4165 and 0x4c41de: the original shares one unknown_25 = 0 tail at
+//    0x4c4285 reached by ja; ours emits lea eax,[ecx-1]; cmp edi,eax; jbe
+//    inline and never builds the shared block.
+// Tried and rejected: inlining the lookup straight into the body (46.3%),
+// moving char* current = text after the FUN_004d8610 call (58.6%).
 // ctx.py names this Class_004c42a0::FUN_004c3e40, but the original initializes
 // both vector members and returns this, consistent with a node constructor.
 class Class_004c91a0;
@@ -30,7 +58,6 @@ template <class T, class A = allocator<T> > class vector {
     iterator end() { return _Last; }
     T& operator[](size_type i) { return _First[i]; }
     void insert(iterator where, size_type n, const T& value);
-    Class_004c91a0* Lookup(const Class_004c91a0& key);
 };
 
 }
@@ -104,17 +131,17 @@ template <class T> static inline T* LowerBound(T* first, T* last, const Class_00
 }
 
 template <class T, class A>
-inline Class_004c91a0* std::vector<T, A>::Lookup(const Class_004c91a0& key) {
-    T* lo = LowerBound(begin(), end(), key);
+static inline Class_004c91a0* Lookup(std::vector<T, A>& v, const Class_004c91a0& key) {
+    T* lo = LowerBound(v.begin(), v.end(), key);
     Class_004c91a0* dst;
-    if (lo != end() && !KeyDifferent(lo->first.ptr, key.ptr)) {
+    if (lo != v.end() && !KeyDifferent(lo->first.ptr, key.ptr)) {
         dst = &lo->second;
     } else {
         Class_004c9180 empty;
         Class_004c54d0 pair(key, *(Class_004c91a0*)&empty);
-        unsigned int idx = (unsigned int)(lo - begin());
-        insert(lo, 1, *(T*)&pair);
-        dst = &(*this)[idx].second;
+        unsigned int idx = (unsigned int)(lo - v.begin());
+        v.insert(lo, 1, *(T*)&pair);
+        dst = &v[idx].second;
         ((Class_004c9390*)((char*)&pair + 4))->FUN_004c9390();
         ((Class_004c9390*)&pair)->FUN_004c9390();
         ((Class_004c9390*)&empty)->FUN_004c9390();
@@ -218,7 +245,7 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, int* nextblock, char* fil
             ((Class_004c4340*)this)->FUN_004c4340(&value, current, semi);
             current = semi + 1;
 
-            Class_004c91a0* dst = entries.Lookup(key);
+            Class_004c91a0* dst = Lookup(entries, key);
             ((Class_004c93b0*)dst)->FUN_004c93b0(&value);
             ((Class_004c9390*)&value)->FUN_004c9390();
             ((Class_004c9390*)&key)->FUN_004c9390();

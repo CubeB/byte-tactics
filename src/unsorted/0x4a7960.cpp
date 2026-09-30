@@ -29,6 +29,21 @@
 //     slot and drops to 27.5%.
 // Earlier notes: array 196/197 with five slots give frames 0x328/0x334 (47.2%);
 // a Walk view based at entries+0x172 with `int used[196]` scored 44.2%.
+// Tried by deepseek-v4.1 (all below this file, reverted):
+//   * moving the layer/index/entries loads above the zero loop (which is the
+//     order the original disassembly shows) makes MSVC5 hoist the count load
+//     above the `rep stosd`, puts index in ebp instead of ebx and grows the
+//     function to 1440 bytes: 53.6%. The zero-loop-first shape here scores
+//     higher even though the prologue order then differs.
+//   * using the saved `entries` local in the tail (`entries[menu->layer->field_20]`,
+//     which is what the original's `mov edx, [esp+0x18]` shows) keeps entries
+//     live across loop 2 and rotates every slot: 34.3%. The fresh
+//     menu->layer->entries reload used here scores higher.
+// These two say the remaining gap is slot live-range shaping, not statement
+// order: the original keeps entries at [esp+0x18] into the tail AND has the
+// count at [esp+0x24] with up sharing [esp+0x14] with `remaining` (up is born
+// only at loop 2), while every source shape tried here either drops to five
+// slots (frame 0x334) or rotates the set.
 //
 #pragma pack(push, 1)
 

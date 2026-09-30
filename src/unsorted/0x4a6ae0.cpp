@@ -37,6 +37,19 @@
 // inside the loop (vQ 84.2 flat). Earlier 50.0%-era tries (entry/entries
 // form swaps, point-coord locals, deferred entry, header sweep) are
 // recorded in build/scratch/SHARED.md.
+//
+// deepseek-v4.1 round: the original's `mov ax,[ebp+0x138]/test ax,ax`
+// followed later by a bare `test ax,ax` means the first test's block
+// layout is: ax = field_138; if (ax == 0) -> the rect-check that sets
+// field_138 = 1 and DAT_0051fbac = 0xf; else the flags-0x2000 test,
+// whose else path re-tests ax and jumps to the D rect-check. Rewriting
+// the source to match (if (f138 == 0) { rect, set, DAT } else { ...C/D })
+// scores 58.7 with if/else and 81.6 with two sequential ifs, both below
+// the current form, and caching field_138 in a short local (v3) spills
+// it to the stack (frame +4, 62.7). Also: the loop bound really is
+// `movsx eax,[edi+0xb6]; lea ebp,[eax+1]` (2 bytes more than our
+// `movsx ebp,..; inc ebp`), and the original loads point.y and r.top
+// into two registers before comparing in all four rect checks.
 #pragma pack(push, 1)
 
 struct Class_004a6ae0;

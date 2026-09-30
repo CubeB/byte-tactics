@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free, further analyzed by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
 // 99.0% (577 bytes against 577, only two instructions differ, see the end).
 //
 // The original's 0xb4-byte frame, read off the disassembly (offsets are from
@@ -187,6 +187,19 @@
 // RIGHT operand of `ptr + int` as the destination, and only a plain `+` with
 // the pointer on the right (unwritable in C++) reaches `add base, off`.
 // tools/headers.py tried all 128 header sets: none changes it. Left partial.
+//
+// FIFTH PASS (deepseek-v4.1-flash). Re-ran headers.py (still no header set
+// matches) and swept 38 more spellings through direct /Fa listings. The rule
+// is confirmed and now has a positive control: `add dst, off` with the BASE in
+// dst IS reachable, but only when the offset operand is forced to be
+// materialised in a value register first. `(char*)img.buf + (h.nameoff ?
+// h.nameoff : h.nameoff)` emits "mov eax,[off] / mov edx,[buf] / add edx,eax",
+// i.e. the ADD gets a pre-assigned destination and names the base, but the
+// register roles and the load order flip (off before buf, name in ecx) and the
+// extra mov is not in the original. So the residual is still only:
+//     0x18e add edx,ecx / push edx   (original)
+//     0x18e add ecx,edx / push ecx   (ours)
+// Nothing in this pass changed the file; 99.0% is the best.
 #include <string.h>
 #include <stdio.h>
 

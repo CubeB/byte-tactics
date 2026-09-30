@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and
+// space-bunny-free. Names are provisional.
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
 // map (a std::map<unsigned int, Pair_004db000>, the map's value_type being a
 // block's base offset plus its length), erase it, and return the two leftovers
@@ -30,7 +31,24 @@
 //     Tried and inert (all still 69.3%, 614 bytes): a `self = this` copy used
 //     for every access (the copy is coalesced away), a local `n = bytes` with
 //     every use renamed to `n` (also coalesced), and moving `cur`/`k` to
-//     function scope. Declaration order is inert here too.
+//     function scope, and an extra outer `for (;;)` around the whole body (the
+//     grow-and-retry loop shape: the loop-nesting lever that moved `this` into
+//     ebp at 0x40e160 does nothing here, still 69.3% with `mov ebx, ecx`
+//     intact). Declaration order is inert here too.
+//     Measured more precisely (space-bunny-free, second pass): the tie is
+//     between `this` and the parameter `bytes` only, and it is decided at
+//     0x4db1c5, where `this` is the single live value. The original then holds
+//     `this` in ebp and `bytes` in ebx, so `bytes` must have been assigned
+//     FIRST (it took the preferred ebx) and `this` got what was left; in this
+//     file `this` is assigned first and takes ebx, so `bytes` is pushed into
+//     ebp and, at 0x4db2c7 where the original recycles ebp for `len`, ours
+//     loses `bytes` altogether and reloads it from [esp+0x30] in the second
+//     half. Everything else in the diff (the `mov ecx, [esp+0x10]` before the
+//     pushes at 0x4db2c0, the [esp+0x1c] query pair, the k slot) is a
+//     consequence of that one decision, not a separate problem. The next thing
+//     to try is whatever makes MSVC 5 order a parameter ahead of `this` in the
+//     register allocator: a second live value with a longer range than `this`
+//     in the pre-header, or a use of the parameter inside the `size > 0` test.
 //   * 0x4db41a: the original keeps a dead `xor al,al; test al,al; je` and an
 //     unreachable arm that retries with `return FUN_004db1c0(bytes)`. The flag
 //     is a compile-time 0 here, so MSVC folds our `if (ok)` away and the retry

@@ -1,8 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
-// Started by deepseek-v4.1-flash, continued by GPT-6, finished by deepseek-v4.1.
-// Partial: 93.8% (2 real check.py runs this session, all tuning scored free with
-// check.py --sym). Exact 1300-byte size and 0x164-byte frame. Two differences
-// are left, and the first one is the whole ballgame:
+// Started by deepseek-v4.1-flash, continued by GPT-6, finished by deepseek-v4.1,
+// extended by space-bunny-free. Names are provisional.
+// Partial: 93.8% (real check.py runs: 3 in total for this session, every other
+// experiment scored free with check.py --sym). Exact 1300-byte size and 0x164-byte
+// frame. Two differences are left, and the first one is the whole ballgame:
 //
 // 0. THE FALLBACK SCAN AT 0x43a556: the original keeps the raw scan index in
 //    ECX and the filtered (compared) counter in EDX, and copies the result
@@ -35,6 +36,26 @@
 //    killed early and changes nothing (86.2%).
 //    Also worth knowing: naming the end pointer (`Entry* last = ...`) is not
 //    neutral, it moves the end pointer to ECX and the compared counter to ESI.
+//    Still ECX-for-the-compared-counter in every one of these, all scored free
+//    with check.py --sym (86.2%, i.e. the same as the plain form):
+//    `int idx` before `int k` and the other way round, `unsigned int` counters,
+//    `k = k + 1` / `idx = idx + 1`, `p++` before `idx++`, a `for` whose latch is
+//    `p++, idx++` (both orders), a `for` that initialises all three in its
+//    condition, `while (1) { if (p > end) break; ... }`, a third dead
+//    counter incremented in the latch, a `unsigned char f = p->flag14` read
+//    into a local, a local copy `int t = k` as the compared operand, and a
+//    two-armed `if (flag) idx++; else { ... }` written so the latch is shared
+//    by tail merging. Three forms are much WORSE and are known dead ends:
+//    `unsigned int want = desc.kind;` hoisted before the loop (69.5%: the hoisted
+//    copy takes over the register the original keeps for the raw index and the
+//    whole region is reallocated), `if (k++ == desc.kind) break;` (64.5%:
+//    the post-increment sinks k out of a register into EBP), and
+//    `p += 0x19` (95.1% but WRONG, see below).
+//    TRAP, do not chase it: writing `p += 0x19` instead of `p++` scores 95.1%
+//    with 45 differing lines, the best number this function has ever shown, and
+//    it is a BUG: `p += 0x19` advances 0x19 ELEMENTS of a 0x19-byte struct, so
+//    MSVC emits `add eax, 0x271` (25 * 25 bytes per step) and the scan walks
+//    off the end of the table. The plain `p++` is the only correct spelling.
 // 1. PROLOGUE SCHEDULING: the original stores the base-class vtable between
 //    the two `push edi` argument pushes of the link member's constructor
 //    (push edi / mov [ebp],0x4fd2cc / push edi / mov ecx,esi / mov byte
@@ -44,7 +65,13 @@
 //    __inline), listing the base explicitly, calling the link constructor
 //    from the body, `kind = 0` as a body statement, naming link's first
 //    argument, and a base constructor taking an unused int (the argument push
-//    is dropped, so the order is unchanged) all leave it alone.
+//    is dropped, so the order is unchanged) all leave it alone. The scheduler
+//    is what moves that store, so the fix is something that changes the node
+//    order of the prologue, not the order of the init list.
+//    Note the two remaining diffs look independent but may be one allocator
+//    state, as they often are: the vtable store is a node in the same block
+//    that seeds EBX for `file`, and `file` is the range that has to be
+//    reloaded twice inside the scan loop.
 // Preserve the inclusive fallback-table scan: 0x43a58d uses JBE even though
 // the named lookup passes the same end pointer to exclusive lower_bound.
 #include <stdio.h>

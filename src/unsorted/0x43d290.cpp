@@ -1,48 +1,65 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 87.7%, exactly 1074 bytes like the original. Frame is the right
+// PARTIAL: 91.3%, exactly 1074 bytes like the original. Frame is the right
 // 0x48 bytes and the mode!=2 early return matches (ebp/ebx are pushed inside
 // the mode==2 arm, as the original does at 0x43d2c3).
 //
-// The single biggest win this session (83.7 -> 87.7, and 1082 -> 1074 bytes)
-// was writing the steering delta through an inline `Vec3 operator-(const
-// Vec3&)`: `Vec3 delta = p1 - old;`. Written as three `delta.x = p1.x -
-// old.x;`-style assignments the compiler CSEs the just-stored p1.x/p1.z out
-// of the two `p1.x += ...` / `p1.z += ...` statements across the inlined
-// Length() and emits `mov ebp,edx` / `mov edx,ecx` keeps plus an extra spill
-// (1082 bytes). The operator- form reloads both operands, matching the
-// original's `add dword ptr [edi+0x10], eax` and fresh `[esi]` loads. This is
-// the shared upstream cause the brief warns about: one construct fixed the
-// whole tail.
+// Two wins this session, both pure register-allocation levers:
 //
-// Also confirmed: the speed clamp must be `if (mag > f18)` (not `mag < f18`
-// nor `f18 < mag`) to keep the _hypot result in st(0) and give the original
-// `fcom [esp+0x28] / test ah,0x41 / jne`. Vec3::Scale must scale `x * s`
-// (the sibling 0x43d0d0.cpp uses the same order), which makes two of the
-// three inlined _allmul calls push ebp,ebx (scale) before edx,eax (component)
-// as the original does.
+//   1. Declare `day` (the y delta) FIRST among the five deltas:
+//        day = pos.y - a.y; dax = pos.x - a.x; daz = pos.z - a.z; dbx =
+//        p1.x - b.x; dbz = p1.z - b.z;
+//      The original loads pos.y into eax before dax is formed (0x43d48b) and
+//      spells the two subtractions in the order dax-then-day at
+//      0x43d480-0x43d49d. Putting the assignment of `day` first makes the whole
+//      emitted delta block align: 88.3 -> 90.8. The order dax, daz, day is
+//      88.3; the obvious dax, day, daz is 87.7.
 //
-// What still differs (43 instructions, LCS 315/358, all in four clusters):
-//   * the THIRD inlined Scale multiply (p1.z, original 0x43d374) still pushes
-//     edx,eax then ebp,ebx while the original pushes ebp,ebx then edx,eax;
-//     writing Scale as three explicit statements, reversing the operand,
-//     making scale `__int64`, or wrapping the f-scaling in a `ScaleXZ(int)`
-//     method (which DOES fix that call's order) did not move the count.
-//   * the f-scaling multiply (original 0x43d3f5) pushes component-then-f in
-//     our build; the `ScaleXZ` method fixes the first of its two calls but
-//     not the p1.z one.
-//   * the four delta locals get different homes (ours dax 0x14, daz 0x5c,
-//     dbx 0x20, dbz 0x1c; original dax 0x1c, daz 0x24, dbx 0x40, dbz 0x48)
-//     and so every fild/fst operand and branch displacement in the leveling
-//     and k blocks is off by a constant. `h` is a `short` local that spills
-//     and is re-read (matches the original's slot reuse) rather than
-//     re-reading unit->f64.y.
-//   * the tail forwards p1.x into a callee-saved register across Length()
-//     (`mov eax, ebp`) where the original reloads `mov eax, [esi]`.
-// Previously tried and worse or neutral: `(__int64)s * x` in Scale (neutral),
-// int/__int64 f (neutral), swapping the f-multiply operands (neutral),
-// explicit three-statement scaling instead of the Scale method (66%),
-// explicit double casts, integer hypot for the distance, assigning the sqrt
-// result to k first.
+//   2. Give Vec3::Scale explicit temporaries:
+//        int a = x, b = y, c = z;
+//        x = (int)(((__int64)a * s) >> 16);   (then b, then c)
+//      This is what fixes the THIRD inlined _allmul: without it the p1.z
+//      multiply pushes edx,eax then ebp,ebx while the original pushes ebp,ebx
+//      then edx,eax (0x43d374). With the temporaries all three multiplies push
+//      the scale pair first: 90.8 -> 91.3. (Only the p1.z case changes; the
+//      x/y multiplies already matched.)
+//
+// Earlier wins (kept): writing the steering delta through an inline
+// `Vec3 operator-(const Vec3&)`: `Vec3 delta = p1 - old;` (1082 -> 1074 bytes
+// and 83.7 -> 87.7). Written as three `delta.x = p1.x - old.x;`-style
+// assignments the compiler CSEs the just-stored p1.x/p1.z out of the two
+// `p1.x += ...` / `p1.z += ...` statements across the inlined Length() and
+// emits keeps plus an extra spill. The operator- form reloads both operands,
+// matching the original's `add dword ptr [edi+0x10], eax` and fresh `[esi]`
+// loads.
+//
+// Also confirmed: the speed clamp must be `if (mag > f18)` to keep the _hypot
+// result in st(0) and give the original `fcom [esp+0x28] / test ah,0x41 / jne`.
+//
+// What still differs (38 instructions, one cause in each of three places):
+//   * the four delta locals get different stack homes (ours dax 0x14, daz
+//     0x5c, dbx 0x20, dbz 0x1c; original dax 0x1c, daz 0x24, dbx 0x40, dbz
+//     0x48), so every fild/fst operand in the leveling and k blocks is off.
+//     The original keeps fresh slots for dax/daz (E-0x3c/E-0x34) while ours
+//     reuses the dead `dist` (E-0x44) and `maxd`/`g` (E+4) slots, and the
+//     original's f.hi temporary then lands at E-0x38, ours at E-0x34. This is
+//     the one cluster I could not move. Modelling the deltas as Vec3 copies,
+//     as separate ints declared early, with an initialiser, as `unsigned`, or
+//     in every assignment order all left the slots unchanged.
+//   * the f-scaling multiply at 0x43d3f5 (_allmul(p1.x, f)) pushes
+//     component-then-f in our build where the original pushes f-then-component,
+//     for both p1.x and p1.z. A ScaleXZ(__int64) helper, explicit temporaries,
+//     and swapping the operands in source were all neutral.
+//   * the tail forwards p1.x into ebp across the inlined Length() (`mov eax,
+//     ebp`) where the original reloads `mov eax, [esi]`.
+// Previously tried and worse or neutral: moving the dax/day/daz assignments
+// before the distance check (66%, changes code order), `(__int64)s * x` in
+// Scale (neutral), the scale computation as one expression (neutral), int/
+// __int64 f (neutral), swapping the f-multiply operands (neutral), explicit
+// three-statement scaling instead of the Scale method (66%), integer hypot for
+// the distance, assigning the sqrt result to k first, inlining `h` (86.2%),
+// building the deltas as Vec3 subtractions (82.5-87.0%), declaring h before g
+// (89.9%), `lim` hoisted out of its block (neutral), and giving ScaleXZ its
+// own method (89.5%).
 
 #include <math.h>
 
@@ -64,9 +81,10 @@ struct Vec3 {
         return r;
     }
     void Scale(int s) {
-        x = (int)(((__int64)x * s) >> 16);
-        y = (int)(((__int64)y * s) >> 16);
-        z = (int)(((__int64)z * s) >> 16);
+        int a = x, b = y, c = z;
+        x = (int)(((__int64)a * s) >> 16);
+        y = (int)(((__int64)b * s) >> 16);
+        z = (int)(((__int64)c * s) >> 16);
     }
 };
 
@@ -176,8 +194,8 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit) {
         p1.z += r2;
     }
 
-    int dax = unit->pos.x - a.x;
     int day = unit->pos.y - a.y;
+    int dax = unit->pos.x - a.x;
     int daz = unit->pos.z - a.z;
     int dbx = p1.x - b.x;
     int dbz = p1.z - b.z;

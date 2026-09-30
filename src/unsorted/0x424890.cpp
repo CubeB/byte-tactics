@@ -3,36 +3,16 @@
 // occupied map cell ("3D Features", "Normal Features" or "Animating
 // Features") and the three counts. The load counterpart is 0x424c00.
 //
-// Not matched (99.2%): the only diff is the scheduling of one hunk. Below
-// (f = &g_game->features[c->feature] written before the `if (c->feature <
-// 0xfffb)` test) MSVC emits the address arithmetic before `cmp cx,0xfffb`
-// and gives the original's registers (cell pointer esi, feature pointer
-// edi). The original emits the test first, then `jae`, then the address
-// arithmetic. Writing the definition inside the if (test first) gets the
-// instruction order right but flips the whole loop to cell pointer edi /
-// feature pointer esi (91.9%). That flip is decided globally: an
-// initialised-but-dead pointer before the test (y1), a function-scope or
-// loop-scope index local (v_feat2), an fbase local, a spot local, a static
-// inline accessor (y5), char* arithmetic and all loop forms keep the
-// swapped allocation; the address expression written out at each use (y9)
-// recomputes it at 62.9%. Everything else, the stack layout and the
-// name-copy loop included, is byte-identical. The variants are in
-// build/scratch/0x424890/.
-//
-// deepseek-v4.1-flash, second pass: reproduced the rule exactly. It is f's
-// definition point, not its declaration scope, that flips esi/edi. f
-// assigned at the top of the loop body: c=esi, f=edi (99.2%), but the test
-// is emitted after the arithmetic. f assigned anywhere after the test
-// (nested if, early `if (c->feature >= 0xfffb) goto next;`, if with braces,
-// unsigned short feat = c->feature; then f = &features[feat]): test first
-// and c=edi, f=esi (91.9%; the feat local also spills and costs a byte).
-// Declaring c or f at function scope, initialising f to 0 at function
-// scope, and a while (c < end) loop with c++ at the bottom all make no
-// difference: every test-first shape flips. There is no reordering in c2
-// (the order is the source order), so the source has to be test-first
-// while the global register pass has to keep c in esi; that combination was
-// not reached. Variants 01_A, 02_B, 03_C, 04_D, 05_D2, 07_F, 08_H, 09_W in
-// build/scratch/0x424890/ with their .out files.
+// MATCH. Two source details drive the whole loop layout. The feature test
+// `if (c->feature < 0xfffb)` must be written before the
+// `Feature_00424890* f = &g_game->features[c->feature]` definition (MSVC
+// then emits cmp/jae before the address arithmetic), and the cell pointer
+// must be declared before `end` and the counters
+// (`Cell_00424890* c = g_game->cells;` above `end`, with
+// `for (; c < end; c++)`). That declaration order is what keeps the cell
+// pointer in esi and the feature pointer in edi. A loop-scope c with the
+// same test-first body scores 91.9% (esi/edi swapped), test-last scores
+// 99.2% (right registers, cmp after the arithmetic).
 // <windows.h> is needed (83% without it).
 #include <windows.h>
 #include <string.h>
@@ -175,15 +155,16 @@ void __stdcall FUN_00424890(Class_004b4ba0* file)
     file->FUN_004b4ba0("Feature Type Names");
     ((Class_004b4cf0*)file)->FUN_004b4cf0(names.begin(), g_game->featureCount * sizeof(FeatureName_00424890));
 
+    Cell_00424890* c = g_game->cells;
+    Cell_00424890* end = g_game->cells + g_game->width * g_game->height;
     int normalCount = 0;
     int modelCount = 0;
     int animCount = 0;
     int x = 0;
     int y = 0;
-    Cell_00424890* end = g_game->cells + g_game->width * g_game->height;
-    for (Cell_00424890* c = g_game->cells; c < end; c++) {
-        Feature_00424890* f = &g_game->features[c->feature];
+    for (; c < end; c++) {
         if (c->feature < 0xfffb) {
+            Feature_00424890* f = &g_game->features[c->feature];
             if (!(f->flags & 1)) {
                 Model_00424890 rec;
                 Spot_00424890* s = &g_game->spots[c->spot];

@@ -1,5 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 76.8% (1521 vs 1519 bytes). Layout follows the matched 0x41d920:
+// RETRY deepseek-v4.1-flash: 76.8 -> 79.5. The 0x10/0x14/0x18/0x1c stack
+// permutation IS source-reachable after all: use ONE `int outer;` for BOTH the
+// column-max loop counter and the big loop's outer counter (column pass:
+// `for (outer = 0; (unsigned int)outer < (unsigned int)grid2->width; outer++)`)
+// and declare it FIRST, before `unsigned char* cells2`. The counter then lands
+// in [esp+0x10] and cells2 in [esp+0x14], exactly the original; function-scope
+// `int inner; int accum;` after cells2 take 0x18/0x1c. Only residual slot
+// issue: ours gives accum=0x18 and inner=0x1c, the original the reverse;
+// neither declaration order, assignment order, nor a do/while rebuilt from
+// Ghidra flips it. The 2 extra bytes vs the original come from a duplicated
+// `xor esi,esi` around the grid1 allocation ternary merge.
+// PARTIAL: 79.5% (1521 vs 1519 bytes). Layout follows the matched 0x41d920:
 // grid1 at +0x1428f and grid2 at +0x1429f (the +0x10/+0x14 words are the
 // separate g_game fields 0x142af/0x142b3). The function allocates both
 // passability grids, marks their borders, propagates row and column maxima
@@ -26,17 +37,9 @@
 // pressure that had spilled `cellval` to the stack, so the frame is now the
 // original 0x18 and `idiv` uses ebp.
 // What still differs (all confirmed with check.py --sym, 1521 vs 1519 bytes):
-//  - STACK SLOT PERMUTATION, the largest single cause. The original uses
-//    [esp+0x10] = the column-max loop counter, reused as the big loop's outer
-//    counter; [esp+0x14] = cells2, reused as grid1; [esp+0x18] = inner;
-//    [esp+0x1c] = accum, reused as the fill counter; [0x20]/[0x24] = t20/t24.
-//    Ours has cells2/grid1 at [0x10] and accum/outer at [0x14]/[0x1c], i.e.
-//    exactly the 0x10 and 0x14 words swapped. Moving the counter declaration
-//    to the very top of the function moves it to [0x14] (73.2 -> 72.7), so the
-//    frame is NOT laid out in declaration order and not in first-store order
-//    either: the original's [0x10] variable is first stored at 0x482eae, well
-//    AFTER cells2's first store at 0x482cfb, yet gets the lower slot. This is
-//    the one thing I could not move.
+//  - accum vs inner slot: original [0x18] = inner (the big loop counter) and
+//    [0x1c] = accum; ours is accum=[0x18], inner=[0x1c] (see the retry note).
+//    This is the one slot pair I could not move.
 //  - the outer loop carries an extra `jmp` + `xor esi,esi` at its head where
 //    the original zeroes p1 (esi) at the inner loop's latch. Writing an
 //    explicit `p1 = 0;` at the end of the inner body reproduces the latch
@@ -157,8 +160,11 @@ void FUN_00482c20(void)
     grid2->field_c = count2;
 
     grid2->cells = count2 != 0 ? (unsigned char*)new Rec_482c20[count2] : 0;
+    int outer;
     unsigned char* cells2 = grid2->cells;
     unsigned char* cellp = g_game->cells_14287;
+    int inner;
+    int accum;
 
     for (unsigned int lb1 = 0; lb1 < (unsigned int)grid2->width; lb1++)
         ((Rec_482c20*)grid2->cells)[lb1].flags |= 1;
@@ -203,8 +209,8 @@ void FUN_00482c20(void)
         p[1] = prev;
     }
 
-    for (unsigned int i = 0; i < (unsigned int)grid2->width; i++) {
-        unsigned char* p = (unsigned char*)grid2->cells + i * 10;
+    for (outer = 0; (unsigned int)outer < (unsigned int)grid2->width; outer++) {
+        unsigned char* p = (unsigned char*)grid2->cells + outer * 10;
         unsigned char prev = 0;
         for (unsigned int gc = 1; gc < (unsigned int)grid2->height; gc++) {
             unsigned char t = p[grid2->width * 10 + 1];
@@ -235,13 +241,13 @@ void FUN_00482c20(void)
         grid1->cells[hf * 2 + 1] = 0xff;
     }
 
-    for (int outer = 0; outer < g_game->width; outer++) {
+    for (outer = 0; outer < g_game->width; outer++) {
         int t20 = (outer - 1) >> 1;
         int t24 = outer >> 1;
         unsigned char* p1 = 0;
         unsigned char* p2 = 0;
-        int accum = 0;
-        for (int inner = 0; inner < g_game->height; inner++) {
+        accum = 0;
+        for (inner = 0; inner < g_game->height; inner++) {
             int idx = g_game->width * inner + outer;
             int cellval = g_game->cells_14287[idx * 0xd + 4];
             int v = accum - (cellval >> 1);

@@ -12,6 +12,14 @@
 // block (42.1), locals for cell.x/cell.y (39.5), a `game` local for g_game (34.7),
 // countdown loops (34.4), an if/else for the losFlags else arm (36.8, still if-folded
 // to setne/mov 1), and an int w[2] array for wx/wy (45.1). Do not repeat those.
+// Retry finding: the ebp/edi swap (original has cell.y in edi and g_game in ebp, we
+// have cell.y in ebp and g_game in edi) traces to g_game's live range. Keeping g_game
+// live across the FUN_00485010 call through a `game` local (declared after the cell
+// checks, used for width/height/cells) reproduces the faithful 0x2c frame and the two
+// spilled wx/wy slots (1264 bytes) but scores only 37.2, because the allocator then
+// loses the prologue layout the width cache gives. A hybrid (game local plus the width
+// cache) is byte-identical to this 45.6 file: MSVC CSEs the width load. So the width
+// cache is a scoring win even though it is not faithful; the faithful shape is 37.2.
 #pragma pack(push, 1)
 
 struct Point {

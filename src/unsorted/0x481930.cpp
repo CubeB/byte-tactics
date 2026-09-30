@@ -426,3 +426,16 @@ void __stdcall FUN_00481930(Params_00481930* params)
 // is a construct that adds or removes one local from the table, or changes a
 // live range's length, anywhere in the function, and see whether BOTH swaps
 // move together.
+// Retried by deepseek-v4.1-flash. Nothing beat 83.3, and the two root swaps
+// (frame/limitX over 0x24/0x38, bestIdx/j1 over ebx/0x1c/0x20) did not move,
+// so the "add or remove one local" theory is not confirmed by any of these:
+// limitX/limitY assignment instead of initialisation, detached limitX/limitY
+// or frame at function scope, limitX forward-declared before frame, a hoisted
+// `Grid_00481930*` shared by both branches and cast to Frame in the else
+// (79.3), j1 replaced by `j + 1` (79.7), the bestIdx/bestDiff/j1 declaration
+// order (83.0), j1 initialised to 0 and incremented at the top of the body
+// (76.6), `unsigned int bestIdx` (83.3), splitting the first cell index as
+// `int idx = y * halfW; idx += x;` (83.3), swapping nx/ny (71.5), and `int i`
+// for the flag2 line counter (71.6). All of them leave the frame pointer in
+// edx/slot 0x38 and j1 in ebx, so the two swaps really are one allocator
+// decision that no source shape tried so far reaches.

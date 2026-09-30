@@ -59,6 +59,13 @@
 // small scalars at 0x10..0x160 with messages at 0x70, the send-loop index at
 // 0xb4 and the receive-loop index at 0x110. The zeroing loop at 0x453d6c also
 // reloads g_game into edx every iteration and stores immediate 0.
+// deepseek-v4.1 third pass (10 min timebox, base kept at 15.2%, no variant scored
+// higher): tried the zeroing loop as store-first, as a `char* p` induction pointer,
+// with split declarations and with the offset added last; all 15.1-15.2. Tried the
+// inlined FindPlayer scan as an outer-declared for (15.2) and as a while with the
+// increment at the end (11.3, so the for form must stay). Nothing moved the frame
+// (0x318 vs 0x51c) or the first diverging hunk after it, which is still the
+// register-zero/immediate-zero store at 0x453d78.
 #include <string.h>
 
 extern char* g_game;

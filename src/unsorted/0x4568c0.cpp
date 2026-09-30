@@ -113,6 +113,20 @@
 // 86.0) did not help. The byte counter and `res` in edi look mutually
 // exclusive in this source shape, so the next step is a construct that keeps
 // the k4 counter live without demoting res.
+// deepseek-v4.1 (this pass): reordering the tail so the res==0 send loop is
+// the fall-through path (matching the original's `test eax,eax / jne`) lifts
+// the file from 86.0% to 86.5%. The k4 loop's inline-PlayerId shape itself
+// (FUN_00451bc0(FindFrom_004568c0(), PlayerId_004568c0(k4), packet, 2), with
+// FindFrom_004568c0 a from-scan inline helper) reproduces the original's three
+// induction variables (ebx counter, ebp player offset, esi field offset) and
+// the 1310-byte size, but it makes MSVC home the FUN_00456030 result in ebp
+// instead of edi, which recolours the k2 branch and the k3 loop (83.4%).
+// Variants tried this pass (all lower than 86.5): helper-in-args + old tail
+// 83.4, named `to` helper + named from loop 81.9, named `to` + FindFrom in the
+// args 83.4, from-loop before a helper `to` in the args 79.3, manual `to` plus
+// FindFrom in the args 78.0, and the three-induction k4 loop with the new tail
+// 83.4. The remaining work is making the k4 loop keep a byte counter in ebx
+// while `res` stays in edi.
 #include <stdlib.h>
 #include <algorithm>
 
@@ -283,20 +297,20 @@ int FUN_004568c0() {
         }
     }
     unsigned char pkt = 0x15;
-    if (res != 0) {
-        if (out != (int*)0) {
-            for (int k5 = 0; k5 < 10; k5++) {
-                Player_004568c0* q = &g_game->players[k5];
-                if (q->active != 0 && (q->state == 1 || q->state == 2))
-                    FUN_00451df0(PlayerId_004568c0(k5), &pkt, 1);
-            }
+    if (res == 0) {
+        for (int k6 = 0; k6 < 10; k6++) {
+            Player_004568c0* q = &g_game->players[k6];
+            if (q->active != 0 && (q->state == 1 || q->state == 2))
+                FUN_00451df0(PlayerId_004568c0(k6), &pkt, 1);
         }
         return (int)out;
     }
-    for (int k6 = 0; k6 < 10; k6++) {
-        Player_004568c0* q = &g_game->players[k6];
-        if (q->active != 0 && (q->state == 1 || q->state == 2))
-            FUN_00451df0(PlayerId_004568c0(k6), &pkt, 1);
+    if (out != (int*)0) {
+        for (int k5 = 0; k5 < 10; k5++) {
+            Player_004568c0* q = &g_game->players[k5];
+            if (q->active != 0 && (q->state == 1 || q->state == 2))
+                FUN_00451df0(PlayerId_004568c0(k5), &pkt, 1);
+        }
     }
     return (int)out;
 }

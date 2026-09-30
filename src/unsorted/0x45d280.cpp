@@ -1,4 +1,24 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 3 (timebox stop): kept this 91.5% file. Recreated the
+// lost scratch variants and scored all three per-use-cast spellings with
+// DAT_00512f46 declared `int` and the fused flip `f ^ ((f ^ DAT) & 1)`:
+//   varA if-test `((unsigned char)flags.byte ^ (unsigned char)DAT) & 1`, 86.5%;
+//   varB if-test `flags.byte ^ (unsigned char)DAT`, 86.5%;
+//   varC if-test `((unsigned char)(flags.byte ^ DAT)) & 1`, 86.5%.
+// All three are 1330 bytes and give the flip the exact target width shape
+// (byte load `mov bl,[DAT]`, byte xor `mov dl,cl / xor dl,bl`, 32-bit
+// `and edx,1 / xor edx,ecx`, word store: 31 bytes like the target), but the
+// whole UNDO block rotates registers (game in eax not edi, f in ecx not eax,
+// D in ebx not edx, temp in edx not ecx) and the rotation leaks downstream
+// (apply block loads g_game into edx and pushes before fild; tail chain gets
+// `lea eax,[eax+eax*2]` shapes). The per-use cast does hold BOTH width shapes
+// (if-test xor stays byte width, flip keeps the 32-bit mask), so the widening
+// does not leak across the tests; the failure is purely register coloring of
+// the block, which moves as a unit with the DAT type. Still differing vs
+// original: UNDO flip widths/registers (7 bytes too many here), RESTORE/apply
+// block reload registers (edx/eax vs our ecx/edx) and push-before-fild order,
+// tail `lea eax,[edi*8]` vs our `mov eax,edi / shl eax,3`, TRACKMODE al/cl
+// swap. Ideas tried and exhausted across passes are listed below.
 // Partial, 91.5%, 1339 vs 1333 bytes. Best UNDO flag-update shape so far:
 // `unsigned short f = game->flags.word; int b = (unsigned char)f ^ DAT_00512f46;
 // game->flags.word = f ^ (b & 1);` with the `game = g_game;` reload kept in the

@@ -23,6 +23,15 @@
 // changed the score. The 128-set header sweep also found no improvement. The
 // remaining approach is to find the declaration/scope construct that makes
 // the allocator give {next,dv} slot 0x10 and {lowX,n1} slot 0x14.
+// Second pass (deepseek-v4.1-flash), all scored from the /Fa listing:
+// every declaration-order permutation of the min/max group and of the
+// temp group is inert (identical slot table); swapping the y and x
+// compare order moves lowY/highY but not lowX/next; hoisting out, n,
+// previous or currentVertex to function scope reshuffles many slots but
+// never to the original set; switching the first loop to
+// next=index-1; previous=next; is inert. So the slot table follows the
+// allocator's live-range order, not declaration order, and the crossing
+// needs a change to a lifetime, not to a declaration.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

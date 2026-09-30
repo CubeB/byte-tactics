@@ -1,33 +1,34 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
 //
-// PARTIAL. Air-movement counterpart of the ground mover 0x43cd20. The object
-// is the same 0x2f-byte behaviour holder as 0x43dc00/0x43de30; its obj pointer
-// sits at +0 and the path object's slot 4 (vtable +0x10) fills two Vec3 and a
-// short heading.
+// PARTIAL, 58.7% (was 50.7% before the Vec3::Scale member below). Air-movement
+// counterpart of the ground mover 0x43cd20. The object is the same 0x2f-byte
+// behaviour holder as 0x43dc00/0x43de30; its obj pointer sits at +0 and the
+// path object's slot 4 (vtable +0x10) fills two Vec3 and a short heading.
 //
-// Semantics recovered from the disassembly, score 50.7%. What still differs
-// (all three are one problem seen three ways: the original keeps more values
-// live in fixed registers):
-//  - The original holds this in edi and &p1 in esi, and it has both in the
-//    early-return branch (field_20/field_24 through edi, p1 through esi). Ours
-//    keeps this in esi and materialises &p1 in edi only inside the taken
-//    branch, so edi is pushed after the mode test instead of at entry. A local
-//    Vec3* pointing at p1 (whole function or early block only) compiles away
-//    and does not move it.
-//  - Frame: original sub esp,0x48 (FPO 18 dwords), ours 0x4c; every local
-//    displacement is 4 too high. The original also spills maxd and g to the
-//    incoming argument slot at [esp+0x5c] (E+4) and the high half of the f
-//    quotient to [esp+0x30], which we place inside the frame.
+// The whole first scaling, (int)(((__int64)p1.x * scale) >> 16) on x, y and z,
+// is the inlined Vec3::Scale(int) member from the matched sibling 0x43d0d0.
+// Writing it as three separate statements scores 50.7 and is 11 bytes too big;
+// the member makes the compiler store each field immediately and lands at the
+// exact original size (1074). Adding the member moved `this` into edi as well.
+//
+// What still differs (all register/x87 allocation, no semantics):
+//  - Frame: original sub esp,0x48, ours 0x4c; every local displacement is 4
+//    too high. The original also has &p1 live in esi (lea esi,[edi+8] in both
+//    the early-return and taken branches) while ours addresses p1 through edi.
+//    A local Vec3* / Vec3& pointing at p1 was tried (whole function and taken
+//    block only): it compiles to a real pointer and costs ~20 bytes (47.1%).
+//  - The early-return branch keeps three zero registers (eax, ecx, edx) and
+//    writes p1 through esi; ours zeroes all five dwords from eax through edi.
 //  - x87: the original keeps f18, k, the scaled (p1-b) pair, the (pos-a)
 //    deltas and the two hypot results live across the _hypot/_ftol calls in a
 //    specific stack order, visible as the fxch st(n) chain at 0x43d5a0..0x43d5fa
-//    and the rescale at 0x43d618..0x43d62e. Writing the velocity as the two
-//    plain expressions below produces the right values but a different fxch
-//    schedule.
+//    and the rescale at 0x43d618..0x43d62e. The two plain velocity expressions
+//    below produce the right value but a different float-stack schedule.
 //
-// The class layout was fixed this round: obj is at +0 (not after the
-// bitfields) and the path object's slot is vtable +0x10, both taken directly
-// from the disassembly.
+// Declaration order of old/a/b/heading was tried in four orders: identical
+// output. The second scaling (x and z by the 64-bit f) already has the
+// original's _allmul operand order except the redundant stack spill of the
+// scaled x.
 
 #include <math.h>
 
@@ -37,6 +38,12 @@ struct Vec3 {
     int x, y, z;
     Vec3() {}
     Vec3(int a, int b, int c) : x(a), y(b), z(c) {}
+    void Scale(int s)
+    {
+        x = (int)(((__int64)x * s) >> 16);
+        y = (int)(((__int64)y * s) >> 16);
+        z = (int)(((__int64)z * s) >> 16);
+    }
 };
 
 struct Short3 {
@@ -132,9 +139,7 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit)
     float f18 = (float)type->field_19e * eps;
     int q = (int)(((__int64)type->field_19e << 16) / type->field_192);
     int scale = 0x10000 - q;
-    p1.x = (int)(((__int64)p1.x * scale) >> 16);
-    p1.y = (int)(((__int64)p1.y * scale) >> 16);
-    p1.z = (int)(((__int64)p1.z * scale) >> 16);
+    p1.Scale(scale);
 
     float dist = (float)_hypot(p1.x, p1.z) * eps;
     float maxd = (float)type->field_19a * eps;
@@ -206,3 +211,5 @@ void Class_0043d210::FUN_0043d290(Unit_0043d290* unit)
     delta.z = p1.z - old.z;
     FUN_0043d0d0(unit, &delta);
 }
+
+

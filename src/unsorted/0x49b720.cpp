@@ -1,50 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-//
-// PARTIAL 29.3%. 0x49b720 (1853 bytes) is the per-projectile update pass. The
-// control flow and every field offset used are believed right; the remaining
-// diff is dominated by register allocation and one extra stack slot.
-//
-// What this pass fixed (17.3 -> 26.8 -> 28.8 -> 29.3):
-//   - 0x49b833: the projectile clone was a hand-written byte copy loop; it is a
-//     plain struct assignment `*q = *p;`, which MSVC emits as
-//     rep movsd / movsw / movsb (184 bytes of the original).
-//   - 0x49b720: declaring idx/offset/count/type/s as function-scope locals in
-//     that order gets MSVC to materialise the 0 constant in edi (original does
-//     `xor edi,edi` and uses edi as zero throughout). Before this it picked
-//     ebx/esi and rotated every callee-saved register; the score went up.
-//
-// Remaining diff hunks by original address (nothing structural left that I can
-// see, it is all operand/register selection):
-//   - 0x49b720: frame is 0x18 vs the original 0x14 (one extra dword; count and
-//     offset land on swapped slots: ours count +0x14 / offset +0x18, original
-//     offset +0x14 / count +0x18, so s also drifts +0x24 vs +0x20). Also the
-//     original loads g_game and reads +0x141f3 into eax before `sub esp,0x14`;
-//     ours does `sub esp` first and keeps the loop count in ecx.
-//   - 0x49b744: we emit an extra `jmp` to the loop body (loop peeling) that the
-//     original does not have.
-//   - 0x49b754-0x49b7a6: type lives in ebx (ours) vs esi (original), so the
-//     `ec >= 5 || (counter & 1)` block and every operand using type swap.
-//   - 0x49b7a6-0x49b7e6: the 3-entry array scan; original keeps the index in dl
-//     and zero-extends with `and eax,0xff`; ours keeps it in a byte local at a
-//     shifted offset. Same logic, different registers.
-//   - 0x49b9ae onward (the counter==0 live-projectile branch): pure register
-//     rotation following from the type/zero choices; the branch tree, the
-//     0x49b3e0/0x49b520/0x499eb0 sequence and the select/copy at
-//     0x49b95a/0x49bc8b are believed correct.
-//
-// Layout facts gathered so far:
-//   Projectile stride 0x6b; +0x0 type, +0x4 pos(Vec3), +0x10 start(Vec3),
-//   +0x1c velocity(Vec3), +0x34 short, +0x36 heading short, +0x38 pitch short,
-//   +0x3a int, +0x3e int, +0x42 int age, +0x46 int altitude, +0x4a int,
-//   +0x4e ptr, +0x52 int* array (stride 0x1c entries with type at +0x10),
-//   +0x56 ptr, +0x60 short counter, +0x62 short, +0x64 short, +0x69 flags word
-//   (bit1 = dead/killed, bits 4/5 turret-select related).
-//   Type: +0x68 int, +0x70 int, +0x7c ptr, +0xe6/e.c/e.e/f0/f2/f4/fa/fc/fe
-//   shorts, +0x111 flags dword.
-//   Projectile array at g_game+0x141f7 (base) with count at +0x141f3, capped
-//   at 300. Other globals: +0x14263 int, +0x1427f byte seaLevel,
-//   +0x142f7 selected projectile ptr, +0x1433f..+0x1434b saved selection,
-//   +0x38a47 game time, +0x37ecc Vec3 drift, +0x391e9 net ptr (+0xd48).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
+// PARTIAL 29.8%. Register allocation, extra stack slot and branch layout differ.
+// Restored unsigned lifetime/speed comparisons and projectile flags/definition reloads.
 
 #pragma pack(push, 1)
 
@@ -89,7 +45,7 @@ struct Proj_0049b720 {
     int field_3a;                      // +0x3a
     int field_3e;                      // +0x3e
     int field_42;                      // +0x42
-    int field_46;                      // +0x46
+    unsigned int field_46;                      // +0x46
     int field_4a;                      // +0x4a
     void* field_4e;                    // +0x4e
     int* field_52;                     // +0x52
@@ -138,7 +94,7 @@ void FUN_0049b720()
 
         if (p->counter != 0) {
             unsigned short ec = type->field_ec;
-            if (*(int*)(g_game + 0x38a47) < (int)(p->field_42 + (unsigned int)ec))
+            if (*(int*)(g_game + 0x38a47) < (p->field_42 + (unsigned int)ec))
                 goto Next;
 
             if (ec >= 5 || (p->counter & 1)) {
@@ -206,9 +162,9 @@ void FUN_0049b720()
                     if (!(fl & 0x10000)
                         || s < (short)(unsigned char)*(g_game + 0x1427f)) {
                         int e = p->field_3a;
-                        if (e < type->field_68) {
+                        if ((unsigned int)e < (unsigned int)type->field_68) {
                             p->field_3a = e + type->field_70;
-                            if (p->field_3a > type->field_68)
+                            if ((unsigned int)p->field_3a > (unsigned int)type->field_68)
                                 p->field_3a = type->field_68;
                         }
                         int flag = 0;
@@ -240,12 +196,12 @@ void FUN_0049b720()
                     p->vel.y = p->vel.y - *(int*)(g_game + 0x14263);
                     if ((type->flags >> 0x18) & 1) {
                         if ((p->flags69 & 0x30) == 0) {
-                            p->field_46 = *(int*)(g_game + 0x38a47) + type->field_fc;
+                            p->field_46 = *(int*)(g_game + 0x38a47) + p->type->field_fc;
                             unsigned int e;
-                            e = type->flags >> 0x18;
+                            e = p->flags69;
                             p->flags69 = (unsigned short)(((((e & 0xfff0) + 0x10)
                                                             ^ (e & 0xff)) & 0x30) ^ e);
-                            if (!(type->flags & 0x2000)) {
+                            if (!(p->type->flags & 0x2000)) {
                                 p->field_56 = 0;
                                 p->field_4e = 0;
                             }
@@ -335,7 +291,7 @@ void FUN_0049b720()
                 *(int*)(g_game + 0x1433f) = sel->pos.x;
                 *(int*)(g_game + 0x14343) = sel->pos.y;
                 *(int*)(g_game + 0x14347) = sel->pos.z;
-                *(short*)(g_game + 0x1434b) = *(short*)((char*)type + 0xfe);
+                *(short*)(g_game + 0x1434b) = p->type->field_fe;
                 *(Proj_0049b720**)(g_game + 0x142f7) = 0;
             }
             p->flags69 = p->flags69 | 2;
@@ -355,7 +311,7 @@ void FUN_0049b720()
                 if (s > sl && *(short*)((char*)p + 0xa) <= sl) {
                     void* v = FUN_004815a0(&p->pos);
                     if (v != 0
-                        && *(unsigned char*)((char*)v + 5) < sl
+                        && *(unsigned char*)((char*)v + 5) < *(unsigned char*)(g_game + 0x1427f)
                         && *(int*)(*(int*)(g_game + 0x391e9) + 0xd48) == 0)
                         FUN_00420a30(&p->pos, type->field_7c, 0, 1);
                 }

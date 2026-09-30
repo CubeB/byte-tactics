@@ -1,5 +1,19 @@
 // Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and
-// deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free.
+// deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free,
+// finished by deepseek-v4.1-flash.
+// Retry by deepseek-v4.1-flash (#2917): re-confirmed 81.2%, 924 of 936 bytes,
+// exactly two check.py runs spent on the saved best. A faithful source-first
+// _Ucopy signature (the real MSVC 5 <vector> order, as in the 99.6% 0x476210
+// file) scores 67.1%, 944 bytes, so the destination-first spelling here stays.
+// Four inlined-loop reshapes (increment order, while forms, a local copy
+// destination) all reproduce the identical 924-byte output at 81.2%. The
+// remaining difference is the register family in the reallocating arm: the
+// original keeps the new buffer _S in edx and the capacity _N in the dead _M
+// argument slot, this build keeps _S in ecx and _N in the [esp+0x14] local,
+// and the tail copy is the destination-first form without the original's
+// 12-byte affine source recomputation. Nothing in the source reaches those
+// choices; it is the same translation-unit compiler state wall the guide and
+// the 0x4758c0/0x475ef0/0x476210 notes record for this template family.
 // Names are provisional. PARTIAL 81.2%, 924 of 936 bytes. This is MSVC 5's
 // GPT-6.1-sol refinement: ten checks kept 81.2%; two compile failures. Moving
 // local lifetimes and changing capacity checks scored 80.9% and 55.8%, so the

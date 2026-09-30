@@ -1,4 +1,20 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (2026-10): still 83.8% (798 bytes, the original's
+// size). Re-confirmed the wall is the one register-allocation decision, not a
+// source form. Tested (all scored with check.py on scratch copies):
+//   v2 separate _Ufill counter local, v3 named _Ucopy end local, v5 named
+//   _Ucopy start local -> all collapse to 790-792 bytes / 40-45 percent, so
+//   the helper bodies must stay byte-for-byte as the MSVC 5 header writes
+//   them; v4/v6-v14 (cached _Pe/_L/_Cp copies, _P + 0, &_P[0], uninitialised
+//   _S/_Q declarations, while-form _Ufill, local copies of _P used in both
+//   _Ucopy calls) all stay byte-identical to the current build at 83.8%.
+//   msvc5-rtm gives 799 bytes / 80.1%, so the sp3 clone is the right toolchain.
+// The original keeps _P in edi across the prefix loop and the _Ufill loop and
+// spills the _Ufill counter to [esp+0x20]; ours keeps the counter in edi and
+// reloads _P from [esp+0x20]. This matches the guide's row "Out-of-line
+// vector::insert copies ... differ from each other in the original in the order
+// of their pointer sums and in register choice, and source, type and flag
+// changes don't reach most of those spots. Treat them as compiler state."
 // deepseek-v4.1-flash: replaced the <vector> include with a hand-written clone
 // of the vector class template (the trick that matched 0x476210). The clone
 // compiles to exactly 798 bytes, the original's size, and lifts this function

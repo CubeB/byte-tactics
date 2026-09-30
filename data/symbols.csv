@@ -1385,6 +1385,7 @@ address,name
 0x46e5c0,Class_0046e5c0::FUN_0046e5c0
 0x46e5e0,Class_0046e5e0::~Class_0046e5e0
 0x46e610,Class_0046e610::~Class_0046e610
+0x46e640,Vec_0046d6c0::insert
 0x46e870,UElem_0046faf0::?$vector::_Destroy
 0x46e880,Class_0046e880::FUN_0046e880
 0x46e890,IURect_0046e160::IU?$pair::?$_Tree::erase

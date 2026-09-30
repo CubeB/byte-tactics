@@ -1,4 +1,7 @@
-// Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, sixth pass by space-bunny-free. Names are provisional.
+// GPT-6.1-sol refinement: five checks kept 99.6%. Three twin-inspired source
+// start expressions scored 57.2%, 61.2% and 66.4%; the exact best was restored.
+// Only the SIB operand order at 0x4252d1 remains different. No MATCH.
 // Sonnet 5.5 retry (#679), no change to the score (99.6%). What it added:
 // the operand order of that sum is fixed by the order in which the inlined
 // copy's variables are numbered, which the source controls through the
@@ -115,6 +118,35 @@
 // cannot produce (most likely the state of the game's own big translation
 // unit, as 0x4732e0.cpp demonstrated for its function). 99.6% is the ceiling
 // for source-reachable shapes here.
+// Sixth pass (space-bunny-free, 10 min budget, 0 check.py runs, 10 scratch
+// scores): still 99.6%, the same single SIB byte, and the 544-byte regime
+// turned out to be a plateau rather than a slope: nine further spellings of
+// the third copy and its helpers compile to a byte-for-byte IDENTICAL 544-byte
+// block, induction variable first in the lea every time, so the whole
+// interesting question is whether anything can leave the plateau at all.
+// Measured, all 99.6% with the same one byte: _Ucopy's parameters all plain
+// `iterator` instead of `const_iterator`; `static` on _Ucopy; only _F as a
+// plain `iterator` and _L left const; _Ucopy's body as a `while` with two
+// separate increments instead of the for's comma list; the body spelling as
+// explicit placement new `::new ((void *)_P) _Ty(*_F)` instead of
+// `allocator.construct(_P, *_F)` (so it is the CALL to construct, not its
+// body, that the loop reads); the third copy's destination hoisted into
+// `iterator _D = _Q + _M;`; the third copy's source taken as a fresh
+// `const_iterator _Ps = _P;`; and `<stdexcept>` in front of `<memory>`, which
+// the fifth pass recorded as a way to reach the 545-byte shape but which on
+// this file now stays in the 544-byte regime, so that flip is a hash of the
+// whole file like the TU-state probe found, not an include order.
+// Two spellings do not even compile, which is worth recording so nobody
+// retries them: binding the source element to a local reference inside the
+// loop (`const _Ty& _V = *_F;` then `construct(_P, _V)`) is rejected with
+// C2065 at the use, and an accessor that returns the allocator by reference
+// (`_Al().construct(...)`) fails too. The reference-to-a-local lever the
+// 0x4a7290 note relies on has no handle here: the third copy's source start
+// is already a callee-saved register (ebx) and the induction variable already
+// ecx, both exactly as the original, so there is no register split left to
+// influence the base/index pick, and with both operands unscaled registers
+// the pick is decided by the order the loop optimiser built the affine source
+// expression, which no source shape here reaches.
 #include <memory>
 #include <xutility>
 

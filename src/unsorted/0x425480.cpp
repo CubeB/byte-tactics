@@ -1,4 +1,7 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol refinement: seven checks kept the 81.1% PR best. The tested loop,
+// increment, cached-size, and parameter-order variants scored 70.2% or lower.
+// The remaining register choice in the growth branch is described below.
 // std::vector<Class_004c2ea0*>::insert(iterator, size_type, const T&), MSVC
 // 5's <vector> written out (as 0x425210.cpp does) with _Ucopy, _Ufill, fill
 // and copy_backward inlined. 0x4222e0 is the only caller (the push_back).

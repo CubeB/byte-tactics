@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Retry #1748: GPT-6.1-sol confirmed 67.5% (382/386) after eight checks; no MATCH. The best source still differs in register allocation and stack-slot placement.
 // Claude Sonnet 5.5 pass (#746): no change beat 67.5% (382 bytes). Compiler state
 // is not the lever: the declaration-count sweep (0 to 400) is 67.5% only for N = 0
 // and 8 and worse (43.3 to 58.1%) everywhere else, and no header set beats 67.5%

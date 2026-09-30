@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Retry #1748: GPT-6.1-sol confirmed 91.2% (169/171); no MATCH. The second count-address LEA and loop-back value forwarding still differ.
 // Claude Sonnet 5.5 pass (#746): nothing beat 91.2% and 169 bytes. Compiler state is
 // ruled out (declaration-count sweep 0 to 400 in steps of 8 and all 128 header sets
 // of headers.py: 91.2% everywhere). About 40 more shapes were scored:

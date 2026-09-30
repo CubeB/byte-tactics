@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, continued by GPT-6.1-sol. Names are provisional.
+// Retry #1748: GPT-6.1-sol confirmed 86.2% (219/224) after four checks; no MATCH. The saved source still differs in the count-pointer register plan and final zero store.
 // Claude Sonnet 5.5 pass (#746): nothing beat 86.2% (219 bytes). Compiler state is
 // ruled out: the declaration-count sweep (0 to 400 in steps of 8) is 86.2% for every N
 // and all 128 header sets of headers.py give 86.2% at best. What the register plan of

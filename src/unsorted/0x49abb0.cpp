@@ -1,4 +1,5 @@
 // Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. Names are provisional.
+// Retry #1736: GPT-6.1-sol verified the saved source at 93.7% (576/568); no MATCH. The line-of-fire block still reloads unit2 after copying its position.
 // Partial, 93.7% (576 of 568 bytes; up from 90.9%). Logic, offsets and every branch match.
 // Two things moved it: `(height >> 1) + whole` (not `whole + (height >> 1)`) gives the
 // original's `add edx, ecx` operand order in the half-height test, and the two includes

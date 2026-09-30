@@ -1,21 +1,28 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
 // finished by space-bunny-free. Names are provisional.
-// 80.4%, not a MATCH (was 77.7%). Now byte exact: the whole local frame (buf must
-// be sized 0x139 so the compiler reserves the original's 0x1b4 frame and the
-// parameter reads at [esp+0x1d0]), the settings copy at SETBUF = buf+0x119, and
-// the record walk reading field_10 straight from p[0]-4 (keeping a `rec` local
-// alive made MSVC park it in ebp and cost 2%).
+// 80.5%, not a MATCH (was 80.4%). Exact so far: the whole local frame (buf sized
+// 0x139 reserves the original's 0x1b4 frame and the parameter reads at
+// [esp+0x1d0]), the settings copy at SETBUF = buf+0x119, the record walk reading
+// field_10 straight from p[0]-4 (keeping a `rec` local alive made MSVC park it in
+// ebp and cost 2%), and the strlwr block (the FUN_004c5740 result must be read
+// into a local before the strncpy, else MSVC pushes the 0x80 first).
 // Still differs:
 //   * the provider-guid chain: the original keeps a dead-looking `count = memcmp`
 //     store at the end of the FIRST chain (sbb edx,edx / sbb edx,-1 / mov
 //     [esp+0x10],edx) and falls through to the cd98 compare, while MSVC deletes
-//     that store here and jumps straight to the second chain.
+//     that store here. Writing the chain as an if/else-if or as
+//     `A != 0 && B != 0` is worse: MSVC proves both arms dead and drops the 98
+//     and b8 compares entirely (5 compares instead of 8, 1796 bytes).
 //   * count is stored to [esp+0x10] before the FUN_004c9e50 call here, while the
-//     original stores ebx only in the count>0 branch just before the loop.
+//     original stores ebx only in the count>0 branch just before the loop
+//     (a separate loop local `int n = count` does not change that).
 //   * the zeroing loop loads g_game->data[i] as [edx+eax+0x2a47] against the
 //     original's [eax+edx+0x2a47] (same registers, swapped ModRM base/index).
-//   * the "Updating/Connecting" and strlwr/FUN_004c5740 text blocks are laid out
-//     in a different order, so their local [esp+X] offsets drift by 4.
+//   * the p[4..11] sprintf block re-loads the settings copy instead of keeping
+//     field_0 in ebp (the original's struct copy uses ebp for word 0 and the
+//     value stays live to `and ebp,0xffff`), and (flags >> 15) & 1 folds to
+//     `test ah,0x80` where the original keeps `mov edx,eax / shr edx,0xf /
+//     test dl,1`.
 #include <string.h>
 #include <stdio.h>
 
@@ -98,6 +105,7 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget) {
     char names[0x20];
     char buf[0x139];
     const char* msg;
+    char* lang;
 #define temp (buf)
 #define SETBUF ((Settings_00441460*)(buf + 0x119))
 
@@ -168,7 +176,8 @@ shown:
             if (FUN_0049f580() != 0) {
                 if (_strcmpi(FUN_0049f580(), "english") != 0) {
                     _strlwr(temp);
-                    strncpy(temp, FUN_004c5740(temp), 0x80);
+                    lang = FUN_004c5740(temp);
+                    strncpy(temp, lang, 0x80);
                     temp[0x7f] = 0;
                 }
             }

@@ -1,6 +1,6 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, improved by GPT-6.1-sol. Names are provisional.
 //
-// PARTIAL, best 35.4% (2668 of 2700 bytes). Not MATCH.
+// PARTIAL, best 35.8% (2668 of 2700 bytes). Not MATCH. Six check.py runs, including the saved baseline. Increasing buf from 0x80 to 0x88 fixes the total frame size and adds 0.4 points; 0x84, 0x8c, and 0x90 scored 35.4%.
 //
 // Draws one entry of a GUI menu list: selects the language/glyph set from the
 // first type-7 entry whose tab index equals this entry's +0x28, draws the
@@ -205,7 +205,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
     char* text;
     int pass;
     int saved;
-    char buf[0x80];
+    char buf[0x88];
     int i;
     int y;
 

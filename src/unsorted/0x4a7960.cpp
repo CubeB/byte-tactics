@@ -1,6 +1,9 @@
-// Decompiled by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
 //
 // STATUS: not MATCH. Best 49.5%, our object is 1440 bytes against 1404.
+// GPT-6.1-sol retry: five checker runs observed; retaining 49.5%. Keeping the layer
+// alias throughout the tail scored 36.1%, and merging the initial direction switch
+// before computing bound scored 46.9%. The existing note below records earlier variants.
 // Everything below the top matches structurally; the diff is one allocator
 // state and the stack frame it produces.
 //

@@ -1,6 +1,19 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash,
+// finished by space-bunny-free. Names are provisional.
 //
-// 75.3 %. Only the loop's bottom block differs.
+// 75.3 %. Only the loop's bottom block differs, and one register in case 6
+// follows from it. Everything else is byte-identical.
+//
+// Second pass (space-bunny-free) added: headers.py swept all 128 header sets
+// again, best is still 75.3 % (<windows.h> and <string.h> tie). The diff was
+// read instruction by instruction: OUR build emits a private copy of the latch
+// at the end of every switch case, and those copies are then tail-merged with
+// each other (some copies lose the `add ebp,0x15b` because they jump into the
+// copy that has it). So ours is 880 bytes against the original's 732, and the
+// +148 is exactly that duplication. The `xor ebx,ebx` in the latch is not a
+// source statement in either build: ebx is MSVC's chosen zero register, and it
+// is re-materialised at the loop join point because liveness is imprecise
+// across the switch's indirect jump.
 //
 // The original is a top-tested loop with ONE shared latch at 0x4aed26:
 //   0x4aeb10  mov [esp+0x1c], esi     ; i = 0

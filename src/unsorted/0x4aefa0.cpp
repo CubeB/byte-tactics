@@ -1,4 +1,33 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash,
+// finished by space-bunny-free. Names are provisional.
+//
+// space-bunny-free, third pass, still 72.2 % (882 of 895 bytes), headers.py
+// tried all 128 sets (best 72.2 %, <string.h> already as good as any). What
+// still differs, stated as the one register-priority decision that causes all
+// of it, in the order the allocator meets it:
+//   original: ptr1 is born in ebx at 0x4aefe5 and STAYS in ebx for the rest
+//   of its first life: it is only read at 0x4af016 (`sub ebp, ebx`, ptr2 -
+//   ptr1 into ebp), then again at 0x4af07f and 0x4af14a (`sub eax, ebx`,
+//   inside the two bubble-loop setups) before ebx is finally reused for the
+//   stride at 0x4af081/0x4af150. So the original spends 4 callee-saved
+//   registers on ptr1 (ebx), the first loop's cursor (edi), the ptr2-ptr1
+//   stride (ebp) and i (esi), and `count` keeps its parameter home, which is
+//   why the latch compare reloads it from 0x44 (0x4af043).
+//   ours: ptr1 is born in ebx AND edi, the preheader `sub ebx, edi` makes ebx
+//   the stride and kills the ebx copy, so ptr1 dies as a register at 0x4af016
+//   and only its slot (0x1c) survives; `count` then gets the ebp that the
+//   original needed for the stride, which is why our preheader is one
+//   instruction longer and both bubble setups reload ptr1 from its slot.
+// The cause of the tie is the register taken at 0x4aeffa: the original loads
+// `count` into edx, uses it for `test edx, edx` and lets it die (it reloads
+// it inside the loop), we load it into ebp and it lives to the latch. So the
+// lever is still "make count's live range in the first loop end at the guard
+// test", not the frame slots and not the declaration order (both exhausted
+// twice). Not tried here (no time): making the guard a `do`/early-continue,
+// using `count` as a `while (i != count)` with the body's `n = i` inside a
+// separate block, and giving the first loop its own `char** p1`/`p2` cursors
+// while keeping the `ptr1[i]`/`ptr2[i]` indexing in the body so ptr1 keeps a
+// register copy (that is the shape the original's [ebx+edi] store implies).
 //
 // deepseek-v4.1-flash, second pass, 72.2 % (unchanged). Confirmed the
 // permutation is allocator-intrinsic: reordering the nine declarations,

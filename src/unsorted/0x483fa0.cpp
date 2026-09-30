@@ -1,15 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, retried by deepseek-v4.1-flash. Names are provisional.
-// Best 53.1% (1037 bytes against 1046). Frame now matches at 0x48 once the
-// Bitmap sprite struct gets its 4-byte tail field (unknown_14), which was the
-// missing dword. What still differs: the original spills px to [esp+0x14] and
-// RELOADS it after computing py, while MSVC keeps px in eax and consumes it for
-// rx immediately; the slot layout is therefore shifted (ours px at 0x18, w2 at
-// 0x2c). Forcing the px,py,rx,ry source order makes the schedule worse (51.5),
-// so the residual is register pressure from a live value we do not model, not
-// the statement order. Call census matches: 4x FUN_004b8150 + 1x FUN_004c6e70.
-// The fourth saved-register push occurs after the viewport-origin stores.
-// Both origins are initialized; preserve X across the second edge loop.
-// Edge loops guard nonpositive counts and game state reloads after drawing.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Best 54.8% (1048 bytes against 1046). Remaining diffs are compiler-driven local slots:
+// px/py land 4 bytes above the original (w2 takes 0x14, px 0x18) and p2/rem1/rem2 land
+// lower (p2 0x24, rem1 0x2c, rem2 0x30 against 0x2c/0x30/0x34), so the prologue emits
+// px and py in parallel while the original finishes px (store included) before starting py.
+// Tried: computing px/py before rx/ry, do-while loops with counters in memory, struct 0x18.
+// Second pass re-derived the exact frame: the original uses w1 0x10, px 0x14, w2 0x18,
+// ay 0x1c, ax 0x20, py 0x24, stride 0x28, p2 0x2c, rem1 0x30, rem2 0x34, n 0x38,
+// stride2 0x3c; ours always lands w1 0x10, w2 0x14, px 0x18, ay 0x1c, ax 0x20,
+// p2 0x24, py 0x28, rem1 0x2c, rem2 0x30, stride 0x34. Nine declaration orders of the
+// top-level ints (bare and with initializers) all produce that same map, so the slot
+// order here is not declaration-driven; making p2 function-scope only pushed w2/px to
+// 0x18/0x1c and p2 to 0x14 (50.3%). The px-before-py division schedule of the original
+// (store px before starting py, reload px for rx) also did not reproduce.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -35,7 +37,6 @@ struct Game_00483fa0 {
     int viewW;                         // +0x37e37
     int viewH;                         // +0x37e3b
 };
-#pragma pack(pop)
 
 struct Bitmap_00483fa0 {
     unsigned short width;              // +0x0
@@ -48,8 +49,9 @@ struct Bitmap_00483fa0 {
     unsigned char kind;                // +0xb
     int unknown_c;                     // +0xc
     unsigned char* data;               // +0x10
-    int unknown_14;
+    int unknown_14;                    // +0x14
 };
+#pragma pack(pop)
 
 extern Game_00483fa0* g_game;
 
@@ -60,20 +62,17 @@ void __stdcall FUN_004c6e70(void* dst, int x, int y, unsigned char* pix);
 void __stdcall FUN_00483fa0(void* surface)
 {
     int ax = g_game->viewX;
-    int scrollX = g_game->scrollX;
-    int rowBase = g_game->viewY;
-    int scrollY = g_game->scrollY;
-    int viewW = g_game->viewW;
-    int viewH = g_game->viewH;
-
-    int px = scrollX / 32;
-    int rx = scrollX - px * 32;
-    int py = scrollY / 32;
-    int ry = scrollY - py * 32;
-    int w1 = (viewW + rx) / 32;
-    int w2 = (viewH + ry) / 32;
-    int rem1 = viewW - w1 * 32 + rx;
-    int rem2 = viewH - w2 * 32 + ry;
+    int sx = g_game->scrollX;
+    int ay = g_game->viewY;
+    int sy = g_game->scrollY;
+    int px = sx / 32;
+    int py = sy / 32;
+    int rx = sx - px * 32;
+    int ry = sy - py * 32;
+    int w1 = (g_game->viewW + rx) / 32;
+    int w2 = (g_game->viewH + ry) / 32;
+    int rem1 = g_game->viewW - w1 * 32 + rx;
+    int rem2 = g_game->viewH - w2 * 32 + ry;
     if (rem1 != 0)
         w1++;
     if (rem2 != 0)
@@ -88,11 +87,10 @@ void __stdcall FUN_00483fa0(void* surface)
     bmp.flag9 = 0;
     bmp.count = 0;
 
-
     if (rx != 0 || rem1 != 0) {
         unsigned short* p1 = g_game->mapValues + py * stride + px;
         unsigned short* p2 = p1 + w1 - 1;
-        int y = rowBase;
+        int y = ay;
         int n = w2;
         if (n > 0) do {
             if (rx != 0) {
@@ -106,7 +104,7 @@ void __stdcall FUN_00483fa0(void* surface)
             p1 += stride;
             p2 += stride;
             y += 32;
-        } while (--n != 0);
+        } while (--n);
     }
 
     if (ry != 0 || rem2 != 0) {
@@ -117,16 +115,16 @@ void __stdcall FUN_00483fa0(void* surface)
         if (n > 0) do {
             if (ry != 0) {
                 bmp.data = g_game->iconSet->data + *p1 * 0x400;
-                FUN_004b8150(surface, &bmp, x - rx, rowBase - ry);
+                FUN_004b8150(surface, &bmp, x - rx, ay - ry);
             }
             if (rem2 != 0) {
                 bmp.data = g_game->iconSet->data + *p2 * 0x400;
-                FUN_004b8150(surface, &bmp, x - rx, w2 * 32 + rowBase - ry - 32);
+                FUN_004b8150(surface, &bmp, x - rx, w2 * 32 + ay - ry - 32);
             }
             p1++;
             p2++;
             x += 32;
-        } while (--n != 0);
+        } while (--n);
     }
 
     if (rx != 0) {
@@ -136,7 +134,7 @@ void __stdcall FUN_00483fa0(void* surface)
     }
     if (ry != 0) {
         w2--;
-        rowBase += 32 - ry;
+        ay += 32 - ry;
         py++;
     }
     if (rem1 != 0)
@@ -145,19 +143,21 @@ void __stdcall FUN_00483fa0(void* surface)
         w2--;
 
     if (w2 > 0) {
-        unsigned short* p = g_game->mapValues + py * (stride & 0xffff) + px;
-        int y = rowBase;
+        int offset = (py * (stride & 0xffff) + px) * 2;
+        int stride2 = (stride & 0xffff) * 2;
+        int y = ay;
         int n = w2;
         do {
-            unsigned short* q = p;
+            unsigned short* p = (unsigned short*)((char*)g_game->mapValues + offset);
             int x = ax;
-            for (int m = w1; m > 0; m--) {
-                FUN_004c6e70(surface, x, y, g_game->iconSet->data + *q * 0x400);
+            int m = w1;
+            if (m > 0) do {
+                FUN_004c6e70(surface, x, y, g_game->iconSet->data + *p * 0x400);
                 x += 32;
-                q++;
-            }
-            p += stride;
+                p++;
+            } while (--m);
+            offset += stride2;
             y += 32;
-        } while (--n != 0);
+        } while (--n);
     }
 }

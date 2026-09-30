@@ -3,6 +3,11 @@
 // rows = height - 1; if (rows >= 0) { ++rows; do ... while (--rows); } to
 // reproduce the original signed dec/test/jl/inc sequence. Remaining codegen
 // differences are documented below; no MATCH was reached.
+// Retry in issue-2304: five checks kept 86.2%. Reordering the total/row locals
+// or byte locals did not change codegen; aliasing the literal byte with `next`
+// fell to 52.1%, and an outer non-null guard fell to 85.6%. The best source was
+// restored. Remaining differences are local slots, row/total spills, and the
+// tail-merged close path described below.
 // GPT-6.1-sol retry in #1928: 5 additional checks kept 86.2%. Reordering
 // the row/total declarations produced no code change. Remaining byte scratch
 // mapping, row/total spills, outer guard and duplicated cleanup are noted below.

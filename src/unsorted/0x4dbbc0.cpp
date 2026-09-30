@@ -1,5 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
 // PARTIAL, 87.4% (311 of 311 bytes; every instruction is in place).
+// deepseek-v4.1-flash (#2937 retry): still 87.4%. The only residual is a global
+// ecx<->edx role swap in the pair return copy (original dword->edx/byte->cl, ours
+// dword->ecx/byte->dl), consistent at all four exits. `second` as unsigned char/
+// bool/by-value/ref ctor, ctor-body assignment, `return ans;`, `return TreeInsert(V);`,
+// a trivial iterator and canonical pair members all stayed at 87.4% or fell; the
+// prior worker already swept headers.py (128 sets) and the 0..400 dummy decls. This
+// is a compilation-state tie, not a source bug.
 // This is std::map<unsigned int, int, less, PoolAlloc>::insert(const
 // value_type&) from MSVC 5's <map> (lines 87-89), not the tree's own insert:
 //     _Pairib insert(const value_type& _X)

@@ -1,4 +1,23 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue #2796): 61.8% (857/861 bytes), not MATCH. Still 857 bytes.
+// Two source changes from the 61.1% baseline, both about frame slot order:
+// 1. Split `Fixed sz = off.z, sy = off.y;` into separate declarations
+//    `Fixed sy, sz;` assigned later (`sy = off.y; sz = off.z;`). +0.3 points.
+// 2. Reorder the Off struct members to `struct Off { Fixed z, y, x, c; };`
+//    (x must sit third; all six permutations with x third score 61.8%, the
+//    rest 61.4%). +0.4 points over the x,y,z,c order.
+// Also retested on this baseline, all no better: passing Pos_4589c0() as an
+// explicit temporary (61.8), short/int variants of `ya` (61.8), multi-statement
+// yoff spellings that force intermediate memory accesses (61.8), all 24 Off
+// field permutations, and moving the child/owner load before the first call
+// (60.7 / 54.6).
+// WHAT STILL DIFFERS (unchanged from the notes below): the prologue register
+// split (original `mov ebp,[esp+0x8c]` then `mov esi,esp`, ours `xor eax,eax`
+// then `mov edx,esp`) and the whole downstream allocation; the y-offset still
+// folds to `(sz.whole - (sy.whole>>1)) << 16` (4 instructions) where the
+// original emits the full `((ya<<16)-ya+yb)<<16` (6 instructions, 16-bit sar);
+// and the post-loop clip spills x1/y0 to the dead bmp argument slot where ours
+// keeps them in registers. Byte count stays 4 short because of the y-offset fold.
 // GPT-6.1-sol retry: 61.1% (857/861 bytes), not MATCH. Kept this valid best.
 // GPT-6.1-sol issue #2322 refinement: rechecked the baseline, tried a guarded do/while child traversal (no change), and tested passing the three zero Pos fields as scalar arguments (53.1% with literal zeros; 55.1% via initialized locals). Both scalar-call variants are semantically equivalent but worse; restored the 61.1% version. No MATCH. Remaining mismatch is in register/frame allocation and the fixed-point offset sequence described below.
 // GPT-6.1-sol refinement after PR #2160: memberwise and initializer-list Pos
@@ -180,7 +199,7 @@
 // first three ints of a FOUR-int offset struct, exactly like Off_4584d0 in the
 // sibling 0x4584d0 (which has `struct { int a; int b; int y; int c; } off;`,
 // three used and `c` never touched, in the same source file). Declaring
-// `struct Off { Fixed x, y, z, c; }; Off off;` puts the differences at frame
+// `struct Off { Fixed z, y, x, c; }; Off off;` puts the differences at frame
 // 0x30/0x34/0x38 and reserves the dead 0x3c slot, so the copies sy/sz land at
 // 0x40/0x44 and the surface at 0x48, giving the original's 0x68 frame. Every
 // earlier spelling (loose Fixed locals, reordering, array, copy helpers) let
@@ -329,12 +348,14 @@ void Class_00459200::FUN_004589c0(Image_4589c0* bmp, Model_4589c0* model)
             ((Class_00458310*)this)->FUN_00458310(&cminX, &cmaxX, &cminY, &cmaxY,
                                                   child->model, cpos);
             int* op = &model->owner->x;
-            struct Off { Fixed x, y, z, c; };
+            Fixed sy, sz;
+            struct Off { Fixed z, y, x, c; };
             Off off;
             off.x.value = child->x - op[0];
             off.y.value = child->y - op[1];
             off.z.value = child->z - op[2];
-            Fixed sz = off.z, sy = off.y;
+            sy = off.y;
+            sz = off.z;
             int xoff = off.x.whole;
             int ya = (short)(sy.whole >> 1);
             int yb = sz.whole;

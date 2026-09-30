@@ -573,7 +573,7 @@ address,size,file,symbol,status,similarity
 0x42e2f0,13,src/unsorted/0x42e2f0.cpp,?FUN_0042e2f0@@YGXI@Z,matched,100.0
 0x42e300,13,src/unsorted/0x42e300.cpp,?FUN_0042e300@@YGXI@Z,matched,100.0
 0x42e310,289,src/unsorted/0x42e310.cpp,?FUN_0042e310@@YAXXZ,matched,100.0
-0x42e440,3923,src/unsorted/0x42e440.cpp,?FUN_0042e440@@YGXPAVClass_004c4440@@@Z,partial,68.9
+0x42e440,3923,src/unsorted/0x42e440.cpp,?FUN_0042e440@@YGXPAVClass_004c4440@@@Z,partial,75.8
 0x42f3a0,167,src/unsorted/0x42f3a0.cpp,?FUN_0042f3a0@@YAXXZ,matched,100.0
 0x42f450,297,src/unsorted/0x42f450.cpp,?FUN_0042f450@@YGHPAUSource_0042f450@@PADPAH@Z,matched,100.0
 0x42f580,448,src/unsorted/0x42f580.cpp,?FUN_0042f580@@YAXXZ,matched,100.0

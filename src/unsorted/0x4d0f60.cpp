@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Partial: 84.1%. One-child tree updates are inlined in the executable;
 // supplying the matched helper body restores those missing blocks. The
 // byte-copy loop must be a plain `while (n0 < 0x11)` with the src check
@@ -50,7 +50,6 @@ int __stdcall FUN_004d0de0(int pos, int *out);
 // FUNCTION: 0x4d0f60
 int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
     unsigned char flags;
-    int n;
     unsigned int mask;
     int accum;
     unsigned char *end;
@@ -128,6 +127,7 @@ int __stdcall FUN_004d0f60(unsigned char *dest, unsigned char *src, int len) {
     flags = 0;
     while (state.count > 0) {
         int j;
+        int n;
         if (state.cur > state.count)
             state.cur = state.count;
         if (state.cur <= 1) {

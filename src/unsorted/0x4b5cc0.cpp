@@ -1,73 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// MATCH, 100% (1104 bytes). Session 5 (deepseek-v4.1): the whole 8-byte gap was
+// the 0x30f arm's return path. Writing the two paths as an if/else where each
+// arm stores its own result into a plain `long ok` local and a single
+// `return ok;` follows makes MSVC 5 constant-fold the hpalette arm to the
+// original's `mov eax,1 / pop esi / add esp,0x18 / ret 0x10` (12 bytes) and
+// keeps that block out of the ret-1 tail-merge group, so the 0x219/0x3b9
+// `je`s stay short and land on the 0x3b9 copy at 0x4b5fe9 exactly as the
+// original. `long ok` is register-promoted, no extra frame slot. Every earlier
+// spelling (early `return 1;`, `hr = DD_OK` plus a shared
+// `return hr == DD_OK ? 1 : 0;`, `return DD_OK ? 1 : 0;`) either joined the
+// tail-merge group or left the comparison unfolded; the `ok` local with the
+// ternary materialised in the else arm is the one that folds.
 // Window procedure of the main application window: translates the custom
 // display messages and forwards the rest to the default handler.
-//
-// PARTIAL, 89.3% (original 1104 bytes, ours 1112). Control flow, every struct
-// offset, every call and the whole jump table now match instruction for
-// instruction except for the two points listed below.
-//
-//  * The two FUN_004c2e30 arms are written as two case bodies that `break` out
-//    of the switch into a shared tail (e.message = msg; FUN_004c2e30(&e)).
-//    That is what makes the compiler duplicate their common prefix and
-//    tail-merge the suffix: 0x4b5cc0+0x23c jumps to the tail and the
-//    0x203/0x206 arm falls straight into it, exactly as the original does.
-//    A `default: return DefWindowProcA(...)` clause is required: without it the
-//    switch's default call is dead-eliminated and the function loses 29 bytes.
-//  * The 0x30f arm's E_FAIL has to be declared BEFORE the hpalette `if` so that
-//    `hr` is live across that branch. That extra liveness is what demotes
-//    DAT_0051fbd0 from edx to ecx and the surface pointer into edx, matching
-//    the original's 0x4b60c4 block. Declaring it after the `if` (the obvious
-//    spelling) gives the right code shape but the wrong registers.
-//
-// What still differs, 2 items, 8 bytes:
-//
-//  1. `je` at 0x4b5f9ad and 0x4b5fd3 (the "callback == 0" jumps out of the
-//     0x219 and 0x3b9 arms) are 6 bytes here and 2 bytes in the original,
-//     because the shared "return 1" block they target is laid out after the
-//     0x30f arm instead of immediately after the 0x3b9 arm. Both layouts have
-//     the same three copies of `mov eax,1 / pop esi / add esp,0x18 / ret 0x10`;
-//     MSVC 5 just picks a different representative to absorb the two
-//     duplicates. Reordering the case labels, spelling the 0x219/0x3b9 returns
-//     as a `break` into a shared `return 1` after the switch, and using `goto`
-//     all leave the representative at the end of the function. Those 8 bytes
-//     are the whole size difference.
-//  2. `mov eax, 0x80004005` (E_FAIL) is hoisted to the top of the 0x30f arm
-//     (ours 0x4b60c3) instead of into the primary/palette block (original
-//     0x4b60ca, after `mov edx, [ecx+0x88]`). Net zero bytes: the 0x30f
-//     primary block is otherwise byte identical. Moving the initialiser back
-//     after the hpalette `if` puts the constant in the right place and breaks
-//     the register allocation again (87.8%).
-//
-// Follow-up (deepseek-v4.1-flash, same model, second session): both remaining
-// diffs come from ONE cause, the 8-byte size gap. The gap is exactly the two
-// `je` at 0x4b5f6d and 0x4b5fd3: the original targets the return-1 block right
-// after the 0x3b9 arm (0x4b5fe9, distance 124, short jump), ours targets the
-// 0x30f hpalette return-1 block instead (offset 0x405, distance > 127, rel32).
-// MSVC 5's code folding picks that block as the representative for the
-// `mov eax,1 / pop esi / add esp,0x18 / ret 0x10` tail; the 0x30f arm then also
-// keeps its own copy. The E_FAIL hoist is a consequence, not a cause: the same
-// two long `je` appear in the variant that moves E_FAIL after the hpalette
-// `if` (87.8%).
-//
-// Everything tried against the fold choice, with no effect (all still 1112
-// bytes / 89.3%): every source order of the 0x219/0x30f/0x311/0x3b9 cases;
-// `goto` to a shared `ret1:` label placed right after the 0x3b9 call; an
-// explicit `break` to a labelled return; inline helpers returning 1; braces
-// around every case body; if/else instead of two `if`s; `return TRUE`,
-// `return (DD_OK==DD_OK)?1:0`, `return +1`, `return !!1` and ten other
-// spellings that all fold to `mov eax,1`; moving `HRESULT hr` to function
-// scope; <ddraw.h>/<windows.h>/<stdio.h>/<stdlib.h>/<string.h> alone and in
-// pairs (headers.py: no set fixes it); a sweep of 0..800 unused `extern int`
-// declarations (flat at 89.3%, so it is not compiler state).
-//
-// The one thing that does flip the fold to the 0x3b9 block and makes the size
-// 1104 is changing the hpalette early return to a different value, for example
-// `return DD_OK ? 1 : 0;` (DD_OK is 0), which scores 92.4%. That is not a
-// candidate because it returns 0 where the original returns 1; it is recorded
-// here only as proof of the diagnosis: the fold target is the whole cause.
-// Whichever model finishes this needs a construct that emits `mov eax,1` for
-// the 0x30f hpalette path yet keeps that byte-identical block out of the fold.
-
 #include <windows.h>
 #include <ddraw.h>
 
@@ -195,17 +140,21 @@ long __stdcall FUN_004b5cc0(HWND hwnd, unsigned int msg, unsigned int wparam,
             DAT_0051fbd0->callback(0x219, wparam, lparam);
         return 1;
     case 0x30f: {
-        HRESULT hr = E_FAIL;
+        long ok;
         if (DAT_0051fbd0->hpalette) {
             HDC dc = GetDC(DAT_0051fbd0->hwnd);
             SelectPalette(dc, DAT_0051fbd0->hpalette, FALSE);
             RealizePalette(dc);
             ReleaseDC(DAT_0051fbd0->hwnd, dc);
-            return 1;
+            ok = 1;
         }
-        if (DAT_0051fbd0->primary && DAT_0051fbd0->palette)
-            hr = DAT_0051fbd0->primary->SetPalette(DAT_0051fbd0->palette);
-        return hr == DD_OK ? 1 : 0;
+        else {
+            HRESULT hr = E_FAIL;
+            if (DAT_0051fbd0->primary && DAT_0051fbd0->palette)
+                hr = DAT_0051fbd0->primary->SetPalette(DAT_0051fbd0->palette);
+            ok = hr == DD_OK ? 1 : 0;
+        }
+        return ok;
     }
     case 0x311:
         if (DAT_0051fbd0->hwnd == (HWND)wparam)

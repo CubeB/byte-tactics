@@ -1,12 +1,65 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
-// Partial: 99.3%. Byte count is exact (1017 = 1017) and every instruction is the
-// right one; only two adjacent pairs are swapped, both 2-instruction scheduler
-// tie-breaks in the display-cleanup block (listed at the bottom of this file).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash session, still 99.7 (1017 bytes), only the 0x4b55af
+// reload rotation. New shapes tried, all inert at 99.7 unless noted:
+//   * a `static HDC& DcRef(Display*)` accessor for the dc store, and
+//     `HDC& dc = cleanup->dc; ... dc = 0;` (85.1, reference recolors);
+//   * `*(HDC*)(void*)setup.dcSlot = 0`, `setup.dcSlot[0] = 0` and
+//     `*(setup.dcSlot + 0) = 0` (all identical to the plain store);
+//   * a two-store `static inline ClearHandles(Display*)` for hpalette+dib with
+//     the dc store after it (99.7) or before it (99.3);
+//   * arguments-as-side-effect helpers `ZeroSlot(dib=0, h=0, slot)` /
+//     `ZeroSlot(h=0, d=0, slot)` with the slot last so MSVC evaluates it first
+//     (48.8, helper not inlined the way expected) and `ZeroSlot(slot, h, d)`
+//     (92.1);
+//   * a separate `void* bits` local so setup.dcSlot is not the address taken
+//     by CreateDIBSection (99.7, same rotation);
+//   * a plain `HDC* slot = &cleanup->dc;` used for DeleteDC and the store
+//     (88.9, frame/coloring shifts);
+//   * `{ ... }`, `if (1) { ... }` and `HDC** p = &setup.dcSlot; **p = 0;`
+//     wrappers (all 99.7); a one-iteration for loop (93.6);
+//   * the whole real preceding source-file functions (0x4b52e0, 0x4b5330,
+//     0x4b5370) compiled above ours to change compiler state (99.7, no flip).
+// The load is glued to the store statement and MSVC 5 never hoists it above
+// the two handle stores; every named-local spelling lands in eax and recolors
+// the SetWindowPos argument block. Same tie-break family the guide records for
+// 0x4b6570, so this run stopped there rather than burning more shapes.
+// Partial: 99.7%. Byte count is exact (1017 = 1017) and every instruction is
+// the right one, except one two-slot scheduler rotation at 0x4b55af explained
+// at the bottom of this file. The first of the two old scheduler hunks is
+// fixed: writing the field_9c store as `dd->field_9c = 0` (through the
+// &d->draw pointer) instead of `DAT_0051fbd0->draw.field_9c = 0` puts
+// `lea ebx, [esi + 0x84]` before the `push ecx`, 99.3% -> 99.7%.
 // The original holds the constant 0 in a callee-saved register (ebp) and tests
 // every HRESULT against it with `cmp eax, ebp`, so all ten DirectDraw call
 // results go through one named `HRESULT hr` local (see docs/agent-guide.md on
-// 0x4b6880). That one change took this function from 87.7% to 99.3% and fixed
-// the size, the missing `xor eax,eax` and the CreateSurface argument timing too.
+// 0x4b6880).
+// deepseek-v4.1 new experiments on the remaining 0x4b55af rotation (all 1017
+// bytes, all with the identical 3-instruction diff unless noted):
+//   - `*setup.dcSlot = cleanup->dib = cleanup->hpalette = 0;` (chain reversed
+//     so the hpalette store comes first) keeps the correct h/d store order but
+//     still leaves the reload after them, 99.7, same as the plain three
+//     statements; the chain with hpalette outermost emits d then h, 99.3.
+//   - Putting the side effects in the RHS comma, `*c = (h = 0, d = 0, 0)`,
+//     `*(c) = (...)` and `c[0] = d = h = 0` are all byte-identical to the plain
+//     form: MSVC5 always evaluates the RHS before the LHS address, so the
+//     reload can never be hoisted from the same statement.
+//   - Writing the store first (`*c = 0, h = 0, d = 0;` or c/h/d statement
+//     order) does put the reload at the top of the block, but then the store
+//     is scheduled right after `push 6` and the two handle stores are pushed
+//     to the end (99.3), so the reload is not the only thing that has to move.
+//   - A separate `HDC *slot = setup.dcSlot;` before the two handle stores does
+//     give the wanted list order, but the local is colored eax (never edx) and
+//     the whole SetWindowPos block recolors, 96.4 (same with `HDC *const`, a
+//     declaration hoisted to the function top, or an assignment instead of an
+//     initializer). Only the address-taken frame slot reload, whose scratch
+//     register the code generator picks (edx), keeps the tail intact.
+//   - Dead or self-cancelling statements before the stores (`(void)setup.dcSlot;`,
+//     `if (setup.dcSlot);`, `setup.dcSlot = setup.dcSlot;`,
+//     `setup.dcSlot = setup.dcSlot + 0;`) are all removed by the optimizer and
+//     leave the baseline 99.7 bytes and diff; the other two statement orders
+//     (h/c/d, d/c/h) put the reload in the right place but move one handle
+//     store, 99.3, and c/d/h keeps the reload first while pushing both handle
+//     stores after the `push 6`, also 99.3.
 #include <windows.h>
 #include <ddraw.h>
 
@@ -89,7 +142,7 @@ int __stdcall FUN_004b5510(int mode) {
     }
     d = DAT_0051fbd0;
     DirectDrawState *dd = &d->draw;
-    DAT_0051fbd0->draw.field_9c = 0;
+    dd->field_9c = 0;
     FUN_004b4ff0(DAT_0051fbd0);
 
     Display_004b5510 *cleanup = DAT_0051fbd0;
@@ -209,15 +262,77 @@ fail:
     return 0;
 }
 
-// Still differing, both two-instruction swaps of a pair that MSVC 5 5.x emits in
-// the other order, and both inside the cleanup block just after FUN_004b4ff0:
-//   0x4b556d..0x4b5573  original: lea ebx,[esi+0x84] / push ecx
-//                       ours:     push ecx / lea ebx,[esi+0x84]
-//   0x4b55af..0x4b55b3  original: mov edx,[esp+0x10...+0x14] first, then the two
-//                       hpalette/dib zero stores; ours: the two stores, then the
-//                       reload of &cleanup->dc.
-// Tried and rejected: `DirectDrawState *dd` declared before or after the
-// field_9c store (no change), after the FUN_004b4ff0 call (worse), and declaring
-// `cleanup` before the call (MSVC then copies esi to edi, 93.1%).
-// Field_98 is the display's saved back buffer: FUN_004c5e70/FUN_004cbbe0/
-// FUN_004c5fa0 are called on a fresh 0x30-byte surface only when it is set.
+// Session 4 (deepseek-v4.1), additional measurements on the same rotation.
+// The whole group emitted by the three zero stores plus the next statement is
+// source order with exactly ONE scheduler move: `push 6` (the first push of the
+// SetWindowPos statement) is always inserted immediately before the `mov [edx],
+// ebp` store, and the address load stays glued to that store. Measured on all
+// six statement orders (c/h/d permutations): c first gives load,push6,store,h,d
+// and the load is at the block head; h,d,c (this file) gives h,d,load,push6,
+// store; h,c,d gives h,load,push6,store,d; d,c,h gives d,load,push6,store,h; and
+// the two comma/chained shapes reproduce those. So the original's list was
+// load,h,d,store: the load is materialized one statement before its store, which
+// only an explicit value copy does in this compiler.
+// The copy is the dead end: every real copy (HDC *p = setup.dcSlot; in 20
+// spellings: HDC*/int/void*/int cast, const, reference-to-pointer, union,
+// function scope, nested scope, register, an inline identity wrapper, the same
+// copy with the store before/after the two handle stores) emits the load at the
+// block head but the allocator always puts it in EAX, which recolours the whole
+// SetWindowPos block (hwnd into ecx, width into eax) and scores 96.4%; only a
+// direct store-through-pointer gets EDX, and that form always emits the load at
+// the store's own position. The one variant where a copied pointer did land in
+// edx (copy immediately followed by its store) was copy-propagated straight
+// back into the base form.
+// Other levers measured this session, all inert or worse: address-side-effect
+// trees (`*(setup.dcSlot + (int)(h = 0) + (int)(d = 0)) = 0` and index forms
+// fold to the base order, 99.7), `(h = d = *setup.dcSlot = 0)`-style chains
+// (99.3, handle stores swap), foldable arithmetic on the pointer used as the
+// stored value (`(int)setup.dcSlot * 0`, `& 0`, `- itself`) after which c2
+// deletes the load, dead double stores (kept, 1023 bytes), do/while(0),
+// switch(0) and if(1) wrappers (all 99.7), /Gz, /Gr and /Gd flags (all 99.7),
+// BT_TOOLCHAIN=msvc5-rtm (99.0), and tools/headers.py (all 128 sets 99.7).
+// Frame constraint found while testing the "two variables" reading of the
+// 0x14/0x18 slot pair (pdc at 0x14, bits at 0x18): giving CreateDIBSection its
+// own real local (a third struct member or a plain local) makes MSVC allocate
+// both a home for it AND a separate temp for its address, growing the frame to
+// 0x4d4 and shifting every [esp+N] (90.8/91.8), so the original really had one
+// address-taken local at [esp+0x14] with the compiler's &temp at [esp+0x18].
+//
+// Still differing, one 2-slot rotation at 0x4b55af. The original reloads the
+// stack slot `mov edx, dword ptr [esp + 0x14]` (the address of setup.dcSlot)
+// two instructions before its store, above the hpalette/dib zero stores, and
+// the store stays after `push 6`:
+//   mov edx, [esp + 0x14] / mov [edi + 0x4c], ebp / mov [edi + 0x44], ebp /
+//   push 6 / mov [edx], ebp
+// The rotation is really the basic block's first instruction: `je 0x4b55af`
+// above it targets the reload in the original and the hpalette store here, so
+// the block starts at the reload there and one instruction later here. Same
+// scheduler tie as 0x4b6570 in docs/agent-guide.md, where a reload of an
+// address-taken local drifted by a couple of instructions. The list order is
+// forced: the reload is only generated at the use of setup.dcSlot, the only
+// use in this block is the `*setup.dcSlot = 0` store, and MSVC 5 never hoists
+// that load above the two `mov [edi+0x4c/0x44], ebp` stores (it cannot prove
+// the frame slot does not alias them, and it does not hoist loads at all: a
+// load stays glued to the statement that needs it in every variant here).
+// Tried and rejected: every source order of the three stores (h/d/c, c/h/d,
+// d/h/c, h/c/d, d/c/h, c/d/h), `*c = h = d = 0` and `c = h = *d = 0` (the
+// first gets the reload to the top of the block but emits the two handle
+// stores in the wrong order, 99.3%), an explicit `HDC *slot` local (the
+// pointer then lives in eax and the whole SetWindowPos block is recoloured,
+// 96.1%), an inline helper holding the three stores (96.1%), hoisting the
+// load by reading the slot in an earlier statement (extra frame slot, 84.8%),
+// and two comma-expression forms that try to get the reload's tree in front
+// of the two stores while the store stays behind them:
+// `*((HDC *)(c, h = d = 0)) = 0` makes MSVC fold the discarded c to 0 and
+// emit `mov ds:0, ebp` (95.9%), and `*((HDC *)(h = 0, d = 0, c)) = 0` has
+// the discarded load deleted and is identical to the plain form (99.7%).
+//
+// Frame slot note, verified in the /Fa listing and useful elsewhere: for a
+// local whose address is taken, MSVC 5 keeps the variable's own home and the
+// `&var` it hands to a callee in TWO different frame slots. Here
+// `setup.dcSlot` lives at [esp+0x14] (written at 0x4b5582, reloaded at
+// 0x4b55af and read for the FUN_004c6a60 argument at 0x4b5879) while
+// `&setup.dcSlot` passed to CreateDIBSection is a separate slot at [esp+0x18]
+// (`lea ecx, [esp+0x18]` at 0x4b585a). So the exe really does read a
+// different dword for the bits pointer than the one it passed to
+// CreateDIBSection.

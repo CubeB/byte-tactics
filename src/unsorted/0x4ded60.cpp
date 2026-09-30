@@ -1,11 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Partial: 94.2%, 1005 bytes versus 1013. Body and FAT date/time block match.
-// Remaining differences: PE timestamp address folding, gmtime scratch LEA,
-// library-date load timing, system-info pointer register and processor-count
-// formatting. GPT-6 tried 768 header sets and 15 source variants without
-// improvement. Direct sprintf(buf + strlen(buf), ...) restores the library
-// pointer timing but changes processor and memory-status registers (94.1%).
-// Typed NT/file headers and a separate date-prefix length do not improve it.
+// Partial: 94.1%, 1012 bytes versus 1013 (one byte of length missing).
+// The processor-count branch now matches structurally: each arm must run its own
+// strlen, so the strlen prologue sits INSIDE both arms instead of being hoisted
+// before the test. That is done with sprintf(buf + strlen(buf), ...) written
+// separately in each arm; a shared "p = buf + strlen(buf)" before the if lets
+// MSVC common-subexpression it and costs 7 bytes.
+// Remaining differences: the PE timestamp folds into one LEA where the original
+// has load/add/lea; the gmtime asctime argument is materialised in EAX after the
+// scasb and the *linkTime load in ECX before it (original: EDX hoisted before the
+// scasb, load in EAX after the push); the library-date pointer load is hoisted;
+// and EDX versus EAX/ECX picks for GetSystemInfo, the processor count, the two
+// lea/scan pushes and the GlobalMemoryStatus argument.
+// Tried and rejected: making EVERY sprintf inline (no p variable at all) drops
+// to 68.1% and moves the struct tm copies, so p is load-bearing. Also rejected:
+// char*, unsigned long and int intermediates for the PE address, and
+// &pe->FileHeader.TimeDateStamp / pe + 2 forms. MSVC 5 folds all of them into
+// "mov edx,[eax+0x3c]; lea ebx,[edx+eax+8]", never into the original's
+// "mov ecx,...; add ecx,eax; lea ebx,[ecx+8]".
 // Original bug preserved: CreateFileA failure is tested against zero at
 // 0x4deee1, so INVALID_HANDLE_VALUE reaches GetFileSize at 0x4deeec.
 #include <windows.h>
@@ -79,7 +90,8 @@ void __cdecl FUN_004ded60(char* dest, int destLen)
     }
 
     HANDLE hMod = GetModuleHandleA(NULL);
-    DWORD* linkTime = (DWORD*)((char*)hMod + ((IMAGE_DOS_HEADER*)hMod)->e_lfanew + 8);
+    DWORD* pe = (DWORD*)((char*)hMod + ((IMAGE_DOS_HEADER*)hMod)->e_lfanew);
+    DWORD* linkTime = pe + 2;
     gmTimeCopy = *gmtime((time_t*)linkTime);
     p = buf + strlen(buf);
     sprintf(p, "UTC link time: %08lx - %s", *linkTime, asctime(&gmTimeCopy));
@@ -90,11 +102,9 @@ void __cdecl FUN_004ded60(char* dest, int destLen)
 
     GetSystemInfo(&sysInfo);
     if (sysInfo.dwNumberOfProcessors > 1) {
-        p = buf + strlen(buf);
-    sprintf(p, "%d processors\n", sysInfo.dwNumberOfProcessors);
+        sprintf(buf + strlen(buf), "%d processors\n", sysInfo.dwNumberOfProcessors);
     } else {
-        p = buf + strlen(buf);
-    sprintf(p, "1 processor\n");
+        sprintf(buf + strlen(buf), "1 processor\n");
     }
 
     memStatus.dwLength = sizeof(memStatus);

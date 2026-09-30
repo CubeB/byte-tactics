@@ -4,6 +4,14 @@
 // The decorated name is ?FUN_004b6880@@YGHPAD0PAEPAKKK@Z, so six stack
 // arguments, ret 0x18.
 //
+// Retry (deepseek-v4.1-flash, issue 2435): re-confirmed 88.2%, 299 vs 297
+// bytes. Only the 2-byte prologue differs: the original loads the 6th param
+// straight into ebp (`mov ebp,[esp+0x30]; mov esi,ebp`) for the mask/doRead,
+// ours hoists the load into eax and adds `mov ebp,eax`. doRead-first shapes
+// make the mask read ebp but still load via eax (298 bytes, 82.4). A dummy
+// sweep 0..64, headers.py (128 C plus 768 --cpp sets) and all order/type/mask
+// spellings are flat, so it is a compiler-state tie.
+//
 // What this file reproduces:
 // - The goto structure. All the failure exits jump to one `close:` label, and
 //   the two success stores are written out in their own arms, which is what

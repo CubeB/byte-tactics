@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol. Names are provisional.
+// #2862 retry by deepseek-v4.1-flash: local `g = g_game` in the hit block
+// reuses one g_game load for both writes, giving 92.6% (387 of 388 bytes).
+// Still differs: the hit RMW keeps EDI plus a `mov edx,0x10` rematerialization
+// where the original uses EAX and keeps edx live from 0x48d866; and the tail
+// reuses EAX instead of reloading g_game into EDI. See the long notes below.
 // #2403 retry by GPT-6.1-sol: six worker checks kept the 92.2% best. Narrow
 // helper variants kept the same register mismatch or fell to 71.3%; previous
 // mismatch notes below are retained. No MATCH.
@@ -239,8 +244,9 @@ void __stdcall FUN_0048d790(void)
                     Owner_0048d790* owner = u->owner;
                     if (owner == 0 || (owner->flags & 0x40000000)) {
                         u->u.bits.bit4 = 1;
-                        g_game->field_37e9c = 0;
-                        g_game->flags |= flag;
+                        Game_0048d790* g = g_game;
+                        g->field_37e9c = 0;
+                        g->flags |= flag;
                         return;
                     }
                 }

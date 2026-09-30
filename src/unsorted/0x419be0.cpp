@@ -137,6 +137,41 @@
 //   because its initializer then becomes a later statement and the
 //   `lea ebx, [eax+0x2c76]` moves into the middle of the first block, which
 //   confirms declaration order is a real allocator input here.
+//
+// space-bunny-free, third pass, still 84.1% (code unchanged, 1 real run).
+// New lead, from the MATCHED sibling handler 0x41a490 (src/unsorted/
+// 0x41a490.cpp, 100%), which the caller passes the very same two arguments to:
+// * That file proves the author's idiom for this family: a file-scope
+//   `static inline int Contains(Entry* entries, char* text, int index)`
+//   owning its own `char name[32]` and doing FUN_0049fed0 plus strstr, and a
+//   local `int index = menu->index` hoisted before the chain. Its prologue
+//   loads the Menu* parameter into a register (`mov edx, [esp+0x30]` then
+//   `mov ebx, [edx+0x60]`), so a parameter read for `->index` is normally
+//   register-allocated exactly as here. The hoisted index is what differs
+//   between the two functions, not the parameter's handling.
+// * So the shapes still worth a run are structural, not expression-level:
+//   rewrite this function with the same `Contains` helper taking
+//   `menu->index` as its third argument (the name buffer then lives in the
+//   inlined helper rather than in the outer frame), and with a local
+//   `int index` handed to it.
+// * Second untried lead: the two parameters are DIFFERENT types in the
+//   caller (0x41aa00 passes `Menu_0041aa00* menu, Entry_0041aa00* entries`,
+//   and 0x41a490's mangled name carries both types), so the real source
+//   probably declares the first parameter as a Menu-like struct and needs a
+//   cast for the fallback `e = (Entry*)menu`. A cast in the false arm is a
+//   structurally different expression tree from the 11 `menu->index` loads,
+//   which is the one thing the brief says can break a load CSE. My run of
+//   this was cut off by the time limit, so it is untested, not refuted.
+// Shapes re-tested this pass from /Fa listings, all still `mov ebp, esi`:
+// the statement-level `if (e->type != 1) e = button;` (it does change the
+// compare to `mov cl, [edx+ecx*2]`, but not the fallback),
+// `e = *(Entry_00419be0**)&button;`, and an `Entry* m = button;` alias with
+// all 11 index loads routed through `m` (VC5 forwards the copy: the listing
+// shows `mov esi, _button$` and every `m` use through esi).
+// Build/scratch/0x419be0/try.sh compiles a selection variant and prints the
+// prologue from the /Fa listing in about six seconds, which is the fast way
+// to test this; a variant file is `//SUB old => new` lines then `//SEL` and
+// the replacement selection statement.
 #include <string.h>
 
 class Class_00438760 {

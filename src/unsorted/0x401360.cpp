@@ -40,6 +40,15 @@
 // `fld dword ptr [dst]; fadd st(1)` form at some of those sites. So the slot layout (orig used@0x10, backlog@0x18, demand@0x20, produced@0x28;
 // ours produced@0x10, used@0x18, backlog@0x20, demand@0x28) is not a declaration/init-order lever.
 // Still differs: the original materialises the helper result in eax (`mov eax,1; mov edx,eax` / `xor eax,eax; ...; mov edx,eax`) as an inlined callee return, ours assigns edx directly; ours also hoists the backlog compare above the `used += v` store. Ours is 67 bytes shorter (2172 vs 2239). In the tail the demand-ratio argument to EndTick is read from [esp+0x10] in the original while ours reads a different array slot (0x18/0x14 order swaps in the accumulation block at ~0x401889).
+// deepseek-v4.1-flash run 2 (900s): baseline 77.2 confirmed. Tried and rejected, all 77.2 or worse:
+// normalization loop with indexed compares and `have` only for the subtracts (77.1); a `float& have`
+// reference; `*have = *have - take`; `for (i = 0; i != 2; i++)`; `take` declared before `have`;
+// `have = acc.produced + i`; UseEnergy with direct `return 1`/`return 0` (the single `int ret` body is
+// kept); UseEnergy returning bool (64.7). The N-declarations sweep (0..400 `extern int`s) is flat at
+// 77.2 to N=176 then 76.8, so this is not compiler state.
+// The normalization loop's induction variable is the one clear lever left: every rewrite
+// strength-reduces `have` to the induction pointer (ecx) plus a countdown, where the original keeps
+// a 4-byte stride index in ecx and computes `&produced[i]` once per iteration with `lea edx,[esp+ecx+0x28]`.
 #include <ddraw.h>
 struct Unit_00401360;
 

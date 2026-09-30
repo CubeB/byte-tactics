@@ -76,6 +76,40 @@
 // are far worse (90.7 at 1213, 57.4 at 1239). Next pass: keep the cast in the target
 // argument and look for what makes the pos argument's load land in ECX while the base
 // stays in EDX, which is the last register difference left in the tail.
+// Round 6 (space-bunny-free): still 96.2%, and the tail is the ONLY thing that
+// differs, the twin confirms it is worth chasing. The matched twin 0x40fbe0 emits a
+// byte identical tail (0x4100ea: the same [ebx+0x16], the same three pushes, the
+// double [edx+0x5c], add 0x22, [edx+0x16], [esp+0x80]) and its MATCHED source
+// reaches it through a shared `BuildOrder:` goto with a named `Class_0043a1f0* cmd`
+// and an explicit `if (cmd)`. Porting that shape here does not work: with the
+// `if (cmd)` the null fallback block stops sharing with the earlier ctor site's null
+// path at 0x406514 and is duplicated (1186 bytes, 66.2%), and without it the shared
+// null check disappears (1116 bytes, 80.2%). The two inline
+// `FUN_0043acb0(unit, new ...)` sites we have let the compiler tail merge all of
+// that correctly by itself, so the goto is the wrong tool here.
+// A TRAP worth recording: `(((Order*)((char*)order->target))+0x5c)->Target()` scores
+// 99.08% at exactly 1152 bytes, because the wrongly typed add needs a 4 byte
+// displacement, but it emits `mov esi,[edx+0x193e]` where the original has
+// `[edx+0x72]`. The comparison normalises memory operands to their base register, so
+// a wrong constant looks like a near match. Do not chase that 99.08: sizeof(Order) is
+// 0x46 here, not 0x5c, so that source is simply wrong.
+// Rejected this round, none better than 96.19: both class accessors 95.1, raw
+// `->target` with the accessor pos 92.1, `other->Target()` 91.0, `other->target`
+// 91.0, `(Order*)((void*)T+0x5c)` (does not compile, void* has no size),
+// `*(Order**)((char*)T+0x5c)->target` 92.1, `&((Order*)T->order)->pos` in place of
+// the accessor 93.0, const and __inline qualified accessors 96.19 (no change at all),
+// `(Unit*)`/`(Vec3*)` casts on the accessor returns 93.3, a 0..6 dummy inline function
+// sweep 93.0 to 96.19 and never 1152, `else if` instead of a second `if` 93.0, a
+// named `Unit*` local for the target 84.1, a named `Order*` local for the inner order
+// 89.2, deleting the `other` local so `unit` can take ESI 93.0, a named `cmd` local
+// 93.3, `cmd` plus an explicit `if (cmd)` 59.3, and assigning both arguments into
+// by-value locals inside the argument list 77.6.
+// What is still missing: a spelling that makes the LVP define `order->target->order`
+// TWICE in the shared tail, so that the second `[edx+0x5c]` survives. Every spelling
+// tried either folds it away to a single `[edx+0x72]` load, or costs 37 to 114 extra
+// bytes by spilling a named local. The original's schedule, ECX for the first
+// `->order` and EDX for the second, is exactly what a NON foldable second access
+// allocates to naturally, since EDX (the target pointer) is dead by then.
 #include <stdio.h>
 struct Vec3 {
     int x, y, z;

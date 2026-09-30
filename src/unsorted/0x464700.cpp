@@ -189,6 +189,22 @@
 // store, and (E3) the same with `z` declared after the two tick loads, both
 // 66.4: any local rotates the pool (`xor ebx, ebx` instead of `xor ebp, ebp`),
 // so the 98.3 percent body stays the best.
+//
+// deepseek-v4.1 retry (2nd pass, still 98.3%, 18 checker runs). The first-block
+// statement layout is what pins the pool: it is NOT only extra locals, any move
+// of the `p->ref` guard does it too. New negative results, all 473 bytes:
+// guard moved before the tick store with the store after the six clears (s3)
+// 68.9, guard between the two tick loads and the six clears (s5) 67.2, tick
+// store then guard then six clears (s4) 68.9, s3 with `int h, w` 67.2, s3 with
+// `int w = g_game->width / 2; int h = ...` 66.4, s3 with `int w, h;` hoisted to
+// the top of the function 68.9, s3 with the six clears pair-chained
+// (`p->fac = p->fb4 = 0;` x3) 68.9, and the six clears plus the tick store as
+// one comma expression 96.6 (store in the original's slot, load still late).
+// Every reorder flips the constant 0 from ebp to ebx and width/2 from ebx to
+// ebp, and the whole tail follows, so the pool cannot be pinned from the first
+// block while the schedule is wrong. The remaining hunk is unchanged: the
+// original has `cmp eax, ebp` and `mov [esi + 0xf8], edx` after the six clears,
+// this file has them before. Scratch: s2-s6, s3a-s3d in build/scratch/0x464700/.
 
 
 #include <string.h>

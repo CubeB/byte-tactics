@@ -58,6 +58,18 @@
 // ecx. Free-scored `int bottom = y + t;` and `r.left`-before-`r.top` (87.2)
 // confirm neither the temp nor the store order reaches it. See
 // build/scratch/0x464060/ledger.md.
+// deepseek-v4.1 10-minute retry: re-confirmed 87.8 (560 bytes, 2 real hunks).
+// Discovered the third check.py hunk is a display artifact, not a difference:
+// check.py's link_placeholders rewrites the DIR32 jump-table entries to
+// placeholder+section-offset before disassembly, so a table that follows the
+// code can never read equal even when our table points at the same case
+// bodies; the table relocations are validated separately by check_ref. So the
+// whole distance to MATCH is the one hunk: ours emits lea edx,[eax+0x8a] and
+// add eax,ecx above the store of r.top, the original emits the store first and
+// then lea edx,[eax+0x8a]; add ecx,eax, reusing ecx (y, dead after the store)
+// as the accumulator. Tried this session: r.bottom = r.top + t (drops the
+// file to 60.1, 520 bytes, so the read-back changes the whole block shape) and
+// r.bottom = (r.top = y) + t (same 60.1/520), neither reproduces the order.
 #include <math.h>
 #pragma pack(push, 1)
 

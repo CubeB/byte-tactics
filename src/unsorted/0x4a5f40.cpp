@@ -1,61 +1,7 @@
-// Decompiled by space-bunny-free, improved by GPT-6.1-sol. Names are provisional.
-//
-// PARTIAL, best 35.8% (2668 of 2700 bytes). Not MATCH. Six check.py runs, including the saved baseline. Increasing buf from 0x80 to 0x88 fixes the total frame size and adds 0.4 points; 0x84, 0x8c, and 0x90 scored 35.4%.
-//
-// Draws one entry of a GUI menu list: selects the language/glyph set from the
-// first type-7 entry whose tab index equals this entry's +0x28, draws the
-// entry's picture (the GAF frame picked by the +0x136/+0x137/+0x138/+0x13b
-// stage fields, or the flat rectangles when +0x2f is null), centres the text,
-// then draws the quickkey character separately (in the "cursored" colour) and
-// finally the rest of the string. When +0x40 was set it also outlines the
-// entry's rectangle.
-//
-// The control flow, the callee set and every immediate are believed right;
-// the CALL HISTOGRAM proves one defect that is still in this file:
-//   FUN_004c13f0 is called 8 times in the original, 7 here. The third colour
-//   set (the one before the final draw of `found + 1`) is field_138
-//   dependent in the original, see 0x4a66c8: `cmp word [edi+0x138],0 / je
-//   0x4a66ed` picking menu->+0x8b2 or entry->colours[(int)menu+0x8b2].
-//   Fixing that makes the histogram exact but scores 33.2% instead of 35.4%
-//   (difflib noise), which is why the fix is not in this file.
-//
-// The other histogram defect is FUN_004a50e0: 11 call sites here against 7 in
-// the original. The original's four plain draws (flags&1, flags&4, flags&2
-// without a quickkey, flags&0x20 without the quickkey character) share one
-// merged tail at 0x4a6970/0x4a6976; MSVC 5 did not merge ours. The merge is
-// partial: 0x4a6970 reloads the surface with `mov eax,[esp+0x24]`, pushes
-// ebp (text) and eax (surface), then calls, while the flags&4 site at
-// 0x4a6383 pushes text and surface itself and jumps straight to the call.
-//
-// WHAT ACTUALLY MATTERS AND IS NOT DONE: the stack frame layout. The original
-// frame is 0xd8 and its locals are laid out in REVERSE declaration order with
-// NO overlays, filling 0x10..0xd8 exactly:
-//   0x10 key1[2] 0x12 key2[2] 0x14 surface 0x18 t 0x1c me 0x20 measured
-//   0x24 rect(16) 0x34 x 0x38 found 0x3c width 0x40 border 0x44 flagy
-//   0x48 textw 0x4c text 0x50 pass 0x54 saved 0x58/0x5c/0x60/0x64 the four
-//   inlined Measure `char ch` temps (MSVC gives each a 4-byte slot)
-//   0x68 buf[0x80]  (0x10+0x58+0x80 = 0xd8, no slack anywhere).
-// 20 slots. Ours has 19: MSVC overlays `measured` with `saved` (their live
-// ranges are in disjoint sibling branches even though saved's last use
-// follows measured's) and keeps `x` in a register, so the frame comes out
-// 0xd0 and every [esp+X] is 8 low. Adding two live dwords (verified with
-// throwaway locals: frame becomes 0xd8 and buf lands at 0x68) fixes the size
-// but not the internal order, and only bought 0.9 points, so the order is the
-// real blocker, not the size. MSVC's actual assignment order in our build is
-// NOT reverse-declaration: it emits surface, key1, key2, width, t, text,
-// found, rect, me, border, measured, saved, textw, flagy, pass, ch...
-// So `x` is memory-resident in the original (reloaded at 0x4a64d9 and
-// 0x4a672e) because of higher register pressure: the original even clobbers
-// ebp, which holds param_1, with `movzx bp,dl` at 0x4a6125 and then reloads
-// param_1 from [esp+0xec].
-//
-// Tried and did NOT help: <windows.h>, <stdio.h>, <stdlib.h> as a leading
-// include (26.8%, and they change the frame to 0xdc), <math.h>, <float.h>
-// (35.4%, identical); buf[0x80] against buf[0x70] (frame only); declaring
-// `entries`, `i`, `y` at the top (no change at all, they are in registers);
-// naming the text cursor `p` and the walk counter `k` as function-scope
-// locals (still registers).
-#include <string.h>
+// Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6. Names are provisional.
+// PARTIAL 46.6%. Remaining differences: shared draw tails, register allocation and stack locals. Restored selected text cursor, conditional final colour and original 128-byte buffer.
+#include <windows.h>
+#include <stdio.h>
 
 #pragma pack(push, 1)
 struct GafEntry_004a5f40 {
@@ -205,7 +151,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
     char* text;
     int pass;
     int saved;
-    char buf[0x88];
+    char buf[0x80];
     int i;
     int y;
 
@@ -316,6 +262,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             }
         }
 
+        text = p;
         y = (rect.bottom - LineHeight_004a5f40() - rect.top) / 2 + flagy + rect.top;
         if (me->flags & 0x8000)
             menu->current = menu->values[1];
@@ -363,7 +310,10 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                                      x - 1, LineHeight_004a5f40() + y - 1,
                                      menu->colour_8b4);
                     }
-                    FUN_004c13a0(menu->colour_8b2, FUN_004c13f0());
+                    if (me->field_138 != 0)
+                        FUN_004c13a0(menu->colour_8b2, FUN_004c13f0());
+                    else
+                        FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
                     FUN_004a50e0(surface, found + 1, x, y, width, 0);
                 }
             }

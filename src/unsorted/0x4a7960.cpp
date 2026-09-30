@@ -1,42 +1,5 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
-//
-// STATUS: not MATCH. Best 49.5%, our object is 1440 bytes against 1404.
-// GPT-6.1-sol retry: five checker runs observed; retaining 49.5%. Keeping the layer
-// alias throughout the tail scored 36.1%, and merging the initial direction switch
-// before computing bound scored 46.9%. The existing note below records earlier variants.
-// Everything below the top matches structurally; the diff is one allocator
-// state and the stack frame it produces.
-//
-// The frame: the original is sub esp,0x338 with the 200-int `used` array at
-// [esp+0x28] and six scalar slots at 0x10 out/start, 0x14 remaining/up,
-// 0x18 entries, 0x1c bound, 0x20 layer, 0x24 cnt. This source gets sub
-// esp,0x334 with `used` at [esp+0x24] and only five slots: MSVC puts
-// `bound` in a register and lets it share `entries`' [esp+0x18] slot, so
-// every esp offset is 4 low. Declaring `int used[201]` instead of [200]
-// forces the frame back to 0x338 (arguments and the layer slot line up) and
-// is what took the score from 47.2% to 49.5%; the array zero loop is still
-// 50 dwords (`mov ecx,0x32`) in both, so only the declared size differs.
-//
-// The root allocator difference is at the top: the original loads
-// menu->layer into ESI, field_20 (the index) into EBX and layer->entries
-// into EDX; this source reuses EAX for layer and ends up with index in EBP,
-// entries in ESI. Because the index is not in EBX, the fill loop takes EBX
-// for its cluster index instead of EDI, which is the single shared cause of
-// the remaining 8 `mov [esp+...]` swaps; the second loop then keeps `bound`
-// in EBP (`start` is spilled instead), so `bound` never gets its own slot.
-// Tried and did not move it: reordering the layer/index/entries declarations,
-// using menu->layer directly, keeping the `layer` local live into the tail,
-// declaring an extra `count` local, swapping start/bound declaration order,
-// initialising them to 0, all five C++ headers and all 128 C-header sets
-// (headers.py: every set 43.1% at the previous best). Reusing the original
-// index variable as `best` (no separate local) was the one structural fix
-// that worked, 43.6% to 47.2%.
-//
-// The first switch's four case bodies each carry their own
-// `mov [esp],start; bound=start+/-K` tail instead of tail-merging to two
-// shared tails as the original does, which is most of the 36 extra bytes.
-// The second switch and both inlined DoSelect tails are instruction-for-
-// instruction the original modulo the esp offsets.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol, finished by GPT-6. Names are provisional.
+// PARTIAL 47.2%. Restored original 200-element navigation array. Remaining differences include switch tails, stack locals and register allocation.
 #pragma pack(push, 1)
 
 struct Entry_004a7960 {                // 0x15b bytes
@@ -132,7 +95,7 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
     if (index == -1)
         return;
 
-    int used[201];
+    int used[200];
     for (int k = 0; k < 50; k++)
         used[k] = 0;
 

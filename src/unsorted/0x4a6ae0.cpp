@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, verified by GPT-6.1-sol. Names are provisional.
+// PARTIAL 50.0%. Header sweep found no improvement. Remaining differences include object/entry register allocation and branch layout.
 // PARTIAL 50.0% (1685 bytes against the original's 1703). Greenfield.
 // Command-button click/key handler for the 0x15b-byte entry table.
 //

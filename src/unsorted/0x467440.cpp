@@ -17,30 +17,39 @@
 // has it (after the pushes). Writing the arguments inline instead emits the
 // vtable store at the top of the block; that costs ~8 points.
 //
-// What still differs (53.0%):
-//  - The frame is 0x24 vs the original's 0x28: `pl` is spilled to [esp+0x18]
-//    right before loop A (extra store, and every loop A/B/C jump target is +4).
-//    The original keeps pl in ebp from the prologue through loops B and C. Our
-//    loop B needs one register more than the original's (see next bullet), so
-//    the allocator spills pl and then reuses ebp as a temp.
+// What still differs (53.0%). The frame now MATCHES the original exactly:
+// sub esp,0x28, last=+0x10, first=+0x14, visitor slots +0x18 and +0x1c, the
+// 0x18-byte Class_00467840 at +0x20 (the diff shows the prologue and every
+// [esp+N] offset already matching, so the older note about a 0x24 frame is
+// stale). The residual gap is register choice only:
+//  - Loop A tail: the original reloads `last` into esi (ebx is clobbered
+//    inside the body, esi is dead scratch there) and keeps edi = first
+//    untouched; ours reloads into ebx and re-materialises edi before loop B.
 //  - Loop B's arithmetic: the original keeps `a` in ax, `b` in di, `t` in ecx
 //    and does `imul ecx,ecx` / `imul edx,edx` in place; ours loads b into cx
 //    early (`mov cx, word[ecx+0x206]`) and needs `mov edi,edx; imul edi,edx`
 //    copies, plus the vptr store lands early. `def` sits in ecx here, in edx
 //    there.
-//  - Loop C's two visitors still share the +0x18 slot (original +0x18/+0x1c),
-//    which is the other half of the 0x24 frame. Declaring both in one scope
-//    gives the right frame but hoists both vptr stores (36.6%).
+//  - Loop C: the two vtable constants are swapped relative to the original
+//    (original: ebx = first visitor's vtable, edi = second; ours the other way
+//    round), and ours re-materialises edi = first before loop C starts.
 //  - Loop E: the original computes x and y INSIDE each arm of the field_14281
-//    mode test (duplicated movsx/sar) and uses ebp for the flags word (u+0x110
-//    via esi = u+0x74); ours hoists x/y and uses bh/edi. The in-arm form was
-//    1030 bytes / 38.2% on the old frame.
+//    mode test (duplicated movsx/sar) and anchors the loop at esi = u+0x74
+//    (flags at [esi+0x9c], x as [esi-8] = +0x6c); ours hoists x/y, anchors at
+//    edi = u+0x6c and uses bh for the flags word. Duplicating x/y into both
+//    arms was retried this session on the correct 0x28 frame: 1013 bytes (the
+//    closest byte count of any variant) but 52.5%, and the anchor stayed at
+//    u+0x6c, so it was not kept.
 //  - Loop D: original materialises 0x2000 in ebx and 0x1000 in edi, ours the
 //    other way round.
 //
 // Scratch variants scored (check.py <addr> <file>): base42 42.4%, base43 43.6%,
 // loop-B reorder 43.6%, both loop-C visitors in one scope 36.6%, v516 51.6%,
-// v530 (this file) 53.0%.
+// v530 (this file) 53.0%. Session 2: both loop-C visitors hoisted to the outer
+// block 40.8%, per-loop `u` declarations 53.0% (tie), `b` deferred until after
+// t 52.7%, loop E x/y duplicated into both arms of the field_14281 test 52.5%
+// (1013 bytes, closest byte count, but it still anchors the loop at u+0x6c
+// where the original uses u+0x74, so it was not kept).
 
 #pragma pack(push, 1)
 

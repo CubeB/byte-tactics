@@ -5,7 +5,18 @@
 // 0x40); the old extra slot came from the screen_hw step being spilled, so the
 // step values are now shifted (hw<<16, hh<<16) before the loops and live in
 // edi/ebp. Ours is still 21 bytes shorter and every branch target is shifted.
-// Still differs: the loop head test (cmp bl,0xa / jae taken to the increment)
+// Pass 2 (deepseek-v4.1): the missing loop head guard is now emitted: the
+// counter must be tested through a single-use inlined helper
+// (`static int loopCond(unsigned char i){ if (i >= 0xa) return 0; return 1; }`
+// as the for condition), exactly as the 0x48ad30 fact on SHARED.md says; that
+// blocks the trip-count pass. 79.6 -> 79.7, ours 2376 bytes. The helper's
+// guard store is still scheduled before the cmp instead of after it.
+// Still open: the duplicated player guard (0x464fe1..0x465024) is still CSE'd
+// into one copy, so 38 bytes before 0x4655a6 are missing and every later
+// branch target stays shifted; the typeId copy is `mov ecx,eax` where the
+// original uses `mov cx,ax`; and two byte flags writes go through dl.
+// Previous note: Still differs: the loop head test (cmp bl,0xa / jae taken to
+// the increment)
 // is dropped as provably true even as a while loop, the duplicated player
 // guards (0x464fe1..0x465024) are CSE'd into one copy, the typeId copy is
 // `mov ecx,eax` where the original uses `mov cx,ax`, and two byte flags writes
@@ -197,32 +208,39 @@ const char* __stdcall FUN_004c5740(const char* text);
 void __stdcall FUN_004abd90(char* gui, const char* text, int a, int b, int c);
 void __stdcall FUN_00464de0(void* gadget);
 
+static int loopCond_00464f80(unsigned char i)
+{
+    if (i >= 0xa)
+        return 0;
+    return 1;
+}
+
 // FUNCTION: 0x464f80
 void __stdcall FUN_00464f80()
 {
     g_game->field_14207->FUN_0040eb70();
-    unsigned char bl = 0;
-    while (bl < 0xa) {
+    unsigned char bl;
+    for (bl = 0; loopCond_00464f80(bl); bl++) {
         PlayerInfo_00464f80* pi = &g_game->players[bl];
         if (pi->active == 0)
-            goto next;
+            continue;
 
         {
             unsigned char t = pi->type;
             if (t != 1 && t != 2 && t != 3)
-                goto next;
+                continue;
         }
         if (pi->field_146 == 0xa)
-            goto next;
+            continue;
         if (pi->active == 0)
-            goto next;
+            continue;
         {
             unsigned char t = pi->type;
             if (t != 1 && t != 2 && t != 3)
-                goto next;
+                continue;
         }
         if (pi->field_146 == 0xa)
-            goto next;
+            continue;
 
         if (pi->field_74 != 0)
             pi->field_74->FUN_00408c40();
@@ -242,7 +260,7 @@ void __stdcall FUN_00464f80()
             FUN_00466dc0();
 
         if ((unsigned int)pi->field_f0 > g_game->tick)
-            goto next;
+            continue;
         pi->field_f0 += 0x1e;
 
         if (bl == g_game->localPlayer) {
@@ -388,7 +406,7 @@ void __stdcall FUN_00464f80()
                     FUN_004573d0(pi, 0, 0);
             }
         }
-        goto next;
+        continue;
 
     watch_check:
         if (g_game->mode->FUN_00435100() == 3 &&
@@ -455,8 +473,6 @@ void __stdcall FUN_00464f80()
         }
         goto skip508;
 
-    next:
-        bl++;
     }
 
     if (g_game->mode->FUN_00435100() == 3 &&

@@ -72,6 +72,23 @@
 // stride, declaring q before p. Tried and worse: OnRadar taking &p->pos with
 // px and py read through a different tree (v1, 67.8), the same helper with a
 // shared tree (v10 and v11, 65.4), a named `Position* pos` local (v6, 70.9).
+//
+// Third session (deepseek-v4.1), result 71.7 percent, 1641 bytes; the file is
+// unchanged from the baseline, both measured variants lost:
+//   - bits.bit0 || bits.bit1 for the top hunk does give the original's
+//     `mov ax, word ptr [esi+0x14281]; test al, 3`, but the second `enabled = 1`
+//     then materialises as `mov ecx, 1` + `mov [esp+0x1c], ecx` (1643 bytes,
+//     70.8 percent), which drags the field_37f2f read into dx and the unit
+//     loop's player read into al.
+//   - `u->field_6c * g_game->field_142eb` in ScaleX does not change anything:
+//     MSVC still emits `movsx eax, [esi+0x142eb]; movsx ecx, [ebx+0x6c]`,
+//     so the operand order alone is not the lever for that pair (71.7 percent,
+//     1641 bytes).
+// Still open, exact: the projectile loop keeps us at `mov ebx, [esp+0x18]`
+// (p in ebx) where the original has `lea ebx, [ecx+0xa]` (q in ebx) with p
+// reloaded from [esp+0x1c] once per iteration and p->owner/p->player read as
+// [ebx+0x48]/[ebx+0x5c]; and the top hunk's `mov dword ptr [esp+0x1c], 1`
+// immediate store.
 #pragma pack(push, 1)
 
 struct Shot_00466dc0;

@@ -1,4 +1,18 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass deepseek-v4.1-flash (issue 2953 retry, 10 min box): kept 86.6% (911/919),
+// no score movement. Scored on the free `--sym` path. New this pass: the
+// semantics-correct break/goto form (68.4 / 69.5%) has an otherwise EXACT frame
+// (base 0x10, n 0x14, i 0x18, q 0x1c, p 0x20, j 0x2c, c 0x30), and its single
+// regression is that `c` homes to ebp while `base` is displaced to 0x30. So the
+// entire remaining gap is "force c out of ebp into memory". Tried and failed to
+// force it: `int n[1]` / `int j[1]` arrays (scalarised), an `Entry** pcc = &c`
+// alias used across the call and its results (scalarised), a second alias with
+// an interposed `unsigned int` temp (scalarised), hoisting `e` / `q` to outer
+// scopes, and a `pad` local to raise pressure (all byte-identical). Also tried:
+// do/while + break (68.4%), `while (c)` + `goto` to the merge (69.5%),
+// while+break (69.5%). All the correct forms are 913 to 918 bytes. The kept
+// (semantically wrong) form stays because it is 17 points higher and no correct
+// spelling reached the original's c-in-memory / ebp-for-`e` split.
 // Pass deepseek-v4.1-flash (issue 2795 retry, 600s box): kept 86.6% (911/919).
 // Re-confirmed on the free --sym path that the correct break form is 69.5%
 // (913 bytes) and NOT close to the kept build. Six spellings of the correct

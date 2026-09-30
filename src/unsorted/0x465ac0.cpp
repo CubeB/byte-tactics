@@ -309,6 +309,17 @@
 // CSE: EBX still holds u at the join, so a value whose definition point is the
 // join can only take EBP. Moving that definition point past the third test's
 // branch is what none of the six passes has managed.
+//
+// Eighth pass, deepseek-v4.1-flash (retry). Four more fourth-region spellings,
+// scored free (build/scratch/0x465ac0/ds3): the ternary `(p.x -= ..,
+// (g_game->flags & 2) == 2) ? IsExplored3 : IsSeen` (844 bytes, 94.1), a brace
+// scope around the update plus test with a `Position_00465ac0* pp` local (865,
+// 98.3, identical hoist), the flags test inlined as an if/else that duplicates
+// the p.x update in both arms (842, 52.6), and `IsVisible3(..) || (p.x -= ..,
+// 0)` (844, 64.9). The brace scope and the pointer local do not move the load,
+// so the enclosing statement level alone is not a lever. Eight passes now
+// agree that the only byte-level difference is this one 6-byte load, and no
+// source spelling tried has put it in the fourth block instead of the join.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

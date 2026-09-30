@@ -4563,7 +4563,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4c06e0,200,gpt-6.1-sol,#1628,partial,74.1,,"issue #1628, escalated"
 0x4c0b10,352,gpt-6.1-sol,#1628,partial,98.4,,"issue #1628, escalated"
 0x49aa80,301,gpt-6.1-sol,#1631,partial,66.1,,"issue #1631, escalated"
-0x4db450,444,,#1635,assigned,,,"issue #1635, escalated"
+0x4db450,444,gpt-6.1-sol,#1635,partial,92.9,,"issue #1635, escalated"
 0x4589c0,861,gpt-6,#1636,partial,61.1,,"issue #1636, escalated"
 0x481d50,821,,#1637,assigned,,,"issue #1637, escalated"
 0x4db1c0,646,,#1639,assigned,,,"issue #1639, escalated"
@@ -4994,3 +4994,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a5f40,2700,,#2040,assigned,,,"issue #2040, escalated"
 0x4a6ae0,1703,,#2040,assigned,,,"issue #2040, escalated"
 0x4a7960,1404,,#2040,assigned,,,"issue #2040, escalated"
+0x4db450,444,,#2042,assigned,,,"issue #2042, escalated"

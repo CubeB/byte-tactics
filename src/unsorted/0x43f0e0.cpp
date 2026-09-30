@@ -18,6 +18,18 @@
 // with `Def* def;` declared and `def = unit->def;` after the if (40.3%).
 // Every case body is otherwise structurally transcribed but register
 // mismatched, so the diff desyncs and the tail jump table lines up wrong.
+// DeepSeek V4.1 Flash extra finding: the `push ecx` is caused by computing
+// `def = unit->def;` BEFORE the target block (def then needs a stack slot).
+// Moving the def load after the target block (as the original does) and
+// dropping the Flags110 union local removes `push ecx` and makes the frame
+// exactly 4 pushes, matching the original prologue (score 40.2%, ours 4332
+// bytes). That faithful variant still assigns unit=esi, def=ebp, so the only
+// first-hunk difference is the unit/def register swap:
+//   original 0x43f0e2 mov ebp,[esp+0x14] ; 0x43f131 mov esi,[ebp+0x92]
+//   faithful 0x43f0e4 mov esi,[esp+0x18] ; 0x43f131 mov ebp,[esi+0x92]
+// Remaining hunks (best 43.7% file): every case at 0x43f154, 0x43f3b9,
+// 0x43f46c, 0x43f4c7, 0x43f4f7, 0x43f6d1, 0x43f701, 0x43f735, 0x43f7e8,
+// 0x43f845, 0x43f9e9, 0x43fb81 is desynced by the same ebp/esi swap.
 #include <windows.h>
 
 #pragma pack(push, 1)

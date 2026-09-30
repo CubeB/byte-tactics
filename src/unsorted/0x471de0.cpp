@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, second pass
+// by space-bunny-free. Names are provisional.
 // Destroys the ten listener lists that 0x471d90 allocates into the game object
 // (used by 0x471eb0, 0x471f40 and 0x471f90): every listener is deleted and
 // erased from the front of its list, the ten vector members are then destroyed
@@ -43,6 +44,35 @@
 //   reference over the ten vectors, erase in a for increment, dummy locals
 //   before, inside or after the `if`, and earlier functions in the same file
 //   that use the same vector type (erase(begin()), the out-of-line destructor).
+// Retried by space-bunny-free in #1867, still one byte, 98.6%, nothing scored
+// better: a dummy static function placed before the class and after the
+// function (compiler state from earlier functions, the 0x4581e0 effect),
+// `#include <xutility>`/`<xmemory>` in front of `<vector>`, the vector named
+// through a typedef, a one-pointer element struct instead of a bare pointer, a
+// `static inline` shift helper wrapping `erase`, the `for` loop with the erase
+// in the increment, raw `Listener**` iterators, and headers.py over all 128
+// sets (every one gives 98.6%). The shift loop is the inlined `copy(_P + 1,
+// end(), _P)` of `std::vector::erase`, and the only freedom left is which
+// register the frame picks as the SIB base; nothing in the source reaches it.
+// Retried by space-bunny-free in #1867 (second pass, one-byte residual), still
+// 98.6%:
+// - The out-of-line twin of this destructor, 0x470fb0 (MATCH), emits the very
+//   same loop with the opposite SIB order (`mov [eax + edx], ebp`), so the source
+//   is right and only the inliner/allocator tie differs.
+// - A fully hand-rolled vector (allocator at +0, _First/_Last/_End, own erase
+//   with the shift loop written by hand) still gives the walker as the SIB
+//   base: `mov [eax + ecx], edx`. Writing the destination FIRST in the shift
+//   (`iterator dest = p; iterator src = p + 1; while (src != last_) { *dest =
+//   *src; ++src; ++dest; }`), the ordering that decided the SIB of the inlined
+//   `_Ucopy` at 0x435110-style vector::insert functions (guide line 1835), does
+//   NOT transfer to this store. It scores 54.2% because the hand-rolled class
+//   moves the list pointer from ebx to esi and loses the `mov [esp+0x1c]` spill.
+// - Binding the deleted pointer to a local (`Lists* lists = g_game->lists;
+//   if (lists) { delete lists; ... }`) is again 98.6% with the same one byte;
+//   writing the destructor call out (`->~Lists_00471de0(); operator delete(...)`)
+//   is 60.7%.
+// So: the 0x4bc370 read/write split has no STORE counterpart, and neither the
+// copy's operand order nor the caller's register pressure reaches it.
 // Retried by deepseek-v4.1-flash in #1333, still one byte: headers.py --cpp
 // (C++ headers on top of all 128 sets) and the erase(it, it+1), explicit
 // std::copy+pop_back and static-helper phrasings all score worse or the same

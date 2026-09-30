@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, retried by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, retried by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // Appends `size` bytes at `data` to the buffer's inline storage (at +0x14),
 // fills in the output packet `p`, and bumps the buffer's packet count.
 // `value` is the previously queued packet (0x462710 passes its tail), stored
@@ -15,6 +15,17 @@
 // (`buffer + length`, not `buffer + len`) is what fixes the lea operand order.
 // An N-declarations sweep (0 to 600) and headers.py change nothing, so the
 // difference is in the source, not the compiler state.
+//
+// Retry (space-bunny-free) confirmed the exact shape of the 90.7% perturbation:
+// a member read after the copy (`p->offset = length`, with or without a local
+// for the destination) puts the reload in, but then MSVC hoists the stack arg 5
+// load into ecx above the offset store (`mov ecx,[esp+0x24]`, `mov [esi+0x18],ecx`),
+// loads the update operands in the other order (`mov edx,[ebx+0xc]` before
+// `mov eax,[ebx+8]`), computes count+1 into edx with a lea after the length
+// store, and reloads count into eax instead of edx for the last printf. All 24
+// orders of the four packet-field stores, the length update placed before them,
+// the four spellings of the offset (member, this->, a local read after the copy,
+// a local pointer destination) score 88.0 to 90.7%, so none beats this 96.6%.
 //
 // Retry (deepseek-v4.1-flash) confirmed it: every source form that produces the
 // post-copy reload (`p->offset = length`, `= (int)length`, `= this->length`,

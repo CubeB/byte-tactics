@@ -1,20 +1,13 @@
-// Decompiled by DeepSeek V4.1 Flash and Claude Opus 5.5, finished by deepseek-v4-flash. Names are provisional.
-// Partial (99.0%, 272 bytes). The original keeps `this` in esi and the wrapped
-// index ix in edi; earlier attempts had that pair swapped (esi=ix, edi=this).
-// The swap is fixed here without any extra instruction: reading head into ix
-// and then assigning it straight back to head (`head = ix;`, a no-op that the
-// compiler folds, but whose use of head is enough to move it off edi) makes
-// MSVC give edi to ix and esi to `this`.
-//
-// The one remaining difference is the order of the two reloads on the
-// reuse-success path, after the inlined IsReusable's final FUN_00461170 call:
-//   original: mov esi,[esp+0x1c]  then  mov edi,[esp+0x18]
-//   ours:     mov edi,[esp+0x18]  then  mov esi,[esp+0x1c]
-// Same two instructions (reload this and ix for `head = ix;`), swapped. The
-// force-alloc path already reloads ix then this like the original; only this
-// scheduler pick differs. Rewriting the store as this->head = ix, a duplicated
-// store, a temporary value, an unsigned long/int ix, a pointer store, and a
-// separate return local all keep the same 99.0%.
+// Decompiled by DeepSeek V4.1 Flash and Claude Opus 5.5, finished by deepseek-v4-flash, finished by space-bunny-free. Names are provisional.
+// MATCH. The body is exactly the version deepseek-v4-flash left: the only
+// change needed to reach 100% was `#include <memory.h>` at the top, which
+// changes the frame layout enough for the register allocator to restore
+// `this` before the index on the reuse-success path (the two reloads at
+// 0x461bcf/0x461bd3 that were swapped in the 99.0% version). The bodies of
+// the earlier attempts (this->head = ix, a duplicated store, a temporary, an
+// unsigned long index) were all attempts to fix that reload order by hand.
+
+#include <memory.h>
 
 void __cdecl FUN_00461170(const char* fmt, ...);
 unsigned int FUN_004b6340();

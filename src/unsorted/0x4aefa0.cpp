@@ -1,5 +1,54 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash,
-// finished by space-bunny-free. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+//
+// deepseek-v4.1, fifth pass, still 72.2 % (882 of 895 bytes). Everything that
+// follows is a byte-identical 882-byte body (verified with check.py on scratch
+// copies, same 94/92-line diff), so the compiler state is fixed for this shape:
+// declarations at point of use for the four allocations, `char** const` /
+// `register` on the pointers, `const int count`, `unsigned count`, a dummy-extern
+// TU-state sweep (N = 1, 8, 16, 64, 128, 240, 256, all inert), do/while or
+// while(1)+break rewrites of both bubble passes, `int diff` / `char* t` hoisted
+// to function scope, the same swap written with two temps, `if (keys != 0)`,
+// and an inlined SwapP/SwapI helper for the swap block (that one is 882 bytes
+// but 71.6 %, its diff re-aligns). New shapes that DID move bytes, all worse:
+// a p1/p2 cursor in the first loop with `ptr2[i]` left indexed (887 bytes,
+// 68.7 %, gives ptr2 a cursor in ebx and keeps count in ebp), both cursors
+// (882/71.9), `char* s` for the first call (892/69.6), `if (count > 0)` around
+// the for (916/47.9), while(i<count) with the guard (892/65.7), and i = 0
+// moved inside the if of a do/while (889/70.2). A micro repro shows the
+// mechanism the original used: an inlined two-list copy loop (same store to
+// ptr1[i], guarded second list, ptr2[i] via a stride) keeps count in memory and
+// reloads it at the latch (`mov eax,[count]; cmp esi,eax`) exactly like the
+// original, but only while the stride has to live in a stack slot; our full
+// function gives the stride ebx and promotes count to ebp, so the tie is which
+// of ptr1 (live over the loop only for the post-loop sort setup) and the bound
+// keeps the fourth callee-saved register. Nothing in the source shape tried
+// moves that tie: the diff is still the same slot permutation (0x10/0x14/0x18/
+// 0x1c = ptr2/ptr1/swapped/n in the original, swapped/ptr2/n/ptr1 here) and the
+// first-loop register swap that follows from it. Next lever candidates: an
+// inline helper around the whole first loop, or a shape that makes ptr1's
+// post-loop uses cheaper than a count reload.
+//
+// deepseek-v4.1, fourth pass, still 72.2 % (882 of 895 bytes). No new best
+// variant, but the search space is now mapped: the first loop's ONE allocator
+// tie is reachable from source shape, and every shape that flips it costs
+// instructions elsewhere.
+// Measured with `tools/wcl /Fa` listings (free), scored with check.py:
+// - all 24 permutations of the four low declarations (ptr2, ptr1, swapped, n)
+//   compile to the identical 882-byte body, so the slot order is not
+//   declaration order (confirmed, not guessed).
+// - an extra `if (count > 0)` before the first loop DOES flip the tie: count
+//   drops to memory (loop tail becomes `mov eax,[esp+0x44]; cmp esi,eax` as in
+//   the original) and ptr1 keeps esi, but the duplicate test costs 2
+//   instructions (916 bytes, 47.9 %).
+// - `*p++` cursor shapes (`*p = FUN(list1,i); ... p++;` and the for-increment
+//   spelling) also un-promote count, but MSVC then gives ptr2 its own cursor
+//   (`[ebx]`) instead of the `ptr2[i]` stride, 66.0 to 68.7 %.
+// - a distinct index variable per loop (i1/j1/j2) un-promotes count too, but
+//   the ptr1 store becomes `[esi+edi*4]` (no strength reduction), 69.8 %.
+// So the wanted combination (indexed stores, one cursor, count in memory)
+// needs count to lose the promotion without any of those structural costs.
+// The current best keeps ptr1's home at 0x1c and count in ebp.
 //
 // space-bunny-free, third pass, still 72.2 % (882 of 895 bytes), headers.py
 // tried all 128 sets (best 72.2 %, <string.h> already as good as any). What

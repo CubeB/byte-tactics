@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash,
-// finished by space-bunny-free. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 //
 // 75.3 %. Only the loop's bottom block differs, and one register in case 6
 // follows from it. Everything else is byte-identical.
@@ -69,6 +69,44 @@
 // the original 11-entry jump table, so it can never match; the switch version
 // below is the faithful one. The remaining fix is stopping MSVC from
 // tail-duplicating the shared latch into every switch case.
+//
+// Third pass (deepseek-v4.1) measured how that duplication behaves, by
+// compiling the loop under local /Fa listings and counting "add ebp, 0x15b":
+//  - It is a /Ot ("favor fast code") pass. /Os removes it completely, but /Os
+//    also switches the whole function to a frame pointer (ebp), an imul for
+//    the induction and DIFFERENT scheduling, so /Os is not the original's flag
+//    set; /O2 /Ob2 /MT /Os scores far worse. /G3, /G4, /G5, /G6 and the
+//    msvc5-rtm toolchain all leave the duplication in place.
+//  - The pass runs on the post-register-allocation code and duplicates a
+//    target block of at most SIX instructions into every predecessor that ends
+//    in an unconditional jmp. Seven instructions stops it: adding any real
+//    instruction to the latch ("ret = i;", "parser.field_0 = 0;", an extra
+//    call) gives exactly one shared latch, but each of those adds visible
+//    code, so none of them can match. The original's 0x4aed26 is six
+//    instructions, and MSVC's own shared copy here (the $L600 block, which is
+//    what case 10 falls into and what jump-table entry 9 points at) is
+//    instruction for instruction identical to it; only the nine extra copies
+//    are wrong.
+//  - Statements the optimizer drops before that pass cannot enlarge the block:
+//    "i = i;", "i + 0", "i * 1", "i += 0", "(void)i;", "i;", "i | 0",
+//    "i++, 0;", an unused label, an empty inline helper called from the latch,
+//    "if (1) { i++; }", "do { i++; } while (0);", "switch (0) { default: i++; }"
+//    and "i ? i++ : i++" either vanish or change the loop (the last one loses
+//    the induction and drops to 279 lines).
+//  - Loop shapes: only "while (1)" plus an internal "if (!find(i)) break;"
+//    keeps the reset+find guard at the top. for (;;), for (i = 0; ; i++),
+//    do { } while (1), while (reset(), find(i)) and
+//    for (i = 0; reset(), find(i); i++) are all rotated by /O2: the guard
+//    moves to the bottom, an entry test is peeled, and the induction pointer
+//    becomes an imul. So the source below is right and the duplication is the
+//    only remaining difference.
+//  - A scan of the whole exe for latches with five or more predecessor jumps
+//    finds exactly this one function, so MSVC 5 almost always duplicates;
+//    this function is the exception, which points at compiler state or at an
+//    instruction that existed at the duplication pass and was deleted later
+//    (a redundant move, load or store), not at the source shape.
+//  - Preceding dummy functions in the same TU (small, large, or with the same
+//    loop) change nothing either.
 #include <string.h>
 
 class Class_004c46c0 {

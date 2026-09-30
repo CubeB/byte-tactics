@@ -1,4 +1,19 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#2567) retry: 84.5% (849 bytes, size matches). The one
+// real change this round: the owner test in the flag bit 4 block was WRONG in
+// the 84.1 version. It read `u->owner == 0 || !(u->owner->f110.bits.b30)` and
+// so cleared bit 4 when the unit had no owner, but the original's
+// `mov eax,[esi+0x86] / test eax,eax / je 0x48ae5f` SKIPS the clear for a null
+// owner. Corrected to `(u->owner != 0 && !(u->owner->f110.bits.b30))`, which
+// matches Ghidra's `owner != 0 && (owner->f110 & 0x40000000) == 0`: 84.1 -> 84.5.
+// Still differing (all register allocation, no semantics left): head guard is
+// `jb <body>` + a `xor edi,edi / jmp` select where the original has
+// `xor al,al / cmp al,0xa / jae <latch>`; i lands in cl not al, off in eax not
+// edx; cnt/off home slots are swapped (ours cnt 0x14 / off 0x18, original
+// off 0x14 / cnt 0x18) and the tail reloads cnt from 0x14 at a different point.
+// Tried this round and worse: declaring off before cnt (67.9%, 861 bytes), the
+// source order i/off/cnt (68.9%, 850), and cnt/*cnt/i/off (69.7%, 853); slot
+// assignment did not move to the original in any of them.
 // deepseek-v4.1 (#1208) second retry: 84.1% kept (849 bytes, size matches).
 // Re-verified the v22 lead (build/scratch/0x48ad30/v22.cpp): its head emits
 // `push edi` before `xor al,al` and shares one zero register for both
@@ -423,7 +438,7 @@ void __stdcall FUN_0048ad30(void)
                         }
                         if (u->f110.bits.b4 != 0) {
                             if (!(u->f110.bits.b5) || u->f104 != 0.0f || u->ffb != 0
-                                || u->owner == 0 || !(u->owner->f110.bits.b30)) {
+                                || (u->owner != 0 && !(u->owner->f110.bits.b30))) {
                                 u->f110.bits.b4 = 0;
                             }
                         }

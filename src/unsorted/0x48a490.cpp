@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Samples the ground under a unit at its four surrounding terrain
 // vertices and stores the resulting pitch (0x68) and roll (0x70) on the
 // unit, plus a heading (0x64) from the two side vertices. The 0x11/0x04
@@ -106,6 +106,19 @@
 // short cast makes it dead) and emits `movsx eax, word ptr [esp+0x28]`; short, unsigned short and
 // int spellings of p and of that callee's first parameter all fail to give the pair;
 // (4) u->owner is cached in ebp after the call in the original.
+// deepseek-v4.1-flash retry (10 min timebox): confirmed 77.8% is the wall. Tested and all tied or lost:
+// (a) index variable (ushort and uint) before the map lookup, maps array in a named local, address-of
+// form, reference form, m declared first, count kept in a local int: m stays in ecx and count in edx,
+// 77.8% or lower. The m-in-edx assignment is a pure allocator tie-break that nothing in the source
+// shape flipped; every downstream hunk (pts pointer, wx/hz order, H vs sea registers, operand order)
+// cascades from it. (b) p as two statements (short p = ...; p += u->fix_lo), p as int with a
+// truncating cast, p as unsigned short, and the callee first parameter as short: 75.8/75.1/67.5/77.0.
+// The original's kept `and eax,0x1f` plus a 16-bit `add ax,[u+0xaa]` plus a plain dword reload can
+// only come from a 32-bit variable whose low half is added in place, which needs an address-taken
+// union and that spills (71.9%, tried before). (c) Moving n after the 64-bit division to match the
+// original schedule drops to 73.9/73.6 even with the owner cached in a local. What still differs:
+// items 1 and 3 of the first comment (prologue m/count ecx/edx swap and its cascade, the dropped
+// mask and the movsx reload of p).
 #include <stdlib.h>
 
 #pragma pack(push, 1)

@@ -1,63 +1,24 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
-// The #2193 source started at 44.4% (body by deepseek-v4.1-flash, space-bunny-free, GPT-6).
-// Earlier pass stopped at 44.4%; GPT-6.1-sol raised the best to 48.5% below.
-// What still differs (original 1034 bytes, 0x88 frame; ours 1005 bytes, 0x8c frame):
-//  1. Frame is 4 bytes too big: the anonymous `buffers` struct lands at frame+0xc with
-//     three 4-byte temps below it (playerOffset, entries, players pointer), the original
-//     has only two (offset at [esp+0x10], entries at [esp+0x14]) and the buffers at +0x8.
-//  2. Register roles: original keeps ebp = g_game and ebx = playerIndex*0x18 (the scaled
-//     index is spilled to [esp+0x10] and reloaded at 0x47984d/0x479894/0x479a71); ours
-//     puts the scaled index in ebp, g_game in edx and reloads g_game per use, so the
-//     switch dispatch (0x479810..0x47982d) and every [esp+N] after it differ.
-//  3. The else-branch colour block: original loads the player's own colour into ebx with
-//     `mov ebx,[ecx+ebx+0x14]` (ecx = players reused from the controller test) and later
-//     recomputes the store address (`mov ecx,[ebp+0x29a0]; mov ebp,[esp+0x10];
-//     mov [ebp+ecx+0x14],eax`); ours CSEs the colour address into a third temp and
-//     spills the players pointer, then stores through `mov ecx,[esp+0x18]; mov [ecx],eax`.
-//  4. In the controller==2 arm ours emits `push ebx` (ebx is the known-zero human count)
-//     where the original emits the literal `push 0`.
-// Tried: no local `game` alias (use g_game everywhere), a no-arg static inlined
-// free-colour helper with `colour++/* return -1` shape (loop body itself matches), an
-// explicit `int myColour` local instead of repeating players[playerIndex].color, both
-// `<windows.h>`-only and `#pragma pack(1)` layouts, separate char[64] buffers instead of
-// a struct. None removed the extra CSE slots or flipped ebp/ebx; 36.9% for the g_game-only
-// rewrite and 44.1% for that rewrite plus myColour, versus 44.4% here.
-// GPT-6.1-sol refinement: best is 48.5% after 13 checks, with no MATCH. Reusing
-// one 64-byte buffer for all formatted names removes the separate color buffer
-// and improves the baseline. Larger capacities (68/72) tie; 120-128 bytes return
-// to 44.4-45.3%. The index/register and CSE-slot differences remain; this source
-// now has a 0x48 frame versus the original 0x88.
-// GPT-6.1-sol root retest: an 80-byte buffer kept 48.5%; restored the 64-byte best.
-// space-bunny-free pass (2026-09-30), best unchanged at 48.5%, no MATCH. New evidence:
-//  1. FRAME GEOMETRY, measured from the original. `sub esp,0x88` plus 4 pushes, so with
-//     fb = esp after the prologue the locals are: [fb+0x10] = the spilled 24*playerIndex,
-//     [fb+0x14] = the spilled entries pointer, the wsprintf buffer at [fb+0x18] (used by all
-//     12 wsprintf/FUN_004a0570 pairs) and a SECOND buffer at [fb+0x58] used only for the
-//     "Color%d" that goes to FUN_0049fdf0. 0x8+0x40+0x40 = 0x88, so both buffers are 64
-//     bytes and there are exactly TWO 4-byte temps, not three.
-//  2. One shared `if/else` cannot be the cause of the register roles: the ORIGINAL keeps
-//     g_game in ebp and 24*playerIndex in ebx (ebp gets reloaded with the scaled index at
-//     0x479a71), while every spelling tried here puts g_game in ebx and the index in ebp.
-//     That swap is worth the `count`/`myColor` temps too: the original can put both in
-//     ebx (reusing the index's register after the index is spilled at 0x479819), and we
-//     spill them instead. The one common upstream cause is that the two values are
-//     allocated in the opposite order, even though the original's instruction order
-//     (g_game load at 0x479804, then lea/shl, then the players load) is identical to ours.
-//  3. The original keeps `players` in ecx from 0x4798f3 through the whole 6-call
-//     controller==0 block to its last use at 0x479a1c, with no spill and no reload. That
-//     is only possible if the block is not live-through, so the source probably never
-//     names a `players` pointer: it writes g_game->players[...] and lets the CSE in the
-//     optimizer produce 0x4798f3. Naming it (or using g_game-> everywhere) both spill it.
-// Tried and scored: v2 = 48.5% base + a `players`/`myColor` local pair, 2 buffers, the
-//     final FUN_004a0570 hoisted out of the if/else into a `value` variable 42.2%
-//     (the original pushes a literal 0 or 1 in each arm, so the call must stay in both
-//     arms and let MSVC tail-merge it); v3 = same with no `game` alias at all 44.3% (then
-//     g_game lands in edx and is reloaded after every call); v4 = base + a second 48-byte
-//     buffer 43.6% (frame 0x7c, buffers land at 0x4c/0x50, every one of the 12 tail leas
-//     goes wrong); v5 = base + a second 64-byte buffer 44.1% (frame 0x8c: one temp too
-//     many, so the buffers sit at 0x1c/0x5c instead of 0x18/0x58). The frame is 4 bytes
-//     out for want of exactly one fewer stack temp, and that temp is the same allocator
-//     state as item 2.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Best 58.9%, no MATCH. Original 1034 bytes, ours 986.
+// Fixed the big register-role swap: never reassign the `game` local after the switch
+// (a `game = g_game;` no-op split its live range and forced the scaled index into ebp,
+// g_game into edx, and an extra stack temp). With one continuous `game` variable MSVC
+// now emits ebp = g_game, ebx = 24*playerIndex, exactly like the original; 48.5 -> 58.9.
+// Remaining differences:
+//  1. Frame 0x48 vs original 0x88: the original has TWO 64-byte buffers (wsprintf at
+//     [fb+0x18] and a second at [fb+0x58] used only for the "Color%d" passed to
+//     FUN_0049fdf0). Ours has only the first. Adding a second buffer makes frame 0x8c
+//     (52.0%) because ours spills three values rather than two.
+//  2. Ours spills game->players to [esp+0x10] before the tail condition and keeps it
+//     across the if-branch calls; the original keeps players in ecx and reloads it,
+//     so no spil. Ours also materializes and spills the address of
+//     players[playerIndex].color ([esp+0x14]) between the myColor read and the later
+//     store; the original re-materializes that address instead.
+// Tried this pass: game declared before wsprintf (36.5%), second 64-byte buffer (44.1%),
+// buffer[128] with buffer+64 as the second (44.4%), v4 + second buffer (52.0%),
+// tail via g_game directly (33.6%). The one-buffer core (this file) is the best.
+// Earlier passes (see git history): no-alias g_game-only 36.9%, no-alias + myColor 44.1%,
+// larger/smaller buffers 44-48%.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -155,7 +116,6 @@ void __stdcall FUN_004797e0(int playerIndex) {
         } break;
         }
 
-        game = g_game;
         if (game->players[playerIndex].controller == 0) {
             wsprintfA(buffer, "Player%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 1);

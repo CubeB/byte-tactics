@@ -47,7 +47,9 @@
 // shape) collapses the frame to 375 bytes and 37.4; adding a `w`/`m` local
 // pair to IsSeen is byte-identical to this version. 84.6 stands as the best.
 // GPT-6.1-sol rechecked this version (84.6) and tested a local alias for the
-// byte-map data pointer; the generated code and score were unchanged.
+// byte-map data pointer; the generated code and score were unchanged. A fresh
+// pass tried a width/index local, width and mask pointer aliases, and a
+// single-use ReadVisibility helper; none changed the generated code or score.
 #include <stddef.h>
 #include <vector>
 

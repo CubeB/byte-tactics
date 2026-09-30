@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL (67.8%, 800 bytes against the original's 780). Per-frame driver of
 // the unit's command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60
 // list, matched, and the source of the Wait_0043b7c0 shape below). The list
@@ -77,9 +77,38 @@
 // case 9's else are emitted separately instead of merging into the one at
 // 0x43b951 (case 3 should be `push 0xf; jmp 0x43b951`). In v0, where case 9
 // called RemoveAndDelete instead of inlining it, the two did merge, so the
-// inline body itself is what breaks the block sharing here. And the global
-// eax/ecx rotation in the pending block (below) is unchanged, which is what
-// makes the two copies differ in register allocation.
+// inline body itself is what breaks the block sharing here, and the global
+// eax/ecx rotation in the pending block is unchanged.
+//
+// Retried by deepseek-v4.1 (10 more check runs, all 67.8% or worse): the
+// pending block was re-spelled nine ways (flags6 read into a local first, the
+// mask local hoisted out of the loop, the two stores swapped, the OR operands
+// swapped, mask & ~pending instead of ~pending & mask, int pending, an extra
+// field_4e local, the mask read at the top of the loop) and every one of them
+// compiles to the same 800 bytes: the eax/ecx rotation is not reachable from
+// this statement's source shape. The case-3 Wait block was also inlined
+// textually instead of calling the helper (same 67.8%) and the helper was
+// reordered to set the flag before the call (66.4%), so the missing tail-merge
+// at 0x43b951 is a register-allocation consequence of the rotation, not a
+// separate bug. Left as is: the rotation and the duplicated Wait are the two
+// remaining defects, worth 20 bytes in total.
+//
+// Retried by deepseek-v4.1 (2 more check runs, both 67.8%, byte identical to
+// the 800 already here): the original's case-9 `mov eax, edx` copy suggests
+// the source stored the OR'd flags before reading node->next, so `node->next`
+// was moved after the `node->flags = f9` store, and the store was then spelled
+// as a chained assignment (`node->flags = f9 = node->flags | 0x800000`); MSVC
+// emits the same sunk store both times, so the copy in the original is an
+// allocator decision, not a statement order. The case-3 Wait copy is the real
+// blocker for the tail merge: it picks edx for flags6 and ecx->edx for the
+// g_game frame, while the case-9-else copy (which matches the original's
+// 0x43b951 byte for byte, edi/edx->ecx) is right next to it, so the two
+// blocks are not textually identical and MSVC's folding pass leaves both.
+// Block folding in MSVC 5 is evidently post-allocation here, which is why the
+// register rotation also decides the merge. Writing the Wait body out
+// textually at both sites (no helper at all) also compiles to the same 800
+// bytes, so the two expansions never become textually identical whatever the
+// source shape.
 
 #pragma pack(push, 1)
 
@@ -259,8 +288,8 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
             break;
         case 9: {
             unsigned int f9 = node->flags | 0x800000;
-            Class_0043a1f0* next9 = node->next;
             node->flags = f9;
+            Class_0043a1f0* next9 = node->next;
             if (next9 != 0) {
                 Class_0043a1f0* first9 = *pp;
                 Class_0043a1f0** link9 = (f9 & 0x40000) ? &unit->list2 : pp;

@@ -1,99 +1,55 @@
-// Decompiled by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
-// Partial: 78.1% (real check.py run; 1451 bytes vs the original 1418).  The
-// frame is 0xd0 in both and the layout matches up to 0x14 (maxw at 0x10, i at
-// 0x14), but everything from the panel up is 4 bytes high, because this version
-// gives the y local a stack slot at 0x18 while the original keeps y purely in
-// ebx and starts the panel rect at 0x18 (see 0x494a61: mov [esp+0x18],eax with
-// esp at the frame base, and 0x494a7d: lea edx,[esp+0x18] to pass &panel).
-// That one dword is the whole remaining puzzle: it moves about forty stack
-// references, and with it the draw loop's strength reduction changes too.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 78.1% (real check.py run; 1451 bytes against the original 1418).
+// Structure, both call sequences, the strcpy/sprintf buffer layout, the src
+// quad and the whole player loop body below the panel rect are in place.  A
+// single 4-byte stack-slot assignment is left.
 //
-// TWO CORRECTIONS TO THE NOTES THAT WERE HERE BEFORE (both cost real runs):
-//  1. The src quad init in THIS file (p[0].x, p[0].y, p[3].x, p[1].y = 1) is
-//     RIGHT.  The four stores at 0x494aa5/aa9/aad/ab4 are at esp = frame-4
-//     (one push at 0x494a9c), so they land at frame+0x5c, +0x60, +0x74, +0x68.
-//     With src at frame+0x5c that is p[0].x, p[0].y, p[3].x, p[1].y.  Reading
-//     those displacements as if esp were the frame base makes them look like
-//     p[2].x and p[3].y and suggests a "fix" that is actually a regression
-//     (tried, 77.1%).
-//  2. `Losses` IS right-aligned against panel.right, not panel.top.  At
-//     0x494b4d esp is frame-0xc (three pushes at 0x494b45/46/47, FUN_004a5030
-//     ret 4), so 0x494b54's [esp+0x2c] is frame+0x20 = panel.right.
-//  The frame size rule, measured across buf[64..120]: MSVC 5 emits
-//  sub esp,(0x7c + sizeof(buf) - 0x10), so the original's 0xd0 with buf at
-//  frame+0x7c means its buffer really is 100 bytes, and the 16 bytes at
-//  frame+0x00-0x0f are not a missing local, they are where the four pushed
-//  registers land.  buf[84] therefore gives 0xc0 and loses about forty
-//  references.  Original local map: 0x10 maxw, 0x14 i, 0x18 panel, 0x28 the
-//  cleanup loop's counter, 0x2c dst, 0x4c hr, 0x5c src, 0x7c buf.
-//  This file's map: 0x10 maxw, 0x14 i, 0x18 y, 0x1c panel, 0x2c dst, 0x4c hr,
-//  0x5c src, 0x7c buf - dst/hr/src/buf already agree, only the scalars differ.
-//  WHY y gets a slot here and not in the original: this file stores y once,
-//  dead, right after `y += 0xf` (mov [esp+0x18],ebx), and MSVC then keeps a
-//  memory home for it.  Give that slot to the cleanup counter instead (v8 in
-//  build/scratch layout: y 0x10+0x14, panel 0x18, counter 0x28, frame 0xc0) and
-//  y spills to TWO slots, which pushes i out of memory into edx and loses
-//  another twenty points.  The register order is the ESI,EDI,EBX,EBP one: the
-//  original gives ESI to the player pointer p, EDI to the search counter n,
-//  EBX to y and leaves maxw in memory; as soon as p is not kept in a register
-//  the whole chain shifts and y takes ESI, spills, and i is demoted with it.
-//  So the lever to pull is: make the SEARCH loop keep p in a register (the
-//  original hoists `lea esi,[edx+0x1b63]` to 0x494b88, before the loop, and
-//  both the index and the pointer are induction variables in the latch), not
-//  anything about y's type or spelling.
+// THE REMAINING PUZZLE, precisely: the original's local map (frame base = esp
+// after the four saved-register pushes, frame 0xd0, so 0x00-0x0f is unused and
+// 0xd0-0xdf are the saved registers) is
+//   0x10 maxw, 0x14 i, 0x18 panel (4 dwords), 0x2c dst, 0x4c hr, 0x5c src,
+//   0x7c buf
+// with y in ebx and NO stack slot.  This version has
+//   0x10 maxw, 0x14 i, 0x18 y, 0x1c panel, 0x2c dst, 0x4c hr, 0x5c src, 0x7c buf
+// so y took a slot at 0x18 and pushed panel to 0x1c, moving every panel
+// reference 4 bytes.  dst/hr/src/buf already agree.
 //
-// THE ORIGINAL'S LOCAL MAP (frame base = esp after the four pushes, frame 0xd0,
-// so 0x00-0x0f is unused and 0xd0-0xdf are the saved registers): 0x10 maxw,
-// 0x14 i, 0x18 panel (4 dwords), 0x28 a 4-byte counter the cleanup loop alone
-// writes, 0x2c dst quad, 0x4c hr rect, 0x5c src quad, 0x7c buf.  Nothing
-// written in this version reproduces the counter at 0x28 or the absence of a y
-// slot: see the list of attempts at the bottom.
+// WHY y gets a slot here: this version stores y once, dead, right after
+// `y += 0xf` (the original has the same pointless re-store of ebx at
+// 0x494b6b), and the 0x1c panel then lands in the gap.  The original evidently
+// kept y's home while never using it as one.  Register order is ESI,EDI,EBX,EBP:
+// the original gives ESI to the player pointer, EDI to both loop counters, EBX
+// to y and leaves maxw in memory; as soon as the player pointer loses ESI the
+// whole chain shifts and y takes ESI, spills, and i is demoted with it.
 //
-// NEW THIS SESSION (all checked against the disassembly):
-//  - The cleanup loop reuses the SEARCH counter as its own counter, in memory:
-//    0x494dcb `mov [esp+0x28],edi` stores edi (the search index, 10 there),
-//    and the latch is 0x494e33 `mov ecx,[esp+0x28] / add eax,0x14b / dec ecx
-//    / mov [esp+0x28],ecx / jne`.  So the source is a pointer walk whose
-//    condition is the search counter itself, and every failing test reaches that
-//    latch, i.e. one && chain with the pointer bump in the latch:
-//      Player* q = g_game->players;
-//      do { if (checks-as-one-&&-chain) q->field_148--; q++; } while (--n);
-//    build/scratch/0x4948e0/v7.cpp is that version: it is 1426 bytes (25 closer
-//    than this file), it gets the pointer walk, the latch and `mov edx,edi`
-//    right, and it scores 73.2% only because the frame stays 0xd0 with the
-//    panel still 4 high.
-//  - The src quad is initialised to only four fields, not four others: the
-//    original stores 1 to 0x60 (p[0].y), 0x64 (p[1].x), 0x78 (p[3].y) and 0x6c
-//    (p[2].x) at 0x494aa5-0x494ab4 and never touches p[0].x, p[1].y or p[3].x.
-//    This file initialises p[0].x, p[0].y, p[3].x, p[1].y instead, which is
-//    three wrong stores (v11.cpp, 77.1%).
-//  - dst.p[1].x and dst.p[2].x come from panel.left + maxw, not from
-//    panel.right - 6: 0x494b99 reads maxw (frame+0x10) and adds panel.left.
-//  - The `Losses` label is right-aligned against panel.TOP, not panel.right.
-//    At 0x494b4d esp is frame-12 (the inlined strcpy's `push 0`, maxw, y and
-//    the ret 4 of FUN_004a5030), so `mov ecx,[esp+0x2c]` is frame+0x1c, which
-//    is the slot 0x494a6c filled with the constant 0x20 and 0x494a98 loaded
-//    into ebx as y.  `Kills` meanwhile is drawn at panel.left+2
-//    (0x494ae3 `mov edx,[esp+0x1c]` = frame+0x18, then `add edx,2`).  Writing
-//    panel.top there does emit the same load, but MSVC then folds the constant,
-//    so this file keeps panel.right and stays 4 bytes high instead.
-// Tried and worse: v7 cleanup (73.2), v7 + chained dst stores (66.2, and the
-// frame drops to 0xcc), v7 + panel.left+maxw + panel.top (66.2), those three
-// without the chaining (58.0), the src-quad fix on this file (77.1),
-// char buf[84] instead of 100 (77.1, and the frame does not move, so the
-// buffer is not what sets the frame size), y += 0x28 moved into the for
-// increment clause (77.6 and 73.5 on v7, frame unchanged), the cleanup block
-// turned into an explicit else (73.2).  This session: hoisting `int n;` before
-// `Quad dst;` and driving the cleanup with it as a do-while pointer walk scores
-// 72.3 (frame 0xd0, panel still at 0x1c, so n did NOT take a hoisted slot);
-// `int y = 0x20;` drops y's slot and moves panel to 0x18 but also swaps the
-// maxw/i slots and shrinks the frame to 0xcc (67.5), and that same constant y
-// with the hoisted-n cleanup is 63.6 (frame 0xcc, y folded into immediates).
-// So the missing slot at 0x28 is n's home, needed only when the cleanup reuses
-// n as its counter with edi taken over by i, and y must stay a register-only
-// (ebx) variable for the panel to land at 0x18.  Earlier sessions: draw block
-// before the cleanup guard 67.5, pointer-walk cleanup counter 65.6, buf[80]
-// 69.5, y declared only for the outer loop 65.2, v1..v5 66.6.
+// MEASURED THIS SESSION (build/scratch/0x4948e0):
+//  - The cleanup counter at 0x28 is NOT a frame: the original's
+//    `mov [esp+0x28],edi` at 0x494dcb is a fresh store of 10 (edi has just
+//    exited the search loop with the value 10) and the latch at 0x494e33
+//    decrements and re-stores the SAME slot.  Writing the cleanup as a
+//    hand-enumerated `p[i]` walk reproduces the original's exactly
+//    (`mov eax,[esp+0x14]; mov esi,ecx; and esi,0xff; cmp esi,edi / jle`,
+//    with the plain `n < 10 / jne` search exit and the odd shared-slot reuse),
+//    but it adds a g_game keep-alive in the outer loop that costs more than it
+//    saves (v2: 74.5%, 1425 bytes).
+//  - v2 with an outer-loop `for (;;)` / or with a hoisted `int n;` gives the
+//    same edi counter and the same cleanup shape; neither removes y's slot.
+//  - Caching `g_game->field_148db` in a local before the draw call (the
+//    original's edx at 0x494c6d is live across the two rect draws and is NOT
+//    reloaded after them, whereas this version reloads g_game after the second
+//    FUN_004bf4d0) fixes that reload but costs 5 points elsewhere
+//    (v6: 76.4%, 1459 bytes).
+//  - register priority: ESI/EDI are already taken by the two counters in every
+//    variant tried, so y cannot reach ebx by adding uses; it needs whichever
+//    variable currently holds ESI to be pushed out first.
+//
+// Tried and worse previously: v7 cleanup (73.2), v7 + chained dst stores
+// (66.2), v7 + panel.left+maxw + panel.top (66.2), the src-quad "fix" (77.1),
+// char buf[84] (77.1), y += 0x28 in the increment clause (77.6), cleanup as an
+// explicit else (73.2), hoisted `int n;` do-while pointer walk (72.3),
+// `int y = 0x20;` (67.5), that plus hoisted-n (63.6), a file-scope
+// `framepic` fed in both arms (66.0).  Earlier sessions: 67.5, 65.6, 69.5,
+// 65.2, 66.6.
 
 #include <string.h>
 
@@ -248,7 +204,6 @@ void __stdcall FUN_004948e0(void* surface)
     y += 0xf;
 
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
-        int n;
         Quad_004948e0 dst;
         dst.p[0].x = panel.left + 7;
         dst.p[0].y = y + 1;
@@ -259,6 +214,7 @@ void __stdcall FUN_004948e0(void* surface)
         dst.p[3].x = panel.left + 7;
         dst.p[3].y = y + 0x25;
 
+        int n;
         Player_004948e0* p = g_game->players;
         for (n = 0; n < 10; n++, p++) {
             if (p->field_0 == 0)

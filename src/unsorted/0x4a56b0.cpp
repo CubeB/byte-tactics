@@ -1,4 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. New scratch
+// results (build/scratch/0x4a56b0). The loop: a guarded `if (i < bound) { do {
+// ... } while (i < bound); }` (v10) and a plain `for`/`while (i < bound)` (v3,
+// v4, v5, v6, v7, declaration order swapped too) all land on the 49.3% mirror
+// (i memory, t in edi, bound in ecx); the unguarded `while (1)` stays 60.3%.
+// So the mirror is not a declaration-order or loop-guard question.
+// The x phi: BOTH `x += w; x -= Measure();` (v1) and `x = w + x; x -=
+// Measure();` (v8) DO move x out of the stack and into ecx incoming / ebp
+// outgoing, with no spill slot, exactly as the original. But each scores only
+// 58.1%, 1647 bytes: MSVC then accumulates `w` into ecx (`add ecx, edx; mov
+// ebp, ecx`) where the original loads w into ebp first (`movsx ebp, w; add
+// ebp, ecx`), and the changed rect base then shifts the whole second half. So
+// the spill-free x is reachable; what is still missing is the w-first operand
+// order, which the natural `w + x` spelling does not give because MSVC
+// reassociates into the x register.
 // 2026-09-30 retry 3 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. Tested
 // twelve more loop spellings from scratch (build/scratch/0x4a56b0): guarded
 // for / while / do-while and `for (;;)` with a manual break all land on the

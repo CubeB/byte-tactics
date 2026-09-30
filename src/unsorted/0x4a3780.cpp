@@ -118,6 +118,26 @@
 //   `int i = 1;` early reaches), not the original 0x3c shape.
 // * Declaring span/step/flag8 early while keeping the copy first changes
 //   nothing at all (identical 1841 bytes, 34.7%).
+// Measured again by space-bunny-free (35.4%, 1841 bytes), all scratch-scored:
+// * The original's span block is `mov cx,[ebp+0xda] / test cx,cx / movsx ecx,cx
+//   / jne / lea ecx,[eax+1]`: the movsx sits BEFORE the branch. That is
+//   `int span = me->field_da; if (span == 0) span = size + 1;` (the scheduler
+//   hoists the cheaper `test cx,cx` above the sign extension). The if/else with
+//   `span = me->field_da` in the else arm instead keeps the movsx inside the arm
+//   and adds a `jmp`: 35.1%, 1839 bytes. Byte shape is right, score is not,
+//   because it still does not move the frame.
+// * A `short nsel = me->field_c0;` local does give the original's
+//   `mov si,[ebp+0xc0] / test si,si` prologue and `dec esi; mov [ebp+0xba],si`
+//   clamp, but changes nothing measurable (35.1%, 1839, same bytes as without).
+// * scroll_up's `(sel < 0) ? 0 : sel` argument: our `int sel` spelling is
+//   if-converted into `xor edx,edx / test / setl / dec / and` (9 bytes) where
+//   the original branches `test cx,cx / jge / xor ecx,ecx / jmp / movsx ecx,cx`.
+//   A `short sel` plus an explicit `int arg = sel; if (sel < 0) arg = 0;`
+//   removes 3 bytes (1838) but scores 35.3%. Not enough to be worth keeping.
+// All three together: 35.0%, 1836 bytes. The score is pinned at ~35% by the
+// 0x34-vs-0x3c frame alone, so shape fixes inside a wrong frame buy nothing.
+// Two slots are still missing (`flags` and the dead 0x18 one) and none of the
+// above moves either. Do not repeat them.
 #include <string.h>
 
 

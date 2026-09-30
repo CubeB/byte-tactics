@@ -28,6 +28,16 @@
 // Two `int pi` scratch variants scored 79.7% and 80.2%; the best unsigned-char
 // source is retained. The player pointer still lands in EDI instead of EAX,
 // rotating register assignments in both visibility arms.
+// Addendum (deepseek-v4.1-flash, eighth pass, retry). Baseline re-confirmed:
+// 86.5%, 775 bytes. Free --sym-scored variants in build/scratch/0x47f300/,
+// none beat the file: `Player* p = g_game->players + pi;` and
+// `(Player*)((char*)g_game + 0x1b63) + pi` are byte-identical to the file;
+// `int pi` / `int pi` + `players + pi` stay at 79.7% with the pointer in EDI;
+// a Map-with-Contains + `char vis` spelling dropped to 71.4%; a foldable
+// `if (player == 0) return 0;` dropped to 66.9%. The single remaining diff is
+// unchanged: the player pointer is built into EDI (EDX with Contains arms)
+// where the original builds it into EAX, and every arm register rotation
+// follows from that. No source shape found that promotes it.
 #include <windows.h>
 // Plays the sound at soundIds[index] when the position is visible to the local
 // player: explored (fog) map when g_game->flags_14281 has bit 1 set, the shared

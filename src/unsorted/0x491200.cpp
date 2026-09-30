@@ -1,4 +1,10 @@
-// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry pass (deepseek-v4.1-flash): tried do/while(0) block, comma-operator
+// argument, sizeof, *(DWORD*)&mem, reference/pointer local, do-block wrap,
+// LPMEMORYSTATUS/integer-constant and helper forms for the second
+// GlobalMemoryStatus. Every one stays at 99.6% with the identical 4-line diff
+// (push/mov swapped at the call's delay slot). Confirms the guide's note at
+// 0x4b6570: this is a scheduler tie-break, not a source-shape lever.
 // Partial: 99.6%, 1174 bytes on both sides. The whole body is byte-identical
 // except the second GlobalMemoryStatus: ours emits
 //     lea edx,[esp+0x10]; mov dword ptr [esp+0x10],0x20; push edx; call esi

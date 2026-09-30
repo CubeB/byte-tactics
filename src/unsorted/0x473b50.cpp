@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol. Names are provisional.
+// Refinement (GPT-6.1-sol): best remains 88.0% (497/499 bytes), no MATCH.
+// Reversing the inline helper's Vec3 reference parameter order and reversing
+// each call's arguments emits byte-identical code. Remaining differences are
+// the field-store scheduling and address/register choices documented below.
 // Sibling of 0x4736e0 and 0x4742c0: the same base call with the third
 // argument, the same two 24-byte copies and the same trailing virtual call.
 // This one keeps each 24-byte block as a {point, far point} pair, moves the

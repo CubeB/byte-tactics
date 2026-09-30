@@ -1,5 +1,13 @@
 // Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// RETRY deepseek-v4.1-flash: 8 more scored variants, none above the kept
+// 534-byte / 81.1% dest-first do-while. Calling the member _Ucopy(_P, _Last,
+// _Q + _M) is 58.0%/546B; an iterator& alias for the source is 60.3%; every
+// dest-first pre-tested form is 80.5%/541B; _d/_s pointer types and the dest
+// spelling (&_Q[_M], _d = _Q then +=_M) do not move 81.1%. The growth branch
+// still colours dest in ecx and source in eax (original: dest eax, source
+// ecx, _Last cached in esi, _M*4 in edi) and is 3 bytes short.
+//
 // RETRY deepseek-v4.1-flash (issue 2433): re-confirmed the growth branch wall
 // from scratch, 9 scored variants, none above the 81.1% do-while base in this
 // file. New measurements this pass: a for-loop with the destination declared

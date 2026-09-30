@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 //
 // Run of deepseek-v4.1-flash: 88.8%, 827 of 820 bytes (7 over). Change from
 // the previous 86.0%: both writes to the flag word at +0xf0 now go through a
@@ -25,6 +25,7 @@
 //    `or al,1`. A videoFlags local there compiles identically.
 //  * the tail tests `test eax,eax` where the original has `cmp eax,ebx`.
 //
+// GPT-6.1-sol retry: six checker invocations in this session, including two compile failures. Moving the style assignment after hInstance reduced the score to 72.7%; loading videoFlags just after scratch[0] scored 86.3%. The original 88.8% source is restored.
 // Earlier 86.0% runs established:
 //  * `d->wc.style = 8` sits just before RegisterClassA instead of at its
 //    natural place after wc.lpfnWndProc. With the store early, MSVC 5

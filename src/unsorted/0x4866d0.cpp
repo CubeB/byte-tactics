@@ -48,6 +48,35 @@
 // Next lever to try: the original spills `rec` to the param slot [esp+0x80] and
 // `rank` to [esp+0x10]; ours puts `mine` at [esp+0x10]. Whoever owns the spill
 // slot is decided by the same callee-saved question as the top of the function.
+//
+// Pass 3 (deepseek-v4.1-flash, 2026-09-30, ~900s): 64.7%, still no MATCH.
+// The original's rec spill is NOT a source choice: ebx is clobbered inside the
+// leaderboard loop by `xor ebx,ebx / cmp edi,ecx / setg bl`, so rec is reloaded
+// from [esp+0x80] at 0x486bc9 on every iteration. In the original the only
+// three callee-saved candidates are unit=esi, credited=edi, cmd=ebx (rec shares
+// ebx because its live range is disjoint from cmd's). Ours always hands cmd the
+// 2nd slot (edi) because credited never becomes a candidate: as a `bool` it
+// lands in bl, and every wide spelling that promotes it to edi then leaves cmd
+// in ebp, not ebx. Confirmed the g_game load register (ebp vs the original's
+// edx) is downstream of that same choice.
+// Free-scored and rejected (all <= 64.7):
+//   int/unsigned/short/long credited        -> committed=edi, cmd=ebp (63.7/63.1)
+//   char/unsigned char credited             -> cmd=edi (64.7, unchanged)
+//   bool credited initialised at the top    -> cmd=edi (60.4)
+//   credited=0 moved before FUN_0044fe40    -> cmd=edi (60.6)
+//   self-correction chain on credited x1..20 -> folded away, no change (64.7)
+//   cmd as a local copied from the parameter -> cmd=edi/ebp (57.7/58.6)
+//   `unsigned char depth` local              -> 57.0 (store/reload shape right, allocation worse)
+//   N unused extern ints, N=0..400 step 4    -> flat 64.7 (source shape, not compiler state)
+//   tools/headers.py, all 128 sets           -> flat 64.7
+//   the real preceding function 0x4864b0 defined above in the same file (the
+//     original translation unit)             -> flat 64.7
+//   fresh expression trees for the 2nd FUN_00435100 call and the bit-2 g_game
+//     test, to break the load CSE            -> flat 64.7
+// Remaining known structural gap: at 0x4867da the original keeps the depth in
+// an `unsigned char` local spilled to [esp+0x14] then reloads/widens it
+// (`mov [esp+0x14],cl; mov edx,[esp+0x14]; and edx,0xff`); ours keeps it in a
+// register. Fixing the allocation above is the prerequisite for that to help.
 extern void* g_game;
 extern char DAT_00508be8[];
 extern char DAT_00508bf0[];

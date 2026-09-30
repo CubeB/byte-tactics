@@ -1,6 +1,49 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial, 78.6%. Zero occupies ESI instead of EBX, and the formatter import
-// remains cached. Header, aggregate, loop and helper variations did not improve it.
+// Decompiled by deepseek-v4.1-flash, rechecked by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, 82.5% (1154 of 1156 bytes). Everything below the entry block has the
+// right fields, frame (0x214), memset sizes (0x13e + 0xcc) and call order; the
+// whole gap is ONE register swap in the allocator:
+//   original: ESI = the g_game temporary, then the cached _imp__wsprintfA
+//             reloaded at the loop head; EBX = the live zero (cmp eax,ebx /
+//             mov [..],ebx / mov [..],bl);
+//   ours:     EBX = the g_game temporary, then the cached wsprintfA import
+//             (hoisted out of the loop and never clobbered); ESI = the live
+//             zero, re-materialised at the loop head (xor esi,esi) because the
+//             inlined strcpy kills ESI. So ours emits `call ebx` where the
+//             original reloads `call dword ptr [0x4fc2e8]` after the strcpy
+//             clobbers ESI.
+// Consequences of the swap, all visible in the checker diff: `mov [..],0` /
+// `test eax,eax` in ours where the original uses bl/ebx, `mov esi,0x14` and
+// `mov [..],si` where the original uses edi/di, and `mov ebx,[0x511de8]` at
+// entry where the original has `mov esi,[0x511de8]`.
+// The deciding block is the entry: ours gives the g_game temporary EBX and the
+// zero ESI, the original the reverse. See build/scratch/0x479c50/best_diff.txt.
+// What raised the score from 78.6% to 82.5%: reading the inlined SetEntry body
+// as `Entries* entries = g_game->menu.holder->entries; obj->entry = 0;
+// Gaf* gaf = entries->gaf;`, which reproduces the original's interleave of the
+// entries load above the obj->entry = 0 store (the same body, phrased with a
+// local `holder` first, puts the store before the entries load and scored
+// 78.6%). Same for `short* f = FUN_004b7f30(e, obj->frame);` reading the frame
+// byte late.
+// Further attempts (all scored with check.py --sym, none above 82.5%):
+//   headers.py: no header set matches; adding <string>, <vector>, <map>,
+//   <iostream>, <stdio.h>, <stdlib.h> alone or together: all 82.5%.
+//   N unused extern declarations 0..2000: flat at 82.5%, so the entry swap is
+//   source shape, not compiler state. Defining the real neighbour 0x479bf0
+//   above ours, or calling it as the shared helper, also stayed at 82.5%.
+//   Statement order around step/y/the two memsets (12 permutations): best 82.5%
+//   only when do the two memsets come after the y computation; every order with
+//   the memsets first folds the numPlayers load into `idiv [reg+0x38d81]` and
+//   drops to 56-69%.
+//   inline GetGame()/NumPlayers() accessors, a named `n` local, explicit memset
+//   sizes, `Rec1 rec1 = {0}` initialisers, non-static/__inline helper, flags
+//   reordered, helper taking void*: none flipped the swap.
+// The remaining lever is a g_game use that raises its priority above the live
+// zero without emitting an extra instruction; not found in this session.
+// GPT-6.1-sol refinement: an explicit Game* local spanning the function fell to
+// 63.4%; limiting it to the step calculation, reordering the Rec declarations, and
+// rewriting the outer for loop as while all returned 82.5%. The baseline source shape
+// remains the best verified variant; residual difference is the EBX/ESI allocation
+// swap around g_game, wsprintfA, and the zero value described above.
 #include <windows.h>
 #include <string.h>
 
@@ -77,9 +120,9 @@ extern Game_00479c50* g_game;
 
 static void __stdcall SetEntry_00479c50(Rec1_00479c50* obj, char* name)
 {
-    Holder_00479c50* holder = g_game->menu.holder;
+    Entries_00479c50* entries = g_game->menu.holder->entries;
     obj->entry = 0;
-    Gaf_004b8d40* gaf = holder->entries->gaf;
+    Gaf_004b8d40* gaf = entries->gaf;
     if (gaf != 0) {
         GafEntry_004b8d40* e = FUN_004b8d40(gaf, name);
         if (e != 0) {
@@ -96,16 +139,17 @@ static void __stdcall SetEntry_00479c50(Rec1_00479c50* obj, char* name)
 // FUNCTION: 0x479c50
 void FUN_00479c50(void)
 {
-    int step = 200 / g_game->numPlayers;
     Rec1_00479c50 rec1;
     Rec2_00479c50 rec2;
+    int step = 200 / g_game->numPlayers;
     int y = (0xb4 - (g_game->numPlayers - 1) * step) / 2 + 0x4f;
     memset(&rec1, 0, sizeof(rec1));
     memset(&rec2, 0, sizeof(rec2));
     rec1.h.flag = 1;
     rec2.h.flag = 1;
     rec2.flags |= 1;
-    for (int i = 0; i < g_game->numPlayers; i++) {
+    int i = 0;
+    while (i < g_game->numPlayers) {
         rec1.h.y = y;
         rec2.h.y = y;
         wsprintfA(rec1.h.name, "Player%d", i);
@@ -157,5 +201,6 @@ void FUN_00479c50(void)
         strcpy(rec1.text, FUN_004c5740("Left click to increase energy. Right click to decrease energy."));
         FUN_004ab2b0(&g_game->menu, &rec1);
         y += step;
+        ++i;
     }
 }

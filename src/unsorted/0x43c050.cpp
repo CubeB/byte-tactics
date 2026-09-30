@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: retained 89.8%. Native insert spellings and 768 header sets
+// did not recover the missing out-of-line _Destroy call. The vector::size
+// symbol discrepancy described below still needs orchestrator review.
 // Appends one 25-byte record from the static table at 0x4fd288 to the global
 // std::vector<Elem> at 0x512340 (element: 0x19 bytes, char* name at +0x15),
 // std::sorts it with the __stdcall name compare 0x43c020, then calls four

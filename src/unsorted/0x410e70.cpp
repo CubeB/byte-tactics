@@ -5,67 +5,13 @@
 // heading to the order's position, lands on a free pad when damaged
 // (VTOL_LANDING, as in 0x412710), or takes the next queued order.
 //
-// Partial: 92.5%. The original calls vector::_Destroy (0x406c00) out of line
-// in both of the vector's destructors, which is MSVC 5's /Ob2 inline budget
-// running out. Found with scratch probes: the inliner does all first-level
-// call sites before the calls inside them, and handles later source first,
-// so the budget runs out for _Destroy only when the vector sits one level
-// down (the TryLand helper) and case 0 (with the inlined FUN_0040f200) comes
-// after case 2 in the source. That gives exactly the original's calls.
-// What still differs: the landed path (839 bytes vs the original's 824).
-// TryLand returns 1 and the caller 0, so MSVC materialises the inlined result
-// and tests it: after the destructor ours does `mov eax, 1; xor edi, edi; jmp`
-// to a shared `cmp eax, edi`, whose fall-through arm is `xor eax, eax; ret`;
-// the original returns 0 straight after the destructor with no test. Inverting
-// the helper's polarity (return 0 for landed, 1 for not, the shape in this
-// file) moves the test after the tail and is worth 0.3%, but it still joins.
-// A scratch probe (build/scratch/0x410e70/probe2.cpp, probe3.cpp) with the
-// same one-level-down vector helper but a trivial destructor DOES emit the
-// direct landed return, so the join is not inherent to the helper shape; it
-// only appears once the real vector destructor is inlined at both sites with
-// _Destroy out of line, i.e. it tracks the same /Ob2 budget state that keeps
-// _Destroy out of line. Returning bool, `== 1`, `> 0`, -1, a flag local, a
-// negated caller, or putting the tail (FUN_0043b700 onward) or the whole case
-// in the helper either keeps that join or changes which calls are inlined.
-// Making the landed return a reload (`return order->flags;` after the store)
-// removes the signal entirely, so the helper always returns 0: it scores
-// 93.7% but the landed path falls through into the tail, so it is not a match.
-// A second helper for the tail (so TryLand returns 0 landed / NextOrder
-// otherwise) is byte-identical to the whole-case helper at 76.7%.
-// With the vector directly in case 2 (no helper) the return folds but both
-// _Destroy calls are inlined (86.5% in best_92's sibling variant in
-// build/scratch/0x410e70/v2_plain.cpp), whatever the case order, and wrapping
-// the vector in a struct with its own destructor does not change that. In
-// that plain version a scratch probe needed about 16 extra trivial inline
-// calls after the landing code before both _Destroy calls went out of line.
-// Putting the whole tail in the helper (`return TryLand(...)` so it returns
-// 0/3/2 directly) scores 76.7%: ebx/ebp swap (order becomes ebx, unit ebp)
-// and the empty path's destructor goes out of line as the full ~vector
-// (0x411056) instead of _Destroy+delete, so ours is 19 bytes short. That
-// variant is the only one that emits the landed `xor eax,eax; epilogue`
-// with no test (verified in its dump), but the swap is stable under a
-// member-function helper, __fastcall, parameter swap and order/unit aliases,
-// and headers.py (128 sets, and 768 with --cpp) never changes either variant.
-// A plain inline vector folds the landed return (86.5%) but inlines both
-// _Destroy calls and mis-allocates case 0 (see v9_plain.cpp).
-// Taking vector<Unit*>::_Destroy's address in this TU (the derived-class
-// member-pointer trick from 0x406c00.cpp) does NOT stop the call site from
-// inlining it: the plain version stays at 86.5%.
-// Dropping the Offset/FUN_0040f790 helpers moves the budget the wrong way (a
-// whole ~vector out of line, or FUN_0040f200 or FUN_0040f790 not inlined).
-// No header set changes the result (tools/headers.py).
-// GPT-6.1-sol retry pass: 9 checker runs kept this 92.5% source.
-// Direct switch and inverted-branch spellings stayed tied; a void helper with a
-// flags check scored 73.4%, and returning order->flags scored 71.0%. The
-// remaining landing-path join after vector cleanup is unchanged.
-// deepseek-v4.1-flash retry (2 check.py runs, kept this 92.5% source): the
-// join is structural to the tested helper return. Scratch variants all stayed
-// at 839 bytes: goto-tail (92.5%, identical), inverted polarity with
-// `if (TryLand()) return 0;` before the tail (92.2%), and a fully inline
-// plain vector (86.5%, return folds but _Destroy inlines and case 0 / the
-// empty test shuffle registers). MSVC always materialises the helper's
-// result and branches on it, so only an inline landing block gives the
-// sequential `xor eax,eax; ret`, which then loses the out-of-line _Destroy.
+// Matched by writing state 2's landing block inline (no helper, so the landed
+// path returns 0 through the plain scope-exit destructor) and consuming the
+// /Ob2 inline budget with empty Dummy() calls after the block, which is what
+// makes both vector destructor sites call vector::_Destroy (0x406c00) out of
+// line. The register allocation in the flags/health block needs the
+// <windows.h> include (tools/headers.py).
+#include <windows.h>
 #include <vector>
 
 struct Vec3 {
@@ -177,23 +123,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     }
 }
 
-// Shared with 0x412710 state 4: land on a free pad when damaged.
-static inline int TryLand(Unit* unit, Order* order)
-{
-    if ((unsigned int)unit->field_108 < (unit->def->field_1fa >> 2) * 3) {
-        std::vector<Unit*> v;
-        FUN_0040b530(unit->player->index, &unit->pos, 0xf00, &v);
-        if (!v.empty()) {
-            ((Class_004388d0*)order)->FUN_004388d0(0);
-            Unit* target = v[FUN_004b6c30(v.size())];
-            FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
-            order->flags = 0;
-            return 0;
-        }
-    }
-    return 1;
-}
-
+static inline void Dummy(void) {}
 // FUNCTION: 0x410e70
 int __stdcall FUN_00410e70(Unit* unit, Order* order, int flags)
 {
@@ -209,16 +139,40 @@ int __stdcall FUN_00410e70(Unit* unit, Order* order, int flags)
         ((Class_0044e730*)obj)->FUN_0044e730(0x150);
         ((Class_004388d0*)order)->FUN_004388d0((int)obj);
         order->flags |= 0xe0;
-        if (TryLand(unit, order)) {
-            Unit* next = FUN_0043b700(unit);
-            if (next && FUN_0043b1f0(unit, next, 0)) {
+        if ((unsigned int)unit->field_108 < (unit->def->field_1fa >> 2) * 3) {
+            std::vector<Unit*> v;
+            FUN_0040b530(unit->player->index, &unit->pos, 0xf00, &v);
+            if (!v.empty()) {
+                ((Class_004388d0*)order)->FUN_004388d0(0);
+                Unit* target = v[FUN_004b6c30(v.size())];
+                FUN_0043acb0(unit, new Class_0043a1f0("VTOL_LANDING", (int)target, 0, 0, 0, 0));
                 order->flags = 0;
-                return 3;
+                return 0;
             }
-            ((Class_00439e80*)order)->FUN_00439e80(0x1e);
-            return 2;
         }
-        return 0;
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Dummy();
+        Unit* next = FUN_0043b700(unit);
+        if (next && FUN_0043b1f0(unit, next, 0)) {
+            order->flags = 0;
+            return 3;
+        }
+        ((Class_00439e80*)order)->FUN_00439e80(0x1e);
+        return 2;
     }
     case 1:
         order->field_4e &= ~0xe0;

@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// GPT-6 retry: 96.9%, not MATCH. Prefix/tail inline helpers, registry return
+// types and register-qualified zero/counter variants do not improve it.
+// Remaining differences are the initial zero register and final zero tests.
 // Partial: 96.9%. Corrected missing Sound Mode default to 1 or 2, restructured the final flag branch and corrected callee return types. Early zero register is ebp instead of ebx; final zero tests and stores still differ.
 
 #include <windows.h>

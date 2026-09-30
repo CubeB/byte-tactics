@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// GPT-6 retry: 66.0%, not MATCH. Stack counter arrays, count helpers and
+// alternate count/counter scopes do not improve the saved implementation.
 // Partial: 66.0%. math.h aligns early registers; caching the current unit definition improves the final loop. Count slots and loop induction registers still differ.
 
 #include <math.h>

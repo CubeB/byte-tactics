@@ -1,138 +1,261 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 68.9%. Added the complete DAMAGE table, sorted vector insertion, default damage and final weapon setup. Corrected path buffer to 0x100. STL insertion and register/stack allocation still differ.
+// Partial, GPT-6 retry: 75.8%, not MATCH. Original 3923 bytes.
+// Allocator construction stays out of line, vector destruction calls
+// FUN_00432c20, and shifting/filling calls FUN_00432cb0/FUN_00432c80.
+// Bitfield instruction scheduling, vector copy loops and stack homes differ.
+// construct does not use an allocator receiver in the original, so its
+// declaration uses the equivalent two-argument stdcall ABI.
 
 #include <string.h>
 #include <vector>
 
 class Class_004c4440 {
-public:
+  public:
     char* FUN_004c4440();
 };
 
 class Class_004c46c0 {
-public:
+  public:
     int FUN_004c46c0(const char* key, int def);
 };
 
 class Class_004c4760 {
-public:
+  public:
     double FUN_004c4760(const char* key, double def);
 };
 
 class Class_004c48c0 {
-public:
+  public:
     int FUN_004c48c0(char* dst, const char* key, int size, char* def);
 };
 
 class Class_004c4470 {
-public:
+  public:
     void* FUN_004c4470(const char* key);
 };
 
 class Class_004c45e0 {
-public:
+  public:
     char* FUN_004c45e0(int index);
 };
 
-class Class_004c9390 { public: void FUN_004c9390(); };
-class Class_004c91a0 { public: char* ptr; Class_004c91a0(const Class_004c91a0&); ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); } };
-class Class_004c91b0 { public: char* ptr; Class_004c91b0(const char*); ~Class_004c91b0() { ((Class_004c9390*)this)->FUN_004c9390(); } };
-class Class_004c93b0 { public: void* FUN_00432d20(int*); };
+class Class_004c9390 {
+  public:
+    void FUN_004c9390();
+};
+class Class_004c91a0 {
+  public:
+    char* ptr;
+    Class_004c91a0(const Class_004c91a0&);
+    ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+};
+class Class_004c91b0 {
+  public:
+    char* ptr;
+    Class_004c91b0(const char*);
+    ~Class_004c91b0() { ((Class_004c9390*)this)->FUN_004c9390(); }
+};
+class Class_004c93b0 {
+  public:
+    void* FUN_00432d20(int*);
+};
 struct Entry_00432cf0 {
     Class_004c91a0 name;
     int value;
     Entry_00432cf0(const Class_004c91a0& n, int v) : name(n), value(v) {}
-    Entry_00432cf0& operator=(const Entry_00432cf0& v) { ((Class_004c93b0*)this)->FUN_00432d20((int*)&v); return *this; }
+    Entry_00432cf0& operator=(const Entry_00432cf0& v) {
+        ((Class_004c93b0*)this)->FUN_00432d20((int*)&v);
+        return *this;
+    }
 };
+class Class_00432c20 {
+  public:
+    void* FUN_00432c20(unsigned char);
+};
+// Model the VC5 allocator and vector operations used in this caller.
+namespace std {
+template <> class allocator<Entry_00432cf0> {
+  public:
+    typedef unsigned int size_type;
+    typedef int difference_type;
+    typedef Entry_00432cf0* pointer;
+    typedef const Entry_00432cf0* const_pointer;
+    typedef Entry_00432cf0& reference;
+    typedef const Entry_00432cf0& const_reference;
+    typedef Entry_00432cf0 value_type;
+    pointer address(reference x) const { return &x; }
+    const_pointer address(const_reference x) const { return &x; }
+    pointer allocate(size_type n, const void*) {
+        int count = (int)n;
+        if (count < 0)
+            count = 0;
+        return (pointer)::operator new(count * sizeof(value_type));
+    }
+    char* _Charalloc(size_type n) { return (char*)::operator new(n); }
+    void deallocate(void* p, size_type) { ::operator delete(p); }
+    static void __stdcall construct(pointer p, const value_type& x);
+    void destroy(pointer p) { ((Class_00432c20*)p)->FUN_00432c20(0); }
+    size_type max_size() const {
+        size_type n = (size_type)-1 / sizeof(value_type);
+        return n > 0 ? n : 1;
+    }
+};
+}
+
+Entry_00432cf0* __stdcall FUN_00432cb0(Entry_00432cf0*, Entry_00432cf0*, Entry_00432cf0*);
+void __stdcall FUN_00432c80(Entry_00432cf0*, Entry_00432cf0*, Entry_00432cf0*);
+static inline void FillEntries(Entry_00432cf0* first, Entry_00432cf0* last,
+                               const Entry_00432cf0& value) {
+    FUN_00432c80(first, last, (Entry_00432cf0*)&value);
+}
+namespace std {
+template <> class vector<Entry_00432cf0, allocator<Entry_00432cf0> > {
+  public:
+    typedef Entry_00432cf0* iterator;
+    typedef const Entry_00432cf0* const_iterator;
+    typedef unsigned int size_type;
+    typedef std::allocator<Entry_00432cf0> Alloc;
+    vector(const Alloc& a = Alloc()) : allocator(a), _First(0), _Last(0), _End(0) {}
+    iterator begin() { return _First; }
+    iterator end() { return _Last; }
+    unsigned int size() { return _First == 0 ? 0 : _Last - _First; }
+    iterator _Ucopy(const_iterator first, const_iterator last, iterator dest);
+    iterator CopyEntries(const_iterator first, const_iterator last, iterator dest) {
+        for (; first != last; ++first, ++dest)
+            allocator.construct(dest, *first);
+        return dest;
+    }
+    void _Ufill(iterator first, size_type n, const Entry_00432cf0& value) {
+        for (; n > 0; --n, ++first)
+            allocator.construct(first, value);
+    }
+    void _Destroy(iterator first, iterator last) {
+        for (; first != last; ++first)
+            allocator.destroy(first);
+    }
+    void insert(iterator _P, size_type _M, const Entry_00432cf0& _X) {
+        if (_End - _Last < _M) {
+            size_type _N = size() + (_M < size() ? size() : _M);
+            iterator _S = allocator.allocate(_N, (void*)0);
+            iterator _Q = CopyEntries(_First, _P, _S);
+            _Ufill(_Q, _M, _X);
+            CopyEntries(_P, _Last, _Q + _M);
+            _Destroy(_First, _Last);
+            allocator.deallocate(_First, _End - _First);
+            _End = _S + _N;
+            _Last = _S + size() + _M;
+            _First = _S;
+        } else if (_Last - _P < _M) {
+            CopyEntries(_P, _Last, _P + _M);
+            _Ufill(_Last, _M - (_Last - _P), _X);
+            FillEntries(_P, _Last, _X);
+            _Last += _M;
+        } else if (0 < _M) {
+            CopyEntries(_Last - _M, _Last, _Last);
+            FUN_00432cb0(_P, _Last - _M, _Last);
+            FillEntries(_P, _P + _M, _X);
+            _Last += _M;
+        }
+    }
+
+  private:
+    Alloc allocator;
+    iterator _First, _Last, _End;
+};
+}
+
 #pragma pack(push, 1)
-struct Damage_0042e440 { char pad; std::vector<Entry_00432cf0> entries; };
+struct Damage_0042e440 {
+    char pad;
+    std::vector<Entry_00432cf0> entries;
+};
 #pragma pack(pop)
 void __stdcall FUN_0049e010(void*);
 
 #pragma pack(push, 1)
 struct Weapon_0042e440 {
-    char name[0x20];                    // +0x000
-    char name2[0x40];                   // +0x020
-    char pad_60[4];                     // +0x060
-    Damage_0042e440* sub;                          // +0x064
-    int weaponvelocity;                 // +0x068
-    int startvelocity;                  // +0x06c
-    int weaponacceleration;             // +0x070
-    void* text;                         // +0x074
-    void* anim1;                        // +0x078
-    void* anim2;                        // +0x07c
-    char model[0x40];                   // +0x080
-    float energypershot;                // +0x0c0
-    float metalpershot;                 // +0x0c4
-    float minbarrelangle;               // +0x0c8
-    int shakemagnitude;                 // +0x0cc
-    int shakeduration;                  // +0x0d0
-    short damage;                       // +0x0d4
-    short areaofeffect;                 // +0x0d6
-    float edgeeffectiveness;            // +0x0d8
-    int range;                          // +0x0dc
-    int coverage;                       // +0x0e0
-    short reloadtime;                   // +0x0e4
-    short weapontimer;                  // +0x0e6
-    short turnrate;                     // +0x0e8
-    short burst;                        // +0x0ea
-    short burstrate;                    // +0x0ec
-    short sprayangle;                   // +0x0ee
-    short duration;                     // +0x0f0
-    short randomdecay;                  // +0x0f2
-    short soundstart;                   // +0x0f4
-    short soundhit;                     // +0x0f6
-    short soundwater;                   // +0x0f8
-    short smokedelay;                   // +0x0fa
-    short flighttime;                   // +0x0fc
-    short holdtime;                     // +0x0fe
-    char pad_100[4];                    // +0x100
-    short accuracy;                     // +0x104
-    short tolerance;                    // +0x106
-    short pitchtolerance;               // +0x108
-    unsigned char id;                   // +0x10a
-    unsigned char firestarter;          // +0x10b
-    unsigned char rendertype;           // +0x10c
-    unsigned char color;                // +0x10d
-    unsigned char color2;               // +0x10e
-    unsigned char pad_10f[2];           // +0x10f
-    unsigned int lineofsight : 1;       // +0x111 bit 0
-    unsigned int ballistic : 1;         // bit 1
-    unsigned int shellweapon : 1;       // bit 2
-    unsigned int beamweapon : 1;        // bit 3
-    unsigned int vlaunch : 1;           // bit 4
-    unsigned int meteor : 1;            // bit 5
-    unsigned int noradar : 1;           // bit 6
-    unsigned int paralyzer : 1;         // bit 7
-    unsigned int dropped : 1;           // bit 8
-    unsigned int startsmoke : 1;        // bit 9
-    unsigned int endsmoke : 1;          // bit 10
-    unsigned int soundtrigger : 1;      // bit 11
-    unsigned int guidance : 1;          // bit 12
-    unsigned int tracks : 1;            // bit 13
-    unsigned int unitsonly : 1;         // bit 14
-    unsigned int groundbounce : 1;      // bit 15
-    unsigned int waterweapon : 1;       // bit 16
-    unsigned int toairweapon : 1;       // bit 17
-    unsigned int smoketrail : 1;        // bit 18
-    unsigned int turret : 1;            // bit 19
-    unsigned int selfprop : 1;          // bit 20
-    unsigned int propeller : 1;         // bit 21
-    unsigned int noexplode : 1;         // bit 22
-    unsigned int burnblow : 1;          // bit 23
-    unsigned int twophase : 1;          // bit 24
-    unsigned int cruise : 1;            // bit 25
-    unsigned int commandfire : 1;       // bit 26
-    unsigned int noautorange : 1;       // bit 27
-    unsigned int stockpile : 1;         // bit 28
-    unsigned int targetable : 1;        // bit 29
-    unsigned int interceptor : 1;       // bit 30
-    unsigned int : 1;                   // bit 31
+    char name[0x20];               // +0x000
+    char name2[0x40];              // +0x020
+    char pad_60[4];                // +0x060
+    Damage_0042e440* sub;          // +0x064
+    int weaponvelocity;            // +0x068
+    int startvelocity;             // +0x06c
+    int weaponacceleration;        // +0x070
+    void* text;                    // +0x074
+    void* anim1;                   // +0x078
+    void* anim2;                   // +0x07c
+    char model[0x40];              // +0x080
+    float energypershot;           // +0x0c0
+    float metalpershot;            // +0x0c4
+    float minbarrelangle;          // +0x0c8
+    int shakemagnitude;            // +0x0cc
+    int shakeduration;             // +0x0d0
+    short damage;                  // +0x0d4
+    short areaofeffect;            // +0x0d6
+    float edgeeffectiveness;       // +0x0d8
+    int range;                     // +0x0dc
+    int coverage;                  // +0x0e0
+    short reloadtime;              // +0x0e4
+    short weapontimer;             // +0x0e6
+    short turnrate;                // +0x0e8
+    short burst;                   // +0x0ea
+    short burstrate;               // +0x0ec
+    short sprayangle;              // +0x0ee
+    short duration;                // +0x0f0
+    short randomdecay;             // +0x0f2
+    short soundstart;              // +0x0f4
+    short soundhit;                // +0x0f6
+    short soundwater;              // +0x0f8
+    short smokedelay;              // +0x0fa
+    short flighttime;              // +0x0fc
+    short holdtime;                // +0x0fe
+    char pad_100[4];               // +0x100
+    short accuracy;                // +0x104
+    short tolerance;               // +0x106
+    short pitchtolerance;          // +0x108
+    unsigned char id;              // +0x10a
+    unsigned char firestarter;     // +0x10b
+    unsigned char rendertype;      // +0x10c
+    unsigned char color;           // +0x10d
+    unsigned char color2;          // +0x10e
+    unsigned char pad_10f[2];      // +0x10f
+    unsigned int lineofsight : 1;  // +0x111 bit 0
+    unsigned int ballistic : 1;    // bit 1
+    unsigned int shellweapon : 1;  // bit 2
+    unsigned int beamweapon : 1;   // bit 3
+    unsigned int vlaunch : 1;      // bit 4
+    unsigned int meteor : 1;       // bit 5
+    unsigned int noradar : 1;      // bit 6
+    unsigned int paralyzer : 1;    // bit 7
+    unsigned int dropped : 1;      // bit 8
+    unsigned int startsmoke : 1;   // bit 9
+    unsigned int endsmoke : 1;     // bit 10
+    unsigned int soundtrigger : 1; // bit 11
+    unsigned int guidance : 1;     // bit 12
+    unsigned int tracks : 1;       // bit 13
+    unsigned int unitsonly : 1;    // bit 14
+    unsigned int groundbounce : 1; // bit 15
+    unsigned int waterweapon : 1;  // bit 16
+    unsigned int toairweapon : 1;  // bit 17
+    unsigned int smoketrail : 1;   // bit 18
+    unsigned int turret : 1;       // bit 19
+    unsigned int selfprop : 1;     // bit 20
+    unsigned int propeller : 1;    // bit 21
+    unsigned int noexplode : 1;    // bit 22
+    unsigned int burnblow : 1;     // bit 23
+    unsigned int twophase : 1;     // bit 24
+    unsigned int cruise : 1;       // bit 25
+    unsigned int commandfire : 1;  // bit 26
+    unsigned int noautorange : 1;  // bit 27
+    unsigned int stockpile : 1;    // bit 28
+    unsigned int targetable : 1;   // bit 29
+    unsigned int interceptor : 1;  // bit 30
+    unsigned int : 1;              // bit 31
 };
 
 struct Game_0042e440 {
     char unknown_0[0x2cf3];
-    Weapon_0042e440 weapons[0x100];     // +0x2cf3, stride 0x115
+    Weapon_0042e440 weapons[0x100]; // +0x2cf3, stride 0x115
 };
 #pragma pack(pop)
 
@@ -149,8 +272,7 @@ void* __stdcall FUN_004b8d40(void* a, char* b);
 int __stdcall FUN_00429470(void* a, char* b);
 
 // FUNCTION: 0x42e440
-void __stdcall FUN_0042e440(Class_004c4440* parser)
-{
+void __stdcall FUN_0042e440(Class_004c4440* parser) {
     char* id = parser->FUN_004c4440();
     Weapon_0042e440* w = &g_game->weapons[((Class_004c46c0*)parser)->FUN_004c46c0("ID", -1)];
     strcpy(w->name, id);
@@ -161,38 +283,29 @@ void __stdcall FUN_0042e440(Class_004c4440* parser)
     w->startvelocity =
         (int)(((Class_004c4760*)parser)->FUN_004c4760("startvelocity", 0.0) * 2184.5333333333333);
     w->weaponacceleration =
-        (int)(((Class_004c4760*)parser)->FUN_004c4760("weaponacceleration", 0.0) * 72.81777777777778);
+        (int)(((Class_004c4760*)parser)->FUN_004c4760("weaponacceleration", 0.0) *
+              72.81777777777778);
     w->range = ((Class_004c46c0*)parser)->FUN_004c46c0("range", 0x7fff);
     w->coverage = ((Class_004c46c0*)parser)->FUN_004c46c0("coverage", 0);
-    w->reloadtime =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("reloadtime", 0.0) * 30.0);
-    w->energypershot =
-        (float)((Class_004c4760*)parser)->FUN_004c4760("energypershot", 0.0);
-    w->metalpershot =
-        (float)((Class_004c4760*)parser)->FUN_004c4760("metalpershot", 0.0);
+    w->reloadtime = (short)(((Class_004c4760*)parser)->FUN_004c4760("reloadtime", 0.0) * 30.0);
+    w->energypershot = (float)((Class_004c4760*)parser)->FUN_004c4760("energypershot", 0.0);
+    w->metalpershot = (float)((Class_004c4760*)parser)->FUN_004c4760("metalpershot", 0.0);
     w->areaofeffect = (short)((Class_004c46c0*)parser)->FUN_004c46c0("areaofeffect", 0);
-    w->edgeeffectiveness =
-        (float)((Class_004c4760*)parser)->FUN_004c4760("edgeeffectiveness", 0.0);
-    w->weapontimer =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("weapontimer", 0.0) * 30.0);
+    w->edgeeffectiveness = (float)((Class_004c4760*)parser)->FUN_004c4760("edgeeffectiveness", 0.0);
+    w->weapontimer = (short)(((Class_004c4760*)parser)->FUN_004c4760("weapontimer", 0.0) * 30.0);
     w->noautorange = ((Class_004c46c0*)parser)->FUN_004c46c0("noautorange", 0);
     w->turnrate =
         (short)(((Class_004c4760*)parser)->FUN_004c4760("turnrate", 0.0) * 0.03333333333333333);
     w->burst = (short)((Class_004c46c0*)parser)->FUN_004c46c0("burst", 0);
-    w->burstrate =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("burstrate", 0.0) * 30.0);
+    w->burstrate = (short)(((Class_004c4760*)parser)->FUN_004c4760("burstrate", 0.0) * 30.0);
     w->sprayangle = (short)((Class_004c46c0*)parser)->FUN_004c46c0("sprayangle", 0);
     w->duration = (short)(((Class_004c4760*)parser)->FUN_004c4760("duration", 0.0) * 30.0);
-    w->randomdecay =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("randomdecay", 0.0) * 30.0);
-    w->smokedelay =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("smokedelay", 0.0) * 30.0);
-    w->flighttime =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("flighttime", 0.0) * 30.0);
-    w->holdtime =
-        (short)(((Class_004c4760*)parser)->FUN_004c4760("holdtime", 0.0) * 30.0);
-    w->minbarrelangle = (float)(((Class_004c4760*)parser)->FUN_004c4760("minbarrelangle", -11.25)
-                                * 0.017453292519943278);
+    w->randomdecay = (short)(((Class_004c4760*)parser)->FUN_004c4760("randomdecay", 0.0) * 30.0);
+    w->smokedelay = (short)(((Class_004c4760*)parser)->FUN_004c4760("smokedelay", 0.0) * 30.0);
+    w->flighttime = (short)(((Class_004c4760*)parser)->FUN_004c4760("flighttime", 0.0) * 30.0);
+    w->holdtime = (short)(((Class_004c4760*)parser)->FUN_004c4760("holdtime", 0.0) * 30.0);
+    w->minbarrelangle = (float)(((Class_004c4760*)parser)->FUN_004c4760("minbarrelangle", -11.25) *
+                                0.017453292519943278);
     w->firestarter = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("firestarter", 0);
     w->rendertype = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("rendertype", 0);
     w->color = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("color", 0);
@@ -231,8 +344,7 @@ void __stdcall FUN_0042e440(Class_004c4440* parser)
     w->tolerance = (short)((Class_004c46c0*)parser)->FUN_004c46c0("tolerance", 0);
     w->pitchtolerance = (short)((Class_004c46c0*)parser)->FUN_004c46c0("pitchtolerance", 0);
     w->shakemagnitude = ((Class_004c46c0*)parser)->FUN_004c46c0("shakemagnitude", 0);
-    w->shakeduration =
-        (int)(((Class_004c4760*)parser)->FUN_004c4760("shakeduration", 0.0) * 30.0);
+    w->shakeduration = (int)(((Class_004c4760*)parser)->FUN_004c4760("shakeduration", 0.0) * 30.0);
 
     char model[0x100];
     if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "model", 0x100, DAT_005119b8) == 0) {
@@ -263,8 +375,8 @@ void __stdcall FUN_0042e440(Class_004c4440* parser)
 model_done:
     w->anim1 = 0;
     char gaf[0x100];
-    if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0
-        && ((Class_004c48c0*)parser)->FUN_004c48c0(model, "explosionart", 0x100, DAT_005119b8) != 0) {
+    if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
+        ((Class_004c48c0*)parser)->FUN_004c48c0(model, "explosionart", 0x100, DAT_005119b8) != 0) {
         void* a = FUN_00429700(gaf);
         void* r = FUN_004b8d40(a, model);
         *(unsigned char*)((char*)r + 2) = 0;
@@ -272,16 +384,20 @@ model_done:
     }
     w->anim2 = 0;
     if (*(int*)((char*)g_game + 0x391e9) != 0) {
-        if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) != 0
-            && ((Class_004c48c0*)parser)->FUN_004c48c0(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
+        if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) !=
+                0 &&
+            ((Class_004c48c0*)parser)
+                    ->FUN_004c48c0(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = FUN_00429700(gaf);
             void* r = FUN_004b8d40(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
             w->anim2 = r;
         }
     } else {
-        if (((Class_004c48c0*)parser)->FUN_004c48c0(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0
-            && ((Class_004c48c0*)parser)->FUN_004c48c0(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
+        if (((Class_004c48c0*)parser)
+                    ->FUN_004c48c0(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0 &&
+            ((Class_004c48c0*)parser)
+                    ->FUN_004c48c0(model, "waterexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = FUN_00429700(gaf);
             void* r = FUN_004b8d40(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
@@ -307,30 +423,33 @@ model_done:
     if (!damage) {
         w->damage = 0;
     } else {
-        w->damage = (short)((Class_004c46c0*)damage)->FUN_004c46c0("default",0);
-        int index=0;
-        char* key=((Class_004c45e0*)damage)->FUN_004c45e0(index);
+        w->damage = (short)((Class_004c46c0*)damage)->FUN_004c46c0("default", 0);
+        int index = 0;
+        char* key = ((Class_004c45e0*)damage)->FUN_004c45e0(index);
         while (key) {
-            if (_strcmpi(key,"default") != 0) {
-                int value=((Class_004c46c0*)damage)->FUN_004c46c0(key,0);
-                if (!w->sub) w->sub = new Damage_0042e440;
+            if (_strcmpi(key, "default") != 0) {
+                int value = ((Class_004c46c0*)damage)->FUN_004c46c0(key, 0);
+                if (!w->sub)
+                    w->sub = new Damage_0042e440;
                 Class_004c91b0 name(key);
-                std::vector<Entry_00432cf0>& entries=w->sub->entries;
-                Entry_00432cf0* first=entries.begin();
-                Entry_00432cf0* last=entries.end();
-                while(first!=last) {
-                    Entry_00432cf0* middle=first+(last-first)/2;
-                    if ((unsigned char)(_strcmpi(middle->name.ptr,name.ptr)<0)) first=middle+1;
-                    else last=middle;
+                std::vector<Entry_00432cf0>& entries = w->sub->entries;
+                Entry_00432cf0* first = entries.begin();
+                Entry_00432cf0* last = entries.end();
+                while (first != last) {
+                    Entry_00432cf0* middle = first + (last - first) / 2;
+                    if ((unsigned char)(_strcmpi(middle->name.ptr, name.ptr) < 0))
+                        first = middle + 1;
+                    else
+                        last = middle;
                 }
-                if (first==entries.end() || strcmp(first->name.ptr,name.ptr)!=0) {
-                    unsigned int offset=first-entries.begin();
-                    entries.insert(first,1,Entry_00432cf0(*(Class_004c91a0*)&name,0));
-                    first=entries.begin()+offset;
+                if (first == entries.end() || strcmp(first->name.ptr, name.ptr) != 0) {
+                    unsigned int offset = first - entries.begin();
+                    entries.insert(first, 1, Entry_00432cf0(*(Class_004c91a0*)&name, 0));
+                    first = entries.begin() + offset;
                 }
-                first->value=value;
+                first->value = value;
             }
-            key=((Class_004c45e0*)damage)->FUN_004c45e0(++index);
+            key = ((Class_004c45e0*)damage)->FUN_004c45e0(++index);
         }
     }
     FUN_0049e010(w);

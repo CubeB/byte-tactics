@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
 // Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..929 ticks from now. A group of fewer than 5 units
@@ -7,21 +7,38 @@
 // around it (mode 2 first, then mode 9). A bigger group is sent to a random
 // point on the map edge.
 //
-// Partial (91.1%): everything outside the scatter loop matches. Differences
-// left in the loop preheader and body:
-// GPT-6.1-sol rechecked the saved source and tried an outer guard with for/do-while
-// loops and direct x/z expressions; none improved on 91.1% (6 checks this pass).
-// - The original rotates the loop, so w / 2 and h / 2 (ebp and a stack slot)
-//   are computed after the guard `cmp ecx, ebx; jle`, while this version
-//   computes them before it (`test ecx, ecx; jle`). Moving them into the loop
-//   body makes the allocator give `this` ebp and spill both halves (58-59%);
-//   an explicit `if (n > 0) do/while` is the same.
-// - In the body the original adds the shifted random delta into the register
-//   holding pos.x/pos.z (`mov edx, [pos.x]; ...; add edx, eax`) and loads pos.y
-//   only after dest.x is finished; every variant here adds into eax and loads
-//   pos.y early.
-// - Tried without effect: every header set (tools/headers.py), halves inside
-//   the loop, an explicit guard with do/while.
+// Partial (91.1%): everything outside the scatter loop matches byte for byte,
+// including the whole "5 units or more" branch. One hunk differs, the loop
+// preheader plus the first half of the loop body, and it is one block-ordering
+// decision:
+// - The original splits the loop preheader: `sar esi,3; sar edi,3` (w and h)
+//   come before the entry test `cmp ecx,ebx; jle`, and the two halves (ebp =
+//   w/2, [esp+0x14] = h/2) come after it as a block of their own. Here the
+//   halves are computed before the test, and the test is `test ecx,ecx`,
+//   emitted between the halves' last shift and the spill of h/2.
+// - In the body the original loads pos.x into edx and adds the shifted random
+//   delta into it (`add edx, eax`), loading pos.y only after dest.x is
+//   finished; here pos.x goes to ecx, pos.y to edx, both are loaded up front
+//   and both sums land in eax. Same knock-on: which register the block takes
+//   as its first free temp.
+// - space-bunny-free re-confirmed the walls the earlier passes hit. Both are
+//   register-allocation walls, not byte counts: the early `mov [esp+0x14],
+//   esi` spill of `this` (which is what frees esi for w), `this` living in
+//   esi, and ebp holding w/2. Writing the halves as loop-body expressions
+//   (w / 2 inline, so LICM would sink them below the test) drops the file to
+//   27.2%: the early spill of `this` disappears and ebx becomes ebp. An
+//   explicit `if (n > 0) { int hw, hh; for (...) }` is 58.7% and puts `this`
+//   in ebp, as the notes said. Declaring w and h in ONE statement is
+//   byte-identical to two statements, so that split is not a statement
+//   boundary effect either.
+// - Untried: making the halves depend on something LICM cannot hoist out of
+//   the body (a value reloaded from the group), which is the only way seen so
+//   far to get a block between the entry test and the body without opening a
+//   nested scope.
+// - tools/headers.py: no header set does better than 91.1%.
+// - The packet for this address misprints one operand: 0x407c8b is
+//   `mov dword ptr [esp + 0x20], eax`, not [esp + 0x24]. The >= 5 branch of
+//   the saved source is byte-exact, so trust check.py, not the packet.
 //
 // `field_c = g_game->ticks + FUN_004b6c30(900) + 30` in one expression folds
 // to `lea eax, [eax+edx+0x1e]`; the delay has to be computed first.
@@ -149,8 +166,7 @@ void Class_00407a90::FUN_00407380()
                          9, 1, 0, &target->pos, 0, 0);
         } else {
             int n = FUN_004b6c30(2) + 2;
-            int w = g_game->baseX / 8;
-            int h = g_game->baseY / 8;
+            int w = g_game->baseX / 8, h = g_game->baseY / 8;
             int hw = w / 2, hh = h / 2;
             for (int i = 0; i < n; i++) {
                 int dx = FUN_004b6c30(w) - hw;

@@ -1,6 +1,24 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
 // Best retry: 97.8% (296 bytes). Difference: derived vtable store is before
 // the third vector's game loads; pop edi is between its second and third stores.
+//
+// The original's last instructions are: lea ecx,[esi+0x2c]; mov [esi+0x38],ebp;
+// mov [esi],0x4fc9a0; pop edi; mov [ecx],ebx; mov [ecx+4],ebp; mov [ecx+8],eax;
+// mov eax,esi. So field_38's store and the derived vtable store are in front of
+// the third vector's struct copy, and that copy's first store is NOT folded to
+// [esi+0x2c] (2 bytes, so the whole function is 296). The two shapes that reach
+// each half of that were measured here:
+// - Full initialiser list (a(g_game), b(g_game), c(g_game), field_38(0)) puts
+//   both field_38's store and the vtable store exactly where the original has
+//   them, but the copy is left unfolded next to its lea: 95.5%, 297 bytes.
+// - All three vectors assigned in the body scores 98.3% and is NOT a legal
+//   match: with no member initialiser the derived vtable store lands on top of
+//   the base's, the base store is then dead and disappears, and the function
+//   comes out 291 bytes / 88 instructions with one vtable store missing.
+// So the source needs field_38 in the initialiser list (only then does MSVC put
+// the vtable store after it) and the third vector's struct copy after that store,
+// which no initialiser list produces. All 128 header sets from tools/headers.py
+// score 97.8% on the version below.
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14223];
@@ -86,6 +104,20 @@ Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
 // the lea and the stores. Written-order init lists (`field_38(0), c(g_game)`)
 // are normalised back to declaration order. All 128 header sets from
 // tools/headers.py score 95.5%. Not reproducible from source in the timebox.
+//
+// Notes from space-bunny-free: also tried, all worse than the version below.
+// The vector's own constructor rewritten to assign x, y and z separately drops
+// the `lea` altogether (64.7%); a two-int constructor
+// `Vec3(int ax, int az) { *this = Vec3(ax, 0, az); }` called with inlined
+// `HalfX(g_game), HalfZ(g_game)` helpers (so the two __ftol calls are the
+// constructor's arguments, not its body) still scores 95.5%, as do
+// `c(Vec3_00407d40(g_game))` through the copy constructor, a single
+// `Vec3 a, b, c;` declaration, `short field_38`, a `short`/`void*` g_game, a
+// self assignment `c = c;` in the body, a dead `field_c = 0;` in the body, and
+// `c = Vec3_00407d40(g_game)` with field_38 in the list. The copy is emitted
+// unfolded (through ecx) only when the compiler's input has something between
+// the `lea` and the stores, and the only IR node that can go there is the
+// derived vtable store, which MSVC emits before the body.
 // FUNCTION: 0x407d40
 Class_00407d40::Class_00407d40(Class_00408cb0* p, void* q)
     : Class_00407350(p, q), a(g_game), b(g_game)

@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free. Names are provisional.
 // Order handler: when the unit has just been built (progress 0), copies the
 // QMove/QPatrol orders queued on the factory (order->target) to the new unit
 // and its fire/move states, else parks it; otherwise a small wait state machine.
@@ -25,6 +25,23 @@
 // `(flags & ~mask) | (target->flags & mask)` masks and an explicit
 // `unsigned char k = node->kind.index` are also 87.9%; a shared
 // `unsigned int f` accumulator for the two bitfield merges drops to 84.7%.
+// Retry by space-bunny-free: still 87.9%, unchanged source (gave up). The
+// compiler-state probe is now dead over N = 0..400 step 4 AND N = 405..515
+// step 10 (every one of the 24 points 87.9%, 537 bytes both sides), so the
+// guide's ~525-declaration period does not rescue it; headers.py's 128 sets
+// are all 87.9% again. Frame arithmetic for the record: esp after the
+// prologue is entry-24, so the loop's `move`/`patrol` locals sit in the dead
+// saved-ebx and saved-edi slots ([esp+0x10] and [esp+0x14]), the two hidden
+// return slots for FUN_0043f0e0 sit in the dead arg1 and arg2 slots
+// ([esp+0x1c] and [esp+0x20]) and `kind` itself is initialised in the dead
+// arg3/flags slot ([esp+0x24], reused by the state machine in the other
+// branch). Every one of those offsets already matches. What is left is only
+// the temp register order, and it is ONE step late everywhere: block 1
+// eax/ecx vs our ecx/edx, block 2 edx/eax vs our ecx/edx, the FUN_0043adc0
+// argument block edx/ecx vs our eax/edx, the second flag copy ecx (reusing
+// the live register) vs our edx, and the value copy edx vs our ecx. Tried
+// here and flat: extended dummy-declaration sweep, and a class with no
+// user-declared default ctor (did not compile, so untested).
 class Class_00438760 {
 public:
     unsigned char index;

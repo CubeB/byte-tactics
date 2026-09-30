@@ -102,6 +102,19 @@
 //     header state and must stay. Nothing reached both the exact y-clip block
 //     and the original's x register at once.
 //
+//  9. THIS PASS ALSO RULED OUT (plain if/else y clip, all still 52.7% or
+//     worse): an inline `dsub`/getter helper for the two field differences,
+//     `x`/`y` copied into locals, second pointer locals `s`/`d`, no
+//     parentheses, `dst->y`/`src->y` read into locals first, a `static inline`
+//     x/y-offset helper writing both results through int* out-params, a
+//     `static inline` clip-helper taking `int*`, a ternary per row
+//     (`srcRow = sy < 0 ? -sy : 0;`), dstRow-assignment-first arms, reversed
+//     branches, and a dummy function prepended to the file. Confirmed: any
+//     plain-if/else spelling keeps `src->y` in ECX before the sx add and
+//     spills dstRow to ECX (the original has src->y in EDX late and dstRow in
+//     EDX). The init shape here is the only one that keeps sx in ECX. The
+//     remaining gap is a load-scheduler tie-break between the x and y trees.
+//
 // Arg slots: the original reads its four incoming values at [esp+0x10],
 // [esp+0x18], [esp+0x1c] and [esp+0x20] after its four pushes, skipping
 // [esp+0x14]. A 4-argument __stdcall declaration compiles to exactly those

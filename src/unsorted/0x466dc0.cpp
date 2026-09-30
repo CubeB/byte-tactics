@@ -9,26 +9,34 @@
 // projectile visible to the current player. Finally the "radar dirty" bit is
 // set in g_game+0x142f1.
 //
-// PARTIAL (62.5%). Structure is right, frame is now 0x1c like the original,
+// PARTIAL (62.8%). Structure is right, frame is 0x1c like the original,
 // the inlined radar predicate matches (branch form for the byte-array case,
-// neg/sbb/neg for the bitfield case), and the int bit tests (`shr reg,N;
-// test reg,1`) now come from bitfield structs (flags_110, flags_241, shot
-// flags at +0x111). What still differs:
-// - `int enabled = 1` materialises 1 in a register (`mov eax,1`) and stores
-//   it twice; the original stores the immediate 1 twice and never holds it.
-// - `(field_14281 & 3)` is folded to `test byte ptr [m],3`; the original
-//   loads the word (`mov ax`) and tests `al`. The 0x37f2f bit test now
-//   matches. A bitfield `bit0 | bit1` was tried and was worse.
-// - First loop unit-x multiply: MSVC loads g_game->field_142eb before
+// neg/sbb/neg for the bitfield case), the int bit tests (`shr reg,N;
+// test reg,1`) come from bitfield structs (flags_110, flags_241, shot flags
+// at +0x111), and the final "radar dirty" set now matches as an
+// `or byte ptr [m],2` (the byte at 0x142f1 is the high byte of a 1-bit
+// `unsigned short` bitfield starting at 0x142f0: region 0x142f0 + bit 9).
+// What still differs, by original address:
+// - 0x466e0c: `int enabled = 1` materialises 1 in a register (`mov eax,1`)
+//   and stores it twice (`mov [esp+0x1c],eax`); the original stores the
+//   immediate 1 twice and never holds it. Because eax survives the first
+//   test, the constant is CSE'd; the original's `mov ax,[0x14281]` clobbers
+//   eax so it cannot.
+// - 0x466e14: `(field_14281 & 3)` is folded to `test byte ptr [m],3`; the
+//   original loads the word (`mov ax,word ptr [esi+0x14281]`) and tests
+//   `al`. The 0x37f2f bit test (0x466e23) now matches. A bitfield
+//   `bit0 | bit1` was tried and was worse.
+// - 0x466e83 (first loop): MSVC loads g_game->field_142eb before
 //   u->field_6c; the original loads the unit field first. Source order is
 //   already unit-first, so this is register-allocation state.
-// - Second loop induction: the original keeps the element pointer in
-//   [esp+0x1c] (memory) and element+0xa in ebx, updating both at the bottom;
-//   mine keeps the element pointer in ebx and element+0xa in ebp. The
-//   source has both `p` and `q` incremented each iteration.
+// - 0x4671c0 (second loop induction): the original keeps the element
+//   pointer in [esp+0x1c] (memory) and element+0xa in ebx, reloading the
+//   element pointer into ecx at the loop top and updating both at the
+//   bottom; mine keeps the element pointer in ebx and element+0xa in ebp.
+//   This is the biggest remaining block (roughly 0x4671a0-0x46742f).
 // - Loop-bottom store order differs (i, p, q in a different sequence).
-// - The final `field_142f1 |= 2` compiles to a register read-modify-write;
-//   the original is `or byte ptr [m],2` straight to memory.
+// - The inlined radar predicate in the second loop (0x46721a onward and
+//   0x4673xx) has inverted branch shapes and different scratch regs.
 #pragma pack(push, 1)
 
 struct Shot_00466dc0;
@@ -54,6 +62,20 @@ union Flags111_00466dc0 {
         unsigned int :30;
         unsigned int bit30 : 1;
         unsigned int :1;
+    } bits;
+};
+
+union Flags142f0_00466dc0 {
+    unsigned char bytes[2];
+    struct {
+        unsigned char lo;                // +0x142f0
+        unsigned char hi;                // +0x142f1
+    } b;
+    struct {
+        unsigned short :8;
+        unsigned short bit0 : 1;         // +0x142f1 bit 0
+        unsigned short bit1 : 1;         // +0x142f1 bit 1
+        unsigned short :6;
     } bits;
 };
 
@@ -175,8 +197,8 @@ struct Game_00466dc0 {
     short field_142e9;                   // +0x142e9
     short field_142eb;                   // +0x142eb
     short field_142ed;                   // +0x142ed
-    char unknown_142ef[0x142f1 - 0x142ef];
-    unsigned char field_142f1;           // +0x142f1
+    char unknown_142ef[1];
+    Flags142f0_00466dc0 field_142f0;     // +0x142f0
     char unknown_142f2[0x14357 - 0x142f2];
     Unit_00466dc0* units;                // +0x14357
     Unit_00466dc0* unitsEnd;             // +0x1435b
@@ -263,7 +285,8 @@ void FUN_00466dc0(void)
                             g_game->field_1422b;
                     int y = (((int)u->field_74 - ((int)u->field_70 >> 1)) *
                              (int)g_game->field_142ed) / g_game->field_1422f;
-                    if (u->field_fa == 0 || (g_game->field_142f1 & 1) != 0) {
+                    if (u->field_fa == 0 ||
+                        (g_game->field_142f0.b.hi & 1) != 0) {
                         FUN_004b7f90(surface,
                             FUN_004b7f30(g_game->field_147df,
                                 PlayerInfo_00466dc0_Get(u->field_ff)->data->field_96),
@@ -307,7 +330,7 @@ void FUN_00466dc0(void)
                                     else
                                         FUN_004c01a0(surface, x, y, r, base[0xf],
                                                      0x20,
-                                                     g_game->field_142f1 & 1);
+                                                     g_game->field_142f0.b.hi & 1);
                                 }
                                 slot++;
                                 n--;
@@ -357,5 +380,5 @@ void FUN_00466dc0(void)
         } while (i < g_game->projectileCount);
     }
 
-    g_game->field_142f1 |= 2;
+    g_game->field_142f0.bits.bit1 = 1;
 }

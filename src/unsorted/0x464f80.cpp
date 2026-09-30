@@ -20,6 +20,15 @@
 //    our do-while bottom test makes provably dead, so ours drops it.
 //  - The cold mode blocks are in line here; the original puts them after the
 //    function's two rets (0x465643..0x4658d3).
+//
+// Remaining diff hunks by original address:
+//  0x464f80  frame 0x40 vs 0x34 and every [esp+N] slot after +0x14 drifts.
+//  0x464f9e  missing entry guard `cmp bl,0xa / jae 0x4655a6` (dead in ours).
+//  0x464fe4  duplicated type/0x73 test: original reloads [edi+0x73] twice.
+//  0x465001  duplicated `cmp dword [edi],0`: CSE'd away in ours.
+//  0x46500a  duplicated `cmp byte [edi+0x146],0xa`: CSE'd away in ours.
+//  0x465643  cold mode blocks scheduled inline in ours, outlined after the
+//            two rets in the original.
 
 #include <windows.h>
 #include <string.h>

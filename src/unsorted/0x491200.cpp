@@ -54,6 +54,13 @@
 // 391f5 store after call B). The nine g_game zero stores and the 391f5 store as
 // one inline helper, and a single-store inline helper at site 2, both stay at
 // 99.6% with the same diff.
+// A fourth deepseek-v4.1-flash pass added about 40 more spellings at site 2
+// (statement-level comma, switch(0)/case, for(;;)break, do/while(0), if(1), a
+// bare {} block, pointer/reference locals assigned before or after the store,
+// (void)(store), a result variable, array and -> forms, a function-pointer
+// local, and first-site perturbations plus `register` declarations). Every one
+// compiled to the same object as the file below: the tie is not reachable from
+// any C++ shape, only from the scheduler's internal node order.
 
 #include <string.h>
 #include <windows.h>

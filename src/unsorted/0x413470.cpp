@@ -1,4 +1,6 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// #1704 retry by Codex / GPT-6.1-sol: checkall reconfirmed 97.4%, no MATCH.
+// Eight worker checks found no improvement over the existing source.
 // GPT-6 retry: range/difference helpers, target-position addition helpers,
 // declaration layout, constructor bodies and coordinate field names did not
 // improve 97.4%. The first hypot and missed-attack waypoint loads still differ.

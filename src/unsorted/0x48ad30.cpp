@@ -1,4 +1,90 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (#1208) second retry: 84.1% kept (849 bytes, size matches).
+// Re-verified the v22 lead (build/scratch/0x48ad30/v22.cpp): its head emits
+// `push edi` before `xor al,al` and shares one zero register for both
+// `*cnt = 0` and `off = 0` (`xor edi,edi / mov [esp+0x18],edi / mov [ebx],edi`)
+// where the original stores immediates and pushes edi after `cmp al,0xa`.
+// That zero is then forwarded into the body as edi=off, so the original's
+// `mov edx,[esp+0x14]` reload never appears: 9 bytes short (840 vs 849).
+// Tried this run, all 840-851 bytes and 75.1% or worse: for-init initialisers
+// with the declarations split out (t2/t3: the *cnt store does become an
+// immediate, `mov [ebx],0`, but off's zero still lands in edi and the slot
+// order stays cnt 0x14 / off 0x18), `int off` declared before `int* cnt` in
+// every order (t1/t4: slots do not move, though the entry g_game load moves
+// to ecx), the player test written twice as a raw cast expression or via a
+// fresh local (t5/t6: unchanged), a second inlined helper
+// `PlayerAt(int& off)` returning p (t8: unchanged), and using
+// `g_game->f14353` directly with no cnt local (t7: 851 bytes, 60.9%, g_game
+// gets reloaded for the counter).
+// Status: the head differs from the original in exactly these bytes: guard
+// `jb <body>` plus `xor edi,edi / jmp` select instead of `jae <latch>` and a
+// flat `je <latch>` test chain; i in cl not al; off in eax not edx; cnt at
+// [esp+0x14] and off at [esp+0x18] instead of the reverse.
+
+// deepseek-v4.1 (#1208) retry: still 84.1% (849 bytes, equal size). New confirmed
+// lead, much closer than this file, saved as build/scratch/0x48ad30/v22.cpp
+// (840 bytes, 75.1% only because every body jump target shifts by 9 bytes):
+// dropping the value-returning helper and writing the player test as a FLAT
+// short-circuit chain with `continue`s in a for loop gives the original's entry
+// guard outright, `xor al,al / cmp al,0xa / jae <latch>`, with the counter in al
+// (the byte-local register the original uses) and no if-converted null-select:
+//
+//     static inline int PlayerMore(unsigned char i) { if (i >= 10) return 0; return 1; }
+//     for (; i < 10; i++, off += 0x14b) {
+//         if (!PlayerMore(i)) continue;
+//         Player_0048ad30* p = (Player_0048ad30*)((char*)&g_game->players[0] + off);
+//         if (p->f0 == 0) continue;
+//         unsigned char k = p->f73;
+//         if (k != 1 && k != 2 && k != 3) continue;
+//         if (p->f146 == 0xa) continue;
+//         ...body unchanged...
+//     }
+//
+// The helper must exist and must test i (that is what keeps the counter live in
+// the body and blocks the trip count pass; a plain for loop still becomes a down
+// counter). Written this way the whole player-test region is branch-for-branch
+// the original's, the guard lands on the latch, and only two things are left,
+// both in the prologue:
+//   1. off: the original reloads it (`mov edx,[esp+0x14]` then
+//      `mov eax,[ecx+edx+0x1b63]` / `lea edi,[ecx+edx+0x1b63]`), our build
+//      forwards the known zero and emits `mov eax,[edi+ecx+0x1b63]` /
+//      `lea edi,[edi+ecx+0x1b63]` with edi = 0, 8 bytes shorter, plus it shares
+//      the zero with `*cnt = 0` (`xor edi,edi`, `mov [ebx],edi`,
+//      `mov [esp+0x18],edi`) where the original stores immediates
+//      (`mov [ebx],0`, `mov [esp+0x14],0`).
+//   2. slots: our cnt pointer gets [esp+0x14] and off [esp+0x18]; the original
+//      has off at [esp+0x14] and cnt at [esp+0x18]. Permuting the three
+//      declarations (all six orders tried) does not move them; the only order
+//      that changes anything is `int* cnt; *cnt = 0; unsigned char i; int off;`
+//      (build/scratch/0x48ad30/v24.cpp, 844 bytes) which makes `*cnt = 0` an
+//      immediate store but leaves off in a register and the slots swapped.
+//   3. the tail `mov ebx,[esp+0x18]` (cnt reload) happens after the last two
+//      calls in the original and before the FUN_0043b7c0 call in ours.
+//
+// The 84.1% version below keeps the old value-returning helper: it if-converts
+// the failed tests into `xor edi,edi / jmp` and comes out `jb` + select instead
+// of `jae`, but it does keep off address-taken (memory, reloaded) and is the
+// highest scoring version so far, so it stays in the file.
+// Also tried and worse this run: `*cnt = 0` before the declarations (69.7%, 853),
+// `int off` declared before `int* cnt` (69.7%, 854/844, slots unchanged),
+// helper as `PlayerMore(i, off)` with the reference dropped by the inliner
+// (identical 75.1%), the same for loop with the value-returning helper (84.1%,
+// identical bytes to the do-while below).
+// What still differs in this file: the guard `jb <body>` plus the
+// `xor edi,edi / jmp` select against the original's `jae <latch>` (which v22
+// fixes), i in cl against al, off in eax against edx, and the cnt/off slots.
+// LongCat 2.5 (#1208): 84.1%, 849 bytes (size matches). The guard and init stores now
+// appear: a `static inline PlayerOk(unsigned char i, int& off)` helper in the body tests
+// the loop counter (blocking the trip count pass, so the guard survives) and returns the
+// player pointer, which keeps `off` address-taken (in memory, no strength reduction).
+// The unit body matches instruction for instruction. What still differs is register
+// allocation in the prologue/player-tests/latch: the type byte lands in cl not al, `off` in
+// eax not edx, the player address in one `lea` not load+lea, and the helper's last early
+// return (`p->f146 == 0xa`) is if-converted to a branchless select (neg/sbb/and) instead
+// of the original's `cmp byte ptr [edi+0x146],0xa / je`. Tried and worse: minimal helper
+// (72.3%, no guard + strength reduction), nested ifs (69.9%), bool return + out-param
+// (79.7%), f146 in body (68.9%), reordered conditions (68.2%), inline player tests
+// (74.9%), struct state (83.3%), headers.py (no change).
 // Sonnet 5.5 retry (#1091): 77.6% (was 74.2%). The +3.4 came from spelling the progress swap
 // `u->ff7 = u->ff6; u->ff6 = v;` (the original loads dl, stores ff6, then ff7). Lead for the loop
 // head: the original guard `xor al,al / cmp al,0xa / jae <latch>` is an in-body `if (i < 10)` test
@@ -292,18 +378,28 @@ void __stdcall FUN_0048d790(void);
 int __stdcall FUN_004c1b80(int n);
 void __stdcall FUN_0041c2e0(int n);
 
+static inline Player_0048ad30* PlayerOk(unsigned char i, int& off)
+{
+    if (i >= 10) return 0;
+    Player_0048ad30* p = (Player_0048ad30*)((char*)&g_game->players[0] + off);
+    if (p->f0 == 0) return 0;
+    unsigned char k = p->f73;
+    if (k != 1 && k != 2 && k != 3) return 0;
+    if (p->f146 == 0xa) return 0;
+    return p;
+}
+
 // FUNCTION: 0x48ad30
 void __stdcall FUN_0048ad30(void)
 {
     int* cnt = &g_game->f14353;
-    unsigned char i;
-    int off;
+    unsigned char i = 0;
+    int off = 0;
     *cnt = 0;
     do {
-        Player_0048ad30* p = (Player_0048ad30*)((char*)&g_game->players[0] + off);
-        if (p->f0 != 0) {
-            unsigned char k = p->f73;
-            if ((k == 1 || k == 2 || k == 3) && p->f146 != 0xa) {
+        Player_0048ad30* p = PlayerOk(i, off);
+        if (p) {
+            {
                 Unit_0048ad30* last = p->f6b;
                 Unit_0048ad30* u = p->f67;
                 while (u <= last) {

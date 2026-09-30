@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1. Names are provisional.
 // Samples the ground under a unit at its four surrounding terrain
 // vertices and stores the resulting pitch (0x68) and roll (0x70) on the
 // unit, plus a heading (0x64) from the two side vertices. The 0x11/0x04
@@ -68,6 +68,30 @@
 // still on the stack, so that instruction's esp+0x38 is esp+0x30) and read
 // back at 0x48a736. The epilogue reads .h at +0x60, +0x6c, +0x78, +0x84.
 
+//
+// deepseek-v4.1 (1208): re-checked from the 77.8% partial; no source shape found that fixes the
+// remaining hunks. What still differs, and what was tried: (1) the prologue register roles (m in edx
+// and count in ecx in the original, m in ecx and count in edx here) and everything downstream of
+// them (the two lea/pointer temps, the pts pointer ecx-vs-edx, H vs sea in the max block, the
+// add eax,ecx operand order) cascade from that one allocation choice; retried with maps held in a
+// named local, with row computed via m->rows[m->count], and with the pair declared in both orders,
+// all scored the same or lower. (2) The p computation: the original keeps `and eax,0x1f` on the
+// random value and pushes [esp+0x28] with a plain 32 bit load; declaring p as short with
+// FUN_004b7123's first parameter short drops the movsx (856 bytes, 77.0%) but the mask stays dead,
+// and int p (75.1%), a separate rand temp (66.4%) and a split p = (short)(p + fix_lo) statement
+// (75.8%) all score lower than the present 77.8%. (3) Moving the n = frame - age statement back
+// after the 64 bit division, with and without a cached owner pointer, drops to 73.9% even though the
+// original schedules it there.
+//
+// deepseek-v4.1 (1208), second pass: re-scored the whole diff and the mask/movsx hunk. The original's
+// p pair (`and eax,0x1f`, then a 16 bit `add ax, [u+0xaa]`, then a dword store and a plain dword
+// reload) cannot be produced by aliasing p: `union { int i; unsigned short s; } p; p.i = ...;
+// p.s += u->fix_lo;` and `*(unsigned short*)&p += u->fix_lo;` both give 867 bytes at 71.9 (taking p's
+// address forces extra spills), so the mask stays dropped here. wx-before-hz scores 76.3 alone and
+// 72.5 with n moved after the 64 bit block, so the present order (hz then wx, n before q, which keeps
+// q = owner->sight and n = frame - age in the same blocks the original schedules them) stays best.
+// Still differs: the m/count ecx/edx swap in the prologue and everything downstream of it, the
+// dropped mask, and the p reload spelled movsx instead of a plain dword load.
 //
 // Sonnet 5.5 retry (#1091), 70.8% to 77.8%: a hill climb over statement positions (moving one
 // statement of the loop body or of the sea-level block at a time, with every statement that

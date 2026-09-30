@@ -1,4 +1,26 @@
-// Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by
+// space-bunny-free. Names are provisional.
+// PARTIAL, 82.0% (fourth pass: unchanged). What still differs is ONE eviction:
+// the original spills the face counter `i` to frame+0x10 (`mov [esp+0x10],edi`
+// at 0x4212bd, reloaded by `mov edi,[esp+0x10]` at 0x421307, stored again at
+// 0x42138e) and keeps `arr` in ebp, while this file keeps `i` in edi and leaves
+// `arr` in the frame+0x10 slot (it reloaded that slot at 0x42129f for the
+// vertex loop and reloads it again after the copy loop). Everything downstream
+// is a consequence: with `i` in edi the copy loop has to borrow ebx for its
+// index and ebp for the loaded point, so it runs ecx = indices / edx = j and
+// reloads `surface` then `arr`, where the original runs ecx = j / edx = indices
+// and reloads `i` then `surface`. Everything before 0x4212ba and after the
+// dispatch already matches instruction for instruction.
+// Two more negative results on that tie (both measured with check.py --sym):
+// 1. headers.py over all 128 sets is flat at 82.0%, so no header side effect.
+// 2. Neither declaration order nor loop weighting decides it. Declaring `arr`
+// before `int i;` (so C1 sees the variable the original keeps first) is exactly
+// 82.0%, and giving the vertex loop its own counter so that `i` is referenced in
+// only one loop instead of two (which would change MSVC's loop-weighted register
+// priority, the lever that worked at 0x40e160) is also exactly 82.0% with the
+// same diff hunk, and the frame does not move. The tie is not decided by
+// declaration order, use count or loop depth; it needs a construct that changes
+// how many callee-saved registers the loop body wants at once.
 // PARTIAL, 82.0%. Lead probes: taking the face index address and using it
 // through a pointer kept 82.0%; hoisting faceCount scored 75.8%, reversing the
 // loop comparison scored 81.3%, and reversing the firstFace branch scored 80.0%.

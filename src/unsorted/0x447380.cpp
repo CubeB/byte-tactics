@@ -1,4 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash retry (issue 2844): kept the 95.1% probe (lstrcpynA before
+// the four body sprintfs), which remains the best known. This pass re-confirmed
+// the natural statement order (build/scratch/0x447380/base.cpp) is 93.5% and
+// systematically probed the "one invisible register node before the body group"
+// theory without moving the phase, all at 93.5% / 1318 bytes unless noted:
+// inline accessors for p->active, p->name, p->info and g_game->localPlayer, a
+// PlayerAt(i) accessor for &g_game->players[i], IsType/IsPlaying/IsCounted as
+// bool (72.5%, bad) and as single-return bodies (81.5%, bad), IsDead/NoCount/
+// HasIcon/IsActive helper splits, an unsigned char local for the type byte, a
+// type-range test (86.7%), an Entry* alias used by all three entry calls, and
+// folded tautology conjuncts (p->active == p->active, (p->type == 1) ==
+// (p->type == 1), p->field_4 == p->field_4). A doubled direct `if (!p->active)`
+// inside IsPlaying also folded away and did NOT advance the allocation phase, so
+// the phase is not a simple node count and the invisible node stays unfound.
+// The probe stays because its output is closer (group matches, tail one step
+// off); see the older notes above for the exact residual.
 // deepseek-v4.1 pass (issue 2633): the residual is a scratch-register rotation,
 // not a structural difference. Byte-diffing ours against the original shows the
 // first differing byte at +0x1ae (0x44752e, the first group `lea`) and the last

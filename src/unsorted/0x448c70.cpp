@@ -1,5 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial, 47.4%: the frame now matches at 0xd4 (all four buffers at 0x48/0x68/0x7c/0xb0).
+// Retry (deepseek-v4.1-flash) tried and reverted these, none changed the score:
+//   declaring iVar17 before uVar4; uVar4 as uint (47.3); swapping the two ushort
+//   loads; local_b4 as byte* (compile error elsewhere); reordering
+//   local_b4/local_c0; folding the local_b4 sum differently. The ebx/ebp swap
+//   between the top-loop counter (iVar17) and the 0x2a40 value (uVar4) survives
+//   all of them, and everything else is a consequence of that plus the frame
+//   slot rotation.
 // How: dropping the local_a4/local_a0 temporaries (the PING widget pointer stays in iVar17 and
 // the player byte stride is recomputed inline) took 0xdc -> 0xd8, then reusing the existing byte
 // local bVar6 for the four iVar17+0x29 byte temps removed the last dedicated slot (0xd8 -> 0xd4).

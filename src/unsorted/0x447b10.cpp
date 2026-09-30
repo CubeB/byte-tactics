@@ -1,5 +1,28 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (earlier passes by deepseek-v4.1-flash and GPT-6)
+// RETRY pass (deepseek-v4.1-flash, 2026-09-30, 0 check.py runs, ~4 min):
+// Score is still 45.7% (4306 vs 4382 bytes). The earliest mismatch is the
+// iVar8 store: original [esp+0x14] (frame+4), ours [esp+0x18] (frame+8), with
+// frame+4 a never-used hole in ours. I tried to move it and could not:
+//  - Every declaration-order permutation of the 23 scalar locals (iVar8 first,
+//    player first, original's store-order player/iVar8/bVar1/iVar6/iVar5) is
+//    byte-identical to the baseline. Declaration order does NOT drive the
+//    scalar slots here; the earlier "declaration order is the lever" note
+//    only held together with the other edits made in that pass.
+//  - Removing the unused `uint uVar13;` and eliminating `iVar11` (using literal
+//    1 at its two call sites) also compiles byte-identical.
+//  - Adding <windows.h>, <stdlib.h> or <math.h> is byte-identical.
+//  - Rewrapping the (x >> 0xf & 1) test as uint-cast, signed-short, or through
+//    a ushort local is byte-identical; MSVC always folds it to
+//    `test byte [eax+0x9c],0x80`.
+//  - Swapping the two loop-header statements also byte-identical.
+// The frame+4 hole points at a register-only local (most likely the
+// register-homed pointer/loop-offset temp) that MSVC still gives a slot; the
+// original packed its scalars without it. Fixing the early region needs that
+// local to stop being stack-allocated, i.e. a code/live-range change, not a
+// declaration change. Next attempt should diff the allocation by removing the
+// iVar5 or loop-offset temp as a named local (inline FUN_00457a50()/the offset
+// product) and see if the hole closes.
 // This pass (deepseek-v4.1, 2026-09-30, 2 check runs): tried the two shape fixes
 // the baseline diff pointed at, both kept because neither lowered the score.
 //  - `uVar7 - player[2] < 0x1f` -> `<= 0x1e`: the original emits

@@ -1,16 +1,23 @@
-// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// Partial, 51.1%: `else` branch is only `mode = 0;` (no src store), `src` assigned
-// only in the shadow arm, and the shift/mask bit tests corrected.
-// Remaining differences: MSVC folds ((flag>>1)&1) to `test dl,2` where the
-// original keeps `shr dl,1; test dl,1`; the same fold turns the shade bias
-// `(v>>30)&1` into `and esi,0x40000000`; the vertex-projection loop keeps n in
-// a stack slot instead of ebp and swaps offX/offY register roles; the piece
-// pointer base uses 0x44 instead of 0x22; the face-clip and bitmap-copy loops
-// use different registers throughout.
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, 55.0% (real check). The unsigned-short bitfield for the
+// g_game+0x37f06 shadow flag now gives the original's `shr dl,1; test dl,1`,
+// the owner-parameter shade helper with a bool gives `shr edx,0x1e; and dl,1;
+// neg dl; sbb edx,edx`, and indexing list->pieces[p] inline (no pointer local)
+// keeps the loop base at +0x22 instead of +0x44.
+// Remaining differences: useColor lands in esi instead of ebx, so the mode=0
+// path reloads list/bitmap; the vertex-projection loop has a duplicate
+// `test eax,eax; jle` guard and offX/offY come out in swapped registers
+// (edx/ebx); the face-clip and bitmap-copy loops still differ in registers.
 #include <string.h>
 
 extern char* g_game;
 struct Bitmap_459c70;
+
+struct Flags_459830 {
+    unsigned short b0 : 1;
+    unsigned short b1 : 1;
+    unsigned short rest : 14;
+};
 
 struct Vec3 { int x; int y; int z; };
 
@@ -89,7 +96,11 @@ struct Class_004581e0 {
     void FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list, int kind, int useColor);
 };
 
-static __inline int shade_bias(List_459c70* list) { return ((*(unsigned int*)(list->owner->field_92+0x241)>>30)&1)?125:50; }
+static __inline int shade_bias(Owner_459c70* owner)
+{
+    bool c = ((*(unsigned int*)(owner->field_92 + 0x241) >> 30) & 1) != 0;
+    return c ? 125 : 50;
+}
 // FUNCTION: 0x459830
 void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
@@ -99,7 +110,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
 
     Bitmap_459c70* src;
     int mode;
-    if (((*(unsigned char*)(g_game + 0x37f06) >> 1) & 1) != 0
+    bool shadow = ((Flags_459830*)(g_game + 0x37f06))->b1;
+    if (shadow
         && (list->owner->field_110 & 0x20000000) != 0
         && useColor != 0) {
         Bitmap_459c70* shadow = this->shadow;
@@ -119,16 +131,15 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     }
 
     for (int p = list->count - 1; p >= 0; p--) {
-        Piece_459c70* piece = &list->pieces[p];
-        unsigned char pflags = piece->flags;
+        unsigned char pflags = list->pieces[p].flags;
         if ((pflags & 1) == 0)
             continue;
         if (!(useColor == -1 || useColor == ((pflags >> 1) & 1)
                 || list->owner->field_104 != 0.0f))
             continue;
 
-        PieceInfo_459c70* info = piece->info;
-        Vec3* verts = piece->vertices;
+        PieceInfo_459c70* info = list->pieces[p].info;
+        Vec3* verts = list->pieces[p].vertices;
         int n = info->vertexCount;
         if (n > 0) {
             int offY = (short)bitmap->field_6;
@@ -148,8 +159,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
                 }
                 vertex[k].x = x;
                 vertex[k].y = z - (y >> 1);
-                if (mode) vertex[k].z = y/2 + shade_bias(list);
-                else vertex[k].z = y + shade_bias(list);
+                if (mode) vertex[k].z = y/2 + shade_bias(list->owner);
+                else vertex[k].z = y + shade_bias(list->owner);
                 vertex[k].x += offX;
                 vertex[k].y += offY;
                 verts++;
@@ -191,7 +202,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         }
     }
 
-    if (((*(unsigned char*)(g_game + 0x37f06) >> 1) & 1) != 0 && mode != 0) {
+    if (((Flags_459830*)(g_game + 0x37f06))->b1) {
+      if (mode != 0) {
         FUN_004b95a0(bitmap, src);
         char* s = src->data2;
         if (s != 0) {
@@ -206,3 +218,4 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         }
     }
 }
+    }

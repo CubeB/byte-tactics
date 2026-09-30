@@ -1,64 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL, 34.9% (ours 1771 bytes against 1832). Every basic block, call site and
-// entry/exit sequence is transcribed and the frame is now 0x3c with the point copy
-// at [esp+0x34], matching the original. What is still wrong is ONE allocator state:
-// which of the four long-lived values gets a callee-saved register. The original
-// dedicates esi to obj (then recycles it), edi to point.y, ebx to y0 and ebp to me,
-// and keeps entries, point.x, x0, x1, y1, span, step and flags in memory. Ours still
-// hands a register to point.x and puts y0 in memory. Fixing that one choice would
-// align the whole slot map (orig_sel 0x10, entries 0x14, n/span 0x18, step/flag8
-// 0x1c, flags 0x20, x0 0x24, y0 0x28, x1 0x2c, y1 0x30) and most of the diff with
-// it. What moved the number, in order:
-//   - Point_004a3780 had to be 0x18 bytes (rep movsd x6), not 0xc: that alone took
-//     the frame from 0x38 to the original's 0x3c, +5.5 points.
-//   - hoisting `entries[0].count` into a local `cnt` (3 references to `entries`
-//     became 2) demoted `entries` out of ebx and promoted obj into esi: +3.5.
-//   - the `i < entries[0].count + 1` loop bound and the if/else spelling of `span`
-//     reproduce the original's `jle` pre-test and its single span store: +0.5.
-//   - the two `if (v == 0x7fffffff && v == 0x7fffffff)` lines are PURE ALLOCATION
-//     LEVERS, the technique from the brief of adding a throwaway live reference
-//     (one on y0 in the row walk, one on point.x in the 570 arm). They are folded
-//     away by the front end but they change the variable weights. They are NOT
-//     in the original; if point.x or y0 ever equals 0x7fffffff they would take a
-//     different path, so a matcher should try to replace them with a construct
-//     that is unobservable.
-// RETRY (deepseek-v4.1-flash) tried: removing the point.x throwaway (33.7%, worse),
-// a separate `py` local for point.y (same 34.9%), swapping the point.y/point.x
-// order in the first bounds test (34.8%), hoisting the y0 declaration to the top
-// (same 34.9%). None moved the allocator choice. Slot map read from the obj:
-// ours y0 0x10, orig_sel 0x14, x0 0x18, y1 0x1c, x1 0x20, entries 0x2c, cnt 0x30,
-// with ebx=point.y, edi=cnt, esi=obj, ebp=me. Original: orig_sel 0x10, entries
-// 0x14, n/span 0x18, step/flag8 0x1c, flags 0x20, x0 0x24, dead y0 0x28, x1 0x2c,
-// y1 0x30, ebx=y0, edi=point.y. The slot order also has to change, not just the
-// register choice, so this is deeper than one allocator state.
-// Tried and did NOT work: plain int rel_x/rel_y instead of struct field updates
-// (18.1%, the rep movsd disappears); a separate loop base pointer to demote
-// `entries` (no change); a separate `Entry* e0` for entry 0 (no change); hoisting
-// the loop bound into `last` (26.5%, it changes the latch); flags at function scope
-// (folded away, no slot); declaring every local at the top of the function
-// (no change); spelling the vertical test as `point.y - y0 > y1 - y0` (28.0%).
-// RETRY 2 (deepseek-v4.1-flash), 34.9% -> 38.6%:
-//   - deleted the `int cnt = entries[0].count;` local and reloaded
-//     `entries[0].count` at the two loop bounds and the post-loop
-//     `i == ...` test. The original really does reload it (0x4a3848,
-//     0x4a38b4, 0x4a3c02 all do movsx/mov word [edx+0xb6]), so hoisting was a
-//     regression. Worth +3.3.
-//   - deleted the fake `if (point.x == 0x7fffffff && point.x == 0x7fffffff)`
-//     line in the FUN_004ab570 arm; the original has no branch there. +0.4.
-//   - deleting the fake `if (remain == 0x7fffffff)` line in the row walk was
-//     worse; keep that one.
-//   - rewriting the first search loop as an explicit `Entry* walk` pointer
-//     walk was worse (35.5): the original uses the index form and lets the
-//     allocator strength-reduce.
-// Now ours is 1824 bytes, frame 0x34 against the original 0x3c (2 slots short).
-// The original's 15 FPO local dwords are 0x10 orig_sel, 0x14 entries, 0x18 n
-// then span, 0x1c step then flag8, 0x20 flags, 0x24 x0, 0x28 UNUSED (never
-// referenced anywhere), 0x2c x1, 0x30 y1, 0x34..0x4b point. Ours is 8 lower
-// and shifted (x0 0x14, y1 0x18, x1 0x1c, entries 0x20, n 0x24, walk spill
-// 0x28, point.x 0x2c, point.y 0x30) and still spills the search walk pointer
-// to 0x28 every iteration. Recovering the frame means materialising two more
-// memory locals (the original keeps y0 in ebx yet still has that dead 0x28
-// slot), which is the next thing to chase.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Gave up at 34.7% (1841 bytes against 1832). Remove artificial allocation
+// expression. Scroll down selects using visible-row count. Variable-height
+// rows dereference the bitmap pointer at +0x28. Preserve short narrowing and
+// read flags after writing the current index. Remaining local slots and
+// callee-saved-register allocation differ throughout.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -239,15 +184,15 @@ after:
     if (point.y > y1)
         goto out;
     {
-        int flags = me->flags;
         obj->holder->field_20 = index;
+        int flags = me->flags;
         if (flags & 0x10) {
             int line = (point.y - y0) / span + me->field_bc;
             me->field_ba = (short)line;
             if ((short)line < 0) {
                 me->field_ba = orig_sel;
             } else {
-                int off = line - me->field_bc;
+                int off = (short)line - me->field_bc;
                 if (off > step - 1)
                     me->field_ba = (short)(step + me->field_bc - 1);
                 if (me->field_ba >= me->field_c0 - 1)
@@ -276,11 +221,10 @@ after:
             char* fixed = (char*)(me->field_c6 + bc * 0x18);
             int* itemp = (int*)(me->field_c6 + bc * 4);
             int remain = point.y - y0 - 2;
-            if (remain == 0x7fffffff) remain = point.y - y0 - 2;
             int n2 = 0;
             int k = bc;
             while (1) {
-                char* row = flag8 ? fixed : (char*)((*itemp) + 0x28);
+                char* row = flag8 ? fixed : *(char**)((*itemp) + 0x28);
                 int h = (me->field_da != 0) ? span : *(unsigned short*)(row + 2);
                 remain -= h;
                 if (remain <= 0) {
@@ -343,7 +287,7 @@ scroll_down:
     me->field_b6 = FUN_004b6340() + 2;
     me->field_bc++;
     {
-        int sel = flag8 + me->field_bc - 1;
+        short sel = (short)(step + me->field_bc - 1);
         me->field_ba = (short)sel;
         if (me->field_c2 != 0) {
             char* s = FUN_004b6af0(me->field_c2, sel);

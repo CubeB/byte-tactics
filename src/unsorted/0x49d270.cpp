@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: retained 82.9%. Owner-key wrappers, reference/cast scan
+// parameters and 768 header sets did not improve register allocation.
+// Correction to old notes: after the push at 0x49d54e, [esp+0x14] at
+// 0x49d54f refers to the entry slot at base+0x10, not ownerId at base+0x18.
+// The current FUN_0049c9c0(entry, ...) call is correct.
 // Creates or updates a projectile for a remote event. The per-team record at
 // g_game+0x2cf3 (0x115 bytes, 0x100 of them) holds the weapon flags at +0x111;
 // the event gives a team byte, an owning unit id, a per-unit entry index and a

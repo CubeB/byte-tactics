@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// GPT-6 retry: <windows.h> improves to 75.2%, not MATCH. Collision and
+// feature lookup helper, width and reference variants did not improve the
+// baseline. Game/height allocation and feature tail still differ.
 // deepseek-v4.1-flash (issue 1400 retry): reconfirmed 73.6% / 842 bytes against
 // 844, no variant beat it. Scored with check.py --sym: removing oz, using
 // proj->py.i directly twice, drops to 62% / 866 and moves cell to ebp, g to ebx;
@@ -120,6 +123,8 @@
 // g_game+0x14253, but the 0xfffe reload path at 0x49b2e7 to 0x49b30f re-tests
 // only against 0xfffb and skips the count check, so a feature id read from the
 // neighbouring cell indexes g_game->mapping unchecked.
+
+#include <windows.h>
 
 #pragma pack(push, 1)
 

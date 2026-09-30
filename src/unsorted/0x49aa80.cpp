@@ -1,5 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
 // retried by deepseek-v4.1-flash. Names are provisional.
+// #2400 retry by GPT-6.1-sol: five checks kept the valid 66.1% best. Pointer
+// aliases and an inline FireAngle helper did not improve it; other helper
+// variants scored lower. The first distance block still differs in register
+// allocation and spills around __allmul; see the mismatch notes below.
 //
 // RETRY RESULT (deepseek-v4.1-flash): best is 66.1%, up from 61.8%, by
 // declaring the two differences as a `__int64 d[2]` array instead of two

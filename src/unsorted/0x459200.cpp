@@ -1,5 +1,18 @@
-// Decompiled by space-bunny-free, finished by GPT-6. Names are provisional.
-// Partial: argument/layout errors corrected; allocation still differs.
+// Decompiled by space-bunny-free, finished by GPT-6 and deepseek-v4.1-flash. Names are provisional.
+// Partial (40.9%): argument/layout errors corrected; allocation still differs.
+// deepseek-v4.1-flash retry (0x459200, 1506 bytes) did not improve on this
+// version; hoisting the cached team flags (`f`) to function scope produced
+// identical code. Remaining differs:
+//   0x459200  frame is 0x1c, original is 0x20: original keeps 8 locals
+//             (0x10 team flags, 0x14 dx, 0x18/0x1c/0x20 d vec,
+//             0x24/0x28/0x2c cv vec) while ours spills only 7.
+//   0x45920b  `this` lands in ebx, original keeps it in edi (mov edi,ecx).
+//   0x45923e  original writes the modified Vec3 back into the by-value
+//             argument slots (v.x = owner->pos_x - v.x etc.) and keeps the
+//             unmodified copy in cv; ours orders these differently.
+//   0x459257  dx (v.p.y.whole) is not spilled to a local in ours.
+//   0x459288  first branch (bitmap->field_14 == 0) and 0x45949d second branch
+//             register allocation differ throughout after the prologue.
 struct Vec3;
 struct Model_459200;
 struct Team_459200;

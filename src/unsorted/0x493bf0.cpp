@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
 // Partial: 67.3%. Entry addressing, saved-mode register allocation and
 // duplicate tail-call registers still differ. The input gadget and selected
 // entry reload now follow the original, as do signed character conversions.

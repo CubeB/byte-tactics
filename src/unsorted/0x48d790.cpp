@@ -1,4 +1,12 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol. Names are provisional.
+// #1612 retry by Codex / GPT-6.1-sol: checkall reconfirmed 92.2% (392/388 bytes), no MATCH.
+// Three worker checks found no better source; the bitfield variant kept the same register mismatch.
+// GPT-6.1-sol rechecked this best at 92.2% (392 bytes, two runs). A bitfield
+// assignment for the second-scan hit path leaves the same diff: the original
+// uses EAX for the flags OR and EDI for the later g_game load, while this build
+// uses EDI for the OR, rematerializes 0x10 in EDX, then uses EAX for g_game.
+// The remaining branch targets shift by four bytes because of that extra
+// instruction. The saved candidate is the best-scoring source.
 // PARTIAL: 92.2% (392 bytes against the original's 388; was 89.6% / 380).
 // Selects the next unit
 // of the current team: finds the first eligible unit (flag 0x20, float 0, field_fb 0,
@@ -184,7 +192,7 @@ void __stdcall FUN_0048d790(void)
                 if ((u->u.flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0) {
                     Owner_0048d790* owner = u->owner;
                     if (owner == 0 || (owner->flags & 0x40000000)) {
-                        u->u.flags |= flag;
+                        u->u.bits.bit4 = 1;
                         g_game->field_37e9c = 0;
                         g_game->flags |= flag;
                         return;

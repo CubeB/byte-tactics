@@ -1,6 +1,26 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free. Names are provisional.
-// PARTIAL: 81.5% (1052 of 1052 bytes, so every jump target lines up again and
-// what is left is real instructions). This session's fixes:
+// PARTIAL: 83.3% (1052 of 1052 bytes, so every jump target lines up again and
+// what is left is real instructions). Two more fixes this session, both of
+// them pure source SHAPE changes that moved a block's layout or an
+// initialisation's block:
+//  3. The limitY ternary has to be written with the arms SWAPPED:
+//     `(y + frame->height >= halfH) ? halfH - y : frame->height`, not
+//     `(y + frame->height < halfH) ? frame->height : halfH - y`. The two are
+//     the same value, but MSVC 5 lays the second one out with the TRUE arm as
+//     the fall-through (`cmp / jge` jumping over it) and the first one out of
+//     line (`cmp / jl` jumping to it), and the original has the true arm out
+//     of line, exactly like the limitX clamp above it, which already matched.
+//     Worth 1.2 points. Note that merely flipping the COMPARISON
+//     (`halfH > y + frame->height`) is not enough: that changes the compare to
+//     `cmp esi, ecx / jle` and still puts the true arm first.
+//  4. The row counter's initialisation must sit in the block that owns the
+//     loop's guard test, so `int i = ny;` goes BEFORE `if (i < limitY)`, not
+//     inside the if. With it inside, MSVC 5 sinks the store into the loop
+//     preheader (`mov eax, ebp / mov [esp+0x30], eax` after the `jge`); the
+//     original keeps it in the guard block, between the `cmp` and the `jge`.
+//     Worth 0.6 points. Testing `ny` instead of `i` in the guard compiles
+//     identically, so only the position of the declaration matters.
+// Two fixes that were already in place, for the record:
 //  1. THE LOD CLAMP MUST BE WRITTEN OUT, NOT CALLED AS AN inline FUNCTION.
 //     Spelling `max(lod, 0)` as the `Lod_00481930(params)` helper made MSVC 5
 //     materialise the RAW lod in ebp across the FUN_00433520 call and sink the
@@ -17,7 +37,8 @@
 //  2. In the inner mask loop the two pointer bumps must be written
 //     `dst++; src++;` (visibility mask first), the reverse of the natural
 //     reading order, to get `add edx,2` before `inc ecx`. Worth 0.3.
-// Still different, and all of it register allocation (see NOTES at the bottom):
+// What is still different, and all of it register allocation (see NOTES at
+// the bottom):
 //  * the first visibility cell: the original computes `halfW * y + x` with the
 //    product in edi, halfW's own register (`imul edi, [esp+0x10]`), ours puts
 //    it in eax (`mov eax, [esp+0x10] / imul eax, edi`);
@@ -208,12 +229,12 @@ void __stdcall FUN_00481930(Params_00481930* params)
             lod = g_game->losTable->count - 1;
         Frame_00481930* frame = FUN_004b7f30(g_game->losTable, lod);
         int limitX = (x + frame->width < halfW) ? frame->width : halfW - x;
-        int limitY = (y + frame->height < halfH) ? frame->height : halfH - y;
+        int limitY = (y + frame->height >= halfH) ? halfH - y : frame->height;
         int nx = x < 0 ? -x : 0;
         int ny = y < 0 ? -y : 0;
         changed = 0;
-        if (ny < limitY) {
-            int i = ny;
+        int i = ny;
+        if (i < limitY) {
             int stride = halfW * 2;
             int off = ((y + ny) * halfW + nx + x) * 2;
             do {
@@ -358,3 +379,50 @@ void __stdcall FUN_00481930(Params_00481930* params)
 // different extended basic blocks (the original's `j1 = 1` store sits in the
 // preheader below the `jle`, ours sits in the guard block with bestIdx), or a
 // different source for the outer loop that moves ebx's first free point.
+// Re-tried by space-bunny-free on the 83.3% base. Free scratch scoring
+// (check.py --sym on build/scratch/0x481930/v*.cpp) makes each of these half a
+// second, so the list below is long; every one of them is 83.3%, i.e. exactly
+// neutral, so none of them is the missing construct:
+//  * the frame pointer: detached at function scope, `const`, a separate
+//    declaration line, `frame->data + (i*w + nx)`, a named `frameData` local
+//    (75.8, 1066 bytes), `char*` for `src`, `char*` for the destination cast,
+//    `visibilityMask + off/2` for the destination (66.0, 1064), and
+//    `limitX`/`limitY` as `unsigned int` (82.1). The frame pointer keeps
+//    landing in edx and slot 0x38 and limitX in 0x24.
+//  * the row loop: `int stride` declared before `int i` (82.4),
+//    `halfW << 1` and `2 * halfW` for the stride, `off` as
+//    `(y+ny)*(halfW*2) + (nx+x)*2`, `int n = limitX; n -= nx;`, the inner loop
+//    as `while (n) { ... n--; }` (66.6, 1062), `int i` for the OUTER counter,
+//    `int i; i = ny;` instead of `int i = ny;`, `changed = 0` after the `i`
+//    initialisation (83.0), and `!(y + frame->height < halfH)` for the
+//    limitY condition.
+//  * nx/ny hoisted above the two limit clamps (65.2): the original's order
+//    really is limits first, then nx, then ny.
+//  * the inner loop: both increments in the for-increment clause
+//    (`j++, j1++`) compiles to the original's latch ORDER (`inc ecx` then
+//    `inc edx`) where the `j1++` at the body end does not, and is still
+//    83.3%, so the latch order is not worth chasing on its own. Also neutral:
+//    hoisting `bestDiff * j1` into a local, `bestIdx * d0 > j1 * bestDiff`,
+//    `bestDiff * j1 < d0 * bestIdx`, `unsigned int` for j1 / bestIdx / both,
+//    a separate `short j` declared before the for, and a `while` form of the
+//    inner loop. Worse: `j1` declared before `bestIdx` (75.4),
+//    `bestDiff` between them (82.4), `short j1` (63.5), `short bestIdx` (45.6).
+//  * the first visibility cell: reading `*cell` into a local first (81.5),
+//    `if (!(bit & *cell))` with an explicit store (74.8, 1055 bytes), an
+//    `(int)(short)` cast on the index (73.7, 1054), and
+//    `g_game->visibilityMask + halfW * y + x` instead of the indexed form.
+//    The `imul` destination is still edi in the original and eax here in
+//    every spelling tried, including `y * halfW + x` and `x + halfW * y`.
+// Two things the earlier notes got wrong, corrected here: (i) the limitY
+// ternary IS under source control, it just needs its arms swapped rather
+// than its comparison flipped (fix 3 at the top), and (ii) `int i = ny;`
+// before the guard IS the original's placement, not a dead store to be sunk
+// (fix 4). Both were listed as "not under source control" before.
+// Where the next attempt should look: the flag2 branch and the else branch
+// share six frame slots (0x20, 0x24, 0x30, 0x34, 0x38, 0x50) and MSVC 5
+// ranks ALL of the function's locals in one table, so the two swaps that are
+// left (j1/bestIdx over 0x1c/0x20, and frame/limitX over 0x24/0x38) are
+// probably one ordering decision, not two. What would be worth trying next
+// is a construct that adds or removes one local from the table, or changes a
+// live range's length, anywhere in the function, and see whether BOTH swaps
+// move together.

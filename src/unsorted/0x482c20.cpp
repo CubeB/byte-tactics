@@ -1,9 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 76.6% (1525 vs 1519 bytes). Layout follows the matched 0x41d920:
+// PARTIAL: 76.8% (1521 vs 1519 bytes). Layout follows the matched 0x41d920:
 // grid1 at +0x1428f and grid2 at +0x1429f (the +0x10/+0x14 words are the
 // separate g_game fields 0x142af/0x142b3). The function allocates both
 // passability grids, marks their borders, propagates row and column maxima
 // twice, then fills the smoothed values.
+// 76.6% -> 76.8% (deepseek-v4.1-flash retry): the scan loop's pointer walk
+// must be in the FOR-INCREMENT clause, `for (x = 0; x < width; x++, cellp +=
+// 0xd)`, not a separate `cellp += 0xd;` statement at the end of the body. The
+// original emits `inc ecx` (x++) BEFORE `add ebx, 0xd` (cellp++), which only a
+// comma in the increment clause produces; the body statement gives the reverse
+// order. That one fix removed the whole passability-pass diff block.
 // 75.5% -> 76.6%: the FIRST row-max loop must NOT go through a separate
 // `res` local. `if (prev < m) prev = m; p[1] = prev; prev = m;` (updating prev
 // in place and storing it) is worth 3.1 points. The SAME rewrite applied to
@@ -59,6 +65,27 @@
 //  - reordering the big loop's declarations (p1/p2/accum before t20/t24):
 //    neutral at 76.6.
 //  - `prev <= m` instead of `prev < m` in the first max loop: neutral.
+// deepseek-v4.1-flash retry, also tried and rejected (do not repeat):
+//  - headers.py over all 128 header sets: none beats 76.8; the source shape, not
+//    compiler state, is what differs.
+//  - the windows `max(a,b)` macro form for either max loop: 76.6 -> 73.7 (row)
+//    and 67.3 (both). The `if (m <= t) m = t; if (prev < m) prev = m;` shape is
+//    right, only the cl/bl/dl rotation differs.
+//  - grid1 alloc as an `if (count1) ... else grid1->cells = 0;` instead of the
+//    ternary: 76.3. The 2 extra bytes are the duplicated `xor esi,esi` that the
+//    ternary emits in both arms; the original materialises the zero once after
+//    the merge.
+//  - swapping the grid2 `a`/`b` declaration order: 76.6, 1524 bytes.
+//  - swapping the grid1 `h1`/`w1` declaration order: 76.6.
+//  - hoisting all six big-loop locals (`d`, `cells2`, `inner`, `accum`, `t20`,
+//    `t24`) to function scope in the order that reproduces the original's
+//    ascending slots: the permutation does NOT move, still 76.8. MSVC's stack
+//    allocator is not following declaration, first-store or first-use order
+//    here, so the 0x10/0x14/0x1c three-cycle is not source-reachable this way.
+//  - the fourth border loop as `i < height` with `(i+1)` (76.4), with a
+//    separate `unsigned k = i + 1;` (76.6), or as `k = 1; k <= height` (76.4).
+//    The original keeps the loop index in eax and reuses `ecx = i + 1` as the
+//    next index; all three spellings leave the index in ecx.
 #include <new.h>
 #include <windows.h>
 
@@ -148,12 +175,11 @@ void FUN_00482c20(void)
     {
         for (int y = 0; y < g_game->height; y++) {
             unsigned char* recp = cells2;
-            for (int x = 0; x < g_game->width; x++) {
+            for (int x = 0; x < g_game->width; x++, cellp += 0xd) {
                 if (cellp[5] > recp[0])
                     recp[0] = cellp[5];
                 if ((x & 7) == 7)
                     recp += 10;
-                cellp += 0xd;
             }
             if ((y & 7) == 7)
                 cells2 += grid2->width * 10;

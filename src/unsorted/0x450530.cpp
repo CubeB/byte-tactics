@@ -1,4 +1,17 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, retries by GPT-6.1-sol and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// Retry (deepseek-v4.1-flash, issue 2408): re-tested the outer induction wall.
+// Variants tried and scored with check.py --sym, all identical bytes (52.3%):
+// guard via direct g_game->players[i] with p moved after the active test, p as
+// g_game->players + i, p as a reference, i declared outside the for, i != 10,
+// bound in a variable, ++i, explicit (char*) + i*0x14b + 0x1b63, and `register`
+// on i/p. The register hint is ignored at /O2. Root cause confirmed: MSVC keeps
+// the induction in a stack slot and uses ebp as scratch in our layout, while the
+// original keeps the counter in ebp and instead clobbers edi with the `to`
+// player id (our body keeps g_game in edi and puts `to` in ebp, the mirror
+// image). The original dispatch also contains unreachable duplicates
+// (cmp al,1 at 0x4505ac, cmp al,2 at 0x4506b3) that our clean else-if chain
+// does not reproduce. Both follow from the same allocation/layout difference.
 //
 // For each player slot in state 1, 2 or 3 with field_146 != 10 and field_c == 0
 // it sends a 10-byte 0x21 message (to = first slot whose data->flags has bit 0,

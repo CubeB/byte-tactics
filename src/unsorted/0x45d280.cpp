@@ -33,6 +33,29 @@
 // where the original loads fild first; the final tail index wants
 // `lea eax,[edi*8]` where ours emits `mov eax,edi / shl eax,3`; the TRACKMODE
 // `field_37f16 == 3` test uses cl/eax where the original uses al/ecx.
+// Rerun by space-bunny-free: the UNDO flip is an MSVC5 WIDTH-choice problem,
+// and the two halves of it pull in opposite directions, so no spelling gets
+// both. Target is a BYTE-width xor of f's low byte with DAT followed by a
+// 32-BIT `and ecx,1`; a byte xor is only legal there if MSVC does not know
+// the xor result is 0..255 (otherwise it emits an 8-bit mask plus a movzx,
+// as the fully fused spelling does). New tries, none better than 91.5:
+//   fused `f ^ (((unsigned char)f ^ D) & 1)`        87.5, byte xor but
+//     `and dl,1` + `movzx dx,dl` (MSVC tracks 0..255 for a cast of a 16-bit);
+//   fused `f ^ ((f ^ (unsigned char)D) & 1)`        90.5, 1336 bytes;
+//   `int b = f ^ (unsigned char)D`                  91.5, identical code to
+//     the current shape, so moving the cast from f to D changes nothing;
+//   same with `(char)D` 86.6, `(short)D` 91.5, `(unsigned short)D` 91.5,
+//   `(unsigned char)D ^ f` 91.5, `(unsigned char)` on both operands 91.5,
+//   separate `int b` then `int c = b ^ D` 91.5, `char` cast on f 87.8,
+//   `int b = (unsigned char)f` used directly in the mask 86.2;
+//   `Flags_0045d280 fl = game->flags;` then flipping fl.word from fl.byte
+//     89.5 (the union copy does not stay in a register);
+//   `f ^ ((game->flags.byte ^ D) & 1)` (second read of the byte member)
+//     90.7 but only 1327 bytes, i.e. 6 short: MSVC folds it to
+//     `xor cl,[eax+X] / and cl,1 / movzx cx,cl / xor word [eax+X],cx`,
+//     an in-place memory xor instead of a load/keep/store of the word.
+// So the wanted form is a word in EAX, D in DL, an 8-bit xor into CL and a
+// 32-bit mask, with the word stored back from CX rather than xored in place.
 #include <string>
 #include <windows.h>
 

@@ -1,8 +1,26 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Gave up at 70.1% (2745 bytes against 2756). Remaining flag widths,
-// register allocation and stack slots differ. Correct GUI-entry stride is
-// 0x15b and text buffer is 20 bytes. Preserve panel pointers across callbacks
-// and reload player data where the original reloads it.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Earlier attempt by deepseek-v4.1-flash, finished by GPT-6; continued here.
+// Best 72.1% (2764 bytes; frame is 0x2c where the original allocates 0x28).
+// The two field_97 sites drove the gain: the original keeps the branch flag in
+// a 16-bit register (`mov bl,[ebp+0x97]; and ebx,1; cmp bx,si` at 0x449c21,
+// `test bx,bx` at 0x44a005 and 0x44a162), while the value passed to
+// FUN_0046c8e0 at 0x44a124 is a SEPARATE 4-byte local (`mov al,[ecx+0x97];
+// and eax,1; movsx edx,ax; push edx; mov [esp+0x24],eax`), so the source has
+// two variables: `short flag97` for the branches and an `int flagStart` cast
+// to short at the call. Splitting them raised 72.0 to 72.1.
+// Remaining diff: flag97 gets a write-through home slot (`mov [esp+0x20],ebx`)
+// and its mask runs in CL (`and cl,1; mov bl,cl`) where the original masks EBX
+// directly, which is also where the extra 4 bytes of frame go; the 0x1b8a
+// player lookup folds where the original builds lea 0x1b63 then loads [.+0x27];
+// the 0x449fd0 else-if bit writes pick cx/dx opposite to the original; the
+// DAT_00512d78 guard uses lea plus the test flags where the original has
+// dec eax; test eax,eax; jl; and one later region spills edi.
+// Tried and rejected: short flag97 alone (67.6), int flagStart alone (71.3),
+// unsigned short flag97 or an explicit (short) cast (both 72.1, no change),
+// moving the text buffer's declaration into its block (no change), --v in the
+// DAT_00512d78 guard (71.6), struct-typed players array (71.6), int locals for
+// the five else-if bit writes (67.6), bool locals (67.6), recomputing the list
+// expression at later uses (67.9).
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -152,7 +170,7 @@ void FUN_00449bb0(void)
     int metalVal = 1000;
     void* holder = 0;
     int local_1c = 0;
-    char flag97 = 0;
+    short flag97 = 0;
     char text[20];
 
     DAT_00512994 = 0;
@@ -175,7 +193,7 @@ void FUN_00449bb0(void)
     info->field_8d = *(unsigned short*)(g_game + 0x37f1f);
 
     unsigned char c = FUN_0041d6a0(1);
-    info->field_9d = (info->field_9d & 0xfffb) | ((unsigned int)(c != 0) << 2);
+    info->field_9d = (info->field_9d & 0xfffb) | (((unsigned int)(c != 0) & 1) << 2);
 
     holder = FUN_004aa8f0(g_game + 0x519, "LOUNGE2.GUI", 0);
     ((Holder_00449bb0*)holder)->callback = (void*)&FUN_00447b10;
@@ -183,10 +201,10 @@ void FUN_00449bb0(void)
 
     FUN_004288d0("battleroom", 0, 1, 0);
 
-    DAT_00512764 = (int)*(short*)((char*)((Holder_00449bb0*)holder)->entries + 0xb6);
-
     GuiEntry_00449bb0* list =
         (GuiEntry_00449bb0*)*(int*)(*(int*)(g_game + 0x531) + 4);
+
+    DAT_00512764 = (int)*(short*)((char*)((Holder_00449bb0*)holder)->entries + 0xb6);
 
     int i = FUN_0049fdf0(list, "MESSAGE", 3);
     if (i != -1) {
@@ -226,25 +244,29 @@ void FUN_00449bb0(void)
         }
 
         if (DAT_00512d7c != 0) {
-            if (DAT_00512d7c == 1) {
+            switch (DAT_00512d7c) {
+            case 1:
                 info->field_9b |= 0x600;
-            } else if (DAT_00512d7c == 2) {
+                break;
+            case 2:
                 info->field_9b = (info->field_9b & 0xfbff) | 0x200;
-            } else if (DAT_00512d7c == 3) {
+                break;
+            case 3:
                 info->field_9b &= 0xfdff;
+                break;
             }
         }
         if (DAT_00512d80 != 0) {
-            info->field_9b = (info->field_9b & 0xdfff) | ((DAT_00512d80 == 2) << 0xd);
+            info->field_9b = (info->field_9b & 0xdfff) | (((DAT_00512d80 == 2) & 1) << 0xd);
         }
         if (DAT_00512d84 != 0) {
-            info->field_9b = (info->field_9b & 0xbfff) | ((DAT_00512d84 == 1) << 0xe);
+            info->field_9b = (info->field_9b & 0xbfff) | (((DAT_00512d84 == 1) & 1) << 0xe);
         }
         if (DAT_00512d88 != 0) {
-            info->field_9b = (info->field_9b & 0xfeff) | ((DAT_00512d88 == 1) << 8);
+            info->field_9b = (info->field_9b & 0xfeff) | (((DAT_00512d88 == 1) & 1) << 8);
         }
         if (DAT_00512d8c != 0) {
-            info->field_9b = (info->field_9b & 0xff7f) | ((DAT_00512d8c == 2) << 7);
+            info->field_9b = (info->field_9b & 0xff7f) | (((DAT_00512d8c == 2) & 1) << 7);
         }
     } else if (flag97 != 0) {
         info->field_9b =
@@ -299,8 +321,8 @@ L_a042:
     sprintf(mem->text, "%d",
             *(unsigned short*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x99));
 
-    flag97 = (*(unsigned char*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x97)) & 1;
-    FUN_0046c8e0((short)flag97);
+    int flagStart = (*(unsigned char*)(*(int*)(g_game + *(unsigned char*)(g_game + 0x2a42) * 0x14b + 0x1b8a) + 0x97)) & 1;
+    FUN_0046c8e0((short)flagStart);
 
     int startArg = ((Class_0046e000*)*(int*)(g_game + 0x2a30))->FUN_0046e000();
     FUN_004a0570(g_game + 0x519, "START", startArg);

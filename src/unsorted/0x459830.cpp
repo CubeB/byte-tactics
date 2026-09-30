@@ -1,4 +1,4 @@
-// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Partial, 51.1%: `else` branch is only `mode = 0;` (no src store), `src` assigned
 // only in the shadow arm, and the shift/mask bit tests corrected.
 // Remaining differences: MSVC folds ((flag>>1)&1) to `test dl,2` where the

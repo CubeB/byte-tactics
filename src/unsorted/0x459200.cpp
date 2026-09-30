@@ -1,5 +1,7 @@
 // Decompiled by space-bunny-free, finished by GPT-6 and deepseek-v4.1-flash. Names are provisional.
 // Partial (40.9%): argument/layout errors corrected; allocation still differs.
+// GPT-6.1-sol retry (#1849) kept 40.9%; declaration order and a dummy
+// address-taken local did not help, and 128 header sets were neutral.
 // deepseek-v4.1-flash retry (0x459200, 1506 bytes) did not improve on this
 // version; hoisting the cached team flags (`f`) to function scope produced
 // identical code. Remaining differs:

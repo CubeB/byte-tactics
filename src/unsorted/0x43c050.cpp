@@ -1,4 +1,20 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// RETRY (deepseek-v4.1-flash, 2026-09-30, 10 min): retained the 89.8% / 745 byte
+// version. Confirmed once more that the only missing bytes are reserve's
+// out-of-line `call _Destroy` (0x43c390) plus the register reallocation it
+// forces. Tried an address-taken static member pointer to _Destroy in this TU
+// (same trick as src/unsorted/0x43c390.cpp): no change, still inlines. Tried
+// empty inline nudges at five positions (before reserve, after reserve, after
+// the push_back loop, after sort, at the end). Every nudge that tips the /Ob2
+// budget emits the _Destroy call but reallocates _First/_Last into eax/ecx
+// (765 bytes, 82.2%); the end-of-function nudge instead drops an unrelated
+// inline (683 bytes, 69.6%). Hand-written Access::grow with the same nudge
+// gives the identical 765 byte shape, so the grow source is not the lever. What
+// still differs: reserve's _Destroy call is inlined empty, and the sort block
+// homes _F/_L in the swapped slots (esi/ebx instead of ebp/esi) with the
+// `cmp ebp, [esp+0x10]` memory compare in the insertion tail. No further
+// progress in the timebox.
 // deepseek-v4.1 (2026-09-30, independent rerun): baseline 89.8% (745/753)
 // reproduced. Evidence: 0x43c390 MATCHES as the empty (3-byte `ret 8`)
 // out-of-line copy, so the element type really is trivial (its

@@ -1,5 +1,35 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
-// deepseek-v4.1. Names are provisional.
+// deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash (2026-09-30 retry): 75.9% -> 83.6% (909 bytes, exact
+// size). Two source changes over the previous best, both in the insert loop:
+//  * an explicit `Vec_0043c390::iterator ins` held across the call and
+//    reassigned from `end()` after each `insert(ins, 1, *p)` (75.9 -> 82.3):
+//    the reload after the insert call now lands in a register instead of
+//    re-reading [0x512348] at the top of every iteration, and reserve's
+//    out-of-line `call _Destroy` reappears, closing the 13-byte gap.
+//  * an index loop `for (int i = 0; i < count; ++i)` with `from[i]` instead of
+//    the pointer loop (82.3 -> 83.6, and exactly 909 bytes). It changes the
+//    downstream register allocation so the sort's slots and the _Median/
+//    _Unguarded_partition calls line up much better, at the cost of a counted
+//    loop shape (dec edi / jne) where the original compares pointers
+//    (add esi,0x19 / cmp esi,edi / jne).
+// What still differs, all register/slot allocation, no semantic gap:
+//  * prologue: original loads _First into ecx before `sub esp` and _Last into
+//    ebp before the pushes and tests ecx there; ours loads _First into ebx
+//    after `push ebx` and _Last inside the size branch, testing ebx. This is
+//    the root of the remaining ~16%: every downstream register and the
+//    [esp+0x10]/[esp+0x34]/[esp+0x38] local homes follow from it (original
+//    homes the sort's _F in [esp+0x38] and _Last in [esp+0x10], ours in
+//    [esp+0x34]/[esp+0x38]).
+//  * reserve's reallocation tail uses ebx/ebp/ecx in the original, eax/ecx/
+//    ebx in ours.
+// Tried this session with no gain: hand-written `grow()` copy of reserve
+// (same 82.3), `<windows.h>` (80.2), `size_type N = size()+count` local
+// (same 82.6), keeping the `ins` iterator live through the sort (81.5),
+// pointer loop instead of index (82.6), plain `extern Vec_0043c390` without
+// the Access class (26.6, wrong insert/name resolution), `push_back(from[i])`
+// (69.5).
 //
 // deepseek-v4.1 (2026-09-30, rerun): baseline 75.9% / 896 bytes confirmed
 // unchanged. New probes, none better: declaring the global as a plain
@@ -158,8 +188,13 @@ template <class _RI, class _Ty, class _Pr> void _Sort_0_0043bc90(_RI _F, _RI _L,
 // FUNCTION: 0x43bc90
 void __stdcall FUN_0043bc90(Elem_0043c390* from, int count) {
     DAT_00512340.reserve(DAT_00512340.size() + count);
-    for (Elem_0043c390* p = from; p != from + count; ++p)
-        DAT_00512340.push_back(*p);
+    Vec_0043c390::iterator ins = DAT_00512340.end();
+    for (int i = 0; i < count; ++i) {
+        DAT_00512340.insert(ins, 1, from[i]);
+        ins = DAT_00512340.end();
+    }
 
-    _Sort_0_0043bc90(DAT_00512340.begin(), DAT_00512340.end(), FUN_0043c020, (Elem_0043c390*)0);
+    Vec_0043c390::iterator first = DAT_00512340.begin();
+    Vec_0043c390::iterator last = DAT_00512340.end();
+    _Sort_0_0043bc90(first, last, FUN_0043c020, (Elem_0043c390*)0);
 }

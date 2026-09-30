@@ -1,5 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL (59.7%, 756 bytes against the original's 780). Per-frame driver of
+// PARTIAL (62.8%, 764 bytes against the original's 780). Per-frame driver of
 // the unit's command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60
 // list, matched, and the source of the Wait_0043b7c0 shape below). The list
 // head is re-read after every node, so a node the callback re-queues is seen
@@ -39,6 +39,17 @@
 // the later `test eax, 0x40000` (`mov eax, edx` before loading node->next),
 // where ours re-reads node->flags inside the inlined RemoveAndDelete. That
 // extra live value is the likely source of the rotation.
+//
+// Fixed by deepseek-v4.1-flash: writing case 9 as `if (node->next != 0)
+// RemoveAndDelete(...); else { count = 0; Wait(...); }` (RemoveAndDelete
+// fallthrough, wait out of line) makes the compiler keep the just-stored
+// flags value (`mov eax, ecx`) instead of reloading it, 59.7 -> 62.8.
+// Still differs (764 vs 780, 16 bytes short): case 9 now leaves the flags in
+// ecx and reloads node->next in the shared unlink tail, where the original
+// had flags in eax and kept node->next in edx from the condition
+// (`mov eax,edx` then `mov edx,[esi+0x4a]`, reused as `mov [ecx],edx`).
+// The pending block's eax/ecx rotation and the new-command tail's kind store
+// ordering are also still off.
 
 #pragma pack(push, 1)
 
@@ -218,11 +229,11 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
             break;
         case 9:
             node->flags |= 0x800000;
-            if (node->next == 0) {
+            if (node->next != 0)
+                RemoveAndDelete(unit, pp, node);
+            else {
                 node->count = 0;
                 Wait_0043b7c0(node, 0x1e);
-            } else {
-                RemoveAndDelete(unit, pp, node);
             }
             break;
         case 6:

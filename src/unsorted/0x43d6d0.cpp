@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 //
 // NOT MATCHED (52.2%). The logic and the call sequence are believed correct;
 // what still differs is register allocation and one stack slot.
@@ -49,6 +49,32 @@
 // separates the buffer is a distinct 12-byte return type with an inlined
 // converting constructor (guide: 0x4dbd00), which lands at frame 0x20 (49.1%)
 // rather than the original 0x28. 52.2% remains the best.
+//
+// space-bunny-free pass (52.2% kept, 1 check.py run): no improvement, but two
+// new facts about the b19 sea-level clamp, which is the one place the first
+// hunk differs in code shape rather than in slot offsets:
+// 3. The original does NOT store the clamped y back into `v`. The clamp ends
+//    with the value in ecx, and ecx is then written straight into the by-value
+//    Vec3 argument of FUN_0048a9f0 (`mov dword ptr [edx+4], ecx`). Ours emits
+//    a real store to v.y, so ours materialises a memory location the original
+//    never touches.
+// 4. The clamp itself is an "address select": `cmp ecx, eax; jle L; lea eax,
+//    [esp+0x24]; jmp M; L: mov [esp+0x3c], eax; lea eax, [esp+0x3c]; M: mov
+//    ecx, [eax]`. That is MSVC 5 taking the ADDRESS of each arm of a ternary
+//    and loading through the selected one, which only happens when both arms
+//    are lvalues, i.e. the source is the `?:` of a max() MACRO whose false arm
+//    is a value in a register (it has to be spilled to a dead arg slot first).
+//    Writing it as a fresh local (`int lim = ...; v.y = v.y > lim ? v.y : lim`)
+//    gives the direct store instead. Tried the macro form with the limit
+//    expression duplicated (so CSE gives one computation plus a temp):
+//    `v.y = (v.y > (LIM)) ? v.y : (LIM);` -> 51.8%, worse, still a direct store.
+//    So the arms must come from something else than a duplicated expression.
+// 5. The frame is 40 bytes = 4 scalar dwords (mode, &p1, Point draft, and one
+//    more) + the 12-byte local `v` + a separate 12-byte sret buffer for
+//    FUN_0043e060. The second call's sret buffer (FUN_0043e180) sits at
+//    [esp+0x1c], overlapping v, so only the FIRST call keeps a buffer of its
+//    own: the first result is copied out of it and it is never reused, while v
+//    is dead by the second call.
 
 #include <string.h>
 

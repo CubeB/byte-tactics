@@ -1,7 +1,40 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by
+// space-bunny-free. Names are provisional.
 //
 // NOT MATCHED (53.5%, 940 bytes against 943). Semantically correct. The frame
-// now matches the original's 0x44 (the earlier 45.2% note's 0x38 is stale).
+// is 0x3c here, the original's is 0x44 (the earlier 45.2% note's 0x38 is stale).
+//
+// Third pass notes (space-bunny-free, 1 check run). Frame slot map, measured
+// from the original, everything relative to the parameter slot (which is where
+// the original keeps several dead locals):
+//   -0x04 .. -0x08  the three dwords above the array: the array ends 4 bytes
+//                   below the parameter, ours ends 8 bytes below it
+//   -0x28           &p[0]  (ours: -0x2c)
+//   -0x2c, -0x30    the two temps the first _hypot's int args are spilled to
+//                   before the two filds (ours reuses ONE slot, -0x34)
+//   -0x34           len (gap1 sits at -0x3c)
+//   -0x38           a hole, which is where a nested block would end
+//   -0x3c           gap1
+//   -0x44           dz, then ndz
+//   -0x48           the spill of `this` (the top-of-function
+//                   `mov [esp+0x10], esi`); ours spills it at -0x44
+//   the parameter slot itself (0x00) holds, in turn, dx, ndx, p[1].z - pos.z
+//   and the FUN_0048a980 result
+// So the original needs 8 more bytes than ours, and it gets them from two more
+// live slots below the array plus one dword more above it.
+//
+// The root cause of nearly every difference is that ours keeps re-reading
+// `unit` from its parameter slot (see _unit$[esp+72] three times in the tail)
+// while the original parks it in edi with &unit->pos in ebx from just after the
+// v3 call to the end. Because the parameter stays live, the compiler never
+// frees its slot, so the original's `dx` in the parameter slot (0x43cdd1) has
+// nowhere to go in ours. Getting unit into a callee-saved register is the
+// thing to chase; rewriting the expressions will not move it.
+// The `hasPath == 0` arm wants the parameter load first
+// (`mov ecx, [esp+0x58]` then `mov word [esi+0x24], ax`); ours stores the
+// turn first whatever the spelling of the two statements was.
+// Also tried: naming both _hypot arguments as locals and swapping their order
+// (byte-identical output to the inline form, still one temp slot, still 0x3c).
 //
 // What this function does: the path object (vtable 0x4fd458, see
 // 0x44f010.cpp; slot 3 is 0x44f150, slot 5 is 0x44f290) hands over the next

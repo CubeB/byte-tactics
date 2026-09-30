@@ -144,8 +144,6 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
     if (index == -1)
         return;
 
-    int* up = used + 1;
-
     int cnt = entries->data.count + 1;
     if (cnt > 1) {
         int* out = used + 1;
@@ -184,19 +182,21 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
         start = entries[index].x0 + entries[index].y0 * 5000;
         bound = start - 0x17d7840;
         break;
-    case 1:
-        start = entries[index].x0 + entries[index].y0 * 5000;
-        bound = start + 0x17d7840;
-        break;
     case 2:
         start = entries[index].y0 + used[index] * 5000;
         bound = start - 0x17d7840;
+        break;
+    case 1:
+        start = entries[index].x0 + entries[index].y0 * 5000;
+        bound = start + 0x17d7840;
         break;
     case 3:
         start = entries[index].y0 + used[index] * 5000;
         bound = start + 0x17d7840;
         break;
     }
+
+    int* up = used + 1;
 
     int i;
     int pos;
@@ -256,8 +256,8 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
 
     menu->focus = -1;
     menu->layer->field_20 = index;
-    if (menu->layer->entries[menu->layer->field_20].type == 3)
+    if (entries[menu->layer->field_20].type == 3)
         DoSelect(menu, menu->layer->entries, menu->layer->field_20);
-    if (menu->layer->entries[menu->layer->field_20].type == 3)
+    if (entries[menu->layer->field_20].type == 3)
         DoSelect(menu, menu->layer->entries, menu->layer->field_20);
 }

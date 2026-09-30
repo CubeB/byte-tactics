@@ -38,6 +38,19 @@
 // form swaps, point-coord locals, deferred entry, header sweep) are
 // recorded in build/scratch/SHARED.md.
 //
+// deepseek-v4.1 round 2 (2497): the three field_138 tests all live in AX
+// because no store dominates tests 2 and 3: 0x4a6f00 (je -> the rect-set
+// block at 0x4a6f4c), 0x4a6f43 (`f138 != 0` guard whose false path falls
+// INTO that rect-set block) and 0x4a7060 (`f138 == 0` -> fail, on the
+// rect-set block's not-in-rect exit), whose fall-through is the D body at
+// 0x4a7069. So the rect-set block sits out of line, after the 0x2000 body,
+// and falls straight into the shared tail at 0x4a6f8d, and the D body is
+// entered only from the 0x4a6f43 guard. A goto-forced transcription of that
+// shape (labels tail/T3/D, `goto tail` out of the 0x2000 body, A reached by
+// the guard's fall-through) compiles to the right block order but scores
+// 62.7: it costs the obj=EBX/entry=EBP homes, so this file keeps the 84.2
+// form below.
+//
 // deepseek-v4.1 round: the original's `mov ax,[ebp+0x138]/test ax,ax`
 // followed later by a bare `test ax,ax` means the first test's block
 // layout is: ax = field_138; if (ax == 0) -> the rect-check that sets

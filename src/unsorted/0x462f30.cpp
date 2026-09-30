@@ -1,37 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// GAVE UP at 37.4% (1474 of 1653 bytes). Structure is transcribed from the
-// disassembly: it is the HAPINET receive path. First it scans the ten player
-// entries' saved-frame rings (ring object at entry+0x28, entries 12 bytes at
-// +0xc, head increments then reads entry[old head]); if one holds a frame
-// whose sequence number is within 0x1e of g_game+0x38a47 it copies that frame
-// out and returns 0. Otherwise it refills this+0x18 (capacity +0x228, length
-// +0x22c), calls FUN_0044f9c0 to receive, handles the 0x8877001e "grow" and
-// 0x887700be status codes, then routes the packet through FUN_00463790.
-// What still differs: the frame is 8 bytes instead of 0x10, so every register
-// role is wrong from the first loop (original keeps the counter in a stack
-// local and the entry pointer in esi starting at this+0x48, checking [esi-0x28]
-// for the -1 id); MSVC did not hoist tick into ebp; and the refill block was
-// written as a straight transcription of Ghidra's pseudo-C rather than
-// reconstructed from Cavedog's real control flow, so most of the 0x462ff8 to
-// 0x4630b9 region and the two ring pop sites still differ. The callee names
-// and calling conventions (FUN_0044f9c0/Class_0044f9c0, FUN_004568b0,
-// FUN_00463790, operator new/delete, __stdcall FUN_004c9530) do match.
-//
-// Remaining diff hunks by address (best partial, reviewed by deepseek-v4.1-flash):
-//   0x462f30 prologue/frame: original is 0x10 with i@[esp+0x10], tick@[esp+0x14]
-//            (kept in ebp), flag@[esp+0x18] (setg), a@[esp+0x1c]; ours is 8 with
-//            tick in esi and the entry pointer in ebp.
-//   0x462f4e loop 1: original bases on esi = &entry[0].tail.buffer (this+0x48),
-//            reads the id as [esi-0x28] and the copy-out as [esi+4]/[esi+8];
-//            ours bases on ebp = &entries[i] (this+0x20). The outer object is an
-//            entry with head (0x00..0x17) and tail (0x18..0x33), see 0x4635b0.cpp.
-//   0x462f8a/0x462fc1 ring pop: matches in shape, dead r->n<=0 arm at 0x462fb5
-//            (xor eax,eax then reads [eax+8]/[eax+4]) not reproduced.
-//   0x462fde..0x4630b9 buffer refill/swap: transcribed from Ghidra pseudo-C, not
-//            from Cavedog's real control flow, so most of this region differs.
-//   0x4631c0..0x4633d4 packet routing: register roles differ (entry pointer
-//            spilled at [esp+0x10]); the four FUN_004568b0 guard sites are close.
-//   0x463453..0x463583 second ring pop and copy-out use the tail pointer too.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 39.9%. Correct packet offsets, byte pointer arithmetic, refill routing, saved-frame flag and sequence resend branches. Frame and ring-pop/register allocation still differ.
 #include <string.h>
 
 struct RingEntry_00462f30 {
@@ -83,11 +51,12 @@ public:
 };
 extern Class_0044f9c0 DAT_005129f8;
 
-struct Class_004568b0 {
-    int FUN_004568b0(int a, int b, int c);
-};
+void __stdcall FUN_004568b0(int a, int b, int c);
 
-struct Class_00463790 {
+static int Previous_00462f30(int n) { --n; return n >= -1 ? -2 : n; }
+static int Next_00462f30(int n) { ++n; return n >= -1 ? -2 : n; }
+
+struct Class_00463730 {
     int FUN_00463790(void* data, unsigned int size, int tick, int a4, int a5,
                      int flag);
 };
@@ -165,70 +134,50 @@ int Class_00462d30::FUN_00462f30(void* packet, void* dest, unsigned int* size)
     }
 
     entry = 0;
+    if (length != 0)
+        goto route_frames;
     if (length == 0) {
-        int link = field_14;
+        Entry_00462f30* link = (Entry_00462f30*)field_14;
         int ecx = 0;
         if (link != 0) {
-            void* spare_p = spare;
-            if (spare_p != 0) {
-                int cap = field_230;
-                buffer = (char*)spare_p;
-                if (cap <= 0) {
-                    length = 0;
-                } else {
-                    int l = field_234;
-                    length = cap;
-                    field_c = l;
+            if (spare != 0) {
+                buffer = spare;
+                if (field_230 > 0) {
+                    length = field_230;
+                    field_c = field_234;
                     field_10 = field_238;
-                    l = cap - 4;
-                    if (l <= 0) {
-                        int x;
-                        spare = 0;
-                        *(int*)(*(int*)((char*)this + 0x14) + 0xc) = 0;
-                        field_14 = 0;
-                        ecx = 0;
-                        goto refilled;
-                    }
-                    *(int*)(link + 8) = *(int*)spare_p;
-                    spare = 0;
-                    *(int*)(*(int*)((char*)this + 0x14) + 0xc) = 0;
-                    field_14 = 0;
-                    ecx = 0;
-                    goto refilled;
-                }
-            } else {
-                int c = *(int*)(link + 0xc);
-                if (c <= 0) {
-                    field_14 = 0;
-                } else {
-                    void* b = buffer;
-                    field_14 = (int)b;
-                    field_234 = field_c;
-                    field_230 = 0;
-                    field_238 = field_10;
-                    b = *(void**)(link + 0x14);
-                    buffer = (char*)b;
-                    *(int*)(link + 8) = *(int*)b;
-                    b = (void*)field_14;
-                    length = *(int*)((char*)b + 0xc);
-                    field_c = *(int*)b;
-                    field_10 = *(int*)((char*)b + 4);
                     ecx = length - 4;
-                    *(int*)((char*)b + 0xc) = 0;
-                    goto refilled;
+                    if (ecx > 0)
+                        link->field_8 = *(int*)buffer;
+                } else {
+                    length = 0;
                 }
+                spare = 0;
+                ((Entry_00462f30*)field_14)->field_c = 0;
+                field_14 = 0;
+            } else if (link->field_c > 0) {
+                spare = buffer;
+                field_234 = field_c;
+                field_230 = 0;
+                field_238 = field_10;
+                buffer = link->field_14;
+                link->field_8 = *(int*)buffer;
+                link = (Entry_00462f30*)field_14;
+                length = link->field_c;
+                field_c = link->field_0;
+                field_10 = link->field_4;
+                ecx = length - 4;
+                link->field_c = 0;
+            } else {
+                field_14 = 0;
             }
-            int b2;
-            spare = 0;
-            *(int*)(*(int*)((char*)this + 0x14) + 0xc) = 0;
-            field_14 = 0;
-            goto refilled;
         }
-refilled:
+        if (ecx != 0)
+            goto route_frames;
         if (ecx == 0) {
             int rc;
             length = capacity;
-            rc = DAT_005129f8.FUN_0044f9c0(g_game + 0x14, buffer, &length);
+            rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
             while (rc != 0) {
                 if (rc == (int)0x887700be)
                     goto fail832;
@@ -246,16 +195,15 @@ refilled:
                     return (int)0x8007000e;
                 }
                 length = capacity;
-                rc = DAT_005129f8.FUN_0044f9c0(g_game + 0x14, buffer, &length);
+                rc = DAT_005129f8.FUN_0044f9c0((char*)g_game + 0x14, buffer, &length);
             }
         }
     }
 
     {
-        int* arg = (int*)packet;
-        field_c = arg[0x4b5 / 4];
-        field_10 = arg[0x4b9 / 4];
-        if (arg[0x4b5 / 4] == 0) {
+        field_c = *(int*)((char*)packet + 0x4b5);
+        field_10 = *(int*)((char*)packet + 0x4b9);
+        if (*(int*)((char*)packet + 0x4b5) == 0) {
             unsigned int n = length;
             if ((int)*size < (int)n) {
                 *size = n;
@@ -266,7 +214,7 @@ refilled:
             length = 0;
             return 0;
         }
-        if (length < 4)
+        if ((unsigned int)length < 4)
             return (int)0x80004005;
         if (length == 4)
             return (int)0x80004005;
@@ -277,7 +225,7 @@ refilled:
             if (entry->field_8 != -1) {
                 int cur;
                 int prev;
-                flag = 0;
+                flag = entry->field_c > 0;
                 a = entry->field_8 - 1;
                 cur = *(int*)buffer;
                 prev = (a < -1) ? a : -2;
@@ -301,24 +249,20 @@ refilled:
                     }
                     if (a >= -1)
                         a = -2;
-                    if (cur < *(int*)entry->field_14) {
-                        if (a != *(int*)entry->field_14)
-                            ((Class_004568b0*)entry)->FUN_004568b0(field_c, a, *(int*)entry->field_14 + 1);
-                        int t2 = *(int*)entry->field_14 - 1;
-                        if (t2 >= -1)
-                            t2 = -2;
-                        if (t2 != *(int*)buffer)
-                            ((Class_004568b0*)entry)->FUN_004568b0(field_c, t2, *(int*)entry->field_14 + 1);
-                    } else {
+                    if (*(int*)entry->field_14 <= cur) {
                         if (a != cur)
-                            ((Class_004568b0*)entry)->FUN_004568b0(field_c, a, cur + 1);
-                        int t3 = *(int*)buffer - 1;
-                        if (t3 >= -1)
-                            t3 = -2;
-                        if (t3 != *(int*)entry->field_14)
-                            ((Class_004568b0*)entry)->FUN_004568b0(field_c, t3, *(int*)buffer + 1);
+                            FUN_004568b0(field_c, a, Next_00462f30(cur));
+                        int t2 = Previous_00462f30(*(int*)buffer);
+                        if (t2 != *(int*)entry->field_14)
+                            FUN_004568b0(field_c, t2, Next_00462f30(*(int*)entry->field_14));
                         flag = 0;
                         field_14 = (int)entry;
+                    } else {
+                        if (a != *(int*)entry->field_14)
+                            FUN_004568b0(field_c, a, Next_00462f30(*(int*)entry->field_14));
+                        int t3 = Previous_00462f30(*(int*)entry->field_14);
+                        if (t3 != *(int*)buffer)
+                            FUN_004568b0(field_c, t3, Next_00462f30(*(int*)buffer));
                     }
                 }
                 if (flag && entry->field_c > 0) {
@@ -338,12 +282,13 @@ refilled:
         }
     }
 
+route_frames:
     if (entry == 0) {
         entry = FUN_00462d90(field_c);
         if (entry == 0)
             goto fail832;
     }
-    if (((Class_00463790*)&entry->tail)->FUN_00463790(buffer, length, tick, field_c, field_10,
+    if (((Class_00463730*)&entry->tail)->FUN_00463790(buffer, length, tick, field_c, field_10,
                      field_14 == 0) == 0) {
         r = entry->tail.buffer;
         if (r == 0 || r->n <= 0)

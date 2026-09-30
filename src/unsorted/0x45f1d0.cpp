@@ -1,34 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Builds the GAMEOPTIONS.GUI dialog: for every setting of the game options
-// screen it adds a label TEXT entry on the left (x 0x12) and its value on the
-// right (x 0x8c), 0x12 pixels apart, then marks the entries added so far as
-// used and shows the menu.
-//
-// The seventeen string literals live in ONE flat array (strs[17]); separate
-// arrays for locations/map mode/watching/death/difficulty/los let MSVC put los
-// and diff in each other's stack slots.  The line-of-sight index is
-// !(flags & 2) ? 2 : (((unsigned char)~flags >> 2) & 1), which is what gives
-// the original's `test al,2 / jne / mov eax,2 / jmp` with `not al`.
-//
-// Suspected original bug: the "Starting Metal"/"Starting Energy" values in the
-// non-network case come from rule->startMetal / rule->startEnergy, i.e.
-// [ebp+0xc] / [ebp+0x10] with ebp = g_game->rules + g_game->playerType*0x18.
-//
-// g_game->players[i] (stride 0x14b) starts with a PlayerInfo pointer, so
-// `opts` is a LOAD from that slot, not the address of the array element:
-// mov ebx,[edi+edx*2+0x1b8a].  A plain &players[i] emits lea and cannot match.
-//
-// Remaining diff (best 90.0%, 1422 vs 1431 bytes):
-//   0x45f232..0x45f28c: the player index strength reduction keeps the multiply
-//     in ecx and the index in eax; the original keeps them the other way round
-//     (shl eax,5 / add eax,ecx).  Swapping the opts/rule declaration order, an
-//     explicit `int idx` local, and dropping <string.h> all change nothing.
-//   0x45f36a..0x45f376: the net==2 branch re-reads g_game->rules->startType
-//     instead of using the cached `rule`.  Writing that re-read gives the right
-//     size (1432 vs 1431) but rotates g_game's scratch register through the
-//     whole function and drops the score to 69.8%, so rule->startType is kept.
-// Everything else (all the label/value pairs and the tail loop) already matches;
-// the remaining non-hunk diff lines are just branch displacements shifting.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 91.1%. Fresh rules pointer and correct callee classes retained. Initial player-index arithmetic and string-array store scheduling still differ.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -79,10 +50,8 @@ struct Rule_0045f1d0 {                   // 0x18 bytes
     int startType;                       // +0x118
 };
 
-struct Net_0045f1d0 {
-    int FUN_00435100();
-    char* FUN_00435c30();
-};
+struct Class_00435100 { int FUN_00435100(); };
+struct Class_00435c30 { char* FUN_00435c30(); };
 
 struct Game_0045f1d0 {
     char unknown_0[0x519];
@@ -109,7 +78,7 @@ struct Game_0045f1d0 {
     char unknown_37ef2[0x37ef6 - 0x37ef2];
     int commanderDeath;                  // +0x37ef6
     char unknown_37efa[0x391e9 - 0x37efa];
-    Net_0045f1d0* net;                   // +0x391e9
+    Class_00435100* net;                   // +0x391e9
 };
 #pragma pack(pop)
 
@@ -127,16 +96,17 @@ void __stdcall FUN_004a81e0(Layer_0045f1d0* menu, int flag);
 char* _itoa(int value, char* buf, int radix);
 
 // FUNCTION: 0x45f1d0
-void FUN_0045f1d0(int unused8, int unusedc, int unused10)
+void FUN_0045f1d0()
 {
     Layer_0045f1d0* layer = FUN_004aa8f0(&g_game->menu, "GAMEOPTIONS.GUI", 0x1881);
     Entry_0045f1d0* entries = layer->entries;
     layer->handler = FUN_0045f190;
     FUN_004288d0("GameSettings", 0, 0, 0);
     int count = layer->entries->u.count;
-    Opts_0045f1d0* opts = g_game->players[FUN_00456850() & 0xff].info;
-    Rule_0045f1d0* rule = (Rule_0045f1d0*)((char*)g_game->rules
-                                           + g_game->playerType * 0x18);
+    unsigned int index = FUN_00456850() & 0xff;
+    Game_0045f1d0* game = g_game;
+    Rule_0045f1d0* rule = (Rule_0045f1d0*)((char*)game->rules + game->playerType * 0x18);
+    Opts_0045f1d0* opts = game->players[index].info;
     char* strs[17] = { "Random", "Fixed", "Disallowed", "Allowed",
                        "Mapped", "Unmapped", "Disallowed", "Allowed",
                        "Game Continues", "Game Ends", "Deathmatch",
@@ -148,7 +118,7 @@ void FUN_0045f1d0(int unused8, int unusedc, int unused10)
                  0x78, 2);
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Starting Locations:"), 0x12, 0x6c, 0x6e, 2);
     if (g_game->net->FUN_00435100() == 2) {
-        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[rule->startType]), 0x8c, 0x6c,
+        FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[g_game->rules->startType]), 0x8c, 0x6c,
                      0x78, 2);
     } else {
         FUN_004ab1b0(layer, "TEXT", FUN_004c5740(strs[opts->u.b.b14]), 0x8c, 0x6c,
@@ -176,7 +146,7 @@ void FUN_0045f1d0(int unused8, int unusedc, int unused10)
         y = 0xb4;
     }
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Map:"), 0x12, y, 0x6e, 2);
-    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(g_game->net->FUN_00435c30()), 0x8c, y, 0x78,
+    FUN_004ab1b0(layer, "TEXT", FUN_004c5740(((Class_00435c30*)g_game->net)->FUN_00435c30()), 0x8c, y, 0x78,
                  2);
     y += 0x12;
     FUN_004ab1b0(layer, "TEXT", FUN_004c5740("Starting Metal:"), 0x12, y, 0x6e, 2);

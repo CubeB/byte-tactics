@@ -1,38 +1,5 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
-// Partial: 64.8%, 1006 of 1040 bytes. Text layout: walks a string whose
-// character widths are compressed (0x2c escapes an 8-bit then 16-bit field
-// through the bit reader), counts the units that fit, then appends
-// {x, pointer, width} entries to a 0x200-slot ring.
-// Structure is believed correct; what still differs is register allocation,
-// and it is ONE allocation state, not several:
-//  - the original's `remaining` is born in ebx (`sub ebx,4`, size destroyed)
-//    and the count loop reads a copy in edi, with `n` in ebp. Ours always
-//    materialises size-4 with `lea ebp,[ebx-4]`, so <<remaining, n>> land in
-//    <ebp, edi>; that single swap shifts `x` out of ebp (it stays on the
-//    stack) and pushes lineLeft into ebx in both append loops.
-//  - first (rows already built) branch: the original kills the zero register
-//    by loading f8 into edi, then hoists 0x200 into edi and tests counts with
-//    `test`; ours keeps edi=0 (f8 goes to edx) and uses the 0x200 immediates.
-//  - minor: the grow test is `cmp ebx,eax; jbe` (size vs f4) and CSE keeps a
-//    live `size` copy in edx across the inlined memcpy, with a4 loaded before
-//    it and a5 after; ours loads a5 before and a4 after.
-// Tried and did not help: headers.py over all 128 header sets (none matched),
-// a 2D width table, `size -= 4` (still folds to the same lea), declared n
-// before remaining, unsigned `remaining`, splitting the initialiser onto two
-// lines, and six first-branch loop spellings (while (i != 0), while (i--),
-// while (i > 0), for (;;) with a break, and an if + do/while). The last two
-// gave the original's `mov ecx,eax; dec eax; test ecx,ecx` idiom but scored
-// 61 to 62 percent because the rest of the allocation moved. What did help:
-// rewriting the count pass as a plain `while (remaining > 0)` instead of an
-// `if (remaining > 0)` around a do/while (63.2 to 64.5), and writing the grow
-// test as `size > f4` so the branch is `jbe` with size on the left (64.8).
-// Second pass (same model): replacing the first-branch Entry_00463790 local
-// with three plain int locals a/b/c scored 64.5 (worse, it spills b and c);
-// `size -= 4` with `int remaining = size` declared after the memcpy scored
-// 64.8 (same, still `lea ebp,[ebx-4]`); the inner guard written `r->n >= 1`
-// scored 64.8 still (1007 bytes). The root cause is that the entry ternary
-// `(rows ? rows->n : 0) != 0` leaves a live 0 in edi, so `f8++` lands in edx
-// and the later `r->n > 0` becomes `cmp ecx,edi` instead of `test ecx,ecx`.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 62.6%. Preserve pointer-returning ring pop and unsigned spacing comparison. Remaining count-loop and ring-entry register allocation differ.
 #include <string.h>
 
 void* operator new(unsigned int size);
@@ -86,17 +53,18 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
     if ((rows ? rows->n : 0) != 0) {
         f8++;
         for (int i = rows->n; i != 0; i--) {
-            Entry_00463790 e;
             Buffer_00463730* r = rows;
+            Entry_00463790* ep = 0;
             if (r->n > 0) {
                 r->n--;
-                int h = r->head;
-                r->head = h + 1;
-                if (h + 1 >= 0x200) {
+                int h = r->head + 1;
+                r->head = h;
+                ep = (Entry_00463790*)((char*)r + h * 12);
+                if (h >= 0x200)
                     r->head = 0;
-                }
-                e = r->entry[h];
             }
+            Entry_00463790 e = *ep;
+            r = rows;
             if (r->n < 0x200) {
                 int t = r->tail + 1;
                 r->tail = t;
@@ -211,7 +179,7 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
                 i++;
                 {
                     int scaled = i << 4;
-                    if (scaled >= progress) {
+                    if ((unsigned int)scaled >= (unsigned int)progress) {
                         progress += spacing;
                         x++;
                     }

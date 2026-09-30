@@ -1,5 +1,16 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol
-// and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// and space-bunny-free, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry (#2823), still 88.4%. Lead for the next pass, from 0x46d6c0
+// (now a MATCH): the store after the insert is `rects[key] = <Value temp>`,
+// <map>'s operator[] (`insert(value_type(k, _Ty())).first->second`), and the
+// uninitialised copies are its `_Ty()` default temporary. A real
+// std::map<unsigned int, Rect_0046e160> member with `rects[key] = r` gives 474
+// bytes here (47.9% only because a few instructions in the pre-insert block
+// are scheduled differently: frame 0x50 instead of 0x4c, and the original
+// keeps `r` in memory at [esp+0x38] and copies it into the pair temp field by
+// field with y copied uninitialised). An explicit `rects.insert(...).first`
+// followed by an assignment is not inlined at all (213 bytes), and giving the
+// Rect a constructor for `rects[key] = Rect(r.x, 0, ...)` is 493 bytes.
 // #1543 retry by Codex / GPT-6.1-sol: verified 88.4% (475/475 bytes) with checkall; no MATCH.
 // The remaining difference is scheduling and register allocation in the pre-insert block and post-insert copy.
 // PARTIAL, 88.4%, and the whole function now compiles to the original's exact

@@ -1,4 +1,20 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 4 (timeboxed out at 84.1%, this file unchanged
+// from the known best): no new variant was scored this session, only evidence
+// gathered. objdump of the original confirms the census exactly: `button`
+// (param 1) is loaded once into edi and read11 times as [edi+0x60], `entries`
+// (param 2) is loaded once into esi and used 12 times (1 lea + 11 pushes),
+// and the ONLY other read of a parameter slot is the false arm
+// `mov ebp, [esp+0x34]` at 0x419c1c. So the single remaining diff is still
+// that false arm (our `mov ebp, esi`, 2 bytes vs 4) and the esi/edi role swap
+// it causes via the use-count tie. Still untested from the notes: declaring
+// param 1 as a Menu-like struct (index at +0x60) with a cast in the false arm
+// `(Entry_00419be0*)menu`, which gives the false arm a structurally different
+// expression tree than the 11 `menu->index` loads; also untested is an
+// lvalue ternary over struct OBJECTS addressed afterwards,
+// `e = &(cond ? entries[i] : *button);`, a middle ground between the plain
+// ternary (84.1%) and the lvalue-?: over references (66.6%, the only shape
+// ever seen to read the home slot).
 // deepseek-v4.1-flash retry 3 (still 84.1%, no improvement): the remaining
 // `mov ebp,[esp+0x34]` vs `mov ebp,esi` is allocator state, confirmed again.
 // New variants, every one byte-identical at 84.1% except the first: an

@@ -1,4 +1,19 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry session 4 (TIMEBOX fired before any variant was
+// tested; 1 check.py run, the diagnostic diff only). Best stays 55.5% at 2203
+// bytes. WHAT STILL DIFFERS (confirmed from the fresh diff, unchanged from
+// prior sessions): the whole preheader register coloring and slot walk. The
+// original loads scrollY, then viewWidth into ecx (0x41838e), then scrollX,
+// then width into edx (0x4183a8), computes firstY into edi and firstX into
+// eax, then lastX=viewWidth+firstX+1 in ecx and the width-1 clamp in edx. Our
+// build loads width into edi early and viewWidth into edx late, colours firstY
+// into ecx instead of edi, and keeps the one-slot divergence (ours p at
+// esp+0x10/x 0x30/y 0x34/baseY 0x38/baseX 0x3c/heights 0x40 vs the original's
+// y at esp+0x10/p 0x14/x 0x34/baseX 0x38/baseY 0x3c/tile 0x40/heights 0x48).
+// The load interleaving (viewWidth before scrollX) is the concrete next lever I
+// was about to test: split the preheader into firstY=scrollY/16; viewW=viewWidth;
+// firstX=scrollX/16; lastX=viewW+firstX+1; wid=width; clamp; lastY=height-1 to
+// force scrollY,viewWidth,scrollX,load order. Not reached before the stop.
 // deepseek-v4.1-flash retry session 3 (5 scratch probes, all byte-identical to
 // this file, so it stays best at 55.5%). Probes: heights[4] moved into the
 // inner loop body; then p[4] too; y hoisted to function scope with the for-init

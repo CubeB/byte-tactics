@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial: 59.6% (was 55.8), 1533 bytes versus 1512. <vector>/<windows.h> plus
 // declaration order onOff,u,cloak,first,count,flags recovers the 0x240 frame.
 // Original slot map: onOff=0x10, loop u=0x14, cloak=0x18, first=0x1c, count=0x20,
@@ -10,6 +10,22 @@
 // ours emits them in the prologue, which is why first takes 0x10. The
 // unitIndex test also differs (original reuses esi=0 with cmp ax,si). A 768-set
 // header sweep and 80 local/type/lifetime variants were tried by earlier models.
+//
+// deepseek-v4.1-flash, second pass: the real lever is that the original keeps a
+// SECOND live zero in ESI (xor esi,esi at 0x41b33e) used for cmp ax,si, cmp
+// word [..+0xa6],si, mov word [..+0x37e9c],si and the else-branch first=0 /
+// count=0 stores, while EBP=0 serves only the nine flag locals. Ours reuses one
+// zero (EBP) for both, so EBP is live through the if-branch, which blocks EBP
+// for `first`; the original keeps first in EBP and count in EBX on that path
+// (mov ebp,eax / mov ebx,1) and only spills them in the else loop. Verified
+// experiments: every permutation of the onOff/u/cloak/first/count and flag
+// declaration order compiles byte-identically (59.6%), so declarations are not
+// the cause; the N-declarations sweep 0..66 and all 128 headers.py sets are
+// flat at 59.6%; making the first=0/count=0 initialisers absent and zeroing
+// them in the else (the sink the original shows at 0x41b3a6) instead makes the
+// nine flags spill and drops to 32.8%. The remaining diffs are the ESI/EBP zero
+// split, the first/count register-vs-memory choice, and the tail bit-write
+// sequence reusing EAX instead of EBX.
 
 #include <vector>
 #include <windows.h>

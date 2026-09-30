@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Retry #1781: GPT-6.1-sol confirmed 91.9% after four checks; no MATCH. Two loop-scheduling rewrites and header sweeps did not improve the best.
+// GPT-6.1-sol continuation (#1781): confirmed 91.9% best; alternate counter/store orderings scored lower.
 // GPT-6.1-sol lead pass (#1510): moving the loop counters before the output store via a pixel temporary scored 76.1%; retained the 91.9% best.
 // PARTIAL: best scoring variant, 91.9%, 402 byte original vs 404 bytes ours.
 // Remaining mismatch is loop-bottom scheduling: original increments i, mapX,

@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free, confirmed by deepseek-v4.1-flash, re-checked by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free, confirmed by deepseek-v4.1-flash, re-checked by deepseek-v4.1-flash, second pass by space-bunny-free. Names are provisional.
 // Ground height under a unit's footprint: walks the rectangle of map cells the
 // unit covers and keeps the lowest cell floor over the cells whose footprint
 // mask has bit 3 set, plus the highest floor over the cells with bit 3 and the
@@ -111,6 +111,19 @@
 // that a count of unused declarations can flip on and off non-monotonically,
 // is front-end symbol-hash state, not a header and not a spelling. Once real
 // headers, real spellings and declaration order are all flat, stop.
+//
+// space-bunny-free pass (#1856), 1 check run (baseline reproduced at 99.1, one
+// SIB byte, 333 = 333) plus free --sym scratch scores. One lever the notes
+// above had not tried: instead of junk padding, put REAL code from the same
+// module above the function, the 0x4581e0 "unrelated code before it in the file"
+// lever, by copying 0x47d970's structs and its scan_footprint body (static, its
+// game pointer renamed g_game2) into this file ahead of the function. That is
+// worse, 86.0: the first cell y index comes out in dx instead of si, so the
+// whole register assignment shifts. So adding real same-module code above does
+// move the front-end state, but it lands in a worse state here, exactly like the
+// extern padding does in both directions. The body below stays as it was, and I
+// agree with the instruction above: do not spend another pass on this
+// function's operand order.
 #pragma pack(push, 1)
 
 struct Point {

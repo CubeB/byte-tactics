@@ -124,6 +124,21 @@
 // them, so as on 0x47d820 and 0x47d970 this is front-end state in this
 // translation unit rather than a missing source shape. There is no padding
 // lever here to decline either: unlike 0x47d820, no declaration state matched.
+// space-bunny-free second pass, 2 check runs, 86.8 percent and 346 bytes:
+//  - the whole residual is still the one eight-instruction index block; every
+//    other difference the differ prints is a jump target 4 bytes further on,
+//    so the rest of the function is instruction-for-instruction identical;
+//  - the add order is provably canonicalised: `cell - (cell->spotX +
+//    cell->spotY * g_game->width)` compiles byte-for-byte like the opposite
+//    order (both operands of the `+` keep the same shape, 86.8, 346 bytes).
+//    So the original's spotX-loaded-before-the-multiply schedule, and with it
+//    the `imul eax, [edx+0x14233]` fold, are not reachable by writing the `+`
+//    the other way round, and the guide's "for `imul reg, [mem]` the register
+//    operand is the left side of `*`" cannot be applied here: c1 has already
+//    swapped the multiply's own operands by the time it chooses the form
+//    (it copies the byte into ecx and loads the width into eax, so the width
+//    is the left side of `*` in the generated code no matter how it is
+//    written).
 #pragma pack(push, 1)
 struct Feature_0047de60 {
     char unknown_0[0xfe];

@@ -1,14 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
-//
-// 55.8% (817 bytes vs 834). The original calls Class_00433500::FUN_00433500
-// ONCE: the if/else only picks the lod index and the (single) call follows.
-// Writing the call inside each arm gives 51.2%. Everything else still differs
-// downstream of the local frame slot assignment: x is at 0x1c as in the target,
-// but y lands at 0x14 (target 0x20) and grid at 0x3c (target 0x30), so the
-// target keeps all four callee-saved registers busy and spills the clamped lod
-// to [esp+0x34] before the FUN_00433520 call, clamping BEFORE it; ours keeps the
-// raw field_8/32 in ebp across the call and clamps after (setl/and). The whole
-// inner-loop and else-branch code shape follows from that one allocator state.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Partial: 61.0%, 832 bytes versus 817. The distance counter advances even
+// for out-of-bounds points. Grid accessors recover the receiver-relative
+// addressing. Remaining differences include the LOD clamp timing, local
+// frame slots and register allocation in both branches. Two 768-set header
+// sweeps did not improve the result.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -20,12 +15,12 @@ public:
 
 class Class_00433520 {
 public:
-    short FUN_00433520();
+    int FUN_00433520();
 };
 
 class Class_004335c0 {
 public:
-    short FUN_004335c0();
+    int FUN_004335c0();
 };
 
 class Class_4335e0 {
@@ -35,7 +30,7 @@ public:
 
 class Class_004339c0 {
 public:
-    short FUN_004339c0();
+    int FUN_004339c0();
 };
 
 class Class_004339e0 {
@@ -50,6 +45,7 @@ struct Grid_482270 {
     unsigned int width;                // +0x4
     unsigned int height;               // +0x8
     int field_c;                       // +0xc
+    unsigned char& at(int x, int y) { return cells[y * width + x]; }
 };
 
 struct Player_482270 {
@@ -132,14 +128,14 @@ void __stdcall FUN_00482270(Params_482270* params)
         if ((unsigned)y >= grid->height)
             return;
         int idx = Lod_482270(params);
-        if (idx < ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
+        if (idx < (short)((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1)
             idx = Lod_482270(params);
         else
-            idx = ((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1;
+            idx = (short)((Class_00433520*)DAT_0051e6a0)->FUN_00433520() - 1;
         void* table = ((Class_00433500*)DAT_0051e6a0)->FUN_00433500(idx);
         short count = ((Class_004335c0*)table)->FUN_004335c0();
         short i = 0;
-        ((Player_482270*)params->field_0)->grid.cells[y * ((Player_482270*)params->field_0)->grid.width + x]++;
+        ((Player_482270*)params->field_0)->grid.at(x, y)++;
         int ref = *params->field_c;
         if (count <= 0)
             return;
@@ -152,7 +148,7 @@ void __stdcall FUN_00482270(Params_482270* params)
             int j1 = 1;
             if (num <= 0)
                 continue;
-            for (j = 0; j < num; j++) {
+            for (j = 0; j < num; j++, j1++) {
                 int e1;
                 int e2;
                 ((Class_004339e0*)line)->FUN_004339e0(j, &e1, &e2);
@@ -167,13 +163,12 @@ void __stdcall FUN_00482270(Params_482270* params)
                 int d1 = cell[1] - ref;
                 int d0 = cell[0] - ref;
                 if (d0 * bestIdx > bestDiff * j1) {
-                    ((Player_482270*)params->field_0)->grid.cells[(short)y2 * ((Player_482270*)params->field_0)->grid.width + (short)x2]++;
+                    ((Player_482270*)params->field_0)->grid.at((short)x2, (short)y2)++;
                     if (d1 * bestIdx > bestDiff * j1) {
                         bestIdx = j1;
                         bestDiff = d1;
                     }
                 }
-                j1++;
             }
         }
     } else {

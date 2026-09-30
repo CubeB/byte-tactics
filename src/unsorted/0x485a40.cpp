@@ -1,62 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Initialises a freshly placed unit from its type definition: looks the type up
-// by the unit's id, mirrors the type's flags into the unit's +0x110 word, sets
-// build progress / health (param_5 selects the finished or under-construction
-// arm), copies the position and derives a screen-space short pair from the
-// unit's +0x14a offset pair, gives the unit a random facing, marks bit 9 from
-// the owning player, resets its three weapon entries, and finally resets the
-// PlayerRef at +0xbc and runs FUN_00480250.
-//
-// PARTIAL (85.9%). Every instruction matches except the register allocator's
-// choice for the first flags value:
-//   - the original keeps the first flags read-modify-write in EAX: it finishes
-//     the type index chain in EAX first and then reuses EAX, and it never
-//     touches EBP. In my version MSVC hoists the load of unit->+0x110 above the
-//     index chain, so the value is live across it, gets demoted to EBP, and
-//     every [esp+X] offset is then 4 higher with a push/pop ebp at each end.
-//     This is one allocator state, not several bugs: everything else in the
-//     function (all the +0x110 bitfield read-modify-write masks, the +0x114
-//     bit, the nibble clear at +0x10f, the position copy through the esi+0x6a
-//     base pointer, the stack scratch pair, both FUN_004b6c30 calls and the
-//     whole tail) is byte exact.
-//   - The two spellings of the position copy trade those halves against each
-//     other and neither gives both of them:
-//       `unit->pos = pos;`        -> the base pointer, early block wrong
-//                                    (this file, 85.9%)
-//       three separate field stores -> the first 58 instructions byte exact,
-//                                    but the stores use disp32 addressing and
-//                                    the screen arithmetic interleaves with
-//                                    them (84.1%)
-//     A pointer local to &unit->pos, a nested block, a local struct copy, an
-//     inline helper around the screen expression, an `|=` spelling of the
-//     first flag, a separate `unsigned short tid` and a pointer-arithmetic
-//     index all land on one side or the other (71% to 86%), never on both.
-//   - FIXED: the random facing needs `unsigned short field_66`, not `short`.
-//     The narrowing of the constant in `0x8000 - field_210 / 2` is driven by
-//     the destination type: as a signed short MSVC folds 0x8000 to 0xffff8000,
-//     as an unsigned short it keeps 0x8000 and still emits the original's
-//     16-bit `shr dx, 1`. Every spelling around it (the cast, unsigned,
-//     `>> 1`, `0x10000 / 2`, a separate int local, reassociation) gives one of
-//     the two or the other, never both.
-// <windows.h>/<stdio.h>/<string.h>/<math.h> and the other 124 header sets do
-// not change any of this.
-// Re-attempted (deepseek-v4.1-flash): an explicit
-// `unsigned int flags = unit->flags.all | 0x10000000;` local with the type
-// store between the load and the store (49.6%), binding `unit->type` through
-// `UnitType_485a40*&` and assigning through the reference (85.6%), and putting
-// the flags RMW before the type assignment (54.4%). MSVC keeps hoisting the
-// flags load into a callee-saved register in all of them; 85.9% remains best.
-//
-// The type's +0x241 word is a bitfield union; its movOrder/fireOrder/canAttack/
-// b7/b9/hi fields are the ones copied into the unit. The unit's +0x110 is a
-// bitfield union too: b0/b5/b16 are set and b1-b11/b17 cleared by the
-// init, b14/b29 by the type's +0x22f test, mode2/mode from movOrder/fireOrder,
-// b11 from canAttack, b30 from b9, b31 from the type's high half,
-// f22_23 = 3 and f24_25 = 0 when the type's +0x22e is above 1, and b8/b9 from
-// the owner comparison. Writing these as explicit masks gives the same bytes;
-// the bitfield form is the one that produced the original's merged clear
-// masks. Note the screen pair's y is derived from the third component of the
-// passed position, not the second.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and GPT-6. Names are provisional.
+// MATCH: the screen Y projection uses the passed position Z component.
 
 #pragma pack(push, 1)
 
@@ -277,7 +220,7 @@ void __stdcall FUN_00485a40(Unit_485a40* unit, Pos_485a40 pos, int param_5)
     ShortPair_485a40 off = unit->offset;
     ShortPair_485a40 screen;
     screen.x = (short)((pos.x - off.x * 0x80000 + 0x80000) >> 20);
-    screen.y = (short)((pos.y - off.y * 0x80000 + 0x80000) >> 20);
+    screen.y = (short)((pos.z - off.y * 0x80000 + 0x80000) >> 20);
     unit->screen = screen;
 
     unit->field_66 = (short)(FUN_004b6c30(unit->type->field_210)

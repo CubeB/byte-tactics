@@ -1,4 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass (best so far, 26.5%, 3100 bytes vs 3152): removed the `def` local by
+// expanding every `def->` to `(unit->def)` (macro DEF) so the frame collapsed to one local
+// (push ecx), which is what the original has; g_game is read inline through macro GAME.
+// That lifted 23.3% -> 26.5%. What still differs: the original keeps g_game in EBX, enemy in
+// EBP (register only, no home), friendly in ESI with its home at [esp+0x10], target in EDI and
+// unit left in memory (reloaded from [esp+0x1c] for every `unit->def` / `unit->player`), and it
+// spills the loop's def (ECX, loaded once at 0x43e4ab) into the dead target parameter slot
+// [esp+0x20] (0x43e4b3) and reloads it after each of the six calls. We get one local and the
+// [esp+0x20] spill too, but MSVC5 hands the callee-saved registers out differently: it keeps
+// unit in a register and spills enemy into [esp+0x20]; declaration order, the DEF/GAME macros
+// and removing the game local all leave the score at 26.5%. Register choice moves with the
+// source shape but never lands on the original's ebx=g_game / ebp=enemy / edi=target.
 // Started by deepseek-v4.1-flash and continued by GPT-6 before this pass. Partial, 23.3%.
 // This pass reordered the switch case bodies to the original's source order read off the jump
 // table at 0x43f0a8: cases 1, 3, 9, 8, 7, 12, 13, 6, 5, 14, 4, 11, 2, then default. That alone
@@ -179,19 +191,17 @@ static inline Thing_0043e490* Lookup(Game_0043e490* game, Pos_0043e490* pos) {
 }
 
 static inline int Marked(Thing_0043e490* t) { return t && (t->ffe & 0x80); }
-
+#define DEF (unit->def)
+#define GAME (g_game)
 // FUNCTION: 0x43e490
 int __stdcall FUN_0043e490(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
                            Pos_0043e490* pos) {
-    Game_0043e490* game = g_game;
-    Def_0043e490* def;
-    int friendly = 0;
     int enemy = 0;
+    int friendly = 0;
 
 restart:
     friendly = 0;
     enemy = 0;
-    def = unit->def;
     if (target) {
         if (unit->player->allied[target->player->index] != 0)
             friendly = 1;
@@ -201,24 +211,24 @@ restart:
 
     switch (mode) {
     case 1: { // approximate, not matching
-        if (game->flag37efa == 1)
+        if (GAME->flag37efa == 1)
             goto L43eb02;
-        if ((def->f245 & 0x10) && enemy) {
+        if ((DEF->f245 & 0x10) && enemy) {
             mode = 3;
             goto restart;
         }
-        if ((def->f245 & 0x400) && enemy) {
+        if ((DEF->f245 & 0x400) && enemy) {
             mode = 0xc;
             goto restart;
         }
         goto L43edb6;
     }
     case 3:
-        if (def->f245 & 0x10) {
-            if (def->f1ee->f111 & 0x100)
+        if (DEF->f245 & 0x10) {
+            if (DEF->f1ee->f111 & 0x100)
                 return 2;
         }
-        if ((def->f245 >> 4) & 1) {
+        if ((DEF->f245 >> 4) & 1) {
             Node_0043e490* node = unit->f10;
             if (unit->moving)
                 return 1;
@@ -235,24 +245,24 @@ restart:
         }
         goto L43f098;
     case 9:
-        return (def->f245 & 0x40) ? 7 : 0x13;
+        return (DEF->f245 & 0x40) ? 7 : 0x13;
     case 8:
         if (((Class_004899b0*)unit)->FUN_004899b0(target))
             return 6;
         return 0x13;
     case 7:
-        if (!(def->f245 & 0x20))
+        if (!(DEF->f245 & 0x20))
             goto L43f098;
         if (!friendly)
             goto L43f098;
-        if (def->f241 & 0x800)
+        if (DEF->f241 & 0x800)
             goto L43eae8;
         if (target->def->f241 & 0x800)
             goto L43f098;
         return 5;
     case 12:
-        if (def->f245 & 0x400) {
-            if (Visible(game, unit, pos) && Marked(Lookup(game, pos)))
+        if (DEF->f245 & 0x400) {
+            if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
                 return 0xb;
         }
         if (!target)
@@ -261,7 +271,7 @@ restart:
             return 0xb;
         return 0x13;
     case 13:
-        if (!(def->f245 & 0x1000))
+        if (!(DEF->f245 & 0x1000))
             return 0x13;
         if (!target)
             return 0x13;
@@ -273,18 +283,18 @@ restart:
             return 0x13;
         if (!((Class_00489a70*)unit)->FUN_00489a90(target))
             return 0x13;
-        return ((def->f241 >> 11) & 1) ? 8 : 0xc;
+        return ((DEF->f241 >> 11) & 1) ? 8 : 0xc;
     }
     case 5:
-        return (def->f245 & 0x100) ? 0xd : 0x13;
+        return (DEF->f245 & 0x100) ? 0xd : 0x13;
     case 14:
-        if (def->f156 == 0)
+        if (DEF->f156 == 0)
             return 0x13;
         if (unit->moving == 0)
             return 0x13;
         return 0x10;
     case 4: {
-        if (!(def->f245 & 0x4000))
+        if (!(DEF->f245 & 0x4000))
             return 0x13;
         float a = *(float*)((char*)unit->fec + 0x8c);
         float b = *(float*)((char*)unit->f48 + 0xc0);
@@ -299,14 +309,14 @@ restart:
     case 11:
         return 9;
     case 2: // approximate, not matching
-        if (!(def->f245 & 0x80))
+        if (!(DEF->f245 & 0x80))
             return 0x13;
-        if ((def->f245 & 0x800) && Visible(game, unit, pos) && Marked(Lookup(game, pos)))
+        if ((DEF->f245 & 0x800) && Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
             return 0xa;
     L43e9e0:
         if (!target || unit->moving == 0)
             goto L43eaf5;
-        if (def->f245 & 0x1000) {
+        if (DEF->f245 & 0x1000) {
             if (enemy)
                 return 4;
         } else if (enemy) {
@@ -321,13 +331,13 @@ restart:
             if (((Class_004899b0*)unit)->FUN_004899b0(target))
                 return 6;
         }
-        if (def->f241 & 0x800) {
+        if (DEF->f241 & 0x800) {
             if (target->def->f241 & 0x200)
                 return 0xd;
         }
         if (((Class_00489a70*)unit)->FUN_00489a90(target))
-            return ((def->f241 >> 11) & 1) ? 8 : 0xc;
-        if (def->f245 & 0x20) {
+            return ((DEF->f241 >> 11) & 1) ? 8 : 0xc;
+        if (DEF->f245 & 0x20) {
             if (friendly)
                 goto L43eae8;
         }
@@ -341,8 +351,8 @@ restart:
     }
 
 L43eb02:
-            if (game->flag37efa == 1) {
-                if (target && target->owner == game->localPlayer && (target->f110 & 0x20) &&
+            if (GAME->flag37efa == 1) {
+                if (target && target->owner == GAME->localPlayer && (target->f110 & 0x20) &&
                     target->f104 == 0.0f && target->ffb == 0) {
                     if (target->f86 == 0)
                         return 0xf;
@@ -353,15 +363,15 @@ L43eb02:
                     return 0x11;
                 if (friendly)
                     return 0x12;
-                if (def->f245 & 0x800) {
-                    if (Visible(game, unit, pos) && Marked(Lookup(game, pos)))
+                if (DEF->f245 & 0x800) {
+                    if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
                         return 0x12;
                 }
-                if (!(def->f245 & 0x400))
+                if (!(DEF->f245 & 0x400))
                     return 0x13;
-                if (!Visible(game, unit, pos))
+                if (!Visible(g_game, unit, pos))
                     return 0x13;
-                if (!Marked(Lookup(game, pos)))
+                if (!Marked(Lookup(g_game, pos)))
                     return 0x13;
                 return 0x12;
             }
@@ -372,22 +382,22 @@ L43edb6:
         if (!(target->f104 == 0.0f))
             return 6;
     }
-    if (target->owner == game->localPlayer && (target->f110 & 0x20) && target->f104 == 0.0f &&
+    if (target->owner == GAME->localPlayer && (target->f110 & 0x20) && target->f104 == 0.0f &&
         target->ffb == 0) {
         if (target->f86 == 0 || (target->f86->f110 & 0x40000000))
             return 0xf;
     }
 L43ee4f:
-    if (def->f245 & 0x800) {
-        if (Visible(game, unit, pos) && Marked(Lookup(game, pos)))
+    if (DEF->f245 & 0x800) {
+        if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
             return 0xa;
     }
-    if (def->f245 & 0x400) {
-        if (Visible(game, unit, pos) && Marked(Lookup(game, pos)))
+    if (DEF->f245 & 0x400) {
+        if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
             return 0xb;
     }
     // Original mask is `and al,0xfb` + 0x13 = 0x13-5 = 0xe, not 8.
-    return (def->f245 & 0x80) ? 0xe : 0x13;
+    return (DEF->f245 & 0x80) ? 0xe : 0x13;
 
 L43f098:
     return 0x13;

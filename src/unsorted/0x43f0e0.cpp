@@ -1,4 +1,17 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass 4 (50.4%): tried Pick as `cond ? vtol : ground` (43.0%, 4472 bytes) and as
+// `name = ground; if (bit) name = vtol;` (45.4%, 4444 bytes); both are worse than the current
+// `name = vtol; if (!bit) name = ground;`, so it is restored. Restructuring case 2 to the
+// original's early return (`if (!target) return Pick(...,"MOVE_GROUND")` before the target block,
+// which the original does at 0x43f873: test edi,edi / jne target code) drops to 48.9% (4340 bytes),
+// and replacing every `unit->def->` in the switch with the `def` local drops to 48.0% (4332 bytes);
+// both reverted. Still differs at 0x43f177: the
+// original has def only in memory ([esp+0x20]) there and reuses esi for the node pointer, ours
+// keeps def live in esi and gives the node ecx; later ours swaps node/tdef (esi vs edx too), so
+// case 3's whole body and everything after it stays shifted. In case 1 the original reads def
+// straight from [esp+0x20] while ours reloads unit from [esp+0x1c] then does `unit->def`, the same
+// memory-local theme. The original Pick is a select:
+// `mov edx,[def+0x241]; mov eax,VTOL; shr edx,0xb; test dl,1; jne <keep>`.
 // deepseek-v4.1-flash pass 3 (50.4%, 4324 vs 4420 bytes): the original's VTOL tests are
 // BITFIELD reads, not `(x >> 11) & 1`. A micro-test (build/scratch/0x43f0e0/t.cpp) shows
 // `(f241 >> 11) & 1` folding to `test ah,8`, while a bitfield read gives the original's
@@ -256,7 +269,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
     def = unit->def;
     switch (mode) {
     case 3: {
-        if (!(unit->def->f245 & 0x10))
+        if (!(def->f245 & 0x10))
             break;
         Flags110_0043f0e0 flags;
         flags.raw = unit->f110;
@@ -265,9 +278,9 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             if (!enemy) {
                 if (node->f111bits.flag_17)
                     break;
-                if (!(unit->def->f241 & 0x800))
+                if (!(def->f241 & 0x800))
                     return Class_00438760("SUPPRESS");
-                if (unit->def->f1ee->f111bits.flag_8)
+                if (def->f1ee->f111bits.flag_8)
                     return Class_00438760("AIRSTRIKE");
                 return Class_00438760("AIRTOGROUND");
             }
@@ -288,16 +301,16 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             if (reach < g_game->threshold)
                 goto after;
         reached:
-            if (unit->def->f241 & 0x1000) {
+            if (def->f241 & 0x1000) {
                 if (node->f111 & 0x10000)
                     break;
                 if ((unit->f3b & 2) && (unit->f2c->f111 & 0x10000))
                     return Class_00438760();
             }
         after:
-            unsigned int f = unit->def->f241;
-            if (unit->def->f241bits.flag_11) {
-                unsigned int air = unit->def->f1ee->f111 & 0x100;
+            unsigned int f = def->f241;
+            if (def->f241bits.flag_11) {
+                unsigned int air = def->f1ee->f111 & 0x100;
                 if (air && !(tdef->f241 & 0x800))
                     return Class_00438760("AIRSTRIKE");
                 if (!air && (tdef->f241 & 0x800))
@@ -314,7 +327,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             if (flags.raw & 0x20000000)
                 return Class_00438760("ATTACK_NOMOVE");
         }
-        if (unit->def->f241bits.flag_28)
+        if (def->f241bits.flag_28)
             return Class_00438760("ATTACK_KAMIKAZE");
         break;
     }

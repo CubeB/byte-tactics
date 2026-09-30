@@ -14,11 +14,17 @@
 //     record is {settings[0x10]; int field_10; char name[0x20]; char name2[0x20]}
 //     and the loop step is 0x54.
 // Still differs:
-//   * sub/add esp is 0x1a4 against the original's 0x1b4. Every local ADDRESS
-//     matches, so the original simply has 0x10 more bytes of frame that nothing
-//     in the disassembly ever names. An unused char[0x14], an unused
-//     Settings_00441460 and an unused int[4] local are all dropped by the
-//     MSVC 5 front end and do not grow the frame.
+//   * sub/add esp is 0x1a4 against the original's 0x1b4. Every instruction
+//     displacement is identical, but the post-prologue esp differs by 0x10, so
+//     the original's locals all sit 0x10 higher in absolute memory: the extra
+//     frame is at the BOTTOM (offsets 0x0..0xf, below count at [esp+0x10]) and
+//     nothing in the disassembly ever names it, only the [esp+0x1d0] parameter
+//     load shows it. An unused char[0x14], an unused Settings_00441460 and an
+//     unused int[4] local are all dropped by the MSVC 5 front end and do not
+//     grow the frame.
+//   * FPO reports 109 dwords of locals for the original against 105 here, so
+//     one 4-dword local of the original is still unaccounted for; measured with
+//     tools/wcl ... /Fas: _count$=-420, _p$=-416, _names$=-332, _buf$=-300.
 //   * the flags word is read as a bitfield in the original: bit 15 becomes
 //     "mov eax,flags / mov edx,eax / shr edx,0xf / test dl,1" and bit 8 becomes
 //     "mov cl,bh / test cl,1", which is the 32 bit storage unit bitfield

@@ -1,5 +1,6 @@
-// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Partial: 90.4% (432 bytes vs 428). Prologue and branch A match exactly.
+// GPT-6.1-sol verified 90.4% after five check runs and kept this best variant.
 // Branch B needs both hoisted loads out of p (`mov edi,[esi+4]` py,
 // `mov esi,[esi]` px), but that lower-case branch B is the ONLY thing left:
 //   original: mov edi,[esi+4]; mov esi,[esi]; sub ecx,edi; sub eax,esi
@@ -98,8 +99,8 @@ unsigned short __stdcall FUN_0048cd80(void)
             }
         }
     } else if (FUN_004b6720(&g_game->rect_142bb, p->x, p->y)) {
-        Slot_0048cd80* s = g_game->list2;
         int best = 99999;
+        Slot_0048cd80* s = g_game->list2;
         for (int i = g_game->count2; i > 0; i--) {
             int dy = s->y - p->y;
             int dx = s->x - g_game->view.x;

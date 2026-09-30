@@ -85,6 +85,17 @@
 // the same gap: b member-wise in whatever the allocator has free (ecx/edx plus
 // spills here, ebx/ebp in the original) and c as a whole dword (ebx here,
 // ecx/edx in the original). Best stays this named-`a` file at 66.2%.
+// deepseek-v4.1-flash pass (#2908): re-tested the unnamed call orders
+// `Dist(b,*p)/Dist(c,*p)/Dist(b,c)` (53.3%), `Dist(*p,b)/Dist(c,*p)/Dist(b,c)`
+// (54.9%), `Dist(*p,b)/Dist(*p,c)/Dist(c,b)` (61.5%) and the `Dist(b,a)` family
+// with the named `a` (63.5 to 63.7%); all load b or c as one whole dword, so
+// none keeps b member-wise in ebx/ebp. Prepending the matched 0x480570 source in
+// the same translation unit and every one of the 128 header sets from
+// tools/headers.py stay at 66.2%. Remaining gap: the original keeps b.x/b.y in
+// ebx/ebp for the whole body and c.x/c.y in ecx/edx (c.y spilled to
+// [esp+0x18]), while every spelling puts b in ecx/edx and c whole in ebx; the
+// two epilogues then compare the swapped register. This is a register-allocator
+// tie, not a source shape, so this file is the best found.
 #include <stdlib.h>
 
 struct Point_004805b0 {

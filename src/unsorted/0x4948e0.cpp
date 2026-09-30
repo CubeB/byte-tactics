@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// STATUS (deepseek-v4.1-flash, this session): confirmed best is 78.1% (ours 1451
+// vs original 1418), unchanged.  Still differs only in the y stack slot: ours
+// gives y a home slot at 0x18 (dual register+memory tracking, dead store
+// `mov [esp+0x18],ebx` right after `add ebx,0xf`, and home maintained in sync
+// with ebx at the loop increment).  The original keeps y purely in ebx with NO
+// home slot, so panel sits at 0x18 and every panel ref is 4 lower.  That home
+// slot also lets MSVC mutate ebx (`add ebx,0x25`) and LICM/reorder the dst quad
+// build before the search loop; the original uses `lea eax,[ebx+0x25]` and
+// interleaves `lea esi`/`xor edi` mid-build.  Fixing the home slot should fix
+// all three (offsets, dst scheduling, cleanup) at once.  Ideas tried this run:
+// none new (timebox); the note below lists the many prior attempts.  New lever
+// identified but untested: fold `y += 0xf` into the initializer (headers drawn
+// at `panel.top`, loop y starts at `panel.top + 0xf`) to remove the dead store
+// and force y to live only in ebx.
 // Partial: 78.1% (real check.py run; 1451 bytes against the original 1418).
 // Structure, both call sequences, the strcpy/sprintf buffer layout, the src
 // quad and the whole player loop body below the panel rect are in place.  A

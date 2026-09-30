@@ -20,6 +20,21 @@
 // tools/headers.py tried all 128 header sets, closest 97.3.
 // The remaining flip is one allocator decision per branch; no source spelling tried
 // reproduces it while keeping i at 0x14 and width at 0x20.
+//
+// deepseek-v4.1-flash retry #2 (10 minute box, scratch --sym only, all 97.3 or worse):
+// the two branch flips are truly the allocator's register order for the same source.
+// In the original lines branch n is loaded into eax and n-1 goes to a fresh ecx
+// (lea), while the else branch loads n straight into ecx and dec's it. Both end with
+// eax=i, ecx=n-1, cmp eax,ecx, so only the materialisation ordering differs.
+// Tried and flat at 97.3: every equivalent spelling of `i == n - 1` (n-1==i changes
+// cmp order to cmp ecx,eax and drops to 96.6/96.9; i+1==n, i-n==-1, n-i==1,
+// i==n+(n-n)-1, i==n-(0*n)-1, i==n-1L and friends all canonicalise to identical
+// bytes); `int nn = n;` and `int last = n - 1;` locals; `bool`/`unsigned char`/`BOOL`
+// found; `!` inversion of either branch; parenthesising the || chain; moving the
+// `found = 0` declaration (before the arrays drops to 85, so it must stay after the
+// big buffers); reordering the sym.SizeOfStruct/MaxNameLength/disp stores (96.9).
+// Likely a C2 scheduler/allocator tick that needs a source shape change elsewhere,
+// not a spelling change in the condition. Leave the rest of the file as above.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

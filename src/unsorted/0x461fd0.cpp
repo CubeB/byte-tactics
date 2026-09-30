@@ -1,4 +1,17 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass deepseek-v4.1-flash (issue 2795 retry, 600s box): kept 86.6% (911/919).
+// Re-confirmed on the free --sym path that the correct break form is 69.5%
+// (913 bytes) and NOT close to the kept build. Six spellings of the correct
+// semantics were staged (plain break; if/else break; j inside the if with
+// `else break` and c advanced after it; c declared at the walk scope; do/while;
+// the guard written as the else arm): all 69.5% / 913 bytes except the ones
+// noted in the log below. The reason is visible in the object: in every break
+// spelling MSVC keeps the new c in EAX across the back edge, so the back-edge
+// block is `cmp eax,edi / jne guard` with NO c/q reload, whereas the original
+// has a two-entry reload block at 0x4621d8. The kept (semantically wrong)
+// form spills c to [esp+0x30], which is the allocator state the reload block
+// needs; no correct-semantics source spelling reached it. Left the 86.6%
+// version in place because the correct form is 17 points worse, not near.
 // Pass deepseek-v4.1-flash (issue 2475 retry, 10 min box): no score movement,
 // kept 86.6% (911/919). Two new facts this pass.
 //

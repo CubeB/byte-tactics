@@ -298,6 +298,17 @@
 // The remaining diff is exactly the single 6-byte load placement described
 // above, and the header's deeper-statement-level idea is the only untried
 // direction that fits the block evidence.
+//
+// Seventh pass, deepseek-v4.1-flash (retry). Three more spellings, scored free
+// (build/scratch/0x465ac0/ds2): a `goto L4; L4:` fall-through label at the top
+// of the fourth region, an extra `{ }` scope around the fourth `if`, and a
+// single `unsigned short m` local for the IsSeen mask word. All three are 865
+// bytes and 98.3 with the byte-identical hoist. The label and the braces do
+// not split the internal block, and the mask local does not change the base
+// read. This pins the remaining diff on the register assignment of the g_game
+// CSE: EBX still holds u at the join, so a value whose definition point is the
+// join can only take EBP. Moving that definition point past the third test's
+// branch is what none of the six passes has managed.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

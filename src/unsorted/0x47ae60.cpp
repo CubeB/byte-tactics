@@ -20,11 +20,18 @@
 //    separate identical error ifs score 75.4 (the blocks do not merge and the
 //    terrain jump retargets), and a goto to one shared label will not compile
 //    ("jump bypasses initialization of local variable"), so it cannot be
-//    written that way directly.
+//    written that way directly. Re-tried the two-if version: 2921 bytes, 75.4
+//    again, so the original really has ONE error stub and one "||" test, only
+//    laid out as loop1 / test1 / loop2 / test2; MSVC sinks test1 past loop2 for
+//    us. Also no help: "char* gg = g_game;" before that block is coalesced into
+//    the same register (still esi, the original uses edi), and writing the test
+//    as "if (!(c2 >= 1 && c1 >= 1))" emits byte-identical code to "c2 < 1 ||
+//    c1 < 1".
 //  - Energy/Metal clamp arms: the original loads *p into ecx, materialises the
 //    store address into eax, and encodes -500 as "add ecx, 0xfffffe0c"; ours
 //    emits lea ecx / mov eax / sub eax, 0x1f4. Writing the store address as a
-//    pointer or splitting the load did not move the picks.
+//    pointer or splitting the load did not move the picks; reading the value as
+//    (*t)->players[player].energy also compiles byte-identically.
 //  - Scattered scalar tie-breaks: "mov edx, [esp + 0x84]" (original) vs
 //    "mov eax, [esp + 0x84]" in the Color tail, and menu staying in a
 //    callee-saved register in arms where the original reloads it.

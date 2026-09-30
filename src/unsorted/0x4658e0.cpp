@@ -6,8 +6,9 @@
 // narrow the global load and apply the mask twice. Remaining differences:
 // the original loads a word, masks AX, and spills AX, while this version adds
 // a stack store, loads AL, masks EAX twice, and spills EAX; the original also
-// tests EDX where this version tests DL. Tried three further variants without
-// improvement and stopped within the assigned attempt budget.
+// tests EDX where this version tests DL. GPT-6.1-sol refinement used eight
+// check.py invocations, no improvement; the best remains 96.5%. A cast of vis
+// to int also emitted identical bytes.
 // Is point (x, y) or point (x+dx, y+dy) visible to the local player?  The
 // 12-byte Position local (6 shorts, x/y/z among them) is zeroed with an
 // inlined memset and then filled from the arguments; the compiler promotes the
@@ -87,7 +88,7 @@ int __stdcall FUN_004658e0(Map_004658e0* map, int x, int y, int dx, int dy, shor
         vis = IsExplored(m, &pos);
     else
         vis = IsSeen(m, &pos);
-    if (vis)
+    if ((int)vis)
         return 1;
     pos.x = (short)(pos.x + (dx << 4));
     pos.z = (short)(pos.z + (dy << 4));

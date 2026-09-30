@@ -1,6 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
 // PARTIAL 60.4% (ours 1847 bytes vs 1811). Frame, command buffer and the five
 // per-case Class_00438760 temporaries match the original exactly.
+// NEW EVIDENCE THIS SESSION (space-bunny-free), all measured, none of it helps:
+//   - The original NEVER calls Class_00438760's copy constructor. In the M, U, G,
+//     P and A-with-floats arms it passes the 4-byte object straight out of the
+//     FUN_0043f0e0 result slot (0x487d65 `mov ecx,[esp+0x48]`, 0x487e35
+//     `mov edx,[esp+0x44]`, 0x487f96 `mov edx,[esp+0x44]`, 0x487f12
+//     `mov ecx,[esp+0x50]`), while only the string-literal arms build the object
+//     in place with `mov ecx,esp; push "..."; call 0x438760`. So the class is
+//     trivially copyable and the copy ctor declaration below is wrong.
+//     DELETING it is nevertheless WORSE: 48.0%, and the frame grows from 0x140
+//     to 0x14c (three extra dwords of locals, buf 0x50 -> 0x5c). Hoisting one
+//     shared `Class_00438760 out;` to function scope instead gets the size to
+//     1807 bytes, closest of anything tried, but only 40.8%: the score here is
+//     decided by block layout, not by size.
+//   - Declaring `int count;` before `int move, fire` instead of after changes
+//     nothing (exactly 60.4%), so the EBP contest below is not settled by
+//     declaration order.
 // THE ONE REMAINING CAUSE, restated from the disassembly by space-bunny-free:
 // the original holds the walk pointer `text` in ebp for the whole outer loop, so
 // its latch at 0x487e50 is just `mov al,[ebp]; cmp al,bl; jne 0x487c1b`, and it
@@ -27,6 +43,12 @@
 // empty because count is in ebp, then selected 0x28 / fire 0x30 / move 0x34),
 // and the switch's block placement (the original's loop latch sits between the G
 // and P blocks at 0x487e50; ours puts it at the end, shared with the default arm).
+// The one remaining structural cause, restated from the listing dumped with a
+// standalone disasm of our own object (build/scratch/0x487bf0/v0.asm): our loop
+// needs TWO predecessors for the body block, so it emits `jmp 0x487c24` plus a
+// separate reload block `mov ebp,[esp+0x158]` at 0x487c1b/0x487c1d, and the
+// after-loop block lands at 0x488250 past the I arm instead of at 0x487e5b next
+// to the latch. Both are consequences of `text` being memory-resident, not causes.
 
 #include <ctype.h>
 #include <stdio.h>

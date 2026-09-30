@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol retry: 3 checks retained 98.7%; only the first line-buffer LEA register still differs (EDX in the original, ECX here).
 // Fills a help page (gamedata/help.TDF, node "Help", keys "Line<n>"): for every
 // line of the page it looks the line up, cuts it at the '|' into a left and a
@@ -41,6 +41,37 @@
 // FUN_004c5740, an AddText helper wrapping FUN_004ab1b0 (93.4, arg order
 // changed), a Layer* local inside AddLine, and a hoisted `char c`. The single
 // lea/push register pair is compiler state this file cannot reach.
+//
+// deepseek-v4.1 (issue #2012 rerun) tried 20 check.py runs on this one hunk:
+// `(char*)value`, `value ? value : value`, Page/Layer parameters taken by
+// reference, `*value == '|'`, a pre-increment scan (`*++p`, loses 5 bytes),
+// `(char)0` and `0L` for the second argument, FUN_004b6af0's first parameter
+// typed void*, a cast on FUN_004c5740's argument, textual inlining of the whole
+// AddLine body into the loop (no helper at all), `(LPCSTR)` and `(size_t)`
+// casts on the wsprintf/lookup arguments, `&value[0]` on the first call only,
+// a while-loop spelling of the scan (93.1), and a `char* v = value;` /
+// `register char* v = value;` local live across the if/else merge. All of these
+// stay at exactly 98.7 with the same `lea ecx` / `push ecx` pair, so the
+// difference is not the argument expression: at the merge MSVC 5 has eax, ecx
+// and edx free and picks ecx in every spelling probed, while the original has
+// edx there and edx again at 0x45fa45. Since both files are 504 bytes and every
+// other instruction (including the fragile imul preheader) is identical, the
+// checker's remaining hunk is a whole-function coloring tie-break that no
+// source-level change in this file reaches.
+// deepseek-v4.1 (issue #2012 second rerun) tried 13 further check.py runs on the
+// same hunk: plain `int p2 = page;` / `int n = lineCount;` without the ternary
+// identities (98.0: the two imul loads swap order, so both operands need the
+// identity), a plain `static` (not `inline`) helper, assigning `lines.first` /
+// `lines.last` directly with no `first` / `last` locals (89.6: the blank stores
+// disappear and the counter homes to edi), `'|' == value[0]` together with
+// `'|' != c`, `strcpy(value, &page->blank[0])`, `sizeof(value)` for the lookup
+// size, a while-with-assignment scan (93.1), the value buffer wrapped in a
+// one-member struct passed as `value.text`, `register` on p2/n/first, and a
+// `Page_0045f8c0* pp = &lines` pointer local. Every one leaves the merge-block
+// hunk byte for byte the same, so the file stays at 98.7 with the one
+// `lea edx` / `push edx` pair above. docs/agent-guide.md already describes this
+// shape (an address-taken local whose displacement drifts by 4 per argument
+// push): a scheduler tie-break, not a source-level lever.
 #include <windows.h>
 #include <string.h>
 
@@ -145,24 +176,25 @@ void __stdcall FUN_0045f8c0(Sub_0045f8c0* sub, int page, int lineCount)
         int y = 0x32;
         if (((Class_004c3410*)&parser)->FUN_004c3410("Help")) {
             Page_0045f8c0 lines;
+            Page_0045f8c0* pp = &lines;
             int p2 = (page ? page : page);
             int n = (lineCount ? lineCount : lineCount);
             int first = (n ? n : n) * (p2 ? p2 : p2);
             int last = first + n;
-            lines.blank[0] = ' ';
-            lines.blank[1] = 0;
-            lines.blank2[0] = ' ';
-            lines.blank2[1] = 0;
-            lines.first = first;
-            lines.last = last;
-            if (lines.first < lines.last) {
+            pp->blank[0] = ' ';
+            pp->blank[1] = 0;
+            pp->blank2[0] = ' ';
+            pp->blank2[1] = 0;
+            pp->first = first;
+            pp->last = last;
+            if (pp->first < pp->last) {
                 do {
-                    wsprintfA(key, "Line%d", lines.first);
+                    wsprintfA(key, "Line%d", pp->first);
                     if (parser.current->FUN_004c48c0(value, key, 0x80, DAT_005119b8)) {
-                        AddLine(&lines, layer, value, y);
+                        AddLine(pp, layer, value, y);
                         y += 0x12;
                     }
-                } while (++lines.first < lines.last);
+                } while (++pp->first < pp->last);
             }
         }
     }

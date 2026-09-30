@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
 // GPT-6.1-sol retry (#1616): unchanged at 84.1%; the remaining mismatch is the documented ebx/ebp allocation swap.
 // Best result: 84.1% (455 of 455 bytes). The body now compiles to the
 // original except for one global register swap: MSVC puts the `view` pointer
@@ -47,6 +47,25 @@
 // moving the info declaration outside the while. Every one keeps the exact
 // same 84.1% and the identical ebx/ebp swap, so the file stands at 84.1%.
 //
+// deepseek-v4.1 (2026) tried 12 more shapes; all stay at exactly 84.1% with
+// the same ebx/ebp swap: inline accessors for info->faces, info->vertexCount,
+// info->faceCount, info->field_c and for view->field_4/field_6 (the 0x4bcb50
+// "one more use" trick), a View* alias declared first / after info / inside the
+// loop / at function scope, info assigned at function scope, v before info,
+// unsigned j, and an inline wrapper around the FUN_004c0820 call passing view.
+// None of them moves the tie, so the swap is not reachable from this file's text.
+// 2026-09-30 deepseek-v4.1: four more threads closed off. Renaming every local
+// and both parameters, renaming the class, the method, and the two parameter
+// struct types (all four change the mangled name and the symbol table) each
+// still compile to exactly 84.1% with the identical ebx/ebp swap, so the tie is
+// not name or hash-order sensitive. Swapping the info/v declaration order,
+// hoisting both declarations out of the while loop, shrinking faceno's live
+// range into the flags block, and using `int j;` declared at function scope are
+// also all 84.1%. The one thing that does move the layout is the ABI: compiling
+// the same body as a free `void __stdcall FUN_00458fa0(...)` instead of a
+// __thiscall member shrinks it to 452 bytes and drops to 66.9% (the vertex loop
+// loses the batched loads), so the implicit `this` variable is part of the
+// allocator state, and this function must stay a member.
 // Earlier note from space-bunny-free: several scratch variants scored 80-90%
 // but are wrong; they lay the vertex arrays out 4 bytes high at [esp+0x150],
 // where the original uses [esp+0x14c]. Always check the `lea eax, ...` base

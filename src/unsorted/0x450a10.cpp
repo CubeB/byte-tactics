@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, retried by deepseek-v4.1-flash, retried by space-bunny-free. Names are provisional.
 // #1513 retry by Codex / GPT-6.1-sol: checkall reconfirmed 87.6% (837/872 bytes).
 // Prior retry variants in this file and build/scratch/450a10 still give the best result.
 // PARTIAL 87.6%, 837 vs 872 bytes. Everything outside the name-copy block now
@@ -42,6 +42,27 @@
 // The remaining gap is one register-allocation decision: the original evaluates
 // the strcpy source (into edi) before the destination (lea edi,[ebx+..]); ours
 // hoists the destination into a temp and spills it.
+//
+// Second pass (space-bunny-free, #1814) re-derived the two shapes the original
+// could have come from and scored both, so nobody repeats them:
+//  A. The semantically right shape is
+//       result = FUN_004ca7c0(...); if (result == 0) { copy; copy; }
+//       else-branch of param_1 == -1: copy; copy; result = 0;
+//       if (result) return 1;                      (one gate, after the join)
+//     It reproduces the original's flow exactly (mov edx,eax; test edx,edx;
+//     jne end; ... jmp join; the doubled gate at the join, and the COMPUTER
+//     path's length save in edx), but MSVC 5 hoists both destination leas
+//     above the strlen and spills the first one through [esp+0x14], so the
+//     frame is 0x4c8, every stack offset moves by 4 and buf lands at
+//     [esp+0xd8]: 81.2% (898 bytes).
+//  B. `if (result != 0) return 1;` before the two network copies (the early
+//     return) also keeps the copies in one block, but then the compiler knows
+//     result == 0 on that path, so the join gate at 0x450c0e disappears and
+//     the network second strcpy tail merges with the COMPUTER first one:
+//     87.3% (841 bytes), one byte worse than what is kept here.
+//  The file therefore keeps the old 87.6% form. A spill for the strcpy
+//  destination is the whole remaining gap: get the address into edi at the
+//  copy and nothing else is left to fix.
 #include <string.h>
 #include <windows.h>
 

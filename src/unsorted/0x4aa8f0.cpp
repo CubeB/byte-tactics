@@ -1,228 +1,253 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1. Names are provisional.
 //
-// PARTIAL: this is a structural first pass at the GUI layer loader.
-// FUN_004aa8f0 builds (or appends to) a Layer from a .GUI file: it prefixes
-// the menu name with "GUI", parses the file into an entry block, links the
-// layer into the menu list and wires the PANEL/PREV/NEXT/Cancel controls.
+// PARTIAL: GUI layer loader (0x4aa8f0, 1762 bytes). Best 38.3%
+// (ours 1783 bytes vs 1762). The frame is now the original 0x21c and long
+// stretches of the middle match; the first divergence is the prologue (ours
+// loads `menu` into EBX before the four pushes and parks `ret` at [S+0x18],
+// the original loads menu into EDI after the pushes and puts `ret` at
+// [S+0x14]).
 //
-// Best result so far: 32.7 % (1754 vs 1762 bytes), first pass.
+// What still differs:
+//  * `menu` is homed in EBX for the whole function here. The original homes
+//    menu in EDI only for the flags & 0x800 block (0x4aa903..0x4aa989) and
+//    then reloads it from its parameter home [S+0x230] at 0x4aa96e /
+//    0x4aaa31 / 0x4aac38 / 0x4aae86 / 0x4aaf63, which frees EBX; ours keeps
+//    it live everywhere, so `menu->layer` loads read `[ebx+0x18]` where the
+//    original has `[edi+0x18]` or a fresh load from the home slot.
+//  * `ret` still lands in [S+0x18] (original [S+0x14]), which flips the two
+//    tests near 0x4aaea2 and the final `mov eax,[esp+0x10]` return.
+//  * the tail here tests the `mask` local where the original re-derives
+//    `flags & 0x200` (and `flags & 0x80`) from the reloaded flags at
+//    0x4aac41..0x4aac68. Writing the tail as `(flags & 0x200) == 0` is
+//    faithful and shrinks us to 1775 bytes, but check.py scores that 37.8%:
+//    the extra flag reloads break more of the tail than the `mask` slot saves.
+//  * `flags` is never cached in a register in the original: [S+0x238] is
+//    re-loaded at 0x4aaa1d, 0x4aab29, 0x4aabdf, 0x4aac31.
 //
-// What still differs: our frame is 4 bytes larger (sub esp,0x220 vs 0x21c)
-// and the register allocation differs. ROOT CAUSE of the frame excess (see
-// build/scratch/0x4aa8f0/ledger.md): our compiler caches the `flags`
-// parameter in ebx for the whole function, so the PANEL-search `base` and the
-// focus-name `dst` pointers cannot use ebx and spill to [esp+0x14]/[esp+0x18].
-// The original never caches flags: it reloads it at each use (0x4aaa1d,
-// 0x4aab29, 0x4aabdf) and keeps base ([esp+... ] mov ebx,[edi+4] at 0x4aaab9)
-// and dst (lea ebx,[ebp+0xec] at 0x4aae2e) and `e->w` (0x4aa942) in ebx.
-// Freeing ebx removes both temps, moves ret to [esp+0x14] and rect to
-// [esp+0x1c], shrinks the frame to 0x21c and aligns every esp-relative
-// operand. Removing the `mask` local or reordering declarations did not help
-// (v1/v2, both 32.6/32.7%). The body loops must test base->count / entry->count
-// from memory on every iteration, not a saved limit. The entry memcpy and the
-// tail are present but unverified.
+// Tried and kept (0.9% total): `if (cur != 0) {...} else {...}` in the
+// flags & 0x800 block, which matches the original's out-of-line
+// FUN_004bf4d0(0,0,-0x18) at 0x4aa97e; `if (FUN_004aeac0(entry, layerName)
+// != 0) {...} else {...}`, which matches 0x4aaaa5 `je 0x4aac22`; and goto
+// forms that use one variable for both the loop counter and the found index
+// in the PANEL and focusName searches, because the original materialises -1
+// only on the loop fall-through (`or ecx,0xffffffff` at 0x4aab02, `or
+// esi,0xffffffff` at 0x4aae7c). Without those the frame was 0x220 and 36.3%.
 //
-// Confirmed local slot map (relative to esp after the four register pushes,
-// i.e. esp = E-0x22c where E is the entry esp):
-//   original: layer [esp+0x10], ret [esp+0x14], mask/alloc [esp+0x18],
-//             rect [esp+0x1c], layerName [esp+0x2c], guiName [esp+0x12c].
-//             Only THREE dwords precede rect, so `entry` has no stack home:
-//             the original keeps it in ebp (xor ebp,ebp at 0x4aa900) and keeps
-//             `flags` in ebx. mask and the malloc pointer share slot 0x18
-//             (mask is dead on the alloc path, so MSVC colours them together).
-//   ours:     layer [esp+0x10], base/i [esp+0x14], n/dst [esp+0x18],
-//             ret [esp+0x1c], rect [esp+0x20], layerName [esp+0x30],
-//             guiName [esp+0x130].
-// The blocker is that our loop temporaries (base, n, i) get stack homes at
-// 0x14/0x18 and push ret to 0x1c, making the frame 0x220. Removing the `mask`
-// local by writing (flags & 0x200) inline did NOT change the frame or the
-// score (still 32.7%), so the extra dword is one of the loop temporaries.
-// The original's prologue also loads `flags` into eax BEFORE saving registers
-// (mov eax,[esp+0x228]; test ah,8) and uses `xor ebp,ebp` for entry = 0.
+// Tried and rejected: reordering the locals (layer, ret, mask) changes
+// nothing; a Menu layout whose padding array was sized from 0x64 instead of
+// 0x68 put menu->name at +0x9ba, four bytes too high (fixed here).
+//
+// Structural facts recovered from the disassembly (kept because they are
+// load-bearing for whoever tries next):
+//  * the name setup is strncpy(layerName, menu->name, 0x100) followed by
+//    strcat(layerName, name) (the inline rep movs at 0x4aa9d0 writes at the
+//    NUL of layerName, `dec edi` at 0x4aa9cc), then
+//    strncpy(guiName, name, 0x100).
+//  * all the name probes are real strlen calls (repne scasb / not ecx /
+//    dec ecx / jne), not `p[0] == 0`.
+//  * the entry loops reload base->count / entry->count from memory on every
+//    iteration (never a hoisted limit) and walk a moving pointer that is
+//    bumped by 0x15b, while entry[i] indexing emits the shl/sub/lea chain.
+//  * 0x4aab29 writes flags |= 0x20 back to the parameter home.
+//
+// Suspected original bug: when FUN_004bbc40(layerName) returns 0 (GUI file
+// missing) the code jumps to 0x4aac2d, which loads `layer` from [S+0x10]
+// before it was ever stored (the only store is the mask-path one at
+// 0x4aaa3b) and then writes layer->entries/field_1c/field_24/field_3b
+// through it and returns the garbage pointer.
 #include <string.h>
 
 #pragma pack(push, 1)
 
-// 0x15b-byte GUI control record. Entry 0 of a layer is a header whose
-// +0xb6 short is the layer's entry count and whose +0xcc/+0xdc/+0xec hold
-// the OK/NEXT, PREV/Cancel and focus-text names.
+struct Layer_004aa8f0;
+
+// 0x15b-byte GUI control record.
 struct Entry_004aa8f0 {
-    unsigned char type;              // +0x00
+    unsigned char type;            // +0x00
     char unknown_1;
-    char name[0x10];                 // +0x02
+    char name[0x10];               // +0x02
     char unknown_12;
-    short x;                         // +0x13
-    short y;                         // +0x15
-    short w;                         // +0x17
-    short h;                         // +0x19
-    char unknown_1b[0x1f - 0x1b];
-    int field_1f;                    // +0x1f
-    char unknown_23[0x28 - 0x23];
-    unsigned char field_28;          // +0x28
-    unsigned char field_29;          // +0x29
-    char unknown_2a[0xb6 - 0x2a];
-    short count;                     // +0xb6
-    char unknown_b8[0xbc - 0xb8];
-    int handle;                      // +0xbc
-    char unknown_c0[0xcc - 0xc0];
-    char okName[0x10];               // +0xcc
-    char prevName[0x10];             // +0xdc
-    char focusName[0x10];            // +0xec
-    char unknown_fc[0x15b - 0xfc];
+    short x;                       // +0x13
+    short y;                       // +0x15
+    short w;                       // +0x17
+    short h;                       // +0x19
+    char unknown_1b[4];
+    int field_1f;                  // +0x1f
+    char unknown_23[5];
+    char field_28;                 // +0x28
+    unsigned char field_29;        // +0x29
+    char unknown_2a[0x8c];
+    short count;                   // +0xb6
+    char unknown_b8[4];
+    int handle;                    // +0xbc
+    char unknown_c0[0x0c];
+    char okName[0x10];             // +0xcc
+    char prevName[0x10];           // +0xdc
+    char focusName[0x10];          // +0xec
+    char unknown_fc[0x5f];
 };
 
 struct Layer_004aa8f0 {
-    Layer_004aa8f0* next;            // +0x00
-    Entry_004aa8f0* entries;         // +0x04
-    void* handler;                   // +0x08
-    int field_c;                     // +0x0c
-    int flags;                       // +0x10
-    int field_14;                    // +0x14
-    int field_18;                    // +0x18
-    int field_1c;                    // +0x1c
-    int field_20;                    // +0x20
-    int field_24;                    // +0x24
-    char unknown_28[0x3b - 0x28];
-    int field_3b;                    // +0x3b
+    Layer_004aa8f0* next;          // +0x00
+    Entry_004aa8f0* entries;       // +0x04
+    int field_08;
+    int field_0c;
+    int flags;                     // +0x10
+    int field_14;                  // +0x14
+    int field_18;                  // +0x18
+    int field_1c;                  // +0x1c
+    int field_20;                  // +0x20
+    int field_24;                  // +0x24
+    char unknown_28[0x13];
+    int field_3b;                  // +0x3b
 };
 
 struct Menu_004aa8f0 {
     char unknown_0[0x18];
-    Layer_004aa8f0* layer;           // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int field_60;                    // +0x60
-    char unknown_64[0x9b6 - 0x64];
-    char name[0x100];                // +0x9b6
+    Layer_004aa8f0* layer;         // +0x18
+    char unknown_1c[0x48];
+    int field_60;                  // +0x64
+    char unknown_68[0x8b2 - 0x68];
+    unsigned char field_8b2[0x104];// +0x8b2
+    char name[0x100];              // +0x9b6
 };
 
 #pragma pack(pop)
 
-extern void* FUN_004bf4d0(int handle, int* rect, int mode);
-extern char* FUN_004bb150(char* path);
-extern char* FUN_004baff0(char* out, char* in, char* ext);
-extern int FUN_004bbc40(char* path);
-extern void* FUN_004d83b0(char* path, int size);
-extern int FUN_004aeac0(void* entry, char* path);
-extern void FUN_004d85a0(void* p);
-extern int FUN_004a81e0(Menu_004aa8f0* menu, int flags);
-extern void FUN_004c2470(void);
-extern void FUN_004c2870(void);
-extern void FUN_004a7960(Menu_004aa8f0* menu, int value);
-extern void FUN_0049fc50(Menu_004aa8f0* menu, int value);
-extern int FUN_004c13f0(void);
-extern void FUN_004c13a0(int a, int b);
-extern void FUN_004c1420(int a);
-extern void FUN_004c1a40(void);
-extern void FUN_004ab6c0(Menu_004aa8f0* menu, int a, char* text, int maxLength, int clear);
+extern void __stdcall FUN_004bf4d0(int handle, int* rect, int mode);
+extern char* __stdcall FUN_004bb150(char* path);
+extern char* __stdcall FUN_004baff0(char* out, char* in, char* ext);
+extern int __stdcall FUN_004bbc40(char* path);
+extern void* __cdecl FUN_004d83b0(const char* path, unsigned int size);
+extern int __stdcall FUN_004aeac0(void* entry, char* path);
+extern void __cdecl FUN_004d85a0(void* p);
+extern int __stdcall FUN_004a81e0(Menu_004aa8f0* menu, unsigned int flags);
+extern void __cdecl FUN_004c2470(void);
+extern void __cdecl FUN_004c2870(void);
+extern void __stdcall FUN_004a7960(Menu_004aa8f0* menu, int value);
+extern void __stdcall FUN_0049fc50(Menu_004aa8f0* menu, int value);
+extern int __cdecl FUN_004c13f0(void);
+extern void __stdcall FUN_004c13a0(unsigned char a, int b);
+extern void __stdcall FUN_004c1420(int a);
+extern void __cdecl FUN_004c1a40(void);
+extern void __stdcall FUN_004ab6c0(Menu_004aa8f0* menu, int a, char* text,
+                                   int maxLength, int clear);
 extern int* DAT_0051fba4;
 
 // FUNCTION: 0x4aa8f0
-Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name, unsigned int flags)
+Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
+                                       unsigned int flags)
 {
+    Layer_004aa8f0* layer;
     int ret = 1;
-    Layer_004aa8f0* layer = 0;
-    Entry_004aa8f0* entry = 0;
+    int mask;
     int rect[4];
     char layerName[0x100];
     char guiName[0x100];
+    Entry_004aa8f0* entry = 0;
 
     if (flags & 0x800) {
         Layer_004aa8f0* cur = menu->layer;
-        if (cur == 0) {
-            FUN_004bf4d0(0, 0, -0x18);
-        } else {
+        if (cur != 0) {
             Entry_004aa8f0* e = cur->entries;
+            int x;
+            int y;
             if (e->type == 0) {
-                rect[0] = 0;
-                rect[1] = 0;
+                x = 0;
+                y = 0;
             } else {
-                rect[0] = e->x;
-                rect[1] = e->y;
+                x = e->x;
+                y = e->y;
             }
-            rect[2] = rect[0] + e->w - 1;
-            rect[3] = rect[1] + e->h - 1;
-            FUN_004bf4d0(e->handle, rect, -0x18);
+            rect[0] = x;
+            rect[1] = y;
+            rect[2] = x + e->w - 1;
+            rect[3] = y + e->h - 1;
+            FUN_004bf4d0(cur->entries->handle, rect, -0x18);
             if (menu->layer != 0)
                 menu->layer->field_14 = 1;
+        } else {
+            FUN_004bf4d0(0, 0, -0x18);
         }
     }
     strncpy(layerName, menu->name, 0x100);
+    strcat(layerName, name);
     strncpy(guiName, name, 0x100);
     FUN_004bb150(guiName);
     FUN_004baff0(layerName, layerName, "GUI");
     if (FUN_004bbc40(layerName) != 0) {
-        int mask = flags & 0x200;
+        mask = flags & 0x200;
         if (mask == 0) {
-            entry = (Entry_004aa8f0*)FUN_004d83b0(guiName, 0x10f57);
-            layer = (Layer_004aa8f0*)entry;
-            memset(entry, 0, 0x10f57);
-            entry = (Entry_004aa8f0*)((char*)entry + 0x3f);
+            layer = (Layer_004aa8f0*)FUN_004d83b0(guiName, 0x10f57);
+            memset(layer, 0, 0x10f57);
+            entry = (Entry_004aa8f0*)((char*)layer + 0x3f);
         } else {
             layer = menu->layer;
-            entry = (Entry_004aa8f0*)((char*)layer->entries
-                    + (*(short*)((char*)layer->entries + 0xb6) + 1) * 0x15b);
+            entry = &layer->entries[layer->entries->count + 1];
         }
-        if (FUN_004aeac0(entry, layerName) == 0) {
-            FUN_004d85a0(layer);
-        } else if (mask != 0) {
+        if (FUN_004aeac0(entry, layerName) != 0) {
+          if (mask != 0) {
             Entry_004aa8f0* base = layer->entries;
-            int idx = -1;
-            int n = *(short*)((char*)base + 0xb6) + 1;
-            if (n > 1) {
-                Entry_004aa8f0* e = (Entry_004aa8f0*)((char*)base + 0x15d);
-                int i = 1;
+            int idx;
+            int i = 1;
+            if (i <= base->count) {
+                Entry_004aa8f0* e = &base[1];
                 do {
-                    if (strncmp((char*)e, "PANEL", 0x10) == 0) {
+                    if (strncmp(e->name, "PANEL", 0x10) == 0) {
                         idx = i;
-                        break;
+                        goto panelFound;
                     }
                     i++;
-                    e = (Entry_004aa8f0*)((char*)e + 0x15b);
-                } while (i < n);
+                    e++;
+                } while (i <= base->count);
             }
+            idx = -1;
+        panelFound:
             if (idx == -1) {
-                int i = 1;
-                if (entry->count >= 1) {
-                    short* p = (short*)((char*)entry + 0x170);
+                int j = 1;
+                if (j <= entry->count) {
+                    Entry_004aa8f0* e = &entry[1];
                     do {
-                        p[-1] += entry->x;
-                        p[0] += entry->y;
-                        i++;
-                        p = (short*)((char*)p + 0x15b);
-                    } while (i <= entry->count);
+                        e->x += entry->x;
+                        e->y += entry->y;
+                        j++;
+                        e++;
+                    } while (j <= entry->count);
                 }
             } else {
-                Entry_004aa8f0* sel = (Entry_004aa8f0*)((char*)base + idx * 0x15b);
-                sel->field_29 = 0;
+                base[idx].field_29 = 0;
                 flags |= 0x20;
-                int dx = ((int)sel->w - (int)entry->w) / 2 + (int)sel->x;
-                int dy = ((int)sel->h - (int)entry->h) / 2 + (int)sel->y;
-                int i = 1;
-                if (entry->count >= 1) {
-                    short* p = (short*)((char*)entry + 0x170);
+                int dx = (base[idx].w - entry->w) / 2 + base[idx].x;
+                int dy = (base[idx].h - entry->h) / 2 + base[idx].y;
+                int j = 1;
+                if (j <= entry->count) {
+                    Entry_004aa8f0* e = &entry[1];
                     do {
-                        p[-1] += (short)dx;
-                        p[0] += (short)dy;
-                        i++;
-                        p = (short*)((char*)p + 0x15b);
-                    } while (i <= entry->count);
+                        e->x += dx;
+                        e->y += dy;
+                        j++;
+                        e++;
+                    } while (j <= entry->count);
                 }
             }
-            *(short*)((char*)base + 0xb6) += entry->count;
-            memcpy(entry, (char*)entry + 0x15b, entry->count * 0x15b);
-            entry = (Entry_004aa8f0*)layer->entries;
+            layer->entries->count += entry->count;
+            memcpy(entry, &entry[1], entry->count * 0x15b);
+            entry = layer->entries;
+          }
+        } else {
+            FUN_004d85a0(layer);
         }
     }
     layer->entries = entry;
     layer->field_1c = 0;
     layer->field_24 = 0;
     layer->field_3b = 0;
-    if ((flags & 0x200) == 0) {
+    if (mask == 0) {
         layer->next = menu->layer;
         menu->layer = layer;
     }
     layer->flags = 0;
-    if ((flags & 0x200) == 0 && (flags & 0x80) != 0)
+    if (mask == 0 && (flags & 0x80) != 0)
         layer->flags = 0x80;
     layer->flags |= flags & 0x800;
     if (menu->layer != 0)
@@ -237,64 +262,56 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name, un
         FUN_004c2870();
     }
     {
-        Entry_004aa8f0* base = layer->entries;
-        char* dst;
-        int i;
-        // OK / NEXT
-        dst = base->okName;
-        if (*dst == 0) {
-            i = 1;
-            if (base->count >= 1) {
-                Entry_004aa8f0* e = (Entry_004aa8f0*)((char*)base + 0x15d);
+        char* dst = entry->okName;
+        if (strlen(dst) == 0) {
+            int i = 1;
+            if (i <= entry->count) {
+                Entry_004aa8f0* e = &entry[1];
                 do {
-                    if (e[-0].type == 1 && (_strnicmp((char*)e, "OK", 2) == 0
-                            || _strnicmp((char*)e, "NEXT", 4) == 0)) {
-                        strcpy(dst, (char*)base + i * 0x15b + 2);
+                    if (e->type == 1 && (_strnicmp(e->name, "OK", 2) == 0
+                            || _strnicmp(e->name, "NEXT", 4) == 0)) {
+                        strcpy(dst, entry[i].name);
                         break;
                     }
                     i++;
-                    e = (Entry_004aa8f0*)((char*)e + 0x15b);
-                } while (i <= base->count);
+                    e++;
+                } while (i <= entry->count);
             }
         }
-        // PREV / Cancel
-        dst = base->prevName;
-        if (*dst == 0) {
-            i = 1;
-            if (base->count >= 1) {
-                Entry_004aa8f0* e = (Entry_004aa8f0*)((char*)base + 0x15d);
+        dst = entry->prevName;
+        if (strlen(dst) == 0) {
+            int i = 1;
+            if (i <= entry->count) {
+                Entry_004aa8f0* e = &entry[1];
                 do {
-                    if (e->type == 1 && (_strnicmp((char*)e, "PREV", 4) == 0
-                            || _strnicmp((char*)e, "Cancel", 6) == 0)) {
-                        strcpy(dst, (char*)base + i * 0x15b + 2);
+                    if (e->type == 1 && (_strnicmp(e->name, "PREV", 4) == 0
+                            || _strnicmp(e->name, "Cancel", 6) == 0)) {
+                        strcpy(dst, entry[i].name);
                         break;
                     }
                     i++;
-                    e = (Entry_004aa8f0*)((char*)e + 0x15b);
-                } while (i <= base->count);
+                    e++;
+                } while (i <= entry->count);
             }
         }
-        // focus control name
-        dst = base->focusName;
-        if (*dst == 0) {
+        dst = entry->focusName;
+        if (strlen(dst) == 0) {
             layer->field_20 = 0;
             FUN_004a7960(menu, 1);
         } else {
-            int found = -1;
-            int n = base->count + 1;
-            if (n > 1) {
-                Entry_004aa8f0* e = (Entry_004aa8f0*)((char*)base + 0x15d);
-                i = 1;
+            int i = 1;
+            if (i <= entry->count) {
+                Entry_004aa8f0* e = &entry[1];
                 do {
-                    if (strncmp((char*)e, dst, 0x10) == 0) {
-                        found = i;
-                        break;
-                    }
+                    if (strncmp(e->name, dst, 0x10) == 0)
+                        goto focusFound;
                     i++;
-                    e = (Entry_004aa8f0*)((char*)e + 0x15b);
-                } while (i < n);
+                    e++;
+                } while (i <= entry->count);
             }
-            layer->field_20 = found;
+            i = -1;
+        focusFound:
+            layer->field_20 = i;
         }
     }
     menu->field_60 = -1;
@@ -302,33 +319,33 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name, un
         FUN_004d85a0(layer);
         return 0;
     }
-    if (layer->entries->count == 1 && ((char*)layer->entries)[0x15b] == 3) {
-        Entry_004aa8f0* base = layer->entries;
-        Entry_004aa8f0* e1 = (Entry_004aa8f0*)((char*)base + 0x15b);
+    if (entry->count == 1 && ((char*)entry)[0x15b] == 3) {
+        Entry_004aa8f0* base = menu->layer->entries;
+        Entry_004aa8f0* sub = &base[1];
         int r = FUN_004c13f0();
-        FUN_004c13a0(*(unsigned char*)(e1->field_1f + (char*)menu + 0x8b2), r);
+        FUN_004c13a0(menu->field_8b2[sub->field_1f], r);
         int i = 0;
         int j = 1;
-        int n = e1->count + 1;
-        if (n > 1) {
-            Entry_004aa8f0* e = (Entry_004aa8f0*)((char*)base + 0x15b);
+        if (j < base->count + 1) {
+            Entry_004aa8f0* e = sub;
             do {
                 if (e->type == 7) {
                     if (i == base->field_28) {
-                        FUN_004c1420(*(int*)((char*)e + 0xd6));
+                        FUN_004c1420(*(int*)((char*)&base[j] + 0xd6));
                         break;
                     }
                     i++;
                 }
                 j++;
-                e = (Entry_004aa8f0*)((char*)e + 0x15b);
-            } while (j < n);
+                e++;
+            } while (j < base->count + 1);
         }
-        if (j == n)
+        if (j == base->count + 1)
             FUN_004c1420(*DAT_0051fba4);
         FUN_0049fc50(menu, 1);
         menu->layer->field_20 = 1;
-        FUN_004ab6c0(menu, 1, (char*)e1 + 0xb6, *(short*)((char*)e1 + 0x138), 0);
+        FUN_004ab6c0(menu, 1, (char*)sub + 0xb6,
+                     *(short*)((char*)sub + 0x138), 0);
         FUN_004c1a40();
     }
     return layer;

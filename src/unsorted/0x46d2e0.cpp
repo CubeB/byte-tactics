@@ -1,8 +1,31 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol
+// and space-bunny-free. Names are provisional.
 // #1543 retry by Codex / GPT-6.1-sol: verified 88.4% (475/475 bytes) with checkall; no MATCH.
 // The remaining difference is scheduling and register allocation in the pre-insert block and post-insert copy.
 // PARTIAL, 88.4%, and the whole function now compiles to the original's exact
 // 475 bytes, so only the in-block scheduling inside two blocks is left.
+// space-bunny-free pass (#1875), 6 check runs, still 88.4%, these are the new facts:
+//  * The original NEVER stores 0 into s.v.y (no `mov dword [esp+0x3c],0` anywhere),
+//    but it does copy s.v.y into s.val.value.y at the very top of the block
+//    (`mov edx,[esp+0x3c] / mov [esp+0x50],edx`, right after `add eax,ecx`).
+//    So the original's val.value.y is whatever was on the stack: see the BUG note.
+//    Deleting `s.v.y = 0;` alone compiles to 467 bytes and leaves the y copy in
+//    place, so the 8 missing bytes are exactly the two reloads below.
+//  * Those 8 bytes are `mov ecx,[esp+0x38]` (reload s.v.x) and `mov ecx,[esp+0x44]`
+//    (reload s.v.flag), i.e. the original does NOT forward the register for
+//    `s.val.value.x = s.v.x` and `s.val.value.flag = s.v.flag`. MSVC 5's
+//    store-to-load forwarding here is PRECISE: putting `s.val.key = key;` before
+//    either use changes nothing, so no statement order can force the reloads.
+//    The load needs a different memory node (level-1/imprecise aliasing) than
+//    the store, which only a different source shape can give.
+//  * Moving `s.val.value.y = s.v.y;` to the first statement of the body DOES hoist
+//    that load+store pair to the top of the block as the original has it, but it
+//    then costs the index computation: `mov ax, word [ebp+0x58]` instead of
+//    `mov dx, ...`, and `&defs[i]` folded into the key load
+//    (`lea ecx,[eax+eax*8] / lea eax,[edx+ecx] / mov ecx,[edx+ecx+0x13e]`)
+//    instead of `mov ecx,[edx+0x1439b] / lea eax,[eax+eax*8] / add eax,ecx /
+//    mov ecx,[eax+0x13e]`. 474 bytes and 49.4%: the y hoist and the dx form of
+//    the index computation are mutually exclusive under statement reordering.
 // What is settled (do not undo):
 //  * ONE local struct `Locals_0046d2e0` holding both the value and the pair,
 //    with `Insert(s.val)` letting &s.val escape. Two separate locals collapse

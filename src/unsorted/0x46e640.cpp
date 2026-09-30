@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
 // GPT-6.1-sol review: fresh check.py run confirms the best source is 99.6%;
 // the sole mismatch is the swapped base/index register order in the LEA at
 // 0x46e708. Prior notes below record extensive unsuccessful source-level probes.
@@ -72,6 +72,27 @@
 // depend on how many declarations precede it, in a periodic way, but no N gives
 // MATCH (the swapped SIB byte stays). plain headers.py, 128 sets: best 99.6,
 // nothing matches, as the notes above say.
+// space-bunny-free pass (1875): the 0x4732e0 recipe does NOT reach the SIB
+// byte here, and this is now measured, not guessed.
+//   * The growth branch's third copy written as an explicit loop in insert,
+//     dest declared first, (iterator _D = _Q + _M; const_iterator _C = _P;
+//     for (; _C != _Last; ++_D, ++_C) allocator.construct(_D, *_C);), keeps the
+//     identical tree (lea ecx,[_Q+_M*4]; lea eax,[dest+_P]; sub; sub; then the
+//     two adds and the cmp in the same order) with only the registers renamed,
+//     and demotes this from ebx to ebp (_M takes ebx): 541 bytes, 62.8%. So on
+//     this function that lever moves the register allocation, not the lea
+//     operand order, which is why it took 0x4732e0 from 57.9% to 81.1% and
+//     leaves 0x46e640 alone.
+//   * A dest-first _Ucopy(iterator _P, const_iterator _F, const_iterator _L)
+//     with all four call sites rewritten to match: the same ebx/ebp demotion,
+//     526 bytes, 53.0%.
+//   * The authentic MSVC 5 STL spellings of the same body (the size_type cast
+//     in the first if, begin()/end() in _Ucopy and _Destroy,
+//     _Q = _Ucopy(_P, end(), _Q + _M);, deallocate(begin(), end() - begin()))
+//     cost 10 bytes, 536, 68.8%: the begin()/end() pair drops two instructions
+//     from the grow branch, so the real <vector> header really is not what
+//     produced this 546-byte build, and only _First/_Last with a discarded
+//     _Ucopy result reproduce it.
 #include <memory>
 #include <xutility>
 

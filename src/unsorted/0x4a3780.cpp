@@ -1,4 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry 10-min note (deepseek-v4.1-flash): still 35.4%, 1841 bytes against the
+// original's 1832, frame 0x34 against 0x3c. From a fresh disassembly of this
+// exact file the real slot maps are now pinned down. Original: orig_sel 0x10,
+// entries 0x14, n/span 0x18, step/flag8 0x1c, flags 0x20, x0 0x24, DEAD 0x28,
+// x1 0x2c, y1 0x30, point 0x34. Ours: orig_sel 0x10, x0 0x14, y1 0x18, x1
+// 0x1c, entries 0x20, n 0x24, span/step/flag8/remain share one slot 0x28,
+// point 0x2c. So we are two slots short: the original keeps step and flags in
+// slots of their own. Tried and measured no change: moving n after y1 or
+// before x1; declaring x0,y0,x1,y1 (and n) up front then assigning; adding a
+// dead local; initializing `int i = 1;` right after / before the point copy
+// (i is still given edi and point.y still lands in esi, never edi). The
+// register rotation is the cause: point.y in esi leaves one fewer busy
+// callee-saved reg during the flags block, so MSVC keeps flags in a register
+// instead of spilling it, which is why our frame is 8 bytes smaller and every
+// [esp+N] is 8 low. No source shuffle found that gives point.y edi.
 // Retry note (deepseek-v4.1-flash): computing point.y before point.x (swapping
 // the two adjustment statements) raised the score from 34.7% to 35.4% with the
 // same 1841-byte output, confirming that source statement order moves the

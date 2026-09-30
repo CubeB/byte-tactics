@@ -1,4 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-09-30 retry 3 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. Tested
+// twelve more loop spellings from scratch (build/scratch/0x4a56b0): guarded
+// for / while / do-while and `for (;;)` with a manual break all land on the
+// 49.3% mirror (i in memory, t in edi); `i > count` 55.1%, an explicit pointer
+// walk 55.2%, a goto-spelled type block 41.1%, and a ternary x computed before
+// the rect 41.4%. The one new datum: moving `int t = 0;` above
+// `Entry* entries` scores 59.8% and only reorders the prologue (the field_14
+// store moves after the arg load); it does NOT demote t, confirming the
+// spill is not a declaration-order question. The target keeps bound in ecx,
+// walk pointer in edx and t at frame+0x10; the unguarded shape keeps t in edx
+// and spills the bound, and no plain C++ spelling moves that choice.
 // 2026-09-30 retry (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. Confirmed
 // again that every guarded loop shape (while (i < bound), for (; i < bound; i++),
 // declaration order either way) is the 49.3% mirror: i lands in memory, the tab

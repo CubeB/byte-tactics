@@ -1,5 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// 2026-09-30 retry (deepseek-v4.1-flash, 67.5%): tested two more allocator
+// levers, neither beat 67.5%, so kept the current form. Declaring `entries`
+// then `surface` (vB) gives 65.2%, declaring a function-scope `int limit`
+// before `surface` (vC) is identical at 67.5%. The surface load is scheduled
+// at function entry no matter where its declaration sits. Still differs: the
+// original homes `surface` at [esp+0x1c] and keeps it in ebp through the w<h
+// branch, while ours homes it at [esp+0x10] and keeps `limit` in ebp; the
+// branch test operand order (`mov cx,[w]; mov dx,[h]` vs ours
+// `mov cx,[h]; cmp [w],cx`) and the missing 26 bytes in the flags&4 block
+// (the three _itoa setups do not tail-merge) remain.
+//
 // 2026-09-30 (deepseek-v4.1): 65.2 -> 67.5 by declaring the function-scope
 // `void* surface` FIRST among the locals (before `entries`/`e`), so it is
 // loaded at entry into a real frame slot ([esp+0x10] for us; the original

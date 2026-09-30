@@ -1,8 +1,12 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
 // Started by longcat-2.5-preview-free, continued by deepseek-v4.1-flash and GPT-6.
-// Partial: 80.3%, 4217 bytes versus 4247. The frame is the original 0x23c.
-// deepseek-v4.1-flash retry stopped on the shared-board WATCHDOG; 80.3% is the
-// best variant found and is unchanged by this round (4 experiments, all worse).
+// Partial: 80.7%, 4216 bytes versus 4247. The frame is the original 0x23c.
+// deepseek-v4.1-flash retry 2: this is staged candidate v2 adopted after the
+// timebox (nest the feature-branch FUN_004c5740 call inside the sprintf/
+// strcpy argument lists so the m/e buffer pushes precede the call), scoring
+// 80.7 versus the previous 80.3. The other candidates scored in the same
+// batch: v1 (player-base pointer used twice at the first ptr read) 79.4,
+// v3 (char locals for the two shift tests) 80.3 flat.
 // What this round changed (each one verified by a check.py run):
 // - PFSTATE/PFABLE is one expression `*(int*)(g_game+0x37e23) - pfable - 1` and
 //   y3 = pfstate - 0x10, which reproduces the original sub/dec pair, +5.8.
@@ -424,11 +428,9 @@ void __stdcall FUN_0046a860(void* param_1) {
                         }
                         char* buf5 = text;
                         if ((*(unsigned char*)(unit2 + 0xff) & 2) == 0) {
-                            char* s = FUN_004c5740(name);
-                            sprintf(buf5, "%s %s%s", s, buf3, buf4);
+                            sprintf(buf5, "%s %s%s", FUN_004c5740(name), buf3, buf4);
                         } else {
-                            char* s = FUN_004c5740(name);
-                            strcpy(buf5, s);
+                            strcpy(buf5, FUN_004c5740(name));
                         }
                         FUN_004c13a0(0x53, FUN_004c13f0());
                         FUN_004c14f0(param_1, (unsigned char*)buf5, *(int*)(ebp + 0x1d2),

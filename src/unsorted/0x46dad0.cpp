@@ -1,6 +1,22 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
-// Started by deepseek-v4.1-flash, continued by GPT-6.
-// Partial: 28.9%, ours 1049 bytes versus original 1024. The whole register
+// Started by deepseek-v4.1-flash, continued by GPT-6, continued again by
+// deepseek-v4.1-flash.
+// Partial: 29.5%, ours 1049 bytes versus original 1024. Retry by
+// deepseek-v4.1-flash (2nd pass): flipping both player-scan comparisons to
+// iterator-id-on-the-left (`it->id == p->field_4`, `j->id == p->field_4`)
+// fixed two operand-order mismatches (original loads the iterator id first
+// and compares against the player field as a memory operand) and moved
+// 28.9 -> 29.5. Still differs: (a) the whole-file register rotation
+// this=esi / zero=ebp / flag=edi versus original this=edi / zero=ebx /
+// flag=esi (every instruction shows a register mismatch); (b) the entry
+// construction region: ours inlines the list_b init with a second read of
+// the [esp+0x13] byte where the original calls the out-of-line
+// Class_0046e5c0 ctor with this=entry+0x14 and a pointer to that byte, and
+// the original zeroes entry+0x8/0xc/0x10 in one run before that call;
+// (c) the map walk reads the key at [node+0xc] with the real <map> node
+// where the original reads [node+0x10]; (d) the arg-2 direct send path
+// (see below).
+// Older notes: the whole register
 // allocation is relabelled, which is what keeps the diff large: the original
 // keeps `this` in edi and the constant 0 in ebx (xor ebx,ebx right after
 // mov edi,ecx), pointers in ebp and the live-player flag in esi, while ours
@@ -185,7 +201,7 @@ void Class_0046d860::FUN_0046dad0() {
                     PlayerInfo_0046dad0* p =
                         (PlayerInfo_0046dad0*)(g_game + 0x1b63 + i * 0x14b);
                     if (p->field_0 != 0 && p->type == 3 && p->data->field_94 == 1 &&
-                        p->field_4 == it->id) {
+                        it->id == p->field_4) {
                         live = 1;
                         break;
                     }
@@ -205,7 +221,7 @@ void Class_0046d860::FUN_0046dad0() {
                 int found = 0;
                 for (std::vector<Class_0046eaa0>::iterator j = players.begin(); j != players.end();
                      ++j) {
-                    if (p->field_4 == j->id) {
+                    if (j->id == p->field_4) {
                         found = 1;
                         break;
                     }

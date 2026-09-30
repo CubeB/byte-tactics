@@ -7,6 +7,8 @@
 // produces the same code; the encrypt loop still reverses the XOR operands.
 // GPT-6.1-sol stop note: byte-temporary and cursor-loop variants also scored
 // 98.5%; original uses mov bl,cl then xor bl,[ecx+esi] in the encrypt loop.
+// GPT-6.1-sol: an int accumulator caused a 66.9% register-allocation cascade;
+// a byte helper and reversed xor operands both leave the 98.5% best unchanged.
 // deepseek-v4.1-flash: full 128-set header sweep, inline-helper, two-statement
 // temp and pointer-cursor rewrites are all inert; the single residual is the
 // commutative XOR load order (ours loads [ecx+esi] first). This is the rare

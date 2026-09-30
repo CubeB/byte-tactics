@@ -16,6 +16,8 @@
 // order. Remaining 3-byte gap is that single swapped load pair.
 // GPT-6.1-sol retest: pointer arithmetic and an inlined Queue::pop keep 95.0%;
 // reference aliases and one-store next-index forms regress, then were reverted.
+// GPT-6.1-sol refinement for #2874: hoisting size into the branch or reading
+// it through a single-use helper still emits the entry load first (95.0%).
 
 #pragma pack(push, 2)
 struct Queue_004c1ab0 {

@@ -1,4 +1,7 @@
 // Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #2874: five checks kept the 86.5% best. A y local was
+// unchanged; an inline offset helper fell to 49.5%. Pitch multiply and depth
+// pointer setup still differ in register and memory-operand selection.
 // GPT-6.1-sol retest in #1718: baseline verified at 86.5 percent.
 // Inline surface pitch arithmetic and splitting the signed row product from the x1 add both reduce the match (49.5 and 56.6 percent); restored the best source.
 // GPT-6.1-sol refinement pass: best remains 86.5 percent after 8 checks,

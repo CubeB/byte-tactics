@@ -15,6 +15,13 @@
 // and without an initialiser (71.2% / 58.7%), inline loop bound (76.6%),
 // unsigned long length, inverted ternary, char* alias for the memcpy source or
 // for the case-2 memcmp, plain memcpy vs struct assignment.
+// Re-tried here with the same result: dropping the top initialiser and doing
+// `sum = 0;` at the loop (73.0%) or declaring sum after src/end (73.0%) gives
+// the original's ebp=compressedSize / edi=sum / `xor edi,edi` in the loop
+// preheader, but the parameter then homes in ebx from entry (`push ebx` /
+// `mov ebx,[esp+0x20]` / `mov eax,ebx`) instead of edx plus a later
+// `mov ebx,edx`, and the header copy switches from ecx to edx as its temp.
+// A `Chunk_4d1970*`/`char*` alias for the case-2 uses is coalesced away.
 #include <string.h>
 
 #pragma pack(push, 1)

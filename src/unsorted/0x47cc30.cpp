@@ -1,46 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, further by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash pass (#1571): `tools/headers.py` found `<windows.h>` takes
-// this from 64.5% to 66.5% (ours now 1202 bytes vs the original 1199). That is
-// the best of the 128 header sets; the file keeps the include. All the remaining
-// hunks are the same register-role differences listed below (the header only
-// removed two bytes elsewhere). Free-scored this pass and rejected: a separate
-// `int w = size.x` used for the bounds, inner counter, advance and grown.x (47.0,
-// 1208 bytes), the same as `short w` (64.5, no change, the compiler CSEs it back
-// to size.x), swapping the two negative checks (63.9), inverting the owner test
-// to `active != 0 && type == 3` with the bad path in the else (62.6), using
-// `g_game->cells` instead of the `game` local for the cell base (61.2), and
-// dropping the `game` local entirely (61.2). Without windows.h those last two
-// score 62.7, so the include is load bearing twice over.
-//
-// BEST SO FAR: 66.5%, ours 1202 bytes vs original 1199. Frame is now 0x18 and
-// g_game is in ebp, both matching. What fixed it: introducing a named
-// `Game_0047cc30* game = g_game;` local assigned right after the two negative
-// checks. That gave the loaded pointer a live range starting at the bounds test,
-// so MSVC allocated ebp to it instead of hoisting `xor ebp,ebp`; `test ax,ax`
-// and the dead position.y spill at [esp+0x20] then fall out correctly.
-//
-// Still differs (all register roles, no structural diff):
-//  * size.x should stay in ebx across the function (the original does
-//    `movsx ebx,dx`, spills it to [esp+0x2c] only as a backup for loop 1, and
-//    reloads it with `mov ebx,[esp+0x2c]` after each inner loop). Ours spills
-//    size.x immediately and uses edx as the width accumulator; the height test
-//    then takes ebx for size.y. Fixing this one allocation should cascade.
-//  * The named `game` local makes MSVC emit a `mov edi,ebp` copy for the
-//    owner lookup (original uses ebp directly), and it holds game in edi for
-//    the cell computation instead of reloading `mov ebp,[g_game]`.
-//  * Loop 1 roles: original has outer counter at [esp+0x10], inner counter in
-//    edi, mask index in ebp, mask byte in bl. Ours has outer counter in ebx
-//    (so `mov bl` clobbers it), inner counter in ebp, index in edi. Loops 2 and
-//    3 likewise swap the row counter to the stack and reload.
-//  * `mov cx, word [esi+0xa8]` vs ours `mov ax, ...` in the mask loop write.
-// Tried and rejected: comparison operand swap `g_game->width <= x` (60.2%),
-// separate `int sx = size.x; int sy = size.y;` used everywhere (46.1%, 1214
-// bytes, adds locals), and declaring the Point size first (62.7%, kept the
-// earlier ecx reuse but not the register roles).
-// PARTIAL. The mask loop body itself matches byte for byte, including
-// `inc ebp / mov bl,byte [ecx+ebp-1] / neg al / sbb eax,eax / and al,0xfe /
-// add eax,4 / test bl,al`, which came from keeping `unsigned char m` a local
-// inside the loop body and from `unsigned char bit = obj->bit2 ? 2 : 4;`.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, further by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// PARTIAL: 64.5%. Preserve the game reload only when owner changes. Remaining mask-loop registers, frame and linked-list allocation differ.
 #include <windows.h>
 #pragma pack(push, 1)
 
@@ -145,7 +104,7 @@ void __stdcall FUN_00483210(Point_0047cc30 pos, Point_0047cc30 size);
 void __stdcall FUN_00440a40(Point_0047cc30 pos, Point_0047cc30 size);
 
 
-static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
+static int SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
 {
     if (nw != obj->owner) {
         int fl = obj->field_86;
@@ -162,7 +121,9 @@ static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
             nw->first = obj;
         }
         obj->owner = nw;
+        return 1;
     }
+    return 0;
 }
 
 // FUNCTION: 0x47cc30
@@ -179,7 +140,8 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
     game = g_game;
 
     Position_0047cc30 pp = obj->position;
-    SetOwner_0047cc30(obj, &game->owners[(pp.x >> 23) + (pp.z >> 23) * game->ownerCols]);
+    if (SetOwner_0047cc30(obj, &game->owners[(pp.x >> 23) + (pp.z >> 23) * game->ownerCols]))
+        game = g_game;
     {
         Cell_0047cc30* cell = &game->cells[game->width * obj->pos.y + obj->pos.x];
         unsigned int f = obj->flags.all;

@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (issue #2872): verified 58.9% (986 of 1034 bytes),
+// stopped early per the fleet watchdog. The frame is add esp,0x48 vs the
+// original add esp,0x88: the original has a second 64-byte buffer at fb+0x58
+// (the "Color%d" string passed to FUN_0049fdf0) that our one-buffer version
+// lacks; adding one has always regressed the score via spill differences
+// (52.0 best with two buffers). Also ours spills game->players to [esp+0x10]
+// and the address of players[playerIndex].color to [esp+0x14] where the
+// original keeps the former in ecx (reloading) and rematerializes the latter.
 // Best 58.9%, no MATCH. Original 1034 bytes, ours 986.
 // Fixed the big register-role swap: never reassign the `game` local after the switch
 // (a `game = g_game;` no-op split its live range and forced the scaled index into ebp,

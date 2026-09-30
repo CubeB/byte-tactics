@@ -1,5 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
-// Retry #1758: GPT-6.1-sol best is 80.9% after nine worker checks; final combined check confirmed no MATCH. Numerator-before-denominator ordering improved the 0x10 arm.
+// Retry #1758: GPT-6.1-sol best is 81.6% after this pass; final check confirmed no MATCH. An int copy of field_c0 improves the 0x20 arm's sign extension, but comparison and divisor-register allocation still differ.
 // GPT-6.1-sol pass: best measured score 80.9% (650 source bytes vs 629,
 // nine checker runs). The 0x10 arm improved by computing its numerator before
 // selecting the denominator. Remaining differences include zero initialization
@@ -228,10 +228,11 @@ void __stdcall FUN_004a3ef0(Class_004a3ef0* param_1, int param_2)
                     me->field_136 = me->field_19 - me->field_142 - 3;
                 }
             } else if (e->field_1b & 0x20) {
-                if (e->field_c0 > 0) {
+                int count = e->field_c0;
+                if (count > 0) {
                     int a = *(int*)e->field_c6;
                     int b = *(int*)(a + 0x28);
-                    lines.full = *(unsigned short*)(b + 2) * e->field_c0;
+                    lines.full = *(unsigned short*)(b + 2) * count;
                 }
                 int s = e->field_19 * me->field_19 / lines.full;
                 me->field_142 = s;

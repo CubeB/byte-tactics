@@ -1,4 +1,18 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// RETRY (deepseek-v4.1-flash, 2026-09-30): still 65.2%, the ebx/edi swap is the
+// only residual. No source shape tried here moved it: an `extern int dummyN;`
+// sweep N = 0,4,...,400 (65.2 at N<=12, 64.2 above; compiler state is not the
+// lever); `Node* node = order;`, a `Pos* p = out;` alias and a `void*`-only
+// parameter list all compiled to the same 601 bytes at 65.2. An early genuine
+// use of `order` (a timestamp field read, or an `int& ts = order->timestamp;`
+// before the snapshot) DOES change the allocation, confirming the lever is the
+// order in which `order` and the snapshot's x become live, but it lands `order`
+// in eax/ecx, not ebx: 57.8% and 61.7%. What still differs: the original keeps
+// `order` in ebx (loaded before `push edi`) and the snapshot x in edi, folds the
+// timestamp into `sub eax,[ebx+0x46]` and holds g_game in ebp across the sqrt;
+// ours gives ebx to the snapshot x and edi to order, so it reuses ebp for the
+// timestamp (plus an extra instruction each), and every local slot sits 4
+// higher with the deltas spilled into the dead argument slots.
 // #2391 retry by deepseek-v4.1 (8 check.py runs, best 65.2%, same as the four
 // earlier attempts): confirmed the ebx(<->)edi swap is allocation-driven and
 // immune to more shapes than the notes list. Byte-identical output (same 601

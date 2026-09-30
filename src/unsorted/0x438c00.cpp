@@ -1,4 +1,15 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// PASS 8 (deepseek-v4.1-flash, 2026-09-30): 52.2 percent, unchanged. Two more
+// pointer shapes for the pos reads both scored WORSE than the current 52.2:
+//   `Vec3f* ppos = &order->pos;` used for all three pos reads   46.7 percent
+//     (it also lengthens to 653 bytes; original is 660)
+//   px and pz read through `order`, py read through that ppos    50.9 percent
+// Neither changes the top-of-body register rotation: MSVC still spends ECX on
+// `order`. So the pos-pointer axis is now closed as well, and the residual is
+// confirmed to be the single ecx/edx assignment at 0x438c00 (which then makes
+// the original spill `order` and keep `view` in ecx, while ours does the
+// opposite). No source spelling tried in eight passes has reached that choice.
 // Best: 51.1% (unchanged; the pointer experiment below scored 49.9%). The push order in the original IS edi, esi, ebp, ebx and the pop order IS ebx, ebp, esi, edi, exactly as the build emits, so the residual is NOT a callee-saved rotation. The first difference is a single scratch-register swap at the top: the original loads `order` into EDX and puts the type-index copy in ECX, ours loads `order` into ECX and puts the copy in EDX. Everything after (which register holds level, which the two `imul`s scratch in, whether `surface` stays in ebx or is reloaded from its argument slot, and which argument slot each dead local lands in) follows from that one swap.
 //
 // SLOT MAP, decoded from the original and worth keeping (the earlier passes got

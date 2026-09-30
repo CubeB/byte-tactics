@@ -1,4 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// #2414/#2864 retry (deepseek-v4.1-flash): still 80.0% (235 of 234 bytes). The plain
+// if/else y-clip is the original's exact 14-byte block and yields 234 bytes, but it
+// forces an sx<->dstRow rotation (sx to EDX, dstRow to ECX) and reallocates the frame
+// (52.7%). The 80.0% init form keeps the right registers but is one byte long because
+// `srcRow = 0` before the branch must be `mov ebp,0` (5 bytes) not `xor ebp,ebp` (2):
+// the preceding sy `sub` sets the flags the following `jns` consumes. 384 clip/expr/
+// decl-order combos and 96 separate-declaration/accumulator variants all stay at
+// 80.0/235 or worse.
+// Suspected bugs: `n` is clamped to dst->width without subtracting dstCol, so with
+// dstCol > 0 the inner loop can write past the row end; and the inner loop guards on
+// `n == 0` rather than `n <= 0`, so a negative n (srcCol > src->width) wraps around.
 // PARTIAL, best 80.0%, and 235 bytes against the original's 234: the LOOP, the
 // n CLAMP, both clips and the frame are byte exact, and the whole remaining
 // diff is the 29-byte PROLOGUE (the order of the six field/argument loads) plus

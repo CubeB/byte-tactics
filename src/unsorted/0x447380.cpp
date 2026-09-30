@@ -1,4 +1,31 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 pass (issue 2633): the residual is a scratch-register rotation,
+// not a structural difference. Byte-diffing ours against the original shows the
+// first differing byte at +0x1ae (0x44752e, the first group `lea`) and the last
+// inside the FUN_0049ff10 argument pair; the prefix 0x447380..0x44752c and the
+// tail 0x447601..0x4478a4 are byte-identical. In the window the original is
+// exactly one rotation step ahead of the natural statement order in the cycle
+// eax -> ecx -> edx: group ecx/edx/eax/ecx (ours eax/ecx/edx/eax), lstrcpynA
+// dest edx (ours ecx), FUN_0049fdf0 player lea eax (ours edx), entries ecx
+// (ours eax), the inlined *0x15b lea chain edx/ecx/edx/ecx (ours ecx/...).
+// Probed this pass, all still 93.5% / 1318 bytes: a coalesced copy of `n`
+// (`int k = n;` used by all four group sprintfs), a real `Entry* ent = entries;`
+// used by the fdf0/ff10 calls, a real `char* pname = p->name;` used by
+// lstrcpynA and both strcats, `PlayerInfo* info2 = p->info;` used by the tail
+// store, a named enum constant for the two 0x80 sizes, const-qualified helper
+// parameters, `unsigned int act`, `unsigned int param_1`, `(entries + idx)->`,
+// `&entries[0]`, and `f96` in a byte local. An empty inline helper call
+// (`Dummy_00447380();`) and a local object with an empty inline ctor/dtor
+// before the group are eliminated outright and do not move the phase either.
+// Conclusion: the missing step is consumed by a real temporary in the original
+// that our AST does not create, and it cannot be a dead node; the only
+// constructs found to move the phase are whole statements that emit code (a
+// duplicated `lstrcpynA(name, p->name, 0x80);` before the group, or an extra
+// FUN_004a0570 call statement, both +19 bytes and 85% or worse), so no spelling
+// reachable from this source shape gives the step for free.
+// Scoring harness for more variants: build/scratch/0x447380/rank.py (reproduces
+// the check.py ratio in about a second), bdiff.py (masked byte diff by region),
+// batch*.py (variant batches applied to nat.cpp / cur.cpp).
 // GPT-6 retry: helper return types and member forms did not improve 93.5%.
 // 93.5%, and the code is exactly the right size (1318 bytes). Everything from the
 // function entry to the end of the big `if` condition matches byte for byte, and

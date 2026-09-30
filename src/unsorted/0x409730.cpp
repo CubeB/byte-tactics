@@ -1,5 +1,21 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// STILL 99.6% (deepseek-v4.1-flash final timebox pass): the two SIB base/index
+// bytes at 0x4099f6 (want [esi + ecx], ours [ecx + esi]) and 0x409b53 (want
+// [eax + edx], ours [edx + eax]) are still the only diffs; size 1678 exact.
+// New negative results this pass (all scored with check.py --sym,
+// build/scratch/0x409730/run.py): store as `*(&vec_8d[i])` neutral; read
+// through `unsigned char& r8 = vec_8d[i]` in a block neutral (propagated back,
+// contradicting the earlier note that the reference form flips); `int idx8 = i`
+// copies at either site neutral; comma pointer `p8 = vec_8d.begin(), x += (char)
+// p8[i] / 2` at the READ site byte-identical (neutral), while the same trick at
+// the STORE site (T9) DOES flip the store SIB to the original [esi + ecx] but
+// hoists `mov edx,[esp+0x20]` / `mov esi,[edx+0x91]` above the clamp block,
+// 1675 bytes 86.6%; hoisting `int i` to function top 1683 bytes 83.9% still
+// swapped; std::vector<signed char> 98.0% still swapped. So the store flip
+// always costs the hoist (pointer def floats early once it is a real variable
+// node), and no read-side spelling tried flips 0x409b53 at all.
+//
 // deepseek-v4.1-flash 10-minute retry: three new shapes scored with check.py
 // --sym, none moved the two SIB bytes. A static `StoreByte(vector<unsigned
 // char>&,int,unsigned char)` helper used only at the store site stays 1678

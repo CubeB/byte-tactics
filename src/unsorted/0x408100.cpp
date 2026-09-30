@@ -1,4 +1,20 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (third pass, timeboxed before any variant compiled):
+// this file is unchanged and still scores 87.4%. What still differs is exactly
+// the three items listed below: loop 1 (and loop 2) register rotation
+// (this=ebx/unit=ebp/iterator=edi/idx=esi in the original versus
+// this=ebp/unit=edi/iterator=esi here), the _allmul(s, d.x) push order at
+// 0x4084f7, and the xor (d.y = 0) placement at 0x4083c8. Newly pinned this
+// pass from the original disassembly, for whoever retries: at 0x4083a4-0x4083d6
+// (flag12 Direction()) the original is ang=ebx, then d.x=edi (mov edi,eax; neg
+// edi), the xor ebp,ebp of d.y sits between the second call's pushes and the
+// call, and d.z=ebx (add esp,8 BEFORE neg eax, then mov ebx,eax). The final
+// d.x/d.y/d.z registers (edi/ebp/ebx) already match here; only ang (ebp versus
+// ebx), the neg/add-esp order and the xor slot differ, so expanding that call
+// as x,y,z direct stores with an int ang local (the exact shape that matches at
+// 0x4084c5) is still the top idea. Second idea: FixMul with __int64 parameters,
+// which should stop MSVC commuting the first multiply tree while keeping calls
+// 2 and 3 in source order. Nothing new was compiled this pass.
 // deepseek-v4.1-flash (second timeboxed retry): expanded loop-2's flag12
 // Direction() into x,y,z direct stores (the note's suggestion) and got 76.8%,
 // so that hunk is genuinely better as the helper. The _allmul operand tree was

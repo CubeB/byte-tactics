@@ -1,24 +1,27 @@
 // Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL: 77.8%. Frame, prologue and the first ~89 instructions (through the
-// terrain check) match byte for byte. Now 2961 bytes vs the original 2947, so
-// what is left is register picks and block placement, not missing code:
-//  - 0x47af91 / 0x47b04c: the original keeps the player count in ecx with the
-//    active==2 tally in esi and the loop copy in edx (base in edi); ours keeps
-//    the g_game base live in esi from the first count loop, so the tally lands
-//    in edi and count/copy land in edx/ecx. Both pairs of loops are swapped the
-//    same way, so it is a single allocator decision about esi staying live
-//    across the FUN_00435a20 terrain call.  Declaring the copy before/inside the
-//    if, renaming it, or splitting the count into a fresh variable (the compiler
-//    CSEs it back) did not move it.
-//  - the shared "FUN_004c5740; strcpy(e->text, ...); FUN_004a0090(g_game +
-//    0x519); FUN_004ab0a0(menu)" tail now exists (ours at 0x47b79e, the
-//    original at 0x47b88b) but a few arms still emit their own copy, e.g. the
-//    third LineOfSight arm and part of the SelectMap/Difficulty tail.
-//  - small tails (strcmp("Player"), the "Skirmish" branches) load the menu
-//    argument into eax in ours and edx in the original, and the g_game
-//    temporary is ecx in ours and edx in the original; same instructions.
+// PARTIAL: 79.9%. Frame, prologue, the first count loop (through the terrain
+// check) and the third count loop (active==2 then active==1, sum stored to
+// g_game+0x2a3c) match byte for byte. 2961 bytes vs the original 2947, so what
+// is left is allocator state in the two-loop blocks and the shared tails:
+//  - 0x47af91 c2/c1 check: the original keeps g_game in edi (and reloads it
+//    into esi at 0x47b04c) with the active==2 tally in esi, and tests c2 right
+//    after the first loop (jl 0x47b0bf) before the second loop runs; ours keeps
+//    g_game in esi with the tally in edi, and both compares land after the
+//    second loop. Writing the block with a fresh count local and real for
+//    loops (for (i = n2; i > 0; i--) then for (; n2 > 0; n2--)) fixed the
+//    ecx=count / edx=copy assignment (77.8 -> 79.9). Caching g_game in a local,
+//    guarding loop2 with c2 > 0, and a goto-based shared error block (71.8, it
+//    also lost the cross-jumped error tail) did not move the esi/edi pick.
+//  - Energy/Metal clamp arms: the original loads *p into ecx and materialises
+//    the address into eax for the store; ours materialises the address into
+//    ecx and loads into eax. Loading through a raw expression instead of the
+//    pointer dropped to 74.1, so the pointer form stays.
+//  - shared tails: the "FUN_004c5740; strcpy; FUN_004a0090(g_game+0x519);
+//    FUN_004ab0a0(menu)" block is ours at 0x47b79e, the original's at 0x47b88b,
+//    and several error tails reload menu from [esp+0x84] in the original where
+//    ours pushes esi/ebp.
 // Fixed here: c2<1 and c1<1 must be one "||" test (one shared error block, two
-// "jl" to it) - that alone took this from 70.3 to 77.8.
+// "jl" to it).
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -156,25 +159,24 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             return;
         }
 
+        int n2 = *(int*)(g_game + 0x38d81);
         int c2 = 0;
-        count = *(int*)(g_game + 0x38d81);
-        if (count > 0) {
-            int i = count;
+        if (n2 > 0) {
             Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
-            do {
+            for (int i = n2; i > 0; i--) {
                 if (p->active == 2)
                     c2++;
                 p++;
-            } while (--i);
+            }
         }
         int c1 = 0;
-        if (count > 0) {
+        if (n2 > 0) {
             Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
-            do {
+            for (; n2 > 0; n2--) {
                 if (p->active == 1)
                     c1++;
                 p++;
-            } while (--count);
+            }
         }
         if (c2 < 1 || c1 < 1) {
             FUN_004abd90(g_game + 0x519,
@@ -201,25 +203,24 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             return;
         }
 
+        int n3 = *(int*)(g_game + 0x38d81);
         c2 = 0;
-        count = *(int*)(g_game + 0x38d81);
-        if (count > 0) {
+        if (n3 > 0) {
             Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
-            int i = count;
-            do {
+            for (int i = n3; i > 0; i--) {
                 if (p->active == 2)
                     c2++;
                 p++;
-            } while (--i);
+            }
         }
         c1 = 0;
-        if (count > 0) {
+        if (n3 > 0) {
             Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
-            do {
+            for (; n3 > 0; n3--) {
                 if (p->active == 1)
                     c1++;
                 p++;
-            } while (--count);
+            }
         }
         *(short*)(g_game + 0x2a3c) = c1 + c2;
 
@@ -420,7 +421,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
     }
 
     if (FUN_0049fd60(menu, "Difficulty")) {
-        FUN_0047f1a0("SKirmish", 0);
+        FUN_0047f1a0("Skirmish", 0);
         int d = *(int*)(g_game + 0x37eee);
         if (d == 0) {
             (*(Table_0047ae60**)(g_game + 0x29a0))->field_228 = 1;

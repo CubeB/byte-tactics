@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash and space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL: 66.2%, 358 of 366 bytes (was 64.5% and 354 bytes).
 // space-bunny-free pass (#1805): the one change that helped is the third
 // distance, `d3 = Dist(c, b)` (66.2% against 64.5% for `Dist(b, c)`), so
@@ -57,6 +57,21 @@
 // separate result temp in the tail. The declaration-count probe (0 to 400 unused
 // externs) is flat for the old file, and headers.py gives 64.5% for every set that
 // compiles, so this is source shape, not compiler state.
+// edited by deepseek-v4.1 pass (#2100): re-ran the ground truth. The real 0x480570
+// body compiles to `cmp ecx,eax; jle; mov eax,ecx` (result in eax), while the three
+// inlined blocks here store |dx| to the result slot first and then conditionally
+// overwrite it (`jg skip; mov [slot],eax`), so the inlined source is the ternary
+// form kept below; blocks 1 and 2 are instruction for instruction identical apart
+// from the register names, so the entire gap is one allocator decision: the
+// original promotes b.x/b.y member-wise into the callee-saved ebx/ebp in the
+// prologue (before the `mov edi,[eax]` deref) and c.x/c.y into ecx/edx at block 2
+// (c.y spilled to [esp+0x18], reloaded from [esp+0x28] at the tail), while every
+// source spelled here makes MSVC load each Point as one dword (b as a dword into
+// ecx/edx with b.y spilled here, or into ebp in the unnamed `Dist(*p, b)` form)
+// and keep c whole in ebx for the tail. New variants tried: `const Point&` second
+// Dist parameter named and unnamed (46.3, 46.7, 45.9, 47.1%), `(short)` cast on the
+// Toward step (45.7%), min written `if (d3 < d1) d1 = d3;` plus `Dist(b, c)`
+// (63.0%). Best stays the named-`a` ternary file below at 66.2%.
 #include <stdlib.h>
 
 struct Point_004805b0 {

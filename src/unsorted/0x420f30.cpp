@@ -1,23 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol,
-// finished by space-bunny-free. Names are provisional.
-// Best 82.7%. The compaction now matches (pointer scan + *e = e[1] loop).
-// Still differs in ONE root cause, everything else follows from it:
-// the original RELOADS vel.y for the gravity step (mov eax,[g_game];
-// mov edx,[esi+0x38]; mov ecx,[eax+0x14263]; sub edx,ecx) while we keep the
-// value the position update loaded, so:
-//  - our eax holds vel.y across the z update, pos.z lands in ecx instead of
-//    eax, and the original's hoisted `mov eax,[esi+0x24]` is missing;
-//  - our g_game load is 8b 0d (6 bytes) not a1 (5 bytes), and the spin word
-//    block interleaves instead of running load,load,load,add,add,add.
-// Size arithmetic confirms this is the only cause: we are 2 bytes short
-// (534 vs 536) = -3 for the missing reload, +1 for the wider g_game load.
-// space-bunny-free tried, all still 82.7%: `vel.y = vel.y - gravity`, a
-// gravity local, a velocity temp, the angle updates before the gravity, a
-// `Vec3* pos = &d->pos` local used for the copy/x update/restore/calls, the
-// same as a C++ reference, and z-before-y statement order. MSVC 5 keeps
-// CSE-ing both reads of d->vel.y because the three stores in between are at
-// provably disjoint offsets of the same base register, and a separate
-// pos pointer is folded back to esi+0x1c, so no alias doubt is created.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and GPT-6.1-sol. Names are provisional.
+// MATCH: use a local int pointer for the gravity subtraction so MSVC reloads vel.y after the position updates.
 #include <stdio.h>
 #pragma pack(push, 1)
 
@@ -103,7 +85,8 @@ void FUN_00420f30()
             d->pos.x += d->size.x + d->vel.x;
             d->pos.y += d->size.y + d->vel.y;
             d->pos.z += d->size.z + d->vel.z;
-            d->vel.y -= g_game->gravity;
+            int* velocityY = &d->vel.y;
+            *velocityY = *velocityY - g_game->gravity;
             d->angle_x += d->spin.x;
             d->angle_y += d->spin.y;
             d->angle_z += d->spin.z;

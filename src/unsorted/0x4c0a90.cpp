@@ -10,6 +10,10 @@
 // part of the 16.16 depth), or unconditionally when the surface has no depth
 // buffer.
 //
+// GPT-6.1-sol pass in #1905: best remains 86.5 percent after 7 check.py runs
+// and all 128 header combinations. Remaining differences: pitch zero-extension
+// uses cx/and instead of ebx/bx, and the depth pointer reuses the offset with an
+// indexed load instead of materializing the matching lea and direct load.
 // deepseek-v4.1-flash pass in #1337: 86.5 percent, 118 of 118 bytes (up from
 // 85.7 percent, 116 bytes). The score moved by reading the pitch into an
 // `unsigned short` local before the row multiply. That single change is what

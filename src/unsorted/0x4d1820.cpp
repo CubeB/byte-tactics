@@ -5,6 +5,8 @@
 // 96.2%, with the original copying the index byte before XORing memory.
 // GPT-6.1-sol retest: current best scores 98.5%. An explicit byte temporary
 // produces the same code; the encrypt loop still reverses the XOR operands.
+// GPT-6.1-sol stop note: byte-temporary and cursor-loop variants also scored
+// 98.5%; original uses mov bl,cl then xor bl,[ecx+esi] in the encrypt loop.
 // Builds a "SQSH" compressed chunk: header, then the (optionally
 // compressed and encrypted) data.
 #include <string.h>

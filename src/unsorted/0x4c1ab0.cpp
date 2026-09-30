@@ -1,4 +1,7 @@
 // Decompiled by Opus, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #1905: best 95.0% after 3 checks. The only remaining
+// mismatch is that VC5 loads entries[tail] before size, while the original
+// loads size first. An early-return variant scored 68.4% and was discarded.
 // Codex / GPT-6 retest in #13:
 // unsigned queue indices, a pop helper given the capacity and a
 // separate entry pointer did not reproduce the size-before-entry load.

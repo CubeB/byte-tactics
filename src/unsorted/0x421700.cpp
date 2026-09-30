@@ -1,23 +1,27 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
-// Partial: 70.9%, 1769 bytes versus 1692 (best of a Claude Opus 5.5 start plus
-// deepseek-v4.1 work). Structural walk is right, but the local frame is 0xa0
-// instead of the original 0x90 and the local layout differs: the original
-// packs piece/count/verts/unit/desc at [esp+0x20..0x30] and i/primoffset at
-// [esp+0x1c]/[esp+0x14], ours puts them 4 higher/lower respectively. The
-// original also unpacks the FUN_004b6eb0 call results back into the shared
-// float scratch slots ([esp+0x58..0x7c]) instead of keeping a 12-byte Vec3f
-// local, so its _ftol/fld scheduling differs. What helped: declaring ab/n
-// without an initializer and assigning on the next line (68.8 -> 70.9). What
-// did not: a byte-offset two-pointer vertex-copy loop (64.1), unpacking the
-// inner FUN_004b6eb0 into separate floats (67.1), splitting the float-vertex
-// declarations (no change).
-// Still differs: the frame is 0xa8 vs the original 0x90, 0x18 too big. Writing
-// the three (int)(n.f * 65535.0f) results as plain ints (nx, ny, nz) shrinks
-// the frame to 0x9c (12 bytes of the excess are the 12-byte ni local), and the
-// original really does keep nx/ny in ebx/ebp and spill nz into the reused
-// [esp+0x10] slot, but that variant scored 70.5 so it is reverted here; the
-// float scratch layout (9 vertex floats plus ab/n) is what the second 12 bytes
-// of excess have to come from.
+// Partial: 71.7%, 1759 bytes versus the original 1692 (best of a Claude Opus
+// 5.5 start plus deepseek-v4.1 work). The structure is right: every call, the
+// vel/spin sequence, the two-pointer vertex copy and the trailing prim loop
+// line up. What still differs:
+//  - the frame is 0xa8 against the original's 0x90. Writing the three
+//    (int)(n.f*65535.0f) results as plain ints shrinks it to 0x9c (12 of the
+//    excess is the Vec3f ni local) but scores 70.5, so the struct stays here;
+//    the other 12 bytes are float scratch, the original unpacks the
+//    FUN_004b6eb0/FUN_004b6f70 results back into shared float slots
+//    ([esp+0x58..0x7c]) while ours keeps extra $T staging.
+//  - the 9 scaled vertex floats load in address order in the original
+//    (v[0].x, v[0].y, ... v[2].z) but ours hoists the x pair (v[0].x, v[1].x)
+//    first, which changes the fxch/fmul schedule.
+//  - the pointer locals land in different slots: the original packs
+//    piece/count/verts/unit/desc at [esp+0x20..0x30] plus i at [esp+0x1c];
+//    ours has piece/verts/desc at [esp+0x30..0x34] and i at [esp+0x20].
+// What helped: declaring count, verts and desc in that order (desc assigned
+// last, after the g_game->debrisCount alias) lifted 70.9 to 71.7 with the same
+// 0xa8 frame. Earlier notes: ab/n declared uninitialised and assigned on the
+// next line (68.8 -> 70.9); a byte-offset two-pointer vertex copy scored 64.1;
+// unpacking the inner FUN_004b6eb0 into separate floats scored 67.1 and
+// holding the 9 floats as Vec3f locals scored 47.6 (frame 0x8c, code shape
+// wrong).
 #include <windows.h>
 #include <memory.h>
 
@@ -175,10 +179,11 @@ static inline Object3D_00421700* NewObject()
 void __stdcall FUN_00421700(Header_00421700* param)
 {
     Unit_00421700* unit = param->obj;
-    Piece_00421700* piece = (Piece_00421700*)(unit->pieces + 0x22 + param->index * 0x36);
-    Object3D_00421700* desc = piece->desc;
+    Piece_00421700* piece =
+        (Piece_00421700*)(param->obj->pieces + 0x22 + param->index * 0x36);
     int* count = &g_game->debrisCount;
     Vec3_00421700* verts = piece->verts;
+    Object3D_00421700* desc = piece->desc;
     if (param->scale == 0)
         param->scale = 1;
     for (int i = 0; i < desc->nprims; i++) {

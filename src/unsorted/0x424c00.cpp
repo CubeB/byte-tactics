@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // Partial: 69.1%, 1514 bytes versus 1496. Names allocation keeps its
 // result in EDI and rematerializes zero inside the fill loop; the original
 // uses EAX as the fill cursor and reloads EDI afterward. Feature-list
@@ -15,6 +15,17 @@
 // the names vector fill. Hoisting the remap index to function scope, spelling
 // out the delete null-check, and a post-FreeFeatureList local `file` pointer
 // were all flat at 69.1%.
+// deepseek-v4.1 re-run: confirmed the root is EBP's meaning at the join after
+// the names record loop. The original restores ebp=0 on the then path at
+// 0x424e13, so ebp is the shared constant zero for the FreeFeatureList inlines
+// and for the tail; there it is pushed as the 0 default of FUN_004b4800 and
+// then reused to hold `file` (0x424f45), which is why the tail keeps count in
+// ebx with no reloads. Ours lets ebp die as count, so the FreeFeatureList
+// picks edi as its zero and `file` lands in ebx, is copied to esi inside each
+// record loop and reloaded twice (1514 vs 1496 bytes). A tail `const int zero`
+// fed to all three FUN_004b4800 defaults, promoting n to function scope, a
+// names vector with an explicit default argument, one counter per tail loop
+// and literal byte offsets were all scored through check.py at 69.1%.
 
 #include <string.h>
 #include <utility>

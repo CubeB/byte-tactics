@@ -1,4 +1,20 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// PARTIAL 78.3 percent (1646 of 1662 bytes). This session (deepseek-v4.1-flash
+// retry) only gained 0.2: declaring the projectile tail pointer as
+//     short* q;
+//     Projectile_00466dc0* p = g_game->projectiles;
+//     q = (short*)((char*)p + 0xa);
+// instead of the old `short* q = ...` inside the if reorders the preheader
+// (p load hoisted above the count load, q built before the slot stores) and
+// matches a few more preheader bytes. The ebx/ecx swap below is unchanged.
+// This session also confirmed it is NOT a use-count or declaration-order tie:
+// with p reduced to a single use (all player/owner reads routed through q) MSVC
+// still keeps p in ebx; assigning q before p (q = projectiles+0xa, p = q-0xa)
+// puts q in ecx and p in edx and leaves ebx unused; spelling px/py as
+// *(short*)((char*)p + 6/0xa/0xe) with no q at all puts p in ecx (matching the
+// original) but MSVC then folds the offsets instead of forming q. A local
+// `Shot* shot = p->shot;` at the top of the loop moves p to eax and q to ebp
+// (73.9). None of these reaches q-in-ebx with p-in-ecx.
 // PARTIAL 78.1 percent (1646 of 1662 bytes), up from 72.4 this session. The
 // top-of-function hunk is FIXED: writing the flag as an if/else
 //     int enabled;
@@ -391,10 +407,11 @@ void FUN_00466dc0(void)
         } while (u <= g_game->unitsEnd);
     }
 
+    short* q;
     Projectile_00466dc0* p = g_game->projectiles;
+    q = (short*)((char*)p + 0xa);
     int i = 0;
     if (g_game->projectileCount > 0) {
-        short* q = (short*)((char*)p + 0xa);
         do {
             int px = q[-2];
             int x = (int)g_game->field_142eb * px / g_game->field_1422b;

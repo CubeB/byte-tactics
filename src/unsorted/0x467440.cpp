@@ -60,6 +60,14 @@
 // Combining y-first with x/y duplicated into both arms of the field_14281
 // test: 1016 bytes / 52.4% (plain) and 1012 bytes / 52.8% (py-pointer), so
 // neither was kept over the current file.
+//
+// Session 4 (deepseek-v4.1-flash): giving each of the five loops its own
+// scoped `for (Unit* u = ...)` copy (extra braces, so no cross-loop `u`
+// coalescing) is byte-identical to the shared-`u` form, still 53.0%. The
+// original reloads first=[esp+0x14] after loops B/C/D (its loop bodies clobber
+// edi) but NOT after loop A; ours inserts that reload after loop A as well,
+// i.e. first is not kept live across loop A in our allocation. This is the
+// main structural residue; the rest is register-name/scheduling noise.
 
 #pragma pack(push, 1)
 

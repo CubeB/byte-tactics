@@ -44,6 +44,24 @@
 // cast: declaring flags_3923b as `union { unsigned short w; unsigned char b; }`
 // and using `.b` for the byte wise writes is byte-identical (2376 / 79.7%),
 // so the load-modify-store there is a scheduler choice, not a type-alias one.
+// Pass 6 (deepseek-v4.1, 9 check runs on scratch variants): the *front* of
+// the original's second guard IS reproducible. Writing the FIRST active test
+// as `g_game->players[bl].active` (not through `pi`, which is declared right
+// after it) makes MSVC emit the original load-then-lea sequence and keeps the
+// second `cmp dword ptr [edi],0 / je` (it cannot prove the two expressions
+// equal), so ours is now 2385 bytes with that 4-byte pair matching. MSVC
+// still forwards the byte `al` from the first type test and deletes the
+// second type and field_146 chains, so 18 of the 22 remaining bytes are still
+// missing there. Forcing `al` interlopers (an int copy of active, a char*
+// alias, a union member at +0x73, fresh `pi2 = &g_game->players[bl]`) either
+// stays byte-identical or rotates edi/esi, so the reload is a register
+// allocation choice, not a source alias one. The loop is also non-rotated in
+// the original (head `cmp bl,0xa / mov [esp+0x10],bl / jae 0x4655a6` plus a
+// tail `inc bl / cmp / mov / jb 0x464fab`): our for-loop emits only a rotated
+// tail test that jumps to the store (`jb 0x464fa2`), and rewriting it as an
+// `if (loopCond(bl)) do { ... } while (loopCond(++bl));` folds the entry test
+// to true and drops it. Do not chase either further without a compiler-state
+// lever.
 // Previous note: Still differs: the loop head test (cmp bl,0xa / jae taken to
 // the increment)
 // is dropped as provably true even as a while loop, the duplicated player
@@ -250,9 +268,9 @@ void __stdcall FUN_00464f80()
     g_game->field_14207->FUN_0040eb70();
     unsigned char bl;
     for (bl = 0; loopCond_00464f80(bl); bl++) {
-        PlayerInfo_00464f80* pi = &g_game->players[bl];
-        if (pi->active == 0)
+        if (g_game->players[bl].active == 0)
             continue;
+        PlayerInfo_00464f80* pi = &g_game->players[bl];
 
         {
             unsigned char t = pi->type;

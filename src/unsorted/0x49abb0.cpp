@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
 // Retry #1736: GPT-6.1-sol verified the saved source at 93.7% (576/568); no MATCH. The line-of-fire block still reloads unit2 after copying its position.
 // Partial, 93.7% (576 of 568 bytes; up from 90.9%). Logic, offsets and every branch match.
 // Two things moved it: `(height >> 1) + whole` (not `whole + (height >> 1)`) gives the
@@ -61,6 +61,53 @@
 // allocator decision inside the line-of-fire block. Lead #1431 introduced a local pointer to unit2->pos at the call site; output stayed byte-identical at 93.7%. It is not an operand order, a
 // frame size, a call count or a convention problem, and it is not reachable by
 // reordering the arguments.
+//
+// ---- space-bunny-free pass 2 (issue 1954): still 93.7%, five new measurements ----
+// headers.py: no header set beats 93.7% (128 sets, 0 compile failures), so the
+// divergence is not an include.
+// New: writing the line-of-fire test as one `if (bit1 && LineOfFire(...) == 0x8000)`
+// instead of the nested `if` inside `if (bit1)` is WORSE (93.0%, 574 bytes): the
+// nested form above is right, the block really is a separate basic block.
+// New: the helper's three differences in named locals `dx, dy, dz` (93.7%, 576) and
+// in the order `dz, dy, dx` (93.7%, 576) both tie, so the evaluation order of the
+// three subtractions is not what decides the schedule.
+// New: reading the copied aggregate's three fields into named locals first
+// (`int fx = from.x; int fy = from.y.value; int fz = from.z;`) ties at 93.7% / 576
+// as well. `Vec3 f = from;` inside the helper does not compile.
+// Frame layout now pinned down (useful for any twin of this template): _allmul is
+// callee-clean (ret 0x10), the 3 locals are at [esp+0x10], [esp+0x18] and the
+// caller's dead 3rd argument slot, and the `mov [esp+0x24], edx` / `mov eax,[esp+0x14]`
+// pair in each distance tail address the SAME dword (locals[1], E0-0x8) because esp
+// is 0x10 lower before the call than after it. So the aggregate copy's x is locals[0],
+// its z is locals[2], and locals[1] is the 64-bit product spill; the by-value Vec3
+// is exactly 3 dwords, which is what `sub esp,0xc` is for.
+// Root cause, now named: in the original unit2 is LIVE in ebx across the line-of-fire
+// block, so ebx cannot be the aggregate's address temp and the allocator spills the
+// copy's x and z and loads them back (`lea edx,[ebx+0x6a]`, `sub eax,[esp+0x10]`).
+// Here MSVC treats the unit2 pointer as re-materialisable and re-loads it from its
+// argument home at [esp+0x24] after the block, which frees ebx and yields
+// `add ebx,0x6a` plus a second copy of that address in ebp, and then the copy's
+// fields get registers instead of memory. The `add reg,imm` versus
+// `lea scratch,[reg+imm]` choice is a direct readout of that liveness, so the block
+// needs one more live value across it, which no source spelling of the call found.
+//
+// ---- space-bunny-free pass 3 (issue 1954): making unit2 non-rematerialisable did
+// NOT work. Two new measurements, file unchanged at 93.7% (576):
+// (1) A real function-scope local `Unit* u2 = unit2;` used for EVERY reference to
+// unit2 (so it is live across the whole line-of-fire block and both tails, the
+// strongest form of "copy the parameter into a local" from the packet's lever (c))
+// scores 92.7% / 576 bytes: still `add ebx,0x6a`, still the tail reload. MSVC gives
+// the local a home but keeps unit2 rematerialisable from the parameter's arg slot,
+// so a local home costs nothing and changes no decision.
+// (2) An inline accessor for `&unit2->pos` did not compile in the timebox.
+// Read from our own output: ebx DOES hold unit2 at 0x49ad2e in our build too
+// (`add ebx,0x6a` is applied to the pointer that came from `mov ebx,[esp+0x24]`
+// at 0x49ace0). The only difference is the allocator's CHOICE between keeping
+// unit2 in ebx and using `lea edx,[ebx+0x6a]` (original) versus burning ebx on
+// the address `&unit2->pos` and re-loading unit2 from [esp+0x24] afterwards
+// (ours). Our tail of the block also pays two store/reload pairs
+// (`mov ebx,[esp+0x10]`, `mov ebp,[esp+0x20]`) that the original avoids by
+// reading straight out of the two homes.
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)

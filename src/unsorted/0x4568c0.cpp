@@ -1,17 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
-// deepseek-v4.1-flash. Names are provisional.
-//
-// PARTIAL, 77.2%. The frame is byte exact (0x34 locals). Best of the variants
-// tried: index-based k4 loop with an `unsigned char` index keeps the frame but
-// leaves the index spilled at esp+0x10, where the original has it in ebx with
-// ebp = 0x14b*index and esi = 0x29d0 + 4*index. Using `int k4` produces those
-// three inductions but grows the frame to 0x38 and scores 77.1, so it was not
-// kept. Other remaining hunks:
-//  - 0x456b60..0x456bc5: res lands in ebx/ebp, so the k3 loop's zero constant
-//    is edi instead of ebx and 29a4 is reloaded into ebp; original re-tests res
-//    after the 29d0 test and the first cmp [eax],0 is not hoisted.
-//  - 0x456bc5..0x456cc6 (k4): see above; packet[0]/packet[1] stores are right.
-//  - 0x456cc6..0x456d44 (k5) and 0x456d50..0x456dc9 (k6): register swaps only.
+// deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial, 78.9%. A short loop index restores three induction registers.
+// The frame remains 0x38 vs 0x34; readiness tests and register scheduling differ.
 #include <stdlib.h>
 #include <algorithm>
 
@@ -28,7 +18,7 @@ struct PlayerInfo_004568c0 {
 };
 
 class Class_00456030 {
-public:
+  public:
     int field_0;
     char unknown_4[0x73 - 0x4];
     char field_73;
@@ -36,7 +26,7 @@ public:
 };
 
 class Player_004568c0 {
-public:
+  public:
     int active;
     int id;
     char unknown_8[0x27 - 0x8];
@@ -70,8 +60,7 @@ extern Game_004568c0* g_game;
 int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
 int __stdcall FUN_00451df0(int id, void* packet, int size);
 
-static inline unsigned char FindOccupied_004568c0()
-{
+static inline unsigned char FindOccupied_004568c0() {
     for (unsigned char i = 0; i < 10; i++) {
         if (g_game->players[i].state != 0 && g_game->players[i].info->flag_97_0)
             return i;
@@ -79,8 +68,7 @@ static inline unsigned char FindOccupied_004568c0()
     return 10;
 }
 
-static inline int PlayerId_004568c0(unsigned char pi)
-{
+static inline int PlayerId_004568c0(unsigned char pi) {
     int id = -1;
     if (pi != 10 && g_game->players[pi].state != 0)
         id = g_game->players[pi].id;
@@ -88,8 +76,7 @@ static inline int PlayerId_004568c0(unsigned char pi)
 }
 
 // FUNCTION: 0x4568c0
-int FUN_004568c0()
-{
+int FUN_004568c0() {
     unsigned char idx = FindOccupied_004568c0();
     int res = ((Class_00456030*)&g_game->players[idx])->FUN_00456030();
     if (res != 0 && g_game->field_2a28 == 0) {
@@ -98,10 +85,8 @@ int FUN_004568c0()
             int n = 0;
             for (int k0 = 0; k0 < 10; k0++) {
                 Player_004568c0* q = &g_game->players[k0];
-                if (q->active != 0
-                    && (q->state == 1 || q->state == 2 || q->state == 3)
-                    && q->field_146 != 10
-                    && (q->info->flag_9b_6) == 0)
+                if (q->active != 0 && (q->state == 1 || q->state == 2 || q->state == 3) &&
+                    q->field_146 != 10 && (q->info->flag_9b_6) == 0)
                     out[k0] = n++;
                 else
                     out[k0] = -1;
@@ -115,10 +100,8 @@ int FUN_004568c0()
             int cnt = 10;
             do {
                 Player_004568c0* p = (Player_004568c0*)(q - 0x73);
-                if (p->active != 0
-                    && (p->state == 1 || p->state == 2 || p->state == 3)
-                    && p->field_146 != 10
-                    && (p->info->flag_9b_6) == 0) {
+                if (p->active != 0 && (p->state == 1 || p->state == 2 || p->state == 3) &&
+                    p->field_146 != 10 && (p->info->flag_9b_6) == 0) {
                     cand[n] = n;
                     n++;
                 }
@@ -129,9 +112,8 @@ int FUN_004568c0()
             int* cp = cand;
             for (int k2 = 0; k2 < 10; k2++) {
                 Player_004568c0* q2 = &g_game->players[k2];
-                if (q2->active != 0
-                    && (q2->state == 1 || q2->state == 2 || q2->state == 3)
-                    && q2->field_146 != 10) {
+                if (q2->active != 0 && (q2->state == 1 || q2->state == 2 || q2->state == 3) &&
+                    q2->field_146 != 10) {
                     if (g_game->players[k2].active != 0 && (q2->info->flag_9b_6))
                         out[k2] = -1;
                     else
@@ -161,7 +143,7 @@ int FUN_004568c0()
         }
     }
     if (res != 0) {
-        for (unsigned char k4 = 0; k4 < 10; k4++) {
+        for (unsigned short k4 = 0; k4 < 10; k4++) {
             if (g_game->field_29d0[k4] == 0) {
                 unsigned char packet[2];
                 packet[0] = 0x1e;
@@ -177,9 +159,8 @@ int FUN_004568c0()
                             }
                         }
                         FUN_00451bc0(from, to, packet, 2);
-                    } else if (g_game->players[k4].active != 0
-                               && (g_game->players[k4].state == 1
-                                   || g_game->players[k4].state == 2)) {
+                    } else if (g_game->players[k4].active != 0 &&
+                               (g_game->players[k4].state == 1 || g_game->players[k4].state == 2)) {
                         g_game->players[k4].field_147 = packet[1];
                         g_game->field_29d0[k4] = 1;
                     }

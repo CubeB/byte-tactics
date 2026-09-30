@@ -1,6 +1,10 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
-// Partial, 34.7% (was 34.5%). Semantics are right end to end; the whole frame
-// slot layout and the per-block register rotation are still off.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, 34.8%: Sampling direction and mutable lighting-vector reads corrected.
+// A 128-set header sweep found no match; <ddraw.h> alone is best (34.8%).
+// A materialized shifted-flag local did not improve the score.
+// GPT-6.1-sol refinement: unsigned weight counters scored 29.3%, and narrowing
+// the shifted shade bit into a byte local scored 31.2%; both were reverted.
+// Frame-slot rotation, per-piece registers and x87 scheduling still differ.
 // Tried (deepseek-v4.1-flash): modelling the piece flags, the g_game+0x37f06
 // shadow flag and the owner+0x241 bit as packed 1-bit bitfields. The negated
 // piece flag matched `test byte ptr [m],1`, but every positive flag access
@@ -39,6 +43,18 @@
 //   0x45a246 polygon loop: index slots differ, fadd direction at 0x45a195.
 //   0x45a3a3 branch layout: firstFace test takes the opposite branch direction.
 //   0x45a419 end copy loop: register assignment differs.
+// deepseek-v4.1-flash (this run), 35.5%: the shadow flag at g_game+0x37f06 is
+// the `unsigned short` bitfield Flags_0042f9a0 (bit 1 = antiAlias, as in
+// 0x42f9a0.cpp). A *standalone* `if (flags.antiAlias)` gives the original
+// `mov dl,[m]; shr dl,1; test dl,1`, but the same test inside a `&&` chain
+// folds to `test byte,2`, so the shadow path has to be nested ifs, and the
+// three failing edges need to reach one shared mode=0 block (`goto haveMode`;
+// a plain if/else produced two separate else blocks). Copying the bitmap
+// parameter into a local `bmp` moved the drawing surface into a callee-saved
+// register. Also fixed the final flag test to be its own `if` (it was folding
+// in the `&&`). Still differing: bmp/useColor land in ebp/esi where the
+// original uses esi/eax, the mode local sits at 0x28 vs 0x20, and the
+// vertex/normal/polygon loop register rotations and x87 scheduling.
 #include <ddraw.h>
 
 extern char* g_game;
@@ -49,6 +65,19 @@ extern const float DAT_004fd4cc;
 struct Bitmap_459c70;
 
 struct Vec3 { int x; int y; int z; };
+
+struct Flags_37f06 {
+    unsigned short damagebars : 1;
+    unsigned short antiAlias : 1;
+    unsigned short shadows : 1;
+    unsigned short vehicleShadows : 1;
+    unsigned short featureShadows : 1;
+    unsigned short shading : 1;
+    unsigned short ditheredFog : 1;
+    unsigned short unused7 : 1;
+    unsigned short switchAlt : 1;
+};
+
 struct Vec3f { float x; float y; float z; };
 
 Vec3f __stdcall FUN_004b6f00(Vec3 a, Vec3 b);
@@ -151,28 +180,29 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
 
     Bitmap_459c70* src;
     int mode;
-    unsigned char renderFlags = *(unsigned char*)(g_game + 0x37f06);
-    renderFlags >>= 1;
-    if ((renderFlags & 1) != 0
-        && (list->owner->field_110 & 0x20000000) != 0
-        && useColor != 0) {
-        mode = 1;
-        src = bitmap;
-        Bitmap_459c70* shadow = this->shadow;
-        shadow->width = (unsigned short)(src->width << 1);
-        shadow->height = (unsigned short)(src->height << 1);
-        shadow->unknown_9[0] = 0;
-        shadow->colorKey = 1;
-        shadow->field_4 = (short)(src->field_4 << 1);
-        shadow->field_6 = (short)(src->field_6 << 1);
-        memset(shadow->data2, 0, shadow->width * shadow->height);
-        memset(shadow->data, 1, shadow->width * shadow->height);
-        bitmap = shadow;
-    } else {
-        src = bitmap;
-        mode = 0;
+    Bitmap_459c70* bmp = bitmap;
+    if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
+        if ((list->owner->field_110 & 0x20000000) != 0) {
+          if (useColor != 0) {
+            mode = 1;
+            src = bitmap;
+            Bitmap_459c70* shadow = this->shadow;
+            shadow->width = (unsigned short)(bmp->width << 1);
+            shadow->height = (unsigned short)(bmp->height << 1);
+            shadow->unknown_9[0] = 0;
+            shadow->colorKey = 1;
+            shadow->field_4 = (short)(bmp->field_4 << 1);
+            shadow->field_6 = (short)(bmp->field_6 << 1);
+            memset(shadow->data2, 0, shadow->width * shadow->height);
+            memset(shadow->data, 1, shadow->width * shadow->height);
+            bmp = shadow;
+            goto haveMode;
+          }
+        }
     }
-
+    src = bitmap;
+    mode = 0;
+haveMode:
     for (int p = list->count - 1; p >= 0; p--) {
         Piece_459c70* piece = &list->pieces[p];
         unsigned char pflags = piece->flags;
@@ -295,7 +325,7 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
                 }
                 unsigned int fflags = f->flags;
                 if ((fflags & 1) != 0) {
-                    FUN_004c0c70(bitmap, poly, f->count, f->unknown_0);
+                    FUN_004c0c70(bmp, poly, f->count, f->unknown_0);
                 } else if (f->count == 4) {
                     void* pic;
                     if ((fflags & 2) != 0) {
@@ -311,23 +341,25 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
                     } else {
                         pic = f->pic;
                     }
-                    FUN_004c8bb0(bitmap, pic, poly, 0);
+                    FUN_004c8bb0(bmp, pic, poly, 0);
                 }
             }
         }
     }
 
-    if (((*(unsigned char*)(g_game + 0x37f06) >> 1) & 1) != 0 && mode != 0) {
-        FUN_004b95a0(bitmap, src);
-        char* s = src->data2;
-        if (s != 0) {
-            char* d = bitmap->data2;
-            for (int y = 0; y < src->height; y++) {
-                for (unsigned int x = src->width; x != 0; --x) {
-                    *s++ = *d;
-                    d += 2;
+    if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias != 0) {
+        if (mode != 0) {
+            FUN_004b95a0(bmp, src);
+            char* s = src->data2;
+            if (s != 0) {
+                char* d = bmp->data2;
+                for (int y = 0; y < src->height; y++) {
+                    for (unsigned int x = src->width; x != 0; --x) {
+                        *s++ = *d;
+                        d += 2;
+                    }
+                    d += bmp->width;
                 }
-                d += bitmap->width;
             }
         }
     }

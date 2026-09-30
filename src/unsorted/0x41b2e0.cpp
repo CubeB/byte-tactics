@@ -26,6 +26,20 @@
 // nine flags spill and drops to 32.8%. The remaining diffs are the ESI/EBP zero
 // split, the first/count register-vs-memory choice, and the tail bit-write
 // sequence reusing EAX instead of EBX.
+//
+// deepseek-v4.1-flash, third pass: reconfirmed all of the above and pinned the
+// failure mode. Any source shape that puts the first=0/count=0 stores in the
+// else (vA/vB2/vA_late, first/count declared early or after the flags) makes the
+// allocator pick EBP = &players[i] and EAX = the zero constant instead of
+// EBP = zero, ESI = zero, and the frame becomes 0x244/1496 bytes at 32.8%. The
+// good 0x240 frame needs EBP to stay the flags' zero only until the else, with a
+// second zero in ESI, i.e. canRepair in EBP during the loop (the original's
+// mov ebp,esi at 0x41b4f9 and shl ebp,0xf at 0x41b56e). That choice is not
+// reachable from the source: flag declaration order (canRepair first/last),
+// onOff/u/cloak/first/count permutations and unsigned variants are all
+// byte-identical at 59.6%; while+continue is 26.2%; declaring first/count after
+// player is 56.6-57.3%. Keeping the initializers at declaration (prologue
+// stores) is the only shape that reaches 59.6%.
 
 #include <vector>
 #include <windows.h>

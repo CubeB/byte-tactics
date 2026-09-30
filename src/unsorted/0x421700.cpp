@@ -15,6 +15,11 @@
 //  - the pointer locals land in different slots: the original packs
 //    piece/count/verts/unit/desc at [esp+0x20..0x30] plus i at [esp+0x1c];
 //    ours has piece/verts/desc at [esp+0x30..0x34] and i at [esp+0x20].
+//  - deepseek-v4.1-flash retry: nesting the two FUN_004b6eb0 calls directly
+//    as FUN_004b6f70(FUN_004b6eb0(b,c), FUN_004b6eb0(b,a)) instead of the
+//    named ab local does shrink the frame from 0xa8 to 0xa0, but the call
+//    argument/return temporary schedule changes and the score drops to 47.7,
+//    so the named ab local is required. Nothing else tried beat 71.7.
 // What helped: declaring count, verts and desc in that order (desc assigned
 // last, after the g_game->debrisCount alias) lifted 70.9 to 71.7 with the same
 // 0xa8 frame. Earlier notes: ab/n declared uninitialised and assigned on the

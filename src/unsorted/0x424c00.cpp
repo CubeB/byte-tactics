@@ -1,4 +1,19 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash re-run (third pass), still 69.1% / 1514 bytes. New
+// precise localisation: the compiler already has file in ebp for the first
+// (Normal) tail loop, matching the original, but immediately after that loop
+// it emits `mov ebx, [esp+0xd4]` (reload file into ebx) and swaps the Anim
+// loop to count=ebp / file=ebx, then reloads file into esi for the 3D loop.
+// The original keeps file in ebp for all three loops and the count in ebx.
+// So the residual is not the shared zero alone: the Anim loop's extra live
+// range (the switch/case and spots stores) makes MSC abandon ebp for file.
+// Tried this pass, all scored with check.py (none above 69.1%): distinct
+// count variables per loop (same 69.1%), a function-scope n (same), a
+// top-of-function local `Class_004b4ba0* f = file` used everywhere (58.5%,
+// 1499 bytes), vector names(count, T()) and names(count, empty) (same
+// 69.1%), insert-based construction (48.1%), an if/else-if chain instead of
+// the switch (68.6%, 1507 bytes), and spots + c->spot pointer arithmetic
+// (same). Variants in build/scratch/0x424c00/.
 // Partial: 69.1%, 1514 bytes versus 1496. Names allocation keeps its
 // result in EDI and rematerializes zero inside the fill loop; the original
 // uses EAX as the fill cursor and reloads EDI afterward. Feature-list

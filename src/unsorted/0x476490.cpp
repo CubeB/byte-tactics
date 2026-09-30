@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// GPT-6 retry: 78.9%, 646 of 632 bytes; pointer and buffer constness did not change the saved register family or spilled insertion pointer.
 // std::vector<Elem_00476490>::insert(Elem_00476490* _P, size_type _M,
 // const Elem_00476490& _X), the game's reallocating insert.
 //

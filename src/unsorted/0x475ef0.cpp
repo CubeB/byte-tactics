@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// GPT-6 retry: 83.0%, 795 of 794 bytes; pointer and buffer constness and allocator pointer typedef variants did not change the saved register family.
 // Sonnet 5.5 retry (#1081): /Gz and /Gr change nothing (it is a method), and about
 // 700 more variants (deallocate/_Destroy order and spelling, helper parameter
 // orders and loop shapes, manual third-copy loops, size and tail spellings) all

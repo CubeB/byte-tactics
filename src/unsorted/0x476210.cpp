@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: 99.6%, 636 bytes; pointer and buffer constness and allocator pointer typedef variants left the same third-copy LEA base/index byte different.
 // Sonnet 5.5 retry (#1081): /Gz and /Gr give the same 99.6% (it is a method), the
 // third-copy loop written out by hand with the destination declared first is
 // 51%, and 3000 more random variants (helper parameter orders and loop shapes at

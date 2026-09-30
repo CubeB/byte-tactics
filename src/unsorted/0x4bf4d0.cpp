@@ -1,4 +1,20 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash., retried by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry (#2789), still 89.6%, 0 gains from 3 more table-pointer
+// spellings (`&table[level << 8]`, `table + level * 256`, `if (!t)`; all the
+// same object). Two facts read from the original that the notes above do not
+// state:
+//   * the third `return 0` (after `t == 0`) is a bare epilogue with NO
+//     `xor eax, eax`: at 0x4bf5ba the original does `mov ebp, eax; test ebp,
+//     ebp; jne`, so eax still holds the zero t and the return reuses it. Ours
+//     emits `mov ebp, eax; jne` (flags of the `add` reused, no test) and then
+//     `xor eax, eax`. So in the original `t` is tested in its own register
+//     (ebp, the register `engine` has just died in), which only happens if
+//     engine is the ebp variable: this is the same engine/surface swap, not a
+//     separate difference.
+//   * `mov [esp+0x58], eax` stores the clip result into the dead `rect`
+//     parameter slot (the temp shares the slot), and surface (ebx) is reloaded
+//     from [esp+0x54] after the loop because the loop's table-index temp
+//     (`movsx ebx`) clobbers it; ours keeps surface in ebp across the loop.
 // Rechecked for issue #2332 by GPT-6.1-sol: best remains 89.6% (3 check.py
 // invocations in this pass). Replacing memcpy with aggregate assignment emitted
 // identical code and did not improve the score. The remaining diff is primarily

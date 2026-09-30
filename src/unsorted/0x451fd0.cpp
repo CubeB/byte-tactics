@@ -1,8 +1,26 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 76.3%, 901 bytes versus 915. The constant 4 stays in EAX
-// rather than EDX, shortening fourteen global stores by one byte each
-// and rotating other constant registers. A 768-set header sweep and
-// signed/unsigned/long global and literal variants did not improve it.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Partial: 85.9%, 915 bytes, exactly the original's size. The store sequence,
+// every immediate and the whole prologue and epilogue match; what is left is
+// only the register the allocator hands to three of the hoisted constants.
+//
+// The block is zeroed by a memset written AFTER nine of the fourteen stores of
+// 4, not before them. MSVC 5 then hoists the rep stosd back to the top of the
+// block anyway, but the constant 4 is live across it, so 4 keeps EDX. Written
+// before the stores, the allocator picks the eight-use constant 1 for EDX and
+// pushes 4 into EAX (76.3%, 901 bytes). Every memset position from 1 to 13 of
+// the fourteen stores gives the same 85.9%.
+//
+// Remaining diff hunks, by original address:
+//   0x452040  mov esi, 1  ->  mov edx, 1
+//   0x45204f  mov edi, 6  ->  mov esi, 6
+//   0x452059  mov edx, 2  ->  mov edi, 2
+// and then every store of 1, 6 or 2 uses the register above. 4 keeps EDX, 7
+// keeps ECX, FUN_0044fd40 keeps EAX and 3 keeps EBP in both. The original
+// gives 1 ESI, 6 EDI and 2 EDX (reusing 4's dead slot last); ours gives 1 EDX
+// (reusing 4's slot immediately), 6 ESI and 2 EDI. Tried and flat at 85.9%:
+// memset through a char* or void*, length as 176, sizeof(int) * 44, 44 * 4, a
+// zeroing for loop, the stores through a static set4() helper, long / unsigned
+// / int globals, and explicit (int) casts.
 
 #include <string.h>
 
@@ -162,7 +180,6 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1);
 // FUNCTION: 0x451fd0
 int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
 {
-    memset(&DAT_00512adc, 0, 0xb0);
     DAT_00512be4 = 4;
     DAT_00512c70 = 4;
     DAT_00512be8 = 4;
@@ -172,6 +189,7 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
     DAT_00512bf8 = 4;
     DAT_00512bfc = 4;
     DAT_00512c00 = 4;
+    memset(&DAT_00512adc, 0, 0xb0);
     DAT_00512b1c = 4;
     DAT_00512c04 = 4;
     DAT_00512c08 = 4;

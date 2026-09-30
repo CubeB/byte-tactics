@@ -1,7 +1,38 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6. Names are provisional.
-// Partial, 90.7%, 1327 vs 1333 bytes. Keeps the game pointer on the no-call
-// UNDO branch and reloads it after the callback. The flag update still differs,
-// along with volume argument scheduling, final gadget addressing and mode registers.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Partial, 91.5%, 1339 vs 1333 bytes. Best UNDO flag-update shape so far:
+// `unsigned short f = game->flags.word; int b = (unsigned char)f ^ DAT_00512f46;
+// game->flags.word = f ^ (b & 1);` with the `game = g_game;` reload kept in the
+// if body. That keeps g_game in edi and the `mov edi,[0x511de8]` reload like the
+// original, but compiles the update to
+//   mov bp,[edi+0x37f14] / xor ecx,ecx / mov cl,[DAT] / mov eax,ebp /
+//   and eax,0xff / xor eax,ecx / and eax,1 / xor eax,ebp / mov [edi+..],ax
+// where the original is 7 instructions (mov ax / mov dl,[DAT] / mov cl,al /
+// xor cl,dl / and ecx,1 / xor ecx,eax / mov [..],cx): the original does the xor
+// at byte width and masks 32-bit, MSVC5 here zero-extends with `and eax,0xff`.
+// Fusing the bit as `f ^ (((unsigned char)f ^ DAT_00512f46) & 1)` does give the
+// byte-width xor but widens the bit through dx (88.1%); dropping the reload
+// assignment instead keeps the local live across the callback in edi but loses
+// the reload line and still widens (88.1%); the previous compound `^=` form
+// scores 90.7%; int bit with fused mask 90.2%; no pointer local 85.8%; byte
+// locals 86.7/87.5%.
+// New tries (issue 2013 rerun, all worse, best still 91.5): byte temp
+// `unsigned char c = (unsigned char)f ^ DAT; game->flags.word = f ^ (c & 1)`
+// 87.5, masks in byte width then `movzx dx,dl`; `int b = (f ^ DAT) & 1;`
+// 86.7 (distributes the mask over both bytes, and loses `game` in edi);
+// one-statement `flags.word = flags.word ^ ((flags.word ^ DAT) & 1)` 90.5,
+// fuses to `and edx,0xfffe` plus `and cl,1 / movzx cx,cl`; `int b =
+// ((unsigned char)f ^ DAT) & 1;` 90.2. Target UNDO flip is
+// `mov ax,[edi+0x37f14] / mov dl,[DAT] / mov cl,al / xor cl,dl / and ecx,1 /
+// xor ecx,eax / mov [edi+0x37f14],cx` (29 bytes; ours 36), i.e. a byte width
+// xor whose result is masked 32-bit while f stays live in eax; NOTRAK`s
+// `f ^ ((f ^ v) & 1)` reaches that byte-xor/32-bit-mask pair (v an int), but
+// with the byte global DAT the optimizer instead fuses or narrows the mask.
+// Other remaining diffs: RESTORE callback setup uses `mov eax,[0x511de8] /
+// mov ecx,[eax+0x10]` where the original keeps ecx through both loads (same
+// size); the apply block pushes the FUN_004ba590 argument slot before `fild`
+// where the original loads fild first; the final tail index wants
+// `lea eax,[edi*8]` where ours emits `mov eax,edi / shl eax,3`; the TRACKMODE
+// `field_37f16 == 3` test uses cl/eax where the original uses al/ecx.
 #include <string>
 #include <windows.h>
 
@@ -266,7 +297,9 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
             ((Class_004cdb40*)game->sound)->FUN_004cdb40();
             game = g_game;
         }
-        game->flags.word ^= (game->flags.byte ^ DAT_00512f46) & 1;
+        unsigned short f = game->flags.word;
+        int b = (unsigned char)f ^ DAT_00512f46;
+        game->flags.word = f ^ (b & 1);
         ((Class_004ce580*)g_game->sound)->FUN_004ce580(DAT_00512fd9);
         goto apply;
     }

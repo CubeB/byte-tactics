@@ -1,9 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash and GPT-6. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, and GPT-6.1-sol. Names are provisional.
 // Partial: 61.0%, 832 bytes versus 817. The distance counter advances even
 // for out-of-bounds points. Grid accessors recover the receiver-relative
 // addressing. Remaining differences include the LOD clamp timing, local
 // frame slots and register allocation in both branches. Two 768-set header
 // sweeps did not improve the result.
+// GPT-6.1-sol retry in #1932: four checks kept 61.0%; the reversed coordinate
+// declaration tied, while do-while conversions scored 59.1%. Neighbor coordinates
+// need a signed 16-bit cast before an unsigned bounds check (movsx AX then cmp).
+// GPT-6.1-sol refinement: explicit signed-16 locals also tied at 61.0%; the
+// `>> 5` form fell to 58.1% and shared max-LOD temporaries fell to 60.0%.
+// The best source was retained. No MATCH was reached.
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -149,21 +155,23 @@ void __stdcall FUN_00482270(Params_482270* params)
             if (num <= 0)
                 continue;
             for (j = 0; j < num; j++, j1++) {
-                int e1;
                 int e2;
+                int e1;
                 ((Class_004339e0*)line)->FUN_004339e0(j, &e1, &e2);
                 int x2 = x + e1;
                 int y2 = y + e2;
-                if ((unsigned)(short)x2 >= grid->width)
+                short x16 = (short)x2;
+                short y16 = (short)y2;
+                if ((unsigned)x16 >= grid->width)
                     continue;
-                if ((unsigned)(short)y2 >= grid->height)
+                if ((unsigned)y16 >= grid->height)
                     continue;
                 unsigned char* cell =
-                    grid->cells + ((short)y2 * grid->width + (short)x2) * 2;
+                    grid->cells + (y16 * grid->width + x16) * 2;
                 int d1 = cell[1] - ref;
                 int d0 = cell[0] - ref;
                 if (d0 * bestIdx > bestDiff * j1) {
-                    ((Player_482270*)params->field_0)->grid.at((short)x2, (short)y2)++;
+                    ((Player_482270*)params->field_0)->grid.at(x16, y16)++;
                     if (d1 * bestIdx > bestDiff * j1) {
                         bestIdx = j1;
                         bestDiff = d1;

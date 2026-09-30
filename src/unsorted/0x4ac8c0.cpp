@@ -1,6 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
 // space-bunny-free and GPT-6.1-sol. Names are provisional.
 // finished by deepseek-v4.1-flash (89.8% retry).
+// #2936 retry by GPT-6.1-sol: five checks retained the 89.8% best; declaration
+// order and helper variants did not change the surface-access schedule.
 // deepseek-v4.1-flash #2401 retry: raised 88.1% -> 89.8% (167/167 bytes) by
 // splitting the surface assignment: `void* s = gadgets->surface;` then
 // `int gx = gadgets->x;` then `p.surface = s;` then `x0 += gx;`. That makes

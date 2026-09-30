@@ -1,4 +1,17 @@
-// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// space-bunny-free pass (#1856): settled the residual with a new instrument
+// instead of more spellings. A scratch TU holding a dozen copies of this body
+// (one per spelling, all in one object) compiles in a single pass, and parsing
+// the .obj with tools/coff.py shows what each spelling really produces: the
+// register operand of a mem+mem 16-bit add is chosen by front-end state, not by
+// the source. In that one TU the first three copies put the LOWER displacement in
+// the register for BOTH sums, the next six the HIGHER one for both, and no
+// spelling (member access, short* index, `+=`, an explicit cast, the Point copy
+// first or between the sums) ever split the two sums. The original splits them:
+// x takes the lower, y the higher. The choice is per add node, so a mixed pair is
+// not reachable from the source. Free-scored (check.py --sym) as well: each sum
+// reversed, both reversed, and the copy moved to both positions, all 98.0% with
+// the same two-instruction residual. Body unchanged from the previous passes.
 // deepseek-v4.1-flash second pass (#1609): attacked only the x sum's register
 // operand with levers not tried before. All scored as scratch (no committed body
 // change): the seven operand orders of the two sums; a `Point&`/`Point*` bound to

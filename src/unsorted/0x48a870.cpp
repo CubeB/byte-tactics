@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// GPT-6.1-sol retry (#2420): two checker runs kept the existing 88.8% best;
+// one Windows invocation failed before the checker. A register-int split
+// variation emitted identical code; the prior bit-19 register mismatch remains.
 // deepseek-v4.1 pass (#2008): 88.8%, 262 bytes, one byte over. New best shape for
 // the bit 19 block: `int h; int* p = &h; *p = unit->type->draft * 0xffff;
 // unit->pos.y = (*p + g_game->seaLevel) << 16;`. Taking h's address is the only

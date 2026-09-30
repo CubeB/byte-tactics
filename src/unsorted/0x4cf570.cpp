@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Picks a free sound channel from a four entry set of sound objects: a valid
 // one in the set is taken as is, otherwise the one with the highest priority is
 // recycled, or set[0] is cloned when the set has a free slot. The chosen object
@@ -14,6 +14,9 @@
 // so bestidx gets a stack slot at [esp+0x1c] and slot moves to [esp+0x18]. Every
 // other difference (the [esp+0x18] this reload, mov edi/esi choices, the
 // set[bestidx] index) follows from that one rotation.
+// GPT-6.1-sol verification: direct check.py scored 80.2% before and after the
+// 128 common-header sweep; no header set matched. The optional C++ header sweep
+// was stopped after 271 of 768 combinations to stay within the worker timebox.
 // Tried and did NOT change the rotation: the interface calls as virtual
 // __stdcall methods (that fixed 24 points on its own; function-pointer members
 // were wrong) versus data members; an explicit self pointer or reference alias

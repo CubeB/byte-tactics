@@ -1,4 +1,23 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash., retried by Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash., retried by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#2838): reconfirmed 89.6%, 332 bytes. The only
+// remaining diff is the engine/surface register swap documented below.
+// Tried, all still 89.6: permutations of the engine/screen/r declaration
+// order; initialised and uninitialised `Surface* s` aliases declared before
+// and after the engine line (used for the copy, the tests, or both); engine as
+// `Engine&`, `Engine* const`, and `int` with casts; `screen = *surface`
+// instead of memcpy; a pointer-form `screen`; inlined identity helpers taking
+// `engine` (2, 6 and 10 extra code-neutral uses); and inlined helpers for the
+// rect fallback, the height, the pixel pointer, the clip call, lock/unlock,
+// the surface copy and the engine getter. Two other findings:
+//   * `tools/headers.py --cpp` on this source: 768 sets, best 89.6
+//     (`<string.h>`), so no header set fixes the tie any more.
+//   * an inlined `pick` helper that returns `t` DOES put engine in ebp (the
+//     original assignment; the entire region up to the table selection then
+//     matches) but it collapses the three `return 0` exits into one shared
+//     epilogue, 83.4% / 317 bytes. Factoring only the table base or the clamp
+//     keeps the three returns but leaves engine in ebx. So engine=ebp here
+//     rides on the helper's inlined-call allocation, not on any source-side
+//     use-count or declaration-order change.
 // Sonnet 5.5 retry (#2789), still 89.6%, 0 gains from 3 more table-pointer
 // spellings (`&table[level << 8]`, `table + level * 256`, `if (!t)`; all the
 // same object). Two facts read from the original that the notes above do not

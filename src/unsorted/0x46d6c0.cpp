@@ -1,4 +1,25 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
+//
+// space-bunny-free pass (#1875): the best is still this file at 83.6% / 420 bytes.
+// Three new scratch variants, none better:
+//  1. The zero read as a BY-REFERENCE local, `int z = *(int*)&((Handle*)&loc)->flag;`
+//     before the insert and `pv->tail.field_0 = z;` after it (the read hits the
+//     uninitialised 4-byte local at 0x14, the one the original also copies
+//     uninitialised, so the shape is the original's). MSVC 5 has turned that
+//     read into a MOVE, not a load: `mov ebp,eax / mov [eax+4],ebp`, and put the
+//     packet values in eax/ebx instead of edi/ebp. 77.9%, 416 bytes. The same
+//     read left next to the store (to get `mov ebx,ebx`) gives 58.0%. So no
+//     non-foldable local, by-reference or not, yields `xor ebx,ebx`; the zero
+//     in the original is not a value this source can produce.
+//  2. Moving the `v.key = f6` store AFTER the insert call, which is where the
+//     original's `mov [esp+0x3c],edi` sits (after both pushes), so the IR order
+//     is copy tail, key, call: 82.3%, still 420 bytes and still the folded
+//     `mov [ecx+0x10],edi / mov [ecx+0x14],ebx / lea eax,[ecx+0x10]` with the
+//     `this` reload in the middle. The single-base `add ecx,0x10` store block
+//     is therefore not an IR-order effect of the v.key statement, and most
+//     likely follows from the constant 0 being a live callee-saved register
+//     (as Claude Sonnet 5.5's frame argument says) rather than from the source
+//     shape at all.
 // GPT-6.1-sol follow-up (#1543): rechecked the 83.6% best. `f2 = direct` and `f2 = !direct`
 // both fell to 58.9% because constant propagation shrinks the frame and changes registers.
 // Remaining mismatch: the else path is 4 bytes longer; it loads packet+2 into ebx instead

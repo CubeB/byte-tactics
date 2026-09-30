@@ -1,94 +1,41 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL 71.3 percent (1641 of 1662 bytes). The whole remaining gap is ONE
-// allocation state, the p versus q register choice in the projectile loop. The
-// original keeps the position pointer q = p + 0xa in ebx, gives p only ecx and
-// reloads p from its stack slot once per iteration at 0x4671c9 (the loop is
-// jmp-ed over that reload at 0x4671c7, and the store back is the latch), so
-// p has a single use in the body (`mov eax, [ecx]`, p->type) while q has five
-// (pos.x, pos.y, pos.z, owner at q+0x48, player at q+0x5c). This file keeps p
-// in ebx and q in ecx, which also pushes the inlined OnRadar's PlayerInfo
-// pointer onto ebp instead of edx.
+// PARTIAL 72.4 percent (1641 of 1662 bytes). In the projectile loop the owner
+// and player reads now go through the q base (struct Tail_00466dc0, owner at
+// q+0x48) instead of through p, which is what lifted this file from 71.7 to
+// 72.4. The remaining gap is still the base-register decision: the preheader
+// here is `mov ebx, [esi+0x141f7]` (p) + `lea ecx, [ebx+0xa]` (q) where the
+// original has `mov ecx, [esi+0x141f7]` (p) + `lea ebx, [ecx+0xa]` (q), so the
+// original keeps q in ebx, reloads p from its slot once per iteration
+// (`mov ecx, [esp+0x1c]` at 0x4671c9) and folds both tail reads onto ebx
+// (`mov ecx, [ebx+0x48]`, `mov cl, [ebx+0x5c]`), while this file keeps p in ebx
+// and loads q from [esp+0x1c] each iteration. Every in-loop instruction
+// follows from that single swap; the home slots themselves already agree
+// (q=0x18, p=0x1c, i=0x28 when both tail reads go through q, v2, 72.1).
 //
-// What was measured this session (all free scratch scores, best is 71.3):
-//   1. The fold of p->player and p->owner onto the q base is NOT the lever.
-//      Reading them through a struct pointer biased to q (Tail_00466dc0 at
-//      q+0x48 / q+0x5c) makes MSVC emit exactly the original's
-//      `mov cl, [ebx+0x5c]` and `mov ecx, [ebx+0x48]`, yet p still wins ebx
-//      (70.9 percent, 1641 bytes). The offset reassociation happens anyway.
-//   2. What DOES flip it is passing &p->pos to the inlined OnRadar helper
-//      instead of px and py by value: MSVC then materialises the biased
-//      induction variable, `lea ebx, [ecx+0xa]`, and gives it ebx while p keeps
-//      ecx, which is the original's assignment exactly (v10, build/scratch/
-//      0x466dc0/v10.cpp). But it costs 22 bytes net and drops to 65.4
-//      percent, because the two copies of the helper then re-load the position
-//      fields instead of reusing the registers: the original has
-//      `movsx ebp, [ebx-4]` once and later `sar ebp, 5; sar edi, 5`, while
-//      this shape reloads (`mov ax, [ebx-4]; mov cx, ax; sar cx, 5`).
-//      v1 (the same helper, with px and py still read through an explicit
-//      short* q so the two expression trees differ) is 67.8 percent and 100
-//      bytes long, so the two shapes are NOT the same tree and the load CSE
-//      that the original relies on does not fire.
-//   3. Reading the position through a real struct member of Projectile
-//      (`Position_00466dc0 pos` at +0x4, three shorts at +6, +0xa, +0xe) with
-//      px and py by value gives 70.4 percent (v2) with no second induction
-//      variable at all, and with a named `Position* pos` local 70.9 percent
-//      (v6), but the biased base is then p + 0xe (as in the matched 0x475470)
-//      rather than the original's p + 0xa.
-//   4. Flipping the multiply operands to `px * zoom` (v11) changed nothing
-//      measurable (65.4 percent, same 1684 bytes as v10).
-// So the remaining construct is: the biased induction variable at p + 0xa in
-// ebx, p reloaded from a stack slot, and the inlined helper seeing the
-// position through the same expression tree as the x and y scaling so the
-// three loads are shared. That combination has not been found.
+// Measured this session (free scratch scores, best is 72.4):
+//   - Both tail reads through q (v2, 72.1) gives the original's homes exactly
+//     but the p-in-ebx assignment; keeping the player read on p and the owner
+//     read on q (h1) or the reverse (h2) both give 72.4 and keep the transposed
+//     homes (p=0x18, q=0x1c). So the two tail reads are worth 0.3 percent for
+//     reasons outside the loop, and neither spelling flips the register.
+//   - Deriving q from an independent `char* pbase` instead of from p lets MSVC
+//     fold p away completely (v1, 70.3 percent, frame 0x18 instead of 0x1c),
+//     so p must really be an independent load of g_game->projectiles.
+//   - Swapping the two latch increments (q before p) changes nothing (k1).
+//   - Earlier sessions: q-based reads alone 70.9; a 16-bit flag read plus
+//     `bits.bit0 || bits.bit1` reproduces the original's `mov ax,
+//     [esi+0x14281]` + `test al, 3` but materialises the constant 1 in a
+//     register (70.4 to 70.8); `u->field_6c * zoom` and a named Position*
+//     local are neutral or worse (70.9); OnRadar taking &p->pos costs 22 bytes
+//     (65.4).
 //
-// New this session (2025, second pass):
-//   - The top-of-function hunk (0x466e0c region) is an independent cluster, not
-//     part of the projectile loop: the original stores the constant 1 as an
-//     immediate twice and reads the flag word with a 16-bit load
-//     (`mov ax, word ptr [esi+0x14281]`) before `test al, 3`. Spelling the two
-//     low bits as `field_14281.bits.bit0 || field_14281.bits.bit1` reproduces
-//     that load and test exactly, but the constant 1 then materialises in ecx
-//     (`mov ecx, 1` + `mov [esp+0x1c], ecx`) instead of two immediate stores,
-//     which cascades into the field_37f2f read (dx instead of cx) and into the
-//     unit loop (`mov al, [ebx+0xff]` instead of `mov dl, ...`), netting 70.4
-//     percent (1643 bytes). A 2-bit bitfield read and `(all & 3)` both narrow
-//     back to `test byte ptr [esi+0x14281], 3`.
-//   - The projectile loop home slots are p=0x18/i=0x1c/q=0x28 here and
-//     q=0x18/p=0x1c/i=0x28 in the original, so the allocator's variable order
-//     differs and not just its register choice. Declaring q first (over an
-//     independent `g_game->projectiles` read, before p and before i) moves the
-//     homes but stays at 70.8 percent (1645 bytes).
-//
-// Still open, smaller:
-//   - `enabled`: the original loads 16 bits (`mov ax, word ptr [esi+0x14281]`)
-//     and stores the constant 1 as an immediate both times; a 16-bit union
-//     read brings the load back but the 1 then materialises in a register
-//     (1643 bytes, 70.4 percent), and a named 16-bit local is folded away.
-//   - the two FUN_004b7f90 calls load `surface` after `push eax` in the
-//     original and before it here.
-// Tried and neutral: reading player and owner through a q-biased struct
-// (70.9), the union-typed +0x14281 field, a named 16-bit local for it, the
-// `!= 0` spelling of the slot->field_e test, plain `p++` for the projectile
-// stride, declaring q before p. Tried and worse: OnRadar taking &p->pos with
-// px and py read through a different tree (v1, 67.8), the same helper with a
-// shared tree (v10 and v11, 65.4), a named `Position* pos` local (v6, 70.9).
-//
-// Third session (deepseek-v4.1), result 71.7 percent, 1641 bytes; the file is
-// unchanged from the baseline, both measured variants lost:
-//   - bits.bit0 || bits.bit1 for the top hunk does give the original's
-//     `mov ax, word ptr [esi+0x14281]; test al, 3`, but the second `enabled = 1`
-//     then materialises as `mov ecx, 1` + `mov [esp+0x1c], ecx` (1643 bytes,
-//     70.8 percent), which drags the field_37f2f read into dx and the unit
-//     loop's player read into al.
-//   - `u->field_6c * g_game->field_142eb` in ScaleX does not change anything:
-//     MSVC still emits `movsx eax, [esi+0x142eb]; movsx ecx, [ebx+0x6c]`,
-//     so the operand order alone is not the lever for that pair (71.7 percent,
-//     1641 bytes).
-// Still open, exact: the projectile loop keeps us at `mov ebx, [esp+0x18]`
-// (p in ebx) where the original has `lea ebx, [ecx+0xa]` (q in ebx) with p
-// reloaded from [esp+0x1c] once per iteration and p->owner/p->player read as
-// [ebx+0x48]/[ebx+0x5c]; and the top hunk's `mov dword ptr [esp+0x1c], 1`
-// immediate store.
+// Still open, exact: get MSVC to hand ebx to q and spill p, and fix the
+// top-of-function hunk where the original stores the constant 1 as a literal
+// twice (`mov dword ptr [esp+0x1c], 1`) and reads the flag word with a 16-bit
+// load (`mov ax, word ptr [esi+0x14281]`).
+#pragma pack(push, 1)
+#pragma pack(push, 1)
+#pragma pack(push, 1)
 #pragma pack(push, 1)
 
 struct Shot_00466dc0;
@@ -218,6 +165,14 @@ struct Projectile_00466dc0 {
     char unknown_56[0x66 - 0x56];
     unsigned char player;                // +0x66
     char unknown_67[0x6b - 0x67];
+};
+
+
+struct Tail_00466dc0 {
+    char unknown_0[0x48];
+    Unit_00466dc0* owner;                // q+0x48
+    char unknown_4c[0x5c - 0x4c];
+    unsigned char player;                // q+0x5c
 };
 
 struct Blip_00466dc0 {
@@ -421,7 +376,8 @@ void FUN_00466dc0(void)
                 }
             } else {
                 if (OnRadar_00466dc0(px, py) ||
-                    p->owner->field_ff == g_game->currentPlayer) {
+                    ((Tail_00466dc0*)((char*)q))->owner->field_ff ==
+                        g_game->currentPlayer) {
                     FUN_004b7f90(surface,
                         FUN_004b7f30(g_game->field_147e7,
                             PlayerInfo_00466dc0_Get(p->player)->data->field_96),

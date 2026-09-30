@@ -15,6 +15,16 @@
 // into one copy, so 38 bytes before 0x4655a6 are missing and every later
 // branch target stays shifted; the typeId copy is `mov ecx,eax` where the
 // original uses `mov cx,ax`; and two byte flags writes go through dl.
+// Pass 3 (deepseek-v4.1, 4 check runs on scratch variants): the duplicate
+// guard IS reproducible: give the second guard group its own player pointer
+// (`PlayerInfo_00464f80* pi2 = &g_game->players[bl];` used for the active /
+// type / field_146 tests). Module-wide CSE then cannot fold the loads, so
+// `cmp dword ptr [edi],0` and `mov al, byte ptr [edi+0x73]` come back
+// (build/scratch/0x464f80/v2.cpp and v4.cpp). The cost: MSVC then swaps the
+// edi/esi roles (index in edi, player in esi) and emits one extra type cmp
+// chain, at 2417 bytes / 79.5%, still under this file's 79.7. The plain
+// respellings (g_game->players[bl] inline, casts, signed char temp) all stay
+// CSE'd at 2376 bytes / 79.7.
 // Previous note: Still differs: the loop head test (cmp bl,0xa / jae taken to
 // the increment)
 // is dropped as provably true even as a while loop, the duplicated player

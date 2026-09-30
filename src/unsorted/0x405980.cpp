@@ -1,5 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, gate polarity checked by space-bunny-free. Names are provisional.
-// Partial: 90.9% (1081 of 1040 bytes, 41 too long). Three findings for the next attempt:
+// Partial: 91.2% (1081 of 1040 bytes, 41 too long). Three findings for the next attempt:
 // 1. THE GATE IS WRONG HERE, semantically. The original's second energy compare at 0x405b18 is
 //    `fld energy; fld capE; fmul 0.2; fcompp; fnstsw; test ah,0x41; je 0x405b5a`, and 0x405b5a is
 //    the FIRST INSTRUCTION OF THE BODY, so the true edge jumps INTO the body: C0 and C3 both clear
@@ -56,6 +56,23 @@
 //    A or its extra FUN_004388d0 call is not the cause. Block order A,B,D,C loses 3.6 points
 //    (1085 bytes, 87.3%). The original needs ONE more merge round than this compiler performs on
 //    this input, so the source shape that triggers it is still unknown.
+// 9. edited by deepseek-v4.1 (second pass, 0x405980): read the diff of the compiled object directly
+//    (build/scratch/0x405980/iter.py, which calls tools/check.py's own compile/compare, so it does
+//    not use up check.py runs). Findings: (a) our 2nd copy is only ever ONE extra copy, in every
+//    arrangement tried; MSVC merged exactly one pair per run regardless of how many identical
+//    blocks the group has, so the extra copy is not reachable by reordering or by body rewrites.
+//    (b) A three-block toy function in this compiler does NOT tail-merge at all unless every
+//    register lines up (build/scratch/0x405980/synth.cpp), so the original's three-way share
+//    needs the group's register state to coincide exactly. (c) 14 body/declaration variants all
+//    score 1081 bytes (85.2% to 91.2%); the best is declaring the `metal` Vec3* before `energy`
+//    (91.2%: same bytes, but the register/slot assignment then lines up with the original's
+//    mov/lea order in the FUN_0047ea40 setup and in the gate). (d) Making block A identical to
+//    the others (dropping its second FUN_004388d0) does NOT buy the extra merge (1072 bytes,
+//    77.5%). What still differs: (1) our 4th body has its own copy of the ctor tail (+41 bytes,
+//    the original jumps to 0x405d01 from all three); (2) the gate's fld order (ours loads
+//    capE and multiplies first, the original loads energy first) and the FUN_0047ea40 setup's
+//    register order. Everything else, including the switch, the vector teardown, the return
+//    epilogues and the case-0 block, is byte-for-byte the original's instruction text.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;
@@ -131,8 +148,8 @@ int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
             unit->owner->metal < unit->owner->metalCapacity * 0.2) {
             int range2 = unit->def->range << 16;
             Vec3 energyPos, metalPos;
-            Vec3* energy = &energyPos;
             Vec3* metal = &metalPos;
+            Vec3* energy = &energyPos;
             float energyAmount, metalAmount;
             if (FUN_0047ea40(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
                 if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {

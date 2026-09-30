@@ -1,7 +1,9 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// Retry best: 80.5% (536 vs 532 bytes), no MATCH. The third inlined copy loop
-// and several loop registers/branch offsets still differ; std::vector scored
-// 57.9% and mutating the input iterator scored 60.4%, so the hand-rolled body remains best.
+// Best semantically equivalent version: 80.5% (536 vs 532 bytes), no MATCH.
+// The third inlined copy loop and several loop registers/branch offsets still
+// differ. Conditional do/while and while forms also score 80.5%; an unguarded
+// do/while scores 81.1% but copies one element when _P == _Last, so it is not
+// kept. std::vector scored 57.9% and mutating the input iterator scored 60.4%.
 // std::vector<short>::insert(iterator, size_type, const T&) from MSVC 5's
 // <vector>, with _Ucopy, _Ufill, fill and copy_backward all inlined.
 // 0x409160 calls it from the inlined resize() of the vector at +0x7d (with

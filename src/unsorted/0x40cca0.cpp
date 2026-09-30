@@ -1,6 +1,7 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// Retry verification: best remains 99.5%; the only diff is the pointer-sum
-// grouping in _Ucopy, and the existing 128-header sweep found no match.
+// Refinement by GPT-6.1-sol: best remains 99.5%; two element-type variants
+// left the same pointer-sum grouping in _Ucopy; a prior 128-header sweep also
+// found no match.
 // Partial: 99.5%. This is std::vector<Elem_0040cfb0>::insert(iterator, size_type,
 // const Elem&) from MSVC 5's <vector>, emitted out of line by taking the
 // member's address. The only remaining difference is one pointer sum in the

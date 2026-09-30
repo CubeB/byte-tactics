@@ -1,4 +1,8 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol issue 1994 refinement: eight checks kept 97.8%; no MATCH.
+// Reversing the chained subtraction operands emitted identical code. The
+// existing notes below describe the remaining operand-order and store-schedule
+// differences; no tested variant improved the retained source.
 // Partial (97.8%, eight checks in this retry): three scheduler/encoding diffs remain.
 //  - defs[type] addressing is encoded [ecx+eax+0x241], original [eax+ecx+0x241].
 //  - the energyCap/metalCap constant store is scheduled before the _ftol call,

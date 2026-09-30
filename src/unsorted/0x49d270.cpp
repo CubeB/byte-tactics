@@ -1,6 +1,12 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// GPT-6 retry: retained 82.9%. Owner-key wrappers, reference/cast scan
-// parameters and 768 header sets did not improve register allocation.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// STILL PARTIAL: 85.9% (775 bytes vs the original 774). The remaining diff is
+// one allocator state, not semantics: the original keeps the 16-bit ownerId in
+// the [esp+0x18] slot (16-bit load into cx, DWORD store, `and edx, 0xffff`, a
+// 16-bit compare in the scan) with projCount hoisted into edi, and found in
+// esi; this file keeps ownerId in edi, spills found to [esp+0x18] and re-reads
+// projCount in the loop latch. Declaring ownerId `unsigned short` produces the
+// original's instructions but grows the frame to 0x14 and moves unit to edi
+// (73.1%). See the notes below the description for every variant tried.
 // Correction to old notes: after the push at 0x49d54e, [esp+0x14] at
 // 0x49d54f refers to the entry slot at base+0x10, not ownerId at base+0x18.
 // The current FUN_0049c9c0(entry, ...) call is correct.
@@ -13,7 +19,7 @@
 // Sonnet 5.5 retry (#1097), first pass: 82.9%. `ev->unitId == 0 ? 0 : ...`
 // gave +1.2 points (the original tests then computes).
 //
-// Not matched yet (82.9%, own code 780 bytes vs 774, was 81.7% / 780).
+// Not matched yet: best 85.9%, own code 775 bytes vs 774 (deepseek-v4.1).
 //
 // Sonnet 5.5 pass 2, the ONE remaining difference, read off the frame layout:
 // the four locals are [esp+0x10]=entry, [esp+0x14]=plain cursor, [esp+0x18]=?, 
@@ -60,9 +66,14 @@
 //   - the loop's owner test reads unit+0xa8, NOT the +0x66 the b8 branch
 //     reads (`cmp word ptr [edx+0xa8], bx` at 0x49d402). Naming that field
 //     f_a8 instead of reusing f_66 was worth 9 points on its own.
-//   - the b8 tail assigns f_36 before f_3a (0x49d508 then 0x49d505), and
-//     declares FUN_004b70ef/FUN_004b7123's second parameter `unsigned short`,
-//     which is what makes the argument a 16-bit value and drops 4 bytes.
+//   - the b8 tail assigns f_36 before f_3a (0x49d508 then 0x49d505), and the
+//     16-bit argument of FUN_004b70ef/FUN_004b7123 comes FIRST: declare them
+//     `int __cdecl f(short angle, int distance)` as 0x406300.cpp does and call
+//     `f(unit->f_66, unit->type->param)`. That is the real (angle, distance)
+//     order, matches the original's `push eax` then `push ecx`, and leaves the
+//     colour un widened in ecx (82.9 -> 85.9). The old `(int, unsigned short)`
+//     declaration had the two arguments the wrong way round and forced a
+//     `mov dx, cx` widening copy in both call sites.
 //   - the position compares are x, z, y, not x, y, z: the original reads aim
 //     at +0x28, +0x30, +0x2c against ev+0xd, +0x15, +0x11.
 //   - the scan is a `static inline` search helper returning a pointer, not a
@@ -102,15 +113,29 @@
 // instruction for instruction; the only differences left are the two named
 // above and the branch targets, which move with them.
 //
-// deepseek-v4.1-flash pass 3: the whole "16-bit ownerId" family (a
-// `unsigned short ownerId` local, an `unsigned short` helper parameter, or
-// dropping the local and passing `ev->ownerId` straight through) all land at
-// exactly 73.1% / 782 bytes: they do produce the original's `mov cx` load and
-// `cmp word ptr [edx+0xa8], bx`, but the allocator then moves the unit pointer
-// from ebp to edi and hoists projCount into ebp instead of edi, and in the
-// local case it also spills `found` to an extra stack slot (frame 0x14). An
-// inlined plain loop instead of the helper is 66.0% / 784. So the helper with
-// an int ownerId (82.9%) stays.
+// deepseek-v4.1 pass 3 (85.9%): fixed the FUN_004b70ef/FUN_004b7123 call
+// (argument order, see above), which removed the `mov dx, cx` copies and both
+// register shuffles in the b8 tail and took 83.0 -> 85.9.
+//
+// Everything still differing is one allocator state, not source semantics:
+//   - the original's ownerId is a 16-bit value that lives in the [esp+0x18]
+//     slot (`mov cx, [eax+0x1f]` reusing the entry pointer in ecx, DWORD store
+//     at 0x49d395, `mov bx, [esp+0x18]` + `cmp word ptr [edx+0xa8], bx` in the
+//     scan, `and edx, 0xffff` before the 0x118 imul). Here it is a 32-bit edi
+//     (`mov di, [eax+0x1f]`, `and` elided, 32-bit compare) and [esp+0x18] holds
+//     `found` instead.
+//   - the original hoists projCount into edi (`cmp esi, edi` at 0x49d420);
+//     mine re-reads [ebx+0x141f3] in the latch, because edi holds ownerId.
+//   - consequently my `owner = 0` store is hoisted to the top of the entry
+//     block (`xor edi, edi` + `mov [esp+0x28], esi`) where the original stores
+//     it only in the ownerId == 0 arm.
+// `unsigned short ownerId` (vs int) reproduces the first bullet's instructions
+// exactly but costs the frame (5 slots, 0x14) and moves unit from ebp to edi:
+// 73.1 / 782, and 73.3 / 776 with the found ternary. An inlined plain loop
+// instead of the helper is 42.9 / 764, the helper with the owner lookup as an
+// if/else is 66.0 / 792, and `found` as an if/else rather than a ternary is the
+// same 85.9. What is needed is for MSVC to keep ownerId in the [esp+0x18] slot
+// while leaving unit in ebp and found in esi.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {
@@ -247,8 +272,8 @@ void __stdcall FUN_0049c740(void*, void*, void*, int, int, void*);
 void __stdcall FUN_0049c9c0(void*, void*, void*, void*, void*);
 void __stdcall FUN_0049cc20(void*, void*, void*, void*, void*, void*);
 void __stdcall FUN_0049cde0(void*, void*, void*, void*, void*);
-int __cdecl FUN_004b70ef(int, unsigned short);
-int __cdecl FUN_004b7123(int, unsigned short);
+int __cdecl FUN_004b70ef(short angle, int distance);
+int __cdecl FUN_004b7123(short angle, int distance);
 
 // FUNCTION: 0x49d270
 void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
@@ -281,11 +306,10 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
     int ownerId = ev->ownerId;
     Unit_0049d270* owner = 0;
     if (ownerId) owner = &g_game->units[ownerId];
-    Proj_0049d270* found = 0;
-    if (ev->b0) {
-        int n = g_game->projCount;
-        found = Find_0049d270(g_game->projs, n, g_game->localPlayer, ev->pos, ownerId);
-    }
+    Proj_0049d270* found = ev->b0
+        ? Find_0049d270(g_game->projs, g_game->projCount,
+                        g_game->localPlayer, ev->pos, ownerId)
+        : 0;
     if (def->flags.b1) {
         FUN_0049cde0(entry, unit, (void*)((char*)ev + 1), &ev->pos, owner);
         return;
@@ -311,8 +335,8 @@ void __stdcall FUN_0049d270(int arg1, Event_0049d270* ev)
         proj->f_36 = unit->f_66;
         proj->f_3a = 0;
         proj->pos.y = 0;
-        proj->pos.x = -FUN_004b70ef(unit->type->param, proj->f_36);
-        proj->pos.z = -FUN_004b7123(unit->type->param, proj->f_36);
+        proj->pos.x = -FUN_004b70ef(proj->f_36, unit->type->param);
+        proj->pos.z = -FUN_004b7123(proj->f_36, unit->type->param);
         return;
     }
 }

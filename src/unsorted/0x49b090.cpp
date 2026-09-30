@@ -1,4 +1,21 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (issue 1900): giving every arm of the feature lookup an explicit
+// `else mf = 0;` (so the `f < featureCount` test falls through into the shared
+// `mapping + f * 256` tail instead of jumping over a duplicated copy) moved
+// 76.4% -> 78.0%, 841 -> 842 bytes against the original's 844. Still differs:
+// g_game is loaded into edi at 0x49b1ca and immediately spilled to [esp+0x30],
+// so the feature block reads g from memory (original keeps it in edi), cz stays
+// in ax instead of [esp+0x30] (`cmp [esi+0x5c], ax` vs `mov ax,[esi+0x5c];
+// cmp ax,[esp+0x30]`), and mf takes edi where the original has it in ecx.
+// deepseek-v4.1 retry: removing the `int oz = proj->py.i;` hoist (direct
+// proj->py.i in both unit blocks) deleted the extra `mov ebp,[esi+8]` diff and
+// moved 73.6% -> 76.4%, 841 bytes against 844. The whole remaining diff is one
+// allocator choice: ours gives edi to `mf` and homes `g` at [esp+0x30], the
+// original keeps g_game in edi and has mf in ecx, cz in [esp+0x30] and f in dx.
+// That cascades into the unit0 elev/high swap (ecx/ebp), the `imul ecx,[edx+N]`
+// memory operand and every feature-block hunk. Variants tried and reverted:
+// no g local, direct g_game-> uses (73.4%, 851 bytes); mf with no initializer
+// plus per-branch `mf = 0` (70.8%, 853 bytes).
 // GPT-6 retry: <windows.h> improves to 75.2%, not MATCH. Collision and
 // feature lookup helper, width and reference variants did not improve the
 // baseline. Game/height allocation and feature tail still differ.
@@ -291,11 +308,10 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             FUN_00499eb0(proj, 0);
     }
     proj->radius = (cell->radius + cell->ground) / 2;
-    int oz = proj->py.i;
     Game_0049b090* g = g_game;
     if (cell->unit0) {
         Unit_0049b090* u = &g->units[cell->unit0];
-        if (u->owner != proj->owner && oz < u->type->high + u->elev) {
+        if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
             FUN_00499eb0(proj, u);
             return;
         }
@@ -316,16 +332,21 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         short cx = proj->px.s.hi / 16;
         short cz = proj->pz.s.hi / 16;
         unsigned short f = cell->feature;
-        MapFeature_0049b090* mf = 0;
+        MapFeature_0049b090* mf;
         if (f < 0xfffb) {
             if (f < g->featureCount)
                 mf = g->mapping + f;
+            else
+                mf = 0;
         } else if (f == 0xfffe) {
             int n = g->width * cell->offY + cell->offX;
             unsigned short f2 = (cell - n)->feature;
             if (f2 < 0xfffb)
                 mf = g->mapping + f2;
-        }
+            else
+                mf = 0;
+        } else
+            mf = 0;
         if (mf) {
             if (mf->height + cell->ground <= proj->py.s.hi)
                 mf = 0;
@@ -336,8 +357,10 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
                 proj->cellZ = cz;
             }
         }
-        if (mf)
+        if (mf) {
             FUN_00499eb0(proj, 0);
+            return;
+        }
     }
     if (cell->ground > proj->py.s.hi) {
         if (type->flags.b.b15) {

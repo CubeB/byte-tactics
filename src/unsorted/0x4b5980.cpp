@@ -12,6 +12,13 @@
 // original. A `Flags_4b5980*` local used for only the second write scored
 // 88.4% and one used only for the first 87.9%.
 //
+// GPT-6.1-sol refinement: seven check.py invocations, including the final
+// verification; best remains 88.8%. Splitting the final flag expression into
+// locals compiled identically. Routing it through a second flag pointer moved
+// the flag update and item zero stores ahead of the start-width/height loads,
+// scoring 87.9%; using the existing pointer for that update also scored 87.9%.
+// The 88.8% direct-field version is restored below.
+//
 // What still differs:
 //  * scheduling of the videoFlags load in the first flag block: the original
 //    `mov cx,[esi+0x202]` sits between the scratch[0] and scratch[1] stores,

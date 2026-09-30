@@ -26,7 +26,7 @@
 //    reproduce it.
 // 4. The 4-byte zero store at 0x4b510a (original [esp+0x2c], version[4]) is
 //    unexplained.
-// The original also reads the status slot at [esp+0x14] after FreeLibrary.
+// This retry also swapped the API output-local declaration order, reordered the top-level locals, and explicitly initialized status and version halves; those variants did not improve the verified 48.6% best. Header sweep did not report a better variant. The original also reads the status slot at [esp+0x14] after FreeLibrary.
 // That slot is written only when DirectXSetupGetVersion is called, so failed
 // LoadLibraryA/GetProcAddress paths test an uninitialized value. Keep status
 // uninitialized here to preserve the observed source behavior.

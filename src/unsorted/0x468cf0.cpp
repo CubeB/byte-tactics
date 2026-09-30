@@ -1,7 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial, 40.0%: complete rendering and overlay passes. Register allocation,
-// temporary/frame layout and x87 scheduling still differ. Resource fields
-// remain packed for the original 33-byte snapshot comparison.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Partial, 40.0%: rendering and overlay logic is present, but the function's
+// register allocation, temporary/frame layout and x87 scheduling still differ.
+// The 128-set header sweep did not improve the score. Resource fields remain
+// packed for the original 33-byte snapshot comparison.
 #include <stdio.h>
 #include <string.h>
 #include <math.h>

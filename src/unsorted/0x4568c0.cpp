@@ -1,7 +1,93 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
-// deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Partial, 78.9%. A short loop index restores three induction registers.
-// The frame remains 0x38 vs 0x34; readiness tests and register scheduling differ.
+// Remaining difference, a single 4-byte stack slot. The original allocates
+// 0x34 (sub esp,0x34) and keeps only two dword locals below the candidate
+// array: esp+0x14 and esp+0x18, with cand[10] at esp+0x1c. esp+0x14 is
+// reused three times by MSVC, first for the inlined index loop's byte
+// counter, then for `int* out = &g_game->field_29fc` (0x456977 stores it
+// there), then for the returning flag (0x456b7b stores the immediate 1,
+// 0x456bc1 stores 0, and every epilogue reads [esp+0x14] into eax). res is
+// the only other local, at esp+0x18. This file merges the index with the
+// flag but gives `out` its own slot at esp+0x18, so res moves down to
+// esp+0x1c and cand to esp+0x20, and the frame is 0x38: every [esp+..]
+// reference in the body is off by 4. Making out share esp+0x14 needs the
+// index variable to be gone from the source (the call site read at
+// 0x45691b is the inlined helper's own counter), and inlining the helper
+// call into the players[] expression was tried and changed nothing.
+// Otherwise the body matches; the remaining misses are the readiness tests
+// around 0x456b91 (field_29a4 / field_29d0) and register scheduling.
+//
+// deepseek-v4.1-flash re-checked the frame problem and confirmed the
+// coefficient map from a /Fa listing. i/idx/ret sit at -0x34 and out at
+// -0x30 here, while the original has all four at -0x30; res and cand are
+// already at the original's absolute offsets. So only the i/idx/ret group
+// needs to fold into out's slot and the frame drops from 0x38 to 0x34.
+// Nothing tried moved it: inlining FindOccupied into the players[] index
+// (vA), declaring out before res and assigning in place (vR), a function
+// scope `int* out;` (vB), and a block scoping the idx local (vD) all score
+// 78.9%; dropping the out local entirely scores 64.1% (vC) and assigning
+// out at the top 76.6% (vS). Reordering the tail so res==0 is the
+// fall-through path matches the original's `jne` but still scores 78.4%
+// (the frame dominates), and changing the k4 loop counter from
+// unsigned short to int (the original compares the pointer offset against
+// 0x29f8, cmp bx,0xa here) drops to 77.1%.
+// deepseek-v4.1-flash: PlayerId_004568c0 written with early returns
+// (return id; / return -1;) instead of an `int id = -1;` assigned in an if.
+// That stops MSVC spilling `id` and raises 78.9% to 79.4% (1298 to 1308
+// bytes; the original is 1310).
+// The early-return PlayerId was the shared upstream cause: with `id` no
+// longer holding a stack slot, the k4 loop index can be a plain `int k4`
+// (was `unsigned short k4`), which reproduces the original's single
+// induction form and the exact 1310-byte size, 82.4%.
+// deepseek-v4.1-flash then split the readiness test into two separate ifs
+// (`if (res != 0) {...}` followed by `if (res == 0) {...}`) instead of
+// if/else. That reproduces the original's redundant `cmp edi,ebx; jne`
+// re-test at 0x456ba8 and stops MSVC hoisting `field_29a4[i]` into a
+// register, 82.4% to 83.4%.
+// Current state: 83.4%, exactly 1310 bytes. Remaining difference is still
+// the one 4-byte stack slot (sub esp,0x38 vs 0x34): `out` does not share
+// the index slot at esp+0x14. Everything at or below it (res esp+0x18,
+// cand esp+0x1c) and the k4 loop's induction registers follow from that.
+// headers.py changes nothing (all 128 sets 83.4%). The k4 loop still
+// spills its `int` counter to memory and uses edi for the 0x29d0 offset,
+// where the original keeps the counter in ebx and esi for the offset.
+// deepseek-v4.1 (this pass): the shared slot at esp+0x14 comes from making
+// `out` and the returning flag ONE variable of type int* (assign the pointer
+// at the top, later assign (int*)1 and (int*)0, return (int)out). That
+// reproduces the original's store at 0x456977, the reload at 0x456aea and
+// the 0x456b7b / 0x456bc1 flag stores all at esp+0x14, raising 83.4% to
+// 83.9%. Declaring out at function scope, as an array reference, as const, or
+// dropping the named idx local changes nothing. What still differs is the k4
+// loop: our build spills its int counter to esp+0x18 (the original's res
+// slot) and keeps the field_29d0 byte offset in edi, while the original keeps
+// the counter in ebx, the offset in esi and puts the PlayerId result in edi
+// (ours lands it in ebx, which clobbers the counter). Computing `from` before
+// `to` scores 79.3% at 1292 bytes, so the `to`-first order is kept.
+// deepseek-v4.1 (this pass): the k4 loop now writes the PlayerId test out by
+// hand instead of calling PlayerId_004568c0(k4):
+//     int to = -1;
+//     if (k4 != 10 && g_game->players[k4].state != 0) to = g_game->players[k4].id;
+// That removes the 4-byte counter spill slot, so the frame is the original's
+// 0x34 and res/cand sit at esp+0x18/esp+0x1c: every [esp+N] reference above
+// the k4 loop now matches. 83.9% -> 86.0% (1266 bytes; the original is 1310).
+// What still differs, all of it inside the res != 0 k4 loop at 0x456bd6:
+//  - the original keeps a k4 byte counter in ebx (xor ebx,ebx at 0x456bcd,
+//    cmp bl,0xa at 0x456c06, inc ebx at 0x456cb3), because the helper's
+//    unsigned char parameter is what stops MSVC from folding `k4 != 10` into
+//    the `cmp esi,0x29f8` loop test. Here k4 is folded away entirely
+//    (no xor ebx,ebx / inc ebx) and the state test is merged into `test al,al`.
+//  - with ebx free, `to` lands in ebx and `from` in edi; the original has
+//    `to` in edi and `from` in edx (its from loop does `add edx,eax`, reusing
+//    the g_game register, which is reloaded at 0x456caa).
+//  - the same folding drops the original's redundant active re-test at
+//    0x456c7c (mov eax,[edx+ebp+0x1b63] / test eax,eax / je).
+//  - the tail's out test is `test eax,eax / jne <res!=0 path>` in the
+//    original but `je <res==0 path>` here (branch order, 3 bytes).
+// Tried and rejected this pass, each scored lower: declaring `from` before
+// `to` 83.9; from loop as a helper 78.0; (unsigned char) casts on k4 79.3 and
+// 79.9; a byte pi local 83.9; unsigned char k4 82.7; j at function scope
+// 83.9; the previous helper-call form of `to` 83.9.
 #include <stdlib.h>
 #include <algorithm>
 
@@ -69,18 +155,18 @@ static inline unsigned char FindOccupied_004568c0() {
 }
 
 static inline int PlayerId_004568c0(unsigned char pi) {
-    int id = -1;
     if (pi != 10 && g_game->players[pi].state != 0)
-        id = g_game->players[pi].id;
-    return id;
+        return g_game->players[pi].id;
+    return -1;
 }
 
 // FUNCTION: 0x4568c0
 int FUN_004568c0() {
     unsigned char idx = FindOccupied_004568c0();
     int res = ((Class_00456030*)&g_game->players[idx])->FUN_00456030();
+    int* out;
     if (res != 0 && g_game->field_2a28 == 0) {
-        int* out = g_game->field_29fc;
+        out = g_game->field_29fc;
         if (g_game->players[g_game->localPlayer].info->flag_9b_14) {
             int n = 0;
             for (int k0 = 0; k0 < 10; k0++) {
@@ -125,32 +211,35 @@ int FUN_004568c0() {
         }
         g_game->field_2a28 = 1;
     }
-    int ret = 1;
+    out = (int*)1;
     for (int k3 = 0; k3 < 10; k3++) {
         Player_004568c0* q = &g_game->players[k3];
         if (q->active != 0 && q->state == 3) {
             if (res != 0) {
                 if (g_game->field_29a4[k3] == 0 || g_game->field_29d0[k3] == 0) {
-                    ret = 0;
+                    out = (int*)0;
                     break;
                 }
-            } else {
+            }
+            if (res == 0) {
                 if (g_game->field_29a4[k3] == 0) {
-                    ret = 0;
+                    out = (int*)0;
                     break;
                 }
             }
         }
     }
     if (res != 0) {
-        for (unsigned short k4 = 0; k4 < 10; k4++) {
+        for (int k4 = 0; k4 < 10; k4++) {
             if (g_game->field_29d0[k4] == 0) {
                 unsigned char packet[2];
                 packet[0] = 0x1e;
                 packet[1] = (unsigned char)g_game->field_29fc[k4];
                 if (g_game->players[k4].active != 0) {
                     if (g_game->players[k4].state == 3) {
-                        int to = PlayerId_004568c0(k4);
+                        int to = -1;
+                if (k4 != 10 && g_game->players[k4].state != 0)
+                    to = g_game->players[k4].id;
                         int from = -1;
                         for (int j = 0; j < 10; j++) {
                             if (g_game->players[j].state == 1) {
@@ -170,19 +259,19 @@ int FUN_004568c0() {
     }
     unsigned char pkt = 0x15;
     if (res != 0) {
-        if (ret != 0) {
+        if (out != (int*)0) {
             for (int k5 = 0; k5 < 10; k5++) {
                 Player_004568c0* q = &g_game->players[k5];
                 if (q->active != 0 && (q->state == 1 || q->state == 2))
                     FUN_00451df0(PlayerId_004568c0(k5), &pkt, 1);
             }
         }
-        return ret;
+        return (int)out;
     }
     for (int k6 = 0; k6 < 10; k6++) {
         Player_004568c0* q = &g_game->players[k6];
         if (q->active != 0 && (q->state == 1 || q->state == 2))
             FUN_00451df0(PlayerId_004568c0(k6), &pkt, 1);
     }
-    return ret;
+    return (int)out;
 }

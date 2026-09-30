@@ -1,6 +1,30 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
 // Partial, 14.3%: player messages and most byte commands are restored. Commands 28, 33
 // and 39 remain missing. Frame, switch layout and register allocation still differ.
+// Re-checked by deepseek-v4.1 at 09:04Z, still 14.3% (6420 of 8944 bytes), no variant
+// scored higher in the timebox. What still differs, from the branch/vs/original diff:
+//  - frame is 0x318 but the original reserves 0x51c, so every [esp+N] local slot is
+//    wrong and the whole prologue plus most early accesses mismatch. The missing
+//    command bodies (28, 33, 39) hold the large locals the original reserved.
+//  - the zeroing loop at 0x453d6c keeps g_game in edx and re-loads it every iteration
+//    (mov edx,[0x511de8] inside the loop); this source hoists it into esi once.
+//  - the sender id loop keeps its index at [esp+0xb4] and the recipient id loop at
+//    [esp+0x110] in the original; here they land at [esp+0xb8] and [esp+0x50].
+// Next step for whoever retries: restore the three missing command bodies first,
+// which should push the frame to 0x51c and fix the local offsets globally.
+// deepseek-v4.1 tried that: build/scratch/0x453d40/v4_frame51c_full.cpp has all
+// three bodies (case 28 with char[0xac] or [0xc0], case 33, case 39 with
+// char[0xe8] or [0xd4]) and the frame comes out at exactly 0x51c, but the score
+// is 9.6%: the total is right while every individual slot is wrong. In that
+// build messages sits at [esp+0x60] (original 0x70), receiving at 0xec (0xf0),
+// the Class_00463be0 temp at [esp+0x3e4] (0x2e0) and the receive-loop index at
+// 0xa0/0xa8 (0xb4/0x110), so the code generator slot order, not the sizes, is
+// what still differs. Original draw order, from the top of the frame down:
+// case-39 sprintf buffer (0x434), Class_00463be0 temp (0x2e0, 0x14b), case-28
+// sprintf buffer (0x220), case-28 5-byte message (0x218), 0x160/0x15d, then the
+// small scalars at 0x10..0x160 with messages at 0x70, the send-loop index at
+// 0xb4 and the receive-loop index at 0x110. The zeroing loop at 0x453d6c also
+// reloads g_game into edx every iteration and stores immediate 0.
 #include <string.h>
 
 extern char* g_game;
@@ -58,6 +82,12 @@ class Class_00461620 {
 };
 extern Class_004618a0 DAT_00513000;
 extern char DAT_00505dc4[];
+extern char DAT_005065c4[];
+extern char DAT_0050658c[];
+extern char DAT_00506290[];
+int sprintf(char*, const char*, ...);
+void __stdcall FUN_00452cc0(int);
+char* __stdcall FUN_004c5740(char*, ...);
 void __stdcall FUN_0047f1a0(char*, int);
 void __stdcall FUN_00452960(int, int, unsigned char, int);
 void FUN_00446fb0();

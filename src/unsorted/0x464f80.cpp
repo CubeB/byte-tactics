@@ -62,6 +62,16 @@
 // `if (loopCond(bl)) do { ... } while (loopCond(++bl));` folds the entry test
 // to true and drops it. Do not chase either further without a compiler-state
 // lever.
+// Pass 7 (deepseek-v4.1, 4 check runs): the pi2 shape is the ONLY guard lever found.
+// Variant v4b (`PlayerInfo_00464f80* pi2 = &g_game->players[bl];` for the whole second
+// guard group) reproduces the duplicated guard byte-for-byte and lands at 2401 bytes,
+// but it swaps the loop pointers globally: index->edi, player->esi (75.6%). Passing the
+// index through `unsigned char b2 = bl; &g_game->players[b2]` changes nothing (same
+// 2401 / esi-edi swap), and byte-typed reads (`char t2 = ((char*)pi)[0x73];`,
+// `char t2 = *(char*)&pi->type;`) still CSE against the first group's load, so MSVC
+// keys that CSE on the POINTER VALUE, not the load's type or address.
+// The original is thus likely pi-plus-fresh-pointer in the Cavedog source, with a
+// register assignment we cannot steer from these respellings.
 // Previous note: Still differs: the loop head test (cmp bl,0xa / jae taken to
 // the increment)
 // is dropped as provably true even as a while loop, the duplicated player

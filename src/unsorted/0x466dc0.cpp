@@ -76,6 +76,11 @@
 //     local are neutral or worse (70.9); OnRadar taking &p->pos costs 22 bytes
 //     (65.4).
 //
+// This session (deepseek-v4.1, retry 2): a 0-63 inert `extern int` decl sweep
+// is flat at 78.3 (the 0x47d820 front-end-state lever does not apply here);
+// re-deriving p from q inside the body (q loop-carried) is 76.1 and hoisting
+// the count into a local (count-then-p load order as in the original) is 77.8.
+//
 // Still open, exact: get MSVC to hand ebx to q and spill p, and fix the
 // top-of-function hunk where the original stores the constant 1 as a literal
 // twice (`mov dword ptr [esp+0x1c], 1`) and reads the flag word with a 16-bit

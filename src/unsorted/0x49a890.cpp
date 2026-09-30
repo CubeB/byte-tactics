@@ -1,6 +1,12 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol. Names are provisional.
-// Retry #1736: the saved discriminant association was independently re-checked at 78.2% (497/488); no MATCH. The post-_hypot x87 load/spill schedule still differs.
-// PARTIAL, best 78.2% (503 of 488 bytes). Ballistic launch-angle solver: two roots of the
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (issue #2573): 83.6%, exact 488/488 bytes, only ONE diff region left, the
+// post-_hypot x87 load/spill schedule (see bottom note). What fixed the old 78.2%: the angle
+// scaling must write the first factor back into the SAME `use` local,
+// `use = use * 32768.0; return (short)(use * 0.3183098861837907);`, otherwise MSVC5 folds
+// 32768.0*0.3183098861837907 into one constant, which costs an fmul per path (+6 bytes), turns
+// the shared return tail into two tails (+9 bytes total: 497 vs 488) and forces a different
+// local-home layout. Do not merge those two statements back into one expression.
+// PARTIAL, best 83.6% (488 of 488 bytes). Ballistic launch-angle solver: two roots of the
 // trajectory equation, each tested against zero and turned into a launch angle with
 // acos(sqrt(root) / speed) (0x4e67f0 is the CRT's _CIacos: argument in st(0), then
 // fpatan(sqrt(1 - x*x), x)), pi/2 substituted when the root is not positive.
@@ -13,10 +19,11 @@
 // Reusing `d` for dist, dist^2 and the numerator matters (worth ~5 points), as does
 // the `#include <stdio.h>` (headers change the x87 spill choices; math.h alone: 65%).
 //
-// What still differs: after _hypot, the original loads gravity then height, squares
-// the gravity-height product, and uses a distinct x87 spill schedule. This source
-// loads height before gravity and differs through the discriminant arithmetic;
-// its generated function is 9 bytes longer, shifting later branch destinations.
+// What still differs (deepseek-v4.1, issue #2573): the only diff hunk left is the
+// post-_hypot x87 schedule, 53 lines. Ours filds height, g, speed; the original
+// filds g, height, then stores height to slot0 and does `fmul [esp]`, i.e. it
+// spills the second conversion and keeps g as the multiplicand. Everything from
+// the first `fstp [esp+0x20]` (2*sum) to the end of the function is byte-identical.
 // Tried (~1000 scratch variants): statement orders, operand orders, named/inline
 // temporaries, variable reuse, all header sets (headers.py, with and without --cpp).
 //
@@ -86,5 +93,6 @@ short __stdcall FUN_0049a890(int x, int height, int z, int speed, float angle)
         use = lowAngle;
     else
         return 0x8000;
-    return (short)(use * 32768.0 * 0.3183098861837907);
+    use = use * 32768.0;
+    return (short)(use * 0.3183098861837907);
 }

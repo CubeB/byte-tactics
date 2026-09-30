@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Saves every live unit (g_game+0x14357..+0x1435b, stride 0x118) as a 0xb8
 // byte record; inverse of 0x487080/0x486fd0. Record and Piece field maps are
 // complete and confirmed by the 0x487080 loader.
@@ -70,6 +70,17 @@
 // lever is still getting the shared zero constant into ecx instead of edx,
 // which needs the rec.f3f load (unit->fb8) live across the rec.f27 compare;
 // source reordering of these statements alone does not produce it.
+// deepseek-v4.1-flash (run 5): no further gain, still 74.0. Writing
+// `rec.f3f = unit->fb8;` before `rec.f3d = unit->f108;` gives the original's
+// store order (f3d early at the f108 load, f3f deferred past the rec.f27
+// compare) but reverses the temps: f108 lands in edx and fb8 in ecx, because
+// the f108 load is hoisted above the s.b load while ecx still holds &s64, so
+// the shared zero still takes edx and the whole field block stays rotated.
+// Interleaving rec.s between f3f and f3d drops to 72.2, and moving either
+// store past rec.f27 drops to 70.1/69.4. A named void* vtable local scores
+// 74.0 (folded). The one remaining lever is still: get f108 stored before the
+// bool so ecx is free, and keep dx = unit->fb8 live across the bool compare,
+// so the shared zero is materialised in ecx.
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);

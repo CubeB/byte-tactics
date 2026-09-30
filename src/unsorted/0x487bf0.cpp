@@ -1,5 +1,22 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 62.1% (ours 1847 bytes vs 1811), improved from 60.4% by space-bunny-free.
+// RETRY NOTES (deepseek-v4.1-flash): measured three variants against the original
+// with check.py --sym. (a) Deleting the Class_00438760 copy-constructor
+// declaration emits no copy calls and drops the code to 1807 bytes (the original
+// is 1811, the closest of anything tried) but the frame grows from 0x144 to
+// 0x150 and the score falls to 49.7%: with a trivially copyable class MSVC 5
+// spreads the five case-local `out` objects over 7 stack slots (0x40..0x5c)
+// instead of the original's 4 (0x40..0x4c). (b) Same but with one shared
+// function-scope `out`: frame is then exactly 0x140 (the original's) and the code
+// is still 1807 bytes, but the score is 57.8% because the scalar slots below it
+// no longer line up. (c) Making FUN_0043f0e0 return Class_00438760 by value and
+// nesting it as FUN_0043adc0's first argument: 1795 bytes, 42.9%, much worse (no
+// RVO into the argument slot; the original really does build into a named local
+// and then reload it). P scanning from buf+5 rather than buf+1 is exactly
+// neutral in every variant, confirming the earlier note. The remaining gap is
+// the copy constructor and the 5-slot class-temporary layout; the copy ctor
+// declaration is what keeps the 0x144 frame AND the 62.1% layout, so removing it
+// trades one defect for a worse one.
 // WHAT CHANGED (space-bunny-free): the strcspn length and the B case's "%d" are
 // ONE variable, not two. The original stores the strcspn result at esp0+8 and the
 // B case's initial "n = 1" and its sscanf "%d" also land on esp0+8 (0x487c4f,

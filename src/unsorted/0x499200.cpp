@@ -1,5 +1,31 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Header sweeps (128 C and 768 C/C++ combinations) found no improvement.
+// 94.7% now (2026-09-30). The one upstream fact the earlier sessions missed:
+// `g_game->field_2a44.value |= four;` is present in BOTH arms of the
+// field_39249 if/else, not only in the then arm. With both copies, MSVC 5
+// tail-merges them into the shared `or word [eax+0x2a44], di` at 0x49982a that
+// exists in the original, and that shared tail (two OR uses plus the two
+// FUN_004ce690 `push edi`) is what keeps the constant 4 live in edi from
+// 0x499603 to 0x49986b. With only the then-arm copy MSVC constant-folded it to
+// `or byte [..],4` and rematerialised `push 4`, losing the whole edi live
+// range. This single statement recovered +3.0 points (91.7 -> 94.7).
+// Remaining at 94.7%: only register roles inside the else arm, a consistent
+// cyclic permutation of the allocator's preference order (original edx/eax/ecx
+// for the saved-load base, the FUN_004a9660(g_game+0x519) address and the
+// table[0x14] value; ours eax/ecx/edx). Because ours uses `add ecx,0x519`
+// (6 bytes) instead of the original's `add eax,0x519` (5-byte 05 form), ours is
+// 1 byte longer (1656 vs 1655). Everything up to line 294 of the listing is
+// byte-identical, including the shared OR tail and the edi range.
+// Tried and flat at 94.7%: local for the FUN_00435100 result; unsigned
+// short/int/long/explicit-cast saved; explicit unsigned short* locals for the
+// 2a3c load and store (91.4, adds instructions); saved at function scope;
+// casts on the a9660 / 29a0 / 35a20 arguments (void*, &a[0], (char*)g+off);
+// `register`; unsigned int/unsigned short four; value|=four re-expressed as a
+// read/or/write and with a (unsigned short) cast; x1 inverted if/else with the
+// arms swapped (88.9); a single shared OR guarded by a bool doOr (90.9);
+// moving the else OR before FUN_0047a760 (93.9). headers.py 128 sets: 94.7 max.
+// The residual looks like pure allocator state and is not reachable from the
+// source spelling we could find.
 // PARTIAL, 91.7% (1653 of 1655 bytes, instruction-text score). Branches, field
 // offsets, call targets, stack slots and the whole 0x4992cd..0x4996fb state
 // machine agree with the original; what is left is register roles only.
@@ -384,6 +410,7 @@ void FUN_00499200(void)
             g_game->field_2a3c = saved;
             ((Class_00435a20*)g_game->net)->FUN_00435a20(g_game->field_29a0 + 0x11c);
             FUN_0047a760();
+            g_game->field_2a44.value |= four;
         }
         g_game->field_391f1 = 2;
         g_game->field_391f5 = FUN_00496bb0;

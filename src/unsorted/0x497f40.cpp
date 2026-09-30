@@ -28,8 +28,8 @@ struct Game_00497f40 {
     int field_531;                     // +0x531
     char unknown_535[0x589 - 0x535];
     int field_589;                     // +0x589
-    char unknown_58d[0xdd5 - 0x58d];
-    unsigned char palette[6];          // +0xdd5
+    char unknown_58d[0xdcb - 0x58d];
+    unsigned char palette[16];         // +0xdcb
     char unknown_ddb[0x11eb - 0xddb];
     int field_11eb;                    // +0x11eb
     char unknown_11ef[0x29a4 - 0x11ef];
@@ -169,7 +169,15 @@ public:
     void FUN_004618a0(int);
 };
 
-// PARTIAL 75.9%. Player loops, text layout and slider register allocation still differ.
+// PARTIAL 75.9%. Call census is EQUAL; the whole gap is stack layout.
+// Original frame sub esp,0x234 (141 dword locals), ours 0x218 (134): 28 bytes short.
+// Original puts gadget at 0x24 (48 bytes, 0x24..0x53) and namebuf/buf/aux at
+// 0x60/0xc4/0x144; ours has gadget at 0x20 (24 bytes) and 0x44/0xa8/0x128. So the
+// original has a 4-byte local at 0x20 plus 24 more bytes of gadget (missing field).
+// Also the dead 10-player loop stores a byte at [esp+0x23] (original color is a char,
+// ours is int), and the palette base is g_game+0xdcb with indices 10/12, so the
+// original emits `add ecx,0xa` before `mov dl,[ecx+eax+0xdcb]`. Player loops, text
+// layout and slider register allocation still differ.
 // FUNCTION: 0x497f40
 void FUN_00497f40(void)
 {
@@ -326,7 +334,7 @@ void FUN_00497f40(void)
     }
     FUN_004c69a0((void*)g_game->field_37e1b);
     if (FUN_004c5e70(&gadget) != 0) {
-        color = g_game->palette[5];
+        color = g_game->palette[15];
         stamp = FUN_004b6340();
         if (DAT_0051f308 < (int)stamp) {
             DAT_0051f308 = FUN_004b6340();
@@ -354,7 +362,7 @@ void FUN_00497f40(void)
             void* lightbar = FUN_004b7f30(FUN_004b8d40(g_game->field_51d, "LIGHTBAR"), 0);
             *((short*)lightbar + 3) = 0;
             *((short*)lightbar + 2) = 0;
-            color = g_game->palette[g_game->progress[0] < 100 ? 2 : 0];
+            color = g_game->palette[(g_game->progress[0] < 100 ? 2 : 0) + 10];
             FUN_004c13a0(color, FUN_004c13f0());
             if (g_game->progress[0] == 100 && DAT_0051e820 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[0] = 0x1e;
@@ -368,7 +376,7 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[0] * 7) / 2 + 0xcd;
             FUN_004bf6f0(&gadget, rect, color);
             FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[1] < 100 ? 2 : 0];
+            color = g_game->palette[(g_game->progress[1] < 100 ? 2 : 0) + 10];
             FUN_004c13a0(color, FUN_004c13f0());
             if (g_game->progress[1] == 100 && DAT_0051e821 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[1] = 0x1e;
@@ -382,7 +390,7 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[1] * 7) / 2 + 0xcd;
             FUN_004bf6f0(&gadget, rect, color);
             FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[2] < 100 ? 2 : 0];
+            color = g_game->palette[(g_game->progress[2] < 100 ? 2 : 0) + 10];
             FUN_004c13a0(color, FUN_004c13f0());
             if (g_game->progress[2] == 100 && DAT_0051e822 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[2] = 0x1e;
@@ -396,7 +404,7 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[2] * 7) / 2 + 0xcd;
             FUN_004bf6f0(&gadget, rect, color);
             FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[3] < 100 ? 2 : 0];
+            color = g_game->palette[(g_game->progress[3] < 100 ? 2 : 0) + 10];
             FUN_004c13a0(color, FUN_004c13f0());
             if (g_game->progress[3] == 100 && DAT_0051e823 != 100) {
                 ((unsigned char*)&DAT_0051e6c8)[3] = 0x1e;
@@ -410,7 +418,7 @@ void FUN_00497f40(void)
             rect[2] = ((int)g_game->progress[3] * 7) / 2 + 0xcd;
             FUN_004bf6f0(&gadget, rect, color);
             FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
-            color = g_game->palette[g_game->progress[4] < 100 ? 2 : 0];
+            color = g_game->palette[(g_game->progress[4] < 100 ? 2 : 0) + 10];
             FUN_004c13a0(color, FUN_004c13f0());
             if (g_game->progress[4] == 100 && DAT_0051e824 != 100) {
                 ((unsigned char*)&DAT_0051e6cc)[0] = 0x1e;
@@ -426,7 +434,7 @@ void FUN_00497f40(void)
             FUN_004b7f90(&gadget, lightbar, rect[0], rect[1]);
             FUN_004b7f90(&gadget, lightbar, rect[0] + *((short*)lightbar + 2),
                          rect[1] + *((short*)lightbar + 3));
-            color = g_game->palette[g_game->progress[5] < 100 ? 2 : 0];
+            color = g_game->palette[(g_game->progress[5] < 100 ? 2 : 0) + 10];
             FUN_004c13a0(color, FUN_004c13f0());
             if (g_game->progress[5] == 100 && DAT_0051e825 != 100) {
                 ((unsigned char*)&DAT_0051e6cc)[1] = 0x1e;

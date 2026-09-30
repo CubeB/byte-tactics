@@ -1,5 +1,28 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
-// PARTIAL 29.8%. Register allocation, extra stack slot and branch layout differ.
+// PARTIAL 29.8% (deepseek-v4.1-flash retry, issue 1774): original 1853 bytes,
+// ours 1739. Frame is the whole story: original `sub esp,0x14` (5 dword
+// locals), ours `sub esp,0x18` (6). Original slot map after the 4 pushes is
+// 0x10=idx(byte), 0x14=offset, 0x18=count, 0x1c=type, 0x20=s; ours is
+// 0x10=idx, 0x14=type, 0x18=offset, 0x1c=count, 0x20=unnamed temp, 0x24=s.
+// The extra unnamed slot is the root cause: it displaces `type` to 0x14 and
+// swaps eax/ecx/edx on offset/count throughout.
+// Call census is EQUAL (22 calls: 420a30*1, 43e240*1, 472810*2, 47f300*1,
+// 4815a0*1, 499eb0*3, 49ae20*1, 49b090*1, 49b3e0*1, 49b520*1, 4b6c30*2,
+// 4b70ef*3, 4b7123*4), so the 114-byte deficit is schedule/encoding (near
+// jumps over a 1.9 KB body), not a missing call block.
+// Highest-value untried levers for the next worker:
+// 1. Drop the unnamed 0x20 temp. Candidate: rewrite the idx scan as a
+//    do{...}while(idx<3) over a char index instead of while(1) with two breaks,
+//    matching the original's `xor dl,dl / inc dl / cmp dl,3 / mov [esp+0x10],dl
+//    / jb`.
+// 2. ProjType+0x111 flags are a BITFIELD union, exactly as in the matched
+//    sibling 0x49b090.cpp. Original uses shift form for bits 20 (0x49b9c8
+//    `shr edx,0x14; test dl,1`) and 23 (0x49bac3 `shr eax,0x17; test al,1`) and
+//    a byte test for bit 0 (0x49bb60 `test byte ptr [esi+0x111],1`). Our plain
+//    `unsigned int fl` plus `fl & 0x100000` / `fl & 0x800000` / `fl & 1` emit a
+//    32-bit test instead. Bits 21/24/3/5/8 already match.
+// 3. Outer loop is a rotated `do{...}while(--count)` guarded by `if(count>0)`;
+//    our form already yields the dec/jne bottom.
 // Restored unsigned lifetime/speed comparisons and projectile flags/definition reloads.
 
 #pragma pack(push, 1)

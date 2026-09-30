@@ -1,7 +1,16 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // Prior attempt by space-bunny-free, verified by GPT-6.1-sol.
-// PARTIAL 84.2% (1695 bytes against the original's 1703). Command-button
+// PARTIAL 84.4% (1687 bytes against the original's 1703). Command-button
 // click/key handler for the 0x15b-byte entry table.
+//
+// deepseek-v4.1 round 3 (2611): writing the `field_138 == 0` bailout after
+// the field_138 rect-set block as `goto fail` instead of `return 0` lifts
+// 84.2 -> 84.4 (the shared epilogue at the end of the function is now
+// reached by a `je`, as the original's 0x4a7060 is). Two more tries this
+// pass, both worse: `short f138 = entry->field_138;` used for both top
+// tests spills the local (frame +4, 62.7), and materialising the loop
+// bound as `short n = entries->count; int bound = n + 1;` recolors the
+// search block (60.0).
 //
 // What finally moved the object/entry register home: writing the
 // field_138 / flags-0x2000 region as sequential `if`s instead of an
@@ -287,7 +296,7 @@ int __stdcall FUN_004a6ae0(Class_004a6ae0* obj, int index, int param_3)
             DAT_0051fbac = 0xf;
         }
         if (entry->field_138 == 0) {
-            return 0;
+            goto fail;
         }
         if (entry->flags & 0x2000) {
             if (DAT_0051fbb0 == FUN_004b6340())

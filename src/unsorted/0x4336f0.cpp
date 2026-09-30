@@ -1,4 +1,27 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// BEST 79.3% (this file, 732 bytes). The exact-shape 75.2% attempt (708 bytes,
+// only the three register names rotated) is preserved at
+// build/scratch/0x4336f0/base.cpp.
+//
+// deepseek-v4.1 pass: writing the four loop arms as
+// `while (count > 0) { body; i++; count--; }` instead of `do { body; i++; }
+// while (--count);` flips MSVC 5's register assignment for the whole function
+// to the original's: short n and the byte index in edi, the int count in ebp,
+// the reloaded _First in ebx, and the failed-path tail back to ecx/edx. It
+// costs one extra `test ebp,ebp / jle` pair per arm (top-tested loop), so the
+// object is 732 bytes; the remaining diff is exactly those four redundant arm
+// tests, `dec ebp; jne` jumping back to the count test, and the tail's
+// internal rotation. Removing the extra test while keeping the allocation is
+// the whole job that is left.
+// Tried in this pass, all unchanged at 75.2% (708 bytes) or worse: resize(n)
+// one-arg, resize with an inline temporary Elem(), resize(count,...), count as
+// long, (int)n and (short)atoi cast spellings, named reference v = *this,
+// x declared first, i declared first, split i declaration, (void)count before
+// the switch, count = count self-assign, for-based and while-based counted
+// loops (732/704 bytes, 67.8-69.3%), while (--count > 0) (68.3%),
+// for (;;) with break (996 bytes).
+//
+// Earlier notes follow.
 // BEST 75.2% (532 of 708 bytes, source size matches the original).
 // GPT-6.1-sol refinement: tried all 24 switch case orderings and several
 // count/default variants; none beat this source. Remaining mismatch is the
@@ -81,38 +104,42 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
         switch (mode) {
         case 0:
             if (n > 0) {
-                do {
+                while (count > 0) {
                     (*this)[i].a = atoi(strtok(0, ", "));
                     (*this)[i].b = -atoi(strtok(0, ", "));
                     i++;
-                } while (--count);
+                    count--;
+                }
             }
             return;
         case 1:
             if (n > 0) {
-                do {
+                while (count > 0) {
                     (*this)[i].b = atoi(strtok(0, ", "));
                     (*this)[i].a = atoi(strtok(0, ", "));
                     i++;
-                } while (--count);
+                    count--;
+                }
             }
             return;
         case 2:
             if (n > 0) {
-                do {
+                while (count > 0) {
                     (*this)[i].a = -atoi(strtok(0, ", "));
                     (*this)[i].b = atoi(strtok(0, ", "));
                     i++;
-                } while (--count);
+                    count--;
+                }
             }
             return;
         case 3:
             if (n > 0) {
-                do {
+                while (count > 0) {
                     (*this)[i].b = -atoi(strtok(0, ", "));
                     (*this)[i].a = atoi(strtok(0, ", "));
                     i++;
-                } while (--count);
+                    count--;
+                }
             }
             return;
         }

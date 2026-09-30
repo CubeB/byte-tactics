@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Partial (92.9%, size 886 = the original's). Every instruction matches except
 // the frame offsets of five locals; the code around them is identical, only the
 // `esp+` displacements differ. Frame map (offsets from esp while the four
@@ -32,6 +32,15 @@
 // GPT-6.1-sol refinement: declaring count and i before files, initializing count
 // to zero, and deriving count from end()-begin() did not improve the frame-slot
 // permutation; end()-begin() instead reduced the score to 70.7%.
+// deepseek-v4.1 follow-up: the five swapped offsets are not reachable from the
+// declarations or from statement order. Declaring `int i;`/`int count;` before
+// the vector, renaming them, swapping the DAT_005122e0 store with the count
+// line, a while-loop form, and `for (int i = 0, count = files.size(); ...)`
+// either keep the same permutation or break the bytes (while-loop 90.1%,
+// statement swap 91.8%, for-init 86.8%). The homes come out in a fixed IL order
+// (count, allocator temp, bFlag, files, i) that source reordering does not
+// touch, so the swap needs a change in the IL shape that was not found here.
+
 #include <string.h>
 #include <vector>
 

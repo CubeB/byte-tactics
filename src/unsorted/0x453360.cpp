@@ -26,6 +26,21 @@
 // `char* t = text` walked with the loop, `text` reused to hold the buffer
 // pointer before each send, and an unused `ok` result local.
 //
+// Retry pass 2 (deepseek-v4.1-flash, #1683): measured the remaining gap as
+// exactly (a) the home register of g_game after strncpy (original: ecx; ours:
+// eax, which rotates every downstream operand and the find-target index) and
+// (b) two missing `mov eax, [esp+0x14]` dead reloads of `text` at the top of
+// the mode-3 and default branches (8 of the 9 lost bytes). Those two reloads
+// are what keeps eax busy so g_game takes ecx. None of these reproduced the
+// reload or the register home: the target search as an inlined member function
+// (`g_game->FindTarget()`, same 54.4%), `char* res = strncpy(...)` unused,
+// `char* t = text;` declared at the top of each else branch (both 54.4%,
+// eliminated), and `text != 0` added to the mode-3 loop guard (52.3%, moved
+// text into ebp and changed the prologue). An empty inlined helper called with
+// `text` in both branches is folded away (54.4%). The reload is a load with no
+// consumer, so it most likely comes from an inlined function or macro that
+// takes `text` and drops it in that path, not from any spelling of these loops.
+//
 // Retry pass (same model): an inline helper for the `text[0] == '+'` test is
 // byte-identical to this file; an inline `while(1)` target search (the shape
 // required in the sibling 0x453010) scores 46.7, a hoisted `int mode` local

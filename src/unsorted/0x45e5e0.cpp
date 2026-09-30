@@ -1,20 +1,11 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL (best 70.9%). Everything below is semantically right and the call
-// sequence, string arguments and field offsets match; only register
-// allocation differs, and it differs from the first instruction:
-//   * original opens with `sub esp,0x10` + `xor esi,esi` + `cmp eax,esi`;
-//     ours has `sub esp,0xc` + `test eax,eax`. The original keeps a zero in
-//     esi from function entry (it is the first flags-loop offset, hoisted),
-//     and reuses esi for the three FUN_004288d0("optvisual4x") args and for
-//     `layer->data = 0`; ours emits `push 0` and `test eax,eax`. Declaring an
-//     explicit `int zero = 0` was constant-folded and changed nothing.
-//   * in the video-mode block the original keeps list/modes in esi, the
-//     VIDSLDR entry in edi and g_game->width in ebp; ours picks edi, ebp and
-//     ebx. Same statements, different allocation.
-//   * the original spills &g_game->menu to the 4th local ([esp+0x1c]) inside
-//     the video-mode block; ours has no 4th local.
-// A later attempt should try separate scoped loop counters and a `Menu* menu`
-// local, and the `if (param_1 == 0)`/`else` inversion, to shift the allocator.
+// MATCH. Keys to the match: the Entry stride is 0x15b (the packed struct needs
+// 0xd bytes of trailing padding), `int i = 0` is declared up front so esi holds
+// the zero reused by the optvisual4x args, `layer->data` and the map/vid loops,
+// the video/else pair is a single if/else with `layer->data = i` plus a nested
+// redundant `if (flags & 1)` for the MAP/VID strip loops, and `w`/`mode` are
+// computed inside the for body so MSVC hoists them into the preheader after the
+// count guard rather than before it.
 // Builds the visual / video-mode options page (SELVMODE.GUI when param_1 is
 // set, otherwise the VISUALS or VISUALRT page next to the normal menu),
 // installs FUN_0045e100 as its handler, fills the video mode list and the
@@ -39,6 +30,7 @@ struct Entry_0045e5e0 {                  // 0x15b bytes
     void (__stdcall* fn)(void* obj, int value);  // +0x144
     char unknown_148[2];
     void* data;                          // +0x14a
+    char padding_14e[0x15b - 0x14e];     // stride is 0x15b
 };
 
 struct Mode_0045e5e0 {
@@ -113,10 +105,11 @@ void __stdcall FUN_004a81e0(Menu_0045e5e0* menu, int value);
 // FUNCTION: 0x45e5e0
 void __stdcall FUN_0045e5e0(int param_1)
 {
-    int i;
+    int i = 0;
     Layer_0045e5e0* layer;
+    Menu_0045e5e0* menu;
 
-    if (param_1 != 0) {
+    if (param_1 != i) {
         layer = FUN_004aa8f0(&g_game->menu, "SELVMODE.GUI", 0x800);
     } else {
         layer = FUN_0045cfc0();
@@ -126,7 +119,7 @@ void __stdcall FUN_0045e5e0(int param_1)
             FUN_004aa8f0(&g_game->menu, "VISUALRT.GUI", 0x200);
         } else {
             FUN_004aa8f0(&g_game->menu, "VISUALS.GUI", 0x200);
-            FUN_004288d0("optvisual4x", 0, 0, 0);
+            FUN_004288d0("optvisual4x", i, i, i);
         }
     }
     FUN_0049fa50(&g_game->menu);
@@ -145,39 +138,40 @@ void __stdcall FUN_0045e5e0(int param_1)
                 e->max = list->count - 1;
                 e->fn = FUN_0045bbf0;
                 e->data = list;
-                int w = g_game->width;
-                for (i = 0; i < list->count; i++) {
-                    if (w == list->modes[i].width
-                        && g_game->height == list->modes[i].height) {
+                menu = &g_game->menu;
+                for (int j = 0; j < list->count; j++) {
+                    int w = g_game->width;
+                    Mode_0045e5e0* mode = &list->modes[j];
+                    if (w == mode->width && g_game->height == mode->height) {
                         int max = e->max;
-                        int value = i;
+                        int value = j;
                         if (value > max)
                             value = max;
                         float f = (float)value / (float)max * (float)(e->steps - 1);
                         if (f - (int)f != 0.0f)
                             f += 1.0;
                         e->pos = (short)f;
-                        char* p = FUN_004a0180(g_game->menu.holder->entries, "VIDVAL");
+                        char* p = FUN_004a0180(menu->holder->entries, "VIDVAL");
                         if (p != 0) {
-                            sprintf(p + 0xb6, "%d X %d", list->modes[i].width, list->modes[i].height);
+                            sprintf(p + 0xb6, "%d X %d", mode->width, mode->height);
                         }
                         break;
                     }
                 }
             }
         }
-    }
-
-    if (g_game->flags_37ebe & 1) {
-        layer->data = 0;
-        for (i = 0; i <= g_game->menu.holder->entries->count; i++) {
-            if (strncmp(g_game->menu.holder->entries[i].name, "MAP", strlen("MAP")) == 0) {
-                FUN_004a0570(&g_game->menu, g_game->menu.holder->entries[i].name, 0);
+    } else {
+        layer->data = (void*)i;
+        if (g_game->flags_37ebe & 1) {
+            for (i = 0; i <= g_game->menu.holder->entries->count; i++) {
+                if (strncmp(g_game->menu.holder->entries[i].name, "MAP", strlen("MAP")) == 0) {
+                    FUN_004a0570(&g_game->menu, g_game->menu.holder->entries[i].name, 0);
+                }
             }
-        }
-        for (i = 0; i <= g_game->menu.holder->entries->count; i++) {
-            if (strncmp(g_game->menu.holder->entries[i].name, "VID", strlen("VID")) == 0) {
-                FUN_004a0570(&g_game->menu, g_game->menu.holder->entries[i].name, 0);
+            for (i = 0; i <= g_game->menu.holder->entries->count; i++) {
+                if (strncmp(g_game->menu.holder->entries[i].name, "VID", strlen("VID")) == 0) {
+                    FUN_004a0570(&g_game->menu, g_game->menu.holder->entries[i].name, 0);
+                }
             }
         }
     }

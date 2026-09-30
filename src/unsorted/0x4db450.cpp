@@ -1,4 +1,17 @@
-// Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry (#2450), still 93.5%: the original is almost certainly
+// std::map wrapper calls (lower_bound, begin, erase, insert) that MSVC inlines,
+// around tree functions it calls out of line, which is why the iterator homes
+// are shared compiler temporaries. A real std::map with a pool allocator
+// (see 0x4db610) cannot be used here: /Ob2 inlines lower_bound, begin and the
+// whole tree insert (638 bytes, 39%), where the original calls 0x4dc620,
+// 0x4dbeb0 and 0x4dbec0. Mimicking the wrappers by hand, each as an inline
+// member returning the iterator by value and calling the out-of-line tree
+// function, was scored in all 16 combinations of {lower_bound, begin, erase}
+// as wrapper or explicit out-pointer, with and without the `size` slot alias
+// below: the best is 93.5% (this file); every wrapper combination is worse
+// (44 to 88%, frame 0x18 or more, because each wrapper return adds a temp).
+// Keep the alias: without it the same file scores 82.5%.
 // NOT A MATCH: 93.5% (deepseek-v4.1), 444 of 444 bytes, every remaining
 // difference is a stack-slot displacement. Still differs (see the end of this
 // comment, and the UPDATED note below for what deepseek-v4.1 changed and why

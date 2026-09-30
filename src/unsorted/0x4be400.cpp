@@ -1,4 +1,4 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Walks a directory tree (the search 0x4bc4b0 allocates, the same one 0x4bcb50
 // uses) and, for every plain file, marks the matching entry of every open
 // HAPI archive: the entry named "path + file name" is looked up with
@@ -135,6 +135,29 @@
 // `continue` target, not the epilogue's use of the handle, and not the loop's
 // shape, so it is the back end choosing between sinking the copy into the head
 // of the five-pred join and leaving it on the four edges that clobber esi.
+// An eighth session (deepseek-v4.1, under a 10 minute timebox) re-ran the
+// baseline (99.2, same single byte) and tried four shapes that are not on the
+// walls above, all scored with check.py: a fresh loop variable
+// `for (int j = i; j < d->count; j++)`, a redundant `if (i < d->count)`
+// wrapped round the `for`, and the entry test written as
+// `if (!e || (e->flags & 1)) continue;` are all byte-identical to this file;
+// `for (; d->count > i; i++)` gives 98.0 (it flips the comparison operand
+// order) and a bottom-break `for (;;) { ...; if (++i >= d->count) break; }`
+// gives 74.9 at 693 bytes. The
+// file stays at the best of the flat 99.2 family; only the guard's `jge`
+// displacement differs from the original.
+// A ninth session (deepseek-v4.1, 10 minute timebox) ran the baseline plus ten
+// shapes not on the walls above: `int i;` moved to the function top, a single
+// early `Find* f` used in the clamp, the recursion and the latch, a guarded
+// bottom-break `for(;;)`, an explicit `if (!(i < d->count)) continue;` guard,
+// `while` with `i = i + 1`, `!(e == 0) && (e->flags & 1) == 0` in a braced
+// block, the parameter order swapped in the signature, the recursion's state
+// parked in a local, and the outer loop as `while (1)` with a bottom break.
+// Nine of the ten are byte-identical to this file (99.2, same single jge
+// displacement); the tenth (hoisting `strcpy(buf, path)` above the clamp)
+// is 85.2 because it breaks the loop tail. The family stays flat and the
+// guard's target is still a back end copy-insertion choice.
+
 #include <io.h>
 #include <string.h>
 
@@ -188,6 +211,7 @@ void __stdcall FUN_004be400(char* path, int state, int recursive)
     Display_004be400* d = FUN_004b6220();
     char buf[0x100];
     struct _finddata_t fd;
+    int i;
 
     strcpy(buf, path);
     strcat(buf, "*");
@@ -203,7 +227,7 @@ void __stdcall FUN_004be400(char* path, int state, int recursive)
                 FUN_004be400(buf, ((Find_004be400*)h)->state, 0);
             }
         } else {
-            int i = ((Find_004be400*)h)->state;
+            i = ((Find_004be400*)h)->state;
             if (i < 0)
                 i = 0;
             else

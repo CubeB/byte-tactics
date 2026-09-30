@@ -1,4 +1,38 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1 (third run, 15:32-15:41Z): still 97.9%, this file stays the best
+// variant. The three remaining diffs (missing `test dl, dl`, the `lea edx,
+// [eax*4]` shift form, and the trailing `mov eax, [ebp+8]` reload) are one
+// allocator decision; 30 more spellings were scored this run, all 91.2 to 94.9%.
+// New facts, all reproducible:
+//   * The writer 0x4bd160 (its `t = (m >> 2) | (m << 6); k = ~t;` block at
+//     0x4bd1f6) shows the same rotate with the shr copy and the shl in place.
+//     For THIS function the only spelling that yields both the wanted
+//     `test dl, dl` and the original roles comes from that if/else shape:
+//     `m = key & 0xff; if ((unsigned char)key == 0) { key = 0; } else {
+//     q = (m >> 6) | (m << 2); key = (unsigned char)~q; }` (variant b5). It
+//     scores 94.7% at 663 bytes: the test is there but the shifts stay in the
+//     `lea edx, [eax*4]; shr eax, 6` order, and the trailing reload is eax.
+//     The `key = 0;` then-arm costs nothing (self-assignment, elided), and the
+//     empty then (`if (...) ; else`) or `if ((unsigned char)key != 0)` rotate
+//     the roles again (91.7%).
+//   * `hi = m >> 6; lo = m << 2; key = (unsigned char)~(hi | lo);` DOES emit
+//     the original `mov edx, eax; shr edx, 6; shl eax, 2`, but only because the
+//     front end narrows the `|` to a byte: it then writes `or al, dl` and
+//     `not al` (variant c3, 665 bytes, 94.1%). Giving the `|` a 32-bit consumer
+//     (a separate int q, variants d1/d4/d5) makes the SSA folder rebuild the
+//     chain and the order reverts to the lea form, so the two wanted halves
+//     (32-bit `or edx, eax` + shr-copy order) never appear together.
+//   * Aiming at the missing test with boolean spellings (`if (key && w)`,
+//     `if (w && key)`, `(key & 0xff) && w`) adds a second test and rotates the
+//     roles (91.3 to 91.5%). `(m & 0xff) >> 6` and `(m >> 6) & 0xff` keep the
+//     mask in the code (666 to 668 bytes).
+//   * A pure 8-bit rotate is reachable (`key = ~((m >> 6) | (m << 2))` assigned
+//     straight to the byte, variant c5): VC5 narrows the whole chain to
+//     `mov cl, al; shl cl, 2; shr eax, 6; or cl, al; not cl`, 661 bytes, but
+//     base moves to edx and the score is 94.9%. So the byte store wants the
+//     32-bit or, not the narrowed one.
+// Nothing above beat the `if (w)` form already in the file (97.9%, 661 bytes).
+
 // space-bunny-free (second pass): still 97.9%, no scratch variant beat it (5 free
 // --sym scorings). Two new facts for the key block:
 //   - A pure `unsigned char key` (no int copy) drops the byte's slot store AND
@@ -72,8 +106,19 @@
 // functions and member functions for the rotate, `?:` forms, `+` or `^` for
 // `|`, `w * 4` for `w << 2`, every declaration order of base, key and w,
 // int and unsigned w, char types for the result.
-// The earlier note that the original stores a stale byte is wrong: the
-// original does rotate and complement the value it stores.
+// deepseek-v4.1 (10 minute run): the shift order is reachable, the register
+// roles are not. `unsigned int m = w; m >>= 6;` does emit the original's
+// `mov edx, eax; shr edx, 6` (the copy appears because w is still live for the
+// left shift), but VC5 then narrows the whole tree to bytes when the OR feeds
+// the byte directly (`key = ~(m | (w << 2))` gives `shl al, 2; or al, dl;
+// not al; mov dl, al`). Storing the OR to a dword local first, or accumulating
+// it with `m |= w << 2`, removes the narrowing and VC5 goes back to commuting
+// the OR: `lea edx, [eax*4]; shr eax, 6; or edx, eax`. `m += w << 2` keeps the
+// copy and the shift right first but folds the add into `lea edx, [edx +
+// eax*4]` (94.9%). So VC5 only keeps the original's order on the byte path.
+// Every spelling with the condition on the byte (key, key != 0, or via the F2
+// shape) still rotates the roles: base edx, key cl, m ecx, 663 bytes.
+// 0x4bdd70: 97.9%, 661 of 661 bytes.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

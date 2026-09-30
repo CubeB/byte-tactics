@@ -1,27 +1,18 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by
-// space-bunny-free. Names are provisional.
-// NOT A MATCH (69.4 percent, 801 bytes against our 837). Still differs:
-//  * our frame is one dword out of step: the original homes `this` at
-//    [esp+0x18] and `_Y` at [esp+0x14] and puts the `it` iterator object at
-//    [esp+0x1c], we home `this` at [esp+0x1c], `_Y` at [esp+0x18] and `it` at
-//    [esp+0x14], so every spill after that is 4 out of step, which is most of
-//    the diff. The two _Lockit slots ([esp+0x20] and [esp+0x24]) and `z`
-//    ([esp+0x10]) do match, so the frame size (sub esp,0x18 plus four pushes)
-//    is right. In the original the order of first home assignment must be
-//    `_Y` 0x14, `z` 0x10 for the address-taken pool below the saved registers
-//    and `this` 0x18, `it` 0x1c above them; the `it` object is the one that
-//    has to be forced out of the low pool, and no spelling tried here moved it.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// NOT A MATCH (73.4 percent, 801 bytes against our 811). Now differs only in:
+//  * Class_004e2a10's ctor is defined inline here (it is pair<iterator,bool>
+//    from UTILITY, whose ctor is defined in the class). That makes the _Multi
+//    return collapse to the original's two direct stores `mov [eax],ecx /
+//    mov byte [eax+4],1`, but MSVC then also inlines it on the non-multi tail,
+//    so we no longer emit the original's out-of-line call at 0x4e253a.
 //  * the search loop: the original branches on the strcmp result's own flags
 //    (0x4e22ba `test eax,eax / jge`) and sets the bool in each arm, ours
-//    materialises the bool and re-tests it (`xor bl,bl / test bl,bl`). Writing
-//    the arm as an if/else that assigns `ans` in each arm does fix the branch
-//    but costs more elsewhere: it drops the whole file to 63.8 percent
-//    (build/scratch note in the board).
-//  * ++size: the original does the increment into ecx and stores it after the
-//    `y == head` compare; we keep the size in esi and store before.
-// What did work this pass: the key compare must return a one byte value
-// (bool, as in the matched 0x4e2620.cpp), not int, or 0x4e235d reads
-// `test eax,eax` where the original has `test al,al` (68.7 -> 69.4 percent).
+//    materialises the bool and re-tests it (`xor bl,bl / test bl,bl`).
+//  * the non-multi tail's `if (ans)` arm is still laid out differently, and
+//    ++size: the original increments into ecx and stores after the `y == head`
+//    compare, we keep the size in esi and store before.
+// With the inline ctor the frame aligns: `this` at [esp+0x18], `_Y` at
+// [esp+0x14], so the 4-byte-offset diff the previous note described is gone.
 // Shaped like std::_Tree<...>::insert(const value_type&) from MSVC 5's
 // <xtree> (lines 211-232), with the _Insert body inlined on the _Multi path
 // (the out-of-line copy of it is 0x4e2620, the _Lrotate/_Rrotate copies are
@@ -49,7 +40,7 @@ enum Redbl_004e2250 { _Red = 0, _Black = 1 };
 class Class_004e1a30 {
 public:
     char* name;                                 // +0x0
-    bool FUN_004e1a30(const Class_004e1a30& other) const;
+    int FUN_004e1a30(const Class_004e1a30& other) const;
 };
 
 struct Val_004e2250 {
@@ -97,7 +88,8 @@ public:
     Node_004e2250* first;                       // +0x0
     char second;                                // +0x4
 
-    Class_004e2a10(const Class_004e2ab0& it, const char& flag);
+    Class_004e2a10(const Class_004e2ab0& it, const char& flag)
+        : first(it.ptr), second(flag) {}
 };
 
 class Class_004e2a30 {
@@ -206,10 +198,11 @@ Class_004e2a10 Class_004e2250::FUN_004e2250(const Val_004e2250& v)
         }
         it.FUN_004e2ab0();
     }
+    bool flag = false;
     if (it.ptr->val.key.FUN_004e1a30(v.key)) {
         Node_004e2250* slot;
         it.ptr = FUN_004e2620(slot, x, y, v);
-        return Class_004e2a10(it, (char)1);
+        flag = true;
     }
-    return Class_004e2a10(it, (char)0);
+    return Class_004e2a10(it, flag);
 }

@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// #2959 retry by GPT-6.1-sol: one check reconfirmed 93.3% (337/367); the
+// reallocating tail still differs in register and store order. No MATCH.
 // Retry #1769: GPT-6.1-sol confirmed 93.3% (337/367 code bytes) after three normal checks; the final batch did not MATCH. The reallocating tail still changes register and store order.
 // deepseek-v4.1-flash (#2405): still 93.3%. The authentic VC5 header store order
 // (`_End = s + n; _Last = s + size() + 1; _First = s;`) puts the stores right but

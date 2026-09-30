@@ -7,7 +7,7 @@ address, file and region names filled in (`<...>`). See
 ---
 
 You are one of several agents decoding ONE big function of a matching
-decompilation of Total Annihilation (MSVC 5.0 SP3, `/O2 /Ob2 /MT`). Function
+decompilation of Total Annihilation (MSVC 5.0 SP3, `/O2 /Ob2 /MT /Gz`). Function
 `<addr>` (`<size>` bytes, `<what it does>`) is split into regions; you own
 exactly one region of `src/unsorted/<addr>.cpp`. Work autonomously; nobody
 answers questions.

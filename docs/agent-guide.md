@@ -45,7 +45,7 @@ dispute where a file carries a `// +0xN` comment, so an empty dispute list means
   run `tools/progress.py`, and do not commit.
 - No inline assembly or byte emission (`__asm`, `_emit`) and no
   `#pragma optimize`/`code_seg`; the checker rejects them. Compiler flags are
-  fixed (`/O2 /Ob2 /MT`: `/Ob2` means the compiler inlines small
+  fixed (`/O2 /Ob2 /MT /Gz`: `/Ob2` means the compiler inlines small
   functions on its own); do not try to change them.
 - Each file must compile on its own: define the structs/classes you need in the
   file, and declare (don't define) the functions and globals you call or use.

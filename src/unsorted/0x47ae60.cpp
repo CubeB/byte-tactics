@@ -1,5 +1,24 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 65.5%. Player argument, callback table reloads and callee names corrected. Remaining frame, player-count registers and GUI-entry scaling differ.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
+// PARTIAL: 77.8%. Frame, prologue and the first ~89 instructions (through the
+// terrain check) match byte for byte. Now 2961 bytes vs the original 2947, so
+// what is left is register picks and block placement, not missing code:
+//  - 0x47af91 / 0x47b04c: the original keeps the player count in ecx with the
+//    active==2 tally in esi and the loop copy in edx (base in edi); ours keeps
+//    the g_game base live in esi from the first count loop, so the tally lands
+//    in edi and count/copy land in edx/ecx. Both pairs of loops are swapped the
+//    same way, so it is a single allocator decision about esi staying live
+//    across the FUN_00435a20 terrain call.  Declaring the copy before/inside the
+//    if, renaming it, or splitting the count into a fresh variable (the compiler
+//    CSEs it back) did not move it.
+//  - the shared "FUN_004c5740; strcpy(e->text, ...); FUN_004a0090(g_game +
+//    0x519); FUN_004ab0a0(menu)" tail now exists (ours at 0x47b79e, the
+//    original at 0x47b88b) but a few arms still emit their own copy, e.g. the
+//    third LineOfSight arm and part of the SelectMap/Difficulty tail.
+//  - small tails (strcmp("Player"), the "Skirmish" branches) load the menu
+//    argument into eax in ours and edx in the original, and the g_game
+//    temporary is ecx in ours and edx in the original; same instructions.
+// Fixed here: c2<1 and c1<1 must be one "||" test (one shared error block, two
+// "jl" to it) - that alone took this from 70.3 to 77.8.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -62,7 +81,7 @@ struct Frame_0047ae60 {
     char sA[0xc];
     char sB[0xc];
     int ev[6];
-    char bf[0x30];
+    char bf[0x40];
 };
 #pragma pack(pop)
 
@@ -117,17 +136,15 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         }
         FUN_0041d4c0();
 
-        table = *(Table_0047ae60**)(g_game + 0x29a0);
         int n = 0;
         int count = *(int*)(g_game + 0x38d81);
         if (count > 0) {
-            Player_0047ae60* p = table->players;
-            int i = count;
+            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
             do {
                 if (p->active == 2)
                     n++;
                 p++;
-            } while (--i);
+            } while (--count);
         }
         *(short*)(g_game + 0x2a3c) = n + 1;
 
@@ -139,36 +156,27 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             return;
         }
 
-        table = *(Table_0047ae60**)(g_game + 0x29a0);
         int c2 = 0;
         count = *(int*)(g_game + 0x38d81);
         if (count > 0) {
-            Player_0047ae60* p = table->players;
             int i = count;
+            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
             do {
                 if (p->active == 2)
                     c2++;
                 p++;
             } while (--i);
         }
-        if (c2 < 1) {
-            FUN_004abd90(g_game + 0x519,
-                         FUN_004c5740("There must be at least one player and one computer opponent"),
-                         0x1e0, 1, 1);
-            FUN_004ab0a0(menu);
-            return;
-        }
-
         int c1 = 0;
         if (count > 0) {
-            Player_0047ae60* p = table->players;
+            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
             do {
                 if (p->active == 1)
                     c1++;
                 p++;
             } while (--count);
         }
-        if (c1 < 1) {
+        if (c2 < 1 || c1 < 1) {
             FUN_004abd90(g_game + 0x519,
                          FUN_004c5740("There must be at least one player and one computer opponent"),
                          0x1e0, 1, 1);
@@ -193,11 +201,10 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             return;
         }
 
-        table = *(Table_0047ae60**)(g_game + 0x29a0);
         c2 = 0;
         count = *(int*)(g_game + 0x38d81);
         if (count > 0) {
-            Player_0047ae60* p = table->players;
+            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
             int i = count;
             do {
                 if (p->active == 2)
@@ -207,7 +214,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
         }
         c1 = 0;
         if (count > 0) {
-            Player_0047ae60* p = table->players;
+            Player_0047ae60* p = (Player_0047ae60*)*(int*)(g_game + 0x29a0);
             do {
                 if (p->active == 1)
                     c1++;

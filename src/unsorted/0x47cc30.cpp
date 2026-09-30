@@ -1,6 +1,24 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, further by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// PARTIAL: 64.5%. Preserve the game reload only when owner changes. Remaining mask-loop registers, frame and linked-list allocation differ.
-#include <windows.h>
+// Decompiled by deepseek-v4.1. Names are provisional.
+// PARTIAL 75.1% (best kept here). Body, frame, loop registers and the inlined
+// FUN_0047cb60 owner surgery all match; what still differs:
+// 1) The two bounds tests at the top: the original accumulates the sum in edx
+//    (movsx ebx,dx / movsx edx,ax / mov eax,[ebp+0x14233] / add edx,ebx /
+//    cmp edx,eax) and spills size.x after the cmp. MSVC always builds the sum
+//    in a fresh eax and loads width into edx here, 2 bytes longer. Plain
+//    `pos.x + size.x >= g_game->width`, two separate ifs and named sx/sy locals
+//    were all tried. Any variant must declare sx/sy before the first
+//    `goto remove` (C2362 otherwise).
+// 2) The three rec blocks: the original emits `cmp [ecx],0 / je BAD(next insn) /
+//    cmp [ecx+0x73],3 / je GOOD / BAD...jmp NEXT / GOOD...WRITE / NEXT` (the
+//    else block laid out first, single merged write). MSVC lays the then block
+//    first (`je BAD / jne BAD / GOOD / jmp WRITE / BAD / WRITE / NEXT`), so
+//    every forward jump in the tail sits a few bytes early and the mask
+//    branch's else block is sunk to the end of the function. Plain
+//    `active == 0 || type != 3`, nested ifs, and duplicating the write in the
+//    else were all tried (tested standalone: same layout).
+// 3) `test bl,al` is emitted as `test al,bl`; operand order could not be steered.
+// 4) The owner index does `lea eax,[esi+0x6a]; mov ecx,[esi+0x6a]` while the
+//    original does `lea ecx,[esi+0x6a]; mov edx,ecx` then indexes through edx.
 #pragma pack(push, 1)
 
 struct Obj_0047cc30;
@@ -103,12 +121,10 @@ extern Game_0047cc30* g_game;
 void __stdcall FUN_00483210(Point_0047cc30 pos, Point_0047cc30 size);
 void __stdcall FUN_00440a40(Point_0047cc30 pos, Point_0047cc30 size);
 
-
-static int SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
+static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
 {
     if (nw != obj->owner) {
-        int fl = obj->field_86;
-        if (fl == 0) {
+        if (obj->field_86 == 0) {
             Owner_0047cc30* old = obj->owner;
             if (old != 0) {
                 Obj_0047cc30** pp = &old->first;
@@ -121,9 +137,7 @@ static int SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
             nw->first = obj;
         }
         obj->owner = nw;
-        return 1;
     }
-    return 0;
 }
 
 // FUNCTION: 0x47cc30
@@ -132,47 +146,44 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
     Point_0047cc30 size = obj->size;
     if (obj->field_0 != 0)
         *(int*)(obj->field_0 + 0x26) = g_game->field_38a47;
+    int sx, sy;
     if (obj->pos.x < 0 || obj->pos.y < 0)
         goto remove;
-    Game_0047cc30* game;
-    if (obj->pos.x + size.x >= g_game->width || obj->pos.y + size.y >= g_game->height)
+    sx = obj->pos.x + size.x;
+    sy = obj->pos.y + size.y;
+    if (sx >= g_game->width || sy >= g_game->height)
         goto remove;
-    game = g_game;
 
-    Position_0047cc30 pp = obj->position;
-    if (SetOwner_0047cc30(obj, &game->owners[(pp.x >> 23) + (pp.z >> 23) * game->ownerCols]))
-        game = g_game;
     {
-        Cell_0047cc30* cell = &game->cells[game->width * obj->pos.y + obj->pos.x];
+        Position_0047cc30 p = obj->position;
+        SetOwner_0047cc30(obj,
+            &g_game->owners[(p.x >> 23) + (p.z >> 23) * g_game->ownerCols]);
+    }
+    {
+        Cell_0047cc30* cell = &g_game->cells[g_game->width * obj->pos.y + obj->pos.x];
         unsigned int f = obj->flags.all;
         int index = 0;
 
         if (f & 0x20000000) {
-            for (int j = size.y; j > 0; j--) {
-                for (int i = size.x; i > 0; i--) {
-                    unsigned char m = obj->unit->mask[index];
-                    index++;
-                    unsigned char bit = obj->bit2 ? 2 : 4;
-                    UnitRec_0047cc30* rec;
-                    if (m & bit) {
+            for (int y = size.y; y > 0; y--) {
+                for (int x = size.x; x > 0; x--) {
+                    unsigned char m = obj->unit->mask[index++];
+                    if (m & (obj->bit2 ? 2 : 4)) {
                         unsigned short id = cell->field_0;
-                        if (id == 0)
-                            goto a_write;
-                        rec = &g_game->units[id];
-                        if (rec->owner->active == 0)
-                            goto a_bad;
-                        if (rec->owner->type != 3)
-                            goto a_bad;
-                        rec->flags |= 0x8000000;
-                        obj->flags.all |= 0x4000000;
-                    a_write:
+                        if (id != 0) {
+                            UnitRec_0047cc30* rec = &g_game->units[id];
+                            if (rec->owner->active != 0 && rec->owner->type == 3) {
+                                rec->flags |= 0x8000000;
+                                obj->flags.all |= 0x4000000;
+                            } else {
+                                rec->flags |= 0x4000000;
+                                obj->flags.all |= 0x8000000;
+                                goto a_next;
+                            }
+                        }
                         cell->field_0 = obj->field_a8;
-                        goto a_next;
-                    a_bad:
-                        rec->flags |= 0x4000000;
-                        obj->flags.all |= 0x8000000;
                     }
-                a_next: ;
+                a_next:
                     if (m & 1)
                         cell->field_c |= 2;
                     cell++;
@@ -190,21 +201,22 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
             return;
         }
         if ((f & 3) == 1) {
-            for (int j = size.y; j > 0; j--) {
-                for (int i = size.x; i > 0; i--) {
+            for (int y = size.y; y > 0; y--) {
+                for (int x = size.x; x > 0; x--) {
                     unsigned short id = cell->field_0;
                     if (id != 0) {
                         UnitRec_0047cc30* rec = &g_game->units[id];
-                        if (rec->owner->active == 0 || rec->owner->type != 3) {
+                        if (rec->owner->active != 0 && rec->owner->type == 3) {
+                            rec->flags |= 0x8000000;
+                            obj->flags.all |= 0x4000000;
+                        } else {
                             rec->flags |= 0x4000000;
                             obj->flags.all |= 0x8000000;
                             goto b_next;
                         }
-                        rec->flags |= 0x8000000;
-                        obj->flags.all |= 0x4000000;
                     }
                     cell->field_0 = obj->field_a8;
-                b_next: ;
+                b_next:
                     cell++;
                 }
                 cell += g_game->width - size.x;
@@ -212,21 +224,22 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
             return;
         }
         if ((f & 3) == 2) {
-            for (int j = size.y; j > 0; j--) {
-                for (int i = size.x; i > 0; i--) {
+            for (int y = size.y; y > 0; y--) {
+                for (int x = size.x; x > 0; x--) {
                     unsigned short id = cell->field_2;
                     if (id != 0) {
                         UnitRec_0047cc30* rec = &g_game->units[id];
-                        if (rec->owner->active == 0 || rec->owner->type != 3) {
+                        if (rec->owner->active != 0 && rec->owner->type == 3) {
+                            rec->flags |= 0x8000000;
+                            obj->flags.all |= 0x4000000;
+                        } else {
                             rec->flags |= 0x4000000;
                             obj->flags.all |= 0x8000000;
                             goto c_next;
                         }
-                        rec->flags |= 0x8000000;
-                        obj->flags.all |= 0x4000000;
                     }
                     cell->field_2 = obj->field_a8;
-                c_next: ;
+                c_next:
                     cell++;
                 }
                 cell += g_game->width - size.x;

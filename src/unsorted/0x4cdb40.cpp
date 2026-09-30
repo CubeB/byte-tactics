@@ -1,8 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
-// Partial: 69.9%, unchanged in the #1469 retry. Mode 4 and case 0 still
-// duplicate the release tail; a shared label also merges the first call and
-// scores worse. Boolean playing state, alternate tests and headers did not
-// help. FUN_004b64d0 returns int, as in its matched implementation.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, continued by GPT-6.1-sol. Names are provisional.
+// Partial: best 69.9%, same score as the #1469 retry. Mode 4 and case 0
+// still duplicate the release tail; explicit shared-label variants scored
+// lower. Splitting the random-counter decrement did not change the score.
+// Main remaining differences are switch layout, strcmp lowering, and loop
+// register allocation. FUN_004b64d0 returns int, as in its matched implementation.
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdlib.h>

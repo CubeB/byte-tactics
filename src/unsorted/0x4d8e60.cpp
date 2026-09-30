@@ -1,4 +1,4 @@
-// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
 // Partial: 50.6%, retaining the best-scoring implementation. The original
 // formats reason at 0x4d9171: [esp+0x1c] before the 12-byte sprintf cleanup
 // is the reason slot at frame offset 0x10. This file instead formats file.
@@ -13,6 +13,7 @@
 // Also confirmed obj is one 0xc4d0 block; FUN_004d9c60's this is obj+0x10,
 // FUN_004d9ca0's this is obj. Declaration style/order of ctx and rec did not
 // remove the spill (see build/scratch/0x4d8e60/ledger.md).
+// GPT-6.1-sol retested reference, direct, register-hinted and region-scoped record pointers; none improved the 50.6% best.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

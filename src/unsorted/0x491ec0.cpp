@@ -5,6 +5,17 @@
 // still loads into EAX instead of comparing its stack home directly. Two
 // 768-set header sweeps, 25 condition/type variants and 16 buffer/layout
 // variants did not remove the extra load.
+//
+// Re-checked by deepseek-v4.1-flash: still 96.0, same single hunk. The extra
+// load is MSVC 5 register promotion of the gametype scalar; `cmp mem,imm`
+// needs the variable to be non-REG. Minimal-compiler experiments show every
+// plain local, struct member, nested member, array element, bitfield,
+// address-taken local and pointer/reference alias is still loaded into a
+// register; only `volatile` (ruled out: the first read would then be a memory
+// reload, but it is `cmp eax,1`) or a whole-aggregate block assignment
+// produces the memory operand. 128 header sets and 20 more shape variants
+// (union alias, char cast, separate locals, file-scope pack(1) struct) are
+// flat. See build/scratch/0x491ec0/ledger.md.
 
 #include <string.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// PARTIAL, 81.9% (406 of 427 bytes; up from 54.0%).
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// PARTIAL, 87.6% (410 of 427 bytes; up from 81.9%).
 //
 // WHAT IS SOLVED. The piece array starts at list+0x22, not +0x44, with `info`
 // at piece+0, `vertices` at +0x22 and `flags` at +0x28 on a 0x36 stride, under
@@ -149,6 +149,40 @@
 // `bitmap->field_14 == 0 && bitmap->field_14 == 0` and it still folds to the
 // single test (406 bytes, 81.9%). Both ceilings stand: 81.9% no-reload against
 // 69.4% reload, and 81.9% is kept here.
+// UPDATE (deepseek-v4.1): 410 of 427 bytes, 87.6%. The doubled `test eax,eax`
+// is SOLVED. Spelling the last conjunct twice, once through the local and once
+// through `list->bitmap`, is what the original wrote:
+//     && list->bitmap->field_14 == 0
+//     && bitmap->field_14 == 0
+// The frontend cannot fold two structurally different member accesses, the
+// backend still CSEs both loads into one `mov eax,[ebx+0x14]`, and the result
+// is the original's two adjacent `test eax,eax / jne` pairs. Writing the same
+// expression twice (or via a `(char*)` cast) folds and stays at 406 bytes.
+//
+// WHAT REMAINS, exactly the four hunk groups below, all one root cause: the
+// original frees ebx after the branch and lets `this` live in ebx from 0x4588fa
+// to the end, while this source keeps `bitmap` (a source variable, so its value
+// survives the 0x4586a0 call in ebx) live into the tail. Effects:
+//   0x4588fa `mov ebx,[esp+0x14]` and its twin at 0x458913 (this -> ebx) are
+//   missing; the rebuild call reloads ecx from the slot instead of `mov ecx,ebx`.
+//   0x458917 the original RELOADS `list->bitmap` into ecx (0x107 mov ecx,[edi+0x10])
+//   and this source tests the stale ebx instead (0x45891e `test ecx,ecx`).
+//   0x45891a `mov eax,[esp+0x20]`: the uninitialised `local_8` is homed in
+//   coords.y itself in the original (a self-copy), here it is homed in the
+//   `result` argument slot, so the load reads [esp+0x30].
+//   0x45895f onward: with `this` in ebx the original reloads `result` into ebp
+//   and keeps the loop counter in memory at [esp+0x14] (`inc eax` /
+//   `mov [esp+0x14],eax` / reload / `dec`), where this source has result in ebx
+//   and the counter in ebp (`lea ebp,[eax+1]` / `dec ebp`), plus `mov ecx,ebx`
+//   at the FUN_004584d0 call instead of a slot reload.
+// Every reload spelling tried (a fresh `Bitmap*` local, `if (list->bitmap)`,
+// `bitmap = list->bitmap;`, an early-declared late-assigned `bitmap2`, a `self`
+// copy of `this` used at the call sites) produces the CORRECT tail (this in ebx,
+// mov ecx,ebx, counter in memory, bitmap reload in ecx) at 425 bytes, but the
+// allocator then recolours the whole function: `list` moves from edi to esi and
+// `coords.x` from esi to edi, and the pre-branch bitmap moves from ebx to edx,
+// so the score drops to 57.2%. The pre-branch plan here (esi=x, ebp=z, edi=list,
+// ebx=bitmap, this spilled) is correct and must not be disturbed.
 extern char* g_game;
 
 struct Vertex_458810 { int x; int y; int z; };
@@ -245,6 +279,7 @@ void Class_004581e0::FUN_00458810(List_458810* list, Vec3_458810* result)
         if (bitmap == 0
             || (owner->intensity != 0.0f
                 && (owner->flags & 0x2000) != 0
+                && list->bitmap->field_14 == 0
                 && bitmap->field_14 == 0))
             rebuild = 1;
     }

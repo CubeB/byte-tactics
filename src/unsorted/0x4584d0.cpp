@@ -1,5 +1,24 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by
-// deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// FOURTH PASS (deepseek-v4.1): nine variants, none above the 79.6% baseline, so
+// this file is unchanged. The face loop rewritten as the Ghidra do-while shape
+// (`if (i < info->faceCount) do { ...; i++; face++; } while (i < info->faceCount);`)
+// compiles to byte-identical output (79.6%, 457 bytes), so the loop form is not
+// the lever; `q[0].x`/`q[0].y`, hoisting `q` with `Point_4584d0* q;` plus a
+// comma init, `int j = 0;` in the copy loop, and swapping the face-loop
+// increments are all also exactly 79.6%. Moving `q++` into the loop body is
+// 74.1%, y-store-first is 77.6%, swapping the vertex-loop increments is 74.1%,
+// and swapping the copy-loop increments drops to 78.9%. WHAT STILL DIFFERS is
+// exactly the two clusters above: (1) the vertex loop's bias convention, the
+// original sinks `lea ecx,[esp+0xec]` BELOW the `jle` guard and biases the
+// destination by +4 (`add ecx,8` early, stores at [ecx-0xc]/[ecx-8]) with an
+// unbiased source walked late, while this file hoists `lea ecx,[esp+0xe8]`
+// above the guard, biases the SOURCE by +4 (`add eax,4`, `[eax-4]`/`[eax+4]`)
+// and advances the destination mid-body; (2) the single eviction at the face
+// loop, where the original spills `i` to [esp+0x10] and keeps `info` in ebx,
+// while this file keeps `i` in edi, spends ebx on the copy-loop index temp and
+// reloads `info` from [esp+0x3f78] once per face.
+
 // PARTIAL, 79.6% (unchanged by the second and third passes). Callers (0x4584b4, 0x458997, 0x4593ff,
 // 0x459476) push the surface pointer as the second argument and the address of a
 // 12-byte {x,y,z} struct as the third, so the argument order is
@@ -48,7 +67,9 @@
 // Ten inner-loop spellings (field-by-field assignment, `idx[j]`, a walked
 // `poly`, a walked `idx`, a hoisted count, y-before-x) all measure 69-79% and
 // none reaches the original's shape. It is a priority tie, not a scheduling
-// accident: do not re-sweep it without a new idea.
+// accident: do not re-sweep it without a new idea. Since then, declaring the
+// inner counter `j` at its point of use inside the loop body was tried and
+// scores exactly the same 79.6% (457 bytes), so that lever is dead too.
 //
 // A MEASURED NEGATIVE worth keeping: the brief's "redundant store is a
 // variable initialiser" lever is dead here. Removing `int found = 0` style
@@ -205,7 +226,6 @@ void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,
                 - ((short)((vertices[i].y + off.y) >> 16) >> 1) + 0x20;
         }
     }
-    int j;
     Face_4584d0* face = info->faces;
     if (info->firstFace != -1) {
         face++;
@@ -214,6 +234,7 @@ void Class_004584d0::FUN_004584d0(Model_4584d0* model, void* surface,
         i = 0;
     }
     for (; i < info->faceCount; i++, face++) {
+        int j;
         unsigned short* idx = face->indices;
         for (j = 0; j < face->count; j++)
             poly[j] = projected[*idx++];

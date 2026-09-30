@@ -17,6 +17,11 @@
 // copy plus the early buf store look like a front-end value copy for a store
 // that the next `mov eax, 0x14` makes dead, and no plain assignment, computed
 // zero or by-value helper body tested reproduces it.
+// #2572 retry (deepseek-v4.1-flash): confirmed the same 98.3% wall. The
+// literal-argument form hoists the buffer store but CSEs the zero into ebp
+// (93.8%); the member-read form keeps a fresh xor ecx,ecx but sinks both
+// stores (94.1%); force-reading sb.buf does not hoist; separate char*/unsigned
+// locals collapse the frame to 0x50 (48.8%). No new shape beat 98.3%.
 // Best remains 98.3% after an additional source variant; still differs only in
 // the buffer initialization sequence at 0x4bd17b..0x4bd198, as detailed below.
 // GPT-6.1-sol refinement (issue 2310): the existing 98.3% source remains best.

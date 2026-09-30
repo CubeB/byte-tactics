@@ -1,35 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free. Names are provisional.
-// 90.5% (check.py). Everything outside the formatter section now matches; the
-// two remaining hunks, both listed here for a region based pass:
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// MATCH (check.py, 2150 bytes).
 //
-//  1. 0x4e1134-0x4e11a7 (formatter temporaries). Ten counters are formatted
-//     into twenty byte temporaries; nine calls to fmt_004e0b90 are inlined
-//     here and the tenth is a real call to an out of line copy of the helper
-//     (2058 bytes against 2150, 726 instructions against 756), which also
-//     moves two temporaries off the original's slots: 0xf4 and 0x11c where the
-//     original has 0xe0 (s0) and 0x114 (req). Nothing is lost, and the
-//     macro spelling that inlines all ten (build/scratch/0x4e0b90/w6.cpp,
-//     2156 bytes) drops to 63%, so the ten copies need per call site register
-//     choices this spelling does not give them.
-//     build/scratch/0x4e0b90/w1.cpp is the variant that inlines all ten
-//     (2144 bytes, 759 instructions) and gets the x87 hunk wrong instead, at
-//     89.1%.
-//  2. 0x4e0c31-0x4e0c63 (x87 rate update) matches only when the quotient is
-//     computed inside rate_add. What the original does that nothing here
-//     reproduces: it stores the quotient to its frame slot (0x4e0c45 `fst
-//     qword ptr [esp + 0x10]`, non popping) immediately after the divide,
-//     before `time = now`, then adds `total` with a memory operand
-//     (0x4e0c51 `fadd qword ptr [eax + 0x50]`) and reloads the quotient for
-//     the table store. So the original's local has a frame home and is still
-//     read from the x87 register, which needs a use between the two that this
-//     compiler keeps in one register. Spelled as a member method, or with the
-//     quotient in a caller local, it emits `fdivp st(1)` after one fxch.
+// The last diff was the /Ob2 inline budget in the formatter section: the ten
+// fmt_004e0b90 call sites need eleven inline expansions, which is one more
+// than this function gets (the rate_add helper takes the other slot), so the
+// tenth formatter was always emitted as a call to an out of line copy, which
+// also shifted the temporary slots and every internal jump target (2058 vs
+// 2150 bytes, 90.5%). Writing the tenth site (s6, DAT_00528a08) out by hand
+// as a plain block costs no inline budget and the whole function snaps into
+// place. The nine helper sites and the rate_add helper are untouched, so the
+// x87 rate update keeps its original `fdiv st(2)` with the quotient spilled
+// to [esp+0x10] (0x4e0c45 `fst`, reloaded at 0x4e0c54), which only the
+// inlined helper shape produces.
 //
 // Findings kept elsewhere: the 0x111 switch handles only 1 and 2 (0x4e12e3
-// `jle`, not `jl`), the rate is clamped with a ternary into a second double
-// (`fcom` then `fstp`, 0x4e0e8a) rather than `if (!(x > 0))`, and strcmp
-// wants the global as the first argument (0x4e1236 `lea esi` before the
-// `mov eax`).
+// `jle`, not `jl`), and strcmp wants the global as the first argument
+// (0x4e1236 `lea esi` before the `mov eax`).
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -232,7 +218,37 @@ int Class_004e0b90::FUN_004e0b90(unsigned int msg, int wParam, int lParam)
         fmt_004e0b90(s3, DAT_005289f8);
         fmt_004e0b90(s4, (unsigned int)field_4);
         fmt_004e0b90(s5, DAT_00528a1c);
-        fmt_004e0b90(s6, DAT_00528a08);
+        {
+            char* buf = s6;
+            unsigned int n = DAT_00528a08;
+            char* f;
+            char* w;
+            int digits;
+            *buf = 0;
+            f = buf;
+            w = buf;
+            digits = 0;
+            do {
+                *w = (char)('0' + n % 10);
+                w++;
+                n /= 10;
+                digits++;
+                if (digits % 3 == 0) {
+                    if (n != 0) {
+                        *w = ',';
+                        w++;
+                    }
+                }
+            } while (n);
+            *w = 0;
+            w--;
+            for (; f < w;) {
+                char a = *w;
+                char b = *f;
+                *f++ = a;
+                *w-- = b;
+            }
+        }
 
 
         sprintf(buf,

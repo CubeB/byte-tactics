@@ -325,6 +325,26 @@ Cell_0047f300* __stdcall FUN_00481550(int x, int y);
 // new variant was found that puts the pointer in EAX; the file stays at its
 // best 86.5%.
 
+// Addendum (deepseek-v4.1-flash, ninth pass, retry). Baseline re-confirmed:
+// 86.5%, 775 bytes, same size as the original. Two compiler-state levers the
+// earlier passes had not run here are both FLAT:
+//   * tools/headers.py over all 128 header sets: 86.5% at its best (windows.h,
+//     stdio.h, math.h, ddraw.h and windows.h+stdio.h all 86.5%), so the
+//     include set does not move the player pointer.
+//   * the 0..400 unused `extern int dummyN;` declaration sweep at file scope
+//     (step 4, scored with check.py --sym): only 85.7% and 86.5%, never
+//     above the file, so no dummy count reaches the original's state either.
+// Two more source shapes, both worse: dropping the `player` local and inlining
+// `g_game->players[pi].exploredWidth` in both arms is 56.0% (804 bytes, the
+// address is not CSE-hoisted); prepending the neighbouring 0x47f290 source in
+// the same TU does not compile (duplicate class definitions). The single
+// remaining cause is unchanged: the player pointer is built into EDI (EDX
+// with Contains arms) where the original builds it into EAX, and every arm
+// register rotation follows from it. The no-pi-local spelling is closest to
+// the original in the pre-branch block (it reproduces `xor ecx,ecx; mov
+// cl,[ebp+0x2a43]` and `lea eax,[ebp+ecx]` exactly, 763 bytes) but its final
+// `lea` still lands in EDI and the byte-count shift costs more than the spill
+// it removes, so it scores 80.2%.
 // FUNCTION: 0x47f300
 int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
 {

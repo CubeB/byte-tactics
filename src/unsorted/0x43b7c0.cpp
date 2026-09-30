@@ -1,5 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// PARTIAL (67.8%, 800 bytes against the original's 780). Per-frame driver of
+// PARTIAL (71.0%, 772 bytes against the original's 780). Per-frame driver of
 // the unit's command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60
 // list, matched, and the source of the Wait_0043b7c0 shape below). The list
 // head is re-read after every node, so a node the callback re-queues is seen
@@ -73,12 +73,36 @@
 // 760 bytes but only 64.0, so the original really does branch on `next == 0`
 // into the Wait block.
 //
-// What still differs: 20 bytes, the Wait block of case 3 and the Wait block of
-// case 9's else are emitted separately instead of merging into the one at
-// 0x43b951 (case 3 should be `push 0xf; jmp 0x43b951`). In v0, where case 9
-// called RemoveAndDelete instead of inlining it, the two did merge, so the
-// inline body itself is what breaks the block sharing here, and the global
-// eax/ecx rotation in the pending block is unchanged.
+// Improved by space-bunny-free (retry): 67.8 -> 71.0 (800 -> 772 bytes) by
+// finally getting the two Wait bodies to share ONE block. The way to do it is
+// a `goto` INTO case 9's else, with the delay in a local set before the jump:
+//
+//     int waitn = 0;
+//     case 3: waitn = 0xf; goto do_wait;
+//     case 9: ... else { node->count = 0; waitn = 0x1e;
+//     do_wait: Wait_0043b7c0(node, waitn); }
+//
+// The shared block then matches the original's 0x43b951 byte for byte
+// (edi/edx->ecx), and case 3 becomes `mov eax,0xf; jmp 0x43b954` instead of a
+// second copy of the whole body (build/scratch/0x43b7c0/variants/v0.cpp is the
+// two-literal-call-sites form, which is 800 bytes: MSVC allocates the two
+// inlined copies differently, so its block folding never joins them, even
+// though the second copy is byte identical to the original).
+//
+// What still differs, 8 bytes short plus the known rotations: sharing the block
+// costs the immediate pushes. The original keeps a literal at each site
+// (`push 0xf` at case 3, `push 0x1e` at case 9) because its source called the
+// wait helper twice with two constants and MSVC merged the blocks AFTER
+// inlining, hoisting the common tail; a source that shares one block cannot
+// push a literal, so it needs `mov eax,imm32; push eax` (6 bytes) at each of
+// the two entries, +4 each. Since the function is 8 bytes short overall, that
+// means roughly 16 bytes of the original's other code are missing as well: the
+// original's case-9 `mov eax,edx` copy of the just-stored flags (we keep the
+// OR result straight in eax and never copy it), and one `mov` in the ClearAll
+// search that we do not emit. The pending block's eax/ecx rotation, the
+// `unit->def` load into ecx instead of edx, the kind byte going to
+// [esp+0x18] instead of the dead argument slot at [esp+0x1c], and the
+// `mov ecx,[ebx]` we add at the top of case 6 all still stand.
 //
 // Retried by deepseek-v4.1 (10 more check runs, all 67.8% or worse): the
 // pending block was re-spelled nine ways (flags6 read into a local first, the
@@ -248,6 +272,8 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
     Class_0043a1f0* node = *pp;
 
     while (node != 0) {
+        unsigned int f9;
+        Class_0043a1f0* next9;
         if (g_game->frame >= node->wakeFrame) {
             node->wakeFrame = 0xffffffff;
             node->field_4e |= 1;
@@ -269,10 +295,11 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
             } while (--n);
         }
 
+        int waitn = 0;
         switch (DAT_00512344[node->kind].notify(node->unit, node, pending)) {
         case 3:
-            Wait_0043b7c0(node, 0xf);
-            break;
+            waitn = 0xf;
+            goto do_wait;
         case 1:
             node->count++;
             break;
@@ -287,9 +314,9 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
             RemoveAndDelete(unit, pp, node);
             break;
         case 9: {
-            unsigned int f9 = node->flags | 0x800000;
+            f9 = node->flags | 0x800000;
             node->flags = f9;
-            Class_0043a1f0* next9 = node->next;
+            next9 = node->next;
             if (next9 != 0) {
                 Class_0043a1f0* first9 = *pp;
                 Class_0043a1f0** link9 = (f9 & 0x40000) ? &unit->list2 : pp;
@@ -305,7 +332,9 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
                 }
             } else {
                 node->count = 0;
-                Wait_0043b7c0(node, 0x1e);
+                waitn = 0x1e;
+            do_wait:
+                Wait_0043b7c0(node, waitn);
             }
             break;
         }

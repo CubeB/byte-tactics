@@ -1,47 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 78.6%: builds the skirmish setup screen's GUI entries. Structure,
-// record layouts, strings and control flow are right; the only remaining
-// difference is one allocator choice. The original keeps the constant 0 in ebx
-// (so the four byte stores are `mov byte ptr [esp+N], bl`) and the wsprintfA
-// import in esi, reloading it every loop iteration because the inlined strcpy
-// clobbers esi. This copy keeps g_game in ebx, so the wsprintfA import lives in
-// ebx across the whole loop and the constant 0 is rematerialised into esi
-// (`xor esi,esi` at loop top and mid-loop), which forces immediates for the
-// byte stores and a direct `cmp ebp,[ecx+0x38d81]` at the latch. Both use all
-// four callee-saved registers, so it is a straight swap of the two roles.
-// ebx is the only callee-saved register with a byte sub-register in 32-bit
-// x86; the original's zero must therefore hold ebx once it serves byte stores.
-//
-// Tried and did NOT flip the choice (all scored the same 78.6, byte-identical
-// output): reordering y before/after the memsets, flags before the memsets,
-// rec2 declared before rec1, `int i;` declared at top, for/while/do-while,
-// while(1)+break, separate `int step; step = ...;` assignment, ZeroMemory for
-// memset, `NULL` instead of 0, a StoreByte helper, a named `char zero` local,
-// a dead `(void)g_game->numPlayers;`. Swapping the two memset calls (75.2) or
-// caching numPlayers (58.5) or `unsigned step` (75.1) made it worse. The y
-// computation before the memsets is what took it from 72.0 to 78.6.
-//
-// Retry also tried, all still 78.6 with byte-identical output: an explicit
-// `char`/`unsigned char`/`int zero` local used in the byte and word stores,
-// `i` and `zero` declared before `step`, records declared before `step`, a
-// named `Game* g = g_game` used for the top block (declared first and after
-// the records), a local `int n = g_game->numPlayers` for step/y, and
-// `static __stdcall` helpers Step_/Y_ taking `g_game`. The memsets moved
-// between step and y (v2) removed `push ebx` and flipped g_game to esi but
-// shuffled the frame (y at 0x154) and dropped to 56.6. The zero constant
-// keeps landing in esi because the anonymous g_game temporary takes ebx in
-// the prologue; per the guide, constants only get the byte registers the
-// variables leave free, so the fix is a source shape that puts g_game
-// somewhere other than ebx.
-//
-// Retry (deepseek-v4.1-flash): headers.py tried all 128 header sets and none
-// beat 78.6 (best <windows.h>). An explicit `int zero` local used in the byte,
-// word and dword zero stores is still constant-folded, so the zero value lands
-// in esi and the byte stores take an immediate; ebx goes to g_game/wsprintfA.
-// The remaining hunks are exactly the esp+0x14/shape from the diff: original
-// `xor ebx, ebx` + `mov byte [esp+N], bl`, ours `xor esi, esi` +
-// `mov byte [esp+N], 0`, and the wsprintfA import hoisted to ebx instead of
-// reloaded into esi each iteration.
+// Partial, 78.6%. Zero occupies ESI instead of EBX, and the formatter import
+// remains cached. Header, aggregate, loop and helper variations did not improve it.
 #include <windows.h>
 #include <string.h>
 

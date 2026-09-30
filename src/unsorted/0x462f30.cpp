@@ -16,6 +16,22 @@
 // 0x4630b9 region and the two ring pop sites still differ. The callee names
 // and calling conventions (FUN_0044f9c0/Class_0044f9c0, FUN_004568b0,
 // FUN_00463790, operator new/delete, __stdcall FUN_004c9530) do match.
+//
+// Remaining diff hunks by address (best partial, reviewed by deepseek-v4.1-flash):
+//   0x462f30 prologue/frame: original is 0x10 with i@[esp+0x10], tick@[esp+0x14]
+//            (kept in ebp), flag@[esp+0x18] (setg), a@[esp+0x1c]; ours is 8 with
+//            tick in esi and the entry pointer in ebp.
+//   0x462f4e loop 1: original bases on esi = &entry[0].tail.buffer (this+0x48),
+//            reads the id as [esi-0x28] and the copy-out as [esi+4]/[esi+8];
+//            ours bases on ebp = &entries[i] (this+0x20). The outer object is an
+//            entry with head (0x00..0x17) and tail (0x18..0x33), see 0x4635b0.cpp.
+//   0x462f8a/0x462fc1 ring pop: matches in shape, dead r->n<=0 arm at 0x462fb5
+//            (xor eax,eax then reads [eax+8]/[eax+4]) not reproduced.
+//   0x462fde..0x4630b9 buffer refill/swap: transcribed from Ghidra pseudo-C, not
+//            from Cavedog's real control flow, so most of this region differs.
+//   0x4631c0..0x4633d4 packet routing: register roles differ (entry pointer
+//            spilled at [esp+0x10]); the four FUN_004568b0 guard sites are close.
+//   0x463453..0x463583 second ring pop and copy-out use the tail pointer too.
 #include <string.h>
 
 struct RingEntry_00462f30 {

@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**66.90% of Cavedog's code matched** (569,205 of 850,853 bytes)
+**67.07% of Cavedog's code matched** (570,636 of 850,853 bytes)
 
 `[###########################-------------]`
 
-By count that is 3,004 of the game's 3,267 functions (91.9%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,005 of the game's 3,267 functions (92.0%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,004 | 569,205 |
-| Attempted, not yet matching | 260 | 279,128 |
+| Matched byte-for-byte | 3,005 | 570,636 |
+| Attempted, not yet matching | 259 | 277,697 |
 | Not attempted yet | 3 | 2,520 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 651 of 703 | 91.8% | 14,779 | `#########-` |
 | xl (401 to 600 bytes) | 188 of 226 | 82.5% | 19,293 | `########--` |
 | xxl (601 to 1,000 bytes) | 126 of 195 | 63.6% | 53,441 | `######----` |
-| huge (over 1,000 bytes) | 64 of 161 | 33.8% | 193,419 | `###-------` |
+| huge (over 1,000 bytes) | 65 of 161 | 34.3% | 191,988 | `###-------` |
 
 ### By area
 
@@ -54,7 +54,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x420000` | Frontend shell | 141 of 154 | 61.4% | 24,514 | `######----` |
 | `0x430000` | Maps, missions, briefings | 210 of 228 | 64.4% | 21,510 | `######----` |
 | `0x440000` | Multiplayer setup | 238 of 246 | 69.7% | 18,628 | `#######---` |
-| `0x450000` | Options and audio menus | 158 of 176 | 60.9% | 24,658 | `######----` |
+| `0x450000` | Options and audio menus | 159 of 176 | 63.2% | 23,227 | `######----` |
 | `0x460000` | Game and skirmish setup, unit classes | 192 of 212 | 57.4% | 26,183 | `######----` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 230 of 259 | 67.6% | 20,564 | `#######---` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 242 of 264 | 70.8% | 18,558 | `#######---` |

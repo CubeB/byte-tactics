@@ -5499,6 +5499,6 @@ address,size,model,batch,result,similarity,runs,notes
 0x467440,1015,,#2617,assigned,,,"issue #2617, escalated"
 0x46a860,4247,,#2619,assigned,,,"issue #2619, escalated"
 0x46dad0,1024,,#2619,assigned,,,"issue #2619, escalated"
-0x4d0040,40,,#2620,assigned,,,issue #2620
+0x4d0040,40,opus,#2620,matched,100.0,,issue #2620
 0x4bd3b0,1148,,#2621,assigned,,,issue #2621
 0x4bd830,1332,,#2621,assigned,,,issue #2621

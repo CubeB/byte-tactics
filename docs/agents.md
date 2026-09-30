@@ -105,7 +105,7 @@ own totals, so treat the absolute numbers as rough; the ratios are what matter.
 | Size (bytes) |  | Deepseek-v4.1-flash | Gpt-5.6-terra | Gpt-6 | Gpt-6-astra | Gpt-6-luna | Haiku | Longcat-2.5-preview-free | Mimo-v2.6-flash | Mimo-v2.6-pro | Nemotron-3.5-lightning-free | Opus | Sonnet | Sonnet-5.5 | Space-bunny-free |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1-16 |  |  |  |  |  |  | 283/312 (91%) |  |  |  |  | 3/3 (100%) |  |  |  |
-| 17-40 |  |  |  |  |  |  | 235/337 (70%) |  |  |  |  | 124/124 (100%) | 9/10 (90%) |  |  |
+| 17-40 |  |  |  |  |  |  | 235/337 (70%) |  |  |  |  | 125/125 (100%) | 9/10 (90%) |  |  |
 | 41-64 |  |  |  |  |  |  | 3/11 (27%) |  |  |  |  | 255/255 (100%) | 96/109 (88%) |  |  |
 | 65-160 |  | 64/67 (96%) |  |  |  |  | 1/6 (17%) |  |  |  |  | 739/747 (99%) | 2/6 (33%) |  |  |
 | 161-400 | 0/10 (0%) | 277/362 (77%) |  | 17/18 (94%) |  |  |  |  |  |  |  | 30/36 (83%) |  |  | 204/291 (70%) |
@@ -1429,6 +1429,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #2314 | gpt-6.1-sol | 1 | 0 | 0 | n/a | n/a | n/a |
 | #2530 | deepseek-v4.1-flash | 3 | 0 | 0 | n/a | n/a | n/a |
 | #2570 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
+| #2620 | opus | 1 | 1 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 

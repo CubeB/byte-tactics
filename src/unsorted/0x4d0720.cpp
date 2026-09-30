@@ -1,4 +1,20 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// TWELFTH PASS (deepseek-v4.1-flash): body unchanged at 97.5%, 205 bytes, the
+// same two-instruction preheader displacement. headers.py was rerun first: no
+// header set matches, closest is 97.5%. Six fresh probes, all scored without
+// spending a real run beyond the baseline:
+//   * the test in the `for` condition (build/scratch/0x4d0720/pa.cpp) is
+//     91.6% / 218 bytes, not rotated, the known top-tested/not-rotated shape.
+//   * `pos = 0x14;` BETWEEN the name and off reads (pb.cpp) is 97.5% / 205,
+//     identical diff, confirming the earlier "above the last read" result.
+//   * an inline `Same(char*, char*)` comparison helper (pc.cpp) is 97.5%.
+//   * a live `char* t = target;` copy across the whole loop, used in both
+//     tests (pd.cpp), and the same copy placed between the name read and the
+//     off read (pf.cpp), are both 97.5%: the copy coalesces into the
+//     parameter, as all earlier copy spellings did.
+//   * an explicitly peeled first test plus a bottom test (pe.cpp) is
+//     56.3% / 223 bytes, the same non-rotated shape as the earlier peeled
+//     probes.
 // ELEVENTH PASS (deepseek-v4.1-flash, check.py --sym scoring only; the file is
 // unchanged at 97.5%, 205 bytes, the same two-instruction preheader
 // displacement). Only genuinely new negatives, none of which repeats an

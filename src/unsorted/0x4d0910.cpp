@@ -229,6 +229,23 @@
 // fixes the pos copy (pos after both reads) MSVC folds the update, and no
 // no-code statement can intervene between the copy and the test. This is the
 // backend block/fold tie the sibling 0x4d0720 and 0x4d07f0 also record.
+// TWELFTH PASS (deepseek-v4.1-flash, headers.py first: no header set matches,
+// closest 94.7%; then four free check.py --sym variant scores, no real run
+// beyond the baseline). Code unchanged at 94.7%, 206 bytes, the same two
+// preheader diffs. Genuinely new negatives, all flat at 94.7% unless noted:
+//   * an `static __inline unsigned int Add8(unsigned int x) { return x + 8; }`
+//     used for the update, with pos between the reads, inlines to the identical
+//     edi-temp code; with pos after both reads it folds exactly as the plain
+//     `size += 8` does (93.3% / 200 bytes).
+//   * a live `unsigned int hdr; hdr = 0xc;` local passed to the seek (to put a
+//     value live across the update and occupy a second register) is constant
+//     folded back to `push 0xc` and leaves the edi temp.
+//   * a nested `{ size += 8; }` block around the update is byte identical.
+//   * spelling the latch increments `pos = pos + len;` / `pos = pos + 8;`
+//     instead of `+=` is byte identical.
+// Nothing here separates the temp register from the pos-copy schedule, so the
+// finding of passes nine to eleven stands: the residual is one graph-level
+// allocator/fold decision in the preheader, not reachable from source.
 // Bottom line for the next pass: the preheader's statement order is forced by
 // the original (setup, then the two reads, then the pos copy, then the test),
 // and in that order MSVC 5 folds the size update, while every order that keeps

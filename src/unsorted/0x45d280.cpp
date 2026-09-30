@@ -56,6 +56,24 @@
 //     an in-place memory xor instead of a load/keep/store of the word.
 // So the wanted form is a word in EAX, D in DL, an 8-bit xor into CL and a
 // 32-bit mask, with the word stored back from CX rather than xored in place.
+// deepseek-v4.1-flash retry 2 (kept this 91.5% file, all new variants lower):
+// declaring DAT_00512f46 as `int` and writing the flip as the fused
+// `f ^ ((f ^ DAT_00512f46) & 1)` DOES produce the target SHAPE: narrowed byte
+// load `mov bl,[DAT]`, byte xor `mov dl,cl / xor dl,bl`, then 32-bit
+// `and edx,1 / xor edx,ecx`, i.e. exactly the NOTRAK width pair (int-typed
+// xor operand keeps the mask 32-bit while the xor itself runs at byte width).
+// But the register roles rotate (game lands in eax not edi, f in ecx, D in
+// ebx, temp in edx) and the if-test above it breaks: with D an int,
+// `(flags.byte ^ D) & 1` distributes into `(byte & 1) ^ (D & 1)`
+// (`mov ecx,[DAT] / and ecx,1 / mov dl,[..] / and edx,1 / xor edx,ecx`), which
+// reshuffles the whole block allocation (86.9%, 1333 bytes exact size).
+// Casting D back to unsigned char at the if-test only (varD) or wrapping the
+// xor in an (unsigned char) cast (varE), and an int local copy of D (varG),
+// were written to build/scratch/0x45d280/ but did not finish scoring before
+// the timebox. Next step: get the if-test back to `mov cl,[DAT] / mov dl,[..]
+// / xor dl,cl / test dl,1` while keeping the int-typed flip xor, then chase
+// the register rotation (game eax->edi, f ecx->eax, D ebx->edx, temp
+// edx->ecx) via the `game = g_game` reload placement.
 // deepseek-v4.1-flash retry: ~30 more spellings of the UNDO flip tried (int,
 // unsigned int, short, char and byte temps, fused and split, bitfield writes,
 // explicit bool, both member-read orders, local DAT copies, no-cast forms, the

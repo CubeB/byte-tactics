@@ -118,6 +118,23 @@
 // `check.py --sym`): still exactly 99.2, the guard's `jge` still points at the
 // reload at 0x4be66d. The file is left at the best of the flat 99.2 family; the
 // only wrong byte in the 699 is the guard's jump displacement.
+// A seventh session (space-bunny-free) re-confirmed 99.2 and closed the last
+// two shapes that read as still open, both scored with `check.py --sym`, both
+// byte-identical to this file:
+//   - the guard as a `continue` of the outer search loop, `if (i >= d->count)
+//     continue;` placed between the clamp and the `for` (not the "branch ends
+//     in continue" or the "if guard round the for" the earlier sessions tried):
+//     the front end still merges the continue target with the if/else join, so
+//     the copy lands on one block head and the guard still targets it;
+//   - the epilogue, with no `Find* f` copy at all (`if (h) { ... h ... }`) and
+//     with the copy declared inside a `if (h != 0)`, the shape the MATCHED
+//     neighbour 0x4bca30 uses: both are 99.2, the reload at 0x4be66d is still
+//     emitted for all five edges, so the epilogue's spelling of the handle is
+//     not what decides the edge.
+// What the three together show: the edge is not the front end's block for the
+// `continue` target, not the epilogue's use of the handle, and not the loop's
+// shape, so it is the back end choosing between sinking the copy into the head
+// of the five-pred join and leaving it on the four edges that clobber esi.
 #include <io.h>
 #include <string.h>
 

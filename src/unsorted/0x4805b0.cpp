@@ -72,6 +72,19 @@
 // Dist parameter named and unnamed (46.3, 46.7, 45.9, 47.1%), `(short)` cast on the
 // Toward step (45.7%), min written `if (d3 < d1) d1 = d3;` plus `Dist(b, c)`
 // (63.0%). Best stays the named-`a` ternary file below at 66.2%.
+// deepseek-v4.1 pass (#2385): re-ran the board's unnamed-form idea, since it is
+// the one shape that gives d1 the first `*p` temp's stack slot the way the
+// original does. `int d1 = Dist(*p, b); int d2 = Dist(*p, c); int d3 =
+// Dist(c, b);` scores 61.5% (353 bytes): MSVC copies the by-value b as one
+// whole dword into ebp (`mov ebp, dword ptr [esp + 0x1c]`) before the deref,
+// the opposite of the original's member-wise ebx/ebp homes, so the slot it
+// gets right does not pay for the two registers it loses. `Dist(b, c)` for d3
+// is 62.0%, `if (d3 < d1) d1 = d3;` for the min is 60.8%, and an unnamed first
+// call followed by a named second copy (`Point a = *p;` after the d1 line) is
+// 61.5%. Every shape tried by the three earlier passes plus these still leaves
+// the same gap: b member-wise in whatever the allocator has free (ecx/edx plus
+// spills here, ebx/ebp in the original) and c as a whole dword (ebx here,
+// ecx/edx in the original). Best stays this named-`a` file at 66.2%.
 #include <stdlib.h>
 
 struct Point_004805b0 {

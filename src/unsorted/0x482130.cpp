@@ -200,6 +200,16 @@
 //   the guard does not change that; putting `dst = p` inside the guard costs 10
 //   bytes (65.0%). So the register preference between the two pointers is the
 //   whole remaining gap and no declaration order moves it.
+// deepseek-v4.1 (issue 2385) pass: still 86.3% / 318 bytes, same three hunks.
+// Re-tried with new negatives: a fresh destination variable read by the count
+// (dest in edx, src in esi; 65.7 to 75.5%), a do/while compaction loop and a
+// second name for `end` (both byte-identical to this file), and the count as
+// `p - g_game->eyes` typed subtraction (byte-identical). What still differs:
+// the original spills the advanced destination p to [esp+0x18] (which frees esi
+// for &d->screenPos and leaves edi for &d->flagB), while ours keeps p in esi,
+// takes edi for &d->screenPos and spills &d->flagB to [esp+0x14]; from that
+// follow the `end` home at [esp+0x18] instead of [esp+0x14] and the final /36
+// sign fix-up in ecx instead of eax. No source shape tried moves the tie.
 #include <stddef.h>
 
 #pragma pack(push, 1)

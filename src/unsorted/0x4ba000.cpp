@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry #1952: 10 checks kept 98.7%. Header sets, an inline byte-returning helper, and pointer-index spelling tied; int value scored 64.4%, bool state 31.7%.
 // Retry #1733: GPT-6.1-sol verified 98.7% (430/430); no MATCH. The remaining loop-head history store and state normalization order is unresolved.
 // PARTIAL, 98.7% (430 of 430 bytes, 154 of 158 instructions). One basic
 // block differs: four instructions in the head of the main loop are in a

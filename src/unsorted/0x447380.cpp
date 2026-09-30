@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// GPT-6 retry: helper return types and member forms did not improve 93.5%.
 // 93.5%, and the code is exactly the right size (1318 bytes). Everything from the
 // function entry to the end of the big `if` condition matches byte for byte, and
 // so does everything from the end of the strcat block to the epilogue.

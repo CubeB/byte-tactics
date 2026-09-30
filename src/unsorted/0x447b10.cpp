@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial, 35.8%: matched callee byte parameters improve argument setup;
+// dispatcher frame, register allocation and string-copy expansions still differ.
 // Partial, 35.4%: complete dispatcher; frame layout, register allocation
 // and remaining inlined string copies differ. Host lookup returns a byte.
 #include <stdio.h>
@@ -28,11 +30,11 @@ int __stdcall FUN_00446e90(int);
 int FUN_0044c7e0();
 int FUN_00450f90();
 int FUN_00451180();
-int __stdcall FUN_00451220(int,int);
+int __stdcall FUN_00451220(unsigned char,int);
 int __stdcall FUN_004526c0(int);
 int __stdcall FUN_00452960(int,int,int,int);
 int __stdcall FUN_00452bd0(int);
-int __stdcall FUN_00453010(int,int);
+int __stdcall FUN_00453010(int,unsigned char);
 byte FUN_00456850();
 int FUN_00457a50();
 int FUN_00457af0();

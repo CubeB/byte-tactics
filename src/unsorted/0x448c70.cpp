@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash. Names are provisional.
+// Partial, 43.8%: signed ring-distance comparison and >= 30 wrap improve branches.
+// Frame remains 8 bytes too large; top-loop and player-loop registers differ.
 // Partial, 43.7%: complete map and player refresh. Still differs: the frame is
 // 8 bytes too large (0xdc vs 0xd4), the two top loop temps are in each other's
 // register (ebx/ebp swapped), and player-loop register allocation generally.
@@ -100,14 +102,14 @@ void FUN_00448c70(void)
   iVar8 = FUN_0049ff90((int)(*(int *)(*(int *)((int)g_game + 0x531) + 4)),(int)("OUTPUT"));
   uVar18 = (uint)*(ushort *)((int)g_game + 0x2a3e);
   uVar4 = *(ushort *)((int)g_game + 0x2a40);
-  if (uVar18 < uVar4) {
+  if ((int)uVar18 < (int)uVar4) {
     uVar18 = uVar18 + 0x1e;
   }
   local_bc = iVar8;
   uVar7 = FUN_004a50b0();
-  if (((int)*(short *)(iVar8 + 0x19) / (uVar7 + 2) < (int)(uVar18 - uVar4))
+  if (((int)(uVar18 - uVar4) > (int)*(short *)(iVar8 + 0x19) / (uVar7 + 2))
      && (*(short *)((int)g_game + 0x2a40) = *(short *)((int)g_game + 0x2a40) + 1,
-        0x1d < *(ushort *)((int)g_game + 0x2a40))) {
+        *(ushort *)((int)g_game + 0x2a40) >= 0x1e)) {
     *(undefined2 *)((int)g_game + 0x2a40) = 0;
   }
   if ((*(ushort *)((int)g_game + 0x2a3e) != *(ushort *)((int)g_game + 0x2a40)) &&

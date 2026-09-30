@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 98.3 percent, size exact (865 bytes against the original's 865).
 // Everything from the prologue through the third visibility test is byte exact,
 // and so is the whole last test's block shape, including the two long
@@ -287,6 +287,17 @@
 // load bearing and the current form (explored arm first) must stay. Nothing
 // else new; the best version is back in the file at 98.3 with the single
 // 6-byte hoist described above.
+//
+// Sixth pass, deepseek-v4.1-flash (retry). Four more last-region spellings,
+// each compiled alone and scored free (build/scratch/0x465ac0/ds): the test as
+// a `while`, as a `for (; cond; )`, with `(void)u;` before the update so the
+// unit stays live into the join block, and through an `int r` result local.
+// All four stay at 98.3 with the byte-identical 6-byte hoist (g_game load in
+// EBP at the join, above `test eax,eax`), so the `while`/`for` block shape and
+// the extra unit use are not levers either. Best remains this file's version.
+// The remaining diff is exactly the single 6-byte load placement described
+// above, and the header's deeper-statement-level idea is the only untried
+// direction that fits the block evidence.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

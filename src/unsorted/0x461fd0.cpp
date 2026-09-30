@@ -1,4 +1,34 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass deepseek-v4.1-flash (issue 2475 retry, 10 min box): no score movement,
+// kept 86.6% (911/919). Two new facts this pass.
+//
+// 1. The kept build is SEMANTICALLY WRONG, not just byte-different. Look at the
+//    inner loop as written here: `while (c != 0) { if (c->field_c == p) { ...
+//    j++; c = c->field_1c; } }`. The `j++`/`c = c->field_1c` latch is INSIDE
+//    the if body, so when an entry belongs to another packet the body is
+//    skipped and `c` is never advanced: infinite loop. The original breaks out
+//    instead: at 0x4621e5 `jne 0x4622e4` jumps STRAIGHT to the merge
+//    (`p->count = j`), skipping both the latch and the `c != 0` test, and the
+//    latch at 0x4622ca is only reached through the taken body. So the original
+//    is `if (c->field_c != (int)p) break;` at the top of the while body, with
+//    `j++`/`c = c->field_1c` at the end of that same body. This file cannot be
+//    made byte-identical without that break; the 86.6% score is a local
+//    optimum of an incorrect spelling. The correct break form scores 69.5%
+//    (c becomes loop-carried and MSVC homes IT to ebp, pushing base to memory,
+//    the exact opposite of the original's base-in-ebp / c-in-0x30 split).
+//
+// 2. Frame-slot experiments confirmed again that slots are allocator state.
+//    Declaring `int n;` early (after `Entry* base;`) and zeroing it at the old
+//    site produced BYTE-IDENTICAL output to the kept build, so `n` still lives
+//    in the dead growbufs argument slot 0x2c. Likewise the first-store order
+//    (totalentries, base, i, j, p, q) does not predict the slot order
+//    (j 0x10, base 0x14, i 0x18, p 0x1c, q 0x20, totalentries 0x24).
+//
+// The remaining byte diffs are unchanged from the notes below: ours keeps
+// `n` in the dead arg slot 0x2c and `j` in frame 0x10 (original n 0x14, j 0x2c),
+// our inner loop head is a single block (original has the two-entry reload
+// block at 0x4621d8 because its `c` is memory-resident across the back edge),
+// and the delete[] argument / tail registers are swapped.
 // THIS PASS (deepseek-v4.1, 10 min box): nine check.py runs, no score
 // movement, kept 86.6% (911/919); all variants I tried were worse:
 //  * do/while + break with the c != 0 branch hoisted (63.9%): the outer zero

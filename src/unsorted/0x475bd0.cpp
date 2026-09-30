@@ -1,4 +1,17 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry 7 (deepseek-v4.1-flash, issue 2932): no change, 99.7%, the same single
+// SIB byte (original `lea eax,[esi+edx]`, ours `lea eax,[edx+esi]`). New
+// measurements via check.py --sym: changing the _Ucopy loop shape (increment
+// order swapped, split increment into the body, while-body, `_P++`) all stay
+// 99.7, so the operand order is not set by the helper's body. A destination-
+// first helper `_Ucopy3(_Q+_M, _P, _Last)` (for/while) is 75.1. Count-based
+// _Ucopy loops (`_C = _L - _F` as size_type or difference_type, for/while) all
+// collapse to 27.3. The sibling 0x4758c0 explicit-fill trick in insert is 95.7
+// here. None of the ten third-argument spellings (iterator/static_cast casts,
+// `_M*1`, `1*_M`, `&*_P`) moved the byte. This remains the compiler-state SIB
+// case: the SIB base/index assignment inside the optimizer's reassociated copy
+// is not reachable from any caller-visible spelling, and the file needs the
+// regroup-into-original-files phase. Best version (99.7) kept. 
 // Retry 6 (deepseek-v4.1-flash, issue 2826): no change, 99.7%, the same one SIB
 // byte ([esi+edx] original, [edx+esi] ours). New measurements with check.py
 // --sym: any second std::vector<T>::insert instantiation in this file (1 to 4

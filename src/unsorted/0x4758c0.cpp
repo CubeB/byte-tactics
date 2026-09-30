@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#2932): still 88.9 percent, 779 of 779 bytes.
+// Tried `iterator _Q = allocate(); iterator _S = _Q; _Q = _Ucopy(...)` (76.5),
+// a foldable `if (_P == _Last) _Q = _S;` extra _P use (39.7) and an aliased
+// `_Pe` for the third copy only (88.9). Same allocator wall the notes below
+// document: the original keeps _P in edx, this build reloads it into ecx from
+// [esp+0x1c] every iteration of the first copy; genuine translation-unit
+// compiler state, not reachable from the source shape.
 // deepseek-v4.1-flash retry (2026-09-30, #2784): no new source shape beats
 // 88.9 percent. Re-confirmed the faithful `_Ufill(_Q, _M, _X)` spelling is 84.3
 // (777 bytes) and re-read the arm offsets: after `push edx; call operator new`

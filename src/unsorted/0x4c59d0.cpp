@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #1769: GPT-6.1-sol confirmed 93.3% (337/367 code bytes) after three normal checks; the final batch did not MATCH. The reallocating tail still changes register and store order.
 //
 // PARTIAL: 93.3% (check.py), 337 of 367 code bytes identical. This is the
 // game's out-of-line vector::insert for the reallocating case: the three STL

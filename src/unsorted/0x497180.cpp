@@ -73,6 +73,15 @@
 // - One `mov eax,[ecx+ebx+0x1b63]` / `lea esi,[ecx+ebx+0x1b63]` where ours
 //   encodes the base and index the other way round ([ebx+ecx+..]).
 //
+// This pass (deepseek-v4.1, 12 min, 3 check runs): no gain, two negatives.
+// - The three post-call pl lanes with a shared 32-bit `unsigned int pb`
+//   temp (xor edx,edx / mov dl,[..] / and edx,imm) still rotate the
+//   function file: 75.2% at 2831 bytes. Do not retry that site either.
+// - `v ^ ((v ^ b) & one)` compiles byte-identically to `((v ^ b) & one) ^ v`
+//   (82.8%, 2846 bytes), so the xor-lane operand order is not the lever;
+//   MSVC folds both to the (v & 0xfffe) ^ (b & 1) form because the mask is
+//   the immediate 1 here, while the original masks with the edi register.
+//
 // Earlier passes (still in this file) fixed the Fixed union, the __stdcall
 // declarations, the int sel/sel2 locals and the initial `==3` guard.
 //

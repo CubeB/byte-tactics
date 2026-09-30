@@ -63,6 +63,29 @@
 //   `FUN_00451df0(FUN_0044fdb0(), data, 3)` (no intermediate int) makes MSVC
 //   push the literal 3 before the toggle, as the original does.
 //
+// This pass (deepseek-v4.1) tried the following, all scored with
+// check.py against a scratch copy:
+//   vA `int old = g_game->field_38c53;` moved INSIDE the guard (the exact
+//      original instruction order: pointer load, flag byte, je, old load,
+//      store 0, cmp, jne): 2288 bytes, 75.9%. Byte-identical to the original
+//      except eax and ecx are swapped: ours `mov ecx,[g_game]` (6 bytes) /
+//      byte temp AL / old EAX, original `mov eax,[g_game]` (5 bytes, the moffs
+//      form) / byte temp CL / old ECX. So the register pair (pointer, flag
+//      byte) is a pure allocation-order tie-break: when the byte temp and
+//      `old` coalesce onto one register, that pair takes EAX in ours and the
+//      pointer is pushed to ECX, while the original gives the pointer EAX
+//      first and the pair takes CL/ECX.
+//   vB = current file + `(void)key;` at the top of case 0xd7 (to keep ESI
+//      busy and force EAX for the pointer): the no-op is dropped, output is
+//      byte-identical to the current file (2292, 79.6%). ESI liveness is not
+//      the lever.
+//   vC/vD `Game_495e90* g = g_game;` before the guard + `int old` inside:
+//      same 2288 / 75.9% and the same ECX/AL/EAX swap as vA.
+//   An instruction-text diff of the current file shows our d7 entry emits the
+//      `old` load BEFORE `shr cl,1` and the store AFTER `cmp eax,ebx`, so
+//      besides the pointer register our store/compare order is also still
+//      swapped; both come from the single register-pair decision above.
+//
 // What still differs (measured with tools/check.py, and an instruction-text
 // LCS alignment of both disassemblies, see build/scratch/0x495e90/):
 // - There is now exactly ONE delta left in the whole function: case 0xd7's

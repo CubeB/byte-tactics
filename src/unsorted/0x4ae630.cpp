@@ -1,8 +1,18 @@
-// Decompiled by GPT-6. Names are provisional.
-// Partial: 94.8%, unchanged after the #1466 retry. The two-tab loop emits
-// the tab store before mov ebx,2; the original reverses these instructions.
-// Header sweeps, counter types, countdown forms, memset and local declaration
-// order did not improve it. The displayed jump-table diff is relocation noise.
+// Decompiled by GPT-6, finished by space-bunny-free. Names are provisional.
+// Partial: 94.8%. The only real difference left is in the two-tab loop at
+// 0x4ae7cc: the original emits `mov ebx, 2` and only then
+// `mov byte ptr [esp + 0x13], 9`, ours emits the store first (all other
+// bytes agree; the jump-table difference at 0x4aea8c is relocation noise).
+// Second pass tried: moving the `tab = '\t'` store into the loop body
+// (`while (i-- > 0) { tab = '\t'; ... }` and the
+// `for (i = 2; i > 0; i--) { tab = '\t'; ... }` spellings) DOES get the
+// order right, but MSVC then gives the hoisted store its own temporary home
+// at [esp + 0x1f] (inside the first 100-byte buffer) instead of the shared
+// local at [esp + 0x13], so those score 94.5%. Guarding the in-body store
+// with `if (i == 1)` grows the function to 1168 bytes (89.3%). Header
+// sweeps, counter types, countdown forms and local declaration order did not
+// help. Remaining hunk by address: 0x4ae7cc-0x4ae7d1 (order of the two
+// instructions above) and 0x4aea8c (jump table, relocation only).
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

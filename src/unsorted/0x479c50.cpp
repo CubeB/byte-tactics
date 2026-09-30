@@ -1,49 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, rechecked by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial, 82.5% (1154 of 1156 bytes). Everything below the entry block has the
-// right fields, frame (0x214), memset sizes (0x13e + 0xcc) and call order; the
-// whole gap is ONE register swap in the allocator:
-//   original: ESI = the g_game temporary, then the cached _imp__wsprintfA
-//             reloaded at the loop head; EBX = the live zero (cmp eax,ebx /
-//             mov [..],ebx / mov [..],bl);
-//   ours:     EBX = the g_game temporary, then the cached wsprintfA import
-//             (hoisted out of the loop and never clobbered); ESI = the live
-//             zero, re-materialised at the loop head (xor esi,esi) because the
-//             inlined strcpy kills ESI. So ours emits `call ebx` where the
-//             original reloads `call dword ptr [0x4fc2e8]` after the strcpy
-//             clobbers ESI.
-// Consequences of the swap, all visible in the checker diff: `mov [..],0` /
-// `test eax,eax` in ours where the original uses bl/ebx, `mov esi,0x14` and
-// `mov [..],si` where the original uses edi/di, and `mov ebx,[0x511de8]` at
-// entry where the original has `mov esi,[0x511de8]`.
-// The deciding block is the entry: ours gives the g_game temporary EBX and the
-// zero ESI, the original the reverse. See build/scratch/0x479c50/best_diff.txt.
-// What raised the score from 78.6% to 82.5%: reading the inlined SetEntry body
-// as `Entries* entries = g_game->menu.holder->entries; obj->entry = 0;
-// Gaf* gaf = entries->gaf;`, which reproduces the original's interleave of the
-// entries load above the obj->entry = 0 store (the same body, phrased with a
-// local `holder` first, puts the store before the entries load and scored
-// 78.6%). Same for `short* f = FUN_004b7f30(e, obj->frame);` reading the frame
-// byte late.
-// Further attempts (all scored with check.py --sym, none above 82.5%):
-//   headers.py: no header set matches; adding <string>, <vector>, <map>,
-//   <iostream>, <stdio.h>, <stdlib.h> alone or together: all 82.5%.
-//   N unused extern declarations 0..2000: flat at 82.5%, so the entry swap is
-//   source shape, not compiler state. Defining the real neighbour 0x479bf0
-//   above ours, or calling it as the shared helper, also stayed at 82.5%.
-//   Statement order around step/y/the two memsets (12 permutations): best 82.5%
-//   only when do the two memsets come after the y computation; every order with
-//   the memsets first folds the numPlayers load into `idiv [reg+0x38d81]` and
-//   drops to 56-69%.
-//   inline GetGame()/NumPlayers() accessors, a named `n` local, explicit memset
-//   sizes, `Rec1 rec1 = {0}` initialisers, non-static/__inline helper, flags
-//   reordered, helper taking void*: none flipped the swap.
-// The remaining lever is a g_game use that raises its priority above the live
-// zero without emitting an extra instruction; not found in this session.
-// GPT-6.1-sol refinement: an explicit Game* local spanning the function fell to
-// 63.4%; limiting it to the step calculation, reordering the Rec declarations, and
-// rewriting the outer for loop as while all returned 82.5%. The baseline source shape
-// remains the best verified variant; residual difference is the EBX/ESI allocation
-// swap around g_game, wsprintfA, and the zero value described above.
+// Skirmish setup screen builder: for each player it fills two menu-object
+// templates (rec1 = the name/side/colour/resource buttons, rec2 = the colour
+// and allegiance buttons) and registers them with the menu.
+//
+// The one non-obvious detail is the explicit `rec1.entry = 0;` in the metal
+// block, which the original really does (it stores entry twice: once here and
+// once inside the inlined SetEntry). It is not redundant for matching: that
+// extra use of the live zero is the allocator lever that puts the zero in EBX
+// (the only callee-saved byte-addressable register, so the byte stores become
+// `mov [..], bl` and the wsprintfA import lands in ESI and is reloaded after the
+// inlined strcpy clobbers it). Without it the zero lands in ESI and the whole
+// function is one register swap away (99.7%).
 #include <windows.h>
 #include <string.h>
 
@@ -184,12 +151,13 @@ void FUN_00479c50(void)
         FUN_004ab310(&g_game->menu, &rec2);
 
         wsprintfA(rec1.h.name, "Metal%d", i);
-        rec1.h.attr |= 0x10000;
         rec1.h.x = 0x11e;
         rec1.h.w = 0x2d;
         rec1.h.h = 0x14;
+        rec1.h.attr |= 0x10000;
         rec1.f136 = 0;
         rec1.f138 = 0;
+        rec1.entry = 0;
         SetEntry_00479c50(&rec1, "skirmmet");
         strcpy(rec1.text, FUN_004c5740("Left click to increase metal. Right click to decrease metal."));
         FUN_004ab2b0(&g_game->menu, &rec1);

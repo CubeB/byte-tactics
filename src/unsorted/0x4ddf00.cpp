@@ -1,4 +1,6 @@
 // Decompiled by Opus, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol watchdog pass for #1338 stopped at 91.7%; only the final
+// eax/ecx operand order differs (original uses ecx as the destination).
 // Codex / GPT-6 retest in #13 and GPT-6.1-sol fix pass in #1338:
 // pointer-typed image bases, DWORD-sized arithmetic, a directory
 // reference and an RVA helper did not fix the final eax/ecx operand order.

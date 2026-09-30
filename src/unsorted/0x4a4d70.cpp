@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: retained 98.7%. 768 header sets and inline colour/surface
+// accessors did not resolve the SIB order and final surface-load scheduling.
 // PARTIAL, 98.7% (661 bytes against 661, six instructions differ). Everything
 // from the prologue to the tail of the marker box matches instruction for
 // instruction. The six that do not are described at the bottom.

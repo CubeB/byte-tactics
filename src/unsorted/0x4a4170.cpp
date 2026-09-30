@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6 retry: retained 80.9%. Full-width/partial-width zero value variants
+// did not recover the original edx zero; detailed previous notes remain below.
 // deepseek-v4.1-flash retry: no change to the code, still 80.9% and NOT a match.
 // New facts about the remaining diff, so the next attempt does not repeat them:
 // an N-declaration sweep (0 to 400 unused `extern int`) leaves the score flat

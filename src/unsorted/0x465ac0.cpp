@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL: 98.3 percent, size exact (865 bytes against the original's 865).
 // Everything from the prologue through the third visibility test is byte exact,
 // and so is the whole last test's block shape, including the two long
@@ -190,6 +190,25 @@
 // the p.x update plus the whole test in one helper taking u both score 58.1.
 // So no source position for the load survives; the block it lands in is chosen
 // before source placement is considered, as this header already concluded.
+//
+// More attempts by deepseek-v4.1, all 98.3 with the byte-identical hunk (load in
+// EBP at the join, above `test eax,eax`), so none of these is the lever either:
+// `int x176 = u->def->f176; p.x -= x176;`; `UnitDef* d = u->def; p.x -= d->f176;`;
+// `Game* g = g_game;` after the update with IsVisible3 taking g;
+// the flags byte passed to the helper from a comma expression in the argument,
+// `(p.x -= u->def->f176, g_game->flags)`; the flags read into a local
+// (`unsigned char fl = g_game->flags;`) with the helper taking the byte;
+// declaring `Pos p;` at the top of the function instead of after the early
+// returns; keeping the def pointer alive past the flags test
+// (`if (((g->flags & 2) | (d != 0 ? 0 : 0)) == 2)`); the position cast through
+// a named `Position* pp` local used by all four calls; and `if (IsVisible3(...)
+// != 0)`. Eleven shapes, one result: the def pointer load and the g_game load
+// keep swapping so that the g_game load sits one block too high. The
+// allocator gives it the only register free at the join (EBP); the original
+// gives it EBX because there the load is scheduled after `mov eax,[ebx+0x92]`
+// has freed u, so the register is a symptom of where the load lives and the
+// next attempt has to change the block the value is placed in, not its register.
+
 // One last family tried: the test as an inline method of a member sub-object,
 // the 0x463610 trick: `map->IsVisible3(&p)`, `u->IsVisible4(map, &p)`,
 // `map->IsVisible5(u, &p)` and the flags read through a `g_game->ExploredMode()`
@@ -259,6 +278,15 @@
 // after the first temp of the block that kills the register it wants. Only
 // which BLOCK it goes in is still wrong, exactly as the notes above say; the
 // intra-block order comes for free once that is right.
+//
+// Fifth pass, deepseek-v4.1. One new arm-order variant, worse: making the
+// explored arm the nested one at the source level, `if ((g_game->flags & 2) != 2)
+// return IsSeen(map, pos); if (IsExplored3(map, pos)) return 1; return 0;`, is
+// NOT normalised back by MSVC 5 (unlike the v_rev.cpp reversal above): it is a
+// different function, 852 bytes and 87.4 percent, so the branch direction is
+// load bearing and the current form (explored arm first) must stay. Nothing
+// else new; the best version is back in the file at 98.3 with the single
+// 6-byte hoist described above.
 #pragma pack(push, 1)
 struct MapSize_00465ac0 {
     unsigned int width;

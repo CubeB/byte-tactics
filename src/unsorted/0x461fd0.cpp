@@ -1,4 +1,40 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// THIS PASS (deepseek-v4.1, 10 min box): nine check.py runs, no score
+// movement, kept 86.6% (911/919); all variants I tried were worse:
+//  * do/while + break with the c != 0 branch hoisted (63.9%): the outer zero
+//    register flips from edi to ebp and every cmp/je target moves.
+//  * `if (c->field_c != p) break;` inside the existing while (69.5%): the
+//    shared break/exit block rotates the whole loop layout.
+//  * `int j = 0;` moved into the if/else branch (76.9%) or into the
+//    `p->count > 0` block (68.7%): also flips the zero register to ebp.
+//  * `c = c->field_1c;` moved out of the `if (c->field_c == p)` body to the
+//    while's statement level (85.1%, 917 bytes).
+//  * tail `count = totalentries;` before `field_1c = n - 1;` (86.3%).
+//  * `Entry* base;` declared before `int totalentries` and `Entry* q` before
+//    `Packet* p`: byte-identical 911-byte output, no home moves.
+// What still differs is listed in the notes below: the home permutation,
+// the out-of-line c == 0 handler at 0x4622f9, the e->field_c store slot in
+// the copy block, and the edx/ecx swap in the tail.
+// THIS PASS (deepseek-v4.1, 10 min box): no movement, kept 86.6% (911/919).
+// Re-ran the baseline, then the two n++ placements on the free `--sym` path,
+// both again 84.0% / 903 bytes: `e = q++; n++; *e = *c;` and
+// `n++; e = q++; *e = *c;` are BYTE-IDENTICAL to each other, so the n++
+// statement position is not the lever; the earlier `e = q++; *e = *c; n++;`
+// stays. What still differs (all in the walk band plus the tail):
+//   * frame slots: ours base 0x14, n 0x2c, p 0x1c, q 0x20, j 0x10 versus the
+//     original base 0x10, n 0x14, q 0x1c, p 0x20, j 0x2c. Ours spills n to the
+//     dead growbufs slot and homes j in the frame; the original does the
+//     reverse. Nothing tried in three passes moves a home, so this is
+//     allocator state, not declaration order.
+//   * n++ is a register copy here (`mov esi,[esp+0x2c] ... inc esi ...
+//     mov [esp+0x2c],esi` after the rep movsd) where the original does the
+//     load/inc/store on 0x14 before the copy, and its loop head at 0x4621d8
+//     reloads c and q (two entries) where ours reloads one.
+//   * the c == 0 handler is inline here and out of line at 0x4622f9 in the
+//     original (inverting the test costs 9 points); the tail loads the
+//     delete[] argument into edx and the total into ecx, the original the
+//     reverse, and stores count before field_1c where ours stores field_1c
+//     first.
 // THIS PASS: no movement, kept 86.6% (911 of 919 bytes). Scratch runs are free
 // (`check.py <addr> <file> --sym FUN_00461fd0`), all three below were scored that
 // way. Two corrections to the notes above, and one new confirmed dead end.

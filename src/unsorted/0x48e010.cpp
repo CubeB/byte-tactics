@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Class_0048ff40::FUN_0048e010, the victory/defeat condition registration
 // function (counterpart of 0x48ff40). All ~18 registration blocks plus the two
 // "if none registered" defaults are written here from the disassembly and the

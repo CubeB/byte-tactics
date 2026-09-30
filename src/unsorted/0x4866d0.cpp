@@ -1,4 +1,14 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, 10 min): still 64.7%, no MATCH. Tried and rejected
+// (all scored <= current): int credited declared at top / before unit / at point
+// of use (all 63.7%, and cmd lands in ebp either way), inlining the parent
+// ternary into unit->f0 (no change), unsigned char depth with int credited
+// (58.4%), a local `unsigned char* c = cmd` used throughout (58.6%), hoisting
+// the leaderboard loop counter int i to the top (no change).
+// Conclusion: with MSVC 5 the int-credited variants always give unit=esi,
+// credited=edi, cmd=ebp; the original has cmd=ebx. Something in the source makes
+// cmd outrank ebp for the first callee-saved slot; declaration order, int vs
+// bool credited, and the transient g_game register do not control it.
 // Retry #1766, pass 2 (space-bunny-free, 900s budget): 64.7%, still no MATCH.
 // Improvements this pass: the g_game+0x37eee arms are DOUBLE literals (-0.5/-0.7,
 // not float) and are spelled as a switch, which is what gives the original

@@ -16,6 +16,18 @@
 // byte local), the FUN_00485f50 argument register rotation, the 0x110 flags
 // block rotation, the 3x piece-copy anchors, and the failure epilogue's
 // xor/pop order.
+// Retry deepseek-v4.1-flash: still 60.6%. The blocker is a one-off register-phase
+// rotation: the original holds `player` and rec.b8d as inline expressions and the
+// child block loads childB into edx, which sets the phase for the whole field-copy
+// chain (al,cl,dl,...). Ours keeps `player` in ebx and loads childB into eax, shifting
+// the phase by one register for every later move (al/cl/dl vs cl/dl/al), including the
+// 0x10f byte-flag xor/and/xor idiom and the 0x110 block. Removing the `player` local
+// (inline (rec.flags>>4)&3 twice) scored 54.2: worse overall because the 0x485f50
+// argument setup then rotates differently. Sign-extending rec.b8d did not help.
+// `int found` instead of `bool found` scores 45-59 and spills the wrong local; bool
+// found leaves ebp free so n lands in ebp. Using the loop index i for Script%i (which
+// the original does) scored 46.6 with bool found and 59.6 with int found; neither beats
+// keeping rec.f3b.
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 

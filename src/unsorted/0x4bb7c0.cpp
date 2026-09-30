@@ -1,12 +1,26 @@
 // Decompiled by Sonnet 5.5, finished by deepseek-v4.1-flash, GPT-6, and GPT-6.1-sol. Names are provisional.
-// Retry #1764: GPT-6.1-sol confirmed 98.6% after ten worker checker invocations; no MATCH. The compressed-size and table-offset register pairs still differ.
-// Partial: 98.6% (1042 bytes, exact size). Everything matches except two
-// pure register-choice diffs, both involving ebx:
-//   1. the clamped size temp that feeds `blocks` is in esi here, ebx in the
-//      original (mov ebx,[esp+0x14]; mov [esp+0x1c],ebx; lea esi,[ebx+eax-1]);
-//   2. the non-compressed `off` is accumulated in ebx here
-//      (mov ebx,[esi]; add ebx,eax) where the original accumulates in eax and
-//      copies (add eax,[esi]; mov ebx,eax).
+// Retry #1764: GPT-6.1-sol confirmed 98.6%; deepseek-v4.1-flash retry #1749 fixed
+// one of the two diffs: 99.2% (1042 bytes, exact size), one hunk left.
+// Fix for the old hunk 2: the `Info* info = file->info` local kept `esi`
+// occupied and made MSVC accumulate the non-compressed `off` in ebx
+// (mov ebx,[esi]; add ebx,eax). Removing the local and writing `file->info->`
+// inline at every use lets ebx hold `off` and eax accumulate, matching the
+// original (add eax,[esi]; mov ebx,eax).
+// Fix for the last hunk (MATCH): `remaining = n;` was written before the
+// `blocks` and `tableSize` computations, so n's live range ended inside the
+// block-count expression and the allocator coalesced the n reload straight
+// into the `lea` destination (esi), then into edx once the use was extended
+// past the lea. Moving `remaining = n;` after `tableSize = ...` keeps n live
+// across the tableSize `cdq`, so neither esi nor edx is available for the
+// reload and it lands in ebx exactly as the original:
+//   mov ebx,[esp+0x14]; mov [esp+0x1c],ebx; lea esi,[ebx+eax-1].
+// The same MATCH is reached with `remaining = n;` after `dst = buf;` or with
+// `i = 0;` moved with it; the position of the last use of n, not the
+// expression, decides the register. Flat before this: swapped commutative
+// operand, all 128 headers.py sets, every local-declaration permutation (guide
+// 1793), `int n = size` init, inline/nested declarations of n/remaining/i, a
+// function-scope `off`, and an inline Sum2 helper. Removing the `info` local
+// is what moved the previous hunk.
 // The block-count/table-size order is load bearing: writing tableSize as
 // ((size % 65536 != 0) + size / 65536) * 4 (modulo first) makes blocks land in
 // esi and tableSize in edi as the original does. The helper form
@@ -78,15 +92,14 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
     int b;
     Item_004bb7c0* item = file->shared;
     if (item != 0) {
-        Info_004bb7c0* info = file->info;
         n = size;
-        if (info->size - (int)file->pos < n)
-            n = info->size - (int)file->pos;
-        if (info->compressed != 0) {
-            remaining = n;
+        if (file->info->size - (int)file->pos < n)
+            n = file->info->size - (int)file->pos;
+        if (file->info->compressed != 0) {
             i = 0;
             blocks = (((n + file->pos - 1) & 0xffff0000) - (file->pos & 0xffff0000) >> 16) + 1;
-            tableSize = ((info->size % 65536 != 0) + info->size / 65536) * 4;
+            tableSize = ((file->info->size % 65536 != 0) + file->info->size / 65536) * 4;
+            remaining = n;
             dst = buf;
             while (i < blocks) {
                 b = file->pos >> 16;
@@ -138,7 +151,7 @@ int __stdcall FUN_004bb7c0(File_004bb7c0* file, unsigned char* buf, int size)
             }
             goto done;
         }
-        int off = file->pos + info->offset;
+        int off = file->pos + file->info->offset;
         if (off != item->pos) {
             fseek(item->fp, off, 0);
             file->shared->pos = off;

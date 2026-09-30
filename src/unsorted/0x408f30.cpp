@@ -1,5 +1,9 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are
 // provisional.
+// Best verified retry: 89.6% (546/547 bytes); no MATCH. The remaining mismatch
+// is the third _Ucopy source-pointer expression after vector reallocation.
+// A hand-written explicit insert specialization scored 86.3% and added a
+// compare in that loop, so the standard-library instantiation remains best.
 // std::vector<Unit*>::insert(iterator, size_type, const T&) from MSVC 5's
 // <vector>, with _Ucopy, _Ufill, fill and copy_backward all inlined. Its
 // callers are push_back sites (0x40ab36 on the vector at +0x5 of the

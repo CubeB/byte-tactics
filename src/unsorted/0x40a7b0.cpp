@@ -1,9 +1,12 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
 // Rebuilds the list of candidate cells: clears the vector at +0x4d, then
 // walks every map cell and adds (x, y, feature value) for each cell whose
 // feature (index below 0xfffb) has a non-zero value at +0xf0 and bit 1 of
 // its flags byte set. 0x40a260 later sorts these by distance.
 //
+// GPT-6.1-sol retry verification: the saved source still scores 88.7% (645/644 bytes).
+// The _S/_Q register swap remains the only difference; the 128-header sweep and
+// prior source-form variants recorded below did not improve it.
 // Partial (88.7%, 645 bytes against the original's 644): only one allocator
 // decision differs. In the reallocating branch of the inlined push_back
 // (vector::insert(_P, 1, _X)) the original keeps the freshly allocated

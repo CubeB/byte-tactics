@@ -1,4 +1,11 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (4 real check runs / many --sym): no improvement
+// over 91.3%. New insight into why the explicit operator- flips esi/edi: the
+// prologue "mov esi,[esp+0x38]" runs BEFORE "push edi", so it reads arg2 (the
+// order) while "mov edi,[esp+0x38]" runs after the push and reads arg1 (the
+// unit). The explicit operator- moves "push edi" earlier, so both loads read
+// arg1/arg2 the other way and every use swaps register. The two remaining
+// diffs are unchanged (state-3 needs x in edx; bounds[0] pos.x/min.x swap).
 // Partial 91.3%, 2 real check runs this pass. Two diffs remain, both register
 // ties inside state 3:
 //   (1) "target->pos - Offset(angle,range)" is one instruction (2 bytes) too

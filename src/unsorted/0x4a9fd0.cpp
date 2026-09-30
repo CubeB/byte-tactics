@@ -1,89 +1,11 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-//
-// PARTIAL: 35.5%, 2080 bytes against 2164. Not MATCH.
-//
-// Per-tick mouse and keyboard handler for one GUI layer. It stamps the frame
-// delta (menu+0x9a from two reads of FUN_004b6340), advances the input with
-// FUN_004ab5d0, maps a raw key to an action (FUN_004a9b90 when the layer has a
-// field_18), probes the mouse against the table at menu->layer->entries (0x15b
-// byte entries, entry 0 holds the count at +0xb6), dispatches on the entry
-// type through the jump table at 0x4aa810 (types 1..6, 12, 13; 7..11 fall
-// through), then, when the selection changed, copies the "HELPTEXT" string
-// into the selected entry and pushes or repopulates the layer.
-//
-// Frame: sub esp,0x34, 13 dwords. The original's slot map (offsets are
-// [esp+N] with the four registers pushed) is
-//   0x10 i   0x14 ep   0x18 entries   0x1c key   0x20 elapsed/ptr
-//   0x24 bias   0x28 saved   0x2c..0x43 point
-// with the spilled right/bottom of the entry-0 rectangle at 0x34/0x38 (the
-// point copy overwrites them), and the running selection in the DEAD ARGUMENT
-// home at [esp+0x48]. This file produces
-//   0x10 sel  0x14 i  0x18 key  0x1c p  0x20 elapsed  0x24 bias  0x28 saved
-//   0x2c point, and `entries` in the dead argument home.
-// Everything from 0x20 up already matches. The first four slots are rotated by
-// one only because the allocator gives the argument home to `entries` here and
-// to the selection in the original; that one rotation is the single biggest
-// remaining cost, because every [esp+0x18] and [esp+0x48] reference differs.
-//
-// The original's loop pointer is anchored at entry+0x1f, so its type/tab/x/y
-// reads all carry negative displacements ([edi-0x1f], [edi+0xa], [edi-8], ...).
-// That anchor is reproduced here by walking `unsigned char* p` from
-// entries+0x17a, and the type-13 case recovers the entry with the original's
-// exact `entries + (0xffffffe1 - (int)entries) + p` sum (`int bias`). Removing
-// the pointer walk or the bias moves the anchor back to 0 and changes the
-// frame to 0x2c or 0x38, so both are load bearing.
-//
-// WHAT STILL DIFFERS, in the order it appears:
-//  - The prologue. The original saves ebx/ebp/esi/edi in the entry block; ours
-//    saves ebp there and pushes edi/esi/ebx after the layer == 0 early return.
-//    MSVC 5 defers callee-saved saves when the entry block does not use them,
-//    and no spelling of `if (menu->layer == 0) return 0;` as the first
-//    statement avoids that (a four-push prologue only appears when the first
-//    statement uses a register, for example replacing the return with a store).
-//    This is 3 bytes of layout, but because check.py compares in-function jump
-//    targets literally it misaligns every jump in the function.
-//  - The entry-0 rectangle: the original keeps `entries` in ebx, reads
-//    menu->point.y before the width, and spills right/bottom to 0x34/0x38;
-//    ours reloads `entries` and keeps right/bottom in edi/ebx.
-//  - The type-13 case: the original reloads menu->layer->entries and adds the
-//    bias; ours folds the loop pointer in directly.
-//
-// Tried and did NOT help: declaring `sel` or `entries` at function scope (no
-// change at all); dropping the `entries` local and writing
-// menu->layer->entries everywhere (34.3%, frame 0x34, but the argument home
-// then holds the selection and the rotation simply moves); `Entry* e =
-// &entries[1]; for (i = 1; ...; i++, e++)` with case 13 using `&entries[i]`
-// (frame 0x38, anchor 0, 31.3%); a Rect struct for the entry-0 rectangle
-// (35.7%, but it compiles the type test as a zeroing branch, which is not what
-// the original does, so the rectangle was rewritten with plain locals).
-//
-// Suspected original quirk: for entry 0 the rectangle origin is
-// entries[0].x/y DOUBLED when entries[0].type != 0 (`movsx eax,[ebx+0x13]` /
-// `test dl,dl` / `je` / `add eax,eax` at 0x4aa0e9), while every other entry
-// uses the usual `type == 0 ? 0 : x` form (0x4aa1d9). The two spellings are
-// compiled from different source forms and the doubling one makes the
-// container's hit box twice its stated offset.
-//
-// Prologue, deeper evidence (deepseek-v4.1-flash): compiling this file with
-// /Fa and reading the listing shows MSVC 5 sinks the ebx/esi/edi saves to the
-// first block of the body, right after the early return's jne target, for
-// every spelling tried. The original instead saves ebx, ebp, esi, edi in the
-// entry block before the layer test. Verified in /Fa: the plain
-// `if (menu->layer == 0) return 0;`, a `Layer* layer = menu->layer;` before the
-// branch, `#include <windows.h>`, and the inverted
-// `if (menu->layer != 0) { <body>; return 1; } return 0;` all sink the saves
-// (the inverted form puts them after the `je` that jumps to a return-0 block
-// laid out at the END, so its physical order is wrong as well). So the trigger
-// is not the early-return spelling. The next pass should look for a construct
-// that makes the entry block itself define ebx/esi/edi (a parameter or a value
-// materialised in the prologue), since VC5 saves lazily at the immediate
-// dominator of the register's uses and every use here is dominated by the
-// body-entry block.
-//
-// Remaining diff hunks by address (original): 0x4a9fd3 prologue saves;
-// 0x4aa0d5 entry-0 rectangle register split; 0x4aa5aa/0x4aa6bf type-13 and
-// selection reloads. Everything from 0x4aa820 onward already lines up once the
-// prologue shift is ignored.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6. Names are provisional.
+// Partial: 41.6%, 2176 bytes versus 2164. Removed a trailing byte to
+// restore the 0x15b entry stride, represented the palette index as an int,
+// and captured the active entries/current index across callbacks before
+// restoring current. Remaining prologue saves, rectangle registers and
+// selection/local slots differ. Two 768-set header sweeps found no improvement.
+
+#include <windows.h>
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -124,7 +46,7 @@ struct Entry_004a9fd0 {
     short h;                          // +0x19
     int align;                        // +0x1b
     union {
-        unsigned char* colours;       // +0x1f
+        int colourIndex;       // +0x1f
         int timer;                    // +0x1f
     } u1f;
     char unknown_23[0x28 - 0x23];
@@ -143,7 +65,6 @@ struct Entry_004a9fd0 {
     } u136;
     char unknown_146[0x157 - 0x146];
     int field_157;                    // +0x157
-    char unknown_15b;
 };
 
 struct Layer_004a9fd0 {
@@ -184,7 +105,9 @@ struct Menu_004a9fd0 {
     int field_9a;                     // +0x9a
     char unknown_9e[0xa2 - 0x9e];
     int field_a2;                     // +0xa2
-    char unknown_a6[0xcca - 0xa6];
+    char unknown_a6[0x8b2 - 0xa6];
+    unsigned char palette[0x100];
+    char unknown_9b2[0xcca - 0x9b2];
     int field_cca;                    // +0xcca
 };
 
@@ -371,14 +294,16 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                             } else {
                                 menu->focus = -1;
                                 menu->layer->current = found;
-                                me = &entries[menu->layer->current];
+                                Entry_004a9fd0* activeEntries = menu->layer->entries;
+                                int current = menu->layer->current;
+                                me = &activeEntries[current];
                                 if (me->type == 3) {
-                                    FUN_004c13a0(me->u1f.colours[(int)menu + 0x8b2],
+                                    FUN_004c13a0(menu->palette[me->u1f.colourIndex],
                                                  FUN_004c13f0());
-                                    FUN_004a1810(entries, menu->layer->current);
-                                    FUN_0049fc50(menu, menu->layer->current);
-                                    menu->layer->current = menu->layer->current;
-                                    FUN_004ab6c0(menu, menu->layer->current, me->u_b6.text,
+                                    FUN_004a1810(activeEntries, current);
+                                    FUN_0049fc50(menu, current);
+                                    menu->layer->current = current;
+                                    FUN_004ab6c0(menu, current, me->u_b6.text,
                                                  me->u136.c.field_138, 0);
                                     FUN_004c1a40();
                                 }
@@ -452,7 +377,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             menu->layer->current = sel;
             Entry_004a9fd0* me = &entries[sel];
             if (me->type == 3) {
-                FUN_004c13a0(me->u1f.colours[(int)menu + 0x8b2], FUN_004c13f0());
+                FUN_004c13a0(menu->palette[me->u1f.colourIndex], FUN_004c13f0());
                 int grp = 0;
                 int t;
                 for (t = 1; t < entries->u_b6.anim.count + 1; t++) {

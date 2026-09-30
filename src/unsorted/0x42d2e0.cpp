@@ -9,6 +9,19 @@
 // followed by `cmp eax,ebx` (shared zero register) in the original but `test eax,eax` here.
 // Signature note: the disassembly ends in a plain `ret`, so the target is __cdecl, not the
 // `?FUN_0042d2e0@@YGXPAX@Z` the issue reports.
+//
+// Frame layout (offsets relative to esp after the 4 pushes, entry esp = X, so X-0x620 is esp):
+// the six buffers land at exactly the right addresses already (namebuf X-0x5f0, section X-0x5d0,
+// path X-0x5b0, classbuf X-0x4b0, objpath X-0x44c, valbuf X-0x34c, the sort temp X-0x24c), so
+// only the small slots above them are wrong. Original: ONE 4-byte scratch at X-0x610 that holds
+// t, then n, then the compaction pointer d, then the loop index u, then s, and a second scratch
+// at X-0x60c that holds v and then the temp utype list, and ONE 0x14-byte Class_004c2ea0 at
+// X-0x60c (so the two parsers share it: parser 1 is destroyed at 0x42d3b9 before parser 2 is
+// built at 0x42d92e). Ours: three scalar slots, n alone at X-0x614, u/d at X-0x610, v/s at
+// X-0x60c, and TWO object slots (parser2 X-0x608, parser 0xc bytes at X-0x5fc). That is the
+// whole 4-byte frame excess and it is the reason diff never aligns past the prologue.
+// Tried and did NOT work: reusing t's variable for n, wrapping t in a nested block, dropping
+// t and folding the product into v, and padding Class_004c2ea0 to 0x14 (57.6, worse).
 #include <string.h>
 #include <stdio.h>
 

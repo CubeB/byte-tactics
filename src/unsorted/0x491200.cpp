@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Partial: 99.6%, 1174 bytes. The whole body is byte-identical except the second
-// GlobalMemoryStatus: ours emits
+// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Partial: 99.6%, 1174 bytes on both sides. The whole body is byte-identical
+// except the second GlobalMemoryStatus: ours emits
 //     lea edx,[esp+0x10]; mov dword ptr [esp+0x10],0x20; push edx; call esi
 // while the original fills the call delay slot,
 //     lea edx,[esp+0x10]; push edx; mov dword ptr [esp+0x14],0x20; call esi
@@ -21,6 +21,33 @@
 // (pointer/reference locals, union, inline helpers, ternaries, comma operator,
 // sizeof, array form, declaration order, volatile diagnostics). None moved the
 // store into the push shadow.
+// A third pass (space-bunny-free) established what the tie actually is. It is a
+// two-way list-scheduler tie between the dwLength store and the `push edx` that
+// is a child of the GlobalMemoryStatus call, decided by which statement sits
+// earlier in the block's statement list, and the delay slot IS reachable:
+// writing g_game->field_391f5 = FUN_00496a60 AFTER FUN_004b4fd0(...) instead of
+// before it (both spellings are legal) gives 99.2% and emits
+//     call <FUN_004b4fd0>; mov ecx,g_game; lea edx,[esp+0x10]; push edx;
+//     mov [ecx+0x391f5],0x496a60; mov dword ptr [esp+0x14],0x20; call esi
+// so the dwLength store takes the delay slot there, but the 391f5 store is then
+// hoisted below the argument pushes. The original wants the 391f5 store before
+// the pushes and the dwLength store in the slot, and the current order gets the
+// first right and the second wrong, so the two stores compete for one slot.
+// Also failing at 99.6% with the identical diff: a two-site static __inline
+// helper, sizeof(mem) at either site, the call inside a nested block, ::
+// qualified, (mem.dwLength = 0x20, &mem) as the argument. Moving calls and
+// stores around the block all cost points: 391f5 after call B 99.2%, the eight
+// zero stores swapped 98.8%, the byte store moved 96.5%, the whole 9-store group
+// plus call B hoisted above FUN_004c1420 91.5%. The current order is the best of
+// about 30 shapes tried here on top of the earlier 70. The store has three
+// reachable homes in this block and the original is the one that is not
+// reachable from the current statement order: before the argument push (99.6%,
+// the file as it stands), in FUN_004b4fd0's delay slot at [esp+0x18] (also
+// 99.6%, from writing the dwLength store above the 391f5 store and call B), and
+// in GlobalMemoryStatus's own delay slot at [esp+0x14] (99.2%, from writing the
+// 391f5 store after call B). The nine g_game zero stores and the 391f5 store as
+// one inline helper, and a single-store inline helper at site 2, both stay at
+// 99.6% with the same diff.
 
 #include <string.h>
 #include <windows.h>

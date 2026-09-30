@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL (71.0%, 772 bytes against the original's 780). Per-frame driver of
 // the unit's command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60
 // list, matched, and the source of the Wait_0043b7c0 shape below). The list
@@ -133,6 +133,26 @@
 // textually at both sites (no helper at all) also compiles to the same 800
 // bytes, so the two expansions never become textually identical whatever the
 // source shape.
+//
+// Retried by deepseek-v4.1-flash (7 check runs, 71.0 -> 71.4): re-checked the
+// two-literal Wait form (800 bytes, 67.8, no merge) and confirmed the goto
+// trick is still the best Wait shape. Two more attempts changed nothing
+// (swapping the top-level & operands, splitting the pending expression across
+// two statements). The one gain: reading unit->def->field_230 inline in the
+// new expression instead of through a `kind` local (the local spilled to
+// [esp+0x18] before the push, 772 bytes; the inline form re-reads the field
+// for the ctor, 776 bytes, 71.4). Splitting case 9 into
+// `f9 = node->flags; node->flags = f9 | 0x800000;` makes the function exactly
+// 780 bytes and puts the OR result in ecx with the pre-OR value in eax, but
+// the test then uses the pre-OR eax and the byte score drops to 64.4, so the
+// combined `f9 = node->flags | 0x800000` form is kept.
+//
+// What still differs at 71.4 (776 vs 780): the pending block's eax/ecx mask
+// vs flags6 rotation, case 9 leaving the OR result in eax/next in edx (the
+// original keeps the OR result in edx and copies it to eax before reusing edx
+// for next), the Wait immediate push (`mov eax,0xf; push eax` vs `push 0xf`,
+// +4 at each of the two entries), and the case-7 ClearAll / case-6 MoveToEnd
+// preload (`mov ecx,[ebx]` before `mov eax,ebx`).
 
 #pragma pack(push, 1)
 
@@ -356,10 +376,9 @@ void __stdcall FUN_0043b7c0(Unit_0043b7c0* unit)
     char state = unit->player->state;
     if (state != 1 && state != 2)
         return;
-    unsigned char kind = unit->def->field_230;
-    if (kind == 0)
+    if (unit->def->field_230 == 0)
         return;
-    Class_0043a1f0* cmd = new Class_0043a1f0(kind, 0, 0, 0, 0, 0);
+    Class_0043a1f0* cmd = new Class_0043a1f0(unit->def->field_230, 0, 0, 0, 0, 0);
     cmd->flags |= 0x4000;
     FUN_0043ac60(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : *pp);
 }

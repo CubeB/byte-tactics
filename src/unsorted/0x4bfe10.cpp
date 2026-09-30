@@ -1,4 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol. Names are provisional.
+// #1705 retry by Codex / GPT-6.1-sol: check.py reconfirmed 74.9% (265/267 bytes), no MATCH.
+// A success-convention rewrite failed to compile due malformed edit formatting; the saved best was restored.
 
 // Translates every pixel of `rect` in `surface` through the byte table at
 // g_game+0xcc (FUN_004cced5), or in the locked screen (FUN_004c5e70 /

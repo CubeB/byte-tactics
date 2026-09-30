@@ -1,5 +1,22 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, and deepseek-v4.1-flash. Names are provisional.
-// Partial: 66.9%, 813 bytes versus 817. The LOD selection block now matches
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial: 79.1%, 822 bytes versus 817. The big win over the previous 66.9%
+// attempt: the inner loop's seemingly dead x2/y2 stores are really the live
+// update of the int e1/e2 locals. Writing `int e1; int e2;` then
+// `e1 += x; e2 += y; short x16 = (short)e1; short y16 = (short)e2;` (instead
+// of separate int x2/y2 locals) is what the original does, and it moved every
+// branch-1 stack slot except x/y onto the original's offsets (e1=0x24,
+// e2=0x14, i=0x18, j=0x34, etc.).
+// Still differs: x sits at 0x20 and y at 0x1c, the reverse of the original
+// (x=0x1c, y=0x20); no declaration order tried (x first, y first, uninitialised
+// then assigned, one combined declaration) moved the slot. Branch 2 still
+// differs over ~70 lines: the original reuses slot 0x18 for limitX and 0x34
+// for limitY, computes dst before src, and runs the scan as a do/while whose
+// entry jumps straight into the body. Rewriting branch 2 with dst first (or
+// with if/else limits, or with a do/while) collapsed the whole function to
+// 39.0% because it reshuffled the global register allocation, so the src-first
+// ternary form was kept. The imul operand order in the bestDiff/bestIdx
+// comparison is also reversed.
+// The LOD selection block now matches
 // the original instruction for instruction: writing the clamp as a ternary
 // directly in the `if` condition (instead of a separate Lod_ helper call or
 // `int v = ...; int lod = ...;` statements) makes MSVC fold the clamp into
@@ -160,13 +177,13 @@ void __stdcall FUN_00482270(Params_482270* params)
             short j = 0;
             int j1 = 1;
             for (j = 0; j < num; j++, j1++) {
-                int e2;
                 int e1;
+                int e2;
                 ((Class_004339e0*)line)->FUN_004339e0(j, &e1, &e2);
-                int x2 = x + e1;
-                int y2 = y + e2;
-                short x16 = (short)x2;
-                short y16 = (short)y2;
+                e1 += x;
+                e2 += y;
+                short x16 = (short)e1;
+                short y16 = (short)e2;
                 if ((unsigned)x16 >= grid->width)
                     continue;
                 if ((unsigned)y16 >= grid->height)

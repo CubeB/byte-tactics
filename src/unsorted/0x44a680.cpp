@@ -1,4 +1,30 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Sixth pass (deepseek-v4.1, issue 2560): 92.7 -> 92.9. FUN_004b6340 returns
+// int, not unsigned int: with `int` the DAT_005129a4 guard emits the
+// original's `jge 0x44acf2` at 0x44ac95, while DAT_005129a8 stays unsigned so
+// its guard keeps `jae` at 0x44af54. Measured and rejected this pass: the
+// three MAXUNITS/METAL/ENERGY values in named locals declared before their
+// calls (2325 bytes, 87.4); that is the pass-2388 "named locals" 88.1
+// re-measured against the current base.
+// Still differing (5 hunks, plus 2 bytes of address drift they cause):
+// - MAXUNITS/METAL/ENERGY, the largest cluster: the original keeps each value
+//   in a callee-saved register (edi, edi, esi) and pushes it after
+//   FUN_004a0200 returns; ours finishes the value in eax/ecx and pushes it
+//   before the call. edi is provably free in our version there (nothing uses
+//   it between the swap loop and the LOGO block, see build/scratch obj dump),
+//   so it is the allocator's push-early choice, not register pressure. Our
+//   per-statement order is already the original's: value-then-entries for
+//   METAL/ENERGY, entries-then-value for MAXUNITS. Knock-on: FUN_00445b70
+//   loads g_game into edx in the original, into eax in ours.
+// - the first if at 0x44a6a1: the original hoists `mov eax,[g_game]` between
+//   `test eax,eax` and the `jne`, so the jne arm reaches the `or` with eax
+//   already loaded; ours emits the jne first and the arm reloads. Those 2
+//   bytes are why our join and loop-exit jump targets read 0x44a935/0x44a92d
+//   instead of 0x44a933/0x44a92b.
+// - the reindex loop keeps `lea edx,[eax+ecx+0x1ca9]` for the `= i` store and
+//   swaps SIB base/index (`[eax+ecx+0x1b63]` against the original
+//   `[ecx+eax+0x1b63]`); earlier passes measured both as unreachable from the
+//   expression form.
 // Third pass (deepseek-v4.1, issue 1962): 79.3 kept as best. Flipped the reindex loop address spelling three ways (g_game + 0x1b63 + off, off + g_game + 0x1b63, g_game + (0x1b63 + off)); all emit the same `[eax + ecx + 0x1b63]` SIB with base=off/eax while the original encodes base=g_game/ecx, although g_game is in ecx in ours too, so the base/index pick is not reachable from the expression form. Everything below still stands.
 
 // Fifth pass (deepseek-v4.1, issue 2388): 79.7 -> 92.7, size now exactly 2340
@@ -233,7 +259,7 @@ void __stdcall FUN_004a9660(void* gui);
 int __stdcall FUN_004ab060(Gui_44a680* gui, char* name);
 void __stdcall FUN_0045b9b0(void* entry, int value);
 int __stdcall FUN_0045ba20(void* entry);
-unsigned int __stdcall FUN_004b6340();
+int __stdcall FUN_004b6340();
 unsigned char __stdcall FUN_0041d6a0(int param);
 void __stdcall FUN_00456310();
 void __stdcall FUN_00450f90();

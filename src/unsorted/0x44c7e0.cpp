@@ -67,6 +67,23 @@
 // shape tried, so it is the register allocator's global choice, not the
 // source. Kept: this 84.6% version, because the orchestrator scores by the
 // percentage.
+// Fifth session (deepseek-v4.1, 2026-09-30): the scan loop's register swap was
+// attacked as a pair. Making ONLY the flags load use indexed base+off
+// addressing (leaving the item pointer materialized for the name test) lifts
+// this file from 84.9% to 85.2% at 1595 bytes: the loop now reads
+// [edx+ebp+0x245] and lea esi,[edx+ebp], so only the register name (ebp holds
+// the 0x249 item offset here, edi in the original) and MSVC's folded bit test
+// (test ch,0x80 instead of shr ecx,0xf / test cl,1) differ there.
+// Writing that expression with an explicit (unsigned char) cast to force the
+// shr/test pair costs 2 bytes and rotates the whole function: 83.5%. Writing
+// the name test as an indexed base+off expression too compiles to identical
+// bytes (MSVC CSEs it). Declaring the item pointer inside the block rotates
+// entries into ebx and desc into ebp: 74.8%. Keeping the scroll panel in a
+// local for the FUN_0044bfd0/FUN_0049fa90 pair scores 81.2%. What still
+// differs: the loop's ebp/edi role swap (item offset in ebp, record offset in
+// edi, whose zero-init coalesces with n = 0 as the "xor edi, edi" before the
+// branch) and the tail, where n lives in edi instead of on the stack, idx gets
+// esi instead of edi, and the panel (g_game+0x519) is recomputed per call.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -249,7 +266,8 @@ void FUN_0044c7e0()
         int off = 0x249;
         do {
             Item_44c7e0* item = (Item_44c7e0*)((char*)g_game->items + off);
-            if (((unsigned char)(item->field_245.raw >> 15) & 1) == 0 && item->name != 0) {
+            if ((((*(unsigned int*)((char*)g_game->items + off + 0x245)) >> 15) & 1) == 0 &&
+                item->name != 0) {
                 Info_44c7e0 info;
                 sprintf((char*)&DAT_005129b4[n], "%s\r%s %dM  %dE",
                         (char*)g_game->items + off, FUN_004c5740((char*)item + 0xa0),

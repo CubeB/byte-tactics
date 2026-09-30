@@ -1,6 +1,26 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
 // Partial, 34.5%: Sampling direction and mutable lighting-vector reads corrected.
 // Frame-slot rotation, per-piece registers and x87 scheduling still differ.
+// Tried (deepseek-v4.1-flash): modelling the piece flags, the g_game+0x37f06
+// shadow flag and the owner+0x241 bit as packed 1-bit bitfields. The negated
+// piece flag matched `test byte ptr [m],1`, but every positive flag access
+// still folded to `test dl,2`/`and edx,0x40000000` and the frame slots shifted
+// (mode moved 0x20 to 0x28), so the masked-int spelling scored higher (34.5)
+// and is kept.
+// Remaining diff hunks (original addresses):
+//   0x459c89 flag test: original `shr dl,1; test dl,1`, ours `test dl,2`, and
+//            the whole prologue register rotation (list edx vs eax, useColor
+//            eax vs esi, mode slot 0x20 vs 0x28) follows from it.
+//   0x459e27 vertex loop: extra `test edx,edx` before the `rep stosd` zeroing,
+//            offX/offY slot rotation (0x3c/0x2c vs ours).
+//   0x459e95 shade bias: original `shr edx,0x1e; and dl,1; neg dl; sbb edx,edx`,
+//            ours `and edx,0x40000000; neg edx; sbb edx,edx`.
+//   0x459ef2 accum zeroing: zero register ecx vs eax, independent local layout.
+//   0x459f42 normal loop: x87 fadd operand order and face-pointer registers.
+//   0x45a133 accum division: loop counter in esi vs edx.
+//   0x45a246 polygon loop: index slots differ, fadd direction at 0x45a195.
+//   0x45a3a3 branch layout: firstFace test takes the opposite branch direction.
+//   0x45a419 end copy loop: register assignment differs.
 #include <map>
 #include <memory.h>
 #include <ddraw.h>
@@ -143,7 +163,6 @@ void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
         if (!(useColor == -1 || useColor == ((pflags >> 1) & 1)
                 || list->owner->field_104 != 0.0f))
             continue;
-
         PieceInfo_459c70* info = piece->info;
         Vec3* verts = piece->vertices;
         int n = info->vertexCount;

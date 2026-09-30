@@ -1,6 +1,12 @@
-// Decompiled by longcat-2.5-preview-free, finished by GPT-6. Names are provisional.
-// Partial, 48.0%: Packed owner fields, per-vertex shade bias and sampling copy corrected.
-// Frame and projection/face-loop register allocation still differ.
+// Decompiled by longcat-2.5-preview-free, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, 51.1%: `else` branch is only `mode = 0;` (no src store), `src` assigned
+// only in the shadow arm, and the shift/mask bit tests corrected.
+// Remaining differences: MSVC folds ((flag>>1)&1) to `test dl,2` where the
+// original keeps `shr dl,1; test dl,1`; the same fold turns the shade bias
+// `(v>>30)&1` into `and esi,0x40000000`; the vertex-projection loop keeps n in
+// a stack slot instead of ebp and swaps offX/offY register roles; the piece
+// pointer base uses 0x44 instead of 0x22; the face-clip and bitmap-copy loops
+// use different registers throughout.
 #include <string.h>
 
 extern char* g_game;
@@ -93,12 +99,12 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
 
     Bitmap_459c70* src;
     int mode;
-    if ((*(unsigned char*)(g_game + 0x37f06) & 2) != 0
+    if (((*(unsigned char*)(g_game + 0x37f06) >> 1) & 1) != 0
         && (list->owner->field_110 & 0x20000000) != 0
         && useColor != 0) {
-        src = bitmap;
-        mode = 1;
         Bitmap_459c70* shadow = this->shadow;
+        mode = 1;
+        src = bitmap;
         shadow->width = (unsigned short)(src->width << 1);
         shadow->height = (unsigned short)(src->height << 1);
         shadow->unknown_9[0] = 0;
@@ -109,7 +115,6 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         memset(shadow->data, 1, shadow->width * shadow->height);
         bitmap = shadow;
     } else {
-        src = bitmap;
         mode = 0;
     }
 
@@ -126,8 +131,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         Vec3* verts = piece->vertices;
         int n = info->vertexCount;
         if (n > 0) {
-            int offX = (short)bitmap->field_4;
             int offY = (short)bitmap->field_6;
+            int offX = (short)bitmap->field_4;
             for (int k = 0; k < n; k++) {
                 int x;
                 int y;
@@ -186,7 +191,7 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         }
     }
 
-    if ((*(unsigned char*)(g_game + 0x37f06) & 2) != 0 && mode != 0) {
+    if (((*(unsigned char*)(g_game + 0x37f06) >> 1) & 1) != 0 && mode != 0) {
         FUN_004b95a0(bitmap, src);
         char* s = src->data2;
         if (s != 0) {

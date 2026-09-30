@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // Saves the map's features: the feature type names, then one record per
 // occupied map cell ("3D Features", "Normal Features" or "Animating
 // Features") and the three counts. The load counterpart is 0x424c00.
@@ -10,14 +10,29 @@
 // edi). The original emits the test first, then `jae`, then the address
 // arithmetic. Writing the definition inside the if (test first) gets the
 // instruction order right but flips the whole loop to cell pointer edi /
-// feature pointer esi (91.9%), plus jump displacements shift by one byte
-// (875 total). That flip is decided globally: an initialised-but-dead
-// pointer before the test (y1), a function-scope or loop-scope index local
-// (v_feat2), an fbase local, a spot local, a static inline accessor
-// (y5), char* arithmetic and all loop forms keep the swapped allocation;
-// the address expression written out at each use (y9) recomputes it at
-// 62.9%. Everything else, the stack layout and the name-copy loop included,
-// is byte-identical. The variants are in build/scratch/0x424890/.
+// feature pointer esi (91.9%). That flip is decided globally: an
+// initialised-but-dead pointer before the test (y1), a function-scope or
+// loop-scope index local (v_feat2), an fbase local, a spot local, a static
+// inline accessor (y5), char* arithmetic and all loop forms keep the
+// swapped allocation; the address expression written out at each use (y9)
+// recomputes it at 62.9%. Everything else, the stack layout and the
+// name-copy loop included, is byte-identical. The variants are in
+// build/scratch/0x424890/.
+//
+// deepseek-v4.1-flash, second pass: reproduced the rule exactly. It is f's
+// definition point, not its declaration scope, that flips esi/edi. f
+// assigned at the top of the loop body: c=esi, f=edi (99.2%), but the test
+// is emitted after the arithmetic. f assigned anywhere after the test
+// (nested if, early `if (c->feature >= 0xfffb) goto next;`, if with braces,
+// unsigned short feat = c->feature; then f = &features[feat]): test first
+// and c=edi, f=esi (91.9%; the feat local also spills and costs a byte).
+// Declaring c or f at function scope, initialising f to 0 at function
+// scope, and a while (c < end) loop with c++ at the bottom all make no
+// difference: every test-first shape flips. There is no reordering in c2
+// (the order is the source order), so the source has to be test-first
+// while the global register pass has to keep c in esi; that combination was
+// not reached. Variants 01_A, 02_B, 03_C, 04_D, 05_D2, 07_F, 08_H, 09_W in
+// build/scratch/0x424890/ with their .out files.
 // <windows.h> is needed (83% without it).
 #include <windows.h>
 #include <string.h>

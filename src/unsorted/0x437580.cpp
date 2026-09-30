@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
 // std::vector<Class_00437820>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, for the 8-byte {string handle, int} element of the
 // static vector at 0x5122c0 (see 0x434a30.cpp); its only caller, 0x4373a0,
@@ -36,6 +36,20 @@
 //   Explicitly declaring the element's copy constructor, operator= and
 //   destructor instead of letting them be implicit also leaves 78.9%. This is
 //   TU compiler state, the same wall as 0x408f30 / 0x40cca0 / 0x40d290.
+//
+// deepseek-v4.1-flash, batch of TU/AST perturbations (all exactly 78.9%,
+// 649 bytes, identical diff):
+// - <vector> included after the class definitions; <windows.h>, <string> and
+//   <map> before <vector>; spelled-out std::allocator argument; element copy
+//   constructor declared, and copy constructor defined inline in the class;
+//   1 to 20 dummy static function definitions before the instantiation; a
+//   dummy ElemDummy_00437580 vector instantiated first; the address-taken
+//   global made static and used. None moves _P from ecx to edi.
+//   Diagnosis: the original's first _Ucopy end (_P) is in edi and its _M
+//   counter in ebp with &_X re-read per iteration; our allocator puts _P in
+//   ecx (reloaded after every copy-constructor call), _M in edi and hoists
+//   &_X into ebp. All four callee-saved registers are allocated differently,
+//   so no local spelling of the instantiation reaches it.
 #include <vector>
 
 class Class_004c9390 {

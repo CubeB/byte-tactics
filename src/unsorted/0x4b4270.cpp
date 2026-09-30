@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: rechecked at 61.1% after five checks. Direct ints (50.3%) and reordered capacity operands (61.1%) did not improve; restored the best. Remaining differences are loop register allocation and the blob-copy state noted below.
 // PARTIAL: 61.1% (737 bytes original, ours 755). Frame, prologue, the early
 // name test, the compressed branch, the ints loop and the tail of the blob loop
 // all match. What still differs is ONE allocator state in the loop bodies:

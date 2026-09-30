@@ -77,7 +77,14 @@
 // Tried and worse: other header sets, the x,y,z or z,y,x orders of Direction()'s
 // fields (85.6% and 85.4%), `target = u->pos + d` (85.2%), the in-place
 // `d.x += u->pos.x` tail (84.1%), expanding the loop-2 flag12 Direction() call
-// into direct stores (67.3%).
+// into direct stores (67.3%). deepseek-v4.1 (2372) tried and dropped: a reference
+// unit (`Unit_00408100*& u = *it;`, 68.5%), `Vec3 target;` at function scope with
+// a plain `target = origin;` (83.8%), hoisting `Vec3 pos;` above the idx
+// declaration (87.4%, identical bytes), declaring the iterator before `origin`
+// (87.4%, identical bytes) and rewriting loop 1's && chain as three guard
+// `continue`s (87.2%). The wall is unchanged: the unit cannot be moved out of
+// edi into ebp, so `this` stays in ebp instead of being memory-based like the
+// original's, and the whole loop-1 rotation follows from that.
 #include <memory.h>
 #include <vector>
 #include <math.h>

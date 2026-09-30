@@ -1,3 +1,21 @@
+// deepseek-v4.1 10-minute pass: eleven more variants, every one of them still
+// exactly 99.6% with the identical two SIB diffs (the schedule and the size are
+// untouched, 1678 bytes): reversing the source operand order of the address ADD
+// at both sites (`i[vec_8d.begin()]`, the store as `*(i + vec_8d.begin())`,
+// `(&vec_8d[0])[i]`), `this->vec_8d[i]`, the explicit call `vec_8d.operator[](i)`,
+// a cast chain through `void*` at both sites, `(&vec_8d.front())[i]`, the read
+// with a non-leaf index `vec_8d[(unsigned char)i]` (1685 bytes, 92.9%,
+// adds the movzx, SIBs still swapped), reversing the read's outer add to
+// `x = (char)vec_8d[i] / 2 + x;`, and a fresh single-use pointer temporary for
+// each site (`unsigned char* p8 = vec_8d.begin(); p8[i] = t2;` in its own block,
+// value in a temp first). That last one is the informative one: when the pointer
+// temporary is initialized after the value is computed, MSVC propagates the load
+// back to the use site and the SIB roles stay swapped, so the store-only flip the
+// earlier pass saw came from the pointer load being hoisted above the whole
+// block, not from the "variable" node as such. tools/headers.py re-run: all 128
+// sets, closest 99.6% (`<windows.h> <math.h>`). The two SIB bytes remain the
+// whole work list: 0x4099f6 wants `[esi + ecx]`, 0x409b53 wants `[eax + edx]`.
+//
 // Additional pass (deepseek-v4.1): the read site rewritten as a braced block with
 // `unsigned char* p8 = vec_8d.begin(); x += (char)p8[i] / 2;` recompiles to the
 // identical 1678 bytes with the identical two SIB diffs (the single-use local is

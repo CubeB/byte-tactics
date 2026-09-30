@@ -81,6 +81,15 @@
 //    state, as they often are: the vtable store is a node in the same block
 //    that seeds EBX for `file`, and `file` is the range that has to be
 //    reloaded twice inside the scan loop.
+// Retry 2 (deepseek-v4.1-flash, 14 free check.py --sym scores): also below
+// 94.0, no role flip: unsigned char/char/short/long idx with int k (85.3,
+// 85.3, 86.2, 86.2), both counters unsigned char (84.3, 1284 bytes), the
+// result written through a temp (k = idx; desc.kind = k; and a byte res
+// local, both 86.2), idx & 0xff in the store (86.2), a dead per-iteration
+// byte copy of idx (this time it did NOT flip the roles, 86.2), the same
+// copy paired with a copy of k (86.2), idx declared first (86.0), and
+// `if (desc.kind == k)` operand order (86.2). The 94.0 char-k variant
+// below is still the best.
 // Preserve the inclusive fallback-table scan: 0x43a58d uses JBE even though
 // the named lookup passes the same end pointer to exclusive lower_bound.
 #include <stdio.h>

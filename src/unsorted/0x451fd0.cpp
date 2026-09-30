@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Partial: 85.9%, 915 bytes, exactly the original's size. The store sequence,
 // every immediate and the whole prologue and epilogue match; what is left is
 // only the register the allocator hands to three of the hoisted constants.
@@ -21,6 +21,17 @@
 // memset through a char* or void*, length as 176, sizeof(int) * 44, 44 * 4, a
 // zeroing for loop, the stores through a static set4() helper, long / unsigned
 // / int globals, and explicit (int) casts.
+//
+// deepseek-v4.1 also tried and left flat at 85.9%: #include <windows.h>;
+// a dead `if (0) { DAT_00512b34 = 2; }` after the memset to create the value 2
+// earlier; `const int c1 = 1, c6 = 6, c2 = 2;` declared before the 4-block and
+// used for the first store of each of 1, 6 and 2; 1u / 6u / 2u spellings of
+// those stores; and vD_locals (see build/scratch/0x451fd0/). Swapping two
+// adjacent independent stores (vA_swap) falls to 85.3%, which shows the
+// scheduler does not reorder this store run, so the emitted order really is
+// the source order and the original's source has the same interleaving. The
+// only remaining freedom is the allocator's register choice, which no source
+// shape tried so far moves.
 
 #include <string.h>
 

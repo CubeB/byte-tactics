@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // Partial: 84.3%, 848 bytes (the exact original size). Still open:
 //  * the player/slot/game register rotation: the original keeps g_game in ebx,
 //    the player pointer in esi and the slot byte in edi; ours allocates
@@ -15,8 +15,16 @@
 //  * the b2 arm is fixed: writing it as three `if (cond) goto after_remove;`
 //    plus a trailing `goto do_remove;` (instead of `if (a||b) goto L;`) makes
 //    MSVC emit the original's `cmp al,2; je L; jmp S`.
-// 768 header sets, alternate flag types and the existing inline predicate
-// helpers (IsActive12 and friends) did not help.
+//  * deepseek-v4.1 tried, all byte-identical or worse: swapping the two arms
+//    of the fi test (83.6%, the arms change place in the emitted code),
+//    writing p as a ternary, `p = g_game->players + idx`, moving the slot,
+//    flag and loop-index declarations to the top of the function, declaring
+//    the clearing-loop index unsigned char (49.4%) and inlining the
+//    FindIndex_00452cc0 loop into the body (63.9%, so the one-use inline
+//    helper shape is load-bearing). The rotation is not a declaration-order
+//    or use-count lever.
+// headers.py tried 128 header sets (all 84.3%), and alternate flag types and
+// the existing inline predicate helpers (IsActive12 and friends) did not help.
 
 #include <stdio.h>
 #include <string.h>

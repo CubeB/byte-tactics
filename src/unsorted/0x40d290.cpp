@@ -44,6 +44,24 @@
 // declarations (92.8% in phases 256..511 mod 512, 93.3% in 0..255) and that
 // toggle moves only the fourth sum (the _Ucopy source start), never these
 // two. So the two hunks below are unreachable from this emission context.
+// Re-checked 2026-09-30 (deepseek-v4.1, session 2): the hand-written
+// namespace std clone carrier of 0x408f30 (only the members insert needs) is
+// worse here, 91.4% (477 bytes): it regresses the third _Ucopy's source start
+// and moves the per-loop `mov ebp, [esp + 0x10]` reload out of the loop, while
+// the two tail sums stay exactly as below. Every source spelling of the tail
+// canonicalises to the same bytes: `_End = _N + _S`, `(_S + size()) + _M`,
+// `_M + (_S + size())`, `size() + _S + _M`, `_End = _S; _End += _N;` and
+// `_Last = _S + size(); _Last += _M;` all give this file's emission (93.3%),
+// and `_First = _S;` moved above the sums reaches 92.8% only by letting the
+// compiler substitute _S into size() (test ebx,ebx / sub eax,ebx), which is a
+// different value, not the original. Compiler-state fillers do not reach the
+// two sums either: typedef, struct, class, static-variable and function-
+// prototype dummies at 0 to 16384 declarations, <string>/<list>/<map>/
+// <algorithm>/<iostream>/<deque>/<set> added before <vector>, and 1 to 8
+// extra vector<unsigned short/int/...>::insert instantiations ahead of this
+// one all land on either 93.3% (4 hunks) or 92.8% (5 hunks, the extra hunk is
+// the third _Ucopy's source start at the @@ -77 region). The two realloc-tail
+// sums are invariant under every lever tried, here and in 0x408f30.
 #include <windows.h>
 #include <ddraw.h>
 #include <vector>

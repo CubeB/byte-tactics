@@ -38,6 +38,12 @@
 // local-temp orders (92.1 each); the four hunks below never move.
 // deepseek-v4.1 re-run: tried unsigned-local InBounds operands (frame 909B, 80.3%);
 // the best version stays this one at 92.1%.
+// deepseek-v4.1 third pass (10 check runs): a named result local in Cost (884
+// bytes, 87.7%), Clear() moved after the node construction (92.1), short Cost
+// parameters (92.1), a target local in Cost (92.1), Cost hand-inlined at the
+// call site (92.1), Release(object) with the object as a parameter (92.1), and
+// the de Morgan bounds test written out at the tail (909 bytes, 80.3). The four
+// hunks never moved, so they stay allocator state, not source shape.
 #include <vector>
 
 struct Point_0040e630 {

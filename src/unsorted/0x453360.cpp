@@ -80,6 +80,17 @@
 // helpers and function-scope locals, so this looks like front-end allocator
 // state (the VC5 inliner's or the symbol table's), not a spelling of these
 // loops.
+// Retry pass (space-bunny-free, #2380): still 54.4%, byte-identical to the
+// previous passes. Eight further spellings of a dead use of `text` inside both
+// arms (a local in the loop body, a pointer in the for-init, `text,` as the
+// first comma term of the for condition, a `text == text` guard, the counter
+// declared before and after the dead local, a do-while with the dead local in
+// the body) all compile to the same 371 bytes, so /O2 folds every one of them.
+// TWIN TEST: the only matched functions that scan the same fields are 0x493ae0
+// and 0x494050 (both `@@YGXXZ`, no arguments), so neither can host the dead
+// `mov eax,[esp+0x14]` reload and the test cannot be run here. The reload must
+// therefore come from an inlined function's own parameter reference that the
+// optimizer drops the use but not the load of.
 #include <iostream>
 #include <string.h>
 

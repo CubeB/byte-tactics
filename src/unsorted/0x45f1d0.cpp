@@ -18,13 +18,17 @@
 // `opts` is a LOAD from that slot, not the address of the array element:
 // mov ebx,[edi+edx*2+0x1b8a].  A plain &players[i] emits lea and cannot match.
 //
-// Still differs: the early opts/rule block keeps the player index in eax where
-// the original keeps it in ecx (shl eax,5 / add eax,ecx, here shl ecx,5 /
-// add ecx,eax), and the net==2 branch in the original re-reads
-// g_game->rules->startType instead of using the cached `rule`.  Writing that
-// re-read gives the right instruction count (1432 vs 1431 bytes) but rotates
-// registers through the whole function and drops the score to 70, so
-// rule->startType is kept here.
+// Remaining diff (best 90.0%, 1422 vs 1431 bytes):
+//   0x45f232..0x45f28c: the player index strength reduction keeps the multiply
+//     in ecx and the index in eax; the original keeps them the other way round
+//     (shl eax,5 / add eax,ecx).  Swapping the opts/rule declaration order, an
+//     explicit `int idx` local, and dropping <string.h> all change nothing.
+//   0x45f36a..0x45f376: the net==2 branch re-reads g_game->rules->startType
+//     instead of using the cached `rule`.  Writing that re-read gives the right
+//     size (1432 vs 1431) but rotates g_game's scratch register through the
+//     whole function and drops the score to 69.8%, so rule->startType is kept.
+// Everything else (all the label/value pairs and the tail loop) already matches;
+// the remaining non-hunk diff lines are just branch displacements shifting.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>

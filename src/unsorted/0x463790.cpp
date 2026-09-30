@@ -26,6 +26,13 @@
 // rewriting the count pass as a plain `while (remaining > 0)` instead of an
 // `if (remaining > 0)` around a do/while (63.2 to 64.5), and writing the grow
 // test as `size > f4` so the branch is `jbe` with size on the left (64.8).
+// Second pass (same model): replacing the first-branch Entry_00463790 local
+// with three plain int locals a/b/c scored 64.5 (worse, it spills b and c);
+// `size -= 4` with `int remaining = size` declared after the memcpy scored
+// 64.8 (same, still `lea ebp,[ebx-4]`); the inner guard written `r->n >= 1`
+// scored 64.8 still (1007 bytes). The root cause is that the entry ternary
+// `(rows ? rows->n : 0) != 0` leaves a live 0 in edi, so `f8++` lands in edx
+// and the later `r->n > 0` becomes `cmp ecx,edi` instead of `test ecx,ecx`.
 #include <string.h>
 
 void* operator new(unsigned int size);

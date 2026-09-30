@@ -1,4 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash retry (2557, timeboxed): best remains 67.8 percent (555
+// of 570 bytes). Measured with check.py --sym on scratch copies, none better:
+//  - reordering the inlined Pop to load readIdx before count--: identical.
+//  - loc.n = 0 instead of loc.headFrame = 0, or dropping that init store: 547
+//    bytes, 66.5 percent, so the headFrame store is load-bearing for alignment.
+//  - `for (;;)` instead of `while (1)`: 67.3 percent.
+//  - `if (now < nextSend && force == 0) return 1;` instead of the nested if:
+//    byte-identical.
+//  - reusing `force` as the sent counter: byte-identical (sent still in ebx).
+//  - caching GetFirst() in `entry` before reading ->frame: 67.3 percent.
+//  - a local `int* p = DAT_0051e2f4;` used for the store and the send call, to
+//    put a pointer live across the logging call: 547 bytes, 64.0 percent.
+// Nothing moved the constant 0 into ebx, so the 15-byte gap is unchanged.
 //
 // space-bunny-free third pass: still 67.8 percent (555 of 570 bytes), unchanged.
 // TWIN TEST: the matched 0x435a20 (100 percent) has exactly this shape (an

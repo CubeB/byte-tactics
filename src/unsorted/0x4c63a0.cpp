@@ -1,5 +1,27 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
-// PARTIAL 50.7%. Remaining differences: display/tag registers, local overlays and DirectDraw branch layout. Surface locals are 48 bytes and the native descriptor is 108 bytes.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1. Names are provisional.
+// PARTIAL 74.4%. Frame is right (0xf4 = pt@0x00 reused by held/bmp, rect@0x08,
+// src@0x18, out@0x28, screen@0x58, desc@0x88) and the branch nesting now matches
+// (flags&2 test, then field_dc!=0 as the fall-through, then the field_dc==0 path).
+// What still differs (ours 1124 bytes vs the original 1051):
+//  - the two inlined Lock()/Unlock(held) pairs are not merged. The original keeps
+//    ONE Unlock body (0x4c663f) and branch 1 jumps into it (mov eax,[esp+0x10];
+//    test eax,eax; jmp 0x4c6639), and its bmp-path Lock() loads ebp=InterlockedExchange,
+//    ebx=WaitForSingleObject, edi=0x4d41494e with held ending in ebx; ours loads
+//    ebx=InterlockedExchange, ebp=WaitForSingleObject and keeps held in ebp, so
+//    the two Unlock bodies differ (call ebp vs call ebx) and MSVC emits both
+//    (~0x2c + 0x20 bytes). Swapping the register pair is allocator state: it is
+//    coupled to the zero register (original xor ebp,ebp / cmp ecx,ebp, ours
+//    xor ebx,ebx / cmp ecx,ebx) and to ebx holding held; no source shape tried
+//    (helper vs open-coded unlock, scoping, statement order) moved it.
+//  - branch 1 uses ebx for &d->cached and edi for the HDC; ours has edi/ebx swapped.
+// The locals must stay scoped as they are (desc/out inside the field_dc!=0 block,
+// rect/pt plus the Blt loop in a nested block, screen at function scope): declaring
+// them at function scope makes the frame 0xf8 and shifts every [esp+N] by 4.
+// GPT-6.1-sol refinement: best remains 74.4% after 9 checks, with no MATCH.
+// Combining the two locked paths around one Unlock call grew the frame to 0xf8
+// and fell to 66.8%; bool held fell to 72.2%. Changing Unlock polarity, passing
+// Lock's result through an output pointer, and varying cached/HDC expression
+// shapes did not improve the PR #2192 source. Restored its 74.4% form.
 
 #include <windows.h>
 #include <ddraw.h>
@@ -13,12 +35,7 @@ struct Out_004c63a0 {
     int field_4;                       // +0x04
     int field_8;                       // +0x08
     int field_c;                       // +0x0c
-    int field_10;                      // +0x10
-    int field_14;                      // +0x14
-    short field_18;                    // +0x18
-    short field_1a;                    // +0x1a
-    int vec[4];                        // +0x1c
-    int field_2c;                      // +0x2c
+    int pad[8];
 };
 
 #pragma pack(push, 1)
@@ -93,31 +110,30 @@ static inline void Unlock(LONG held)
 }
 
 // 0x4c5fa0, inlined here.
-static inline void UnlockScreen()
+static inline int UnlockScreen()
 {
     Display_004c63a0* d = FUN_004b6220();
     if (d->field_44 == 0 && d->field_dc == 0) {
         if (d->surface == 0)
-            return;
+            return 0;
         d->surface->Unlock(0);
         if (DAT_0051fe00 > 0)
             DAT_0051fe00--;
     }
+    return 1;
 }
 
 struct Desc {
-        DWORD dwSize, dwFlags, height, width;
-        LONG lPitch;
-        DWORD backbuffers, mipmaps, alpha, reserved;
-        void* lpSurface;
-        char fields[68];
+    DWORD dwSize, dwFlags, height, width;
+    LONG lPitch;
+    DWORD backbuffers, mipmaps, alpha, reserved;
+    void* lpSurface;
+    char fields[68];
 };
+
 // FUNCTION: 0x4c63a0
 void FUN_004c63a0(void)
 {
-    Surface_004c63a0 screen;
-    Out_004c63a0 out;
-    Desc desc;
     Display_004c63a0* d = FUN_004b6220();
     unsigned short flags = d->flags;
 
@@ -135,70 +151,78 @@ void FUN_004c63a0(void)
         return;
     }
 
-    if (d->field_dc == 0) {
-        if (d->field_9c != 0 && (flags & 1) != 0) {
-            d->field_88->Flip(0, 1);
-            return;
-        }
-        RECT rect;
-        POINT pt;
-        GetClientRect(d->hwnd, &rect);
-        pt.x = 0;
-        pt.y = 0;
-        RECT src = rect;
-        ClientToScreen(d->hwnd, &pt);
-        OffsetRect(&rect, pt.x, pt.y);
+    Surface_004c63a0 screen;
 
-        for (;;) {
-            int r = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
-            if (r == 0) return;
-            if (r != 0x887601c2) continue;
+    if (d->field_dc != 0) {
+        Desc desc;
+        Surface_004c63a0 out;
+        Surface_004c63a0* bmp = d->field_bc;
+        if (bmp->data[0] != FUN_004b6700())
+            return;
+        if (bmp->data[1] != FUN_004b6710())
+            return;
+
+        LONG held = Lock();
+        desc.dwSize = sizeof(desc);
+        unsigned long lr = d->field_88->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
+        if (lr == 0) {
+            out.data[0] = d->field_d4;
+            out.data[1] = d->field_d8;
+            out.data[2] = desc.lPitch;
+            out.data[3] = (int)desc.lpSurface;
+            FUN_004c67c0(d, bmp);
+            FUN_004cbbe0(&out, bmp, 0, 0);
+            if (d->field_1ce != 0 && d->field_1d2 != 0)
+                FUN_004c6b70(bmp, (Surface_004c63a0*)d->field_1be, d->field_1b6, d->field_1ba);
+            d->field_88->Unlock(0);
+        } else if (lr == 0x887601c2) {
             Display_004c63a0* dd = FUN_004b6220();
-            if (dd->field_44 != 0) return;
-            if (d->field_88->Restore() != 0) continue;
-            if (d->surface->Restore() != 0) continue;
-
-            FUN_004c5e70(&screen);
-            FUN_004cbbe0(&screen, dd->field_98, 0, 0);
-            UnlockScreen();
-            return;
-        }
-        return;
-    }
-
-    Surface_004c63a0* bmp = d->field_bc;
-    if (bmp->data[0] != FUN_004b6700())
-        return;
-    if (bmp->data[1] != FUN_004b6710())
-        return;
-
-    LONG held = Lock();
-
-    desc.dwSize = sizeof(desc);
-    unsigned long lr = d->field_88->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
-    if (lr == 0) {
-
-        out.field_0 = d->field_d4;
-        out.field_4 = d->field_d8;
-        out.field_8 = desc.lPitch;
-        out.field_c = (int)desc.lpSurface;
-        FUN_004c67c0(d, bmp);
-        FUN_004cbbe0((Surface_004c63a0*)&out, bmp, 0, 0);
-        if (d->field_1ce != 0 && d->field_1d2 != 0)
-            FUN_004c6b70(bmp, (Surface_004c63a0*)d->field_1be, d->field_1b6, d->field_1ba);
-        d->field_88->Unlock(0);
-    } else if (lr == 0x887601c2) {
-        Display_004c63a0* dd = FUN_004b6220();
-        if (dd->field_44 == 0) {
-            if (d->field_88->Restore() == 0) {
-                if (d->surface->Restore() == 0) {
-
-                    FUN_004c5e70(&screen);
-                    FUN_004cbbe0(&screen, dd->field_98, 0, 0);
-                    UnlockScreen();
+            if (dd->field_44 == 0) {
+                if (d->field_88->Restore() == 0) {
+                    if (d->surface->Restore() == 0) {
+                        FUN_004c5e70(&screen);
+                        FUN_004cbbe0(&screen, dd->field_98, 0, 0);
+                        UnlockScreen();
+                    }
                 }
             }
         }
+        Unlock(held);
+        return;
     }
-    Unlock(held);
+    if (d->field_9c != 0 && (flags & 1) != 0) {
+        d->field_88->Flip(0, 1);
+        return;
+    }
+
+    {
+    RECT rect;
+    POINT pt;
+    GetClientRect(d->hwnd, &rect);
+    pt.x = 0;
+    pt.y = 0;
+    RECT src = rect;
+    ClientToScreen(d->hwnd, &pt);
+    OffsetRect(&rect, pt.x, pt.y);
+
+    int hr;
+    for (;;) {
+        hr = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
+        if (hr == 0)
+            return;
+        if (hr != 0x887601c2)
+            continue;
+        Display_004c63a0* dd = FUN_004b6220();
+        if (dd->field_44 != 0)
+            return;
+        if (d->field_88->Restore() != 0)
+            continue;
+        if (d->surface->Restore() != 0)
+            continue;
+        FUN_004c5e70(&screen);
+        FUN_004cbbe0(&screen, dd->field_98, 0, 0);
+        UnlockScreen();
+        return;
+    }
+    }
 }

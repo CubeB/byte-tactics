@@ -10,6 +10,17 @@
 // out (the allocator tries to keep allocating from it), DAT_00528a00 counts the
 // wraps around the map, and DAT_00528a54 is the tree's _Nil node.
 //
+// PASS deepseek-v4.1-flash (third visit, retry from 74.4%): 74.4% -> 76.7%,
+// still 646 of 646 bytes. The gain was moving the erase output iterator `out`
+// out of the innermost success `if` block (to function scope; it is inert
+// which enclosing scope, all of function/if/do scope give identical output).
+// With `out` in the innermost block MSVC reuses the `res` slot for it and
+// mis-schedules the second FUN_004dbec0 call; hoisting it lets the first
+// FUN_004dbec0 call take the original `res` slot at [esp+0x14] and shortens
+// the second call's setup. Reusing one local for both erase output and the
+// FUN_004dbec0 result (the original aliases them at [esp+0x14]) drops to
+// 73.5%. Everything still differing is the this/bytes register swap below;
+// `out`'s hoist only reduced the diff, it did not flip the swap.
 // PASS deepseek-v4.1: 69.3% -> 74.4%, frame 614 -> 646 bytes, exactly the
 // original frame, from one line: `bool ok;` left UNINITIALISED. That keeps the
 // original's dead `xor al,al; test al,al; je` arm at 0x4db41a and its duplicate
@@ -35,7 +46,8 @@
 // is the front end's value creation order for the entry block (the original's
 // `bytes` has to be numbered before `this`), which no ordinary declaration or
 // use ordering reached.
-// NOT MATCHING yet (was 69.3%, now 74.4% with `bool ok;`)., 614 of 646 bytes). What still differs, measured
+// NOT MATCHING yet (was 69.3%, then 74.4% with `bool ok;`, now 76.7% with the
+// hoisted `out`; 646 of 646 bytes). What still differs, measured
 // against the original at 0x4db1c0:
 //   * 0x4db1c0 (the one big cause): the original keeps `this` in ebp and `bytes`
 //     in ebx; we keep them the other way round, and everything downstream
@@ -196,6 +208,7 @@ public:
 unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
 {
     Class_004dd2a0 res;
+    Class_004dd2a0 out;
     bool ok;
     int tries = 0;
     if (size > 0) {
@@ -228,7 +241,6 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
                 tries++;
             }
             if (cur.ptr->length >= bytes) {
-                Class_004dd2a0 out;
                 unsigned int base = cur.ptr->key;
                 unsigned int len = cur.ptr->length;
                 unsigned int mark;

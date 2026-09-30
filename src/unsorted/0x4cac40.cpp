@@ -1,9 +1,16 @@
 // Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// Best score is 91.2%. The dword locals (total, rows, n, row, p) now live in a
-// Locs_004cac40 struct, which reproduced their original slots exactly
-// (S+0x18/0x1c/0x20/0x24/0x28); grouping them as one struct was the lever the
-// flat declaration sweeps never found. The outer-run count byte is a separate
-// `ocnt` local, which fixed the counted-run writer and lifted 86.2 to 90.2.
+// Best score is 94.5% (this session), up from 91.2%. The dword locals (total,
+// rows, n, row, p) live in a Locs_004cac40 struct, which reproduced their
+// original slots exactly (S+0x18/0x1c/0x20/0x24/0x28). The outer-run count byte
+// is a separate `ocnt` local.
+//
+// The tail FIXED this session: change the entry null test to `if (file == 0)
+// goto out;` (not `return 0`) and the final test to `if (FUN(...) != 0x300)
+// goto out;` with the success close as the fall-through. That made MSVC 5
+// keep the redundant `if (file)` test at the out label (the value is unknown
+// on the out edge) and emit both epilogues, matching the original byte for
+// byte (640 bytes). Score 90.5 with only the entry goto, 94.5 with both.
+//
 // Still differing (best first):
 //   1. The byte slots. Original: curmem S+0x12, t S+0x13, rep S+0x14,
 //      next/outer count S+0x15, inner cnt S+0x16, lit S+0x17. Here: curmem
@@ -11,19 +18,17 @@
 //      The original needs seven roles in six slots because the outer count
 //      shares `next`'s slot; our compiler does not coalesce them, so rep gets
 //      an extra slot at 0x11 and next is pushed to 0x17. Reusing `next` for
-//      the count in source (51.1%) or aliasing it in a union (47.5%) changes
-//      the global register allocation (width/height swap out of ebx), so the
-//      sharing has to come from coalescing, which I did not crack.
-//   2. The tail. Original keeps a redundant `if (file)` test at 0x4cae8d and
-//      two separate epilogues (return 1 at 0x4caeb1, return 0 at 0x4cae99);
-//      ours folds the two closes into one. MSVC proves `file` non-null after
-//      the early return, so both `if (file)` and an unguarded call merge.
-//   3. `mov esi,1`/`mov al,bl` swap after the inner flush (scheduler tie).
-// Tried this session: flat byte/dword declaration permutations (all neutral),
-// whole-frame struct including the header (36.0), dword-only struct (91.2),
-// byte-only union shared with next (47.5), block-scoped ocnt (88.2), sharing
-// the outer count with inner cnt (87.2), scoping total/n to their loops
-// (neutral).
+//      the count in source (52.7% here) or aliasing it in a union (47.5%)
+//      changes the global register allocation (width/height swap out of ebx),
+//      and a byte struct forces every access through memory (52.2%), so the
+//      sharing has to come from coalescing, which I did not crack. Note the
+//      desired mapping is exactly declaration order low-to-high (curmem, t,
+//      rep, next, cnt, lit), which the six-slot original does but our seven
+//      slots do not.
+//   2. `mov al,bl` / `mov esi,1` swap after the inner flush (scheduler tie).
+// Tried this session: entry `goto out` alone (90.5), inverted final test alone,
+// both together (94.5, kept), byte-only struct in declaration order (52.2),
+// reusing `next` for the outer count (52.7).
 //
 // Best score was 86.2%. The row guard uses
 // rows = height - 1; if (rows >= 0) { ++rows; do ... while (--rows); } to
@@ -118,7 +123,7 @@ int __stdcall FUN_004cac40(void* filename, unsigned char* data, int width, int h
     unsigned char ocnt;
 
     if (file == 0)
-        return 0;
+        goto out;
 
     memset(&hdr, 0, 0x80);
     hdr.a = 10;
@@ -197,42 +202,29 @@ int __stdcall FUN_004cac40(void* filename, unsigned char* data, int width, int h
 
     t = 0x0c;
     FUN_004bbbe0(file, &t, 1);
-    if (FUN_004bbbe0(file, block, 0x300) == 0x300) {
-        FUN_004bb5d0(file);
-        return 1;
-    }
+    if (FUN_004bbbe0(file, block, 0x300) != 0x300)
+        goto out;
+    FUN_004bb5d0(file);
+    return 1;
 out:
     if (file)
         FUN_004bb5d0(file);
     return 0;
 }
 
-// Still differing, best first, with the evidence:
+// The dword slot order (L.total=S+0x18, L.rows=S+0x1c, L.n=S+0x20,
+// L.row=S+0x24, L.p=S+0x28) and the outer loop guard (dec/test/jl/inc as the
+// canonicalisation of `rows = height - 1; if (rows >= 0) { ++rows; do ...
+// while (--rows); }`) both match now. Only two things still differ:
 //
 // 1. The byte slot order. Original: curmem=S+0x12, t=S+0x13, rep=S+0x14,
-//    next=S+0x15, cnt(inner)=S+0x16, lit=S+0x17. Here: curmem=S+0x12,
-//    rep=S+0x13, cnt=S+0x14, t=S+0x15, next=S+0x16, lit=S+0x17. The same
-//    declaration list in the order curmem, t, rep, next, cnt, lit does NOT
-//    reproduce it, and permuting the whole declaration block (including the
-//    pointers and ints) moves the byte slots as well and also swaps which
-//    parameter lands in ebx, so the layout is tied to the declaration order in
-//    a way I did not crack. Note the original needs SEVEN byte roles in SIX
-//    slots: the outer flush's count byte is at S+0x15, the same slot as `next`,
-//    so those two are probably one source variable.
-// 2. The dword slot order, same cause. Original: L.total=S+0x18, L.rows=S+0x1c,
-//    L.n=S+0x20, L.row=S+0x24, L.p=S+0x28. Here `L.row` and `L.total` are swapped.
-//    Only two instructions differ (`mov ecx,[esp+0x24]` and `mov [esp+0x24],ecx`
-//    against `mov ecx,[esp+0x18]` and `mov [esp+0x18],ecx`) but they also drag
-//    the `L.total` reload at 0x4cadb1 and the `L.total = 0` at the L.row top with them.
-// 3. The outer loop guard. Original 0x4cacfd-0x4cad0b is `dec eax / test / jl /
-//    inc eax / mov [S+0x1c],eax`, that is MSVC's canonicalisation of a signed
-//    `>` (as `x > 0` becomes `x - 1 >= 0`), and it stores the L.row pointer
-//    before the test. Neither `if (L.rows > 0)` with `L.rows = height` one line
-//    earlier nor `L.row = data; if (height > 0) { L.rows = height; ... }` gives it:
-//    both compile to `test eax,eax / jle` (tried, both 76.6%).
-// 4. The tail. The original re-tests the file pointer at 0x4cae8d
-//    (`xor edx,edx / cmp ebp,edx / je`) before the failure-path FUN_004bb5d0,
-//    and keeps two separate epilogues (return 1 at 0x4caeb1, return 0 at
-//    0x4cae99). MSVC proves the pointer non-null and tail-merges the two
-//    closes into one. Both `if (file)` and a plain unguarded call give the
-//    same merged code. Those 8 bytes are the entire size difference.
+//    next=S+0x15, cnt(inner)=S+0x16, lit=S+0x17, with the outer flush count
+//    sharing next's S+0x15. Here: curmem=0x12, t=0x13, cnt=0x14, ocnt=0x15,
+//    lit=0x16, next=0x17, rep=0x11. Seven slots instead of six. The desired
+//    mapping is exactly the declaration order curmem, t, rep, next, cnt, lit
+//    low-to-high, but MSVC does not pack ours that way while `ocnt` is a
+//    seventh variable. Making `ocnt` a separate variable keeps seven slots;
+//    reusing `next` collapses the source roles and wrecks register allocation
+//    (52.7%); a byte struct forces memory traffic (52.2%).
+// 2. After the inner flush the original schedules `mov esi,1` before
+//    `mov al,bl`; ours emits them the other way round (scheduler tie).

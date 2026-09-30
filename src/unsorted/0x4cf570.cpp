@@ -10,6 +10,11 @@
 // a static inline wrapper around FUN_004cf180 taking this as an argument (no
 // change), bestidx declared before unit/slot (no change), and initialising
 // unit/slot from bestidx to force coalescing (no change).
+// Issue 2774 retry by deepseek-v4.1-flash: still 80.2%. Declaration order of
+// the initialized locals, an explicit self pointer (self = this), register
+// int bestidx, swapping the best/bestidx assignment order, and naming bestidx
+// in the null test (folded back into the shared zero) all left the
+// this/zero/bestidx register rotation unchanged.
 // Remaining mismatch is the this/zero/bestidx register allocation rotation described below.
 // GPT-6.1-sol retry in #1928: 6 direct checks kept 80.2%. Delayed
 // initialization, explicit self guard, and reusing bestidx for the zero guard

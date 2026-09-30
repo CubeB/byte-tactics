@@ -1,58 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// PARTIAL, 22.0% (1183 original bytes, 1173 ours). GPT-6.1-sol retry: 3 check.py runs, best unchanged at 22.0%. Full control
-// flow transcribed, register allocation not matched.
-//
-// Second pass: the first edge loop now uses the sibling 0x4c8760's exact
-// index idiom, an unfixed `previous` plus a fixed copy (`prev`), with the
-// redundant `if (i < 0) i = 3;` after `i = previous;` at the loop bottom.
-// That matches the original's top store of `i-1` to its slot and the
-// reload/re-fix at the loop latch, and was worth 0.5 points.
-// Textured/gouraud quad blitter: walks the quadrilateral dst (screen, 4 points)
-// and src (texture, 4 points), clips it to the surface clip rect and to each
-// scanline, and hands each scanline's span to FUN_004c7310 (the per-column
-// scaler). The per-scanline spans are accumulated in a local record array
-// (0x28 bytes each) reached through a huge chkstk frame.
-//
-// Known remaining differences:
-//  - Frame is 0x7d94, not 0x7d8c: the small-locals area before the clip rect is
-//    too big (the added `previous` copy accounts for one dword), so every esp
-//    offset and the argument offsets are shifted. The cause is register
-//    allocation: the original keeps maxx in ebx
-//    across the FUN_004c6ae0 call and minx in ebp, so it needs fewer
-//    spilled slots; ours spills maxx and minx because
-//    MSVC picked ebx as the zero register (`xor ebx,ebx`) instead of the
-//    original's ebp. With ebx taken by the zero, ebp never frees up for minx.
-//  - the min/max loop therefore stores maxy at [esp+0x28] and miny at
-//    [esp+0x34] where the original uses [esp+0x1c] and [esp+0x20].
-//  - the two per-scanline span loops and the chkstk word are otherwise 1:1;
-//    the record fields (+0 left, +4 right, +8/+0xc left tex, +0x10/+0x14 right
-//    tex) reproduce the original's stores.
-//
-// Extra evidence gathered on a second pass:
-//  - 0x4c8760 is the same edge-traversal/skewed-quad shape (partial, GPT-6);
-//    its min/max loop declares lowY, highY, highX, lowX and leaves the two
-//    index vars uninitialised. Rebuilding this function that way (scratch v1)
-//    scored 13.3% and did not move the zero register off ebx, so the shape is
-//    close but the allocator still spills maxx.
-//  - 0x4c7310 (matched) confirms the span record: rect[0] left, [1] right,
-//    [2]/[3] source at left, [4]/[5] source at right, and confirms
-//    Class_004c6ae0::FUN_004c6ae0 returns the clip Vec4 (this file ignores it).
-//  - the single root cause of the +4 frame is maxx: the original keeps maxx in
-//    ebx (never stored), the zero register in ebp; MSVC here instead gives ebx
-//    to the cross-check constant 0 (`xor ebx,ebx`) and spills maxx, which also
-//    shifts every esp offset and both arg offsets by 4. Everything else in the
-//    prologue is byte-identical.
-// Third-pass attempts that did NOT move it (all scored 21.2 to 21.5, no
-// better than the 22.0 with the sibling loop idiom):
-//  - all orders of the min/max declarations and leaving minyi/maxyi
-//    uninitialised (the sibling's order lowY, highY, highX, lowX included).
-//  - a separate source pointer local `s = src` used in both edge loops.
-//  - a separate `Point* dq = dst->p` for the min/max scan.
-//  - the redundant bottom fixup added WITHOUT the `previous` copy:
-//    `i = prev; if (i < 0) i = 3;` scored 20.6.
-// maxx only loses its stack slot when the allocator keeps it in a
-// callee-saved register, and it will not do that while ebp is taken by `src`;
-// freeing ebp is the open problem.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
+// PARTIAL 13.5%. Corrected both edge loops to test clip.top and skip nonpositive spans after clipping. Register allocation, frame and branch layout still differ.
+
 #include <windows.h>
 
 struct Point_004c7580 {
@@ -131,11 +79,11 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
     }
 
     int maxx = -999999;
+    int maxy = -999999;
     int minx = 999999;
     int miny = 999999;
-    int maxy = -999999;
-    int minyi = 0;
-    int maxyi = 0;
+    int minyi;
+    int maxyi;
     for (int k = 0; k < 4; k++) {
         int y = dst->p[k].y;
         if (y < miny) { miny = y; minyi = k; }
@@ -185,8 +133,8 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
         int y1 = dst->p[prev].y;
         if (y1 > clip[1] && y0 < y1) {
             int dy = y1 - y0;
-            int x0 = (dst->p[i].x << 16) + 0xffff;
             int ddx = ((dst->p[prev].x - dst->p[i].x) << 16) / dy;
+            int x0 = (dst->p[i].x << 16) + 0xffff;
             int tx = src->p[i].x << 16;
             int ty = src->p[i].y << 16;
             int dtx = ((src->p[prev].x - src->p[i].x) << 16) / dy;
@@ -201,7 +149,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
             if (y1 > clip[3])
                 y1 = clip[3];
             int n = y1 - y0;
-            while (n != 0) {
+            if (n > 0) do {
                 rec->field_0 = x0 >> 16;
                 rec->field_8 = tx;
                 rec->field_c = ty;
@@ -210,7 +158,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
                 ty += dty;
                 rec++;
                 n--;
-            }
+            } while (n != 0);
         }
         i = previous;
         if (i < 0)
@@ -223,10 +171,10 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
         int next = (i + 1) & 3;
         int y0 = dst->p[i].y;
         int y1 = dst->p[next].y;
-        if (y1 > clip[3] && y0 < y1) {
+        if (y1 > clip[1] && y0 < y1) {
             int dy = y1 - y0;
-            int x0 = (dst->p[i].x << 16) + 0xffff;
             int ddx = ((dst->p[next].x - dst->p[i].x) << 16) / dy;
+            int x0 = (dst->p[i].x << 16) + 0xffff;
             int tx = src->p[i].x << 16;
             int ty = src->p[i].y << 16;
             int dtx = ((src->p[next].x - src->p[i].x) << 16) / dy;
@@ -241,7 +189,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
             if (y1 > clip[3])
                 y1 = clip[3];
             int n = y1 - y0;
-            while (n != 0) {
+            if (n > 0) do {
                 rec->field_4 = x0 >> 16;
                 rec->field_10 = tx;
                 rec->field_14 = ty;
@@ -250,7 +198,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
                 ty += dty;
                 rec++;
                 n--;
-            }
+            } while (n != 0);
         }
         i = next;
     } while (i != maxyi);

@@ -1,48 +1,11 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// PARTIAL 34.0%: widening the escaped Surface local to 0x60 bytes restores the
-// original 0xf4 frame (the 0x30-byte form scored 32.5%). Still differs in
-// register allocation and branch layout, especially the display/tag register
-// swap and the DirectDraw branches. Five check.py invocations this pass.
-// Earlier PARTIAL 32.5% notes: control flow and struct offsets transcribed, but the frame is
-// 0xc4 vs the original 0xf4 (MSVC overlays the `out` and `screen` locals) and
-// the two long-lived callee-saved values are swapped: original holds the
-// display in esi and the 'MAIN' tag in edi, ours the other way around, which
-// rotates every operand. Hoisting out/screen/desc to function scope gave 0xf8
-// but scored 31.0%; leaving them in the branches is the better version.
-// Second pass (deepseek-v4.1-flash) settled the original frame layout exactly.
-// With 4 saved regs the locals area is [esp+0x10, esp+0x104); the original
-// assigns: pt @0x10 (8), rect @0x18 (16), src @0x28 (16), out @0x38 (0x30,
-// i.e. the full Out_004c63a0, only fields 0/4/8/c used), screen @0x68 (0x30,
-// used by BOTH the field_dc==0 DDERR path and the field_dc!=0 path), desc
-// @0x98 (108 = 0x6c, dwSize=0x6c, lPitch @+0x10, lpSurface @+0x24). Those
-// sizes sum to exactly 0xf4 with NO overlay, which is why the original frame
-// is 0xf4. Our ddraw.h DDSURFACEDESC is 4 bytes larger than the game's, so a
-// hand-rolled 0x6c Desc_004c63a0 was tried; the frame stayed 0xf8, so the 4
-// extra bytes are NOT desc.
-// Hoisting pt/rect/src/out/screen/desc to function scope kills the overlay
-// (frame 0xc4 -> 0xf8) but is still 4 bytes too big and once pt is
-// function-scope the branch-1 `held` can no longer share pt.x @0x10, so every
-// offset shifts +4 (rect lands at 0x1c instead of 0x18) and the score drops to
-// 31.0%. The original keeps held @0x10 aliasing pt, so pt/rect/src must stay
-// branch-scoped while out/screen/desc must not overlay them.
-// Branch 1 (flags&2==0) is otherwise byte-identical to the original except
-// that MSVC puts `d` in edi and the 0x4d41494e tag in esi, the exact reverse
-// of the original (d in esi, tag in edi); the inlined Lock/Unlock helpers
-// reproduce the original import-pointer order (ebp=InterlockedExchange,
-// ebx=WaitForSingleObject) and must be kept. Manual while(1) loops in place of
-// the helpers scored 29.9% because MSVC then loads WaitForSingleObject before
-// InterlockedExchange.
-// Per-frame display blit. When bit 1 of the display flags at +0xf0 is clear,
-// the cached surface at +0x50 is rendered into the window with GDI (GetDC /
-// BitBlt / ReleaseDC) while holding the 'MAIN' spin lock. Otherwise the object
-// is either flipped (bit 0 set and +0x9c non-zero), or the DirectDraw surface
-// at +0x88 is locked and the bitmap at +0xbc is blitted into it; a
-// DDERR_SURFACELOST result restores both surfaces and retries.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6. Names are provisional.
+// PARTIAL 50.7%. Remaining differences: display/tag registers, local overlays and DirectDraw branch layout. Surface locals are 48 bytes and the native descriptor is 108 bytes.
+
 #include <windows.h>
 #include <ddraw.h>
 
 struct Surface_004c63a0 {
-    int data[24];
+    int data[12];
 };
 
 struct Out_004c63a0 {
@@ -142,9 +105,19 @@ static inline void UnlockScreen()
     }
 }
 
+struct Desc {
+        DWORD dwSize, dwFlags, height, width;
+        LONG lPitch;
+        DWORD backbuffers, mipmaps, alpha, reserved;
+        void* lpSurface;
+        char fields[68];
+};
 // FUNCTION: 0x4c63a0
 void FUN_004c63a0(void)
 {
+    Surface_004c63a0 screen;
+    Out_004c63a0 out;
+    Desc desc;
     Display_004c63a0* d = FUN_004b6220();
     unsigned short flags = d->flags;
 
@@ -176,28 +149,20 @@ void FUN_004c63a0(void)
         ClientToScreen(d->hwnd, &pt);
         OffsetRect(&rect, pt.x, pt.y);
 
-        int r;
-        do {
-            r = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
-            if (r == 0)
-                break;
-            if (r != 0x887601c2)
-                continue;
-            if (FUN_004b6220()->field_44 != 0) {
-                r = 0;
-                break;
-            }
-            r = d->field_88->Restore();
-            if (r == 0) {
-                r = d->surface->Restore();
-                if (r == 0) {
-                    Surface_004c63a0 screen;
-                    FUN_004c5e70(&screen);
-                    FUN_004cbbe0(&screen, FUN_004b6220()->field_98, 0, 0);
-                    UnlockScreen();
-                }
-            }
-        } while (r != 0);
+        for (;;) {
+            int r = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
+            if (r == 0) return;
+            if (r != 0x887601c2) continue;
+            Display_004c63a0* dd = FUN_004b6220();
+            if (dd->field_44 != 0) return;
+            if (d->field_88->Restore() != 0) continue;
+            if (d->surface->Restore() != 0) continue;
+
+            FUN_004c5e70(&screen);
+            FUN_004cbbe0(&screen, dd->field_98, 0, 0);
+            UnlockScreen();
+            return;
+        }
         return;
     }
 
@@ -208,11 +173,11 @@ void FUN_004c63a0(void)
         return;
 
     LONG held = Lock();
-    DDSURFACEDESC desc;
+
     desc.dwSize = sizeof(desc);
-    unsigned long lr = d->field_88->Lock(0, &desc, 1, 0);
+    unsigned long lr = d->field_88->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
     if (lr == 0) {
-        Out_004c63a0 out;
+
         out.field_0 = d->field_d4;
         out.field_4 = d->field_d8;
         out.field_8 = desc.lPitch;
@@ -227,7 +192,7 @@ void FUN_004c63a0(void)
         if (dd->field_44 == 0) {
             if (d->field_88->Restore() == 0) {
                 if (d->surface->Restore() == 0) {
-                    Surface_004c63a0 screen;
+
                     FUN_004c5e70(&screen);
                     FUN_004cbbe0(&screen, dd->field_98, 0, 0);
                     UnlockScreen();

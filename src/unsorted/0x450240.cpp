@@ -47,6 +47,33 @@
 //   callee-saved register (esi), which in turn forces max into ebp (edi holds
 //   g_game). When 10 stays an immediate, edx is free for the countdown and
 //   eax for the loop base, which is exactly our wrong allocation.
+//
+// Notes from a fourth attempt (deepseek-v4.1-flash, #1683):
+// - The real structural gap is the "cmp bl, al; je" entry guard at the top of
+//   each of the two inlined searches. It is the "i != 10" short-circuit of the
+//   getter, and it only survives when the getter is a separate static inline
+//   function (GetPlayerField taking the byte index), exactly as in the matched
+//   0x44fe40 / 0x44fed0 / 0x450380. Writing the getter body directly in
+//   FindPlayerIndex lets MSVC prove i < 10 and delete the guard (that is this
+//   file's shape: it scores 19.9 but can never match).
+// - Adding the guard through the nested getter is byte-structurally right
+//   (the 0x44fed0 loop shape appears, guards included) but scores 10.2% here
+//   and 302 bytes vs 305. MSVC then also changes the allocation: the search
+//   index moves from bl to dl, the search scratch pointer moves from ebp to
+//   ebx, and ebp stops being pushed at all (frame becomes 4 pushes + push ecx
+//   instead of 5, so the local sits at [esp+0xc] rather than [esp+0x10]).
+// - With the guard present our allocation is g_game=esi, max=edi, n=edx,
+//   p=eax, scratch=ebx; the original is g_game=edi, max=ebp, n=esi, p=ecx,
+//   scratch=esi, const 10=eax. That is the 3-cycle esi -> edi -> ebp -> esi
+//   plus p and n moving. Tried and measured at a flat 10.2% (score.sh over
+//   build/scratch/0x450240): declaration orders (max,n,p permutations), the
+//   0x457b90 for-loop-with-per-iteration-pointer form, an unsigned char loop
+//   limit passed to the getter and the search, and the count as the search
+//   bound. None move the constant 10 out of the immediate or move g_game to
+//   edi. This is the allocator wall the guide already records for 0x450240.
+// - Best kept here is the guard-less 19.9% body; the correct-structure body is
+//   build/scratch/0x450240/v1.cpp (10.2%). Next attempt should try to move
+//   g_game into edi while keeping the nested getter.
 
 #pragma pack(push, 1)
 struct Info_00450240 {

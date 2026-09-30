@@ -1,15 +1,9 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, continued by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
-// Partial (75.4%, 1268 bytes against the original 1248). Everything still
-// missing has one cause: the case 0 zero has to land in EBX. The original keeps
-// it there across the strcmp, so EAX is free and the DAT_0050b540 = -1
-// materialises in EAX, which makes the release tail of case 0 and of the mode 4
-// block identical, so the two merge into the single copy at 0x4cdcaa. MSVC 5
-// gives our case 0 zero ESI instead and re-materialises it, EAX is then free
-// for the -1 but EBX is taken by it, the two release tails stop being
-// identical and nothing merges: 20 bytes too long. Also still open: the
-// mciSendStringA(...) == 0 tests fold to test eax,eax where the original has
-// cmp eax, edi, which wants the zero to be a real variable, not a constant.
-// The zero in EDI and the one in EBX do match now.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, continued by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// MATCH. The two CD globals are released in the original's order: the source
+// was `DAT_0050b540 = DAT_0050b544 = -1;` (it stores 0x50b544 first, then
+// 0x50b540), not the reverse. The mciSendStringA("status cdaudio mode",...)
+// results are held in a local before the `res == zero ? ...` ternary, which
+// stops MSVC folding func()==0 into `test eax,eax`.
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdlib.h>
@@ -62,6 +56,7 @@ void Class_004cdb40::FUN_004cdb40()
     int i;
     int j;
     int zero = 0;
+    int res;
 
     if (field_200 == zero)
         return;
@@ -75,7 +70,7 @@ void Class_004cdb40::FUN_004cdb40()
         field_284 = zero;
         FUN_004b64d0(DAT_0050b540);
         FUN_004b64d0(DAT_0050b544);
-        DAT_0050b544 = DAT_0050b540 = -1;
+        DAT_0050b540 = DAT_0050b544 = -1;
         return;
     }
     if (field_20c == 2)
@@ -89,8 +84,8 @@ void Class_004cdb40::FUN_004cdb40()
                 if (field_20c == zero)
                     return;
                 field_20c = zero;
-                playing = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero) == none
-                        ? strcmp(buf, "playing") == none : none;
+                res = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero);
+                playing = res == none ? strcmp(buf, "playing") == none : none;
                 if (playing == none)
                     return;
                 mciSendStringA("stop cdaudio", (LPSTR)none, 0, (HWND)none);
@@ -102,13 +97,14 @@ void Class_004cdb40::FUN_004cdb40()
                 field_284 = none;
                 FUN_004b64d0(DAT_0050b540);
                 FUN_004b64d0(DAT_0050b544);
-                DAT_0050b544 = DAT_0050b540 = -1;
+                DAT_0050b540 = DAT_0050b544 = -1;
                 return;
             }
         case 1:
-            playing = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero) == zero
-                    ? strcmp(buf, "playing") == zero : zero;
-            if (playing == zero)
+            {
+            res = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero);
+            playing = res == zero ? strcmp(buf, "playing") == zero : zero;
+            if (playing != zero)
                 goto done;
             if (field_208 < one)
                 field_208 = one;
@@ -118,22 +114,26 @@ void Class_004cdb40::FUN_004cdb40()
             if (field_208 > field_200)
                 field_208 = one;
             goto done;
+            }
         case 2:
-            playing = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero) == zero
-                    ? strcmp(buf, "playing") == zero : zero;
-            if (playing == zero)
+            {
+            res = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero);
+            playing = res == zero ? strcmp(buf, "playing") == zero : zero;
+            if (playing != zero)
                 goto done;
             ((Class_004ceb60*)this)->FUN_004ceb60(rand() % field_200 + 1, one);
             goto done;
+            }
         case 3:
-            playing = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero) == zero
-                    ? strcmp(buf, "playing") == zero : zero;
-            if (playing == zero || field_208 != field_204) {
+            {
+            res = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero);
+            playing = res == zero ? strcmp(buf, "playing") == zero : zero;            if (playing == zero || field_208 != field_204) {
                 if (field_204 == zero)
                     field_204 = one;
                 ((Class_004ceb60*)this)->FUN_004ceb60(field_204, one);
             }
             goto done;
+            }
         case 4:
             break;
         default:
@@ -141,8 +141,8 @@ void Class_004cdb40::FUN_004cdb40()
         }
     }
     r = rand() & 0xf;
-    playing = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero) == zero
-            ? strcmp(buf, "playing") == 0 : 0;
+    res = mciSendStringA("status cdaudio mode", buf, 0x40, (HWND)zero);
+    playing = res == zero ? strcmp(buf, "playing") == 0 : 0;
     if (playing != 0 && arr_214[field_208] == field_278)
         goto done;
     count = (r + 1) * field_200;
@@ -171,7 +171,7 @@ stop:
     field_284 = 0;
     FUN_004b64d0(DAT_0050b540);
     FUN_004b64d0(DAT_0050b544);
-    DAT_0050b544 = DAT_0050b540 = -1;
+    DAT_0050b540 = DAT_0050b544 = -1;
 done:
     ((Class_004d00d0*)this)->FUN_004d00d0(field_20, 1);
     field_20c = 1;

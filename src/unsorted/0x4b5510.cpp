@@ -98,6 +98,33 @@
 // position of the dc-store statement, which is why all six statement orders
 // keep the same rotation somewhere in the block. This is the same scheduler
 // tie-break the guide records for 0x4b6570, so it was left alone.
+//
+// deepseek-v4.1-flash retry session: still 99.7 (1017 = 1017), same single
+// 3-instruction rotation at 0x4b55af. New shapes, all scored for free with
+// --sym and all inert at 99.7 unless noted:
+//   * value-typed stores through the same pointer, `*(long *)`, `*(int *)`,
+//     `*(void **)`, `*(HDC *)(void *)`, `NULL`, `p[0]`, `0[p]`, `*(p + 0)`,
+//     `(&setup.dcSlot)[0][0]`: all byte-identical to `*setup.dcSlot = 0;`.
+//     The code-generator temp stays in EDX and stays glued to the store, so
+//     the load is emitted after the two handle stores (the baseline diff).
+//   * an inline helper that takes the pointer BY VALUE, `Zero(setup.dcSlot)`
+//     (99.7, identical diff): the argument temp is glued the same way.
+//   * a member inline `void ZeroHandles() { hpalette = 0; dib = 0; }` called
+//     on the Display (the 0x463610 / 0x4644d0 two-adjacent-stores idea): 99.7,
+//     identical diff, so the stores are not reordered by the method boundary.
+//   * a nested `{ ... }` block around the copy and the store: 96.4, like every
+//     other named copy. The copy is always colored EAX: after the DeleteObject
+//     calls EAX, ECX and EDX are all free and EAX is the allocator's first
+//     choice, and that recolors the whole SetWindowPos argument block (hwnd
+//     moves ecx -> eax, height ecx -> edx, width edx -> eax) plus one DD block.
+//   * `HDC *&p = setup.dcSlot; ... *p = 0;`: 99.7. A reference adds no register
+//     node, so the load is again the glued code-gen temp.
+//   * an `if (setup.dcSlot) *setup.dcSlot = 0;` guard: 90.8 (adds the branch).
+// Conclusion unchanged: the load can only sit above the two handle stores if
+// it comes from an earlier source statement, and every earlier-load spelling
+// is a named copy whose EAX coloring costs more than the rotation; a code-gen
+// temp never hoists above the stores in this build. Same scheduler tie as
+// docs/agent-guide.md 0x4b6570.
 #include <windows.h>
 #include <ddraw.h>
 

@@ -5,6 +5,16 @@
 // destruction and subsequent record-loop registers also differ. Twelve
 // allocator ABI variants and twelve native vector fill variants did not
 // improve it. The specialized remap members retain the original inline split.
+// Rechecked by deepseek-v4.1-flash: call census is EXACT (22 calls, all 26
+// references agree) and the frame sub esp,0xc0 already matches. Residual is
+// the allocator's choice of the shared zero: the original resets ebp=0 right
+// after the Feature Type Names block (0x424e0f) and reuses ebp as the zero and
+// then as `file` for the rest of the function; ours materialises edi=0 inside
+// the inlined FreeFeatureList (0x424ee2 region) and reloads `file` into ebx
+// twice, leaving a redundant mov edi,eax and a per-iteration xor ebp,ebp in
+// the names vector fill. Hoisting the remap index to function scope, spelling
+// out the delete null-check, and a post-FreeFeatureList local `file` pointer
+// were all flat at 69.1%.
 
 #include <string.h>
 #include <utility>

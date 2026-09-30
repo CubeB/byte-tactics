@@ -1,3 +1,18 @@
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+//
+// STILL 99.6% (deepseek-v4.1-flash timebox pass): nothing this pass moved the
+// two SIB base/index bytes (0x4099f6 wants [esi + ecx], 0x409b53 wants
+// [eax + edx]; ours [ecx + esi] and [edx + eax]). What this pass tried, all
+// scored with check.py --sym (build/scratch/0x409730/), all 1678 bytes with
+// the identical two SIB hunks: extended the unused-prototype decl-count sweep
+// into the 3000-6000 range (the 0x4b6c30 note in docs/agent-guide.md says
+// 2700-5400 unused prototypes can flip base/index): proto3200 98.0%,
+// proto3600 99.6%, proto4000 97.6%, proto4400 97.6%, proto4800 99.6%,
+// proto5200 98.0%, proto5600 99.2%, proto6000 97.6%, so decl count only moves
+// the score bands and the two SIB bytes never flip in any band; and all six
+// permutations of the <windows.h>/<math.h>/<vector> include order (99.6% each,
+// so header order is neutral even though header sets are not).
+//
 // deepseek-v4.1 10-minute pass: eleven more variants, every one of them still
 // exactly 99.6% with the identical two SIB diffs (the schedule and the size are
 // untouched, 1678 bytes): reversing the source operand order of the address ADD
@@ -23,8 +38,6 @@
 // the clamped store value is neutral at 99.6%, and an `unsigned int` loop index
 // is much worse (1683 bytes, 83.9%, the loop guard turns into a 64-bit compare).
 // The two SIB base/index bytes remain the whole work list.
-//
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
 //
 // (deepseek-v4.1-flash): key negative finding. The two swapped accesses are NOT
 // a subscript-form problem and NOT a vector-container problem. A named pointer

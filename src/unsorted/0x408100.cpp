@@ -85,6 +85,31 @@
 // `continue`s (87.2%). The wall is unchanged: the unit cannot be moved out of
 // edi into ebp, so `this` stays in ebp instead of being memory-based like the
 // original's, and the whole loop-1 rotation follows from that.
+//
+// deepseek-v4.1-flash (2416, timeboxed) read the original register map exactly:
+// loop 1 has this=ebx (spilled at [esp+0x20] early, reloaded [esp+0x18] after
+// ok takes ebx at `mov ebx,eax`), unit=ebp, iterator=edi (spilled [esp+0x14],
+// reloaded at 0x408282), idx=ESI (`mov esi,eax; and esi,0xffff` at 0x4081b5,
+// pushed as FUN_0043adc0's param_6), ok=ebx, range=edi (reuses the iterator's
+// register). Loop 2 has this=ebx, unit=esi, iterator=edi, d.x=edi, d.y=ebp,
+// d.z=ebx. So esi in loop 1 is idx, not the iterator: the one candidate not
+// tried is giving idx its own promoted home so the iterator lands in edi and
+// this in ebx.
+// Also confirmed at the byte level: at 0x408506-0x408512 the register setup
+// (`cdq; mov edi,eax; mov eax,ebp; mov ebx,edx; cdq`) is identical in both
+// builds (edi:ebx=s, edx:eax=d.x) but the pushes differ: the original pushes
+// the d.x pair first, so it calls _allmul(s, d.x), while ours pushes the s
+// pair first, i.e. _allmul(d.x, s), even though line 286 reads FixMul(s, d.x).
+// Calls 2 and 3 honour source order. So MSVC 5.0 commutatively reorders just
+// this one multiply; a spelling that pins the operand tree (helper or cast
+// placement) is the next thing to try.
+// And the flag12 Direction() hunk (0x4083d6): the original has `xor ebp,ebp`
+// (d.y = 0) between the second call's argument pushes and the call, ours has it
+// after `neg eax; add esp,8`. The expanded x,y,z spelling at 0x4084c5 gets this
+// right (`xor ebx,ebx` sits in the gap), the x,z,y helper at line 263 does not;
+// try expanding line 263 the same x,y,z way (the earlier 67.3% expansion was a
+// different shape) or flipping the helper to x,y,z now that only one call
+// remains.
 #include <memory.h>
 #include <vector>
 #include <math.h>

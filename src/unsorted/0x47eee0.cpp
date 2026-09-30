@@ -1,4 +1,28 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, continued by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, continued by GPT-6.1-sol, continued by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass (#1958): the file below still holds the 86.2% best (219
+// bytes); nothing in this pass beat it, all other shapes scored with --sym:
+//  * count pointer declared BEFORE the list local (`int* count =
+//    &DAT_0051e68c->count; List* list = DAT_0051e68c;`): 84.3%, 213 bytes. The
+//    lea is then hoisted above the null test and the guard folds to
+//    `cmp [edi],ebx`, so the original's `mov eax,[ebp+0x99]` load is lost. Same
+//    84.3% and 217 bytes with the guard spelled through the base.
+//  * the count pointer declared INSIDE the guard, after a base-form guard
+//    (`if (list->count > 0) { int* count = &DAT_0051e68c->count; do {...} while
+//    (*count > 0); }`): 76.7%, 217 bytes, but this is the only shape that gets
+//    the original's ORDER right (null test, `cmp [ebp+0x99],edi`, then
+//    `lea edi,[eax+0x99]`); the zero register moves to edi and the eax detour
+//    stays. `List* const list` and an extra `entries` local do not change it.
+//  * no `list` local at all (every access through DAT_0051e68c): 24.7%, 237
+//    bytes; the count pointer lands in ebx and the zero in edi, the mirror of
+//    the original's roles, and the list temp dies early.
+// What this pass established (not in the file above): MSVC 5 folds an address
+// temp with a REGISTER base into memrefs in every local-derived spelling
+// (`&list->count`, `(int*)((char*)list+0x99)`, a `List*` alias, the entries
+// base, the pointer before the test), and never folds the GLOBAL-derived one.
+// So `&list->count` can never produce the wanted `lea edi,[ebp+0x99]`, and
+// `&DAT_0051e68c->count` always costs the `mov eax,[DAT]; mov ebp,eax` detour
+// that puts the lea on eax instead of ebp. The two are exclusive in every
+// spelling tried, which is why 86.2% stands.
 // Retry #1748: GPT-6.1-sol confirmed 86.2% (219/224) after four checks; no MATCH. The saved source still differs in the count-pointer register plan and final zero store.
 // Claude Sonnet 5.5 pass (#746): nothing beat 86.2% (219 bytes). Compiler state is
 // ruled out: the declaration-count sweep (0 to 400 in steps of 8) is 86.2% for every N

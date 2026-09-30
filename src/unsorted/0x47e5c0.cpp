@@ -1,4 +1,33 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by space-bunny-free. Names are provisional.
+// Pass #1958 (space-bunny-free): still 67.5% (382/386), no MATCH, 1 check.py
+// run. What is new and worth keeping:
+// (1) The frame CONTENT already matches exactly: both have the same eight
+// dword homes, sumx at +0x00, the two Pt copies at +0x0c/+0x10, xend at
+// +0x1c, and the same 0x20 frame, with sumy in the dead arg2 slot and the
+// inner counter reloaded from the arg3 slot. Only FOUR slots are permuted
+// (original: grid +0x04, x +0x08, yend +0x14, y +0x18; ours: x +0x04,
+// y +0x08, grid +0x14, yend +0x18). So do not chase the frame layout: it is
+// a symptom. The single root cause is the callee-saved assignment, and it
+// cascades into the slot order.
+// (2) The original's [esp+0x10] compare in the overlap test is sumx, not the
+// grid pointer: with push ebp in effect [esp+0x10] is frame+0x00, which holds
+// the sumx spill. There is no stray-pointer bug in the test, the four
+// conditions read pos.x, sumx, pos.y (arg1.y at [esp+0x36]) and sumy
+// (arg2 slot at [esp+0x38]) exactly as written.
+// (3) Hoisting is now measured against the original's own code ORDER (all
+// four cell bounds computed before the first guard, in the order y, xend,
+// yend, x) and it still loses: 41.5% (379 B) to 44.5% (381 B) for six
+// declaration orders and both for-init styles, versus 67.5% for the
+// combined-init inner for. Hoisting only yend is 54.3% (384 B), hoisting
+// only x is 67.5% (382 B, same code), moving the grid declaration after the
+// sums is 54.5% (383 B). The 67.5% allocation is a strong local optimum:
+// swapping the guards, merging them into one if, and both operand orders of
+// sumx and sumy all give byte-identical 382-byte output.
+// (4) Still to find: how to make the allocator give esi to the inner
+// counter y and edi to the grid pointer, with size.y in the volatile edx
+// (the original loads size.y into edx BEFORE the pushes, which is why its
+// lea of the grid can take edi; in the 67.5% shape size.y is loaded after
+// the pushes and takes edi itself).
 // Retry #1748: GPT-6.1-sol confirmed 67.5% (382/386) after eight checks; no MATCH. The best source still differs in register allocation and stack-slot placement.
 // Claude Sonnet 5.5 pass (#746): no change beat 67.5% (382 bytes). Compiler state
 // is not the lever: the declaration-count sweep (0 to 400) is 67.5% only for N = 0

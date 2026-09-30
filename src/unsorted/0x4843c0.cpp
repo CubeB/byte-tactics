@@ -1,21 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Gave up at 77.7% (1294 bytes against 1303). Still differs:
-//  * frame slot order: the original has xEnd at [esp+0x1c], pg at 0x20, info at
-//    0x24 and yEnd at 0x28; ours has pg at 0x1c, info at 0x20, yEnd at 0x24 and
-//    xEnd at 0x28. Hoisting the declarations into the original's order (y0, y,
-//    dxm1, xEnd, pg, info, yEnd, bit) put xEnd, pg, info, yEnd and bit in the
-//    right slots but cost 2.4 points, because `y` then stops being memory
-//    resident. The frame order does not follow declaration order here.
-//  * the visibility mask test: the original does `mov ebp, bit; mov ax, [mask];
-//    and eax, ebp; test ax, ax`, ours keeps the word in ebp and tests
-//    `eax, ebp`. Swapping the operands of the &, and reading the word into a
-//    named local first, both leave it unchanged.
-//  * `i * grid->width` in the tails: the original copies the counter into edx
-//    and multiplies in place (`mov edx, ecx; imul edx, [esi+4]`), ours loads
-//    the width into edx and multiplies by the counter.
-//  * the g_game reload before the scrollX/scrollY loads is in eax, not edi.
-//  * the width/height loads that set up xEnd and yEnd come in the other order.
-#include <string.h>
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6. Names are provisional.
+// Gave up at 86.7% (1302 bytes against 1303). Remaining game-pointer
+// reload uses EAX instead of EDI and the last border-loop counter initializes
+// before its guard. The visibility test and local slots now match.
+#include <windows.h>
 
 #pragma pack(push, 1)
 
@@ -108,7 +95,7 @@ void FUN_004843c0(void)
                     if (x - x0 - 1 < grid->width && y - y0 - 1 < grid->height)
                         grid->cells[(y - y0 - 1) * grid->width + x - x0 - 1].hi |= 8;
                 }
-                if ((bit & info->visibilityMask[info->width * y / 2 + x]) == 0) {
+                if ((unsigned short)(bit & info->visibilityMask[info->width * y / 2 + x]) == 0) {
                     if (x - x0 < grid->width && y - y0 < grid->height)
                         grid->cells[(y - y0) * grid->width + x - x0].lo |= 1;
                     if (x - x0 - 1 < grid->width && y - y0 < grid->height)

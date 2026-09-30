@@ -1,4 +1,14 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 6 (issue #2682, 10-minute box): no new genuine
+// lever found. Baseline kept: 2740 bytes, 89.5%. The constant-register tie is
+// insensitive to: a local for the `new` object, chained/pointer/offset/read-
+// back/`~0`-style forms of the four -1 stores, a named zero local, a named -1
+// local, interleaved 0/-1 store order, `if (field != 0) delete field;`, an old-
+// pointer local, `found != 0`/`found > 0`/inline found, 40 random declaration
+// orders of the 7 function locals, and all 128 header sets (headers.py, flat at
+// 89.5%). Ours keeps 0 in esi and rematerialises -1 in eax; the original keeps
+// ebx=0 / esi=-1. No source spelling moves the color, and every route that
+// flips it (v_d1/v_d2/v_d3) adds real stores the original does not have.
 // deepseek-v4.1-flash retry 5 (issue #2525, 10-minute box): re-confirmed the
 // earlier retry-4 measurements. This is the HONEST complete source: 2740 bytes,
 // the original size, 89.5%, no MATCH. (A 95.0% variant existed only by adding

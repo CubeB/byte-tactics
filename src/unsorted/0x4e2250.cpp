@@ -1,14 +1,18 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// NOT A MATCH (68.7 percent, 801 bytes against our 837). Still differs:
-//  * our frame is one dword too big: the original keeps `this` at [esp+0x18]
-//    and `_Y` at [esp+0x14], we keep `_Y` at [esp+0x18] and `this` at
-//    [esp+0x1c], so an extra live local sits at [esp+0x14]. Every spill after
-//    that is 4 out of step, which is most of the diff.
+// NOT A MATCH (73.4 percent, 801 bytes against our 811). Now differs only in:
+//  * Class_004e2a10's ctor is defined inline here (it is pair<iterator,bool>
+//    from UTILITY, whose ctor is defined in the class). That makes the _Multi
+//    return collapse to the original's two direct stores `mov [eax],ecx /
+//    mov byte [eax+4],1`, but MSVC then also inlines it on the non-multi tail,
+//    so we no longer emit the original's out-of-line call at 0x4e253a.
 //  * the search loop: the original branches on the strcmp result's own flags
 //    (0x4e22ba `test eax,eax / jge`) and sets the bool in each arm, ours
 //    materialises the bool and re-tests it (`xor bl,bl / test bl,bl`).
-//  * ++size: the original does the increment into ecx and stores it after the
-//    `y == head` compare; we keep the size in esi and store before.
+//  * the non-multi tail's `if (ans)` arm is still laid out differently, and
+//    ++size: the original increments into ecx and stores after the `y == head`
+//    compare, we keep the size in esi and store before.
+// With the inline ctor the frame aligns: `this` at [esp+0x18], `_Y` at
+// [esp+0x14], so the 4-byte-offset diff the previous note described is gone.
 // Shaped like std::_Tree<...>::insert(const value_type&) from MSVC 5's
 // <xtree> (lines 211-232), with the _Insert body inlined on the _Multi path
 // (the out-of-line copy of it is 0x4e2620, the _Lrotate/_Rrotate copies are
@@ -84,7 +88,8 @@ public:
     Node_004e2250* first;                       // +0x0
     char second;                                // +0x4
 
-    Class_004e2a10(const Class_004e2ab0& it, const char& flag);
+    Class_004e2a10(const Class_004e2ab0& it, const char& flag)
+        : first(it.ptr), second(flag) {}
 };
 
 class Class_004e2a30 {
@@ -193,10 +198,11 @@ Class_004e2a10 Class_004e2250::FUN_004e2250(const Val_004e2250& v)
         }
         it.FUN_004e2ab0();
     }
+    bool flag = false;
     if (it.ptr->val.key.FUN_004e1a30(v.key)) {
         Node_004e2250* slot;
         it.ptr = FUN_004e2620(slot, x, y, v);
-        return Class_004e2a10(it, (char)1);
+        flag = true;
     }
-    return Class_004e2a10(it, (char)0);
+    return Class_004e2a10(it, flag);
 }

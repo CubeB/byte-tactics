@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**67.50% of Cavedog's code matched** (574,351 of 850,853 bytes)
+**67.57% of Cavedog's code matched** (574,887 of 850,853 bytes)
 
 `[###########################-------------]`
 
-By count that is 3,008 of the game's 3,267 functions (92.1%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,009 of the game's 3,267 functions (92.1%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,008 | 574,351 |
-| Attempted, not yet matching | 256 | 273,982 |
+| Matched byte-for-byte | 3,009 | 574,887 |
+| Attempted, not yet matching | 255 | 273,446 |
 | Not attempted yet | 3 | 2,520 |
 
 ### By function size
@@ -37,7 +37,7 @@ The size bands are the `size:` labels on the issues.
 | small (1 to 64 bytes) | 1,154 of 1,155 | 99.9% | 40 | `##########` |
 | medium (65 to 160 bytes) | 821 of 827 | 99.2% | 676 | `##########` |
 | large (161 to 400 bytes) | 651 of 703 | 91.8% | 14,779 | `#########-` |
-| xl (401 to 600 bytes) | 188 of 226 | 82.5% | 19,293 | `########--` |
+| xl (401 to 600 bytes) | 189 of 226 | 83.0% | 18,757 | `########--` |
 | xxl (601 to 1,000 bytes) | 126 of 195 | 63.6% | 53,441 | `######----` |
 | huge (over 1,000 bytes) | 68 of 161 | 35.6% | 188,273 | `####------` |
 
@@ -51,7 +51,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | --- | --- | ---: | ---: | ---: | --- |
 | `0x400000` | Unit orders and unit AI | 193 of 210 | 74.6% | 15,477 | `#######---` |
 | `0x410000` | Orders and VTOL states | 212 of 222 | 76.7% | 14,839 | `########--` |
-| `0x420000` | Frontend shell | 141 of 154 | 61.4% | 24,514 | `######----` |
+| `0x420000` | Frontend shell | 142 of 154 | 62.3% | 23,978 | `######----` |
 | `0x430000` | Maps, missions, briefings | 210 of 228 | 64.4% | 21,510 | `######----` |
 | `0x440000` | Multiplayer setup | 238 of 246 | 69.7% | 18,628 | `#######---` |
 | `0x450000` | Options and audio menus | 159 of 176 | 63.2% | 23,227 | `######----` |

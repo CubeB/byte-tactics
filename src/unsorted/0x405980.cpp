@@ -50,6 +50,12 @@
 //    return-2 epilogue, 1094, 89.1%). The remaining byte differences are the gate's fld order
 //    (ours loads capE and multiplies first; the original loads energy first, then capE, then
 //    multiplies, byte-neutral but unfixed) and this one extra copy of the tail.
+// 8. edited by deepseek-v4.1: the rule is "the FIRST mergeable block keeps its own inline copy,
+//    every later one merges into the last one". With A,B,C,D the copies are at A, B and after D;
+//    with A deleted (B,C,D only) the copies are at B and after D, same count, so the presence of
+//    A or its extra FUN_004388d0 call is not the cause. Block order A,B,D,C loses 3.6 points
+//    (1085 bytes, 87.3%). The original needs ONE more merge round than this compiler performs on
+//    this input, so the source shape that triggers it is still unknown.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;

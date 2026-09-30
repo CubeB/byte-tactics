@@ -1,19 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
-// Partial, deepseek-v4.1 retry: 83.3%, not MATCH. Original 3923 bytes, ours 3919.
-// Fixed this round: the model/explosion/sound/damage arms now match the original's
+// Partial, deepseek-v4.1 retry: 84.3%, not MATCH. Original 3923 bytes, ours 3918.
+// Fixed earlier: the model/explosion/sound/damage arms now match the original's
 // layout (the big arm inline, the small arm out of line), the lava check is the
 // double deref *(int*)(*(int*)(g_game+0x391e9)+0xd44), the model search uses a count
 // local for the weapon index, and the search is a `for` loop (a do/while made MSVC
 // peel the first iteration).
+// Fixed this round: soundstart/soundhit/soundwater are `unsigned short`, so the 0xffff
+// default is the tracked value 0xffff and MSVC hoists ONE `mov esi,0xffff` before the
+// first test (a signed short folds it to `or esi,-1` rematerialised at every site).
 // Still differs: (1) the search count byte lives at [esp+0x14] here, [esp+0x10] in the
-// original; (2) the soundstart -1 arm materialises esi as `or esi,-1` per site instead
-// of one hoisted `mov esi,0xffff`; (3) five bitfield assignments schedule `push 0`,
-// the `or` and the store one slot differently; (4) the fstp of minbarrelangle is sunk
-// into the next call's argument pushes in the original, not here; (5) the inlined
+// original; (2) five bitfield assignments schedule `push 0`,
+// the `or` and the store one slot differently; (3) the fstp of minbarrelangle is sunk
+// into the next call's argument pushes in the original, not here; (4) the inlined
 // vector insert swaps esi/edi (ours first=edi last=esi, original first=esi last=ebx,
-// vector base cached on the stack at [esp+0x10]); a FindEntry helper and direct
-// w->sub->entries access both scored worse (80.7%, 80.4%), so this looks like an
-// allocator tie in the original's exact <vector> instantiation.
+// vector base cached on the stack at [esp+0x10]) and its inlined _strcmpi uses the
+// `setl cl` shape where the original builds the byte through sbb/sete; a FindEntry
+// helper and direct w->sub->entries access both scored worse (80.7%, 80.4%), so this
+// looks like an allocator tie in the original's exact <vector> instantiation.
 // Allocator construction stays out of line, vector destruction calls
 // FUN_00432c20, and shifting/filling calls FUN_00432cb0/FUN_00432c80.
 // construct does not use an allocator receiver in the original, so its
@@ -216,9 +219,9 @@ struct Weapon_0042e440 {
     short sprayangle;              // +0x0ee
     short duration;                // +0x0f0
     short randomdecay;             // +0x0f2
-    short soundstart;              // +0x0f4
-    short soundhit;                // +0x0f6
-    short soundwater;              // +0x0f8
+    unsigned short soundstart;     // +0x0f4
+    unsigned short soundhit;       // +0x0f6
+    unsigned short soundwater;     // +0x0f8
     short smokedelay;              // +0x0fa
     short flighttime;              // +0x0fc
     short holdtime;                // +0x0fe
@@ -415,17 +418,17 @@ model_done:
         }
     }
     if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundstart", 0x100, DAT_005119b8) != 0) {
-        w->soundstart = (short)FUN_00429470(0, model);
+        w->soundstart = (unsigned short)FUN_00429470(0, model);
     } else {
         w->soundstart = 0xffff;
     }
     if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundhit", 0x100, DAT_005119b8) != 0) {
-        w->soundhit = (short)FUN_00429470(0, model);
+        w->soundhit = (unsigned short)FUN_00429470(0, model);
     } else {
         w->soundhit = 0xffff;
     }
     if (((Class_004c48c0*)parser)->FUN_004c48c0(model, "soundwater", 0x100, DAT_005119b8) != 0) {
-        w->soundwater = (short)FUN_00429470(0, model);
+        w->soundwater = (unsigned short)FUN_00429470(0, model);
     } else {
         w->soundwater = 0xffff;
     }

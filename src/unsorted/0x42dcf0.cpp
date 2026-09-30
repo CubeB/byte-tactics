@@ -1,20 +1,27 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// Edited by deepseek-v4.1: 97.3%, not MATCH (was 77.6%). One fix this round:
-// `int c; int i;` are declared at the top of the body, before `int n = files.size();`,
-// and the last two loops reuse that one counter `c`. A group of scalar locals gets
-// its esp slots in reverse declaration order, so with the counters declared after n
-// the file count n landed in [esp+0x18]/EBP instead of the original [esp+0x10]/EBX;
-// declaring them first moved n to 0x10/EBX and cascaded the whole group (the max-page
-// scan and the downloadable scan, g_game into EDI, the lea esi,[ebx+eax] addressing),
-// lifting 77.6 -> 97.3.
-// Still differs, only in the downloadable scan (0x42e037-0x42e04b and 0x42e0ad):
-// the original inits its build-list counter first (xor ebp,ebp; test ecx,ecx; jle;
-// lea edi,[esi-0x221]; xor ebx,ebx), keeping the counter in EBP and the i*0xbd byte
-// offset in EBX, while MSVC here inits the offset first (xor ebx,ebx; test; lea edi;
-// jle; xor ebp,ebp) and swaps them (counter EBX, offset EBP), which also flips the
-// `inc`/`add ebx,0xbd`/`cmp` trio at the bottom of that loop. Reusing the function
-// scope `i` for that inner counter scores the same 97.3%; phase B already matches
-// with the counter EBP / offset EBX, so the difference is local to this loop.
+// Edited by deepseek-v4.1: MATCH. Fixes this round:
+// 1. `int c; int i;` are declared at the top of the body, before `int n = files.size();`,
+//    and the last two loops reuse that one counter `c`. A group of scalar locals gets
+//    its esp slots in reverse declaration order, so with the counters declared after n
+//    the file count n landed in [esp+0x18]/EBP instead of the original [esp+0x10]/EBX;
+//    declaring them first moved n to 0x10/EBX and cascaded the whole group (the max-page
+//    scan and the downloadable scan, g_game into EDI, the lea esi,[ebx+eax] addressing),
+//    lifting 77.6 -> 97.3.
+// 2. The downloadable scan (0x42e037-0x42e0bf) kept coming out with the build-list
+//    counter in EBX and the i*0xbd byte offset in EBP, the exact inverse of the
+//    original (counter EBP, offset EBX, `inc ebp`; `add ebx,0xbd`; `cmp ebp,[eax+..]`).
+//    The register assignment follows the order the loop variables are created, mapped
+//    onto ESI, EDI, EBX, EBP (the four callee-saved registers live across the _strcmpi
+//    call here), so the offset has to be a real source variable created before the
+//    counter. Declaring `int off = 0;` and walking with it (`i++, off += 0xbd`,
+//    `((BuildList_0042dcf0*)((char*)g_game->buildLists + off))->entries[0].name`)
+//    makes the strength-reduction temp disappear and gives offset EBX / counter EBP.
+// 3. `defs[c].name` is used directly at both call sites instead of a `char* name`
+//    local: that drops one live-across-call variable, so the hoisted name temp lands
+//    in EDI (the `lea edi,[esi-0x221]` in the preheader) instead of competing for EBX.
+// Note 0x4c48c0 and 0x4c46c0 are two different classes in data/symbols.csv
+// (Class_004c48c0::FUN_004c48c0 and Class_004c46c0::FUN_004c46c0), so `current`
+// is a Class_004c48c0* and the int-arg calls cast it to Class_004c46c0*.
 
 #include <math.h>
 #include <vector>
@@ -33,16 +40,20 @@ public:
     ~Class_004c91a0() { ((Class_004c9390*)this)->FUN_004c9390(); }
 };
 
+class Class_004c48c0 {
+public:
+    int FUN_004c48c0(char* dst, const char* key, int size, char* def);
+};
+
 class Class_004c46c0 {
 public:
     int FUN_004c46c0(const char* name, int def);
-    int FUN_004c48c0(char* dst, const char* key, int size, char* def);
 };
 
 class Class_004c2ea0 {
 public:
     int field_0;                       // +0x0
-    Class_004c46c0* current;           // +0x4
+    Class_004c48c0* current;           // +0x4
     int field_8;                       // +0x8
 
     Class_004c2ea0();
@@ -144,8 +155,8 @@ void FUN_0042dcf0()
                     for (unsigned short u = 0; u < g_game->unitDefCount; u++) {
                         if (_strcmpi(g_game->unitDefs[u].name, buf) == 0) {
                             g_game->buildLists[i].entries[j].typeId = u;
-                            g_game->buildLists[i].entries[j].page = (unsigned char)parser.current->FUN_004c46c0("MENU", 0);
-                            g_game->buildLists[i].entries[j].slot = (unsigned char)parser.current->FUN_004c46c0("BUTTON", 0);
+                            g_game->buildLists[i].entries[j].page = (unsigned char)((Class_004c46c0*)parser.current)->FUN_004c46c0("MENU", 0);
+                            g_game->buildLists[i].entries[j].slot = (unsigned char)((Class_004c46c0*)parser.current)->FUN_004c46c0("BUTTON", 0);
                             parser.current->FUN_004c48c0(g_game->buildLists[i].entries[j].name, "UNITNAME", 0x20, DAT_005119b8);
                             break;
                         }
@@ -171,12 +182,11 @@ void FUN_0042dcf0()
 
     UnitDef_0042dcf0* defs = g_game->unitDefs;
     for (c = 0; c < g_game->unitDefCount; c++) {
-        char* name = defs[c].name;
         for (int i = 0; i < g_game->buildListCount; i++) {
-            if (_strcmpi(g_game->buildLists[i].entries[0].name, name) == 0
+            if (_strcmpi(g_game->buildLists[i].entries[0].name, defs[c].name) == 0
                 && !defs[c].flags_241.downloadable) {
                 char buf[128];
-                sprintf(buf, "Hey!  Somebody forgot to set downloadable=1 for %s", name);
+                sprintf(buf, "Hey!  Somebody forgot to set downloadable=1 for %s", defs[c].name);
                 FUN_004d8780(g_game->unitDefs);
                 defs[c].flags_241.downloadable = 1;
                 FUN_004d8710(g_game->unitDefs);

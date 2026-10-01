@@ -1,4 +1,53 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Eleventh pass (space-bunny-free): 97.8% -> 99.4%, still 775 bytes, still no
+// MATCH. ONE edit was worth 1.6 points, and it was the diff the previous nine
+// passes had all read as a register-allocator artefact: the mask arm's fail
+// block. The whole cause is the arm's SHAPE, not its registers. Routing the
+// mask arm's bounds test through a `static inline` helper that returns the
+// `&&` and NEGATING it at the call site
+//     if (!MapContains(w, h, tx, ty)) vis = 0; else vis = ...;
+// puts the fail block BETWEEN the second test and the body and gives the
+// second test `jb body`, which is the MATCHED 0x408090 layout
+// (`jae FAIL / jb BODY / FAIL: xor eax,eax`). The `&&` written inline at the
+// call site is flattened to `jae ELSE / jae ELSE` and tail merges the two fail
+// blocks. So the mask arm is a nested/guarded if and the fog arm is a plain
+// `&&` chain, which is exactly the asymmetry the original has (its fog fail
+// block at 0x47f452 sits AFTER its body, its mask fail block at 0x47f47e
+// BEFORE it). Spelling the same `&&` inline (`if (!(A && B))`) changes
+// nothing: 97.8%, byte-identical. A nested if with two written-out `vis = 0`
+// branches does give the right layout but costs 18.5 points (78.9%) because
+// duplicating the store collapses the whole allocation and rotates every
+// register from `mov ebx, [eax + ecx*4 + 0x33a13]` onwards. The `static
+// inline` helper is what keeps the block layout AND the single store.
+//
+// STILL MISSING, one instruction, 4 bytes either way:
+//     - lea eax, [ebp + ecx]        ; g_game + pi
+//     + mov eax, ebp
+//     + add eax, ecx
+// followed by the byte-identical `lea eax, [eax + edx*2 + 0x1b63]`. It is a
+// pure form choice at equal size, and it is NOT reachable by any spelling of
+// the address: 30-odd variants (`&g_game->players[pi]`, `g_game->players + pi`,
+// a local `P* players`, a local `G* game`, `(char*)g_game + 0x1b63 + pi*0x14b`,
+// every parenthesisation of `g_game + pi + 330*pi + 0x1b63`, an `int off`
+// local, a `char* gb` local, `pi * 331`, a `short` index, `pi + 0`, a dead
+// `probe` of the same sum) are all byte-identical to this file. An assembly
+// probe (`build/scratch/0x47f300/probe2.cpp`) shows MSVC 5 emits `mov/add` for
+// a plain `int` index and `lea` for a NARROWED one, and the two requirements
+// here pull opposite ways:
+//   * `int pi` is the only spelling that gives the original's load
+//     `xor ecx, ecx / mov cl, [ebp+0x2a43]`, and it gives `mov/add`.
+//   * `char pi` (91.2%) and `unsigned short pi` (87.3%) give the exact `lea`,
+//     but their loads are `movsx ecx, byte ptr [...]` and
+//     `movzx cx, [mem] / and ecx, 0xffff`.
+//   * `unsigned char pi` gives the `lea` too, but MSVC 5 puts the byte local in
+//     a stack slot (`mov [esp+0x30], cl / mov ecx,[esp+0x30] / and ecx,0xff`),
+//     787 bytes, 91.0%.
+// `short` (91.0%), `(short)pi`, `(unsigned short)pi` and a separate
+// `unsigned short` index variable were all measured and all restructure the
+// multiply chain away, so they are worse than the two plain narrow types.
+// So the last 0.6% needs a `playerIndex` load that is BOTH `xor ecx,ecx /
+// mov cl` AND treated as narrowed by the address-strength pass, and no C++
+// spelling of that was found.
 // Tenth pass (deepseek-v4.1-flash), retry: 97.8% (775 bytes, same size as the
 // original), up from the 86.5% baseline. The visibility block now uses TWO
 // player pointer locals, `player` for the width/height comparisons and
@@ -365,6 +414,10 @@ Cell_0047f300* __stdcall FUN_00481550(int x, int y);
 // cl,[ebp+0x2a43]` and `lea eax,[ebp+ecx]` exactly, 763 bytes) but its final
 // `lea` still lands in EDI and the byte-count shift costs more than the spill
 // it removes, so it scores 80.2%.
+static inline int MapContains(unsigned int w, unsigned int h, int tx, int ty)
+{
+    return tx < w && ty < h;
+}
 // FUNCTION: 0x47f300
 int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
 {
@@ -408,11 +461,11 @@ int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
     } else {
         int tx = pos->x >> 5;
         int ty = (pos->z - (pos->y >> 1)) >> 5;
-        if (tx < player->exploredWidth && ty < player->exploredHeight)
+        if (!MapContains(player->exploredWidth, player->exploredHeight, tx, ty))
+            vis = 0;
+        else
             vis = (g_game->visibilityMask[player2->exploredWidth * ty + tx]
                 & (1 << pi)) ? 1 : 0;
-        else
-            vis = 0;
     }
     if (vis != 0) {
         if (((Class_004cfea0*)g_game->sound)->FUN_004cfea0()) {

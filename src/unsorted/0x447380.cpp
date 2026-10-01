@@ -1,5 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
 //
+// deepseek-v4.1-flash retry (issue 3976, 10 minute box): natural order with
+// lstrcpynA placed after the fourth body sprintf (full original order) scores
+// 93.5% / 1318 bytes, completing the after-1st/2nd/3rd ladder (94.3/93.0/92.7)
+// logged below; the lstrcpynA-before-group probe at 95.1% stays the best.
 // deepseek-v4.1-flash pass (issue 3565, 10 minute box): six check.py runs, best
 // stays 95.1% / 1318 bytes with the lstrcpynA-before-group probe. Fresh
 // g_game->table->entries loads at the two tail calls (fdf0, ff10) regress to

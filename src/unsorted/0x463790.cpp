@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 11 (deepseek-v4.1-flash, #4016): re-measured 75.0% (1025 vs 1040 bytes). Two new
+// pop spellings, both byte-identical to the recorded best: `Entry e = *Pop(rows);` with
+// no intermediate `r`, and the pop as a Buffer member `rows->Pop()` (MSVC canonicalises
+// both back to the free-helper form, so the r=ECX/index=EAX rotation is not call shape).
 // Pass 10 (deepseek-v4.1-flash, #3870): re-measured 75.0% (1025 vs 1040 bytes) and left it
 // unchanged. Tried this pass: swapping the f14/f18 source store order (74.2, worse, so the
 // compiler's own store order is the one that scores) and a named `unsigned int cap =
@@ -162,10 +166,8 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
         f8++;
         int i = rows->n;
         while (i--) {
+            Entry_00463790 e = *Pop_00463790(rows);
             Buffer_00463730* r = rows;
-            Entry_00463790* ep = Pop_00463790(r);
-            Entry_00463790 e = *ep;
-            r = rows;
             if (r->n < 0x200) {
                 int t = r->tail + 1;
                 r->tail = t;

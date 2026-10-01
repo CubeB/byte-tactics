@@ -1,5 +1,41 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
 // Partial 54.1% (best this file has reached; check.py prints 54.1).
+// space-bunny-free pass: no improvement, all variants below scored below the
+// 54.1% baseline, so this file is unchanged apart from these notes. What I
+// re-confirmed: the frame is 0x7d5c against the original's 0x7d60, a single
+// missing dword, and because the whole low scalar region is 4 bytes low
+// EVERY stack reference in both edge loops differs mechanically (that alone
+// is most of the 447 diff lines). The remaining structural delta is the
+// min/max scan: the original walks the vertex pointer as an induction
+// variable in edx (`add edx,0x10` in the latch, no reload) and keeps highX
+// in edi and lowX reloaded into ebp, so it needs no callee-saved register
+// for `vertices`; ours pins `vertices` in ebp, reloads edx from it each
+// iteration, and demotes highX and lowX to memory slots 0x10 and 0x14. Per
+// brief item 2 that single extra pinned value is what demotes highX and lowX
+// past edi and ebp, so the whole prologue difference is one allocator state,
+// not two problems.
+// Tried this pass, all with free --sym runs, all WORSE than 54.1%:
+//  - min/max loop as an explicit pointer walk (`int* pv=vertices;` then
+//    `i++, pv+=16`, reading pv[1]/pv[0]): 53.9%. MSVC still emits
+//    `mov edx, ebp` at the loop head, i.e. it did not promote pv to an
+//    induction variable and left `vertices` pinned in ebp, so the cause
+//    survives. (Writing the pointer in the for-init, `for(int i=0,pv=...)`,
+//    does not even compile under the checker's MSVC 5 mode, C2440.)
+//  - hoisting the ten shared edge-walk temps (nextVertex, y0, y1, x, dx, du,
+//    dv, dz, dl, out) to function scope, as the sibling 0x4c8760's winning
+//    pass did with next/dv/dx/du: 42.6% and 1284 bytes. Frame grows, score
+//    collapses.
+//  - hoisting only the five slopes dx,du,dv,dz,dl to function scope: 49.7%
+//    (1271 bytes). And the same hoist plus the `index=previous; if(index<0)
+//    index=3;` tail: 39.0%.
+//  - moving the head to `next=index-1; previous=next;` with the latch
+//    `index=previous;` and no second fixup: 41.5%.
+// Conclusion for the next attempt: the hoisting trick that won on 0x4c8760
+// loses here, so the missing 16th slot has to come from `previous` alone,
+// and the register set has to be freed by not pinning `vertices` at all. The
+// untested lever for that is the min/max loop's `vertices` uses written so no
+// local spans the body, or the two `next`/`n` pairs made genuinely disjoint so
+// the arena grows instead of merging.
 // Final retry (deepseek-v4.1-flash, timeboxed), what still differs unchanged:
 // the 16th frame slot [esp+0x4c] (raw index-1 of the first edge loop, one
 // store at 0x4c8cfc, one reload at 0x4c8e9c) and the prologue register set

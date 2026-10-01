@@ -152,6 +152,12 @@
 // home here (725 bytes, 73.7%). Re-confirmed dead ends: plain int/short/pointer
 // zero locals, phi-shaped zero locals, named-zero comparisons, and reference
 // aliases of field_78 all stay byte-identical at 80.9%.
+// deepseek-v4.1-flash retry (issue 3392): still 80.9%, three further negatives.
+// `int z;` declared once and assigned 0 only inside the if body, then used for the
+// field_78 store and the `e->off < z` clamp, is 717 bytes at 73.7% (the missing
+// else-path def breaks the join). Spelling the arm-1 store as `obj->focus + 1`
+// (focus was just set to -1) is byte-identical to the baseline (80.9%), and so is
+// an `unsigned` return type on FUN_004ab5b0 (80.9%).
 
 #pragma pack(push, 1)
 struct Entry_004a4170 {                // 0x15b bytes, the table of 0x4a23b0

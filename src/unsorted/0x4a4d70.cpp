@@ -241,6 +241,29 @@
 //    sourced by a source-level local either.
 // The two hunks are unchanged from the third pass and look like one backend
 // allocator/scheduling state set elsewhere in the original translation unit.
+//
+// Fifth pass (deepseek-v4.1-flash, issue 3392), one real check.py run plus
+// scratch builds scored with a local disassembler:
+//  - Decisive comparison: the MATCHED sibling 0x4a76b0 has the byte-identical
+//    instruction sequence `call FUN_004c13f0 / mov ecx,[ebp+0x1f] / push eax /
+//    mov eax,[esp+0x18] / xor edx,edx / mov dl,[ecx+eax+0x8b2]` (its class
+//    pointer also comes from a stack reload, of a local rather than of the
+//    first argument). Same registers, same order, same expression
+//    (`((unsigned char*)field_1f)[(int)menu + 0x8b2]`), original SIB. So the
+//    base/index choice here is not decided by the colour expression, by the
+//    register roles, or by anything in the six instructions; it is backend
+//    state that the sibling happens to get right (0x4a7758-0x4a7762).
+//  - Further flat spellings (all 98.7%, same two hunks): `(int)(char*)param_1`,
+//    `(int)(long)param_1`, `(int)(void*)param_1` as the index,
+//    `(0x8b2 & 0xffff)`, a `(void*)(int)entries->surface` and an
+//    `entries[0].surface` marker argument, `rect.top + height` and
+//    `w + rect.left` (the commutative orders).
+//  - `param_1->holder->entries->surface` as the marker argument is 665 bytes
+//    (three extra bytes), not the original.
+//  - The guide's "file contents are the compiler state" lever: compiling the
+//    whole matched 0x4a76b0 translation unit in front of this function (its
+//    helper and its function, names renamed to avoid clashes) leaves both
+//    hunks unchanged.
 
 #pragma pack(push, 1)
 struct Entry_004a4d70 {                // 0x15b bytes

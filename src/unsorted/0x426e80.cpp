@@ -1,5 +1,13 @@
 // Decompiled by longcat-2.5-preview-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// Still differs (50.1%). What changed since the previous note:
+// Still differs (50.2%). What changed since the previous note:
+//  - the mode check must read `mode != g_game[0x2bbf]` (mode on the left) so
+//    MSVC emits the original `cmp bl, cl` at 0x426e98; the reversed spelling
+//    cost one mismatched line, 50.1 -> 50.2.
+//  - the case-0 0xf0 flag test: `((p[0xf0] >> 1) & 1)` folds to
+//    `test byte ptr [esi+0xf0], 2` no matter the spelling, including via a
+//    named `unsigned char fl = p[0xf0];` local (byte-neutral, reverted), so
+//    the original `mov dl, [esi+0xf0]; shr dl, 1; test dl, 1` needs the value
+//    kept live for another use the source does not model yet.
 //  - the outer case bodies must be laid out in the exe's order, which the jump
 //    table at 0x42859c reveals: 0, 2, 1, 3, 4, 5, 7, 10, 8, 9, 11..14, 15, 20, 16,
 //    17 (case 2 sits between case 0 and case 1, and 10 comes before 8).
@@ -153,7 +161,7 @@ void __stdcall FUN_00426e80(void)
 
     {
         char mode = g_game[0x2bc0];
-        if (g_game[0x2bbf] != mode) {
+        if (mode != g_game[0x2bbf]) {
             FUN_004256d0(0xa3, DAT_00503004);
             g_game[0x2bbf] = mode;
             g_game[0x2bc0] = mode;

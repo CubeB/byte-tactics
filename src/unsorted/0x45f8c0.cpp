@@ -101,6 +101,21 @@
 // lea, but to a NEW temporary slot at a different offset, so it cannot match.
 // The merged-block instruction stream is otherwise byte-identical, so this is
 // the compiler's register tie-break for a free ecx/edx and stays at 98.7%.
+//
+// deepseek-v4.1-flash (this run): 48 more scratch variants on the one hunk,
+// none moved it. tools/headers.py --cpp swept all 768 sets (flat 98.7, best
+// <windows.h>). Untried-until-now families, all flat: dead self-assignments
+// (`int t = pp->first; pp->first = t;`) placed after pp->first, before the loop
+// guard, in the loop body, after the success call and in the if condition (some
+// reorder the two preheader stores, 98.0, but never the hunk); dead self-assigns
+// on y, value, layer, page, n and first; a `char* v = value` before and after the
+// split; `bool`-style split arms; `&value[0]` at the AddLine call; a MarkUsed
+// helper and an AddText helper (68.1 and 93.4, helpers did not inline like the
+// original); the count read through `*(short*)((char*)layer->entries + 0xb6)`
+// (identical bytes); moving the `lines`/`pp`, `first`/`last`, `p2`/`n` and
+// `int y` declarations to function scope (98.0 to 98.7); reordering the blank
+// stores (98.0); chained blank stores. The register choice is a whole-function
+// colouring tie that no source form of this function reaches.
 #include <windows.h>
 #include <string.h>
 

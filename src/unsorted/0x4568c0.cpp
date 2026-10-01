@@ -214,6 +214,13 @@
 // original's assignment) but it moves `res` from [esp+0x18] into ebp, which is
 // the mirror-image failure the older wX variants hit. So in this source shape
 // the byte counter and res-in-edi remain mutually exclusive.
+// Deepseek-v4.1-flash (10-minute re-baseline pass, no code change): re-ran the
+// 86.8 body (1258 bytes) as the baseline, then re-tested the both-helpers-as-
+// arguments arm FUN_00451bc0(FindFrom_004568c0(), PlayerId_004568c0(k4),
+// packet, 2) on top of it: 83.6% / 1302 bytes, reproducing the earlier result
+// exactly. So the helper shape restores the ebx byte counter and the to/from
+// order but loses res-in-edi; the manual to/from form above stays the best.
+// Remaining difference unchanged: the 52-byte k4 loop structure.
 #include <stdlib.h>
 #include <algorithm>
 

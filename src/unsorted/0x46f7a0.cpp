@@ -71,6 +71,9 @@
 // _Last; ++_d, ++_s) allocator.construct(_d, *_s);}) collapses to 40.4% / 793.
 // Prefix inline dst-first loop alone: 80.1% / 799. So for this 0x5c-byte element
 // the standard source-first _Ucopy must stay at all call sites.
+// deepseek-v4.1-flash (#4002): re-checked, still 83.8% / 798 bytes. Swapping the
+// two in-place else-if branches (0 < _M first) drops to 62.7%, so the retained
+// header order is load bearing.
 #include <algorithm>
 #include <memory>
 #include <xutility>

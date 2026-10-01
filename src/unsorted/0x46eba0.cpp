@@ -80,6 +80,9 @@
 // 63.3% as recorded above). The remaining diff is the _N/_S home swap plus the
 // prefix loop's _P reload (ours: mov ecx,[esp+0x20] on every back edge, compare
 // against ecx; original: _P in edi across the loop, _N in the dead _M slot).
+// deepseek-v4.1-flash (#4002): re-checked, still 81.4% / 928 of 936 bytes.
+// Swapping the two in-place else-if branches (0 < _M first) drops to 56.0% /
+// 918 bytes, so the retained header order is load bearing.
 #include <algorithm>
 #include <memory>
 #include <xutility>

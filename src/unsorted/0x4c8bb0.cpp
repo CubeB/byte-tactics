@@ -1,5 +1,13 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash pass (timeboxed 2026-10-01), body unchanged at 54.1%.
+// Third deepseek-v4.1-flash pass (timeboxed, 2026-10-01): scored the direct
+// tail fixup (index=previous; if(index<0) index=3;) at 50.1%/1284 bytes, the
+// if/else respelling of the same at 50.1/1284, and head `next=previous;`
+// with that tail at 50.2/1284. All three keep the 0x7d5c frame and still show
+// the original `mov [esp+0x4c],edx` (raw previous) and the head `mov
+// [esp+0x14],eax` pair as missing, so MSVC value-numbered previous with next
+// in every spelling tried; the raw previous store needs a source shape whose
+// head fixup and tail fixup are not value-identical.
 // Fifteenth pass (deepseek-v4.1-flash, 2026-10-01): the winning hoist fix of
 // sibling 0x4c8760 does NOT transfer here. Hoisting ALL block-scoped edge
 // temps (next, dv, dx, du, dz, dl, y0, y1, n, nextVertex) to function scope

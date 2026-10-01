@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): no gain, stays 75.2 /
+// 975 bytes. Removing the Loop E `unsigned int f = u->flags;` temp (using
+// u->flags directly in the two tests and the store) regresses 75.2 to 74.8 /
+// 981 bytes, so the shared temp is required; the ebx-vs-ebp flags pick stands.
+
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash 2026-10-01 (retry 4, timeboxed): no new gains, stays at
 // the 75.2% / 975-byte best. Open sites unchanged: Loop E keeps the pos loads
 // hoisted before the field_14281 test and allocates flags in ebx (original:

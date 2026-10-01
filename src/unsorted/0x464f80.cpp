@@ -1,4 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, refined by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): 79.7 -> 80.2 percent,
+// 2385 -> 2386 bytes. Declaring the FUN_00488b10 result as
+// `unsigned int typeId = FUN_00488b10(...) & 0xffff;` instead of
+// `unsigned short typeId = FUN_00488b10(...);` deletes the raw-eax spill to
+// [esp+0x30] plus the mov ecx,eax / mov eax,ecx pair and clears that hunk.
+// Still open: the shl edi,0x10 (screen_hh) schedule in the subscreen setup
+// (original shifts hh after `mov ebx,eax`, ours before `sub eax,ebp`), and the
+// branch-displacement hunks that follow from the remaining size gap.
+
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, refined by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash 2026-10-01 (retry 4, timeboxed): no new gains, stays at
 // the 79.7% / 2385-byte best. Open sites unchanged: the duplicate player guard
 // still CSEs, the typeId copy is `mov ecx,eax` (original `mov cx,ax`), and the
@@ -361,10 +371,10 @@ void __stdcall FUN_00464f80()
                         if (g_game->field_37ef6 == 2) {
                             Player_00464f80* self =
                                 g_game->players[FUN_00456850()].data;
-                            unsigned short typeId;
+                            unsigned int typeId;
                             typeId = FUN_00488b10(
                                 &g_game->startPos[0x232 *
-                                    g_game->players[g_game->localPlayer].data->field_95]);
+                                    g_game->players[g_game->localPlayer].data->field_95]) & 0xffff;
                             int bound = 9999;
                             int typeOff = typeId * 0x249;
                             Pos_00464f80 pos;

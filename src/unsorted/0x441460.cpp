@@ -1,88 +1,63 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
 // finished by space-bunny-free. Names are provisional.
-// 80.5%, not a MATCH (was 80.4%). Exact so far: the whole local frame (buf sized
-// 0x139 reserves the original's 0x1b4 frame and the parameter reads at
-// [esp+0x1d0]), the settings copy at SETBUF = buf+0x119, the record walk reading
-// field_10 straight from p[0]-4 (keeping a `rec` local alive made MSVC park it in
-// ebp and cost 2%), and the strlwr block (the FUN_004c5740 result must be read
-// into a local before the strncpy, else MSVC pushes the 0x80 first).
+// 83.7%, not a MATCH (was 80.5%). The frame is exact (buf sized 0x139 reserves the
+// original's 0x1b4 and the parameter read at [esp+0x1d0] lines up), the settings
+// copy at SETBUF = buf+0x119 is a clean 16-byte/4-dword copy, the record walk reads
+// field_10 straight from p[0]-4, and the strlwr block needs the FUN_004c5740 result
+// in a local before the strncpy.
+//
+// The one change that moved the number this session (+3.2): the record's DWORDS are
+// the values the original register-allocates, not the shorts. `unsigned int* rdw =
+// (unsigned int*)(p[0] - 0x14); int f0 = rdw[0];` used as `f0 & 0xffff` at p[5]
+// gives the original's `mov ebp, [ecx] / mov [esp+0x1a5], ebp` dword load out of the
+// struct copy, and the whole p[] string-cursor block then lands where the original
+// has it. Reading the same dword through a dword/short UNION of the settings struct
+// gives the register treatment too but the extra local costs a frame dword, so every
+// SETBUF offset shifts by 4: 73.7%.
+//
 // Still differs:
-//   * the provider-guid chain: the original keeps a dead-looking `count = memcmp`
+//   * the provider-guid chain. The original keeps a dead-looking `count = memcmp`
 //     store at the end of the FIRST chain (sbb edx,edx / sbb edx,-1 / mov
-//     [esp+0x10],edx) and falls through to the cd98 compare, while MSVC deletes
-//     that store here. Writing the chain as an if/else-if or as
-//     `A != 0 && B != 0` is worse: MSVC proves both arms dead and drops the 98
-//     and b8 compares entirely (5 compares instead of 8, 1796 bytes). Giving the
-//     chain its own dead local (`int n`) is score-neutral: the store dies either
-//     way.
-//   * count is stored to [esp+0x10] before the FUN_004c9e50 call here, while the
-//     original stores ebx only in the count>0 branch just before the loop
-//     (a separate loop local `int n = count` does not change that).
+//     [esp+0x10],edx) and falls through to the cd98 compare. In ours the whole sbb
+//     pair dies because count is provably overwritten by the FUN_004c9e50 result
+//     before it is read, so MSVC drops it and chain 1 keeps only the compare against
+//     zero. Giving the chain its own `int sig` local, writing it as
+//     `count = memcmp(...)` (the value is the memcmp SIGN, not a bool), or writing
+//     the chain as `A != 0 && B != 0` are all score-neutral or worse.
+//   * the original jumps straight from chain 1's cd98 compare to the SHARED
+//     `mov eax, "Updating..."` block and from chain 2's cda8 compare to the SHARED
+//     one too; ours emits a private `mov eax, <str> / jmp` for each. This is a tail
+//     merge our goto shape does not produce.
+//   * count is stored to [esp+0x10] before the FUN_004a9660 call here, while the
+//     original stores ebx only inside the count>0 block. A separate `int left =
+//     count` loop counter does not move it (76.3%).
 //   * the zeroing loop loads g_game->data[i] as [edx+eax+0x2a47] against the
-//     original's [eax+edx+0x2a47] (same registers, swapped ModRM base/index).
-//   * the p[4..11] sprintf block re-loads the settings copy instead of keeping
-//     field_0 in ebp (the original's struct copy uses ebp for word 0 and the
-//     value stays live to `and ebp,0xffff`), and (flags >> 15) & 1 folds to
-//     `test ah,0x80` where the original keeps `mov edx,eax / shr edx,0xf /
-//     test dl,1`.
+//     original's [eax+edx+0x2a47]: same registers, swapped ModRM base and index.
+//   * the flags dword at SETBUF+2 is reloaded for p[9], p[10] and p[11] where the
+//     original keeps it in ebx (`mov ebx,[esp+0x1a3] / mov cl,bh / shr ebx,9`).
+//     A local `int fl = SETBUF->flags;` scoped to the p[4] block, or to the
+//     p[10]/p[11] pair, or to all three uses, is score-neutral (83.7% each): MSVC
+//     still narrows to `test ah,0x80` / `test ah,1` / `test ah,2`. Making it a
+//     long-lived live value for all of p[9..p[11] is much worse (69.2%).
+//   * p[7] still reads the settings dword from the frame instead of from a live
+//     register. `int f8 = rdw[2]` used as `(f8 & 0xffff) * 100` costs 1.2 points
+//     (82.5%): it puts ebx on the right value but demotes a neighbour.
 //
-// What the p[4..11] diffs really are (measured this session, all free scratch
-// scores, none of it better than 80.5%):
-//   * ONE cause, not several: the original register-allocates the struct copy's
-//     dword 0 to EBP and dword 2 to EBX for the WHOLE loop body, so `and ebp,
-//     0xffff` (p[5]), `and ebx, 0xffff` (p[7]), `mov cl,bh` (p[10]) and
-//     `shr ebx,9` (p[11]) all read those two registers. Our compile instead
-//     parks the p[] string cursors in EBP/EBX and re-loads every settings dword
-//     from the frame, so all 14 of those diffs are one allocation decision.
-//   * the settings word at SETBUF+0 is the one carrying bits 4, 9, 11, 12 and 15
-//     (the DM test is `and eax,0x1800 / test ax,ax / cmp ax,0x800`, which is the
-//     LOW word) and is also the "%d" number for p[5]; the word at SETBUF+2
-//     carries bit 8 (p[10] Blk/Gray, read as `mov cl,bh` = bit 24 of the dword).
-//     So this file's names are one word off: offset 0 is the flags word, not
-//     field_0. Renaming offset 0 to `flags` and offset 2 to `field_2` makes
-//     p[10] and p[11] come out on the right BITS but scores 80.2%, so the extra
-//     perturbation it causes elsewhere outweighs it.
-//   * p[11] really is bit 9 of the word at offset 0, not bit 9 of the word at
-//     offset 2 (`shr ebx,9 / test bl,1` on the dword at SETBUF+0).
-//     Spelling it `(SETBUF->field_0 >> 9) & 1` is score-neutral.
-//   * promoting the flags to an `unsigned int` local does NOT restore the
-//     original's 32-bit shift: MSVC inserts `and eax,0xffff` first and still
-//     folds to `test ah,0x80`.
-//   * the settings copy is a clean 16-byte/4-dword copy to buf+0x119; the
-//     original simply places the 4th store after the two pushes, because edx and
-//     ebx have to survive the `rep movsd`. Making it a real local struct
-//     (`char buf[0x119]; Settings s;` with `#define SETBUF (&s)`) instead of
-//     the pointer costs 8%: 72.6%, 1773 bytes. The pointer form is right.
-//
-// Things tried here that did NOT work, so nobody repeats them (all free scratch
-// scores against 80.5%):
-//   * `Settings_00441460* sb = (Settings*)(buf + 0x119);` as a named local
-//     pointer instead of the `SETBUF` macro: 80.5%, byte-identical output. The
-//     allocation lever from the guide (0x498da0's `Rect* lim`) does not fire
-//     here; buf+0x119 is a constant offset, so the macro already is a constant.
-//   * `int f0 = SETBUF->field_0; int f8 = SETBUF->field_8;` taken right after
-//     the struct copy and used at p[5] and p[7], to add the live nodes the guide
-//     says keep a value in a callee-saved register: 63.7%. The two extra
-//     locals cost more frame than the promotion is worth.
-//   * a separate loop counter `int left = count;` initialised inside
-//     `if (count > 0)` with `while (--left)`, which is the shape the original's
-//     `mov [esp+0x10],ebx` in the count>0 block suggests: 76.3%. The `count`
-//     store still lands before the FUN_004a9660 call.
-//   * a separate dead local for the provider-guid compare result: 80.5%, and the
-//     store is still deleted (only the SECOND chain's `sbb/sbb/mov` survives,
-//     which is why ours is 62 bytes short of the original).
-//   * promoting the flags word to an `unsigned int` local to stop the
-//     `test ah,0x80` fold: MSVC inserts `and eax,0xffff` and folds anyway.
-//   * the chain-1 `count = memcmp(...) != 0;` spelling re-tried: writing the
-//     bare `count = memcmp(...)` (the original stores the SIGN via sbb/sbb, so
-//     the value is the memcmp result, not a bool) compiles BYTE-IDENTICALLY
-//     here (1810 bytes, 80.6%), and giving the chain its own unused `int sig`
-//     local is byte-identical too. The chain-1 store at 0x4414c1 survives in
-//     the original because the value is USED there; in our build the value is
-//     provably unread (count is overwritten by the FUN_004c9e50 result), so the
-//     whole sbb pair plus store is dropped and chain 1 keeps only the cmp
-//     against zero. The lever is a genuine later use of that value, not the
-//     memcmp spelling.
+// Things tried here that did NOT work, so nobody repeats them:
+//   * a dword/short UNION of the settings struct: 73.7% (frame grows by one dword,
+//     so every SETBUF read is 4 bytes out).
+//   * a named `Settings* sb = (Settings*)(buf + 0x119);` local instead of the macro:
+//     byte-identical output, buf+0x119 is already a constant.
+//   * `int f0 = SETBUF->field_0; int f8 = SETBUF->field_8;` taken after the copy:
+//     63.7%. The two extra frame slots cost more than the promotion is worth.
+//   * promoting the flags word to an unsigned int local to stop the `test ah,0x80`
+//     fold: MSVC inserts `and eax,0xffff` and folds anyway.
+//   * a separate dead local for the provider-guid compare result, and writing the
+//     chain-1 store as a bare memcmp (no `!= 0`): still 83.7%, byte-identical output.
+//     Chain 2's sbb/sbb/store survives in both, chain 1's never does here.
+//   * a real local struct (`char buf[0x119]; Settings s;` with SETBUF = &s): 72.6%.
+//   * renaming the settings words to `flags`/`field_2` to match the measured bit
+//     ownership: 80.2%, the perturbation elsewhere outweighs the better bits.
 #include <string.h>
 #include <stdio.h>
 
@@ -218,6 +193,8 @@ shown:
     if (count > 0) {
         do {
             char* e;
+            unsigned int* rdw = (unsigned int*)(p[0] - 0x14);
+            int f0 = rdw[0];
             *SETBUF = ((Record_00441460*)(p[0] - 0x14))->settings;
             memcpy(names, p[0], 0x20);
 
@@ -259,7 +236,7 @@ shown:
                 sprintf(p[4], "%s", FUN_004c5740("VER!"));
             }
             p[5] = p[4] + strlen(p[4]) + 1;
-            sprintf(p[5], "%d", SETBUF->field_0);
+            sprintf(p[5], "%d", f0 & 0xffff);
             p[5] += strlen(p[5]) + 1;
             sprintf(p[6], "%d", SETBUF->field_a * 100);
             p[6] += strlen(p[6]) + 1;

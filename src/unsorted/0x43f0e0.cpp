@@ -13,6 +13,15 @@
 // 50.5% with <memory.h>). Declaring tdef at the top of case 3 or before the f245 test
 // scores 47.7%. Node still lands in ecx in this version; the remaining diffs are the
 // node/tdef/intermediate scratch picks and two constant materialisations.
+// deepseek-v4.1-flash pass 2 (no improvement, kept 51.3%): re-tried every node/tdef lever on
+// top of the 51.3% version and all scored 47 to 51.3 percent: swapping the two declarations,
+// splitting/merging tdef's declaration, moving tdef next to its first use (50.4), declaring it
+// without an initialiser, `const Def* tdef`, making def an array/struct local to force it to
+// memory, adding throwaway live locals (node2, node2=f2c), converting every `unit->def->` in
+// case 1 only (48.4) and in the whole switch (48.3) to the `def` local, and reordering the
+// friendly/enemy declarations (51.1). The 51.3% file is the best of the two spellings; the
+// cause is still that MSVC colours node in ecx and leaves a live def in edx instead of
+// spending def's esi cache on node.
 // deepseek-v4.1 pass 4 (50.4%): tried Pick as `cond ? vtol : ground` (43.0%, 4472 bytes) and as
 // `name = ground; if (bit) name = vtol;` (45.4%, 4444 bytes); both are worse than the current
 // `name = vtol; if (!bit) name = ground;`, so it is restored. Restructuring case 2 to the

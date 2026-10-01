@@ -1,4 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash., finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass for issue #3677: 21.8 -> 28.0 (6396 bytes). The big win was
+// the ORDER of the big switch's case bodies, which check.py sees because difflib only
+// matches blocks that run forward in both streams. The original's source order was read
+// off the jump table at 0x455f84 (index = cmd - 2): 32,23,24,2,38,35,36,27,28,30,31,5,
+// 39,6,7,8,9,44,10..22,40,41,25,26,29,33,34; ours was numeric order. Reordering the
+// transcribed bodies to that order (28, 33 and 39 stay missing) gave 21.8 -> 28.0.
+// Same pass: cases 4, 37 and 43 jump to 0x455f50 (the loop test), so they are empty
+// bodies, and the small switch's original order is 5 (0x453f20), 3 (0x45413f), 0x102
+// (0x454425), 0x104 (0x454685), 0x103 (0x45469e), so 0x104 is emitted before 0x103 here.
+// Still differs: frame 0x318 against the original 0x51c and hence every [esp+N] slot;
+// case-39's body was transcribed and scored 27.6, so it is not in (its text does not line
+// up until the slots do); case 28 (0x454ec4, buffer at 0x220, 5-byte message at 0x218) and
+// case 33 (0x4559f5) are still missing. Also the 0x9b bit-4 test at 0x4540f8 is a real
+// bitfield read (mov al,[ecx+0x9b]; shr al,4; test al,1), not `& 0x10`.
+// Next: transcribe case 28 then case 33 in that order (their locals are declared before
+// case 0x102's Class_00463be0 temp, which sits at 0x2e0, and before case-39's 0x434 buffer).
+
 // deepseek-v4.1-flash pass, 15.2 -> 21.8% (6384 bytes): the sender test is a real
 // two-arm if, not an "if with an empty else" plus fall-through. The original tests
 // sender once at 0x453ece (jne 0x45473f) and falls through into the sender == 0 arm
@@ -406,9 +423,117 @@ int FUN_00453d40() {
         *(int*)(player + 0x1c) = FUN_004b6340();
         ++*(int*)(player + 0x10);
         switch (cmd) {
+        case 32: {
+            unsigned char target = FindPlayer_453d40(*(int*)(bytes + 0x91));
+            if (target != 10) {
+                char* q = g_game + 0x1b63 + target * 0x14b;
+                if (*(int*)q && q[0x73] == 3) {
+                    memcpy(*(void**)(q + 0x27), bytes + 1, 0xb9);
+                    FUN_00450980();
+                }
+            }
+            break;
+        }
+        default:
+            break; // Remaining command cases are not yet transcribed.
+        case 23:
+            if (*(unsigned char*)(*(char**)(g_game + 0x1b8a +
+                                            0x14b * (unsigned char)g_game[0x2a42]) +
+                                  0x97) &
+                1) {
+                int result = FUN_00452570(*(int*)(g_game + 0x4c9), (signed char)bytes[1]);
+                int id = -1;
+                for (int j = 0; j < 10; ++j) {
+                    if (g_game[0x1bd6 + j * 0x14b] == 1) {
+                        id = *(int*)(g_game + 0x1b67 + j * 0x14b);
+                        break;
+                    }
+                }
+                if (!result) {
+                    FUN_004523e0(id, *(int*)(g_game + 0x4c9), (signed char)bytes[1]);
+                } else {
+                    unsigned char response[2];
+                    response[0] = 0x18;
+                    response[1] = bytes[1];
+                    FUN_00451bc0(id, *(int*)(g_game + 0x4c9), response, 2);
+                    if (DAT_00506dbc)
+                        DAT_00513000.FUN_004618a0(1);
+                }
+            }
+            break;
+        case 24:
+            (*(char**)(g_game + 0x1b8a + 0x14b * to))[0x96] = bytes[1];
+            if (to == (unsigned char)g_game[0x2a42] && (g_game[0x2a44] & 1)) {
+                for (int j = 0; j < 10; ++j) {
+                    char* q = g_game + 0x1b63 + 0x14b * j;
+                    if (*(int*)q && (q[0x73] == 1 || q[0x73] == 2)) {
+                        unsigned char response[0xba];
+                        memcpy(response + 1, *(void**)(q + 0x27), 0xb9);
+                        *(int*)(response + 0x91) = *(int*)(q + 4);
+                        response[0] = 0x20;
+                        FUN_00451df0(*(int*)(q + 4), response, 0xba);
+                        FUN_00452bd0(q);
+                    }
+                }
+                FUN_00450530();
+                DAT_00513000.FUN_004618a0(1);
+            }
+            g_game[0x2bee] |= 1;
+            break;
         case 2:
             FUN_004565a0(packet);
             break;
+        case 38:
+            memcpy(g_game + 0x2c28, bytes + 1, 40);
+            g_game[0x2bee] |= 1;
+            break;
+        case 35: {
+            char* a = NetworkPlayer_453d40(*(int*)(bytes + 1));
+            char* b = NetworkPlayer_453d40(*(int*)(bytes + 5));
+            if (a && b) {
+                if (bytes[9])
+                    FUN_0047f1a0(DAT_00505dc4, 0);
+                if (*(int*)b && (b[0x73] == 1 || b[0x73] == 2)) {
+                    FUN_00452960(*(int*)(bytes + 1), *(int*)(bytes + 5), bytes[9],
+                                 *(int*)(bytes + 10));
+                    if (!(g_game[0x2a44] & 4))
+                        g_game[0x2bee] |= 1;
+                    else
+                        FUN_00446fb0();
+                }
+                g_game[0x1c6b + 0x14b * (unsigned char)a[0x146] + (unsigned char)b[0x146]] =
+                    bytes[9];
+            }
+            break;
+        }
+        case 36: {
+            char* q = NetworkPlayer_453d40(*(int*)(bytes + 1));
+            if (q)
+                q[0x13f] = bytes[5];
+            if (!(g_game[0x2a44] & 4))
+                g_game[0x2bee] |= 1;
+            break;
+        }
+        case 27: {
+            char* q = NetworkPlayer_453d40(*(int*)(bytes + 1));
+            if (q)
+                FUN_00453010(*(int*)(q + 4), bytes[5]);
+            break;
+        }
+        case 30: {
+            unsigned char response[5];
+            response[0] = 0x1f;
+            recipient[0x147] = bytes[1];
+            *(int*)(response + 1) = *(int*)(recipient + 4);
+            FUN_00451bc0(*(int*)(response + 1), *(int*)(player + 4), response, 5);
+            break;
+        }
+        case 31: {
+            unsigned char target = FindPlayer_453d40(*(int*)(bytes + 1));
+            if (target != 10)
+                *(int*)(g_game + 0x29d0 + target * 4) = 1;
+            break;
+        }
         case 5:
             if (*(int*)recipient && recipient[0x73] == 1)
                 FUN_00463ca0(bytes + 1, 8, 0, from);
@@ -435,6 +560,9 @@ int FUN_00453d40() {
             break;
         case 9:
             FUN_004861d0(from, packet);
+            break;
+        case 44:
+            FUN_0048b920(player, packet);
             break;
         case 10:
             FUN_0048ab70(packet);
@@ -534,49 +662,15 @@ int FUN_00453d40() {
             }
             break;
         }
-        case 23:
-            if (*(unsigned char*)(*(char**)(g_game + 0x1b8a +
-                                            0x14b * (unsigned char)g_game[0x2a42]) +
-                                  0x97) &
-                1) {
-                int result = FUN_00452570(*(int*)(g_game + 0x4c9), (signed char)bytes[1]);
-                int id = -1;
-                for (int j = 0; j < 10; ++j) {
-                    if (g_game[0x1bd6 + j * 0x14b] == 1) {
-                        id = *(int*)(g_game + 0x1b67 + j * 0x14b);
-                        break;
-                    }
-                }
-                if (!result) {
-                    FUN_004523e0(id, *(int*)(g_game + 0x4c9), (signed char)bytes[1]);
-                } else {
-                    unsigned char response[2];
-                    response[0] = 0x18;
-                    response[1] = bytes[1];
-                    FUN_00451bc0(id, *(int*)(g_game + 0x4c9), response, 2);
-                    if (DAT_00506dbc)
-                        DAT_00513000.FUN_004618a0(1);
-                }
-            }
+        case 40:
+            FUN_00457540(packet, player);
             break;
-        case 24:
-            (*(char**)(g_game + 0x1b8a + 0x14b * to))[0x96] = bytes[1];
-            if (to == (unsigned char)g_game[0x2a42] && (g_game[0x2a44] & 1)) {
-                for (int j = 0; j < 10; ++j) {
-                    char* q = g_game + 0x1b63 + 0x14b * j;
-                    if (*(int*)q && (q[0x73] == 1 || q[0x73] == 2)) {
-                        unsigned char response[0xba];
-                        memcpy(response + 1, *(void**)(q + 0x27), 0xb9);
-                        *(int*)(response + 0x91) = *(int*)(q + 4);
-                        response[0] = 0x20;
-                        FUN_00451df0(*(int*)(q + 4), response, 0xba);
-                        FUN_00452bd0(q);
-                    }
-                }
-                FUN_00450530();
-                DAT_00513000.FUN_004618a0(1);
+        case 41:
+            if (bytes[1]) {
+                recipient[0x11e + from] = 1;
+                if (bytes[2])
+                    recipient[0x134 + from] = 1;
             }
-            g_game[0x2bee] |= 1;
             break;
         case 25:
             if (!bytes[1])
@@ -589,98 +683,21 @@ int FUN_00453d40() {
             if (*(void**)(g_game + 0x2a30) && *(int*)recipient && recipient[0x73] == 1)
                 (*(Class_0046d500**)(g_game + 0x2a30))->FUN_0046d500(packet, from);
             break;
-        case 27: {
-            char* q = NetworkPlayer_453d40(*(int*)(bytes + 1));
-            if (q)
-                FUN_00453010(*(int*)(q + 4), bytes[5]);
-            break;
-        }
         case 29:
             if (DAT_00506dbc)
                 ((Class_00461620*)&DAT_00513000)
                     ->FUN_00461620(*(int*)(g_game + 0x4c9), *(int*)(bytes + 1),
                                    *(int*)(bytes + 5));
             break;
-        case 30: {
-            unsigned char response[5];
-            response[0] = 0x1f;
-            recipient[0x147] = bytes[1];
-            *(int*)(response + 1) = *(int*)(recipient + 4);
-            FUN_00451bc0(*(int*)(response + 1), *(int*)(player + 4), response, 5);
-            break;
-        }
-        case 31: {
-            unsigned char target = FindPlayer_453d40(*(int*)(bytes + 1));
-            if (target != 10)
-                *(int*)(g_game + 0x29d0 + target * 4) = 1;
-            break;
-        }
         case 34: {
             char* q = LogicalPlayer_453d40(*(int*)(bytes + 1));
             if (q)
                 *(int*)(q + 0xc) = bytes[5];
             break;
         }
-        case 35: {
-            char* a = NetworkPlayer_453d40(*(int*)(bytes + 1));
-            char* b = NetworkPlayer_453d40(*(int*)(bytes + 5));
-            if (a && b) {
-                if (bytes[9])
-                    FUN_0047f1a0(DAT_00505dc4, 0);
-                if (*(int*)b && (b[0x73] == 1 || b[0x73] == 2)) {
-                    FUN_00452960(*(int*)(bytes + 1), *(int*)(bytes + 5), bytes[9],
-                                 *(int*)(bytes + 10));
-                    if (!(g_game[0x2a44] & 4))
-                        g_game[0x2bee] |= 1;
-                    else
-                        FUN_00446fb0();
-                }
-                g_game[0x1c6b + 0x14b * (unsigned char)a[0x146] + (unsigned char)b[0x146]] =
-                    bytes[9];
-            }
-            break;
-        }
-        case 36: {
-            char* q = NetworkPlayer_453d40(*(int*)(bytes + 1));
-            if (q)
-                q[0x13f] = bytes[5];
-            if (!(g_game[0x2a44] & 4))
-                g_game[0x2bee] |= 1;
-            break;
-        }
-        case 38:
-            memcpy(g_game + 0x2c28, bytes + 1, 40);
-            g_game[0x2bee] |= 1;
-            break;
-        case 40:
-            FUN_00457540(packet, player);
-            break;
-        case 41:
-            if (bytes[1]) {
-                recipient[0x11e + from] = 1;
-                if (bytes[2])
-                    recipient[0x134 + from] = 1;
-            }
-            break;
         case 42:
             player[0x20] = bytes[1];
             break;
-        case 44:
-            FUN_0048b920(player, packet);
-            break;
-        case 32: {
-            unsigned char target = FindPlayer_453d40(*(int*)(bytes + 0x91));
-            if (target != 10) {
-                char* q = g_game + 0x1b63 + target * 0x14b;
-                if (*(int*)q && q[0x73] == 3) {
-                    memcpy(*(void**)(q + 0x27), bytes + 1, 0xb9);
-                    FUN_00450980();
-                }
-            }
-            break;
-        }
-        default:
-            break; // Remaining command cases are not yet transcribed.
         }
         continue;
     } while (receiving);

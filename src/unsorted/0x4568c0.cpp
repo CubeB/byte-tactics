@@ -221,6 +221,22 @@
 // exactly. So the helper shape restores the ebx byte counter and the to/from
 // order but loses res-in-edi; the manual to/from form above stays the best.
 // Remaining difference unchanged: the 52-byte k4 loop structure.
+// deepseek-v4.1-flash (this pass): re-ran the two-helper k4 shape
+// (FUN_00451bc0(FindFrom_004568c0(), PlayerId_004568c0(k4), packet, 2)) and
+// read its full diff. It reproduces the whole k4 loop byte for byte
+// (`xor ebx,ebx`, `cmp bl,0xa`, `mov eax,ebx`, `and eax,0xff`, `inc ebx`,
+// `cmp esi,0x29f8`, to in edi, from in edx) and is only 1302 bytes (8 short).
+// The single root cause of its 83.6 is upstream: the FUN_00456030 result
+// lives in ebp (0x456942 `mov ebp,eax`, not `mov edi,eax`), which also flips
+// the k3 region's zero register from ebx to edi, so every later hunk is that
+// one recolour. MSVC reuses ebp as the k4 loop's address scratch and then
+// reloads res (its [esp+0x18] home is correct throughout), so the ask is to
+// stop res from owning ebp across the k3/k4 region: a fresh `int r2 = res;`
+// after the k4 loop is folded straight back (identical 1302 bytes, 83.6),
+// and headers.py is flat (all 128 sets 86.8 on the best body). Also re-ran
+// the named `int to = PlayerId_004568c0((unsigned char)k4);` shape: 81.9 at
+// 1306 bytes (the name takes esp+0x18 and pushes the field walk from esi to
+// edi). The manual to/from form in this file is still the best at 86.8.
 #include <stdlib.h>
 // deepseek-v4.1-flash (this pass): tried writing the k4 `to` as an if/else
 // with a shared `else to = -1;` (the original's shared `or reg,-1` tail shape)

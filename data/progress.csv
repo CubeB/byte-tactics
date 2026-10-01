@@ -1797,7 +1797,7 @@ address,size,file,symbol,status,similarity
 0x486360,247,src/unsorted/0x486360.cpp,?FUN_00486360@@YGXPAUUnit_486360@@HH@Z,matched,100.0
 0x486460,74,src/unsorted/0x486460.cpp,?FUN_00486460@@YGHPAUUnit_00486460@@@Z,matched,100.0
 0x4864b0,530,src/unsorted/0x4864b0.cpp,?FUN_004864b0@@YGXPAUUnit_4864b0@@H@Z,matched,100.0
-0x4866d0,1964,src/unsorted/0x4866d0.cpp,?FUN_004866d0@@YGXPAEH@Z,partial,65.0
+0x4866d0,1964,src/unsorted/0x4866d0.cpp,?FUN_004866d0@@YGXPAEH@Z,partial,65.2
 0x486e80,71,src/unsorted/0x486e80.cpp,?FUN_00486e80@@YGXF@Z,matched,100.0
 0x486ed0,58,src/unsorted/0x486ed0.cpp,?FUN_00486ed0@@YGXXZ,matched,100.0
 0x486f10,185,src/unsorted/0x486f10.cpp,?FUN_00486f10@@YGXE@Z,matched,100.0

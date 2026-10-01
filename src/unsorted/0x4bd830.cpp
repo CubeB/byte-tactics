@@ -85,6 +85,11 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                             void (__cdecl* cb)(unsigned), unsigned extra,
                             int key, int flags);
 
+static inline Entry_004bd830* entryAt(char* base, int nameoff, int* rec)
+{
+    return (Entry_004bd830*)(base + nameoff + *rec);
+}
+
 // Whole 64K blocks of a byte size, rounded up.
 static inline int nblocks(int w)
 {
@@ -124,7 +129,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
         nameoff = 0;
         recoff = (int*)(base + off + 4);
         do {
-            Entry_004bd830* e = (Entry_004bd830*)(base + nameoff + *recoff);
+            Entry_004bd830* e = entryAt(base, nameoff, recoff);
             strcpy(full, name);
             strcat(full, (char*)(base + e->name));
             if ((e->flags & 1) != 0) {

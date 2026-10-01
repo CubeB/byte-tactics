@@ -1,5 +1,35 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 62.1% (ours 1847 bytes vs 1811), improved from 60.4% by space-bunny-free.
+// FINDINGS (deepseek-v4.1-flash, retry): measured the ORIGINAL's exact frame via
+// per-case esp-tracking (reset esp=WESP=-0x10 at each switch entry). Original
+// frame is 0x140 = EXACTLY 16 dwords at esp0+0x00..0x3f then buf at esp0+0x40
+// (256 bytes, ends 0x140). Slot map (correcting the older notes):
+//   0x0 f1, 0x4 f2, 0x8 n, 0x0c..0x14 pos.x/y/z, 0x18 move, 0x1c selected,
+//   0x20 wfloat, 0x24 pfloat, 0x28 fire,
+//   0x2c G-out, 0x30 A-out, 0x34 M-out, 0x38 U-out, 0x3c P-out.
+// KEY: there are FIVE distinct FUN_0043f0e0 out slots (0x2c,0x30,0x34,0x38,0x3c),
+// not four (older note missed G at 0x2c). And the P arm has only ONE float f3 at
+// 0x24: 0x487eb5 `mov [esp+0x48],0` zero-inits the SAME 0x24 slot sscanf's3rd
+// "%f" writes (both resolve to esp0+0x24 with 5 pushes pending), so older item 3
+// ("two distinct floats") is wrong. Also confirmed the string temporaries
+// (D/S/W/B/A-else/tail) ARE elided into the arg slot in BOTH the copy-ctor and
+// trivial versions via the string ctor (`mov ecx,esp; push str; call 0x438760`),
+// so the copy-ctor declaration is NOT needed for those. The ONLY thing the copy
+// ctor breaks is the named `out` pass: instead of the original's raw
+// `mov ecx,[esp+..]; push ecx` (M 0x487d65, U 0x487ddd, G 0x487e35, P 0x487f12,
+// A 0x487f96) it emits `lea eax,[out]; mov ecx,esp; push eax; call copy-ctor`
+// at the five f0e0->adc0 handoffs. Verified with objdump of our two builds:
+// copy-ctor build frame=0x144 (one extra dword, likely a copy temp), trivial
+// build frame=0x150 (four extra dwords) and buf shifts up by 0x10, so the block
+// ints (target/z/id/f) fail to share the 0x0..0x28 scalar slots the way the
+// original merges them. CORE GOAL restated: trivially copyable class (raw
+// out-pass) AND frame exactly 0x140 with the 16-dword map above AND the 5 out
+// objects landing at 0x2c..0x3c. Ideas NOT yet tried (out of timebox): declare
+// exactly five function-scope trivially-copyable Class_00438760 in slot order
+// (g_out,a_out,m_out,u_out,p_out) after the11 scalars, and force the block ints
+// to alias scalar slots via a union or shared declarations; and per-case type
+// split using an operator= based handoff. 2 check.py runs this session (62.1%
+// main, 49.7% trivial scratch); best stays 62.1%.
 // RETRY NOTES (deepseek-v4.1-flash): measured three variants against the original
 // with check.py --sym. (a) Deleting the Class_00438760 copy-constructor
 // declaration emits no copy calls and drops the code to 1807 bytes (the original

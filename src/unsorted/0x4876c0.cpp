@@ -87,6 +87,10 @@
 // then still lands in edx. The original has f108 in cx loaded just AFTER the
 // s.b load (cx freed by it) and the zero reuses that dying ecx. No source
 // spelling found that stops the hoist of the second-written pair member.
+// deepseek-v4.1-flash (run 7, timebox): no new variants scored, still 74.0
+// (1059 of 1062 bytes). This run only re-verified the base file (3 check.py
+// runs, all 74.0) and dumped the full diff to build/scratch/0x4876c0/.
+// Remaining diffs and all tried levers are documented below and above.
 // deepseek-v4.1-flash (run 5): no further gain, still 74.0. Writing
 // `rec.f3f = unit->fb8;` before `rec.f3d = unit->f108;` gives the original's
 // store order (f3d early at the f108 load, f3f deferred past the rec.f27

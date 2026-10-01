@@ -2,8 +2,14 @@
 // deepseek-v4.1-flash 10-minute retry (this session): re-confirmed 1221 bytes
 // and 98.5%, same three hunks (0x408334 u->def load hoisted above the
 // target = origin stores; 0x4083a4 xor ebp,ebp placed after the trig call
-// instead of before it; 0x4084f7 _allmul first pair pushed commuted). All
-// three are scheduler artifacts of shapes already tried; nothing new moved.
+// instead of before it; 0x4084f7 _allmul first pair pushed commuted). Two new
+// negatives, both 1221 bytes and the same three hunks: the inline Direction()
+// helper in x,y,z order (y = 0 statement between the two trig calls) and
+// hoisting `Vec3 target = origin;` above the loop-2 condition. The hoist
+// regresses to 89.2% / 1234 bytes (the copy then runs for every unit, and the
+// condition's def test moves) so the original copy really is inside the taken
+// branch. All three hunks are scheduler artifacts of shapes already tried;
+// nothing new moved.
 // Sonnet 5.5: 97.8% (was 87.4%). Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived
 // from Class_00407350 (family listed in 0x407350.cpp). Runs every 90 ticks over the
 // units of this object's group: first gives each unit that FUN_0040bdb0 picks an item

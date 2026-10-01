@@ -1,4 +1,8 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash 10-minute retry (this session): re-confirmed 1678 bytes
+// and 99.6%, exactly the two SIB base/index bytes (0x4099f6 wants [esi + ecx],
+// 0x409b53 wants [eax + edx]; ours [ecx + esi] and [edx + eax]). No new probes
+// this pass; the earlier notes below close the store-side and read-side routes.
 //
 // deepseek-v4.1-flash 10-minute pass (build/scratch/0x409730/v1-v10.cpp), the
 // two SIB base/index bytes (0x4099f6 `[esi + ecx]` vs ours `[ecx + esi]`,

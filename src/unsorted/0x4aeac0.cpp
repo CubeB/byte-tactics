@@ -1,4 +1,32 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Retry #3437 (deepseek-v4.1-flash): found the exact mechanism and the best
+// partial so far, 86.2% (736 bytes). The duplicated latch is an /Ot
+// tail-duplication pass whose threshold is SIX instructions for the shared
+// block. The original latch at 0x4aed26 is six instructions (22 bytes) yet was
+// NOT duplicated, so at the moment of that pass it must have had SEVEN
+// instructions, one of which a later pass removed.
+//
+// Proof: adding ANY seventh live instruction to the latch gives exactly one
+// shared latch with the original's top-tested shape (one reset call, 0x4aeb1a
+// reached both by fallthrough and by the latch's jmp). `ret = i;` gave a single
+// latch but moved ret out of its stack slot (frame 0x110, 79.9%); storing i to
+// the element (the PROBE line below) keeps the frame and gives 86.2%, leaving
+// only the probe store and case 6's register different.
+//
+// Every `for`, `do/while`, `for(;;)` and goto-built loop is ROTATED by /O2 (the
+// test is peeled, the reset call is duplicated at the latch, 756 bytes, 74.6%),
+// because MSVC's loop rotator sees the increment-induction pattern. Only
+// `while (1)` with an internal break keeps the test at 0x4aeb1a; it is the
+// right shape and the six-instruction latch is the only thing left.
+//
+// So the source below is right; do not look for a different loop form. Instead
+// find the original's genuine seventh latch instruction, the one MSVC deleted
+// after the duplication pass, and replace the PROBE store with it. Candidates
+// to probe: a redundant register copy or rematerialised load hoisted into the
+// latch (things a late copy-coalescing or peephole pass removes), which would
+// leave the unchanged six-instruction latch and MATCH. Removing the PROBE store
+// returns to the 75.3% duplicated form (880 bytes).
+//
 // Retry #2812: best remains 75.3% (880 bytes vs. 732). The function body
 // matches except for switch-tail latch duplication and the resulting case-6
 // register choice. Prior variants and all 128 header sets are documented below.
@@ -312,6 +340,11 @@ int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
                 e->body.nuttin = parser.current->FUN_004c46c0("nuttin", 0);
                 break;
             }
+            e->body.nuttin = i; // PROBE, not in the original: a seventh latch
+                                // instruction that stops the tail-duplication
+                                // pass (see the note at the top of the file).
+                                // Remove it once the genuine seventh (later
+                                // removed) instruction is found.
             i++;
         }
         obj->body.total = (short)(i - 1);

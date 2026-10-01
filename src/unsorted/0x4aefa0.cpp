@@ -208,6 +208,61 @@
 // backslash (0x4af03f) instead of only the first, and if no line is absolute
 // the sort is skipped entirely while the buffers are still rebuilt (the jump
 // at 0x4af05a). So the split index is the LAST absolute path, not the first.
+// space-bunny-free, fourth pass, still 72.2 % (882 of 895 bytes), and the diff
+// is now fully explained as ONE allocator decision, in a form precise enough
+// to search for directly. The original and this file are structurally
+// identical everywhere (same instruction counts in every block, verified with
+// a two-column address-aligned disassembly); what differs is which value owns
+// each callee-saved register inside the FIRST loop, and the four low frame
+// slots that follow from it:
+//   register   original (0x4aefe5..0x4af04d)     this file
+//   esi        i, the loop index                 i
+//   edi        the cursor, ptr1 + i*4            ptr1 AND the cursor (coalesced)
+//   ebx        ptr1's base, live across the loop the ptr2 - ptr1 stride
+//   ebp        the ptr2 - ptr1 stride           count, reloaded nowhere
+//   memory     count (reloaded from 0x44 at the latch, 0x4af043)
+// So the original spends four callee-saved registers on {i, cursor, ptr1,
+// stride} and squeezes `count` out to memory, and we spend them on
+// {i, ptr1+cursor, stride, count}. Because ptr1 and the cursor share one
+// register here, MSVC can fold the cursor's initialisation into the preheader
+// (`sub ebx, edi`, one instruction) instead of copying it (`mov ebp, eax /
+// mov edi, ebx / sub ebp, ebx`, three), and that is the whole 13-byte
+// difference. Two rank inversions have to be undone at once: the induction
+// variable must outrank ptr1 (so the cursor gets edi of its own and ptr1
+// keeps ebx), and the stride must outrank count (so count goes to memory).
+// New shapes tried this pass, all scored free with check.py --sym, none better
+// than the 882-byte 72.2 % body:
+//   - a named `char** p1` cursor with the increment in the body, in the for
+//     increment, and declared `register`, each with the test on `(*p1)[0]`:
+//     887 bytes, 68.7 to 69.0 % (MSVC gives the stride a cursor and keeps
+//     count in ebp).
+//   - both cursors `*p1++ / *p2++` with the test on `*p1`: 882 bytes, 72.2 %,
+//     byte identical (the two cursors fold back into ptr1 and ptr2).
+//   - `char* s = FUN_004b6af0(...)` with the test on `s[0]`: 892 bytes, 69.3 %
+//     (s has to survive the second call, so it gets a slot).
+//   - the backslash test moved above the `if (list2)` block: 889 bytes, 70.1 %.
+//   - `if (count > 0)` in front of the loop: 916 bytes, 47.9 % (flips the tie
+//     but the duplicate guard costs two blocks of instructions).
+//   - extra graph references to `count` that fold away in the final code, as a
+//     way to demote it to memory: `end = count; end--;`, `end = count;
+//     end -= 1;`, `for (i = 0; i <= count - 1; i++)`, `i != count`,
+//     `while (i < count)` with the increment in the body, and a second index
+//     variable for the join loop: all five give the byte identical 882-byte
+//     body, so at this size `count` has one rank and no spelling of it moves.
+//   - the first loop with its own index (`i1`) whose value is passed to both
+//     calls and used for both stores: 882 bytes, 72.2 %, byte identical.
+//   - `while (1) { if (i >= count) break; ... i++; }` on the first loop (the
+//     guide's item 9 form): 850 bytes, 55.6 %, the loop stops being a loop
+//     MSVC strength reduces; `do { ... } while (i < count)` after an `if`:
+//     882 bytes, 72.2 %, byte identical; `while (i++ < count)` with `i - 1`
+//     for every index use: 910 bytes, 66.1 %.
+// Conclusion for the next pass: the lever is not in the first loop's spelling.
+// It has to be a construct that adds a live node ABOVE `count` in the priority
+// order without emitting an instruction, or a loop form in which MSVC keeps
+// the induction variable out of ptr1's register. Two-column diff tool left in
+// build/scratch/0x4aefa0/cmp2.py (prints the original and our disassembly side
+// by side by address, marking every line that differs).
+//
 // deepseek-v4.1, sixth pass, still 72.2 % (882 of 895 bytes). New evidence on
 // which value the allocator keeps across the first loop: the original uses
 // ptr1 in ebx AFTER the loop at 0x4af07c (`lea esi,[ebx+4]`, the pass 1 cursor)

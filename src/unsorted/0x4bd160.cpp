@@ -17,6 +17,15 @@
 // copy plus the early buf store look like a front-end value copy for a store
 // that the next `mov eax, 0x14` makes dead, and no plain assignment, computed
 // zero or by-value helper body tested reproduces it.
+// deepseek-v4.1-flash new pass: a full tools/headers.py sweep of the 94.1%
+// `struct HapiBuf sb = {20};`-alone shape tried all 128 header sets and none
+// matches (best stays 94.1%), so the schedule is not a header tie. Also
+// dumped: every computed/dead-zero spelling tried this pass (`off = (int)(sb.buf
+// = 0)`, `sb.buf = (char*)(off = 0)`, `{20, 0}`, `*(__int64*)&sb = 0`, two
+// immediate member stores, `memset(&sb,0,8)`, by-value factory
+// `NullBuf().buf`, compound literal, self-assignments) lands at 92 to 98.3%
+// and never produces the original's `xor ecx,ecx / mov eax,ecx` pair with an
+// early buf store. The best file is unchanged at 98.3%.
 // #2572 retry (deepseek-v4.1-flash): confirmed the same 98.3% wall. The
 // literal-argument form hoists the buffer store but CSEs the zero into ebp
 // (93.8%); the member-read form keeps a fresh xor ecx,ecx but sinks both

@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 10 (deepseek-v4.1-flash): tried the GUI suffix loop again; back to 96.8%. Appending
+// `else break;` to the if inside the do-while (keeping `} while (more);`) DOES produce the
+// original tail exactly (`test eax,eax; je exit; inc ebx; mov esi,1; jmp head`, no duplicated
+// test), but the build is then 2171 bytes, 2 short, so every later jump displacement is off and
+// difflib drops the score to 94.4%; the units-loop hunks are unchanged, so the missing 2 bytes
+// are in the count load/compare shape there (ours loads field_1438f into ecx and uses `idiv ecx`
+// plus a near jle, the original uses two memory operands and a short jle). Fix that pair together
+// and the function should land. for(;;) and do-while(1) with break both re-emit the redundant
+// test or peel the first iteration (2230 bytes / 90.3%).
 // Pass 9 (deepseek-v4.1-flash): 96.8% (2173 bytes against 2173, sizes equal). The cursor swap
 // that held this at 91.4% is gone: the copy loop must be `*w++ = *s` (not `*w = *s; w++;`), so
 // MSVC emits `mov ecx,w; push s; add w,0x249; call` like the original and keeps the cursor in

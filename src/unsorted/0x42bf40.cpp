@@ -1,4 +1,30 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 10 (deepseek-v4.1-flash): 65.6%, ours 4716 against 4772. The object is now
+// byte-identical to the original from the prologue through 0x42c0ec except for one
+// 2-byte hunk: ours emits `mov al,[eax]` after `call Class_00438760::Class_00438760`
+// where the original schedules `push <none>; push 0x64` first and reads the member
+// back from the stack slot, `mov al,[esp+0x2b]` (4 bytes). Both express the same byte;
+// the EAX return value is simply consumed before the two next-call pushes.
+// The whole 4716/4772 gap is that first divergence plus the shared-zero register:
+// original `xor esi,esi` at 0x42c0f0 serves 83 `push esi` defaults, the two
+// `cmp eax,esi` tests and then the soundcategory loop counter (`inc esi` at 0x42cc93,
+// so sound's own init is redundant and elided); ours materialises the constant in ebx
+// and needs a SECOND `xor esi,esi` at the declaration site (both xors visible at
+// 0x1ae/0x1b6 in our object). Confirmed this pass, all byte-identical to 65.6%:
+//   - passing the live `sound` at the 67 FUN_004c46c0 + 8 FUN_004c4760 default sites
+//     (still `xor ebx,ebx` + `push ebx` plus a separate `xor esi,esi`);
+//   - `int sound;` at function scope with `sound = 0;` at the xor site and sound used
+//     at every default site (same two xors);
+//   - an `int def` variable for the defaults plus a separate `sound` for the loop:
+//     63.5% (4804 bytes, def pinned);
+//   - `Class_00438760* tp = (Class_00438760*)&Class_00438760(buf); unitdef[0x230] =
+//     tp->value;` and a block-scoped named `temp`: 65.6% but still 4716/4720 bytes and
+//     still `mov al,[eax]` / `[esp+...]`, still the ebx constant;
+//   - moving `int sound = 0;` down to the soundcategory block: 63.5% (4804 bytes).
+// So the ebx-vs-esi choice is not reachable from any source spelling of the zero tried
+// so far; the only remaining structural difference before the divergence is the 2-byte
+// scheduling hunk above, and the yard-map loop below (original reloads [ebp+0x14e] per
+// case with the cell index in eax, ours keeps the yard pointer in eax).
 // Pass 9 (deepseek-v4.1-flash): 65.6% (4716 against 4772), unchanged. One correction read off
 // the ctx listing: the Class_00438760 temp is byte-packed at [esp+0x23] and its member is at
 // +0, not +8: the original reads `mov al,[esp+0x2b]` only because the two pushes already moved

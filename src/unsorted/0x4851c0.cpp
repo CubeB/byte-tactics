@@ -1,4 +1,36 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+//
+// mimo-v2.6-pro retry pass (issue #4059), still 84.7%, 354 bytes. The one
+// remaining hunk is unchanged: the original keeps the x difference in ecx
+// (b.x loaded into ecx before the register pushes) and the abs/max/n chain in
+// esi, ours keeps the x difference in esi and the chain in ecx. This pass
+// ruled out the compiler-state theory far more thoroughly than before:
+// - the unused-declaration sweep, redone at step 1 for N = 0..399 and at spot
+//   values up to N = 3000, is bit-identical at every N (diff hash unchanged),
+//   in every placement tried (after the include, before the function, after
+//   the struct block) and with five unused prototype spellings up to 3000;
+//   unlike 0x47dfc0 and 0x41ce90, declarations here move no byte at all;
+// - tools/headers.py --cpp, all 768 sets (every C set crossed with none or
+//   one of <string>, <vector>, <map>, <list>, <iostream>): flat 84.7%;
+//   windows.h alone is 83.9% and flips the loop's [edx+ecx+0xfa] to
+//   [ecx+edx+0xfa]; windows.h plus any C++ header returns to 84.7%;
+// - defining each real neighbour above this function (0x485140, 0x485330,
+//   0x485070, 0x485010, 0x47dfc0) as the guide suggests: only 0x485140 moves
+//   anything (83.9%, same loop base/index flip as windows.h), the prologue
+//   tie is identical in every one;
+// - pack(2)/pack(4)/pack(8)/pack(16) on the struct block: codegen moves but
+//   only downwards (66.7% and 54.3%).
+// New source shapes scored here, all worse or flat: n read from b fields
+// after the in-place subtractions (64.5%), divisions done on b (55.9%),
+// no step struct at all (55.9%), three scalar difference locals used in the
+// loop (75.3%), the x difference as a local rebuilt into d (77.4%),
+// member operator-= (80.6%), a copy-returning helper (81.5%), labs (flat),
+// throwaway extra uses of dx/dy/dz around the copy (all fold away, flat),
+// interleaved per-field stores between the subtractions (75.3%), and T&
+// field references (81.5% all three, flat with only x or only y). The
+// prologue tie never moved in any of them, so the register swap is still
+// unexplained; the instruction stream is byte-identical from the `sub`
+// pair onward apart from the ecx/esi names.
 // Third pass (space-bunny-free), still 84.7%, and a new fact about the tie:
 // writing the x difference with the operands the other way round
 // (`b.x = a.x - b.x`) is the only rewrite found that makes MSVC hoist b.x's

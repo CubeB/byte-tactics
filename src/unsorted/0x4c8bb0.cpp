@@ -1,5 +1,11 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash pass (timeboxed 2026-10-01), body unchanged at 54.1%.
+// Second deepseek-v4.1-flash pass (timeboxed 2026-10-01): re-checked 54.1%
+// (1275 of 1279 bytes) and confirmed the two biggest structural deltas remain
+// the frame (ours 0x7d5c, original 0x7d60, one 4-byte scalar short) and the
+// guard null register (original keeps 0 in ebp, ours in edx because ebp holds
+// the third pointer argument). Both are upstream of the whole body, so no
+// local hunk edit repays them.
 // Measured the vK candidate the previous pass left unscored (free --sym):
 // currentVertex+nextVertex pointer locals in both edge loops plus a live
 // previous tail (index=previous; if(index<0) index=3): 49.1%, frame still

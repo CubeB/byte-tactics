@@ -157,6 +157,12 @@
 // single-loop splits were scored. Block-scoping `next` in loop 1 only, and in
 // loop 2 only, both collapse to the known 67.9% attractor (1094 bytes), so one
 // split loop is not enough and the two-group 0x10/0x14 crossing stands.
+// Fourteenth pass (deepseek-v4.1-flash, timeboxed 2026-10-01): two more levers
+// scored. Flipping both loop exits to `while(highIndex!=index)` regresses 87.3
+// to 87.0, so the exit polarity is not the ecx/edi tie-break. Hoisting `bottom`
+// (int bottom=target->height-1) above the min/max scan drives the frame to
+// 1098 bytes and 68.1%, so bottom's late def is load bearing. The 0x10/0x14
+// slot crossing stands at 87.3%.
 
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by gpt-6-luna. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by gpt-6-luna, finished by GPT-6.1-sol. Names are provisional.
 // Finds the highest field_4 among the active players of type 1 or 3, then
 // looks that player up by field_4 and sets bit 0 of its info flags. The
 // player lookup is inlined and its index search appears twice.
@@ -33,6 +33,12 @@
 //   all leave 10 as an immediate. Even extra uses of 10 inside the max loop
 //   do not enregister it, so the missing piece is probably something else
 //   in the original source that ties up the scratch registers differently.
+//
+// Follow-up refinement (GPT-6.1-sol, issue #2591):
+// - Rechecked this 19.9% version, tried the nested getter form (10.2%),
+//   restored the best, and tested windows.h plus swapping the max and player
+//   pointer declarations. The header and declaration-order variants stayed
+//   at 19.9%; no source change improved the register allocation. No MATCH.
 //
 // Notes from a third attempt (deepseek-v4.1-flash, #1332):
 // - Rebuilt the inlined lookup exactly like the matched 0x44fed0 helper

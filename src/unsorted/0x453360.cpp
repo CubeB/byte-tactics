@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Retry #2591 (GPT-6.1-sol): best remains 54.4% (371/380 bytes). Rechecked the
+// saved best and tested passing Game* into FindTarget and writing its result
+// through an output pointer; neither moved the register allocation. No MATCH.
 // PARTIAL (54.4% with the current check.py diff), best found. Sends a
 // chat/text message (type 5, up to 64 characters) to the players selected
 // by the game's chat mode at +0x2bf0. The whole control flow, every offset

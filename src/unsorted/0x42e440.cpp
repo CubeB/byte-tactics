@@ -40,8 +40,23 @@
 // expression (then `w->minbarrelangle = mba;`) forces the original's fstp sink into the
 // next FUN_004c46c0("firestarter",0) argument setup, 84.3 -> 84.4 (first hunk gone);
 // the mba store folds away, only the schedule changes.
-// Still differs: (1) the search count byte lives at [esp+0x14] here, [esp+0x10] in the
-// original; (2) four bitfield assignments schedule `push 0`,
+// deepseek-v4.1-flash timebox retry (issue #3908): re-confirmed 84.7% / 3924 bytes,
+// 10 hunks, no source change kept. New observation on the +1 byte: all three late
+// jump-displacement hunks point into the 0x42f2f8-0x42f340 range, so the single extra
+// byte sits before that range, and the one place in the diff where our code is one
+// byte bigger than the original is the end of the inlined insert, where the original
+// folds the value offset into the index lea (lea esi,[ebx+ecx*8+4] then mov [esi],edx)
+// while we form a plain element pointer and store through it (lea esi,[edi+ecx*8] then
+// mov [esi+4],edx). The lower_bound re-entry is byte-neutral in total: our `inc edi`
+// plus [edi+4]/[edi+8] reads are numerically the original's [eax+5]/[eax+9] off
+// w->sub, and the unsigned `shr ebx,1` is 3 bytes cheaper than the original's signed
+// cdq/sub/sar divide, which the loop-back copy (mov edx,[esp+0x14];
+// mov [esp+0x10],edx) gives back.
+// Still differs: the five bitfield-arm hunks (push 0 / or destination rotation), the
+// +1 by reading above, and the 240-line inlined vector-insert region.
+// Earlier note kept for reference (the count slot it mentions has since moved to
+// [esp+0x10], see the #3820 block above): (1) the search count byte lived at [esp+0x14]
+// where the original has [esp+0x10]; (2) four bitfield assignments schedule `push 0`,
 // the `or` and the store one slot differently; (3) the fstp of minbarrelangle is sunk
 // into the next call's argument pushes in the original, not here; (4) the inlined
 // vector insert swaps esi/edi (ours first=edi last=esi, original first=esi last=ebx,

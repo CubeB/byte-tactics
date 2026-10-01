@@ -30,6 +30,22 @@
 // register-allocation regions (@@-717, @@-1153) where the original folds
 // g_game+0x141fb into edi, keeps param_1 in ebx and picks esi/edi the other
 // way round in the unit loops.
+// deepseek-v4.1-flash retry 13 (10 min timebox, no gain, reverted): the
+// original's `lea edi,[edx+0x141fb]` in the 0x4696xx region really is a base
+// pointer for the first insert loop: retargeting the existing iVar8 to
+// `(int)g_game + 0x141fb` (no new slot, so the frame is unchanged) reproduces
+// the original's `[edi+0x54]/[edi+0x50]/[edi]/[edi+4]/[edi+8]` displacements
+// exactly, just with ebx instead of edi (msvc picks the register: ours has
+// param_1's ebx free there while the original keeps param_1 live in it), and
+// the displaced ebp then becomes a zero register (`mov [edx+ecx*2-2],bp` where
+// the original stores an immediate 0). 60.2 percent, 5849 bytes (closer to
+// 5904) but with the same 28 hunks: the gain in the first insert loop is more
+// than lost at @@-928, where the original goes back to g_game-based
+// `[ebx+0x142xx]` access in the 0x4698xx pixel scan. Splitting the spelling
+// (base pointer in the first loop only, g_game for the rest) gives the same
+// 60.2 at 5986 bytes, so the two spellings must be reconciled with the
+// param_1-in-ebx live range instead, which the notes above already identify as
+// the real blocker.
 // deepseek-v4.1-flash retry 11 (10 min timebox): re-confirmed 57.4 percent /
 // 5977 bytes. All cheap named levers were re-checked against the notes below
 // and are already tried or byte-neutral (the `add eax,esi` clamp operand order

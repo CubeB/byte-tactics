@@ -84,6 +84,12 @@
 
 extern unsigned int DAT_0051fc88;
 
+// claude-opus-5-5 (#4406): still 95.0%. `q * 0x7fffffff` alone reproduces the
+// original's neg / shl 31 / sub correction exactly, but every spelling without
+// the second `seed / 127773` (separate correction statement, signed q, int seed,
+// 16807 * seed order, an `old` copy) compiles 16807 as one imul and keeps seed
+// in ecx (83 bytes, 33.8%). Only the duplicated division keeps seed in esi with
+// the lea chain. A 10-minute permuter run (558 candidates) found nothing.
 // FUNCTION: 0x4b6c30
 int __stdcall FUN_004b6c30(int range)
 {

@@ -1,5 +1,37 @@
 // Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 87.4% (311 of 311 bytes; every instruction is in place).
+// deepseek-v4.1-flash (#3301 retry, 2026-10-01): still 87.4%, 311/311. New
+// evidence on the residual: the original's pair copy is MSVC's reverse-order
+// memberwise class copy (byte first: `mov cl,[src+4]; mov edx,[src];
+// mov [dst],edx; mov [dst+4],cl`). That is also the code MSVC 5 emits for a
+// class copy after an out-of-line copy-ctor call, for field-by-field stores
+// into a fresh local, and for a two-arg construction whose source is opaque
+// (a pointer deref, e.g. `return A(p->x, p->y)`); the two-arg ctor inlined
+// from a known local (the real <map> source here) always comes out in
+// forward order (dword first, ecx/dl). So the original's ctor arguments are
+// evaluated right-to-left (byte live range starts first: it takes cl, and the
+// dword then has to take edx), which MSVC 5 only does for a real call, never
+// for the inlined member-init list. Every source form found so far that
+// produces the reverse-order copy adds an 8-byte local and grows the frame
+// from 0x10 to 0x18. Tried this round, all 87.4% or worse: a 40-combination
+// sweep of return form x ctor parameter form x bool/unsigned char; pointer
+// parameters; a second layout-identical pair type for the tree's result with
+// a converting ctor; pair derived from the iterator; out-of-line two-arg and
+// copy-ctor definitions; const-reference and direct-init locals; explicit
+// member locals in both orders; static_cast/reinterpret_cast returns; helper
+// inline functions; 1..31 dummy types or globals before the function;
+// headers.py --cpp (768 header sets, best 87.4%). Best lead for the next
+// attempt: force a reverse-order class copy from _Ans (E-8) to the return
+// slot without a second 8-byte local; the false exit (`mov cl,[E-4];
+// mov edx,[E-8]`) and the true exits (`mov edx,[eax]; mov cl,1`) both need
+// that same right-to-left lowering. A minimal model shows the choice is made
+// by the surrounding IR, not by the copy: an out-of-line writer that takes
+// the destination as a pointer argument (`void f(P* out, ...); P t;
+// f(&t, x); return P(t.f, t.s);`) gives exactly edx/cl, while the same writer
+// as a member call with `this` = destination (`t.fill(It(x), false); return
+// t;`) gives ecx/dl with a byte-identical copy sequence. The original's ctor
+// call is a member call (this = E-8, two stack args, ret 8), so this file's
+// ecx/dl follows from that; what made the original pick edx/cl is still open.
 // deepseek-v4.1-flash (#3118 retry): still 87.4%, 311/311. Re-tried the pair
 // return as: ctor body assignment, second as int, first/second by value one at
 // a time, init-list order swapped, a redundant iterator self-assignment

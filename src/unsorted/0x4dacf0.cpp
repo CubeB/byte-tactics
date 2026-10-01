@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (sixth run, 10-minute box): 55.6% (777 bytes) unchanged.
+// Tested: hoisting `unsigned int wraps = 0;` next to `unsigned int size = n;` to
+// reproduce the original's early `mov dword ptr [esp+0x24], 0` dropped the score to
+// 42.5 (frame/slot shuffle), reverted. Still differs at the top: original keeps
+// need in EBX (spilled 0x2c) and want in EBP (spilled 0x10) with the zero spilled
+// at 0x24; ours ranks them differently and reloads from different slots.
 // Started by space-bunny-free, continued by deepseek-v4.1-flash and GPT-6; deepseek-v4.1 retry.
 // deepseek-v4.1-flash retry 3 (best 55.6, unchanged, 5 check.py runs): no source shape tried
 // this pass removes the `xor ebp,ebp` zero register, so the ebp lock-out is confirmed to come from

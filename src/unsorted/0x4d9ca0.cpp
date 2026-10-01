@@ -1,4 +1,17 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (sixth run, 10-minute box): 79.2% (643 bytes), up from 78.2.
+// One lever gained the point: move `unsigned int len = 0xa44c;` to be the FIRST
+// local, before `char* p = buf;`. Hoisting `q = pc;` and `int* s = stack;` to
+// function scope (to kill `this` early) dropped to 75.1 (626 bytes), reverted:
+// the rematerialised member leas reshuffle the whole tail.
+// Still differs: original spills this to prologue slot 0x20, keeps count in ESI
+// (tested at the top, no reload at the loop) and i in EBP, with len at [esp+0x10]
+// and pc at [esp+0x24] (frame 0x18). Ours keeps this=ESI for the whole function,
+// len in EBP only until its first post-call spill (frame 0x14), reloads count
+// from [esp+0x1c] at the loop and never spills pc (phase 2 reloads [esi+0x2080]).
+// Also probed this run, all worse or byte-flat: `q = pc;` alone at function scope
+// 75.0, `int i = 0;` first 78.2, `const int n = count;` first 76.5, `int m = copied;`
+// first 78.2, and `if (n > 0)` for the outer test byte-flat at 79.2 (kept).
 // deepseek-v4.1-flash (fifth run): 78.2% (634 bytes), up from 70.6%. The whole gain came
 // from one theme: make a value's live range START EARLIER, before the call it must
 // survive, and let MSVC hoist the load into the prologue. Three edits, each measured:
@@ -155,13 +168,13 @@ public:
 // FUNCTION: 0x4d9ca0
 void Class_004d9ca0::FUN_004d9ca0()
 {
+    unsigned int len = 0xa44c;
     char* p = buf;
     int i = 0;
     int m = copied;
     const int n = count;
-    unsigned int len = 0xa44c;
 
-    if (count > 0) {
+    if (n > 0) {
         sprintf(p, "Call stack:\n");
         len -= strlen(p);
         p += strlen(p);

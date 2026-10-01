@@ -21,6 +21,10 @@
 // looks like an allocator tie in the original's exact <vector> instantiation.
 // Allocator construction stays out of line, vector destruction calls
 // FUN_00432c20, and shifting/filling calls FUN_00432cb0/FUN_00432c80.
+// deepseek-v4.1-flash retry: swapping the declaration order of the search count and
+// index, and splitting `count = w->id;` from its declaration, are both byte-identical
+// (3918 bytes, 84.3%), so the count slot and the push-0/or/store scheduling of the
+// five bitfield arms are allocator-bound stays, not source shape.
 // construct does not use an allocator receiver in the original, so its
 // declaration uses the equivalent two-argument stdcall ABI.
 

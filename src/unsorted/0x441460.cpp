@@ -44,6 +44,14 @@
 //     (82.5%): it puts ebx on the right value but demotes a neighbour.
 //
 // Things tried here that did NOT work, so nobody repeats them:
+//   * spelling the provider chain with explicit `goto conn;`/`goto upd;` labels
+//     placed after chain B, so the CFG matches the original's block layout
+//     exactly (two conditional jumps into one shared `msg = "Updating..."`
+//     load, three into one `msg = "Connecting..."` load): 77.8%, 1771 bytes.
+//     VC5 dropped BOTH sbb pair / count stores in that shape and re-inlined one
+//     Updating load anyway, so the shared-tail loads are not recoverable from
+//     statement order; the 83.7% goto shape above keeps chain A's sbb pair
+//     only in chain B (chain A's dead store is still dropped).
 //   * a dword/short UNION of the settings struct: 73.7% (frame grows by one dword,
 //     so every SETBUF read is 4 bytes out).
 //   * a named `Settings* sb = (Settings*)(buf + 0x119);` local instead of the macro:

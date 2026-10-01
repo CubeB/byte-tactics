@@ -1,4 +1,20 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry (issue #4060, 60 min box): base re-verified at 74.1%
+// (1024 of 1034 bytes). Confirmed the residue is one register-allocation
+// coin-flip, not compiler state: the original keeps g_game in EBP and the
+// scaled index (playerIndex*24) in EBX (spilled to [esp+0x10]), while this
+// file keeps the scaled index in EBP and spills g_game to [esp+0x1c]. Every
+// variant this pass scored <= base: g_game-only body 44.1, cached me/players
+// pointer 54.4, named int off=playerIndex*24 + me pointer 35.6, member-address
+// int* ctl for the controller 37.2, register Game* game (no-op) 74.1, free
+// colour written inline instead of the inlined helper 74.1. Compiler-state
+// hammer (N unused extern decls, N=3..300) is byte-identical at 74.1 for every
+// N, so the allocation is fixed by the source shape. The prior notes on the
+// g_game/game spelling mix (local optimum) still hold: single-spelling swaps
+// all regress. Likely natural construct still untried: a shape that forces
+// MSVC to rematerialise the scaled index at the final colour store (splitting
+// its live range) so g_game wins EBP, e.g. deriving players[playerIndex] only
+// where needed rather than one kept scaled temp.
 // STATUS (deepseek-v4.1-flash, issue #3686): best is 74.1% (1024 of 1034 bytes), no MATCH.
 // What still differs (whole-thing register allocation, not structure): the original
 // keeps g_game in EBP for the switch plus the duplicate-colour block and the scaled

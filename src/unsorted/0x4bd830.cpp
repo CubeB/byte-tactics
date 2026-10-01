@@ -1,115 +1,37 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
-// Session 12 (deepseek-v4.1-flash, 10-minute box): two probes on the 61.9 file,
-// flat/worse: hoisting the subtracted term (`int dst90 = *(int*)(base + 8) * 90;`
-// then `cb((unsigned)(*dataptr * 90 - dst90) / extra + 5);`, and the same with
-// both terms in temps) is byte-identical at 61.9 / 1334. BIG finding for the
-// next session: the original's nblocks IS SIGNED. Its `and edx,0xffff; add
-// eax,edx; sar eax,0x10` is exactly MSVC `int / 65536` with truncation
-// correction and its `cdq; xor; sub; and 0xffff; xor` plus `neg/sbb/neg` is
-// `int % 65536 != 0`, so the source was `int blocks = size / 65536 + (size %
-// 65536 != 0);` with a signed size/blocks. Making nblocks(int) on the unsigned
-// `size` (no conversion costs, signed idioms emitted, the block starts to line
-// up) scores 61.7 / 1353 (+19 bytes): the signed code is longer and the ebx/ebp
-// mirror it lands in does not absorb it, so the signed spelling only pays off
-// together with the register-mirror fix. Keep unsigned nblocks until that
-// mirror is solved.
-// Session 7 (deepseek-v4.1-flash): renaming clen (name-hash slot theory) is
-// byte-flat at 61.9, so the stack-slot colour is not name-keyed either; the
-// layout is decided by something internal to the allocator, not by
-// declaration order, not by identifier spelling, not by use order in the
-// source. Timebox fired; this remains the best scored version.
-// Session 6 (deepseek-v4.1-flash): best remains 61.9 percent (this file).
-// What still differs: the stack-slot map is a permutation (original nameoff
-// +0x20, i +0x34, recarr +0x3c, dataptr +0x10; ours nameoff +0x28, i +0x38),
-// so base sits in ebx and the entry pointer in ebp here (mirror image of the
-// original) and every slot offset in the entry loop drifts. Probed this
-// session (all scored with --sym): dropping the count local and inlining
-// *(unsigned*)(base + off) in the guard AND latch = 54.8; count in the guard
-// with the inline deref only in the latch = 54.8 (byte-identical to the
-// previous), so the inline latch deref itself is the -7 point lever and the
-// count local is load-bearing for the 61.9 shape. Declaration order of the 13
-// scalar locals is byte-flat (reverse order 61.9, loop-vars-first 61.9), so
-// declaration order is NOT a slot-colouring lever in MSVC 5.0. The original
-// latch stores nameoff (+0x20) before i (+0x34) and then compares i against
-// the inline memory compare cmp eax,[edx+ebp] with off reloaded from the arg
-// slot, and the callback computes both *90 terms as lea *5 / lea *9 / shl 1
-// with *(int*)(base + 8) as the subtracted term (confirmed at 0x4bdce9).
-// Session 5 (deepseek-v4.1-flash): probes on top of 61.9: explicit
-// `((base + nameoff) + *recoff)` parens (flat) and `int ro = *recoff;` before
-// the entry address (flat), so the folded recoff deref is not an association
-// or temp lever, and the rewrite `if (size > 0) do {...} while (size != 0)`
-// with signed xor counters is byte-flat, so the file now keeps that shape.
-// Best remains 61.9 percent, 1334 bytes; still open: base in
-// ebp / entry pointer in ebx (mirror image) and the slot map permutation.
-// Session 4 (deepseek-v4.1-flash), current best 61.9 percent (1334 vs 1332 bytes):
-// flipping the entry test to `if ((e->flags & 1) != 0) { recursive } else { leaf }`
-// puts the recursive call in the fall-through and the leaf at the jump target,
-// matching the original's `test byte [x+8],1 / je leaf` at 0x4bd93c: 56.4 -> 61.9.
-// On top of that, dropping the count local and writing the guard and latch as
-// `i < *(unsigned*)(base + off)` drops to 54.8, and keeping the count local with
-// `i = 0; if (i < count)` is byte-flat 61.9, so the latch count deref is not a
-// standalone lever. Remaining diff: base lives in ebx and the entry pointer in
-// ebp (original: base ebp, entry pointer ebx, the mirror image), and the scalar
-// slot map is still a permutation (ours nameoff +0x28, i +0x38, count +0x40).
-// NOTE from the second session (timebox fired): still 56.4% best (this file);
-// a count-inline-only variant (build/scratch/0x4bd830/v1.cpp) printed 51.9%,
-// so removing the count local alone is NOT the fix and is worse. /Fa listing of
-// this file shows the whole slot map is a permutation, not just nameoff/i:
-// ours: clen +0x10, pos +0x14, data +0x18, remaining +0x1c, dataptr +0x20,
-// tp +0x24, nameoff +0x28, n +0x2c, file +0x30, table +0x34, i +0x38,
-// packlen +0x3c, count +0x40; original: dataptr +0x10, remain +0x14,
-// databuf +0x18, tp +0x1c, nameoff +0x20, table +0x24, clen +0x28,
-// file +0x2c, n +0x30, i +0x34, pos +0x38, recarr +0x3c, packlen +0x40.
-// recoff/size/blocks/pack/chunk/j take no slots at all here (registers or
-// rematerialised). Tried this session: count as inline deref in the if and the
-// latch only (v1, 51.9%, slots unchanged: nameoff +0x28, i +0x38). Not tried
-// before the timebox: declaring each scalar at its point of use to reshuffle
-// the allocator's processing order, and forcing recarr to be a real slot.
-// Partial, 56.4% (best actually printed by check.py; this file is that best
-// version, kept as is because the rewrite below was never scored when the
-// timebox fired). What still differs: stack-slot assignment in the entry loop
-// (original nameoff +0x20, i +0x34, recarr +0x3c; ours nameoff +0x28,
-// i +0x38) and the register choices that follow from it (base in ebp, entry
-// pointer in ebx in the original).
-// This session's disassembly analysis (not yet compiled): the loop latch at
-// 0x4bdd33 re-derefs the count inline (cmp eax,[edx+ebp] with off reloaded
-// from the arg slot), so count must NOT be a local; the precheck at 0x4bd8bc
-// compares i against the count before nameoff/recarr stores (they are
-// initialised inside the guard: if (i < *(unsigned*)(base+off)) { nameoff=0;
-// recarr=base+off+4; do {...} while (i < *(unsigned*)(base+off)); } with
-// nameoff+=9; i++ as the last body statements in that order). The entry
-// flags test at 0x4bd93c is test byte [ebx+8],1 / je leaf, i.e. the TRUE
-// branch (e->flags & 1) is the recursive call laid out inline first and the
-// leaf is the jump target, opposite of the branch order in this file. The
-// uncompressed size loop precheck is test/jbe (unsigned > 0) while its latch
-// is sub/jne, so likely while (size > 0) with unsigned size. An untested
-// rewrite with all of these lives at build/scratch/0x4bd830/variant.cpp;
-// it also makes clen and the xor loops signed (jl/jle in the original) and
-// declares the 13 scalar slots in the order dataptr, remain, databuf, tp,
-// nameoff, table, clen, file, n, i, pos, recarr, packlen. Slot map recovered
-// from the original (frame slots at esp+0x10..+0x40): +0x10 dataptr,
-// +0x14 remain, +0x18 databuf, +0x1c tp, +0x20 nameoff, +0x24 table base,
-// +0x28 clen, +0x2c file, +0x30 n, +0x34 i, +0x38 pos, +0x3c recarr,
-// +0x40 packlen (the +0x24 "unused" dword is in fact table, read at 0x4bdb62).
-// Older notes follow.
-// Partial, 56.4%. Frame size and the name/full/buffer offsets now match the
-// original (0x123c, esp+0x44/0x148/0x24c). What still differs is stack-slot
-// coloring and register allocation in the entry loop: the original keeps
-// nameoff at +0x20 and i at +0x34 and recoff as a real slot +0x3c, while MSVC
-// here colors nameoff to +0x28 and i to +0x38 and rematerialises *recoff as
-// *(base+off+4); consequently base lands in ebx (original ebp) and the entry
-// pointer in ebp (original ebx), and all downstream register choices follow.
-// Tried: branch order (fixed, see below), for-loop with an inline count deref
-// (exact 1332-byte size but 51.8%, shifts the frame to 0x1238), count as a
-// local with do-while (best 56.4%), assignment order i/nameoff/recoff swapped
-// (no change). The entry loop has nameoff += 9 and i++ in the latch, the
-// count is the inline deref *(unsigned*)(base + off).
-// Body structure (path strcpy/strcat, entry loop, uncompressed 0x1000 chunk
-// copy, compressed block table with FUN_004d1820, table re-obfuscation,
-// fclose/free, progress callback) matches. nblocks(size) inline and the entry
-// pointer reused as `long* dataptr` are in place. The flags test puts the
-// compressed path first (if (flags) { compressed } else { uncompressed }),
-// which is what made the original fall through into compression.
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Session 13b (mimo-v2.6-pro): best is now 66.7 percent (this file, 1353 bytes).
+// Session 13b change that won 2 points: the table-obfuscation position is a
+// separate local pos2 (declared beside pos). MSVC coalesces pos and pos2 into
+// one slot (+0x24) and the frame-slot map then lands several entries on the
+// original's offsets (nameoff +0x20, n +0x30, i +0x34, packlen +0x40 agree).
+// Also verified from the original's slots: table (+0x24) and the second
+// obfuscation position share a slot, and the third (uncompressed path)
+// position never gets a slot at all (the ftell result stays in eax).
+// What still differs and what I tried in this session:
+// (1) The base/entry register mirror is still wrong (base ebx and entry ebp
+// here, base ebp and entry ebx in the original), and with it the loop head:
+// the original loads nameoff and recarr from slots and computes
+// e = (base + nameoff) + *recarr in ebx, while this file rematerializes
+// *recoff as a folded [off + base + 4] load into ebp. recarr is a real slot
+// local (+0x3c) in the original; our recoff never gets a slot.
+// (2) The obfuscation loops: the original keeps key in the byte register its
+// test used (al in the pack loop, dl in the table and buffer loops) and the
+// accumulator takes the other byte register, folding the buffer read as a
+// memory xor operand; this file reloads key each iteration and uses al as a
+// rolling scratch. Root cause seen in the listing: our loop bound clen is
+// reloaded into eax every iteration (clobbering al), while the original holds
+// clen in ebp across the loop. The buffer loop in the original even keeps the
+// ftell result in eax across the loop (pos read as al). Tried dropping the
+// count local and inlining the loop condition (57.7 percent, the frame
+// shrinks to 0x1238 because recoff stays rematerialized), and declaring the
+// three positions as scoped locals at their point of use (still 66.7).
+// (3) nblocks: all three spellings of w / 65536 + (w % 65536 != 0) compile
+// identically out of line (the mod part into esi first, as in the original),
+// so the interleaved div-first order in this file is inline register pressure
+// (size sits in ebp here, ecx in the original), not the operand order.
+// (4) The callback still interleaves both *90 chains; the original computes
+// the subtracted *(int*)(base + 8) * 90 term fully into ecx first, then
+// *dataptr * 90 into eax, then sub eax, ecx.
 #include <stdio.h>
 #include <string.h>
 #include <io.h>
@@ -154,7 +76,7 @@ struct Entry_004bd830 {
 
 File_004bd830* __stdcall FUN_004bb2e0(char* filename, const char* mode);
 int __stdcall FUN_004bb7c0(File_004bd830* file, unsigned char* buf, int size);
-int __stdcall FUN_004d1820(void* chunk, unsigned int* chunkSize, char* data,
+int __stdcall FUN_004d1820(void* chunk, int* chunkSize, char* data,
                            int size, int method, int encrypt);
 unsigned int __stdcall FUN_004d1aa0(unsigned int value, int mode);
 void* __cdecl FUN_004d83b0(char* name, unsigned int size);
@@ -164,7 +86,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                             int key, int flags);
 
 // Whole 64K blocks of a byte size, rounded up.
-static inline int nblocks(unsigned w)
+static inline int nblocks(int w)
 {
     return w / 65536 + (w % 65536 != 0);
 }
@@ -183,11 +105,12 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
     int* tp;
     int nameoff;
     int* table;
-    unsigned clen;
+    int clen;
     File_004bd830* file;
     int n;
     unsigned i;
     long pos;
+    long pos2;
     int* recoff;
     unsigned packlen;
 
@@ -211,13 +134,12 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                 dataptr = (long*)(base + e->offset);
                 *dataptr = ftell(f);
                 unsigned size;
-                if (file->shared == 0) {
-                    if (file->fp == 0)
-                        size = 0;
-                    else
-                        size = _filelength(_fileno(file->fp));
-                } else {
+                if (file->shared != 0) {
                     size = file->info->size;
+                } else if (file->fp != 0) {
+                    size = _filelength(_fileno(file->fp));
+                } else {
+                    size = 0;
                 }
                 *(unsigned*)(dataptr + 1) = size;
                 *((char*)dataptr + 8) = (char)flags;
@@ -233,7 +155,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     tp = table;
                     if (blocks > 0) {
                         do {
-                            unsigned chunk = remaining < 0x10000 ? remaining : 0x10000;
+                            int chunk = remaining >= 0x10000 ? 0x10000 : remaining;
                             FUN_004bb7c0(file, data, chunk);
                             clen = packlen;
                             FUN_004d1820(pack, &clen, (char*)data, chunk, flags & 0xff, 1);
@@ -251,10 +173,10 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                         } while (n != 0);
                     }
                     fseek(f, *dataptr, 0);
-                    pos = ftell(f);
+                    pos2 = ftell(f);
                     if ((char)key != 0) {
                         for (int j = 0; j < (int)(blocks * 4); j++)
-                            ((unsigned char*)table)[j] = (unsigned char)~((char)pos
+                            ((unsigned char*)table)[j] = (unsigned char)~((char)pos2
                                 + (char)j ^ (char)key ^ ((unsigned char*)table)[j]);
                     }
                     fwrite(table, blocks, 4, f);
@@ -264,7 +186,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     FUN_004d85a0(data);
 } else {
                     if (size > 0) do {
-                        unsigned chunk = size < 0x1000 ? size : 0x1000;
+                        int chunk = size >= 0x1000 ? 0x1000 : size;
                         FUN_004bb7c0(file, buffer, chunk);
                         pos = ftell(f);
                         if ((char)key != 0) {
@@ -276,14 +198,14 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                         size -= chunk;
                     } while (size != 0);
 }
-                if (file->shared == 0) {
-                    fclose(file->fp);
-                } else {
+                if (file->shared != 0) {
                     file->shared->count--;
                     if (file->shared->count == 0 && file->shared->unknown_10 == 0) {
                         fclose(file->shared->fp);
                         file->shared->fp = 0;
                     }
+                } else {
+                    fclose(file->fp);
                 }
                 if (file->buffer != 0)
                     FUN_004d85a0(file->buffer);

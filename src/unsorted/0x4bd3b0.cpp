@@ -1,4 +1,41 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro session (60-minute box): best unchanged at 89.5 percent,
+// this file. One leaf probe DID reproduce the tail exactly (scratch t3, 89.0
+// percent / 1146 bytes): `*(unsigned int*)(node + 4) = fd.size; ... zeros ...
+// *total += *(unsigned int*)(node + 4);` (reading the size BACK for the +=)
+// forces MSVC to keep the addend with `mov ecx, eax` and the RMW
+// `add [eax], ecx` instead of rematerialising [esp+0x34], and the node stores
+// land in the original order (size first). It scores below 89.5 only because
+// block 2 is then 2 bytes short (`add eax, edx` vs the original
+// `lea eax, [ecx + edx]`); the two effects are traded for each other.
+// Micro-probes with MSVC5 (build/scratch/0x4bd3b0/probe2): every spelling of
+// `entries + count*9` (six tree shapes, register and memory operands) collapses
+// to `lea edx,[entries+count*8]; add count,edx`; the original's
+// `lea eax,[ecx+edx]` form only appears when the dying register is the
+// entries copy (the load/copy direction problem at the top too). The SIB
+// direction of `base + root` is not spelling-driven: five spellings of
+// `*(ptr + off)` all give the same byte in isolation, so it is a register
+// allocation tie like the guide says for 0x4bc370. A chained
+// `root = nsize = out[0]` DOES move the root spill to the original's late
+// slot (just before the call) but merges root and nsize into one register and
+// drops the copy (scratch t4, 82.1 percent). Entry pointer tree reorder
+// (`entries + (char*)out[1] + ent` and `entries + ent + (char*)out[1]` per
+// site, matching the original's per-branch add orders) is byte-flat (t5).
+// The name block's out[0] store does not move after the pushes when written
+// as a call-argument assignment (t1, flat).
+// What still differs vs the original (register allocation / scheduling):
+//  - prologue and second block: original loads out[0] into eax and copies to
+//    esi (`mov eax,[ebp]; mov esi,eax`), ours loads into esi and copies to
+//    eax; the root spill goes late with a copy-shaped def but the copy is the
+//    thing every spelling tested so far coalesces away.
+//  - block 2's `lea eax,[ecx+edx]` (ours: `add eax,edx`) and its 2-byte size
+//    deficit, which is exactly what the t3 leaf spelling needs.
+//  - SIB direction [esi+ebx]/[eax+ebx] vs [ebx+esi]/[ebx+eax] at the three
+//    base+root sites, and the entry data stores ([ecx+eax+4] vs add+store).
+//  - name allocator: original `add ecx,ebx; push ecx` + late `mov [ebp],ecx`,
+//    ours `lea eax,[ecx+ebx]` + early store (nlen+=nameOff and friends all
+//    give the same lea, per earlier sessions).
+//
 // Session 12 (deepseek-v4.1-flash, 10-minute box): one probe, byte-identical
 // to the 89.5 file: `unsigned int nsize = out[0]; root = out[0]; nsize += 8;
 // out[0] = nsize;` emits exactly the v0 sequence (diff of the check outputs is

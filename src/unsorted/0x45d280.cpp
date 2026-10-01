@@ -86,6 +86,15 @@
 // where the original loads fild first; the final tail index wants
 // `lea eax,[edi*8]` where ours emits `mov eax,edi / shl eax,3`; the TRACKMODE
 // `field_37f16 == 3` test uses cl/eax where the original uses al/ecx.
+// deepseek-v4.1-flash retry 6: scored the unscored varD shape the retry-2 note
+// left as "next step": DAT_00512f46 as `int`, fused flip `f ^ ((f ^ DAT) & 1)`
+// and the if-test cast back to `(unsigned char)DAT_00512f46`. Confirms the
+// note: it keeps the target byte-width xor but the if-test cast reshuffles the
+// block, 86.5% / 1330 bytes. So that family is a dead end; the block needs the
+// EBP=entries pin on the UNDO path (the original sets ebp=entries at 0x45d28b
+// and still has it at 0x45d611/0x45d777, so f is forced to EAX), while our
+// compile frees EBP there because the tail use is not on the UNDO/goto apply
+// path. Kept the 91.5% file.
 // Rerun by space-bunny-free: the UNDO flip is an MSVC5 WIDTH-choice problem,
 // and the two halves of it pull in opposite directions, so no spelling gets
 // both. Target is a BYTE-width xor of f's low byte with DAT followed by a

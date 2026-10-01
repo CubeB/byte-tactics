@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// PROBE (deepseek-v4.1-flash, issue 4066, best 33.7%, no change): VC5
+// rejects `if (param_1->holder != flag)` (C2446, pointer vs int), the
+// casted `(Holder_004a1b40*)flag` compare scores 33.6, and swapping the
+// `int t;` / `int flag = 0;` declaration order is byte-identical at
+// 33.7 / 2102 bytes. Still differs: frame 0xb8 vs 0xbc (one long-lived
+// 4-byte local missing), every body slot +4, param_1 homed in esi vs the
+// original ebp with the zero in ebx.
 //
 // PROBE (deepseek-v4.1-flash, issue 3929, best 33.7%, no change): re-measured
 // the prologue against the original. Ours now does `sub esp,0xb8` (original

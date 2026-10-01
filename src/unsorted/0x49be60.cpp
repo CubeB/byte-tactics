@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// PROBE (deepseek-v4.1-flash, issue 4066, best 43.3%, no change): the
+// if/else visible shape (exactly 2272 bytes) with `unsigned int color1;`
+// hoisted above `int time` is byte-identical to that 43.1 form, so the
+// visible-spill shape (2292 bytes) stays best. Still differs: low-block
+// slots +4 (first spill [esp+0x24] vs the original [esp+0x20]), frame
+// 0x64 vs 0x68, and p/pos in ebp/esi swapped against the original esi/ebp.
+// rect[5] (2312 bytes) regresses to 38.5.
 //
 // PROBE (deepseek-v4.1-flash, issue 3929, best 43.3%, no change): hoisting
 // `int visible;` from the loop body to function scope (declared right after

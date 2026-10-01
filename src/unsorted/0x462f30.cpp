@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 8 (deepseek-v4.1-flash, #3767): re-measured 43.3% (1578 vs 1653 bytes), no edit
+// kept. New datum: in the original's tail pair the two words are read as `[esi+4]`/`[esi+8]`
+// and the second load is into ESI itself (`mov esi, [esi+8]`) immediately before the
+// loop-continuation `mov ecx, edx; mov esi, eax; jmp 0x46354f`, so there the entry pointer
+// is ESI-resident and only the +4/+8 base is used (a register-carried walk), where ours
+// re-reads both words from the frame base (`mov ecx, [ebp+0x2c]` / `[ebp+0x30]`). That
+// region is one web with the walk pointer, so the tail fix is not a separate store.
+//
 // Pass 7 (deepseek-v4.1-flash, #3729): re-measured 43.3% (1578 vs 1653 bytes). Moving
 // `entry = 0;` from the declaration down to after `e = entries;`, or down to the
 // `e->field_0 == -1` test inside the loop, and declaring `i` last (after `t`), are all

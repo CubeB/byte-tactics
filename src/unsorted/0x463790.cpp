@@ -1,4 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 8 (deepseek-v4.1-flash, #3767): re-measured and restored this 74.2% / 1029-byte
+// build after testing more shapes. Declaring `remaining` first (either in place of, or
+// in the loop header's for-init, of `n`) is byte-neutral while `char* p = text + 4;`
+// stays last; moving `p` earlier (before `n`/`remaining`, any order) collapses the whole
+// scan loop to 1018 bytes / 71.9%; `unsigned n` regresses to 73.8 (1028); the pop index
+// re-spelled as a named `int index = r->n;` local (test/decrement/store on it) and
+// `n = 0;` assigned after a bare `int n;` are byte-identical. So the missing 11 bytes
+// (the 4-byte `mov [esp+0x2c], esi` x-spill plus the EDI/EBP spill pair) are one web
+// assignment with the scan-loop counter, not an independent store.
+//
 // Pass 7 (deepseek-v4.1-flash, #3729): re-measured 74.2% (1029 vs 1040 bytes).
 // New spellings this pass, all no better: `if ((remaining -= w) < 0) break;` in the
 // scan loop is byte-identical at 74.2% / 1029 bytes, so the store placement of

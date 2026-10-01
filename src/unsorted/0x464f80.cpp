@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, refined by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 6, timeboxed): no gain, stays 80.2 /
+// 2386 bytes. This session's probes were flat or negative: swapping the
+// countdown_extra 0x10/0x20 byte ors 80.0, `*(unsigned char*)&flags_3923b
+// |= 0x10` byte-identical at 80.2. The dl load-modify-store on the 0x3923b
+// byte write and the CSE'd duplicate player guard remain open as before.
+
 // deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): 79.7 -> 80.2 percent,
 // 2385 -> 2386 bytes. Declaring the FUN_00488b10 result as
 // `unsigned int typeId = FUN_00488b10(...) & 0xffff;` instead of

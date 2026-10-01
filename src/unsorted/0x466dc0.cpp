@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 6, timeboxed): no gain, stays 78.3 /
+// 1646 bytes. Seven probes this session were flat or negative: q declared
+// before p (77.8), q-first declaration with p assigned first (flat), the
+// ScaleX site spelled directly as `u->field_6c * (int)g_game->field_142eb`
+// (flat), both projectile-loop player reads routed through the q Tail struct
+// (77.9). The p/ebx vs q/ebx base swap stands as the only lever; every
+// in-loop instruction follows from it.
+
 // deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): no new gains, stays at
 // the 78.3% / 1646-byte best. A named `int v = u->field_6c;` local in
 // ScaleX_00466dc0 is byte-identical (same 7 hunks), so the movsx eax/ecx swap

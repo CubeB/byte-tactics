@@ -1,4 +1,17 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 7, timeboxed): 75.2 -> 75.9 percent
+// (975 bytes). Moving the Loop E `int pi = g_game->playerIndex;` and the p2 lea
+// chain to AFTER the y/x pos loads (`int y ...; int x ...;`) gains 0.7 percent:
+// the original schedules the p2 chain and the field_14281 test ahead of the
+// f70/f74/f6c loads, and this source order gets the pos loads after p2.
+// Flat at 75.9: fresh loop variable for Loop E (declared outside or in the for),
+// x-before-y swap, dropping the pi local (p2 from g_game->playerIndex inline).
+// Regressed or flat otherwise: removing the Loop E `unsigned int f` temp 75.5,
+// `vis = (a && b && c) != 0` 75.2 / 989, declaring the Loop C visitor before pp
+// 75.2, `u->flags = u->flags | 0x1000` 75.2. Still open: Loop E cursor in ebp
+// (original esi) with flags in ebx (original ebp), Loop C push/vptr schedule,
+// Loop D flags-load order.
+
 // deepseek-v4.1-flash 2026-10-01 (retry 6, timeboxed): no gain, stays 75.2 /
 // 975 bytes. Two fresh spellings are neutral/negative: Loop C `u->field_ff !=
 // pl->field_146` regresses to 74.8 / 975, and Loop D `u->flags |= 0x1000` is
@@ -250,11 +263,11 @@ void FUN_00467440(void)
     for (u = first; u <= last; u++) {
         unsigned int f = u->flags;
         if ((f & 0x10000000) && !(f & 0x100) && !(u->field_10e & 4)) {
+            int y = ((int)u->pos.half.f74 - ((int)u->pos.half.f70 >> 1)) >> 5;
+            int x = (int)u->pos.half.f6c >> 5;
             int pi = g_game->playerIndex;
             PlayerInfo_00467440* p2 =
                 (PlayerInfo_00467440*)((char*)g_game + 0x1b63 + (unsigned int)pi * 0x14b);
-            int y = ((int)u->pos.half.f74 - ((int)u->pos.half.f70 >> 1)) >> 5;
-            int x = (int)u->pos.half.f6c >> 5;
             int vis;
             if ((g_game->field_14281 & 2) == 2) {
                 vis = 0;

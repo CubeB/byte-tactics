@@ -95,6 +95,24 @@
 // (chain A: 0x4414af `mov edi,0x4fcdb8`, je 0x4414c1; chain B: 0x441502, je 0x441512),
 // so both 4th tests were re-pointed from cdc8/cd98 back to DAT_004fcdb8. Score-neutral
 // (byte-flat at 84.1% / 1825 bytes) but now every compared GUID matches the exe.
+// deepseek-v4.1-flash pass 3: the p[9] three-way (the `flags & 0x1800` select) is the
+// original's NEGATED outer test with a nested inner if: `if ((SETBUF->flags & 0x1800) != 0)
+// { if (... == 0x800) msg = "Yes"; else msg = "DM"; } else msg = "No";` emits the original's
+// exact layout at 0x441905 (je to the out-of-line "No", cmp 0x800 / jne, two jmp arms) where
+// the `== 0`-first spelling fused `and eax,0x1800` with `je` and reordered the arms. Same
+// 84.1%, 1825 -> 1827 bytes (toward the 1874 target), and it is kept over the equal-scoring
+// positive form because the block now reads like the exe's.
+// The only text still differing there is the 16-bit compare pair: the original has
+// `test ax, ax` / `cmp ax, 0x800` after `and eax, 0x1800` (ctx 0x4418f8-0x44190e), ours has
+// the fused `je` plus `cmp eax, 0x800` (2 instructions and 2 bytes short). Both a
+// `unsigned short m = (unsigned short)(SETBUF->flags & 0x1800);` local and an in-expression
+// `(unsigned short)` cast DO emit `test ax, ax` but force MSVC to materialise the 16-bit
+// value in a stack temp: 1826 bytes / 73.3% for both, because the extra 4-byte frame slot
+// displaces every SETBUF and p[] offset. So the 16-bit compare pair is not reachable without
+// breaking the exact frame, and the plain int expression stays best. A third route, making
+// the member itself 16-bit (`unsigned short flags; unsigned short field_4;`, same offsets,
+// same 16-byte 4-dword copy), lands on the very same output: 1826 bytes / 73.3%, so all
+// three spellings of the 16-bit compare collapse to one codegen and none of them is viable.
 #include <string.h>
 #include <stdio.h>
 
@@ -286,12 +304,14 @@ shown:
             sprintf(p[8], "%d", SETBUF->field_6);
             p[8] += strlen(p[8]) + 1;
 
-            if ((SETBUF->flags & 0x1800) == 0)
+            if ((SETBUF->flags & 0x1800) != 0) {
+                if ((SETBUF->flags & 0x1800) == 0x800)
+                    msg = "Yes";
+                else
+                    msg = "DM";
+            } else {
                 msg = "No";
-            else if ((SETBUF->flags & 0x1800) == 0x800)
-                msg = "Yes";
-            else
-                msg = "DM";
+            }
             sprintf(p[9], "%s", FUN_004c5740(msg));
             p[9] += strlen(p[9]) + 1;
 

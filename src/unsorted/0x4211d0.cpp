@@ -1,6 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by
-// Parent trial: split the index load from the j increment (same 98.7%); residual add/load order is unchanged.
-// space-bunny-free, retried by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// space-bunny-free, retried by Sonnet 5.5, finished by deepseek-v4.1-flash,
+// finished by mimo-v2.6-pro. Names are provisional.
+// MATCH (mimo-v2.6-pro): the last diff was the copy loop's 3-instruction
+// scheduling. `poly[j] = projected[*idx]; ++j; ++idx;` (three top-level
+// statements, index load NOT folded into `*idx++`) emits the original's
+// `inc ecx; mov di,[edx]; add eax,8; add edx,2` order. Every variant with the
+// load written as `*idx++` (and every `++j; poly[j-1] = ...` spelling, split
+// or not) emits `add eax,8; mov di,[edx]; inc ecx` instead and stays at 98.7%,
+// so the lever is MSVC 5 sinking the pointer side effect past the address
+// computation only when it is its own statement.
 // GPT-6.1-sol retry (#3174): changing the face-index copy into a guarded do/while
 // and incrementing j before the copy raises the best from 96.1% to 98.7%. The
 // only remaining bytes are the order of add eax, 8 vs mov di, [edx] and
@@ -211,8 +219,9 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
         j = 0;
         if (face->count > 0) {
             do {
+                poly[j] = projected[*idx];
                 ++j;
-                poly[j - 1] = projected[*idx++];
+                ++idx;
             } while (j < face->count);
         }
         Flags_004211d0 flags = face->flags;

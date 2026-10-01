@@ -1,4 +1,11 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 5 (deepseek-v4.1-flash): probes on top of 61.9: explicit
+// `((base + nameoff) + *recoff)` parens (flat) and `int ro = *recoff;` before
+// the entry address (flat), so the folded recoff deref is not an association
+// or temp lever, and the rewrite `if (size > 0) do {...} while (size != 0)`
+// with signed xor counters is byte-flat, so the file now keeps that shape.
+// Best remains 61.9 percent, 1334 bytes; still open: base in
+// ebp / entry pointer in ebx (mirror image) and the slot map permutation.
 // Session 4 (deepseek-v4.1-flash), current best 61.9 percent (1334 vs 1332 bytes):
 // flipping the entry test to `if ((e->flags & 1) != 0) { recursive } else { leaf }`
 // puts the recursive call in the fall-through and the leaf at the jump target,
@@ -198,7 +205,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                             *tp = clen;
                             pos = ftell(f);
                             if ((char)key != 0) {
-                                for (unsigned j = 0; j < clen; j++)
+                                for (int j = 0; j < clen; j++)
                                     pack[j] = (unsigned char)~((char)pos + (char)j
                                               ^ (char)key ^ pack[j]);
                             }
@@ -211,7 +218,7 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     fseek(f, *dataptr, 0);
                     pos = ftell(f);
                     if ((char)key != 0) {
-                        for (unsigned j = 0; j < (unsigned)(blocks * 4); j++)
+                        for (int j = 0; j < (int)(blocks * 4); j++)
                             ((unsigned char*)table)[j] = (unsigned char)~((char)pos
                                 + (char)j ^ (char)key ^ ((unsigned char*)table)[j]);
                     }
@@ -221,18 +228,18 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                     FUN_004d85a0(pack);
                     FUN_004d85a0(data);
 } else {
-                    while (size != 0) {
+                    if (size > 0) do {
                         unsigned chunk = size < 0x1000 ? size : 0x1000;
                         FUN_004bb7c0(file, buffer, chunk);
                         pos = ftell(f);
                         if ((char)key != 0) {
-                            for (unsigned j = 0; j < chunk; j++)
+                            for (int j = 0; j < chunk; j++)
                                 buffer[j] = (unsigned char)~((char)pos + (char)j
                                             ^ (char)key ^ buffer[j]);
                         }
                         fwrite(buffer, chunk, 1, f);
                         size -= chunk;
-                    }
+                    } while (size != 0);
 }
                 if (file->shared == 0) {
                     fclose(file->fp);

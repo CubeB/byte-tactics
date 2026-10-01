@@ -1,4 +1,8 @@
 // Decompiled by DeepSeek V4.1 Flash, edited by deepseek-v4.1-flash. Names are provisional.
+// Session 5 (deepseek-v4.1-flash): three more probes, all byte-flat or worse:
+// `(unsigned int)base + root` for the header/inc/count SIB (88.3, unchanged),
+// `unsigned int nsize = root + 8;` (83.6, worse), and re-checking the fsz
+// single-read shape (see session 2). Best remains 88.3 percent, 1152 bytes.
 // Session 4 (deepseek-v4.1-flash): still 88.3 percent / 1152 bytes; two more
 // probes stayed byte-flat: moving `*total += fd.size;` directly under the node
 // size store (so the two fd.size reads have no store between them and can CSE)

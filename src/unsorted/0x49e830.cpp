@@ -1,117 +1,40 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
-// Sonnet 5.5 retry: 87.7% -> 89.2% (1366 of 1365 bytes). The globals at
-// 0x51f320..0x51f522 are fields of ONE object (the App struct of 0x4b5980:
-// hInstance +0, nCmdShow +4, className +8, title +0xc, menuId +0x14, the
-// flags dword +0xf0, startWidth +0x1fa, startHeight +0x1fe, the video word
-// +0x202), not separate externs. Declaring them as members of one struct
-// (DAT_0051f320) is what makes MSVC keep the seven single-bit sets of the
-// video word as the original's `or al,K` / `or ah,K` chain on one ax register
-// instead of folding them into `or edx,0x3f2`. The bit-0 update is also a
-// plain bitfield assignment, `video.bits.b0 = ~DAT_0051fb48;` (the byte load
-// plus word xor is the bitfield-assign idiom), not b0 ^ flag. What is left is
-// instruction scheduling of the stores around the or chain (the original
-// interleaves them in program order) and the g_game store register rotation.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and
+// deepseek-v4.1-flash, edited by deepseek-v4.1, retried by Sonnet 5.5 and
+// space-bunny-free. Names are provisional.
+// space-bunny-free retry: MATCH (1365 of 1365 bytes), from 89.2%. Three
+// changes, all in the DAT_0051f320 initialisation block, none of them a new
+// construct: the or chain, the b0 read-modify-write register and the whole
+// eax/ecx/edx rotation fall out of them.
+//  1. The field stores are in plain program order (startWidth, b0, b1, b8,
+//     b4, b9, b5, b6, b7, startHeight, hInstance, nCmdShow, className,
+//     title, menuId). The previous version interleaved the hInstance and
+//     nCmdShow stores between the single-bit sets to hold the or chain apart;
+//     that is not needed (MSVC 5 keeps the individual `or al/ah` ops anyway)
+//     and it cost 1 byte and the store order. Only the order of the last four
+//     stores matters for the bytes: hInstance BEFORE nCmdShow is the original
+//     (className, hInstance, nCmdShow in that order scores 99.5%, nCmdShow,
+//     className, hInstance 99.3%).
+//  2. The bit-0 write is a bare `video.bits.b0 = ~DAT_0051fb48;`. A named
+//     `int notFlags` local compiles to 1367 bytes and a different schedule.
+//     `b0 = b0 ^ notFlags`, `b0 ^= notFlags`, `b0 = (int)(~DAT_0051fb48) & 1`
+//     and an explicit `video.value ^ ((video.value ^ ~DAT_0051fb48) & 1)` all
+//     give the same 1365 bytes, so the lowering (byte load of the old b0, xor
+//     into DL, and 1, xor into the word) is the only one available and the
+//     delta register is not a source-level choice.
+//  3. `#include <stdio.h>` is load bearing, and nothing in this file uses it,
+//     exactly as docs/agent-guide.md warns: without it the function compiles
+//     to 93.1% with the b0 delta in CL instead of DL, the single-bit sets in
+//     the order b1, b4, b8, b5, b9, b6, b7, and the g_game and inlined-strcpy
+//     register rotations one step out. tools/headers.py reaches 99.3% on the
+//     93.1% body with <windows.h> <stdio.h> and with <windows.h>
+//     <string.h> <stdio.h>; every other header set scores below that.
 // WinMain of Total Annihilation.
-// PARTIAL 87.7%, 1345 of 1365 bytes. Best kept here; scratch probes this
-// session all scored lower (unsigned-char single-struct bits -> 86.0% with
-// byte RMWs in cl/al, local union copy -> 78.5% with the copy spilled to a
-// stack slot and frame 0x9c). To get the original's `or al,/or ah,` byte
-// chain on one ax register (byte ors a full-reg merge will not fold) the two
-// bytes must be coalesced into ax via a word load+store; every source form
-// tried either folded to `or eax,0x3f2` (unsigned short bits) or split the
-// bytes into separate byte registers (unsigned char bits). Not solved here.
-// Full body, control flow and call
-// sequence match. Remaining differences:
-//  - DAT_0051f522 is a bitfield union and DAT_0051f410 is an `int` bitfield
-//    tested in place at bit 11 (both now match their shapes).
-//  - The seven single-bit sets of bits 1,4,5,6,7,8,9 fold into one
-//    `or edx, 0x3f2`; the original keeps seven `or al/ah, K` ops. Declaring
-//    the fields `unsigned char` stops the fold and lands within one byte of
-//    the original size (1364) but puts bits 8 and 9 in a second byte
-//    register (`or cl, 1` / `or cl, 2`) instead of `or ah, 1` / `or ah, 2`,
-//    so the 16-bit allocation unit has to win and the fold has to lose.
-//    Probed msvc5-sp3 codegen on the isolated block: a 16-bit bitfield
-//    union, a bare 16-bit bitfield struct, `=1` and `|=1` forms, and a
-//    `unsigned short` local with explicit `|=` all fold to a single
-//    `or ecx/edx, 0x3f2`; the original's per-bit `or al/ah` chain was not
-//    reproduced by any of them, so the original source used some construct
-//    (or an interleaved barrier) this model could not identify in the
-//    timebox. The `unsigned short` local form also adds a stack slot and
-//    `push ecx`, so it is strictly worse.
-//  - WIN (deepseek-v4.1-flash): the bit-0 toggle needs the 32-bit NOT form.
-//    Writing `...b0 = ...b0 ^ ~DAT_0051fb48` narrows the complement to a byte
-//    (`not dl`); routing it through an `int` local first
-//    (`int notFlags = ~DAT_0051fb48;` then `...b0 = ...b0 ^ notFlags;`) gives
-//    the original's 32-bit `not ecx` and raises 86.6% -> 86.8%.
-//  - OpenSemaphoreA and FUN_004b5980 results are compared with a named zero
-//    local (`cmp eax, ebx`) in the original; a named `int lzero = 0` still
-//    emits `test eax, eax`, so the original must reach its zero by a route
-//    this model does not reproduce yet.
-//  - Everything else still differing is register naming and store
-//    scheduling inside the DAT_0051f3xx block, the inlined strcpy and the
-//    RegSetValueExA tail, plus the branch targets that follow from the 22
-//    missing bytes above.
-//  - deepseek-v4.1: the `mov dl, byte [0x51f522]` first access shows the
-//    original b0 assignment is a byte-typed bitfield read; a union member
-//    `struct { unsigned char c0 : 1; } byte0` compiles to that byte read but
-//    MSVC then emits a byte store plus a separate `or word ptr [0x51f522]`
-//    word RMW, so it is worse than the current word-typed b0 access.
-//    Isolated msvc5-sp3 probes (16-bit bitfield struct, char-based struct,
-//    union of both, `= 1`, `|= 1`, `unsigned short` local with `|=`) all
-//    fold the seven bit sets into one `or eax/word ptr, 0x3f2`; that fold is
-//    a backend constant merge the original somehow blocked, and no source
-//    form found in this timebox prevented it.
-//  - deepseek-v4.1-flash (retry): the or-chain root cause is now clear. The
-//    original's per-bit ors alternate low/high byte (al, ah, al, ah, al, al,
-//    al), so no two same-register ors are adjacent and MSVC5's constant-merge
-//    peephole never fires. Reproducing that requires the 16-bit value resident
-//    in ax (a word load) while the individual fields use byte-granular storage
-//    units. `unsigned char` bitfields stop the fold (1366-1367 bytes, 86.0-86.5)
-//    but land the low byte in cl and the high byte in a second byte register
-//    (al or cl, never ah) and emit two byte stores instead of one word store.
-//    Adding a `.value` word toggle makes it worse (85.7, 1389 bytes). Every
-//    variant tried this session (vA-vI in build/scratch/0x49e830/) scored below
-//    this 87.7% folded baseline. The value-in-ax plus byte-granular-fields
-//    combination was not reachable from source.
-//  - deepseek-v4.1: the `mov ecx,[esp+0xbc]` for nCmdShow sits after the
-//    hoisted `push &DAT_0051f320` in the original but before it here, which
-//    is a scheduler choice, not a frame difference ([esp+0xb0] for
-//    hInstance matches).
-//  - deepseek-v4.1: writing `size20 = 0x32; hKey = NULL; size14 = 0x32;`
-//    (that order) fixes the two swapped stores at [esp+0x34]/[esp+0x24]
-//    and raised 86.8% to 87.1%.
-//  - deepseek-v4.1: both zero compares that the original does as
-//    `cmp eax, ebx` only come out that way when the call result is first
-//    bound to a named local: `HANDLE hSem = OpenSemaphoreA(...); if (hSem !=
-//    (HANDLE)lzero)` and `int bGameOk = FUN_004b5980(...); if (bGameOk ==
-//    lzero)` give `cmp eax, ebx`, while the inline forms give
-//    `test eax, eax`. Those two changes took 86.8% -> 87.3% -> 87.7%.
-//  - space-bunny-free (retry): four msvc5-sp3 /Fa probes on the isolated
-//    block narrow the cause and close one door. (1) MSVC 5 merges consecutive
-//    `field = 1` sets of one bitfield container into ONE or of the combined
-//    mask (`or WORD PTR x, 0x3f2`, or `or eax,0x3f2` once the container has
-//    been widened to 32 bits), and it does NOT narrow an or to byte width for
-//    a 16-bit container, so the original's `or al/ah` pair cannot come from
-//    `unsigned short` bitfields however they are spelled. (2) With
-//    `unsigned char` bitfields MSVC emits one byte or PER CONTIGUOUS SOURCE
-//    RUN, which is exactly the original's pattern of singletons, so byte
-//    containers are right and the fold is right to lose. (3) DEAD END, do not
-//    retry: a struct that MIXES the types, `unsigned char b0:1` followed by
-//    `unsigned short b1:1...`, does not overlay the two containers, MSVC 5 puts
-//    the short container at OFFSET 2 and emits `or WORD PTR x+2, 0x1f9`. There
-//    is no source form that gives a byte-container read and a word-container
-//    or chain in one register. (4) `unsigned short v = x; v |= 2; v |= 0x100;
-//    ...` pushes v to a stack slot and then merges, so it is worse.
-//  - deepseek-v4.1: what is left is the flags block above (12 lines) and the
-//    g_game field-store register rotation (ecx/edx/eax/ecx in the original,
-//    edx/eax/ecx/edx here, driven by the inlined strcpy below saving its
-//    low-bit count in edx instead of eax); every other hunk is only a branch
-//    target shifted by the 20 missing bytes.
-#include <new>
+#include <windows.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <windows.h>
+#include <new>
 
 class Class_004cee50 {
 public:
@@ -307,18 +230,18 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         return 1;
     FUN_004b52e0(&DAT_0051f320);
     DAT_0051f320.startWidth = 0x280;
-    int notFlags = ~DAT_0051fb48; DAT_0051f320.video.bits.b0 = notFlags;
+    DAT_0051f320.video.bits.b0 = ~DAT_0051fb48;
     DAT_0051f320.video.bits.b1 = 1;
     DAT_0051f320.video.bits.b8 = 1;
     DAT_0051f320.video.bits.b4 = 1;
     DAT_0051f320.video.bits.b9 = 1;
     DAT_0051f320.video.bits.b5 = 1;
-    DAT_0051f320.hInstance = (int)hInstance;
     DAT_0051f320.video.bits.b6 = 1;
-    DAT_0051f320.nCmdShow = nCmdShow;
     DAT_0051f320.video.bits.b7 = 1;
-    DAT_0051f320.className = (int)DAT_00509718;
     DAT_0051f320.startHeight = 0x1e0;
+    DAT_0051f320.hInstance = (int)hInstance;
+    DAT_0051f320.nCmdShow = nCmdShow;
+    DAT_0051f320.className = (int)DAT_00509718;
     DAT_0051f320.title = (int)DAT_0050971c;
     DAT_0051f320.menuId = 0;
     int bGameOk = FUN_004b5980(&DAT_0051f320);

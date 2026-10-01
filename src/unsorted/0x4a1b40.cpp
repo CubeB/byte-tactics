@@ -20,6 +20,16 @@
 // Adding speculative locals for type/flags/da/text/d6/ba/tab did not help. Frame
 // is 0xc0 against the original 0xbc. Tried and rejected: keepW used for x2 still
 // (17.9, the local must stay live into the loop); more persistent locals.
+// Re-tried on issue 3304 (deepseek-v4.1-flash) with the same 26.6% ceiling:
+// removing keepC0 (25.2), removing keepW (17.9), removing both (17.9), keepDa
+// local (19.4), keepParam2 local (26.6, neutral), keepFlags local (24.9), self
+// alias of param_1 (neutral), hoisting x1/x2/cy/cy2 declarations to the top
+// (byte-identical to v0, so MSVC assigns slots by use, not declaration order),
+// while(1) for the text loop (neutral), unsigned char colour index (neutral),
+// headers.py (no header set beats 26.6). The text/cell loop bodies reconstruct
+// instruction for instruction, so the remaining gap is pure allocator state,
+// not missing code: the 55-byte shortfall is spill count (fewer memory operands
+// where the original spills more).
 #include <windows.h>
 #include <string.h>
 

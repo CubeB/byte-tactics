@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3190: seven checker invocations, best remains 88.8%; no MATCH. Helper forms scored 86.9%, 71.9%, and 86.5%; the local type alias tied at 88.8%. The bit-19 arithmetic register allocation and one-byte size difference remain.
 // #2988 retry by GPT-6.1-sol: five checks retained 88.8%; a pointer local
 // scored lower. Early-exit targets and bit-19 register allocation still differ.
 // GPT-6.1-sol retry (#2420): two checker runs kept the existing 88.8% best;

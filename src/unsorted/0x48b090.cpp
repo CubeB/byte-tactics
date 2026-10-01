@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3190: nine checker invocations, best remains 93.2%; no MATCH. Expression variants scored 67.0%, 82.1%, 76.1%, 92.3%, 69.0%, 73.5%, and 78.8%. Set/clear branch registers, lost-mask register, and packet type store position remain different.
 // #2988 retry by GPT-6.1-sol: five checks retained 93.2%; the three variant
 // forms all scored lower. Operand registers, bit tracking, and packet stores differ.
 // GPT-6.1-sol retry (#2420): best remains 93.2% after helper and expression variants; see remaining-diff notes below.

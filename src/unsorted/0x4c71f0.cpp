@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3210: two checker invocations, one initial attempt returned no output. Best remains 80.0%; no MATCH. Existing passes already tried helper, header, declaration, and argument-order variants; case 1/2 argument scheduling still differs.
 // #3006 retry by GPT-6.1-sol: two checks retained 80.0%; an inline helper for
 // the first case's low output did not change the argument-evaluation mismatch.
 //

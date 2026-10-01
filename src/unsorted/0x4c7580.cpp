@@ -24,6 +24,12 @@
 // clip at 0x34, imin/imax at 0x44/0x48) and the y1>clip.top reload in the edge loops.
 
 
+// Session deepseek-v4.1-flash (2nd): the suggested `int ok = FUN_004c5e70(&local);` spelling
+// (removing the function-scope `int ok;`) is byte-identical here at 64.3 percent / 1144 bytes,
+// so storing the result does not produce the original `cmp eax, ebp` at the first check.
+// Tried and reverted: reordering the stack locals (y0/y1 after xmax, out after x, clip before
+// imin/imax) to fix the 0x10/0x14 and 0x24/0x28 slot swaps was not completed inside the
+// timebox; the declaration block is unchanged from the 64.3 percent version.
 #include <windows.h>
 
 struct Point_004c7580 {
@@ -78,10 +84,9 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
         return;
 
     Surface_004c5e70 local;
-    int ok;
     int locked;
     if (surf == 0) {
-        ok = FUN_004c5e70(&local);
+        int ok = FUN_004c5e70(&local);
         if (ok == 0)
             return;
         locked = 1;

@@ -76,6 +76,13 @@
 // the UnlockScreen inline's surface register (ours loads `[eax+0x8c]` into eax,
 // the original into ecx) are left.
 
+// Session deepseek-v4.1-flash (3rd): `for (;;)` in the inlined Lock() loop regresses
+// 83.0 to 69.1 (1086 -> 1118 bytes: the loop rotates and the import-pointer registers
+// move), so `while (1)` in Lock() stays; reverted, 83.0 reconfirmed. Remaining diffs
+// unchanged: unmerged branch-1 Unlock, bmp-path Lock register trio (ours ebx/ebp/ebp,
+// original ebp/ebx/ebx) and the `[eax+0x8c]` load register in UnlockScreen (ours eax,
+// original ecx).
+//
 #include <windows.h>
 #include <ddraw.h>
 

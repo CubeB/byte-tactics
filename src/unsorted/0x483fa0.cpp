@@ -1,22 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Best 57.4% (1042 bytes against 1046). The frame map is confirmed, not guessed: the two
+// Best 57.9% (1048 bytes against 1046). The frame map is confirmed, not guessed: the two
 // stores before `push edi` at 0x483fcc are relative to the pre-push esp, so they land at
 // final-esp 0x20 (viewX/ax) and 0x1c (viewY/ay). Original final frame: w1 0x10, px 0x14,
 // w2 0x18, ay 0x1c, ax 0x20, py 0x24, stride 0x28, p2 0x2c, rem1 0x30, rem2 0x34,
-// n 0x38, stride2 0x3c. Two changes got 54.8 -> 57.4: (1) compute rem1 between w1 and w2
-// so the compiler interleaves w1/rem1/w2/rem2 as the original does, (2) compute rx
-// immediately after px so px is stored before py starts. Ours now allocates w1 0x10,
-// stride 0x14, px 0x18, ay 0x1c, ax 0x20, rem1 0x2c, rem2 0x30, py 0x34: px/w2 and
-// stride/rem1/rem2 still land in the wrong slots, and the py path still is not spilt to
-// 0x24 and reloaded. Tried: bare declarations in the original slot order at the top
-// (57.0%), `>>5` instead of `/32` (53.7%), swapping the viewX/viewY declaration order
-// (57.0%), p2 function-scope (50.3%). The second diff hunk is the final blit loop, whose
-// pointer/counter arrangement also differs. Retry (deepseek-v4.1-flash): a from-scratch
-// rewrite in the exact original statement order scored 50.8%; making p1/p2 function-scope
-// moved p2 into the frame but dropped to 49.4%. MSVC 5 assigns these slots by code, not by
-// declaration order: reordering declarations left every local's offset unchanged, so the
-// frame cannot be forced by declaration order. The remaining gap is the allocator giving
-// w2/p2/n/stride2 no slots and shifting px/stride/rem1/rem2/py.
+// n 0x38, stride2 0x3c. Ours now matches p2 0x2c, rem1 0x30, rem2 0x34, n 0x38,
+// stride2 0x3c and all of the final blit loop except one reload; ours allocates
+// w2 0x14, py 0x18, px 0x1c, ay 0x20, ax 0x24, stride 0x28, so only the
+// px/py/w2/ay/ax block is permuted. Removing the `& 0xffff` masks on stride in the tail
+// block (the original imuls the full 32-bit stride, `imul edx,[esp+0x28]`) lifted
+// 57.4 -> 57.9. Tried this round: original px/py/rx/ry evaluation order (57.0%),
+// function-scope p1/p2 (54.7%). MSVC 5 assigns these slots by code, not by declaration
+// order (nine declaration orders left every offset unchanged, see SHARED.md), so the
+// remaining gap is the allocator permutation of px/py/w2/ay/ax plus one missing
+// `mov ebp, [esp+0x10]` reload after the block-3 inner loop (the original reloads w1
+// there, ours keeps it in ebp).
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -148,8 +145,8 @@ void __stdcall FUN_00483fa0(void* surface)
         w2--;
 
     if (w2 > 0) {
-        int offset = (py * (stride & 0xffff) + px) * 2;
-        int stride2 = (stride & 0xffff) * 2;
+        int offset = (py * stride + px) * 2;
+        int stride2 = stride * 2;
         int y = ay;
         int n = w2;
         do {

@@ -1,4 +1,4 @@
-// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 81.4%, 928 of 936 bytes (Sonnet 5.5 retry, #3079; was 81.2% / 924 bytes).
 // std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) of MSVC 5's
 // <vector> (the same template as 0x476210 and 0x46f7a0), emitted out of line by
@@ -50,6 +50,23 @@
 // (128 sets, none match). A silly forced affine
 // `_Ucopy_dst(_Q+_M, _P, _Q+_M-_M+(_Last-_Last))` gives 71.6%, so the affine is
 // the allocator's own lockstep reduction, not a source expression.
+// deepseek-v4.1-flash retry (2026-10-01, 900 s): still 81.4%, 928/936 bytes.
+// This run shows the wall is the 14-byte element, not the source. Diagnostic:
+// a copy of 0x476210's matched hand-clone, with only its 32-byte
+// Elem_00476210 renamed to this 14-byte Packet_0046cef0 and the same
+// source-first _Ucopy grow branch, scores 63.3% here while it scores 99.6% for
+// 0x476210. So the standard header grow branch provably compiles to the
+// 939-byte source-first shape (this -> ebx, _M -> ebp) for this element, and
+// the original's this -> ebp shape is not reachable from that source. The
+// real <vector> header is 62.7% (940 bytes), as recorded below.
+// Also flat (nothing beats 81.4%): an N-declarations sweep (extern int dummyN)
+// for N = 0..400 step 4; all six argument-evaluation orders of the prefix and
+// tail _Ucopy call sites (36 combinations, best 81.4%); precomputed argument
+// locals in all six orders; {int,int,int,short} and {char,char,uint,int,int}
+// element structs; iterator _S / size_type _N declaration, initialisation and
+// split-assignment variants; and 2400 random combinations of the grow branch's
+// prefix, tail, fill, destroy, deallocate and reset spellings. The retained
+// dst-first tail remains the best.
 #include <algorithm>
 #include <memory>
 #include <xutility>

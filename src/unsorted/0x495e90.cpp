@@ -64,6 +64,19 @@
 // instruction order: ptr, flag byte, je, old load, store, cmp, jne) but the
 // pointer in EAX (5-byte moffs) and the flag/old pair in CL/ECX. vA gets the
 // exact order but mirrors the registers (ptr ECX 6-byte, pair AL/EAX).
+//
+// deepseek-v4.1-flash (issue 3311), four more scored spellings, all with the
+// current frame (buf[0x10] + path[0x100]) so the frame is not the variable:
+//   `Game_495e90* gp = g_game;` used for all three accesses (flag test, old
+//     load, store) with `int old` hoisted: 2292 / 79.6, byte-identical to the
+//     three plain `g_game` spellings, so naming the pointer does not move it.
+//   the same local pointer with `int old` INSIDE the guard: 2288 / 75.9.
+//   `int old = 0;` hoisted, `old = g_game->field_38c53;` inside the guard:
+//     2288 / 75.9 (same as the other inside spellings, so a zero initialiser
+//     does not pin `old` to the ebx zero register).
+//   `int zero = 0;` INSIDE the guard, store as `= zero`: 2292 / 79.6 flat.
+// Conclusion: the ESI-vs-EAX pick for the block's g_game load is upstream
+// allocator state, not a function of this block's source shape.
 
 // PARTIAL 79.6%: in-game command/gadget event dispatcher, original 2292 bytes,
 // ours 2292 (exact size; structure, jump tables and case order agree).

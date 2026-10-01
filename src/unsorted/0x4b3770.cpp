@@ -5,7 +5,7 @@
 // 206 of 208 instructions byte identical, the only diff at 0x18e/0x190:
 //   0x18e add edx,ecx / push edx   (original)
 //   0x18e add ecx,edx / push ecx   (ours)
-// All six prior passes agree that with a base reloaded from the frame MSVC 5
+// The #3148 GPT-6.1-sol retry independently rechecked the source and subscript-address variant (both 99.0%, no MATCH). All prior passes agree that with a base reloaded from the frame MSVC 5
 // always names the int/offset as the add destination, so no spelling of
 // `pointer + int` reaches the original's `add base, off`; the one shape that
 // does (non-reloadable base read through a register) costs an extra `mov` the

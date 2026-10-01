@@ -1,4 +1,60 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
+// deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro.
+// Names are provisional.
+//
+// mimo-v2.6-pro, 2026-10-01 second retry: 94.8% (original 943 bytes, ours
+// 964). Two spellings lifted the 81.7% base (the old negative measurements
+// below were all made on the 74.8% base and no longer hold):
+//  1) the tail is TWO call statements, one in each arm of
+//     `if (d1 > lim && d2 > r) call(unit, unit->type->field_19e); else
+//     call(unit, -rate);`. Every select spelling (if/else amount plus one
+//     call, ternary as the argument or assigned, braced or not) makes MSVC
+//     sink the call into both arms with two epilogues (988 bytes, 83.5);
+//     with the call written in each arm the whole register allocation falls
+//     into place at once: the ebx<->ebp swap, the prologue register saves
+//     and the v3 call setup all match the original (81.7 -> 92.9).
+//  2) the hasPath arm is `turn = hasPath; int r2 = unit->type->field_19a;
+//     call(unit, -r2);` (store first, rate named after it): that stores ax
+//     as in the original instead of an immediate 0 (92.9 -> 94.8).
+// Still differs (three things, all small):
+//  - the arm's load order: the original loads unit into ecx BEFORE the turn
+//    store (eax is still busy with the v5 result, so the scratch rotation
+//    runs unit=ecx, type=edx, rate=eax with `neg eax; push eax; push ecx;
+//    mov ecx,esi`); ours stores first and the rotation is one step off
+//    (unit=eax, type=ecx, rate=edx). Forcing the unit load above the store
+//    failed: `Unit* u = unit;` is scalarised and its load sinks past the
+//    store (94.8 same), a type-pointer copy before the store (87.1), the
+//    comma forms `(turn = hasPath, unit)` and `(turn = hasPath,
+//    -unit->type->field_19a)` (identical to store-first), an inline rate
+//    chain (identical), `turn = 0` with the literal-reuse trick (94.8
+//    same), a doubled `turn = hasPath; turn = hasPath;` pair (dead-store
+//    folded, identical) and the fold-away `u += 1; u -= 1` pointer pair
+//    (91.1; it does not fold and keeps two adds).
+//  - `imul ecx` (one-operand 64-bit multiply) against our `imul eax,ecx;
+//    cdq`: the `(__int64)(unsigned short)adiff * field_20` spelling matches
+//    those two bytes on its own (81.7 -> 84.2) but breaks the tail's
+//    register allocation in every combination with the new arm and tail
+//    (92.9 -> 85.8, 94.8 -> 87.7), so the int-product spelling stays.
+//  - the tail arm layout: the original merges the two arms before ONE call
+//    (`mov eax,[ebx+0x19e]; jmp join; mov eax,[esp+0x14]; neg eax; join:
+//    mov ecx,[esp+0x10]; push eax; push edi; call`); the two-call spelling
+//    leaves the else arm's copy of the whole call tail out of line after
+//    `ret 4` (about 27 diff lines, most of the remaining gap). Also tried:
+//    switch on the condition (85.8), a goto label before one shared call
+//    (82.6), explicit returns in both arms and else-first (both 94.8
+//    same), reverse default-first (77.7) and two `if` assignments of
+//    -rate (77.9).
+// Earlier attempts (deepseek-v4.1-flash et al, 74.8% base) are kept below for
+// the history; their measured negatives still hold where re-measured (the
+// 64-bit `(__int64)(unsigned short)adiff * field_20` imul spelling: 71.5
+// alone, 67.2 with the merged tail; if/else and ternary selects: 62-66; t1
+// with the neg before the tests: 73.4; recompute through ppos: 46.5; ppos
+// before the v3 call: 69.6; reversed operator- operands: 71.6).
+//
+// ---------------------------------------------------------------------------
+// Earlier notes (deepseek-v4.1-flash et al), kept for the history:
+//
+// Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // deepseek-v4.1-flash, 2026-10-01, second probe: `Vec3* const ppos` is
@@ -218,7 +274,7 @@
 struct Vec3 {
     int x, y, z;
     Vec3 operator-(const Vec3& other) const {
-        Vec3 r; r.z = z - other.z; r.y = y - other.y; r.x = x - other.x; return r;
+        Vec3 r; r.x = x - other.x; r.y = y - other.y; r.z = z - other.z; return r;
     }
     int Square() const {
         __int64 a = x, b = z;
@@ -285,18 +341,17 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
     int hasPath = obj->v5();
     if (hasPath == 0) {
         turn = hasPath;
-        ((Class_0043cc20*)this)->FUN_0043cc20(unit, -unit->type->field_19a);
+        int r2 = unit->type->field_19a;
+        ((Class_0043cc20*)this)->FUN_0043cc20(unit, -r2);
         return;
     }
 
     Vec3 p[3];
     obj->v3(p, 0, 3);
 
-    int ax = p[1].x - unit->pos.x;
-    int az = p[1].z - unit->pos.z;
-    int gap1 = (int)_hypot(ax, az);
-
     Vec3* ppos = &unit->pos;
+    Vec3 d = p[1] - *ppos;
+    int gap1 = (int)_hypot(d.x, d.z);
 
     int dz;
     if (gap1 > 0x500000) {
@@ -314,8 +369,8 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
         }
     }
 
-    az = p[1].z - unit->pos.z;
-    ax = p[1].x - unit->pos.x;
+    int az = p[1].z - unit->pos.z;
+    int ax = p[1].x - unit->pos.x;
     int d1 = (int)(((__int64)ax * ax) >> 32) + (int)(((__int64)az * az) >> 32);
 
     short ang = (short)FUN_0048a980(ppos, &p[1]);
@@ -323,8 +378,8 @@ void Class_0043cd20::FUN_0043cd20(Unit_0043cc20* unit)
     int sdiff = diff;
     int adiff = abs(sdiff);
 
-    int bz = p[2].z - ppos->z;
-    int bx = p[2].x - ppos->x;
+    int bz = p[2].z - unit->pos.z;
+    int bx = p[2].x - unit->pos.x;
     int d2 = (int)(((__int64)bx * bx) >> 32) + (int)(((__int64)bz * bz) >> 32);
 
     if (diff != 0) {

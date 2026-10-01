@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, improved by Claude Opus 5.5, edited by deepseek-v4.1. Names are provisional.
+// claude-opus-5-5 (#4428): unchanged; a 10-minute permuter run (about 500 candidates) found nothing.
 //
 // Returns the world position of animation piece `index` of `obj` (with z
 // negated, as the callers add it to obj->pos at +0x6a):

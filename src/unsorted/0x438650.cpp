@@ -1,4 +1,9 @@
 // Decompiled by Opus, edited by deepseek-v4.1. Names are provisional.
+// claude-opus-5-5 (#4428): unchanged; a 10-minute permuter run (about 500 candidates) found nothing.
+// Also tried (all compile to the division-first order, 159 bytes): no cast, a
+// separate int or unsigned local for field_1fe or for the sub-product, compound
+// *= statements, inline Level()/Rank() helpers, (unsigned)/(long)/(int) casts and
+// `/ 5u`. Only a 16-bit cast keeps field_1fe first: (short) gives 94.4% (movsx).
 // Codex / GPT-6 retest in #13:
 // signed intermediate products, a scale helper and a widened
 // multiplier did not preserve both load order and unsigned float conversion.

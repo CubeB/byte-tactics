@@ -159,6 +159,12 @@
 // top-of-loop increment, so the indexed form (with the matching anchor) is
 // kept and the pointer walk is reverted. The esi mid-body placement and the
 // shared-zero register remain the only two diffs.
+// deepseek-v4.1-flash (issue 4104, timebox): re-verified 74.0 / 1059 with two
+// more f3d/f3f shapes, both reverted: f3f-then-f3d store-correct order is a
+// byte-exact 74.0 tie (temps mirrored, so the shared zero still takes edx), and
+// a named `short f3d = unit->f108;` temp with the store after rec.f3f is also a
+// 74.0 tie; f3f/f23/f3d drops to 73.7. The rec.f108-vs-rec.s.b load window and
+// the mid-body esi/eax increments stay the only residuals.
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);

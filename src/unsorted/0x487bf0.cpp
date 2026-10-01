@@ -145,6 +145,12 @@
 
 #include <ctype.h>
 #include <stdio.h>
+// deepseek-v4.1-flash (issue 4104, timebox): re-verified 65.9 / 1859 as the best
+// form. Fresh reading of the original P arm (ctx.py): 0x487e9c..0x487eb5 has
+// exactly ONE float slot, esp0+0x24, zero-inited at 0x487eb5 and written by the
+// third "%f" pointer (0x487e9c lea [esp+0x34] with esp at esp0-0x10), so the
+// older "two distinct floats" item is wrong and the current KEY map stands. The
+// 527-line diff is the copy-ctor 8-byte frame/slot rotation, unchanged.
 #include <string.h>
 
 #pragma pack(push, 1)

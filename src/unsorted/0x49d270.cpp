@@ -71,6 +71,15 @@
 // So the missing piece is a source form where n is defined at the top of the b0
 // block yet stays a register variable ahead of the cursor, while ownerId is a
 // ushort that spills.
+// deepseek-v4.1-flash (issue 3685 retry, 10 min): body kept at 90.7% / 774
+// bytes (same size as the original). Two more shapes tried, both worse:
+// `unsigned short ownerId` local with the int helper param (81.5%, 766 bytes,
+// the ushort starves n and moves unit/cursor), and `int n;` declared at the
+// top but assigned inside the b0 block (82.3%, 770 bytes, the block-local
+// definition still loses EDI). The diff is unchanged: n spilled to
+// [esp+0x18] and re-read in the latch instead of staying in EDI, and the
+// owner f_a8 compare loading into a register instead of
+// `cmp word [edx+0xa8], bx`.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {

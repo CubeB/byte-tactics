@@ -1,7 +1,21 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 //
-// Partial: 43.7%, 2204 bytes versus 2164. Best so far; every earlier attempt is
+// Partial: 44.7%, 2208 bytes versus 2164. Best so far; every earlier attempt is
 // in build/scratch/0x4a9fd0/.
+//
+// deepseek-v4.1-flash session: the only change from the previous best is
+// `short y = entries->y;` in the first clamp (was `int y`), worth +1.0 in the
+// checker (43.7 to 44.7). It likely is NOT the original shape: the original
+// sign-extends the field once, `movsx ecx, word ptr [ebx+0x15]`, with no
+// separate word load, whereas a `short y` local adds `mov cx,[ebx+0x15]` and
+// `movsx ecx,cx`. Treat the gain as a metric artifact until the prologue and
+// the entries/i/ebx rotation below are fixed. The faithful spelling is `int y`
+// at 43.7%; that is what the notes below describe. Other shapes measured this
+// session, none better: `short x`, `unsigned short`, `(short)` casts, swapping
+// the point.x/point.y subtraction order, a `lay` local, a count local `n`, a
+// reference `Entry*& entries`, `while` loop, i declared after `sel` or right
+// before the loop, and a 0..400 dummy-extern compiler-state sweep (all 43.7 or
+// lower). headers.py found no header set above 43.7%.
 //
 // What still differs, in order of how much it is worth:
 //
@@ -266,7 +280,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
         if (entries != 0) {
 
         int x = entries->x;
-        int y = entries->y;
+        short y = entries->y;
         if (entries->type != 0) {
             x *= 2;
             y *= 2;

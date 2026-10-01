@@ -50,6 +50,12 @@
 //     `&&` order in the literal test, and moving `curmem = cur` to the top of
 //     the row. Inlining the `chunk` ternary does move it (next 0x13, rep 0x14,
 //     t 0x15, cnt 0x16, lit 0x17) but loses `curmem`, so it is not a lead.
+// #3417 (deepseek-v4.1-flash): two more merge experiments, both measured at
+// exactly 640 bytes: collapsing the outer flush count into the inner one
+// (`ocnt` removed, both flushes write `cnt`) scores 90.5, and collapsing the
+// final 0x0c writer into the literal temp (`t` removed, `lit` used in the tail
+// too) scores 71.1. So the original does have separate byte variables for
+// those roles; only the pool order remains wrong.
 // Next step for whoever retries: the pool order looks like it follows the
 // expression trees assigned to each byte, so try reshapes of those (for
 // example making the row-start `curmem = cur` and the flush `rep = curmem`

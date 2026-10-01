@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#4085): 1 check run, base kept. Retargeting the
+// delta stores from the in-place v.v[] to the separate `d` local (with every
+// later v.p.* read switched to d.p.*, which is semantically identical) scores
+// 65.0 percent / 1519 bytes against this base 70.7 / 1530, so the original
+// dead-argument-slot delta home is not reachable by giving the delta its own
+// local.
 // deepseek-v4.1-flash retry (#3971): 2 check runs, base kept. Reordering the
 // three in-place v.v[] deltas to z,y,x (so the first x-use is last) is
 // 70.5% / 1514 bytes, worse than this base, so the entry copy scheduling is

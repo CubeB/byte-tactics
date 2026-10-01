@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
 // Continued from a partial left by deepseek-v4.1-flash and GPT-6.
 #include <windows.h>
 #include <string.h>
@@ -170,7 +170,7 @@ public:
     void FUN_004618a0(int);
 };
 
-// PARTIAL 83.4% (3431 vs 3463 bytes), frame exactly 0x234. The address of
+// PARTIAL 84.0% (3431 vs 3463 bytes), frame exactly 0x234. The address of
 // every local now matches the original: rect at +0x10 (its slot widened to 20
 // bytes by the dead tail loop, which stores players[i].control at byte +0x13
 // and is kept because rect's address escapes), scr.gadget at +0x24 with a
@@ -218,6 +218,10 @@ public:
 // schedules correctly. But any extra local shifts the frame by 4 (gadget moves
 // +0x24 -> +0x28), which costs far more than it wins (84.0 -> 80.6), so the
 // byte must live inside the existing 20-byte rect slot or the Screen hole.
+// GPT-6.1-sol retry pass: kept the measured 84.0% source. The source-level
+// RECT-slot alias experiment for progress bytes regressed to 66.7%. Residual
+// differences are SIB operand order, zero-store register scheduling, flag-test
+// folding, and local/register scheduling around resize and bar drawing.
 // FUNCTION: 0x497f40
 void FUN_00497f40(void)
 {

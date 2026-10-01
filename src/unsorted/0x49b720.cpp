@@ -1,7 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 33.0%. Size 1847 vs original 1853. Control flow and instruction shapes
-// now match; remaining diffs are scratch-register rotations at the top (count in
-// ecx vs eax, s in ebx vs edx, counter in cx vs ax, ec in dx vs cx).
+// PARTIAL 33.0%. Size 1847 vs original 1853 bytes. Best after 9 checker runs.
+// Remaining diffs span entry register allocation through the loop tail. Attempts
+// changing declaration order, local scope, entry guard and base-pointer ordering
+// did not improve the score. The count, s, counter and ec values use different
+// registers early, and later instruction/control-flow differences persist.
 // Key fixes: the Select block is emitted twice (counter==0 path ends at Next,
 // live path ends at TailOnly), and the type flags tests use a 1-bit bitfield
 // union, which makes MSVC emit the original's mov/shr/test sequence instead of

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 // claude-sonnet-5-5 pass (no change, 83.3% kept): re-measured the guarded do-while inner loop
 // (79.1, 1055 bytes: fixes bestIdx/j1 but costs 3 bytes in the first-cell block, as noted below)
 // and tried, on both bases, splitting `int a, b; a = ..; b = ..;` for halfW/halfH/x/y in five
@@ -62,6 +62,69 @@
 //  * the else branch is one register choice: the original keeps the LOS frame
 //    pointer in ecx (slot 0x24) with limitX in 0x38, ours keeps it in edx
 //    (slot 0x38) with limitX in 0x24, and that one swap moves every reload.
+// PARTIAL: 92.3% (1052 of 1052 bytes; every jump target in the function lines
+// up and the whole flag2 branch, including the first visibility cell, is now
+// byte-identical). The entire else branch's first half matches too. One
+// register decision is left, and the four findings below are what got here
+// from the previous 83.3%.
+//  1. THE INNER LOOP IS THE MATCHED SIBLING 0x481d50'S LOOP, VERBATIM.  That
+//     function MATCHes and its loop is the guarded do-while with `int j1;`
+//     DECLARED BEFORE `int bestDiff = -1;` and `j1 = 1;` ASSIGNED inside the
+//     guard.  The old notes here tried the do-while with `int j1 = 1;` declared
+//     after bestDiff (79.1%) and concluded the `bestDiff * j1` imul operand
+//     order was not worth chasing.  It is: copying 0x481d50's declaration order
+//     (bestIdx, j1, bestDiff, j) fixes that operand order too, 79.1 -> 79.7.
+//     The rule the sibling's header records holds here too: MSVC takes the
+//     `imul` REGISTER operand from declaration order, so the variable declared
+//     first is the one loaded into eax.  The two changes interact; neither
+//     helps alone.
+//  2. THE ELSE BRANCH'S LOCALS MUST BE DECLARED AT THE TOP OF THE FUNCTION AND
+//     ASSIGNED IN THE BRANCH.  `int limitX, limitY, nx, ny;`, `Frame* frame;`
+//     and `int i, stride, off;` after `int changed = 0;`, assigned inside the
+//     else branch, takes the size from 1055 back to 1052.  So the 3 bytes the
+//     do-while appears to cost are not a cost of the loop at all: they are
+//     paid only while the else branch's locals are initialised in place.
+//  3. x AND y MUST BE IN THAT TOP BLOCK TOO, not initialised in place.  This
+//     is the big one and it was never tried: adding `int x, y;` to the same
+//     declaration block and assigning them after `bit/halfW/halfH` took the
+//     score from 82.1 to 92.3 and 126 diff lines to 53.  Moving x and y into
+//     the function's single local table is what finally gives MSVC the register
+//     pressure shape the original has, and with it BOTH long-standing problems
+//     disappear at once: the first visibility cell's `imul edi, [esp+0x10]`
+//     (the in-place multiply on halfW's own register) and the g_game load's
+//     5-byte `mov eax, [g_game]`, plus every jump target after it.  This is the
+//     "add or remove one local from the allocator's table" lead the old notes
+//     kept circling, and the real form of it is "put x and y in the table too".
+//  4. nx / ny: the clamp spellings (ternary, if/else, a shared inline helper,
+//     `-(v<0?v:0)`, `0 - v`, positive-test) are all exactly neutral, so the
+//     small `neg` difference there is not a source-shape choice.
+//
+// WHAT STILL DIFFERS, one decision: the else branch keeps the LOS frame
+// pointer in edx (slot esp+0x38) with limitX in esp+0x24, while the original
+// keeps it in ecx (esp+0x24) with limitX in esp+0x38.  Every reload moves with
+// that one swap, which is why the last two hunks are 50 of the 53 diff lines.
+// A useful diagnostic, since the compiled .asm's frame slot table can be read
+// directly: the original's cross-branch sharing is
+//     count+stride,  x2+limitY,  grid+frame,  bestDiff+i,  j+nx,  i(outer)+limitX
+// and ours is
+//     count+stride,  limitY+y2,  grid+limitX,  frame+?,  j+nx,  bestDiff+i
+// so `frame` has to land in grid's slot and `limitX` in the outer row counter's.
+// Moving each else-branch local in turn to the top of the function, and
+// reordering the clamps, the row guard, stride and off, all left frame in its
+// own slot and limitX sharing with grid, so this one is not reachable by
+// source order alone the way finding 3 was.
+//
+// Tried this session and neutral (82.1% base unless noted): the first cell as
+// `y*halfW`, `x + halfW*y`, a named index local, the index split over two
+// statements, an `unsigned` index, a fresh copy of y, a `static inline` getter
+// for the mask base (the guide's `GetEntries(obj)[i]` idiom), inline helpers
+// taking (hw,y,x) or (g,i), an inline helper for the whole set-the-bit block,
+// `&mask[halfW*y] + x`, walking the pointer, `(short)` casts on x or y, `bit`
+// as int/unsigned short, and the bit index through a local; for (c) the frame
+// fields through an inline accessor, width/height in locals, a `losTable`
+// local, the LOD clamp with braces, the LOD clamp written out with no helper,
+// and the else branch wrapped in a bare block.
+
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -178,11 +241,15 @@ inline int Lod_00481930(Params_00481930* params)
 void __stdcall FUN_00481930(Params_00481930* params)
 {
     int changed = 0;
+    int x, y;
+    int limitX, limitY, nx, ny;
+    Frame_00481930* frame;
+    int i, stride, off;
     unsigned int bit = 1 << params->field_0->field_146;
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
-    int x = params->field_4[0];
-    int y = params->field_4[1];
+    x = params->field_4[0];
+    y = params->field_4[1];
     if (g_game->flag2 == 1) {
         Grid_00481930* grid = &g_game->grid1;
         if ((unsigned)x < grid->width && (unsigned)y < grid->height) {
@@ -204,10 +271,12 @@ void __stdcall FUN_00481930(Params_00481930* params)
                 void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
                 short num = ((Class_004339c0*)line)->FUN_004339c0();
                 int bestIdx = 0;
-                int j1 = 1;
+                int j1;
                 int bestDiff = -1;
-                {
-                    for (short j = 0; (short)j < (short)num; j++) {
+                short j = 0;
+                if ((short)num > 0) {
+                    j1 = 1;
+                    do {
                         int y2, x2;
                         ((Class_004339e0*)line)->FUN_004339e0((short)j, (unsigned short*)&x2, (unsigned short*)&y2);
                         x2 += x;
@@ -231,8 +300,9 @@ void __stdcall FUN_00481930(Params_00481930* params)
                                 }
                             }
                         }
+                        j++;
                         j1++;
-                    }
+                    } while ((short)j < (short)num);
                 }
             }
         }
@@ -242,16 +312,16 @@ void __stdcall FUN_00481930(Params_00481930* params)
             lod = 0;
         else if (lod >= g_game->losTable->count)
             lod = g_game->losTable->count - 1;
-        Frame_00481930* frame = FUN_004b7f30(g_game->losTable, lod);
-        int limitX = (x + frame->width < halfW) ? frame->width : halfW - x;
-        int limitY = (y + frame->height >= halfH) ? halfH - y : frame->height;
-        int nx = x < 0 ? -x : 0;
-        int ny = y < 0 ? -y : 0;
+        frame = FUN_004b7f30(g_game->losTable, lod);
+        limitX = (x + frame->width < halfW) ? frame->width : halfW - x;
+        limitY = (y + frame->height >= halfH) ? halfH - y : frame->height;
+        nx = x < 0 ? -x : 0;
+        ny = y < 0 ? -y : 0;
         changed = 0;
-        int i = ny;
+        i = ny;
         if (i < limitY) {
-            int stride = halfW * 2;
-            int off = ((y + ny) * halfW + nx + x) * 2;
+            stride = halfW * 2;
+            off = ((y + ny) * halfW + nx + x) * 2;
             do {
                 unsigned char* src = frame->data + i * frame->width + nx;
                 unsigned short* dst =

@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 pass 4 (deepseek-v4.1-flash): new best 57.2 (979 vs 1105). The two tail viewFlags lanes used
+// to re-derive their bits inline from the 16-bit `fl`; naming them right before the lanes as
+// `unsigned char v0 = fl & 1;` and `unsigned char v1 = (fl >> 1) & 1;` lifts 55.0 -> 57.2 (962 -> 979
+// bytes): lane 2 now loads the saved dword and emits `and eax,1; shl eax,1; and edx,0xfffd; or edx,eax`
+// with `lea edx,[esi+esi]` for the shift, like the original. Rejected: the maskless spelling
+// (`v1 = (unsigned char)(fl >> 1)`) scores 57.3 but widens the OR into bits 2..7 of viewFlags, which the
+// original's `and eax,1` does not do; `int` versions of v0/v1 score 55.2/55.3.
+// Structural gap unchanged: the Class_004cb940 loop-tail call is still missing (scratch v1/v2 carry it
+// but score 41.3/40.5 because their new locals grow the frame 0x1b0 -> 0x1bc).
 // 2026-10-01 pass (deepseek-v4.1-flash): no change, re-confirmed 55.0 (962 vs 1105 bytes).
 // 2026-10-01 pass 3 (deepseek-v4.1-flash): corrected the frame map (see below); the
 // best file is still this one at 55.0. build/scratch/0x495a30/v1.cpp and v2.cpp have
@@ -308,10 +317,12 @@ void __stdcall FUN_00495a30(char* dir, char* name, int x, int y, int w, int h)
         (unsigned short)((g_game->field_37f2f & ~0x40) | (savedB << 6));
     g_game->field_37f27 = savedC;
     FUN_0041c4c0(scrollX, scrollY, 0);
+    unsigned char v0 = fl & 1;
+    unsigned char v1 = (fl >> 1) & 1;
     g_game->viewFlags =
-        (unsigned short)(((g_game->viewFlags ^ (fl & 1)) & 1) ^ g_game->viewFlags);
+        (unsigned short)(((g_game->viewFlags ^ v0) & 1) ^ g_game->viewFlags);
     g_game->viewFlags =
-        (unsigned short)((g_game->viewFlags & ~2) | (((fl >> 1) & 1) << 1));
+        (unsigned short)((g_game->viewFlags & ~2) | (v1 << 1));
     FUN_004816a0(1);
     FUN_0048bae0();
     FUN_00468cf0(1, 1);

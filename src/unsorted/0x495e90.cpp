@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 pass 2 (deepseek-v4.1-flash): the whole 79.6 residue is one 1-byte cascade. Case 0xd7 is
+// the only size delta this side of the dispatch: ours emits 6-byte `mov esi,[g_game]` where the original
+// has the 5-byte moffs `mov eax,[g_game]`, so every later jump target (0x4965ce/0x4965e6) is +1 and the
+// diff shows hundreds of shifted lines. Probed this pass: decl-hoisted/assign-inside (`int old;` at the
+// case top, `old = g_game->field_38c53;` inside the guard) is byte-identical to the fully-inside form
+// (75.9, 2288 bytes), `unsigned int old` and `(int)` cast spellings are flat at 79.6, and `b1 != 0`
+// regresses to 75.8. In the inside form ours mirrors the original exactly except for the register pair:
+// ours is ptr ECX / byte AL / old EAX, original is ptr EAX / byte CL / old ECX, so the byte temp and the
+// pointer register are the tie, not the statement order.
 // 2026-10-01 pass (deepseek-v4.1-flash): re-confirmed 79.6 (2292 vs 2292 bytes). Only two
 // real deltas left: case 0xd7 is 1 byte overlong (6-byte `mov esi,[g_game]` where the
 // original has the 5-byte EAX moffs), which shifts every tail jump target by 1, and the

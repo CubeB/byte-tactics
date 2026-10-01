@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
+// 2026-10-01 pass 3 (deepseek-v4.1-flash): re-confirmed 82.8 (2846 vs 2797). The whole 49-byte overage
+// sits before 0x497b30; the head hunks are `mov edi,1` (ours `mov edx,1`) for the `int one = 1;` local
+// plus `mov dx,[eax+0x37eec]` (ours `cx`) and the byte-wise `and bl,imm; movzx si,bl` lane masks where
+// the original masks 32-bit in EBX against the EDI-held 1. All of these are the same allocator state
+// already documented below; no new lever found.
 // 2026-10-01 pass 2 (deepseek-v4.1-flash, 10 min timebox, 1 scored variant): re-confirmed
 // 82.8 (2846 vs 2797). Tried one untried lane respelling: hoisting a per-lane
 // `unsigned short v = *(unsigned short*)(g_game + 0x14281);` temp in the three case-3

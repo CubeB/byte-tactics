@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// GPT-6.1-sol retry: restored and rechecked the saved best at 96.2% (1149/1152). Two probes scored lower: keeping a Unit* subject alias live through the shared tail fell to 77.2%; casting both tail arguments through the target's order field fell to 92.2%. Still unmatched: the 3-byte shared-tail reload/register schedule.
 // deepseek-v4.1 pass (round 7): still 96.2% (1149 vs 1152), the shared tail is the
 // only difference and it is still down to one missing load, not to size. New probes:
 // the double `mov ecx,[edx+0x5c]; mov edx,[edx+0x5c]` idiom exists exactly twice in

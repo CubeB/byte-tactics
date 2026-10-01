@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**70.11% of Cavedog's code matched** (596,549 of 850,853 bytes)
+**70.28% of Cavedog's code matched** (597,986 of 850,853 bytes)
 
 `[############################------------]`
 
-By count that is 3,042 of the game's 3,267 functions (93.1%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,045 of the game's 3,267 functions (93.2%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,042 | 596,549 |
-| Attempted, not yet matching | 225 | 254,304 |
+| Matched byte-for-byte | 3,045 | 597,986 |
+| Attempted, not yet matching | 222 | 252,867 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -36,9 +36,9 @@ The size bands are the `size:` labels on the issues.
 | --- | ---: | ---: | ---: | --- |
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 821 of 827 | 99.2% | 676 | `##########` |
-| large (161 to 400 bytes) | 661 of 703 | 93.4% | 11,819 | `#########-` |
-| xl (401 to 600 bytes) | 193 of 226 | 84.7% | 16,847 | `########--` |
-| xxl (601 to 1,000 bytes) | 139 of 195 | 70.9% | 42,695 | `#######---` |
+| large (161 to 400 bytes) | 662 of 703 | 93.5% | 11,658 | `#########-` |
+| xl (401 to 600 bytes) | 194 of 226 | 85.2% | 16,270 | `#########-` |
+| xxl (601 to 1,000 bytes) | 140 of 195 | 71.4% | 41,996 | `#######---` |
 | huge (over 1,000 bytes) | 73 of 161 | 37.6% | 182,267 | `####------` |
 
 ### By area
@@ -59,8 +59,8 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x470000` | Campaign and skirmish screens, resource bars | 233 of 259 | 71.2% | 18,300 | `#######---` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 246 of 264 | 75.5% | 15,595 | `########--` |
 | `0x490000` | Config and registry, skirmish summary | 175 of 193 | 59.9% | 23,831 | `######----` |
-| `0x4a0000` | GUI layout and GAF | 182 of 201 | 57.3% | 27,425 | `######----` |
-| `0x4b0000` | UI controls and file packages | 294 of 314 | 81.5% | 11,409 | `########--` |
+| `0x4a0000` | GUI layout and GAF | 183 of 201 | 57.5% | 27,264 | `######----` |
+| `0x4b0000` | UI controls and file packages | 296 of 314 | 83.6% | 10,133 | `########--` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 281 of 298 | 80.5% | 10,549 | `########--` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 183 of 197 | 72.1% | 10,490 | `#######---` |
 | `0x4e0000` | Process exit, psapi | 92 of 93 | 93.2% | 801 | `#########-` |

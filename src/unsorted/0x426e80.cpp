@@ -1,4 +1,62 @@
-// Still differs (50.9%, 6422 bytes vs the original's 6310). Retry session note:, finished by deepseek-v4.1-flash
+// Decompiled by longcat-2.5-preview-free, edited and finished by deepseek-v4.1-flash. Names are provisional.
+// Best 81.9% (6310 of 6310 bytes, exact size). What still differs:
+//  - Block layout and tail-merge grouping. The exe merges the 0x9b call tails
+//    into two groups (0x4275f2 with the pushes inside the tail for case 8/9's
+//    cases, 0x427f88 with per-caller pushes for case 2's cases plus the 0x5b3
+//    call) and keeps three copies of the `g_game[0x2bbf]=bl; [0x2bc0]=bl; ret`
+//    stores tail (0x427603 edx/eax, 0x427f8f ecx/edx, 0x428418 eax/ecx). Ours
+//    groups differently and the block addresses drift, so every jump table
+//    entry (0x42859c, 0x4285f0, ...) still differs: that is most of the
+//    remaining diff. The store-tail rotations follow the reload register
+//    handed out after each call (MSVC hands scratch registers out in
+//    rotation; ours is one step off the exe's from case 2's inner `case 6`
+//    reload onwards, e.g. `mov edx,[g_game]` where the exe has
+//    `mov eax,[g_game]`). Throwaway loads in a scratch copy did not shift it.
+//  - Case 21's unit loop addressing: the exe is `cmp [ecx+esi+0x1b63],ebx`
+//    (base g_game, index i) and ours `cmp [esi+ecx+0x1b63],ebx` (base i,
+//    index g_game). Standalone reproductions of the loop give base=i for every
+//    operand spelling tested, so the exe's base choice comes from the
+//    surrounding function. This is the same unfixable SIB swap noted at
+//    0x441460.
+//  - Case 20's `if (bf->b1)` bit test: the exe uses `mov dl,[m]; shr dl,1;
+//    test dl,1` and ours `mov cl,...` (scratch register choice).
+//
+// What fixed most of the score this session (50.9 -> 81.9):
+//  - The live ebp and the `mov $0x10,%ebx` constant promotions all came from
+//    one root cause: MSVC value-numbers equal constants, and once a constant
+//    has two uses in one basic block (case 2's inner 0 had `|= 0x10` and
+//    `= 0x10`) it materialises it in a register and CSEs that register into
+//    every later block using the same constant. The memcmp chains then hoisted
+//    0x10 into ebx, which forced the first cmpsb's zero into ebp (push ebp in
+//    all 20 epilogues). Writing the flag words as 1-bit unsigned short
+//    bitfields (Bits_00426e80) makes their masks codegen constants, so the
+//    promotion disappears. Probe files: build/scratch/0x426e80/v5.cpp, v6.cpp.
+//    Bitfield forms also give the wanted codegen: `or byte [m],K` for a set,
+//    `and word [m],~K` for a clear, and `mov reg,[m]; shr; test` for a
+//    standalone `if (bf)`.
+//  - Case 10 and case 20 dispatch as `switch` (the exe's `dec ecx; je` /
+//    `sub ecx,2; jne` chains), not if/else.
+//  - The FUN_004256d0(0x55d/0x55e) and FUN_00450d80 branch polarity: the exe
+//    lays the `!= 0` arm out first (`jne` to the other arm).
+//  - The 0x2ba2 GUID copy is a struct assignment
+//    (`*(V4i*)(g_game + 0x2ba2) = DAT_004fdaf0;` with DAT_004fdaf0 declared
+//    V4i), which gives the interleaved dword load/store and the
+//    `add edx,0x2ba2` base fold.
+//  - The DAT_00511fb8 checks are `strlen(DAT_00511fb8) != 0` (the
+//    `repne scasb` idiom), and the FUN_004abd90 message calls nest
+//    FUN_004a5030 inside the argument list so the 1,1 pushes are hoisted.
+//  - FUN_00451220's first parameter is unsigned char (0x451220.cpp) and
+//    g_game[0x2a42] is zero-extended with `(unsigned char)` wherever it feeds
+//    an int (the exe's `xor edx,edx; mov dl,[eax+0x2a42]` idiom).
+//  - Case body order inside the inner switches follows the exe's emission
+//    order: case 2's inner 0,6,5,7,9,8,1; case 7's inner 0,1,10,11,13,3,14;
+//    case 8's inner 15,16,3,1; case 15's inner 0,13,2,3,1.
+//  - `goto tail7` (a shared `g_game[0x2bbe]=7; FUN_004256d0(0x9b,...); ...`
+//    block at the end of the function) merges the 0x421/0x516/0x4b1 calls the
+//    way the exe's 0x427762 does, and brings the size to exactly 6310.
+//    A blanket `goto tailStores` for every 0x9b tail is much worse (64.8%).
+//
+// Older notes (previous sessions):
 //  - the four missing bodies were added; after the outer 0x10 dispatch the exe
 //    emits its inner cases in the order 0,1,17,19,18,20,21,3, so 17 is the
 //    FUN_00451540 body (0x427eaf), 18 is the FUN_004517b0 body (0x427f4c), 19
@@ -11,126 +69,19 @@
 //    Class_00463c60::FUN_00463c60 loop over the 0x14b players (0x428439) and
 //    case 3 is that FUN_004c9f90 group (0x428478), whose tail shares 0x42857f
 //    where the exe pushes ebx (0x11 in this switch, 0 in the 0x10 case-21).
-//    Adding all four moved 50.5 to 50.9 and 5769 to 6422 bytes.
-//  - the live ebp is still there. The exe's memcmp chain is
-//    `mov ecx,0x10 / mov edi,DAT / xor ebx,ebx / lea eax,[edx+0x39201] /
-//    mov esi,eax / repe cmpsb / je body / mov esi,eax / mov ecx,0x10 /
-//    mov edi,DAT2 / xor eax,eax / repe cmpsb / jne skip`, i.e. it reloads the
-//    length and spends ebx and eax on the two compare results. Splitting the
-//    `||` into `if/else if` with the body twice does remove ebp and match the
-//    prologue, but the duplicated body costs 96 bytes and the checker's metric
-//    drops 50.9 to 50.7 (build/scratch/0x426e80, 6518 bytes), so the fused
-//    `||` spelling stays here.
-//  - our object is 112 bytes longer than the original even with all bodies
-//    present, so something in the new bodies is still spelled larger than the
-//    original (likely the shared tails the exe merges, e.g. 0x42857f/0x428418).
-//  - why ebp is needed: at the fused chain the compiler holds the source
-//    pointer in eax, g_game in edx, the hoisted 0x10 in ebx and esi/edi for
-//    cmpsb, so the second compare's zero result needs a sixth register. The
-//    exe instead reloads ecx with 0x10 per compare and spends ebx and eax on
-//    the two compare results. Respelling the chain as
-//    `if (memcmp(p,D1,0x10) != 0) { if (memcmp(p,D2,0x10) != 0) goto after; }`
-//    (or with a `char* p` local, or inline) is byte-identical to the `||`
-//    spelling: still ebp, still 6422. Only duplicating the body in an
-//    `else if` drops ebp, and that costs more than it gains.
-// Retry #4261 (deepseek-v4.1-flash) new evidence, nothing changed the score:
-//  - the sole ebp use is confirmed as the `xor ebp,ebp` at object offset 0xf1c
-//    inside the case-16 memcmp chain (objdump: `xor %ebp,%ebp` immediately
-//    before the two `repz cmpsb`), so all 20 epilogues pop ebp and every later
-//    offset is +4. The exe's chain instead reloads `mov ecx,0x10` per compare
-//    and spends ebx and eax on the two compare results. Our build already keeps
-//    the function-wide zero in ebx (case 0 emits `xor ebx,ebx` + `push ebx`),
-//    it simply has ebx free in this block, so the length constant gets hoisted.
-//  - the zero-register respelling is byte-neutral here: replacing every
-//    `g_game[0x2bbe/0x2bbf/0x2bc0] = 0;` (29 sites each) with one shared
-//    `unsigned char sv = 0;`, plus `sv = 0x11;` at the case-16 key path,
-//    compiles byte-identically (6422 bytes, 50.9%), i.e. our build already has
-//    that constant-in-register behaviour and the exe's shared two-store tail at
-//    0x427f8f is not blocked by the store spelling. A version that also gave
-//    sv the goto tail (`sv = 0x11; goto tail;`) put sv in a stack slot
-//    ([esp+0x13], frame 0x104) and dropped to 49.8% (6694 bytes), so the
-//    variable only earns a register when it is spelled at many sites.
-//  - exe 0x4282d0 materializes the outer-0x11 switch bound in ebx
-//    (`mov ebx,0x11; cmp ecx,ebx`) and reuses it: `push ebx` at 0x428589 (our
-//    case-3 tail, written FUN_004257e0(0x11, 0x9b, ...)) and at 0x42844c (the
-//    0x463c60 loop's 0 argument, which is a fresh `xor ebx,ebx` there); ours
-//    pushes immediates at both, 1 byte each.
-// Decompiled by longcat-2.5-preview-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// Older notes (previous sessions):
-//  - case 16's compare chain respelled as one `if (memcmp(a,STR1,0x10) == 0 ||
-//    memcmp(a,STR2,0x10) == 0) { ... }` (single shared body, not `if/else if`
-//    with the body twice) grows 50.2 to 50.5 and shrinks 5821 to 5761 bytes,
-//    and it matches the original's control flow (compare1's `je` jumps straight
-//    to the shared body, compare2 sits on the not-equal path).
-//  - the inner-switch bound mismatch (ours `cmp ecx,0x14`, exe `cmp ecx,0x15`,
-//    21 vs 22 table entries) cannot be fixed by an empty `case 21: break;`:
-//    VC5 folds an empty case into the default and the build stays byte-identical
-//    at 5761 bytes / 50.5, so the 22nd entry needs the real 0x4280b9 body.
-//  - the case-16 chain still hoists the length constant (`mov ebx,0x10` /
-//    `mov ecx,ebx` twice) where the exe reloads `mov ecx,0x10` twice, and that
-//    is what keeps ebp alive as the second zero register (`xor ebp,ebp`,
-//    `push ebp`/`pop ebp` in every epilogue) even after the `||` respelling.
 //  - the mode check must read `mode != g_game[0x2bbf]` (mode on the left) so
-//    MSVC emits the original `cmp bl, cl` at 0x426e98; the reversed spelling
-//    cost one mismatched line, 50.1 -> 50.2.
-//  - the case-0 0xf0 flag test: `((p[0xf0] >> 1) & 1)` folds to
-//    `test byte ptr [esi+0xf0], 2` no matter the spelling, including via a
-//    named `unsigned char fl = p[0xf0];` local (byte-neutral, reverted), so
-//    the original `mov dl, [esi+0xf0]; shr dl, 1; test dl, 1` needs the value
-//    kept live for another use the source does not model yet. Shift-into-local
-//    (`unsigned char fl = (unsigned char)(p[0xf0] >> 1); if (fl & 1)`) is also
-//    byte-neutral: it folds back to the same `test byte ptr [esi+0xf0], 2`.
+//    MSVC emits the original `cmp bl, cl` at 0x426e98.
+//  - case 16's compare chain is one `if (memcmp(a,STR1,0x10) == 0 ||
+//    memcmp(a,STR2,0x10) == 0) { ... }` (single shared body), which matches the
+//    original's control flow (compare1's `je` jumps straight to the shared
+//    body).
+//  - every sprintf(local_100, DAT_00502f9c, <line>) needs its 4th argument:
+//    DAT_00502f9c is "Code segment checksum error found when switching FE
+//    states. \nState change called from [line %d, file %s]", so the original
+//    pushes the line and then DAT_00503004 and cleans 0x10.
 //  - the outer case bodies must be laid out in the exe's order, which the jump
-//    table at 0x42859c reveals: 0, 2, 1, 3, 4, 5, 7, 10, 8, 9, 11..14, 15, 20, 16,
-//    17 (case 2 sits between case 0 and case 1, and 10 comes before 8).
-//    Reordering the C cases that way gained 0.9%.
-//  - every sprintf(local_100, DAT_00502f9c, <line>) was missing its 4th argument:
-//    DAT_00502f9c is "Code segment checksum error found when switching FE states.
-//    \nState change called from [line %d, file %s]", so the original pushes the
-//    line and then DAT_00503004 and cleans 0x10.
-//  - the inner switch values are still wrong in places. The exe's byte index
-//    tables give the true case values: outer 0x10 (16) dispatches 0x2bbf through
-//    byte table 0x4286e8 (22 entries; values 0,1,3,17,18,19,20,21 map to
-//    0x427d44,0x427e45,0x42825c,0x427eaf,0x427f4c,0x427f25,0x428094,0x4280b9,
-//    everything else to the epilogue) and outer 0x11 (17) through byte table
-//    0x428714 (18 entries; values 0,1,3,17 map to 0x4282f2,0x42837f,0x428478,
-//    0x428439). Ours still lacks the case 21 body of 0x10 (0x4280b9: the unit
-//    +0x4e5 lookup that toggles the 0x97 word, then 0x2b4c, FUN_00435a20 on
-//    g_game+0x2ab1, the 0xcee unit loop and the 0x5ea message) and the case 3 and
-//    case 17 bodies of 0x11. Adding the 0x11 bodies is verified correct against
-//    the disassembly (0x428478 is the FUN_004c9f90/FUN_00461020 group, 0x428439
-//    the 10-iteration loop over units calling Class_00463c60::FUN_00463c60) but it
-//    scores 1.3% lower in the difflib metric, so it is kept in
-//    build/scratch/0x426e80/v475r.cpp instead of here.
-//  - retried #4162: renumbering the 0x10 inner switch so `case 18` becomes
-//    `case 17` and splitting `case 19` into a fallthrough into `case 18`
-//    (exe layout 0x427eaf value 17, 0x427f25 value 19 falling into 0x427f4c
-//    value 18) scores 49.3% (5725 bytes, down from 50.5/5761), so the difflib
-//    metric prefers the fused case 19 here; reverted. The exe's source order
-//    for this switch is 0, 1, 17, 19, 18, 20, 21, 3 by address, and the 4-call
-//    FUN_004c69a0/FUN_004c2470/FUN_004c2870/FUN_004c63a0 group that sits dead in
-//    our case-19 tail and after case 20 is probably one of the two missing
-//    bodies (17 or 21).
-//  - retried #4162: moving case 3 of the 0x10 inner switch to the end of the
-//    switch (exe emits it last, at 0x42825c, right before the 0x11 dispatch at
-//    0x4282ce) is score-neutral (50.5, 5769 bytes vs 5761); kept because it
-//    matches the exe's emission order. Still open: case 17 and case 21 bodies of
-//    the 0x10 switch, cases 3 and 17 of the 0x11 switch, and the live ebp.
-//  - retried #4162: the diff's FIRST divergence is the prologue, as the old
-//    note said: the exe emits `push ebx / mov bl,[eax+0x2bc0] / push esi /
-//    cmp bl,cl / push edi / je 0x426ec9` while ours inserts `push ebp` before
-//    `push esi`, shifting every later offset by one. Our object has exactly one
-//    ebp use, the `xor ebp,ebp` inside the case-16 memcmp chain (object offset
-//    0xf2e, dead afterwards), so fixing that chain is the one change that would
-//    drop the register and realign all 5769 bytes. Second divergence: the exe
-//    does `mov dl,[esi+0xf0] / shr dl,1 / test dl,1 / je` (case 0) where ours
-//    folds to `test byte ptr [esi+0xf0],2`, so the original keeps the shifted
-//    byte in dl for a use we have not modelled. Deleting the dead 4-call blocks
-//    after the two `return;`s is byte- and score-neutral (MSVC drops unreachable
-//    statements), so it was kept as cleanup.
-//  - push ebp is still live in ours: the original uses only ebx/esi/edi, so the
-//    extra callee-saved register is real evidence of a wrong local in one of the
-//    0x2a42-scaled 0x1b8a/0x1b67 lookups.
+//    table at 0x42859c reveals: 0, 2, 1, 3, 4, 5, 7, 10, 8, 9, 11..14, 15, 20,
+//    16, 17 (case 2 sits between case 0 and case 1, and 10 comes before 8).
 #include <string.h>
 #include <stdio.h>
 
@@ -177,16 +128,40 @@ extern char DAT_004fcdb8[];
 extern char DAT_004fcda8[];
 
 // GLOBAL: 0x4fdaf0
-extern int DAT_004fdaf0;
+struct V4i { int a; int b; int c; int d; };
+extern V4i DAT_004fdaf0;
 
-// GLOBAL: 0x4fdaf4
-extern int DAT_004fdaf4;
+// The flag words in g_game (0x2a44, 0x2aaf, 0x2bee, 0x2b4c) are 16-bit
+// bitfields: setting a bit is a straight `or byte [m], mask`, clearing one is
+// `and word [m], ~mask`, and a standalone `if (bit)` is a `shr/test` pair.
+struct Bits_00426e80 {
+    unsigned short b0 : 1;
+    unsigned short b1 : 1;
+    unsigned short b2 : 1;
+    unsigned short b3 : 1;
+    unsigned short b4 : 1;
+    unsigned short : 11;
+};
 
-// GLOBAL: 0x4fdaf8
-extern int DAT_004fdaf8;
+// The object returned by FUN_004b6220: its +0xf0 byte holds two 1-bit flags.
+struct Obj_00426e80 {
+    char unknown_0[0xf0];
+    unsigned short bit0 : 1;
+    unsigned short flag : 1;           // +0xf0, mask 2
+};
 
-// GLOBAL: 0x4fdafc
-extern int DAT_004fdafc;
+// The 0xb9-byte player data block pointed at by g_game+0x1b8a+0x14b*n.
+#pragma pack(push, 1)
+struct Pd_00426e80 {
+    char unknown_0[0x97];
+    unsigned short ready : 1;          // +0x97
+    unsigned short rest_97 : 15;       // +0x97
+    char unknown_99[2];                // +0x99
+    unsigned short : 6;                // +0x9b
+    unsigned short b6 : 1;             // +0x9b, mask 0x40
+    unsigned short : 9;
+};
+#pragma pack(pop)
 
 // Callees
 void __stdcall FUN_004256d0(int line, char* file);
@@ -201,8 +176,7 @@ void __stdcall FUN_00478240(int param);
 void __stdcall FUN_00490b30(int param);
 void __stdcall FUN_0041d9f0(int param);
 int __stdcall FUN_00443ff0(int param);
-int __stdcall FUN_00451220(int param1, int param2);
-struct V4i { int a; int b; int c; int d; };
+int __stdcall FUN_00451220(unsigned char playerIndex, int param2);
 int __stdcall FUN_004517b0(V4i v, int idx);
 int __stdcall FUN_004a5030(char* param);
 void __stdcall FUN_00450a10(int param);
@@ -216,7 +190,7 @@ void __stdcall FUN_004ab0a0(int param);
 void __stdcall FUN_004c9f90(int param);
 void __stdcall FUN_00461020(int param1, int param2);
 void __stdcall FUN_004c1ab0(void);
-unsigned char* __stdcall FUN_004b6220(void);
+Obj_00426e80* __stdcall FUN_004b6220(void);
 void __stdcall FUN_004263b0(void);
 void __stdcall FUN_00430f00(void);
 int __stdcall FUN_00457710(void);
@@ -269,9 +243,9 @@ void __stdcall FUN_00426e80(void)
     switch ((unsigned char)g_game[0x2bbe]) {
     case 0:
     {
-        unsigned char* p = (unsigned char*)FUN_004b6220();
+        Obj_00426e80* p = FUN_004b6220();
         FUN_004c22d0(0);
-        if (((p[0xf0] >> 1) & 1) != 0) {
+        if (p->flag) {
             if (*(int*)(g_game + 0x3923d) != 0) {
                 FUN_00426780(DAT_0050329c);
                 FUN_004256d0(0x3dc, DAT_00503004);
@@ -304,8 +278,8 @@ void __stdcall FUN_00426e80(void)
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
             if (FUN_00457710()) {
-                g_game[0x2a44] |= 1;
-                g_game[0x2bee] |= 0x10;
+                ((Bits_00426e80*)(g_game + 0x2a44))->b0 = 1;
+                ((Bits_00426e80*)(g_game + 0x2bee))->b4 = 1;
                 FUN_004256d0(0x403, DAT_00503004);
                 g_game[0x2bbe] = 0x10;
                 FUN_004256d0(0x9b, DAT_00503004);
@@ -318,40 +292,43 @@ void __stdcall FUN_00426e80(void)
                 return;
             }
             FUN_00434ab0(0);
-            *(unsigned short*)(g_game + 0x2bee) &= 0xffef;
+            ((Bits_00426e80*)(g_game + 0x2bee))->b4 = 0;
             FUN_004263b0();
-            if (DAT_00512c80 != 0) {
-                FUN_004256d0(0x40f, DAT_00503004);
-                g_game[0x2bbf] = 6;
-                g_game[0x2bc0] = 6;
+            if (DAT_00512c80 == 0) {
+                FUN_004256d0(0x40d, DAT_00503004);
+                g_game[0x2bbf] = 1;
+                g_game[0x2bc0] = 1;
                 FUN_004c22d0(1);
                 return;
             }
-            FUN_004256d0(0x40d, DAT_00503004);
-            g_game[0x2bbf] = 1;
-            g_game[0x2bc0] = 1;
+            FUN_004256d0(0x40f, DAT_00503004);
+            g_game[0x2bbf] = 6;
+            g_game[0x2bc0] = 6;
             FUN_004c22d0(1);
             return;
-        case 1:
-            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-            FUN_004c2470();
-            FUN_004c2870();
-            FUN_004c63a0();
-            return;
-        case 5:
-            g_game[0x2a44] |= 8;
-            FUN_004256d0(0x421, DAT_00503004);
-            g_game[0x2bbe] = 7;
-            break;
         case 6:
             FUN_00434ab0(3);
-            *(unsigned short*)(g_game + 0x2a44) &= 0xfff7;
+            ((Bits_00426e80*)(g_game + 0x2a44))->b3 = 0;
             FUN_004256d0(0x41c, DAT_00503004);
             g_game[0x2bbe] = 0xf;
-            break;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            return;
+        case 5:
+            ((Bits_00426e80*)(g_game + 0x2a44))->b3 = 1;
+            FUN_004256d0(0x421, DAT_00503004);
+            goto tail7;
         case 7:
             FUN_004256d0(0x425, DAT_00503004);
             g_game[0x2bbe] = 0;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            return;
+        case 9:
+            FUN_004256d0(0x429, DAT_00503004);
+            g_game[0x2bbe] = 3;
             FUN_004256d0(0x9b, DAT_00503004);
             g_game[0x2bbf] = 0;
             g_game[0x2bc0] = 0;
@@ -362,14 +339,13 @@ void __stdcall FUN_00426e80(void)
             FUN_004c63a0();
             FUN_004b6230(0);
             return;
-        case 9:
-            FUN_004256d0(0x429, DAT_00503004);
-            g_game[0x2bbe] = 3;
-            break;
+        case 1:
+            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
+            FUN_004c2470();
+            FUN_004c2870();
+            FUN_004c63a0();
+            return;
         }
-        FUN_004256d0(0x9b, DAT_00503004);
-        g_game[0x2bbf] = 0;
-        g_game[0x2bc0] = 0;
         return;
 
     case 1:
@@ -400,7 +376,7 @@ void __stdcall FUN_00426e80(void)
         case 1:
             FUN_00426780(DAT_00503284);
             FUN_00426780(DAT_0050328c);
-            *(unsigned short*)(g_game + 0x2a44) &= 0xfffb;
+            ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 0;
             FUN_004256d0(0x44a, DAT_00503004);
             g_game[0x2bbe] = 2;
             FUN_004256d0(0x9b, DAT_00503004);
@@ -421,7 +397,7 @@ void __stdcall FUN_00426e80(void)
         case 1:
             FUN_00426780(DAT_0050327c);
             FUN_00426780(DAT_0050328c);
-            *(unsigned short*)(g_game + 0x2a44) &= 0xfffb;
+            ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 0;
             FUN_004256d0(0x45b, DAT_00503004);
             g_game[0x2bbe] = 2;
             FUN_004256d0(0x9b, DAT_00503004);
@@ -448,13 +424,6 @@ void __stdcall FUN_00426e80(void)
             FUN_004c2870();
             FUN_004c63a0();
             return;
-        case 3:
-            FUN_004256d0(0x49d, DAT_00503004);
-            g_game[0x2bbe] = 2;
-            FUN_004256d0(0x9b, DAT_00503004);
-            g_game[0x2bbf] = 0;
-            g_game[0x2bc0] = 0;
-            return;
         case 10:
             FUN_00478240(1);
             FUN_004256d0(0x485, DAT_00503004);
@@ -462,7 +431,10 @@ void __stdcall FUN_00426e80(void)
             FUN_004256d0(0x9b, DAT_00503004);
             g_game[0x2bbf] = 0;
             g_game[0x2bc0] = 0;
-            break;
+            FUN_004256d0(0x486, DAT_00503004);
+            g_game[0x2bbf] = 1;
+            g_game[0x2bc0] = 1;
+            return;
         case 11:
             FUN_0042f9a0();
             FUN_00434ab0(2);
@@ -483,6 +455,13 @@ void __stdcall FUN_00426e80(void)
             g_game[0x2bbf] = 1;
             g_game[0x2bc0] = 1;
             return;
+        case 3:
+            FUN_004256d0(0x49d, DAT_00503004);
+            g_game[0x2bbe] = 2;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            return;
         case 14:
             FUN_00478240(1);
             FUN_004256d0(0x4a2, DAT_00503004);
@@ -490,30 +469,14 @@ void __stdcall FUN_00426e80(void)
             FUN_004256d0(0x9b, DAT_00503004);
             g_game[0x2bbf] = 0;
             g_game[0x2bc0] = 0;
-            break;
-        }
-        FUN_004256d0(0x9b, DAT_00503004);
-        g_game[0x2bbf] = 1;
-        g_game[0x2bc0] = 1;
-        return;
-
-    case 10:
-        if (g_game[0x2bbf] == 1) {
-            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-            FUN_004c2470();
-            FUN_004c2870();
-            FUN_004c63a0();
+            FUN_004256d0(0x4a3, DAT_00503004);
+            g_game[0x2bbf] = 1;
+            g_game[0x2bc0] = 1;
             return;
-        }
-        if (g_game[0x2bbf] == 3) {
-            FUN_004256d0(0x4b1, DAT_00503004);
-            g_game[0x2bbe] = 7;
-            break;
         }
         break;
 
-    case 8:
-        FUN_004c1ab0();
+    case 10:
         switch ((unsigned char)g_game[0x2bbf]) {
         case 1:
             FUN_004c69a0(*(int*)(g_game + 0x37e1b));
@@ -522,23 +485,48 @@ void __stdcall FUN_00426e80(void)
             FUN_004c63a0();
             return;
         case 3:
-            FUN_004256d0(0x4cb, DAT_00503004);
+            FUN_004256d0(0x4b1, DAT_00503004);
             g_game[0x2bbe] = 7;
-            break;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            return;
+        }
+        break;
+
+    case 8:
+        FUN_004c1ab0();
+        switch ((unsigned char)g_game[0x2bbf]) {
         case 15:
             FUN_00434ab0(1);
             FUN_004256d0(0x4c2, DAT_00503004);
             g_game[0x2bbe] = 0xb;
-            break;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            return;
         case 16:
             FUN_00434ab0(1);
             FUN_004256d0(0x4c7, DAT_00503004);
             g_game[0x2bbe] = 0xc;
-            break;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            return;
+        case 3:
+            FUN_004256d0(0x4cb, DAT_00503004);
+            g_game[0x2bbe] = 7;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            return;
+        case 1:
+            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
+            FUN_004c2470();
+            FUN_004c2870();
+            FUN_004c63a0();
+            return;
         }
-        FUN_004256d0(0x9b, DAT_00503004);
-        g_game[0x2bbf] = 0;
-        g_game[0x2bc0] = 0;
         return;
 
     case 9:
@@ -557,7 +545,7 @@ void __stdcall FUN_00426e80(void)
             FUN_004c63a0();
             return;
         case 2:
-            g_game[0x2a44] |= 4;
+            ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 1;
             return;
         case 3:
             FUN_004256d0(0x4e5, DAT_00503004);
@@ -588,7 +576,7 @@ void __stdcall FUN_00426e80(void)
             FUN_004c63a0();
             return;
         case 2:
-            g_game[0x2a44] |= 4;
+            ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 1;
             return;
         case 3:
             switch ((unsigned char)g_game[0x2bbe]) {
@@ -610,7 +598,10 @@ void __stdcall FUN_00426e80(void)
                 FUN_004256d0(0x9b, DAT_00503004);
                 g_game[0x2bbf] = 0;
                 g_game[0x2bc0] = 0;
-                break;
+                FUN_004256d0(0x50b, DAT_00503004);
+                g_game[0x2bbf] = 1;
+                g_game[0x2bc0] = 1;
+                return;
             case 0xd:
                 FUN_004c2470();
                 FUN_0041f630();
@@ -620,12 +611,10 @@ void __stdcall FUN_00426e80(void)
                 return;
             case 0xe:
                 FUN_00490b30(2);
-                break;
+                FUN_004256d0(0x516, DAT_00503004);
+                goto tail7;
             }
-            FUN_004256d0(0x9b, DAT_00503004);
-            g_game[0x2bbf] = 0;
-            g_game[0x2bc0] = 0;
-            return;
+            break;
         }
         break;
 
@@ -633,10 +622,10 @@ void __stdcall FUN_00426e80(void)
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
-            *(unsigned short*)(g_game + 0x2aaf) &= 0xfffd;
-            *(unsigned short*)(g_game + 0x2aaf) &= 0xfffe;
+            ((Bits_00426e80*)(g_game + 0x2aaf))->b1 = 0;
+            ((Bits_00426e80*)(g_game + 0x2aaf))->b0 = 0;
             if (FUN_00457710()) {
-                g_game[0x2a44] |= 1;
+                ((Bits_00426e80*)(g_game + 0x2a44))->b0 = 1;
                 FUN_004256d0(0x52d, DAT_00503004);
                 g_game[0x2bbe] = 0x10;
                 FUN_004256d0(0x9b, DAT_00503004);
@@ -658,11 +647,16 @@ void __stdcall FUN_00426e80(void)
             g_game[0x2bbf] = 1;
             g_game[0x2bc0] = 1;
             return;
-        case 1:
-            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-            FUN_004c2470();
-            FUN_004c2870();
-            FUN_004c63a0();
+        case 13:
+            FUN_004256d0(0x53b, DAT_00503004);
+            g_game[0x2bbe] = 0xa;
+            FUN_004256d0(0x9b, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            FUN_00460160();
+            FUN_004256d0(0x53d, DAT_00503004);
+            g_game[0x2bbf] = 1;
+            g_game[0x2bc0] = 1;
             return;
         case 2:
             if (memcmp(g_game + 0x39201, DAT_004fcdc8, 0x10) == 0) {
@@ -701,23 +695,23 @@ void __stdcall FUN_00426e80(void)
                 FUN_004421f0();
                 return;
             }
-            if (FUN_00450d80() == 0) {
-                strncpy(DAT_00511fb8, DAT_0050324c, 0xf9);
-                FUN_004256d0(0x3bc, DAT_00503004);
-                g_game[0x2bbe] = 0xf;
-                FUN_004257e0(0, 0x3bd, DAT_00503004);
-                FUN_004257e0(0, 0x3bd, DAT_00503004);
+            if (FUN_00450d80() != 0) {
+                ((Bits_00426e80*)(g_game + 0x2a44))->b0 = 1;
+                FUN_004256d0(0x55d, DAT_00503004);
+                g_game[0x2bbe] = 0x10;
+                FUN_004256d0(0x9b, DAT_00503004);
+                g_game[0x2bbf] = 0;
+                g_game[0x2bc0] = 0;
+                FUN_004256d0(0x55e, DAT_00503004);
+                g_game[0x2bbf] = 0;
+                g_game[0x2bc0] = 0;
                 return;
             }
-            g_game[0x2a44] |= 1;
-            FUN_004256d0(0x55d, DAT_00503004);
-            g_game[0x2bbe] = 0x10;
-            FUN_004256d0(0x9b, DAT_00503004);
-            g_game[0x2bbf] = 0;
-            g_game[0x2bc0] = 0;
-            FUN_004256d0(0x55e, DAT_00503004);
-            g_game[0x2bbf] = 0x11;
-            g_game[0x2bc0] = 0x11;
+            strncpy(DAT_00511fb8, DAT_0050324c, 0xf9);
+            FUN_004256d0(0x3bc, DAT_00503004);
+            g_game[0x2bbe] = 0xf;
+            FUN_004257e0(0, 0x9b, DAT_00503004);
+            FUN_004257e0(0, 0x3bd, DAT_00503004);
             return;
         case 3:
             FUN_004256d0(0x564, DAT_00503004);
@@ -726,42 +720,7 @@ void __stdcall FUN_00426e80(void)
             g_game[0x2bbf] = 0;
             g_game[0x2bc0] = 0;
             return;
-        case 13:
-            FUN_004256d0(0x53b, DAT_00503004);
-            g_game[0x2bbe] = 0xa;
-            FUN_004256d0(0x9b, DAT_00503004);
-            g_game[0x2bbf] = 0;
-            g_game[0x2bc0] = 0;
-            FUN_00460160();
-            FUN_004256d0(0x53d, DAT_00503004);
-            g_game[0x2bbf] = 1;
-            g_game[0x2bc0] = 1;
-            return;
-        }
-        break;
-
-    case 20:
-        if (g_game[0x2bbf] == 1) {
-            if (((g_game[0x2aaf] >> 1) & 1) != 0) {
-                if (FUN_00450d80() == 0) {
-                    strncpy(DAT_00511fb8, DAT_0050324c, 0xf9);
-                    FUN_004256d0(0x3bc, DAT_00503004);
-                    FUN_00425860(0xf, 0x3bd, DAT_00503004);
-                    *(unsigned short*)(g_game + 0x2aaf) &= 0xfffe;
-                    *(unsigned short*)(g_game + 0x2aaf) &= 0xfffd;
-                    FUN_004256d0(0x577, DAT_00503004);
-                    g_game[0x2bbe] = 0xf;
-                    FUN_004257e0(0, 0x9b, DAT_00503004);
-                    return;
-                }
-                g_game[0x2a44] |= 1;
-                FUN_004256d0(0x571, DAT_00503004);
-                g_game[0x2bbe] = 0x10;
-                FUN_004257e0(0, 0x9b, DAT_00503004);
-            }
-            FUN_004256d0(0x572, DAT_00503004);
-            g_game[0x2bbf] = 0;
-            g_game[0x2bc0] = 0;
+        case 1:
             FUN_004c69a0(*(int*)(g_game + 0x37e1b));
             FUN_004c2470();
             FUN_004c2870();
@@ -769,6 +728,39 @@ void __stdcall FUN_00426e80(void)
             return;
         }
         break;
+
+    case 20:
+        switch ((unsigned char)g_game[0x2bbf]) {
+        case 1:
+            if (((Bits_00426e80*)(g_game + 0x2aaf))->b1) {
+                if (FUN_00450d80() != 0) {
+                    ((Bits_00426e80*)(g_game + 0x2a44))->b0 = 1;
+                    FUN_004256d0(0x571, DAT_00503004);
+                    g_game[0x2bbe] = 0x10;
+                    FUN_004257e0(0, 0x9b, DAT_00503004);
+                    FUN_004256d0(0x572, DAT_00503004);
+                } else {
+                    strncpy(DAT_00511fb8, DAT_0050324c, 0xf9);
+                    FUN_00425860(0xf, 0x3bc, DAT_00503004);
+                    FUN_004257e0(0, 0x3bd, DAT_00503004);
+                    ((Bits_00426e80*)(g_game + 0x2aaf))->b0 = 0;
+                    ((Bits_00426e80*)(g_game + 0x2aaf))->b1 = 0;
+                    FUN_004256d0(0x577, DAT_00503004);
+                    g_game[0x2bbe] = 0xf;
+                    FUN_004257e0(0, 0x9b, DAT_00503004);
+                    FUN_004256d0(0x578, DAT_00503004);
+                }
+                g_game[0x2bbf] = 0;
+                g_game[0x2bc0] = 0;
+            }
+            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
+            FUN_004c2470();
+            FUN_004c2870();
+            FUN_004c63a0();
+            return;
+        }
+        break;
+
     case 16:
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
@@ -789,16 +781,12 @@ void __stdcall FUN_00426e80(void)
                     g_game[0x2bc0] = 0x11;
                     return;
                 }
-                *(int*)(g_game + 0x2ba2) = DAT_004fdaf0;
-                *(int*)(g_game + 0x2ba6) = DAT_004fdaf4;
-                *(int*)(g_game + 0x2baa) = DAT_004fdaf8;
-                *(int*)(g_game + 0x2bae) = DAT_004fdafc;
+                *(V4i*)(g_game + 0x2ba2) = DAT_004fdaf0;
             }
         after_key:
             FUN_00443cb0();
-            if (DAT_00511fb8[0] != 0) {
-                int len = FUN_004a5030(DAT_00511fb8);
-                FUN_004abd90(g_game + 0x519, DAT_00511fb8, len + 0x14, 1, 1);
+            if (strlen(DAT_00511fb8) != 0) {
+                FUN_004abd90(g_game + 0x519, DAT_00511fb8, FUN_004a5030(DAT_00511fb8) + 0x14, 1, 1);
                 DAT_00511fb8[0] = 0;
                 return;
             }
@@ -808,9 +796,8 @@ void __stdcall FUN_00426e80(void)
             FUN_004c2470();
             FUN_004c2870();
             FUN_004c63a0();
-            if (DAT_00511fb8[0] != 0) {
-                int len = FUN_004a5030(DAT_00511fb8);
-                FUN_004abd90(g_game + 0x519, DAT_00511fb8, len + 0x14, 1, 1);
+            if (strlen(DAT_00511fb8) != 0) {
+                FUN_004abd90(g_game + 0x519, DAT_00511fb8, FUN_004a5030(DAT_00511fb8) + 0x14, 1, 1);
                 DAT_00511fb8[0] = 0;
                 return;
             }
@@ -818,7 +805,7 @@ void __stdcall FUN_00426e80(void)
         case 17:
             FUN_00451540();
             if (FUN_00451220(g_game[0x2a42], 1)) {
-                FUN_00450a10(*(int*)(g_game + g_game[0x2a42] * 0x14b + 0x1b67));
+                FUN_00450a10(*(int*)(g_game + (unsigned char)g_game[0x2a42] * 0x14b + 0x1b67));
             }
             FUN_004256d0(0x5ab, DAT_00503004);
             g_game[0x2bbe] = 0x11;
@@ -827,9 +814,9 @@ void __stdcall FUN_00426e80(void)
             g_game[0x2bc0] = 0;
             return;
         case 19:
-            *(char*)(*(int*)(g_game + g_game[0x2a42] * 0x14b + 0x1b8a) + 0x9b) |= 0x40;
+            ((Pd_00426e80*)(*(int*)(g_game + (unsigned char)g_game[0x2a42] * 0x14b + 0x1b8a)))->b6 = 1;
         case 18:
-            if (FUN_004517b0(*(V4i*)(g_game + 0x2ba2), g_game[0x2a42]) == 0) {
+            if (FUN_004517b0(*(V4i*)(g_game + 0x2ba2), (unsigned char)g_game[0x2a42]) == 0) {
                 FUN_004256d0(0x5b3, DAT_00503004);
                 g_game[0x2bbf] = 0;
                 g_game[0x2bc0] = 0;
@@ -866,21 +853,19 @@ void __stdcall FUN_00426e80(void)
         {
             int unit = *(int*)(g_game + 0x4e5);
             if (unit != 0) {
-                unsigned int idx = g_game[0x2a42];
-                unsigned short* w = (unsigned short*)(*(int*)(g_game + idx * 0x14b + 0x1b8a) + 0x97);
-                unsigned short v = *w;
-                *w = (unsigned short)(v ^ (((*(unsigned int*)(unit + 4) >> 1) ^ v) & 1));
+                ((Pd_00426e80*)(*(int*)(g_game + (unsigned char)g_game[0x2a42] * 0x14b + 0x1b8a)))->ready =
+                    *(unsigned int*)(unit + 4) >> 1;
             } else {
-                *(unsigned short*)(*(int*)(g_game + g_game[0x2a42] * 0x14b + 0x1b8a) + 0x97) &= 0xfffe;
+                ((Pd_00426e80*)(*(int*)(g_game + (unsigned char)g_game[0x2a42] * 0x14b + 0x1b8a)))->ready = 0;
             }
             if (g_game[0x2bbf] == 0x13) {
-                *(char*)(*(int*)(g_game + g_game[0x2a42] * 0x14b + 0x1b8a) + 0x9b) |= 0x40;
+                ((Pd_00426e80*)(*(int*)(g_game + (unsigned char)g_game[0x2a42] * 0x14b + 0x1b8a)))->b6 = 1;
             }
             {
-                unsigned char flag = (unsigned char)((g_game[0x2b4c] >> 4) & 1);
-                unsigned char* q = (unsigned char*)(g_game + g_game[0x2a42] * 0x14b + 0x1b84);
-                *q = (unsigned char)((*q & 0xfd) | (flag << 1));
-                if (flag != 0) {
+                Bits_00426e80* f = (Bits_00426e80*)(g_game + 0x2b4c);
+                unsigned char* q = (unsigned char*)(g_game + (unsigned char)g_game[0x2a42] * 0x14b + 0x1b84);
+                *q = (*q & 0xfd) | (f->b4 << 1);
+                if (((Bits_00426e80*)(g_game + 0x2b4c))->b4) {
                     ((Class_00435a20*)*(int*)(g_game + 0x391e9))->FUN_00435a20((int)(g_game + 0x2ab1));
                     {
                         int i;
@@ -893,7 +878,7 @@ void __stdcall FUN_00426e80(void)
                             }
                         }
                     }
-                    g_game[0x2a44] |= 4;
+                    ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 1;
                     return;
                 }
             }
@@ -920,20 +905,20 @@ void __stdcall FUN_00426e80(void)
     case 17:
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0:
-            if (g_game[0x2a44] & 4) {
-                FUN_0046ca60();
-                FUN_004256d0(0x605, DAT_00503004);
-                g_game[0x2bbf] = 0x11;
-                g_game[0x2bc0] = 0x11;
+            if (!(g_game[0x2a44] & 4)) {
+                FUN_00449bb0();
+                FUN_0046c620(1);
+                FUN_0046c620(2);
+                FUN_004256d0(0x5ff, DAT_00503004);
+                g_game[0x2bbf] = 1;
+                g_game[0x2bc0] = 1;
                 FUN_00450f90();
                 return;
             }
-            FUN_00449bb0();
-            FUN_0046c620(1);
-            FUN_0046c620(2);
-            FUN_004256d0(0x5ff, DAT_00503004);
-            g_game[0x2bbf] = 1;
-            g_game[0x2bc0] = 1;
+            FUN_0046ca60();
+            FUN_004256d0(0x605, DAT_00503004);
+            g_game[0x2bbf] = 0x11;
+            g_game[0x2bc0] = 0x11;
             FUN_00450f90();
             return;
         case 1:
@@ -942,7 +927,7 @@ void __stdcall FUN_00426e80(void)
             FUN_004c2470();
             FUN_004c2870();
             FUN_004c63a0();
-            if (((g_game[0x2a44] >> 2) & 1) != 0) {
+            if (((Bits_00426e80*)(g_game + 0x2a44))->b2) {
                 FUN_0046ca60();
                 FUN_004a9660((int)(g_game + 0x519));
                 if (FUN_00428bc0()) {
@@ -956,46 +941,56 @@ void __stdcall FUN_00426e80(void)
             break;
         case 17:
             {
+                char* p = g_game + 0x1b63;
                 int i;
                 for (i = 0; i < 10; i++) {
-                    char* p = g_game + i * 0x14b + 0x1b63;
                     if (p[0x73] == 4) {
                         ((Class_00463c60*)p)->FUN_00463c60(0);
                     }
+                    p += 0x14b;
                 }
             }
             FUN_0046ca60();
-            g_game[0x2a44] |= 4;
+            ((Bits_00426e80*)(g_game + 0x2a44))->b2 = 1;
             return;
         case 3:
-            g_game[0x2a44] |= 1;
+            ((Bits_00426e80*)(g_game + 0x2a44))->b0 = 1;
             FUN_004c9f90((int)(g_game + 0x14));
             FUN_00461020(2, 100);
             FUN_0046c920();
             FUN_0046c620(8);
             FUN_0046c190();
-            if (((g_game[0x2bee] >> 4) & 1) != 0) {
+            if (((Bits_00426e80*)(g_game + 0x2bee))->b4) {
                 FUN_00450e20();
                 return;
             }
-            if (FUN_00441bc0() == 0 || FUN_00441bc0() == 3) {
-                if (FUN_00428bc0()) {
-                    sprintf(local_100, DAT_00502f9c, 0x640, DAT_00503004);
-                    FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
+            {
+                int r = FUN_00441bc0();
+                if (r == 0 || r == 3) {
+                    if (FUN_00428bc0()) {
+                        sprintf(local_100, DAT_00502f9c, 0x640, DAT_00503004);
+                        FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
+                    }
+                    g_game[0x2bbe] = 0xf;
+                } else {
+                    if (FUN_00428bc0()) {
+                        sprintf(local_100, DAT_00502f9c, 0x643, DAT_00503004);
+                        FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
+                    }
+                    g_game[0x2bbe] = 0x10;
                 }
-                g_game[0x2bbe] = 0xf;
-            } else {
-                if (FUN_00428bc0()) {
-                    sprintf(local_100, DAT_00502f9c, 0x643, DAT_00503004);
-                    FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
-                }
-                g_game[0x2bbe] = 0x10;
             }
-            FUN_004257e0(0x11, 0x9b, DAT_00503004);
+            FUN_004257e0(0, 0x9b, DAT_00503004);
             return;
         }
         break;
 
     }
+    return;
+tail7:
+    g_game[0x2bbe] = 7;
+    FUN_004256d0(0x9b, DAT_00503004);
+    g_game[0x2bbf] = 0;
+    g_game[0x2bc0] = 0;
     return;
 }

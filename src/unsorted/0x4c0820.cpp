@@ -59,6 +59,12 @@
 // the block-local y0 that was just ruled out. The final ebx/ebp pair (color, surf) is independent:
 // it is the reverse of the push order, so it is the register preference for the two argument
 // temporaries, and a local copy of each (94.1) does not change it.
+// deepseek-v4.1-flash (#3889), still 98.0 percent, 613 of 613 bytes: splitting walk1's wrap into
+// a raw `int j = i - 1;` plus a wrapped `int k = j;` used for b = &pts[k] and ending the walk with
+// `i = j;` (the shape the original's 0x4c0949 reload of [esp+0x24] suggests) regresses to 96.6
+// percent at the same 613 bytes, so the two remaining hunks stay as noted: the walk1 tail loads pts
+// (ebx) one instruction before reloading the index (original: index then pts) and the final call
+// holds surf in ebx / color in ebp (original: color in ebx / surf in ebp).
 struct Point_004c0820 {
     int x;
     int y;

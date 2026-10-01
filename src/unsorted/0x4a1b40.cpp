@@ -1,4 +1,23 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
+// PARTIAL (51.8%). claude-opus-5-5 pass (#4143), 33.7 -> 51.8, structural fixes:
+// - The cell branch's outline is `if (v & 1) {...} else if (v & 2) {four
+//   FUN_004be950}` drawn from the copied rowRect (left+1/bottom-1/...), with
+//   param_1->colour_8be re-read for each call; the old yEnd/yy arithmetic was
+//   off by one against the original's pushes (33.9 -> 41.6).
+// - The cell fetch tests `bp != 0` first (41.9).
+// - The two quads are filled by single stores in the original's store order
+//   (50.3; the natural point order scores 49.5).
+// - Surface selection is `if (surface == 0 && !(holder->field_10 & 0x80))
+//   FUN_004b0230(param_1, param_2, surface); else if (surface != 0) ...`,
+//   which passes the null surface and keeps the redundant re-test (50.5).
+// - top is a separate local initialised to 0 (the original's ebx, which also
+//   serves the early `== 0` compares) copied into bounds.top (51.8).
+// - me->field_c0 is read directly in the entry test and the highlight test.
+// Still differs: callee-saved rotation (original param_1 = ebp, top0 = ebx;
+// ours param_1 = ebx, top0 = edx), the frame is 0xb8 against 0xbc, and the
+// text loop's exit is `jge end; jmp top` where the original has `jl top`
+// followed by an inline epilogue. Replacing keepW with me->w reads (the
+// original re-reads the field later) drops to 34.9% by rotating registers.
 // PROBE (deepseek-v4.1-flash, issue 4066, best 33.7%, no change): VC5
 // rejects `if (param_1->holder != flag)` (C2446, pointer vs int), the
 // casted `(Holder_004a1b40*)flag` compare scores 33.6, and swapping the
@@ -261,6 +280,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     int t;
     int flag = 0;
     Rect_004a1b40 bounds;
+    int top0 = 0;
     int& top = bounds.top;
     int& left = bounds.left;
     int& right = bounds.right;
@@ -275,12 +295,12 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 
     int h = me->h;
     if (me->type == 0) {
-        top = 0;
         left = 0;
     } else {
         left = me->x;
-        top = me->y;
+        top0 = me->y;
     }
+    top = top0;
     int keepW = me->w;
     right = keepW + left - 1;
     bottom = me->h + top - 1;
@@ -288,13 +308,11 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     void* surface = holder->surface;
     if (surface == 0)
         surface = param_1->fallback;
-    if (surface == 0) {
-        if (!(holder->field_10 & 0x80))
-            FUN_004b0230(param_1, param_2, 0);
-    } else {
+    if (surface == 0 && !(holder->field_10 & 0x80))
+        FUN_004b0230(param_1, param_2, surface);
+    else if (surface != 0)
         FUN_004c6d20(entries->bc.surface, surface, &bounds,
                      &left);
-    }
 
     int lh;
     if (DAT_0051fba4->language == 0)
@@ -311,9 +329,9 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     int xx;
     int xw;
     unsigned int flags = (unsigned int)me->flags;
-    int keepC0 = me->field_c0;
 
-    if ((flags & 0x10) != 0 && me->text != 0 && keepC0 != 0) {
+
+    if ((flags & 0x10) != 0 && me->text != 0 && me->field_c0 != 0) {
         // ---- text-line renderer ----
         int i = 1;
         t = 0;
@@ -414,7 +432,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
                              -0x16);
             } else if ((me->flags & 0x100) == 0 &&
                        me->field_ba == line + me->bc.field_bc &&
-                       keepC0 != 0) {
+                       me->field_c0 != 0) {
                 // both arms (0x4a1fb8 and 0x4a1fcb) pass the same rect and id,
                 // the arm is chosen by holder->field_20 == param_2
                 if (param_1->holder->field_20 == param_2)
@@ -430,7 +448,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
             y++;
             h -= step;
             if (h < lh)
-                return;
+                break;
             if (line + me->bc.field_bc >= me->field_c0)
                 return;
         }
@@ -457,35 +475,45 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
 
         for (;;) {
             void* cell;
-            if (bp == 0) {
-                cell = *(void**)(*colPtr + 0x28);
-            } else {
+            if (bp != 0) {
                 cell = cellPtr;
                 cellPtr += 0x18;
+            } else {
+                cell = *(void**)(*colPtr + 0x28);
             }
             if (cell != 0 && *(int*)((char*)cell + 0x10) != 0) {
                 Rect_004a1b40 rowRect;
-                Quad_004a1b40 dst = {{{x1, yy}, {right, yy},
-                    {right, yEnd - 1}, {x1, yEnd - 1}}};
-                int width = *(unsigned short*)cell - 1;
-                int height = *((unsigned short*)cell + 1) - 1;
-                Quad_004a1b40 src = {{{1, 1}, {width, 1},
-                    {width, height}, {1, height}}};
+                Quad_004a1b40 dst;
+                Quad_004a1b40 src;
+                dst.points[3].x = x1;
+                src.points[0].x = 1;
+                src.points[0].y = 1;
+                src.points[3].x = 1;
+                src.points[1].y = 1;
+                dst.points[0].x = x1;
+                dst.points[1].x = right;
+                dst.points[2].x = right;
+                dst.points[3].y = yEnd - 1;
+                dst.points[2].y = yEnd - 1;
+                src.points[1].x = *(unsigned short*)cell - 1;
+                src.points[2].x = *(unsigned short*)cell - 1;
+                dst.points[1].y = yy;
+                dst.points[0].y = yy;
+                src.points[2].y = *((unsigned short*)cell + 1) - 1;
+                src.points[3].y = *((unsigned short*)cell + 1) - 1;
                 FUN_004c7580(surf, cell, &dst, &src);
                 rowRect.left = dst.points[0].x;
                 rowRect.top = dst.points[0].y;
                 rowRect.right = dst.points[1].x;
                 rowRect.bottom = dst.points[2].y;
-            if ((*((unsigned char*)me->field_d6 + row) & 1) == 0) {
-                if ((*((unsigned char*)me->field_d6 + row) & 2) != 0) {
-                    unsigned char c = param_1->colour_8be;
-                    FUN_004be950(surf, x1 + 1, yEnd - 1, right - 2, yy + 1, c);
-                    FUN_004be950(surf, x1 + 2, yEnd - 1, right - 1, yy + 1, c);
-                    FUN_004be950(surf, x1 + 1, yy + 2, right - 1, yEnd - 2, c);
-                    FUN_004be950(surf, x1 + 2, yy + 2, right - 2, yEnd - 2, c);
-                }
-            } else {
+            unsigned char v = *((unsigned char*)me->field_d6 + row);
+            if (v & 1) {
                 FUN_004bf4d0(surf, &rowRect, -0x14);
+            } else if (v & 2) {
+                FUN_004be950(surf, rowRect.left + 1, rowRect.bottom - 1, rowRect.right - 2, rowRect.top + 1, param_1->colour_8be);
+                FUN_004be950(surf, rowRect.left + 2, rowRect.bottom - 1, rowRect.right - 1, rowRect.top + 1, param_1->colour_8be);
+                FUN_004be950(surf, rowRect.left + 1, rowRect.top + 2, rowRect.right - 1, rowRect.bottom - 2, param_1->colour_8be);
+                FUN_004be950(surf, rowRect.left + 2, rowRect.top + 2, rowRect.right - 2, rowRect.bottom - 2, param_1->colour_8be);
             }
 
             }

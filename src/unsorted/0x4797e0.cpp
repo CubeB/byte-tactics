@@ -1,4 +1,10 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry pass for issue #3188: baseline and tested variants scored
+// at most 74.1% (7 checker invocations, one returned no output, no MATCH).
+// Keep the staged v4 below.
+// Explicit controller if/else fell to 71.3%; pointer iteration and a while(1)
+// free-colour loop tied the existing score. Remaining differences include
+// broad register allocation shifts around the indexed player base and scan loops.
 // deepseek-v4.1-flash round-6 adoption: staged candidate v4 (one of the
 // g_game-spelling variants in build/scratch/0x4797e0/) scored 74.1% (1024 of
 // 1034 bytes) and replaces the previous 58.9% base. Same-batch scores:

@@ -1,5 +1,10 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// deepseek-v4.1-flash retry 2 (timeboxed, 3 variants, no gain): routing the two
+// FUN_004be950 byte args through L.local_1b0[0xf] instead of *(byte*)(iVar11+0xdda)
+// gives 51.9 (it perturbs far more than the 2 [ebx+0xf] sites); swapping the
+// 0x2cac/0x2cb4 coordinate assignments gives 52.8; splitting the >>1 of 0x2cb0
+// into its own leading statement is byte-neutral (53.1, same 6029 bytes).
 // CURRENT STATUS: partial 53.1% (deepseek-v4.1-flash retry). Two fixes this pass:
 // 1. The `/8` remainder middle branch: the original emits `test eax,eax; jle`
 //    (the trailing zero-case is the forward jump target), so the middle branch

@@ -1,4 +1,15 @@
-// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry: 74.8% -> 78.2%, now 737 bytes like the original. Reading
+// the section-name table pointer into a local before the name test
+// (`char* sect = *image;` then `_strcmpi(name, sect + h.strOffset)`) pulls the
+// load of `image` into edi above the `test name` like the original and makes
+// the size exact; the other `*image` reads stay uncached (the original reloads
+// `[edi]` at every use, caching them all in `sect` costs 60.3%). What still
+// differs: the original derefs `*image` only inside the branch (edi is loaded
+// early, `[edi]` after the `je`), ours derefs before the test; the ints and
+// strings loops load p[1] before `*image` where the original loads p[0],
+// `*image`, p[1] (the loop forms listed below were re-measured on top of this
+// change: direct p[0]/p[1] 75.5%, `r = p; p += 2` 78.0%, no gain).
 // PARTIAL 74.8% (737 bytes original, ours 742). Prologue, frame, the early name
 // test, the compressed branch and now the ints and strings loops match. The
 // deepseek-v4.1-flash pass landed three fixes on top of the 62.8% attempt:
@@ -158,7 +169,8 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
     base = (int)FUN_004bb7a0(fh);
     FUN_004bb7c0(fh, &h, 0x20);
     end = base + h.size;
-    if (name != 0 && _strcmpi(name, *image + h.strOffset) != 0) {
+    char* sect = *image;
+    if (name != 0 && _strcmpi(name, sect + h.strOffset) != 0) {
         FUN_004bb710(fh, end);
         return;
     }

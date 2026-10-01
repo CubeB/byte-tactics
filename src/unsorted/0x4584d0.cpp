@@ -1,5 +1,10 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by
 // deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3042): best unchanged at 79.6% (457 vs 461
+// bytes). Tested register keyword, label+goto / outer-for loop-nesting forms,
+// while-loop copy loop, idx-before-j, function-scope j, and a 0..403
+// dummy-declaration sweep; all flat at 79.6%, so headers.py plus the dummy sweep
+// confirm the residual i-vs-info eviction is a compiler-state tie.
 // GPT-6.1-sol refinement: five checker invocations in this pass. Baseline reproduced at 79.6%.
 // A single-use inline face-count getter was byte-identical (79.6%). A by-value
 // projected-point helper changed frame allocation and fell to 44.4%; discarded.

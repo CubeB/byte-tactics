@@ -1,4 +1,10 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3042): confirmed the esi/edi priority tie
+// is unreachable. The tail-reload family (this promoted to ebx) recolours
+// identically (esi=list, edi=x, edx=bitmap) at 57.2% across six new spellings
+// (l-copy, x/z swap, cast access, res-copy, owner->kind, local_8 order); a
+// coords.y self-copy fixes the y load but drops to 78.7%. Kept the 410/427
+// no-reload best.
 // GPT-6.1-sol retest in #2859: seven checks kept the 87.6% best. Declaration
 // order was unchanged; result alias and tail reload scored lower. Remaining
 // reload, coordinate-slot, counter, and loop-result differences are below.

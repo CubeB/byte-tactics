@@ -1,4 +1,13 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass deepseek-v4.1-flash (issue 3758, 10 min box): kept 86.6%, two check.py
+// runs on the free `--sym` path, no score movement. Re-ran the `e = q++; n++;
+// *e = *c;` variant (84.0%, 903 bytes) that the notes say moves n into the
+// frame, and its declaration-hoisted copy (walk locals n, i, q, p hoisted to
+// the `if (base)` scope with i and q assigned later): both are BYTE-IDENTICAL
+// at 84.0% / 903 bytes. Frame in that state: base 0x10, i 0x14, p 0x18, n 0x1c,
+// q 0x20, j 0x2c, c 0x30, i.e. it fixes base/j/c but transposes the n/i and
+// p/q pairs; hoisting the declarations changes nothing at all, confirming the
+// p/q order is allocator state and not declaration order.
 // GPT-6.1-sol retry (issue 3137): baseline stayed at 86.6% (911/919). A helper around the owner comparison was byte-identical; assigning null on a mismatched owner scored 68.8%, so neither replaced the kept source. No MATCH was observed. Remaining mismatch is the packet-walk control flow and MSVC local/register allocation described below.
 // Pass deepseek-v4.1-flash (issue 3337, 10 min box): kept 86.6% (911/919). One
 // new spelling, the original's own head shape (`for (;;)` with the field_c

@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash round-6 adoption: staged candidate v4 (one of the
+// g_game-spelling variants in build/scratch/0x4797e0/) scored 74.1% (1024 of
+// 1034 bytes) and replaces the previous 58.9% base. Same-batch scores:
+// v3 46.2, v5 72.1, v6 72.7, v7 52.6. The root-cause note below (lea vs reload
+// of &players[playerIndex].color) explains why the g_game spellings win.
 // deepseek-v4.1-flash pass (issue #2872): verified 58.9% (986 of 1034 bytes),
 // stopped early per the fleet watchdog. The frame is add esp,0x48 vs the
 // original add esp,0x88: the original has a second 64-byte buffer at fb+0x58
@@ -95,6 +100,7 @@ static int __stdcall FreeColour_4797e0(Game_004797e0* game) {
 // FUNCTION: 0x4797e0
 void __stdcall FUN_004797e0(int playerIndex) {
     char buffer[64];
+    char buffer2[64];
 
     wsprintfA(buffer, "Player%d", playerIndex);
     {
@@ -138,15 +144,15 @@ void __stdcall FUN_004797e0(int playerIndex) {
             wsprintfA(buffer, "Color%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 0);
         } else {
-            int myColor = game->players[playerIndex].color;
+            int myColor = g_game->players[playerIndex].color;
             for (int j = 0; j < game->numPlayers; j++) {
                 if (game->players[j].color == myColor && game->players[j].controller != 0 &&
                     j != playerIndex) {
                     Entry_004797e0* entries = game->holder->entries;
                     int free = FreeColour_4797e0(game);
                     game->players[playerIndex].color = free;
-                    wsprintfA(buffer, "Color%d", playerIndex);
-                    int idx = FUN_0049fdf0(entries, buffer, 6);
+                    wsprintfA(buffer2, "Color%d", playerIndex);
+                    int idx = FUN_0049fdf0(entries, buffer2, 6);
                     if (idx != -1) {
                         Entry_004797e0* e = &entries[idx];
                         if (e != 0) {

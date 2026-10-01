@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol. Names are provisional.
+// #3225 retry by GPT-6.1-sol: best remains 92.6% (387 of 388 bytes), no MATCH.
+// A whole-hit helper and reordering the unit RMW before loading the game pointer preserved the same single diff. Hoisting a game alias to function entry dropped to 53.2%; a parent early-mask declaration trial also stayed at 92.6%. The unresolved hit block still uses EDI for the unit RMW and rematerializes 0x10 in EDX; original uses EAX and the pre-existing EDX mask, then EAX/EDI for the game updates.
 // #2862 retry by deepseek-v4.1-flash: local `g = g_game` in the hit block
 // reuses one g_game load for both writes, giving 92.6% (387 of 388 bytes).
 // Still differs: the hit RMW keeps EDI plus a `mov edx,0x10` rematerialization

@@ -1,150 +1,56 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash (4th pass, short retry): tried the suggested FixMul lever,
-// declaring FixMul(__int64 a, __int64 b) so the 0x4084f7 multiply tree is pinned
-// and cannot commute. Scored 87.4%, byte-identical to the int-parameter version,
-// so the s-pair-first push order at 0x4084f7 is NOT steered by the FixMul
-// signature (it is a pure MSVC scheduling tie driven by which operand already
-// sits in edi:ebx from _alldiv). The wall is unchanged: the loop-1 register
-// rotation (this=ebx/unit=ebp/iterator=edi/idx=esi in the original versus
-// this=ebp/unit=edi/iterator=esi here) is the whole residual. To move this into
-// ebx the allocator must co-locate ok with this's register (as the original does:
-// this spills to [esp+0x20] and ok reuses ebx at 0x4081ed); no source-level
-// lever tried across four passes shifts that first-register assignment.
-// deepseek-v4.1-flash (third pass, timeboxed before any variant compiled):
-// this file is unchanged and still scores 87.4%. What still differs is exactly
-// the three items listed below: loop 1 (and loop 2) register rotation
-// (this=ebx/unit=ebp/iterator=edi/idx=esi in the original versus
-// this=ebp/unit=edi/iterator=esi here), the _allmul(s, d.x) push order at
-// 0x4084f7, and the xor (d.y = 0) placement at 0x4083c8. Newly pinned this
-// pass from the original disassembly, for whoever retries: at 0x4083a4-0x4083d6
-// (flag12 Direction()) the original is ang=ebx, then d.x=edi (mov edi,eax; neg
-// edi), the xor ebp,ebp of d.y sits between the second call's pushes and the
-// call, and d.z=ebx (add esp,8 BEFORE neg eax, then mov ebx,eax). The final
-// d.x/d.y/d.z registers (edi/ebp/ebx) already match here; only ang (ebp versus
-// ebx), the neg/add-esp order and the xor slot differ, so expanding that call
-// as x,y,z direct stores with an int ang local (the exact shape that matches at
-// 0x4084c5) is still the top idea. Second idea: FixMul with __int64 parameters,
-// which should stop MSVC commuting the first multiply tree while keeping calls
-// 2 and 3 in source order. Nothing new was compiled this pass.
-// deepseek-v4.1-flash (second timeboxed retry): expanded loop-2's flag12
-// Direction() into x,y,z direct stores (the note's suggestion) and got 76.8%,
-// so that hunk is genuinely better as the helper. The _allmul operand tree was
-// retried three more ways (a dx copy local, and both inline __int64 spellings)
-// and every one still compiles to the commuted push order at 0x4084f7, so that
-// multiply cannot be steered from source. The one remaining wall is unchanged:
-// loop 1's unit is in edi and `this` in ebp where the original has unit ebp and
-// this ebx, which rotates the whole loop 1 and loop 2 register map.
-// space-bunny-free: 87.4% by check.py, 309 of 405 original instructions by true
-// LCS, total size now exactly 1221 bytes. Three things moved it off 84.1%:
-// - The inline Direction() assigns its fields in the order x, z, y (NOT x, y, z).
-//   x,y,z puts the flag12 branch's `d.y = 0` and the negation of d.z in the wrong
-//   order (neg eax before `add esp,8`, the xor after it) and leaves a 2-byte-long
-//   function. x,z,y schedules the xor into the second call's argument gap exactly
-//   as the original does, and the three results land in edi/ebp/ebx like the
-//   original. Expanding the OTHER Direction() call (loop 2, the len<0x100000 one)
-//   into direct d.x/d.y/d.z stores is still right, 84.1% on its own but the two
-//   together are what match; expanding this one instead of keeping the struct
-//   return costs 19 points (67.3%).
-// - The tail of the len<0x1400000 branch is three separate
-//   `target.x = u->pos.x + d.x;` component stores. NOT `target = u->pos + d`
-//   (85.2%: one `mov ebx, [esp+0x18]` and the add/store order move) and NOT the
-//   in-place `d.x += u->pos.x` form (84.1%). The component stores are what put
-//   pos.x/y/z in edi/ecx/edx and add into them, as at 0x40855b.
-// Still one diff, the first loop's register rotation, and it is the whole of the
-// rest (see the hunk list below).
-// Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived from Class_00407350
-// (the family is listed in 0x407350.cpp, whose declarations this copies).
-// Runs every 90 ticks over the units of this object's group: first gives each
-// unit that FUN_0040bdb0 picks an item for an order (mode 0xe) at the place
-// FUN_0040bfe0 finds, within a third of the map size of the player's base
-// (FUN_0040ba80) for flag12 units; then sends the idle units towards the
-// base: flag12 units to the point mirrored through it (a random point 0x280
-// from it when farther), the others to the base itself, or when within 0x140
-// of it, 0x140 onwards in its direction.
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5: 97.8% (was 87.4%). Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived
+// from Class_00407350 (family listed in 0x407350.cpp). Runs every 90 ticks over the
+// units of this object's group: first gives each unit that FUN_0040bdb0 picks an item
+// for an order (mode 0xe) at the place FUN_0040bfe0 finds, within a third of the map
+// size of the player's base (FUN_0040ba80) for flag12 units; then sends the idle units
+// towards the base: flag12 units to the point mirrored through it (a random point 0x280
+// from it when farther), the others to the base itself, or when within 0x140 of it,
+// 0x140 onwards in its direction.
 //
-// Earlier findings that still hold:
-// - Length() takes a const reference to a temporary (pos - origin): only then
-//   are the three fild operands the temporary's own memory, with a stored 0
-//   for y, as in the original.
-// - The range is an inline MapRange() assigned to a local before
-//   `origin.y = pos.y`; written in the comparison it is computed after _ftol.
-// - <memory.h> gives the mapWidth-first load order in MapRange().
-// - Loop 2's else branch computes the difference into registers already holding
-//   origin.x/y/z (eax/edi/edx), member by member; a plain `Vec3 d = origin -
-//   u->pos;` hoists the loads and scores worse.
+// What fixed the loop-1 register rotation (the wall of four earlier passes): the
+// allocator ranks loop 1's short webs (unit, idx, ok, range) by weighted use count,
+// and the original's `range` outranks the unit. A second, foldable use of `range`
+// (`len > range || len > range`, one Length() stored in an int first) swaps unit and
+// range into the original's ebp/edi and puts `this` in ebx. The duplicate condition
+// compiles to one cmp. Spellings that vanish before the allocator counts them do
+// nothing: a copy `int r2 = range`, an inline identity wrapper around range, idx or
+// the player argument, `Same(range) < Length(..)`. `len > range && len > range` and
+// the `else if (len > range)` form give the same bytes; a real different second use
+// (`range > K`) shifts everything, so the weight is wanted, not a second compare.
 //
-// Still different (addresses in the original). The size is exact, so all of it
-// is register choice and two scheduling spots:
-// - 0x40812f-0x4082c6, loop 1: registers rotated. The original keeps `this` in
-//   ebx, the unit in ebp, the iterator in edi (spilled to esp+0x14) and `ok` in
-//   ebx only after `this` dies; here `this` is in ebp, the unit in edi, `ok` in
-//   ebx and the iterator in esi, sharing esi with `idx`. Everything downstream
-//   in the hunk (the MapRange value, the ok test, the two calls) rotates with
-//   it. In loop 2 the same rotation is one step smaller: the unit is in esi
-//   (right) but `this` is in ebp and the iterator in ebx, where the original
-//   has `this` in ebx, the iterator in edi and edi unused. Promoting `this` one
-//   step in the callee-saved order is therefore worth the whole rest, and no
-//   source-level shuffle tried so far moves it.
+// Still different (3 hunks, 1221 bytes exact):
 // - 0x408334: the `u->def` load sits before the three `target = origin` stores
-//   instead of after them (pure scheduling of the flag12 test).
-// - 0x4084f7: _allmul's first pair is pushed s-first; no source-level FixMul
-//   operand order changes it (all four orders emit the same code).
-// History: two deepseek-v4.1-flash retries and a GPT-6 retry took this from
-// 83.5% to 84.1% (the second one by expanding the loop-2 else-branch
-// Direction() call into direct d.x/d.y/d.z stores, angle in an int local, which
-// is kept here) without ever moving the allocator.
-// Tried without effect: a function-scope unit shared by both loops, a reference
-// unit, a while loop, pos/ok/idx declaration order, converting `ok` to
-// declaration plus assignment, renaming loop 1's unit, swapping the two
-// function-scope declarations, a `Class_00407350* self = this;` copy with every
-// field access routed through it (byte-identical output), the iterator as a
-// pointer, separate iterators per loop, function-scope ok/idx/kind, `continue`
-// chains instead of the && chain, (*it)-> instead of a unit local, direct
-// temporaries as FUN_0043adc0 arguments, a Scale helper, FixMul operand orders,
-// TooFar() helpers, and Length(d) versus Length(origin - u->pos) in each branch.
-// deepseek-v4.1 (2092) retried the last rotation with: one iterator variable per
-// for-scope (86.4%), an inline `Player()` accessor for every field_10 read
-// (86.9%), an inline `Units()` accessor for every field_8 read (87.4, same
-// bytes), and four shapes that compile to the identical 1221 bytes (ok
-// pre-initialised to 0, unsigned ok, pos hoisted to the loop-body top, `const u`)
-// plus a stray idx local (no change). The rotation is therefore not steered by
-// the loop-1 locals, their declaration order or their initialisers.
-// Tried and worse: other header sets, the x,y,z or z,y,x orders of Direction()'s
-// fields (85.6% and 85.4%), `target = u->pos + d` (85.2%), the in-place
-// `d.x += u->pos.x` tail (84.1%), expanding the loop-2 flag12 Direction() call
-// into direct stores (67.3%). deepseek-v4.1 (2372) tried and dropped: a reference
-// unit (`Unit_00408100*& u = *it;`, 68.5%), `Vec3 target;` at function scope with
-// a plain `target = origin;` (83.8%), hoisting `Vec3 pos;` above the idx
-// declaration (87.4%, identical bytes), declaring the iterator before `origin`
-// (87.4%, identical bytes) and rewriting loop 1's && chain as three guard
-// `continue`s (87.2%). The wall is unchanged: the unit cannot be moved out of
-// edi into ebp, so `this` stays in ebp instead of being memory-based like the
-// original's, and the whole loop-1 rotation follows from that.
-//
-// deepseek-v4.1-flash (2416, timeboxed) read the original register map exactly:
-// loop 1 has this=ebx (spilled at [esp+0x20] early, reloaded [esp+0x18] after
-// ok takes ebx at `mov ebx,eax`), unit=ebp, iterator=edi (spilled [esp+0x14],
-// reloaded at 0x408282), idx=ESI (`mov esi,eax; and esi,0xffff` at 0x4081b5,
-// pushed as FUN_0043adc0's param_6), ok=ebx, range=edi (reuses the iterator's
-// register). Loop 2 has this=ebx, unit=esi, iterator=edi, d.x=edi, d.y=ebp,
-// d.z=ebx. So esi in loop 1 is idx, not the iterator: the one candidate not
-// tried is giving idx its own promoted home so the iterator lands in edi and
-// this in ebx.
-// Also confirmed at the byte level: at 0x408506-0x408512 the register setup
-// (`cdq; mov edi,eax; mov eax,ebp; mov ebx,edx; cdq`) is identical in both
-// builds (edi:ebx=s, edx:eax=d.x) but the pushes differ: the original pushes
-// the d.x pair first, so it calls _allmul(s, d.x), while ours pushes the s
-// pair first, i.e. _allmul(d.x, s), even though line 286 reads FixMul(s, d.x).
-// Calls 2 and 3 honour source order. So MSVC 5.0 commutatively reorders just
-// this one multiply; a spelling that pins the operand tree (helper or cast
-// placement) is the next thing to try.
-// And the flag12 Direction() hunk (0x4083d6): the original has `xor ebp,ebp`
-// (d.y = 0) between the second call's argument pushes and the call, ours has it
-// after `neg eax; add esp,8`. The expanded x,y,z spelling at 0x4084c5 gets this
-// right (`xor ebx,ebx` sits in the gap), the x,z,y helper at line 263 does not;
-// try expanding line 263 the same x,y,z way (the earlier 67.3% expansion was a
-// different shape) or flipping the helper to x,y,z now that only one call
-// remains.
+//   instead of after them. Memberwise `target.x = origin.x; ..` is identical, a
+//   function-scope target is worse (94.2%).
+// - 0x4083a4-0x4083d6 (flag12 Direction()): the original has ang in ebx, `xor ebp,ebp`
+//   (d.y = 0) in the gap between the second call's pushes and the call, and d.z
+//   reusing ebx; ours has ang in ebp and the xor after `neg eax`. The helper in x,y,z
+//   or y,x,z order (or an aggregate initialiser) puts the xor in the gap but adds
+//   `mov ebp, ebx` (95.9%). Expanding the call into direct d.x/d.y/d.z stores with an
+//   int ang local (the shape that matches at 0x4084c5) is the likely original, but it
+//   adds a named web that moves loop 1 again (71.6%: this=edi, unit=ebx, ok=ebp, so
+//   unit and ok need swapping, extra foldable uses of ok/range/this tried with no
+//   effect). Weights of ok and unit are the thing to find in that shape.
+// - 0x4084f7: _allmul's first pair is pushed d.x-first (original calls _allmul(s, d.x),
+//   the second and third are (d.y, s) and (d.z, s) as ours). All FixMul operand
+//   orders, a FixMul(__int64, __int64), and spelling FixDiv inline in each of the
+//   three statements give the identical commuted push.
+// Earlier findings that still hold:
+// - Length() takes a const reference to a temporary (pos - origin): only then are the
+//   three fild operands the temporary's own memory, with a stored 0 for y.
+// - The range is an inline MapRange() assigned to a local before `origin.y = pos.y`;
+//   written in the comparison it is computed after _ftol.
+// - <memory.h> gives the mapWidth-first load order in MapRange().
+// - The inline Direction() assigns x, z, y (x,y,z puts the loop-2 flag12 branch's xor
+//   after the second call). Loop 2's else branch is expanded into direct d.x/d.y/d.z
+//   stores with an int ang local.
+// - The len<0x1400000 tail is three separate `target.x = u->pos.x + d.x;` stores, not
+//   `target = u->pos + d` and not `d.x += u->pos.x`.
+// - Tried without effect on the loop-1 rotation (before the range trick): reference or
+//   function-scope unit, while loop, goto loop, do/while loop, declaration orders, a
+//   `self = this` copy, accessor helpers, iterator forms, continue chains, FixMul
+//   operand orders, TooFar() helpers.
 #include <memory.h>
 #include <vector>
 #include <math.h>
@@ -301,7 +207,8 @@ void Class_004085d0::FUN_00407380()
                 if (u->def->flag12) {
                     int range = MapRange();
                     origin.y = pos.y;
-                    if (Length(pos - origin) > range)
+                    int len = Length(pos - origin);
+                    if (len > range || len > range)
                         ok = 0;
                 }
                 if (ok) {

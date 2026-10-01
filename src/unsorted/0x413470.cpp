@@ -1,4 +1,17 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (issue #3490) retry: baseline reconfirmed 98.0%. What
+// still differs is only the state-3 misses>=2 waypoint schedule at
+// 0x413950..0x413966 (17 bytes): the original emits load pos.x, push 0x36,
+// add off.x (consuming edi, then reusing edi for pos.y), load pos.y, load
+// pos.z, store x, add z, store y, store z, while ours hoists all three pos
+// loads, sums, then pushes, using ebx for pos.y. Seven scratch variants this
+// retry (off + pos operand swap 94.4, Offset temp inline in the sum 98.0
+// identical, member-wise p.x/p.y/p.z fresh local 94.3, sum straight to the
+// new-expression with named off 93.4, free operator+ 98.0 identical,
+// operator+ folding y to a copy 90.5, Unit* target local 94.5) all scored
+// 98.0 or worse and none moved the schedule pair. The only executable
+// mismatch left is that 17-byte region; the jump-table hunks the checker
+// prints are masked placeholder rendering and do not count.
 // deepseek-v4.1-flash (issue #3435) tenth retry: baseline reconfirmed 98.0%,
 // still the single region at 0x413950..0x413966 (state-3 misses>=2 waypoint,
 // 17 bytes). Twenty source variants around the `pos + off` sum and the

@@ -1,5 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
 // finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+//
+// FINAL PASS (deepseek-v4.1-flash, watchdog stop): best stays 66.1% (310 of 301).
+// STORE-BACK ANGLE IS REFUTED: the disassembly has NO stores through a2 or a3
+// anywhere (every [esi]/[edi] access is a read: a2->x/y/z and a3->x/y/z), so
+// a2/a3 are input positions, not out-params, and there are no result stores
+// that could keep the pointers live in esi/edi.
+// WHAT STILL DIFFERS: register allocation in the first block only. The original
+// holds a2 in esi and a3 in edi across both _allmul calls (dx.lo in ebp, dx.hi
+// spilled at [esp+0x1c], dz.lo/dz.hi spilled at [esp+0x10]/[esp+0x14]); our
+// build rematerialises a2/a3 from their argument homes, spills a3->x into the
+// dead a4 home at [esp+0x30] and keeps dz in the d[1] slots (+8/+0xc).
+// UNTESTED LEAD (variants written but never scored when the watchdog stopped
+// the run) in build/scratch/0x49aa80/vA.cpp and vB.cpp: the original's spill
+// slots imply dz is d[0] (locals +0/+4) and dx is d[1] (+8/+0xc, its low half
+// promoted to ebp), i.e. the source computes d[0] = a3->z - a2->z FIRST and
+// multiplies d[1] = a3->x - a2->x first (vA), or the same shape with named
+// __int64 dz/dx locals (vB). Everything else in the old notes below stands.
 // GPT-6.1-sol retry in #3259: five checker invocations, best remains 66.1%; no MATCH. A line-fire helper scored 59.5%, the height-gate helper 57.4%, and one helper swap failed to compile. Both helpers worsened pointer/register allocation, so the inherited best remains.
 // deepseek-v4.1-flash (#3101 retry): still 66.1% (310 of 301). The original keeps
 // a2 in esi and a3 in edi across both __allmul calls (frame `sub esp,0x10`, dx.lo

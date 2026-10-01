@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3193: nine checker invocations, best remains 79.1%; no MATCH. Guarded j1 initialization scored 74.3-74.5%, declaration and product-order variants scored 39.0% and 78.4%, and loop inversion tied. The inherited source below remains best.
 // Partial: 79.1%, 822 bytes versus 817. The big win over the previous 66.9%
 // attempt: the inner loop's seemingly dead x2/y2 stores are really the live
 // update of the int e1/e2 locals. Writing `int e1; int e2;` then

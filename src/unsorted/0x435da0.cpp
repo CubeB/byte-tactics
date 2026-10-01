@@ -1,4 +1,9 @@
-// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry (issue #2894): verified the complete inherited source at
+// 89.5% (2740 bytes) with one fresh check.py run. The older 92.7% variant
+// omitted four required -1 field stores; kept the complete version. Prior
+// notes record the constant-register, delayed x87 stores, and header-set
+// probes, so no distinct safe source lever emerged during this retry.
 // deepseek-v4.1-flash retry 6 (issue #2682, 10-minute box): no new genuine
 // lever found. Baseline kept: 2740 bytes, 89.5%. The constant-register tie is
 // insensitive to: a local for the `new` object, chained/pointer/offset/read-

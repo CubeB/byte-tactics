@@ -57,6 +57,12 @@ struct Span_004c1000 {
 
 void __stdcall FUN_004c06e0(int row, Span_004c1000* span, Surface_004c1000* surf, int color);
 
+// deepseek-v4.1-flash (#3755): 76.1 -> 86.3 percent (799 bytes). Applied the 0x4c0c70 fix:
+// test the surface height inline in the ymin guard and assign lasty from the same expression
+// afterwards, so the pitch and height 16-bit loads stop merging (pitch guard, ymax guard,
+// height load + dec + cmp + store). Remaining diffs: the ymin<->out (0x18/0x20) and
+// imin<->lasty (0x2c/0x34) slot pairs, the ymin = 0 store slot, and the test-register pick
+// at the walk setup (test esi vs test ecx).
 // FUNCTION: 0x4c1000
 int __stdcall FUN_004c1000(Surface_004c1000* surf, Vertex_004c1000* verts, int count, int color) {
     int y0, y1;
@@ -90,16 +96,16 @@ int __stdcall FUN_004c1000(Surface_004c1000* surf, Vertex_004c1000* verts, int c
         if (x < xmin)
             xmin = x;
     }
-    int lasty = (int)surf->field_2 - 1;
     if (xmin > (int)surf->pitch - 1) {
         return 0;
     }
     if (ymax < 0) {
         return 0;
     }
-    if (ymin > lasty) {
+    if (ymin > (int)surf->field_2 - 1) {
         return 0;
     }
+    int lasty = (int)surf->field_2 - 1;
     if (ymin < 0) {
         ymin = 0;
     }

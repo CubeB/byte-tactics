@@ -74,6 +74,10 @@ struct Surface_004c0c70 {
 void __stdcall FUN_004c0b10(int row, Span_004c0c70* span, Surface_004c0c70* surf,
                             unsigned char color);
 
+// deepseek-v4.1-flash (#3755): MATCH. Testing the height inline in the minY guard
+// (minY > (int)sf->height - 1) and then assigning maxRow from the same expression
+// CSEs the two loads and flips the whole rotation: surf stays in ecx, maxY gets eax
+// and maxRow eax, killing all five residual hunks.
 // FUNCTION: 0x4c0c70
 int __stdcall FUN_004c0c70(Surface_004c0c70* surf, Point_004c0c70* pts, int n,
                            unsigned char color) {
@@ -111,9 +115,9 @@ int __stdcall FUN_004c0c70(Surface_004c0c70* surf, Point_004c0c70* pts, int n,
         return 0;
     if (maxY < 0)
         return 0;
-    int maxRow = (int)sf->height - 1;
-    if (minY > maxRow)
+    if (minY > (int)sf->height - 1)
         return 0;
+    int maxRow = (int)sf->height - 1;
     if (minY < 0)
         minY = 0;
     if (maxY > maxRow)

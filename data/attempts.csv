@@ -6210,7 +6210,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x46f7a0,798,deepseek-v4.1-flash,#3379,partial,83.8,,"issue #3379, escalated"
 0x458fa0,455,longcat-2.5-preview-free,#3380,partial,84.1,,"issue #3380, escalated"
 0x45f8c0,504,longcat-2.5-preview-free,#3380,partial,98.7,,"issue #3380, escalated"
-0x48cd80,428,,#3382,assigned,,,"issue #3382, escalated"
+0x48cd80,428,mimo-v2.6-pro,#3382,partial,92.6,,"issue #3382, escalated"
 0x4211d0,469,mimo-v2.6-pro,#3384,matched,100.0,,"issue #3384, escalated"
 0x49a890,488,space-bunny-free,#3386,partial,83.6,,"issue #3386, escalated"
 0x49abb0,568,space-bunny-free,#3386,partial,93.7,,"issue #3386, escalated"
@@ -7203,3 +7203,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x464060,560,,#4342,assigned,,,"issue #4342, escalated"
 0x464700,473,,#4342,assigned,,,"issue #4342, escalated"
 0x4797e0,1034,,#4344,assigned,,,"issue #4344, escalated"
+0x48cd80,428,,#4346,assigned,,,"issue #4346, escalated"

@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue #4115): best stays 84.7 percent / 3924 bytes, 10 hunks.
+// Still differs: the five bitfield push-0 / or-destination arms (scheduler placement),
+// the 1-byte overage showing up as four late je offsets reading +1 (the extra byte sits
+// in the inlined vector-insert region, likely the inc edi off w->sub versus the
+// original direct [eax+5]/[eax+9] reads), and the 240-line inlined vector-insert region
+// where our entries base lands in edi while the original keeps it in ebx and reloads
+// w->sub from [esp+0x10]. No new source shape was kept this pass.
 // deepseek-v4.1-flash break-through (issue #3820): 84.4 -> 84.7 percent (3924 bytes, was 3918),
 // 13 -> 10 hunks. The binary search no longer materialises a `middle` pointer local: it uses an
 // `unsigned int half = (unsigned int)(last - first) / 2;` and writes the two updates as

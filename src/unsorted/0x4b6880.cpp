@@ -1,4 +1,9 @@
-// Decompiled by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol. Names are provisional.
+// Retry (GPT-6.1-sol, issue 3201): 7 checker invocations in this pass; best
+// remains 88.2%. The arg6 prologue load is the only mismatch. Read-first
+// declaration order scored 82.4%; delayed mask assignment scored 82.4%;
+// if-assignment scored 81.1%; DWORD doRead and an LPDWORD alias matched the
+// 88.2% baseline. No change to prior best source.
 // #2992 retry by GPT-6.1-sol: three checks retained 88.2% (299/297 bytes); an
 // arithmetic-mask variant fell to 82.4%. The prologue parameter load differs.
 // Opens (or creates) HKCU\Software\Cavedog Entertainment\<subKey> and then

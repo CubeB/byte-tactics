@@ -102,6 +102,61 @@
 // block's xor emission order (ours edx, ecx, esi vs edx, esi, ecx) is likewise
 // fixed before the block, whose instructions are identical. 24 variants
 // scored, none above 94.2%.
+//
+// Fifth pass (deepseek-v4.1-flash, ~160 check.py runs, no new best): the tail
+// is a *copy decomposition* difference, not a source-shape one. The target end
+// block is a three-value copy like the two zero blocks (values edx, esi, ecx,
+// dest edi): the compiler materialised x, y and the negated z into separate
+// registers before the first store. Ours is a two-register block copy (dest
+// edx, one temp esi reused for x and y). The front end normalises every
+// end-block spelling tried to the same IR: all 6 field-copy orders, whole
+// struct copies (`Vec3 out = result;`), ctor forms (`return Vec3(x, y, -z)`
+// with 6 different ctor body orders, all 92.1), inline helpers taking 3 ints,
+// by value or by pointer (FlipZ, Copy), comma expressions, `int x/y/z`
+// temporaries in every order, `memcpy`, casts, references, a union, dead
+// statements, a conditional `result.z ? -result.z : 0`, and the negate spelled
+// `-x`, `0 - x` and `x * -1`. A genuine struct copy into a local with a home
+// (`Vec3 out = result; out.z = -out.z; return out;`) does produce the
+// three-value pattern (x = ecx, y = edx, z = eax, dest = edi, plus one store
+// to out's slot) but it also rotates the whole function (55.7%); the same for
+// every other form that gives out a home. So the original's tail had the
+// three values live at once without giving the destination a home.
+// Range block: only source order z, x, y gives the original's mapping
+// (x = edx, y = esi, z = ecx); for the other five orders the xor emission
+// order equals the source order, but z, x, y emits x, z, y where the original
+// emits x, y, z (the original's two zero blocks both emit in store order).
+// Chained, comma, grouped and two-statement spellings of z, x, y all give the
+// same 94.2 bytes; x, y, z merges the two zero tails (330 bytes, 87.3).
+//
+// Sixth pass (deepseek-v4.1-flash): the end block is fixed, 99.2%. The
+// original's end block is a three-value copy; MSVC only makes one when it
+// unrolls a *loop* over the fields, so write the return as
+//
+//     Vec3 out;
+//     for (int i = 0; i < 3; i++)
+//         ((int*)&out)[i] = ((int*)&result)[i];
+//     return out;
+//
+// which the compiler unrolls into three independent values and hoists both
+// loads above the destination, exactly like the original. Every other copy
+// form (struct copy, field copy in any order, ctor, memcpy, cast, reference,
+// helper) emits the two-register block copy. The loop spelling is also what
+// keeps the range block's register mapping (x = edx, y = esi, z = ecx).
+//
+// What still differs, one instruction pair in the range block: the original
+// emits the two zero xors in store order (x = edx, y = esi, z = ecx), ours
+// emits x, z, y (the z xor before the y xor, both before the stores). The
+// mapping already matches; only the order of the ecx and esi xors differs.
+// Tried for that pair: all 6 statement orders (z, x, y is the only one with
+// the original's mapping, and it is also the only order whose emission is not
+// the source order), chains, comma expressions, two-statement groupings,
+// aggregate initialisers, ctor and default-ctor forms, helpers zeroing by
+// pointer and by reference, `int*` index writes in all orders, forward and
+// reverse loops, `while` loops, independent `Zero()` calls per field,
+// cross-field assignments (`w.y = w.z`), the same variable declared at
+// function scope, `(void)block` / `block;` / `block = block;` to keep ecx
+// live, and a sweep of unused `extern int` declarations before the function
+// (N = 0..30 all give this same 4-line diff; N >= 31 degrades).
 
 #include <string.h>
 
@@ -190,5 +245,8 @@ Vec3 __stdcall FUN_0043def0(Object_0043def0* obj, int index)
         result.z += n->p->f18 + n->z;
     }
     result.z = -result.z;
-    return result;
+    Vec3 out;
+    for (int i = 0; i < 3; i++)
+        ((int*)&out)[i] = ((int*)&result)[i];
+    return out;
 }

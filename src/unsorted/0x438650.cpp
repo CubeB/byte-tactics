@@ -39,6 +39,46 @@
 // and redundant casts on either side, +0 / *1 / |0 / 0u pads, 5u and
 // (unsigned short)5 divisors, float and double conversions of the product,
 // and an unsigned short local for the division result.
+//
+// deepseek-v4.1-flash retest in #3010 (this session). The original's integer
+// block is exactly "A -> edx, save A -> edi, division -> edx, A * q -> edi,
+// * field_1fa, * n", so the source has the field_1fe load *before* the
+// division, which in the default compiler state only a code-emitting operand
+// produces. New evidence:
+//   * statement structure: `int p = field_1fe; p = p * ((b8+5)/5);
+//     p = p * field_1fa; p = p * n;` with a *signed* final division
+//     ((int)p / (v*300.0f)) compiles to 77.6%: the integer block above,
+//     byte for byte, with the original's esi/edi/edx allocation. It differs
+//     only in the frame (no sub esp,8, no mov [esp+0xc],0) and in
+//     "fild dword" instead of "fild qword". Making the final conversion
+//     unsigned (any of: (unsigned int)p / (v*300.0f), an unsigned int u = p
+//     copy, a (float)/(double) cast, unsigned __int64, a union, an array
+//     element, an inlined helper, an unsigned int chain, references) collapses
+//     the statements back to the 52.9% shape in every case (about 40
+//     spellings). So the unsigned conversion and the preserved statement order
+//     are mutually exclusive in this compiler state.
+//   * bitfield left operand: declaring field_1fe as `unsigned int : 16` gives
+//     92.0% and the original's exact order and registers (A is evaluated
+//     first, accumulator edi); it differs only in the A load:
+//     "mov edi,[ecx+0x1fe]; and edi,0xffff" instead of the original's
+//     "xor edx,edx; mov dx,[ecx+0x1fe]; mov edi,edx" (one byte longer, 162).
+//     `unsigned short : 16` emits no mask and does NOT flip the order (52.9%),
+//     so the flip comes from the operand needing an extra instruction, not
+//     from the bitfield node. The bitfield mask is unavoidable for that type.
+//   * compiler state: 128 header sets, N = 0..600 dummy extern ints, N = 0..300
+//     dummy structs and the full UnitType/Unit declarations from 0x402640 all
+//     leave the no-cast expression at 77.3% (161 bytes, but the chain
+//     reassociated to F*A, q, n and b->type in ecx), and drop the cast version
+//     to 74.2%. No state tried flips the no-cast expression to the original's
+//     A-first chain.
+// Best lead for the next attempt: find a source whose *left* operand needs a
+// register during evaluation but emits no instruction (the z16 bitfield flip
+// without the mask), or a compiler state that preserves the statement order
+// with the unsigned conversion (the s05/y01 block above is the proof that the
+// order is reachable; only the conversion differs).
+//
+// What still differs (96.6%): one extra "and edx, 0xffff" before
+// "imul edi, edx", which shifts the jg target (0x4386ef vs 0x4386e9).
 
 #pragma pack(push, 1)
 struct UnitType_00438650 {

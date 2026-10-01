@@ -187,6 +187,12 @@ static inline int MapRange()
     return (g_game->mapWidth + g_game->mapHeight) / 3 << 16;
 }
 
+// deepseek-v4.1-flash timebox pass (97.8%, 1221 bytes): three new neutral shapes,
+// so the three hunks stay as listed above. `Vec3 target; target = origin;` (split
+// declaration) is byte-identical, `Vec3 target(origin);` is byte-identical, and an
+// explicit `(unsigned char)` cast on the inner loop-2 `u->def->flag12` test is
+// byte-identical: the def-load hoist over the three target stores is not affected by
+// the condition's cast spelling or by how the copy is declared.
 // FUNCTION: 0x408100
 void Class_004085d0::FUN_00407380()
 {

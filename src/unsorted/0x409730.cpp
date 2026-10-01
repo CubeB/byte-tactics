@@ -346,6 +346,12 @@ extern Game_00409730* g_game;
 
 float __stdcall FUN_00488f30(Def_00409730* def);
 
+// deepseek-v4.1-flash timebox pass: two new shapes scored at the two remaining SIB
+// bytes, neither helps. A function-scope `std::vector<unsigned char>& v8d = vec_8d;`
+// reference local used at both sites keeps the pointer live across the whole function
+// and drops to 1679 bytes, 73.7%. An explicit `(signed char)` cast at the read
+// (`x += (signed char)vec_8d[i] / 2;`) is byte-identical at 99.6% (1678 bytes), so the
+// read SIB is not a cast-spelling artefact either.
 // FUNCTION: 0x409730
 void Class_00409730::FUN_00409730()
 {

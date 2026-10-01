@@ -32,6 +32,17 @@
 // post-guard store is 795 bytes at 72.5%, so the ymin/out slot pair is not first-definition order
 // either. Both reverted.
 
+// deepseek-v4.1-flash (#3807), still 86.3 percent / 799 of 791 bytes: deleting the lasty local
+// (using (int)surf->field_2 - 1 at all four uses) and swapping walk2 to `i = imin;` before
+// `out = spans;` are both byte-flat at 86.3 percent / 799 bytes, so neither the (ymin, out) nor the
+// (imin, lasty) slot pair is reachable that way; dropping the `k = j;` copy in walk2 (wrap j itself)
+// regresses to 81.3 percent / 807 bytes. The residual is the two slot pairs, the second walk's
+// extra `mov ecx, esi`, and the two `test` before the `mov` orderings.
+// Also tried here: walk2 computing k = i + 1 before j = k drops the walk2 `mov ecx, esi` and compiles
+// to the original 791 bytes, but it shifts ymin to [esp+0x1c], flips the imin/lasty pair the other
+// way and scores 82.3 percent, so the byte count and the slot pairs cannot be won together that way.
+// The 86.3 percent shape stays.
+
 struct Surface_004c1000 {
     unsigned short pitch;   // +0x0, also the clip width
     unsigned short field_2; // +0x2, the clip height

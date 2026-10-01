@@ -1,4 +1,15 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// deepseek-v4.1-flash (#3807): 94.1 -> 98.0 percent, 613 of 613 bytes. The edge walks now hold the
+// second point in a function-scope pointer b (b = &pts[j], every field read through b) while y0/y1
+// became block-local to each walk. That pair is the lever the earlier sessions could not find: it
+// lands y0 at 0x28 in walk1 and 0x24 in walk2 with b at 0x20 in both, exactly the original, and the
+// frame stays 0x14024. The function-scope `int y0, y1;` was replaced by `Point_004c0820* b;`.
+// Still different (both allocator picks): the walk1 tail loads pts from [esp+0x1403c] one instruction
+// before reloading i from [esp+0x24] (original: i then pts), and the final call holds surf in ebx and
+// color in ebp (original: color in ebx, surf in ebp, pushed in the same order either way).
+// Re-tested here: reading y1 before y0 (both walks) is 60.7 percent / 609 bytes, a for-loop final
+// scan is byte-identical at 98.0, and hoisting surf into a local fails to compile as edited.
+//
 // PARTIAL 94.1%, 613 of 613 bytes. The two edge walks read pts[i]/pts[j] fields directly
 // instead of caching &pts[i]/&pts[j] in pointer locals, share y0/y1/x/dx at function scope, and the
 // first walk assigns out = spans before i = iymin (the second keeps the opposite order). Those three
@@ -26,7 +37,7 @@
 // * Naming the &pts[j] temp at its first use INSIDE `if (y0 < y1)` instead of letting MSVC CSE
 //   it across the branch drops to 36.1% with a 604-byte frame: the original's lea and its spill
 //   are both emitted BEFORE the `jge`, so that value is live into the branch. Keep the field
-//   reads written as `pts[j].x` / `pts[j].z` / `pts[j].y` and let MSVC CSE them.
+//   reads written as `b->x` / `b->z` / `b->y` and let MSVC CSE them.
 //
 // deepseek-v4.1-flash retry (#3217): re-confirmed 94.1 and the whole 92.1 block-local family. A
 // function-scope named pointer for the second edge point (bp = &pts[j] used in both walks) drops to
@@ -79,7 +90,7 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
     Span_004c0a90 spans[2048];
     Span_004c0a90* out;
     int ay;
-    int y0, y1;
+    Point_004c0820* b;
     int x, dx;
     int ymin = 999999;
     int xmax = -999999;
@@ -121,16 +132,17 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
                 j = count;
                 j--;
             }
-            y0 = pts[i].y;
-            y1 = pts[j].y;
+            int y0 = pts[i].y;
+            b = &pts[j];
+            int y1 = b->y;
             if (y0 < y1) {
                 int h = y1 - y0;
                 x = pts[i].x;
-                dx = ((pts[j].x - x) << 16) / h;
+                dx = ((b->x - x) << 16) / h;
                 x = (x << 16) + 0xffff;
                 int y = pts[i].z << 16;
-                int dy = ((pts[j].z << 16) - y) / h;
-                int rows = pts[j].y - y0;
+                int dy = ((b->z << 16) - y) / h;
+                int rows = b->y - y0;
                 do {
                     out->x1 = x >> 16;
                     out->z1 = y;
@@ -153,16 +165,17 @@ int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int coun
             int j = i + 1;
             if (j >= count)
                 j = 0;
-            y0 = pts[i].y;
-            y1 = pts[j].y;
+            int y0 = pts[i].y;
+            b = &pts[j];
+            int y1 = b->y;
             if (y0 < y1) {
                 int h = y1 - y0;
                 x = pts[i].x;
-                dx = ((pts[j].x - x) << 16) / h;
+                dx = ((b->x - x) << 16) / h;
                 x = (x << 16) + 0xffff;
                 int y = pts[i].z << 16;
-                int dy = ((pts[j].z << 16) - y) / h;
-                int rows = pts[j].y - y0;
+                int dy = ((b->z << 16) - y) / h;
+                int rows = b->y - y0;
                 do {
                     out->x2 = x >> 16;
                     out->z2 = y;

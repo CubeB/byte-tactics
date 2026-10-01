@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Retry (deepseek-v4.1-flash, ten-minute box): naming the case 6 call result
+// in a local (int hot = FUN_004c46c0("hotornot", 0); x = ((hot ^ x) & 1) ^ x;)
+// regresses 86.2 to 81.5 % (740 bytes), so the statement boundary does not
+// stop the hoist of `mov esi,[ebp-0xe]` above the call. Declaring the loop
+// counter unsigned is byte-neutral at 736 bytes / 86.2 %. Case 6 still needs
+// the post-call `mov ecx,[ebp-0xe]`, and the latch still needs its genuine
+// seventh instruction (see below).
+
 // Retry #3437 (deepseek-v4.1-flash): found the exact mechanism and the best
 // partial so far, 86.2% (736 bytes). The duplicated latch is an /Ot
 // tail-duplication pass whose threshold is SIX instructions for the shared

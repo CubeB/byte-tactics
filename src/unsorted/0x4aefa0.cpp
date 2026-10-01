@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry (deepseek-v4.1-flash, ten-minute box): spelling the first fill loop
+// as i = 0; while (i < count) { ...; i++; } is byte-identical at 72.2 %
+// (882 bytes), so the count-in-ebp vs count-reload tie is not the loop
+// statement spelling. This file remains the best known (72.2 %, 882 of
+// 895 bytes); the first-loop register/frame-slot tie below is still the gap.
+
 
 // GPT-6.1-sol retry: tools/headers.py tried all 128 header sets with no improvement; best remains 72.2%. The first-loop count/ptr1 register and low-frame-slot allocation still differ from the original.
 //

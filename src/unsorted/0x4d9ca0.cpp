@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol refinement: best is 70.6% after splitting second-phase len; still differs at prologue/frame and allocator placement, notably this held in ebp and the missing target spill frame.
 // space-bunny-free retry: retained 69.5%; found the n/m/q plateau is one register
 // SHORT of the original, not a different function. Declaring n=count, m=copied and
 // q=pc as function-scope locals (build/scratch/0x4d9ca0/v1.cpp, 60.7%, 629 bytes)
@@ -152,23 +153,24 @@ void Class_004d9ca0::FUN_004d9ca0()
     } else {
         p[0] = 0;
     }
-    if (m > 0 && len > 0x1e) {
+    unsigned int len2 = len;
+    if (m > 0 && len2 > 0x1e) {
         sprintf(p, "Stack dump:\n");
-        len -= strlen(p);
+        len2 -= strlen(p);
         p += strlen(p);
         unsigned long* q = pc;
         int* s = stack;
         for (i = 0; i < m; i++) {
-            if (len <= 0x1e)
+            if (len2 <= 0x1e)
                 break;
             if (i % 8 == 0) {
                 sprintf(p, "%08lX: ", q);
-                len -= strlen(p);
+                len2 -= strlen(p);
                 p += strlen(p);
             }
             sprintf(p, "%08lX", (unsigned long)*s);
             strcat(p, (i == m - 1 || i % 8 == 7) ? "\n" : " ");
-            len -= strlen(p);
+            len2 -= strlen(p);
             p += strlen(p);
             q++;
             s++;

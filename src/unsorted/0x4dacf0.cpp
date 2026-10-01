@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: rechecked the retained 55.6% variant; moving/aliasing the zero init through `memset` or `wraps` keeps the same score, and branch-local initialization drops to 43.3%. The persistent mismatch is register allocation around `res = 0`: this build materializes zero in ebp, while the original keeps the initial stack zero immediate and uses esi as wraps.
 // Started by space-bunny-free, continued by deepseek-v4.1-flash and GPT-6; deepseek-v4.1 retry.
 // deepseek-v4.1-flash retry 2 (best 55.6, unchanged): swept the `res` declaration position
 // (right after size, after map, after wraps) all stay 55.6; before lock drops to 51.5 because

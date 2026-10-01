@@ -1,5 +1,18 @@
 // Decompiled by longcat-2.5-preview-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// Still differs (50.2%). What changed since the previous note:
+// Still differs (50.5%). What changed since the previous note:
+//  - case 16's compare chain respelled as one `if (memcmp(a,STR1,0x10) == 0 ||
+//    memcmp(a,STR2,0x10) == 0) { ... }` (single shared body, not `if/else if`
+//    with the body twice) grows 50.2 to 50.5 and shrinks 5821 to 5761 bytes,
+//    and it matches the original's control flow (compare1's `je` jumps straight
+//    to the shared body, compare2 sits on the not-equal path).
+//  - the inner-switch bound mismatch (ours `cmp ecx,0x14`, exe `cmp ecx,0x15`,
+//    21 vs 22 table entries) cannot be fixed by an empty `case 21: break;`:
+//    VC5 folds an empty case into the default and the build stays byte-identical
+//    at 5761 bytes / 50.5, so the 22nd entry needs the real 0x4280b9 body.
+//  - the case-16 chain still hoists the length constant (`mov ebx,0x10` /
+//    `mov ecx,ebx` twice) where the exe reloads `mov ecx,0x10` twice, and that
+//    is what keeps ebp alive as the second zero register (`xor ebp,ebp`,
+//    `push ebp`/`pop ebp` in every epilogue) even after the `||` respelling.
 //  - the mode check must read `mode != g_game[0x2bbf]` (mode on the left) so
 //    MSVC emits the original `cmp bl, cl` at 0x426e98; the reversed spelling
 //    cost one mismatched line, 50.1 -> 50.2.
@@ -682,18 +695,8 @@ void __stdcall FUN_00426e80(void)
             g_game[0x2bbf] = 1;
             g_game[0x2bc0] = 1;
             FUN_004644d0();
-            if (memcmp(g_game + 0x39201, DAT_004fcdc8, 0x10) == 0) {
-                if (g_game[0x2aaf] & 1) {
-                    FUN_004256d0(0x58f, DAT_00503004);
-                    g_game[0x2bbf] = 0x11;
-                    g_game[0x2bc0] = 0x11;
-                    return;
-                }
-                *(int*)(g_game + 0x2ba2) = DAT_004fdaf0;
-                *(int*)(g_game + 0x2ba6) = DAT_004fdaf4;
-                *(int*)(g_game + 0x2baa) = DAT_004fdaf8;
-                *(int*)(g_game + 0x2bae) = DAT_004fdafc;
-            } else if (memcmp(g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
+            if (memcmp(g_game + 0x39201, DAT_004fcdc8, 0x10) == 0 ||
+                memcmp(g_game + 0x39201, DAT_004fcdb8, 0x10) == 0) {
                 if (g_game[0x2aaf] & 1) {
                     FUN_004256d0(0x58f, DAT_00503004);
                     g_game[0x2bbf] = 0x11;

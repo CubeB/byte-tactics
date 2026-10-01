@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol retry (issue #3130, 2026-10-01): best remains 92.0% (732/753). Direct insert(end(), 1, value) expanded insertion to 913 bytes / 31.2%; while and index-loop spellings tied at 92.0%, with the index form changing the target jne to jl. Preserve the baseline. Remaining differences: reserve omits the empty out-of-line _Destroy call and shifts register allocation / branch targets; vector::size resolves under the mismatched symbol noted below. No MATCH observed.
 // deepseek-v4.1-flash (#2950 retry): still 92.0% (732 of 753 bytes). The only code
 // gap is a trivially-empty out-of-line callee (ret N COMDAT) plus the register spill
 // that call forces; removing the explicit template instantiation scores 89.3%,

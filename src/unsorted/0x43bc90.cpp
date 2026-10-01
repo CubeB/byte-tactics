@@ -1,5 +1,6 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol (#3130 retry): best remains 83.6% (909 bytes), confirmed twice. Splitting reserve size into a `needed` local scored 80.0% (914 bytes); incrementing the held insertion iterator after insert scored 71.8% (894 bytes). Four checker runs completed, no MATCH. Remaining mismatch is primarily begin/end pointer register and stack-slot allocation through reserve and the inlined sort; see prior notes below.
 // deepseek-v4.1-flash (#2950 retry): still 83.6% (909 bytes, exact). Root cause:
 // both versions hoist one global pointer into ecx before `sub esp`; the original
 // hoists `_First` (0x512344) and keeps the `_Last` load inside the size() ternary

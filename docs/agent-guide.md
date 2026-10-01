@@ -216,7 +216,13 @@ forms, inline helpers and more) for 15 minutes, and writes the best version to
 `build/permute/<addr>/best.cpp` with `best.diff` beside it. Read and tidy the
 diff before you use it: the output can include temporaries (`tmp0`) and
 helpers (`inl0`) that need a sensible name, and a hunk that looks dead can
-still be needed, so re-check with `check.py` after each edit. Its first run
+still be needed, so re-check with `check.py` after each edit. Commit it only
+once it reads as plausible source: self-assignments (`x = x;`), helpers that
+return their argument and do-nothing casts can nudge the compiler, but on a
+partial they are not worth a few points, since every later attempt starts from
+your file. Keep such a gain out of `src/` and list its useful changes as a
+lead instead; on a MATCH, keep only what the bytes need and say so in a
+comment. Its first run
 matched 0x4ac970, 0x4be400 and 0x4b3770 in under a minute each, after many
 attempts by hand. `docs/permuter.md` has the options and how to read the
 output.

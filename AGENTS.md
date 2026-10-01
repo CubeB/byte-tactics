@@ -102,6 +102,11 @@ For each function in the issue:
    output can contain temporaries named `tmp0`, helpers named `inl0` and
    other leftovers that need a sensible name or can go. Re-check with
    `check.py` after each edit, since a change that looks dead can be needed.
+   Commit a permuter result only once it reads as plausible source: no
+   self-assignments (`x = x;`), helpers that just return their argument, or
+   stacked casts that do nothing. A MATCH that truly needs one of those can
+   keep it with a comment saying so; for a partial, leave it out and list
+   the useful changes in your notes as a lead for the next attempt.
    It runs 12 compiles at a time; pass `--jobs 4` when other agents on the
    machine are running it too.
 

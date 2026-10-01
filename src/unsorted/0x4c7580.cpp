@@ -30,6 +30,12 @@
 // Tried and reverted: reordering the stack locals (y0/y1 after xmax, out after x, clip before
 // imin/imax) to fix the 0x10/0x14 and 0x24/0x28 slot swaps was not completed inside the
 // timebox; the declaration block is unchanged from the 64.3 percent version.
+// Session deepseek-v4.1-flash (3rd): the check-1/check-4 tails ARE reachable via a shared
+// block: writing them as `if (!locked) return; goto unlock_call;` with the label placed at the
+// FUN_004c5fa0 call inside the final `if (locked) { ... }` reproduces the original pair exactly
+// (`test eax,eax / je <epilogue> / jmp <unlock_call>`, targets 0xa apart); it scores 63.1 percent
+// / 1161 bytes though, because the original also keeps full inline epilogues for checks 2, 3 and
+// 5 (2 more copies than we emit, the 22 remaining bytes), so the 64.3 percent form stays.
 #include <windows.h>
 
 struct Point_004c7580 {

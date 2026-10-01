@@ -41,6 +41,10 @@
 // (`test eax,eax / je <epilogue> / jmp <unlock_call>`, targets 0xa apart); it scores 63.1 percent
 // / 1161 bytes though, because the original also keeps full inline epilogues for checks 2, 3 and
 // 5 (2 more copies than we emit, the 22 remaining bytes), so the 64.3 percent form stays.
+// Session deepseek-v4.1-flash (4th, timebox): swapping the `int clip[4];` and `int imin, imax;`
+// declarations (clip first) is byte-identical at 64.3 percent / 1144 bytes, so that pair's slot
+// order (ours clip 0x34, imin/imax 0x44/0x48 versus the original imin/imax 0x34/0x38, clip 0x3c)
+// is not steered by declaration order. The kept file has clip declared first.
 #include <windows.h>
 
 struct Point_004c7580 {
@@ -125,8 +129,8 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
     int ymax = -999999;
     int xmin = 999999;
     int xmax = -999999;
-    int imin, imax;
     int clip[4];
+    int imin, imax;
     int i;
     Rec_004c7580* out;
     int j, k;

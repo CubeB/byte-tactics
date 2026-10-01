@@ -94,6 +94,16 @@
 // still stores/loads `ebp` (a register proven 0) instead of the literals, which in turn is
 // the ebp/ebx role swap in branch 2's inlined Lock. No new spelling tried: any variant that
 // forces held into a function-scope home was already measured at 67.6 percent (frame 0xf8).
+// Session deepseek-v4.1-flash (6th, timebox): re-ran check.py once, no source change, still
+// 83.0 percent / 1086 bytes. Confirmed from the disassembly that the original shared Unlock
+// body at 0x4c663f uses the literal immediates (`push 0`, `mov [0x52a4ec],0`) precisely
+// because it has two predecessors (branch 1 memory test at 0x4c6637 region and branch 2
+// ebx test at 0x4c6637), which blocks the known-zero-register peephole; ours keeps two
+// separate bodies so each single-predecessor body substitutes the proven-zero register
+// (`push ebp` / `mov [0x52a4ec], ebp`), and the two bodies are then not identical enough
+// to be unified. The only shape that would unify them is the single shared Unlock statement
+// already measured at 67.6 percent (frame 0xf8) because held then cannot share slot 0x10
+// with the branch-2 bmp temp. No new variant attempted in this session.
 // Session deepseek-v4.1-flash (3rd): `for (;;)` in the inlined Lock() loop regresses
 // 83.0 to 69.1 (1086 -> 1118 bytes: the loop rotates and the import-pointer registers
 // move), so `while (1)` in Lock() stays; reverted, 83.0 reconfirmed. Remaining diffs

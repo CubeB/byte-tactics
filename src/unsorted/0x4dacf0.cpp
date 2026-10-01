@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (seventh run, 10-minute box): 55.6% (777 bytes) unchanged. Tested:
+// `unsigned int res = 0;` moved next to wraps (before the Class objects) was byte-flat at 55.6,
+// and as the first local before lock dropped to 51.5, so the res-zero placement is not the
+// lever; both reverted.
 // deepseek-v4.1-flash (sixth run, 10-minute box): 55.6% (777 bytes) unchanged.
 // Tested: hoisting `unsigned int wraps = 0;` next to `unsigned int size = n;` to
 // reproduce the original's early `mov dword ptr [esp+0x24], 0` dropped the score to

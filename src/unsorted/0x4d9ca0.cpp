@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (seventh run, 10-minute box): still 79.2% (643 bytes). Tested, all worse
+// or tied: dropping `const int n = count;` and reading count directly in both places 73.6 (637
+// bytes); moving `int i = 0;` to last tied 79.2 but reverted to the known-best order.
 // deepseek-v4.1-flash (sixth run, 10-minute box): 79.2% (643 bytes), up from 78.2.
 // One lever gained the point: move `unsigned int len = 0xa44c;` to be the FIRST
 // local, before `char* p = buf;`. Hoisting `q = pc;` and `int* s = stack;` to

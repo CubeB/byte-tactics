@@ -1,4 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// claude-sonnet-5-5 (#4423): still 80.0%. Permuter (12 min, 420 candidates) found nothing; all 24 orders of hi/lo/size/offset declared at the function top and assigned after the loop (the 0x4c90b0 lever) are byte-identical. Original case 1 evaluates in strict right-to-left order (G in eax, then size-offset, then at_high loaded last into ecx); case 2 loads at_low into edx before the first push and at_high into eax after the result store.
 //
 // 30-min checkpoint (DeepSeek V4.1 Flash, #4154): still 80.0%, 280 bytes, no
 // MATCH; the body below is unchanged and remains the best. This pass measured

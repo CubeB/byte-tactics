@@ -1,4 +1,13 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (issue #3633) retry: 96.1% reconfirmed, same three real
+// hunks (the jmp-table line is masked placeholder rendering and does not
+// count). Hunk at +0x477 is one instruction placement: the original hoists
+// `mov edx, [esp + 0x3c]` above `add esp, 8` and `mov ebx, eax`, ours loads the
+// same slot as `mov eax, [esp + 0x34]` after both (post-add [esp+0x34] is
+// pre-add [esp+0x3c]), so it is a live-range artifact, not a source shape. The
+// other hunk is the known landing-site /Ob2 _Destroy budget recorded below.
+// Best kept at 96.1%.
+
 // deepseek-v4.1 (short retry, kept 96.1%): VECTOR lines 52-55 confirm
 // ~vector() is {_Destroy(_First,_Last); deallocate(_First,_End-_First);
 // zeros;}. The original keeps NO zero stores in either path (dead after the

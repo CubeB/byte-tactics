@@ -1,4 +1,13 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (issue #3633) retry: 98.0% reconfirmed, the single real
+// hunk is still 0x413950..0x413966. Full ctx disassembly shows the original
+// never materialises off: edi holds off.x and is consumed by `add edx, edi` at
+// 0x413954, then reloaded with target->pos.y at 0x413956 (eax already holds
+// off.z, ecx is reloaded with pos.z), while ours keeps pos.x live and gives
+// pos.y ebx. Both sides compute the same three stores; only the register pick
+// and the 0x36 push slot differ, so this is a scheduler tie-break. No variant
+// reaches it (see the 20+ shapes recorded below); best kept at 98.0%.
+
 // deepseek-v4.1-flash (issue #3490) retry: baseline reconfirmed 98.0%. What
 // still differs is only the state-3 misses>=2 waypoint schedule at
 // 0x413950..0x413966 (17 bytes): the original emits load pos.x, push 0x36,

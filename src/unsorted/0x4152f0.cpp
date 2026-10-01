@@ -1,4 +1,8 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue #3633) retry: 87.2% (1604/1504 bytes) reconfirmed,
+// 23 hunks; the +100 byte overflow is still the whole story (item 3 below).
+// Not attempted further under this issue's 10 minute timebox; best kept.
+
 // #2635 retry by OpenCode / GPT-6.1-sol: best remains 87.2% (1604/1504 bytes), no MATCH.
 // A reordered `energyCapacity * 0.2 <= energy` compare scores 86.8%. A by-value
 // Reclaim helper with Vec3* first merges the four tails but scores 65.1%; keep the

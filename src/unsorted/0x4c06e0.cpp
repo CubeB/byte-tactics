@@ -1,4 +1,72 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+//
+// Space Bunny Free pass (#4226): best 76.6 -> 84.2 percent, still 200 of 200
+// bytes, no MATCH. THE WHOLE IMPROVEMENT IS ONE LINE: sharing the byte offset
+// in a single `int off` local, used by both `p += off` and `d += off`, instead
+// of writing `row * pitch + span->x1` twice. The old shape computed the product
+// twice, which put the pitch in edx, spilled `n` and emitted 215 bytes. The
+// shared local gives the original's `add edi, edx` / `add esi, edx` pair (one
+// add destination for both pointers) and the original's loop tail
+// (`inc edi; inc esi; add ecx, eax; dec ebp; jne`). Semantically correct: it
+// reads `span->x1` after both clips, as the original does. The variant is in
+// build/scratch/0x4c06e0/BEST_84.2.cpp.
+//
+// Still differs, all of it one register-colouring decision, 9 instructions:
+//
+//   original: mov ebp,[esp+0x1c]     surf -> ebp
+//             mov edx,[ecx]          x1  -> edx
+//             mov ebx,[ecx+4] / sub ebx,edx        n -> ebx
+//             mov ax,[ebp] / imul eax,[esp+0x14]   eax = row * pitch
+//             add edx, eax           edx = x1 + row*pitch = off
+//             lea ebp,[ebx]          loop counter copy, lea not mov
+//   ours:     mov edx,[esp+0x1c]     surf -> edx
+//             mov ebp,[ecx]          x1  -> ebp
+//             mov ebx,[ecx+4] / sub ebx,ebp        n -> ebx
+//             mov edx,[esp+0x14] / imul edx,eax    edx = row * pitch
+//             add edx, ebp           edx = x1 + row*pitch = off
+//             mov ebp, ebx           loop counter copy, and placed early
+//
+// So the original keeps `surf` in the callee-saved ebp and re-reads the pitch
+// off it twice (`mov ax,[ebp]` at 0x4c072d and 0x4c0749), leaving edx free to
+// hold x1 and accumulate the offset with `add edx, eax` (the in-place `imul
+// eax,[row]` form, so the product lands in eax and x1 in edx is the add
+// destination). Ours puts surf in edx, x1 in ebp, and reaches the same sum by
+// loading row into edx and multiplying there. The second, smaller difference
+// is the loop-counter copy: the original emits `lea ebp,[ebx]` (a register copy
+// that does not touch flags) and ours emits `mov ebp,ebx`, placed before the
+// `test esi,esi` branch instead of after it.
+//
+// What was tried this pass, all scored with check.py, none better than 84.2%:
+// 108 declaration-order x offset-spelling shapes (nine spellings of the offset
+// including `surf->pitch * row` first and `(int)`/`(unsigned int)` casts, two
+// spellings of the count, all six orders of the off/z/n locals), 72 more with
+// a `start` local standing in for span->x1, an `int`/`unsigned short` pitch
+// local, both together, and the offset derived from `p - surf->bits`; every
+// one ties 84.2% at 200 bytes, i.e. they all emit the same bytes. Notably a
+// `start` local never helps: it is what forces x1 into ebp. The offset has to
+// read `span->x1` through the pointer, exactly as in the matched sibling
+// 0x4c0b10, whose note records the same finding (`d += row * surf->pitch +
+// span->x1;` reading the field rather than a cached local is what flips the
+// add destination into edx). That sibling is a MATCH and its head allocates
+// the same way, so it is the place to look next: its depth offset is a single
+// statement written against `span->x1`, and this function's `off` local is
+// still one step away from that shape.
+//
+// Best lead for the next attempt: the original's count block is `surf` in ebp,
+// `x1` in edx, `n` in ebx, `z` in ecx, i.e. x1 survives from the `n` computation
+// into the `add edx, eax`, so the offset is `span->x1 + row * surf->pitch` with
+// the pitch re-read from ebp late. A shape that keeps surf live in a
+// callee-saved register across the whole count block, rather than letting the
+// allocator park it in edx, is what is still missing. Note that all the
+// semantically correct spellings tried give x1 to ebp; the earlier 792-shape
+// sweep found the only families that put surf in ebp do so by reading the
+// pre-clip head `x1` local in the offset, which is wrong after the clip.
+// `unitmap.py --at 0x4c06e0` reports no matched member and no unit, so the
+// Surface/Span layouts here are local guesses; they agree with the matched
+// sibling 0x4c0b10 (pitch +0x0, bits +0x10, depth +0x14, z1 +0x18, z2 +0x1c)
+// and the pitch load is the original's 16-bit `mov ax,[..]`, so the layout is
+// not the residual.
+//
 // GPT-6.1-sol retry for issue #3189: best remains 74.1%, no MATCH. Six checker invocations: baseline, maxx/local-x rewrite (50.0%), unsigned-short pitch guard (68.6%), inlined Plot and Surface* alias (both tied at 74.1%), and a failed declaration reorder compile. Remaining difference is register allocation across the clipped-span count/offset and loop.
 //
 // Eighth pass (#2984, deepseek-v4.1-flash): baseline re-confirmed at 74.1%.
@@ -152,6 +220,36 @@
 // can land in bl. Inline `surf->pitch` offset shapes (v2 to v4, v6, v8) are all
 // 71.6 to 72.4 percent at 211 to 215 bytes, worse.
 
+//
+// Ninth pass (deepseek-v4.1-flash, 60-minute box): no MATCH, best score moved
+// 75.3 -> 76.6 percent (the file now holds that 76.6 percent shape, 215 bytes).
+// A 792-shape in-process sweep of the count block (pitch local before/in/after
+// the guard, int/unsigned short/unsigned int pitch, four offset spellings,
+// two count spellings, three loop forms, two memset counts) found only one
+// family that puts surf in ebp (the register the original keeps it in): the
+// offset must read the *head* `x1` local rather than `span->x1`, which is both
+// semantically wrong after the clip and reallocates the whole head (59.0
+// percent, 200 bytes; it emits `imul ebp,ebx`, `sub ebp,[ecx]` there). Every
+// shape that keeps the head at 75.3 percent or above puts surf in ebx or eax.
+// A byte-pattern scan of the whole exe shows the original's count block
+// (xor eax,eax / mov ecx,[ecx+0x18] / mov ax,[ebp] / imul eax,[esp+0x14]) is
+// unique, so there is no sibling to copy from.
+//
+// The 76.6 percent file below is a length artefact, not a structural step: it
+// reads `surf->pitch` inline in the depth offset (so surf stays in a register
+// and the loop tail matches: `mov bl,[esp+0x20]`, `add ecx,eax`, `dec ebp`),
+// but it spills `n` to [esp+0x1c] and computes `row * pitch` twice. The
+// 199-byte base, saved at build/scratch/0x4c06e0/BEST_75.3_199bytes_base.cpp,
+// differs in exactly one hunk (the count block) and is the better starting
+// point: it has the head, clip, offset and memset arm byte-identical, and
+// needs only the `mov ebp,[esp+0x1c]` / `mov edx,[ecx]` colouring. Restore it
+// first if you prefer the shorter diff.
+//
+// Where the 76.6 percent version still differs: surf lands in ebx (not ebp),
+// x1 in eax (not edx), the pitch in edx and `n` spilled to [esp+0x1c], the
+// pitch local is read early so surf dies before the count, and the memset arm
+// copies the count with `mov ecx,ebp` where the original uses `lea ecx,[ebx]`.
+
 #include <string.h>
 struct Span_004c06e0 { int x1; int x2; char unknown_8[0x18 - 0x8]; int z1; int z2; };
 struct Surface_004c06e0 { unsigned short pitch; char unknown_2[0x10 - 0x2]; unsigned char* bits; unsigned char* depth; };
@@ -172,13 +270,13 @@ void __stdcall FUN_004c06e0(int row, Span_004c06e0* span, Surface_004c06e0* surf
         span->x2 = surf->pitch - 1;
         x2 = span->x2;
     }
-    int pitch = surf->pitch;
     if (span->x2 - span->x1 > 0) {
+        int off = row * surf->pitch + span->x1;
         int z = span->z1;
         int n = span->x2 - span->x1;
-        p += row * pitch + span->x1;
+        p += off;
         if (d != 0) {
-            d += row * pitch + span->x1;
+            d += off;
             do {
                 unsigned char zi = (unsigned char)(z >> 16);
                 if (*d <= zi) { *p = color; *d = zi; }

@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 12 (deepseek-v4.1-flash, #4105): re-measured 75.0% (1025 vs 1040 bytes), no edit
+// kept. The pop-block rotation is not steered by the outer loop shape or by naming the
+// popped pointer: `for (int i = rows->n; i > 0; i--)` regresses to 70.1% / 1021 bytes,
+// a `Buffer_00463730* rp = rows;` alias used by the guard and the count is byte-flat at
+// 75.0 / 1025, and `Entry_00463790* ep = Pop_00463790(rows); e = *ep;` is byte-flat too.
+// So the 0x46379e r=EAX / index=ECX rotation remains open, as do the 0x4638db n/remaining
+// and a4/a5 memcpy pairings listed below.
 // Pass 11 (deepseek-v4.1-flash, #4016): re-measured 75.0% (1025 vs 1040 bytes). Two new
 // pop spellings, both byte-identical to the recorded best: `Entry e = *Pop(rows);` with
 // no intermediate `r`, and the pop as a Buffer member `rows->Pop()` (MSVC canonicalises

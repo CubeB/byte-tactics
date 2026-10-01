@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 11 (deepseek-v4.1-flash, #4105): re-measured 43.3% (1578 vs 1653 bytes), no edit
+// kept. Not attacked further this pass (short timebox); the open items are the same as in
+// pass 10 below: the EBP-resident &length base, the single EDI zero, and the 0x4632b5 block.
 // Pass 10 (deepseek-v4.1-flash): re-measured 43.3% (1578 vs 1653 bytes), no edit kept.
 // Ruled out the puVar1/ebp lever: the original keeps &this->length (lea ebp,[ebx+0x22c])
 // in ebp and routes every length access through it, but an explicit `int* pl = &length;`

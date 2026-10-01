@@ -1,5 +1,18 @@
 // Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash worker pass (issue #4017, 10-min box): re-verified BEST
+// 78.3% (2651 of 2644 bytes). One new experiment, worse: dropping the cached
+// `unsigned int n = rec->NumberParameters;` and using rec->NumberParameters
+// directly in both the loop test and the `i == n - 1` test (the pass-2 note's
+// suggestion) scores 71.6% (2650 bytes), so the cached-n form stays. Residual
+// diff unchanged: per-call arg scheduling around each inline scasb strlen, the
+// reason/base/file slot permutation (original reason F+0x10, base F+0x14, file
+// F+0x18; ours base F+0x10, file F+0x14, reason F+0x18), the CreateFileA
+// handle kept in esi vs the original's eax plus spill to the dead outgoing arg
+// slot ([esp+0x18] after `test eax,eax`), and the params-loop separator built
+// with setcc/add instead of the original's `mov dl,9 / jne / mov dl,0xa`.
+
 // deepseek-v4.1-flash worker pass (issue #3875, 10-min box): re-verified BEST
+
 // 78.3% (2651 of 2644 bytes). Two scratch experiments, both byte-identical or
 // worse: (1) renaming the scalars a0_reason/b0_base/c0_file/d0_written to
 // force alphabetical slot order left every slot load unchanged (reason still

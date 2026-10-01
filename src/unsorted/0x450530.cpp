@@ -1,101 +1,51 @@
-// Decompiled by deepseek-v4.1-flash, retries by GPT-6.1-sol and space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, retries by GPT-6.1-sol and space-bunny-free, finished by deepseek-v4.1-flash, improved by claude-sonnet-5-5. Names are provisional.
 //
-// Retry (deepseek-v4.1-flash, issue 2879): re-confirmed the wall. Tried a
-// Player* base cached outside the loop (base = g_game->players, then
-// &base[i]): 42.0%, worse. Tried `int i = 0;` declared before the for and
-// `Player* p = g_game->players + i`: both byte-identical to this 52.3% source,
-// so the induction spill is decided by the allocator, not by the loop form.
-// Untried lever: make the body's calls clobber edi the way the original does
-// (|or edi,-1| materializes msg.arg), which is what stops the original from
-// caching g_game and frees ebp for the raw counter. No source shape found for
-// it.
-// Retry (deepseek-v4.1-flash, issue 2408): re-tested the outer induction wall.
-// Variants tried and scored with check.py --sym, all identical bytes (52.3%):
-// guard via direct g_game->players[i] with p moved after the active test, p as
-// g_game->players + i, p as a reference, i declared outside the for, i != 10,
-// bound in a variable, ++i, explicit (char*) + i*0x14b + 0x1b63, and `register`
-// on i/p. The register hint is ignored at /O2. Root cause confirmed: MSVC keeps
-// the induction in a stack slot and uses ebp as scratch in our layout, while the
-// original keeps the counter in ebp and instead clobbers edi with the `to`
-// player id (our body keeps g_game in edi and puts `to` in ebp, the mirror
-// image). The original dispatch also contains unreachable duplicates
-// (cmp al,1 at 0x4505ac, cmp al,2 at 0x4506b3) that our clean else-if chain
-// does not reproduce. Both follow from the same allocation/layout difference.
+// Sends a 10-byte 0x21 message via FUN_00451bc0 for each player slot in state
+// 1, 2 or 3 with f_146 != 10 and field_c == 0 (to = first slot whose data->flags
+// has bit 0, from = first slot in state 1 or 2). State 1 sets the flag byte and
+// arg = -1, state 2 sets the flag byte and arg = the local player's id, state 3
+// clears the flag and arg = -1.
 //
-// For each player slot in state 1, 2 or 3 with field_146 != 10 and field_c == 0
-// it sends a 10-byte 0x21 message (to = first slot whose data->flags has bit 0,
-// from = first slot in state 1 or 2) via FUN_00451bc0. State 1 sets the flag
-// byte and arg = -1; state 2 sets the flag byte and arg = the local player's id;
-// state 3 clears the flag and arg = -1. The local id lookup is the inlined
-// FUN_0044ffd0 (GetPlayerId above) and the "find any in-use player" test is the
-// inlined FUN_00456850 (FindPlayer above); writing them as static inline helpers
-// at the sites where the original inlined them is what took this from 36.4% to
-// 52.3% (it also moves g_game into edi and matches the reference counts).
+// Status: 59.8% (was 52.3%), 975 of 977 bytes. NOT a match, one wall left.
 //
-// Re-attempt (deepseek-v4.1-flash, issue 1303): re-verified lever 1 and the
-// strength-reduction question below; no variant beat 52.3%, so the body is
-// unchanged. This is the allocator/scheduler wall described below.
-// Retry (GPT-6.1-sol, issue 1627): tried combining the state-1/state-2 bodies,
-// casting the loop index to unsigned char, using raw byte-offset addressing,
-// and using players+i. The first two changes regressed; the pointer forms
-// tied at 52.3%. Replaced state-2's static GetPlayerId helper with the external
-// FUN_0044ffd0 call, which regressed to 42.2%; restored this best version.
-// Retry (GPT-6.1-sol, issue 2027): fresh Player-reference local tied at 52.3%;`n// the saved best source remains unchanged.
+// What fixed the inner code (52.3% -> 59.8%): the original is built from
+// inlined helpers, and writing them as the original did reproduces its block
+// layout: IsPlaying (active && state 1 or 2, as in 0x450e20/0x450f90) for the
+// q test, the A/B dispatch `IsPlaying(p) && p->state == 1/2` (this is where the
+// original's redundant cmp al,1 / cmp al,2 chains come from), FindFrom (first
+// IsPlaying slot's id, else -1, with `return` inside the loop), FindTo (flags
+// loop, `return FUN_0044ffd0(j)` else -1), FindToB (same with GetPlayerId) and
+// FindPlayer (the uchar loop that is FUN_00456850 inlined, in state 3 only).
+// `from` and `to` are call arguments, not locals: FUN_00451bc0(FindFrom(),
+// FindTo(), &msg, 10) gives the original's duplicated push sequences with one
+// shared `push eax; call`.
 //
-// Retry (deepseek-v4.1-flash, latest): all new outer-loop shapes regressed,
-// scored with check.py --sym against this 52.3% source: an explicit offset
-// induction (`for (int i = 0, off = 0; ...; i++, off += 0x14b)`) 48.7%; a
-// single-use static body helper called from the loop 46.0%; a `switch
-// (p->state)` dispatch 28.5%; removing the `p` local and writing
-// `g_game->players[i].x` everywhere 28.5%; a duplicated `p` assignment 52.3%
-// (identical bytes). This confirms the wall is MSVC's choice to make the
-// scaled byte offset the induction (add esi,0x14b; cmp esi,0xcee) and spill
-// the raw counter, where the original keeps the raw counter in ebp and
-// recomputes i*0x14b each iteration; no source shape reaches it.
+// The wall: the original outer loop keeps the raw index in ebp and recomputes
+// i*0x14b every iteration (mov eax,ebp; shl eax,5; ...), frame 0x10, msg at
+// [esp+0x14]. MSVC strength-reduces ours (esi byte offset, add esi,0x14b; cmp
+// esi,0xcee; counter spilled to the stack), which gives frame 0x14, msg at
+// [esp+0x18], and -1 hoisted into ebp. Measured with a scratch variant that
+// adds `if (i == 11) FUN_0044ffd0(0);` at the end of the loop body (not
+// committed: it is an extra, dead branch): the strength reduction disappears,
+// everything above falls into place and the score is 75.9%. The rest of that
+// diff is only the msg store order in the three branches and where the
+// g_game reload sits after the calls.
 //
-// Still differs from the original (52.3%):
-//  * The original outer player loop keeps the raw index in ebp and recomputes
-//    i*0x14b from it every iteration (mov eax,ebp; shl eax,5; add eax,ebp;
-//    add ecx,ebp; lea eax,[eax+eax*4]; lea esi,[ecx+eax*2+0x1b63]). MSVC 5
-//    always strength-reduces this loop here: it keeps a byte offset in esi
-//    instead and spills the counter to [esp+0x10/0x14], which cascades into a
-//    0x14 frame instead of 0x10, msg at [esp+0x18] instead of [esp+0x14], and
-//    `to` in ebp instead of edi. Tried and ruled out: pointer local vs direct
-//    indexing, i/p declared outside the loop, an array reference, a char* cast,
-//    a 2D char array, while/do-while/i!=10 forms, short/char/unsigned index,
-//    separate ifs, nested else, a switch, and all 128 header sets from
-//    tools/headers.py. See build/scratch/0x450530/.
-// Try (space-bunny-free, issue 3202): the one lever that would pay is the
-// outer loop. Everything else follows from it: with a byte-offset induction
-// variable the frame is 0x14, msg sits at [esp+0x18] instead of [esp+0x14],
-// and ebp is used as scratch for `to`/`from`, so the single IV decision
-// cascades into six blocks. Note that the original's inlined FindPlayer loop
-// at 0x4507e4 and its outer loop head at 0x450551 expand 331*i the SAME way,
-// into (base+i) + 330*i*2 (`mov ecx,edi; add ecx,ebp; lea eax,[eax+eax*4];
-// lea esi,[ecx+eax*2+0x1b63]`), and our source already reproduces that shape
-// at 0x4507e4. Only the outer loop differs, so the expander and the strength
-// reducer are both available to MSVC here and it picks strength reduction for
-// the outer loop alone. New variants scored with check.py --sym, all worse or
-// identical, none of them stops the strength reduction: `unsigned char i`
-// 48.7% (still reduces, and adds a [esp+0x18]=10 copy); `unsigned i` 52.3%
-// (byte-identical to `int i`); `int i` declared before a `for (;;)` with
-// `if (++i == 10) break;` 52.1%; `while (i < 10) { ... i++; }` 52.1%;
-// the FindPlayer loop written out at its one call site instead of through the
-// static inline helper 48.6%; `Msg_00450530 msg` hoisted above the loop
-// 52.3% (byte-identical, MSVC gives it the same slot either way).
-// Tried by space-bunny-free and rejected, all scored with check.py --sym:
-// removing the `p` local from the loop head and writing `g_game->players[i]`
-// at each of the four guard tests (the two `lea` at the top of the loop then
-// become one) drops it to 36.9%; hoisting the state into an
-// `unsigned char st` local and testing st three times drops it to 43.9%, even
-// though it is the shape the original's single `mov al` + three compares
-// suggests. Keep `Player* p = &g_game->players[i]` and the three direct
-// `p->state` tests.
-//  * The state dispatch in the original is a second compare chain
-//    (cmp al,1 / je A / cmp al,2 / jne ... / cmp al,1 / jne B) because its
-//    branch bodies are laid out out of line; ours falls through to A, which is
-//    a consequence of the same outer-loop allocation.
-
+// What I learned about when MSVC 5 skips the reduction of `p = &players[i]`
+// (tiny tests, all with calls in the body; none of this exists visibly in the
+// original, so the real cause is still unknown):
+//  * it is skipped when the loop index is compared with `==` to a constant
+//    and the true branch is a block that falls through (cmp; jne skip), e.g.
+//    `if (i == 11) F(2);`. `if (i != 11) F(2);` and `if (i == 11) continue;`
+//    are converted instead (cmp esi,3641) and the reduction still happens;
+//  * it is skipped when the loop has a second entry (a goto into its body);
+//  * it is NOT affected by body size, number of branches, register pressure,
+//    p live across calls, i used by other calls, i declared outside, i used
+//    after the loop, while/do/for forms, `unsigned`, an inline helper taking
+//    `int&`, or an explicit (char*) address;
+//  * unsigned char / short loop indices are range-analysed and reduced too.
+// Earlier workers' variants (pointer vs index, i/p scope, a switch, a base
+// pointer, raw offsets) all reduce for the same reason.
 #pragma pack(push, 1)
 struct PlayerData_00450530 {
     char unknown_0[0x97];
@@ -139,6 +89,15 @@ int __stdcall FUN_0044ffd0(unsigned char index);
 int __stdcall FUN_00451bc0(int from, int to, void* packet, int size);
 unsigned char FUN_00456850();
 
+static inline int IsPlaying_00450530(Player_00450530* player)
+{
+    if (player->active == 0)
+        return 0;
+    if (player->state == 1 || player->state == 2)
+        return 1;
+    return 0;
+}
+
 static inline int GetPlayerId_00450530(unsigned char i)
 {
     if (i != 10 && g_game->players[i].state != 0)
@@ -155,6 +114,33 @@ static inline unsigned char FindPlayer_00450530()
     return 10;
 }
 
+static inline int FindFrom_00450530()
+{
+    for (int k = 0; k < 10; k++) {
+        if (IsPlaying_00450530(&g_game->players[k]))
+            return g_game->players[k].id;
+    }
+    return -1;
+}
+
+static inline int FindTo_00450530()
+{
+    for (int j = 0; j < 10; j++) {
+        if (g_game->players[j].data->flags & 1)
+            return FUN_0044ffd0(j);
+    }
+    return -1;
+}
+
+static inline int FindToB_00450530()
+{
+    for (int j = 0; j < 10; j++) {
+        if (g_game->players[j].data->flags & 1)
+            return GetPlayerId_00450530(j);
+    }
+    return -1;
+}
+
 // FUNCTION: 0x450530
 void FUN_00450530()
 {
@@ -167,9 +153,9 @@ void FUN_00450530()
             && p->f_146 != 10
             && p->field_c == 0) {
             Msg_00450530 msg;
-            if (p->state == 1) {
+            if (IsPlaying_00450530(p) && p->state == 1) {
                 Player_00450530* q = &g_game->players[FUN_00456850()];
-                if (q->active != 0 && (q->state == 1 || q->state == 2)) {
+                if (IsPlaying_00450530(q)) {
                     p->field_c = 1;
                     continue;
                 }
@@ -179,26 +165,11 @@ void FUN_00450530()
                 msg.arg = -1;
                 if (FUN_00456850() == 10)
                     continue;
-                int to = -1;
-                for (int j = 0; j < 10; j++) {
-                    if (g_game->players[j].data->flags & 1) {
-                        to = FUN_0044ffd0(j);
-                        break;
-                    }
-                }
-                int from = -1;
-                for (int k = 0; k < 10; k++) {
-                    if (g_game->players[k].active != 0
-                        && (g_game->players[k].state == 1 || g_game->players[k].state == 2)) {
-                        from = g_game->players[k].id;
-                        break;
-                    }
-                }
-                FUN_00451bc0(from, to, &msg, 10);
+                FUN_00451bc0(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
-            else if (p->state == 2) {
+            else if (IsPlaying_00450530(p) && p->state == 2) {
                 Player_00450530* q = &g_game->players[FUN_00456850()];
-                if (q->active != 0 && (q->state == 1 || q->state == 2)) {
+                if (IsPlaying_00450530(q)) {
                     p->field_c = 1;
                     continue;
                 }
@@ -208,22 +179,7 @@ void FUN_00450530()
                 msg.arg = g_game->players[g_game->local_player].id;
                 if (FUN_00456850() == 10)
                     continue;
-                int to = -1;
-                for (int j = 0; j < 10; j++) {
-                    if (g_game->players[j].data->flags & 1) {
-                        to = GetPlayerId_00450530(j);
-                        break;
-                    }
-                }
-                int from = -1;
-                for (int k = 0; k < 10; k++) {
-                    if (g_game->players[k].active != 0
-                        && (g_game->players[k].state == 1 || g_game->players[k].state == 2)) {
-                        from = g_game->players[k].id;
-                        break;
-                    }
-                }
-                FUN_00451bc0(from, to, &msg, 10);
+                FUN_00451bc0(FindFrom_00450530(), FindToB_00450530(), &msg, 10);
             }
             else if (p->state == 3) {
                 msg.type = 0x21;
@@ -232,22 +188,7 @@ void FUN_00450530()
                 msg.arg = -1;
                 if (FindPlayer_00450530() == 10)
                     continue;
-                int to = -1;
-                for (int j = 0; j < 10; j++) {
-                    if (g_game->players[j].data->flags & 1) {
-                        to = FUN_0044ffd0(j);
-                        break;
-                    }
-                }
-                int from = -1;
-                for (int k = 0; k < 10; k++) {
-                    if (g_game->players[k].active != 0
-                        && (g_game->players[k].state == 1 || g_game->players[k].state == 2)) {
-                        from = g_game->players[k].id;
-                        break;
-                    }
-                }
-                FUN_00451bc0(from, to, &msg, 10);
+                FUN_00451bc0(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
         }
     }

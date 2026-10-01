@@ -63,6 +63,14 @@
 // still collapses to 46.7, so the loop-index theory remains wrong. The rest is the
 // one-off register-phase rotation documented above.
 
+// Retry deepseek-v4.1-flash (this session): 60.7%, best unchanged. Free-scored
+// and rejected: writing the 0x64/0x68 field pair through a local `int* dst`
+// (flat 60.7, same 1566 bytes), swapping the i/found declaration order inside
+// the first loop preamble (flat 60.7). Still differs: the childB load phase
+// (original edx, ours eax) that rotates every field-copy move, the loop
+// allocation (original n=esi, found=ebp, i spilled at [esp+0x10]; ours n=ebp,
+// i=esi, found at [esp+0x13]), the 0x110 flag block rotation and the two
+// epilogues.
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
 struct Vec3_00487080 {

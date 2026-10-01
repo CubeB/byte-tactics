@@ -97,6 +97,13 @@
 // int-credited-declared-first (63.7) are worse. Reaching the original's
 // cmd=ebx needs something that changes the allocator's register preference,
 // not the g_game/ebx occupancy as previously guessed.
+// Retry deepseek-v4.1-flash (this session): 64.7%, best unchanged. Free-scored
+// and rejected: a named `unsigned short uid` plus ternary for unit (64.7,
+// byte-identical 1920), `unsigned char depth` (58.7). Still differs: the
+// callee-saved allocation (original esi=unit, ebx=cmd, edi=credited with no
+// cached g_game; ours esi=unit, edi=cmd, ebp=g_game, credited in bl) and every
+// hunk downstream of it, plus the [esp+0x14] depth spill and the leaderboard
+// [esp+0x10]/[esp+0x80] spill assignment.
 extern void* g_game;
 extern char DAT_00508be8[];
 // Pass 6 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. New disassembly

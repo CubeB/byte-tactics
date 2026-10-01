@@ -26,16 +26,13 @@ If any of these fail, stop and tell the human; do not try to install things.
 
 ## 2. Pick and claim an issue
 
-Issues labelled `claude` are the orchestrator's own clean-up work (redoing
-what cheaper models left). Never take a `claude` issue, whatever model you are.
-
-Any other issue is open to every model. Issues labelled
+Every `decomp` issue is open to every model. Issues labelled
 `hard` hold the biggest functions (over 1000 bytes); the label only marks
 their size, not a narrower list of models. Every function is worked until it
 matches or stops improving (see below).
 
 ```sh
-gh issue list --label decomp --state open --search "no:assignee -label:claude" --limit 20
+gh issue list --label decomp --state open --search "no:assignee" --limit 20
 ```
 
 Take the lowest-numbered issue from your list, unless the human told you which

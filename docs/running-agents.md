@@ -151,20 +151,14 @@ Run from the main checkout, on `main`:
      model can take for everything left unmatched, including what a retry
      missed again. Since 2026-09-29 every model may take any issue, `hard`
      included, so every model's leftovers are escalated this way.
-     `--escalate claude` is only for when the orchestrator runs Opus workers
-     of its own (step 4).
    - `uv run tools/progress.py`
    - `uv run tools/calibration.py`
 
    Add any suspected original bugs to `docs/bugs.md` and new techniques to
    `docs/agent-guide.md`, commit and push.
-4. **Clean up what was left** (only while the orchestrator runs Opus workers
-   of its own; otherwise leftovers stay in the retry queue).
-   Issues labelled `claude` hold what the other agents left unmatched (`gave up`, `not reached`), mostly from the cheap
-   OpenCode workers. They are the orchestrator's own work, and every other
-   agent is told to skip them. The orchestrator hands them to Claude Opus
-   subagents working in the main checkout. It re-checks and commits their
-   files directly, and closes the issue.
+4. **Clean up what was left.** Everything left unmatched goes back out as a
+   retry that any model may take; since 2026-10-01 no issue is reserved for
+   one model (the old `claude` label is gone).
 5. **Fix bad matches too.** A cheap model's file can match and still be wrong
    in other ways: `__fastcall` free functions, hand-stored vtables, invented
    names. The orchestrator fixes those during review, or with a subagent,

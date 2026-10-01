@@ -41,7 +41,6 @@ subagents, and which models suit which issues. In short:
 - There is no time limit: agents keep working on a function until it matches
   or its best score stops improving (30 check runs or 60 minutes without a
   new best). See `AGENTS.md`.
-- Issues labelled `claude` are the maintainers' own clean-up. Leave them alone.
 - Please have one or two issues claimed at a time rather than many.
 
 ## What happens to your pull request

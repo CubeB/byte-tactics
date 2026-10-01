@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
-// finished by deepseek-v4.1-flash. Names are provisional.
+// finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3259: five checker invocations, best remains 66.1%; no MATCH. A line-fire helper scored 59.5%, the height-gate helper 57.4%, and one helper swap failed to compile. Both helpers worsened pointer/register allocation, so the inherited best remains.
 // deepseek-v4.1-flash (#3101 retry): still 66.1% (310 of 301). The original keeps
 // a2 in esi and a3 in edi across both __allmul calls (frame `sub esp,0x10`, dx.lo
 // in ebp, dx.hi and dz spilled); ours rematerialises a2/a3 from their argument homes

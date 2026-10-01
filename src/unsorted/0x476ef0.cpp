@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// STATUS (deepseek-v4.1-flash, final): 80.4% (1112 of 1124 bytes), unchanged
+// from the inherited file. What still differs: (1) the original keeps the dead
+// `colourState = 0` store (`mov dword ptr [esp+0x20], 0`) that MSVC 5 deletes
+// in our build (biggest gap, 8 bytes); (2) count/colourState frame slots are
+// swapped (original count [esp+0x1c] / colourState [esp+0x20], ours reversed;
+// the /Fa listing shows our kill store already drifts to [esp+0x20] while the
+// rest of colourState is at [esp+0x1c], the MSVC 5 frame-renumbering bug
+// again); (3) scan 2 keeps a live zero register in edx; (4) else arm order is
+// `inc ebp / mov [slot],1 / dec ebx` vs ours `inc ebp / dec ebx / mov [slot],1`.
+// This session: 1 check.py run (baseline). Prepared but did NOT score
+// build/scratch/0x476ef0/vTWOVAR.cpp (colour byte moved to a separate fresh
+// local `colour`, so `colourState = 0` is live and the table store becomes a
+// dead store to another local, matching the original's five slot-0x20 uses
+// otherwise). Next session: score vTWOVAR with check.py --sym first.
 // deepseek-v4.1-flash (#3822): scored the remaining untested reorder, moving
 // `colourState = 0;` from before the sel ternary to just before the
 // `colourState = DAT_00507b70[...]` store. Byte-identical: 1112 bytes, 80.4%,

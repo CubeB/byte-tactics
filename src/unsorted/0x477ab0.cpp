@@ -1,4 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial, best 93.0% (1910 of 1935 bytes). What still differs: (1) the
+// Difficulty block register allocation is mirrored, ours keeps g_game in eax
+// and the loaded difficulty value in ecx where the original keeps g_game in
+// ecx and the value in eax; (2) in both "Missions" rebuild blocks ours swaps
+// the holder/menuSub registers (esi/edi) and CSEs the campaign holder across
+// FUN_004d85a0 where the original reloads it from g_game+0x531. The dispatch
+// shape that fixed the old block-ordering gap is the single short-circuit
+// boolean condition (DAT != 0 && (Missions || Start)) || (DAT == 0 &&
+// (Campaign || Start)) with the BigButton body as its then-block, which
+// reproduces the original's test order exactly.
 // deepseek-v4.1-flash (#3822, best 74.2%): inverting the outer dispatch to
 // `if (DAT_0051e668 == 0) { Campaign/Start -> BigButton; goto PrevMenu; }`
 // with the Missions/Start pair (and its redundant re-test) after it lifts the
@@ -207,20 +217,8 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         return;
     }
 
-    if (DAT_0051e668 == 0) {
-        if (FUN_0049fd60(menu, "Campaign"))
-            goto BigButton;
-        if (FUN_0049fd60(menu, "Start"))
-            goto BigButton;
-        goto PrevMenu;
-    }
-    if (FUN_0049fd60(menu, "Missions"))
-        goto BigButton;
-    if (FUN_0049fd60(menu, "Start"))
-        goto BigButton;
-    if (DAT_0051e668 != 0)
-        goto PrevMenu;
-
+    if ((DAT_0051e668 != 0 && (FUN_0049fd60(menu, "Missions") || FUN_0049fd60(menu, "Start"))) ||
+        (DAT_0051e668 == 0 && (FUN_0049fd60(menu, "Campaign") || FUN_0049fd60(menu, "Start")))) {
 BigButton:
     index = 0;
     FUN_0047f1a0("bigButton", 0);
@@ -238,12 +236,12 @@ BigButton:
         if (DAT_00507b6c == 0) {
             Entry_00477ab0* e = FUN_0049ff90(entries, "Campaign");
             name = FUN_004b6af0(e->text, e->selected);
+            ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(name);
         } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
-            name = "Arm Campaign";
+            ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110("Arm Campaign");
         } else {
-            name = "Core Campaign";
+            ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110("Core Campaign");
         }
-        ((Class_00435110*)*(void**)(g_game + 0x391e9))->FUN_00435110(name);
     }
     if (DAT_0051e668 != 0) {
         Entry_00477ab0* e = FUN_0049ff90(entries, "Missions");
@@ -262,6 +260,7 @@ BigButton:
         return;
     }
     goto End;
+    } else {
 
 PrevMenu:
     if (FUN_0049fd60(menu, "PrevMenu")) {
@@ -383,6 +382,7 @@ ArmSide:
         }
     }
 
+    }
 End:
     FUN_004ab0a0(menu);
 }

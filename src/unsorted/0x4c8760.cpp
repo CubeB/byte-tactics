@@ -1,5 +1,5 @@
 // Decompiled by GPT-6, finished by space-bunny-free, finished by GPT-6.1-sol,
-// finished by deepseek-v4.1-flash. Names are provisional.
+// finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 87.3% (1094 original bytes, 1094 ours).
 // Fixed this pass: hoisting all four shared edge-walk temps (next, dv, dx, du)
 // to function scope, ahead of the min/max locals, restored the frame from

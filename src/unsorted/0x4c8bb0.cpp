@@ -1,4 +1,4 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash pass (timeboxed 2026-10-01), body unchanged at 54.1%.
 // Second deepseek-v4.1-flash pass (timeboxed 2026-10-01): re-checked 54.1%
 // (1275 of 1279 bytes) and confirmed the two biggest structural deltas remain
@@ -183,6 +183,14 @@
 // byte-identical at 54.1% / 1275 bytes, so the original 0x7d60 frame does
 // not come from a function-scope bottom slot.
 
+// deepseek-v4.1-flash pass (timeboxed 2026-10-01): measured the exact original
+// head/tail shape from the disassembly (previous=index-1; next=previous;
+// if(next<0) next=3; ... tail index=previous; if(index<0) index=3;) as a
+// scratch variant scored free with --sym: 50.2% and 1284 bytes, frame STILL
+// 0x7d5c, so the live raw previous alone does not grow the arena. The frame
+// word can only come from dz sharing next's 0x14 slot the way it does at
+// 0x4c8dce in the original; without that co-location the tail keeps the head
+// fixup and the raw dies.
 // deepseek-v4.1-flash pass (timeboxed 2026-10-01, one measurement): writing the
 // loop-1 y0 fixup products y0-first (`x-=y0*dx; u-=y0*du; v-=y0*dv; z-=y0*dz;
 // lg-=y0*dl;`) is byte-identical at 54.1% / 1275 bytes, so the 15-slot frame

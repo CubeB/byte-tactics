@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #3046 retry by GPT-6.1-sol: six checks retained 77.9%; goto and payload
+// pointer variants did not fix the remaining register/liveness differences.
 //
 // deepseek-v4.1-flash retry 3 (issue 2865, timeboxed): 70.8 -> 77.9 percent
 // (555 of 570 bytes). Two source levers:

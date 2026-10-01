@@ -1,35 +1,29 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
-// Partial: 73.7% (1088 of 1116 bytes). Still differing:
-//  * The working chat mode lives in a register (BL) in ours; the original spills
-//    it to [esp+0x10] as a dword and keeps the restored copy (oldmode) in BL.
-//    Swapping the two roles/types, hoisting either declaration to function
-//    scope, using an int[1] or a one-int struct for mode, and initialising
-//    oldmode from mode or from memory were all tried; MSVC scalar-replaces the
-//    aggregate and keeps the register assignment. This one difference cascades
-//    into the whole saved-mode block and the tail's scratch registers.
-//  * The first _strnicmp site wants `lea ecx,[eax*8]` and `lea edx,[ebx+eax]`;
-//    ours emits `mov ecx,eax / shl ecx,3` and `mov edx,ebx / add edx,eax`.
-//    The second site (after atoi) already uses the shl/mov form and matches.
+// Partial: 89.7% (1116 of 1116 bytes). Still differing (scoring with --sym):
 //  * The 0x37f2f bit 1 test: the original materialises `mov dl,[m]; shr dl,1;
-//    test al,dl`; every spelling tried (`flags & bit1`, `flags & (m>>1)`,
-//    byte/word/int bitfield storage) folds to `test cl,2`.
-//  * The tail's g_game scratch registers (ecx/eax and edx/ecx).
-// What worked (kept below): declaring oldmode before lstrcpynA (rather than
-// inside the strlen block) stops the compiler claiming ESI for entries at the
-// top of the function, which fixed the whole callee-saved rotation; and making
-// the working mode an unsigned char scored marginally higher than an int.
-// Follow-up (deepseek-v4.1-flash): the full 2x2 type matrix, mode int/unsigned
-// char crossed with oldmode int/unsigned char, each at both placements (before
-// lstrcpynA and at the top of the strlen block) and with and without an
-// (unsigned char) cast on the store, was scored. Declaring oldmode at the top of
-// the strlen block always costs 5 to 8 points (entries moves to ESI, the rest is
-// downstream). Every other combination lands at 71.9 to 73.7 and none moves the
-// working mode out of BL. Function-scope declarations of mode and/or oldmode,
-// reversing the declaration order, a pointer local for g_game+0x2bf0, and a
-// redundant `mode = mode;` before the store were also tried; all score 73.7 or
-// below. So the mode-in-memory / oldmode-in-BL split did not flip from any of
-// these source levers.
+//    test al,dl` (flags is not a known constant there); every spelling tried
+//    (flags & bit1 / bit1 & flags / (m>>1) & flags, byte/word/int bitfield or
+//    plain byte, flags as char/uchar/short/int/uint, flags declared at function
+//    scope, flags &= flags) folds to `test byte [m],2`.
+//  * `flags` is a short here only because that scored best: it costs a
+//    `movsx edx,ax` before the push where the original pushes eax directly.
+//    With `int flags` the push is right and the file is 1113 bytes (83.8%).
+//  * `g_game->field_2bf1[n] = v` and `[d] = 1` come out as [esi+edx+..] and
+//    [eax+edx+..]; the original has g_game (edx) as the SIB base. n[arr], casts,
+//    pointer temporaries, a Game* local and (&mode_2bf0)[n+1] did not flip it.
+//  * Scratch registers in the strlen block (g_game in edx and the player index
+//    in ecx in the original, the other way round here) and the order of the
+//    `push ebp` against the buf2 memset before FUN_00463e50.
+// What worked: BOTH mode and oldmode are `int`. With an unsigned char oldmode
+// the working mode took ebx. With both int, oldmode (assigned inside the strlen
+// block) wins ebx and the working mode lives at [esp+0x10] as in the original,
+// which fixed most of the strlen block. Declaration position of the two ints
+// does not matter, only where oldmode is assigned. Also: use gadget->field_60
+// directly instead of an `id` local (gives `lea ecx,[eax*8]` and
+// `lea edx,[ebx+eax]` at the first _strnicmp), and compute `to` for the digit
+// case before the memset (the CSE'd players[d] temp then lives in ebp like the
+// original). Saved copy before base/oldmode scored 1 point higher.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -137,13 +131,14 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
 {
     char buf2[0x12c];
     char buf[0x100];
+    int mode;
+    int oldmode;
     Entry_00493bf0* entries = gadget->layer->entries;
-    int id = gadget->field_60;
-    if (id == -1) {
+    if (gadget->field_60 == -1) {
         g_game->flags_37ebe &= ~4;
         return;
     }
-    if (_strnicmp(entries[id].name, DAT_0050940c, 8) == 0) {
+    if (_strnicmp(entries[gadget->field_60].name, DAT_0050940c, 8) == 0) {
         FUN_0047f1a0(DAT_00503130, 0);
         g_game->mode_2bf0 = 3;
         FUN_004a1080(gadget, DAT_00509400, g_game->mode_2bf0);
@@ -175,14 +170,13 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
     }
     if (FUN_0049fd60(gadget, DAT_00506578)) {
         Entry_00493bf0* talk = FUN_004a0010(entries, DAT_00506578);
-        unsigned char mode = g_game->mode_2bf0;
+        mode = g_game->mode_2bf0;
         lstrcpynA(buf, (char*)talk + 0xb6, 0x100);
-        unsigned char oldmode = g_game->mode_2bf0;
         char* p = buf;
         while (*p && *p == ' ')
             p++;
         if (*p == '+') {
-            int flags = 1;
+            short flags = 1;
             if (flags & g_game->field_37f2f.bit1)
                 flags = 7;
             if (DAT_005091cc)
@@ -193,8 +187,9 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
                 mode = 0;
         }
         if (strlen(p) != 0) {
-            Player_00493bf0* base = &g_game->players[g_game->localPlayer];
             Saved_00493bf0 saved = *(Saved_00493bf0*)g_game->field_2bf1;
+            Player_00493bf0* base = &g_game->players[g_game->localPlayer];
+            oldmode = g_game->mode_2bf0;
             char* to = 0;
             if (p[1] > ' ' && strchr(DAT_005093f4, p[1]) != 0) {
                 if (isdigit(p[0])) {
@@ -203,9 +198,9 @@ void __stdcall FUN_00493bf0(Gadget_00493bf0* gadget)
                         goto clear;
                     p += 2;
                     mode = 3;
+                    to = (char*)&g_game->players[d] + 0x2b;
                     memset(g_game->field_2bf1, 0, 11);
                     g_game->field_2bf1[d] = 1;
-                    to = (char*)&g_game->players[d] + 0x2b;
                 } else {
                     int c = tolower(p[0]);
                     if (c != 'a') {

@@ -17,6 +17,15 @@
 // (76.0%, 797 bytes, fewer diff lines but no slot flip). The surf register pick is ecx here, as in
 // the original; the residual is the slot pair swap plus the merged pitch/height load the hoist needs.
 
+// deepseek-v4.1-flash retry (#3585), still 76.1%: un-hoisting lasty back into the third guard
+// restores the original guard structure (surf load, xor+16-bit load, dec, cmp, store between cmp
+// and jle) but moves surf to eax and adds a `mov edx,eax`, so it is 797 bytes, 76.0%: worse.
+// A dedicated probe (extern sink(&local), 2 to 5 address-taken locals) shows MSVC 5 frame offsets
+// are NOT declaration-ordered even when every local is address-taken: reversing the declarations
+// leaves the whole image byte-identical, so the offsets follow the pcode use order, not the
+// declarations. The ymin/out and imin/lasty slot pair swaps are therefore a source-shape lever,
+// not a declaration-order one.
+
 struct Surface_004c1000 {
     unsigned short pitch;   // +0x0, also the clip width
     unsigned short field_2; // +0x2, the clip height

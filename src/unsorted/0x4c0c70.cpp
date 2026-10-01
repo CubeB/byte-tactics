@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3585): still 94.5%, same five hunks (surf in eax,
+// ours, versus ecx, original; eax again for the spans base at 0x4c0d78). New
+// negatives: explicit unsigned short pitch/height locals, a raw unsigned short*
+// view of the surface for both fields, a reference alias (Surface& sfr = *sf)
+// for both reads, and a register storage class on sf, all exactly 94.5%.
+// Merging the pitch and maxY guards into one || condition drops to 868 bytes /
+// 79.8%, confirming the source really is two separate ifs. The two eax/ecx ties
+// did not move.
 // deepseek-v4.1-flash retry (#3146): 94.5% re-confirmed. All five residual hunks
 // are one allocation choice: surf in eax (ours) versus ecx (original), which then
 // frees ecx for maxY and forces the height zero-extend through esi. Tried and

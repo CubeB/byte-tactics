@@ -35,6 +35,11 @@
 // and swapping the iymin/iymax declaration order in that shape are inert (92.1), so the iymin/iymax
 // flip is not a declaration or dead-local parity lever. `--i; i = count - 1;` for the walk1 tail is
 // byte-identical to `i = i - 1; i = count; i--;` at 94.1.
+// deepseek-v4.1-flash (#3585): re-ran the block-local y0/y1 family (both walks, walk1 only,
+// walk2 only, walk2 declaring y0/y1 before j, plus one extra function-scope local as a
+// parity probe): all land on 92.1 with the same 34-line diff. Every block-local y0 shape
+// fixes walk1's slots (ptr 0x20, j 0x24, y0 0x28) but rotates walk2's and flips iymin/iymax
+// to 0x2c/0x30, so one function-scope y0 (this shape) stays the best at 94.1.
 // The walk diff is a pure two-way swap, not a rotation: with idx already right in both walks,
 // original is (ptr 0x20, idx 0x24, y0 0x28) and (ptr 0x20, y0 0x24, idx 0x28), ours is
 // (y0 0x20, idx 0x24, ptr 0x28) and (y0 0x20, ptr 0x24, idx 0x28). The original's &pts[j] keeps

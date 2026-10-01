@@ -1,4 +1,16 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// space-bunny-free retry: still 93.3% (337/367), the 13 instructions after the
+// operator delete call. New measurement: all six permutations of the three tail
+// stores were compiled and their /Fa listings read instruction by instruction.
+// The header order (_End = s + n; _Last = s + size() + 1; _First = s;) gives
+// 412 bytes and puts the _First store AFTER the _Last store, not before it, and
+// forwards s into the return. So the residue is not the statement order: it is
+// one register decision. In the original the size() `this` (mov ecx, esi) is
+// HOISTED above the _End lea, so ecx is dead after the call and is reused for
+// the _Last value, and n lands in edx. In every ordering tried here n lands in
+// eax and the _End lea result takes ecx, which is what forces the `mov ecx, esi`
+// down next to the call. Whoever takes this should look for the statement shape
+// that lets the thiscall setup be hoisted.
 // #3141 retry by GPT-6.1-sol: worker baseline/helper-setter checks and a cached-return trial all score 93.3% (337/367); no MATCH. One malformed newline compile attempt was corrected. The tail differs in register and store order.
 // #2959 retry by GPT-6.1-sol: one check reconfirmed 93.3% (337/367); the
 // reallocating tail still differs in register and store order. No MATCH.

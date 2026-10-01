@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// GPT-6.1-sol (#3157 retry): baseline rechecked at 86.1% (712/708), one scored run. Two helper variants failed to compile or resolve; best unchanged, no MATCH.
 // space-bunny-free pass: kept the 86.1% file unchanged (it is the best known)
 // and mapped what is left with a byte-exact diff (relocation fields masked),
 // because check.py's difflib score hides one whole class of difference.

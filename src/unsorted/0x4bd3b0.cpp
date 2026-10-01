@@ -1,4 +1,15 @@
-// Decompiled by DeepSeek V4.1 Flash, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 7 (deepseek-v4.1-flash): best stays 89.5 percent, size exact 1148.
+// What still differs (all register allocation / scheduling, semantics correct):
+// prologue and second-block load-copy order (eax then esi vs esi then eax),
+// the root spill timing ([esp+0x24] after pushes vs [esp+0x18] before), the
+// ebx/esi SIB direction in three stores, the entries+count*9 lea/add shape
+// (lea eax,[ecx+edx] vs add eax,edx) and the entry data store fold
+// (add ecx,eax / [ecx+4] vs [ecx+eax+4]). Probes this session, all 89.5 flat
+// or worse: temp-first nsize load (82.4), e0 temp for entries (88.2), leaf
+// total-first reorder (88.3), root+(uint)base SIB spelling (89.5 flat),
+// count*8+count sum spelling (89.5 flat), ee temp for entries+ent (77.4),
+// all three main fixes combined (81.4).
 // Session 6 (deepseek-v4.1-flash): 88.3 -> 89.5, size now exactly 1148. The leaf
 // `*total += (*(unsigned int*)(node + 4) = fd.size);` written as one
 // assignment-expression (fd.size read once, value reused for the RMW) gives the

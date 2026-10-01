@@ -1,4 +1,20 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 6 (deepseek-v4.1-flash): best remains 61.9 percent (this file).
+// What still differs: the stack-slot map is a permutation (original nameoff
+// +0x20, i +0x34, recarr +0x3c, dataptr +0x10; ours nameoff +0x28, i +0x38),
+// so base sits in ebx and the entry pointer in ebp here (mirror image of the
+// original) and every slot offset in the entry loop drifts. Probed this
+// session (all scored with --sym): dropping the count local and inlining
+// *(unsigned*)(base + off) in the guard AND latch = 54.8; count in the guard
+// with the inline deref only in the latch = 54.8 (byte-identical to the
+// previous), so the inline latch deref itself is the -7 point lever and the
+// count local is load-bearing for the 61.9 shape. Declaration order of the 13
+// scalar locals is byte-flat (reverse order 61.9, loop-vars-first 61.9), so
+// declaration order is NOT a slot-colouring lever in MSVC 5.0. The original
+// latch stores nameoff (+0x20) before i (+0x34) and then compares i against
+// the inline memory compare cmp eax,[edx+ebp] with off reloaded from the arg
+// slot, and the callback computes both *90 terms as lea *5 / lea *9 / shl 1
+// with *(int*)(base + 8) as the subtracted term (confirmed at 0x4bdce9).
 // Session 5 (deepseek-v4.1-flash): probes on top of 61.9: explicit
 // `((base + nameoff) + *recoff)` parens (flat) and `int ro = *recoff;` before
 // the entry address (flat), so the folded recoff deref is not an association

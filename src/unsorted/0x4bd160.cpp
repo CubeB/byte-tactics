@@ -1,4 +1,30 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+//
+// mimo-v2.6-pro session (issue 3877 retry, ~26 fresh shapes, all scored with
+// check.py --sym): best unchanged at 98.3%, this file. Key new fact: the
+// aggregate's zero-fill value is OPAQUE to the optimizer, not a folded
+// constant. `sb.size = (unsigned)sb.buf + 20;` after `struct HapiBuf sb =
+// {20};` compiles to `xor eax,eax / mov [esp+0x18],eax / lea ecx,[eax+0x14]`,
+// NOT to 20, so the zero feeds arithmetic as an unknown runtime value that
+// merely happens to be zero. That spelling also gives the ORIGINAL'S EXACT
+// STORE SCHEDULE (buf store early before the pushes, size store after the
+// last push, push size / push str / push zero order) but with the registers
+// swapped (zero in eax, size in ecx as the lea) and no dead mov, 92.2%.
+// Everything else tried this session: assignment-expression arguments
+// `(sb.buf = 0)` / `(sb.size = 20)` (98.3% / immediate form), member reads
+// through char** and unsigned* aliases (94.1%), inlined AllocB(p,n,s)
+// helpers with the values forwarded or literal (94.1% / immediate), a ctor
+// H16(s, b = 0) with a default zero argument (immediate form), literal
+// (0, "Package Data", 20) arguments (immediate), `sb.buf + (sb.size -
+// sb.size)` and member-ref argument shapes (94.1% / 93.8%), dead statements
+// `off = (int)sb.buf;` and `int dv = (int)sb.buf;` (fully deleted, 94.1%),
+// the guide's live-range round-trip `char* zb = sb.buf; sb.buf = zb;` (94.1%),
+// and `sb.size = 20;` restatement (immediate form). None reproduces the
+// dead `mov eax, ecx` or the fresh `xor ecx, ecx` with the early store.
+// Reading: the dead `mov eax, ecx` is register work, a live-range split of
+// the opaque zero whose other consumer (the add of `+ 20`, folded to the
+// constant 20 in the original?) is not reproducible by any spelling tested;
+// compare the guide's dead-reload note for 0x453360.
 // GPT-6.1-sol retry in #3194: seven checker invocations, best remains 98.3%; no MATCH. Reverse field assignments, void* typing for extra and HapiBuf buffer, and a declaration-order variant did not improve it. The allocator zero-init and store order still differ; see earlier detailed notes.
 //
 // deepseek-v4.1-flash session: still 98.3%, same single difference

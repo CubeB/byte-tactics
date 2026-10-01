@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// #3912 (deepseek-v4.1-flash): reusing cnt for the outer flush (six slots, 90.5%/640B) and run=1 before cur=next (93.5%) both regress, so 94.5% stands.
 // Best score is 94.5% (this session), up from 91.2%. The dword locals (total,
 // rows, n, row, p) live in a Locs_004cac40 struct, which reproduced their
 // original slots exactly (S+0x18/0x1c/0x20/0x24/0x28). The outer-run count byte

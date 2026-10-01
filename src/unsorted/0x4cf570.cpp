@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// #3912 (deepseek-v4.1-flash): uninitialized bestidx (74.4%/642B) and swapping the DAT guard with the refresh loop (73.6%/645B) both regress, so 82.2% stands.
 // Issue 2304 retry: baseline 80.2% confirmed; delaying best initialization scored 79.5%.
 // Issue 2486 retry by deepseek-v4.1-flash: still 80.2%. The original's zero
 // constant in ebp is really bestidx's initial 0 coalesced with the constant;

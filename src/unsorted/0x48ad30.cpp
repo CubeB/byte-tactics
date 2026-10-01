@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash (#3754) retry: a do-while with an explicit top `if (i >= 10) break;`
+// plus break-style rejects and no helper reproduces the documented 74.3% / 831 bytes,
+// so the break reading still cannot beat the 84.5% helper/select form, which stays.
 // deepseek-v4.1-flash (#3684) retry: confirmed from the disassembly that the
 // three rejects in the head (`je 0x48b008` for f0==0, kind not 1/2/3, f146==0xa)
 // jump to the code AFTER the loop, i.e. they are BREAKS, not skips, and that

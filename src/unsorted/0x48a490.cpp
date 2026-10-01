@@ -1,4 +1,7 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash (#3754) retry: hoisting the m declaration above row
+// (m = g_game->maps[u->map]; row = m->rows + m->count;) is byte-flat at 77.8% / 857 bytes,
+// so the edx/ecx head swap is not declaration order; the remaining hunks stand as below.
 // Samples the ground under a unit at its four surrounding terrain
 // vertices and stores the resulting pitch (0x68) and roll (0x70) on the
 // unit, plus a heading (0x64) from the two side vertices. The 0x11/0x04
@@ -224,9 +227,8 @@ void __cdecl FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 // FUNCTION: 0x48a490
 void __stdcall FUN_0048a490(Unit_0048a490* u)
 {
-    MapRow_0048a490* row;
     MapInfo_0048a490* m = g_game->maps[u->map];
-    row = m->rows + m->count;
+    MapRow_0048a490* row = m->rows + m->count;
     if (m->count < 0)
         return;
     {

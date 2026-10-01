@@ -1,4 +1,5 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5,
+// deepseek-v4.1-flash (#3265 round): re-confirmed 98.7; no new angle on the ClearLast base-load slot after the store-first/load-first sweep above.
 // deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1,
 // finished by deepseek-v4.1-flash.
 // Names are provisional.

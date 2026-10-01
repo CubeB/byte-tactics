@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3265 round): hoisting the inlined heap.Clear() to before NodeData d() / i = ... (or between i = ... and the dirty OR) scores 92.1 (881->880 bytes), both spellings interleave the four heap reset stores into the dirty OR region around `shr edx,8`; the 92.8 position after `grid.cells[i].flags |= 1;` stays best. Remaining diffs unchanged: Start/A* virtual-call arg registers (eax/edx vs edx/eax), the movsx ecx/edx pair at the bounds test, Release() object pointer in eax vs edx, and the Clear() store slot.
 // deepseek-v4.1-flash (#3023 retry): still 92.8% (880 bytes, exact). Four hunks:
 // Cost/bounds registers use eax/edx where the original uses edx/eax and ecx/eax;
 // both inlined Release() sites pick object/owner registers opposite to the original

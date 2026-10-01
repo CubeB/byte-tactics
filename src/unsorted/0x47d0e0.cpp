@@ -100,6 +100,16 @@
 // this file: the multiply block canonicalises, so the 2-byte gap is a fixed
 // MSVC 5 allocator choice for a sign-extended short operand. Nothing left to
 // try; this stays a partial.
+//
+// deepseek-v4.1-flash retry #3087 (still 80.3%%, 507 vs 505, no check.py spent
+// on scratch): swept the 0x47d820 inert-declaration lever, 0/2/4/6/8/12/16/20/
+// 24/28/32/40/64 unused `extern int` lines before the first `#pragma pack`,
+// every count identical. Six more address-expression shapes (int idx with
+// idx += x, raw pointer add, x-first sum, a Point* local, int/short y locals)
+// all canonicalise to the same 507-byte stream. The gap is the imul operand:
+// original `movsx eax,[esi+0x78]; imul eax,[ebx+0x14233]` (505); ours loads
+// the width into eax and uses `imul eax,ecx` (507). No source shape reaches
+// the memory-operand form for a sign-extended short.
 #pragma pack(push, 1)
 
 struct Point {

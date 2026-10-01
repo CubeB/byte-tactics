@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry 5 notes (GPT-6.1-sol): the preserved best remains 74.5 percent (821 bytes), confirmed by check.py at start. Changing local ans from bool to int reduced the score to 49.4 percent. A constructor declared out of line and a combined `ans && y == head->left` branch scored 68.7 and 70.5 percent. Two additional constructor-shape probes did not compile. Existing search-loop allocation and non-multi tail differences remain unresolved.
+
 // NOT A MATCH (74.2 percent, 801 bytes against our 811). Retry 3
 // (deepseek-v4.1-flash) gained only the `test al,al` fix by declaring
 // Class_004e1a30::FUN_004e1a30 as returning bool (was int), worth +0.8

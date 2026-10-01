@@ -1,6 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
-// deepseek-v4.1-flash 2026-10-01 (retry 4, timeboxed): no new gains, stays at
-// the 78.3% / 1646-byte best. Open sites unchanged from the notes below: the
+// deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): no new gains, stays at
+// the 78.3% / 1646-byte best. A named `int v = u->field_6c;` local in
+// ScaleX_00466dc0 is byte-identical (same 7 hunks), so the movsx eax/ecx swap
+// is not a materialization-order lever.
 // projectile loop keeps p in ebx and q spilled where the original keeps q in
 // ebx and reloads p from [esp+0x1c], and the ScaleX multiply loads zoom into
 // eax before u->field_6c.

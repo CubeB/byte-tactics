@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 6, timeboxed): no gain, stays 75.2 /
+// 975 bytes. Two fresh spellings are neutral/negative: Loop C `u->field_ff !=
+// pl->field_146` regresses to 74.8 / 975, and Loop D `u->flags |= 0x1000` is
+// byte-neutral at 75.2 / 975.
 // deepseek-v4.1-flash 2026-10-01 (retry 5, timeboxed): no gain, stays 75.2 /
 // 975 bytes. Removing the Loop E `unsigned int f = u->flags;` temp (using
 // u->flags directly in the two tests and the store) regresses 75.2 to 74.8 /
@@ -236,7 +240,7 @@ void FUN_00467440(void)
                 if (u->def->field_245 & 0x2000) {
                     if (FUN_0040b0d0(u->field_ff, &u->pos.vec, u->def->field_208)) {
                         u->field_b0 = g_game->field_38a47 + 0x5a;
-                        u->flags = u->flags | 0x1000;
+                        u->flags |= 0x1000;
                     }
                 }
             }

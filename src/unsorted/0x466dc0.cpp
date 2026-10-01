@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: best stayed 78.3% after a fresh ScaleX local and p-before-q setup; moving i ahead of p/q scored 78.1%, while initializing q directly from g_game->projectiles scored 77.8%. No exact match. Seven checker invocations total, including one initial call with no output.
 // PARTIAL 78.3 percent (1646 of 1662 bytes). This session (deepseek-v4.1-flash
 // retry) only gained 0.2: declaring the projectile tail pointer as
 //     short* q;
@@ -412,9 +413,8 @@ void FUN_00466dc0(void)
         } while (u <= g_game->unitsEnd);
     }
 
-    short* q;
     Projectile_00466dc0* p = g_game->projectiles;
-    q = (short*)((char*)p + 0xa);
+    short* q = (short*)((char*)p + 0xa);
     int i = 0;
     if (g_game->projectileCount > 0) {
         do {

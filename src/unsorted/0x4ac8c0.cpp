@@ -1,6 +1,36 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
-// #3120 retry by GPT-6.1-sol: best remains 89.8%; a separate gridY local fell to 86.4%, declaration-order swap was unchanged, and explicit while loops fell to 56.9%. Remaining diff is register allocation for grid y and the rectangle x/y+7 values.
 // space-bunny-free, GPT-6.1-sol and finished by mimo-v2.6-pro. Names are provisional.
+// deepseek-v4.1-flash #4306 retry: 89.8% text score but only 6 differing
+// bytes now (was 11). Two things learned, both measured at the byte level
+// (build/scratch/0x4ac8c0/quick.py, an.py, sweepA.py):
+// 1. check.py's ratio is a difflib ratio over normalised instruction text, so
+//    it hides byte differences: the previous store order (right, left, top,
+//    bottom) reported the same 89.8% but differed in 11 bytes, because the
+//    three post-push stores came out in the wrong order. Measured over all 24
+//    store orders, left, top, right, bottom (the order now in the file, same
+//    for LTBR/LBTR/BLTR) is the minimum: 6 differing bytes, exactly the two
+//    known hunks, 0x4ac910/0x4ac913 (prologue) and 0x4ac926/0x4ac92f/0x4ac936/
+//    0x4ac945 (loop). Every other order is 9 or 11 bytes off.
+// 2. A standalone mini model of this loop (build/scratch/0x4ac8c0/mini/run.py:
+//    struct P { void* s; R r; } plus the same two nested loops and the same
+//    call) reproduces our codegen instruction for instruction, and in it the
+//    compiler always schedules the pair derived from the OUTER loop coordinate
+//    (bottom = y + 7) first, whatever the source order of the four stores.
+//    The original schedules the pair derived from the INNER coordinate
+//    (right = x + 7) first. In the mini this only flips when the surface load
+//    itself moves to edx and is scheduled first (a second surface member in
+//    the aggregate, or surface and rect in separate structs), and those shapes
+//    change the register assignment away from the original (which keeps the
+//    surface load in eax after the hoisted store, exactly like ours). So both
+//    remaining hunks look like the same allocator tie-break: which free
+//    register (eax vs edx) a freshly loaded value coalesces into.
+// Also tried here with the byte metric, all unchanged at 6 bytes: all 24 store
+// orders, member forms (right = left + 7, bottom = top + 7), named temporaries
+// for right/bottom, rect reference/pointer locals, comma statements, unsigned
+// coordinates and fields, 7 + x / x + 8 - 1 / (x + 7) forms, prologue
+// declaration orders, assignment chains, and inline helpers (a static inline
+// helper is rejected by this compiler: C2267, use plain inline).
+// #3120 retry by GPT-6.1-sol: best remains 89.8%; a separate gridY local fell to 86.4%, declaration-order swap was unchanged, and explicit while loops fell to 56.9%. Remaining diff is register allocation for grid y and the rectangle x/y+7 values.
 // mimo-v2.6-pro retry: best stays 89.8%. Scripted sweeps under
 // build/scratch/0x4ac8c0/ (sweep.py, sweep2.py, sweep3.py, sweep4.py, sweep5.py,
 // sweep6.py) scored hundreds of shapes free of check runs and found the rule
@@ -157,9 +187,9 @@ void __stdcall FUN_004ac8c0(Object_004ac8c0* obj)
     for (int row = 0; row < 16; row++) {
         int x = x0;
         for (int col = 0; col < 16; col++) {
-            p.r.right = x + 7;
             p.r.left = x;
             p.r.top = y;
+            p.r.right = x + 7;
             p.r.bottom = y + 7;
             FUN_004bf6f0(p.surface, &p.r, row * 16 + col);
             x += 8;

@@ -96,6 +96,32 @@
 //   `mov dword ptr [esp + 0x20], eax`, not [esp + 0x24]. The >= 5 branch of
 //   the saved source is byte-exact, so trust check.py, not the packet.
 //
+// - space-bunny-free retry (2026-10-01): confirmed 91.1% is still the local
+//   optimum, and the frame map makes the two allocation choices explicit. With
+//   F = the frame base (the `sub esp,0x28` result), the locals are: F+0 `this`
+//   (the early spill, reloaded in both loop branches, never written again),
+//   F+4 hh, F+8 n, F+0xc..F+0x14 dest, F+0x18..F+0x20 pos (the four saved
+//   registers are just below F, the return address at F+0x28). Live across
+//   the loop: w (esi),
+//   h (edi), the counter (ebx) and one of hw/`this`: the original spills
+//   `this` (it already has a stack home from the early spill) and keeps hw in
+//   ebp, while every form that puts the halves inside the loop body makes MSVC
+//   drop the early spill, give ebx to `this`, ebp to the counter and push both
+//   halves to the stack (52.9%, 595 bytes, both allocations exactly as wide).
+//   So the block order and `this`'s home are one decision: hoisting the halves
+//   past the guard only happens with LICM (a temp, so a stack slot) or with a
+//   source-level `if` + do-while (this moves to ebx). The guard spelling
+//   `cmp ecx,ebx; jle` never appeared in any of ~25 spellings tried here (for,
+//   while, do-while under `if (i < n)` / `if (n > i)`, counter declared at
+//   function, branch or for-init scope, unsigned n): MSVC folds i==0 to
+//   `test ecx,ecx` in every one of them, so the original's i was a variable
+//   MSVC could not constant-fold, which no local spelling reproduced.
+//   Body notes: putting `dest.z` before `dest.y` in the source is 92.1% on
+//   check.py but the emitted stores are still x,y,z and the instruction LCS is
+//   unchanged, another difflib artifact (as the note below says). Swapping
+//   dest.x/dest.y in the source, naming the x sum in a temporary, reading the
+//   three pos fields into locals first, or writing dest.y through a Coord
+//   temporary are all byte-identical to the file below.
 // - deepseek-v4.1-flash retry 4 (2026-10-01): still 91.1%, 601 bytes. New
 //   negatives: `if (n > 0)` around only the for loop (halves still outside) is
 //   51.9% / 617 bytes, and `int hw = w / 2, hh = h / 2;` in one declaration is

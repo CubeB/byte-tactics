@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 7 (deepseek-v4.1-flash, #3729): re-measured 74.2% (1029 vs 1040 bytes).
+// New spellings this pass, all no better: `if ((remaining -= w) < 0) break;` in the
+// scan loop is byte-identical at 74.2% / 1029 bytes, so the store placement of
+// `remaining` is not the EDI/EBP swap; declaring n/remaining after `char* p = text + 4;`
+// regresses to 71.9% / 1018 bytes; `for (int i = rows->n; i > 0; i--)` in the copy loop
+// regresses to 69.4% / 1025 bytes. Still open, unchanged: pop block r=ECX where the
+// original uses r=EAX, scan loop n=EDI/remaining=EBP where the original uses EBP/EDI,
+// and the cascade into the 0x463a30 and 0x463ad0 loops plus the a4/a5 memcpy pairing.
+
 // Pass (#3673, deepseek-v4.1-flash): re-measured 74.2% (1029 vs 1040 bytes). Byte-neutral
 // this pass: swapping the scan-loop n/remaining declarations, and declaring rem2 before q
 // in the a6==0 tail loop. Putting p between n and remaining regresses to 71.9 (1018 bytes).

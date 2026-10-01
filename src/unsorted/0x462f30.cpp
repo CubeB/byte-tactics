@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 7 (deepseek-v4.1-flash, #3729): re-measured 43.3% (1578 vs 1653 bytes). Moving
+// `entry = 0;` from the declaration down to after `e = entries;`, or down to the
+// `e->field_0 == -1` test inside the loop, and declaring `i` last (after `t`), are all
+// byte-identical at 43.3% / 1578 bytes. So it is the placement of the zero-initialiser
+// and of `i`, not merely the declaration order, that fails to put `a` in [esp+0x1c] and
+// leave a live zero in EDI; the 0x463206 region (entry in ecx reloaded from [esp+0x10],
+// edi free for field_c) remains the only place a fix can come from.
+
 // Pass 6 (deepseek-v4.1-flash, #3673): re-measured unchanged at 43.3% (1578 vs 1653 bytes).
 // Diff fact from this pass: in the 0x4632b5 region our source emits 58 more instruction
 // lines than the original although the whole function is 75 bytes smaller, so that block

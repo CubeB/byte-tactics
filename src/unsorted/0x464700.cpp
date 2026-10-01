@@ -241,6 +241,22 @@
 // this file has them before. Scratch: s2-s6, s3a-s3d in build/scratch/0x464700/.
 
 
+// 30-min checkpoint (deepseek-v4.1-flash, issue 4322, still 98.3%): the hunk is
+// unchanged (the cmp/[esi+0xf8] pair sits six stores too high). New evidence
+// from this session: the target's tick load/store pair cannot come from a C++
+// local, because ANY local or inline-helper parameter that is live across a
+// store flips the callee-saved pool (zero ebx, w ebp) even though the schedule
+// then comes out right (66.4% family). A local whose live range crosses no
+// store (store immediately after the load) keeps ebp, so the flip needs the
+// value to be live across at least one store. A `bool` parameter spills the
+// value to the stack and keeps ebp but is the wrong value. Comma expressions,
+// every binary operator, blocks, if(1)/do-while(0)/switch wrappers, six-clears
+// chained or via reference/pointer, and all header sets leave the base bytes
+// unchanged. The target schedule alone is reproducible with an inlined helper
+// taking the tick by value (load, six clears, store) but the pool flips and the
+// ref load/cmp land after the store. Lead for next attempt: find a construct
+// that keeps the tick value in a scratch register across the six stores without
+// the allocator treating it as a callee-saved candidate.
 // deepseek-v4.1-flash retry (issue 3637, still 98.3, 6 checker runs): moving
 // the ref guard after the six clears but before the remaining zero stores
 // (ff8 store left at its old place) scores 68.9 with the zero register rotated

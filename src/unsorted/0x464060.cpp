@@ -1,4 +1,29 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// 30-min checkpoint (deepseek-v4.1-flash, issue 4322): still 87.79% / 560
+// bytes / one real hunk, the file is unchanged. New facts, all free-scored:
+//  - The rect block is invariant under 24 store orders x sum/right temps at
+//    every position (360 combos), nested/comma forms, free, member and inline
+//    helpers, aggregate init, int[4], union, pointer/reference/char* views,
+//    read-backs of r.top (MSVC forwards every one), y/t copies, and operand
+//    spellings. None reach `add ecx, eax`.
+//  - What does move it is the FP chain's place in the IL: with the height
+//    emitted before the rect (not sunk) the block comes out in source order
+//    (store r.top, then lea, then add), but the height is then spilled and the
+//    whole allocation changes (48.5%, 580 bytes). So the original has source
+//    order in the rect IL while its height ftol stays last; ours has the
+//    optimizer's "compute RHS values, then store in source order" order.
+//  - Lead: the store must stay above the computations without a reload. In
+//    0x46b900 the same class of diff was solved by a store/copy/read-back
+//    chain that made MSVC reload the field; here every read-back is forwarded.
+//  - Best lead for the next pass: `r.bottom = (r.top = y) + t;` FIRST (a
+//    nested store, so it is not delayed) does emit the r.top store before the
+//    computations, but the sum then comes before the t+138 lea, so edx is
+//    still free and MSVC makes the sum a `lea edx,[eax+ecx]` (82.56%). The
+//    target needs the nested store evaluated before the lea while the sum
+//    stays after it; every attempt to split them (comma in the r.right
+//    statement, helpers returning t+138 or y+t, SetTopGetRight, GetRightSetTop)
+//    either delays the store again or reorders the sum. 400 random statement
+//    mixes over the same block found no `+add ecx, eax`.
 // mimo-v2.6-pro retry: still 87.8%, same single hunk (lea/add above the r.top
 // store, add dest eax not ecx). New facts, all scored free with build/scratch:
 //  - Nested-store tricks do NOT move the r.top store in this block: a comma

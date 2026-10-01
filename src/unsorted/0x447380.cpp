@@ -1,5 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
 //
+// deepseek-v4.1-flash pass (issue 3565, 10 minute box): six check.py runs, best
+// stays 95.1% / 1318 bytes with the lstrcpynA-before-group probe. Fresh
+// g_game->table->entries loads at the two tail calls (fdf0, ff10) regress to
+// 82.9% / 1338 bytes, and splitting `int idx = FUN_0049fdf0(...)` into a
+// declaration plus an assignment statement is byte-identical at 95.1%. Both
+// hunks are unchanged: the probe is still one statement early and the tail
+// (lstrcpynA dest, player lea, entries, idx*0x2a lea chain) is one allocator
+// step behind the original.
+//
 // deepseek-v4.1-flash pass (issue 3538, 10 minute box): one check.py run, best
 // stays 95.1% / 1318 bytes with the lstrcpynA-before-group probe. Residual is
 // unchanged: the probe realigns the group to the original ecx/edx/eax/ecx but

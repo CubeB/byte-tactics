@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash pass (issue 3565, 10 minute box): three check.py runs, best
+// stays 47.4% (3902 original / 3948 emitted); the box went to 0x447380. First
+// mismatch is still the +8 stack-slot shift for the loop counter/temp pair.
 // deepseek-v4.1-flash pass (issue 3538, 10 minute box): one check.py run, best
 // stays 47.4% (3902 original / 3948 emitted); no new variant was tried.
 // deepseek-v4.1-flash pass (issue 3485): re-ran check.py once; best stays 47.4%

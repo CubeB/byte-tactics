@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3179: 9 checker invocations, best remains 87.8%. The y + t register/scheduling hunk remains; comma sequencing scored 86.0%, other declaration and store-order variants tied at 87.8%. A jump-table difference is a linker placeholder artifact.
 // Retry (deepseek-v4.1-flash, issue 2982): re-confirmed 87.8%, one hunk left.
 // The original emits `mov [esp+0x24],ecx` (r.top) then `lea edx,[eax+0x8a];
 // add ecx,eax` (sum into y's register); ours hoists `lea edx,[eax+0x8a];

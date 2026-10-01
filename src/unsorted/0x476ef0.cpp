@@ -96,6 +96,16 @@
 // Tried and no better: tools/headers.py (no set matches, best 80%), guarded
 // do/while scans, `unsigned char`/`char`, `p[0]`, `for(;;)`, swapping the
 // helper's found/count declarations (75.8%), `#include <windows.h>` (68.5%).
+// deepseek-v4.1-flash pass 2 (confirmed in build/obj, no byte gained): in our
+// .obj the colour arm is byte-for-byte the original's shape (mov al,[ebp+1] /
+// inc ebp / dec ebx / cmp al,0x52 / jne ...) minus the dead store 0, so the
+// ternary, the two lineStart++ positions and `if (colourState)` are all right;
+// the original compiler simply failed to delete that one dead store. A
+// store-to-a-local DSE sees the kill at 0x477295 only across the ternary's
+// conditional branches, so the store must have been emitted where a
+// block-local pass could not reach it; writing colourState = 0 as a separate,
+// named temp assignment (`sel` style) or after the ternary join does not
+// reproduce it, so the source shape that defeats MSVC's DSE is still unknown.
 #include <string.h>
 
 #pragma pack(push, 1)

@@ -56,6 +56,20 @@
 // if/else-if chain with the action body inlined once per clause; duplicating
 // the 0x15a-byte BigButton body 4 times did not look like it would tail-merge
 // and was not tried. Best remains 72.9%.
+// Additional pass by deepseek-v4.1-flash: read our own object (build/obj/
+// unsorted/0x477ab0.obj) directly. Confirmed layout: 0x66 je 0x606 (Campaign),
+// 0x9b cmp [0x51e668],ebx / 0xa1 je 0x606 (inverted from the original's
+// 0x477b45 jne PrevMenu) with the PrevMenu test block as the fallthrough at
+// 0xa7, and the whole Campaign/Start2/BigButton trio placed after ArmSide at
+// 0x606/0x620. Two more variants scored, both 1914 bytes / 72.9%:
+// (A) explicit `goto CampaignCheck;` as the last statement of the outer if,
+//     with a `CampaignCheck:` label before the Campaign test (the compiler
+//     still picks PrevMenu as the fallthrough and sinks Campaign);
+// (C) flat `if (DAT_0051e668 == 0) goto CampaignCheck;` replacing the outer
+//     if, re-test kept as `if (DAT_0051e668 != 0) goto PrevMenu;`.
+// The branch shape in the source is already the one the original's bytes
+// imply; only MSVC's block-ordering pass differs, so this needs a graph-shape
+// change, not another goto spelling. Best remains 72.9%.
 
 #pragma pack(push, 1)
 struct Entry_00477ab0 {

@@ -1,4 +1,17 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (issue #3435) tenth retry: baseline reconfirmed 98.0%,
+// still the single region at 0x413950..0x413966 (state-3 misses>=2 waypoint,
+// 17 bytes). Twenty source variants around the `pos + off` sum and the
+// new-expression (member-wise sums, an AddXZ/VecAdd/AddXYZ helper, a Vec3& to
+// off, a Vec3&/const Vec3& to target->pos, a named distance local, `speed *
+// 0x10000`, and the sum passed straight to the constructor) scored 93.0 to
+// 98.0 and none moved the register/schedule pair. tools/headers.py found no
+// matching header set; an unused-extern sweep for N=0..336 was flat at 98.0;
+// and defining the real preceding function 0x412d40 above this one in a
+// scratch file also left region 2 unchanged, so the tie-break is not compiler
+// state from the earlier translation unit either. The original consumes off.x
+// (edi) and then reuses edi for pos.y, placing `push 0x36` between the loads;
+// ours hoists all three pos loads and uses ebx for pos.y. Best kept: 98.0%.
 // GPT-6.1-sol (issue #2635) retry: check.py reconfirmed the saved 98.0% best. A y/z/x member-wise rewrite scored 94.6% and shifted unrelated code, so it was discarded. The only remaining executable mismatch is the state-3 waypoint schedule at 0x413950-0x413966: target consumes off.x before loading pos.y, while MSVC hoists y/z loads and uses ebx. Earlier notes below document the tested variants.
 // deepseek-v4.1 (issue #1897) fifth retry: baseline reconfirmed 97.4%, same two
 // regions. Negating both hypot arguments (unit->pos.xw - order->x, ...) scores

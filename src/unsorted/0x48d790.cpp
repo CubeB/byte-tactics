@@ -1,4 +1,24 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry (issue #3353): best stays 92.6% (387 of 388 bytes), no
+// MATCH. The single residual is unchanged: the hit block rematerialises the
+// mask (`mov edi,[esi+0x110]; mov edx,0x10; or edi,edx`) where the original
+// keeps EDX live from 0x48d866 and spends EAX on the unit RMW, then EAX/EDI on
+// the two g_game reloads. Measured this pass: the RMW spelling (`|= flag` vs
+// the bitfield) and the mask source (literal 0x10, unsigned short, int, the
+// register keyword, declare/assign split) are all byte-neutral within each
+// tail shape; the one-load alias tail (this file) is 387 bytes, the two-load
+// direct g_game tail is 392 at 92.2% with the same remat plus an eax/edi swap
+// in the reloads. The hit block remats in every structure tried: goto to a
+// label after the loop (both fall-through and miss-label forms), a `second`
+// pointer set in the loop and tested after (63.1%), if/else arms with a
+// duplicated `g_game->flags |= flag` at both arm tails (67.3%, MSVC does not
+// tail-merge it the way 0x499200 does), the mask as an inline helper
+// parameter at all four use sites, struct methods taking the mask, and
+// __cdecl/__fastcall on the function itself. headers.py is flat at 92.6% for
+// all 128 header sets. The fallback and shared tail keep EDX live in all
+// shapes, so the split is specific to the block reached from inside the second
+// scan loop; only the z1 shape (hit block outside the loop) removes the remat,
+// and it folds both uses to immediates and rotates the callee-saved set.
 // #3225 retry by GPT-6.1-sol: best remains 92.6% (387 of 388 bytes), no MATCH.
 // A whole-hit helper and reordering the unit RMW before loading the game pointer preserved the same single diff. Hoisting a game alias to function entry dropped to 53.2%; a parent early-mask declaration trial also stayed at 92.6%. The unresolved hit block still uses EDI for the unit RMW and rematerializes 0x10 in EDX; original uses EAX and the pre-existing EDX mask, then EAX/EDI for the game updates.
 // #2862 retry by deepseek-v4.1-flash: local `g = g_game` in the hit block

@@ -11,6 +11,11 @@
 // (reverse, out-first, dxdy-first, imin-last, i-last) leaves the compiled bytes byte-identical, so MSVC
 // 5 assigns these stack slots from code shape, not declaration order. The two remaining mismatches are
 // exactly the pairwise slots ymin<->out (0x18/0x20) and imin<->lasty (0x2c/0x34).
+// deepseek-v4.1-flash retry (#3217), all inert at 76.1%: a separate scanIndex local (the 0x4c0c70
+// shape), declaring lasty with the other locals (it was left out of the earlier declaration-order
+// sweep) and assigning it in place, and moving the lasty computation down to its own guard
+// (76.0%, 797 bytes, fewer diff lines but no slot flip). The surf register pick is ecx here, as in
+// the original; the residual is the slot pair swap plus the merged pitch/height load the hoist needs.
 
 struct Surface_004c1000 {
     unsigned short pitch;   // +0x0, also the clip width

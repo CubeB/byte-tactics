@@ -28,6 +28,13 @@
 //   are both emitted BEFORE the `jge`, so that value is live into the branch. Keep the field
 //   reads written as `pts[j].x` / `pts[j].z` / `pts[j].y` and let MSVC CSE them.
 //
+// deepseek-v4.1-flash retry (#3217): re-confirmed 94.1 and the whole 92.1 block-local family. A
+// function-scope named pointer for the second edge point (bp = &pts[j] used in both walks) drops to
+// 60.7 (609 bytes) because it gives the pts base edi instead of ebx. Block-local y0 with the
+// function-scope y0 removed, or with it kept dead, is 92.1 either way; removing the unused `int ay;`
+// and swapping the iymin/iymax declaration order in that shape are inert (92.1), so the iymin/iymax
+// flip is not a declaration or dead-local parity lever. `--i; i = count - 1;` for the walk1 tail is
+// byte-identical to `i = i - 1; i = count; i--;` at 94.1.
 // The walk diff is a pure two-way swap, not a rotation: with idx already right in both walks,
 // original is (ptr 0x20, idx 0x24, y0 0x28) and (ptr 0x20, y0 0x24, idx 0x28), ours is
 // (y0 0x20, idx 0x24, ptr 0x28) and (y0 0x20, ptr 0x24, idx 0x28). The original's &pts[j] keeps

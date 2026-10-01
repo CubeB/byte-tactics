@@ -7,7 +7,9 @@
 //    `test byte ptr [esi+0xf0], 2` no matter the spelling, including via a
 //    named `unsigned char fl = p[0xf0];` local (byte-neutral, reverted), so
 //    the original `mov dl, [esi+0xf0]; shr dl, 1; test dl, 1` needs the value
-//    kept live for another use the source does not model yet.
+//    kept live for another use the source does not model yet. Shift-into-local
+//    (`unsigned char fl = (unsigned char)(p[0xf0] >> 1); if (fl & 1)`) is also
+//    byte-neutral: it folds back to the same `test byte ptr [esi+0xf0], 2`.
 //  - the outer case bodies must be laid out in the exe's order, which the jump
 //    table at 0x42859c reveals: 0, 2, 1, 3, 4, 5, 7, 10, 8, 9, 11..14, 15, 20, 16,
 //    17 (case 2 sits between case 0 and case 1, and 10 comes before 8).

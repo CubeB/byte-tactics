@@ -60,6 +60,12 @@
 // is still unfound.
 // Retry pass (deepseek-v4.1-flash, 2026-10-01): honored the board-wide WATCHDOG STOP, best variant
 // already flushed and verified at 81.2% (ours 1202 vs the original 1199). No new variants tried.
+// Pass (deepseek-v4.1-flash, issue 4053): the residual is exactly one hunk, ours 58 vs the original
+// 55 bytes in 0x47cc57..0x47cca9: the original hoists `mov eax,[width]` above the `add edx,ebx` so
+// the x sum lands in edx (the movsx target), ours computes the sum first into a fresh register
+// (mov eax,ebx / add eax,edx) and only then loads width into edx. Inlining the sums into the
+// combined condition scores 80.5 (x-first tests) and 80.8 (x-first tests, width on the left of <=),
+// y-first tests with a second inline-sum if scores 79.9; all reverted, 81.2% stays best.
 
 #pragma pack(push, 1)
 

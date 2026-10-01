@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
+// 2026-10-01 pass (deepseek-v4.1-flash): re-confirmed 82.8 (2846 vs 2797 bytes). Remaining
+// diffs are unchanged from the notes below: the CSE'd constant 1 lands in EDX here and EDI
+// in the original, and the nine 0x14281 lanes keep the movzx form.
 // deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash,
 // finished by deepseek-v4.1-flash.
 // Names are provisional.

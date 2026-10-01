@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 pass (deepseek-v4.1-flash): no change, re-confirmed 55.0 (962 vs 1105 bytes).
+// Still differs: the whole pre-loop slot map, the viewFlags save/restore shape and the
+// missing Class_004cb940 loop-tail call (see notes below).
 // Writes a large screenshot ("BIGSHOT", caller 0x417600) by rendering map
 // tiles and copying them into one large BMP surface.
 //

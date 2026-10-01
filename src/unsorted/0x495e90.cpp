@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 pass (deepseek-v4.1-flash): re-confirmed 79.6 (2292 vs 2292 bytes). Only two
+// real deltas left: case 0xd7 is 1 byte overlong (6-byte `mov esi,[g_game]` where the
+// original has the 5-byte EAX moffs), which shifts every tail jump target by 1, and the
+// case 0xab CTRL buffer sits at esp+0x18 where the original has esp+0x10. Re-tested the
+// `int old` inside-the-guard d7 spelling in isolation: 75.9 (2288), so the hoisted form stays.
 // deepseek-v4.1-flash (issue 3489): one stale claim corrected. check.py on the
 // current file still shows a REAL second delta (not only the d7 tie): the case
 // 0xab CTRL buffer sits at esp+0x18 here but at esp+0x10 in the original

@@ -1,4 +1,17 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash (#3684) retry: confirmed from the disassembly that the
+// three rejects in the head (`je 0x48b008` for f0==0, kind not 1/2/3, f146==0xa)
+// jump to the code AFTER the loop, i.e. they are BREAKS, not skips, and that
+// the body has no i>=10 test. Writing the loop as
+// `while (i < 10) { ... if (p->f0 == 0) break; k = p->f73; if (k!=1&&k!=2&&k!=3)
+// break; if (p->f146 == 0xa) break; ... i++; off += 0x14b; }` with the checks
+// inline (no value-returning helper) reproduces the original head
+// instruction-for-instruction (mov eax,[ecx+edx+0x1b63] / lea edi,[...] /
+// test / je / mov al,[edi+0x73] / cmp chain / cmp [edi+0x146],0xa / je), so the
+// break reading is right, but it costs the top-of-loop test and the loop
+// rotation and lets off live in edi: 74.3% / 831 bytes (also 70.4% / 839 with
+// the old PlayerOk helper calls kept). The do-while `if (p)` form below keeps
+// 84.5% / 849 bytes and stays.
 // deepseek-v4.1-flash (#3453) retry: 84.5% unchanged (849 bytes). Tried the
 // init order `unsigned char i = 0; int* cnt = ...; *cnt = 0; int off = 0;`
 // (store between the two decls): it does give the original's immediate

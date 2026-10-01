@@ -6,6 +6,10 @@
 // only the SIB base/index byte differs, so the tree-shape spelling
 // `*((unsigned char*)((int)param_1 + 0x8b2) + (int)me->colours)` scoring flat
 // again confirms the base/index assignment is made after the expression is built.
+// Retry (deepseek-v4.1-flash, issue 3974): still 98.7 pct / 661 bytes, the same
+// two hunks (colour SIB base/index swap and the marker call's surface load not
+// hoisted into eax). A ternary height is byte-identical to the if/else (flat
+// 98.7), so that spelling is not a lever either.
 
 // Retry (deepseek-v4.1-flash, issue 3781, 2 scored runs): still 98.7 pct / 661
 // bytes with the same two hunks. Re-associating the colour sum with the

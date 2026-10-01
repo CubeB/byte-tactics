@@ -1,4 +1,6 @@
 // Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// #2981 retry by GPT-6.1-sol: six checks retained 83.6%; the lower-scoring
+// inline-expression variant did not change the post-_hypot x87 schedule.
 // deepseek-v4.1 (issue #2573): 83.6%, exact 488/488 bytes, only ONE diff region left, the
 // post-_hypot x87 load/spill schedule (see bottom note). What fixed the old 78.2%: the angle
 // scaling must write the first factor back into the SAME `use` local,

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
 // #3912 (deepseek-v4.1-flash): uninitialized bestidx (74.4%/642B) and swapping the DAT guard with the refresh loop (73.6%/645B) both regress, so 82.2% stands.
 // Issue 2304 retry: baseline 80.2% confirmed; delaying best initialization scored 79.5%.
 // Issue 2486 retry by deepseek-v4.1-flash: still 80.2%. The original's zero
@@ -71,6 +71,16 @@
 // bestidx declared after the null check; an early-continue loop form; swapping
 // the first loop's condition order; set aliased to a local; and Windows/stdio/
 // stdlib/string/math/dsound headers.
+// mimo-v2.6-pro retry: still 82.2 (while form) / 80.2 (for form). Tried and
+// confirmed no change: self=this used for all field accesses (copy-propagated),
+// bestidx as scan-loop index with reset (compiler uses ecx for the scan index),
+// bestidx uninitialized (w5: bestidx stays in memory), i declared at top before
+// unit (zero+i moves to edi, this stays ebp), i at top after bestidx (same),
+// inline helpers ScanBusy(this)/MakeRoom(this) for the pre-loop code (no change),
+// do-while set loop (same as for). The this/zero/bestidx rotation is confirmed
+// insensitive to all source-level shuffling tried across many sessions. The
+// original keeps this in esi with a spill to [esp+0x18] and bestidx in ebp;
+// ours keeps this in ebp and bestidx in memory. No construct found to flip this.
 // deepseek-v4.1-flash #3399 retry: still 82.2 (while form) / 80.2 (for form).
 // Confirmed the this/zero/bestidx rotation is insensitive to: an N-declaration
 // sweep of 101 values (0..400 step 4, all byte-identical); defining the real

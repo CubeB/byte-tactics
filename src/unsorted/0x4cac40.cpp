@@ -1,4 +1,32 @@
-// Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, improved by GPT-6.1-sol, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// #3959 (mimo-v2.6-pro, 2nd pass): FIXED the scheduler tie (#2) to reach 95.0%.
+// The tail of the changed-byte branch was reordered to
+//   L.total += wrote; curmem = next; run = 1; cur = next;
+// (was `cur = next; curmem = next; run = 1;`). The three assignments are to
+// distinct locals so the reorder is semantics-preserving, and it makes MSVC 5
+// schedule `mov esi,1` (run=1) before `mov al,bl` (cur=next), matching the
+// original byte for byte in that region. Slots and reg alloc are unchanged
+// (still width in ebx). Confirmed the fold-away self-use idea is DEAD: `a=a;`
+// tree-folds away completely (no code AND no live-range / slot change) in a
+// micro-test (build/scratch/0x4cac40/p1.cpp), so it cannot be used to permute
+// slots. Also confirmed a dummy struct does NOT flip the width/height reg
+// alloc, but a byte struct DOES: the flip is coupled to byte-var structure.
+// Remaining diff is only the byte-slot permutation (#1): rep/next/cnt/lit.
+// #3959 (mimo-v2.6-pro): kept 94.5%. Confirmed the MSVC5 local-slot rule with
+// micro-tests (build/scratch/0x4cac40/m*.cpp): byte locals get stack homes in
+// ASCENDING order of their last use, low frame address first (m1: a,b,c,d used
+// in order -> a=-4..d=-1; m9: a=1;b=2;use(b);use(a) -> b=-2 low, a=-1 high). So
+// to reorder the byte slots you reorder the last use of each byte, not the
+// declarations (swapping declarations is a no-op; renaming is a no-op; both
+// measured). This rule does NOT simply predict our loop case though: our base's
+// last-use lines are lit<cnt<next<ocnt<curmem<rep<t yet the slots come out
+// rep,curmem,t,cnt,ocnt,lit,next, so the loop nesting / spilling (cur lives in
+// al, run in esi, wrote in edi) overrides the simple rule here.
+// Tried a padded byte STRUCT (s1/s2) to pin the slots by index: it lands the six
+// bytes at the exact original 0x12..0x17 and shares next/outer-count at 0x15
+// (both desired), but MSVC then swaps width/height out of ebx (49%), so struct
+// pinning fights the register allocator. The clean 6-var (ocnt merged into next)
+// is the original's shape but was already measured at 52.7%.
 // #3912 (deepseek-v4.1-flash): reusing cnt for the outer flush (six slots, 90.5%/640B) and run=1 before cur=next (93.5%) both regress, so 94.5% stands.
 // Best score is 94.5% (this session), up from 91.2%. The dword locals (total,
 // rows, n, row, p) live in a Locs_004cac40 struct, which reproduced their
@@ -209,9 +237,9 @@ int __stdcall FUN_004cac40(void* filename, unsigned char* data, int width, int h
                             }
                         }
                         L.total += wrote;
-                        cur = next;
                         curmem = next;
                         run = 1;
+                        cur = next;
                     }
                 } while (--L.n);
             }

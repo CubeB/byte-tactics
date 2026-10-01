@@ -1,4 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// #3006 retry by GPT-6.1-sol: two checks retained 80.0%; an inline helper for
+// the first case's low output did not change the argument-evaluation mismatch.
 //
 // Pass (deepseek-v4.1-flash, #2437 retry): still 80.0%, 280 bytes. Four more
 // source shapes, every one byte-identical to the body below, so none is kept:

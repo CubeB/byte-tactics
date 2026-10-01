@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4124, 10-minute box, no new variant scored above 72.7%):
+// re-ran the top-allocation search with the ctx.py frame decoded exactly (used[]
+// is 200 ints at post-push esp+0x28, frame 0x338 = 24 bytes of scalars at
+// esp+0x10..0x27 plus 800 bytes of array; a 196-int array gives 0x328 and drops
+// to 70.4%, so 200 is right). Every top-of-function respelling still compiles to
+// `mov eax,[eax+0x18]` (ours) instead of `mov esi,[eax+0x18]` (original): no
+// `layer` local at all (menu->layer at each use), entries-before-index, index
+// through menu->layer with the local assigned later, `Menu* self = menu`, a
+// static-inline LayerOf/EntriesOf getter, deferred declarations, index-only
+// deferred, layering after cnt, and unsigned cnt all scored 72.7% byte-for-byte
+// identically at the top (cnt stays in esi, layer's temp in eax spilled to
+// esp+0x24). `int cnt` computed before the early return scored 72.4. The only
+// remaining leads are a `layer` live range that reaches a call (ours reloads
+// menu->layer after both DoSelects, so no) or an extra callee-saved candidate.
 // deepseek-v4.1-flash (#4054, 10-minute box, no new variant scored): reconfirmed
 // 72.7% / 1400 bytes. Still differs: the top-of-function allocation (layer=EAX,
 // cnt=ESI in ours against layer=ESI spilled at [esp+0x20], cnt born in EAX after

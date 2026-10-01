@@ -1,4 +1,36 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4124, 20-minute box): measured the frame rule by
+// recompiling scratch variants and dumping build/obj/<...>.obj:
+//   - frame size = 0x54 + the declared buffer size: buf[0x80] gives
+//     `sub esp,0xd4`, buf[0x70] gives `sub esp,0xc4` (both 57.6% and 2685
+//     bytes, and the buffer address does not move). buf[0x80] is therefore the
+//     size that keeps the frame closest; do not shrink it.
+//   - the real gap: our buffer is coalesced onto the last compiler temp slot at
+//     [esp+0x64] (lea sites before the strstr source and the second strcpy are
+//     [esp+0x64] and [esp+0x74] = buf+0x10). The original's buffer is at
+//     [esp+0x68] and its last temp at [esp+0x64] (`mov byte ptr [esp+0x64],dl`
+//     in the inlined Measure loop at 0x4a6851), so the original keeps ONE more
+//     live 4-byte temp than our source produces. Our temps are 0x54, 0x58,
+//     0x5c, 0x60 (byte stores at 0x1c4/0x2ee/0x327); the original's are 0x58,
+//     0x5c, 0x60, 0x64. A dead 4-byte local does not add one (optimized away,
+//     frame stays 0xd4), and moving `char* p` to function scope is byte-neutral
+//     (57.6%, 2685 bytes).
+//   - variable -> slot rotation after rect: ours x 0x34, found 0x38, border
+//     0x3c, textw 0x40, flagy 0x44, text 0x48, pass 0x4c, saved 0x50, width
+//     0x54; the original x 0x34, found 0x38, width 0x3c, border 0x40, flagy
+//     0x44, textw 0x48, text 0x4c, pass 0x50, saved 0x54. Before rect ours is
+//     measured 0x18, t 0x1c, me 0x20 against the original's t 0x18, me 0x1c,
+//     measured 0x20.
+//   - root cause of both the rotation and the missing slot, from the obj dump:
+//     MSVC keeps our `measured` in EBX across the strchr call in the flags&0x20
+//     branch (ebx is callee-saved, so it survives; see `sub ebx,eax; xor
+//     eax,eax; sub ebx,4; mov dword ptr [esp+0x34],eax`, the 0x34 store being
+//     `found = 0`). The original instead spills measured: 0x4a67bf
+//     `mov dword ptr [esp+0x20],esi` right before `push ecx; push ebp; call
+//     strchr`, then reloads it at 0x4a6801. Forcing that spill should give the
+//     slot at 0x20, push the buffer to 0x68, the frame to 0xd8 and line the
+//     whole tail map up; our `x` also spills to 0x18 in the flags&2 strstr path
+//     where the original keeps it in ebx/edx.
 // deepseek-v4.1-flash (#4054, 10-minute box, no new variant scored): reconfirmed
 // 57.6% / 2685 bytes. Still differs: the frame is 4 bytes short (ours 0xd4 vs the
 // original 0xd8, so every [esp+0xNN] past 0x20 is off by 4 and the tail jumps

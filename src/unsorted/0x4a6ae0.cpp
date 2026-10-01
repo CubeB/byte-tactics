@@ -1,4 +1,24 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4124, 10-minute box, no new variant scored). Measured the
+// region's `entry`-reference ladder on a rebuilt v1 (the correct-semantics shape,
+// build/scratch/0x4a6ae0/batch.py): v1 = 64.1% with obj=EBP/entry=EBX; v1 plus ONE
+// unfolded extra `entry` reference in the region flips the homes back to
+// obj=EBX/entry=EBP and the 0x4a6ef9..0x4a708b region then matches byte for byte,
+// but every spelling found costs bytes: `entry != 0 &&` in the first test
+// (1709 bytes, 88.1%), `entry->state == 0 ||` or `entry->state != 4 &&` in the else
+// (1715, 88.7%), `entries[index].field_138` for the else read (87.9%) or the
+// else-if read (88.3%). Folded/dead/spelled-around references do NOT count, all
+// leave v1 at exactly 64.1%: `(void)entry->state;`, `entry->field_138` twice,
+// `entry->field_138 + 0`, `*(short*)&entry->field_138`, a self-referencing store,
+// `(char*)entry == (char*)&entries[index]`, `int`/`short`/`unsigned short` `f138`
+// locals used by the three tests (same region bytes, so the source spelling of the
+// region cannot both keep the ax temp and drop entry's weight). On top of the
+// `entry != 0` variant (X10) the region and homes are right and only the bound
+// block is wrong (`mov ax,[edi+0xb6]; inc ax; movsx ebp,ax`); `int bound` there
+// gives `movsx ebp,[edi+0xb6]; inc ebp`, not the original's
+// `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`, and `int bound` on v1 gives
+// `movsx ecx` instead. The one missing piece is still an unfolded `entry`
+// reference that emits no bytes; nothing below changed and 93.4% remains best.
 // deepseek-v4.1-flash (#4054, 10-minute box, no new variant scored): reconfirmed
 // 93.4% / 1703 bytes. Still differs: the rect-set block is emitted before the
 // flags&0x2000 block with a second `cmp word [ebp+0x138],0` re-test where the

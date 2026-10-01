@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Retry #2444: 83.8 percent (363/370 bytes), unchanged from prior best. Equality rewrite scored 82.4; indexed stores stayed 83.8.
 // 83.8 percent, 363 bytes against 370. This is 0x4b7620's body inlined into a
 // loop over {const char* name, handler, mask} records: intern the name with
 // Class_004c91b0, lower_bound over the file-local std::vector<Class_004b7e30>

@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry #2444 (GPT-6.1-sol): best remains 83.9% after 4 check.py runs; a reversed
+// comparison spelling fell to 82.8%. Row-pointer term ordering and threshold
+// add destination remain the allocator differences described below.
 // Partial, best 83.9% (re-checked by space-bunny-free, no better form found).
 //
 // deepseek-v4.1-flash second pass (#1615): 83.9% again. Lever 6/7 tried with no

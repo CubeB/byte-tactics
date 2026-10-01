@@ -145,6 +145,12 @@
 // 74.0 (folded). The one remaining lever is still: get f108 stored before the
 // bool so ecx is free, and keep dx = unit->fb8 live across the bool compare,
 // so the shared zero is materialised in ecx.
+// deepseek-v4.1-flash (run 11, timebox): re-verified the base at 74.0 and
+// scored two more levers on top of it, both reverted: piece copy stores in
+// ascending order (f0, f4, then the obj-deref f8) -> 72.6 / 1058; the f_f0
+// ternary condition written as the reloaded `unit->f_f0 != 0` -> 73.5 / 1067.
+// Residual diff is unchanged: the shared zero register is edx in ours, ecx in
+// the original, driven by the rec.f3d/rec.f3f load window.
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);

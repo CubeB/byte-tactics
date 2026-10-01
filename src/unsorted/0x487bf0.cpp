@@ -137,6 +137,11 @@
 //   7. Our A, B and W arms tail-merge their if/else sub-arms into the parent;
 //      the original keeps them as separate blocks (A's else at 0x487fb3, B's
 //      "w" arm at 0x4880e1, W's "a" arm at 0x488184).
+// deepseek-v4.1-flash (run 11, timebox): re-verified the base at 65.9%
+// (1859 vs 1811 bytes); no new variant scored. Open defects are the ones in
+// items 2 to 6 above, chiefly the declared Class_00438760 copy constructor,
+// which emits the five `lea eax,[out]; mov ecx,esp; push eax; call copy-ctor`
+// handoffs the original does not have.
 
 #include <ctype.h>
 #include <stdio.h>

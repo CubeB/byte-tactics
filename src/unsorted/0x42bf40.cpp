@@ -177,6 +177,13 @@
 // from 0x42c0ee to the tail, and ebx is untouched in the original between
 // 0x42c0f0 and 0x42ce00, so esi was not picked for lack of ebx: our longer
 // constant live range is what keeps the allocator on ebx.
+// Pass 15 (deepseek-v4.1-flash): 81.0% (ours 4744 bytes against 4772), up from
+// 80.6. The sound-name arm of the unitdef parser now mirrors the original's
+// shared tail with goto polarity: a named-index scan that jumps to SOUND_FOUND
+// (store the index) or falls through to the atoi store, both converging at
+// SOUND_DONE ahead of the corpse/movementclass tail. The y loop above it is a
+// while with its own increment, which is what the original's back edge does.
+// Still different, all of it the shared-zero register (see Pass 14).
 
 // Still 62.6% (ours 4804 bytes against 4772) after deepseek-v4.1's second pass.
 // Confirmed fixed this pass (both match the original now):
@@ -621,10 +628,12 @@ void __stdcall FUN_0042bf40(char* fbi_file, char* unitdef) {
                         goto SOUND_FOUND;
                     sound++;
                 }
-                sound = atoi(buf);
+                *(short*)(unitdef + 0x20e) = (short)atoi(buf);
+                goto SOUND_DONE;
             }
         SOUND_FOUND:
             *(short*)(unitdef + 0x20e) = (short)sound;
+        SOUND_DONE:
             *(short*)(unitdef + 0x1bc) = -1;
             if (((Class_004c48c0*)parser.current)->FUN_004c48c0(buf, "corpse", 100, DAT_005119b8))
                 *(short*)(unitdef + 0x1bc) = FUN_00422e40(buf);
@@ -677,7 +686,8 @@ void __stdcall FUN_0042bf40(char* fbi_file, char* unitdef) {
                     "BUILDING YARD", *(short*)(unitdef + 0x14a) * *(short*)(unitdef + 0x14c));
                 int cell = 0;
                 char* cursor = yard;
-                for (int y = 0; y < *(short*)(unitdef + 0x14c); y++) {
+                int y = 0;
+                while (y < *(short*)(unitdef + 0x14c)) {
                     for (int x = 0; x < *(short*)(unitdef + 0x14a);) {
                         switch (*cursor) {
 case '.':
@@ -719,6 +729,7 @@ case 'G':
                         if (cursor[1] != 0)
                             cursor++;
                     }
+                    y++;
                 }
             }
             int w = *(short*)(unitdef + 0x14a);

@@ -2,6 +2,17 @@
 // finished by deepseek-v4.1-flash, finished by GPT-6.1-sol,
 // finished by deepseek-v4.1-flash. Names are provisional.
 //
+// WHAT STILL DIFFERS (unchanged): register allocation in the first block. The
+// original keeps a2 in esi and a3 in edi across both _allmul calls, with
+// dx.lo in ebp, dx.hi at [esp+0x1c] and dz.lo/dz.hi at [esp+0x10]/[esp+0x14];
+// our build rematerialises a2/a3 from their argument homes. THE STACKED
+// SCALARS FAMILY IS NOW REFUTED (deepseek-v4.1-flash, 2026-10-01): naming the
+// operand halves as unsigned int pairs (dxLo/dxHi/dzLo/dzHi, either
+// declaration order) and rebuilding the 64-bit values from them scores 36.6%
+// (the shifts to re-form the values defeat cdq entirely); named product
+// locals with their halves read out is 60.1%; a union of __int64 and an
+// lo/hi struct pair is 45.0%. All below this file's 66.1%, which stands.
+//
 // FINAL PASS (deepseek-v4.1-flash, watchdog stop): best stays 66.1% (310 of 301).
 // STORE-BACK ANGLE IS REFUTED: the disassembly has NO stores through a2 or a3
 // anywhere (every [esi]/[edi] access is a read: a2->x/y/z and a3->x/y/z), so

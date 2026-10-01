@@ -1,4 +1,23 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, finished by deepseek-v4.1-flash, retried by deepseek-v4.1-flash. Names are provisional.
+//
+// RETRY deepseek-v4.1-flash (issue 3150): ~35 more scored scratch variants,
+// none above the kept 534-byte / 81.1% dest-first do-while. New this pass and
+// all worse: the real <vector> header 57.9%/547B; member
+// _Ucopy(_P,_Last,_Q+_M) 58.0%; a named dest local plus the real helper 58.0%;
+// source-first 55.2%; do-while with a cached _Last 59.8%/538B (for + cache
+// 58.0%); a dest-first helper _Ucopy(_P,_F,_L) 71.6%; copy(_P,_Last,_Q+_M)
+// 71.7%; copy(_Last,_Q+_M,_P) 76.2%; allocator.construct(_Q+_M,*_P) 56.0%.
+// Dest spelling variations (_d = _Q then += _M, &_Q[_M]), a while(1)/break,
+// and `if (_d) *_d = *_s` all tie at 81.1%. Writing the source start as the
+// original's arithmetic order ((_P - _Q) + _d - _M) is 72 to 74%.
+// Root cause, confirmed again: _P is loaded into ecx in the original but into
+// edi here after the operator new call; that single choice cascades into the
+// _Ufill loop (count esi/_X edi original, count ecx/_X esi here) and into the
+// third copy (source ecx/dest eax/_Last cached esi/M4 edi original, source
+// eax/dest ecx/M4 esi/_Last reloaded here). Every construct that routes _P
+// into ecx also flips `this` back to ebx, and every construct that keeps
+// this=ebp leaves _P in edi. No source lever in this file reaches it, which
+// matches the guide's note that 0x4732e0 is translation-unit state.
 //
 // RETRY deepseek-v4.1-flash: 8 more scored variants, none above the kept
 // 534-byte / 81.1% dest-first do-while. Calling the member _Ucopy(_P, _Last,

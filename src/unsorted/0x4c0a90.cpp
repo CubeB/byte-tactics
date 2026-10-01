@@ -1,4 +1,13 @@
 // Decompiled by Opus, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3061): best remains 86.5% (118 bytes both).
+// The two residuals are one coupled allocator state. The inline
+// `row * surf->pitch` gives the original pitch head (`xor ebx,ebx; mov bx,[ecx]`)
+// but mirrors ecx/edx globally (surf->edx, w->ecx), 49.5%. All 24 declaration
+// orders of z/p/x1/w with that body top out at 56.6%. Only an
+// `unsigned short pitch` local pins surf=ecx, and it forces the `and ecx,0xffff`
+// head plus a CSE of `off+x1` instead of the original's preserved `off` with
+// `lea ebx,[ecx+edi]`. `unsigned int`/`int` pitch reallocates surf to edi
+// (67.3%), <windows.h> drops to 47.6%, and headers.py is flat at 86.5%.
 // GPT-6.1-sol retry in #2874: five checks kept the 86.5% best. A y local was
 // unchanged; an inline offset helper fell to 49.5%. Pitch multiply and depth
 // pointer setup still differ in register and memory-operand selection.

@@ -18,6 +18,13 @@
 // reference aliases and one-store next-index forms regress, then were reverted.
 // GPT-6.1-sol refinement for #2874: hoisting size into the branch or reading
 // it through a single-use helper still emits the entry load first (95.0%).
+// deepseek-v4.1-flash retry (#3061): a size local inside the else (alone or
+// with a tail local, comma operator, reference, or declaration reorder) and
+// the dummy extern-int sweep (N=0..400) are all flat at 95.0%. Putting the
+// size read in the condition before the increment (`if (q->size == ++q->tail)`)
+// DOES emit the size load first, but it moves the entry load to the return
+// path and restructures the branch (63 bytes, 32.4%). Still one swapped load
+// pair, a scheduler tie, not source reachable.
 
 #pragma pack(push, 2)
 struct Queue_004c1ab0 {

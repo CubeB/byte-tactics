@@ -1,4 +1,13 @@
 // Decompiled by Opus, finished by GPT-6.1-sol. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3061): 98.5%, 333 bytes exact. Sole
+// residual is the commutative XOR operand order in the encrypt loop (original
+// `mov bl,cl; xor bl,[ecx+esi]`, ours reversed). 30+ spellings compile
+// memory-first under both sp3 and rtm; headers.py 128-set, dummy-declaration
+// sweep 0..128, and prepending matched 0x4d1970 are all flat.
+// BUG: `length` is uninitialized for method 0 and 3 (the switch only sets it for
+// cases 1 and 2), yet `total = length + 0x13` uses it, so a valid method < 4 can
+// compute a bogus compressed size from stack garbage; the original binary shows
+// no zero-init store before the switch.
 // Codex / GPT-6 retest in #13:
 // byte temporaries, encoding helpers and the preceding compression
 // entry points did not change the XOR operand order. The baseline remains

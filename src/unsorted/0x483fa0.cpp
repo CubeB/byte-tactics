@@ -1,4 +1,27 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5. Names are provisional.
+// claude-sonnet-5-5 continued: best 68.6% (1033 bytes against 1046), from
+// 66.2%. Two source-order changes helped: (a) bmp.dx/bmp.dy = 0 now sit
+// before the `if (rem1 != 0)` tests (the other bmp stores stay after them),
+// which makes the compiler hold the zero in a register for the compares;
+// (b) px, rx, py, ry are computed in that order (px, rx, py, ry), which makes
+// px be stored to its slot right after the divide like the original.
+// NEW FINDINGS on what still differs (all register allocation):
+// * The original keeps constant 0 in ebp from the FIRST compare (`xor ebp,ebp;
+// cmp ebx,ebp`) and moves rem2 to edx first. Ours keeps rem2 in ebp and the
+// zero only starts after the cdq of mapWidth/2, so the first compares are
+// `test`. A small test file reproduces the original behaviour (zero held
+// in a register for every compare), so it is a register-pressure choice;
+// variants that put vw/vh loads earlier all got worse (48 to 61%).
+// * Plain `for (i = 0; i < n; i++)` loops are turned into dec/jne count-down
+// loops by MSVC too, but gave 63 to 66% here (entry jmp and a spilled
+// counter), do/while with `--n` stays best. Latch variants with `m = w1`
+// after the inner loop (l1/l2) were size-exact (1046 bytes) but 62.3%
+// because m is spilled and y takes ebp.
+// * Slots: ax .20, py .24, w1 .10 match; ay/px/w2 are a rotation of
+// .14/.18/.1c (original ay .1c, px .14, w2 .18). Moving statements did not
+// change that.
+// Structural ratio of this version against the original is 0.897; a
+// permuter run from this file is the next step.
 // mimo-v2.6-pro continued: best 66.2% (1031 bytes against 1046). Prior work
 // took the prologue to the original's arithmetic order with int locals vw/vh
 // and rebuilt block 3 with `unsigned short s = stride` (restores the and
@@ -82,13 +105,14 @@ void __stdcall FUN_004c6e70(void* dst, int x, int y, unsigned char* pix);
 // FUNCTION: 0x483fa0
 void __stdcall FUN_00483fa0(void* surface)
 {
+    Bitmap_00483fa0 bmp;
     int ax = g_game->viewX;
     int sx = g_game->scrollX;
     int ay = g_game->viewY;
     int sy = g_game->scrollY;
     int px = sx / 32;
-    int py = sy / 32;
     int rx = sx - px * 32;
+    int py = sy / 32;
     int ry = sy - py * 32;
     int vw = g_game->viewW;
     int w1 = (vw + rx) / 32;
@@ -96,20 +120,19 @@ void __stdcall FUN_00483fa0(void* surface)
     int w2 = (vh + ry) / 32;
     int rem1 = vw - w1 * 32 + rx;
     int rem2 = vh - w2 * 32 + ry;
+    bmp.dx = 0;
+    bmp.dy = 0;
     if (rem1 != 0)
         w1++;
     if (rem2 != 0)
         w2++;
     int stride = g_game->mapWidth / 2;
 
-    Bitmap_00483fa0 bmp;
+
     bmp.width = 32;
     bmp.height = 32;
-    bmp.dx = 0;
-    bmp.dy = 0;
     bmp.flag9 = 0;
     bmp.count = 0;
-
     if (rx != 0 || rem1 != 0) {
         int base = py * stride + px;
         unsigned short* p1 = g_game->mapValues + base;

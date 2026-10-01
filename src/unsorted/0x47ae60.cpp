@@ -1,42 +1,59 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 85.5% (ours 2868 bytes vs the original 2947).
-// Retry note (deepseek-v4.1-flash): timebox expired with no validated change.
-// Still differs only in register-allocation tie-breaks (see below). Verified
-// against the original disassembly this pass: the toggle-arm chain order is
-// identical to ours, so the big diff block there is line-alignment noise, not
-// a structural mismatch. The Energy/Metal down-clamp original really is
-// "add ecx, 0xfffffe0c" (imm32 negative) on a signed value; untried idea is
-// forcing that encoding via an unsigned add cast, e.g.
-// "int v = (int)((unsigned)*p + 0xfffffe0c);". TRIED (deepseek-v4.1-flash,
-// issue 3728): the unsigned form is byte-identical to the plain
-// "*p + -0x1f4" (85.5%, 2868 bytes), so the immediate is canonicalised.
-// What fixed 84.2 -> 85.5: the c2/c1 player count block. The original lays it
-// out loop1 / test-c2 / loop2 / test-c1 with ONE shared error stub at
-// 0x47b0bf (both "jl 0x47b0bf"). "if (c2 < 1 || c1 < 1)" and two separate ifs
-// both put the compares after the second loop (75.4). The fix is to nest:
-//   loop1 counts c2; if (c2 >= 1) { loop2 counts c1; if (c1 >= 1) { ...success,
-//   return; } } then the single players-computer error block falls at the end.
-// This yields test-c2 right after loop1 and a single shared error stub, matching
-// the original block order (error stub sits after the success return).
-// LineOfSight's two "field_114 = 1" stores must precede the strcpy so the seven
-// toggle-arm message tails merge into one strcpy tail at 0x47b88b.
-// The Difficulty arm calls FUN_0047f1a0("SKirmish", 0): the original pushes
-// 0x502a6c (the typo'd literal), not 0x507ccc "Skirmish". Do not correct it.
-// STILL DIFFERS (register-allocation tie-breaks):
-//  - Energy/Metal clamp arms: original "mov ecx,[..]; lea eax,[..]; add ecx,
-//    0x1f4 / add ecx,0xfffffe0c; mov [eax],ecx" (value in ecx, address in eax
-//    reusing the base reg). Ours is the mirror "lea ecx; mov eax; add eax; mov
-//    [ecx],eax". Tried the double-dereference form (recompute the store address
-//    after the load): that dropped to 79.6%. Compound "v += -0x1f4" is flat
-//    (still sub eax,0x1f4 vs the original add ecx,0xfffffe0c). Keeping the
-//    value load first and the address second is the wall.
-//  - menu reload: the original keeps menu in its stack home and reloads
-//    "mov edx,[esp+0x84]; push edx" before each FUN_004ab0a0 / FUN_004a0bf0;
-//    ours keeps menu in a callee-saved register in the toggle/Energy/Metal arms
-//    ("push esi"/"push ebp"). The Color tail is a pure scratch-reg tie-break
-//    ("mov edx,[esp+0x84]" original vs "mov eax,[esp+0x84]" ours).
-//  - g_game reload in the toggle arms lands in a different scratch register
-//    (original mov edx / ours mov ecx or mov eax).
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol,
+// finished by deepseek-v4.1-flash and mimo-v2.6-pro. Names are provisional.
+// PARTIAL: 88.2% (ours 2876 bytes vs the original 2947).
+// Retry note (mimo-v2.6-pro, second pass): what fixed 86.7 -> 88.2 was the
+// clamp tail shape. The up clamps are now windef.h's min() and the down
+// clamps max(), applied on the pointee:
+//   *p = min(*p + 0x1f4, 0x2710);        (Energy/Metal up)
+//   *p = max(*p + -0x1f4, 0xc8);         (Energy/Metal down)
+// The min/max macro evaluates its argument twice, which keeps MSVC's
+// load-then-lea allocation (value in ecx, address in eax) AND lands the
+// single conditional store of a register ("cmp; jl L; mov ecx, 0x2710;
+// mov [eax], ecx") exactly as the original. The negative immediate survives
+// as "add ecx, 0xfffffe0c" only when written "*p + -0x1f4" (max's second
+// evaluation of the argument keeps the add-imm form; "*p - 0x1f4" gives
+// "sub reg, 0x1f4" and scores 86.9%). TRIED for the tail shape and rejected:
+// the plain v-form ("int v = *p; v += 0x1f4; if (v >= 0x2710) v = 0x2710;
+// *p = v;") gives the right tail but mirrored registers (value in eax,
+// address in ecx); the ternary "int v = *p + 0x1f4; *p = v >= 0x2710 ? 0x2710
+// : v;" is the same (86.1-86.2%); the typed-field form folds the lea away
+// entirely (81.9-82.4%). Per-arm scores for the min/max arms: 86.8% (min on
+// Energy-1), 87.5% (min on Metal-1 or max on Metal-2), 88.2% (all four).
+// Earlier: 85.5 -> 86.7 came from the compound "*p += ..." form on the four
+// clamps; 84.2 -> 85.5 from the c2/c1 player count block nested as loop1 /
+// test-c2 / loop2 / test-c1 with ONE shared error stub at 0x47b0bf; the
+// LineOfSight "field_114 = 1" stores must precede the strcpy so the seven
+// toggle-arm message tails merge at 0x47b88b. The Difficulty arm calls
+// FUN_0047f1a0("SKirmish", 0): the original pushes 0x502a6c (the typo'd
+// literal), not 0x507ccc "Skirmish". Do not correct it.
+// TRIED THIS PASS and flat: tools/headers.py (128 sets, all 86.7-86.8%);
+// an N-dummy sweep (0 to 400 extern int dummyN; in steps of 4) is flat at
+// 88.2% for every N, so compiler state is not the remaining lever. A Menu*
+// alias local ("Menu* m = menu" feeding the arm-2 FUN_004a0bf0 calls and the
+// FUN_004ab0a0 tails) was written up in build/scratch/0x47ae60/genalias.py
+// but not scored before the timebox ended; it is the first thing to try next.
+// STILL DIFFERS:
+//  - menu reload (the big one, worth ~71 bytes of size plus every forward
+//    jump-target line): the original reloads "mov edx,[esp+0x84]; push edx"
+//    before every FUN_004ab0a0 and before the Energy/Metal arm-2 FUN_004a0bf0
+//    ("mov edx,[esp+0x90]" hoisted above "add esp, 0xc"); ours keeps menu in
+//    a callee-saved register ("push esi"/"push ebp") in the Color tail,
+//    Energy/Metal arm 2 and tails, and the SelectMap/Difficulty tails. The
+//    original caches menu in esi/ebp only across clusters of uses (the
+//    FUN_0049fd60 chains, the holder checks, arm-1 FUN_004a0bf0) and reloads
+//    from the stack home at the arm tails. Note the Difficulty arm in the
+//    original frees esi for the zero ("xor esi, esi" for its 0 and its cmp)
+//    while ours takes ebx ("xor ebx, ebx"), which is why our tail pushes keep
+//    using the live esi cache. Suspect MSVC's per-region register promotion
+//    of the stack-home parameter; untried ideas: a second Menu* alias local
+//    ("Menu* m = menu") feeding only the FUN_004ab0a0/arm-2 calls so the
+//    promoted range ends after the holder checks, and the N-unused-extern
+//    dummy-declaration sweep from the guide in case only compiler state
+//    differs.
+//  - small scratch-reg ties: Player tail "mov edx,[esp+0x84]" (ours mov eax);
+//    g_game reload in the toggle arms lands in a different scratch register
+//    (original mov edx / ours mov ecx or mov eax); the strcmp-chain tail
+//    addresses drift by the size gap above.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -300,11 +317,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0x10);
-            int v = *p;
-            v += 0x1f4;
-            if (v >= 0x2710)
-                v = 0x2710;
-            *p = v;
+            *p = min(*p + 0x1f4, 0x2710);
             Table_0047ae60* t2 = *(Table_0047ae60**)(g_game + 0x29a0);
             int* q = (int*)((char*)t2 + player * 24 + 0x10);
             if (*q == 0x2bc)
@@ -317,10 +330,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0x10);
-            int v = *p + -0x1f4;
-            if (v <= 0xc8)
-                v = 0xc8;
-            *p = v;
+            *p = max(*p + -0x1f4, 0xc8);
             wsprintfA(frame.sB, "Energy%d", player);
             _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].energy, frame.sA, 10);
             FUN_004a0bf0(menu, frame.sB, frame.sA, 10);
@@ -334,11 +344,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0xc);
-            int v = *p;
-            v += 0x1f4;
-            if (v >= 0x2710)
-                v = 0x2710;
-            *p = v;
+            *p = min(*p + 0x1f4, 0x2710);
             Table_0047ae60* t2 = *(Table_0047ae60**)(g_game + 0x29a0);
             int* q = (int*)((char*)t2 + player * 24 + 0xc);
             if (*q == 0x2bc)
@@ -351,10 +357,7 @@ void __stdcall FUN_0047ae60(Menu_0047ae60* menu)
             FUN_0047f1a0("Skirmish", 0);
             Table_0047ae60* t = *(Table_0047ae60**)(g_game + 0x29a0);
             int* p = (int*)((char*)t + player * 24 + 0xc);
-            int v = *p + -0x1f4;
-            if (v <= 0xc8)
-                v = 0xc8;
-            *p = v;
+            *p = max(*p + -0x1f4, 0xc8);
             wsprintfA(frame.sA, "Metal%d", player);
             _itoa((*(Table_0047ae60**)(g_game + 0x29a0))->players[player].metal, frame.sB, 10);
             FUN_004a0bf0(menu, frame.sA, frame.sB, 10);

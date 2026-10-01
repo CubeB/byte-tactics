@@ -1,5 +1,24 @@
-// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 81.2% (ours 1202 bytes vs the original 1199). Frame, the three cell loops,
+// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// PARTIAL 84.7% (ours 1201 bytes vs the original 1199), mimo-v2.6-pro pass, issue 4132.
+// What still differs is only the two bounds sums at the top (0x47cc57..0x47cca9):
+//   x sum: original `movsx ebx,dx / movsx edx,ax / mov eax,[width] / add edx,ebx /
+//          cmp edx,eax / mov [esp+0x2c],ebx / jge`; ours `movsx ebx,dx / movsx edx,ax /
+//          mov eax,ebx / mov [esp+0x2c],ebx / add eax,edx / mov edx,[width] /
+//          cmp edx,eax / movsx ecx,cx / jle`, so the sum accumulates a copy of size.x
+//          (right operand) instead of px (left), the width load lands after the add
+//          instead of before it, and the spill sits before the add instead of after cmp.
+//   y sum: original `movsx eax,cx / mov ecx,[height] / add eax,edi / cmp eax,ecx`;
+//          ours materializes py into ECX (hoisted above the x jump) and puts height in
+//          EAX. Same accumulate-pos shape, wrong register and hoisting.
+// The owner-index block, the loops, the two calls and the epilogue are byte-identical.
+// Tried this pass and all equal or worse: every source operand order of both sums
+// (MSVC canonicalizes them identically at this shape), inline sums in the condition
+// (1202), one combined || (worse), separate per-clause ifs (1192), accumulate-form
+// temporaries (82.0), a Point pos copy (80.2), int w/h locals for the sizes alone
+// (81.x), y-first tests (83.2/83.5), split ifs (84.3/84.7), width-left conditions with
+// the sizes as int locals (83.5). The extern-count sweep and the inline helper shapes
+// are now done too (see the continuation pass note below), all flat or worse.
+// Older PARTIAL 81.2% note (ours 1202 bytes vs the original 1199). Frame, the three cell loops,
 // the inlined FUN_0047cb60 owner surgery, the (g_game+0x38a47) store, the
 // 0x20000000 mask path, both FUN_00483210/FUN_00440a40 calls and the epilogue
 // all match. What still differs is ONE block, the two bounds tests at the top
@@ -66,6 +85,28 @@
 // (mov eax,ebx / add eax,edx) and only then loads width into edx. Inlining the sums into the
 // combined condition scores 80.5 (x-first tests) and 80.8 (x-first tests, width on the left of <=),
 // y-first tests with a second inline-sum if scores 79.9; all reverted, 81.2% stays best.
+// mimo-v2.6-pro pass (issue 4132, 2026-10-01): tools/headers.py swept all 128 common header
+// sets; #include <windows.h> alone (also <ddraw.h>, and <windows.h> with <stdio.h>/<stdlib.h>/
+// <string.h>) lifts the score 81.2 -> 82.3. Compiler state again, like 0x47d820. Kept here.
+// mimo-v2.6-pro continuation pass (issue 4132, 2026-10-01): the UNTRIED extern-count lever is
+// now exhausted and flat: unused extern int sweeps 0..400 step 4/8 at three placements (after
+// the include, after the prototypes, before the function), 500..3000 unused function
+// prototypes, and C++ headers on top of <windows.h> (<string>, <vector>+<map>, <iostream> etc)
+// all score 84.7 or worse (two big headers give 83.6; single big headers fail to compile here).
+// Source-shape batch, all free-scored with check.py --sym, none beat 84.7: nested ifs with py
+// declared after the x test (81.6, moves py's movsx below the x jump but reorders the remove
+// block), dimension locals w/h (82.8 combined, 81.x nested), in-place px += size.x / py += size.y
+// (82.0), comma forms (84.3), static helper sums (81.2..84.3), 4-way || folds (81.2..82.4),
+// short/const/register px/py (83.5..84.3), sum-left with px/py locals (84.3: fixes jge vs jle
+// but keeps the copy accumulator and mirrored registers), mixed x/y compare orders (84.7 ties:
+// m2 sum-left x + width-left y, m7 width-left with size.x + px operand order, m11 negated
+// !(width > sum) form), subtraction form (82.7). Root cause unchanged: the original loads
+// width into EAX before add edx,ebx and keeps the sum in px's movsx register (y: movsx eax,cx /
+// mov ecx,[height] / add eax,edi), ours copies size.x into EAX for the x sum and mirrors the
+// y registers, with py's movsx hoisted above the x jump; every source spelling canonicalizes
+// to one of those two shapes and the extern/compiler-state sweep is flat.
+
+#include <windows.h>
 
 #pragma pack(push, 1)
 
@@ -194,12 +235,12 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
     Point_0047cc30 size = obj->size;
     if (obj->field_0 != 0)
         *(int*)(obj->field_0 + 0x26) = g_game->field_38a47;
-    int sx, sy;
-    if (obj->pos.y < 0 || obj->pos.x < 0)
+    if (obj->pos.x < 0 || obj->pos.y < 0)
         goto remove;
-    sx = obj->pos.x + size.x;
-    sy = obj->pos.y + size.y;
-    if (sx >= g_game->width || sy >= g_game->height)
+    {
+    int px = obj->pos.x;
+    int py = obj->pos.y;
+    if (g_game->width <= px + size.x || g_game->height <= py + size.y)
         goto remove;
 
     {
@@ -311,6 +352,7 @@ if (rec->owner->active == 0) {
                 cell += g_game->width - size.x;
             }
         }
+    }
     }
     return;
 

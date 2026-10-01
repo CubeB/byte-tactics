@@ -48,6 +48,10 @@ int __stdcall FUN_0040bb00(int player,unsigned short type)
     Player* p=&g_game->players[player];
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;
+// 2026-10-01 deepseek-v4.1-flash retry 4: middle-constant pointer arithmetic
+// `(*(unsigned char*)((char*)g_game->defs + 0x241 + type * 585) & 0x20)` keeps
+// the mirrored SIB and also swaps the rating multiply (movsx/imul pair order
+// and imul operands), 97.8%; the subscript form stays best at 99.6% (686/686).
     if(g_game->mode->FUN_00435100()==1 && (g_game->defs[type].flags&0x20)) return 0;
     int energyCap=min(1000,(int)p->energyCapacity);
     int metalCap=min(500,(int)p->metalCapacity);

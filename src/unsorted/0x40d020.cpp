@@ -77,6 +77,9 @@ public:
 			iterator _S = allocator.allocate(_N, (void *)0);
 			iterator _Q = _Ucopy(_First, _P, _S);
 			_Ufill(_Q, _M, _X);
+// 2026-10-01 deepseek-v4.1-flash retry 4: a `while (_s != _Last) {
+// allocator.construct(_d, *_s); ++_s; ++_d; }` third-copy loop is byte-neutral
+// (80.5%, 536 bytes); the for form is kept.
 			{ iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ++_s, ++_d) allocator.construct(_d, *_s); }
 			_Destroy(_First, _Last);
 			allocator.deallocate(_First, _End - _First);

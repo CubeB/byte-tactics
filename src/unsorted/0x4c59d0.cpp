@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// #3141 retry by GPT-6.1-sol: worker baseline/helper-setter checks and a cached-return trial all score 93.3% (337/367); no MATCH. One malformed newline compile attempt was corrected. The tail differs in register and store order.
 // #2959 retry by GPT-6.1-sol: one check reconfirmed 93.3% (337/367); the
 // reallocating tail still differs in register and store order. No MATCH.
 // Retry #1769: GPT-6.1-sol confirmed 93.3% (337/367 code bytes) after three normal checks; the final batch did not MATCH. The reallocating tail still changes register and store order.

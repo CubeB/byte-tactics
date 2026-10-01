@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry #3141 by GPT-6.1-sol: five worker checks plus an unsigned-index trial found no improvement; best remains 70.2%. Reordering destructor pointer declarations, making the old global object explicit, and rewriting the indexed for loop as while all reproduced the same score. Remaining differences are documented below, especially vector destruction/codegen and register allocation.
 // #2959 retry by GPT-6.1-sol: six checks reconfirmed 70.2%; strlen/memcpy and
 // other variants did not improve the saved source. No MATCH.
 // Retry #1769: the saved best remains 70.2% after seven worker checks; the final batch did not MATCH. Lower-scoring local-copy, bool and split-condition trials were reverted.
@@ -296,7 +297,8 @@ void __stdcall FUN_004c54f0(char* filename, char* section)
         char name[256];
         if (((Class_004c2f60*)&f)->FUN_004c2f60(filename)) {
             int idx[1];
-            for (idx[0] = 0; ((Class_004c3490*)&f)->FUN_004c3490(idx[0]); idx[0]++) {
+            idx[0] = 0;
+            while (((Class_004c3490*)&f)->FUN_004c3490(idx[0])) {
                 f.current->FUN_004c4420(name, 0xff);
                 ((Class_004c48c0*)f.current)->FUN_004c48c0(value, DAT_0051fdc0, 0xff, DAT_005119b8);
                 if (strlen(value) != 0) {
@@ -312,6 +314,7 @@ void __stdcall FUN_004c54f0(char* filename, char* section)
                     }
                 }
                 ((Class_004c3e10*)&f)->FUN_004c3e10();
+                idx[0]++;
             }
             ((Class_004c3240*)&f)->FUN_004c3240();
         }

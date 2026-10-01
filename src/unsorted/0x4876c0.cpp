@@ -91,6 +91,19 @@
 // (1059 of 1062 bytes). This run only re-verified the base file (3 check.py
 // runs, all 74.0) and dumped the full diff to build/scratch/0x4876c0/.
 // Remaining diffs and all tried levers are documented below and above.
+// deepseek-v4.1-flash (run 9, timebox): still 74.0. Scored 10 new scratch
+// variants on the f3d/f3f pair lever, none above 74.0: named pointer pair
+// (74.0), both-loads-as-temps (74.0), f3f-then-f3d (74.0, stores right but
+// f108 load hoists above s64.b into edx so the zero takes edx), f108 temp
+// with f3f-then-f3d stores (74.0, same flip), fb8 temp (74.0, f3f store
+// hoists above the s64.b store and f3d store sinks), rec.s split between the
+// pair (72.2), piece loop f0/f4/deref order (72.6), rec.id (69.4) or rec.f20
+// (68.7) as an intervening statement. Confirmed the pair-reversal rule
+// precisely: the second-written store retires at its load and that load is
+// hoisted above the previous struct copy's last load, the first-written store
+// defers past the rec.f27 compare. The original has f108 loaded just AFTER
+// the s64.b load into cx and stored at once, fb8 loaded last into dx and
+// stored after the compare. No source spelling found that gets both halves.
 // deepseek-v4.1-flash (run 8, timebox): no new variants scored, still 74.0
 // (1059 of 1062 bytes). This run only re-verified the base file (1 check.py
 // run, 74.0) and analysed the diff. Finding: ours already loads f108 into cx

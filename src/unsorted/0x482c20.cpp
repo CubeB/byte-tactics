@@ -1,4 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// RETRY deepseek-v4.1-flash (3rd pass, 82.1%): the grid2 head hunk is now
+// EXACT. The lever was splitting the two rounding declarations:
+//   int w2; int h2; h2 = (b + 0x7fffff) >> 0x17; w2 = (a + 0x7fffff) >> 0x17;
+// (w2 declared first, h2 assigned first). That makes b land in edi and the
+// sar order h2-then-w2, so [esi+0x10]=a<<16, [esi+4]=w2, [esi+8]=h2 all match;
+// 80.8/1521 -> 82.1/1524. Combined variants: decl swap only (a first) 80.8/1524;
+// `int w2 = ...; int h2 = ...;` w2-first 81.9/1524. What is left is the fourth
+// border loop only (`lb4 + 1 < height`): the original keeps the constant 1 in
+// ebp and writes `mov edx,[eax]; or edx,8; mov [eax],edx` from an eax pointer,
+// ours materialises 1 in ecx and goes through an extra `mov edi,[eax+edx*2-8]`
+// lea pair; the other hunks in the diff are only jump displacements from the
+// 1524-vs-1519 size gap.
 // RETRY deepseek-v4.1-flash (2nd pass, timeboxed): 80.6 -> 80.8 (1521 vs 1519).
 // THE ONE WIN THIS PASS: `inner = 0;` written as its own statement before
 // `accum = 0;` (instead of leaving the zero to the for-init clause, which put
@@ -221,8 +233,10 @@ void FUN_00482c20(void)
     int a = g_game->field_14223 * 0x10000;
     grid2->field_14 = b;
     grid2->field_10 = a;
-    int h2 = (b + 0x7fffff) >> 0x17;
-    int w2 = (a + 0x7fffff) >> 0x17;
+    int w2;
+    int h2;
+    h2 = (b + 0x7fffff) >> 0x17;
+    w2 = (a + 0x7fffff) >> 0x17;
     grid2->width = w2;
     grid2->height = h2;
     operator delete(grid2->cells);

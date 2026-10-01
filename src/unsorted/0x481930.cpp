@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// 08:22Z pass (deepseek-v4.1-flash): five cheap spelling variants, all tried
+// and all reverted, the 83.3% body below is untouched: `&g_game->visibilityMask
+// + halfW * y + x` is byte-identical (1052/83.3, same hunks); swapping the
+// multiply operands to `y * halfW + x` is also byte-identical, so MSVC5
+// canonicalises imul order here; swapping the x/y declarations drops to 65.7
+// (1050 bytes) and swapping the halfW/halfH declarations to 81.2, so both
+// declaration orders above are load bearing. The residue is still exactly the
+// three allocator choices listed in the NOTES at the bottom.
 // PARTIAL: 83.3% (1052 of 1052 bytes, so every jump target lines up again and
 // what is left is real instructions). Two more fixes this session, both of
 // them pure source SHAPE changes that moved a block's layout or an

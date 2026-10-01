@@ -1,6 +1,19 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by deepseek-v4.1-flash, continued by GPT-6, finished by deepseek-v4.1,
 // extended by space-bunny-free. Names are provisional.
+// Session addendum (deepseek-v4.1-flash, timeboxed, no new variant landed): the
+// exact byte diff of the 94.0 char-k form vs the original is now fully mapped.
+// Original fallback scan: xor ecx,ecx (idx=0) / xor edx,edx (k=0) / mov edi,
+// [esp+0x20] (desc.kind cached in EDI once) / mov ebx,edi / and ebx,0xff /
+// cmp edx,ebx (k vs kind) / inc edx (k++) / inc ecx (idx++) / mov dl,cl (result
+// copy). Ours: xor cl,cl (char k) / xor edx,edx (idx) / mov ebx,[esp+0x20]
+// (desc.kind reloaded per iter) / movsx edi,cl / cmp edi,ebx / inc cl / inc edx
+// / store dl direct. So the true source wants BOTH counters int (dword xor/inc
+// and a dword cmp against an AND-masked kind), idx in ECX with the byte result
+// copied mov dl,cl, and k in EDX; ours keeps char k in CL and idx in EDX, so the
+// result needs no copy. The remaining work is the register role flip only (int k
+// is known to give 86% with the roles still swapped). No check.py --sym variant
+// was scored this session (timebox hit after disassembly mapping).
 // Partial: 94.0%. Retried by deepseek-v4.1-flash: the 94.0 variant below is the
 // plain `if (k == desc.kind) break;` form with `char k`. Its score is 0.2 above
 // the earlier `continue` hack but the gain is alignment luck, NOT a fix: `char k`

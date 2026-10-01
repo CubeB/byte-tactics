@@ -74,6 +74,12 @@
 // deepseek-v4.1-flash (#4002): re-checked, still 83.8% / 798 bytes. Swapping the
 // two in-place else-if branches (0 < _M first) drops to 62.7%, so the retained
 // header order is load bearing.
+// deepseek-v4.1-flash (#4088, 2026-10): re-checked, still 83.8% / 798 bytes.
+// Frame reading of the original: _P is never spilled (edi, live across the
+// prefix loop's constructor call), and the inlined _Ufill counter takes its
+// home in the dead _P argument slot [esp+0x20]; this build gives edi to the
+// counter and reloads _P from that slot. One allocator decision, no source
+// form found for it in this pass.
 #include <algorithm>
 #include <memory>
 #include <xutility>

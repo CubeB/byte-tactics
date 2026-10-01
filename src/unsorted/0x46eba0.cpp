@@ -83,6 +83,12 @@
 // deepseek-v4.1-flash (#4002): re-checked, still 81.4% / 928 of 936 bytes.
 // Swapping the two in-place else-if branches (0 < _M first) drops to 56.0% /
 // 918 bytes, so the retained header order is load bearing.
+// deepseek-v4.1-flash (#4088, 2026-10): re-checked, still 81.4% / 928 of 936
+// bytes. Frame reading of the original: _P is never spilled (it stays in edi
+// and its incoming argument slot at [esp+0x20] carries the walker spill, where
+// this build uses [esp+0x14]); the same edi allocation decision as 0x46f7a0,
+// and the 8 missing bytes in the tail copy follow from it. No new source form
+// reached it this pass.
 #include <algorithm>
 #include <memory>
 #include <xutility>

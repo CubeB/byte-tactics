@@ -1,4 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry, timeboxed to 1 check run, no change to the kept
+// 45.6% shape below. Still differs: frame 0x24 vs original 0x2c (wx/wy stay in
+// registers instead of spilling to [esp+0x30]/[esp+0x38]), and the allocator
+// puts cell.y in ebp and g_game in edi where the original has cell.y in edi and
+// g_game in ebp. Idea found but not tried before the cutoff: the matched
+// neighbour 0x47d820 shows MSVC 5.0 register allocation flips with dummy
+// declaration state (its MATCH needs 16 to 80 unused externs in front), so a
+// sweep of N unused extern/prototype declarations ahead of this file (variants
+// v8..v80 are in build/scratch/0x47d2e0/, generated but never scored) may flip
+// the prologue register assignment and the frame shape. Score those first on a
+// retry. Everything else listed in the history comments below is exhausted.
 // Sonnet 5.5 retry (gave up, 45.6% kept). Better reading of the LOS prologue, which
 // scores 42.0% here but does not beat the file below: pos.x/pos.z are fixed-point
 // unions (`value = (origin + cell*2) << 19`, then `.parts.whole >> 5`) and the height

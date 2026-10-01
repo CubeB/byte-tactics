@@ -1,4 +1,21 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// RETRY deepseek-v4.1-flash (timeboxed pass, no new variants run): 79.5 holds.
+// Diff analysis for the next attempt: (1) the duplicated xor esi,esi is p1's
+// zero sunk into BOTH arms of the grid1 alloc ternary; the original
+// materialises it once at the merge (between mov ecx,[ebx+0xc] and
+// mov [ebx],eax), so the source needs the first use of that zero strictly
+// after the merge. (2) The fourth border loop in the original keeps the index
+// in eax and computes the next index in ecx at the body top
+// (lea ecx,[eax+1], used as the row multiplier, then mov eax,ecx at the
+// latch); spell it as `for (i = 0; i < h; ) { k = i + 1; ...cells[k*w - 1]...;
+// i = k; }` to get that shape. (3) Both max/min fill loops in the original
+// share one shape: prev copied to bl just before the second cell load clobbers
+// its register (row: prev in cl, m reuses cl; col: prev in dl, m reuses dl),
+// with res selected into a third register; a plain `prev = m` carry keeps the
+// cross-loop coalescing that puts m in prev's own register. (4) grid2 setup
+// register rotation: original keeps b (field_14227) in edi and a (field_14223)
+// in eax, with the delete-arg load of grid2->cells interleaved between the two
+// field loads.
 // RETRY deepseek-v4.1-flash: 76.8 -> 79.5. The 0x10/0x14/0x18/0x1c stack
 // permutation IS source-reachable after all: use ONE `int outer;` for BOTH the
 // column-max loop counter and the big loop's outer counter (column pass:

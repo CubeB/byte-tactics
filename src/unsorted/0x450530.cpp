@@ -188,6 +188,12 @@ void FUN_00450530()
                 msg.arg = -1;
                 if (FindPlayer_00450530() == 10)
                     continue;
+                // MSVC emits no code for this self-assignment (the original
+                // only reads local_player, at +0x1e0, and stores nothing), but
+                // it changes the register allocation of the whole function:
+                // 98.0% with it, 59.8% without (checked by the orchestrator, #4542).
+                if (i == 9)
+                    g_game->local_player = g_game->local_player;
                 FUN_00451bc0(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
         }

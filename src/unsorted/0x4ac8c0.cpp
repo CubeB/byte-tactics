@@ -1,3 +1,41 @@
+// Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free,
+// claude-opus-5-5 (#4373), GPT-6.1-sol, mimo-v2.6-pro and finished by
+// space-bunny-free (#4489). Names are provisional.
+// space-bunny-free pass (issue 4489): best stays 89.8% (6 differing bytes), but the
+// loop hunk is now understood well enough to name the missing shape. The two
+// remaining hunks are each one allocator tie, and both are strong attractors:
+// this source always lands in state A (the pre-push lea + store pair comes from
+// the outer loop coordinate y, surface reload second, in eax), and no source
+// shape tried reaches state C (the same pair from the inner coordinate x, which
+// is what the original has). The one shape that DOES flip the pair to x is a
+// trivial inline ternary that the compiler folds away again:
+//     inline int W(int a, int b) { return a ? b : b; }
+// with `p.r.left = W(x, x);` and `p.r.right = W(x + 7, x + 7);` (both x-axis
+// stores; adding the y-axis ones keeps state B, wrapping a single store changes
+// nothing, and wrapping top/bottom instead rotates the loop and costs 3 bytes).
+// That puts every store in the original's slot and hoists right = x + 7 first,
+// exactly as the original does, but it also lifts the surface reload to the top
+// of the block in edx (state B, 18 differing bytes):
+//   A: lea eax,[ebx+7] / lea edx,[esp+0x14] / mov [esp+0x20],eax / mov eax,[esp+0x10]
+//   B: mov edx,[esp+0x10] / lea eax,[esi+7]  / lea ecx,[esp+0x14] / mov [esp+0x1c],eax
+//   original: lea eax,[esi+7] / lea edx,[esp+0x14] / mov [esp+0x1c],eax / mov eax,[esp+0x10]
+// so the original is a third combination (x pair first AND the surface reload
+// second) that neither attractor produces. State B is equally stable: a helper
+// around the call, a colour temp, do-while and while inner loops, x = x + 8,
+// a rect pointer, a surface temp, a color ternary, a surface ternary and a
+// rect-address ternary all stay at 18. So the next attempt should look for a
+// source that flips the pair without lifting the reload, not for another
+// expression form of x + 7 / y + 7 (all 24 store orders, both axes, member
+// forms, temps, 7 + x, x + 8 - 1, comma chains, an Identity() and a Plus7()
+// wrapper, free inline helpers and Rect/Pair methods, separate Rect and surface
+// locals, a union'd int[4] rect, 24 prologue declaration orders, a running
+// colour counter, a swapped inner/outer loop, typed surface pointers and
+// unsigned/long rect fields all stay at 6, and neither do nested blocks or a
+// do-while(0) around the stores). tools/permute.py agrees on both sides: 2799
+// candidates from this file and 4923 from the state B shape (8 minutes, 4 jobs)
+// found nothing, so both are attractors of the mutation search too. The byte
+// metric and ~350 free-scored variants are in build/scratch/0x4ac8c0 (h.py,
+// e1.py to e23.py).
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
 // claude-opus-5-5 (#4373): still 89.8%. The only difference is that the original computes
 // right = x + 7 (eax) before bottom = y + 7 (ecx) and loads grid->y into edx. All 24

@@ -1,4 +1,22 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional., finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry pass: re-confirmed 1221 bytes / 98.5% and the same three
+// hunks. New negatives, all unchanged or worse: includes <string.h>, <windows.h>
+// and <stdio.h> do not move the _allmul push order; a `UnitDef* def` local before
+// the copy, an `int flag` local, stores through `int&` aliases and an inline
+// Unit::FillAndFlag(Vec3&, const Vec3&) method (0x463610 pattern) all leave the
+// 0x408334 def load hoisted above the target = origin stores (MSVC resolves the
+// reference stores back to esp-relative, so no alias barrier survives); the
+// nested order-test form (e1) still re-copies origin after the call (91.9%).
+// The flag12 Direction() arm expanded to the 0x4084c5 shape (top-level d.y = 0,
+// the only shape that puts the xor in the gap) reproduces the known 71.6%
+// loop-1 rotation (this=edi, unit=ebx, ok=ebp): neither the len>range trick at
+// 1..4 uses, foldable double tests of ok/idx/u, declaration-order swaps of ok,
+// idx and range/len, nor scalar DirX/DirZ or a member Vec3::Dir() helper
+// (71.1%) restores the original's this=ebx, unit=ebp, ok=ebx web ranking, so
+// the rotation is tied to the helper's temporary webs, not to those weights.
+// A helper without y=0 plus a caller `d.y = 0` (r1) swaps d.y/d.z registers and
+// puts the xor after neg eax (97.0%). All three hunks remain scheduler artifacts
+// of shapes already tried by earlier passes.
 // deepseek-v4.1-flash 10-minute retry (this session): re-confirmed 1221 bytes
 // and 98.5%, same three hunks (0x408334 u->def load hoisted above the
 // target = origin stores; 0x4083a4 xor ebp,ebp placed after the trig call

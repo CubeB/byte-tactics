@@ -1,4 +1,52 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro pass (build/scratch/0x409730/): still 1678 bytes, 99.8%, the
+// one remaining diff is the store SIB at 0x4099f6 (want `mov byte ptr [esi +
+// ecx], al`, ours `[ecx + esi]`). This pass mapped WHY the fix is hard: the
+// SIB base slot always goes to the operand that is a MEM node at tree level.
+// The read fix (rq8, reference to a pointer) makes the pointer operand a MEM
+// load and that is why it flipped; a plain pointer local or the vector
+// subscript propagates to a leaf+leaf ADD which the front end canonicalises to
+// base=index. Confirmed with three probes: `int& ri = i` at the store flips
+// nothing (index MEM node lands in the base, so base=i again, 99.8% neutral),
+// `i[rp8]` reversed subscript is byte-identical to `rp8[i]` (the ADD is
+// canonicalised before allocation), and a reference bound straight at the
+// vector begin slot (`unsigned char*& rp8 = *(unsigned char**)((char*)&vec_8d
+// + 4)`) folds back to the plain leaf form (99.8% neutral).
+// The two MEM-pointer families are now fully characterised:
+// - def after the clamp (temp split with t/b/v8, or the -0 comma
+//   `clamp - (p8 = vec_8d.begin(), 0)` in every subscript spelling): the load
+//   lands in the right place (right before the store) and the SIB flips to the
+//   wanted [esi + ecx] roles (base=pointer), but the register allocation
+//   rotates one step (value to ecx/cl, this to esi, i to edx, ptr to eax),
+//   1676 bytes, 83.8%. The rotation comes from the MEM node, not the temp:
+//   `t = clamp; rp8[i] = t`, `rp8[i] = (t = clamp, p8 = begin(), t)`, the
+//   value as `a` or `b`, and the def in the subscript comma all rotate the
+//   same way.
+// - def before the clamp (statement `p8 = vec_8d.begin(); rp8[i] = clamp`,
+//   including the t-slot reuse `(unsigned char*&)t = vec_8d.begin()` which
+//   adds no stack slot): the store region allocates exactly like the original
+//   (movsx ecx, al; sum in eax; mov byte ptr [esi + ecx], al IS correct) but
+//   the def loads schedule between the clamp stages and the tail re-colours
+//   (e kept in ebx instead of spilled to [esp+0x1c], the flags word to eax
+//   plus a spill where the original keeps it in ebx), 1675 bytes, 86.8%.
+//   The tail swap is caused by the pointer MEM node itself: the index MEM
+//   probe (int& ri) does not re-colour the tail, the pointer MEM always does.
+// Also flat this pass: the unused-prototype decl-count sweep 250-5750 with the
+// post-read-fix source (all exactly 99.8% with the same one SIB diff; the
+// earlier 0-6000 sweep predates the read fix), and the windows.h min/max
+// double-evaluation spelling is not the lever. Last bounded probes: MEM nodes
+// on the value side (`int& ra = a` in the clamp) still rotate (83.8%);
+// sequencing `a = 1` inside the value comma between clamp and def still
+// rotates; `p8 = &vec_8d[0]` and both-refs `rp8[ri]` still rotate; reusing the
+// dead t slot for the pointer (`(unsigned char*&)t = vec_8d.begin()`) adds no
+// slot but the tail still re-colours (86.8%), so the tail swap tracks the
+// pointer MEM node itself and not the frame layout.
+// What is left to try next: keep the MEM pointer (only it flips the SIB) but
+// undo the allocation rotation, e.g. by finding a MEM-node spelling of the
+// pointer whose def is scheduled late like the original (the original loads
+// [edx+0x91] after the clamp branches with the value already in eax), or by
+// finding what makes MSVC spill e and keep the flags word in ebx when the
+// pointer MEM node is present.
 // deepseek-v4.1-flash pass: 99.8%, READ SIB FIXED. The read access at 0x409b53
 // now matches (movsx eax, byte ptr [eax + edx]) because it is written as a
 // block-local pointer plus a reference to that pointer:

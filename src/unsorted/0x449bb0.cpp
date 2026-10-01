@@ -1,6 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
 // Earlier attempt by deepseek-v4.1-flash, finished by GPT-6; continued here.
-// Best 74.1% (2763 bytes; frame is 0x2c where the original allocates 0x28).
+// Best 74.4% (2763 bytes; frame is 0x2c where the original allocates 0x28). A 16-byte _itoa buffer improves the earlier 74.1%; 12 bytes drops back to 74.1%.
 // Gains this round: the three gadget blocks now store `(short)val` and pass the
 // field itself to FUN_0045b9b0 (72.1 -> 73.5), the five field_97-else bit writes
 // read plain `char` from g_game (removes the zero-extend pairs, 73.5 -> 73.7),
@@ -19,6 +19,7 @@
 // slot too high); declaring text first, inlining `(int*)(*(int*)(g_game+0x531)+4)`
 // at the MEMx/tail uses, and an int flagStart used by the later guards all
 // scored lower and were reverted.
+// Retry: changing player-base arithmetic (73.2%), char flag97 (73.3%), declaration order, and removing the unused holder initializer (74.4% tie) did not improve it. A 15-byte text buffer ties the best; parent 17-byte buffer scores 74.1%.
 // Also tried and rejected: bitfield-typed field_97 (no code change), short
 // Gadget::field_140 (72.3), flag97 declared at first use (no change).
 #include <stdio.h>
@@ -176,7 +177,7 @@ void FUN_00449bb0(void)
 {
     int energyVal = 1000;
     int metalVal = 1000;
-    char text[20];
+    char text[16];
     void* holder = 0;
     int local_1c = 0;
 

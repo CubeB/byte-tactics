@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Started by deepseek-v4.1-flash and GPT-6 (their 80.5% version is the basis).
 // Partial at 84.6% (1596 bytes against 1586). What still differs:
 //  1. The unit-type scan loop: the original zeroes the record byte offset with
@@ -218,6 +218,10 @@ void FUN_0044c420();
 void FUN_0044be70();
 int __cdecl FUN_0044c7a0(const void* a, const void* b);
 
+// Retry by GPT-6.1-sol: baseline verified at 85.2% (1595 bytes). Six scored scratch variants
+// using an aliased count, the union bitfield, an out-of-line count reader, a ternary fallback,
+// an earlier count declaration, and nested scan guards all stayed at 85.2%. The previous
+// session's register-allocation and tail-schedule differences remain unresolved.
 // FUNCTION: 0x44c7e0
 void FUN_0044c7e0()
 {

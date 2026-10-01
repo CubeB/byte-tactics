@@ -1,5 +1,7 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, third pass by
-// space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, third pass by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry pass: best remains 85.4% (307/301 bytes). Explicit nested
+// fog checks and scoped row-index locals scored lower; no MATCH. Remaining gap
+// is the arm-local loads/spills described below.
 //
 // SPACE-BUNNY-FREE, third pass (ten minute timebox). Tried the ByteMap {data,
 // size} shape with a member Get() that the matched 0x407e90 and 0x475470 use

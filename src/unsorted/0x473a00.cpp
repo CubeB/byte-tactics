@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: the inherited 85.0% source remains best after four checks.
+// Explicit nested map branches scored 84.5%; assigning visible on each branch
+// without the pinning tail scored 67.3%. The first-arm register allocation
+// remains the blocker described below.
 // Retried by space-bunny-free. No functional rewrite improved the 84.5% draft.
 // A 128-combination header sweep also left the score at 84.5%.
 //

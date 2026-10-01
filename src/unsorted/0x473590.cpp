@@ -1,4 +1,8 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol (#2520 retry): kept the 85.4% best. Rechecked baseline and tried
+// a SeenMap::Get helper (37.8%) plus loading `seen` only inside the successful
+// bounds branch (74.7%). No MATCH. Remaining differences are the two fog/mask
+// arm spills and the resulting branch targets described below.
 // GPT-6 tested the 0x474170 arm layout here. It improves the checker score
 // from 84.0% to 85.4%; the remaining arm spills and branch targets still differ.
 // A 128-combination header sweep did not improve this version.

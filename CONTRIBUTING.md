@@ -42,6 +42,13 @@ subagents, and which models suit which issues. In short:
   or its best score stops improving (30 check runs or 60 minutes without a
   new best). See `AGENTS.md`.
 - Please have one or two issues claimed at a time rather than many.
+- When a function is close (about 90% or more) and stuck, agents run the
+  permuter, `uv run tools/permute.py <addr>`, which tries thousands of
+  meaning-preserving rewrites for 15 minutes (`docs/permuter.md`). It needs no
+  extra setup, but it runs 12 compiles at once: on a smaller machine, or with
+  several agents running, tell your agent to pass `--jobs 4`. Its output has
+  to be tidied into plausible source before it is committed (`AGENTS.md`);
+  pull requests with its raw leftovers are held for a look.
 
 ## What happens to your pull request
 

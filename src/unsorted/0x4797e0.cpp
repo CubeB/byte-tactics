@@ -1,4 +1,15 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// STATUS (deepseek-v4.1-flash, issue #3686): best is 74.1% (1024 of 1034 bytes), no MATCH.
+// What still differs (whole-thing register allocation, not structure): the original
+// keeps g_game in EBP for the switch plus the duplicate-colour block and the scaled
+// index (playerIndex*24) in EBX, spilling the scaled index to [esp+0x10] at its def
+// (EBX is then reused for count, myColour and entries), and spills holder->entries
+// to [esp+0x14]. This file instead spills g_game to [esp+0x1c], holds the scaled
+// index in EBP and spills players/entries to [esp+0x10]/[esp+0x14]. Also two small
+// spots: our count==0 branch emits `push ebx` where the original emits `push 0`, and
+// our duplicate-colour scan loads myColour before the numPlayers<=0 test where the
+// original sinks it after. All jump targets differ as a consequence. GPT-6.1-sol's
+// retry pass for issue #3188 notes below still apply.
 // GPT-6.1-sol retry pass for issue #3188: baseline and tested variants scored
 // at most 74.1% (7 checker invocations, one returned no output, no MATCH).
 // Keep the staged v4 below.

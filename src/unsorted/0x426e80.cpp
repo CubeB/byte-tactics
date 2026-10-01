@@ -45,6 +45,32 @@
 //    the 10-iteration loop over units calling Class_00463c60::FUN_00463c60) but it
 //    scores 1.3% lower in the difflib metric, so it is kept in
 //    build/scratch/0x426e80/v475r.cpp instead of here.
+//  - retried #4162: renumbering the 0x10 inner switch so `case 18` becomes
+//    `case 17` and splitting `case 19` into a fallthrough into `case 18`
+//    (exe layout 0x427eaf value 17, 0x427f25 value 19 falling into 0x427f4c
+//    value 18) scores 49.3% (5725 bytes, down from 50.5/5761), so the difflib
+//    metric prefers the fused case 19 here; reverted. The exe's source order
+//    for this switch is 0, 1, 17, 19, 18, 20, 21, 3 by address, and the 4-call
+//    FUN_004c69a0/FUN_004c2470/FUN_004c2870/FUN_004c63a0 group that sits dead in
+//    our case-19 tail and after case 20 is probably one of the two missing
+//    bodies (17 or 21).
+//  - retried #4162: moving case 3 of the 0x10 inner switch to the end of the
+//    switch (exe emits it last, at 0x42825c, right before the 0x11 dispatch at
+//    0x4282ce) is score-neutral (50.5, 5769 bytes vs 5761); kept because it
+//    matches the exe's emission order. Still open: case 17 and case 21 bodies of
+//    the 0x10 switch, cases 3 and 17 of the 0x11 switch, and the live ebp.
+//  - retried #4162: the diff's FIRST divergence is the prologue, as the old
+//    note said: the exe emits `push ebx / mov bl,[eax+0x2bc0] / push esi /
+//    cmp bl,cl / push edi / je 0x426ec9` while ours inserts `push ebp` before
+//    `push esi`, shifting every later offset by one. Our object has exactly one
+//    ebp use, the `xor ebp,ebp` inside the case-16 memcmp chain (object offset
+//    0xf2e, dead afterwards), so fixing that chain is the one change that would
+//    drop the register and realign all 5769 bytes. Second divergence: the exe
+//    does `mov dl,[esi+0xf0] / shr dl,1 / test dl,1 / je` (case 0) where ours
+//    folds to `test byte ptr [esi+0xf0],2`, so the original keeps the shifted
+//    byte in dl for a use we have not modelled. Deleting the dead 4-call blocks
+//    after the two `return;`s is byte- and score-neutral (MSVC drops unreachable
+//    statements), so it was kept as cleanup.
 //  - push ebp is still live in ours: the original uses only ebx/esi/edi, so the
 //    extra callee-saved register is real evidence of a wrong local in one of the
 //    0x2a42-scaled 0x1b8a/0x1b67 lookups.
@@ -728,15 +754,6 @@ void __stdcall FUN_00426e80(void)
                 return;
             }
             break;
-        case 3:
-            FUN_00450dd0();
-            if (FUN_00428bc0()) {
-                sprintf(local_100, DAT_00502f9c, 0x5f0, DAT_00503004);
-                FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
-            }
-            g_game[0x2bbe] = 0xf;
-            FUN_004257e0(0, 0x9b, DAT_00503004);
-            return;
         case 18:
             FUN_00451540();
             if (FUN_00451220(g_game[0x2a42], 1)) {
@@ -777,12 +794,6 @@ void __stdcall FUN_00426e80(void)
             g_game[0x2bbf] = 0x15;
             g_game[0x2bc0] = 0x15;
             return;
-
-            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-            FUN_004c2470();
-            FUN_004c2870();
-            FUN_004c63a0();
-            return;
         case 20:
             g_game[0x2a44] |= 1;
             FUN_004c9f90((int)(g_game + 0x14));
@@ -809,11 +820,14 @@ void __stdcall FUN_00426e80(void)
             }
             FUN_004257e0(0, 0x9b, DAT_00503004);
             return;
-
-            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-            FUN_004c2470();
-            FUN_004c2870();
-            FUN_004c63a0();
+        case 3:
+            FUN_00450dd0();
+            if (FUN_00428bc0()) {
+                sprintf(local_100, DAT_00502f9c, 0x5f0, DAT_00503004);
+                FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
+            }
+            g_game[0x2bbe] = 0xf;
+            FUN_004257e0(0, 0x9b, DAT_00503004);
             return;
         }
         break;

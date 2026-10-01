@@ -1,39 +1,34 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by longcat-2.5-preview-free, continued by deepseek-v4.1-flash and GPT-6.
-// Partial: 80.7%, 4216 bytes versus 4247. The frame is the original 0x23c.
-// deepseek-v4.1-flash retry 2: this is staged candidate v2 adopted after the
-// timebox (nest the feature-branch FUN_004c5740 call inside the sprintf/
-// strcpy argument lists so the m/e buffer pushes precede the call), scoring
-// 80.7 versus the previous 80.3. The other candidates scored in the same
-// batch: v1 (player-base pointer used twice at the first ptr read) 79.4,
-// v3 (char locals for the two shift tests) 80.3 flat.
-// What this round changed (each one verified by a check.py run):
-// - PFSTATE/PFABLE is one expression `*(int*)(g_game+0x37e23) - pfable - 1` and
-//   y3 = pfstate - 0x10, which reproduces the original sub/dec pair, +5.8.
-// - the local_38 arm is `if (local_38 != 0) {selected} else if (local_5e != 0xffff)
-//   {feature}`, so the selected path is the fall-through like the original, +5.9.
-// - the visible-unit test is `if (visible != 0) {main} else {unidentified}`,
-//   putting the unidentified-object arm at the end like the original, +1.7.
-// - the unit flag pair is a materialised bool, `((unitFlags & 0x20000) |
-//   ((unitFlags >> 1) & 0x20000)) >> 0x11`, computed before the FUN_00435100
-//   call, giving the original shift/or/shift sequence, +2.2.
-// - the " M:%d" and " E:%d" buffers are 16-byte locals inside the feature
-//   branch, so they pack into the inlined rect slot (M lands at [esp+0x74],
-//   the E buffer at [esp+0x18] versus the original [esp+0x14]).
-// Still differs, from the diff hunks:
-// - param_1 homes to esi (original: edi) and the first icon loop keeps its
-//   bitmap in edi (original: esi), a straight swap of the two registers.
-// - the selected-unit pointer takes [esp+0x14] in ours, [esp+0x24] in the
-//   original, and the inlined DrawBar rect copy sits at [esp+0x18] versus
-//   [esp+0x14], so that whole region is one slot off.
-// - the PFSTATE block loads [g_game+0xc] before [g_game+0x37e23] and keeps
-//   g_game in edx; the original loads [0x37e23] into esi first, then [0xc]
-//   into eax, and keeps pfable in ecx.
-// - `(*(int*)(unit+0x110) >> 9) & 1` folds to `test ch,2`; the original
-//   shifts into dl and tests dl,1.
-// Tried and did not help: declaring the buffers at the top of the function,
-// reordering the PFSTATE statements, and `int` versus `unsigned int` for the
-// MOVEORD shift pair (the latter did fix sar/shr in that one spot).
+// Partial: 82.0%, 4216 bytes versus 4247. The frame is 0x23c in both.
+// deepseek-v4.1-flash retry 3 (this pass):
+// - snapshot.values is copied through named float temporaries, which makes MSVC
+//   emit the original four fld/fstp pairs instead of integer movs (+1.1).
+// - the XYH table index is v * 13, not v * 15 (the old partial multiplied by 15);
+//   that restores the original `lea [eax+eax*2]` / `lea [eax+ebp*4]` pair (+0.2).
+// Still differs, from the check.py diff (35 hunks, all register/scheduling):
+// - param_1 homes to esi (original edi); the first icon loop keeps its bitmap in
+//   edi (original esi), a straight swap of the two registers.
+// - the PFSTATE block loads [g_game+0xc] first and keeps g_game in edx; the
+//   original loads [0x37e23] into esi first, then [0xc] into eax, and copies
+//   pfable to ecx. Reordering the source (pfstate before field_c) drops to 73.6%.
+// - selected-unit / DrawBar-rect stack slots sit 4 bytes higher here
+//   ([esp+0x18] versus [esp+0x14]), and the unit pointer lives at [esp+0x14]
+//   instead of [esp+0x24]; the slots are shared by liveness so they move together.
+// - MOVEORD folds the unit pointer load into one addressing mode; the original
+//   materialises it with a separate lea.
+// - `int y3 = pfstate - 0x10` emits `add esi,-0x10`, the original `sub esi,0x10`.
+// - `(*(int*)(unit+0x110) >> 9) & 1` folds to `test ah,2`; the original uses
+//   `mov edx,[edi+0x110]; shr edx,9; test dl,1`.
+// - the XYH loads land in edx/ebx swapped, so the sprintf pushes are swapped too.
+// - one early return duplicates the full epilogue in the original (about 30
+//   bytes, our size gap); ours jumps to the shared epilogue.
+// Tried this pass and reverted (neutral or worse): buf2 removed and text passed
+// directly (neutral), local_28 removed and g_game+0xdcb inlined (63.0), local_28
+// moved into the visible block (79.5), float-locals for the value copies plus
+// declaration/order swaps in the weapon loop and the M/E feature branch (all
+// neutral), explicit temps for the two `>> n & 1` tests (neutral), decimal 16
+// for the y3 subtract (neutral).
 #include <windows.h>
 #include <stdio.h>
 
@@ -187,7 +182,7 @@ void __stdcall FUN_0046a860(void* param_1) {
 
         int v = *(int*)(g_game + 0x14233) * (short)*(unsigned short*)(g_game + 0x2c90) +
                 (short)*(unsigned short*)(g_game + 0x2c8e);
-        unsigned char c = *(unsigned char*)(*(int*)(g_game + 0x14287) + v * 15 + 4);
+        unsigned char c = *(unsigned char*)(*(int*)(g_game + 0x14287) + v * 13 + 4);
         sprintf(buf2, "XYH: %d %d %d\n", (short)*(unsigned short*)(g_game + 0x2c8e),
                 (short)*(unsigned short*)(g_game + 0x2c90), c);
         FUN_004c14f0(param_1, (unsigned char*)buf2, 0x208, y3, -1);
@@ -209,10 +204,14 @@ void __stdcall FUN_0046a860(void* param_1) {
         snapshot.health = *(unsigned short*)(unit + 0x108);
         snapshot.build = *(unsigned short*)(unit + 0xb8);
         snapshot.orderName = FUN_00439df0(unit);
-        snapshot.values[0] = *(float*)(unit + 0xd0);
-        snapshot.values[1] = *(float*)(unit + 0xcc);
-        snapshot.values[2] = *(float*)(unit + 0xe8);
-        snapshot.values[3] = *(float*)(unit + 0xe4);
+        float f0 = *(float*)(unit + 0xd0);
+        float f1 = *(float*)(unit + 0xcc);
+        float f2 = *(float*)(unit + 0xe8);
+        float f3 = *(float*)(unit + 0xe4);
+        snapshot.values[0] = f0;
+        snapshot.values[1] = f1;
+        snapshot.values[2] = f2;
+        snapshot.values[3] = f3;
 
         int* local_3e_int = snapshot.weapons;
         char* p = (char*)(unit + 0x1f);

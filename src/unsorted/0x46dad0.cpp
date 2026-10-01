@@ -1,63 +1,38 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
-// Started by deepseek-v4.1-flash, continued by GPT-6, continued again by
-// deepseek-v4.1-flash.
-// Partial: 29.5%, ours 1049 bytes versus original 1024. Retry by
-// deepseek-v4.1-flash (2nd pass): flipping both player-scan comparisons to
-// iterator-id-on-the-left (`it->id == p->field_4`, `j->id == p->field_4`)
-// fixed two operand-order mismatches (original loads the iterator id first
-// and compares against the player field as a memory operand) and moved
-// 28.9 -> 29.5. Still differs: (a) the whole-file register rotation
-// this=esi / zero=ebp / flag=edi versus original this=edi / zero=ebx /
-// flag=esi (every instruction shows a register mismatch); (b) the entry
-// construction region: ours inlines the list_b init with a second read of
-// the [esp+0x13] byte where the original calls the out-of-line
-// Class_0046e5c0 ctor with this=entry+0x14 and a pointer to that byte, and
-// the original zeroes entry+0x8/0xc/0x10 in one run before that call;
-// (c) the map walk reads the key at [node+0xc] with the real <map> node
-// where the original reads [node+0x10]; (d) the arg-2 direct send path
-// (see below).
-// Older notes: the whole register
-// allocation is relabelled, which is what keeps the diff large: the original
-// keeps `this` in edi and the constant 0 in ebx (xor ebx,ebx right after
-// mov edi,ecx), pointers in ebp and the live-player flag in esi, while ours
-// puts `this` in esi, 0 in ebp and the flag in edi, so almost every
-// instruction shows a register mismatch even where the shape is right.
-// What did move the score: the vector-cleanup walk is
-// `if (begin != end) { do { scan 10 players; if (!live) { it = players.erase(it);
-// --it; changed = 1; } ++it; } while (it != players.end()); }` (the original
-// decrements the cached iterator so the bottom ++it lands right: 28.1 -> 28.8),
-// and computing (Class_0046cec0*)((char*)this + 0x2c) at each call site instead
-// of hoisting it into a local (28.8 -> 28.9).
-// Three concrete layout bugs left: (1) in the map walk the original reads the
-// node key at [node+0x10] (MSVC5 _Node has _Color/_Isnil before _Value) but
-// our real <map> iterator->first reads [node+0xc], so this function needs a
-// manual node type with the value at +0x10 and the out-of-line _Inc reached
-// through the real std::map iterator's member pointer (0x46ea10), not a real
-// map iteration; (2) the temporary entry is built with a cdecl sequence and
-// an `add esp,4` where the original has the __stdcall Class_0046e5c0 and
-// Class_0046cbe0 calls (the list_b/sub constructors must stay out of line,
-// so /Ob2's budget must run out at the same point); (3) in the arg-2 send the
-// original's direct path is NOT a FUN_0046cec0 call: it is
-// `packet.field_2 = 0; FUN_00451bc0(FUN_0044fe00(), DAT_00000000, &packet, 0xe);`
-// (push 0xe / push &packet / push DAT / store [esp+0x2e] / call / push eax /
-// call), but writing that scored 28.7% (1062 bytes) twice, so the earlier
-// FUN_0046cec0 form is kept; the next attempt should retry it together with a
-// fix for the field_2 store position (the original emits it after the three
-// argument pushes, which a plain `packet.field_2 = 0;` statement does not).
-// Reload the live game count after the network helper, keep the native
-// nested-vector types and
-// call the real nested constructor to initialise the entry's three dwords.
-// Vector erase/temporary cleanup and register allocation still differ. 768
-// header sets did not improve the 27.6% version this replaced.
-// Retry by deepseek-v4.1-flash: tools/headers.py --cpp (768 header sets) is
-// flat at 28.9%, no set beats the base file. Variants tried and all flat or
-// worse: boolean guard spellings (`if (disabled)`), an explicit char* alias
-// for the player scan, and hoisting `changed` to the top of the function
-// (24.8%). The whole-file register rotation this=esi / zero=ebp / pinfo=edi /
-// vecptr=eax versus the original this=edi / zero=ebx / pinfo=esi / vecptr=ebp
-// is untouched by any of these, and the ~200-byte entry-construction and
-// destructor region (Class_0046eaa0 entry, list_a inlined, list_b out of line
-// at 0x46e5c0, sub at 0x46cbe0) still emits a different instruction sequence.
+// Decompiled by deepseek-v4.1. Names are provisional, finished by deepseek-v4.1-flash.
+// Partial: 29.8%, ours 1049 bytes versus original 1024. This pass changed
+// FUN_0046d970(k->first, 0) to FUN_0046d970(k->second.x, 0) in the map walk
+// (29.5 -> 29.8): the mapped Rect's x always equals the key (0x46d6c0 stores
+// r.x = packet->field_6 before map[packet->field_6] = r), so the original
+// reads node+0x10 (the mapped value, whose first int is the key) rather than
+// node+0xc (the pair's first).
+// Still differs:
+// (a) Whole-file register rotation. Ours is this=esi / zero=ebp /
+//     pinfo-or-flag=edi / vector-ptr=eax; original is this=edi / zero=ebx /
+//     flag=esi / vector-ptr=ebp, so nearly every instruction shows a register
+//     mismatch. Tested this pass (all flat or worse): bool for the two
+//     scan flags (28.0), unsigned int changed (flat), swapping the
+//     declaration order of changed and the erase iterator (flat), declaring
+//     the iterator uninitialised then assigning (flat). 768 header sets via
+//     tools/headers.py --cpp were already flat at 28.9.
+// (b) Entry construction (0x46dc31-0x46dcda). Original: inline list_a vector
+//     ctor (al byte + three zero dwords), then an OUT-OF-LINE
+//     Class_0046e5c0::FUN_0046e5c0 call with this=entry+0x14, then the
+//     out-of-line Class_0046cbe0 sub ctor, and the destructors call 0x46e5e0
+//     on entry+4 and entry+0x14. Ours inlines both vector ctors (reading the
+//     [esp+0x13] allocator byte twice) and emits no 0x46e5c0 call. The two
+//     vector ctors are the same type (same dtor at 0x46e5e0), so this is the
+//     /Ob2 inline-budget wall; the ctor/dtor symbols in data/symbols.csv are
+//     named for two different provisional classes
+//     (Class_0046e5c0::FUN_0046e5c0 vs Class_0046e5e0::~Class_0046e5e0),
+//     which also blocks modelling the member as one hand-written type.
+// (c) Arg-2 direct send (0x46de59). Original uses
+//     FUN_00451bc0(FUN_0044fe00(), DAT_00000000, &packet, 0xe) (push 0xe /
+//     push &packet / push DAT / mov [esp+0x2e],0 / call 0x44fe00 / push eax /
+//     call 0x451bc0), not a FUN_0046cec0 call; writing that with
+//     `packet.field_2 = 0;` scored 29.6 (1066 bytes) both before and inside
+//     the direct branch, so the FUN_0046cec0 form is kept.
+// (d) The arg-2 helper pushes are still ~25 bytes larger overall; the
+//     remaining size gap is the inlined list_b ctor from (b).
 #include <list>
 #include <map>
 #include <vector>
@@ -251,7 +226,7 @@ void Class_0046d860::FUN_0046dad0() {
             Increment increment = &Tree::iterator::_Inc;
             for (std::map<unsigned int, Rect_0046e160>::iterator k = map.begin(); k != map.end();
                  (k.*increment)()) {
-                FUN_0046d970(k->first, 0);
+                FUN_0046d970(k->second.x, 0);
             }
         }
         return;

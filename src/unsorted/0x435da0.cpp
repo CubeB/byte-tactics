@@ -1,4 +1,20 @@
-// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 7 (issue #3445, 15-minute box): no new genuine
+// lever found. Re-verified the complete source at 89.5% (2740 bytes, the
+// original size) with one real run. The whole diff is still the two pinned
+// constants: the original holds ebx=0 / esi=-1 for the whole body, this source
+// puts 0 in esi and rematerialises -1 in eax, which also shifts the name
+// pointers in the inlined strcpy/GetName and the two x87 fstp stores. A
+// scratch control (one extra `= 0` and one extra `= -1` field store) does
+// reproduce the original assignment exactly, but is 2756 bytes / 91.9%, so it
+// is the same weight threshold as before, not a fix. Tried again without
+// effect (all 2740 bytes, 89.5%): pair-chained `surfaceMetal =
+// minWindSpeed = -1;` plus `maxWindSpeed = gravity = -1;`, a reset through
+// `int* lim = &surfaceMetal; lim[0..3] = -1;`, mixed `~0` and `0 - 0`
+// spellings of the constants, and an old-pointer local plus a named
+// new-object local. The sibling 0x438320 does use a `float intervalTime`
+// local, but this function's condition reads the field itself, so that shape
+// does not apply here.
 // GPT-6.1-sol retry (issue #2894): verified the complete inherited source at
 // 89.5% (2740 bytes) with one fresh check.py run. The older 92.7% variant
 // omitted four required -1 field stores; kept the complete version. Prior

@@ -43,6 +43,18 @@
 // `Damage_0042e440* sub = w->sub;` pointer local used as sub->entries regresses
 // to 82.8% (3917 bytes), so the vector-insert hunk's ebx/esi/edi split and the
 // stack slot of the search count stay allocator-bound.
+// deepseek-v4.1-flash timebox retry (issue #3746): still 84.4% / 3918 bytes, 13 hunks.
+// Byte-identical experiments this pass: declaring `last` before `first`, and rewriting
+// the found-test as !(first != entries.end() && strcmp(...) == 0). Both compile to the
+// same 3918 bytes, so the two-pointer register split (ours first=edi/end=esi, original
+// first=esi/end=ebx) and the materialised sbb/sete byte on the second strcmp are not
+// reachable from the condition spelling. `entries.insert(first, T(...))` (the
+// single-element overload) does not exist in this <vector>, so the count-1 fill insert
+// stays. Remaining diff: 4 hunks are the search count byte slot ([esp+0x14] here,
+// [esp+0x10] original, shared there with the vector-base spill) and 8 hunks are pure
+// scheduler placement of `push 0` / the [ebp+0x111] bitfield store and which register
+// (eax vs ecx/edx) accumulates the read-modify-write; the 160-line vector insert
+// region is the allocator-bound body of this gap.
 // construct does not use an allocator receiver in the original, so its
 // declaration uses the equivalent two-argument stdcall ABI.
 

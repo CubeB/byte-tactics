@@ -309,6 +309,16 @@
 // the `delete[](entries)` argument, which the original loads into ECX before the
 // call and the total into EDX after, where ours does the reverse.
 //
+// Pass deepseek-v4.1-flash (issue 3716, 10 min box): kept 86.6% (911/919), two
+// checks, no new spelling written. Re-read the diff against the disassembly and
+// it confirms the frame analysis above rather than adding to it: every hunk is
+// one of the four known allocator facts (j in 0x10 where the original has base,
+// the inner-loop head lacking the `mov [esp+0x30],c / mov [esp+0x1c],q` reload
+// block at 0x4621d8, the `c == 0` handler block layout, and the tail ECX/EDX
+// argument-register swap). The kept build remains the wrong-semantics spelling;
+// the correct `break` walk measured 69.5% again in earlier passes and was not
+// re-run here because the box was spent on the frame, which no spelling moved.
+//
 // Suspected original bug, second and much clearer one: `n` is stale in ESI at the
 // packet-walk top. `p->start = n` and `p->field_10 = base + n * 32` read ESI at
 // 0x4621c6 and 0x4621cd, but ESI is only ever zeroed, at 0x46217f, before the

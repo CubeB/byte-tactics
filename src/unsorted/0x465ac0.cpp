@@ -15,6 +15,19 @@
 // (check.py aligns with difflib, so the percentage is far below the 6 bytes
 // that actually differ: brief item 17.)
 //
+// Pass deepseek-v4.1-flash (issue 3716, 10 min box): kept 98.3% (865/865), two
+// checks, no source edit was written because no new spelling was found. New
+// exact reading of the remaining 6 bytes, from the original disassembly rather
+// than the diff: the original loads g_game TWICE in this region, once at
+// 0x465c89 into EAX (used by the THIRD test's `mov cl,[eax+0x14281]`) and again
+// at 0x465d1f into EBX (used by the FOURTH test's `mov al,[ebx+0x14281]`,
+// `[ebx+0x14273]` and `[ebx+0x2a43]`), with `mov eax,[ebx+0x92]` (u->def) and
+// `mov ecx,[eax+0x176]` scheduled between the two. Ours emits only the second
+// load, and CSEs and hoists it one instruction above the `test eax,eax / je`
+// that guards the fourth test, into EBP. So the gap is both a CSE live range
+// (one load against two) and the register choice; the load sits exactly at the
+// join block in our object, which is why no source spelling moved it.
+//
 // What the function does: it is a visibility test for one unit. It returns 1 at
 // once if the unit's map pointer (f96) is the map asked about, or 0 if flag 2 of
 // the unit's f10e is set. Otherwise it builds a 16.16 position from the unit's

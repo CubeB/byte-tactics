@@ -1,4 +1,28 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (space-bunny-free, issue 3366): 98.7%, 661 bytes both sides, one real
+// check.py run, still the same two six-byte hunks (colour SIB order and the
+// marker call's surface load). New negatives, all free `check.py --sym` scores
+// from build/scratch/0x4a4d70 (t.py, b1.py, b2.py, b3.py), every one flat at
+// 98.7% with the same two hunks: fourteen tail spellings (y1 as a local, x as
+// two locals, six declaration orders of x/y2/colour, `rect.top + height`,
+// a surface local first and last, an extra live use of x, a `height` temp,
+// `rect.top + 0`) and nine colour spellings (an int-typed field plus an
+// `(unsigned char*)` cast, an `(int)` cast on the loaded byte, pointer plus
+// index, int plus int, reversed operand order, an `u` suffix on the index, an
+// object local, `(char*)entries + param_2 * 0x15b` for `me`, a hoisted index
+// local). `FUN_004be950`'s colour parameter as `int` really is worse (87.5%,
+// 667 B) and `FUN_004c13a0`'s as `unsigned char` is worse (93.5%, 659 B), so
+// both prototypes here are already right. A live `unsigned char*` alias for
+// the colour table is the only spelling that changes the colour instruction
+// at all, and it is worse: the byte then lives across FUN_004c13f0 and the load
+// lands as `mov cl,[ebp+edx+0x8b2]` (92.7%). Two more facts: hoisting
+// `int style = (int)me->colours;` above FUN_004c13f0, to make the colour
+// memref the older operand, which is what flips the SIB, also drags the +0x8bb
+// colour load out of esi and the surface load into a different register, so it
+// fixes nothing; and using `rect.bottom` as the marker's y1 moves the tail's
+// displacement to `[esp+0x28]`, which confirms the marker's y1 really is
+// rect.top. The two hunks look like one allocator state that no local source
+// reshaping reaches.
 // Retry #3140 (GPT-6.1-sol): one checker run reconfirmed the inherited 98.7% / 661-byte best, no MATCH. The only differences remain the colour-load SIB operand order and the final marker-call surface-load/push schedule; prior notes record many equivalent source-shape attempts.
 // Retry (deepseek-v4.1-flash, issue 3076): 98.7%, 661 bytes both sides. The
 // colour SIB base/index (`[ecx+eax+0x8b2]` vs `[eax+ecx+0x8b2]`) and the surface

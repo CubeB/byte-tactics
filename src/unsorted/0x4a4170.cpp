@@ -1,4 +1,23 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3366, 900s): still 80.9%, no MATCH. All
+// literal-zero spellings fold and stay byte-identical to the baseline: an
+// `int zero = 0` declared at the top of the focus block or after the
+// FUN_004a23b0 call and used for the field_78 compare, the `e->off < 0` clamp
+// and the holder compare scores 80.9 (also as short/unsigned short). The one
+// shape that does produce the wanted live edx zero is
+// `int r = FUN_004ab5b0(obj, 3); if (r == 0)`: then the clamp becomes the
+// original `cmp word[ebx+0x140], dx` / `mov word[ebx+0x140], dx` and the holder
+// becomes `cmp eax, edx`, but the call test itself turns into
+// `xor edx,edx; cmp eax,edx` instead of `test eax,eax` (709 bytes, 75.1), so
+// the zero has to originate at the merge, not at the call test. Reconstructing
+// the original single shared store (an `int`/`short` newOff assigned in each
+// arm, `e->off = newOff` once after) is worse: 714 bytes 73.6 (int) and
+// 713 bytes 65.4 (short/unsigned short). Moving `old = e->off` into each arm,
+// with or without a zero local, is 707-708 bytes and 73.8-74.0. A
+// `static inline` clamp helper whose zero is a plain constant folds as well
+// (709 bytes, 70.8). Nothing new is left to try that does not either fold the
+// zero or break the call test; the blocking decision is the live edx zero at
+// the FUN_004ab5b0 join described below.
 // GPT-6.1-sol retry (#3140): baseline remains best at 80.9% after five checks.
 // A two-arm zero local was canonicalized to the baseline. A local max clamp
 // scored 69.1%, and copying field_78 into a local dragging flag scored 50.9%.

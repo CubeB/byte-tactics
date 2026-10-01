@@ -1,4 +1,28 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (fifth run): 78.2% (634 bytes), up from 70.6%. The whole gain came
+// from one theme: make a value's live range START EARLIER, before the call it must
+// survive, and let MSVC hoist the load into the prologue. Three edits, each measured:
+//  (1) +4.0: `const int n = count;` as a function-scope local, used by BOTH the loop 1
+//      bound (`i < n`) and the `i == n - 1` test (74.4%). `int n` (non-const) is the same
+//      size but 2 points worse; using n in only one of the two places is worse (73.5/70.5).
+//  (2) +3.0: `int* s = stack;` as the FIRST statement of the `if (m > 0 && len2 > 0x1e)`
+//      block, i.e. BEFORE the header sprintf (77.8%). Pairing it with `unsigned long* q =
+//      pc;` in the same place gave 75.2%, and both at function scope gave 73.9%.
+//  (3) +0.4: put `unsigned long* q = pc;` AFTER the two strlen lines and `p += strlen(p)`,
+//      so only `s` precedes the sprintf (78.2%). `s` after the sprintf, `q` after the
+//      strlens is also 78.2; `q` before the sprintf is 74.8 to 77.8.
+// Everything else tried this run was byte-identical or worse: `register int i`, dead extra
+// locals, `const int m`, a fresh `const int k = m` as the loop 2 bound, moving `r = ret`
+// before the phase 1 sprintf, `if (n > 0)` for the outer test, `&buf[0]`/`&stack[0]`/
+// `&pc[0]`, a single shared `len` across both phases (61.1: the len2 copy is load-bearing),
+// declaring len2 inside the block (78.2), function-scope q (73.5), a distinct
+// function-scope pcv copied into q at phase 2 (31.3), and many local declaration orders.
+// Remaining diff: the prologue still differs in framing and scheduling. Ours is
+// `sub esp,0x14` with this in ESI (`mov esi,ecx`, then the members read from esi) and
+// len materialised in EBP; the original is `sub esp,0x18`, reads copied/pc/count straight
+// off ECX, spills ECX to [esp+0x20] and leaves i in EBP with len at [esp+0x10]. The
+// loop-body scheduling differences (n reload, r++ ordering, the phase 2 pc temp at
+// [esp+0x24]) are downstream of that one allocator decision.
 // GPT-6.1-sol refinement: best is 70.6% after splitting second-phase len; still differs at prologue/frame and allocator placement, notably this held in ebp and the missing target spill frame.
 // space-bunny-free retry: retained 69.5%; found the n/m/q plateau is one register
 // SHORT of the original, not a different function. Declaring n=count, m=copied and
@@ -134,6 +158,7 @@ void Class_004d9ca0::FUN_004d9ca0()
     char* p = buf;
     int i = 0;
     int m = copied;
+    const int n = count;
     unsigned int len = 0xa44c;
 
     if (count > 0) {
@@ -141,11 +166,11 @@ void Class_004d9ca0::FUN_004d9ca0()
         len -= strlen(p);
         p += strlen(p);
         unsigned long* r = ret;
-        for (i = 0; i < count; i++) {
+        for (i = 0; i < n; i++) {
             if (len <= 0x1e)
                 break;
             sprintf(p, "%08lX", *r);
-            strcat(p, (i == count - 1 || i % 8 == 7) ? "\n" : " ");
+            strcat(p, (i == n - 1 || i % 8 == 7) ? "\n" : " ");
             len -= strlen(p);
             p += strlen(p);
             r++;
@@ -155,11 +180,11 @@ void Class_004d9ca0::FUN_004d9ca0()
     }
     unsigned int len2 = len;
     if (m > 0 && len2 > 0x1e) {
+        int* s = stack;
         sprintf(p, "Stack dump:\n");
         len2 -= strlen(p);
         p += strlen(p);
         unsigned long* q = pc;
-        int* s = stack;
         for (i = 0; i < m; i++) {
             if (len2 <= 0x1e)
                 break;

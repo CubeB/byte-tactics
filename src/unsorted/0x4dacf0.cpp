@@ -1,5 +1,20 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by space-bunny-free, continued by deepseek-v4.1-flash and GPT-6; deepseek-v4.1 retry.
+// deepseek-v4.1-flash retry 3 (best 55.6, unchanged, 5 check.py runs): no source shape tried
+// this pass removes the `xor ebp,ebp` zero register, so the ebp lock-out is confirmed to come from
+// the allocator rather than from spelling. Results: `unsigned int res;` at the top plus a separate
+// `res = 0;` statement after the size fixup 45.9 (prologue reshuffles, lock into eax); `res`
+// declared between `size = n;` and the size test 51.5 (lock moves to ebx); the FUN_004dbe10 second
+// argument spelled as `wraps` instead of the literal 0, 55.6 with an unchanged diff; `res` retyped
+// as `LPVOID` with the matching casts, 55.6 with an unchanged diff; the `want < need` guard flipped
+// to `need > want`, 55.6 unchanged. In every variant the compiler emits `xor ebp,ebp` before the
+// size test and reuses ebp for res's home store, both zero pushes and the record ctor's 5th
+// argument, exactly the register the original spends on `want`. The original instead stores every
+// zero as an immediate and uses esi (wraps, freshly zeroed) for the pair length and the be10
+// argument. Next idea for a retry: give every literal-0 use on the path to the record ctor a
+// competing already-live home (esi) so no zero register is wanted at all; the earlier pass tried
+// this only partially (52.2). Same allocator class as 0x4a6ae0 and 0x4866d0.
+
 // deepseek-v4.1-flash retry 2 (best 55.6, unchanged): swept the `res` declaration position
 // (right after size, after map, after wraps) all stay 55.6; before lock drops to 51.5 because
 // lock moves to ebx. The blocker is unchanged: `res = 0` compiles to `xor ebp,ebp` and ebp is

@@ -1,58 +1,25 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, retried by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Retry (deepseek-v4.1-flash, issue 2972): re-confirmed 96.6% (216 vs 219
-// bytes). The single missing instruction is the post-copy member reload
-// `mov eax,[ebx+0xc]` for `p->offset`. Every spelling that emits it (15 new
-// shapes: char-base packet stores, int*/int& length aliases, dest-via-len,
-// count-local update, 3 store permutations) scores exactly 219 bytes / 90.7%:
-// the reload forces value->ecx and count+1->edx and swaps the count/length load
-// order in the update. The reload-free baseline is the best register-identical
-// shape, so the residual is a compiler-state allocation tie.
+// MATCH (deepseek-v4.1-flash, retry after the 96.6% baseline). The single
+// missing instruction was the post-copy member reload `mov eax,[ebx+0xc]` for
+// `p->offset`. The fix is the guide's "a store MSVC deletes can still move
+// registers" pattern (0x461b10): after the copy, read the member into a local
+// and store it straight back before using the local.
+//
+//     int t = length;
+//     length = t;          // eliminated, but keeps `t` a memory reload
+//     p->offset = t;       // emits mov eax,[ebx+0xc]; mov [esi+4],eax
+//
+// Without `length = t;` MSVC forwards the value loaded for the size check into
+// the offset store (216 bytes, 96.6%). With the store written as
+// `p->offset = length;` directly, the reload appears but the allocator hoists
+// the stack arg 5 load into ecx above the offset store and rotates the
+// count/length update (219 bytes, 90.7%). The dead store keeps the reload
+// while leaving the rest of the allocation untouched.
+//
 // Appends `size` bytes at `data` to the buffer's inline storage (at +0x14),
 // fills in the output packet `p`, and bumps the buffer's packet count.
 // `value` is the previously queued packet (0x462710 passes its tail), stored
 // in the packet's prev field at +0x18.
-//
-// Partial (96.6%). One instruction is missing: after the copy the original
-// reloads `length` (mov eax, [ebx+0xc]) for `p->offset`; this version reuses
-// the value loaded for the size check, kept in eax through the copy by `len`.
-// Writing `p->offset = length` gives the reload, but then MSVC loads `value`
-// into ecx above the offset store and rotates the registers of the count and
-// length updates (90.7%). No store order (all 120 tried), inline helper for
-// the copy or the packet setup, reference or pointer to `length`, or rewritten
-// size check gives both at once. Taking the copy destination from the member
-// (`buffer + length`, not `buffer + len`) is what fixes the lea operand order.
-// An N-declarations sweep (0 to 600) and headers.py change nothing, so the
-// difference is in the source, not the compiler state.
-//
-// Retry (space-bunny-free) confirmed the exact shape of the 90.7% perturbation:
-// a member read after the copy (`p->offset = length`, with or without a local
-// for the destination) puts the reload in, but then MSVC hoists the stack arg 5
-// load into ecx above the offset store (`mov ecx,[esp+0x24]`, `mov [esi+0x18],ecx`),
-// loads the update operands in the other order (`mov edx,[ebx+0xc]` before
-// `mov eax,[ebx+8]`), computes count+1 into edx with a lea after the length
-// store, and reloads count into eax instead of edx for the last printf. All 24
-// orders of the four packet-field stores, the length update placed before them,
-// the four spellings of the offset (member, this->, a local read after the copy,
-// a local pointer destination) score 88.0 to 90.7%, so none beats this 96.6%.
-//
-// Retry (deepseek-v4.1-flash) confirmed it: every source form that produces the
-// post-copy reload (`p->offset = length`, `= (int)length`, `= this->length`,
-// local read after the copy, `&buffer[length]` destination, offset via a
-// reference or pointer, `length = length + size` update, an inline helper, and
-// the early-return shape) lands at exactly 90.7%. The reload alone perturbs the
-// global register allocation: `value` goes to ecx and is loaded above the
-// offset store, and the count/length update rotates ecx to edx. Dummy function
-// definitions placed before the target (compiler state) and an early-return
-// guard do not change this (early return drops to 77.3%). All scratch variants
-// that score above this one's 96.6%: none.
-//
-// Retry (deepseek-v4.1-flash, 2nd): headers.py over the member-reload variant is
-// flat at 90.7% across all 128 sets. The reload forces one global two-register
-// rotation: the value load is hoisted to ecx above the offset store (so the
-// 96.6% baseline's mov eax,[esp+0x24] after the store is lost), count+1 moves to
-// edx and the final count reload to eax. Removing the `len` local is what makes
-// the reload appear, but it always drags the rotation with it; the reload-free
-// 96.6% baseline is the best register-identical shape.
 #include <string.h>
 
 void __cdecl FUN_00461170(const char* fmt, ...);
@@ -91,9 +58,10 @@ int Class_004628d0::FUN_004628d0(Packet_004628d0* p, int index, const void* data
     FUN_00461170("current buffer length: %ld, toadd=%ld, max=%ld\n", length,
                  size, 0x42a);
     if (length + size <= 0x42a) {
-        unsigned int len = length;
         memcpy(buffer + length, data, size);
-        p->offset = len;
+        int t = length;
+        length = t;
+        p->offset = t;
         p->owner = this;
         p->size = size;
         p->value = value;

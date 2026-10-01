@@ -88,6 +88,39 @@
 // `Listener* p = *it; delete p;` local keeps the byte; the index form
 // (`lists[i][j]` + `erase(begin()+j)`) and the `front()`/`erase(begin())`
 // while-loop drop to 37.8% (they lose a stack local and the whole frame).
+// Retried by deepseek-v4.1-flash in #3167. New finding: the SIB IS reachable
+// from the source. The library `copy(_P + 1, end(), _P)` lets the optimizer
+// create the delta itself, and the optimizer always emits the walker as the
+// SIB base. If the delta is written out explicitly (`int _K = (int)((char*)_P
+// - (char*)_F); while (_F != _L) *(iterator)((char*)_F + _K) = *_F, ++_F;`)
+// the address tree is `(delta + walker)` and the store becomes
+// `mov [edx + eax], ebp` (SIB 0x02), exactly the original. It is reachable
+// from this file by specializing `std::copy` for `Listener**` (or
+// `vector<Listener*>::erase`) with that body: MSVC 5 picks the explicit
+// specialization up, the function stays 195 bytes, and the residual becomes
+// only the delta/end register pair (91.7%: end in edx and delta in ecx where
+// the original has end in ecx and delta in edx, plus `sub ecx, eax` instead
+// of `sub edx, ebx`). Both halves are therefore reachable, just not together
+// yet. The library form always gives end=ecx, delta=edx, the explicit-delta
+// form always gives end=edx, delta=ecx; 60 variants (delta type int/long/
+// unsigned/short/char, do-while/while/for, guard before/after the delta,
+// separate walker so the subtraction uses the original pointer, the delta
+// computed before the end load, helper functions with every parameter order,
+// and 0 to 16 preceding copy loops before the class) never mixed them.
+// Scratch: build/scratch/0x471de0/spec_*.cpp, b_*.cpp, d1..d4, h4/h5,
+// derived1.cpp.
+// The flip is a compiler-state flag, not a register tie. In a minimal C file
+// the library `copy` inlined into a caller gives the delta-base SIB
+// (`sub ecx, eax; mov [ecx+eax], esi`) when the function makes no call, and
+// the walker-base SIB (`mov [eax+ecx], esi`) as soon as one `call` sits
+// before the loop (call11 vs call13 in build/scratch/0x471de0/copytest5.c:
+// the two bodies are instruction-for-instruction identical apart from the
+// call and the SIB byte). The copy's argument form matters the same way:
+// `copy(q, e, p)` is walker-base, `copy(p + 1, e, p)` is delta-base. So the
+// same 5 instructions can encode either way and only the compilation's state
+// picks. In this file the delete call before the erase always leaves the
+// walker form, which is why every source spelling lands on 98.6%; the
+// original's TU state produced the delta form for this one inlined copy.
 #include <vector>
 
 class Listener_00471de0 {

@@ -26,6 +26,12 @@
 //     into `mov ecx,edi; cmp ecx,eax`; restoring `index` weight so EDI stays a
 //     region cache is the remaining lead, not solved here.
 //  No byte-level improvement over 93.4% was found; the file below is unchanged.
+//  deepseek-v4.1-flash pass (#3730): reconfirmed v1 = 64.1%, 1704 bytes with the
+//  0x4a6ef9..0x4a708b region byte exact, and measured `int bound` on the kept
+//  93.4% shape: it fixes nothing here and regresses to 61.8%, 1698 bytes, because
+//  it flips the keyboard-half homes (0x4a7163 becomes `mov word ptr [ebx+0x138],si`).
+//  The file stays at 93.4%; the f138-region shape and the obj/entry tie remain
+//  mutually exclusive without a byte-costly extra entry reference.
 
 //
 // PARTIAL 93.4% (1703 of 1703 bytes). Command-button click/key handler for

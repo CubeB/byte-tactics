@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// GPT-6.1-sol (#3152 retry): verified 84.6% (309 of 303), no MATCH. Tried
+// duplicate call bodies (50.8), outer-scope seen/width locals (33.2), switching
+// the fog condition (35.0), an explicit width guard (83.7), nested fog tests
+// (83.6), an explicit mask-bit local (84.6), pointer-add map expression
+// (84.6), and swapping either index multiplication (84.6). The existing source
+// remains best. Its remaining spill and tail-merge mismatch is described below.
 // deepseek-v4.1-flash (#2963 retry): still 84.6% (309 of 303). Fog arm spills `seen`
 // (`mov ecx,[edx+0x7c]; mov [esp+0x18],ecx` then reload) where the original
 // rematerialises `mov edx,[edx+0x7c]`; mask arm spills `w` the same way; our two

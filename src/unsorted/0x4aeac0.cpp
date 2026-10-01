@@ -1,5 +1,7 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash,
-// finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Retry #2812: best remains 75.3% (880 bytes vs. 732). The function body
+// matches except for switch-tail latch duplication and the resulting case-6
+// register choice. Prior variants and all 128 header sets are documented below.
 //
 // 75.3 %. Only the loop's bottom block differs, and one register in case 6
 // follows from it. Everything else is byte-identical.

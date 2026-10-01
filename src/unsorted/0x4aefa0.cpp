@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+
+// GPT-6.1-sol retry: tools/headers.py tried all 128 header sets with no improvement; best remains 72.2%. The first-loop count/ptr1 register and low-frame-slot allocation still differ from the original.
 //
 // deepseek-v4.1-flash, seventh pass, still 72.2 % (882 of 895 bytes). The rest
 // of the function is byte identical; only the first loop and the four low

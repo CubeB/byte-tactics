@@ -1,35 +1,43 @@
-// Decompiled by Opus, finished by space-bunny-free. Names are provisional.
-// GPT-6.1-sol retest in #2483: three checks kept the 78.3% best. A nested
-// active check with a local owner pointer produced identical code. The target
-// keeps zero in EBX and owner in EBP; this source reverses those registers.
-// (Earlier passes: deepseek-v4.1-flash, GPT-6.1-sol, Codex / GPT-6.)
-// 78.3%, and the only difference left is which of two values live across the
-// call to 0x49ae20 gets ebx: the target keeps the constant 0 in ebx and the
-// `owner` parameter in ebp, this build keeps 0 in ebp and `owner` in ebx.
-// The constant needs a callee-saved register because it is live across the
-// call (the `tracked = 0` store) as well as across the loop back edge.
+// Decompiled by Opus, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Removes the projectiles fired by a unit (the caller passes the dying unit):
+// walks the 300-entry projectile array, and for every active projectile owned
+// by that unit runs the inlined untrack helper (0x499e50) and compacts the
+// array (0x49ae20).
 //
-// space-bunny-free in #1887, and this tie is source-shape insensitive:
-// about sixty rewritten shapes all compile to BYTE-IDENTICAL objects, so none
-// of them is the fix. Tried, all byte-identical or worse: for/while/do-while/
-// while(1)+break/pointer-range loops, an index local instead of a pointer
-// walk, the predicate as &&/nested if/continue/De Morgan/ternary, reversed
-// term order, the whole loop body, the predicate, the untrack test, the flags
-// store and the owner compare each moved into their own static inline helper,
-// an out-of-line helper, `int`/`void*`/`Unit* const`/`unsigned int` parameter
-// types, an unsigned index, a `g_game` alias and a `Game*` local, `active` as
-// int, the constant as a named local or a `static const`, folded duplicate
-// uses of each side, and uninitialised locals / externs / structs / typedefs /
-// enums / unused static functions at counts 0 to 575.
-// tools/headers.py --cpp (all 768 sets, 0 to match) and 337 further header
-// sets outside its list (assert.h, ctype.h, errno.h, float.h, io.h, limits.h,
-// locale.h, setjmp.h, signal.h, stdarg.h, stddef.h, time.h, sys/types.h,
-// excpt.h, winnt.h, objbase.h, ole2.h, mmsystem.h, process.h, share.h,
-// malloc.h, new.h, dos.h, fcntl.h, search.h, direct.h, alone and in pairs and
-// triples) are flat too. The loop shape, the predicate and the inline helper
-// boundary are therefore believed correct; what is missing is a compiler
-// state that orders the two live-across-call values the other way, and no
-// source or declaration change tried here reaches it.
+// MATCH (147 of 147 bytes). The whole function was held back by one
+// declaration: the flag word at +0x69 is a 16-bit `unsigned short`, not a
+// `char`/`unsigned char`. With the byte field the loop's constant 0 is parked
+// in ebp and `owner` in ebx (78.3%, byte-identical to the original except that
+// one register pair); with the 16-bit field the allocator puts the 0 in ebx
+// and `owner` in ebp, exactly as the original does. The emitted OR is the same
+// four-byte `or byte ptr [esi+0x69], 2` either way, because the immediate's
+// high byte is 0, so MSVC 5 narrows the 16-bit `|= 2` to a byte OR. The struct
+// must end at +0x6b (the flag word occupies +0x69..+0x6a), which is what makes
+// the loop stride 0x6b; a trailing padding byte gives `add esi, 0x6c` (97.8%).
+//
+// How it was found, in case a sibling needs the same: a micro-function
+// reproducing this loop (build/scratch/0x49c880/micro/) showed the pair is
+// decided by the *width of the flags field's OR*, not by any source shape:
+// `or byte [p+0x69], 2` keeps the zero in ebp while a word/dword OR of the same
+// shape puts it in ebx. A byte-typed flags field therefore cannot produce the
+// original's allocation; the 16-bit field can, and still compiles to the byte
+// OR. The struct offsets in this file are byte-exact, so only the field type
+// mattered.
+//
+// Measured and rejected on the way (all with check.py or check.py --sym):
+// the constant 0 as a named int/short/pointer/bool/char local (folds away),
+// a bool/char local for the active test (forces the zero into ebx via
+// `cmp cl, bl` but costs seven bytes of setne, 88.4%), `(unsigned char)` on
+// the active test (146 bytes, 89.1%, a metric artifact: the original compares
+// a word), the flags field as a `char` (78.3%) or a `char` bitfield (78.3%),
+// duplicated tests, extra depth-1 zero stores, `g_game`/`Game*` aliases,
+// accessor helpers, a `char*` walk with `+= 0x6b`, for/while/do-while/
+// while(1)+break loops, an index-only loop, and `int`/`void*`/`Unit* const`
+// parameter types. tools/headers.py --cpp (all 768 sets) was flat.
+// Earlier passes (deepseek-v4.1-flash, GPT-6.1-sol, Codex / GPT-6,
+// space-bunny-free in #1887) reached 78.3% and left the notes that the tie was
+// source-shape insensitive; it was, because the lever is a declaration in the
+// struct, not the body.
 
 struct Vec3_0049c880 {
     int x;
@@ -53,8 +61,8 @@ struct Projectile_0049c880 {
     char unknown_56[0x60 - 0x56];
     short active;                      // +0x60
     char unknown_62[0x69 - 0x62];
-    unsigned char flags;               // +0x69
-    char unknown_6a;
+    unsigned short flags;              // +0x69, 16-bit: the byte form changes
+                                       // the register allocation of 0x49c880
 };
 
 struct Game_0049c880 {
@@ -84,8 +92,6 @@ static inline void Untrack_0049c880(Projectile_0049c880* proj)
     proj->flags |= 2;
 }
 
-// Removes the projectiles fired by a unit (the caller passes the dying unit).
-// Remaining difference: the ebx/ebp tie described at the top of this file.
 // FUNCTION: 0x49c880
 void __stdcall FUN_0049c880(Unit_0049c880* owner)
 {

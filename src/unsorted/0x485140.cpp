@@ -49,6 +49,25 @@
 // coordinate evaluation scored 59.8%; a separate GetX helper scored 68.2%.
 // Const qualification and uninitialized x/y declarations both scored 72.7%
 // but retained the same pointer/x register swap.
+// DeepSeek V4.1 Flash retest in #3007 (30-min checkpoint: baseline still
+// best at 72.7%, no scratch variant scored higher). New evidence on the
+// allocation lever: `return p->x.whole / 16 + p->z.whole / 16;` (no named
+// locals, no branch) compiles to the original prologue byte for byte
+// (mov ecx,[esp+4]; push esi; movsx eax,[ecx+2]; ...; mov esi,eax; movsx
+// eax,[ecx+0xa]) and p stays in ecx, so the whole difference is caused by
+// the bounds test on x: any branch that reads x (even one added after the
+// divisions, or a test of a plain copy) flips p to esi. The one shape that
+// keeps p in ecx *with* the bounds test is an extra live boolean: a caller
+// `bool ok = <bounds>; if (ok) ...` (71.9%), a helper-side `bool ok`, or a
+// bool-returning InBounds helper all put p in ecx and x in esi, but VC5
+// materialises the bool (mov cl,1 / xor cl,cl / test cl,cl) and hoists the
+// g_game load above the sars, so they emit 6 to 14 bytes more and score
+// below the baseline. Getting the original code shape (single out-of-line
+// xor ecx,ecx failure path, no bool materialisation) *and* the original
+// allocation is what is still missing; the next attempt should look for a
+// source form where the bounds test reads a value other than the register
+// that holds x, or a variable that shifts the allocator order without
+// surviving into the output.
 #include <windows.h>
 
 #pragma pack(push, 1)

@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free and Claude Opus 5.5, verified by GPT-6.1-sol. Names are provisional.
+// Finished by DeepSeek V4.1 Flash (MATCH, 398 of 398 bytes).
 // Slot 2 (FUN_00472e30) of Class_00474cd0 (vtable 0x4fd618, see 0x474cd0.cpp),
 // the fog-culled twin of Class_004750b0::FUN_00472e30 (0x475700). Every
 // 32-byte record of the vector at +0xc is drawn through an inlined record
@@ -9,47 +10,22 @@
 // +0x14273 (the matched 0x408090, inlined here). The same explored-map inline
 // appears in 0x407e90 (0x407f74), 0x465ac0 (0x465b6a) and 0x473a00.
 //
-// Still differs (84.6 percent, 394 of 398 bytes). Writing the loop as a call
-// of the inline record method DrawIfVisible, with IsVisible(player, &pos)
-// split into the two inline tests, is what gives the +0xe-biased induction variable in its own
-// stack slot and the original's frame (42.4 to 64.5 percent); computing sx
-// before sy gives the original's load order (x, height, z) and keeps x in bx
-// (78.2); reading the byte map through the ByteMap::Get method keeps
-// `width * y + x` as an index and loads the width into its own register.
-// Two spots are left:
-//
-// 1. The short-map branch multiplies into ty's register:
-//      ours:  imul eax, [ebp+0x80]; add eax, ebx; mov ebx, [esi+0x14273];
-//             xor ebp, ebp; mov bp, [ebx+eax*2]
-//      orig:  mov ebp, [ebp+0x80]; imul ebp, eax; mov eax, [esi+0x14273];
-//             add ebp, ebx; xor ebx, ebx; mov bx, [eax+ebp*2]; mov eax, ebx
-//    in every compiler state tried. Tried without effect: either operand
-//    order and casts in the product, an index local, MapSize::Index and
-//    ByteMap::Index methods, a SeenCell(map, x, y) helper, Player member
-//    functions, a mask row pointer. A MapSize* parameter (37.6) and an
-//    `if (Contains) return ...;` form (71.5) are worse. The matched 0x408090
-//    has the original's form on its own, but stops matching (72.5, the same
-//    fold) with `#include <vector>` in front of it, so this is compiler
-//    state there; here no state unfolds it.
-// 2. Compiler state: unused declarations (extern ints, prototypes, structs,
-//    typedefs, enums or inline functions) cycle through four outcomes with a
-//    period of about 520: 84.6 (N = 0 to 7, the end of that window: the
-//    byte-map lookup folds the data pointer, `add ebx, [ebp+0x7c]` for the
-//    original's `add ebx, ecx; mov ecx, [ebp+0x7c]`), 78.2 (N = 8 to 200: the byte-map
-//    lookup is exact, but the scratch registers of the call block rotate by
-//    one and the loop tail differs, probably the one temporary that spot 1
-//    is missing), 75.0 and 80.5. tools/headers.py finds nothing higher.
-// DEEPSEEK-V4.1-FLASH screened three more variants (scratch only, no new
-// file runs): <memory.h> swaps this 84.6 basin for the 78.2 one (the byte-map
-// data pointer is materialised, but the call block and loop tail rotate), so
-// the folded-data-pointer diff and the call block are the two sides of one
-// switch; writing the two arms straight into DrawIfVisible (the 0x4745e0
-// shape) collapses the frame to 375 bytes and 37.4; adding a `w`/`m` local
-// pair to IsSeen is byte-identical to this version. 84.6 stands as the best.
-// GPT-6.1-sol rechecked this version (84.6) and tested a local alias for the
-// byte-map data pointer; the generated code and score were unchanged. A fresh
-// pass tried a width/index local, width and mask pointer aliases, and a
-// single-use ReadVisibility helper; none changed the generated code or score.
+// What fixed it (DeepSeek V4.1 Flash). The last two spots, the folded
+// `add ebx, [ebp+0x7c]` in the explored arm and the folded
+// `imul eax, [ebp+0x80]` in the mask arm, are decided by the allocator, and
+// the compiler state can be shifted with declarations (that is why the two
+// arms never folded or materialised together in any earlier attempt). Two
+// source changes move the mask arm and then the explored arm to the original:
+//   1. `ByteMap::Index(x, y) { return size.width * y + x; }`, used by `Get`
+//      and by the mask arm through a ByteMap pointer local declared after the
+//      Contains test. The extra virtual register makes MSVC materialise the
+//      width (`mov ebp, [ebp+0x80]; imul ebp, eax`) instead of folding it, and
+//      the same register pressure then makes the explored arm load the data
+//      pointer into a register (`add ebx, ecx; mov ecx, [ebp+0x7c]`).
+//   2. `Get` spelled `data[Index(x, y)]` rather than `data[size.width * y + x]`.
+// The earlier measurements that led here: the twin 0x475700 loop shape, the
+// sx-before-sy order and the ByteMap::Get method all stand; `tools/headers.py`
+// and every earlier declaration/local sweep did not reach past 89.9.
 #include <stddef.h>
 #include <vector>
 
@@ -79,7 +55,8 @@ struct ByteMap_00475470 {
     unsigned char* data;               // +0x0
     MapSize_00475470 size;             // +0x4
 
-    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+    int Index(int x, int y) { return size.width * y + x; }
+    unsigned char Get(int x, int y) { return data[Index(x, y)]; }
 };
 
 #pragma pack(push, 1)
@@ -136,7 +113,8 @@ static inline int IsSeen(Player_00475470* map, Position_00475470* pos)
     if (!map->explored.size.Contains(tx, ty)) {
         return 0;
     }
-    return (g_game->visibilityMask[map->explored.size.width * ty + tx] &
+    ByteMap_00475470* b = &map->explored;
+    return (g_game->visibilityMask[b->Index(tx, ty)] &
             (1 << g_game->playerIndex)) != 0;
 }
 

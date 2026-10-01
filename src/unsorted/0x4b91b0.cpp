@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry #2441: BEST 53.1% (420/423 bytes), no MATCH after 5 scored checks and 2 compile-failed edits. Residual is register/frame allocation: target keeps w/h/pitch/count in ebp/esi/edi/ebx across allocation and spills result; tested declaration order, a height alias, and pitch*h without improvement. Return to the prior partial; recheck if continuing.
+
 // Retry #1952: GPT-6.1-sol tested pitch/count declaration order and equivalent
 // products. The saved 53.1% (420/423) variant remains best; no MATCH. The
 // prologue still puts the 2*w pitch in ebx/esi work registers and clobbers h,

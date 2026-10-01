@@ -1,4 +1,28 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry: still 87.8%, same single hunk (lea/add above the r.top
+// store, add dest eax not ecx). New facts, all scored free with build/scratch:
+//  - Nested-store tricks do NOT move the r.top store in this block: a comma
+//    expression, `int dummy = (r.top = y)`, a 0x4ba000-style static inline
+//    helper whose return is assigned, a void cast, `y = r.top = y` and a store
+//    through an int* are all byte-identical to base.
+//  - The 0x46b900 pattern (r.bottom = y; r.top = r.bottom; r.bottom += t;)
+//    does put the r.top store first, but MSVC deletes the dead first store and
+//    swaps the two computations: the sum becomes `lea edx,[eax+ecx]` into a
+//    fresh register and t+138 becomes `add eax,ebx` (82.6%, 556 bytes).
+//  - General shape rule seen in this block: whichever of the two integer
+//    computations comes LAST in statement order is emitted as a destructive
+//    `add` into the operand that dies there; earlier ones are `lea` into fresh
+//    registers. Sum after `r.right = t + 138` gives `add eax,ecx` (dest t,
+//    ours); sum before it gives `lea edx,[eax+ecx]`. The original needs the sum
+//    last AND y dead / t live at the sum so the add destroys y (add ecx,eax),
+//    but every shape that keeps t live past the sum also keeps y live (sunk
+//    store), so the destination never flips.
+//  - Operand order (t + y), y and t copies declared before t's declaration,
+//    sum locals and read-backs (r.bottom = r.top + t) are all byte-identical
+//    to base. Moving r.top before the t declaration (82.6%, 564 bytes) and
+//    the height between the rect stores (55.3%) are worse.
+// The jump table hunk is the check.py link_placeholders display artifact
+// (separate check_ref validation), so the one lea/add hunk is the whole gap.
 // GPT-6.1-sol retry in #3179: 9 checker invocations, best remains 87.8%. The y + t register/scheduling hunk remains; comma sequencing scored 86.0%, other declaration and store-order variants tied at 87.8%. A jump-table difference is a linker placeholder artifact.
 // Retry (deepseek-v4.1-flash, issue 2982): re-confirmed 87.8%, one hunk left.
 // The original emits `mov [esp+0x24],ecx` (r.top) then `lea edx,[eax+0x8a];

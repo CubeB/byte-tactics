@@ -1,4 +1,30 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+
+// mimo-v2.6-pro retry (still 98.3%, best unchanged). New evidence, all 473
+// bytes, scratch in build/scratch/0x464700/: (1) v2 with the guard AFTER the
+// ff8 statement (A/B shape family) shows top-level statement stores DO sink:
+// the 16 clears after the if sink past the operator new call AND past the
+// Reset argument loads and `push eax`, landing just before the Reset call.
+// The sink target is therefore the next real call, which is past the slot the
+// original keeps the ff8 store in, so plain statement-shape sinking cannot
+// explain the original. (2) The six clears as one reverse chained assignment
+// (`p->fd4 = ... = p->fac = 0`, nested stores) with the ff8 statement at
+// position 3 gives 68.9, and all 22 clears chained in one statement 62.2:
+// nesting the clears does not delay the ff8 store. (3) `int t =
+// g_game->ticks;` at position 3 with `p->ff8 = t;` after the clears and the
+// guard at the end (v1 + tick temp only, the shape the earlier notes never
+// tried) gives 59.9: the tick lands in eax, the ref load sinks to the guard,
+// and the pool still flips. The same with a ref temp (H) 65.5, with unsigned
+// t (I) 59.9, with `int w, h;` hoisted above the clears (J) 59.9. (4) The
+// chain forms `p->ff8 = g_game->ticks + (p->fac = 0) + ... + (p->fd4 = 0)` and
+// the reversed operand order both give 68.9 with the loads still just in time.
+// Lead for whoever tries next: the guide's rotation note (0x402da0) says MSVC
+// 5 hands scratch registers out in rotation and one temporary more or fewer
+// earlier on shifts them; the original's three tick loads are exactly the
+// rotation (eax,ecx), (edx,eax), (ecx,edx), so the tick value sits in edx as
+// the 6th temporary of the block. The v1 shape already reproduces that
+// rotation; only the ff8 store's slot is wrong, so the remaining question is
+// unchanged: split the third load from its store without a named local.
 // GPT-6.1-sol retry in #3179: 6 checker invocations, best remains 98.3%. Empty guard scored 97.5%; tick-local probe tied at 98.3%. Remaining mismatch is p->ref comparison and p->ff8 store ordering around the first six zero stores.
 // Retry (deepseek-v4.1-flash, issue 2982): best stays v1 (tick store at
 // statement 3). The v4 shape puts the ff8 store/cmp pair after the six clears

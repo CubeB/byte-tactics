@@ -1,4 +1,9 @@
 // Decompiled by Sonnet 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3128 retry): still 99.2% (699 bytes, exact). The sole real
+// diff is the guard branch target, original `jge 0x4be671` vs ours `jge 0x4be66d`
+// (the `call 0x4be400` diff line is check.py masking the self-recursive call). The
+// 0x4bcb50 "live node in the loop-condition call demotes a register" trick is flat
+// here, so this is a reload-sinking / edge-target allocator choice, not source shape.
 // #2949 retry by GPT-6.1-sol: a fresh check reconfirmed 99.2% (699/699); the
 // guard branch still targets 0x4be66d instead of the original 0x4be671.
 // Walks a directory tree (the search 0x4bc4b0 allocates, the same one 0x4bcb50

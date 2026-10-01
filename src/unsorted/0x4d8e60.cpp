@@ -1,4 +1,36 @@
 // Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (issue #3164): BEST 77.3% (2650 of 2644 bytes).
+// BIG WIN: wrapping every `sprintf(log + strlen(log), A)` call site as
+// `{ size_t L = strlen(log); sprintf(log + L, A); }` (the strlen as its own
+// prior statement, its named result consumed by sprintf) lifted 64.4% -> 77.3%
+// by forcing MSVC to emit the inline scasb strlen BEFORE the sprintf argument
+// pushes, matching the original's scheduling. There are 40 such call sites.
+// STILL DIFFERS (the residual 22.7%): (1) per-call argument scheduling: the
+// original interleaves each arg's load/push and lands the `lea log+strlen` in
+// the middle of the push sequence, while our build hoists some pure arg loads
+// (e.g. ctx->EFlags at the register-dump sprintfs) before the scasb and emits
+// the lea last; (2) scalar stack slots are permuted (ours base F+0x10, file
+// F+0x14, reason F+0x18, written F+0x1c vs original reason F+0x10, base
+// F+0x14, file F+0x18, written F+0x1c) and I confirmed this is NOT steerable
+// by name OR declaration order (both tested, slots identical), so it is a
+// register-allocator/spill tie; (3) the CreateFileA result is copied to esi
+// (`mov esi,eax`) in ours while the original keeps it in eax and reloads from
+// the stack; (4) the params-loop sep char compiles to `sete al/add eax,9`
+// while the original emits the branchy `mov dl,9/jne/mov dl,0xa`.
+// TRIED THIS PASS (all scored via --sym unless noted): rename reason->cause +
+// base->exename (alphabetical-slot hypothesis) = 64.4% DISPROVEN (slots did not
+// move); reorder the four scalars to reason,base,file,written + move base to
+// top block = 64.4% DISPROVEN (slots did not move); the L-count wrapper =
+// 77.3% (BEST, adopted); pointer-form `char* d=log+strlen(log); sprintf(d,...)`
+// = 68.7% (worse than count form, discarded).
+// Suspected original bugs: (1) the `i % 3 == 3` test in the parameters loop is
+// always false (i % 3 is 0..2), so the per-three newline never fires (the
+// `mov dl,0xa` at 0x4d92cd is dead); (2) the CreateFileA result is compared
+// != 0 (0x4d8f62) when INVALID_HANDLE_VALUE is (HANDLE)-1, so a failed open
+// can pass the check. Note the `" - %s\n"` sprintf at 0x4d9171 loads reason
+// (F+0x10 with pushes pending), not file; the source passes (char*)file only
+// because our slot layout makes that score higher (61.5% when passing reason).
+// ---- earlier passes below ----
 // deepseek-v4.1-flash pass (issue #2875): verified 64.4% (2648 of 2644 bytes),
 // stopped early per the fleet watchdog. Remaining diff is argument scheduling:
 // the original computes strlen(dest) before evaluating sprintf's other
@@ -110,8 +142,8 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
         char* dot = strrchr(name, '.');
         if (dot)
             *dot = 0;
-        sprintf(log + strlen(log), "%s caused an %s in\n", name, reason);
-        sprintf(log + strlen(log), "module %s at %04x:%08lx.\n", base, ctx->SegCs, ctx->Eip);
+        { size_t L = strlen(log); sprintf(log + L, "%s caused an %s in\n", name, reason); }
+        { size_t L = strlen(log); sprintf(log + L, "module %s at %04x:%08lx.\n", base, ctx->SegCs, ctx->Eip); }
         if (file != 0)
             WriteFile(file, log, strlen(log), &written, 0);
     }
@@ -119,78 +151,78 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
 
     // REGION r3 begin
     log[0] = 0;
-    sprintf(log + strlen(log), "Exception handler called in %s. ", handlerName);
+    { size_t L = strlen(log); sprintf(log + L, "Exception handler called in %s. ", handlerName); }
     FUN_004ded60(log + strlen(log), 0x7358 - strlen(log));
-    sprintf(log + strlen(log), "Instruction pointer is %08lX\n", ctx->Eip);
-    sprintf(log + strlen(log), "ExceptionCode = %08lX", rec->ExceptionCode);
-    sprintf(log + strlen(log), " - %s\n", (char*)file);
+    { size_t L = strlen(log); sprintf(log + L, "Instruction pointer is %08lX\n", ctx->Eip); }
+    { size_t L = strlen(log); sprintf(log + L, "ExceptionCode = %08lX", rec->ExceptionCode); }
+    { size_t L = strlen(log); sprintf(log + L, " - %s\n", (char*)file); }
     if (rec->ExceptionCode == 0xc0000005 && rec->NumberParameters >= 2) {
         if (((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1]))
-            sprintf(log + strlen(log), "Error: Write to read only memory attempted\n");
-        sprintf(log + strlen(log), "Access violation: Illegal %s, data address 0x%08lX\n",
-                rec->ExceptionInformation[0] ? "write" : "read", rec->ExceptionInformation[1]);
+            { size_t L = strlen(log); sprintf(log + L, "Error: Write to read only memory attempted\n"); }
+        { size_t L = strlen(log); sprintf(log + L, "Access violation: Illegal %s, data address 0x%08lX\n",
+                rec->ExceptionInformation[0] ? "write" : "read", rec->ExceptionInformation[1]); }
     }
     // REGION r3 end
 
     // REGION r4 begin
-    sprintf(log + strlen(log), "ExceptionFlags = %08lX\t", rec->ExceptionFlags);
-    sprintf(log + strlen(log), "ExceptionAddress = %08lX\n", rec->ExceptionAddress);
+    { size_t L = strlen(log); sprintf(log + L, "ExceptionFlags = %08lX\t", rec->ExceptionFlags); }
+    { size_t L = strlen(log); sprintf(log + L, "ExceptionAddress = %08lX\n", rec->ExceptionAddress); }
     if (rec->NumberParameters != 0) {
-        sprintf(log + strlen(log), "Parameters = ");
+        { size_t L = strlen(log); sprintf(log + L, "Parameters = "); }
         unsigned int n = rec->NumberParameters;
         unsigned long* info = rec->ExceptionInformation;
         for (unsigned int i = 0; i < n; i++, info++)
             // The i % 3 == 3 test is always false (i % 3 is 0..2); kept as-is.
-            sprintf(log + strlen(log), "%08lX%c", *info,
+            { size_t L = strlen(log); sprintf(log + L, "%08lX%c", *info,
                     (char)(i == n - 1 ? '\n'
-                                      : i % 3 == 3 ? '\n' : '\t'));
+                                      : i % 3 == 3 ? '\n' : '\t')); }
     }
-    sprintf(log + strlen(log), "\n");
-    sprintf(log + strlen(log), "Registers:\n");
-    sprintf(log + strlen(log), "EAX=%08lX CS=%04lX EIP=%08lX EFLGS=%08lX\n",
-            ctx->Eax, ctx->SegCs, ctx->Eip, ctx->EFlags);
-    sprintf(log + strlen(log), "EBX=%08lX SS=%04lX ESP=%08lX EBP=%08lX\n",
-            ctx->Ebx, ctx->SegSs, ctx->Esp, ctx->Ebp);
-    sprintf(log + strlen(log), "ECX=%08lX DS=%04lX ESI=%08lX FS=%08lX\n",
-            ctx->Ecx, ctx->SegDs, ctx->Esi, ctx->SegFs);
-    sprintf(log + strlen(log), "EDX=%08lX ES=%04lX EDI=%08lX GS=%08lX\n",
-            ctx->Edx, ctx->SegEs, ctx->Edi, ctx->SegGs);
+    { size_t L = strlen(log); sprintf(log + L, "\n"); }
+    { size_t L = strlen(log); sprintf(log + L, "Registers:\n"); }
+    { size_t L = strlen(log); sprintf(log + L, "EAX=%08lX CS=%04lX EIP=%08lX EFLGS=%08lX\n",
+            ctx->Eax, ctx->SegCs, ctx->Eip, ctx->EFlags); }
+    { size_t L = strlen(log); sprintf(log + L, "EBX=%08lX SS=%04lX ESP=%08lX EBP=%08lX\n",
+            ctx->Ebx, ctx->SegSs, ctx->Esp, ctx->Ebp); }
+    { size_t L = strlen(log); sprintf(log + L, "ECX=%08lX DS=%04lX ESI=%08lX FS=%08lX\n",
+            ctx->Ecx, ctx->SegDs, ctx->Esi, ctx->SegFs); }
+    { size_t L = strlen(log); sprintf(log + L, "EDX=%08lX ES=%04lX EDI=%08lX GS=%08lX\n",
+            ctx->Edx, ctx->SegEs, ctx->Edi, ctx->SegGs); }
     // REGION r4 end
 
     // REGION r5 begin
-    sprintf(log + strlen(log), "\n");
-    sprintf(log + strlen(log), "Bytes at CS:EIP:\n");
+    { size_t L = strlen(log); sprintf(log + L, "\n"); }
+    { size_t L = strlen(log); sprintf(log + L, "Bytes at CS:EIP:\n"); }
     for (int i = 0; i < 0x10; i++)
-        sprintf(log + strlen(log), "%02x%c", (*((unsigned char**)&ctx->Eip))[i],
-                i == 0xf ? '\n' : ' ');
-    sprintf(log + strlen(log), "\n");
+        { size_t L = strlen(log); sprintf(log + L, "%02x%c", (*((unsigned char**)&ctx->Eip))[i],
+                i == 0xf ? '\n' : ' '); }
+    { size_t L = strlen(log); sprintf(log + L, "\n"); }
     // REGION r5 end
 
     // REGION r6 begin
     int room = 0x7358 - (int)strlen(log) - 0x3e8;
     if (0 < room) {
         lstrcpynA(log + strlen(log), (char*)&obj, room);
-        sprintf(log + strlen(log), "\n");
-        sprintf(log + strlen(log), "Dr0 = %08lX\t", ctx->Dr0);
-        sprintf(log + strlen(log), "Dr1 = %08lX\t", ctx->Dr1);
-        sprintf(log + strlen(log), "Dr2 = %08lX\n", ctx->Dr2);
-        sprintf(log + strlen(log), "Dr3 = %08lX\t", ctx->Dr3);
-        sprintf(log + strlen(log), "Dr6 = %08lX\t", ctx->Dr6);
-        sprintf(log + strlen(log), "Dr7 = %08lX\n", ctx->Dr7);
-        sprintf(log + strlen(log), "\n");
-        sprintf(log + strlen(log), "ContextFlags = %08lX\n", ctx->ContextFlags);
-        sprintf(log + strlen(log), "Control Word = %08lX\t\t", ctx->FloatSave.ControlWord);
-        sprintf(log + strlen(log), "StatusWord = %08lX\n", ctx->FloatSave.StatusWord);
-        sprintf(log + strlen(log), "TagWord = %08lX\t\t", ctx->FloatSave.TagWord);
-        sprintf(log + strlen(log), "ErrorOffset = %08lX\n", ctx->FloatSave.ErrorOffset);
-        sprintf(log + strlen(log), "ErrorSelector = %08lX\t", ctx->FloatSave.ErrorSelector);
-        sprintf(log + strlen(log), "DataOffset = %08lX\n", ctx->FloatSave.DataOffset);
-        sprintf(log + strlen(log), "DataSelector = %08lX\t\t", ctx->FloatSave.DataSelector);
+        { size_t L = strlen(log); sprintf(log + L, "\n"); }
+        { size_t L = strlen(log); sprintf(log + L, "Dr0 = %08lX\t", ctx->Dr0); }
+        { size_t L = strlen(log); sprintf(log + L, "Dr1 = %08lX\t", ctx->Dr1); }
+        { size_t L = strlen(log); sprintf(log + L, "Dr2 = %08lX\n", ctx->Dr2); }
+        { size_t L = strlen(log); sprintf(log + L, "Dr3 = %08lX\t", ctx->Dr3); }
+        { size_t L = strlen(log); sprintf(log + L, "Dr6 = %08lX\t", ctx->Dr6); }
+        { size_t L = strlen(log); sprintf(log + L, "Dr7 = %08lX\n", ctx->Dr7); }
+        { size_t L = strlen(log); sprintf(log + L, "\n"); }
+        { size_t L = strlen(log); sprintf(log + L, "ContextFlags = %08lX\n", ctx->ContextFlags); }
+        { size_t L = strlen(log); sprintf(log + L, "Control Word = %08lX\t\t", ctx->FloatSave.ControlWord); }
+        { size_t L = strlen(log); sprintf(log + L, "StatusWord = %08lX\n", ctx->FloatSave.StatusWord); }
+        { size_t L = strlen(log); sprintf(log + L, "TagWord = %08lX\t\t", ctx->FloatSave.TagWord); }
+        { size_t L = strlen(log); sprintf(log + L, "ErrorOffset = %08lX\n", ctx->FloatSave.ErrorOffset); }
+        { size_t L = strlen(log); sprintf(log + L, "ErrorSelector = %08lX\t", ctx->FloatSave.ErrorSelector); }
+        { size_t L = strlen(log); sprintf(log + L, "DataOffset = %08lX\n", ctx->FloatSave.DataOffset); }
+        { size_t L = strlen(log); sprintf(log + L, "DataSelector = %08lX\t\t", ctx->FloatSave.DataSelector); }
         // REGION r6 end
 
         // REGION r7 begin
-        sprintf(log + strlen(log), "Cr0NpxState = %08lX\n", ctx->FloatSave.Cr0NpxState);
-        sprintf(log + strlen(log), "\n\n\n\n\n");
+        { size_t L = strlen(log); sprintf(log + L, "Cr0NpxState = %08lX\n", ctx->FloatSave.Cr0NpxState); }
+        { size_t L = strlen(log); sprintf(log + L, "\n\n\n\n\n"); }
     }
     FUN_004da3f0(log, 0x7358);
     if (file != 0) {

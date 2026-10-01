@@ -1,4 +1,18 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 11 (deepseek-v4.1-flash, 10-minute box): five probes on the 89.5
+// file, none better. The original's `mov eax,[ebp]; mov esi,eax` top (the load
+// landing in eax and being copied to root's esi) is a front-end copy node, and
+// the spellings that should force it do not: `nsize = (root = out[0]) + 8` and
+// the CSE order `nsize = out[0] + 8; root = out[0]; out[0] = nsize;` both give
+// `mov esi,[ebp]; lea eax,[esi+8]` / `mov esi,[ebp]; mov [esp+0x18],esi;
+// lea eax,[esi+8]` at 83.4 percent / 1146 bytes; the nsize-first temp load is
+// 82.4 / 1146 (its spill placement does match the original's late [esp+0x24],
+// so that ordering comes from the nsize variable's presence, but the whole
+// downstream allocation shifts). Two declaration-order permutations of
+// h/trailing/root/entries are byte flat at 89.5, so the local declaration
+// order is not the lever either. Conclusion unchanged: one front-end copy node
+// decides esi vs eax here, and every spelling tested so far lets MSVC coalesce
+// the load straight into esi.
 // Session 10 (deepseek-v4.1-flash, 10-minute box): three fresh probes on the
 // 89.5 file, none better: nsize-first temp load (`unsigned int nsize = out[0];
 // root = nsize; out[0] = nsize + 8;`) gives the original eax-load/esi-copy top

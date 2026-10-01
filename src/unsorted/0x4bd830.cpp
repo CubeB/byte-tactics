@@ -1,4 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 7 (deepseek-v4.1-flash): renaming clen (name-hash slot theory) is
+// byte-flat at 61.9, so the stack-slot colour is not name-keyed either; the
+// layout is decided by something internal to the allocator, not by
+// declaration order, not by identifier spelling, not by use order in the
+// source. Timebox fired; this remains the best scored version.
 // Session 6 (deepseek-v4.1-flash): best remains 61.9 percent (this file).
 // What still differs: the stack-slot map is a permutation (original nameoff
 // +0x20, i +0x34, recarr +0x3c, dataptr +0x10; ours nameoff +0x28, i +0x38),

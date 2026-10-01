@@ -1,5 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// deepseek-v4.1-flash retry 11 (10 min timebox): re-confirmed 57.4 percent /
+// 5977 bytes. All cheap named levers were re-checked against the notes below
+// and are already tried or byte-neutral (the `add eax,esi` clamp operand order
+// tied at 53.1 when swapped, the named delta temp in the pDVar1[19] tick
+// update is neutral, the 0x52 read-pair and 0xdcb prologue pointer spellings
+// regress). The residual is exactly the two big register/scheduling regions
+// listed in retry 10 below.
 // deepseek-v4.1-flash retry 10 (10 min timebox): 5979 -> 5977 bytes, still
 // 57.4 percent. The 0x222 argument to the first FUN_004bf6f0 read the field as
 // a byte with a zero-extend (`xor ecx,ecx; mov cl,[esi+0x222]`); the original

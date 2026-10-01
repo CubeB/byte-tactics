@@ -80,6 +80,11 @@
 // one instruction after the call (a 2-line diff). The scheduler will not move a
 // store past a call that may alias mem, so the push shadow at [esp+0x14] is
 // still not reachable from any legal source order.
+// Pass 6 (deepseek-v4.1-flash) confirmed two more permutations are worse: moving
+// the 391f5 store after the whole mem block scores 98.1% (the ecx/edx homes swap
+// too), and moving the mem block above that store scores 97.3% (the dwLength
+// store does reach the push shadow, but the nine zero stores re-schedule), so the
+// 99.6% store-before-push shape below stays the best known version.
 
 #include <string.h>
 #include <windows.h>

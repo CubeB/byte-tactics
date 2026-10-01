@@ -201,6 +201,39 @@
 // same single block described above: the history store must sit at slot 5
 // (before the pointer spill) and `sub eax, 0` at slot 9 (after the value
 // store).
+//
+// Appended by mimo-v2.6-pro (second pass). THE SINK RULE IS NOW KNOWN, and
+// the exact target order was reproduced in a science model (build/scratch/
+// 0x4ba000/sci/w95.cpp): MSVC 5 delays plain local/global stores to just
+// before the block's terminator branch whenever the block ends in a dispatch
+// (a switch or an if/else chain). The delay is prevented only by an aliasing
+// hazard: a store with a VARIABLE index into an object that also holds other
+// accesses pins every store in the block in place (verified two ways: a local
+// struct { h[256]; int st; unsigned char val; } with `s.h[n] = c` pins the
+// s.st load and s.val store; changing to s.h[0] = c removes the hazard and
+// the stores sink again). With the stores pinned, source order
+//     c = *p; DAT_0051fcaf[n] = c; p = p + 1; value = c; switch (state)
+// emits EXACTLY the original block: load p, n++, load byte, p+1 (hoisted),
+// hist store, p store (its statement position), state load (hoisted above
+// the value store), value store, sub eax,0, je. The split read (c = *p
+// before the hist store, the pointer update after it) is what puts the hist
+// store at slot 5 and the p store at slot 6.
+// What is still missing is the aliasing hazard for this exact frame: the
+// original's hist store is a direct global array store
+// (`mov [esi+0x51fcaf], bl`) and state/value are stack slots, and MSVC 5 does
+// NOT treat a global store with a variable index as aliasing the stack (the
+// science model r1/y100/y101 confirm: same shape, stores sink). So the
+// original's source must reach that aliasing some other way (or pin the
+// stores some other way) that was not found. Tried and rejected this pass:
+// pointer/reference parameters (fold to direct stores, keep the delay),
+// local pointers to the slots (folded, delayed), state read through a local
+// pointer (folded, delayed), parameter-slot stores (delayed), switch
+// expression tricks state + (value = c) * 0 and (value = c) * 0 + state
+// (the store still sinks; with the byte in al they only ever reorder the
+// flush, never un-sink it), an out-of-bounds declared array size (delayed).
+// Also confirmed the compare sub eax,0 is not the lever: it sits after the
+// flushed stores in every pinned variant and before them in every sunk one,
+// so fixing the sink fixes the compare position too.
 
 extern unsigned char DAT_0051fcaf[];
 extern unsigned char DAT_0051fcb0[];

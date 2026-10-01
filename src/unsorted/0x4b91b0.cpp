@@ -1,4 +1,75 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (session 2): BEST 55.9% (419/423), up from
+// 54.5%. The win is the outer loop written as a for with TWO induction
+// variables in its head, `for (y = 0; y < h; y++, base += w)` (the guide's
+// "Loops with several induction variables" item); base += w as a body
+// statement scores 54.5 and y/base both in the for-init scores 52.6.
+//
+// What still differs is the one register rotation the notes below describe,
+// and I mapped its mechanism exactly this session:
+//  - The pre-call family is decided by whether f (the alloc result) keeps a
+//    callee-saved register. Every spelling where the else branch computes the
+//    store index ONCE (`int idx = base + x` used both as `f->cells[idx]` and in
+//    the value subtraction, or `*(f->cells + idx)`) flips f to a stack spill
+//    (the original's shape: `mov [esp+0x38], ecx` right after the call, stores
+//    through ecx) and puts h in a callee-saved register; but MSVC then
+//    restructures the loop into a walking pointer (`mov [edx], cx; add ecx, 2`)
+//    and the score collapses to 35-37%. Every spelling without that shared idx
+//    keeps f in edi, leaves h to be reloaded from its arg slot, and folds the
+//    0x18 header offset into the base accumulator (base = 12), all as the
+//    old notes describe. The original CSEs base+x across the store address and
+//    the value subtraction WITHOUT a named idx (its falloff path is
+//    `add esi, edi` with esi = base, then `mov esi, [esp+0x18]` to restore
+//    base), and no spelling here reproduces that CSE: the compiler splits the
+//    subtraction into -x and -base instead.
+//  - The prologue's `lea edi,[ebp+ebp]; mov ebx,edi; imul ebx,esi` is
+//    count = pitch*h with pitch a variable (no reassociation); the
+//    (w*2)*h family that scores best here always reassociates to (w*h)*2
+//    (`imul esi,ebp; shl esi,1`) which clobbers h's register. The pitch*h
+//    spellings give count=ebx but pitch=esi and h never loaded, and score
+//    52.6. `unsigned short pitch` + `f->pitch = pitch / 2` (or
+//    `f->pitch = f->pitch / 2`) is what emits the 16-bit `shr di,1`;
+//    `f->pitch = (unsigned short)(pitch / 2)` with int pitch gives a 32-bit
+//    sar instead.
+//  - A `unsigned short* p = f->cells;` local feeding the data/end stores fixes
+//    the end-pointer add direction (`add eax, ebx` into the data register, as
+//    the original); without it MSVC emits `add esi, eax` the other way round.
+//    On this base it is score-neutral (55.9 either way) because the h reload
+//    lands between the add and the end store.
+//
+// Tried this session, all scored free with check.py --sym (none beat 55.9):
+// ~70 full-function variants. Structure: for-head base in 3 forms; idx/src
+// temps in the else branch (with and without the for-head), idx only in the
+// subtraction, cell pointers, `*(f->cells + idx)`, value-into-local, 5 value
+// groupings including sequential accumulation and (dx/g)+(hw+term); init:
+// p-local with data/end/height in 6 store orders, height first (54.3), the
+// 0x4c69f0-style static inline Init helper; halvings in 6 statement orders,
+// hw/hh as int with (short) casts (32.3), hw int + hh short and the reverse
+// (the target's `sub eax, ebx` for dx = x - hw is an untruncated int hw read
+// while `movsx ebx, word [esp+0x40]` is a (short) cast in the value, so hw
+// and hh may genuinely be differently typed, but every typing here scores
+// worse while the register family is wrong); count = pitch*h / h*pitch /
+// (w*2)*h / w*h*2 / w*h+w*h / (w*h)*2 / h*(w*2) / pitch*h via ushort height
+// locals; scale declared first/middle/last (first is best: 55.9); thresh in
+// the outer body (41.3, much worse); while-loop inner (55.9, no change).
+// tools/permute.py: run 1 died (started with plain python3 instead of uv run),
+// run 2 (on the old 54.5 base) stayed at 54.5, run 3 (on this 55.9 base,
+// 10953 candidates) stayed at 55.9 with only this 2-line statement move as its
+// best (the hh declaration moved between the pitch/2 and half_height stores;
+// same check.py % but its fine score dropped 3514 -> 3259, so the instruction
+// alignment is closer). Its output is in the MAIN checkout's
+// build/permute/0x4b91b0/ (permute.py resolves its root from __file__), not
+// this worktree's; re-derive from there if useful.
+//
+// STRUCTURE CORRECTION (the "Cavedog slip" note below is wrong): the field at
+// +0x14 is not a one-past-the-end pointer, it is a SECOND buffer pointer.
+// count = 2*w*h BYTES is the size of ONE buffer (w*h shorts), the allocation
+// is 0x18 + 2 buffers (count*2 + 0x18) and the loop fills exactly the first
+// (w*h cells). [ecx+0x10] = f+0x18 and [ecx+0x14] = f+0x18+count are the two
+// buffer starts, matching Image_004b95a0 (data +0x10, mask +0x14) and
+// Sprite_004b9360 (buffers[2] at +0x10). Nothing is over-allocated, so do
+// not report a bug for it.
+
 // mimo-v2.6-pro 2026-10-01 continuation: STILL 54.5%, could not break it. The
 // residual is one hard register rotation rooted entirely in the pre-call, and I
 // confirmed it is a genuine two-way dichotomy with NO source spelling in
@@ -241,13 +312,13 @@ unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
     if (!f)
         return 0;
     short hw = (short)(w / 2);
-    short hh = (short)(h / 2);
     f->pitch = (unsigned short)pitch / 2;
     f->half_width = (short)(w / 2);
+    short hh = (short)(h / 2);
     f->half_height = (short)(h / 2);
     int base = 0;
     int y;
-    for (y = 0; y < h; y++) {
+    for (y = 0; y < h; y++, base += w) {
         int x;
         for (x = 0; x < w; x++) {
             int dy = y - hh;
@@ -263,7 +334,6 @@ unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
                 f->cells[base + x] = (unsigned short)(hw + (((int)((double)dy / g)) + hh) * w + ((int)((double)dx / g)) - (base + x));
             }
         }
-        base += w;
     }
     return (unsigned char*)f;
 }

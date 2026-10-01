@@ -84,6 +84,31 @@
 // to test the imul operand-order rule. Sibling 0x4c8bb0.cpp (matched, same
 // algorithm with a light channel) is the reference for declaration/scope
 // structure producing the original slot table.
+// Sixth pass (deepseek-v4.1-flash, timeboxed): tried the untried lever of
+// split next + named nextVertex (varA in build/scratch/0x4c8760/): `int next`
+// block-scoped in both edge loops (next1=previous-fixup form in loop1,
+// next2=(index+1)&3 in loop2) plus a named `int* nextVertex=vertices+next*3`
+// used for every vertices[next*...] read, so next1 dies at coords[next1*2+1]
+// before dv's def. The next1/dv sharing DOES reproduce (both land in one
+// slot) but the arena compacts to 13 slots, frame 0x7d54, 67.9% (the same
+// attractor the earlier passes hit). The /Fa listing equates show the whole
+// table moved: {y1,n1}=0x10, {dv,next1}=0x14, {lowX,out1,next2}=0x18, x=0x1c,
+// highY=0x20, {lowIndex,n2}=0x24, du=0x28, lowY=0x2c, dx=0x30, out2=0x34
+// (out1/out2 no longer merge!), {previous,nextVertex}=0x38, highIndex=0x40,
+// and bottom no longer spills at all. So the shrink is not one merge: the
+// split of next perturbs every later decision (y1 merges with n1, previous
+// with nextVertex even though the two overlap on full live ranges, the two
+// out blocks stop merging, bottom stays in a register). Conclusion: MSVC 5
+// colours spill ranges, not live ranges, so no liveness argument can pin the
+// original's non-maximal 14-slot grouping {next1,dv}=0x10, {lowX,n1,next2}=
+// 0x14, nextVertex=0x38. Reading block locals: /Fa emits them as _name$NNN
+// equates at the top of the listing; for a 0x7d54 frame slot X (esp+X after
+// the four pushes) is equate -(32100-X). Still open when the box fired: put
+// one spanning lifetime (function-scope n, or out hoisted) back on top of the
+// split-next shape to force the arena to 14 slots with the original grouping;
+// and the fixup imul operand order (original `mov ecx,[mem]; imul ecx,ebp`
+// vs ours `mov ecx,ebp; imul ecx,[mem]`, same 7 bytes) still untested as
+// `y0*dx` source text.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

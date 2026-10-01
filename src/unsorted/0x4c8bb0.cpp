@@ -1,4 +1,29 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (timeboxed), body unchanged at 54.1%. The untried
+// "unpinned vertices" lever from the brief was tested and does NOT grow the
+// frame: the missing 16th slot [esp+0x4c] (raw index-1 of loop1) stays absent
+// and the frame stays 0x7d5c in every form. Measured (free --sym):
+//  - vA: sibling 0x4c8760 loop shape (currentVertex pointer + inline
+//    vertices[next*4], live previous tail index=previous;if(<0)=3): 26.5%.
+//  - vB: ALL vertex reads recomputed inline (no cv/nv pointer at all),
+//    previous live to a re-fixed tail: 50.8%, 1286B. Prologue still pins
+//    vertices in esi and zeroes edx (NOT the original's zero-ebp / reload-
+//    vertices set), proving "recompute at each use" alone does not unpin it.
+//  - vK: BOTH currentVertex and nextVertex pointers so vertices is touched
+//    only at the loop head (the true original access pattern), + live previous
+//    tail. Written but not scored before the timebox; candidates for the next
+//    pass to measure first.
+// Root cause confirmed again: MSVC merges `previous` (raw index-1) into next's
+// slot because at body peak next dies early (last read coords[next*2+1]) and
+// previous is only read at the tail, so their live ranges are disjoint and the
+// allocator shares one slot, keeping the frame at 15. The original does NOT
+// merge them (previous 0x4c, next/dz 0x14): its four accumulators u,v,z,lg sit
+// in esi/edi/ebx/ebp so no callee-saved reg is free for the long-lived
+// previous, forcing it to spill to 0x4c. Ours frees a callee-saved reg (by
+// pinning vertices to one and/or spilling an accumulator), so previous stays
+// in a register and never gets a slot. Next lever to try: force the four
+// accumulators u,v,z,lg to occupy esi/edi/ebx/ebp simultaneously (write them
+// as live locals read/written across the whole body) so previous must spill.
 // Partial 54.1% (best this file has reached; check.py prints 54.1).
 // space-bunny-free pass: no improvement, all variants below scored below the
 // 54.1% baseline, so this file is unchanged apart from these notes. What I

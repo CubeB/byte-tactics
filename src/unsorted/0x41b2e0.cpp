@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // #2847 retry by GPT-6.1-sol: the six checker attempts preserved the 59.6%
 // best. Masked-word stores and XOR assignment reduced the score; live-zero,
 // first/count stack homes, and tail bit-write registers still differ.
@@ -62,6 +62,19 @@
 // so the sink is not reachable without losing the 0x240 frame. Remaining work
 // needs allocator state the source cannot steer: the ESI/EBP zero split and
 // the first/count register homes.
+//
+// deepseek-v4.1-flash, fifth pass (retry at 59.6%): fresh experiments confirm
+// the ceiling and find no new lever. Sinking only count, only first, or both
+// (with or without an unsigned short zero local replacing the unitIndex
+// compare/store) all stay at 32.8% and 0x244/1496 bytes. Applying the short
+// zero to the compare alone (v3), swapping the first/count declaration order,
+// and hoisting first/count above onOff are all byte-identical to the 59.6%
+// output. Declaring first/count after player or assigning first=0/count=0 just
+// before the branch is 57.3%, 1520 bytes. Only the prologue store from the
+// declaration initialiser reaches 0x240/1533. What still differs is unchanged:
+// ESI/EBP zero split, first/count homes (ours first=0x10, onOff=0x18,
+// cloak=0x14, u=0x1c; original onOff=0x10, u=0x14, cloak=0x18, first=0x1c),
+// and the tail bit writes using EAX/EBX where the original uses EBX/EDX.
 
 #include <vector>
 #include <windows.h>

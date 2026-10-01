@@ -46,6 +46,13 @@
 // alias emitted identical code; a local vector pointer and null-check variants
 // scored lower. The destruction/record loops still differ in register lifetime,
 // reloads, and switch scheduling.
+// deepseek-v4.1-flash retry #4 (10 min): still 69.1% / 1514 bytes. Tried
+// explicit countdown tail loops with a running byte offset
+// (for (k = count; k > 0; k--, pos += size)), scored 68.9%; MSVC already
+// strength-reduces k*sizeof to a running offset, so that is not the lever.
+// Root remains the post-names join: original keeps ebp = 0 there and reuses
+// ebp for file (0x424f45), giving ebx as the loop count; ours materialises the
+// zero in edi and loads file into ebx/esi, costing 18 bytes.
 
 #include <string.h>
 #include <utility>

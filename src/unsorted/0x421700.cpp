@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // #2847 retry by GPT-6.1-sol: five attempts kept the 71.7% best. Reordering
 // locals dropped to 71.2%; the frame, x87 schedule, local slots, and loop
 // register/control flow still differ. One compiler launch failed; one run was silent.
@@ -23,6 +23,22 @@
 //    named ab local does shrink the frame from 0xa8 to 0xa0, but the call
 //    argument/return temporary schedule changes and the score drops to 47.7,
 //    so the named ab local is required. Nothing else tried beat 71.7.
+// deepseek-v4.1-flash 01:12Z retry, all scored with scratch copies, none beat
+// 71.7 so the base stays:
+//  - ni as three plain int locals (nx,ny,nz): 70.7, frame still 0xa8, so the
+//    0x18 excess is not ni; it is exactly the ab and n Vec3f locals plus the
+//    arg-buffer reuse.
+//  - piece declared first (piece,count,verts,unit,desc) using param->obj
+//    inline: 71.7 tie; unit-first with unit->pieces: 70.9.
+//  - ab/n hoisted to the top of the function: 71.7 tie.
+//  - nine floats as Vec3f a,b,c (constructor or member assignment) with ab/n:
+//    46-47.6%, frame 0x8c, and the by-value arg copies collapse (the compiler
+//    aliases the arg buffers with a,b,c), so the original almost certainly has
+//    a,b,c stored as separate floats and copied into the call buffers.
+//  - the by-value Vec3f argument schedule is the real blocker: the original
+//    (0x4219ac-0x421ad7) stores a/b/c to [esp+0x58..0x78], copies a,b into the
+//    first f_eb0 buffers, then REUSES parts of c's slots for ab before the
+//    second call. Reproducing that aliasing at source level is unresolved.
 // What helped: declaring count, verts and desc in that order (desc assigned
 // last, after the g_game->debrisCount alias) lifted 70.9 to 71.7 with the same
 // 0xa8 frame. Earlier notes: ab/n declared uninitialised and assigned on the

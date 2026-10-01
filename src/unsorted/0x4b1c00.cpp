@@ -1,5 +1,7 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// BEST 25.0% (586 bytes original, 569 ours). No MATCH.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// BEST 27.1% (586 bytes original, 571 ours). No MATCH. The final retry by
+// GPT-6.1-sol removed the `lim` local and repeated its indexed expression at
+// each use, improving the prior 25.0% version. A k-pointer alias scored 24.5%.
 // Retry pass (deepseek-v4.1-flash) tried and rejected, all scoring below the
 // 25.0% above: flattening the record to int* with a byte cursor (11.4%),
 // keeping i/off/k as three explicit counters and inlining the byte-offset
@@ -85,19 +87,18 @@ void Class_004b1c00::FUN_004b1c00(int param_1)
             do {
                 if (ptr14[i].block.e[1].v[j] != 0) {
                     int v = FUN_00480c30(i, j) + param_1 * ptr14[i].block.e[1].v[j];
-                    int lim = ((int*)ptr14)[k + j - 12];
                     if (ptr14[i].block.e[1].v[j] > 0) {
-                        if (v < lim)
+                        if (v < ((int*)ptr14)[k + j - 12])
                             ptr14[i].flag = 1;
                         else {
-                            v = lim;
+                            v = ((int*)ptr14)[k + j - 12];
                             ptr14[i].block.e[1].v[j] = 0;
                         }
                     } else {
-                        if (v > lim)
+                        if (v > ((int*)ptr14)[k + j - 12])
                             ptr14[i].flag = 1;
                         else {
-                            v = lim;
+                            v = ((int*)ptr14)[k + j - 12];
                             ptr14[i].block.e[1].v[j] = 0;
                         }
                     }

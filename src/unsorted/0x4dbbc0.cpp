@@ -1,5 +1,12 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 87.4% (311 of 311 bytes; every instruction is in place).
+// deepseek-v4.1-flash (#3118 retry): still 87.4%, 311/311. Re-tried the pair
+// return as: ctor body assignment, second as int, first/second by value one at
+// a time, init-list order swapped, a redundant iterator self-assignment
+// (`it = ans.first; ans.first = it;`) and bool self-assignment in the wrapper,
+// an explicit copy ctor on the iterator, `return ans;`, and explicit
+// field-by-field stores into a fresh out local (worse, 83.7). All stayed at
+// 87.4% or fell, so this is the compilation-state tie already recorded below.
 // deepseek-v4.1-flash (#2937 retry): still 87.4%. The only residual is a global
 // ecx<->edx role swap in the pair return copy (original dword->edx/byte->cl, ours
 // dword->ecx/byte->dl), consistent at all four exits. `second` as unsigned char/

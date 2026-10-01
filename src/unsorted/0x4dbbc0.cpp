@@ -1,5 +1,26 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL, 87.4% (311 of 311 bytes; every instruction is in place).
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// MATCH (311 of 311 bytes).
+// Space Bunny Free (2026-10-01): this closes the ecx/edx question every earlier
+// round was stuck on. The original copies the pair into the return slot with the
+// byte in cl and the dword in edx at all four exits; the implicit memberwise
+// copy always gives the dword ecx and the byte dl. The lever is the order of
+// the two member writes in a user-defined COPY constructor: writing `second`
+// before `first` (as a constructor body, not as an initialiser list, which
+// MSVC 5 sorts back into declaration order) makes MSVC give cl to the byte and
+// edx to the dword. That one change fixes all four sites at once, including the
+// three true exits built by the two-argument constructor further down, which
+// keeps its initialiser list and therefore its ascending stores. Writing both
+// constructors that way (the shape that reaches 96.9% on its own) puts the byte
+// store first at every site, so only the copy constructor wants reversing.
+// Also tried on the way, all worse or neutral: reversing the initialiser list,
+// `second` as unsigned char or char, as a nested one-byte class, `first` as a
+// base class, the constructors' parameters by value (a real MSVC temporary:
+// ascending stores and cl for the byte, but the return slot lands in edx, the
+// dword in eax, and the function grows a `mov eax,edx` because a
+// struct-returning function must leave the buffer pointer in eax), a named bool
+// local at each return, a temporary byte computed before the two assignments
+// (that merges the three tails into one shared block), and a 49-way sweep of
+// copy-constructor form x two-argument-constructor form.
 // deepseek-v4.1-flash (#3301 retry, 2026-10-01): still 87.4%, 311/311. New
 // evidence on the residual: the original's pair copy is MSVC's reverse-order
 // memberwise class copy (byte first: `mov cl,[src+4]; mov edx,[src];
@@ -129,7 +150,17 @@ public:
 };
 
 inline Class_004ddbe0::Class_004ddbe0() {}
-inline Class_004ddbe0::Class_004ddbe0(const Class_004ddbe0& o) : first(o.first), second(o.second) {}
+// The byte is copied before the iterator on purpose. The implicit memberwise
+// copy gives MSVC 5 the first free register for `first`, so the return slot is
+// filled with ecx/dl where the original uses edx/cl; reversing the two
+// assignments puts the byte in cl and the iterator in edx at all four return
+// sites, which is what the original does. The two-argument constructor below
+// keeps its initialiser list, and with it the stores stay in member order.
+inline Class_004ddbe0::Class_004ddbe0(const Class_004ddbe0& o)
+{
+    second = o.second;
+    first = o.first;
+}
 inline Class_004ddbe0::Class_004ddbe0(const Class_004dd2a0& f, const bool& s)
     : first(f), second(s) {}
 

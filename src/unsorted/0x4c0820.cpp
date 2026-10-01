@@ -9,6 +9,10 @@
 // color in ebp (original: color in ebx, surf in ebp, pushed in the same order either way).
 // Re-tested here: reading y1 before y0 (both walks) is 60.7 percent / 609 bytes, a for-loop final
 // scan is byte-identical at 98.0, and hoisting surf into a local fails to compile as edited.
+// deepseek-v4.1-flash (#3940): local copies of the call arguments inside the if (c = color; sf = surf;)
+// are dead-code eliminated and leave the diff byte-identical at 98.0 / 613, so the surf/color ebx/ebp
+// pick is not reachable through the copy-to-locals trick. Swapping walk1's out/i statement order fixes
+// the tail hunk but re-allocates the whole walk (86.2 percent / 614 bytes). Both reverted.
 //
 // PARTIAL 94.1%, 613 of 613 bytes. The two edge walks read pts[i]/pts[j] fields directly
 // instead of caching &pts[i]/&pts[j] in pointer locals, share y0/y1/x/dx at function scope, and the

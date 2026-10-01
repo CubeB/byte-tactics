@@ -10,6 +10,18 @@
 // our duplicate-colour scan loads myColour before the numPlayers<=0 test where the
 // original sinks it after. All jump targets differ as a consequence. GPT-6.1-sol's
 // retry pass for issue #3188 notes below still apply.
+// deepseek-v4.1-flash pass (issue #3907, 10 min box): base re-verified at 74.1%
+// (1024 of 1034 bytes), 17 check runs. Every single-spelling perturbation of the
+// g_game/game mix regresses, so the kept mix is a local optimum: all body via
+// game-> 30.0, else-block menus via game-> 27.8, inverted count branch 72.9,
+// myColor read via game-> 52.0, final colour store via game-> 51.8, holder->entries
+// via g_game-> 57.5, case-2 numPlayers via g_game-> 59.8, the four controller
+// stores via g_game-> 52.4, switch/tail test/dup-loop-conditions via g_game->
+// 55.3/48.0/46.2, FreeColour passed g_game 40.6, full g_game-only body with every
+// local kept 44.1. Byte-neutral (all 74.1, 1024 bytes): hoisted `int mode = (count
+// == 0)`, named switch selector `int ctl = ...; switch (ctl)`, and `register
+// Game_004797e0* game`. The residue is therefore one allocator coin-flip (g_game
+// vs the scaled index for ebp) that no single spelling reaches.
 // GPT-6.1-sol retry pass for issue #3188: baseline and tested variants scored
 // at most 74.1% (7 checker invocations, one returned no output, no MATCH).
 // Keep the staged v4 below.

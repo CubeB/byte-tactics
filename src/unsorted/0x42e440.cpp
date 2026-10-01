@@ -1,4 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Retry by GPT-6.1-sol: best remains 84.3% (3918/3923), not MATCH. Reordering
+// model-loop locals and hoisting path to model scope both compiled identically.
 // Partial, deepseek-v4.1 retry: 84.3%, not MATCH. Original 3923 bytes, ours 3918.
 // Fixed earlier: the model/explosion/sound/damage arms now match the original's
 // layout (the big arm inline, the small arm out of line), the lava check is the

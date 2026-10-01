@@ -1,99 +1,86 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// #3078 retry by GPT-6.1-sol: two checks retained 84.3%; ternary flag
-// normalization emitted byte-identical output.
-// Partial: 84.3%, 848 bytes (the exact original size). Still open:
-// RETRY deepseek-v4.1-flash: no improvement this pass. Confirmed the do/while
-// form reproduces the original bottom test (`xor edx,edx` preheader, no entry
-// test, `cmp edx,0xcee; jl` at the foot) but drops the file to 846 bytes and
-// 67.3%: the flag byte load becomes `mov dl,[ecx+0x97]; and edx,1` instead of
-// the original `xor eax,eax; mov al,[ecx+0x97]; and eax,1`, which shifts every
-// later byte and destroys the score. That 2-byte/latch pair is the whole
-// remaining problem; the register rotation is downstream of it. Tried on top
-// of the do/while (each still 846 / 67.3, i.e. byte-identical): flag as
-// unsigned int, flag split into `int flag = x; flag &= 1;`, flag via a byte
-// temp, +0x97 declared as a 1-bit bitfield union member read as `p->data->b0`,
-// a named `PlayerData* d = p->data`, and p computed as
-// `g_game->players + FUN_0044fe40(id)` instead of `&g_game->players[...]`.
-// None changed the flag encoding or the rotation. Earlier notes below stand.
-// RETRY deepseek-v4.1-flash (pass 2): confirmed the flag encoding cannot be
-// forced from the source. On the bottom-tested loop (`for (i=0;i<10;i++)` and
-// `do {} while (i<10)` both give the original latch at 846 / 67.3), tried
-// `unsigned int flag = p->data->flags; flag &= 1;`, a 1-bit bitfield read
-// (`p->data->b0` via a union), a `(flags & 1) != 0` form, and the `register`
-// keyword on p/slot. Every one still emits `mov dl,[ecx+0x97]; and edx,1`,
-// because p=ebx, game=edi, slot=esi; the missing `xor eax,eax; mov al` is a
-// downstream symptom of that coloring. Also tried `Game* g = g_game;` (early
-// and everywhere, 51-63%), a ternary p, an array-base local, and an
-// extra g_game reference in the fi==10 arm (all worse, 50-65%). Base stays
-// the best at 848 bytes / 84.3%.
-//  * the player/slot/game register rotation: the original keeps g_game in ebx,
-//    the player pointer in esi and the slot byte in edi; ours allocates
-//    ebx=player, esi=slot, edi=g_game. Two extra uses of g_game (one inside
-//    the clearing loop, one before the b2 test) and a function-scope
-//    `Game* g = g_game;` local did not move the priority order.
-//  * the clearing loop: the original is bottom-tested (preheader
-//    `xor edx,edx`, no entry test, `cmp edx,0xcee; jl` at the foot), ours is
-//    top-tested with `while (1) { if (i >= 10) break; ... }`. A `do/while`
-//    gives the original latch but then drops to 846 bytes and 67.3%, because
-//    the flag load degenerates to a partial `mov dl, byte ptr [ecx+0x97]`
-//    instead of `xor eax,eax; mov al, ...; and eax,1`. So one still has to
-//    force the full zero extension of the flag.
-//  * the b2 arm is fixed: writing it as three `if (cond) goto after_remove;`
-//    plus a trailing `goto do_remove;` (instead of `if (a||b) goto L;`) makes
-//    MSVC emit the original's `cmp al,2; je L; jmp S`.
-//  * deepseek-v4.1 tried, all byte-identical or worse: swapping the two arms
-//    of the fi test (83.6%, the arms change place in the emitted code),
-//    writing p as a ternary, `p = g_game->players + idx`, moving the slot,
-//    flag and loop-index declarations to the top of the function, declaring
-//    the clearing-loop index unsigned char (49.4%) and inlining the
-//    FindIndex_00452cc0 loop into the body (63.9%, so the one-use inline
-//    helper shape is load-bearing). The rotation is not a declaration-order
-//    or use-count lever.
-// headers.py tried 128 header sets (all 84.3%), and alternate flag types and
-// the existing inline predicate helpers (IsActive12 and friends) did not help.
-// RETRY deepseek-v4.1-flash (pass 3): instruction-level LCS of the whole
-// function against a hand-compiled bottom-tested build shows the ONLY two
-// differences are (a) the p / g_game / slot register rotation (ours
-// slot=esi, g_game=edi, p=ebx; original p=esi, slot=edi, g_game=ebx) and
-// (b) the flag temp using edx instead of eax, which is exactly the original's
-// extra `xor eax,eax` (2 bytes): original `xor eax,eax; mov al,[ecx+0x97];
-// and eax,1; xor edx,edx; mov [esp+0x10],eax`. The bottom-tested loop
-// (`for (int i=0;i<10;i++)`, which emits the original `add edx,0x14b;
-// cmp edx,0xcee; jl` with no entry guard) is correct but is 846 bytes, and the
-// 2-byte shortfall shifts every branch target, dropping the score to 67.3.
-// N-declarations sweep (0..248, step 8) was flat at 67.3, so the rotation is
-// NOT compiler state. Also byte-identical or worse: unsigned int / unsigned
-// char / 1-bit bitfield / separate-int / local-data-pointer flag forms; the
-// 0x452960-style `unsigned char&` reference for slot; inline helper returning
-// the flag; IsActive12 helper calls in the loop and arms; local Game* inside
-// the loop; ternary and inverted-branch p; declaration-order permutations;
-// using IsType1/IsType3; and defining 0x452c40 immediately above (state).
-// Adding a genuinely live extra local changed the rotation but only made the
-// code longer (870 bytes, 53.8%), so extra live nodes are not the lever here.
-// RETRY deepseek-v4.1-flash (pass 4): confirmed on this 848-byte base that the
-// only two diffs in the whole function are (a) the cyclic register rotation
-// (ours g_game=edi, p=ebx, slot=esi; original g_game=ebx, p=esi, slot=edi,
-// a strict ebx->edi->esi->ebx rotation of the same three registers) and
-// (b) the flag temp: ours `mov dl,[ecx+0x97]; and edx,1; mov [esp+0x10],edx;
-// xor edx,edx` versus the original `xor eax,eax; mov al,[ecx+0x97]; and eax,1;
-// xor edx,edx; mov [esp+0x10],eax`. Both are 848 bytes because the shorter
-// flag form pays for the extra 2 bytes the wrong coloring costs elsewhere, so
-// neither can be fixed alone. New sweeps this pass, all flat at 84.3% (848
-// bytes, byte-identical): hoisting the slot / flag / loop-index declarations
-// (alone, and in the permutations slot,flag,i and flag,slot,i, and with the
-// declaration placed before `Player_00452cc0* p`), moving `int i = 0` before
-// the flag computation (that one loses the loop rotation: 863 bytes, the guard
-// becomes top-tested, and the flag STILL comes out as `mov dl`), and eight flag
-// expression forms: `int flag = p->data->flags; flag &= 1;`,
-// `unsigned int flag = ...; flag &= 1;`, a separate `unsigned char` temp,
-// `(int)p->data->flags & 1`, `p->data->flags % 2`, `(unsigned int)... & 1`,
-// `& 0x1`, and reads of a plain 8-by-1-bit byte bitfield (`p->data->b0`, no
-// union) plus an inlined `static inline int FlagBit(unsigned int v){return v&1;}`
-// helper (four parameter/return type combinations). Every form still emits the
-// partial `mov dl` load, so MSVC is folding the byte load into the AND no
-// matter how the conversion is spelled. The `xor eax,eax` therefore is not a
-// source-level property of the flag expression.
-
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// RETRY mimo-v2.6-pro: 87.7% at 848 bytes (the exact original size). The flag
+// encoding that every earlier pass fought over is now byte-identical. The
+// original reads the +0x97 flag byte as `xor eax,eax; mov al,[ecx+0x97];
+// and eax,1`: a full zero-extension followed by the mask. Every simple
+// `flags & 1` spelling folds to `mov dl,[ecx+0x97]; and edx,1` (2 bytes
+// shorter), which also forced the loop counter register and destroyed the
+// schedule. Isolating candidates in scratch files and disassembling them
+// shows the fold is defeated only when the byte value has a second use that
+// the optimizer later removes. The shape that reproduces the original:
+//
+//     int f = p->data->flags;
+//     p->data->flags |= 0;      // no-op RMW; its store is dead-stored away
+//     int flag = f & 1;
+//
+// The `|= 0` is a stand-in for whatever second use the original had (the
+// store is eliminated, so nothing of it remains in the original either);
+// flag it in review. `flags = f` and `flags = f | 0` keep a store, plain
+// `int flag = flags & 1` and ~30 other spellings all fold (see
+// build/scratch/0x452cc0/flagtest*.cpp). With the widen fixed, the plain
+// `for (int i = 0; i < 10; i++)` clearing loop emits the original's
+// bottom-tested latch (`add edx,0x14b; cmp edx,0xcee; jl`, no entry guard)
+// and the flag preheader/schedule (`and eax,1; xor edx,edx;
+// mov [esp+0x10],eax`), and the file is exactly 848 bytes.
+//
+// STILL DIFFERENT (the whole remaining 12.3%): one cyclic register rotation.
+// Original: g_game=ebx, p=esi, slot=edi. Ours: g_game=edi, p=ebx, slot=esi.
+// Every hunk of the check diff is that rotation; instruction shapes, sizes,
+// reloads and schedules all match. Ruled out on this 87.7 base: hoisting
+// `unsigned char slot;` above fi (flat 87.7), a function-scope
+// `Game_00452cc0* g = g_game;` used everywhere (52.1%), swapping the two
+// arms of the p if/else, and spelling the clearing loop through
+// `g_game->players[i]` instead of a `q` pointer. On the older 84.3 base the
+// earlier passes ruled out declaration-order sweeps, the register keyword,
+// extra g_game uses, N-dead-declaration sweeps, unsigned/byte/bitfield flag
+// types and inlined flag helpers (their notes follow).
+//
+// mimo-v2.6-pro pass (all scored via build/scratch/0x452cc0/report.py, no
+// check.py budget except the confirm below): the fold-away register-priority
+// pin does NOT work on this function. Every zero-byte spelling I could build
+// tree-folds in c1xx and is NOT counted as a use, so it leaves the register
+// assignment untouched at 848 bytes: `p += 1; p -= 1` and `slot += 1;
+// slot -= 1` (vpinc/vslotinc), dead copies `int d = (int)g_game;` (fd1/fd2),
+// byte-arithmetic pointer ping-pong (fd3), an int-alias ping-pong (fd4), and
+// no-op RMWs `g_game->field_2a3c |= 0` / `+= 0` / `flags.value |= 0` and
+// `g_game->players[0].field_c |= 0` (g_or0/g_or0b/g_add0/g_flags0/h_p0c/h_p0c2)
+// all emit zero bytes AND leave g_game=edi, p=ebx, slot=esi. So a global or
+// heap `|= 0` whose value is not read elsewhere is tree-folded, not a counted
+// reference; the surviving `|= 0` in the flag widen is only a widen-fold
+// preventer, confirmed by redirecting it through the g_game path (flag_gg),
+// which leaves the registers unchanged.
+//
+// What DOES move the registers is a real (byte-emitting) g_game reference.
+// `p->field_c = (int)g_game;` (vreach1/vgs1), `g_game->field_2a3c = 0;`
+// (vgs1/vgsloop/vgsloop2) and a dead `p->field_c = (int)g_game; p->field_c = 0;`
+// before the loop (ds_gg_first) all reshape to g_game=esi, p=ebx, slot=edi at
+// 864-880 bytes: that pushes slot down to edi (which is what the original has)
+// but g_game only ever reaches esi. p is pinned at ebx no matter how many
+// g_game uses I add (2 uses in vgsloop2 = 1 use in vgsloop). So the original's
+// g_game=ebx needs g_game to outrank p, which no count of g_game references
+// achieves here. The same dead store folded into do_remove (ds_gg) instead of
+// before the loop tree-folds to nothing (no count), so I could not build the
+// "counts in c1xx but dead-stored away in c2" middle ground on g_game: before
+// the loop the store is kept (loop aliasing, +16 bytes); in do_remove c1xx
+// deletes it outright.
+//
+// Diagnosis of who holds the top register: making the widened slot volatile
+// (vol_slot, spill to stack) leaves g_game=esi, p=edi. So without the widened
+// slot in a register, g_game already outranks p. It is the WIDENED SLOT's
+// presence (the `mov edi, [esp+0x18]` widen, used as the loop index) that
+// reorders the three into p > slot > g_game. So the lever is most likely the
+// widened slot's weighted count, not g_game's: a spelling of the byte-local
+// widen that is still byte-identical but costs the slot one loop reference
+// would demote slot below p and, per vol_slot, restore g_game above p.
+//
+// To try next: (a) a g_game use the tree optimiser keeps but the instruction
+// selector deletes (the 0x4ac4c0 pin) - none of the ~12 forms above is it;
+// (b) cut the widened slot's loop weight without changing the emitted index
+// arithmetic; (c) reproduce the original's exact p-vs-g_game tie via the p
+// if/else arms (swapping them scores 86.9%, so that block is near the tie).
+//
+// History of the 84.3 base (two diffs then: the flag encoding and this same
+// rotation):
 #include <stdio.h>
 #include <string.h>
 
@@ -244,18 +231,16 @@ void __stdcall FUN_00452cc0(int id)
         return;
 
     unsigned char slot = p->field_146;
-    int flag = p->data->flags & 1;
+    int f = p->data->flags;
+    p->data->flags |= 0;
+    int flag = f & 1;
 
-    int i = 0;
-    while (1) {
-        if (i >= 10)
-            break;
+    for (int i = 0; i < 10; i++) {
         Player_00452cc0* q = &g_game->players[i];
         if (q->active != 0 && (q->type == 1 || q->type == 2)) {
             q->field_113[slot] = 0;
             q->allies[slot] = 0;
         }
-        i++;
     }
 
     FUN_00486f10(FindPlayerIndex_00452cc0(id));

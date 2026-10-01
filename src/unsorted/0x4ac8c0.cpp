@@ -1,6 +1,25 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
 // #3120 retry by GPT-6.1-sol: best remains 89.8%; a separate gridY local fell to 86.4%, declaration-order swap was unchanged, and explicit while loops fell to 56.9%. Remaining diff is register allocation for grid y and the rectangle x/y+7 values.
-// space-bunny-free and GPT-6.1-sol. Names are provisional.
+// space-bunny-free, GPT-6.1-sol and finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry: best stays 89.8%. Scripted sweeps under
+// build/scratch/0x4ac8c0/ (sweep.py, sweep2.py, sweep3.py, sweep4.py, sweep5.py,
+// sweep6.py) scored hundreds of shapes free of check runs and found the rule
+// behind the loop diff: exactly one (lea + store) pair is scheduled before the
+// call's argument pushes and the other three stores keep their source order
+// after the pushes. This compiler always hoists the (y+7, bottom) pair; the
+// original always has the (x+7, right) pair there and bottom's store last.
+// That choice is invariant across all 24 rect store orders, 4 loop forms
+// (nested row/col, counter do-while/while/for), member-form +7 values
+// (right = left + 7 and bottom = top + 7), temp locals, one comma statement,
+// free inline helpers holding the stores and/or the call, inline methods on
+// Rect and Pair, and inline field accessors. Separate surface/rect locals fall
+// to 84.7% (the shared aggregate keeps the prologue), sum forms to 72.9% and
+// 79.7%, and short/int/late y locals to 88.1% because they swap the two y
+// load order. All 128 header sets stay 89.8%. The prologue diff is one
+// register: grid->y coalesces into the dying grid base in eax here, where the
+// original lands it in edx (the register the surface temp just freed). No
+// shape changed that coalescing either, so both remaining hunks look like
+// scheduler/allocation ties of the same kind.
 // finished by deepseek-v4.1-flash (89.8% retry).
 // #2936 retry by GPT-6.1-sol: five checks retained the 89.8% best; declaration
 // order and helper variants did not change the surface-access schedule.

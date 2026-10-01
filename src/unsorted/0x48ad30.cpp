@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: moved the eliminated-player check before the kind chain and tried unsigned-range and positive-conjunction spellings; scores fell to 68.2-70.1%, so the prior 84.5% version is retained. Remaining differences are helper/select and prologue register/slot allocation, plus cnt reload placement.
 // deepseek-v4.1-flash (#2567) retry: 84.5% (849 bytes, size matches). The one
 // real change this round: the owner test in the flag bit 4 block was WRONG in
 // the 84.1 version. It read `u->owner == 0 || !(u->owner->f110.bits.b30)` and
@@ -35,7 +36,6 @@
 // `jb <body>` plus `xor edi,edi / jmp` select instead of `jae <latch>` and a
 // flat `je <latch>` test chain; i in cl not al; off in eax not edx; cnt at
 // [esp+0x14] and off at [esp+0x18] instead of the reverse.
-
 // deepseek-v4.1 (#1208) retry: still 84.1% (849 bytes, equal size). New confirmed
 // lead, much closer than this file, saved as build/scratch/0x48ad30/v22.cpp
 // (840 bytes, 75.1% only because every body jump target shifts by 9 bytes):

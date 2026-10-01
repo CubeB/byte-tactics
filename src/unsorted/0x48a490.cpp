@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Samples the ground under a unit at its four surrounding terrain
 // vertices and stores the resulting pitch (0x68) and roll (0x70) on the
 // unit, plus a heading (0x64) from the two side vertices. The 0x11/0x04
@@ -8,6 +8,7 @@
 //
 // PARTIAL (77.8%, 857 bytes against 857; Sonnet 5.5 retry #1091 took it from 70.8% with a scripted
 // statement-order hill climb, see the end of this comment). Older notes below said 65.5%.
+// GPT-6.1-sol retry (#2922): map/row/count declaration variants stayed at 77.8%; tools/headers.py also found no better header set (128 tried). Still differs in prologue register roles, loop carry/reloads, terrain interpolation spills, and random-mask/reload code; see the detailed notes below.
 //
 //  1. The bilinear block. The original keeps the first tile's low half in
 //     ebx and spills the second tile pointer (esp+0x28) and b1 (esp+0x2c);

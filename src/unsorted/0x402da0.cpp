@@ -74,6 +74,12 @@
 // ours takes (ecx,edx) then (eax,ecx), so both follow the same rotating
 // allocator and only its starting point differs. Nothing reachable through the
 // source moved it.
+// deepseek-v4.1-flash (final retry): still 87.9%, unchanged source kept. The
+// out-param reading of FUN_0043f0e0 (named per-branch Class locals with an
+// empty int ctor so no init code) is 83.2% and a shared out local is 67.9%;
+// member access on the returned temp (.index) is 87.9% flat. Still differs
+// only in the per-temp scratch register rotation (ours ecx/edx vs original
+// eax/ecx in the two FUN_0043f0e0 arg blocks, and the mirrored reload picks).
 // deepseek-v4.1 retry: six more source shapes were flat at 87.9% (explicit
 // `kind.index = 0;` after the declaration, ctor body-assignment form, node
 // hoisted with for(;;), inlined IsKind() helper, `kind.index != 0`), and one

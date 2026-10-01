@@ -23,6 +23,20 @@
 //
 // Also unexplained: the 4-byte zero at version[4] (0x4b510a).
 //
+// deepseek-v4.1-flash re-verified every knob that could steer the allocator and
+// all of them compile to the identical 55.4%/637 bytes: all 24 orders of the
+// four halves as separate initialized declarations (55.4 or 54.4), int/DWORD/
+// unsigned/DWORD-array types, a combined struct (worse), declaration of lib
+// before or after the halves, status declared or initialized first, a chained
+// `minlo = minhi = majhi = majlo = 0;` (54.4), `unsigned short` halves (52.0,
+// 636 bytes), a function-scope FARPROC, `if (lib != 0)`/`if (proc != 0)`,
+// `DWORD size` in each branch scope (54.9), the version buffer declared before
+// type (54.9), an early-return RegOpenKeyExA form (44.9) and two `goto fail`
+// forms with one shared memset (53.3, 610 bytes). The 24-perm sweep changing
+// only the init order moves the score between two fixed points, so the four
+// registers, the lib spill and the status slot are one allocator decision that
+// no source shape tried here can flip.
+//
 // Two things in the original look like Cavedog's own bugs, kept here as they
 // are: the "installed version is older" arm at 0x4b5233 compares the major
 // half against argument 2 (the minor half) instead of against argument 1, and

@@ -1,4 +1,27 @@
-// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass 2: 78.2% -> 79.2% (739 bytes, 2 over). The doubles
+// loop flipped to the `int* rec = p; p += 3;` form and now WINS (it measured
+// 73.9% on the older base, so re-measure loop shapes after a global change);
+// its load order is now the original's rising rec[0], rec[1], rec[2] with
+// rec[0] still loaded after the pushes. Everything else kept from the 78.2%
+// attempt. Rejected this pass, all on top of the 79.2% base: nested
+// `if (name != 0) { if (_strcmpi(...)) }` 74.8% (742B); c/reclen declared after
+// the idx if/else 70.5% (739B); src inlined into the memcpy call 66.4% (738B);
+// that inline plus the late c/reclen 73.2% (738B); src built from `rec[2]`
+// instead of a `c` local 62.9%; ints `rec = p; p += 2;` 74.5% (741B); ints
+// direct p[0]/p[1] with the late `p += 2` 78.0% (739B); strings rec form 74.1%
+// (741B); no-sect name test 73.9% (744B); `sect` reused for the FUN_004b4560
+// argument 67.3% (745B); `int a = rec[0]` or an `nm` local in the loops 79.2%
+// (identical code, no gain); doubles `double d` local 75.1% (740B); doubles
+// with the late `p += 3` 78.2% (737B, exact size but 1% lower); membership
+// `if (e->size < 0) newLen = e->size; else newLen = 0;` 77.1% (741B);
+// `e->len = e->len + h.reclen`, `need = e->len + h.reclen` and the swapped or
+// indexed forms of the FUN_004b4560 argument all 79.2% (identical code).
+// Still differing: the name-test deref is hoisted above the `je` (the original
+// derefs `[edi]` inside the branch), the FUN_004b4560 call swaps ecx/esi, the
+// ints loop loads p[1] before p[0], the doubles loop loads rec[0] last, and
+// the blob loop keeps c in esi (original: ebx) with src built after the size
+// check.
 // Sonnet 5.5 retry: 74.8% -> 78.2%, now 737 bytes like the original. Reading
 // the section-name table pointer into a local before the name test
 // (`char* sect = *image;` then `_strcmpi(name, sect + h.strOffset)`) pulls the
@@ -203,8 +226,9 @@ void Class_004b4270::FUN_004b4270(File_004b4270* fh, char** image, char* name)
         }
         {
             for (int i = 0; i < h.nDoubles; i++) {
-                ((Class_004b46c0*)this)->FUN_004b46c0(*image + p[0], *(double*)(p + 1));
+                int* rec = p;
                 p += 3;
+                ((Class_004b46c0*)this)->FUN_004b46c0(*image + rec[0], *(double*)(rec + 1));
             }
         }
         {

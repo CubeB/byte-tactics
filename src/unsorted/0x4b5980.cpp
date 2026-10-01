@@ -1,4 +1,17 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 2: seven more variants, all below 89.2%.
+// Two findings for the next attempt. (1) Block 0: the original's early
+// `mov cx,[esi+0x202]` position IS reachable, put `unsigned short vf =
+// d->videoFlags;` in the source between the scratch[0] and scratch[1] stores and
+// use `vf` in the block-0 expression; the load then lands exactly where the
+// original has it, but the allocator swaps the block-0 roles (videoFlags to eax,
+// flag word to ecx/eax) so the file stays 827 bytes at 86.7%. (2) Block 2: an
+// `unsigned short`/union local for the new flag word makes that block byte-exact
+// (`mov ax`/`and eax,0xfc03`/`or al,1`/no al reload) and drops to 818 bytes, but
+// every following bit test then rotates one register (ours dl,al,ecx,dx for the
+// original cl,dl,al,cx), 72.9-73.3%. A nested block that ends the local's scope
+// right after the has_c4 test and writing the test as `(fv >> 6) & 1` (which
+// emits `test al,0x40`) behave the same way.
 //
 // RETRY of deepseek-v4.1-flash: 89.2%, 827 of 820 bytes (7 over). The one gain
 // over the 88.8% below is the tail test: writing the FUN_004b5510 result into a

@@ -1,4 +1,19 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry by deepseek-v4.1-flash (#3611, 10-minute timebox): 37.0% unchanged,
+// no new variant written before the watchdog stop. What still differs:
+// (1) prologue register allocation, the original homes entries in ebp and
+// the -2 constant in esi while ours use esi and edi, so every entry-block
+// byte diverges from 0x4a8202 onward; (2) the post-loop block in this file
+// (FUN_004c1420 + FUN_004a16f0(menu,0,8) + strncmp variant) is wrong, the
+// original at 0x4a943b..0x4a950a tests layer->field_20 != -1 and
+// menu->field_a2 != 0, saves entries[field_20].type, calls
+// FUN_004a16f0(menu, field_20, 8), scans entries[1..count].name with
+// strncmp(.., entries[0]+0xcc, 0x10) using a for/j=-1/goto shape, then
+// calls FUN_004a16f0(menu, j, 8) if j != -1 and the saved type != 1 and
+// entries[i].field_29 != 0 (the type save lands at [esp+0x30] but the
+// compare is of [esp+0x24], slot identity unresolved); (3) loop2 case 2
+// compares entries[L.i] byte +0x28 (field_28) with the type-7 counter,
+// not the group byte at +0x01.
 // retry by deepseek-v4.1-flash (#3418, 10-minute timebox): re-checked only, still
 // 26.2% (3780 bytes vs 5248); the timebox was spent on the closer 0x4a9fd0, so
 // nothing new was tried here beyond a baseline check.

@@ -1,112 +1,20 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// Eleventh pass (space-bunny-free): 97.8% -> 99.4%, still 775 bytes, still no
-// MATCH. ONE edit was worth 1.6 points, and it was the diff the previous nine
-// passes had all read as a register-allocator artefact: the mask arm's fail
-// block. The whole cause is the arm's SHAPE, not its registers. Routing the
-// mask arm's bounds test through a `static inline` helper that returns the
-// `&&` and NEGATING it at the call site
-//     if (!MapContains(w, h, tx, ty)) vis = 0; else vis = ...;
-// puts the fail block BETWEEN the second test and the body and gives the
-// second test `jb body`, which is the MATCHED 0x408090 layout
-// (`jae FAIL / jb BODY / FAIL: xor eax,eax`). The `&&` written inline at the
-// call site is flattened to `jae ELSE / jae ELSE` and tail merges the two fail
-// blocks. So the mask arm is a nested/guarded if and the fog arm is a plain
-// `&&` chain, which is exactly the asymmetry the original has (its fog fail
-// block at 0x47f452 sits AFTER its body, its mask fail block at 0x47f47e
-// BEFORE it). Spelling the same `&&` inline (`if (!(A && B))`) changes
-// nothing: 97.8%, byte-identical. A nested if with two written-out `vis = 0`
-// branches does give the right layout but costs 18.5 points (78.9%) because
-// duplicating the store collapses the whole allocation and rotates every
-// register from `mov ebx, [eax + ecx*4 + 0x33a13]` onwards. The `static
-// inline` helper is what keeps the block layout AND the single store.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by space-bunny-free. finished by Claude Sonnet 5.5. Names are provisional.
+// MATCH (775 of 775 bytes). Plays the sound at soundIds[index] when the
+// position is visible to the local player: explored (fog) map when
+// g_game->flags_14281 has bit 1 set, the shared per-player visibility mask
+// otherwise. Sends the 0x13 packet first when param_3 is set, and picks the near
+// (-585) or far (-1585) variant depending on whether the position is inside the
+// screen rectangle.
 //
-// STILL MISSING, one instruction, 4 bytes either way:
-//     - lea eax, [ebp + ecx]        ; g_game + pi
-//     + mov eax, ebp
-//     + add eax, ecx
-// followed by the byte-identical `lea eax, [eax + edx*2 + 0x1b63]`. It is a
-// pure form choice at equal size, and it is NOT reachable by any spelling of
-// the address: 30-odd variants (`&g_game->players[pi]`, `g_game->players + pi`,
-// a local `P* players`, a local `G* game`, `(char*)g_game + 0x1b63 + pi*0x14b`,
-// every parenthesisation of `g_game + pi + 330*pi + 0x1b63`, an `int off`
-// local, a `char* gb` local, `pi * 331`, a `short` index, `pi + 0`, a dead
-// `probe` of the same sum) are all byte-identical to this file. An assembly
-// probe (`build/scratch/0x47f300/probe2.cpp`) shows MSVC 5 emits `mov/add` for
-// a plain `int` index and `lea` for a NARROWED one, and the two requirements
-// here pull opposite ways:
-//   * `int pi` is the only spelling that gives the original's load
-//     `xor ecx, ecx / mov cl, [ebp+0x2a43]`, and it gives `mov/add`.
-//   * `char pi` (91.2%) and `unsigned short pi` (87.3%) give the exact `lea`,
-//     but their loads are `movsx ecx, byte ptr [...]` and
-//     `movzx cx, [mem] / and ecx, 0xffff`.
-//   * `unsigned char pi` gives the `lea` too, but MSVC 5 puts the byte local in
-//     a stack slot (`mov [esp+0x30], cl / mov ecx,[esp+0x30] / and ecx,0xff`),
-//     787 bytes, 91.0%.
-// `short` (91.0%), `(short)pi`, `(unsigned short)pi` and a separate
-// `unsigned short` index variable were all measured and all restructure the
-// multiply chain away, so they are worse than the two plain narrow types.
-// So the last 0.6% needs a `playerIndex` load that is BOTH `xor ecx,ecx /
-// mov cl` AND treated as narrowed by the address-strength pass, and no C++
-// spelling of that was found.
-// Tenth pass (deepseek-v4.1-flash), retry: 97.8% (775 bytes, same size as the
-// original), up from the 86.5% baseline. The visibility block now uses TWO
-// player pointer locals, `player` for the width/height comparisons and
-// `player2` for the index expression, with `pi` as an `int`. This puts the
-// player pointer in EAX (the original's register) instead of EDI, makes the
-// whole fog arm byte exact, and makes the mask arm BODY byte exact (including
-// the second materialised width read). Only two layout differences remain:
-//   1. the address base step is `mov eax,ebp / add eax,ecx` where the original
-//      has `lea eax,[ebp+ecx]` (same 4 bytes, one instruction).
-//   2. the mask arm puts its fail block (`xor eax,eax`) after the body with a
-//      second `jae fail`, where the original puts the fail block first and uses
-//      `jb body`; the fog arm already matches (fail after body).
-// Tried on top of this shape, all scored with check.py --sym and none higher:
-// int/unsigned int pi, a cast and a masked index, guard, negated guard,
-// pre-initialised `vis = 0` and nested-if mask arms, an inlined IsSeen helper
-// with one and two pointers, players+pi, `(char*)g_game + 0x1b63` and
-// `(char*)g_game->players + pi*0x14b` address spellings, swapping the arms, and
-// all 128 header sets (headers.py: 97.8% best across windows.h, stdio.h,
-// math.h, memory.h, ddraw.h). None moved the base step off mov/add or the mask
-// fail block before the body. Score 97.8, no MATCH.
-// Seventh pass (deepseek-v4.1-flash): baseline re-confirmed 86.5%, 775 bytes.
-// Tried in free scratch (build/scratch/0x47f300/), none beat the file:
-//   v20 no player local, direct g_game->players[pi].field indexing: 56.0%, 804 bytes.
-//   v22 `Player_0047f300* const player`: byte-identical to the file (86.5%).
-//   v23 local `Game* game = g_game;`, v24 pointer declared then assigned,
-//   v25 reference, v26 `g_game->players + pi`, v39 `vis` declared first,
-//   v40 pointer declared uninitialised at the top: all byte-identical (86.5%).
-//   v36 an inlined member `GetWidth()`: 85.7%. v35 a foldable null check:
-//   66.9%. v41/v43 `int pi`: 79.7% direct arms, 83.4% with Contains arms.
-// CONTAINS IS THE RIGHT ARM SHAPE. A nested ByteMap (`data` +0x7c, `size`
-// +0x80/+0x84) with `MapSize::Contains(tx,ty)` and `ByteMap::Get(tx,ty)` (the
-// matched 0x4658e0 spelling) reproduces the original's SECOND materialised
-// width read in the fog arm (`mov edi,[p+0x80]; imul edi,ecx`), which the
-// direct `player2->exploredWidth * ty + tx` spelling CSEs away. With unsigned
-// char pi it is 81.6% (785 bytes) and the arm bodies are exact: pos.y in edi,
-// pointer in EDX, flags test in AL. With int pi it is 83.4% (773 bytes).
-// The single remaining difference in the Contains version is the same one: the
-// pointer is homed in EDX there (EDI is taken by the arm temps), EDI in the
-// direct spelling (arms then rotate onto EAX), and EAX in the original. All
-// three are the register allocator's tie-break among the three free registers
-// (eax, edx, edi) at 0x47f403; the original's flags byte then lands in DL and
-// ours in AL whenever the pointer takes EDX. An inline `GetPlayer` accessor
-// (v46) changes nothing; an accessor that re-reads playerIndex (v47) reaches
-// 84.0% (773 bytes) but adds the extra index load. Nothing tried promotes the
-// pointer to EAX. The parent register work and this file's 86.5% remain best.
-// GPT-6.1-sol refinement: source remains at 86.5% (775 bytes); no MATCH.
-// Two `int pi` scratch variants scored 79.7% and 80.2%; the best unsigned-char
-// source is retained. The player pointer still lands in EDI instead of EAX,
-// rotating register assignments in both visibility arms.
-// Addendum (deepseek-v4.1-flash, eighth pass, retry). Baseline re-confirmed:
-// 86.5%, 775 bytes. Free --sym-scored variants in build/scratch/0x47f300/,
-// none beat the file: `Player* p = g_game->players + pi;` and
-// `(Player*)((char*)g_game + 0x1b63) + pi` are byte-identical to the file;
-// `int pi` / `int pi` + `players + pi` stay at 79.7% with the pointer in EDI;
-// a Map-with-Contains + `char vis` spelling dropped to 71.4%; a foldable
-// `if (player == 0) return 0;` dropped to 66.9%. The single remaining diff is
-// unchanged: the player pointer is built into EDI (EDX with Contains arms)
-// where the original builds it into EAX, and every arm register rotation
-// follows from that. No source shape found that promotes it.
+// What made it match (the last 0.6%, after eleven passes of address spellings):
+// the original builds the player pointer with `lea eax,[ebp+ecx]` (g_game + pi)
+// followed by `lea eax,[eax+edx*2+0x1b63]`, where every spelling written inline
+// in the function gave `mov eax,ebp / add eax,ecx`. Taking the address through
+// an INLINE MEMBER of the game struct, `Player* Current() { return
+// &players[playerIndex]; }` called as `g_game->Current()`, gives the lea while
+// keeping `int pi` (and so the `xor ecx,ecx / mov cl,[..]` load). The two
+// pointer locals (player for the bounds, player2 for the index expression) and
+// the `MapContains` helper negated at the call site are from earlier passes.
 #include <windows.h>
 // Plays the sound at soundIds[index] when the position is visible to the local
 // player: explored (fog) map when g_game->flags_14281 has bit 1 set, the shared
@@ -190,6 +98,9 @@ struct Game_0047f300 {
     int field_37f0c;                   // +0x37f0c
     char unknown_37f10[0x37f19 - 0x37f10];
     unsigned char flags_37f19;         // +0x37f19
+
+    Player_0047f300* Current() { return &players[playerIndex]; }
+    Player_0047f300* Current2() { int i = playerIndex; return &players[i]; }
 };
 #pragma pack(pop)
 
@@ -447,8 +358,8 @@ int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
         return 0;
 
     int pi = g_game->playerIndex;
-    Player_0047f300* player = &g_game->players[pi];
-    Player_0047f300* player2 = &g_game->players[pi];
+    Player_0047f300* player = g_game->Current();
+    Player_0047f300* player2 = g_game->Current();
     int vis;
     if ((g_game->flags_14281 & 2) == 2) {
         int tx = pos->x >> 5;

@@ -215,6 +215,12 @@
 // this file has them before. Scratch: s2-s6, s3a-s3d in build/scratch/0x464700/.
 
 
+// deepseek-v4.1-flash retry (issue 3637, still 98.3, 6 checker runs): moving
+// the ref guard after the six clears but before the remaining zero stores
+// (ff8 store left at its old place) scores 68.9 with the zero register rotated
+// to ebx; moving both the guard and the ff8 store there rotates the pool too.
+// `if (p->ref == 0)` is byte-identical. The cmp/[esi+0xf8] pair placement is
+// the only remaining hunk.
 #include <string.h>
 
 class PlayerRef {

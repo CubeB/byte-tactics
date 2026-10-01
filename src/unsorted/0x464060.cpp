@@ -77,6 +77,11 @@
 // as the accumulator. Tried this session: r.bottom = r.top + t (drops the
 // file to 60.1, 520 bytes, so the read-back changes the whole block shape) and
 // r.bottom = (r.top = y) + t (same 60.1/520), neither reproduces the order.
+// deepseek-v4.1-flash retry (issue 3637, still 87.8, 6 checker runs): a y copy
+// declared after t, `r.bottom = r.top + t` (the reload is forwarded), a const
+// t, and moving the height computation after the FUN_00467c00 call (frame
+// shrinks to add esp,0x1c and the epilogue diverges, worse) all leave the add
+// destination at eax. The single op hunk below is the whole distance.
 #include <math.h>
 #pragma pack(push, 1)
 

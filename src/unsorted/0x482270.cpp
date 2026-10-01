@@ -1,5 +1,62 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol retry in #3193: nine checker invocations, best remains 79.1%; no MATCH. Guarded j1 initialization scored 74.3-74.5%, declaration and product-order variants scored 39.0% and 78.4%, and loop inversion tied. The inherited source below remains best.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry: best 80.6% (was 80.2%). Fix: the j1 = 1 store now sits
+// after the inner-loop guard exactly as in the original. The spelling is
+// `short j = 0; if (0 < num) { int j1 = 1; for (; j < num; j++, j1++) {...} }`
+// (j initialised outside the guard, j1 inside it, empty for-init): MSVC CSEs
+// the guard with the loop test (single `test ax, ax / jle`), keeps j's store
+// before the branch and sinks j1's store after it. `if (j < num)` as the
+// guard CSEs the same way; `if (num > 0)` does not (75.5%, a second test).
+// The earlier 69.2% note came from guarding the whole loop including j = 0;
+// only j1's initialiser belongs inside the guard. Still differs: (1) x is
+// stored at 0x20 and y at 0x1c, the reverse of the original (x=0x1c, y=0x20);
+// the slot pair is bound to the initializer value (params->field_4[0] vs [1]),
+// not to name, declaration order, assignment order or load order (verified
+// again: y-first swaps the two `movsx`/store instructions and keeps the
+// slots). Fold-away pairs do not flip it either: `x += 1; x -= 1;` and
+// `unsigned ix = x; x = ix;` at the declarations fold away but leave both the
+// slots and the esi/ebp register assignment untouched (80.2%); the same pairs
+// inside the outer or inner loop do NOT fold away (820-838 bytes, 58.9-70.8%).
+// int xy[2] / P32 struct aggregates with copies out (xy[0] = field_4[0]; ...
+// int x = xy[0];) coalesce completely to the identical bytes, so the pair is
+// not an aggregate aliasing win. (2) The bestDiff*j1 product loads j1 first
+// (original loads bestDiff first): source operand order (j1 * bestDiff), a
+// static inline Mul(a, b) helper, `bestDiff * j1 < d0 * bestIdx` (78.8%) and
+// a named prod temp all compile byte-identically to the swapped form; the
+// load choice is a tiling/scheduling tie no spelling has moved. (3) Branch 2
+// differs in register allocation (ours: y reloaded into edi, halfH into ecx,
+// nx in eax, loop counter edi, n hoisted to slot 0x44; original: y into ecx,
+// halfH edx, nx edi, counter eax, n = limitX - nx rematerialised in esi each
+// outer iteration), limitX reuses slot 0x34 (j) in ours vs 0x18 (i) in the
+// original, limitY 0x30 (grid) vs 0x34 (j), and the original computes dst
+// before src through the `add reg, 0x7c` grid accessor shape. Moving dst
+// before src collapses the whole function to 38.9-39.0% because the global
+// register allocation reshuffles, so the src-first form was kept.
+// Remaining diff is 54 lines; the `jae 0x482597` vs `0x48259c` targets are
+// just our 5 extra bytes (822 vs 817) and fix themselves when (3) matches.
+// mimo-v2.6-pro retry: best 80.2% (was 79.1%). Fix: both limitX/limitY
+// ternaries spelled in the negated form `(x + frame->width >= halfW) ? halfW - x
+// : frame->width` flips the arm layout to the original's `jl`-to-second-arm with
+// the false arm falling through, and fixes the limitX/limitY codegen
+// instruction for instruction apart from slot/register numbers. Still differs:
+// (1) x is stored at 0x20 and y at 0x1c, the reverse of the original (x=0x1c,
+// y=0x20); the slot pair is bound to the initializer value (params->field_4[0]
+// vs [1]), not to name, declaration order, assignment order, load order, ctor
+// init or split declarations: swapping declarations swaps the loads/stores but
+// field_4[0] keeps 0x20 in every spelling tried (also struct/array aggregates
+// which move the pair to the top of the frame instead). (2) The `mov [esp+0x10],
+// 1` (j1 = 1) sits before the inner-loop `jle` in ours and after it in the
+// original; guarding with `if (0 < num)` drops the score to 69.2%. (3) The
+// bestDiff*j1 product loads j1 first (original loads bestDiff first): source
+// operand order, named temp and j1*bestDiff all still load [esp+0x10] first.
+// (4) Branch 2 differs in register allocation (ours: y reloaded into edi,
+// halfH into ecx, nx in eax, loop counter edi, n hoisted to slot 0x44;
+// original: y into ecx, halfH edx, nx edi, counter eax, n = limitX - nx
+// rematerialised in esi each outer iteration), limitX reuses slot 0x34 (j) in
+// ours vs 0x18 (i) in the original, limitY 0x30 (grid) vs 0x34 (j), and the
+// original computes dst before src through the `add reg, 0x7c` grid accessor
+// shape. Moving dst before src (raw or at() form) collapses the whole function
+// to 38.9-39.0% because the global register allocation reshuffles, so the
+// src-first form was kept.
 // Partial: 79.1%, 822 bytes versus 817. The big win over the previous 66.9%
 // attempt: the inner loop's seemingly dead x2/y2 stores are really the live
 // update of the int e1/e2 locals. Writing `int e1; int e2;` then
@@ -191,8 +248,9 @@ void __stdcall FUN_00482270(Params_482270* params)
             int bestDiff = -1;
             int bestIdx = 0;
             short j = 0;
+            if (0 < num) {
             int j1 = 1;
-            for (j = 0; j < num; j++, j1++) {
+            for (; j < num; j++, j1++) {
                 int e1;
                 int e2;
                 ((Class_004339e0*)line)->FUN_004339e0(j, &e1, &e2);
@@ -216,13 +274,14 @@ void __stdcall FUN_00482270(Params_482270* params)
                     }
                 }
             }
+            }
         }
     } else {
         int ref = *params->field_c;
         Frame_482270* frame =
             FUN_004b7f30((unsigned short*)g_game->losTable, ref);
-        int limitX = (x + frame->width < halfW) ? frame->width : halfW - x;
-        int limitY = (y + frame->height < halfH) ? frame->height : halfH - y;
+        int limitX = (x + frame->width >= halfW) ? halfW - x : frame->width;
+        int limitY = (y + frame->height >= halfH) ? halfH - y : frame->height;
         int nx = x < 0 ? -x : 0;
         int ny = y < 0 ? -y : 0;
         if (ny >= limitY)

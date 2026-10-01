@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol, edited by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 85.5% (ours 2868 bytes vs the original 2947).
 // What fixed 84.2 -> 85.5: the c2/c1 player count block. The original lays it
 // out loop1 / test-c2 / loop2 / test-c1 with ONE shared error stub at

@@ -49,7 +49,15 @@
 // temporaries or the multiply spelling: it is front end state, same class as 0x47d820.
 // issue-3512 pass (deepseek-v4.1-flash): re-tested the top block shapes; inlining the sums into the
 // combined condition gives 80.5 (1204 bytes), a Point pos copy gives 80.8 (1206), and swapping the
-// sx/sy assignment order is byte-identical to 80.9; best stays 80.9 (1202).
+// sx/sy assignment order is byte-identical to 80.9.
+// issue-3546 pass (deepseek-v4.1-flash): swapping the two negative tests to `pos.y < 0 || pos.x < 0`
+// raises 80.9 -> 81.2 (1202 bytes) even though it changes which test is emitted first; every other
+// order of the six test/sum/bounds combinations scores lower (w1..w7 in build/scratch/0x47cc30).
+// Still 1202 vs 1199: the front end keeps pos.x in CX and pos.y in AX, so the sums accumulate the
+// right operand (mov ecx,ebx / add ecx,edx; mov eax,edi / add eax,ebx), one copy each, and the width
+// lands in EDX instead of EAX. The original has AX=pos.x, CX=pos.y, sx first as `movsx edx,ax /
+// add edx,ebx`, sy as `movsx eax,cx / add eax,edi` with no copies. A source lever for that mapping
+// is still unfound.
 
 #pragma pack(push, 1)
 
@@ -179,7 +187,7 @@ void __stdcall FUN_0047cc30(Obj_0047cc30* obj)
     if (obj->field_0 != 0)
         *(int*)(obj->field_0 + 0x26) = g_game->field_38a47;
     int sx, sy;
-    if (obj->pos.x < 0 || obj->pos.y < 0)
+    if (obj->pos.y < 0 || obj->pos.x < 0)
         goto remove;
     sx = obj->pos.x + size.x;
     sy = obj->pos.y + size.y;

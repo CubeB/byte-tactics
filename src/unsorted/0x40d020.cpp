@@ -30,6 +30,9 @@
 // (for / if-do-while / pure do-while) all leave the same swap. A pure
 // do-while scores 81.1% but drops the original's pre-test (cmp/je before the
 // loop), so it is not kept. headers.py does not reach it.
+// 2026-10-01 deepseek-v4.1-flash retry 2: swapping the third loop's increments
+// to `++_s, ++_d` is byte-neutral (80.5%, 536 bytes); the source/dest register
+// swap (eax/ecx) and the uncached _Last reload are untouched by it.
 // 2026-10-01 deepseek-v4.1-flash retry: dropping the dest/src locals and
 // advancing _Q/_P directly (`for (; _P != _Last; ++_Q, ++_P)
 // allocator.construct(_Q + _M, *_P);`) collapses to 60.0% (528 bytes), so the
@@ -67,7 +70,7 @@ public:
 			iterator _S = allocator.allocate(_N, (void *)0);
 			iterator _Q = _Ucopy(_First, _P, _S);
 			_Ufill(_Q, _M, _X);
-			{ iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ++_d, ++_s) allocator.construct(_d, *_s); }
+			{ iterator _d = _Q + _M; const_iterator _s = _P; for (; _s != _Last; ++_s, ++_d) allocator.construct(_d, *_s); }
 			_Destroy(_First, _Last);
 			allocator.deallocate(_First, _End - _First);
 			_End = _S + _N;

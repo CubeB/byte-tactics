@@ -1,5 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// claude-sonnet-5-5 pass (issue 4272, no improvement, best stays 95.1% with the
+// lstrcpynA-before-group probe; natural order is 93.5%). All flat on the natural
+// order, 1318 bytes: unused `extern int` declaration sweep N=0..710 (so it is
+// source shape, not compiler state), tools/permute.py 20 minutes / 481 candidates,
+// `continue`/do-while(0)/four separate `if (!x) continue;` forms, Names struct with
+// an inline Fmt() method for either/both sprintf groups (stack slot order of the
+// i/ebx homes then swaps, 91.9%), helpers as member functions or plain/static/inline
+// free functions, int return types on the callees and `int r = sprintf(...)` results,
+// Id() identity helpers on the fdf0 arguments, dead statements before the group
+// (p = p, if (p) {}, locals, casts), nested IsAlive helper (81.5% or worse: the
+// second `test eax,eax` folds). A named `char* pn = p->name;` before the group used
+// by strcat makes the compiler hoist `lea ebx` into the first sprintf (93.2%).
+//
 // deepseek-v4.1-flash retry (issue 3976, 10 minute box): natural order with
 // lstrcpynA placed after the fourth body sprintf (full original order) scores
 // 93.5% / 1318 bytes, completing the after-1st/2nd/3rd ladder (94.3/93.0/92.7)

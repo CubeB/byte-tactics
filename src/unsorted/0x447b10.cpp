@@ -1,147 +1,92 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash pass (issue 4165, ~09:00Z box): best now 46.2% (4306 vs 4387).
-// Hoisting the READY block's FUN_00456850 result into a byte local (`byte byte9`,
-// assigned where the original spills it: `mov byte ptr [esp+0x20], al` at 0x448174)
-// moved the score from 45.7% to 46.2% and fixed the iVar8 slot, which now lands at
-// frame+4 exactly like the original. Declaring byte9 at the top of the function or in
-// the block does not change the emitted bytes at all.
-// What still differs, in reading order:
-//  - our frame is sub esp,0x140, the original's sub esp,0x13c: one extra 4-byte slot.
-//  - bVar1 sits at frame+0x10 (original frame+8) and iVar5 (the FUN_00457a50 result) at
-//    frame+8 (original frame+0x14). The original also has a slot at frame+0xc that it
-//    only ever reads (0x448013, 0x44808d) and never stores.
-//  - the outer-loop stride pointer lives in esi here, in ebx in the original, and the
-//    loop-offset store/lea shape at the loop head differs.
-//  - the can't-add-another-player block (0x448313) is emitted at a different site.
-// deepseek-v4.1-flash pass (issue 4098, 10 minute box shared with 0x447380/0x448c70):
-// one check.py run, best stays 45.7% (4306 original / 4382 emitted), earliest
-// mismatch still the scalar stack-slot allocation at 0x447b2d; no new variant
-// tried, file unchanged.
-// deepseek-v4.1-flash pass (issue 3565, 10 minute box): three check.py runs, best
-// stays 45.7% (4306 original / 4382 emitted); the box went to 0x447380. Earliest
-// mismatch is still the scalar stack-slot allocation at 0x447b2d.
-// deepseek-v4.1-flash pass (issue 3538, 10 minute box): one check.py run, best
-// stays 45.7% (4306 original / 4382 emitted). The earliest mismatch is still the
-// scalar stack-slot allocation at 0x447b2d; no new variant was tried in this box.
-// (earlier passes by deepseek-v4.1-flash and GPT-6)
-// GPT-6.1-sol pass (2026-10-01): six check.py runs, no MATCH. Best remains 45.7% (4306 vs 4382 bytes). A cached boolean for FUN_00457a50 scored 43.2%; inlining the player stride expression scored 29.5%, so both were reverted. All 128 header combinations were tested; none improved the 45.7% baseline (closest sets: <windows.h> <stdio.h>, <stdio.h> <string.h>, <stdio.h> <ddraw.h>). The earliest mismatch remains scalar stack-slot allocation at 0x447b2d, followed by loop register/stack placement and differing command-dispatch block ordering.\r\n// deepseek-v4.1-flash pass (issue 3485): re-ran check.py once; best stays 45.7%
-// (4306 original / 4382 emitted), earliest mismatch at 0x447b2d (scalar stack
-// slot allocation), then loop register/stack placement and command-dispatch
-// block ordering. File restored to this best version unmodified.
-// RETRY pass (deepseek-v4.1-flash, 2026-09-30, 0 check.py runs, ~4 min):
-// Score is still 45.7% (4306 vs 4382 bytes). The earliest mismatch is the
-// iVar8 store: original [esp+0x14] (frame+4), ours [esp+0x18] (frame+8), with
-// frame+4 a never-used hole in ours. I tried to move it and could not:
-//  - Every declaration-order permutation of the 23 scalar locals (iVar8 first,
-//    player first, original's store-order player/iVar8/bVar1/iVar6/iVar5) is
-//    byte-identical to the baseline. Declaration order does NOT drive the
-//    scalar slots here; the earlier "declaration order is the lever" note
-//    only held together with the other edits made in that pass.
-//  - Removing the unused `uint uVar13;` and eliminating `iVar11` (using literal
-//    1 at its two call sites) also compiles byte-identical.
-//  - Adding <windows.h>, <stdlib.h> or <math.h> is byte-identical.
-//  - Rewrapping the (x >> 0xf & 1) test as uint-cast, signed-short, or through
-//    a ushort local is byte-identical; MSVC always folds it to
-//    `test byte [eax+0x9c],0x80`.
-//  - Swapping the two loop-header statements also byte-identical.
-// The frame+4 hole points at a register-only local (most likely the
-// register-homed pointer/loop-offset temp) that MSVC still gives a slot; the
-// original packed its scalars without it. Fixing the early region needs that
-// local to stop being stack-allocated, i.e. a code/live-range change, not a
-// declaration change. Next attempt should diff the allocation by removing the
-// iVar5 or loop-offset temp as a named local (inline FUN_00457a50()/the offset
-// product) and see if the hole closes.
-// This pass (deepseek-v4.1, 2026-09-30, 2 check runs): tried the two shape fixes
-// the baseline diff pointed at, both kept because neither lowered the score.
-//  - `uVar7 - player[2] < 0x1f` -> `<= 0x1e`: the original emits
-//    `cmp eax,0x1e / jbe`, we emitted `cmp eax,0x1f / jb`. One byte smaller
-//    now (4382 vs 4383), same 45.7%.
-//  - `*(short *)(... + 0x9b) < 0` -> `(*(ushort *)(... + 0x9b) >> 0xf & 1) != 0`
-//    (0x447d32 in the original is `mov cx,word[+0x9b] / shr ecx,0xf / test cl,1`).
-//    MSVC5 still picks its own shape, so this hunk did NOT improve; the exact
-//    original shape is still missing.
-// Still differs, in reading order:
-//  - scalar stack slots do not match: original frame+0 is the player pointer,
-//    +4 iVar8, +8 bVar1, +0xc/+0x10 temps, +0x14 iVar5/FUN_00457a50 result.
-//    Ours: +0 pointer, +4 unused, +8 iVar8, +0xc iVar5, +0x10 bVar1, +0x14 temp.
-//    All the other agents' experiments (declaration order, one fused pointer,
-//    single 292-byte struct for the two arrays) are recorded below.
-//  - the loop pointer lives in esi for us, in ebx for the original, so every
-//    `[ebx+..]` in the 10-iteration walk is `[esi+..]` here, and the index temp
-//    is stored 4 bytes high ([esp+0x30] vs [esp+0x24]).
-//  - the can't-add-another-player block (0x448313 in the original) is emitted
-//    inline in our build and reached at 0x448bd2, so the loop's block order
-//    differs.
-//  - `je 0x447e3d` vs our `je 0x447deb` and the surrounding switch shape of the
-//    PLAYER%d arm differ (original compares `al,2` after `cmp [ebx],0`).
-//  - the original's inlined 0x40/0x519 string copies at the tail are missing.
-// Partial, 45.7% (deepseek-v4.1, 2026-09-30): a plausible full dispatcher.
-// BIG LEVER FOUND: scalar stack slots follow DECLARATION ORDER. Declaring
-// `int iVar8;` first (it is the first local the original stores, at frame+4)
-// took the score from 35.8% to 41.6% with no other change. The arrays also
-// live in one struct now (see below), which put the buffer below the table.
-// SECOND LEVER (this pass, 41.6% -> 45.7%): the two player-pointer locals
-// (iVar11 = g_game + i*0x14b, piVar9 = iVar11 + 0x1b63) are ONE variable in the
-// original. Writing `piVar9 = (int*)((int)g_game + (uint)bVar1*0x14b + 0x1b63)`
-// and using `(int)piVar9 + 0x27` / +0x13f / +4 for the old iVar11+0x1b8a /
-// +0x1ca2 / +0x1b67 sites makes the frame exactly the original sub esp,0x13c
-// (the prologue, the two array slots and the two epilogues now match), as long
-// as the 10-iteration walk loop gets its OWN pointer local (pVar22) so the
-// fused pointer survives the loop. Both swap attempts failed: putting
-// `iVar5 = FUN_00457a50();` before the pointer assignment is 41.9%, moving
-// `int iVar5;` in the declaration list changes nothing (45.7% both).
-// Still differs (next steps):
-//  - the fused pointer lives in esi for us, in ebx for the original, so the
-//    FUN_00457a50 result (iVar5) takes the other register: the original emits
-//    `mov esi,eax` after that call and `lea ebx,[edx+eax+0x1b63]` at its first
-//    use, we emit `mov ebx,eax` and reach the pointer through esi. MSVC5 homes
-//    by first use, so the original pointer's first use must come before iVar5's.
-//  - our scalars sit 4 bytes high: iVar8 is stored at frame+8 (original +4) and
-//    iVar5 at frame+0xc (original +0x14), while our frame+4 is free; the
-//    original's slots are, in store order: frame+0 player pointer, +4 iVar8,
-//    +8 bVar1, +0xc iVar6 (player index), +0x10 the FUN_00456850 byte,
-//    +0x14 iVar5 (FUN_00457a50 result).
-// Tried 2026-09-30 (deepseek-v4.1), all measured with check.py:
-//  - fusing iVar11/piVar9 into one `(int)g_game + 0x1b63 + (uint)bVar1*0x14b`
-//    expression (the original really does keep one pointer and reach
-//    0x108/0x13f/0x27 off it) DOES give sub esp,0x13c, but the score drops to
-//    34.6% and the iVar8 store stays at [esp+0x18] (frame+8) where the original
-//    has [esp+0x14] (frame+4): the extra slot is at frame+4 in ours, the
-//    original's unused hole is at frame+0xc (between bVar1 at +8 and the byte
-//    local at +0x10). So the +4 is a short-lived temp, not the second pointer.
-// Confirmed 2026-09-30 (deepseek-v4.1): the TWO check outputs for the two
-// declaration orders are byte-identical (same md5), so for this function MSVC 5
-// places the int[10] and the char[252] deterministically regardless of source
-// order: table low, buffer high. Standalone probes (build/scratch/0x447b10/t1b
-// to t5: byte[252]+int[10] in either order, int[63]+int[10], struct wrapper) all
-// confirm two separate arrays never swap: the 40-byte one always lands low.
-// Wrapping both in ONE 292-byte struct (SlotBuf here) DOES give the original's
-// internal order: buffer at +0 and int[10] at +0xfc. With the struct AND
-// iVar11/piVar9 fused into one player-pointer local (exactly as the original
-// prologue computes it), our frame becomes sub esp,0x13c and both arrays land on
-// the original's absolute slots ([esp+0x28] buffer, [esp+0x124] table). That
-// variant is saved as build/scratch/0x447b10/fused_0x13c.cpp; it scores 33.7%
-// against 35.8% for the version kept here, so this file keeps the higher number.
-// That saved variant is structurally closer (right frame, right slots) and is
-// the place to restart from.
-//  - swapping the declaration order of local_124[252] and local_28[10] changes
-//    the binary not at all; in our build the int[10] table lands low
-//    ([esp+0x28] = frame+0x18) and the 252-byte buffer high, the reverse of the
-//    original ([esp+0x28] buffer = frame+0x18, [esp+0x124] table = frame+0x114).
-//    So slot placement for the arrays is driven by something other than
-//    declaration order (first-use order of the locals is the next thing to try).
-// Also differs: the 0x447b9c block re-computes the player pointer instead of
-// reusing the [esp+0x10] slot (original keeps it in eax/esi), the sprintf call
-// sites do not reuse lea eax,[esp+N] the way the original does, and the inlined
-// string copies (0x40/0x519 style block moves) are missing at the tail.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// claude-sonnet-5-5 pass (issue 4272): 46.2% -> 82.8% by rebuilding the function on real types.
+// What made the difference (all verified against the original asm):
+//  - the player info struct (+0x27) has 16-bit bitfields at +0x9b (ready, b6, watching,
+//    b8..b10, cmdr:2, cheat, fixed, closed): reads give "mov cx,[..]; shr; test", writes
+//    give "or byte [..],imm", "x ^= 1" gives "not edx; xor edx,eax; and edx,mask; xor". Use
+//    PInfo/PLR below instead of raw masks; the 0x2a44 flag is a byte bitfield (GB).
+//  - the PLAYER block tests "c != 4 && c != 0" first (cmp 4 / test 0 order), then "if (c == 4)".
+//  - FUN_00452960's third parameter must be unsigned char (pushes eax after "mov al,dl").
+//  - nested call arguments (FUN_004abd90(gui, FUN_004c5740(msg), 500, 1, 1)) push the
+//    constants before the inner call; reusing iVar5/iVar8/iVar20 in the tail made the
+//    frame 0x140, giving the tail its own locals gives the original 0x13c.
+//  - the "t != 5" guard in the START team loop looks like an inlined
+//    "CountTeam(t)" helper (if (t == 5) return 0): see below, not enabled because the
+//    extra guard shifts every later jump target in this build.
+// What still differs (82.8%, 4306 original / 4382 emitted):
+//  - register split in the tail: original keeps param_1 in esi and the hoisted constant 1
+//    in ebp ("mov ebp,1" right after the post-loop "cmp ebp,ecx"); we pick esi for the
+//    constant and ebp for param_1. As a result the original's shared epilogue block at
+//    0x448b98 ("mov edx,[esp+0x150]; push edx; call FUN_004ab0a0; ... ret", 9 insns, so
+//    MSVC does not clone it) is cloned into each "goto done" path here (8 insns). Verified:
+//    adding any extra statement to the done block stops the cloning, so the block size is
+//    the trigger. Every jump target after 0x9c6 is shifted by that.
+//  - stack slot order: original (low to high) player ptr, iVar8, bVar1, stride, byte9,
+//    iVar5; ours has iVar5 and bVar1 swapped (slot order follows static reference weight).
+//  - START team loop: original wraps the inner 10-player loop in "if (t != 5)" (entry guard
+//    cmp ebx,5 / jne, count=0 otherwise), evaluates the flag2 bitfield per team (shr/and),
+//    and has the "same team" error block after the loop. A helper
+//    "static int CountTeam(int t){ if (t==5) return 0; int cnt=0; byte flag2=((GB*)g_game)->flag2; ... }"
+//    reproduces the loop shape exactly (see build/scratch/0x447b10/v20.cpp) but scores lower
+//    only because of the shifted jump targets above.
+//  - loop head: original computes the stride in eax before "lea eax,[esp+0x30]; push eax".
 #include <stdio.h>
 #include <string.h>
 typedef unsigned char byte;
 typedef unsigned short ushort;
 typedef unsigned int uint;
-typedef unsigned char undefined1;
-typedef unsigned short undefined2;
-typedef unsigned int undefined4;
+#pragma pack(push, 1)
+struct PInfo {
+  char unknown_0[0x94];
+  char c94;
+  byte c95;
+  byte c96;
+  byte f97_0 : 1;
+  byte f97_rest : 7;
+  char unknown_98[3];
+  ushort b0_3 : 4;
+  ushort b4 : 1;
+  ushort ready : 1;
+  ushort b6 : 1;
+  ushort watching : 1;
+  ushort b8 : 1;
+  ushort b9 : 1;
+  ushort b10 : 1;
+  ushort cmdr : 2;
+  ushort cheat : 1;
+  ushort fixed : 1;
+  ushort closed : 1;
+  byte f9d_0 : 2;
+  byte f9d_2 : 1;
+  byte f9d_rest : 5;
+  char unknown_9e[0xa7 - 0x9e];
+  byte ca7;
+  byte ca8;
+  uint ia9;
+};
+struct PLR {
+  int active;
+  int id;
+  uint time;
+  char unknown_c[0x27 - 0xc];
+  PInfo *info;
+  char name[0x73 - 0x2b];
+  char type;
+  char unknown_74[0x108 - 0x74];
+  byte ally[10];
+  char unknown_112[0x113 - 0x112];
+  byte ally2[10];
+  char unknown_11d[0x13f - 0x11d];
+  char team;
+};
+struct GB {
+  char unknown_0[0x2a44];
+  byte flag0 : 1;
+  byte flag1 : 1;
+  byte flag2 : 1;
+  byte flag_rest : 5;
+};
+#pragma pack(pop)
 extern char* g_game;
 extern int DAT_00506dbc;
 extern int DAT_00512994;
@@ -163,7 +108,7 @@ int FUN_00450f90();
 int FUN_00451180();
 int __stdcall FUN_00451220(unsigned char,int);
 int __stdcall FUN_004526c0(int);
-int __stdcall FUN_00452960(int,int,int,int);
+int __stdcall FUN_00452960(int,int,unsigned char,int);
 int __stdcall FUN_00452bd0(int);
 int __stdcall FUN_00453010(int,unsigned char);
 byte FUN_00456850();
@@ -200,27 +145,22 @@ void FUN_00444ba0();
 void __stdcall FUN_00447b10(byte *param_1)
 
 {
-  int iVar8;
-  int *player;
-  uint bVar1;
-  int iVar6;
-  uint bVar4;
   int iVar5;
+  int iVar6;
+  int iVar8;
+  PLR *player;
+  uint bVar1;
+  uint bVar4;
   char cVar2;
   int bVar3;
   uint uVar7;
-  int *piVar9;
+  PLR *me;
   int *pVar22;
   byte *pbVar10;
-  int iVar11;
   int *piVar12;
-  uint uVar13;
-  ushort uVar14;
   ushort uVar15;
   int iVar16;
   uint uVar17;
-  byte *pbVar18;
-  char *pcVar19;
   int iVar20;
   char *pcVar21;
   struct SlotBuf { char text [252]; int used [10]; };
@@ -229,78 +169,72 @@ void __stdcall FUN_00447b10(byte *param_1)
   iVar8 = *(int *)(*(int *)(param_1 + 0x18) + 4);
   if (*(int *)(param_1 + 0x60) == -1) {
     FUN_004d85a0((int)(*(int **)((int)g_game + 0x2a9b)));
-    *(undefined4 *)((int)g_game + 0x2a9b) = 0;
+    *(int *)((int)g_game + 0x2a9b) = 0;
     DAT_00512994 = 0;
     FUN_00446c70();
     return;
   }
   bVar1 = *(byte *)((int)g_game + 0x2a42);
-  piVar9 = (int *)((int)g_game + (uint)bVar1 * 0x14b + 0x1b63);
+  me = (PLR *)((int)g_game + (uint)bVar1 * 0x14b + 0x1b63);
   iVar5 = FUN_00457a50();
   uVar17 = 0;
   do {
     iVar6 = uVar17 * 0x14b;
-    player = (int *)((int)g_game + 0x1b63 + iVar6);
+    player = (PLR *)((int)g_game + 0x1b63 + iVar6);
     sprintf(local_124.text,"LOGO%d",uVar17);
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)(local_124.text));
-    if (((bVar3 != 0) && (*player != 0)) &&
-       ((*(char *)((int)player + 0x73) == '\x01' || (*(char *)((int)player + 0x73) == '\x02')))) {
-      FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-      FUN_004526c0((int)(*(byte *)(*(int *)((int)player + 0x27) + 0x96) + 1));
+    bVar3 = FUN_0049fd60((int)param_1,(int)(local_124.text));
+    if (((bVar3 != 0) && (player->active != 0)) &&
+       ((player->type == 1 || (player->type == 2)))) {
+      FUN_0047f1a0((int)"Multi",0);
+      FUN_004526c0((int)player->info->c96 + 1);
       *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
       FUN_00450f90();
     }
     sprintf(local_124.text,"PLAYER%d",uVar17);
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)(local_124.text));
+    bVar3 = FUN_0049fd60((int)param_1,(int)(local_124.text));
     if ((bVar3 != 0) && (uVar17 != bVar1)) {
-      FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-      cVar2 = *(char *)((int)player + 0x73);
+      FUN_0047f1a0((int)"Multi",0);
+      cVar2 = player->type;
       if ((cVar2 == '\0') && (iVar5 != 0)) {
-        ((Class_00463c60*)(player))->FUN_00463c60((int)(4));
-        player[1] = -1;
-        *(int *)((int)g_game + 0x499) = *(int *)((int)g_game + 0x499) + -1;
+        ((Class_00463c60*)(player))->FUN_00463c60(4);
+        player->id = -1;
+        (*(int *)((int)g_game + 0x499))--;
       }
       else {
-        if (cVar2 == '\x04') {
-          ((Class_00463c60*)(player))->FUN_00463c60((int)(0));
-          *(int *)((int)g_game + 0x499) = *(int *)((int)g_game + 0x499) + 1;
-          FUN_00451180();
-        }
-        else if (cVar2 != '\0') {
-          if (((*player == 0) || (cVar2 != '\x02')) ||
-             (uVar7 = FUN_004b6340(), uVar7 - player[2] <= 0x1e)) {
-            if (((iVar5 != 0) && (*player != 0)) && (*(char *)((int)player + 0x73) == '\x03')) {
+        if (cVar2 != '\x04' && cVar2 != '\0') {
+          if (((player->active == 0) || (cVar2 != '\x02')) ||
+             (uVar7 = FUN_004b6340(), uVar7 - player->time <= 0x1e)) {
+            if (((iVar5 != 0) && (player->active != 0)) && (player->type == '\x03')) {
               FUN_00446080((int)(uVar17));
             }
           }
           else {
-            FUN_00453010((int)((int *)player[1]),(int)(1));
-            ((Class_00463c60*)(player))->FUN_00463c60((int)(0));
+            FUN_00453010(player->id,1);
+            ((Class_00463c60*)(player))->FUN_00463c60(0);
           }
           goto LAB_00447e27;
         }
+        if (cVar2 == '\x04') {
+          ((Class_00463c60*)(player))->FUN_00463c60(0);
+          (*(int *)((int)g_game + 0x499))++;
+          FUN_00451180();
+        }
         bVar4 = FUN_00456850();
-        if ((*(ushort *)(*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a) + 0x9b) >>
-             0xf & 1) != 0) {
-          iVar20 = 1;
-          iVar6 = 1;
-          iVar5 = 500;
-          pbVar10 = (byte*)FUN_004c5740((int)((byte *)"Can't add another player when game is closed."));
-          FUN_004abd90((int)((byte *)((int)g_game + 0x519)),(int)(pbVar10),(int)(iVar5),(int)(iVar6),(int)(iVar20));
-          ((Class_00463c60*)(player))->FUN_00463c60((int)(0));
+        if (((PInfo *)*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a))->closed) {
+          FUN_004abd90((int)g_game + 0x519,FUN_004c5740((int)"Can't add another player when game is closed."),500,1,1);
+          ((Class_00463c60*)(player))->FUN_00463c60(0);
           *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
           break;
         }
         bVar4 = FUN_00456850();
-        if (((*(ushort *)(*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a) + 0x9b) & 0x1800) !=
-             0x1000) && (iVar20 = FUN_00457b90(), iVar20 == 0)) {
-          FUN_00451220((int)((byte)uVar17),(int)(2));
-          iVar16 = 10;
+        if ((((PInfo *)*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a))->cmdr != 2) && (iVar20 = FUN_00457b90(), iVar20 == 0)) {
+          FUN_00451220((byte)uVar17,2);
           piVar12 = local_124.used;
           for (iVar20 = 10; iVar20 != 0; iVar20 = iVar20 + -1) {
             *piVar12 = 0;
             piVar12 = piVar12 + 1;
           }
+          iVar16 = 10;
           pcVar21 = (char *)((int)g_game + 0x1bd6);
           do {
             if (((*(int *)(pcVar21 + -0x73) != 0) &&
@@ -317,16 +251,14 @@ void __stdcall FUN_00447b10(byte *param_1)
             pcVar21 = pcVar21 + 0x14b;
             iVar16 = iVar16 + -1;
           } while (iVar16 != 0);
-          iVar20 = 0;
-          piVar12 = local_124.used;
-          do {
-            iVar16 = iVar20;
-            if (*piVar12 == 0) break;
-            iVar20 = iVar20 + 1;
-            piVar12 = piVar12 + 1;
-            iVar16 = 0;
-          } while (iVar20 < 10);
-          *(char *)(*(int *)((int)player + 0x27) + 0x96) = (char)iVar16;
+          iVar16 = 0;
+          for (iVar20 = 0; iVar20 < 10; iVar20++) {
+            if (local_124.used[iVar20] == 0) {
+              iVar16 = iVar20;
+              break;
+            }
+          }
+          player->info->c96 = (byte)iVar16;
         }
       }
 LAB_00447e27:
@@ -335,122 +267,108 @@ LAB_00447e27:
       FUN_00450f90();
     }
     sprintf(local_124.text,"SIDE%d",uVar17);
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)(local_124.text));
+    bVar3 = FUN_0049fd60((int)param_1,(int)(local_124.text));
     if (bVar3 != 0) {
-      FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-      if (*player == 0) {
-LAB_00447ea4:
-        *(char *)(*(int *)((int)player + 0x27) + 0x95) =
-             *(char *)(*(int *)((int)player + 0x27) + 0x95) + '\x01';
-        if (*(int *)((int)g_game + 0x37f39) <=
-            (int)(uint)*(byte *)(*(int *)((int)player + 0x27) + 0x95)) {
-          *(undefined1 *)(*(int *)((int)player + 0x27) + 0x95) = 0;
+      FUN_0047f1a0((int)"Multi",0);
+      if ((player->active != 0) && (player->info->b6)) {
+        player->info->b6 = 0;
+        player->info->c95 = 0;
+      }
+      else {
+        player->info->c95++;
+        if ((int)(uint)player->info->c95 >= *(int *)((int)g_game + 0x37f39)) {
+          player->info->c95 = 0;
           bVar4 = FUN_00456850();
-          if ((((*(byte *)(*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a) + 0x9b) & 0x80) ==
-                0) || (*player == 0)) || (*(char *)((int)player + 0x73) != '\x01')) {
-            FUN_004a1080((int)((int)param_1),(int)((char *)local_124.text),(int)(0));
-            FUN_004a5f40((int)((int)param_1),(int)(*(int *)(param_1 + 0x60)));
+          if (((((PInfo *)*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a))->watching) &&
+               (player->active != 0)) && (player->type == '\x01')) {
+            player->info->b6 = 1;
           }
           else {
-            pbVar10 = (byte *)(*(int *)((int)player + 0x27) + 0x9b);
-            *pbVar10 = *pbVar10 | 0x40;
+            FUN_004a1080((int)param_1,(int)(local_124.text),0);
+            FUN_004a5f40((int)param_1,*(int *)(param_1 + 0x60));
           }
         }
       }
-      else {
-        uVar15 = *(ushort *)(*(int *)((int)player + 0x27) + 0x9b);
-        if ((uVar15 & 0x40) == 0) goto LAB_00447ea4;
-        *(ushort *)(*(int *)((int)player + 0x27) + 0x9b) = uVar15 & 0xffbf;
-        *(undefined1 *)(*(int *)((int)player + 0x27) + 0x95) = 0;
-      }
       *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
-      FUN_0046c620((int)(4));
+      FUN_0046c620(4);
       FUN_00450f90();
     }
     sprintf(local_124.text,"ALLY%d",uVar17);
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)(local_124.text));
+    bVar3 = FUN_0049fd60((int)param_1,(int)(local_124.text));
     if (bVar3 != 0) {
-      bVar4 = *(byte *)(uVar17 + 0x108 + (int)piVar9);
-      *(byte *)(uVar17 + 0x108 + (int)piVar9) = bVar4 ^ 1;
-      FUN_00452960((int)(*(uint *)((int)piVar9 + 4)),(int)(player[1]),(int)(bVar4 ^ 1),(int)(0));
-      if (*(char *)((int)piVar9 + 0x13f) == '\x05') {
-        bVar3 = false;
+      me->ally[uVar17] ^= 1;
+      FUN_00452960(me->id,player->id,me->ally[uVar17],0);
+      char bTeam;
+      if (me->team == 5) {
+        bTeam = false;
       }
       else {
-        bVar3 = *(char *)((int)piVar9 + 0x13f) == *(char *)((int)player + 0x13f);
+        bTeam = me->team == player->team;
       }
-      if (bVar3) {
-        FUN_00446e90((int)((int)piVar9));
-        *(undefined1 *)((int)piVar9 + 0x13f) = 5;
-        FUN_00452bd0((int)(piVar9));
+      if (bTeam) {
+        FUN_00446e90((int)me);
+        me->team = 5;
+        FUN_00452bd0((int)me);
       }
-      if ((uint)*(byte *)(uVar17 + 0x113 + (int)piVar9) * 2 == 3 ||
-          *(char *)(uVar17 + 0x108 + (int)piVar9) != '\0') {
-        pcVar21 = "Ally";
+      if (((uint)me->ally2[uVar17] * 2 == 3) | me->ally[uVar17]) {
+        FUN_0047f1a0((int)"Ally",0);
       }
       else {
-        pcVar21 = "Multi";
+        FUN_0047f1a0((int)"Multi",0);
       }
-      FUN_0047f1a0((int)((byte *)pcVar21),(int)(0));
-      pcVar21 = "allied with";
-      if (*(char *)(uVar17 + 0x108 + (int)piVar9) == '\0') {
-        pcVar21 = "broke alliance with";
-      }
-      sprintf(local_124.text," %s %s",(char*)FUN_004c5740((int)((int)pcVar21)),(char*)player+0x2b);
-      FUN_00463e50((int)(piVar9),(int)(local_124.text),(int)(4),(int)(0));
+      sprintf(local_124.text," %s %s",(char*)FUN_004c5740(me->ally[uVar17] ? (int)"allied with" : (int)"broke alliance with"),(char*)((int)g_game + iVar6 + 0x1b8e));
+      FUN_00463e50((int)me,(int)(local_124.text),4,0);
       *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
       FUN_00450f90();
     }
     sprintf(local_124.text,"TEAMICONS%d",uVar17);
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)(local_124.text));
+    bVar3 = FUN_0049fd60((int)param_1,(int)(local_124.text));
     if (bVar3 != 0) {
-      FUN_0047f1a0((int)("Ally"),(int)(0));
-      bVar4 = *(byte *)((int)g_game + 0x1ca2 + iVar6);
-      piVar12 = (int *)((int)g_game + 0x1b63 + iVar6);
-      FUN_00446e90((int)((int)piVar12));
-      *(char *)((int)piVar12 + 0x13f) = (char)((bVar4 + 1) % 6);
-      FUN_00452bd0((int)(piVar12));
+      FUN_0047f1a0((int)"Ally",0);
+      int tm = *(byte *)((int)g_game + 0x1ca2 + iVar6);
+      PLR *pl2 = (PLR *)((int)g_game + 0x1b63 + iVar6);
+      FUN_00446e90((int)pl2);
+      pl2->team = (char)((tm + 1) % 6);
+      FUN_00452bd0((int)pl2);
       FUN_00446c70();
       FUN_00446a50();
-      FUN_00452bd0((int)(player));
+      FUN_00452bd0((int)player);
     }
     sprintf(local_124.text,"RES%d",uVar17);
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)(local_124.text));
-    if (((bVar3 != 0) && (*player != 0)) &&
-       (*(char *)((int)player + 0x73) == '\x01')) {
-      FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
+    bVar3 = FUN_0049fd60((int)param_1,(int)(local_124.text));
+    if (((bVar3 != 0) && (player->active != 0)) &&
+       (player->type == '\x01')) {
+      FUN_0047f1a0((int)"Multi",0);
       FUN_00446310();
-      FUN_004ab0a0((int)((int)param_1));
+      FUN_004ab0a0((int)param_1);
       *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
       return;
     }
     sprintf(local_124.text,"READY%d",uVar17);
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)(local_124.text));
-    if (((bVar3 != 0) && (*player != 0)) &&
-       (*(char *)((int)player + 0x73) == '\x01')) {
-      FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
+    bVar3 = FUN_0049fd60((int)param_1,(int)(local_124.text));
+    if (((bVar3 != 0) && (player->active != 0)) &&
+       (player->type == '\x01')) {
+      FUN_0047f1a0((int)"Multi",0);
       iVar6 = ((Class_004358f0*)(*(int *)((int)g_game + 0x391e9)))->FUN_004358f0();
       if (iVar6 != 0) {
         byte byte9 = FUN_00456850();
-        iVar6 = 0;
+        PInfo *inf = 0;
         bVar3 = false;
         if (byte9 != 10) {
-          iVar6 = *(int *)((int)g_game + (uint)byte9 * 0x14b + 0x1b8a);
-          if ((1 < *(byte *)(iVar6 + 0xa7)) ||
-             ((*(byte *)(iVar6 + 0xa7) == 1 && (1 < *(byte *)(iVar6 + 0xa8))))) {
+          inf = (PInfo *)*(int *)((int)g_game + (uint)byte9 * 0x14b + 0x1b8a);
+          if ((inf->ca7 >= 2) ||
+             ((inf->ca7 == 1 && (inf->ca8 >= 2)))) {
             bVar3 = true;
           }
         }
         if ((!bVar3) ||
-           (uVar7 = ((Class_004373a0*)(*(int *)((int)g_game + 0x391e9)))->FUN_004373a0(), uVar7 == *(uint *)(iVar6 + 0xa9)
-           )) {
-          iVar6 = FUN_0049fdf0((int)(iVar8),(int)((char *)local_124.text),(int)(1));
-          uVar7 = FUN_004a0f30((int)((int)g_game + 0x519),(int)(iVar6));
-          *(ushort *)(*(int *)((int)player + 0x27) + 0x9b) =
-               *(ushort *)(*(int *)((int)player + 0x27) + 0x9b) & 0xffdf | (ushort)((uVar7 & 1) << 5);
-          if ((*(byte *)(*(int *)((int)player + 0x27) + 0x97) & 1) != 0) {
+           (uVar7 = ((Class_004373a0*)(*(int *)((int)g_game + 0x391e9)))->FUN_004373a0(), uVar7 == inf->ia9)) {
+          iVar6 = FUN_0049fdf0(iVar8,(int)local_124.text,1);
+          uVar7 = FUN_004a0f30((int)g_game + 0x519,iVar6);
+          player->info->ready = uVar7 & 1;
+          if (player->info->f97_0) {
             strcpy((char*)(iVar8+0xcc),"START");
-            iVar6 = FUN_0049fdf0((int)(iVar8),(int)("START"),(int)(1));
+            iVar6 = FUN_0049fdf0(iVar8,(int)"START",1);
             *(int *)(*(int *)((int)g_game + 0x531) + 0x20) = iVar6;
           }
           iVar20 = 0;
@@ -459,11 +377,8 @@ LAB_00447ea4:
             if ((*(int *)(iVar6 + 0x1b63 + iVar20) != 0) &&
                ((cVar2 = *(char *)(iVar6 + 0x1bd6 + iVar20), cVar2 == '\x01' || (cVar2 == '\x02'))))
             {
-              iVar16 = *(int *)(iVar6 + 0x1b8a + iVar20);
-              uVar15 = *(ushort *)(iVar16 + 0x9b);
-              *(ushort *)(iVar16 + 0x9b) =
-                   (byte)(*(byte *)(*(int *)(iVar6 + (uint)*(byte *)(iVar6 + 0x2a42) * 0x14b +
-                                            0x1b8a) + 0x9b) ^ (byte)uVar15) & 0x20 ^ uVar15;
+              ((PInfo *)*(int *)(iVar6 + 0x1b8a + iVar20))->ready =
+                  ((PInfo *)*(int *)(iVar6 + (uint)*(byte *)(iVar6 + 0x2a42) * 0x14b + 0x1b8a))->ready;
               iVar6 = (int)g_game;
             }
             iVar20 = iVar20 + 0x14b;
@@ -473,289 +388,222 @@ LAB_00447ea4:
           goto LAB_00448300;
         }
       }
-      FUN_004a1110((int)((int)g_game + 0x519),(int)((char *)local_124.text),(int)(0));
+      FUN_004a1110((int)g_game + 0x519,(int)local_124.text,0);
     }
 LAB_00448300:
     uVar17 = uVar17 + 1;
   } while ((int)uVar17 < 10);
+  ushort one = 1;
   if (uVar17 != *(ushort *)((int)g_game + 0x2a3c)) {
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | 1;
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
   }
-  bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"PREVMENU"));
-  if (bVar3 != 0) {
-    FUN_0047f1a0((int)((byte *)"Previous"),(int)(0));
+  if (FUN_0049fd60((int)param_1,(int)"PREVMENU")) {
+    FUN_0047f1a0((int)"Previous",0);
     iVar5 = 0;
     iVar8 = (int)g_game;
     do {
       if ((*(int *)(iVar8 + 0x1b63 + iVar5) != 0) &&
          ((cVar2 = *(char *)(iVar8 + 0x1bd6 + iVar5), cVar2 == '\x01' || (cVar2 == '\x02')))) {
-        FUN_00453010((int)(*(int **)(iVar8 + 0x1b67 + iVar5)),(int)(2));
+        FUN_00453010(*(int *)(iVar8 + 0x1b67 + iVar5),2);
         iVar8 = (int)g_game;
       }
       iVar5 = iVar5 + 0x14b;
     } while (iVar5 < 0xcee);
-    *(undefined1 *)(iVar8 + 0x2bc0) = 3;
+    *(char *)(iVar8 + 0x2bc0) = 3;
     return;
   }
-  bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"MESSAGE"));
-  if (bVar3 != 0) {
-    iVar8 = FUN_004a0010((int)(iVar8),(int)("MESSAGE"));
-    pbVar10 = (byte *)(iVar8 + 0xb6);
+  if (FUN_0049fd60((int)param_1,(int)"MESSAGE")) {
+    int msg = FUN_004a0010(iVar8,(int)"MESSAGE");
+    pbVar10 = (byte *)(msg + 0xb6);
     if (strlen((char*)pbVar10) != 0) {
-      uVar17 = _strcmpi((char*)pbVar10,(char *)"+syncerr");
-      if (uVar17 == 0) {
+      if (_strcmpi((char*)pbVar10,"+syncerr") == 0) {
         pcVar21 = (char*)((Class_0046df40*)(*(int *)((int)g_game + 0x2a30)))->FUN_0046df40();
         if (pcVar21 != (char *)0x0) {
-          FUN_00463ca0((int)(pcVar21),(int)(4),(int)(0),(int)('\n'));
+          FUN_00463ca0((int)pcVar21,4,0,'\n');
         }
       }
       else {
-        FUN_00463e50((int)(piVar9),(int)(pbVar10),(int)(4),(int)(0));
+        FUN_00463e50((int)me,(int)pbVar10,4,0);
         if (DAT_00506dbc != 0) {
-          ((Class_004618a0*)(&DAT_00513000))->FUN_004618a0((int)(1));
+          ((Class_004618a0*)(&DAT_00513000))->FUN_004618a0(one);
         }
       }
-      uVar17 = 0xffffffff;
       *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
-      pcVar21 = "";
-      do {
-        pcVar19 = pcVar21;
-        if (uVar17 == 0) break;
-        uVar17 = uVar17 - 1;
-        pcVar19 = pcVar21 + 1;
-        cVar2 = *pcVar21;
-        pcVar21 = pcVar19;
-      } while (cVar2 != '\0');
-      uVar17 = ~uVar17;
-      pbVar18 = (byte *)(pcVar19 + -uVar17);
-      for (uVar7 = uVar17 >> 2; uVar7 != 0; uVar7 = uVar7 - 1) {
-        *(undefined4 *)pbVar10 = *(undefined4 *)pbVar18;
-        pbVar18 = pbVar18 + 4;
-        pbVar10 = pbVar10 + 4;
-      }
-      for (uVar17 = uVar17 & 3; uVar17 != 0; uVar17 = uVar17 - 1) {
-        *pbVar10 = *pbVar18;
-        pbVar18 = pbVar18 + 1;
-        pbVar10 = pbVar10 + 1;
-      }
+      strcpy((char*)pbVar10,"");
     }
-    pcVar21 = (char *)FUN_0049fdf0((int)(*(int *)(*(int *)((int)g_game + 0x531) + 4)),(int)("MESSAGE"),(int)(3));
-    FUN_004a7190((int)((int)g_game + 0x519),(int)(pcVar21));
-    goto LAB_00448b98;
+    pcVar21 = (char *)FUN_0049fdf0(*(int *)(*(int *)((int)g_game + 0x531) + 4),(int)"MESSAGE",3);
+    FUN_004a7190((int)g_game + 0x519,(int)pcVar21);
   }
-  bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"COMMANDER"));
-  if (bVar3 == 0) {
-    bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"LOSTYPE"));
-    if (bVar3 == 0) {
-      bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"WATCHING"));
-      if (bVar3 == 0) {
-        bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"CHEATING"));
-        if (bVar3 == 0) {
-          bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"FIXEDLOC"));
-          if (bVar3 == 0) {
-            bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"MAPPING"));
-            if (bVar3 == 0) {
-              bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"START"));
-              if (bVar3 != 0) {
-                iVar5 = 0;
-                FUN_0047f1a0((int)((byte *)"BigButton"),(int)(0));
-                iVar8 = 10;
-                pVar22 = (int *)((int)g_game + 0x1b8a);
-                do {
-                  if ((*(int *)((int)pVar22 - 0x27) != 0) &&
-                     ((((char)pVar22[0x13] == '\x01' ||
-                       (((*(int *)((int)pVar22 - 0x27) != 0 && ((char)pVar22[0x13] == '\x03')) &&
-                        (*(char *)(*pVar22 + 0x94) == '\x01')))) &&
-                      ((*(byte *)(*pVar22 + 0x9d) & 4) != 0)))) {
-                    iVar5 = iVar5 + 1;
-                  }
-                  pVar22 = (int *)((int)pVar22 + 0x14b);
-                  iVar8 = iVar8 + -1;
-                } while (iVar8 != 0);
-                if (((iVar5 < 1) || ((iVar5 < 2 && (iVar8 = FUN_00457af0(), 3 < iVar8)))) ||
-                   ((iVar5 < 3 && (iVar8 = FUN_00457af0(), 6 < iVar8)))) {
-                  FUN_004ab0a0((int)((int)g_game + 0x519));
-                  iVar11 = 1;
-                  iVar5 = 1;
-                  iVar8 = 200;
-                  pbVar10 = (byte*)FUN_004c5740((int)((byte *)"There are not enough game CDs present to play"));
-                  FUN_004abd90((int)(param_1),(int)(pbVar10),(int)(iVar8),(int)(iVar5),(int)(iVar11));
-                  return;
-                }
-                iVar8 = FUN_00457b40();
-                iVar5 = FUN_00457af0();
-                uVar17 = 0;
-                do {
-                  iVar20 = 0;
-                  pcVar21 = (char *)((int)g_game + 0x1bd6);
-                  iVar6 = 10;
-                  do {
-                    if ((*(byte *)((int)g_game + 0x2a44) >> 2 & 1) == 0) {
-                      if (((((byte)pcVar21[0xcc] == uVar17) && (*(int *)(pcVar21 + -0x73) != 0)) &&
-                          ((cVar2 = *pcVar21, cVar2 == '\x01' ||
-                           ((cVar2 == '\x02' || (cVar2 == '\x03')))))) && (pcVar21[0xd3] != '\n'))
-                      goto LAB_00448872;
-                    }
-                    else if ((((((byte)pcVar21[0xcc] == uVar17) && (*(int *)(pcVar21 + -0x73) != 0))
-                              && ((cVar2 = *pcVar21, cVar2 == '\x01' ||
-                                  ((cVar2 == '\x02' || (cVar2 == '\x03')))))) &&
-                             (pcVar21[0xd3] != '\n')) &&
-                            ((((cVar2 == '\x01' || (cVar2 == '\x02')) || (cVar2 == '\x03')) &&
-                             ((*(short *)(pcVar21 + 0xd1) != 0 || (*(int *)(pcVar21 + 0xcd) == 0))))
-                            )) {
-LAB_00448872:
-                      iVar20 = iVar20 + 1;
-                    }
-                    pcVar21 = pcVar21 + 0x14b;
-                    iVar6 = iVar6 + -1;
-                  } while (iVar6 != 0);
-                  if (iVar20 == iVar8 + iVar5) {
-                    FUN_004ab0a0((int)((int)g_game + 0x519));
-                    iVar11 = 1;
-                    iVar5 = 1;
-                    iVar8 = 200;
-                    pbVar10 = (byte*)FUN_004c5740((int)((byte *)"Can not start game with all players on the same team."));
-                    FUN_004abd90((int)(param_1),(int)(pbVar10),(int)(iVar8),(int)(iVar5),(int)(iVar11));
-                    return;
-                  }
-                  uVar17 = uVar17 + 1;
-                } while ((int)uVar17 < 5);
-                bVar3 = ((Class_00435c40*)(*(int *)((int)g_game + 0x391e9)))->FUN_00435c40();
-                if (bVar3) {
-                  iVar8 = (int)g_game;
-                  if ((*(byte *)(*(int *)((int)piVar9 + 0x27) + 0x9b) & 0x80) == 0) {
-                    iVar5 = 0;
-                    do {
-                      if (((*(int *)(iVar8 + 0x1b63 + iVar5) != 0) &&
-                          (*(char *)(iVar8 + 0x1bd6 + iVar5) == '\x03')) &&
-                         ((*(byte *)(*(int *)(iVar8 + 0x1b8a + iVar5) + 0x9b) & 0x40) != 0)) {
-                        FUN_00453010((int)(*(int **)(iVar8 + 0x1b67 + iVar5)),(int)(9));
-                        iVar8 = (int)g_game;
-                      }
-                      iVar5 = iVar5 + 0x14b;
-                    } while (iVar5 < 0xcee);
-                  }
-                  *(undefined1 *)(iVar8 + 0x2bc0) = 0x11;
-                  pbVar10 = (byte *)(*(int *)((int)piVar9 + 0x27) + 0x9b);
-                  *pbVar10 = *pbVar10 | 0x10;
-                  FUN_00451180();
-                  *(uint *)((int)g_game + 0x39231) =
-                       (*(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) & 0x200) >> 9;
-                  *(uint *)((int)g_game + 0x39235) =
-                       (*(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) & 0x400) >> 10;
-                  *(uint *)((int)g_game + 0x39229) =
-                       (*(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) & 0x1800) >> 0xb;
-                  *(uint *)(*(int *)((int)g_game + 0x29a0) + 0x118) =
-                       (*(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) & 0x4000) >> 0xe;
-                  *(uint *)((int)g_game + 0x3922d) =
-                       (*(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) & 0x100) >> 8;
-                  FUN_00430f00();
-                  *(undefined4 *)((int)g_game + 0x37eee) = 2;
-                  return;
-                }
-                FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-                FUN_00444ea0();
-                goto LAB_00448b98;
-              }
-              bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"GAMEOPEN"));
-              if (bVar3 == 0) {
-                bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"RESTRICTIONS"));
-                if (bVar3 == 0) {
-                  bVar3 = FUN_0049fd60((int)((int)param_1),(int)("MAP"));
-                  if ((bVar3 != 0) ||
-                     (bVar3 = FUN_0049fd60((int)((int)param_1),(int)((byte *)"MAPNAME")),
-                     bVar3 != 0)) {
-                    FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-                    if ((*(byte *)(*(int *)((int)piVar9 + 0x27) + 0x97) & 1) == 0) {
-                      piVar9 = (int*)FUN_004aa8f0((int)((int)g_game + 0x519),(int)("VIEWMAP.GUI"),(int)(0x900));
-                      piVar9[2] = (int)FUN_00444ba0;
-                      FUN_004288d0((int)((byte *)"DVIEWMAP"),(int)(0),(int)(0),(int)(0));
-                      FUN_00444a20();
-                      FUN_0049fb10((int)((int)g_game + 0x519),(int)(1));
-                      FUN_004a81e0((int)((int)g_game + 0x519),(int)(0x40));
-                    }
-                    else {
-                      FUN_00444ea0();
-                    }
-                  }
-                }
-                else {
-                  FUN_0047f1a0((int)((byte *)"Options"),(int)(0));
-                  FUN_0044c7e0();
-                  FUN_004ab0a0((int)((int)param_1));
-                }
-                goto LAB_00448b98;
-              }
-              FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-              uVar17 = FUN_004a0f60((int)((int)param_1),(int)("GAMEOPEN"));
-              iVar8 = *(int *)((int)piVar9 + 0x27);
-              uVar15 = *(ushort *)(iVar8 + 0x9b) & 0x7fff | (ushort)(uVar17 == 0) << 0xf;
-            }
-            else {
-              FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-              uVar17 = FUN_004a0f60((int)((int)param_1),(int)("MAPPING"));
-              iVar8 = *(int *)((int)piVar9 + 0x27);
-              uVar15 = *(ushort *)(iVar8 + 0x9b) & 0xfeff | (ushort)(uVar17 == 0) << 8;
-            }
-            *(ushort *)(iVar8 + 0x9b) = uVar15;
-            goto LAB_00448aaf;
-          }
-          FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-          iVar8 = *(int *)((int)piVar9 + 0x27);
-          uVar15 = *(ushort *)(iVar8 + 0x9b);
-          uVar14 = 0x4000;
-        }
-        else {
-          FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-          iVar8 = *(int *)((int)piVar9 + 0x27);
-          uVar15 = *(ushort *)(iVar8 + 0x9b);
-          uVar14 = 0x2000;
-        }
-        *(ushort *)(iVar8 + 0x9b) = uVar14 ^ uVar15;
-        FUN_00450f90();
-        *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | 1;
-        goto LAB_00448b98;
-      }
-      FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-      *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) =
-           *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) ^ 0x80;
-      uVar15 = *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b);
-      if ((((uVar15 & 0x80) == 0) && (*piVar9 != 0)) && ((uVar15 & 0x40) != 0)) {
-        *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) = uVar15 & 0xffbf;
-      }
+  else if (FUN_0049fd60((int)param_1,(int)"COMMANDER")) {
+    FUN_0047f1a0((int)"Multi",0);
+    me->info->cmdr++;
+    if (me->info->cmdr > 2) {
+      me->info->cmdr = 0;
+    }
+    FUN_00450f90();
+    FUN_00451180();
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"LOSTYPE")) {
+    FUN_0047f1a0((int)"Multi",0);
+    if (!me->info->b9) {
+      me->info->b9 = 1;
+      me->info->b10 = 1;
+    }
+    else if (me->info->b10 == 1) {
+      me->info->b10 = 0;
     }
     else {
-      FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-      iVar8 = *(int *)((int)piVar9 + 0x27);
-      uVar15 = *(ushort *)(iVar8 + 0x9b);
-      if ((uVar15 & 0x200) == 0) {
-        *(ushort *)(iVar8 + 0x9b) = uVar15 | 0x200;
-        pbVar10 = (byte *)(*(int *)((int)piVar9 + 0x27) + 0x9c);
-        *pbVar10 = *pbVar10 | 4;
+      me->info->b9 = 0;
+    }
+    FUN_00450f90();
+    FUN_00451180();
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"WATCHING")) {
+    FUN_0047f1a0((int)"Multi",0);
+    me->info->watching ^= 1;
+    if (!me->info->watching && me->active != 0 && me->info->b6) {
+      me->info->b6 = 0;
+    }
+    FUN_00450f90();
+    FUN_00451180();
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"CHEATING")) {
+    FUN_0047f1a0((int)"Multi",0);
+    me->info->cheat ^= 1;
+    FUN_00450f90();
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"FIXEDLOC")) {
+    FUN_0047f1a0((int)"Multi",0);
+    me->info->fixed ^= 1;
+    FUN_00450f90();
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"MAPPING")) {
+    FUN_0047f1a0((int)"Multi",0);
+    int m = FUN_004a0f60((int)param_1,(int)"MAPPING");
+    me->info->b8 = (m == 0);
+    FUN_00450f90();
+    FUN_00451180();
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"START")) {
+    int nReady = 0;
+    FUN_0047f1a0((int)"BigButton",0);
+    int k10 = 10;
+    pVar22 = (int *)((int)g_game + 0x1b8a);
+    do {
+      if ((((*(int *)((int)pVar22 - 0x27) != 0) && ((char)pVar22[0x13] == '\x01')) ||
+           ((*(int *)((int)pVar22 - 0x27) != 0) && ((char)pVar22[0x13] == '\x03') &&
+            (((PInfo *)*pVar22)->c94 == '\x01'))) &&
+          (((PInfo *)*pVar22)->f9d_2)) {
+        nReady = nReady + 1;
       }
-      else if ((uVar15 & 0x400) == 0x400) {
-        *(ushort *)(iVar8 + 0x9b) = uVar15 & 0xfbff;
+      pVar22 = (int *)((int)pVar22 + 0x14b);
+      k10 = k10 + -1;
+    } while (k10 != 0);
+    if (((nReady < 1) || ((nReady < 2 && (FUN_00457af0() > 3))) ||
+       ((nReady < 3 && (FUN_00457af0() > 6))))) {
+      goto LAB_notenough;
+    }
+    int sum = FUN_00457b40() + FUN_00457af0();
+    int t = 0;
+    do {
+      int cnt = 0;
+      pcVar21 = (char *)((int)g_game + 0x1bd6);
+      int k = 10;
+      do {
+        if (((GB *)g_game)->flag2) {
+          if (((((byte)pcVar21[0xcc] == t) && (*(int *)(pcVar21 + -0x73) != 0)) &&
+              ((*pcVar21 == '\x01' || (*pcVar21 == '\x02') || (*pcVar21 == '\x03')))) &&
+              (pcVar21[0xd3] != '\n') &&
+              ((*pcVar21 == '\x01' || (*pcVar21 == '\x02') || (*pcVar21 == '\x03')) &&
+               ((*(short *)(pcVar21 + 0xd1) != 0 || (*(int *)(pcVar21 + 0xcd) == 0))))) {
+            cnt = cnt + 1;
+          }
+        }
+        else {
+          if (((((byte)pcVar21[0xcc] == t) && (*(int *)(pcVar21 + -0x73) != 0)) &&
+              ((*pcVar21 == '\x01' || (*pcVar21 == '\x02') || (*pcVar21 == '\x03')))) &&
+              (pcVar21[0xd3] != '\n')) {
+            cnt = cnt + 1;
+          }
+        }
+        pcVar21 = pcVar21 + 0x14b;
+        k = k + -1;
+      } while (k != 0);
+      if (cnt == sum) {
+        FUN_004ab0a0((int)g_game + 0x519);
+        FUN_004abd90((int)param_1,FUN_004c5740((int)"Can not start game with all players on the same team."),200,1,1);
+        return;
       }
-      else {
-        *(ushort *)(iVar8 + 0x9b) = uVar15 & 0xfdff;
+      t = t + 1;
+    } while (t < 5);
+    if (!((Class_00435c40*)(*(int *)((int)g_game + 0x391e9)))->FUN_00435c40()) {
+      FUN_0047f1a0((int)"Multi",0);
+      FUN_00444ea0();
+    }
+    else {
+      iVar8 = (int)g_game;
+      if (!me->info->watching) {
+        iVar5 = 0;
+        do {
+          if (((*(int *)(iVar8 + 0x1b63 + iVar5) != 0) &&
+              (*(char *)(iVar8 + 0x1bd6 + iVar5) == '\x03')) &&
+             (((PInfo *)*(int *)(iVar8 + 0x1b8a + iVar5))->b6)) {
+            FUN_00453010(*(int *)(iVar8 + 0x1b67 + iVar5),9);
+            iVar8 = (int)g_game;
+          }
+          iVar5 = iVar5 + 0x14b;
+        } while (iVar5 < 0xcee);
       }
+      *(char *)(iVar8 + 0x2bc0) = 0x11;
+      me->info->b4 = 1;
+      FUN_00451180();
+      *(uint *)((int)g_game + 0x39231) = me->info->b9;
+      *(uint *)((int)g_game + 0x39235) = me->info->b10;
+      *(uint *)((int)g_game + 0x39229) = me->info->cmdr;
+      *(uint *)(*(int *)((int)g_game + 0x29a0) + 0x118) = me->info->fixed;
+      *(uint *)((int)g_game + 0x3922d) = me->info->b8;
+      FUN_00430f00();
+      *(int *)((int)g_game + 0x37eee) = 2;
+      return;
     }
   }
-  else {
-    FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
-    uVar15 = *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b);
-    *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) =
-         ((uVar15 & 0xf800) + 0x800 ^ uVar15) & 0x1800 ^ uVar15;
-    uVar15 = *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b);
-    if (0x1000 < (uVar15 & 0x1800)) {
-      *(ushort *)(*(int *)((int)piVar9 + 0x27) + 0x9b) = uVar15 & 0xe7ff;
+  else if (FUN_0049fd60((int)param_1,(int)"GAMEOPEN")) {
+    FUN_0047f1a0((int)"Multi",0);
+    int m = FUN_004a0f60((int)param_1,(int)"GAMEOPEN");
+    me->info->closed = (m == 0);
+    FUN_00450f90();
+    FUN_00451180();
+    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"RESTRICTIONS")) {
+    FUN_0047f1a0((int)"Options",0);
+    FUN_0044c7e0();
+    FUN_004ab0a0((int)param_1);
+  }
+  else if (FUN_0049fd60((int)param_1,(int)"MAP") || FUN_0049fd60((int)param_1,(int)"MAPNAME")) {
+    FUN_0047f1a0((int)"Multi",0);
+    if (me->info->f97_0) {
+      FUN_00444ea0();
+    }
+    else {
+      int *pg = (int*)FUN_004aa8f0((int)g_game + 0x519,(int)"VIEWMAP.GUI",0x900);
+      pg[2] = (int)FUN_00444ba0;
+      FUN_004288d0((int)"DVIEWMAP",0,0,0);
+      FUN_00444a20();
+      FUN_0049fb10((int)g_game + 0x519,1);
+      FUN_004a81e0((int)g_game + 0x519,0x40);
     }
   }
-LAB_00448aaf:
-  FUN_00450f90();
-  FUN_00451180();
-  *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | 1;
-LAB_00448b98:
-  FUN_004ab0a0((int)((int)param_1));
+  FUN_004ab0a0((int)param_1);
+  return;
+LAB_notenough:
+  FUN_004ab0a0((int)g_game + 0x519);
+  FUN_004abd90((int)param_1,FUN_004c5740((int)"There are not enough game CDs present to play"),200,1,1);
   return;
 }

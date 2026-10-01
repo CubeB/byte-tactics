@@ -1,4 +1,20 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
+// PARTIAL (55.6%). claude-opus-5-5 pass (#4272), 47.5 -> 55.6, structural:
+// - The per-player branch is `if (!IsPlaying(p) && !IsWatching(p)) { dead
+//   slot } else { live slot }` with two inline helpers (the original re-tests
+//   *p inside the second one and lays the dead slot out first). The merged
+//   condition made MSVC emit the live slot first; structural similarity went
+//   from 0.47 to 0.88 with this one change (47.5 -> 49.0).
+// - The RES and MEM columns use `!IsLocal(p) && !IsRemote(p)` the same way
+//   (49.8).
+// - The MAP state is two calls with constant arguments (1 in the
+//   does-not-have-map path, 0 after clearing +0x23), which MSVC tail-merges
+//   as the original does (52.1).
+// - READY: +0x138 is an int-width `(flags >> 5) & 1`, and bit 0 of +0x13c is
+//   a 1-bit bitfield set from `!IsLocal(p)` (52.4).
+// - The player counter local_b8 is an unsigned char (`inc al; cmp al,0xa`),
+//   55.6; it lost in earlier passes only because the layout was wrong.
+// Remaining differences are register and stack-slot assignment.
 // deepseek-v4.1-flash pass (issue 4200, 10 minute box): one check.py run on a
 // variant that assigned local_b4 before local_c0 (hoping the lea+store would be
 // scheduled before FUN_0049ff90 like the original's `lea eax,[esi+eax*2+0x1b63];
@@ -90,6 +106,32 @@ int FUN_004b6340();
 int __stdcall FUN_004b6af0(int,int);
 int __stdcall FUN_004c5740(int);
 void FUN_00444ba0();
+static inline int IsPlaying_448c70(int* p)
+{
+    char t = *(char*)((int)p + 0x73);
+    return *p != 0 && (t == 1 || t == 2 || t == 3) && *(char*)((int)p + 0x146) != 10;
+}
+
+static inline int IsWatching_448c70(int* p)
+{
+    return *p != 0 && (*(byte*)(*(int*)((int)p + 0x27) + 0x9b) & 0x40) != 0;
+}
+
+struct Bits13c_448c70 {
+    unsigned short b0 : 1;
+    unsigned short rest : 15;
+};
+
+static inline int IsLocal_448c70(int* p)
+{
+    return *p != 0 && *(char*)((int)p + 0x73) == 1;
+}
+
+static inline int IsRemote_448c70(int* p)
+{
+    return *p != 0 && *(char*)((int)p + 0x73) == 3 && *(char*)(*(int*)((int)p + 0x27) + 0x94) == 1;
+}
+
 // FUNCTION: 0x448c70
 void FUN_00448c70(void)
 
@@ -116,7 +158,7 @@ void FUN_00448c70(void)
   char local_d4 [20];
   uint local_c0;
   int local_bc;
-  uint local_b8;
+  unsigned char local_b8;
   int local_b4;
   uint local_b0;
   byte *local_ac;
@@ -199,7 +241,7 @@ LAB_00448f38:
     }
     if ((*(byte *)(*(int *)((int)g_game + (uint)*(byte *)((int)g_game + 0x2a42) * 0x14b + 0x1b8a)
                   + 0x97) & 1) == 0) {
-      uVar18 = 1;
+      FUN_004a1450((int)((int)g_game + 0x519),(int)("MAP"),1);
       goto LAB_00449010;
     }
   }
@@ -219,9 +261,9 @@ LAB_00448f38:
        (uVar18 = ((Class_004373a0*)(*(int *)((int)g_game + 0x391e9)))->FUN_004373a0(), uVar18 != *(uint *)(iVar13 + 0xa9))
        ) goto LAB_00448f38;
     *(undefined4 *)(iVar8 + 0x23) = 0;
-    uVar18 = 0;
+    FUN_004a1450((int)((int)g_game + 0x519),(int)("MAP"),0);
 LAB_00449010:
-    FUN_004a1450((int)((int)g_game + 0x519),(int)("MAP"),(int)(uVar18));
+    ;
   }
   pcVar9 = (char *)((Class_00435c20*)(*(int *)((int)g_game + 0x391e9)))->FUN_00435c20();
   strcpy((char*)local_ac, pcVar9);
@@ -276,10 +318,7 @@ LAB_0044904e:
   do {
     uVar18 = local_b8 & 0xff;
     piVar2 = (int *)((int)g_game + 0x1b63 + uVar18 * 0x14b);
-    if ((*piVar2 == 0) ||
-       (((((cVar3 = *(char *)((int)piVar2 + 0x73), cVar3 != '\x01' && (cVar3 != '\x02')) &&
-          (cVar3 != '\x03')) || (*(char *)((int)piVar2 + 0x146) == '\n')) &&
-        ((*piVar2 == 0 || ((*(byte *)(*(int *)((int)piVar2 + 0x27) + 0x9b) & 0x40) == 0)))))) {
+    if (!IsPlaying_448c70(piVar2) && !IsWatching_448c70(piVar2)) {
       sprintf(local_d4,"CD%d",(byte)local_b8);
       FUN_004a0570((int)((int)g_game + 0x519),(int)(local_d4),(int)(0));
       FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(0));
@@ -442,10 +481,7 @@ LAB_0044904e:
         FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(uVar18));
       }
       sprintf(local_d4,"RES%d",(byte)local_b8);
-      if ((*piVar2 == 0) ||
-         ((*(char *)((int)piVar2 + 0x73) != '\x01' &&
-          (((*piVar2 == 0 || (*(char *)((int)piVar2 + 0x73) != '\x03')) ||
-           (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) != '\x01')))))) {
+      if (!IsLocal_448c70(piVar2) && !IsRemote_448c70(piVar2)) {
         sprintf((char*)local_68,"%s","n/a");
       }
       else {
@@ -490,10 +526,7 @@ LAB_00449a19:
       }
       sprintf(local_d4,"MEM%d",(byte)local_b8);
       iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-      if ((*piVar2 == 0) ||
-         ((*(char *)((int)piVar2 + 0x73) != '\x01' &&
-          (((*piVar2 == 0 || (*(char *)((int)piVar2 + 0x73) != '\x03')) ||
-           (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) != '\x01')))))) {
+      if (!IsLocal_448c70(piVar2) && !IsRemote_448c70(piVar2)) {
         sprintf((char *)(iVar17 + 0xb6),"%s","n/a");
         iVar13 = *(int *)((int)g_game + 0x391e9);
       }
@@ -508,22 +541,14 @@ LAB_00449a19:
       sprintf(local_d4,"READY%d",(byte)local_b8);
       iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
       if (iVar17 != 0) {
-        bVar6 = *(byte *)(*(int *)((int)g_game + 0x1b8a + (uint)(byte)local_b8 * 0x14b) + 0x9b);
         *(undefined1 *)(iVar17 + 0x29) = 1;
-        *(ushort *)(iVar17 + 0x138) = bVar6 >> 5 & 1;
-        if ((*piVar2 == 0) || (*(char *)((int)piVar2 + 0x73) != '\x01')) {
-          bVar5 = false;
-        }
-        else {
-          bVar5 = true;
-        }
-        *(ushort *)(iVar17 + 0x13c) =
-             (byte)(!bVar5 ^ (byte)*(ushort *)(iVar17 + 0x13c)) & 1 ^ *(ushort *)(iVar17 + 0x13c);
+        *(ushort *)(iVar17 + 0x138) =
+            (*(byte *)(*(int *)((int)g_game + 0x1b8a + (uint)(byte)local_b8 * 0x14b) + 0x9b) >> 5) & 1;
+        ((Bits13c_448c70 *)(iVar17 + 0x13c))->b0 = !IsLocal_448c70(piVar2);
       }
     }
-    bVar6 = (char)local_b8 + 1;
-    local_b8 = ((local_b8 & 0xffffff00) | bVar6);
-    if (9 < bVar6) {
+    local_b8++;
+    if (local_b8 >= 10) {
       FUN_0049fa90((int)((int)g_game + 0x519));
       iVar8 = *(int *)(local_b4 + 0x27);
       if (((*(byte *)(iVar8 + 0x97) & 1) != 0) && (local_b0 < *(ushort *)(iVar8 + 0x9f))) {

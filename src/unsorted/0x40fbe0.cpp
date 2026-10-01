@@ -1,7 +1,8 @@
-// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
 // Started by GPT-5.6 Astra, continued by deepseek-v4.1-flash and GPT-6; the
 // 75.8% version is deepseek-v4.1 lowering the earlier 74.5%.
-// Partial 75.8% (original 1976 bytes, ours 1971). Fixed since the 74.5% attempt:
+// Partial 79.4% (original 1976 bytes, ours 1974). Best during GPT-6.1-sol pass: separate Vec3* destination/source locals for the initial position copy; direct cast assignment falls to 75.8%.
+// Partial 75.8% baseline note (original 1976 bytes, prior source 1971). Fixed since the 74.5% attempt:
 // the r4 MobileBuild tail is now two separate source sites (the `new` result
 // used on success, an explicit FUN_0043acb0(unit,0) fallthrough on failure), so
 // MSVC emits both copies instead of tail-merging them (+56 bytes). Still
@@ -108,7 +109,9 @@ int __stdcall FUN_0040fbe0(Unit* unit, Order* order, int flags)
             ((Class_004388d0*)order)->FUN_004388d0((int)move);
             return 2;
         }
-        order->pos=order->target->pos;
+        Vec3* dst=(Vec3*)((char*)order+0x22);
+        Vec3* src=(Vec3*)((char*)order->target+0x6a);
+        *dst=*src;
         unsigned int state=0; state=order->state;
 // REGION r2 begin   0x40fcda-0x40feda
 //   case 0, the guard order, and case 1

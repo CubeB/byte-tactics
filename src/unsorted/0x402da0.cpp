@@ -7,6 +7,11 @@
 // by value (87.9), local Class temp then copy .index (75.4), int kind local
 // (69.7), copy-ctor initialisers and kind.index != 0 (both 87.9). No source
 // shape reaches the original temp colouring; leave as is.
+// deepseek-v4.1-flash (retry 2, still 87.9): flat again: one-line move/patrol
+// declaration, free Inline PosOf(Order*) helper, default-arg ctor, kind.index=0
+// after declaration, node outside the for, while(1)+break, node!=0, swapped
+// comparison operands (87.4), nested else, explicit ki char temp. An extra
+// Class construction before the loop did NOT change the loop registers.
 // Order handler: when the unit has just been built (progress 0), copies the
 // QMove/QPatrol orders queued on the factory (order->target) to the new unit
 // and its fire/move states, else parks it; otherwise a small wait state machine.

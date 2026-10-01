@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Slot 0 of Class_00407a90 (vtable 0x4fc998), derived from Class_00407350
 // (the family is listed in 0x407350.cpp, whose declarations this copies).
 // Sets field_c to 30..929 ticks from now. A group of fewer than 5 units
@@ -59,6 +59,21 @@
 //   above remains the best: the only real difference is the loop preheader
 //   ordering (halves computed before the entry test, and `test ecx, ecx`
 //   instead of `cmp ecx, ebx`) plus the register the body loads pos.x into.
+// - deepseek-v4.1-flash retry 2 (brute-forced about 30 scratch variants, all
+//   scored with check.py --sym): the `cmp ecx, ebx` guard only appears once
+//   the counter `i` is a named variable declared at branch scope, but that
+//   alone moves `this` from esi to ebx at the first instruction (the whole
+//   function shifts, 52.9%). Ordering the halves as an assignment inside the
+//   `if` (the do-while form that reproduces the original block order) always
+//   triggers that same `this` -> ebx move: `int i=0; int hw,hh; if (n>i) {
+//   hw=w/2; hh=h/2; do {...} while (i<n); }` is 52.9% and `this` leaves esi.
+//   Moving the for-init scope earlier (`int i,hw,hh; for (i=0; ...)`) is
+//   52.9%, and `for (int i=0; n>i; i++)` / `while (n>i)` are 90.2%: they only
+//   swap the bottom test to `jg`. Keeping the counter in the for-init and the
+//   halves in the preheader is the only form that keeps `this` in esi, and it
+//   is exactly the 91.1% file below. The two remaining diffs (halves before
+//   the entry test, and pos.x loaded into ecx instead of edx) both follow from
+//   that register choice, so this is a local optimum for this compiler.
 // - The packet for this address misprints one operand: 0x407c8b is
 //   `mov dword ptr [esp + 0x20], eax`, not [esp + 0x24]. The >= 5 branch of
 //   the saved source is byte-exact, so trust check.py, not the packet.

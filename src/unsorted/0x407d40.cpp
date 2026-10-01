@@ -127,6 +127,17 @@ Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
 // (`field_38 = 0, c = Vec3(g_game)`, `c = Vec3(g_game), field_38 = 0`,
 // `field_38 = (c = Vec3(g_game), 0)`) all score 95.5%.
 //
+// deepseek-v4.1-flash second retry (2026-10-01): still 97.8%. Confirmed the
+// derived vptr store is emitted at the end of the member init list, so it only
+// lands after field_38 when field_38 is an init-list member; but then field_38
+// itself is emitted right after b, before the temp, never after the sixth
+// _ftol. Tried init lists a,b,field_38 with body c=Vec3(g_game) and with a
+// named temp; a,b,c(Vec3(g_game)) with field_38 in the list or body; a user
+// copy constructor on Vec3 with the full list; `c = Vec3_00407d40(temp)`;
+// pointers/references to c before and after field_38; field_38 before the
+// temp. Every 296-byte shape keeps the vptr after b; every shape that moves
+// the vptr later is 297 bytes. Kept the best (97.8%).
+//
 // Notes from space-bunny-free: also tried, all worse than the version below.
 // The vector's own constructor rewritten to assign x, y and z separately drops
 // the `lea` altogether (64.7%); a two-int constructor

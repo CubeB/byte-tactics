@@ -12,6 +12,14 @@
 //     an explicit `units.~vector();` after the flags store emits the inlined
 //     delete AND the scope-exit one (91.2%, 1056 bytes); `Vec3 sum=pos;` with
 //     compound adds blows up the register allocation globally (88.8%).
+// deepseek-v4.1-flash, issue-3778 pass: case-0 guard spellings tested against
+//     the 92.2%/hunk-6 order: splitting the guard into two breaks
+//     (`if (!unit->motion) break;` + `if (!(df->flags&0x800)) break;`, body
+//     de-nested) regresses to 86.4% / 1050 bytes; the combined
+//     `if (unit->motion==0 || (df->flags&0x800)==0) break;` form is
+//     byte-identical to the `&&` form (same six hunks), so the guard spelling
+//     cannot produce the original's `cmp dword ptr [esi],0` / deferred
+//     `mov eax,[esi+0x92]`. File left at the best known 92.2%.
 // Best known: 92.2%, 1051 bytes, six hunks left (the case-1 health-test
 //     rotation, the FUN_0043f0e0 return-buffer slot, the tail's out-of-line
 //     ~vector, the case-0 pos copy and the case-0 motion/def load order).
@@ -172,13 +180,11 @@ int __stdcall FUN_00410850(Unit* unit, Order* order, int flags)
     switch(state) {
     case 0: {
         UnitDef* df=unit->def;
-        if (unit->motion && (df->flags&0x800)) {
-            if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
-            order->angle=FUN_004b6c30(0x10000);
-            order->parity=order->angle&1;
-            return 1;
-        }
-        break;
+        if (unit->motion==0 || (df->flags&0x800)==0) break;
+        if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
+        order->angle=FUN_004b6c30(0x10000);
+        order->parity=order->angle&1;
+        return 1;
     }
     case 1: {
         if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {

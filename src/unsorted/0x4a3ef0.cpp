@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3781, 2 scored runs): still 93.1 pct / 629
+// bytes. A named span local (int span = size + 1; then span > field_da ? span
+// : field_da) restores the original jle polarity but scores the same; the
+// field_da temp still lands in edi and the 0x20 arm still loads field_c6 after
+// the test.
 // deepseek-v4.1-flash retry (issue 3704, 10 min, 4 scored variants): best stays 93.1 pct.
 // The swapped ternary (size + 1 < e->field_da) is byte-identical at 93.1;
 // dropping the count parameter from the inline LineSize helper is 85.3. The

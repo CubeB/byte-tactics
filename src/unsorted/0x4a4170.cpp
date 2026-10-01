@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3781): no new variant run; the ctx
+// disassembly confirms the original materialises the zero twice at the merge
+// (0x4a420d and 0x4a421b xor edx,edx, then cmp [ebp+0x78],edx), while ours
+// keeps one edi zero, so the residual stays the edx-zero versus edi-zero
+// allocation documented below.
 // deepseek-v4.1-flash retry (issue 3704, 10 min, 3 scored variants): best stays 80.9 pct.
 // Naming the FUN_004ab5b0 result and capturing p.y in an int py local are both
 // flat at 80.9 / 714 bytes, so neither moves the edx zero versus p.y-in-edi

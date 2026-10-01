@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3781, 2 scored runs): still 98.7 pct / 661
+// bytes with the same two hunks. Re-associating the colour sum with the
+// constant first (*(me->colours + 0x8b2 + (int)param_1)) and a void*
+// surface = entries->surface; local are both byte-identical, so neither the
+// SIB operand order nor the late surface load is source-shape reachable.
 // deepseek-v4.1-flash retry (issue 3704, 10 min, 7 scored variants): best stays 98.7 pct.
 // Pointer-cast index form and a surface local are byte-identical at 98.7; the
 // scoped colours local is 92.7 and an unsigned char index cast is 85.3. The

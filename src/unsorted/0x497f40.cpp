@@ -1,5 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Continued from a partial left by deepseek-v4.1-flash and GPT-6.
+// PARTIAL, 84.3% (3431 of 3463 bytes, 32 bytes short). Two diff hunks remain,
+// both in the same loop-setup block (listing line ~856):
+// - the original emits `push edi` BEFORE the g_game load and then
+//   `mov edx, [g_game]; mov cl, byte ptr [edx + 0x38d74]; mov [esp+0x18], 0x15b;
+//   and ecx, 0xff; mov [esp+0x20], 0x16f; mov eax, ecx; shl eax, 3; sub eax, ecx;
+//   lea ecx, [esp+0x28]`; ours hoists a `xor ecx, ecx` first, homes the temps at
+//   [esp+0x10]/[esp+0x14]/[esp+0x1c] (4-byte-shifted slots) and sinks the byte
+//   load below the immediate stores, which is where the 32 missing bytes live.
+// - every branch past that block therefore differs by 0x20 (`jne 0x498ca3` vs
+//   `jne 0x498c83`), so that hunk is the only real work item: the frame layout
+//   of the setup locals and the store/load order have to move.
+// No variant was tried this session (10-minute issue timebox); both hunks are
+// untouched from the previous attempt.
 #include <windows.h>
 #include <string.h>
 

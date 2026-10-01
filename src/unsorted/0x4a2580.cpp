@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Sonnet 5.5 (#3246): re-checked 69.8%. Turning r1/r2/rect from int[4] into a `Rect` struct (and
+// the callee parameters to Rect*) is byte-identical, so the frame/slot differences are not an
+// array-versus-struct question.
 //
 // 2026-10-01 (deepseek-v4.1-flash, 67.5 -> 69.8, both 1631 bytes): the 26-byte
 // gap was the _itoa dispatch. Splitting the value computation into three

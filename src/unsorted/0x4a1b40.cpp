@@ -1,4 +1,27 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// WIN (deepseek-v4.1-flash, issue 3625): 26.6 -> 30.8 (2105 -> 2123 bytes) by
+// building the cell-branch highlight rect as a copy of the dst quad:
+//   Rect rowRect; rowRect.left = dst.points[0].x; rowRect.top = dst.points[0].y;
+//   rowRect.right = dst.points[1].x; rowRect.bottom = dst.points[2].y;
+// The original reloads [esp+0x6c]/[esp+0x70]/[esp+0x74]/[esp+0x80] into
+// [esp+0x18..0x24] at 0x4a21cd..0x4a21f0 instead of recomputing x1/yy/right/
+// yEnd-1, exactly what the copy spelling produces. Also note (correcting the
+// 3325 note): 0x4a207f does `sub esp,0x10` for the by-value Rect of
+// FUN_004c6b10 and the callee's `ret 0x10` restores it, so from 0x4a20a6 on
+// every [esp+N] is 0x10 higher than earlier in the function; pre-shift
+// esp+0x00..0x0f is real (colPtr at post-shift 0x10, 0x4a20be), not reserved.
+// WIN 2 (32.2, 2125 bytes): cell-branch x1 is not a fresh local, it overwrites
+// (aliases) `left`: the original stores it back to bounds.left's own slot at
+// 0x4a20f2 (`mov [esp+0x40], ecx`), so `int& x1 = left; x1 += 2;` is used.
+// WIN 3 (33.4, 2103 bytes): the text-branch row rect is the four live ints,
+// not a copy. The original's rect slots 0x18/0x1c/0x20/0x24 are exactly
+// x1/cy/x2/cy2 and are strength-reduced across the loop, so the source holds
+// one Rect and aliases it: int& x1 = rowRect.left; int& cy = rowRect.top;
+// int& x2 = rowRect.right; int& cy2 = rowRect.bottom; then assigns each.
+// Remaining gap: the register rotation (original param_1=ebp, me=edi,
+// zero=ebx; ours param_1=ebx, me=esi, zero=edi) plus ~57 bytes of extra
+// spills in the original.
+
 // RETRY (deepseek-v4.1-flash, issue 3552, best 26.6%, no change): four more
 // allocator probes on top of the 3552 handout, all byte-identical at 26.6 /
 // 2105 bytes (one frame is 0xc0 against the original 0xbc and the whole body
@@ -290,12 +313,16 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
         int y = me->bc.field_bc;
         int line = 0;
 
+        Rect_004a1b40 rowRect;
         for (;;) {
-            int x1 = left + 2;
-            int x2 = x1 + keepW - 2;
-            int cy = top + yoff + 2;
-            int cy2 = cy + step;
-            Rect_004a1b40 rowRect = {x1, cy, x2, cy2};
+            int& x1 = rowRect.left;
+            int& cy = rowRect.top;
+            int& x2 = rowRect.right;
+            int& cy2 = rowRect.bottom;
+            x1 = left + 2;
+            x2 = x1 + keepW - 2;
+            cy = top + yoff + 2;
+            cy2 = cy + step;
 
             int w;
             if (q == 0) {
@@ -401,8 +428,9 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
         else
             cellPtr = (char*)me->cells + row * 0x18;
 
+        int& x1 = left;
+        x1 += 2;
         int yy = top + 2;
-        int x1 = left + 2;
         int yEnd = yy + step;
 
         for (;;) {
@@ -414,6 +442,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
                 cellPtr += 0x18;
             }
             if (cell != 0 && *(int*)((char*)cell + 0x10) != 0) {
+                Rect_004a1b40 rowRect;
                 Quad_004a1b40 dst = {{{x1, yy}, {right, yy},
                     {right, yEnd - 1}, {x1, yEnd - 1}}};
                 int width = *(unsigned short*)cell - 1;
@@ -421,7 +450,10 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
                 Quad_004a1b40 src = {{{1, 1}, {width, 1},
                     {width, height}, {1, height}}};
                 FUN_004c7580(surf, cell, &dst, &src);
-                Rect_004a1b40 rowRect = {x1, yy, right, yEnd - 1};
+                rowRect.left = dst.points[0].x;
+                rowRect.top = dst.points[0].y;
+                rowRect.right = dst.points[1].x;
+                rowRect.bottom = dst.points[2].y;
             if ((*((unsigned char*)me->field_d6 + row) & 1) == 0) {
                 if ((*((unsigned char*)me->field_d6 + row) & 2) != 0) {
                     unsigned char c = param_1->colour_8be;

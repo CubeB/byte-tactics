@@ -1,5 +1,15 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// PASS 10 (deepseek-v4.1-flash, issue 3625, best 43.3%, no change): mapped our
+// slots against the original's to localise the +4. Ours: frame0 +0x04 (same),
+// visible spill +0x00, color1 +0x08, time +0x0c, offset +0x10, color2 +0x14,
+// index +0x18. Original: color1/gaf/nSeg +0x00, frame0 +0x04, time +0x08,
+// offset +0x0c, color2/sx +0x10, index +0x14. So the whole low block is exactly
+// ours minus the 4-byte `visible` spill at +0x00, and the original's extra
+// dword lives at the top (frame 0x68 vs 0x64). One probe: moving the
+// `color2 = palette[field_10e]` read after the four coordinate computations
+// (which is the original's schedule) makes the frame 0x78 and drops 43.3 ->
+// 33.2, so the low-block colouring is worth far more than the schedule.
 // PASS 9 (deepseek-v4.1-flash, issue 3552, best 43.3%, 2292 bytes): the frame
 // LAYOUT, not the code, was the lever nobody had pulled. Growing the second
 // short[4] scratch array by one element (`short clip[6];` instead of

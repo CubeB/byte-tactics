@@ -1,5 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// PASS 8 (deepseek-v4.1-flash, issue 3524, best 39.2%, 2284 bytes): two more
+// allocator attempts, both reverted. (a) An explicit `else visible = 0;` on top of
+// the current `visible = 0; if (...) visible = 1;` gives 39.0, 2268 bytes, exactly
+// the pass-7 if/else score, so the else arm does not merge the pb-in-eax and
+// visible-in-eax colourings either. (b) Passing `&p->pos` to FUN_00408090 instead
+// of the `pos` pointer is byte-identical (39.2, 2284), so the call argument spelling
+// is not the lever that swaps p/pos (ebp/esi).
 // PASS 7 (deepseek-v4.1-flash): tested the hypothesis that splitting the
 // `visible` if/else (`if (cond) visible = 1; else visible = 0;` instead of
 // `visible = 0; if (cond) visible = 1;`) removes the spill. It does: the

@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// STATUS (deepseek-v4.1-flash, issue 3524): still best 26.6%, not MATCH. One
+// more allocator attempt, reverted: defining `y` before `q` in the text prologue
+// (so q's first use moves after y's) drops to 24.6, 2098 bytes (original 2160),
+// so q must be defined first; the rotation still needs one long-lived node that
+// this source shape does not create.
 // STATUS (deepseek-v4.1-flash, issue 3325): best 26.6%, not MATCH.
 // New evidence for the next attempt: every [esp+N] in the original is >= 0x10 and
 // a multiple of 4 (checked with objdump over the whole function), i.e. the original

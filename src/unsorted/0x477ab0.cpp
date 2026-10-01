@@ -40,6 +40,11 @@
 // where the original uses ecx; the esi/edi holder/menuSub assignment is
 // swapped in the Missions rebuild block. Those look like register colouring
 // falling out of the block placement, not separate shape errors.
+// deepseek-v4.1-flash session (10 min timebox): one check.py run, baseline
+// confirmed at 72.9% (1914 vs 1935 bytes), file left unchanged. Nothing new
+// scored; the analysis below (Campaign/Start pair and BigButton body sunk to
+// the tail by the block-ordering pass, causing 6-byte branch forms) is still
+// the whole gap, and it needs a graph-shape change, not another goto spelling.
 // Final pass by deepseek-v4.1-flash: timebox fired before any check.py run
 // this session, so no new variant was scored; the file stays at the known
 // best of 72.9% (1914 of 1935 bytes) with the analysis above unchanged.

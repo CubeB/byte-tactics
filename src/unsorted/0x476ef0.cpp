@@ -1,4 +1,20 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry pass (later session): still 80.4%, no variant
+// scored. New evidence from the baseline diff and from disassembling the
+// '&' colour arm of our own build: the ternary (`cmp al,0x52 / mov eax,3 /
+// jmp`), the second `lineStart++` (`inc ebp`), the table load and the
+// `colourState = DAT_00507b70[...]` store all sit at the exact offsets and
+// registers the original uses, and the else arm is the original's
+// `cmp al,0x26 / jne / inc ebp / dec ebx / mov [slot],1` modulo the slot
+// number. The only missing instruction there is the dead
+// `mov dword ptr [esp+0x20], 0`. Our colourState gets slot [esp+0x1c] (the
+// initialiser `colourState = 1` proves it: original stores 1 to [esp+0x20])
+// while every other reused slot (0x10, 0x14, 0x24, 0x2c, 0x34) matches, so
+// the dropped store and the slot permutation are the same frame-colouring
+// effect: MSVC 5 renumbered colourState out of the original's slot and can
+// then prove the store dead. Fixing the slot (declaration order, extra
+// scratch local, or a shape that raises colourState's live range) is the
+// remaining lever; three check runs this session, best unchanged.
 // deepseek-v4.1-flash retry pass: still 80.4% (1124 vs 1112). Tested
 // build/scratch/0x476ef0/vA (colourState=0 moved to block entry), vB (else arm
 // store before lineStart++), vC (both): all score identically, and vA still

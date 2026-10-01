@@ -1,5 +1,43 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // 2026-10-01 pass (deepseek-v4.1-flash): no change, re-confirmed 55.0 (962 vs 1105 bytes).
+// 2026-10-01 pass 3 (deepseek-v4.1-flash): corrected the frame map (see below); the
+// best file is still this one at 55.0. build/scratch/0x495a30/v1.cpp and v2.cpp have
+// the missing Class_004cb940 block and land at 1106 bytes (1 byte off the original)
+// but score 41.3/40.5 because the two or three new int locals spill and grow the
+// frame 0x1b0 -> 0x1bc, shifting every pre-loop slot by +0xc.
+// Frame facts re-derived from the disassembly (S = esp after sub 0x1b0 plus the four
+// register pushes, so [esp+N] in the listing IS S+N once the temporary pushes are
+// undone): filename char[260] at S+0xbc (the frame really extends to S+0x1c0 =
+// entry esp, since the pushes sit BELOW the 0x1b0 block), surf at S+0x8c, pal at
+// S+0x64 (flag8 at S+0x6c), bmp at S+0x54, scalars at S+0x10 var10, S+0x14 bm,
+// S+0x18 bh (bh is REASSIGNED, so the halved height reuses the same slot), S+0x1c
+// var1c, S+0x20 bw, S+0x24 var24, S+0x28 saved bit6 of field_37f2f, S+0x2c scrollY,
+// S+0x30 off2b, S+0x34 scrollX, S+0x38 -bh, S+0x3c saved viewFlags bit1, S+0x40
+// saved viewFlags bit0, S+0x44 off27, S+0x48 y+row, S+0x4c saved field_37f27,
+// S+0x50 saved bit0 of field_38a51, S+0x88 rect bottom (bh-1). The ctor, the
+// FUN_004cb7f0, the FUN_004cb940 and the dtor are ALL called with this = S+0x54
+// (the earlier "two subobjects four bytes apart" reading was a push-accounting
+// mistake: 0x495a77 and 0x495d54 both subtract their pending pushes), so there is
+// one 0x10-byte object per call site.
+// The loop tail at 0x495d0d is: esi = var10, edx = 0, if (var1c >= -1) {ecx = row,
+// eax = bh} else {ecx = row+1, esi = var1c, eax = bh-1, edx = 1}; ecx += eax;
+// if (ecx > h) eax = h + esi; then FUN_004cb940(&surf, w, eax, 0, row, 0, edx) with
+// this = S+0x54, and `je S+0xda0` breaks straight to the shared loop-exit reload of
+// savedB/saved viewFlags. rows/srcY/sy are REGISTER-ONLY in the original (eax/edx/
+// esi), which is why naming them as locals is what breaks the slot map.
+// Frame-size lever found in this pass: Class_004cb7f0 and Dst_004b8ae0 are 0x14 in
+// this file but 0x10 in the original (bmp S+0x54, pal S+0x64), so this version gets
+// those two fields for free. Shrinking both (scratch v3.cpp) drops the frame
+// 0x1b0 -> 0x1a8 and moves pal to S+0x5c, i.e. the file is 8 bytes SHORT of the
+// original once the structs are honest. Scratch v5/v6/v7 add the Class_004cb940
+// block back on top of the shrunk structs and land at 1112/1106/1112 bytes, frame
+// 0x1b4 (4 too big) and about 41 percent: the two or three tail int locals always
+// take fresh dwords instead of reusing the holes, so the next pass should look for
+// which original local occupies the S+0x74..S+0x87 (0x14) hole and the S+0x88
+// cached bh-1 rect bottom rather than adding more tail variables. The 0x14 hole is
+// exactly a 0x10 by-value Rect plus one dword, which matches the FUN_004c6b10
+// argument (the `sub esp,0x10` at 0x495c8c is that argument area, so the Rect
+// itself has no frame slot in this build).
 // Still differs: the whole pre-loop slot map, the viewFlags save/restore shape and the
 // missing Class_004cb940 loop-tail call (see notes below).
 // Writes a large screenshot ("BIGSHOT", caller 0x417600) by rendering map

@@ -92,6 +92,16 @@
 // Conclusion: the ESI-vs-EAX pick for the block's g_game load is upstream
 // allocator state, not a function of this block's source shape.
 
+// deepseek-v4.1-flash (issue 3666): each of the six inside-the-guard respellings
+// below was scored on its own file with check.py, all 2288 / 75.9, so the inside
+// family is a flat register swap, not a spelling: explicit `!= 0` guard (2284,
+// 75.7), `int old;` then assign, `int* p = &field; int old = *p; *p = 0;`,
+// `0 == old`, and `Game_495e90* g` for the three accesses. The comma-operator
+// spelling `int old; if (flags_37f2f.b1 && ((old = g_game->field_38c53),
+// (g_game->field_38c53 = 0), old == 0))` keeps the original's store-before-cmp
+// order but lands at 2284 / 75.7, and the same comma form inside the guard is
+// 2284 / 76.2. Nothing moved the d7 entry off the 37-byte ESI form, so the file
+// is unchanged at 79.6% (2292 vs 2292).
 // PARTIAL 79.6%: in-game command/gadget event dispatcher, original 2292 bytes,
 // ours 2292 (exact size; structure, jump tables and case order agree).
 //

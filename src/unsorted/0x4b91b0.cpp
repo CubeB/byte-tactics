@@ -1,4 +1,55 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro 2026-10-01 continuation: STILL 54.5%, could not break it. The
+// residual is one hard register rotation rooted entirely in the pre-call, and I
+// confirmed it is a genuine two-way dichotomy with NO source spelling in
+// between. Expressing the size as count=pitch*h (named pitch) gives count=ebx
+// (correct) but pitch=esi and h spilled to [esp+0x3c] (imul ebx,[mem]), f=edi.
+// Expressing it as count=(w*2)*h / w*h*2 / (w*h)*2 / w*h+w*h / (w*h)<<1 / a
+// named wh then *2, ALL fold to imul esi,ebp; shl esi,1 (h loaded to esi in the
+// prologue, matching the original's mov esi,[esp+0x38], but the w*h product
+// clobbers esi so h is destroyed; count=esi, pitch=ebx, f=edi). The original
+// wants lea edi,[ebp+ebp]; mov ebx,edi; imul ebx,esi, i.e. count=pitch*h with
+// BOTH pitch(edi) and h(esi) already in callee-saved registers and the product
+// landing in ebx. That needs h to win esi ahead of pitch so pitch shifts to edi
+// and f spills to the dead arg1 slot. I could not make h win esi.
+// Tried this session, all scored via check.py --sym (none beat 54.5): the
+// documented static-inline alloc+init helper (0x4c6f80 pattern) in three forms
+// (helper taking w,h and computing pitch/count inside = 50.7; helper taking
+// pitch,count,h = 51.2; helper taking w,h,pitch,count), all reproduce the same
+// dichotomy rather than flipping it; x+base vs base+x in the store and value
+// (54.5, no change at all); f->data addressing instead of f->cells (39.6, worse);
+// count=h*pitch vs pitch*h and h*(w*2) (51.2, operand order is not the lever);
+// scale declared before vs after the count/pitch pair (before is 54.5, after
+// drops to 49.8); uninitialized decl order int pitch,count vs count,pitch and a
+// Mul(a,b) inline multiply helper (all 51.2 or 54.5); and the guide's
+// register-priority trick of an extra folding use of h (int hy=h;(void)hy,
+// +0*h in the product, int H=h) which changed nothing (pitch stays in esi).
+// The pre-call fix alone would fall through the whole function because every
+// later hunk is that same rotation cascaded. Not a proven plateau: the missing
+// construct is one that makes h a callee-saved register candidate winning esi
+// over pitch while the count product lands in ebx. Closest shapes (count=pitch*h)
+// are 51.2 with the product in ebx but pitch in esi and h spilled.
+// Older note (mimo-v2.6-pro first pass): BEST 54.5% (419/423 bytes). The threshold is a plain
+// signed `w / 4` (the cdq; and edx,3; add; sar idiom), NOT (w+3)/4: earlier
+// notes were wrong there and the extra lea cost 3 bytes. What still differs is
+// the same register rotation documented below: the original holds w/h/pitch/
+// count in ebp/esi/edi/ebx across the alloc call and spills f to the dead arg1
+// slot, while this form gives count esi and f edi. Also re-derived the loop
+// reads: the movsx-from-word reads of the hw/hh slots mean (short) casts on int
+// locals in the dy/dx/value expressions (int locals with casts reproduce the
+// movsx word reads and the dword fisubr; plain short locals read back as dwords
+// and score lower). Tried this pass, all worse than 54.5: pitch/count/scale
+// declared in all 6 orders around `int pitch = w*2; int count = pitch*h;`
+// (34.3 each, count then uses h from memory and pitch takes esi), int hw/hh
+// with (short) casts on top of that (34.3, and MSVC folds the 0x18 header
+// offset into the base accumulator, base starting at 12, because the value
+// subtracts the same base+x the addressing uses), and a value expression
+// reordered to evaluate the (dy/g+hh)*w term first (the fold variant above).
+// Untested levers worth trying next: an inlined alloc-and-init helper as in
+// 0x4c6f80 (the stores-before-null-check strongly suggests one, and it is the
+// guide's known way to put size arguments in callee-saved registers), and
+// spelling the value's index as x+base against an address of base+x to defeat
+// the 0x18 fold.
 // Retry #2441: BEST 53.1% (420/423 bytes), no MATCH after 5 scored checks and 2 compile-failed edits. Residual is register/frame allocation: target keeps w/h/pitch/count in ebp/esi/edi/ebx across allocation and spills result; tested declaration order, a height alias, and pitch*h without improvement. Return to the prior partial; recheck if continuing.
 
 // Retry #1952: GPT-6.1-sol tested pitch/count declaration order and equivalent
@@ -201,7 +252,7 @@ unsigned char* __stdcall FUN_004b91b0(int w, int h, int lens)
         for (x = 0; x < w; x++) {
             int dy = y - hh;
             int dy2 = dy * dy;
-            int thresh = (w + 3) / 4;
+            int thresh = w / 4;
             int dx = x - hw;
             int d2 = dx * dx + dy2;
             double dist = sqrt((double)d2);

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 // Retry #2441: GPT-6.1-sol rechecked the saved source (98.7%, no MATCH) and
 // ran headers.py across all 128 common header sets; none changed the score.
 // GPT-6.1-sol retry #1952: 10 checks kept 98.7%. Header sets, an inline byte-returning helper, and pointer-index spelling tied; int value scored 64.4%, bool state 31.7%.
@@ -183,6 +183,24 @@
 // scheduler is indifferent to store order and to the expression tree here;
 // the original history-store and `sub eax,0` positions are not reachable this
 // way.
+//
+// Appended by mimo-v2.6-pro. Still 98.7%, rechecked with one real check.py
+// run, and the residual is still only the four-instruction permutation of the
+// loop head. New shapes compiled and compared through /Fa listings (all emit
+// the identical flat head, so none needed a check.py run): the value store
+// nested in the switch condition as `switch (value = c, state)` combined with
+// the history store chained into the read (`DAT_0051fcaf[n] = c = *p++`),
+// with the read and pointer advance split (`DAT_0051fcaf[n] = c = *p; p++;`),
+// with both stores in one chain (`DAT_0051fcaf[n] = value = c = *p++`), and
+// with the pointer advance as the right operand of a comma
+// (`DAT_0051fcaf[n] = c = *p, p = p + 1;`). So a store that is a comma
+// operand of the switch condition is still sunk: the inlined-helper shape
+// above remains the only one that emits the stores in place, and its register
+// allocation (ecx for the pointer, al for the byte, plus an extra byte
+// reload) is the unresolved half of the problem. What still differs is the
+// same single block described above: the history store must sit at slot 5
+// (before the pointer spill) and `sub eax, 0` at slot 9 (after the value
+// store).
 
 extern unsigned char DAT_0051fcaf[];
 extern unsigned char DAT_0051fcb0[];

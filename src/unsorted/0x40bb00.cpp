@@ -18,6 +18,12 @@
 // 2026-10-01 deepseek-v4.1-flash retry: reversed pointer addition
 // `(type + g_game->defs)->flags` is byte-neutral: same mirrored SIB
 // [ecx+eax+0x241] vs the original [eax+ecx+0x241], 686/686 at 99.6%.
+// 2026-10-01 deepseek-v4.1-flash retry 3: binding the flags read as a
+// `Def& d = g_game->defs[type];` reference, and as a nested `Def* defs`
+// local inside the mode branch, both keep the mirrored SIB [ecx+eax+0x241]
+// and additionally perturb the rating multiply (movsx/imul pair order and
+// imul operands swap), dropping to 97.8%; restored this 99.6% version.
+
 #include <windows.h>
 struct Rating { signed char normal,metal,energy; };
 class Class_00435100 { public: int FUN_00435100(); };

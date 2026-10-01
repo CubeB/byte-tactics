@@ -22,6 +22,10 @@
 // ours as (dest - _Q) + _P - _M (mov eax,ecx; sub eax,edx; add eax,ebp;
 // sub eax,edi). Both equal _P; it is the compiler's induction-variable
 // canonicalisation, and tools/headers.py tries all 128 header sets at 99.5%.
+// 2026-10-01 deepseek-v4.1-flash retry 2: the insert body is the shipped
+// <vector>, so the calling file has no lever for the residual; re-checked
+// at 99.5% (781/781) with the same single hunk retained.
+
 #include <vector>
 struct Elem_0040cfb0 { char a, b, c; };
 typedef std::vector<Elem_0040cfb0> Vec;

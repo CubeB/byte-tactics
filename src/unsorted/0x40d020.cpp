@@ -37,6 +37,13 @@
 // advancing _Q/_P directly (`for (; _P != _Last; ++_Q, ++_P)
 // allocator.construct(_Q + _M, *_P);`) collapses to 60.0% (528 bytes), so the
 // separate _d/_s locals are load-bearing; restored this best version.
+// 2026-10-01 deepseek-v4.1-flash retry 3: writing the growth branch's first
+// _Ucopy as a manual dest-first loop, both with the end taken straight from
+// _P and with a fresh `const_iterator _E = _P;` local, is byte-identical to
+// the inlined call form (80.5%, 536 bytes): the source end still lands in
+// edi where the original reloads it into ecx, and the third loop still
+// reloads _Last from [ebp+8] instead of caching it in esi.
+
 #include <memory>
 #include <xutility>
 

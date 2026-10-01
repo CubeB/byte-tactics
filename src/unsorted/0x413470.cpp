@@ -1,4 +1,9 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (issue #4007) retry: 98.0% reconfirmed. Member-wise
+// p.x/p.y/p.z scored 94.3% (1860 bytes) and p = target->pos; p += off;
+// scored 93.6% (1868), so the Vec3 operator+ form stays best. Still the
+// single 17-byte 0x413950 region: original consumes edi (off.x) then
+// reloads pos.y into edi, ours uses ebx for pos.y.
 // deepseek-v4.1-flash (issue #3633) retry: 98.0% reconfirmed, the single real
 // hunk is still 0x413950..0x413966. Full ctx disassembly shows the original
 // never materialises off: edi holds off.x and is consumed by `add edx, edi` at

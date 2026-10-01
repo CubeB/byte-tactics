@@ -1,4 +1,7 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (issue #4007) retry: 96.1% reconfirmed; no new
+// variant landed within this issue timebox. Still the +0x477 load hoist
+// and the known landing-site /Ob2 _Destroy budget.
 // deepseek-v4.1-flash (issue #3633) retry: 96.1% reconfirmed, same three real
 // hunks (the jmp-table line is masked placeholder rendering and does not
 // count). Hunk at +0x477 is one instruction placement: the original hoists

@@ -1,7 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Continued from a partial left by deepseek-v4.1-flash and GPT-6.
-// PARTIAL, 84.3% (3431 of 3463 bytes, 32 bytes short). Two diff hunks remain,
-// both in the same loop-setup block (listing line ~856):
+// PARTIAL, 84.3% (3431 of 3463 bytes, 32 bytes short): see the 0758Z note
+// below for the current byte accounting. The older description of the hunks
+// (kept for history) was inaccurate for the bar blocks:
 // - the original emits `push edi` BEFORE the g_game load and then
 //   `mov edx, [g_game]; mov cl, byte ptr [edx + 0x38d74]; mov [esp+0x18], 0x15b;
 //   and ecx, 0xff; mov [esp+0x20], 0x16f; mov eax, ecx; shl eax, 3; sub eax, ecx;
@@ -247,6 +248,32 @@ public:
 // Retried the byte `prog` local (replacing the `flash` local's slot, inlining
 // the flash global at the six FUN_004a50e0 sites to keep the frame): the
 // allocator moves prog to +0x10 and shifts rect to +0x14, 3428 bytes, 69.6%.
+// 0758Z note (deepseek-v4.1-flash, second pass): the 32-byte shortfall is now
+// fully accounted for, and none of it is a control-flow difference:
+//   (1) 24 bytes: the six bar blocks. The `and ecx,0xff` the older notes blamed
+//       on a progress byte is really the flash read (0x49879d: mov ecx,[0x51e6c8];
+//       and ecx,0xff), which this file already reproduces. What is missing is
+//       the *progress* byte load: the original has `mov cl,[eax+0x38d6f]; and
+//       ecx,0xff` (12 bytes) where we get `xor ecx,ecx; mov cl,[..]` (8 bytes),
+//       six times. A block-scope `unsigned char prog = g_game->progress[i];
+//       rect[2] = (prog*7)/2 + 0xcd;` does emit the wanted pair but homes prog
+//       (3502 bytes, 73.3%), so the register must come from something else.
+//   (2) 6 bytes: the DAT_0051f2c8..DAT_0051e6cc zero block (0x4982dd) uses three
+//       fresh zeros (xor eax,eax / xor ecx,ecx / xor edx,edx) grouping the
+//       stores f2c8+cc+d0+e820+e824 (eax), e810+814+818 (ecx), e6c8+e6cc (edx);
+//       ours stores every one of them through the long-lived ebp zero.
+//   (3) 6 bytes: the two flag tests (0x498342, 0x498499) load `mov dl,[..];
+//       shr dl,1; test dl,1`, i.e. a byte-sized bitfield read; ours folds the
+//       shift-and into `test byte ptr [..], 2`. A byte bitfield view of
+//       g_game+0x38d75 for those two tests drops the file to 50.6%, because the
+//       volatile word writes (`mov cx,[..]; or ecx,1; mov [..],cx`) must keep
+//       their register form.
+//   (4) -5 bytes: the 0x38d6f pair (0x4985?? in the original) is a pointer
+//       local: `xor ecx,ecx; mov edx,[g]; add edx,0x38d6f; mov [edx],ecx;
+//       mov [edx+4],ecx` (19 bytes); ours reloads g_game twice and stores
+//       through [ecx+0x38d6f]/[edx+0x38d73] (24 bytes).
+// The rest of the diff (0x49838c, 0x49851f, the wsprintf/SetWindowPos schedules
+// and all six bar blocks) is eax/ecx/edx naming in otherwise identical streams.
 // FUNCTION: 0x497f40
 void FUN_00497f40(void)
 {

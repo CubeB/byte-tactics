@@ -1,4 +1,66 @@
 // Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+//
+// 30-min checkpoint (DeepSeek V4.1 Flash, #4154): still 80.0%, 280 bytes, no
+// MATCH; the body below is unchanged and remains the best. This pass measured
+// several hundred fresh shapes with a fast local harness
+// (build/scratch/0x4c71f0/harness.py, 0.3 s per compile, six workers in
+// search1.py) and pinned the mechanism down further; nothing moved the two
+// hunks, so none is kept. The shape of the residual is now clear and it is
+// worth writing down for the next attempt.
+//
+// Mechanism (all four blocks agree, including the two that match):
+//   * cl5 evaluates a call's arguments right to left. Experiment
+//     `out->low = F(at_high, at_low - value, G);` with no store gives
+//     `mov eax,[G]` (5-byte accumulator form), then arg2, then arg1, i.e. G
+//     gets eax. Case 3 of this function is that same order and matches.
+//   * A load is then emitted as early as its destination register allows:
+//     a stack-parameter load may be hoisted above a pointer store (case 3
+//     proves it), a global load may not (aliasing).
+//   * The allocator gives each new value the register that was freed by the
+//     instruction before its load. Case 0 (matching): at_low takes eax, the
+//     register `sub ecx, eax` just freed. Case 3 (matching): at_high takes
+//     edx at the top, then G takes ecx.
+//   * Our case 1: at_low->edx, sub frees eax, at_high takes eax (hoisted
+//     above the store, which the stack load is allowed to cross), store frees
+//     edx, G takes edx. The original instead leaves eax to G and gives
+//     at_high ecx, the register arg2's push frees; that one register choice
+//     is the whole difference. Same in case 2: the original gives at_high
+//     eax after `mov [ecx],eax` frees it; ours gives it edx before add esp.
+//   * So both failing hunks are one allocator choice: the original hands the
+//     register freed by the preceding instruction to the value loaded LAST
+//     (arg1 / the after-call store), ours hoists the same value into the
+//     first free register. The 1-byte length gap follows: only eax gets the
+//     5-byte `mov eax, ds:[G]`.
+//
+// Measured this pass, every one 80.0% and byte-identical to the body below
+// unless noted, so do not retry them:
+//   - all six declaration orders of `int h = at_high; int d = size - offset;
+//     int g = DAT_0051fe40;` declared after the store (the 0x461990 pattern,
+//     where declaration order does drive the load order); declared before the
+//     store they are 78.9% because the global load then crosses the store.
+//   - comma forms `out->high = F(at_high, size - offset,
+//     (out->low = at_low, DAT_0051fe40));`, the comma in argument 1, the two
+//     statements joined by a comma, and the whole pair wrapped in parentheses:
+//     the front end normalises the store back out, byte-identical.
+//   - inline helpers owning the whole case body with the five parameters in
+//     six orders, including reversed, and helpers copying the parameters to
+//     locals first (the inliner re-orders the binding back).
+//   - `const int at_high`, `const int at_low`, `long at_high`, `unsigned`
+//     everywhere (77.8%): no change or worse.
+//   - flags: /Ot /Ox /Og /Oi /Oy /GA /GE /G5 /GB are all byte-identical;
+//     /G6 is 75.7%, /Oa and /Ow 59.4%, /Os and /O1 28.2%, /Od 16.1%.
+//   - defining the sibling 0x4c70d0 or 0x4c7080 before or after this function
+//     in the same file: byte-identical.
+//   - `*(volatile int*)&at_high` for case 1's first argument: cl5 folds it,
+//     byte-identical (no extra load).
+//   - `default: return;` before case 3, braces around case 1, `break` instead
+//     of `return`: byte-identical.
+// Next attempt: the only lever left is the allocator's choice of the register
+// for the value loaded last in a block that has a store before the call. It
+// must be made busy at the top of the block so the load cannot hoist; every
+// source spelling tried so far leaves eax free there. Do not spend budget on
+// headers, flags, helpers or declaration orders again.
+//
 // GPT-6.1-sol retry in #3210: two checker invocations, one initial attempt returned no output. Best remains 80.0%; no MATCH. Existing passes already tried helper, header, declaration, and argument-order variants; case 1/2 argument scheduling still differs.
 // #3006 retry by GPT-6.1-sol: two checks retained 80.0%; an inline helper for
 // the first case's low output did not change the argument-evaluation mismatch.

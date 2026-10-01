@@ -142,6 +142,67 @@
 // the four diffs listed above (early n store, movsx, lea operand order, jump).
 // The one mechanism still untested is a value the front end keeps opaque that
 // costs zero instructions; no such spelling was found.
+//
+// deepseek-v4.1-flash pass (this one, #4154): 30-min checkpoint. THE SPLIT IS
+// SOLVED, and the mechanism is now known. A compound assignment through a pointer to a local,
+//
+//     int len = n + m + 1;
+//     int* lp = &len;
+//     *lp += 5;
+//     int* block = (int*)malloc(len);
+//
+// is opaque to the front end's constant folder (the store node sits between the
+// `+1` and the `+5`), and the optimiser later propagates the stored value and
+// deletes the store, so it costs no instructions at all: the emitted size is
+// exactly the original's `push ebp; mov [esp+0x10],edx; lea eax,[ecx+edx+1];
+// add eax,5; push eax`. That also fixes the store position and the register of
+// the size (eax), i.e. three of the four old diffs. 196 bytes, 96.4%.
+// Also tested in this pass, all giving the same 196-byte body and the same
+// residual: `*lp = *lp + 5`, `lp[0] += 5`, `*(&len) += 5` (folds, no pointer
+// variable), a `struct`/`union` with an address-taken member and `sp->len += 5`
+// (same split), `*lp += sizeof(int) + 1`, a plain `*lp = n + m + 1` then
+// `*lp += 5`, `int buf[2]` with `buf[0]` through a pointer, and `int* lp = buf`.
+// A second zero-cost split mechanism, equivalent byte for byte: a ternary whose
+// condition is provably true, `int len = (n + m + 1 > n + m) ? (n + m + 1) :
+// (n + m + 1);` (the front end builds a phi, the optimiser deletes the test).
+// `(n >= 0) ? ... : ...` leaves one extra `test edx,edx` (95.8%), and using the
+// same ternary for the *destination's* offset, `int off = (...) ? n : n;`, also
+// stays at 96.4% with `[ebp+eax]`, so the mechanism is not the LEA lever.
+// The residual, exactly one byte and one instruction encoding: the second
+// strcpy's destination comes out `lea edx,[ebp+eax]` (4 bytes, base = chars in
+// ebp, index = n in eax) where the original has `lea edx,[eax+ebp]` (3 bytes,
+// base = n, index = chars). Everything else, including the jump targets once
+// the length matches, is identical. That one encoding is the last 3.6%.
+// For the encoding: the destination is `chars + n`, and every spelling of it
+// gives `[ebp+eax]`: `n + chars`, `&chars[n]`, `(char*)(n + (int)chars)`,
+// `(char*)((int)chars + n)`, `(char*)n + (int)chars`, `int off = (int)chars + n`,
+// a named `char* dest`, computing dest before the first strcpy, `strcpy`'s
+// return value, and inline helpers `At(p,k)`/`At(k,p)`/`Off(p,k)`. The
+// mechanism is not the cause either: the 40 combinations of five pointer-store
+// forms, four destination spellings and two `chars` spellings all give
+// `[ebp+eax]`. Also no effect: 128 header sets plus all C++ header crosses
+// (headers.py --cpp, 768 sets), preceding sibling functions (0x4c91b0,
+// 0x4c9290, 0x4c93b0 in six orders), 0 to 64 unused `extern int` declarations,
+// and compiling with the RTM toolchain. So this looks like the guide's
+// "base and index swapped in an address" case that only compiler state from the
+// original file can move; the class's other matched functions give no example
+// (0x4c9290 copies with `mov edx,ebp`, no two-register LEA). The `short` hack
+// below was deleted; the current body is the best known, one byte short.
+// ONE LEAD IS LEFT, and it is a real one. The encoding follows the *origin* of
+// the offset value, not the source spelling: replacing the destination's `n`
+// with a freshly computed `(int)strlen(ptr)` does produce the original's
+// `lea edx,[ecx+ebp]` (base = the int, index = chars), at the cost of the
+// recomputed strlen (87.4%, 14 extra instructions). The same fresh value
+// flips the *size* add too: `n = n + m + 1; *lp += 5; malloc(n); n = n0;`
+// makes the size come out `lea eax,[edx+ecx+1]` where the original has
+// `[ecx+edx+1]` (95.2%). So the base/index choice is per-value and can be
+// moved by giving the operand a fresh value number, but every free way of
+// doing that (a copy local, `n + 0`, `n * 1`, `n ^ 0`, a cast, a by-ref or
+// by-pointer inline helper, a named `dest`, `strcpy`'s return value) either
+// folds back to the spilled n or changes the whole allocation. What is still
+// missing is a *zero-cost* fresh computation of the offset, i.e. the original
+// most likely computed `n` again somewhere the optimiser later removed, or the
+// offset came from an expression this reconstruction does not have.
 #include <string.h>
 #include <stdlib.h>
 
@@ -160,8 +221,10 @@ Class_004c90b0* Class_004c90b0::FUN_004c90b0(const Class_004c90b0& other)
     if (!other.IsEmpty()) {
         int n = (int)strlen(ptr);
         int m = (int)strlen(other.ptr);
-        short len = n + m + 1;      // codegen only, see the note above
-        int* block = (int*)malloc(len + 5);
+        int len = n + m + 1;
+        int* lp = &len;
+        *lp += 5;                   // opaque store: keeps the +1 and +5 apart
+        int* block = (int*)malloc(len);
         *block = 1;
         char* chars = (char*)(block + 1);
         strcpy(chars, ptr);

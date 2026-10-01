@@ -60,7 +60,19 @@
 //   * the tail forwards p1.x into ebp across the inlined Length() (`mov eax,
 //     ebp`) where the original reloads `mov eax, [esi]`.
 //
-// 4.1-flash retry (this round only touched scratch, scored with --sym):
+// 4.1-flash second retry: still 91.9, no gain. Declaring the deltas as two
+// 12-byte Vec3 locals (`Vec3 da; da.x=..; da.y=..; da.z=..; Vec3 db;
+// db.x=..; db.z=..;`) to reproduce the original's two dead-middle regions
+// (0x1c/0x24 and 0x40/0x48) compiles to 1068 bytes and 90.0%, so the frame
+// shrinks by 6 when those regions become structs; two named `Vec3` temps
+// with the y member never stored are therefore not what Cavedog wrote.
+// Making only the p1-b pair a 12-byte `struct D3 { int x, y, z; };` (x and z
+// assigned, y never stored) keeps the same homes (dbx 0x20, dbz 0x1c) and
+// compiles to the same 1068 bytes at 90.0%, so a partially used struct is
+// collapsed back to scalars plus 6 bytes of lost scheduling: the deltas are
+// four plain ints, and their homes are pure allocator state.
+//
+// 4.1-flash first retry (this round only touched scratch, scored with --sym):
 // the original's dax/daz live 8 bytes apart at 0x1c/0x24 and dbx/dbz at
 // 0x40/0x48, each pair with a never-written middle dword, which looks like a
 // 12-byte Vec3 whose y is dead (same idiom as the 0x43cd20 notes). Modelling

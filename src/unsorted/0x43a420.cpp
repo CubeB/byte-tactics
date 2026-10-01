@@ -105,6 +105,20 @@
 // below is still the best.
 // Preserve the inclusive fallback-table scan: 0x43a58d uses JBE even though
 // the named lookup passes the same end pointer to exclusive lower_bound.
+// Session addendum 2 (deepseek-v4.1-flash): with BOTH counters int, the whole
+// fallback loop now compiles byte-for-byte with the original, instruction for
+// instruction and offset for offset (scratch vE, k declared first: xor ecx,ecx
+// = k, xor edx,edx = idx, hoisted mov edi,[esp+0x20], and the join store is
+// mov [esp+0x20],dl), EXCEPT that k lands in ECX and idx in EDX where the
+// original has the mirror image (idx ECX with `inc ecx` in the latch and
+// `mov dl,cl` before the store, k EDX with `inc edx` inside the flag test).
+// Because of that one register swap the int form is exactly 2 bytes short
+// (the missing mov dl,cl) and every later offset shifts, so it scores 86.2;
+// the char-k form in the file below reaches 94.0 only through diff alignment.
+// Declaring int idx before int k (scratch vD) swaps the two `xor`s but not the
+// roles, so the roles are the allocator's use-count decision (k is referenced
+// by the compare as well as its increment, idx only by the latch), not
+// declaration order. The prologue store order is still the other diff.
 #include <stdio.h>
 #include <string.h>
 

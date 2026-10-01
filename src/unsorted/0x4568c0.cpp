@@ -257,6 +257,10 @@
 // `from` in edi instead of the original's `to` in edi / `from` in edx), which
 // every documented family in this file and in build/scratch/SHARED.md leaves
 // entangled with res losing edi.
+// deepseek-v4.1-flash (issue #4064 pass, 10 min timebox): tried the k4 loop
+// counter as `unsigned char` to force the original's xor ebx,ebx / cmp bl,0xa
+// byte counter; regresses 86.8 to 82.9 (1268 bytes), reverted. Both functions
+// of the issue were re-checked: this file at 86.8 and 0x453d40 at 28.0.
 #include <algorithm>
 
 #pragma pack(push, 1)

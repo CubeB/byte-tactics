@@ -4,7 +4,10 @@
 // ours 889); no improvement, the version below is the best. Also tried this
 // pass: the reversed clamp ternary `v.y = lim > v.y ? lim : v.y;` (that flips
 // the original cmp v.y,lim / jle operand order), which regresses 59.0 to 58.0
-// at the same 889 bytes, so the direct store stays.
+// at the same 889 bytes, so the direct store stays. Also tried binding the
+// call to a named reference before the copy (`Vec3 v; const Vec3& t =
+// FUN_0043e060(...); v = t;`): 54.9% / 881 bytes, so MSVC still routes the
+// sret buffer through its own choice and the direct-init form stays best.
 // The frame is 0x20
 // against the original's 0x28, and the first call has no return temporary.
 // Tried this pass, all <= 59.0%: a user copy constructor (init-list, body,

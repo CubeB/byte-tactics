@@ -2,7 +2,10 @@
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // deepseek-v4.1-flash retry, 2026-10-01. State: 74.8% (original 943 bytes,
-// ours 964); kept, no improvement. The original tail really is ONE
+// ours 964); kept, no improvement. Also tried hoisting `UnitType* type =
+// unit->type;` and using it in the hasPath==0 arm: 70.4% / 959 bytes, so the
+// extra dword of frame is not a cached type pointer. The original tail really
+// is ONE
 // FUN_0043cc20 call shared by both arms (jmp 0x43d0ba with eax preloaded and
 // `mov eax,[esp+0x14]; neg eax` as the else arm), but spelling it as an
 // if/else amount plus a single call scores 62.4 (986 bytes), so the duplicated

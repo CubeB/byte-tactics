@@ -280,17 +280,16 @@ PrevMenu:
     if (FUN_0049fd60(menu, "Difficulty")) {
         FUN_0047f1a0("SmlButton", 0);
         int diff = *(int*)(g_game + 0x37eee);
-        if (diff == 0) {
+        switch (diff) {
+        case 0:
             *(int*)(g_game + 0x37eee) = 1;
             FUN_004ab0a0(menu);
             return;
-        }
-        if (diff == 1) {
+        case 1:
             *(int*)(g_game + 0x37eee) = 2;
             FUN_004ab0a0(menu);
             return;
-        }
-        if (diff == 2) {
+        case 2:
             *(int*)(g_game + 0x37eee) = 0;
             FUN_004ab0a0(menu);
             return;

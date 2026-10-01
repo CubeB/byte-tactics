@@ -1,5 +1,17 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
 //
+// deepseek-v4.1-flash retry (10-minute timebox): tried the "fresh
+// menu->layer->entries re-read at 0x4aa48f/0x4aa5a7/0x4aa5bd/0x4aa66f" lever.
+// It is net-negative here: spelling those four sites (plus the strcpy) as
+// inline menu->layer->entries scores 44.0% (2208 bytes), and the mixed form
+// with a fresh help-search local scores 45.3%, both below the cached-entries
+// baseline 46.0% (2204). The reloads add bytes but do NOT demote `entries`
+// out of EBX in the loop, so the i/ebx + p/edi rotation never happens. Best
+// remains 46.0%; reverted to baseline. Still differs (unchanged from below):
+// prologue save order, entry-loop register map (i in EBX, p in EDI, entries
+// memory resident at [esp+0x18]), the [esp+0x10]/[esp+0x48] slot swap, and
+// one spilled clamp edge.
+//
 // Partial: 46.0%, 2204 bytes versus 2164. Best so far; every earlier attempt is
 // in build/scratch/0x4a9fd0/.
 //

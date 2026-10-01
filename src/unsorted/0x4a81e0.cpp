@@ -1,4 +1,23 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry by deepseek-v4.1-flash: stopped by the watchdog before any check run,
+// so this is still the 37.0% (4176/5248) variant plus offset-preserving struct
+// prep only (Entry.field_28 signed byte at +0x28, Layer.field_20 at +0x20),
+// which changes no codegen. What still differs:
+// (1) the post-loop block 0x4a943b..0x4a950a is still the spurious
+// FUN_004c1420 + FUN_004a16f0(menu,0,8) + buf1/buf3 strncmp version; the real
+// one tests layer->field_20 != -1 and menu->field_a2 != 0, saves
+// entries[field_20].type (the store at [esp+0x30] happens with 3 call args
+// pushed, so it is the same [esp+0x24] slot the later `== 1` test reads:
+// savedType == 1 skips), calls FUN_004a16f0(menu, field_20, 8), scans
+// entries[1..count].name with strncmp(.., entries[0]+0xcc, 0x10) in a
+// for (j = 1; j < count + 1; j++) loop with a goto out on match and j = -1
+// on the run-off path, then FUN_004a16f0(menu, j, 8) when j != -1 and
+// savedType != 1 and entries[L.i].field_29 != 0 (L.i is loop2's leftover
+// count + 1, which looks like an original bug); (2) loop2 case 2 still
+// compares the +0x01 group byte with t; the original reads the signed byte
+// field_28 at +0x28 (movsx) instead; (3) prologue register allocation, the
+// original homes entries in ebp and the -2 constant in esi, ours use esi and
+// edi, which shifts the entry block from 0x4a8202 onward.
 // Retry by deepseek-v4.1-flash (#3611, 10-minute timebox): 37.0% unchanged,
 // no new variant written before the watchdog stop. What still differs:
 // (1) prologue register allocation, the original homes entries in ebp and
@@ -118,7 +137,8 @@ struct Entry_004a81e0 {                 // 0x15b bytes, one GUI list entry
     short h;                            // +0x19
     int flags;                          // +0x1b
     unsigned char* colours;             // +0x1f
-    char unknown_23[0x29 - 0x23];
+    char unknown_23[0x28 - 0x23];
+    char field_28;                      // +0x28 (signed; list box group select)
     unsigned char field_29;             // +0x29 (second loop keep-test)
     char unknown_2a;
     void* archive;                      // +0x2b
@@ -175,7 +195,8 @@ struct Layer_004a81e0 {
     Entry_004a81e0* entries;            // +0x04
     char unknown_08[0x14 - 0x08];
     int field_14;                       // +0x14
-    char unknown_18[0x24 - 0x18];
+    char unknown_18[0x20 - 0x18];
+    int field_20;                       // +0x20 (entry index, -1 for none)
     void* field_24;                     // +0x24
 };
 

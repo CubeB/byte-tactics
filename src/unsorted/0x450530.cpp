@@ -188,6 +188,8 @@ void FUN_00450530()
                 msg.arg = -1;
                 if (FindPlayer_00450530() == 10)
                     continue;
+                if (i == 9)
+                    g_game->local_player = g_game->local_player;
                 FUN_00451bc0(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
         }

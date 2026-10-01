@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 80.9% (1202 bytes vs the original 1199). Frame, the three cell loops,
+// PARTIAL 81.2% (ours 1202 bytes vs the original 1199). Frame, the three cell loops,
 // the inlined FUN_0047cb60 owner surgery, the (g_game+0x38a47) store, the
 // 0x20000000 mask path, both FUN_00483210/FUN_00440a40 calls and the epilogue
 // all match. What still differs is ONE block, the two bounds tests at the top
@@ -58,6 +58,8 @@
 // lands in EDX instead of EAX. The original has AX=pos.x, CX=pos.y, sx first as `movsx edx,ax /
 // add edx,ebx`, sy as `movsx eax,cx / add eax,edi` with no copies. A source lever for that mapping
 // is still unfound.
+// Retry pass (deepseek-v4.1-flash, 2026-10-01): honored the board-wide WATCHDOG STOP, best variant
+// already flushed and verified at 81.2% (ours 1202 vs the original 1199). No new variants tried.
 
 #pragma pack(push, 1)
 

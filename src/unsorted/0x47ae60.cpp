@@ -1,5 +1,13 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1 and GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 85.5% (ours 2868 bytes vs the original 2947).
+// Retry note (deepseek-v4.1-flash): timebox expired with no validated change.
+// Still differs only in register-allocation tie-breaks (see below). Verified
+// against the original disassembly this pass: the toggle-arm chain order is
+// identical to ours, so the big diff block there is line-alignment noise, not
+// a structural mismatch. The Energy/Metal down-clamp original really is
+// "add ecx, 0xfffffe0c" (imm32 negative) on a signed value; untried idea is
+// forcing that encoding via an unsigned add cast, e.g.
+// "int v = (int)((unsigned)*p + 0xfffffe0c);".
 // What fixed 84.2 -> 85.5: the c2/c1 player count block. The original lays it
 // out loop1 / test-c2 / loop2 / test-c1 with ONE shared error stub at
 // 0x47b0bf (both "jl 0x47b0bf"). "if (c2 < 1 || c1 < 1)" and two separate ifs

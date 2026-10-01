@@ -161,6 +161,14 @@ extern char DAT_00508be8[];
 //     closest size so far: 1944 vs 1964 bytes).
 // Conclusion unchanged: the trigger for cmd=ebx is register pressure in the
 // post-switch region, not any single declaration or expression shape.
+// Pass 8 (deepseek-v4.1-flash, 10 min box): 64.7%, best unchanged, no other
+// variant kept. Two new free scores on the depth expression (the documented
+// structural gap): folding the +3 into the ternary
+// (`(cmd[10] & 0xf0) != 0x30 ? 6 : 3`) is byte-flat at 64.7% / 1920 bytes, and
+// the same fold as an `unsigned char depth` gives 58.9% / 1936 bytes (the
+// closest size yet, but the allocation still loses more than the shape wins).
+// The file is back to the pass 7 text; the trigger for cmd=ebx stays unproven.
+
 extern char DAT_00508bf0[];
 
 template <class T>

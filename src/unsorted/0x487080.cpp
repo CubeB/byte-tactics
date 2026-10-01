@@ -71,6 +71,21 @@
 // allocation (original n=esi, found=ebp, i spilled at [esp+0x10]; ours n=ebp,
 // i=esi, found at [esp+0x13]), the 0x110 flag block rotation and the two
 // epilogues.
+// Retry deepseek-v4.1-flash (10 min box): 67.5%, no MATCH. New data points on
+// top of the address-take-of-i hack: spelling the sprintf argument as `i`
+// (`sprintf(script, "Script%i", i)`, which the original really does at 0x4875d0)
+// collapses 67.5 -> 55.0 (1600 bytes); `unsigned int found = 0;` and
+// `int found;` + a later `found = 0;` statement both give 53.8 (1579 bytes), so
+// the 32-bit found that the original uses (test ebp,ebp / mov ebp,1) still cannot
+// be reached through the type alone. Moving the probe ahead of the
+// `n = FUN_004b4800(...)` initialiser is byte-flat (identical 1578 bytes), so the
+// probe's position does not matter. Best stays bool found + probe + rec.f3b.
+// Four of the nine hunks (offsets 289, 300, 314, 354 and 411) are pure
+// branch-target shifts of exactly -0x10, i.e. consequences of the 17-byte
+// shortfall, not source-shape differences; the real gap is the loop allocation
+// (original n=esi, found=ebp as a dword, i at [esp+0x10]; ours n=ebp, i in esi,
+// found a byte at [esp+0x13]) plus the childB load phase and the two epilogues.
+
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
 // deepseek-v4.1-flash (this session): 67.5%. Taking the address of the loop
@@ -306,9 +321,8 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     unit->b_fa = rec.bb1;
     unit->b_10e = rec.bb2;
 
-    unsigned int f = rec.flags;
     unsigned char b = unit->b_10f;
-    b = ((unsigned char)f ^ b) & 1 ^ b;
+    b = ((unsigned char)rec.flags ^ b) & 1 ^ b;
     unit->b_10f = b;
     b = (unsigned char)((rec.flags >> 1 & 1) << 1) | (b & 0xfd);
     unit->b_10f = b;

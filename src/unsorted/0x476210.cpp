@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3287): tried the real-<vector> recipe of the matched
+// siblings 0x43c3a0/0x433db0 (explicit instantiation, same element size): 89.6%,
+// 637 bytes, worse than this clone's 99.6%, 636 bytes. A dest local of iterator
+// or const_iterator type at the third _Ucopy, `_Q += _M` before the call, and a
+// difference_type cast on _M are all byte-flat at 99.6.
 // deepseek-v4.1-flash (#2924 retry, 2026-10): still 99.6%, 636/636 bytes. Two
 // more source variants at the third _Ucopy (a fresh "iterator _D = _Q + _M;"
 // local, and a separate "size_type _Off = _M;" used as "_Q + _Off") both keep

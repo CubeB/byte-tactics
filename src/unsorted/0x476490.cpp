@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3287): the real-<vector> recipe of the matched sibling
+// 0x43c3a0 (explicit instantiation, 32-byte trivial element) scores 60.7%,
+// 637 bytes, against this clone's 78.9%, 646; the clone stays the best form.
 // deepseek-v4.1-flash retry (10 min): retained 78.9 percent, 646/632 bytes.
 // tools/headers.py over all 128 header sets is flat at 78.9, and the 0..400
 // extern-int dummy-declaration sweep (step 8) never beats 78.9 either, so the

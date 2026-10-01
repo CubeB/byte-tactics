@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3287): the real-<vector> recipe of the matched sibling
+// 0x43c3a0 (explicit instantiation, 0x44-byte trivial element) scores 82.9%,
+// 796 bytes, against this clone's 83.0%, 795; swapping _Destroy and deallocate
+// regresses to 76.5%. The retained wall is unchanged: _P in esi instead of edx.
 // deepseek-v4.1-flash retry (10 min): no improvement on the retained 83.0%
 // (795/794). Tried <windows.h> added (82.9%, 796 bytes), a late `_P3 = _P`
 // local for the third copy (83.0%, _P stays in esi), and reusing a cached

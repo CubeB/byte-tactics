@@ -1,4 +1,25 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 deepseek-v4.1-flash 10-minute retry: still exactly 99.7%
+// (1017 = 1017), the same single 3-instruction scheduler rotation at
+// 0x4b55af. New measurements this session, all inert unless noted:
+//   * compiler flags already known to be inert re-confirmed (/Oy, /Ot,
+//     /Ob1, /Gd, /GB, /Og /Oi /Gy, /Gs, /Gf, /G5, /QAieee all 99.7);
+//     /Oa drops to 61.4 (1002 bytes), /Ow to 88.3 (1008 bytes) and /G6
+//     to 78.8 (1012 bytes), all too aggressive to be the original flags.
+//   * a real `void *bits` local for CreateDIBSection, declared at its
+//     point of use, still adds a frame slot (frame 0x4d0 -> 0x4d4) and
+//     scores 91.8; the address-taken home plus the &-temp are two slots
+//     whether bits is declared at the function top or at the call.
+//   * plain `int lockResult; HDC *dcSlot;` locals (both declaration
+//     orders) swap the homes to lockResult 0x14 / dcSlot 0x10 and score
+//     97.4, so the struct wrapper really is required to pin 0x10/0x14.
+//   * a scalar `HDC *pdc = &cleanup->dc;` used for the check, the DeleteDC
+//     argument and the store, with the CreateDIBSection output going to a
+//     separate address-taken local, scores 91.8 for the same frame growth:
+//     the extra spilled variable adds a slot and shifts every [esp+N].
+// The reload stays glued to the store in every shape whose frame layout is
+// correct, so it is the same list-scheduler tie-break the guide records for
+// 0x4b6570. Leaving the best (99.7) version in place.
 // TIMEBOXED RETRY (deepseek-v4.1-flash): still 99.7% (1017 = 1017), the one
 // rotation at 0x4b55af remains: original is load,h,d,push6,store; ours is
 // h,d,load,push6,store. New finding from the c/h/d ordering experiment

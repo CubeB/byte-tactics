@@ -129,54 +129,66 @@ void __stdcall FUN_004a0bf0(Menu_004797e0* menu, char* key, char* text, int flag
 char* __stdcall FUN_004c5740(char* key);
 
 static int __stdcall FreeColour_4797e0(Game_004797e0* game) {
-    int n = 0;
+    int n;
+    n = 0;
     do {
-        int k = 0;
-        for (; k < game->numPlayers; ++k)
-            if (game->players[k].color == n)
-                break;
-        if (k == game->numPlayers)
+        int k;
+        k = 0;
+        while (k < game->numPlayers) { if (game->players[k].color == n) break; k = k + 1; }
+        bool tmp1 = k == game->numPlayers;
+        if (tmp1)
             return n;
-        ++n;
-    } while (n < 10);
+        n = 1 + n;
+    } while (10 > n);
     return -1;
 }
 
+static inline Menu_004797e0* inl0() { return &g_game->menu; }
+
+static inline int inl1(Game_004797e0*game, int j, unsigned int myColor) { return (int)(game->players[j].color == myColor); }
+
 // FUNCTION: 0x4797e0
 void __stdcall FUN_004797e0(int playerIndex) {
-    char buffer[64];
-    char buffer2[64];
+    Game_004797e0* game;
+    unsigned int myColor;
+    Entry_004797e0* entries;
+    int idx;
+    Entry_004797e0* e;
+    int count;
+    char buffer2[64], buffer[64];
 
-    wsprintfA(buffer, "Player%d", playerIndex);
+    wsprintfA(buffer, "Player%d", (int)playerIndex);
     {
-        Game_004797e0* game = g_game;
+        game = g_game;
         switch (game->players[playerIndex].controller) {
         case 0:
             game->players[playerIndex].controller = 2;
             FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Computer"), 0);
             break;
         case 1:
-            game->players[playerIndex].controller = 0;
+            game->players[((int)playerIndex)].controller = 0;
             FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Open"), 0);
             break;
         case 2: {
-            int count = 0;
-            for (int j = 0; j < game->numPlayers; j++) {
-                if (game->players[j].controller == 1)
-                    count++;
+            int j;
+            j = 0;
+            count = 0;
+            while (game->numPlayers > j) {
+                if ((int)(game->players[j].controller == 1)) count = 1 + count;
+                j++;
             }
-            if (count == 0) {
+            if (0 == count) {
                 game->players[playerIndex].controller = 1;
                 FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Player"), 0);
             } else {
                 game->players[playerIndex].controller = 0;
-                FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Open"), 0);
+                do FUN_004a0bf0(&g_game->menu, buffer, FUN_004c5740("Open"), 0); while (0);
             }
         } break;
         }
 
-        if (game->players[playerIndex].controller == 0) {
-            wsprintfA(buffer, "Player%d", playerIndex);
+        if (!game->players[playerIndex].controller) {
+            wsprintfA(buffer, "Player%d", ((int)playerIndex));
             FUN_004a0570(&g_game->menu, buffer, 1);
             wsprintfA(buffer, "Side%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 0);
@@ -187,26 +199,36 @@ void __stdcall FUN_004797e0(int playerIndex) {
             wsprintfA(buffer, "Energy%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 0);
             wsprintfA(buffer, "Color%d", playerIndex);
-            FUN_004a0570(&g_game->menu, buffer, 0);
+            do FUN_004a0570(&g_game->menu, buffer, 0); while (0);
         } else {
-            int myColor = g_game->players[playerIndex].color;
-            for (int j = 0; j < game->numPlayers; j++) {
-                if (game->players[j].color == myColor && game->players[j].controller != 0 &&
-                    j != playerIndex) {
-                    Entry_004797e0* entries = game->holder->entries;
-                    int free = FreeColour_4797e0(game);
-                    game->players[playerIndex].color = free;
-                    wsprintfA(buffer2, "Color%d", playerIndex);
-                    int idx = FUN_0049fdf0(entries, buffer2, 6);
-                    if (idx != -1) {
-                        Entry_004797e0* e = &entries[idx];
-                        if (e != 0) {
-                            e->field_be = g_game->field_148db;
-                            e->field_c6 = (unsigned short)g_game->players[playerIndex].color;
-                        }
-                    }
-                    break;
+            int j = 0, same1 = j;
+            j = ((int)same1);
+            for (myColor = g_game->players[playerIndex].color; j < game->numPlayers; ) {
+                if ((inl1(game, j, myColor)) && game->players[j].controller == 0) {
+                } else {
+                    if (j != ((int)playerIndex)) {
+                                                                entries = game->holder->entries;
+                                                                Entry_004797e0* same2 = entries;
+                                                                entries = same2;
+                                                                do {
+                                                                    unsigned int free = FreeColour_4797e0(game);
+                                                                    game->players[playerIndex].color = free;
+                                                                } while (0);
+                                                                wsprintfA(buffer2, "Color%d", playerIndex);
+                                                                idx = FUN_0049fdf0(entries, buffer2, 6);
+                                                                if (idx != -1) {
+                                                                    do {
+                                                                        e = &entries[idx];
+                                                                        if (e != 0) {
+                                                                            e->field_be = g_game->field_148db;
+                                                                            e->field_c6 = (unsigned short)g_game->players[playerIndex].color;
+                                                                        }
+                                                                    } while (0);
+                                                                }
+                                                                break;
+                                                            }
                 }
+                j = 1 + j;
             }
             wsprintfA(buffer, "Player%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 1);
@@ -219,7 +241,7 @@ void __stdcall FUN_004797e0(int playerIndex) {
             wsprintfA(buffer, "Energy%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 1);
             wsprintfA(buffer, "Color%d", playerIndex);
-            FUN_004a0570(&g_game->menu, buffer, 1);
+            FUN_004a0570(inl0(), buffer, 1);
         }
     }
     FUN_00479660();

@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #3078 retry by GPT-6.1-sol: one check reconfirmed 85.9%; the three constant
+// register assignments remain the only recorded differences.
 // Partial: 85.9%, 915 bytes, exactly the original's size. The store sequence,
 // every immediate and the whole prologue and epilogue match; what is left is
 // only the register the allocator hands to three of the hoisted constants.

@@ -217,6 +217,13 @@
 // two change the frame (844 and 870 bytes). So the method boundary does not
 // block this hoist either (build/scratch/0x465ac0/gen_batch6.py).
 //
+// Deepseek-v4.1-flash pass (issue 3675, 10 min box): kept 98.3 (865/865). The
+// three new shapes tried this pass are all worse: the helper as a single
+// `return ((g_game->flags & 2) == 2) ? IsExplored3(...) : IsSeen(...);` is 94.1
+// (844 bytes), same for the if/else-on-result-local version, and IsSeen with a
+// positive `if (Contains(...)) { return mask...; } return 0;` is 88.1 (852).
+// All three lose the 4-byte normalisation, so the two-return helper body stays.
+//
 // Confirmed again by space-bunny-free, free scratch scores on top of the list
 // above. Every one of these is the same 98.3 with the same 6-byte diff, so none
 // of them is the lever either: the last region in an `else` block; `do{}while(0)`

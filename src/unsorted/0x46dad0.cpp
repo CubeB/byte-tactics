@@ -1,53 +1,23 @@
-// Decompiled by deepseek-v4.1. Names are provisional, finished by deepseek-v4.1-flash.
-// deepseek-v4.1-flash retry #2 (10-minute timebox): no gain, stays 29.8% (1049). The
-// disassembly of our own build confirms the allocator swap is a pure role exchange:
-// original has this=edi / live-flag=esi / hoisted zero=ebx / players-ptr=ebp, ours has
-// this=esi / live-flag=edi / zero=ebp. Hoisting the live flag to function scope with an
-// uninitialised declaration (the "declaration order" lever of 0x464700) compiled to
-// exactly the same 1049 bytes, so the lever is not source-visible. Also confirmed from
-// our asm that the entry's two vector ctors are both inlined here while the original
-// inlines list_a's 4 stores and calls 0x46e5c0 out of line for list_b, which is the
-// +25 byte gap.
-// deepseek-v4.1-flash retry (10-minute timebox): 29.8% stands, 1049 vs 1024
-// bytes; in the check.py diff the MINUS side is the original and the PLUS side
-// is ours, and the very first hunk (@@ -2,168 +2,181 @@) shows the split is
-// allocation-level from the prologue: original homes `this` in EDI and the
-// zero var in EBX (ours ESI / EBP) and the [esp+0x14]/[esp+0x18]/[esp+0x1c]
-// slots are permuted, matching the (a) note below.
-// Partial: 29.8%, ours 1049 bytes versus original 1024. This pass changed
-// FUN_0046d970(k->first, 0) to FUN_0046d970(k->second.x, 0) in the map walk
-// (29.5 -> 29.8): the mapped Rect's x always equals the key (0x46d6c0 stores
-// r.x = packet->field_6 before map[packet->field_6] = r), so the original
-// reads node+0x10 (the mapped value, whose first int is the key) rather than
-// node+0xc (the pair's first).
-// Still differs:
-// (a) Whole-file register rotation. Ours is this=esi / zero=ebp /
-//     pinfo-or-flag=edi / vector-ptr=eax; original is this=edi / zero=ebx /
-//     flag=esi / vector-ptr=ebp, so nearly every instruction shows a register
-//     mismatch. Tested this pass (all flat or worse): bool for the two
-//     scan flags (28.0), unsigned int changed (flat), swapping the
-//     declaration order of changed and the erase iterator (flat), declaring
-//     the iterator uninitialised then assigning (flat). 768 header sets via
-//     tools/headers.py --cpp were already flat at 28.9.
-// (b) Entry construction (0x46dc31-0x46dcda). Original: inline list_a vector
-//     ctor (al byte + three zero dwords), then an OUT-OF-LINE
-//     Class_0046e5c0::FUN_0046e5c0 call with this=entry+0x14, then the
-//     out-of-line Class_0046cbe0 sub ctor, and the destructors call 0x46e5e0
-//     on entry+4 and entry+0x14. Ours inlines both vector ctors (reading the
-//     [esp+0x13] allocator byte twice) and emits no 0x46e5c0 call. The two
-//     vector ctors are the same type (same dtor at 0x46e5e0), so this is the
-//     /Ob2 inline-budget wall; the ctor/dtor symbols in data/symbols.csv are
-//     named for two different provisional classes
-//     (Class_0046e5c0::FUN_0046e5c0 vs Class_0046e5e0::~Class_0046e5e0),
-//     which also blocks modelling the member as one hand-written type.
-// (c) Arg-2 direct send (0x46de59). Original uses
-//     FUN_00451bc0(FUN_0044fe00(), DAT_00000000, &packet, 0xe) (push 0xe /
-//     push &packet / push DAT / mov [esp+0x2e],0 / call 0x44fe00 / push eax /
-//     call 0x451bc0), not a FUN_0046cec0 call; writing that with
-//     `packet.field_2 = 0;` scored 29.6 (1066 bytes) both before and inside
-//     the direct branch, so the FUN_0046cec0 form is kept.
-// (d) The arg-2 helper pushes are still ~25 bytes larger overall; the
-//     remaining size gap is the inlined list_b ctor from (b).
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// MATCH (was 29.8%). What made it match:
+// - The tail (field_5c > 0) is a nested if/else (field_60 < count, else the
+//   arg-4 packet last), with `for (n = 0; n < 4;) { ...; n++; field_60++; }`
+//   whose first statement re-reads g_game and returns when field_60 >= count.
+// - The loop's direct send is an inlined copy of FUN_0046cec0 (Class_0046cec0::Inl:
+//   field_2 = 0, then FUN_00451bc0(FUN_0044fe00(), id, &packet, 0xe)); all other
+//   sends are real FUN_0046cec0 calls with the id read into a local first.
+// - key and y are read into locals (y first) before the `disabled` test.
+// - The vector members of Class_0046eaa0 are the classes symbols.csv names:
+//   Class_0046e5c0::FUN_0046e5c0 is the vector ctor body (inline, so list_a gets
+//   it inlined and list_b, one wrapper level deeper, keeps the call), and
+//   ~Class_0046e5e0 / ~Class_0046e610 are the vector dtors. field_24/28/2c are
+//   zeroed by assignments after id (the compiler sinks them below the pushes).
+// - Which STL helpers stay out of line (vector::_Destroy in the inlined erase,
+//   the list_b ctor) is the /Ob2 inline budget: Pass() below is a trivial inline
+//   used 10 deep in the map walk purely to spend that budget. 9 or fewer keeps
+//   _Destroy inlined, 11 or more un-inlines the list_b wrapper too.
+// - Push() on the Vec_0046d860 subclass models the inlined push_back, so
+//   `lea ecx, [this+0x10]` comes before the end() load.
 #include <list>
 #include <map>
 #include <vector>
@@ -90,54 +60,89 @@ struct Game_0046dad0 {
 };
 #pragma pack(pop)
 
+// Inline-budget filler, see the header.
+inline int Pass(int v) { return v; }
+
 struct Rect_0046e160 {
     int x, y;
     short w, h;
     int unknown_c;
 };
 
-struct Elem_004702a0 {
-    int value;
+// The vector members are modelled by the classes data/symbols.csv names
+// for their out-of-line pieces: 0x46e5c0 is the vector constructor body
+// (inlined for list_a, a call for list_b), 0x46e5e0 and 0x46e610 are the
+// destructors of vectors of 4 and 14 byte elements.
+struct Alloc_0046e5c0 {}; // the empty std::allocator temporary
+
+struct Class_0046e5c0 {
+    char field_0x0;
+    char unknown_1[3];
+    int field_0x4;
+    int field_0x8;
+    int field_0xc;
+
+    Class_0046e5c0* FUN_0046e5c0(char* param_1) {
+        field_0x0 = *param_1;
+        field_0x4 = 0;
+        field_0x8 = 0;
+        field_0xc = 0;
+        return this;
+    }
 };
 
-#pragma pack(push, 2)
-struct Elem_0046faf0 {
-    int a, b, c;
-    short d;
+class Class_0046e5e0 : public Class_0046e5c0 {
+  public:
+    Class_0046e5e0(const Alloc_0046e5c0& al = Alloc_0046e5c0()) {
+        FUN_0046e5c0((char*)&al);
+    }
+    ~Class_0046e5e0();
 };
-#pragma pack(pop)
-void __stdcall FUN_00470030(int);
-namespace std {
-template <> inline void allocator<Elem_0046faf0>::destroy(Elem_0046faf0* p) {
-    FUN_00470030((int)p);
-}
-}
+
+class Wrap_0046e5e0 : public Class_0046e5e0 {
+  public:
+    Wrap_0046e5e0(const Alloc_0046e5c0& al = Alloc_0046e5c0()) : Class_0046e5e0(al) {}
+};
+
+class Class_0046e610 {
+  public:
+    std::vector<int> vec;
+    ~Class_0046e610();
+};
 
 struct Class_0046cbe0 { // 0x2c bytes, the entry's +0x30 member
     int field_0;
     int field_4;
     int field_8;
-    std::vector<Elem_0046faf0> list_c; // +0xc
-    std::vector<Elem_0046faf0> list_d; // +0x1c
+    Class_0046e610 list_c; // +0xc
+    Class_0046e610 list_d; // +0x1c
 
     Class_0046cbe0();
 };
 
-struct Class_0046eaa0 {                // 0x5c bytes, one vector element
-    int id;                            // +0x0
-    std::vector<Elem_004702a0> list_a; // +0x4
-    std::vector<Elem_004702a0> list_b; // +0x14
-    int field_24;                      // +0x24
-    int field_28;                      // +0x28
-    int field_2c;                      // +0x2c
-    Class_0046cbe0 sub;                // +0x30
+struct Class_0046eaa0 {    // 0x5c bytes, one vector element
+    int id;                // +0x0
+    Class_0046e5e0 list_a; // +0x4
+    Wrap_0046e5e0 list_b;  // +0x14
+    int field_24;          // +0x24
+    int field_28;          // +0x28
+    int field_2c;          // +0x2c
+    Class_0046cbe0 sub;    // +0x30
 
     Class_0046eaa0& operator=(const Class_0046eaa0& src);
 };
 
+int __cdecl FUN_0044fe00();
+int __cdecl FUN_00450030();
+void __stdcall FUN_00451bc0(int a, unsigned int b, void* c, int d);
+
 class Class_0046cec0 {
   public:
     void FUN_0046cec0(unsigned int param_1, void* param_2);
+    void Inl(unsigned int param_1, void* param_2) {
+        *(int*)((char*)param_2 + 2) = 0;
+        FUN_00451bc0(FUN_0044fe00(), param_1, param_2, 0xe);
+    }
 };
 
 class Class_0046d4c0 {
@@ -149,9 +154,6 @@ extern char* g_game;
 extern int DAT_00000000;
 
 int __stdcall FUN_0042a610(Def_0046dad0* def);
-int __cdecl FUN_0044fe00();
-int __cdecl FUN_00450030();
-void __stdcall FUN_00451bc0(int a, unsigned int b, void* c, int d);
 
 // 0x46f7a0 has no name in the exe, so it is modelled as a method of a
 // vector subclass to keep the call out of line (it is the out-of-line
@@ -159,6 +161,7 @@ void __stdcall FUN_00451bc0(int a, unsigned int b, void* c, int d);
 class Vec_0046d860 : public std::vector<Class_0046eaa0> {
   public:
     void FUN_0046f7a0(iterator where, size_type n, const Class_0046eaa0& x);
+    void Push(const Class_0046eaa0& x) { FUN_0046f7a0(end(), 1, x); }
 };
 
 class Class_0046d860 {
@@ -219,7 +222,10 @@ void Class_0046d860::FUN_0046dad0() {
                 if (found == 0) {
                     Class_0046eaa0 entry;
                     entry.id = p->field_4;
-                    ((Vec_0046d860*)&players)->FUN_0046f7a0(players.end(), 1, entry);
+                    entry.field_24 = 0;
+                    entry.field_28 = 0;
+                    entry.field_2c = 0;
+                    ((Vec_0046d860*)&players)->Push(entry);
                     Class_0046eaa0* e = &players.back();
                     if (disabled == 0) {
                         Packet_0046dad0 packet;
@@ -241,67 +247,67 @@ void Class_0046d860::FUN_0046dad0() {
             Increment increment = &Tree::iterator::_Inc;
             for (std::map<unsigned int, Rect_0046e160>::iterator k = map.begin(); k != map.end();
                  (k.*increment)()) {
-                FUN_0046d970(k->second.x, 0);
+                FUN_0046d970(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(Pass(k->second.x)))))))))), 0);
             }
         }
         return;
     }
 
-    if (field_5c <= 0)
-        return;
+    if (field_5c > 0) {
+        if (field_60 < ((Game_0046dad0*)g_game)->count) {
+            if (field_60 == 0) {
+                if (FUN_00450030() == -1)
+                    return;
+                int v = ((Game_0046dad0*)g_game)->count - 1;
+                if (disabled == 0) {
+                    Packet_0046dad0 packet;
+                    packet.type = 0x1a;
+                    packet.arg = 1;
+                    packet.field_6 = 0;
+                    packet.field_a = v;
+                    if (direct != 0) {
+                        ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(DAT_00000000, &packet);
+                    } else {
+                        unsigned int id = FUN_00450030();
+                        ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(id, &packet);
+                    }
+                }
+                field_60 = 1;
+                return;
+            }
 
-    Game_0046dad0* game = (Game_0046dad0*)g_game;
-
-    if (field_60 >= game->count) {
-        Packet_0046dad0 packet;
-        packet.type = 0x1a;
-        packet.arg = 4;
-        packet.field_6 = 0;
-        packet.field_a = field_5c;
-        ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(FUN_00450030(), &packet);
-        return;
-    }
-
-    if (field_60 == 0) {
-        if (FUN_00450030() == -1)
-            return;
-        int v = ((Game_0046dad0*)g_game)->count - 1;
-        if (disabled == 0) {
+            for (int n = 0; n < 4;) {
+                Game_0046dad0* game = (Game_0046dad0*)g_game;
+                if (field_60 >= game->count)
+                    return;
+                Def_0046dad0* def = &game->defs[field_60];
+                FUN_0042a610(def);
+                int y = def->y;
+                unsigned int key = def->key;
+                if (disabled == 0) {
+                    Packet_0046dad0 packet;
+                    packet.type = 0x1a;
+                    packet.arg = 2;
+                    packet.field_6 = key;
+                    packet.field_a = y;
+                    if (direct != 0) {
+                        ((Class_0046cec0*)((char*)this + 0x2c))->Inl(DAT_00000000, &packet);
+                    } else {
+                        unsigned int id = FUN_00450030();
+                        ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(id, &packet);
+                    }
+                }
+                n++;
+                field_60++;
+            }
+        } else {
             Packet_0046dad0 packet;
             packet.type = 0x1a;
-            packet.arg = 1;
+            packet.arg = 4;
             packet.field_6 = 0;
-            packet.field_a = v;
-            if (direct != 0)
-                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(DAT_00000000, &packet);
-            else
-                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(FUN_00450030(), &packet);
+            packet.field_a = field_5c;
+            unsigned int id = FUN_00450030();
+            ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(id, &packet);
         }
-        field_60 = 1;
-        return;
-    }
-
-    int n = 0;
-    for (;;) {
-        game = (Game_0046dad0*)g_game;
-        if (field_60 >= game->count)
-            break;
-        Def_0046dad0* def = &game->defs[field_60];
-        FUN_0042a610(def);
-        if (disabled == 0) {
-            Packet_0046dad0 packet;
-            packet.type = 0x1a;
-            packet.arg = 2;
-            packet.field_6 = def->key;
-            packet.field_a = def->y;
-            if (direct != 0)
-                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(DAT_00000000, &packet);
-            else
-                ((Class_0046cec0*)((char*)this + 0x2c))->FUN_0046cec0(FUN_00450030(), &packet);
-        }
-        n++;
-        field_60++;
-        if (n >= 4)
-            break;
     }
 }

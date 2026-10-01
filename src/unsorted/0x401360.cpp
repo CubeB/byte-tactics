@@ -1,4 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol tried expressing the two-element normalization pass as byte-offset pointer arithmetic (i += 4).
+// It produced the opposite index/pointer register roles and scored 77.0%, below the preserved 77.2% version.
 // deepseek-v4.1-flash: 77.2% (was 74.4%). Two source changes, both in the statement split/order of an
 // inlined helper. (1) Writing EndTick's backlog update as TWO statements
 // (`r->backlog -= rBacklog * r->backlog;` then `r->backlog += r->demand - rDemand * r->demand;`)

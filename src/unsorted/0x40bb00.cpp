@@ -11,6 +11,9 @@
 // emit the same mirrored SIB, and headers.py finds no header set that flips it.
 // 2026-09-30 GPT-6.1-sol retry: an additional helper reading defs[type] at
 // offset 0x241 dropped to 77.1%; restoring the best retained 99.6% (686/686).
+// 2026-10-01 deepseek-v4.1-flash retry: reversed pointer addition
+// `(type + g_game->defs)->flags` is byte-neutral: same mirrored SIB
+// [ecx+eax+0x241] vs the original [eax+ecx+0x241], 686/686 at 99.6%.
 #include <windows.h>
 struct Rating { signed char normal,metal,energy; };
 class Class_00435100 { public: int FUN_00435100(); };

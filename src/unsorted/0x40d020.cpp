@@ -30,6 +30,10 @@
 // (for / if-do-while / pure do-while) all leave the same swap. A pure
 // do-while scores 81.1% but drops the original's pre-test (cmp/je before the
 // loop), so it is not kept. headers.py does not reach it.
+// 2026-10-01 deepseek-v4.1-flash retry: dropping the dest/src locals and
+// advancing _Q/_P directly (`for (; _P != _Last; ++_Q, ++_P)
+// allocator.construct(_Q + _M, *_P);`) collapses to 60.0% (528 bytes), so the
+// separate _d/_s locals are load-bearing; restored this best version.
 #include <memory>
 #include <xutility>
 

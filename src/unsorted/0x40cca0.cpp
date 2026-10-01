@@ -10,6 +10,10 @@
 // std::vector<Elem_0040cfb0>;` (with operator< and operator== supplied), and a
 // TU that instantiates a global vector plus an insert call before taking the
 // member's address all leave the same 8 bytes and the same 99.5%.
+// 2026-10-01 deepseek-v4.1-flash retry: no new variant reaches the residual
+// 8 bytes; the file was re-checked and retains 99.5% (781/781). Only the
+// inlined _Ucopy cursor rematerialization (lea eax,[ebp+ecx] vs our
+// mov/sub/add tree) still differs; the calling file text cannot set it.
 // Partial: 99.5%. This is std::vector<Elem_0040cfb0>::insert(iterator, size_type,
 // const Elem&) from MSVC 5's <vector>, emitted out of line by taking the
 // member's address. The only remaining difference is one pointer sum in the

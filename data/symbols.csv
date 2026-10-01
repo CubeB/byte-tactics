@@ -3068,6 +3068,7 @@ address,name
 0x4dba40,FUN_004dba40
 0x4dbae0,FUN_004dbae0
 0x4dbb90,FUN_004dbb90
+0x4dbbc0,Class_004dce60::FUN_004dbbc0
 0x4dbd00,Class_004dbd00::FUN_004dbd00
 0x4dbd20,Class_004dbd20::FUN_004dbd20
 0x4dbd80,Class_004dbe10::FUN_004dbd80

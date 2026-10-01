@@ -1,35 +1,29 @@
-// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 79.1%, 646 of 644 bytes. The earlier 83.6% version left found
-// uninitialized on a failed scan. The original writes zero at 0x48db0e and
-// one at 0x48dc17. A shared selection label restores both paths, the original
-// four local slots and the separate out-of-line successful-scan block.
-// The remaining address materialization differs: the original keeps the
-// player base in esi (0x48da14), then reads +0x67/+0x6b at 0x48da9e.
-// Ours folds 0x1b63 into those field offsets, increasing the length by two
-// bytes and shifting later branch targets. All 768 header sets, references,
-// bounds spellings, helper forms and cached bounds failed to improve it.
+// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// MATCH. The one thing that fixed the last diff (the +0x1b63 player-base
+// materialization in esi at 0x48da14): the outer scan must read its bounds
+// through its own Player pointer local while the nested scan reads through a
+// SECOND, separate Player pointer local. A pointer local whose accesses all
+// fold into raw addressing (the outer loads sit where g_game+i and i*165 are
+// still live in ecx/eax) still makes MSVC emit the element address as a kept
+// `lea esi, [ecx+eax*2+0x1b63]` (the 0x4679a0 dead-lea pattern), and the
+// nested scan's folded accesses then rebase their displacements onto that
+// register (+0x67/+0x6b) instead of onto the partial base. Sharing one local
+// between the two scans makes MSVC merge the nested bounds loads with the
+// outer ones; using no local for the outer scan gives it no kept lea and the
+// nested loads fold 0x1b63 into +0x1bca (the old 79.1% shape). Compare the
+// matched siblings 0x48bf30 (head through one local, end through another) and
+// 0x48be00 (one local for both scans, everything through the kept lea).
 //
-// Earlier stack diagnoses were incorrect. At 0x48d9d3 and 0x48d9e1 a
-// string argument is still pushed: [esp+0x14] is the counter's normal +0x10
-// slot and [esp+0x1c] is the player's normal +0x18 slot. The first set stays
-// at +0x1c. These are allocated locals, not saved registers, and none of the
-// original counter, player or set reads are uninitialized. The floating
-// comparison tests x87 C3 and accepts equality with zero as the source does.
-// GPT-6.1-sol retry: baseline remains 79.1% (646 bytes). Reusing the existing
-// player local for both unit scans fell to 61.0%; using it only for the nested
-// scan fell to 33.0%. An explicit byte-offset player calculation generated the
-// same 79.1% output. The remaining mismatch is still the +0x1b63 player-base
-// materialization described above.
-// deepseek-v4.1-flash (this session): re-verified 79.1% (646 bytes) and
-// re-measured the through-the-player-local nested spelling at 33.0% (653 bytes,
-// the whole allocation rotates: setB lands in edi and the frame shrinks). The
-// residual is exactly one value-numbering choice: the compiler hands the outer
-// loop's partial address (g_game + 331*i) to the nested scan and folds +0x1b63
-// into its bound loads, where the original produces the full player pointer
-// with `lea esi,[ecx+eax*2+0x1b63]` and reads [esi+0x67]/[esi+0x6b]. Byte
-// arithmetic: our lea is 4 shorter, our two bound loads 3 longer each, net +2,
-// which shifts every later branch target by 2. No equivalent respelling
-// changes it (GVN merges them), so this is allocator state, not source shape.
+// Notes on the rest of the match: at 0x48d9d3 and 0x48d9e1 a string argument
+// is still pushed, so [esp+0x14] is the counter's normal +0x10 slot and
+// [esp+0x1c] the player's normal +0x18 slot; these are allocated locals, not
+// saved registers. The first set (setA) stays at +0x1c and the final loop
+// tests it through that slot. The floating comparison tests x87 C3 and
+// accepts equality with zero as the source does. The original writes found =
+// 0 at 0x48db0e and found = 1 at 0x48dc17; a shared selection label gives
+// both paths their own store and the out-of-line success block. The counter
+// lives in ebx through the final loop and is spilled around the bit-test
+// masks that clobber it.
 
 #pragma pack(push, 1)
 
@@ -119,14 +113,15 @@ bool __stdcall FUN_0048d9a0(int id, int param_2)
     Unit32_0048d9a0* v;
     Unit32_0048d9a0* w;
     int found;
-    for (u = g_game->players[g_game->localPlayer].unitsBegin; u <= g_game->players[g_game->localPlayer].unitsEnd; u++) {
+    Player_0048d9a0* q = &g_game->players[g_game->localPlayer];
+    for (u = q->unitsBegin; u <= q->unitsEnd; u++) {
         if ((u->flags & 0x20) && u->field_104 == 0.0f && u->field_fb == 0
             && (u->owner == 0 || (u->owner->flags & 0x40000000))
             && u->field_ac == id && TestBit(setB, u->type)) {
             {
-                Player_0048d9a0* q = &g_game->players[g_game->localPlayer];
-                for (v = (Unit32_0048d9a0*)q->unitsBegin;
-                     v <= (Unit32_0048d9a0*)q->unitsEnd; v++) {
+                Player_0048d9a0* r = &g_game->players[g_game->localPlayer];
+                for (v = (Unit32_0048d9a0*)r->unitsBegin;
+                     v <= (Unit32_0048d9a0*)r->unitsEnd; v++) {
                     if ((v->flags & 0x20) && v->field_104 == 0.0f && v->field_fb == 0
                         && (v->owner == 0 || (v->owner->flags & 0x40000000))
                         && v->field_ac == id && (v->flags & 0x80000000)) {

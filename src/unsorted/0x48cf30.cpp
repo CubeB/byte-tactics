@@ -1,45 +1,48 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
-// space-bunny-free (this session): re-verified the saved best at 84.9% (one
-// check.py run, no real run spent on anything else). New measurement worth
-// having: `tools/wcl /Fa` listings name every local and print its frame offset
-// (the value is the address minus esp-at-entry, e.g. `_p$ = -24`), so the
-// whole permutation can be watched without spending a run. In listing-offset
-// terms, ORIGINAL: move -50, buf -49, except -48, flag_a -44, range -40,
-// p -36, [3 dead dwords -32,-28,-20], avg_x -24, avg_z -16, here -12..-1,
-// fire in the dead argument slot at +4. OURS: except -52, avg_x -48, avg_z
-// -44, flag_a -40, fire -36, move -32, range -28, p -24, here -12..-1, buf
-// in the dead argument slot at +4. So the original's frame is a 4-byte BYTE
-// POOL holding buf and move, plus 6 live dwords and 3 dead ones; ours has no
-// byte pool at all, and MSVC gives each 1-byte Class_00438760 object a full
-// dword slot (fire, move) while the plain `unsigned char` takes the dead
-// argument slot instead. That is the whole difference, and it is why the two
-// averages land in the wrong slots: they are handed the slots freed by
-// flag_b/count/sum_x/sum_z, which is right here and wrong in the original.
-// Trying to reach the original's layout by source shape failed again:
-// buf as `unsigned char[2]` passed by decay, buf/fire/move declared at
-// function scope, fire/move declared before the mode test, dx/dz at function
-// scope, and here at function scope ALL print the identical offset list above,
-// byte for byte. build/scratch/0x48cf30/{frame.sh,gen.py} reproduce this.
-// GPT-6.1-sol retry: verified the saved best at 84.9%; the remaining mismatch
-// is the local stack-slot/register permutation documented below.
-// GPT-6 retry: remains 84.9%. Byte-index classes and inheritance, and a
-// three-component average position with varied scope/representation, did
-// not improve the saved frame slots. The existing implementation is retained.
-// Partial (84.9%), both sides exactly 742 bytes. Deepseek-v4.1-flash got here
-// from space-bunny-free's 63.4% by three changes, all on the same shape:
-//   1. Pass flag_a, not `range`, as FUN_0043afc0's second argument. The
-//      original loads the flag_a slot both times (0x48d1c6 and 0x48d1e6, the
-//      latter with one push outstanding so [esp+0x1c] is the +0x18 slot).
-//      `use_flag = range` was only steering the allocator.
-//   2. Write the FUN_0043afc0 call in BOTH arms (`continue` in the inner one)
-//      instead of one call after a shared `use_pos`. That restores the
-//      original's two argument setups, tail-merged into the single call at
-//      0x48d1f4. Note this is what rotates the first loop's count/sum registers
-//      unless the compiler state is right, which is why it used to score 54 to
-//      58%.
-//   3. Declare "Standing_FireOrder" as a plain local (no placement new), so
-//      there is no null test and no `entry` kept in edi.
-// `#include <stdio.h>` is load bearing compiler state: without it this shape
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
+// Partial (84.9%), both sides 742 bytes. WHAT STILL DIFFERS is the frame slot
+// permutation, and nothing else: every branch target and every instruction
+// shape matches, only the local slots are swapped.
+//   original: move 0x12, retbuf 0x13, except 0x14, flag_a 0x18, range 0x1c,
+//   p 0x20, [3 dead dwords 0x24,0x28,0x30], avg_x 0x2c, avg_z 0x34,
+//   here 0x38..0x43, fire in the dead entry-argument slot 0x48 (shared with
+//   the fild temp).
+//   ours: except 0x10, avg_x 0x14, avg_z 0x18, flag_a 0x1c, fire 0x20,
+//   move 0x24, range 0x28, p 0x2c, [2 dead dwords 0x30,0x34], here 0x38..0x43,
+//   the return temporary in the dead entry-argument slot 0x48 (shared with the
+//   fild temp). So the original has move+retbuf in a 4-byte byte pool at
+//   0x10..0x13 (0x10/0x11 dead) and fire in the arg slot; ours gives the two
+//   Class_00438760 objects full dword slots and the retbuf the arg slot.
+//
+// mimo-v2.6-pro (this session): FUN_0043f0e0 RETURNS Class_00438760 BY VALUE
+// (see the matched src/unsorted/0x43f0e0.cpp: `Class_00438760 __stdcall
+// FUN_0043f0e0(unsigned char, Unit*, Unit*, void*)`), so the old `unsigned char
+// buf` local was a mis-model of the hidden return temporary: the call is
+// `kind.index = FUN_0043f0e0(mode, u, except, &g_game->field_2caa).index;` and
+// there is no named buf. The old out-param form (`unsigned char* buf` first)
+// mangles to a different symbol than the matched callee and would not link.
+// The corrected form compiles to the same 742-byte body at the same 84.9% and
+// the same frame layout (the temp lands in the arg slot where the old buf did).
+// Also tried this session (all scored with check.py or pre-screened by their
+// wcl listing): fire/move as condition temporaries 62.1% (738 bytes). Frame
+// experiments (build/scratch/0x48cf30/exp/) established the allocator's rules:
+// byte entities pool into a 4-byte chunk whose used bytes sit at the TOP and
+// fill bottom-up in address-taken order; entities whose address is passed as a
+// pointer ARGUMENT pool, but a byte used as a __thiscall THIS pointer always
+// gets a full dword slot (e22/e27 vs e28), which is exactly what our fire/move
+// do and what the original somehow does not; byte entities prefer a dead
+// parameter slot over the pool. e29 (the whole loop body in miniature) puts
+// fire -4, move in the dead pos slot, retbuf in the dead kind slot: same
+// pattern as ours, never the original's. So the remaining permutation still
+// looks like translation-unit compiler state: the N-dummy probe reaches 87.5%
+// at N = 250 (not shippable), and tools/headers.py's sets all top out at 84.9%.
+//
+// Earlier notes (still true): pass flag_a (not range) as FUN_0043afc0's second
+// argument; write the FUN_0043afc0 call in BOTH arms (tail-merged at 0x48d1f4);
+// declare the fire/move locals plainly; the field_2cba test is `if (!x)
+// except = 0; else ...` so the zero store is the jne fall-through; the fifth
+// argument of FUN_0043f0e0 is the ADDRESS of g_game->field_2caa.
+// `#include <stdio.h>` is load-bearing compiler state (59.5% without it).
+#include <stdio.h>` is load bearing compiler state: without it this shape
 // is 59.5%, with it 84.9%. tools/headers.py reports several sets give 84.9%
 // (`<stdio.h>` alone, `<stdio.h>`+`<stdlib.h>`, `<string.h>`+`<math.h>`);
 // sweeping N unused `extern int dummyN;` declarations reaches the same 84.9%
@@ -179,9 +182,8 @@ struct Game_0048cf30 {
 extern Game_0048cf30* g_game;
 
 int __stdcall FUN_0043e470(unsigned char type);
-unsigned char* __stdcall FUN_0043f0e0(unsigned char* buf, unsigned char mode,
-                                       Unit_0048cf30* unit, Unit_0048cf30* target,
-                                       void* param_5);
+Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0048cf30* unit,
+                                       Unit_0048cf30* target, void* param_5);
 void __stdcall FUN_0043afc0(Class_00438830 kind, int flag, Unit_0048cf30* unit,
                             Unit_0048cf30* target, int* pos, int param_5, int param_6);
 
@@ -222,9 +224,8 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
     for (u = p->first; u <= p->last; u++) {
         if (!(u->flags & 0x10) || u == except)
             continue;
-        unsigned char buf;
         if (mode)
-            kind.index = *FUN_0043f0e0(&buf, mode, u, except, &g_game->field_2caa);
+            kind.index = FUN_0043f0e0(mode, u, except, &g_game->field_2caa).index;
         if (!kind.index)
             continue;
         Class_00438760 fire("Standing_FireOrder");

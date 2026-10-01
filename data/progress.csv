@@ -2830,8 +2830,8 @@ address,size,file,symbol,status,similarity
 0x4c7580,1183,src/unsorted/0x4c7580.cpp,?FUN_004c7580@@YGXPAXPAUFrame_004c7580@@PAUQuad_004c7580@@2@Z,partial,66.9
 0x4c7a20,1529,src/unsorted/0x4c7a20.cpp,?FUN_004c7a20@@YGXHPAHPAUSurf_4c7a20@@PAUInfo_4c7a20@@@Z,matched,100.0
 0x4c8020,1845,src/unsorted/0x4c8020.cpp,?FUN_004c8020@@YGXHPAHPAUSurface_004c8020@@1@Z,matched,100.0
-0x4c8760,1094,src/unsorted/0x4c8760.cpp,?FUN_004c8760@@YGXPAUSurface_4c8760@@0PAH1@Z,partial,87.3
-0x4c8bb0,1279,src/unsorted/0x4c8bb0.cpp,?FUN_004c8bb0@@YGXPAUSurface_4c8bb0@@0PAH1@Z,partial,54.1
+0x4c8760,1094,src/unsorted/0x4c8760.cpp,?FUN_004c8760@@YGXPAUSurface_4c8760@@0PAH1@Z,partial,87.9
+0x4c8bb0,1279,src/unsorted/0x4c8bb0.cpp,?FUN_004c8bb0@@YGXPAUSurface_4c8bb0@@0PAH1@Z,partial,57.1
 0x4c90b0,195,src/unsorted/0x4c90b0.cpp,?FUN_004c90b0@Class_004c90b0@@QAEPAV1@ABV1@@Z,partial,96.4
 0x4c9180,22,src/unsorted/0x4c9180.cpp,??0Class_004c9180@@QAE@XZ,matched,100.0
 0x4c91a0,16,src/unsorted/0x4c91a0.cpp,??0Class_004c91a0@@QAE@ABV0@@Z,matched,100.0
@@ -2987,9 +2987,9 @@ address,size,file,symbol,status,similarity
 0x4d0660,22,src/unsorted/0x4d0660.cpp,?FUN_004d0660@Class_004d0660@@QAEXPADH@Z,matched,100.0
 0x4d0680,62,src/unsorted/0x4d0680.cpp,?FUN_004d0680@@YGXH@Z,matched,100.0
 0x4d06c0,85,src/unsorted/0x4d06c0.cpp,?FUN_004d06c0@Class_004d06c0@@QAEHPADHH@Z,matched,100.0
-0x4d0720,205,src/unsorted/0x4d0720.cpp,?FUN_004d0720@@YGHPAXPAD@Z,partial,97.5
-0x4d07f0,275,src/unsorted/0x4d07f0.cpp,?FUN_004d07f0@@YGHPAXPAH11@Z,partial,88.7
-0x4d0910,206,src/unsorted/0x4d0910.cpp,?FUN_004d0910@@YGHPAX@Z,partial,94.7
+0x4d0720,205,src/unsorted/0x4d0720.cpp,?FUN_004d0720@Class_004d0720@@QAEHPAXPAD@Z,matched,100.0
+0x4d07f0,275,src/unsorted/0x4d07f0.cpp,?FUN_004d07f0@Class_004d07f0@@QAEHPAXPAH11@Z,matched,100.0
+0x4d0910,206,src/unsorted/0x4d0910.cpp,?FUN_004d0910@Class_004d0910@@QAEHPAX@Z,matched,100.0
 0x4d09e0,47,src/unsorted/0x4d09e0.cpp,?FUN_004d09e0@@YGXXZ,matched,100.0
 0x4d0a10,86,src/unsorted/0x4d0a10.cpp,?FUN_004d0a10@@YGXH@Z,matched,100.0
 0x4d0a70,28,src/unsorted/0x4d0a70.cpp,?FUN_004d0a70@@YAHXZ,matched,100.0

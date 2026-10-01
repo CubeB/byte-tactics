@@ -1,7 +1,14 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
-// Ninth pass (deepseek-v4.1-flash, retry for #3062, 74.8% kept): the ternary
+// deepseek-v4.1-flash retry, 2026-10-01. State: 74.8% (original 943 bytes,
+// ours 964); kept, no improvement. The original tail really is ONE
+// FUN_0043cc20 call shared by both arms (jmp 0x43d0ba with eax preloaded and
+// `mov eax,[esp+0x14]; neg eax` as the else arm), but spelling it as an
+// if/else amount plus a single call scores 62.4 (986 bytes), so the duplicated
+// call below stays. Same for the ternary spelling. Everything else is the
+// known unit-in-eax-vs-edi allocator gap.
+//
 // select tail (`int amount = (d1 > lim && d2 > r) ? unit->type->field_19e :
 // -rate;` plus one call) scores 62.4 (986 bytes) and rotates unit from ebx to
 // ebp; the duplicated cold epilogue after ret 4 persists even with a single

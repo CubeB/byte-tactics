@@ -1,7 +1,11 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // deepseek-v4.1-flash retry, 2026-10-01. State: 59.0% (original 920 bytes,
-// ours 889); no improvement, the version below is the best. The frame is 0x20
+// ours 889); no improvement, the version below is the best. Also tried this
+// pass: the reversed clamp ternary `v.y = lim > v.y ? lim : v.y;` (that flips
+// the original cmp v.y,lim / jle operand order), which regresses 59.0 to 58.0
+// at the same 889 bytes, so the direct store stays.
+// The frame is 0x20
 // against the original's 0x28, and the first call has no return temporary.
 // Tried this pass, all <= 59.0%: a user copy constructor (init-list, body,
 // pointer-cast body, declared-only), a destructor, both together, a const

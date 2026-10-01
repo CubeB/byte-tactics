@@ -1,4 +1,5 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, finished by deepseek-v4.1-flash, retried by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, verified by GPT-6.1-sol, retried by space-bunny-free, finished by deepseek-v4.1-flash, retried by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3218: two observed checker runs, both 81.1%; no MATCH. A Windows-header check returned no result. The 128-header sweep completed, but its output was lost, so no sweep score is claimed. Existing source remains best.
 //
 // RETRY deepseek-v4.1-flash (issue 3150): ~35 more scored scratch variants,
 // none above the kept 534-byte / 81.1% dest-first do-while. New this pass and

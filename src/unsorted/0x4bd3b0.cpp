@@ -1,4 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 9 (deepseek-v4.1-flash, 10-minute box): the leaf reorder probe (the
+// `*total += (*(unsigned int*)(node + 4) = fd.size);` assignment-expression
+// moved above the two node zero stores) scores 88.3 percent / 1152 bytes, so
+// the 89.5 percent shape needs it last. No other steerable diff found; the
+// residual is the register-allocation list below.
 // Session 8 (deepseek-v4.1-flash): best stays 89.5 percent, size exact 1148. Three
 // fresh probes, all worse or flat on the v0 file: computing `nsize = out[0] + 8;`
 // before `root = out[0];` (so the first read is the nsize addend) drops to 83.4

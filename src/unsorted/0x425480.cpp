@@ -1,4 +1,11 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Ninth pass (deepseek-v4.1-flash, #3897): a live `const_iterator _P0 = _P;`
+// copy used as the third copy's source inside the do-while, and a
+// `size_type _N0 = _M;` alias for the _Ufill count, stay byte-identical at
+// 534 bytes / 81.1 percent, so the growth branch's _P-into-edi pick (the
+// original keeps _P in ecx) is not liveness or value-number steered.
+// Moving `_End = _S + _N;` before `_Destroy` regresses to 74.3 percent.
+// Best shape unchanged.
 // Eighth pass (deepseek-v4.1-flash, 5 scratch scores on top of the saved
 // 534-byte / 81.1 percent do-while base): swapping _Ucopy's increments to
 // `++_F, ++_P`, swapping _Ufill's to `++_F, --_N`, the pre-tested source-first

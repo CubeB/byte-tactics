@@ -1,4 +1,11 @@
 // Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, sixth pass by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// Ninth pass (deepseek-v4.1-flash, #3897): a live `iterator _P0 = _P;` copy
+// passed as the third _Ucopy's source, and a `size_type _N0 = _M;` alias for
+// the _Ufill count, are both byte-identical at 544 bytes / 99.6 percent, so
+// the one remaining byte at 0x4252d1 (`lea eax, [ebx + ecx]` wanted,
+// `[ecx + ebx]` emitted) is not liveness, value-number or copy-propagation
+// steered. Moving `_End = _S + _N;` before `_Destroy` regresses to 95.6
+// percent. Best shape unchanged.
 // Eighth pass (deepseek-v4.1-flash, 2 scratch scores on top of the saved
 // 99.6% base): writing the third _Ucopy as the hand loop
 // `{ iterator _d = _Q + _M; const_iterator _s = _P; do {} while (_s != _Last); }`

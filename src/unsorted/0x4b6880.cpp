@@ -1,4 +1,6 @@
 // Decompiled by Space Bunny Free. Names are provisional.
+// #2992 retry by GPT-6.1-sol: three checks retained 88.2% (299/297 bytes); an
+// arithmetic-mask variant fell to 82.4%. The prologue parameter load differs.
 // Opens (or creates) HKCU\Software\Cavedog Entertainment\<subKey> and then
 // either reads or writes one REG_DWORD / string / binary value in it.
 // The decorated name is ?FUN_004b6880@@YGHPAD0PAEPAKKK@Z, so six stack

@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (issue 4200, 10 minute box): one check.py run on a
+// variant that assigned local_b4 before local_c0 (hoping the lea+store would be
+// scheduled before FUN_0049ff90 like the original's `lea eax,[esi+eax*2+0x1b63];
+// mov [esp+0x34],eax`): 47.5 -> 46.3 (3944 bytes), reverted. Baseline re-confirmed
+// at 47.5 (3902 original / 3945 emitted); file restored unchanged.
 // deepseek-v4.1-flash pass (issue 4165): hoisted the g_game+player byte base into
 // pcVar19 for the two 0x1b8a/0x1b63 address computations (47.4 -> 47.5, 3948 -> 3945
 // emitted bytes; the local_a8 player base now uses the same base-plus-0x14a-stride shape). Everything still left to fix is listed in the notes below.

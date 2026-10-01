@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // deepseek-v4.1-flash retry (issue 3976, 10 minute box): natural order with
 // lstrcpynA placed after the fourth body sprintf (full original order) scores
@@ -186,6 +186,22 @@
 // whole body, and moving lstrcpynA before the group shifts the cursor and the
 // entire tail with it, which is why the probe realigns the group but not the
 // tail. Only an invisible allocation before the group can fix both.
+// deepseek-v4.1-flash pass (issue 4200, 10 minute box, 3 check runs, best
+// unchanged at 95.1% / 1318 bytes): the diff was re-read instruction by
+// instruction and it makes the "missing allocation" story sharper. Everything
+// before 0x44752c is byte-identical, so the allocator's free-list order entering
+// the body group is the same for both sources; nevertheless the original puts
+// the group at ecx/edx/eax/ecx and ours (natural order) at eax/ecx/edx/eax, so
+// the group's register choice is driven by the code AFTER it (the lstrcpynA
+// nodes), not by anything before it. The 95.1% probe confirms the direction:
+// moving the lstrcpynA call in front of the group shifts the group to the
+// original's ecx/edx/eax/ecx exactly, but then the post-group set (lstrcpynA
+// dest edx, fdf0 buffer eax, entries ecx) is one step behind because the probe
+// spends a post-group allocation pre-group. Also noticed this pass: ours hoists
+// the fdf0 `entries` load above `add esp,0xc` and evaluates it before the buffer
+// lea, while the original emits `lea eax` (buffer), `push 0xe`, then
+// `mov ecx,[esp+0x14]` (entries), a pure evaluation-order difference that no
+// argument spelling tried so far (fresh load, alias, &x[0]) reproduces.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

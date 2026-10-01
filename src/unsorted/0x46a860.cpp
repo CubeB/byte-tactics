@@ -56,6 +56,41 @@
 // assignment on top of `int y3 = pfstate;` is byte-identical to the single
 // `pfstate - 0x10` initialiser (still `add esi,-0x10`), so the original
 // `sub esi,0x10` is not the compound-assignment opcode shape. Reverted.
+// deepseek-v4.1-flash retry 10 (final status): 84.6% -> 85.0%, 4252 bytes
+// (original 4247), 34 hunks, all register rotation plus these shape diffs:
+// - 0x46b848 now emits `mov edx, dword [..+0x3923b]; shr edx,1; test dl,1`.
+//   The original loads a byte and shifts dl; a byte-typed source folds to
+//   `test dl,2` no matter the spelling (byte local with >>=, `% 2`, `!` and
+//   `!= 0` forms all measured), so the byte load (3 bytes) plus dl shift is
+//   still not reachable while keeping the shr.
+// - the 16-byte scratch region shared by eText and the inlined DrawBar rect
+//   sits at [esp+0x18] here, [esp+0x14] in the original, because our
+//   player-info pointer local (original: `lea +0x1b63` then [esp+0x24],
+//   read back via +0x27) takes [esp+0x14] and VC5 folds its +0x27 read into
+//   the +0x1b8a addressing mode. Hoisting eText to function scope (before or
+//   after the snapshot) does not move either slot (84.5%).
+// - MOVEORD: our `*(int*)(unit + 0x110)` folds into `mov eax,[ecx+eax*8+0x110]`
+//   while the original materialises the unit pointer with a separate
+//   `lea eax,[ecx+eax*8]` first.
+// - the PFSTATE block keeps g_game in edx and loads +0xc first; the original
+//   has g_game in eax, +0x37e23 in esi, field_c in eax and loads +0xc second.
+//   Writing pfstate before field_c (the original's order) drops to ~73.6%.
+// - pfable stays in eax here, ecx in the original, which colours the block.
+// Tried this pass with no gain (all reverted, score in brackets): swapping the
+// weapons-loop declaration order of p and local_3e_int (84.6), byte locals /
+// `% 2` / bitfield / widened byte temps for the 0x3923b bit (84.6, 84.0, 84.6,
+// 84.7), unsigned int* for the weapons out pointer (85.0, no change),
+// hoisting eText (84.5).
+// deepseek-v4.1-flash retry 9: 84.9% -> 85.0%, 4252 bytes (original 4247).
+// - WIN: writing the later block as `pfstate -= 0x10;` (one variable, no y3
+//   copy) makes VC5 emit the original's `sub esi,0x10` instead of
+//   `add esi,-0x10`; the four later FUN_004c14f0 calls pass pfstate.
+// deepseek-v4.1-flash retry 8: 84.6% -> 84.9%, 4252 bytes (original 4247).
+// - WIN: the 0x46b848 site is also an int source with an unsigned char cast:
+//   `((unsigned char)(*(unsigned int*)(g_game + 0x3923b) >> 1) & 1)`. The byte
+//   source folded to `test dl,2`; the int source emits the original's
+//   `shr + test dl,1` pair (ours shifts edx, the original dl, so the shift
+//   operand width is still open).
 // deepseek-v4.1-flash retry 4: 82.0% -> 84.6%, 4250 bytes (original 4247).
 // - WIN: the S:/R: test at 0x46b6fe is not `(v >> 9) & 1` but a byte-typed
 //   value, `((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1)`. The
@@ -210,23 +245,23 @@ void __stdcall FUN_0046a860(void* param_1) {
         sprintf(buf2, "GAMETIME: %d\n", *(int*)(g_game + 0x38a47));
         FUN_004c14f0(param_1, (unsigned char*)buf2, 0x208, pfstate, -1);
 
-        int y3 = pfstate - 0x10;
+        pfstate -= 0x10;
         sprintf(buf2, "X: %d  Y: %d\n", *(int*)(g_game + 0x1431f), *(int*)(g_game + 0x14323));
-        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x82, y3, -1);
+        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x82, pfstate, -1);
 
         sprintf(buf2, "UNITS %d\\%d\n", *(int*)(g_game + 0x14353), *(int*)(g_game + 0x14367));
-        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x108, y3, -1);
+        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x108, pfstate, -1);
 
         sprintf(buf2, "PACKETS: %d %d %d\n", *(int*)(g_game + 0x1cbe), *(int*)(g_game + 0x1e09),
                 *(int*)(g_game + 0x1f54));
-        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x190, y3, -1);
+        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x190, pfstate, -1);
 
         int v = *(int*)(g_game + 0x14233) * (short)*(unsigned short*)(g_game + 0x2c90) +
                 (short)*(unsigned short*)(g_game + 0x2c8e);
         unsigned char c = *(unsigned char*)(*(int*)(g_game + 0x14287) + v * 13 + 4);
         sprintf(buf2, "XYH: %d %d %d\n", (short)*(unsigned short*)(g_game + 0x2c8e),
                 (short)*(unsigned short*)(g_game + 0x2c90), c);
-        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x208, y3, -1);
+        FUN_004c14f0(param_1, (unsigned char*)buf2, 0x208, pfstate, -1);
         return;
     }
 
@@ -463,7 +498,7 @@ void __stdcall FUN_0046a860(void* param_1) {
                             buf4[0] = 0;
                         }
                         char* name = unit2;
-                        if (((unsigned char)(*(unsigned char*)(g_game + 0x3923b) >> 1) & 1) == 0) {
+                        if (((unsigned char)(*(unsigned int*)(g_game + 0x3923b) >> 1) & 1) == 0) {
                             name = unit2 + 0x80;
                         }
                         char* buf5 = text;

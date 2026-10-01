@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1. Names are provisional, finished by deepseek-v4.1-flash.
+// deepseek-v4.1-flash retry #2 (10-minute timebox): no gain, stays 29.8% (1049). The
+// disassembly of our own build confirms the allocator swap is a pure role exchange:
+// original has this=edi / live-flag=esi / hoisted zero=ebx / players-ptr=ebp, ours has
+// this=esi / live-flag=edi / zero=ebp. Hoisting the live flag to function scope with an
+// uninitialised declaration (the "declaration order" lever of 0x464700) compiled to
+// exactly the same 1049 bytes, so the lever is not source-visible. Also confirmed from
+// our asm that the entry's two vector ctors are both inlined here while the original
+// inlines list_a's 4 stores and calls 0x46e5c0 out of line for list_b, which is the
+// +25 byte gap.
 // deepseek-v4.1-flash retry (10-minute timebox): 29.8% stands, 1049 vs 1024
 // bytes; in the check.py diff the MINUS side is the original and the PLUS side
 // is ours, and the very first hunk (@@ -2,168 +2,181 @@) shows the split is

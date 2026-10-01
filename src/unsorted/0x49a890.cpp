@@ -1,4 +1,5 @@
 // Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Issue #3175 retry by GPT-6.1-sol: root checker confirmed 83.6% (408/488 bytes), no MATCH. Eight source-order/local-expression variants scored 74.6%, 74.6%, 74.6%, 82.2%, 83.6%, 83.6%, 83.6%, and 83.6%; best retained. Remaining mismatch is the post-_hypot x87 schedule, where original loads g then height and spills height before multiplying, while this source schedules height/g and different x87 temporaries.
 // #2981 retry by GPT-6.1-sol: six checks retained 83.6%; the lower-scoring
 // inline-expression variant did not change the post-_hypot x87 schedule.
 // deepseek-v4.1 (issue #2573): 83.6%, exact 488/488 bytes, only ONE diff region left, the

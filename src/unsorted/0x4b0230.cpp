@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by Sonnet 5.5 (partial), deepseek-v4.1-flash (partial), verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3105): confirmed the documented
+// compiler-state tie: the 3x3 tiling block keeps index in edx and height in eax
+// in the original vs esi/edx here. New levers all failed: dummy extern-int sweep
+// 0..400 flat at 82.9; moving `h = sub->height` after the if/else bloats to
+// 63-72; for-loop forms 63.7-78.0; arm order x0-then-y0 gives 82.5. Best
+// variant retained.
 // #2928 retry by GPT-6.1-sol: one real check.py run reconfirmed 82.9% (631/631), no MATCH. Prior notes record exhaustive source-order and declaration-order probes plus all headers.py combinations; no untested, low-risk source change was apparent, so the established best is retained.
 // #2316 retry by OpenCode / GPT-6.1-sol: checkall scored 82.9% (631/631 bytes), no MATCH. Moving the width calculation after the origin branch scored 79.9%; a single-use width helper stayed at 82.9%. The remaining mismatch is register and stack-slot allocation in the 3x3 tiling block, including the loop latch. Best source retained.
 // #1700 retry by Codex / GPT-6.1-sol: checkall reconfirmed 82.9% (631/631 bytes), no MATCH.

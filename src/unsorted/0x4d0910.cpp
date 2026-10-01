@@ -1,4 +1,9 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// RETRY NOTE (GPT-6.1-sol): Best remains 94.7% (206/206 bytes). The only
+// mismatches are the preheader allocation pair: target uses edx for size+8
+// and sets edi=0x14 after the len read, while this source uses edi for size+8
+// and sets edi before that read. Existing experiment notes below record that
+// these choices trade together; this pass found no better source or MATCH.
 // PARTIAL: 94.7%, 206 bytes (code size exact). Walks a chunked file's marker
 // table looking for the record tagged "data" and returns that record's 4 byte
 // header field (the record length), or 0 when the walk runs past the table.

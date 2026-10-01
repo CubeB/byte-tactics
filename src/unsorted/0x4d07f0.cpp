@@ -1,4 +1,7 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: verified 88.7% (275/275) and tested output-pointer
+// aliases, a goto failure arm, and an unsigned-int tag buffer; all retained
+// the same three diffs documented below. No MATCH.
 // TENTH PASS (space-bunny-free, 600s: headers.py first, one real check.py run
 // for the baseline, then four free check.py --sym probes). Body unchanged:
 // still 88.7% / 275 of 275 bytes, the same three hunks, re-confirmed by a real

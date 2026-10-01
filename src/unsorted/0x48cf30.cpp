@@ -1,4 +1,6 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry: verified the saved best at 84.9%; the remaining mismatch
+// is the local stack-slot/register permutation documented below.
 // GPT-6 retry: remains 84.9%. Byte-index classes and inheritance, and a
 // three-component average position with varied scope/representation, did
 // not improve the saved frame slots. The existing implementation is retained.

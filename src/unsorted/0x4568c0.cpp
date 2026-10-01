@@ -182,6 +182,15 @@
 // an int k4 76.2. The res colour is chosen at the call at 0x456942 before any
 // loop is emitted, so it looks like a global allocator tie-break that this
 // source shape cannot move.
+// deepseek-v4.1-flash (retry pass): the cand fill in the shuffled branch scores
+// 86.8% (was 86.5) by materialising the cand cursor explicitly: declare
+// `int* cq = cand;` before the players pointer and write the body as
+// `*cq = n++; cq++;`. That emits the preheader `lea edi,[esp+0x1c]` before
+// the players `lea eax,[edx+0x1bd6]` as in the original, and keeps the body
+// order `mov [edi],esi / inc esi / add edi,4` (`*cq++ = n; n++;` fixes the
+// preheader too but swaps inc/add; plain `cand[n] = n; n++;` keeps the body
+// but leaves the preheader swapped). `int k2 = 0; int* cp = cand; for (; ...)`
+// did not move the matching k2 preheader swap (xor eax still after lea edi).
 #include <stdlib.h>
 #include <algorithm>
 
@@ -276,21 +285,23 @@ int FUN_004568c0() {
             for (int z = 0; z < 10; z++)
                 cand[z] = -1;
             int n = 0;
+            int* cq = cand;
             unsigned char* q = &g_game->players[0].state;
             int cnt = 10;
             do {
                 Player_004568c0* p = (Player_004568c0*)(q - 0x73);
                 if (p->active != 0 && (p->state == 1 || p->state == 2 || p->state == 3) &&
                     p->field_146 != 10 && (p->info->flag_9b_6) == 0) {
-                    cand[n] = n;
-                    n++;
+                    *cq = n++;
+                    cq++;
                 }
                 q += 0x14b;
             } while (--cnt);
             if (n > 2 || (int)((__int64)rand() * 2 / 0x8000) != 0)
                 std::random_shuffle(cand, cand + n);
+            int k2 = 0;
             int* cp = cand;
-            for (int k2 = 0; k2 < 10; k2++) {
+            for (; k2 < 10; k2++) {
                 Player_004568c0* q2 = &g_game->players[k2];
                 if (q2->active != 0 && (q2->state == 1 || q2->state == 2 || q2->state == 3) &&
                     q2->field_146 != 10) {

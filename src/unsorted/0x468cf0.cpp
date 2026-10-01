@@ -1,11 +1,29 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// deepseek-v4.1-flash retry 3 (timeboxed): 53.1 -> 53.8, 6029 -> 6023 bytes.
+// Three fixes, all statement/evaluation order rather than structure:
+// 1. The 33-byte memcpy of g_game+0x37e3f must come BEFORE the cVar3 load in
+//    the source: the original's mov cl,[eax+edx*2+0x1ca9] is scheduled between
+//    rep movsd and movsb, so the load is emitted mid-memcpy only when the
+//    memcpy statement precedes it. 53.1 -> 53.5.
+// 2. The FUN_004c1420 index at 0x3816b is read through the iVar11 (= iVar12 +
+//    0x1b63) pointer with +0x27, not through iVar12 + 0x1b8a: the original
+//    folds +0x1b63 into the lea and reads [eax+0x27]. 53.5 -> 53.7.
+// 3. The FUN_004c13a0 byte arg near the first FUN_004c1420 is read through the
+//    just-stored L.local_208 (= g_game+0xdcb) pointer with +0xf: the original
+//    emits lea edi,[eax+0xdcb]; mov [esp+0x1c],edi; mov cl,[edi+0xf]. 53.7 ->
+//    53.8. Same trick did NOT help in the prologue (be950 args via
+//    L.local_1b0[0xf], already known to give 51.9).
+// Neutral (compiles to identical bytes): dropping the parens in the
+// 0x2cb4 - (0x2cb0>>1) - 0x14323 expression, assigning local_19f before
+// local_18f, a named delta temp in the pDVar1[19] tick update, and inlining
+// FUN_004c13f0() into the FUN_004c13a0 argument list at either site.
 // deepseek-v4.1-flash retry 2 (timeboxed, 3 variants, no gain): routing the two
 // FUN_004be950 byte args through L.local_1b0[0xf] instead of *(byte*)(iVar11+0xdda)
 // gives 51.9 (it perturbs far more than the 2 [ebx+0xf] sites); swapping the
 // 0x2cac/0x2cb4 coordinate assignments gives 52.8; splitting the >>1 of 0x2cb0
 // into its own leading statement is byte-neutral (53.1, same 6029 bytes).
-// CURRENT STATUS: partial 53.1% (deepseek-v4.1-flash retry). Two fixes this pass:
+// STATUS AT THAT TIME: partial 53.1% (deepseek-v4.1-flash retry). Two fixes that pass:
 // 1. The `/8` remainder middle branch: the original emits `test eax,eax; jle`
 //    (the trailing zero-case is the forward jump target), so the middle branch
 //    must read `else if (iVar21 > 0) { divide; if==0 -> 1 } else { iVar21=0 }`
@@ -256,7 +274,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   FUN_00483fa0((int)((ushort *)L.local_1f0));
   FUN_00418310((int)(L.local_1f0));
   iVar21 = (int)*(short *)((int)g_game + 0x2cac) - *(int *)((int)g_game + 0x1431f) + 0x80;
-  iVar12 = ((int)*(short *)((int)g_game + 0x2cb4) - ((int)*(short *)((int)g_game + 0x2cb0) >> 1))
+  iVar12 = (int)*(short *)((int)g_game + 0x2cb4) - ((int)*(short *)((int)g_game + 0x2cb0) >> 1)
            - *(int *)((int)g_game + 0x14323) + 0x20;
   if (*(char *)((int)g_game + 0x14280) == '\x02') {
     FUN_004be950((int)(L.local_1f0),(int)(iVar21 + -2),(int)(iVar12),(int)(iVar21 + 2),(int)(iVar12),(int)((uint)*(byte *)(iVar11 + 0xdda)));
@@ -266,8 +284,8 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   iVar11 = (int)g_game;
   uVar19 = (uint)*(byte *)((int)g_game + 0x2a43);
   iVar12 = (int)g_game+uVar19*0x14b+0x1b63;
-  cVar3 = *(char*)(g_game+uVar19*0x14b+0x1ca9);
   memcpy(&L.local_1ac,g_game+0x37e3f,33);
+  cVar3 = *(char*)(g_game+uVar19*0x14b+0x1ca9);
   L.local_1ac = cVar3;
   lVar25 = (int)L.local_1ab;
   lVar26 = (int)*(float*)(iVar12+0x8c);
@@ -333,10 +351,9 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     iVar11 = (int)g_game + 0x37f3d + uVar19 * 0x232;
     FUN_004c1420((int)(*(int *)((int)g_game + 0x3816b + uVar19 * 0x232)));
     FUN_004c1450();
-    iVar21 = (int)g_game;
     L.local_208 = (ushort *)((int)g_game + 0xdcb);
     iVar8 = FUN_004c13f0();
-    FUN_004c13a0((int)((uint)*(byte *)(iVar21 + 0xdda)),(int)(iVar8));
+    FUN_004c13a0((int)((uint)((byte *)L.local_208)[0xf]),(int)(iVar8));
     iVar21 = 0x81;
     do {
       puVar9 = (ushort *)
@@ -435,9 +452,8 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   iVar12 = (int)g_game + (uint)L.local_1b4 * 0x14b;
   iVar11 = iVar12 + 0x1b63;
   FUN_004c1420((int)(*(int *)((int)g_game + 0x3816b +
-                       (uint)*(byte *)(*(int *)(iVar12 + 0x1b8a) + 0x95) * 0x232)));
-  iVar12 = FUN_004c13f0();
-  FUN_004c13a0((int)((uint)*(byte *)((int)g_game + 0xdda)),(int)(iVar12));
+                       (uint)*(byte *)(*(int *)(iVar11 + 0x27) + 0x95) * 0x232)));
+  FUN_004c13a0((int)((uint)*(byte *)((int)g_game + 0xdda)),(int)FUN_004c13f0());
   iVar13 = 0;
   iVar12 = *(int *)((int)g_game + 0x1431f);
   iVar21 = *(int *)((int)g_game + 0x14323);

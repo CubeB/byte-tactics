@@ -1,4 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (10 min, 5 check runs): function-scope `_Ps = _P` plus
+// `_Xs = _X` aliases, a hand-written prefix copy loop (`for (; _F != _P; ++_F, ++_Q)
+// allocator.construct(_Q, *_F);`), a `size_type _Mf = _M;` fill count, and a split
+// `iterator _S; ... _S = allocate(...)` declaration ALL compile to the byte-identical
+// 795-byte object (each compared instruction for instruction against the baseline
+// diff: zero differences), so this TU's codegen for every spelling of the
+// reallocating branch is canonical and the esi/edx pick for _P is not reachable
+// from the source, as the notes below already concluded.
 // deepseek-v4.1-flash (#3287): the real-<vector> recipe of the matched sibling
 // 0x43c3a0 (explicit instantiation, 0x44-byte trivial element) scores 82.9%,
 // 796 bytes, against this clone's 83.0%, 795; swapping _Destroy and deallocate

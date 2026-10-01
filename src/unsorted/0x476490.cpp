@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash (#3287): the real-<vector> recipe of the matched sibling
 // 0x43c3a0 (explicit instantiation, 32-byte trivial element) scores 60.7%,
 // 637 bytes, against this clone's 78.9%, 646; the clone stays the best form.
@@ -6,6 +6,21 @@
 // tools/headers.py over all 128 header sets is flat at 78.9, and the 0..400
 // extern-int dummy-declaration sweep (step 8) never beats 78.9 either, so the
 // residual is compiler-state, not headers or symbol count. No
+// deepseek-v4.1-flash (#3665 retry, 10 min): still 78.9 percent, 646 of 632
+// bytes. Tried with check.py: adding each of <stdexcept>, <string>, <xstring>,
+// <iostream> and <iterator> after the includes (all 78.8 percent, 648 bytes, so
+// the original's four-instruction third-copy source form is not reachable
+// through a header), an extra explicit insert instantiation for int and for a
+// 32-byte struct placed before this one (both 78.8, 648), inlining the prefix
+// _Ucopy into the _Ufill call (36.2), one declaration for _S and _Q (78.9), a
+// "_M + _Q" and an "&_Q[_M]" third-copy destination (78.9), a const_iterator
+// alias of _P used as both the prefix bound and the suffix source (78.9), a
+// named count copy inside _Ufill and a while-form _Ucopy body (78.9 each), the
+// allocator pointer/const_pointer typedefs from the 0x476210 clone (78.9), and
+// a cached "_Sz = size()" local (70.8, 616 bytes: it collapses the three
+// separate size() expansions, so the original really does expand size() three
+// times). The wall is unchanged: the prefix-loop bound lands in ECX with a
+// per-turn reload instead of staying in EDX.
 
 // gain from an empty element destructor (neutral at 646), stock MSVC6-style
 // _S + (_P - _First) fill/suffix destinations (40.0 percent, 678 bytes), the

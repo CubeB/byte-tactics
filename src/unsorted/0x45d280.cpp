@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash, finished by Claude Sonnet 5.5. Names are provisional.
 // Partial at 91.5% (1339 vs 1333 bytes). Still differing: the UNDO flag flip
 // puts f (the word) in EBP so (unsigned char)f widens to and eax,0xff where the
 // original keeps f in EAX (mov cl,al), which also cascades into RESTORE/apply
@@ -344,6 +344,13 @@ void FUN_0045c3f0();
 void FUN_0045d130();
 void FUN_0045d7c0();
 
+// Claude Sonnet 5.5 (found with tools/permute.py): 91.5% -> 93.1%, still
+// partial (1338 bytes against 1333). The one change needed is the NOTRAK test
+// going through a local (`notrak`) instead of testing the call directly
+// (measured: reverting it gives 91.5%). A messier permuter rewrite (extra
+// temporaries and hoisted declarations around the volume-flag block) reached
+// 93.5% at 1333 bytes; it is kept in build/permute only and none of its parts
+// could be isolated beyond the local above.
 // FUNCTION: 0x45d280
 void __stdcall FUN_0045d280(Object_0045d280* obj)
 {
@@ -359,7 +366,8 @@ void __stdcall FUN_0045d280(Object_0045d280* obj)
         return;
     }
     FUN_0049fa90(obj);
-    if (FUN_0049fd60(obj, DAT_005067bc)) {              // "NOTRAK"
+    int notrak = FUN_0049fd60(obj, DAT_005067bc);
+    if (notrak != 0) {              // "NOTRAK"
         FUN_0047f1a0(DAT_00502b38, 0);
         int v = FUN_004a0f60(obj, DAT_005067bc);
         unsigned short f = g_game->flags.word;

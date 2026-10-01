@@ -43,6 +43,36 @@
 // way and scores 82.3 percent, so the byte count and the slot pairs cannot be won together that way.
 // The 86.3 percent shape stays.
 
+// deepseek-v4.1-flash (#4031), 86.3 -> 91.4 percent, 799 of 791 bytes: the walk bodies are now
+// wrapped in real C++ blocks ({ }) with the first-point pointer `a` and the second-point pointer
+// `b` declared block-local inside each walk (j, k, i, out stay function-scope). That one scope
+// change restores every stack slot the earlier sessions could not move: ymin 0x18, out 0x20,
+// imin 0x2c, lasty 0x34, a 0x28/0x24, and the walk jge/rel32 size shrinks back to the original
+// 791-byte shape except for the two extra movs below. Declaring a/b at function scope instead
+// (the old shape) is 86.3; a or b block-local alone is worse; a 12-bit scope sweep over
+// {out,i,j,k,a,b}x{block,function} for each walk peaks at exactly this shape.
+// Still different (four hunks, all one allocator state):
+//  1. the freed xmin slot 0x14 goes to the raw index j in ours and to the b pointer in the
+//     original, so j sits at 0x14/0x14 and b at 0x24/0x28 instead of b 0x14/0x14 and
+//     j 0x24/0x28;
+//  2. walk1 head: ours tests j and copies to k after the spill store, the original copies
+//     (mov ecx,esi) first, stores, then tests the copy;
+//  3. walk1 tail: ours tests j then copies to i, the original copies to i and tests i;
+//  4. walk2 keeps j and k apart (extra mov ecx,esi / mov eax,esi, 4 bytes) where the original
+//     wraps one register in place, and the 4 extra bytes push walk2's jge from rel8 to rel32
+//     (4 more), hence 799 vs 791.
+// Tried and inert at 91.4: declaration order of j/k/a/b, a/b block vs function scope once the
+// blocks exist, i/out block-local, do/while for both walks, hoisting the inner if locals,
+// `k = j = i - 1`, an empty else arm, swapping the a/b assignment order, 60 unused extern ints,
+// the a1/a2/a7 ternaries, `if (k <= -1)` (88.1), b function-scope with a block-local (86.7),
+// j block-local in either walk (84.5 or less; the outer slots shift to ymin 0x24, out 0x1c,
+// imin 0x18, lasty 0x2c), walk2 with a single index variable (80.6-84.2, 807 bytes, its wrap
+// goes through memory), and reversed j/k naming (72.5, outer slots shift).
+// Next lead: the allocator hands 0x14 to whichever variable it sees first at the walk head; the
+// original gives it to b. Make b's live range start before the walk head (assign b at the head
+// before j, or keep the previous iteration's b) with j block-local and a compensating block-local
+// so the outer slots stay.
+
 struct Surface_004c1000 {
     unsigned short pitch;   // +0x0, also the clip width
     unsigned short field_2; // +0x2, the clip height
@@ -126,96 +156,100 @@ int __stdcall FUN_004c1000(Surface_004c1000* surf, Vertex_004c1000* verts, int c
     if (ymax == ymin) {
         return 0;
     }
-    out = spans;
-    i = imin;
-    for (;;) {
-        j = i - 1;
-        k = j;
-        if (k < 0) {
-            k = count - 1;
-        }
-        a = &verts[i];
-        b = &verts[k];
-        y0 = a->y;
-        y1 = b->y;
-        if (y0 < y1) {
-            int dy = y1 - y0;
-            int x = a->x;
-            dxdy = ((b->x - x) << 16) / dy;
-            x = (x << 16) + 0xffff;
-            int z = a->z << 16;
-            int dzdy = ((b->z << 16) - z) / dy;
-            if (y0 < 0) {
-                x -= dxdy * y0;
-                z -= dzdy * y0;
-                y0 = 0;
+    {
+        out = spans;
+        i = imin;
+        for (;;) {
+            j = i - 1;
+            k = j;
+            if (k < 0) {
+                k = count - 1;
             }
-            if (y1 > lasty) {
-                y1 = lasty;
-            }
+            Vertex_004c1000* a = &verts[i];
+            Vertex_004c1000* b = &verts[k];
+            y0 = a->y;
+            y1 = b->y;
             if (y0 < y1) {
-                int n = y1 - y0;
-                do {
-                    out->x1 = x >> 16;
-                    out->z1 = z;
-                    x += dxdy;
-                    z += dzdy;
-                    out++;
-                } while (--n);
+                int dy = y1 - y0;
+                int x = a->x;
+                dxdy = ((b->x - x) << 16) / dy;
+                x = (x << 16) + 0xffff;
+                int z = a->z << 16;
+                int dzdy = ((b->z << 16) - z) / dy;
+                if (y0 < 0) {
+                    x -= dxdy * y0;
+                    z -= dzdy * y0;
+                    y0 = 0;
+                }
+                if (y1 > lasty) {
+                    y1 = lasty;
+                }
+                if (y0 < y1) {
+                    int n = y1 - y0;
+                    do {
+                        out->x1 = x >> 16;
+                        out->z1 = z;
+                        x += dxdy;
+                        z += dzdy;
+                        out++;
+                    } while (--n);
+                }
             }
-        }
-        i = j;
-        if (i < 0) {
-            i = count - 1;
-        }
-        if (i == imax) {
-            break;
+            i = j;
+            if (i < 0) {
+                i = count - 1;
+            }
+            if (i == imax) {
+                break;
+            }
         }
     }
-    out = spans;
-    i = imin;
-    for (;;) {
-        j = i + 1;
-        k = j;
-        if (k >= count) {
-            k = 0;
-        }
-        a = &verts[i];
-        b = &verts[k];
-        y0 = a->y;
-        y1 = b->y;
-        if (y0 < y1) {
-            int dy = y1 - y0;
-            int x = a->x;
-            dxdy = ((b->x - x) << 16) / dy;
-            x = (x << 16) + 0xffff;
-            int z = a->z << 16;
-            int dzdy = ((b->z << 16) - z) / dy;
-            if (y0 < 0) {
-                x -= dxdy * y0;
-                z -= dzdy * y0;
-                y0 = 0;
+    {
+        out = spans;
+        i = imin;
+        for (;;) {
+            j = i + 1;
+            k = j;
+            if (k >= count) {
+                k = 0;
             }
-            if (y1 > lasty) {
-                y1 = lasty;
-            }
+            Vertex_004c1000* a = &verts[i];
+            Vertex_004c1000* b = &verts[k];
+            y0 = a->y;
+            y1 = b->y;
             if (y0 < y1) {
-                int n = y1 - y0;
-                do {
-                    out->x2 = x >> 16;
-                    out->z2 = z;
-                    x += dxdy;
-                    z += dzdy;
-                    out++;
-                } while (--n);
+                int dy = y1 - y0;
+                int x = a->x;
+                dxdy = ((b->x - x) << 16) / dy;
+                x = (x << 16) + 0xffff;
+                int z = a->z << 16;
+                int dzdy = ((b->z << 16) - z) / dy;
+                if (y0 < 0) {
+                    x -= dxdy * y0;
+                    z -= dzdy * y0;
+                    y0 = 0;
+                }
+                if (y1 > lasty) {
+                    y1 = lasty;
+                }
+                if (y0 < y1) {
+                    int n = y1 - y0;
+                    do {
+                        out->x2 = x >> 16;
+                        out->z2 = z;
+                        x += dxdy;
+                        z += dzdy;
+                        out++;
+                    } while (--n);
+                }
             }
-        }
-        i = j;
-        if (i >= count) {
-            i = 0;
-        }
-        if (i == imax) {
-            break;
+            i = j;
+            if (i >= count) {
+                i = 0;
+            }
+            if (i == imax) {
+                break;
+            }
         }
     }
     out = spans;

@@ -1,4 +1,49 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// DeepSeek V4.1 Flash session (45 min): still 99.5, 613 of 613 bytes, the same single hunk (walk1
+// latch loads pts then i; original loads i then pts). Re-confirmed nothing in the header state:
+// tools/headers.py --cpp (768 sets) is flat at 99.5. Swept and rejected this session, all 99.5 with
+// the identical hunk unless noted: all 24 first-scan comparison orders (only the current ABCD
+// scores 99.5), all 120 inner-loop statement orders (the current ABCDE is one of four that keep the
+// bytes; the rest move the loop's adds, none flips the latch), top-tested while/for latches (66.7),
+// goto-test latch, for(;;)/while(1) break latches, ~30 exotic wrap spellings (comma, inner while,
+// switch, ternary, eq-zero, if-else, do-while(0), double if, parenthesised count-1, inline
+// WrapDown helper, macros), long/short/unsigned/register types for count/color/i/iymin/x and for
+// the body locals, pointer arithmetic and &spans[0] and cast spellings, decl-then-assign forms for
+// every body local, guard spellings, initialization placement/order, struct definition order,
+// dead copy-through-temp probes on pts/i/out/b, 7000 random 1-to-5 combinations of two 38-mutation
+// sets, and prepending the matched sibling sources 0x4c0330/0x4c0c70/0x4c1000 above this function.
+// A 613-byte reduced copy of the function (walk1 plus first scan only) reproduces the same swap, so
+// the cause is inside walk1.
+// NEW EVIDENCE (this session): the exe scan in build/scratch/0x4c0820/scan_latch.py shows the sibling
+// 0x4c1000 has a walk1 with the SAME shape and instruction order (jne, then the two latch loads,
+// then the wrap) but loads pts before i, while 0x4c1000's walk2 loads i before pts. So the order is
+// not a walk1 source-shape lever at all: it is a whole-function allocation tie-break that flips
+// between functions with identical walk shapes. The register assignments are the same in both
+// (pts in ebx, index in edi/esi), so register order is not the discriminator either. Best next
+// lead: a change far from walk1 that perturbs the global allocation order (the pcode/live-range
+// creation order), or a compiler state change; source-shape edits inside walk1 have been exhausted.
+// 30-min checkpoint (deepseek-v4.1-flash, this session): 99.5 percent, 613 of 613 bytes, ONE hunk
+// left. THE LEVER FOUND THIS SESSION: the 4th parameter is `int color`, not `unsigned char`.
+// Changing it fixes the final call register pick outright (the whole final scan then holds color
+// in ebx and surf in ebp exactly as the original). Every earlier session had `unsigned char`
+// there, which is why the ebx/ebp pick looked unreachable. The caller (0x458fa0) also declares
+// the 4th argument `int param_4`. With that fix only the walk1 latch order remains: original
+// loads i from [esp+0x24] then pts from [esp+0x1403c]; ours loads pts first then i.
+// Tried this session, all 99.5 / same single hunk: header sweep (128 sets), N unused extern int
+// (0..128), 300 declaration-order permutations, predec/minus-eq/plus-count/ternary/if-else/
+// eq-minus-1/`i += count` latch spellings, for(;;)+break and while(1) latches, y1-before-y0,
+// explicit block-local pa/q pointers, function-scope j, raw-j-plus-wrapped-k, sibling 0x4c0c70
+// walk style (50 percent), dead-statement probes, callee prototype type changes, dummy
+// struct/function/typedef/class prefixes (0..200 each), struct-as-class and long-field variants,
+// walk2 head/inner-loop probes (the compiler normalises walk2's out/i order), first-loop shape
+// probes, function-scope j, and function-scope i for both walks (99.5, same hunk). The two
+// siblings 0x4c0330 and 0x4c0c70 (matched) both reload the points base BEFORE the index in their
+// latch, so our compile follows the family norm and the original's order is the odd one.
+// Best next lead: the order is the allocator's emission order inside one block, so look for a
+// source or type change that makes the i load be emitted before the live-out pts reload, the way
+// a source statement naturally precedes a live-out spill. The `int color` discovery suggests the
+// allocator state responds to parameter/type changes rather than statement shapes.
+//
 // deepseek-v4.1-flash (#3807): 94.1 -> 98.0 percent, 613 of 613 bytes. The edge walks now hold the
 // second point in a function-scope pointer b (b = &pts[j], every field read through b) while y0/y1
 // became block-local to each walk. That pair is the lever the earlier sessions could not find: it
@@ -96,7 +141,7 @@ void __stdcall FUN_004c0a90(int row, Span_004c0a90* span, Surface_004c0a90* surf
 
 // FUNCTION: 0x4c0820
 int __stdcall FUN_004c0820(Surface_004c0a90* surf, Point_004c0820* pts, int count,
-                           unsigned char color) {
+                           int color) {
     Span_004c0a90 spans[2048];
     Span_004c0a90* out;
     int ay;

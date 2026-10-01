@@ -1,7 +1,24 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 //
-// Partial: 44.7%, 2208 bytes versus 2164. Best so far; every earlier attempt is
+// Partial: 46.0%, 2204 bytes versus 2164. Best so far; every earlier attempt is
 // in build/scratch/0x4a9fd0/.
+//
+// deepseek-v4.1-flash retry (#3478, 10-minute timebox): +1.3 to 46.0 with two
+// changes in the first entry clamp, both now faithful to the original:
+//   * `Point_004a9fd0& pt = menu->point;` instead of direct menu->point reads.
+//     Alone it is byte-neutral at 44.7 but makes the compiler emit the
+//     original's `lea esi,[ebp+0x3c]` early and `mov eax,[esi+4]` for point.y.
+//   * with that in place, the faithful `int y = entries->y;` beats the
+//     `short y` metric artifact it had replaced (46.0 versus 44.7; the
+//     artifact's `mov cx / movsx ecx,cx` pair no longer buys alignment).
+// Still measured worse, do not repeat: removing the redundant
+// `if (menu->layer != 0)` wrapper is now 44.7 (2196 bytes), so the extra
+// `test eax,eax / je` and `mov ebx,eax` it introduces still net-align; a
+// named `int py = pt.y;` is 45.3 (2212 bytes), so the early
+// `mov edi,[esi+4]` placement is scheduler output, not reachable by naming
+// the read. The remaining clamp diff (right in edi instead of [esp+0x34],
+// bottom at [esp+0x20] instead of [esp+0x38]) is still the entries-in-ebx
+// allocation state described below.
 //
 // deepseek-v4.1-flash session: the only change from the previous best is
 // `short y = entries->y;` in the first clamp (was `int y`), worth +1.0 in the
@@ -279,16 +296,17 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
         Entry_004a9fd0* entries = menu->layer->entries;
         if (entries != 0) {
 
+        Point_004a9fd0& pt = menu->point;
         int x = entries->x;
-        short y = entries->y;
+        int y = entries->y;
         if (entries->type != 0) {
             x *= 2;
             y *= 2;
         }
         int right = entries->w + x - 1;
         int bottom = entries->h + y - 1;
-        FUN_004ab440(menu, menu->point.x >= x && menu->point.x <= right &&
-                           menu->point.y >= y && menu->point.y <= bottom);
+        FUN_004ab440(menu, pt.x >= x && pt.x <= right &&
+                           pt.y >= y && pt.y <= bottom);
 
         int saved = menu->field_68;
         menu->field_68 = -1;

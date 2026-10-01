@@ -159,6 +159,41 @@
 //    colour test becomes `cmp dword ptr [reg+0x14], ebx` (a memory-operand
 //    compare) instead of `mov reg,[mem]; test reg,reg`. Writing that third
 //    condition as a fresh comparison is what unlocked the zero register.
+//
+// Sixth pass (space-bunny-free), 2 more check runs, 11 free scratch scores, no
+// fix. New ground covered, all inert or worse, so nobody repeats them:
+//  - the declaration position of the iterator, which the compiler's own source
+//    settles: `iterator _P = iterator(_Y);` sits at FUNCTION scope in
+//    _Tree::insert (XTREE line 211), after the `if (_Multi) return`, not inside
+//    the else arm. Restructuring to an early `return` in the rebuild branch and
+//    then declaring the iterator at function scope after it, with the birth as a
+//    ctor-init, as `it = Class_004dd2a0(y)`, and as a plain field store, is
+//    95.6 percent and byte-identical in all three (621 bytes). Declaring the
+//    iterator inside the else arm instead is 88.4 percent, the frame re-homes to
+//    three locals, so function scope is load bearing;
+//  - local declaration order (x, y, less, it, node) is 95.6 percent, inert;
+//  - a user-provided COPY CONSTRUCTOR on the iterator class, as the original's
+//    implicit one would be instantiated, is 95.6 percent, byte-identical;
+//  - `bool field_4` in the return pair instead of `unsigned char` is 95.6
+//    percent, inert;
+//  - the literal STL accessors as reference-returning inlines (`_Root`,
+//    `_Lmost`, `_Left`, `_Right`, `_Parent`, `_Key`, `_Color`, and a
+//    `begin()` built on `_Lmost`) are 88.2 percent and 3 bytes FATTER: `_Color
+//    (_Parent(q))` blocks the CSE in the fixup and costs
+//    `mov ecx,[eax+4]; mov edx,[ecx+4]` against the original's `mov edx,[eax+4]`.
+//    The colouring is unchanged, so the accessor chain is not the lever;
+//  - giving the iterator the two empty base classes the real
+//    `iterator : _Bidit : iterator<...>` has is 79.0 percent, 678 bytes, much
+//    worse;
+//  - `_P == begin()` written `!(_P != begin())` is 94.7 percent;
+//  - the two `out` field stores folded into one `_Pairib(it, 0)` constructor is
+//    90.3 percent and 8 bytes bigger.
+// This is the fifth independent confirmation that the birth register is not
+// steerable from source. The one thing still unexplained, and it is the only
+// structural difference left, is that the original's `mov ecx, edi` gets ECX
+// while `p` takes EAX at the merge at 0x4dc0e3, and the reverse here, with an
+// identical interference graph on both sides.
+//
 //  - `head->+4` is the root and `head->+0` is begin(). The empty-tree case
 //    writes y->left (which is head->left), then head->parent (the root), then
 //    head->right. The fixup is only needed on the header's two extremes, which

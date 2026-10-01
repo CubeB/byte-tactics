@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
 // map (a std::map<unsigned int, Pair_004db000>, the map's value_type being a
 // block's base offset plus its length), erase it, and return the two leftovers
@@ -42,6 +42,21 @@
 // declaration order of res and tries, moving `total += len` after the insert,
 // dropping `atend`, and a loop that `break`s with the success block after it
 // (78.5 percent, 642 bytes).
+// deepseek-v4.1-flash retry (#3345), all still 80.5 percent and 646 bytes with
+// the same this/bytes swap: `headers.py` found no fixing set (all 80.5);
+// 0,4,..400 unused `extern int` declarations before the function (flat, so it
+// is source shape, not compiler state); `self`/`&self` aliases for `this`; a
+// `bytes` reference and a `bytes*` pointer alias; a named `unsigned int nb =
+// bytes;` local fed before the erase call and used after it (the technique-3
+// way to keep a value live across a call, but MSVC still reloads the
+// parameter); recursive-call and `mark + bytes` inline wrappers that add a use
+// without changing the bytes; dead `bytes` self-copies; `atend` as `int` and
+// as a `== ? true : false` ternary; and all 24 declaration orders of
+// base/len/mark/end in the success block. The tie is between `this` and
+// `bytes` for the one register that survives the erase call, and none of these
+// flips it; next try changing which value the source keeps across the loop
+// (not the number of uses), or find a genuine sibling with the same allocator
+// state.
 #include <windows.h>
 #include <yvals.h>
 

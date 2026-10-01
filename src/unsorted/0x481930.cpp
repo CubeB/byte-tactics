@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 83.3% (1052 of 1052 bytes, so every jump target lines up again and
 // what is left is real instructions). Two more fixes this session, both of
 // them pure source SHAPE changes that moved a block's layout or an
@@ -439,3 +439,25 @@ void __stdcall FUN_00481930(Params_00481930* params)
 // for the flag2 line counter (71.6). All of them leave the frame pointer in
 // edx/slot 0x38 and j1 in ebx, so the two swaps really are one allocator
 // decision that no source shape tried so far reaches.
+// One NEW data point (deepseek-v4.1-flash, scratch v1): the missing construct
+// IS the inner loop's shape. Rewriting it as an explicit guard plus a
+// do-while,
+//     short j = 0;
+//     if ((short)num > 0) {
+//         int j1 = 1;
+//         do { ...body...; j++; j1++; } while ((short)j < (short)num);
+//     }
+// moves BOTH target swaps at once and exactly as wanted: ebx now holds
+// bestIdx (`xor ebx,ebx` before the guard, `imul edx, ebx`) and j1 becomes the
+// memory-resident one at 0x1c, with its `mov [esp+0x1c], 1` sitting BELOW the
+// `jle`, in the preheader, exactly like the original. So the allocator
+// question was really "which variable's initialisation is inside the guarded
+// block", not declaration order. That variant scores 79.1 (1055 bytes): the
+// loop costs 3 extra bytes somewhere in the flag2 branch and flips the
+// operand order of `bestDiff * j1` (`mov eax,[esp+0x1c] / imul eax,[esp+0x30]`
+// instead of the original's `mov eax,[esp+0x30] / imul eax,[esp+0x1c]`;
+// writing `j1 * bestDiff` does not change that, it compiles identically).
+// The +3 bytes are the thing to hunt: a loop shape that keeps the do-while's
+// guarded j1 initialisation but is byte-for-byte the for-loop's rotation.
+// Then that operand order and the remaining first-cell `imul` (edi vs eax)
+// are all that would be left.

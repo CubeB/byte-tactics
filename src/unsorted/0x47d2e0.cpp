@@ -1,4 +1,13 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash. Names are provisional., finished by deepseek-v4.1-flash
+// 07:45Z pass (deepseek-v4.1-flash): three more negative variants, all reverted;
+// the 45.6% file below is untouched. (1) address-taken fixed-point unions for
+// wx/wy (px->parts.high etc.) give the original's movsx word reads but score
+// 42.0 and the frame only grows to 0x28. (2) a `game` local live across the
+// FUN_00485010 call (used for player/losFlags/field_14273) scores 42.3.
+// (3) hoisting `bit = 1 << g_game->player` above the call scores 42.8, and
+// (4) making the pre-check width cache the loop's width (live across the call)
+// scores 39.3. So growing the frame by adding pressure across the call always
+// loses more in the prologue/loop than the 8 byte frame shift buys back.
 // deepseek-v4.1-flash retry, timeboxed to 1 check run, no change to the kept
 // 45.6% shape below. Second deepseek-v4.1-flash retry scored the sweeps this
 // note asks for, all negative: dummy `extern int dummyN;` lines in front of the

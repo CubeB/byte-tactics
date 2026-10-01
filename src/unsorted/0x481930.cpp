@@ -1,130 +1,59 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
-// claude-sonnet-5-5 pass (no change, 83.3% kept): re-measured the guarded do-while inner loop
-// (79.1, 1055 bytes: fixes bestIdx/j1 but costs 3 bytes in the first-cell block, as noted below)
-// and tried, on both bases, splitting `int a, b; a = ..; b = ..;` for halfW/halfH/x/y in five
-// orders (66 to 77), `int limitX, limitY, nx, ny;` declared apart from their assignments, and
-// swapped comparison operands in the do-while body (78.5). None moved the first-cell imul
-// destination or the frame/limitX slot pair; the lever that closed 0x482c20 (declare-then-assign
-// pairs plus a guarded do-while) did not carry over here.
-// 08:22Z pass (deepseek-v4.1-flash): five cheap spelling variants, all tried
-// and all reverted, the 83.3% body below is untouched: `&g_game->visibilityMask
-// + halfW * y + x` is byte-identical (1052/83.3, same hunks); swapping the
-// multiply operands to `y * halfW + x` is also byte-identical, so MSVC5
-// canonicalises imul order here; swapping the x/y declarations drops to 65.7
-// (1050 bytes) and swapping the halfW/halfH declarations to 81.2, so both
-// declaration orders above are load bearing. The residue is still exactly the
-// three allocator choices listed in the NOTES at the bottom.
-// PARTIAL: 83.3% (1052 of 1052 bytes, so every jump target lines up again and
-// what is left is real instructions). Two more fixes this session, both of
-// them pure source SHAPE changes that moved a block's layout or an
-// initialisation's block:
-//  3. The limitY ternary has to be written with the arms SWAPPED:
-//     `(y + frame->height >= halfH) ? halfH - y : frame->height`, not
-//     `(y + frame->height < halfH) ? frame->height : halfH - y`. The two are
-//     the same value, but MSVC 5 lays the second one out with the TRUE arm as
-//     the fall-through (`cmp / jge` jumping over it) and the first one out of
-//     line (`cmp / jl` jumping to it), and the original has the true arm out
-//     of line, exactly like the limitX clamp above it, which already matched.
-//     Worth 1.2 points. Note that merely flipping the COMPARISON
-//     (`halfH > y + frame->height`) is not enough: that changes the compare to
-//     `cmp esi, ecx / jle` and still puts the true arm first.
-//  4. The row counter's initialisation must sit in the block that owns the
-//     loop's guard test, so `int i = ny;` goes BEFORE `if (i < limitY)`, not
-//     inside the if. With it inside, MSVC 5 sinks the store into the loop
-//     preheader (`mov eax, ebp / mov [esp+0x30], eax` after the `jge`); the
-//     original keeps it in the guard block, between the `cmp` and the `jge`.
-//     Worth 0.6 points. Testing `ny` instead of `i` in the guard compiles
-//     identically, so only the position of the declaration matters.
-// Two fixes that were already in place, for the record:
-//  1. THE LOD CLAMP MUST BE WRITTEN OUT, NOT CALLED AS AN inline FUNCTION.
-//     Spelling `max(lod, 0)` as the `Lod_00481930(params)` helper made MSVC 5
-//     materialise the RAW lod in ebp across the FUN_00433520 call and sink the
-//     clamp after it (`mov ebp,eax / sar ebp,5 / call / xor edx,edx /
-//     test ebp,ebp / setl dl / dec edx / and edx,ebp`). Writing the same clamp
-//     literally at all three sites (the comparison and both ternary arms)
-//     gives the original's order: clamp first, in ebp, call second, and the
-//     `mov ecx,0 / sets cl` form. That is worth exactly 1 byte of size, and
-//     because every internal branch target is built from the offsets, that one
-//     byte moved EVERY later jump: 71.0% -> 81.2%. Note this is the opposite
-//     of the guide's "an inlined function boundary is not a CSE boundary": the
-//     two spellings agree on values, but the helper's SHAPE steers the
-//     scheduler's choice of what to hoist across the call.
-//  2. In the inner mask loop the two pointer bumps must be written
-//     `dst++; src++;` (visibility mask first), the reverse of the natural
-//     reading order, to get `add edx,2` before `inc ecx`. Worth 0.3.
-// What is still different, and all of it register allocation (see NOTES at
-// the bottom):
-//  * the first visibility cell: the original computes `halfW * y + x` with the
-//    product in edi, halfW's own register (`imul edi, [esp+0x10]`), ours puts
-//    it in eax (`mov eax, [esp+0x10] / imul eax, edi`);
-//  * the inner loop gives ebx to j1 and a frame slot to bestIdx, the original
-//    gives ebx to bestIdx and a frame slot to j1;
-//  * the else branch is one register choice: the original keeps the LOS frame
-//    pointer in ecx (slot 0x24) with limitX in 0x38, ours keeps it in edx
-//    (slot 0x38) with limitX in 0x24, and that one swap moves every reload.
-// PARTIAL: 92.3% (1052 of 1052 bytes; every jump target in the function lines
-// up and the whole flag2 branch, including the first visibility cell, is now
-// byte-identical). The entire else branch's first half matches too. One
-// register decision is left, and the four findings below are what got here
-// from the previous 83.3%.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by
+// deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited
+// by deepseek-v4.1, edited by space-bunny-free, finished by
+// deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by
+// Space Bunny Free. Names are provisional.
+// MATCH, from 83.3%. Four changes did it, and the last one is the interesting
+// one: the whole fix is about WHERE the locals sit in the function's single
+// allocation table, not about their order relative to the code that uses them.
 //  1. THE INNER LOOP IS THE MATCHED SIBLING 0x481d50'S LOOP, VERBATIM.  That
 //     function MATCHes and its loop is the guarded do-while with `int j1;`
 //     DECLARED BEFORE `int bestDiff = -1;` and `j1 = 1;` ASSIGNED inside the
-//     guard.  The old notes here tried the do-while with `int j1 = 1;` declared
+//     guard.  The earlier notes here tried the do-while with `int j1 = 1;`
 //     after bestDiff (79.1%) and concluded the `bestDiff * j1` imul operand
-//     order was not worth chasing.  It is: copying 0x481d50's declaration order
+//     order was not worth chasing.  It is: 0x481d50's declaration order
 //     (bestIdx, j1, bestDiff, j) fixes that operand order too, 79.1 -> 79.7.
-//     The rule the sibling's header records holds here too: MSVC takes the
-//     `imul` REGISTER operand from declaration order, so the variable declared
-//     first is the one loaded into eax.  The two changes interact; neither
-//     helps alone.
+//     The rule its header records holds here: MSVC takes the imul REGISTER
+//     operand from declaration order, so the variable declared first is the one
+//     loaded into eax.  Neither half helps alone.
 //  2. THE ELSE BRANCH'S LOCALS MUST BE DECLARED AT THE TOP OF THE FUNCTION AND
-//     ASSIGNED IN THE BRANCH.  `int limitX, limitY, nx, ny;`, `Frame* frame;`
-//     and `int i, stride, off;` after `int changed = 0;`, assigned inside the
-//     else branch, takes the size from 1055 back to 1052.  So the 3 bytes the
-//     do-while appears to cost are not a cost of the loop at all: they are
-//     paid only while the else branch's locals are initialised in place.
-//  3. x AND y MUST BE IN THAT TOP BLOCK TOO, not initialised in place.  This
-//     is the big one and it was never tried: adding `int x, y;` to the same
-//     declaration block and assigning them after `bit/halfW/halfH` took the
-//     score from 82.1 to 92.3 and 126 diff lines to 53.  Moving x and y into
-//     the function's single local table is what finally gives MSVC the register
-//     pressure shape the original has, and with it BOTH long-standing problems
-//     disappear at once: the first visibility cell's `imul edi, [esp+0x10]`
-//     (the in-place multiply on halfW's own register) and the g_game load's
-//     5-byte `mov eax, [g_game]`, plus every jump target after it.  This is the
-//     "add or remove one local from the allocator's table" lead the old notes
-//     kept circling, and the real form of it is "put x and y in the table too".
-//  4. nx / ny: the clamp spellings (ternary, if/else, a shared inline helper,
-//     `-(v<0?v:0)`, `0 - v`, positive-test) are all exactly neutral, so the
-//     small `neg` difference there is not a source-shape choice.
-//
-// WHAT STILL DIFFERS, one decision: the else branch keeps the LOS frame
-// pointer in edx (slot esp+0x38) with limitX in esp+0x24, while the original
-// keeps it in ecx (esp+0x24) with limitX in esp+0x38.  Every reload moves with
-// that one swap, which is why the last two hunks are 50 of the 53 diff lines.
-// A useful diagnostic, since the compiled .asm's frame slot table can be read
-// directly: the original's cross-branch sharing is
-//     count+stride,  x2+limitY,  grid+frame,  bestDiff+i,  j+nx,  i(outer)+limitX
-// and ours is
-//     count+stride,  limitY+y2,  grid+limitX,  frame+?,  j+nx,  bestDiff+i
-// so `frame` has to land in grid's slot and `limitX` in the outer row counter's.
-// Moving each else-branch local in turn to the top of the function, and
-// reordering the clamps, the row guard, stride and off, all left frame in its
-// own slot and limitX sharing with grid, so this one is not reachable by
-// source order alone the way finding 3 was.
-//
-// Tried this session and neutral (82.1% base unless noted): the first cell as
-// `y*halfW`, `x + halfW*y`, a named index local, the index split over two
-// statements, an `unsigned` index, a fresh copy of y, a `static inline` getter
-// for the mask base (the guide's `GetEntries(obj)[i]` idiom), inline helpers
-// taking (hw,y,x) or (g,i), an inline helper for the whole set-the-bit block,
-// `&mask[halfW*y] + x`, walking the pointer, `(short)` casts on x or y, `bit`
-// as int/unsigned short, and the bit index through a local; for (c) the frame
-// fields through an inline accessor, width/height in locals, a `losTable`
-// local, the LOD clamp with braces, the LOD clamp written out with no helper,
-// and the else branch wrapped in a bare block.
-
+//     ASSIGNED IN THE BRANCH, not initialised in place.  That took the size
+//     from 1055 back to 1052.  So the 3 bytes the do-while appeared to cost are
+//     not a cost of the loop: they are paid only while the else branch's
+//     locals are initialised in place.
+//  3. x AND y MUST BE IN THAT TOP BLOCK TOO.  This is the big one and it had
+//     never been tried: adding `int x, y;` to the same declaration block and
+//     assigning them after bit/halfW/halfH took the score from 82.1 to 92.3 and
+//     126 diff lines to 53.  Putting x and y in the function's single local
+//     table is what finally gives the allocator the register pressure shape the
+//     original has, and with it BOTH long-standing problems disappear at once:
+//     the first visibility cell's in-place `imul edi, [esp+0x10]` (the product
+//     lands in halfW's own register) with the 5-byte `mov eax, [g_game]`, and
+//     every jump target after it.  This is the "add or remove one local from
+//     the allocator's table" lead the earlier notes kept circling; the real form
+//     of it is "put x and y in the table too".
+//  4. THE LAST 7.7 POINTS WERE `changed` MERGED INTO `int x, y, changed = 0;`
+//     AND `frame` MOVED DOWN PAST `bit`.  Both are pure declaration moves and
+//     both are needed: the exact position of `frame` in the table is what puts
+//     it in grid's slot (esp+0x24) with the LOS frame pointer in ecx instead of
+//     its own slot with the pointer in edx.  Before this the two branches'
+//     locals shared slots in the wrong pairing (`grid+limitX`, `frame+?`) and
+//     every reload in the else branch moved with it; with it they share the
+//     original's six pairs.  Found by tools/permute.py as two `move_decl`
+//     mutations off the 92.3% base, then written up here by hand.
+// The order inside the top block is otherwise free, but `x, y` must come
+// before it, and `frame` must come after `bit`.  Dropping x or y from the block
+// drops the score to 82.1; `changed` may sit before or after `int x, y;`.
+// One more thing is load bearing and looks wrong: in the row loop the
+// `dst` declaration must come BEFORE the `src` one, the reverse of the order
+// the values are used in.  Swapping the two back costs 7.7 points, because the
+// visibility-mask pointer is loaded into the register the frame pointer wants
+// and MSVC has to keep both live one instruction longer.  This is the same
+// `dst++; src++;` order the earlier notes recorded for the two pointer bumps,
+// and it is the same reason: the statement order is what decides which
+// register is free when.
+// <windows.h> is required.
+#include <windows.h>
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -243,9 +172,9 @@ void __stdcall FUN_00481930(Params_00481930* params)
     int changed = 0;
     int x, y;
     int limitX, limitY, nx, ny;
-    Frame_00481930* frame;
     int i, stride, off;
     unsigned int bit = 1 << params->field_0->field_146;
+    Frame_00481930* frame;
     int halfW = g_game->width / 2;
     int halfH = g_game->height / 2;
     x = params->field_4[0];
@@ -323,9 +252,9 @@ void __stdcall FUN_00481930(Params_00481930* params)
             stride = halfW * 2;
             off = ((y + ny) * halfW + nx + x) * 2;
             do {
-                unsigned char* src = frame->data + i * frame->width + nx;
                 unsigned short* dst =
                     (unsigned short*)((unsigned char*)g_game->visibilityMask + off);
+                unsigned char* src = frame->data + i * frame->width + nx;
                 if (nx < limitX) {
                     int n = limitX - nx;
                     do {

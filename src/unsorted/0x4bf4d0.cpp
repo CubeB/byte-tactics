@@ -1,4 +1,14 @@
 // Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash., retried by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3003): re-confirmed 89.6% (332 bytes both).
+// The only residual is the engine/surface callee-saved swap (original engine=ebp
+// and surface=ebx; ours reversed, and all 8 downstream ebx/ebp mentions follow).
+// Retried surface-const, engine-reference, screen-before-engine, register
+// keywords, a level local, no-clipped local, hoisted table/t/height/p: all
+// identical 89.6. Dummy extern-int sweep 130..400 step 10 stays 89.6/86.6, no
+// flip. Compiler-state tie, not source-reachable.
+// BUG: the three early `return 0` exits (table==0 in each level branch and
+// t==0) return after the screen is locked without calling FUN_004c5fa0, so the
+// lock leaks on those paths.
 // deepseek-v4.1-flash retry (#2838): reconfirmed 89.6%, 332 bytes. The only
 // remaining diff is the engine/surface register swap documented below.
 // Tried, all still 89.6: permutations of the engine/screen/r declaration

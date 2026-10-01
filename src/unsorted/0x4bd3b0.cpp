@@ -1,4 +1,55 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Session 14 (Space Bunny Free): 89.5 -> 90.8 percent (1145 bytes). Three wins,
+// all the same idea and all found by hand after `headers` and `permute` had
+// nothing: give MSVC a SHORT-LIVED TEMP to modify in place, and copy the temp
+// into the long-lived variable, instead of writing the sum into a fresh
+// register. The load stays in a scratch register, the long-lived variable gets
+// the `mov x, x` copy, and the sum becomes an in-place `add` that the
+// original's scheduling then sinks to the right place.
+// (1) Prologue, byte-exact now (was the "front-end copy node" residual twelve
+// sessions called stuck): `unsigned int nsize = out[0]; root = nsize;
+// nsize += 8; out[0] = nsize;` emits `mov eax,[ebp]; mov esi,eax; add eax,8;
+// mov [ebp],eax` AND moves the root spill to the original's late [esp+0x24]
+// slot just before the call, which earlier sessions had treated as two
+// separate stuck items. The old form (`root = out[0]; unsigned int nsize =
+// out[0] + 8; out[0] = nsize;`) lets MSVC pick root's register for the load
+// and rematerialise with a copy.
+// (2) Name allocator, byte-exact now: `unsigned int nsize = strlen(fd.name)
+// + 1; nsize += nameOff; out[0] = nsize; ... FUN_004d84a0(..., nsize)` gives
+// the original's in-place `add ecx,ebx` and `push ecx`, and the `out[0]` store
+// sinks to just before the call. Passing `out[0]` as the third argument (t2)
+// still scores 89.8: the argument has to be the temp, not the reload.
+// (3) Leaf: the size store goes FIRST as a plain statement, read back for the
+// accumulate: `*(unsigned int*)(node + 4) = fd.size; ... *total += *(unsigned
+// int*)(node + 4);`. That reproduces `mov ecx,eax` + `add [eax],ecx` and the
+// original's store order. Alone on the old file this cost 2 bytes and scored
+// 89.0; combined with (1) and (2) it is a clear win.
+// Still differs (register allocation only; semantics believed correct):
+//  - Second allocator block, the one real blocker: original `mov eax,[ebp];
+//    mov esi,eax; mov ecx,[edi+ebx]; lea edx,[eax+ecx*8]; lea eax,[ecx+edx]`,
+//    ours `mov esi,[ebp]; mov eax,[ebx+edi]; lea edx,[esi+eax*8]; add eax,edx`.
+//    The (1) trick does NOT transfer here: fifteen spellings of the
+//    temp-then-copy shape (esize, esize +=, count temp first, constant-add
+//    probe, operand swaps, `out[0] +=`, `entries = (esize = out[0]) + ...`, a
+//    `bump()` inline helper) all normalize to the same three instructions.
+//    This is 3 bytes short, and that shift is why every jump target from the
+//    second strcmp onward still mismatches.
+//  - entry pointer sum: original `add eax,edx; add eax,ecx` with `entries`
+//    loaded into eax after the strcpy's rep movsb, ours `lea eax,[ecx+edx]`
+//    with `entries` hoisted before it. Same tree, different register order.
+//  - Leaf entry pointer: original `mov ecx,[esp+0x20]; mov edx,[esp+0x1c];
+//    add ecx,eax; mov [ecx+4],esi`, ours loads ent first and folds the address
+//    into `mov [ecx+eax+4],esi`. Both halves are source-order insensitive:
+//    eight spellings (pointer local, parenthesised trees, entries-first,
+//    out[1]-first, unsigned ent) are all byte-identical.
+//  - ebx/esi SIB direction at the three base+root sites (original [esi+ebx],
+//    ours [ebx+esi]); five spellings and all 128 header sets are flat.
+//  - The dir-branch store loads out[1]/entries/ent in the other order.
+// The third parameter is dead in the original: it reads `[ebp+4]` (= out[1],
+// which the caller pointed at the same slot) for the accumulate and for the
+// recursive call's third argument, and never reads `[ebp+8]`. So `*total` and
+// `*(int*)out[1]` are the same store and the same source.
+// Older sessions (all below 89.5 on this file) are kept in the history below.
 // mimo-v2.6-pro session (60-minute box): best unchanged at 89.5 percent,
 // this file. One leaf probe DID reproduce the tail exactly (scratch t3, 89.0
 // percent / 1146 bytes): `*(unsigned int*)(node + 4) = fd.size; ... zeros ...
@@ -207,8 +258,9 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
     unsigned int entries;
     int ent;
 
-    root = out[0];
-    unsigned int nsize = out[0] + 8;
+    unsigned int nsize = out[0];
+    root = nsize;
+    nsize += 8;
     out[0] = nsize;
     char* base = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, nsize);
     out[1] = (unsigned int)base;
@@ -248,9 +300,10 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
         do {
             if (strcmp(fd.name, DAT_00502910) != 0 && strcmp(fd.name, DAT_0050a548) != 0) {
                 unsigned int nameOff = out[0];
-                unsigned int nlen = strlen(fd.name) + 1;
-                out[0] = nlen + nameOff;
-                out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
+                unsigned int nsize = strlen(fd.name) + 1;
+                nsize += nameOff;
+                out[0] = nsize;
+                out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, nsize);
                 strcpy((char*)out[1] + nameOff, fd.name);
                 Entry_004bd3b0* e = (Entry_004bd3b0*)((char*)out[1] + entries + ent);
                 e->name = nameOff;
@@ -270,9 +323,10 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
                     out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
                     ((Entry_004bd3b0*)((char*)out[1] + entries + ent))->data = nodeOff;
                     unsigned char* node = (unsigned char*)((char*)out[1] + nodeOff);
+                    *(unsigned int*)(node + 4) = fd.size;
                     *(unsigned int*)node = 0;
                     node[8] = 0;
-                    *total += (*(unsigned int*)(node + 4) = fd.size);
+                    *total += *(unsigned int*)(node + 4);
                 }
                 ent += 9;
             }

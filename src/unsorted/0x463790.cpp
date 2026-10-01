@@ -1,4 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 9 (deepseek-v4.1-flash, #3819): 74.2 -> 75.0% (1025 vs 1040 bytes). The finding: the
+// a4/a5 tail loops each get their own count local computed as `n - 0x200` (`left1` in the
+// a6!=0 path, `left2` in the a6==0 path), which finally puts the a5-path counter in EDI and
+// the packet pointer in EBP exactly as the original (`test edi,edi` / `dec edi` /
+// `mov ebp,[esp+0x2c]` / the entry store of ebp), replacing the old shared `lineLeft` that
+// the allocator kept in memory ([esp+0x30]). `left2` declared before `char* q = text + 4;` is
+// the 75.0 variant; taking it from `lineLeft` instead scores 74.9, and declaring it after
+// `int rem2 = (int)size;` is flat at 74.9, so the count first is worth 0.1. Reordering the
+// f14/f18 stores above memcpy regresses hard to 67.8% (1025 bytes), keep them after the copy.
+// Still differing: the 0x46379e Pop block (ours rows=ECX / n=EAX, original rows=EAX / n=ECX)
+// and the a4-path memcpy tail (ours loads [esp+0x34] early, stores f18 before f14, and uses
+// EDI for the zero counter where the original uses EBP).
 // Pass 8 (deepseek-v4.1-flash, #3767): re-measured and restored this 74.2% / 1029-byte
 // build after testing more shapes. Declaring `remaining` first (either in place of, or
 // in the loop header's for-init, of `n`) is byte-neutral while `char* p = text + 4;`
@@ -211,6 +223,7 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
     if (n > 0) {
         int lineLeft = n - 0x200;
         if (a6 != 0) {
+            int left1 = n - 0x200;
             int span = x - f0;
             if (span > 0x1e) {
                 span = 0x1e;
@@ -235,8 +248,8 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
                     reader.bit = 0;
                     reader.FUN_00415dc0(8);
                     w = (unsigned short)reader.FUN_00415dc0(0x10);
-                    if (lineLeft > 0) {
-                        lineLeft--;
+                    if (left1 > 0) {
+                        left1--;
                         remaining -= w;
                         q += w;
                         goto next2;
@@ -275,6 +288,7 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
             return 1;
         }
 
+        int left2 = n - 0x200;
         char* q = text + 4;
         int rem2 = (int)size;
         while (rem2 > 0) {
@@ -294,8 +308,8 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
                 reader.bit = 0;
                 reader.FUN_00415dc0(8);
                 w = (unsigned short)reader.FUN_00415dc0(0x10);
-                if (lineLeft > 0) {
-                    lineLeft--;
+                if (left2 > 0) {
+                    left2--;
                     rem2 -= w;
                     q += w;
                     goto next3;

@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 9 (deepseek-v4.1-flash, #3819): re-measured 43.3% (1578 vs 1653 bytes), no edit kept.
+// New datums from the top hunks, all one live-range web with the tick spill at [esp+0x14]:
+// the original bases the entry walk at `lea esi,[ebx+0x48]` and reads the first field as
+// `[esi-0x28]` (ours emits `lea ebp,[ebx+0x20]` / `[ebp]`), so the original's `entries` base
+// sits 0x28 past that field; the original also materialises a single zero in EDI
+// (`xor edi,edi`, stored to [esp+0x10]) that every `== 0` test then compares against, where
+// ours folds immediates, and its frame is 0x10 where ours is 0xc.
 // Pass 8 (deepseek-v4.1-flash, #3767): re-measured 43.3% (1578 vs 1653 bytes), no edit
 // kept. New datum: in the original's tail pair the two words are read as `[esi+4]`/`[esi+8]`
 // and the second load is into ESI itself (`mov esi, [esi+8]`) immediately before the

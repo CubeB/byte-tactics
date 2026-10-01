@@ -1,5 +1,68 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 //
+// space-bunny-free pass (#4497), 87.1% confirmed unchanged: 1 check.py run plus
+// about 110 free `check.py --sym` scores (all the scratch files are in
+// build/scratch/0x4b90a0/, driven by batch.py/combo.py/pins.py/yoff.py there).
+// Every new lever the earlier passes had not swept is now dead, so the two
+// differences below are a build difference, not a spelling:
+//  1. The row block, the fold of the plane load into the add's destination
+//     (`mov esi,[edx+0x10]; add esi,ebx` here, `mov esi,ebx; mov
+//     eax,[edx+0x10]; add esi,eax` in the original). The 4-byte size gap is
+//     exactly the two `mov reg,reg` copies, once the yoff store is set aside:
+//     11 instructions in the original's loop head, 9 in ours. New this pass,
+//     all of them folding:
+//       * the Identity() pin of #4241/#4299 in every position (xoff, stride,
+//         yoff, level, each plane load, the row sum, both row pointers, int and
+//         pointer flavours, and an extra real use of the pinned value): every
+//         pin drops the threshold compare to 82.8/83.9 or rotates the whole
+//         frame to 64.5-68.8, and none produces the copy form. This is the
+//         opposite of what the pin does at 0x473a00, so the pin is a lever for
+//         the frame's callee-saved choice, not for a load fold.
+//       * the "two address nodes" trick of 0x473590 applied to the row block:
+//         the planes as one `plane[2]` array (plain, indexed by a constant, and
+//         read through a `Row(dst, xoff, stride, k)` helper), a dst reference
+//         (`Bitmap& d = *dst`), a second dst pointer, a pointer-to-field
+//         (`unsigned char** q = &dst->plane0`), a member accessor
+//         (`dst->row0(xoff, stride)`), the planes as `void*` with a cast, an
+//         inline accessor per plane, helpers taking the plane or xoff as an
+//         argument, and helpers holding the whole three-term sum: 68.8 at best,
+//         every one of them still folding.
+//       * tree shapes: named bases (`b0 = xoff + dst->plane0` then `+stride`),
+//         named int sums, `plane + (xoff + stride)`, `(xoff + stride) + plane`,
+//         pointer locals, `unsigned char**` fields, two statements per row, the
+//         rows swapped, `(int)` and `(unsigned)` casts of every term: 87.1 with
+//         the same diff.
+//       * BT_TOOLCHAIN=msvc5-rtm: the same 87.1%, the same 256 bytes.
+//  2. The yoff spill (ours in the guard block, the original's a loop-header
+//     copy after the `jbe`). New this pass, all leaving it in the guard block:
+//     initialisers instead of assignments (`int xoff = ...; int yoff = ...;`),
+//     the two assignment orders, both offsets computed by inline helpers, and
+//     four guard spellings (`||`, `!(a>=0 && b>=0)`, the positive
+//     `if (xoff >= 0 && yoff >= 0)` wrapper, two separate `if`s) crossed: 24
+//     files, best 87.1.
+// Two other levers closed for the record: the declaration-count state (N = 0 to
+// 16 unused `extern int`s, N = 0 is best: 82.8 for N = 1-4, 64.5 for 5-7, 68.8
+// for 8-16), and the dp-scope x compare-spelling x guard-order cross (12 files),
+// which confirms the 87.1% shape is exactly dp0/dp1 declared in the loop body,
+// `*dp1 <= *sp1 + level` and `xoff < 0 || yoff < 0`; everything else in that
+// cross is 82.8/83.9 or worse.
+// Facts worth keeping: the row counter really is in the parameter slot of `y`
+// ([esp+0x28] = arg4) and the inner counter in the slot of `x` ([esp+0x24] =
+// arg3), while `level` stays in its own slot and is reloaded twice inside the
+// inner loop; the dead `mov edx,[esp+0x20]` reloads `dst`. Both builds agree on
+// all of that, so the prologue and epilogue are settled and only the loop head
+// is in question.
+// If you pick this up: the documented way to stop MSVC 5 folding a load into
+// an ALU instruction is to give the value TWO uses (the guide's "a named
+// intermediate must be used twice", 0x4ded60), but that route is closed from
+// the source here too: writing the plane load three times in one expression,
+// `(unsigned char*)(xoff + ((int)dst->plane0 + (int)dst->plane0 - (int)dst->plane0) + stride)`
+// (the same value, read three times), is CSEd straight back and still folds,
+// 87.1 with the same diff. Extra reads of xoff and of stride behave the same.
+// So the fold cannot be reached from this function's source with either
+// toolchain, and the row block should be treated as settled compiler state
+// until the file can be regrouped into its original translation unit.
+//
 // space-bunny-free pass (#4294), 87.1% confirmed unchanged, 2 check.py runs plus
 // ~90 free --sym scores, two permuter rounds (7816 + partial candidates, no
 // improvement), and a headers.py sweep at the NEW 87.1% baseline. Nothing beat

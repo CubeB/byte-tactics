@@ -1,4 +1,79 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// 2026-10-02 pass (Space Bunny Free): 87.5% -> 88.4%, still 1654 bytes.
+// One win, found by permute.py and then isolated by reverting its hunks one at
+// a time (every other hunk it applied was no-op churn and changed nothing):
+// the field_147 block must read rect.left into a local BEFORE the Measure call
+// and assign x0 from it AFTER, so rect.left's live range straddles the call:
+//     int left = rect.left;
+//     int w1 = Measure_004a56b0(buf);
+//     int x0 = left + w1;
+// `int x0 = rect.left; int w1 = Measure(...); x0 += w1;` and the same split
+// with `int x0 = left;` written before the Measure both stay at 87.5, so it is
+// the position of the READ, not the spelling, that matters (the guide's dead
+// reload / split live range note). Scratch: build/scratch/0x4a56b0/gen*.py.
+// Everything below is what I could not move. The whole file is one register
+// allocation, and the original's `x` is not a separate local at all: it is
+// rect.left, reloaded into ecx from its own stack slot after the image call
+// (`mov ecx,[esp+0x1c]`, only inside the `image != 0` branch, which is what a
+// spilled caller-saved live range looks like). Three facts pin that down: the
+// image call loads the surface into ecx (the register x would occupy), the
+// colour byte goes to edx there, and `i` is kept in edi across both later checks.
+// Two shapes get part of the way and each loses somewhere else (all measured,
+// scratch gen4/gen8/gen9/gen16/gen17):
+//  A. `int nx = rect.left;` after the image call, arms on rect.left, image call
+//     spelled `FUN_004bf6f0(entries->surface, &rect, ...)` (no surf local), plus
+//     `Entry_004a56b0* entry = &entries[index];` for the arms: this matches the
+//     original LINE FOR LINE from the rect block through the whole &4 arm
+//     (`mov ebp,ecx; test al,4; movsx ebp,[+0x17]; lea edi,[+0xb6]; xor eax,eax;
+//     add ebp,ecx`) and gives 85.5% / 1663 bytes. Its only defect is the &2
+//     arm, where the inlined Measure's null test comes out as
+//     `mov dword ptr [esp+0x10],0` + `test edi,edi` instead of the original's
+//     `xor eax,eax` + `cmp edi,eax` + `mov [esp+0x10],eax`. Six Measure
+//     spellings (p declared first, `return width` instead of `return 0`, an
+//     explicit `width = 0` on the null path, `(int)p == 0`, `if (!p)`) and four
+//     &2 arm spellings (no `half` local, a `m` local, `>> 1`, Measure through
+//     an entry pointer) all leave that form alone, so it is the allocator, not
+//     the helper.
+//  B. the base (x a real local in edi) keeps the &2 arm's Measure form but
+//     loses the &4 arm: `movsx ecx,w; add edi,ecx; mov ebp,edi` instead of
+//     `movsx ebp,w; add ebp,ecx`. Giving the &4 arm a separate `int w =` local
+//     does move the sum into ebp, but the local then CSEs into the &2 arm and
+//     breaks its Measure form too (83.5% / 1661 bytes, scratch s10, u1-u7).
+//     Two-statement arms, reversed operands, `int& x = rect.left`, short and
+//     const x, an `else nx = x` arm, one-expression arms, a by-value
+//     `operator`/helper around the sum (the lead from the matched 0x49abb0)
+//     and a Rect built by value all canonicalise back to B or to 73%.
+// Still differs (the retry-11 list minus the field_147 register swap, which the
+// win above fixed; all of it downstream of x sitting in edi instead of ecx):
+// rect.right is `lea ecx,[edi+edx-1]` instead of
+// `lea edx,[edx+ecx-1]` (operand order in every source spelling is inert);
+// the image call's surface load goes to eax instead of ecx and `mov ebp,edi`
+// (nx = x) is hoisted above rect.right; the first `i` check uses eax instead of
+// edi and the second reloads instead of reusing; in the field_147 block x0 is
+// now in ebx and x1 in ebp as in the original, but the `mov [esp+0x18],ebx`
+// spill is still missing (so the tail is `dec ebx` in place rather than the
+// original's reload) and `lea esi,[buf]` / `lea esi,[pat]` are hoisted above
+// the `jne`; the 148-block tail uses edx for
+// `obj->field_14 = obj->field_08`; the final FUN_004be950 uses edi for obj and
+// decrements x0 in place where the original reloads the spill.
+// Sharpest lead for the next attempt: x has to be a value whose home is
+// rect.left's stack slot, so MSVC re-materialises it after the call, and
+// nx must not coalesce with it. A construct that stops the &4 arm folding the
+// sum into x (so it lands in ebp) WITHOUT introducing a live `w` local in the
+// &2 arm would finish it; nothing in the statement-shape or helper space
+// tried here does that.
+// Also re-measured on the 88.4% file and all inert (byte-identical): every
+// include set (windows.h/string.h/stdlib.h/stdio.h/memory.h/math.h, alone,
+// swapped and stacked), `int nx = rect.left` instead of `int nx = x`, nx
+// declared after the image call, `void* const surf`, the &2 arm as `i >= 0`,
+// the `i >= 0 && align & 8` test split into nested ifs, `int x0 = left; x0 +=
+// w1;` and `int x1; x1 = x0;` in the field_147 block, and Measure's loop as
+// `for (; *p != 0; ++p)`, `p++`, or a hoisted `char ch`. Load-bearing: the
+// `void* surf` local (dropping it, moving it inside the if or after the x
+// declaration all give 72.9%). Worse: `i != -1` / `i == -1` in either check
+// (85.2), one arm reading rect.left and the other x (83.7 / 70.6), both arms
+// reading rect.left (73.8), `else nx = x` (84.7), Measure's loop through a
+// second pointer or `while ((ch = *p) != 0)` (29.2 / 69.4).
 // 2026-10-01 retry 11 (deepseek-v4.1-flash): kept 87.5% (1654 bytes). ~350 more
 // variants scored, nothing beat the retry-10 file. Measurements worth keeping:
 //  - The shape `int x = rect.left; int nx = x; ... nx = entries[index].w + x;`
@@ -444,9 +519,9 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         if (p != 0) {
             int y = rect.top;
             *p = 0;
-            int x0 = rect.left;
+            int left = rect.left;
             int w1 = Measure_004a56b0(buf);
-            x0 += w1;
+            int x0 = left + w1;
             int x1 = x0;
             int w2 = Measure_004a56b0(pat);
             x0 += w2;

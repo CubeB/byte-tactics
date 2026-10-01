@@ -150,7 +150,6 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
     int xmax = -999999;
     int clip[4];
     int imin, imax;
-    imin = imax = 0;
     int i;
     Rec_004c7580* out;
     int j, k;
@@ -195,16 +194,13 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
         ymin = clip[1];
     if (ymax > clip[3])
         ymax = clip[3];
-    if (ymax == ymin) {
-        if (locked) FUN_004c5fa0(&local);
-        return;
-    }
+    if (ymax == ymin)
+        goto unlock;
 
     out = recs;
     i = imin;
     for (;;) {
-        j = i - 1;
-        k = j;
+        j = k = i - 1;
         if (k < 0)
             k = 3;
         y0 = dst->p[i].y;
@@ -219,10 +215,9 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
             dtx = ((src->p[k].x << 16) - tx) / dy;
             dty = ((src->p[k].y << 16) - ty) / dy;
             if (y0 < clip[1]) {
-                int dd = clip[1] - y0;
-                x += dxdy * dd;
-                tx += dtx * dd;
-                ty += dty * dd;
+                x += dxdy * (clip[1] - y0);
+                tx += dtx * (clip[1] - y0);
+                ty += dty * (clip[1] - y0);
                 y0 = clip[1];
             }
             if (y1 > clip[3])
@@ -264,10 +259,9 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
             dtx = ((src->p[k].x << 16) - tx) / dy;
             dty = ((src->p[k].y << 16) - ty) / dy;
             if (y0 < clip[1]) {
-                int dd = clip[1] - y0;
-                x += dxdy * dd;
-                tx += dtx * dd;
-                ty += dty * dd;
+                x += dxdy * (clip[1] - y0);
+                tx += dtx * (clip[1] - y0);
+                ty += dty * (clip[1] - y0);
                 y0 = clip[1];
             }
             if (y1 > clip[3])
@@ -297,6 +291,8 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
         out++;
     }
 
-    if (locked)
+    if (locked) {
+unlock:
         FUN_004c5fa0(&local);
+    }
 }

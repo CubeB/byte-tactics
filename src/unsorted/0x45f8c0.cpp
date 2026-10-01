@@ -116,6 +116,11 @@
 // `int y` declarations to function scope (98.0 to 98.7); reordering the blank
 // stores (98.0); chained blank stores. The register choice is a whole-function
 // colouring tie that no source form of this function reaches.
+// deepseek-v4.1-flash (issue #3405 rerun): 3 more scored variants, all flat 98.7
+// with the same lea ecx / push ecx hunk: key/value buffers declared inside the
+// do-while body, the '|' cut split into its own static inline CutAtBar helper,
+// and dead int results kept from both FUN_004ab1b0 calls. The merge-block
+// register pick is unchanged.
 #include <windows.h>
 #include <string.h>
 

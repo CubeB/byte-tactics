@@ -88,6 +88,13 @@
 // struct definitions, typedef signatures, and dummy type/function/data symbols
 // of eight kinds. /Oa, /Oi- and /Og change nothing; /Os drops to 8.7%. The
 // verdict stands: the ebx/ebp tie is not reachable from this file's text.
+// deepseek-v4.1-flash retry (issue 3405, 2026-10-01): base kept at 84.1%, all
+// free --sym scores. The view/info ebx/ebp tie still does not move: caching
+// model->owner->map in a pointer local (61.4), hoisting the bright ternary out
+// of the vertex loop (72.2) are worse; the ox/oy view-field hoist, late-
+// assigned function-scope v/f/ip pointers (the 0x459830 src trick shape), a
+// const info pointer, a function-scope uninitialised info assigned in the
+// branch, and a single-use static bright helper are all byte-identical 84.1%.
 // Earlier note from space-bunny-free: several scratch variants scored 80-90%
 // but are wrong; they lay the vertex arrays out 4 bytes high at [esp+0x150],
 // where the original uses [esp+0x14c]. Always check the `lea eax, ...` base

@@ -62,6 +62,18 @@
 // Point16, a spelled-out allocator, moving the <vector> include down, and
 // preceding dummy functions that use the same template. The only remaining
 // difference is still ebx (_S) vs ebp (_Q).
+// deepseek-v4.1-flash retry 2 (88.7% again, 645 of 644 bytes, code unchanged):
+// fresh levers all failed to flip the pick. A file-scope sweep of N unused
+// `extern int dummyK;` declarations, N = 0..2400 step 4 (two batches plus the
+// prior 16-step sweep), is 88.7% everywhere, so the pick is not reachable from
+// the compiler's global symbol state. A Feature reference, both condition
+// orders, a nested value/flags if, an `unsigned short fi = row[x].feature`
+// local, `g_game->features + index` pointer arithmetic, a row pointer declared
+// outside the loop, (short) casts, insert(end(), ...), a two-step temp and a
+// field-wise temp are all 88.7% or worse. Making `flags` a byte, unsigned short
+// (mask 0x200) or unsigned int (mask 0x2000000) changes the emitted test and
+// drops to 69%. The single `lea ecx,[ebp+eax*8]` vs `[ebx+eax*8]` byte remains;
+// see the notes above, this is the archived compiler-state wall.
 #include <vector>
 
 struct Point16 {

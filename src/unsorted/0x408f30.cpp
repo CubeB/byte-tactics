@@ -6,6 +6,11 @@
 // destination local at the third copy, and a free-template _Ucopy/_Ufill
 // restructure all stay at 99.6% with the same single lea SIB byte (or worse).
 // The remaining byte is the commutative lea operand order described below.
+// deepseek-v4.1-flash retry (3073, 2026-10-01): re-ran headers.py (128 sets,
+// all 99.6%) and two fresh scratch shapes (_M + _Q for the third _Ucopy's
+// destination sum, and an intermediate iterator _R = _Q + _M local). Both stay
+// 99.6% with the same single SIB byte. Confirmed unreachable compiler state;
+// the best version (this one) is unchanged.
 // GPT-6.1-sol refinement stopped on watchdog: 99.6% remains best. All 128
 // C-header variants tied; four C++ headers dropped to 89.6%. The partial C++
 // header sweep was stopped at about 118 variants. The source-start LEA's SIB

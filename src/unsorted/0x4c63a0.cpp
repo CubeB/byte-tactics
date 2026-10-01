@@ -104,6 +104,12 @@
 // to be unified. The only shape that would unify them is the single shared Unlock statement
 // already measured at 67.6 percent (frame 0xf8) because held then cannot share slot 0x10
 // with the branch-2 bmp temp. No new variant attempted in this session.
+// Session deepseek-v4.1-flash (7th, timebox): retried the merged shape with held scoped to a
+// block that closes before the Blt path (`{ LONG held; if/else if/else goto skip_unlock;
+// Unlock(held); return; } skip_unlock:`): the compiler DOES merge the two unlock paths into
+// one body, 1086 -> 1061 bytes, but held then needs its own live home at 0x10 (bmp moves to
+// 0x14, frame grows to 0xf8) because held and bmp are simultaneously live in branch 2, so
+// 69.4 percent; reverted to this file.
 // Session deepseek-v4.1-flash (3rd): `for (;;)` in the inlined Lock() loop regresses
 // 83.0 to 69.1 (1086 -> 1118 bytes: the loop rotates and the import-pointer registers
 // move), so `while (1)` in Lock() stays; reverted, 83.0 reconfirmed. Remaining diffs

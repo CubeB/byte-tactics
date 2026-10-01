@@ -30,8 +30,9 @@ Issues labelled `claude` are the orchestrator's own clean-up work (redoing
 what cheaper models left). Never take a `claude` issue, whatever model you are.
 
 Any other issue is open to every model. Issues labelled
-`hard` hold the biggest functions (over 1000 bytes); the label only gives them
-a longer time limit (see below), not a narrower list of models.
+`hard` hold the biggest functions (over 1000 bytes); the label only marks
+their size, not a narrower list of models. Every function is worked until it
+matches or stops improving (see below).
 
 ```sh
 gh issue list --label decomp --state open --search "no:assignee -label:claude" --limit 20
@@ -97,38 +98,36 @@ For each function in the issue:
    `uv run tools/headers.py <addr>` when registers or operand order won't
    budge.
 
-### Time limits: give up and move on
+### When to stop: keep going while you are getting closer
 
-Some functions will not match with the model you are. That is expected: the
-orchestrator re-issues what you leave as a retry, with your notes. What is not useful
-is spending hours on one function. So:
+Work on each function until it matches. Earlier rounds stopped every function
+after a fixed 20 to 60 minutes, and most of what is left has been retried ten
+or more times that way: a near-miss usually needs a long run of small
+experiments, not another short look. So there is no time limit and no cap on
+`check.py` runs. Stop on a function only when you are stuck:
 
-- **Per function**, scaled by its size (the issue lists each function's
-  bytes); stop at whichever comes first (check the time with `date`):
-
-  | function size | `check.py` runs | time |
-  |---|---|---|
-  | up to 400 bytes | 15 | 20 minutes |
-  | 401 to 1000 bytes | 25 | 40 minutes |
-  | over 1000 bytes | 35 | 60 minutes |
-
-  Scoring scratch variants with `check.py --sym` does not count as a run.
-- **Per issue:** after 2 hours (3 hours for a `hard` issue), stop and open the
-  pull request with what you have.
+- **Stuck means no progress:** the function's best score has not gone up in
+  the last 30 `check.py` runs or the last 60 minutes, whichever comes first
+  (check the time with `date`). Every new best score starts both counts again.
+  Scoring scratch variants with `check.py --sym` does not count as a run, but
+  a new best found that way does reset the counts.
+- **The issue is finished** when every function has matched or is stuck. Then
+  open the pull request. If your session has to end before that (a usage
+  limit, say), open it with what you have, as below.
 - **Keep your best version in the file as you go:** whenever a scratch
   variant scores higher than `src/unsorted/<addr>.cpp`, copy it into the file
   at once. A step limit or a stopped session then never strands a better
   version in `build/scratch/`.
 - **When you stop on a function:** leave your best version in its file, with a
-  comment at the top saying what still differs. Mark it `gave up` in the pull
-  request table. It then counts as attempted, and the orchestrator hands it to
-  a bigger model with your notes as a head start.
+  comment at the top saying what still differs and what you tried. Mark it
+  `gave up` in the pull request table. It then counts as attempted, and the
+  next attempt starts from your notes.
 
 ### Subagents (OpenCode)
 
 In OpenCode, do not decompile the functions yourself first. Hand them to the
 `decomp-worker` subagent. It runs on the same model as your session (whatever
-model you were started with) and has its own step limit:
+model you were started with) and stops when it is stuck or out of steps:
 
 1. Start one worker per function, all at the same time, each given its one
    address, the absolute path of your worktree (`.worktrees/issue-<N>`) and
@@ -136,9 +135,11 @@ model you were started with) and has its own step limit:
    worker only touches its own function's file.
 2. When they report, run `uv run tools/checkall.py <all the issue's
    addresses>` yourself. Only trust MATCH lines you see from the checker.
-3. For each function a worker left partial, try it yourself: at most 8
-   `check.py` runs, starting from the worker's file and notes. If it still
-   does not match, mark it `gave up`.
+3. For each function a worker reports as `partial (still improving)` (it ran
+   out of steps while its score was still going up), start a fresh worker on
+   it, telling it to start from the file and notes already there. Repeat
+   until the function matches or a worker reports it `partial (stuck)`; then
+   mark it `gave up`.
 4. In the pull request table, the `model` column says which model wrote the
    final version of each file.
 
@@ -202,7 +203,7 @@ Advice for docs/agent-guide.md:
 
 Include partial files too: a close attempt with notes helps whoever tries next.
 Open one pull request per issue, once, when you have finished all of the
-issue's functions (or reached its time limit), with every function in the
+issue's functions (each one matched or stuck), with every function in the
 table. The orchestrator reviews and merges pull requests as soon as they
 appear, so anything pushed to the branch after that is lost; if you do more
 work on the same issue afterwards, open a new pull request for it.

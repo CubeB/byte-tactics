@@ -7,8 +7,8 @@
 
 Each issue lists neighbouring functions (address order, so related code stays
 together) and is labelled `decomp` plus a size label. Huge functions (over 1000
-bytes) and escalations are also labelled `hard`, which gives them a longer
-time limit; every model may take any issue (see AGENTS.md). Its functions are written
+bytes) and escalations are also labelled `hard`, which only marks their size;
+every model may take any issue (see AGENTS.md). Its functions are written
 to data/attempts.csv as `assigned` to batch `#<issue>` so they are not handed
 out twice; tools/record.py fills in the results after the pull request is
 merged. Agents find and claim issues as described in AGENTS.md.
@@ -103,8 +103,8 @@ def main() -> None:
 
     for title, funcs, bands in groups:
         labels = ["decomp", *[f"size:{b}" for b in bands], *args.label]
-        # `hard` marks the biggest functions and escalations (a longer time limit
-        # in AGENTS.md). Issues labelled `claude` are the orchestrator's own clean-up.
+        # `hard` marks the biggest functions and escalations (their size only;
+        # nobody is excluded). Issues labelled `claude` are the orchestrator's own clean-up.
         if ("claude" not in labels and not args.open
                 and (args.escalation or "near-miss" in labels or "huge" in bands)):
             labels.append("hard")

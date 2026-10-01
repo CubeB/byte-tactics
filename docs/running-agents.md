@@ -35,10 +35,11 @@ OpenCode runs as a lead plus cheap workers:
   whatever model the session was started with (OpenCode gives a subagent
   without a `model:` line its caller's model). They do the first attempt at
   each function, one worker per function, all at once.
-- **Limits:** a worker stops after 110 steps (the file's `steps`) and 12 or
-  18 check runs depending on the function's size, and `AGENTS.md` caps each
-  function by size (15 check runs or 20 minutes up to 400 bytes). Nothing
-  gets stuck for long.
+- **When workers stop:** a worker keeps going while its best score improves
+  and stops when it has not improved in 30 check runs or 60 minutes (the rule
+  in `AGENTS.md`). The file's `steps` (400) is only a safety net: a worker
+  that runs out of steps while still improving says so, and the session
+  starts a fresh one from its file.
 - **Free sessions:** start a session on a free model such as Space Bunny Free
   (`opencode/space-bunny-free`, see `opencode models | grep free`) and its
   workers run on it too, so it costs nothing and you can run as many as you

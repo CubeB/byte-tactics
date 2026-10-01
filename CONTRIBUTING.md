@@ -37,7 +37,10 @@ Give it this prompt:
 subagents, and which models suit which issues. In short:
 
 - Any model may take any `decomp` issue. Issues labelled `hard` hold
-  functions over 1000 bytes and get a longer time limit.
+  functions over 1000 bytes.
+- There is no time limit: agents keep working on a function until it matches
+  or its best score stops improving (30 check runs or 60 minutes without a
+  new best). See `AGENTS.md`.
 - Issues labelled `claude` are the maintainers' own clean-up. Leave them alone.
 - Please have one or two issues claimed at a time rather than many.
 

@@ -281,6 +281,24 @@
 // counter as `unsigned char` to force the original's xor ebx,ebx / cmp bl,0xa
 // byte counter; regresses 86.8 to 82.9 (1268 bytes), reverted. Both functions
 // of the issue were re-checked: this file at 86.8 and 0x453d40 at 28.0.
+// deepseek-v4.1-flash (issue #4201 retry, this pass): re-scored both halves of
+// the k4 dichotomy side by side on this body. Variant A, the from scan as a
+// named local loop followed by FUN_00451bc0(from, PlayerId_004568c0(k4),
+// packet, 2), scores 79.5 at 1288 bytes: it keeps res in edi, restores the ebx
+// byte counter (xor ebx,ebx / cmp bl,0xa / inc ebx) and the ebp player offset,
+// and its ONLY error is the to/from order (our build emits the from scan first
+// into edi and `to` second into eax; the original emits `to` first into edi and
+// `from` second into edx). The two-helper form FUN_00451bc0(
+// FindFrom_004568c0(), PlayerId_004568c0(k4), packet, 2) scores 83.6 at 1302
+// bytes with the k4 loop body byte-identical and the right to/from order, and
+// its only error is the mirror-image colouring: res lives in ebp across the k3
+// loop (original: edi) so the k4 player offset takes edi (original: ebp). Since
+// res and that offset are the two live ranges competing for {edi,ebp} and the
+// original assigns them the opposite way, the last step is to stop res from
+// being live across the k4 loop; narrowing res's live range (a fresh int r2 =
+// res after the loop, an int* rp = &res, reordering the out/res declarations)
+// is folded or ignored, so the tie-break needs a source shape not yet found.
+// Kept at 86.8.
 #include <algorithm>
 
 #pragma pack(push, 1)

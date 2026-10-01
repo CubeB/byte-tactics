@@ -1,4 +1,56 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 retry 8 (deepseek-v4.1-flash, #3660): best is still 69.8% (the form below).
+// New measurements, all scored:
+//  - The w<h register tie is real and use-count sensitive, but only for a BRANCH-LOCAL
+//    surface. In v1 (branch-local surf) one extra FUN_004b7f90(surf,...) call flips the
+//    allocator exactly as the original wants (surf -> ebp, limit -> a home, probes p3/p4/p6),
+//    while the same extra call on the function-scope surface form (z2) does NOT flip: a
+//    function-scope surface that is live from the top is never a register candidate, so its
+//    use count is irrelevant. The original's w<h surface therefore IS a separate variable.
+//  - q1 (entries/e declared before surface, branch-local surf) reproduces the ORIGINAL
+//    prologue instruction for instruction (surface load 0x4a25b5, store to [esp+0x1c],
+//    entries at [esp+0x18]) but the frame grows to 0x44 because the w<h temps and the h<=w
+//    surf take a fresh [esp+0x20] slot instead of reusing limit's/lc's; the branch-local surf
+//    still loses ebp to limit, 64.7%. Adding the extra use to q1 (q1p) does flip surf to ebp
+//    but the frame/slot order stays wrong (limit at 0x14, lc/temp at 0x10) and the score
+//    falls to 63.9%. So the flip alone is not enough: the original's frame has exactly four
+//    scalar slots (limit 0x10, lc 0x14, entries 0x18, surface 0x1c) and NO slot for the
+//    enregistered surf, which only happens if surf is enregistered without a home.
+//  - Tested and inert: v1/v8/v9/v10/v12/v15/v16, w1 (inline Draw wrapper), w2/w3 (inline
+//    wrapper with its own redundant g!=0 check, the guide's 0x4bcb50 shape), s1/s3
+//    (surf=surf), f3/f4 (folded uses), v14a/b and u1/u2 (uninitialised declarations), v18
+//    (shared function-scope limit), v17 (one surface variable for all three branches), v19
+//    (separate function-scope vsurf for the branch only), v20 (inline Surface(obj) getter),
+//    v21 (branch-local named surface, shadowing), v22 (whole w<h branch in an inline helper
+//    taking the surface as a parameter), declaration order permutations o1-o4, q1-q3, z1,
+//    r1 (lc declared first), x1/x2 (short operands, flipped condition), v11a/v11b (hoisted
+//    limit/lc), w3/m1/m2 (Min by reference, i.e. inline-if min shape), m3.
+//  - p7 (an extra real use of limit in the loop test) does NOT flip it either, so the tie is
+//    not a plain use count of the two variables; the p3/p4/p6 flips changed a whole block's
+//    shape, not just a count.
+// Remaining gap: the w<h branch wants its own surface variable enregistered in ebp with no
+// frame home, so limit/lc/lim2 stay in the 0x10/0x14 slots and the inline-if min shape
+// (not the Smaller reference shape the current 69.8% uses) can match. A natural construct
+// that gives that variable one more counted use without emitting code (the guide's 0x4bcb50
+// pattern) is still missing.
+// 2026-10-01 retry 7 (deepseek-v4.1-flash, #3660): kept 69.8%. New measurements, all scored:
+//  - declaring `entries` first and initialising `surface` from it compiles byte-identically
+//    to the stored form (1631 bytes, same slots: surface 0x10, lc 0x14, entries 0x18, min
+//    temp 0x1c, loop pointer in the freed index home 0x58), so the declaration order of the
+//    two entry pointers is not a lever.
+//  - deferring the surface definition to a plain assignment after `e = &entries[index]`
+//    (tested with the declaration first and after e) reproduces the ORIGINAL prologue
+//    instruction for instruction through 0x4a25a1 (entries), the lea chain, 0x4a25b5 (load)
+//    and 0x4a25c2 (store), but the allocator then homes `surface` in the freed index home
+//    [esp+0x58] and gives the loop pointer [esp+0x14]: the exact swap of the original, 67.6%.
+//    Adding hoisted `int limit; int lc;` (with or without forced initial values, which get
+//    dead-code eliminated) on top is still 67.6% / 69.8% and does not move the surface.
+//  - an explicit `Entry_004a2580* p = &entries[1]` walking pointer drops to 55.1%.
+//  - a by-value `inline int Smaller(int,int)` (instead of the const int& form) drops to
+//    62.4% with 1604 bytes: the reference form is what produces the shared 26-byte _itoa tail.
+// Remaining gap: the allocator's home for the function-scope `surface`, ours [esp+0x10] and
+// the original [esp+0x1c] (which in the original frees 0x10 for the w<h `limit`, keeps the
+// reloaded surface in ebp through that branch and leaves no min temp at 0x1c).
 // 2026-10-01 retry 6 (deepseek-v4.1-flash): six more levers tested, none beat 69.8%.
 // Hoisting limit/lc as function-scope locals before entries/surface (the slot order the
 // original shows is limit 0x00, lc 0x04, entries 0x08, surface 0x0c) gives 67.6%: the surface

@@ -1,4 +1,85 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 retry 9 (deepseek-v4.1-flash, #3660): best stays 58.1% (this file,
+//   the nudge version). About 100 check.py runs, no new best. What this pass
+//   established, all scored:
+//   - MSVC 5 folds dead arithmetic and duplicate/CSE'd comparisons BEFORE the
+//     register allocator, so they add no weight. Byte-identical to the 52.3%
+//     no-nudge base: `n += i - i`, `i = i`, `int j = i;`, `entries[i - 1 + 1]`,
+//     `entries[i + 0]`, `entries[i * 1]`, `(int)(unsigned)i`, a duplicate
+//     `i < count+1` in the for header, `(rr = i) < count+1`, `rr = i` in the
+//     increment, and `if (i < 1) return 0;` before the loop (i is constant 1
+//     there, so it is folded away before allocation).
+//   - Only a LIVE emitted branch on i flips the esi/edi rotation, and every
+//     natural construct that emits one adds the same 2 instructions as the
+//     nudge: `if (i >= count+1) break;` at the body top (57.5%, cmp/jge),
+//     `e->type == 7 && i >= 1` (57.9%, cmp esi,1/jl), `i < count+1 && i <
+//     count+1` in the header (57.5%, cmp esi,eax/jge). None beats 58.1%.
+//   - The 0x4bcb50 dead-call-assignment lever does not apply: the loop's only
+//     call (FUN_004c1420) is on the break path, and an inline wrapper taking i
+//     there (`SelectAt_004a3780(entries, i)`) is fully coalesced (byte-
+//     identical to no-nudge). Inline getters never fold: the exact-negation
+//     check compiles to `setge/dec/and` (53.2%, G3/z2 shape), a returning
+//     getter spills the walk pointer to the stack (49.8%).
+//   - The 0x10-block nsel/bc swap does not move either: `short nsel =
+//     me->field_c0;` (plain, `int`, via an inline getter, or declared right
+//     after orig_sel) all compile byte-identically to this file; MSVC
+//     rematerialises nsel into ax at the clamp and gives si to field_bc.
+//   - Loop spellings with a live extra use that keep the walk compiler-made
+//     (`while`, `do/while`, goto, `++i` in the condition) are 50.7-51.9% and
+//     move the entry test's branch polarity.
+//   - Source reorderings of the point.x/y subtractions with `int i = 1;`
+//     between them are byte-identical (58.1%); y-first drops to 57.7%.
+//   - The flip is NOT a plain use count. An extra LIVE arithmetic use of i in
+//     the latch (`i - 1 < entries[0].count`, which emits `lea edx,[edi-1]` in
+//     every iteration) does NOT flip (49.9%). Only an extra BRANCH directly on
+//     i in the first loop flips (nudge, `i >= 1`, duplicate header compare).
+//     A branch on i in the second loop (q9a/q9c) or after the loop (q9b) does
+//     not flip, so the weight is local to the first loop's web.
+//   - The tie is against point.y: replacing the four point.y compares in the
+//     two FUN_004ab510 blocks with another variable flips the whole function
+//     to the original's allocation without the nudge (point.y -> orig_sel
+//     58.3%, -> span 47.2%), while removing two of the four does not (52.6%).
+//     So one loop branch on i weighs about four straight-line point.y uses.
+//   - Dead-looking locals do not count: `int py = point.y;` inside the ab510
+//     blocks, `int r = FUN_004c1420(...)` with the callee redeclared int, an
+//     inline InRect(x, y, r) helper, an inline Self(i) returning i used in the
+//     loop header, `(rr = i) < bound`, and nested-if / continue / else / goto
+//     spellings of the body are all byte-identical to the no-nudge base.
+//   Remaining diffs unchanged: (a) the nudge's cmp esi,1/jl, (b) the point.x/y
+//   schedule (point.x in ecx here vs edi in the original, point.y hoisted),
+//   (c) the 0x10 block nsel/bc swap, (d) the FUN_004ab690 tail merge. The
+//   nudge still needs a natural BRANCH on i in the first loop that emits no
+//   code; nothing in this pass found one.
+// 2026-10-01 retry 7 (deepseek-v4.1-flash): 52.3 -> 58.1%, 1800 bytes. The esi/edi
+//   rotation is BROKEN. Root cause found: MSVC 5 weights register priority by uses, and
+//   this loop counter is exactly one live use short of point.y, so point.y takes esi and
+//   the counter takes edi. Any extra live use of the counter inside the loop flips the
+//   whole function to the original's allocation (point.x temp in edi, counter in esi,
+//   point.y in edi, loop pointer in ecx, n folded from memory) and the code aligns with
+//   the original from the loop exit to the end of the function.
+//   Levers that flip it (all scored): `if (i < 1) break;` at the loop bottom (58.1%,
+//   this file), `if (i >= 1) { ... }` around the body (57.9%), `i < count+1 && i >= 1`
+//   in the for condition (57.9%), a getter with a range check (53.2%), `if (i < 1)
+//   break;` before the type check (57.9%). Levers that do NOT flip it: an extra use
+//   after the loop, an empty `if` (removed before allocation), a duplicate CSE'd
+//   comparison outside the loop, `i - 0`, pointer walks, `e = &entries[i]`, the helper
+//   returning i (`int i = FindGroup(...)`, 49.0%), swapping declarations, moving
+//   `int i;`/`int i = 1;` (all 52.3%), headers.py (768 sets, all 52.3%).
+//   The flip needs a LIVE use of the counter inside the loop, so the extra branch is a
+//   diagnostic nudge, not the original's source; the original has no such branch and
+//   its loop is 2 instructions shorter. THE NEXT STEP: find the natural construct that
+//   adds one live counter use and folds away (docs/agent-guide.md "Register priority":
+//   an inlined sibling getter with its own range check inside an identical explicit
+//   check). Every getter spelling tried emitted a real range check (setge/dec/and or
+//   cmp/jge), so the fold has not been found yet.
+//   Remaining diff with the nudge in place: (a) the 2 extra nudge instructions
+//   (`cmp esi,1 / jl`); (b) the point.x/y schedule: the original computes point.x in
+//   edi (the register point.y then reuses) and loads point.y late, here point.x uses
+//   ecx and the point.y load is hoisted; (c) the 0x10 block keeps bc in si and reloads
+//   nsel from memory, the original keeps nsel in si and bc in cx. Everything from the
+//   loop exit to the epilogue already matches instruction for instruction.
+//   Scratch files: build/scratch/0x4a3780/wG.cpp (52.3%, y1 split + pointer walk,
+//   allocation still wrong), p3.cpp (58.1%, the file), h3b/p3b asm+dumps.
 // 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 52.3%, 1806 bytes. Swapping the point.x/point.y subtract order (51.1%) and moving `int n = 0;` below the r.y1/r.y0 setup (byte-identical, 52.3%) do not move the py/esi register rotation. Still differs: py in esi here vs edi in the original, one rotation only.
 // 2026-10-01 retry 6 (deepseek-v4.1-flash): best stays 52.3%, 1806 bytes. Confirmed the
 //   remaining gap is the one esi/edi rotation (original keeps point.y in edi and reloads
@@ -187,20 +268,23 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
     }
     r.x1 = me->field_17 + r.x0 - 1;
     int n = 0;
-    r.y1 = me->field_19 + r.y0 - 4;
+    r.y1 = me->field_19 + r.y0 - 1;
     r.y0 += 2;
+    r.y1 -= 3;
     Point_004a3780 point = obj->point;
-    point.y -= entries[0].field_15;
     point.x -= entries[0].field_13;
+    point.y -= entries[0].field_15;
     int i;
-    for (i = 1; i < entries[0].count + 1; i++) {
-        if (entries[i].type == 7) {
+    Entry_004a3780* e = &entries[1];
+    for (i = 1; i < entries[0].count + 1; i++, e++) {
+        if (e->type == 7) {
             if (n == me->group) {
                 FUN_004c1420(entries[i].field_d6);
                 break;
             }
             n++;
         }
+        if (i < 1) break;
     }
     if (i == entries[0].count + 1)
         FUN_004c1420(DAT_0051fba4->current);

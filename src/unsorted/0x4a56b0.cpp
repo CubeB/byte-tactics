@@ -1,148 +1,239 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// 2026-10-01 retry 6 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. NEW
-// and important: the guarded `while (i < entries[0].b6.count + 1)` DOES reach
-// the target loop allocation (bound ecx, i edi, t spilled at frame+0x10, walk
-// pointer edx) as soon as the x phi uses the sibling 0x4a53c0 `int nx = x;`
-// two-variable idiom (build/scratch/0x4a56b0/v9.cpp). v9 is 1662 bytes, exactly
-// the original size, and its loop matches instruction for instruction; the 55.2%
-// score is only because `entries` lands in ebp where the original has ebx (the
-// t-copy temp then takes ebx instead of ebp), a single swap that renames a base
-// register in nearly every instruction. Both are internally consistent
-// allocations, so no spelling tried (t before i, entries statement first) moves
-// it. The x/nx idiom also removes the x spill and the `w` operand order
-// (`add ecx, edx` vs the original `movsx ebp, w; add ebp, ecx`) survives every
-// arm spelling tried (`w + x`, `x + w`, `nx = w; nx += x;`), all 58.1%, 1647
-// bytes and byte-identical to each other, when paired with `while (1)`.
-// 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. `if (i == entries[0].b6.count + 1) break;` is byte-identical to `>=` (60.3%), so the comparison operator is not the bound-spill lever. Still differs: bound spilled here vs original ecx, t in edx vs original memory at frame+0x10, and the x phi through stack.
-// 2026-10-01 retry 4 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. New
-// facts: the t-vs-walker tie is independent of the x phi. The x-register
-// variant (`x += w; x -= Measure()`, 58.1%) moves i's home to frame+0x14 (the
-// original's i slot) but t still lands in edx and the bound is still spilled,
-// so enregistering x does not force t to memory. Forcing t out of a register
-// was tried with int[2], a struct member, unsigned, long, swap-declaration and
-// `t = t + 1`; every one is byte-identical to this 60.3% shape (60.3%, 1649).
-// Removing windows.h drops to 55.7%. So the loop allocation is a genuine
-// compiler-state tie; the remaining differences are the t/bound register swap
-// (diff slots frame+0x10 vs frame+0x14) and the downstream rect base shift.
-// 2026-10-01 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. New scratch
-// results (build/scratch/0x4a56b0). The loop: a guarded `if (i < bound) { do {
-// ... } while (i < bound); }` (v10) and a plain `for`/`while (i < bound)` (v3,
-// v4, v5, v6, v7, declaration order swapped too) all land on the 49.3% mirror
-// (i memory, t in edi, bound in ecx); the unguarded `while (1)` stays 60.3%.
-// So the mirror is not a declaration-order or loop-guard question.
-// The x phi: BOTH `x += w; x -= Measure();` (v1) and `x = w + x; x -=
-// Measure();` (v8) DO move x out of the stack and into ecx incoming / ebp
-// outgoing, with no spill slot, exactly as the original. But each scores only
-// 58.1%, 1647 bytes: MSVC then accumulates `w` into ecx (`add ecx, edx; mov
-// ebp, ecx`) where the original loads w into ebp first (`movsx ebp, w; add
-// ebp, ecx`), and the changed rect base then shifts the whole second half. So
-// the spill-free x is reachable; what is still missing is the w-first operand
-// order, which the natural `w + x` spelling does not give because MSVC
-// reassociates into the x register.
-// 2026-09-30 retry 3 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. Tested
-// twelve more loop spellings from scratch (build/scratch/0x4a56b0): guarded
-// for / while / do-while and `for (;;)` with a manual break all land on the
-// 49.3% mirror (i in memory, t in edi); `i > count` 55.1%, an explicit pointer
-// walk 55.2%, a goto-spelled type block 41.1%, and a ternary x computed before
-// the rect 41.4%. The one new datum: moving `int t = 0;` above
-// `Entry* entries` scores 59.8% and only reorders the prologue (the field_14
-// store moves after the arg load); it does NOT demote t, confirming the
-// spill is not a declaration-order question. The target keeps bound in ecx,
-// walk pointer in edx and t at frame+0x10; the unguarded shape keeps t in edx
-// and spills the bound, and no plain C++ spelling moves that choice.
-// 2026-09-30 retry (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. Confirmed
-// again that every guarded loop shape (while (i < bound), for (; i < bound; i++),
-// declaration order either way) is the 49.3% mirror: i lands in memory, the tab
-// counter t in edi, bound in ecx, pointer in edx. The winning unguarded
-// `while (1)` + explicit `break` keeps i in edi but MSVC does not hoist the bound
-// to a register, so it spills the bound to [esp+0x14] and gives the free edx to t
-// (original: bound ecx, t in memory). An explicit `Entry* e = &entries[1]` with
-// e++ copy-propagates away and is byte-identical to the 60.3% version, so it does
-// not consume edx. Variants tried with --sym and no better than 60.3%: guarded
-// while/for (49.3%), named `int cnt` bound (48.4%), explicit index pointer (60.3%,
-// identical), x assigned in all three arms as an explicit phi (42.5%, grows the
-// frame), a named nx temp (identical) and `unsigned int i` (identical).
-// PARTIAL: 60.3%, 1649 against 1662 bytes. What the function does: it walks the
-// entry list of a layout object looking for the entry whose tab number matches
-// entry[index]'s tab, sets the language from that entry, then lays the text out
-// (right/centre/left), draws the text, and finally either draws a bevel
-// rectangle or highlights a single character in the string.
-//
-// What moved the number this session, and it is the one thing every earlier
-// session missed: the loop must be written as an UNGUARDED `while (1)` with the
-// bound test as the first statement and an explicit `break`, NOT as a `for`.
-//     while (1) {
-//         if (i >= entries[0].b6.count + 1)
-//             break;
-//         ...
-//         i++;
-//     }
-// That alone took 49.3% to 60.3%. It is what puts the loop counter `i` in edi,
-// which is what the original does. With a `for` (or with a plain
-// `while (i < ...)`) MSVC 5 keeps `i` memory resident, folds the preheader test
-// to the constant `cmp ecx, 1`, and hands edi to the tab counter `t` instead;
-// every later edi/i use then differs and the whole tail shifts. So the
-// register-allocation question that three earlier sessions gave up on is
-// actually a LOOP SHAPE question, not a variable-ordering question. Declaration
-// order, `t++` vs `t = t + 1`, `i <= count`, a named bound, a named tab value
-// and a hoisted `Entry*` are all byte-identical to the winning shape.
-//
-// Still differs (see the diff): the original keeps the loop bound
-// `entries[0].b6.count + 1` in ecx and spills the tab counter `t` to
-// frame+0x10, with `i`'s home at frame+0x14. This version keeps the bound in a
-// memory temp at frame+0x14 and puts `t` in edx, with `i`'s home at
-// frame+0x10. A named local for the bound does not fix it: the named local then
-// takes edi away from `i` (48.4%), because MSVC gives a named loop-bound local
-// a callee-saved register while an expression gets a scratch.
-// 2026-09-30 retry 2 (deepseek-v4.1): re-trialled the loop, nothing improved on
-// 60.3%. The flipped guard `entries[0].b6.count + 1 <= i` compiles
-// byte-identically to the `i >= ...` winner (MSVC canonicalises the compare, the
-// bound still ends up in memory). The counter as `int t[1]` with t[0] uses is
-// byte-identical too, so MSVC promotes the element and a memory home is not
-// reachable that way. A `const int bound` local steals edi from `i` (48.4%). A
-// second break test at the loop bottom (48.7%) and wrapping the loop in
-// `if (i < count + 1) { while (1) ... }` (49.3%) both reproduce the guarded
-// shape: bound in ecx, counter in edi, index in memory. Every pre-test plus
-// bottom-test shape lands there, so the target allocation (index edi, counter in
-// memory, bound ecx, walk pointer edx) only falls out of the single-test
-// unguarded shape, where MSVC chooses to spill the bound instead of the counter.
-// 2026-09-30 (deepseek-v4.1): the guarded loop was re-tried in the exact shape
-// that MATCHES the sibling 0x4a53c0 (`int i; int t = 0;
-// for (i = 1; i < entries[0].b6.count + 1; i++)`, t in a register there):
-// 49.3%, ours 1656 bytes. MSVC folds the preheader to `cmp ecx, 1`, puts i in
-// memory and t in edi, the mirror image of the target (i in edi with a home
-// at [esp+0x14], t in memory at [esp+0x10], bound in ecx, entry ptr in edx).
-// The home slot of i is genuine: the original writes edi to [esp+0x14] at both
-// loop exits (0x4a5731, 0x4a5739) and reloads it at 0x4a599b after the
-// Measure calls clobber edi. So the 60.3% `while (1)` shape already has the
-// right i/t split and only the bound-vs-t register choice is inverted.
-// Also tried and byte-identical to the winner: `t = t + 1`, a named `int lang`
-// for the call argument, `int i; i = 1;` instead of `int i = 1;`, a named
-// `int cnt` for `entries[0].b6.count`, `!(i < ...)` for the bound test, and a
-// dead `t = t;` in the break arm. Worse: hoisting `entries[index].tab` into a
-// named local (37.2% as `int`, 35.6% as `signed char`), an
-// `Entry_004a56b0* e = &entries[i]` (50.2%), a hoisted `void* surf` (50.3%),
-// a guarded `do/while` (49.3%) and two independent `if`s instead of `else if`
-// (27.8%, the second arm then also runs on the right-align path).
-//
-// The SECOND remaining difference, and the one that shifts the most bytes: the
-// original resolves the x phi (right-align / centre-align / no-align) in
-// REGISTERS, with the incoming x in ecx and the outgoing x in ebp
-// (`mov ebp, ecx` at 0x4a587e, then each arm rewrites ebp from ecx). Here MSVC
-// gives x a stack home at frame+0x1c (`mov dword ptr [esp+0x1c], ebp`) and
-// reloads it after every call, which costs one extra dword slot and so pushes
-// the whole rect down by four (ours 0x20/0x24/0x28/0x2c, the original
-// 0x1c/0x20/0x24/0x28). It also makes the right arm compute `w - measure` and
-// add x afterwards instead of the original's `w + x` before the call and
-// `- measure` after. This is the same "phi through the stack" problem the
-// matched sibling 0x4a53c0 hit, and none of these moved it: `short x` (52.3%),
-// `int x; x = rect.left;` as a separate statement, a full ternary chain, the
-// arms as `if (!(align&4)) { if (align&2) ... } else ...` (55.5%), a named
-// `int mw` for each Measure result, an extra `int x2 = x` copy used by the
-// first draw call (53.6%), a named `int w`, and hoisting the surface pointer
-// (50.3%). The centre arm also reassociates: the original computes
-// `w/2 + x` and then `- measure/2`, we compute `w/2 - measure/2` and then
-// `+ x`, and the `align & 2` test must stay a separate `else if` block.
+// 2026-10-01 retry 11 (deepseek-v4.1-flash): kept 87.5% (1654 bytes). ~350 more
+// variants scored, nothing beat the retry-10 file. Measurements worth keeping:
+//  - The shape `int x = rect.left; int nx = x; ... nx = entries[index].w + x;`
+//    is right: the MATCHED sibling 0x4a53c0 uses exactly it and compiles to the
+//    original's `movsx ebx,w; add ebx,esi` (sum into nx's register) there. What
+//    differs here is the register context: 0x4a53c0 has x=esi, nx=ebx and no
+//    image call, so its x stays in i's freed register and the arm computes into
+//    nx. Here x is live across the image call and gets edi; the allocator then
+//    folds nx into x's value and re-copies (`add edi,ecx; mov ebp,edi`).
+//  - `nx = entries[index].w` assigned after the call (with x after too) is the
+//    only family that emits the original's `add ebp,ecx` arm and hits 1662
+//    bytes, but it hoists `movsx ebp,w` and the surface load above the align
+//    test and the arm loses its own movsx: 72.9-73.3%. The hoisted movsx is the
+//    pre-call nx = w materialisation; the compiler CSEs the arm's w load into
+//    it. `nx = w + nx` (c4) also keeps the sum in ebp (`movsx eax,w; add
+//    ebp,eax`) but scores 70.7%.
+//  - Two-statement arms (`nx = w; nx += x;`), cast/paren forms, `nx = w + nx`,
+//    `nx = x + w`, else-nx, x before/after the call in all 4 orders, entry
+//    pointer for the arms only, Measure body reordering (p before width breaks
+//    everything, 56.9%), and 189-combination sweeps of pre/mid/arm spellings
+//    all canonicalise to the same coalesced form or score lower.
+//  - i checks: only `i >= 0` / `i < 0` score 87.5; `i != -1`, `i == -1`, a
+//    local copy of i, and `*pi` forms all give 84.3 (2-line memory compares
+//    shift the diff). No spelling put i in edi; the original's edi reuse needs
+//    x out of edi.
+//  - field_147 x0/x1: `x0 += w1; int x1 = x0;` (x0=ebp,x1=ebx) beats
+//    `int x1 = x0 + w1; x0 = x1;` (x0=ebx,x1=ebp, the original's registers,
+//    86.9%) because the latter makes the second Measure use ebx as its width
+//    accumulator and loses more lines than the swap wins. x0-1 materialisation,
+//    extra x1 copies, declaration permutations and a temp for obj: all 87.5 or
+//    worse. The missing `mov [esp+0x18],ebx` spill and the `mov ebx,[esp+0xc0]`
+//    obj load are downstream of x0 living in ebp.
+// Still differs: same list as retry 10 (x in edi instead of the original's
+// caller-saved ecx reload, so the rect block, both arms, the i checks, the
+// field_147 block's x0/x1/spill and the final call's obj/argument schedule all
+// follow). Best lead: a source construct that keeps x out of a callee-saved
+// register while stopping MSVC from folding nx into x at the arm; 0x4a53c0
+// proves the statement shape itself is not the problem.
+// 2026-10-01 retry 10 (deepseek-v4.1-flash): 84.7% -> 87.5%, 1647 -> 1654 bytes.
+// Three wins, all found with the checker's own percentage (my instruction-level
+// alignment disagreed with it twice and is not a reliable proxy):
+//  1. First i check as `i >= 0` (not `i != -1`): the compiler then emits
+//     `mov eax,[esp+0x14]; test eax,eax; jl` (3 lines) where the original has
+//     `mov edi,[esp+0x14]; cmp edi,-1; je` (3 lines). `i != -1` gives a 2-line
+//     memory compare and scores 84.7; the 3-line form aligns better (86.8).
+//     Second check stays `i < 0`. `i >= 0` and `i != -1` are equivalent here
+//     (i is 1..count or -1, never 0).
+//  2. field_147 block back to `x0 += w1; int x1 = x0;` (not `int x1 = x0 + w1;
+//     x0 = x1;`): at the 86.8 context this is 87.4 (the retry-9 advice was for
+//     the 84.2 context and is now obsolete). It swaps x0/x1 into ebp/ebx (the
+//     original has x0=ebx, x1=ebp) but the checker prefers it.
+//  3. FUN_004be950's last parameter must be `int colour`, not `unsigned char`:
+//     the caller then emits the original's `xor edx,edx; mov dl,[ebx+0x8b4]`
+//     instead of a bare `mov dl,...` (+2 bytes, 87.4 -> 87.5). The matched file
+//     0x4be950.cpp declares it `int color`; check every callee declaration
+//     against its matched file before blaming the allocator.
+// Still differs (one root cause: x is live across the image call, so it is in
+// edi and the original's caller-saved ecx is never free):
+//  - rect block uses edi for rect.left and `lea ecx,[edi+edx-1]` for rect.right;
+//    the original keeps left in ecx and computes right into edx.
+//  - `mov ebp,edi` (nx = x) is hoisted to just after the left load, +2 bytes
+//    before the image call; the original's `mov ebp,ecx` sits after the call
+//    and its `mov ecx,[esp+0x1c]` reload is missing from ours (4 bytes).
+//  - &4 arm: `movsx ecx,w; add edi,ecx; mov ebp,edi` instead of the original's
+//    `movsx ebp,w; add ebp,ecx` (+2 bytes). &2 arm: `lea edi` one line late.
+//  - first i check uses eax where the original uses edi; the second reloads
+//    instead of reusing (`cmp edi,-1; jne`).
+//  - field_147: x0 in ebp not ebx, `lea esi,[buf]`/`[pat]` hoisted above the
+//    `jne` twice, x0 not spilled to [esp+0x18] (tail is `lea edx,[ebx+ebp-1]`
+//    instead of `mov edx,[esp+0x20]; dec edx`).
+//  - 148 tail uses edx for `obj->field_14 = obj->field_08` where the original
+//    uses ecx; final FUN_004be950 block uses edi for obj where the original
+//    reuses ebx after spilling x0.
+// ~120 more variants this round (arm operand order, temps, references,
+// single-expression forms, x/nx/surf declaration order and permutations,
+// `entry` pointer, `nx = w + nx` / `nx += w`, nx-in-else, bool/i-copy forms,
+// dead stores, no-op self-assignments, uninitialised x/nx, nested if, align
+// local, struct field types, Measure-helper spellings) all land on 1654 bytes
+// or worse. Headers: all 128 sets (768 with --cpp) give <= 87.5.
+// Lead for the next attempt (two shapes, each one edit from a big jump):
+//  A. x after the image call (w1): the whole first half matches line for line
+//     (1665 bytes, +3) but the diff aligns the repeated Measure bodies wrongly
+//     and the checker drops to 72.9. Its only real defect is the &4 arm
+//     accumulator (folded into ecx).
+//  B. `int nx = rect.left;` BEFORE the image call, `int x = rect.left;` after,
+//     and the &4 arm as `nx += entries[index].w;` (scratch q_q1b, 84.7%,
+//     1659 bytes): this is the only spelling found that gives the original's
+//     `add ebp, ecx` arm (the two rect.left loads make nx and x distinct
+//     values, so MSVC cannot fold them). Everything around the arm matches the
+//     original byte for byte, including the je target; the arm differs by one
+//     register (`movsx ecx,w` where the original has `movsx ebp,w`). It still
+//     hoists `mov ebp,ecx` to just after the left load (before rect.right) and
+//     hoists the image call's surface load into edi, and those two hoists plus
+//     the diff's alignment are why it scores below this file. Combining B's
+//     arm with A's post-call copy placement (nx materialised after the call
+//     but not foldable into x) is the next thing to try; `nx = x;` after the
+//     call folds and gives A back.
+// 2026-10-01 retry 9 (deepseek-v4.1-flash): 82.5% -> 84.7%, 1652 -> 1647 bytes.
+// Two wins came from REORDERING statements in the field_147 block (the
+// allocation is decided globally, so this block's shape moves the whole
+// function's register assignment):
+//  1. `int y = rect.top;` then `*p = 0;` then `int x0 = rect.left;`
+//     (scratch sweep4: yp0x0w1) took 82.5 -> 84.2. With `*p = 0` first, x0
+//     lands in ebp and x1 in ebx; with y first it flips to the original's
+//     x0/x1 (ebx/ebp). Any other permutation of y / *p = 0 / x0 / w1 is worse.
+//  2. `int x1 = x0 + w1; x0 = x1;` instead of `x0 += w1; int x1 = x0;`
+//     (scratch b22 v5) took 84.2 -> 84.7: MSVC merges x0 and x1, keeps x1 in
+//     ebp and defers x0's update, so the w2 accumulator comes out in edi like
+//     the original and the tail's `lea ebx,[eax+ebp-1]` uses ebx.
+// Both are semantic no-ops, so the compiler does the work.
+// ~1000 more variants in build/scratch/0x4a56b0/{sweep1..sweep7,b1..b31}.py
+// all land on 84.7% or lower, and every 84.7% variant is byte-identical code, so
+// the remaining x/nx coalescing is a hard allocator decision, not a source
+// spelling:
+//  - x/nx declaration order and position (before/after the image call, before/
+//    after rect.right, nx-first, two-step, uninitialised then assigned), const,
+//    register, short, unsigned, int&/const int&, and rect.left-inline spellings
+//    all give the same 1647-byte code.
+//  - Arm spellings (w + x, x + w, w then += x, w + nx, nx += w, one-expression
+//    forms, temp locals, casts, nested if, align local, switch) are all
+//    canonicalised to the same `add edi, ecx` accumulate-into-x form.
+//  - The only shape that puts x in ecx with the post-call reload is declaring
+//    x/nx AFTER the image call (scratch t_d3_*.cpp), but then the sum still
+//    coalesces into ecx (`add ecx, edx; mov ebp, ecx`) and the rest of the
+//    allocation shifts: 66.1%, 1665 bytes. Same for the no-surf variants.
+//  - surf local placement, text-pointer locals, else-nx arms, and no-op
+//    self-assignments / dead stores (the agent-guide 0x461b10 live-range trick)
+//    do not move the coalescing: the no-ops are deleted before allocation.
+// Still differs: (a) the arms region (the largest hunk, 55 lines): x lives in
+// edi so the &4 arm accumulates into x's register (`movsx ecx,w; add edi,ecx;
+// mov ebp,edi`) instead of the original's `movsx ebp,w; add ebp,ecx`, rect.right
+// is `lea ecx,[edi+edx-1]` instead of `lea edx,[edx+ecx-1]`, and the image
+// call's surface load goes to eax instead of ecx; (b) the first `i != -1` check
+// compares memory instead of `mov edi,[esp+0x14]; cmp edi,-1`; (c) the field_147
+// block hoists `lea esi,[buf]`/`lea esi,[pat]` above the `jne` (the original
+// puts them inside the loop path) and defers x0 so the tail is
+// `lea ebx,[eax+ebp-1]` where the original does `add ebx,eax;
+// mov [esp+0x18],ebx` and reloads it; (d) the 148-block tail uses edx instead
+// of ecx; (e) the final FUN_004be950 argument schedule differs (ours decrements
+// x0 in place, the original reloads it from [esp+0x18] and decs into edx).
+// Lead: the original's x must be live past the &4 arm's sum so the sum cannot
+// reuse its register (then the sum goes to ebp and edi is free for the Measure
+// text pointer early, matching both arms' schedule). No source construct tried
+// extends that live range without emitting code; the guide's 0x453360 note
+// (dead reload = split live range, not a deleted statement) suggests the
+// original had a real extra use of x or i that this reconstruction lacks.
+// 2026-10-01 retry 8 (deepseek-v4.1-flash): 62.1% -> 82.5%, 1652 bytes.
+// The big win came from reading the original's disassembly for source-level
+// details instead of allocation guesses. Five source shapes each moved the
+// score, all verified with check.py:
+//  1. The final FUN_004be950 takes a RELOADED surface: write
+//     `obj->holder->entries->surface`, not `entries->surface` (62.1 -> 64.5).
+//     That ends entries' live range before the field_147 block and the
+//     compiler then reloads holder/entries exactly like the original.
+//  2. `char buf[0x80]`, not 0x7c: the original's frame is 0xac bytes and only
+//     0x80 makes the prologue and every local offset line up (64.5 -> 66.0).
+//  3. The FUN_004be950 arguments use lh2 for the 3rd argument and lh1 for the
+//     5th (both are LineHeight calls; the original evaluates them in that
+//     order): `..., x0, lh2 + y - 1, x0 + w2 - 1, lh1 + y - 1, ...`
+//     (66.0 -> 66.4).
+//  4. With those in place the PLAIN `entries[i]` loop gives the original's
+//     loop exactly (bound ecx, walk edx, init after the guard) AND entries in
+//     ebx: the old "plain loop puts entries in ebp" note is obsolete
+//     (66.4 -> 67.5).
+//  5. The image call reads its surface from a LOCAL: `void* surf =
+//     entries->surface;` then `FUN_004bf6f0(surf, ...)`. This one flipped the
+//     right-align arm from "add ecx,edx; mov ebp,ecx" to the original's
+//     accumulate-into-nx shape and took 67.5 -> 77.3 in one step.
+//  6. In the field_147 block, `int x1 = x0;` before the second Measure and
+//     `x0 += w2;` after it, passing x1 and x0-1, is worth +0.6.
+//  7. The two i checks want DIFFERENT spellings: `i != -1` for the
+//     `i != -1 && (align & 8)` test and `i < 0` for the `i == -1` test
+//     (mixing them either way gives 82.5; both `!= -1` gives 77.3, both
+//     `>= 0` gives 78.6). The original's code is `mov edi,[esp+0x14];
+//     cmp edi,-1; je` for the first one; this file compares memory there, so
+//     a register-forcing construct for i is still missing.
+// Also found: x and nx must be declared BEFORE the image call (69.7 with them
+// after, 77.3 before), and CSE'd extra uses of entries do nothing (weights are
+// computed after CSE/DCE), as do inline wrappers taking entries.
+// What still differs at 82.5%: x/nx are coalesced into one register (edi)
+// here, while the original keeps x in ecx and nx in ebp; the align&4 arm then
+// computes "nx += w" instead of "nx = w; nx += x", the first i != -1 check
+// compares memory instead of loading i into edi, and the field_147 block has
+// x0/x1 in the opposite callee-saved registers (ebp/ebx vs ebx/ebp). All of
+// these track the same coalescing. Scratch: build/scratch/0x4a56b0/batch*.py,
+// mixi_first_ne.cpp (the file, 82.5), mixi_second_eq.cpp (the mirror mix,
+// 82.5), last_i_lt0.cpp (78.6), ic_surf_local.cpp (77.3).
+// Ruled out for the coalescing: const/unsigned/reference x, nx-based arm
+// expressions, x from entries[index].x, x used after the arms, declaration
+// order, and moving x/nx after the call.
+// Lead for the next attempt: making nx a separate variable assigned in an
+// `else nx = x;` arm (instead of `int nx = x;` up front) yields exactly the
+// original's 1662-byte size at 77.2% (scratch el_else_nx.cpp). Its diff is
+// the same shape as this file's, so the coalescing is still there, but the
+// size match means the frame and instruction lengths line up; combining that
+// structure with the right register assignment is the most promising next
+// step.
+// 2026-10-01 retry 7 (deepseek-v4.1-flash): best 62.1%, 1661 bytes (was 60.3%).
+// Two findings, both verified by compiling scratch variants and reading the /Fa
+// listing:
+//  1. The loop allocation is decided GLOBALLY, not by the loop spelling. With a
+//     plain `entries[i].type` loop the compiler strength-reduces a walk pointer
+//     and puts `entries` in ebp, nx in ebx (55.2%, 1662 bytes: every instruction
+//     matches except a global ebx<->ebp rename of entries/nx). Declaring an
+//     EXPLICIT `Entry* e = &entries[i];` walk with `e->type`/`e++` instead moves
+//     `entries` into ebx and nx into ebp (the original's allocation) and scores
+//     62.1%. Every loop spelling (for/while/guard-do/do-while/while1), counter
+//     type, bound spelling, declaration order and phi spelling I tried gives one
+//     of those two, never the original's exact mixture.
+//  2. What still differs at 62.1% (see the diff): (a) with the explicit walk the
+//     walk pointer is initialized in the preheader and takes ecx while the bound
+//     takes edx; the original computes the bound first into ecx and creates the
+//     walk inside the loop entry (`lea edx,[ebx+0x15b]` after the guard), which
+//     only happens when the walk is compiler-generated (and then entries goes to
+//     ebp). (b) rect.right is `lea edx,[ecx+edx-1]` here vs `[edx+ecx-1]`
+//     original. (c) the right-align arm computes `add ecx,edx; mov ebp,ecx`
+//     (x += w; nx = x) instead of the original's `movsx ebp,w; add ebp,ecx`
+//     (nx = w; nx += x). All three are downstream of the same register choice.
+// Also tried and no better: moving the preceding matched sibling 0x4a53c0 into
+// the same file (no effect), a named bound (int/short), pointer initializer
+// spellings (&entries[i], entries+i, entries+1, char* cast), pointer declared
+// inside the loop body (strength-reduced), hoisting entry/entries2, 400 random
+// safe mutations, and routing the tail's surface loads through obj->holder->
+// entries (which flips entries to ebx but changes the code and scores 58.6%).
+// Sharpest clue for the next attempt: the two effects track the explicit
+// pointer's live range. A pointer whose live range starts BEFORE the guard
+// (`Entry* e = &entries[i];` or a dead `e = entries;` first) gives entries=ebx
+// but puts the walk in ecx and the bound in edx. A pointer first assigned
+// INSIDE the guard (`if (i < bound) { e = &entries[i]; do {...} while (...) }`)
+// is strength-reduced away: the loop then matches the original exactly (bound
+// ecx, walk edx, init after the guard) but entries goes back to ebp. No spelling
+// found that keeps both; the original is likely one of these two shapes with a
+// declaration detail that survives, so try declaring the pointer or the loop
+// variables in a scope whose live range straddles the guard without being used
+// there.
 #include <windows.h>
 #include <string.h>
 
@@ -219,7 +310,7 @@ int __stdcall FUN_004bf6f0(void* surface, Rect_004a56b0* rect, int colour);
 void __stdcall FUN_004bfe10(void* surface, Rect_004a56b0* rect);
 void __stdcall FUN_004bf4d0(void* surface, Rect_004a56b0* rect, int param);
 void __stdcall FUN_004be950(void* surface, int x1, int y1, int x2, int y2,
-                            unsigned char colour);
+                            int colour);
 void __stdcall FUN_004a50e0(void* surface, char* text, int x, int y, int maxw,
                             int style);
 int __stdcall FUN_004a51d0(void* surface, char* text, int x, int y, int maxw,
@@ -260,9 +351,7 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
 
     int i = 1;
     int t = 0;
-    while (1) {
-        if (i >= entries[0].b6.count + 1)
-            break;
+    for (; i < entries[0].b6.count + 1; i++) {
         if (entries[i].type == 7) {
             if (t == entries[index].tab) {
                 FUN_004c1420(entries[i].language);
@@ -270,7 +359,6 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
             }
             t++;
         }
-        i++;
     }
     if (i == entries[0].b6.count + 1) {
         FUN_004c1420(DAT_0051fba4->current);
@@ -292,34 +380,39 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
     rect.right = entries[index].w + rect.left - 1;
     rect.bottom = entries[index].h + rect.top - 1;
 
-    if (entries[index].image != 0)
-        FUN_004bf6f0(entries->surface, &rect, obj->colours[entries[index].image]);
-
     int x = rect.left;
+    int nx = x;
+    void* surf = entries->surface;
+    if (entries[index].image != 0)
+        FUN_004bf6f0(surf, &rect, obj->colours[entries[index].image]);
+
     if (entries[index].align & 4) {
-        x = entries[index].w + x - Measure_004a56b0(entries[index].b6.text);
+        nx = entries[index].w + x;
+        nx -= Measure_004a56b0(entries[index].b6.text);
     } else if (entries[index].align & 2) {
-        x = entries[index].w / 2 + x - Measure_004a56b0(entries[index].b6.text) / 2;
+        nx = entries[index].w / 2 + x;
+        int half = Measure_004a56b0(entries[index].b6.text) / 2;
+        nx -= half;
     }
 
-    if (i != -1 && (entries[index].align & 8)) {
+    if (i >= 0 && (entries[index].align & 8)) {
         FUN_004c13a0(obj->colours[0], FUN_004c13f0());
-        FUN_004c14f0(entries->surface, entries[index].b6.text, x + 1, rect.top + 3, -1);
+        FUN_004c14f0(entries->surface, entries[index].b6.text, nx + 1, rect.top + 3, -1);
     }
 
     FUN_004c13a0(entries[index].colours, FUN_004c13f0());
 
-    if (i == -1) {
+    if (i < 0) {
         int lh = LineHeight_004a56b0();
         if (rect.bottom - rect.top > lh * 2)
-            FUN_004a51d0(entries->surface, entries[index].b6.text, x, rect.top,
+            FUN_004a51d0(entries->surface, entries[index].b6.text, nx, rect.top,
                          rect.right - rect.left + 1,
                          rect.bottom - rect.top + 1, entries[index].colours);
         else
-            FUN_004a50e0(entries->surface, entries[index].b6.text, x, rect.top,
+            FUN_004a50e0(entries->surface, entries[index].b6.text, nx, rect.top,
                          rect.right - rect.left + 1, entries[index].colours);
     } else {
-        FUN_004c14f0(entries->surface, entries[index].b6.text, x, rect.top, -1);
+        FUN_004c14f0(entries->surface, entries[index].b6.text, nx, rect.top, -1);
     }
 
     if (entries[index].field_148 & 1) {
@@ -345,20 +438,22 @@ void __stdcall FUN_004a56b0(Class_004a56b0* obj, int index)
         char pat[2];
         pat[0] = (char)c;
         pat[1] = 0;
-        char buf[0x7c];
+        char buf[0x80];
         strcpy(buf, entries[index].b6.text);
         char* p = strstr(buf, pat);
         if (p != 0) {
-            *p = 0;
             int y = rect.top;
+            *p = 0;
             int x0 = rect.left;
             int w1 = Measure_004a56b0(buf);
             x0 += w1;
+            int x1 = x0;
             int w2 = Measure_004a56b0(pat);
+            x0 += w2;
             int lh1 = LineHeight_004a56b0();
             int lh2 = LineHeight_004a56b0();
-            FUN_004be950(entries->surface, x0, lh1 + y - 1, x0 + w2 - 1,
-                         lh2 + y - 1, obj->colours[2]);
+            FUN_004be950(obj->holder->entries->surface, x1, lh2 + y - 1, x0 - 1,
+                         lh1 + y - 1, obj->colours[2]);
         }
     }
 

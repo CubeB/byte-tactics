@@ -1,4 +1,11 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5. Names are provisional.
+// PARTIAL (67.3%). claude-sonnet-5-5 pass (#4143), 43.3 -> 67.3 (stopped by the
+// lead before it wrote notes): the LOS test goes through small inline members
+// (ByteMap::Get, MapSize::Contains) with an explicit visible = 1 / else 0, the
+// line-drawing branch tests `field_10e != 0` first with abs() and the swap
+// arms nested inside, x1/y1/x2/y2 are assigned in the original's order, and
+// scrollX/scrollY are read as (short) of 4-byte fields. Now 2312 bytes
+// against 2272; the remaining diff was not characterised.
 // PROBE (deepseek-v4.1-flash, issue 4066, best 43.3%, no change): the
 // if/else visible shape (exactly 2272 bytes) with `unsigned int color1;`
 // hoisted above `int time` is byte-identical to that 43.1 form, so the
@@ -163,7 +170,6 @@
 //   2. Game_0049be60 had a 2-byte hole at +0x14321: scrollX is at +0x1431f and
 //      scrollY at +0x14323, so with pack(1) every field from +0x14321 on was
 //      emitted 2 bytes low (gaf_1480f at +0x1480d, time at +0x38a45). Adding
-//      `char unknown_14321[2];` fixed all downstream offsets: 27.9% -> 28.9%.
 //   What still differs: `sub esp, 0x6c` vs 0x68 (one extra spilled dword;
 //   frame0 gets both ebp and a stack slot here, the original keeps it only at
 //   [esp+0x14]), the loop is entered through an extra `jmp`, and the whole-body
@@ -291,11 +297,26 @@ struct Proj_0049be60 {
     unsigned short flags;              // +0x69
 };
 
+struct MapSize_0049be60 {
+    unsigned int width;                // +0x0
+    unsigned int height;               // +0x4
+
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
+struct ByteMap_0049be60 {
+    unsigned char* data;               // +0x0
+    MapSize_0049be60 size;             // +0x4
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
 struct PlayerInfo_0049be60 {
     char unknown_0[0x7c];
-    unsigned char* los;                // +0x7c
-    int losWidth;                      // +0x80
-    int losHeight;                     // +0x84
+    ByteMap_0049be60 explored;         // +0x7c
 };
 
 struct Game_0049be60 {
@@ -309,10 +330,9 @@ struct Game_0049be60 {
     char unknown_141fb[0x14281 - 0x141fb];
     unsigned char viewFlags;           // +0x14281
     char unknown_14282[0x1431f - 0x14282];
-    short scrollX;                     // +0x1431f
-    char unknown_14321[2];             // +0x14321
-    short scrollY;                     // +0x14323
-    char unknown_14325[0x147bb - 0x14325];
+    int scrollX;                       // +0x1431f
+    int scrollY;                       // +0x14323
+    char unknown_14327[0x147bb - 0x14327];
     void* gaf_147bb;                   // +0x147bb
     void* gaf_147bf;                   // +0x147bf
     void* gaf_147c3;                   // +0x147c3
@@ -374,11 +394,10 @@ void __stdcall FUN_0049be60(void* surface)
                 int row = ((int)*(short*)((char*)pos + 10)
                            - ((int)*(short*)((char*)pos + 6) >> 1)) >> 5;
                 PlayerInfo_0049be60* pi = (PlayerInfo_0049be60*)pb;
-                visible = 0;
-                if ((unsigned)col < (unsigned)pi->losWidth
-                    && (unsigned)row < (unsigned)pi->losHeight
-                    && pi->los[row * pi->losWidth + col] != 0)
+                if (pi->explored.size.Contains(col, row) && pi->explored.Get(col, row))
                     visible = 1;
+                else
+                    visible = 0;
             } else {
                 visible = FUN_00408090((PlayerInfo_0049be60*)pb, pos);
             }
@@ -387,35 +406,38 @@ void __stdcall FUN_0049be60(void* surface)
                 if (type->field_10c == 0) {
                     unsigned int color1 = g_game->palette[type->field_10d];
                     unsigned int color2 = g_game->palette[type->field_10e];
-                    int x1 = (int)*(short*)((char*)pos + 2) - g_game->scrollX + 0x80;
-                    int y1 = ((int)*(short*)((char*)pos + 10)
+                    int x1, y1, x2, y2;
+                    x1 = (int)*(short*)((char*)pos + 2) - (short)g_game->scrollX + 0x80;
+                    y1 = ((int)*(short*)((char*)pos + 10)
                               - ((int)*(short*)((char*)pos + 6) >> 1))
-                             - g_game->scrollY + 0x20;
-                    int x2 = (int)*(short*)((char*)&p->start + 2) - g_game->scrollX + 0x80;
-                    int y2 = ((int)*(short*)((char*)&p->start + 10)
+                             - (short)g_game->scrollY + 0x20;
+                    y2 = ((int)*(short*)((char*)&p->start + 10)
                               - ((int)*(short*)((char*)&p->start + 6) >> 1))
-                             - g_game->scrollY + 0x20;
-                    if (type->field_10e == 0) {
-                        FUN_004be950(surface, x1, y1, x2, y2, color1);
-                    } else if (Abs_0049be60(x1 - x2) > Abs_0049be60(y1 - y2)) {
-                        if (x1 > x2) {
-                            int t = x1; x1 = x2; x2 = t;
-                            t = y1; y1 = y2; y2 = t;
+                             - (short)g_game->scrollY + 0x20;
+                    x2 = (int)*(short*)((char*)&p->start + 2) - (short)g_game->scrollX + 0x80;
+                    if (type->field_10e != 0) {
+                        if (abs(x1 - x2) > abs(y1 - y2)) {
+                            if (x1 > x2) {
+                                int t = x1; x1 = x2; x2 = t;
+                                t = y1; y1 = y2; y2 = t;
+                            }
+                            FUN_004be950(surface, x1, y1 - 1, x2, y2 - 1, color2);
+                            FUN_004be950(surface, x1, y1, x2, y2, color1);
+                        } else {
+                            if (y1 > y2) {
+                                int t = x1; x1 = x2; x2 = t;
+                                t = y1; y1 = y2; y2 = t;
+                            }
+                            FUN_004be950(surface, x1 - 1, y1, x2 + 1, y2, color2);
+                            FUN_004be950(surface, x1, y1, x2, y2, color1);
                         }
-                        FUN_004be950(surface, x1, y1 - 1, x2, y2 - 1, color2);
-                        FUN_004be950(surface, x1, y1, x2, y2, color1);
                     } else {
-                        if (y1 > y2) {
-                            int t = x1; x1 = x2; x2 = t;
-                            t = y1; y1 = y2; y2 = t;
-                        }
-                        FUN_004be950(surface, x1 - 1, y1, x2 + 1, y2, color2);
                         FUN_004be950(surface, x1, y1, x2, y2, color1);
                     }
                 } else if (type->field_10c == 1) {
                     sp.x = pos->x - (g_game->scrollX << 16);
-                    sp.y = pos->y;
-                    sp.z = pos->z - (g_game->scrollY << 16);
+                    sp.y = p->pos.y;
+                    sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
@@ -433,31 +455,33 @@ void __stdcall FUN_0049be60(void* surface)
                         }
                     }
                 } else if (type->field_10c == 2) {
-                    int sx = (int)*(short*)((char*)pos + 2) - g_game->scrollX + 0x80;
+                    int sx = (int)*(short*)((char*)pos + 2) - (short)g_game->scrollX + 0x80;
                     int sy = ((int)*(short*)((char*)pos + 10)
                               - ((int)*(short*)((char*)pos + 6) >> 1))
-                             - g_game->scrollY + 0x20;
+                             - (short)g_game->scrollY + 0x20;
                     if (FUN_004b6720((void*)g_game->field_37e27, sx, sy) == 0)
                         return;
                     FUN_004b9360(surface, g_game->field_1ab9b, sx, sy);
                 } else if (type->field_10c == 3) {
                     sp.x = pos->x - (g_game->scrollX << 16);
-                    sp.y = pos->y;
-                    sp.z = pos->z - (g_game->scrollY << 16);
+                    sp.y = p->pos.y;
+                    sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
                     FUN_0046bae0(surface, &sp, type->field_74, clip);
                 } else if (type->field_10c == 4) {
                     if (type->field_10d < 0xff) {
+                        void* gaf = 0;
                         sp.x = pos->x - (g_game->scrollX << 16);
-                        sp.y = pos->y;
-                        sp.z = pos->z - (g_game->scrollY << 16);
+                        sp.y = p->pos.y;
+                        sp.z = p->pos.z - (g_game->scrollY << 16);
+                        FUN_004b8500(surface, frame0,
+                                     (int)*(short*)((char*)&sp + 2) + 0x80,
+                                     (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20);
                         int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                         int sy = ((int)*(short*)((char*)&sp + 10)
                                   - ((int)*(short*)((char*)&sp + 6) >> 1)) + 0x20;
-                        FUN_004b8500(surface, frame0, sx, sy);
-                        void* gaf = 0;
                         switch (type->field_10d) {
                         case 0: gaf = g_game->gaf_147bb; break;
                         case 1: gaf = g_game->gaf_147bf; break;
@@ -472,10 +496,10 @@ void __stdcall FUN_0049be60(void* surface)
                         }
                     }
                 } else if (type->field_10c == 5) {
-                    int sx = (int)*(short*)((char*)pos + 2) - g_game->scrollX + 0x80;
+                    int sx = (int)*(short*)((char*)pos + 2) - (short)g_game->scrollX + 0x80;
                     int sy = ((int)*(short*)((char*)pos + 10)
                               - ((int)*(short*)((char*)pos + 6) >> 1))
-                             - g_game->scrollY + 0x20;
+                             - (short)g_game->scrollY + 0x20;
                     void* gaf = g_game->gaf_147f3;
                     int n = FUN_004b7f60(gaf);
                     int fr = n - ((p->field_46 - time) * n) / (int)type->field_e6;
@@ -485,31 +509,34 @@ void __stdcall FUN_0049be60(void* surface)
                     }
                 } else if (type->field_10c == 6) {
                     sp.x = pos->x - (g_game->scrollX << 16);
-                    sp.y = pos->y;
-                    sp.z = pos->z - (g_game->scrollY << 16);
+                    sp.y = p->pos.y;
+                    sp.z = p->pos.z - (g_game->scrollY << 16);
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
                     FUN_0046bae0(surface, &sp, type->field_74, &p->field_34);
                 } else if (type->field_10c == 7) {
                     unsigned int color = g_game->palette[type->field_10d];
-                    int dx = pos->x - p->start.x;
-                    int dy = pos->y - p->start.y;
-                    int dz = pos->z - p->start.z;
-                    int d = (int)sqrt((double)(dx * dx + dy * dy + dz * dz));
-                    int nSeg = (int)(((__int64)d << 16) / 0x50000);
-                    if (nSeg != 0) {
-                        int stepX = (int)(((__int64)dx << 16) / (__int64)nSeg);
-                        int stepY = (int)(((__int64)dy << 16) / (__int64)nSeg);
-                        int stepZ = (int)(((__int64)dz << 16) / (__int64)nSeg);
+                    Vec3_0049be60* start = &p->start;
+                    int dx = pos->x - start->x;
+                    int dy = pos->y - start->y;
+                    int dz = pos->z - start->z;
+                    int d = (int)sqrt((double)dx * dx + (double)dy * dy + (double)dz * dz);
+                    union { int i; short s[2]; } nSeg;
+                    nSeg.i = (int)(((__int64)d << 16) / 0x50000);
+                    if (nSeg.i != 0) {
+                        int stepX = (int)(((__int64)dx << 16) / (__int64)nSeg.i);
+                        int stepY = (int)(((__int64)dy << 16) / (__int64)nSeg.i);
+                        int stepZ = (int)(((__int64)dz << 16) / (__int64)nSeg.i);
                         int outer = 2;
                         do {
-                            sp = p->start;
-                            prev = p->start;
-                            short n = (short)(nSeg >> 16);
+                            sp = *start;
+                            pt = *start;
+                            short n = nSeg.s[1];
                             if (n > 0) {
                                 int i = n;
                                 do {
+                                    prev = pt;
                                     sp.x += stepX;
                                     sp.y += stepY;
                                     sp.z += stepZ;
@@ -521,16 +548,15 @@ void __stdcall FUN_0049be60(void* surface)
                                     *(short*)((char*)&pt + 10) +=
                                         (short)((int)(((__int64)rand() * 11) / 0x8000) - 5);
                                     FUN_004be950(surface,
-                                        (int)*(short*)((char*)&prev + 2) - g_game->scrollX + 0x80,
+                                        (int)*(short*)((char*)&prev + 2) - (short)g_game->scrollX + 0x80,
                                         ((int)*(short*)((char*)&prev + 10)
                                          - ((int)*(short*)((char*)&prev + 6) >> 1))
-                                        - g_game->scrollY + 0x20,
-                                        (int)*(short*)((char*)&pt + 2) - g_game->scrollX + 0x80,
+                                        - (short)g_game->scrollY + 0x20,
+                                        (int)*(short*)((char*)&pt + 2) - (short)g_game->scrollX + 0x80,
                                         ((int)*(short*)((char*)&pt + 10)
                                          - ((int)*(short*)((char*)&pt + 6) >> 1))
-                                        - g_game->scrollY + 0x20,
+                                        - (short)g_game->scrollY + 0x20,
                                         color);
-                                    prev = pt;
                                     i--;
                                 } while (i != 0);
                             }

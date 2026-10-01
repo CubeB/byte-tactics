@@ -23,6 +23,10 @@
 //    named ab local does shrink the frame from 0xa8 to 0xa0, but the call
 //    argument/return temporary schedule changes and the score drops to 47.7,
 //    so the named ab local is required. Nothing else tried beat 71.7.
+// deepseek-v4.1-flash #3514 (10 min): the d->pos hunk is a y-load scheduling
+// difference (original loads piece.offset.y into esi first and makes unit.pos.y
+// the add destination; ours loads unit.pos.y first), and the component-wise
+// spelling is blocked: Vec3_00421700 has no 3-argument constructor (C2661).
 // deepseek-v4.1-flash 01:12Z retry, all scored with scratch copies, none beat
 // 71.7 so the base stays:
 //  - ni as three plain int locals (nx,ny,nz): 70.7, frame still 0xa8, so the

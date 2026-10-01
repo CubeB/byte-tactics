@@ -21,6 +21,11 @@
 // lifetimes also diverge. Ours materialises a zero in edx up front where the
 // target uses ebp and "test"; block2 becomes load/add/store instead of
 // "add dword ptr [..], reg"; block3 spills e[3] to a stack local.
+// deepseek-v4.1-flash retry: rewriting the three k-indexed limits as explicit
+// byte arithmetic `*(int*)(base + (k+j)*4 + off)` scored 24.9%, so MSVC 5
+// strength-reduces k*4 to a byte cursor under every spelling tried; the target
+// keeps raw k=0xd at [esp+0x10] and scales at each use. This and the 0x18 vs
+// 0x1c frame remain the blockers.
 #include <stdlib.h>
 
 struct Vec3_004b1c00 {

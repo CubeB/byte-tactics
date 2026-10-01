@@ -9,8 +9,11 @@
 //    at 0x4c4285 is still shared, as in the original), which restores the
 //    22 bytes the merged version was missing;
 //  * tools/permute.py (build/permute/0x4c3e40/best_ratio.cpp) supplied the
-//    loop form "if (1) do { ... } while (1);", the "if (x) { } else { ... }"
-//    phrasings and the temporaries around the two tail cases.
+//    loop form "if (1) do { ... } while (1);" and the "if (x) { } else { ... }"
+//    phrasings.  Its remaining scaffolding (the ret0/tmp5 temporaries, the
+//    redundant casts and the "!= 0" comparisons) has been removed where it
+//    was free, but a few of those rewrites are load bearing: build/scratch/
+//    0x4c3e40/s4.cpp and s10.cpp take the rest out and fall back to 65%.
 // Still different, by address (all verified against the bytes, not the
 // Ghidra listing; the listing's own esp offsets are one push-count off in
 // places, so the frame slots below come from the /Fa listing and from
@@ -162,8 +165,6 @@ return ret0; }
 static inline bool KeyDifferent(char* a, char* b) { return !KeyEqual(a, b); }
 template <class T> static inline T* LowerBound(T* first, T* last, const Class_004c91a0& key) {
     T* lo = first, * hi = last;
-    T* same2 = lo;
-    lo = same2;
     if (lo != hi) do {
         T* mid = lo + (hi - ((T*)lo)) / 2;
         bool tmp5 = _strcmpi(mid->first.ptr, key.ptr) < 0;
@@ -188,9 +189,6 @@ static inline Class_004c91a0* Lookup(std::vector<T, A>& v, const Class_004c91a0&
         idx = (unsigned int)(lo - v.begin());
         v.insert(lo, 1, *(T*)&pair);
         dst = &v[idx].second;
-        Class_004c91a0* same1;
-        same1 = dst;
-        dst = same1;
         ((Class_004c9390*)(4 + (char*)&pair))->FUN_004c9390();
         ((Class_004c9390*)&pair)->FUN_004c9390();
         ((Class_004c9390*)&empty)->FUN_004c9390();
@@ -224,13 +222,10 @@ static inline char* SkipSpace(char* p) {
     return p;
 }
 
-static inline Class_004c4340* inl1(Class_004c3e40* self) { return (Class_004c4340*)self; }
-
 // FUNCTION: 0x4c3e40
 Class_004c3e40::Class_004c3e40(char* name, char* text, int* nextblock, char* filename) {
     Class_004c3e40* child;
     char* close;
-    int tmp1;
     char* eq, * current = text, error[0x7d0] = "Parse error in .TDF File! ";
 
     std::vector<Class_004c3e40*>& kids = children;
@@ -242,11 +237,9 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, int* nextblock, char* fil
         switch (*current) {
         case '[': {
             close = strchr(current, ']');
-            tmp1 = !close;
-            if (tmp1)
+            if (!close)
                 goto close_error;
             Class_004c91a0 subname, * tmp2 = ((Class_004c4340*)this)->FUN_004c4340(&subname, 1 + current, ((char*)close));
-            tmp2;
             current = 1 + close;
             current = SkipSpace(((char*)current));
             if ((*current) != '{') {
@@ -296,10 +289,10 @@ Class_004c3e40::Class_004c3e40(char* name, char* text, int* nextblock, char* fil
                 goto report;
             }
             Class_004c91a0 value;
-            (inl1(this))->FUN_004c4340(&value, current, semi);
+            ((Class_004c4340*)this)->FUN_004c4340(&value, current, semi);
             current = semi + 1;
 
-            Class_004c91a0* tmp4 = Lookup(entries, key), * dst = tmp4;
+            Class_004c91a0* dst = Lookup(entries, key);
             ((Class_004c93b0*)dst)->FUN_004c93b0(&value);
             ((Class_004c9390*)&value)->FUN_004c9390();
             ((Class_004c9390*)&key)->FUN_004c9390();

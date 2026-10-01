@@ -1,4 +1,14 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3039 retry): still 76.0% (772 of 780). The two-literal Wait
+// form (one static helper called with 0xf and 0x1e) does tail-merge into one block
+// with real `push 0xf`/`push 0x1e` entries (768 bytes, 71.7), so the goto-Wait is not
+// needed for the merge. But switching the pending mask to `unsigned short` reproduces
+// the original pending block byte for byte yet stops the two Wait copies merging
+// (804 bytes, 68.2) and rotates the downstream allocator. The pending-mask register
+// choice and the Wait tail-merge are coupled through one global MSVC 5 allocator
+// state. headers.py 128 sets flat at 76.0. Residual: pending-block eax/ecx rotation,
+// case-9 OR result (ours eax, original edx then mov eax,edx), the two Wait immediate
+// pushes in the goto form, and the case-6/7 `mov ecx,[ebx]` preload.
 // PARTIAL (71.0%, 772 bytes against the original's 780). Per-frame driver of
 // the unit's command list (+0x5c), the "main list" twin of 0x43bad0 (the +0x60
 // list, matched, and the source of the Wait_0043b7c0 shape below). The list

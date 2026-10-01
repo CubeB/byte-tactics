@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue 3704, 10 min, 4 scored variants): best stays 93.1 pct.
+// The swapped ternary (size + 1 < e->field_da) is byte-identical at 93.1;
+// dropping the count parameter from the inline LineSize helper is 85.3. The
+// 0x10 denominator registers and the 0x20 field_c6 load-before-test are untouched,
+// as every source shape for them either folds or reshapes the prologue.
 // GPT-6.1-sol (#3140 retry): six checks, best remains 93.1% (629 bytes), no MATCH.
 // The 0x10 denominator selection still has different registers and shorter code;
 // in the 0x20 arm the field_c6 load remains after the count test and zero-extends

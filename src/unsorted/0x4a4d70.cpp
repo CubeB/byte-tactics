@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue 3704, 10 min, 7 scored variants): best stays 98.7 pct.
+// Pointer-cast index form and a surface local are byte-identical at 98.7; the
+// scoped colours local is 92.7 and an unsigned char index cast is 85.3. The
+// colour SIB operand order and the hoisted surface load remain the only hunks.
 // Retry (space-bunny-free, issue 3366): 98.7%, 661 bytes both sides, one real
 // check.py run, still the same two six-byte hunks (colour SIB order and the
 // marker call's surface load). New negatives, all free `check.py --sym` scores

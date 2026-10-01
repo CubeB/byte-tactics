@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash retry (issue 3704, 10 min, 3 scored variants): best stays 80.9 pct.
+// Naming the FUN_004ab5b0 result and capturing p.y in an int py local are both
+// flat at 80.9 / 714 bytes, so neither moves the edx zero versus p.y-in-edi
+// tie; the tail diff hunks are unchanged.
 // Retry (deepseek-v4.1-flash, issue 3366, 900s): still 80.9%, no MATCH. All
 // literal-zero spellings fold and stay byte-identical to the baseline: an
 // `int zero = 0` declared at the top of the focus block or after the

@@ -1,204 +1,25 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 7). Names are provisional.
-// Pass 11 (deepseek-v4.1-flash, 10 min box): 65.0 -> 65.2 percent / 1908 bytes. Folding the two
-// masked stores of unit+0x110 into one statement (flags & 0xefffffcf) makes VC5 emit the single
-// `and eax,0xefffffcf` without the intermediate store; splitting the mask further
-// (flags & 0xefffffff & 0xffffffcf as two statements) regresses to 65.0 / 1908, and dropping the
-// `t` local for a direct store to unit+0x92 is byte-flat at 65.2 / 1908. Still no MATCH: cmd is
-// homed to EDI where the original uses EBX and g_game still occupies EBP (see passes 1-10 above).
-// Pass 9 (deepseek-v4.1-flash, 10 min, this session): best stays 64.7% / 1920 bytes.
-// The file was re-checked (1920 bytes, 15 hunks) and every hunk is downstream of the
-// cmd=EBX vs cmd=EDI callee-saved pick and the cached-g_game/ebp occupancy documented in
-// passes 1-8 above; no new steering lever was found in this pass. No MATCH.
-
-// Pass 8 (deepseek-v4.1-flash, 10 min): best stays 64.7% / 1920 bytes. Tried and rejected:
-// splitting the flags tail into compound assignments (flags &= 0xefffffff; store; flags &= 0xffffffcf;
-// store), which regressed to 63.2% / 1912 bytes, so the one-load two-folded-mask spelling is load-bearing.
-// Still differs: cmd is homed to EDI instead of EBX (g_game keeps EBP, leaderboard counter EDI), and the
-// 0x486d80 flags block emits mov ecx,eax / and eax,0xefffffcf / and ecx,0xefffffff instead of the original
-// mov eax,ebp / and al,0xcf byte-mask reuse.
-
-// Retry (deepseek-v4.1-flash, 10 min): still 64.7%, no MATCH. Tried and rejected
-// (all scored <= current): int credited declared at top / before unit / at point
-// of use (all 63.7%, and cmd lands in ebp either way), inlining the parent
-// ternary into unit->f0 (no change), unsigned char depth with int credited
-// (58.4%), a local `unsigned char* c = cmd` used throughout (58.6%), hoisting
-// the leaderboard loop counter int i to the top (no change).
-// Conclusion: with MSVC 5 the int-credited variants always give unit=esi,
-// credited=edi, cmd=ebp; the original has cmd=ebx. Something in the source makes
-// cmd outrank ebp for the first callee-saved slot; declaration order, int vs
-// bool credited, and the transient g_game register do not control it.
-// Retry #1766, pass 2 (space-bunny-free, 900s budget): 64.7%, still no MATCH.
-// Improvements this pass: the g_game+0x37eee arms are DOUBLE literals (-0.5/-0.7,
-// not float) and are spelled as a switch, which is what gives the original
-// `sub ecx,0 / je` + `dec ecx / jne` chain instead of two `test` compares (+1.7).
-// Still wrong, by original address:
-//   0x4866d0  callee-saved allocation. Original: esi=unit, ebx=cmd, edi=credited, and
-//             g_game is never cached. Ours: esi=unit, edi=cmd, ebp=g_game (kept live
-//             across calls), credited in bl. The tail then re-reads cmd from [esp+0x7c]
-//             twice where the original keeps one register copy (0x486c9e, 0x486d24).
-//             Every diff below is downstream of this one cause.
-//   0x4867da  depth temp: the original stores cl to [esp+0x14], reloads the dword and
-//             `and edx,0xff`; we keep it in a register. An `unsigned char depth` local
-//             does produce that store/reload shape but scores 57.0% on its own,
-//             because the extra spill re-shuffles the already wrong allocation.
-//   0x486a98  leaderboard: the original spills rec to [esp+0x80] and rank to [esp+0x10]
-//             and holds mine in a register (movsx edi,ax); we spill mine instead.
-//             Modelling rank/best as int gets the size right (1956 vs 1964) but scores
-//             50.8%, so unsigned char is right and the spill is a downstream effect.
-// Tried and did NOT work (free scratch scores, 63.0% baseline):
-//   unsigned char depth local                 57.0%
-//   bitfield union for unit+0x110             61.5%
-//   int rank / int best in the leaderboard   50.8% / 54.1%
-//   `mine > theirs` instead of `theirs<mine`  no change
-//   signed char for the (x>>6)&1 test        no change
-//   int t for the rank-bump loop              no change
-//   caching cmd[10] in a local               53.4%
-//   swapping the unit/credited decl order    no change
-//   keeping `parent` live across the calls   58.9%
-//   int credited instead of bool             63.7%
-//   second g_game local mid-function (CSE
-//     split, brief item 18)                  57.6%
-//   second g_game local at the top           55.4%
-//   unsigned char depth on top of v5         58.7%
-//   unsigned char depth = c?3:0; depth += 3  63.2%
-//   bitfield union for unit+0x110 on v5      63.3%
-//   same with b4/b5 as two 1-bit fields      63.3%
-// Next lever to try: the original spills `rec` to the param slot [esp+0x80] and
-// `rank` to [esp+0x10]; ours puts `mine` at [esp+0x10]. Whoever owns the spill
-// slot is decided by the same callee-saved question as the top of the function.
-//
-// Pass 3 (deepseek-v4.1-flash, 2026-09-30, ~900s): 64.7%, still no MATCH.
-// The original's rec spill is NOT a source choice: ebx is clobbered inside the
-// leaderboard loop by `xor ebx,ebx / cmp edi,ecx / setg bl`, so rec is reloaded
-// from [esp+0x80] at 0x486bc9 on every iteration. In the original the only
-// three callee-saved candidates are unit=esi, credited=edi, cmd=ebx (rec shares
-// ebx because its live range is disjoint from cmd's). Ours always hands cmd the
-// 2nd slot (edi) because credited never becomes a candidate: as a `bool` it
-// lands in bl, and every wide spelling that promotes it to edi then leaves cmd
-// in ebp, not ebx. Confirmed the g_game load register (ebp vs the original's
-// edx) is downstream of that same choice.
-// Free-scored and rejected (all <= 64.7):
-//   int/unsigned/short/long credited        -> committed=edi, cmd=ebp (63.7/63.1)
-//   char/unsigned char credited             -> cmd=edi (64.7, unchanged)
-//   bool credited initialised at the top    -> cmd=edi (60.4)
-//   credited=0 moved before FUN_0044fe40    -> cmd=edi (60.6)
-//   self-correction chain on credited x1..20 -> folded away, no change (64.7)
-//   cmd as a local copied from the parameter -> cmd=edi/ebp (57.7/58.6)
-//   `unsigned char depth` local              -> 57.0 (store/reload shape right, allocation worse)
-//   N unused extern ints, N=0..400 step 4    -> flat 64.7 (source shape, not compiler state)
-//   tools/headers.py, all 128 sets           -> flat 64.7
-//   the real preceding function 0x4864b0 defined above in the same file (the
-//     original translation unit)             -> flat 64.7
-//   fresh expression trees for the 2nd FUN_00435100 call and the bit-2 g_game
-//     test, to break the load CSE            -> flat 64.7
-// Remaining known structural gap: at 0x4867da the original keeps the depth in
-// an `unsigned char` local spilled to [esp+0x14] then reloads/widens it
-// (`mov [esp+0x14],cl; mov edx,[esp+0x14]; and edx,0xff`); ours keeps it in a
-// register. Fixing the allocation above is the prerequisite for that to help.
-//
-// Pass 5 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. New finding: the
-// original does NOT keep cmd in one register for the whole function. It reloads
-// cmd from the parameter slot [esp+0x7c] at 0x486c9e (into ecx) and 0x486d24
-// (into edi), and reuses ebx as a pure scratch from 0x486a03 on (g_game temp,
-// then rec, then a zero). Ours keeps cmd live in edi right through those sites.
-// Free-scored and rejected: `unsigned char* unit` (64.7, no change); declaring
-// the first parameter as a packed `Order_004866d0*` with real member accesses
-// for +1/+3/+7/+9/+0xa (64.7, no change). The cmd register is set by the
-// allocator's priority, and neither the parameter's type nor its access shape
-// moves it.
-// Pass 4 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. Checked the
-// assumption behind the int-credited lever: with `int credited` the allocator
-// gives unit=esi, credited=edi, cmd=ebp and leaves ebx completely free until
-// the leaderboard (g_game scratch stays in edx). So ebx is NOT taken by g_game
-// or by any 4th long-lived variable; MSVC simply prefers ebp over ebx for the
-// third long-lived local. Also re-confirmed char* cmd (63.3) and
-// int-credited-declared-first (63.7) are worse. Reaching the original's
-// cmd=ebx needs something that changes the allocator's register preference,
-// not the g_game/ebx occupancy as previously guessed.
-// Retry deepseek-v4.1-flash (this session): 64.7%, best unchanged. Free-scored
-// and rejected: a named `unsigned short uid` plus ternary for unit (64.7,
-// byte-identical 1920), `unsigned char depth` (58.7). Still differs: the
-// callee-saved allocation (original esi=unit, ebx=cmd, edi=credited with no
-// cached g_game; ours esi=unit, edi=cmd, ebp=g_game, credited in bl) and every
-// hunk downstream of it, plus the [esp+0x14] depth spill and the leaderboard
-// [esp+0x10]/[esp+0x80] spill assignment.
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// Pass 12 (claude-sonnet-5-5): 65.2 -> 74.4 percent / 1968 bytes (original 1964). Not a MATCH.
+// What moved the allocator and the layout (each free-scored):
+//  - the leaderboard theirs score as a ternary of two short lvalues (one `mov ax` after the
+//    join), rank and best as plain int, `mine` as a short-lvalue ternary, and the declaration
+//    order rank, best, mine, i, p: with these cmd lands in ebx (as in the original) and rec in
+//    ebx inside the leaderboard (rec/best/mine/counter now match the original registers);
+//  - `int credited` (dword in edi) together with the above;
+//  - `unsigned char depth` gives the original [esp+0x14] spill and reload before FUN_00489bb0;
+//  - bit-field containers (ushort, packed) for unit+0x9b bit 6 and g_game+0x37f06 bit 7 give
+//    `mov cl,[m]; shr cl,n; test cl,1`, but the unit bit must be copied to a `bool hid` and
+//    tested as `if (!hid)`: a direct `!bit` folds to `test byte,mask`;
+//  - `bool bt = mine > theirs; if (bt)` gives the original setg + test;
+//  - the flags tail as flags &= 0xefffffff; store; load t; flags &= 0xffffffcf; store.
+// Still differs: the loop pointer p is in ecx where the original has eax (the original theirs
+// score is a movsx in each branch into ecx; every spelling that gives that makes the compiler
+// CSE g_game->mode into an [esp+0x14] spill and grow the frame to 0x6c), the tail keeps cmd in
+// a volatile register and reloads it where the original holds cmd in edi for the whole tail,
+// the metalCost multiply is scheduled after the vt compare in the original, the sprintf text
+// pointer is ecx instead of eax, and the flags tail copies eax from ebp one instruction later.
 extern void* g_game;
 extern char DAT_00508be8[];
-// Pass 7 (deepseek-v4.1-flash, retry, short budget): 64.7%, still no MATCH.
-// The prologue diff (build/scratch/0x4866d0/diff.txt) shows the whole cause of
-// the allocation gap in three lines:
-//   original: sub esp,0x68 / mov edx,[g_game] / push ebx / mov ebx,[esp+0x70]
-//             / push ebp / push esi / mov ax,[ebx+1] / push edi
-//   ours:     sub esp,0x68 / mov edx,[g_game] / push ebx / push ebp / push esi
-//             / push edi / mov edi,[esp+0x7c] / mov ax,[edi+1]
-// i.e. the original's cmd was allocated before ebp/esi/edi and is spilled-free in
-// ebx, while ours loads cmd into edi after all four pushes. MSVC emits `push reg`
-// at the register's first use, so this is the assignment priority itself, not a
-// downstream effect: in the original, cmd outranks everything except unit.
-// Also confirmed from the diff: the original uses ebp as a plain byte-temp
-// scratch (`mov ebp,eax / and ebp,0xff / cmp ebp,edx` for the rank compare and
-// `mov ebp,0xa` for the loop counter), exactly like ours does, so ebp is not a
-// reserved frame pointer on either side and the two sides differ only in which
-// of the four long-lived values takes which of ebx/ebp/esi/edi.
-// The original's leaderboard really does compare rank/best as DWORDs, not bytes:
-//   mov al,[ebx+0x148] / test al,al / jbe / and eax,0xff / mov [esp+0x10],eax
-//   xor ecx,ecx / mov cl,[eax+0x121] / cmp ecx,edx / jge / mov edx,ecx
-//   mov al,[ecx] / mov ebp,eax / and ebp,0xff / cmp ebp,edx / jl
-// while ours emits `cmp cl,dl`, i.e. our `unsigned char best` keeps the byte
-// form. Scored the matching dword spelling this pass:
-//   unsigned int rank + unsigned int best   -> 57.9% (1944 bytes, size right,
-//   allocation worse), so the byte locals stay until the top-of-function
-//   allocation is fixed; the dword form is the right *shape* for the leaderboard
-//   but it re-measures the leaderboard against an already wrong register set.
-// Re-checked `int credited` this pass (63.7%, 1928 bytes) to see what owns ebx
-// there: it is not a long-lived value at all, the compiler uses ebx as the
-// g_game scratch in the post-switch half (`mov ebx,[g_game]` at the +0x160,
-// +0x170, +0x187, +0x259, +0x268, +0x306 hunk offsets) whereas the original
-// uses ebx for cmd from 0x4866da on and moves the g_game scratch to edx there.
-// So in the int-credited form ebx is genuinely free at the top and MSVC still
-// picks ebp (not ebx) for cmd: the preference for the second dword candidate is
-// ebp > ebx in this build, and the original must therefore not have had
-// `credited` as a compiler-visible candidate at all in that range. What the
-// original does have at 0x486a93 is a plain `mov edi,1` into edi, so its
-// credited is a dword whose live range starts only after the switch dispatch;
-// a bool/int local declared at the top of the function keeps a full-range cell
-// and either takes bl (bool, 64.7%) or pushes cmd to ebp (int, 63.7%).
-// Pass 6 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. New disassembly
-// findings about ebx in the original, all downstream of the same allocation:
-//   - 0x486a03 (case 3) ebx is reused as the g_game scratch, so cmd's live range
-//     really does end at the switch dispatch there; cmd is rematerialised from
-//     the parameter slot at 0x486c9e (ecx) and 0x486d24 (edi).
-//   - 0x486d80: ebx is loaded with a shared ZERO and reused for the tail stores
-//     (`mov [esi+0x9a],ebx`, `mov [esi+0xa6],bx`, `cmp [eax+0x144],bx`), so the
-//     original shares ebx between cmd, rec and a constant zero in disjoint live
-//     ranges. Ours never needs the shared zero because ebp holds g_game.
-// New free-scored variants this pass (rejected, best stays 64.7):
-//   in-place `flags &= 0xefffffff; ... flags &= 0xffffffcf;` (matches the
-//     original's `and ebp,0xefffffff` / `mov eax,ebp` / `and al,0xcf` shape) 63.2%
-//   unsigned char depth alone 58.7%; int credited + uchar depth 58.4% (but the
-//     closest size so far: 1944 vs 1964 bytes).
-// Conclusion unchanged: the trigger for cmd=ebx is register pressure in the
-// post-switch region, not any single declaration or expression shape.
-// Pass 8 (deepseek-v4.1-flash, 10 min box): 64.7%, best unchanged, no other
-// variant kept. Two new free scores on the depth expression (the documented
-// structural gap): folding the +3 into the ternary
-// (`(cmd[10] & 0xf0) != 0x30 ? 6 : 3`) is byte-flat at 64.7% / 1920 bytes, and
-// the same fold as an `unsigned char depth` gives 58.9% / 1936 bytes (the
-// closest size yet, but the allocation still loses more than the shape wins).
-// The file is back to the pass 7 text; the trigger for cmd=ebx stays unproven.
-// Pass 10 (deepseek-v4.1-flash, 10 min box): 64.7 -> 65.0 percent, 1920 -> 1908 bytes.
-// The one gain is the flags tail: moving `int t = at<int>((void*)g_game, 0x1439b);`
-// from between the two masked stores to after the second store now emits both
-// `and` forms back to back before the g_game reload, matching the original's
-// store/load interleaving at 0x486d80 more closely. Flat at 1908 bytes: swapping
-// the two mask stores (w3) and moving the 0xa6 store after the first mask (w4).
-// Regressed to 64.7 percent / 1920: naming the first mask value `flags2` and
-// keeping the t load between the stores (w5). Still wrong: cmd is homed to EDI
-// where the original uses EBX, g_game occupies EBP where the original has no
-// callee-saved global cache, and the tail re-reads cmd from [esp+0x7c] where the
-// original keeps one register copy. All 15 hunks remain downstream of that
-// allocation; no MATCH.
-
 extern char DAT_00508bf0[];
 
 template <class T>
@@ -250,11 +71,23 @@ void __cdecl operator delete(void* p);
 void __stdcall FUN_00450380(int id);
 void __stdcall FUN_0047bd70(void* player);
 
+#pragma pack(push, 1)
+struct UnitBits {
+    char pad[0x9b];
+    unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1, b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;
+};
+
+struct GameBits {
+    char pad[0x37f06];
+    unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1, b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;
+};
+#pragma pack(pop)
+
 // FUNCTION: 0x4866d0
 void __stdcall FUN_004866d0(unsigned char* cmd, int param)
 {
     char* unit;
-    bool credited;
+    int credited;
 
     if (at<unsigned short>(cmd, 1) == 0)
         unit = 0;
@@ -282,7 +115,7 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
     if (at<int>(unit, 0x86) != 0)
         FUN_0048aac0(unit, 0, -1, 1);
     while (at<int>(unit, 0x8a) != 0) {
-        int depth = ((cmd[10] & 0xf0) != 0x30 ? 3 : 0) + 3;
+        unsigned char depth = ((cmd[10] & 0xf0) != 0x30 ? 3 : 0) + 3;
         FUN_00489bb0(at<char*>(unit, 0xf0), (void*)at<int>(unit, 0x8a), 30000, depth, 0);
         FUN_0048aac0((void*)at<int>(unit, 0x8a), 0, -1, 1);
     }
@@ -346,25 +179,23 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
             && at<char>(rec, 0x146) != 10
             && (((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 3
                 || ((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 2)
-            && at<unsigned char>(rec, 0x148) != 0) {
-            unsigned char rank = at<unsigned char>(rec, 0x148);
-            int mine;
-            if (at<int>((void*)g_game, 0x37ef6) == 2)
-                mine = at<short>(rec, 0x104);
-            else
-                mine = at<short>(rec, 0xfc);
+            && at<unsigned char>(rec, 0x148) > 0) {
+            int rank = at<unsigned char>(rec, 0x148);
+            int best = rank;
+            int mine = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(rec, 0x104) : at<short>(rec, 0xfc);
             int i = 10;
             int* p = (int*)((char*)g_game + 0x1b8a);
-            unsigned char best = rank;
             do {
-                if ((char)p[0x13] != 0 && (at<unsigned char>((void*)*p, 0x9b) >> 6 & 1) == 0) {
-                    int theirs;
-                    if (at<int>((void*)g_game, 0x37ef6) == 2)
-                        theirs = at<short>(p, 0xdd);
-                    else
-                        theirs = at<short>(p, 0xd5);
-                    if (theirs < mine && at<unsigned char>(p, 0x121) < best)
-                        best = at<unsigned char>(p, 0x121);
+                if ((char)p[0x13] != 0) {
+                    bool hid = ((UnitBits*)*p)->b6;
+                    if (!hid) {
+                        int theirs = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(p, 0xdd) : at<short>(p, 0xd5);
+                        bool bt = mine > theirs;
+                        if (bt) {
+                            if (at<unsigned char>(p, 0x121) < best)
+                                best = at<unsigned char>(p, 0x121);
+                        }
+                    }
                 }
                 p = (int*)((char*)p + 0x14b);
                 i--;
@@ -373,7 +204,7 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
                 i = 10;
                 unsigned char* q = (unsigned char*)g_game + 0x1cab;
                 do {
-                    if (best <= *q && *q < at<unsigned char>(rec, 0x148))
+                    if (*q >= best && *q < at<unsigned char>(rec, 0x148))
                         *q = *q + 1;
                     q += 0x14b;
                     i--;
@@ -381,18 +212,13 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
                 at<unsigned char>(rec, 0x148) = best;
                 if (best == 0) {
                     char text[100];
-                    char* fmt = FUN_004c5740(DAT_00508bf0);
-                    short kills;
-                    if (at<int>((void*)g_game, 0x37ef6) == 2)
-                        kills = at<short>(rec, 0x104);
-                    else
-                        kills = at<short>(rec, 0xfc);
-                    sprintf(text, fmt, rec + 0x2b, kills);
+                    sprintf(text, FUN_004c5740(DAT_00508bf0), rec + 0x2b,
+                            at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(rec, 0x104) : at<short>(rec, 0xfc));
                     FUN_00463ca0(text, 2, 0, 10);
                 }
             }
         }
-        if ((at<unsigned char>((void*)g_game, 0x37f06) >> 7) & 1)
+        if (((GameBits*)g_game)->b7)
             FUN_004948b0(at<unsigned char>(unit, 0xf4), at<unsigned char>((void*)at<int>(unit, 0x96), 0x146));
     }
     if ((cmd[10] & 0xf0) == 0x50 && at<char*>(unit, 0xf0) != 0) {
@@ -434,8 +260,11 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
     }
     unsigned int flags = at<unsigned int>(unit, 0x110);
     at<short>(unit, 0xa6) = 0;
-    at<unsigned int>(unit, 0x110) = flags & 0xefffffcf;
+    flags &= 0xefffffff;
+    at<unsigned int>(unit, 0x110) = flags;
     int t = at<int>((void*)g_game, 0x1439b);
+    flags &= 0xffffffcf;
+    at<unsigned int>(unit, 0x110) = flags;
     at<int>(unit, 0x92) = t;
     at<short>((void*)at<int>(unit, 0x96), 0x144)--;
     if (at<short>((void*)at<int>(unit, 0x96), 0x144) == 0) {

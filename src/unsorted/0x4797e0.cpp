@@ -1,4 +1,61 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.// Follow-up pass (issue #4344, after PR 4474 merged): tools/permute.py's
+// best_ratio.cpp scores 84.6 (1029 of 1034) against this file's 84.0, and the
+// permuter's own log reported no gain, so best_ratio.cpp must be scored by hand
+// with `check.py <addr> <file> --sym` rather than trusted. Tidied on adoption:
+// tmp1 -> done, inl0 -> CurMenu, inl1 -> IsPlayerColor, no self-assignments and
+// no uninitialised locals; every rename re-checked at 84.6. Still differs: the
+// kind-0/kind-1 callee-saved and slot assignment (one EBP allocator coin-flip).
+// STATUS (deepseek-v4.1-flash, issue #4344): best is 84.0% (1028 of 1034
+// bytes), no MATCH. The previous notes below are superseded where they say
+// 74.1%: this file now starts from an 84.0% shape that is a firm local
+// optimum, and tools/permute.py (1801 rewrites, 4.4 min) confirmed no
+// meaning-preserving rewrite beats it, so the residue is not a spelling.
+//
+// An instruction-stream diff against the original leaves exactly FIVE
+// structural items, and the whole function is 6 bytes short:
+//  1. Two missing `mov ebp, [g_game]` reloads, one after the FUN_004a0bf0 call
+//     in each of switch cases 0/1/2 (original 0x47988e and 0x47990d). These are
+//     6 bytes each and are the entire size deficit. They only appear if the
+//     value in EBP is a *global read*, because a local survives a call
+//     unchanged. But this file's `Game_004797e0* game` local is exactly what
+//     puts g_game in EBP in the first place: with no local at all, MSVC gives
+//     EBP to the scaled index (24*playerIndex) instead and every all-g_game
+//     spelling I tried lands at 43.9%. That is the wall, and it is a single
+//     allocator coin-flip between two values that both want a callee-saved
+//     register. Tried and all <= 84.0: `Game*& game = g_game` (70.1, frame 0x8c),
+//     `game = g_game;` again after the switch (57.3), a fresh `Game* game2`
+//     for the tail test (67.0), and all 2^7 combinations of the seven
+//     `game->` / `g_game->` sites (best single flip 68.2, best pair 79.9,
+//     best triple 76.0). The permuter also never found the reload.
+//  2. Three extra `mov`s at the head of the duplicate-colour else-block (ours
+//     reloads g_game and players, the original keeps players live in ECX from
+//     the tail test). Getting the myColor read onto the same `players`/
+//     index pair needs `game->players[playerIndex].color` in the for-init,
+//     which scores 51.7; the mixed `g_game->` spelling that keeps 84.0% is
+//     what forces the reload. A cached `Player* players = game->players` at
+//     the tail test is byte-identical to the base (84.0), as is caching it
+//     before the switch (76.0 once combined with the dup block).
+//  3. The original spills `holder->entries` to [esp+0x14] and reloads it after
+//     the "Color%d" wsprintf; ours keeps entries in EBP, which is the same
+//     coin-flip as (1): EBP is either g_game or entries.
+//  4. FreeColour's exit test. The original emits `cmp ecx,edx; je`; ours emits
+//     `xor edx,edx; cmp eax,ecx; sete dl; test dl,dl; jne` because the source
+//     says `bool done = k == game->numPlayers; if (done)`. A bare
+//     `if (k == game->numPlayers) return n;` DOES produce the original's `je`,
+//     but it drops the whole file to 72.9%: it changes the switch-case layout
+//     and loses both g_game reloads. This is coupled to (1), so the `bool tmp1`
+//     spelling is load-bearing for the prologue even though it is wrong for
+//     the exit test. Spellings that keep 84.0%: `int tmp1 = ...` gives 72.9,
+//     `bool tmp1 = !(k != ...)`, `bool tmp1 = !(k < ...)` and
+//     `game->numPlayers == k` all stay at 84.0 (still `sete`/`setge`).
+//  5. Twelve `nop` bytes of tail padding.
+// Byte-neutral this pass (all 84.0%, safe to keep or drop): an unused
+// `__inline ps()/np()/mn()` accessor pair on Game_004797e0; routing the
+// FreeColour inner loop through `Player* ps = game->players` or through
+// `(game->players + k)`; dropping the dead `Entry* same2 = entries; entries =
+// same2;` self-alias (that one is now removed from this file).
+// Inert: N unused `extern int` declarations, N = 0..39, on the `bool tmp1`
+// variant, all byte-identical.
 // mimo-v2.6-pro retry (issue #4060, 60 min box): base re-verified at 74.1%
 // (1024 of 1034 bytes). Confirmed the residue is one register-allocation
 // coin-flip, not compiler state: the original keeps g_game in EBP and the
@@ -135,17 +192,17 @@ static int __stdcall FreeColour_4797e0(Game_004797e0* game) {
         int k;
         k = 0;
         while (k < game->numPlayers) { if (game->players[k].color == n) break; k = k + 1; }
-        bool tmp1 = k == game->numPlayers;
-        if (tmp1)
+        bool done = k == game->numPlayers;
+        if (done)
             return n;
         n = 1 + n;
     } while (10 > n);
     return -1;
 }
 
-static inline Menu_004797e0* inl0() { return &g_game->menu; }
+static inline Menu_004797e0* CurMenu() { return &g_game->menu; }
 
-static inline int inl1(Game_004797e0*game, int j, unsigned int myColor) { return (int)(game->players[j].color == myColor); }
+static inline int IsPlayerColor(Game_004797e0*game, int j, unsigned int myColor) { return (int)(game->players[j].color == myColor); }
 
 // FUNCTION: 0x4797e0
 void __stdcall FUN_004797e0(int playerIndex) {
@@ -203,15 +260,14 @@ void __stdcall FUN_004797e0(int playerIndex) {
         } else {
             int j = 0, same1 = j;
             j = ((int)same1);
-            for (myColor = g_game->players[playerIndex].color; j < game->numPlayers; ) {
-                if ((inl1(game, j, myColor)) && game->players[j].controller == 0) {
+            myColor = g_game->players[playerIndex].color;
+            if (j < game->numPlayers) do {
+                if ((IsPlayerColor(game, j, myColor)) && game->players[j].controller == 0) {
                 } else {
                     if (j != ((int)playerIndex)) {
                                                                 entries = game->holder->entries;
-                                                                Entry_004797e0* same2 = entries;
-                                                                entries = same2;
-                                                                do {
-                                                                    unsigned int free = FreeColour_4797e0(game);
+                                                            do {
+                                                                unsigned int free = FreeColour_4797e0(game);
                                                                     game->players[playerIndex].color = free;
                                                                 } while (0);
                                                                 wsprintfA(buffer2, "Color%d", playerIndex);
@@ -219,7 +275,7 @@ void __stdcall FUN_004797e0(int playerIndex) {
                                                                 if (idx != -1) {
                                                                     do {
                                                                         e = &entries[idx];
-                                                                        if (e != 0) {
+                                                                        if (((Entry_004797e0*)e) != 0) {
                                                                             e->field_be = g_game->field_148db;
                                                                             e->field_c6 = (unsigned short)g_game->players[playerIndex].color;
                                                                         }
@@ -229,7 +285,7 @@ void __stdcall FUN_004797e0(int playerIndex) {
                                                             }
                 }
                 j = 1 + j;
-            }
+            } while (j < game->numPlayers);
             wsprintfA(buffer, "Player%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 1);
             wsprintfA(buffer, "Side%d", playerIndex);
@@ -241,7 +297,7 @@ void __stdcall FUN_004797e0(int playerIndex) {
             wsprintfA(buffer, "Energy%d", playerIndex);
             FUN_004a0570(&g_game->menu, buffer, 1);
             wsprintfA(buffer, "Color%d", playerIndex);
-            FUN_004a0570(inl0(), buffer, 1);
+            FUN_004a0570(CurMenu(), buffer, 1);
         }
     }
     FUN_00479660();

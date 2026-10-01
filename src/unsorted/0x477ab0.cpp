@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash 10 min timebox (issue #4020): baseline re-confirmed at
+// 93.0% (1910 vs 1935 bytes). Scored three variants of the Missions rebuild
+// blocks: vA/vC (Difficulty read via `int* diffSlot = (int*)(g_game+0x37eee)`
+// and via bare `*(int*)(g_game+0x37eee)` compares) are byte-identical to the
+// base at 93.0%; vD/vE (reload `(*(Holder_00477ab0**)(g_game+0x531))->entries`
+// at the `e = FUN_0049ff90(...)` line, in both blocks or the first only) reach
+// the original's 1935 bytes but drop to 84.7/84.5 because the holder/menuSub
+// pair then cascades into the wrong registers. Base kept as best.
 // Partial, best 93.0% (1910 of 1935 bytes). What still differs: (1) the
 // Difficulty block register allocation is mirrored, ours keeps g_game in eax
 // and the loaded difficulty value in ecx where the original keeps g_game in

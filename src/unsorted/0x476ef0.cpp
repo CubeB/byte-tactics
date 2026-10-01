@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash 10 min timebox (issue #4020): baseline re-confirmed at
+// 80.4% (1112 vs 1124 bytes); no new variant scored. The remaining diff is
+// unchanged: the dropped dead `mov [esp+0x20], 0`, the colourState/count frame
+// slot swap, the live zero register in edx at scan 2, and the else-arm
+// `inc ebp / mov [slot],1 / dec ebx` order. File left at the best version.
 // STATUS (deepseek-v4.1-flash, final): 80.4% (1112 of 1124 bytes), unchanged
 // from the inherited file. What still differs: (1) the original keeps the dead
 // `colourState = 0` store (`mov dword ptr [esp+0x20], 0`) that MSVC 5 deletes

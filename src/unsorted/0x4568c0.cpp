@@ -100,6 +100,13 @@
 // lands in esi as in the original, at 83.4, and its only remaining difference
 // is that `res` gets ebp instead of edi (the players walk and `to` take the
 // other slot of that pair). Swapping the out/res declarations does not move it.
+// deepseek-v4.1-flash (retry, 10 min timebox): re-ran the checker on the
+// stored file and confirmed 86.8% (1258 of 1310 bytes) with the frame at the
+// original 0x34 and every [esp+..] operand matching. No new variant was
+// written: the whole residual is the res != 0 k4 loop (missing byte counter
+// ebx, its inc ebx, to/from register pick) and every family that restores the
+// counter moves res from edi to ebp. Left at 86.8%, which is the best score
+// any pass has recorded for this file.
 // deepseek-v4.1-flash (this pass) confirmed the manual-expansion form at
 // 86.0% (1266 bytes) is the best of everything tried. Every variant that
 // restores the byte counter ebx in the k4 loop (PlayerId called as an inlined

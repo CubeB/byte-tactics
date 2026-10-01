@@ -13,6 +13,13 @@
 // up until the slots do); case 28 (0x454ec4, buffer at 0x220, 5-byte message at 0x218) and
 // case 33 (0x4559f5) are still missing. Also the 0x9b bit-4 test at 0x4540f8 is a real
 // bitfield read (mov al,[ecx+0x9b]; shr al,4; test al,1), not `& 0x10`.
+// deepseek-v4.1-flash (retry, 10 min timebox): re-ran the checker, 28.0% is still
+// the best recorded for this file (6396 of 8944 bytes; frame 0x318 against 0x51c).
+// The two dominant gaps are unchanged: the three untranscribed bodies (39 first,
+// then 33, then 28, which together carry the ~0x204 of missing frame) and the
+// per-slot draw order of the command bodies already transcribed (a prior pass that
+// added all three reached 0x51c but only 9.6%, because the slot order was wrong).
+// No new variant was written in the timebox.
 // Next: transcribe case 28 then case 33 in that order (their locals are declared before
 // case 0x102's Class_00463be0 temp, which sits at 0x2e0, and before case-39's 0x434 buffer).
 

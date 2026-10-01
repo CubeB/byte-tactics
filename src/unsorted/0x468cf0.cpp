@@ -1,6 +1,14 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
 // deepseek-v4.1-flash retry 4 (timeboxed): one variant tried, no gain, reverted.
+// deepseek-v4.1-flash retry 5 (10 min timebox, no gain, reverted): the prologue
+// hunk (ours: mov ebx,eax / add eax,0xdcb / mov [esp+0x74],eax versus the
+// original's lea ebx,[eax+0xdcb] / mov [esp+0x74],ebx, i.e. the original keeps
+// ebx = g_game+0xdcb and reloads g_game, ours keeps g_game in ebx) was attacked
+// from both ends of the be950 byte reads: reading them as *(byte*)((int)g_game
+// +0xdda) (to kill the iVar11 live range) gives 53.2/6027, and as
+// L.local_1b0[0xf] gives 52.2/6023 (confirming the earlier 51.9 note), so the
+// ebx assignment is not reachable by rewriting those two reads alone.
 // Correction to the note further down: the local_1a3 99999.0 site is the ONLY
 // one whose compare idiom still differs (base diff, check.py output line ~679):
 //   original: test ah,1 / je 0x46933e     ours: test ah,1 / jne 0x469340

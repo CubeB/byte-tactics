@@ -130,13 +130,16 @@ void __stdcall FUN_004b7760(Rec_004b7760* rec)
             else
                 last = mid;
         }
+        int* slot;
         if (first == DAT_0051fc99.end() || NameNe_004b7760()(first->handle, key)) {
             Class_004b7e30 e(key);
             int index = first - DAT_0051fc99.begin();
             DAT_0051fc99.insert(first, e);
-            first = DAT_0051fc99.begin() + index;
+            slot = &(DAT_0051fc99.begin() + index)->field_4;
+        } else {
+            slot = &first->field_4;
         }
-        first->field_4 = (int)fn;
-        first->field_8 = mask;
+        slot[0] = (int)fn;
+        slot[1] = mask;
     }
 }

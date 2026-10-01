@@ -4,6 +4,26 @@
 // add destination remain the allocator differences described below.
 // Partial, best 83.9% (re-checked by space-bunny-free, no better form found).
 //
+// space-bunny-free pass (#3409), 83.9% confirmed, 1 check run, 5 free --sym scores.
+// The one lever no earlier pass had tried is the compiler BUILD: `tools/wcl` also
+// ships an unpatched msvc5-rtm, and building this file with BT_TOOLCHAIN=msvc5-rtm
+// gives the same loop head (`mov esi,[edx+0x10] / add esi,ebx`) and the same 256-byte
+// code, so the row-pointer add order is not an SP3 regression either.
+// Four more forms scored free, all byte for byte the 256-byte file and all 83.9%:
+//   * `dp0 = (unsigned char*)(xoff + (int)dst->plane0) + stride;`, i.e. the cast in
+//     the MIDDLE so that the first add is a pure int add with xoff as its first
+//     operand (this is the only spelling that can reach `mov esi,ebx / add esi,eax`);
+//   * `dp0 = dst->plane0 + xoff + stride`, pointer operand written first;
+//   * the sum split into `dp0 = xoff + dst->plane0; dp0 = dp0 + stride;` (and the
+//     same for dp1);
+//   * the plane fields declared as `int`, so the whole row address is one integer
+//     sum cast to `unsigned char*` at the end;
+//   * the two plane fields declared as one `unsigned char* plane[2]` array (83.9,
+//     identical code), and read through `__inline` plane accessors of the guide's
+//     item 28 (67.7, much worse, so the accessors are not a lever here either).
+// So MSVC 5 reorders the terms of the row-pointer sum whatever the operand types
+// and however the statement is split, and the three remaining differences stay put.
+//
 // deepseek-v4.1-flash second pass (#1615): 83.9% again. Lever 6/7 tried with no
 // change: reusing the parameters x and y themselves as the loop counters (the
 // original's counters occupy the arg2/arg3 slots, which our `row`/`n` locals

@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, gate polarity checked by space-bunny-free, gate spelling changed by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, gate polarity checked by space-bunny-free, gate spelling changed by space-bunny-free, finished by Claude Sonnet 5.5. Names are provisional.
 // Partial: 91.4% (1081 of 1040 bytes, 41 too long). Three findings for the next attempt:
 // 1. THE GATE IS WRONG HERE, semantically. The original's second energy compare at 0x405b18 is
 //    `fld energy; fld capE; fmul 0.2; fcompp; fnstsw; test ah,0x41; je 0x405b5a`, and 0x405b5a is
@@ -162,74 +162,89 @@ int __stdcall FUN_0043b400(Unit*, Unit*, int);
 int __stdcall FUN_0047ea40(Vec3*, int, Vec3**, float*, Vec3**, float*);
 void __stdcall FUN_0043acb0(Unit*, Class_0043a1f0*);
 
+// Claude Sonnet 5.5 (found with tools/permute.py): 91.4% -> 98.3%, still
+// partial (1040 bytes, same size as the original). Wrapping the whole body
+// after the declarations in `do { ... } while (0);` (the final `return 7;`
+// inside it) gives 97.8% by itself and fixes the size. On top of that, each
+// of two more changes adds a little: the energy gate as
+// `unit->owner->energy <= 0.2 * owner->energyCapacity` with a local
+// `Owner* owner = unit->owner;` (98.1% with the wrapper), and `metalAmount`
+// declared at the top of the function with the Vec3/range2/energy locals
+// reordered as `Vec3 metalPos, energyPos, * metal`, `range2`, `energy`
+// (98.1% with the wrapper); both together 98.3%. Without the wrapper the
+// gate local and the declaration reorder reach only 92.0%. (The comment
+// about the gate near the top predates this and refers to the old spelling.)
 // FUNCTION: 0x405980
 int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
 {
+    float metalAmount;
     unsigned int state = 0;
-    state = order->state;
-    switch (state) {
-    case 0:
-        if (order->target) order->pos = order->target->pos;
-        FUN_0043a020(unit, order);
-        return 1;
-    case 1: {
-        if (flags & 0xe0) return 6;
-        ((Class_00438930*)order)->FUN_00438930(&order->pos, 16);
-        ((Class_00439e80*)order)->FUN_00439e80(60);
-        order->flags |= 0xe0;
-        if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
-            std::vector<Unit*> units;
-            int range = unit->def->range << 16;
-            FUN_0047e890(&unit->pos, range, Class_00405d90(unit->owner, &units, unit));
-            if (!units.empty()) {
-                Unit* target = units[FUN_004b6c30(units.size())];
-                if (unit->owner->allied[target->owner->index]) {
-                    Class_00438760 kind = FUN_0043f0e0(8, unit, target, 0);
-                    if (kind.index) {
-                        if (FUN_0043b400(unit, target, 0)) return 6;
+    do {
+        state = order->state;
+        switch (state) {
+        case 0:
+            if (order->target) order->pos = order->target->pos;
+            FUN_0043a020(unit, order);
+            return 1;
+        case 1: {
+            if (flags & 0xe0) return 6;
+            ((Class_00438930*)order)->FUN_00438930(&order->pos, 16);
+            ((Class_00439e80*)order)->FUN_00439e80(60);
+            order->flags |= 0xe0;
+            if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
+                std::vector<Unit*> units;
+                int range = unit->def->range << 16;
+                FUN_0047e890(&unit->pos, range, Class_00405d90(unit->owner, &units, unit));
+                if (!units.empty()) {
+                    Unit* target = units[FUN_004b6c30(units.size())];
+                    if (unit->owner->allied[target->owner->index]) {
+                        Class_00438760 kind = FUN_0043f0e0(8, unit, target, 0);
+                        if (kind.index) {
+                            if (FUN_0043b400(unit, target, 0)) return 6;
+                            return 3;
+                        }
+                    }
+                }
+            }
+            Owner* owner = unit->owner;
+            if (unit->owner->energy <= 0.2 * owner->energyCapacity ||
+                unit->owner->metal < unit->owner->metalCapacity * 0.2) {
+                Vec3 metalPos, energyPos, * metal = &metalPos;
+                int range2 = unit->def->range << 16;
+                Vec3* energy = &energyPos;
+                float energyAmount;
+                if (FUN_0047ea40(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
+                    if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
+                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
+                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        order->flags = 0;
+                        return 3;
+                    }
+                    if (energy && unit->owner->energy < unit->owner->energyCapacity * 0.2) {
+                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
+                        order->flags = 0;
+                        return 3;
+                    }
+                    if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
+                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
+                        order->flags = 0;
+                        return 3;
+                    }
+                    if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
+                        ((Class_004388d0*)order)->FUN_004388d0(0);
+                        FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
+                        order->flags = 0;
                         return 3;
                     }
                 }
             }
+            return 2;
         }
-        if (unit->owner->energyCapacity * 0.2 >= unit->owner->energy ||
-            unit->owner->metal < unit->owner->metalCapacity * 0.2) {
-            int range2 = unit->def->range << 16;
-            Vec3 energyPos, metalPos;
-            Vec3* metal = &metalPos;
-            Vec3* energy = &energyPos;
-            float energyAmount, metalAmount;
-            if (FUN_0047ea40(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
-                if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
-                    FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
-                    order->flags = 0;
-                    return 3;
-                }
-                if (energy && unit->owner->energy < unit->owner->energyCapacity * 0.2) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
-                    FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
-                    order->flags = 0;
-                    return 3;
-                }
-                if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
-                    FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, metal, 0, 0, 0));
-                    order->flags = 0;
-                    return 3;
-                }
-                if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
-                    ((Class_004388d0*)order)->FUN_004388d0(0);
-                    FUN_0043acb0(unit, new Class_0043a1f0("RECLAIM", 0, energy, 0, 0, 0));
-                    order->flags = 0;
-                    return 3;
-                }
-            }
         }
-        return 2;
-    }
-    }
-    return 7;
+        return 7;
+    } while (0);
 }
 

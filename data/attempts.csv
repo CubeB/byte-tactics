@@ -7204,7 +7204,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x464700,473,,#4342,assigned,,,"issue #4342, escalated"
 0x4797e0,1034,deepseek-v4.1-flash,#4344,partial,84.0,,"issue #4344, escalated"
 0x48cd80,428,,#4346,assigned,,,"issue #4346, escalated"
-0x4b1c00,586,,#4348,assigned,,,"issue #4348, escalated"
+0x4b1c00,586,space-bunny-free,#4348,matched,100.0,,"issue #4348, escalated"
 0x49a890,488,,#4352,assigned,,,"issue #4352, escalated"
 0x49abb0,568,,#4352,assigned,,,"issue #4352, escalated"
 0x459200,1506,,#4353,assigned,,,"issue #4353, escalated"

@@ -56,6 +56,12 @@
 // (all 46.6), i or n as long, loop with i initialized in its declaration plus
 // int found (60.6 but i still ends in ebp), a `zero` local for the 0 arguments
 // (59.6), bool found with true/false and ==false (60.6).
+// Retry deepseek-v4.1-flash (this session): spelling the operator-new guard as a
+// ternary (`p = p ? p->FUN_0043a420(unit, file, name) : 0;`) reproduces the
+// original's `jmp` over an explicit `xor eax,eax` zero arm at 0x487598 (60.6 ->
+// 60.7, 1566 bytes). Re-tried `sprintf(script, "Script%i", i)` on top of it and it
+// still collapses to 46.7, so the loop-index theory remains wrong. The rest is the
+// one-off register-phase rotation documented above.
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
@@ -341,8 +347,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
         do {
             sprintf(name, "u%04xm%04x", unit->id, k);
             Order_00487080* p = (Order_00487080*)operator new(0x56);
-            if (p != 0)
-                p = p->FUN_0043a420(unit, file, name);
+            p = p ? p->FUN_0043a420(unit, file, name) : 0;
             if (p->flags & 0x40000) { *special=p; special=&p->next; }
             else { *normal=p; normal=&p->next; }
             k++;

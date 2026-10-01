@@ -1,4 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// Eighth pass (#2984, deepseek-v4.1-flash): baseline re-confirmed at 74.1%.
+// Swept ~60 more shapes with a generator (all scored via check.py --sym, free):
+// clamp on the x2 local versus on span->x2, slope from span fields versus
+// locals, a `pitch` local declared before the slope / after the two pointers /
+// after the clamp, `unsigned short` and cast pitch, inline surf->pitch at the
+// offset, a separate `int i = n` loop counter, a for-loop, the four increment
+// orders (p++;z;d++ / p++;d++;z / ++p;++d;z / p=p+1...), asymmetric offsets
+// (p by pitch, d by surf->pitch and vice versa), and four memset spellings
+// (plain, cast, (unsigned int)n, (void*)p). Nothing beat 74.1%. Every shape
+// that ties emits the same 200 bytes, so this is a fixed point of the compiler:
+// the residual is only the allocator's choice of a register for `surf` in the
+// count block (original keeps it in ebp and re-reads the pitch off it, ours
+// frees ebp and reuses it for x1). See the earlier passes below for the full
+// list; no source spelling found across 8 passes moves it.
 // Claude Sonnet 5.5 pass (#694): still 74.1%, 200 bytes. Compiler state ruled out:
 // N unused `extern int` declarations (0 to 400 in steps of 8) give 200 bytes and 74.1%
 // for N = 0 to 48 and again from about 296, and a shorter 193 bytes and 59.2%

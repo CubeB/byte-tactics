@@ -1,4 +1,14 @@
-// Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, sixth pass by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, sixth pass by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// Eighth pass (deepseek-v4.1-flash, 2 scratch scores on top of the saved
+// 99.6% base): writing the third _Ucopy as the hand loop
+// `{ iterator _d = _Q + _M; const_iterator _s = _P; do {} while (_s != _Last); }`
+// collapses to 530 bytes / 62.2 percent, and swapping the class member order to
+// `iterator _First, _Last, _End; _A allocator;` gives 538 bytes / 75.1 percent,
+// so neither the loop spelling (the 0x425480 shape) nor the member offsets
+// touch the SIB byte. Restored to the 544-byte / 99.6 percent base below:
+// still only `lea eax, [ebx + ecx]` (original) vs `[ecx + ebx]` (ours) at
+// 0x4252d1 differs, and no BAD references. The wanted base/index order needs a
+// translation-unit state this build cannot reach.
 // #2343 retry by GPT-6.1-sol: baseline remains 99.6% after four check.py
 // invocations. Restrict, byte-offset, and single-use destination probes left
 // the SIB operand order at 0x4252d1 unchanged. No MATCH.

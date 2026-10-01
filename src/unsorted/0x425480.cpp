@@ -1,4 +1,13 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Eighth pass (deepseek-v4.1-flash, 5 scratch scores on top of the saved
+// 534-byte / 81.1 percent do-while base): swapping _Ucopy's increments to
+// `++_F, ++_P`, swapping _Ufill's to `++_F, --_N`, the pre-tested source-first
+// `while (_s != _Last)` form, and sizeof-neutral edits of the growth branch all
+// leave the build byte-identical at 534 bytes / 81.1 percent. Rewriting the
+// capacity ternary as `(_M < size() ? _M : size())` regresses to 79.3 percent,
+// so the ternary polarity is load bearing and the best base stands. Residual
+// is unchanged: the head guard, the growth branch's _P (edi here, ecx in the
+// original) and the per-iteration `mov edx, [ebp + 8]` _Last reload.
 // space-bunny-free pass (900 s, 3 real check runs, all scored variants free
 // through --sym): the 534-byte do-while base still stands at 81.1%, 534 of 537
 // bytes, and no variant beat it. Everything outside the growth branch matches

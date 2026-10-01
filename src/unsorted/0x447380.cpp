@@ -145,6 +145,7 @@
 // and all six stay at 95.06% / 1318 bytes, so the pair's register choice is not
 // reachable from the call expression's spelling.
 // GPT-6.1-sol retry (issue 3011): best remains 95.1% with lstrcpynA before all four body sprintfs. A lookupName alias had no effect; moving lstrcpynA after the first, second, or third sprintf scored 94.3%, 93.0%, and 92.7%, respectively. The remaining diff is the tail lookup argument/register allocation already described below.
+// deepseek-v4.1-flash pass (issue 3460, 10 min): one check run; an `Entry* ent = entries;` alias feeding both FUN_0049fdf0 and FUN_0049ff10 on top of this probe is byte-neutral (95.1%, 1318 bytes), same as without it. Residual is still exactly the two hunks: the hoisted lstrcpynA block (ours at 0x44752e, original after the fourth body sprintf) and the eax/ecx/edx rotation of the FUN_0049fdf0 result chain and FUN_0049ff10 argument pair.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

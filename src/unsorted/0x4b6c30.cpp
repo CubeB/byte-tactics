@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // Retry (deepseek-v4.1-flash, 2026-10): confirmed the neg/shl/sub target block
 // appears for EVERY spelling whose correction is a real multiply tree, inline
 // or materialised: ((-q)<<31)-q, q*0x7fffffff, q*-2147483647, -q*2147483648,
@@ -72,7 +72,15 @@
 // 57.5% form. Sweeps: headers.py 768 sets and 0 to 10000 unused prototypes are
 // flat at 91.1%, so this is the compiler-state tie the guide describes, not a
 // source spelling.
-#include <windows.h>
+// Claude Opus 5.5 (found with tools/permute.py): 95.0%, up from 91.1%, the
+// right size (101 bytes). The correction term is a named local that divides
+// seed by 127773 a second time instead of reusing q. Both halves are needed
+// for these bytes: the same expression written inline stays at 91.1%, and the
+// named local with q (`(q << 31) - q`) is 83 bytes, 33.8%. <windows.h> is now
+// left out: with it MSVC merges the two divisions into one and also gives the
+// 83-byte, 33.8% form. What still differs is the sign of the last two operations: the
+// original subtracts (`sub edx, ecx; sub eax, edx`), this adds the negated
+// term (`add ecx, edx; add eax, ecx`).
 
 extern unsigned int DAT_0051fc88;
 
@@ -84,7 +92,8 @@ int __stdcall FUN_004b6c30(int range)
 
     unsigned int seed = DAT_0051fc88;
     unsigned int q = seed / 127773;
-    seed = seed * 16807 - ((q << 31) - q);
+    unsigned int correction = (q << 31) - seed / 127773;
+    seed = seed * 16807 - correction;
     if ((int)seed <= 0)
         seed += 2147483647;
     DAT_0051fc88 = seed;

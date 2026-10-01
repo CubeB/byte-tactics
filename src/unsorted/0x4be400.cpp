@@ -1,4 +1,7 @@
-// Decompiled by Sonnet 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Sonnet 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (found with tools/permute.py): MATCH. The test that skips the "."
+// and ".." entries is two nested ifs, not one `&&`: with the `&&` MSVC lays
+// out the second strcmp's branch the other way round (99.2%).
 // deepseek-v4.1-flash (#3128 retry): still 99.2% (699 bytes, exact). The sole real
 // diff is the guard branch target, original `jge 0x4be671` vs ours `jge 0x4be66d`
 // (the `call 0x4be400` diff line is check.py masking the self-recursive call). The
@@ -253,11 +256,13 @@ void __stdcall FUN_004be400(char* path, int state, int recursive)
         return;
     do {
         if (fd.attrib & 0x10) {
-            if (strcmp(fd.name, ".") != 0 && strcmp(fd.name, "..") != 0) {
-                strcpy(buf, path);
-                strcat(buf, fd.name);
-                strcat(buf, "\\");
-                FUN_004be400(buf, ((Find_004be400*)h)->state, 0);
+            if (strcmp(fd.name, ".") != 0) {
+                if (strcmp(fd.name, "..") != 0) {
+                    strcpy(buf, path);
+                    strcat(buf, fd.name);
+                    strcat(buf, "\\");
+                    FUN_004be400(buf, ((Find_004be400*)h)->state, 0);
+                }
             }
         } else {
             i = ((Find_004be400*)h)->state;

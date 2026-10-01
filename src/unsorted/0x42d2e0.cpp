@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (found with tools/permute.py): 97.1%, up from 96.8%. In the unit
+// type loop the progress byte's divisor is read through a `game` local loaded
+// just before the store, while the store itself still goes through g_game
+// (96.8% with both through g_game).
 // Pass 15 (deepseek-v4.1-flash): shape unchanged, re-confirmed 2173/2173 at 96.8. The whole
 // residual diff is three adjacent spots from one allocator decision: (1) the units-loop entry
 // guard, ours materialises the count (`mov ecx,[edi+0x1438f]; cmp ecx,esi`) where the original
@@ -402,7 +406,8 @@ void FUN_0042d2e0() {
 
     for (unsigned short u = 1; u < g_game->field_1438f; u++) {
         Class_0042b370* type = &g_game->field_1439b[u];
-        g_game->field_38d71 = (unsigned char)((u * 100) / g_game->field_1438f_alt);
+        Game_0042d2e0* game = g_game;
+        g_game->field_38d71 = (unsigned char)((u * 100) / game->field_1438f_alt);
         type->field_21e = u;
         FUN_004290f0(path, "units", type->name, "FBI");
         if (FUN_004bbc40(path))

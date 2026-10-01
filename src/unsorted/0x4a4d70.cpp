@@ -1,4 +1,7 @@
-// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (found with tools/permute.py): 99.1%, up from 98.7%. The colour
+// table passed to FUN_004a50e0 is read as entries[param_2].colours, not
+// through `me` (98.7% through `me`).
 // deepseek-v4.1-flash (#3888 retry): still 98.7% / 661 bytes over one scored run.
 // objdump of our object shows the identical instruction stream and the same
 // registers as the original at the colour read (call FUN_004c13f0 / mov
@@ -414,7 +417,7 @@ void __stdcall FUN_004a4d70(Class_004a4d70* param_1, int param_2)
     FUN_004c13a0(me->colours[(int)param_1 + 0x8b2], FUN_004c13f0());
     rect.top += 3;
     FUN_004a50e0(entries->surface, me->b6.text, rect.left, rect.top,
-                 rect.right - rect.left, (int)me->colours);
+                 rect.right - rect.left, (int)entries[param_2].colours);
 
     if (param_2 == param_1->focus) {
         // The original blanks and restores a byte at

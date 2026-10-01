@@ -1,4 +1,7 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Claude Opus 5.5 (found with tools/permute.py): MATCH. `img` is declared after `raw`
+// and `h` instead of first, which gives the locals the original's stack slots
+// (99.0% with `img` first).
 // 99.0% (577 bytes against 577, only two instructions differ, see the end).
 //
 // SEVENTH PASS (deepseek-v4.1-flash). Confirmed the residual is unchanged:
@@ -329,9 +332,9 @@ public:
 // FUNCTION: 0x4b3770
 int Class_004b3770::FUN_004b3770(char* filename, char* name, void* arg3)
 {
-    Image_004b3770 img;
     void* raw;
     Header_004b3770 h;
+    Image_004b3770 img;
     char errmsg[0x80];
     File_004bb5d0* file;
     long remaining;

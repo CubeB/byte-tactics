@@ -1,4 +1,4 @@
-// Decompiled by Opus, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Opus, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
 // GPT-6.1-sol issue 3121 retest: 96.6% after four checks. Reversing y operand
 // order, splitting y into short locals, and moving x before y did not change
 // codegen. Remaining difference: the two y loads use ecx/edx in swapped order.
@@ -24,6 +24,13 @@
 // store scheduling. The only remaining diff is the pair of y loads: the
 // original puts gadgets->y in ecx and gadgets[index].y in edx, ours swaps
 // those two scratch registers (the sum still lands in ecx either way).
+// Claude Opus 5.5 (found with tools/permute.py): MATCH. Three changes, each
+// needed: the cell's x comes from a small inline helper, CellX; the lookup's
+// result goes through its own local before `index` (96.6% without it); and the
+// grid's y is read straight into the y sum, not through a `baseY` local (93.2%).
+// The helper counts as a definition the compiler has seen: writing its sum out
+// inline still matches while CellX stays defined, and drops to 93.2% once it
+// is gone.
 // Draws the frame of one cell of the 16x16 "COLS" colour grid gadget
 // (cell index = row * 16 + column, each cell 8 pixels).
 
@@ -58,18 +65,23 @@ struct Rect_004ac970 {
 int __stdcall FUN_0049fdf0(void* gadgets, const char* name, int flag);
 void __stdcall FUN_004bf8c0(void* param_1, void* param_2, int param_3);
 
+// The x of one cell of the grid: the grid gadget's x plus the cell gadget's.
+static inline int CellX(Gadget_004ac970* gadgets, int index)
+{
+    return gadgets[index].x + gadgets->x;
+}
+
 // FUNCTION: 0x4ac970
 void __stdcall FUN_004ac970(Object_004ac970* obj, int cell, int color)
 {
     Gadget_004ac970* gadgets = obj->holder->gadgets;
-    int index = FUN_0049fdf0(gadgets, "COLS", 6);
+    int index, found = FUN_0049fdf0(gadgets, "COLS", 6);
     void* surface = gadgets->surface;
-    unsigned int x = gadgets[index].x + gadgets->x;
-    short baseY = gadgets->y;
+    index = found;
     short cellY = gadgets[index].y;
-    int y = baseY + cellY;
+    int y = gadgets->y + cellY;
     Rect_004ac970 rect;
-    rect.left = x + (cell % 16) * 8;
+    rect.left = (unsigned int)CellX(gadgets, index) + (cell % 16) * 8;
     rect.top = y + (cell / 16) * 8;
     rect.right = rect.left + 7;
     rect.bottom = rect.top + 7;

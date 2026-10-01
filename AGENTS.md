@@ -94,6 +94,16 @@ For each function in the issue:
    `uv run tools/checkall.py <addr> ...` for a whole batch and
    `uv run tools/headers.py <addr>` when registers or operand order won't
    budge.
+5. When a function is close (about 90% or more) and stuck, run
+   `uv run tools/permute.py <addr>` (`docs/permuter.md`). It tries thousands
+   of meaning-preserving rewrites of your file for 15 minutes and writes the
+   best one to `build/permute/<addr>/best.cpp`, with `best.diff` beside it.
+   Read the diff and tidy it before you copy anything into your file: the
+   output can contain temporaries named `tmp0`, helpers named `inl0` and
+   other leftovers that need a sensible name or can go. Re-check with
+   `check.py` after each edit, since a change that looks dead can be needed.
+   It runs 12 compiles at a time; pass `--jobs 4` when other agents on the
+   machine are running it too.
 
 ### When to stop: keep going while you are getting closer
 

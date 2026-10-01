@@ -209,6 +209,18 @@ their whole budget.
 
 ## When the registers or the order won't budge
 
+**Run the permuter when a function is close and stuck.** At about 90% or
+more, `uv run tools/permute.py <addr>` searches meaning-preserving rewrites of
+the file (statement and declaration order, temporaries, operand order, loop
+forms, inline helpers and more) for 15 minutes, and writes the best version to
+`build/permute/<addr>/best.cpp` with `best.diff` beside it. Read and tidy the
+diff before you use it: the output can include temporaries (`tmp0`) and
+helpers (`inl0`) that need a sensible name, and a hunk that looks dead can
+still be needed, so re-check with `check.py` after each edit. Its first run
+matched 0x4ac970, 0x4be400 and 0x4b3770 in under a minute each, after many
+attempts by hand. `docs/permuter.md` has the options and how to read the
+output.
+
 Cavedog wrote many small helper functions and methods, and `/Ob2` inlined
 them. An inlined function boundary changes the order MSVC evaluates things in
 and which registers it keeps values in, so when source-level shuffling has no

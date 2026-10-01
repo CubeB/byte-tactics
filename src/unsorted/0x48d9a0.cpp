@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 79.1%, 646 of 644 bytes. The earlier 83.6% version left found
 // uninitialized on a failed scan. The original writes zero at 0x48db0e and
 // one at 0x48dc17. A shared selection label restores both paths, the original
@@ -20,6 +20,16 @@
 // scan fell to 33.0%. An explicit byte-offset player calculation generated the
 // same 79.1% output. The remaining mismatch is still the +0x1b63 player-base
 // materialization described above.
+// deepseek-v4.1-flash (this session): re-verified 79.1% (646 bytes) and
+// re-measured the through-the-player-local nested spelling at 33.0% (653 bytes,
+// the whole allocation rotates: setB lands in edi and the frame shrinks). The
+// residual is exactly one value-numbering choice: the compiler hands the outer
+// loop's partial address (g_game + 331*i) to the nested scan and folds +0x1b63
+// into its bound loads, where the original produces the full player pointer
+// with `lea esi,[ecx+eax*2+0x1b63]` and reads [esi+0x67]/[esi+0x6b]. Byte
+// arithmetic: our lea is 4 shorter, our two bound loads 3 longer each, net +2,
+// which shifts every later branch target by 2. No equivalent respelling
+// changes it (GVN merges them), so this is allocator state, not source shape.
 
 #pragma pack(push, 1)
 

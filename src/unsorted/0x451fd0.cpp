@@ -8,6 +8,12 @@
 // reduced but not gone, and the same search stalled at 88.5% for 2500 variants.
 // #3078 retry by GPT-6.1-sol: one check reconfirmed 85.9%; the three constant
 // register assignments remain the only recorded differences.
+// deepseek-v4.1-flash (#3429): moved `DAT_00512b80 = 2;` from the very end up
+// into the store run, between `DAT_00512bcc = 7;` and `DAT_00512ac8 =
+// FUN_0044fd40;`, which is exactly where the original emits that store (the
+// stray trailing store hunk is gone, four hunks remain instead of five). The
+// score is byte-flat at 88.5% / 915 bytes: only the 1/6/2 register hunks are
+// left, and no tried source shape moves them.
 // Partial: 85.9%, 915 bytes, exactly the original's size. The store sequence,
 // every immediate and the whole prologue and epilogue match; what is left is
 // only the register the allocator hands to three of the hoisted constants.
@@ -344,10 +350,10 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
     DAT_00512ae4 = 3;
     DAT_00512a2c = FUN_0044fd40;
     DAT_00512bcc = 7;
+    DAT_00512b80 = 2;
     DAT_00512ac8 = FUN_0044fd40;
     DAT_00512c68 = 7;
     param_1->field_870 = FUN_004b6340();
-    DAT_00512b80 = 2;
     param_1->field_1745 = 0x2000;
     param_1->field_1749 = (int*)FUN_004d83b0(s_PACKET_DATA_00506524, 0x2000);
     return 0 != param_1->field_1749;

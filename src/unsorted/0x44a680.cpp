@@ -117,6 +117,11 @@
 //   swaps (LOGO `mov edx,[esp+0x18]` before/after the `lea ecx,[esp+0x34]`,
 //   the tail's `xor ebx,ebx` before/after the pl reload) and the mirrored
 //   edx/ecx pick in the `w[0x63] < ... - 1` compare.
+// Fifth session (deepseek-v4.1-flash, issue 3513): baseline re-checked at 92.9%
+// (2340 bytes). Splitting the reindex loop condition `(f73 == 1 || f73 == 2 ||
+// f73 == 3) && byte != 10` into a nested f73-if (the layout the original's
+// cmp dl,1/2/3 then cmp byte sequence suggests) regresses to 87.9% (2347
+// bytes), so the &&-combined form is load-bearing. Baseline kept.
 // Base by deepseek-v4.1-flash, space-bunny-free and GPT-6; continued by deepseek-v4.1.
 // Gave up at 79.0% (2333 bytes against 2340). The 1-bit bitfield at
 // Unit+0x9d bit 2 fixed the tail; what is left is the initial local-slot

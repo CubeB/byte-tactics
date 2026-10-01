@@ -15,21 +15,39 @@
 // allocator.deallocate is the only spelling that produces the `push ecx` local
 // (a hand-written class with the same layout loses it and scores 59.5%).
 //
-// deepseek-v4.1-flash retry (v31..v49): the struct-with-vector-member guess
-// shifts _First to +8 (this VC5 vector puts an empty allocator member at +0),
-// so the global really is a plain std::vector<Class_004c2ea0*>*. None of these
-// spellings removed the ebx zero or moved the vector into edi: `delete
-// DAT_00511fb4;` / `delete v;` / a guard `if (v) { v->~vector(); operator
-// delete(v); }` / the unguarded `v->~vector(); ::operator delete(v);` (63.5%,
-// best) / `__stdcall` / a helper for the final store / int, unsigned,
-// (void*)0, unsigned-cast and void*-typed global declarations / `memset(&
-// DAT_00511fb4,0,4)` / store-before-delete / a named local kept live across
-// the call. The delete forms all reproduce the original's `test/mov edi` guard
-// but re-materialise the zero in ebx (62.1%); the unguarded explicit-destructor
-// form drops the guard but keeps the same zero (63.5%). So the residual is one
-// thing only: the original had the final `DAT_00511fb4 = 0` and the three
-// member zero stores as distinct constant nodes that did not join into a
-// register. Scratch variants v31..v49 in build/scratch/0x4223e0.
+// deepseek-v4.1-flash retry (about 90 scratch files in build/scratch/0x4223e0):
+// The residual has one cause: the constant 0 has four uses in the loop's
+// region (the loop's own delete null check, the three member stores of the
+// inlined ~vector and the final `DAT_00511fb4 = 0`), so MSVC 5 keeps it in
+// ebx, which is callee-saved and live across the two operator delete calls.
+// Evidence: dropping only the final `DAT_00511fb4 = 0` (scratch u_noglob) makes
+// the loop emit `test esi,esi` and the epilogue emit the immediate member
+// stores (`mov dword ptr [esi+4], 0`), scoring 64.2%; but that variant omits
+// an instruction the original clearly has (0x422452), so it is not a valid
+// solution and is not the file. With the store present, every source shape
+// tried keeps the zero in a register. The threshold is visible in the scratch
+// k3/k4 experiments: with no loop, 3 member stores + the global store still
+// use immediates (k4_del1_st3) while 4 member stores do not (k4_del1_st4);
+// with the loop, even one member store plus the store does not (v_1).
+// Tried and rejected since v31: `delete DAT_00511fb4` / `delete v` with a named
+// local / an explicit guard `if (v) { v->~vector(); operator delete(v); }` /
+// explicit destructor + operator delete(v) (63.5%, best) / the global store
+// first / a reference to the global / comma expressions / int, unsigned,
+// void*, char-typed global declarations and `*(int*)&DAT_00511fb4 = 0` /
+// `memset(&DAT_00511fb4,0,4)` / an inline helper that deletes / loop forms
+// (`while`, `do/while`, `delete *p++`, named element temp, explicit `if (*p)`,
+// `if ((int)*p)`, `!= NULL`, `(void*)` compare) / uninitialised locals in both
+// declaration orders / static inline wrappers around the whole tail /
+// hand-written vector-like classes with the same layout and destructor (they
+// reproduce the shared zero but never the `push ecx` deallocate home slot),
+// with or without taking the members' addresses / BT_TOOLCHAIN=msvc5-rtm
+// (62.1%) / the vector pointer as a local declared before the loop (changes
+// the loop's registers).
+// Best lead for the next attempt: the original's eax/edi/esi/ebx epilogue
+// appears only when the constant 0 is *not* in a register; the immediates
+// shape of u_noglob shows the allocation that goes with it. Find a spelling
+// where the final store still assembles to `mov dword ptr [0x511fb4], 0` but
+// does not share the constant node with the destructor's three member stores.
 #include <vector>
 
 class Class_004c2ea0 {

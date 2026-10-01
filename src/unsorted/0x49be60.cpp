@@ -1,5 +1,19 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// PASS 9 (deepseek-v4.1-flash, issue 3552, best 43.3%, 2292 bytes): the frame
+// LAYOUT, not the code, was the lever nobody had pulled. Growing the second
+// short[4] scratch array by one element (`short clip[6];` instead of
+// `short clip[4];`, with `short rect[4];` untouched) raises 39.2 -> 43.3.
+// Sizes swept: clip[5] 40.9, clip[6] 43.3, clip[7]/clip[8]/int clip[4..8] 42.6,
+// clip[12] 42.6, rect[6] 42.2, rect[8] 41.5, rect[6]+clip[6] 38.1, an extra
+// used int/holder local (home9/type/pb spellings) byte-neutral at 43.3, and
+// removing `index` does not compile. So the original's 0x68 frame wants the
+// low local block +4 (ours is still 4 high: first spill [esp+0x24] vs the
+// original's [esp+0x20]) and one more 4-byte slot at the bottom that no
+// declaration shape here creates. Still unfixed: loop pointers p/pos are
+// swapped (original p in esi, pos in ebp via `lea ebp,[esi+4]`; ours the
+// reverse) and our loop tail has an extra jmp plus slot reloads.
+//
 // PASS 8 (deepseek-v4.1-flash, issue 3524, best 39.2%, 2284 bytes): two more
 // allocator attempts, both reverted. (a) An explicit `else visible = 0;` on top of
 // the current `visible = 0; if (...) visible = 1;` gives 39.0, 2268 bytes, exactly
@@ -299,7 +313,7 @@ void __stdcall FUN_0049be60(void* surface)
     Vec3_0049be60 prev;
     Vec3_0049be60 pt;
     short rect[4];
-    short clip[4];
+    short clip[6];
     int time = g_game->time;
     void* frame0 = FUN_004b7f30(g_game->gaf_1480f, 0);
     int index = 0;

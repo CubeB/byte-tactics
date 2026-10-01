@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// RETRY (deepseek-v4.1-flash, issue 3552, best 26.6%, no change): four more
+// allocator probes on top of the 3552 handout, all byte-identical at 26.6 /
+// 2105 bytes (one frame is 0xc0 against the original 0xbc and the whole body
+// is the one-step register rotation below). unsigned keepW, int keepC0,
+// both together, and a swap/reuse of the two: no effect. The frame-shape
+// trick that moved 0x49be60 (growing a scratch array by one element) has no
+// analogue here because this function has no array local; the extra 4 bytes
+// must come from a long-lived scalar the original keeps that we do not.
 // STATUS (deepseek-v4.1-flash, issue 3524): still best 26.6%, not MATCH. One
 // more allocator attempt, reverted: defining `y` before `q` in the text prologue
 // (so q's first use moves after y's) drops to 24.6, 2098 bytes (original 2160),

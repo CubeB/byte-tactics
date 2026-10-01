@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Continued from a partial left by deepseek-v4.1-flash and GPT-6.
 #include <windows.h>
 #include <string.h>
@@ -222,6 +222,18 @@ public:
 // RECT-slot alias experiment for progress bytes regressed to 66.7%. Residual
 // differences are SIB operand order, zero-store register scheduling, flag-test
 // folding, and local/register scheduling around resize and bar drawing.
+// 0705Z note (deepseek-v4.1-flash): one real source-level bug found and fixed:
+// the map-name FUN_004a50e0 call is `..., -1, 0)` (not `0, -1`): the original
+// pushes the zero (ebp) first and -1 second, i.e. param5 = -1, param6 = 0, the
+// same (-1, 0) every other FUN_004a50e0 call in the exe uses. That alone took
+// the file from 84.0 to 84.3% (3463 vs 3431 bytes). The remaining diff is the
+// six bar blocks (byte-progress `and ecx,0xff` form plus rect store order), the
+// SIB base/index order ([esi+edi+0x1b63] vs [edi+esi+0x1b63], confirmed again
+// here: both source sum orders emit the same reversed SIB) and a long tail of
+// eax/ecx/edx register-name swaps in otherwise identical instruction sequences.
+// Retried the byte `prog` local (replacing the `flash` local's slot, inlining
+// the flash global at the six FUN_004a50e0 sites to keep the frame): the
+// allocator moves prog to +0x10 and shifts rect to +0x14, 3428 bytes, 69.6%.
 // FUNCTION: 0x497f40
 void FUN_00497f40(void)
 {
@@ -296,16 +308,16 @@ void FUN_00497f40(void)
         playersOffset = 0;
         arrayOffset = 0x29a4;
         do {
-            pi = (PlayerInfo_00497f40*)(playersOffset + (char*)g_game + 0x1b63);
+            pi = (PlayerInfo_00497f40*)((char*)g_game + playersOffset + 0x1b63);
             if (*(int*)pi == 0 || (pi->control != 1 && pi->control != 2)) {
-                *(int*)(arrayOffset + (char*)g_game) = 0;
+                *(int*)((char*)g_game + arrayOffset) = 0;
             } else {
-                *(int*)(arrayOffset + (char*)g_game) = 1;
+                *(int*)((char*)g_game + arrayOffset) = 1;
             }
             bar = (*(int*)pi != 0 && (pi->data->flags & 0x40) != 0) ? 1 : 0;
             arrayOffset += 4;
             playersOffset += 0x14b;
-            *(int*)(arrayOffset + (char*)g_game + 0x28) = bar;
+            *(int*)((char*)g_game + arrayOffset + 0x28) = bar;
         } while (arrayOffset < 0x29cc);
         if (!FUN_004b6b20(FUN_00497c70, 0, 0)) {
             FUN_004b6290("Unable to start the loading thread!");
@@ -364,7 +376,7 @@ void FUN_00497f40(void)
     }
     playersOffset = 0;
     do {
-        pi = (PlayerInfo_00497f40*)(playersOffset + (char*)g_game + 0x1b63);
+        pi = (PlayerInfo_00497f40*)((char*)g_game + playersOffset + 0x1b63);
         if (*(int*)pi != 0 && (pi->control == 1 || pi->control == 2) &&
             (FUN_00453320(*(unsigned int*)((char*)pi + 4), 0), DAT_00506dbc != 0)) {
             ((Class_004618a0*)&DAT_00513000)->FUN_004618a0(1);
@@ -406,7 +418,7 @@ void FUN_00497f40(void)
             {
                 int x = scr.gadget.width / 2 - field_391e9 / 2;
                 FUN_004a50e0(&scr.gadget, buf, x,
-                             (int)((double)scr.gadget.height - (double)FUN_004c1450() * 1.5), 0, -1);
+                             (int)((double)scr.gadget.height - (double)FUN_004c1450() * 1.5), -1, 0);
             }
         }
         {

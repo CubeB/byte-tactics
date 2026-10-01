@@ -1,6 +1,13 @@
-// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry session 7 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
 // deepseek-v4.1-flash retry session 8 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// deepseek-v4.1-flash retry session 10 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// New probe (scratch/0x418310/aggy.cpp): the outer y cursor wrapped in a
+// single-scalar aggregate `struct YV { int v; } yv;` with `for (yv.v=firstY; ...)`,
+// on the session-7 slot3 evidence that aggregate-class locals take the low slot.
+// Result: 2203 bytes, 55.5%, the same diff hunks as this file, so the wrapper
+// neither moved y low nor changed a byte of the schedule. That closes the
+// "make y array/struct-class" lever: the low slot is not chosen by class.
 // deepseek-v4.1-flash retry session 9 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
 // Baseline re-run only this pass; the session-7/8 declaration/scope probes
 // already cover the frame permutation lever, so no new shape was scored here.

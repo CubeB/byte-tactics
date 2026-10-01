@@ -98,6 +98,17 @@
 // the current declaration order, so it may be a scheduler artefact rather
 // than evidence about the original declarations. No source shape tried here
 // changed the ESI/EBP zero split, so the ceiling stands.
+//
+// deepseek-v4.1-flash, seventh pass (#3639, retry at 59.6%, 2 check runs): the
+// nine flag declarations are now in the original store order (canMove,
+// canAttack, canDefend, canPatrol, canLoad, canCapture, canReclaim, canBlast,
+// canStop), which lifts the score to 60.6% (1533 bytes, 0x240 frame) and makes
+// the nine zero stores match the original sequence byte for byte. This shows
+// the original declarations were in store order, not slot order. What still
+// differs is unchanged: the ESI/EBP zero split (ours test ax,ax where the
+// original has xor esi,esi / cmp ax,si), the first/count homes (ours first=0x10
+// from the prologue initialiser stores, original first=0x1c), and the tail bit
+// writes accumulating in EAX/EDX where the original uses EBX/EDX.
 
 #include <vector>
 #include <windows.h>
@@ -233,14 +244,14 @@ void FUN_0041b2e0()
     Unit_0041b2e0* first = 0;
     int count = 0;
     int canMove = 0;
-    int canLoad = 0;
-    int canReclaim = 0;
     int canAttack = 0;
-    int canCapture = 0;
     int canDefend = 0;
+    int canPatrol = 0;
+    int canLoad = 0;
+    int canCapture = 0;
+    int canReclaim = 0;
     int canBlast = 0;
     int canStop = 0;
-    int canPatrol = 0;
     int canRepair = 0;
     int fireOrder = 4;
     int moveOrder = 4;

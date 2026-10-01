@@ -24,6 +24,11 @@
 // clip at 0x34, imin/imax at 0x44/0x48) and the y1>clip.top reload in the edge loops.
 
 
+// Session deepseek-v4.1-flash (4th, timebox): `int imin, imax; imin = imax = 0;` moved clip to 0x3c
+// and imin/imax to 0x34/0x38, matching the original frame map: 64.3 -> 66.9 percent / 1152 bytes.
+// Remaining 31-byte gap is still the cross-jump tails (ours 1152 vs original 1183): check 1 threads
+// into the final unlock, checks 2/3/5 and the y1>clip.top reload paths differ in slot picks
+// (xmin 0x10 vs 0x14, and the [esp+0x48] reload register). No source-only lever found for those.
 // Session deepseek-v4.1-flash (3rd, timebox): re-ran check.py twice, no source change, still
 // 64.3 percent / 1144 bytes. Remaining hunks are unchanged from the notes above: the five
 // early-out tails (checks 1 and 4 should jump into the single final unlock body at 0x4c7a08,
@@ -131,6 +136,7 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
     int xmax = -999999;
     int clip[4];
     int imin, imax;
+    imin = imax = 0;
     int i;
     Rec_004c7580* out;
     int j, k;

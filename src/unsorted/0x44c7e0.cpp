@@ -101,6 +101,13 @@
 // "test ch,0x80", never the original's "shr ecx,0xf / test cl,1"; the unsigned
 // short, mask, and modulo spellings all folded identically, so this is MSVC's
 // simplification of a known single-bit mask, not a source lever.
+// Seventh pass (deepseek-v4.1-flash, issue 3390): baseline 85.2% (1595 bytes) kept.
+// The field_245 test as the 1-bit union bitfield scores 82.9% (1592 bytes), and
+// making the item pointer dead after the name test (FUN_004c5740 source argument
+// respelled as g_game->items + off + 0xa0 instead of (char*)item + 0xa0) scores
+// 84.3% (1608 bytes), so the live item pointer alone is not what blocks the
+// original's `add esi,0x20` in place of `lea ecx,[esi+0x20]`.
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

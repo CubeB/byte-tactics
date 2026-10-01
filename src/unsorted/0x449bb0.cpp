@@ -22,6 +22,12 @@
 // Retry: changing player-base arithmetic (73.2%), char flag97 (73.3%), declaration order, and removing the unused holder initializer (74.4% tie) did not improve it. A 15-byte text buffer ties the best; parent 17-byte buffer scores 74.1%.
 // Also tried and rejected: bitfield-typed field_97 (no code change), short
 // Gadget::field_140 (72.3), flag97 declared at first use (no change).
+// Eighth pass (deepseek-v4.1-flash, issue 3390): baseline 74.4% (2763 bytes) kept.
+// flag97 as `(unsigned short)(*(unsigned char*)((char*)info + 0x97) & 1)` is
+// byte-identical to the 1-bit bitfield read (still mov cl / and cl,1 / mov bl,cl
+// plus the xor bx,bx and the [esp+0x20] spill), and inert-extern padding k=16..96
+// inserted before the g_game declaration is byte-identical (74.4%).
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

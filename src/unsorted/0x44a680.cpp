@@ -148,6 +148,14 @@
 // - the MAXUNITS/METAL/ENERGY block: hoisting all three values into named
 //   locals (77.6) and hoisting only the maxunits one (79.0, no change).
 // - splitting the first `if` into `if (...) {} else if (...)` so the g_game
+// Ninth pass (deepseek-v4.1-flash, issue 3390): baseline 92.9% (2340 bytes) kept.
+// Tried: the three MAXUNITS/METAL/ENERGY blocks with named value and entry locals
+// in separate statements (81.0%, 2326 bytes); inert-extern padding before the
+// g_game declaration k=4..96 (92.6-92.7; k=64/96 shrink the body to 2337 bytes and
+// drop to 89.8/89.6) with the reindex-loop SIB never flipping to [ecx+eax+0x1b63].
+// The hoist of `mov eax,[g_game]` above the first jne at 0x44a6a3 is what the
+// 2-byte address drift in this file hangs on.
+
 //   reload lands before the test (79.0, no change).
 #include <string>
 #include <windows.h>

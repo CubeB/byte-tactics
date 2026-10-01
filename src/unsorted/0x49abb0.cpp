@@ -1,4 +1,6 @@
 // Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. edited by deepseek-v4.1. Names are provisional.
+// #2981 retry by GPT-6.1-sol: three checks retained 93.7% (576/568); the
+// line-of-fire block still reloads unit2 after copying its position.
 // Retry #1736: GPT-6.1-sol verified the saved source at 93.7% (576/568); no MATCH. The line-of-fire block still reloads unit2 after copying its position.
 // deepseek-v4.1 pass (issue 2573): the helpers' parameter ORDER is not the lever either.
 // Reversing the two by-value aggregates (and swapping the call arguments and the

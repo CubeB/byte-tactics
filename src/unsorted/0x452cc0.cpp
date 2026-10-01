@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #3078 retry by GPT-6.1-sol: two checks retained 84.3%; ternary flag
+// normalization emitted byte-identical output.
 // Partial: 84.3%, 848 bytes (the exact original size). Still open:
 // RETRY deepseek-v4.1-flash: no improvement this pass. Confirmed the do/while
 // form reproduces the original bottom test (`xor edx,edx` preheader, no entry

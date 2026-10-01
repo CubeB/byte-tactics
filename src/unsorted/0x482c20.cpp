@@ -8,7 +8,10 @@
 // in eax and computes the next index in ecx at the body top
 // (lea ecx,[eax+1], used as the row multiplier, then mov eax,ecx at the
 // latch); spell it as `for (i = 0; i < h; ) { k = i + 1; ...cells[k*w - 1]...;
-// i = k; }` to get that shape. (3) Both max/min fill loops in the original
+// i = k; }` to get that shape. TRIED by deepseek-v4.1-flash: that exact
+// spelling scores 77.2 (1516 bytes, 5 bytes SHORTER than the original), so the
+// latch form is wrong too even though it moves the index into eax; the
+// `lb4 + 1 < height` guard form stays. (3) Both max/min fill loops in the original
 // share one shape: prev copied to bl just before the second cell load clobbers
 // its register (row: prev in cl, m reuses cl; col: prev in dl, m reuses dl),
 // with res selected into a third register; a plain `prev = m` carry keeps the

@@ -1,15 +1,30 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry, timeboxed to 1 check run, no change to the kept
-// 45.6% shape below. Still differs: frame 0x24 vs original 0x2c (wx/wy stay in
-// registers instead of spilling to [esp+0x30]/[esp+0x38]), and the allocator
+// 45.6% shape below. Second deepseek-v4.1-flash retry scored the sweeps this
+// note asks for, all negative: dummy `extern int dummyN;` lines in front of the
+// file give 45.6 at N = 0..2, 45.1 at N = 3, 45.6/45.1 alternating to N = 20,
+// then a hard state change to 39.5 at N = 21 (and 39.5 for N = 24..128, every
+// 8; unused prototypes behave the same, 45.6 to N = 8, 39.5 from N = 12), so no
+// state in that range produces the original's 0x2c frame. Also tried and worse
+// or equal: a union type for the two fixed-point positions, which does force
+// them to memory but reads them back with extra shifts (42.1), and six source
+// permutations around `int cols`/`int width0` (declaration swap, swapped
+// cell.y/cell.x test order, extra dead locals, a `short sx = cell.x` local):
+// 45.1 to 45.6, none flips cell.y from ebp to edi or g_game from edi to ebp.
+// Still differs: frame 0x24 vs original 0x2c (wx/wy stay in
+// registers instead of spilling to [esp+0x30]/[esp+0x38]; the original reads
+// them back with `movsx ..., [esp+0x32]`/`[esp+0x3a]`, we keep the shifts in
+// registers), and the allocator
 // puts cell.y in ebp and g_game in edi where the original has cell.y in edi and
-// g_game in ebp. Idea found but not tried before the cutoff: the matched
-// neighbour 0x47d820 shows MSVC 5.0 register allocation flips with dummy
-// declaration state (its MATCH needs 16 to 80 unused externs in front), so a
-// sweep of N unused extern/prototype declarations ahead of this file (variants
-// v8..v80 are in build/scratch/0x47d2e0/, generated but never scored) may flip
-// the prologue register assignment and the frame shape. Score those first on a
-// retry. Everything else listed in the history comments below is exhausted.
+// g_game in ebp. The declaration-state idea from the neighbour 0x47d820 (whose
+// MATCH needs 16 to 80 unused externs in front) was swept above and does not
+// apply here. What the diff does show: the original never caches
+// g_game->width, it uses `imul eax, dword ptr [ebp + 0x14233]` and
+// `mov ecx, dword ptr [ebp + 0x14287]` straight from memory, which is exactly
+// what keeps g_game pinned in ebp and forces wx/wy to spill; the width cache
+// below is a scoring win that changes that shape. A retry should start from the
+// faithful shape (37.2) and find the prologue layout the cache buys back some
+// other way, not from this file. Everything else listed in the history comments below is exhausted.
 // Sonnet 5.5 retry (gave up, 45.6% kept). Better reading of the LOS prologue, which
 // scores 42.0% here but does not beat the file below: pos.x/pos.z are fixed-point
 // unions (`value = (origin + cell*2) << 19`, then `.parts.whole >> 5`) and the height

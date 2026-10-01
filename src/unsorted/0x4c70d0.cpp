@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
+// deepseek-v4.1-flash (#3060 retry): still 78.9% (280 bytes, exact). Case 0 is the
+// arg1-vs-arg3 register-priority tie: the `at_high` hoist above `out->low = 0` persists
+// in every spelling, so the global reload lands in edx (6 bytes) instead of eax
+// (5 bytes), keeping je/ja/jump-table one byte late; cases 1-3 still match. 20 fresh
+// --sym shapes (globals/casts/address-taken forms) are flat; only `value - lo`
+// moved (58.1%), so it is a front-end argument-walk order, not alias analysis.
+// headers.py 128 sets and the 0..400 dummy sweep are flat.
 // Retry (deepseek-v4.1-flash, issue 2878): confirmed 78.9% (280/280 bytes),
 // only the case 0/1/2 argument-register rotations differ. New levers all inert:
 // case1 folded-liveness `out->high = at_high - at_high`, an explicit case1

@@ -1,4 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (issue 4165): hoisted the g_game+player byte base into
+// pcVar19 for the two 0x1b8a/0x1b63 address computations (47.4 -> 47.5, 3948 -> 3945
+// emitted bytes; the local_a8 player base now uses the same base-plus-0x14a-stride shape). Everything still left to fix is listed in the notes below.
 // deepseek-v4.1-flash pass (issue 4098, 10 minute box shared with 0x447380/0x447b10):
 // one check.py run, best stays 47.4% (3902 original / 3948 emitted), first
 // mismatch still the +8 stack-slot shift for the loop counter/temp pair; no new
@@ -119,11 +122,11 @@ void FUN_00448c70(void)
   char local_34 [52];
 
   uVar18 = (uint)*(byte *)((int)g_game + 0x2a42);
+  pcVar19 = (char *)((int)g_game + uVar18);
   local_b0 = 0xffffffff;
   iVar17 = 0;
-  local_c0 = (*(byte *)(*(int *)((int)g_game + uVar18 + 0x1b8a + uVar18 * 0x14a) + 0x9b) & 0x20) >>
-             5;
-  local_b4 = (int)g_game + uVar18 + 0x1b63 + uVar18 * 0x14a;
+  local_c0 = (*(byte *)(*(int *)(pcVar19 + 0x1b8a + uVar18 * 0x14a) + 0x9b) & 0x20) >> 5;
+  local_b4 = (int)(pcVar19 + 0x1b63 + uVar18 * 0x14a);
   iVar8 = FUN_0049ff90((int)(*(int *)(*(int *)((int)g_game + 0x531) + 4)),(int)("OUTPUT"));
   uint scrollStart = (uint)*(ushort *)((int)g_game + 0x2a3e);
   uVar4 = *(ushort *)((int)g_game + 0x2a40);
@@ -262,7 +265,8 @@ LAB_0044904e:
   FUN_00446a50();
   local_b8 = 0;
   iVar8 = *(int *)(*(int *)((int)g_game + 0x531) + 4);
-  local_a8 = (int *)((int)g_game + (uint)*(byte *)((int)g_game + 0x2a42) * 0x14b + 0x1b63);
+  pcVar20 = (char *)((int)g_game + (uint)*(byte *)((int)g_game + 0x2a42));
+  local_a8 = (int *)(pcVar20 + (uint)*(byte *)((int)g_game + 0x2a42) * 0x14a + 0x1b63);
   local_bc = iVar8;
   do {
     uVar18 = local_b8 & 0xff;

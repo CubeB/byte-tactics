@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 //
 // deepseek-v4.1-flash retry (issue 3976, 10 minute box): natural order with
 // lstrcpynA placed after the fourth body sprintf (full original order) scores
@@ -166,6 +166,18 @@
 // reachable from the call expression's spelling.
 // GPT-6.1-sol retry (issue 3011): best remains 95.1% with lstrcpynA before all four body sprintfs. A lookupName alias had no effect; moving lstrcpynA after the first, second, or third sprintf scored 94.3%, 93.0%, and 92.7%, respectively. The remaining diff is the tail lookup argument/register allocation already described below.
 // deepseek-v4.1-flash pass (issue 3460, 10 min): one check run; an `Entry* ent = entries;` alias feeding both FUN_0049fdf0 and FUN_0049ff10 on top of this probe is byte-neutral (95.1%, 1318 bytes), same as without it. Residual is still exactly the two hunks: the hoisted lstrcpynA block (ours at 0x44752e, original after the fourth body sprintf) and the eax/ecx/edx rotation of the FUN_0049fdf0 result chain and FUN_0049ff10 argument pair.
+// deepseek-v4.1-flash pass (issue 4165, 2 check runs, best unchanged at 95.1%):
+// read the original's register cursor precisely. Each sprintf in a group puts
+// its buffer lea in the next slot of the rotation eax -> ecx -> edx -> eax, so
+// the loop-top group is edx/eax/ecx/edx and the body group is ecx/edx/eax/ecx:
+// the cursor advances exactly ONE step more between the two groups than ours
+// does, while every byte of that window (the four a0570 calls and the whole
+// condition) already matches. Also checked and ruled out the obvious live-range
+// explanation: the original reloads p->info at 0x4476fe and 0x447854, so the
+// value left in eax by `mov eax,[ebp+0x27]` at 0x44751c is dead before the
+// group and is NOT what makes the allocator skip eax there. Something in the
+// condition produces one more register-holding node than our source does,
+// invisibly, and it is still unfound.
 // deepseek-v4.1-flash pass (issue 3485, 2 recorded check runs on top of the
 // 95.1 probe): natural order + a reused `char* dst` for the four body sprintf
 // destinations is byte-neutral (93.5%, 1318 bytes), so the missing step is not

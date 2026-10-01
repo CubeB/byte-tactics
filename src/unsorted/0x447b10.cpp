@@ -1,4 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (issue 4165, ~09:00Z box): best now 46.2% (4306 vs 4387).
+// Hoisting the READY block's FUN_00456850 result into a byte local (`byte byte9`,
+// assigned where the original spills it: `mov byte ptr [esp+0x20], al` at 0x448174)
+// moved the score from 45.7% to 46.2% and fixed the iVar8 slot, which now lands at
+// frame+4 exactly like the original. Declaring byte9 at the top of the function or in
+// the block does not change the emitted bytes at all.
+// What still differs, in reading order:
+//  - our frame is sub esp,0x140, the original's sub esp,0x13c: one extra 4-byte slot.
+//  - bVar1 sits at frame+0x10 (original frame+8) and iVar5 (the FUN_00457a50 result) at
+//    frame+8 (original frame+0x14). The original also has a slot at frame+0xc that it
+//    only ever reads (0x448013, 0x44808d) and never stores.
+//  - the outer-loop stride pointer lives in esi here, in ebx in the original, and the
+//    loop-offset store/lea shape at the loop head differs.
+//  - the can't-add-another-player block (0x448313) is emitted at a different site.
 // deepseek-v4.1-flash pass (issue 4098, 10 minute box shared with 0x447380/0x448c70):
 // one check.py run, best stays 45.7% (4306 original / 4382 emitted), earliest
 // mismatch still the scalar stack-slot allocation at 0x447b2d; no new variant
@@ -417,11 +431,11 @@ LAB_00447ea4:
       FUN_0047f1a0((int)((byte *)"Multi"),(int)(0));
       iVar6 = ((Class_004358f0*)(*(int *)((int)g_game + 0x391e9)))->FUN_004358f0();
       if (iVar6 != 0) {
-        bVar4 = FUN_00456850();
+        byte byte9 = FUN_00456850();
         iVar6 = 0;
         bVar3 = false;
-        if (bVar4 != 10) {
-          iVar6 = *(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a);
+        if (byte9 != 10) {
+          iVar6 = *(int *)((int)g_game + (uint)byte9 * 0x14b + 0x1b8a);
           if ((1 < *(byte *)(iVar6 + 0xa7)) ||
              ((*(byte *)(iVar6 + 0xa7) == 1 && (1 < *(byte *)(iVar6 + 0xa8))))) {
             bVar3 = true;

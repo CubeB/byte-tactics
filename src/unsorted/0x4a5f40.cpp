@@ -1,7 +1,17 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
 // Started by space-bunny-free, improved by GPT-6.1-sol, GPT-6,
 // finished by deepseek-v4.1-flash.
-// PARTIAL 57.1%. Fixed the big gaf/colours branch order (original tests
+// PARTIAL 57.6% (Sonnet 5.5 pass: 57.1 -> 57.6). The only change: the
+// gaf-present, 0x13c&1 == 0 glyph pick is written as ONE call whose second
+// argument is the nested ternary (field_138/field_136 chain) instead of an
+// `int val` assigned in four arms, which brings the size to 2685 of 2700 bytes.
+// It still does not push the argument inside each arm and jump to a shared
+// `push eax; call` the way the original does (the 0x100 arm at 0x4a6085 jumps into
+// that same tail with `push ecx` already done): casting the arms to int or
+// declaring val at function level with `goto docall` both score lower (56.3 and
+// 57.1). The mixed-type ternary leaves `and ecx,0xff` where the original has
+// `xor ecx,ecx; mov cl,[..]`; the frame is still 0xd4 against 0xd8.
+// Earlier pass (57.1%): fixed the big gaf/colours branch order (original tests
 // `me->gaf != 0` first and falls into the gaf path; the previous version had
 // the colours path first, which shifted the whole 0x4a6071..0x4a6248 region).
 // Still differs:
@@ -251,19 +261,10 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                     border = 1;
             }
         } else {
-            int val;
-            if (me->field_138 != 0 && (unsigned short)me->gaf->count > (unsigned short)me->field_136) {
-                if (me->field_136 != 0)
-                    val = me->gaf->count - 2;
-                else
-                    val = me->field_13b + me->field_138;
-            } else {
-                if (me->field_136 != 0)
-                    val = me->field_13b;
-                else
-                    val = me->field_137;
-            }
-            glyph = FUN_004b7f30(me->gaf, val);
+            glyph = FUN_004b7f30(me->gaf,
+                (me->field_138 != 0 && (unsigned short)me->gaf->count > (unsigned short)me->field_136)
+                    ? (me->field_136 != 0 ? me->gaf->count - 2 : me->field_13b + me->field_138)
+                    : (me->field_136 != 0 ? me->field_13b : me->field_137));
         }
         if (glyph != 0) {
             if (me->colours != 0)

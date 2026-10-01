@@ -1,6 +1,19 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Earlier low-scoring versions by space-bunny-free, GPT-6.1-sol and GPT-6 (47.2%).
 // Current status: PARTIAL 72.2% (best so far; the 70.6/71.0 era is over).
+// Sonnet 5.5 pass (no scored change, all free --sym scores stayed 72.2 or fell):
+// root cause is one allocation decision at the top. The original gives `layer`
+// the temp ESI (mov esi,[eax+0x18]) so the movsx of cnt has to land in EAX and
+// therefore after `xor eax,eax / rep stosd`; ours puts layer in EAX and cnt in
+// ESI, which lets the scheduler hoist movsx/inc/cmp above the stosd setup.
+// Byte-identical output (the compiler normalises them): memset(used,0,200),
+// memset(.., 50*sizeof(int)), a pointer-walk zero loop, do/while zero loop,
+// `int cnt;` declared early, cnt as `n + 1` / `1 + n` / `+= 1`, top reads via
+// menu->layer->.. without a `layer` local, `layer->entries` spelled in loop 2 and
+// in the start computations, `layer->field_20 = index` instead of
+// menu->layer->field_20 at the tail. Adding real extra `layer` references (a dummy
+// store after the zero loop) does promote layer to a register but into EDX with a
+// 0x334 frame (66.7 to 68.8), not ESI+spill, so more weight on layer alone is not it.
 // This retry (deepseek-v4.1-flash) rewrote the used[] search loop as a plain
 // while over an index j (v = used[j+1]; j++) instead of a walking q pointer,
 // and flipped the store to `if (idx != -1) *out = used[idx]; else *out = *p;`.

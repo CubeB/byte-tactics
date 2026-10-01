@@ -168,6 +168,20 @@
 // function (0x4568b0, the empty `ret 0xc` stub) above this one changed
 // nothing (86.5). The remaining work is still the one k4-loop allocator
 // decision: keep a live byte counter in ebx while res stays in edi.
+// deepseek-v4.1-flash (this pass, retry): rebuilt the helper form (an inlined
+// FindFrom early-return helper plus an inlined PlayerId_004568c0(k4)) and
+// reconfirmed it produces the original's three k4 induction variables (ebx
+// byte counter, ebp/edi player offset, esi field_29d0 offset) and 1312 bytes
+// at 83.4, but it forces res into ebp and the player offset into edi, the
+// mirror image of the original. That mirror is the whole gap: once res is edi
+// (as in this 86.5 file) every later register follows the original. Tried this
+// pass, all below 86.5: combined active test helper form 83.4 (1312), outer
+// active wrapper helper form 83.4 (1302), named `int to = PlayerId(k4)` with
+// manual from 81.9, manual to with a FindFrom helper 78.0, single
+// `unsigned char k4` 82.7, and a separate `unsigned char pk` counter alongside
+// an int k4 76.2. The res colour is chosen at the call at 0x456942 before any
+// loop is emitted, so it looks like a global allocator tie-break that this
+// source shape cannot move.
 #include <stdlib.h>
 #include <algorithm>
 

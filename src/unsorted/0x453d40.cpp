@@ -1,4 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (10 min timebox), kept at the known best 15.2% (6448 of 8944 bytes).
+// Tried this pass, all still 15.2%: dropping the separate `int receiving = 1;` and declaring
+// `receiving` inside the loop; writing the zeroing store as `g_game + off + 0x1a28` and as
+// `(int)0`; tools/headers.py over 128 header sets (closest <string.h>, 16 sets failed to
+// compile). None of them removes the extra `xor esi,esi` / register-zero store at the top of
+// the zeroing loop (original stores immediate 0 into [edx+eax+0x1a28]) or moves any frame slot.
+// The dominant gap is still the frame: ours reserves 0x318, the original 0x51c, so every
+// [esp+N] operand mismatches. The three missing command bodies (28, 33, 39) hold the large
+// locals that make the difference; a prior pass added them and hit 0x51c but scored 9.6%
+// because the per-slot draw order was wrong (see the detailed notes below). No new score gain
+// was found in this timebox; the best available version is the one below.
 // deepseek-v4.1-flash, recheck pass for issue #2876: this run had NO shell or compiler in its
 // tool runtime (only browser and opencode tools were exposed), so tools/check.py and tools/ctx.py
 // could not be run and no new score could be measured. The code below is left byte-for-byte as the

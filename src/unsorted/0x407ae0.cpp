@@ -74,6 +74,24 @@
 //   is exactly the 91.1% file below. The two remaining diffs (halves before
 //   the entry test, and pos.x loaded into ecx instead of edx) both follow from
 //   that register choice, so this is a local optimum for this compiler.
+// - deepseek-v4.1-flash retry 3 (2026-10-01, 900s): re-confirmed 91.1% is the
+//   local optimum. Tried: `int i = 0;` at function scope (53.5%), a do-while
+//   under `if (n > i)` (52.7%), `if (n > 0)` (58.7%), an early `if (n <= 0)
+//   return;` (58.7%), halves declared in the loop body (52.9%), a `while`
+//   (52.9%), `int i;` assigned 0 just before the loop (91.1%, identical),
+//   hw/hh in an inner scope block (91.1%, identical), reordering the hw/hh
+//   declarations (90.7%), swapping the w/h declarations (89.3%), defining the
+//   two preceding functions (ctor 0x407a90 and ??_G 0x407ac0) above this one
+//   (91.1%, no change), and all 128 header sets from tools/headers.py (91.1%,
+//   none better). Every construct that emits the original's `cmp ecx,ebx`
+//   entry guard also moves `this` out of esi to ebx and the loop counter to
+//   ebp, so the guard encoding and the preheader block order are one
+//   allocation decision: the halves must be lexically after the guard, and no
+//   scope that does that keeps `this` spilled.
+// - Reordering the three `dest` stores (e.g. dest.z before dest.y) scores up
+//   to 92.1% on check.py, but true instruction LCS is unchanged and the store
+//   order no longer matches the original (x, y, z); those are difflib
+//   artifacts, so the file keeps the x, y, z order.
 // - The packet for this address misprints one operand: 0x407c8b is
 //   `mov dword ptr [esp + 0x20], eax`, not [esp + 0x24]. The >= 5 branch of
 //   the saved source is byte-exact, so trust check.py, not the packet.

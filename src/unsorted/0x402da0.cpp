@@ -55,6 +55,22 @@
 // the live register) vs our edx, and the value copy edx vs our ecx. Tried
 // here and flat: extended dummy-declaration sweep, and a class with no
 // user-declared default ctor (did not compile, so untested).
+// space-bunny-free, second retry: unchanged best, still 87.9%, 0/13 of the
+// remaining instructions correct. Built a free oracle instead of burning
+// check.py runs: build/scratch/0x402da0/probe.py compiles a scratch variant,
+// disassembles the object and reports which of the 13 differing instructions
+// match the original, so source shapes can be swept without a scored run.
+// Baseline and seven variants were all 0/13, five of them at the original's
+// 197 instructions (a local int* pos shared by the three call sites, the two
+// arms written as a nested if, an inlined PosOf() helper, cached move/patrol
+// index bytes, a local Unit* for order->target): all flat or worse (extra
+// instruction). The residual really is a one-step rotation of the per-temp
+// scratch choice, and it is systematic: the original's picks over the four
+// reload sites are edx, ecx, ecx, edx where ours are eax, edx, edx, ecx, and
+// in the loop the original takes (pos,temp) = (eax,ecx) then (edx,eax) where
+// ours takes (ecx,edx) then (eax,ecx), so both follow the same rotating
+// allocator and only its starting point differs. Nothing reachable through the
+// source moved it.
 // deepseek-v4.1 retry: six more source shapes were flat at 87.9% (explicit
 // `kind.index = 0;` after the declaration, ctor body-assignment form, node
 // hoisted with for(;;), inlined IsKind() helper, `kind.index != 0`), and one

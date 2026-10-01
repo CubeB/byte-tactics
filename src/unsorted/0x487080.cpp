@@ -1,4 +1,12 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 11 (deepseek-v4.1-flash, 10 min box): best stays 70.0% / 1591 bytes. Re-scored and
+// rejected this session, all at 1592 bytes and below the base: `unsigned short found` (54.8),
+// `int found` with `int i = 0` hoisted and an empty for-init (55.0), `int found` with
+// `if (found == 0)` (55.0). The bool found plus address-take-of-i pair stays load-bearing.
+// Still differs: the first loop's register allocation (original n=esi, found=ebp as a dword,
+// i at [esp+0x10]; ours n=ebp, i=esi, found a byte at [esp+0x13]), the childB load phase
+// (original edx, ours eax) that rotates the field-copy chain, the 0x110 flag block and the two
+// epilogues, all as documented in the passes above.
 // Pass 10 (deepseek-v4.1-flash, 10 min, this session): NEW BEST 70.0% / 1591 bytes. The
 // `player` local must be `unsigned char`, not `int`: it is only passed to FUN_0048aac0 as a
 // char argument, so the int form reserved a 4-byte slot and pushed the frame to 0x104, which

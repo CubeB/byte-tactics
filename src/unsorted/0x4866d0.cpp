@@ -1,4 +1,10 @@
 // Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 7). Names are provisional.
+// Pass 11 (deepseek-v4.1-flash, 10 min box): 65.0 -> 65.2 percent / 1908 bytes. Folding the two
+// masked stores of unit+0x110 into one statement (flags & 0xefffffcf) makes VC5 emit the single
+// `and eax,0xefffffcf` without the intermediate store; splitting the mask further
+// (flags & 0xefffffff & 0xffffffcf as two statements) regresses to 65.0 / 1908, and dropping the
+// `t` local for a direct store to unit+0x92 is byte-flat at 65.2 / 1908. Still no MATCH: cmd is
+// homed to EDI where the original uses EBX and g_game still occupies EBP (see passes 1-10 above).
 // Pass 9 (deepseek-v4.1-flash, 10 min, this session): best stays 64.7% / 1920 bytes.
 // The file was re-checked (1920 bytes, 15 hunks) and every hunk is downstream of the
 // cmd=EBX vs cmd=EDI callee-saved pick and the cached-g_game/ebp occupancy documented in
@@ -428,7 +434,6 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
     }
     unsigned int flags = at<unsigned int>(unit, 0x110);
     at<short>(unit, 0xa6) = 0;
-    at<unsigned int>(unit, 0x110) = flags & 0xefffffff;
     at<unsigned int>(unit, 0x110) = flags & 0xefffffcf;
     int t = at<int>((void*)g_game, 0x1439b);
     at<int>(unit, 0x92) = t;

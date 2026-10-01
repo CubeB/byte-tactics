@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Final verification pass (deepseek-v4.1-flash) under timebox: check.py run 1
+// reprints 99.6% with the same 4-line diff (push/store order in the second
+// GlobalMemoryStatus's delay slot). File below is the best variant (99.6%,
+// 1174 bytes on both sides). Still differs: only the second call's delay slot,
+// ours emits the dwLength store before push edx, the original fills the slot
+// with the store after the push. See the full history of tried shapes below.
 // Retry pass (deepseek-v4.1-flash): tried do/while(0) block, comma-operator
 // argument, sizeof, *(DWORD*)&mem, reference/pointer local, do-block wrap,
 // LPMEMORYSTATUS/integer-constant and helper forms for the second

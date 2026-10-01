@@ -29,6 +29,22 @@
 // The locals must stay scoped as they are (desc/out inside the field_dc!=0 block,
 // rect/pt plus the Blt loop in a nested block, screen at function scope): declaring
 // them at function scope makes the frame 0xf8 and shifts every [esp+N] by 4.
+// Session deepseek-v4.1-flash: no code change, 2 check runs, still 81.0%.
+// New evidence from the 81.0% diff: our bmp-path Unlock emits `push ebp` and
+// `mov [DAT_0052a4ec], ebp` (the register holding held, proven 0 by the test)
+// where the original emits `push 0` / `mov [DAT_0052a4ec], 0`. The original's
+// shared body also shows the `test held,held` duplicated into each predecessor
+// (test eax,eax; jmp shared_jne vs test ebx,ebx; fall into shared_jne), which
+// only happens when held lives in different places in the two branches (memory
+// at [esp+0x10] in branch 1, ebx in branch 2) and the Unlock is ONE source
+// statement after the if/else chain: the value propagation that turns the 0
+// immediates into the held register then cannot fire, since the shared body
+// has no single name for held. So the remaining shape is confirmed to be a
+// single trailing if (held == 0) { unlock } over a function-scope held, but
+// that spelling gives held a whole-variable home and pushes bmp to 0x14 (frame
+// 0xf8). Not tried this session: a struct home (as in matched 0x4b5510's
+// `struct { int lockResult; HDC* dcSlot; } setup`) to force held and bmp into
+// one shared slot pair, or splitting held's live range some other way.
 
 #include <windows.h>
 #include <ddraw.h>

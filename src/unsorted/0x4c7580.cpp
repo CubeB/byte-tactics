@@ -7,6 +7,21 @@
 // 0x34 vs 0x3c, imin/imax at 0x44/0x48 vs 0x34/0x38), x/out swapped (0x24/0x28), xmin/y1
 // swapped (0x10/0x14) and the y1>clip.top reload in the loops. Note: the earlier published
 // 21.5% file with a 46-line header was replaced by a later 13.5% GPT-6 pass before this one.
+// Next pass (deepseek-v4.1-flash, stopped by timebox before trying variants): the tails of the
+// five early-outs and the final unlock are the main gap. In the original, checks 1 (xmax<left)
+// and 4 (ymin>bottom) compile to `mov eax,[esp+0x18]; test eax,eax; je 0x4c7a12; jmp 0x4c7a08`
+// (test the locked flag, then jump INTO the final unlock body, which is `lea ecx,[esp+0x6c];
+// push ecx; call FUN_004c5fa0` at 0x4c7a08), while checks 2, 3 and 5 keep a full inline
+// unlock+epilogue (lea edx / lea eax / lea edx). That is the shape of jump threading through
+// `if (locked) { unlock_label: FUN_004c5fa0(&local); }` reached by `goto unlock_label` from
+// checks 1 and 4 only, with checks 2, 3 and 5 written as plain `if (locked) FUN_004c5fa0(&local);
+// return;` (compare 0x4c63a0 notes: its branch 1 also jumps into the single unlock body).
+// Also the FUN_004c5e70 check is `cmp eax, ebp` (ebp holds 0) in the original but `test eax,eax`
+// for us: storing the result first (`int ok = FUN_004c5e70(&local); if (ok == 0) return;`) is
+// what produced `cmp eax,ebx` in the matched near-copy 0x4b7f90, so try that spelling next.
+// Remaining diffs besides the tails: slot assignment (original y1=0x10 xmin/j=0x14 out=0x24
+// x=0x28 imin=0x34 imax=0x38 clip=0x3c; ours swaps the 0x10/0x14 and 0x24/0x28 pairs and puts
+// clip at 0x34, imin/imax at 0x44/0x48) and the y1>clip.top reload in the edge loops.
 
 
 #include <windows.h>

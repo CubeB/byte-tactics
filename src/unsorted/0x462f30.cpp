@@ -1,4 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 5 (deepseek-v4.1-flash) measured these and they all compile to the identical
+// 1578 bytes, so none of them is the lever: the first loop written as
+// `e = &entries[i]` inside the body (MSVC canonicalises it back to the pointer walk,
+// byte-identical), moving `a`'s declaration to the top, `int tick;` plus a separate
+// `tick = g_game->tick;`, and `Entry_00462f30* entry;` left uninitialised.
+// One new structural datum: the original copies the first loop's results into the
+// tail block's variables at the loop exit, 0x463589 `mov esi, eax` / `mov ecx, edx`
+// (src is eax in the loop but esi at copy_out 0x46354f, where the tail path already
+// has it in esi), so the first loop's src/len are probably separate variables from
+// the ones the tail block and copy_out use. Writing them as block-scope
+// `void* s; unsigned int l;` plus `src = s; len = l;` at the goto scored 37.2%: the
+// loop's temps moved from esi/eax to edx/esi, but tick stayed edi, the walk stayed
+// ebp and the frame stayed 0xc, so MSVC 5's one-register-per-variable web assignment
+// did not change. The class of change still untried is one that shortens a *whole*
+// variable's live range below the FUN_004568b0 calls in the 0x4632a7 block (a there
+// is written once and read once), because only that can free a callee-saved register
+// for the frozen zero at edi and push `a` into the 0x1c slot.
 // New evidence (deepseek-v4.1-flash, pass 4): diffing our asm against the original
 // shows our frame is exactly one local short and the missing one is `a`: ours homes
 // i/entry at [esp+0x10], flag and tick, but keeps `a` in a register, while the

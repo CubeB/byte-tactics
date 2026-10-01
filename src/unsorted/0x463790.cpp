@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 74.2% (1029 vs 1040 bytes). Best found this session.
 //
 // What now matches: the `mov edi,0x200` preheader hoist, `sub ebx,4` then
@@ -22,6 +22,18 @@
 //    change it.
 //  * these cascade into the 0x463a30 and 0x463ad0 loops and the memcpy
 //    a4/a5 register pairing (ours loads a5 early / a4 late).
+//
+// Ruled out again in the #3556 pass (pop r=ECX would not move to EAX):
+// fully inlining the pop without a helper (68.6), `if (rows->n > 0)` with the
+// local r loaded inside (70.5, adds `mov esi,eax`), a reference-form Pop
+// (74.2, unchanged), calling `Pop_00463790(rows)` directly (74.2), dropping
+// the helper's count test (69.0), both wrap forms (local h vs r->head) and
+// both WrapHeadRef parameter orders (74.2), `r->n >= 1` (72.5), function-scope
+// `i` and `e` (74.2), `delete text` instead of operator delete (74.2),
+// `#include <memory.h>` (74.2), swapping the n/remaining/p declarations or
+// putting them on one line (74.2), and one shared `r` for pop+push (67.0,
+// loses the push reload). Odd detail: the push block gets r=EAX in ours too,
+// so only the pop block's r vreg rotates.
 //
 // Ruled out (all worse): int-returning Wrap that also increments (loses the
 // EDI hoist), fully inlining the pop without a helper (entry copy moves to

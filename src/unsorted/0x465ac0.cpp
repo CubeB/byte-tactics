@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol retry (issue 3137): confirmed 98.3% (865/865). Seven worker checks left the same 6-byte g_game-load hoist; a ternary final-return probe also tied. No MATCH observed.
 // PARTIAL: 98.3 percent, size exact (865 bytes against the original's 865).
 // Everything from the prologue through the third visibility test is byte exact,
 // and so is the whole last test's block shape, including the two long

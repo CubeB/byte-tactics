@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass), edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass), edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3210: 11 checker invocations, including two compile failures and one silent attempt; best remains 93.4%. Integer-size variants regressed to 86.1% and 85.0%; tail pointer and LEA spellings canonicalized to the same code. Stack-save and LEA order remain different.
 // #3006 retry by GPT-6.1-sol: six checks retained 93.4%; unsigned-short and
 // string/operand variants did not improve the saved source.
 // Second pass (deepseek-v4.1-flash): no new lever moved the +1/+5 split.

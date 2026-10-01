@@ -124,6 +124,27 @@
 // into an initialized declaration at their first use inside the if block
 // (guide-1740 lever) is byte-identical at 87.3, so the store placement is not
 // what gives the original lowX slot 0x14; the 0x10/0x14 crossing stands.
+// Tenth pass (deepseek-v4.1-flash, timeboxed): the suggested follow-up of the
+// pass-6 split-next shape (block-scoped `int next` per edge loop) PLUS a
+// function-scope `n` spanning both loops (build/scratch/0x4c8760/varA.cpp)
+// scores 69.9% (1094 bytes), the same attractor as the other block-next
+// variants, so the extra spanning lifetime does not restore the 14-slot
+// arena; the block-scoped-next road is exhausted.
+// Eleventh pass (deepseek-v4.1-flash): the /Fa equate tables were extracted
+// for every variant. Best (87.3) table: lowX+n1 at 0x10, next at 0x14,
+// dv at 0x38, bottom at 0x3c (14 slots, same as original). Block-scoped
+// per-loop next plus hoisted `out` (varB) DOES reproduce the original's
+// sharing exactly (next1 shares dv's slot; lowX+n1+next2 share one slot;
+// n2 shares lowIndex) but the two groups come out swapped (lowX at 0x10,
+// next1/dv at 0x14) and the frame shrinks to 0x7d54 because bottom stays in
+// a register, so it scores 73.4 (varC, bottom hoisted: 73.4; varD,
+// lowY-group declared first: 73.4). Splitting next into two FUNCTION-scope
+// locals on the best file (varE) drops to 67.9, and with out hoisted
+// (varG) 76.0, where next1+next2+lowX+n1 all merge into 0x10. Hoisting out
+// alone (varH) is 85.3. So the original's split ({next1,dv} at 0x10 plus
+// {lowX,n1,next2} at 0x14, temp at 0x38) needs the allocator to order the
+// two groups the other way round while keeping the 14th (bottom) slot; no
+// source shape found yet does both.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

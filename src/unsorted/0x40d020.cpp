@@ -1,5 +1,26 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 // Best semantically equivalent version: 80.5% (536 vs 532 bytes), no MATCH.
+// 2026-10-01 mimo-v2.6-pro retry: kept this 80.5% pre-tested form. New
+// evidence (all scored through check.py with a source argument):
+// - The real header spelling _Ucopy(_P, _Last, _Q + _M) (58.0%, 544 bytes,
+//   this in ebx) gets the original's third-loop bookkeeping exactly: _Last
+//   cached in esi with no reload, _M*2 in edi, and the pre-test cmp/je on
+//   that cache. It still swaps dest/source (dest in ecx, source derived in
+//   eax) and derives the source as lea eax, [ecx+ebx] / sub eax,edx /
+//   sub eax,edi, so the grouping ((dest+_P)-_Q-_M) is the same our manual
+//   loop gets; the original's is ((_P-_Q)+dest)-_M into _P's own register
+//   (sub ecx,edx / add ecx,eax / sub ecx,edi), which is the merge of _P
+//   with the source induction variable that no form here reaches.
+// - Forcing that grouping in the source with char* arithmetic
+//   (const_iterator _s = (const_iterator)((char*)_P - (char*)_Q +
+//   (char*)_d - _M * 2)) is byte-identical to plain _s = _P (80.5%): the
+//   optimizer normalizes the expression back to its own lea-first form.
+// - Translation-unit state does not flip the rotation here either: adding
+//   the exe's real neighbouring instantiations in COMDAT order (vector<
+//   short>::size 0x40d000, this insert, erase 0x40d240, _Destroy 0x40d280,
+//   vector<char>::insert 0x40d290, erase 0x40d470, _Destroy 0x40d4a0) or a
+//   second vector<unsigned short>::insert, before or after this one, gives
+//   537 bytes / 80.4% with _P still in edi.
 // 2026-09-30 GPT-6.1-sol retry: changing the third-copy source from
 // const_iterator to iterator kept the same 80.5%; restored this best version.
 // The third inlined copy loop and several loop registers/branch offsets still

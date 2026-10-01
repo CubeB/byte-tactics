@@ -1,4 +1,24 @@
-// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// 2026-10-01 mimo-v2.6-pro retry: still 99.6% (686/686), same single hunk:
+// `test byte ptr [eax + ecx + 0x241], 0x20` wants base=eax (defs pointer) but
+// MSVC emits base=ecx (type*585 temp). Census of the exe: direct memory
+// operands over a precomputed 585 index default to INTEGER base (0x43a3ef,
+// 0x43a790 in FUN_0043a360, both `test [r+r+0x241],0x20`); pointer base shows
+// up when the address is also taken as a value (0x46d040 loop reads
+// g_game->defs[i].key and passes &g_game->defs[i] to a flag helper, all
+// pointer base; 0x40bdb0/0x43a2d0 form lea [ptr+idx*1+disp]). Tried this
+// round and all stayed mirrored: inline flag helpers taking Def* called with
+// &g_game->defs[type] (bool and unsigned returns), DefsOf() helper plus
+// address-taking cluster, Def& / Def* local forms, comma-assigned local,
+// unsigned char flags, bitfield flags_241.downloadable (all bitfield forms
+// expand the test to mov/shr/test and drop to ~69%), mode result bound to a
+// local, and compiling the real neighbours FUN_0040ba80/FUN_0040bab0 first in
+// the TU (0x4bc370's function-order lever: it shifted $T numbering and the
+// rating multiply but not the SIB byte). headers.py was already negative in
+// earlier passes. The slot flip is likely a value-number tie like 0x4bc370's
+// `pat[stack[i]]` (subscript index as a memory read puts the pointer in
+// base), but this function's index is the `type` parameter, so there is no
+// memory-read spelling of it left to try.
 // deepseek-v4.1 issue 2638: applied the SHARED.md recipe (min(1000,cap) for the
 // caps, fresh clamped locals metal2/energy2), 97.8% to 99.6%. One hunk remains.
 // Partial (99.6%): defs[type] addressing is encoded [ecx+eax+0x241], the

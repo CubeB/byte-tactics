@@ -1,4 +1,20 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass 5 (51.6%, 4332 vs 4420 bytes, current best): the case-3 guard's
+// second reach test is a redundant re-test in the original (0x43f23c: cmp eax,ecx / jl 0x43f27a)
+// that MSVC folds away in every spelling that shares a syntactic tree with the first test
+// (base 51.3%, and all of: same-polarity duplicate, if/else goto-into-else, inline expression
+// re-evaluation, two-locals recompute, all folded the compare to jmp). It survives only when
+// the bottom test is a COMMUTED negation of the outer one: outer `reach >= g_game->threshold`
+// (goto reached) plus bottom `if (g_game->threshold <= tdef->f170 + target->f70) goto reached;
+// goto after;`. That keeps the compare (cmp ecx,eax / jg) and lifts 51.3 -> 51.6; it also makes
+// the threshold load and the mov edi,0x10000 constant hoist match the original byte for byte.
+// Still differs from 0x43f21b on: node is edx here vs esi in the original (the same node/def
+// register rotation as every earlier pass), an extra `mov ebx,[esp+0x1c]` reload before the
+// bottom compare, and the bottom compare is the commuted form (cmp ecx,eax / jg 0x43f281 vs
+// the original's cmp eax,ecx / jl 0x43f27a). vI/vJ (second local for the bottom test) do not
+// compile (MSVC C2360/C2361: goto skips the local's initialisation); vK (thr local) folds
+// again at 51.3. To also get cmp eax,ecx / jl the bottom tree must stay reach-first while not
+// being the outer test's exact negation, which every tested spelling collapses.
 // deepseek-v4.1-flash pass (51.3%, 4356 vs 4420 bytes): the whole of case 3 onward was
 // shifted by one allocator choice: ours gave esi to the target->def temporary and put the
 // node pointer in ecx, the original gives esi to node and keeps tdef in edx. Declaring
@@ -312,8 +328,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 if (node->f111 & 0x20000)
                     break;
             }
-            int reach = tdef->f170 + target->f70;
-            if (reach >= g_game->threshold)
+            if (tdef->f170 + target->f70 >= g_game->threshold)
                 goto reached;
             if (!(node->f111 & 0x10000)) {
                 if (!(unit->f3b & 2))
@@ -321,8 +336,9 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 if (!(unit->f2c->f111 & 0x10000))
                     break;
             }
-            if (reach < g_game->threshold)
-                goto after;
+            if (g_game->threshold <= tdef->f170 + target->f70)
+                goto reached;
+            goto after;
         reached:
             if (def->f241 & 0x1000) {
                 if (node->f111 & 0x10000)

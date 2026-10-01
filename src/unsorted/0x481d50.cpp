@@ -1,17 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, re-tried by
 // space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash.
 // Names are provisional.
-// Partial, 99.3 percent (821 bytes). The whole function matches byte for byte
-// except one instruction pair: the original builds `bestDiff * j1` as
-// `mov eax,[esp+0x2c] / imul eax,[esp+0x10]` (bestDiff first), ours as
-// `mov eax,[esp+0x10] / imul eax,[esp+0x2c]` (j1 first). Source operand order
-// (`bestDiff * j1`, `j1 * bestDiff`, a temp, either or both compares), an
-// unsigned j1, and 128 header sets (tools/headers.py) leave it unchanged, so
-// it is compiler state from the rest of the original translation unit.
-// Everything else, including the else branch, matches: taking
-// `ByteMap_00481d50* ex = &((Map_00481d50*)params->field_0)->explored;`
-// inside the row loop makes MSVC materialise `add edx,0x7c` and load the
-// data/width fields off it, which fixed the last structural difference.
+// MATCH. The last difference was the `bestDiff * j1` imul operand order: MSVC
+// picks the register operand from declaration order, so declaring `int j1;`
+// before `int bestDiff = -1;` (with `j1 = 1;` assigned inside the if) makes it
+// load bestDiff into eax first, as the original does. The declaration order
+// bestIdx, j1, bestDiff, j also keeps the bestDiff init before the `jle` and
+// the `j = 0` store after it.
 // <windows.h> is required.
 #include <windows.h>
 #include <stdio.h>
@@ -155,11 +150,12 @@ void __stdcall FUN_00481d50(Params_00481d50* params)
         for (i = 0; i < count; i++) {
             void* line = ((Class_4335e0*)table)->FUN_004335e0(i);
             short num = ((Class_004339c0*)line)->FUN_004339c0();
-            int bestDiff = -1;
             int bestIdx = 0;
+            int j1;
+            int bestDiff = -1;
             short j = 0;
             if ((short)num > 0) {
-                int j1 = 1;
+                j1 = 1;
                 do {
                     int dx;
                     int dy;

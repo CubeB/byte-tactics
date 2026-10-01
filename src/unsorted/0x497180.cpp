@@ -1,4 +1,19 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
+// deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash,
+// finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash.
+// 2026-10-01 pass 4 (deepseek-v4.1-flash, 10 min timebox, 0 scored variants): re-read the
+// switch dispatch and the lane diff with the /Fa-style instruction view, no change kept.
+// Confirmed by direct instruction comparison of the compiled lanes that the case-1/2
+// lanes are the same length in instructions but 4 bytes wider each: ours is
+// `and bl,1; movzx si,bl; shl esi,2` against the original's `and ebx,edi; shl ebx,2`,
+// i.e. the byte temp's conversion is narrowed to 8 bits here and zero-extended (or
+// register-masked) there. Also observed the original spends a redundant `xor ebx,ebx`
+// before `mov bl,[..]` in the three case-3 lanes even though `and ebx,imm` with imm in
+// {1,2,4} clears the top 24 bits anyway, so those three lanes are unambiguously
+// `unsigned int m = *(unsigned char*)(p2 + 0x9c) & M;` temps, while case 1/2 must be
+// `& one` in a register: the two halves of the lane region need different spellings of
+// the same value, and combining them has always rotated the callee-saved file (73-81%).
+// No new lever; the file is left at the 82.8% baseline.
 // 2026-10-01 pass 3 (deepseek-v4.1-flash): re-confirmed 82.8 (2846 vs 2797). The whole 49-byte overage
 // sits before 0x497b30; the head hunks are `mov edi,1` (ours `mov edx,1`) for the `int one = 1;` local
 // plus `mov dx,[eax+0x37eec]` (ours `cx`) and the byte-wise `and bl,imm; movzx si,bl` lane masks where

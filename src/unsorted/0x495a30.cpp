@@ -47,6 +47,9 @@
 // exactly a 0x10 by-value Rect plus one dword, which matches the FUN_004c6b10
 // argument (the `sub esp,0x10` at 0x495c8c is that argument area, so the Rect
 // itself has no frame slot in this build).
+// 2026-10-01 pass 5 (deepseek-v4.1-flash): the loop-tail Class_004cb940 call was re-added on top
+// of this 57.2 file (rows/sy/srcY/y2 locals, Image_004cb940 cast): ours grows 979 -> 1110 bytes
+// and the score drops to 34.4, so the tail has to land together with the correct slot map.
 // Still differs: the whole pre-loop slot map, the viewFlags save/restore shape and the
 // missing Class_004cb940 loop-tail call (see notes below).
 // Writes a large screenshot ("BIGSHOT", caller 0x417600) by rendering map

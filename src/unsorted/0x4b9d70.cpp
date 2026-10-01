@@ -1,4 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by claude-sonnet-5-5. Names are provisional.
+// CURRENT BEST 85.4% (235 of 234 bytes), up from 80.0%. The lever was to modify
+// the PARAMETERS in place (`x += src->x - dst->x; y = (dst->y - src->y) - y;`)
+// instead of using separate sx/sy locals: that reproduces the original's whole
+// prologue exactly (x loaded into ECX and added to the src-dst diff, y loaded
+// into EDX and subtracted from EAX), which the notes below call unreachable.
+// The only remaining diff is the y clip: the original has a plain if/else
+// (`xor ebp,ebp / mov edx,eax` in the else arm, 234 bytes), ours needs the init
+// form (`srcRow = 0; dstRow = y; if (y < 0) {...}`) to keep x in ECX and dstRow in
+// EDX, which hoists `mov ebp,0 / mov edx,eax` ahead of the jns (+1 byte).
+// With the plain if/else on in-place x,y the registers swap again (x in EDX,
+// dstRow in ECX, 50.5%, 234 bytes). Also tried this pass (all lower): ~60
+// y-clip x x-clip x ordering shapes on in-place x/y, y used directly as dstRow
+// (75-77%, 234 bytes, but the sub lands in y's register), x only or y only in
+// place, and a 10 minute permuter run from this file (no gain).
 // #3044 retry by GPT-6.1-sol: six checks retained 80.0% (235/234 bytes);
 // sequential x/y arithmetic and alternate association did not improve it.
 // #2414/#2864 retry (deepseek-v4.1-flash): still 80.0% (235 of 234 bytes). The plain
@@ -152,21 +166,17 @@ struct Image_004b9d70 {
 void __stdcall FUN_004b9d70(Image_004b9d70* src, Image_004b9d70* dst, int x, int y)
 {
     int srcCol, dstCol, srcRow, dstRow;
-    int sx = x + (src->x - dst->x);
-    int sy = (dst->y - src->y) - y;
+    x += src->x - dst->x;
+    y = (dst->y - src->y) - y;
     srcRow = 0;
-    dstRow = sy;
-    if (sy < 0) {
-        srcRow = -sy;
+    dstRow = y;
+    if (y < 0) {
+        srcRow = -y;
         dstRow = 0;
     }
-    dstCol = -sx;
-    if (dstCol < 0) {
-        srcCol = -dstCol;
-        dstCol = 0;
-    } else {
-        srcCol = 0;
-    }
+
+    dstCol = -x;
+    if (dstCol < 0) { srcCol = -dstCol; dstCol = 0; } else { srcCol = 0; }
 
     int n = dst->width;
     if (src->width - srcCol <= n)

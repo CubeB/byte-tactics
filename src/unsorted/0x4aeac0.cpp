@@ -50,6 +50,10 @@
 // before the call, so the original's post-call `mov ecx,[ebp-0xe]` is not an
 // operand-order artifact.
 //
+// Probe (deepseek-v4.1-flash, ten-minute box): taking the address of the
+// case 6 field, `unsigned int* hot = &e->body.s6.hotornot; *hot = ((FUN_004c46c0("hotornot", 0) ^ *hot) & 1) ^ *hot;`,
+// is byte-neutral at 86.2 % / 736 bytes (only the $L labels move), so the
+// pre-call `mov esi,[ebp-0xe]` hoist is not an address-visibility artifact.
 // Retry #2812: best remains 75.3% (880 bytes vs. 732). The function body
 // matches except for switch-tail latch duplication and the resulting case-6
 // register choice. Prior variants and all 128 header sets are documented below.

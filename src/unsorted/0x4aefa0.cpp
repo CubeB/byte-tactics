@@ -6,6 +6,11 @@
 // 895 bytes); the first-loop register/frame-slot tie below is still the gap.
 
 
+// Probe (deepseek-v4.1-flash, ten-minute box): `int* pc = &count;` used only
+// in the first loop guard is folded away by MSVC (byte-identical, 72.2 % /
+// 882 bytes), so an address-taken spelling does not force the original's
+// count spill either.
+
 // GPT-6.1-sol retry: tools/headers.py tried all 128 header sets with no improvement; best remains 72.2%. The first-loop count/ptr1 register and low-frame-slot allocation still differ from the original.
 //
 // deepseek-v4.1-flash, seventh pass, still 72.2 % (882 of 895 bytes). The rest

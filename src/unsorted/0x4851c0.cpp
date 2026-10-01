@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// claude-opus-5-5 (#4378): still 84.7%. The only difference is in the head:
+// the original loads b.x into ecx before `push ebx` and keeps dx in ecx and the
+// step count n in esi; ours swaps them (dx in esi, n in ecx). Tried: d built
+// from b.x - a.x directly (74.5%), x/y/z subtraction order (83.9%), named abs
+// locals, an if-based max (74.7%), and the 0x485140 GetCell spelling (a width
+// local after the x >= 0 test) plus <memory.h> (no change). A 12-minute permuter
+// run (542 candidates) found nothing.
 //
 // mimo-v2.6-pro retry pass (issue #4059), still 84.7%, 354 bytes. The one
 // remaining hunk is unchanged: the original keeps the x difference in ecx

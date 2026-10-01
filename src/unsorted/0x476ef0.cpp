@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash 10 min timebox: one variant scored, moving the
+// `int colourState = 1;` declaration from the function prologue to the
+// loop preheader (just before `char buf[0x80];`). It drops the score to
+// 74.8% (1112 bytes), because the initialiser store moves out of the
+// prologue; the frame slot swap (colourState [esp+0x20] original vs
+// [esp+0x1c] ours) is not reachable this way. Reverted, file unchanged.
 // deepseek-v4.1-flash retry pass (later session): still 80.4%, no variant
 // scored. New evidence from the baseline diff and from disassembling the
 // '&' colour arm of our own build: the ternary (`cmp al,0x52 / mov eax,3 /

@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
 // space-bunny-free (issue #3386): 83.6% retained, no MATCH. Ran an x87 stack SIMULATOR over
 // the original (build/scratch/0x49a890/sim.py) to recover the exact expression tree, and it
 // CORRECTS the note above: the original's disc is NOT `(h2*gg + (s2-gh*-2.0)*s2)*d*d -
@@ -67,6 +67,11 @@
 // spill schedule; later branch offsets and return-path layout also differ. Best source
 // kept here at 78.2%; no MATCH.
 // Lead #1431 tried retaining the squared _hypot result in a separate local; it scored 70.3%. GPT-6.1-sol then associated discriminant factors as left-associative `* d * d - d * d * gg * sum`, scoring 78.2%.
+// deepseek-v4.1-flash (issue 3404): five checker runs, no gain, best still 83.6% (488 bytes).
+// Swapping the two gh statements to height-first (74.6%), folding them into one expression
+// `double gh = (double)height * (double)g;` (74.6%) or `gh = (double)height * gh;` (83.6,
+// byte-identical) all leave the residual hunk untouched, so the gh spelling is not the lever
+// for the first diverging fild order.
 #include <stdio.h>
 #include <math.h>
 

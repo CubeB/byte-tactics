@@ -207,6 +207,13 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
 // register the inliner picks for &from (ours ebx then ebp, original edx), which forces
 // the `add ebx,0x6a` / tail reload of unit2 in the line-of-fire block.
 // FUNCTION: 0x49abb0
+// deepseek-v4.1-flash (issue 3404): five checker runs, no gain, best still 93.7% (576/568).
+// A `Vec3_0049abb0* from = &unit2->pos;` local at the call site, helper-body `int fx/fy/fz`
+// copies, `Vec3_0049abb0* p = &from;` inside the helper and a compound
+// `w->flags.bit1 && LineOfFire(...) == (short)0x8000` condition are all byte-identical (93.7)
+// or worse (the compound condition: 93.0 / 574). The single residual hunk is unchanged: ours
+// does `add ebx,0x6a` and reloads unit2 from [esp+0x24] after the call, the original
+// `lea edx,[ebx+0x6a]` keeps unit2 in ebx live for the second distance tail.
 int __stdcall FUN_0049abb0(Unit_0049abb0* unit1, Unit_0049abb0* unit2, unsigned char weapon)
 {
     WeaponDef_0049abb0* w = unit1->weapons[weapon].def;

@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash retry (#3483): still 88.9, 779 of 779 bytes, the same
+// reallocation-branch register allocation diff (_P in ecx here, edx in the
+// original). Routing _P through an `iterator _P2 = _P;` local used by both the
+// first copy's end and the third copy's source is byte-identical to the file
+// best (the allocator still picks ecx for it), so widening _P's live range with
+// a named local is not the lever either.
 // GPT-6.1-sol retry (2026-10-01, #3129): rechecked the existing 88.9% best. The checker confirms the same reallocation-branch register allocation mismatch: original keeps _P in edx across the copy/fill sequence, while this source reloads it into ecx and changes the fill counter register. Prior notes record broad loop, local, header, and template-shape sweeps; no new source form was found within this pass.
 // deepseek-v4.1-flash retry (#2932): still 88.9 percent, 779 of 779 bytes.
 // Tried `iterator _Q = allocate(); iterator _S = _Q; _Q = _Ucopy(...)` (76.5),

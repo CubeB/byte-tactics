@@ -95,6 +95,10 @@
 // imply; only MSVC's block-ordering pass differs, so this needs a graph-shape
 // change, not another goto spelling. Best remains 72.9%.
 
+// deepseek-v4.1-flash session (issue #3689, 10 min timebox): baseline
+// re-confirmed at 72.9% (1914 vs 1935 bytes); no new variant scored, the
+// remaining gap is still pure MSVC block ordering of the Campaign/Start pair
+// and BigButton body, not a source shape.
 #pragma pack(push, 1)
 struct Entry_00477ab0 {
     char unknown_0[0xba];

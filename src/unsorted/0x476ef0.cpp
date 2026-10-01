@@ -141,6 +141,13 @@
 // block-local pass could not reach it; writing colourState = 0 as a separate,
 // named temp assignment (`sel` style) or after the ternary join does not
 // reproduce it, so the source shape that defeats MSVC's DSE is still unknown.
+// deepseek-v4.1-flash session (issue #3689, 10 min timebox): scored one new
+// preheader variant, hoisting the loop start `int i = linesPerPage *
+// DAT_0051e64c;` above `Entry_476ef0* e = &gadgets[count];` (to try to make
+// the entry guard imuls precede the count lea chain as in the original). It
+// regresses 80.4 -> 77.1 percent (1119 bytes): it does emit the guard first,
+// but re-colours linesPerPage from [esp+0x18] to [esp+0x14] and costs 7 bytes.
+// Reverted; file stays at 80.4 percent. Three check runs this session.
 #include <string.h>
 
 #pragma pack(push, 1)

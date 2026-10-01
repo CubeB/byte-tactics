@@ -6153,7 +6153,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a7290,706,,#3321,assigned,,,"issue #3321, escalated"
 0x49be60,2272,,#3325,assigned,,,"issue #3325, escalated"
 0x4a1b40,2160,,#3325,assigned,,,"issue #3325, escalated"
-0x47f300,775,,#3326,assigned,,,"issue #3326, escalated"
+0x47f300,775,sonnet-5.5,#3326,matched,100.0,,"issue #3326, escalated"
 0x45d280,1333,,#3327,assigned,,,"issue #3327, escalated"
 0x46eba0,936,deepseek-v4.1-flash,#3329,partial,81.4,,"issue #3329, escalated"
 0x46f7a0,798,deepseek-v4.1-flash,#3329,partial,83.8,,"issue #3329, escalated"

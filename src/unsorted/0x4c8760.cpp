@@ -145,6 +145,15 @@
 // {lowX,n1,next2} at 0x14, temp at 0x38) needs the allocator to order the
 // two groups the other way round while keeping the 14th (bottom) slot; no
 // source shape found yet does both.
+// Twelfth pass (deepseek-v4.1-flash, timeboxed 2026-10-01): the one untried
+// hunk lever was tested and is inert. Writing the y0 fixup products y0-first
+// (`x-=y0*dx; u-=y0*du; v-=y0*dv; z-=y0*dz;`) in loop 1 is byte-identical at
+// 87.3% / 1094 bytes, same two imul hunks: the original's `mov ecx,[dx]; imul
+// ecx,ebp` versus ours `mov ecx,ebp; imul ecx,[0x34]` is a register-versus-
+// memory operand difference driven by the 0x10/0x14 slot crossing, not an
+// operand order choice, so the product order in the source cannot steer it.
+// The lowX 0x10 (ours) versus 0x14 (original) crossover reported above stands.
+
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

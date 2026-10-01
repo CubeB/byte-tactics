@@ -173,6 +173,15 @@
 // byte-identical at 54.1% / 1275 bytes, so the original 0x7d60 frame does
 // not come from a function-scope bottom slot.
 
+// deepseek-v4.1-flash pass (timeboxed 2026-10-01, one measurement): writing the
+// loop-1 y0 fixup products y0-first (`x-=y0*dx; u-=y0*du; v-=y0*dv; z-=y0*dz;
+// lg-=y0*dl;`) is byte-identical at 54.1% / 1275 bytes, so the 15-slot frame
+// and its 447 stack-reference lines are not steered by the imul operand order
+// either. The missing 16th slot at [esp+0x4c] (loop-1 raw index-1) stands as
+// the primary divergence, with the vertex induction register (original walks
+// vertices in edx, ours pins it in ebp) as the root of the prologue hunk.
+
+
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);
 

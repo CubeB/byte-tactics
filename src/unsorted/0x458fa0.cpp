@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol (#3170 retry): baseline and <ddraw.h> header variant both score 84.1%; ebx/ebp allocation swap remains, no MATCH.
 // 2026-10-01 deepseek-v4.1-flash retry (issue 2980): still 84.1%, the same
 // single ebx/ebp swap documented above (ours: view=ebx, info=ebp; original:
 // view=ebp, info=ebx). New levers tried this pass, all 84.1% or worse:

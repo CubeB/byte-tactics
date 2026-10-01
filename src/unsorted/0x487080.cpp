@@ -1,4 +1,26 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 10 (deepseek-v4.1-flash, 10 min, this session): NEW BEST 70.0% / 1591 bytes. The
+// `player` local must be `unsigned char`, not `int`: it is only passed to FUN_0048aac0 as a
+// char argument, so the int form reserved a 4-byte slot and pushed the frame to 0x104, which
+// is why the loop index landed at [esp+0x14] instead of [esp+0x10]. Narrowing it lifts
+// 67.5 -> 70.0 (1578 -> 1591 bytes) and keeps the address-take-of-i hack. Re-scored at this
+// 70.0 base and rejected: `int found = 0;` with the address-take removed (45.6 / 1567),
+// `unsigned int found = 0;` with the address-take (53.8 / 1579), `int i;` declared before
+// `bool found = 0;` (flat 70.0 / 1591), inlining the player expression and deleting the
+// local, which is what the original really does (62.7 / 1591, and 54.3 / 1579 with the
+// address-take also removed), using that local as the FUN_00485f50 arg-5 instead of
+// recomputing there (62.9 / 1594), `sprintf(script, "Script%i", i)` as the original does at
+// 0x4875d0 (56.4 / 1613, or 46.7 / 1601 without the hack), and writing the first b_10f flip
+// against the field instead of the local b to get the original's al/cl pair (69.0 / 1590).
+// What still differs: the first search loop's allocation. Original: n in esi (`mov esi,eax`,
+// `test esi,esi`), found in ebp as a dword (`xor ebp,ebp`, `mov ebp,1`, `test ebp,ebp`) and
+// i spilled to [esp+0x10] with a reload (`mov eax,[esp+0x10]` / `inc eax` / `cmp eax,esi` /
+// `mov [esp+0x10],eax`); ours: n in ebp, i in esi, found a byte at [esp+0x13], so the loop
+// body is `push esi` instead of the reload. The address-take hack puts i's slot at
+// [esp+0x14] (4 bytes off) and only its `lea`/`test`/`je` dead arm appears. Downstream
+// residues: the childB load phase (original edx, ours eax) rotating the whole field-copy
+// chain, the 0x110 flag block, the two epilogues and the 4-byte shortfall.
+
 // Pass (deepseek-v4.1-flash, 10 min, this session): best stays 67.5% / 1578 bytes. Probed
 // removing the dead `if ((char*)&i == (char*)0) return 0;` address-take before the search
 // loop: 67.5 -> 60.7 / 1566 bytes, so the hack is load-bearing (without it the loop index
@@ -306,7 +328,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     if (!found)
         return 0;
 
-    int player = (rec.flags >> 4) & 3;
+    unsigned char player = (rec.flags >> 4) & 3;
     unit = FUN_00485f50(rec.player, FUN_00488b10(rec.name), *(Vec3_00487080*)&rec.f2b, 1, (rec.flags >> 4) & 3, rec.id);
     if (unit == 0)
         return 0;

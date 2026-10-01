@@ -1,4 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 pass (#4173), 36.5 -> 38.6: the weight clear is
+// `memset(weight, 0, n * 4)` (the original's rep stosd) and the normals loop
+// uses the same `face = info->faces; fi = 0; if (firstFace != -1) { face++;
+// fi = 1; }` walk as the two later face loops (the original adds 0x20 to the
+// face pointer there, it never computes faces + fi). Each one alone scored
+// lower in earlier passes; together they gain. Also tried on top, all lower:
+// accum zeroed in [2],[1],[0] order (38.4), `else fi = 0;` (38.0), offsets
+// read from bmp (35.9), the unsigned-char bias spelling (29.5).
 // deepseek-v4.1-flash retry (#3971): 1 check run, base kept. Dropping the
 // `!= 0` from the tail antiAlias test (to mirror the head site that emits the
 // original's `mov cl,[m]; shr cl,1; test cl,1`) is 36.4% / 1958 bytes against
@@ -329,8 +337,7 @@ haveMode:
         if (n > 0) {
             int offX = (short)bitmap->field_4;
             int offY = (short)bitmap->field_6;
-            for (int z1 = n; z1 != 0; )
-                weight[--z1] = 0;
+            memset(weight, 0, n * 4);
             for (int k = 0; k < n; k++) {
                 int x;
                 int y;
@@ -362,9 +369,14 @@ haveMode:
             }
         }
 
-        int skip = (info->firstFace != -1) ? 1 : 0;
-        for (int fi = skip; fi < info->faceCount; fi++) {
-            Face_459c70* face = info->faces + fi;
+        {
+        Face_459c70* face = info->faces;
+        int fi = 0;
+        if (info->firstFace != -1) {
+            face++;
+            fi = 1;
+        }
+        for (; fi < info->faceCount; fi++, face++) {
             unsigned short* idx = face->indices;
             if (idx[0] == idx[1] || idx[1] == idx[2] || idx[2] == idx[0]) {
                 normal[fi][0] = 0.0f;
@@ -383,6 +395,7 @@ haveMode:
                 normal[fi][1] = d.y;
                 normal[fi][2] = d.z;
             }
+        }
         }
 
         {

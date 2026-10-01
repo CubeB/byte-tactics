@@ -1,8 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
-// Claude Opus 5.5 (found with tools/permute.py): 97.1%, up from 96.8%. In the unit
-// type loop the progress byte's divisor is read through a `game` local loaded
-// just before the store, while the store itself still goes through g_game
-// (96.8% with both through g_game).
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// MATCH (deepseek-v4.1-flash). The 96.8 residual was one loop-carried CSE: the units loop's
+// latch loaded g_game->field_1438f into ecx and the idiv reused it (`idiv ecx`) with g_game
+// parked in edi. Reading the divisor through a body-local pointer (`Game_0042d2e0* gp = g_game;`
+// then `gp->field_1438f`) makes that load a different value, so it rematerialises as
+// `idiv [ecx+0x1438f]`, g_game takes ecx, and the mov cx placement and lea order follow.
+// `else break;` in the GUI suffix do-while fixes the tail (`jmp`, not test/jne) and is exactly
+// the 2 bytes the count-into-memory adds. The last hunk (the canbuild `je` skipping the list
+// reload on the zero-iteration edge) needs the index store form `list[count] = val; count++;`
+// instead of the walking `*out = val; out++;`. Finally `new Class_00458160` had to become
+// `operator new(0x14)` + `obj = obj ? obj->FUN_00458160() : 0;` because data/symbols.csv names
+// that address Class_00458160::FUN_00458160, not the constructor.
 // Pass 15 (deepseek-v4.1-flash): shape unchanged, re-confirmed 2173/2173 at 96.8. The whole
 // residual diff is three adjacent spots from one allocator decision: (1) the units-loop entry
 // guard, ours materialises the count (`mov ecx,[edi+0x1438f]; cmp ecx,esi`) where the original
@@ -145,8 +152,10 @@ class Class_004c48c0 {
 
 class Class_00458160 {
   public:
-    char unknown_0[0x14];
-    Class_00458160();
+    char unknown_0[0x10];
+    int field_10;
+
+    Class_00458160* FUN_00458160(void);
 };
 
 class Class_00458180 {
@@ -321,7 +330,8 @@ void FUN_0042d2e0() {
         ((Class_004c3240*)&parser)->FUN_004c3240();
     }
 
-    Class_00458160* obj = new Class_00458160;
+    Class_00458160* obj = (Class_00458160*)operator new(0x14);
+    obj = obj ? obj->FUN_00458160() : 0;
     g_game->field_1437b = obj;
 
     int t = g_game->field_37e23 * g_game->field_37e1f * 2;
@@ -406,8 +416,8 @@ void FUN_0042d2e0() {
 
     for (unsigned short u = 1; u < g_game->field_1438f; u++) {
         Class_0042b370* type = &g_game->field_1439b[u];
-        Game_0042d2e0* game = g_game;
-        g_game->field_38d71 = (unsigned char)((u * 100) / game->field_1438f_alt);
+        Game_0042d2e0* gp = g_game;
+        g_game->field_38d71 = (unsigned char)((u * 100) / gp->field_1438f);
         type->field_21e = u;
         FUN_004290f0(path, "units", type->name, "FBI");
         if (FUN_004bbc40(path))
@@ -445,7 +455,8 @@ void FUN_0042d2e0() {
             if (more) {
                 suffix++;
                 found = 1;
-            }
+            } else
+                break;
         } while (more);
         if (found)
             type->field_22e = suffix;
@@ -475,16 +486,14 @@ void FUN_0042d2e0() {
                 if (((Class_004c3410*)&parser2)->FUN_004c3410("CANBUILD") &&
                     ((Class_004c3410*)&parser2)->FUN_004c3410(type->name)) {
                     int count = 0;
-                    short* out = list;
                     int k = 1;
                     sprintf(objpath, "canbuild%d", k);
                     while (((Class_004c48c0*)parser2.current)
                                ->FUN_004c48c0(valbuf, objpath, 0x20, DAT_005119b8)) {
                         short val = FUN_00488b10(valbuf);
                         if (val != 0) {
-                            *out = val;
+                            list[count] = val;
                             count++;
-                            out++;
                         }
                         k++;
                         sprintf(objpath, "canbuild%d", k);

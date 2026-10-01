@@ -1,4 +1,10 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #3595 deepseek-v4.1-flash (10 min): re-baselined 59.6%, 1533 bytes. Flat at
+// 59.6: first/count declared first, an unsigned short zero16 local routing the
+// unitIndex compare, and the nine flag initialisers moved before onOff. Ours
+// still emits test ax,ax where the original has xor esi,esi / cmp ax,si, and
+// keeps the ESI/EBP zero split plus the first/count register-vs-memory choice.
+
 // #2847 retry by GPT-6.1-sol: the six checker attempts preserved the 59.6%
 // best. Masked-word stores and XOR assignment reduced the score; live-zero,
 // first/count stack homes, and tail bit-write registers still differ.

@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #3595 deepseek-v4.1-flash (10 min): re-baselined 71.7%, 1759 bytes. Flat at
+// 71.7: hoisting the ni declaration next to v, and declaring n before ab. The
+// 0xa8 frame (ab/n Vec3f slots plus arg-buffer reuse) and the x87 load order
+// for the nine scaled floats still differ, as recorded above.
+
 // #2847 retry by GPT-6.1-sol: five attempts kept the 71.7% best. Reordering
 // locals dropped to 71.2%; the frame, x87 schedule, local slots, and loop
 // register/control flow still differ. One compiler launch failed; one run was silent.

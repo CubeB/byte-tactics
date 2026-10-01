@@ -1,4 +1,10 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #3595 deepseek-v4.1-flash (10 min): re-baselined 69.1%, 1514 bytes. Flat at
+// 69.1: a function-scope int zero = 0 feeding the three FUN_004b4800 defaults,
+// declared either right after FUN_00422ea0 or at the function top. Sharing the
+// first loop's k with the tail loops does not compile (VC5 keeps the for-init
+// k). The post-names join (ebp = 0 reused as file, count in ebx) still differs.
+
 // deepseek-v4.1-flash re-run (third pass), still 69.1% / 1514 bytes. New
 // precise localisation: the compiler already has file in ebp for the first
 // (Normal) tail loop, matching the original, but immediately after that loop

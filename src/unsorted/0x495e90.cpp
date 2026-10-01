@@ -255,6 +255,33 @@
 //   the slot offsets are computed independently.
 //
 
+// deepseek-v4.1-flash (issue 4185, retry of 4080): 15 more scored spellings, all
+// flat. The "inside" family is now exhaustive: the guard as a cast pointer
+// (`Flags_00495e90_37f2f* f = (Flags_00495e90_37f2f*)((char*)g_game + 0x37f2f);
+// if (f->b1)`), a `char* base` used for all three accesses, a `Flags&` reference,
+// `unsigned short* base`, a local byte-bitfield struct, `unsigned short f = ...; if (f)`,
+// `long`/`const`/casted `old`, an `int* p = &g_game->field_38c53;` hoisted above
+// the guard, `int old;` declared above and assigned inside, `!== 1`, `(bool)`,
+// and a hoisted `char* base`: every one is byte-identical to the 2288-byte
+// inside form below. Only `x == 1` and `(bool)` change anything and both emit
+// `and al,2 / cmp al,2` instead of the original `shr cl,1 / test cl,1`.
+// Cross-checked against matched near-copies that DO get the original's
+// ptr EAX / byte CL pattern: 0x499890.cpp (`if (g_game->screenBitB)` on a
+// direct `unsigned short` bitfield) and 0x46a530.cpp
+// (`Flags* f = (Flags*)((char*)g_game + 0x37f2f); if (f->flag)`), so both the
+// direct-member and cast-pointer spellings are known-good shapes elsewhere;
+// here they still land ptr ECX / byte AL / old EAX. Reproducing that shape
+// needs the pointer web to be allocated before the flag byte temp, and no
+// source spelling tried in five passes moves it.
+// Measured this pass with a local byte-diff of the two disassemblies
+// (build/scratch/0x495e90/sdiff.py): the current file's ONLY size delta is
+// 0x4961d7 (43 vs 42 bytes); every other difference is the resulting +1
+// target shift. The inside family's 2288 bytes are NOT one byte shorter: the
+// entry matches the original exactly and the remaining 3 bytes are lost in the
+// body, whose register allocation diverges (`mov ecx,[g_game]` + `lea edx,...`
+// where the original has `mov edx,[g_game]` + `lea eax,...`), so the body of the
+// original cannot come from the inside form as spelled here.
+
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

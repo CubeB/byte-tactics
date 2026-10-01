@@ -1,6 +1,24 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
 // deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash,
-// finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash.
+// finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by
+// deepseek-v4.1-flash.
+// 2026-10-01 pass 5 (deepseek-v4.1-flash, 10 min timebox, 0 scored variants kept,
+// 3 scratch probes): why the case-3 lanes cannot be made 32-bit by spelling alone.
+// - Dropping the `(unsigned short)` cast on a case-2 lane is byte-identical: the
+//   narrowing is not driven by the assignment's type.
+// - vB: with a per-lane `unsigned int m = *(unsigned char*)(p2 + 0x9c) & M;` in the
+//   three case-3 post-loop lanes the AND does become 32-bit (`and ecx,2`, no movzx),
+//   but the byte temp moves to ecx and the word to esi (original: bl and dx):
+//   80.4% (2833 bytes).
+// - vC: splitting the conversion from the AND (`unsigned int m = *(unsigned
+//   char*)(p2 + 0x9c);` then `... | (m & M)`) DOES reproduce the original's
+//   zero-extension idiom (`xor eax,eax; mov al,[..]`) plus the 32-bit `and eax,2`,
+//   but MSVC then rewrites that lane as the xor combine
+//   (`xor al,dl; and eax,2; xor eax,edx`) and puts the word in esi: 79.7% (2827).
+//   So the original's AND/OR lane form only survives while the byte operand stays
+//   narrowed; any 32-bit wide byte operand flips instruction selection to the xor
+//   combine (vC) or rotates the register file (vB). The register file (edi=1,
+//   bl byte temps, dx word) and the lane width are one allocator/IS state.
 // 2026-10-01 pass 4 (deepseek-v4.1-flash, 10 min timebox, 0 scored variants): re-read the
 // switch dispatch and the lane diff with the /Fa-style instruction view, no change kept.
 // Confirmed by direct instruction comparison of the compiled lanes that the case-1/2

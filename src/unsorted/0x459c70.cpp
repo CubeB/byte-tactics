@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (watchdog pass), 36.5% base kept: the tail inner
+// loop as `while (x--)` scores 36.4, so the `for (x; x != 0; --x)` spelling is
+// kept. Still differs: prologue preload of bmp into esi/ebx before push edi
+// (original loads [esp+0x159e8] only after the three tests), mode slot 0x28 vs
+// 0x20, piece-pointer bias, and x87 scheduling in the normal/accum loops.
 // deepseek-v4.1-flash retry (3029 board), 36.5% base kept, 2 check runs, no new
 // variant scored: timebox expired before a probe could be built. Findings from
 // the diff/disassembly this run (next worker should try this exact shape):

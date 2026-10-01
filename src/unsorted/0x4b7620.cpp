@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
 // Registers one named handler in the file-local sorted handler table (created
 // by 0x4b75a0, destroyed by 0x4b7ad0). It binary-searches the table
 // case-insensitively with _strcmpi for the name, and if the exact-case name is
@@ -10,6 +10,9 @@
 // record loop). Element type is Class_004b7e30, the vector is
 // std::vector<Class_004b7e30> (the insert callee's mangled name says so).
 //
+// Retry note (GPT-6.1-sol): reading the vector's end pointer through a raw
+// offset-8 alias in both the binary search and end check emitted identical
+// code (74.4%). The existing source below remains the best at 304/319 bytes.
 // Best variant so far, 74.4%. What still differs is all downstream of how
 // MSVC 5 inlines std::vector::end(): where the original does
 // `mov ebx,[DAT_0051fc99+8]` directly, ours loads it into eax and then does

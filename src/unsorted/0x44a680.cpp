@@ -3,6 +3,10 @@
 // Rejected variants: owner local in the reindex loop 87.1% (2342 bytes),
 // explicit firstResult/firstGame locals 82.1% (2360 bytes), and r & 1 for
 // the final bitfield store 91.9% (2336 bytes). Keep the baseline below.
+// Issue 3725 pass (deepseek-v4.1-flash): the inverted first if
+// (FUN_00453d40() == 0 && ... != 0, bit0 store in the else) is 92.7% /
+// 2340 bytes, below the 92.9% baseline; the hoisted g_game load does not
+// follow the inverted shape here.
 // Sixth pass (deepseek-v4.1, issue 2560): 92.7 -> 92.9. FUN_004b6340 returns
 // int, not unsigned int: with `int` the DAT_005129a4 guard emits the
 // original's `jge 0x44acf2` at 0x44ac95, while DAT_005129a8 stays unsigned so

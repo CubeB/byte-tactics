@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 4: re-scored the byte-temp family,
+// `unsigned char c = f; c ^= DAT; game->flags.word = f ^ (c & 1);` (and the
+// split `unsigned char c = f; int b = c ^ DAT;`). Both reach the target
+// byte-width xor but MSVC widens the mask to `and dl,1 / movzx dx,dl` and
+// colours game into eax, 87.5% (1334 B). The exact Ghidra literal
+// `word = (unsigned char)((unsigned char)word ^ DAT) & 1 ^ word;` and
+// `word ^= (unsigned char)(word ^ DAT) & 1;` fold to an in-place memory xor,
+// 90.7% (1327 B, 6 short). Nothing beat the 91.5% int-temp form below.
 // deepseek-v4.1-flash retry 3 (timebox stop): kept this 91.5% file. Recreated the
 // lost scratch variants and scored all three per-use-cast spellings with
 // DAT_00512f46 declared `int` and the fused flip `f ^ ((f ^ DAT) & 1)`:

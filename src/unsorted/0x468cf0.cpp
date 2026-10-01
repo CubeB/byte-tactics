@@ -1,5 +1,18 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// deepseek-v4.1-flash retry 4 (timeboxed): one variant tried, no gain, reverted.
+// Correction to the note further down: the local_1a3 99999.0 site is the ONLY
+// one whose compare idiom still differs (base diff, check.py output line ~679):
+//   original: test ah,1 / je 0x46933e     ours: test ah,1 / jne 0x469340
+// (all the other sites already emit test ah,0x41 and match, so the older note
+// claiming 0x41-vs-0x1 is stale). Rewriting that site as
+//   if (L.local_1a3 < -99999.0f) sprintf "%dK" /1000; else sprintf "%d";
+// does give the original's je polarity but scores 53.4 (6031 bytes): the
+// surrounding register allocation has to line up first, so the plain
+// `>= -99999.0f` form stays. The whole remaining diff is 1831 lines of
+// register/scheduling noise, so attack it block by block against the saved
+// base diff (build/scratch/0x468cf0/base.txt in the issue-3534 worktree)
+// rather than by dyadic rewrites of one statement.
 // deepseek-v4.1-flash retry 3 (timeboxed): 53.1 -> 53.8, 6029 -> 6023 bytes.
 // Three fixes, all statement/evaluation order rather than structure:
 // 1. The 33-byte memcpy of g_game+0x37e3f must come BEFORE the cVar3 load in

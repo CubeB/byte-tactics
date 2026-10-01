@@ -153,6 +153,10 @@
 // memory operand difference driven by the 0x10/0x14 slot crossing, not an
 // operand order choice, so the product order in the source cannot steer it.
 // The lowX 0x10 (ours) versus 0x14 (original) crossover reported above stands.
+// Thirteenth pass (deepseek-v4.1-flash, timeboxed 2026-10-01): the two untried
+// single-loop splits were scored. Block-scoping `next` in loop 1 only, and in
+// loop 2 only, both collapse to the known 67.9% attractor (1094 bytes), so one
+// split loop is not enough and the two-group 0x10/0x14 crossing stands.
 
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);

@@ -40,6 +40,10 @@
 // function-scope `int* out;` (both loop blocks declare their own) is
 // byte-identical at 54.1 / 1275 bytes, so that outer dummy does not hold the
 // missing 16th slot; the 0x7d5c vs 0x7d60 frame gap stands.
+// deepseek-v4.1-flash pass (timeboxed 2026-10-01): the "force the four
+// accumulators to stay live across both loops" lever was tested by hoisting
+// u,v,z,lg to function scope; it is score-neutral at 54.1 / 1275 bytes, so
+// that does not make previous spill and the frame gap remains the blocker.
 // Partial 54.1% (best this file has reached; check.py prints 54.1).
 // space-bunny-free pass: no improvement, all variants below scored below the
 // 54.1% baseline, so this file is unchanged apart from these notes. What I

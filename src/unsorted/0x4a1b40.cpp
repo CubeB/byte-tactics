@@ -1,4 +1,21 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// STATUS (deepseek-v4.1-flash, issue 3325): best 26.6%, not MATCH.
+// New evidence for the next attempt: every [esp+N] in the original is >= 0x10 and
+// a multiple of 4 (checked with objdump over the whole function), i.e. the original
+// frame has 16 bytes at esp+0x00..0x0f that no instruction ever touches, and its
+// lowest live slot is t/line at 0x10. Ours uses esp+0x00..0x0f (t/line/colPtr,
+// xx/row, entries/yy, flag), so our allocator starts 0x10 lower and the extra
+// 16 bytes of the original are not the 4-byte frame difference (0xc0 vs 0xbc).
+// A likely cause: a by-value struct temporary (the 16-byte Rect for FUN_004c6b10)
+// whose home slot MSVC reserved at the bottom of the frame but never used, since
+// the real copy is made with `sub esp,0x10; mov eax,esp` at 0x4a207f. Two more
+// original details that are not in this file: the window rect is built twice in the
+// cell branch (a dead store of x1 into the cell-loop rect at base+0x84 at 0x4a213c,
+// and the real rect at base+0x18 later), and the text call's y argument is served
+// from q's own slot (0x2c) because cy is copied there at 0x4a1e2e-0x4a1e32, so the
+// source's cy/q live ranges really do interleave. Also tried on issue 3325 and
+// neutral: an inline LineHeight_004a1b40() helper used for both lh and next
+// (byte-identical to this file, 26.6%).
 // STATUS (deepseek-v4.1-flash, issue 2934): best 26.6%, not MATCH.
 // What moved it: (1) restore the TWO holder loads. The original reads
 // [param_1+0x18] at 0x4a1b53 and again at 0x4a1b6c, because the store

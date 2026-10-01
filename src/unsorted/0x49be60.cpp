@@ -1,4 +1,18 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// PASS 7 (deepseek-v4.1-flash): tested the hypothesis that splitting the
+// `visible` if/else (`if (cond) visible = 1; else visible = 0;` instead of
+// `visible = 0; if (cond) visible = 1;`) removes the spill. It does: the
+// variant emits `mov eax,1` / `xor eax,eax` exactly like the original, has NO
+// store to [esp+0x10] and shrinks to 2268 bytes (original 2272). BUT it scores
+// only 39.0, because the allocator then hands the player-info base to ebx
+// (original: eax, `push eax` at the call) and the viewFlags byte to al
+// (original: cl). The memory-spilling form keeps pb in eax and viewFlags in cl,
+// which is worth more matched instructions than the removed spill, so the file
+// stays on the 39.2 form. Both forms are saved in
+// build/scratch/0x49be60/v1_reg_visible.cpp (2268 bytes, 39.0) and here.
+// Merging them (pb in eax AND visible in eax) is one allocator decision this
+// source shape does not reach; declaration-order perturbations all regressed.
 // (started by deepseek-v4.1-flash, retried by GPT-6, retried by deepseek-v4.1,
 //  retried again by deepseek-v4.1-flash)
 //

@@ -1,5 +1,17 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// 2026-10-01 (deepseek-v4.1-flash, 67.5 -> 69.8, both 1631 bytes): the 26-byte
+// gap was the _itoa dispatch. Splitting the value computation into three
+// separate `_itoa(...)` calls (float path, flags&8 path, plain off path)
+// instead of computing a single `int v` first reproduces the original's
+// tail-merged shared `call _itoa` and closes the byte count. Still differs
+// (not byte-identical): the frame slot for the function-scope `surface` is
+// [esp+0x10] in ours versus [esp+0x1c] in the original (original keeps w<h
+// `limit` at [esp+0x10] and the branch surface/lc at [esp+0x14] with
+// `entries` at [esp+0x18]); in the w<h branch the original keeps the reloaded
+// surface in ebp and reloads obj from [esp+0x54] afterwards. Reordering the
+// surface/entries declarations was tried and does not move the slot.
+//
 // 2026-09-30 retry (deepseek-v4.1-flash, 67.5%): tested two more allocator
 // levers, neither beat 67.5%, so kept the current form. Declaring `entries`
 // then `surface` (vB) gives 65.2%, declaring a function-scope `int limit`
@@ -275,15 +287,12 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         char buf[0x10];
         if (e->u.text[0] != 0) {
             strcpy(buf, e->u.text);
+        } else if (e->field_13c != 0) {
+            _itoa((int)((float)e->off * e->field_13c / (e->w - e->size)), buf, 10);
+        } else if (e->flags & 8) {
+            _itoa(e->off + 1, buf, 10);
         } else {
-            int v;
-            if (e->field_13c != 0)
-                v = (int)((float)e->off * e->field_13c / (e->w - e->size));
-            else if (e->flags & 8)
-                v = e->off + 1;
-            else
-                v = e->off;
-            _itoa(v, buf, 10);
+            _itoa(e->off, buf, 10);
         }
         char* p = buf;
         if (p != 0) {

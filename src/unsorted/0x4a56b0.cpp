@@ -1,4 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 retry 4 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. New
+// facts: the t-vs-walker tie is independent of the x phi. The x-register
+// variant (`x += w; x -= Measure()`, 58.1%) moves i's home to frame+0x14 (the
+// original's i slot) but t still lands in edx and the bound is still spilled,
+// so enregistering x does not force t to memory. Forcing t out of a register
+// was tried with int[2], a struct member, unsigned, long, swap-declaration and
+// `t = t + 1`; every one is byte-identical to this 60.3% shape (60.3%, 1649).
+// Removing windows.h drops to 55.7%. So the loop allocation is a genuine
+// compiler-state tie; the remaining differences are the t/bound register swap
+// (diff slots frame+0x10 vs frame+0x14) and the downstream rect base shift.
 // 2026-10-01 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. New scratch
 // results (build/scratch/0x4a56b0). The loop: a guarded `if (i < bound) { do {
 // ... } while (i < bound); }` (v10) and a plain `for`/`while (i < bound)` (v3,

@@ -26,4 +26,13 @@ case "$tool" in
     wlink) exe=LINK.EXE ;;
     *) exe=CL.EXE ;;
 esac
-exec wine "$TC/BIN/$exe" /nologo "$@"
+# Wine's server and helper processes inherit the compiler's stdout and stderr
+# and hold them until they exit, so a caller capturing the output through a
+# pipe (check.py) waited about 1.3 s per compile. Send the output to a file
+# instead, and print it once the compiler has exited.
+out="$(mktemp)"
+trap 'rm -f "$out"' EXIT
+rc=0
+wine "$TC/BIN/$exe" /nologo "$@" >"$out" 2>&1 </dev/null || rc=$?
+cat "$out"
+exit "$rc"

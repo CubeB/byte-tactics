@@ -1,6 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // (earlier passes by deepseek-v4.1-flash and GPT-6)
-// RETRY pass (deepseek-v4.1-flash, 2026-09-30, 0 check.py runs, ~4 min):
+// GPT-6.1-sol pass (2026-10-01): six check.py runs, no MATCH. Best remains 45.7% (4306 vs 4382 bytes). A cached boolean for FUN_00457a50 scored 43.2%; inlining the player stride expression scored 29.5%, so both were reverted. All 128 header combinations were tested; none improved the 45.7% baseline (closest sets: <windows.h> <stdio.h>, <stdio.h> <string.h>, <stdio.h> <ddraw.h>). The earliest mismatch remains scalar stack-slot allocation at 0x447b2d, followed by loop register/stack placement and differing command-dispatch block ordering.\r\n// RETRY pass (deepseek-v4.1-flash, 2026-09-30, 0 check.py runs, ~4 min):
 // Score is still 45.7% (4306 vs 4382 bytes). The earliest mismatch is the
 // iVar8 store: original [esp+0x14] (frame+4), ours [esp+0x18] (frame+8), with
 // frame+4 a never-used hole in ours. I tried to move it and could not:

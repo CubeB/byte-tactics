@@ -9,6 +9,19 @@
 // Still differs: pre-loop values do not use the original stack slots/registers;
 // the viewFlags save/restore differs; the inner-loop and tail register choices
 // also differ. Callee order, arguments and main loop control flow are close.
+//
+// Later pass (deepseek-v4.1-flash): 55.0 percent re-confirmed by check.py
+// (original 1105 bytes, ours 962, so the tail and save/restore code is far
+// smaller than the original). The original tail restores viewFlags bit 1 with
+// a single and/or store (and edx,0xfffd / or edx,eax / mov [ecx+0x14281],dx)
+// while this version does two separate read-modify-write stores plus the odd
+// xor-idiom for bit 0. Also still open: the pre-loop g_game loads should land
+// in the original slots ([esp+0x24] bw, [esp+0x1c] bh, [esp+0x48] off27,
+// [esp+0x34] off2b, [esp+0x30] scrollY, [esp+0x38] scrollX, [esp+0x40] and
+// [esp+0x44] the two saved viewFlags bits). Ideas tried earlier and kept in
+// history: trailing dword added to Class_004cb7f0 for the 0x1b0 frame (kept),
+// struct layout tweaks for Game_00495a30. No inline asm or pragmas used.
+// Stopped on the SHARED.md watchdog stop signal before trying new variants.
 #pragma pack(push, 1)
 struct Game_00495a30 {
     char unknown_0[0x1423b];

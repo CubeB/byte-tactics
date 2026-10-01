@@ -4,6 +4,24 @@
 //
 // 2797 bytes. Best so far: 82.8% (2846 vs 2797 bytes). No MATCH.
 //
+// This pass (deepseek-v4.1-flash, ~8 min, 0 scored check runs, all --sym):
+// re-confirmed the plateaus below, no gain. Three free probes, all flat at 82.8%
+// (2846 bytes) unless noted:
+// - Referencing `one` in the first post-call pl lane (`& one` instead of `& 1`)
+//   does not move the CSE'd 1 into edi; byte-identical to the plain immediate.
+// - Hoisting `char* recbase = g_game + 0x1b63;` before the for-off spawn loop
+//   (rec = recbase + off) regresses to 80.0% (2853 bytes): it strength-reduces
+//   the pointer walk. Keep `rec = g_game + 0x1b63 + off` inline.
+// - Flipping the OR operand order in all six 0x14281 case-3/pl lanes
+//   (`m | (w & ~M)` vs `(w & ~M) | m`) is byte-identical: not a scheduling lever.
+// headers.py sweeps 128 sets and every one is 82.8% with <windows.h> on top, so
+// the lone SIB swap ([ecx+ebx+0x1b63] vs [ebx+ecx+0x1b63]) is compiler state.
+// The remaining gaps are unchanged and all allocator-driven (see the pass notes
+// below): the nine 0x14281 lanes want 32-bit zero-extend + `and ebx,imm` while
+// ours narrow to `and bl,imm; movzx si,bl`, and the switch materialises the
+// CSE'd 1 in edx where the original parks it in the callee-saved edi (which is
+// also why case 3's copies are `mov cx` here vs `mov dx` there).
+//
 // This pass (deepseek-v4.1-flash, ~20 min): re-scored the baseline and the
 // prior lane experiments in build/scratch/0x497180/. Two small wins, both from
 // build/scratch/0x497180/vQ.cpp:

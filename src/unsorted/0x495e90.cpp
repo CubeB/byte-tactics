@@ -1,4 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Edited by deepseek-v4.1-flash (decomp-worker, issue 3095). Still PARTIAL
+// 79.6%, unchanged: one delta left, case 0xd7's entry register tie.
+// This pass tried (all scored with check.py --sym on scratch copies):
+//   vB/vC/vD early-`break` spelling of the two d7 guards (both jumps go to
+//     the shared switch end in the original, which looked like break style):
+//     2284 bytes, 75.7%. The straight-line form saves 6 bytes before d7 and
+//     restructures, so nested ifs stay.
+//   vE/vK flag guard read through a static inline helper taking g_game:
+//     75.7 / 71.7. vH/vI a GetOld(g_game) helper for field_38c53: 71.7/72.5.
+//     Inlined helper parameters do not flip the EAX/ECX tie here.
+//   vG split declaration `int old; old = g_game->field_38c53;`: 72.5.
+//   vF `int* p = &g_game->field_38c53; int old = *p; *p = 0;`: 75.9, same
+//     swap as vA.
+// Still needed for a match: d7 entry with `int old` INSIDE the guard (vA's
+// instruction order: ptr, flag byte, je, old load, store, cmp, jne) but the
+// pointer in EAX (5-byte moffs) and the flag/old pair in CL/ECX. vA gets the
+// exact order but mirrors the registers (ptr ECX 6-byte, pair AL/EAX).
+
 // PARTIAL 79.6%: in-game command/gadget event dispatcher, original 2292 bytes,
 // ours 2292 (exact size; structure, jump tables and case order agree).
 //

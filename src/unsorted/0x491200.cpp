@@ -5,6 +5,15 @@
 // 1174 bytes on both sides). Still differs: only the second call's delay slot,
 // ours emits the dwLength store before push edx, the original fills the slot
 // with the store after the push. See the full history of tried shapes below.
+// Frame/slot note (deepseek-v4.1-flash, last pass): the 0x10 vs 0x14 operand
+// difference is NOT a frame layout difference. Both sides store 0x20 to the
+// same physical slot: ours addresses it as [esp+0x10] before the push, the
+// original as [esp+0x14] after the push (the push decrements esp by 4). Both
+// sites agree with lea edx,[esp+0x10] and with the first call's [esp+0x14]
+// after push edi/push eax. So extra dead locals, int64 locals or struct
+// temporaries would only renumber slots and break the (already correct)
+// frame; the sole difference is the scheduler's ordering tie between the
+// dwLength store and push edx at the second call.
 // Retry pass (deepseek-v4.1-flash): tried do/while(0) block, comma-operator
 // argument, sizeof, *(DWORD*)&mem, reference/pointer local, do-block wrap,
 // LPMEMORYSTATUS/integer-constant and helper forms for the second

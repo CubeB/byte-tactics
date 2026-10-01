@@ -1,7 +1,28 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // retry by deepseek-v4.1-flash (#3418, 10-minute timebox): re-checked only, still
 // 26.2% (3780 bytes vs 5248); the timebox was spent on the closer 0x4a9fd0, so
 // nothing new was tried here beyond a baseline check.
+// Retry by deepseek-v4.1-flash (#3535, 10-minute timebox): 26.2 -> 37.0%.
+// The big win was loop2's case 2 (0x4a91c7..0x4a92da): with L.force set the
+// list box bases its sort key on the type 7 entry in the same group, then
+// rounds its height down to a multiple of the font height plus two and
+// stores FUN_004b6340() at u+0. Still missing: the post-loop FUN_004a16f0
+// block (0x4a943b..0x4a950a, reads layer->field_20 and menu->field_a2 and
+// scans for a matching name), and the remaining loop2 cases need their
+// own scratch fields; a batch that added guards to cases 3/5/11 scored
+// 36.7% and the full set of case 4/6/13/10 bodies scored 30.3%, so both
+// were reverted, the guards do not line up with our stack layout yet.
+// Learned from the disassembly and now encoded here: entry 0's union holds
+// the two surface handles (SAVE UNDER +0xb8, GUI SURFACE +0xbc, then the
+// frame GAF at +0xc0 and the background GAF at +0xc4); the forced path
+// skips the SAVE UNDER bitmap when flags&0x20 and stores 0 there instead;
+// after_entries tests menu->layer->field_24 (a layer field at +0x24), not
+// entries[0].u.text, and passes entries[0].u.assets.background to
+// FUN_004b0230; the flags&2 teardown is now the real one (saveUnder blit +
+// free, surface free, per-entry free of archive and of u.list.filebuf at
+// +0xd6 for types 7/8). loop2's case 2 body (0x4a91c7..0x4a92da) and the
+// post-loop FUN_004a16f0 block (0x4a943b..0x4a950a, uses layer->field_20
+// and menu->field_a2) are still missing, which is most of the byte deficit.
 // Issue #2354 retry by GPT-6.1-sol: the saved 26.2% source remains best after one
 // targeted stage-string variant scored 25.8%; three worker checks total, no MATCH.
 // Partial: 26.2%, 3776 bytes versus the original 5248. What still differs:
@@ -73,16 +94,22 @@ struct Entry_004a81e0 {                 // 0x15b bytes, one GUI list entry
         short count;                    // +0xb6 (entry 0 only)
         struct { short unused_b6; Glyph_004a81e0* firstFrame; } animation;
         struct {
-            char unknown_0[0x14];
+            int field_0;                    // +0xb6 (type 2: sort key)
+            short field_ba;                 // +0xba
+            short field_bc;                 // +0xbc
+            char unknown_a[0x14 - 0xa];
             GafEntry_004a81e0* gaf;
-            char unknown_18[0x24 - 0x18];
+            char unknown_18[0x20 - 0x18];
+            void* filebuf;                  // +0xd6, buffer type 7/8 loads
             short scroll;
         } list;
         char text[0x80];                // +0xb6
         struct {
-            char unknown_0[0xa];
-            void* archive;
-            GafEntry_004a81e0* background;
+            char unknown_0[2];
+            void* saveUnder;                // +0xb8, the SAVE UNDER bitmap
+            void* surface;                  // +0xbc, the GUI SURFACE bitmap
+            void* archive;                  // +0xc0
+            GafEntry_004a81e0* background;  // +0xc4
         } assets;
     } u;
     union {
@@ -112,6 +139,8 @@ struct Layer_004a81e0 {
     Entry_004a81e0* entries;            // +0x04
     char unknown_08[0x14 - 0x08];
     int field_14;                       // +0x14
+    char unknown_18[0x24 - 0x18];
+    void* field_24;                     // +0x24
 };
 
 struct Menu_004a81e0 {                  // the object callers pass as arg1
@@ -191,6 +220,7 @@ struct Scal_004a81e0 {
 int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
 {
     Entry_004a81e0* entries;
+    char* name;
     Scal_004a81e0 L;
     char stagebuf[0x20];
     char textbuf[0x100];
@@ -509,21 +539,24 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
     }
 
     L.e = &entries[0];
-    L.p4 = FUN_004c69f0(L.e->name, L.e->w, L.e->h);
-    FUN_004c6b70(L.p4, 0, -L.e->x, -L.e->y);
-    L.text = L.e->name;
-    if (L.text == 0)
-        L.text = "GUI SURFACE";
-    L.p4 = FUN_004c69f0("SAVE UNDER", L.e->w, L.e->h);
-    FUN_004c6b70(L.p4, 0, 0, 0);
+    name = entries[0].name;
+    if (name == 0)
+        name = "GUI SURFACE";
+    entries[0].u.assets.surface = FUN_004c69f0(name, entries[0].w, entries[0].h);
+    FUN_004c6b70(entries[0].u.assets.surface, 0, -entries[0].x, -entries[0].y);
+    if (flags & 0x20) {
+        entries[0].u.assets.saveUnder = 0;
+    } else {
+        entries[0].u.assets.saveUnder = FUN_004c69f0("SAVE UNDER", entries[0].w, entries[0].h);
+        FUN_004c6b70(entries[0].u.assets.saveUnder, entries[0].u.assets.surface, 0, 0);
+    }
 
 after_entries:
-    L.e = &entries[0];
     if ((flags & 4) || L.force || (flags & 0x40)) {
-        if (L.e->u.text[0] != 0) {
-            FUN_004b0230(menu, 0, 0);
+        if (menu->layer->field_24) {
+            FUN_004c6b70(entries[0].u.assets.surface, menu->layer->field_24, 0, 0);
         } else if ((flags & 0x80) == 0) {
-            FUN_004b0230(menu, 0, 0);
+            FUN_004b0230(menu, 0, entries[0].u.assets.background);
         }
     }
 
@@ -541,15 +574,36 @@ after_entries:
             if (L.force || (flags & 0x48) != 0)
                 FUN_004a5f40(menu, L.i);
             break;
-        case 2:
-            entries[L.i].field_136 = 0;
-            if (DAT_0051fba4->language == 0)
-                FUN_004c1450();
-            else
-                FUN_004b7f30(DAT_0051fba4->language->glyphs, 0x49);
-            FUN_004c1420(L.i);
-            FUN_004a1b40(menu, L.i);
+        case 2: {
+            if (L.force) {
+                Entry_004a81e0* base = menu->layer->entries;
+                int t = 0;
+                int j;
+                base[L.i].u.list.field_bc = 0;
+                base[L.i].u.list.field_ba = 0;
+                for (j = 1; j <= base[0].u.count; j++) {
+                    if (base[j].type == 7) {
+                        if (t == base[L.i].group)
+                            break;
+                        t++;
+                    }
+                }
+                if (j != base[0].u.count + 1)
+                    FUN_004c1420((int)base[j].u.list.filebuf);
+                if (j == base[0].u.count + 1)
+                    FUN_004c1420(DAT_0051fba4->current);
+                int fh;
+                if (DAT_0051fba4->language == 0)
+                    fh = FUN_004c1450();
+                else
+                    fh = ((Glyph_004a81e0*)FUN_004b7f30(DAT_0051fba4->language->glyphs, 0x49))->h + 2;
+                base[L.i].h -= (short)(base[L.i].h % (fh + 2));
+                base[L.i].u.list.field_0 = FUN_004b6340();
+            }
+            if (L.force || (flags & 0x40))
+                FUN_004a1b40(menu, L.i);
             break;
+        }
         case 3:
             FUN_004a4d70(menu, L.i);
             break;
@@ -588,14 +642,27 @@ after_entries:
         FUN_004a16f0(menu, 1, 8);
 
     if (flags & 2) {
-        if (entries[0].u.text[0] != 0) {
-            FUN_004c6b70(0, 0, 0, 0);
-            FUN_004c6ac0(0);
+        if (entries[0].u.assets.saveUnder != 0) {
+            FUN_004c6b70(0, entries[0].u.assets.saveUnder, entries[0].x, entries[0].y);
+            FUN_004c6ac0(entries[0].u.assets.saveUnder);
+            entries[0].u.assets.saveUnder = 0;
         }
-        FUN_004c6ac0(0);
-        for (L.i = 0; L.i <= entries[0].u.count; L.i++) {
-            if (entries[L.i].gaf != 0)
-                FUN_004d85a0((int*)entries[L.i].gaf);
+        FUN_004c6ac0(entries[0].u.assets.surface);
+        entries[0].u.assets.surface = 0;
+        for (int j = 0; j <= entries[0].u.count; j++) {
+            if ((entries[j].resourceFlags & 1) && entries[j].archive != 0)
+                FUN_004d85a0((int*)entries[j].archive);
+            switch (entries[j].type) {
+            case 0:
+                FUN_004d85a0((int*)entries[j].u.assets.archive);
+                break;
+            case 7:
+            case 8:
+                FUN_004d85a0((int*)entries[j].u.list.filebuf);
+                break;
+            default:
+                break;
+            }
         }
     }
 

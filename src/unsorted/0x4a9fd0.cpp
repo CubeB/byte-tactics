@@ -104,6 +104,26 @@
 //   * This retry: moving an uninitialized `sel` declaration above the early
 //     return tied at 43.7%; taking the address of `entries` and using that
 //     slot to form the current entry fell to 40.4%.
+//
+// deepseek-v4.1-flash retry #3535 (10-minute timebox): nothing beat 46.0, so
+// here is a measured divergence map for the next worker. Line up tools/ctx.py's
+// call order with check.py's `?  +0xNNN` reference list; the numbers below are
+// original offset minus ours (original offset minus 0x4a9fd0):
+//   +6 at the very first call, down to +1 by FUN_004ab440, so the prologue and
+//   the early-return region are the only excess up there;
+//   +1 at case 1, then +11/+19/+27/+31 at the FUN_004a3780, FUN_004a7290,
+//   FUN_004a4170 and FUN_004a4440 calls, so each of those small case bodies
+//   grows by about 8 bytes in ours;
+//   +41 at case 5's strncmp and +68 at FUN_004a5f40, so the case 5 block
+//   carries the single largest excess (then -16 back at FUN_004c13f0, which is
+//   the `sel = found` path re-joining);
+//   +34 at case 6's FUN_004a4b50 but +100 at case 13's FUN_004b6340, so the
+//   case 12/13 tail adds about 66 more.
+// That is where the 40 extra bytes are; the early loop and the first clamp are
+// already within a few bytes. Measured this session, all 46.0 and byte neutral,
+// so do not repeat them: an `entries` local declared at function entry and
+// assigned at the load (alone, and combined with a top `sel`), and hoisting the
+// `right`/`bottom` declarations out of the first clamp.
 
 #include <windows.h>
 #include <string.h>

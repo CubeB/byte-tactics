@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 33.0%. Size 1847 vs original 1853 bytes. Best after 12 checker runs.
 // Remaining diffs span entry register allocation through the loop tail. Attempts
 // changing declaration order, local scope, entry guard and base-pointer ordering

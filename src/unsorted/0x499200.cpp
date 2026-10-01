@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 98.4% (1654 of 1655 bytes). Every branch, field offset, call target,
 // stack slot, jump target and register role now agrees with the original except
 // ONE instruction: at 0x4997a0 the original loads g_game with
@@ -112,6 +112,16 @@
 // first pick in the original is edx, i.e. exactly one step on from the last
 // then-arm pick, which fits a rotating register hint whose state our build
 // resets before 0x4997a0. Still differs only at 0x4997a0: edx vs eax.
+// deepseek-v4.1-flash session 9 (issue #4197): four more shapes, all byte-neutral at
+// 1654 bytes / 98.4 percent with 0x4997a0 still `mov eax`: naming the FUN_00435100
+// result and testing it as `if (mode == 1) ... else if (mode != 1)` (the folded
+// else-if emits no bytes but the value is killed at the branch, so eax is not
+// blocked); the same test nested inside the else block; splitting the two locals
+// into declarations plus assignments; and `unsigned int saved;` declared before the
+// pointer. The liveness route is closed: any value kept live into the else arm is
+// either folded away by the value tracker before allocation or, when it really
+// survives, forces a callee-saved register and shrinks the function. The 6-byte
+// `mov edx` is not reachable from source shape here.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

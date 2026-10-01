@@ -1,3 +1,4 @@
+// GPT-6.1-sol refinement: pointer output-cursor variant scored 58.2% / 301 bytes, so retained the 84.7% / 334-byte indexed version.
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash, space-bunny-free, deepseek-v4.1-flash, and GPT-6.1-sol. Names are provisional.
 // GPT-6.1-sol (#2936) raised the best from 83.1% to 84.7% in 9 checker runs
 // by reversing the source-pointer and output-index increments. Remaining

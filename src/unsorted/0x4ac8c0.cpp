@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
+// #3120 retry by GPT-6.1-sol: best remains 89.8%; a separate gridY local fell to 86.4%, declaration-order swap was unchanged, and explicit while loops fell to 56.9%. Remaining diff is register allocation for grid y and the rectangle x/y+7 values.
 // space-bunny-free and GPT-6.1-sol. Names are provisional.
 // finished by deepseek-v4.1-flash (89.8% retry).
 // #2936 retry by GPT-6.1-sol: five checks retained the 89.8% best; declaration

@@ -1,4 +1,13 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 6 (timeboxed, unchanged at 84.1%): re-derived the
+// prologue from the raw disassembly: the original assigns `mov ebp, ecx` (the
+// address) first, then `cmp byte ptr [ecx],1`, `je`, and only then reads the
+// parameter home `mov ebp, [esp+0x34]` in the false arm, so that read is a
+// genuine materialisation of the incoming parameter, not a spill and not an
+// arm-order effect; the 12/12 use-count tie between `entries` (esi) and
+// `button` (edi) is what breaks toward parameter 1 in our build. No new source
+// shape was scored this pass; every lever for that read is already refuted
+// above (retry 5 and retry 3).
 // deepseek-v4.1-flash retry 5 (timeboxed, unchanged at 84.1%): tested the two
 // shapes the retry-4 note left open. `Entry* e = &(entries[button->index].type
 // == 1 ? entries[button->index] : *button);` (lvalue ?: over struct objects

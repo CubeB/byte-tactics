@@ -1,4 +1,16 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry session 6 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// Three more probes, all byte-identical to this file, confirming the low-slot
+// permutation is not declaration order, scope or expression order:
+//   - function-scope `int x;` with `for (x=firstX; ...)`;
+//   - both counters in one statement `int y,x;` at function scope with empty
+//     for-initialisers;
+//   - tile index written y-first (`&tiles[y*width+x]`, matching the original's
+//     `imul y,width; add x` operand order at 0x418423).
+// Still differs: the whole esp+0x10..0x4b walk (original y=0x10, p=0x14,
+// x=0x34, baseX=0x38, baseY=0x3c, tile=0x40, heights=0x48; ours p=0x10,
+// x=0x30, y=0x34, baseY=0x38, baseX=0x3c, heights=0x40) plus the preheader
+// colouring it drags (viewWidth before scrollX, firstY into edi).
 // deepseek-v4.1-flash retry session 5 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
 // Two new structural probes, both byte-identical to this file, so neither the
 // declaration scope nor the textual declaration order drives the low-slot

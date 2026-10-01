@@ -1,4 +1,4 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // (base version by GPT-6 Astra; deepseek-v4.1 re-verified and extended the notes)
 // deepseek-v4.1-flash, later session: 91.5% -> 92.2%, byte count now exact
 //     (1051). The tail's sums are now `pos.x+=off.x; pos.z+=off.z;` on the
@@ -70,6 +70,18 @@
 //     same code) and reversing the health compare (90.8%) all lose. Routing
 //     the case-0 field reads through the one-argument PosOf() helper is what
 //     holds the parameter register roles, so leave PosOf/MovePos alone.
+// deepseek-v4.1-flash, issue-3843 pass: no score change (92.2% / 1051 bytes held).
+//     New negative results, so a later pass can skip them: passing the existing
+//     MovePos() (unnamed Vec3 temp) straight to new Class_0044e2d0 gives 1053
+//     bytes / 72.5%, the tail Vec3 moves to [esp+0x10] and the register roles
+//     blow up; the positive combined guard
+//     `if (unit->motion!=0 && (df->flags&0x800)!=0) { body; return 1; } break;`
+//     compiles byte-identically to the `||`/break form (92.2%); deferring the df
+//     assignment into the `||` operand (`df=unit->def,(df->flags&0x800)==0`)
+//     reproduces the no-local case exactly (90.3% / 1050 bytes), so the
+//     original's `cmp dword ptr [esi],0` plus deferred def load and the case-0
+//     register rotation stay mutually exclusive from this source shape, and the
+//     right order is always 1 byte short of 1051.
 // Suspected original bug: none. The final delete[] takes [esp+0x4c], which is
 //     the units vector's first pointer (inlineEmpty reads first at +4 and last
 //     at +8 of the object at [esp+0x48]), so it is a correct inlined ~vector().

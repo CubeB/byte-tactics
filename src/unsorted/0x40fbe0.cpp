@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional., finished by deepseek-v4.1-flash
 // deepseek-v4.1-flash pass (kept 79.4%, 1974 vs 1976): re-verified the baseline
 // and confirmed the whole remaining gap is allocation shape, not missing logic.
 // Tried and rejected, all byte-neutral or worse: the weapon loop as a for-loop,
@@ -53,6 +53,20 @@
 // deficit is the copy site (add eax,0x6a vs lea ecx,[eax+0x6a], -2) plus the
 // weapon-loop pointer, which the original keeps in ECX across the branch-back
 // (mov al,[ecx] at 0x40fdd8) while ours re-loads it from its slot every trip.
+// deepseek-v4.1-flash pass 2 (3 check runs, all 1974/79.4, file unchanged):
+//   * writing the scan as `unit->weapons[i].flags` inline (no Weapon* walk) is
+//     byte-identical to the pointer walk, so the `lea ecx,[esi+0x1f]` base is a
+//     compiler CSE of the flags address, not a source declaration.
+//   * giving the r3 `new` site the r4 if/else failure shape re-merges the null
+//     paths to 1946 bytes but drops to 77.5%: MSVC then caches the zero in EDI
+//     (`cmp eax,edi`, `push edi`) and keeps `other` in EDI too, and it stops
+//     reloading `order->target->order` in the VTOL kind chain, so EBP never
+//     becomes the zero register and the whole r4 region re-shapes. The original
+//     needs EBP==0 live from 0x40fe7a to 0x410129 AND `order->target->order`
+//     re-loaded at 0x40ff60/0x40ff7f/0x40ff9e AND EDI==`building`, so the two
+//     null sites must share the 0x410120 tail without letting MSVC pick EDI as
+//     the constant register: that is the remaining lever, not the source text of
+//     the two `new` sites.
 #include <stdio.h>
 // SHARED begin
 struct Vec3 {

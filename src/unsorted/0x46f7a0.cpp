@@ -57,6 +57,16 @@
 // / 83.8%, i.e. no effect at all), _Ufill defined before _Destroy and _Ucopy
 // (798 / 83.8%), helpers defined after the data members (798 / 83.8%), data
 // members before the allocator (792 / 70.1%).
+// deepseek-v4.1-flash (issue 3811, 2026-10-01): still 83.8%, 798 bytes. Tested the
+// dst-first family that carries 0x46eba0 at this element size: adding a
+// _Ucopy_dst(iterator _P, const_iterator _F, const_iterator _L) helper and calling
+// it at the tail (_Ucopy_dst(_Q + _M, _P, _Last)) collapses to 63.6% / 777 bytes,
+// using it at the prefix copy too is byte-identical to that (63.6%), a named _Pc
+// for the prefix source is flat at 83.8%, and the guide's dest-declared-first
+// inline tail loop ({iterator _d = _Q + _M; const_iterator _s = _P; for (; _s !=
+// _Last; ++_d, ++_s) allocator.construct(_d, *_s);}) collapses to 40.4% / 793.
+// Prefix inline dst-first loop alone: 80.1% / 799. So for this 0x5c-byte element
+// the standard source-first _Ucopy must stay at all call sites.
 #include <algorithm>
 #include <memory>
 #include <xutility>

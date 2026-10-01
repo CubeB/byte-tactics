@@ -67,6 +67,12 @@
 // split-assignment variants; and 2400 random combinations of the grow branch's
 // prefix, tail, fill, destroy, deallocate and reset spellings. The retained
 // dst-first tail remains the best.
+// deepseek-v4.1-flash (issue 3811, 2026-10-01): still 81.4%, 928/936 bytes.
+// Re-checked the retained dst-first clone: it is still the best of the four
+// helper/call-site shapes for this 14-byte element (source-first everywhere is
+// 63.3% as recorded above). The remaining diff is the _N/_S home swap plus the
+// prefix loop's _P reload (ours: mov ecx,[esp+0x20] on every back edge, compare
+// against ecx; original: _P in edi across the loop, _N in the dead _M slot).
 #include <algorithm>
 #include <memory>
 #include <xutility>

@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3179: 6 checker invocations, best remains 98.3%. Empty guard scored 97.5%; tick-local probe tied at 98.3%. Remaining mismatch is p->ref comparison and p->ff8 store ordering around the first six zero stores.
 // Retry (deepseek-v4.1-flash, issue 2982): best stays v1 (tick store at
 // statement 3). The v4 shape puts the ff8 store/cmp pair after the six clears
 // with the tick load hoisted (first block positionally exact), but rotates the

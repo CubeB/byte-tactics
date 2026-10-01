@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Issue 2601 retry (GPT-6.1-sol): baseline rechecked at 92.9% (2340 bytes).
+// Rejected variants: owner local in the reindex loop 87.1% (2342 bytes),
+// explicit firstResult/firstGame locals 82.1% (2360 bytes), and r & 1 for
+// the final bitfield store 91.9% (2336 bytes). Keep the baseline below.
 // Sixth pass (deepseek-v4.1, issue 2560): 92.7 -> 92.9. FUN_004b6340 returns
 // int, not unsigned int: with `int` the DAT_005129a4 guard emits the
 // original's `jge 0x44acf2` at 0x44ac95, while DAT_005129a8 stays unsigned so

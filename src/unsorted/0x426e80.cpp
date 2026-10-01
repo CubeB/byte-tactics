@@ -1,16 +1,30 @@
-// Decompiled by longcat-2.5-preview-free, edited by deepseek-v4.1-flash. Names are provisional.
-// Still differs (49.2%): the outer switch cases mostly match after the CTX 0x2bbe
-// state machine, but the inner switches of cases 0x10, 0x11, 0x13 and 0x14 are still
-// wrong: the original dispatches 0x2bbf with a byte table plus jump table
-// (xor edx,edx / mov dl,[ecx+0x428714] / jmp [edx*4+0x428700]) where ours emits a
-// plain jump table, and several case bodies (FUN_004c9f90/FUN_00461020 groups,
-// the 0x4e5 unit lookup with the 0x97 word flag toggles, the 0x1b8a unit lookups,
-// the FUN_004517b0 16-byte struct call sites) are missing or filed under the wrong
-// case label. Push ebp is still live in ours (one extra callee-saved register):
-// the original uses only ebx/esi/edi, and the 0x2a42-scaled 0x1b8a/0x1b67 lookups
-// that read a local index into esi are likely the cause. Every FUN_004256d0
-// file-argument site now pushes the address of the string array, the 16-bit
-// flag ANDs and the movsx-to-zero-extend bitfield tests are fixed.
+// Decompiled by longcat-2.5-preview-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Still differs (50.1%). What changed since the previous note:
+//  - the outer case bodies must be laid out in the exe's order, which the jump
+//    table at 0x42859c reveals: 0, 2, 1, 3, 4, 5, 7, 10, 8, 9, 11..14, 15, 20, 16,
+//    17 (case 2 sits between case 0 and case 1, and 10 comes before 8).
+//    Reordering the C cases that way gained 0.9%.
+//  - every sprintf(local_100, DAT_00502f9c, <line>) was missing its 4th argument:
+//    DAT_00502f9c is "Code segment checksum error found when switching FE states.
+//    \nState change called from [line %d, file %s]", so the original pushes the
+//    line and then DAT_00503004 and cleans 0x10.
+//  - the inner switch values are still wrong in places. The exe's byte index
+//    tables give the true case values: outer 0x10 (16) dispatches 0x2bbf through
+//    byte table 0x4286e8 (22 entries; values 0,1,3,17,18,19,20,21 map to
+//    0x427d44,0x427e45,0x42825c,0x427eaf,0x427f4c,0x427f25,0x428094,0x4280b9,
+//    everything else to the epilogue) and outer 0x11 (17) through byte table
+//    0x428714 (18 entries; values 0,1,3,17 map to 0x4282f2,0x42837f,0x428478,
+//    0x428439). Ours still lacks the case 21 body of 0x10 (0x4280b9: the unit
+//    +0x4e5 lookup that toggles the 0x97 word, then 0x2b4c, FUN_00435a20 on
+//    g_game+0x2ab1, the 0xcee unit loop and the 0x5ea message) and the case 3 and
+//    case 17 bodies of 0x11. Adding the 0x11 bodies is verified correct against
+//    the disassembly (0x428478 is the FUN_004c9f90/FUN_00461020 group, 0x428439
+//    the 10-iteration loop over units calling Class_00463c60::FUN_00463c60) but it
+//    scores 1.3% lower in the difflib metric, so it is kept in
+//    build/scratch/0x426e80/v475r.cpp instead of here.
+//  - push ebp is still live in ours: the original uses only ebx/esi/edi, so the
+//    extra callee-saved register is real evidence of a wrong local in one of the
+//    0x2a42-scaled 0x1b8a/0x1b67 lookups.
 #include <string.h>
 #include <stdio.h>
 
@@ -179,15 +193,6 @@ void __stdcall FUN_00426e80(void)
         return;
     }
 
-    case 1:
-        FUN_00426780(DAT_00503294);
-        FUN_004256d0(0x437, DAT_00503004);
-        g_game[0x2bbe] = 2;
-        FUN_004256d0(0x9b, DAT_00503004);
-        g_game[0x2bbf] = 0;
-        g_game[0x2bc0] = 0;
-        return;
-
     case 2:
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
@@ -256,6 +261,15 @@ void __stdcall FUN_00426e80(void)
             g_game[0x2bbe] = 3;
             break;
         }
+        FUN_004256d0(0x9b, DAT_00503004);
+        g_game[0x2bbf] = 0;
+        g_game[0x2bc0] = 0;
+        return;
+
+    case 1:
+        FUN_00426780(DAT_00503294);
+        FUN_004256d0(0x437, DAT_00503004);
+        g_game[0x2bbe] = 2;
         FUN_004256d0(0x9b, DAT_00503004);
         g_game[0x2bbf] = 0;
         g_game[0x2bc0] = 0;
@@ -377,6 +391,21 @@ void __stdcall FUN_00426e80(void)
         g_game[0x2bc0] = 1;
         return;
 
+    case 10:
+        if (g_game[0x2bbf] == 1) {
+            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
+            FUN_004c2470();
+            FUN_004c2870();
+            FUN_004c63a0();
+            return;
+        }
+        if (g_game[0x2bbf] == 3) {
+            FUN_004256d0(0x4b1, DAT_00503004);
+            g_game[0x2bbe] = 7;
+            break;
+        }
+        break;
+
     case 8:
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
@@ -433,21 +462,6 @@ void __stdcall FUN_00426e80(void)
         g_game[0x2bbf] = 0;
         g_game[0x2bc0] = 0;
         return;
-
-    case 10:
-        if (g_game[0x2bbf] == 1) {
-            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-            FUN_004c2470();
-            FUN_004c2870();
-            FUN_004c63a0();
-            return;
-        }
-        if (g_game[0x2bbf] == 3) {
-            FUN_004256d0(0x4b1, DAT_00503004);
-            g_game[0x2bbe] = 7;
-            break;
-        }
-        break;
 
     case 11:
     case 12:
@@ -620,6 +634,35 @@ void __stdcall FUN_00426e80(void)
         }
         break;
 
+    case 20:
+        if (g_game[0x2bbf] == 1) {
+            if (((g_game[0x2aaf] >> 1) & 1) != 0) {
+                if (FUN_00450d80() == 0) {
+                    strncpy(DAT_00511fb8, DAT_0050324c, 0xf9);
+                    FUN_004256d0(0x3bc, DAT_00503004);
+                    FUN_00425860(0xf, 0x3bd, DAT_00503004);
+                    *(unsigned short*)(g_game + 0x2aaf) &= 0xfffe;
+                    *(unsigned short*)(g_game + 0x2aaf) &= 0xfffd;
+                    FUN_004256d0(0x577, DAT_00503004);
+                    g_game[0x2bbe] = 0xf;
+                    FUN_004257e0(0, 0x9b, DAT_00503004);
+                    return;
+                }
+                g_game[0x2a44] |= 1;
+                FUN_004256d0(0x571, DAT_00503004);
+                g_game[0x2bbe] = 0x10;
+                FUN_004257e0(0, 0x9b, DAT_00503004);
+            }
+            FUN_004256d0(0x572, DAT_00503004);
+            g_game[0x2bbf] = 0;
+            g_game[0x2bc0] = 0;
+            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
+            FUN_004c2470();
+            FUN_004c2870();
+            FUN_004c63a0();
+            return;
+        }
+        break;
     case 16:
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
@@ -675,7 +718,7 @@ void __stdcall FUN_00426e80(void)
         case 3:
             FUN_00450dd0();
             if (FUN_00428bc0()) {
-                sprintf(local_100, DAT_00502f9c, 0x5f0);
+                sprintf(local_100, DAT_00502f9c, 0x5f0, DAT_00503004);
                 FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
             }
             g_game[0x2bbe] = 0xf;
@@ -740,13 +783,13 @@ void __stdcall FUN_00426e80(void)
             }
             if (FUN_00441bc0() == 0 || FUN_00441bc0() == 3) {
                 if (FUN_00428bc0()) {
-                    sprintf(local_100, DAT_00502f9c, 0x640);
+                    sprintf(local_100, DAT_00502f9c, 0x640, DAT_00503004);
                     FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
                 }
                 g_game[0x2bbe] = 0xf;
             } else {
                 if (FUN_00428bc0()) {
-                    sprintf(local_100, DAT_00502f9c, 0x643);
+                    sprintf(local_100, DAT_00502f9c, 0x643, DAT_00503004);
                     FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
                 }
                 g_game[0x2bbe] = 0x10;
@@ -791,7 +834,7 @@ void __stdcall FUN_00426e80(void)
                 FUN_0046ca60();
                 FUN_004a9660((int)(g_game + 0x519));
                 if (FUN_00428bc0()) {
-                    sprintf(local_100, DAT_00502f9c, 0x613);
+                    sprintf(local_100, DAT_00502f9c, 0x613, DAT_00503004);
                     FUN_004abd90(g_game + 0x519, local_100, 500, 1, 1);
                 }
                 g_game[0x2bbf] = 0x11;
@@ -802,35 +845,6 @@ void __stdcall FUN_00426e80(void)
         }
         break;
 
-    case 20:
-        if (g_game[0x2bbf] == 1) {
-            if (((g_game[0x2aaf] >> 1) & 1) != 0) {
-                if (FUN_00450d80() == 0) {
-                    strncpy(DAT_00511fb8, DAT_0050324c, 0xf9);
-                    FUN_004256d0(0x3bc, DAT_00503004);
-                    FUN_00425860(0xf, 0x3bd, DAT_00503004);
-                    *(unsigned short*)(g_game + 0x2aaf) &= 0xfffe;
-                    *(unsigned short*)(g_game + 0x2aaf) &= 0xfffd;
-                    FUN_004256d0(0x577, DAT_00503004);
-                    g_game[0x2bbe] = 0xf;
-                    FUN_004257e0(0, 0x9b, DAT_00503004);
-                    return;
-                }
-                g_game[0x2a44] |= 1;
-                FUN_004256d0(0x571, DAT_00503004);
-                g_game[0x2bbe] = 0x10;
-                FUN_004257e0(0, 0x9b, DAT_00503004);
-            }
-            FUN_004256d0(0x572, DAT_00503004);
-            g_game[0x2bbf] = 0;
-            g_game[0x2bc0] = 0;
-            FUN_004c69a0(*(int*)(g_game + 0x37e1b));
-            FUN_004c2470();
-            FUN_004c2870();
-            FUN_004c63a0();
-            return;
-        }
-        break;
     }
     return;
 }

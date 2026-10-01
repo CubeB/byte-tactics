@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Retry by GPT-6.1-sol: best remains 84.3% (3918/3923), not MATCH. Reordering
 // model-loop locals and hoisting path to model scope both compiled identically.
 // Partial, deepseek-v4.1 retry: 84.3%, not MATCH. Original 3923 bytes, ours 3918.
@@ -32,6 +32,11 @@
 // deepseek-v4.1-flash timebox retry (issue #3547): declaring the model block's
 // path/h before i/count is byte-identical (3918 bytes, 84.4%), so the count
 // byte's [esp+0x14] slot and the push-0/or/store order are allocator-bound.
+// deepseek-v4.1-flash retry (issue #3577): hoisting `char model[0x100]` to the top
+// of the function, and hoisting the `unsigned char i`/`count` pair out of the model
+// `if` block, both compile byte-identically again (3918 bytes, 84.4%, 13 diff hunks,
+// the count byte still lands at [esp+0x14]), so the search-local slot truly tracks
+// the later vector-insert allocation, which is still the large hunk.
 // construct does not use an allocator receiver in the original, so its
 // declaration uses the equivalent two-argument stdcall ABI.
 

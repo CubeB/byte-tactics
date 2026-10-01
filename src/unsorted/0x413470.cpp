@@ -386,6 +386,8 @@ int __stdcall FUN_00413470(Unit* unit, Order* order, int flags)
             order->misses = 0;
             Vec3 off = Offset(FUN_004b6c30(0x10000), speed << 16);
             Vec3 p = order->target->pos + off;
+            // Retry #4089: `Vec3 p = order->target->pos; p += off;` scores 93.6%
+            // (1868 bytes, frame +4), reconfirming the operator+ baseline below.
             // The new waypoint is never given to the order (see the notes).
             Class_0044e2d0* obj = new Class_0044e2d0(order, p);
             ((Class_0044e730*)obj)->FUN_0044e730(0x80);

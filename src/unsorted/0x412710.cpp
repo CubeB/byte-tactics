@@ -1,4 +1,9 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (issue #4089) retry: 96.1% (1572/1572) reconfirmed; the
+// two real hunks are unchanged (the +0x477 [esp+0x3c] load hoist is a
+// live-range artifact, and the landing-site out-of-line _Destroy budget).
+// `v.~vector();` remains the best spelling.
+
 // deepseek-v4.1-flash (issue #4007) retry: 96.1% reconfirmed; no new
 // variant landed within this issue timebox. Still the +0x477 load hoist
 // and the known landing-site /Ob2 _Destroy budget.

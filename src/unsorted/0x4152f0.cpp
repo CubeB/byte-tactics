@@ -1,4 +1,10 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue #4089) retry: 87.2% (1604/1504) reconfirmed. The
+// +100 bytes are the extra inlined ~vector call on the units.empty() path
+// (test al,al; lea ecx,[esp+0x34]; call) plus the duplicated back-edge tail, so
+// the units scope/destructor placement is still the whole gap. No new variant
+// landed in this timebox.
+
 // deepseek-v4.1-flash (issue #4007) retry: 87.2%, 1604/1504 bytes
 // reconfirmed; no further variants within this issue timebox.
 // deepseek-v4.1-flash (issue #3633) retry: 87.2% (1604/1504 bytes) reconfirmed,

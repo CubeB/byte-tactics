@@ -1,4 +1,10 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 10 (deepseek-v4.1-flash, 10-minute box): three fresh probes on the
+// 89.5 file, none better: nsize-first temp load (`unsigned int nsize = out[0];
+// root = nsize; out[0] = nsize + 8;`) gives the original eax-load/esi-copy top
+// but drops to 82.4 percent / 1146 bytes; the parenthesised count-first sum
+// (`count + (entries + count*8)`) is byte-flat at 89.5 with the same hunks; an
+// e0 temp for the second out[0] read scores 88.2. Residual unchanged.
 // Session 9 (deepseek-v4.1-flash, 10-minute box): the leaf reorder probe (the
 // `*total += (*(unsigned int*)(node + 4) = fd.size);` assignment-expression
 // moved above the two node zero stores) scores 88.3 percent / 1152 bytes, so

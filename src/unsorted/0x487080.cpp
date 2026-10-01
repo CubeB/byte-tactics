@@ -34,6 +34,16 @@
 // for (60.6), `i != n` / `n > i` conditions (60.6). The exact trigger for the
 // original allocation (n=esi, bool-like found=ebp, loop i spilled at [esp+0x10] and
 // live to the Script%i sprintf) is still unidentified.
+// Retry deepseek-v4.1-flash (this session): re-read the two loop-preamble diff
+// hunk. The original leaves `i` in memory precisely because ebx (id), edi (file),
+// esi (n) and ebp (found) are all taken; ours frees ebp for `i` because `found`
+// lost the allocator contest and landed at [esp+0x13] as a byte local, so the
+// whole downstream register phase shifts by one (childB loads into eax instead of
+// edx, the 0x10f/0x110 block and the 3x piece copy follow). Tried and rejected
+// this session (scored 45.5, worse than 60.6): a `while (i < (unsigned int)n)`
+// loop with `unsigned int found/i`, which pushes both into memory and drops the
+// epilogue match as well. Volatile on the loop index reproduces the original map
+// exactly (71.5) but is not allowed.
 // Retry deepseek-v4.1-flash (this session): confirmed Script%i really takes the
 // search index i (original 0x4875d0 `mov edx,[esp+0x10]`), so `rec.f3b` below is
 // provisional. Switching to i moves n into esi but frees ebp for i and grows the

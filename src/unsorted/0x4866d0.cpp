@@ -99,6 +99,22 @@
 // not the g_game/ebx occupancy as previously guessed.
 extern void* g_game;
 extern char DAT_00508be8[];
+// Pass 6 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. New disassembly
+// findings about ebx in the original, all downstream of the same allocation:
+//   - 0x486a03 (case 3) ebx is reused as the g_game scratch, so cmd's live range
+//     really does end at the switch dispatch there; cmd is rematerialised from
+//     the parameter slot at 0x486c9e (ecx) and 0x486d24 (edi).
+//   - 0x486d80: ebx is loaded with a shared ZERO and reused for the tail stores
+//     (`mov [esi+0x9a],ebx`, `mov [esi+0xa6],bx`, `cmp [eax+0x144],bx`), so the
+//     original shares ebx between cmd, rec and a constant zero in disjoint live
+//     ranges. Ours never needs the shared zero because ebp holds g_game.
+// New free-scored variants this pass (rejected, best stays 64.7):
+//   in-place `flags &= 0xefffffff; ... flags &= 0xffffffcf;` (matches the
+//     original's `and ebp,0xefffffff` / `mov eax,ebp` / `and al,0xcf` shape) 63.2%
+//   unsigned char depth alone 58.7%; int credited + uchar depth 58.4% (but the
+//     closest size so far: 1944 vs 1964 bytes).
+// Conclusion unchanged: the trigger for cmd=ebx is register pressure in the
+// post-switch region, not any single declaration or expression shape.
 extern char DAT_00508bf0[];
 
 template <class T>

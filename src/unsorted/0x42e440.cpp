@@ -29,6 +29,9 @@
 // index, and splitting `count = w->id;` from its declaration, are both byte-identical
 // (3918 bytes, 84.3%), so the count slot and the push-0/or/store scheduling of the
 // five bitfield arms are allocator-bound stays, not source shape.
+// deepseek-v4.1-flash timebox retry (issue #3547): declaring the model block's
+// path/h before i/count is byte-identical (3918 bytes, 84.4%), so the count
+// byte's [esp+0x14] slot and the push-0/or/store order are allocator-bound.
 // construct does not use an allocator receiver in the original, so its
 // declaration uses the equivalent two-argument stdcall ABI.
 

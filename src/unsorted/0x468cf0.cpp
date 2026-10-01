@@ -1,5 +1,17 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// deepseek-v4.1-flash retry 9 (10 min timebox): kept 57.4 (5979 bytes). Tried
+// and reverted one variant: scoping piVar10 = g_game+0x141fb to just the
+// 0x1424b insert loop (piVar10[20]/[21]/[1]/[2]/[0] spelling for the
+// 0x1424b/0x1424f/0x141ff/0x14203/0x141fb slots, sized to keep edi) regresses
+// 57.4 -> 49.4 at 5980 bytes: the extra pointer slot grows the frame and
+// shifts the whole OverlayLocals struct, confirming the SHARED 0x468cf0 note
+// that piVar10 must stay inlined at every use. Still differing: the big
+// @@-717 and @@-1153 regions (original keeps a folded g_game+0x141fb base in
+// edi with small displacements there while ours reloads g_game and uses
+// [ebx+0x142xx]), plus the usual scheduling hunks (the first
+// pDVar1[19] += DVar7 - *pDVar1 store position, the [eax+edx*2] lea order,
+// and the add esi,eax vs add eax,esi forms at both /8 clamp sites).
 // deepseek-v4.1-flash retry 4 (timeboxed): one variant tried, no gain, reverted.
 // deepseek-v4.1-flash retry 8 (10 min timebox): 55.3 -> 57.4, 5963 -> 5979 bytes.
 // Both +/-99999.0f sprintf pairs inverted to put the "%dK" arm first:

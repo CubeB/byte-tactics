@@ -1,4 +1,5 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3194: seven checker invocations, best remains 98.3%; no MATCH. Reverse field assignments, void* typing for extra and HapiBuf buffer, and a declaration-order variant did not improve it. The allocator zero-init and store order still differ; see earlier detailed notes.
 //
 // deepseek-v4.1-flash session: still 98.3%, same single difference
 // (0x4bd17b..0x4bd198). New shapes tried this session, all scored with

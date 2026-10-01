@@ -1,4 +1,4 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol and mimo-v2.6-pro. Names are provisional.
 // Retry (GPT-6.1-sol, issue 3201): 7 checker invocations in this pass; best
 // remains 88.2%. The arg6 prologue load is the only mismatch. Read-first
 // declaration order scored 82.4%; delayed mask assignment scored 82.4%;
@@ -89,6 +89,31 @@
 // is byte-identical to the baseline. The residual remains the prologue arg6
 // load: original loads directly into ebp after push ebp; MSVC hoists it into
 // eax and copies it to esi and ebp.
+//
+// Retry (mimo-v2.6-pro, #3996): no change to the 88.2% best. Confirmed there
+// are exactly two canonical layouts and the original is a third one. Layout
+// (a), two reads of `read` unified into one temp load (the current file): the
+// mask chain runs in the mask web esi with `mov esi,eax`, the flag copy
+// `mov ebp,eax` is placed late (299 bytes). Layout (b), one flag local whose
+// value feeds the chain (`int doRead = read; samDesired = doRead ? ...`): the
+// chain runs destructively in the load's temp register, the flag is copied out
+// early and the chain result moves into the mask web late (298 bytes, 82.4).
+// The original is layout (c): the load lands directly in the flag web ebp (so
+// it is forced below `push ebp`, which is why it sits between `push ebp` and
+// `push esi`), one copy `mov esi,ebp` feeds the chain, and the chain extends
+// the mask web. Every spelling tried here collapses into (a) or (b): const
+// flag, assignment-in-condition `(doRead = read) ? ...`, comma expressions,
+// err declared first, `*(int*)&read` for the second read, explicit maskSrc
+// copies (copy propagation folds them), and mask-source/order swaps.
+// Testing `read` directly (no pre-call copy) makes MSVC reload it after the
+// calls (its address escapes through lpdwDisposition) into a 295-byte shape,
+// so the tested value must be a pre-call register copy. A dummy-declaration
+// sweep of 0..2200 extern ints (step 4/8, parallel check.py --sym) is flat on
+// both layouts (base 88.2 everywhere, layout (b) 82.4 everywhere), so this is
+// not the small compiler-state window kind of residual either. Remaining
+// hypothesis: the original somehow makes the load's web BE the flag web while
+// the chain still coalesces with the mask web, a combination MSVC 5's web
+// construction refused under every source shape on record.
 #include <windows.h>
 
 // FUNCTION: 0x4b6880

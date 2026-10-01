@@ -1,5 +1,15 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
-// Session 7 (deepseek-v4.1-flash): best stays 89.5 percent, size exact 1148.
+// Session 8 (deepseek-v4.1-flash): best stays 89.5 percent, size exact 1148. Three
+// fresh probes, all worse or flat on the v0 file: computing `nsize = out[0] + 8;`
+// before `root = out[0];` (so the first read is the nsize addend) drops to 83.4
+// percent / 1146 bytes because it emits `mov esi,[ebp]` then `lea eax,[esi+8]`
+// instead of the original `mov eax,[ebp]; mov esi,eax; add eax,8`; parenthesising
+// the entry pointer as `(char*)out[1] + (entries + ent)` is byte-flat at 89.5; and
+// reusing the one `Entry_004bd3b0* e` local for both `e->data = ...` stores
+// (instead of re-casting out[1]+entries+ent) collapses to 48.4 percent / 1149
+// bytes, so the two re-cast spellings are load-bearing for the folded
+// [ecx+eax+4]/[ecx+eax] stores and must not be "cleaned up". Residual is still
+// the register allocation / scheduling list below.
 // What still differs (all register allocation / scheduling, semantics correct):
 // prologue and second-block load-copy order (eax then esi vs esi then eax),
 // the root spill timing ([esp+0x24] after pushes vs [esp+0x18] before), the

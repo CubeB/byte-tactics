@@ -81,6 +81,11 @@
 // subscript swap for the zeroing loop, and a block-scoped `int n = FUN_004c9e50(...)` with
 // `count = n` after the negative check. Regressions: `f0 = rdw[0] & 0xffff` with bare f0 at
 // p[5] is 83.0%, and reading p[2]'s field_10 as `rdw[3]` is 80.9%.
+// deepseek-v4.1-flash pass 2: the exe's reloc list for this function references only
+// DAT_004fcdc8, DAT_004fcda8 and DAT_004fcd98 (each twice, at +0x1a/+0x57, +0x2c/+0x69,
+// +0x3e/+0x84) and never DAT_004fcdb8, so the two `count = memcmp(...) != 0;` stores were
+// re-pointed from cdb8 to cdc8 (first) and cd98 (second). Byte-flat at 83.7% / 1807 bytes,
+// but now the chain uses only GUIDs the original actually loads.
 #include <string.h>
 #include <stdio.h>
 
@@ -177,7 +182,7 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget) {
         msg = "Updating...";
         goto shown;
     }
-    count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
+    count = memcmp(g_game->provider, &DAT_004fcdc8, 0x10) != 0;
 second:
     if (memcmp(g_game->provider, &DAT_004fcdc8, 0x10) == 0) {
         msg = "Connecting  (ESC to abort)";
@@ -191,7 +196,7 @@ second:
         msg = "Connecting  (ESC to abort)";
         goto shown;
     }
-    count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
+    count = memcmp(g_game->provider, &DAT_004fcd98, 0x10) != 0;
     msg = "Connecting  (ESC to abort)";
 shown:
     FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);

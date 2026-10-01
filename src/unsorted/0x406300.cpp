@@ -1,4 +1,13 @@
-// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// SOLVED by deepseek-v4.1-flash: MATCH (1152 bytes), verified with a real check.py run.
+// The shared-tail double load comes from spelling the base of both tail arguments
+// through the inline Order::Target() accessor AND the position through
+// Order::Position(): order->Target()->order->target, order->Target()->order->Position().
+// That one accessor on the base is what stops MSVC 5 merging the two order->order
+// loads; it leaves the ECX/EDX schedule of the original intact and does not recolor
+// the case 0 or follow blocks (the plain order->target->order spelling CSEs them and
+// the (char*) cast spelling recolors the target). x4 (raw inner ->target with the
+// Target() base) also matches byte for byte.
 // GPT-6.1-sol retry: restored and rechecked the saved best at 96.2% (1149/1152). Two probes scored lower: keeping a Unit* subject alias live through the shared tail fell to 77.2%; casting both tail arguments through the target's order field fell to 92.2%. Still unmatched: the 3-byte shared-tail reload/register schedule.
 // deepseek-v4.1 pass (round 7): still 96.2% (1149 vs 1152), the shared tail is the
 // only difference and it is still down to one missing load, not to size. New probes:
@@ -234,13 +243,13 @@ int __stdcall FUN_00406300(Unit* unit, Order* order, int flags)
             if (!building && actionable) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=order->target->order->kind;
-                FUN_0043acb0(unit,new Class_0043a1f0(kind,((Order*)((char*)order->target+0x5c))->Target(),order->target->order->Position(),0,0,0));
+                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
             if (building && other->target) {
                 ((Class_004388d0*)order)->FUN_004388d0(0);
                 kind=Class_00438760("HelpBuild");
-                FUN_0043acb0(unit,new Class_0043a1f0(kind,((Order*)((char*)order->target+0x5c))->Target(),order->target->order->Position(),0,0,0));
+                FUN_0043acb0(unit,new Class_0043a1f0(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
                 order->flags=0; return 3;
             }
         }

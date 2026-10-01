@@ -1,5 +1,5 @@
-// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, gate polarity checked by space-bunny-free. Names are provisional.
-// Partial: 91.2% (1081 of 1040 bytes, 41 too long). Three findings for the next attempt:
+// Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, gate polarity checked by space-bunny-free, gate spelling changed by space-bunny-free. Names are provisional.
+// Partial: 91.4% (1081 of 1040 bytes, 41 too long). Three findings for the next attempt:
 // 1. THE GATE IS WRONG HERE, semantically. The original's second energy compare at 0x405b18 is
 //    `fld energy; fld capE; fmul 0.2; fcompp; fnstsw; test ah,0x41; je 0x405b5a`, and 0x405b5a is
 //    the FIRST INSTRUCTION OF THE BODY, so the true edge jumps INTO the body: C0 and C3 both clear
@@ -89,6 +89,38 @@
 //    metal < capM*0.2, exactly the `||` written at line 157. The C-level oddity is only the
 //    operand order: the original's second test is the `energy >= capE*0.2` shape (`fld energy`
 //    first, `test ah,0x41; je`) whose branch happens to target the body.
+// 13. space-bunny-free, later pass. Scratch scoring costs 5.5s, so this is now a cheap search
+//    (score any variant with `uv run tools/check.py 0x405980 <file> --sym FUN_00405980`; the
+//    mangled name is ?FUN_00405980@@YGHPAUUnit@@PAUOrder@@H@Z). MSVC 5's x87 compare chooses its
+//    LOAD order from the comparison SPELLING, and the spelling that loads the scalar first is the
+//    one that cannot produce the original's branch: `energyCapacity * 0.2 >= energy` (line 163)
+//    gives `fld capE; fmul; fld energy; fcompp; test ah,0x41; jne <body>` = 1081 bytes, 91.4%,
+//    one step better than the `>` spelling's 91.2%, and it is the only one of 20 spellings tried
+//    whose mask AND polarity are both the original's. `energy < capE*0.2`, `energy <= capE*0.2`,
+//    `!(energy >= capE*0.2)`, `energy + 0.0f < ...`, `energy * 1.0f < ...` all load the `*0.2`
+//    product FIRST and `<`/`<=` then add an `fxch st(1)` (1083 bytes, 89.9-90.2%). The `>` family
+//    (`capE*0.2 > energy`, `energy > capE*0.2`) loads product-first with NO fxch but uses the
+//    1-bit mask `test ah,1`. So: `>=` is the only relation that is both fxch-free and 0x41.
+// 14. The load order flips back to product-first as soon as the energy test is not followed by the
+//    whole body, whatever the control-flow shape. All of these give
+//    `fld capE; fmul; fld energy; fxch st(1); fcompp; test ah,0x41;` and 1094 bytes at 77.3% (the
+//    extra INLINE `return 2` epilogue at the gate is the +54): the nested
+//    `if (energy >= capE*0.2) { if (metal < capM*0.2) return 2; }`, the flat `&&` guard, the same
+//    nested form with `metal >= capM*0.2`, the `goto`-to-a-label form, and both `!`-negated forms
+//    of the original. All of them also reproduce the original's second test verbatim. So the
+//    `||`-with-the-whole-body shape is required for the energy test, and inside it only `>=` works.
+//    Consequence for item 12: the original's `je 0x405b5a` is the FALSE edge of
+//    `energy >= capE*0.2` (mask 0x41 means what it means in the first gate at 0x4059e4), so the
+//    body runs when that mask is clear; the gate is `capE*0.2 >= energy || metal < capM*0.2` as
+//    written on line 163 and nothing else found in 25 tries.
+// 15. Also tried, worse: turning the FUN_0047ea40 wrapper into an early
+//    `if (!FUN_0047ea40(...)) return 2;` so the four bodies sit at the top level of the gate
+//    (build/scratch/0x405980/m1.cpp, 1092 bytes, 89.5%): the `test eax,eax; je <ret2>` is the same
+//    but block A's own copy then grows a `jmp` and the whole thing is 11 bytes longer.
+// 16. The 41-byte gap is still the one extra inline copy of the ctor tail in the 2nd of B/C/D (all
+//    of B, C, D inline theirs, where the original has B and C jump to 0x405d01 and only D falls
+//    into it), and the gate work above does not touch it: every gate variant tested is 1081 or
+//    1094 bytes, so the 1081-byte variants all carry the same extra copy.
 #include <vector>
 struct Vec3 { int x, y, z; };
 struct Unit;
@@ -160,7 +192,7 @@ int __stdcall FUN_00405980(Unit* unit, Order* order, int flags)
                 }
             }
         }
-        if (unit->owner->energyCapacity * 0.2 > unit->owner->energy ||
+        if (unit->owner->energyCapacity * 0.2 >= unit->owner->energy ||
             unit->owner->metal < unit->owner->metalCapacity * 0.2) {
             int range2 = unit->def->range << 16;
             Vec3 energyPos, metalPos;

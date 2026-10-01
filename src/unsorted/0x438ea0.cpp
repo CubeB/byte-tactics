@@ -1,4 +1,26 @@
-// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry (issue 4211, still 54.0%, body unchanged; scratch under
+// build/scratch/0x438ea0/, 31 check runs, nothing above 54.0%):
+//  * The n < 0 double load IS the shape of an uninitialised x2/y2 pair sharing
+//    one home slot with a live local: eleven uninitialised variants (pair at
+//    function scope, before/after i, in the same declaration as i, nested and
+//    chained i = x2 = y2 = 0 in the guard) all emit exactly the original's
+//    `mov reg1, [slot]; mov reg2, [slot]` cold path, but the shared home always
+//    lands on the index arg hole (+0x58), never on the counter's (+0x4c), and
+//    the whole callee-saved pool rotates (zero leaves ebp for ebx), 45.0%.
+//    So the shared-home mechanism is right and the remaining question is only
+//    what makes the allocator share the pair with the counter's slot instead of
+//    index's.
+//  * The i = 0 store still sinks past the cmp even nested in the guard
+//    (`if ((i = 0) <= n)` and `if ((i = x2 = y2 = 0) <= n)`, both 54.0%); moving
+//    the statement before `int n = ...` sends it to rad's slot +0x18 (52.8%).
+//  * Register rotation: inline RotX/RotY wrappers around FUN_004b70ef and
+//    FUN_004b7123 (the guide's extra-use tie flip) tie at 54.0%, and the same
+//    wrappers over the three pos dword reads cost 5 points (49.3%), so the
+//    pos/rad ebx-edi swap is not a use-count tie.
+//  * Named `short py1 = pos->y;` after the x, z, y dword reads ties at 54.0%
+//    (load order unchanged), x1/y1 inline in the draw call ties at 54.0%,
+//    sy/sx declaration swap 52.2%, x2/y2 before lx/ly 53.8%.
 // Second pass (deepseek-v4.1-flash, issue 1553): re-ran the wall protocol; the
 // argument list, callers' pushes and every callee ret N are correct, headers.py
 // (768 sets) is flat at 54.0%, the exe byte census still finds each construct

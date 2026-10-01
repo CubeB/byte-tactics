@@ -91,6 +91,21 @@
 // (1059 of 1062 bytes). This run only re-verified the base file (3 check.py
 // runs, all 74.0) and dumped the full diff to build/scratch/0x4876c0/.
 // Remaining diffs and all tried levers are documented below and above.
+// deepseek-v4.1-flash (run 8, timebox): no new variants scored, still 74.0
+// (1059 of 1062 bytes). This run only re-verified the base file (1 check.py
+// run, 74.0) and analysed the diff. Finding: ours already loads f108 into cx
+// AFTER the s.b load exactly like the original; the ONLY difference in the
+// f3d/f3f window is which store sinks past the rec.f27 compare (ours sinks
+// f3d, the original sinks f3f). The pair-reversal rule sinks the store of the
+// FIRST-written statement, so source order alone always gets one of the two
+// wrong. The untried levers remain: an intervening non-pair statement between
+// the f3d/f3f stores (rec.id or rec.f20 moved between them, not part of the
+// 24 tried orderings of {f23,f3d,f3f,f27}), or writing the pair through a
+// named pointer pair (short* p3d = &rec.f3d; short* p3f = &rec.f3f;). Piece
+// loop residual also remains: ours hoists add esi,0x1c to the loop top with
+// [esi-0x1c] forms vs the original mid-body at 0x487a51 with [esi-8] forms,
+// and ours loads sp->f0/sp->f8 late and stores f8,f4,f0 while the original
+// loads them first and stores f0,f4,f8 (ascending, like the 0x487080 loader).
 // deepseek-v4.1-flash (run 5): no further gain, still 74.0. Writing
 // `rec.f3f = unit->fb8;` before `rec.f3d = unit->f108;` gives the original's
 // store order (f3d early at the f108 load, f3f deferred past the rec.f27

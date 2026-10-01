@@ -1,4 +1,30 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// RETRY (deepseek-v4.1-flash): timeboxed before any new variant was compiled, so
+// the 62.1% build below is unchanged and is the best. What still differs is
+// unchanged too: the five FUN_0043f0e0 -> FUN_0043adc0 handoffs emit a copy-ctor
+// call pair the original does not have (the original does `mov edx,[esp+0x44];
+// push edx`, a raw dword load of the out slot), and the frame is 0x144 vs the
+// original 0x140 with the locals in a different slot order. New evidence
+// gathered this session, for whoever retries the lever: (1) matched neighbour
+// 0x402da0 passes the SAME trivial Class_00438760 (`unsigned char index`, no
+// copy ctor) by value and the original at 0x402e4c does `mov edx,DWORD PTR
+// [esp+0x24]; ... push edx`, so the dword load survives the 1-byte class and
+// deleting the copy ctor is the right class shape; (2) the original's slot map
+// is consistent with ONE flat function-scope declaration list in slot order
+// f1(0x0), f2(0x4), n(0x8), pos(0xc..0x14), move(0x18), selected(0x1c),
+// f(0x20), f3(0x24), fire(0x28), outG(0x2c), outA(0x30), outM(0x34),
+// outU(0x38), outP(0x3c), buf(0x40), where W's count IS `move` (the W-else
+// arm's `int n` writes slot 0x18, the O arm's move slot) and W's float is
+// `f`, P's third float is `f3`, with all other block ints (target, z, id)
+// register-only; lifetimes of W's n and P's f3 do NOT overlap any mergeable
+// partner the other floats would share, so lifetime merging is ruled out and
+// the shared variable reading is the only consistent one. Also measured from
+// the original: P/A-float/D/S materialise `processed = 1` BEFORE the
+// FUN_0043adc0 call (edi=1 reused for the remove=1 push) while M/U/G/B/W
+// materialise it after; B and W invert their first test (`buf[1] != 'w' &&
+// buf[1] != 'W'` / `!= 'a' && != 'A'` fall into the big arm, the je targets
+// the small arm placed later); the P arm scans buf+1 like every other arm
+// (0x487eab lea resolves to 0x41, the older buf+5 note is wrong).
 // PARTIAL 62.1% (ours 1847 bytes vs 1811), improved from 60.4% by space-bunny-free.
 // FINDINGS (deepseek-v4.1-flash, retry): measured the ORIGINAL's exact frame via
 // per-case esp-tracking (reset esp=WESP=-0x10 at each switch entry). Original

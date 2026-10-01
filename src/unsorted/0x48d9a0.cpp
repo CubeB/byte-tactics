@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by GPT-6. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol. Names are provisional.
 // PARTIAL 79.1%, 646 of 644 bytes. The earlier 83.6% version left found
 // uninitialized on a failed scan. The original writes zero at 0x48db0e and
 // one at 0x48dc17. A shared selection label restores both paths, the original
@@ -15,6 +15,11 @@
 // at +0x1c. These are allocated locals, not saved registers, and none of the
 // original counter, player or set reads are uninitialized. The floating
 // comparison tests x87 C3 and accepts equality with zero as the source does.
+// GPT-6.1-sol retry: baseline remains 79.1% (646 bytes). Reusing the existing
+// player local for both unit scans fell to 61.0%; using it only for the nested
+// scan fell to 33.0%. An explicit byte-offset player calculation generated the
+// same 79.1% output. The remaining mismatch is still the +0x1b63 player-base
+// materialization described above.
 
 #pragma pack(push, 1)
 

@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol retry (issue 3137): baseline stayed at 86.6% (911/919). A helper around the owner comparison was byte-identical; assigning null on a mismatched owner scored 68.8%, so neither replaced the kept source. No MATCH was observed. Remaining mismatch is the packet-walk control flow and MSVC local/register allocation described below.
 // Pass deepseek-v4.1-flash (issue 2953 retry, 10 min box): kept 86.6% (911/919),
 // no score movement. Scored on the free `--sym` path. New this pass: the
 // semantics-correct break/goto form (68.4 / 69.5%) has an otherwise EXACT frame

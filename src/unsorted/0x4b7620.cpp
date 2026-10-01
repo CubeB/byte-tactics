@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 // Registers one named handler in the file-local sorted handler table (created
 // by 0x4b75a0, destroyed by 0x4b7ad0). It binary-searches the table
 // case-insensitively with _strcmpi for the name, and if the exact-case name is
@@ -54,6 +54,31 @@
 // strcmp result test (`cmp eax, ebx` where the original has `test eax, eax`),
 // which is what frees eax for the end() reload and makes the zero constant for
 // the new element hoist up past the inlined strcmp.
+//
+// Fourth pass (mimo-v2.6-pro): found the shape that gives the original's
+// control flow but not its registers (build/scratch/0x4b7620/v_guard.cpp,
+// 66.1%, 315 of 319 bytes): guard the search as `if (first != last) {
+// do {...} while (...); if (found) { slot = &first->field_4; goto done; } }`
+// with the insert block after the guard and one shared tail. That reproduces
+// the entry `je INSERT` (jumping straight at the insert block as the original
+// does), the +4 folded into the slot register on both paths, stores
+// [esi]/[esi+4] and the inlined strcmp with `mov bl, [ptr]` byte for byte; a
+// plain while + if/else never threads the entry jump in this function's
+// context (only in 0x4b7760's). It costs a full register rotation: first/mid
+// land edi/esi and last/k land ebp/ebx where the original has esi/edi and
+// ebx/ebp. Everything tried to flip that tie left the code identical or worse:
+// all 6 declaration orders of first/last/k (48-variant search with named vs
+// temporary functor, mid inside vs outside the loop and both if/else orders),
+// inline begin()/end() accessors, iterator typedefs, `Class_004b7e30 e(key, 0,
+// 0)` with typed constructor parameters (Command vs int), member structs with
+// inline constructors for the two int fields, a {fn, flags} pair view for the
+// tail stores, and `last = end()` before the post-loop test. The post-loop
+// `mov ebx, [end]; cmp esi, ebx` also stays folded to `cmp reg, [end]` in every
+// variant, and both zero stores keep coming from one `xor eax, eax` after the
+// copy constructor instead of `xor edi, edi` / `xor ebx, ebx` before it with
+// the stores interleaved with the insert argument pushes. v_base below is still
+// the best at 74.4%; the guarded slot form is kept in scratch as the closest
+// structural match for whoever tries next.
 #include <string.h>
 #include <vector>
 

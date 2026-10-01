@@ -1,4 +1,29 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro pass: 83.9% unchanged (2 check runs, ~20 free compile/listing
+// comparisons). New facts for the next attempt:
+//  * The whole 4-byte size gap is exactly the two un-folded plane loads: the
+//    original is `mov esi,ebx / mov eax,[edx+0x10] / add esi,eax` (and the same
+//    for row 1) where every spelling we have folds to `mov esi,[edx+0x10] /
+//    add esi,ebx`. The load is adjacent to its add in the original, so it is a
+//    scheduler split of a NON-commuted `reg + mem` add; our build commutes the
+//    add to `mem + reg` and folds the load into the mov. 9 row spellings (all
+//    int casts, both operand orders, temps, plane locals right before each row
+//    and at the top of the body) all fold identically.
+//  * The threshold compare's cmp order DOES follow the spelling: `*dp1 <=
+//    *sp1 + level` gives the original's `cmp reg,reg; jg` shape (only the two
+//    registers are swapped), while the add destination stays level's register
+//    in every spelling. The original adds into *sp1's register, so one
+//    allocation tie flip fixes both the add and the *dp1 register.
+//  * `static inline int Sum(int,int)` around both `*sp1 + level` uses moves
+//    yoff into ecx and nothing else; not a lever.
+//  * tools/headers.py swept all 128 header sets: none and <memory.h> both give
+//    83.9, everything else worse. Header state does not flip the ties here.
+//  * Restructures tried for the yoff spill (store after the jbe): yoff
+//    assigned after the guards with the raw expression in the guard (moves the
+//    movsx block after the xoff test and turns `test ebx,ebx` into `js`), yoff
+//    assigned in the for-init (gets coalesced), a separate yoff0 feeding a
+//    for-init copy (coalesced), two separate guard ifs, and the deleted-store
+//    trick `int iy = yoff; yoff = iy;`. None sink the store past the guards.
 // Retry #2444 (GPT-6.1-sol): best remains 83.9% after 4 check.py runs; a reversed
 // comparison spelling fell to 82.8%. Row-pointer term ordering and threshold
 // add destination remain the allocator differences described below.

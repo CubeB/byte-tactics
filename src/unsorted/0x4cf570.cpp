@@ -70,6 +70,15 @@
 // bestidx declared after the null check; an early-continue loop form; swapping
 // the first loop's condition order; set aliased to a local; and Windows/stdio/
 // stdlib/string/math/dsound headers.
+// deepseek-v4.1-flash #3399 retry: still 82.2 (while form) / 80.2 (for form).
+// Confirmed the this/zero/bestidx rotation is insensitive to: an N-declaration
+// sweep of 101 values (0..400 step 4, all byte-identical); defining the real
+// preceding function 0x4cf540 above ours in the same file; explicit self and
+// self_180 pointers; a named zero variable used for all three compares;
+// naming bestidx in the DAT check and the set==0 check; a live dead-sum across
+// the set-loop calls; a dead this-field store pair at the top; the register
+// keyword; windows.h/dsound.h/string.h; loop-counter type and scope; and every
+// declaration order. All left `xor esi,esi` (zero) / `mov ebp,ecx` (this).
 extern int DAT_0051ff48;
 
 struct Info_004fcf68 {

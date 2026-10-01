@@ -16,19 +16,44 @@
 //      next/outer count S+0x15, inner cnt S+0x16, lit S+0x17. Here: curmem
 //      0x12, t 0x13, cnt 0x14, ocnt 0x15, lit 0x16, next 0x17, rep 0x11.
 //      The original needs seven roles in six slots because the outer count
-//      shares `next`'s slot; our compiler does not coalesce them, so rep gets
-//      an extra slot at 0x11 and next is pushed to 0x17. Reusing `next` for
-//      the count in source (52.7% here) or aliasing it in a union (47.5%)
-//      changes the global register allocation (width/height swap out of ebx),
-//      and a byte struct forces every access through memory (52.2%), so the
-//      sharing has to come from coalescing, which I did not crack. Note the
-//      desired mapping is exactly declaration order low-to-high (curmem, t,
-//      rep, next, cnt, lit), which the six-slot original does but our seven
-//      slots do not.
+//      shares `next`'s slot (its lifetime ends inside the inner loop, so MSVC
+//      5 reuses the slot: the original writes the outer count at 0x4cae1d to
+//      S+0x15, the same slot `next` is stored to at 0x4cad35 and read from at
+//      0x4cadad). Our compiler gives all seven roles their own slot.
 //   2. `mov al,bl` / `mov esi,1` swap after the inner flush (scheduler tie).
-// Tried this session: entry `goto out` alone (90.5), inverted final test alone,
-// both together (94.5, kept), byte-only struct in declaration order (52.2),
-// reusing `next` for the outer count (52.7).
+//
+// Measured this session about the byte-slot allocation (read straight out of
+// the /Fa listing, `_<name>$ = -<off>`, all free scratch variants):
+//   * The pool order is NOT declaration order and NOT name order. Declaring
+//     the seven byte locals in three different orders, and swapping two names,
+//     all give the identical permutation (rep 0x11, curmem 0x12, t 0x13,
+//     cnt 0x14, ocnt 0x15, lit 0x16, next 0x17). So the order is a function
+//     of the IR alone, which is why no amount of reshuffling the declarations
+//     helps.
+//   * Reusing `next` as the outer count byte does drop to six slots, and the
+//     order becomes next 0x12, t 0x13, rep 0x14, curmem 0x15, lit 0x16,
+//     cnt 0x17, but it costs 52.7%: the code grows to 641 bytes and the
+//     width/height arguments swap out of ebx. So the six-slot layout is not
+//     reachable this way.
+//   * Swapping just the two literal roles (inner literal and row-end/0xc byte
+//     exchange variables) gives next 0x12, t 0x13, rep 0x14, curmem 0x15,
+//     cnt 0x16, lit 0x17, so `rep` and `cnt` reach their original slots. What
+//     is left is exactly the curmem/next pair at 0x12 and 0x15. Also 52.7%.
+//   * A single `unsigned char b[6]` (or byte struct) holding all six buffers
+//     would pin every slot by index, and `&b[k]` folds to the same lea
+//     displacement the original uses, but it is 52.2%: the array base lands at
+//     S+0x10 (so two pad elements are needed to reach 0x12) and width/height
+//     swap ebx/eax again. Confirms the earlier byte-struct measurement.
+//   * Cheap perturbations that do NOT move the pool at all: `wrote = 1` instead
+//     of `wrote = run`, a shared function-scope `chunk`, `char` instead of
+//     `unsigned char` (that one spills `cur`), `(unsigned char)cur` casts, the
+//     `&&` order in the literal test, and moving `curmem = cur` to the top of
+//     the row. Inlining the `chunk` ternary does move it (next 0x13, rep 0x14,
+//     t 0x15, cnt 0x16, lit 0x17) but loses `curmem`, so it is not a lead.
+// Next step for whoever retries: the pool order looks like it follows the
+// expression trees assigned to each byte, so try reshapes of those (for
+// example making the row-start `curmem = cur` and the flush `rep = curmem`
+// load through a second pointer local) rather than the declarations.
 //
 // Best score was 86.2%. The row guard uses
 // rows = height - 1; if (rows >= 0) { ++rows; do ... while (--rows); } to

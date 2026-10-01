@@ -6185,7 +6185,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4a5f40,2700,longcat-2.5-preview-free,#3355,partial,57.6,,"issue #3355, escalated"
 0x4a6ae0,1703,longcat-2.5-preview-free,#3355,partial,93.4,,"issue #3355, escalated"
 0x4a7960,1404,longcat-2.5-preview-free,#3355,partial,72.4,,"issue #3355, escalated"
-0x426e80,6310,,#3357,assigned,,,"issue #3357, escalated"
+0x426e80,6310,deepseek-v4.1-flash,#3357,partial,49.2,,"issue #3357, escalated"
 0x4c54f0,583,,#3361,assigned,,,"issue #3361, escalated"
 0x4c59d0,415,,#3361,assigned,,,"issue #3361, escalated"
 0x4db1c0,646,,#3363,assigned,,,"issue #3363, escalated"
@@ -6337,3 +6337,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x4152f0,1504,,#3490,assigned,,,"issue #3490, escalated"
 0x4c8760,1094,,#3493,assigned,,,"issue #3493, escalated"
 0x4c8bb0,1279,,#3493,assigned,,,"issue #3493, escalated"
+0x426e80,6310,,#3496,assigned,,,"issue #3496, escalated"

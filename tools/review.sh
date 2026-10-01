@@ -101,7 +101,21 @@ echo "== constructs to look at"
 grep -nE '__fastcall|volatile|__asm|_emit|#pragma optimize|vtable *= *DAT_|\(void\*\) *0x[0-9a-f]{6}|0x00?[45][0-9a-f]{5}[^0-9a-f]' $sources 2>/dev/null \
     | grep -v '^\S*:[0-9]*:\s*//' | sed 's/^/  /' || echo "  none"
 
+# Raw permuter output (AGENTS.md): self-assignments and its generated names.
+echo "== permuter leftovers"
+junk=0
+if [ -n "$sources" ]; then
+    git diff "$base" HEAD -- $sources | grep '^+' | grep -v '^+++' | grep -v '^+\s*//' \
+        | grep -P '(?<![\w.>])(\w+(?:(?:->|\.)\w+)*) = \(?\1\)?;|\b(tmp|inl)[0-9]+\b' | sed 's/^+/  /' | head -10 > build/review-junk.txt || true
+    [ -s build/review-junk.txt ] && junk=1
+fi
+if [ "$junk" = 1 ]; then cat build/review-junk.txt; else echo "  none"; fi
+
 git checkout -q -- data README.md 2>/dev/null || true
+if [ "$junk" = 1 ]; then
+    echo "!! do not merge as is: raw permuter output (self-assignments or tmpN/inlN names); see AGENTS.md"
+    exit 2
+fi
 if [ "$regressed" = 1 ]; then
     echo "!! do not merge as is: it breaks a function that matches on main"
     exit 2

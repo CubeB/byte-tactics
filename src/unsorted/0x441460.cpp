@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
-// finished by space-bunny-free. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
 // 83.7%, not a MATCH (was 80.5%). The frame is exact (buf sized 0x139 reserves the
 // original's 0x1b4 and the parameter read at [esp+0x1d0] lines up), the settings
 // copy at SETBUF = buf+0x119 is a clean 16-byte/4-dword copy, the record walk reads
@@ -66,6 +66,11 @@
 //   * a real local struct (`char buf[0x119]; Settings s;` with SETBUF = &s): 72.6%.
 //   * renaming the settings words to `flags`/`field_2` to match the measured bit
 //     ownership: 80.2%, the perturbation elsewhere outweighs the better bits.
+//   * a loop-scoped `int f = SETBUF->flags;` covering the version test and all of
+//     p[9..p[11]: 72.3%, it spills count to [esp+0x10] before the FUN_004a9660 call.
+//   * `SETBUF->flags & 0x8000` / `& 0x10` for the version-test selects: byte-identical
+//     output at 83.7%, so the original's `shr edx,0xf; test dl,1` is not a bit-test
+//     spelling lever.
 #include <string.h>
 #include <stdio.h>
 

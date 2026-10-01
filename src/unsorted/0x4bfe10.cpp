@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// claude-opus-5-5 (#4406): still 74.9%. The screen-branch destination adds screen.pixels
+// from memory where the original loads it into edx first; every operand order, char*
+// pointer arithmetic and a shared inline Shade(Surface*, Rect*, Game*) helper compile
+// to identical code. A 10-minute permuter run (264 candidates) found nothing.
 //
 // #3306 retry by deepseek-v4.1-flash: reconfirmed 74.9 percent (265/267), no MATCH.
 // This retry found the lever the #2930 note below says does not exist: the whole

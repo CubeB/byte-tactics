@@ -1,77 +1,82 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and GPT-6.1-sol. Names are provisional.
-// GPT-6.1-sol retry: the inherited 85.0% source remains best after four checks.
-// Explicit nested map branches scored 84.5%; assigning visible on each branch
-// without the pinning tail scored 67.3%. The first-arm register allocation
-// remains the blocker described below.
-// Retried by space-bunny-free. No functional rewrite improved the 84.5% draft.
-// A 128-combination header sweep also left the score at 84.5%.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Fourth pass (space-bunny-free): 91.4% as reported by check.py, 94.1% by a
+// true instruction LCS (88/102 -> 96/102 of the original's instructions).
+// The inherited 85.0% draft was kept for three earlier passes by two models.
 //
-// THIRD PASS (space-bunny-free): the pinning wall is a register-allocation
-// trade, and both halves of it are now measured.
-//   - The `mov eax, 1 / jmp / xor eax, eax / jmp` tail IS reachable: a
-//     `static inline` predicate with one `return 1` and one `return 0`
-//     compiles to exactly those five instructions (read off the asm listing).
-//     MSVC 5 folds every int spelling of the same test (`if (c) v = 1;
-//     else v = 0;`, `v = c ? 1 : 0`, `v = c && d`) into
-//     `xor eax,eax; cmp; setne al` instead, so the constants only survive
-//     behind an early return.
-//   - But the helper form rotates the PROLOGUE (g_game out of ebx into edi,
-//     this->x and this->y swap between bp/bx and bp/di), exactly as every
-//     version without the pinning tail does, and adding the pinning tail on
-//     top of the helper rotates it again (67.3%, 296 bytes). So the original
-//     wants one scratch register more in the first arm than any no-pinning
-//     spelling of ours asks for, and one more callee-saved live value at the
-//     branch than our pinned spelling produces. Nothing tried here gives both.
-//   - Scored this pass, all 305 or 296 bytes: the pinning tail with the map
-//     test as `p->fogMap[...] ? 1 : 0` (85.0%, kept below), the same with
-//     `!= 0` (84.5%), a nested `if (bounds) { if (map) v=1; else v=0; }
-//     else v=0;` (67.3%), a one-`return`-per-path helper (67.3%), the helper
-//     plus the pinning tail (67.3%) and the whole test as one `? 1 : 0`
-//     ternary (67.3%).
+// WHAT CHANGED AND WHY. The inherited draft put a redundant self-correction
+// (`if (visible) visible = 1; else visible = 0;`) at the END of the FIRST arm.
+// That self-correction is what kept the prologue byte identical: without any
+// self-correction anywhere, MSVC 5 drops to 67.3% and rotates the whole
+// prologue (g_game out of ebx into edi, this->x and this->y swap between
+// bp/bx and bp/di). But inside the first arm the self-correction compiles to
+// `xor eax,eax / cmp / setne al / mov edx,eax`, which forced MSVC to keep the
+// arm's boolean in eax and so to pick ebp for the fog-map base pointer. The
+// original needs eax free at that point (it reuses the dead row register for
+// the base pointer), so the boolean must not live in eax.
 //
-// NOT A MATCH: 85.0% (300-byte original, ours 305), re-verified by
-// tools/check.py. Everything matches byte for byte except the FIRST arm (the
-// one taken when bit 1 of the flag byte at g_game+0x14281 is set, the `seen`
-// byte map). The second arm, the prologue, the player-pointer arithmetic, the
-// rect, the flags test and the whole tail call are identical.
+// Moving the self-correction OUT of the first arm and into the second, and
+// spelling it through a `bool` temporary, gives the first arm the branchy
+// `&&` shape the original has (three conditional jumps to one shared
+// `xor eax,eax` fail block, then `mov eax,1 / jmp`), keeps the prologue byte
+// identical, and leaves the second arm byte identical too.
 //
-// WHAT IS LEFT IN THAT ARM (ours -> original):
-//   - ours materialises the width into edi before `sub eax, edx` and zeroes
-//     edx (`mov edi,[esi+0x80]; sub eax, edx; xor edx,edx; cmp ecx,edi`); the
-//     original lets edx (which held height>>1) die on the sub and reuses it
-//     for the width (`sub eax, edx; mov edx,[esi+0x80]; cmp ecx, edx`).
-//   - ours builds the cell address in edi with the map in ebx
-//     (`imul edi,eax; add edi,ebx; cmp byte [edi+ecx],0`); the original builds
-//     the index in edx and puts the map pointer in the just-dead row register
-//     (`imul edx,eax; mov eax,[esi+0x7c]; add edx,ecx; cmp byte [edx+eax],0`).
-//   - ours ends the taken path with `mov edx,1; xor eax,eax; test edx,edx;
-//     setne al`; the original has a plain `mov eax,1` and a fail block of
-//     `xor eax, eax` after the body.
+//   Measured on top of this version, all worse: the self-correction spelled
+//   `if (visible) visible = 1; else visible = 0;` in the second arm (309 bytes,
+//   87.5%), `visible = !!visible` (309, 87.5%), `visible = (visible != 0)`
+//   (309, 87.5%), `if (!visible) visible = 0` (302, 85.9%), a reversed index
+//   `col + width*row` (309, 87.5%), a fog pointer local in the first arm
+//   (315, 46.7%), `*(q->fogMap + width*row + col)` (323, 46.9%), the pinning in
+//   BOTH arms (320, 37.6%), swapping which of the two player pointers is used
+//   for the bounds test and for the index (296, 67.3%), declaring col/row at
+//   function scope (296, 67.3%), a `MapSize` struct copy (292, 43.8%), and an
+//   index local `int cell`/`unsigned int cell` in the first arm (no change at
+//   all: MSVC 5 scalar-replaces it, byte for byte the same output), grouping
+//   the fog map pointer and the size into one `Fog { unsigned char* map;
+//   MapSize size; }` at Player+0x7c and reading both out of it (314 bytes,
+//   91.4%, byte for byte the same output), taking the index from `q` rather
+//   than `p` (91.4%, identical output), and moving the self-correction inside
+//   the second arm's `else` arm (305 bytes, 61.2%, the prologue rotates).
+//
+// So none of the ways of re-spelling the first arm's cell address changes its
+// four instructions: with `q->size.width * row + col` as the index,
+// `col + q->size.width * row` as the index, or `p` instead of `q` for the base,
+// MSVC 5 picks the same three instructions every time. Only a construct that
+// makes the map pointer and the index two separately live values would change
+// it, and none of the index locals I tried is one.
+//
+// NOT A MATCH: 91.4% as check.py reports it (300-byte original, ours 314),
+// re-verified with tools/check.py. Only 6 of the original's 102 instructions
+// are still not matched, and they are in exactly two places:
+//
+//   1. First arm, the cell address (ours -> original):
+//        mov edi, [esi+0x7c]        ;  imul edx, eax
+//        imul edx, eax              ;  mov eax, [esi+0x7c]
+//        add edx, edi               ;  add edx, ecx
+//        cmp byte [edx+ecx], 0      ;  cmp byte [edx+eax], 0
+//      Ours adds the map POINTER into the index and leaves col as the
+//      addressing-mode displacement; the original adds col into the index and
+//      puts the map pointer in the register the multiply just freed. The whole
+//      first arm above these four instructions, and everything else in the
+//      function, is byte identical, so this is a register-choice difference in
+//      one four-instruction window, not a structural one.
+//
+//   2. Second arm, the self-correction tail we still have to keep for the
+//      allocation (ours -> original):
+//        xor ecx, ecx               ;  (nothing)
+//        test eax, eax              ;
+//        setne cl                   ;
+//        xor eax, eax               ;
+//        test cl, cl                ;
+//        setne al                   ;
+//      The original has no instructions there at all: its second arm's value
+//      arrives in eax already normalised by `neg eax / sbb eax,eax / neg eax`.
+//      The self-correction is only in the source because removing it rotates
+//      the prologue; every cheaper spelling tried above either rotates the
+//      prologue too or lands at 87.5%.
 //
 // The blocker is the same register-allocation wall the siblings hit (0x473590
-// 84.0, 0x474170 85.4, 0x474b80 84.6, 0x4745e0 79.8). This retry measured,
-// on top of everything the earlier rounds did:
-//   - Dropping the pinning `if (visible) visible = 1; else visible = 0;` from
-//     the first arm, with any spelling of the tests, drops the whole function
-//     to 67.3% and 296 bytes and rotates the ENTIRE prologue: g_game moves out
-//     of ebx into edi and this->x/this->y swap between bp and bx. The pinning
-//     tail is the only thing found that keeps the prologue byte-identical, and
-//     it is also the direct cause of the 9 extra bytes above (mov edx,1 / xor
-//     eax,eax / test edx,edx / setne al) and of the early xor.
-//   - With the pinning tail in place, the compare spelling is NOT a lever:
-//     `p->size.Contains(col,row)` and a hand-written
-//     `(unsigned)col < p->size.width && (unsigned)row < p->size.height` compile
-//     to the same 305 bytes at 84.5%, as do `p` and `q` in the index
-//     (`p->fogMap[q->size.width*row+col]` == `q->fogMap[q->size.width*row+col]`).
-//   - Also measured with the pinning tail in place, all worse: an index local
-//     `int cell = q->size.width*row+col` (82.9%, 302), the height test before
-//     the width test (80.0%, 299), the cell read through a `static inline`
-//     FogCell(p,col,row) helper (79.8%, 294), the sibling 0x474b80 arm locals
-//     `unsigned char* seen` plus `unsigned int w` (37.7%, 305), and one
-//     `int hit = cond; visible = hit ? 1 : 0;` (65.1%, 318).
-//   - So the mask arm wants NO long-lived visible (so edx is free for the width
-//     and the index) while the prologue wants one. A stronger model may find
-//     the construct that gives both; nothing I tried in this file does.
+// 84.0, 0x474170 85.4, 0x474b80 84.6, 0x4745e0 79.8), but it is now only 6
+// instructions wide and both remaining spots are named above.
 #pragma pack(push, 1)
 
 struct Rect_004b0510 {
@@ -138,22 +143,19 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
     r.x2 = r.x1 + 1;
     r.y2 = r.y1 + 1;
 
+    // Two locals with the same value. The original reads the map width twice
+    // per arm, once for the bounds test and once for the index, and a single
+    // local makes MSVC 5 fold one of the two away. This spelling keeps both
+    // loads and the prologue's register choice.
     Player_00473a00* p = &g_game->players[g_game->playerIndex];
-    // The original reads the map width twice per arm, once for the bounds test
-    // and once for the index; a second pointer with the same value keeps the
-    // two loads apart. A helper taking the pointer does not: MSVC 5 CSEs them.
     Player_00473a00* q = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->flags & 2) == 2) {
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
-        visible = 0;
-        if ((unsigned int)col < p->size.width && (unsigned int)row < p->size.height)
-            visible = p->fogMap[q->size.width * row + col] ? 1 : 0;
-        if (visible)
-            visible = 1;
-        else
-            visible = 0;
+        visible = ((unsigned int)col < p->size.width &&
+                   (unsigned int)row < p->size.height) &&
+                  p->fogMap[q->size.width * row + col] != 0;
     } else {
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
@@ -162,6 +164,18 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
         else
             visible = (g_game->visibilityMask[q->size.width * row + col] &
                        (1 << g_game->playerIndex)) != 0;
+        // A redundant self-correction, and a real one: the original's boolean
+        // here is a `mov reg,1` / `xor reg,reg` pair rather than a `setcc`, and
+        // this is what pins the register allocation of the whole function.
+        // Remove it and the prologue rotates (67.3%). Every cheaper spelling
+        // of it costs bytes in the second arm's tail.
+        {
+            bool b = visible;
+            if (b)
+                visible = 1;
+            else
+                visible = 0;
+        }
     }
 
     if (visible)

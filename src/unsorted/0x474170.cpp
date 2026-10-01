@@ -81,6 +81,25 @@
 // and the member-width index is 40.0 [297]. A `Player_00473590& map` reference
 // instead of the pointer is byte-identical at 85.4. So the seen spill really is
 // load-bearing and the best version stays this one.
+//
+// DEEPSEEK-V4.1-FLASH, fourth pass (900s timebox). No code change: 85.4 percent
+// remains the best. Confirmed the local-optimum is allocator-only and closed the
+// remaining escape routes with scratch `check.py --sym` scores (no new runs in
+// the file's own history):
+//   * N-declarations sweep: the fully local-free shape (both arms use fresh
+//     `map->seen[map->size.width*row+col]`) is 39.6 percent for every N from 0
+//     to 400 in steps of 4, so it is not compiler symbol state. See
+//     build/scratch/0x474170/sweep_results.txt.
+//   * defining the real preceding matched function 0x474130 above the file (with
+//     its own annotation) still scores exactly 85.4, so compiler state from the
+//     original TU is not the missing piece either.
+//   * modelling the whole test as an in-class inline `Pos::Visible()` (the
+//     0x4745e0 shape) is 43.3 [311]; moving either arm's locals after its
+//     Contains test drops to 37.6-39.2; fresh fog + w,m mask is 45.8 [306];
+//     `bool visible` is 82.4 [304]; unsigned col/row is 70.0 [311]; Contains
+//     with unsigned parameters or signed compares is byte-identical at 85.4.
+// The two spills stay load-bearing: any spelling that removes either arm local
+// rotates `g_game` into ebx and the map pointer into edi.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);

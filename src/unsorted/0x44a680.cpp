@@ -1,4 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Tenth pass (deepseek-v4.1-flash, issue 4144): measured the byte budget of the
+// reindex loop with objdump on build/obj. The loop is the ONLY place the body
+// grows: the original encodes the `= i` store as one disp32 reference
+// (`mov byte ptr [ecx+eax+0x1ca9], bl`, 7 bytes) while ours emits
+// `lea edx,[eax+ecx+0x1ca9]` (7) + `mov [edx],bl` (2), exactly +2 bytes, and
+// those 2 bytes ARE the offset of every drift hunk (jae 0x44a92b -> 0x44a92d,
+// jmp 0x44a933 -> 0x44a935, je 0x44a956 -> 0x44a958). The first-if load/jne
+// swap is byte-neutral (mov 5 + jne 2 either way), so it is not the cause.
+// They cancel after the MAXUNITS block, which is why the tail still lines up.
+// Tried this pass to kill the lea (all 92.9, no change): the store through
+// `(char*)g_game->players + (0x146 + off)`, the compare in the players-relative
+// form, both mixed, and `off + 0x1ca9` in the store; MSVC folds all spellings to
+// the same address node and still hoists it into edx. A named byte local
+// (previous pass, 2338/89.7) does drop the lea, so the remaining work is to
+// find the 2 bytes the original spends elsewhere instead of the lea.
 // Issue 2601 retry (GPT-6.1-sol): baseline rechecked at 92.9% (2340 bytes).
 // Rejected variants: owner local in the reindex loop 87.1% (2342 bytes),
 // explicit firstResult/firstGame locals 82.1% (2360 bytes), and r & 1 for

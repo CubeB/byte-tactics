@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by deepseek-v4.1-flash and GPT-6 (their 80.5% version is the basis).
 // Partial at 84.6% (1596 bytes against 1586). What still differs:
 //  1. The unit-type scan loop: the original zeroes the record byte offset with
@@ -134,6 +134,35 @@
 // store, so edi is never claimed and n still wins edi), and the extra edi load of
 // n before the slider loop plus the per-call `add reg,0x519` panel recomputation
 // (never `lea esi,[ecx+0x519]`) account for the 9-byte surplus.
+// Eleventh pass (deepseek-v4.1-flash, retry of 3809): baseline re-confirmed at
+// 85.2% / 1595 bytes. Combined the two faithful tail shapes (FUN_004a35a0
+// called with g_game->inner, which is what the disassembly pushes at 0x44ccd8,
+// and a scrollPanel local for the FUN_0044bfd0/FUN_0049fa90 pair): 82.5% at
+// 1581 bytes, i.e. 5 bytes under the original but a worse register rotation
+// over the whole tail, so it does not beat this baseline (the two shapes are
+// individually worse too, 83.7% and 81.2-80.5%). The 9-byte surplus looks like
+// one decision: our build promotes n into edi after the text-copy loop (the two
+// extra `mov edi,[esp+0x14]` reloads) and so cannot hoist the 0x44be70 handler
+// constant into edi, while the original keeps n memory resident, hoists the
+// handler into edi and stores `mov [eax+0x144],edi` per iteration; a named
+// handler local is constant-propagated back into the immediate (unchanged
+// bytes), and the edi-free window follows from the scan loop's item/record
+// offset colouring: as long as desc keeps ebx the record offset wins edi there.
+// Also tried in this pass (all scored below the baseline): the flags test as
+// `(v / 0x8000) & 1` and as `(v >> 15) % 2` (both still fold to `test ch,0x80`,
+// 85.2% / 1595 identical bytes, so VC5's simplification is not spelling
+// dependent), the scrollPanel local actually used for the FUN_0044bfd0/
+// FUN_0049fa90 pair (81.2% / 1591, 4 bytes closer but idx and panel trade
+// registers), and the same local hoisted above the slider loop (75.1% / 1596).
+// Byte accounting of the surplus: our scan loop is ~9 bytes SHORTER than the
+// original (fused zero inits, folded bit test, lea instead of add plus a
+// rematerialised item), the per-call `add reg,0x519` panel recomputation costs
+// ~16, and the handler constant not being hoisted out of the 12-iteration
+// slider loop costs ~43 (`mov [eax+0x144], imm32` per iteration where the
+// original materialises 0x44be70 in edi once and stores the register). That
+// last one is the single biggest byte item and is decided by the same
+// allocation the scan loop loses: ours keeps n live in edi across the slider
+// and SCROLLSLIDER blocks, so the invariant has no callee-saved register.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

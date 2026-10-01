@@ -1,5 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// PROBE (deepseek-v4.1-flash, issue 3929, best 43.3%, no change): hoisting
+// `int visible;` from the loop body to function scope (declared right after
+// `int index = 0;`) is byte-identical at 43.3 / 2292 bytes, so the visible
+// spill slot at frame+0x00 is allocated by first use, not by declaration
+// order. The file below declares it at function scope; the old loop-scope
+// spelling scored the same.
+//
 // RETRY (deepseek-v4.1-flash, issue 3869, best 43.3%, no change): the los arm
 // as `if (cond) visible = 1; else visible = 0;` (the shape that removes the
 // early [esp+0x10] stores and lands on the original 2272 bytes exactly) scores
@@ -345,6 +352,7 @@ void __stdcall FUN_0049be60(void* surface)
     int time = g_game->time;
     void* frame0 = FUN_004b7f30(g_game->gaf_1480f, 0);
     int index = 0;
+    int visible;
     if (g_game->projectileCount <= 0)
         return;
     int offset = 0;
@@ -354,7 +362,6 @@ void __stdcall FUN_0049be60(void* surface)
             unsigned char player = g_game->localPlayer;
             char* pb = (char*)g_game + 0x1b63 + 0x14b * player;
             Vec3_0049be60* pos = &p->pos;
-            int visible;
             if ((g_game->viewFlags & 2) == 2) {
                 int col = (int)*(short*)((char*)pos + 2) >> 5;
                 int row = ((int)*(short*)((char*)pos + 10)

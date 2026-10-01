@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// PROBE (deepseek-v4.1-flash, issue 3929, best 33.7%, no change): re-measured
+// the prologue against the original. Ours now does `sub esp,0xb8` (original
+// 0xbc, still 4 short) with `push ebx; push ebp; push esi; mov esi,[esp+0xc8];
+// push edi`, while the original is `sub esp,0xbc; push ebx; push ebp; mov
+// ebp,[esp+0xc8]; xor ebx,ebx; push esi; push edi` (param_1 homed in ebp,
+// esi/edi pushed after the first body instruction). One 4-byte long-lived
+// local plus a first-use that forces param_1 into ebp is still missing.
 // WIN 4 (deepseek-v4.1-flash, issue 3869): 33.4 -> 33.7 (2103 -> 2102 bytes) by
 // widening the lenient field_c0 cache to `int keepC0 = me->field_c0;` (was
 // `short keepC0`), i.e. the original caches that short in an int. Re-tested on

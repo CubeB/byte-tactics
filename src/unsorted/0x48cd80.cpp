@@ -1,4 +1,5 @@
 // Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol (#3172 retry): four scored checks, best 92.6%; loop-counter-before-while and reversed local order tied, while(1) with break fell to 65.4%. No MATCH.
 // Partial: 92.6% (431 bytes vs 428), best of v20-v39 plus the v40-v88 retry.
 // Prologue, branch A and
 // the whole branch B loop body match; only two instructions differ, in the
@@ -97,6 +98,11 @@ static inline int FixMul(int a, int b)
     return (int)(((__int64)a * b) >> 16);
 }
 
+// Parent retry note: This worker kept the inherited 92.6% version. Rewriting
+// the branch-B counter as a declaration-ordered while loop or as a top-tested
+// while(1)/break loop did not improve it (attempts 1 and 3 stayed at 92.6%;
+// attempt 2 dropped to 65.4%). The remaining mismatch is the branch-B
+// preheader register allocation described above.
 // FUNCTION: 0x48cd80
 unsigned short __stdcall FUN_0048cd80(void)
 {

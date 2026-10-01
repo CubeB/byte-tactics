@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3822): scored the remaining untested reorder, moving
+// `colourState = 0;` from before the sel ternary to just before the
+// `colourState = DAT_00507b70[...]` store. Byte-identical: 1112 bytes, 80.4%,
+// the dead-store elimination is unchanged, so the missing
+// `mov dword ptr [esp+0x20], 0` is not a statement-order effect.
+
 // deepseek-v4.1-flash 10 min timebox: one variant scored, moving the
 // `int colourState = 1;` declaration from the function prologue to the
 // loop preheader (just before `char buf[0x80];`). It drops the score to

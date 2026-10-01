@@ -1,4 +1,14 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3822, best 74.2%): inverting the outer dispatch to
+// `if (DAT_0051e668 == 0) { Campaign/Start -> BigButton; goto PrevMenu; }`
+// with the Missions/Start pair (and its redundant re-test) after it lifts the
+// score from 72.9 to 74.2 percent (1914 -> 1924 bytes). The compiler now keeps
+// the Campaign/Start pair inline as the je target of test1; the remaining 11
+// bytes are the tail BigButton block placement and two register-home swaps.
+// Also scored: the same shape with `||` for the Missions/Start pair,
+// byte-identical at 74.2 percent / 1924 bytes, so the lone `if` pair for that
+// block is not what holds the sink.
+
 // deepseek-v4.1-flash 10 min timebox: scored the documented next idea, writing
 // the second Start test as `if (!FUN_0049fd60(menu,"Start")) goto PrevMenu;`
 // (the original's `test eax,eax; je 0x477cc7` with BigButton as the true-path
@@ -197,18 +207,19 @@ void __stdcall FUN_00477ab0(Menu_00477ab0* menu)
         return;
     }
 
-    if (DAT_0051e668 != 0) {
-        if (FUN_0049fd60(menu, "Missions"))
+    if (DAT_0051e668 == 0) {
+        if (FUN_0049fd60(menu, "Campaign"))
             goto BigButton;
         if (FUN_0049fd60(menu, "Start"))
             goto BigButton;
-        if (DAT_0051e668 != 0)
-            goto PrevMenu;
+        goto PrevMenu;
     }
-    if (FUN_0049fd60(menu, "Campaign"))
+    if (FUN_0049fd60(menu, "Missions"))
         goto BigButton;
     if (FUN_0049fd60(menu, "Start"))
         goto BigButton;
+    if (DAT_0051e668 != 0)
+        goto PrevMenu;
 
 BigButton:
     index = 0;

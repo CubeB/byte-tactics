@@ -1,8 +1,15 @@
 // Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash pass (issue #3164): BEST 77.3% (2650 of 2644 bytes).
-// BIG WIN: wrapping every `sprintf(log + strlen(log), A)` call site as
-// `{ size_t L = strlen(log); sprintf(log + L, A); }` (the strlen as its own
-// prior statement, its named result consumed by sprintf) lifted 64.4% -> 77.3%
+// deepseek-v4.1-flash pass (issue #3501): BEST 78.1% (2646 of 2644 bytes). Two
+// wins this pass: (1) the params-loop sep char as one select
+// `(i == n-1 || i % 3 == 3) ? '\n' : '\t'` (nested ternary scored 77.3%, an
+// if/else with a char local scored 67.8%); (2) holding the CS:EIP byte base in
+// a named local before the byte loop (77.4% -> 78.1%), which hoists the Eip
+// load out of the loop like the original's `mov ebx,[ebp+0xb8]`. Still differs:
+// the per-call arg scheduling (lea log+strlen lands mid-push-sequence in the
+// original), the scalar slot permutation (ours base,file,reason,written vs
+// original reason,base,file,written, not steerable by name or declaration
+// order), and the CreateFileA result kept in eax vs our esi copy. Using
+// rec->NumberParameters directly in the loop tests (no cached n) scored 66.1%.
 // by forcing MSVC to emit the inline scasb strlen BEFORE the sprintf argument
 // pushes, matching the original's scheduling. There are 40 such call sites.
 // STILL DIFFERS (the residual 22.7%): (1) per-call argument scheduling: the
@@ -174,8 +181,7 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
         for (unsigned int i = 0; i < n; i++, info++)
             // The i % 3 == 3 test is always false (i % 3 is 0..2); kept as-is.
             { size_t L = strlen(log); sprintf(log + L, "%08lX%c", *info,
-                    (char)(i == n - 1 ? '\n'
-                                      : i % 3 == 3 ? '\n' : '\t')); }
+                    (char)((i == n - 1 || i % 3 == 3) ? '\n' : '\t')); }
     }
     { size_t L = strlen(log); sprintf(log + L, "\n"); }
     { size_t L = strlen(log); sprintf(log + L, "Registers:\n"); }
@@ -192,8 +198,9 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     // REGION r5 begin
     { size_t L = strlen(log); sprintf(log + L, "\n"); }
     { size_t L = strlen(log); sprintf(log + L, "Bytes at CS:EIP:\n"); }
+    unsigned char* code = *((unsigned char**)&ctx->Eip);
     for (int i = 0; i < 0x10; i++)
-        { size_t L = strlen(log); sprintf(log + L, "%02x%c", (*((unsigned char**)&ctx->Eip))[i],
+        { size_t L = strlen(log); sprintf(log + L, "%02x%c", code[i],
                 i == 0xf ? '\n' : ' '); }
     { size_t L = strlen(log); sprintf(log + L, "\n"); }
     // REGION r5 end

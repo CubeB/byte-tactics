@@ -1,4 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 15 (deepseek-v4.1-flash): shape unchanged, re-confirmed 2173/2173 at 96.8. The whole
+// residual diff is three adjacent spots from one allocator decision: (1) the units-loop entry
+// guard, ours materialises the count (`mov ecx,[edi+0x1438f]; cmp ecx,esi`) where the original
+// folds it (`cmp [ecx+0x1438f],esi`); (2) the divide, ours `idiv ecx` reusing that materialised
+// count across the `jle`, the original `idiv [ecx+0x1438f]`; (3) the latch, ours reloads g_game
+// into edi and then the count into ecx, the original reloads g_game into ecx and the count into
+// eax. `mov edi,[0x511de8]` and `mov ecx,[0x511de8]` are both 6 bytes, so that register pick is
+// not a size effect: with the reloaded g_game parked in edi our count takes ecx and survives to
+// the divide, while with g_game in ecx the count cannot live across the pushes/cdq and both uses
+// fold into memory operands. The remaining GUI suffix tail (`test eax,eax; jne` here against the
+// original `jmp`) is the `else break;` form, which alone gives 2171 bytes / 94.4.
 // Pass 14 (deepseek-v4.1-flash): byte accounting confirms the pair exactly. Against 2173/96.8
 // the original hunk1 (entry test, `cmp [ecx+0x1438f],esi`) is 2 bytes shorter than ours and the
 // original hunk3 (`idiv [ecx+0x1438f]`) is 4 bytes longer, while the GUI tail `jmp` is 3 shorter

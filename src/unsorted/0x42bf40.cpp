@@ -1,4 +1,13 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 13 (deepseek-v4.1-flash): 65.6% reconfirmed, ours 4716 bytes against 4772; no source
+// change kept. New datum: rewriting the five weapon/explodeas/selfdestructas selects as
+// `if (p == 0) p = defaultWeapon;` is byte-identical to the `p ? p : defaultWeapon` ternaries,
+// so the original's `xor ebx,ebx; cmp eax,ebx; jne; mov eax,esi` at 0x42ce00 is not a spelling
+// effect: the zero is already a live value there. Together with the two xors at 0x42c0ee/0x42c0f6
+// this says our ebx zero and esi zero are two rematerialisations of ONE constant-0 node, and the
+// original's single esi range (0x42c0f0..0x42cc5f) plus its fresh ebx range at 0x42ce00 are the
+// same node split at a different point, so the lever is the allocator's rematerialisation policy,
+// not the source spelling of the zero (all of passes 3 to 12 tried those).
 // Pass 11 (deepseek-v4.1-flash): kept the pass-10 best at 65.6% (4716 bytes against 4772). The
 // first 0x42bf40..0x42c0ec is byte-identical; the remainder still differs in roughly 25 hunks
 // spread over the texture/sequence loops (register homes and loop rotation), so no single

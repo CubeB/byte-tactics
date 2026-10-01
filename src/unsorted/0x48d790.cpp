@@ -1,4 +1,60 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Space Bunny Free pass (issue #4398): best stays 92.6% (387 of 388 bytes), no
+// MATCH, and the permuter confirms 92.6% is flat (2786 candidates, nothing
+// better). The residual is still one allocator decision, but the two halves of
+// it are now separated, and the leading half is understood:
+//  * The hit block's three temps. The original allocates (EAX, EAX, EDI) for
+//    (the unit value, the first g_game, the second g_game) and reads the mask
+//    from the live EDX of 0x48d866. This build allocates (EDI, EAX, EAX) and
+//    re-materialises the mask as `mov edx, 0x10` inside the block. I confirmed
+//    with a micro test (the whole function, compiled and disassembled in a few
+//    seconds per variant) that the block is byte-identical, remat included,
+//    across about fifty spellings: the mask as int/short/char/long/unsigned
+//    long/const/register and as a literal; `|=` vs `= x | f`; an explicit
+//    temporary; the 1-bit bitfield vs the dword field; a `p = u` alias; a
+//    `&u->flags` pointer, a `&g->field_37e9c` pointer, `(short*)((char*)g_game
+//    + 0x37e9c)` and `gs[0x1cfd3]` offset forms, two separate g_game locals, a
+//    `& 0xffff` mask, a zero-extended mask, a second 32-bit mask, an inlined
+//    helper returning 0x10, an inlined helper holding the three hit-block
+//    statements, the eligibility test as a helper, the loop as
+//    do-while+guard / while / for(;;) / for(;;)+break, the loop bound through a
+//    local, and the first and clear loops as for/while/do-while.
+//  * The order of the two game writes, and the number of g_game loads. This is
+//    the part earlier notes did not have. The original does NOT hoist the
+//    `flags |=` above the `field_37e9c = 0` store, and it loads g_game TWICE
+//    (once into eax for the store, once into edi for the RMW). This build does
+//    both, because when both writes go through one tracked pointer (`Game* g =
+//    g_game; g->field_37e9c = 0; g->flags |= flag;`) MSVC 5 proves the two
+//    fields are disjoint, commutes the RMW up and merges the two loads. Writing
+//    the store through a local the compiler does not propagate and the RMW
+//    through the global reproduces the original exactly:
+//        Game_0048d790* g = g_game;
+//        g->field_37e9c = 0;
+//        g_game->flags |= flag;
+//    That gives the original's statement order and its two loads, and 92.2%
+//    (392 bytes), the hit block becoming
+//        mov edi,[esi+0x110] / mov edx,0x10 / or edi,edx / mov [esi+0x110],edi
+//        mov eax,[0x511de8] / mov word [eax+0x37e9c],0
+//        mov eax,[0x511de8] / or word [eax+0x37ebe],dx
+//    which is the original's block with EAX and EDI swapped and the remat still
+//    there. So that pointer split is the right shape; the file keeps the 92.6%
+//    version because the swap costs it a point.
+//  * The remat is not a source-shape choice. MSVC 5 rematerialises the mask
+//    inside the hit block whenever the mask is a local constant live out of the
+//    `test ebx,ebx; je` branch, and stops rematerialising only when the value is
+//    not live there (assign it inside `if (found != 0)`), which then homes the
+//    variable in a stack slot (`mov edx,[esp+0x10]` on the found==0 path),
+//    rotates the saved set to `pop ecx` and costs 407 bytes. Also measured: the
+//    mask used only inside the loop (remat), the def at four positions around
+//    the loop guard (remat), a two-arm phi (remat), a mask derived from the
+//    clear-loop mask `~(flag | 0x20)` (remat), the mask `register` (remat).
+//  * The hit block's registers are decided locally, not by a function-wide
+//    rotation: swapping the first loop's `found == 0` and bit4 tests, swapping
+//    the eligibility sub-conditions and changing the first and clear loop forms
+//    all leave it byte-identical. That also confirms the "callee-saved rotation
+//    set" theory in the older notes is wrong for this function.
+//  * The guard plus do-while is required: `while` and `for` forms put the hit
+//    block after the function's last `ret`, as the older notes say.
 // mimo-v2.6-pro retry (issue #3353): best stays 92.6% (387 of 388 bytes), no
 // MATCH. The single residual is unchanged: the hit block rematerialises the
 // mask (`mov edi,[esi+0x110]; mov edx,0x10; or edi,edx`) where the original

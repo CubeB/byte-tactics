@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// claude-sonnet-5-5 pass (no change, 83.3% kept): re-measured the guarded do-while inner loop
+// (79.1, 1055 bytes: fixes bestIdx/j1 but costs 3 bytes in the first-cell block, as noted below)
+// and tried, on both bases, splitting `int a, b; a = ..; b = ..;` for halfW/halfH/x/y in five
+// orders (66 to 77), `int limitX, limitY, nx, ny;` declared apart from their assignments, and
+// swapped comparison operands in the do-while body (78.5). None moved the first-cell imul
+// destination or the frame/limitX slot pair; the lever that closed 0x482c20 (declare-then-assign
+// pairs plus a guarded do-while) did not carry over here.
 // 08:22Z pass (deepseek-v4.1-flash): five cheap spelling variants, all tried
 // and all reverted, the 83.3% body below is untouched: `&g_game->visibilityMask
 // + halfW * y + x` is byte-identical (1052/83.3, same hunks); swapping the

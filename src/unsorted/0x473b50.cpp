@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3198: five checker invocations, best remains 88.0%; no MATCH. Vec3 pointer and indexed int-pointer helpers tied the existing output; mixing a Vec3 reference with six integer references scored 44.7%. The prior source remains best.
 // Retry (deepseek-v4.1-flash, issue 2990): existing best remains 88.0% (497 vs
 // 499 bytes). Explored genuinely different shapes (template helper, Vec3 member
 // method, combined Seg& helper, Class::SplitSeg, six int& refs, prepending the

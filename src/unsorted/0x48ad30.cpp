@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash (#3790) retry: declaring `unsigned char i = 0; int off = 0;
+// int* cnt = &g_game->f14353; *cnt = 0;` DOES reach the original slot layout
+// i 0x13 / off 0x14 / cnt 0x18, but the zero stores stay forwarded into registers
+// (mov [esp+0x18], eax; mov [ebx], eax) and the guard stays `jb` + select at
+// 850 bytes / 68.9 percent; cnt first with *cnt = 0 right after is 853 / 69.7.
+// The 84.5 percent order (cnt, i, off decls, *cnt = 0 last) stays.
 // deepseek-v4.1-flash (#3754) retry: a do-while with an explicit top `if (i >= 10) break;`
 // plus break-style rejects and no helper reproduces the documented 74.3% / 831 bytes,
 // so the break reading still cannot beat the 84.5% helper/select form, which stays.

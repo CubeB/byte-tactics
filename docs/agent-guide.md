@@ -222,7 +222,10 @@ return their argument and do-nothing casts can nudge the compiler, but on a
 partial they are not worth a few points, since every later attempt starts from
 your file. Keep such a gain out of `src/` and list its useful changes as a
 lead instead; on a MATCH, keep only what the bytes need and say so in a
-comment. Its first run
+comment. A partial gain of tens of points is the exception: on 0x450530 the
+self-assignment `g_game->local_player = g_game->local_player;` emits no code
+but moves the whole function's register allocation from 59.8% to 98.0%, so it
+stays, with a comment giving both scores. Its first run
 matched 0x4ac970, 0x4be400 and 0x4b3770 in under a minute each, after many
 attempts by hand. `docs/permuter.md` has the options and how to read the
 output.

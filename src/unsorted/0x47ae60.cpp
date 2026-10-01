@@ -7,7 +7,9 @@
 // a structural mismatch. The Energy/Metal down-clamp original really is
 // "add ecx, 0xfffffe0c" (imm32 negative) on a signed value; untried idea is
 // forcing that encoding via an unsigned add cast, e.g.
-// "int v = (int)((unsigned)*p + 0xfffffe0c);".
+// "int v = (int)((unsigned)*p + 0xfffffe0c);". TRIED (deepseek-v4.1-flash,
+// issue 3728): the unsigned form is byte-identical to the plain
+// "*p + -0x1f4" (85.5%, 2868 bytes), so the immediate is canonicalised.
 // What fixed 84.2 -> 85.5: the c2/c1 player count block. The original lays it
 // out loop1 / test-c2 / loop2 / test-c1 with ONE shared error stub at
 // 0x47b0bf (both "jl 0x47b0bf"). "if (c2 < 1 || c1 < 1)" and two separate ifs

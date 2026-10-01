@@ -9,6 +9,10 @@
 // `def->field_216 + 1 + (int)(...)` and `(int)(...) + (def->field_216 + 1)`
 // compile byte-identically to the current line, so the integer sum is
 // normalised by VC5 (still 96.8%, same 21-line diff).
+// deepseek-v4.1-flash pass: re-verified 97.1% (1980 bytes) baseline; splitting
+// the state-4 sqrt into a `float sf = (float)sqrt(...)` local before the two
+// multiplies is BYTE-IDENTICAL (same 4 hunks: fmul/fimul order, def in ebx vs
+// ebp, the sum shape, and the jump-table display hunk), so it is not the lever.
 // "Attacking" order handler of aircraft (VTOL). Interrupts hand over to a
 // "VTOL_SEEKATTACK" order; the order follows its target unit and gives up
 // outside its range. State 0 prepares the order (FUN_0040f200 is defined here

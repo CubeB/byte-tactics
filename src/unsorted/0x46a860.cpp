@@ -29,6 +29,12 @@
 // declaration/order swaps in the weapon loop and the M/E feature branch (all
 // neutral), explicit temps for the two `>> n & 1` tests (neutral), decimal 16
 // for the y3 subtract (neutral).
+// deepseek-v4.1-flash re-tried named locals for the two `>> n & 1` tests
+// (ufl for unit+0x110, bit1 for g_game+0x3923b) this pass: both are
+// byte-identical to the folded one-liners (VC5 still emits test dl,2 /
+// test ah,2 through a single-use local), so the original shr+test spelling at
+// 0x46b70b and the mov dl/shr dl,1 site is not reachable from a temp. Reverted,
+// 82.0% stands.
 #include <windows.h>
 #include <stdio.h>
 

@@ -180,6 +180,18 @@ extern char DAT_00508be8[];
 // the same fold as an `unsigned char depth` gives 58.9% / 1936 bytes (the
 // closest size yet, but the allocation still loses more than the shape wins).
 // The file is back to the pass 7 text; the trigger for cmd=ebx stays unproven.
+// Pass 10 (deepseek-v4.1-flash, 10 min box): 64.7 -> 65.0 percent, 1920 -> 1908 bytes.
+// The one gain is the flags tail: moving `int t = at<int>((void*)g_game, 0x1439b);`
+// from between the two masked stores to after the second store now emits both
+// `and` forms back to back before the g_game reload, matching the original's
+// store/load interleaving at 0x486d80 more closely. Flat at 1908 bytes: swapping
+// the two mask stores (w3) and moving the 0xa6 store after the first mask (w4).
+// Regressed to 64.7 percent / 1920: naming the first mask value `flags2` and
+// keeping the t load between the stores (w5). Still wrong: cmd is homed to EDI
+// where the original uses EBX, g_game occupies EBP where the original has no
+// callee-saved global cache, and the tail re-reads cmd from [esp+0x7c] where the
+// original keeps one register copy. All 15 hunks remain downstream of that
+// allocation; no MATCH.
 
 extern char DAT_00508bf0[];
 
@@ -417,8 +429,8 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
     unsigned int flags = at<unsigned int>(unit, 0x110);
     at<short>(unit, 0xa6) = 0;
     at<unsigned int>(unit, 0x110) = flags & 0xefffffff;
-    int t = at<int>((void*)g_game, 0x1439b);
     at<unsigned int>(unit, 0x110) = flags & 0xefffffcf;
+    int t = at<int>((void*)g_game, 0x1439b);
     at<int>(unit, 0x92) = t;
     at<short>((void*)at<int>(unit, 0x96), 0x144)--;
     if (at<short>((void*)at<int>(unit, 0x96), 0x144) == 0) {

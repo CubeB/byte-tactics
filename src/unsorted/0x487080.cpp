@@ -251,6 +251,14 @@ public:
 
 extern void* g_game;
 
+// Pass (deepseek-v4.1-flash, 10 min box, this session): best stays 67.5% / 1578 bytes.
+// Four probes, all byte-flat at 1578 bytes with 9 hunks: `return unit = 0;` for the
+// `if (!found) return 0;` failure arm (v1), `found == 0` (v2), `int i = 0;` with an
+// empty-init `for (;i<n;i++)` (v3), and moving `char name[32]; char script[32];` from
+// the top of the body down next to the FUN_00485f50 call (v5). The trailing epilogue
+// hunk (our `xor eax,eax` lands after pop ebp, the original's before pop edi) and the
+// frame 0x104 vs 0x100 offset do not move under any of these spellings.
+
 unsigned short __stdcall FUN_00488b10(const char* name);
 Unit_00487080* __stdcall FUN_00485f50(unsigned char player, unsigned short typeId,
                                       Vec3_00487080 pos, int param_5, int mode,

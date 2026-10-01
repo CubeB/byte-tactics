@@ -12,8 +12,28 @@
 // - every branch past that block therefore differs by 0x20 (`jne 0x498ca3` vs
 //   `jne 0x498c83`), so that hunk is the only real work item: the frame layout
 //   of the setup locals and the store/load order have to move.
-// No variant was tried this session (10-minute issue timebox); both hunks are
-// untouched from the previous attempt.
+// Re-checked at 84.3% (3431 of 3463 bytes) in the 10-minute issue timebox of
+// the next session; no variant was tried then either. New lead from the
+// disassembly (applies to both bar blocks): the original's mid-block
+// `push edi` at 0x498c2b (and the matching site in the 0x130/0x144 block) is
+// the FIRST push of the FUN_004bf6f0 argument sequence and cdecl pushes
+// right-to-left, so edi (the palette color) is the LAST-written argument and
+// the call at 0x498c5e-64 pushes only the other two (`lea eax,[esp+0x14]`,
+// `lea ecx,[esp+0x28]` = &rect). That means the source evaluates the
+// color-valued argument before the rect stores, and the rect[1]/rect[3]
+// immediates interleave with the byte load (0x15b lands between `mov cl,...`
+// and `and ecx,0xff`), which is exactly the store/load order this version
+// sinks below the immediates.
+// 0817Z note (deepseek-v4.1-flash, 10-minute box): baseline re-verified at
+// 84.3% (3431 of 3463 bytes, 22 diff hunks). One variant tried and rejected:
+// writing the 0x38d6f/0x38d73 zero pair through an `int* p =
+// (int*)((char*)g_game + 0x38d6f); p[0]=0; p[1]=0;` local (the original's
+// `mov edx,[g_game]; add edx,0x38d6f; mov [edx],ecx; mov [edx+4],ecx`
+// shape) regresses to 83.7% / 3433 bytes, because MSVC5 folds the local back
+// into [reg+0x38d6f] displacement stores with the shared ebp zero and adds an
+// extra `lea eax,[ecx+0x38d6f]` before the field_10 call schedule, so that
+// pair needs a base the compiler cannot fold into a displacement.
+// No variant was tried for the bar blocks this session.
 #include <windows.h>
 #include <string.h>
 

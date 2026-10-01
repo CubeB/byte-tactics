@@ -1,4 +1,12 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, retried by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2972): re-confirmed 96.6% (216 vs 219
+// bytes). The single missing instruction is the post-copy member reload
+// `mov eax,[ebx+0xc]` for `p->offset`. Every spelling that emits it (15 new
+// shapes: char-base packet stores, int*/int& length aliases, dest-via-len,
+// count-local update, 3 store permutations) scores exactly 219 bytes / 90.7%:
+// the reload forces value->ecx and count+1->edx and swaps the count/length load
+// order in the update. The reload-free baseline is the best register-identical
+// shape, so the residual is a compiler-state allocation tie.
 // Appends `size` bytes at `data` to the buffer's inline storage (at +0x14),
 // fills in the output packet `p`, and bumps the buffer's packet count.
 // `value` is the previously queued packet (0x462710 passes its tail), stored

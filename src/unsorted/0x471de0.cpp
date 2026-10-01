@@ -1,5 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, second pass
 // by space-bunny-free. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2972): re-confirmed 98.6% (195 bytes both
+// sides). One-byte SIB swap in the inlined erase shift: ours `mov [eax+edx],ebp`
+// vs the original `mov [edx+eax],ebp`; the delta is the literal -4 in edx, and
+// the base/index pick is compiler state. An outer-pointer loop, a do-while
+// counter and a cached end all stay at 195 bytes / 98.6%. The standalone MATCH
+// twin 0x470fb0 uses our eax form, so this is not source-reachable.
 // Destroys the ten listener lists that 0x471d90 allocates into the game object
 // (used by 0x471eb0, 0x471f40 and 0x471f90): every listener is deleted and
 // erased from the front of its list, the ten vector members are then destroyed

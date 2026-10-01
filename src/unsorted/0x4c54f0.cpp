@@ -1,4 +1,26 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry #3361 by mimo-v2.6-pro: still 70.2% (553 bytes). Kept variant A (below).
+//   * Read order: declaring `e = v.last;` before `p = v.first;` now emits
+//     `mov ebp,[edi+9]; mov esi,[edi+5]`, matching the original's last-then-first
+//     order (was first-then-last). Score unchanged at 70.2, but strictly closer.
+//   * Register roles (correcting an older note): the current spelling `s = this;
+//     w = &s->v; w->Free2(); delete(s);` yields obj in EDI and vec in EBX
+//     (`lea ebx,[edi+1]`). The original has obj in EAX->EBX and vec in EDI
+//     (`lea edi,[eax+1]; mov ebx,eax`). So obj/vec are swapped across ebx/edi.
+//   * Every inline-free form drops to 57.0% (frame shrinks 0x224 -> 0x220 and
+//     `push ebx; mov ebx,[esp+0x22c]` hoists section above _strcmpi): free written
+//     inline in the destructor, inline destruction in FUN_004c54f0 (3 callee-saved),
+//     inline with a materialised vec w (4 regs but w folds to obj+5), and a
+//     this-based spelling (obj=edi,first=esi,last=ebp, frees ebx). Only the
+//     out-of-line Free2 + s/w spelling holds 70.2%.
+//   * Latent bug to fix before any MATCH: DAT_005119b8 is a char[] (matched files
+//     declare `extern char DAT_005119b8[];` and the original does `push 0x5119b8`,
+//     an immediate address). This file declares it `extern char* DAT_005119b8;`, so
+//     the FUN_004c48c0 def arg compiles to `mov edx,[0x5119b8]; push edx` (pushes the
+//     buffer contents, not its address). Switching to char[] fixes that one push to
+//     match, but reshuffles the FUN_004c4420/48c0 block registers (lea edx vs lea
+//     eax) and scores 68.7%. The declaration is right and the register tie is the
+//     blocker, so it needs the upstream destructor register swap first.
 // Retry #3141 by GPT-6.1-sol: five worker checks plus an unsigned-index trial found no improvement; best remains 70.2%. Reordering destructor pointer declarations, making the old global object explicit, and rewriting the indexed for loop as while all reproduced the same score. Remaining differences are documented below, especially vector destruction/codegen and register allocation.
 // #2959 retry by GPT-6.1-sol: six checks reconfirmed 70.2%; strlen/memcpy and
 // other variants did not improve the saved source. No MATCH.
@@ -30,7 +52,8 @@
 //    and `[edi+0xc]`. Written as member accesses of `v`, MSVC 5 folds the +1
 //    away and uses this+5/+9/+0xd. Keeping a local `Class_004c5840* s = this;`
 //    and `Vec_004c54f0* w = &s->v;` alongside the object-base reads, and
-//    calling `w->Free2()`, keeps edi equal to this+1. 57 -> 70.2 percent.
+//    calling `w->Free2()`, keeps a separate vec register (ebx = this+1) so the
+//    free is not folded to this+5. 57 -> 70.2 percent.
 //
 // 2. The loop counter. It has to end up in the frame slot at [esp+0x18], the
 //    way the original has it, rather than in ebx, and that also makes the frame
@@ -209,8 +232,8 @@ Class_004c5840::~Class_004c5840()
 {
     Class_004c5840* s = this;
     Vec_004c54f0* w = &s->v;
-    Elem_004c5bc0* p = v.first;
     Elem_004c5bc0* e = v.last;
+    Elem_004c5bc0* p = v.first;
     while (p != e) {
         p->~Elem_004c5bc0();
         p++;

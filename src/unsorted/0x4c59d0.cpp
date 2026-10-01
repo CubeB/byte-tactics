@@ -1,4 +1,25 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry: re-measured the residue as a single instruction position,
+// not the store order. Everything up to and including the _Destroy call is byte
+// identical to the original; the FIRST divergence is the operator delete
+// argument reload (`mov eax, [esi+4]` original, `mov edx, [esi+4]` here), and
+// the whole tail cascade follows from it. Root cause found: in the original the
+// size() thiscall setup `mov ecx, esi` is HOISTED above the `_End = s + n` lea
+// (`mov ecx,esi / lea eax,[edi+edx*8] / mov [esi+0xc],eax / call size`), so ecx
+// is taken before the sum and the sum falls into eax, n into edx. In every one
+// of ~15 tail shapes compiled here (build/scratch/0x4c59d0/vA..vZ) the setup
+// lands AFTER the _End store (`lea / mov [esi+0xc] / mov ecx,esi / call`), the
+// sum goes to ecx and n to eax, and the delete arg to edx. The two shapes that
+// DO hoist it (size() as the first statement, vF/vJ) hoist it all the way to the
+// top before the s/n loads, which is one instruction too early and drops to
+// 79.6%. The target position (after the s/n loads, filling the n load-use delay
+// before the _End lea) was never produced by any statement order tried. Scores
+// of the closest structural matches, all below this file's 93.3%: separate
+// `size_type sz = FUN_004c5ba0();` then `_First=s; _Last=s+sz+1;` gets the
+// correct _End,_First,_Last store order but forwards s into the return (412
+// bytes, 80.9%); `return begin()+off` reloads _First into esi (right base reg)
+// but off still lands in eax not edi (82.4%). Whoever retries should target the
+// this-setup hoist into the n load-use delay slot specifically.
 // space-bunny-free retry: still 93.3% (337/367), the 13 instructions after the
 // operator delete call. New measurement: all six permutations of the three tail
 // stores were compiled and their /Fa listings read instruction by instruction.

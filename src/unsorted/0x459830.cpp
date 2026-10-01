@@ -1,4 +1,9 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3927): 1 check run, base kept. Re-confirmed the
+// fflags bit 1/bit 2 tests: `(fflags & 2)` / `(fflags & 4)` and the shift
+// spellings `((fflags >> 1) & 1)` / `((fflags >> 2) & 1)` are byte-identical at
+// 71.0 percent / 1050 bytes, so the original's `shr ecx,1 / test cl,1` and
+// `shr eax,2 / test al,1` form is not reachable from the test spelling alone.
 // deepseek-v4.1-flash retry (#3858): re-baselined at 71.0% / 1050 bytes, all
 // four documented wall hunks unchanged (ebx list load hoisted above the
 // 0x20000000 test, saved bitmap slot 0x24 vs original 0x20, the missing

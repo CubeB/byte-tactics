@@ -103,6 +103,36 @@
 //    (possible when srcCol > src->width, i.e. when x is large) counts down to
 //    zero and wraps round, overwriting the row about 2^32 times.
 
+// RETRY (deepseek-v4.1-flash, issue 3242): still 80.0% (235 of 234 bytes).
+// NEW FINDING, and the best lead for whoever tries next: this function's
+// register allocation is not a pure function of the source shape. It depends
+// on the translation unit's global compiler state. Dropping `#include
+// <string.h>` alone changes the whole body (227 bytes, 56.0%), and adding a
+// few dummy TYPE declarations flips the allocator between two states:
+//   state A (string.h alone): src->x->edx, src->y hoisted into ecx, x->ebp,
+//     sub->edx, sx=edx, dstRow=ecx  (the 52.7% if/else form, 234 bytes)
+//   state B (e.g. two extra dummy structs): src->x->ecx, sub->ecx, x->ebp,
+//     sx=ecx, dstRow=ebx           (228 bytes, 56.8% with the if/else)
+// The original needs a THIRD state: x->ecx, sub->edx, sx=ecx, dstRow=edx.
+// The state knob is the number of declared types (or the header set); the
+// pattern over N dummy structs is periodic (AABBAAABBA..., period ~11), and
+// 1500 structs, 120 dummy functions, dummy globals and 60 header sets only
+// ever produced A or B. A scan of 4805 generated variants for the original's
+// y-clip byte pattern (neg eax / mov ebp,eax / xor edx,edx ... xor ebp,ebp /
+// mov edx,eax) found none, so state C was not reached by any knob tried.
+// What differs in state A/B is that the ADD's destination register is the
+// sub result's register (add edx,ebp / add ecx,ebp); the original loads the
+// LEFT operand x straight into the ADD's destination (mov ecx,[esp+0x1c],
+// then add ecx,edx). Every source spelling tried still canonicalises to the
+// sub-into-destination form: sx = x / sx += ..., explicit temporaries,
+// ternaries, min/max, comma/goto/do-while, struct-return and int*-out-param
+// inline helpers, 18 sx forms x 16 sy forms, all 720 declaration orders,
+// all four y-clip arm orders, 30 clip shapes and the four condition
+// spellings. The one lever that DID move the allocation was the compiler
+// state above, so a future attempt should search harder for state C (for
+// example by finding the real game headers this file included, or by
+// scanning the type-count knob with a detector other than the byte prefix).
+
 #include <string.h>
 
 struct Image_004b9d70 {

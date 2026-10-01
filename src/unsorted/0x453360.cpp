@@ -1,4 +1,22 @@
-// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Retry pass (mimo-v2.6-pro): still 54.4%, byte-identical to the saved best.
+// Ruled out this pass: every FindTarget spelling (Game* local, while(1) as in
+// 0x453010's FindActiveId, do-while, i declared outside the for, pointer
+// locals with p[i] and p++, Player* return folded into a ternary) leaves
+// g_game in eax and the counter in ecx; /Ob2 discretionary inlining of a real
+// out-of-line FUN_0044fe00 (both __cdecl and __stdcall) gives the same basin
+// as static inline, so the inline mechanism is not the lever. Dead-code probe
+// with tiny /Fa listings: plain dead copies (even `int v = *(int*)&text;`),
+// dead invariant sums (`acc += (int)text`), dead pointer walks and reference
+// indirections are all deleted by /O2, and the one construct that survives
+// (a dead sum whose term depends on the loop var, e.g. `acc += i`) emits an
+// add, never a bare `mov`, so no dead-code spelling can produce the two bare
+// `mov eax,[esp+0x14]` reloads. This matches docs/agent-guide.md line 2029:
+// the reload is a split of text's live range (esi is taken by the loop
+// counters), not a deleted statement. The send arm keeps strncpy's return
+// value in eax untouched to the epilogue (buffer+1 is loaded into ecx there),
+// suggesting the original captures `char* r = strncpy(...)`; capturing it
+// unused was already tried and folded (GPT-6.1 notes above).
 // Retry #2591 (GPT-6.1-sol): best remains 54.4% (371/380 bytes). Rechecked the
 // saved best and tested passing Game* into FindTarget and writing its result
 // through an output pointer; neither moved the register allocation. No MATCH.

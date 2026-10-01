@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by gpt-6-luna, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by gpt-6-luna, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 // Finds the highest field_4 among the active players of type 1 or 3, then
 // looks that player up by field_4 and sets bit 0 of its info flags. The
 // player lookup is inlined and its index search appears twice.
@@ -120,6 +120,37 @@
 // 19.9% body above. Remaining difference: the original keeps 10 in eax/al,
 // which changes the countdown and pointer registers, and has entry guards from
 // the nested getter.
+//
+// Notes from a sixth attempt (mimo-v2.6-pro, #3440):
+// - The register allocation is one fixed rotation (eax, edx, ecx, ebx, esi,
+//   edi, ebp) over the live webs. The target is exactly this body's allocation
+//   with one extra web (the constant 10) inserted at the front of the order:
+//   const10=eax, math=edx, index=ecx, i=ebx, n=esi, g_game=edi, max=ebp, so
+//   p lands on ecx and max on ebp. Here the variables fill all four
+//   byte-capable registers (eax, edx, ecx, ebx) and the constant 10 stays an
+//   immediate; in the target n sits in esi (not byte-capable) and only
+//   ecx/edx/ebx hold variables at the searches, leaving eax free. That matches
+//   the guide's rule that constants only get the byte registers the variables
+//   leave free, so the lever is still moving one variable out of a byte
+//   register, not adding uses of 10.
+// - Matched 0x4467f0 has this exact prologue (`mov eax, 0xa` ... `mov esi,
+//   eax`) around `cmp byte ptr [ecx+0xd3], al` (p->field_146 != 10): a
+//   byte-typed compare of 10 against a MEMORY byte inside the loop hoists the
+//   constant into a byte register and the countdown init CSEs with the hoist.
+//   Our target's search compares are reg-reg (`cmp bl, al`), which only appear
+//   once the constant is already in al, so the hoist trigger is not visible in
+//   the search text itself.
+// - New shapes tried this pass (built and compared with
+//   build/scratch/0x450240/build.sh and cmp.py), all folding 10 back to an
+//   immediate (`mov edx, 0xa`, no `mov esi, eax`): loop-exit-value theory
+//   (`for (num = 0; num < 10; num++)` with num used after the loop as the
+//   search bound and sentinel through helper parameters, unsigned char and
+//   int forms); every search use byte-typed through `#define NUM_PLAYERS
+//   ((unsigned char)10)` (the 0x4897e0 hoist rule); an unsigned char num
+//   local with `int n = num` and num passed to the helpers; the 0x450a10 slot
+//   tail (`if (max == -1) slot = 10; else slot = FindPlayerIndex(max); if
+//   (slot != 10)`), which grows the body to 122 lines and scores lower; the
+//   0x457b90 per-iteration pointer for-loop; and an unsigned char countdown.
 // Suspected original bug: the second search can return sentinel 10, which is
 // used unconditionally as players[10] before dereferencing its info pointer.
 

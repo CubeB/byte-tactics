@@ -1,4 +1,34 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+//
+// Retry (mimo-v2.6-pro): best stays 88.0% (497 vs 499), this body unchanged.
+// New finding: the original's memory operation order is the source order of an
+// interleaved statement list (each component's end store comes after the next
+// component's loads and diff), and the per-component register reuse (sx/sy/sz
+// all in esi, dx/dy/dz all in ecx) falls out when the helper REUSES one
+// variable per slot instead of giving each component its own locals. Shape
+// (build/scratch/0x473b50/varG1.cpp), six int& params (which reproduce the
+// original's base registers exactly, including [ebp] for seg_1c.start.x and
+// [ebx+0x20]/[ebx+0x24] for y/z) and one reused v/d/q/ax/bx set:
+//     int v = sx; int d = ex - v; int q = d * 4 / 11; int ax = v + q;
+//     sx = ax; q = d * 7 / 11; int bx = v + q;
+//     v = sy; d = ey - v; ex = bx;   (same pattern per component)
+// compiles its x and y sections BYTE IDENTICAL to the original, including the
+// e.x store sunk past the y loads and the s.z/e.x store order, and scores
+// 83.2% (497 bytes). Its remaining diffs are all in the z section: the
+// original's `mov edx, esi; sub ecx, edx` for the z diff (ours: sub ecx,esi),
+// `lea edi, [edx + esi]` for the 4/11 z point (ours: add/mov), the ddy
+// subtract landing in edx with sy in eax (ours mirrored), the ddy store kept
+// before the z 7/11 division (ours sinks it past shl), the ez tail computed
+// `add edx,esi; sub edx,edi` (ours reassociates to sub/add), the z 7/11
+// sign fix in ecx (ours in eax), and block two computing ddx into ebp (ours
+// into eax). Measured and no better: re-reading the sz ref in the z diff
+// (varE1), `d = ez; d = d - sz` (varE2), separate z locals (varE3, spills,
+// 67.9%), direct `ey = ey - sy` (varE4): all 83.2% byte-identical to varG1.
+// Earlier shapes scored: two Vec3& refs with the interleaved order spill
+// (47.1%), Seg& hoists every load and spills (23.6%), splitting each lerp
+// into a quotient statement plus an add statement changes nothing (46.5%).
+// The G1 shape (varG1.cpp) is the best foundation for the next retry; the
+// z-section quirk list above is what is left to reproduce.
 // GPT-6.1-sol retry in #3198: five checker invocations, best remains 88.0%; no MATCH. Vec3 pointer and indexed int-pointer helpers tied the existing output; mixing a Vec3 reference with six integer references scored 44.7%. The prior source remains best.
 // Retry (deepseek-v4.1-flash, issue 2990): existing best remains 88.0% (497 vs
 // 499 bytes). Explored genuinely different shapes (template helper, Vec3 member

@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 3): moving the projectile loop's p/q
+// declarations inside the `if (g_game->projectileCount > 0)` block regressed
+// 78.3 to 78.1 (same 1646 bytes), so the declarations stay above the if.
 // deepseek-v4.1-flash 2026-10-01 (retry 2): dropping the (int) casts in
 // ScaleX_00466dc0 (`u->field_6c * g_game->field_142eb`) is byte-identical to
 // the cast form (78.3%, 1646 bytes, output diff empty), so the eax/ecx swap

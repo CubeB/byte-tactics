@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 3): Loop E's `unsigned char pi` local
+// forced a spill of playerIndex to [esp+0x1c] plus and 0xff reload; changing it
+// to `int pi` deletes the spill and gains 74.6 -> 75.2 (975 bytes). Duplicating
+// y/x declarations inside both vis arms regressed to 72.5, so the single
+// pre-if y/x pair stays.
+// PARTIAL STILL OPEN (75.2%): Loop E keeps the pos loads hoisted before the
+// field_14281 test and allocates flags in ebx (original: ebp) with the cursor
+// in ebp (original: esi); Loop C push/vptr scheduling and Loop D flags-load
+// order are unchanged from the notes below.
 // deepseek-v4.1-flash 2026-10-01 (retry 2): spelling the Loop C compare as
 // `u->field_ff != pl->field_146` regresses 74.6 to 74.2 (986 bytes), so the
 // original cl-first load plus `cmp al, cl` is not reachable by operand swap.
@@ -225,7 +234,7 @@ void FUN_00467440(void)
     for (u = first; u <= last; u++) {
         unsigned int f = u->flags;
         if ((f & 0x10000000) && !(f & 0x100) && !(u->field_10e & 4)) {
-            unsigned char pi = g_game->playerIndex;
+            int pi = g_game->playerIndex;
             PlayerInfo_00467440* p2 =
                 (PlayerInfo_00467440*)((char*)g_game + 0x1b63 + (unsigned int)pi * 0x14b);
             int y = ((int)u->pos.half.f74 - ((int)u->pos.half.f70 >> 1)) >> 5;

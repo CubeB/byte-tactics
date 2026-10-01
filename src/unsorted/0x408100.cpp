@@ -206,6 +206,16 @@ static inline int MapRange()
 // deepseek-v4.1-flash retry: an explicit `d.y = 0;` before the Direction() call in
 // the flag12 arm is byte-neutral too (same 3 hunks, 1221 bytes), so the xor
 // ebp,ebp placement in hunk 2 is not reachable by pre-zeroing the destination.
+// deepseek-v4.1-flash 10-minute pass: two negatives, both 1221 bytes and the same
+// three hunks. Hoisting the loop-2 copy by folding it into the order test is worse
+// than neutral: writing `if (!u->order || (u->order->flags & 0x4000)) { Vec3 target
+// = origin; if (!(unsigned char)u->def->flag12 || FUN_0040c230(field_10) >= 5) {`
+// (the nested form, the only source shape that puts the `def` load after the copy,
+// as the original 0x408334 does) re-materialises the origin copy for the flag12 arm
+// and duplicates the flag12 test: 91.9%, 1235 bytes, so hunk 1 is not the nesting.
+// Assigning `v.y = 0;` first in the inline Direction() helper is byte-neutral
+// (same hunks), so the flag12 arm's `xor ebp,ebp` before the first trig call is
+// not source order either.
 // FUNCTION: 0x408100
 void Class_004085d0::FUN_00407380()
 {

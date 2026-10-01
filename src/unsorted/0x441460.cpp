@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
-// finished by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // 83.7%, not a MATCH (was 80.5%). The frame is exact (buf sized 0x139 reserves the
 // original's 0x1b4 and the parameter read at [esp+0x1d0] lines up), the settings
 // copy at SETBUF = buf+0x119 is a clean 16-byte/4-dword copy, the record walk reads

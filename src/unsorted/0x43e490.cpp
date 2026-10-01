@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1 pass (best so far, 26.5%, 3100 bytes vs 3152): removed the `def` local by
 // expanding every `def->` to `(unit->def)` (macro DEF) so the frame collapsed to one local
 // (push ecx), which is what the original has; g_game is read inline through macro GAME.

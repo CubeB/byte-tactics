@@ -1,4 +1,21 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass 6 (52.9%, 4360 vs 4420 bytes, current best): two case-3 changes on top
+// of pass 5. (1) `Def* tdef` is declared in a NESTED block that opens at the enemy path (`{` plus
+// `Def* tdef = target->def;` immediately before the `(target->f110 & 3) != 2` test) and closes just
+// before the shared flag_28/break tail, which moved the tdef load to 0x43f1f1 like the original and
+// put node in esi, matching `mov esi,[ebp+0x10]` at 0x43f177 (51.6 -> 51.8). (2) deleting that
+// local and writing `target->def->` at the 5 use sites instead is better still: MSVC then loads
+// edx = target->def only at the first use, after the `& 3` guard and after the node bit test,
+// exactly as the original does (51.8 -> 52.9). The two `goto reached`/`goto after` are inside the
+// nested block, so they still resolve. Prologue still differs (ours: mode ecx, def edx, `dec ecx`;
+// original: mode edx, def esi, `lea ecx,[edx-1]`), as do the friendly path's scratch picks
+// (node->f111 in edx vs eax; def->f1ee chain in eax/ecx vs ecx/edx) and the bottom reach compare
+// (ours cmp ecx,eax / jg, original cmp eax,ecx / jl).
+// Also tested on this base: the bottom reach test written directly as
+// `if (target->def->f170 + target->f70 < g_game->threshold) goto after;` (39.7: MSVC folds the
+// redundant test away, the pass-5 commuted form must stay), swapping the reach sum's operand
+// order (52.9, byte-identical to pass 6), dropping the flags110 local for direct `unit->f110bits`
+// reads and making it a 1-element array (both byte-identical to pass 5).
 // deepseek-v4.1-flash pass 5 (51.6%, 4332 vs 4420 bytes, current best): the case-3 guard's
 // second reach test is a redundant re-test in the original (0x43f23c: cmp eax,ecx / jl 0x43f27a)
 // that MSVC folds away in every spelling that shares a syntactic tree with the first test
@@ -314,7 +331,6 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         flags.raw = unit->f110;
         if (flags.flag_31) {
             Node_0043f0e0* node = unit->f10;
-            Def_0043f0e0* tdef = target->def;
             if (!enemy) {
                 if (node->f111bits.flag_17)
                     break;
@@ -324,11 +340,12 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                     return Class_00438760("AIRSTRIKE");
                 return Class_00438760("AIRTOGROUND");
             }
+            {
             if ((target->f110 & 3) != 2) {
                 if (node->f111 & 0x20000)
                     break;
             }
-            if (tdef->f170 + target->f70 >= g_game->threshold)
+            if (target->def->f170 + target->f70 >= g_game->threshold)
                 goto reached;
             if (!(node->f111 & 0x10000)) {
                 if (!(unit->f3b & 2))
@@ -336,7 +353,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 if (!(unit->f2c->f111 & 0x10000))
                     break;
             }
-            if (g_game->threshold <= tdef->f170 + target->f70)
+            if (g_game->threshold <= target->def->f170 + target->f70)
                 goto reached;
             goto after;
         reached:
@@ -350,11 +367,11 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             unsigned int f = def->f241;
             if (def->f241bits.flag_11) {
                 unsigned int air = def->f1ee->f111 & 0x100;
-                if (air && !(tdef->f241 & 0x800))
+                if (air && !(target->def->f241 & 0x800))
                     return Class_00438760("AIRSTRIKE");
-                if (!air && (tdef->f241 & 0x800))
+                if (!air && (target->def->f241 & 0x800))
                     return Class_00438760("AIRTOAIR");
-                unsigned int tv = tdef->f241 & 0x800;
+                unsigned int tv = target->def->f241 & 0x800;
                 if (!tv && !(f & 0x8000000))
                     return Class_00438760("AIRTOGROUND");
                 if (!tv && (f & 0x8000000))
@@ -365,6 +382,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 return Class_00438760("ATTACK_CHASE");
             if (flags.raw & 0x20000000)
                 return Class_00438760("ATTACK_NOMOVE");
+            }
         }
         if (def->f241bits.flag_28)
             return Class_00438760("ATTACK_KAMIKAZE");

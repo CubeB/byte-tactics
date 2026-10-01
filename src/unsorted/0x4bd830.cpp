@@ -1,4 +1,18 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// NOTE from the second session (timebox fired): still 56.4% best (this file);
+// a count-inline-only variant (build/scratch/0x4bd830/v1.cpp) printed 51.9%,
+// so removing the count local alone is NOT the fix and is worse. /Fa listing of
+// this file shows the whole slot map is a permutation, not just nameoff/i:
+// ours: clen +0x10, pos +0x14, data +0x18, remaining +0x1c, dataptr +0x20,
+// tp +0x24, nameoff +0x28, n +0x2c, file +0x30, table +0x34, i +0x38,
+// packlen +0x3c, count +0x40; original: dataptr +0x10, remain +0x14,
+// databuf +0x18, tp +0x1c, nameoff +0x20, table +0x24, clen +0x28,
+// file +0x2c, n +0x30, i +0x34, pos +0x38, recarr +0x3c, packlen +0x40.
+// recoff/size/blocks/pack/chunk/j take no slots at all here (registers or
+// rematerialised). Tried this session: count as inline deref in the if and the
+// latch only (v1, 51.9%, slots unchanged: nameoff +0x28, i +0x38). Not tried
+// before the timebox: declaring each scalar at its point of use to reshuffle
+// the allocator's processing order, and forcing recarr to be a real slot.
 // Partial, 56.4% (best actually printed by check.py; this file is that best
 // version, kept as is because the rewrite below was never scored when the
 // timebox fired). What still differs: stack-slot assignment in the entry loop

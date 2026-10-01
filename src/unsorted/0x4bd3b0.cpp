@@ -41,6 +41,21 @@
 //    ecx,ebx; push ecx` vs `lea eax,[ecx+ebx]; push eax` and the `add [eax],ecx`
 //    for *total += size are also stuck (see board). Semantics are believed
 //    correct throughout; what differs is register allocation and scheduling.
+//
+// Session 3 (deepseek-v4.1-flash) findings:
+//  - Reproduced the fsz-capture variant (87.9, exact 1148 bytes) again; kept
+//    this 88.3 version as the file since it scores higher.
+//  - Probed MSVC 5 directly (build/scratch/0x4bd3b0/probe): plain `*total += x`
+//    DOES emit the RMW `add [eax],ecx` with a single read of x in isolation
+//    (int, unsigned, struct fd.size, stores through out[1]-style pointers). A
+//    faithful leaf probe (c.cpp g8: fd stack local, out/total params, a call
+//    mid-block, entry store, node stores) gives the single fd.size read into
+//    ecx (the CSE survives the char store) but still a load/add/store on
+//    *total while total stays register-resident. In the real function total is
+//    spilled and reloaded into eax, where the original's `mov ecx,eax` copy
+//    then `add [eax],ecx` appears. The RMW form looks tied to total being
+//    spilled and the addend living in a second register, not to the spelling
+//    of `+=`.
 #include <io.h>
 #include <string.h>
 

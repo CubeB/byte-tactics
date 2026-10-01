@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol (#3157 retry): baseline 92.9% (886/886); FileCount helper tied, FileLoop aggregate fell to 63.9%. No MATCH; five stack homes remain swapped.
 // Partial (92.9%, size 886 = the original's). Every instruction matches except
 // the frame offsets of five locals; the code around them is identical, only the
 // `esp+` displacements differ. Frame map (offsets from esp while the four
@@ -58,6 +59,10 @@
 // N-declarations sweep (N = 0..256, step 8) is flat, and defining the real
 // neighbouring function 0x434b90 above this one changes nothing, so the
 // permutation is not front-end compiler state. Best kept at 92.9%.
+// GPT-6.1-sol retry: rechecked the 92.9% source, a single-use files.size()
+// helper kept the same output, and putting count/index/vector in an aggregate
+// shifted the whole frame and scored 63.9%. Keep the existing source: the
+// remaining difference is still the count/vector/index stack-home permutation.
 
 #include <string.h>
 #include <vector>

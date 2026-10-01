@@ -8,6 +8,16 @@
 // plus a near jle, the original uses two memory operands and a short jle). Fix that pair together
 // and the function should land. for(;;) and do-while(1) with break both re-emit the redundant
 // test or peel the first iteration (2230 bytes / 90.3%).
+// Pass 11 (deepseek-v4.1-flash): the loop/tail pair is one-way so far. Adding `else break;`
+// inside the GUI do-while (keeping `} while (more);`) reproduces the original tail exactly at
+// 2171 bytes / 94.4% for every divisor spelling tried: `(int)g_game->field_1438f` and
+// `*(int*)((char*)g_game + 0x1438f)` compile byte-identically to the plain form, so the
+// hoisted count (`mov ecx,[edi+0x1438f]; cmp ecx,esi; idiv ecx`) does not turn into the
+// original's two memory operands (`cmp [ecx+0x1438f],esi`, `idiv [ecx+0x1438f]`) from the
+// divisor expression. `int u` instead of `unsigned short u` in the units loop breaks the
+// whole loop (2198 bytes / 71.6%). Hoisting the `type` declaration out of the units loop and
+// declaring `u` outside it are byte-identical at 96.8% (2173), so the ecx/edi flip for
+// g_game is still the only thing left; nothing tried this pass moved it.
 // Pass 9 (deepseek-v4.1-flash): 96.8% (2173 bytes against 2173, sizes equal). The cursor swap
 // that held this at 91.4% is gone: the copy loop must be `*w++ = *s` (not `*w = *s; w++;`), so
 // MSVC emits `mov ecx,w; push s; add w,0x249; call` like the original and keeps the cursor in

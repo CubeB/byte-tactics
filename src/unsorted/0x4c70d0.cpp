@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3236: two checker invocations, best remains 78.9%; no MATCH. An explicit if/else dispatch fell to 60.4% and was reverted. Existing case register rotations and case 0 displacement notes remain the best guidance.
 // deepseek-v4.1-flash (#3060 retry): still 78.9% (280 bytes, exact). Case 0 is the
 // arg1-vs-arg3 register-priority tie: the `at_high` hoist above `out->low = 0` persists
 // in every spelling, so the global reload lands in edx (6 bytes) instead of eax

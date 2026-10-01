@@ -1,4 +1,36 @@
-// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+//
+// ---- mimo-v2.6-pro pass (issue 4035), best still 93.7% (576/568) ----
+// Mapped every spelling to one of two clean attractors, and the target sits
+// between them. (A) plain by-value pair (this file): `add ebx,0x6a` (the
+// inliner turns `from` into a live pointer, evicting unit2 from ebx), from
+// fields interleaved with the to loads, sub order dy,dz,dx, f/s loaded last,
+// from.x/from.z spilled to [esp+0x10]/[esp+0x18] with from.y in ebx. (B) any
+// real copy of unit2->pos (CopyPos struct-return helper, call-site Vec3
+// aggregate init, or helper taking Unit* and copying inside): the original's
+// `lea edx,[ebx+0x6a]` with ebx kept as unit2 (tail reload gone), but MSVC
+// enters the inlined call's argument setup: f/s are loaded and PUSHED FIRST,
+// all THREE copy fields are stored (from.y store NOT dead), and the sub order
+// is dz,dy,dx with pushes interleaved. The target = A's spill layout (only
+// x/z stored, y kept in ebp) + B's edx addressing + a third schedule (subs
+// dx,dy,dz batched before the f/s loads).
+// New facts this round: (1) the frame's middle slot [esp+0x14] is NOT from.y's
+// home; it is the dz.hi spill of both distance tails (`mov [esp+0x24],edx`
+// after the four _allmul pushes), so the three slots are +0x10 from.x, +0x14
+// dz.hi, +0x18 from.z, and the from reads go through &unit2->pos (a forwarded
+// copy), not through a home; (2) named dx/dy/dz and fx/fy/fz locals are ALWAYS
+// flattened into the same schedule (singly and combined, with and without
+// CopyPos), so statement order is not the lever; (3) moving w (s/f source) into
+// the helper body so f/s load late does not survive CopyPos's arg setup (f/s
+// still push first); (4) out-param delta helpers (the 0x49e570 shape, both
+// aggregate-by-value and all-scalar forms), reference params, `Vec3* p=&from`
+// in the body, a dead `unit2 = keep` store, and swap/assign forms of the body
+// all flatten to attractor A or to the 49.8% direct shape (no spills, w moves
+// to ebx, register rotation of the whole function changes).
+// Scored this round: only check.py on the saved 93.7% file (confirmed); all
+// new variants judged from their /Fa blocks, none reached the target block's
+// 22 instructions. Remaining lever per the guide is the register-allocator
+// tie that puts &from in ebx/ebp instead of scratch edx in shape A.
 // issue-3175-r1 GPT-6.1-sol: baseline confirmed at 93.7% (576/568). Changing the
 // inline helper's two range parameters from int to unsigned int was byte-identical;
 // introducing a named Vec3 copy of unit2->pos before the helper fell to 92.1%

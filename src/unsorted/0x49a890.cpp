@@ -1,4 +1,25 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro (issue #4035): best stays 83.6% (488/488 bytes). The one diff hunk is the
+// post-_hypot x87 schedule, rooted in the commutative fild order of the gh multiply: the
+// original filds g then height, ours filds height then g and batches speed's fild before the
+// gh multiply (also delaying `add esp,0x10`). Confirmed NOT fixable from the source:
+//   (1) gh as one expr `(double)g*(double)height` (74.6), `height*g` (74.6), two-stmt
+//       `gh=(double)g; gh=gh*height` (83.6, best), `gh*=height` (83.6), `gh=(double)height*gh`
+//       (83.6), named `gd=(double)g` (83.6), named `hd=(double)height` (74.6): all fild height
+//       first. Never g first.
+//   (2) headers: stdio+math, math only, +string, +windows, +stdlib, no stdio: all 83.6 and
+//       still fild height first (headers.py's escape hatch does not move it).
+//   (3) preceding real function FUN_0049a850 compiled first in the file: still 83.6, height
+//       first (the "function before compiled first" trick does not flip the load order).
+//   (4) disc shapes (group `(d*d)`, right-group, mirror, sum-inlined) all <=83.6; the current
+//       `(...)*d*d - d*d*gg*sum` left-assoc disc is optimal. Naming h2 or d2 breaks the middle
+//       (74.6 / 487 bytes / 60.x).
+// Catch-22: matching the middle requires `(double)height*(double)height` left inline in sum and
+// disc so height is reused, but that reuse is exactly what makes MSVC fild height before g and
+// hoist speed's conversion ahead of the gh multiply. Making height single-use (h2 named) drops
+// to 74.6. So the g/height commutative load order cannot be flipped while keeping the disc that
+// matches the middle. Gave up; this is the guide's x87-commutative load-order case (headers do
+// not fix it). Everything from the first `fst [esp+0x20]` onward matches in the current file.
 // space-bunny-free (issue #3386): 83.6% retained, no MATCH. Ran an x87 stack SIMULATOR over
 // the original (build/scratch/0x49a890/sim.py) to recover the exact expression tree, and it
 // CORRECTS the note above: the original's disc is NOT `(h2*gg + (s2-gh*-2.0)*s2)*d*d -

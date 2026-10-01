@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 4, timeboxed): no new gains, stays at
+// the 78.3% / 1646-byte best. Open sites unchanged from the notes below: the
+// projectile loop keeps p in ebx and q spilled where the original keeps q in
+// ebx and reloads p from [esp+0x1c], and the ScaleX multiply loads zoom into
+// eax before u->field_6c.
+
 // deepseek-v4.1-flash 2026-10-01 (retry 3): moving the projectile loop's p/q
 // declarations inside the `if (g_game->projectileCount > 0)` block regressed
 // 78.3 to 78.1 (same 1646 bytes), so the declarations stay above the if.

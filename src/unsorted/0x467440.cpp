@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 4, timeboxed): no new gains, stays at
+// the 75.2% / 975-byte best. Open sites unchanged: Loop E keeps the pos loads
+// hoisted before the field_14281 test and allocates flags in ebx (original:
+// ebp) with the cursor in ebp (original: esi); Loop C and Loop D scheduling
+// differences as noted below.
+
 // deepseek-v4.1-flash 2026-10-01 (retry 3): Loop E's `unsigned char pi` local
 // forced a spill of playerIndex to [esp+0x1c] plus and 0xff reload; changing it
 // to `int pi` deletes the spill and gains 74.6 -> 75.2 (975 bytes). Duplicating

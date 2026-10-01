@@ -86,6 +86,14 @@
 // inlined UnlockScreen surface as an explicit `IDirectDrawSurface* surface` local:
 // byte-identical (1086 bytes, 83.0), so the [eax+0x8c] eax-vs-ecx load is not the
 // local's spelling. Score unchanged at 83.0, 1086 bytes.
+// Session deepseek-v4.1-flash (5th, timebox): re-ran check.py twice, no source change, still
+// 83.0 percent / 1086 bytes. Branch 1 is confirmed byte-identical apart from the jne
+// displacement: ours already emits `mov eax,[esp+0x10]; test eax,eax; jne skip; <body with
+// literal 0 stores>`, and the original reaches the SAME body from branch 2 via the shared
+// `jne` at 0x4c6639, so the only thing keeping the two sites apart is that branch 2's Unlock
+// still stores/loads `ebp` (a register proven 0) instead of the literals, which in turn is
+// the ebp/ebx role swap in branch 2's inlined Lock. No new spelling tried: any variant that
+// forces held into a function-scope home was already measured at 67.6 percent (frame 0xf8).
 // Session deepseek-v4.1-flash (3rd): `for (;;)` in the inlined Lock() loop regresses
 // 83.0 to 69.1 (1086 -> 1118 bytes: the loop rotates and the import-pointer registers
 // move), so `while (1)` in Lock() stays; reverted, 83.0 reconfirmed. Remaining diffs

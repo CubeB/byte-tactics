@@ -24,6 +24,11 @@
 // clip at 0x34, imin/imax at 0x44/0x48) and the y1>clip.top reload in the edge loops.
 
 
+// Session deepseek-v4.1-flash (3rd, timebox): re-ran check.py twice, no source change, still
+// 64.3 percent / 1144 bytes. Remaining hunks are unchanged from the notes above: the five
+// early-out tails (checks 1 and 4 should jump into the single final unlock body at 0x4c7a08,
+// checks 2/3/5 keep an inline unlock), the slot assignment pairs (0x10/0x14 and 0x24/0x28)
+// and the y1>clip.top reload in the edge loops. No variant attempted in this session.
 // Session deepseek-v4.1-flash (2nd): the suggested `int ok = FUN_004c5e70(&local);` spelling
 // (removing the function-scope `int ok;`) is byte-identical here at 64.3 percent / 1144 bytes,
 // so storing the result does not produce the original `cmp eax, ebp` at the first check.

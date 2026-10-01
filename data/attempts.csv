@@ -7118,4 +7118,5 @@ address,size,model,batch,result,similarity,runs,notes
 0x435da0,2740,,#4242,assigned,,,"issue #4242, escalated"
 0x401360,2239,,#4243,assigned,,,"issue #4243, escalated"
 0x405980,1040,,#4243,assigned,,,"issue #4243, escalated"
-0x49aa80,301,,#4245,assigned,,,"issue #4245, escalated"
+0x49aa80,301,deepseek-v4.1-flash,#4245,partial,66.1,,"issue #4245, escalated"
+0x49aa80,301,,#4247,assigned,,,"issue #4247, escalated"

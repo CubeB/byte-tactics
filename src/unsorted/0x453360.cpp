@@ -94,6 +94,21 @@
 // `mov eax,[esp+0x14]` reload and the test cannot be run here. The reload must
 // therefore come from an inlined function's own parameter reference that the
 // optimizer drops the use but not the load of.
+//
+// Retry pass (deepseek-v4.1-flash, this run): 54.4% is still the best of every
+// variant tried. A sweep of 0 to 2048 unused function prototypes stayed flat at
+// 54.4%, so file-level compiler state is not the lever (the earlier unused-extern
+// sweep reached the same conclusion). Writing the two else arms as inline helpers
+// taking (text, target) with text unused, or with a dead null early-out, folded
+// the parameter load away (54.4%) or added instructions (53.5%). Inline search
+// forms (for, while, do-while, pointer walk, index-returning, game-as-parameter)
+// sat at 46.7 to 54.4% and never moved g_game from eax to ecx. Dead-read
+// constructs placed at both arm tops (if (text), if (!text), text, (int)text,
+// strlen(text), *text, a text-walking skip loop, null early-outs) were all folded
+// by /O2 or produced extra tests, so none reproduced the original's two bare
+// `mov eax,[esp+0x14]` loads. The causal reading is that those dead eax writes
+// are what push g_game out of eax into ecx: without a construct that survives as
+// a bare dead eax load, the whole register cascade cannot be reproduced.
 #include <iostream>
 #include <string.h>
 

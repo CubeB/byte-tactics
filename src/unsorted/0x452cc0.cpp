@@ -70,6 +70,29 @@
 // using IsType1/IsType3; and defining 0x452c40 immediately above (state).
 // Adding a genuinely live extra local changed the rotation but only made the
 // code longer (870 bytes, 53.8%), so extra live nodes are not the lever here.
+// RETRY deepseek-v4.1-flash (pass 4): confirmed on this 848-byte base that the
+// only two diffs in the whole function are (a) the cyclic register rotation
+// (ours g_game=edi, p=ebx, slot=esi; original g_game=ebx, p=esi, slot=edi,
+// a strict ebx->edi->esi->ebx rotation of the same three registers) and
+// (b) the flag temp: ours `mov dl,[ecx+0x97]; and edx,1; mov [esp+0x10],edx;
+// xor edx,edx` versus the original `xor eax,eax; mov al,[ecx+0x97]; and eax,1;
+// xor edx,edx; mov [esp+0x10],eax`. Both are 848 bytes because the shorter
+// flag form pays for the extra 2 bytes the wrong coloring costs elsewhere, so
+// neither can be fixed alone. New sweeps this pass, all flat at 84.3% (848
+// bytes, byte-identical): hoisting the slot / flag / loop-index declarations
+// (alone, and in the permutations slot,flag,i and flag,slot,i, and with the
+// declaration placed before `Player_00452cc0* p`), moving `int i = 0` before
+// the flag computation (that one loses the loop rotation: 863 bytes, the guard
+// becomes top-tested, and the flag STILL comes out as `mov dl`), and eight flag
+// expression forms: `int flag = p->data->flags; flag &= 1;`,
+// `unsigned int flag = ...; flag &= 1;`, a separate `unsigned char` temp,
+// `(int)p->data->flags & 1`, `p->data->flags % 2`, `(unsigned int)... & 1`,
+// `& 0x1`, and reads of a plain 8-by-1-bit byte bitfield (`p->data->b0`, no
+// union) plus an inlined `static inline int FlagBit(unsigned int v){return v&1;}`
+// helper (four parameter/return type combinations). Every form still emits the
+// partial `mov dl` load, so MSVC is folding the byte load into the AND no
+// matter how the conversion is spelled. The `xor eax,eax` therefore is not a
+// source-level property of the flag expression.
 
 #include <stdio.h>
 #include <string.h>

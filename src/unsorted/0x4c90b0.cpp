@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass), edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass), edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by GPT-6.1-sol, finished by claude-sonnet-5-5. Names are provisional.
+// claude-sonnet-5-5 (#4423): MATCH found by the permuter: declaring `char* chars;` before the strlen locals (assigned later) flips the second strcpy destination to lea edx,[eax+ebp].
 // GPT-6.1-sol retry in #3210: 11 checker invocations, including two compile failures and one silent attempt; best remains 93.4%. Integer-size variants regressed to 86.1% and 85.0%; tail pointer and LEA spellings canonicalized to the same code. Stack-save and LEA order remain different.
 // #3006 retry by GPT-6.1-sol: six checks retained 93.4%; unsigned-short and
 // string/operand variants did not improve the saved source.
@@ -219,14 +220,15 @@ public:
 Class_004c90b0* Class_004c90b0::FUN_004c90b0(const Class_004c90b0& other)
 {
     if (!other.IsEmpty()) {
+        char* chars;
         int n = (int)strlen(ptr);
         int m = (int)strlen(other.ptr);
         int len = n + m + 1;
-        int* lp = &len;
-        *lp += 5;                   // opaque store: keeps the +1 and +5 apart
+        int* lp = &len;                   // opaque store: keeps the +1 and +5 apart
+        *lp += 5;
         int* block = (int*)malloc(len);
         *block = 1;
-        char* chars = (char*)(block + 1);
+        chars = (char*)(block + 1);
         strcpy(chars, ptr);
         strcpy(chars + n, other.ptr);
         ((int*)ptr)[-1]--;

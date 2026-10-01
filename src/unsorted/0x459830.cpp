@@ -1,4 +1,8 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3971): 1 check run, base kept. The firstFace
+// block as an if/else with a merge store (int fi; if (...) { face++; fi = 1; }
+// else fi = 0;) scores 65.9 percent / 1053 bytes against this base, so the
+// original's single late store of fi is not reachable from the if/else shape.
 // deepseek-v4.1-flash retry (#3927): 1 check run, base kept. Re-confirmed the
 // fflags bit 1/bit 2 tests: `(fflags & 2)` / `(fflags & 4)` and the shift
 // spellings `((fflags >> 1) & 1)` / `((fflags >> 2) & 1)` are byte-identical at

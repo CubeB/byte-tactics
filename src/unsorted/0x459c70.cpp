@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3971): 1 check run, base kept. Dropping the
+// `!= 0` from the tail antiAlias test (to mirror the head site that emits the
+// original's `mov cl,[m]; shr cl,1; test cl,1`) is 36.4% / 1958 bytes against
+// this base 36.5% / 1955, so the tail fold to `test byte [m],2` is not that
+// spelling.
 // deepseek-v4.1-flash retry (#3858): re-baselined at 36.5% / 1955 bytes, the
 // same piece-loop alignment and weight-fill hunks as before; no new lever found
 // inside this issue's timebox.

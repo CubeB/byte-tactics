@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3971): 2 check runs, base kept. Reordering the
+// three in-place v.v[] deltas to z,y,x (so the first x-use is last) is
+// 70.5% / 1514 bytes, worse than this base, so the entry copy scheduling is
+// not flipped by the delta statement order. The previously untested union with
+// a whole `unsigned short whole;` view (b2 tested as `(gameFlags.whole & 4)`,
+// b3 through `bits.b3`) is 59.9% / 1483 bytes, so the b2 mask form is not
+// reachable that way either.
 // deepseek-v4.1-flash retry (#3858): re-baselined at 70.7% / 1530 bytes, same
 // hunks as before. The entry slot run reads the Vec3 parameter in y,z,x order
 // (0x40,0x44,0x3c into 0x28,0x2c,0x24) where the original is x,y,z

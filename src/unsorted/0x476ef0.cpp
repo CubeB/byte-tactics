@@ -148,6 +148,14 @@
 // regresses 80.4 -> 77.1 percent (1119 bytes): it does emit the guard first,
 // but re-colours linesPerPage from [esp+0x18] to [esp+0x14] and costs 7 bytes.
 // Reverted; file stays at 80.4 percent. Three check runs this session.
+// deepseek-v4.1-flash session (issue #3745, 10 min timebox): scored vD
+// (colourState = 0 moved from before the sel ternary to between the ternary
+// and the second lineStart++), byte-identical at 80.4 percent / 1112 bytes,
+// so the store placement in source order does not steer the schedule of the
+// dead store. Confirmed from the original disassembly that the dead store
+// 0x477257 (mov [esp+0x20],0) executes before the 0x47725f jne, i.e. it is
+// unconditional and only a compile-time DSE difference remains; the file
+// stays at its best 80.4 percent.
 #include <string.h>
 
 #pragma pack(push, 1)

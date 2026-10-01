@@ -99,6 +99,14 @@
 // re-confirmed at 72.9% (1914 vs 1935 bytes); no new variant scored, the
 // remaining gap is still pure MSVC block ordering of the Campaign/Start pair
 // and BigButton body, not a source shape.
+// deepseek-v4.1-flash session (issue #3745, 10 min timebox): baseline
+// re-confirmed at 72.9 percent (1914 vs 1935 bytes); no new variant scored in
+// this window. The whole gap stays the MSVC 5 block-ordering choice for the
+// redundant re-test (ours inverts it to `je Campaign` with PremMenu as the
+// fallthrough and sinks the Campaign/Start pair plus BigButton), confirmed
+// again from the original at 0x477b45 (`jne PrevMenu` with the Campaign test
+// as the false fallthrough at 0x477b4b and BigButton at 0x477b6d). File stays
+// at its best 72.9 percent.
 #pragma pack(push, 1)
 struct Entry_00477ab0 {
     char unknown_0[0xba];

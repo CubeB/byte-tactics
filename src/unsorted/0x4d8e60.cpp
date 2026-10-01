@@ -233,6 +233,7 @@ void __cdecl FUN_004ded60(char* dst, int size);
 void __cdecl FUN_004de110();
 
 static inline DWORD* inl0(DWORD written) { return &written; }
+static inline char* inl1(char* p) { return p + strlen(p); }
 
 // FUNCTION: 0x4d8e60
 int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
@@ -294,29 +295,27 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     }
     // REGION r2 end
 
-    // REGION r3 begin
-    log[0] = 0;
+    //     log[0] = 0;
     { size_t L;
     L = strlen(log); sprintf(log + L, "Exception handler called in %s. ", ((char*)handlerName)); }
     FUN_004ded60(log + strlen(log), 0x7358 - strlen(log));
-    { size_t L = strlen(log); do sprintf(log + L, "Instruction pointer is %08lX\n", ctx->Eip); while (0); }
-    { size_t L;
-    L = strlen(log); do sprintf(log + (L), "ExceptionCode = %08lX", rec->ExceptionCode); while (0); }
-    { size_t L;
-    L = strlen(log); do sprintf(L + log, " - %s\n", (char*)file); while (0); }
+    { char* d = log + strlen(log); sprintf(d, "Instruction pointer is %08lX\n", ctx->Eip); }
+    { char* d = log + strlen(log); sprintf(d, "ExceptionCode = %08lX", rec->ExceptionCode); }
+    { char* d = log + strlen(log); sprintf(d, " - %s\n", (char*)file); }
     if (0xc0000005 == rec->ExceptionCode) {
         if (rec->NumberParameters >= 2) goto skip12;
         goto skip6;
-    skip12:;
-        if (0 != ((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1])) { size_t L = strlen(log);
-                                                                    L = L; do sprintf(log + ((size_t)L), "Error: Write to read only memory attempted\n"); while (0); }
+skip12:;
+        if (0 != ((char(__cdecl*)(unsigned long))FUN_004d8680)(rec->ExceptionInformation[1])) { char* d = log + strlen(log);
+                                                                    do sprintf(d, "Error: Write to read only memory attempted\n"); while (0); }
                                                                 { size_t tmp6, L = strlen(log);
                                                                 tmp6 = (size_t)L;
                                                                 sprintf((((size_t)tmp6)) + log, "Access violation: Illegal %s, data address 0x%08lX\n",
                                                                         0 != rec->ExceptionInformation[0] ? "write" : "read", rec->ExceptionInformation[1]); }
-    skip6:;
+skip6:;
     }
     // REGION r3 end
+
 
     // REGION r4 begin
     { size_t L = strlen(log), same0 = L, same3;
@@ -380,12 +379,10 @@ skip5:;
     // REGION r5 end
 
     // REGION r6 begin
-    int room = 0x7358 - (int)strlen(log);
-    room = ((((int)room)) - 0x3e8);
-    if (0 < room) goto skip11;
-    do goto skip8; while (0);
-skip11:;
-    lstrcpynA(log + strlen(log), obj.dump_text, ((int)room));
+    if (0x7358 - (int)strlen(log) - 0x3e8 > 0) {
+        lstrcpynA(log + strlen(log), obj.dump_text,
+                  0x7358 - (int)strlen(log) - 0x3e8);
+    }
     { size_t L = strlen(log);
     L = ((L)); sprintf(log + ((size_t)L), "\n"); }
     { char* d = log + strlen(log); sprintf(d, "Dr0 = %08lX\t", ctx->Dr0); }

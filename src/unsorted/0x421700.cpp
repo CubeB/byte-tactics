@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #4008 deepseek-v4.1-flash (10 min): flat at 71.7% / 1759 bytes. Tested and rejected: grouping the ab/n declarations before the two assignments (flat), a single temp for the two o->verts[k] / o->verts[7-k] stores regresses to 64.4 / 1751, and the !param->scale and for-init k spellings are flat. Residual unchanged: the 0xa8 frame against 0x90 and the nine scaled float x87 load schedule.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 71.7%, 1759 bytes. Flat at
 // 71.7: hoisting the ni declaration next to v, and declaring n before ab. The
 // 0xa8 frame (ab/n Vec3f slots plus arg-buffer reuse) and the x87 load order

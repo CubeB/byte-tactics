@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #4008 deepseek-v4.1-flash (10 min): flat at 69.1% / 1514 bytes. Tested: a Class_004b4ba0* f = file alias for the three tail calls, n declared at function scope, and a live int zero = 0 placed right after the Feature Type Names block feeding the three FUN_004b4800 defaults are all byte-flat. Residual: the original re-zeroes ebp after the names loop so ebp is the shared zero and is then reused for file in all three tail loops; ours keeps file in ebx/esi and rematerialises the zero in edi.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 69.1%, 1514 bytes. Flat at
 // 69.1: a function-scope int zero = 0 feeding the three FUN_004b4800 defaults,
 // declared either right after FUN_00422ea0 or at the function top. Sharing the

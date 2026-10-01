@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #4008 deepseek-v4.1-flash (10 min): 60.8% / 1533 bytes. Moving the fireOrder=4 / moveOrder=4 declarations to the very top (before onOff) put the ebx=4 / edx=4 pair ahead of the nine zero stores and lifted 60.6 to 60.8. cloak/onOff swap, a live zero16 unitIndex compare, and first/count before the 4-inits are flat at 60.6. Residual: count stays spilled to [esp+0x20] where the original keeps it in ebx, first sits in a slot where the original uses ebp, and the unitIndex test is test ax,ax where the original has xor esi,esi / cmp ax,si.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 59.6%, 1533 bytes. Flat at
 // 59.6: first/count declared first, an unsigned short zero16 local routing the
 // unitIndex compare, and the nine flag initialisers moved before onOff. Ours
@@ -238,6 +239,8 @@ static inline Unit_0041b2e0* GetUnit(unsigned short index)
 void FUN_0041b2e0()
 {
     g_game->orders.refresh = 1;
+    int fireOrder = 4;
+    int moveOrder = 4;
     int onOff = 3;
     Unit_0041b2e0* u;
     int cloak = 3;
@@ -253,8 +256,6 @@ void FUN_0041b2e0()
     int canBlast = 0;
     int canStop = 0;
     int canRepair = 0;
-    int fireOrder = 4;
-    int moveOrder = 4;
     Player_0041b2e0* player = &g_game->players[g_game->localPlayer];
     if (g_game->unitIndex != 0) {
         count = 1;

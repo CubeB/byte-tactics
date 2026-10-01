@@ -1,4 +1,14 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 4 (deepseek-v4.1-flash), current best 61.9 percent (1334 vs 1332 bytes):
+// flipping the entry test to `if ((e->flags & 1) != 0) { recursive } else { leaf }`
+// puts the recursive call in the fall-through and the leaf at the jump target,
+// matching the original's `test byte [x+8],1 / je leaf` at 0x4bd93c: 56.4 -> 61.9.
+// On top of that, dropping the count local and writing the guard and latch as
+// `i < *(unsigned*)(base + off)` drops to 54.8, and keeping the count local with
+// `i = 0; if (i < count)` is byte-flat 61.9, so the latch count deref is not a
+// standalone lever. Remaining diff: base lives in ebx and the entry pointer in
+// ebp (original: base ebp, entry pointer ebx, the mirror image), and the scalar
+// slot map is still a permutation (ours nameoff +0x28, i +0x38, count +0x40).
 // NOTE from the second session (timebox fired): still 56.4% best (this file);
 // a count-inline-only variant (build/scratch/0x4bd830/v1.cpp) printed 51.9%,
 // so removing the count local alone is NOT the fix and is worse. /Fa listing of
@@ -144,15 +154,17 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
         strcat(name, "\\");
 
     unsigned count = *(unsigned*)(base + off);
-    if (count != 0) {
-        i = 0;
+    i = 0;
+    if (i < count) {
         nameoff = 0;
         recoff = (int*)(base + off + 4);
         do {
             Entry_004bd830* e = (Entry_004bd830*)(base + nameoff + *recoff);
             strcpy(full, name);
             strcat(full, (char*)(base + e->name));
-            if ((e->flags & 1) == 0) {
+            if ((e->flags & 1) != 0) {
+                FUN_004bd830(full, base, e->offset, f, cb, extra, key, flags);
+            } else {
                 file = FUN_004bb2e0(full, "rb");
                 dataptr = (long*)(base + e->offset);
                 *dataptr = ftell(f);
@@ -238,8 +250,6 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                 FUN_004d85a0(file);
                 if (cb != 0)
                     cb((unsigned)(*dataptr * 90 - *(int*)(base + 8) * 90) / extra + 5);
-            } else {
-                FUN_004bd830(full, base, e->offset, f, cb, extra, key, flags);
             }
             nameoff += 9;
             i++;

@@ -1,4 +1,10 @@
-// Decompiled by DeepSeek V4.1 Flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, edited by deepseek-v4.1-flash. Names are provisional.
+// Session 4 (deepseek-v4.1-flash): still 88.3 percent / 1152 bytes; two more
+// probes stayed byte-flat: moving `*total += fd.size;` directly under the node
+// size store (so the two fd.size reads have no store between them and can CSE)
+// and spelling the node size store as ((unsigned int*)node)[1] = fd.size. The
+// lead item is still the missing `mov ecx, eax` (fd.size is rematerialised for
+// the `*total += ...` RMW) plus the ebx/esi SIB direction, as recorded below.
 // Best 88.3 percent (1152 vs 1148 bytes). What still differs, all register
 // allocation (semantics are believed correct):
 //  - the top block loads out[0] into esi then copies to eax; the original

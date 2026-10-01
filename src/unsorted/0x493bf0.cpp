@@ -24,6 +24,18 @@
 //  * Scratch registers in the strlen block (g_game in edx and the player index
 //    in ecx in the original, the other way round here) and the order of the
 //    `push ebp` against the buf2 memset before FUN_00463e50.
+// deepseek-v4.1-flash (this session): tried ~60 more spellings of the 0x37f2f
+// test (byte local `raw`, shift assigned to a byte/short local, `/ 2`, variable
+// shift count, casts through char*/unsigned char, 8-bit bitfields, bitfield on
+// either side of `&`, `!= 0`, uchar/short/ushort/int/char flags, if/else).
+// Every one folds to `test byte [m],2`; the original's
+// `mov dl,[m]; shr dl,1; test al,dl` needs the byte in a register, but MSVC 5
+// copy-propagates any single-use byte local back into the test. Also tried 24
+// permutations of the saved/base/oldmode/to statements plus local-pointer and
+// pointer-arithmetic forms of base: saved-before-base (the current order) is
+// best at 89.7%, base-before-saved drops to 88.7%. Giving the field_2bf1 store
+// a local `Game* g = g_game` fixes the `[edx+esi+0x2bf1]` SIB base but moves
+// g_game to ecx and perturbs the whole strlen block, so it is not worth it.
 // What worked: BOTH mode and oldmode are `int`. With an unsigned char oldmode
 // the working mode took ebx. With both int, oldmode (assigned inside the strlen
 // block) wins ebx and the working mode lives at [esp+0x10] as in the original,

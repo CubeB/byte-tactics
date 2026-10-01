@@ -1,4 +1,38 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// 30-min checkpoint (deepseek-v4.1-flash, issue #4006): best 78.3% (1451 bytes, original 1418).
+// FINAL (deepseek-v4.1-flash): 78.3%, 1451 bytes. What still differs: (1) y has a
+// home slot at 0x18, so panel sits at 0x1c and every panel/dst offset is 4 high; the
+// original's y is ebx-only (`lea eax,[ebx+1]`, `lea eax,[ebx+0x25]`, no store after
+// `add ebx,0xf`) and panel is at 0x18. (2) The not-found path in the original jumps
+// to the shared guard at 0x494dc0 and the cleanup lives once in the tail; ours emits
+// `cmp edi,0xa; jne draw` plus the cleanup inline in the not-found path. The two-if
+// source shape that should produce the shared guard makes MSVC 5 SP3 duplicate the
+// cleanup instead (tail duplication); a micro-test with a bottom-tested search loop
+// and complementary `if (n != 10)` / `if (n == 10)` does not merge the tests either.
+// Most promising lead for the next attempt: the y home is a register-allocation
+// decision, not a frame-layout one. Narrowed further this session with throwaway
+// builds (objdump only): the home appears exactly when the hr block passes `&hr`
+// to a call AND hr's fields are y-derived. hr with no call, hr with constant
+// fields, or the call taking `&panel` instead of `&hr` all keep y in ebx/ebp with
+// no home. So the trigger is the y-derived values being committed to an
+// address-taken local immediately before a call; the allocator then prefers the
+// strength-reduced `y + 0x25` value in ebx and demotes y to memory. Blocking that
+// strength reduction (or finding the source construct that made the original keep
+// y in ebx across those two FUN_004bf4d0 calls) should fix the panel offsets, the
+// dst scheduling and the cleanup at once. Also tried and no better: hoisting
+// `int lp = g_game->localPlayer;`, `if (n >= 10)`, `char buf[64]`, passing the
+// kill/loss ternary straight to sprintf.
+// Kept: the signed cleanup comparison `q->field_148 > i` (gives the original's `jle`;
+// the casted form emits `jbe`). Tried this session and rejected (all <= 78.3%):
+// countdown pointer-walk cleanup in the not-found path (73.0%, 1428 bytes, y still
+// spills), draw-first two-if structure with the cleanup in the tail (67.5%, cleanup
+// duplicated by tail duplication), draw+cleanup if/else (78.3%, identical code),
+// panel.top used as the row (59.2%), separate header/loop row locals (56.7%),
+// `unsigned y` (78.3%), y declared before/after panel (78.3%), hr built outside the
+// test (64.5%), hr values from dst (62.5%), explicit y+1/y+0x25 temporaries and
+// inline RowTop/RowBottom helpers (78.3%). Diagnostics (objdump): y keeps its home
+// slot in every shape; the home appears only when the hr block has both y uses and a
+// call (hr with no call or no y use: y stays in ebx/ebp with no home).
 // deepseek-v4.1-flash (issue #3941, this session): the 0x494bc4 block in our build
 // re-emits the whole player-state loop body inline (the `cmp edi,0xa; jne` plus the
 // 0x1b63 player scan) where the original jumps to the tail copy at 0x494dc0, and our
@@ -325,7 +359,7 @@ void __stdcall FUN_004948e0(void* surface)
                     continue;
                 if (q->data->field_9b & 0x40)
                     continue;
-                if ((unsigned)q->field_148 > (unsigned)i)
+                if (q->field_148 > i)
                     q->field_148--;
             }
             continue;

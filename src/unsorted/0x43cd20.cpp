@@ -1,6 +1,13 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// deepseek-v4.1-flash, 2026-10-01, second probe: `Vec3* const ppos` is
+// byte-identical (74.8%, 964 bytes); moving the hasPath==0 FUN_0043cc20 call
+// before `turn = hasPath` regresses to 71.2 (966 bytes); hoisting `int rate`
+// above the diff block regresses to 71.8 (978 bytes). Best stays the version
+// below.
+//
+
 // deepseek-v4.1-flash retry, 2026-10-01. State: 74.8% (original 943 bytes,
 // ours 964); kept, no improvement. Also tried hoisting `UnitType* type =
 // unit->type;` and using it in the hasPath==0 arm: 70.4% / 959 bytes, so the

@@ -1,5 +1,12 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// deepseek-v4.1-flash, 2026-10-01, second probe: splitting the FUN_0043e060
+// assignment across both branches of the b19 test scores 54.6 (914 bytes),
+// plain POD assignment `Vec3 v; v = f();` 56.7 (886), and the
+// ctor-initialised then assigned `Vec3 v(0,0,0); v = f();` 56.7 (886). The
+// direct-init version below stays best (59.0%, 889).
+//
+
 // deepseek-v4.1-flash retry, 2026-10-01. State: 59.0% (original 920 bytes,
 // ours 889); no improvement, the version below is the best. Also tried this
 // pass: the reversed clamp ternary `v.y = lim > v.y ? lim : v.y;` (that flips

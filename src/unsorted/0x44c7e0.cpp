@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by deepseek-v4.1-flash and GPT-6 (their 80.5% version is the basis).
 // Partial at 84.6% (1596 bytes against 1586). What still differs:
 //  1. The unit-type scan loop: the original zeroes the record byte offset with
@@ -127,6 +127,13 @@
 // bytes) kept. Naming the +0x245 flags load (`unsigned int flags`) with the
 // (flags >> 15) & 1 and (flags & 0x8000) spellings is byte-identical at 85.2%,
 // so the folded `test ch,0x80` and the ebp/edi role swap stay unreachable.
+// Tenth pass (deepseek-v4.1-flash, issue 3809): baseline re-confirmed at 85.2% /
+// 1595 bytes. Naming the slider handler address in a local before the 0x0c loop
+// (`void* handler = (void*)FUN_0044be70; ... slider->field_144 = handler;`) is
+// byte-identical (VC5 constant-propagates the link-time constant back into the
+// store, so edi is never claimed and n still wins edi), and the extra edi load of
+// n before the slider loop plus the per-call `add reg,0x519` panel recomputation
+// (never `lea esi,[ecx+0x519]`) account for the 9-byte surplus.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

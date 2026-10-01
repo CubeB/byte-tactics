@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Earlier attempt by deepseek-v4.1-flash, finished by GPT-6; continued here.
 // Best 74.4% (2763 bytes; frame is 0x2c where the original allocates 0x28). A 16-byte _itoa buffer improves the earlier 74.1%; 12 bytes drops back to 74.1%.
 // Gains this round: the three gadget blocks now store `(short)val` and pass the
@@ -31,6 +31,23 @@
 // kept. Changing flag97 from short to int in three spellings (bitfield read,
 // raw byte read & 1, bool compare) is byte-identical to each other and
 // regresses to 68.0% (2748 bytes), so the 16-bit flag97 form is load-bearing.
+
+// Tenth session (deepseek-v4.1-flash, issue 3809): 74.4% -> 74.6% (2763 bytes).
+// The gain: the two late `flagStart` guards now read `(short)flagStart`, which
+// killed the early `mov [esp+0x20], ebx` spill of flag97 (ebx now carries the
+// early flag to its last use at 0x44a162 and never needs a home there).
+// Everything else tried regressed. Accounting for pushes in flight, the
+// original frame (0x28) is metalVal+0, energyVal+4, holder+8, local_1c+0xc,
+// the flag word+0x10 and text at +0x14, so the original's text buffer runs to
+// +0x27 (20 bytes) while ours sits at +0x18 with the same 0x28 frame. The early
+// flag read at 0x449c21 lives only in ebx (never spilled) and the +0x10 store
+// happens at the 0x44a131 read, which is why our `mov [esp+0x20], ebx` spill and
+// `and cl,1 / mov bl,cl` are extra: rewriting that read as a reassignment of
+// flag97 scored 69.9%, a separate `int flagStart` used by the two late guards
+// scored 74.3% (2761 bytes), `short flagStart` 69.9%, the same with plain
+// `flagStart` guards 74.3% (2761 bytes). Passing
+// `(short)g->field_140` to FUN_0045b9b0 (for the original's movsx) scored 72.8%,
+// and the DAT_00512d78 player lookup via g_game+idx*0x14b+0x1b8a ties at 74.4%.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -187,9 +204,9 @@ void FUN_00449bb0(void)
 {
     int energyVal = 1000;
     int metalVal = 1000;
-    char text[16];
     void* holder = 0;
     int local_1c = 0;
+    char text[16];
 
     DAT_00512994 = 0;
     DAT_0050550c = -1;
@@ -401,7 +418,7 @@ L_a042:
         FUN_0049fa90(maxPanel);
     }
 
-    if (flag97 == 0 || (*(unsigned char*)(g_game + 0x2c74) & 1) != 0) {
+    if ((short)flagStart == 0 || (*(unsigned char*)(g_game + 0x2c74) & 1) != 0) {
         FUN_004a1450(g_game + 0x519, "MAXUNITS", 1);
         FUN_004a1450(g_game + 0x519, "ENERGY", 1);
         FUN_004a1450(g_game + 0x519, "METAL", 1);
@@ -439,7 +456,7 @@ L_a042:
 
     ((Class_00435d30*)*(int*)(g_game + 0x391e9))->FUN_00435d30(1);
 
-    if (flag97 != 0 && FUN_0045b660() != 0 && DAT_00512ce8 != 0) {
+    if ((short)flagStart != 0 && FUN_0045b660() != 0 && DAT_00512ce8 != 0) {
         ((Class_00435a20*)*(int*)(g_game + 0x391e9))->FUN_00435a20(&DAT_00512ce8);
     }
 

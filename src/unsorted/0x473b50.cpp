@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2990): existing best remains 88.0% (497 vs
+// 499 bytes). Explored genuinely different shapes (template helper, Vec3 member
+// method, combined Seg& helper, Class::SplitSeg, six int& refs, prepending the
+// matched preceding 0x473b30, lerp addend swaps, ddx placement): all either
+// byte-identical at 88.0% or worse (39.9 to 62.4%). Residual: two Vec3& refs
+// keep e.x/e.y 7/11 stores before the next component's loads (aliasing), and
+// block2 rematerializes s.y/s.z via [ebx+0x20]/[ebx+0x24] instead of
+// [ebp+4]/[ebp+8]. Scheduling/rematerialization, not source-reachable.
 
 // Retry (deepseek-v4.1-flash, #2615): no gain, 88.0% stays. A Vec3 method
 // Split()/Sub() pair (two inlined methods, the same shape the matched

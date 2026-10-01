@@ -78,6 +78,31 @@
 // Before 0x4a950a the original contains no FUN_004c1420 and no
 // FUN_004a16f0(menu, 0, 8) call at all, so our post-loop FUN_004c1420 +
 // FUN_004a16f0(menu,0,8) + buf1/buf3 strncmp block is spurious.
+// Retry by deepseek-v4.1-flash (#4193, 10-minute timebox): 37.0 -> 37.5% (4288
+// vs 5248 bytes). The spurious post-loop FUN_004c1420(current) +
+// FUN_004a16f0(menu,0,8) + buf1/buf3 strncmp block was deleted and replaced
+// with the real block: `if (menu->layer->field_20 != -1 && menu->field_a2 != 0)`
+// (Menu_004a81e0 gained field_a2 at +0xa2), save entries[field_20].type,
+// FUN_004a16f0(menu, field_20, 8), a for (j = 1; j <= count; j++) strncmp scan
+// of entries[j].name against entries[0].name (0x10) with j = -1 on the run-off
+// path, then FUN_004a16f0(menu, j, 8) when j != -1 && savedType != 1 &&
+// entries[L.i].field_29 != 0. Note the original's saved type lands in the same
+// [esp+0x24] slot the code at 0x4a8e59 filled with &entries[L.i].u.text, because
+// three pushed arguments shift esp by 0xc ([esp+0x30] with args pushed IS
+// [esp+0x24] with none), so it is a shared dead temp, not a new local.
+// Also removed the two FUN_004c1420(DAT_0051fba4->current) calls that followed
+// the second loop: the original only calls FUN_004c1420 in loop2 case 2.
+// Still open: (a) loop2 case 2 must read the signed byte entries[L.i].field_28
+// at +0x28 (movsx at 0x4a9212) instead of the group byte, but writing it scores
+// 37.4 vs 37.5 with the group byte, so the surrounding allocation still differs;
+// (b) prologue register allocation (original: entries in ebp, flags in ebx,
+// param_1 reloaded from [esp+0x3d4]); (c) the frame is 0x354 instead of 0x3c0
+// because our last buffer at [esp+0x350] is dead: the original uses it as
+// char[0x80] and copies it into entries[L.i].u.text with a 0x20-dword rep movsd
+// at 0x4a8ed8 inside the forced-path loop (0x4a8e19..0x4a8ecf, FUN_004c5740 text
+// translation); declaring buf3[0x80] and adding that memcpy gives 37.3, and
+// enlarging buf2 to 0x180 gives 37.5 at the same 4288 bytes, so that whole
+// 0x4a8e28..0x4a8f10 block has to be rebuilt before the frame will line up.
 // Issue #2354 retry by GPT-6.1-sol: the saved 26.2% source remains best after one
 // targeted stage-string variant scored 25.8%; three worker checks total, no MATCH.
 // Partial: 26.2%, 3776 bytes versus the original 5248. What still differs:
@@ -207,7 +232,9 @@ struct Menu_004a81e0 {                  // the object callers pass as arg1
     Layer_004a81e0* layer;              // +0x18
     char unknown_1c[0x70 - 0x1c];
     int field_70;                       // +0x70
-    char unknown_74[0x9b6 - 0x74];
+    char unknown_74[0xa2 - 0x74];
+    int field_a2;                       // +0xa2 (nonzero = selection active)
+    char unknown_a6[0x9b6 - 0xa6];
     char str_9b6[0x100];                // +0x9b6
     char str_ab6[0x100];                // +0xab6
     char str_bb6[0x100];                // +0xbb6
@@ -690,13 +717,19 @@ after_entries:
             break;
         }
     }
-    FUN_004c1420(DAT_0051fba4->current);
-
-    FUN_004a16f0(menu, 0, 8);
-    if (L.i == entries[0].u.count + 1)
-        FUN_004c1420(DAT_0051fba4->current);
-    if (strncmp(buf1, buf3, 0x10) != 0)
-        FUN_004a16f0(menu, 1, 8);
+    if (menu->layer->field_20 != -1 && menu->field_a2 != 0) {
+        int savedType = entries[menu->layer->field_20].type;
+        FUN_004a16f0(menu, menu->layer->field_20, 8);
+        int j;
+        for (j = 1; j <= entries[0].u.count; j++) {
+            if (strncmp(entries[j].name, entries[0].name, 0x10) == 0)
+                break;
+        }
+        if (j == entries[0].u.count + 1)
+            j = -1;
+        if (j != -1 && savedType != 1 && entries[L.i].field_29 != 0)
+            FUN_004a16f0(menu, j, 8);
+    }
 
     if (flags & 2) {
         if (entries[0].u.assets.saveUnder != 0) {

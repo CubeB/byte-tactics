@@ -1,4 +1,21 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// deepseek-v4.1-flash retry (#4193, 10-minute timebox): baseline re-verified at
+// 46.0% (2204 vs 2164). One new lever measured and it is WORSE: folding the
+// early `if (menu->layer == 0) return 0;` into a shared epilogue
+// (`int result = 0; if (menu->layer != 0) { ...; result = 1; } return result;`)
+// removes the early exit entirely, so MSVC cannot duplicate the epilogue at the
+// top; it scores 44.1 (2200 bytes), so the original really did shrink-wrap with
+// a top-of-function `return 0`, and the four-register save order is still not
+// reachable by changing the return shape. Do not repeat it.
+//
+// Also measured this session, also worse: spelling ONLY the entry-loop bound as
+// a fresh `menu->layer->entries->u_b6.anim.count + 1` (the complementary half of
+// the 4-site case-5 re-read lever above, which was 44.0) scores 44.5 (2212
+// bytes), and spelling ALL nine loop-body and field_68 uses that way is 41.5
+// (2228 bytes). A per-iteration fresh read of the layer's entries does not
+// demote the cached `entries` local out of EBX, so leave `entries` cached.
+//
 //
 // deepseek-v4.1-flash retry (10-minute timebox): tried the "fresh
 // menu->layer->entries re-read at 0x4aa48f/0x4aa5a7/0x4aa5bd/0x4aa66f" lever.

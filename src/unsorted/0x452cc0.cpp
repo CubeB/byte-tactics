@@ -51,6 +51,25 @@
 //    or use-count lever.
 // headers.py tried 128 header sets (all 84.3%), and alternate flag types and
 // the existing inline predicate helpers (IsActive12 and friends) did not help.
+// RETRY deepseek-v4.1-flash (pass 3): instruction-level LCS of the whole
+// function against a hand-compiled bottom-tested build shows the ONLY two
+// differences are (a) the p / g_game / slot register rotation (ours
+// slot=esi, g_game=edi, p=ebx; original p=esi, slot=edi, g_game=ebx) and
+// (b) the flag temp using edx instead of eax, which is exactly the original's
+// extra `xor eax,eax` (2 bytes): original `xor eax,eax; mov al,[ecx+0x97];
+// and eax,1; xor edx,edx; mov [esp+0x10],eax`. The bottom-tested loop
+// (`for (int i=0;i<10;i++)`, which emits the original `add edx,0x14b;
+// cmp edx,0xcee; jl` with no entry guard) is correct but is 846 bytes, and the
+// 2-byte shortfall shifts every branch target, dropping the score to 67.3.
+// N-declarations sweep (0..248, step 8) was flat at 67.3, so the rotation is
+// NOT compiler state. Also byte-identical or worse: unsigned int / unsigned
+// char / 1-bit bitfield / separate-int / local-data-pointer flag forms; the
+// 0x452960-style `unsigned char&` reference for slot; inline helper returning
+// the flag; IsActive12 helper calls in the loop and arms; local Game* inside
+// the loop; ternary and inverted-branch p; declaration-order permutations;
+// using IsType1/IsType3; and defining 0x452c40 immediately above (state).
+// Adding a genuinely live extra local changed the rotation but only made the
+// code longer (870 bytes, 53.8%), so extra live nodes are not the lever here.
 
 #include <stdio.h>
 #include <string.h>

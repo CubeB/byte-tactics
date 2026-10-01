@@ -1,4 +1,35 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// space-bunny-free pass (900 s, 3 real check runs, all scored variants free
+// through --sym): the 534-byte do-while base still stands at 81.1%, 534 of 537
+// bytes, and no variant beat it. Everything outside the growth branch matches
+// instruction for instruction, so the whole remaining difference is ONE
+// allocator decision inside that branch: the original keeps _P in ecx from
+// right after the operator new[] call to the third _Ucopy, and every one of
+// the loop1 copy temp (esi, not ecx), the _Ufill registers (_X in edi, the
+// counter in esi, not esi/ecx) and the third loop's _Last cache (esi, not a
+// reload into edx) follows from that single choice. Ours picks edi for _P
+// even though ecx is free there (ecx still holds _Last from the prologue until
+// the capacity ternary at 0x4254d5, and dies after it).
+// Measured this pass, all with the same class and only the third _Ucopy's
+// spelling changed (nothing else in the file moves, and these are the only
+// three score buckets the whole space produces):
+//   for (; _s != _Last; ++_d, ++_s) with _d declared first   541 bytes 80.5%
+//   the same with end() instead of _Last                     541 bytes 80.5%
+//   the same with the increments written `_d += 1, _s += 1`  541 bytes 80.5%
+//   do { ... } while (_s != end())                           534 bytes 81.1% (kept)
+//   const_iterator _l = _Last; cached, declared first        546 bytes 58.0%
+//   const_iterator _l = _Last; cached, declared last         546 bytes 58.0%
+//   _Ucopy(_P, _Last, _Q + _M) helper (inlined)              546 bytes 58.0%
+//   _s declared first, for loop, _d in the for-init           531 bytes 72.4%
+//   _P itself as the loop variable, for loop                  529 bytes 59.9%
+//   do construct(_d++, *_s++) while (_s != _Last)            524 bytes 52.5%
+// The pre-tested form is the right STRUCTURE (the original pre-tests, and its
+// `sub ecx,edx / add ecx,eax / sub ecx,edi` derives the source start in place
+// from _P's own register, which is why its esi cache survives), but reaching it
+// needs _P in ecx, and no loop spelling here moves _P out of edi. The
+// accessor route of the guide's item 28 (begin()/end() through the growth
+// branch) changes nothing: end() scores exactly what _Last scores, so the
+// member reads are not what decides the rotation.
 // #2343 retry by GPT-6.1-sol: five checks kept the prior 81.1% best, no MATCH.
 // Reverse comparison and split destination initialization made no difference;
 // explicit while(1)/break scored 79.7%. Growth branch loop guard, register
@@ -150,5 +181,8 @@ class Class_004c2ea0 { public: int field_0; };
 typedef std::vector<Class_004c2ea0*> V;
 typedef void (V::*F)(V::iterator, V::size_type, Class_004c2ea0* const&);
 // GPT-6.1-sol final pass: five checker runs total (including baseline and final verification); reverse compare and separate destination increment stayed 81.1%, while (1)/break fell to 79.7%. Best remains the saved 534-byte do-while (81.1%); the head guard, _Last cache and growth-branch register assignment still differ.
+// space-bunny-free: source unchanged from the saved base, only this comment
+// block is new. Verified with check.py after the edit: 534 bytes, 81.1%, no
+// MATCH.
 // FUNCTION: 0x425480 ?insert@?$vector@PAVClass_004c2ea0@@V?$allocator@PAVClass_004c2ea0@@@std@@@std@@QAEXPAPAVClass_004c2ea0@@IABQAV3@@Z
 F g = &V::insert;

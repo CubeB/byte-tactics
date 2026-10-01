@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash retry (#3691): still 88.9, 779 of 779 bytes, the same
+// realloc-arm register wall documented below (_P in ecx here, edx in the
+// original). Moving allocator.deallocate before _Destroy in the arm regresses
+// 88.9 to 81.1 (779 bytes), so the destroy-then-deallocate order is
+// load-bearing and was restored; the retained fill stays the hand-rolled
+// `size_type _C = _M; 0 < _C; --_C, ++_Q` loop at 88.9.
 // deepseek-v4.1-flash retry (#3483): still 88.9, 779 of 779 bytes, the same
 // reallocation-branch register allocation diff (_P in ecx here, edx in the
 // original). Routing _P through an `iterator _P2 = _P;` local used by both the

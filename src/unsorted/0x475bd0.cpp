@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash retry (#3691): still 99.7, the same single mirror lea byte
+// in the second arm (`_Last - _P < _M`): at 0x475d01 the original emits
+// `lea eax,[esi+edx]` where esi and ebx are duplicate _P loads and edx =
+// _P + _M*0x3c, ours emits `lea eax,[edx+esi]`. Binding that _Ucopy's
+// destination to an `iterator _R = _P + _M;` local is byte-identical (99.7,
+// 791 bytes, same byte), so the arm-2 tree operand order is not set by a named
+// destination either.
 // deepseek-v4.1-flash retry (#3483): still 99.7, the same single lea SIB byte
 // (original `lea eax,[esi+edx]`, ours `lea eax,[edx+esi]` at 0x475d01).
 // Re-measured the `_M + _Q` spelling of the third _Ucopy destination: the

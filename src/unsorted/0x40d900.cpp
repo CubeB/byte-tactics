@@ -82,6 +82,24 @@
 // offset (group g holds cells i*256 + g*8 .. +7). So only the first group is
 // really compared against the count; later groups clear cells past the end of
 // the grid.
+//
+// Round 4 (deepseek-v4.1-flash retry): the single remaining hunk is still the
+// ClearLast base load slot. New negatives, all confirmed from the /Fa listing:
+// * Inlined accessor and member helpers (Grid::Block(i), Grid::Cells()),
+//   static inline At(base, idx) and Add(base, off), and argument-order swaps
+//   all give the same two schedules: load-first (98.7%, edi base / edx offset,
+//   load emitted early) or any store-first spelling (93.7%, edi offset /
+//   ecx base). No third schedule was found.
+// * Exhaustive search of the 24 statement orderings of bits / store / pointer
+//   start / pointer offset, plus pointer spellings (comma form, char cast,
+//   i<<8, idx locals, reference local, double pointer), found nothing new.
+// * The N-unused-declaration compiler-state sweep (extern int dNNNNN) is flat:
+//   load-first 0..200 step 1, store-first 0..560 step 2.
+// * Defining the real preceding function 0x40d8b0 (matched, own file) above
+//   this one in the same file does not move the load.
+// The load can only land after the store when the source stores before it
+// loads cells, and that spelling always reallocates the offset to edi and the
+// base to ecx. The two requirements are in conflict for this compiler state.
 
 struct Cell_0040d900 {
     unsigned char kind;

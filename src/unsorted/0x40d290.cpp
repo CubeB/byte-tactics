@@ -1,4 +1,27 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// space-bunny-free (2026-10-01): still 93.3% (477 bytes), confirmed baseline.
+// NEW, and it closes the loop on the "is it steerable from source" question: an
+// explicit out-of-line SPECIALISATION
+// `template<> void vector<unsigned char, allocator<unsigned char> >::insert(...)`
+// whose body is this header's body copied out by hand, plus a global
+// `&Vec_0040d290::insert` to force emission, compiles to BYTE-IDENTICAL code to
+// the header instantiation (same 93.3%, same four hunks). So the body below is
+// now under direct source control, and the following reassociations of the
+// three sums all leave the emission exactly as it is:
+//   `_End = _N + _S;` (operand order swapped)      : 93.3%, `lea ecx,[ebx+eax]`
+//   `_Ufill(_Last, (size_type)((int)_M-(int)_Last)+(size_type)(int)_P, _X)` : 93.3%
+//   `iterator _B = _S;` used for all three tail statements : 93.3%
+//   `size_type _SZ = size(); size_type _N = _SZ + (_M < _SZ ? _SZ : _M);` : 64.0%
+//   `_Last = _S + size() + _M;` with `size()` written out as
+//   `_S + (_First == 0 ? 0 : _Last - _First) + _M` : 87.7% (breaks the CSE)
+//   `size_type _Z = size(); _Last = _S + _Z + _M;` : 85.8% (475 bytes)
+// So MSVC 5's canonicalisation of `_End = _S + _N` is not an operand-order
+// choice at all, and the `_Ufill` count keeps reassociating to
+// `(_M + _P) - _Last` through casts. The only way to the original's
+// `(_M - _Last) + _P` would be for the front end to keep the negation inside
+// the parenthesis, which this compiler never does for a size_type count:
+// evidence that the original was built with a compiler whose front end
+// canonicalises `_M - (_Last - _P)` the other way.
 // deepseek-v4.1-flash (#3023 retry): still 93.3% (477 bytes, exact). `<vector>`
 // member-address emission is optimal; an explicit out-of-line member specialisation
 // emits byte-identical code, so it is not a steering lever. Residue: the realloc tail

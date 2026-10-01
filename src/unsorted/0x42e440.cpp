@@ -28,6 +28,13 @@
 // Retry by GPT-6.1-sol: best remains 84.3% (3918/3923), not MATCH. Reordering
 // model-loop locals and hoisting path to model scope both compiled identically.
 // Partial, deepseek-v4.1 retry: 84.3%, not MATCH. Original 3923 bytes, ours 3918.
+// deepseek-v4.1-flash retry (issue #3951): best unchanged at 84.7 percent / 3924 bytes. Respelling
+// the lower_bound `half` as the explicit signed byte-difference divide
+// (`int half = (int)((char*)last - (char*)first) / 8 / 2;`) keeps 84.7 percent but grows us to
+// 3937 bytes, so no divide spelling recovers the original sar-3-then-signed-/2 sequence. Still
+// open: the 1-byte overage (all four late branch offsets read +1), the five bitfield `push 0`
+// placement arms, and the inlined vector-insert region where our entries base lands in edi (with
+// the `inc edi` off w->sub) instead of the original eax with [eax+5]/[eax+9] access.
 // Fixed earlier: the model/explosion/sound/damage arms now match the original's
 // layout (the big arm inline, the small arm out of line), the lava check is the
 // double deref *(int*)(*(int*)(g_game+0x391e9)+0xd44), the model search uses a count

@@ -1,184 +1,43 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
 //
-// deepseek-v4.1-flash retry (#4193, 10-minute timebox): baseline re-verified at
-// 46.0% (2204 vs 2164). One new lever measured and it is WORSE: folding the
-// early `if (menu->layer == 0) return 0;` into a shared epilogue
-// (`int result = 0; if (menu->layer != 0) { ...; result = 1; } return result;`)
-// removes the early exit entirely, so MSVC cannot duplicate the epilogue at the
-// top; it scores 44.1 (2200 bytes), so the original really did shrink-wrap with
-// a top-of-function `return 0`, and the four-register save order is still not
-// reachable by changing the return shape. Do not repeat it.
+// Partial: 53.1%, 2180 bytes versus 2164 (was 46.0% / 2204).
 //
-// Also measured this session, also worse: spelling ONLY the entry-loop bound as
-// a fresh `menu->layer->entries->u_b6.anim.count + 1` (the complementary half of
-// the 4-site case-5 re-read lever above, which was 44.0) scores 44.5 (2212
-// bytes), and spelling ALL nine loop-body and field_68 uses that way is 41.5
-// (2228 bytes). A per-iteration fresh read of the layer's entries does not
-// demote the cached `entries` local out of EBX, so leave `entries` cached.
+// claude-sonnet-5-5 session, structural fixes that raised 46.0 to 53.1:
+//   * case 12 is written textually LAST in the switch (block layout), and case 1
+//     jumps into it (`goto setdirty;`) because the original shares the
+//     `if (layer) layer->dirty = 1` tail between cases 1 and 12;
+//   * the post-loop code never uses the cached `entries` local: the original
+//     re-reads menu->layer->entries (help-text search, strcpy, field_68 pointer,
+//     and the final sel block each get a fresh load);
+//   * the "select current" tails (case 5 and the final sel block) read
+//     `int current = menu->layer->current;` back after storing it, test
+//     `layer->entries[current].type == 3` and then load `ents` again;
+//   * case 13 and the loop body use plain `entries[i]` / `menu->layer->entries[i]`
+//     (the compiler derives the p / bias strength reduction itself);
+//   * case 5's name search has no `found == count + 1` fix-up (it was dead code
+//     that cost 20 bytes): `found` is -1 unless the strncmp matched.
 //
-//
-// deepseek-v4.1-flash retry (10-minute timebox): tried the "fresh
-// menu->layer->entries re-read at 0x4aa48f/0x4aa5a7/0x4aa5bd/0x4aa66f" lever.
-// It is net-negative here: spelling those four sites (plus the strcpy) as
-// inline menu->layer->entries scores 44.0% (2208 bytes), and the mixed form
-// with a fresh help-search local scores 45.3%, both below the cached-entries
-// baseline 46.0% (2204). The reloads add bytes but do NOT demote `entries`
-// out of EBX in the loop, so the i/ebx + p/edi rotation never happens. Best
-// remains 46.0%; reverted to baseline. Still differs (unchanged from below):
-// prologue save order, entry-loop register map (i in EBX, p in EDI, entries
-// memory resident at [esp+0x18]), the [esp+0x10]/[esp+0x48] slot swap, and
-// one spilled clamp edge.
-//
-// Partial: 46.0%, 2204 bytes versus 2164. Best so far; every earlier attempt is
-// in build/scratch/0x4a9fd0/.
-//
-// deepseek-v4.1-flash retry (#4034, 10-minute timebox): baseline re-verified at
-// 46.0% (2204 vs 2164). One variant measured: moving the hoisted `int i = 1;`
-// down to just below the early return (right after `int sel = menu->field_60;`)
-// removes our extra entry-block `mov dword ptr [esp+4],1` so the entry block
-// content then matches the original exactly (original entry is only
-// sub esp,0x34; push ebx/ebp; mov ebp,[esp+0x40]; push esi; push edi;
-// mov eax,[ebp+0x18]; test; jne; xor eax,eax; pop x4; add esp,0x34; ret 4),
-// but it scores 45.6 / 2200 bytes, so the hoisted store is still alignment
-// positive and the whole residual stays the shrink-wrapped save order.
-//
-// deepseek-v4.1-flash retry (#3478, 10-minute timebox): +1.3 to 46.0 with two
-// changes in the first entry clamp, both now faithful to the original:
-//   * `Point_004a9fd0& pt = menu->point;` instead of direct menu->point reads.
-//     Alone it is byte-neutral at 44.7 but makes the compiler emit the
-//     original's `lea esi,[ebp+0x3c]` early and `mov eax,[esi+4]` for point.y.
-//   * with that in place, the faithful `int y = entries->y;` beats the
-//     `short y` metric artifact it had replaced (46.0 versus 44.7; the
-//     artifact's `mov cx / movsx ecx,cx` pair no longer buys alignment).
-// Still measured worse, do not repeat: removing the redundant
-// `if (menu->layer != 0)` wrapper is now 44.7 (2196 bytes), so the extra
-// `test eax,eax / je` and `mov ebx,eax` it introduces still net-align; a
-// named `int py = pt.y;` is 45.3 (2212 bytes), so the early
-// `mov edi,[esi+4]` placement is scheduler output, not reachable by naming
-// the read. The remaining clamp diff (right in edi instead of [esp+0x34],
-// bottom at [esp+0x20] instead of [esp+0x38]) is still the entries-in-ebx
-// allocation state described below.
-//
-// Retry by deepseek-v4.1-flash (#3905, 10-minute timebox): baseline re-verified
-// at 46.0% (2204 vs 2164 bytes), no variant beaten. Diff re-read hunk by hunk:
-// every hunk past the prologue is downstream of the same two allocator facts
-// (entries memory resident in the original, i in ebx / p in edi, ours reversed),
-// including the entry-clamp edi-vs-[esp+0x34] and [esp+0x20]-vs-[esp+0x38]
-// edge homes and the 0x4aa1a2 `mov ebx,1; mov [esp+0x10],ebx` pair that ours
-// hoists to a top-of-function `mov [esp+4],1`. Nothing new to try within the box.
-//
-// deepseek-v4.1-flash retry (#3950, 10-minute timebox): baseline re-verified
-// at 46.0% (2204 vs 2164 bytes); the box went to issue 0x4a81e0, so no new
-// variant was tried here. Hunk 1 re-read for the record: the original prologue
-// is `push ebx; push ebp; mov ebp,[esp+0x40]; push esi; push edi` with the
-// ebp load between the push pairs, while ours is `push ebp; mov ebp,[esp+0x3c]`
-// plus an early `mov [esp+4],1` and the remaining pushes after the zero path,
-// so the whole prologue and every later hunk shift by the same allocator state.
-//
-// deepseek-v4.1-flash session: the only change from the previous best is
-// `short y = entries->y;` in the first clamp (was `int y`), worth +1.0 in the
-// checker (43.7 to 44.7). It likely is NOT the original shape: the original
-// sign-extends the field once, `movsx ecx, word ptr [ebx+0x15]`, with no
-// separate word load, whereas a `short y` local adds `mov cx,[ebx+0x15]` and
-// `movsx ecx,cx`. Treat the gain as a metric artifact until the prologue and
-// the entries/i/ebx rotation below are fixed. The faithful spelling is `int y`
-// at 43.7%; that is what the notes below describe. Other shapes measured this
-// session, none better: `short x`, `unsigned short`, `(short)` casts, swapping
-// the point.x/point.y subtraction order, a `lay` local, a count local `n`, a
-// reference `Entry*& entries`, `while` loop, i declared after `sel` or right
-// before the loop, and a 0..400 dummy-extern compiler-state sweep (all 43.7 or
-// lower). headers.py found no header set above 43.7%.
-//
-// What still differs, in order of how much it is worth:
-//
-// 1. The prologue, and it is still one allocation state, not six bugs. The
-//    original does sub esp,0x34 / push ebx / push ebp / mov ebp,[esp+0x40] /
-//    push esi / push edi and its early "layer == 0" exit pops all four. Ours
-//    pushes only ebp at the top (to home the parameter) and sinks push edi /
-//    push esi / push ebx below that early return, so every address in the body
-//    is 4 bytes low. MSVC5 shrink-wraps the saves whenever ebx, esi and edi
-//    are all dead in the entry block, and they are, in every spelling tried:
-//    `if (layer == 0) return 0;` first, last, inverted, and with locals
-//    declared before it. Note the original's order, push ebx BEFORE push ebp:
-//    ebp is saved second because it is being used to home the stack parameter,
-//    so this is the shape of a function whose register allocator gave ebp the
-//    parameter and ebx, esi, edi to body variables.
-// 2. Register roles in the entry loop. The original keeps the induction
-//    variable i in EBX and the walk pointer p in EDI (each with a spill slot,
-//    [esp+0x10] and [esp+0x14], reloaded after any call at 0x4aa541), and it
-//    keeps `entries` MEMORY RESIDENT, reloading it from [esp+0x18] every
-//    iteration. Ours keeps `entries` in EBX for the whole loop, so i is memory
-//    resident and p lands in ESI. That single difference also explains the
-//    inner clamp: with `entries` gone from a register the original can keep
-//    both derived edges live (right in EDX, bottom in ESI, 0x4aa1fa..0x4aa214)
-//    whereas ours spills one of them and reloads point.y from [ebp+0x40]. The
-//    lever is still "get `entries` out of EBX", not the clamp spelling.
-// 3. Slot assignment. The original uses [esp+0x10] for i and [esp+0x48] for
-//    sel. [esp+0x48] is not a frame local at all: post-prologue esp is
-//    esp0-0x44, so [esp+0x44] is the return address and [esp+0x48] is the
-//    stack argument slot, which MSVC reuses for a scratch spill once the
-//    parameter has been homed into ebp. Ours puts sel at [esp+0x10] and i at
-//    [esp+0x48], so exactly one variable is in the argument slot in both, but
-//    it is the wrong one. Every other slot already agrees (p 0x14, entries
-//    0x18, key 0x1c, elapsed 0x20, bias 0x24, saved 0x28, point 0x2c/0x30).
-// 4. The first entry clamp. The original spills both derived edges, right to
-//    [esp+0x34] and bottom to [esp+0x38], and loads point.y into EDI before
-//    building them (0x4aa0fd); ours keeps right in EDI and reloads point.y
-//    from [ebp+0x40] after the call argument is built. This is (2) again.
-// 5. The 14-byte text shift. The original builds the address with
-//    `lea ecx,[eax+edx]`, keeping the layer base in EDX and the index in EAX.
-//    Spelling it as `menu->layer->text[n] = menu->layer->text[n+1]` changes
-//    nothing; giving the base its own `char*` local makes MSVC strength-reduce
-//    the whole loop into a pointer walk and is much worse.
-// 6. Case 5 (type 5) matches the original's shape: sel is set to -1 before the
-//    name search, so the "not found" test compares against the same
-//    materialised -1 the three deselect arms use. Writing the constant out as
-//    a separate `int notfound = -1` scores identically, so the spelling is
-//    not pinned down.
-//
-// This session (space-bunny-free) moved 42.2 -> 43.7 with two source changes,
-// both about WHERE a variable's live range starts:
-//   * hoisting `int i = 1;` out of the `for` header and declaring it next to
-//     `int sel`, so i is a real local and not a front-end loop temp: +1.0;
-//   * moving that same `int i = 1;` ABOVE the early `if (menu->layer == 0)
-//     return 0;`, so its live range starts at function entry: +0.5. MSVC5
-//     still shrink-wraps, but the shape changes favourably.
-//
-// Things that did NOT work, so nobody repeats them:
-//   * Giving the text shift a `char*` base local (strength-reduces the loop).
-//   * Hoisting a `Layer* lay = menu->layer;` local above the early return to
-//     try to pin the prologue: score neutral at 43.2.
-//   * Declaring `int i;` above the early return but keeping `for (i = 1; ...)`:
-//     42.2, the gain really does need the initialiser there.
-//   * Moving `int sel = menu->field_60;` above the early return too (both
-//     variables live from entry): 42.7, worse, and it drops 4 bytes.
-//   * An `int elapsed = 0` pre-initialiser (the original assigns 0 only in the
-//     else arm, and the extra store is a real byte); naming pt->x and pt->y as
-//     locals before the first clamp; two 768-set header sweeps (earlier
-//     sessions); removing the `saved` copy of menu->field_68.
-//   * This retry: moving an uninitialized `sel` declaration above the early
-//     return tied at 43.7%; taking the address of `entries` and using that
-//     slot to form the current entry fell to 40.4%.
-//
-// deepseek-v4.1-flash retry #3535 (10-minute timebox): nothing beat 46.0, so
-// here is a measured divergence map for the next worker. Line up tools/ctx.py's
-// call order with check.py's `?  +0xNNN` reference list; the numbers below are
-// original offset minus ours (original offset minus 0x4a9fd0):
-//   +6 at the very first call, down to +1 by FUN_004ab440, so the prologue and
-//   the early-return region are the only excess up there;
-//   +1 at case 1, then +11/+19/+27/+31 at the FUN_004a3780, FUN_004a7290,
-//   FUN_004a4170 and FUN_004a4440 calls, so each of those small case bodies
-//   grows by about 8 bytes in ours;
-//   +41 at case 5's strncmp and +68 at FUN_004a5f40, so the case 5 block
-//   carries the single largest excess (then -16 back at FUN_004c13f0, which is
-//   the `sel = found` path re-joining);
-//   +34 at case 6's FUN_004a4b50 but +100 at case 13's FUN_004b6340, so the
-//   case 12/13 tail adds about 66 more.
-// That is where the 40 extra bytes are; the early loop and the first clamp are
-// already within a few bytes. Measured this session, all 46.0 and byte neutral,
-// so do not repeat them: an `entries` local declared at function entry and
-// assigned at the load (alone, and combined with a top `sel`), and hoisting the
-// `right`/`bottom` declarations out of the first clamp.
+// Still differs (all register allocation / scheduling, nothing structural):
+//   1. Prologue: the original saves ebx, ebp, esi, edi before the early
+//      `layer == 0` return (no shrink-wrap); ours pushes only ebp first.
+//   2. Entry loop: the original keeps i in EBX and the strength-reduced entry
+//      pointer in EDI (spill slots [esp+0x10]/[esp+0x14]) and reloads `entries`
+//      from [esp+0x18]; ours keeps `entries` in EBX up to the loop head so i and
+//      the pointer stay in memory with ESI/EDI/EBX used as temps.
+//   3. First entry clamp: the original loads point.y into EDI early and spills
+//      right/bottom to [esp+0x34]/[esp+0x38].
+//   4. The `layer->entries[current].type` tests: the original loads the entries
+//      pointer before the focus/current stores (EDX) and again for the body
+//      (EBX); ours merges the two loads.
+// Measured with no effect on any of these (do not repeat): declaration order of
+// i/entries/sel/key at function top (24 orders, all 51.9), `register int i`,
+// an alias `first` for the first-section pointer (copy-propagated, identical
+// bytes), moving the first clamp into an inline helper (identical bytes),
+// dropping the `e` pointer in favour of `entries[i].` (same size), and a 15
+// minute tools/permute.py run (53.1 -> 53.1). Earlier sessions also measured
+// `int i` inside the for header (-1.6), fresh-read spellings of the entry-loop
+// bound, `int result` single-exit shape (44.1), `short y` and an address-taken
+// entries slot (40.4).
 
 #include <windows.h>
 #include <string.h>
@@ -399,10 +258,8 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             elapsed = 0;
         }
 
-        int bias = 0xffffffe1 - (int)entries;
-        unsigned char* p = (unsigned char*)entries + 0x17a;
         for (; i < entries->u_b6.anim.count + 1; i++) {
-            Entry_004a9fd0* e = (Entry_004a9fd0*)(p - 0x1f);
+            Entry_004a9fd0* e = &entries[i];
             if (e->field_29 != 0) {
                 int x, y;
                 if (e->type == 0) {
@@ -426,8 +283,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                         e->u1f.timer -= 2;
                         if (e->u1f.timer < 0)
                             e->u1f.timer = 0;
-                        if (menu->layer != 0)
-                            menu->layer->dirty = 1;
+                        goto setdirty;
                     }
                     break;
                 case 2:
@@ -452,8 +308,6 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                                 break;
                             }
                         }
-                        if (found == entries->u_b6.anim.count + 1)
-                            found = -1;
                         if (found == sel) {
                             sel = i;
                         } else {
@@ -476,10 +330,10 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                             } else {
                                 menu->focus = -1;
                                 menu->layer->current = found;
-                                Entry_004a9fd0* activeEntries = menu->layer->entries;
                                 int current = menu->layer->current;
-                                me = &activeEntries[current];
-                                if (me->type == 3) {
+                                if (menu->layer->entries[current].type == 3) {
+                                    Entry_004a9fd0* activeEntries = menu->layer->entries;
+                                    me = &activeEntries[current];
                                     FUN_004c13a0(menu->palette[me->u1f.colourIndex],
                                                  FUN_004c13f0());
                                     FUN_004a1810(activeEntries, current);
@@ -497,17 +351,9 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                     if (FUN_004a4b50(menu, i) == 1)
                         sel = i;
                     break;
-                case 12:
-                    if (e->u1f.timer != 0 && elapsed) {
-                        e->u1f.timer--;
-                        FUN_004a5e50(menu, i);
-                        if (menu->layer != 0)
-                            menu->layer->dirty = 1;
-                    }
-                    break;
                 case 13:
                     {
-                        Entry_004a9fd0* me = (Entry_004a9fd0*)((char*)entries + bias + (int)(char*)p);
+                        Entry_004a9fd0* me = &menu->layer->entries[i];
                         if (me->u_b6.anim.field_ce != 0 && me->u_b6.anim.field_ba < me->u_b6.anim.field_be) {
                             if (FUN_004b6340() > me->u_b6.anim.field_c6) {
                                 me->u_b6.anim.field_ba += (int)me->u_b6.anim.field_ca;
@@ -521,11 +367,19 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                         }
                     }
                     break;
+                case 12:
+                    if (e->u1f.timer != 0 && elapsed) {
+                        e->u1f.timer--;
+                        FUN_004a5e50(menu, i);
+                    setdirty:
+                        if (menu->layer != 0)
+                            menu->layer->dirty = 1;
+                    }
+                    break;
                 }
             }
             if (sel != -1)
                 break;
-            p += 0x15b;
         }
 
         if (menu->field_68 != saved) {
@@ -534,18 +388,19 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                 ptr = DAT_005119b8;
             } else {
                 menu->field_6c = menu->field_68;
-                ptr = (char*)&entries[menu->field_68] + 0x33;
+                ptr = (char*)&menu->layer->entries[menu->field_68] + 0x33;
             }
+            Entry_004a9fd0* ents = menu->layer->entries;
             int found = 1;
-            for (; found < entries->u_b6.anim.count + 1; found++) {
-                if (strncmp((char*)entries + found * 0x15b + 2, DAT_005098c4, 0x10) == 0)
+            for (; found < ents->u_b6.anim.count + 1; found++) {
+                if (strncmp((char*)ents + found * 0x15b + 2, DAT_005098c4, 0x10) == 0)
                     break;
             }
-            if (found == entries->u_b6.anim.count + 1)
+            if (found == ents->u_b6.anim.count + 1)
                 found = -1;
             if (found != -1) {
                 char* text = FUN_004c5740(ptr);
-                strcpy((char*)&entries[found] + 0xb6, text);
+                strcpy((char*)&menu->layer->entries[found] + 0xb6, text);
                 menu->field_cca = 1;
             }
         }
@@ -557,25 +412,27 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             menu->field_60 = sel;
             menu->focus = -1;
             menu->layer->current = sel;
-            Entry_004a9fd0* me = &entries[sel];
-            if (me->type == 3) {
+            int current = menu->layer->current;
+            if (menu->layer->entries[current].type == 3) {
+                Entry_004a9fd0* ents = menu->layer->entries;
+                Entry_004a9fd0* me = &ents[current];
                 FUN_004c13a0(menu->palette[me->u1f.colourIndex], FUN_004c13f0());
                 int grp = 0;
                 int t;
-                for (t = 1; t < entries->u_b6.anim.count + 1; t++) {
-                    if (entries[t].type == 7) {
+                for (t = 1; t < ents->u_b6.anim.count + 1; t++) {
+                    if (ents[t].type == 7) {
                         if (grp == me->group) {
-                            FUN_004c1420(entries[t].language);
+                            FUN_004c1420(ents[t].language);
                             break;
                         }
                         grp++;
                     }
                 }
-                if (t == entries->u_b6.anim.count + 1)
+                if (t == ents->u_b6.anim.count + 1)
                     FUN_004c1420(DAT_0051fba4->group);
-                FUN_0049fc50(menu, sel);
-                menu->layer->current = sel;
-                FUN_004ab6c0(menu, sel, me->u_b6.text, me->u136.c.field_138, 0);
+                FUN_0049fc50(menu, current);
+                menu->layer->current = current;
+                FUN_004ab6c0(menu, current, me->u_b6.text, me->u136.c.field_138, 0);
                 FUN_004c1a40();
             }
             if (menu->layer->cb8 != 0)

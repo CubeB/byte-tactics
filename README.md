@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**68.77% of Cavedog's code matched** (585,097 of 850,853 bytes)
+**68.87% of Cavedog's code matched** (585,969 of 850,853 bytes)
 
 `[############################------------]`
 
-By count that is 3,027 of the game's 3,267 functions (92.7%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,028 of the game's 3,267 functions (92.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,027 | 585,097 |
-| Attempted, not yet matching | 240 | 265,756 |
+| Matched byte-for-byte | 3,028 | 585,969 |
+| Attempted, not yet matching | 239 | 264,884 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -38,7 +38,7 @@ The size bands are the `size:` labels on the issues.
 | medium (65 to 160 bytes) | 821 of 827 | 99.2% | 676 | `##########` |
 | large (161 to 400 bytes) | 658 of 703 | 92.8% | 12,832 | `#########-` |
 | xl (401 to 600 bytes) | 192 of 226 | 84.3% | 17,316 | `########--` |
-| xxl (601 to 1,000 bytes) | 130 of 195 | 65.9% | 50,148 | `#######---` |
+| xxl (601 to 1,000 bytes) | 131 of 195 | 66.4% | 49,276 | `#######---` |
 | huge (over 1,000 bytes) | 71 of 161 | 36.8% | 184,784 | `####------` |
 
 ### By area
@@ -54,7 +54,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x420000` | Frontend shell | 144 of 154 | 65.3% | 22,043 | `#######---` |
 | `0x430000` | Maps, missions, briefings | 210 of 228 | 64.4% | 21,510 | `######----` |
 | `0x440000` | Multiplayer setup | 238 of 246 | 69.7% | 18,628 | `#######---` |
-| `0x450000` | Options and audio menus | 159 of 176 | 63.2% | 23,227 | `######----` |
+| `0x450000` | Options and audio menus | 160 of 176 | 64.6% | 22,355 | `######----` |
 | `0x460000` | Game and skirmish setup, unit classes | 194 of 212 | 58.9% | 25,298 | `######----` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 232 of 259 | 70.0% | 19,075 | `#######---` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 243 of 264 | 72.7% | 17,378 | `#######---` |

@@ -1069,7 +1069,7 @@ address,size,file,symbol,status,similarity
 0x450530,977,src/unsorted/0x450530.cpp,?FUN_00450530@@YGXXZ,partial,52.3
 0x450910,97,src/unsorted/0x450910.cpp,?FUN_00450910@@YGDXZ,matched,100.0
 0x450980,141,src/unsorted/0x450980.cpp,?FUN_00450980@@YGXXZ,matched,100.0
-0x450a10,872,src/unsorted/0x450a10.cpp,?FUN_00450a10@@YGHH@Z,partial,90.5
+0x450a10,872,src/unsorted/0x450a10.cpp,?FUN_00450a10@@YGHH@Z,matched,100.0
 0x450d80,65,src/unsorted/0x450d80.cpp,?FUN_00450d80@@YGXXZ,matched,100.0
 0x450dd0,74,src/unsorted/0x450dd0.cpp,?FUN_00450dd0@@YGXXZ,matched,100.0
 0x450e20,360,src/unsorted/0x450e20.cpp,?FUN_00450e20@@YGXXZ,matched,100.0

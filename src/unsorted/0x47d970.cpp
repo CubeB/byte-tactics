@@ -119,6 +119,14 @@
 // obj->[0x110] |= 0x8000000, calls 0x47c790(obj) and then 0x440a40 with the
 // object's point at +0x76 and its point at +0x7e pushed by value. So arg1 is the
 // object being placed and arg2 is a flag, as declared here.
+// deepseek-v4.1-flash (#2978): re-tested source operand order inside the
+// sibling 0x47d820's MATCH declaration state (N = 16..56 unused `extern int`
+// lines before the first `#pragma pack`, the range that makes 0x47d820
+// byte-identical). xswap, bothswap and yonly all still compile the x sum
+// high-first (`mov ax,[ecx+0x7e] / add ax,[ecx+0x76]`) and y high-first at
+// N = 16..56, giving 98.0%, and only y flips to low-first at N = 64..80
+// (96.0). So the x add is not source-order sensitive in the true declaration
+// state either, confirming this is a front-end tie and not the source.
 #include <windows.h>
 #pragma pack(push, 1)
 

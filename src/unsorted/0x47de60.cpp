@@ -157,6 +157,23 @@
 // its loop eax holds the pending `blocked` value while g_game sits in edi. Our
 // function needs the pair (eax, ecx) with g_game in edx, and that pinned pair
 // is what makes c1 copy the byte out of eax and load the width into it.
+// deepseek-v4.1-flash pass (#2978): the two remaining untested compiler-state
+// levers are both flat. (1) The full 0 to 400 unused `extern int dummyN;` sweep
+// (all 401 values, not a step) is 86.8 percent at every N. (2) Prepending the
+// real matched neighbour 0x47ddc0 (which ends exactly at 0x47de60) scores 86.8,
+// and prepending all four matched functions that precede it (0x47dac0, 0x47db20,
+// 0x47db70, 0x47ddc0) in address order in one namespace each is also 86.8. So as
+// the earlier passes concluded this is not declaration or translation-unit state
+// reachable from these files. Also re-tested with the same 86.8: `&cell[-k]`,
+// `cell[-k].feature` with no intermediate, `unsigned int` leaves, char leaves,
+// `other = cell; other -= ...` twice, and a separate int/unsigned idx.
+// The residual is still exactly the six-instruction index block at
+// 0x47dea5..0x47deb6; everything else, including every branch target once the
+// block's 4 bytes are accounted for, is identical. The matched 0x47e2d0 and
+// 0x47dfc0 both contain this same expression and both fold the width into
+// `imul eax/ecx, [game+0x14233]`; here g_game is pinned in edx from the first
+// instruction (`mov edx,[0x511de8]`) and that pinned pair (eax, ecx) is what
+// makes c1 copy the spotY byte out of eax and load the width into it.
 #pragma pack(push, 1)
 struct Feature_0047de60 {
     char unknown_0[0xfe];

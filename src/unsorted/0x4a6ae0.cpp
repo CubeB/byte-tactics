@@ -6,7 +6,26 @@
 // [ebp+0x138],0` twice against the original's live `mov ax,[..]; test ax,ax`
 // pair with the rect-set block emitted after the flags&0x2000 block) and the
 // bound block (ours `mov ax,[edi+0xb6]; inc ax; movsx ebp,ax` against the
-// original's `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`).
+//  original's `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`).
+//  deepseek-v4.1-flash pass (issue #3586). Rebuilt v1 from this file exactly as
+//  note 1 quotes it and measured 64.1%, 1704 bytes, homes obj=EBP/entry=EBX, so
+//  the whole mismatch is the pointer tie, nothing else. New evidence on that
+//  tie:
+//   - v1 with ONLY the shared tail `FUN_004a5f40(obj, index);` at 0x4a6f8d
+//     removed compiles to the CORRECT homes and matches the original
+//     instruction for instruction; the sole diffs are the -5 label shift and
+//     the bound block (88.5%, 1698 bytes). So the tie is exactly ONE `obj`
+//     reference (or one `index` reference, both are dropped by that deletion).
+//   - Duplicate references written with a DIFFERENT spelling are not CSE'd and
+//     do flip the homes, but each one costs bytes: `entries[index].field_138`
+//     in place of `entry->field_138` in the redraw test (87.9%, 1710),
+//     in the flags&8 first test (84.2%), a dead duplicate store (83.8%),
+//     `entries[index].state == entry->state` in the state test (80.9%).
+//   - Sharing the arms 8/0x100 tail with `goto fin` on v1 does flip the homes
+//     (78.8%) but promotes point.y into EDI, so the first in-rect block turns
+//     into `mov ecx,edi; cmp ecx,eax`; restoring `index` weight so EDI stays a
+//     region cache is the remaining lead, not solved here.
+//  No byte-level improvement over 93.4% was found; the file below is unchanged.
 
 //
 // PARTIAL 93.4% (1703 of 1703 bytes). Command-button click/key handler for

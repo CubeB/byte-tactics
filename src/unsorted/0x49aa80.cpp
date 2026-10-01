@@ -1,6 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
 // finished by deepseek-v4.1-flash, finished by GPT-6.1-sol,
-// finished by deepseek-v4.1-flash. Names are provisional.
+// finished by deepseek-v4.1-flash, finished by Space Bunny Free.
+// Names are provisional.
 //
 // SEMANTIC AUDIT (deepseek-v4.1-flash, 2026-10-01): CONFIRMED ALLOCATOR
 // ARTIFACT, not a missing use. The original reads NO a2/a3 field and makes no
@@ -26,10 +27,21 @@
 // allocation (original keeps a2 in esi and a3 in edi; ours rematerialises
 // both from their argument homes and spills into the dead a4 home).
 //
-// WHAT STILL DIFFERS: the first basic block only (register allocation and the
-// spill slots it produces); from the range compare onward the two agree
-// instruction for instruction except the load order while materialising the
-// FUN_0049a890 arguments. Best remains 66.1% (310 of 301).
+// WHAT STILL DIFFERS (superseded by the pass note at the FUNCTION line below):
+// the first basic block's register allocation. Best is now 68.7% (see below);
+// the older 66.1% figures in the notes below are superseded.
+// TWO CLAIMS IN THE OLDER NOTES BELOW ARE WRONG, corrected by the frame-slot
+// analysis in the pass note at the FUNCTION line:
+//   * "ours rematerialises BOTH a2 and a3" - ours keeps a3 in edi across the
+//     first block; only a2 is rematerialised. That is exactly the asymmetry the
+//     original does not have, and it is the whole remaining difference.
+//   * "dz-first matches the original's instruction order AND its spill slots
+//     (dz at locals +0/+4)" - dz-first matches the instruction order but not
+//     the slots: MSVC hands the LOW pair of a two-slot 64-bit pair to whichever
+//     is assigned SECOND, so with dz assigned first its halves land in the UPPER
+//     pair and the frame grows to 0x14. The original has dz.lo/dz.hi in the low
+//     pair [esp+0x10]/[esp+0x14] and dx.hi in [esp+0x1c], which is what this
+//     file's d[0] = z spelling now produces.
 //
 // WHAT STILL DIFFERS (unchanged): register allocation in the first block. The
 // original keeps a2 in esi and a3 in edi across both _allmul calls, with
@@ -137,7 +149,8 @@
 //   sweep*.py - the mechanical sweeps behind the table above.
 //   NOTE: there is no objdump on this machine; these read the /Fa listing, which
 //   is why they work.
-#include <windows.h>   // only for the register allocation it nudges (60.1 -> 61.8)
+#include <windows.h>   // inert at 68.7% (tools/headers.py: all 128 sets tie); kept
+                       // because it moved the score in the earlier rounds
 //
 // Partial. Offsets, branches, bit tests, the team/height check and both
 // squared-distance multiplies are right; the first basic block does not match.
@@ -235,14 +248,91 @@ extern Game_0049aa80* g_game;
 short __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
 
 // FUNCTION: 0x49aa80
+// space-bunny-free pass (2026-10-01, 2 check.py runs, ~25 scratch variants): best
+// 68.7%, up from 66.1%, from ONE change: index the array the other way round
+// (d[1] = the x difference, d[0] = the z difference, and the sum written
+// d[1]*d[1] first). That reproduces the original's frame exactly:
+//   sub esp,0x10 with dz.lo/dz.hi at [E-0x10]/[E-0xc] and d[1].lo unused,
+// which is where the previous d[0]=x/d[1]=z spelling put dz in the UPPER pair.
+// Read with a new tool (build/scratch/0x49aa80/annot.py, which resolves
+// [esp+N] to absolute frame slots and models _allmul as ret 0x10 / _allshr as
+// cdecl), the original's first block is:
+//   mov esi,a2 / mov edi,a3 at the top of the prologue (both pointers live in
+//   callee-saved registers across both __allmul calls), a2->x hoisted into ebp,
+//   the Z subtraction issued FIRST, dx.lo kept in ebp with dx.hi spilled to
+//   [E-4], and dz.hi spilled late (after the four argument pushes).
+// This file now matches the frame, the slot map and every instruction from the
+// distance compare onward; what is left is register allocation in the first
+// block, plus the load order in the height check and the argument push order in
+// the line-of-fire call:
+//   * ours gives esi to the temporary a2->x and rematerialises a2 from its
+//     argument home (ecx), the original holds a2 in esi and a3 in edi;
+//   * ours has both dx halves in registers (ecx, ebp), the original splits
+//     dx.lo into ebp and dx.hi into [E-4];
+//   * ours hoists a3->x into the dead a4 home at [E+16] and reloads it in the
+//     line-of-fire block (MSVC 5 shares that load across the calls), the
+//     original re-reads a3->x from edi there;
+//   * the height sum's two sides load in the opposite order (ours: the a1
+//     pointer chain first, then a2->y.whole).
+// MEASURED AND REFUTED IN THIS PASS (all with the same includes and flags).
+// Every one of these compiles BYTE-IDENTICALLY to this file at 68.7% (they are
+// all the same machine code, so none of them is the lever):
+//   * swapping the height sum's operands (a1->def->field_170 + a2->y.parts.whole);
+//   * naming the three line-of-fire differences in int locals, or the distance
+//     in an `int dist` local, or the range in a local;
+//   * `Vec3* p2 = a2, *p3 = a3` locals (any mix of the three blocks that use
+//     them) and `Vec3& v2 = *a2, v3 = *a3` references: MSVC coalesces them back;
+//   * inline helpers around the squares: by value (__int64 v), by pointer
+//     (&d[1]), a Dist2(a, b) helper holding the whole body, HiSq with the shift
+//     inside or outside, an access per component (Ax_/Az_), a nested scope;
+//   * `const Vec3*` / `Vec3* const` / `Vec3&` parameters (the mangled name
+//     changes, the code does not);
+//   * deleted-store nudges (d[1] = d[1;, wdef = wdef;) and extra uses that fold
+//     away (a3->x - (a2->x - 0), + 0, * 1, a2 == a2 ? 1 : 0): all inert;
+//   * tools/headers.py over all 128 sets and 0..79 dummy externs: all 68.7%.
+// WORTH KNOWING: adding <math.h> (or defining the preceding FUN_0049a850 in the
+// same file, which includes it) drops the score to 67.0% but flips the height
+// check's load order to the original's, `movsx reg, word ptr [a2+6]` BEFORE the
+// a1->def->field_170 chain instead of after. So the operand order there is a
+// free parameter of the compiler state, not a source decision, and 68.7% with
+// the chain first still scores better because it keeps the block at 6
+// instructions. That block needs 6 instructions only when a2 is in a register,
+// which is the same single missing decision as the first block.
+// WORSE, and instructive:
+//   * reversing either subtraction direction (a2->x - a3->x, a2->z - a3->z; the
+//     squares are unchanged): 44.8% (frame 0x14) and 44.3% (frame 8);
+//   * the 0x49abb0 sibling's Dist2 idiom (an inline helper with `int dz; int dx;`
+//     and (__int64) casts on the products): 48.5% and 338 bytes, so that helper
+//     shape does not travel to this function;
+//   * a two-member 64-bit struct local, `{__int64 dz, dx;}`, which pins the
+//     slots to declaration order: z-first gives 45.9% (frame 0x14) or 64.4%,
+//     x-first 66.1%. Named __int64 locals give frame 0xc (only 12 bytes: the
+//     register-resident half of dx gets no slot), which cannot match the
+//     original's four slots. __int64 d[2] is the only spelling found that gets
+//     all four slots, and its slot order fixes d[0] = z and d[1] = x, hence the
+//     swap above; MSVC then hands the LOW pair to whichever of the two is
+//     assigned SECOND, which is why the statements must assign x first even
+//     though the original issues the z subtraction first.
+// FREE TOOLING in build/scratch/0x49aa80/ (not committed):
+//   annot.py - disassembles the original or a built variant and rewrites every
+//              [esp+N] as an absolute frame slot (E+4 is the a1 home, E-16 is
+//              [E-0x10]); it models _allmul as ret 0x10 and _allshr as cdecl,
+//              and resets esp after a ret so the other blocks annotate right.
+//              This is what found the slot map, and it is the fastest way to
+//              compare a variant against the original here.
+//   sweep.py + sweep3..sweep20.py - generate/compile/score a batch of variants
+//              in one process (~5s per variant) and print the first block with
+//              its slots for anything that beats the incumbent.
+//   state.py - the compiler-state sweep (N dummy externs in front).
+//   v.py, fa.py - single-variant scoring and the raw /Fa listing.
 int __stdcall FUN_0049aa80(Unit_0049aa80* a1, Vec3_0049aa80* a2, Vec3_0049aa80* a3, int a4)
 {
     WeaponDef_0049aa80* wdef = a1->weapons[a4 & 0xff].def;
 
     __int64 d[2];
-    d[0] = a3->x - a2->x;
-    d[1] = a3->z - a2->z;
-    if ((int)(d[0] * d[0] >> 32) + (int)(d[1] * d[1] >> 32) > wdef->range * wdef->range)
+    d[1] = a3->x - a2->x;
+    d[0] = a3->z - a2->z;
+    if ((int)(d[1] * d[1] >> 32) + (int)(d[0] * d[0] >> 32) > wdef->range * wdef->range)
         return 0;
 
     if (wdef->flags.bit16)

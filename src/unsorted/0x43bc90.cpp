@@ -47,6 +47,19 @@
 // allocation: original ecx=begin before `sub esp`, ebp=end after push ebp,
 // ours ecx=end/ebx=begin.
 //
+// deepseek-v4.1-flash (#3318 retry, 2026-10-01): 83.6% / 909 bytes unchanged.
+// Scratch probes, all worse or equal: renaming the element struct to
+// UElem_0043c390 and using a plain `extern std::vector` (no Access class)
+// collapses reserve/insert inlining, 26.6% / 918 bytes, so the Access
+// derived class with the declared-only `insert`/`_Destroy` is load bearing and
+// cannot be dropped for the sake of the reference name. A pointer insert loop
+// (from + count end, end() reloaded each step) is 75.9% / 896 bytes; inline
+// end() with no `ins` local is 67.9% / 886; a raw `Elem*` ins is 83.6% / 909
+// (tie); `unsigned int count` is 83.6% / 909 (tie, different mangling); loading
+// `last` before `first` is 83.3%. Confirms the remaining gap is the single
+// ebx/ebp swap for _Last plus the sort's stack homes, downstream of the
+// whole-function allocation, not any of the spellings above.
+//
 // deepseek-v4.1 (2026-09-30, rerun): baseline 75.9% / 896 bytes confirmed
 // unchanged. New probes, none better: declaring the global as a plain
 // `Vec_0043c390` instead of the Access class ties at exactly 75.9% / 896; a

@@ -1,6 +1,17 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
-// deepseek-v4.1-flash retry 9 (10 min timebox): kept 57.4 (5979 bytes). Tried
+// deepseek-v4.1-flash retry 10 (10 min timebox): 5979 -> 5977 bytes, still
+// 57.4 percent. The 0x222 argument to the first FUN_004bf6f0 read the field as
+// a byte with a zero-extend (`xor ecx,ecx; mov cl,[esi+0x222]`); the original
+// loads the full dword (`mov ecx,[esi+0x222]` at 0x46911a), so the arg is now
+// spelled `*(int *)(iVar11 + 0x222)`. Everything else still differs as listed
+// below: the 0x52 read pair (original materialises edi = iVar11+0x52 at
+// 0x4690b0, reads [eax]/[eax+4]/[eax+8]/[eax+0xc], keeps edi live across the
+// _ftol at 0x46910e, reads the second group through [edi] at 0x469159, and only
+// restores edi = L.local_208 at 0x469193/0x4691b9; ours re-reads [esi+0x52]
+// with direct displacements and reloads L.local_208 early), the g_game+0xdcb
+// lea/keep-in-edi vs our add/reload in the FUN_004c13a0 arg, and the big
+// @@-717 / @@-1153 register-allocation regions.
 // and reverted one variant: scoping piVar10 = g_game+0x141fb to just the
 // 0x1424b insert loop (piVar10[20]/[21]/[1]/[2]/[0] spelling for the
 // 0x1424b/0x1424f/0x141ff/0x14203/0x141fb slots, sized to keep edi) regresses
@@ -435,7 +446,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     if (*(float *)(iVar12 + 0xa4) > 0.0f) {
       lVar25 = (int)(((int)L.local_180-(int)L.local_188)*L.local_1ab / *(float*)(iVar12+0xa4)+(int)L.local_188);
       L.local_180 = (undefined4)lVar25;
-      FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_188),(int)((byte)*(undefined4 *)(iVar11 + 0x222)));
+      FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_188),(int)(*(int *)(iVar11 + 0x222)));
       puVar9 = L.local_208;
       if ((*(float *)(iVar12 + 0xe8) > 0.0f) &&
          (*(float *)(iVar12 + 0x8c) > *(float *)(iVar12 + 0xe8))) {

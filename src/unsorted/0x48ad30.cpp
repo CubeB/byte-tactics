@@ -1,3 +1,6 @@
+// deepseek-v4.1-flash (#3932) retry: reversing the do-while latch to
+// `off += 0x14b; i++;` is byte-flat at 84.5% / 849 bytes, so the latch register
+// roles (al/edx against our cl/eax) are not steered by increment order here.
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash (#3834) retry: the SHARED.md slot-order idea was re-tested
 // inside this 84.5 percent helper/select form: `unsigned char i = 0; int off = 0;

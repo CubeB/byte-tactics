@@ -1,3 +1,8 @@
+// deepseek-v4.1-flash (#3932) retry: swapping the second tail sum to (h3 + h2)
+// and swapping both a/b tail sums is byte-flat at 77.8% / 857 bytes, so the tail
+// hunk (load order plus lea [ebp + ebx]) is not source-operand-order reachable.
+// The residual hunks stand: m edx/ecx in the prologue, the loop carry reloads,
+// and the max-select register roles (H in eax here against ecx in the original).
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash (#3891) retry: caching the owner pointer as a named
 // local (`PlayerRec_0048a490* o = u->owner;` used for both `o->sight` and

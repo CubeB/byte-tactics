@@ -250,6 +250,13 @@
 // instead of `int to = -1; if (...) to = ...;`. It regresses 86.8 to 85.1
 // (1260 bytes), so the shared-tail shape is not the lever while the ebx byte
 // counter is still missing. Reverted; file is back at the 86.8 best.
+// deepseek-v4.1-flash (issue #3970 pass, 10 min timebox): re-ran the checker
+// on the stored file and confirmed 86.8% (1258 of 1310 bytes). No variant was
+// kept: the residual is exactly the 52 bytes of the res != 0 k4 loop (missing
+// `xor ebx,ebx` / `cmp bl,0xa` / `inc ebx` byte counter, and `to` in ebx /
+// `from` in edi instead of the original's `to` in edi / `from` in edx), which
+// every documented family in this file and in build/scratch/SHARED.md leaves
+// entangled with res losing edi.
 #include <algorithm>
 
 #pragma pack(push, 1)

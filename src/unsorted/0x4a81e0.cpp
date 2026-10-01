@@ -18,6 +18,12 @@
 // 26.2% (3780 bytes vs 5248); the timebox was spent on the closer 0x4a9fd0, so
 // nothing new was tried here beyond a baseline check.
 // Retry by deepseek-v4.1-flash (#3535, 10-minute timebox): 26.2 -> 37.0%.
+// Retry by deepseek-v4.1-flash (#3905, 10-minute timebox): baseline re-verified at
+// 37.0% (4176 vs 5248 bytes); no new variant written, the box was spent on the
+// closer 0x4a9fd0, where the diff is the documented entries-in-ebx allocator
+// state. The two blockers here remain the prologue allocation (entries in ebp,
+// -2 constant in esi, ours esi/edi) and the wrong post-loop block at
+// 0x4a943b..0x4a950a described above.
 // The big win was loop2's case 2 (0x4a91c7..0x4a92da): with L.force set the
 // list box bases its sort key on the type 7 entry in the same group, then
 // rounds its height down to a multiple of the font height plus two and

@@ -20,6 +20,14 @@
 // bottom at [esp+0x20] instead of [esp+0x38]) is still the entries-in-ebx
 // allocation state described below.
 //
+// Retry by deepseek-v4.1-flash (#3905, 10-minute timebox): baseline re-verified
+// at 46.0% (2204 vs 2164 bytes), no variant beaten. Diff re-read hunk by hunk:
+// every hunk past the prologue is downstream of the same two allocator facts
+// (entries memory resident in the original, i in ebx / p in edi, ours reversed),
+// including the entry-clamp edi-vs-[esp+0x34] and [esp+0x20]-vs-[esp+0x38]
+// edge homes and the 0x4aa1a2 `mov ebx,1; mov [esp+0x10],ebx` pair that ours
+// hoists to a top-of-function `mov [esp+4],1`. Nothing new to try within the box.
+//
 // deepseek-v4.1-flash session: the only change from the previous best is
 // `short y = entries->y;` in the first clamp (was `int y`), worth +1.0 in the
 // checker (43.7 to 44.7). It likely is NOT the original shape: the original

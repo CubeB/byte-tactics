@@ -4,65 +4,33 @@
 // HKLM\Software\Microsoft\DirectX (the "InstalledVersion" DWORD on NT, the
 // "Version" string on Win9x), and compares the result with the wanted version.
 //
+// deepseek-v4.1-flash retry: best is 55.4% (637 bytes) with the failure exits
+// spelled memset(version, 0, 16); return 0;. The RegOpenKeyExA failure path
+// then compiles to the original's shared tail at 0x4b52ba exactly (xor edx,edx
+// / pop edi / mov [esp+0x24],edx / ... / ret 0x14); the RegQueryValueExA error
+// path still emits its own inline four-dword zero block, so the function is
+// 18 bytes long. A single `goto fail` with one memset at the end (610 bytes,
+// 53.3%) makes both paths share one block but loses more elsewhere.
 //
-// deepseek-v4.1-flash retry: best is 54.6% (603 of 619 bytes). Still differs:
-// 1. lib takes ebx and majlo is spilled to the stack home at [esp+0x20]; the
-//    original keeps ebx=majhi, ebp=majlo, edi=minhi, esi=minlo and puts lib in
-//    memory. Every halves declaration/statement order tried (24 permutations,
-//    including the original zero order minlo/majhi/majlo/minhi) and the types
-//    int/DWORD/unsigned long leave lib in ebx; the allocator spills whichever
-//    half is assigned last in the DirectXSetup extraction (majlo).
-// 2. status lands at [esp+0x1c] and dwMin at [esp+0x14]; the original has
-//    status at [esp+0x14] and dwMin at [esp+0x1c]. Function-scope declaration
-//    order and moving dwMaj/dwMin to function scope did not swap them (a
-//    function-scope DWORD dwMaj=0 first version scored 46.0%).
-// 3. The shared failure tail (zeroing the version buffer, interleaved with the
-//    pops at 0x4b52ba) and the 4-byte zero at version[4] (0x4b510a) are still
-//    not reproduced by spelling the exits as memset(version,0,16); return 0;.
-// This retry (deepseek-v4.1) fixed the tail to the original's nested-if shape
-// (the shared `sbb eax,eax / inc eax` tree at 0x4b5233/0x4b523a now matches)
-// and steered the register permutation with the declaration/assignment order
-// of the four halves: declaring and assigning minhi, majlo, minlo, majhi gives
-// ebp=majhi, esi=majlo, edi=minhi with minlo spilled to [esp+0x20] (53.6%,
-// 603 of 619 bytes); the original needs ebx=majhi, ebp=majlo, edi=minhi,
-// esi=minlo with lib kept in memory, and every order tried so far either
-// spills minlo or lets lib take ebp (declaration majhi, majlo, minhi, minlo
-// gave esi=majhi, edi=majlo, minlo=ebx, minhi spilled, lib=ebp, 48.6%; order
-// minlo, minhi, majlo, majhi gave ebx=majhi, esi=majlo, ebp=minhi, edi=minlo,
-// 50.6%). The setup path must assign majhi last to reach ebx/ebp.
+// The remaining, unsolved difference is register allocation. The original
+// keeps ebx=majhi, ebp=majlo, edi=minhi, esi=minlo and spills the library
+// handle to [esp+0x20]; here lib takes ebx and minlo spills to [esp+0x20].
+// This is independent of the tail: it is present at 54.6% too. Every halves
+// declaration order (24 permutations) and every extraction order tried leaves
+// lib in ebx; status also lands at [esp+0x1c] instead of the original's
+// [esp+0x14]. Per the brief, these two are probably one shared allocator
+// state caused by a source shape not yet found.
 //
-// PARTIAL (48.6%, 599 of 619 bytes). The frame is now the original 0xcc
-// (one DWORD size variable shared by both RegQueryValueExA arms, rather than
-// separate size4/size30 which grew the frame to 0xd0). What still differs:
-//
-// 1. REGISTER ROLES. The original keeps all four version halves in
-//    ebx=majhi, ebp=majlo, edi=minhi, esi=minlo, so lib has nowhere to live
-//    and spills to [esp+0x20]; here lib takes ebp and the allocator spills
-//    two of the four halves to [esp+0x1c]/[esp+0x20] instead. Reordering the
-//    four shift/and assignments (all permutations tried) compiles
-//    byte-identically and does not change this.
-// Reversing the declaration order of the version halves raises the score to
-// 48.6%; using unsigned short locals instead drops it to 47.2%.
-// 2. status is held in a register in places where the original loads
-//    [esp+0x14] (for example `if (!status)` becomes `cmp eax,ebp` here versus
-//    `test eax,eax` on a reloaded value), and lib's load/store slots land one
-//    dword off in spots.
-// 3. The original's two failure exits share a tail that zeroes version[0..15]
-//    with one zeroed register (four stores interleaved with the pops);
-//    spelling that as memset(version,0,16); return 0; in both arms does not
-//    reproduce it.
-// 4. The 4-byte zero store at 0x4b510a (original [esp+0x2c], version[4]) is
-//    unexplained.
-// This retry also swapped the API output-local declaration order, reordered the top-level locals, and explicitly initialized status and version halves; those variants did not improve the verified 48.6% best. Header sweep did not report a better variant. The original also reads the status slot at [esp+0x14] after FreeLibrary.
-// That slot is written only when DirectXSetupGetVersion is called, so failed
-// LoadLibraryA/GetProcAddress paths test an uninitialized value. Keep status
-// uninitialized here to preserve the observed source behavior.
+// Also unexplained: the 4-byte zero at version[4] (0x4b510a).
 //
 // Two things in the original look like Cavedog's own bugs, kept here as they
 // are: the "installed version is older" arm at 0x4b5233 compares the major
 // half against argument 2 (the minor half) instead of against argument 1, and
 // the Win9x query passes a 30-byte size for a buffer the frame only has room
-// for from 0x28 to 0x45.
+// for from 0x28 to 0x45. The status slot at [esp+0x14] is read after
+// FreeLibrary although it is only written when DirectXSetupGetVersion is
+// called, so the failed LoadLibraryA/GetProcAddress paths test an
+// uninitialized value; status is left uninitialized here to preserve that.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
@@ -120,6 +88,7 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
             }
             RegCloseKey(hKey);
             if (err) {
+                memset(version, 0, 16);
                 return 0;
             }
             if (isNT) {
@@ -131,6 +100,7 @@ int __stdcall FUN_004b5070(int want0, int want1, int want2, int want3, int want4
                 minlo = atoi(strtok(0, "."));
             }
         } else {
+            memset(version, 0, 16);
             return 0;
         }
     }

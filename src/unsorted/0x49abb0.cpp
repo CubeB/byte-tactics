@@ -134,6 +134,33 @@
 // not reachable from those. v5 (one `&&` condition instead of nested ifs) drops the
 // original's `shr eax,1; test al,1` for `test al,2`, so the nested-if shape is load-bearing:
 // 574 bytes but 93.0%. Still 3 extra instructions in the line-of-fire block.
+//
+// ---- space-bunny-free pass (issue 4352): 93.7% -> MATCH (576 -> 568 bytes) ----
+// The lever every earlier pass missed: the subtraction in the line-of-fire helper
+// is a real `operator-` on the point struct taking both operands BY VALUE and
+// returning a Vec3 by value. Nothing else about the block changes: the same two
+// by-value aggregates, the same four pushed arguments, the same -0x8000 test.
+// With the operator- boundary MSVC builds the two 12-byte argument copies as one
+// setup unit, so it emits `lea edx,[ebx+0x6a]`, keeps unit2 in ebx across the
+// call and reloads nothing in the second distance tail. Written as plain field
+// expressions (or with a real local copy, a struct-returning CopyPos helper, or
+// pointer parameters) the block collapses to the 93.7% attractor, which spends
+// `add ebx,0x6a` on &unit2->pos and pays for it with the pointer move, the
+// from.x reload and the unit2 reload: 3 extra instructions, 8 extra bytes.
+// The copy order is what the allocator is sensitive to, and by-value aggregates
+// are set up right to left, so the parameter order has to be the reverse of the
+// arithmetic's: the helper is declared (to, from) and called
+// (unit1->pos, unit2->pos), and its body reads `from - to`. That reads
+// backwards, so both the operator's parameters and the helper's are named for the
+// order the caller passes them rather than for the order the subtraction consumes
+// them; see the two comments below. Swapping either one back (getting the
+// "obvious" source spelling right) costs the match: 92.9% and 80.9%.
+// The permuter (15 minutes, 8230 candidates, no gain from 93.7%) is what pointed
+// at statement reordering and operand order as exhausted; the missing construct
+// was an inlined operator, which its catalogue cannot invent.
+// Verified byte-identical by tools/check.py 0x49abb0: MATCH, 568 of 568 bytes,
+// all eleven linker-filled references resolving (g_game, _allmul, _allshr,
+// FUN_0049a890).
 #include <stdlib.h>
 #include <math.h>
 #pragma pack(push, 1)
@@ -151,6 +178,23 @@ struct Vec3_0049abb0 {
     Fixed_0049abb0 y;
     int z;
 };
+
+// The vector from point `a` to point `b`. Both operands and the result are by
+// value, which is what makes the line-of-fire block below compile the way the
+// original does: MSVC builds the two 12-byte argument copies as one setup unit
+// instead of turning the first aggregate into a live pointer, so `unit2` stays in
+// ebx across the call and the second distance tail needs no reload. Note the
+// operands are named in the order the callers pass them (shooter, target) while
+// the result is target - shooter, because the copy order, not the arithmetic, is
+// what the register allocation is sensitive to here.
+inline Vec3_0049abb0 operator-(Vec3_0049abb0 a, Vec3_0049abb0 b)
+{
+    Vec3_0049abb0 r;
+    r.x = b.x - a.x;
+    r.y.value = b.y.value - a.y.value;
+    r.z = b.z - a.z;
+    return r;
+}
 
 struct WeaponDef_0049abb0 {
     char unknown_0[0x68];
@@ -210,11 +254,14 @@ extern Game_0049abb0* g_game;
 
 short __stdcall FUN_0049a890(int dx, int dy, int dz, int a, int b);
 
-// The target is passed by value: that is what puts the 12-byte copy of its
-// position in the frame, while the shooter is read where it is.
-static inline short LineOfFire_0049abb0(Vec3_0049abb0 from, Vec3_0049abb0 to, int s, int f)
+// Can the shooter hit the target? Both positions are taken by value, which is
+// what puts the 12-byte copies in the frame while the units themselves are read
+// where they are. The parameters are named for the order the caller passes them
+// in, and the subtraction gives the target relative to the shooter.
+static inline short LineOfFire_0049abb0(Vec3_0049abb0 to, Vec3_0049abb0 from, int s, int f)
 {
-    return FUN_0049a890(to.x - from.x, to.y.value - from.y.value, to.z - from.z, s, f);
+    Vec3_0049abb0 d = from - to;
+    return FUN_0049a890(d.x, d.y.value, d.z, s, f);
 }
 
 static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
@@ -274,7 +321,7 @@ int __stdcall FUN_0049abb0(Unit_0049abb0* unit1, Unit_0049abb0* unit2, unsigned 
     if (w->flags.bit17 && (unit2->state & 3) != 2)
         return 0;
     if (w->flags.bit1) {
-        if (LineOfFire_0049abb0(unit2->pos, unit1->pos, w->field_68, w->field_c8) == (short)0x8000)
+        if (LineOfFire_0049abb0(unit1->pos, unit2->pos, w->field_68, w->field_c8) == (short)0x8000)
             return 0;
     }
     return Dist2_0049abb0(&unit1->pos, &unit2->pos) <= w->range * w->range;

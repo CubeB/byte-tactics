@@ -1,31 +1,38 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Best 58.0% (1042 bytes against 1046). The frame map is confirmed, not guessed: the two
-// stores before `push edi` at 0x483fcc are relative to the pre-push esp, so they land at
-// final-esp 0x20 (viewX/ax) and 0x1c (viewY/ay). Original final frame: w1 0x10, px 0x14,
-// w2 0x18, ay 0x1c, ax 0x20, py 0x24, stride 0x28, p2 0x2c, rem1 0x30, rem2 0x34,
-// n 0x38, stride2 0x3c. Ours now matches p2 0x2c, rem1 0x30, rem2 0x34, n 0x38,
-// stride2 0x3c and all of the final blit loop except one reload; ours allocates
-// w2 0x14, py 0x18, px 0x1c, ay 0x20, ax 0x24, stride 0x28, so only the
-// px/py/w2/ay/ax block is permuted. Removing the `& 0xffff` masks on stride in the tail
-// block lifted 57.4 -> 57.9, but note the original DOES mask there: at 0x484324 it runs
-// `mov eax,[esp+0x28]; and eax,0xffff; imul edx,eax; lea edi,[eax+eax]` (one mask feeds
-// both the offset imul and stride2), so a `short`-typed or explicitly masked stride
-// respelling may be the right route. Tried this round: original px/py/rx/ry evaluation
-// order (57.0%), function-scope p1/p2 (54.7%), `int stride2 = stride * 2;` before
-// `int offset = ...` in the tail (54.7%, rejected), explicit `(stride & 0xffff)` in both
-// tail uses (57.4%, 1042 bytes), masked plus stride2-first (56.8%, 1039 bytes). Size
-// triangulation on that tail: unmasked 1048, masked 1042, masked+swap 1039, original 1046,
-// and the original tail ends `shl edx,1; mov eax,edx; mov [esp+0x38],eax` (a 2-byte copy
-// ours never emits), so the true tail spelling is masked with one extra edx->eax copy.
-// FOUND THIS ROUND: block 1's `p2 = p1 + w1 - 1` must be spelled
-// `unsigned short* p2 = g_game->mapValues + py * stride + px + w1 - 1;` (58.0%, 1042 bytes):
-// the original adds w1 into the already-computed offset (`add eax,ebp; lea edx,[edx+eax*2-2]`,
-// 0x4840b7), it does not scale the p1 pointer.
-// MSVC 5 assigns these slots by code, not by declaration
-// order (nine declaration orders left every offset unchanged, see SHARED.md), so the
-// remaining gap is the allocator permutation of px/py/w2/ay/ax plus one missing
-// `mov ebp, [esp+0x10]` reload after the block-3 inner loop (the original reloads w1
-// there, ours keeps it in ebp).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro continued: best 66.2% (1031 bytes against 1046). Prior work
+// took the prologue to the original's arithmetic order with int locals vw/vh
+// and rebuilt block 3 with `unsigned short s = stride` (restores the and
+// 0xffff mask, mov eax,edx copy and lea order), reaching 62.4%; the file now
+// sits at 66.2%.
+// WHAT STILL DIFFERS (all compiler scheduling/register colour, no plain source
+// lever found yet):
+// (1) block 3 counter home: the original keeps w1 in ebp and reloads it in the
+// outer-loop LATCH (`mov ebp,[esp+0x10]` at 0x484384, after the inner loop,
+// inside the if) with NO entry jmp; ours reloads w1 at the loop TOP (0x484336)
+// and carries an entry `jmp 0x48433a` to skip that reload on the first pass.
+// Tried: `int m=w1` before + `m=w1` inside if (variant A, 59.6%, spills m to
+// eax/0x5c); `m=w1` unconditional in latch (variant B, 39.5%); `if(w1>0)` +
+// `int m=w1` inside (variant E, 66.2% identical to current); uninit `int m` +
+// `m=w1` in latch (variant H, 64.5%: reload DOES move to the latch at 0x484390
+// but m gets a stack slot 0x5c and an extra top reload). So the latch reload
+// is reachable but keeping the counter in ebp across the latch is the blocker.
+// (2) slot rotation of px/w2/ay at 0x14/0x18/0x1c: ours w2 0x14, ay 0x18, px
+// 0x1c vs original px 0x14, w2 0x18, ay 0x1c (ax 0x20, py 0x24, w1 0x10,
+// stride 0x28, p2 0x2c, rem1 0x30, rem2 0x34, n 0x38, stride2 0x3c all match).
+// Both files store ax,ay,px,py,w1,w2 in that order, so it is the frame layout
+// (declaration/last-use order), not the store order. Both our order and the
+// original are consistent with "ascending last use -> ascending slot" given a
+// different last-use ordering, so the lever is the last-use POSITION of px/w2
+// (px must end earliest, ay latest). No source rewrite moved it yet.
+// (3) block 1 p1/p2: the original computes the shared offset py*stride+px in
+// eax, then p2 into edx reusing mapValues (`lea edx,[edx+eax*2-2]` at 0x4840b9)
+// and DELAYS the p2 store past the test (`test eax,eax; mov [esp+0x2c],edx`).
+// Ours computes p2 into eax (`lea eax,[edx+eax*2-2]`), stores it before the
+// test, and loads ay into ebp early (0x4840b3) where the original loads ay
+// late (0x4840d1). The lea destination is a register-allocation choice driven
+// by that delayed store / ay load timing.
+// (4) scattered register colours from the above (w2 eax vs esi at block 3
+// entry, imul edx vs esi for py, block 2 px memory fold).
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -80,13 +87,15 @@ void __stdcall FUN_00483fa0(void* surface)
     int ay = g_game->viewY;
     int sy = g_game->scrollY;
     int px = sx / 32;
-    int rx = sx - px * 32;
     int py = sy / 32;
+    int rx = sx - px * 32;
     int ry = sy - py * 32;
-    int w1 = (g_game->viewW + rx) / 32;
-    int rem1 = g_game->viewW - w1 * 32 + rx;
-    int w2 = (g_game->viewH + ry) / 32;
-    int rem2 = g_game->viewH - w2 * 32 + ry;
+    int vw = g_game->viewW;
+    int w1 = (vw + rx) / 32;
+    int vh = g_game->viewH;
+    int w2 = (vh + ry) / 32;
+    int rem1 = vw - w1 * 32 + rx;
+    int rem2 = vh - w2 * 32 + ry;
     if (rem1 != 0)
         w1++;
     if (rem2 != 0)
@@ -102,8 +111,9 @@ void __stdcall FUN_00483fa0(void* surface)
     bmp.count = 0;
 
     if (rx != 0 || rem1 != 0) {
-        unsigned short* p1 = g_game->mapValues + py * stride + px;
-        unsigned short* p2 = g_game->mapValues + py * stride + px + w1 - 1;
+        int base = py * stride + px;
+        unsigned short* p1 = g_game->mapValues + base;
+        unsigned short* p2 = g_game->mapValues + base + w1 - 1;
         int y = ay;
         int n = w2;
         if (n > 0) do {
@@ -157,19 +167,22 @@ void __stdcall FUN_00483fa0(void* surface)
         w2--;
 
     if (w2 > 0) {
-        int offset = (py * stride + px) * 2;
-        int stride2 = stride * 2;
-        int y = ay;
         int n = w2;
+        int y = ay;
+        unsigned short s = stride;
+        int stride2 = s * 2;
+        int offset = (py * s + px) * 2;
         do {
             unsigned short* p = (unsigned short*)((char*)g_game->mapValues + offset);
-            int x = ax;
             int m = w1;
-            if (m > 0) do {
-                FUN_004c6e70(surface, x, y, g_game->iconSet->data + *p * 0x400);
-                x += 32;
-                p++;
-            } while (--m);
+            if (m > 0) {
+                int x = ax;
+                do {
+                    FUN_004c6e70(surface, x, y, g_game->iconSet->data + *p * 0x400);
+                    x += 32;
+                    p++;
+                } while (--m);
+            }
             offset += stride2;
             y += 32;
         } while (--n);

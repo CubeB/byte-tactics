@@ -2,6 +2,11 @@
 // deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1,
 // finished by deepseek-v4.1-flash.
 // Names are provisional.
+// deepseek-v4.1-flash (#3023 retry): still 98.7% (191 bytes, exact). Only diff:
+// ClearLast emits `mov edi,[esi+0x1c]` 3 slots early. Load-first spellings give the
+// original registers (edi base / edx offset) at 98.7 but hoist the load; every
+// store-first spelling gives the right slot order but swaps to ecx base / edi offset
+// (93.7%). headers.py swept all 128 sets, all flat. Scheduler/live-range tie.
 //
 // Partial (98.7%): clears the kind byte of every cell in each dirty group of
 // eight cells, then clears the dirty masks. One dirty word covers 256 cells

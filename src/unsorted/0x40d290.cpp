@@ -1,4 +1,10 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3023 retry): still 93.3% (477 bytes, exact). `<vector>`
+// member-address emission is optimal; an explicit out-of-line member specialisation
+// emits byte-identical code, so it is not a steering lever. Residue: the realloc tail
+// `_End = _S + _N` emits `lea ecx,[ebx+eax]` (S+N) instead of original `add eax,ebx`
+// (N+S), and `_Last = _S + size() + _M` emits (S+M)+size instead of (S+size)+M, plus
+// one jump-offset byte. Compiler-state tie.
 // std::vector<unsigned char>::insert(iterator, size_type, const T&) from
 // MSVC 5's <vector>, with _Ucopy, _Ufill, fill and copy_backward all
 // inlined. 0x409160 calls it from the inlined resize() of the vector at

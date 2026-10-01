@@ -1,4 +1,11 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3023 retry): still 92.8% (880 bytes, exact). Four hunks:
+// Cost/bounds registers use eax/edx where the original uses edx/eax and ecx/eax;
+// both inlined Release() sites pick object/owner registers opposite to the original
+// (hunk B also swaps the freed-buffer reg); the contiguous four-store heap reset
+// group lands one block later. Structure, frame, callees, branches and the inlined
+// Push/vector code match. Signed InBounds+casts, Clear()-first, object/owner temps
+// and sx/sy locals score 81.3-92.8; 128 header sets flat. Allocator/scheduler tie.
 // Starts a path search for the object at +0x58: marks every goal cell the
 // target reports, picks the goal nearest to the start as the probe's aim,
 // runs the straight-line probe (0x40e160) and, when that did not reach a

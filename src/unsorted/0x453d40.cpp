@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash., finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash., finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash (retry for #4125, 10 min timebox, no score change, notes only):
 // transcribed the disassembly of the two missing bodies so the next pass does not have to
 // re-read it. CASE 28 starts at 0x454ec4 and is a disconnect/whack message:
@@ -51,6 +51,34 @@
 // No new variant was written in the timebox.
 // Next: transcribe case 28 then case 33 in that order (their locals are declared before
 // case 0x102's Class_00463be0 temp, which sits at 0x2e0, and before case-39's 0x434 buffer).
+// deepseek-v4.1-flash (retry for #4269, 20 min timebox, no score change): re-checked 28.0
+// (6396/8944) and re-read the two bodies, no variant was written before the timebox ended.
+// Two hard facts that unblock their transcription, from ctx.py's callee table and the
+// arg-push arithmetic (all offsets are relative to the esp at 0x454ec4, i.e. no pushes):
+//   FUN_00463ca0 is 4 args, ret 0x10; FUN_004c5740 is 1 arg, ret 0x4 (both __stdcall).
+//   Case 28's sprintf is `sprintf(buf, FUN_004c5740(DAT_005065c4), name + 0x2b)`: the
+//   `name + 0x2b` push stays on the stack across the FUN_004c5740 call, so sprintf takes
+//   three args and `add esp,0xc` cleans exactly them. That puts buf AND the 5-byte message
+//   at the same address, [esp+0x218] (the lea reads esp+0x220 only because the name push is
+//   still live), and the 4th arg of FUN_00463ca0 is the dword at [esp+0x14] read as a dword
+//   ([esp+0x20] with the three sprintf args still pushed). Case 5 at 0x455241 and case 39 at
+//   0x455328 (mov edi,[esp+0x24]) read the identical [esp+0x14] dword, so the original's
+//   `from` slot is passed to FUN_00463ca0 as a 4-byte value even though the FindPlayer
+//   fallback writes it with `mov byte [esp+0x14],0xa`; passing an int `from` (or a shared
+//   slot) is the shape to try.
+//   Case 39 is not just a buffer: 0x45522e is case 5, 0x45525a..0x4552f3 is a two-scan
+//   ResolvePlayer (indexes [esp+0x80] and [esp+0x88], byte result [esp+0x48]) whose pointer
+//   goes to esi and is null-checked, then 0x455303 pushes DAT_0050658c, FUN_004c5740 it,
+//   sprintf(buf@[esp+0x434], DAT_00506290 "%s %s", esi+0x2b) and a 12-iteration send loop
+//   (`esi = 0xc; do { FUN_00463ca0(buf, 8, 0, [esp+0x14]); } while (--esi);`), so its
+//   char[0xe8]/[0xd4] buffer is the 0x434 slot and it must precede case 0x102's 0x2e0 temp.
+//   Case 28's own scan order is: FindPlayer (index [esp+0x118]) -> NetworkSlot ([esp+0xd4])
+//   -> NetworkSlot again ([esp+0xf8], byte result [esp+0x74]) -> name -> sprintf -> send ->
+//   NetworkSlot ([esp+0xdc]) -> 0x1c packet at g_game+0x2a38 -> NetworkSlot ([esp+0xfc],
+//   byte [esp+0x5c]) -> player[0x73] == 3 || g_game[0x38d75] bit 1, and bit 2 gates
+//   FUN_00452cc0 -> FUN_00451df0(id, g_game+0x2a38, 5). Case 33 is FindPlayer([bytes+2])
+//   ([esp+0xb0]) -> NetworkSlot ([esp+0xb8], byte [esp+0x58]) -> ebp = player ptr ->
+//   *(int*)(bytes+6) -> NetworkSlot ([esp+0xc0]) -> ... (read on from 0x455b55).
 
 // deepseek-v4.1-flash pass, 15.2 -> 21.8% (6384 bytes): the sender test is a real
 // two-arm if, not an "if with an empty else" plus fall-through. The original tests

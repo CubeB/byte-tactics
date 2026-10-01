@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
-// (line 1 continued), finished by deepseek-v4.1-flash
+// (line 1 continued), finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
 // (notes only, code unchanged at 86.8). Names are provisional.
 // Partial, 78.9%. A short loop index restores three induction registers.
@@ -299,6 +299,34 @@
 // res after the loop, an int* rp = &res, reordering the out/res declarations)
 // is folded or ignored, so the tie-break needs a source shape not yet found.
 // Kept at 86.8.
+// deepseek-v4.1-flash (issue #4269 retry, 10 min timebox): rebuilt both halves of
+// the k4 dichotomy on this body and read the full object listings side by side.
+// The two-helper form FUN_00451bc0(FindFrom_004568c0(), PlayerId_004568c0(k4),
+// packet, 2) scores 83.6 at 1312 bytes (1302 when the older tail is used) and its
+// entire diff is the mirror: `mov ebp,eax` vs `mov edi,eax` at 0x456942 (res),
+// then `xor edi,edi`/`[edx+edi+...]` where the original has ebp (the k4 player
+// byte offset) and `to` in ebp where the original has edi. The mechanism is now
+// pinned down exactly: at 0x456942 both edi and ebp are free, and the allocator
+// gives res the same register the k4 loop later wants for `to`. In this 86.8
+// body res owns edi, the k4 offset owns ebp and `to` owns ebx, so the k4 loop
+// has no byte counter and folds `k4 != 10` into `cmp esi,0x29f8`. In the
+// two-helper build res owns ebp, the offset owns edi and `to` owns ebp, which
+// forces a spill around the shuffle cursor (0x2a5 mov ebp,[esp+0x18]) and a
+// reload at the k4 loop bottom (0x3c6), the extra instructions behind 1312 vs
+// 1310 bytes; the original instead reloads res once at 0x456b65 and once at
+// 0x456cc6 and never restores it inside the k4 loop. Tested this pass, all
+// 82.x or lower: unsigned char k4 with a pointer walk over field_29d0
+// (`for (int* pf = ...; pf < ...+10; pf++, k4++)`, the shape the original's
+// `xor ebx,ebx` + `inc ebx` + `cmp esi,0x29f8` implies) 78.2 at 1311 bytes
+// because a byte k4 earns a stack home and grows the frame to 0x38; the same
+// byte-k4 form with the manual `to` 82.7 (re-measured, unchanged); the
+// two-helper form with a byte k4 82.9. So the byte counter is only reachable
+// through the inlined PlayerId byte parameter, and that is exactly what moves
+// res off edi. Next step for a retry: a source shape where res is live in edi
+// across the k3 loop but is NOT live across the k4 loop (the original's res is
+// memory-resident from 0x456946 to 0x456b65 and from 0x456bc5 to 0x456cc6),
+// since every shape that keeps res register-resident through the if-body makes
+// MSVC hand it ebp.
 #include <algorithm>
 
 #pragma pack(push, 1)

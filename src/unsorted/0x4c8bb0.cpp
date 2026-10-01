@@ -1,4 +1,16 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (timeboxed 2026-10-01), body unchanged at 54.1%.
+// Measured the vK candidate the previous pass left unscored (free --sym):
+// currentVertex+nextVertex pointer locals in both edge loops plus a live
+// previous tail (index=previous; if(index<0) index=3): 49.1%, frame still
+// 0x7d5c, so vK is dead. Also scored live-previous tail shapes on the
+// current body: vTail (if/fixup) 50.1%, ternary tail 50.1%, comma
+// assignment next=(previous=index-1) 50.2%, comma+ternary 50.1%. All fold
+// previous away and keep the 15-slot arena. New theory for the next pass:
+// the original's tail fixup survives because next's slot [esp+0x14] is
+// clobbered by dz (0x4c8dce) before the tail, so the head fixup value is
+// NOT available there and the CSE cannot fire; find a source shape where
+// next's value is genuinely dead before the tail.
 // deepseek-v4.1-flash pass (timeboxed), body unchanged at 54.1%. The untried
 // "unpinned vertices" lever from the brief was tested and does NOT grow the
 // frame: the missing 16th slot [esp+0x4c] (raw index-1 of loop1) stays absent

@@ -109,6 +109,9 @@
 // and the fixup imul operand order (original `mov ecx,[mem]; imul ecx,ebp`
 // vs ours `mov ecx,ebp; imul ecx,[mem]`, same 7 bytes) still untested as
 // `y0*dx` source text.
+// Seventh pass (deepseek-v4.1-flash, short timebox, no score change):
+// fixup products written y0*dx (guide imul operand rule) and the min/max
+// locals moved inside the if block both stay 87.3, so neither is the lever.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

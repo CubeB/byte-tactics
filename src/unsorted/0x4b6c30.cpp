@@ -90,3 +90,4 @@ int __stdcall FUN_004b6c30(int range)
     DAT_0051fc88 = seed;
     return seed % range;
 }
+// GPT-6.1-sol refinement (issue 3121): rechecked the retained shift form; 91.1% remains the best. The only difference is the quotient correction sequence and the resulting short-branch offset.

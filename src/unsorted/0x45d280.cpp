@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 9 (no gain, kept this 91.5% file): with
+// DAT_00512f46 typed unsigned char, the inline fused flip
+// `f ^ ((f ^ DAT) & 1)` and the compound `f ^= (f ^ DAT) & 1;` both give
+// 90.5% / 1336 bytes (vs 91.5% / 1339 for the kept `int b` temp form), and
+// the explicit `(unsigned short)` truncation of `f ^ (b & 1)` is byte-identical
+// to the kept line, so the remaining diff is still only the EBP-for-f
+// widening in the UNDO flip plus its downstream register cascade.
 // deepseek-v4.1-flash retry 8: copied the matched 0x45c950 UNDO flag-sync
 // shape verbatim (int DAT_00512f46, `f = f ^ ((f ^ DAT) & 1); game->flags.word
 // = f;`, cast if-test). It scores 86.5% / 1330 bytes here, so the neighbouring

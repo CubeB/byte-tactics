@@ -3,7 +3,46 @@
 // right = x + 7 (eax) before bottom = y + 7 (ecx) and loads grid->y into edx. All 24
 // orders of the four rect stores, separate Rect/surface locals (79.7%), an i++ index
 // (52.5%), x0 + col * 8 and a 10-minute permuter run (399 candidates) changed nothing.
-// space-bunny-free, GPT-6.1-sol and finished by mimo-v2.6-pro. Names are provisional.
+// space-bunny-free, GPT-6.1-sol and finished by mimo-v2.6-pro.
+// Space Bunny Free pass (issue 4471): best stays 89.8%, 167/167 bytes, 6 bytes
+// differ. Built a byte-level variant scorer on top of check.py
+// (build/scratch/0x4ac8c0/harness.py, driven by exp1.py to exp13.py, ~280
+// variants, each compile scored by the number of differing bytes) and nothing
+// beat the 6-byte floor. Measured, not assumed, this time:
+//  - all 24 orders of the four rect stores (exp1): the pre-push (lea + store)
+//    pair is always the one derived from the OUTER loop coordinate, i.e. from
+//    ebx, whatever the source order; the other three stores then keep their
+//    source order. 6 bytes for the left, top, right, bottom family, 9 or 11
+//    for the rest, as before.
+//  - a diagnostic variant with the fields swapped (exp7 g1, exp8 h2) shows
+//    the hoisted pair follows the value held in ebx, not the field offset, so
+//    the original hoisted its INNER loop coordinate (esi) instead. That choice
+//    survives the +7 spelling (x + 4 + 3, x + 8 - 1, x + 7 + 0, member form,
+//    temps, exp5), the loop header and nesting (exp6, exp10), the colour
+//    expression (exp5), inlined helpers and inline methods on Rect and Pair
+//    (exp4, exp10, exp12), a function pointer for the callee (exp10), and
+//    comma/ternary sequencing inside the call's arguments (exp13).
+//  - the prologue tie is equally firm: 14 shapes (grid pointer vs
+//    gadgets[index] indexing, the found/index split, a CellX-style helper,
+//    short and int y temps, unsigned coordinates, swapped sum operands and
+//    declaration orders, exp2 and exp11) all keep grid->y in eax, the dying
+//    &gadgets[index] temp, where the original puts it in edx, the register
+//    the surface temp has just freed. Note the MATCHED sibling 0x4ac970 lands
+//    its grid->y load in edx only because there eax is still busy with
+//    gadgets->x, so it is not the same tie.
+//  - rebuilding the function in the sibling's own style (int index, found;
+//    short cellY; separate surface and rect locals; the CellX helper) is far
+//    worse, 69 bytes and more (exp9), so the Pair aggregate and the s/gx
+//    split in the prologue stay.
+//  - tools/permute.py: 2799 candidates in 15 minutes, 89.8% -> 89.8%.
+//  - the frame is the surface plus the rect (5 dwords, sub esp 0x14) and the
+//    x0 spill reuses the __stdcall argument slot, which this source produces.
+// Both remaining hunks still look like one allocator tie each: which free
+// register a freshly loaded value coalesces into, and which of the two equal
+// cost lea + store pairs is scheduled before the call's pushes.
+// claude-opus-5-5, Codex, GPT-6.1-sol, deepseek-v4.1-flash, mimo-v2.6-pro,
+// space-bunny-free and LongCat 2.5 Preview Free all worked on this file.
+// Names are provisional.
 // deepseek-v4.1-flash #4306 retry: 89.8% text score but only 6 differing
 // bytes now (was 11). Two things learned, both measured at the byte level
 // (build/scratch/0x4ac8c0/quick.py, an.py, sweepA.py):

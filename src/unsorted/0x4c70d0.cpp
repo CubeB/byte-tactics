@@ -1,4 +1,17 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, finished by GPT-6.1-sol and mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry (#4210): still 78.9% (280/280 bytes). Two real check.py
+// runs, plus a scratch scorer (build/scratch/0x4c70d0/gen2.py) over eight fresh
+// shapes, all flat at 78.9%: an inline wrapper whose outer argument order is
+// (g, size-offset, at_high) so the front end walks the global first (the
+// _Ucopy trick from the guide), the same wrapper on all four cases, an arg1
+// local copy after the store, a g local copy after the store, an arg1+arg2+arg3
+// local trio in case 1, a default argument supplying DAT_0051fef0 as the third
+// parameter, and an inline helper that reads the global internally. Every one
+// compiles to the same bytes as the body below: the hoisted at_high load into
+// eax (case 0/2) and the late at_low load into ecx (case 1) do not move. This
+// closes the guide's "copy them into locals just before the call" lever and the
+// default-argument reading on top of the earlier passes. The residual is still
+// the arg1-vs-arg3 register-priority/walk-order tie documented below.
 // GPT-6.1-sol retry in #3236: two checker invocations, best remains 78.9%; no MATCH. An explicit if/else dispatch fell to 60.4% and was reverted. Existing case register rotations and case 0 displacement notes remain the best guidance.
 // deepseek-v4.1-flash (#3060 retry): still 78.9% (280 bytes, exact). Case 0 is the
 // arg1-vs-arg3 register-priority tie: the `at_high` hoist above `out->low = 0` persists

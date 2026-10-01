@@ -1,6 +1,21 @@
-// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // (base version by GPT-6 Astra; deepseek-v4.1 re-verified and extended the notes)
-// Partial: 91.5%, 1047 bytes versus 1051. Up from 91.0%: case 0 now hoists
+// deepseek-v4.1-flash, later session: 91.5% -> 92.2%, byte count now exact
+//     (1051). The tail's sums are now `pos.x+=off.x; pos.z+=off.z;` on the
+//     PosOf() result with NO second Vec3: the compound form lands each sum in
+//     the order->pos register, giving the original `add ecx,ebx` / `add edx,eax`
+//     (the old `sum.x=pos.x+off.x` form emitted `add ebx,ecx` / `add eax,edx`).
+//     Price: pos moves from [esp+0x1c] to [esp+0x10] and one extra
+//     `mov [esp+0x10],ecx` appears; that costs less than the old register order.
+//     Also tried, all worse: nesting `if (unit->motion) { UnitDef* df=unit->def;`
+//     fixes the case-0 load order but re-rotates case 0 (91.0%, 1046 bytes);
+//     an explicit `units.~vector();` after the flags store emits the inlined
+//     delete AND the scope-exit one (91.2%, 1056 bytes); `Vec3 sum=pos;` with
+//     compound adds blows up the register allocation globally (88.8%).
+// Best known: 92.2%, 1051 bytes, six hunks left (the case-1 health-test
+//     rotation, the FUN_0043f0e0 return-buffer slot, the tail's out-of-line
+//     ~vector, the case-0 pos copy and the case-0 motion/def load order).
+// Partial (previous best): 91.5%, 1047 bytes versus 1051. Up from 91.0%: case 0 now hoists
 //     `UnitDef* df=unit->def;` into a braced `case 0:` and uses `df->flags`.
 //     That alone rotates the whole case-0 block onto the original's registers
 //     (`mov eax,[esi+0x92]` / `mov ecx,[eax+0x241]` / `test ch,8`, and the pos
@@ -190,11 +205,8 @@ int __stdcall FUN_00410850(Unit* unit, Order* order, int flags)
         if (flags&0xe0) order->angle+=-FUN_004b6c30(0x2000)-0x4000;
         Vec3 off=Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16);
         Vec3 pos=PosOf(order);
-        Vec3 sum;
-        sum.x=pos.x+off.x;
-        sum.y=pos.y;
-        sum.z=pos.z+off.z;
-        pos=sum;
+        pos.x+=off.x;
+        pos.z+=off.z;
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->FUN_0044e730(128);
         ((Class_004388d0*)order)->FUN_004388d0((int)move);

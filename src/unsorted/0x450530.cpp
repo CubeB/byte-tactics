@@ -42,6 +42,17 @@
 // FUN_0044ffd0 call, which regressed to 42.2%; restored this best version.
 // Retry (GPT-6.1-sol, issue 2027): fresh Player-reference local tied at 52.3%;`n// the saved best source remains unchanged.
 //
+// Retry (deepseek-v4.1-flash, latest): all new outer-loop shapes regressed,
+// scored with check.py --sym against this 52.3% source: an explicit offset
+// induction (`for (int i = 0, off = 0; ...; i++, off += 0x14b)`) 48.7%; a
+// single-use static body helper called from the loop 46.0%; a `switch
+// (p->state)` dispatch 28.5%; removing the `p` local and writing
+// `g_game->players[i].x` everywhere 28.5%; a duplicated `p` assignment 52.3%
+// (identical bytes). This confirms the wall is MSVC's choice to make the
+// scaled byte offset the induction (add esi,0x14b; cmp esi,0xcee) and spill
+// the raw counter, where the original keeps the raw counter in ebp and
+// recomputes i*0x14b each iteration; no source shape reaches it.
+//
 // Still differs from the original (52.3%):
 //  * The original outer player loop keeps the raw index in ebp and recomputes
 //    i*0x14b from it every iteration (mov eax,ebp; shl eax,5; add eax,ebp;

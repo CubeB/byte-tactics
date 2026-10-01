@@ -146,6 +146,14 @@
 // reachable from the call expression's spelling.
 // GPT-6.1-sol retry (issue 3011): best remains 95.1% with lstrcpynA before all four body sprintfs. A lookupName alias had no effect; moving lstrcpynA after the first, second, or third sprintf scored 94.3%, 93.0%, and 92.7%, respectively. The remaining diff is the tail lookup argument/register allocation already described below.
 // deepseek-v4.1-flash pass (issue 3460, 10 min): one check run; an `Entry* ent = entries;` alias feeding both FUN_0049fdf0 and FUN_0049ff10 on top of this probe is byte-neutral (95.1%, 1318 bytes), same as without it. Residual is still exactly the two hunks: the hoisted lstrcpynA block (ours at 0x44752e, original after the fourth body sprintf) and the eax/ecx/edx rotation of the FUN_0049fdf0 result chain and FUN_0049ff10 argument pair.
+// deepseek-v4.1-flash pass (issue 3485, 2 recorded check runs on top of the
+// 95.1 probe): natural order + a reused `char* dst` for the four body sprintf
+// destinations is byte-neutral (93.5%, 1318 bytes), so the missing step is not
+// a named destination node. The rotation is a strict eax/ecx/edx allocator
+// cursor: the original sits exactly ONE allocation ahead of our source for the
+// whole body, and moving lstrcpynA before the group shifts the cursor and the
+// entire tail with it, which is why the probe realigns the group but not the
+// tail. Only an invisible allocation before the group can fix both.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

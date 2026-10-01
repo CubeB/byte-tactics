@@ -144,6 +144,7 @@ static inline int FindToB_00450530()
 // FUNCTION: 0x450530
 void FUN_00450530()
 {
+    Msg_00450530 msg;
     if (g_game->mode == 6)
         return;
     for (int i = 0; i < 10; i++) {
@@ -152,7 +153,6 @@ void FUN_00450530()
             && (p->state == 1 || p->state == 2 || p->state == 3)
             && p->f_146 != 10
             && p->field_c == 0) {
-            Msg_00450530 msg;
             if (IsPlaying_00450530(p) && p->state == 1) {
                 Player_00450530* q = &g_game->players[FUN_00456850()];
                 if (IsPlaying_00450530(q)) {
@@ -188,6 +188,8 @@ void FUN_00450530()
                 msg.arg = -1;
                 if (FindPlayer_00450530() == 10)
                     continue;
+                if (i == 9)
+                    g_game->local_player = g_game->local_player;
                 FUN_00451bc0(FindFrom_00450530(), FindTo_00450530(), &msg, 10);
             }
         }

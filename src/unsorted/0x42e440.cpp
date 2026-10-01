@@ -10,8 +10,12 @@
 // Fixed this round: soundstart/soundhit/soundwater are `unsigned short`, so the 0xffff
 // default is the tracked value 0xffff and MSVC hoists ONE `mov esi,0xffff` before the
 // first test (a signed short folds it to `or esi,-1` rematerialised at every site).
+// deepseek-v4.1-flash timebox retry: a named `float mba` for the minbarrelangle
+// expression (then `w->minbarrelangle = mba;`) forces the original's fstp sink into the
+// next FUN_004c46c0("firestarter",0) argument setup, 84.3 -> 84.4 (first hunk gone);
+// the mba store folds away, only the schedule changes.
 // Still differs: (1) the search count byte lives at [esp+0x14] here, [esp+0x10] in the
-// original; (2) five bitfield assignments schedule `push 0`,
+// original; (2) four bitfield assignments schedule `push 0`,
 // the `or` and the store one slot differently; (3) the fstp of minbarrelangle is sunk
 // into the next call's argument pushes in the original, not here; (4) the inlined
 // vector insert swaps esi/edi (ours first=edi last=esi, original first=esi last=ebx,
@@ -326,8 +330,9 @@ void __stdcall FUN_0042e440(Class_004c4440* parser) {
     w->smokedelay = (short)(((Class_004c4760*)parser)->FUN_004c4760("smokedelay", 0.0) * 30.0);
     w->flighttime = (short)(((Class_004c4760*)parser)->FUN_004c4760("flighttime", 0.0) * 30.0);
     w->holdtime = (short)(((Class_004c4760*)parser)->FUN_004c4760("holdtime", 0.0) * 30.0);
-    w->minbarrelangle = (float)(((Class_004c4760*)parser)->FUN_004c4760("minbarrelangle", -11.25) *
-                                0.017453292519943278);
+    float mba = (float)(((Class_004c4760*)parser)->FUN_004c4760("minbarrelangle", -11.25) *
+                        0.017453292519943278);
+    w->minbarrelangle = mba;
     w->firestarter = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("firestarter", 0);
     w->rendertype = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("rendertype", 0);
     w->color = (unsigned char)((Class_004c46c0*)parser)->FUN_004c46c0("color", 0);

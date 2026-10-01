@@ -1,5 +1,38 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
 //
+// mimo-v2.6-pro, 2026-10-01 (retry pass 2): still 69.5%. This pass mapped the
+// frame with /Fa listings (build/scratch/0x43d6d0/*.asm, name offsets: slot
+// from full-push esp = name + 56 in the 0x28 frame) and tested:
+//   - `Vec3 t = FUN_0043e060(...); Vec3 v; v = t;` and `const Vec3& t =
+//     FUN(...); v = t;`: both still group the copy (load-load-load-store) and
+//     fold t to [esp+N]; the interleaved load-store copy needs the copy source
+//     to be the CALL RESULT assigned straight to v (`Vec3 v; v =
+//     FUN_0043e060(...);`) which reproduces `mov edi,[eax]; mov [esp+N],edi;
+//     mov ecx,[eax+4]; ...` and `cmp ecx,eax` exactly, but then the sret temp
+//     lands BELOW v (temp@-24 merged with pp, v@-12) and the frame shrinks to
+//     0x20: 68.6% (scratch vA). Copying through a pointer variable (`Vec3* pp;
+//     pp = &t; v = *pp;`, even as one pp reused for the later `pp = &p1`) is
+//     copy-propagated back to [esp+N]: identical to base (vK).
+//   - `Point draft = u->draft;` as a real local plus ONE cell and ONE draft
+//     variable reassigned in the clamp block (`draft = u->draft; cell =
+//     u->cell;` instead of draft2/c) puts cell in the dead parameter slot
+//     (+8, name +8) as the original does, and draft gets a real home, but ny
+//     then takes a frame slot and the frame grows to 0x2c, shifting every
+//     offset: 61.0% (scratch v1). Base's layout (frame 0x28, cell@0x10,
+//     m@0x14, ny@0x3c) scores higher only because the frame size is right.
+//   - Original slot map (name offsets): m@-40, draft@-36, pp/o@-32,
+//     v/pos@-24, sret temp@-12, ny@-8 (inside the dead sret temp's range,
+//     written as `mov [esp+0x30],eax` between the cmp and the pos stores),
+//     cell + MakeFixed temp in the dead parameter slot (+8). Ours: cell@-40,
+//     m@-36, pp@-32, v@-24, t@-12, ny@+8. Getting m/draft to -40/-36 needs
+//     draft allocated before m while ny gets no frame home (it merged into
+//     the dead 12-byte temp range at -8 in the original, which no spelling
+//     reached: ny took +8 in base, a real frame slot in v1).
+// What still differs (same list as before): grouped vs interleaved first-block
+// copy with v/temp slots reversed; m/draft/cell slot contents; the seaLevel
+// load register order; the second block's instruction interleaving; the
+// field_20 clamp block's half/edi register swap and the tail `or [esi+0x110]`.
+//
 // mimo-v2.6-pro, 2026-10-01: 69.5% (original 920 bytes, ours 921), up from
 // 59.8. This pass solved both long-standing levers together:
 //   1. The clamp's address-select (`lea; jmp; spill; lea; mov ecx,[eax]`) is

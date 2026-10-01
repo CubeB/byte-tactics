@@ -2,6 +2,68 @@
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro.
 // Names are provisional.
 //
+// mimo-v2.6-pro, 2026-10-01 third retry (fresh continuation worker): re-ran
+// check.py on the file as it stands: 94.8% (original 943, ours 964), kept.
+// New measurements this pass (all scored on scratch copies):
+//  - tail: every one-call (phi) spelling still sinks the call into both arms
+//    AND shifts the whole allocation (lazy callee-saved pushes at the branch
+//    target, this at [esp+4], d1 in ebx instead of ebp): nested ternary
+//    `d1 > lim ? (d2 > r ? A : B) : B` 81.7, `goto callit` before one call
+//    82.6 (same as the if/else select and the ternary argument). New two-call
+//    spellings (braced arms + goto to a shared label after (94.8), explicit
+//    `return` after the last call (94.8), else arm reloading
+//    `-unit->type->field_19a` so both arms read unit->type (94.8), a named
+//    amount local in each arm (94.8)) are all byte-identical to this file.
+//    Guide research: 0x4034a0's cross-jump merges a call tail AFTER the
+//    differing argument's push (RTL push order puts the last parameter's push
+//    in the arm: `push x; jmp L` / `L: mov ecx, this; push common; call`), so
+//    even a successful two-call merge would push the amount in the arms and
+//    share only `push edi; mov ecx, this; call`, which is NOT the original
+//    (`mov ecx,[esp+0x10]; push eax; push edi; call` with both pushes in the
+//    join). So the original's join shape can only come from a phi feeding one
+//    call, and every phi spelling found duplicates that call into the arms.
+//  - arm, the key finding: the rotation IS reachable. Writing the rate
+//    statement BEFORE the turn store (`int r2 = unit->type->field_19a; turn =
+//    hasPath; call(unit, -r2);`) produces the original's rotation exactly:
+//    `mov ecx,[esp+0x58]; mov edx,[ecx+0x92]; mov eax,[edx+0x19a]; ...
+//    neg eax; push eax; push ecx; mov ecx,esi; call` (92.9). It fails only
+//    because the store folds to `mov word ptr [esi+0x24], 0` instead of the
+//    original's `mov [esi+0x24], ax`: once the arm's first statement is past,
+//    VC5 has propagated `hasPath == 0` from the branch test and constant-folds
+//    the assignment. With `turn = hasPath` written FIRST (this file) the store
+//    stays `mov [esi+0x24], ax` but the unit load then sinks past it and the
+//    rotation goes one step off (unit=eax). Stopping the fold with `short* tp
+//    = &turn; *tp = hasPath;` (still `mov [esi+0x24], 0`) and with an inline
+//    `SetTurn((short)hasPath)` member (still folds) both stay 92.9. The rule
+//    is statement position, not the store's form: inside an inline helper
+//    body, `*turnSlot = t` through a pointer parameter keeps the ax store
+//    only when it is the body's FIRST statement (receiver load still sinks
+//    past it); moved after another statement it folds to the immediate 0
+//    again. So the whole arm gap is: keep the store as the FIRST statement
+//    (for the ax store) yet make the compiler evaluate `unit` before it and
+//    hold it in a register (for the ecx rotation). Likely candidates not yet
+//    tried: a value for the store that is in ax but not the branch-zero name
+//    (some alias of the v5 result the optimizer cannot see through), or a
+//    receiver/argument expression for an inlined helper whose `unit` load
+//    cannot sink because it is computed rather than reloaded from the
+//    parameter slot.
+//  - arm: the store `turn = hasPath` always hoists to the front of its
+//    statement no matter where the comma puts it (arg1 comma 94.8, arg2 comma
+//    94.8, double comma 94.8), and every copy of `unit` is scalarised with its
+//    load sunk past the store: block-scoped `Unit* u = unit;` (94.8), `u =
+//    unit + 0` (94.8), rate named before the store (92.9), an inline member
+//    helper `SlowStep(unit, hasPath)` whose parameter bind loads unit before
+//    the body's store (94.8, still sunk), a free static inline helper with
+//    this passed explicitly (91.2). The load-store-rotate sequence
+//    (`mov ecx,[esp+0x58]; mov [esi+0x24],ax; mov edx,[ecx+0x92];
+//    mov eax,[edx+0x19a]`) is still unmatched.
+//  - imul: `((__int64)((unsigned short)adiff) * field_20)` (64-bit product)
+//    matches `imul ecx` but sign-extends field_20 early (cdq + spill, _alldiv
+//    args reordered) and drags the turned block with it: 87.7 (972 bytes),
+//    confirming the earlier combined measurement. Syntax gotcha: VC5 rejects
+//    `(__int64)(unsigned short)adiff * field_20` with C2059; it needs
+//    `(__int64)((unsigned short)adiff)`.
+//
 // mimo-v2.6-pro, 2026-10-01 second retry: 94.8% (original 943 bytes, ours
 // 964). Two spellings lifted the 81.7% base (the old negative measurements
 // below were all made on the 74.8% base and no longer hold):

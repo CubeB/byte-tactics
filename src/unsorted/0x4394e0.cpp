@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
 // RETRY (deepseek-v4.1-flash, 2026-09-30): still 65.2%, the ebx/edi swap is the
 // only residual. No source shape tried here moved it: an `extern int dummyN;`
 // sweep N = 0,4,...,400 (65.2 at N<=12, 64.2 above; compiler state is not the
@@ -131,6 +131,31 @@
 // place of `*out` and a `register` hint on the `order` parameter both compile
 // byte-identically at 66.7% / 601 bytes, so the ebx(order)/edi(start.x) swap
 // still stands as the whole residual.
+//
+// Retry (mimo-v2.6-pro, 2026-10-01, 55 min, 24 check.py runs): best unchanged
+// at 66.7%. I probed the register-priority tie directly (per the guide's
+// "one weighted use" and "pointer kept across a run of calls" patterns):
+//  - a real extra use of order->timestamp, start.x.value or out->z.value at
+//    nine positions (before the snapshot, between snapshot and call, after the
+//    call, after the flag check, mid-deltas, after the loop, inside the loop),
+//    a separate `Pos start; start = *out;`, explicit field stores, and a
+//    `Game_004394e0* game = g_game;` local for the frame/anims reads all keep
+//    the prologue {out: esi, start.x: ebx, order: edi, flag: ebp} (57.0-66.7%).
+//  - the ONLY variant that moved registers: an extra
+//    `if (order->timestamp > K) return;` between the call and the t
+//    computation (62.9%). Its asm shows why: both timestamp reads CSE into one
+//    load, order's range then ends at that load, and order/flag swap into
+//    ebp/edi (start.x keeps ebx). Still not ebx for order.
+//  - three Pos types (the Fixed union; the flat x_frac/x layout of the matched
+//    sibling 0x439740; the caller 0x439b30's plain `int x,y,z` with a hi-word
+//    helper) all compile 65.7-66.7% with the same prologue, so the type is not
+//    the knob.
+//  - NEW FACT: the loop's register pair is pure downstream of the clamp: idx
+//    always reuses t's register and pos takes the other callee-saved one, so
+//    matching the loop needs only t to land in ebx, which follows from the
+//    prologue swap (order freed at [ebx+0x46] then clamp into ebx).
+// What remains: swap {order, start.x} between ebx and edi in the prologue.
+// 20+ shapes across six attempts have not reached it.
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

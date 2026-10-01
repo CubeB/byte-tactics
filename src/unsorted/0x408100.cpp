@@ -1,4 +1,15 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (4th pass, short retry): tried the suggested FixMul lever,
+// declaring FixMul(__int64 a, __int64 b) so the 0x4084f7 multiply tree is pinned
+// and cannot commute. Scored 87.4%, byte-identical to the int-parameter version,
+// so the s-pair-first push order at 0x4084f7 is NOT steered by the FixMul
+// signature (it is a pure MSVC scheduling tie driven by which operand already
+// sits in edi:ebx from _alldiv). The wall is unchanged: the loop-1 register
+// rotation (this=ebx/unit=ebp/iterator=edi/idx=esi in the original versus
+// this=ebp/unit=edi/iterator=esi here) is the whole residual. To move this into
+// ebx the allocator must co-locate ok with this's register (as the original does:
+// this spills to [esp+0x20] and ok reuses ebx at 0x4081ed); no source-level
+// lever tried across four passes shifts that first-register assignment.
 // deepseek-v4.1-flash (third pass, timeboxed before any variant compiled):
 // this file is unchanged and still scores 87.4%. What still differs is exactly
 // the three items listed below: loop 1 (and loop 2) register rotation

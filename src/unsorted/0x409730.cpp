@@ -1,5 +1,28 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// STILL 99.6% (deepseek-v4.1-flash decomp-worker pass): the same two SIB
+// base/index bytes remain (0x4099f6 wants [esi + ecx], 0x409b53 wants
+// [eax + edx]; ours [ecx + esi] and [edx + eax]), size 1678 exact. New
+// negative results, all scored with check.py --sym (build/scratch/0x409730/):
+// temp-first comma pointer at the store (`int v8 = max(...); p8 =
+// vec_8d.begin(), p8[i] = (unsigned char)v8`) is propagated back and neutral,
+// and so is the clamp-first single-statement comma
+// (`v8 = max(...), p8 = vec_8d.begin(), p8[i] = v8`): the store flip needs the
+// pointer load sequenced BEFORE the clamp, which is exactly the T9 hoist, so
+// the flip and the hoist cannot be separated by reordering the statement.
+// A second comma pointer at the read (`q8 = vec_8d.begin(), x += (char)q8[i] /
+// 2`, and the value-position form `x += (char)(q8 = vec_8d.begin(), q8[i]) /
+// 2`) does not cancel the T9 hoist (combined still 1675 bytes, 86.6%) and is
+// neutral alone; the address-comma form `*(p8 = vec_8d.begin(), p8 + i) = ...`
+// is neutral. Renumbering the inlined operator[] temps via the neighbouring
+// accesses (`Elem_0040cfb0* e = vec_65.begin() + i`, `n = (short)*(vec_7d.begin()
+// + i)`, both, and combined with the clamp-first comma) is byte-identical;
+// splitting the loop declaration (`int i; for (i = 1; ...)`) and dead
+// `int z8 = (char)vec_8d[i]` / `vec_8d.size()` expansions at the sites all tip
+// the first resize's inlined copy loop (1683 bytes, 83.9%), so this function's
+// inline budget sits exactly on a boundary and dead-code numbering probes are
+// not free. No spelling tried flips the read SIB at all.
+//
 // STILL 99.6% (deepseek-v4.1-flash final timebox pass): the two SIB base/index
 // bytes at 0x4099f6 (want [esi + ecx], ours [ecx + esi]) and 0x409b53 (want
 // [eax + edx], ours [edx + eax]) are still the only diffs; size 1678 exact.

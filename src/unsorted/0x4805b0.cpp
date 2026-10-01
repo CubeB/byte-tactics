@@ -1,5 +1,13 @@
 // Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // PARTIAL: 66.2%, 358 of 366 bytes (was 64.5% and 354 bytes).
+// Sonnet 5.5 pass (#3074): no gain. Swept 24 combinations of the Dist argument
+// orders (a/b/c, *p unnamed, swapped) and three min spellings: best is this file.
+// Also flat or worse: a user copy ctor or operator= on Point (13 to 46%), std::_cpp_max/_cpp_min
+// (404 to 424 bytes, 30%; the original's slot-then-overwrite max is the plain ternary),
+// Toward taking `to` as shorts or ints, named int copies of b.x/b.y/c.x/c.y (64.5%),
+// swapped if/else arms. The dword of c is hoisted into ebx at block 2 whenever c is
+// the `from` of one Toward arm; no spelling tried removes that hoist, and the original
+// never keeps b or c whole in a register (it reloads the arg slots in each tail).
 // space-bunny-free pass (#1805): the one change that helped is the third
 // distance, `d3 = Dist(c, b)` (66.2% against 64.5% for `Dist(b, c)`), so
 // FUN_00480570's operand order (b minus c) is what the original wrote even
@@ -134,4 +142,3 @@ void __stdcall FUN_004805b0(Point_004805b0* p, Point_004805b0 b, Point_004805b0 
         *p = Toward(c, b, d2);
     }
 }
-

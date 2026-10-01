@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash retry 2026-10-01: moving `vis = 0;` to the head of the else arm (dropping the explicit else) regressed 74.6 to 74.1 (991 bytes), so the original really has the neg/sbb/neg before the bounds-failure path. Restored base.
 // PARTIAL: 74.6% (986 of the original's 1015 bytes). Five loops over the unit
 // array (stride 0x118). Loop B now matches after computing t = a + f70*2
 // BEFORE loading b, then t = t*t, s = b*b, then if (a <= b) a = b; and calling

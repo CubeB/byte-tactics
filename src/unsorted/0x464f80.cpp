@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, refined by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash retry 2026-10-01: re-spelling the second type/field_146 reads as *(unsigned char*)((char*)pi + 0x73/0x146) does not defeat the CSE (79.7%, 2385 bytes, same 14 hunks), so the original reload at 0x46500a needs a source shape that recomputes the player pointer, not a different lvalue spelling.
 // PARTIAL: 79.6% (was 72.2%). The frame is now the original 0x34 and the slot
 // order matches (byte idx 0x10, player 0x14, hits 0x18, cell 0x1c, inner 0x20,
 // outer 0x24, 9999 0x28, typeOff 0x2c, typeId 0x30, self 0x34, pos 0x38/0x3c/

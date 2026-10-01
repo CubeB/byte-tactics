@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash retry 2026-10-01: ScaleX_00466dc0 operand swap (zoom first) and swapping the projectile-latch update order (q before p) are both byte-neutral (78.3%, 1646 bytes, same 7 hunks), confirming MSVC canonicalises the commutative multiply and the latch order is not the q-in-ebx lever. Restored base.
 // deepseek-v4.1-flash worker retry: best stayed 78.3%. Four free --sym scratch
 // variants this session all lost: routing both projectile tail reads (player
 // and owner) through the q Tail struct while p serves only p->shot (vA) 77.1;

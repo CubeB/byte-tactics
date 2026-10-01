@@ -1,5 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by
+// Parent trial: split the index load from the j increment (same 98.7%); residual add/load order is unchanged.
 // space-bunny-free, retried by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol retry (#3174): changing the face-index copy into a guarded do/while
+// and incrementing j before the copy raises the best from 96.1% to 98.7%. The
+// only remaining bytes are the order of add eax, 8 vs mov di, [edx] and
+// inc ecx in the copy loop: target loads the index and increments j before
+// advancing the destination cursor. Pointer-cursor and materialized-index
+// spellings regressed to 91.9% and 73.0%; keep the guarded do/while.
 // deepseek-v4.1-flash retry (#2977): 90.6 -> 96.1%. The first-face setup now
 // matches instruction for instruction. The lever is to assign `face` in BOTH
 // arms instead of incrementing it in one arm:
@@ -201,8 +208,12 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
     }
     for (; i < arr->faceCount; i++, face++) {
         unsigned short* idx = face->indices;
-        for (j = 0; j < face->count; j++) {
-            poly[j] = projected[*idx++];
+        j = 0;
+        if (face->count > 0) {
+            do {
+                ++j;
+                poly[j - 1] = projected[*idx++];
+            } while (j < face->count);
         }
         Flags_004211d0 flags = face->flags;
         if (!flags.bits.a) {

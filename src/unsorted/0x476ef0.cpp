@@ -156,6 +156,18 @@
 // 0x477257 (mov [esp+0x20],0) executes before the 0x47725f jne, i.e. it is
 // unconditional and only a compile-time DSE difference remains; the file
 // stays at its best 80.4 percent.
+// deepseek-v4.1-flash session (issue #3783, 10 min timebox): baseline
+// re-confirmed at 80.4 percent (1112 vs 1124 bytes); no new variant scored.
+// New evidence from the ctx.py disassembly: the store 0 at 0x477257 sits
+// between `cmp al,0x52` and `jne 0x477268`, before the ternary join, and no
+// branch anywhere targets 0x477295, so the kill store really is
+// unconditional and only MSVC 5's DSE decision differs. Also confirmed the
+// original reuses frame slot [esp+0x38] for two different locals (the gp
+// pointer at 0x4770xx and a later temp), i.e. gp's live range in the
+// original ends before the text loop, while our source keeps it live through
+// the `e->field_28 = gp->field_28;` read in the loop body; caching field_28
+// in a local is the cheapest untested lever. The remaining hunks are the
+// known frame permutation and the scan-2 zero-register shape.
 #include <string.h>
 
 #pragma pack(push, 1)

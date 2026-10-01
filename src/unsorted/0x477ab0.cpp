@@ -107,6 +107,17 @@
 // again from the original at 0x477b45 (`jne PrevMenu` with the Campaign test
 // as the false fallthrough at 0x477b4b and BigButton at 0x477b6d). File stays
 // at its best 72.9 percent.
+// deepseek-v4.1-flash session (issue #3783, 10 min timebox): baseline
+// re-confirmed at 72.9 percent (1914 vs 1935 bytes); no new variant scored.
+// Re-derived from ctx.py: in the original the Missions/Start pair, the
+// re-test (`jne PrevMenu` at 0x477b45), the Campaign/Start pair (0x477b4b)
+// and the BigButton body (0x477b6d) all sit in straight program order right
+// after the entry test, while our build sinks the Campaign/Start/BigButton
+// trio past ArmSide (0x4780b6 / 0x4780d0), which is the whole 21-byte gap
+// (four 6-byte near branch forms). Every goto/if/inversion spelling tried
+// across six sessions leaves the sink in place, so only a real graph change
+// (sibling style if/else-if chain with the body inlined once per clause, as
+// in 0x4775a0 and 0x478cb0) is left, and that was not attempted here.
 #pragma pack(push, 1)
 struct Entry_00477ab0 {
     char unknown_0[0xba];

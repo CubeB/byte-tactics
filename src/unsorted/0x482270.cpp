@@ -35,6 +35,12 @@
 // GPT-6.1-sol refinement: explicit signed-16 locals also tied at 61.0%; the
 // `>> 5` form fell to 58.1% and shared max-LOD temporaries fell to 60.0%.
 // The best source was retained. No MATCH was reached.
+// deepseek-v4.1-flash retry in #2989: nineteen more x/y spellings (split and
+// combined declarations, declaration before halfW/halfH, uninitialised then
+// assigned, comma declarators, pointer deref, y-declared-first, casts) all
+// compile byte-identically to the 79.1% version, so the x=0x20/y=0x1c slot
+// pair is immovable from source. Restructuring branch 2 (limits as if/else,
+// dst before src, src re-association) still collapses to 39.0%.
 // deepseek-v4.1-flash retry in #2819: tried swapping the x/y declaration
 // order (each load order), combined and split declarations, renaming both
 // coordinates, declaring them before/after halfW/halfH, a dummy local

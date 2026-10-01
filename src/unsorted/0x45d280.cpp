@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 7: tested whether the xor operand order steers the
+// UNDO block allocation. `game->flags.word = (b & 1) ^ f;` (v1) and the same
+// with `int b = DAT ^ (unsigned char)f;` (v2) are byte-identical to the kept
+// 91.5% file (1339 B), so MSVC5 canonicalises both commutative-xor orders to
+// the same code, f still in EBP. Routing the store through `int r = (b & 1) ^
+// f;` + `(unsigned short)r` drops to 89.3% (1337 B) and a byte local `d =
+// DAT; int b = (unsigned char)f ^ d;` to 85.0% (1350 B). Kept the 91.5% int
+// temp form; the EBP-for-EAX colouring of f is still the one open knot.
 // deepseek-v4.1-flash retry 5 (diagnosis, still 91.5%): the whole UNDO flip
 // difference reduces to WHICH REGISTER f (the word) lands in. Target is
 // `mov ax,[f] / mov dl,[DAT] / mov cl,al / xor cl,dl / and ecx,1 / xor ecx,eax

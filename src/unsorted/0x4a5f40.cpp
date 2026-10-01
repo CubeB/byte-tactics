@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
+// deepseek-v4.1-flash (issue #3406, 10-minute box): two Measure_004a5f40 loop
+// rewrites tried and reverted (index walk 53.5%, for-loop p walk 54.8%); this
+// 57.6% version stays. Remaining: the 4-byte frame gap (ours 0xd4 vs 0xd8) and
+// the ecx/edx swap in the inlined width loop.
+
 // Started by space-bunny-free, improved by GPT-6.1-sol, GPT-6,
 // finished by deepseek-v4.1-flash.
 // PARTIAL 57.6% (Sonnet 5.5 pass: 57.1 -> 57.6). The only change: the

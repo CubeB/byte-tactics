@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5. Names are provisional.
+// deepseek-v4.1-flash (issue #3406, 10-minute box): two more shapes tried and
+// reverted, both worse: a `short f138` local read once (61.7%, 1699 bytes) and
+// the original-emission-order rewrite `if (f138 == 0) {rect} else {flags}`
+// (58.5%, 1688 bytes). Still differs: the f138 test region (ours `cmp word
+// [ebp+0x138],0` twice against the original's live `mov ax,[..]; test ax,ax`
+// pair with the rect-set block emitted after the flags&0x2000 block) and the
+// bound block (ours `mov ax,[edi+0xb6]; inc ax; movsx ebp,ax` against the
+// original's `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`).
+
 //
 // PARTIAL 93.4% (1703 of 1703 bytes). Command-button click/key handler for
 // the 0x15b-byte entry table.

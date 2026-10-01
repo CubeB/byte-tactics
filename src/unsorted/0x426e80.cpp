@@ -1,4 +1,4 @@
-// Still differs (50.9%, 6422 bytes vs the original's 6310). Retry session note:
+// Still differs (50.9%, 6422 bytes vs the original's 6310). Retry session note:, finished by deepseek-v4.1-flash
 //  - the four missing bodies were added; after the outer 0x10 dispatch the exe
 //    emits its inner cases in the order 0,1,17,19,18,20,21,3, so 17 is the
 //    FUN_00451540 body (0x427eaf), 18 is the FUN_004517b0 body (0x427f4c), 19
@@ -33,6 +33,28 @@
 //    (or with a `char* p` local, or inline) is byte-identical to the `||`
 //    spelling: still ebp, still 6422. Only duplicating the body in an
 //    `else if` drops ebp, and that costs more than it gains.
+// Retry #4261 (deepseek-v4.1-flash) new evidence, nothing changed the score:
+//  - the sole ebp use is confirmed as the `xor ebp,ebp` at object offset 0xf1c
+//    inside the case-16 memcmp chain (objdump: `xor %ebp,%ebp` immediately
+//    before the two `repz cmpsb`), so all 20 epilogues pop ebp and every later
+//    offset is +4. The exe's chain instead reloads `mov ecx,0x10` per compare
+//    and spends ebx and eax on the two compare results. Our build already keeps
+//    the function-wide zero in ebx (case 0 emits `xor ebx,ebx` + `push ebx`),
+//    it simply has ebx free in this block, so the length constant gets hoisted.
+//  - the zero-register respelling is byte-neutral here: replacing every
+//    `g_game[0x2bbe/0x2bbf/0x2bc0] = 0;` (29 sites each) with one shared
+//    `unsigned char sv = 0;`, plus `sv = 0x11;` at the case-16 key path,
+//    compiles byte-identically (6422 bytes, 50.9%), i.e. our build already has
+//    that constant-in-register behaviour and the exe's shared two-store tail at
+//    0x427f8f is not blocked by the store spelling. A version that also gave
+//    sv the goto tail (`sv = 0x11; goto tail;`) put sv in a stack slot
+//    ([esp+0x13], frame 0x104) and dropped to 49.8% (6694 bytes), so the
+//    variable only earns a register when it is spelled at many sites.
+//  - exe 0x4282d0 materializes the outer-0x11 switch bound in ebx
+//    (`mov ebx,0x11; cmp ecx,ebx`) and reuses it: `push ebx` at 0x428589 (our
+//    case-3 tail, written FUN_004257e0(0x11, 0x9b, ...)) and at 0x42844c (the
+//    0x463c60 loop's 0 argument, which is a fresh `xor ebx,ebx` there); ours
+//    pushes immediates at both, 1 byte each.
 // Decompiled by longcat-2.5-preview-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // Older notes (previous sessions):
 //  - case 16's compare chain respelled as one `if (memcmp(a,STR1,0x10) == 0 ||

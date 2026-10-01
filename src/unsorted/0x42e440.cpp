@@ -103,6 +103,11 @@
 // scheduler placement of `push 0` / the [ebp+0x111] bitfield store and which register
 // (eax vs ecx/edx) accumulates the read-modify-write; the 160-line vector insert
 // region is the allocator-bound body of this gap.
+// deepseek-v4.1-flash timebox retry (issue #4039): respelling the post-insert store as an
+// indexed `entries[offset].value = value;` (plus an operator[] member on the modelled vector)
+// regresses 84.7 -> 81.8 percent (3926 bytes, 9 hunks), so the original's fused
+// `lea esi,[base+idx*8+4] / mov [esi],edx` is not reachable through that spelling either;
+// best stays 84.7 percent / 3924 bytes with the +1 byte still unexplained.
 // construct does not use an allocator receiver in the original, so its
 // declaration uses the equivalent two-argument stdcall ABI.
 

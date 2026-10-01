@@ -1,40 +1,37 @@
-// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// GPT-6.1-sol (#3172 retry): four scored checks, best 92.6%; loop-counter-before-while and reversed local order tied, while(1) with break fell to 65.4%. No MATCH.
-// Partial: 92.6% (431 bytes vs 428), best of v20-v39 plus the v40-v88 retry.
-// Prologue, branch A and
-// the whole branch B loop body match; only two instructions differ, in the
-// branch B preheader (both are register/base choices for the p reads):
+// Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Partial: 92.6% (431 bytes vs 428). Prologue, branch A and the whole branch B
+// loop body match; only the branch B preheader register/base choices differ:
 //   original: mov edx,[eax+0x14363]; mov eax,[eax+0x1436b]; cmp eax,edi;
 //             mov edi,[esi+4]; mov esi,[esi]; mov [esp+0x18],eax
 //   ours:     mov ecx,[eax+0x1436b]; mov edx,[eax+0x14363]; cmp ecx,edi;
 //             mov esi,[esi]; mov edi,[eax+0x2c7a]; mov [esp+0x18],ecx
-// Reading p->x (first statement) makes p die on `mov esi,[esi]`, which is the
-// original's dying-register load, but the second read g_game->view.y must then
-// be rematerialised from EAX, so g_game stays live and count2 takes ECX.
-// Reading both fields from p (v20 dy-first 71.2%, v21 dx-first 72.7%) moves p
-// to EDI for the whole function and the zero to ESI, which wrecks branch A.
-// Also tried: dy-first with the y read from p (90.4%, p dies on the wrong
-// load), q = p copies and a Point& alias (fold into p, 71.2%), q = &g_game->view
-// (rematerialised from g_game, 79.1%), cast-based address forms (identical).
-// The remaining work is getting `mov edi,[esi+4]` plus `mov eax,[eax+0x1436b]`
-// without re-triggering the whole-function p->EDI reallocation.
-// Retry v40-v88 confirmed: ANY read of p->y (or a branch-local q alias, or a
-// hoisted py/dyv local) in the branch B loop makes MSVC give p=EDI and the
-// zero=ESI, moving branch A's u into p's register and adding a `jmp`; using
-// only g_game->view fields (v42/v56) shifts the p spill slot and also breaks
-// branch A. The exact original (list2 then count2 into EAX, then [esi+4] and
-// [esi]) needs g_game dead before the p reads, but every source spelling that
-// kills g_game there also perturbs the function-wide p/zero assignment.
-// Retry by deepseek-v4.1-flash (v89+): the both-fields-from-p form is the
-// exact structural mirror of the original with only p/zero swapped
-// (p=EDI, zero=ESI; branch B emits mov esi,[edi+4]; mov edi,[edi] and count2
-// still lands in EAX), confirming the target instruction shape is reachable.
-// The nearest keeper keeps p=ESI: dy first with s->y - p->y and
-// s->x - g_game->view.x scores 90.4% but reads p->y into ESI and leaves
-// count2 in ECX. Nothing tried (const/reference p, int* p[i], inline
-// Dist2(Slot*,Point*) helpers, q aliases, two separate ifs, explicit returns,
-// reordered declarations) moved p back to ESI while reading both fields from
-// p; the allocator's p/zero colour choice tracks the extra p dereference.
+// The original reads BOTH loop fields through p (esi): y first (mov edi,[esi+4])
+// then x into the dying base (mov esi,[esi]), with count2 in EAX, which needs
+// g_game dead at its count2 load. Ours reads x from p (correct dying load) but
+// y as g_game->view.y, which keeps g_game live, forces count2 into ECX and the
+// y load to [eax+0x2c7a].
+// Structural result (confirmed again this retry, mimo-v2.6-pro): the both-from-p
+// form (dy = s->y - p->y; dx = s->x - p->x) compiles to the exact mirror of the
+// target preheader (s load first, count2 in EAX, mov esi,[edi+4]; mov edi,[edi])
+// but the whole function then swaps p to EDI and the zero constant to ESI (also
+// swapping the p and counter spill slots and reloading p through the stack in
+// branch A), scoring 71.2 to 72.7%. The flip tracks g_game dying at the count2
+// load, not the p->y read itself: any spelling that keeps g_game alive in the
+// loop keeps p=ESI (92.6% here, 90.4% for dy-first with y from p and x from
+// g_game->view.x, where p dies on the wrong load).
+// mimo-v2.6-pro retry (v91 to v108) tried on the both-from-p base, all still
+// 71 to 73%: DistSq(Slot*,Point*) and DistSq2(int,int,int,int) inline helpers,
+// inline (s->x-p->x)*(s->x-p->x)+... in both operand orders, while loop with
+// the counter declared outside, s/best declaration swap, one declaration group
+// (int dy = ..., dx = ...;), Point* const p, const Point* p, uninitialised dx/dy
+// before the for, p/result declaration swap at the top, pre-read int n =
+// g_game->count2, early-return control flow. tools/permute.py on the 92.6% base
+// (seed 3, 27538 candidates) found no gain. Earlier retries also tried q = p
+// copies, a Point& alias, q = &g_game->view (79.1%), cast-based address forms,
+// int* p[i], two separate ifs and reordered declarations (notes preserved in
+// git history). What remains: a spelling where g_game dies at the count2 load
+// but p keeps ESI, or any source perturbation that flips the p/zero colour
+// choice back on the both-from-p form.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {

@@ -51,6 +51,11 @@
 // +0x1b63 lea and the +0x1b8a fold as separate nodes. Reverted, see
 // build/scratch/SHARED.md for the same shr/test and add-immediate walls
 // recorded on other functions.
+// deepseek-v4.1-flash retry 7 (10-minute timebox): no change, 84.6%, 4250 bytes
+// (original 4247), 31 hunks. Probe this pass: `y3 -= 0x10;` as a compound
+// assignment on top of `int y3 = pfstate;` is byte-identical to the single
+// `pfstate - 0x10` initialiser (still `add esi,-0x10`), so the original
+// `sub esi,0x10` is not the compound-assignment opcode shape. Reverted.
 // deepseek-v4.1-flash retry 4: 82.0% -> 84.6%, 4250 bytes (original 4247).
 // - WIN: the S:/R: test at 0x46b6fe is not `(v >> 9) & 1` but a byte-typed
 //   value, `((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1)`. The

@@ -71,6 +71,10 @@
 //   * `SETBUF->flags & 0x8000` / `& 0x10` for the version-test selects: byte-identical
 //     output at 83.7%, so the original's `shr edx,0xf; test dl,1` is not a bit-test
 //     spelling lever.
+// deepseek-v4.1-flash pass (best still 83.7%): byte-neutral variants tried: `i[g_game->data]`
+// subscript swap for the zeroing loop, and a block-scoped `int n = FUN_004c9e50(...)` with
+// `count = n` after the negative check. Regressions: `f0 = rdw[0] & 0xffff` with bare f0 at
+// p[5] is 83.0%, and reading p[2]'s field_10 as `rdw[3]` is 80.9%.
 #include <string.h>
 #include <stdio.h>
 

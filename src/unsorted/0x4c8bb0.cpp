@@ -1,5 +1,11 @@
 // Decompiled by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash pass (timeboxed 2026-10-01), body unchanged at 54.1%.
+// Fifteenth pass (deepseek-v4.1-flash, 2026-10-01): the winning hoist fix of
+// sibling 0x4c8760 does NOT transfer here. Hoisting ALL block-scoped edge
+// temps (next, dv, dx, du, dz, dl, y0, y1, n, nextVertex) to function scope
+// scores 45.1% (1271 bytes) and hoisting only next/dv/dx/du scores 46.5%
+// (1275 bytes), both regressions from 54.1 at 1275 bytes, so the temps stay
+// block-scoped and the 0x7d5c frame plus edx null-guard deltas remain.
 // Second deepseek-v4.1-flash pass (timeboxed 2026-10-01): re-checked 54.1%
 // (1275 of 1279 bytes) and confirmed the two biggest structural deltas remain
 // the frame (ours 0x7d5c, original 0x7d60, one 4-byte scalar short) and the

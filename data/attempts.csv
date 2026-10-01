@@ -7170,7 +7170,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4336f0,708,,#4296,assigned,,,"issue #4296, escalated"
 0x4745e0,306,,#4299,assigned,,,"issue #4299, escalated"
 0x474b80,303,,#4299,assigned,,,"issue #4299, escalated"
-0x4a05e0,494,,#4300,assigned,,,"issue #4300, escalated"
+0x4a05e0,494,opus,#4300,matched,100.0,,"issue #4300, escalated"
 0x450240,305,,#4302,assigned,,,"issue #4302, escalated"
 0x453360,380,,#4302,assigned,,,"issue #4302, escalated"
 0x4b91b0,423,deepseek-v4.1-flash,#4304,partial,55.9,,"issue #4304, escalated"

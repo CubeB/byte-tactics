@@ -68,6 +68,9 @@
 // prefix, tail, fill, destroy, deallocate and reset spellings. The retained
 // dst-first tail remains the best.
 // deepseek-v4.1-flash (issue 3811, 2026-10-01): still 81.4%, 928/936 bytes.
+// deepseek-v4.1-flash (#3860): declaration-count padding (320 file-scope dummy
+// typedefs after the includes) is byte-neutral here, 81.4 percent / 928 bytes,
+// so unlike 0x475bd0/0x408f30 this instantiation is not padding sensitive.
 // Re-checked the retained dst-first clone: it is still the best of the four
 // helper/call-site shapes for this 14-byte element (source-first everywhere is
 // 63.3% as recorded above). The remaining diff is the _N/_S home swap plus the

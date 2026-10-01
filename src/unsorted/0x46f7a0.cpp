@@ -40,6 +40,10 @@
 // choice. Earlier notes: the copy assignment's base must remain a struct to
 // preserve its U mangling; every remaining difference is this single
 // register-allocation decision.
+// deepseek-v4.1-flash (#3860): file-scope declaration-count padding flips this
+// instantiation between exactly two shapes, the kept 83.8 percent / 798 bytes
+// one and an 80.1 percent / 799 bytes one (320 dummies after the includes;
+// 576 dummies are back at 83.8), so padding is not the lever here either.
 // deepseek-v4.1-flash (issue 3379), still 83.8%, 798 bytes: confirmed the wall is
 // not reachable from source. The two builds are byte-identical for the first
 // 0xbe bytes; the first divergence is the load of _P after operator new, which

@@ -1,5 +1,37 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 52.3%, 1806 bytes. Swapping the point.x/point.y subtract order (51.1%) and moving `int n = 0;` below the r.y1/r.y0 setup (byte-identical, 52.3%) do not move the py/esi register rotation. Still differs: py in esi here vs edi in the original, one rotation only.
+// 2026-10-01 retry 6 (deepseek-v4.1-flash): best stays 52.3%, 1806 bytes. Confirmed the
+//   remaining gap is the one esi/edi rotation (original keeps point.y in edi and reloads
+//   obj / point.x through esi; this compile swaps the two, so py takes esi and the loop
+//   counter plus the obj/px reloads take edi). The swap is 1:1, so the bytes differ all
+//   through the function, and that is where most of the missing 48% goes. In the
+//   original the loop init (`mov esi,1`, 0x4a383d) is scheduled BEFORE point.y's load
+//   (0x4a3853) and even before the point.x subtract, so the loop counter owns esi first
+//   and point.y has to reuse edi; here point.y's definition comes first and claims esi.
+//   New this pass: MSVC 5 does fold `- 1 - 3` into lea -4 (so the original's
+//   `lea eax,[ecx+ebx-1] / sub eax,3` for r.y1 cannot come from one expression), and it
+//   also folds a `r.y1 -= 3;` placed directly after the assignment. The only fold barrier
+//   found is a statement that writes a value the y1 expression reads:
+//   `r.y1 = me->field_19 + r.y0 - 1; r.y0 += 2; r.y1 -= 3;` DOES give the original's
+//   `lea -1 / sub eax,3 / add ebx,2 / store` (1809 bytes) but the schedule moves
+//   point.y's load up into esi and the score drops to 49.2%, so the base spelling
+//   (`r.y1 = me->field_19 + r.y0 - 4;`) scores higher and is kept.
+//   Also tried, all worse or byte-identical: a `short nsel = me->field_c0;` local used
+//   for both the !=0 test and the nsel-1 clamp (byte-identical: MSVC folds it to
+//   `cmp word ptr [ebp+0xc0],0`, so the original's `mov si,[ebp+0xc0] / test si,si /
+//   dec esi` is still unexplained); aliasing obj into a local pointer (coalesced away);
+//   `int n = 0;` moved between the y1 statements as a fold barrier (folded anyway);
+//   `} else if ((flags & 0x20) | 0x80) {` instead of the `||` spelling: this DOES give
+//   the original's `mov ecx,eax / and ecx,0x20 / or cl,0x80 / test cl,cl` at 0x4a3c2b
+//   and takes the file to the original's 1812 vs 1832 bytes, but the checker's similarity
+//   reads 52.1% (the register swap elsewhere in that block costs more than the three
+//   matching lines gain), so it is not kept. The `| 0x80` (value, not mask) looks like
+//   the original programmers meant `(flags & 0x20) | (flags & 0x80)`; as written the
+//   test is always true, which is why the original's `je 0x4a3cd3` is dead;
+//   point.x before point.y (51.1%); the point.y subtraction after the selection loop
+//   (42.1%); hoisting `int i = 1;` above the point copy (38.0%: the local's slot moves
+//   and every [esp+N] shifts, so a hoisted i needs to keep the merged slot the current
+//   `int i;` has).
 // PARTIAL: 52.3%, 1806 bytes against 1832, frame 0x3c like the original.
 //
 // What the Sonnet 5.5 pass (#3246) found, 35.4 to 52.3:

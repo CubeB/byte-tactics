@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 retry 6 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. NEW
+// and important: the guarded `while (i < entries[0].b6.count + 1)` DOES reach
+// the target loop allocation (bound ecx, i edi, t spilled at frame+0x10, walk
+// pointer edx) as soon as the x phi uses the sibling 0x4a53c0 `int nx = x;`
+// two-variable idiom (build/scratch/0x4a56b0/v9.cpp). v9 is 1662 bytes, exactly
+// the original size, and its loop matches instruction for instruction; the 55.2%
+// score is only because `entries` lands in ebp where the original has ebx (the
+// t-copy temp then takes ebx instead of ebp), a single swap that renames a base
+// register in nearly every instruction. Both are internally consistent
+// allocations, so no spelling tried (t before i, entries statement first) moves
+// it. The x/nx idiom also removes the x spill and the `w` operand order
+// (`add ecx, edx` vs the original `movsx ebp, w; add ebp, ecx`) survives every
+// arm spelling tried (`w + x`, `x + w`, `nx = w; nx += x;`), all 58.1%, 1647
+// bytes and byte-identical to each other, when paired with `while (1)`.
 // 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. `if (i == entries[0].b6.count + 1) break;` is byte-identical to `>=` (60.3%), so the comparison operator is not the bound-spill lever. Still differs: bound spilled here vs original ecx, t in edx vs original memory at frame+0x10, and the x phi through stack.
 // 2026-10-01 retry 4 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. New
 // facts: the t-vs-walker tie is independent of the x phi. The x-register

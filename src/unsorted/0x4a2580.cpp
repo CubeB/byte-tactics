@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 retry 6 (deepseek-v4.1-flash): six more levers tested, none beat 69.8%.
+// Hoisting limit/lc as function-scope locals before entries/surface (the slot order the
+// original shows is limit 0x00, lc 0x04, entries 0x08, surface 0x0c) gives 67.6%: the surface
+// then lands in the freed index home [esp+0x58] and the scan loop pointer takes its frame slot.
+// Reordering the prologue so entries/e are computed before the surface load gives 67.6% too,
+// and adding a fresh branch-local surface in the w<h branch on top gives 64.7%. A fresh w<h
+// branch-local surface alone gives 63.1% whether it is declared before or after `int y = e->y`
+// (it gets a home, local 0x0c, instead of ebp); naming the branch test operands `short w/h`
+// gives 62.6%; plain ifs instead of Smaller() in the lc/lim2 block give 62.4% (1604 bytes, the
+// shared 26-byte _itoa tail merge is lost); a plain if for lc only gives 62.3% (1616 bytes);
+// moving the h<=w surf declaration after x/y gives 58.4%. Conclusion: in the original the
+// function-scope surface keeps slot 0x0c while the w<h branch draws through a register (ebp)
+// copy, and MSVC only awards that register when the branch variable has no stack home, which
+// our formulations never achieve (they either keep the home or spend a local frame slot).
 // 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 69.8%, 1631 bytes. A fresh branch-local surface (with and without a const function-scope surface) gives 63.1%; hoisting function-scope `int limit; int lc;` before entries/surface lands the surface in the freed [esp+0x58] home at 67.6%; the w<h test cast to unsigned short is byte-identical. Still differs: surface home [esp+0x10] vs the original [esp+0x1c] and the w<h register split (surface in ebp vs our stack home).
 // Sonnet 5.5 (#3246): re-checked 69.8%. Turning r1/r2/rect from int[4] into a `Rect` struct (and
 // the callee parameters to Rect*) is byte-identical, so the frame/slot differences are not an

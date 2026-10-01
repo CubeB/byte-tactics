@@ -1,179 +1,114 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
-// claude-opus-5-5 pass (#4173), 36.5 -> 38.6: the weight clear is
-// `memset(weight, 0, n * 4)` (the original's rep stosd) and the normals loop
-// uses the same `face = info->faces; fi = 0; if (firstFace != -1) { face++;
-// fi = 1; }` walk as the two later face loops (the original adds 0x20 to the
-// face pointer there, it never computes faces + fi). Each one alone scored
-// lower in earlier passes; together they gain. Also tried on top, all lower:
-// accum zeroed in [2],[1],[0] order (38.4), `else fi = 0;` (38.0), offsets
-// read from bmp (35.9), the unsigned-char bias spelling (29.5).
-// deepseek-v4.1-flash retry (#3971): 1 check run, base kept. Dropping the
-// `!= 0` from the tail antiAlias test (to mirror the head site that emits the
-// original's `mov cl,[m]; shr cl,1; test cl,1`) is 36.4% / 1958 bytes against
-// this base 36.5% / 1955, so the tail fold to `test byte [m],2` is not that
-// spelling.
-// deepseek-v4.1-flash retry (#3858): re-baselined at 36.5% / 1955 bytes, the
-// same piece-loop alignment and weight-fill hunks as before; no new lever found
-// inside this issue's timebox.
-// deepseek-v4.1-flash retry (3631), 36.5% base kept, 2 check runs: swapping the
-// src/mode declaration order (`int mode; Bitmap* src;`) compiles to the same
-// 1955-byte body and the same 36.5, so the 0x24/0x28 slots come from use order,
-// not declaration order. Re-probing the full parameter-reassignment shape
-// (`bitmap = shadow` plus an arm-only `src`, all later uses on the parameter)
-// measures 1982 bytes / 34.4, confirming pass 3241: the smaller live set frees a
-// callee-saved register for useColor, which is exactly the register the original
-// does NOT spend on it. The original's 0x459de6 slot map (vertices 0x14/0x18,
-// piece 0x1c, mode 0x20, info 0x24, src 0x28, offY 0x2c, n 0x30, count 0x38,
-// offX 0x3c) is only reachable if useColor stays in its stack slot 0x159f4
-// across the whole piece loop (0x459da0 reloads it), which is what the extra
-// live surface pointer in `bmp` buys; every "cleaner" spelling scores lower.
-// deepseek-v4.1-flash retry (watchdog pass), 36.5% base kept: the tail inner
-// loop as `while (x--)` scores 36.4, so the `for (x; x != 0; --x)` spelling is
-// kept. Still differs: prologue preload of bmp into esi/ebx before push edi
-// (original loads [esp+0x159e8] only after the three tests), mode slot 0x28 vs
-// 0x20, piece-pointer bias, and x87 scheduling in the normal/accum loops.
-// deepseek-v4.1-flash retry (3029 board), 36.5% base kept, 2 check runs, no new
-// variant scored: timebox expired before a probe could be built. Findings from
-// the diff/disassembly this run (next worker should try this exact shape):
-//  * The original REASSIGNS the bitmap PARAMETER to the shadow: at 0x459d28 it
-//    stores the shadow to [esp+0x159e8] (the param home slot) and the old
-//    bitmap to [esp+0x28] (src). The else arm at 0x459d57 then reads BOTH from
-//    memory (`mov esi,[esp+0x159e8]; mov ebp,[esp+0x28]`), and 0x45a3da reloads
-//    both at the end of every polygon loop. So esi = drawing bitmap (the
-//    param, = shadow in mode) and ebp = src for the whole piece loop; the
-//    else-path `mov ebp,[esp+0x28]` reads a slot never written there, which is
-//    the classic MSVC reload of an UNINITIALIZED src (src assigned only in the
-//    shadow arm). Untested combination: param reassignment + src assigned only
-//    in the arm (earlier probes tried each half separately: 35.3 and 33.4).
-//  * offX/offY at 0x459df0 read [esi+4]/[esi+6] with esi = drawing bitmap, so
-//    semantically they are bmp (shadow) offsets; the current `bitmap` spelling
-//    only matches the instruction because our esi holds the original bitmap.
-//  * Tail inner loop is a `while (x--)` shape (`mov edi,eax; dec eax; test
-//    edi,edi; je; lea edi,[eax+1]`), not the current for(x; x!=0; --x).
-// Partial, 34.8%: Sampling direction and mutable lighting-vector reads corrected.
-// A 128-set header sweep found no match; <ddraw.h> alone is best (34.8%).
-// A materialized shifted-flag local did not improve the score.
-// GPT-6.1-sol refinement: unsigned weight counters scored 29.3%, and narrowing
-// the shifted shade bit into a byte local scored 31.2%; both were reverted.
-// Frame-slot rotation, per-piece registers and x87 scheduling still differ.
-// Tried (deepseek-v4.1-flash): modelling the piece flags, the g_game+0x37f06
-// shadow flag and the owner+0x241 bit as packed 1-bit bitfields. The negated
-// piece flag matched `test byte ptr [m],1`, but every positive flag access
-// still folded to `test dl,2`/`and edx,0x40000000` and the frame slots shifted
-// (mode moved 0x20 to 0x28), so the masked-int spelling scored higher and is
-// kept.
-// Changed (space-bunny-free, +0.2):
-//  * vertex[k].x and vertex[k].y are now stored AFTER the mode branch, matching
-//    the original's spill of x to [esp+0x34] at 0x459e44 and the shared
-//    `sub ecx,edx` tail at 0x459e83.
-//  * vertex[k].z keeps its own mode test after that tail, matching the original
-//    re-reading [esp+0x20] at 0x459e85 instead of testing mode once.
-//  * the weight clear counts down (`for (z = n; z; ) weight[--z] = 0;`), which
-//    is the shape that let MSVC drop the extra `test edx,edx` reload.
-// Tried and NOT kept (space-bunny-free): every spelling of the 0x37f06 bit
-// (unsigned char/unsigned short bitfields, 3-bit field & 2, plain, negated,
-// local pointer or inline cast) all still emit `test dl,2`, never the original's
-// `shr dl,1; test dl,1`, and all score at or below the masked-int 34.1-34.2.
-// Leaving `src` unassigned on the else path (which the original's read of
-// [esp+0x28] at 0x459d5e suggests) drops to 33.4, so the slot must be written
-// in both arms; the rotation is decided elsewhere.
-// Remaining diff hunks (original addresses):
-//   0x459c89 flag test: original `shr dl,1; test dl,1`, ours `test dl,2`, and
-//            the whole prologue register rotation (list edx vs eax, useColor
-//            eax vs esi, mode slot 0x20 vs 0x28) follows from it.
-//   0x459d21 src spill: original stores src to 0x28 before the second memset,
-//            ours uses ebx.
-//   0x459df0 vertex loop: original reads offX/offY from esi (bitmap) into
-//            0x3c/0x2c and sets up the accum/vertex induction pointers before
-//            the rep stosd; ours reloads the bitmap and re-tests n.
-//   0x459e95 shade bias: original `shr edx,0x1e; and dl,1; neg dl; sbb edx,edx`,
-//            ours `and edx,0x40000000; neg edx; sbb edx,edx`.
-//   0x459ef2 accum zeroing: zero register ecx vs eax, independent local layout.
-//   0x459f42 normal loop: x87 fadd operand order and face-pointer registers.
-//   0x45a133 accum division: loop counter in esi vs edx.
-//   0x45a246 polygon loop: index slots differ, fadd direction at 0x45a195.
-//   0x45a3a3 branch layout: firstFace test takes the opposite branch direction.
-//   0x45a419 end copy loop: register assignment differs.
-// deepseek-v4.1-flash (this run), 35.5%: the shadow flag at g_game+0x37f06 is
-// the `unsigned short` bitfield Flags_0042f9a0 (bit 1 = antiAlias, as in
-// 0x42f9a0.cpp). A *standalone* `if (flags.antiAlias)` gives the original
-// `mov dl,[m]; shr dl,1; test dl,1`, but the same test inside a `&&` chain
-// folds to `test byte,2`, so the shadow path has to be nested ifs, and the
-// three failing edges need to reach one shared mode=0 block (`goto haveMode`;
-// a plain if/else produced two separate else blocks). Copying the bitmap
-// parameter into a local `bmp` moved the drawing surface into a callee-saved
-// register. Also fixed the final flag test to be its own `if` (it was folding
-// in the `&&`). Still differing: bmp/useColor land in ebp/esi where the
-// original uses esi/eax, the mode local sits at 0x28 vs 0x20, and the
-// vertex/normal/polygon loop register rotations and x87 scheduling.
-// deepseek-v4.1 (this run), 36.5%: five structural probes, none better than the
-// base. Ascending weight clear scored 34.4 (still rolled, never the original's
-// rep stosd); dropping the early `bmp = bitmap` init so both arms assign it
-// scored 34.9; using piece->flags directly instead of the pflags local, a
-// while (--p) piece loop, addressing pieces as list->pieces[p] with no pointer
-// local, and swapping the src/mode declarations all scored the same 36.5 and
-// compile to the same size. The piece induction pointer stays biased in every
-// spelling we tried (base +0x4a toward flags, +0x44 toward vertices) while the
-// original uses the unbiased pieces base +0x22, so the whole loop body's
-// [ecx+0x28]/[ecx]/[ecx+0x22] offsets stay misaligned.
-// deepseek-v4.1-flash retry (2532), 36.5% base kept: confirmed the shade bias
-// at owner+0x92 -> +0x241 bit 30 is ternary(125:50); spelling it as
-// `unsigned char c = (unsigned char)(v >> 30); return (c & 1) ? 125 : 50;`
-// emits the original `shr edx,0x1e; and dl,1; neg dl; sbb edx,edx` but shrinks
-// the function by 21 bytes and scores 36.0, so the frame/rotation is the real
-// blocker, not the mask spelling.  Reading the vertex offsets off `bmp`
-// (the drawing surface, as the original esi does at 0x459df0) instead of
-// `bitmap` is semantically right but scores 36.4, so `bitmap` is kept for the
-// byte score.  Removing the early `bmp = bitmap` init, even with `bmp` offsets,
-// collapses to 29.4 (two else blocks).  The prologue rotation (esi/ebx bitmap
-// preload before `push edi`) is still the first and dominant diff.
-// deepseek-v4.1 retry (2650), 36.5% base kept, 8 check runs, four probes tried:
-//  * reassigning the `bitmap` parameter to the shadow and dropping the `src`
-//    local (the original stores the original bitmap at 0x28 and the shadow into
-//    the parameter slot at 0x159e8, and gives FUN_004b95a0 (original, shadow))
-//    scored 36.1: mode landed at 0x24 and the pre-branch `bmp = bitmap` store
-//    moved out of the test chain.
-//  * the same with `bmp` declared uninitialized and assigned only in the arm
-//    scored 35.4 (its extra store forced a bigger prologue), and the full
-//    parameter-only version (draw calls on `bitmap`, no `bmp` local) 35.1.
-//  * `memset(weight, 0, n * 4)` in place of the descending clear scored 35.9
-//    even though the original's 0x459e08/0x459e25 really is a rep stosd; the
-//    loop shape is not the blocker, the frame/rotation is.
-// Still the dominant diff: the arm must load `bitmap` from [esp+0x159e8] only
-// after the antiAlias/owner-flag/useColor tests, keep it in esi (ours keeps it
-// in ebp/eax and spills `bmp` at 0x24 while the original's mode is at 0x20 and
-// its src at 0x28), and read useColor from [esp+0x159f4] again later instead of
-// holding it in a callee-saved register.
-// deepseek-v4.1-flash retry (2889), 36.5% base kept, 6 check runs, five probes:
-//  * reassigning the `bitmap` parameter to the shadow instead of the `bmp`
-//    local removes the entire early esi/ebx preload and makes the first nine
-//    prologue lines byte-exact, but the compiler then caches useColor in ebp
-//    and src never reaches [esp+0x28]: 35.3.
-//  * same without the redundant join `src = bitmap`: 34.4.
-//  * with `src = bitmap` moved late (after the first inlined memset) and
-//    `bitmap = shadow` between the memsets: 34.2 to 35.4. In every one the
-//    src slot lands at 0x2c and mode at 0x28 (original 0x28 and 0x20), and
-//    useColor is cached in a callee-saved register.
-// The blocker is the register/slot allocation cascade: the original keeps the
-// arm's bitmap copy in ebp so src is live to the tail and useColor must be
-// re-read; our build frees ebp/ebx for useColor and spills src straight to
-// the stack. The base `bmp` local still scores best despite the preload.
-// deepseek-v4.1-flash retry (3241), 36.5% base kept, 4 check runs, two probes:
-//  * the untested combination listed above (param reassignment `bitmap = shadow`
-//    plus `src` assigned only in the arm, so the else path's `mov ebp,[esp+0x28]`
-//    is a real read of an uninitialised src) scores 34.4: the body then reaches
-//    the drawing surface through the parameter slot, register pressure shifts
-//    and the result misses 2047 by more than the base does.
-//  * the prologue of the matched-family sibling 0x459830 (same class, 66.8%):
-//    `bool shadow = flags.antiAlias` hoisted, flat `&&` chain, `src = bitmap;
-//    bitmap = shadow;` at the end of the arm with an `else` for mode = 0.
-//    35.3 here, so the sibling shape does not transfer: 0x459830 has no
-//    weight/accum/normal arrays, and those extra live ranges are what force the
-//    allocator rotation in this function.
-// Confirmed from the disassembly (no probe needed): the tail copy at 0x45a419 is
-// `s = src->data2; if (s) { d = bitmap->data2; for (y = 0; y < src->height; y++)
-// { for (x = src->width; x != 0; --x) { *s++ = *d; d += 2; } d += bitmap->width; }}`
-// with `bitmap` = esi and `src` = ebp, which is what this file already spells.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, deepseek-v4.1-flash retry, second deepseek-v4.1-flash pass. Names are provisional.
+//
+// Second pass: 63.7 -> 66.6%, and the file is now semantically faithful
+// (item 3 below fixes a real bug the first pass had).
+//
+//  1. The two face loops' first-face prologue must be a FULL if/else that
+//     assigns both the face pointer and the index:
+//        Face_459c70* face; int fi;
+//        if (info->firstFace != -1) { face = info->faces + 1; fi = 1; }
+//        else { face = info->faces; fi = 0; }
+//     That is what emits the original's `je` + `jmp` diamond at 0x459f4b and
+//     0x45a13d (+1.5). Writing it as `face = info->faces; fi = 0; if (...)`
+//     drops the `jmp`; doing the same in the THIRD (poly) loop costs 2.5, and
+//     that loop wants a named `int skipFirst` test instead.
+//  2. tools/permute.py took the file from 64.4 to 66.6 and all of that
+//     survived cleaning. Free to delete: the self-assignments it added
+//     (`mode = mode;`, `offX = offX;`, `x = x;`, `tmp5 = tmp5;`), both getter
+//     helpers, its `int tmp2 = X, n = tmp2` copy chain, the empty `else` after
+//     a `continue`, the `(int)` casts, the `(Bitmap_459c70*)bmp` cast, the
+//     `if (f->count != 4) {} else {}` inversion, the `do {} while (0)` wrapper
+//     (-0.3 if kept, so it is gone), the `if (x == 0) {} else {}` in the tail
+//     and its `for (;;) + break` row loop. What is left of its 66.6 is the
+//     tail's statement order: `y++;` BEFORE `d += bmp->width;` (+0.2), and
+//     `Face_459c70* f = info->faces;` as one declaration. Load-bearing, and kept here under
+//     real names because every alternative spelling costs more:
+//       * a FUNCTION-SCOPE `float w;` for the division loop (-1.7 if it moves
+//         back inside the loop);
+//       * `int xs = x >> 16;` before `x = (short)xs << 1;` in the doubled
+//         projection arm, and `int y2 = y / 2;` in the z arm (-11 if the x
+//         one is inlined);
+//       * `int vy = verts[k].y;` in the undoubled arm, and `float t0`/`float
+//         t2` around the two `accum[k][c] = t + normal[i].?` updates: these
+//         decide which operand MSVC loads first, and the temps give the
+//         original's `fld accum / fadd normal` order (each is worth 0.2-0.7);
+//       * the second face loop as `while (i < info->faceCount) { ... i++, f++; }`
+//         rather than a `for` header (-5.8);
+//       * the poly loop's `for (; i < info->faceCount; )` with `i++, f++;` at
+//         the bottom, and `int x, y, z;` written as three declarations (-0.3).
+//     Two spellings that are NOT free and are deliberately not taken:
+//     `int x, y, z;` on one line and merging the second face loop's
+//     `unsigned short* idx = f->indices;` back into one declaration (0.3 each).
+//  3. SEMANTIC FIX: the two vertex.z arms are NOT interchangeable. In the
+//     original the mode!=0 arm doubles y and then halves it again, so both
+//     arms compute y16 + bias; the first pass had `y + bias` in the mode!=0
+//     arm (2*y16 + bias) and `y/2 + bias` in the mode==0 arm. The correct
+//     `if (mode != 0) { z = bias + y/2 } else { z = y + bias }` is in the
+//     file; the wrong one scores about 0.3 higher and the permuter keeps
+//     proposing it, so do not "fix" it back. The arms differ in C only because
+//     a truncating /2 of an odd value is not exact, but with the doubling
+//     above, the two paths are.
+//  4. `offX`/`offY` and the draw target come from the `bmp` local, which holds
+//     exactly what the original's reassigned `bitmap` parameter holds (the
+//     shadow in mode 1, the front bitmap in mode 0), so the values are right;
+//     only the spelling differs. The original really does overwrite its
+//     parameter slot 0x159e8 with the shadow at 0x459d28 and then read the
+//     vertex offsets back out of it (0x459df0/0x459dfc); every spelling of
+//     that reassignment costs 1.7-2.0 points, so the separate local is kept.
+//
+// Still differing, all of it register and slot placement with no semantic
+// content left:
+//  * Frame slots. The original's map is 0x10 shade / 0x14 verts-walk / 0x18
+//    verts (reused for firstFace) / 0x1c piece / 0x20 mode / 0x24 info / 0x28
+//    src / 0x2c offY / 0x30 n / 0x34 x / 0x38 p / 0x3c offX. MSVC 5.0 does not
+//    assign these in declaration order (moving every declaration was inert
+//    here), so the map can only be moved by changing the dataflow.
+//  * The vertex loop (0x459e08-0x459f38, the largest single loss left). The
+//    original has three induction registers: esi = &vertex[k], ebx =
+//    &accum[k][1] (stored at +4/0/-4 off that one base) and a third, the
+//    verts walk, which it SPILLS to [esp+0x14]; it also spills x to
+//    [esp+0x34] and materialises the mode-test zero with `xor ecx,ecx; cmp
+//    edx,ecx` so the same ecx can store the three accum zeros. Here MSVC
+//    shares one induction between `verts[k]` and `accum[k][2]` (an
+//    `accum - verts` delta in a register instead of a third induction), keeps
+//    x in a register, and uses `test`/`movl $0`. Giving the accum its own
+//    pointer induction (`float* a` walked by `a += 3`) or the vertex walk its
+//    own pointer each costs 7-8 points, so the sharing is a net win for MSVC
+//    5 and the original's shape is not reachable from this source shape.
+//  * The bias helper materialises in ecx where the original uses edx (six
+//    instructions at 0x459eb8 and 0x459ee5). Passing the loaded flag word, or
+//    a `char*`, to `shade_bias` instead of the list does not move it.
+//  * 0x45a320: the original's scratch for the `usePic` bit test is ecx
+//    (`mov ecx,eax; shr ecx,1; test cl,1`), ours picks edx. This is MSVC 5's
+//    [eax,ecx,edx] temp rotation and no spelling of the three bit tests
+//    moves it.
+//  * 0x45a29b: the piece bit-2 test is `mov dl,[ecx+0x28]; shr dl,2; test
+//    dl,1` in the original and `test byte ptr [ecx+0x28],4` here; `(f >> 2)
+//    & 1` folds to the mask test in every spelling tried.
+//  * 0x45a1e2: the original re-derives the division loop's bound from
+//    `[piece]->info->vertexCount` and keeps firstFace in ebp across the face
+//    loops; using the re-read bound costs 7-9 points, so the loop keeps the
+//    `n` slot here.
+//  * 0x45a419 tail: the original's inner copy loop is entered through
+//    `mov edi,eax; dec eax; test edi,edi; je; lea edi,[eax+1]` and reloads
+//    `src->height` at the row end; no spelling of `while (x--)`, `for (x = w;
+//    x; --x)`, `do {} while (--x)` or a pre-decrement reproduces it.
+//  * 0x45a2fd: the original bumps the poly induction before the index one.
+//  * 0x459c70-0x459d6a: the original keeps the memset product in ebx and the
+//    front bitmap in ebp, and re-reads `useColor` from its argument slot three
+//    times instead of holding it in a register.
+//
+//  5. Two bits of permuter noise in `shade_bias` are load-bearing and are left
+//     in on purpose: the `int ret0; ret0 = c ? 125 : 50; return ret0;` chain
+//     (-0.4 if written as `return c ? 125 : 50;`). The split `bool c; c = ...;`
+//     declaration beside it is free to merge and has been.
+//
+// Counted check.py runs against this file this pass: 163 (63.7 -> 66.6), of
+// which 12 were against this file and the rest --sym runs on scratch variants.
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <ddraw.h>
 
 extern char* g_game;
@@ -230,6 +165,13 @@ struct Owner_459c70 {
     unsigned char field_114;         // +0x114
 };
 
+struct FaceFlags_459c70 {
+    unsigned int textured : 1;
+    unsigned int usePic : 1;
+    unsigned int shaded : 1;
+    unsigned int rest : 29;
+};
+
 struct Face_459c70 {
     int unknown_0;                   // +0x00
     int count;                       // +0x04
@@ -238,7 +180,7 @@ struct Face_459c70 {
     void* pic;                       // +0x10
     int unknown_14;                  // +0x14
     unsigned short* color;           // +0x18
-    unsigned int flags;              // +0x1c
+    FaceFlags_459c70 flags;         // +0x1c
 };
 
 struct PieceInfo_459c70 {
@@ -283,205 +225,244 @@ struct Class_004581e0 {
 // doubled-bitmap test, once per projected vertex.
 static __inline int shade_bias(List_459c70* list)
 {
-    return (((*(unsigned int*)((char*)list->owner->field_92 + 0x241) >> 30) & 1)
-        != 0) ? 125 : 50;
+    bool c = 0 != ((*(unsigned int*)((char*)list->owner->field_92 + 0x241) >> 30) & 1);
+    int ret0;
+    ret0 = c ? 125 : 50;
+    return ret0;
 }
+
+
 
 // FUNCTION: 0x459c70
 void Class_004581e0::FUN_00459c70(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
 {
+    PieceInfo_459c70* info;
     Poly_459c70 poly[25];
     float accum[2000][3];
-    float normal[2000][3];
+    Vec3f normal[2000];
     int weight[2000];
     Poly_459c70 vertex[2000];
 
+    Bitmap_459c70* shadow;
     Bitmap_459c70* src;
+    Bitmap_459c70* bmp;
     int mode;
-    Bitmap_459c70* bmp = bitmap;
+    int offX;
+    float w;
+    char* s;
+    char* d;
+    Piece_459c70* piece;
+    Vec3* verts;
+    unsigned char pflags;
+
     if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias) {
         if ((list->owner->field_110 & 0x20000000) != 0) {
-          if (useColor != 0) {
-            mode = 1;
-            src = bitmap;
-            Bitmap_459c70* shadow = this->shadow;
-            shadow->width = (unsigned short)(bmp->width << 1);
-            shadow->height = (unsigned short)(bmp->height << 1);
-            shadow->unknown_9[0] = 0;
-            shadow->colorKey = 1;
-            shadow->field_4 = (short)(bmp->field_4 << 1);
-            shadow->field_6 = (short)(bmp->field_6 << 1);
-            memset(shadow->data2, 0, shadow->width * shadow->height);
-            memset(shadow->data, 1, shadow->width * shadow->height);
-            bmp = shadow;
-            goto haveMode;
-          }
+            if (useColor != 0) {
+                shadow = this->shadow;
+                mode = 1;
+                src = bitmap;
+                shadow->width = (unsigned short)(bitmap->width << 1);
+                shadow->height = (unsigned short)(bitmap->height << 1);
+                shadow->unknown_9[0] = 0;
+                shadow->colorKey = 1;
+                shadow->field_4 = (short)(bitmap->field_4 << 1);
+                shadow->field_6 = (short)(bitmap->field_6 << 1);
+                memset(shadow->data2, 0, shadow->height * shadow->width);
+                memset(shadow->data, 1, shadow->width * shadow->height);
+                bmp = shadow;
+                goto haveMode;
+            }
         }
     }
-    src = bitmap;
     mode = 0;
+    bmp = bitmap;
+    src = bitmap;
 haveMode:
     for (int p = list->count - 1; p >= 0; p--) {
-        Piece_459c70* piece = &list->pieces[p];
-        unsigned char pflags = piece->flags;
-        if ((pflags & 1) == 0)
+        pflags = list->pieces[p].flags;
+        piece = &list->pieces[p];
+        if (!(list->pieces[p].flags & 1))
             continue;
         if (!(useColor == -1 || useColor == ((pflags >> 1) & 1)
                 || list->owner->field_104 != 0.0f))
             continue;
-        PieceInfo_459c70* info = piece->info;
-        Vec3* verts = piece->vertices;
+        verts = piece->vertices;
+        info = piece->info;
         int n = info->vertexCount;
-        int shade = 0;
-        if (n > 0) {
-            int offX = (short)bitmap->field_4;
-            int offY = (short)bitmap->field_6;
-            memset(weight, 0, n * 4);
-            for (int k = 0; k < n; k++) {
-                int x;
+        if (0 < n) {
+            int k;
+            int offY = (short)bmp->field_6;
+            int shade = 0;
+            int offX = (short)bmp->field_4;
+            memset(weight, 0, n * sizeof(int));
+            for (k = 0; k < n; k++) {
                 int y;
                 int z;
-                if (mode) {
-                    x = (short)(verts->x >> 16) << 1;
-                    y = (short)(verts->y >> 16) << 1;
-                    z = (short)(-verts->z >> 16) << 1;
+                int x;
+
+                x = verts[k].x;
+                if (mode != 0) {
+                    int xs = x >> 16;
+                    y = (short)(verts[k].y >> 16) << 1;
+                    x = (short)xs << 1;
+                    z = (short)(-verts[k].z >> 16) << 1;
                 } else {
-                    x = (short)(verts->x >> 16);
-                    y = (short)(verts->y >> 16);
-                    z = (short)(-verts->z >> 16);
+                    int vy = verts[k].y;
+                    y = (short)(vy >> 16);
+                    x = (short)(x >> 16);
+                    z = (short)(-verts[k].z >> 16);
                 }
                 vertex[k].x = x;
                 vertex[k].y = z - (y >> 1);
-                if (mode) {
-                    vertex[k].z = (y / 2) + shade_bias(list);
+                if (mode != 0) {
+                    int y2 = y / 2;
+                    vertex[k].z = shade_bias(list) + y2;
                 } else {
                     vertex[k].z = y + shade_bias(list);
                 }
-                vertex[k].shade = shade & 0x1f;
+                vertex[k].shade = 0x1f & shade;
                 vertex[k].x += offX;
-                vertex[k].y += offY;
+                vertex[k].y = vertex[k].y + offY;
+                shade += 3;
                 accum[k][0] = 0.0f;
                 accum[k][1] = 0.0f;
                 accum[k][2] = 0.0f;
-                shade += 3;
-                verts++;
             }
         }
 
         {
-        Face_459c70* face = info->faces;
-        int fi = 0;
-        if (info->firstFace != -1) {
-            face++;
-            fi = 1;
-        }
-        for (; fi < info->faceCount; fi++, face++) {
-            unsigned short* idx = face->indices;
-            if (idx[0] == idx[1] || idx[1] == idx[2] || idx[2] == idx[0]) {
-                normal[fi][0] = 0.0f;
-                normal[fi][1] = 1.0f;
-                normal[fi][2] = 0.0f;
-            } else {
-                Vec3* pv = piece->vertices;
-                Vec3 p0 = pv[idx[1]];
-                Vec3 p1 = pv[idx[0]];
-                Vec3 p2 = pv[idx[2]];
-                Vec3f a = FUN_004b6f00(p0, p1);
-                Vec3f b = FUN_004b6f00(p0, p2);
-                Vec3f c = FUN_004b6f70(a, b);
-                Vec3f d = FUN_004b6ff0(c);
-                normal[fi][0] = d.x;
-                normal[fi][1] = d.y;
-                normal[fi][2] = d.z;
-            }
-        }
-        }
-
-        {
-            Face_459c70* f = info->faces;
-            int i = 0;
+            int fi;
+            Face_459c70* face;
             if (info->firstFace != -1) {
-                f++;
-                i = 1;
+                face = info->faces + 1;
+                fi = 1;
+            } else {
+                face = info->faces;
+                fi = 0;
             }
-            for (; i < info->faceCount; i++, f++) {
-                unsigned short* idx = f->indices;
-                for (int j = 0; j < f->count; j++) {
-                    int k = idx[j];
-                    accum[k][0] = normal[i][0] + accum[k][0];
-                    accum[k][1] = normal[i][1] + accum[k][1];
-                    accum[k][2] = normal[i][2] + accum[k][2];
-                    weight[k]++;
+            for (; fi < info->faceCount; fi++, face++) {
+                unsigned short* idx = face->indices;
+                if (!(idx[0] == idx[1] || idx[1] == idx[2] || idx[2] == idx[0])) {
+                    Vec3 p0 = verts[idx[1]];
+                    Vec3 p1 = verts[idx[0]];
+                    Vec3 p2 = verts[idx[2]];
+                    Vec3f a = FUN_004b6f00(p0, p1);
+                    Vec3f b = FUN_004b6f00(p0, p2);
+                    Vec3f c = FUN_004b6f70(a, b);
+                    normal[fi] = c;
+                    c = FUN_004b6ff0(c);
+                    normal[fi] = c;
+                } else {
+                    normal[fi].x = 0.0f;
+                    normal[fi].y = 1.0f;
+                    normal[fi].z = 0.0f;
                 }
             }
         }
 
-        for (int q1 = 0; q1 < n; q1++) {
-            if (weight[q1] != 0) {
-                float w = (float)weight[q1];
-                accum[q1][0] /= w;
-                accum[q1][1] /= w;
-                accum[q1][2] /= w;
+        {
+            int i;
+            Face_459c70* f;
+            if (info->firstFace != -1) {
+                i = 1;
+                f = info->faces + 1;
+            } else {
+                f = info->faces;
+                i = 0;
             }
+            while (i < info->faceCount) {
+                    unsigned short* idx;
+                    int j;
+                    idx = f->indices;
+                    for (j = 0; j < f->count; j++) {
+                        int k = idx[j];
+                        float t0 = accum[k][0];
+                        accum[k][0] = t0 + normal[i].x;
+                        accum[k][1] += normal[i].y;
+                        float t2 = accum[k][2];
+                        accum[k][2] = t2 + normal[i].z;
+                        weight[k]++;
+                    }
+                    i++, f++;
+                }
+        }
+
+        int q1 = 0;
+        while (n > q1) {
+            if (weight[q1] != 0) {
+                w = (float)weight[q1];
+                    accum[q1][0] /= w;
+            accum[q1][1] /= w;
+            accum[q1][2] /= w;
+            }
+            q1++;
         }
 
         {
+            int i;
             Face_459c70* f = info->faces;
-            int i = 0;
+            i = 0;
             if (info->firstFace != -1) {
-                f++;
+                f = f + 1;
                 i = 1;
             }
-            for (; i < info->faceCount; i++, f++) {
-                int cnt = f->count;
-                unsigned short* idx = f->indices;
-                for (int j = 0; j < cnt; j++) {
-                    int k = idx[j];
-                    poly[j] = vertex[k];
+            for (; i < info->faceCount; ) {
+                int j;
+                unsigned short* idx;
+                idx = f->indices;
+                for (j = 0; j < f->count; j = j + 1) {
+                    poly[j] = vertex[idx[j]];
                     if ((piece->flags & 4) != 0) {
-                        float v = accum[k][0] * DAT_005065f8 + accum[k][1] * DAT_005065fc
-                            + accum[k][2] * DAT_00506600;
-                        poly[j].shade = ((int)(v * DAT_004fd4cc)) & 0x1f;
+                        float v = accum[idx[j]][0] * DAT_005065f8 + accum[idx[j]][1] * DAT_005065fc;
+                        v += accum[idx[j]][2] * DAT_00506600;
+                        poly[j].shade = 0x1f & ((int)(DAT_004fd4cc * v));
                     } else {
                         poly[j].shade = 0xf;
                     }
                 }
-                unsigned int fflags = f->flags;
-                if ((fflags & 1) != 0) {
-                    FUN_004c0c70(bmp, poly, f->count, f->unknown_0);
-                } else if (f->count == 4) {
-                    void* pic;
-                    if ((fflags & 2) != 0) {
-                        if ((fflags & 4) != 0) {
-                            int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
-                            pic = FUN_004b7f30(f->color,
-                                *(unsigned char*)(unit + 0x96));
-                        } else if (useColor) {
-                            pic = FUN_004b7f30(f->color, 0);
+                if (f->flags.textured == 0) {
+                    if (f->count == 4) {
+                        void* pic;
+                        if (f->flags.usePic) {
+                            if (f->flags.shaded) {
+                                int unit = *(int*)((0x1b8a + g_game) + (kind * 0x14b));
+                                pic = FUN_004b7f30(f->color,
+                                    *(unsigned char*)(unit + 0x96));
+                            } else if (useColor) {
+                                pic = FUN_004b7f30(f->color, 0);
+                            } else {
+                                pic = FUN_004b7ee0(&f->pic);
+                            }
                         } else {
-                            pic = FUN_004b7ee0(&f->pic);
+                            pic = f->pic;
                         }
-                    } else {
-                        pic = f->pic;
+                        FUN_004c8bb0(bmp, pic, poly, 0);
                     }
-                    FUN_004c8bb0(bmp, pic, poly, 0);
+                } else {
+                    FUN_004c0c70(bmp, poly, f->count, f->unknown_0);
                 }
+                i++, f++;
             }
         }
     }
 
-    if (((Flags_37f06*)(g_game + 0x37f06))->antiAlias != 0) {
+    if (((Flags_37f06*)(0x37f06 + g_game))->antiAlias) {
         if (mode != 0) {
             FUN_004b95a0(bmp, src);
-            char* s = src->data2;
+            s = src->data2;
             if (s != 0) {
-                char* d = bmp->data2;
-                for (int y = 0; y < src->height; y++) {
-                    for (unsigned int x = src->width; x != 0; --x) {
-                        *s++ = *d;
-                        d += 2;
+                int y = 0;
+                d = bmp->data2;
+                while (y < src->height) {
+                    int x = src->width;
+                    if (x != 0) {
+                        do {
+                            *s++ = *d;
+                            d = d + 2;
+                        } while (--x);
                     }
+                    y++;
                     d += bmp->width;
                 }
             }

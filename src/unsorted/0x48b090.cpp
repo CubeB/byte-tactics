@@ -1,4 +1,30 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry (#3772): about 24 scratch variants, best stays 93.2 at
+// 367 bytes. New things measured (all 93.2 unless noted, scored with check.py
+// --sym):
+// - packet const store: it sinks past the argument loads and pushes in every
+//   shape tried, not only as a top-level statement. All six store orders, a
+//   comma expression of the three stores, commas nested in the right side of
+//   either value store, the store nested in the call's argument expressions
+//   (all three positions), a static __inline helper storing the three fields
+//   whose returned pointer is used as the call argument or assigned to a
+//   local, a byte-buffer helper (0x4ba000 pattern), and a struct constructor
+//   whose body stores id, type, state (the original's order) all leave the
+//   `mov byte [esp+0x20], 0x11` sunk just before the call. The 0x404db0 and
+//   0x4233a0 matches show the same plain statement shape emitting constant
+//   stores in place there, so this is block context, not statement shape.
+// - lost: every spelling of `old & ~now` gives `not al; and al, cl` with the
+//   spill of al to [esp+0x14]: `~now & old`, `lost = old; lost &= ~now`, a
+//   (unsigned char) cast on either operand, one declaration with two
+//   declarators, and `gained = now & ~old` in front of it. `old &= ~now`
+//   followed by `lost = old` also keeps `and al, cl`; the earlier note that
+//   in-place `old &= ~now` gives `and cl, al` only holds when old itself is
+//   used as lost, which moves the spill to old's slot [esp+0xc] (91.5).
+// - set branch registers: operand swaps, `(old & 0xff)`, `(mask & 0xff)`,
+//   `(int)` casts and `(mask + 0)` fresh value numbers all keep mask in eax
+//   and old in edx; the original loads old first into eax. Dropping the clear
+//   branch's outer cast still gives the whole clear arm at dword width with
+//   the two registers swapped (92.3), matching the earlier note.
 // GPT-6.1-sol retry in #3190: nine checker invocations, best remains 93.2%; no MATCH. Expression variants scored 67.0%, 82.1%, 76.1%, 92.3%, 69.0%, 73.5%, and 78.8%. Set/clear branch registers, lost-mask register, and packet type store position remain different.
 // #2988 retry by GPT-6.1-sol: five checks retained 93.2%; the three variant
 // forms all scored lower. Operand registers, bit tracking, and packet stores differ.

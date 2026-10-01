@@ -1,4 +1,24 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro retry (#3772): no improvement over the 88.8% / 262 byte pointer
+// form below; every non-volatile spelling of the bit 19 product still lands the
+// `x*0xffff` strength reduction in eax (`shl eax,0x10; sub eax,ecx`), so g_game
+// is hoisted into edx (6 byte `8B 15` load) and the block is one byte over. The
+// decisive experiment: `volatile int h; h = unit->type->draft * 0xffff;
+// unit->pos.y = (h + g_game->seaLevel) << 16;` reproduces the EXACT original
+// schedule for the first seven instructions (product in ecx via
+// `shl ecx,0x10; sub ecx,eax`, g_game in eax via the 5 byte A1 load, seaLevel
+// in edx), proving the target allocation is reachable; it only fails because the
+// volatile forces `mov [h],ecx` plus `mov ecx,[h]` (two extra instructions) and
+// accumulates into edx (`add edx,ecx`) instead of ecx (`add ecx,edx`). The
+// rotation is a true fixed point: product-in-ecx frees eax for the A1 g_game
+// load, and g_game-in-eax in turn forces product-in-ecx (the product must
+// survive the eax clobber); only a forced store breaks the symmetry, and every
+// store costs instructions. Also retested flat this pass: inlined helpers
+// returning the product or doing the whole sum (`Prod(d)`, `AddSea(prod)`,
+// `MakeY(a,b)`, `SetWaterY(unit)`) all fold to 255/86.9%; unsigned casts,
+// `(int)((long)d * 0xffffL)`, `0xffff * d`, operand swap, and store-to-pos.y
+// all put the product in eax (86.5 to 88.3%). Untouched wall as documented
+// below; the notes and best code that follow are the prior attempts' record.
 // GPT-6.1-sol retry in #3190: seven checker invocations, best remains 88.8%; no MATCH. Helper forms scored 86.9%, 71.9%, and 86.5%; the local type alias tied at 88.8%. The bit-19 arithmetic register allocation and one-byte size difference remain.
 // #2988 retry by GPT-6.1-sol: five checks retained 88.8%; a pointer local
 // scored lower. Early-exit targets and bit-19 register allocation still differ.

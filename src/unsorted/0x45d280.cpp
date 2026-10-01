@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Partial at 91.5% (1339 vs 1333 bytes). Still differing: the UNDO flag flip
+// puts f (the word) in EBP so (unsigned char)f widens to and eax,0xff where the
+// original keeps f in EAX (mov cl,al), which also cascades into RESTORE/apply
+// register picks and push-before-fild, the tail lea eax,[edi*8] and the
+// TRACKMODE al/cl swap. Latest tries this pass: UNDO f as `int` 90.4%,
+// DAT_00512f46 as `int` with the int-b flip and a cast if-test 86.4%.
 // deepseek-v4.1-flash retry 9 (no gain, kept this 91.5% file): with
 // DAT_00512f46 typed unsigned char, the inline fused flip
 // `f ^ ((f ^ DAT) & 1)` and the compound `f ^= (f ^ DAT) & 1;` both give

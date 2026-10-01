@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 14 (deepseek-v4.1-flash): byte accounting confirms the pair exactly. Against 2173/96.8
+// the original hunk1 (entry test, `cmp [ecx+0x1438f],esi`) is 2 bytes shorter than ours and the
+// original hunk3 (`idiv [ecx+0x1438f]`) is 4 bytes longer, while the GUI tail `jmp` is 3 shorter
+// than our `test/jne`: -4 +3 = -1, which the jump-displacement byte restores, so count-into-memory
+// (+2) and `else break;` (-2) really are the whole gap. Tried this pass: a union alias
+// (field_1438f vs field_1438f_alt at the same offset, used for the divisor) compiles to exactly the
+// same 2173 bytes, MSVC treats same-offset union members as one location; moving `type->field_21e
+// = u;` in front of the percent store inserts the store between the latch count load and the idiv
+// but grows the file to 2181 (95.2), it re-schedules the whole body top. Restored 96.8. The div
+// reuses the latch value only because the allocator parks that load in ecx (caller-saved, survives
+// to the idiv); the original parks it in eax, which cdq kills, so the divisor stays a memory
+// operand and ecx stays free for g_game. That pick is not source-spellable with the forms tried.
 // Pass 13 (deepseek-v4.1-flash): kept 96.8% (2173 bytes against 2173). Re-read the original:
 // at the units-loop entry 0x42d6b0..0x42d6e3 it holds g_game in ecx (`mov ecx,[0x511de8]`),
 // folds the count into `cmp dword ptr [ecx+0x1438f],esi`, and divides with
@@ -223,7 +235,10 @@ struct Game_0042d2e0 {
     void** field_14377;
     Class_00458160* field_1437b;
     char unknown_1437f[0x1438f - 0x1437f];
-    int field_1438f;
+    union {
+        int field_1438f;
+        int field_1438f_alt;
+    };
     int field_14393;
     int field_14397;
     Class_0042b370* field_1439b;
@@ -376,7 +391,7 @@ void FUN_0042d2e0() {
 
     for (unsigned short u = 1; u < g_game->field_1438f; u++) {
         Class_0042b370* type = &g_game->field_1439b[u];
-        g_game->field_38d71 = (unsigned char)((u * 100) / g_game->field_1438f);
+        g_game->field_38d71 = (unsigned char)((u * 100) / g_game->field_1438f_alt);
         type->field_21e = u;
         FUN_004290f0(path, "units", type->name, "FBI");
         if (FUN_004bbc40(path))

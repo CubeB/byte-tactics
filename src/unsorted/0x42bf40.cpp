@@ -180,6 +180,18 @@
 //     follow.
 // Remaining: local-byte placement, flag-operation scheduling, yard-map control
 // flow and branch differences, plus the tail /3 sequence at 0x42d10a-0x42d11f.
+// Pass 12 (deepseek-v4.1-flash): no source change, 65.6% reconfirmed. One new
+// reading of the xor puzzle: in the original the `xor esi,esi` at 0x42c0f0 is
+// immediately followed by `push esi` for buildcostenergy, and esi is the SAME
+// register that later feeds `cmp eax,esi` and the soundcategory counter
+// (`inc esi` at 0x42cc93), i.e. one live range carries the constant zero, the
+// two null tests and the loop counter together. Ours emits `xor ebx,ebx` at
+// 0x42c0ee (the folded constant, 83 uses) and a second `xor esi,esi` at
+// 0x42c0f6 (the sound local), so the allocator keeps them as two ranges; that
+// is the non-SSA view, so the lever is not the spelling of the zero but any
+// source shape that makes the constant uses and the loop-counter definition the
+// same value (the original's first zero materialisation IS the loop counter's
+// initialisation). Every spelling tried so far still splits them.
 #include <windows.h>
 #include <stdlib.h>
 #include <string.h>

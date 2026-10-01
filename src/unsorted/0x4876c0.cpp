@@ -119,6 +119,21 @@
 // [esi-0x1c] forms vs the original mid-body at 0x487a51 with [esi-8] forms,
 // and ours loads sp->f0/sp->f8 late and stores f8,f4,f0 while the original
 // loads them first and stores f0,f4,f8 (ascending, like the 0x487080 loader).
+// deepseek-v4.1-flash (run 10): still 74.0 but the residual is now pinned down
+// to a single scheduling slot, not a source-order question. Writing the pair
+// the OTHER way round (`rec.f3f = unit->fb8;` first, `rec.f3d = unit->f108;`
+// second) reproduces the original's store placement EXACTLY: f3d's load+store
+// retires before the rec.f27 compare and f3f's store sinks past it. The cost is
+// that the second-written member's load gets hoisted one slot too early (it
+// grabs the dying edx freed by the rec.s.a store instead of waiting for the
+// dying ecx freed by the rec.s.b load), so the pair comes out mirrored:
+// f108 in edx and fb8 in ecx, which then hands the shared zero to edx and
+// re-inverts the whole field block. Forcing the load later with a comma
+// dependency on unit->s64.b (folded away, identical code), on unit->vtable
+// (74.0, same mirror), with an intervening rec.f23 (73.7) or with the pair
+// split around the rec.s copy (74.0, same mirror) does not move it. So the last
+// diff is one scheduler slot: the original's f108 load sits after the rec.s.b
+// load, ours sits before it; no source spelling found that delays it.
 // deepseek-v4.1-flash (run 5): no further gain, still 74.0. Writing
 // `rec.f3f = unit->fb8;` before `rec.f3d = unit->f108;` gives the original's
 // store order (f3d early at the f108 load, f3f deferred past the rec.f27

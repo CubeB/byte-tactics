@@ -1,5 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 65.9% (ours 1859 bytes vs 1811), improved from 62.1% by deepseek-v4.1-flash.
+// SLOT MAP MEASURED FRESH (deepseek-v4.1-flash retry): with 4 callee-saved
+// pushes, locals start at esp+0x10, so the original's frame offsets are
+// f1 0x00, f2 0x04, n 0x08, pos 0x0c/0x10/0x14, move 0x18, fire 0x28,
+// M-out 0x34, buf 0x40 (0x487c4b lea edx,[esp+0x50] with 0 pushes;
+// 0x487cc7 lea eax,[esp+0x59] with 2 pushes = buf+1, confirming buf).
+// 0x487cb6 stores move (flags>>0x12) at esp+0x28 = frame 0x18 and 0x487cc1
+// stores fire (flags>>0x14) at esp+0x38 = frame 0x28.
+// OURS has n at frame 0x00 and fire at frame 0x18 / move at frame 0x28, i.e.
+// n sits 8 bytes below the original and move/fire are swapped. Declaring
+// `int fire, move;` instead of `int move, fire;` is exactly neutral (same
+// 65.9%, same 1859 bytes), so MSVC 5's slot allocation here is not driven by
+// declaration order, which is why the earlier declaration-order experiments
+// were neutral too. That swap plus the copy-ctor defect are the two open items.
 // IMPROVEMENT (deepseek-v4.1-flash): the P arm's own `int z` and the W arm's
 // shadowed `int n` were the one extra stack dword. The original reuses the
 // function-scope `fire` for both `_ftol` results (P at frame 0x28, 0x487f12;

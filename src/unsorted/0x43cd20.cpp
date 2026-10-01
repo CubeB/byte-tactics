@@ -1,6 +1,12 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// Ninth pass (deepseek-v4.1-flash, retry for #3062, 74.8% kept): the ternary
+// select tail (`int amount = (d1 > lim && d2 > r) ? unit->type->field_19e :
+// -rate;` plus one call) scores 62.4 (986 bytes) and rotates unit from ebx to
+// ebp; the duplicated cold epilogue after ret 4 persists even with a single
+// call statement, so the tail split comes from the conditional expansion, not
+// from the two call statements. Best remains the 74.8 version below.
 // Eighth pass (deepseek-v4.1-flash, retry #2896, 74.8%, 0 counting runs, all
 // scored with check.py --sym on scratch copies). Still the same two open
 // items: frame 0x40 against 0x44 and the ebx<->edi rename (ours unit=ebx /

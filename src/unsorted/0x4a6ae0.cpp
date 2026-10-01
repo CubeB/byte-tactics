@@ -53,6 +53,45 @@
 //     of `entry->field_138 != 0` on v1_z1.cpp). Everything else in the file
 //     below is unchanged and the file stays at 93.4% because the byte pair
 //     costs 5 bytes it does not get back.
+//  space-bunny-free pass 2 (2 real check runs, scratch scoring otherwise). All
+//     four variants below were rebuilt from this exact file, so these are
+//     measurements of the current text, not of the older snapshot the notes
+//     above were written against:
+//       - v1 (the correct-semantics region quoted in note 1, nothing else
+//         changed): 64.1%, 1704 bytes. Reproduces the documented swap,
+//         obj=EBP / entry=EBX.
+//       - v1 + `int bound`: 64.1%, 1700 bytes. The bound block comes out with
+//         the original's `movsx eax` / `lea ebp,[eax+1]`, and the homes stay
+//         swapped, so the bound shape and the allocation really are one
+//         problem, not two.
+//       - v1 + `int f138 = entry->field_138;` used by the region's three tests:
+//         63.5%, 1701 bytes. THIS CONTRADICTS the note above that "int f gives
+//         the right homes": the extra local does not demote `entry`, the new
+//         variable just takes the pressure instead. Do not retry that.
+//       - v1 + `int f138` + `int bound`: 63.6%, 1697 bytes.
+//       - v1 with the three region tests written as the byte pair
+//         `(entry->field_138.bytes.lo | entry->field_138.bytes.hi)`, i.e. the
+//         exact experiment the note above left untried: 87.4%, 1707 bytes, and
+//         the homes DO flip to obj=EBX / entry=EBP. The cost is the shape, not
+//         the size alone: the pair compiles to `mov al,[e+0x139]; mov
+//         cl,[e+0x138]; or al,cl; je` (14 bytes) where the original has `mov
+//         ax,[e+0x138]; test ax,ax; je` (10), and the two later re-tests become
+//         `test al,al` instead of `test ax,ax`, which is the 16-point gap.
+//       - v1 + byte pair + `int bound`: 66.0%, 1702 bytes, worse again.
+//       - THIS file with only `short bound` changed to `int bound` (and the
+//         separate `bound = entries->count; bound = bound + 1;` spelling):
+//         61.8%, 1698 bytes both ways. So the bound block's shape and the
+//         obj/entry allocation really are ONE problem: the original's
+//         `movsx eax` / `lea ebp,[eax+1]` only appears when `bound` can take
+//         EBP, which requires EBP to be the `entry` register, and the moment
+//         `int bound` is spelled the allocator hands EBP to `bound` early
+//         and recolours the whole function. Fixing one without the other is
+//         not possible from either side.
+//     So the missing weight and the missing test width are the same missing
+//     thing: no spelling of one extra `entry` reference was found that emits
+//     the original's 16-bit word test. The 93.4% below therefore keeps the
+//     inverted region, which is the only spelling that both keeps the homes
+//     and keeps the total size at 1703.
 //  2. The field_138 region below is still the old, SEMANTICALLY INVERTED shape
 //     (`if (field_138) { rect-test..; = 1; DAT=0xf }`), kept only because it
 //     is the one spelling that gets obj=EBX / entry=EBP. The original does:

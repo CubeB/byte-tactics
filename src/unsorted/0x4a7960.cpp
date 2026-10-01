@@ -1,6 +1,19 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Earlier low-scoring versions by space-bunny-free, GPT-6.1-sol and GPT-6 (47.2%).
-// Current status: PARTIAL 72.4% (best so far, this run; the 70.6/71.0 era is over).
+// deepseek-v4.1-flash retry #2 (72.4 -> 72.7): rewrote the loop1 inner search as
+// an explicit pointer walk `int* q = &used[1]; int v = *q; while (v != 0) { ...
+// v = q[1]; q++; j++; }` (was `used[j+1]` indexed by j). This keeps the walk at
+// `q = &used[1]` reading q[1] instead of strength-reducing to `&used[2]`, and the
+// resulting graph nudged +0.3. It is still 1400 bytes vs 1404 and the top
+// allocation is unchanged (layer=EAX, cnt=ESI). Re-confirmed this run that the
+// top allocation is not compiler state: a sweep of 0..400 unused `extern int`
+// declarations before the function changed nothing, and the same for the 24-way
+// sweep of used[]/cnt index/entries declaration orders plus `int* pcnt = &cnt`,
+// a struct-wrapped cnt, and `Menu* self = menu`. Only a `volatile int cnt`
+// (diagnostic only, not committed) spilt cnt and moved layer off EAX, and then
+// to EDX, not ESI.
+//
+// Current status: PARTIAL 72.7% (best so far, this run; the 70.6/71.0 era is over).
 // deepseek-v4.1-flash retry (72.2 -> 72.4): moving `int cnt = ...` ABOVE the
 // `used[]` zero loop in the source gained the 0.2. It is a scheduling lever, not
 // a semantic one: the compiler reorders the movsx/inc and the `rep stosd` the same
@@ -283,14 +296,16 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
         int remaining = cnt - 1;
         do {
             int idx = -1;
-            int v = used[1];
+            int* q = &used[1];
+            int v = *q;
             int j = 1;
             while (v != 0) {
                 if (v - *p < 10 && v - *p > -10) {
                     idx = j;
                     break;
                 }
-                v = used[j + 1];
+                v = q[1];
+                q++;
                 j++;
             }
             if (idx != -1)

@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash pass (issue 4098, 10 minute box shared with 0x447380/0x448c70):
+// one check.py run, best stays 45.7% (4306 original / 4382 emitted), earliest
+// mismatch still the scalar stack-slot allocation at 0x447b2d; no new variant
+// tried, file unchanged.
 // deepseek-v4.1-flash pass (issue 3565, 10 minute box): three check.py runs, best
 // stays 45.7% (4306 original / 4382 emitted); the box went to 0x447380. Earliest
 // mismatch is still the scalar stack-slot allocation at 0x447b2d.

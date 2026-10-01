@@ -27,6 +27,24 @@
 // Tried: swapping name/exe and scalar declaration orders, function-scope base
 // pointer, reason-vs-file format, explicit pointer variants. The explicit
 // pointer loop is the only one that moved the score.
+// deepseek-v4.1-flash pass 2 (timebox fired before more runs). Still 64.4%.
+// New evidence from the disassembly: (a) the " - %s\n" sprintf at 0x4d9171
+// loads [esp+0x1c] with 3 pushes pending, i.e. F+0x10 = reason (the
+// FUN_004d98c0 result), so the original does print reason there, not file;
+// passing reason in our build scored 61.5% only because our reason sits in
+// slot F+0x18 (the load offset itself then mismatches). (b) Our scalars are
+// slot-assigned base F+0x10, file F+0x14, reason F+0x18, written F+0x1c which
+// is alphabetical by name; the original order (reason, base, file, written)
+// should fall out of renaming locals so their names sort in that order (tried
+// cause/exename/file/written but the timebox fired before scoring it).
+// (c) The byte loop hoists the Eip VALUE into ebx before the loop
+// (mov ebx,[ebp+0xb8] at 0x4d94aa) and indexes [esi+ebx]; our build reloads
+// it in ecx per iteration, fixable by holding it in a named local before the
+// loop. (d) The parameters loop keeps rec in ebx and spills info at F+0x10
+// (shared with reason), re-reading rec->NumberParameters from [ebx+0x10] at
+// the loop bottom; our build advances ebx as the info pointer and caches
+// n-1 at F+0x18, so the source should use rec->NumberParameters directly in
+// both the loop test and the i == n-1 test instead of a cached n.
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>

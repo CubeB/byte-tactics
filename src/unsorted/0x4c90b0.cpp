@@ -1,4 +1,6 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass), edited by deepseek-v4.1. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free (third pass), edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// #3006 retry by GPT-6.1-sol: six checks retained 93.4%; unsigned-short and
+// string/operand variants did not improve the saved source.
 // Second pass (deepseek-v4.1-flash): no new lever moved the +1/+5 split.
 // Tested and all folded to a single `lea ecx,[ecx+edx+6]` (193 bytes, 86.1%):
 // `static __inline int TotalLen(a,b){return a+b+1;}` with `malloc(TotalLen(n,m)+5)`,

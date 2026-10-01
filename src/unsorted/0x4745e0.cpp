@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free,
+// GPT-6.1-sol (#3152 retry): baseline rechecked at 79.8% (294/306); bool-return, caller-early-return, pointer-local and mask-helper trials did not improve it. No MATCH.
 // deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
 // deepseek-v4.1-flash (#2963 retry): still 79.8% (294 of 306). Fog arm only: the
 // original rematerialises width into edx (`mov edx,[edx+0x80]; imul edx,ecx`) and

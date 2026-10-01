@@ -1,4 +1,33 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash., finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash., finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (retry for #4125, 10 min timebox, no score change, notes only):
+// transcribed the disassembly of the two missing bodies so the next pass does not have to
+// re-read it. CASE 28 starts at 0x454ec4 and is a disconnect/whack message:
+//   target = FindPlayer_453d40(*(int*)(bytes + 1)), its inlined scan spills its index at
+//   [esp+0x118]; if target == 10 jump to the loop test (continue). Then a SECOND scan whose
+//   index spills at [esp+0xd4] but which calls FUN_0044ffd0(i) directly (not the helper);
+//   if that also fails, the result is zero and it jumps to 0x454fcd (skip the sprintf).
+//   Then a THIRD scan with index at [esp+0xf8] whose byte result is stored at [esp+0x74]
+//   (and 10 when not found), multiplied by 0x14b and added to g_game+0x1b63+0x2b (the
+//   player name), then sprintf(buf at [esp+0x220], "Player %s has disconnected"
+//   (DAT_005065c4), name). The 5-byte message is built at [esp+0x218] and sent with
+//   FUN_00463ca0(msg, 4, 0, *(int*)(packet+0x10)) (0x454ff0..0x455002). After that a fourth
+//   scan (index [esp+0xdc]) checks target != 10, writes byte 0x1c and the id into
+//   g_game+0x2a38 (0x455041: mov edi,[ecx+0x2a38]; mov byte [edi],0x1c; mov [edi+1],esi),
+//   then a fifth scan (index [esp+0xfc], byte at [esp+0x5c]) rebuilds the player pointer
+//   with the 0x14b stride and tests player[0x73] == 3 || (g_game+0x38d75 & 1) ... and
+//   (g_game+0x38d75 & 2) at 0x4550c2..0x4550d2, continuing past 0x4550e0. The case ends at
+//   the jmp to 0x455f50. Its locals: char[0x220] sprintf buffer (0x220), char[5] message
+//   (0x218), byte scan indexes 0x118/0xd4/0xf8/0x74/0xdc/0xfc/0x5c.
+// CASE 33 starts at 0x4559f5: target = FindPlayer_453d40(*(int*)(bytes + 2)) with the scan
+//   index spilled at [esp+0xb0]; when it is 10 the result pointer is null (xor ebp,ebp at
+//   0x455a66); otherwise a second scan with index at [esp+0xb8] stores its byte at
+//   [esp+0x58], and ebp = g_game + 0x1b63 + 0x14b*idx (0x455ae9). Then the body reads
+//   esi = *(int*)(bytes + 6) at 0x455af4 and runs ANOTHER inlined scan (not yet read past
+//   0x455af7). A partial transcription of either body scored lower (case 39 alone: 27.6),
+//   so add them whole, in source order (28 before 33), and expect the frame to grow from
+//   0x318 toward 0x51c; the earlier full attempt reached exactly 0x51c but 9.6% because
+//   every individual slot (messages 0x70, receiving 0xf0, temp 0x2e0, receive index 0x110)
+//   was still drawn in the wrong order.
 // deepseek-v4.1-flash pass for issue #3677: 21.8 -> 28.0 (6396 bytes). The big win was
 // the ORDER of the big switch's case bodies, which check.py sees because difflib only
 // matches blocks that run forward in both streams. The original's source order was read

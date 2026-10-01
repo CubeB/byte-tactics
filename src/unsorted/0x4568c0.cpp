@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
+// (line 1 continued), finished by deepseek-v4.1-flash
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
 // (notes only, code unchanged at 86.8). Names are provisional.
 // Partial, 78.9%. A short loop index restores three induction registers.
@@ -245,6 +246,25 @@
 // 1306 bytes (the name takes esp+0x18 and pushes the field walk from esi to
 // edi). The manual to/from form in this file is still the best at 86.8.
 #include <stdlib.h>
+// deepseek-v4.1-flash (issue #4125 retry, 10 min timebox): re-confirmed the
+// stored body at 86.8% (1258 of 1310 bytes, frame 0x34, every [esp+..] operand
+// matching) as the baseline. The residual is unchanged: the 52-byte res != 0
+// k4 loop, where the original keeps a live unsigned char counter in ebx
+// (xor ebx,ebx at 0x456bcd, cmp bl,0xa at 0x456c06, inc ebx at 0x456cb3, with
+// `mov eax,ebx / and eax,0xff` at the PlayerId index) and puts `to` in edi /
+// `from` in edx, while this manual form has no counter and puts `to` in ebx /
+// `from` in edi. Every family that restores the counter (the two-helper form
+// FUN_00451bc0(FindFrom_004568c0(), PlayerId_004568c0(k4), packet, 2), an
+// inlined PlayerId passed in the args, a byte pi/unsigned char k4) buys the
+// counter at the price of a global register recolour (res moves edi -> ebp at
+// 0x456942, which mirrors the k2 branch and k3 loop too). Two variants were
+// scored this pass, both reverted: the two-helper shape rebuilt on the current
+// tail scores 83.6 / 1302 bytes and its diff is a pure edi<->ebp swap (res edi
+// vs ebp, k4 address walk ebp vs edi, k3 zero register ebx vs edi), i.e. one
+// allocator tie-break, not a structure error; and `int* rp = &res;` plus
+// `(*rp)` at every use (tried on both shapes) is scalar-replaced away with
+// identical bytes, so address-taking cannot force res to stay in memory. The
+// file is otherwise untouched and stays at its best recorded 86.8.
 // deepseek-v4.1-flash (this pass): tried writing the k4 `to` as an if/else
 // with a shared `else to = -1;` (the original's shared `or reg,-1` tail shape)
 // instead of `int to = -1; if (...) to = ...;`. It regresses 86.8 to 85.1

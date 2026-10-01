@@ -102,6 +102,12 @@
 // f, the four deltas still land in the wrong stack slots, and the tail still
 // forwards p1.x in ebp across the inlined Length() instead of reloading [esi].
 
+// Session addendum 2 (deepseek-v4.1-flash, 10-minute timebox, no gain):
+// hoisting `int g; short h;` (and also `__int64 f;`) to function scope is
+// byte-identical at 91.9, and routing the two clamp multiplies through
+// fx/fz temps compiles to 1068 bytes / 90.0, so the three clusters in the
+// note above (delta stack slots, __allmul push order, tail ebp forwarding)
+// are still the entire remaining diff.
 #include <math.h>
 
 #pragma pack(push, 1)

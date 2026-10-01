@@ -123,6 +123,12 @@
 // roles, so the roles are the allocator's use-count decision (k is referenced
 // by the compare as well as its increment, idx only by the latch), not
 // declaration order. The prologue store order is still the other diff.
+// Session addendum 3 (deepseek-v4.1-flash, 10-minute timebox, no new variant
+// landed): adding an explicit `unsigned char res;` set from idx and stored
+// (on the kept char-k form) is byte-identical to the 94.0 build, and the int
+// idx-first form with `(unsigned char)(idx & 0xff)` scores 86.0 like its
+// plain spelling, so the ECX/EDX role swap and the missing `mov dl,cl` are
+// still the whole scan diff, plus the prologue vtable store.
 #include <stdio.h>
 #include <string.h>
 

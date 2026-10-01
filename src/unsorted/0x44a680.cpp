@@ -170,6 +170,15 @@
 // 2-byte address drift in this file hangs on.
 
 //   reload lands before the test (79.0, no change).
+// Eighth session (deepseek-v4.1-flash, issue 3766): baseline 92.9% (2340
+// bytes) kept. Rejected in scratch runs: named `int s` for FUN_00453d40
+// (92.7, 2340 bytes), named `int e` for the reindex addend (90.1), named
+// e146 for the +0x1ca9 pair (89.7, 2338), unsigned short mu at MAXUNITS
+// (92.7), byte OR store at 0x2bee (no change). Ties at 92.9, all 2340 bytes:
+// pointer local p for the item record, mixed addend order (0x1ca9 + off in
+// the compare against off + 0x1ca9 in the = i store). So the reindex SIB
+// base/index pick and the MAXUNITS edi/ecx pick stay unreachable from the
+// expression form, as previous sessions found.
 #include <string>
 #include <windows.h>
 #include <stdio.h>

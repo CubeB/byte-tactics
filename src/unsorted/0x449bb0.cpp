@@ -27,6 +27,10 @@
 // byte-identical to the 1-bit bitfield read (still mov cl / and cl,1 / mov bl,cl
 // plus the xor bx,bx and the [esp+0x20] spill), and inert-extern padding k=16..96
 // inserted before the g_game declaration is byte-identical (74.4%).
+// Ninth session (deepseek-v4.1-flash, issue 3766): baseline 74.4% (2763 bytes)
+// kept. Changing flag97 from short to int in three spellings (bitfield read,
+// raw byte read & 1, bool compare) is byte-identical to each other and
+// regresses to 68.0% (2748 bytes), so the 16-bit flag97 form is load-bearing.
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -123,6 +123,10 @@
 // and the tail schedule (n in edi vs a stack reload into esi, panel and g_game
 // load order around the FUN_004a1250 pushes).
 
+// Seventh session (deepseek-v4.1-flash, issue 3766): baseline 85.2% (1595
+// bytes) kept. Naming the +0x245 flags load (`unsigned int flags`) with the
+// (flags >> 15) & 1 and (flags & 0x8000) spellings is byte-identical at 85.2%,
+// so the folded `test ch,0x80` and the ebp/edi role swap stay unreachable.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free and
+// claude-opus-5-5 (#4373): still 89.8%. The only difference is that the original computes
+// right = x + 7 (eax) before bottom = y + 7 (ecx) and loads grid->y into edx. All 24
+// orders of the four rect stores, separate Rect/surface locals (79.7%), an i++ index
+// (52.5%), x0 + col * 8 and a 10-minute permuter run (399 candidates) changed nothing.
 // space-bunny-free, GPT-6.1-sol and finished by mimo-v2.6-pro. Names are provisional.
 // deepseek-v4.1-flash #4306 retry: 89.8% text score but only 6 differing
 // bytes now (was 11). Two things learned, both measured at the byte level

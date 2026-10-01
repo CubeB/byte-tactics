@@ -1,31 +1,72 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// Status (claude-sonnet-5-5, #4273): 37.5 -> 74.5%, 5272 bytes vs 5248. The ~1000
-// missing bytes were real code, now written: the type 1 stage-text block (split
-// the entry text at '|', run each part through FUN_004c5740 into buf3[0x80], copy
-// back, flags = (flags & 0x4000) | 1), the strcmp(text, "Off|On") stage button
-// choice, loop 1 cases 5, 7, 8 and 13 (case 7/8 build "<str_bb6><text>.FNT" with
-// strcpy/strcat and call FUN_004bbe50(buf, 0), no size out-param), the loop 2
-// "if (force) clear fields" blocks for types 4, 6, 13, the "force || flags & 0x40"
-// guards for types 3, 5, 10 (type 10 passes flags as 3rd arg), type 11 passes
-// the background GAF, type 2 calls FUN_004c1420 inside the type 7 scan, and the
-// post-loop scan compares entries[j].name with entries[0].u.text + 0x16.
-// Layout levers that mattered: wrap the whole forced path in `if (force) { }`
-// (not a goto) so the `saveUnder = 0` else block lands after the epilogue; use
-// one shared GafEntry* g that the cases test (it lives at [esp+0x10]); write the
-// loop 2 and teardown bounds as `i < count + 1`.
-// What still differs (all register or ordering noise, no missing code):
-// (1) every [ebp + ebx + off] is emitted as [ebx + ebp + off] (SIB base/index
-// swapped, ~75 lines), same for [esi + ebx] in loop 2; (2) the first `return 0`
-// is merged into the shared xor-eax epilogue instead of staying inline;
-// (3) post-loop scan block: the original keeps j in edi and the strncmp pointer
-// in ebx and reloads loop 2's leftover i from [esp+0x1c]; ours keeps i in edi;
-// (4) the `textbuf[0x10] = 0` stores are scheduled before `add esp, 0xc` instead
-// of after it; (5) secondEnd->x = x - fw + w comes out as (w + x) - fw; (6) the
-// original reads entries[i].flags & 0x80 directly but through a spilled pointer
-// at [esp+0x20] for the other flag accesses; (7) loop 2 type 13 spills its
-// entries temp to [esp+0x24] where the original clobbers edi and reloads i;
-// (8) `do {} while (f())` form for the FUN_004c1ab0 wait and its zero register
-// (xor esi, esi before the loop) is not reproduced.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Status (Space Bunny Free, #4393): 74.5 -> 85.2%, 5288 bytes vs 5248. What moved,
+// in the order it moved:
+// (1) Headers: `#include <windows.h>` on top of `<stdio.h>` (the string functions
+//     come in through it). On its own that was 74.5 -> 78.6% and it fixed every
+//     `[ebp+ebx+off]` vs `[ebx+ebp+off]` SIB base/index swap at once;
+//     tools/headers.py reported 78.6% for five sets, all with <windows.h>.
+// (2) The FUN_004c1ab0 wait is `do { } while (FUN_004c1ab0());`, not
+//     `while (FUN_004c1ab0() != 0);`: the original is `xor esi, esi; call; cmp eax,esi;
+//     jne top`, and the while-form rotated into two calls and two tests and moved
+//     the `xor esi, esi`. That deleted a whole hunk.
+// (3) The post-loop name scan walks the entries and derives the index from the
+//     pointer (`j = (int)(other - entries)` in the match arm). That is what puts j
+//     in edi and the walk in ebx as in the original (80.6 -> 82.5%), even though the
+//     division by 0x15b costs seven instructions the original does not have.
+// (4) The second loop and the post-loop scan are inside the
+//     `if ((flags & 4) || force || (flags & 0x40))` block: the original's
+//     `test bl,0x40; je 0x4a950a` jumps past both, so with them inside every branch
+//     target from there on has the original's offset. Same score, but it is the
+//     shape a match needs.
+// (5) tools/permute.py, 17 min, 82.5 -> 85.2%. What it found that is worth keeping
+//     (the temp names and the do-nothing casts are gone, the rest is here):
+//     savedType, walk, orientation and pf are function-scope, not block-scope; the
+//     first loop is `i = 0; while (i < count + 1) { ... i++; }` rather than a `for`;
+//     the case 2 list-scroll sync writes the max twice (an initialiser and then the
+//     recomputed expression for entries[i], and the local for the partner entry),
+//     and that duplication alone is worth 3.0 points, so it looks like the original
+//     really does recompute it; `base[i].h = (short)(hh - ((int)base[i].h) % (fh+2))`
+//     re-reads the field instead of using hh (worth 3.8 points); `do { ... } while (0);`
+//     around the checkbox/stage-button GAF lookup is load-bearing (2.7 points), as is
+//     the comma-expression loop `if (j < g->count) do { ... } while (((j += 4),
+//     (j < g->count)));` for the frame search; `1 & entries[i].resourceFlags`,
+//     `-1 == entries[0].x`, `0 > entries[0].y`, `0 == g`, `(flags & 4) != 0` and
+//     `0x40 & flags` are the operand orders the original had.
+// What still differs (register, scheduling and slot noise; no missing code):
+// (a) Stack slots are permuted. `force` is at [esp+0x1c] here and [esp+0x18] in the
+//     original, and `i`, `&entries[i].flags`, `&entries[i].x/y` and the loop 2 `t`
+//     counter follow it round. Local declaration order is not a lever: permuting
+//     these ten locals, reordering the buffers and changing their sizes all compile
+//     byte-identically (build/scratch/0x4a81e0/v1 and v13).
+// (b) The case-4 slider geometry is 8 to 10 bytes short. The original stores
+//     `secondEnd->x` from dx after a dead `add edx, ecx` (the address of
+//     `entries[i].x` advanced by the width), and in the vertical arm does
+//     `add esi, edx` with edx still the address of `entries[i].h`. Both look like an
+//     MSVC 5 codegen artifact for `e->x - fw + e->w`; x+w-fw, a (short) cast, a
+//     local pointer, two statements and swapping the arms all fail to reproduce it.
+// (c) Case 1: the original merges the "CHECKBOX" call into the shared
+//     `FUN_004b8d40(menu->gaf, stagebuf)` tail (`push "CHECKBOX"; jmp <past the
+//     stagebuf push>`) and leaves the "BUTTONS0" call inline; ours does the opposite
+//     and duplicates `menu->gaf`. Writing it with two call sites
+//     (build/scratch/0x4a81e0/v8/k1_two_calls.cpp) gets within three instructions.
+// (d) `entries[i].flags & 0x80` reads through the spilled `&entries[i].flags`
+//     pointer here, directly from `[ebp+ebx+0x1b]` in the original; the 0x40 and
+//     0x4000 accesses use the pointer on both sides.
+// (e) Loop 2 type 13 spills `menu->layer->entries` across FUN_004b6340() here, where
+//     the original keeps it in edi; that also costs the `mov edi,[esp+0x1c]` reload
+//     at the end of that arm.
+// (f) `textbuf[0x10] = 0` is scheduled before `add esp, 0xc` instead of after it, in
+//     the case 0/11 and case 1 blocks.
+// (g) `FUN_004c6b70(0, saveUnder, x, y)` loads y then x into edx/ecx here and
+//     ecx/edx there: operand order only.
+// Dead ends, so nobody repeats them: declaration and buffer order (a);
+// `unsigned int force`; hoisting `entries[0].u.count + 1` or the compare string in
+// the scan; while/do-while/`++j` spellings of the scan loop other than the one above;
+// removing the named `base` locals in loop 2; `(unsigned char)` casts on the flags
+// test; swapping the two arms of the slider if/else; putting `textbuf[0x10] = 0`
+// after the strcat. build/scratch/0x4a81e0 holds sweep.ps1 (scores a folder of
+// variants), gen.ps1 and the spec files; build/scratch/0x4a81e0/v10/k1_s5.cpp is
+// 5248 bytes exactly at 81.7%, so the byte count is reachable but that shape is not.
 #include <math.h>
 #include <string.h>
 #include <windows.h>
@@ -294,11 +335,13 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
             strcat(buf1, textbuf);
             FUN_004baff0(buf1, buf1, "GAF");
             if (!entries[0].u.assets.archive) {
-                if (FUN_004bbc40(buf1)) entries[0].u.assets.archive = FUN_004b8c60(buf1);
+                if (FUN_004bbc40(buf1))
+                    entries[0].u.assets.archive = FUN_004b8c60(buf1);
             }
             strncpy(textbuf, entries[0].u.text + 0x46, 0x10);
             textbuf[0x10] = 0;
-            if (entries[0].u.assets.archive) { g = (GafEntry_004a81e0*)FUN_004b8d40(entries[0].u.assets.archive, textbuf); }
+            if (entries[0].u.assets.archive)
+                g = (GafEntry_004a81e0*)FUN_004b8d40(entries[0].u.assets.archive, textbuf);
             if (g == 0) {
                 if (0 != menu->gaf) {
                     g = (GafEntry_004a81e0*)FUN_004b8d40(menu->gaf, textbuf);
@@ -333,10 +376,10 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                     orientation = entries[i].w > entries[i].h ? 10 : 0;
                     Glyph_004a81e0* frame = (Glyph_004a81e0*)FUN_004b7f30(g, orientation);
                     if (entries[i].w < entries[i].h)
-                            entries[i].w = frame->w;
-                        else
-                            entries[i].h = frame->h;
-                        entries[i].sliderStyle = (unsigned char)orientation;
+                        entries[i].w = frame->w;
+                    else
+                        entries[i].h = frame->h;
+                    entries[i].sliderStyle = (unsigned char)orientation;
                 }
             }
             entries[i].sliderGaf = g;
@@ -426,7 +469,8 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                     if (other->group == entries[i].group) {
                         short scroll = other->u.list.scroll > entries[i].u.list.scroll
                                          ? other->u.list.scroll : entries[i].u.list.scroll;
-                        entries[i].u.list.scroll = scroll;
+                        entries[i].u.list.scroll = (short)(other->u.list.scroll > entries[i].u.list.scroll
+                                                             ? other->u.list.scroll : entries[i].u.list.scroll);
                         other->u.list.scroll = scroll;
                     }
                 }
@@ -515,14 +559,14 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                 while (*p) {
                     if (*p == '|')
                         *p = 0;
-                    p += 1;
+                    p++;
                 }
                 Entry_004a81e0* cur = &menu->layer->entries[i];
                 char* dst = buf3;
                 char* src = cur->u.text;
                 int k = 0;
                 for (; k < cur->stage; k++) {
-                    strcpy(dst, FUN_004c5740((char*)src));
+                    strcpy(dst, FUN_004c5740(src));
                     dst += strlen(dst) + 1;
                     src += strlen(src) + 1;
                 }
@@ -623,57 +667,57 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                     else
                         fh = ((Glyph_004a81e0*)FUN_004b7f30(DAT_0051fba4->language->glyphs, 0x49))->h + 2;
                     int hh = base[i].h;
-                    base[i].h = (short)(hh - hh % (fh + 2));
+                    base[i].h = (short)(hh - ((int)base[i].h) % (fh + 2));
                     base[i].u.list.field_0 = FUN_004b6340();
                 }
                 if (force || (flags & 0x40))
                     FUN_004a1b40(menu, i);
                 break;
             }
-        case 3:
-            if (force || (flags & 0x40))
-                FUN_004a4d70(menu, i);
-            break;
-        case 4:
-            if (force) {
-                Entry_004a81e0* base = menu->layer->entries;
-                base[i].f140 = 0;
-                base[i].f144 = 0;
-                base[i].f14a = 0;
+            case 3:
+                if (force || (flags & 0x40))
+                    FUN_004a4d70(menu, i);
+                break;
+            case 4:
+                if (force) {
+                    Entry_004a81e0* base = menu->layer->entries;
+                    base[i].f140 = 0;
+                    base[i].f144 = 0;
+                    base[i].f14a = 0;
+                }
+                if (force || (0x40 & flags))
+                    FUN_004a3ef0(menu, i);
+                break;
+            case 5:
+                if (force || (flags & 0x40))
+                    FUN_004a56b0(menu, i);
+                break;
+            case 6:
+                if (force) {
+                    Entry_004a81e0* base = menu->layer->entries;
+                    base[i].u.t6.f_b6 = 0;
+                    base[i].u.t6.f_be = 0;
+                    base[i].u.t6.f_c2 = 0;
+                    base[i].u.t6.f_c6 = 0;
+                }
+                if (force || (flags & 0x40))
+                    FUN_004a4980(menu, i);
+                break;
+            case 13:
+                if (force) {
+                    Entry_004a81e0* base = menu->layer->entries;
+                    base[i].u.t13.f_c6 = FUN_004b6340() + base[i].u.t13.f_c2;
+                }
+                if (force || (flags & 0x40))
+                    FUN_004a4660(menu, i);
+                break;
+            case 10:
+                if (force || (flags & 0x40))
+                    FUN_004a4c90(menu, i, flags);
+                break;
+            default:
+                break;
             }
-            if (force || (0x40 & flags))
-                FUN_004a3ef0(menu, i);
-            break;
-        case 5:
-            if (force || (flags & 0x40))
-                FUN_004a56b0(menu, i);
-            break;
-        case 6:
-            if (force) {
-                Entry_004a81e0* base = menu->layer->entries;
-                base[i].u.t6.f_b6 = 0;
-                base[i].u.t6.f_be = 0;
-                base[i].u.t6.f_c2 = 0;
-                base[i].u.t6.f_c6 = 0;
-            }
-            if (force || ((flags & 0x40) != 0))
-                FUN_004a4980(menu, i);
-            break;
-        case 13:
-            if (force) {
-                Entry_004a81e0* base = menu->layer->entries;
-                base[i].u.t13.f_c6 = FUN_004b6340() + base[i].u.t13.f_c2;
-            }
-            if (force || (flags & 0x40))
-                FUN_004a4660(menu, i);
-            break;
-        case 10:
-            if (force || (flags & 0x40))
-                FUN_004a4c90(menu, i, flags);
-            break;
-        default:
-            break;
-        }
     }
         if (menu->layer->field_20 != -1 && menu->field_a2 != 0) {
             savedType = entries[menu->layer->field_20].type;
@@ -685,8 +729,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                     j = (int)(other - entries);
                     goto found;
                 }
-                j++;
-                other++;
+                j++, other++;
             }
             j = -1;
         found:
@@ -704,7 +747,8 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
         FUN_004c6ac0(entries[0].u.assets.surface);
         entries[0].u.assets.surface = 0;
         for (int j = 0; j < 1 + entries[0].u.count; j = j + 1) {
-            if ((entries[j].resourceFlags & 1) && entries[j].archive) FUN_004d85a0((int*)entries[j].archive);
+            if ((entries[j].resourceFlags & 1) && entries[j].archive)
+                FUN_004d85a0((int*)entries[j].archive);
             switch (entries[j].type) {
             case 0:
                 FUN_004d85a0((int*)entries[j].u.assets.archive);

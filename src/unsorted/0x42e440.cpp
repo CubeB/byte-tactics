@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue #3775): re-confirmed 84.4% / 3918 bytes, 13 hunks.
+// No source shape was changed: the five bitfield-arm hunks are `or` operand rotation plus
+// `push 0` placement (the original picks the value register as the OR destination in the
+// bit-1 and bit-8 arms but the loaded-dword register in the bit-13/19/24 arms, so the choice
+// follows which side the scheduler computes first, not the assignment spelling), the three
+// [esp+0x10] vs [esp+0x14] hunks are the model-search count slot (shared with the w->sub
+// spill in the original), the four jump-offset hunks are the 5-byte shortfall, and the
+// 160-line region is the inlined three-arm vector insert.
 // Retry by GPT-6.1-sol: best remains 84.3% (3918/3923), not MATCH. Reordering
 // model-loop locals and hoisting path to model scope both compiled identically.
 // Partial, deepseek-v4.1 retry: 84.3%, not MATCH. Original 3923 bytes, ours 3918.

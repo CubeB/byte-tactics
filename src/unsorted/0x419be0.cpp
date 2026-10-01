@@ -1,5 +1,11 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry session 8 (TIMEBOX): 84.1%, 1327 bytes, unchanged.
+// deepseek-v4.1-flash retry session 9 (TIMEBOX): 84.1%, 1327 bytes, unchanged.
+// One new probe: moving `void* orders = g_game->orders;` after the
+// entry-selection line regresses to 46.9% / 1328 bytes, so the current
+// statement order is load bearing; still only `mov ebp, esi` versus the
+// original's `mov ebp, [esp + 0x34]` (false arm) plus the esi/edi role swap.
+
 // objdump of our own object confirms the whole-function diff is exactly two
 // deviations: (1) the global register-role swap (ours param1/button in esi,
 // param2/entries in edi; original the reverse), and (2) its 2-byte symptom,

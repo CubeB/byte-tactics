@@ -1,6 +1,10 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry session 7 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
 // deepseek-v4.1-flash retry session 8 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// deepseek-v4.1-flash retry session 9 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// Baseline re-run only this pass; the session-7/8 declaration/scope probes
+// already cover the frame permutation lever, so no new shape was scored here.
+
 // Residue is frame-wide: every hunk is a stack-slot permutation ([esp+0x30]
 // versus [esp+0x34] style), plus a push eax/ecx/edx count mismatch in the
 // inlined callee setup, so no hunk-level edit repays it without the right

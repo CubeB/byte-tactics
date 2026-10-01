@@ -1,11 +1,20 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 //
-// PARTIAL: GUI layer loader (0x4aa8f0, 1762 bytes). Best 53.1%
-// (ours 1790 bytes vs 1762). The frame is now the original 0x21c and long
-// stretches of the middle match; the first divergence is the prologue (ours
-// loads `menu` into EBX before the four pushes and parks `ret` at [S+0x18],
-// the original loads menu into EDI after the pushes and puts `ret` at
-// [S+0x14]).
+// PARTIAL: GUI layer loader (0x4aa8f0, 1762 bytes). Best 60.8%
+// (ours 1781 bytes vs 1762). Win of the 0x3638 pass, 53.1 -> 60.8: the two
+// `if (menu->layer != 0) menu->layer->field_14/18 = ...;` tests are written
+// as tests of the existing `layer` local (identical at those points). That
+// removes menu's whole-function EBX home: menu is no longer register-resident
+// and the prologue now matches (`mov edi,[esp+0x230]` with menu in EDI, the
+// cur pointer in ESI and `w` in EBX inside the flags & 0x800 block).
+//
+// First divergence now: `ret` occupies [S+0x18] where the original stores its
+// 1 at [S+0x14] (mask takes the other int slot). Declaring `int mask;` before
+// `int ret = 1;` and after it are both byte-identical at 60.8, so this slot
+// order is not set by declaration order; the tail hunks that test mask vs a
+// fresh `flags & 0x200` come from the same root. The old notes below still
+// hold (mask-arm-first in the flags & 0x200 branch, menu reloads at five
+// sites, flags never cached, the goto forms for the -1 loop results).
 //
 // Load-bearing find (38.3% -> 53.1%): the `flags & 0x200` sub-branch must be
 // written with the mask != 0 arm FIRST, matching the original layout
@@ -258,10 +267,10 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
     if (mask == 0 && (flags & 0x80) != 0)
         layer->flags = 0x80;
     layer->flags |= flags & 0x800;
-    if (menu->layer != 0)
-        menu->layer->field_14 = 1;
-    if (menu->layer != 0)
-        menu->layer->field_18 = 0;
+    if (layer != 0)
+        layer->field_14 = 1;
+    if (layer != 0)
+        layer->field_18 = 0;
     strncpy((char*)entry + 2, guiName, 0x10);
     menu->field_60 = -1;
     if ((flags & 0x400) == 0) {

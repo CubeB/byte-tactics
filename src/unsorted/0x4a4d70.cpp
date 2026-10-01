@@ -1,4 +1,21 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3076): 98.7%, 661 bytes both sides. The
+// colour SIB base/index (`[ecx+eax+0x8b2]` vs `[eax+ecx+0x8b2]`) and the surface
+// load not hoisted above the three trailing pushes are one compiler-state
+// allocator/scheduler tie. Hoisting the colours pointer into a live local does
+// flip the SIB order, proving the mechanism, but the pointer lands in ebp (all
+// four callee-saved registers are busy) and spills into the inlined Measure,
+// giving 96.9% / 661B. Surface-local placements (block start 56.9%, after
+// height, after y2, before the call all 98.7%) and top/left/x/y2/colour
+// reorders, a font local, a self alias, `entries[param_2]` inline, int/unsigned
+// index, casted array, int field + cast, and five operand orders of the sum are
+// all flat at 98.7%.
+// BUG: the colour read `me->colours[(int)param_1 + 0x8b2]` indexes the entry's
+// own 16-byte colour table with the dialog object's address, reading about
+// 0x8b2 bytes past it (`mov dl,[ecx+eax+0x8b2]` at 0x4a4ed4, ecx = me->colours,
+// eax = reloaded first argument). The focused-entry block also saves/restores
+// the byte at `field_74 + (char*)me + 0xb6` but measures `me + 0xb6`, two
+// different addresses, so the zeroing never blanks the string being measured.
 // deepseek-v4.1 pass (issue 2461): 18 further variants scored through the
 // deepseek-v4.1-flash (#2961 retry): still 98.7%. Six-instruction allocator tie:
 // colour SIB base/index swapped (`[ecx+eax+0x8b2]` original vs `[eax+ecx+0x8b2]`

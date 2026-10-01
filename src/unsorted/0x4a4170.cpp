@@ -1,4 +1,19 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3076): still 80.9%. The residual: the
+// original keeps a literal 0 live in edx across the `focus == index` block
+// (per-arm `xor edx,edx`, `cmp [ebp+0x78],edx`, `cmp word [ebx+0x140],dx`,
+// `cmp eax,edx`); ours rematerialises it as immediates off the known-zero call
+// result. New negatives this retry all worse: an explicit per-arm phi still
+// folds to `mov [field_78],eax` (v1, 80.9); `e->flags & 0x10` zero 47.4;
+// `index - obj->focus` / `obj->focus - index` are not folded but add bytes and
+// never zero edx (61.7/54.7). Naming the call result puts the zero in edx
+// (`mov [field_78],edx` matches) but moves the zero to the call test and changes
+// the field test (709 bytes, 75.1); the two halves cannot be separated from
+// source.
+// BUG: at 0x4a4237 (`mov ax,[ebp+0x94]; sub ax,[ebp+0x7c]; add eax,esi`) the
+// offset difference is computed at 16-bit width (`ax`) and then added as a
+// 32-bit value to `esi` without sign-extending `ax`, so the high half of eax is
+// whatever it held. Same in the parallel arm at 0x4a423f.
 // deepseek-v4.1-flash (#2961 retry): still 80.9%. The residual is the single
 // edx zero in the `focus == index` block: the original keeps constant 0 in edx for
 // five uses with two per-arm `xor edx,edx`; ours rematerialises it as

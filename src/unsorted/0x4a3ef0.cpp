@@ -1,4 +1,14 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 3076): best stays 93.1% (629 bytes both).
+// The two-statement 0x10 denominator is now proven exact (631 bytes / 90.6%
+// alone); only the 0x20 arm remains, needing `e->field_c6` in edx before
+// `test eax,eax`. Every hoist shape reshapes the global allocation (e: ebx->edi,
+// shared zero leaves ecx; 602-604 bytes / 36%); arm-local `lines2` keeps ecx=0
+// but the load stays after the test (631 / 90.6); a signed `short` gives
+// 627 / 91.0 but is semantically wrong.
+// BUG: `idiv ecx` at 0x4a40d1 divides by the zero register on the
+// `e->field_c0 <= 0` path (the jle at 0x4a40b2 skips the divisor setup), an
+// unguarded divide-by-zero, unlike the 0x80 arm which tests both divisors.
 // deepseek-v4.1-flash retry (issue 2905, 10 min, ~25 free --sym variants, all
 // deepseek-v4.1-flash (#2961 retry): still 93.1%. The 0x10 arm needs the
 // two-statement denominator (+2 -> 631 bytes/90.6%). The 0x20 arm needs
@@ -61,6 +71,15 @@
 // PARTIAL, 77.2% (633 bytes against 629). The prologue, the entry search, the
 // 0x10 arm and the 0x80 arm now match line for line; the 0x20 arm is off only
 // because of the width of its zero register.
+//
+// deepseek-v4.1-flash (#3076 retry): still 93.1%. The 0x10 arm is now exact
+// with the two-statement denominator (631/90.6 alone). The 0x20 arm is the only
+// residual: it needs `e->field_c6` in edx loaded before `test eax,eax`. Every
+// hoist shape (helper local, arm local, pointer param, unsigned value, hoisted
+// deref) reshapes the global allocation (e: ebx->edi, shared zero leaves ecx;
+// 602-604 bytes/36%). An arm-inline body with an arm-local `lines2` keeps the
+// zero in ecx but the load stays after the test (631/90.6). Signed `short`
+// drops the zero-extend (627/91.0) but is semantically wrong.
 //
 // deepseek-v4.1-flash pass (10 minutes; every figure below measured with
 // `check.py --sym`, which is free). The whole remaining difference is the
@@ -170,6 +189,16 @@
 // over the setup), and 0x4a40d1 divides by it. The 0x80 arm guards its divisors
 // with `test`, this arm does not.
 
+// deepseek-v4.1-flash (#3076 retry): still 93.1%. The 0x10 arm is now exact
+// with the two-statement denominator (631/90.6 measured alone). The 0x20 arm is
+// the only residual: it needs `e->field_c6` in edx loaded before `test eax,eax`
+// so the chain is `mov ecx,[edx]; mov edx,[ecx+0x28]; xor ecx,ecx; mov cx,[edx+2]`.
+// Every hoist shape (helper local, arm local, pointer param, unsigned value,
+// hoisted deref) reshapes the global allocation (e moves ebx->edi and the shared
+// zero leaves ecx; 602-604 bytes/36%). An arm-inline body with an arm-local
+// `lines2` keeps the zero in ecx and fixes the <=0 divisor fallback but the load
+// stays after the test (631/90.6). Signed `short` drops the zero-extend
+// (627/91.0) but is semantically wrong (the original zero-extends with `mov cx`).
 #pragma pack(push, 1)
 struct Entry_004a3ef0 {                // 0x15b bytes
     unsigned char type;                // +0x00

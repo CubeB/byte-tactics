@@ -170,7 +170,9 @@
 //  - the fourth border loop as `i < height` with `(i+1)` (76.4), with a
 //    separate `unsigned k = i + 1;` (76.6), or as `k = 1; k <= height` (76.4).
 //    The original keeps the loop index in eax and reuses `ecx = i + 1` as the
-//    next index; all three spellings leave the index in ecx.
+//    next index; all three spellings leave the index in ecx. Also byte-flat on
+//    the 82.1 best (1524 bytes, same hunk): `lb4 = 1; lb4 < height` with
+//    `[lb4 * width - 1]`, and the signed `(int)(lb4 + 1) < height` form.
 #include <new.h>
 #include <windows.h>
 

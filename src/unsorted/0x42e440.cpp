@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash break-through (issue #3820): 84.4 -> 84.7 percent (3924 bytes, was 3918),
+// 13 -> 10 hunks. The binary search no longer materialises a `middle` pointer local: it uses an
+// `unsigned int half = (unsigned int)(last - first) / 2;` and writes the two updates as
+// `first = first + half + 1;` / `last = first + half;`. That single change freed the register the
+// old `middle` local was spilling and fixed the long-standing count-slot diff: the search count now
+// sits at [esp+0x10] exactly like the original (shared there with the later w->sub spill), so the
+// four [esp+0x10]/[esp+0x14] hunks are gone. What still differs: the five bitfield-arm hunks
+// (push 0 / or destination rotation, pure scheduler placement), three 1-byte jump offsets (we are
+// 1 byte long overall, 3924 vs 3923) and the 240-line inlined vector-insert region, where our
+// insert keeps the entries base in edi while the original keeps it in ebx and reloads w->sub from
+// [esp+0x10]. The `Damage_0042e440* sub = w->sub;` spelling for that region was already tried by an
+// earlier pass and regresses to 82.8 percent, so the remaining gap looks allocator-bound.
 // deepseek-v4.1-flash retry (issue #3775): re-confirmed 84.4% / 3918 bytes, 13 hunks.
 // No source shape was changed: the five bitfield-arm hunks are `or` operand rotation plus
 // `push 0` placement (the original picks the value register as the OR destination in the
@@ -492,11 +504,11 @@ model_done:
                 Entry_00432cf0* first = entries.begin();
                 Entry_00432cf0* last = entries.end();
                 while (first != last) {
-                    Entry_00432cf0* middle = first + (last - first) / 2;
-                    if ((unsigned char)(_strcmpi(middle->name.ptr, name.ptr) < 0))
-                        first = middle + 1;
+                    unsigned int half = (unsigned int)(last - first) / 2;
+                    if ((unsigned char)(_strcmpi((first + half)->name.ptr, name.ptr) < 0))
+                        first = first + half + 1;
                     else
-                        last = middle;
+                        last = first + half;
                 }
                 if (first == entries.end() || strcmp(first->name.ptr, name.ptr) != 0) {
                     unsigned int offset = first - entries.begin();

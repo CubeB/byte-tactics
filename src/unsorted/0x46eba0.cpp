@@ -33,6 +33,23 @@
 // `if (_M)` around the fill, the real <vector> header (940 bytes, 62.7%),
 // explicit and member-pointer instantiation, ~1500 random combinations of
 // expression-order, size() spelling and helper-order tweaks.
+//
+// deepseek-v4.1-flash retry (#3329, 2026-10): still 81.4%, 928/936 bytes. The
+// whole grow branch is one allocator decision: `_N` and `_S` must swap their
+// homes (original keeps _N in the dead _M argument slot and _S in the frame
+// local at esp0-4; this build does the reverse), which in turn would put the
+// first copy's destination walker in edx instead of ecx and let the tail copy
+// strength-reduce to the original's affine sum. Nothing reachable from the
+// source moved it. Tried, all 81.4% or worse: first copy source-first
+// (_Ucopy(_First,_P,_S), no change), tail source-first (63.1%), both
+// source-first (63.3%), declaring _S before _N, `_Tptr` and `_Tptr _Q; _Q =`
+// spellings, extra live `_Q2`/`_Sx`/`_T` locals, an explicit `_N` temp at
+// function scope, `int _N`, `iterator _pad`, the global-pointer emit instead
+// of the FUN_0046ebb0 wrapper (no change), defining the real preceding
+// 0x46eb60 (std::list<int>::erase) above it (no change), tools/headers.py
+// (128 sets, none match). A silly forced affine
+// `_Ucopy_dst(_Q+_M, _P, _Q+_M-_M+(_Last-_Last))` gives 71.6%, so the affine is
+// the allocator's own lockstep reduction, not a source expression.
 #include <algorithm>
 #include <memory>
 #include <xutility>

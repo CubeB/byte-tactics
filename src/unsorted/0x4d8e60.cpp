@@ -1,4 +1,17 @@
 // Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash worker pass (issue #3875, 10-min box): re-verified BEST
+// 78.3% (2651 of 2644 bytes). Two scratch experiments, both byte-identical or
+// worse: (1) renaming the scalars a0_reason/b0_base/c0_file/d0_written to
+// force alphabetical slot order left every slot load unchanged (reason still
+// F+0x18, base still F+0x10), disproving name-driven slots for good; (2)
+// collapsing every `{ size_t L = strlen(log); sprintf(log + L, ...) }` wrapper
+// to direct `sprintf(log + strlen(log), ...)` scores 65.8% (ours 2649), so the
+// L-wrapper forcing the scasb before arg evaluation is still the best form.
+// Residual diff is unchanged: per-call arg scheduling around each inline scasb
+// strlen, the reason/base/file/written slot permutation (ours base,file,reason,
+// written vs original reason,base,file,written, not steerable by name or
+// declaration order), and the CreateFileA handle kept in esi vs the original's
+// eax plus stack reload.
 // deepseek-v4.1-flash pass 3 (issue #3831, timeboxed): re-verified BEST 78.3%
 // (2651 of 2644 bytes) and closed four more levers, all byte-identical at 78.3%
 // or worse: (1) swapping the `unsigned int n` / `unsigned long* info` statement

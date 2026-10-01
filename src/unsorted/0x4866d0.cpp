@@ -1,4 +1,11 @@
 // Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 7). Names are provisional.
+// Pass 8 (deepseek-v4.1-flash, 10 min): best stays 64.7% / 1920 bytes. Tried and rejected:
+// splitting the flags tail into compound assignments (flags &= 0xefffffff; store; flags &= 0xffffffcf;
+// store), which regressed to 63.2% / 1912 bytes, so the one-load two-folded-mask spelling is load-bearing.
+// Still differs: cmd is homed to EDI instead of EBX (g_game keeps EBP, leaderboard counter EDI), and the
+// 0x486d80 flags block emits mov ecx,eax / and eax,0xefffffcf / and ecx,0xefffffff instead of the original
+// mov eax,ebp / and al,0xcf byte-mask reuse.
+
 // Retry (deepseek-v4.1-flash, 10 min): still 64.7%, no MATCH. Tried and rejected
 // (all scored <= current): int credited declared at top / before unit / at point
 // of use (all 63.7%, and cmd lands in ebp either way), inlining the parent

@@ -1,4 +1,10 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass (deepseek-v4.1-flash, 10 min): best stays 67.5% / 1578 bytes. Checked the piece-copy hunk:
+// its loads/stores are the same absolute addresses on both sides (our edi/eax bases are +4 because
+// the frame is 4 bytes larger), so that hunk and the shifted jump targets are layout noise, not work
+// items. Residual is allocator-bound: the address-take-of-i hack gives found no register and forces
+// the [esp+0x10] loop-index slot that the original reuses for the Script%i sprintf argument.
+
 // Retry #1766 deepseek-v4.1-flash: 60.6%. The single gain was fixing the
 // order-count and FUN_0043de30 guard to the correct record fields: the count
 // is rec+0x23 (f23) and the guard is rec+0x27 (f27), not rec+0x33. The old

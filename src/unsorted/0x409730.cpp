@@ -1,4 +1,30 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass: 99.8%, READ SIB FIXED. The read access at 0x409b53
+// now matches (movsx eax, byte ptr [eax + edx]) because it is written as a
+// block-local pointer plus a reference to that pointer:
+//   if (guard) { unsigned char* q8 = vec_8d.begin(); unsigned char*& rq8 = q8;
+//                x += (char)rq8[i] / 2; }
+// The reference blocks the front end's copy propagation of the pointer into the
+// subscript (a plain `q8[i]` is propagated and stays swapped), so the SIB base
+// becomes the pointer variable instead of the loop counter, and because the
+// definition sits in the if-body block the load `mov eax,[eax+0x91]` keeps its
+// original position and the rest of the 1678-byte schedule is untouched. The
+// same construct keeps its instruction stream in a 6-line micro (member vector
+// at +0x94, store and signed-byte read: `unsigned char*& rp = p; rp[i]` gives
+// base=pointer, `p[i]` / `((unsigned char*&)p)[i]` / `(void)&p` give base=index).
+// STILL DIFFERS: only the store SIB at 0x4099f6 (want `mov byte ptr [esi + ecx],
+// al`, ours `[ecx + esi]`). Every store-side use of the same trick flips that
+// SIB but also costs the schedule, because the pointer definition has to be a
+// statement before the store: `p8 = vec_8d.begin(); rp8[i] = max(...)` puts the
+// pointer load at the end of the previous block (1675 bytes, 86.6%), and
+// splitting the clamp into its own statement (`int v8 = max(...); p8 = ...;
+// rp8[i] = v8;`, in every scope tried: block, loop body, function scope, with
+// the value fed by a comma or by the named temp) re-colours the region
+// (movsx edx,al instead of movsx ecx,al, then `this` to esi, `i` to edx, the
+// flags word from ebx to eax), 1676 bytes, 83.6%; the double-clamp comma
+// `rp8[i] = (max(...), p8 = vec_8d.begin(), (unsigned char)max(...))` folds to
+// one clamp but still hoists the pointer load before the clamp branches (1675
+// bytes, 86.6%), and `rp8[(p8 = vec_8d.begin(), i)] = ...` re-colours too.
 // deepseek-v4.1-flash 10-minute retry (this session): re-confirmed 1678 bytes
 // and 99.6%, exactly the two SIB base/index bytes (0x4099f6 wants [esi + ecx],
 // 0x409b53 wants [eax + edx]; ours [ecx + esi] and [edx + eax]). One new probe
@@ -441,8 +467,11 @@ void Class_00409730::FUN_00409730()
             x *= 2;
         if (def->field_1c0 >= 0)
             x *= 3;
-        if (player->field_144 > (unsigned short)(g_game->field_1434f / 2))
-            x += (char)vec_8d[i] / 2;
+        if (player->field_144 > (unsigned short)(g_game->field_1434f / 2)) {
+            unsigned char* q8 = vec_8d.begin();
+            unsigned char*& rq8 = q8;
+            x += (char)rq8[i] / 2;
+        }
         if (def->flag_245_8)
             x = 0;
         if (flags.flag_24)

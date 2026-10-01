@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional., finished by deepseek-v4.1-flash
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional., finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
 // deepseek-v4.1-flash 10-minute retry (this session): re-confirmed 1221 bytes
 // and 98.5%, same three hunks (0x408334 u->def load hoisted above the
 // target = origin stores; 0x4083a4 xor ebp,ebp placed after the trig call
@@ -79,6 +79,17 @@
 //   function-scope unit, while loop, goto loop, do/while loop, declaration orders, a
 //   `self = this` copy, accessor helpers, iterator forms, continue chains, FixMul
 //   operand orders, TooFar() helpers.
+// deepseek-v4.1-flash, nine more probes this pass (all 1221 bytes; the three hunks
+// above never moved): the first FixMul spelled `(__int64)d.x * s`, `(__int64)d.x *
+// (__int64)s`, `(__int64)s * (__int64)d.x`, an __int64 local, an `(int)` temp and two
+// alternative FixMul helpers (a __int64 first parameter, an __int64 product local)
+// all emit the identical commuted push, so the original's d.x-first first pair is not
+// front-end operand order; a `(unsigned)d.x` shifts the tail (96.5%) and a
+// FixDiv-inlined first operand breaks the web (81.8%). For hunk 1, a `def` local
+// declared right after the copy is byte-identical and a comma-expression second test
+// regresses to 77.6%. An out-param DirectionTo() helper (70.3%) or an expanded flag12
+// arm sharing one function-scope `ang` (71.6%) both destroy the loop-1 web, so the
+// flag12 arm must stay a returned temporary.
 #include <memory.h>
 #include <vector>
 #include <math.h>

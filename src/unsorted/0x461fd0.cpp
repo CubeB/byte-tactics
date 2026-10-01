@@ -1,5 +1,12 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // GPT-6.1-sol retry (issue 3137): baseline stayed at 86.6% (911/919). A helper around the owner comparison was byte-identical; assigning null on a mismatched owner scored 68.8%, so neither replaced the kept source. No MATCH was observed. Remaining mismatch is the packet-walk control flow and MSVC local/register allocation described below.
+// Pass deepseek-v4.1-flash (issue 3337, 10 min box): kept 86.6% (911/919). One
+// new spelling, the original's own head shape (`for (;;)` with the field_c
+// compare at the top and the `c == 0` test at the BOTTOM after the latch,
+// `if (c->field_c != p) break; ... j++; c = c->field_1c; if (c == 0) break;`),
+// is 918 bytes and 68.4% (build/scratch/461fd0-v1.cpp), the same score as the
+// do/while + break family, so moving the null test to the bottom is not the
+// lever either.
 // Pass deepseek-v4.1-flash (issue 2953 retry, 10 min box): kept 86.6% (911/919),
 // no score movement. Scored on the free `--sym` path. New this pass: the
 // semantics-correct break/goto form (68.4 / 69.5%) has an otherwise EXACT frame

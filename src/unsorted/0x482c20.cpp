@@ -19,6 +19,19 @@
 // register rotation: original keeps b (field_14227) in edi and a (field_14223)
 // in eax, with the delete-arg load of grid2->cells interleaved between the two
 // field loads.
+// deepseek-v4.1-flash timeboxed retry: 79.5 -> 80.6 (1521 bytes, still +2 vs
+// the original). The win is the big accum loop's latch order: writing
+// `accum += 0x10;` as the second for-increment
+// (`for (inner = 0; inner < g_game->height; inner++, accum += 0x10)`, body
+// unchanged) makes VC5 emit `inc eax; add edx,0x10; cmp; mov store/mov store;
+// jl`, the original's order. What still differs: the duplicated `xor esi,esi`
+// rematerialised in the grid2 allocation ternary's arm (2 bytes, which also
+// shifts every later jump target by 2), plus the usual slot/register pair
+// swaps. Swept this session, all neutral or worse: `outer = 0` as a statement
+// before its loop (80.6), `int outer = 0;` at its declaration (80.6), swapping
+// the grid2 ternary arms with `count2 == 0 ? 0 : new` (80.6, same size), a
+// fresh `outer2` for the big loop (76.4), `grid2->cells = 0; if (count2) ...`
+// (77.9), and declaring `outer` in the for-init (C2374, MSVC5 for-scope).
 // RETRY deepseek-v4.1-flash: 76.8 -> 79.5. The 0x10/0x14/0x18/0x1c stack
 // permutation IS source-reachable after all: use ONE `int outer;` for BOTH the
 // column-max loop counter and the big loop's outer counter (column pass:
@@ -267,7 +280,7 @@ void FUN_00482c20(void)
         unsigned char* p1 = 0;
         unsigned char* p2 = 0;
         accum = 0;
-        for (inner = 0; inner < g_game->height; inner++) {
+        for (inner = 0; inner < g_game->height; inner++, accum += 0x10) {
             int idx = g_game->width * inner + outer;
             int cellval = g_game->cells_14287[idx * 0xd + 4];
             int v = accum - (cellval >> 1);
@@ -308,7 +321,7 @@ void FUN_00482c20(void)
                 p2[0] = max(p2[0], cellval);
                 p2[1] = min(p2[1], cellval);
             }
-            accum += 0x10;
+            ;
         }
     }
 

@@ -222,6 +222,11 @@
 // order but loses res-in-edi; the manual to/from form above stays the best.
 // Remaining difference unchanged: the 52-byte k4 loop structure.
 #include <stdlib.h>
+// deepseek-v4.1-flash (this pass): tried writing the k4 `to` as an if/else
+// with a shared `else to = -1;` (the original's shared `or reg,-1` tail shape)
+// instead of `int to = -1; if (...) to = ...;`. It regresses 86.8 to 85.1
+// (1260 bytes), so the shared-tail shape is not the lever while the ebx byte
+// counter is still missing. Reverted; file is back at the 86.8 best.
 #include <algorithm>
 
 #pragma pack(push, 1)

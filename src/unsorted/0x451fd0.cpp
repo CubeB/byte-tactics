@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Claude Sonnet 5.5 (#3273): 88.5% (was 85.9%), still 915 bytes. Found by an
+// automated hill-climb over source mutations scored with check.py --sym (about
+// 3100 variants): the gain comes from reordering independent stores (the
+// registers handed to the constants 1, 6 and 2 follow where their first uses
+// sit) plus `return 0 != field_1749`. The stores are to distinct globals so
+// the order is only a source choice; the three register hunks listed below are
+// reduced but not gone, and the same search stalled at 88.5% for 2500 variants.
 // #3078 retry by GPT-6.1-sol: one check reconfirmed 85.9%; the three constant
 // register assignments remain the only recorded differences.
 // Partial: 85.9%, 915 bytes, exactly the original's size. The store sequence,
@@ -217,10 +224,10 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1);
 // FUNCTION: 0x451fd0
 int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
 {
-    DAT_00512be4 = 4;
-    DAT_00512c70 = 4;
     DAT_00512be8 = 4;
+    DAT_00512be4 = 4;
     DAT_00512bec = 4;
+    DAT_00512c70 = 4;
     DAT_00512bf0 = 4;
     DAT_00512bf4 = 4;
     DAT_00512bf8 = 4;
@@ -229,22 +236,22 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
     memset(&DAT_00512adc, 0, 0xb0);
     DAT_00512b1c = 4;
     DAT_00512c04 = 4;
-    DAT_00512c08 = 4;
     DAT_00512c10 = 4;
-    DAT_00512c18 = 4;
     DAT_00512ae0 = 13;
+    DAT_00512c08 = 4;
+    DAT_00512c18 = 4;
     DAT_00512a28 = FUN_0044fd50;
     DAT_00512bc8 = 7;
     DAT_00512aec = 65;
     DAT_00512a34 = FUN_0044fd60;
-    DAT_00512bd4 = 7;
     DAT_00512af0 = 1;
+    DAT_00512bd4 = 7;
     DAT_00512a38 = FUN_0044fd70;
     DAT_00512bd8 = 7;
-    DAT_00512af4 = 1;
     DAT_00512a3c = FUN_0044fd80;
-    DAT_00512bdc = 7;
+    DAT_00512af4 = 1;
     DAT_00512af8 = 1;
+    DAT_00512bdc = 7;
     DAT_00512a40 = FUN_0044fd90;
     DAT_00512be0 = 7;
     DAT_00512afc = 23;
@@ -261,46 +268,46 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
     DAT_00512a54 = FUN_0044fd40;
     DAT_00512b10 = 14;
     DAT_00512a58 = FUN_0044fd40;
-    DAT_00512b14 = 6;
     DAT_00512a5c = FUN_0044fd40;
     DAT_00512b18 = 22;
-    DAT_00512a60 = FUN_0044fd40;
     DAT_00512a64 = FUN_0044fd40;
+    DAT_00512b14 = 6;
+    DAT_00512a60 = FUN_0044fd40;
     DAT_00512b20 = 5;
     DAT_00512a68 = FUN_0044fd40;
     DAT_00512b24 = 18;
     DAT_00512a6c = FUN_0044fd40;
     DAT_00512c0c = 7;
     DAT_00512b28 = 24;
-    DAT_00512a70 = FUN_0044fd40;
     DAT_00512b2c = 1;
     DAT_00512a74 = FUN_0044fd40;
     DAT_00512c14 = 6;
-    DAT_00512b30 = 17;
-    DAT_00512a78 = FUN_0044fd40;
+    DAT_00512a70 = FUN_0044fd40;
     DAT_00512b34 = 2;
+    DAT_00512b30 = 17;
     DAT_00512a7c = FUN_0044fd40;
-    DAT_00512c1c = 7;
     DAT_00512b38 = 2;
+    DAT_00512a78 = FUN_0044fd40;
+    DAT_00512c1c = 7;
     DAT_00512a80 = FUN_0044fd40;
     DAT_00512c20 = 7;
     DAT_00512b3c = 3;
     DAT_00512a84 = FUN_0044fd40;
     DAT_00512c24 = 7;
-    DAT_00512b44 = 6;
     DAT_00512a8c = FUN_0044fd40;
     DAT_00512c2c = 7;
     DAT_00512b48 = 5;
     DAT_00512a90 = FUN_0044fd40;
+    DAT_00512b44 = 6;
     DAT_00512c30 = 7;
     DAT_00512b40 = 14;
-    DAT_00512a88 = FUN_0044fd40;
     DAT_00512c28 = 1;
+    DAT_00512a88 = FUN_0044fd40;
     DAT_00512b4c = 9;
     DAT_00512a94 = FUN_0044fd40;
     DAT_00512b6c = 5;
-    DAT_00512ab4 = FUN_0044fd40;
     DAT_00512c54 = 1;
+    DAT_00512ab4 = FUN_0044fd40;
     DAT_00512b70 = 41;
     DAT_00512ab8 = FUN_0044fd40;
     DAT_00512c58 = 7;
@@ -310,20 +317,20 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
     DAT_00512b68 = 6;
     DAT_00512ab0 = FUN_0044fd40;
     DAT_00512c50 = 7;
-    DAT_00512b50 = 2;
     DAT_00512a98 = FUN_0044fd40;
-    DAT_00512c38 = 6;
+    DAT_00512b50 = 2;
     DAT_00512b54 = 5;
+    DAT_00512c38 = 6;
     DAT_00512a9c = FUN_0044fd40;
-    DAT_00512c3c = 6;
     DAT_00512b58 = 186;
+    DAT_00512c3c = 6;
     DAT_00512aa0 = FUN_0044fd40;
     DAT_00512c40 = 7;
     DAT_00512b5c = 10;
     DAT_00512aa4 = FUN_0044fd40;
-    DAT_00512c44 = 1;
     DAT_00512b60 = 6;
     DAT_00512aa8 = FUN_0044fd40;
+    DAT_00512c44 = 1;
     DAT_00512c48 = 1;
     DAT_00512b74 = 17;
     DAT_00512abc = FUN_0044fd40;
@@ -337,11 +344,11 @@ int __stdcall FUN_00451fd0(Class_00451fd0* param_1)
     DAT_00512ae4 = 3;
     DAT_00512a2c = FUN_0044fd40;
     DAT_00512bcc = 7;
-    DAT_00512b80 = 2;
     DAT_00512ac8 = FUN_0044fd40;
     DAT_00512c68 = 7;
     param_1->field_870 = FUN_004b6340();
+    DAT_00512b80 = 2;
     param_1->field_1745 = 0x2000;
     param_1->field_1749 = (int*)FUN_004d83b0(s_PACKET_DATA_00506524, 0x2000);
-    return param_1->field_1749 != 0;
+    return 0 != param_1->field_1749;
 }

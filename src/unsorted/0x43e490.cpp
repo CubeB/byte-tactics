@@ -1,4 +1,25 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (3rd, best 28.2%, 3108 bytes vs 3152, up from 26.5%): two source facts.
+// (a) The flags are written as `friendly = <allied test> != 0; enemy = friendly == 0;` instead of an
+// if/else storing 1 to two variables (26.5 -> 27.0 on the old def shape). This is a deliberate
+// deviation: the exe's own sequence is `mov esi,1 / mov [esp+0x10],esi / jmp / mov ebp,1` (if/else),
+// but with the same def usage the if/else form scores 26.4% against 28.2% for the derived form,
+// because the if/else makes both flags memory-homed.
+// (b) The `def` local must exist AND be read through it in a few spread-out case bodies (this file
+// reads it in cases 1, 6, 12, 13) while every other body still writes `unit->def`; that keeps def in
+// ecx across the jump table, as in the exe. Ladder of def-read sites added one at a time on top of
+// (a): case 1 alone 27.0, +case 13 27.6, +case 6 28.1, +case 12 28.2. Reads that lose: case 3 27.5,
+// case 5 28.0, case 9 27.8, case 7 28.0, case-2 head 28.0, the case-2 tail 22.8 and the two tail
+// blocks 23.9 (either one makes def memory-homed and grows the frame to sub esp,8).
+// Shapes tried this pass that did not move the score: def used in every body (23.2, 3100B), def
+// assigned before the switch (23.2, 3088B), def as the first restart statement (23.2), def
+// initialised once at entry (23.2), def declared before/after the flags, flags declared first or as
+// one statement, flags unsigned, dead initialisers removed, a local copy of unit, a for(;;) loop
+// instead of the restart label, enemy recomputed from the allied test (all 28.1/28.2).
+// The leftover gap is still the callee-saved colouring: this file is ebp=target, esi=unit,
+// edi or ebx=g_game, ecx=def, enemy in a home; the exe is ebx=g_game, edi=target, esi=friendly,
+// ebp=enemy (no home), unit memory-only and def (ecx) reloaded from the dead target slot
+// [esp+0x20] after every call. No source shape moved that assignment (see the notes below).
 // deepseek-v4.1-flash pass (2nd): re-tested the callee-saved colouring with six source shapes
 // (real Def* def declared first/last, assigned first at the restart label, const pointers, a cached
 // Unit* u local, uninitialised flags). Every one compiles to the same prologue: ebx=target,
@@ -207,26 +228,26 @@ int __stdcall FUN_0043e490(unsigned char mode, Unit_0043e490* unit, Unit_0043e49
                            Pos_0043e490* pos) {
     int enemy = 0;
     int friendly = 0;
+    Def_0043e490* def;
 
 restart:
     friendly = 0;
     enemy = 0;
+    def = unit->def;
     if (target) {
-        if (unit->player->allied[target->player->index] != 0)
-            friendly = 1;
-        else
-            enemy = 1;
+        friendly = unit->player->allied[target->player->index] != 0;
+        enemy = friendly == 0;
     }
 
     switch (mode) {
     case 1: { // approximate, not matching
         if (GAME->flag37efa == 1)
             goto L43eb02;
-        if ((DEF->f245 & 0x10) && enemy) {
+        if ((def->f245 & 0x10) && enemy) {
             mode = 3;
             goto restart;
         }
-        if ((DEF->f245 & 0x400) && enemy) {
+        if ((def->f245 & 0x400) && enemy) {
             mode = 0xc;
             goto restart;
         }
@@ -270,7 +291,7 @@ restart:
             goto L43f098;
         return 5;
     case 12:
-        if (DEF->f245 & 0x400) {
+        if (def->f245 & 0x400) {
             if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
                 return 0xb;
         }
@@ -280,7 +301,7 @@ restart:
             return 0xb;
         return 0x13;
     case 13:
-        if (!(DEF->f245 & 0x1000))
+        if (!(def->f245 & 0x1000))
             return 0x13;
         if (!target)
             return 0x13;
@@ -292,7 +313,7 @@ restart:
             return 0x13;
         if (!((Class_00489a70*)unit)->FUN_00489a90(target))
             return 0x13;
-        return ((DEF->f241 >> 11) & 1) ? 8 : 0xc;
+        return ((def->f241 >> 11) & 1) ? 8 : 0xc;
     }
     case 5:
         return (DEF->f245 & 0x100) ? 0xd : 0x13;

@@ -1,4 +1,13 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass 8 (53.6%, 4356 vs 4420 bytes, no change, still best): on top of pass 7,
+// the case-3 def uses routed through unit->def-> are byte-identical (MSVC CSEs them back onto the
+// def local), so case 3's bare def-> uses are not what keeps def in edx instead of the original's
+// esi. Definitizing the local (`Def* def = 0;`) is also byte-identical. Declaring def as an
+// initialised declaration before the friendly/enemy guard loads unit->def before the guard block and
+// drops to 46.6% at 4396 bytes (worse in both size and score). Every `unit->def->` in the switch
+// replaced by the def local scores 47.5% (4332 bytes), and `int m = mode; switch (m)` / the same as
+// an initialised declaration before the guard do not compile (C2360/C2361: goto none skips the
+// initialisation), so no new lever for the def-in-esi cascade was found this pass.
 // deepseek-v4.1-flash pass 7 (53.6%, 4356 vs 4420 bytes, current best): one more case-3 change on
 // top of pass 6. The friendly path's node test `if (node->f111bits.flag_17) break;` becomes the
 // plain mask `if (node->f111 & 0x20000) break;`: the direct load from [node+0x111] fixes the

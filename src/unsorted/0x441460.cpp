@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
-// finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // 83.7%, not a MATCH (was 80.5%). The frame is exact (buf sized 0x139 reserves the
 // original's 0x1b4 and the parameter read at [esp+0x1d0] lines up), the settings
 // copy at SETBUF = buf+0x119 is a clean 16-byte/4-dword copy, the record walk reads
@@ -113,6 +113,21 @@
 // the member itself 16-bit (`unsigned short flags; unsigned short field_4;`, same offsets,
 // same 16-byte 4-dword copy), lands on the very same output: 1826 bytes / 73.3%, so all
 // three spellings of the 16-bit compare collapse to one codegen and none of them is viable.
+// deepseek-v4.1-flash (retry of #4107) micro-pass: chain A's 4th provider test was
+// re-spelled as the exact if/else shape chain B uses (`if (memcmp(cdb8) == 0) ; else
+// count = memcmp(cdb8);`), because chain B's `else { count = memcmp(cdb8) != 0; ... }`
+// is the one site where a store DOES survive in this build (and there MSVC even CSEs the
+// duplicate memcmp down to a single cmpsb with `je` over the sbb pair, exactly like the
+// exe). Result: byte-identical at 1827 / 84.1%, so MSVC still deletes chain A's whole
+// statement, compare included:
+// the delete is a dead-CODE elimination of a side-effect-free expression, not a
+// dead-store pass, which is why the value being "read" is not the lever. The exe keeps
+// it only because its own value numbering saw a use; in every source shape tried the
+// chain-A compare is the first computation of an expression chain B recomputes, and
+// MSVC keeps the LAST site and drops the earlier dead one. Next lever to try: make
+// chain A's site the only one (chain B's tail must then read the value instead of
+// recomputing it), or give the chain its own variable whose liveness crosses the
+// FUN_004c9e50 call.
 // deepseek-v4.1-flash timebox pass: putting the *SETBUF copy ahead of `int f0 = rdw[0];`
 // is score-flat at 84.1% but 1831 vs 1827 bytes, so the f0-first order stays. No untried
 // lever was found inside the 10-minute box; the diff hunks above are the next work list.

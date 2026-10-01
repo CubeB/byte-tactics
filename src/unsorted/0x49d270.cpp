@@ -80,6 +80,14 @@
 // [esp+0x18] and re-read in the latch instead of staying in EDI, and the
 // owner f_a8 compare loading into a register instead of
 // `cmp word [edx+0xa8], bx`.
+// deepseek-v4.1-flash (issue 4021 retry, 10 min): body kept at 90.7% / 774
+// bytes (the int ownerId in EDI form). Three ushort-ownerId shapes were scored
+// again against this base and all lost: ushort ownerId + `n` assigned inside the
+// b0 guard + ternary owner (76.7%, 770 bytes), ushort ownerId + ternary owner
+// with `int n` at the top (80.2%, 768 bytes), and the int ownerId local with a
+// ushort helper parameter (62.9%, 768 bytes). The diff is unchanged: n spilled
+// to [esp+0x18] and re-read in the latch instead of staying in EDI, and the
+// owner f_a8 compare loading into a register instead of `cmp word [edx+0xa8], bx`.
 #pragma pack(push, 1)
 
 struct Vec3_0049d270 {

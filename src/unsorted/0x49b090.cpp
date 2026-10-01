@@ -163,6 +163,15 @@
 
 #include <windows.h>
 
+// deepseek-v4.1-flash (issue 4021 retry, 10 min): body kept at 82.3% / 847
+// bytes. One more shape tried: arm2 of the feature map reusing the same `f`
+// variable (`f = (cell - n)->feature;`) instead of a separate f2, hoping VC5
+// would merge the two mapping tails at 0x49b31b; it is byte-neutral at 82.3% /
+// 847 (same diff), so the merge is still out of reach. The residual is
+// unchanged: g_game is not kept in edi after 0x49b284 (ours copies it to ecx
+// and spills to [esp+0x30]), the unit0 elev/high pair is swapped, the mapping
+// tail is duplicated instead of merged at 0x49b31b, and the final block
+// reloads g from [esp+0x30].
 #pragma pack(push, 1)
 
 struct Pos_0049b090 {

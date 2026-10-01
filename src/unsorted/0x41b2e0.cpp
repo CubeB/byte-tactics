@@ -1,4 +1,12 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// #4099 deepseek-v4.1-flash (10 min): flat at 60.8% / 1533 bytes. Swapping the
+// cloak and u declaration order (onOff, cloak, u) is byte-identical, so the
+// first=0x10 / cloak=0x14 / onOff=0x18 slot map is not steered by that pair.
+// Residual unchanged: prologue first=0/count=0 stores force first to 0x10 (the
+// original sinks them to 0x1c/0x20), the ESI/EBP zero split (ours test ax,ax
+// where the original has xor esi,esi plus cmp ax,si) and the tail bit writes
+// accumulating in EAX/EDX instead of EBX/EDX.
+
 // #4008 deepseek-v4.1-flash (10 min): 60.8% / 1533 bytes. Moving the fireOrder=4 / moveOrder=4 declarations to the very top (before onOff) put the ebx=4 / edx=4 pair ahead of the nine zero stores and lifted 60.6 to 60.8. cloak/onOff swap, a live zero16 unitIndex compare, and first/count before the 4-inits are flat at 60.6. Residual: count stays spilled to [esp+0x20] where the original keeps it in ebx, first sits in a slot where the original uses ebp, and the unitIndex test is test ax,ax where the original has xor esi,esi / cmp ax,si.
 // #3595 deepseek-v4.1-flash (10 min): re-baselined 59.6%, 1533 bytes. Flat at
 // 59.6: first/count declared first, an unsigned short zero16 local routing the

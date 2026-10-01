@@ -1,4 +1,13 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 5 (timeboxed, unchanged at 84.1%): tested the two
+// shapes the retry-4 note left open. `Entry* e = &(entries[button->index].type
+// == 1 ? entries[button->index] : *button);` (lvalue ?: over struct objects
+// addressed afterwards) is byte-identical at 84.1%, so that lead is refuted
+// too. Also re-tested the copy/raw-parameter split in both directions (a local
+// `b = button` used for the 11 index loads with the raw parameter only in the
+// else arm, and the reverse with the selection on `b`): VC5 coalesces both and
+// still emits `mov ebp, esi`. No shape reached the original's
+// `mov ebp, [esp+0x34]`.
 // deepseek-v4.1-flash retry 4 (timeboxed out at 84.1%, this file unchanged
 // from the known best): no new variant was scored this session, only evidence
 // gathered. objdump of the original confirms the census exactly: `button`

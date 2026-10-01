@@ -1,4 +1,27 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry session 5 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// Two new structural probes, both byte-identical to this file, so neither the
+// declaration scope nor the textual declaration order drives the low-slot
+// permutation (this confirms the earlier session-2 findings on a fresh shape):
+//   - `int y=scrollY/16;` declared directly (no separate firstY local) with
+//     `for(;y<lastY;++y)`: identical 2203 bytes, y still at esp+0x34.
+//   - that plus `Point p[4]` moved to function scope right after y (source
+//     order y, p, firstX, ...): identical 2203 bytes, p still at esp+0x10.
+// So the whole esp+0x10..0x4b block is a register-colouring permutation set by
+// the IR first-use order of the expression stream, not the declarations. Still
+// differs: y must be at esp+0x10 below p[4] at esp+0x14, x at esp+0x34, baseX
+// before baseY at esp+0x38/0x3c, tile at esp+0x40 and heights at esp+0x48;
+// ours keeps p at esp+0x10, x 0x30, y 0x34, baseY 0x38, baseX 0x3c, heights
+// 0x40, scratch 0x48. Everything from esp+0x50 up already matches.
+// New evidence (build/scratch/0x418310/slot3.cpp, an isolated MSVC5 test with
+// /O2 /Ob2 /MT /Gz): an address-taken char[32] array declared AFTER the
+// scalars still gets the LOW slot (esp+4) while the scalars get esp+0x28/0x2c,
+// even when one scalar's address is also taken. So MSVC5 allocates array-class
+// locals low and scalar locals high regardless of declaration order. The
+// original's y at esp+0x10 (below the array) therefore cannot come from
+// declaring y before p in plain scalar form; for y to win the low slot it must
+// be array/struct-class or be the optimizer's induction home, not a plain
+// scalar. That is the narrow shape a future attempt should chase.
 // deepseek-v4.1-flash retry session 4 (TIMEBOX fired before any variant was
 // tested; 1 check.py run, the diagnostic diff only). Best stays 55.5% at 2203
 // bytes. WHAT STILL DIFFERS (confirmed from the fresh diff, unchanged from

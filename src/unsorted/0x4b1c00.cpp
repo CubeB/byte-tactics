@@ -1,20 +1,22 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5. Names are provisional.
-// 88.4 percent (584 of 586 bytes). Levers found (claude-sonnet-5-5):
-// - Invert every clamp test (`if (v >= lim) { clamp } else flag = 1;`): MSVC then
-//   emits `jl FLAG; clamp; jmp` with one shared flag store, and the limit
-//   induction variable starts at 0xd with a -0x30 displacement as in the original.
-//   Plain struct reads (e[0], e[4], e[2]) are enough; no explicit k.
-// - Add the call result in a separate statement (`v += param_1 * rate`), so the
-//   rate is loaded after the call.
-// - In the turn block the call result is first stored in r and then copied
-//   (`int r = call; int cur = r; r += step;`): that decides which of
-//   i/j gets ebp/ebx and which locals are spilled (72 percent to 88).
-// Still differs: the original multiplies with the parameter loaded into a
-// register first (`mov ebp, [esp+0x2c]; imul ebp, edx` and in the turn block
-// `mov ecx, [esp+0x2c]; ... imul ecx, eax`); ours folds the parameter as a
-// memory operand (`mov ebp, edx; imul ebp, [esp+0x2c]`), which also reorders the
-// loads around it in the turn block. Operand order, locals, helper inlines and
-// `*=` forms all compile the same.
+// Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by
+// deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by
+// claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// MATCH. The last 2 bytes (584 of 586) were the multiply: the original loads the
+// parameter into the destination register first (`mov ebp, [esp+0x2c]; imul ebp, edx`,
+// and in the turn block `mov ecx, [esp+0x2c]; ... imul ecx, eax`), so which operand of
+// the commutative `*` MSVC loads first matters here.
+// Levers that did NOT change it (all compiled to the same folded
+// `mov ebp, edx; imul ebp, [esp+0x2c]`): swapping the operands (`param_1 * rate` and
+// `rate * param_1`), a `static inline` multiply helper called either way, naming the
+// rate in a local, `int rate = param_1;`, separate statements for the sum, `r = cur +
+// step` instead of `r += step`, and a no-op `(int)` cast on the product.
+// What did work is the file-level header block: adding `#include <windows.h>` makes MSVC
+// evaluate `param_1 * rate` with the parameter in the destination register, which also
+// restores the load order around it in the turn block. Found by tools/permute.py; its
+// other mutations (function-scope `int v, want;`, a repeated `param_1 * rate` in the sum)
+// are not needed and are left out, since the header alone matches.
+#include <windows.h>
+
 struct Table_004b1c00 {
     char unknown_0[8];
     int count;                         // +0x8
@@ -45,6 +47,11 @@ public:
 };
 
 // FUNCTION: 0x4b1c00
+// Advance every moving piece by param_1 (a percentage) of its per-axis speed:
+// e[1] is the translation speed toward the e[0] limit, e[5] the turn speed with the
+// e[4] limit, e[3] the current angle, e[2] the wanted angle (-1 means none). Each
+// element that still moves leaves its record's flag set, and any such flag keeps
+// field_18 (the "something is still animating" flag) at 1.
 void Class_004b1c00::FUN_004b1c00(int param_1)
 {
     if (param_1 == 0)

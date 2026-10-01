@@ -1,4 +1,17 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// claude-sonnet-5-5 pass (55.6% unchanged, 777 bytes). New facts: (1) wraps is a SIGNED int in the
+// original (`cmp esi,2 / jge`, not jae) and map->count is unsigned (`jbe`); fixed here, score flat but
+// that diff line is gone. (2) The `xor ebp,ebp` zero register that steals ebp from `want` is NOT
+// caused by res/size/q.length/the push 0s: changing the loop store `DAT_005289d4 = 0` to `= 5` makes the
+// top-of-function zero vanish (the constant 5 is then hoisted instead, `mov ebp,5` in the loop
+// preheader). So MSVC hoists any constant stored inside the free-block walk loop into a free callee-saved
+// register, and the original evidently had no free register there or did not see a constant. Tried
+// without effect (all 55.6 or lower): the 24 orderings of the four statements in the wrap block, the
+// loop as do/while with the found path nested inside (as matched neighbour 0x4db1c0 is written), goto
+// loop, `*(void**)&DAT = 0`, DAT as void*, static inline setters, extra uses of need/want in the loop,
+// res as a one-member struct with/without a ctor, res first/after Enter/after size, wraps first, want
+// declared first, all locals declared uninitialised at the top, a CRITICAL_SECTION* local, 55 random
+// combinations of these. The lever is whatever stops the loop-constant hoist.
 // deepseek-v4.1-flash (seventh run, 10-minute box): 55.6% (777 bytes) unchanged. Tested:
 // `unsigned int res = 0;` moved next to wraps (before the Class objects) was byte-flat at 55.6,
 // and as the first local before lock dropped to 51.5, so the res-zero placement is not the
@@ -207,7 +220,7 @@ class Class_004db610 {
     char unknown_0[4];
     Node_004dacf0* head; // +0x4
     char unknown_8[4];
-    int count; // +0xc
+    unsigned int count; // +0xc
     int total; // +0x10
     char unknown_14[20];
 
@@ -282,7 +295,7 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     }
 
     Class_004db610* map = FUN_004db610();
-    unsigned int wraps = 0;
+    int wraps = 0;
     unsigned int base;
     unsigned int len;
     unsigned int key;

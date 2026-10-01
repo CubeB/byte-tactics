@@ -44,6 +44,21 @@
 // +0xd6 for types 7/8). loop2's case 2 body (0x4a91c7..0x4a92da) and the
 // post-loop FUN_004a16f0 block (0x4a943b..0x4a950a, uses layer->field_20
 // and menu->field_a2) are still missing, which is most of the byte deficit.
+// deepseek-v4.1-flash retry (#3950): baseline re-verified at 37.0% (4176 vs
+// 5248 bytes); no variant written, the box went to reading the block below.
+// Raw disassembly facts for 0x4a943b..0x4a950a so the next attempt need not
+// re-derive them: 0x4a943b reads menu->layer->field_20 (4-byte, +0x20) and
+// menu->field_a2 (+0xa2), neither field exists in the structs above yet; the
+// saved byte at 0x4a9477 goes to [esp+0x30] but the middle test at 0x4a94da
+// compares [esp+0x24], which 0x4a8e59 filled with entries[L.i]+0xb6 (a stale
+// pointer temp), so that test is always true; the scan compares entries[j] at
+// +0x02 (ebx = ebp+0x15d stepping 0x15b, ebp is the entries base) against
+// entry 0 at +0xcc (eax = ebp+0xcc, recomputed in-loop), so the two sides sit
+// at different offsets; j is set to -1 at 0x4a94d2 only on the run-off path
+// (0x4a94c9 skips it); the tail call 0x4a9505 is FUN_004a16f0(menu, j, 8).
+// Before 0x4a950a the original contains no FUN_004c1420 and no
+// FUN_004a16f0(menu, 0, 8) call at all, so our post-loop FUN_004c1420 +
+// FUN_004a16f0(menu,0,8) + buf1/buf3 strncmp block is spurious.
 // Issue #2354 retry by GPT-6.1-sol: the saved 26.2% source remains best after one
 // targeted stage-string variant scored 25.8%; three worker checks total, no MATCH.
 // Partial: 26.2%, 3776 bytes versus the original 5248. What still differs:

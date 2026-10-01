@@ -28,6 +28,14 @@
 // edge homes and the 0x4aa1a2 `mov ebx,1; mov [esp+0x10],ebx` pair that ours
 // hoists to a top-of-function `mov [esp+4],1`. Nothing new to try within the box.
 //
+// deepseek-v4.1-flash retry (#3950, 10-minute timebox): baseline re-verified
+// at 46.0% (2204 vs 2164 bytes); the box went to issue 0x4a81e0, so no new
+// variant was tried here. Hunk 1 re-read for the record: the original prologue
+// is `push ebx; push ebp; mov ebp,[esp+0x40]; push esi; push edi` with the
+// ebp load between the push pairs, while ours is `push ebp; mov ebp,[esp+0x3c]`
+// plus an early `mov [esp+4],1` and the remaining pushes after the zero path,
+// so the whole prologue and every later hunk shift by the same allocator state.
+//
 // deepseek-v4.1-flash session: the only change from the previous best is
 // `short y = entries->y;` in the first clamp (was `int y`), worth +1.0 in the
 // checker (43.7 to 44.7). It likely is NOT the original shape: the original

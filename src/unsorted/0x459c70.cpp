@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3858): re-baselined at 36.5% / 1955 bytes, the
+// same piece-loop alignment and weight-fill hunks as before; no new lever found
+// inside this issue's timebox.
 // deepseek-v4.1-flash retry (3631), 36.5% base kept, 2 check runs: swapping the
 // src/mode declaration order (`int mode; Bitmap* src;`) compiles to the same
 // 1955-byte body and the same 36.5, so the 0x24/0x28 slots come from use order,

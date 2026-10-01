@@ -1,4 +1,8 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3858): re-baselined at 71.0% / 1050 bytes, all
+// four documented wall hunks unchanged (ebx list load hoisted above the
+// 0x20000000 test, saved bitmap slot 0x24 vs original 0x20, the missing
+// [esp+0x5f18] write-back, and the src/useColor/list register rotation).
 // deepseek-v4.1-flash retry (#3631), finished by deepseek-v4.1-flash: 66.8 -> 71.0.
 // The lever is the face-block branch layout: the original emits
 // `test al,1 / jne <clip>` at 0x459b12 with the 4-vertex pic path as the

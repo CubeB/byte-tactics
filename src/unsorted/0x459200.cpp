@@ -1,4 +1,9 @@
 // Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3858): re-baselined at 70.7% / 1530 bytes, same
+// hunks as before. The entry slot run reads the Vec3 parameter in y,z,x order
+// (0x40,0x44,0x3c into 0x28,0x2c,0x24) where the original is x,y,z
+// (0x3c,0x40,0x44 into 0x24,0x28,0x2c); every load/store pair maps to the
+// identical slot, so it is copy scheduling, not a local layout difference.
 // deepseek-v4.1-flash retry (#3631): 69.9 -> 70.7. The first half's b2 block
 // was an if/goto where the original is an if/else chain: the original's `jl`
 // at 0x4592f1 jumps to 0x45935c, PAST the b3 block at 0x459324, so the

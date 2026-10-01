@@ -1,4 +1,13 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash (#3453) retry: 84.5% unchanged (849 bytes). Tried the
+// init order `unsigned char i = 0; int* cnt = ...; *cnt = 0; int off = 0;`
+// (store between the two decls): it does give the original's immediate
+// `mov dword ptr [ebx], 0` for *cnt, but the guard stays `jb` + select, the
+// frame slots stay i 0x13 / cnt 0x14 / off 0x18 (original i 0x13 / off 0x14 /
+// cnt 0x18), and the head grows 4 bytes to 853 (69.7%). Also tried
+// `int off = 0; unsigned char i = 0;` (cnt 0x14 / off 0x18 unchanged, 69.7%).
+// So the immediate *cnt store is reachable but only in the order that costs
+// the slot layout; the two cannot be had together from the initialisers.
 // GPT-6.1-sol retry: moved the eliminated-player check before the kind chain and tried unsigned-range and positive-conjunction spellings; scores fell to 68.2-70.1%, so the prior 84.5% version is retained. Remaining differences are helper/select and prologue register/slot allocation, plus cnt reload placement.
 // deepseek-v4.1-flash (#2567) retry: 84.5% (849 bytes, size matches). The one
 // real change this round: the owner test in the flag bit 4 block was WRONG in

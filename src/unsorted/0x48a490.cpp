@@ -8,6 +8,13 @@
 //
 // PARTIAL (77.8%, 857 bytes against 857; Sonnet 5.5 retry #1091 took it from 70.8% with a scripted
 // statement-order hill climb, see the end of this comment). Older notes below said 65.5%.
+// deepseek-v4.1-flash (#3453) retry: 77.8% unchanged (857 bytes). Swapping the
+// tail add to `int a = (h1 + h0) / 2;` to chase the original's
+// `mov ebx,[esp+0x60] / mov ebp,[esp+0x6c] / lea eax,[ebx+ebp]` load/add order
+// is byte-neutral: the front end canonicalises the commutative add back to the
+// h0-first form, so the tail hunk keeps the reversed loads and `lea eax,[ebp+ebx]`.
+// Spelling the tail sums directly from the array (`(hs[0].h + hs[1].h) / 2`)
+// drops the h0..h3 locals and scores 77.4% / 856 bytes, so the named locals stay.
 // GPT-6.1-sol retry (#2922): map/row/count declaration variants stayed at 77.8%; tools/headers.py also found no better header set (128 tried). Still differs in prologue register roles, loop carry/reloads, terrain interpolation spills, and random-mask/reload code; see the detailed notes below.
 //
 //  1. The bilinear block. The original keeps the first tile's low half in

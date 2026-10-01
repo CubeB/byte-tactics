@@ -100,6 +100,28 @@
 //     with unsigned parameters or signed compares is byte-identical at 85.4.
 // The two spills stay load-bearing: any spelling that removes either arm local
 // rotates `g_game` into ebx and the map pointer into edi.
+//
+// DEEPSEEK-V4.1-FLASH, fifth pass (900s timebox). No code change: 85.4 percent
+// remains the best. Re-derived the wall from the disassembly and closed three
+// more spellings, all scored with check.py --sym on scratch copies (no new runs
+// in the file's own history):
+//   * the 0x473a00 sibling recipe (two identical player pointers, the bounds
+//     through one and the index through the other, so the width is re-read) is
+//     38.1 [291] with the header through `Pos* q` and 38.1 again with two field
+//     references; the width is indeed re-read, but the arms carry no live value,
+//     so the backend hoists the shared `movsx edx,[eax+6]` above the `jne`,
+//     which pushes playerIndex out of edx, which puts g_game in ebx. The
+//     re-read and the pre-branch pin cannot both be had from those pointers.
+//   * field references (`unsigned int& w`, `unsigned char*& seen`) and
+//     pointer-to-field locals (`unsigned int* w = &map->size.width`) are 38.1
+//     [291]: MSVC treats the reference as a plain memory alias, so the index
+//     re-reads and no pressure appears, same rotation as the local-free body.
+//   * a nested fog `if` with `seen` declared inside the success block (short
+//     live range) is 39.2 [288]; a second player pointer used only for the
+//     bounds while the fog/mask `w` locals stay is byte-identical at 85.4.
+// So this pass reproduces the earlier conclusion independently: the only source
+// shape that holds the pre-block is the pair of live arm locals, and MSVC 5 can
+// only spill a named local, never rematerialise it. 85.4 percent stays.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);

@@ -93,6 +93,29 @@
 // Confirms the conclusion already at the top of this file from the other
 // direction: the two spill stores are not removable, they are the price of the
 // register allocation that holds the pre-branch in place.
+//
+// SPACE-BUNNY-FREE, fifth pass (issue 3441), scratch scores only, still 85.4
+// percent and the code below is unchanged. Re-ran the 4x2 arm sweep (fog arm
+// decls in {seen+w, w only, seen only, none, w+seen reversed} x mask arm `w`
+// local at the top of the arm or declared inside the else) and reproduced
+// every number in the notes above exactly, so they stand:
+//   fog seen+w / mask top 85.4 [307]   fog seen+w / mask else 39.2 [291]
+//   fog w     / mask top 37.8 [297]   fog w     / mask else 37.3 [287]
+//   fog seen  / mask top 40.0 [297]   fog seen  / mask else 39.6 [287]
+//   fog none  / mask top 40.0 [297]   fog none  / mask else 39.6 [287]
+//   fog w+seen reversed / mask top 82.0 [313]  / mask else 41.0 [297]
+// New datum: moving the mask arm's `w` local into the else block does NOT
+// recover the fog arm (39.2 at best, so the fog arm's own locals are what hold
+// the pre-branch, not the mask arm's), and reversing the two fog decls costs
+// 3.4 points, so the `seen`-then-`w` order is load bearing too.
+// The mechanism, from the no-local diff: with the arms local free MSVC keeps
+// `g_game` itself in ebx from the very top (`mov ebx,[0x511de8]` right after
+// the first push) and puts the map pointer in edi. That is impossible in the
+// original because ebx is the width/address register inside BOTH arms
+// (0x4735fc, 0x473614 and 0x473644), so g_game has to be a short-lived scratch
+// in ecx there (0x4735ab). Any arm local at all is enough to stop that hoist,
+// but a pointer local then costs a stack slot. What is still missing is a
+// pressure node that is neither a pointer nor a spilled scalar.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);

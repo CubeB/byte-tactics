@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
-// deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash
+// (notes only, code unchanged at 86.8). Names are provisional.
 // Partial, 78.9%. A short loop index restores three induction registers.
 // Remaining difference, a single 4-byte stack slot. The original allocates
 // 0x34 (sub esp,0x34) and keeps only two dword locals below the candidate
@@ -191,6 +192,28 @@
 // preheader too but swaps inc/add; plain `cand[n] = n; n++;` keeps the body
 // but leaves the preheader swapped). `int k2 = 0; int* cp = cand; for (; ...)`
 // did not move the matching k2 preheader swap (xor eax still after lea edi).
+// deepseek-v4.1-flash (this pass): swapping the two cand-fill declarations
+// (`int* cq = cand; int n = 0;` instead of n first) gives a byte-identical
+// diff and the same 86.8, so that preheader swap is scheduler order, not
+// declaration order. In the k4 loop, keeping the manual from scan but passing
+// PlayerId_004568c0(k4) straight to FUN_00451bc0 (the helper-call form of `to`,
+// from computed first) scores 79.5 at 1288 bytes: this minimal form DOES keep
+// res in edi (unlike the older wX variants) and DOES restore xor ebx,ebx /
+// cmp bl,0xa / inc ebx, so the earlier `res -> ebp` story was wrong here. What
+// it gets wrong is only the to/from order: our build inlines the from scan
+// first (edi = from, eax = to), the original computes `to` first (edi = to,
+// edx = from). Naming that helper result (`int to = PlayerId_004568c0(k4);`
+// before the from scan, in that order) scores 81.9 at 1306 bytes but makes MSVC
+// give the named `to` a stack home at esp+0x18 and moves the field_29d0 walk
+// from esi into edi, so the name costs more than the ordering gains. Still
+// needed: a `to` expression evaluated before the from scan that does not earn a
+// stack slot. Making the from scan a FindFrom_004568c0 inline helper and passing
+// both helpers straight to FUN_00451bc0
+// (FUN_00451bc0(FindFrom_004568c0(), PlayerId_004568c0(k4), packet, 2)) scores
+// 83.6 at 1302 bytes: it finally does put `to` in edi and `from` in edx (the
+// original's assignment) but it moves `res` from [esp+0x18] into ebp, which is
+// the mirror-image failure the older wX variants hit. So in this source shape
+// the byte counter and res-in-edi remain mutually exclusive.
 #include <stdlib.h>
 #include <algorithm>
 

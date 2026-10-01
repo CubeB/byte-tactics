@@ -24,6 +24,16 @@
 // branch A. The exact original (list2 then count2 into EAX, then [esi+4] and
 // [esi]) needs g_game dead before the p reads, but every source spelling that
 // kills g_game there also perturbs the function-wide p/zero assignment.
+// Retry by deepseek-v4.1-flash (v89+): the both-fields-from-p form is the
+// exact structural mirror of the original with only p/zero swapped
+// (p=EDI, zero=ESI; branch B emits mov esi,[edi+4]; mov edi,[edi] and count2
+// still lands in EAX), confirming the target instruction shape is reachable.
+// The nearest keeper keeps p=ESI: dy first with s->y - p->y and
+// s->x - g_game->view.x scores 90.4% but reads p->y into ESI and leaves
+// count2 in ECX. Nothing tried (const/reference p, int* p[i], inline
+// Dist2(Slot*,Point*) helpers, q aliases, two separate ifs, explicit returns,
+// reordered declarations) moved p back to ESI while reading both fields from
+// p; the allocator's p/zero colour choice tracks the extra p dereference.
 
 #pragma pack(push, 1)
 struct Point_0048cd80 {

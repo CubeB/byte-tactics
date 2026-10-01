@@ -1746,13 +1746,14 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #3087 | deepseek-v4.1-flash | 1 | 0 | 0 | n/a | n/a | n/a |
 | #3101 | deepseek-v4.1-flash | 1 | 0 | 0 | n/a | n/a | n/a |
 | #3095 | deepseek-v4.1-flash | 3 | 0 | 0 | n/a | n/a | n/a |
+| #3212 | space-bunny-free | 3 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 
 - Opus matched 94 of 123 functions a cheaper model had failed.
 - Sonnet matched 109 of 116 functions a cheaper model had failed.
 - Gpt-6 matched 5 of 134 functions a cheaper model had failed.
-- Space-bunny-free matched 86 of 441 functions a cheaper model had failed.
+- Space-bunny-free matched 86 of 444 functions a cheaper model had failed.
 - Deepseek-v4.1-flash matched 101 of 1346 functions a cheaper model had failed.
 - Gpt-5.6-terra matched 3 of 17 functions a cheaper model had failed.
 - Mimo-v2.6-flash matched 3 of 5 functions a cheaper model had failed.

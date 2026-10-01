@@ -14,6 +14,13 @@
 // swapped (original p in esi, pos in ebp via `lea ebp,[esi+4]`; ours the
 // reverse) and our loop tail has an extra jmp plus slot reloads.
 //
+// RETRY (deepseek-v4.1-flash, issue 3575, best 43.3%, no change): three more
+// probes, all byte-neutral or worse and reverted: pos declared before the
+// player/pb pair (43.3, byte-neutral), frame0 declared before time (42.6),
+// clip[6] declared before rect[4] (43.3, byte-neutral). The p/pos register
+// swap (original p in esi with `lea ebp,[esi+4]`; ours p in ebp) is not moved
+// by the declaration order of pos, nor by the time/frame0 or rect/clip order.
+//
 // PASS 8 (deepseek-v4.1-flash, issue 3524, best 39.2%, 2284 bytes): two more
 // allocator attempts, both reverted. (a) An explicit `else visible = 0;` on top of
 // the current `visible = 0; if (...) visible = 1;` gives 39.0, 2268 bytes, exactly

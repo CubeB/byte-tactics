@@ -7,6 +7,13 @@
 // trick that moved 0x49be60 (growing a scratch array by one element) has no
 // analogue here because this function has no array local; the extra 4 bytes
 // must come from a long-lived scalar the original keeps that we do not.
+// RETRY (deepseek-v4.1-flash, issue 3575, best 26.6%, no change): three more
+// allocator probes, all worse or neutral and reverted: the final highlight test
+// spelled `holder->field_20` instead of `param_1->holder->field_20` to extend
+// holder's live range (19.8), `int keepW = me->w;` hoisted above `int h` with
+// the later declaration dropped (23.5), keepC0 declared before flags (26.6,
+// byte-identical). So neither holder's live range nor keepW's first use moves
+// the one-step rotation (need param_1=ebp, me=edi, zero=ebx, extra esi home).
 // STATUS (deepseek-v4.1-flash, issue 3524): still best 26.6%, not MATCH. One
 // more allocator attempt, reverted: defining `y` before `q` in the text prologue
 // (so q's first use moves after y's) drops to 24.6, 2098 bytes (original 2160),

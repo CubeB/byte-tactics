@@ -18,11 +18,46 @@ from check import Original, base_name, load_symbols
 
 ROOT = Path(__file__).resolve().parent.parent
 GHIDRA_DIR = ROOT / "build/ghidra/decomp"
+GLOBALS = ROOT / "data/globals.csv"
 
 
 def load_functions() -> dict[int, dict]:
     with (ROOT / "data/functions.csv").open() as fh:
         return {int(r["address"], 16): r for r in csv.DictReader(fh)}
+
+
+def load_globals() -> list[tuple[int, int, dict]]:
+    """(address, size, row) from data/globals.csv (tools/globals.py), or
+    nothing if it is missing or unreadable."""
+    try:
+        with GLOBALS.open() as fh:
+            return sorted((int(r["address"], 16), int(r["size"] or 1), r) for r in csv.DictReader(fh))
+    except (OSError, KeyError, ValueError):
+        return []
+
+
+def global_lines(addresses: set[int]) -> list[str]:
+    """One line per global the function refers to: the type most of the
+    source declares for it and its size."""
+    rows = load_globals()
+    exact = {a: (a, s, r) for a, s, r in rows}
+    out, seen = [], set()
+    for va in sorted(addresses):
+        hit = exact.get(va) or next(((a, s, r) for a, s, r in rows if a <= va < a + max(s, 1)), None)
+        if hit is None or (hit[0], va) in seen:
+            continue
+        a, s, r = hit
+        seen.add((a, va))
+        where = r["name"] if va == a else f"{r['name']}+{va - a:#x}"
+        try:
+            agree, total = int(r["type_files"]), int(r["type_files"]) + int(r["other_files"])
+            views = f"{agree} of {total} files" + (f", {r['types']} types in all" if int(r["types"]) > 1 else "")
+        except (KeyError, ValueError):
+            views = ""
+        out.append(f"  {va:#x} {where}: {r.get('type', '?')}, {s} bytes, {r.get('section', '')}"
+                   + (f"; {r.get('kind')}" if r.get("kind") not in ("data", None) else "")
+                   + (f" ({views})" if views else ""))
+    return out
 
 
 class Namer:
@@ -160,6 +195,7 @@ def main() -> None:
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.syntax = capstone.CS_OPT_SYNTAX_INTEL
     callees = {}
+    data_refs = set()
     print("\n-- disassembly --")
     for ins in md.disasm(code, va):
         notes = []
@@ -171,6 +207,8 @@ def main() -> None:
                     notes.append(d)
                 if ins.mnemonic in ("call", "jmp") and v in funcs:
                     callees[v] = funcs[v]
+                if namer.section(v) in (".rdata", ".data"):
+                    data_refs.add(v)
         print(f"  {ins.address:#x}: {ins.mnemonic:6s} {ins.op_str:40s}" + (f" ; {'; '.join(notes)}" if notes else ""))
 
     if callees:
@@ -180,6 +218,11 @@ def main() -> None:
             ret = ", ".join(f"ret {p:#x}" if p else "ret" for p in sorted(cp))
             status = "named in data/symbols.csv" if cva in namer.names else cf["kind"]
             print(f"  {cva:#x} {namer.function_label(cva):40s} {cf['params']} arg dword(s), {ret}  [{status}]")
+
+    globals_seen = global_lines(data_refs)
+    if globals_seen:
+        print("\n-- globals (data/globals.csv: the type most files declare, and its size) --")
+        print("\n".join(globals_seen))
 
     ghidra = GHIDRA_DIR / f"{va:#x}.c"
     if ghidra.exists():

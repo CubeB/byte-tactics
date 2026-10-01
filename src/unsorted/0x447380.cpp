@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
 //
 // deepseek-v4.1-flash retry (issue 2844): kept the 95.1% probe (lstrcpynA before
 // the four body sprintfs), which remains the best known. This pass re-confirmed
@@ -144,6 +144,7 @@
 // line, a local `Entry_00447380* ent = entries;`, `(char*)player`, `&player[0]`)
 // and all six stay at 95.06% / 1318 bytes, so the pair's register choice is not
 // reachable from the call expression's spelling.
+// GPT-6.1-sol retry (issue 3011): best remains 95.1% with lstrcpynA before all four body sprintfs. A lookupName alias had no effect; moving lstrcpynA after the first, second, or third sprintf scored 94.3%, 93.0%, and 92.7%, respectively. The remaining diff is the tail lookup argument/register allocation already described below.
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>

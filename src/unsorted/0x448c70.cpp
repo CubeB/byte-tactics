@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Retry (GPT-6.1-sol): the best remains 47.4% (3902 original / 3948 emitted).
+// Four checker invocations in this pass: baseline 47.4%; a ushort scroll-start
+// local scored 47.2%, a byte local_b8 scored 41.0%, and a separate uint
+// scroll-start local was unchanged. The two lower-scoring variants were reverted.
 // Partial, 47.4%: the frame now matches at 0xd4 (all four buffers at 0x48/0x68/0x7c/0xb0).
 // Retry (deepseek-v4.1-flash) tried and reverted these, none changed the score:
 //   declaring iVar17 before uVar4; uVar4 as uint (47.3); swapping the two ushort
@@ -108,14 +112,14 @@ void FUN_00448c70(void)
              5;
   local_b4 = (int)g_game + uVar18 + 0x1b63 + uVar18 * 0x14a;
   iVar8 = FUN_0049ff90((int)(*(int *)(*(int *)((int)g_game + 0x531) + 4)),(int)("OUTPUT"));
-  uVar18 = (uint)*(ushort *)((int)g_game + 0x2a3e);
+  uint scrollStart = (uint)*(ushort *)((int)g_game + 0x2a3e);
   uVar4 = *(ushort *)((int)g_game + 0x2a40);
-  if ((int)uVar18 < (int)uVar4) {
-    uVar18 = uVar18 + 0x1e;
+  if ((int)scrollStart < (int)uVar4) {
+    scrollStart = scrollStart + 0x1e;
   }
   local_bc = iVar8;
   uVar7 = FUN_004a50b0();
-  if (((int)(uVar18 - uVar4) > (int)*(short *)(iVar8 + 0x19) / (uVar7 + 2))
+  if (((int)(scrollStart - uVar4) > (int)*(short *)(iVar8 + 0x19) / (uVar7 + 2))
      && (*(short *)((int)g_game + 0x2a40) = *(short *)((int)g_game + 0x2a40) + 1,
         *(ushort *)((int)g_game + 0x2a40) >= 0x1e)) {
     *(undefined2 *)((int)g_game + 0x2a40) = 0;

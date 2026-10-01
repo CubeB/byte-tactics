@@ -1,169 +1,24 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
-// 30-min checkpoint (deepseek-v4.1-flash, issue #4006): best 78.3% (1451 bytes, original 1418).
-// FINAL (deepseek-v4.1-flash): 78.3%, 1451 bytes. What still differs: (1) y has a
-// home slot at 0x18, so panel sits at 0x1c and every panel/dst offset is 4 high; the
-// original's y is ebx-only (`lea eax,[ebx+1]`, `lea eax,[ebx+0x25]`, no store after
-// `add ebx,0xf`) and panel is at 0x18. (2) The not-found path in the original jumps
-// to the shared guard at 0x494dc0 and the cleanup lives once in the tail; ours emits
-// `cmp edi,0xa; jne draw` plus the cleanup inline in the not-found path. The two-if
-// source shape that should produce the shared guard makes MSVC 5 SP3 duplicate the
-// cleanup instead (tail duplication); a micro-test with a bottom-tested search loop
-// and complementary `if (n != 10)` / `if (n == 10)` does not merge the tests either.
-// Most promising lead for the next attempt: the y home is a register-allocation
-// decision, not a frame-layout one. Narrowed further this session with throwaway
-// builds (objdump only): the home appears exactly when the hr block passes `&hr`
-// to a call AND hr's fields are y-derived. hr with no call, hr with constant
-// fields, or the call taking `&panel` instead of `&hr` all keep y in ebx/ebp with
-// no home. So the trigger is the y-derived values being committed to an
-// address-taken local immediately before a call; the allocator then prefers the
-// strength-reduced `y + 0x25` value in ebx and demotes y to memory. Blocking that
-// strength reduction (or finding the source construct that made the original keep
-// y in ebx across those two FUN_004bf4d0 calls) should fix the panel offsets, the
-// dst scheduling and the cleanup at once. Also tried and no better: hoisting
-// `int lp = g_game->localPlayer;`, `if (n >= 10)`, `char buf[64]`, passing the
-// kill/loss ternary straight to sprintf.
-// Kept: the signed cleanup comparison `q->field_148 > i` (gives the original's `jle`;
-// the casted form emits `jbe`). Tried this session and rejected (all <= 78.3%):
-// countdown pointer-walk cleanup in the not-found path (73.0%, 1428 bytes, y still
-// spills), draw-first two-if structure with the cleanup in the tail (67.5%, cleanup
-// duplicated by tail duplication), draw+cleanup if/else (78.3%, identical code),
-// panel.top used as the row (59.2%), separate header/loop row locals (56.7%),
-// `unsigned y` (78.3%), y declared before/after panel (78.3%), hr built outside the
-// test (64.5%), hr values from dst (62.5%), explicit y+1/y+0x25 temporaries and
-// inline RowTop/RowBottom helpers (78.3%). Diagnostics (objdump): y keeps its home
-// slot in every shape; the home appears only when the hr block has both y uses and a
-// call (hr with no call or no y use: y stays in ebx/ebp with no home).
-// deepseek-v4.1-flash (issue #3941, this session): the 0x494bc4 block in our build
-// re-emits the whole player-state loop body inline (the `cmp edi,0xa; jne` plus the
-// 0x1b63 player scan) where the original jumps to the tail copy at 0x494dc0, and our
-// tail then has the loop collapsed into `mov ecx,[esp+0x18]; add ecx,0x28`, so the two
-// loop copies are transposed; size +33 bytes (1451 vs 1418) and 78.3% stand.
-// Retry (#3641, deepseek-v4.1-flash): 78.3% stands (1451 vs 1418 bytes). Decoded the
-// original's dst/panel layout from the disassembly in full: [esp+0x10] maxw,
-// [esp+0x14] i, [esp+0x18] panel.left, 0x1c top (0x20), 0x20 right, 0x24 bottom (the
-// post-draw `panel.right = panel.left + 0x7d` re-store lands in the dead bottom slot),
-// dst at 0x2c (p0.x 0x2c, p0.y 0x30, p1.x 0x34, p1.y 0x38, p2.x 0x3c, p2.y 0x40,
-// p3.x 0x44, p3.y 0x48), hr at 0x4c, src 0x5c, buf 0x7c; dst p1.x/p2.x are really
-// `panel.left + maxw` (mov eax,[esp+0x10]; add eax,ecx) and y is ebx with no home.
-// Measured this session: `int y = panel.top;` moved above the panel.right re-store
-// (y born earlier, as the original's 0x494a98 load implies) is byte-identical at
-// 78.3%; splitting the header counter from the loop counter (`int ytop = panel.top;`
-// for the two header draws, `int y = ytop + 0xf;` for the loop, to kill the dead
-// `mov [esp+0x18],ebx` store) collapses to 56.7%, 1464 bytes, so the two header draws
-// must keep pushing the same register y. The y home slot is still the whole diff.
-// deepseek-v4.1-flash (issue #3454): tested the last untried lever below, folding
-// `y += 0xf` into the loop initializer (headers read panel.top, `int y = panel.top
-// + 0xf` after them).  It does remove the dead `mov [esp+0x18],ebx` store, but
-// panel then lands at 0x14 (the i slot) instead of 0x18 and the function drops to
-// 72.7%, so the 78.1% shape stands.
-// STATUS (deepseek-v4.1-flash, this session): confirmed best is 78.1% (ours 1451
-// vs original 1418), unchanged.  Still differs only in the y stack slot: ours
-// gives y a home slot at 0x18 (dual register+memory tracking, dead store
-// `mov [esp+0x18],ebx` right after `add ebx,0xf`, and home maintained in sync
-// with ebx at the loop increment).  The original keeps y purely in ebx with NO
-// home slot, so panel sits at 0x18 and every panel ref is 4 lower.  That home
-// slot also lets MSVC mutate ebx (`add ebx,0x25`) and LICM/reorder the dst quad
-// build before the search loop; the original uses `lea eax,[ebx+0x25]` and
-// interleaves `lea esi`/`xor edi` mid-build.  Fixing the home slot should fix
-// all three (offsets, dst scheduling, cleanup) at once.  Ideas tried this run:
-// none new (timebox); the note below lists the many prior attempts.  New lever
-// identified but untested: fold `y += 0xf` into the initializer (headers drawn
-// at `panel.top`, loop y starts at `panel.top + 0xf`) to remove the dead store
-// and force y to live only in ebx.
-// SUPERSEDED (#3530): see the retry note further down, 78.3% with the player
-// pointer hoisted above the dst quad build; everything else below still holds.
-// Partial: 78.1% (real check.py run; 1451 bytes against the original 1418).
-// Structure, both call sequences, the strcpy/sprintf buffer layout, the src
-// quad and the whole player loop body below the panel rect are in place.  A
-// single 4-byte stack-slot assignment is left.
-//
-// THE REMAINING PUZZLE, precisely: the original's local map (frame base = esp
-// after the four saved-register pushes, frame 0xd0, so 0x00-0x0f is unused and
-// 0xd0-0xdf are the saved registers) is
-//   0x10 maxw, 0x14 i, 0x18 panel (4 dwords), 0x2c dst, 0x4c hr, 0x5c src,
-//   0x7c buf
-// with y in ebx and NO stack slot.  This version has
-//   0x10 maxw, 0x14 i, 0x18 y, 0x1c panel, 0x2c dst, 0x4c hr, 0x5c src, 0x7c buf
-// so y took a slot at 0x18 and pushed panel to 0x1c, moving every panel
-// reference 4 bytes.  dst/hr/src/buf already agree.
-//
-// WHY y gets a slot here: this version stores y once, dead, right after
-// `y += 0xf` (the original has the same pointless re-store of ebx at
-// 0x494b6b), and the 0x1c panel then lands in the gap.  The original evidently
-// kept y's home while never using it as one.  Register order is ESI,EDI,EBX,EBP:
-// the original gives ESI to the player pointer, EDI to both loop counters, EBX
-// to y and leaves maxw in memory; as soon as the player pointer loses ESI the
-// whole chain shifts and y takes ESI, spills, and i is demoted with it.
-//
-// MEASURED THIS SESSION (build/scratch/0x4948e0):
-//  - The cleanup counter at 0x28 is NOT a frame: the original's
-//    `mov [esp+0x28],edi` at 0x494dcb is a fresh store of 10 (edi has just
-//    exited the search loop with the value 10) and the latch at 0x494e33
-//    decrements and re-stores the SAME slot.  Writing the cleanup as a
-//    hand-enumerated `p[i]` walk reproduces the original's exactly
-//    (`mov eax,[esp+0x14]; mov esi,ecx; and esi,0xff; cmp esi,edi / jle`,
-//    with the plain `n < 10 / jne` search exit and the odd shared-slot reuse),
-//    but it adds a g_game keep-alive in the outer loop that costs more than it
-//    saves (v2: 74.5%, 1425 bytes).
-//  - v2 with an outer-loop `for (;;)` / or with a hoisted `int n;` gives the
-//    same edi counter and the same cleanup shape; neither removes y's slot.
-//  - Caching `g_game->field_148db` in a local before the draw call (the
-//    original's edx at 0x494c6d is live across the two rect draws and is NOT
-//    reloaded after them, whereas this version reloads g_game after the second
-//    FUN_004bf4d0) fixes that reload but costs 5 points elsewhere
-//    (v6: 76.4%, 1459 bytes).
-//  - register priority: ESI/EDI are already taken by the two counters in every
-//    variant tried, so y cannot reach ebx by adding uses; it needs whichever
-//    variable currently holds ESI to be pushed out first.
-//
-// Tried and worse previously: v7 cleanup (73.2), v7 + chained dst stores
-// (66.2), v7 + panel.left+maxw + panel.top (66.2), the src-quad "fix" (77.1),
-// char buf[84] (77.1), y += 0x28 in the increment clause (77.6), cleanup as an
-// explicit else (73.2), hoisted `int n;` do-while pointer walk (72.3),
-// `int y = 0x20;` (67.5), that plus hoisted-n (63.6), a file-scope
-// `framepic` fed in both arms (66.0).  Earlier sessions: 67.5, 65.6, 69.5,
-// 65.2, 66.6.
-
-// Retry (deepseek-v4.1-flash, #3530): new best 78.3% (1451 bytes, original 1418).
-// The gain came from declaring `Player_004948e0* p = g_game->players;` before the
-// dst quad build instead of in the search-loop initialiser: the compiler then
-// emits `lea esi,[edx+0x1b63]` in the middle of the dst stores exactly like the
-// original at 0x494b88, and the `panel.right - 6` value moves from esi to edi.
-// ebx is still mutated (`add ebx,0x25`) and y still takes the home slot at 0x18,
-// so every panel reference stays 4 bytes high.
-//
-// Measured this session (all kept the y home slot, all in build/scratch/0x4948e0):
-//  - dst x back to the original's `maxw + panel.left` (vA): 62.8%, 1456 bytes;
-//    with the p-hoist too (vG): 54.7%, 1450 bytes.  In that form MSVC promotes
-//    maxw out of memory into ebx, so y loses ebx entirely.
-//  - `panel.left + 0x7d - 6` (vF, 3 live dst values instead of 4): 76.7%,
-//    1447 bytes.  It STILL spills y, so the spill is not simple register
-//    pressure: the allocator deliberately assigns the shared `y + 0x25` value to
-//    ebx and keeps y in its home slot even when a register is free.
-//  - dst stores written in the original's emission order
-//    (p3.x,p0.x,p1.x,p2.x,p1.y,p0.y,p3.y,p2.y, vC): 77.6%, byte-identical size
-//    to the current shape, MSVC's scheduler re-sorts it.
-//  - the four dst.y stores before the four dst.x stores (vE): 77.3%.
-//  - `int y;` declared beside `panel` and assigned after the panel.right store
-//    (vB): byte-identical to the old 78.1% shape.
-//  - pointer-walk cleanup (`for (k = n; k != 0; k--, q++)`, which reproduces the
-//    original's 0x494dc5 block almost instruction for instruction, vH): 73.0%,
-//    1428 bytes, only 10 bytes off the original size but the surrounding
-//    register allocation (g_game leaves edx) costs more than the cleanup saves.
-//
-// Retry (deepseek-v4.1-flash): the y slot at 0x18 is forced by MSVC mutating
-// ebx during the dst quad build (`add ebx,0x25`), where the original uses a
-// scratch register (`lea eax,[ebx+1]` then `lea eax,[ebx+0x25]`).  Measured
-// this session: a pointer-walk do-while cleanup matches the original's cleanup
-// shape much more closely and shrinks us to 1426 bytes (original 1418) but
-// reallocates g_game from edx to eax and scores 73.5%; the indexed for-j
-// cleanup kept here scores 78.1% (1451 bytes).  Grouping the dst stores by
-// expression scores 55.6% (maxw form) / 76.6% (right-6 form), x from
-// panel.left+maxw scores 62.8%, and explicit y+1/y+0x25 temporaries are
-// byte-identical to this version.  NOTE: ctx.py/objdump print the encoded
-// [esp+N] displacement, so a live push shifts the real baseline slot by 4;
-// maxw is baseline 0x10 and i baseline 0x14.
-//
+// MATCH (deepseek-v4.1-flash, issue #4340): 100%, 1418 bytes. What made it match:
+// (1) the draw block lives INSIDE the search loop body (the match check breaks into
+// it), with `if (n == 10) { cleanup }` after the loop; that gives the original's
+// `je <draw>` / `jmp <guard>` / shared `cmp edi,0xa` tail with no extra test.
+// (2) the dst quad is written with chained assignments (p0.x = p3.x = ...,
+// p2.x = p1.x = ..., p0.y = p1.y = ..., p2.y = p3.y = ...): that reproduces the
+// original's store order (p3.x,p0.x,p1.x,p2.x,p1.y,p0.y,p3.y,p2.y) AND stops MSVC
+// strength-reducing y+0x25 into ebx, so y stays in ebx with no stack home and the
+// frame map matches (maxw 0x10, i 0x14, panel 0x18, counter 0x28, dst 0x2c,
+// hr 0x4c, src 0x5c, buf 0x7c).  The plain p0..p3 assignment order instead made
+// ebx hold y+0x25 and gave y a home at 0x18, shifting every panel ref 4 bytes.
+// (3) dst.p[1].x = panel.left + maxw (not panel.right - 6) for the right edge,
+// and the last text x reads dst.p[1].x.
+// (4) the cleanup is a pointer walk with a countdown `for (int k = n; k != 0;
+// k--, q++)`: k gets the stack slot at 0x28 (which the old indexed walk did not
+// have, leaving the frame 4 bytes short) and `k = n` reproduces the original's
+// `mov [esp+0x28], edi` (edi == 10 there).
+// (5) hr assignments in source order left, right, top, bottom (top,left,right,bottom
+// emitted top first and cost the last hunk).
+// SUPERSEDED notes: everything below is the history of the earlier partials.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -319,14 +174,10 @@ void __stdcall FUN_004948e0(void* surface)
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
         Player_004948e0* p = g_game->players;
         Quad_004948e0 dst;
-        dst.p[0].x = panel.left + 7;
-        dst.p[0].y = y + 1;
-        dst.p[1].x = panel.right - 6;
-        dst.p[1].y = y + 1;
-        dst.p[2].x = panel.right - 6;
-        dst.p[2].y = y + 0x25;
-        dst.p[3].x = panel.left + 7;
-        dst.p[3].y = y + 0x25;
+        dst.p[0].x = dst.p[3].x = panel.left + 7;
+        dst.p[2].x = dst.p[1].x = panel.left + maxw;
+        dst.p[0].y = dst.p[1].y = y + 1;
+        dst.p[2].y = dst.p[3].y = y + 0x25;
 
         int n;
         for (n = 0; n < 10; n++, p++) {
@@ -343,11 +194,39 @@ void __stdcall FUN_004948e0(void* surface)
                 continue;
             if (p->field_148 != i)
                 continue;
+            Rect_004948e0 hr;
+            hr.left = panel.left + 4;
+            hr.right = panel.right - 4;
+            hr.top = y - 1;
+            hr.bottom = y + 0x26;
+            if (n == g_game->localPlayer) {
+                FUN_004bf4d0(surface, &hr, 0x1f);
+                FUN_004bf4d0(surface, &hr, 0x14);
+            }
+            unsigned short* frame = (unsigned short*)FUN_004b7f30(
+                (void*)g_game->field_148db, p->data->field_96);
+
+            src.p[1].x = frame[0] - 1;
+            src.p[2].x = frame[0] - 1;
+            src.p[2].y = frame[1] - 1;
+            src.p[3].y = frame[1] - 1;
+            FUN_004c7580(surface, frame, &dst, &src);
+
+            FUN_004a50e0(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
+            int kills = g_game->field_37ef6 == 2 ? p->field_104 : p->field_fc;
+            sprintf(buf, "%d", kills);
+            FUN_004a50e0(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
+                         DAT_0051f2c8[n]);
+            int losses = g_game->field_37ef6 == 2 ? p->field_106 : p->field_fe;
+            sprintf(buf, "%d", losses);
+            FUN_004a50e0(surface, buf, dst.p[1].x - FUN_004a5030(buf) - 2,
+                         dst.p[0].y + 0x14, maxw, DAT_0051e810[n]);
+            y += 0x28;
             break;
         }
         if (n == 10) {
-            for (int j = 0; j < 10; j++) {
-                Player_004948e0* q = &g_game->players[j];
+            Player_004948e0* q = g_game->players;
+            for (int k = n; k != 0; k--, q++) {
                 if (q->field_0 == 0)
                     continue;
                 unsigned char c = q->field_73;
@@ -362,36 +241,6 @@ void __stdcall FUN_004948e0(void* surface)
                 if (q->field_148 > i)
                     q->field_148--;
             }
-            continue;
         }
-
-        if (n == g_game->localPlayer) {
-            Rect_004948e0 hr;
-            hr.left = panel.left + 4;
-            hr.top = y - 1;
-            hr.right = panel.right - 4;
-            hr.bottom = y + 0x26;
-            FUN_004bf4d0(surface, &hr, 0x1f);
-            FUN_004bf4d0(surface, &hr, 0x14);
-        }
-        unsigned short* frame = (unsigned short*)FUN_004b7f30(
-            (void*)g_game->field_148db, p->data->field_96);
-
-        src.p[1].x = frame[0] - 1;
-        src.p[2].x = frame[0] - 1;
-        src.p[2].y = frame[1] - 1;
-        src.p[3].y = frame[1] - 1;
-        FUN_004c7580(surface, frame, &dst, &src);
-
-        FUN_004a50e0(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
-        int kills = g_game->field_37ef6 == 2 ? p->field_104 : p->field_fc;
-        sprintf(buf, "%d", kills);
-        FUN_004a50e0(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
-                     DAT_0051f2c8[n]);
-        int losses = g_game->field_37ef6 == 2 ? p->field_106 : p->field_fe;
-        sprintf(buf, "%d", losses);
-        FUN_004a50e0(surface, buf, dst.p[2].x - FUN_004a5030(buf) - 2,
-                     dst.p[0].y + 0x14, maxw, DAT_0051e810[n]);
-        y += 0x28;
     }
 }

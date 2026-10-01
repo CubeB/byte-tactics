@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #4216: four checker invocations, best remains 98.7%; no MATCH. Precomputing the entries pointer scored 55.8%; restored source differs at 0x45f9f7, where `lea ecx`/`push ecx` remains instead of the original `lea edx`/`push edx`.
 // GPT-6.1-sol retry: 3 checks retained 98.7%; only the first line-buffer LEA register still differs (EDX in the original, ECX here).
 // GPT-6.1-sol (#3170 retry): 4 scored checks, including alternate loop form, helper-returned next y, and caller-held nextY, all retained 98.7% with the same LEA/PUSH register difference.
 // Fills a help page (gamedata/help.TDF, node "Help", keys "Line<n>"): for every

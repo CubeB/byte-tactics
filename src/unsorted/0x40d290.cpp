@@ -1,6 +1,10 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash (#3265 round): still 93.3 via the member-pointer instantiation of the stock header; diff hunks unchanged (add eax,ebx vs lea ecx,[ebx+eax] plus the [esp+0x20] register order in the two at-end tails).
 // space-bunny-free (2026-10-01): still 93.3% (477 bytes), confirmed baseline.
+// deepseek-v4.1-flash (#3770 round): re-confirmed 93.3% (477 bytes, exact) with the
+// same four hunks; no new lever attempted here, the residue stays the realloc-tail
+// association and load scheduling inside the <vector> instantiation.
+
 // NEW, and it closes the loop on the "is it steerable from source" question: an
 // explicit out-of-line SPECIALISATION
 // `template<> void vector<unsigned char, allocator<unsigned char> >::insert(...)`

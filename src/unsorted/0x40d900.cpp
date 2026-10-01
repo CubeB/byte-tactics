@@ -1,4 +1,15 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, edited by deepseek-v4.1-flash,
+// deepseek-v4.1-flash (#3770 round): still 98.7% (191 bytes, exact), the one hunk
+// is unchanged. Four more store-first spellings confirmed dead at 93.7%
+// (`&cells[i << 10]`, `(Cell*)((char*)cells + (i << 10))`, a scalar
+// `unsigned int base = (unsigned int)cells;` temp and a named `int off = i << 10;`
+// all emit `mov edi,ebp` / `shl edi,0xa` / `add edi,ecx`), and reading the bits
+// through `unsigned int* dp = &dirty[i]` with the store after it collapses the
+// whole function to 78.5% (`mov ecx,ebp` for the loop index); reading through the
+// pointer while keeping `p = cells` before the store is byte-identical at 98.7%.
+// Only the `mov edi,[esi+0x1c]` base-load slot differs (ours right after the `je`,
+// original after `mov [eax],0`).
+
 // deepseek-v4.1-flash (#3265 round): re-confirmed 98.7; no new angle on the ClearLast base-load slot after the store-first/load-first sweep above.
 // deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1,
 // finished by deepseek-v4.1-flash.

@@ -1,4 +1,20 @@
 // Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass 3 (issue #3831, timeboxed): re-verified BEST 78.3%
+// (2651 of 2644 bytes) and closed four more levers, all byte-identical at 78.3%
+// or worse: (1) swapping the `unsigned int n` / `unsigned long* info` statement
+// order in the parameters block regresses to 77.7%; (2) declaring `HANDLE file`
+// after `DWORD written; char* reason;` is byte-identical, so the scalar slot
+// order is not declaration order; (3) renaming the handle to `zfile` (so it
+// sorts last) is byte-identical, so the slots are not name-driven either;
+// (4) collapsing the r1 `slash` and r2 `base`/`dot` pointers into one shared
+// `char* p` is byte-identical, so the frame is not overloaded by extra pointer
+// locals. Residual diff is unchanged: per-call arg scheduling around each
+// inline scasb strlen (original loads the fmt arg's value, e.g. reason from its
+// slot, before the lea edi/or ecx/xor eax setup; ours emits the scasb setup
+// first), the reason/base/file scalar slot permutation, and the CreateFileA
+// handle kept in esi here versus the original's store into the outgoing arg
+// slot F-0x04 and reload (the original's `mov [esp+0x18],eax` runs with the
+// seven CreateFileA pushes still pending, i.e. it reuses arg slot 1).
 // deepseek-v4.1-flash second pass (issue #3627, timeboxed): re-verified the file
 // is the fleet best at 78.3% (2651 of 2644 bytes) via tools/check.py, matching
 // the pass note below, so no regression was introduced. No further experiment

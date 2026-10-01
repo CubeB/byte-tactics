@@ -111,6 +111,17 @@
 // (`unsigned int bits = dword >> 15; if ((bits & 1) == 0 ...)`) is byte-identical
 // to the inline `((x >> 15) & 1) == 0` at 85.2% / 1595 bytes, still
 // `test ch,0x80`, so the fold is not a statement-shape artifact either.
+// Ninth pass (deepseek-v4.1-flash): baseline 85.2% / 1595 bytes kept. Inlining
+// `flag == 0` in the three FUN_004a1250 calls instead of the `enabled` local is
+// byte-identical (85.2%, the one sete is still CSEd into esi), so the tail's
+// `mov eax, [g_game]` schedule around `sete dl` is not source driven either.
+// FUN_004a35a0(g_game->inner, ...) on this base scores 83.7% / 1594 bytes.
+// Still differs: the scan loop's ebp/edi role swap (item offset ebp vs edi),
+// the folded `test ch,0x80` vs the original's `shr ecx,0xf / test cl,1`, the
+// name check keeping item live in esi (`lea ecx,[esi+0x20]`) where the original
+// clobbers esi (`add esi,0x20` then re-materializes `mov esi,edx / add esi,edi`),
+// and the tail schedule (n in edi vs a stack reload into esi, panel and g_game
+// load order around the FUN_004a1250 pushes).
 
 #include <stdio.h>
 #include <string.h>

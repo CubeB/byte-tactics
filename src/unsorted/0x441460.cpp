@@ -16,6 +16,10 @@
 // SETBUF offset shifts by 4: 73.7%.
 //
 // Still differs:
+// deepseek-v4.1-flash pass: splitting chain 2's last `if (cd98 == 0)` from the
+// `count = memcmp(cd98) != 0;` tail into the original's je-to-shared-msg / else
+// with the count store lifts 83.7 -> 84.1 (1825 bytes). The chain-1 dead store
+// and the private per-arm `mov eax, msg / jmp` string loads still differ.
 //   * the provider-guid chain. The original keeps a dead-looking `count = memcmp`
 //     store at the end of the FIRST chain (sbb edx,edx / sbb edx,-1 / mov
 //     [esp+0x10],edx) and falls through to the cd98 compare. In ours the whole sbb
@@ -196,8 +200,12 @@ second:
         msg = "Connecting  (ESC to abort)";
         goto shown;
     }
-    count = memcmp(g_game->provider, &DAT_004fcd98, 0x10) != 0;
-    msg = "Connecting  (ESC to abort)";
+    if (memcmp(g_game->provider, &DAT_004fcd98, 0x10) == 0)
+        msg = "Connecting  (ESC to abort)";
+    else {
+        count = memcmp(g_game->provider, &DAT_004fcd98, 0x10) != 0;
+        msg = "Connecting  (ESC to abort)";
+    }
 shown:
     FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);
     FUN_004ab170(&g_game->sub, g_game->field_37e1b, 0);

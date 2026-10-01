@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional., finished by deepseek-v4.1-flash
+// Session claude-sonnet-5-5 (issue 4140 retry, no code change, still 66.9%). Findings:
+// (1) The big hunk is check 2 (xmin > clip[2]): MSVC post-RA cross-jumps identical return tails, and
+// whenever two tails get the same `lea` register (here check 2 and check 5, both edx) it turns the
+// earlier one into `jg <later tail>`. A 20-line synthetic with five `if (c) { if (locked) U(&l); return; }`
+// reproduces exactly this. The original keeps check 2 inline although byte-identical to check 5; forcing
+// it inline with a dummy store scores 68.7 (not acceptable, so not kept). `||` chain 53.4, else-if chain
+// and `Done(locked,&local)` helper identical, goto form for checks 1/4 65.4.
+// (2) Root of most register diffs: the temps (clip1, ymax, clip3) get (eax,edx,ecx) in ours but
+// (edx,ecx,eax) in the original, so ours loses clip1 at the loop entry (`mov eax,[imin]` clobbers it)
+// while the original carries it in edx and only restores it after the idiv block. Operand swaps in the
+// checks, local copies of clip[1]/clip[3], T2 inline (dummy), and declaration order did not move it.
+// (3) y1 .10 / xmin|j .14 slot swap: unaffected by declaration order or per-walk y1 copies (frame
+// grows); `for(; y0<y1; y0++)` compiles identically to the do-while; y0/y1 declared inside the walks
+// 59.1; a struct {imin,imax,clip[4]} 59.3. tools/permute.py 15 minutes (241 candidates): no gain.
 // PARTIAL 64.0%, 1144 of 1183 bytes. Rewritten in the 0x4c1000 style with the edge-walk
 // temporaries (y0/y1/x/dxdy/source steps) shared across both walks and the second walk using
 // (i+1)&3 (that one change was 51.7 -> 64.0). Frame and call census now match; the 39-byte gap

@@ -1,4 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Session claude-sonnet-5-5 (issue 4140 retry, no code change, still 83.0%): root cause found for the
+// unmerged Unlock. Our branch-2 Lock allocates (iel,wfso,held) = (ebx,ebp,ebp) instead of (ebp,ebx,ebx),
+// and our tail then substitutes the proven-zero held register (`push ebp`), so it differs from branch 1's
+// literal-0 tail and cross-jumping cannot merge them. Variants tried with --sym, all worse or equal:
+// a branch-2-only Lock spelled `LONG r; while(1){ r = IEx(); if (!r){ DAT=C; r=0; break; } if (DAT==C)
+// break; Wait; } return r;` (r outlives the loop) DOES merge the tails and gives 1050 bytes with
+// iel=ebp, but 75.5% because r becomes a loop-carried register (const moves to ebx, wfso is called
+// through memory, zero register moves to edi); `Unlock(held == 0)` via a bool helper 76.5%; Lock via
+// an out-parameter, `register`, held declared before bmp, path 3 written first, break/for/do forms of
+// Lock, extra Unlock call sites per leaf (1171 bytes): all <= 83.0%. A function-scope `held` with one
+// trailing Unlock and if/else-if/else bodies stores held to memory in both branches (frame 0xf8, 56.6%).
+// tools/permute.py 15 minutes (234 candidates): no gain.
 // PARTIAL 83.0% (1086 bytes vs 1051; all 35 left are the unmerged Unlock plus
 // two register-name choices). Frame is right (0xf4: pt@0x10 reused by held/bmp, rect@0x18,
 // src@0x28, out@0x38, screen@0x68, desc@0x98, all [esp+N]). The tail loop now has

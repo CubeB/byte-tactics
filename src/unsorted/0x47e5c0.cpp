@@ -1,4 +1,5 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry (#2427): best remains 67.5% (382/386), no MATCH after 3 checks. Remaining mismatch is register allocation: target keeps grid in edi and inner y in esi, with size.y loaded into edx before saved-register pushes; current build assigns grid to esi and y to ecx. Swapping sum order and sumy operands did not improve it.
 // Pass #1958 (space-bunny-free): still 67.5% (382/386), no MATCH, 1 check.py
 // run. What is new and worth keeping:
 // (1) The frame CONTENT already matches exactly: both have the same eight

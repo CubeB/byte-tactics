@@ -1,3 +1,8 @@
+// Retry #2427 (GPT-6.1-sol): best remains 86.2% (219/224 bytes); no MATCH.
+// This pass confirmed the saved source and tested a loop-local count pointer
+// derived from list (69.2%, 224 bytes). Remaining differences are the global
+// load/count-pointer setup and a missing count-pointer rematerialization before
+// the shift loop, as detailed in the prior notes below.
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, continued by GPT-6.1-sol, continued by Space Bunny Free. Names are provisional.
 // Space Bunny Free pass (#1958): the file below still holds the 86.2% best (219
 // bytes); nothing in this pass beat it, all other shapes scored with --sym:

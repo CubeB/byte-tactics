@@ -1,4 +1,12 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4054, 10-minute box, no new variant scored): reconfirmed
+// 93.4% / 1703 bytes. Still differs: the rect-set block is emitted before the
+// flags&0x2000 block with a second `cmp word [ebp+0x138],0` re-test where the
+// original reuses the live `mov ax,[ebp+0x138]; test ax,ax` pair and emits the
+// rect-set after, and the bound block (ours `mov ax,[edi+0xb6]; inc ax; movsx
+// ebp,ax` vs `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`); both are the known
+// obj/entry allocation tie, every respelling tried in the notes below costs more
+// than it pays.
 // deepseek-v4.1-flash (issue #3406, 10-minute box): two more shapes tried and
 // reverted, both worse: a `short f138` local read once (61.7%, 1699 bytes) and
 // the original-emission-order rewrite `if (f138 == 0) {rect} else {flags}`

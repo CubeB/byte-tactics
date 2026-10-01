@@ -1,4 +1,10 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4054, 10-minute box, no new variant scored): reconfirmed
+// 72.7% / 1400 bytes. Still differs: the top-of-function allocation (layer=EAX,
+// cnt=ESI in ours against layer=ESI spilled at [esp+0x20], cnt born in EAX after
+// the rep stosd at [esp+0x24] in the original) plus the dead preheader reload and
+// the loop1 walk bracket [ecx+4]; details and the full list of failed respellings
+// in the notes below.
 // Earlier low-scoring versions by space-bunny-free, GPT-6.1-sol and GPT-6 (47.2%).
 // deepseek-v4.1-flash retry #2 (72.4 -> 72.7): rewrote the loop1 inner search as
 // an explicit pointer walk `int* q = &used[1]; int v = *q; while (v != 0) { ...

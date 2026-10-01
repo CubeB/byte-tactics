@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4054, 10-minute box, no new variant scored): reconfirmed
+// 57.6% / 2685 bytes. Still differs: the frame is 4 bytes short (ours 0xd4 vs the
+// original 0xd8, so every [esp+0xNN] past 0x20 is off by 4 and the tail jumps
+// shift) plus the ecx/edx swap in the inlined width loop.
 // deepseek-v4.1-flash (issue #3406, 10-minute box): two Measure_004a5f40 loop
 // rewrites tried and reverted (index walk 53.5%, for-loop p walk 54.8%); this
 // 57.6% version stays. Remaining: the 4-byte frame gap (ours 0xd4 vs 0xd8) and

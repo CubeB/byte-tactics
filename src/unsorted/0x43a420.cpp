@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Session addendum 3 (deepseek-v4.1-flash, 10-minute timebox, no gain): swapping
+// the member-init list to `link(0, 0), kind(0)` is byte-neutral at 94.0 with
+// hunk 1 (the prologue vtable-store position) unchanged, so the store schedule
+// is not steered by init order either. `int k` was re-confirmed at 86.2 with
+// the kind load correctly hoisted into EDI and the full original loop frame,
+// leaving exactly the k/idx role flip (k in ECX, idx in EDX) and the missing
+// `mov dl,cl` as the only scan diff.
+
 // Started by deepseek-v4.1-flash, continued by GPT-6, finished by deepseek-v4.1,
 // extended by space-bunny-free. Names are provisional.
 // Session addendum 2 (deepseek-v4.1-flash, timeboxed): also tried a

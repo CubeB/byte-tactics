@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Session addendum 3 (deepseek-v4.1-flash, 10-minute timebox, no gain):
+// respelling all five __int64 multiplies with the scale operand on the left
+// (`(__int64)s * a` / `(__int64)f * p1.x`) is byte-neutral at 91.9 with the
+// identical 8 hunks, so the _allmul push order is not steered by operand order.
+
 // PARTIAL: 91.9%, exactly 1074 bytes like the original. Frame is the right
 // 0x48 bytes and the mode!=2 early return matches (ebp/ebx are pushed inside
 // the mode==2 arm, as the original does at 0x43d2c3).

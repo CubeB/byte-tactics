@@ -1,4 +1,7 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash pass (issue 3538, 10 minute box): one check.py run, best
+// stays 45.7% (4306 original / 4382 emitted). The earliest mismatch is still the
+// scalar stack-slot allocation at 0x447b2d; no new variant was tried in this box.
 // (earlier passes by deepseek-v4.1-flash and GPT-6)
 // GPT-6.1-sol pass (2026-10-01): six check.py runs, no MATCH. Best remains 45.7% (4306 vs 4382 bytes). A cached boolean for FUN_00457a50 scored 43.2%; inlining the player stride expression scored 29.5%, so both were reverted. All 128 header combinations were tested; none improved the 45.7% baseline (closest sets: <windows.h> <stdio.h>, <stdio.h> <string.h>, <stdio.h> <ddraw.h>). The earliest mismatch remains scalar stack-slot allocation at 0x447b2d, followed by loop register/stack placement and differing command-dispatch block ordering.\r\n// deepseek-v4.1-flash pass (issue 3485): re-ran check.py once; best stays 45.7%
 // (4306 original / 4382 emitted), earliest mismatch at 0x447b2d (scalar stack

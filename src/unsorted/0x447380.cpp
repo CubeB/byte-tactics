@@ -1,5 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
 //
+// deepseek-v4.1-flash pass (issue 3538, 10 minute box): one check.py run, best
+// stays 95.1% / 1318 bytes with the lstrcpynA-before-group probe. Residual is
+// unchanged: the probe realigns the group to the original ecx/edx/eax/ecx but
+// then the tail from FUN_0049fdf0 on is one allocator step off; the natural
+// order is one step early at the group. No new spelling was found in this box;
+// the invisible pre-group allocation described above is still the only fix.
+//
 // deepseek-v4.1-flash retry (issue 2844): kept the 95.1% probe (lstrcpynA before
 // the four body sprintfs), which remains the best known. This pass re-confirmed
 // the natural statement order (build/scratch/0x447380/base.cpp) is 93.5% and

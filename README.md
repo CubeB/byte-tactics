@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**71.58% of Cavedog's code matched** (609,083 of 850,853 bytes)
+**71.61% of Cavedog's code matched** (609,278 of 850,853 bytes)
 
 `[#############################-----------]`
 
-By count that is 3,061 of the game's 3,267 functions (93.7%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,062 of the game's 3,267 functions (93.7%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,061 | 609,083 |
-| Attempted, not yet matching | 206 | 241,770 |
+| Matched byte-for-byte | 3,062 | 609,278 |
+| Attempted, not yet matching | 205 | 241,575 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -36,7 +36,7 @@ The size bands are the `size:` labels on the issues.
 | --- | ---: | ---: | ---: | --- |
 | small (1 to 64 bytes) | 1,155 of 1,155 | 100.0% | 0 | `##########` |
 | medium (65 to 160 bytes) | 824 of 827 | 99.6% | 346 | `##########` |
-| large (161 to 400 bytes) | 668 of 703 | 94.4% | 10,023 | `#########-` |
+| large (161 to 400 bytes) | 669 of 703 | 94.5% | 9,828 | `#########-` |
 | xl (401 to 600 bytes) | 195 of 226 | 85.7% | 15,776 | `#########-` |
 | xxl (601 to 1,000 bytes) | 141 of 195 | 71.9% | 41,254 | `#######---` |
 | huge (over 1,000 bytes) | 78 of 161 | 40.3% | 174,371 | `####------` |
@@ -61,7 +61,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x490000` | Config and registry, skirmish summary | 177 of 193 | 62.6% | 22,266 | `######----` |
 | `0x4a0000` | GUI layout and GAF | 185 of 201 | 61.1% | 25,008 | `######----` |
 | `0x4b0000` | UI controls and file packages | 297 of 314 | 84.1% | 9,801 | `########--` |
-| `0x4c0000` | TDF parser, CD audio, string handles | 282 of 298 | 80.7% | 10,483 | `########--` |
+| `0x4c0000` | TDF parser, CD audio, string handles | 283 of 298 | 81.0% | 10,288 | `########--` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 186 of 197 | 73.9% | 9,804 | `#######---` |
 | `0x4e0000` | Process exit, psapi | 92 of 93 | 93.2% | 801 | `#########-` |
 

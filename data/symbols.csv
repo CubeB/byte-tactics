@@ -1,4 +1,5 @@
 address,name
+0x0,DAT_00000000
 0x2c,_tls_array
 0x401000,??_H@YGXPAXIHP6EX0@Z@Z
 0x401030,FUN_00401030
@@ -1373,6 +1374,7 @@ address,name
 0x46d6c0,Class_0046d6c0::FUN_0046d6c0
 0x46d860,Class_0046d860::FUN_0046d860
 0x46d970,Class_0046d860::FUN_0046d970
+0x46dad0,Class_0046d860::FUN_0046dad0
 0x46ded0,Class_0046ded0::~Class_0046ded0
 0x46df40,Class_0046df40::FUN_0046df40
 0x46e000,Class_0046e000::FUN_0046e000
@@ -1399,6 +1401,7 @@ address,name
 0x46ef50,IURect_0046e160::IU?$pair::?$_Tree::insert
 0x46f6d0,IURect_0046e160::IU?$pair::?$_Tree::_Erase
 0x46f720,Class_0046f720::FUN_0046f720
+0x46f7a0,Vec_0046d860::FUN_0046f7a0
 0x46fac0,??Eiterator@?$list@HV?$allocator@H@std@@@std@@QAE?AV012@H@Z
 0x46fad0,Class_0046fad0::Class_0046fad0
 0x46faf0,UElem_0046faf0::?$vector::_Ucopy

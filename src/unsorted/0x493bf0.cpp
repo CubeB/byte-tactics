@@ -1,5 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
+// deepseek-v4.1-flash (issue #3454): retried the bit test with int flags (84.8)
+// and with the byte cast (84.8, identical); int flags fixes `or al,2` and the
+// direct `push eax` but still folds the shift to `test byte [m],2` and perturbs
+// the strlen block from 34 to 58 diff lines, so the short flags shape stays.
 // Partial: 89.7% (1116 of 1116 bytes). Still differing (scoring with --sym):
 //  * The 0x37f2f bit 1 test: the original materialises `mov dl,[m]; shr dl,1;
 //    test al,dl` (flags is not a known constant there); every spelling tried

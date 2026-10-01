@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue #3454): tested the last untried lever below, folding
+// `y += 0xf` into the loop initializer (headers read panel.top, `int y = panel.top
+// + 0xf` after them).  It does remove the dead `mov [esp+0x18],ebx` store, but
+// panel then lands at 0x14 (the i slot) instead of 0x18 and the function drops to
+// 72.7%, so the 78.1% shape stands.
 // STATUS (deepseek-v4.1-flash, this session): confirmed best is 78.1% (ours 1451
 // vs original 1418), unchanged.  Still differs only in the y stack slot: ours
 // gives y a home slot at 0x18 (dual register+memory tracking, dead store

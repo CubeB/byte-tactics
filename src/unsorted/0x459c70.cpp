@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry (3029 board), 36.5% base kept, 2 check runs, no new
 // variant scored: timebox expired before a probe could be built. Findings from
 // the diff/disassembly this run (next worker should try this exact shape):
@@ -125,6 +125,22 @@
 // arm's bitmap copy in ebp so src is live to the tail and useColor must be
 // re-read; our build frees ebp/ebx for useColor and spills src straight to
 // the stack. The base `bmp` local still scores best despite the preload.
+// deepseek-v4.1-flash retry (3241), 36.5% base kept, 4 check runs, two probes:
+//  * the untested combination listed above (param reassignment `bitmap = shadow`
+//    plus `src` assigned only in the arm, so the else path's `mov ebp,[esp+0x28]`
+//    is a real read of an uninitialised src) scores 34.4: the body then reaches
+//    the drawing surface through the parameter slot, register pressure shifts
+//    and the result misses 2047 by more than the base does.
+//  * the prologue of the matched-family sibling 0x459830 (same class, 66.8%):
+//    `bool shadow = flags.antiAlias` hoisted, flat `&&` chain, `src = bitmap;
+//    bitmap = shadow;` at the end of the arm with an `else` for mode = 0.
+//    35.3 here, so the sibling shape does not transfer: 0x459830 has no
+//    weight/accum/normal arrays, and those extra live ranges are what force the
+//    allocator rotation in this function.
+// Confirmed from the disassembly (no probe needed): the tail copy at 0x45a419 is
+// `s = src->data2; if (s) { d = bitmap->data2; for (y = 0; y < src->height; y++)
+// { for (x = src->width; x != 0; --x) { *s++ = *d; d += 2; } d += bitmap->width; }}`
+// with `bitmap` = esi and `src` = ebp, which is what this file already spells.
 #include <ddraw.h>
 
 extern char* g_game;

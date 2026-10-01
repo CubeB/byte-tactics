@@ -1,4 +1,20 @@
-// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3241): five more variants scored, all worse than
+// this 69.9% base, so the base is kept. (1) plain int arithmetic in both
+// f-diff shade sites (dropping the (unsigned char) casts the notes above
+// suggest) gives the original `mov al,[..]; sub eax,edx` shape but drops to
+// 58.3 (1491 bytes) because the whole second-half register rotation changes;
+// removing only the standalone `value` cast is 60.9 (1527 bytes). (2) a union
+// with a raw unsigned short view for the b2 test (test al,4) plus the bitfield
+// view for b3 is 59.4 (1484 bytes). (3) component-wise cv.v[i] = v.v[i] copy in
+// either order is 67.0/67.4 (1514 bytes): the y,z,x load order is invariant to
+// statement order, so it is the compiler's own 12-byte copy expansion here and
+// the x value is then reused in `sub ebx,edx`. (4) the same deltas written
+// through `int* vv = (int*)&v;` is 67.0 (1514 bytes). Conclusion: this file is
+// at a local optimum; the remaining 25-byte gap is the prologue copy order plus
+// the f/shade register home (the original re-reads the parameter from its arg
+// slot, ours keeps it live), the same allocator tie siblings 0x459830 and
+// 0x458fa0 document.
 // Partial, 69.9% (1538 -> 1531 vs 1506 bytes; deepseek-v4.1 retry). Four
 // fixes, each verified by a check run: (1) the shade term written with a bool
 // local, `bool bright = (flags >> 30) & 1;` then `(bright ? 0x4b : 0)`, makes

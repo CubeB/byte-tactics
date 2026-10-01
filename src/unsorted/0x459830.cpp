@@ -84,6 +84,11 @@
 // The four locals sit at 0x14 mode, 0x18 pieces, 0x1c info, 0x20 src,
 // 0x24 counter in the original; ours puts the counter at 0x20 and src
 // (spill) at 0x24.
+// deepseek-v4.1-flash retry (#3241): hoisting the loop counter `p` to
+// function scope before `src` (so both are plain locals in the original's
+// declaration order) is byte-identical at 66.8, the two slots still come out
+// counter 0x20, src 0x24, so the slot order follows the spill order, not the
+// declaration order. Not kept.
 #include <string.h>
 
 extern char* g_game;

@@ -1,3 +1,9 @@
+// Retry (deepseek-v4.1-flash, issue 3868): still 99.7, 791 of 791 bytes, the
+// same single mirrored lea SIB byte at 0x475d01. New measurement: binding the
+// second arm s first (discarded) _Ucopy return, `iterator _R = _Ucopy(_P,
+// _Last, _P + _M);`, is byte-identical at 99.7 with the same diff, so the
+// return liveness does not steer the arm-2 tree either. Best version (99.7)
+// kept.
 // Retry (deepseek-v4.1-flash, issue 3795): still 99.7, the same single SIB byte
 // at 0x475d01. Three more spellings of the second arm's third _Ucopy
 // destination (a local `iterator _D = _P + _M;`, `&_P[_M]` and `_M + _P`) are

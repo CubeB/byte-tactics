@@ -1,3 +1,9 @@
+// Retry (deepseek-v4.1-flash, issue 3868): still 88.9, 779 of 779 bytes, the
+// same realloc-arm register wall (_P in ecx here, edx in the original). Two
+// more fill spellings: postfix `construct(_Q++, _X)` in the body regresses to
+// 60.5 (782 bytes), and a decrement-first while fill (`while (_C != 0) {
+// --_C; construct(_Q, _X); ++_Q; }`) is byte-identical at 88.9, so neither
+// steers the allocator. Best version (88.9) kept.
 // Retry (deepseek-v4.1-flash, issue 3795): still 88.9, 779 of 779 bytes.
 // Respelling the hand-rolled fill's test as `_C != 0` instead of `0 < _C` is
 // byte-identical, so the counter comparison form does not steer the arm; the

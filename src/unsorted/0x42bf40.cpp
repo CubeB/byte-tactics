@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 9 (deepseek-v4.1-flash): 65.6% (4716 against 4772), unchanged. One correction read off
+// the ctx listing: the Class_00438760 temp is byte-packed at [esp+0x23] and its member is at
+// +0, not +8: the original reads `mov al,[esp+0x2b]` only because the two pushes already moved
+// esp by 8 (0x2b - 8 = 0x23). Our `mov al,[eax]` reads the same byte; the difference is that
+// ours schedules the read before the pushes instead of between them, so that hunk is a
+// knock-on of the earlier one-pushed-dword esp offset, not a class-layout bug and not fixable
+// locally. Nothing else was attempted in this 10-minute pass.
 // Pass 8 (deepseek-v4.1-flash): 65.6%, ours 4716 bytes against 4772. The one real
 // gain this pass is the tail: reading the three extent differences back THROUGH the
 // same `int* p` (`p[0] = p[-3] - p[-6];` instead of `*(int*)(unitdef+0x16a) - ...`,

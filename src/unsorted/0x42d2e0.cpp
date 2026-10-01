@@ -1,5 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Best result 91.4% (2175 bytes against 2173), deepseek-v4.1-flash. The compaction copy loop
+// Pass 9 (deepseek-v4.1-flash): 96.8% (2173 bytes against 2173, sizes equal). The cursor swap
+// that held this at 91.4% is gone: the copy loop must be `*w++ = *s` (not `*w = *s; w++;`), so
+// MSVC emits `mov ecx,w; push s; add w,0x249; call` like the original and keeps the cursor in
+// edi / the end pointer in ebp. What still differs is one allocator pick, twice: the original
+// holds g_game in ecx and re-reads [ecx+0x1438f] for the loop test and the idiv, ours holds the
+// count in ecx and g_game in edi (mov ecx,[edi+0x1438f]; idiv ecx). Units-loop for/do-while
+// shapes, the unsigned char cast on the quotient and swapping the test operands are all
+// byte-neutral at 96.8%; the GUI suffix loop must stay the condition-tested do-while (`for(;;)`
+// plus `if (!more) break;` and `do ... while (1);` both duplicate the body, 2230 bytes / 90.3).
+// Everything else, including the frame and the jump offsets, matches.
+// Older notes (passes 1-8), kept for context. Best was 91.4% (2175 bytes against 2173), deepseek-v4.1-flash. The compaction copy loop
 // takes a separate write cursor (`w = p; ... *w = *s; w++;` then `d = w;` after the loop): that
 // removes the [esp+0x10] spill of d (the single-variable form scores 91.2 with d reloaded and
 // stored around every operator= call). What still differs is only the cursor/end register swap:
@@ -279,8 +289,7 @@ void FUN_0042d2e0() {
         Class_0042b370* w = p;
         for (Class_0042b370* s = p + 1; s != end; s++) {
             if (!(~(s->flags.value) & 0x800000)) {
-                *w = *s;
-                w++;
+                *w++ = *s;
             }
         }
         d = w;

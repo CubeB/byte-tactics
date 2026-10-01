@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // 2026-10-01 pass 4 (deepseek-v4.1-flash): new best 57.2 (979 vs 1105). The two tail viewFlags lanes used
 // to re-derive their bits inline from the 16-bit `fl`; naming them right before the lanes as
 // `unsigned char v0 = fl & 1;` and `unsigned char v1 = (fl >> 1) & 1;` lifts 55.0 -> 57.2 (962 -> 979
@@ -52,6 +52,15 @@
 // and the score drops to 34.4, so the tail has to land together with the correct slot map.
 // Still differs: the whole pre-loop slot map, the viewFlags save/restore shape and the
 // missing Class_004cb940 loop-tail call (see notes below).
+// 2026-10-01 pass 6 (deepseek-v4.1-flash): confirmed from the disassembly accounting that the
+// original frame is EXACTLY 17 scalar dwords (0x10..0x54) + bmp 0x10 (0x54..0x64) + pal 0x14
+// (0x64..0x78) + a 0x14-byte object at 0x78 whose +0x10 (0x88) holds bh-1 + surf 0x30
+// (0x8c..0xbc) + filename 0x104 (0xbc..0x1c0) = 0x1b0, so Class_004cb7f0 must be 0x10 once the
+// 0x14-byte 0x78 object exists (removing `int unused_10` alone drops to 52.2 because the frame
+// then shrinks 0x1b0 -> 0x1ac and every slot moves). The original's source at 0x495bd9 loads a
+// POINTER field (`mov eax,[eax+0xbc]`) to pass to FUN_004b8ae0, not the field address; fixing
+// that spelling is score-neutral here (57.2, 980 vs 979 bytes) because our pal is 4 bytes high
+// (0x68/0x70 vs the original 0x64/0x6c), which is the missing 4 bytes of that 0x78 object.
 // Writes a large screenshot ("BIGSHOT", caller 0x417600) by rendering map
 // tiles and copying them into one large BMP surface.
 //

@@ -282,6 +282,27 @@
 // where the original has `mov edx,[g_game]` + `lea eax,...`), so the body of the
 // original cannot come from the inside form as spelled here.
 
+// deepseek-v4.1-flash (issue 4259, retry of 4185): no new family found; the file is
+// unchanged at 79.6 (2292 vs 2292). Two measurements this pass are worth keeping:
+//  * Why 2292 == 2292 with a +1 block: our code really is one byte longer from
+//    0x4961d7 to the epilogue, but the jump table is 4-byte aligned, so our one
+//    extra padding byte disappears: original ends 0x4965e6 + 14 pad, ours 0x4965e7
+//    + 13 pad, both tables start at 0x4965f4. Equal totals do NOT mean no delta.
+//  * The inside family (2288) is not just the entry mirrored: its entry is the
+//    SAME SIZE as the original (its `test al,1` is the 2-byte A8 form where the
+//    original's `test cl,1` is the 3-byte F6 C1 01, which pays for the 6-byte
+//    `mov ecx,[g_game]`), but the whole case BODY then diverges: 0x496201 is
+//    `mov ecx,[g_game]` + `lea edx,[esp+..]` in ours against `mov edx,[g_game]`
+//    + `lea eax,[esp+..]`, and the two sprintf argument pushes are reordered
+//    (the 4-byte loss is there, not in the entry). So the inside form cannot be
+//    fixed by the entry alone; its register pair has to flip, which is the same
+//    single allocator decision the hoisted form misses.
+//  This pass also re-scored 20 more spellings of the 0xd7 entry (register int,
+//  const int, int old(expr), *&field, a ternary, `+ 0`, a local zero, a
+//  short/unsigned `old`, a named pointer at both scopes, a local flag word): all
+//  hoisted spellings are flat 2292 / 79.6 and all inside spellings are flat
+//  2288 / 75.9, exactly as the notes below say.
+
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

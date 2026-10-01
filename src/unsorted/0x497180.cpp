@@ -1,7 +1,26 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
 // deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash,
 // finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by
-// deepseek-v4.1-flash.
+// deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 6).
+// 2026-10-01 pass 6 (deepseek-v4.1-flash, 6 check runs, 3 scored variants): the 32-bit word
+// form moves the bottleneck, it does not remove it. Writing the 0x14281 lanes as a 32-bit
+// word temp with a truncating store,
+//   int w = *(unsigned short*)(g_game + 0x14281);
+//   unsigned int m = *(unsigned char*)(p2 + 0x9c) & M;
+//   w = (w & ~M) | m; *(unsigned short*)(g_game + 0x14281) = (unsigned short)w;
+// in all nine lanes finally produces the original's switch head `mov edi,1` (was edx), the
+// six case-1/2 masks as the 32-bit register form `and ebx,edi` / `and eax,edi` (no movzx),
+// the three case-3 masks as `and edx,2` (no movzx, no `and bl,imm`), and the file shrinks
+// 2846 -> 2800 bytes (original 2797, the closest size yet). The cost: inside every lane the
+// allocator rotates the file one notch, ours is (ptr esi, byte dl, word cx) where the
+// original is (ptr ecx, byte bl, word dx), so the checker score drops to 76.2%; with the
+// 32-bit form only in the six case-1/2 lanes it is 77.7% at 2812 bytes. Separating the
+// conversion from the mask (`unsigned int m = *(uc*)(p2+0x9c);` then `(m & M)`) compiles
+// identically (2800 bytes, 76.2): MSVC folds `(m & M)` into the byte load and never emits
+// the original's redundant `xor ebx,ebx; mov bl,[eax+0x9c]` at 0x497303/0x497353/0x49737a.
+// So both the lane width and the constant's register are reachable from source; what is
+// still missing is the whole-function allocator state that keeps esi/dl/cx from being picked
+// (the same state that the `mov edi,1` head hunk was a symptom of). Baseline left in place.
 // 2026-10-01 pass 5 (deepseek-v4.1-flash, 10 min timebox, 0 scored variants kept,
 // 3 scratch probes): why the case-3 lanes cannot be made 32-bit by spelling alone.
 // - Dropping the `(unsigned short)` cast on a case-2 lane is byte-identical: the

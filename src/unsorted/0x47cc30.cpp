@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
 // PARTIAL 80.9% (1202 bytes vs the original 1199). Frame, the three cell loops,
 // the inlined FUN_0047cb60 owner surgery, the (g_game+0x38a47) store, the
 // 0x20000000 mask path, both FUN_00483210/FUN_00440a40 calls and the epilogue
@@ -22,7 +22,7 @@
 //      computes (p.z>>23)*cols with p.z in EDX; the original does
 //      lea ecx,[esi+0x6a]; mov edx,ecx, indexes everything through edx and
 //      keeps p.z in EAX so the multiply is `imul eax,[ebp+0x142a3]`.
-// Second session (space-bunny-free, timeboxed): no new score, still 80.9%.
+// Second session (space-bunny-free, timeboxed): no new score, still 80.9%. Third session (GPT-6.1-sol, timeboxed): owner-index left-accumulator rewrites in both operand orders and independently split negative/bounds guards produced no gain; split guards scored 72.8% and were reverted. Best remains 80.9%.
 // New analysis: in every commutative op the original accumulates the LEFT
 // operand (add edx,ebx with edx=pos.x, imul eax,[cols] with eax=z>>23) while
 // ours accumulates the RIGHT one (mov ecx,ebx / add ecx,edx, mov eax,[cols] /

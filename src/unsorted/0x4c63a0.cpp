@@ -1,5 +1,6 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1. Names are provisional.
-// PARTIAL 81.0%. Frame is right (0xf4: pt@0x10 reused by held/bmp, rect@0x18,
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// PARTIAL 83.0% (1086 bytes vs 1051; all 35 left are the unmerged Unlock plus
+// two register-name choices). Frame is right (0xf4: pt@0x10 reused by held/bmp, rect@0x18,
 // src@0x28, out@0x38, screen@0x68, desc@0x98, all [esp+N]). The tail loop now has
 // the original's shape: `int hr; for(;;){ hr = Blt(...); if (hr==0) return; if (hr
 // != 0x887601c2) continue; dd = FUN_004b6220(); if (dd->field_44 == 0) { hr =
@@ -45,6 +46,35 @@
 // 0xf8). Not tried this session: a struct home (as in matched 0x4b5510's
 // `struct { int lockResult; HDC* dcSlot; } setup`) to force held and bmp into
 // one shared slot pair, or splitting held's live range some other way.
+// Session deepseek-v4.1-flash (2nd), 81.0 -> 81.3: the full diff confirms the
+// accounting. The unmerged branch-1 Unlock costs ~34 bytes (test+jmp 7 bytes in
+// the original versus a whole body of ~41) and the duplicated Blt block at the
+// loop tail costs ~44 (1129 - 1051 = 78). What fixed 0.3: the tail's
+// `if (dd->field_44 == 0) {...} else { hr = 0; }` emitted the `xor edi,edi` at
+// the bottom; writing it inverted, `if (dd->field_44 != 0) { hr = 0; } else
+// {...restore chain...}`, gives the original's `cmp [ebx+0x44],ebp; je chain;
+// xor edi,edi; jmp join` layout. Still open: MSVC rotates the for(;;) and
+// appends a second full Blt block at the function end (the bottom `cmp edi,ebp`
+// jumps to that copy, whose own `cmp eax,ebp; jne <restore chain>` returns to
+// the chain); the original has one Blt block with every back edge jumping to
+// it. Tried this session, all worse: `if (hr == 0x887601c2) {...}` guard around
+// the whole chain (42.2%), goto-based loop with the label at the Blt (75.2%,
+// zero register moves from ebp to ebx), goto-based shared cleanup label (67.6%,
+// frame 0xf8 and bmp at 0x14), do/while tail (41.3%), early-exit chain
+// `if (field_44 != 0) return;` plus `if (hr != 0) continue;` (75.2%),
+// `if (hr == 0) return;` and hr declared inside the loop (both byte-identical
+// to this file, 81.3%).
+// Session deepseek-v4.1-flash (2nd, cont.), 81.3 -> 83.0: `for (;;)` made MSVC
+// rotate the loop and append a whole second Blt block at the function end;
+// `while (1)` with the identical body emits the single Blt block the original
+// has, and that alone took the file to 1086 bytes. The tail now reads
+// `while (1) { hr = Blt(...); if (hr == 0) return; if (hr != 0x887601c2)
+// continue; dd = FUN_004b6220(); if (dd->field_44 != 0) { hr = 0; } else
+// { ...restore chain... } if (hr != 0) continue; return; }`. Only the unmerged
+// Unlock (35 bytes: branch 1 should end in `test eax,eax; jmp <shared jne>`),
+// the bmp-path Lock register trio (ours ebx/ebp/ebp, original ebp/ebx/ebx) and
+// the UnlockScreen inline's surface register (ours loads `[eax+0x8c]` into eax,
+// the original into ecx) are left.
 
 #include <windows.h>
 #include <ddraw.h>
@@ -230,14 +260,16 @@ void FUN_004c63a0(void)
     OffsetRect(&rect, pt.x, pt.y);
 
     int hr;
-    for (;;) {
+    while (1) {
         hr = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
         if (hr == 0)
             return;
         if (hr != 0x887601c2)
             continue;
         Display_004c63a0* dd = FUN_004b6220();
-        if (dd->field_44 == 0) {
+        if (dd->field_44 != 0) {
+            hr = 0;
+        } else {
             hr = d->field_88->Restore();
             if (hr == 0) {
                 hr = d->surface->Restore();
@@ -247,8 +279,6 @@ void FUN_004c63a0(void)
                     UnlockScreen();
                 }
             }
-        } else {
-            hr = 0;
         }
         if (hr != 0)
             continue;

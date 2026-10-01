@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional., finished by deepseek-v4.1-flash
 // PARTIAL 64.0%, 1144 of 1183 bytes. Rewritten in the 0x4c1000 style with the edge-walk
 // temporaries (y0/y1/x/dxdy/source steps) shared across both walks and the second walk using
 // (i+1)&3 (that one change was 51.7 -> 64.0). Frame and call census now match; the 39-byte gap
@@ -78,9 +78,11 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
         return;
 
     Surface_004c5e70 local;
+    int ok;
     int locked;
     if (surf == 0) {
-        if (FUN_004c5e70(&local) == 0)
+        ok = FUN_004c5e70(&local);
+        if (ok == 0)
             return;
         locked = 1;
         surf = &local;

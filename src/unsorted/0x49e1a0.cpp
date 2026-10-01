@@ -1,5 +1,8 @@
 // Decompiled by LongCat 2.5 Preview Free, finished by space-bunny-free, finished by GPT-6,
-// finished by deepseek-v4.1-flash. Names are provisional. PARTIAL 87.4%, 969 of 969 bytes.
+// finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional. PARTIAL 87.4%, 969 of 969 bytes.
+// Retry note: best checked source scores 87.4% after five check.py invocations (four returned results);
+// remains unmatched. Raw flag reuse produced identical code; narrowing a shifted byte regressed to 86.2%.
+// Remaining differences include the bit-4 extraction/test shape, call-tail merging and register scheduling.
 // Best variant keeps DAT_00509688[(e->flags >> 2) & 3] cached in a local and reuses it for
 // FUN_00456200. The faithful version that reloads the global twice in each arm scored lower
 // (81.2% originally, 84.6% with the fixes below) because MSVC duplicated both FUN_00456200

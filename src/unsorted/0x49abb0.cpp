@@ -214,6 +214,15 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
 // or worse (the compound condition: 93.0 / 574). The single residual hunk is unchanged: ours
 // does `add ebx,0x6a` and reloads unit2 from [esp+0x24] after the call, the original
 // `lea edx,[ebx+0x6a]` keeps unit2 in ebx live for the second distance tail.
+// deepseek-v4.1-flash (issue 3914): four checker runs, no gain, best still 93.7% (576/568).
+// Spelling the line-of-fire call DIRECTLY (no helper) drops to 49.8% (538 bytes), so the
+// inlined by-value-helper form is confirmed. Pre-reading from.x/from.y/from.z into named
+// ints inside the helper is byte-identical (93.7/576), and declaring the helper as
+// (Vec3 to, Vec3 from, ...) with the call made (unit1->pos, unit2->pos, ...) so the
+// semantics stay identical gives 92.1% (579 bytes): the copy of the to aggregate moves to
+// the front and perturbs the block. The single residual hunk is unchanged: ours does
+// `add ebx,0x6a` and reloads unit2 from [esp+0x24] after the call, the original
+// `lea edx,[ebx+0x6a]` keeps unit2 in ebx live for the second distance tail.
 int __stdcall FUN_0049abb0(Unit_0049abb0* unit1, Unit_0049abb0* unit2, unsigned char weapon)
 {
     WeaponDef_0049abb0* w = unit1->weapons[weapon].def;

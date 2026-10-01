@@ -86,6 +86,11 @@ struct Game_0049a890 {
 
 extern Game_0049a890* g_game;
 
+// deepseek-v4.1-flash (issue 3914): two checker runs on the two untried statement orders,
+// both byte-identical to this file at 83.6% (488/488): hoisting `double gh = (double)g;`
+// plus its multiply above `double d = distance * distance;`, and naming the single
+// `double h = (double)height;` conversion used by gh. The post-_hypot x87 schedule (ours
+// filds height then g, original filds g then height) is unchanged by both.
 // FUNCTION: 0x49a890
 short __stdcall FUN_0049a890(int x, int height, int z, int speed, float angle)
 {

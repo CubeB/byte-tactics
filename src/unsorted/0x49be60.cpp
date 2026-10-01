@@ -1,5 +1,16 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// RETRY (deepseek-v4.1-flash, issue 3869, best 43.3%, no change): the los arm
+// as `if (cond) visible = 1; else visible = 0;` (the shape that removes the
+// early [esp+0x10] stores and lands on the original 2272 bytes exactly) scores
+// 43.1; `int visible = 0;` with an unzeroed los arm scores 43.0 / 2288; casting
+// pb inline instead of the `pi` local is byte-identical at 43.3, so the spill
+// form stays best. Note the original does spill visible too: at the `if
+// (visible)` test it runs `test eax,eax` then `mov [esp+0x10], eax` before the
+// je, so only the store *placement* differs there, not the existence of the
+// slot. What is left: the whole low block is one slot high (first store
+// [esp+0x24] vs the original's [esp+0x20]) while the frame is 4 short (0x64 vs
+// 0x68), plus the swapped p/pos registers and the loop-tail jmp/reloads.
 // PASS 10 (deepseek-v4.1-flash, issue 3625, best 43.3%, no change): mapped our
 // slots against the original's to localise the +4. Ours: frame0 +0x04 (same),
 // visible spill +0x00, color1 +0x08, time +0x0c, offset +0x10, color2 +0x14,

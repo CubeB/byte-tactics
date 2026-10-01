@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// WIN 4 (deepseek-v4.1-flash, issue 3869): 33.4 -> 33.7 (2103 -> 2102 bytes) by
+// widening the lenient field_c0 cache to `int keepC0 = me->field_c0;` (was
+// `short keepC0`), i.e. the original caches that short in an int. Re-tested on
+// the 33.7 base and rejected (worse/neutral): `unsigned int keepC0`, `int font`
+// for the FUN_004c13f0 result (33.4), `int flags` (33.6), `short h` (32.5),
+// `unsigned int keepW` (32.3), `short keepW` and `int col` (byte-identical to
+// 33.7), moving the keepC0 declaration above flags (byte-identical).
 // WIN (deepseek-v4.1-flash, issue 3625): 26.6 -> 30.8 (2105 -> 2123 bytes) by
 // building the cell-branch highlight rect as a copy of the dst quad:
 //   Rect rowRect; rowRect.left = dst.points[0].x; rowRect.top = dst.points[0].y;
@@ -289,7 +296,7 @@ void __stdcall FUN_004a1b40(Class_004a1b40* param_1, int param_2)
     int xx;
     int xw;
     unsigned int flags = (unsigned int)me->flags;
-    short keepC0 = me->field_c0;
+    int keepC0 = me->field_c0;
 
     if ((flags & 0x10) != 0 && me->text != 0 && keepC0 != 0) {
         // ---- text-line renderer ----

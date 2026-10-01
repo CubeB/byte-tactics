@@ -1,23 +1,47 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// Pass 12 (claude-sonnet-5-5): 65.2 -> 74.4 percent / 1968 bytes (original 1964). Not a MATCH.
-// What moved the allocator and the layout (each free-scored):
-//  - the leaderboard theirs score as a ternary of two short lvalues (one `mov ax` after the
-//    join), rank and best as plain int, `mine` as a short-lvalue ternary, and the declaration
-//    order rank, best, mine, i, p: with these cmd lands in ebx (as in the original) and rec in
-//    ebx inside the leaderboard (rec/best/mine/counter now match the original registers);
-//  - `int credited` (dword in edi) together with the above;
-//  - `unsigned char depth` gives the original [esp+0x14] spill and reload before FUN_00489bb0;
-//  - bit-field containers (ushort, packed) for unit+0x9b bit 6 and g_game+0x37f06 bit 7 give
-//    `mov cl,[m]; shr cl,n; test cl,1`, but the unit bit must be copied to a `bool hid` and
-//    tested as `if (!hid)`: a direct `!bit` folds to `test byte,mask`;
-//  - `bool bt = mine > theirs; if (bt)` gives the original setg + test;
-//  - the flags tail as flags &= 0xefffffff; store; load t; flags &= 0xffffffcf; store.
-// Still differs: the loop pointer p is in ecx where the original has eax (the original theirs
-// score is a movsx in each branch into ecx; every spelling that gives that makes the compiler
-// CSE g_game->mode into an [esp+0x14] spill and grow the frame to 0x6c), the tail keeps cmd in
-// a volatile register and reloads it where the original holds cmd in edi for the whole tail,
-// the metalCost multiply is scheduled after the vt compare in the original, the sprintf text
-// pointer is ecx instead of eax, and the flags tail copies eax from ebp one instruction later.
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Pass 13 (Space Bunny Free): 74.4 -> 87.0 percent / 1968 bytes (original 1964). Not a MATCH.
+// What moved it (each change free-scored on top of the previous one):
+//  - `if (((GameBits*)g_game)->b7 != 0)` rather than the bare bitfield: the `!= 0` keeps the
+//    original `mov al,[g+0x37f06]; shr al,7; test al,1` (a bare `if (bit)` folds the whole
+//    test to `test byte ptr [m], 0x80`). Worth 2.7 points on its own.
+//  - re-read the flags field off the unit for the second mask (twice, no `flags` local)
+//    instead of keeping it in a local: +0.7.
+//  - in the leaderboard, compute `mine` BEFORE `rank`/`best`, not after. The single biggest
+//    lever (+4.1): it moves that block's whole prologue, and only this order puts the mode
+//    test and both `mov ax` kill loads where the original has them. Moving them back, or
+//    inserting `i` between, costs 10 points.
+//  - walk the leaderboard with a `char* p` advanced by `p += 0x14b`, reading fields through
+//    `at<char>(p,0x4c)` / `((UnitBits*)(void*)at<int>(p,0))->b6` / `at<short>(p,...)` instead
+//    of an `int* p` with `p[0x13]` and `*p`. With an int* MSVC folds the base into ecx
+//    (`add ecx, 0x1b8a`); with a char* it keeps the base in eax (`add eax, 0x1b8a`) and the
+//    byte temps in cl, exactly as the original. Same score alone, but the loop then matches
+//    register-for-register, which the later hunks depend on.
+//  - bind the unit's +0x9a field to a local `int* a9a` before testing and nulling it. The
+//    virtual call and the `= 0` store then go through that one register, which is what puts
+//    the constant 0 in ebx (as in the original) instead of edi: +1.2. Doing the same to
+//    +0x9e or to the +0 head pointer regresses, so only the first one.
+// Still differs, largest first:
+//  - the leaderboard `theirs`: the original does a `movsx ecx, word ptr [eax+K]` in EACH arm
+//    of the ternary; ours loads 16-bit into cx and sign-extends once after the join. Every
+//    spelling that forces the per-branch movsx (int casts on the arms, if/else, a mode local)
+//    costs 15 points and 28 bytes, so the arms stay short-typed. This is the main blocker.
+//  - the tail after the leaderboard: the original holds `cmd` in edi for the whole tail; ours
+//    reloads it into edx/eax. Copying cmd into a local, hoisting cmd[9]/cmd[10] into locals
+//    (char, int or unsigned char), and reading them in both orders all score lower.
+//  - the x87 block: the original loads esi+0x92 and does the fmul BEFORE the `vt` compare;
+//    ours loads vt first and does the fmul after. Swapping the two source statements, hoisting
+//    the 0x92 pointer or the parent pointer, and adding a (float) cast all compile the same.
+//  - the sprintf call: the original materialises the format in eax and then the buffer in
+//    eax (after the push); ours computes the buffer into ecx before the push.
+//  - `unsigned char depth` still needs a 32-bit `add ecx, 3`; every int-typed spelling of
+//    `? 3 : 0 + 3` collapses the add to 8 bits and loses the [esp+0x14] spill.
+// Tried and rejected, all scoring below the above: a Game/Player/PSub struct for the 0x14b
+// entries, indexing players[i] with a for loop, `extern char* g_game`, a Game*-typed g_game,
+// all 128 header sets (tools/headers.py: none better), `short` for mine/theirs, a shared
+// `zero` local, the do/while rotation of the target loop, and per-field pointer locals for
+// +0x9e / the +0 head. tools/permute.py run from 74.4, 77.1 and 85.7 peaked at 79.8, 82.0
+// and 85.7 percent, none above this file, and its best diffs are full of `tmp0`/`do{}while(0)`
+// artifacts, so nothing from it was taken.
 extern void* g_game;
 extern char DAT_00508be8[];
 extern char DAT_00508bf0[];
@@ -246,9 +270,10 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
     if ((cmd[10] & 0xf) != 0)
         FUN_00486360(unit, cmd[10] & 0xf, (cmd[10] & 0xf0) != 0x70);
     FUN_00489740(unit);
-    if (at<int>(unit, 0x9a) != 0) {
-        (*(void(__stdcall**)(int))(*(int*)at<int>(unit, 0x9a) + 0x50))(1);
-        at<int>(unit, 0x9a) = 0;
+    int* a9a = (int*)at<int>(unit, 0x9a);
+    if (a9a != 0) {
+        (*(void(__stdcall**)(int))(*(int*)a9a + 0x50))(1);
+        *a9a = 0;
     }
     if (at<int>(unit, 0x9e) != 0) {
         FUN_0045aaa0((void*)at<int>(unit, 0x9e));

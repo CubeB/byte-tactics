@@ -27,6 +27,11 @@
 // leave the unchanged six-instruction latch and MATCH. Removing the PROBE store
 // returns to the 75.3% duplicated form (880 bytes).
 //
+// Retry (deepseek-v4.1-flash, ten-minute box): folding case 6 back into one
+// statement, `hotornot = ((FUN_004c46c0("hotornot", 0) ^ hotornot) & 1) ^ hotornot`,
+// is byte-neutral at 736 bytes / 86.2 %, so the hoisted `mov esi,[ebp-0xe]`
+// before the call is not a two-statement artifact; the original's post-call
+// `mov ecx,[ebp-0xe]` is still unmatched. No other variant tried in this pass.
 // Retry (deepseek-v4.1-flash): two new probes, both worse than the PROBE store.
 // A source-level twin induction variable (Elem* e = obj outside the loop, e++
 // next to i++, all e uses through the pointer) is IV-eliminated BEFORE the
@@ -335,10 +340,8 @@ int __stdcall FUN_004aeac0(Elem_004aeac0* obj, char* name)
                 strncpy(e->body.text, FUN_004c5740(e->body.text), 0x7f);
                 ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->tail.s5.link, "link", 0x10, DAT_005119b8);
                 break;
-            case 6: {
-                unsigned int t = parser.current->FUN_004c46c0("hotornot", 0) ^ e->body.s6.hotornot;
-                e->body.s6.hotornot = (t & 1) ^ e->body.s6.hotornot;
-                }
+            case 6:
+                e->body.s6.hotornot = ((parser.current->FUN_004c46c0("hotornot", 0) ^ e->body.s6.hotornot) & 1) ^ e->body.s6.hotornot;
                 break;
             case 7:
                 ((Class_004c48c0*)parser.current)->FUN_004c48c0(e->body.text, "filename", 0x20, DAT_005119b8);

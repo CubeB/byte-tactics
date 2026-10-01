@@ -139,31 +139,25 @@
 // the same. So the pitch-local shape is required and the residual stays the
 // ebx/ebp colouring of `surf` in the count block.
 
+// THIS SESSION (deepseek-v4.1-flash, 10-minute box): 74.1 -> 75.3 percent, 199
+// of 200 bytes. Three changes in one file: the color parameter is now
+// `unsigned char` (the fill arm loses its movsx), the fill passes
+// `*(int*)&color` to memset (the 0x4c0330 type-pun trick, gives the plain
+// `mov al` byte load), and the loop increments are `p++; d++; z += slope;`
+// which matches the original's `inc edi; inc esi; add ecx, ...` order. Still
+// differs: the span-count block allocation (the original keeps surf in ebp and
+// re-reads the pitch off it late with x1 in edx accumulating the offset; ours
+// keeps surf in ebx and x1 in ebp with the offset materialised twice), and the
+// loop counter stays in ebx instead of being copied to ebp so the color byte
+// can land in bl. Inline `surf->pitch` offset shapes (v2 to v4, v6, v8) are all
+// 71.6 to 72.4 percent at 211 to 215 bytes, worse.
+
 #include <string.h>
-
-struct Span_004c06e0 {
-    int x1;
-    int x2;
-    char unknown_8[0x18 - 0x8];
-    int z1;
-    int z2;
-};
-
-struct Surface_004c06e0 {
-    unsigned short pitch;
-    char unknown_2[0x10 - 0x2];
-    unsigned char* bits;
-    unsigned char* depth;
-};
-
-static inline void Plot_004c06e0(unsigned char* p, unsigned char* d, int z, unsigned char color)
-{
-    unsigned char zi = (unsigned char)(z >> 16);
-    if (*d <= zi) { *p = color; *d = zi; }
-}
+struct Span_004c06e0 { int x1; int x2; char unknown_8[0x18 - 0x8]; int z1; int z2; };
+struct Surface_004c06e0 { unsigned short pitch; char unknown_2[0x10 - 0x2]; unsigned char* bits; unsigned char* depth; };
 
 // FUNCTION: 0x4c06e0
-void __stdcall FUN_004c06e0(int row, Span_004c06e0* span, Surface_004c06e0* surf, char color)
+void __stdcall FUN_004c06e0(int row, Span_004c06e0* span, Surface_004c06e0* surf, unsigned char color)
 {
     unsigned char* d = surf->depth;
     unsigned char* p = surf->bits;
@@ -186,11 +180,12 @@ void __stdcall FUN_004c06e0(int row, Span_004c06e0* span, Surface_004c06e0* surf
         if (d != 0) {
             d += row * pitch + span->x1;
             do {
-                Plot_004c06e0(p, d, z, color);
-                p++; z += slope; d++;
+                unsigned char zi = (unsigned char)(z >> 16);
+                if (*d <= zi) { *p = color; *d = zi; }
+                p++; d++; z += slope;
             } while (--n);
         } else {
-            memset(p, color, n);
+            memset(p, *(int*)&color, n);
         }
     }
 }

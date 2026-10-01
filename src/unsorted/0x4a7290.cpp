@@ -1,4 +1,26 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Sonnet 5.5 (issue 3070), still 85.8% (702 of 706 bytes). New observations,
+// all free --sym scores: (a) the target reloads rect.x0/rect.y0 from the stack
+// at the join, i.e. it does NOT keep them in registers across the if/else; the
+// matched callee 0x4a15c0 does the same through its out pointer, but an inline
+// copy of that body, a local `Out* pr = &rect` used for the stores or the x1/y1
+// reads, `int rect[4]`, a memset of x0/y0 and a static inline SetEnd(&rect, e)
+// helper all score 84.6 to 85.8%, so pointer or array access is not the lever.
+// (b) `n = 0` as the LAST statement of both arms (the shape that would let the
+// compiler merge the identical `mov [n], eax` tails into the join), with `int
+// n;` declared before or after rect and `int i;` before or after, scores 85.1%
+// (706 bytes) but moves `entries` to edi and keeps two zero registers in the if
+// arm; a `z` phi variable assigned 0 in both arms and `int n = z;` folds to
+// immediates (84.6%). The target's if arm is `xor eax,eax / mov [x0],eax /
+// mov [y0],eax`, its else arm ends with its own `xor eax,eax`, and the join
+// stores n from eax, so the zero is a real value live across the join.
+// Why the reload exists (read from our own asm): MSVC keeps rect.x0/rect.y0 in
+// registers across the join when BOTH arms leave them in the SAME registers
+// (ours: ecx for x0 and eax for y0 in both arms, so no reload). The target's
+// if arm puts both zeros in ONE register (eax) while its else arm loads x0 into
+// ecx and y0 into edx, the registers disagree at the join and both are reloaded.
+// So the fix is one shared zero register in the if arm, which needs a third use
+// of the same zero value (n = 0) that the compiler cannot fold to an immediate.
 // deepseek-v4.1-flash retry (issue 2547): 84.9% to 85.8% (702 bytes). The only
 // change is the rect zero-fill, now `rect.x0 = 0; rect.x0 = rect.y0 = rect.x0;`
 // (the dead first store lets MSVC keep the zero as an expression value). That

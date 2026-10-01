@@ -1,118 +1,34 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash retry: focused on forcing the missing `mov ebx, esi`
-// (the two live copies of x, esi from the ternary and ebx as its home for the
-// tail). Tried, all scored with check.py --sym and none beat 697 bytes 76.7%:
-// ternary polarity flip (`entry->type ? entry->x : 0`, 76.3%), `== 0`/`!= 0`
-// spellings (76.7%/76.3%), explicit `(int)` cast, `(unsigned char)` condition,
-// comma-declared `int x = ..., lh;`, `long x`, `short`-free variants, the
-// final store recomputing the ternary (75.0%, 729 bytes), the arm expression
-// inlined from the ternary (48.8%), and the `x = 0; if (type) x = entry->x;`
-// init form (75.5%). None changed which register the ternary materialises in,
-// so the ebx/esi copy and the downstream 16-bit folding of the right arm
-// remain. Leaving the best (697 bytes, 76.7%) in place.
-// GPT-6.1-sol refinement: four checks retained the 76.7% best; no MATCH. A
-// sequential right-base local (x; += w; -= Measure) fell to 62.7%. Explicit
-// casts, if/else x assignment and an explicit null check did not help. The
-// register-copy mismatch described below remains the dominant difference.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
+// MATCH 100% (748 bytes), found by Sonnet 5.5 (was 76.7%, 697 bytes).
+// What the function does: it walks the entry list of a layout object looking
+// for the n-th tab stop (entries whose +0x00 byte is 7), sets the language from
+// that entry, computes the line height, then lays the entry's text out right
+// aligned (+0x1b bit 2), centred (bit 1) or left at its measured width (bit 0),
+// writing the new x, width and line height back into the entry. The struct shape
+// comes from the matched sibling 0x4a4660; +0xb6 is a union (count on entry 0,
+// NUL terminated text elsewhere); +0x1b is a 4-byte field.
 //
-// PARTIAL: 76.7%, 697 against 748 bytes. What the function does: it walks the
-// entry list of a layout object looking for the n-th tab stop (entries whose
-// +0x00 byte is 7), sets the language from that entry, sets the line height,
-// and then lays the entry's text out right aligned (+0x1b bit 2), centred
-// (+0x1b bit 1) or left at its measured width (bit 0), writing the new x, the
-// new width and the line height back into the entry.
-//
-// The struct shape (0x15b entry stride, packed, +0x13 x / +0x17 w / +0x19 h /
-// +0x1b a 4-byte align field) is copied from the matched sibling 0x4a4660,
-// which walks the same array. The +0xb6 field is a union: a signed short count
-// on entry 0 (the loop bound) and the NUL terminated text of every other entry.
-//
-// Two things took this from 52% to 62%:
-//  1. +0x1b is a 4-byte field, not a byte: the original loads it with
-//     `mov eax, dword ptr [ebp+0x1b]` and then tests al with 4, 2 and 1.
-//  2. the centred arm divides the box width by 2, not by 4. `entry->w / 2 / 2`
-//     compiles to two `cdq/sub/sar` triples and the original has one;
-//  3. the new width has to go through its own named local (`int nw = half * 2;`,
-//     62% to 77%). Assigned straight into the field, MSVC narrows the whole
-//     tail and puts the stores out of order; through a local it keeps the
-//     product in a register and the tail lands in the original's order.
-//
-// The inlined Measure helper has to be spelled exactly as it is here: the
-// accumulator first, `char* p = text` kept as a separate variable with the
-// call passing `text`, and three distinct return expressions (`return 0`,
-// `return FUN_004c1480(...)`, `return width`) so that MSVC tail-duplicates
-// the store-and-return block once per exit instead of merging them.
-//
-// What still differs, and the one thing I could not move: the original keeps
-// TWO copies of x, one in ebx and one in esi. It loads the ternary into esi
-// (`xor esi,esi` / `movsx esi, word [ebp+0x13]`), then `mov ebx, esi`. The two
-// alignment arms consume esi and overwrite ebx with their own value
-// (`movsx ebx, word [ebp+0x17]; add ebx, esi`), while the final tail reads ebx.
-// Ours has only one copy, in ebx, so the arms clobber it and no copy is made.
-// That one register difference cascades everywhere in the tail half:
-//   * right arm: with no free callee-saved register, MSVC folds `x` into the
-//     post-call arithmetic and narrows it to 16 bits
-//     (`mov cx, word [ebp+0x17]; sub cx, ax; add ecx, ebx`) instead of the
-//     original's 32-bit `movsx ebx, [ebp+0x17]; add ebx, esi` before the call
-//     and `sub ebx, eax` after it. Three copies of this one hunk differ.
-//   * centred arm: the new x and the width accumulator swap registers
-//     (ours `mov edi, eax / sar edi,1 / add edi, ebx` with the width in ebx,
-//     the original `mov ebx, eax / sar ebx,1 / add ebx, esi` with the width
-//     in edi), again because edi is the only register the original had free.
-//
-// Spelling the arms with a named temporary reproduces the original's 32-bit
-// arithmetic but costs far more than it wins: `int nx = x + entry->w;` scores
-// 62.7% and `int nx = x + entry->w; int mw = Measure(...);` scores 61.6%, both
-// because MSVC then merges the three Measure exits' tails into one block and
-// rewrites the width accumulator and the lh store. So the copy of x is the
-// lever, not the arithmetic.
-//
-// Also tried, all at 76.7% or worse and none of them move the copy: an extra
-// named copy of x (`int xb = x`) used by the tail, the if chain written as
-// else-if, `int e4 = entry->align`, the ternary spelled `entry->type ? ... : 0`,
-// `x + entry->w` instead of `entry->w + x` (MSVC 5 canonicalises it, identical
-// bytes), a copy of x taken inside the right arm, a named local for the width
-// in the third arm, and `char* text = entry->b6.text` hoisted (49.5%, it kills
-// the per-arm `lea esi, [ebp + 0xb6]`). Declaring x `short` scores 65.5%.
-//
-// deepseek-v4.1-flash retry 2 (all --sym, none counted): the lh block as one
-// ternary, lh declared before x, `long x`, unary-plus and comma-operator
-// temporaries, `(int)(short)(...)`, a pointer store through `&x`, and switch
-// on `align & 7` (53.3%). A second named copy used only by the tail
-// (`int xb = x;` + tail), a third declaring it before x and assigning late,
-// and arms using the copy all collapse to the same 697 bytes: copy
-// propagation removes the extra variable before register allocation, so the
-// two-register split cannot be reached from a plain second assignment.
-//
-// A second session went after the copy directly and ruled out the whole
-// "named local" family, measured with `check.py --sym` (so none of it cost a
-// real run). Every one of these compiles to BYTE-IDENTICAL code to what is in
-// the file, 697 bytes, 76.7%: `int nx = x;` with the tail storing nx; the same
-// with nx declared before the loop; `short sx = (short)x;` and
-// `unsigned short ux = (unsigned short)x;` as the tail's operand; `int nx = x
-// + 0;`; `int x;` and `int x; int lh;` declared before the loop and only
-// assigned after it (so the register allocator cannot be ordering by
-// declaration); `unsigned int x`; and `int nx = x;` with the copy taken after
-// the line-height computation instead of before. MSVC 5 copy-propagates all of
-// them away, so the copy is NOT a source-level assignment of x.
-//
-// Writing the ternary as an if/else that assigns x in both arms
-// (`if (!entry->type) { x = 0; nx = x; } else { x = entry->x; nx = x; }`) is
-// the one shape that does produce two live values, but MSVC 5 lowers that phi
-// through the STACK: it emits `mov dword ptr [esp + 0x1c], ebx` in both arms,
-// grows the frame by a slot (every argument reference moves from `esp + 0x14`
-// to `esp + 0x18`) and scores 65.4%. So the original's single register copy at
-// the merge point is a phi that MSVC keeps in registers, and no plain C++ local
-// spelling of it survives copy propagation.
-//
-// Swapping the source order of the x ternary and the line-height computation
-// costs a byte and a percent (75.8%), so the order in the file is the right
-// one.
-//
-// Smaller leftovers: the centred arm's text==0 exit is merged with the loop
-// exit in ours and duplicated in the original; the final arm's stores are
-// `mov dx, lh / mov word [+0x13], bx / pop edi / mov word [+0x19], dx` in the
-// original, ours puts the `pop edi` before the x store.
+// Three things were needed, in this order of effect:
+//  1. The original keeps TWO live copies of x (esi from the ternary, ebx for the
+//     new x). A plain copy `int nx = x;` is copy-propagated away. It survives
+//     only when nx is a real variable with several definitions that meet at a
+//     common tail: `int nx = x;` (declared right after the ternary, before the
+//     line height), then each arm assigns nx (`nx = entry->w + x; nx -=
+//     Measure(..)` in the right arm, `nx = entry->w / 2 + x; ...; nx -= half;`
+//     in the centred arm) and ONE shared tail stores nx and the line height.
+//     MSVC tail-duplicates that tail into every exit by itself. Declaring nx
+//     later (after the line height) puts the `mov ebx, esi` after `test al,4`.
+//  2. In the centred arm the width store is the expression
+//     `entry->w = (short)(half * 2);` with NO named `nw` local (a local made lh
+//     load into ax instead of dx), after `nx -= half;`.
+//  3. The final x store goes through `entries[index].x`, not `entry->x`. The
+//     compiler cannot prove the two spellings are the same object, so it keeps
+//     the x store after the w store and before the h store; with every store
+//     through `entry` the scheduler freely reorders them (97.8%: h before x in
+//     the right and loop-exit tails, x before w in the centred tail, `pop edi`
+//     before the x store in the left tail). Routing the x store through
+//     `entries[index]` (alone, or together with h or w) is a MATCH; routing
+//     only h or only the w stores gives 98.9%.
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -199,27 +115,22 @@ void __stdcall FUN_004a53c0(Class_004a53c0* obj, int index)
     if (i == entries[0].b6.count + 1)
         FUN_004c1420(DAT_0051fba4->language0);
     int x = !entry->type ? 0 : entry->x;
+    int nx = x;
     int lh;
     if (DAT_0051fba4->language == 0)
         lh = FUN_004c1450();
     else
         lh = ((Glyph_004a53c0*)FUN_004b7f30(DAT_0051fba4->language->glyphs, 0x49))->height + 2;
     if (entry->align & 4) {
-        entry->x = (short)(entry->w + x - Measure_004a53c0(entry->b6.text));
-        entry->h = (short)lh;
-        return;
-    }
-    if (entry->align & 2) {
-        int newx = entry->w / 2 + x;
+        nx = entry->w + x;
+        nx -= Measure_004a53c0(entry->b6.text);
+    } else if (entry->align & 2) {
+        nx = entry->w / 2 + x;
         int half = Measure_004a53c0(entry->b6.text) / 2;
-        int nw = half * 2;
-        entry->w = (short)nw;
-        entry->x = (short)(newx - half);
-        entry->h = (short)lh;
-        return;
-    }
-    if (entry->align & 1)
+        nx -= half;
+        entry->w = (short)(half * 2);
+    } else if (entry->align & 1)
         entry->w = (short)Measure_004a53c0(entry->b6.text);
-    entry->x = (short)x;
+    entries[index].x = (short)nx;
     entry->h = (short)lh;
 }

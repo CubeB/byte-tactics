@@ -1,170 +1,32 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
 // Saves every live unit (g_game+0x14357..+0x1435b, stride 0x118) as a 0xb8
 // byte record; inverse of 0x487080/0x486fd0. Record and Piece field maps are
 // complete and confirmed by the 0x487080 loader.
 //
-// PARTIAL 74.0%. Three of the four big register-rotation diffs came from one
-// lever: what MSVC materialised as the source address of the rec+0x2b block.
-//  - `rec.pos = unit->pos` (Vec3 member) reproduces the original's
-//    `lea eax,[ebp+0x6a]`; a packed {int,short} copy for f64/f68 reproduces
-//    `lea ecx,[ebp+0x64]`. Without them the block used [ebp+disp] directly
-//    and collapsed (66.5 -> 40.6 for pointer locals, 66.5 -> 68.1 for the
-//    struct copies). Do not use pointer locals here.
-//  - the 3x piece copy: writing the obj deref first
-//    (`dp[k].f8 = obj->f10a;` before `dp[k].f4 = sp[k].f8;`) moves the loop
-//    anchor to the original's `lea esi,[ebp+0xc]` (68.1 -> 70.3).
-//  - the rec+0x27 bool and the rec.f89 null guard: the original does NOT fold
-//    the guard's `ptr != 0`, it emits it a third time. Writing the ternary
-//    condition as the reloaded `unit->f86 != 0` (rather than the local
-//    `a != 0`) stops MSVC proving non-nullness and was worth 66.5 -> 73.0 by
-//    itself. The same reload on the rec.f8b guard scores 73.1 (worse) because
-//    the induced allocation shift is a net loss at this state; left off.
+// PARTIAL 85.6% (1060 bytes vs the original's 1062). What got it here (74.0% -> 85.6%):
+//  - rec.f89 is `unit->f86 == 0 ? 0 : a->f_a8` (zero arm first, the original's
+//    layout) and the id8b ternary is `unit->f_f0 == 0 ? 0 : a2->f_a8`: the
+//    original keeps a third, reloaded null test in both guards. The second one
+//    also brings the size from 1058 to the original's 1062.
+//  - the 3x piece copy is written as dp[k].fc, f4, f8 (obj deref), f0, ...:
+//    that keeps the `lea esi,[ebp+0xc]` anchor (the f8 member) and now puts the
+//    `add esi,0x1c` / `add eax,0x18` increments mid-body like the original. All
+//    24 orders of the first four statements were scored; 76.2% was the best.
+//  - tools/permute.py found the next steps: `rec.flags.a = Get10f(unit) & 0xf`
+//    with Get10f an inline helper returning the unsigned char (an int-returning
+//    helper, or a direct `unit->b_10f & 0xf`, scores 82.8 and 81.7); that gives
+//    the original's `xor ecx,ecx; mov cl,[b_10f]` and its zero in ecx. Also
+//    `short id8b = 0;` is declared before `Unit* a` (next to a2 it loses 7 points).
+//  - earlier passes: `rec.pos = unit->pos` / packed copies for the rec+0x2b
+//    block, obj-deref first, `unit->f86` reload for the rec.f27 and f89 guards.
 // Still differs:
-//  - the live zero for the bool lands in edx here but in ecx in the original;
-//    that is the root of the remaining rotation in the rec+0x8f..+0xb3 field
-//    block (ours loads the first accumulators into ecx/eax swapped).
-//  - ours is 3 bytes short of the original 1062.
-//
-// deepseek-v4.1 (attempt 2): confirmed the diff is ONE allocator decision, not
-// a statement-order problem. The original emits `xor ecx,ecx; cmp esi,ecx;
-// setne al` for rec.f27 and then reuses ecx as the zero for the rec.f86 and
-// rec.f_f0 guards, the rec.f89 = 0 arm and the (b & 0xf) mask; ours allocates
-// that zero to edx instead, which rotates every scratch register in the
-// rec+0x8f..+0xbb field block and inside the 3x piece copy.
-// Tried and scored, all worse or equal to 73.7:
-//  - 6 permutations of the rec.f3f / rec.f23 / rec.f27 statements (73.7 at
-//    best, 70.1 at worst): the dx load and store of rec.f3f move with them but
-//    the zero register does not change, so the lever is upstream of that
-//    group.
-//  - rec.f27 written as `unit->vtable ? 1 : 0` and as a 3-way ternary: 73.7
-//    and lower, same zero register.
-//  - rec.f8b moved after rec.fa7 (71.2) and rec.fa3 moved to the head of the
-//    field block (71.2, and 23 bytes shorter): worse.
-//  - the id8b block hoisted above the rec.f86 block: 71.3, 26 bytes shorter.
-// deepseek-v4.1 (attempt 3): 73.7 -> 74.0 by putting `rec.f23 = n;` before
-// rec.f3d/rec.f3f. Confirmed root of the remaining rotation: at the bool the
-// original emits `xor ecx,ecx` and keeps dx = unit->fb8 live across it (its
-// rec.f3f store lands after `cmp eax,ecx`), while ours stores rec.f3f at once
-// and sinks the rec.f3d store below the bool, so ecx is still live holding
-// unit->f108 and the zero lands in edx instead. Steered and failed:
-// rec.f3f-reload-temp across the bool (70.1), f23/f3f/f27/f3d (69.4), f3f/f3d
-// source swap (74.0 tie), inverted ternaries (73.3), reloaded unit->f_f0 in
-// the id8b ternary (73.5). Piece loop: f0-first order (72.2) and obj-first
-// with f0/f4 after (73.3) both lose the `lea esi,[ebp+0xc]` anchor, so keep
-// the deref-first form. Next idea: find the statement that pins dx across the
-// bool in the original's scheduler window (the f3f store is the only use).
-// Next idea: give the zero its ecx identity from a statement that already
-// wants a 0 in ecx before the bool, and keep dx live across the bool (in the
-// original edx still holds unit->fb8 when the bool is evaluated, in ours that
-// store has already retired).
-// deepseek-v4.1-flash (run 4): no further gain, still 74.0. Confirmed the
-// remaining diff is the single allocator decision above and that it is not
-// compiler state: headers.py tried all 128 sets (best 74.0) and a sweep of 0 to
-// 400 unused `extern int` declarations in front of the function was flat at
-// 74.0 (so the source shape, not the compiler's state, is what is missing). All
-// 24 orderings of {rec.f23, rec.f3d, rec.f3f, rec.f27} score at most 74.0 (best
-// pABCD/pACBD; any ordering with rec.f3f after rec.f27 drops to 70.1). Locals
-// for f108/fb8 (`short` and `int`), a `void*` vtable local, `unit->vtable ? 1
-// : 0`, an explicit guarded rec.f27, and spelling the rec.f86 / rec.f_f0 guards
-// as plain `a && ...` or `a ? ...` all scored 70.1 to 74.0, none higher. The
-// lever is still getting the shared zero constant into ecx instead of edx,
-// which needs the rec.f3f load (unit->fb8) live across the rec.f27 compare;
-// source reordering of these statements alone does not produce it.
-// deepseek-v4.1-flash (run 6): no further gain, still 74.0. NEW FINDING on the
-// rec.f89 ternary: the original's arm layout (`cmp eax,ecx; jne <f_a8 arm>`;
-// zero arm falls through first) is what `rec.f89 = unit->f86 == 0 ? 0 :
-// a->f_a8;` produces, NOT the `!= 0 ? a->f_a8 : 0` form in this file, which
-// inverts the layout (`je` to the zero arm). Inverting the ternary makes that
-// block structurally identical to the original (only the zero register
-// differs) but scores 73.3 alone vs 74.0 for this file, so the base form is
-// kept as the best scorer. Also confirmed the pair-reversal rule: whichever
-// of rec.f3d/rec.f3f is written SECOND in source is loaded FIRST and stored
-// immediately at its load, while the first-written one's load stays late and
-// its store is deferred past the rec.f27 compare. So f3f-then-f3d (v2) gives
-// the original's exact store placement (f3d immediate, f3f deferred past the
-// compare) but flips the temps (f108 in edx, fb8 in ecx) because f108's load
-// is hoisted above the s.b load while ecx still holds &s64; the shared zero
-// then still lands in edx. The original has f108 in cx loaded just AFTER the
-// s.b load (cx freed by it) and the zero reuses that dying ecx. No source
-// spelling found that stops the hoist of the second-written pair member.
-// deepseek-v4.1-flash (run 7, timebox): no new variants scored, still 74.0
-// (1059 of 1062 bytes). This run only re-verified the base file (3 check.py
-// runs, all 74.0) and dumped the full diff to build/scratch/0x4876c0/.
-// Remaining diffs and all tried levers are documented below and above.
-// deepseek-v4.1-flash (run 9, timebox): still 74.0. Scored 10 new scratch
-// variants on the f3d/f3f pair lever, none above 74.0: named pointer pair
-// (74.0), both-loads-as-temps (74.0), f3f-then-f3d (74.0, stores right but
-// f108 load hoists above s64.b into edx so the zero takes edx), f108 temp
-// with f3f-then-f3d stores (74.0, same flip), fb8 temp (74.0, f3f store
-// hoists above the s64.b store and f3d store sinks), rec.s split between the
-// pair (72.2), piece loop f0/f4/deref order (72.6), rec.id (69.4) or rec.f20
-// (68.7) as an intervening statement. Confirmed the pair-reversal rule
-// precisely: the second-written store retires at its load and that load is
-// hoisted above the previous struct copy's last load, the first-written store
-// defers past the rec.f27 compare. The original has f108 loaded just AFTER
-// the s64.b load into cx and stored at once, fb8 loaded last into dx and
-// stored after the compare. No source spelling found that gets both halves.
-// deepseek-v4.1-flash (run 8, timebox): no new variants scored, still 74.0
-// (1059 of 1062 bytes). This run only re-verified the base file (1 check.py
-// run, 74.0) and analysed the diff. Finding: ours already loads f108 into cx
-// AFTER the s.b load exactly like the original; the ONLY difference in the
-// f3d/f3f window is which store sinks past the rec.f27 compare (ours sinks
-// f3d, the original sinks f3f). The pair-reversal rule sinks the store of the
-// FIRST-written statement, so source order alone always gets one of the two
-// wrong. The untried levers remain: an intervening non-pair statement between
-// the f3d/f3f stores (rec.id or rec.f20 moved between them, not part of the
-// 24 tried orderings of {f23,f3d,f3f,f27}), or writing the pair through a
-// named pointer pair (short* p3d = &rec.f3d; short* p3f = &rec.f3f;). Piece
-// loop residual also remains: ours hoists add esi,0x1c to the loop top with
-// [esi-0x1c] forms vs the original mid-body at 0x487a51 with [esi-8] forms,
-// and ours loads sp->f0/sp->f8 late and stores f8,f4,f0 while the original
-// loads them first and stores f0,f4,f8 (ascending, like the 0x487080 loader).
-// deepseek-v4.1-flash (run 10): still 74.0 but the residual is now pinned down
-// to a single scheduling slot, not a source-order question. Writing the pair
-// the OTHER way round (`rec.f3f = unit->fb8;` first, `rec.f3d = unit->f108;`
-// second) reproduces the original's store placement EXACTLY: f3d's load+store
-// retires before the rec.f27 compare and f3f's store sinks past it. The cost is
-// that the second-written member's load gets hoisted one slot too early (it
-// grabs the dying edx freed by the rec.s.a store instead of waiting for the
-// dying ecx freed by the rec.s.b load), so the pair comes out mirrored:
-// f108 in edx and fb8 in ecx, which then hands the shared zero to edx and
-// re-inverts the whole field block. Forcing the load later with a comma
-// dependency on unit->s64.b (folded away, identical code), on unit->vtable
-// (74.0, same mirror), with an intervening rec.f23 (73.7) or with the pair
-// split around the rec.s copy (74.0, same mirror) does not move it. So the last
-// diff is one scheduler slot: the original's f108 load sits after the rec.s.b
-// load, ours sits before it; no source spelling found that delays it.
-// deepseek-v4.1-flash (run 5): no further gain, still 74.0. Writing
-// `rec.f3f = unit->fb8;` before `rec.f3d = unit->f108;` gives the original's
-// store order (f3d early at the f108 load, f3f deferred past the rec.f27
-// compare) but reverses the temps: f108 lands in edx and fb8 in ecx, because
-// the f108 load is hoisted above the s.b load while ecx still holds &s64, so
-// the shared zero still takes edx and the whole field block stays rotated.
-// Interleaving rec.s between f3f and f3d drops to 72.2, and moving either
-// store past rec.f27 drops to 70.1/69.4. A named void* vtable local scores
-// 74.0 (folded). The one remaining lever is still: get f108 stored before the
-// bool so ecx is free, and keep dx = unit->fb8 live across the bool compare,
-// so the shared zero is materialised in ecx.
-// deepseek-v4.1-flash (run 11, timebox): re-verified the base at 74.0 and
-// scored two more levers on top of it, both reverted: piece copy stores in
-// ascending order (f0, f4, then the obj-deref f8) -> 72.6 / 1058; the f_f0
-// ternary condition written as the reloaded `unit->f_f0 != 0` -> 73.5 / 1067.
-// Residual diff is unchanged: the shared zero register is edx in ours, ecx in
-// the original, driven by the rec.f3d/rec.f3f load window.
-// deepseek-v4.1-flash (run 12, timebox): tried the untried piece-loop shape,
-// rewriting the 3x copy as a pointer walk (`dp->f8 = ...; sp++; dp++;`) instead
-// of the indexed `sp[k]/dp[k]` form. Byte-neutral at 74.0 / 1059 bytes, but the
-// source anchor moves from the original's `lea esi,[ebp+0xc]` to `lea esi,
-// [ebp+4]` and the addressing becomes [esi-0x14]-style, i.e. still a hoisted
-// top-of-loop increment, so the indexed form (with the matching anchor) is
-// kept and the pointer walk is reverted. The esi mid-body placement and the
-// shared-zero register remain the only two diffs.
-// deepseek-v4.1-flash (issue 4104, timebox): re-verified 74.0 / 1059 with two
-// more f3d/f3f shapes, both reverted: f3f-then-f3d store-correct order is a
-// byte-exact 74.0 tie (temps mirrored, so the shared zero still takes edx), and
-// a named `short f3d = unit->f108;` temp with the store after rec.f3f is also a
-// 74.0 tie; f3f/f23/f3d drops to 73.7. The rec.f108-vs-rec.s.b load window and
-// the mid-body esi/eax increments stay the only residuals.
+//  - the rec+0x8f..+0xbb field block: the scratch registers and the order of
+//    the loads/stores are scheduled differently (the original loads f4 into dl
+//    and f5 into al, ours al/al; 15 diff lines), the source order matches.
+//  - the first loop iteration loads f10 first ([esi+8]) where the original loads
+//    f0 first ([esi-8]); the f0-first orders lose the f8 anchor.
+//  - volatile on unit fields (all, flags, f108, fb8, the piece fields) does not
+//    help here (70.8 to 77.7), unlike 0x487bf0.
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
@@ -356,6 +218,8 @@ public:
     int FUN_004b1ec0(void* file);
 };
 
+static inline unsigned char Get10f(Unit_004876c0* unit) { return unit->b_10f; }
+
 // FUNCTION: 0x4876c0
 void __stdcall FUN_004876c0(Class_004b4560* file)
 {
@@ -368,8 +232,7 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
     for (; unit <= end; unit = (Unit_004876c0*)((char*)unit + 0x118)) {
         if (unit->flags & 0x10000000) {
             UnitRecord_004876c0 rec;
-            char script[32];
-            char bufTail[32];
+            char bufTail[32], script[32];
             char bufHead[32];
 
             sprintf(script, "Script%i", count);
@@ -405,21 +268,23 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             rec.f23 = n;
             rec.f3d = unit->f108;
             rec.f3f = unit->fb8;
-            rec.f27 = (unit->vtable != 0);
+            rec.f27 = unit->vtable != 0;
 
+            short id8b = 0;
             Unit_004876c0* a = (Unit_004876c0*)unit->f86;
+
             if (a != 0 && (a->flags & 0x10000000)) {
-                rec.f89 = unit->f86 != 0 ? a->f_a8 : 0;
+                rec.f89 = unit->f86 == 0 ? 0 : a->f_a8;
                 rec.f8d = unit->f_f9;
             } else {
                 rec.f89 = 0;
                 rec.f8d = 0xff;
             }
-
-            short id8b = 0;
             Unit_004876c0* a2 = (Unit_004876c0*)unit->f_f0;
-            if (a2 != 0 && (a2->flags & 0x10000000))
-                id8b = a2 != 0 ? a2->f_a8 : 0;
+            if (a2 != 0) {
+                if (a2->flags & 0x10000000)
+                    id8b = unit->f_f0 == 0 ? 0 : a2->f_a8;
+            }
 
             rec.f8f = unit->f58;
             rec.f8e = unit->f_f4;
@@ -439,8 +304,7 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             rec.fa3 = unit->fb0;
 
             unsigned int u = unit->flags;
-            unsigned char b = unit->b_10f;
-            rec.flags.a = b & 0xf;
+            rec.flags.a = Get10f(unit) & 0xf;
             rec.flags.b = u & 0xfff;
             rec.flags.c = (u >> 13) & 1;
             rec.flags.e = (u >> 14) & 0xfff;
@@ -448,10 +312,10 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             Piece_004876c0* sp = unit->pieces;
             SavedPiece_004876c0* dp = rec.pieces;
             for (int k = 0; k < 3; k++) {
-                dp[k].f8 = ((Obj_004876c0*)sp[k].obj)->f10a;
-                dp[k].f4 = sp[k].f8;
-                dp[k].f0 = sp[k].f0;
                 dp[k].fc = sp[k].f10;
+                dp[k].f4 = sp[k].f8;
+                dp[k].f8 = ((Obj_004876c0*)sp[k].obj)->f10a;
+                dp[k].f0 = sp[k].f0;
                 dp[k].f10 = sp[k].f14;
                 dp[k].f12 = sp[k].f16;
                 dp[k].f14 = sp[k].f18;

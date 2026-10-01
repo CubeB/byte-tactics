@@ -1,5 +1,14 @@
 // Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash pass 6 (52.9%, 4360 vs 4420 bytes, current best): two case-3 changes on top
+// deepseek-v4.1-flash pass 7 (53.6%, 4356 vs 4420 bytes, current best): one more case-3 change on
+// top of pass 6. The friendly path's node test `if (node->f111bits.flag_17) break;` becomes the
+// plain mask `if (node->f111 & 0x20000) break;`: the direct load from [node+0x111] fixes the
+// scratch pick the bitfield's shr/test forced (node->f111 had landed in edx, now the original's
+// eax) and lifts 52.9 -> 53.6. Tested on this base and reverted: the neighbouring
+// `def->f1ee->f111bits.flag_8` as `& 0x100` (51.9, that one wants the bitfield) and case 9's
+// `unit->def->f245bits.flag_9` as `& 0x200` (51.5). Remaining diffs unchanged from pass 6:
+// prologue (mode ecx/def edx/dec ecx vs mode edx/def esi/lea ecx,[edx-1]), the after-block
+// scratch picks and the extra ebx reload before the commuted bottom reach compare.
+// deepseek-v4.1-flash pass 6 (52.9%, 4360 vs 4420 bytes, best before pass 7): two case-3 changes on top
 // of pass 5. (1) `Def* tdef` is declared in a NESTED block that opens at the enemy path (`{` plus
 // `Def* tdef = target->def;` immediately before the `(target->f110 & 3) != 2` test) and closes just
 // before the shared flag_28/break tail, which moved the tdef load to 0x43f1f1 like the original and
@@ -332,7 +341,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         if (flags.flag_31) {
             Node_0043f0e0* node = unit->f10;
             if (!enemy) {
-                if (node->f111bits.flag_17)
+                if (node->f111 & 0x20000)
                     break;
                 if (!(def->f241 & 0x800))
                     return Class_00438760("SUPPRESS");

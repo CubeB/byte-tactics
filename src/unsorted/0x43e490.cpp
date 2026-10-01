@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (2nd): re-tested the callee-saved colouring with six source shapes
+// (real Def* def declared first/last, assigned first at the restart label, const pointers, a cached
+// Unit* u local, uninitialised flags). Every one compiles to the same prologue: ebx=target,
+// ebp=unit, edi=g_game, esi=friendly, enemy in ecx plus a home. The original is ebx=g_game,
+// edi=target, esi=friendly, ebp=enemy, unit memory-only at [esp+0x1c] and def in ecx spilled to
+// [esp+0x20]. So the allocator's candidate set here is {target, unit, g_game, friendly} against the
+// original's {g_game, target, friendly, enemy}: enemy never wins a callee-saved slot and unit never
+// loses one, which recolours the whole 3152-byte body. Same class of allocator state as 0x43f0e0
+// and 0x4a6ae0; nothing at the source level moved it in this pass.
 // deepseek-v4.1 pass (best so far, 26.5%, 3100 bytes vs 3152): removed the `def` local by
 // expanding every `def->` to `(unit->def)` (macro DEF) so the frame collapsed to one local
 // (push ecx), which is what the original has; g_game is read inline through macro GAME.

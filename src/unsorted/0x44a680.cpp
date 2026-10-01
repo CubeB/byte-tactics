@@ -122,6 +122,10 @@
 // f73 == 3) && byte != 10` into a nested f73-if (the layout the original's
 // cmp dl,1/2/3 then cmp byte sequence suggests) regresses to 87.9% (2347
 // bytes), so the &&-combined form is load-bearing. Baseline kept.
+// Seventh session (deepseek-v4.1-flash): naming the FUN_004a0200 lookup result
+// at the MAXUNITS/METAL/ENERGY call sites (separate statement per pair, which
+// does force the original's left-to-right push order) regresses the whole
+// function to 87.2% / 2360 bytes, so the nested right-to-left form stays.
 // Base by deepseek-v4.1-flash, space-bunny-free and GPT-6; continued by deepseek-v4.1.
 // Gave up at 79.0% (2333 bytes against 2340). The 1-bit bitfield at
 // Unit+0x9d bit 2 fixed the tail; what is left is the initial local-slot

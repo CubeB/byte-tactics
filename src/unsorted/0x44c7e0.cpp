@@ -107,6 +107,10 @@
 // respelled as g_game->items + off + 0xa0 instead of (char*)item + 0xa0) scores
 // 84.3% (1608 bytes), so the live item pointer alone is not what blocks the
 // original's `add esi,0x20` in place of `lea ecx,[esi+0x20]`.
+// Eighth pass (deepseek-v4.1-flash): naming the shifted flags value
+// (`unsigned int bits = dword >> 15; if ((bits & 1) == 0 ...)`) is byte-identical
+// to the inline `((x >> 15) & 1) == 0` at 85.2% / 1595 bytes, still
+// `test ch,0x80`, so the fold is not a statement-shape artifact either.
 
 #include <stdio.h>
 #include <string.h>

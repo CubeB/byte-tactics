@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2982): best stays v1 (tick store at
+// statement 3). The v4 shape puts the ff8 store/cmp pair after the six clears
+// with the tick load hoisted (first block positionally exact), but rotates the
+// whole register pool (zero ebx vs ebp, tick ecx vs edx, w ebp vs ebx). Neither
+// dummy-extern sweeps (prepack/prefunc, N up to 200), register/type/pointer/
+// reference tick temps, uninitialized-declaration orders, nor local hoists moved
+// it, so it is a compiler-state pool tie.
 // GPT-6.1-sol retry: best remains 98.3% (473 bytes). An equivalent `if (p->ref != 0) {} else` preserved the same diff; the conditional-expression form `p->ref = p->ref ? p->ref : new PlayerRef` scored 61.3%; moving the third tick store after the first six clears scored 96.6%. Restored the 98.3% source.
 // Further refinement: moving the allocation guard after the six clears scored
 // 68.9%; an empty `p->ref == 0` guard scored 97.5%. Restored 98.3%; no MATCH.

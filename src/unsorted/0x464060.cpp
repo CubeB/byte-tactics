@@ -1,4 +1,10 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 2982): re-confirmed 87.8%, one hunk left.
+// The original emits `mov [esp+0x24],ecx` (r.top) then `lea edx,[eax+0x8a];
+// add ecx,eax` (sum into y's register); ours hoists `lea edx,[eax+0x8a];
+// add eax,ecx` above the store and stores eax. This retry: struct-wrapped y and
+// <windows.h> byte-identical, height-before-rect 48.6%, named left temp 86.6%.
+// Regalloc/schedule tie at the run cap.
 // GPT-6.1-sol retry in #1947: baseline, /Gz, and /Gr checks all confirmed 87.8%.
 // Refinement: add/store reorderings scored 82.6%, 77.9%, and 44.7%; the PR best
 // was restored and independently verified. No MATCH.

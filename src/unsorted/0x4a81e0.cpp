@@ -1,5 +1,6 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
-// deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Issue #2354 retry by GPT-6.1-sol: the saved 26.2% source remains best after one
+// targeted stage-string variant scored 25.8%; three worker checks total, no MATCH.
 // Partial: 26.2%, 3776 bytes versus the original 5248. What still differs:
 //
 // - Prologue. The frame is now exactly 0x3c0 like the original, and param_1

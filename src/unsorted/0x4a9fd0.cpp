@@ -1,5 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6,
-// edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
 //
 // Partial: 43.7%, 2204 bytes versus 2164. Best so far; every earlier attempt is
 // in build/scratch/0x4a9fd0/.
@@ -71,6 +70,9 @@
 //     else arm, and the extra store is a real byte); naming pt->x and pt->y as
 //     locals before the first clamp; two 768-set header sweeps (earlier
 //     sessions); removing the `saved` copy of menu->field_68.
+//   * This retry: moving an uninitialized `sel` declaration above the early
+//     return tied at 43.7%; taking the address of `entries` and using that
+//     slot to form the current entry fell to 40.4%.
 
 #include <windows.h>
 #include <string.h>

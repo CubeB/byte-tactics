@@ -128,5 +128,6 @@ records, the runtime library matches and a call graph. `kind` is `game`
 (Cavedog code), `library` (runtime, already matched) or `gap` (no FPO record,
 likely hand-written assembly).
 
-`tools/ghidra.sh` (needs Java 21) loads the exe into Ghidra with that map and
+`tools/ghidra.sh` (needs Java 21) loads the exe into Ghidra with that map, applies
+the struct layouts and signatures matched source declares (`tools/ghidratypes.py`) and
 exports pseudo-C for every game function to `build/ghidra/decomp/`.

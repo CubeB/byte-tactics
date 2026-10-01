@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by deepseek-v4.1-flash and GPT-6 (their 80.5% version is the basis).
 // Partial at 84.6% (1596 bytes against 1586). What still differs:
 //  1. The unit-type scan loop: the original zeroes the record byte offset with
@@ -297,6 +297,22 @@ void FUN_0044c420();
 void FUN_0044be70();
 int __cdecl FUN_0044c7a0(const void* a, const void* b);
 
+// Twelfth pass (deepseek-v4.1-flash, retry of issue 4144): baseline re-confirmed at
+// 85.2% / 1595 bytes. The failing allocation is now stated precisely: the original's
+// n is a memory local with a spill/reload pattern (store "mov [esp+0x14],0", reload
+// "mov eax,[esp+0x14]" only at the qsort site), which leaves edi free so the slider
+// loop keeps the handler constant in edi; ours promotes n into edi from the end of
+// the text-copy loop, so the handler store stays an immediate and the tail's idx
+// gets esi instead of edi. Probed that promotion directly: (vArr) "int n[1]; n[0]"
+// everywhere, (vNp) "int n; int* np = &n; *np" everywhere, (vArr2) "int nbox[1];
+// int k = 0; nbox[k]" everywhere, and (vJ) giving the slider loop its own counter
+// "for (int j = 0; j < 0xc; j++)" all compile BYTE-IDENTICAL to this file (same
+// 1595 bytes, same 85.2%), so VC5 scalarizes/forwards all three indirections and
+// the n promotion is not reachable from the n declaration, and the slider counter
+// is already esi as in the original. The remaining diffs are exactly the seven
+// hunks this file documents: the scan loop's ebp/edi role swap with the folded
+// "test ch,0x80", the extra "mov edi,[esp+0x14]" before the slider loop, and the
+// tail (panel recomputed per call with "add reg,0x519", idx in esi).
 // Retry by GPT-6.1-sol: baseline verified at 85.2% (1595 bytes). Six scored scratch variants
 // using an aliased count, the union bitfield, an out-of-line count reader, a ternary fallback,
 // an earlier count declaration, and nested scan guards all stayed at 85.2%. The previous

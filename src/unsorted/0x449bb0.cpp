@@ -49,6 +49,20 @@
 // `(short)g->field_140` to FUN_0045b9b0 (for the original's movsx) scored 72.8%,
 // and the DAT_00512d78 player lookup via g_game+idx*0x14b+0x1b8a ties at 74.4%.
 
+// Eleventh session (deepseek-v4.1-flash, issue 4256): baseline 74.6% (2763 bytes)
+// kept. New measurements: the frame layout is exactly 4 ints at +0/+4/+8/+0xc
+// (metalVal, energyVal, holder, local_1c), so the original probably has ONE
+// 16-bit flag local whose home is +0x10 and a 20-byte _itoa/ENERGYTEXT buffer
+// at +0x14 (0x28 frame, no slack). Ours always places the buffer at +0x18 with
+// two spare slots at +0x10/+0x14: flagStart (int, spilled at 0x44a131) plus a
+// reserved 2-byte slot for the flag97 short, which is otherwise fully
+// register-resident in ebx. Collapsing the two flags into one reassigned
+// `short flag97` with a 20-byte buffer scored 69.6% (2770 bytes, frame 0x2c,
+// the 0x44a131 home store disappears entirely); a 20-byte buffer with the two
+// variables left as they are scored 74.3%; `#include <windows.h>` first is
+// byte-identical (74.6%); passing `(short)metalVal`/`(short)local_1c`/
+// `(short)energyVal` to FUN_0045b9b0 instead of the field scored 72.9%.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

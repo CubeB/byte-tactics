@@ -7,8 +7,12 @@
 int __stdcall FUN_004bb710(void* file, int pos);
 int __stdcall FUN_004bb7c0(void* file, void* buf, int size);
 
+// The only caller (0x4d02a0) passes its object in ecx, so this is a method
+// that ignores `this` (it compiles the same as a __stdcall free function).
+struct Class_004d01b0 { int FUN_004d01b0(void* file); };
+
 // FUNCTION: 0x4d01b0
-int __stdcall FUN_004d01b0(void* file)
+int Class_004d01b0::FUN_004d01b0(void* file)
 {
     char tag[4];
     FUN_004bb710(file, 0);

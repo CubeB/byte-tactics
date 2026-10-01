@@ -1,8 +1,43 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
-// deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash.
+// deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash,
+// finished by deepseek-v4.1-flash.
 // Names are provisional.
 //
 // 2797 bytes. Best so far: 82.8% (2846 vs 2797 bytes). No MATCH.
+//
+// This pass (deepseek-v4.1-flash, ~15 min, 2 scored runs): re-read the
+// original lane code with fresh eyes, no gain, one new negative and one
+// structural insight worth keeping.
+// - Negative: a single `unsigned int mb;` reused by the three case-3
+//   post-loop lanes (`mb = *(uc*)(p2 + 0x9c) & M;` then `... | mb`) scores
+//   80.4% (2833 bytes). Same failure mode as the per-lane uint temps: the
+//   dword AND is right, the register file rotates.
+// - Insight for the next attempt: in the original, edi holds the CSE'd 1 and
+//   is used as the mask ONLY in the case-1 and case-2 lanes (`and ebx,edi`,
+//   `and edx,edi`, `and eax,edi` at 0x497403/0x497429/0x497444 and
+//   0x49748a/0x4974b0/0x4974cb). The case-3 post-loop lanes
+//   (0x497348/0x49736f/0x497396) and the later pl lanes (0x4975xx) use
+//   immediates instead, because on those paths edi/edx are already holding
+//   the record pointer or g_game. So the source almost certainly references
+//   ONE variable everywhere; the immediate-vs-register split is MSVC
+//   rematerialising where the register is busy. Our build instead folds every
+//   lane to `and r8, imm; movzx`, i.e. the constant never reaches the lanes
+//   as a value. That is a value-numbering/instruction-selection state of the
+//   whole function, not a per-lane spelling, which is why no lane respelling
+//   has ever moved it.
+//
+// - Two /Fa probes run this pass (build/scratch/0x497180/probe*.cpp) pin the
+//   lane shape precisely: `int m = *(unsigned char*)(p + 0x9c) & 2;` followed
+//   by `w = (w & 0xfffd) | m;` is the ONLY spelling that emits the original's
+//   `mov al, byte [p+0x9c]; and eax, 2; or ecx, eax`. Writing the temp as a
+//   byte load and masking on a later line (g1/g2/g3 in the probe) instead
+//   makes MSVC emit the `xor al, cl; and eax, 2; xor cx, ax` combine, and the
+//   whole-expression `(unsigned short)(...)` cast (our current form) makes it
+//   narrow to `and bl, 2; movzx si, bl`. So the shape in the file is known
+//   good; only the register file (ebx vs eax, dx vs cx, edi vs edx) differs.
+// - A 32-bit word temp (`int w3 = *(unsigned short*)(g_game+0x14281);` then
+//   `w3 = (w3 & mask) | ...;` and a truncating store) does produce the 32-bit
+//   `and edx, 2` lanes and is 12 bytes shorter (2834), but scores 81.9%.
 //
 // This pass (deepseek-v4.1-flash, ~8 min, 0 scored check runs, all --sym):
 // re-confirmed the plateaus below, no gain. Three free probes, all flat at 82.8%

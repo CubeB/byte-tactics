@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // Writes a large screenshot ("BIGSHOT", caller 0x417600) by rendering map
 // tiles and copying them into one large BMP surface.
 //
@@ -22,6 +22,40 @@
 // history: trailing dword added to Class_004cb7f0 for the 0x1b0 frame (kept),
 // struct layout tweaks for Game_00495a30. No inline asm or pragmas used.
 // Stopped on the SHARED.md watchdog stop signal before trying new variants.
+//
+// Later pass 2 (deepseek-v4.1-flash). Big finding: this file is MISSING the
+// Class_004cb940 copy-to-BMP call that sits at the bottom of the outer do-loop
+// (0x495d3d..0x495d5d), which is most of the 143-byte size gap. The original
+// computes the clipped row count first, calls the method, and breaks out of the
+// loop when it returns false: bmp.FUN_004cb940(&surf, w, rows, 0, row, 0, srcY)
+// with rows/srcY coming from `int rows = bh; int sy = var10; int srcY = 0;
+// if (var1c < -1) { rows = bh - 1; sy = var1c; srcY = 1; }` and then
+// `if (row + bh > h) rows = h + sy;`. Note this-relative detail: the
+// Class_004cb7c0 ctor and the Class_004cb7d0 destructor are called on bmp+0
+// ([esp+0x54] at 0x495a56/0x495e6b) while Class_004cb7f0 and Class_004cb940
+// are called on bmp+4 ([esp+0x60] at 0x495a77, [esp+0x70] at 0x495d54), so the
+// original really did have two subobjects four bytes apart; a plain
+// single-base declaration cannot reproduce those two leas.
+// Adding the missing block (both before and after the var24 block) was tried:
+// it brings the size to 1084/1095 bytes but drops the score to 35.3/35.8
+// because the extra live values rotate the whole register/slot allocation,
+// including the prologue (bm moved from [esp+0x14] to [esp+0x18]). Both v
+// variants are kept in build/scratch/0x495a30/ (v55_base.cpp is this file,
+// v_with_call.cpp has the block). Swapping the off27/off2b declaration order
+// also loses (54.6). So the loop tail has to be added together with the frame
+// layout, not on its own.
+// Derived the original local slot map in frame-relative terms (base B = esp
+// after sub 0x1b0 and the four register pushes): B+0x10 var10, B+0x14 bm,
+// B+0x18 bh, B+0x1c var1c (starts -1), B+0x20 bw, B+0x24 var24 (starts bh),
+// B+0x28 savedB, B+0x2c scrollY, B+0x30 off2b, B+0x34 scrollX, B+0x38 -bh,
+// B+0x3c saved bit1, B+0x40 saved bit0, B+0x44 off27, B+0x48 y+row, B+0x4c
+// savedC, B+0x50 savedA, pal at B+0x64 (flag8 at +8), rect bottom bh-1 at
+// B+0x88, surf at B+0x8c, filename at B+0xac (260 bytes). This version matches
+// only B+0x14 (bm) and B+0x18 (bh); the rest are shifted. The original's tail
+// restores bit0 of field_38a51 with the xor idiom (xor al,cl / and eax,1 /
+// xor eax,ecx) and bit1 of viewFlags with mask-and-or, and restores viewFlags
+// bit0 with `xor bl,al / and ebx,1 / xor ebx,eax`, i.e. both saved-bit locals
+// stay live in registers across FUN_004d85a0.
 #pragma pack(push, 1)
 struct Game_00495a30 {
     char unknown_0[0x1423b];

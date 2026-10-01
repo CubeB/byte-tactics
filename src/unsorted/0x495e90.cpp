@@ -1,4 +1,13 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue 3489): one stale claim corrected. check.py on the
+// current file still shows a REAL second delta (not only the d7 tie): the case
+// 0xab CTRL buffer sits at esp+0x18 here but at esp+0x10 in the original
+// (2 x `lea ecx/edx, [esp+0x18]` vs `[esp+0x10]`). The note below claiming
+// `buf[0x10]` + `path[0x100]` lands the CTRL buffer at 0x10 is wrong for this
+// file; it is 0x18. Enlarging case 0xf8's `data[4]` to `data[0x10]` (trying to
+// free 0x10..0x20 for the CTRL buffer) keeps the size at 2292 but drops the
+// score to 77.6%. The frame (`sub esp,0x230`), path (0x140, 0x100 bytes) and
+// findData (0x28) offsets are all correct in the current file.
 // space-bunny-free pass (issue 3260): still PARTIAL 79.6%, 1 real check run.
 // Confirmed again, with an instruction-text LCS diff of both disassemblies,
 // that there is exactly ONE delta left in the whole function and it is the

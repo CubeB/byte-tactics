@@ -1,4 +1,8 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
+// Retry 1 (GPT-6.1-sol, issue 3129): the destination-first inline _Ucopy loop
+// lowered similarity to 72.0% through broad register/frame changes. Restored
+// the 99.7% best; only remaining mismatch is the source pointer lea SIB
+// operand order documented below.
 // Retry 7 (deepseek-v4.1-flash, issue 2932): no change, 99.7%, the same single
 // SIB byte (original `lea eax,[esi+edx]`, ours `lea eax,[edx+esi]`). New
 // measurements via check.py --sym: changing the _Ucopy loop shape (increment

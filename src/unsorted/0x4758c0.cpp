@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry (2026-10-01, #3129): rechecked the existing 88.9% best. The checker confirms the same reallocation-branch register allocation mismatch: original keeps _P in edx across the copy/fill sequence, while this source reloads it into ecx and changes the fill counter register. Prior notes record broad loop, local, header, and template-shape sweeps; no new source form was found within this pass.
 // deepseek-v4.1-flash retry (#2932): still 88.9 percent, 779 of 779 bytes.
 // Tried `iterator _Q = allocate(); iterator _S = _Q; _Q = _Ucopy(...)` (76.5),
 // a foldable `if (_P == _Last) _Q = _S;` extra _P use (39.7) and an aliased

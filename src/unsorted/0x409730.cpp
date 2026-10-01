@@ -55,9 +55,13 @@
 // swapped; std::vector<signed char> 98.0% still swapped. So the store flip
 // always costs the hoist (pointer def floats early once it is a real variable
 // node), and no read-side spelling tried flips 0x409b53 at all.
+// deepseek-v4.1-flash 10-minute retry (this session): still exactly the two SIB
+// bytes at 0x4099f6 (want [esi + ecx]) and 0x409b53 (want [eax + edx]), 1678
+// bytes, 99.6%. One new negative: a value local at the store site
+// (`char v8 = (char)max(-100, min(100, a)); vec_8d[i] = v8;`) is 1677 bytes and
+// 85.1%, so the store SIB flip still cannot be bought without a real pointer
+// node and its early hoist. No spelling tried this pass moved either byte.
 //
-// deepseek-v4.1-flash 10-minute retry: three new shapes scored with check.py
-// --sym, none moved the two SIB bytes. A static `StoreByte(vector<unsigned
 // char>&,int,unsigned char)` helper used only at the store site stays 1678
 // bytes and 99.6% with both bytes still swapped; a static `LoadByte(...)` at
 // the read site and an `AtByte(...)` reference helper at both sites both blow

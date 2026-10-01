@@ -1,4 +1,9 @@
 // Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional., finished by deepseek-v4.1-flash
+// deepseek-v4.1-flash 10-minute retry (this session): re-confirmed 1221 bytes
+// and 98.5%, same three hunks (0x408334 u->def load hoisted above the
+// target = origin stores; 0x4083a4 xor ebp,ebp placed after the trig call
+// instead of before it; 0x4084f7 _allmul first pair pushed commuted). All
+// three are scheduler artifacts of shapes already tried; nothing new moved.
 // Sonnet 5.5: 97.8% (was 87.4%). Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived
 // from Class_00407350 (family listed in 0x407350.cpp). Runs every 90 ticks over the
 // units of this object's group: first gives each unit that FUN_0040bdb0 picks an item

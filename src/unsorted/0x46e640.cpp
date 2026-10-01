@@ -1,4 +1,39 @@
 // Decompiled by space-bunny-free, deepseek-v4.1-flash and GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// space-bunny-free pass (2026-10-01, this run): 99.6% re-confirmed, 546 of 546
+// bytes, the one swapped SIB byte at 0x46e708 is still the only difference.
+// Four new measurements, all scored with check.py --sym on scratch copies:
+//   * The opposite direction from the bisect notes above: ADDING the real
+//     <vector>'s missing members to this clone, one at a time (reverse_iterator
+//     typedefs, rbegin/rend, all four constructors, the 2-arg insert with its
+//     `_Ty()` default, at/operator[]/front/back, push_back, pop_back, resize,
+//     reserve, both erases, clear, the comparisons, swap, _Xran and the
+//     iterator-range insert), 19 builds: every one is either 546/99.6 with the
+//     same single SIB diff or 547/89.6. No member flips the SIB.
+//   * All six orders of the three protected helpers (_Destroy, _Ucopy, _Ufill)
+//     in the clone: 546/99.6 with the same SIB in all six, so the class member
+//     order is not the lever either.
+//   * `const iterator _Q`, a split `_Q; _Q = _Ucopy(...)`, the negated
+//     `if (!(_End - _Last >= _M))` and nested inner `if` forms, the _Ucopy
+//     while form, `_F = _F + 1, _P = _P + 1` increments, dest-first _Ucopy
+//     parameters, and `_M + _Q` for the third copy: 99.6%, same SIB, except
+//     the two that cost the lea (a destination local `iterator _R = _Q + _M`
+//     and a `const _Ty&` temp for `*_F` in _Ucopy), which are 547/89.6.
+//   * tools/permute.py 0x46e640 (12 min, 4 jobs, seed default): 6134
+//     candidates, 0 compile failures, no improvement at all. best.diff is
+//     empty, so the file below is unchanged. It did confirm the wall from the
+//     other side: 2261 `swap_commutative` rewrites, 1441 `flip_compare`,
+//     1258 `negate_if`, 942 `incdec`, 875 `loop_form`, 864 `include` and 651
+//     `compound_assign` all scored equal or worse and none reached MATCH, so
+//     the operand order is not reachable by re-associating the source either.
+// Codegen probes (build/scratch/0x46e640/w): MSVC 5 emits `add reg,reg`, never
+// a two-register `lea`, for every hand-written `p + n`, `(int)p + (int)q` and
+// `p + (q - r)` shape at file scope, so the only `lea` with two pointer
+// operands in this function is the one the loop optimiser synthesises for the
+// third _Ucopy's derived source start, and it cannot be reproduced outside
+// this loop. That is consistent with 0x408f30, whose identical wall is the
+// same residual: the clone reaches the 546-byte three-instruction form but
+// MSVC 5 sorts the commutative pair into the SIB base by register number
+// (ecx, 1, before ebx, 3) while the original's own translation unit did not.
 // deepseek-v4.1 pass (2409): re-verified 546 bytes / 99.6%, still only the
 // swapped SIB byte at 0x46e708 (original lea eax,[ebx+ecx], ours
 // lea eax,[ecx+ebx]). New measurements, all scored with check.py --sym on

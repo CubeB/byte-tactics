@@ -402,7 +402,7 @@ void __stdcall FUN_00424c00(Class_004b4ba0* file)
         int count = ((Class_004b4bf0*)file)->FUN_004b4bf0() / sizeof(FeatureName_00424c00);
         remap.resize1(count, 0);
         std::vector<FeatureName_00424c00> names(count);
-        ((Class_004b4c80*)file)->FUN_004b4c80(names.begin(), count * sizeof(FeatureName_00424c00));
+        ((Class_004b4c80*)file)->FUN_004b4c80(names.begin(), count * (int)sizeof(FeatureName_00424c00));
         for (int i = 0; i < count; i++) {
             if (i < g_game->featureCount && _strcmpi(names[i].name, g_game->features[i].name) == 0) {
                 remap._First[i] = i;

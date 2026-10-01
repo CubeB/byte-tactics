@@ -75,6 +75,23 @@
 // ESI/EBP zero split, first/count homes (ours first=0x10, onOff=0x18,
 // cloak=0x14, u=0x1c; original onOff=0x10, u=0x14, cloak=0x18, first=0x1c),
 // and the tail bit writes using EAX/EBX where the original uses EBX/EDX.
+//
+// deepseek-v4.1-flash, sixth pass (retry at 59.6%, 3 check runs): the diff was
+// re-read in full. Two facts not in the notes above, both from the prologue
+// byte order. (1) Ours keeps the declaration initialisers in the prologue,
+// so `first` takes slot 0x10 and `onOff` shifts to 0x14, while the original
+// never stores first/count there (`onOff`=0x10, `u`=0x14, `first`=0x1c,
+// `count`=0x20): the 0x10/0x14 swap is a direct consequence of the prologue
+// store, so any variant that moves it out also moves onOff back to 0x10, the
+// 32.8% shape the earlier passes measured. (2) The original's nine flag-zero
+// stores are ordered canMove(0x24), canAttack(0x30), canDefend(0x38),
+// canPatrol(0x44), canLoad(0x28), canCapture(0x34), canReclaim(0x2c),
+// canBlast(0x3c), canStop(0x40), i.e. the three groups (canMove,canLoad,
+// canReclaim), (canAttack,canCapture,canDefend), (canBlast,canStop,canPatrol)
+// interleaved, which is a different order from both the loop's bit tests and
+// the current declaration order, so it may be a scheduler artefact rather
+// than evidence about the original declarations. No source shape tried here
+// changed the ESI/EBP zero split, so the ceiling stands.
 
 #include <vector>
 #include <windows.h>

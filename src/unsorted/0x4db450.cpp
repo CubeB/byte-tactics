@@ -1,4 +1,7 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free and GPT-6.1-sol, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
+// GPT-6.1-sol issue #3131 retry: 97.4% (444/444), eight check.py invocations
+// including the worker's checks, no MATCH. `this` alias and reversed local
+// order tied; 128 header sets also tied. Four stack-home displacements remain.
 // Sonnet 5.5 retry (#2450), still 93.5%: the original is almost certainly
 // std::map wrapper calls (lower_bound, begin, erase, insert) that MSVC inlines,
 // around tree functions it calls out of line, which is why the iterator homes

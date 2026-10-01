@@ -115,6 +115,34 @@
 // call for a struct in any field order and for a byte array in any store order,
 // so its placement is a scheduler decision that source order does not reach.
 
+// mimo-v2.6-pro retry (#4308, 22 scratch variants, best stays 93.2 at 367):
+// the clearest lead so far. `now = old | mask;` and `now = old & ~mask;` with NO
+// cast on mask at all (int now, unsigned char old) is the only spelling found
+// that gets BOTH arms' register assignment and load order exactly as the
+// original: the set arm loads old into eax then mask into edx (`mov eax,[old];
+// mov edx,[mask]; and eax,0xff; or eax,edx`) and the clear arm loads mask into
+// eax then old into edx (`mov eax,[mask]; mov edx,[old]; not eax; and edx,0xff;
+// and eax,edx`). It is 11 bytes short because the mask is never narrowed: the
+// original masks it with `and reg, 0xff` in both arms. Every way of narrowing
+// mask that also gives a dword-width clear arm (that is, `(unsigned char)mask`
+// or `(mask & 0xff)` in either arm) flips the two arms' registers: the operand
+// carrying the cast is the one MSVC evaluates first into eax (or into edx in the
+// clear arm), so a cast on mask costs the set arm and a cast on old costs the
+// clear arm. Two narrower leads:
+// - a byte local `unsigned char m = (unsigned char)mask;` (which MSVC
+//   rematerialises as `mov reg,[esp+0x14]; and reg,0xff`, no extra slot, frame
+//   unchanged) with the set arm `now = m | (unsigned char)old;` emits the
+//   original's set arm instruction for instruction; its clear arm
+//   `m & ~(unsigned char)old;` is the mirror (not edx; and eax,edx), so the
+//   clear arm wants the notted byte local to land in eax;
+// - `now = m | (unsigned char)old;` / `now = ~m & (unsigned char)old;` and
+//   `m | old` / `~m & old` all put the notted operand in edx, and
+//   `~(unsigned char)mask & old`, `(unsigned char)mask | old`,
+//   `old | (unsigned char)(mask & 0xff)`, `state = old | mask` in the arms,
+//   a `now` of type unsigned char (byte-wide ops, no spill of old at all) and
+//   the ?: form all collapse the whole thing to byte ops or hoist the mask load
+//   above the `je` (81.9 to 83.6, 355 to 363 bytes).
+
 #pragma pack(push, 1)
 
 struct Player_0048b090 {

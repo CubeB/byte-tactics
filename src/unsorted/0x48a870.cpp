@@ -1,4 +1,45 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+//
+// 30-min checkpoint (deepseek-v4.1-flash, #4308). Best stays 88.8% / 262 bytes
+// (the pointer form below). Two NEW measured facts this pass, both from the
+// compiler's own listings (build/scratch/0x48a870/, gen.py + search.py):
+//
+// 1. THE g_game LOAD IS HOISTED IN EVERY UNFOLDED VARIANT EXCEPT TWO. MSVC5
+//    always lifts `mov reg,[g_game]` to the top of the bit-19 block (that is
+//    why it lands in edx, 6 bytes, instead of the original's late eax, 5
+//    bytes). The only constructs found that keep it at its source position
+//    are (a) a store to unit memory before it (`unit->pos.y = d*0xffff;
+//    unit->pos.y += sea; unit->pos.y <<= 16;` gives the original's exact
+//    order, but keeps a 12th `mov [esi+0x6e],eax` store, 265 bytes / 88.3%)
+//    and (b) reading the sea through a LOCAL POINTER to g_game declared
+//    between the product and the use: `Game* g = g_game;` then
+//    `(*p + g->seaLevel)`. Form (b) is 11 instructions, no extra store, and
+//    reproduces the original's late 5-byte load, the copy-form product
+//    (`mov copy,src; shl copy,16; sub copy,src`) and the sea in the
+//    pre-zeroed edx. It costs the global allocation: the second `[esi+0x92]`
+//    type load moves from ecx to eax, so the whole function scores lower.
+//    Next attempt: find the local-pointer spelling that keeps the type in ecx
+//    (the scratch file gp1.cpp / x_* family in search2.py is the starting
+//    point); the block only needs the type's register back to be a full match.
+// 2. The fold is blocked by a second use of an intermediate, and the SECOND
+//    USE'S POSITION decides the strength-reduction form: with the extra use
+//    before the sum the product stays in the source register (in-place), with
+//    it after the sum it would have to survive and take the copy form. In
+//    this function an extra use after the sum is optimised away before the
+//    fold pass (`if (h == h)` after the store still folds), so the pointer
+//    route stays the only working blocker here.
+// Both facts are measured in build/scratch/0x48a870/ (gen.py, search.py,
+// batch16.py, batch23.py); the gp1 listing is build/scratch/0x48a870/gp1.asm.
+// Late update: form (b)'s block is the original's first six instructions with
+// eax and ecx exchanged, plus the sum in edx instead of ecx, so the rotation is
+// exactly one register pair; ~150 spellings around it (batch17..batch30,
+// search2.py) never moved the chain's second `[esi+0x92]` type load back to
+// ecx, which is what the whole match now hangs on. The ecx allocation of that
+// load survives only in the exact source below: any added local (a `t` type
+// local, a `g` pointer, an unused one) or any inlined sea helper flips it to
+// eax and costs about 10 points. Form (b) also needs the local pointer (an
+// inlined `SeaLevel(g_game)` helper with a pointer parameter still hoists the
+// load). No check.py run this pass beat 88.8%.
 // mimo-v2.6-pro retry (#3772): no improvement over the 88.8% / 262 byte pointer
 // form below; every non-volatile spelling of the bit 19 product still lands the
 // `x*0xffff` strength reduction in eax (`shl eax,0x10; sub eax,ecx`), so g_game

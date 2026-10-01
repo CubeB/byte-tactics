@@ -10,6 +10,14 @@
 // condition's def test moves) so the original copy really is inside the taken
 // branch. All three hunks are scheduler artifacts of shapes already tried;
 // nothing new moved.
+// deepseek-v4.1-flash 10-minute retry (this session, second pass): re-confirmed
+// 1221 bytes and 98.5% with the same three hunks. Two probes, both byte-neutral
+// (1221 bytes, identical hunks): `d.x = FixMul(d.x, s);` for the first FixMul
+// (so the commuted _allmul push really is front-end canonicalisation, not source
+// order) and expanding the loop-2 flag12 Direction() call into a block with an
+// `int ang = FUN_004b6c30(0x10000);` local, the shape that matches in the loop-2
+// else branch. The remaining three hunks (0x408334 def-load hoist, 0x4083a4 xor
+// placement, 0x4084f7 first _allmul push order) are all scheduler artifacts.
 // Sonnet 5.5: 97.8% (was 87.4%). Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived
 // from Class_00407350 (family listed in 0x407350.cpp). Runs every 90 ticks over the
 // units of this object's group: first gives each unit that FUN_0040bdb0 picks an item

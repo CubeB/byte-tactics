@@ -1,5 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol,
 // finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (3857, 2026-10-01): hoisting `Feature* feats = g_game->features` regresses to 74.8% (649 bytes); the `(f->flags & 2) && f->value != 0.0f` swap gives 88.2%. Best stays 88.7%, same ebx/ebp swap.
 // deepseek-v4.1-flash retry (3312, 2026-10-01): `feature <= 0xfffa` drops to 88.2%; a `(f->flags & 2) != 0` spelling and hoisted x/y declarations stay at 88.7% with the same ebx/ebp swap.
 //
 // deepseek-v4.1-flash retry: still 88.7% (645 vs 644 bytes), only the _S/_Q

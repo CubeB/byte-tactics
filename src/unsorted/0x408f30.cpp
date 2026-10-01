@@ -1,5 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by
 // GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (3857, 2026-10-01): `_M + _Q` as the third copy destination and a `++_F, ++_P` _Ucopy increment swap are both byte-identical at 99.6% (one SIB byte).
 // deepseek-v4.1-flash retry (3312, 2026-10-01): a (difference_type) cast on the third _Ucopy s _M stays at 99.6% with the same single SIB byte.
 // deepseek-v4.1-flash retry (2546, 2026-09): re-tested the SIB wall. _Ucopy
 // parameters as iterator/const_iterator, the exact library _Construct spelling,

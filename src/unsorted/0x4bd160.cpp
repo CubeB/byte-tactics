@@ -1,5 +1,34 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 //
+// deepseek-v4.1-flash, issue 4317 (no change to the 98.3% source below, still
+// differs only at 0x4bd17b..0x4bd198). BIG CLUE found this session: the size
+// CAN fold to `mov eax,0x14` while keeping the fresh zero and the early buf
+// store, by computing size FROM the buffer zero and passing a LITERAL 0 as the
+// alloc p arg:
+//     struct HapiBuf sb = {20};
+//     sb.size = (unsigned)sb.buf + 20;
+//     sb.buf = (char*)FUN_004d84a0((void*)0, "Package Data", sb.size);
+// compiles to   xor eax,eax / mov [esp+0x18],eax / mov eax,0x14
+//               push eax / push str / push ebp / mov [esp+0x20],eax / call
+// i.e. fresh zero, early buf store, NO extra store, and the +20 FOLDS to the
+// constant 20 (mov eax,0x14), NOT a lea. Verified with objdump. The aggregate
+// zero is only opaque (lea ecx,[eax+0x14]) when sb.buf is ALSO the alloc arg;
+// when the arg is a literal 0 the compiler folds sb.buf+20 to 20 because the
+// zero is not live across the call. Three things separate this from the
+// original: (1) the zero lands in eax (xor eax,eax), where the original uses
+// ecx (xor ecx,ecx); (2) therefore no dead `mov eax,ecx` base copy (the fold
+// overwrites eax directly); (3) the alloc p arg is a literal 0 that CSEs to
+// ebp (push ebp), where the original pushes the buf zero itself (push ecx).
+// The target is this W3 shape with the zero in ecx (so the fold emits
+// `mov eax,ecx / mov eax,0x14` and the arg CSEs to it as `push ecx`). Every
+// attempt to move the fold base from eax to ecx (value copies, deferring
+// extra=0, local zeros, computed zeros,20-buf forms which put the zero in ecx
+// but emit `sub eax,ecx` with no dead mov) kept the base in eax or folded to
+// immediates. `sb.size = 20-(unsigned)sb.buf` gives the RIGHT order and a fresh
+// ecx zero with an early buf store and no extra store, but emits
+// `mov eax,0x14 / sub eax,ecx` (a live sub, no fold, no dead mov).
+// The dead `mov eax,ecx` needs the +20 form (fold) with the base in ecx.
+//
 // mimo-v2.6-pro session (issue 3877 retry, ~26 fresh shapes, all scored with
 // check.py --sym): best unchanged at 98.3%, this file. Key new fact: the
 // aggregate's zero-fill value is OPAQUE to the optimizer, not a folded

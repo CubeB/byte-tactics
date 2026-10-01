@@ -2,6 +2,35 @@
 // finished by deepseek-v4.1-flash, finished by GPT-6.1-sol,
 // finished by deepseek-v4.1-flash. Names are provisional.
 //
+// SEMANTIC AUDIT (deepseek-v4.1-flash, 2026-10-01): CONFIRMED ALLOCATOR
+// ARTIFACT, not a missing use. The original reads NO a2/a3 field and makes no
+// other use of the pointer values after the second _allmul call that this
+// source does not reproduce. Complete memory-operand list of the original's
+// post-call region (0x49aaf1..end) and where each read lives in this source:
+//   [ebx+0xdc]                wdef->range          -> wdef->range * wdef->range
+//   [ebx+0x111]               wdef->flags          -> flags.bit16 / flags.bit1
+//   [esp+0x24]                a1 argument home     -> a1->def
+//   [0x511de8]                g_game               -> g_game->field_1427f
+//   [esi+6]                   a2->y.parts.whole    -> height check
+//   [edx+0x92] / [edx+0x170]  a1->def / def->field_170 -> height check
+//   [ebp+0x1427f]             g_game->field_1427f  -> height check
+//   [edi]/[esi]/[edi+4]/[esi+4]/[edi+8]/[esi+8]   a3->x, a2->x, a3->y,
+//                             a2->y, a3->z, a2->z  -> FUN_0049a890 arguments
+//   [ebx+0xc8] / [ebx+0x68]   wdef->field_c8 / field_68 -> FUN_0049a890 args
+// Nothing else touches memory after the calls, and esi/edi are never tested,
+// compared, passed or arithmetically used, only used as load bases (they are
+// then clobbered by the loaded values at 0x49ab6d/0x49ab70). Between the two
+// _allmul calls the only memory operands are the dz spills [esp+0x10] and
+// [esp+0x14]. So the pointers being live across the calls is fully explained
+// by post-call reads this file already emits: the residual is purely register
+// allocation (original keeps a2 in esi and a3 in edi; ours rematerialises
+// both from their argument homes and spills into the dead a4 home).
+//
+// WHAT STILL DIFFERS: the first basic block only (register allocation and the
+// spill slots it produces); from the range compare onward the two agree
+// instruction for instruction except the load order while materialising the
+// FUN_0049a890 arguments. Best remains 66.1% (310 of 301).
+//
 // WHAT STILL DIFFERS (unchanged): register allocation in the first block. The
 // original keeps a2 in esi and a3 in edi across both _allmul calls, with
 // dx.lo in ebp, dx.hi at [esp+0x1c] and dz.lo/dz.hi at [esp+0x10]/[esp+0x14];

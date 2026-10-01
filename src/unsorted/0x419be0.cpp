@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry 6 (timeboxed, unchanged at 84.1%): re-derived the
 // prologue from the raw disassembly: the original assigns `mov ebp, ecx` (the
 // address) first, then `cmp byte ptr [ecx],1`, `je`, and only then reads the
@@ -278,6 +278,23 @@
 //   12 in ours, so the allocator's ranking puts `entries` first there and
 //   parameter 1 first here. Nothing found so far can make `button` a second
 //   variable or `entries` a thirteenth user, and that is what it would take.
+// deepseek-v4.1-flash retry 7 (timeboxed, unchanged at 84.1%): two shapes
+// scored this session through a scratch harness (build/scratch/0x419be0/
+// probe.py runs check.py on a variant file, so the real file is never
+// disturbed). The hoisted form `e = button; if (entries[button->index].type
+// == 1) e = &entries[button->index];` is 83.8%: VC5 emits the whole
+// selection EARLIER (the parameter load moves above the pushes, `mov esi,
+// [esp+0x30]`, and the else arm is still `mov ebp, esi`), so even the arm
+// that is evaluated first does NOT read the home slot. That refutes the
+// last mechanism left open by retry 4 ("arm position"): a memory read of the
+// parameter is not reachable from arm order, from the cast tree, or from any
+// copy, so it must be allocator state of the original binary, not a source
+// shape. Also re-measured the name-swap variant the fourth pass recorded at
+// 84.4% (build/scratch/0x419be0/swapparams.cpp): it scores 84.4% again, but
+// the diff shows it only exchanges which stack slot feeds the array base
+// (`mov esi, [esp+0x34]` in place of `mov esi, [esp+0x38]`), i.e. it is
+// semantically WRONG (the caller pushes the button into slot 1), so it is
+// recorded and not used.
 #include <string.h>
 
 class Class_00438760 {

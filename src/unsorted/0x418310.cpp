@@ -1,4 +1,13 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry session 7 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// Two more probes of the y-low-slot hypothesis, both recorded so they are not
+// repeated: putting BOTH cursors in one aggregate local
+// (`struct Quad { int y; Point p[4]; } q;` with q.y driving the outer loop,
+// scratch/0x418310/q1.cpp) scores 51.1% at 2328 bytes, so an aggregate wrapper
+// does not give y the low slot, it just adds addressing; and declaring the y
+// cursor as `int yi[1]` with `yi[0]` everywhere (scratch/0x418310/yarr.cpp)
+// compiles BYTE-IDENTICALLY to the current file (2203 bytes, 55.5%), so an
+// array-class cursor is not the lever either: p[4] still takes esp+0x10.
 // deepseek-v4.1-flash retry session 6 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
 // Three more probes, all byte-identical to this file, confirming the low-slot
 // permutation is not declaration order, scope or expression order:

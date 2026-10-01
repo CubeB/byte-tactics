@@ -76,6 +76,16 @@
 // the UnlockScreen inline's surface register (ours loads `[eax+0x8c]` into eax,
 // the original into ecx) are left.
 
+// Session deepseek-v4.1-flash (4th, edited by deepseek-v4.1-flash): ctx.py shows the
+// original branch 2 Lock keeps the 0x4d41494e constant in EDI (mov edi,0x4d41494e at
+// 0x4c64b6), InterlockedExchange in ebp (0x4c64aa) and WaitForSingleObject in ebx
+// (0x4c64b0), with held ending in ebx (`mov ebx,eax` at 0x4c64e5, `xor ebx,ebx` at
+// 0x4c64e1); branch 1's held sits in memory at [esp+0x10] at 0x4c646a, the SAME slot
+// branch 2 stores bmp into at 0x4c648b (`mov [esp+0x10],edi` with edi=d->field_bc),
+// which is why a function-scope held grows the frame to 0xf8. Also tried writing the
+// inlined UnlockScreen surface as an explicit `IDirectDrawSurface* surface` local:
+// byte-identical (1086 bytes, 83.0), so the [eax+0x8c] eax-vs-ecx load is not the
+// local's spelling. Score unchanged at 83.0, 1086 bytes.
 // Session deepseek-v4.1-flash (3rd): `for (;;)` in the inlined Lock() loop regresses
 // 83.0 to 69.1 (1086 -> 1118 bytes: the loop rotates and the import-pointer registers
 // move), so `while (1)` in Lock() stays; reverted, 83.0 reconfirmed. Remaining diffs
@@ -174,9 +184,10 @@ static inline int UnlockScreen()
 {
     Display_004c63a0* d = FUN_004b6220();
     if (d->field_44 == 0 && d->field_dc == 0) {
-        if (d->surface == 0)
+        IDirectDrawSurface* surface = d->surface;
+        if (surface == 0)
             return 0;
-        d->surface->Unlock(0);
+        surface->Unlock(0);
         if (DAT_0051fe00 > 0)
             DAT_0051fe00--;
     }

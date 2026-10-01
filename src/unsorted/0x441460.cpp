@@ -113,6 +113,9 @@
 // the member itself 16-bit (`unsigned short flags; unsigned short field_4;`, same offsets,
 // same 16-byte 4-dword copy), lands on the very same output: 1826 bytes / 73.3%, so all
 // three spellings of the 16-bit compare collapse to one codegen and none of them is viable.
+// deepseek-v4.1-flash timebox pass: putting the *SETBUF copy ahead of `int f0 = rdw[0];`
+// is score-flat at 84.1% but 1831 vs 1827 bytes, so the f0-first order stays. No untried
+// lever was found inside the 10-minute box; the diff hunks above are the next work list.
 #include <string.h>
 #include <stdio.h>
 

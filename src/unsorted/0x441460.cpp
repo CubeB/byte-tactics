@@ -90,6 +90,11 @@
 // +0x3e/+0x84) and never DAT_004fcdb8, so the two `count = memcmp(...) != 0;` stores were
 // re-pointed from cdb8 to cdc8 (first) and cd98 (second). Byte-flat at 83.7% / 1807 bytes,
 // but now the chain uses only GUIDs the original actually loads.
+// deepseek-v4.1-flash pass 2 correction: the pass-2 note above was wrong. ctx.py's
+// disassembly shows the FOURTH provider test in each chain loads 0x4fcdb8
+// (chain A: 0x4414af `mov edi,0x4fcdb8`, je 0x4414c1; chain B: 0x441502, je 0x441512),
+// so both 4th tests were re-pointed from cdc8/cd98 back to DAT_004fcdb8. Score-neutral
+// (byte-flat at 84.1% / 1825 bytes) but now every compared GUID matches the exe.
 #include <string.h>
 #include <stdio.h>
 
@@ -186,7 +191,7 @@ int __stdcall FUN_00441460(Gadget_00441460* gadget) {
         msg = "Updating...";
         goto shown;
     }
-    count = memcmp(g_game->provider, &DAT_004fcdc8, 0x10) != 0;
+    count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
 second:
     if (memcmp(g_game->provider, &DAT_004fcdc8, 0x10) == 0) {
         msg = "Connecting  (ESC to abort)";
@@ -200,10 +205,10 @@ second:
         msg = "Connecting  (ESC to abort)";
         goto shown;
     }
-    if (memcmp(g_game->provider, &DAT_004fcd98, 0x10) == 0)
+    if (memcmp(g_game->provider, &DAT_004fcdb8, 0x10) == 0)
         msg = "Connecting  (ESC to abort)";
     else {
-        count = memcmp(g_game->provider, &DAT_004fcd98, 0x10) != 0;
+        count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
         msg = "Connecting  (ESC to abort)";
     }
 shown:

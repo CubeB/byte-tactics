@@ -1,5 +1,10 @@
-// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash., retried by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by space-bunny-free, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash., retried by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Retry (deepseek-v4.1-flash, issue 3003): re-confirmed 89.6% (332 bytes both).
+// GPT-6.1-sol retry (#3209): four checker invocations, including final
+// verification. The two source-shape variants scored 63.2% and 66.4%; the
+// best remains 89.6%. No MATCH. The remaining
+// differences are the engine/surface register swap, the table-result zero
+// test, and minor pixel-address instruction ordering described below.
 // The only residual is the engine/surface callee-saved swap (original engine=ebp
 // and surface=ebx; ours reversed, and all 8 downstream ebx/ebp mentions follow).
 // Retried surface-const, engine-reference, screen-before-engine, register

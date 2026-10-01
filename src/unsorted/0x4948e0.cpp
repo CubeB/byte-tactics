@@ -18,6 +18,8 @@
 // identified but untested: fold `y += 0xf` into the initializer (headers drawn
 // at `panel.top`, loop y starts at `panel.top + 0xf`) to remove the dead store
 // and force y to live only in ebx.
+// SUPERSEDED (#3530): see the retry note further down, 78.3% with the player
+// pointer hoisted above the dst quad build; everything else below still holds.
 // Partial: 78.1% (real check.py run; 1451 bytes against the original 1418).
 // Structure, both call sequences, the strcpy/sprintf buffer layout, the src
 // quad and the whole player loop body below the panel rect are in place.  A
@@ -70,6 +72,33 @@
 // `framepic` fed in both arms (66.0).  Earlier sessions: 67.5, 65.6, 69.5,
 // 65.2, 66.6.
 
+// Retry (deepseek-v4.1-flash, #3530): new best 78.3% (1451 bytes, original 1418).
+// The gain came from declaring `Player_004948e0* p = g_game->players;` before the
+// dst quad build instead of in the search-loop initialiser: the compiler then
+// emits `lea esi,[edx+0x1b63]` in the middle of the dst stores exactly like the
+// original at 0x494b88, and the `panel.right - 6` value moves from esi to edi.
+// ebx is still mutated (`add ebx,0x25`) and y still takes the home slot at 0x18,
+// so every panel reference stays 4 bytes high.
+//
+// Measured this session (all kept the y home slot, all in build/scratch/0x4948e0):
+//  - dst x back to the original's `maxw + panel.left` (vA): 62.8%, 1456 bytes;
+//    with the p-hoist too (vG): 54.7%, 1450 bytes.  In that form MSVC promotes
+//    maxw out of memory into ebx, so y loses ebx entirely.
+//  - `panel.left + 0x7d - 6` (vF, 3 live dst values instead of 4): 76.7%,
+//    1447 bytes.  It STILL spills y, so the spill is not simple register
+//    pressure: the allocator deliberately assigns the shared `y + 0x25` value to
+//    ebx and keeps y in its home slot even when a register is free.
+//  - dst stores written in the original's emission order
+//    (p3.x,p0.x,p1.x,p2.x,p1.y,p0.y,p3.y,p2.y, vC): 77.6%, byte-identical size
+//    to the current shape, MSVC's scheduler re-sorts it.
+//  - the four dst.y stores before the four dst.x stores (vE): 77.3%.
+//  - `int y;` declared beside `panel` and assigned after the panel.right store
+//    (vB): byte-identical to the old 78.1% shape.
+//  - pointer-walk cleanup (`for (k = n; k != 0; k--, q++)`, which reproduces the
+//    original's 0x494dc5 block almost instruction for instruction, vH): 73.0%,
+//    1428 bytes, only 10 bytes off the original size but the surrounding
+//    register allocation (g_game leaves edx) costs more than the cleanup saves.
+//
 // Retry (deepseek-v4.1-flash): the y slot at 0x18 is forced by MSVC mutating
 // ebx during the dst quad build (`add ebx,0x25`), where the original uses a
 // scratch register (`lea eax,[ebx+1]` then `lea eax,[ebx+0x25]`).  Measured
@@ -236,6 +265,7 @@ void __stdcall FUN_004948e0(void* surface)
     y += 0xf;
 
     for (int i = 0; i < (int)g_game->numPlayers; i++) {
+        Player_004948e0* p = g_game->players;
         Quad_004948e0 dst;
         dst.p[0].x = panel.left + 7;
         dst.p[0].y = y + 1;
@@ -247,7 +277,6 @@ void __stdcall FUN_004948e0(void* surface)
         dst.p[3].y = y + 0x25;
 
         int n;
-        Player_004948e0* p = g_game->players;
         for (n = 0; n < 10; n++, p++) {
             if (p->field_0 == 0)
                 continue;

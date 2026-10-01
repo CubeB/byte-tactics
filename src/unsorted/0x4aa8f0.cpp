@@ -1,11 +1,19 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 //
-// PARTIAL: GUI layer loader (0x4aa8f0, 1762 bytes). Best 38.3%
-// (ours 1783 bytes vs 1762). The frame is now the original 0x21c and long
+// PARTIAL: GUI layer loader (0x4aa8f0, 1762 bytes). Best 53.1%
+// (ours 1790 bytes vs 1762). The frame is now the original 0x21c and long
 // stretches of the middle match; the first divergence is the prologue (ours
 // loads `menu` into EBX before the four pushes and parks `ret` at [S+0x18],
 // the original loads menu into EDI after the pushes and puts `ret` at
 // [S+0x14]).
+//
+// Load-bearing find (38.3% -> 53.1%): the `flags & 0x200` sub-branch must be
+// written with the mask != 0 arm FIRST, matching the original layout
+// (0x4aaa2f `je 0x4aaa61` jumps over the mask arm to the alloc arm at
+// 0x4aaa61). The earlier `if (mask == 0) {...} else {...}` spelling emitted
+// the alloc arm first and a `jne` over it. Swapping the two arms also makes
+// `layer` land in EDI for the FUN_004aeac0 block (`mov edi,[esi+0x18]` /
+// `mov edi,[esp+0x18]`) as in the original.
 //
 // What still differs:
 //  * `menu` is homed in EBX for the whole function here. The original homes
@@ -177,13 +185,13 @@ Layer_004aa8f0* __stdcall FUN_004aa8f0(Menu_004aa8f0* menu, const char* name,
     FUN_004baff0(layerName, layerName, "GUI");
     if (FUN_004bbc40(layerName) != 0) {
         mask = flags & 0x200;
-        if (mask == 0) {
+        if (mask != 0) {
+            layer = menu->layer;
+            entry = &layer->entries[layer->entries->count + 1];
+        } else {
             layer = (Layer_004aa8f0*)FUN_004d83b0(guiName, 0x10f57);
             memset(layer, 0, 0x10f57);
             entry = (Entry_004aa8f0*)((char*)layer + 0x3f);
-        } else {
-            layer = menu->layer;
-            entry = &layer->entries[layer->entries->count + 1];
         }
         if (FUN_004aeac0(entry, layerName) != 0) {
           if (mask != 0) {

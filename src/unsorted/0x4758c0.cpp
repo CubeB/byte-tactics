@@ -1,3 +1,11 @@
+// Retry (deepseek-v4.1-flash, issue 3753): three more spellings. A local copy
+// `iterator _Pe = _P;` made before allocator.allocate and used by the first and
+// third copies is neutral at 88.9 (779 bytes), and so is the hand-rolled fill
+// rewritten as `size_type _C = _M; while (_C != 0) { construct(_Q, _X); ++_Q;
+// --_C; }`. Moving the three member stores (_End/_Last/_First) before _Destroy
+// and deallocate is a real regression to 76.6 (772 bytes), so that order is
+// load-bearing for the allocation. Best version (88.9) kept.
+
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash retry (#3691): still 88.9, 779 of 779 bytes, the same
 // realloc-arm register wall documented below (_P in ecx here, edx in the

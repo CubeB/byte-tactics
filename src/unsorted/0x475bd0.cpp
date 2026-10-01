@@ -1,3 +1,10 @@
+// Retry (deepseek-v4.1-flash, issue 3753): two more spellings, both 99.7 with
+// the same single mirror lea byte at 0x475d01: _Ucopy with all three parameters
+// declared iterator (const dropped from _F/_L) and `iterator _Ps = _P;` used
+// only by the third copy of the realloc arm. Neither moves the operand order, so
+// the constness of the copy bounds and a fresh third-copy source local are both
+// ruled out; the best version (99.7) is kept.
+
 // Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash retry (#3691): still 99.7, the same single mirror lea byte
 // in the second arm (`_Last - _P < _M`): at 0x475d01 the original emits

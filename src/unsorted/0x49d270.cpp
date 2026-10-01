@@ -61,6 +61,13 @@
 //     (the CSE temp goes to [esp+0x18]) but the cursor takes EBP (75.8%).
 //   - Helper taking the Game pointer, helper returning through a reference
 //     (15 to 17%), cursor as the found variable, address-of tricks: all worse.
+// deepseek-v4.1-flash (issue 3314 retry, 10 min): one more shape tried, no gain.
+// `unsigned short ownerId` local plus `unsigned short ownerId` helper parameter
+// (to reach the original's `mov cx` / `and edx,0xffff` / 16-bit helper slot)
+// collapses to 766 bytes / 81.5%, so the int ownerId in EDI form (90.7%) stays
+// the best. The remaining diff is unchanged: n spilled to [esp+0x18] and
+// re-read in the loop latch instead of staying in EDI, and the owner f_a8
+// compare loading into a register instead of `cmp word [edx+0xa8], bx`.
 // So the missing piece is a source form where n is defined at the top of the b0
 // block yet stays a register variable ahead of the cursor, while ownerId is a
 // ushort that spills.

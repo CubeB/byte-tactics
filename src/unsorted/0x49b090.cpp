@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue 3314 retry, 10 min): body reconfirmed at 82.3% / 847 bytes against 844;
+// no new shape tried beat it. Left as is, with the diff exactly as described below.
 // deepseek-v4.1-flash (issue 2893 retry, 10 min): body left at 82.3% / 847 bytes against 844, still the
 // best. This pass tried ~35 more source shapes, all CSE'd or scored lower: feature-block ternaries
 // (v_tern1/v_tern2, equal), branch reorder 0xfffe-first (80.6), `mf = 0` init with conditional assigns

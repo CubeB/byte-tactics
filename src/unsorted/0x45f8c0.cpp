@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // GPT-6.1-sol retry: 3 checks retained 98.7%; only the first line-buffer LEA register still differs (EDX in the original, ECX here).
 // Fills a help page (gamedata/help.TDF, node "Help", keys "Line<n>"): for every
 // line of the page it looks the line up, cuts it at the '|' into a left and a
@@ -89,6 +89,17 @@
 // hoists the lea to [esp+0x34] and still picks ecx (96.0), so the address
 // temporary is not the lever: MSVC 5 always prefers ecx here and the
 // original evidently had something occupying ecx at the merge.
+//
+// deepseek-v4.1-flash (issue #2980 retry): confirmed the same hunk with the
+// compiler listing itself (tools/wcl /Fa), so no check.py budget was spent on
+// dead ends. Further spellings that all still emit `lea ecx`: AddLine declared
+// __fastcall (value 1st and 2nd), an int return type, an extra trailing char*
+// parameter, value aliases (`char* vv = &value[0];` at the top and after the
+// if/else, used for both FUN_004b6af0 calls), `(char*)(void*)value`, `*&value`,
+// `value + 0 * y`, and arrays-of-struct forms. `(char*)&value` does move the
+// lea, but to a NEW temporary slot at a different offset, so it cannot match.
+// The merged-block instruction stream is otherwise byte-identical, so this is
+// the compiler's register tie-break for a free ecx/edx and stays at 98.7%.
 #include <windows.h>
 #include <string.h>
 

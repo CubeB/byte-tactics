@@ -1,4 +1,14 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 deepseek-v4.1-flash retry (issue 2980): still 84.1%, the same
+// single ebx/ebp swap documented above (ours: view=ebx, info=ebp; original:
+// view=ebp, info=ebx). New levers tried this pass, all 84.1% or worse:
+// the sibling renderer 0x459200's register-homing trick (a `bool bright =
+// (field) & 1;` local feeding `bright ? 125 : 50`), an unsigned-dword read of
+// the +0x241 flags word, operand swaps in every `+=`, an explicit destination
+// pointer, reference-to-info, pointer-to-int info, `register` hints on view,
+// info and v, const on the view parameter, parameter order swap (82.8), moving
+// faceno/piece declarations between function and block scope (82.1), and
+// adding <memory.h> / <string.h>. None moves the tie.
 // GPT-6.1-sol retry (#1616): unchanged at 84.1%; the remaining mismatch is the documented ebx/ebp allocation swap.
 // Best result: 84.1% (455 of 455 bytes). The body now compiles to the
 // original except for one global register swap: MSVC puts the `view` pointer

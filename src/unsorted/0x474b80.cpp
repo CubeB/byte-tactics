@@ -1,4 +1,62 @@
-// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free, deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by mimo-v2.6-pro. Names are provisional.
+// MIMO-V2.6-PRO (retry pass 2): 96.5 percent, 309 of 303 bytes, up from 84.6.
+// NOT A MATCH: exactly one instruction of difference is left, `and edx, 0xff`
+// (the pin, see below) plus the two short jmp offsets that shift because of it.
+// Everything else is now byte-identical: prologue, pre-branch block (all its
+// register roles), the branch, both arms in full (including the fog arm's two
+// width reads and `mov edx,[edx+0x7c]` rematerialisation, and the mask arm's
+// `mov edx,[edx+0x80]; imul edx,ecx`), one fail block per arm (no tail merge),
+// and the whole call sequence. The score is 299 of 303 instructions/bytes of
+// code correct plus 6 extra bytes of pin.
+//
+// THE THREE LEVERS THAT TOOK IT FROM 84.6 TO 96.5 (all from the matched and
+// near-matched siblings' notes, 0x473a00 / 0x4745e0 / 0x4658e0):
+//   1. Two pointers p and q spelling the same `&g_game->players[...]`: the
+//      bounds test reads p, the mask index re-reads q->explored.size.width.
+//      One pointer folds one of the two width loads away; two keep both and
+//      give the original's `mov edx,[edx+0x80]; imul edx,ecx` rematerialisation.
+//   2. The fog arm must read the byte map through ByteMap::Get (the 0x407e90
+//      family spelling), not through a flat `p->seen[w * row + col]`. The flat
+//      spelling re-associates the final sum (`add ebx,[edx+0x7c]` with col as
+//      the addressing base) where Get keeps `mov edx,[edx+0x7c]; add ebx,edi;
+//      cmp byte [ebx+edx],0` exactly. v03_family already knew the arms matched
+//      under this spelling; what was missing was that it must be combined with
+//      the pin below, which also (all by itself) fixes the pre-branch roles.
+//   3. The pin: a redundant `visible = (unsigned char)visible;` at the end of
+//      the else arm. With it the whole frame allocation matches (this -> eax,
+//      map -> edx, playerIndex -> edi, the phi in edx); without it everything
+//      rotates (g_game hoisted to ebx at the top, map -> edi, pos.x hoisted
+//      above the jne) and the score is 37.8. This is the same pin 0x4745e0
+//      needs (and is equally stuck on); 0x473a00's variant is a bool
+//      self-correction which here emits setne code and scores 46.9.
+//
+// WHY THE PIN IS THE WHOLE REST OF THE PROBLEM. The pin's truncation is what
+// the allocator keys on, not its instruction: any truncation of the phi value
+// to 8 or 16 bits that cannot fold pins (`visible = (unsigned char)visible`,
+// `visible &= 0xff`, `(unsigned short)visible`, all 96.5, all emit a 6-byte
+// and). A truncation folded into the tail test (`if ((unsigned char)visible)`)
+// emits nothing (test dl,dl) but does NOT pin (36.7); a truncation of an arm's
+// assignment RHS emits code but does not pin (37.6); plain reads and copies
+// (`visible = visible`, `+= 0`, `|= 0`, `int t = visible; visible = t`, unary
+// `+`) all fold away and do not pin (37.8). `unsigned char visible` truncates
+// for free everywhere (mov dl,1 / test dl,dl) and does not pin (35.9);
+// `unsigned int vis` (the type that pins 0x4658e0's gate) does not pin here
+// (37.8). The pin can sit in the fog arm instead of the else arm (same 96.5).
+// So every code-free spelling tried fails to pin and every pin emits the 6
+// bytes the original does not have. The original's own pin is still unknown.
+//
+// ALSO TRIED THIS PASS, all screened with check.py --sym on scratch copies
+// under build/scratch/0x474b80/ (no check.py runs spent on them): the 0x473a00
+// recipe verbatim (bool self-correction, 46.2), the 0x4745e0 Visible() helper
+// shapes (static inline IsExplored/IsSeen taking (map, pos) with col/row
+// computed inside, 0x4658e0's matched gate spelling, with `unsigned int vis`
+// and `if ((int)vis)`: 32.0 and 28.3 with an in-helper p/q split), casts of
+// the fog arm's 1/0 constants (fold, 37.8), `(bool)`/`(char)`/`!= 0` pin
+// spellings (46-47 and 93.5), and `int cell = w * row + col` (79.0). The
+// earlier passes' ~200 variants remain valid: the arms and pre-branch are now
+// both correct simultaneously for the first time, and only the missing and
+// separates this from MATCH.
+//
 // GPT-6.1-sol (#3152 retry): verified 84.6% (309 of 303), no MATCH. Tried
 // duplicate call bodies (50.8), outer-scope seen/width locals (33.2), switching
 // the fog condition (35.0), an explicit width guard (83.7), nested fog tests
@@ -156,7 +214,10 @@
 // a consequence of the player pointer landing in EDX, and the arms' load
 // placement is already correct in the local-free shape. Everything reduces to
 // ONE question: how does the player pointer get into EDX with four values
-// live across each arm's test.
+// live across each arm's test. (Answer found this pass: the pin above does it,
+// and the rematerialisation then also matches, so the mechanism is half right:
+// the fold-vs-materialise choice does follow the register roles, but the roles
+// follow the pin, not the arm spelling.)
 //
 // WHY THE FOUR-VALUE SPELLING CANNOT GET EDX. Every local-free spelling puts
 // the player pointer in EDI and the index in ECX, and the whole pre-branch
@@ -179,6 +240,7 @@
 // `seen` locals are exactly that pressure - the same two locals that then
 // have to be spilled. One requirement, not two, and the original satisfies it
 // somehow with four values per arm and no hoist; that is what is missing.
+// (This pass: the truncation pin stops the hoist without any arm locals.)
 //
 // INLINED-CALLEE IDEA: TESTED AND DEAD, do not repeat it. Splitting the
 // width read into a second inlined helper beside `Contains`, with the local
@@ -244,7 +306,7 @@
 //     the mask arm's extra `mov ebx,[edx+0x80]` + `mov [esp+0x1c],ebx`
 //     against the original's single reload, plus one fail block the original
 //     keeps per arm (ours tail-merges them, 4 bytes back). Not solved.
-// DEEPSEEK-V4.1-FLASH, sixth pass, 84.6 percent unchanged (13 scratch scorings,
+// DEEPSEEK-V4.1-FLASH, sixth pass, 84.6% unchanged (13 scratch scorings,
 // no new full check.py run needed, the file below is still best). New levers
 // tried, all dead, and the wall is now stated as a coupling rather than a
 // missing trick:
@@ -288,10 +350,16 @@ struct MapSize_00474b80 {
     }
 };
 
+struct ByteMap_00474b80 {
+    unsigned char* data;           // +0x7c
+    MapSize_00474b80 size;         // +0x80
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
 struct Player_00474b80 {
     char unknown_0[0x7c];
-    unsigned char* seen;           // +0x7c
-    MapSize_00474b80 size;         // +0x80
+    ByteMap_00474b80 explored;     // +0x7c
     char unknown_88[0x14b - 0x88];
 };
 
@@ -324,36 +392,43 @@ void Record_00474b80::FUN_00474b80(void* dest, short px, short py)
     // The header reads the position through the pointer, the test through the
     // sub-struct: two different expression trees, so MSVC keeps both load nodes
     // and re-reads the three shorts per arm instead of sharing the header's.
-    // (Either direction works: header-via-pointer or header-via-member.)
-    Pos_00474b80* q = &pos;
-    short sx = q->x - px + 0x80;
-    short sy = q->y - (q->h >> 1) - py + 0x20;
-    Player_00474b80* map = &g_game->players[g_game->playerIndex];
+    Pos_00474b80* q0 = &pos;
+    short sx = q0->x - px + 0x80;
+    short sy = q0->y - (q0->h >> 1) - py + 0x20;
+    // p and q: two spellings of the same player record (the 0x473a00 recipe).
+    // The bounds test reads p, the mask arm's index re-reads the width through
+    // q: one pointer folds one of the original's two width loads away, two
+    // keep both and give `mov edx,[edx+0x80]; imul edx,ecx`.
+    Player_00474b80* p = &g_game->players[g_game->playerIndex];
+    Player_00474b80* q = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->fogFlags & 2) == 2) {
-        // Not redundant, and the order is not arbitrary: `seen` first, then
-        // col and row, then the width. Naming the two fields here is what
-        // stops MSVC hoisting the arms' shared pos.x load and what puts the
-        // player pointer in edx (see the note above); the order is what makes
-        // the fog arm reload `seen` into a register instead of folding the
-        // spill slot into the add.
-        unsigned char* seen = map->seen;
         int col = pos.x >> 5;
         int row = (pos.y - (pos.h >> 1)) >> 5;
-        unsigned int w = map->size.width;
-        if (map->size.Contains(col, row) && seen[w * row + col] != 0)
+        // The ByteMap::Get spelling (the 0x407e90 family) is what keeps the
+        // cell address as `mov edx,[edx+0x7c]; add ebx,edi; cmp [ebx+edx],0`;
+        // a flat seen[w * row + col] re-associates the sum and folds the data
+        // load into the add.
+        if (p->explored.size.Contains((unsigned int)col, (unsigned int)row) &&
+            p->explored.Get(col, row))
             visible = 1;
         else
             visible = 0;
     } else {
         int col = pos.x >> 5;
         int row = (pos.y - (pos.h >> 1)) >> 5;
-        unsigned int w = map->size.width;
-        if (!map->size.Contains(col, row))
+        if (!p->explored.size.Contains((unsigned int)col, (unsigned int)row))
             visible = 0;
         else
-            visible = (g_game->visibilityMask[w * row + col] &
+            visible = (g_game->visibilityMask[q->explored.size.width * row + col] &
                        (1 << g_game->playerIndex)) != 0;
+        // THE PIN (0x4745e0's recipe): a redundant truncation of the phi
+        // value. It is the only thing found that holds the whole register
+        // allocation (this -> eax, map -> edx, playerIndex -> edi, phi in
+        // edx), and it is also the one instruction the original does not
+        // have: `and edx, 0xff`, 6 bytes. Everything that folds or that
+        // truncates at the tail instead fails to pin; see the notes above.
+        visible = (unsigned char)visible;
     }
     if (visible)
         FUN_004b8500(dest, FUN_004b7f30(data, field_14), sx, sy);

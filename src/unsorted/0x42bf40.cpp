@@ -1,4 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 8 (deepseek-v4.1-flash): 65.6%, ours 4716 bytes against 4772. The one real
+// gain this pass is the tail: reading the three extent differences back THROUGH the
+// same `int* p` (`p[0] = p[-3] - p[-6];` instead of `*(int*)(unitdef+0x16a) - ...`,
+// and `(p[2] + p[0]) / 3`) stops MSVC from keeping w/h and the four extents in
+// registers, so it emits the original's store-then-reload chain and the /3 magic
+// multiply shape; that took 64.7% to 65.6%. Reordering the yard-map switch cases to
+// the original's body order ('.', 'f', 'o', 'c', 'O', 'w', 'C', 'y', 'Y', 'G', read
+// off the jump table's case bodies) changed nothing: MSVC5 reorders bodies itself.
+// Also all byte-identical to the previous 64.7% object (so not the lever): `0u`, `0L`
+// and mixed `0L` at the FUN_004c4800/FUN_004c46c0 default sites, `unsigned int sound`,
+// and a `Class_00438760* tp = (Class_00438760*)&Class_00438760(buf);` temporary-pointer
+// form. The Class_00438760 member really is at +8 in the original (its load is
+// `mov al, [esp+0x2b]` with this = [esp+0x23]), but every writable form of that
+// expression either uses the ctor's eax (`mov al, [eax + 8]`, 62.7%) or a 4-aligned
+// slot (62.8%), so this file keeps `char value; // +0x0`.
 // Pass 7 (deepseek-v4.1-flash): 64.7%, ours 4716 bytes against 4772. Re-checked
 // the earliest region. The very first code difference is the shared constant
 // zero register: original materialises it once in esi at 0x42c0f0 and pushes
@@ -598,10 +613,10 @@ void __stdcall FUN_0042bf40(char* fbi_file, char* unitdef) {
             *(int*)(unitdef + 0x172) = (h << 20) / 2;
             // tail
             int* p = (int*)(unitdef + 0x176);
-            p[0] = *(int*)(unitdef + 0x16a) - *(int*)(unitdef + 0x15e);
-            p[1] = *(int*)(unitdef + 0x16e) - *(int*)(unitdef + 0x162);
-            p[2] = *(int*)(unitdef + 0x172) - *(int*)(unitdef + 0x166);
-            *(int*)(unitdef + 0x182) = (*(int*)(unitdef + 0x17e) + *(int*)(unitdef + 0x176)) / 3;
+            p[0] = p[-3] - p[-6];
+            p[1] = p[-2] - p[-5];
+            p[2] = p[-1] - p[-4];
+            *(int*)(unitdef + 0x182) = (p[2] + p[0]) / 3;
             ((Class_004c3240*)&parser)->FUN_004c3240();
             if ((*(unsigned int*)(unitdef + 0x245) & 0x2000) && *(short*)(unitdef + 0x208) == 0)
                 *(short*)(unitdef + 0x208) = 80;

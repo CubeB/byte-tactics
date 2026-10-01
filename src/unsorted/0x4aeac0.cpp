@@ -27,6 +27,16 @@
 // leave the unchanged six-instruction latch and MATCH. Removing the PROBE store
 // returns to the 75.3% duplicated form (880 bytes).
 //
+// Retry (deepseek-v4.1-flash): two new probes, both worse than the PROBE store.
+// A source-level twin induction variable (Elem* e = obj outside the loop, e++
+// next to i++, all e uses through the pointer) is IV-eliminated BEFORE the
+// duplication pass: 880 bytes / 75.3%, identical to no probe, so the seventh
+// latch instruction is not an explicit second increment. Swapping the case 6
+// xor operands (e->body.s6.hotornot ^ FUN_004c46c0("hotornot", 0)) is
+// byte-neutral at 736 bytes / 86.2%: MSVC still hoists the field load into esi
+// before the call, so the original's post-call `mov ecx,[ebp-0xe]` is not an
+// operand-order artifact.
+//
 // Retry #2812: best remains 75.3% (880 bytes vs. 732). The function body
 // matches except for switch-tail latch duplication and the resulting case-6
 // register choice. Prior variants and all 128 header sets are documented below.

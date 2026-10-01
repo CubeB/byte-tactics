@@ -1,4 +1,9 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass (deepseek-v4.1-flash, 10 min, this session): best stays 67.5% / 1578 bytes. Probed
+// removing the dead `if ((char*)&i == (char*)0) return 0;` address-take before the search
+// loop: 67.5 -> 60.7 / 1566 bytes, so the hack is load-bearing (without it the loop index
+// register phase and the [esp+0x10]/param slots shift). Restored, no MATCH.
+
 // Pass (deepseek-v4.1-flash, 10 min): best stays 67.5% / 1578 bytes. Checked the piece-copy hunk:
 // its loads/stores are the same absolute addresses on both sides (our edi/eax bases are +4 because
 // the frame is 4 bytes larger), so that hunk and the shifted jump targets are layout noise, not work

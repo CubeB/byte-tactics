@@ -1,4 +1,9 @@
 // Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 7). Names are provisional.
+// Pass 9 (deepseek-v4.1-flash, 10 min, this session): best stays 64.7% / 1920 bytes.
+// The file was re-checked (1920 bytes, 15 hunks) and every hunk is downstream of the
+// cmd=EBX vs cmd=EDI callee-saved pick and the cached-g_game/ebp occupancy documented in
+// passes 1-8 above; no new steering lever was found in this pass. No MATCH.
+
 // Pass 8 (deepseek-v4.1-flash, 10 min): best stays 64.7% / 1920 bytes. Tried and rejected:
 // splitting the flags tail into compound assignments (flags &= 0xefffffff; store; flags &= 0xffffffcf;
 // store), which regressed to 63.2% / 1912 bytes, so the one-load two-folded-mask spelling is load-bearing.

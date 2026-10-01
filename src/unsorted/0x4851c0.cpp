@@ -1,4 +1,47 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Space Bunny Free pass: still 84.7%, 354 bytes, and I now know exactly what the
+// tie is. Register by register, the original allocates six different registers:
+// b.y->eax, b.x->ecx, a.x->ebx, a.y->esi, a.z->ebp, b.z->edi. Ours allocates the
+// same six values but only four registers: b.y->eax, a.x->ebx, a.y->esi, then
+// b.x REUSES esi (a.y is dead one instruction earlier than in the original),
+// a.z->ebp, b.z->edi. So the whole difference is that the x-difference temp
+// takes the register the y subtraction just freed instead of the still-free ecx,
+// and |dx| and n then take ecx instead of esi. The two `mov` hoists follow from
+// that: a load into a caller-saved register can be hoisted above `push ebx`, one
+// into esi cannot. Nothing else differs: the dead `mov [esp+0x10], eax` /
+// `mov [esp+0x10], ecx`, the copy's slot mixup and everything from
+// `mov eax, [esp+0x10]` (0x4852ec) to the `ret` are byte-identical.
+// New source shapes scored this pass, all 84.7% or worse: y,x,z produces output
+// byte-identical to y,z,x (MSVC normalises the three in-place subtractions to
+// y,x,z whatever the source order, so the order is not the lever; all six were
+// re-scored, yzx and yxz 84.7%, the rest 83.9%); 43 compiler-state files of
+// unused padding before the function in five kinds (extern int, extern int(),
+// `static int f()`, struct, extern const int) at 4 to 196 items, every one
+// exactly 84.7% and not one byte moved; a Vec3 with a user-defined two-argument
+// constructor doing the difference (eight body orders, by value and by
+// reference), 350 bytes, 64.8 to 72.1%; a helper taking the Vec3 by value that
+// returns the difference (six body orders), 69.1 to 81.5%; field-by-field
+// differences into d and field-by-field copies of b into d after the in-place
+// subtractions, all six orders each, 350 bytes, 68.0 to 75.3%; `d = b` then
+// subtract in place on d (82.3%, and 76.6% in x,y,z order); the max spelled
+// `p > q ? p : q`, as a `max(a,b)` macro in both argument orders and as
+// `__max` (83.9, 83.9, 76.6 and 84.7%, only `p < q ? q : p` matches the
+// original's `jl`); four declaration orders of d/n/best/i (two of them cost 8
+// bytes, the rest 84.7%); the max read from b's fields with the copy before
+// and after the divisions (84.7% and 64.5%); comma expressions pairing two
+// subtractions, `b.x = b.x - a.x`, `d.x = d.x / n`, the two divisions swapped,
+// the three subtractions or the max inside their own block, and a `while`
+// loop: 84.7% or worse. One diagnostic worth keeping: a stripped function with
+// only the three subtractions and the copy folds to `mov eax,[d.x]; mov
+// ecx,[b.x]; sub eax,ecx`, so the tie cannot be reproduced in a small
+// reproducer, only in the whole function.
+// Also closed this pass: all 48 combinations of the six subtraction orders with
+// the two assignment forms (`-=` and `= b.F - a.F`) for each subtraction. The
+// assignment form makes no difference at all, the eight forms of each order
+// compile to identical bytes: the sixteen y-first combinations are 84.7% and
+// the other thirty-two are 83.9%, so the only lever in the whole preamble is
+// whether the first subtraction is the y one. tools/permute.py, 2474 candidates
+// in 15 minutes, 84.7% to 84.7%, score 355 unchanged.
 // claude-opus-5-5 (#4378): still 84.7%. The only difference is in the head:
 // the original loads b.x into ecx before `push ebx` and keeps dx in ecx and the
 // step count n in esi; ours swaps them (dx in esi, n in ecx). Tried: d built

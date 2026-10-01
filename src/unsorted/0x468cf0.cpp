@@ -1,6 +1,27 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
 // deepseek-v4.1-flash retry 4 (timeboxed): one variant tried, no gain, reverted.
+// deepseek-v4.1-flash retry 7 (10 min timebox): 53.8 -> 55.3, 6023 -> 5963 bytes.
+// Two shape fixes, both now in the file:
+// 1. The prologue g_game+0xdcb pointer: introducing a plain local pointer
+//    (reusing pcVar18) for the L.local_1b0 store and the two FUN_004be950
+//    6th args ([0xf] reads) makes MSVC hold g_game+0xdcb in ebx across the
+//    FUN_004c2470/FUN_004c6b10 calls instead of keeping g_game there, so the
+//    whole lea ebx,[eax+0xdcb] / mov [esp+0x74],ebx prologue hunk disappears.
+// 2. The first FUN_004c1420 index read at the memcmp!=0 branch was written as
+//    (int)g_game + 0x3816b + uVar19*0x232; reading it through the iVar11 that
+//    was just assigned ((int)((int *)(iVar11 + 0x22e))) makes the original's
+//    base (= g+0x37f3d+u*0x232, small displacements everywhere) fall out and
+//    kills the whole 0x380xx-displacement family of diffs.
+// Also tried and reverted: Ghidra's split spelling of the 0x1ca9/0x1b63
+// addresses (u + 0x14a*u) leaves the CSE add eax,edx (53.7); a piVar10 =
+// g_game+0x141fb base pointer for the whole [edi+...] region gets the frames
+// right but scores 54.4 (5852 bytes, 23 hunks vs 28) because edi is then lost
+// to the other live range at 0x4691b9 that the original also keeps in edi.
+// iVar21/iVar12 coordinate statements (iVar12 first) regresses 53.8 -> 53.5 and
+// is byte-neutral size-wise (6023); hoisting the 0x14280 byte into cVar3 before
+// the iVar12 line is compiled away (identical 6023 bytes, 53.8), so the mov cl
+// between the two subs is still pure scheduling, not statement placement.
 // deepseek-v4.1-flash retry 5 (10 min timebox, no gain, reverted): the prologue
 // hunk (ours: mov ebx,eax / add eax,0xdcb / mov [esp+0x74],eax versus the
 // original's lea ebx,[eax+0xdcb] / mov [esp+0x74],ebx, i.e. the original keeps
@@ -282,9 +303,9 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   L.local_178 = (*(int *)((int)g_game + 0x37e1f) + 0x80) / 2;
   L.local_174 = *(int *)((int)g_game + 0x37e23) / 2;
   FUN_004c69a0((int)(*(undefined4 *)((int)g_game + 0x37e1b)));
-  iVar11 = (int)g_game;
+  pcVar18 = (char *)((int)g_game + 0xdcb);
   memcpy(L.local_1f0,*(void**)(g_game+0x37e1b),48);
-  L.local_1b0 = (byte *)((int)g_game + 0xdcb);
+  L.local_1b0 = (byte *)pcVar18;
   FUN_004c2470();
   ((Class_004c6b10*)L.local_1f0)->FUN_004c6b10(*(OverlayRect*)(g_game+0x37e27));
   iVar12 = (int)g_game;
@@ -298,8 +319,8 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   iVar12 = (int)*(short *)((int)g_game + 0x2cb4) - ((int)*(short *)((int)g_game + 0x2cb0) >> 1)
            - *(int *)((int)g_game + 0x14323) + 0x20;
   if (*(char *)((int)g_game + 0x14280) == '\x02') {
-    FUN_004be950((int)(L.local_1f0),(int)(iVar21 + -2),(int)(iVar12),(int)(iVar21 + 2),(int)(iVar12),(int)((uint)*(byte *)(iVar11 + 0xdda)));
-    FUN_004be950((int)(L.local_1f0),(int)(iVar21),(int)(iVar12 + -2),(int)(iVar21),(int)(iVar12 + 2),(int)((uint)*(byte *)(iVar11 + 0xdda)));
+    FUN_004be950((int)(L.local_1f0),(int)(iVar21 + -2),(int)(iVar12),(int)(iVar21 + 2),(int)(iVar12),(int)((uint)(byte)pcVar18[0xf]));
+    FUN_004be950((int)(L.local_1f0),(int)(iVar21),(int)(iVar12 + -2),(int)(iVar21),(int)(iVar12 + 2),(int)((uint)(byte)pcVar18[0xf]));
   }
   FUN_004c69c0((int)((int *)L.local_1f0));
   iVar11 = (int)g_game;
@@ -370,7 +391,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     memcpy(g_game+0x37e3f,&L.local_1ac,33);
     uVar19 = (uint)*(byte *)(*(int *)(iVar12 + 0x27) + 0x95);
     iVar11 = (int)g_game + 0x37f3d + uVar19 * 0x232;
-    FUN_004c1420((int)(*(int *)((int)g_game + 0x3816b + uVar19 * 0x232)));
+    FUN_004c1420((int)(*(int *)(iVar11 + 0x22e)));
     FUN_004c1450();
     L.local_208 = (ushort *)((int)g_game + 0xdcb);
     iVar8 = FUN_004c13f0();

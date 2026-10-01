@@ -12,6 +12,47 @@
 //     test and puts an inline copy of the epilogue before the body, which cost
 //     12 bytes and every later jump target. The nested form fixes the size
 //     (1691 -> 1703) and all jump offsets.
+//  space-bunny-free pass: confirmed the open lead below and sharpened it.
+//     With the CORRECT semantics written as the if/else-if/else chain of v1
+//     (build/scratch/0x4a6ae0/v1.cpp) the 0x4a6ef9..0x4a708b region is now
+//     BYTE EXACT, instruction for instruction, every opcode, every operand
+//     width, both rect tests and both `test ax,ax` re-tests included. The
+//     ONLY thing left is that v1 swaps the two pointer homes: obj=EBP,
+//     entry=EBX, while the original has obj=EBX, entry=EBP. Every jump
+//     target in the rest of the function then differs by one byte and the
+//     score is 64.1% (1704 bytes). So the shape problem is SOLVED; what is
+//     left is purely the obj/entry priority tie.
+//     Nothing tried this session moved that tie (all still obj=EBP):
+//       - extra source uses of entry that CSE away (entry->flags twice in the
+//         tail test, entry->field_138 twice in the first test, the flags&0x1000
+//         test read through entry instead of the local): no change at all,
+//         confirming references are counted AFTER CSE;
+//       - the else arm written as `else if (field_138 != 0) {...} else
+//         goto fail;`: same 64.1%, same homes;
+//       - `int bound` (which does fix the bound block, see 3) on top of v1:
+//         1700 bytes but the homes stay swapped;
+//       - caching obj->holder in a local, and a redundant `f138 == 0 ||
+//         f138 == 0` in the else arm: no change.
+//     So the missing weight is NOT reachable by adding CSE-able uses. Either
+//     the original spells the region so that one MORE entry use survives CSE
+//     (an extra store to a field of entry in that chain), or obj's uses are
+//     one lighter for a reason outside this region.
+//     SO the tie DOES move, but only from a use that survives CSE: giving
+//     field_138 a union spelling and writing it as two bytes in the second
+//     arm, `bytes.lo = 1; bytes.hi = 0;` instead of `value = 1;`, flips the
+//     homes back to obj=EBX / entry=EBP (build/scratch/0x4a6ae0/v1_y2.cpp,
+//     88.4%, 1710 bytes) and with `int bound` too (v1_y2_z1.cpp, 88.5%,
+//     1706 bytes). The whole function is then correct except for 3 bytes of
+//     size: that byte pair costs `mov byte [e+0x138],1` + `mov byte
+//     [e+0x139],0` (12) where the original has one `mov word [e+0x138],1`
+//     (7), and the bound block. So the open lead is a surviving extra entry
+//     use that emits NO bytes: a byte-pair READ that CSEs into the original's
+//     `mov ax,[e+0x138]; test ax,ax` is the obvious candidate and did not
+//     compile before the wall clock ran out (try
+//     `(entry->field_138.bytes.lo | entry->field_138.bytes.hi) != 0` in place
+//     of `entry->field_138 != 0` on v1_z1.cpp). Everything else in the file
+//     below is unchanged and the file stays at 93.4% because the byte pair
+//     costs 5 bytes it does not get back.
 //  2. The field_138 region below is still the old, SEMANTICALLY INVERTED shape
 //     (`if (field_138) { rect-test..; = 1; DAT=0xf }`), kept only because it
 //     is the one spelling that gets obj=EBX / entry=EBP. The original does:
@@ -68,8 +109,12 @@
 //     weights of index/point.y are raised some other way. Exploring which subset
 //     of the original's shared tails is real is the open lead.
 //  The remaining mismatches of this file: that region, and the loop bound
-//  (`movsx eax,[edi+0xb6]; lea ebp,[eax+1]`; ours `mov ax; inc ax; movsx ebp,ax`
-//  with `short bound`; `int bound` recolors everything, see above).
+//  (`movsx eax,[edi+0xb6]; lea ebp,[eax+1]`; ours `mov ax; inc ax; movsx
+//  ebp,ax` with `short bound`). Measured this session: `int bound` does give
+//  the original's `movsx eax`/`lea ebp,[eax+1]`, but it recolours the whole
+//  function because `bound` then wants EBP before `entry` has had its last
+//  use (1698 bytes, 61.8% on this file, 1700 bytes on v1 with the homes
+//  still swapped). Getting that block right needs the allocation fixed first.
 #pragma pack(push, 1)
 
 struct Class_004a6ae0;

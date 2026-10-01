@@ -1,5 +1,31 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Earlier low-scoring versions by space-bunny-free, GPT-6.1-sol and GPT-6 (47.2%).
+// Current status: PARTIAL 72.4% (best so far, this run; the 70.6/71.0 era is over).
+// deepseek-v4.1-flash retry (72.2 -> 72.4): moving `int cnt = ...` ABOVE the
+// `used[]` zero loop in the source gained the 0.2. It is a scheduling lever, not
+// a semantic one: the compiler reorders the movsx/inc and the `rep stosd` the same
+// way regardless of source order, and the swap only nudges the difflib alignment
+// of one line. Confirmed everything below with the /Fa listing (build/scratch/
+// 0x4a7960/ours.asm): the four-byte size gap and almost every mismatching line
+// trace to ONE allocation at the top. `layer` lands in EAX in ours but in ESI in
+// the original, so cnt (which the original leaves in memory and reloads at each
+// loop2 iteration) gets ESI in ours and is kept register-resident, dropping the
+// extra `mov eax,[esp+0x24]` at loop2 head. That one register choice is also why
+// the original has a dead preheader reload `mov edx,[esp+0x20]` of the spilled
+// layer before loop2, so the preheader reload is a CONSEQUENCE, not a separate
+// missing instruction. Tried to flip layer to ESI (all free --sym scored, all
+// stayed 72.2/72.4 or fell): every declaration order of layer/index/entries and
+// of used[] (including declared after the early return); layer via a separate
+// declaration then assignment; a `Menu* self = menu;` copy feeding the initial
+// loads; layer->entries spelled for entries/b/cnt/the switch cases/tail; an
+// explicit `entries = layer->entries;` at loop2 setup (CSE'd away, no reload);
+// memset() forms of the zero loop; `cnt` declared early and assigned late;
+// `if (cnt >= 2)` and `1 + count` spellings. Adding a redundant `layer` use that
+// survives (w4) collapsed the function to 44.1%. So the allocator picks
+// layer=EAX and cnt=ESI robustly under the whole-body live ranges, and no
+// single-site source edit moved it. The remaining work is finding the upstream
+// change that gives `layer` a callee-saved home; everything else follows.
+//
 // Current status: PARTIAL 72.2% (best so far; the 70.6/71.0 era is over).
 // Sonnet 5.5 pass (no scored change, all free --sym scores stayed 72.2 or fell):
 // root cause is one allocation decision at the top. The original gives `layer`
@@ -246,10 +272,11 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
     if (index == -1)
         return;
 
+    int cnt = entries->data.count + 1;
+
     for (int k = 0; k < 50; k++)
         used[k] = 0;
 
-    int cnt = entries->data.count + 1;
     if (cnt > 1) {
         int* out = used + 1;
         short* p = &entries[1].x0;

@@ -4,6 +4,20 @@
 // Still differs: the hit RMW keeps EDI plus a `mov edx,0x10` rematerialization
 // where the original uses EAX and keeps edx live from 0x48d866; and the tail
 // reuses EAX instead of reloading g_game into EDI. See the long notes below.
+// #3030 retry by deepseek-v4.1-flash: kept the 92.6% best (v0 below). The
+// residual is a single allocator decision in the hit block, and it is not
+// source reachable. Measured this pass: on the two-load shape (direct
+// `g_game->field_37e9c = 0; g_game->flags |= flag;`) the hit block rematerialises
+// the mask (`mov edi,[esi+0x110]; mov edx,0x10; or edi,edx; ...`) because the
+// hit arm RETURNS, so EDI (the g_game home loaded at 0x48d85e for the found==0
+// path) is dead there and the allocator spends it on the RMW temp; the original
+// spends EAX and keeps EDX live, which leaves EDI free to be reloaded with
+// g_game for the flags OR. Swapping operands, casts, bitfield, int/short/register
+// mask, pointer aliases, `|=` vs `|`, an inlined helper taking the mask (hit-only
+// and whole-hit-block) all compile identically to the 92.2% / 392 shape. A dummy
+// `extern int` declaration sweep (0..400, step 2) is flat at 92.2 on that shape
+// and flat at 92.6 on v0, so this is compiler state, not source shape; the
+// allocator tie persists into all tested states.
 // #2403 retry by GPT-6.1-sol: six worker checks kept the 92.2% best. Narrow
 // helper variants kept the same register mismatch or fell to 71.3%; previous
 // mismatch notes below are retained. No MATCH.

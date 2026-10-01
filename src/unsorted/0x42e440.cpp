@@ -37,6 +37,12 @@
 // `if` block, both compile byte-identically again (3918 bytes, 84.4%, 13 diff hunks,
 // the count byte still lands at [esp+0x14]), so the search-local slot truly tracks
 // the later vector-insert allocation, which is still the large hunk.
+// deepseek-v4.1-flash retry (issue #3706): declaring every `unsigned int x : 1`
+// flag as signed `int x : 1` is byte-identical at 84.4% (3918 bytes), and
+// replacing the `std::vector<Entry>& entries = w->sub->entries;` reference with a
+// `Damage_0042e440* sub = w->sub;` pointer local used as sub->entries regresses
+// to 82.8% (3917 bytes), so the vector-insert hunk's ebx/esi/edi split and the
+// stack slot of the search count stay allocator-bound.
 // construct does not use an allocator receiver in the original, so its
 // declaration uses the equivalent two-argument stdcall ABI.
 

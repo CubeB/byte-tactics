@@ -4,6 +4,13 @@
 // and sets edi=0x14 after the len read, while this source uses edi for size+8
 // and sets edi before that read. Existing experiment notes below record that
 // these choices trade together; this pass found no better source or MATCH.
+// FOURTEENTH PASS (deepseek-v4.1-flash): the watchdog stopped the pass before
+// any variant ran, so the coalesced two-variable lead (a second variable
+// assigned from limit so the compiler must materialise the register copy,
+// e.g. `end = size + 8;` with the loop comparing against end and pos moved
+// after the len read) is STILL UNSCORED. One real check.py run re-confirmed
+// the baseline: 94.7%, the same two preheader diffs below. Next pass should
+// score that lead first, as written here.
 // PARTIAL: 94.7%, 206 bytes (code size exact). Walks a chunked file's marker
 // table looking for the record tagged "data" and returns that record's 4 byte
 // header field (the record length), or 0 when the walk runs past the table.

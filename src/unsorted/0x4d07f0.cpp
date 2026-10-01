@@ -1,4 +1,10 @@
-// Decompiled by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// STILL DIFFERS at 88.7% (275 of 275 bytes, code size exact), three hunks in
+// one backend state: (1) the total+8 temp is edx in the original but edi here,
+// (2) mov edi, 0x14 sits one slot late (after the last strncmp push in the
+// original, before it here), (3) the original interleaves pop edi / pop esi
+// with the three fmt stores while this version hoists both pops to the top of
+// the tail block (displacements 8 higher). Loop, exits and frame are exact.
 // GPT-6.1-sol retry: verified 88.7% (275/275) and tested output-pointer
 // aliases, a goto failure arm, and an unsigned-int tag buffer; all retained
 // the same three diffs documented below. No MATCH.

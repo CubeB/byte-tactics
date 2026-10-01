@@ -1,4 +1,62 @@
 // Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// space-bunny-free pass: still 80.0%, 280 bytes (exact size, no MATCH). About 130
+// fresh source shapes were measured with a local harness kept in
+// build/scratch/0x4c71f0/ (fast.py scores variants six at a time, blocks.py prints
+// the original's four case blocks beside ours and finds each block through the jump
+// table so a differently sized case still lines up, dump.py disassembles, gen*.py
+// generate the variants). None of them moved the two hunks, so the body below is
+// still the best. What is new:
+//   * The whole residual is ONE instruction's position. In case 1 the two blocks
+//     differ only by where `mov <reg>, [esp + 0x1c]` (at_high) sits: after the two
+//     pushes in the original, hoisted above `mov [esi], edx` into eax here. Case 2
+//     is the same argument one instruction later. Fix the position and the size
+//     follows, since only eax gets the 5-byte `mov eax, ds:[G]`.
+//   * A diagnostic that reproduces the original's case 1 EXACTLY
+//     (build/scratch/0x4c71f0/s1_offset_store.cpp): one dead statement
+//     `DAT_0051fef4 = offset;` after the call in case 1 yields
+//         sub ecx, esi; mov [edi], edx; mov eax, [0x51fe40]; push eax;
+//         push ecx; mov ecx, [esp + 0x24]; push ecx; call
+//     which is the original's order with the global in eax, the late at_high load
+//     in ecx, and case 2 corrected at the same time. So the choice is register
+//     pressure across the call, not a missing value: keeping offset live there
+//     makes MSVC pick the original's schedule. It costs the extra store and
+//     demotes out from esi to edi (offset takes esi), so it cannot be committed.
+//   * A micro testbed (build/scratch/0x4c71f0/micro*.cpp) shows the late at_high
+//     load whenever the low store moves after the call (both stores in one inline
+//     helper, or the call written first) and in a stripped-down copy of this
+//     function without the loop. Dropping only the loop from the real pre-switch,
+//     with the table reads kept, gives the late load; every spelling that keeps
+//     the loop hoists. The loop's presence, not its wording, decides it: a `for`
+//     with an empty increment, a chained assignment, temps in the body, a swapped
+//     store order and eight more byte-identical rewrites of the loop and of the
+//     pre-switch all still hoist.
+//   * Ruled out this pass, every one byte-identical to the body below or worse,
+//     so do not retry them: an `int g = DAT_0051fe40;` local declared AFTER the
+//     store in case 1 (0x4c70d0's case 2 trick does not transfer, the inline
+//     global already reloads); the same local before the store (276 bytes);
+//     `int d = size - offset;` before or after the store; `int h = at_high;`
+//     before or after the store; all three together in six orders; the call
+//     first, into a temporary, and both orders of a comma; braces, a hex case
+//     label, `break`, an explicit `default`, a duplicated store; stores through
+//     `Range&`, `int& lo`, `int& hi`, `&out->low`, `(*out)`, `out + 0`; inline
+//     SetLow/SetHigh/Store/SetRange/Set members, with the call as an argument and
+//     with a temporary; a `Diff(size, offset)` arithmetic helper and a two-step
+//     `Hi(at_high, 0)`; six prototypes for FUN_004b7381 (unsigned, long, unsigned
+//     long, char, unsigned return); the pre-switch without `lo`, with `offset`
+//     before `size`, with `size`/`offset` split into two statements, with
+//     `table[j].field_4` written out twice, `size` derived from `lo`, and seven
+//     loop wordings; `volatile int at_high` and `*(volatile int*)&at_high` (cl 5
+//     hoists a volatile stack load anyway); flags without /Gz and with /Gd, /Gr,
+//     /Ot, /Ox, /frandom (all 80.0%). A copy of the switch expression
+//     (`int k = i; switch (k)`) is 80.0% too, and swapping which parameter feeds
+//     the store and which feeds the first argument is 78.9%, so the two
+//     parameter roles above are the original's.
+//   * Next attempt: the trigger is register pressure around the call in case 1,
+//     so look for a shape that keeps a value live across it without an extra
+//     instruction and without demoting out from esi, or for a loop form whose
+//     graph the allocator numbers differently while emitting the same bytes.
+//   * Scratch harness left behind: build/scratch/0x4c71f0/{fast,blocks,dump}.py
+//     with run.sh, f.sh, b.sh, c1.sh, d.sh and gen.py..gen16.py.
 // claude-sonnet-5-5 (#4423): still 80.0%. Permuter (12 min, 420 candidates) found nothing; all 24 orders of hi/lo/size/offset declared at the function top and assigned after the loop (the 0x4c90b0 lever) are byte-identical. Original case 1 evaluates in strict right-to-left order (G in eax, then size-offset, then at_high loaded last into ecx); case 2 loads at_low into edx before the first push and at_high into eax after the result store.
 //
 // 30-min checkpoint (DeepSeek V4.1 Flash, #4154): still 80.0%, 280 bytes, no

@@ -1,3 +1,9 @@
+// Retry (deepseek-v4.1-flash, issue 3795): still 88.9, 779 of 779 bytes.
+// Respelling the hand-rolled fill's test as `_C != 0` instead of `0 < _C` is
+// byte-identical, so the counter comparison form does not steer the arm; the
+// wall remains the allocator's choice of ecx (ours) over edx (original) for
+// _P after operator new.
+
 // Retry (deepseek-v4.1-flash, issue 3753): three more spellings. A local copy
 // `iterator _Pe = _P;` made before allocator.allocate and used by the first and
 // third copies is neutral at 88.9 (779 bytes), and so is the hand-rolled fill

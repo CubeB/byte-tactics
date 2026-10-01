@@ -1,4 +1,10 @@
-// Retry (deepseek-v4.1-flash, issue 3753): two more spellings, both 99.7 with
+// Retry (deepseek-v4.1-flash, issue 3795): still 99.7, the same single SIB byte
+// at 0x475d01. Three more spellings of the second arm's third _Ucopy
+// destination (a local `iterator _D = _P + _M;`, `&_P[_M]` and `_M + _P`) are
+// all byte-identical to the file best, so the mirror byte is not reachable from
+// the destination expression. Best version (99.7) kept.
+
+
 // the same single mirror lea byte at 0x475d01: _Ucopy with all three parameters
 // declared iterator (const dropped from _F/_L) and `iterator _Ps = _P;` used
 // only by the third copy of the realloc arm. Neither moves the operand order, so

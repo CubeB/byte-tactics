@@ -1,4 +1,14 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// claude-sonnet-5-5 pass (79.2% unchanged). New facts: declaring r, s and q (`unsigned long* r = ret;
+// int* s = stack; unsigned long* q = pc;`) ALL at function scope next to len/p/i/m/n (variant P1,
+// 78.3%, 622 bytes) reproduces the original prologue exactly: no `mov esi,ecx`, loads straight off ecx,
+// esi=count tested without a reload, `this` not given a register. With ANY later use of `this`
+// (even only `s = stack` in the phase 2 block) MSVC again copies this into esi. The original does keep
+// a later use (it reloads this from [esp+0x20] for r and s) yet still has no register for it, which
+// no spelling here reproduces. P1 loses points on slot numbers (no this home, r/s/q get their own
+// slots instead of sharing 0x18/0x1c) and len lands in ebp in the outer region instead of the
+// original's memory-only slot [esp+0x10]. Declaration order of the 8 top-level locals is irrelevant
+// in P1 (40 random orders, all 78.3). Mixed placements of r/s/q (top vs block) scored 73 to 76.
 // deepseek-v4.1-flash (seventh run, 10-minute box): still 79.2% (643 bytes). Tested, all worse
 // or tied: dropping `const int n = count;` and reading count directly in both places 73.6 (637
 // bytes); moving `int i = 0;` to last tied 79.2 but reverted to the known-best order.

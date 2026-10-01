@@ -1,5 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Best 57.9% (1048 bytes against 1046). The frame map is confirmed, not guessed: the two
+// Best 58.0% (1042 bytes against 1046). The frame map is confirmed, not guessed: the two
 // stores before `push edi` at 0x483fcc are relative to the pre-push esp, so they land at
 // final-esp 0x20 (viewX/ax) and 0x1c (viewY/ay). Original final frame: w1 0x10, px 0x14,
 // w2 0x18, ay 0x1c, ax 0x20, py 0x24, stride 0x28, p2 0x2c, rem1 0x30, rem2 0x34,
@@ -7,9 +7,21 @@
 // stride2 0x3c and all of the final blit loop except one reload; ours allocates
 // w2 0x14, py 0x18, px 0x1c, ay 0x20, ax 0x24, stride 0x28, so only the
 // px/py/w2/ay/ax block is permuted. Removing the `& 0xffff` masks on stride in the tail
-// block (the original imuls the full 32-bit stride, `imul edx,[esp+0x28]`) lifted
-// 57.4 -> 57.9. Tried this round: original px/py/rx/ry evaluation order (57.0%),
-// function-scope p1/p2 (54.7%). MSVC 5 assigns these slots by code, not by declaration
+// block lifted 57.4 -> 57.9, but note the original DOES mask there: at 0x484324 it runs
+// `mov eax,[esp+0x28]; and eax,0xffff; imul edx,eax; lea edi,[eax+eax]` (one mask feeds
+// both the offset imul and stride2), so a `short`-typed or explicitly masked stride
+// respelling may be the right route. Tried this round: original px/py/rx/ry evaluation
+// order (57.0%), function-scope p1/p2 (54.7%), `int stride2 = stride * 2;` before
+// `int offset = ...` in the tail (54.7%, rejected), explicit `(stride & 0xffff)` in both
+// tail uses (57.4%, 1042 bytes), masked plus stride2-first (56.8%, 1039 bytes). Size
+// triangulation on that tail: unmasked 1048, masked 1042, masked+swap 1039, original 1046,
+// and the original tail ends `shl edx,1; mov eax,edx; mov [esp+0x38],eax` (a 2-byte copy
+// ours never emits), so the true tail spelling is masked with one extra edx->eax copy.
+// FOUND THIS ROUND: block 1's `p2 = p1 + w1 - 1` must be spelled
+// `unsigned short* p2 = g_game->mapValues + py * stride + px + w1 - 1;` (58.0%, 1042 bytes):
+// the original adds w1 into the already-computed offset (`add eax,ebp; lea edx,[edx+eax*2-2]`,
+// 0x4840b7), it does not scale the p1 pointer.
+// MSVC 5 assigns these slots by code, not by declaration
 // order (nine declaration orders left every offset unchanged, see SHARED.md), so the
 // remaining gap is the allocator permutation of px/py/w2/ay/ax plus one missing
 // `mov ebp, [esp+0x10]` reload after the block-3 inner loop (the original reloads w1
@@ -91,7 +103,7 @@ void __stdcall FUN_00483fa0(void* surface)
 
     if (rx != 0 || rem1 != 0) {
         unsigned short* p1 = g_game->mapValues + py * stride + px;
-        unsigned short* p2 = p1 + w1 - 1;
+        unsigned short* p2 = g_game->mapValues + py * stride + px + w1 - 1;
         int y = ay;
         int n = w2;
         if (n > 0) do {

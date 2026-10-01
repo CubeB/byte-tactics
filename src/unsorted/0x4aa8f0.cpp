@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
 //
 // PARTIAL: GUI layer loader (0x4aa8f0, 1762 bytes). Best 60.8%
 // (ours 1781 bytes vs 1762). Win of the 0x3638 pass, 53.1 -> 60.8: the two
@@ -7,6 +7,11 @@
 // removes menu's whole-function EBX home: menu is no longer register-resident
 // and the prologue now matches (`mov edi,[esp+0x230]` with menu in EDI, the
 // cur pointer in ESI and `w` in EBX inside the flags & 0x800 block).
+//
+// First divergence still the ret/mask slot swap: three more declaration
+// shapes (the swap `int mask; int ret = 1;`, the merge `int ret = 1, mask;`
+// and the split `int ret; ... ret = 1;`) are all byte-identical at 60.8 /
+// 1781 bytes, so no declaration spelling moves these two slots.
 //
 // First divergence now: `ret` occupies [S+0x18] where the original stores its
 // 1 at [S+0x14] (mask takes the other int slot). Declaring `int mask;` before

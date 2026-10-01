@@ -96,6 +96,11 @@
 //   `mov dword ptr [esp + 0x20], eax`, not [esp + 0x24]. The >= 5 branch of
 //   the saved source is byte-exact, so trust check.py, not the packet.
 //
+// - deepseek-v4.1-flash retry 4 (2026-10-01): still 91.1%, 601 bytes. New
+//   negatives: `if (n > 0)` around only the for loop (halves still outside) is
+//   51.9% / 617 bytes, and `int hw = w / 2, hh = h / 2;` in one declaration is
+//   byte-identical to the two-statement form. The block split stays unreachable.
+//
 // `field_c = g_game->ticks + FUN_004b6c30(900) + 30` in one expression folds
 // to `lea eax, [eax+edx+0x1e]`; the delay has to be computed first.
 // The final MakeFixed ternaries give the `lea eax, [tmp]; mov ecx, [eax]`

@@ -151,6 +151,13 @@ Class_00407350::Class_00407350(Class_00408cb0* p, void* q)
 // unfolded (through ecx) only when the compiler's input has something between
 // the `lea` and the stores, and the only IR node that can go there is the
 // derived vtable store, which MSVC emits before the body.
+// deepseek-v4.1-flash third retry (2026-10-01): still 97.8%, 296 bytes. New
+// negatives: explicit `this->field_38 = 0;` and a raw-layout twin struct copied
+// through `c = *(Vec3_00407d40*)&raw` are byte-identical to the file (the twin's
+// stores through the cast pointer do not break the fold either); making the
+// store depend on the temp (`field_38 = temp.y;`) is byte-identical, and on an
+// already-computed member (`field_38 = a.y;`) is 92.7% / 299 bytes. The vptr
+// store still lands after b's stores; the late placement stays out of reach.
 // FUNCTION: 0x407d40
 Class_00407d40::Class_00407d40(Class_00408cb0* p, void* q)
     : Class_00407350(p, q), a(g_game), b(g_game)

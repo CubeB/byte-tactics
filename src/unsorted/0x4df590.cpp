@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// #2371 retry by GPT-6.1-sol: no completed fresh check due to concurrent
+// compiler contention (two attempts stalled); preserve the recorded 78.3% best.
 // Still differs (78.3%, 1940 vs 1904 bytes). Remaining gaps, by first differing address:
 //   0x4df7c2 : `b` for the 0x3ed/0x3ee case: the original tests `(wParam >> 16) != 1` with shr/cmp and
 //              reuses that register (`mov esi,edx`) for b = 1; here the mask trick (and/cmp) plus

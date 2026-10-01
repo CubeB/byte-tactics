@@ -84,6 +84,23 @@
 // edi, whose zero-init coalesces with n = 0 as the "xor edi, edi" before the
 // branch) and the tail, where n lives in edi instead of on the stack, idx gets
 // esi instead of edi, and the panel (g_game+0x519) is recomputed per call.
+// Sixth session (deepseek-v4.1-flash): baseline re-confirmed at 85.2% / 1595
+// bytes. Isolated the likely mechanism of the ebp/edi swap. The original stores
+// n with "mov dword [esp+0x14],0" (immediate) and only then does "xor ebp,ebp"
+// for the record offset and "mov edi,0x249" for the item offset. Ours emits
+// "xor edi,edi" first and "mov [esp+0x14],edi", so edi is already live when the
+// two offsets are coloured and the record offset inherits it, leaving the item
+// offset with ebp. Every attempt to break that inheritance failed: an explicit
+// running record byte offset (vE, 76.5%), off declared before n (vG, 78.7%, 1
+// byte over), n declared at function scope (vI, 82.9%), n assigned with a plain
+// statement (vJ, unchanged), n initialized from a folded expression (vK,
+// unchanged), an inline Items() accessor (vF, unchanged), and the union
+// bitfield for field_245 (v1, 82.9%). Making ONLY the flags load use an indexed
+// base+off expression (the 85.2% file) is the best shape found. The bittest
+// itself is stubborn: both "(x>>15)&1" and a 1-bit bitfield compile to
+// "test ch,0x80", never the original's "shr ecx,0xf / test cl,1"; the unsigned
+// short, mask, and modulo spellings all folded identically, so this is MSVC's
+// simplification of a known single-bit mask, not a source lever.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

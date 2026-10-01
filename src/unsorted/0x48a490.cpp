@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash (#3891) retry: caching the owner pointer as a named
+// local (`PlayerRec_0048a490* o = u->owner;` used for both `o->sight` and
+// `o->age`, matching the original's single `mov ebp,[edi]` held across the
+// sight compare and the 0x3c clamp) regresses 77.8 to 76.7 percent / 856
+// bytes: the front end keeps the fused `g_game->frame - o->age` in ebp as
+// before and the extra named local only costs a byte, so the owner register
+// is not reachable from a local of that shape.
 // deepseek-v4.1-flash (#3754) retry: hoisting the m declaration above row
 // (m = g_game->maps[u->map]; row = m->rows + m->count;) is byte-flat at 77.8% / 857 bytes,
 // so the edx/ecx head swap is not declaration order; the remaining hunks stand as below.

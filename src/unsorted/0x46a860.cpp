@@ -35,6 +35,20 @@
 // test ah,2 through a single-use local), so the original shr+test spelling at
 // 0x46b70b and the mov dl/shr dl,1 site is not reachable from a temp. Reverted,
 // 82.0% stands.
+// deepseek-v4.1-flash retry 4: 82.0% -> 84.6%, 4250 bytes (original 4247).
+// - WIN: the S:/R: test at 0x46b6fe is not `(v >> 9) & 1` but a byte-typed
+//   value, `((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1)`. The
+//   unsigned char cast stops VC5 folding the pair into `test ah,2`, and the
+//   unsigned int source makes the shift `shr` rather than `sar`. Both halves
+//   are needed: the int source alone gives `sar edx,9` and no gain.
+// - char mText[16]/eText[16] hoisted to the top with text/amount/killsText:
+//   78.1%, 4225 bytes (the in-block declarations are right).
+// - neutral (byte-identical output): a named temp for the [g_game+0x37e23]
+//   load before field_c, an explicit `return;` at the end of the
+//   snapshot.targetType block, and `(x & mask) >> shift` spellings.
+// - still open: the original's `shr dl,1; test dl,1` at 0x46b848 (our
+//   `test dl,2`). Casting the shift result to unsigned char, shifting a
+//   char local with >>=, and a named temp all fold identically.
 #include <windows.h>
 #include <stdio.h>
 
@@ -396,7 +410,7 @@ void __stdcall FUN_0046a860(void* param_1) {
                         }
                     }
                 } else {
-                    char* prefix = ((*(int*)(unit + 0x110) >> 9) & 1) != 0 ? "S: " : "R: ";
+                    char* prefix = ((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1) != 0 ? "S: " : "R: ";
                     char* s = FUN_004c5740("Unidentified object");
                     char* buf6 = text;
                     sprintf(buf6, "%s%s", prefix, s);
@@ -428,7 +442,7 @@ void __stdcall FUN_0046a860(void* param_1) {
                             buf4[0] = 0;
                         }
                         char* name = unit2;
-                        if ((*(unsigned char*)(g_game + 0x3923b) >> 1 & 1) == 0) {
+                        if (((unsigned char)(*(unsigned char*)(g_game + 0x3923b) >> 1) & 1) == 0) {
                             name = unit2 + 0x80;
                         }
                         char* buf5 = text;

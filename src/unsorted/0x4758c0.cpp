@@ -1,3 +1,11 @@
+// Retry (deepseek-v4.1-flash, issue 3947): still 88.9, 779 of 779 bytes, the
+// same realloc-arm register wall documented below (_P in ecx here, edx in the
+// original, with our fill counter living in a register instead of the _P arg
+// slot). Two combined-lever spellings were measured: a hoisted
+// `size_type _C = _M;` counter alone and a hoisted counter plus an
+// `iterator _Pe = _P;` local feeding both the first and the third copy are both
+// byte-identical to this best at 88.9, so the allocator's _P pick does not
+// respond to the combined spelling either. Best version (88.9) kept.
 // Retry (deepseek-v4.1-flash, issue 3868): still 88.9, 779 of 779 bytes, the
 // same realloc-arm register wall (_P in ecx here, edx in the original). Two
 // more fill spellings: postfix `construct(_Q++, _X)` in the body regresses to

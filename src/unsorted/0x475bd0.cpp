@@ -1,3 +1,7 @@
+// Retry (deepseek-v4.1-flash, issue 3947): confirmed 99.7, 791 of 791 bytes,
+// the same single mirrored lea SIB byte at 0x475d01 (`lea eax,[esi+edx]` in the
+// original, `lea eax,[edx+esi]` ours) inside the realloc arm's third _Ucopy
+// source induction; no new lever found this pass, best version (99.7) kept.
 // Retry (deepseek-v4.1-flash, issue 3868): still 99.7, 791 of 791 bytes, the
 // same single mirrored lea SIB byte at 0x475d01. New measurement: binding the
 // second arm s first (discarded) _Ucopy return, `iterator _R = _Ucopy(_P,

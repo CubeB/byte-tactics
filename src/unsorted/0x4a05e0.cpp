@@ -1,4 +1,5 @@
 // Decompiled by GPT-5.6-Terra, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #3154 (GPT-6.1-sol): checker retained the existing 61.5% source. One new inlined SameLowered(a,b) comparison helper scored 42.7%; it grew code and changed register homes. No MATCH.
 // #2970 retry by GPT-6.1-sol: seven checks retained the 61.5% best; initializing
 // entries at assignment and nested positive guards did not change the register
 // and stack allocation mismatch. No MATCH.

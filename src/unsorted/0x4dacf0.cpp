@@ -1,4 +1,102 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Space Bunny Free pass, best 60.1% (777 bytes), up from 55.6%. Four changes do
+// it, three of them the guide's "sete dl; test dl, dl means the result of a
+// comparison was stored in a bool local first" pattern: a comparison result put
+// in a named `bool` local moves this function's whole allocation, and the
+// permuter's finer distance falls 5190 -> 3328. In order of what each is worth:
+//   * the loop's end test is now
+//       bool atend = cur == (Class_004dbe10(map->head));
+//       if (atend) {
+//     instead of `if (cur == (Class_004dbe10(map->head))) {` (distance 3472,
+//     and it also fixes three unrelated differences: the `res + n` address goes
+//     in eax where the original has it, the two record-constructor argument
+//     loads use ecx and edx instead of edx and eax, and the `xor ebp,ebp` zero
+//     register is gone from the commit path);
+//   * `Class_004dbe10::Neq` stores its result in a local first,
+//         bool ne = !(a == b);
+//         return ne;
+//     instead of `return !(a == b);` (distance 3398). The name of the local is
+//     irrelevant; `bool same = (a == b); return !same;` is NOT the same code
+//     (it costs 3 bytes and scores distance 4004), so it is the `!(a == b)`
+//     expression that has to be the initialiser;
+//   * the two field reads after the loop are in the other order,
+//         len = cur.ptr->length;
+//         key = cur.ptr->key;
+//     (distance 3333), which is the order the original emits them in;
+//   * the second of the two `base = key` clamps is spelled `if (key > base)`
+//     rather than `if (base < key)` (distance 3328). The first one, the
+//     `base == 0` test and the `base + want > key + len` test do NOT want that
+//     spelling, so only this one of the three.
+// Trying the same trick on the other comparisons (the fits test,
+// `length >= want`, the want/need guard, the empty-map test, `res == 0`, the
+// counter tail, the pad branch and both inserts) is worse, whether the bool is
+// declared at the point of use or at the top of the function: it costs 7
+// bytes there. The second insert's pair is written
+// `p.length = key + len - base - want; p.offset = want + base;`, the field
+// order the original's store order implies, and every earlier declaration
+// permutation still compiles to the same object.
+// A note on scoring: check.py's ratio counts our own jump TARGETS, so a
+// one-byte shift in our code moves several `j??` lines and the ratio swings
+// 1 to 1.5 points with no change in the code's structure. The permuter's
+// `fine_score` (tools/permute.py) does not have that problem; this pass was
+// driven by it. Earlier this pass the guard `map->count < wraps + 1` (MSVC
+// folds `wraps + 1` to 1 there) scored 57.1% against 55.6% for
+// `count <= wraps`; once the bool local is in both spellings give the same
+// bytes, so the plain `<=` is back in the file.
+// The frame map, re-derived from the operand bytes and worth keeping (E = esp
+// after `sub esp,0x68` and the four pushes, so E = esp0-0x78, the four saved
+// registers sit at E+0x00..E+0x0c, the 0x58 bytes of locals at E+0x10..E+0x67,
+// arg1 at E+0x7c and arg2 at E+0x80):
+//   original  E+0x10 want  E+0x14 n2  E+0x18 cur  E+0x1c b  E+0x20 len
+//             E+0x24 res   E+0x28 lock E+0x2c need E+0x30 p  E+0x38 q
+//             E+0x40 ins   E+0x48 rec (0x0x30 bytes, ends exactly at the retaddr)
+// so the original has a `len` home at E+0x20 and `need` at E+0x2c. That map
+// was read off the 55.6% build, which put `b` at E+0x10, `want` at E+0x1c,
+// `need` at E+0x20 and the FUN_004dbd00 return temp at E+0x2c; the bool locals
+// moved the slots again, so treat the ORIGINAL row as the fact and the ours
+// row as one allocation state among several. The original's three erase calls
+// (FUN_004dbe10,
+// FUN_004dbd80 and FUN_004dbd00) all pass E+0x30, the slot of the named pair
+// `p`; ours gives the first two E+0x30 and FUN_004dbd00 a temp of its own at
+// E+0x2c, which is exactly the dword `need` is missing from. The original's
+// `mov [E+0x20],ebp` between the two pushes of the FUN_004dbd00 call is the
+// spill of `len`, which only happens when `want` holds ebp (ebp is taken by
+// `len` at 0x4dae42, then by base+want at 0x4daea7), so the slot map, the
+// missing len spill and the register rotation are all one allocation state.
+// The tail (pad, both FUN_004d82c0 calls, the record ctor, the counters and
+// both epilogues) is byte-identical apart from the ctor's `push ebp` for the
+// null argument, where the original pushes the immediate 0; at 55.6% the same
+// tail also had `lea ecx,[ebx+edi]` for `res + n` and edx/eax instead of
+// ecx/edx for the two ctor argument loads, and the bool locals fixed both.
+// New facts this pass: (1) the second insert's length is spelled
+// `key - base + len - want` in the original (`sub esi,ebx; add esi,eax;
+// mov eax,edx; sub esi,eax`), not `key + len - base - want`, but MSVC
+// reassociates both spellings here, so the source order is not the lever;
+// (2) the `xor ebp,ebp` zero survives every spelling of the zero uses:
+// `q.length = wraps`, the erase's second argument as `wraps`, an `AtLeast1`
+// helper for the size fixup, an `IsZero` helper for the `res == 0` tests,
+// `res = n - n`, `res` as int/LPVOID/unsigned, `wraps` as int/unsigned/long/
+// unsigned short, `map->count` as int, the guard as `count <= wraps`,
+// `wraps >= count`, `!(count > wraps)`, `wraps + 1 > count`,
+// `count >= wraps + 1`, `count == 0` and an empty if/else with the goto; the
+// zero register is still there in every one. (3) Also flat or worse: declaring
+// the whole first block (q, n2, b, cur) in a nested scope as 0x4db1c0 is
+// written, `while (1)` for the walk loop, `cur = b` / `b = n2` struct copies,
+// an `end` local for base+want (56.8% alone, 56.4% with the new guard), a
+// temporary Pair for the FUN_004db000 call and for both inserts, Pair
+// constructors, Pair parameters by value or by const reference, the erase
+// callees declared by-value-returning (55.2%) or as `void` (49.6%), FUN_004dbd00
+// as an explicit out-parameter (49.3%), the combined `||` guard (43.0%),
+// `res` uninitialised (43.3%), all-at-the-top declarations (44.0%), and every
+// permutation of n2/b/cur. `tools/permute.py` from the 55.6% file climbed to
+// 55.9% (790 bytes) with helpers and do/while(0) wrappers that are not
+// committable.
+// The remaining blocker is still the single register allocation at the top of
+// the function: the original materialises no constant zero at all (it stores
+// `mov [E+0x24],0`, compares with `test esi,esi`, pushes immediates and uses
+// esi, the just-zeroed wraps, for q.length and the erase argument), while this
+// compile puts the constant in ebp and pushes want out to ebx. Give want ebp and
+// the whole rest of the function follows.
 // claude-sonnet-5-5 pass (55.6% unchanged, 777 bytes). New facts: (1) wraps is a SIGNED int in the
 // original (`cmp esi,2 / jge`, not jae) and map->count is unsigned (`jbe`); fixed here, score flat but
 // that diff line is gone. (2) The `xor ebp,ebp` zero register that steals ebp from `want` is NOT
@@ -202,7 +300,11 @@ class Class_004dbe10 {
 
     // The original tests the iterators as a value (sete; neg; sbb; inc; test),
     // which MSVC 5 only does for a `!` applied to a bool-returning member.
-    bool Neq(Class_004dbe10 a, Class_004dbe10 b) { return !(a == b); }
+    bool Neq(Class_004dbe10 a, Class_004dbe10 b)
+    {
+        bool ne = !(a == b);
+        return ne;
+    }
 };
 
 struct Pair_004dacf0 {
@@ -323,7 +425,8 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
     cur.ptr = n2.ptr;
 
     for (;;) {
-        if (cur == (Class_004dbe10(map->head))) {
+        bool atend = cur == (Class_004dbe10(map->head));
+        if (atend) {
             ((Class_004dbeb0*)map)->FUN_004dbeb0(&b);
             cur.ptr = b.ptr;
             DAT_005289d4 = 0;
@@ -337,15 +440,15 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
             goto alloc_new;
     }
 
-    key = cur.ptr->key;
     len = cur.ptr->length;
+    key = cur.ptr->key;
     ((Class_004dbd00*)map)->FUN_004dbd00(cur);
     base = DAT_005289d4;
     if (base == 0) {
         base = key;
         DAT_005289d4 = base;
     }
-    if (base < key)
+    if (key > base)
         base = key;
     if (base + want > key + len)
         base = key;
@@ -355,8 +458,8 @@ unsigned int __cdecl FUN_004dacf0(unsigned int n, unsigned int arg2) {
         map->FUN_004dbbc0(&ins, &p);
     }
     if (base + want < key + len) {
-        p.offset = base + want;
         p.length = key + len - base - want;
+        p.offset = want + base;
         map->FUN_004dbbc0(&ins, &p);
     }
     DAT_005289d4 = base + want;

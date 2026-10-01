@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. finished by Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // Sonnet 5.5 retry (#3079): still 83.8%, 798 bytes. Diagnosis: in the original the
 // loaded value of _P is one register web (edi) from the load after operator new
 // through the _Ufill loop to the tail copy, and its home slot [esp+0x20] is
@@ -40,6 +40,23 @@
 // choice. Earlier notes: the copy assignment's base must remain a struct to
 // preserve its U mangling; every remaining difference is this single
 // register-allocation decision.
+// deepseek-v4.1-flash (issue 3379), still 83.8%, 798 bytes: confirmed the wall is
+// not reachable from source. The two builds are byte-identical for the first
+// 0xbe bytes; the first divergence is the load of _P after operator new, which
+// takes edi in the original and ecx here. That one choice then forces everything
+// else: here the _Ufill counter takes edi (so _P must be reloaded from its
+// argument slot on the prefix loop's back edge) and the destination of the tail
+// _Ucopy takes edi, while the original spills the counter to the _P argument slot
+// and keeps _P in edi throughout. Since the emitted code is identical up to that
+// point, the allocator's live-range metadata must differ, and no source-form
+// change reaches it. Tested this run (all scored by check.py, none above 83.8%):
+// _Ufill counter as a reference to its own parameter (790 bytes / 40.3%),
+// counter as a separate size_type loop index (790 / 40.3%), _Ucopy as a while
+// loop with a braced body (798 / 83.8%), _Ufill with a bare _N test, with the
+// decrement moved into the body, and with the for-update order swapped (all 798
+// / 83.8%, i.e. no effect at all), _Ufill defined before _Destroy and _Ucopy
+// (798 / 83.8%), helpers defined after the data members (798 / 83.8%), data
+// members before the allocator (792 / 70.1%).
 #include <algorithm>
 #include <memory>
 #include <xutility>

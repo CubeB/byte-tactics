@@ -1,4 +1,5 @@
-// Decompiled by GPT-6 Astra, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6 Astra, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol issue 3136 retry pass: baseline and best remain 91.3% after six scratch checks; one source check remains after this note. Variants included reverse component subtraction (73.8%), reverse addition operands (91.3%), min+pos (90.1%), reverse assignment order (91.3%), and a target alias (53.7%). One malformed scratch variant failed compilation. No variant improved the source.
 // deepseek-v4.1-flash pass (4 real check runs / many --sym): no improvement
 // over 91.3%. New insight into why the explicit operator- flips esi/edi: the
 // prologue "mov esi,[esp+0x38]" runs BEFORE "push edi", so it reads arg2 (the

@@ -127,6 +127,10 @@
 // Second 10-minute run on 2026-10-01: moving the timestamp clamp down, below
 // the three deltas, scores 66.2 (same 601 bytes), so the clamp must stay above
 // the deltas; the ebx(order)/edi(start.x) swap remains the whole residual.
+// deepseek-v4.1-flash 10-minute pass (2026-10-01): `Pos start = out[0];` in
+// place of `*out` and a `register` hint on the `order` parameter both compile
+// byte-identically at 66.7% / 601 bytes, so the ebx(order)/edi(start.x) swap
+// still stands as the whole residual.
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

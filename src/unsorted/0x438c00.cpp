@@ -266,6 +266,10 @@ void __stdcall FUN_004be950(void* surface, int x0, int y0, int x1, int y1, int c
 // All produce the same 647-byte body, so the divergence stays the single
 // ecx/edx assignment at 0x438c00 described above.
 //
+// deepseek-v4.1-flash 10-minute pass (2026-10-01): a `register` hint on the
+// `order` parameter is ignored by VC5 (52.2% unchanged), and wrapping the whole
+// body in a positive `if (order->type != 0) { ... }` block instead of the early
+// return is byte-identical at 52.2%, so neither steers the entry ecx/edx choice.
 // FUNCTION: 0x438c00
 void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* order,
                             Vec3f_00438c00* out, int unused)

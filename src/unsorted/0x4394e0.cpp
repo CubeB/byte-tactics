@@ -1,4 +1,25 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// PASS (claude-sonnet-5-5, 2026-10-01): 66.7 unchanged (the permuter's only gain is the
+// redundant parentheses in `dist`, internal score 2132 -> 2007, same percent). Model that fits all
+// measurements: the prologue values {out, flag, order, x} take esi, edi, ebx, ebp in priority
+// order, each the first register not held by a conflicting value. Ours colours out > order > x >
+// flag (order=edi, x=ebx, flag=ebp); the original colours out > x > order > flag (x=edi,
+// order=ebx, flag=ebp). Measured on ~250 variants:
+//  * the 24 orders of {t, dy, dz, dx} x pos before/after the anim group x anim load before/after
+//    the deltas: the prologue is either ours (t first) or {flag=edi, order=ebx, x=ebp} (t after the
+//    deltas), never the original's. Scores 66.7 (current) and 66.2.
+//  * extra uses of x ((start.x.value >> k) sums): 1 to 3 extra uses change nothing, 4 jump x above
+//    out (x=esi); x never lands between out and order. Extra uses of flag lift flag above order.
+//    An extra use of idx in the loop flips the loop pair to the original's (idx=ebx, pos=ebp) but
+//    moves flag to ebx. A single extra out->y use with 3 extra x uses gives out=ebx, order=esi,
+//    x=edi, flag=ebp (order and out swapped relative to the original).
+//  * byte-identical to the base: the snapshot as a comma expression inside any call argument, a
+//    scalar sx next to Pos start, wrappers around the call or the timestamp read (the latter is
+//    worse), declaration order of pos/idx, while and for loop shapes (do-while is much worse),
+//    three scalar snapshot locals (58.9). `Pos end = *out;` after the call: 55.
+//  * the z snapshot IS stored: x, y, z are contiguous at [esp+0x40], [esp+0x44], [esp+0x48] (z is
+//    the `mov [esp+0x50], edx` after two argument pushes), so the "BUG" remark below is wrong.
+// tools/permute.py 15 min (--jobs 4): 490 candidates, no percent gain.
 // RETRY (deepseek-v4.1-flash, 2026-09-30): still 65.2%, the ebx/edi swap is the
 // only residual. No source shape tried here moved it: an `extern int dummyN;`
 // sweep N = 0,4,...,400 (65.2 at N<=12, 64.2 above; compiler state is not the
@@ -232,7 +253,7 @@ void __stdcall FUN_004394e0(void* surface, View_004394e0* view,
     int dy = out->y.value - start.y.value;
     int dz = out->z.value - start.z.value;
     int dx = out->x.value - start.x.value;
-    int dist = (int)sqrt((double)dx * dx + (double)dy * dy + (double)dz * dz);
+    int dist = (int)sqrt((double)dx * dx + ((double)dy * dy) + (double)dz * dz);
     if (dist < 0x10000)
         return;
 

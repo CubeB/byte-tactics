@@ -1,5 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
-// Retry #1748: GPT-6.1-sol confirmed 91.2% (169/171); no MATCH. The second count-address LEA and loop-back value forwarding still differ.
+// Status: best 91.2% (169/171), no MATCH. What still differs (exactly two hunks):
+// (a) the original rematerialises `lea edi, [ebp+0x99]` at 0x47ee79, the shift
+//     loop preheader; this version keeps edi live and emits no lea there;
+// (b) the loop back edge: the original forwards the decrement (`mov eax, ecx`
+//     at 0x47eeaf) where this version reloads through the base
+//     (`mov eax, [ebp+0x99]`), because our loop condition is the base node and
+//     our store is the pointer node. See the full shape history below.
 // Claude Sonnet 5.5 pass (#746): nothing beat 91.2% and 169 bytes. Compiler state is
 // ruled out (declaration-count sweep 0 to 400 in steps of 8 and all 128 header sets
 // of headers.py: 91.2% everywhere). About 40 more shapes were scored:

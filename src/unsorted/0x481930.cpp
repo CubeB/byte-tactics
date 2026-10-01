@@ -469,6 +469,16 @@ void __stdcall FUN_00481930(Params_00481930* params)
 // guarded j1 initialisation but is byte-for-byte the for-loop's rotation.
 // Then that operand order and the remaining first-cell `imul` (edi vs eax)
 // are all that would be left.
+// Re-checked by deepseek-v4.1-flash (issue 4120): the guarded do-while inner
+// loop's +3 bytes live ENTIRELY in the first-cell block, not in the loop. The
+// loop preheader and latch really are byte-identical to the original's. The
+// first-cell block is 30 bytes against the original's 27, all from the product
+// accumulator choice: `imul edi,[esp+0x10]` is 5 bytes where `mov eax,[esp+0x10]
+// / imul eax,edi` is 7 (+2), and because the index then occupies eax, g_game
+// loads into ecx (`mov ecx,[abs]` = 6) instead of the A1 form `mov eax,[abs]`
+// (5, +1). So one register choice (product in eax vs edi) accounts for the
+// whole surplus AND drags `mov edi,ebx` above the add. If (a) is ever fixed,
+// re-score the do-while variant: it should reach full size with (b) fixed too.
 // Re-checked by deepseek-v4.1-flash (issue 3740). The guarded do-while inner
 // loop (see the v1 note above) was rebuilt and disassembled byte by byte:
 //  * it does fix BOTH swaps as recorded (bestIdx in ebx, j1 at 0x1c with its

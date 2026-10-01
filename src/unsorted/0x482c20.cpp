@@ -1,4 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// STATUS (deepseek-v4.1-flash, 0857Z): 87.0% (1521 vs 1519 bytes). The 4th
+// border loop is now EXACT by naming the RMW target: `int* fp =
+// &((Rec_482c20*)grid2->cells)[(i+1)*width-1].flags; *fp = *fp | 8;` forces the
+// lea-first `mov edx,[eax]; or edx,8; mov [eax],edx` instead of a read through
+// the full addressing mode then a re-lea. What still differs: (1) the two
+// max/min propagation loops allocate registers differently. The original backs
+// prev up into bl and reuses prev's own register for m (`mov bl,cl; mov cl,[p]`),
+// with res in a third register (row: res=dl, prev=cl; col: res=al, prev=dl).
+// Ours keeps prev in cl (row) / bl (col) and m in dl, never coalescing m into
+// prev's register; row uses the no-res in-place form (best, 87.0) and col the
+// res form. (2) the grid1 setup swaps esi/ebp for h1 vs w1. Every max/min loop
+// spelling and h1/w1 order I tried scored lower (row res form 83.7).
 // RETRY deepseek-v4.1-flash (3rd pass, 82.1%): the grid2 head hunk is now
 // EXACT. The lever was splitting the two rounding declarations:
 //   int w2; int h2; h2 = (b + 0x7fffff) >> 0x17; w2 = (a + 0x7fffff) >> 0x17;
@@ -258,8 +270,10 @@ void FUN_00482c20(void)
         ((Rec_482c20*)grid2->cells)[(grid2->height - 1) * grid2->width + lb2].flags |= 2;
     for (unsigned int lb3 = 0; lb3 < (unsigned int)grid2->height; lb3++)
         ((Rec_482c20*)grid2->cells)[lb3 * grid2->width].flags |= 4;
-    for (unsigned int lb4 = 0; lb4 + 1 < (unsigned int)grid2->height; lb4++)
-        ((Rec_482c20*)grid2->cells)[(lb4 + 1) * grid2->width - 1].flags |= 8;
+    for (unsigned int i = 0; i < (unsigned int)grid2->height; i++) {
+        int* fp = &((Rec_482c20*)grid2->cells)[(i + 1) * grid2->width - 1].flags;
+        *fp = *fp | 8;
+    }
 
     for (int d = 0; d < grid2->field_c; d++)
         grid2->cells[d * 10] = g_game->field_1427f;

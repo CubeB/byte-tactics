@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, refined by GPT-6.1-sol. Names are provisional.
 // PARTIAL: 79.6% (was 72.2%). The frame is now the original 0x34 and the slot
 // order matches (byte idx 0x10, player 0x14, hits 0x18, cell 0x1c, inner 0x20,
 // outer 0x24, 9999 0x28, typeOff 0x2c, typeId 0x30, self 0x34, pos 0x38/0x3c/
@@ -72,6 +72,9 @@
 // keys that CSE on the POINTER VALUE, not the load's type or address.
 // The original is thus likely pi-plus-fresh-pointer in the Cavedog source, with a
 // register assignment we cannot steer from these respellings.
+// Pass 8 (GPT-6.1-sol): changing the 0x488b10 declaration among unsigned short,
+// int, and short, introducing owner-pointer locals, and moving the loop bound to
+// an explicit top-of-loop break all retained 79.7%. The best remains 2385 bytes.
 // Previous note: Still differs: the loop head test (cmp bl,0xa / jae taken to
 // the increment)
 // is dropped as provably true even as a while loop, the duplicated player

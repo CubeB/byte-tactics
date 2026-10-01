@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
 // PARTIAL: 53.0% (996 of the original's 1015 bytes). Five loops over the unit
 // array (stride 0x118): A clears/sets flags 0x1000/0x700/0x300 from the player
 // index and two "data" records, B ranges over pl->field_67..pl->field_6b and
@@ -68,6 +68,8 @@
 // edi) but NOT after loop A; ours inserts that reload after loop A as well,
 // i.e. first is not kept live across loop A in our allocation. This is the
 // main structural residue; the rest is register-name/scheduling noise.
+
+// Session 5 (GPT-6.1-sol): a dedicated first-loop cursor produced the same 53.0% as the shared loop variable. Remaining gaps are the loop A last-pointer register (target esi, ours ebx), loop B/C visitor/register scheduling, and loop E branch/register allocation; no MATCH. Best source retained at 53.0%.
 
 #pragma pack(push, 1)
 
@@ -202,16 +204,17 @@ void FUN_00467440(void)
         + (unsigned int)g_game->playerIndex * 0x14b);
     Unit_00467440* u;
 
-    for (u = first; u <= last; u++) {
-        if (u->flags & 0x10000000) {
-            u->flags &= ~0x1000;
-            if (u->field_ff == player
-                || (u->field_96->field_108[pl->field_146] != 0
-                    && (u->field_96->data->field_97 & 0x40) != 0)
+    Unit_00467440* a;
+    for (a = first; a <= last; a++) {
+        if (a->flags & 0x10000000) {
+            a->flags &= ~0x1000;
+            if (a->field_ff == player
+                || (a->field_96->field_108[pl->field_146] != 0
+                    && (a->field_96->data->field_97 & 0x40) != 0)
                 || (*(int*)pl != 0 && (pl->data->field_9b & 0x40) != 0)) {
-                u->flags |= 0x300;
+                a->flags |= 0x300;
             } else {
-                u->flags &= ~0x700;
+                a->flags &= ~0x700;
             }
         }
     }

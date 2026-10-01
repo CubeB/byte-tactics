@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 11 (deepseek-v4.1-flash): kept the pass-10 best at 65.6% (4716 bytes against 4772). The
+// first 0x42bf40..0x42c0ec is byte-identical; the remainder still differs in roughly 25 hunks
+// spread over the texture/sequence loops (register homes and loop rotation), so no single
+// hunk is close enough to land within this issue's timebox. Structure and names unchanged.
 // Pass 10 (deepseek-v4.1-flash): 65.6%, ours 4716 against 4772. The object is now
 // byte-identical to the original from the prologue through 0x42c0ec except for one
 // 2-byte hunk: ours emits `mov al,[eax]` after `call Class_00438760::Class_00438760`

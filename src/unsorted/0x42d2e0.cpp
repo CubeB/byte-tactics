@@ -1,4 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 13 (deepseek-v4.1-flash): kept 96.8% (2173 bytes against 2173). Re-read the original:
+// at the units-loop entry 0x42d6b0..0x42d6e3 it holds g_game in ecx (`mov ecx,[0x511de8]`),
+// folds the count into `cmp dword ptr [ecx+0x1438f],esi`, and divides with
+// `idiv dword ptr [ecx+0x1438f]`; the back edge reloads g_game into ecx and the count into eax
+// (`cmp esi,eax; jl`). Ours holds g_game in edi and CSEs the count into ecx across the guard
+// and the div (`mov ecx,[edi+0x1438f]; cmp ecx,esi; idiv ecx`), which also forces the extra
+// `mov cx,[esp+0x14]` and shifts u's home 0x10 -> 0x14; the original's `mov cx,[esp+0x20]`
+// (base+0x10 after 16 bytes of pushes) and `lea edx,[esp+0x74]`/`[esp+0x78]` both resolve to
+// base+0x70, so only u's slot differs. The CSE is the whole wall: every structural form that
+// would separate the guard from the div either duplicates the tail test or breaks the frame,
+// so the ecx/edi pick is not source-spellable with the forms tried.
 // Pass 12 (deepseek-v4.1-flash): the do-while respelling of the units loop
 // (`u = 1; if (1 < g_game->field_1438f) { do { ... u++; } while ((int)u < g_game->field_1438f); }`)
 // plus `else break;` in the GUI suffix loop lands exactly on the original tail (no duplicated

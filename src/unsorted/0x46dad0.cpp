@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1. Names are provisional, finished by deepseek-v4.1-flash.
+// deepseek-v4.1-flash retry (10-minute timebox): 29.8% stands, 1049 vs 1024
+// bytes; in the check.py diff the MINUS side is the original and the PLUS side
+// is ours, and the very first hunk (@@ -2,168 +2,181 @@) shows the split is
+// allocation-level from the prologue: original homes `this` in EDI and the
+// zero var in EBX (ours ESI / EBP) and the [esp+0x14]/[esp+0x18]/[esp+0x1c]
+// slots are permuted, matching the (a) note below.
 // Partial: 29.8%, ours 1049 bytes versus original 1024. This pass changed
 // FUN_0046d970(k->first, 0) to FUN_0046d970(k->second.x, 0) in the map walk
 // (29.5 -> 29.8): the mapped Rect's x always equals the key (0x46d6c0 stores

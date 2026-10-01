@@ -35,6 +35,14 @@
 // test ah,2 through a single-use local), so the original shr+test spelling at
 // 0x46b70b and the mov dl/shr dl,1 site is not reachable from a temp. Reverted,
 // 82.0% stands.
+// deepseek-v4.1-flash retry 5: no change, 84.6%, 4250 bytes (original 4247).
+// - reading the MOVEORD unit field through a named `unsigned int* up =
+//   (unsigned int*)(unit + 0x110);` is byte-identical to the direct
+//   `*(int*)(unit + 0x110)` (one check run), so the original's split
+//   `lea eax,[ecx+eax*8]` + `mov eax,[eax+0x110]` is not an access-spelling
+//   lever. Note for the next pass: in the check.py diff the MINUS side is the
+//   original and the PLUS side is ours (confirmed against add esi,-0x10 and
+//   the MOVEORD fold), so 35 hunks of pure register rotation remain here.
 // deepseek-v4.1-flash retry 4: 82.0% -> 84.6%, 4250 bytes (original 4247).
 // - WIN: the S:/R: test at 0x46b6fe is not `(v >> 9) & 1` but a byte-typed
 //   value, `((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1)`. The

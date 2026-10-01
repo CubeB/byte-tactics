@@ -119,6 +119,11 @@
 // assigned in loop1 and used for the y1/dx/dz reads regresses to 71.4
 // (1093 bytes), so the lowY 0x10 / next 0x14 crossing is not reachable from
 // declaration order or from a named next-vertex pointer.
+// Ninth pass (deepseek-v4.1-flash, timeboxed, no score change): moving the four
+// min/max locals from a bare function-scope declaration plus assignment line
+// into an initialized declaration at their first use inside the if block
+// (guide-1740 lever) is byte-identical at 87.3, so the store placement is not
+// what gives the original lowX slot 0x14; the 0x10/0x14 crossing stands.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

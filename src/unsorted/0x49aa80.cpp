@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
-// finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// finished by deepseek-v4.1-flash, finished by GPT-6.1-sol,
+// finished by deepseek-v4.1-flash. Names are provisional.
 //
 // FINAL PASS (deepseek-v4.1-flash, watchdog stop): best stays 66.1% (310 of 301).
 // STORE-BACK ANGLE IS REFUTED: the disassembly has NO stores through a2 or a3
@@ -11,12 +12,15 @@
 // spilled at [esp+0x1c], dz.lo/dz.hi spilled at [esp+0x10]/[esp+0x14]); our
 // build rematerialises a2/a3 from their argument homes, spills a3->x into the
 // dead a4 home at [esp+0x30] and keeps dz in the d[1] slots (+8/+0xc).
-// UNTESTED LEAD (variants written but never scored when the watchdog stopped
-// the run) in build/scratch/0x49aa80/vA.cpp and vB.cpp: the original's spill
-// slots imply dz is d[0] (locals +0/+4) and dx is d[1] (+8/+0xc, its low half
-// promoted to ebp), i.e. the source computes d[0] = a3->z - a2->z FIRST and
-// multiplies d[1] = a3->x - a2->x first (vA), or the same shape with named
-// __int64 dz/dx locals (vB). Everything else in the old notes below stands.
+// THE OLD UNTESTED LEAD IS NOW TESTED AND DEAD (deepseek-v4.1-flash): vA
+// (d[0] = a3->z - a2->z computed first, d[1] = a3->x - a2->x, dx product
+// first) scores 45.9%, vB (same shape with named __int64 dz/dx locals) 45.0%,
+// both far below this spelling's 66.1%; even though dz-first matches the
+// original's instruction order and its spill slots (dz at locals +0/+4, dx.hi
+// at +0xc with dx.lo promoted to ebp), MSVC responds by growing the frame to
+// 0x14 and still rematerialises a2. Named product locals (__int64 q0/q1 for
+// the two 64-bit products; MSVC 5.0 rejects the `long long` spelling) are
+// byte-flat at 66.1%. Everything else in the old notes below stands.
 // GPT-6.1-sol retry in #3259: five checker invocations, best remains 66.1%; no MATCH. A line-fire helper scored 59.5%, the height-gate helper 57.4%, and one helper swap failed to compile. Both helpers worsened pointer/register allocation, so the inherited best remains.
 // deepseek-v4.1-flash (#3101 retry): still 66.1% (310 of 301). The original keeps
 // a2 in esi and a3 in edi across both __allmul calls (frame `sub esp,0x10`, dx.lo

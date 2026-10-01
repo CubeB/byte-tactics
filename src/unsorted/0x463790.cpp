@@ -1,32 +1,33 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL: 73.6% (1022 vs 1040 bytes).
+// PARTIAL: 74.2% (1029 vs 1040 bytes). Best found this session.
 //
-// The `mov edi, 0x200` loop-preheader hoist in block 1 is NOT from the
-// literal-argument inline-helper trick: it appears whenever block 1 has three
-// uses of the literal 0x200 (head wrap, r->n < 0x200, tail wrap). Writing the
-// two wraps as plain `if (h >= 0x200) r->head = 0;` on the same local keeps the
-// hoist and makes block 1 byte-identical to the original except for one
-// register pair: ours has r in ECX and the head/index in EAX, the original has
-// r in EAX and the head/index in ECX. That plain-wrap form scores 72.5% here
-// only because the line diff aligns differently; it is structurally closer to
-// the original than the 73.6% Wrap_00463790 form kept in this file.
+// What now matches: the `mov edi,0x200` preheader hoist, `sub ebx,4` then
+// `mov ebp,ebx` for the scan init, and block 1 (0x4637e2) now has the original
+// instruction order (inc head, cmp against the local h BEFORE the store, lea
+// ep from the pre-wrap h). The wrap is a static inline helper taking the
+// buffer and `int& h`, comparing h (not a reload of r->head). Passing h by
+// value into a helper that reloads r->head instead reintroduces the wrong
+// order. The a6==0 tail loop now uses its own signed `rem2 = (int)size` local:
+// the original restarts that pass from the full size-4 (ebx) rather than the
+// scan-updated remaining, so a distinct variable is required.
 //
-// Also with the plain-wrap form the Pop polarity is correct:
-// `test ecx,ecx / jle <null>` with the null path out of line at the end
-// (`...; mov eax,edx; jmp; xor eax,eax`).
+// What still differs, one register-allocator rotation that cascades:
+//  * block 1 (0x4637e2) r/index swap: ours r=ECX / index=EAX, original
+//    r=EAX / index=ECX. Any wrap that compares the local h (instead of
+//    reloading r->head) flips r to ECX. Keeping Wrap_00463790(r->head,0x200)
+//    (a reload) gives r=EAX but puts the cmp after the store.
+//  * the 0x4638db scan loop: ours n=EDI / remaining=EBP, the original
+//    n=EBP / remaining=EDI. Declaration order, `++n`, `n = n + 1`,
+//    `remaining -= w`, `(int)size`, and passing `rows` directly to Pop do not
+//    change it.
+//  * these cascade into the 0x463a30 and 0x463ad0 loops and the memcpy
+//    a4/a5 register pairing (ours loads a5 early / a4 late).
 //
-// Remaining differences are one register-allocator rotation:
-//  * block 1 (0x4637e2) r/index swap described above.
-//  * the 0x4638db scan-loop init: ours n=EDI/remaining=EBP, the original
-//    n=EBP/remaining=EDI. Our `size -= 4` becomes `lea ebp,[ebx-4]` while the
-//    original does `sub ebx,4` and `mov edi,ebx`. Writing `remaining = size - 4`,
-//    `size = size - 4`, or swapping the declaration order does not change it.
-//  * these cascade into the 0x463a30 and 0x463ad0 loops.
-//
-// Ruled out (all worse than 67.5%): an int-returning Wrap that also does the
-// increment (loses the EDI hoist), fully inlining the pop without a helper
-// (entry copy moves to EDX), the old 0x4638f0 helper idioms, and `int cap`
-// locals (folded to immediates).
+// Ruled out (all worse): int-returning Wrap that also increments (loses the
+// EDI hoist), fully inlining the pop without a helper (entry copy moves to
+// EDX), `unsigned int remaining` (66.6%), a do-while restructure of the scan
+// loop (73.1 with rem2, 72.2 without), and reordering the f14/f18 stores
+// (67.1 / 73.4).
 #include <string.h>
 
 void* __cdecl operator new(unsigned int size);
@@ -66,6 +67,12 @@ __inline void Wrap_00463790(int& i, int cap)
         i = 0;
 }
 
+static __inline void WrapHeadRef_00463790(Buffer_00463730* r, int& h)
+{
+    if (h >= 0x200)
+        r->head = 0;
+}
+
 static __inline Entry_00463790* Pop_00463790(Buffer_00463730* r)
 {
     if (r->n > 0) {
@@ -73,7 +80,7 @@ static __inline Entry_00463790* Pop_00463790(Buffer_00463730* r)
         int h = r->head + 1;
         r->head = h;
         Entry_00463790* ep = (Entry_00463790*)((char*)r + h * 12);
-        Wrap_00463790(r->head, 0x200);
+        WrapHeadRef_00463790(r, h);
         return ep;
     }
     return 0;
@@ -233,7 +240,8 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
         }
 
         char* q = text + 4;
-        while (remaining > 0) {
+        int rem2 = (int)size;
+        while (rem2 > 0) {
             unsigned char c = *q;
             unsigned char cc = c;
             if (cc <= 1) {
@@ -252,15 +260,15 @@ int Class_00463730::FUN_00463790(char* src, unsigned int size, int x, int a4, in
                 w = (unsigned short)reader.FUN_00415dc0(0x10);
                 if (lineLeft > 0) {
                     lineLeft--;
-                    remaining -= w;
+                    rem2 -= w;
                     q += w;
                     goto next3;
                 }
             } else {
                 w = DAT_00512ad8[c][0];
             }
-            remaining -= w;
-            if (remaining < 0) {
+            rem2 -= w;
+            if (rem2 < 0) {
                 return 1;
             }
             {

@@ -27,6 +27,16 @@
 // plus ebp=tick and esi=walk, which frees no callee-saved register and forces the
 // raw `a` to [esp+0x1c]; ours keeps edi=tick, ebp=walk, no zero register, so `a`
 // stays in a register and the frame is sub esp,0xc instead of 0x10.
+// Third pass (deepseek-v4.1-flash) confirms the frame is not reachable from the
+// source text: all 24 declaration orders of tick/flag/a/entry, `int flag=0`,
+// `int a=0`, both, an address-taken `int* pa = &a;` (scalarised away by /O2),
+// `#include <windows.h>`, moving `src=0` up, and the positive-form
+// `if (r != 0 && r->n > 0) ... else p = 0;` all compile to the exact same 1578
+// bytes and 43.3% with 673 diff lines (v4's &entries[0].tail.buffer walk too).
+// So MSVC 5.0's global colouring, not statement/declaration order, decides
+// whether `a` spills; reproducing the original needs the same set of live
+// values around 0x463206, where the original has entry in ecx (reloaded from
+// [esp+0x10]) and edi free for field_c, while ours keeps entry in edi.
 #include <string.h>
 
 struct RingEntry_00462f30 {

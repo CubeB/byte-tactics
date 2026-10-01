@@ -1,4 +1,32 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 pass (deepseek-v4.1-flash, issue 4286): MAPPED the d7 register tie as an exact
+// moffs-vs-byte-temp tie. g_game loaded via the 5-byte moffs `mov eax,[g_game]` wants EAX; the
+// bitfield byte temp for flags_37f2f.b1 wants AL (`test al,1` = 2 bytes vs `test cl,1` = 3). Both
+// save exactly 1 byte and MSVC breaks the tie toward flag=AL, leaving g_game on ECX. The original
+// breaks it toward g_game=EAX / flag=CL. KEY NEW FACT: the pair (g_game=EAX, old=ECX) with
+// old = g_game->field_38c53 IS achievable - `int old = g_game->field_38c53; g_game->field_38c53 = 0;
+// if (g_game->flags_37f2f.b1 && old == 0)` scores 79.5 with g_game=EAX and old=ECX exactly like the
+// target. The ONLY delta left there is the flag test form: the `&&` collapses the flag to a direct
+// memory test `test byte [g_game+37f2f],2` where the original has the shift-test
+// `mov cl,[..]; shr cl,1; test cl,1`. The flag form is coupled to the guard shape: an `if (flag)`
+// standalone gives the shift-test (but then old=g_game->field flips g_game to ECX, 75.9); any
+// `if (flag && X)` (and `int f = g_game->flags_37f2f.b1; if (f && X)`, `!= 0`, a ternary on flag)
+// collapses to the memory test. So one can have g_game=EAX+old=ECX with the memory test (andold),
+// or the shift-test with g_game=ECX (nested), but every spelling tried pairs the wrong two. The
+// remaining reading is that some source keeps the flag as a value extract (shift-test) inside a
+// short-circuit test without the collapse AND without stealing EAX from g_game; that spelling was
+// not found this pass. Further: `int old = g_game->field_38c53; g_game->field_38c53 = 0;
+// if ((g_game->flags_37f2f.b1) & (old == 0))` (bitwise AND, no short circuit) scores 84.4 (2292),
+// and its old load/store/check all match the target (g_game=EAX, old=ECX). But it stores
+// UNCONDITIONALLY (the store sits before the flag test, so field_38c53 is zeroed even when flag=0)
+// and its flag is a combined `test cl, al`, so it is semantically wrong and stuck below 100.
+// That pins the real constraint: g_game=EAX+old=ECX only comes out when old and the store are both
+// hoisted above the guard (unconditional store). Making the store conditional (inside the flag
+// check, which is what the original does) forces the nested form and flips g_game to ECX. So the
+// correct structure and the correct registers are still mutually exclusive across every spelling.
+// Re-tested and flat at 75.9 (2288): local g used only in the entry, cast
+// pointer read, int& fld, register int old, nested comma `(old=.., field=0, old==0)`, all with
+// old=g_game->field. Hoisted form (this file) stays the best at 79.6 (2292).
 // 2026-10-01 pass 2 (deepseek-v4.1-flash): the whole 79.6 residue is one 1-byte cascade. Case 0xd7 is
 // the only size delta this side of the dispatch: ours emits 6-byte `mov esi,[g_game]` where the original
 // has the 5-byte moffs `mov eax,[g_game]`, so every later jump target (0x4965ce/0x4965e6) is +1 and the

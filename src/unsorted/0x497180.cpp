@@ -2,6 +2,42 @@
 // deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash,
 // finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by
 // deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 6).
+// 2026-10-01 pass 7 (deepseek-v4.1-flash, ~2h, ~30 check runs, no best change; all
+// variants scored in build/scratch/0x497180/). The baseline (82.8, 2846 bytes) is
+// kept. Two NEW mechanisms found, and one sharpened diagnosis:
+// - The zero-extension idiom `xor r,r; mov r8,[mem]` (the original's `xor ebx,ebx;
+//   mov bl,[p2+0x9c]` at 0x497303/0x49733b) is reachable ONLY through a 32-bit
+//   object whose low byte is overwritten: `struct Bits8 { unsigned int lo:8;
+//   unsigned int hi:24; }; m.lo=0; m.hi=0; m.lo=*(unsigned char*)(p2+0x9c);`
+//   compiles to `xor r,r; mov r8,[..]` plus the 32-bit `and r,2` and the plain
+//   and/and/or lane (v5a/v7). Every other spelling folds the extend away (int/
+//   unsigned int temp, casts, volatile byte, union, accumulator `m=0; m|=byte`,
+//   helper calls: all either fold or flip to the `xor al,cl; and eax,2; xor` blend).
+// - `unsigned int m = *(unsigned char*)(p+off) & M; unsigned short ms =
+//   (unsigned short)m; ... | ms` (the "ms" narrowing) is the ONLY spelling that
+//   gives the original's lane SHAPE (`and r32,2` + `and r32,0xfffd` + `or`, no
+//   movzx) while keeping the and/and/or form (w2/w15: 80.4 at 2793-2833 bytes,
+//   the original is 2797). Plain `unsigned int m` (w1) is byte-equivalent but
+//   drops one temp.
+// - Diagnosis sharpened: the base form's lane REGISTERS ARE ALREADY CORRECT
+//   (byte=bl/ebx, ptr=ecx, word=dx/edx, exactly the original's) and only the
+//   shape is wrong (`and bl,imm; movzx si,bl` where the original has `and
+//   ebx,imm` + `xor ebx,ebx`). Every 32-bit spelling (Bits8, ms, plain uint)
+//   fixes the shape but rotates the whole register file by +1 (byte lands in
+//   ecx not ebx, ptr in edx/esi not ecx, word in si/cx not dx) and that
+//   rotation then pollutes every line after the lanes, which is why all of
+//   them score below 82.8 despite being 13-53 bytes CLOSER in size.
+// Per-block ms scores (base is 82.8): case-2 only 82.7 (w12/w19), case-1+2 82.2
+// (w9), pl only 81.0 (w6), case-1 only 80.4 (w11), case-3 only 80.4 (w2/w15),
+// case-1/2+3 80.4 (w4), case-3+pl 78.0 (w5), all four 78.5 (w3), Bits8+ms 80.4
+// (w7/w8). Rotation NOT moved by: 8 header-set permutations (74.8 flat on the
+// word form), N dummy externs 0..400, throwaway loads before the switch and
+// before the lanes (1-3 each), an inlined __thiscall-style method for the lane
+// (v9b), inlining the cur/sel2/p temps (w17/w18/w22/w23), `& one` moved into the
+// pl/case-3 masks to lengthen the constant's range (w21, ties 82.8). Do not
+// re-run these. Still open: find what consumes the first register slot (ebx) in
+// every 32-bit lane form; the base form's 4th temp (the movzx) appears to be
+// what holds the allocation at (ebx, ecx, edx) for the first three.
 // 2026-10-01 pass 6 (deepseek-v4.1-flash, 6 check runs, 3 scored variants): the 32-bit word
 // form moves the bottleneck, it does not remove it. Writing the 0x14281 lanes as a 32-bit
 // word temp with a truncating store,

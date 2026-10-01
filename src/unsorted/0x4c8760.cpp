@@ -112,6 +112,13 @@
 // Seventh pass (deepseek-v4.1-flash, short timebox, no score change):
 // fixup products written y0*dx (guide imul operand rule) and the min/max
 // locals moved inside the if block both stay 87.3, so neither is the lever.
+// Eighth pass (deepseek-v4.1-flash, timeboxed, no score change): the two
+// untried declaration-group permutations (lowY/highY/highX/lowX before
+// next/dv/dx/du, and the next-group after lowIndex/highIndex) are both
+// byte-identical at 87.3, and a named function-scope `int* nextVertex`
+// assigned in loop1 and used for the y1/dx/dz reads regresses to 71.4
+// (1093 bytes), so the lowY 0x10 / next 0x14 crossing is not reachable from
+// declaration order or from a named next-vertex pointer.
 struct Surface_4c8760 { unsigned short width, height; };
 void __stdcall FUN_004c7a20(int, int*, Surface_4c8760*, Surface_4c8760*);
 

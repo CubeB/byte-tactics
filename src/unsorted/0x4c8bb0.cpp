@@ -164,6 +164,10 @@
 // Fixes that did land: second edge loop writes ints 1,4,5,7,9 of the span row
 // (the row is [xL,xR,uL,vL,uR,vR,zL,zR,lL,lR]), the rasterise guard is
 // span[1]-span[0]>0 (not !=0 && >=0), and the loop temps are function-scope.
+// deepseek-v4.1-flash pass (timeboxed 2026-10-01): hoisting `int bottom;` to
+// function scope (assigned at its old line from target->height-1) is
+// byte-identical at 54.1% / 1275 bytes, so the original 0x7d60 frame does
+// not come from a function-scope bottom slot.
 
 struct Surface_4c8bb0 { unsigned short width, height; };
 void __stdcall FUN_004c8020(int, int*, Surface_4c8bb0*, Surface_4c8bb0*);

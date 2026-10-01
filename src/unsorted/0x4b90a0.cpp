@@ -1,4 +1,103 @@
 // Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+//
+// space-bunny-free pass (#4294), 87.1% confirmed unchanged, 2 check.py runs plus
+// ~90 free --sym scores, two permuter rounds (7816 + partial candidates, no
+// improvement), and a headers.py sweep at the NEW 87.1% baseline. Nothing beat
+// the file below; the two known differences are both still there, and the
+// evidence now says they are compiler-build differences, not spelling:
+//  1. The row block. NEW: this build cannot emit the original's shape at all.
+//     Every spelling of `xoff + plane + stride` puts the plane load in the add's
+//     DESTINATION (`mov esi,[edx+0x10]; add esi,ebx`, 5 bytes, 2 insns) instead
+//     of copying xoff and materialising the load (`mov esi,ebx; mov
+//     eax,[edx+0x10]; add esi,eax`, 5 bytes, 3 insns). Same size, one more
+//     instruction in the original, and the 4-byte size gap is exactly the two
+//     extra `mov reg,reg` copies. Tried this pass, every one byte for byte the
+//     same 256-byte file and 87.1%: all 6 orders of the three terms and 10
+//     parenthesisations (`(x+plane)+stride`, `plane+(x+stride)`,
+//     `stride+(x+plane)`, ...); `+=` per term; `(unsigned char*)(xoff+...)` and
+//     `(int)plane` casts; the plane fields as `int` with int locals p0/p1 and
+//     the cast at the store; `*(unsigned char**)&dst->plane0`; `(unsigned long)`
+//     casts; an inline `RowOff(int,int)`, `RowOff(ptr,int)` and 3-argument
+//     helpers (these score 64.5%, they reorder the two movsx blocks, but the row
+//     block is still `mov esi,[plane]; add esi,xoff`); dp0/dp1 statement order
+//     and declaration order; a dst alias. Decisive evidence: a 6-function micro
+//     benchmark (loop, offsets already in registers) compiles identically to
+//     `mov dl,[edx+ecx]`-style indexed forms for int+ptr, all-int casts, an
+//     inline helper, `p += off`, `&p[off+st]` and int temporaries, i.e. MSVC 5
+//     SP3 always picks the memory load as the add's destination and folds it
+//     into the destination mov. So the original's `mov esi,ebx` means its build
+//     had the destination assignment rule this one lacks: guide item "operand
+//     order that nothing changes -> compiler state from earlier functions in the
+//     original TU".
+//  2. The yoff spill (ours before the two `jl` guards, the original's after the
+//     `jbe`, i.e. in the loop body as a header phi copy). Tried this pass, the
+//     store never moves: all 6 orders of {xoff,yoff,stride} and 4 declaration
+//     scopes, `row` at function scope / `unsigned` / `long`, `!=` and
+//     `(int)`-cast loop tests, the guard as `||`, two `if`s, `0 > x`, `!(a>=0
+//     && b>=0)`, a `goto` body, `yoff++` as a body statement, sp0/sp1 read
+//     before the guard. Note this may be a CONSEQUENCE of (1): our loop head
+//     block has two instructions fewer, and the store is the one thing a
+//     block-size change would move.
+//  3. tools/headers.py --cpp at this baseline: 768 header sets, best is 82.8%
+//     (<memory.h>), so header state is not the lever either.
+// If you pick this up: do not re-try term order, parenthesisation, casts, int
+// plane fields, inline helpers or header sets for the row block. The only
+// untried lever left is the declaration-count state (unused `extern int`s), last
+// swept at the 83.9% shape; and it is a compiler-state hack, not source.
+//
+// deepseek-v4.1-flash pass (#4294): 87.1%, up from the long-standing 83.9%.
+// TWO of the three old differences are gone. The fix was pure declaration
+// scope, not expression spelling:
+//   * `unsigned char* dp0; dp1;` moved OUT of function scope and declared
+//     inside the row loop body (`unsigned char* dp0 = ...` at the point of
+//     use) flips the threshold compare to the original's registers: level ->
+//     ebx, *sp1 zero-extended into edx, `add edx, ebx` (sum in *sp1's
+//     register), then *dp1 into ebx and `cmp ebx, edx; jg`. With dp0/dp1 at
+//     function scope the same source always gives `add ebx, edx` and
+//     `cmp ebx, edx; jl`. Score 86.0 before the compare spelling change.
+//   * with dp0/dp1 in the loop, the comparison MUST be spelled
+//     `*dp1 <= *sp1 + level` (not `*sp1 + level >= *dp1`): that is what makes
+//     the cmp operand order `cmp ebx, edx; jg` instead of `cmp edx, ebx; jl`.
+//     Together: 87.1%.
+// What still differs (2 items, both 4 bytes of missing `mov reg,reg`):
+//   1. The yoff spill: ours stores yoff before the two `jl` guards (in the
+//      guard block), the original stores it after the `jbe` loop guard (in
+//      the loop preheader). Tried this pass, all kept the early store:
+//      two separate guard ifs, `!(xoff>=0 && yoff>=0)`, the positive
+//      `if (xoff >= 0 && yoff >= 0)` wrapper, an explicit `if (height == 0)
+//      return;` before the loop (duplicates the test, worse), a
+//      `goto done` guard (compile error, C++ init crossing), a copy variable
+//      `yoff2 = yoff` before the loop / in the for-init / at function scope
+//      (f1/f4/f5: the copy's store lands inside the guard block one
+//      instruction earlier than the original's, never after the jbe; f1
+//      scores 82.8), and reordering the {yoff,stride,xoff} declarations
+//      (all 6 orders identical). The store position looks like a
+//      register-allocator spill decision (spill at definition vs at the
+//      loop preheader), not a source-visible block boundary.
+//   2. The row pointers: ours is `mov esi,[edx+0x10]; add esi,ebx` (memory
+//      operand becomes the destination), the original copies xoff first:
+//      `mov esi,ebx; mov eax,[edx+0x10]; add esi,eax` (and the same two
+//      extra movs for row 1). Every spelling tried this pass produced the
+//      memory-first form byte for byte: int casts on both addends, the plane
+//      fields as ints, int locals for the planes inside the loop, the sum
+//      split into two statements, `(unsigned char*)xoff + plane`, `&plane[xoff]`,
+//      `&plane[xoff+stride]`, plane locals p0/p1 first, an xoff copy, a
+//      stride-in-loop form (that one reassociates to (plane+stride)+xoff and
+//      costs 5 points, 81.7). The compare fix shows the allocator IS
+//      steerable through declaration scope, so the remaining lever is
+//      probably another scope/order change, not an expression spelling.
+// Other facts from this pass: an inlined whole-inner-loop helper reallocates
+// everything (frame grows, 74.2-ish shapes); N unused `extern int`
+// declarations still move registers (N=8/16 put the yoff guard in ecx) but
+// none fixed either remaining diff; declaring `stride` inside the loop
+// reverts the compare fix and reassociates the row sum; the function-scope
+// set {yoff,stride,xoff} is exactly right (adding any dummy local, int or
+// byte, reverts the compare to 82.8, as do swapping sp0/sp1's declaration
+// order, declaring `c` at function scope, and the increment order
+// dp0,dp1,sp0,sp1); the increment order dp0,sp0,dp1,sp1 (current) and the
+// pre-increment form are both 87.1; `unsigned`/`long` stride, const plane
+// locals and an inner block scope all keep the 87.1 code.
+//
 // mimo-v2.6-pro pass: 83.9% unchanged (2 check runs, ~20 free compile/listing
 // comparisons). New facts for the next attempt:
 //  * The whole 4-byte size gap is exactly the two un-folded plane loads: the
@@ -207,8 +306,6 @@ void __stdcall FUN_004b90a0(Bitmap_004b90a0* src, Bitmap_004b90a0* dst,
     int yoff;
     int stride;
     int xoff;
-    unsigned char* dp0;
-    unsigned char* dp1;
     xoff = dst->field_4 - src->field_4 + x;
     yoff = dst->field_6 - src->field_6 + y;
     if (xoff < 0 || yoff < 0) {
@@ -218,12 +315,12 @@ void __stdcall FUN_004b90a0(Bitmap_004b90a0* src, Bitmap_004b90a0* dst,
     unsigned char* sp1 = src->plane1;
     for (int row = 0; row < src->height; row++, yoff++) {
         stride = dst->width * yoff;
-        dp0 = xoff + dst->plane0 + stride;
-        dp1 = xoff + dst->plane1 + stride;
+        unsigned char* dp0 = xoff + dst->plane0 + stride;
+        unsigned char* dp1 = xoff + dst->plane1 + stride;
         int n = src->width;
         while (n--) {
             unsigned char c = *sp0;
-            if (c != src->colorKey && *sp1 + level >= *dp1) {
+            if (c != src->colorKey && *dp1 <= *sp1 + level) {
                 *dp0 = c;
                 *dp1 = *sp1 + level;
             }

@@ -1,4 +1,16 @@
-// Decompiled by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3146): 94.5% re-confirmed. All five residual hunks
+// are one allocation choice: surf in eax (ours) versus ecx (original), which then
+// frees ecx for maxY and forces the height zero-extend through esi. Tried and
+// inert at 94.5%: member __thiscall Pitch()/Height() accessors (int and unsigned
+// short, const and not), a shared limit/maxRow variable for both clamps, reusing
+// the existing locals x/dx/y0 as the pitch temporary, reading pitch through a raw
+// unsigned short pointer, a nested block around the checks, sf reassigned after
+// the scan, passing sf to the final call, and defining the real preceding
+// functions 0x4c0b10 (and 0x4c0a90) with <windows.h> above ours to reproduce the
+// original translation unit. An unused extern int sweep (N = 0 to 160, step 8)
+// never moves it, so it is not translation-unit or header state. The remaining
+// difference is a compiler allocator tie, not a source-shape lever.
 // PARTIAL 94.5%, 897 bytes. Share y0, y1, x, dx and dz across the two
 // edge walks, but retain block-local z/shade values. Declare bounds in the
 // order maxX, minY, maxY, minX. Both together restore all original local

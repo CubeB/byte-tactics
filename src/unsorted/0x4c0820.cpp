@@ -1,14 +1,41 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are
-// provisional. PARTIAL 94.1%, 613 of 613 bytes. The two edge walks read pts[i]/pts[j] fields directly
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// PARTIAL 94.1%, 613 of 613 bytes. The two edge walks read pts[i]/pts[j] fields directly
 // instead of caching &pts[i]/&pts[j] in pointer locals, share y0/y1/x/dx at function scope, and the
 // first walk assigns out = spans before i = iymin (the second keeps the opposite order). Those three
 // shape fixes took 60.7 to 78.3 to 89.2 to 94.1. Remaining differences, all allocator picks: the
 // walk-local y0 and the internal &pts[j] spill swap slots 0x20/0x28 (0x20/0x24 in walk2), the walk1
 // tail loads pts before reloading i, and the final call puts surf in ebx and color in ebp instead of
-// color in ebx and surf in ebp. Ruled out this session (scores): declaration-order sweeps of
+// color in ebx and surf in ebp. Ruled out in earlier sessions (scores): declaration-order sweeps of
 // y0/y1/x/dx/rows/iymin/iymax (94.1 unchanged), block-local y0 (92.1), explicit b = &pts[j] (60.7),
 // shared dy/rows/y/h (94.1 unchanged), separate scan index (43.1), scan index before the guard
 // (42.9), extern dummy TU-state prefix at N=1/2/8 (60.7 in the 78.3 shape).
+//
+// Second pass (space-bunny-free), all free --sym scores, none beat 94.1:
+// * Declaration order is NOT the lever here: splitting `int iymin, iymax;` into two statements,
+//   merging `int y0,y1; int x,dx;` into one, and moving that pair after the initialised bounds
+//   each leave the score and the diff set bit for bit at 94.1.
+// * tools/headers.py, 128 sets: every set is 94.1%, so this is not header state.
+// * Block-local `Point_004c0820* bj = &pts[j]` in each walk (94.1, identical diff: MSVC still
+//   emits one CSE temp) and a shared function-scope named `bj` (90.1) do not move the walk slots.
+// * Block-local y0 (92.1) and block-local y0+y1 (92.1) rotate the walk slots but ALSO swap the
+//   iymin/iymax pair 0x30/0x2c, which is a net loss. Adding any one function-scope local does
+//   the same flip, so the frame packing is a parity-like function of how many function-scope
+//   locals there are: keep the count as it is.
+// * Dropping the two extra braces around the walk blocks (so the walk index is the function-scope
+//   i instead of a shadowing one) shrinks the frame by 4 bytes (609) and drops to 63.7%.
+// * Naming the &pts[j] temp at its first use INSIDE `if (y0 < y1)` instead of letting MSVC CSE
+//   it across the branch drops to 36.1% with a 604-byte frame: the original's lea and its spill
+//   are both emitted BEFORE the `jge`, so that value is live into the branch. Keep the field
+//   reads written as `pts[j].x` / `pts[j].z` / `pts[j].y` and let MSVC CSE them.
+//
+// The walk diff is a pure two-way swap, not a rotation: with idx already right in both walks,
+// original is (ptr 0x20, idx 0x24, y0 0x28) and (ptr 0x20, y0 0x24, idx 0x28), ours is
+// (y0 0x20, idx 0x24, ptr 0x28) and (y0 0x20, ptr 0x24, idx 0x28). The original's &pts[j] keeps
+// 0x20 in BOTH walks while y0 changes slot between them, so the next thing to try is a shape that
+// makes the &pts[j] value a single variable spanning both walks while y0 is not: the opposite of
+// the block-local y0 that was just ruled out. The final ebx/ebp pair (color, surf) is independent:
+// it is the reverse of the push order, so it is the register preference for the two argument
+// temporaries, and a local copy of each (94.1) does not change it.
 struct Point_004c0820 {
     int x;
     int y;

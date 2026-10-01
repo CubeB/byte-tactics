@@ -1,4 +1,88 @@
 // Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash adoption pass (#4353): 77.0% -> 81.6%, and the compiled
+// size is now 1509 bytes against the original's 1506 (it was 1505 at 77.0% and
+// 1515 at the first permuter step). Every number below was measured by writing
+// the variant to build/scratch/0x459200/ and scoring it with
+// `check.py 0x459200 <file> --sym FUN_00459200`.
+//
+// WHERE THE FIRST 3.2 CAME FROM (permute.py's best_ratio.cpp, which its own log
+// never credited; best.cpp only reached 78.7)
+//   Each of its ten `inlN` helpers was tested individually against the file.
+//   Only `inl0` was load-bearing: it is the `model->owner->field_a6 != 0` term of
+//   the far-sprite test, worth +2.9 on its own (77.3% inlined, 80.2% kept). It
+//   stays as `unit_has_altitude`, a static inline bool taking the Unit_459200*
+//   it reads. inl2, inl4, inl6 and inl7 were worth 0.0 and are inlined here;
+//   inl1, inl3, inl5, inl8 and inl9 were one-use accessors, also 0.0, inlined.
+//   The rest of the permuter's output was noise and all of it was deleted: the
+//   `unit = unit;` and `int same0 = value; value = same0;` self-assignments,
+//   every no-op cast it had introduced, the empty `if (0 != x) { } else { ... }`
+//   (rewritten as `if (x == 0) ...`), `for (; unit; )` -> `while (unit)`, the
+//   `int tmp1` reload, the merged `int altitude = ..., z = ...` declaration,
+//   and all the swapped commutative operands. Each was verified free first.
+//   The three `do { ... } while (0);` wrappers looked load-bearing (all three
+//   out together cost 3.5), but that was an artefact of the pre-81.3% state:
+//   once the prologue below was fixed every one of them came out free and all
+//   three are gone, so no permuter construct of that shape survives here.
+//
+// WHERE THE NEXT 1.4 CAME FROM (all found by hand in this pass)
+//   (1) The prologue `cv = v` copy, +1.0, and the size becomes EXACTLY 1506 for
+//   the first time. The earlier notes here and on the shared board called this
+//   permutation-space exhausted, but only ever tried the copy and the deltas
+//   GROUPED (copies-then-deltas, or the deltas interleaved with all copies
+//   first). Sweeping all 36 interleavings of the three copies with the three
+//   deltas finds three equally good winners (81.3%): they all put the DELTAS in
+//   the order y,x,z, and differ only in the copy order. This one is
+//       cv.v[0] = v.v[0];  cv.v[2] = v.v[2];  cv.v[1] = v.v[1];
+//       v.v[1] = model->owner->pos_y;
+//       v.v[0] = model->owner->pos_x - v.v[0];
+//       v.v[2] = model->owner->pos_z - v.v[2];
+//   The point is that a multi-word copy's register rotation is chosen by the
+//   INTERLEAVING with what follows it, not by the copy statement itself, so the
+//   search has to include the interleaving. The grouped `cv = v`, the memcpy,
+//   the Pos-view copy and the three-int-temporary forms all still give 79.9.
+//   (2) `unit_has_altitude` reading its field through a named local
+//   (`short altitude = unit->field_a6; return altitude != 0;`), +0.3. Note a
+//   bare `short a6 = ...` at the CALL SITE is much worse (74.6): the helper
+//   boundary is what matters, not the local. The helper's signature also
+//   matters: taking `Unit_459200*` holds and so does taking `Model_459200*`
+//   and re-reading `model->owner`, but returning `int` instead of `bool` drops
+//   the file to 74.6, and the `!model->field_14` and two-statement shapes vary.
+//   (3) A handful of free cleanups taken at the same time, each re-checked:
+//   point-of-use declarations for `piece`, `op` and `value`, `!(x & m) == 0`
+//   for the three mask tests, `this->bitmap` re-read instead of an inl8 local,
+//   `ddy` before `ddz`, and the `if (gameFlags.whole & 4)` paren removal.
+//
+// STILL DIFFERING
+//   (1) The prologue copy's rotation is now one register out: ours starts with
+//   z in eax and x in edx, the original with x in eax, y in ecx and z in edx,
+//   and the original re-reads the x delta from its argument slot
+//   (`sub ebx,[esp+0x3c]`) where ours keeps the value in edx. Every grouped
+//   spelling and every other interleaving was tried; headers.py over 128
+//   include sets is flat. This is the same allocator tie 0x459830 and 0x458fa0
+//   document.
+//   (2) The second half's b30 shade block loads this->bitmap after the
+//   field_92 chain where ours loads it before, and the second half's b3 shade
+//   block folds `diff + ((b ? 0x4b : 0) + 0x32)` into a single
+//   `lea edx,[ecx+eax+0x32]` where the original has `add ecx,0x32; add eax,ecx`.
+//   The fold is unavoidable for any spelling of that expression that still tests
+//   bit 30 (5 tried: named int, 0x32 first, chained +, bool local, f.bits.b30),
+//   and the one spelling that avoids it, `flags.word == 0 ? 0 : 0x4b`, scores
+//   81.9% but is semantically different (the whole word instead of bit 30), so
+//   it is not used. Spelling it with `f.bits.b30` instead of `(word>>30)&1`
+//   drops the file to 60-79%.
+//   (3) The `unit_has_altitude` call site materialises the bool with
+//   `xor edx,edx / cmp word ptr [ecx+0xa6],dx / setne dl / test dl,dl` where
+//   the original has `cmp word ptr [ecx+0xa6],0 / jne`. This is the cost of the
+//   helper that buys +2.9, and it is the one construct here that could not be
+//   made to read like a plain inline test.
+//   (4) The tail's `add edx,0x32; add eax,edx` fold, same as (2).
+//   The `unit_has_altitude` shape, the b3 fold and the tail fold are all
+//   documented in build/scratch/SHARED.md.
+// BUG/ODDITY: the far-sprite test uses `field_a6 != 0 || dx >= field_1427f`,
+//   i.e. the "near" sprite is drawn when the unit is off the ground OR the view
+//   distance reaches it, which reads like the two conditions should be ANDed.
+//   It is spelled this way in the original, so it is kept as found.
+//   Everything from the list walk's tail on matches instruction for instruction.
 // deepseek-v4.1-flash retry (#4085): 1 check run, base kept. Retargeting the
 // delta stores from the in-place v.v[] to the separate `d` local (with every
 // later v.p.* read switched to d.p.*, which is semantically identical) scores
@@ -68,43 +152,26 @@
 // spill. (4) The sprite-offset block writes through an int* to the owner pos
 // (`int* op = &model->owner->pos_x;` then op[0]/op[1]/op[2]), which gives the
 // original `add eax,0x6a` plus [eax]/[eax+4]/[eax+8] form.
-// 49.7 -> 51.6 -> 54.2 -> 54.4 -> 61.6 -> 67.7 -> 69.1 -> 69.9.
-// Still differing: the cv = v copy runs in y,z,x order (original x,y,z with a
-// single eax/ecx/edx pass), the first half does not spill f to [esp+0x10]
-// (original: mov [esp+0x10],ecx + test dword [esp+0x10],0x81000, ours keeps f
-// in edx), the piece-loop counter uses ebx where the original uses eax, the
-// second half keeps its own shade bool in a byte slot
-// ([esp+0x4c]). Tried and worse this run: 12-byte cv before the register fix
-// (44.7), int diff local + int value (60.8), component-wise cv copy and
-// `Vec3 cv = v` initialisation (69.1, no change). deepseek-v4.1-flash retry:
-// making field_37f06 an unsigned short and testing `field & 4` gives the
-// original `mov ax,word; test al,4` in the second half but the first half
-// rematerialises `test byte [..],4`, net 68.5; inlining the bright ternary
-// alone gives 1509 bytes but 68.5 due to the changed value expression. The
-// first half keeps al live only when f is spilled to [esp+0x10]; ours keeps f
-// in edx so the compiler rematerialises gf.
-// Last pass (deepseek-v4.1-flash, diff analysis only, no new build scored):
-// (a) both f-diff blocks should use plain 32-bit arithmetic: original does
-// xor eax,eax / mov al,[g_game+0x1427f] / sub eax,edx (edx = spilled dx),
-// no byte truncation, then value = diff + shade + 0x32 with shade+0x32 in its
-// own register (and ecx,0x4b / add ecx,0x32 / add eax,ecx). Our
-// (unsigned char)(field_1427f - dx) cast forces byte arithmetic
-// (mov bl,[..] / sub al,bl / and eax,0xff / lea eax,[eax+edx+0x32]) the
-// original never emits. (b) the g_game+0x37f06 b2 test should be a plain mask
-// test (original: mov ax,word / test al,4) while b3 keeps the shift form
-// (shr al,3 / test al,1); ours emits mov dl,al / shr dl,2 / test dl,1 for b2.
-// Untested idea: union with a whole ushort (test whole & 4) plus the bitfield
-// member for b3. (c) ours spills y (screen y) to [esp+0x10] and later clobbers
-// ebx with a dx reload; the original keeps y in ebx throughout and reloads dx
-// into edx (mov edx,[esp+0x14] / sub eax,edx).
+
+#include <string.h>
+#include <stdio.h>
 struct Vec3;
 struct Model_459200;
 struct Team_459200;
 
 #pragma pack(push, 1)
+union TeamFlags_459200 {
+    unsigned int word;
+    struct {
+        unsigned int hi : 30;
+        unsigned int b30 : 1;
+        unsigned int lo : 1;
+    } bits;
+};
+
 struct Team_459200 {
     char unknown_0[0x241];
-    unsigned int flags;                // +0x241
+    TeamFlags_459200 flags;            // +0x241
 };
 
 struct Unit_459200 {
@@ -153,13 +220,17 @@ struct Model_459200 {
     int pos_z;                         // +0x72
 };
 
-struct GameFlags_459200 {
-    unsigned short b0 : 1;
-    unsigned short b1 : 1;
-    unsigned short b2 : 1;
-    unsigned short b3 : 1;
-    unsigned short rest : 12;
+union GameFlags_459200 {
+    unsigned short whole;
+    struct {
+        unsigned short b0 : 1;
+        unsigned short b1 : 1;
+        unsigned short b2 : 1;
+        unsigned short b3 : 1;
+        unsigned short rest : 12;
+    } bits;
 };
+
 
 struct Game_459200 {
     char unknown_0[0x2a43];
@@ -212,41 +283,50 @@ void __stdcall FUN_004b90a0(int bmp, int param_2, int x, int y, int z);
 void __stdcall FUN_004b96e0(int param_1, int value);
 void __stdcall FUN_004ba1b0(int param_1, int value);
 
+// The unit's own vertical offset, when it has one, pushes the sprite far enough
+// forward that it is drawn even beyond the view distance.
+static inline bool unit_has_altitude(Unit_459200* unit)
+{
+    short altitude = unit->field_a6;
+    return altitude != 0;
+}
+
 // FUNCTION: 0x459200
 void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 v, int useColor)
 {
     int bmp = model->bitmap;
-    unsigned int f;
+    TeamFlags_459200 f;
     if (bmp == 0)
         return;
 
     Vec3_459200 cv;
-    cv = v;
     Vec3_459200 d;
-    v.v[0] = model->owner->pos_x - v.v[0];
+    cv.v[0] = v.v[0];
+    cv.v[2] = v.v[2];
+    cv.v[1] = v.v[1];
     v.v[1] = model->owner->pos_y;
+    v.v[0] = model->owner->pos_x - v.v[0];
     v.v[2] = model->owner->pos_z - v.v[2];
     int altitude = FUN_00485070((Pos_459200*)&model->owner->pos_x);
+    int z = v.p.z.whole - (v.p.y.whole >> 1) + 0x20;
+    int y = v.p.z.whole - (altitude >> 1) + 0x20;
     short dx = v.p.y.whole;
-    short dy = v.p.z.whole;
-    int z = dy - (dx >> 1) + 0x20;
-    int y = dy - (altitude >> 1) + 0x20;
 
-    if (*(int*)(bmp+0x14) == 0) {
+    if (*(int*)(0x14+bmp) == 0) {
         GameFlags_459200 gameFlags = g_game->field_37f06;
-        if (gameFlags.b2) {
+        if (gameFlags.whole & 4) {
             f = model->owner->field_92->flags;
-            if (!(f & 0x2000000)) {
-                if ((*(unsigned char*)((char*)model->owner+0x113) & 0x20)
-                    && !(f & 0x40000000)) {
+            if ((f.word & 0x2000000) == 0) {
+                if ((0x20 & *(unsigned char*)((char*)model->owner + 0x113))
+                    && (f.word & 0x40000000) == 0) {
                     if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
-                        if (model->field_14 == 0)
+                        if (!model->field_14)
                             ((Class_00437a30*)this)->FUN_0045a790(model,bmp);
                         FUN_004b8500(param_2, model->field_14, v.p.x.whole + 0x85, y);
                     }
                 } else {
-                    if (gameFlags.b3) {
-                        if (!(f & 0x81000)) {
+                    if (gameFlags.bits.b3) {
+                        if ((f.word & 0x81000) == 0) {
                             ((Class_0045a470*)this)->FUN_0045a470(bmp);
                             FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                         }
@@ -258,16 +338,15 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
             ((Class_004581e0*)this)->FUN_004586a0(model, 0, 1);
             bmp = model->bitmap;
         }
-        if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0) {
+        if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0)
             FUN_004b7f90(param_2, bmp, v.p.x.whole + 0x80, z);
-        } else {
+        else
             FUN_004b8500(param_2, bmp, v.p.x.whole + 0x80, z);
-        }
         for (int i = model->count - 1; i >= 0; i--) {
-            if ((model->pieces[i].flags & 1) && !(model->pieces[i].flags & 2)) {
-                ((Class_004584d0*)this)->FUN_004584d0(model, param_2, &cv, model->pieces[i].field_0,
-                             model->pieces[i].field_22, model->owner->kind, useColor);
-            }
+            if ((1 & model->pieces[i].flags) && !(model->pieces[i].flags & 2)) {
+                    ((Class_004584d0*)this)->FUN_004584d0(model, param_2, &cv, model->pieces[i].field_0,
+                                 model->pieces[i].field_22, model->owner->kind, useColor);
+                }
         }
         Unit_459200* unit = model->owner->list_head;
         while (unit) {
@@ -287,31 +366,28 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
 
     {
         GameFlags_459200 gameFlags = g_game->field_37f06;
-        if (gameFlags.b2) {
+        if (gameFlags.whole & 4) {
             f = model->owner->field_92->flags;
-            if (!(f & 0x2000000)) {
-                bool bright = (f >> 30) & 1;
-                if (bright) {
+            if ((f.word & 0x2000000) == 0) {
+                if (f.bits.b30) {
                     ((Class_0045a470*)this)->FUN_0045a470(bmp);
-                    FUN_004ba1b0(this->bitmap, (bright ? 0x4b : 0) + 0x32);
-                    FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
+                    bool b = (model->owner->field_92->flags.word >> 30) & 1;
+                    FUN_004ba1b0(this->bitmap, (b ? 0x4b : 0) + 0x32);
+                    FUN_004b8500(param_2, this->bitmap, 0x85 + v.p.x.whole, y);
                 } else {
                     if (model->owner->flags & 0x20000000) {
-                        if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
+                        if (unit_has_altitude(model->owner) || dx >= g_game->field_1427f) {
                             if (model->field_14 == 0)
                                 ((Class_00437a30*)this)->FUN_0045a790(model,bmp);
                             FUN_004b8500(param_2, model->field_14, v.p.x.whole + 0x85, y);
                         }
                     } else {
-                        if (gameFlags.b3) {
-                            if (!(f & 0x81000)) {
+                        if (gameFlags.bits.b3) {
+                            if ((f.word & 0x81000) == 0) {
                                 ((Class_0045a470*)this)->FUN_0045a470(bmp);
-                                if (g_game->field_1427f - dx > 0) {
-                                    bool bright = (model->owner->field_92->flags >> 30) & 1;
-                                    FUN_004ba1b0(this->bitmap,
-                                                 (unsigned char)(g_game->field_1427f - dx)
-                                                     + (bright ? 0x4b : 0) + 0x32);
-                                }
+                                int diff = g_game->field_1427f - dx;
+                                if (diff > 0)
+                                    FUN_004ba1b0(this->bitmap, diff + (((model->owner->field_92->flags.word >> 30) & 1 ? 0x4b : 0) + 0x32));
                                 FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
                             }
                         }
@@ -324,7 +400,8 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
             bmp = model->bitmap;
         }
         FUN_004589c0(bmp, model);
-        if (!(model->owner->flags & 0x20000000) || model->owner->intensity == DAT_004fd4c0)
+        int notRender = !(model->owner->flags & 0x20000000);
+        if (notRender || model->owner->intensity == DAT_004fd4c0)
             ((Class_004581e0*)this)->FUN_00459830(this->bitmap,model,model->owner->kind,0);
         Unit_459200* unit = model->owner->list_head;
         while (unit) {
@@ -336,32 +413,29 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
                     d.v[0] = unit->pos_x - op[0];
                     d.v[1] = unit->pos_y - op[1];
                     d.v[2] = unit->pos_z - op[2];
-                    int ddx = d.p.x.whole;
                     int ddy = d.p.y.whole;
                     int ddz = d.p.z.whole;
-                    FUN_004b90a0(unit->sprites->bitmap, this->bitmap, ddx, ddz - (ddy >> 1), ddy);
+                    FUN_004b90a0(unit->sprites->bitmap, this->bitmap, d.p.x.whole, ddz - (ddy >> 1), ddy);
                 }
             }
             unit = unit->list_next;
         }
-        if (g_game->field_1427f - dx > 0) {
-            bool bright = (model->owner->field_92->flags >> 30) & 1;
-            int value = (unsigned char)(g_game->field_1427f - dx)
-                + (bright ? 0x4b : 0) + 0x32;
-            if (!(model->owner->flags & 0x200)
-                && model->owner->kind != g_game->field_2a43) {
+        int diff = g_game->field_1427f - dx;
+        if (diff > 0) {
+            int value;
+            bool b = (model->owner->field_92->flags.word >> 30) & 1;
+            value = ((b ? 0x4b : 0) + 0x32) + diff;
+            if ((model->owner->flags & 0x200) == 0 && model->owner->kind != g_game->field_2a43) {
                 FUN_004ba1b0(this->bitmap, value);
             } else {
                 FUN_004b96e0(this->bitmap, value);
             }
         }
-        bool shade = (model->owner->field_92->flags >> 30) & 1;
-        if (shade)
+        if (model->owner->field_92->flags.bits.b30)
             FUN_004ba1b0(this->bitmap, 0x7d);
-        if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0) {
+        if (!(model->owner->field_10e & 4) && g_game->field_14280 == 0)
             FUN_004b7f90(param_2, this->bitmap, v.p.x.whole + 0x80, z);
-        } else {
+        else
             FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x80, z);
-        }
     }
 }

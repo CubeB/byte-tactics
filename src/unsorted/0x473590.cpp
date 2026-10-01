@@ -1,4 +1,110 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// SPACE-BUNNY-FREE, ninth pass (issue 4241): MATCH, 301 of 301 bytes, byte for
+// byte the original. The answer to the wall every note below describes is the
+// 0x473a00 recipe, matched in this same issue: the two arm locals that pinned
+// the pre-branch allocation are not needed, an inline helper wrapped in a
+// trivial Identity() inline pins it instead, and the fog arm can then go back
+// to the local-free shape the original actually has.
+//   * the fog arm drops `seen` and `w` and reads the fog map through two player
+//     pointers: `p->size.Contains(col,row) && p->seen[p2->size.width*row+col]`.
+//     The width is then read once for the bounds test and once for the index,
+//     and the fog pointer folds into the add, which is exactly the original's
+//     `mov ebx,[edx+0x80]; imul ebx,ecx; add ebx,[edx+0x7c]; cmp byte
+//     [ebx+edi],0`. Both fail blocks are separate as well, so the tail merge
+//     every if/else spelling could not break disappears with the locals.
+//   * the mask arm is `visible = Identity_00473590(IsSeen_00473590(p, p2, col,
+//     row));`. IsSeen holds the whole arm (the Contains test included) and
+//     takes the two player pointers, as at 0x473a00; both details are load
+//     bearing. The Contains test reads the width through `p` and the index
+//     reads it through `p2`, which is what stops the load folding into the
+//     imul and keeps the original's `mov reg,[reg+0x80]; imul` pair.
+// Measured here with check.py on scratch copies (build/scratch/0x473590,
+// gen9.py; b1 is the shape of the previous 91.9 percent file, b5 is this one):
+//   b2 fog arm local free, mask arm still written out inline  38.1 [291]
+//   b3 the same with both player pointers declared at the top 38.1 [291]
+//   b4 fog local free + Identity(IsSeen(map,qq))              86.3 [299]
+//   b6 Identity helper but the old local (seen, w) fog arm     51.2 [311]
+//   b7 Identity with one pointer in both roles                  33.0 [291]
+//   b9 Identity with the local fog arm, one pointer             32.0 [303]
+// So for this family the lever is the two together: the helper only pays when
+// the fog arm is free of locals, and only the mask arm's helper pins the
+// allocation. Checked on the two siblings that share this code, by applying
+// the same recipe to copies in build/scratch/0x473590/ (their own files are
+// not mine, so this is a measured lead, not a change):
+//   sib_0x474170.cpp   this shape verbatim, with the class name swapped:
+//                      MATCH, 301 of 301 bytes. 0x474170 is this function
+//                      instruction for instruction apart from its branch
+//                      targets, so the file needs nothing but the two helper
+//                      inlines and the local-free fog arm.
+//   sib_0x474b80.cpp   the recipe alone: 87.4 percent, its fog arm wanting the
+//                      other index shape (see below).
+//   sib_0x474b80_get.cpp  the recipe plus the ByteMap `Get()` inline in the fog
+//                      arm (Player reshaped to `unsigned char* data` at +0x7c
+//                      with the size at +0x80, as 0x473a00 has it): MATCH, 303
+//                      of 303 bytes. 0x474b80's fog arm loads the fog pointer
+//                      into a register before the imul instead of folding it
+//                      into the add, and Get() is what produces that; where
+//                      the original folds the pointer into the add (here,
+//                      0x474170), Get() must not be used. So the shape of the
+//                      fog index is decided by the original's own instruction
+//                      order, and the Identity/IsSeen pair is common to all
+//                      four.
+//
+// SPACE-BUNNY-FREE, eighth pass (issue 4241): 91.9 percent, 301 of 301 bytes, from
+// tools/permute.py (6028 candidates, 14 min, --jobs 4). The body below is the
+// permuter's best with its leftovers tidied by hand (the inl0/inl1 helpers,
+// tmp0, the `do {} while (0)` and the single-line if/else are gone; every
+// re-checked after each edit). What it bought is only the ORDER of the fog
+// arm's instructions: declaring `seen` first and assigning it after `col` and
+// `row` (`unsigned char* seen; int col = ...; int row = ...; seen = map->seen;`)
+// moves the `mov reg,[edx+0x7c]` and its spill store to just after
+// `sub ecx,ebx`, instead of ahead of the three `movsx`. That declaration split
+// is load bearing: merging it back (`unsigned char* seen = map->seen;`) drops
+// the function to 90.9.
+// WHAT STILL DIFFERS, exactly as the 90.9 notes above say:
+//   1. the fog arm spills `seen` (`mov ebx,[edx+0x7c]; mov [esp+0x18],ebx`)
+//      where the original rematerialises it as `add ebx,[edx+0x7c]` and
+//      re-reads the width instead of reusing the Contains one, so the arm
+//      spends 3 instructions the original does not and omits its second
+//      `mov ebx,[edx+0x80]`;
+//   2. the fog arm's fail block is tail merged with the mask arm's (all three
+//      `jae`/`je` go to the mask arm's `xor edx,edx`), where the original
+//      keeps the two blocks at 0x47362d and 0x47365f.
+// New this pass, all measured with check.py --sym on scratch copies:
+//   * the `seen` spill is not removable by any local-free spelling: the arm is
+//     byte exact (modulo registers) with a p/q pointer pair (`p->size.Contains
+//     (col,row) && p->seen[p2->size.width*row+col]`), with the ByteMap `Get`
+//     form the matched sibling 0x407e90 uses, or with the index width read
+//     through a second map pointer, but every one of those rotates the
+//     pre-branch to `mov ebx,[g_game]` at the top (g_game into ebx, map into
+//     edi, playerIndex into ecx, `py` re-read from the stack): 15.0 to 38.3
+//     percent, 289 to 311 bytes. So the two named locals really are the price
+//     of the register allocation that holds the pre-branch in place.
+//   * `Get()` in the ByteMap shape does reproduce the original's two late
+//     width loads (`mov ebx,[edi+0x80]; imul ebx,ecx` with no fold), and the
+//     `unsigned char Get(int x,int y) { return *(data + size.width*y + x); }`
+//     association matters for `add reg,[edx+0x7c]` vs a register load, but it
+//     rotates the pre-branch too (37.9).
+//   * the tail merge survives every if/else spelling of the fog arm: plain
+//     if/else, braces, `if (!(c && s)) v=0; else v=1;`, `v = c && s ? 1 : 0`,
+//     a nested `if`, `if (!c) v=0; else if (!s) v=0; else v=1;`, a goto, a
+//     named condition and `visible = false` (all 90.9 and 301 bytes, f1..fa in
+//     build/scratch/0x473590/gen_fail.py); only the two 302/298 byte forms move
+//     the block, and they lose the pre-branch.
+//   * best lead for the next attempt (not in the file, it scores 88.9): the p/q
+//     fog arm plus two `unsigned short` pins (c16, r16) feeding BOTH the
+//     Contains test and the mask index in the mask arm gives the pre-branch
+//     AND the whole fog arm byte identical, with the mask arm off by exactly
+//     the two zero extensions `and ebx,0xffff` / `and ecx,0xffff` that the
+//     `unsigned short -> int` conversions cost (309 bytes, p1 in
+//     build/scratch/0x473590/gen_pin.py). Splitting the pins between the test
+//     and the index, one pin instead of two, signed `short` pins, 32-bit pins,
+//     an `int` cell pin and pins in the fog arm all rotate the pre-branch
+//     again (37.4 to 40.0), so the next attempt should look for a pressure
+//     node that is not a 16-bit truncation: one that pins the pre-branch
+//     without widening anything in the mask arm.
+//
+
 // GPT-6.1-sol (#2520 retry): kept the 85.4% best. Rechecked baseline and tried
 // a SeenMap::Get helper (37.8%) plus loading `seen` only inside the successful
 // bounds branch (74.7%). No MATCH. Remaining differences are the two fog/mask
@@ -116,6 +222,103 @@
 // in ecx there (0x4735ab). Any arm local at all is enough to stop that hoist,
 // but a pointer local then costs a stack slot. What is still missing is a
 // pressure node that is neither a pointer nor a spilled scalar.
+// DEEPSEEK-V4.1-FLASH, sixth pass (issue 4241): 90.9 percent, 301 of 301
+// bytes (the byte count now equals the original). Two changes from the 85.4
+// version above, both found by sweeping source shapes:
+//   * the mask arm now names a SECOND map pointer (`qq`) and reads the width
+//     through it (`qq->size.width * row + col`). That makes the mask arm
+//     byte-identical (the original re-reads the width into edx: `mov
+//     edx,[edx+0x80]; imul edx,ecx`) and keeps the pre-branch block.
+//   * the fog arm's declaration order is now seen, col, row, w (the order
+//     0x474b80 documents). All 24 permutations were scored: seen,col,row,w is
+//     the only one that holds the pre-branch (90.9); the old col,row,seen,w is
+//     87.3, seen,row,col,w and seen,row,w,col are 87.9, seen,col,w,row and
+//     seen,w,col,row are 83.0, the rest 79.8 to 86.9.
+// WHAT STILL DIFFERS (both inside the fog arm):
+//   1. `seen` is spilled, where the original rematerialises it as a memory
+//      operand. ours: mov ecx,[edx+0x7c]; mov [esp+0x18],ecx; ... imul ebx,ecx;
+//      mov edx,[esp+0x18]; add ebx,edi; cmp byte [ebx+edx],0
+//      orig: ... mov ebx,[edx+0x80]; imul ebx,ecx; add ebx,[edx+0x7c];
+//      cmp byte [ebx+edi],0
+//      (ours spends 3 instructions the original does not and omits the width
+//      re-read, so the two sizes still come out equal)
+//   2. the fog arm's fail block is tail-merged with the mask arm's; the
+//      original keeps two (`xor edx,edx; jmp` at 0x47362d and 0x47365f).
+// Every local-free fog spelling rotates the pre-branch to `mov ebx,[g_game]`
+// at the top (g_game into ebx, map into edi, playerIndex into ecx) and also
+// folds the width into the imul (`imul ecx,[edi+0x80]`): member Contains,
+// hand-spelled bounds, ByteMap::Get, inline Fog/Vis helpers, p/q pointer
+// aliases, a `who` local, a `flags` local, reordering map/sx/sy, index
+// operand order, int/long width types. Only the two index-used locals
+// `seen`+`w` pin the pre-branch, and they are exactly what spills.
+// Measured dead this pass: all 24 fog declaration permutations, a 601-value
+// dummy-extern compiler-state sweep, a 201-value dummy-function sweep (both
+// flat), tools/headers.py (128 sets, flat at 90.9), bool `visible` (296 bytes,
+// dl instead of edx), `register` on either local, two `seen` aliases (coalesce),
+// two width aliases, `w` used in a hand-spelled test, an `idx` local, an extra
+// height local, an inverted fog condition, an inverted mask condition (86.9),
+// swapped arms (73.1), and every `visible = 0` spelling (`!1`, `1-1`, `2-2`,
+// `(int)false`, `0&1`) to break the fail-block merge.
+//
+// BEST LEAD FOR THE NEXT ATTEMPT (found in this pass, not yet combined): the
+// fog arm's exact instructions ARE reachable. With a 16-bit value live across
+// the fog test (the pin 0x474170 documents) and the p/q pointer pair in the fog
+// arm, the fog arm compiles byte-for-byte to the original:
+//     Player* p  = &g_game->players[g_game->playerIndex];
+//     Player* q2 = &g_game->players[g_game->playerIndex];
+//     if (p->size.Contains(col, row) && p->seen[p2->size.width * row + col] != 0)
+// The two pointers coalesce into edx but their width reads do not, so the
+// original's `mov ebx,[edx+0x80]; imul ebx,ecx; add ebx,[edx+0x7c];
+// cmp byte [ebx+edi],0` comes out exactly, and the pre-branch stays pinned.
+// The pin used was a `unsigned short cell = g_game->visibilityMask[...]` in the
+// mask arm (v46a in build/scratch/0x473590, 78.2 [309]): that pin costs the
+// mask arm (MSVC hoists the cell load above the bounds test and spills row),
+// which is why it is not the file. What is missing is a pin that leaves the
+// mask arm alone, or a mask-arm spelling that keeps the cell load after the
+// test (a comma/short-circuit assignment sinks the load and loses the pin; a
+// 16-bit height local or a `pi` player-index local break the test instead).
+// The 16-bit pin works only as a 16-bit value (an 8-bit cell is 39.4, an int
+// cell 53.2 in the mask arm); with the p/q fog arm plus the mask `qq` trick and
+// no pin the pre-branch rotates to `mov ebx,[g_game]` (38.1).
+//
+// DEEPSEEK-V4.1-FLASH, seventh pass (60 minute timebox, ~55 scratch scorings,
+// no new best; the code below is still the 90.9 file). The lead above was
+// reproduced and then taken as far as it goes: p/q fog arm + 16-bit pin in the
+// mask arm is 88.9 percent, 309 of 301 bytes, with the pre-branch AND the whole
+// fog arm byte-identical. The ONLY difference left is two zero-extension `and`s
+// in the mask arm:
+//   ours: mov ebx,[esp+0x18]; and ebx,0xffff; sar ecx,5; cmp ebx,[edx+0x80] ...
+//         and ecx,0xffff; cmp ecx,[edx+0x84]
+//   orig: mov ebx,[esp+0x18]; sar ecx,5; cmp ebx,[edx+0x80] ...
+//         cmp ecx,[edx+0x84]
+// The pin is `unsigned short c16 = (unsigned short)col; unsigned short r16 =
+// (unsigned short)row;` feeding BOTH the Contains test and the index; both must
+// be 16-bit (one 16-bit value is 37.9 to 39.8 and rotates the pre-branch) and
+// both must be the values used in the index. The `and`s are the price of
+// `unsigned short -> unsigned int` conversion, so this spelling can never be a
+// byte match; the mask arm's col/row are 32-bit in the original (movsx/sar with
+// no masks anywhere). Closed this pass, all measured with check.py --sym:
+//   * 32-bit masks instead of 16-bit types (col & 0xffff, a c32/r32 pair): 37.4
+//     to 39.6, no pin. A 16-bit copy that is coalesced (`int c = col`) is the
+//     plain local-free 38.1, and `short c = (short)col` is 37.8.
+//   * 16-bit pins elsewhere: playerIndex (`unsigned short pi`, also in the
+//     shift), the height, the width, the cell through a pointer, a precomputed
+//     16-bit index, `short h16` in the row expression, 16-bit header locals for
+//     x/h/y: 20.5 to 48.5, all rotate. Only position-derived unsigned shorts in
+//     the mask arm pin.
+//   * 16-bit pins in the fog arm (c16/r16 in the test or the index): 39.6 to
+//     40.2, and the fog arm loses its exact form.
+//   * hand-spelled Contains in the pinned mask arm, direct boolean assignments,
+//     `visible = 0` pre-initialisation, positive Contains, nested braces: no
+//     change (88.9) or rotate (34.7 to 37.1).
+//   * header pins (16-bit x/h/y locals used in both arms, a `pi` index local,
+//     the map pointer built inside the arms): 14.8 to 37.8.
+// So the wall is now exactly two instructions wide, and the pin that supplies
+// the pressure is also the thing that costs them. NEXT ATTEMPT: find a 16-bit
+// pin whose zero-extension the mask arm does not have to pay for, or a
+// non-16-bit pressure node that leaves the mask arm's 32-bit arithmetic alone.
+// The tail-merge of the two fail blocks is independent and unfixed by every
+// `visible = 0` spelling tried so far.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);
@@ -171,37 +374,50 @@ public:
 
 extern Game_00473590* g_game;
 
+// The allocation lever, as at 0x473a00: the wrap pins the prologue, the
+// pre-branch block and the mask arm's register choice without emitting a
+// single extra instruction. IsSeen alone, or Identity around only the mask
+// test, rotates the pre-branch instead.
+static inline int Identity_00473590(int v) { return v; }
+
+// The second arm, inlined. The two player parameters are not a typo: the
+// Contains test reads the map width through `p` and the index reads it through
+// `q`, two address nodes, which is what stops the width load folding into the
+// imul and keeps the original's `mov edx,[edx+0x80]; imul edx,ecx` pair.
+static inline int IsSeen_00473590(Player_00473590* p, Player_00473590* q, int col, int row)
+{
+    if (!p->size.Contains(col, row))
+        return 0;
+    return (g_game->visibilityMask[q->size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
 // FUNCTION: 0x473590
 void Class_00473590::FUN_00473590(void* dest, short px, short py)
 {
-    // The header reads the position through the pointer, the arms read the
-    // member: two different expression trees, so MSVC keeps both load nodes and
-    // re-reads the three shorts per arm instead of sharing the header's.
     Pos_00473590* q = &pos;
     short sx = q->x - px + 0x80;
     short sy = q->y - (q->h >> 1) - py + 0x20;
-    Player_00473590* map = &g_game->players[g_game->playerIndex];
+    // Two locals with the same value. The original reads the map width twice
+    // per arm, once for the bounds test and once for the index, and a single
+    // pointer makes MSVC 5 fold one of the two away.
+    Player_00473590* p = &g_game->players[g_game->playerIndex];
+    Player_00473590* p2 = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->fogFlags & 2) == 2) {
         int col = pos.x >> 5;
         int row = (pos.y - (pos.h >> 1)) >> 5;
-        // `seen` and `w` are the arm pressure that keeps the pre-branch
-        // allocation on the original's registers; both are spilled, see above.
-        unsigned char* seen = map->seen;
-        unsigned int w = map->size.width;
-        if (map->size.Contains(col, row) && seen[w * row + col] != 0)
+        // Local free on purpose: the width is re-read and the fog map pointer
+        // folds into the add, which is what the original does.
+        if (p->size.Contains(col, row) &&
+            p->seen[p2->size.width * row + col] != 0)
             visible = 1;
         else
             visible = 0;
     } else {
         int col = pos.x >> 5;
         int row = (pos.y - (pos.h >> 1)) >> 5;
-        unsigned int w = map->size.width;
-        if (!map->size.Contains(col, row))
-            visible = 0;
-        else
-            visible = (g_game->visibilityMask[w * row + col] &
-                       (1 << g_game->playerIndex)) != 0;
+        visible = Identity_00473590(IsSeen_00473590(p, p2, col, row));
     }
     if (visible)
         FUN_004b8500(dest, FUN_004b7f30(data, field_2c), sx, sy);

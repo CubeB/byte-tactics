@@ -1,155 +1,108 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol
 // and space-bunny-free, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
-// Sonnet 5.5 retry (#2823), still 88.4%. Lead for the next pass, from 0x46d6c0
-// (now a MATCH): the store after the insert is `rects[key] = <Value temp>`,
-// <map>'s operator[] (`insert(value_type(k, _Ty())).first->second`), and the
-// uninitialised copies are its `_Ty()` default temporary. A real
-// std::map<unsigned int, Rect_0046e160> member with `rects[key] = r` gives 474
-// bytes here (47.9% only because a few instructions in the pre-insert block
-// are scheduled differently: frame 0x50 instead of 0x4c, and the original
-// keeps `r` in memory at [esp+0x38] and copies it into the pair temp field by
-// field with y copied uninitialised). An explicit `rects.insert(...).first`
-// followed by an assignment is not inlined at all (213 bytes), and giving the
-// Rect a constructor for `rects[key] = Rect(r.x, 0, ...)` is 493 bytes.
-// #1543 retry by Codex / GPT-6.1-sol: verified 88.4% (475/475 bytes) with checkall; no MATCH.
-// The remaining difference is scheduling and register allocation in the pre-insert block and post-insert copy.
-// PARTIAL, 88.4%, and the whole function now compiles to the original's exact
-// 475 bytes, so only the in-block scheduling inside two blocks is left.
-// space-bunny-free pass (#1875), 6 check runs, still 88.4%, these are the new facts:
-//  * The original NEVER stores 0 into s.v.y (no `mov dword [esp+0x3c],0` anywhere),
-//    but it does copy s.v.y into s.val.value.y at the very top of the block
-//    (`mov edx,[esp+0x3c] / mov [esp+0x50],edx`, right after `add eax,ecx`).
-//    So the original's val.value.y is whatever was on the stack: see the BUG note.
-//    Deleting `s.v.y = 0;` alone compiles to 467 bytes and leaves the y copy in
-//    place, so the 8 missing bytes are exactly the two reloads below.
-//  * Those 8 bytes are `mov ecx,[esp+0x38]` (reload s.v.x) and `mov ecx,[esp+0x44]`
-//    (reload s.v.flag), i.e. the original does NOT forward the register for
-//    `s.val.value.x = s.v.x` and `s.val.value.flag = s.v.flag`. MSVC 5's
-//    store-to-load forwarding here is PRECISE: putting `s.val.key = key;` before
-//    either use changes nothing, so no statement order can force the reloads.
-//    The load needs a different memory node (level-1/imprecise aliasing) than
-//    the store, which only a different source shape can give.
-//  * Moving `s.val.value.y = s.v.y;` to the first statement of the body DOES hoist
-//    that load+store pair to the top of the block as the original has it, but it
-//    then costs the index computation: `mov ax, word [ebp+0x58]` instead of
-//    `mov dx, ...`, and `&defs[i]` folded into the key load
-//    (`lea ecx,[eax+eax*8] / lea eax,[edx+ecx] / mov ecx,[edx+ecx+0x13e]`)
-//    instead of `mov ecx,[edx+0x1439b] / lea eax,[eax+eax*8] / add eax,ecx /
-//    mov ecx,[eax+0x13e]`. 474 bytes and 49.4%: the y hoist and the dx form of
-//    the index computation are mutually exclusive under statement reordering.
-// What is settled (do not undo):
-//  * ONE local struct `Locals_0046d2e0` holding both the value and the pair,
-//    with `Insert(s.val)` letting &s.val escape. Two separate locals collapse
-//    the register allocation (the frame grows to 0x50, `this` spills).
-//  * The loop is an `if (i < count) { ...; do { ...; i++; } while (i < count); }`.
-//    That, not `s.v.wh.w = 1` before a `for`, is what puts the
-//    `mov word [esp+0x40], cx` in the post-guard preheader like the original,
-//    and it is also the only form that keeps the bottom-tested latch.
-//  * The post-insert copy is a CONSTRUCTED value,
-//    `p.first->value = Value_0046d2e0(s.v.x, 0, s.v.wh, s.v.flag)`.
-//    A plain `p.first->value = s.v;` reloads s.v.y and is 2 bytes over; four
-//    separate field assignments re-read `p.first` four times (the stores go
-//    through a pointer, so MSVC 5 cannot CSE the four `p.first` loads) and give
-//    479 bytes. Only the constructor materialises the constant 0 into a
-//    register (`xor eax,eax / mov [edx+4],eax`) the way the original does; a
-//    literal 0 in a field assignment always becomes `mov dword [m], 0`.
-//  * `s.v.y = 0;` must be the last statement before `Insert`, and the y copy
-//    `s.val.value.y = s.v.y;` must come before it.
-// What still differs, all MSVC 5 scheduling inside two blocks:
-//  1. pre-insert block: the original hoists the `s.v.wh.h` store and the
-//     `s.val.value.y` load+store pair to the top of the block (before the key
-//     and flags loads) and reloads s.v.x and s.v.flag through the stack instead
-//     of forwarding the register. No permutation of the eight statements
-//     changes this: all 5040 legal orders compile identically, so it is not
-//     statement order.
-//  2. post-insert block: same instruction sequence, wrong registers. Ours puts
-//     the destination base in edi and hoists all three loads (edi/eax/edx/esi),
-//     the original uses edx for the base and reuses eax for the 0 and the flag,
-//     i.e. it has one live value fewer, which is a consequence of 1.
-// Claude Sonnet 5.5 pass (#601): compiler state is ruled out for the two blocks
-// below. N unused `extern int dummyK;` lines after the include, K = 8 to 400 step
-// 8 (50 builds, check.py --sym, not committed): 88.4 percent and 475 bytes for
-// every K; headers.py, all 128 sets: best is 88.4, the empty set. So it is the
-// source shape, as the notes above conclude.
-// deepseek-v4.1 pass (#2409), 12 more check runs, still 88.4% (475 bytes).
-// Still missing: exactly the two reloads `mov ecx,[esp+0x38]` (s.v.x) and
-// `mov ecx,[esp+0x44]` (s.v.flag), 8 bytes, with `s.v.y = 0;` removed.
-// Tried this pass, all either 467 bytes or worse, so none of them turns the
-// register copies into loads: reading the fields through a local pointer
-// (`Value_0046d2e0* pv = &s.v`), through a reference local, through
-// `*(unsigned int*)&s.v.x` casts, through non-const member functions
-// (`void StoreX(unsigned int) { x = k; }`), a 4-arg Value ctor, a static copy
-// helper taking pointers and one taking references (both inline to the same
-// struct copy), `char*` punning of the pair, and the pair built by
-// `Pair(key, Value(...))`. Everything the guide lists as a way to break
-// store-to-load forwarding still forwards here.
-// Hoisting the y copy to the top of the loop body (the one statement order the
-// 5040-permutation sweep seems not to have covered, since that sweep had 7
-// statements) gives 466 bytes at 48.9%, and with the h store it gives 464 at
-// 51-53%: it does hoist the y load+store, but it also switches the h load from
-// dx to ax and folds the index into `lea eax,[edx+ecx]`, so it loses more than
-// it gains. Best file remains the 475-byte 88.4% version.
-#include <yvals.h>
+//
+// MATCH (space-bunny-free, issue 3009). The two blocks that every earlier pass
+// left at 88-89% are not a scheduling puzzle at all: they are what MSVC 5 emits
+// for one `map::operator[]`, that is
+//     rects[v.x] = v;
+// with the value a plain struct local. So the whole body is a Rect local and a
+// for loop, and the loads the earlier notes called "reloads that survive every
+// statement order" are the copy of the pair's second out of the *uninitialised*
+// temporary `map::operator[]` builds (`insert(value_type(_Kv, _Ty()))`, MSVC 5
+// leaves that _Ty() uninitialised). Because the temporary is a different
+// memory node from the local, the store `v.x = key` does not forward into the
+// pair's copy, which is exactly the two `mov ecx, [esp+0x38]` /
+// `mov ecx, [esp+0x44]` the pre-insert block needed, and the post-insert
+// `= v` then has one live value fewer. Same mechanism as 0x46d6c0, but there
+// the temporary is a separate Rect, here it shares the local's slot.
+//
+// Three details the bytes need, all settled by experiment here:
+//  * `v.y = 0` is dead code the optimiser keeps only as a value: the pair's copy
+//    of y is emitted before the store, so the store is dropped and the
+//    uninitialised slot is what the insert copies. That is the bug below. Do
+//    not "fix" it by initialising y in a way the compiler can see.
+//  * the flag expression has to be a small `static inline` helper. Written out
+//    in the loop it lands in eax and costs a `mov ebx, eax`.
+//  * `field_58` is an int member read into a short field (`v.h`), and `v.w = 1`
+//    is the statement MSVC sinks into the pre-guard preheader.
+//
+// Why the tree is declared as below. The two callee names the checker wants
+// are mixed: data/symbols.csv has 0x46e880 and 0x46fad0 as hand-rolled
+// (`Class_0046e880::FUN_0046e880`, `Class_0046fad0::Class_0046fad0`, from the
+// matched 0x46e880.cpp and 0x46fad0.cpp) but 0x46fb80 and 0x46ff90 under the
+// crude demangle of the real MSVC 5 template symbols
+// (`IURect_0046e160::IU?$pair::?$_Tree::_Insert`, `...::iterator::_Dec`, from
+// 0x46fb80.cpp and 0x46ef50.cpp). Using the real <map> gives the right two but
+// the wrong other two; hand-rolling everything gives the right other two but
+// the wrong two. Declaring a `_Tree` template whose first two arguments are
+// `unsigned int` and the map's real `value_type` gives the STL mangled names
+// while the walk itself stays hand written: MSVC 5 concatenates template
+// arguments with no separator, so `_Tree<unsigned int, std::pair<const
+// unsigned int, Rect_0046e160>, ...>` mangles as `?$_Tree@IU?$pair@IURect...`,
+// and check.py's base_name() only looks at the part before the first `@@`.
+//
+// BUG (kept as the original has it): the value handed to the map insert has an
+// uninitialised y. There is no store to the local's y slot anywhere in the
+// function; the insert copies four words out of that slot into the pair, so the
+// node briefly holds stack garbage before `= v` overwrites y with 0. The
+// evidence is that instruction: `mov edx, [esp+0x3c] / mov [esp+0x50], edx`
+// copies the word, and nothing ever writes it.
+#include <map>
 
-struct Wh_0046d2e0 {                   // 4 bytes, the w/h pair
-    short w;                            // +0x0
-    short h;                            // +0x2
-
+struct Rect_0046e160 {                // the std::map's value, 0x10 bytes
+    int x;                             // +0x0
+    int y;                             // +0x4
+    short w;                           // +0x8
+    short h;                           // +0xa
+    int flag;                          // +0xc
 };
 
-struct Value_0046d2e0 {                 // 0x10 bytes, the map's value
-    int x;                              // +0x0
-    int y;                              // +0x4
-    Wh_0046d2e0 wh;                     // +0x8
-    int flag;                           // +0xc
-    // The constructor is what makes the post-insert copy a constructed
-    // temporary rather than a struct assignment; see the note above.
-    Value_0046d2e0() {}
-    Value_0046d2e0(int a, int b, Wh_0046d2e0 c, int d) : x(a), y(b), wh(c), flag(d) {}
+struct Node_0046d2e0 {                 // the map's tree node, 0x24 bytes
+    Node_0046d2e0* left;               // +0x0
+    Node_0046d2e0* parent;             // +0x4
+    Node_0046d2e0* right;              // +0x8
+    unsigned int key;                  // +0xc
+    Rect_0046e160 value;               // +0x10
+    int color;                         // +0x20
 };
 
-struct Pair_0046d2e0 {                  // 0x14 bytes, the value_type
-    unsigned int key;                   // +0x0
-    Value_0046d2e0 value;               // +0x4
+extern Node_0046d2e0* DAT_0051e598;    // the tree's shared _Nil node
+
+// The map's value_type, the real std::pair: its mangled name is the first half
+// of _Tree's, and that is what the callee names in data/symbols.csv come from.
+typedef std::pair<const unsigned int, Rect_0046e160> Pair_0046d2e0;
+
+// std::_Tree<...> out of MSVC 5's <xtree>, with only the two members this
+// function calls out of line. The template arguments are the point of writing
+// it this way (see the note at the top): the walk itself is hand written below.
+template <class Kty, class Ty, class Kfn, class Pr, class Alloc>
+struct _Tree {
+    struct iterator {
+        Node_0046d2e0* ptr;
+        iterator() {}
+        iterator(Node_0046d2e0* p) : ptr(p) {}
+        bool operator==(const iterator& other) const { return ptr == other.ptr; }
+        void _Dec();                    // operator--
+    };
+    // The out-of-line insert: it takes the node pointer slot it fills and
+    // returns it, and cleans its own four arguments (hence the pushes before
+    // the call that stay on the stack for the pair constructor).
+    Node_0046d2e0** _Insert(Node_0046d2e0** out, Node_0046d2e0* where,
+                            Node_0046d2e0* candidate, const Pair_0046d2e0& val);
 };
 
-struct Locals_0046d2e0 {
-    Value_0046d2e0 v;                   // +0x00
-    Pair_0046d2e0 val;                  // +0x10
-};
-
-struct Node_0046d2e0 {
-    Node_0046d2e0* left;                // +0x0
-    Node_0046d2e0* parent;              // +0x4
-    Node_0046d2e0* right;               // +0x8
-    unsigned int key;                   // +0xc
-    Value_0046d2e0 value;               // +0x10
-    int color;                          // +0x20
-};
-
-extern Node_0046d2e0* DAT_0051e598;     // the tree's shared _Nil node
-
-class Class_0046ff90 {                  // the map's iterator
-public:
-    Node_0046d2e0* ptr;
-    Class_0046ff90() {}
-    Class_0046ff90(Node_0046d2e0* p) : ptr(p) {}
-    bool operator==(const Class_0046ff90& other) const { return ptr == other.ptr; }
-    void FUN_0046ff90();                // operator--
-};
-
-class Class_0046fad0 {                  // pair<iterator, bool>
+class Class_0046fad0 {                 // pair<iterator, bool>
 public:
     Node_0046d2e0* first;
     bool second;
     Class_0046fad0(Node_0046d2e0** first, const bool* second);
 };
 
-class Class_0046e880 {                  // the same object, for the root pointer
+class Class_0046e880 {                 // the map seen as the tree's root header
 public:
     char unknown_0[4];
-    int* field_4;                       // +0x4
-    int* FUN_0046e880(int* param_1);
+    int* field_4;                      // +0x4
+    int* FUN_0046e880(int* param_1);   // _Tree::begin
 };
 
 struct Less_0046d2e0 {
@@ -159,32 +112,83 @@ struct Less_0046d2e0 {
     }
 };
 
-class Map_0046d2e0 {
+class Map_0046d2e0 : public _Tree<unsigned int, Pair_0046d2e0, int, int, int> {
 public:
-    char allocator;                     // +0x0
-    Less_0046d2e0 key_compare;          // +0x1
-    Node_0046d2e0* head;                // +0x4
-    char multi;                         // +0x8
+    char allocator;                    // +0x0
+    Less_0046d2e0 key_compare;         // +0x1
+    Node_0046d2e0* head;               // +0x4
+    char multi;                        // +0x8
     char unknown_9[3];
-    int size;                           // +0xc
+    int size;                          // +0xc
 
-    Node_0046d2e0** FUN_0046fb80(Node_0046d2e0** out, Node_0046d2e0* where,
-                                 Node_0046d2e0* candidate, const Pair_0046d2e0* val);
+    Rect_0046e160& operator[](const unsigned int& k)
+    {
+        // std::map::operator[]: insert a default value under the key, then hand
+        // back the node's value to assign to. The Rect() is never written.
+        iterator p = insert(Pair_0046d2e0(k, Rect_0046e160())).first;
+        return p.ptr->value;
+    }
+
+    Class_0046fad0 insert(const Pair_0046d2e0& val)
+    {
+        Node_0046d2e0* out1;
+        Node_0046d2e0* out2;
+        Node_0046d2e0* out3;
+        bool inserted1;
+        bool inserted2;
+        bool inserted3;
+        bool inserted4;
+        Node_0046d2e0* where = head->parent;
+        Node_0046d2e0* candidate = head;
+        bool went_left = 1;
+        {
+            std::_Lockit lock;
+            if (where != DAT_0051e598) {
+                do {
+                    candidate = where;
+                    went_left = key_compare(val.first, where->key);
+                    where = went_left ? where->left : where->right;
+                } while (where != DAT_0051e598);
+            }
+        }
+        if (multi) {
+            inserted1 = 1;
+            return Class_0046fad0(_Insert(&out1, where, candidate, val), &inserted1);
+        }
+        iterator it(candidate);
+        if (went_left) {
+            int root;
+            iterator other((Node_0046d2e0*)*((Class_0046e880*)this)->FUN_0046e880(&root));
+            bool same = (it == other);
+
+            if (same) {
+                inserted2 = 1;
+                return Class_0046fad0(_Insert(&out2, where, candidate, val), &inserted2);
+            }
+            it._Dec();
+        }
+        if (key_compare(it.ptr->key, val.first)) {
+            inserted3 = 1;
+            return Class_0046fad0(_Insert(&out3, where, candidate, val), &inserted3);
+        }
+        inserted4 = 0;
+        return Class_0046fad0(&it.ptr, &inserted4);
+    }
 };
 
 #pragma pack(push, 1)
-struct Def_0046d2e0 {                   // 0x249 bytes
+struct Def_0046d2e0 {                  // 0x249 bytes
     char unknown_0[0x13e];
-    unsigned int key;                   // +0x13e
+    unsigned int key;                  // +0x13e
     char unknown_142[0x245 - 0x142];
-    unsigned int flags;                 // +0x245
+    unsigned int flags;                // +0x245
 };
 
 struct Game_0046d2e0 {
     char unknown_0[0x1438f];
-    int count;                          // +0x1438f
+    int count;                         // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    Def_0046d2e0* defs;                 // +0x1439b
+    Def_0046d2e0* defs;                // +0x1439b
 };
 #pragma pack(pop)
 
@@ -192,80 +196,31 @@ extern Game_0046d2e0* g_game;
 
 class Class_0046d040 {
 public:
-    Map_0046d2e0 rects;                 // +0x00
+    Map_0046d2e0 rects;                // +0x00
     char unknown_10[0x58 - 0x10];
-    short field_58;                      // +0x58
+    int field_58;                      // +0x58
 
-    Class_0046fad0 Insert(const Pair_0046d2e0& val)
-    {
-        Node_0046d2e0* out1;
-        int root;
-        Node_0046d2e0* out2;
-        Node_0046d2e0* out3;
-        bool inserted1;
-        bool inserted2;
-        bool inserted3;
-        bool inserted4;
-        Node_0046d2e0* where = rects.head->parent;
-        Node_0046d2e0* candidate = rects.head;
-        bool went_left = 1;
-        {
-            std::_Lockit lock;
-            if (where != DAT_0051e598) {
-                do {
-                    candidate = where;
-                    went_left = rects.key_compare(val.key, where->key);
-                    where = went_left ? where->left : where->right;
-                } while (where != DAT_0051e598);
-            }
-        }
-        if (rects.multi) {
-            inserted1 = 1;
-            return Class_0046fad0(rects.FUN_0046fb80(&out1, where, candidate, &val), &inserted1);
-        }
-        Class_0046ff90 it(candidate);
-        if (went_left) {
-            Class_0046ff90 other((Node_0046d2e0*)*((Class_0046e880*)this)->FUN_0046e880(&root));
-            bool same = (it == other);
-
-            if (same) {
-                inserted2 = 1;
-                return Class_0046fad0(rects.FUN_0046fb80(&out2, where, candidate, &val), &inserted2);
-            }
-            it.FUN_0046ff90();
-        }
-        if (rects.key_compare(it.ptr->key, val.key)) {
-            inserted3 = 1;
-            return Class_0046fad0(rects.FUN_0046fb80(&out3, where, candidate, &val), &inserted3);
-        }
-        inserted4 = 0;
-        return Class_0046fad0(&it.ptr, &inserted4);
-    }
     void FUN_0046d2e0();
 };
+
+// The flag expression in its own small inline helper. Written out in the loop
+// MSVC keeps the tested bit in eax and adds a `mov ebx, eax`; this way it lands
+// in ebx, the callee-saved register the original keeps it in.
+static inline bool FlagOf_0046d2e0(Def_0046d2e0* d)
+{
+    return (d->flags >> 16) & 1;
+}
 
 // FUNCTION: 0x46d2e0
 void Class_0046d040::FUN_0046d2e0()
 {
-    Locals_0046d2e0 s;
-    unsigned short i = 1;
-    if (i < g_game->count) {
-        s.v.wh.w = 1;
-        do {
-            unsigned int key = g_game->defs[i].key;
-            bool flag = (g_game->defs[i].flags >> 16) & 1;
-            s.v.wh.h = field_58;
-            s.v.x = key;
-            s.v.flag = flag ? 0 : -1;
-            s.val.value.flag = s.v.flag;
-            s.val.value.wh = s.v.wh;
-            s.val.value.x = s.v.x;
-            s.val.key = key;
-            s.val.value.y = s.v.y;
-            s.v.y = 0;
-            Class_0046fad0 p = Insert(s.val);
-            p.first->value = Value_0046d2e0(s.v.x, 0, s.v.wh, s.v.flag);
-            i++;
-        } while (i < g_game->count);
+    Rect_0046e160 v;
+    for (unsigned short i = 1; i < g_game->count; i++) {
+        v.x = g_game->defs[i].key;
+        v.y = 0;
+        v.w = 1;
+        v.h = (short)field_58;
+        v.flag = FlagOf_0046d2e0(&g_game->defs[i]) ? 0 : -1;
+        rects[v.x] = v;
     }
 }

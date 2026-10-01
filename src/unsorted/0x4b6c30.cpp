@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free. Names are provisional.
 // Retry (deepseek-v4.1-flash, 2026-10): confirmed the neg/shl/sub target block
 // appears for EVERY spelling whose correction is a real multiply tree, inline
 // or materialised: ((-q)<<31)-q, q*0x7fffffff, q*-2147483647, -q*2147483648,
@@ -72,6 +72,47 @@
 // 57.5% form. Sweeps: headers.py 768 sets and 0 to 10000 unused prototypes are
 // flat at 91.1%, so this is the compiler-state tie the guide describes, not a
 // source spelling.
+// space-bunny-free (issue 4469): 95.0% kept, still no MATCH. What is new:
+// (a) The original's block is MSVC's own expansion of a real multiply by
+// 2147483647. A probe, `unsigned int f(unsigned int q) { return q*2147483647u; }`,
+// compiles to exactly `mov eax,ecx; neg eax; shl eax,31; sub eax,ecx` (the neg
+// before the shl is a no-op MSVC emits), and one probe
+// `a * 16807 - q * 2147483647u` gives that block followed by `sub eax,edx`,
+// exactly the original's shape. So the original source was almost certainly the
+// plain `seed = seed * 16807 - (seed / 127773) * 2147483647;`.
+// (b) That plain form with <windows.h> (which is what the lea chain needs) is
+// 57.5%: the division expansion, the whole lea chain and the correction block
+// come out byte-identical to the original, and the only difference is the
+// schedule and the allocation. Ours runs the lea chain before the division
+// (seed in ecx, product in esi, the store and the `mov eax,esi` for the div
+// after it); the original interleaves the two (seed in esi, product in eax, the
+// quotient fixup in ecx, the store before the div).
+// (c) The two halves cannot be combined from the source. Shapes that do reach
+// the original's schedule (`unsigned int product = seed * 16807; seed = product;
+// seed = seed - correction;` and the `seed = seed*16807; seed -= correction;`
+// forms) put the division first exactly as the original, but then the product
+// shares the seed's register and MSVC compiles 16807 to a single `imul`
+// (83 bytes, 33.8%). The retained redundant `seed / 127773` (or any second
+// division node, e.g. `+ seed/127773 - q`) does give the schedule, the
+// allocation and the byte count exactly, but MSVC's flattening pass then
+// rewrites the correction into `add ecx,edx; add eax,ecx`. The trigger is
+// specifically a second division node: pads made of `q - q`, `seed - seed`, a
+// second `* 16807` or `q*2 - q*2` all leave the 57.5% schedule.
+// (d) Sweeps, all flat: dummy `extern int` 0..3000 step 8, dummy prototypes
+// 0..6000 step 8 and dummy function definitions 0..600 step 4 on the plain
+// form; prototypes 0..4000 step 16 on this file; headers.py --cpp (768 sets) on
+// both this file and the plain form, best 95.0% here and 57.5% there; the
+// unpatched msvc5-rtm compiler gives the same two scores. tools/permute.py:
+// 8.4 min / 4374 candidates on the plain form reached 67.5% (101 bytes); 5 min /
+// 2343 candidates on this file reached nothing.
+// (e) Also unchanged: every operand order, `0x7fffffff` and `-2147483647`
+// spellings, int and long types, (int) casts, a static helper for the whole
+// update or for either part, `old`/`s2` copies of the seed, the quotient read
+// from the global before the seed, the global used directly, the extra division
+// split into its own statement, all 18 orderings of the four statements
+// (quotient, correction, product, subtraction) with a real multiply (57.5% at
+// best), and a hand written lea chain (which compiles to the same bytes as the
+// multiply).
 // Claude Opus 5.5 (found with tools/permute.py): 95.0%, up from 91.1%, the
 // right size (101 bytes). The correction term is a named local that divides
 // seed by 127773 a second time instead of reusing q. Both halves are needed

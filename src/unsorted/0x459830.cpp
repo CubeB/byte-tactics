@@ -1,4 +1,51 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#4353): 75.9 -> 78.9. Two real levers, both in the
+// face/tail half. (1) The poly-copy loop's increment order: `j++, idx++, q++`
+// keeps the destination pointer in edi and the index pointer in edx as the
+// original has them; the `q++, idx++` spelling that matches the original's
+// `add edi,0xc / add edx,2` order swaps the two registers and is 1.2 worse.
+// (2) The tail copy loop must be a peeled `do { y++; for (unsigned x = W; x;
+// --x) { *s++ = *d; d += 2; } d += W; } while (y < H);` under `if (H != 0)`:
+// peeling the outer loop is worth 1.8. Still differs, all allocator state:
+//  * `src` has home [esp+0x24] and the p counter [esp+0x20]; the original has
+//    them the other way round. Declaration order (six spellings), address-taken
+//    and correct block-to-function hoisting of the tail's `d`/`s` all leave it.
+//  * the `bitmap` parameter has a register home (ebp) here and a stack home
+//    ([esp+0x5f18], the incoming argument slot, written at 0x4598d3) in the
+//    original, so the original reloads it at 0x45999f/0x459b8e/0x459ba3/
+//    0x459c03 and keeps `list` in esi and `useColor` in ebx, while here `list`
+//    comes from memory, `useColor` is reloaded at the loop top and the face
+//    index `fi` gets ebx instead of edi. Every spelling of a memory home for
+//    `bitmap` tried is byte-identical: `Bitmap*&` reference helper, `&bitmap`
+//    into an inline sink, into an extern, a `Bitmap**` alias read everywhere.
+//  * the guard: the original does `test dword [edx+0x110],0x20000000` and
+//    `test ebx,ebx` with the useColor load hoisted above the first, and gives
+//    the b1 test its own else block (0x45991d) because that block reloads ebx.
+//    The two `__inline bool` helpers here emit `shr eax,0x1d / setne dl /
+//    test dl,dl` instead, which is wrong but scores 4 points higher: fixing the
+//    spelling rotates the whole function. Nested if/else, the commuted
+//    negation, a goto and a `do{}while(0)` arm are all byte-identical or worse.
+//  * the tail reads its row count and row width from `src` (esi = [esp+0x20],
+//    the saved bitmap) and advances d by `bitmap->width`; here both bounds come
+//    from `bitmap`. Reading them from `src` costs ~17 points every time: `src`
+//    then has to stay live across the copy loop and takes a slot of its own, so
+//    the frame grows by 4 and every displacement shifts.
+// Tried and inert or worse (all from this file's source): the `while (n--)`
+// inner loop of the tail (76.9, though it does produce the original's
+// `mov esi,eax / dec eax / test esi,esi / je / lea esi,[eax+1]`); `int n` or
+// `unsigned short* idx` or `Vec3* verts` or `PieceInfo* info` or `int unit` or
+// `Face* face` or `int fi` or `void* pic` hoisted to function scope; `p` at
+// function scope in four declaration orders; `int offY`/`offX` named; an `int
+// uc = useColor` and a `List* lp = list` copy; `p--` instead of `p--` in the
+// for; `info->faceCount` and `face->count` in locals; the branch polarity of
+// the guard, the firstFace test and the pic selection; a ternary for the pic;
+// the p-loop as `p-- > 0`, `p != -1` and a pointer walk. headers.py swept 128
+// include sets with no win.
+// WARNING for the next pass: hoisting the tail's `char* d` to function scope
+// while dropping its `d = bitmap->data2;` scores 81.0% and permute.py's best
+// rewrite scores 81.3% for the same reason - the uninitialised `d` is folded
+// into `src`'s stack slot and the copy loop then matches. Dump the compiled
+// function (not just the diff) before believing a jump here.
 // deepseek-v4.1-flash retry (#3971): 1 check run, base kept. The firstFace
 // block as an if/else with a merge store (int fi; if (...) { face++; fi = 1; }
 // else fi = 0;) scores 65.9 percent / 1053 bytes against this base, so the
@@ -132,6 +179,18 @@ struct Flags_459830 {
     unsigned short rest : 14;
 };
 
+struct FaceFlags_459830 {
+    union {
+        unsigned int raw;
+        struct {
+            unsigned int a : 1;
+            unsigned int b : 1;
+            unsigned int c : 1;
+            unsigned int rest : 29;
+        } bits;
+    };
+};
+
 struct Vec3 { int x; int y; int z; };
 
 void* __stdcall FUN_004b7ee0(void* pic);
@@ -170,7 +229,7 @@ struct Face_459c70 {
     void* pic;                       // +0x10
     int unknown_14;                  // +0x14
     unsigned short* color;           // +0x18
-    unsigned int flags;              // +0x1c
+    FaceFlags_459830 flags;              // +0x1c
 };
 
 struct PieceInfo_459c70 {
@@ -214,6 +273,14 @@ static __inline int shade_bias(Owner_459c70* owner)
     bool c = ((*(unsigned int*)(owner->field_92 + 0x241) >> 30) & 1) != 0;
     return c ? 125 : 50;
 }
+static __inline bool shadow_ok(Owner_459c70* owner)
+{
+    return (owner->field_110 & 0x20000000) != 0;
+}
+static __inline bool want_color(int uc)
+{
+    return uc != 0;
+}
 // FUNCTION: 0x459830
 void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     int kind, int useColor)
@@ -225,8 +292,8 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
     bool shadow = ((Flags_459830*)(g_game + 0x37f06))->b1;
     Bitmap_459c70* src;
     if (shadow
-        && (list->owner->field_110 & 0x20000000) != 0
-        && useColor != 0) {
+        && shadow_ok(list->owner)
+        && want_color(useColor)) {
         Bitmap_459c70* shadow = this->shadow;
         mode = 1;
         shadow->width = (unsigned short)(bitmap->width << 1);
@@ -276,24 +343,27 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
             verts++;
         }
 
-        Face_459c70* face = info->faces;
-        int fi = 0;
+        Face_459c70* face;
+        int fi;
         if (info->firstFace != -1) {
-            face++;
+            face = info->faces + 1;
             fi = 1;
+        } else {
+            face = info->faces;
+            fi = 0;
         }
         for (; fi < info->faceCount; fi++, face++) {
             unsigned short* idx = face->indices;
             Vec3* q=poly;
-            for (int j = 0; j < face->count; j++, q++, idx++) {
+            for (int j = 0; j < face->count; j++, idx++, q++) {
                 *q = vertex[*idx];
             }
-            unsigned int fflags = face->flags;
-            if ((fflags & 1) == 0) {
+            FaceFlags_459830 fflags = face->flags;
+            if (!fflags.bits.a) {
                 if (face->count == 4) {
                     void* pic;
-                    if ((fflags & 2) != 0) {
-                        if ((fflags & 4) != 0) {
+                    if (fflags.bits.b) {
+                        if (fflags.bits.c) {
                             int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
                             pic = FUN_004b7f30(face->color,
                                 *(unsigned char*)(unit + 0x96));
@@ -319,12 +389,16 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
         char* s = src->data2;
         if (s != 0) {
             char* d = bitmap->data2;
-            for (int y = 0; y < bitmap->height; y++) {
-                for (unsigned int x = bitmap->width; x != 0; --x) {
-                    *s++ = *d;
-                    d += 2;
-                }
-                d += bitmap->width;
+            int y = 0;
+            if (bitmap->height != 0) {
+                do {
+                    y++;
+                    for (unsigned int x = bitmap->width; x != 0; --x) {
+                        *s++ = *d;
+                        d += 2;
+                    }
+                    d += bitmap->width;
+                } while (y < bitmap->height);
             }
         }
     }

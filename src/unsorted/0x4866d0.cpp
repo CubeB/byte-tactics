@@ -78,6 +78,16 @@
 // (`mov [esp+0x14],cl; mov edx,[esp+0x14]; and edx,0xff`); ours keeps it in a
 // register. Fixing the allocation above is the prerequisite for that to help.
 //
+// Pass 5 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. New finding: the
+// original does NOT keep cmd in one register for the whole function. It reloads
+// cmd from the parameter slot [esp+0x7c] at 0x486c9e (into ecx) and 0x486d24
+// (into edi), and reuses ebx as a pure scratch from 0x486a03 on (g_game temp,
+// then rec, then a zero). Ours keeps cmd live in edi right through those sites.
+// Free-scored and rejected: `unsigned char* unit` (64.7, no change); declaring
+// the first parameter as a packed `Order_004866d0*` with real member accesses
+// for +1/+3/+7/+9/+0xa (64.7, no change). The cmd register is set by the
+// allocator's priority, and neither the parameter's type nor its access shape
+// moves it.
 // Pass 4 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. Checked the
 // assumption behind the int-credited lever: with `int credited` the allocator
 // gives unit=esi, credited=edi, cmd=ebp and leaves ebx completely free until

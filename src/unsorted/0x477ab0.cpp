@@ -40,6 +40,9 @@
 // where the original uses ecx; the esi/edi holder/menuSub assignment is
 // swapped in the Missions rebuild block. Those look like register colouring
 // falling out of the block placement, not separate shape errors.
+// Final pass by deepseek-v4.1-flash: timebox fired before any check.py run
+// this session, so no new variant was scored; the file stays at the known
+// best of 72.9% (1914 of 1935 bytes) with the analysis above unchanged.
 // Retry by deepseek-v4.1-flash (10 min timebox): scored v1..vI scratch copies,
 // all <= 72.9%. Tried: inverted last Start test as `if (!FUN(menu,"Start"))
 // goto PrevMenu;` (v1 nested, vD flat), flat `if (DAT_0051e668 == 0) goto

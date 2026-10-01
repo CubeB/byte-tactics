@@ -1,4 +1,14 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. finished by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry (#3079): still 83.8%, 798 bytes. Diagnosis: in the original the
+// loaded value of _P is one register web (edi) from the load after operator new
+// through the _Ufill loop to the tail copy, and its home slot [esp+0x20] is
+// reused as the _Ufill counter; here _P is reloaded from its slot after each
+// constructor call (ecx scratch) and the counter takes edi. Tried without
+// effect (all 83.8% or collapsing to 773 to 795 bytes): 216 combinations of
+// _Ucopy parameter order for the four call sites, do-while / guarded / while /
+// reversed-increment forms of _Ufill (whole-class or realloc-branch only),
+// the same forms for _Ucopy, <vector> with explicit instantiation, ~140 random
+// pairs of expression-order and local-copy tweaks.
 // deepseek-v4.1-flash retry (2026-10): still 83.8% (798 bytes, the original's
 // size). Re-confirmed the wall is the one register-allocation decision, not a
 // source form. Tested (all scored with check.py on scratch copies):

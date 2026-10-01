@@ -1,5 +1,10 @@
 // Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash; verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // deepseek-v4.1-flash retry session 7 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// deepseek-v4.1-flash retry session 8 (TIMEBOX): 55.5%, 2203 bytes, unchanged.
+// Residue is frame-wide: every hunk is a stack-slot permutation ([esp+0x30]
+// versus [esp+0x34] style), plus a push eax/ecx/edx count mismatch in the
+// inlined callee setup, so no hunk-level edit repays it without the right
+// local declaration order.
 // Two more probes of the y-low-slot hypothesis, both recorded so they are not
 // repeated: putting BOTH cursors in one aggregate local
 // (`struct Quad { int y; Point p[4]; } q;` with q.y driving the outer loop,

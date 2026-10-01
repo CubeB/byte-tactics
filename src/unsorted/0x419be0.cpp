@@ -1,4 +1,15 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry session 8 (TIMEBOX): 84.1%, 1327 bytes, unchanged.
+// objdump of our own object confirms the whole-function diff is exactly two
+// deviations: (1) the global register-role swap (ours param1/button in esi,
+// param2/entries in edi; original the reverse), and (2) its 2-byte symptom,
+// ours `mov ebp, esi` (2 bytes) where the original rematerialises the fallback
+// from the parameter home slot with `mov ebp, [esp + 0x34]` (4 bytes). The
+// ternary region itself already matches byte for byte (`lea ecx, [edx+ecx*2]`,
+// `mov ebp, ecx`, `cmp byte ptr [ecx], 1` against the original 0x419c15). The
+// statement-level if-form retried here (0.8 points down, 1328 bytes) keeps the
+// swap and additionally lowers the compare to `mov cl, [edx+ecx*2]`, so it is
+// not a path to MATCH. No new lever was found inside the timebox.
 // deepseek-v4.1-flash retry 6 (timeboxed, unchanged at 84.1%): re-derived the
 // prologue from the raw disassembly: the original assigns `mov ebp, ecx` (the
 // address) first, then `cmp byte ptr [ecx],1`, `je`, and only then reads the

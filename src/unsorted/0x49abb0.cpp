@@ -1,4 +1,4 @@
-// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. edited by deepseek-v4.1. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // issue-3175-r1 GPT-6.1-sol: baseline confirmed at 93.7% (576/568). Changing the
 // inline helper's two range parameters from int to unsigned int was byte-identical;
 // introducing a named Vec3 copy of unit2->pos before the helper fell to 92.1%
@@ -192,6 +192,20 @@ static inline int Dist2_0049abb0(Vec3_0049abb0* b, Vec3_0049abb0* a)
     return (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
 }
 
+// deepseek-v4.1-flash pass (issue 3386): ~50 scratch variants, no gain, best still
+// 93.7% (576/568). Confirmed the inlined helper BODY is inert: the two by-value
+// aggregates, const-qualified or not, named or not, with fx/fy/fz locals read in
+// every order, all compile byte-identical to this file. So is the signature
+// permutation (from/to/s/f: FTSE is the only 93.7 order; FTES 92.7, TFSE/TFES 92.1)
+// and the from-by-value/to-by-pointer, to-by-value/from-by-pointer, both-pointer,
+// Unit*-taking forms (76.8, 75.2, 49.8). A real copy of unit2->pos at the call site
+// reaches the original's `lea edx,[ebx+0x6a]` but stores all three fields into a
+// 4-higher home and pushes s/f first (92.1), so the original copy is the inlined
+// FORMAL materialization with the dead y store eliminated, not a source local.
+// <windows.h>, <stdio.h>, <memory.h>, <vector>, <string>, <iostream>, <map>, <list>
+// on top of the existing includes: 93.7 or worse. The only remaining diff is the
+// register the inliner picks for &from (ours ebx then ebp, original edx), which forces
+// the `add ebx,0x6a` / tail reload of unit2 in the line-of-fire block.
 // FUNCTION: 0x49abb0
 int __stdcall FUN_0049abb0(Unit_0049abb0* unit1, Unit_0049abb0* unit2, unsigned char weapon)
 {

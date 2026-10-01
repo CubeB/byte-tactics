@@ -1,4 +1,24 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// space-bunny-free (issue #3386): 83.6% retained, no MATCH. Ran an x87 stack SIMULATOR over
+// the original (build/scratch/0x49a890/sim.py) to recover the exact expression tree, and it
+// CORRECTS the note above: the original's disc is NOT `(h2*gg + (s2-gh*-2.0)*s2)*d*d -
+// d*d*gg*sum`, it is the mirror image with a different value:
+//     d4  = d*d
+//     A   = s2 - gh*-2.0            (0x49a91c fsubr)
+//     T   = A*s2                    (0x49a930 fmul)
+//     h2gg= h2*gg                   (0x49a93a fmul)
+//     B   = T + h2gg                (0x49a950 faddp st(3), addends T then h2gg)
+//     disc= (d4*gg)*sum - B*d4      (0x49a958, 0x49a95e, 0x49a964 fsubp st(1))
+// MSVC x87 temp slots (esp=E-0x30 after the `add esp,0x10`), each REUSED later, so the frame
+// only needs six doubles: [E-0x30] height then d2 | [E-0x28] speed | [E-0x20] dist then s2
+// then d4 | [E-0x18] h2 then gg then sum | [E-0x10] d4 then h2 | [E-0x08] gh then sqrt(disc).
+// Evaluated in this order: gh, d, s2, h2, gh*-2.0, A, d4, T, h2gg, sum, d4*gg, B, *sum, *d4.
+// Scoring (all free --sym runs, base 83.6%): the mirrored `d*d*gg*sum - (...)*d*d` with gh
+// before d scored 67.8%; the same disc on the base statement order scored 72.7% both ways;
+// hoisting `h2*gg` into a named local but keeping the base order scored 79.4% (488 bytes).
+// So the disc shape alone is NOT the cause, and matching it does not move the schedule.
+// NOT FIXED, and nobody should retry these: (1) moving `gh` ahead of `d`, (2) reversing the
+// disc's two terms, (3) either order of the addends inside the disc parentheses.
 // Issue #3175 retry by GPT-6.1-sol: root checker confirmed 83.6% (408/488 bytes), no MATCH. Eight source-order/local-expression variants scored 74.6%, 74.6%, 74.6%, 82.2%, 83.6%, 83.6%, 83.6%, and 83.6%; best retained. Remaining mismatch is the post-_hypot x87 schedule, where original loads g then height and spills height before multiplying, while this source schedules height/g and different x87 temporaries.
 // #2981 retry by GPT-6.1-sol: six checks retained 83.6%; the lower-scoring
 // inline-expression variant did not change the post-_hypot x87 schedule.

@@ -22,6 +22,28 @@
 // temp and pointer-cursor rewrites are all inert; the single residual is the
 // commutative XOR load order (ours loads [ecx+esi] first). This is the rare
 // compiler-state tie from earlier functions in the original translation unit.
+// deepseek-v4.1-flash, 30-min checkpoint (same 98.5%, 333 bytes): a systematic
+// search found no source shape that emits the register-first form. Tried:
+// ~1500 generated spellings of the loop (xor/plus operand order, casts to
+// char/unsigned char/short, byte and int temps, compound assignment, comma,
+// ternary, pointer and reference aliases of the index, bitfield/union reads,
+// const and register locals, inlined per-byte and per-loop helpers, methods,
+// do/while, goto, C vs C++ front end); every one loads [ecx+esi] into the
+// destination first. The register-first form DOES appear in this compiler when
+// the XOR's left operand is a loop-carried byte variable (a key assigned at the
+// loop bottom, e.g. `c = i;` after the store): then MSVC keeps the key in its
+// own byte register and emits `xor bl,[mem]`. In our builds MSVC folds a
+// top-of-body `c = (unsigned char)i` into cl, which forces the memory-first
+// form, so the original file's key variable must have survived in a register
+// (state-dependent fold, not a source shape we can spell). Also flat: all 768
+// headers.py sets, zlib.h, 0..8000 dummy prototypes, 0..320 extern ints, 240
+// random declaration mixes, repeating a real function body 1..50 times, every
+// real neighbour before/after this function in TU order (0x4d1480, 0x4d1670,
+// 0x4d1800, 0x4d1810 are MATCH, 0x4d0f60 is the only partial one), /G6 /G5
+// /Ot /Os /Oy /Oi /Ob1 /O1 and the RTM toolchain. The one thing not reproduced
+// is the exact node/register state left by the original 0x4d0f60 body (84%
+// partial, 1304 bytes, immediately before this function), which is the best
+// lead for the next attempt.
 // Builds a "SQSH" compressed chunk: header, then the (optionally
 // compressed and encrypted) data.
 #include <string.h>

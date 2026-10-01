@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // Third pass (space-bunny-free), still 84.7%, and a new fact about the tie:
 // writing the x difference with the operands the other way round
 // (`b.x = a.x - b.x`) is the only rewrite found that makes MSVC hoist b.x's
@@ -90,6 +90,10 @@
 // The single remaining hunk is dx in ecx plus abs(dx)/n in esi (original)
 // versus dx in esi plus abs(dx)/n in ecx (ours); both instruction streams are
 // identical from the division onward. Left as-is per the flat-sweep rule.
+// GPT-6.1-sol retry in issue #3205: baseline remains best at 84.7%.
+// Register-qualified per-component locals for dx/dy/dz fell to 71.3%.
+// Hoisting b.x to a local before the y/z in-place differences stayed at
+// 84.7% with the same dx=esi versus dx=ecx allocation swap in the prologue.
 #include <stdlib.h>
 
 #pragma pack(push, 1)

@@ -90,6 +90,12 @@
 // all stack slots shift) and drops the function to 1629 bytes at 75.0. A pointer
 // live across a call is always callee-saved here, so it can never be the original's
 // edx: the 0x4997a0 pick needs a short-lived value, not a live one.
+// deepseek-v4.1-flash session 6 (issue #3466): `if (1 == ...)` operand-order flip is
+// byte-neutral at 1654/98.4; a named `net`/`mode` pair used in both arms drops to 1608
+// bytes (net kept across calls). Register-pick survey of this function suggests the
+// allocator blocks eax and ecx at 0x4997a0 in the original (pick order eax, edx, ecx),
+// so the 6-byte `mov edx` needs one more value live at the else arm's entry; no shape
+// tried here produces it.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

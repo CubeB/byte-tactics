@@ -1,4 +1,41 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// RETRY deepseek-v4.1-flash (2nd pass, timeboxed): 80.6 -> 80.8 (1521 vs 1519).
+// THE ONE WIN THIS PASS: `inner = 0;` written as its own statement before
+// `accum = 0;` (instead of leaving the zero to the for-init clause, which put
+// accum=0 first). That fixed the loop-head store order to the original's
+// `mov [esp+0x18],esi` (inner) then `mov [esp+0x1c],esi` (accum). The jle still
+// sits after both stores here, the original has it between them.
+// Also confirmed by reading the loop body: [esp+0x10] outer, [esp+0x14] &grid1
+// spill, [esp+0x18] inner (`imul eax,[esp+0x18]`), [esp+0x1c] accum
+// (`mov edx,[esp+0x1c]; sub edx,cellval>>1`), [esp+0x20] t20, [esp+0x24] t24;
+// p1 is ESI and p2 is EDI inside the big loop (both registers, no slots).
+// Declaring h1/w1/grid1 in the order h1, w1, grid1 shrinks the function to 1518
+// bytes but recolors grid1 into edi and scores 78.4; h1, grid1, w1 is 80.8
+// (byte-identical to this file); grid1, w1, h1 is 80.6.
+// The duplicated `xor esi,esi` is a C2 block-placement choice, not a source
+// shape: the shared zero at the grid1 ternary merge is rematerialised at the
+// END of both arms (killing the old esi = count1 value there), while the
+// original kills it once at the merge. Three new spellings this pass:
+//   shared local + if/else (`unsigned char* c1 = 0; if (count1 != 0) c1 =
+//   new ...; grid1->cells = c1;`): 1520 bytes, 79.1. It suppresses the second
+//   `xor esi,esi`, but only because the already-live zero in edi (p1's later
+//   0) is reused instead, so the guard becomes `cmp ecx,edi` and esi is gone.
+//   `grid1->cells = 0; if (count1 != 0) grid1->cells = new ...;`: 1520, 78.8.
+//   named local holding the ternary result (`unsigned char* c1 = count1 != 0
+//   ? new ... : 0; grid1->cells = c1;`): 1521, 80.6, byte-identical to the
+//   current best.
+// New evidence from the disassembly: the original's merge sequence is
+// `mov ecx,[ebx+0xc]` (reload of field_c, must precede the store because the
+// store may alias ebx+0xc) / `xor esi,esi` / `mov [ebx],eax` / `xor eax,eax` /
+// `cmp ecx,esi`, and esi == 0 then stays LIVE all the way through the big
+// loop's head (`cmp [ebp+0x14233],esi`, `cmp eax,esi`, the two p1/p2 stores),
+// which is why the original never rematerialises it. In ours the zero dies at
+// the fill loop's guard and is born again after the outer-loop jle
+// (`jmp` + `xor esi,esi`), so MSVC treats it as rematerialisable and sinks the
+// definition into both arms. Fixing the esi liveness (or the earlier
+// prologue's h1/w1 = ebp/esi split, original h1 = esi / w1 = edi) is what the
+// remaining hunks reduce to; every hunk past the grid1 block is only the
+// 2-byte jump-target shift.
 // RETRY deepseek-v4.1-flash (timeboxed pass, no new variants run): 79.5 holds.
 // Diff analysis for the next attempt: (1) the duplicated xor esi,esi is p1's
 // zero sunk into BOTH arms of the grid1 alloc ternary; the original
@@ -279,8 +316,9 @@ void FUN_00482c20(void)
         int t24 = outer >> 1;
         unsigned char* p1 = 0;
         unsigned char* p2 = 0;
+        inner = 0;
         accum = 0;
-        for (inner = 0; inner < g_game->height; inner++, accum += 0x10) {
+        for (; inner < g_game->height; inner++, accum += 0x10) {
             int idx = g_game->width * inner + outer;
             int cellval = g_game->cells_14287[idx * 0xd + 4];
             int v = accum - (cellval >> 1);

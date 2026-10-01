@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, re-tried by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, edited by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL: 83.3% (1052 of 1052 bytes, so every jump target lines up again and
 // what is left is real instructions). Two more fixes this session, both of
 // them pure source SHAPE changes that moved a block's layout or an
@@ -461,3 +461,18 @@ void __stdcall FUN_00481930(Params_00481930* params)
 // guarded j1 initialisation but is byte-for-byte the for-loop's rotation.
 // Then that operand order and the remaining first-cell `imul` (edi vs eax)
 // are all that would be left.
+// Re-checked by deepseek-v4.1-flash (issue 3740). The guarded do-while inner
+// loop (see the v1 note above) was rebuilt and disassembled byte by byte:
+//  * it does fix BOTH swaps as recorded (bestIdx in ebx, j1 at 0x1c with its
+//    store below the jle), and every instruction of the inner loop then matches
+//    the original's text and encoding except one: the original computes
+//    `mov eax,[esp+0x30] / imul eax,[esp+0x1c]` (bestDiff loaded first) where
+//    the do-while form computes `mov eax,[esp+0x1c] / imul eax,[esp+0x30]`.
+//  * the 3 extra bytes are NOT in the loop: the obj shows the loop preheader
+//    (`xor ebx,ebx / xor ecx,ecx / test ax,ax / mov [esp+0x4c],eax /
+//    mov [esp+0x30],-1 / mov [esp+0x34],ecx / jle near / mov [esp+0x1c],1 /
+//    jmp / mov edi,[esp+0x40]`) byte-for-byte identical to the original's,
+//    with `xor ebx,ebx` landing at function offset 0x172 against the
+//    original's 0x16f, so the surplus sits above the loop, in the first-cell
+//    block, and it also trades the bestDiff/j1 operand order. This file
+//    (83.3%) stays the best version.

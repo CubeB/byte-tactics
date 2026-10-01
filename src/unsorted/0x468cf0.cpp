@@ -1,5 +1,35 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
+// deepseek-v4.1-flash retry 12 (10 min timebox): 57.4 -> 61.3 percent (5977 ->
+// 5963 bytes). Three type/idiom fixes, all found by grepping the check.py diff
+// for 16/8-bit load forms that only appear on OUR side:
+// 1. In the 0x37f06 unit-label block the original writes a lone zero byte
+//    (`mov byte ptr [esp+0x15], 0`) where we wrote a whole `movzx dx` plus
+//    `mov word ptr [esp+0x14], dx` pair. The source was
+//    `*(ushort*)&L.local_210 = (ushort)(byte)L.local_210;`; rewriting it as
+//    `*((byte *)&L.local_210 + 1) = 0;` removes the pair and matches. 59.1.
+// 2. The two `*(char *)(record->0x96 + 0x146) == L.local_1b4` compares: the
+//    original emits `mov bl,byte ptr [esp+0x70]` plus `cmp byte ptr
+//    [ecx+0x146],bl` (no sign-extend, 8-bit compare). Assigning
+//    `cVar3 = L.local_1b4;` (a plain char) and comparing against cVar3 gives
+//    exactly that; the old "byte compare regresses" note is stale. 59.5.
+// 3. `iVar13 = *(int *)(g_game+0x1426f) + (uint)*(ushort *)(rec+8) * 0x100;`
+//    emits `mov ax,[rec+8] / and eax,0xffff`; the original does
+//    `xor ecx,ecx / mov cx,[rec+8]`. Hoisting the 16-bit read into a named
+//    uint temp then multiplying gives the zeroed-register form. The compare
+//    `(-1 < iVar13)` -> `(iVar13 >= 0)` after the `+0x10` also turned our
+//    `cmp eax,-1 / jle` into the original's `js` (59.6), and the same 16-bit
+//    read in the 0x14367 scan loop rewritten through an int temp
+//    (`uVar6 = (int)*(ushort *)puVar9;`) gives the original's
+//    `xor ecx,ecx / mov cx,[ebp]` and its index-register reuse in
+//    `shl eax,3 / sub eax,ecx` (61.3).
+// Also measured, all byte-identical or worse: the puVar17 = iVar11+0x52
+// pointer form for the 0x52/0x72 OverlayRect reads (identical code), the
+// 0x110 pointer temp (identical), and swapping the two 0x2cac/0x2cb4
+// coordinate statements (59.2, reverted again). Still differing: the two big
+// register-allocation regions (@@-717, @@-1153) where the original folds
+// g_game+0x141fb into edi, keeps param_1 in ebx and picks esi/edi the other
+// way round in the unit loops.
 // deepseek-v4.1-flash retry 11 (10 min timebox): re-confirmed 57.4 percent /
 // 5977 bytes. All cheap named levers were re-checked against the notes below
 // and are already tried or byte-neutral (the `add eax,esi` clamp operand order
@@ -445,10 +475,11 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       iVar21 = iVar21 + (uint)*puVar9;
     } while (iVar21 < *(int *)((int)g_game + 0x37e1f));
     FUN_00467c00((int)L.local_1f0,iVar12,iVar11+0x42,0);
-    L.local_188 = *(uint *)(iVar11 + 0x52);
-    L.local_184 = *(undefined4 *)(iVar11 + 0x56);
-    L.local_180 = *(undefined4 *)(iVar11 + 0x5a);
-    L.local_17c = *(undefined4 *)(iVar11 + 0x5e);
+    puVar17 = (uint *)(iVar11 + 0x52);
+    L.local_188 = puVar17[0];
+    L.local_184 = puVar17[1];
+    L.local_180 = puVar17[2];
+    L.local_17c = puVar17[3];
     puVar9 = L.local_208;
     if (*(float *)(iVar12 + 0xa4) > 0.0f) {
       lVar25 = (int)(((int)L.local_180-(int)L.local_188)*L.local_1ab / *(float*)(iVar12+0xa4)+(int)L.local_188);
@@ -457,10 +488,10 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       puVar9 = L.local_208;
       if ((*(float *)(iVar12 + 0xe8) > 0.0f) &&
          (*(float *)(iVar12 + 0x8c) > *(float *)(iVar12 + 0xe8))) {
-        L.local_200 = *(uint *)(iVar11 + 0x52);
-        L.local_1fc = *(int *)(iVar11 + 0x56);
-        L.local_1f8 = *(undefined4 *)(iVar11 + 0x5a);
-        L.local_1f4 = *(int *)(iVar11 + 0x5e);
+        L.local_200 = puVar17[0];
+        L.local_1fc = (int)puVar17[1];
+        L.local_1f8 = puVar17[2];
+        L.local_1f4 = (int)puVar17[3];
         lVar25 = (int)(((int)L.local_1f8-(int)L.local_200)* *(float*)(iVar12+0xe8) / *(float*)(iVar12+0xa4)+(int)L.local_200);
         puVar9 = L.local_208;
         L.local_200 = (uint)lVar25;
@@ -574,17 +605,17 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   iVar12 = (int)g_game;
   if (0 < *(int *)((int)g_game + 0x14367)) {
     do {
-      uVar4 = *puVar9;
+      uVar6 = (int)*(ushort *)puVar9;
       iVar21 = *(int *)(iVar12 + 0x14357);
-      iVar13 = (int)*(short *)(iVar21 + 0x74 + (uint)uVar4 * 0x118) - *(int *)(iVar12 + 0x14323);
+      iVar13 = (int)*(short *)(iVar21 + 0x74 + (uint)uVar6 * 0x118) - *(int *)(iVar12 + 0x14323);
       iVar13 = iVar13 / 16 + 0x10;
-      if ((-1 < iVar13) && (iVar13 < *(int *)(iVar8 + 0x1424f))) {
+      if ((iVar13 >= 0) && (iVar13 < *(int *)(iVar8 + 0x1424f))) {
         piVar16 = (int *)(*(int *)(iVar8 + 0x141ff) + iVar13 * 4);
         psVar2 = (short *)(*(int *)(iVar8 + 0x14203) + iVar13 * 2);
         *psVar2 = *psVar2 + 1;
         iVar12 = (int)g_game;
         if ((int *)*piVar16 != (int *)0x0) {
-          *(int *)*piVar16 = iVar21 + (uint)uVar4 * 0x118;
+          *(int *)*piVar16 = iVar21 + (uint)uVar6 * 0x118;
           *piVar16 = *piVar16 + 4;
           iVar12 = (int)g_game;
         }
@@ -608,7 +639,8 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
         do {
           *(byte *)(iVar21 + 0xc) = *(byte *)(iVar21 + 0xc) & 0xfb;
           if (*(ushort *)(iVar21 + 8) < 0xfffb) {
-            iVar13 = *(int *)((int)g_game + 0x1426f) + (uint)*(ushort *)(iVar21 + 8) * 0x100;
+            uVar15 = (uint)*(ushort *)(iVar21 + 8);
+            iVar13 = *(int *)((int)g_game + 0x1426f) + uVar15 * 0x100;
             if (*(byte *)(iVar13 + 0xfa) < 10) {
               if (((*(byte *)(iVar13 + 0xff) & 8) == 0) ||
                  ((*(byte *)(iVar21 + 0xc) >> 3 & 0xf) == L.local_1b4)) {
@@ -648,8 +680,9 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       if (*(short *)(L.local_20c + *(int *)(iVar8 + 0x14203)) != 0) {
         do {
           iVar21 = *piVar16;
-          if ((((byte)*(uint *)(iVar21 + 0x110) & 3) == 1) && (param_1 != 0)) {
-            if ((*(uint *)(iVar21 + 0x110) >> 4 & 1) != 0) {
+          puVar20 = (uint *)(iVar21 + 0x110);
+          if ((((byte)*puVar20 & 3) == 1) && (param_1 != 0)) {
+            if ((*puVar20 >> 4 & 1) != 0) {
               FUN_0046a530((int)(L.local_1f0),(int)(iVar21));
             }
             if (*(int *)(iVar21 + 0x9a) != 0) {
@@ -668,7 +701,8 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
         do {
           iVar21 = L.local_210;
           if (((*(byte *)(iVar12 + 0xc) & 4) != 0) &&
-             (((iVar13 = *(int *)((int)g_game + 0x1426f) + (uint)*(ushort *)(iVar12 + 8) * 0x100,
+             (((uVar15 = (uint)*(ushort *)(iVar12 + 8),
+               iVar13 = *(int *)((int)g_game + 0x1426f) + uVar15 * 0x100,
                (*(byte *)(iVar13 + 0xff) & 8) == 0 ||
                ((*(byte *)(iVar12 + 0xc) >> 3 & 0xf) == L.local_1b4)) ||
               (bVar23 = FUN_004658e0((int)(iVar11),(int)puVar9,(int)L.local_210,(int)(*(short *)(iVar13 + 0x94)),(int)(*(short *)(iVar13 + 0x96)),(int)((ushort)*(byte *)(iVar12 + 4))),
@@ -700,8 +734,9 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
         if (*(short *)(*(int *)(iVar8 + 0x14203) + L.local_204 * 2) != 0) {
           do {
             iVar21 = *piVar16;
-            if (((byte)*(uint *)(iVar21 + 0x110) & 3) != 1) {
-              if ((*(uint *)(iVar21 + 0x110) >> 4 & 1) != 0) {
+            puVar20 = (uint *)(iVar21 + 0x110);
+            if (((byte)*puVar20 & 3) != 1) {
+              if ((*puVar20 >> 4 & 1) != 0) {
                 FUN_0046a530((int)(L.local_1f0),(int)(iVar21));
                 iVar11 = L.local_204;
               }
@@ -731,17 +766,17 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       do {
         iVar12 = *(int *)(iVar11 + 0x14357) + (uint)*L.local_208 * 0x118;
         if (((*(byte *)(iVar11 + 0x37f06) & 1) != 0) || (*(int *)(iVar12 + 0xac) != 0)) {
-          *(ushort*)&L.local_210 = (ushort)(byte)L.local_210;
+          *((byte *)&L.local_210 + 1) = 0;
           iVar8 = ((int)*(short *)(iVar12 + 0x74) - *(int *)(iVar11 + 0x14323)) -
                   ((int)*(short *)(iVar12 + 0x70) >> 1);
           iVar21 = ((int)*(short *)(iVar12 + 0x6c) - *(int *)(iVar11 + 0x1431f)) + 0x80;
           if ((*(byte *)(iVar11 + 0x37f06) & 1) != 0) {
-            bVar5 = L.local_1b4;
-            if (*(char *)(*(int *)(iVar12 + 0x96) + 0x146) == L.local_1b4) {
+            cVar3 = L.local_1b4;
+            if (*(char *)(*(int *)(iVar12 + 0x96) + 0x146) == cVar3) {
               FUN_0046a430((int)(L.local_1f0),(int)(iVar12),(int)(iVar21),(int)(iVar8 + 0x2a));
               iVar11 = (int)g_game;
             }
-            if ((*(char *)(*(int *)(iVar12 + 0x96) + 0x146) == bVar5) &&
+            if ((*(char *)(*(int *)(iVar12 + 0x96) + 0x146) == cVar3) &&
                (*(int *)(iVar12 + 0xac) != 0)) {
               *(byte*)&L.local_210 = *(char *)(iVar12+0xac)+'0';
               FUN_004c14f0((int)(L.local_1f0),(int)((byte *)&L.local_210),(int)(iVar21),(int)(iVar8 + 0x2e),(int)(-1));

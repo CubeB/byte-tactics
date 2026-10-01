@@ -1,4 +1,25 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 7 (deepseek-v4.1-flash): 64.7%, ours 4716 bytes against 4772. Re-checked
+// the earliest region. The very first code difference is the shared constant
+// zero register: original materialises it once in esi at 0x42c0f0 and pushes
+// esi at ~83 default-argument sites and tests `cmp eax, esi` at 0x42cc5f; ours
+// materialises the same zero in ebx (0x42c0ee onward) and pushes ebx. Both
+// builds cache exactly one zero live range across the getter block, so this is
+// the allocator picking a different callee-saved register, not a source shape;
+// it also leaves our stack depth identical (push esi and push ebx are both one
+// byte) but reorders the fild/push scheduling in the FUN_004c46c0 float block
+// and the FUN_004c4800 group, so [esp+N] there differs by one dword and the
+// tail jumps land 20 bytes late. Tried this pass, all 64.7%:
+//   - `int sound;` declared at function scope (no initialiser) with the
+//     `sound = 0;` assignment kept at the original xor site (v1).
+//   - passing the live `sound` variable at the two FUN_004c46c0 sites that the
+//     original serves from esi (v3).
+// Next lever: the yard-map loop (0x42cf89..0x42d079) is structurally different
+// (ours keeps the yard pointer in eax and the cell index in ecx, original
+// reloads the pointer from [ebp+0x14e] into ecx per case with the index in eax;
+// ours keeps the outer y counter in edx, original in [esp+0x1c]). Because MSVC5
+// allocates registers globally, fixing that loop or the tail /3 sequence may
+// flip the zero register from ebx back to esi and unlock the whole function.
 // Pass 3 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772.
 // Pass 4 (deepseek-v4.1): 64.7%, ours 4716 bytes against 4772. Substituting the
 // live `sound` variable (provably 0 at every default site) for the literal 0 at

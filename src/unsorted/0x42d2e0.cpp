@@ -1,19 +1,23 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
-// Best result 90.2% (2183 bytes against 2173). The GUI suffix loop must be written as a do-while
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Best result 91.2% (2183 bytes against 2173). The GUI suffix loop must be written as a do-while
 // whose condition re-reads the FUN_004bbc40 result from a local:
 //   more = FUN_004bbc40(path); if (more) { suffix++; found = 1; } while (more);
 // That stops /O2 from peeling the first iteration; for(;;), while(1) and a goto loop all score
-// 86.2 (2240 bytes) because MSVC duplicates the loop body ahead of a rotated loop, and the peeled
-// copy also turns `found = 1` into `mov esi, ebx`. With the do-while the body and the tail match
-// the original instruction for instruction except that ours re-tests eax at the bottom
-// (`test eax, eax / jne`) where the original jumps back unconditionally.
+// 86.2 (2240 bytes) because MSVC duplicates the loop body ahead of a rotated loop.
 // The compaction keeps the earlier winning shape: keep bit-23-set elements, scan loop and copy
-// loop separate, `*d = *s` (not `*d++`, which re-allocates the surrounding blocks, 88.2).
-// Remaining: the compaction copy loop spills d to [esp+0x10] and reloads it around every
-// operator= call (the original keeps d in edi and stores it once after the loop, about 6 bytes);
-// the unit loop keeps g_game in edi, so idiv reads a register where the original reloads g_game
-// into ecx at the loop bottom and uses idiv dword ptr [ecx + 0x1438f] (about 2 bytes); and the
-// initial compaction guard is inverted (ours jne, the original je).
+// loop separate, `*d = *s` (not `*d++`, which reshuffles the callee-saved registers and 89.2).
+// Restructuring the guard as `if (p != end) { while(...) }` followed by
+// `if (p == end) { d = p; } else { d = p; for(...) }` fixed the inverted first guard,
+// 90.2 -> 91.2: the original emits `cmp; je Ld` (scan is the fall-through) then after the loop
+// `cmp; jne Lelse`, and this shape reproduces both branch layouts.
+// Remaining (single structural mismatch, everything after it is an offset cascade):
+// the compaction copy loop spills d to [esp+0x10] and reloads/gathers it around every
+// operator= call; the original emits `lea esi,[eax+0x249]; mov edi,eax` and keeps d in edi for
+// the whole loop, storing it once after (about 6 bytes). Tried and rejected: `*d++ = *s` (89.2,
+// moves `end` out of ebp), reusing p as the write pointer (77.7, drops `xor ebx,ebx` early),
+// init d=p before the guard (84.1), while-loop copy, swapped declaration order, moving the
+// count/last computation (all still 91.2). The unit-loop idiv difference noted by the previous
+// worker disappears once the compaction size matches.
 #include <string.h>
 #include <stdio.h>
 
@@ -253,18 +257,18 @@ void FUN_0042d2e0() {
 
     Class_0042b370* p = start;
     Class_0042b370* d;
+    if (p != end) {
+        while (p != end && !(~(p->flags.value) & 0x800000))
+            p++;
+    }
     if (p == end) {
         d = p;
     } else {
-        while (p != end && !(~(p->flags.value) & 0x800000))
-            p++;
         d = p;
-        if (p != end) {
-            for (Class_0042b370* s = p + 1; s != end; s++) {
-                if (!(~(s->flags.value) & 0x800000)) {
-                    *d = *s;
-                    d++;
-                }
+        for (Class_0042b370* s = p + 1; s != end; s++) {
+            if (!(~(s->flags.value) & 0x800000)) {
+                *d = *s;
+                d++;
             }
         }
     }

@@ -124,6 +124,9 @@
 // (and p_yzx combined with the p.x/y/z store order xyz is the best of all 36).
 // It does not touch the prologue; the gain is in the sqrt/timestamp block.
 // A full 6x6 sweep of delta-declaration order x p.x/y/z store order was scored.
+// Second 10-minute run on 2026-10-01: moving the timestamp clamp down, below
+// the three deltas, scores 66.2 (same 601 bytes), so the clamp must stay above
+// the deltas; the ebx(order)/edi(start.x) swap remains the whole residual.
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

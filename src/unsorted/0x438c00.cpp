@@ -5,6 +5,10 @@
 //   `Vec3f* ppos = &order->pos;` used for all three pos reads   46.7 percent
 //     (it also lengthens to 653 bytes; original is 660)
 //   px and pz read through `order`, py read through that ppos    50.9 percent
+// PASS 9 (deepseek-v4.1-flash, 2026-10-01): an `int* p = (int*)&order->pos;`
+// alias for the three pos reads (p[0], p[1], p[2], and the py-first spelling)
+// scores 46.7 percent / 653 bytes, worse than the direct order->pos reads, so
+// that alias shape is closed too.
 // Neither changes the top-of-body register rotation: MSVC still spends ECX on
 // `order`. So the pos-pointer axis is now closed as well, and the residual is
 // confirmed to be the single ecx/edx assignment at 0x438c00 (which then makes

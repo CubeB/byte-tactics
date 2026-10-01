@@ -1,5 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by GPT-6.1-sol,
 // finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3101 retry): still 66.1% (310 of 301). The original keeps
+// a2 in esi and a3 in edi across both __allmul calls (frame `sub esp,0x10`, dx.lo
+// in ebp, dx.hi and dz spilled); ours rematerialises a2/a3 from their argument homes
+// (frame 8, only dz spills). The worktree board's watchdog STOP was honoured; the
+// best `__int64 d[2]` version was already flushed.
 //
 // RETRY (deepseek-v4.1-flash, 2026-10): kept the 66.1% `__int64 d[2]` version.
 // A new sweep of spellings confirmed the ceiling: reference parameters for

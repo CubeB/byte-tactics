@@ -43,6 +43,14 @@
 //   lever. Note for the next pass: in the check.py diff the MINUS side is the
 //   original and the PLUS side is ours (confirmed against add esi,-0x10 and
 //   the MOVEORD fold), so 35 hunks of pure register rotation remain here.
+// deepseek-v4.1-flash retry 6 (10-minute timebox): no change, 84.6%, 4250 bytes
+// (original 4247), 31 hunks, all register allocation plus the two known shape
+// diffs. Probe this pass: respelling the second 0x1b8a load at line 277 as
+// `*(char**)(local_24 + 0x27)` (same address, so VC5 CSEs the 0x1b63 + 0x27
+// fold) drops to 83.7% / 4251 bytes, so the original keeps local_24's
+// +0x1b63 lea and the +0x1b8a fold as separate nodes. Reverted, see
+// build/scratch/SHARED.md for the same shr/test and add-immediate walls
+// recorded on other functions.
 // deepseek-v4.1-flash retry 4: 82.0% -> 84.6%, 4250 bytes (original 4247).
 // - WIN: the S:/R: test at 0x46b6fe is not `(v >> 9) & 1` but a byte-typed
 //   value, `((unsigned char)(*(unsigned int*)(unit + 0x110) >> 9) & 1)`. The

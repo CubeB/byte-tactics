@@ -47,6 +47,10 @@
 // sums declared and computed y first (identical) and sizes read through obj in the sums (48.0).
 // The commutative left-accumulator flip therefore does not come from operand order, accumulator
 // temporaries or the multiply spelling: it is front end state, same class as 0x47d820.
+// issue-3512 pass (deepseek-v4.1-flash): re-tested the top block shapes; inlining the sums into the
+// combined condition gives 80.5 (1204 bytes), a Point pos copy gives 80.8 (1206), and swapping the
+// sx/sy assignment order is byte-identical to 80.9; best stays 80.9 (1202).
+
 #pragma pack(push, 1)
 
 struct Obj_0047cc30;

@@ -150,6 +150,14 @@
 // influence the base/index pick, and with both operands unscaled registers
 // the pick is decided by the order the loop optimiser built the affine source
 // expression, which no source shape here reaches.
+// Eighth pass (deepseek-v4.1-flash, 10 min budget, 0 new check.py runs, 16
+// scratch scores): still 99.6%, same single SIB byte, still no BAD
+// references. Tested and left on the plateau: the real headers <windows.h>,
+// <string.h>, <stdio.h>, <math.h>, <memory.h> and the string/stdio/math
+// triple prepended (all 99.6%, [ecx+ebx]); the third copy's source and
+// destination as declare-then-assign locals in every combination (99.6%);
+// source as a fresh const_iterator local. Consistent with the seventh pass
+// verdict: the wanted [ebx+ecx] needs compiler state this TU cannot produce.
 // Seventh pass (deepseek-v4.1-flash, 10 min budget, 5 scratch scores, 0 new
 // check.py runs on the file): still 99.6%, same single SIB byte. Two more
 // spellings tested and both stayed on the 544-byte plateau with

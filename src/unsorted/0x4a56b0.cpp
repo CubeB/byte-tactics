@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. `if (i == entries[0].b6.count + 1) break;` is byte-identical to `>=` (60.3%), so the comparison operator is not the bound-spill lever. Still differs: bound spilled here vs original ecx, t in edx vs original memory at frame+0x10, and the x phi through stack.
 // 2026-10-01 retry 4 (deepseek-v4.1-flash): best stays 60.3%, 1649 bytes. New
 // facts: the t-vs-walker tie is independent of the x phi. The x-register
 // variant (`x += w; x -= Measure()`, 58.1%) moves i's home to frame+0x14 (the

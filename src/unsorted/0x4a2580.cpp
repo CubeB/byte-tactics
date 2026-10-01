@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 69.8%, 1631 bytes. A fresh branch-local surface (with and without a const function-scope surface) gives 63.1%; hoisting function-scope `int limit; int lc;` before entries/surface lands the surface in the freed [esp+0x58] home at 67.6%; the w<h test cast to unsigned short is byte-identical. Still differs: surface home [esp+0x10] vs the original [esp+0x1c] and the w<h register split (surface in ebp vs our stack home).
 // Sonnet 5.5 (#3246): re-checked 69.8%. Turning r1/r2/rect from int[4] into a `Rect` struct (and
 // the callee parameters to Rect*) is byte-identical, so the frame/slot differences are not an
 // array-versus-struct question.

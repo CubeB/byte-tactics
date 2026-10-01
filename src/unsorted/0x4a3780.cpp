@@ -1,4 +1,5 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5. Names are provisional.
+// 2026-10-01 retry 5 (deepseek-v4.1-flash): best stays 52.3%, 1806 bytes. Swapping the point.x/point.y subtract order (51.1%) and moving `int n = 0;` below the r.y1/r.y0 setup (byte-identical, 52.3%) do not move the py/esi register rotation. Still differs: py in esi here vs edi in the original, one rotation only.
 // PARTIAL: 52.3%, 1806 bytes against 1832, frame 0x3c like the original.
 //
 // What the Sonnet 5.5 pass (#3246) found, 35.4 to 52.3:

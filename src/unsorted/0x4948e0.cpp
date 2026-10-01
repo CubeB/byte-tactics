@@ -1,4 +1,17 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry (#3641, deepseek-v4.1-flash): 78.3% stands (1451 vs 1418 bytes). Decoded the
+// original's dst/panel layout from the disassembly in full: [esp+0x10] maxw,
+// [esp+0x14] i, [esp+0x18] panel.left, 0x1c top (0x20), 0x20 right, 0x24 bottom (the
+// post-draw `panel.right = panel.left + 0x7d` re-store lands in the dead bottom slot),
+// dst at 0x2c (p0.x 0x2c, p0.y 0x30, p1.x 0x34, p1.y 0x38, p2.x 0x3c, p2.y 0x40,
+// p3.x 0x44, p3.y 0x48), hr at 0x4c, src 0x5c, buf 0x7c; dst p1.x/p2.x are really
+// `panel.left + maxw` (mov eax,[esp+0x10]; add eax,ecx) and y is ebx with no home.
+// Measured this session: `int y = panel.top;` moved above the panel.right re-store
+// (y born earlier, as the original's 0x494a98 load implies) is byte-identical at
+// 78.3%; splitting the header counter from the loop counter (`int ytop = panel.top;`
+// for the two header draws, `int y = ytop + 0xf;` for the loop, to kill the dead
+// `mov [esp+0x18],ebx` store) collapses to 56.7%, 1464 bytes, so the two header draws
+// must keep pushing the same register y. The y home slot is still the whole diff.
 // deepseek-v4.1-flash (issue #3454): tested the last untried lever below, folding
 // `y += 0xf` into the loop initializer (headers read panel.top, `int y = panel.top
 // + 0xf` after them).  It does remove the dead `mov [esp+0x18],ebx` store, but

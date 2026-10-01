@@ -18,6 +18,14 @@
 // 0x10 denominator registers and the 0x20 field_c6 load-before-test are untouched,
 // as every source shape for them either folds or reshapes the prologue.
 // GPT-6.1-sol (#3140 retry): six checks, best remains 93.1% (629 bytes), no MATCH.
+// deepseek-v4.1-flash (#3888 retry, four scored runs): still 93.1% / 629 bytes.
+// Naming field_da in a `short da = e->field_da;` local before the clamp collapses
+// the inlined Find/LineSize layout (607 bytes, 34.0 pct), so the field read must
+// stay inline in the ternary. An `unsigned short w = *(unsigned short*)(b + 2);`
+// local, the swapped multiply `count * *(unsigned short*)(b + 2)` and the fully
+// swapped clamp `(size + 1 > e->field_da) ? size + 1 : e->field_da` are all
+// byte-identical at 93.1, so neither operand order nor arm order moves the
+// field_da-to-edx versus edi choice or the imul ecx,eax operand order.
 // The 0x10 denominator selection still has different registers and shorter code;
 // in the 0x20 arm the field_c6 load remains after the count test and zero-extends
 // through edx plus a copy into ecx. Pointer-hoist variants damaged global allocation.

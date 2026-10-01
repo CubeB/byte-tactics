@@ -1,4 +1,12 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3888 retry): still 98.7% / 661 bytes over one scored run.
+// objdump of our object shows the identical instruction stream and the same
+// registers as the original at the colour read (call FUN_004c13f0 / mov
+// ecx,[edi+0x1f] / push eax / mov eax,[esp+0x30] / xor edx,edx / mov dl,...),
+// only the SIB base/index byte differs, so the tree-shape spelling
+// `*((unsigned char*)((int)param_1 + 0x8b2) + (int)me->colours)` scoring flat
+// again confirms the base/index assignment is made after the expression is built.
+
 // Retry (deepseek-v4.1-flash, issue 3781, 2 scored runs): still 98.7 pct / 661
 // bytes with the same two hunks. Re-associating the colour sum with the
 // constant first (*(me->colours + 0x8b2 + (int)param_1)) and a void*

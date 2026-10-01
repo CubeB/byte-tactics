@@ -28,6 +28,10 @@
 // zero or break the call test; the blocking decision is the live edx zero at
 // the FUN_004ab5b0 join described below.
 // GPT-6.1-sol retry (#3140): baseline remains best at 80.9% after five checks.
+// deepseek-v4.1-flash (#3888 retry): still 80.9% / 714 bytes over two scored runs.
+// The explicit spellings `if (obj->field_78 != 0)` and `if (obj->holder != 0)` in
+// the focus block are byte-identical to the implicit forms, so the compare
+// spelling does not steer the constant-0-in-edx decision.
 // A two-arm zero local was canonicalized to the baseline. A local max clamp
 // scored 69.1%, and copying field_78 into a local dragging flag scored 50.9%.
 // Keep the direct field test and original clamp. No MATCH observed.

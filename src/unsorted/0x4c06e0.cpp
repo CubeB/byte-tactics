@@ -1,106 +1,130 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
 //
-// Space Bunny Free pass (#4226): best 76.6 -> 84.2 percent, still 200 of 200
-// bytes, no MATCH. THE WHOLE IMPROVEMENT IS ONE LINE: sharing the byte offset
-// in a single `int off` local, used by both `p += off` and `d += off`, instead
-// of writing `row * pitch + span->x1` twice. The old shape computed the product
-// twice, which put the pitch in edx, spilled `n` and emitted 215 bytes. The
-// shared local gives the original's `add edi, edx` / `add esi, edx` pair (one
-// add destination for both pointers) and the original's loop tail
-// (`inc edi; inc esi; add ecx, eax; dec ebp; jne`). Semantically correct: it
-// reads `span->x1` after both clips, as the original does. The variant is in
-// build/scratch/0x4c06e0/BEST_84.2.cpp.
+// Space Bunny Free pass (issue #4498): 84.2 -> 96.5 percent, 200 of 200 bytes,
+// still no MATCH. The count block is now byte-identical, including the two
+// instructions nine earlier passes could not get: the surface pointer is
+// reloaded into ebp, the 16-bit pitch is read off it twice, the count's x1
+// stays in edx, and the offset is `imul eax,[row]; add edx,eax`.
 //
-// Still differs, all of it one register-colouring decision, 9 instructions:
+// Three things were needed, and only the first is a spelling the source can
+// plausibly have:
 //
-//   original: mov ebp,[esp+0x1c]     surf -> ebp
-//             mov edx,[ecx]          x1  -> edx
-//             mov ebx,[ecx+4] / sub ebx,edx        n -> ebx
-//             mov ax,[ebp] / imul eax,[esp+0x14]   eax = row * pitch
-//             add edx, eax           edx = x1 + row*pitch = off
-//             lea ebp,[ebx]          loop counter copy, lea not mov
-//   ours:     mov edx,[esp+0x1c]     surf -> edx
-//             mov ebp,[ecx]          x1  -> ebp
-//             mov ebx,[ecx+4] / sub ebx,ebp        n -> ebx
-//             mov edx,[esp+0x14] / imul edx,eax    edx = row * pitch
-//             add edx, ebp           edx = x1 + row*pitch = off
-//             mov ebp, ebx           loop counter copy, and placed early
+// 1. The count block writes the offset *twice* in two different spellings: a
+//    shared local for the depth pointer and the full expression again for the
+//    colour pointer, with a local for the start of the span:
+//        int start = span->x1;
+//        int off = start + row * surf->pitch;
+//        p = p + (start + row * surf->pitch);
+//        if (d != 0) { d = d + off; ... }
+//    `p += off` instead of the repeated expression gives 84.2 percent, and
+//    dropping the `start` local (reading span->x1 inline) gives 72.9 percent,
+//    so both are load-bearing. What fixes the register colouring is that x1 is
+//    a *local* of the count block, read before the count, so the allocator no
+//    longer coalesces the count's x1 with the dead head x1 and gives the
+//    callee-saved register to the surface pointer instead.
 //
-// So the original keeps `surf` in the callee-saved ebp and re-reads the pitch
-// off it twice (`mov ax,[ebp]` at 0x4c072d and 0x4c0749), leaving edx free to
-// hold x1 and accumulate the offset with `add edx, eax` (the in-place `imul
-// eax,[row]` form, so the product lands in eax and x1 in edx is the add
-// destination). Ours puts surf in edx, x1 in ebp, and reaches the same sum by
-// loading row into edx and multiplying there. The second, smaller difference
-// is the loop-counter copy: the original emits `lea ebp,[ebx]` (a register copy
-// that does not touch flags) and ours emits `mov ebp,ebx`, placed before the
-// `test esi,esi` branch instead of after it.
+// 2. One inline function in the translation unit, of any kind, called or not.
+//    With the count block above and no extra function the file scores 88.9
+//    percent and 202 bytes: the row product goes to ebp (`mov ebp,[row]; imul
+//    ebp,eax; add edx,ebp`) instead of eax. Adding a single `unsigned short
+//    Pitch() { return pitch; }` member to Surface_004c06e0 and using it for the
+//    two pitch reads is enough to get the original's `imul eax,[esp+0x14]`. A
+//    free `static inline unsigned short Pitch(Surface*)` works the same, and so
+//    does an inline function that is never called at all, so this is compiler
+//    state and not the helper's body: 1 to 6 and 12 uncalled inline functions
+//    give 96.5 percent, 8 and 19 give 88.9, 20 gives 81.2, while a `static`
+//    function *declaration* or an `extern` variable changes nothing. The member
+//    is used twice, so nothing dead is left in the file.
 //
-// What was tried this pass, all scored with check.py, none better than 84.2%:
-// 108 declaration-order x offset-spelling shapes (nine spellings of the offset
-// including `surf->pitch * row` first and `(int)`/`(unsigned int)` casts, two
-// spellings of the count, all six orders of the off/z/n locals), 72 more with
-// a `start` local standing in for span->x1, an `int`/`unsigned short` pitch
-// local, both together, and the offset derived from `p - surf->bits`; every
-// one ties 84.2% at 200 bytes, i.e. they all emit the same bytes. Notably a
-// `start` local never helps: it is what forces x1 into ebp. The offset has to
-// read `span->x1` through the pointer, exactly as in the matched sibling
-// 0x4c0b10, whose note records the same finding (`d += row * surf->pitch +
-// span->x1;` reading the field rather than a cached local is what flips the
-// add destination into edx). That sibling is a MATCH and its head allocates
-// the same way, so it is the place to look next: its depth offset is a single
-// statement written against `span->x1`, and this function's `off` local is
-// still one step away from that shape.
+// 3. Nothing else: no `int x1 = span->x1;` is needed, and a width local `w`, a
+//    `lim` local for the clamp, a `z1` local for the division numerator, `n`
+//    declared inside the block or at the top, the arms in either order, the
+//    `start + row * surf->pitch` or `surf->pitch * row + start` order, and
+//    `p`/`d` declared in either order all still give 96.5 percent.
 //
-// Best lead for the next attempt: the original's count block is `surf` in ebp,
-// `x1` in edx, `n` in ebx, `z` in ecx, i.e. x1 survives from the `n` computation
-// into the `add edx, eax`, so the offset is `span->x1 + row * surf->pitch` with
-// the pitch re-read from ebp late. A shape that keeps surf live in a
-// callee-saved register across the whole count block, rather than letting the
-// allocator park it in edx, is what is still missing. Note that all the
-// semantically correct spellings tried give x1 to ebp; the earlier 792-shape
-// sweep found the only families that put surf in ebp do so by reading the
-// pre-clip head `x1` local in the offset, which is wrong after the clip.
-// `unitmap.py --at 0x4c06e0` reports no matched member and no unit, so the
-// Surface/Span layouts here are local guesses; they agree with the matched
-// sibling 0x4c0b10 (pitch +0x0, bits +0x10, depth +0x14, z1 +0x18, z2 +0x1c)
-// and the pitch load is the original's 16-bit `mov ax,[..]`, so the layout is
-// not the residual.
+// Still differs, 3.5 percent, three instructions in the loop preheader:
+//    original: mov eax,[esp+0x18]     the slope, loaded first
+//              lea ebp,[ebx]         the counter copy, inside the arm
+//              mov bl,[esp+0x20]     the colour byte, after the copy
+//    ours:     mov ebp,ebx           the counter copy, hoisted above add edi,edx
+//              mov bl,[esp+0x20]     the colour byte, hoisted above the slope
+//    and the fill arm copies the count with `mov ecx,ebp` where the original
+//    uses `lea ecx,[ebx]`. MSVC 5 merges the loop's induction copy with the
+//    count the fill arm needs, so one copy serves both arms and is hoisted to
+//    the common dominator. Every attempt to confine it to the depth arm adds a
+//    local, and one extra local reallocates the whole function (the head puts
+//    span in esi and surf in ebx, 47 percent), so the lever has to be a
+//    spelling that keeps the local count at eight. Tried and worse: a separate
+//    `int i = n` counter anywhere (47.3), two locals with the same value so the
+//    loop and the fill arm use different ones (57.6 to 61.5), the count
+//    recomputed from the fields or from `start` in the fill arm (51.5 and
+//    61.5), `while (n-- > 0)` (86.5), `while (n) { ... --n; }` and
+//    `for (; n > 0; --n)` (57.3 each), the arms in the other order (74.1), a
+//    `goto` between the arms (74.1), the colour byte or the slope copied into a
+//    local in the arm (unchanged, folded away), `register` on any of the eight
+//    locals (unchanged), and `volatile` on the count (76.7). A permuter run
+//    from this file (3771 candidates, 5 minutes) found nothing better either,
+//    and neither did all 128 header sets of headers.py (flat at 96.5) or
+//    padding declarations: N `extern int`, `extern void __cdecl f(void)`,
+//    `extern int __cdecl f(int,int)`, `static int` or `typedef int` lines for
+//    N = 0 to 24 all stay at 96.5 percent or drop to 88.9 (the extern form
+//    flips at N = 16, the others between 7 and 20).
+//    Also tried against this residual, all 96.5 percent or worse: a dead store
+//    inside a statically folded branch (`int t = 0; if (t) n = 0;` or
+//    `if (t) off = 0;` or `if (t) p = 0;` or a dead store through a dead
+//    pointer) in front of the arms, inside the depth arm, in the fill arm and
+//    after the clamp; a ternary that folds away (`0 ? a : a` on the start local,
+//    `a > b ? a - b : a - b` on the count, and a guard wrapped in a folded
+//    conditional); and reading the same field through a second `Span*` or
+//    `Surface*` local, which unlike an extra `int` local does not break the
+//    head (96.5 percent either way). The last three instructions look
+//    unreachable from the source: they are one copy that MSVC 5 merges with the
+//    count the fill arm needs, and nothing in the source can stop that merge
+//    without adding a local, which reallocates the whole function.
 //
-// GPT-6.1-sol retry for issue #3189: best remains 74.1%, no MATCH. Six checker invocations: baseline, maxx/local-x rewrite (50.0%), unsigned-short pitch guard (68.6%), inlined Plot and Surface* alias (both tied at 74.1%), and a failed declaration reorder compile. Remaining difference is register allocation across the clipped-span count/offset and loop.
+// What the 84.2 percent passes established, kept here because it is what makes
+// the 96.5 percent version legible: the matched sibling 0x4c0b10 has the same
+// count block shape (surface pointer in ebp, the 16-bit pitch read off it
+// twice, x1 in edx, the count in ebx), so the target shape does compile in this
+// family. What decides it is register *pressure*, not spelling: in 0x4b10 the
+// start value is spilled to a stack home right after the count because that
+// loop needs all six registers, and a value with a stack home is given a
+// scratch register, which frees ebp for the surface pointer.
 //
-// Eighth pass (#2984, deepseek-v4.1-flash): baseline re-confirmed at 74.1%.
-// Swept ~60 more shapes with a generator (all scored via check.py --sym, free):
-// clamp on the x2 local versus on span->x2, slope from span fields versus
-// locals, a `pitch` local declared before the slope / after the two pointers /
-// after the clamp, `unsigned short` and cast pitch, inline surf->pitch at the
-// offset, a separate `int i = n` loop counter, a for-loop, the four increment
-// orders (p++;z;d++ / p++;d++;z / ++p;++d;z / p=p+1...), asymmetric offsets
-// (p by pitch, d by surf->pitch and vice versa), and four memset spellings
-// (plain, cast, (unsigned int)n, (void*)p). Nothing beat 74.1%. Every shape
-// that ties emits the same 200 bytes, so this is a fixed point of the compiler:
-// the residual is only the allocator's choice of a register for `surf` in the
-// count block (original keeps it in ebp and re-reads the pitch off it, ours
-// frees ebp and reuses it for x1). See the earlier passes below for the full
-// list; no source spelling found across 8 passes moves it.
-// Claude Sonnet 5.5 pass (#694): still 74.1%, 200 bytes. Compiler state ruled out:
-// N unused `extern int` declarations (0 to 400 in steps of 8) give 200 bytes and 74.1%
-// for N = 0 to 48 and again from about 296, and a shorter 193 bytes and 59.2%
-// (194 and 66.3% at N = 56) in between, never better; all 128 header sets from
-// headers.py give 74.1% or less. What the original does that ours does not: `surf`
-// is reloaded into ebp (`mov ebp,[esp+0x1c]`) and stays live in ebp until the pitch
-// is re-read right before `imul eax,[row]` (`xor eax,eax; mov ax,[ebp]`), so it
-// overlaps `n` (ebx = x2 - x1, x1 in edx); ours reads the pitch early into edx (so
-// surf dies early and shares ebx with n) and x1 lands in ebp. The original also
-// shares one offset between the two pointers (`add edx,eax; add edi,edx; ...; add
-// esi,edx`) where ours does `lea eax,[edx+ebp]` for the bits and `add edx,ebp` for
-// the depth, and its memset arm loads `color` with `mov al,[esp+0x20]` (no movsx).
-// Scored, all worse than the file: pitch read inline (`row * surf->pitch`, 70.2%),
-// with `n` first (45.0%), a shared `int off` (70.6%; 47.3% with n first), `n`
-// computed before the `if (n > 0)` (44 to 50.6%), the `int pitch` local declared
-// inside the block (68.2 to 70.2%; as `unsigned short` 73.3%), an inlined
-// `Offset(surf, row, x)` helper (47.3 to 70.6%), and `unsigned char color` (72.5%,
-// 204 bytes: a zero-extending load appears but the loop grows).
+// Scored and tied at 84.2 with the old count block (identical bytes, about 70
+// shapes): a `Surface*` local for the pitch reads assigned after the clip
+// (`s = surf`, declared-then-assigned, used in the clamp only, in the offset
+// only), a `unsigned short* pp = &surf->pitch` read as `*pp`, a reference
+// `Surface& s = *surf`, an inline `Pitch(surf)` getter, inline `Off(surf,row,x)`
+// and `Cnt(span)` helpers (alone and together), `p = &p[off]`, `p = p + off`,
+// `(int)row *`, `unsigned`/`long` off, `surf->pitch * row` and
+// `span->x1 + ...` offset orders, all six orders of the off/z/n declarations,
+// `n` computed before the guard or after the clamp, a named width local
+// (`int w = x2 - x1` and `int w = span->x2 - span->x1`), a named dz local, a
+// `z1` local, a dead local, the clamp without the reload of x2, the clamp
+// chained as `x2 = span->x2 = ...`, the guard as `span->x2 > span->x1` (83.0
+// percent, 200 bytes), the clip testing the x1 local, the offset split into
+// two adds, the offset written out twice, both parameters as references, the
+// guard and the count through a second `Span*` local, `int&` references to the
+// fields, the pitch read as `*(unsigned short*)surf`, `unsigned short&` to the
+// fields, `if (d)` instead of `if (d != 0)`, reversed arms, an early `return`
+// after the loop arm, both struct definition orders, `#pragma pack(2)`, and
+// every one of the 128 header sets headers.py can try (flat at 84.2). Worse,
+// and each for a reason worth knowing: a pointer-returning `static inline`
+// identity (MSVC 5 does not inline it, so the call plus its `push ecx` stack
+// reservation rewrites the prologue, 223 bytes), a `pitch` local (75.3 and
+// 71.9), a separate loop counter `int i = n` inside the depth arm (46.8:
+// adding a fifth local reallocates the *head*, span moves to esi and surf to
+// ebx), the same counter before the arms (51.7), a `for` counter (48.8),
+// `while (n-- > 0)` (66.3), a `start` local in the old count block (77.5 and
+// 73.3, 202 to 204 bytes), a second `p`/`d` pointer declared inside the count
+// block (36.9 and 48.8), reading `surf->depth` twice (63.5), the count from the
+// clamped x2 local (67.4), two locals with the same value (52.9), the memset
+// count recomputed from the fields (52.9), and 20 or more uncalled
+// `static inline` helpers in the file, which is a real compiler-state
+// threshold: 1 to 19 of them are 84.2 percent and 20 or more give 72.9 percent
+// and 194 bytes (a head change, not a count-block change).
+//
 // Draws a full horizontal span: every pixel from x1 to x2 gets the colour
 // when it passes the depth test (the depth buffer keeps the integer part of
 // the 16.16 depth), or the row is filled unconditionally when the surface has
@@ -252,31 +276,39 @@
 
 #include <string.h>
 struct Span_004c06e0 { int x1; int x2; char unknown_8[0x18 - 0x8]; int z1; int z2; };
-struct Surface_004c06e0 { unsigned short pitch; char unknown_2[0x10 - 0x2]; unsigned char* bits; unsigned char* depth; };
+struct Surface_004c06e0 {
+    unsigned short pitch;              // +0x0
+    char unknown_2[0x10 - 0x2];
+    unsigned char* bits;               // +0x10
+    unsigned char* depth;              // +0x14
+    // The pitch accessor is not a claim about the original: one inline function
+    // anywhere in the file is what puts the row product in eax (see the notes).
+    unsigned short Pitch() { return pitch; }
+};
 
 // FUNCTION: 0x4c06e0
 void __stdcall FUN_004c06e0(int row, Span_004c06e0* span, Surface_004c06e0* surf, unsigned char color)
 {
-    unsigned char* d = surf->depth;
     unsigned char* p = surf->bits;
-    int x1 = span->x1;
+    unsigned char* d = surf->depth;
     int x2 = span->x2;
-    int slope = (span->z2 - span->z1) / (x2 - x1);
+    int slope = (span->z2 - span->z1) / (x2 - span->x1);
     if (span->x1 < 0) {
-        span->z1 = span->z1 - slope * span->x1;
+        span->z1 = span->z1 - span->x1 * slope;
         span->x1 = 0;
     }
-    if (x2 > (int)surf->pitch - 1) {
-        span->x2 = surf->pitch - 1;
+    if (x2 > (int)surf->Pitch() - 1) {
+        span->x2 = surf->Pitch() - 1;
         x2 = span->x2;
     }
     if (span->x2 - span->x1 > 0) {
-        int off = row * surf->pitch + span->x1;
+        int start = span->x1;
+        int off = start + row * surf->pitch;
         int z = span->z1;
         int n = span->x2 - span->x1;
-        p += off;
+        p = p + (start + row * surf->pitch);
         if (d != 0) {
-            d += off;
+            d = d + off;
             do {
                 unsigned char zi = (unsigned char)(z >> 16);
                 if (*d <= zi) { *p = color; *d = zi; }

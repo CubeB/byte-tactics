@@ -115,7 +115,7 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
     if (at<int>(unit, 0x86) != 0)
         FUN_0048aac0(unit, 0, -1, 1);
     while (at<int>(unit, 0x8a) != 0) {
-        unsigned char depth = ((cmd[10] & 0xf0) != 0x30 ? 3 : 0) + 3;
+        unsigned char depth = (cmd[10] & 0xf0) != 0x30 ? 6 : 3;
         FUN_00489bb0(at<char*>(unit, 0xf0), (void*)at<int>(unit, 0x8a), 30000, depth, 0);
         FUN_0048aac0((void*)at<int>(unit, 0x8a), 0, -1, 1);
     }
@@ -180,24 +180,24 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
             && (((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 3
                 || ((Class_00435100*)at<void*>((void*)g_game, 0x391e9))->FUN_00435100() == 2)
             && at<unsigned char>(rec, 0x148) > 0) {
+            int mine = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(rec, 0x104) : at<short>(rec, 0xfc);
             int rank = at<unsigned char>(rec, 0x148);
             int best = rank;
-            int mine = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(rec, 0x104) : at<short>(rec, 0xfc);
             int i = 10;
-            int* p = (int*)((char*)g_game + 0x1b8a);
+            char* p = (char*)g_game + 0x1b8a;
             do {
-                if ((char)p[0x13] != 0) {
-                    bool hid = ((UnitBits*)*p)->b6;
+                if (at<char>(p, 0x4c) != 0) {
+                    bool hid = ((UnitBits*)(void*)at<int>(p, 0))->b6;
                     if (!hid) {
-                        int theirs = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>(p, 0xdd) : at<short>(p, 0xd5);
+                        int theirs = at<int>((void*)g_game, 0x37ef6) == 2 ? at<short>((void*)p, 0xdd) : at<short>((void*)p, 0xd5);
                         bool bt = mine > theirs;
                         if (bt) {
-                            if (at<unsigned char>(p, 0x121) < best)
-                                best = at<unsigned char>(p, 0x121);
+                            if (at<unsigned char>((void*)p, 0x121) < best)
+                                best = at<unsigned char>((void*)p, 0x121);
                         }
                     }
                 }
-                p = (int*)((char*)p + 0x14b);
+                p += 0x14b;
                 i--;
             } while (i != 0);
             if (best < rank) {
@@ -222,23 +222,24 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
             FUN_004948b0(at<unsigned char>(unit, 0xf4), at<unsigned char>((void*)at<int>(unit, 0x96), 0x146));
     }
     if ((cmd[10] & 0xf0) == 0x50 && at<char*>(unit, 0xf0) != 0) {
+        char* par = at<char*>(unit, 0xf0);
         float f = (1.0f - at<float>(unit, 0x104)) * at<float>((void*)at<int>(unit, 0x92), 0x18a);
-        void* vt = (void*)at<int>(at<char*>(unit, 0xf0), 0xec);
+        void* vt = (void*)at<int>(par, 0xec);
         if (*(int*)vt == 0 || at<char>(vt, 0x73) != 2) {
-            f = f + at<float>(at<char*>(unit, 0xf0), 0xd4);
+            f = f + at<float>(par, 0xd4);
         } else {
             switch (at<int>((void*)g_game, 0x37eee)) {
             case 0:
-                f = at<float>(at<char*>(unit, 0xf0), 0xd4) - f * -0.5;
+                f = at<float>(par, 0xd4) - f * -0.5;
                 break;
             case 1:
-                f = at<float>(at<char*>(unit, 0xf0), 0xd4) - f * -0.7;
+                f = at<float>(par, 0xd4) - f * -0.7;
                 break;
             default:
-                f = f + at<float>(at<char*>(unit, 0xf0), 0xd4);
+                f = f + at<float>(par, 0xd4);
             }
         }
-        at<float>(at<char*>(unit, 0xf0), 0xd4) = f;
+        at<float>(par, 0xd4) = f;
     }
     if (at<char>(cmd, 9) > 0 && at<float>(unit, 0x104) == 0.0f)
         FUN_0049b000(unit, (cmd[10] & 0xf0) == 0x30);
@@ -258,13 +259,10 @@ void __stdcall FUN_004866d0(unsigned char* cmd, int param)
         operator delete((void*)*(int*)unit);
         *(int*)unit = 0;
     }
-    unsigned int flags = at<unsigned int>(unit, 0x110);
     at<short>(unit, 0xa6) = 0;
-    flags &= 0xefffffff;
-    at<unsigned int>(unit, 0x110) = flags;
+    at<unsigned int>(unit, 0x110) = at<unsigned int>(unit, 0x110) & 0xefffffff;
     int t = at<int>((void*)g_game, 0x1439b);
-    flags &= 0xffffffcf;
-    at<unsigned int>(unit, 0x110) = flags;
+    at<unsigned int>(unit, 0x110) = at<unsigned int>(unit, 0x110) & 0xffffffcf;
     at<int>(unit, 0x92) = t;
     at<short>((void*)at<int>(unit, 0x96), 0x144)--;
     if (at<short>((void*)at<int>(unit, 0x96), 0x144) == 0) {

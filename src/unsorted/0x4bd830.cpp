@@ -161,12 +161,13 @@ void __stdcall FUN_004bd830(char* path, char* base, int off, FILE* f,
                             FUN_004d1820(pack, &clen, (char*)data, chunk, flags & 0xff, 1);
                             *tp = clen;
                             pos = ftell(f);
+                            int len = clen;
                             if ((char)key != 0) {
-                                for (int j = 0; j < clen; j++)
+                                for (int j = 0; j < len; j++)
                                     pack[j] = (unsigned char)~((char)pos + (char)j
                                               ^ (char)key ^ pack[j]);
                             }
-                            fwrite(pack, clen, 1, f);
+                            fwrite(pack, len, 1, f);
                             tp++;
                             remaining -= 0x10000;
                             n--;

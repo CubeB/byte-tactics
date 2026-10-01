@@ -1,4 +1,4 @@
-// Decompiled by Opus, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by Opus, finished by GPT-6.1-sol, finished by Claude Sonnet 5.5. Names are provisional.
 // Retry (deepseek-v4.1-flash, issue 3061): 98.5%, 333 bytes exact. Sole
 // residual is the commutative XOR operand order in the encrypt loop (original
 // `mov bl,cl; xor bl,[ecx+esi]`, ours reversed). 30+ spellings compile
@@ -63,12 +63,23 @@ struct Chunk_4d1820 {
 int __stdcall FUN_004d0f60(char* out, char* in, int size);
 void __stdcall FUN_004d1c80(char* out, int* outSize, char* in, int size);
 
+static inline unsigned int encryptByte(unsigned int i, char* out) { return (i ^ out[i]) + i; }
+
+// Claude Sonnet 5.5 (found with tools/permute.py): MATCH (was 98.5%). The XOR
+// operand order came right once the encrypt byte went through an inline helper
+// fed by a copy of the loop index inside nested do { } while (0) blocks, with
+// the payload pointer (chunk + 1) in its own local and the size test spelled
+// `(length + 0x13) > *chunkSize` while `total` is unsigned. Measured: without
+// the payload local 98.5%; without the two index temporaries 98.5%; without
+// the do-while wrappers 98.5%; comparing `total > *chunkSize` 97.7%; `total`
+// as int 98.5%. The include change the permuter also made (memory.h) is not
+// needed. The reason the wrappers matter is not understood (compiler state).
 // FUNCTION: 0x4d1820
 int __stdcall FUN_004d1820(Chunk_4d1820* chunk, int* chunkSize, char* data, int size, int method, int encrypt)
 {
-    Chunk_4d1820 header;
-    char* out = (char*)(chunk + 1);
-    if (out == 0) {
+    Chunk_4d1820 header, * payload = chunk + 1;
+    char* out = (char*)payload;
+    if ((char*)payload == 0) {
         return 6;
     }
     if (data == 0) {
@@ -90,14 +101,21 @@ int __stdcall FUN_004d1820(Chunk_4d1820* chunk, int* chunkSize, char* data, int 
         FUN_004d1c80(out, &length, data, size);
         break;
     }
-    int total = length + 0x13;
-    if (total > *chunkSize) {
+    unsigned int total = length + 0x13;
+    if ((length + 0x13) > *chunkSize) {
         return 5;
     }
     if (encrypt) {
-        for (unsigned int i = 0; i < length; i++) {
-            out[i] = (i ^ out[i]) + i;
-        }
+        do {
+            do {
+                for (unsigned int i = 0; i < length; i++) {
+                    do {
+                        unsigned int index = i, idx = index;
+                        out[i] = encryptByte(idx, out);
+                    } while (0);
+                }
+            } while (0);
+        } while (0);
     }
     memcpy(&header.marker, "SQSH", 4);
     header.version = 2;

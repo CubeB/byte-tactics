@@ -364,6 +364,7 @@ void __stdcall FUN_0040f200(Unit* unit, Order* order, unsigned int flags)
     }
 }
 
+// GPT-6.1-sol retry (five check.py runs including the starting best): both case-4 vector-sum variants were worse, `Vec3 p = unit->pos + off` scored 93.4% (1576 bytes) and `Vec3 p = off + unit->pos` scored 91.9% (1584 bytes); kept the established 96.1% source.
 // FUNCTION: 0x412710
 int __stdcall FUN_00412710(Unit* unit, Order* order, int flags)
 {

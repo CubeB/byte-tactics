@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// GPT-6.1-sol (issue #2635) retry: check.py reconfirmed the saved 98.0% best. A y/z/x member-wise rewrite scored 94.6% and shifted unrelated code, so it was discarded. The only remaining executable mismatch is the state-3 waypoint schedule at 0x413950-0x413966: target consumes off.x before loading pos.y, while MSVC hoists y/z loads and uses ebx. Earlier notes below document the tested variants.
 // deepseek-v4.1 (issue #1897) fifth retry: baseline reconfirmed 97.4%, same two
 // regions. Negating both hypot arguments (unit->pos.xw - order->x, ...) scores
 // 96.8: the compiler still emits the [esi] (order) movsx first, this time into

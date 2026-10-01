@@ -1,4 +1,8 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash and GPT-6, verified by GPT-6.1-Sol, finished by space-bunny-free. Names are provisional.
+// #2635 retry by OpenCode / GPT-6.1-sol: best remains 87.2% (1604/1504 bytes), no MATCH.
+// A reordered `energyCapacity * 0.2 <= energy` compare scores 86.8%. A by-value
+// Reclaim helper with Vec3* first merges the four tails but scores 65.1%; keep the
+// four inline bodies. Current file restored to the previous 87.2% best.
 // #1704 retry by Codex / GPT-6.1-Sol: checkall reconfirmed 87.2% (1610/1504 bytes), no MATCH.
 // #1897 by deepseek-v4.1-flash: 1604/1504 bytes, still 87.2%, 23 hunks.
 // #1897 by space-bunny-free: 87.2% again, 1604/1504. No improvement, but the size
@@ -178,6 +182,8 @@ static inline float Total(float base, float amount)
     value += amount;
     return value;
 }
+
+
 // FUNCTION: 0x4152f0
 int __stdcall FUN_004152f0(Unit* unit, Order* order, int flags)
 {

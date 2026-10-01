@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// #3044 retry by GPT-6.1-sol: six checks retained 80.0% (235/234 bytes);
+// sequential x/y arithmetic and alternate association did not improve it.
 // #2414/#2864 retry (deepseek-v4.1-flash): still 80.0% (235 of 234 bytes). The plain
 // if/else y-clip is the original's exact 14-byte block and yields 234 bytes, but it
 // forces an sx<->dstRow rotation (sx to EDX, dstRow to ECX) and reallocates the frame

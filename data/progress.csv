@@ -655,7 +655,7 @@ address,size,file,symbol,status,similarity
 0x434a60,67,src/unsorted/0x434a30.cpp,_$E3,matched,100.0
 0x434ab0,212,src/unsorted/0x434ab0.cpp,?FUN_00434ab0@@YGXH@Z,matched,100.0
 0x434b90,92,src/unsorted/0x434b90.cpp,?FUN_00434b90@@YGXXZ,matched,100.0
-0x434bf0,886,src/unsorted/0x434bf0.cpp,?FUN_00434bf0@@YGHPAPAXHH@Z,partial,92.9
+0x434bf0,886,src/unsorted/0x434bf0.cpp,?FUN_00434bf0@@YGHPAPAXHH@Z,matched,100.0
 0x434f70,118,src/unsorted/0x434f70.cpp,??0Class_00434f70@@QAE@H@Z,matched,100.0
 0x434ff0,259,src/unsorted/0x434ff0.cpp,??1Class_00434f70@@QAE@XZ,matched,100.0
 0x435100,3,src/unsorted/0x435100.cpp,?FUN_00435100@Class_00435100@@QAEHXZ,matched,100.0

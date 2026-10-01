@@ -1,4 +1,5 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4073 round): hoisting `heap.Clear();` ahead of the tail d(i) work (two placements: before NodeData and after it) both drop 92.8 to 92.1, so the 0x40e807 store group is not source-hoistable; baseline re-confirmed at 92.8% (880 bytes).
 // deepseek-v4.1-flash (#3770 round): still 92.8% (880 bytes, exact), same four hunks.
 // Two more shapes are flat: splitting `int cost; cost = Cost(start.x, start.y);`
 // into two statements and moving the inlined Release body of Finish() into

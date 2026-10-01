@@ -19,6 +19,12 @@
 // [esp+0x10] vs [esp+0x14] hunks are the model-search count slot (shared with the w->sub
 // spill in the original), the four jump-offset hunks are the 5-byte shortfall, and the
 // 160-line region is the inlined three-arm vector insert.
+// deepseek-v4.1-flash retry (issue #3855): re-confirmed 84.7% / 3924 bytes, 10 hunks.
+// The five bitfield-arm hunks are not one tie: the original stores after `push 0` for
+// tracks/bit13 and stockpile/bit28, after both pushes for dropped/bit8, and already
+// matches us for bit19 (only the `and eax,1` / mask order differs there), so no single
+// source spelling can align all five arms. Remaining work: the 1-byte overage (all three
+// late je offsets read +1) and the 240-line inlined vector::insert region.
 // Retry by GPT-6.1-sol: best remains 84.3% (3918/3923), not MATCH. Reordering
 // model-loop locals and hoisting path to model scope both compiled identically.
 // Partial, deepseek-v4.1 retry: 84.3%, not MATCH. Original 3923 bytes, ours 3918.

@@ -1,4 +1,8 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
+// deepseek-v4.1-flash (#3676, 10 min): baseline reconfirmed at 83.6% (909 bytes, exact); no
+// variant attempted this session, the 0x43c050 half of the issue consumed the timebox. The
+// documented root below (prologue hoists _First into ecx before `sub esp` and _Last into ebp;
+// ours puts _Last in ebx and tests ebx) is unchanged.
 // deepseek-v4.1-flash (#3340, 10 min): baseline reconfirmed at 83.6% (909 bytes, exact). No new variant landed inside this timebox; the prologue allocation (original hoists _First into ecx before `sub esp` and _Last into ebp, ours holds _First in ebx and _Last in the size branch) is still the single root of every downstream slot difference.
 // deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // GPT-6.1-sol (#3130 retry): best remains 83.6% (909 bytes), confirmed twice. Splitting reserve size into a `needed` local scored 80.0% (914 bytes); incrementing the held insertion iterator after insert scored 71.8% (894 bytes). Four checker runs completed, no MATCH. Remaining mismatch is primarily begin/end pointer register and stack-slot allocation through reserve and the inlined sort; see prior notes below.

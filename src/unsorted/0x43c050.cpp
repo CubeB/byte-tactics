@@ -1,4 +1,14 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#3676, 10 min): best stays 92.0% (732/753 bytes). Two levers
+// tested against it, both worse. Deleting `template class std::vector<Elem_0043c390>;`
+// (to mirror 0x43bc90's TU, which does emit the out-of-line `_Destroy` call) kept 732
+// bytes but fell to 89.3%: the reloc/register plan changes without the missing call.
+// Routing reserve through the Access `grow` member with a non-static declared
+// `_Destroy(iterator,iterator)` produced the call block and 752/753 bytes, but the
+// surrounding register allocation collapsed to 84.3%. Still differing: the single
+// ~20-byte `mov ebp,[_Last] / mov eax,[_First] / push ebp / push eax / mov ecx,this /
+// call _Destroy` block in reserve's reallocation tail (ours has no call, only a 4-byte
+// `mov [esp+0x18],eax`), everything else is jump-displacement fallout.
 // deepseek-v4.1-flash (#3340, 10 min): reconfirmed 92.0% (732/753 bytes). Mirrored 0x43bc90's undeclared Access_0043c390::_Destroy/insert member declarations in place of the unused grow fallback: byte-identical, 92.0% / 732 bytes, so the Access declaration shape is not what keeps reserve's _Destroy inline. Remaining gap is the single 20-byte _Destroy call block at original +0xb1 minus our 4-byte `mov [esp+0x18],eax` burst; all other hunks are displacement fallout.
 // GPT-6.1-sol retry (issue #3130, 2026-10-01): best remains 92.0% (732/753). Direct insert(end(), 1, value) expanded insertion to 913 bytes / 31.2%; while and index-loop spellings tied at 92.0%, with the index form changing the target jne to jl. Preserve the baseline. Remaining differences: reserve omits the empty out-of-line _Destroy call and shifts register allocation / branch targets; vector::size resolves under the mismatched symbol noted below. No MATCH observed.
 // deepseek-v4.1-flash (#2950 retry): still 92.0% (732 of 753 bytes). The only code

@@ -1,130 +1,125 @@
-// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and
-// deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free,
-// finished by deepseek-v4.1-flash.
-// Retry by deepseek-v4.1-flash (#2917): re-confirmed 81.2%, 924 of 936 bytes,
-// exactly two check.py runs spent on the saved best. A faithful source-first
-// _Ucopy signature (the real MSVC 5 <vector> order, as in the 99.6% 0x476210
-// file) scores 67.1%, 944 bytes, so the destination-first spelling here stays.
-// Four inlined-loop reshapes (increment order, while forms, a local copy
-// destination) all reproduce the identical 924-byte output at 81.2%. The
-// remaining difference is the register family in the reallocating arm: the
-// original keeps the new buffer _S in edx and the capacity _N in the dead _M
-// argument slot, this build keeps _S in ecx and _N in the [esp+0x14] local,
-// and the tail copy is the destination-first form without the original's
-// 12-byte affine source recomputation. Nothing in the source reaches those
-// choices; it is the same translation-unit compiler state wall the guide and
-// the 0x4758c0/0x475ef0/0x476210 notes record for this template family.
-// Names are provisional. PARTIAL 81.2%, 924 of 936 bytes. This is MSVC 5's
-// GPT-6.1-sol refinement: ten checks kept 81.2%; two compile failures. Moving
-// local lifetimes and changing capacity checks scored 80.9% and 55.8%, so the
-// saved best was restored. No MATCH was reached.
-// std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&), the same
-// template as the near-matched 0x476210 (99.6% there, 32-byte element), taken
-// out of line by taking the member's address in that file's translation unit.
-// The empty allocator member is one byte, so the three pointers are at +4, +8
-// and +0xc, which is the layout the original reads. Keep the allocator at
-// offset zero, use its allocate/deallocate, and preserve the capacity while the
-// allocator clamps its own signed allocation count. The destination-first
-// _Ucopy(_P, _F, _L) improves the register family.
-//
-// What is still different, and the two experiments that bracket it:
-// 1. The reallocating branch's tail copy is the source-first
-// _Ucopy(_P, _Last, _Q + _M) of the real <vector>, not the destination-first
-// form above. That spelling builds the 12 bytes this build is missing, the
-// `(_P + dest) - _Q - (_M * 14)` tree at 0x46eceb (sub, add, sub, and the
-// mov eax, esi after it), which the 0x476210 notes already record for the
-// 32-byte case. But spelling it that way here scores worse, not better: with
-// 0x476210's std::vector clone class and its whole insert body verbatim the
-// build is 939 bytes at 63.3%, and with the destination-first head and middle
-// copies plus a source-first tail it is 937 bytes at 73.0%, against 81.2% for
-// this file. Both are the right SIZE (937 or 939 against 936) and the wrong
-// registers, so the tail copy spelling is not what decides the score here.
-// 2. The register family hangs off one decision: the original puts `this` in
-// ebp, spills it to the frame slot [esp+0x10] at 0x46ebbe and then reuses ebp
-// as the 14-byte copy's data temp, which frees ebx for _M. This build puts
-// `this` in ebx, so ebp holds _M for the whole function, the head copy's data
-// temp lands in edi instead of ebp, the head copy's advancing destination lands
-// in esi instead of edx and the tail copy's loop bound lands in edx instead of
-// edi. Every other difference in the first hunk follows from that swap.
-// 3. The two live values are also swapped between homes: the original spills
-// the new capacity _N into the dead arg2 slot at 0x46ec41 and keeps the new
-// buffer in the frame slot [esp+0x18] (0x46ec5c), while this build does the
-// reverse, which is the only difference in that hunk apart from the registers.
-// 4. The original also spills the deallocate argument into the dead arg3 slot
-// at 0x46ed25 (`push eax; mov [esp+0x28], eax; call`), six bytes this build
-// does not have, and that store is never read back.
+// Decompiled by longcat-2.5-preview-free, finished by space-bunny-free and deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
+// PARTIAL 81.4%, 928 of 936 bytes (Sonnet 5.5 retry, #3079; was 81.2% / 924 bytes).
+// std::vector<Packet_0046cef0>::insert(iterator, size_type, const T&) of MSVC 5's
+// <vector> (the same template as 0x476210 and 0x46f7a0), emitted out of line by
+// taking the member's address. Like those files this uses a hand-written clone
+// of the vector class template. 14-byte packed element, so the empty allocator
+// keeps the three pointers at +4, +8 and +0xc.
+// What changed against the previous best: the file used a hand-made class with
+// `::operator delete(first)`; the real allocator.deallocate(_First, _End - _First)
+// is what produces the original's dead `mov [esp+0x28], eax` before the delete
+// call (the inlined deallocate parameter spilled into the dead _X slot), so the
+// clone with the real header body is the right base. Of the three-argument
+// _Ucopy spellings, the real (_F, _L, _P) order is kept for the two in-place
+// branches. The first copy and the tail copy are written destination-first
+// (_Ucopy_dst(_P, _F, _L)); scored with 216 helper-order combinations, any
+// other order for the tail copy drops to 58 to 79 percent because it flips
+// which of `this` and _M gets ebp/ebx, and the order of the first copy does
+// not change the score.
+// Still differs (all register allocation, same size class as the other
+// instantiations of this template):
+// 1. The tail copy. The original builds the source start as an affine sum,
+//    `(_P - _Q) + (_Q + _M*14) - _M*14` (sub, add, sub, mov eax, esi: 12 bytes
+//    this build lacks) which is what the real source-first _Ucopy(_P, _Last,
+//    _Q + _M) produces in the clone, but spelling the tail that way also puts
+//    `this` in ebx and _M in ebp (939 bytes, 72.9% at best), so dst-first wins.
+// 2. In the first loop the original keeps the new buffer's walker in edx and
+//    _P in esi, with ebp as the data temp (so `this` is reloaded from
+//    [esp+0x10] afterwards); this build puts the walker in ecx.
+// 3. The original keeps _N in the dead _M argument slot and _S in the frame
+//    slot at [esp+0x18]; this build does the reverse.
+// Tried without effect: `if (0 < _N) do {...} while (--_N)` for _Ufill (flips
+// _M into ebx in the source-first spelling too, 71.4%, but loses the rest),
+// `if (_M)` around the fill, the real <vector> header (940 bytes, 62.7%),
+// explicit and member-pointer instantiation, ~1500 random combinations of
+// expression-order, size() spelling and helper-order tweaks.
+#include <algorithm>
 #include <memory>
 #include <xutility>
 
 #pragma pack(push, 1)
 struct Packet_0046cef0 { // 0xe bytes
-    unsigned char type;  // +0x0
-    unsigned char arg;   // +0x1
-    unsigned int id;     // +0x2
-    int field_6;         // +0x6
-    int field_a;         // +0xa
+    unsigned char type;
+    unsigned char arg;
+    unsigned int id;
+    int field_6;
+    int field_a;
 };
 #pragma pack(pop)
 
-class Class_0046eba0 {
-  public:
-    typedef std::allocator<Packet_0046cef0> allocator_type;
-    typedef unsigned int size_type;
+namespace std {
 
-    allocator_type alloc;
-    Packet_0046cef0* first; // +0x4
-    Packet_0046cef0* last;  // +0x8
-    Packet_0046cef0* end;   // +0xc
+template<class _Ty, class _A = allocator<_Ty> >
+class vector {
+public:
+    typedef vector<_Ty, _A> _Myt;
+    typedef _A allocator_type;
+    typedef _A::size_type size_type;
+    typedef _A::difference_type difference_type;
+    typedef _A::pointer iterator;
+    typedef _A::const_pointer const_iterator;
+    typedef _A::reference reference;
+    typedef _A::const_reference const_reference;
+    typedef _Ty value_type;
+    vector() : allocator(), _First(0), _Last(0), _End(0) {}
+    size_type size() const
+        {return (_First == 0 ? 0 : _Last - _First); }
+    iterator begin() { return (_First); }
+    iterator end() { return (_Last); }
+    void insert(iterator _P, size_type _M, const _Ty& _X)
+        {if (_End - _Last < _M)
+            {size_type _N = size() + (_M < size() ? size() : _M);
+            iterator _S = allocator.allocate(_N, (void *)0);
+            iterator _Q = _Ucopy_dst(_S, _First, _P);
+            _Ufill(_Q, _M, _X);
+            _Ucopy_dst(_Q + _M, _P, _Last);
+            _Destroy(_First, _Last);
+            allocator.deallocate(_First, _End - _First);
+            _End = _S + _N;
+            _Last = _S + size() + _M;
+            _First = _S; }
+        else if (_Last - _P < _M)
+            {_Ucopy(_P, _Last, _P + _M);
+            _Ufill(_Last, _M - (_Last - _P), _X);
+            fill(_P, _Last, _X);
+            _Last += _M; }
+        else if (0 < _M)
+            {_Ucopy(_Last - _M, _Last, _Last);
+            copy_backward(_P, _Last - _M, _Last);
+            fill(_P, _P + _M, _X);
+            _Last += _M; }}
+protected:
+    void _Destroy(iterator _F, iterator _L)
+        {for (; _F != _L; ++_F)
+            allocator.destroy(_F); }
+    iterator _Ucopy(const_iterator _F, const_iterator _L, iterator _P)
+        {for (; _F != _L; ++_P, ++_F)
+            allocator.construct(_P, *_F);
+        return (_P); }
+    iterator _Ucopy_dst(iterator _P, const_iterator _F, const_iterator _L)
+        {for (; _F != _L; ++_P, ++_F)
+            allocator.construct(_P, *_F);
+        return (_P); }
+    void _Ufill(iterator _F, size_type _N, const _Ty& _X)
+        {for (; 0 < _N; --_N, ++_F)
+            allocator.construct(_F, _X); }
+    _A allocator;
+    iterator _First, _Last, _End;
+    };
 
-    void FUN_0046eba0(Packet_0046cef0* _P, unsigned int _M, const Packet_0046cef0& _X);
+} // namespace std
 
-    size_type size() { return (first == 0 ? 0 : last - first); }
-    Packet_0046cef0* _Ucopy(Packet_0046cef0* _P, Packet_0046cef0* _F, Packet_0046cef0* _L) {
-        for (; _F != _L; ++_F, ++_P)
-            alloc.construct((Packet_0046cef0*)_P, *(Packet_0046cef0*)_F);
-        return _P;
-    }
-    void _Ufill(Packet_0046cef0* _F, size_type _N, const Packet_0046cef0& _X) {
-        for (; 0 < _N; --_N, ++_F)
-            alloc.construct((Packet_0046cef0*)_F, _X);
-    }
-    static void fill(Packet_0046cef0* _F, Packet_0046cef0* _L, const Packet_0046cef0& _X) {
-        for (; _F != _L; ++_F)
-            *(Packet_0046cef0*)_F = _X;
-    }
-    static void copy_backward(Packet_0046cef0* _F, Packet_0046cef0* _L, Packet_0046cef0* _P) {
-        // XUTILITY's copy_backward is `while (_F != _L) *--_X = *--_L;`: both
-        // decrements at the top of the loop, the rotated test between them
-        // and the copy.
-        while (_F != _L) {
-            --_L;
-            --_P;
-            *(Packet_0046cef0*)_P = *(Packet_0046cef0*)_L;
-        }
-    }
-};
 
-// FUNCTION: 0x46eba0
-void Class_0046eba0::FUN_0046eba0(Packet_0046cef0* _P, unsigned int _M, const Packet_0046cef0& _X) {
-    if (end - last < _M) {
-        size_type _N = size() + (_M < size() ? size() : _M);
-        Packet_0046cef0* _S = alloc.allocate(_N, (void*)0);
-        Packet_0046cef0* _Q = _Ucopy(_S, first, _P);
-        _Ufill(_Q, _M, _X);
-        _Ucopy(_Q + _M, _P, last);
-        ::operator delete(first);
-        end = _S + _N;
-        last = _S + (size() + _M);
-        first = _S;
-    } else if (last - _P < _M) {
-        _Ucopy(_P + _M, _P, last);
-        _Ufill(last, _M - (last - _P), _X);
-        fill(_P, last, _X);
-        last += _M;
-    } else if (0 < _M) {
-        _Ucopy(last, last - _M, last);
-        copy_backward(_P, last - _M, last);
-        fill(_P, _P + _M, _X);
-        last += _M;
-    }
+typedef std::vector<Packet_0046cef0> Vec_0046eba0;
+typedef void (Vec_0046eba0::*InsertFn_0046eba0)(
+    Vec_0046eba0::iterator, Vec_0046eba0::size_type,
+    const Packet_0046cef0&);
+
+void __cdecl FUN_0046ebb0(Vec_0046eba0* v, Packet_0046cef0* p,
+                  Vec_0046eba0::size_type n, const Packet_0046cef0& x)
+{
+    InsertFn_0046eba0 f = &Vec_0046eba0::insert;
+    (v->*f)(p, n, x);
 }
+
+// FUNCTION: 0x46eba0 ?insert@?$vector@UPacket_0046cef0@@V?$allocator@UPacket_0046cef0@@@std@@@std@@QAEXPAUPacket_0046cef0@@IABU3@@Z

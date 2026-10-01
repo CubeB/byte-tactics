@@ -1,5 +1,22 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
 //
+// PASS 11 (claude-sonnet-5-5, 2026-10-01): 52.2 unchanged. Measured, none above 52.2:
+//  * tools/permute.py 15 min (--jobs 4): 495 candidates, no gain.
+//  * `Vec3f* pp = &order->pos` used for the py read and the final copy, with all 120 orders of the
+//    five box stores: best 51.0 (the stores in source order). It reproduces `mov edx,[ecx+4]`
+//    but spills pp at local+0x0c instead of local+0x10, and still enregisters order in ecx.
+//  * sy/sx read first thing, after the type test, after def, or before the box: 44 to 49.
+//  * az/bz written as z-sy-half, z-(half+sy), z+0x20-half-sy, ...: byte-identical (the
+//    compiler canonicalises the sum); the original's (z-half)-sy order is a scheduler outcome.
+//  * a real extra use of `index` late in the body is the only thing that ever gave
+//    `mov edx,[esp+0xc]` at entry (index>>20 folded into the first call's x argument), but the
+//    index then lives in cx and the score is 41.
+//  * making `order` address-exposed does not make MSVC reload it from its slot.
+//  Reading of the original: `order` is only register-resident up to the `lea ecx,[edx+0x22]`; the
+//  later uses (timestamp, owner) reload [esp+0x4c], i.e. the register file is full (ebp, edi, esi,
+//  ebx, ecx=view, eax, edx all live at 0x438cb7) and order is spilled to its home slot there. Ours
+//  keeps order in ecx because its order of the sx/sy subtractions frees registers earlier.
+//
 // PASS 10 (mimo-v2.6-pro, 2026-10-01): 52.2 percent, unchanged. NEW FACT, and
 // the biggest single find of this pass: the flags test IS a bitfield extract.
 // `if (order->owner->flags.bits.b4)` with a 1-bit field at bit 4 of a dword

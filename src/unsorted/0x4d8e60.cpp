@@ -1,4 +1,22 @@
-// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Sonnet 5.5 and deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash second pass (issue #3627, timeboxed): re-verified the file
+// is the fleet best at 78.3% (2651 of 2644 bytes) via tools/check.py, matching
+// the pass note below, so no regression was introduced. No further experiment
+// was run inside the 07:59Z timebox; the residual diff is unchanged (per-call
+// arg scheduling around each `lea log+strlen`, scalar slot permutation
+// reason/base/file/written vs the file's base/file/reason/written, and the
+// CreateFileA handle kept in esi instead of eax plus a stack reload).
+// deepseek-v4.1-flash pass (issue #3627): BEST 78.3% (2651 of 2644 bytes), up
+// from 78.1%. Win: splitting the r6 room computation into two statements
+// (`int room = 0x7358 - (int)strlen(log); room = room - 0x3e8;`) stops MSVC
+// folding the two constants (was `mov eax,0x6f70; sub eax,ecx`); the original
+// `mov eax,0x7358; sub eax,ecx; sub eax,0x3e8` now matches. Cost: +5 bytes
+// (the extra statement forces the 0x7358 load into edx at the Dr0 site and a
+// push of 0x7358 elsewhere). Everything below is the earlier passes' state;
+// still differs: per-call arg scheduling (lea log+strlen mid-push-sequence),
+// scalar slot permutation (ours base,file,reason,written vs original
+// reason,base,file,written) and CreateFileA kept in esi vs the original's eax
+// plus stack reload.
 // deepseek-v4.1-flash pass (issue #3501): BEST 78.1% (2646 of 2644 bytes). Two
 // wins this pass: (1) the params-loop sep char as one select
 // `(i == n-1 || i % 3 == 3) ? '\n' : '\t'` (nested ternary scored 77.3%, an
@@ -206,7 +224,8 @@ int __cdecl FUN_004d8e60(EXCEPTION_POINTERS* ep, char* handlerName)
     // REGION r5 end
 
     // REGION r6 begin
-    int room = 0x7358 - (int)strlen(log) - 0x3e8;
+    int room = 0x7358 - (int)strlen(log);
+    room = room - 0x3e8;
     if (0 < room) {
         lstrcpynA(log + strlen(log), (char*)&obj, room);
         { size_t L = strlen(log); sprintf(log + L, "\n"); }

@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash 10 min timebox: scored the documented next idea, writing
+// the second Start test as `if (!FUN_0049fd60(menu,"Start")) goto PrevMenu;`
+// (the original's `test eax,eax; je 0x477cc7` with BigButton as the true-path
+// fallthrough). It regresses 72.9% to 62.3% (1920 bytes): MSVC 5 then sinks
+// the whole BigButton body behind a real branch anyway. Reverted to the
+// two-jump form, which stays the best shape. Session ended with the file
+// unchanged at 72.9%.
 // Partial, 72.9% (1914 vs 1935 bytes). Campaign screen click handler.
 // Remaining diff is BLOCK PLACEMENT, not shape. Verified against our own
 // object file (build/obj/unsorted/0x477ab0.obj): MSVC 5 emits

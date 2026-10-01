@@ -64,6 +64,13 @@
 // see the kill); vB.cpp swaps the else arm to `colourState = 1; lineStart++;`;
 // vC.cpp is both; vD.cpp puts `colourState = 0;` after the ternary. Score them
 // with check.py --sym first.
+// deepseek-v4.1-flash 10 min timebox: no variant scored. Confirmed from the
+// original's full disassembly that colourState is ONE slot, [esp+0x20], with
+// exactly five uses: store 1 at 0x476f15, load at 0x477244, store 0 at
+// 0x477257, store the DAT byte (zero-extended, mov cl + mov [esp+0x20],ecx)
+// at 0x477295, store 1 at 0x477303. The missing 0 store is therefore a plain
+// DSE difference, not a second variable: the kill store is unconditional on
+// every path in our source, so MSVC 5 removes it. Nothing cheap left.
 // 80.4% (was 80.0%). The `&&`-free else arm needs the re-test of the byte, but
 //  * the one written on the local `c` is folded away by MSVC 5 (it still knows
 //    al == '&' on that edge), so it is `else if (*lineStart == '&')`: the load is

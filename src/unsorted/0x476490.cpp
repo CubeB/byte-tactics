@@ -1,5 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash retry (10 min): retained 78.9 percent, 646/632 bytes. No
+// deepseek-v4.1-flash retry (10 min): retained 78.9 percent, 646/632 bytes.
+// tools/headers.py over all 128 header sets is flat at 78.9, and the 0..400
+// extern-int dummy-declaration sweep (step 8) never beats 78.9 either, so the
+// residual is compiler-state, not headers or symbol count. No
+
 // gain from an empty element destructor (neutral at 646), stock MSVC6-style
 // _S + (_P - _First) fill/suffix destinations (40.0 percent, 678 bytes), the
 // 0x476210 file text with the element type swapped and _Destroy moved after

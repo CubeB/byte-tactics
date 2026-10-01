@@ -1,4 +1,14 @@
-// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by GPT-5.6-Terra, finished by space-bunny-free and deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by mimo-v2.6-pro. Names are provisional.
+//
+// STATUS (mimo-v2.6-pro): MATCH. The current source compiles to 577 bytes,
+// byte identical to the original. The residual described at length below
+// (the strcmpi `add` destination) is RESOLVED by the local declaration order:
+// `img` is declared AFTER `raw` and `h` instead of first, which gives the
+// locals the original's stack slots and leaves the add as `add edx,ecx`
+// (base is the destination), matching the original at 0x18e. Everything after
+// this note is the historical record of the earlier 99.0% attempts and is kept
+// only as documentation; it no longer describes the current output.
+//
 // Claude Opus 5.5 (found with tools/permute.py): MATCH. `img` is declared after `raw`
 // and `h` instead of first, which gives the locals the original's stack slots
 // (99.0% with `img` first).

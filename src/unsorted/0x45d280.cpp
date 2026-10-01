@@ -1,4 +1,29 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 5 (diagnosis, still 91.5%): the whole UNDO flip
+// difference reduces to WHICH REGISTER f (the word) lands in. Target is
+// `mov ax,[f] / mov dl,[DAT] / mov cl,al / xor cl,dl / and ecx,1 / xor ecx,eax
+// / mov [f],cx`: f in EAX so `(unsigned char)f` is the free `mov cl,al`.
+// Ours lands f in EBP, and EBP has NO ADDRESSABLE LOW BYTE in 32-bit x86, so
+// MSVC must widen `mov eax,ebp / and eax,0xff` and then the DAT operand is
+// loaded 32-bit (`xor ecx,ecx / mov cl,[DAT]`) and the xor becomes 32-bit,
+// giving 9 instructions/36 B instead of 7/28 B. So the +8-byte size and the
+// whole register cascade are one cause: f must not be coloured into EBP.
+// Every spelling that keeps `int b` (the baseline form, and n3/n4/n6/p3/p4/
+// p7/r1-r4) leaves f in EBP and scores exactly 91.5. Removing `int b` frees
+// EBP but MSVC then either folds the flip into `and edx,0xfffe` (fused forms,
+// 90.5/1336 B) or drops `game` out of EDI (v1/m1/m2/m5, 86.7-90.5). m2/m3
+// reach the exact 1333-byte size with f in EDX (addressable) and a byte DAT
+// load, but distribute `(f ^ DAT) & 1` over the known-byte DAT and spend the
+// saved bytes on an extra `mov edi,edx / and edi,1`; `game` also leaves EDI.
+// The knot: exactly one more live node keeps `game` in EDI (baseline) but
+// forces f to EBP; one fewer node frees EBP but lets the known-byte DAT fold
+// or floats `game` to EAX. Target needs both EDI for game AND a byte-
+// addressable register for f, with DAT still a byte (its if-test uses
+// `mov cl,[DAT]`), and no spelling found so far produces all three.
+// Everything else in the function (RESTORE/apply reload registers edx/eax vs
+// ecx/edx, push-before-fild, tail `lea eax,[edi*8]` vs `mov eax,edi/shl
+// eax,3`, TRACKMODE al/cl swap) is the same allocation domino and moves with
+// this one cause; do not tune those blocks separately.
 // deepseek-v4.1-flash retry 4: re-scored the byte-temp family,
 // `unsigned char c = f; c ^= DAT; game->flags.word = f ^ (c & 1);` (and the
 // split `unsigned char c = f; int b = c ^ DAT;`). Both reach the target

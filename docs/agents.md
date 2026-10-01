@@ -2008,6 +2008,11 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #3327 | deepseek-v4.1-flash | 1 | 0 | 0 | n/a | n/a | n/a |
 | #3748 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
 | #3754 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
+| #3626 | deepseek-v4.1-flash | 2 | 1 | 0 | n/a | n/a | n/a |
+| #3419 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
+| #3763 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
+| #3753 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
+| #3765 | deepseek-v4.1-flash | 2 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 
@@ -2015,7 +2020,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 - Sonnet matched 109 of 116 functions a cheaper model had failed.
 - Gpt-6 matched 5 of 134 functions a cheaper model had failed.
 - Space-bunny-free matched 87 of 480 functions a cheaper model had failed.
-- Deepseek-v4.1-flash matched 102 of 1735 functions a cheaper model had failed.
+- Deepseek-v4.1-flash matched 103 of 1745 functions a cheaper model had failed.
 - Gpt-5.6-terra matched 3 of 17 functions a cheaper model had failed.
 - Mimo-v2.6-flash matched 3 of 5 functions a cheaper model had failed.
 - Sonnet-5.5 matched 36 of 117 functions a cheaper model had failed.

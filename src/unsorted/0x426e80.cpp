@@ -1,6 +1,11 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
+// Retry by GPT-6.1-sol: best verified score 45.0% (6258/6310), 9 scored checks, not MATCH.
+// Moving repeated identical uVar7 loads to the shared label (or passing the field directly there)
+// improved 43.9% to 45.0%. Remaining major mismatch: compiler saves ebp and shifts the switch
+// targets; FE flag test folds mov/shr/test into test [esi+0xf0],2, and the broad state dispatch
+// still differs. No source variant tried removed the extra push ebp.
 // Started by deepseek-v4.1-flash, continued by GPT-6 and GPT-6.1-sol (verified 39.4%); the deepseek-v4.1 tail-merge pass reached 43.8%.
-// Partial, best verified score 43.9% (6306/6310 bytes, ours 4 bytes short), not MATCH.
+// Partial inherited best was 43.9%; retry best is now 45.0% (6258/6310 bytes), not MATCH.
 // deepseek-v4.1 pass 2 (this file): +32 bytes from a real source fix and +20 more from a
 // data fix, score stays 43.9 because the layout shift is still the `push ebp` in our prologue.
 //  - Fixed: g_game+0x2ba2 is NOT zeroed. The original copies 16 bytes from DAT_004fdaf0
@@ -20,7 +25,7 @@
 //    and 43.2%, so at most some of the six are FUN_004257e0 and the rest FUN_004256d0).
 // Still differs (first divergence onward):
 //  - The prologue: ours saves ebp (push ebp / pop ebp at all ~40 exits) so every later byte
-//    is shifted by one and our je target is 0x426eca vs the original 0x426ec9. The original
+//    is shifted by one and our je target is 0x426eca vs the original 0x426ec9. Retry did not fix it. The original
 //    never uses ebp; MSVC lifted a constant 1 into ebx before the `jmp [ecx*4+table]`
 //    dispatch (mov $1,%ebx), which is where our extra register pressure comes from. The
 //    original instead materialises a zero in ebx (`xor ebx,ebx`) at the head of every
@@ -120,7 +125,6 @@ struct Class_00463c60 { void FUN_00463c60(int value); };
 void FUN_00426e80(void)
 {
     char buf[256];
-    int uVar7;
 
     char c = g_game[0x2bc0];
     if (c != g_game[0x2bbf]) {
@@ -202,8 +206,7 @@ void FUN_00426e80(void)
             FUN_004c22d0(1);
             return;
         case 1:
-            uVar7 = *(int*)(g_game + 0x37e1b);
-            goto LAB_0042809a;
+                        goto LAB_0042809a;
         case 5:
             g_game[0x2a44] |= 8;
             FUN_004256d0(0x421, FRONTEND);
@@ -292,8 +295,7 @@ void FUN_00426e80(void)
             g_game[0x2bc0] = c;
             return;
         case 1:
-            uVar7 = *(int*)(g_game + 0x37e1b);
-            goto LAB_0042809a;
+                        goto LAB_0042809a;
         case 3:
             FUN_004256d0(0x49d, FRONTEND);
             g_game[0x2bbe] = 2;
@@ -348,7 +350,7 @@ void FUN_00426e80(void)
     case 8:
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
-        case 1: uVar7 = *(int*)(g_game + 0x37e1b); goto LAB_0042809a;
+        case 1: goto LAB_0042809a;
         case 3: goto LAB_004275e0;
         case 0xf:
             FUN_00434ab0(1);
@@ -366,14 +368,13 @@ void FUN_00426e80(void)
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0: FUN_0047bbb0(); FUN_004256d0(0x4d9, FRONTEND); g_game[0x2bbf] = 1; g_game[0x2bc0] = 1; return;
-        case 1: uVar7 = *(int*)(g_game + 0x37e1b); goto LAB_0042809a;
+        case 1: goto LAB_0042809a;
         case 2: g_game[0x2a44] |= 4; return;
         case 3: goto LAB_004275e0;
         }
     case 10:
         if (g_game[0x2bbf] == 1) {
-            uVar7 = *(int*)(g_game + 0x37e1b);
-            goto LAB_0042809a;
+                        goto LAB_0042809a;
         }
         if (g_game[0x2bbf] != 3) return;
         FUN_004256d0(0x4b1, FRONTEND);
@@ -386,7 +387,7 @@ void FUN_00426e80(void)
         FUN_004c1ab0();
         switch ((unsigned char)g_game[0x2bbf]) {
         case 0: FUN_00478e80(); FUN_004256d0(0x4f5, FRONTEND); g_game[0x2bbf] = 1; g_game[0x2bc0] = 1; return;
-        case 1: uVar7 = *(int*)(g_game + 0x37e1b); goto LAB_0042809a;
+        case 1: goto LAB_0042809a;
         case 2: g_game[0x2a44] |= 4; return;
         case 3:
             switch ((unsigned char)g_game[0x2bbe]) {
@@ -456,7 +457,7 @@ void FUN_00426e80(void)
                 return;
             }
             goto LAB_0042789a;
-        case 1: uVar7 = *(int*)(g_game + 0x37e1b); goto LAB_0042809a;
+        case 1: goto LAB_0042809a;
         case 2:
             if (memcmp(g_game + 0x39201, DAT_004fcdc8, 16) == 0) {
                 FUN_004256d0(0x547, FRONTEND);
@@ -640,7 +641,7 @@ SHOW_ERROR:
             FUN_004257e0(0, 0x9b, FRONTEND);
             return;
         }
-        case 0x14: uVar7 = *(int*)(g_game + 0x37e1b); goto LAB_0042809a;
+        case 0x14: goto LAB_0042809a;
         }
         return;
     case 0x11:
@@ -748,8 +749,7 @@ SHOW_ERROR:
             g_game[0x2bbf] = c;
             g_game[0x2bc0] = c;
         }
-        uVar7 = *(int*)(g_game + 0x37e1b);
-        goto LAB_0042809a;
+                goto LAB_0042809a;
     default: return;
     }
 
@@ -810,7 +810,7 @@ LAB_00427915:
     g_game[0x2bc0] = c;
     return;
 LAB_0042809a:
-    FUN_004c69a0(uVar7);
+    FUN_004c69a0(*(int*)(g_game + 0x37e1b));
     FUN_004c2470();
     FUN_004c2870();
     FUN_004c63a0();

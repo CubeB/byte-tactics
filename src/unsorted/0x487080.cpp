@@ -73,6 +73,15 @@
 // epilogues.
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);
 
+// deepseek-v4.1-flash (this session): 67.5%. Taking the address of the loop
+// index i (an otherwise dead `(char*)&i == 0` test that MSVC folds into a
+// `lea eax,[esp+0x14]; test eax,eax; je`) makes the allocator stop keeping i
+// in a register, which is the first change that moved the whole downstream
+// register phase toward the original (60.7 -> 67.5, ours 1578 of 1595 bytes).
+// The flag now spells as `mov byte ptr [esp+0x13], 1` and n stays in ebp;
+// the original has n=esi, found=ebp, i at [esp+0x10], so the remaining gap is
+// still the loop allocation plus the player/childB phase and the epilogues.
+
 struct Vec3_00487080 {
     int x, y, z;
 };
@@ -248,6 +257,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     int n = ((Class_004b4800*)file)->FUN_004b4800("Number of Units", 0);
     bool found = 0;
     int i;
+    if ((char*)&i == (char*)0) return 0;
     for (i=0;i<n;i++) {
             if (!((Class_004b4b50*)file)->FUN_004b4b50(i))
                 return 0;

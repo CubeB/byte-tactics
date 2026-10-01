@@ -1,4 +1,4 @@
-// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Sonnet 5.5, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash (pass 7). Names are provisional.
 // Retry (deepseek-v4.1-flash, 10 min): still 64.7%, no MATCH. Tried and rejected
 // (all scored <= current): int credited declared at top / before unit / at point
 // of use (all 63.7%, and cmd lands in ebp either way), inlining the parent
@@ -106,6 +106,45 @@
 // [esp+0x10]/[esp+0x80] spill assignment.
 extern void* g_game;
 extern char DAT_00508be8[];
+// Pass 7 (deepseek-v4.1-flash, retry, short budget): 64.7%, still no MATCH.
+// The prologue diff (build/scratch/0x4866d0/diff.txt) shows the whole cause of
+// the allocation gap in three lines:
+//   original: sub esp,0x68 / mov edx,[g_game] / push ebx / mov ebx,[esp+0x70]
+//             / push ebp / push esi / mov ax,[ebx+1] / push edi
+//   ours:     sub esp,0x68 / mov edx,[g_game] / push ebx / push ebp / push esi
+//             / push edi / mov edi,[esp+0x7c] / mov ax,[edi+1]
+// i.e. the original's cmd was allocated before ebp/esi/edi and is spilled-free in
+// ebx, while ours loads cmd into edi after all four pushes. MSVC emits `push reg`
+// at the register's first use, so this is the assignment priority itself, not a
+// downstream effect: in the original, cmd outranks everything except unit.
+// Also confirmed from the diff: the original uses ebp as a plain byte-temp
+// scratch (`mov ebp,eax / and ebp,0xff / cmp ebp,edx` for the rank compare and
+// `mov ebp,0xa` for the loop counter), exactly like ours does, so ebp is not a
+// reserved frame pointer on either side and the two sides differ only in which
+// of the four long-lived values takes which of ebx/ebp/esi/edi.
+// The original's leaderboard really does compare rank/best as DWORDs, not bytes:
+//   mov al,[ebx+0x148] / test al,al / jbe / and eax,0xff / mov [esp+0x10],eax
+//   xor ecx,ecx / mov cl,[eax+0x121] / cmp ecx,edx / jge / mov edx,ecx
+//   mov al,[ecx] / mov ebp,eax / and ebp,0xff / cmp ebp,edx / jl
+// while ours emits `cmp cl,dl`, i.e. our `unsigned char best` keeps the byte
+// form. Scored the matching dword spelling this pass:
+//   unsigned int rank + unsigned int best   -> 57.9% (1944 bytes, size right,
+//   allocation worse), so the byte locals stay until the top-of-function
+//   allocation is fixed; the dword form is the right *shape* for the leaderboard
+//   but it re-measures the leaderboard against an already wrong register set.
+// Re-checked `int credited` this pass (63.7%, 1928 bytes) to see what owns ebx
+// there: it is not a long-lived value at all, the compiler uses ebx as the
+// g_game scratch in the post-switch half (`mov ebx,[g_game]` at the +0x160,
+// +0x170, +0x187, +0x259, +0x268, +0x306 hunk offsets) whereas the original
+// uses ebx for cmd from 0x4866da on and moves the g_game scratch to edx there.
+// So in the int-credited form ebx is genuinely free at the top and MSVC still
+// picks ebp (not ebx) for cmd: the preference for the second dword candidate is
+// ebp > ebx in this build, and the original must therefore not have had
+// `credited` as a compiler-visible candidate at all in that range. What the
+// original does have at 0x486a93 is a plain `mov edi,1` into edi, so its
+// credited is a dword whose live range starts only after the switch dispatch;
+// a bool/int local declared at the top of the function keeps a full-range cell
+// and either takes bl (bool, 64.7%) or pushes cmd to ebp (int, 63.7%).
 // Pass 6 (deepseek-v4.1-flash, retry): 64.7%, still no MATCH. New disassembly
 // findings about ebx in the original, all downstream of the same allocation:
 //   - 0x486a03 (case 3) ebx is reused as the g_game scratch, so cmd's live range

@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 12 (deepseek-v4.1-flash): the do-while respelling of the units loop
+// (`u = 1; if (1 < g_game->field_1438f) { do { ... u++; } while ((int)u < g_game->field_1438f); }`)
+// plus `else break;` in the GUI suffix loop lands exactly on the original tail (no duplicated
+// test) at 2171 bytes / 94.4%: the guard/idiv count-in-register CSE
+// (`mov ecx,[edi+0x1438f]; cmp ecx,esi; idiv ecx`) is unchanged, so the allocator pick is not
+// structure-spelled. Restored the 96.8% for-loop version (which keeps the wrong tail but the
+// right 2173-byte length). Both fixes are complementary: count into memory (+2) + else break (-2).
 // Pass 10 (deepseek-v4.1-flash): tried the GUI suffix loop again; back to 96.8%. Appending
 // `else break;` to the if inside the do-while (keeping `} while (more);`) DOES produce the
 // original tail exactly (`test eax,eax; je exit; inc ebx; mov esi,1; jmp head`, no duplicated

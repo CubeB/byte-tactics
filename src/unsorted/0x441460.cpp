@@ -71,6 +71,12 @@
 //   * `SETBUF->flags & 0x8000` / `& 0x10` for the version-test selects: byte-identical
 //     output at 83.7%, so the original's `shr edx,0xf; test dl,1` is not a bit-test
 //     spelling lever.
+//   * moving `p[0] = (char*)g_game->desc + 0x18;` inside the `if (count > 0)`
+//     block (the original's `mov ecx,[eax+0x2aa7] / lea esi,[ecx+0x18]` pair
+//     sits after its `jle`): 80.7%, 1806 bytes, so the pointer setup stays
+//     before the test.
+//   * putting the `*SETBUF = ...settings` copy before `int f0 = rdw[0];`
+//     (rather than after it): score-flat at 83.7%, 1811 bytes vs 1807.
 // deepseek-v4.1-flash pass (best still 83.7%): byte-neutral variants tried: `i[g_game->data]`
 // subscript swap for the zeroing loop, and a block-scoped `int n = FUN_004c9e50(...)` with
 // `count = n` after the negative check. Regressions: `f0 = rdw[0] & 0xffff` with bare f0 at

@@ -1,7 +1,7 @@
 // Decompiled by deepseek-v4.1. Names are provisional.
 // Started by space-bunny-free, improved by GPT-6.1-sol, GPT-6,
 // finished by deepseek-v4.1-flash.
-// PARTIAL 54.6%. Fixed the big gaf/colours branch order (original tests
+// PARTIAL 57.1%. Fixed the big gaf/colours branch order (original tests
 // `me->gaf != 0` first and falls into the gaf path; the previous version had
 // the colours path first, which shifted the whole 0x4a6071..0x4a6248 region).
 // Still differs:
@@ -17,6 +17,16 @@
 //    tail, so the `push ecx` before several `jmp 0x4a616c` sites is missing.
 //  - the `text`/`pass` locals land at 0x4c/0x50 in the original, 0x48/... in
 //    ours (same frame-size cause).
+// deepseek-v4.1-flash second pass (57.1%): flipped both `if (found == 0) small
+// else big` shapes to `if (found != 0) big else small`, which makes MSVC5 fall
+// through into the big block and forward-jump to the small draw, exactly like
+// the original (strstr path je 0x4a672a, strchr path je 0x4a6960). Still
+// differs: the frame (see above), and the register join of the inlined Measure
+// (original joins in eax with me kept in edi across the calls; ours joins in
+// edi with me spilled). Original slot map at call-time esp: keys 0x10,
+// surface 0x14, t 0x18, me 0x1c, measured/acc 0x20, rect 0x24..0x33, x 0x34,
+// found 0x38, width 0x3c, border 0x40, flagy 0x44, textw 0x48, text 0x4c,
+// pass 0x50, saved 0x54, four char spill slots 0x58/0x5c/0x60/0x64, buf 0x68.
 //  - several later blocks (the field_138 gloss / strchr path) differ in
 //    register allocation only.
 // Tried and rejected (deepseek-v4.1): the frame dword cannot be steered from
@@ -319,9 +329,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                 key1[1] = 0;
                 strcpy(buf, text);
                 found = strstr(buf, key1);
-                if (found == 0) {
-                    FUN_004a50e0(surface, text, x, y, width, 0);
-                } else {
+                if (found != 0) {
                     FUN_004c1440();
                     strcpy(buf, text);
                     *found = 0;
@@ -349,6 +357,8 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                     else
                         FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
                     FUN_004a50e0(surface, found + 1, x, y, width, 0);
+                } else {
+                    FUN_004a50e0(surface, text, x, y, width, 0);
                 }
             }
         } else if (me->flags & 0x20) {
@@ -357,9 +367,7 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             found = 0;
             if (me->field_13a != 0)
                 found = strchr(text, (signed char)me->field_13a);
-            if (found == 0) {
-                FUN_004a50e0(surface, text, x, measured, rect.right - rect.left + 1, 0);
-            } else {
+            if (found != 0) {
                 width = rect.right - rect.left + 1;
                 key2[0] = me->field_13a;
                 key2[1] = 0;
@@ -372,6 +380,8 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
                 x += Measure_004a5f40(key2);
                 FUN_004c13a0(me->colours[(int)menu + 0x8b2], FUN_004c13f0());
                 FUN_004a50e0(surface, found + 1, x, measured, width, 0);
+            } else {
+                FUN_004a50e0(surface, text, x, measured, rect.right - rect.left + 1, 0);
             }
         }
     } while (pass--);

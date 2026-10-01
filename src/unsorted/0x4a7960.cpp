@@ -1,46 +1,42 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // Earlier low-scoring versions by space-bunny-free, GPT-6.1-sol and GPT-6 (47.2%).
-// deepseek-v4.1 facts that still hold and are relied on here:
-//   * MSVC5 sizes this frame as six live scalar slots plus 200 ints: sub esp,0x338,
-//     array at [esp+0x28]. The zero loop clears only the first 50 ints (rep stosd 0x32).
-//   * the scan loop walks a pointer based at entry[1].x1 (entry+0x172): type via
-//     [b-0x17], field_1b via [b+4], field_13c via [b+0x125], field_157 via [b+0x140],
-//     x0/y0 as [b-4]/[b-2] and x1/y1 as [b]/[b+2].
-// Current status: PARTIAL 71.0% (deepseek-v4.1 left 70.6; the only gain is
-// defining the real preceding function 0x4a7830 above this one, per the guide's
-// compiler-state technique, worth +0.4 and 4 bytes off).
+// Current status: PARTIAL 72.2% (best so far; the 70.6/71.0 era is over).
+// This retry (deepseek-v4.1-flash) rewrote the used[] search loop as a plain
+// while over an index j (v = used[j+1]; j++) instead of a walking q pointer,
+// and flipped the store to `if (idx != -1) *out = used[idx]; else *out = *p;`.
+// Together that fixed the [ecx+4] read, the loop-tail branch polarity and the
+// store-tail branch polarity, worth +1.2 and it keeps every later jump offset
+// in step with the original (ours is 1400 bytes against the original 1404).
 // Still differs (why this is not a match):
-//   * the biggest single missed optimisation is in the first switch(dir): the
-//     original shares one tail for the two -0x17d7840 arms (case 0 falls into the
-//     shared start/bound block, case 2 falls through to it) and one for the two
-//     +0x17d7840 arms, while ours emits the `lea ebp,[eax+ecx*8] / store start /
-//     lea bound / store bound` tail in all four arms. All 24 source orderings of
-//     the four cases were scored; 0,2,1,3 and 1,2,0,3 tie at 70.6 (best), every
-//     other order is 63 to 67.4, so the case order is already optimal and the
-//     merge is not reachable by reordering. A single shared `bound` after the
-//     switch (start grouped 0/1 and 2/3) collapses the function to 1288 bytes /
-//     53.3, so the original really has four separate arms.
-//   * prologue order: the original reads menu->layer, index and entries, tests
-//     index == -1, THEN runs the rep stosd zero loop, THEN loads cnt. Running the
-//     zero loop first (as here) is what keeps the rest at 70.6%; moving it after
-//     the scalar loads (vA, the original order) makes MSVC hoist the cnt load above
-//     rep stosd and use edi instead of ebp for the scan walk, dropping to 69.6%.
-//   * scalar slot rotation: ours has entries@0x18 (correct), cnt@0x20, layer@0x24;
-//     the original has entries@0x18, layer@0x20, cnt@0x24, i.e. layer and cnt are
-//     swapped. Declaring cnt early (vE) scores the same 70.6 and does not move them.
-//   * loop1 inner search: ours strength-reduces q to used+2 and reads [ecx]; the
-//     original keeps q=used+1 and reads [ecx+4] (one extra instruction).
-//   * ours is 1436 bytes against the original 1404, mostly from the points above.
-// (deepseek-v4.1-flash retry, all scored as free scratch variants against the
-// 70.6 base, none beat it: prologue scalar-loads-before-zero-loop 69.6; memset
-// instead of the zero loop 69.6/70.6 (identical bytes, so no barrier effect);
-// short count then +1 68.0; all 24 first-switch case orders (best 70.6); the
-// same `bound` computed once after the switch 53.3; DoSelect taking only
-// (menu, sel) and reloading entries 70.6; the colour read via a colours-pointer
-// field 70.6; the used-builder loop wrapped in a static inline helper 70.6.
-// The last four changed nothing at all, not even the byte count: codegen here
-// is pinned by the two loops, not by those spellings. Only adding the real
-// preceding function moved the number.)
+//   * the rep stosd zero loop sits at the very top of the function, before the
+//     menu/layer loads, while the original loads menu->layer (esi), index (ebx)
+//     and entries (edx), tests index == -1, and only then runs the stosd. Any
+//     spelling that puts the scalar loads first makes MSVC hoist the cnt load
+//     (movsx eax,[edx+0xb6]) above the stosd, or the stosd gets scheduled up
+//     anyway (v3, the whole body wrapped in `if (index != -1) {...}`, still has
+//     the stosd first and scores the same 72.2).
+//   * because of that, layer and cnt trade places: the original has
+//     layer in esi spilled at [esp+0x20] and cnt born in eax after the stosd
+//     spilled at [esp+0x24] (eax is the stosd's value register, so the load can
+//     only come after it); ours has layer in eax spilled at [esp+0x24] and cnt
+//     in esi spilled at [esp+0x20], and cnt then stays register-resident
+//     through the scan loop (cmp esi,edi) where the original reloads
+//     mov eax,[esp+0x24] at every loop bottom.
+//   * loop1 inner search: ours strength-reduces the walk to q = used+2 reading
+//     [ecx]; the original keeps q = used+1 reading [ecx+4] even in this
+//     index spelling (one extra instruction). Tried: walking pointer q[1]/q++
+//     (folds to used+2), while over used[j+1] (still folds), all free variants.
+//   * dead `mov edx,[esp+0x20]` in the original's scan-loop head (edx reloads
+//     layer but is overwritten before any use) accounts for most of the 4 byte
+//     size gap; we have no source that reproduces a dead reload.
+//   * loop2 head scheduling: original puts mov eax,[esp+0x24] / cmp / jle before
+//     the lea of the up pointer and stores [esp+0x14] after the jle; ours
+//     interleaves differently.
+// Ideas tried this run (all scored free against the 71.0 base):
+//   * search loop as while + used[j+1] + flipped store polarity: 72.2 (kept).
+//   * whole body wrapped in if (index != -1) {...} instead of early return: 72.2.
+//   * earlier era notes (prologue order variants, memset, case orders, shared
+//     bound, DoSelect reloaded entries) all 53 to 70.6, see history in git.
 //
 #pragma pack(push, 1)
 
@@ -230,14 +226,15 @@ void __stdcall FUN_004a7830(Menu_004a7830* menu, int index)
 void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
 {
     int used[200];
-    for (int k = 0; k < 50; k++)
-        used[k] = 0;
 
     Layer_004a7960* layer = menu->layer;
     int index = layer->field_20;
     Entry_004a7960* entries = layer->entries;
     if (index == -1)
         return;
+
+    for (int k = 0; k < 50; k++)
+        used[k] = 0;
 
     int cnt = entries->data.count + 1;
     if (cnt > 1) {
@@ -246,24 +243,20 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
         int remaining = cnt - 1;
         do {
             int idx = -1;
-            if (used[1] != 0) {
-                int* q = used + 1;
-                int v = used[1];
-                int j = 1;
-                do {
-                    if (v - *p < 10 && v - *p > -10) {
-                        idx = j;
-                        break;
-                    }
-                    v = q[1];
-                    q++;
-                    j++;
-                } while (v != 0);
+            int v = used[1];
+            int j = 1;
+            while (v != 0) {
+                if (v - *p < 10 && v - *p > -10) {
+                    idx = j;
+                    break;
+                }
+                v = used[j + 1];
+                j++;
             }
-            if (idx == -1)
-                *out = *p;
-            else
+            if (idx != -1)
                 *out = used[idx];
+            else
+                *out = *p;
             p = (short*)((char*)p + 0x15b);
             out++;
             remaining--;

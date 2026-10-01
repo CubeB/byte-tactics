@@ -1,5 +1,21 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free.
 // Names are provisional.
+//
+// deepseek-v4.1-flash (timeboxed pass): no scored change, this file stays at
+// 87.2% (1691 of 1703 bytes). Diff analysis: our field_138 region emits TWO
+// memory compares `cmp word [ebp+0x138],0` while the original loads ONCE
+// (`mov ax,[ebp+0x138]; test ax,ax`) and re-tests AX twice more. The CSE only
+// happens when NO store to field_138 lies on the paths between the three
+// tests, and the original's block order (test1/0x2000 at 0x4a6ef9, test2 at
+// 0x4a6f43, RECT at 0x4a6f4c, tail+search at 0x4a6f8d, N at 0x4a7060, D at
+// 0x4a7069) says the tail+search block is INSIDE the rect-in-branch, with N
+// and D forming its else. Untested variants of exactly that shape are in
+// build/scratch/0x4a6ae0/v1.cpp (goto tail into the in-rect branch, goto
+// d_body into the else), v2.cpp (v1 with `int bound`), v3.cpp (d_body
+// inlined before RECT): written but never scored because the timebox fired.
+// The loop bound still wants `movsx eax,[edi+0xb6]; lea ebp,[eax+1]`
+// (`int bound = entries->count + 1`) but every tried `int` form recolors the
+// register homes (obj=EBX/entry=EBP lost) and drops to ~60%.
 // Earlier pass by space-bunny-free, verified by GPT-6.1-sol.
 // PARTIAL 87.2% (1691 bytes against the original's 1703). Command-button
 // click/key handler for the 0x15b-byte entry table.

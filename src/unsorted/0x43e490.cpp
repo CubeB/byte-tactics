@@ -1,81 +1,25 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash pass (3rd, best 28.2%, 3108 bytes vs 3152, up from 26.5%): two source facts.
-// (a) The flags are written as `friendly = <allied test> != 0; enemy = friendly == 0;` instead of an
-// if/else storing 1 to two variables (26.5 -> 27.0 on the old def shape). This is a deliberate
-// deviation: the exe's own sequence is `mov esi,1 / mov [esp+0x10],esi / jmp / mov ebp,1` (if/else),
-// but with the same def usage the if/else form scores 26.4% against 28.2% for the derived form,
-// because the if/else makes both flags memory-homed.
-// (b) The `def` local must exist AND be read through it in a few spread-out case bodies (this file
-// reads it in cases 1, 6, 12, 13) while every other body still writes `unit->def`; that keeps def in
-// ecx across the jump table, as in the exe. Ladder of def-read sites added one at a time on top of
-// (a): case 1 alone 27.0, +case 13 27.6, +case 6 28.1, +case 12 28.2. Reads that lose: case 3 27.5,
-// case 5 28.0, case 9 27.8, case 7 28.0, case-2 head 28.0, the case-2 tail 22.8 and the two tail
-// blocks 23.9 (either one makes def memory-homed and grows the frame to sub esp,8).
-// Shapes tried this pass that did not move the score: def used in every body (23.2, 3100B), def
-// assigned before the switch (23.2, 3088B), def as the first restart statement (23.2), def
-// initialised once at entry (23.2), def declared before/after the flags, flags declared first or as
-// one statement, flags unsigned, dead initialisers removed, a local copy of unit, a for(;;) loop
-// instead of the restart label, enemy recomputed from the allied test (all 28.1/28.2).
-// The leftover gap is still the callee-saved colouring: this file is ebp=target, esi=unit,
-// edi or ebx=g_game, ecx=def, enemy in a home; the exe is ebx=g_game, edi=target, esi=friendly,
-// ebp=enemy (no home), unit memory-only and def (ecx) reloaded from the dead target slot
-// [esp+0x20] after every call. No source shape moved that assignment (see the notes below).
-// deepseek-v4.1-flash pass (2nd): re-tested the callee-saved colouring with six source shapes
-// (real Def* def declared first/last, assigned first at the restart label, const pointers, a cached
-// Unit* u local, uninitialised flags). Every one compiles to the same prologue: ebx=target,
-// ebp=unit, edi=g_game, esi=friendly, enemy in ecx plus a home. The original is ebx=g_game,
-// edi=target, esi=friendly, ebp=enemy, unit memory-only at [esp+0x1c] and def in ecx spilled to
-// [esp+0x20]. So the allocator's candidate set here is {target, unit, g_game, friendly} against the
-// original's {g_game, target, friendly, enemy}: enemy never wins a callee-saved slot and unit never
-// loses one, which recolours the whole 3152-byte body. Same class of allocator state as 0x43f0e0
-// and 0x4a6ae0; nothing at the source level moved it in this pass.
-// deepseek-v4.1 pass (best so far, 26.5%, 3100 bytes vs 3152): removed the `def` local by
-// expanding every `def->` to `(unit->def)` (macro DEF) so the frame collapsed to one local
-// (push ecx), which is what the original has; g_game is read inline through macro GAME.
-// That lifted 23.3% -> 26.5%. What still differs: the original keeps g_game in EBX, enemy in
-// EBP (register only, no home), friendly in ESI with its home at [esp+0x10], target in EDI and
-// unit left in memory (reloaded from [esp+0x1c] for every `unit->def` / `unit->player`), and it
-// spills the loop's def (ECX, loaded once at 0x43e4ab) into the dead target parameter slot
-// [esp+0x20] (0x43e4b3) and reloads it after each of the six calls. We get one local and the
-// [esp+0x20] spill too, but MSVC5 hands the callee-saved registers out differently: it keeps
-// unit in a register and spills enemy into [esp+0x20]; declaration order, the DEF/GAME macros
-// and removing the game local all leave the score at 26.5%. Register choice moves with the
-// source shape but never lands on the original's ebx=g_game / ebp=enemy / edi=target.
-// Started by deepseek-v4.1-flash and continued by GPT-6 before this pass. Partial, 23.3%.
-// This pass reordered the switch case bodies to the original's source order read off the jump
-// table at 0x43f0a8: cases 1, 3, 9, 8, 7, 12, 13, 6, 5, 14, 4, 11, 2, then default. That alone
-// took the function from 11.1% to 23.3% (3064 -> 3080 bytes against 3152), because MSVC emits
-// case bodies in source order and the numeric order had every block in the wrong place.
-// The body shape is right (3064 bytes against 3152) but almost no instruction text lines up,
-// so the registers differ throughout. What is known, and what still differs:
-//  - Case bodies are emitted in source order 1,3,9,8,7,12,13,6,5,14,4,11,2,10 (jump table at
-//    0x43f0a8), not in numeric order; case 10 falls into the shared `return 0x13` at 0x43f098
-//    and case 2's body is the last and the largest (0x43e8bb to 0x43f098).
-//  - The prologue is `push ecx; push ebx; mov ebx,[g_game]; push ebp; push esi; push edi`, so
-//    g_game is cached in ebx, target in edi and there is exactly one 4-byte local. Ours emits
-//    `sub esp,8` (two locals) with g_game in ebp and target in ebx.
-//  - The friendly flag lives in esi and in the [esp+0x10] local at once (stored on both paths of
-//    the allied test, reloaded after the FUN_004815a0 call at 0x43e9dc, line 431 of ctx.txt);
-//    the enemy flag is ebp.
-//  - unit->def is kept in ecx across the jump table and spilled into the dead target argument
-//    slot [esp+0x20], reloaded after every __thiscall (0x43e7ed).
-//  - The boolean returns come back as `neg al; sbb eax,eax; and al,imm; add eax,0x13` (case 5 at
-//    0x43e80c, case 9 at 0x43e5de), a mask form a plain `?:` does not produce.
-//  - Cases 1 and 2 are still approximations of the original block order.
-//  - deepseek-v4.1 pass: the original frame is exactly ONE local (push ecx). friendly has its home
-//    at [esp+0x10] (stores on both allied-test paths, reload at 0x43e9dc after the inlined Lookup
-//    steals esi), enemy lives only in ebp with no home, target in edi, g_game in ebx (loaded in the
-//    prologue), and def (ecx) is spilled into the DEAD target parameter slot [esp+0x20] and reloaded
-//    after every call (0x43e7ed, 0x43e9f5, 0x43ea7f, 0x43eab8, 0x43ead7, 0x43ec9a, 0x43ee4f,
-//    0x43ef68). Ours emits sub esp,8 (two locals): enemy got a memory home at [esp+0x10] and friendly
-//    another at [esp+0x14], def at [esp+0x24], and mode sits in ebx while the original reloads it
-//    from [esp+0x18] at every dispatch (mov eax,[esp+0x18]; and eax,0xff; dec; cmp; ja; jmp table).
-//    Getting the allocator to hand ebx to g_game and ebp to enemy (so the frame collapses to one
-//    dword and every [esp+N] offset shifts back by 4) is the key remaining problem; declaration
-//    order (game, def, friendly, enemy) did not do it.
-//  - Fixed this pass: the tail of the case-2 block returns (f245 & 0x80) ? 0xe : 0x13, not 8
-//    (the original is `neg; sbb eax,eax; and al,0xfb; add eax,0x13` at 0x43f07c, pseudo-C mask
-//    0xfffffffb).
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-opus-5-5. Names are provisional.
+// PARTIAL (48.1%). Rewritten by claude-opus-5-5 (#4290) from 28.2%.
+// Block layout lever: MSVC 5 places a goto target right after the LAST code
+// that references it, and pulls an unplaced target in as fall-through after an
+// unconditional jump (tested with small /Fa files). The original emits case
+// 1's head first but the flag37efa block ("multi") and the normal tail
+// ("single") after every other case; that only happens when case 1 is written
+// textually LAST in the switch (after case 2). Its head is still emitted first
+// and the labelled blocks after the switch land behind case 2 (28.2 -> 43.1).
+// The shr/and/neg/sbb returns are single-bit bitfield reads of the def flag
+// words (f245b.b4/b6/b7/b8, f241b.b11), and `if (a || b) return 3;` compound
+// tests in cases 3, 4 and 7 keep the shared-return jumps (-> 45.4).
+// Remaining difference is register allocation. The original: g_game cached in
+// ebx from the prologue (reloaded into ebx after calls inside the inlined
+// lookup), target in edi, friendly in esi with its home at [esp+0x10], enemy
+// in ebp, unit never enregistered (reloaded from [esp+0x1c]), def in ecx and
+// spilled into the dead target slot [esp+0x20]. Without the local `game`
+// (build/scratch/0x43e490/body8.inc, 45.4%) we get the original's one-dword
+// frame, friendly/esi with its home and the def spill to [esp+0x20], but
+// target in ebp, enemy in ebx, unit in edx and def in edi; the local `game`
+// below scores higher (48.1%) although it adds a stack slot. A for(;;) loop
+// with `continue` compiles identically to the restart goto.
 #pragma pack(push, 1)
 
 union Flags110_0043e490 {
@@ -103,7 +47,7 @@ struct Game_0043e490 {
 
 struct Node_0043e490 {
     char unknown_0[0x111];
-    unsigned int f111; // +0x111
+    union { unsigned int f111; struct { unsigned int b0 : 1; unsigned int b1 : 1; unsigned int b2 : 1; unsigned int b3 : 1; unsigned int b4 : 1; unsigned int b5 : 1; unsigned int b6 : 1; unsigned int b7 : 1; unsigned int b8 : 1; unsigned int b9 : 1; unsigned int b10 : 1; unsigned int b11 : 1; unsigned int b12 : 1; unsigned int b13 : 1; unsigned int b14 : 1; unsigned int b15 : 1; unsigned int b16 : 1; unsigned int b17 : 1; unsigned int b18 : 1; unsigned int b19 : 1; unsigned int b20 : 1; unsigned int b21 : 1; unsigned int b22 : 1; unsigned int b23 : 1; unsigned int b24 : 1; unsigned int b25 : 1; unsigned int b26 : 1; unsigned int b27 : 1; unsigned int b28 : 1; unsigned int b29 : 1; unsigned int b30 : 1; unsigned int b31 : 1;} f111b; }; // +0x111
 };
 
 struct Def_0043e490 {
@@ -114,8 +58,8 @@ struct Def_0043e490 {
     char unknown_15a[0x1ee - 0x15a];
     Node_0043e490* f1ee; // +0x1ee
     char unknown_1f2[0x241 - 0x1f2];
-    unsigned int f241; // +0x241
-    unsigned int f245; // +0x245
+    union { unsigned int f241; struct { unsigned int b0 : 1; unsigned int b1 : 1; unsigned int b2 : 1; unsigned int b3 : 1; unsigned int b4 : 1; unsigned int b5 : 1; unsigned int b6 : 1; unsigned int b7 : 1; unsigned int b8 : 1; unsigned int b9 : 1; unsigned int b10 : 1; unsigned int b11 : 1; unsigned int b12 : 1; unsigned int b13 : 1; unsigned int b14 : 1; unsigned int b15 : 1; unsigned int b16 : 1; unsigned int b17 : 1; unsigned int b18 : 1; unsigned int b19 : 1; unsigned int b20 : 1; unsigned int b21 : 1; unsigned int b22 : 1; unsigned int b23 : 1; unsigned int b24 : 1; unsigned int b25 : 1; unsigned int b26 : 1; unsigned int b27 : 1; unsigned int b28 : 1; unsigned int b29 : 1; unsigned int b30 : 1; unsigned int b31 : 1;} f241b; }; // +0x241
+    union { unsigned int f245; struct { unsigned int b0 : 1; unsigned int b1 : 1; unsigned int b2 : 1; unsigned int b3 : 1; unsigned int b4 : 1; unsigned int b5 : 1; unsigned int b6 : 1; unsigned int b7 : 1; unsigned int b8 : 1; unsigned int b9 : 1; unsigned int b10 : 1; unsigned int b11 : 1; unsigned int b12 : 1; unsigned int b13 : 1; unsigned int b14 : 1; unsigned int b15 : 1; unsigned int b16 : 1; unsigned int b17 : 1; unsigned int b18 : 1; unsigned int b19 : 1; unsigned int b20 : 1; unsigned int b21 : 1; unsigned int b22 : 1; unsigned int b23 : 1; unsigned int b24 : 1; unsigned int b25 : 1; unsigned int b26 : 1; unsigned int b27 : 1; unsigned int b28 : 1; unsigned int b29 : 1; unsigned int b30 : 1; unsigned int b31 : 1;} f245b; }; // +0x245
 };
 
 struct Player_0043e490 {
@@ -171,6 +115,7 @@ struct Cell_0043e490 {
 struct Thing_0043e490 {
     char unknown_0[0xfe];
     unsigned char ffe; // +0xfe
+    char unknown_ff;
 };
 #pragma pack(pop)
 
@@ -193,7 +138,6 @@ class Class_00489a70 {
     int FUN_00489a90(Unit_0043e490* other);
 };
 
-static inline int Vtol(Def_0043e490* def) { return (def->f241 >> 11) & 1; }
 
 static inline int Visible(Game_0043e490* game, Unit_0043e490* unit, Pos_0043e490* pos) {
     Player_0043e490* p = unit->player;
@@ -203,232 +147,170 @@ static inline int Visible(Game_0043e490* game, Unit_0043e490* unit, Pos_0043e490
            ((1 << game->localPlayerBit) & game->visibility[p->width * y + x]) != 0;
 }
 
-static inline Thing_0043e490* Lookup(Game_0043e490* game, Pos_0043e490* pos) {
+static inline Thing_0043e490* Lookup(Pos_0043e490* pos) {
     Cell_0043e490* cell = FUN_004815a0(pos);
     if (!cell)
-        return 0;
+        return (Thing_0043e490*)cell;
     unsigned short id = cell->feature;
-    if (id >= 0xfffb) {
-        if (id != 0xfffe)
+    if (id < 0xfffb) {
+        if ((int)id >= g_game->unitCount)
             return 0;
-        id = (cell - (cell->offsetY * game->mapWidth + cell->offsetX))->feature;
-        if (id >= 0xfffb)
-            return 0;
-    } else if ((int)id >= game->unitCount) {
-        return 0;
+        return (Thing_0043e490*)g_game->units + id;
     }
-    return (Thing_0043e490*)(game->units + (id << 8));
+    if (id != 0xfffe)
+        return 0;
+    unsigned short id2 = (cell - (g_game->mapWidth * cell->offsetY + cell->offsetX))->feature;
+    if (id2 >= 0xfffb)
+        return 0;
+    return (Thing_0043e490*)g_game->units + id2;
 }
 
-static inline int Marked(Thing_0043e490* t) { return t && (t->ffe & 0x80); }
-#define DEF (unit->def)
-#define GAME (g_game)
+static inline int Marked(Game_0043e490* game, Unit_0043e490* unit, Pos_0043e490* pos) {
+    if (Visible(game, unit, pos)) {
+        Thing_0043e490* t = Lookup(pos);
+        if (t && (t->ffe & 0x80))
+            return 1;
+    }
+    return 0;
+}
+
+static inline int Capturable(Game_0043e490* game, Unit_0043e490* t) {
+    return t && t->owner == g_game->localPlayer && (t->f110 & 0x20) && t->f104 == 0.0f &&
+           t->ffb == 0 && (t->f86 == 0 || (t->f86->f110 & 0x40000000));
+}
+
 // FUNCTION: 0x43e490
 int __stdcall FUN_0043e490(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
                            Pos_0043e490* pos) {
-    int enemy = 0;
-    int friendly = 0;
+    int friendly;
+    int enemy;
     Def_0043e490* def;
+    Game_0043e490* game = g_game;
 
 restart:
     friendly = 0;
     enemy = 0;
     def = unit->def;
     if (target) {
-        friendly = unit->player->allied[target->player->index] != 0;
-        enemy = friendly == 0;
+        if (unit->player->allied[target->player->index])
+            friendly = 1;
+        else
+            enemy = 1;
     }
 
     switch (mode) {
-    case 1: { // approximate, not matching
-        if (GAME->flag37efa == 1)
-            goto L43eb02;
+    case 3:
+        if ((def->f245 & 0x10) && def->f1ee->f111b.b8)
+            return 2;
+        if (def->f245b.b4) {
+            Node_0043e490* node = unit->f10;
+            if (unit->moving)
+                return 1;
+            if (target)
+                return FUN_0049abb0(unit, target, 0) ? 1 : 3;
+            if (!FUN_0049aa80(unit, (char*)unit + 0x6a, pos, 0) || (node->f111 & 0x20000))
+                return 3;
+            return 1;
+        }
+        return 0x13;
+    case 9:
+        return def->f245b.b6 ? 7 : 0x13;
+    case 8:
+        return ((Class_004899b0*)unit)->FUN_004899b0(target) ? 6 : 0x13;
+    case 7:
+        if (!(def->f245 & 0x20) || !friendly)
+            return 0x13;
+        if ((def->f241 & 0x800) || !(target->def->f241 & 0x800))
+            return 5;
+        return 0x13;
+    case 12:
+        if ((def->f245 & 0x400) && Marked(game, unit, pos))
+            return 0xb;
+        if (target && ((Class_00489960*)unit)->FUN_00489960(target))
+            return 0xb;
+        return 0x13;
+    case 13:
+        if (!(def->f245 & 0x1000) || !target || unit->player == target->player)
+            return 0x13;
+        return 4;
+    case 6:
+        if (!target || !((Class_00489a70*)unit)->FUN_00489a90(target))
+            return 0x13;
+        return def->f241b.b11 ? 8 : 0xc;
+    case 5:
+        return def->f245b.b8 ? 0xd : 0x13;
+    case 14:
+        if (def->f156 == 0 || unit->moving == 0)
+            return 0x13;
+        return 0x10;
+    case 4:
+        if (!((def->f245 >> 14) & 1))
+            return 0x13;
+        if (*(float*)((char*)unit->fec + 0x8c) < *(float*)((char*)unit->f48 + 0xc0) ||
+            *(float*)((char*)unit->fec + 0x98) < *(float*)((char*)unit->f48 + 0xc4))
+            return 3;
+        return 1;
+    case 11:
+        return 9;
+    case 2:
+        if (!(def->f245 & 0x80))
+            return 0x13;
+        if ((def->f245 & 0x800) && Marked(game, unit, pos))
+            return 0xa;
+        if (!target || !unit->moving)
+            return 0xe;
+        if (def->f245 & 0x1000) {
+            if (enemy)
+                return 4;
+        } else if (enemy && ((Class_00489960*)unit)->FUN_00489960(target))
+            return 0xb;
+        if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
+            return 6;
+        if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target))
+            return 6;
+        if ((def->f241 & 0x800) && (target->def->f241 & 0x200))
+            return 0xd;
+        if (((Class_00489a70*)unit)->FUN_00489a90(target))
+            return def->f241b.b11 ? 8 : 0xc;
+        if ((def->f245 & 0x20) && friendly)
+            return 5;
+        return 0xe;
+    case 1:
+        if (game->flag37efa == 1)
+            goto multi;
         if ((def->f245 & 0x10) && enemy) {
             mode = 3;
             goto restart;
         }
-        if ((def->f245 & 0x400) && enemy) {
-            mode = 0xc;
-            goto restart;
-        }
-        goto L43edb6;
-    }
-    case 3:
-        if (DEF->f245 & 0x10) {
-            if (DEF->f1ee->f111 & 0x100)
-                return 2;
-        }
-        if ((DEF->f245 >> 4) & 1) {
-            Node_0043e490* node = unit->f10;
-            if (unit->moving)
-                return 1;
-            if (!target) {
-                if (FUN_0049aa80(unit, (char*)unit + 0x6a, pos, 0) == 0)
-                    return 3;
-                if (node->f111 & 0x20000)
-                    return 3;
-                return 1;
-            }
-            if (FUN_0049abb0(unit, target, 0) == 0)
-                return 3;
-            return 1;
-        }
-        goto L43f098;
-    case 9:
-        return (DEF->f245 & 0x40) ? 7 : 0x13;
-    case 8:
-        if (((Class_004899b0*)unit)->FUN_004899b0(target))
-            return 6;
-        return 0x13;
-    case 7:
-        if (!(DEF->f245 & 0x20))
-            goto L43f098;
-        if (!friendly)
-            goto L43f098;
-        if (DEF->f241 & 0x800)
-            goto L43eae8;
-        if (target->def->f241 & 0x800)
-            goto L43f098;
-        return 5;
-    case 12:
-        if (def->f245 & 0x400) {
-            if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
-                return 0xb;
-        }
-        if (!target)
-            return 0x13;
-        if (((Class_00489960*)unit)->FUN_00489960(target))
-            return 0xb;
-        return 0x13;
-    case 13:
-        if (!(def->f245 & 0x1000))
-            return 0x13;
-        if (!target)
-            return 0x13;
-        if (unit->player == target->player)
-            return 0x13;
-        return 4;
-    case 6: {
-        if (!target)
-            return 0x13;
-        if (!((Class_00489a70*)unit)->FUN_00489a90(target))
-            return 0x13;
-        return ((def->f241 >> 11) & 1) ? 8 : 0xc;
-    }
-    case 5:
-        return (DEF->f245 & 0x100) ? 0xd : 0x13;
-    case 14:
-        if (DEF->f156 == 0)
-            return 0x13;
-        if (unit->moving == 0)
-            return 0x13;
-        return 0x10;
-    case 4: {
-        if (!(DEF->f245 & 0x4000))
-            return 0x13;
-        float a = *(float*)((char*)unit->fec + 0x8c);
-        float b = *(float*)((char*)unit->f48 + 0xc0);
-        if (a < b)
-            return 3;
-        float c = *(float*)((char*)unit->fec + 0x98);
-        float d = *(float*)((char*)unit->f48 + 0xc4);
-        if (!(d <= c))
-            return 3;
-        return 1;
-    }
-    case 11:
-        return 9;
-    case 2: // approximate, not matching
-        if (!(DEF->f245 & 0x80))
-            return 0x13;
-        if ((DEF->f245 & 0x800) && Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
-            return 0xa;
-    L43e9e0:
-        if (!target || unit->moving == 0)
-            goto L43eaf5;
-        if (DEF->f245 & 0x1000) {
-            if (enemy)
-                return 4;
-        } else if (enemy) {
-            if (((Class_00489960*)unit)->FUN_00489960(target))
-                return 0xb;
-        }
-        if (friendly) {
-            if (((Class_004899b0*)unit)->FUN_004899b0(target)) {
-                if (!(target->f104 == 0.0f))
-                    return 6;
-            }
-            if (((Class_004899b0*)unit)->FUN_004899b0(target))
-                return 6;
-        }
-        if (DEF->f241 & 0x800) {
-            if (target->def->f241 & 0x200)
-                return 0xd;
-        }
-        if (((Class_00489a70*)unit)->FUN_00489a90(target))
-            return ((DEF->f241 >> 11) & 1) ? 8 : 0xc;
-        if (DEF->f245 & 0x20) {
-            if (friendly)
-                goto L43eae8;
-        }
-    L43eaf5:
-        return 0xe;
-
-    L43eae8:
-        return 5;
+        if (!(def->f245 & 0x400) || !enemy)
+            goto single;
+        mode = 0xc;
+        goto restart;
     default:
-        goto L43f098;
+        return 0x13;
     }
 
-L43eb02:
-            if (GAME->flag37efa == 1) {
-                if (target && target->owner == GAME->localPlayer && (target->f110 & 0x20) &&
-                    target->f104 == 0.0f && target->ffb == 0) {
-                    if (target->f86 == 0)
-                        return 0xf;
-                    if (target->f86->f110 & 0x40000000)
-                        return 0xf;
-                }
-                if (enemy)
-                    return 0x11;
-                if (friendly)
-                    return 0x12;
-                if (DEF->f245 & 0x800) {
-                    if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
-                        return 0x12;
-                }
-                if (!(DEF->f245 & 0x400))
-                    return 0x13;
-                if (!Visible(g_game, unit, pos))
-                    return 0x13;
-                if (!Marked(Lookup(g_game, pos)))
-                    return 0x13;
-                return 0x12;
-            }
-L43edb6:
-    if (!target)
-        goto L43ee4f;
-    if (((Class_004899b0*)unit)->FUN_004899b0(target)) {
-        if (!(target->f104 == 0.0f))
-            return 6;
-    }
-    if (target->owner == GAME->localPlayer && (target->f110 & 0x20) && target->f104 == 0.0f &&
-        target->ffb == 0) {
-        if (target->f86 == 0 || (target->f86->f110 & 0x40000000))
-            return 0xf;
-    }
-L43ee4f:
-    if (DEF->f245 & 0x800) {
-        if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
-            return 0xa;
-    }
-    if (DEF->f245 & 0x400) {
-        if (Visible(g_game, unit, pos) && Marked(Lookup(g_game, pos)))
-            return 0xb;
-    }
-    // Original mask is `and al,0xfb` + 0x13 = 0x13-5 = 0xe, not 8.
-    return (DEF->f245 & 0x80) ? 0xe : 0x13;
-
-L43f098:
+multi:
+    if (Capturable(game, target))
+        return 0xf;
+    if (enemy)
+        return 0x11;
+    if (friendly)
+        return 0x12;
+    if ((def->f245 & 0x800) && Marked(game, unit, pos))
+        return 0x12;
+    if ((def->f245 & 0x400) && Marked(game, unit, pos))
+        return 0x12;
     return 0x13;
+
+single:
+    if (target && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
+        return 6;
+    if (Capturable(game, target))
+        return 0xf;
+    if ((def->f245 & 0x800) && Marked(game, unit, pos))
+        return 0xa;
+    if ((def->f245 & 0x400) && Marked(game, unit, pos))
+        return 0xb;
+    return def->f245b.b7 ? 0xe : 0x13;
 }

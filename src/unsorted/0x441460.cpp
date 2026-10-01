@@ -1,136 +1,47 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1,
-// finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// 83.7%, not a MATCH (was 80.5%). The frame is exact (buf sized 0x139 reserves the
-// original's 0x1b4 and the parameter read at [esp+0x1d0] lines up), the settings
-// copy at SETBUF = buf+0x119 is a clean 16-byte/4-dword copy, the record walk reads
-// field_10 straight from p[0]-4, and the strlwr block needs the FUN_004c5740 result
-// in a local before the strncpy.
+// finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
 //
-// The one change that moved the number this session (+3.2): the record's DWORDS are
-// the values the original register-allocates, not the shorts. `unsigned int* rdw =
-// (unsigned int*)(p[0] - 0x14); int f0 = rdw[0];` used as `f0 & 0xffff` at p[5]
-// gives the original's `mov ebp, [ecx] / mov [esp+0x1a5], ebp` dword load out of the
-// struct copy, and the whole p[] string-cursor block then lands where the original
-// has it. Reading the same dword through a dword/short UNION of the settings struct
-// gives the register treatment too but the extra local costs a frame dword, so every
-// SETBUF offset shifts by 4: 73.7%.
+// 99.8%, not a MATCH (1874 of 1874 bytes, one instruction differs): the zeroing loop
+// loads g_game->data[i] as [edx+eax+0x2a47] where the original has [eax+edx+0x2a47]
+// (SIB base and index swapped, same registers). About 25 spellings were tried (struct
+// element `.ptr`, `i[arr]`, pointer arithmetic with i*4, i<<2, a byte-offset loop var,
+// for vs do-while, unsigned/char index, a cached `g_game` local); all emit the same bytes.
+// Probably a register-allocation wall, not a source difference.
 //
-// Still differs:
-// deepseek-v4.1-flash pass: splitting chain 2's last `if (cd98 == 0)` from the
-// `count = memcmp(cd98) != 0;` tail into the original's je-to-shared-msg / else
-// with the count store lifts 83.7 -> 84.1 (1825 bytes). The chain-1 dead store
-// and the private per-arm `mov eax, msg / jmp` string loads still differ.
-//   * the provider-guid chain. The original keeps a dead-looking `count = memcmp`
-//     store at the end of the FIRST chain (sbb edx,edx / sbb edx,-1 / mov
-//     [esp+0x10],edx) and falls through to the cd98 compare. In ours the whole sbb
-//     pair dies because count is provably overwritten by the FUN_004c9e50 result
-//     before it is read, so MSVC drops it and chain 1 keeps only the compare against
-//     zero. Giving the chain its own `int sig` local, writing it as
-//     `count = memcmp(...)` (the value is the memcmp SIGN, not a bool), or writing
-//     the chain as `A != 0 && B != 0` are all score-neutral or worse.
-//   * the original jumps straight from chain 1's cd98 compare to the SHARED
-//     `mov eax, "Updating..."` block and from chain 2's cda8 compare to the SHARED
-//     one too; ours emits a private `mov eax, <str> / jmp` for each. This is a tail
-//     merge our goto shape does not produce.
-//   * count is stored to [esp+0x10] before the FUN_004a9660 call here, while the
-//     original stores ebx only inside the count>0 block. A separate `int left =
-//     count` loop counter does not move it (76.3%).
-//   * the zeroing loop loads g_game->data[i] as [edx+eax+0x2a47] against the
-//     original's [eax+edx+0x2a47]: same registers, swapped ModRM base and index.
-//   * the flags dword at SETBUF+2 is reloaded for p[9], p[10] and p[11] where the
-//     original keeps it in ebx (`mov ebx,[esp+0x1a3] / mov cl,bh / shr ebx,9`).
-//     A local `int fl = SETBUF->flags;` scoped to the p[4] block, or to the
-//     p[10]/p[11] pair, or to all three uses, is score-neutral (83.7% each): MSVC
-//     still narrows to `test ah,0x80` / `test ah,1` / `test ah,2`. Making it a
-//     long-lived live value for all of p[9..p[11] is much worse (69.2%).
-//   * p[7] still reads the settings dword from the frame instead of from a live
-//     register. `int f8 = rdw[2]` used as `(f8 & 0xffff) * 100` costs 1.2 points
-//     (82.5%): it puts ebx on the right value but demotes a neighbour.
-//
-// Things tried here that did NOT work, so nobody repeats them:
-//   * spelling the provider chain with explicit `goto conn;`/`goto upd;` labels
-//     placed after chain B, so the CFG matches the original's block layout
-//     exactly (two conditional jumps into one shared `msg = "Updating..."`
-//     load, three into one `msg = "Connecting..."` load): 77.8%, 1771 bytes.
-//     VC5 dropped BOTH sbb pair / count stores in that shape and re-inlined one
-//     Updating load anyway, so the shared-tail loads are not recoverable from
-//     statement order; the 83.7% goto shape above keeps chain A's sbb pair
-//     only in chain B (chain A's dead store is still dropped).
-//   * a dword/short UNION of the settings struct: 73.7% (frame grows by one dword,
-//     so every SETBUF read is 4 bytes out).
-//   * a named `Settings* sb = (Settings*)(buf + 0x119);` local instead of the macro:
-//     byte-identical output, buf+0x119 is already a constant.
-//   * `int f0 = SETBUF->field_0; int f8 = SETBUF->field_8;` taken after the copy:
-//     63.7%. The two extra frame slots cost more than the promotion is worth.
-//   * promoting the flags word to an unsigned int local to stop the `test ah,0x80`
-//     fold: MSVC inserts `and eax,0xffff` and folds anyway.
-//   * a separate dead local for the provider-guid compare result, and writing the
-//     chain-1 store as a bare memcmp (no `!= 0`): still 83.7%, byte-identical output.
-//     Chain 2's sbb/sbb/store survives in both, chain 1's never does here.
-//   * a real local struct (`char buf[0x119]; Settings s;` with SETBUF = &s): 72.6%.
-//   * renaming the settings words to `flags`/`field_2` to match the measured bit
-//     ownership: 80.2%, the perturbation elsewhere outweighs the better bits.
-//   * a loop-scoped `int f = SETBUF->flags;` covering the version test and all of
-//     p[9..p[11]: 72.3%, it spills count to [esp+0x10] before the FUN_004a9660 call.
-//   * `SETBUF->flags & 0x8000` / `& 0x10` for the version-test selects: byte-identical
-//     output at 83.7%, so the original's `shr edx,0xf; test dl,1` is not a bit-test
-//     spelling lever.
-//   * moving `p[0] = (char*)g_game->desc + 0x18;` inside the `if (count > 0)`
-//     block (the original's `mov ecx,[eax+0x2aa7] / lea esi,[ecx+0x18]` pair
-//     sits after its `jle`): 80.7%, 1806 bytes, so the pointer setup stays
-//     before the test.
-//   * putting the `*SETBUF = ...settings` copy before `int f0 = rdw[0];`
-//     (rather than after it): score-flat at 83.7%, 1811 bytes vs 1807.
-// deepseek-v4.1-flash pass (best still 83.7%): byte-neutral variants tried: `i[g_game->data]`
-// subscript swap for the zeroing loop, and a block-scoped `int n = FUN_004c9e50(...)` with
-// `count = n` after the negative check. Regressions: `f0 = rdw[0] & 0xffff` with bare f0 at
-// p[5] is 83.0%, and reading p[2]'s field_10 as `rdw[3]` is 80.9%.
-// deepseek-v4.1-flash pass 2: the exe's reloc list for this function references only
-// DAT_004fcdc8, DAT_004fcda8 and DAT_004fcd98 (each twice, at +0x1a/+0x57, +0x2c/+0x69,
-// +0x3e/+0x84) and never DAT_004fcdb8, so the two `count = memcmp(...) != 0;` stores were
-// re-pointed from cdb8 to cdc8 (first) and cd98 (second). Byte-flat at 83.7% / 1807 bytes,
-// but now the chain uses only GUIDs the original actually loads.
-// deepseek-v4.1-flash pass 2 correction: the pass-2 note above was wrong. ctx.py's
-// disassembly shows the FOURTH provider test in each chain loads 0x4fcdb8
-// (chain A: 0x4414af `mov edi,0x4fcdb8`, je 0x4414c1; chain B: 0x441502, je 0x441512),
-// so both 4th tests were re-pointed from cdc8/cd98 back to DAT_004fcdb8. Score-neutral
-// (byte-flat at 84.1% / 1825 bytes) but now every compared GUID matches the exe.
-// deepseek-v4.1-flash pass 3: the p[9] three-way (the `flags & 0x1800` select) is the
-// original's NEGATED outer test with a nested inner if: `if ((SETBUF->flags & 0x1800) != 0)
-// { if (... == 0x800) msg = "Yes"; else msg = "DM"; } else msg = "No";` emits the original's
-// exact layout at 0x441905 (je to the out-of-line "No", cmp 0x800 / jne, two jmp arms) where
-// the `== 0`-first spelling fused `and eax,0x1800` with `je` and reordered the arms. Same
-// 84.1%, 1825 -> 1827 bytes (toward the 1874 target), and it is kept over the equal-scoring
-// positive form because the block now reads like the exe's.
-// The only text still differing there is the 16-bit compare pair: the original has
-// `test ax, ax` / `cmp ax, 0x800` after `and eax, 0x1800` (ctx 0x4418f8-0x44190e), ours has
-// the fused `je` plus `cmp eax, 0x800` (2 instructions and 2 bytes short). Both a
-// `unsigned short m = (unsigned short)(SETBUF->flags & 0x1800);` local and an in-expression
-// `(unsigned short)` cast DO emit `test ax, ax` but force MSVC to materialise the 16-bit
-// value in a stack temp: 1826 bytes / 73.3% for both, because the extra 4-byte frame slot
-// displaces every SETBUF and p[] offset. So the 16-bit compare pair is not reachable without
-// breaking the exact frame, and the plain int expression stays best. A third route, making
-// the member itself 16-bit (`unsigned short flags; unsigned short field_4;`, same offsets,
-// same 16-byte 4-dword copy), lands on the very same output: 1826 bytes / 73.3%, so all
-// three spellings of the 16-bit compare collapse to one codegen and none of them is viable.
-// deepseek-v4.1-flash (retry of #4107) micro-pass: chain A's 4th provider test was
-// re-spelled as the exact if/else shape chain B uses (`if (memcmp(cdb8) == 0) ; else
-// count = memcmp(cdb8);`), because chain B's `else { count = memcmp(cdb8) != 0; ... }`
-// is the one site where a store DOES survive in this build (and there MSVC even CSEs the
-// duplicate memcmp down to a single cmpsb with `je` over the sbb pair, exactly like the
-// exe). Result: byte-identical at 1827 / 84.1%, so MSVC still deletes chain A's whole
-// statement, compare included:
-// the delete is a dead-CODE elimination of a side-effect-free expression, not a
-// dead-store pass, which is why the value being "read" is not the lever. The exe keeps
-// it only because its own value numbering saw a use; in every source shape tried the
-// chain-A compare is the first computation of an expression chain B recomputes, and
-// MSVC keeps the LAST site and drops the earlier dead one. Next lever to try: make
-// chain A's site the only one (chain B's tail must then read the value instead of
-// recomputing it), or give the chain its own variable whose liveness crosses the
-// FUN_004c9e50 call.
-// deepseek-v4.1-flash timebox pass: putting the *SETBUF copy ahead of `int f0 = rdw[0];`
-// is score-flat at 84.1% but 1831 vs 1827 bytes, so the f0-first order stays. No untried
-// lever was found inside the 10-minute box; the diff hunks above are the next work list.
+// What made the big jump (84.1% -> 99.8%), so nobody has to rediscover it:
+//   * SETTINGS ARE A SEPARATE, NEVER-ADDRESS-TAKEN LOCAL STRUCT (`sb`), not a slice of
+//     the temp buffer. Then the struct copy `sb.s = *(Settings*)(p[0] - 0x14)` compiles
+//     to the original's `lea ecx,[esi-0x14]` + four `mov reg,[ecx+N]` / store pairs, the
+//     later reads of field_0 and field_8 are value-numbered to ebp and ebx by the
+//     compiler (no `f0`/`f8` locals, no `rdw` pointer needed), and the flags dword in
+//     ebx for p[9..11] appears by itself. The old 'buf + 0x119' macro made the whole
+//     buffer escape (strncpy(temp, ...)), so every read was reloaded from the frame.
+//   * The struct is `{ char pre[0x99]; Settings s; char pad[0x13]; }` (0x1a1 offset,
+//     0x23-byte tail) because MSVC orders frame objects by size: it must be bigger than
+//     `temp` (0x80) and `names` (0x20) to land after them, as in the original frame.
+//   * The settings flags word is a set of `unsigned short` BIT-FIELDS (players:4,
+//     playing:1, black:1 (bit 8), nocmd:1 (bit 9), mode:2 (bits 11-12), lock:1 (bit
+//     15)). That reproduces `mov edx,eax / shr edx,0xf / test dl,1`, `shr al,4`,
+//     `test ax,ax / cmp ax,0x800` and the bh/bl byte tests exactly; plain masks and
+//     shifts fold to `test ah,0x80`.
+//   * `p[4] += strlen(p[4]) + 1;` (the earlier `p[5] = p[4] + ...` trick wrote the
+//     status text into the wrong column buffer, a semantic bug that only helped the score).
+//   * `char* dsc = (char*)g_game->desc;` before `if (count > 0)` and `p[0] = dsc + 0x18;`
+//     inside it gives the original's `mov ecx,[eax+0x2aa7] / jle / lea esi,[ecx+0x18]`.
+//   * a separate loop counter `left` (`left = count;` at loop entry) gives the original's
+//     `mov [esp+0x10],ebx` after the `jle` instead of before the 0x4a9660 call.
+//   * THE DEAD memcmp STORES: the original keeps both `x = memcmp(.., DAT_004fcdb8)` stores
+//     (sbb/sbb/mov [esp+0x10]) although nothing reads them. MSVC deletes a dead store to
+//     a plain local, and deletes the first of two. Writing them as an int store through
+//     an element of the p[] array (`*(int*)&p[20] = ...`, element 20 is never used) keeps
+//     both, as a compiler temp that shares the [esp+0x10] slot with `left`, exactly like
+//     the original. `if (PE(b8)) ; else store` (the compare once for both) is the shape
+//     that keeps the `je`-over-`sbb` form.
+//   * THE BLOCK LAYOUT of the provider chain ([store][CONN: mov+jmp][UPD][shown], every
+//     jump to the two shared blocks) comes from structuring the second chain as
+//     `if (c8) goto conn; if (!a8) { if (!98) {store} goto conn; }` and letting the a8
+//     case FALL INTO the `upd:` label (which is followed by `conn:`). With a plain
+//     `if (a8) goto upd;` MSVC moves a copy of the UPD block next to the a8 test (97.9%).
 #include <string.h>
 #include <stdio.h>
 
@@ -143,13 +54,20 @@ struct Sub_00441460 {
 };
 
 #pragma pack(push, 1)
-// flags is a 32-bit member at offset 2 in the original: the field_0/flags/field_4
-// words are read as the unaligned dwords [SETBUF+0] and [SETBUF+2], which is why
-// the copy stores 4 dwords and the reads are `mov ecx,0xffff`-masked. This shape
-// is 80.6% (1810 bytes) against 80.5% for the three-short spelling.
+// The record header: field_0, a 16-bit flag word with bit-fields at offset 2, then
+// field_4..version. Read by the original as unaligned dwords (see the notes above).
 struct Settings_00441460 {
     unsigned short field_0;
-    unsigned int flags;
+    unsigned short players : 4;
+    unsigned short playing : 1;
+    unsigned short pad5 : 3;
+    unsigned short black : 1;
+    unsigned short nocmd : 1;
+    unsigned short pad10 : 1;
+    unsigned short mode : 2;
+    unsigned short pad13 : 2;
+    unsigned short lock : 1;
+    unsigned short field_4;
     unsigned short field_6;
     unsigned short field_8;
     unsigned short field_a;
@@ -211,42 +129,41 @@ void __stdcall FUN_00441220(Sub_00441460* sub, char* entry);
 // FUNCTION: 0x441460
 int __stdcall FUN_00441460(Gadget_00441460* gadget) {
     int count;
+    int left;
     int i;
     char* p[21];
     char names[0x20];
-    char buf[0x139];
+    char buf[0x80];
+    struct { char pre[0x99]; Settings_00441460 s; char pad[0x13]; } sb;
     const char* msg;
     char* lang;
 #define temp (buf)
-#define SETBUF ((Settings_00441460*)(buf + 0x119))
 
-    if (memcmp(g_game->provider, &DAT_004fcdc8, 0x10) == 0
-        || memcmp(g_game->provider, &DAT_004fcda8, 0x10) == 0)
-        goto second;
-    if (memcmp(g_game->provider, &DAT_004fcd98, 0x10) == 0) {
-        msg = "Updating...";
-        goto shown;
+#define PE(g) (memcmp(g_game->provider, &(g), 0x10) == 0)
+    if (!PE(DAT_004fcdc8) && !PE(DAT_004fcda8)) {
+        if (PE(DAT_004fcd98))
+            goto upd;
+        if (PE(DAT_004fcdb8))
+            ;
+        else
+            *(int*)&p[20] = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
     }
-    count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
-second:
-    if (memcmp(g_game->provider, &DAT_004fcdc8, 0x10) == 0) {
-        msg = "Connecting  (ESC to abort)";
-        goto shown;
+    if (PE(DAT_004fcdc8))
+        goto conn;
+    if (!PE(DAT_004fcda8)) {
+        if (!PE(DAT_004fcd98)) {
+            if (PE(DAT_004fcdb8))
+                ;
+            else
+                *(int*)&p[20] = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
+        }
+        goto conn;
     }
-    if (memcmp(g_game->provider, &DAT_004fcda8, 0x10) == 0) {
-        msg = "Updating...";
-        goto shown;
-    }
-    if (memcmp(g_game->provider, &DAT_004fcd98, 0x10) == 0) {
-        msg = "Connecting  (ESC to abort)";
-        goto shown;
-    }
-    if (memcmp(g_game->provider, &DAT_004fcdb8, 0x10) == 0)
-        msg = "Connecting  (ESC to abort)";
-    else {
-        count = memcmp(g_game->provider, &DAT_004fcdb8, 0x10) != 0;
-        msg = "Connecting  (ESC to abort)";
-    }
+upd:
+    msg = "Updating...";
+    goto shown;
+conn:
+    msg = "Connecting  (ESC to abort)";
 shown:
     FUN_004abd90(&g_game->sub, FUN_004c5740(msg), 0x96, 0, 1);
     FUN_004ab170(&g_game->sub, g_game->field_37e1b, 0);
@@ -266,19 +183,19 @@ shown:
         memset(p[i], 0, 0xa00);
     } while (i < 15);
 
-    p[0] = (char*)g_game->desc + 0x18;
+    char* dsc = (char*)g_game->desc;
     if (count > 0) {
+        p[0] = dsc + 0x18;
+        left = count;
         do {
             char* e;
-            unsigned int* rdw = (unsigned int*)(p[0] - 0x14);
-            int f0 = rdw[0];
-            *SETBUF = ((Record_00441460*)(p[0] - 0x14))->settings;
+            sb.s = *(Settings_00441460*)(p[0] - 0x14);
             memcpy(names, p[0], 0x20);
 
             strncpy(p[1], names, 0x10);
             p[1][0x10] = 0;
             p[1] += strlen(p[1]) + 1;
-            sprintf(p[2], "%d/%d", SETBUF->flags & 0xf, ((Record_00441460*)(p[0] - 0x14))->field_10);
+            sprintf(p[2], "%d/%d", sb.s.players, ((Record_00441460*)(p[0] - 0x14))->field_10);
             p[2] += strlen(p[2]) + 1;
 
             memset(temp, 0, 0x80);
@@ -301,10 +218,10 @@ shown:
             strcpy(p[3], temp);
             p[3] += strlen(p[3]) + 1;
 
-            if ((SETBUF->version & 0xff) >= (int)g_game->field_1) {
-                if ((SETBUF->flags >> 15) & 1)
+            if ((sb.s.version & 0xff) >= (int)g_game->field_1) {
+                if (sb.s.lock)
                     msg = "Lock";
-                else if ((SETBUF->flags >> 4) & 1)
+                else if (sb.s.playing)
                     msg = "Play";
                 else
                     msg = "Open";
@@ -312,18 +229,18 @@ shown:
             } else {
                 sprintf(p[4], "%s", FUN_004c5740("VER!"));
             }
-            p[5] = p[4] + strlen(p[4]) + 1;
-            sprintf(p[5], "%d", f0 & 0xffff);
+            p[4] += strlen(p[4]) + 1;
+            sprintf(p[5], "%d", sb.s.field_0);
             p[5] += strlen(p[5]) + 1;
-            sprintf(p[6], "%d", SETBUF->field_a * 100);
+            sprintf(p[6], "%d", sb.s.field_a * 100);
             p[6] += strlen(p[6]) + 1;
-            sprintf(p[7], "%d", SETBUF->field_8 * 100);
+            sprintf(p[7], "%d", sb.s.field_8 * 100);
             p[7] += strlen(p[7]) + 1;
-            sprintf(p[8], "%d", SETBUF->field_6);
+            sprintf(p[8], "%d", sb.s.field_6);
             p[8] += strlen(p[8]) + 1;
 
-            if ((SETBUF->flags & 0x1800) != 0) {
-                if ((SETBUF->flags & 0x1800) == 0x800)
+            if (sb.s.mode != 0) {
+                if (sb.s.mode == 1)
                     msg = "Yes";
                 else
                     msg = "DM";
@@ -333,13 +250,13 @@ shown:
             sprintf(p[9], "%s", FUN_004c5740(msg));
             p[9] += strlen(p[9]) + 1;
 
-            sprintf(p[10], "%s", FUN_004c5740((SETBUF->flags >> 8) & 1 ? "Blk" : "Gray"));
+            sprintf(p[10], "%s", FUN_004c5740(sb.s.black ? "Blk" : "Gray"));
             p[10] += strlen(p[10]) + 1;
-            sprintf(p[11], "%s", FUN_004c5740((SETBUF->flags >> 9) & 1 ? "No" : "Yes"));
+            sprintf(p[11], "%s", FUN_004c5740(sb.s.nocmd ? "No" : "Yes"));
             p[11] += strlen(p[11]) + 1;
 
             p[0] += 0x54;
-        } while (--count);
+        } while (--left);
     }
 
     FUN_004a32a0(&g_game->sub, "GAMENAME", (char*)g_game->data[1], g_game->field_4fd, 0);

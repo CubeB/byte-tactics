@@ -1,117 +1,29 @@
-// Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash pass 8 (53.6%, 4356 vs 4420 bytes, no change, still best): on top of pass 7,
-// the case-3 def uses routed through unit->def-> are byte-identical (MSVC CSEs them back onto the
-// def local), so case 3's bare def-> uses are not what keeps def in edx instead of the original's
-// esi. Definitizing the local (`Def* def = 0;`) is also byte-identical. Declaring def as an
-// initialised declaration before the friendly/enemy guard loads unit->def before the guard block and
-// drops to 46.6% at 4396 bytes (worse in both size and score). Every `unit->def->` in the switch
-// replaced by the def local scores 47.5% (4332 bytes), and `int m = mode; switch (m)` / the same as
-// an initialised declaration before the guard do not compile (C2360/C2361: goto none skips the
-// initialisation), so no new lever for the def-in-esi cascade was found this pass.
-// deepseek-v4.1-flash pass 7 (53.6%, 4356 vs 4420 bytes, current best): one more case-3 change on
-// top of pass 6. The friendly path's node test `if (node->f111bits.flag_17) break;` becomes the
-// plain mask `if (node->f111 & 0x20000) break;`: the direct load from [node+0x111] fixes the
-// scratch pick the bitfield's shr/test forced (node->f111 had landed in edx, now the original's
-// eax) and lifts 52.9 -> 53.6. Tested on this base and reverted: the neighbouring
-// `def->f1ee->f111bits.flag_8` as `& 0x100` (51.9, that one wants the bitfield) and case 9's
-// `unit->def->f245bits.flag_9` as `& 0x200` (51.5). Remaining diffs unchanged from pass 6:
-// prologue (mode ecx/def edx/dec ecx vs mode edx/def esi/lea ecx,[edx-1]), the after-block
-// scratch picks and the extra ebx reload before the commuted bottom reach compare.
-// deepseek-v4.1-flash pass 6 (52.9%, 4360 vs 4420 bytes, best before pass 7): two case-3 changes on top
-// of pass 5. (1) `Def* tdef` is declared in a NESTED block that opens at the enemy path (`{` plus
-// `Def* tdef = target->def;` immediately before the `(target->f110 & 3) != 2` test) and closes just
-// before the shared flag_28/break tail, which moved the tdef load to 0x43f1f1 like the original and
-// put node in esi, matching `mov esi,[ebp+0x10]` at 0x43f177 (51.6 -> 51.8). (2) deleting that
-// local and writing `target->def->` at the 5 use sites instead is better still: MSVC then loads
-// edx = target->def only at the first use, after the `& 3` guard and after the node bit test,
-// exactly as the original does (51.8 -> 52.9). The two `goto reached`/`goto after` are inside the
-// nested block, so they still resolve. Prologue still differs (ours: mode ecx, def edx, `dec ecx`;
-// original: mode edx, def esi, `lea ecx,[edx-1]`), as do the friendly path's scratch picks
-// (node->f111 in edx vs eax; def->f1ee chain in eax/ecx vs ecx/edx) and the bottom reach compare
-// (ours cmp ecx,eax / jg, original cmp eax,ecx / jl).
-// Also tested on this base: the bottom reach test written directly as
-// `if (target->def->f170 + target->f70 < g_game->threshold) goto after;` (39.7: MSVC folds the
-// redundant test away, the pass-5 commuted form must stay), swapping the reach sum's operand
-// order (52.9, byte-identical to pass 6), dropping the flags110 local for direct `unit->f110bits`
-// reads and making it a 1-element array (both byte-identical to pass 5).
-// deepseek-v4.1-flash pass 5 (51.6%, 4332 vs 4420 bytes, current best): the case-3 guard's
-// second reach test is a redundant re-test in the original (0x43f23c: cmp eax,ecx / jl 0x43f27a)
-// that MSVC folds away in every spelling that shares a syntactic tree with the first test
-// (base 51.3%, and all of: same-polarity duplicate, if/else goto-into-else, inline expression
-// re-evaluation, two-locals recompute, all folded the compare to jmp). It survives only when
-// the bottom test is a COMMUTED negation of the outer one: outer `reach >= g_game->threshold`
-// (goto reached) plus bottom `if (g_game->threshold <= tdef->f170 + target->f70) goto reached;
-// goto after;`. That keeps the compare (cmp ecx,eax / jg) and lifts 51.3 -> 51.6; it also makes
-// the threshold load and the mov edi,0x10000 constant hoist match the original byte for byte.
-// Still differs from 0x43f21b on: node is edx here vs esi in the original (the same node/def
-// register rotation as every earlier pass), an extra `mov ebx,[esp+0x1c]` reload before the
-// bottom compare, and the bottom compare is the commuted form (cmp ecx,eax / jg 0x43f281 vs
-// the original's cmp eax,ecx / jl 0x43f27a). vI/vJ (second local for the bottom test) do not
-// compile (MSVC C2360/C2361: goto skips the local's initialisation); vK (thr local) folds
-// again at 51.3. To also get cmp eax,ecx / jl the bottom tree must stay reach-first while not
-// being the outer test's exact negation, which every tested spelling collapses.
-// deepseek-v4.1-flash pass (51.3%, 4356 vs 4420 bytes): the whole of case 3 onward was
-// shifted by one allocator choice: ours gave esi to the target->def temporary and put the
-// node pointer in ecx, the original gives esi to node and keeps tdef in edx. Declaring
-// `Def* tdef = target->def;` early, right after `Node* node = unit->f10;` inside the
-// flag_31 block (it is otherwise only declared at the reach computation) changes the
-// allocator: tdef takes esi and def moves to edx, scoring 51.3% against 50.4%. It does
-// break the previously byte-exact prologue/guard region (mode moves edx -> ecx, def
-// esi -> edx), so the prologue now differs too, but the net alignment is better. Every
-// other spelling tried left the code bytes identical at 50.4%: removing the tdef local
-// entirely, routing the two loads through static inline getters, swapping the reach
-// operand order, char/bool friendly/enemy, and every header set (headers.py tops out at
-// 50.5% with <memory.h>). Declaring tdef at the top of case 3 or before the f245 test
-// scores 47.7%. Node still lands in ecx in this version; the remaining diffs are the
-// node/tdef/intermediate scratch picks and two constant materialisations.
-// deepseek-v4.1-flash pass 2 (no improvement, kept 51.3%): re-tried every node/tdef lever on
-// top of the 51.3% version and all scored 47 to 51.3 percent: swapping the two declarations,
-// splitting/merging tdef's declaration, moving tdef next to its first use (50.4), declaring it
-// without an initialiser, `const Def* tdef`, making def an array/struct local to force it to
-// memory, adding throwaway live locals (node2, node2=f2c), converting every `unit->def->` in
-// case 1 only (48.4) and in the whole switch (48.3) to the `def` local, and reordering the
-// friendly/enemy declarations (51.1). The 51.3% file is the best of the two spellings; the
-// cause is still that MSVC colours node in ecx and leaves a live def in edx instead of
-// spending def's esi cache on node.
-// deepseek-v4.1 pass 4 (50.4%): tried Pick as `cond ? vtol : ground` (43.0%, 4472 bytes) and as
-// `name = ground; if (bit) name = vtol;` (45.4%, 4444 bytes); both are worse than the current
-// `name = vtol; if (!bit) name = ground;`, so it is restored. Restructuring case 2 to the
-// original's early return (`if (!target) return Pick(...,"MOVE_GROUND")` before the target block,
-// which the original does at 0x43f873: test edi,edi / jne target code) drops to 48.9% (4340 bytes),
-// and replacing every `unit->def->` in the switch with the `def` local drops to 48.0% (4332 bytes);
-// both reverted. Still differs at 0x43f177: the
-// original has def only in memory ([esp+0x20]) there and reuses esi for the node pointer, ours
-// keeps def live in esi and gives the node ecx; later ours swaps node/tdef (esi vs edx too), so
-// case 3's whole body and everything after it stays shifted. In case 1 the original reads def
-// straight from [esp+0x20] while ours reloads unit from [esp+0x1c] then does `unit->def`, the same
-// memory-local theme. The original Pick is a select:
-// `mov edx,[def+0x241]; mov eax,VTOL; shr edx,0xb; test dl,1; jne <keep>`.
-// deepseek-v4.1-flash pass 3 (50.4%, 4324 vs 4420 bytes): the original's VTOL tests are
-// BITFIELD reads, not `(x >> 11) & 1`. A micro-test (build/scratch/0x43f0e0/t.cpp) shows
-// `(f241 >> 11) & 1` folding to `test ah,8`, while a bitfield read gives the original's
-// `shr ecx,0xb / test cl,1`. Converted IsVtol and the f245 shift checks to bitfields
-// (Flags245 union) and rewrote Pick as `name = vtol; if (!bit) name = ground;`. The
-// original has 27 `shr ..,0xb` sites; we still fold the Pick ternaries to `test`, so the
-// Pick sites remain the main open difference in case 3/9/etc.
-// deepseek-v4.1 pass 2 (50.0%): keeping the `def = unit->def;` store but writing unit->def inside
-// the case bodies makes the allocator give unit ebp and target edi, so the prologue and the
-// whole 0x43f0e0..0x43f1d4 prologue/guard region now match the original byte for byte (score
-// 47.5 -> 50.0; 4304 bytes vs the original 4420). The first still-differing instruction is at
-// 0x43f177: the original reuses esi (def) for the node pointer (`mov esi,[ebp+0x10]`) and
-// reloads def from [esp+0x20], ours keeps def pinned in esi and puts node in ecx; a couple of
-// extra `mov dl,2` / `xor ebx,ebx` materialisations follow from that. The original treats the
-// local as a memory variable with an opportunistic esi cache; ours still colours it in esi.
-// Removing the local entirely (unit->def at all 46 sites) reaches the same prologue but moves
-// target to ebx and friendly to edi (33.1%), so the local must stay.
-// Previous pass notes (prologue swap) kept in build/scratch/0x43f0e0/.
-// iostream improves the corrected implementation.
-// deepseek-v4.1 pass: verified against the binary that the source order of the cases is
-// already right. The jump table at 0x4401ec maps cases 1..14 to
-// 0x43f9e9, 0x43f845, 0x43f154, 0x43f7e8, 0x43f735, 0x43f701, 0x43f4c7, 0x43f46c,
-// 0x43f3b9, 0x43f82c, 0x43f813, 0x43f4f7, 0x43f6d1, 0x43f7a0, i.e. bodies are emitted in
-// order 3,9,8,7,12,13,6,5,14,4,11,10,2,1, exactly the order this file uses.
-// The case-3 body still differs in scratch-register picks (node/def/intermediate) and in two
-// constant materialisations; the case order and the guard region above are confirmed correct.
+// Decompiled by Claude Sonnet 5.5, finished by DeepSeek V4.1 Flash and GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// claude-sonnet-5-5 pass (60.7%, 4384 vs 4420 bytes, was 53.6%). Not a match. Register-agnostic
+// structure is ~87% identical (instruction stream with registers/jump targets masked); the prologue
+// and all of case 3 (0x43f154..0x43f27e) now match byte for byte. What changed vs the earlier passes:
+// - Pick() is `name = vtol; if (def->f241bits.flag_11 ? 0 : 1) name = ground;`: the ternary stops MSVC
+//   turning `!bitfield` into `test ch,8` and gives the original's `shr ecx,0xb; test cl,1`.
+// - case 3: the reach test is `if (reach < thr) {node/f2c tests}` then `if (reach >= thr) {...}`, no
+//   gotos. MSVC threads the first jump past the second compare, which is exactly the original's
+//   `jge 0x43f240` plus the surviving `cmp eax,ecx / jl 0x43f27a` (earlier passes chased this with
+//   commuted gotos). The friendly path uses the bitfield `node->f111bits.flag_17` (shr form).
+// - Lookup(): `if (id < 0xfffb) {...} else if (id == 0xfffe) {...}` order with `int idx = id` shared by
+//   the compare and the shift, matching the original's block order.
+// - case 2: `if (!target) return Pick(MOVE)` first (original falls through into it), friendly tests
+//   written as two separate `friendly && FUN_004899b0(...)` ifs, RECLAIMUNIT as a positive early return.
+// - case 8 tests `f104 != 0.0f` (HELPBUILD first). case 1: both `(f245 & 0x10) && enemy` recursions
+//   share one block via goto recurse3 (MSVC only merges them when the code is identical).
+// - uses of def after calls (cases 12 and 1) go through the `def` local so they reload from the spill
+//   slot [esp+0x20] like the original; this also made def land in esi at the top as in the original.
+// Still differs: (1) Lookup's result is kept in edx and t is never spilled, the original returns in eax
+// and stores t to [esp+0x24] after `test esi,esi` (g_game temp is ebx there, ours ebp); the mapWidth imul
+// is `imul ecx,[mem]` in the original. (2) Visible(): the original re-reads p->width for the imul and
+// loads pos->z before pos->y; ours CSEs width. (3) the first two RESURRECT sites are `je skip; jmp shared`
+// in the original, `jne shared` here (goto resurrect did not change it). (4) case 1a end: the original
+// has its own VTOL_MOVE block with unit in edi (reloaded from [esp+0x1c]); ours shares the 1b tail.
+// (5) the unit/def reload after the FUN_004899b0 calls in case 2 (ours reloads unit->def, the original
+// reads the spill slot) but writing def-> there scored lower overall.
 #include <iostream>
 #include <windows.h>
 
@@ -294,7 +206,7 @@ static inline int IsVtol(Def_0043f0e0* def) { return def->f241bits.flag_11; }
 
 static inline Class_00438760 Pick(Def_0043f0e0* def, const char* vtol, const char* ground) {
     const char* name = vtol;
-    if (!def->f241bits.flag_11)
+    if (def->f241bits.flag_11 ? 0 : 1)
         name = ground;
     return Class_00438760(name);
 }
@@ -312,15 +224,17 @@ static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
     if (!cell)
         return 0;
     unsigned short id = cell->feature;
-    if (id >= 0xfffb) {
-        if (id != 0xfffe)
+    if (id < 0xfffb) {
+        int idx = id;
+        if (idx >= g_game->unitCount)
             return 0;
-        id = (cell - (cell->offsetY * g_game->mapWidth + cell->offsetX))->feature;
-        if (id >= 0xfffb)
-            return 0;
-    } else if ((int)id >= g_game->unitCount) {
-        return 0;
+        return (Thing_0043f0e0*)(g_game->units + (idx << 8));
     }
+    if (id != 0xfffe)
+        return 0;
+    id = (cell - (cell->offsetY * g_game->mapWidth + cell->offsetX))->feature;
+    if (id >= 0xfffb)
+        return 0;
     return (Thing_0043f0e0*)(g_game->units + (id << 8));
 }
 
@@ -350,7 +264,7 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
         if (flags.flag_31) {
             Node_0043f0e0* node = unit->f10;
             if (!enemy) {
-                if (node->f111 & 0x20000)
+                if (node->f111bits.flag_17)
                     break;
                 if (!(def->f241 & 0x800))
                     return Class_00438760("SUPPRESS");
@@ -363,25 +277,22 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 if (node->f111 & 0x20000)
                     break;
             }
-            if (target->def->f170 + target->f70 >= g_game->threshold)
-                goto reached;
-            if (!(node->f111 & 0x10000)) {
-                if (!(unit->f3b & 2))
-                    break;
-                if (!(unit->f2c->f111 & 0x10000))
-                    break;
+            if (target->def->f170 + target->f70 < g_game->threshold) {
+                if (!(node->f111 & 0x10000)) {
+                    if (!(unit->f3b & 2))
+                        break;
+                    if (!(unit->f2c->f111 & 0x10000))
+                        break;
+                }
             }
-            if (g_game->threshold <= target->def->f170 + target->f70)
-                goto reached;
-            goto after;
-        reached:
-            if (def->f241 & 0x1000) {
-                if (node->f111 & 0x10000)
-                    break;
-                if ((unit->f3b & 2) && (unit->f2c->f111 & 0x10000))
-                    return Class_00438760();
+            if (target->def->f170 + target->f70 >= g_game->threshold) {
+                if (def->f241 & 0x1000) {
+                    if (node->f111 & 0x10000)
+                        break;
+                    if ((unit->f3b & 2) && (unit->f2c->f111 & 0x10000))
+                        return Class_00438760();
+                }
             }
-        after:
             unsigned int f = def->f241;
             if (def->f241bits.flag_11) {
                 unsigned int air = def->f1ee->f111 & 0x100;
@@ -423,19 +334,19 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
     case 8:
         if (!((Class_004899b0*)unit)->FUN_004899b0(target))
             break;
-        if (target->f104 == 0.0f)
-            return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
-        return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
+        if (target->f104 != 0.0f)
+            return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
+        return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
     case 7:
         if (!(unit->def->f245 & 0x20) || !friendly)
             break;
         return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
     case 12: {
-        if (!(unit->def->f245 & 0x400))
+        if (!(def->f245 & 0x400))
             break;
         Thing_0043f0e0* t = Lookup(pos);
         if (pos) {
-            if ((unit->def->f245 & 0x800) && Visible(unit, pos) && Marked(t))
+            if ((def->f245 & 0x800) && Visible(unit, pos) && Marked(t))
                 return Class_00438760("RESURRECT");
             if (pos && Visible(unit, pos) && Marked(t))
                 return Pick(def, "VTOL_RECLAIM", "RECLAIM");
@@ -475,54 +386,53 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
             break;
         if (unit->moving == 0)
             return Class_00438760("QMOVE");
-        if (target) {
+        if (!target)
+            return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
+        {
             if ((unit->def->f245 & 0x1000) && enemy)
                 return Class_00438760("CAPTURE");
-            if (!((unit->def->f245 & 0x400) && enemy)) {
-                if (friendly) {
-                    if (((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
-                        return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
-                    if (((Class_004899b0*)unit)->FUN_004899b0(target) &&
-                        (unsigned int)target->f108 < target->def->f1fa)
-                        return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
-                }
-                if ((unit->def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
-                    return Class_00438760("VTOL_LANDING");
-                if (((Class_00489a70*)unit)->FUN_00489a90(target))
-                    return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
-                if ((unit->def->f245 & 0x20) && friendly)
-                    return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
-                return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
-            }
-            return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
+            if ((unit->def->f245 & 0x400) && enemy)
+                return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
+            if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
+                return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
+            if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) &&
+                (unsigned int)target->f108 < target->def->f1fa)
+                return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
+            if ((unit->def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
+                return Class_00438760("VTOL_LANDING");
+            if (((Class_00489a70*)unit)->FUN_00489a90(target))
+                return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
+            if ((unit->def->f245 & 0x20) && friendly)
+                return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
+            return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         }
-        return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
     case 1: {
         if (g_game->flag37efa == 1) {
-            if ((unit->def->f245 & 0x10) && enemy)
-                return FUN_0043f0e0(3, unit, target, pos);
-            if ((unit->def->f245 & 0x400) && enemy)
+            if ((def->f245 & 0x10) && enemy)
+                goto recurse3;
+            if ((def->f245 & 0x400) && enemy)
                 return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
             if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
                 return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
             if (friendly && ((Class_004899b0*)unit)->FUN_004899b0(target))
                 return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
-            if ((unit->def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
+            if ((def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
                 return Class_00438760("VTOL_LANDING");
             if (target && ((Class_00489a70*)unit)->FUN_00489a90(target))
                 return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
-            if ((unit->def->f245 & 0x20) && friendly)
+            if ((def->f245 & 0x20) && friendly)
                 return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
-            if ((unit->def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
+            if ((def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
                 return Class_00438760("RESURRECT");
-            if ((unit->def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
+            if ((def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
                 return Pick(def, "VTOL_RECLAIM", "RECLAIM");
-            if (!(unit->def->f245 & 0x80) || unit->moving == 0)
+            if (!(def->f245 & 0x80) || unit->moving == 0)
                 break;
         } else {
-            if ((unit->def->f245 & 0x10) && enemy)
+            if ((def->f245 & 0x10) && enemy)
+            recurse3:
                 return FUN_0043f0e0(3, unit, target, pos);
-            if ((unit->def->f245 & 0x400) && enemy)
+            if ((def->f245 & 0x400) && enemy)
                 return FUN_0043f0e0(0xc, unit, target, pos);
             if (target && ((Class_004899b0*)unit)->FUN_004899b0(target) && target->f104 != 0.0f)
                 return FUN_0043f0e0(8, unit, target, pos);
@@ -530,11 +440,11 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 target->f104 == 0.0f && target->ffb == 0 &&
                 (!target->f86 || (target->f86->f110 & 0x40000000)))
                 break;
-            if ((unit->def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
+            if ((def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
                 return Class_00438760("RESURRECT");
-            if ((unit->def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
+            if ((def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
                 return Pick(def, "VTOL_RECLAIM", "RECLAIM");
-            if (!(unit->def->f245 & 0x80) || unit->moving == 0)
+            if (!(def->f245 & 0x80) || unit->moving == 0)
                 break;
         }
         return Pick(def, "VTOL_MOVE", "MOVE_GROUND");

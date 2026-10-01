@@ -26,6 +26,12 @@
 // declarations. The ymin/out and imin/lasty slot pair swaps are therefore a source-shape lever,
 // not a declaration-order one.
 
+// deepseek-v4.1-flash retry (#3712), still 76.1%: making dxdy block-local in both edge walks
+// (removing the function-scope slot) compiles to 795 bytes at 72.9%, so the 4-byte frame excess is
+// not that slot; initialising out at its declaration (`Span_004c1000* out = spans;`) and deleting the
+// post-guard store is 795 bytes at 72.5%, so the ymin/out slot pair is not first-definition order
+// either. Both reverted.
+
 struct Surface_004c1000 {
     unsigned short pitch;   // +0x0, also the clip width
     unsigned short field_2; // +0x2, the clip height

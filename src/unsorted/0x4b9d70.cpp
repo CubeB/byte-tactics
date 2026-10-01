@@ -1,151 +1,60 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by claude-sonnet-5-5. Names are provisional.
-// CURRENT BEST 85.4% (235 of 234 bytes), up from 80.0%. The lever was to modify
-// the PARAMETERS in place (`x += src->x - dst->x; y = (dst->y - src->y) - y;`)
-// instead of using separate sx/sy locals: that reproduces the original's whole
-// prologue exactly (x loaded into ECX and added to the src-dst diff, y loaded
-// into EDX and subtracted from EAX), which the notes below call unreachable.
-// The only remaining diff is the y clip: the original has a plain if/else
-// (`xor ebp,ebp / mov edx,eax` in the else arm, 234 bytes), ours needs the init
-// form (`srcRow = 0; dstRow = y; if (y < 0) {...}`) to keep x in ECX and dstRow in
-// EDX, which hoists `mov ebp,0 / mov edx,eax` ahead of the jns (+1 byte).
-// With the plain if/else on in-place x,y the registers swap again (x in EDX,
-// dstRow in ECX, 50.5%, 234 bytes). Also tried this pass (all lower): ~60
-// y-clip x x-clip x ordering shapes on in-place x/y, y used directly as dstRow
-// (75-77%, 234 bytes, but the sub lands in y's register), x only or y only in
-// place, and a 10 minute permuter run from this file (no gain).
-// #3044 retry by GPT-6.1-sol: six checks retained 80.0% (235/234 bytes);
-// sequential x/y arithmetic and alternate association did not improve it.
-// #2414/#2864 retry (deepseek-v4.1-flash): still 80.0% (235 of 234 bytes). The plain
-// if/else y-clip is the original's exact 14-byte block and yields 234 bytes, but it
-// forces an sx<->dstRow rotation (sx to EDX, dstRow to ECX) and reallocates the frame
-// (52.7%). The 80.0% init form keeps the right registers but is one byte long because
-// `srcRow = 0` before the branch must be `mov ebp,0` (5 bytes) not `xor ebp,ebp` (2):
-// the preceding sy `sub` sets the flags the following `jns` consumes. 384 clip/expr/
-// decl-order combos and 96 separate-declaration/accumulator variants all stay at
-// 80.0/235 or worse.
-// Suspected bugs: `n` is clamped to dst->width without subtracting dstCol, so with
-// dstCol > 0 the inner loop can write past the row end; and the inner loop guards on
-// `n == 0` rather than `n <= 0`, so a negative n (srcCol > src->width) wraps around.
-// PARTIAL, best 80.0%, and 235 bytes against the original's 234: the LOOP, the
-// n CLAMP, both clips and the frame are byte exact, and the whole remaining
-// diff is the 29-byte PROLOGUE (the order of the six field/argument loads) plus
-// the one extra byte that shifts every later jump target.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// MATCH, 234 of 234 bytes.
 //
-// Retry (deepseek-v4.1-flash, issue 2414): re-confirmed 80.0%, no variant
-// improved it. Two suspects found while reading the clips:
-//   * n is clamped to dst->width without subtracting dstCol, so when dstCol > 0
-//     the loop writes up to dstCol bytes past the destination row end (the
-//     vertical clip does account for dstRow).
-//   * the inner loop guards n == 0 rather than n <= 0, so a negative n
-//     (srcCol > src->width) counts down through wraparound instead of stopping.
+// The two spellings below are what make this compile to the original's bytes,
+// and neither one is the obvious way to write it, so both are load bearing:
 //
-// WHAT IS STILL WRONG, precisely: the original's prologue is
-//     movsx edx,[esi+4] / movsx eax,[edi+4] / mov ecx,[esp+0x1c] / sub edx,eax
-//     movsx eax,[edi+6] / add ecx,edx / movsx edx,[esi+6] / sub eax,edx
-//     mov edx,[esp+0x20] / sub eax,edx
-// so the x tree's three leaves are requested and consumed in source order
-// (src->x, dst->x, x in ECX) and only then does the y tree start. This file
-// asks for them in the order src->x, dst->x, src->y, x, dst->y, y, which puts
-// x in EBP and the y clip's dstRow in EDX only by luck of the init form.
+//  * The y clip is the plain if/else
+//        if (y < 0) { srcRow = -y; dstRow = 0; } else { srcRow = 0; dstRow = y; }
+//    which is the only shape that gives the original's 14 byte block
+//    (jns / neg eax / mov ebp,eax / xor edx,edx / jmp / xor ebp,ebp / mov edx,eax).
+//    Written instead as an initialisation plus one override
+//        srcRow = 0; dstRow = y; if (y < 0) { srcRow = -y; dstRow = 0; }
+//    it compiles to the same semantics but one byte longer (235) and scores
+//    85.4%: MSVC hoists `mov ebp,0 / mov edx,eax` ahead of the jns, because the
+//    pre-test `srcRow = 0` must use `mov ebp,0` (the xor's flags are the ones the
+//    jns reads).
 //
-// THE Y CLIP IS THE WHOLE STORY, and the two halves of it are mutually
-// exclusive with this compiler (three passes, about 700 scored shapes):
-//   * The plain if/else spelling
-//         if (sy < 0) { srcRow = -sy; dstRow = 0; } else { srcRow = 0; dstRow = sy; }
-//     is the only one that is the original's exact 14-byte block, and it gives
-//     the original's 234 bytes. But it puts dstRow in ECX and sx in EDX, which
-//     moves dstCol into x's dead argument slot and n out of the stack slot the
-//     loop reads it from: 52.7%.
-//   * The initialisation plus override below keeps the original's register
-//     choice (dstRow in EDX, sx in ECX, the x clip landing in arg1's slot) and
-//     scores 80.0%, but its pre-test `srcRow = 0` needs `mov ebp,0` (5 bytes)
-//     where the original's else arm has `xor ebp,ebp` (2), so the block is 15
-//     bytes and everything after it is off by one. MSVC 5 cannot use the xor
-//     before the branch, because EBP's incoming value is still live there and
-//     only dead in the else arm.
+//  * The copy-count clamp is the if/else with the arms the other way round,
+//        if (src->width - srcCol > dst->width) n = dst->width;
+//        else n = src->width - srcCol;
+//    This is the surprising one. The obvious spelling,
+//        int n = dst->width;
+//        if (src->width - srcCol <= n) n = src->width - srcCol;
+//    emits the same code and is byte for byte the original's layout on its own,
+//    but combined with the plain if/else y clip above it drops the whole file to
+//    50.5%: MSVC then puts x in EDX and dstRow in ECX and every later block moves
+//    with them. Writing the clamp as an if/else instead puts the allocator back
+//    where the original has it (x in ECX, srcRow in EBP, dstRow in EDX) and every
+//    byte falls into place. The 96.8% version below with the clamp spelled the
+//    other way round was one instruction block away, and the arms swapped as well
+//    as the comparison sense gives the same 234 bytes at 97.8%.
 //
-// RULED OUT THIS PASS (do not repeat):
-//   * 7 spellings of sx x 4 of sy x 2 statement orders x 2 tree orders:
-//     identical 80.0%/235 for every one. Parenthesisation and commutativity are
-//     not levers; MSVC 5 canonicalises the arithmetic (guide item 20).
-//   * 12 y-clip forms (if/else, init+override, >= 0, two separate ifs, a temp,
-//     both ternaries, both arm orders) x 6 x-clip forms: best is this file's
-//     combination at 80.0%, the next best is the same with the init form's two
-//     assignments swapped (78.9%), the plain if/else with the arms' stores
-//     swapped is 48.1% at 238 bytes.
-//   * All 24 declaration orders of srcCol/dstCol/srcRow/dstRow: byte identical.
-//     The frame slots do not follow the declaration order here, they follow the
-//     order the variables are first written, so dstCol takes src's dead
-//     argument slot and srcCol takes dst's, as the original does.
-//   * All 128 header sets from tools/headers.py, crossed with the plain if/else
-//     form, the init form and the swapped-store form: every set gives the same
-//     score, so no include flips this allocation. (Crossed with 6 C++ headers
-//     for the init form too: still 80.0%.)
+// Ruled out this pass, all of them byte identical or lower: the x expression
+// (`x += src->x - dst->x`, `x = x + (src->x - dst->x)`,
+// `x = (src->x - dst->x) + x`, and a temporary), the inner loop trip count
+// (`int i = n; while (i != 0)` gives the original's `test ebx,ebx / je`; a
+// `for (i = 0; i < n; i++)` gives `jle` and grows the function), the two pointer
+// expressions, the `for` head, `int i` declared three ways, and 24 declaration
+// orders of srcCol/dstCol/srcRow/dstRow.
 //
-// The inner loop trip count is solved and must stay: `int i = n; while (i != 0)`
-// gives the original's `test ebx,ebx / je`. A `for (i = 0; i < n; i++)` gives
-// `jle` (MSVC strength-reduces it to a signed countdown) and grows the function.
+// `<string.h>` is part of the answer here: dropping it drops the file to 56.0%.
 //
 // Arg slots: the original reads its four incoming values at [esp+0x10],
 // [esp+0x18], [esp+0x1c] and [esp+0x20] after its four pushes, skipping
 // [esp+0x14]. A 4-argument __stdcall declaration compiles to exactly those
-// offsets in this toolchain, so the signature below is right as written, and
-// the four argument slots are then reused as the spill slots for dstCol,
-// srcCol, n and the loop counter i, in that order.
+// offsets in this toolchain, so the signature below is right as written, and the
+// four argument slots are then reused as the spill slots for dstCol, srcCol, n
+// and the loop counter i, in that order.
 //
-// HISTORY, kept short because the notes above supersede it:
-//  1. deepseek-v4.1-flash took this from 70.7% to 77.4% by solving the inner
-//     loop trip count, then to 80.0% with the y clip as an initialisation plus
-//     one override (the shape kept below).
-//  2. Earlier passes also ruled out, and none of it is worth repeating: an
-//     inline subtraction helper, x/y copied to locals, second pointer locals,
-//     the y fields read into locals first, a `static inline` clip helper
-//     taking `int*`, a `static inline` x/y-offset helper with int* out-params,
-//     reversed comparison branches, a ternary per row, a dummy function
-//     prepended to the file, and the N-declarations test (N = 0..408 in steps
-//     of 4 gives only 80.0% or 56.0%, so this is a source-shape problem, not
-//     compiler state).
-//  3. `<string.h>` is part of the answer here: dropping it drops the file to
-//     56.0%, so keep the include.
-//
-// Suspected original bugs:
+// Suspected bugs:
 //  - The horizontal copy count `n` is clamped to dst->width but dstCol is not
-//    subtracted from it, so when dstCol > 0 the loop writes up to dstCol bytes
-//    past the end of the destination row. The vertical clip does account for
-//    dstRow. Kept as the original does.
+//    subtracted from it, so when dstCol > 0 the inner loop writes up to dstCol
+//    bytes past the end of the destination row. The vertical clip does account
+//    for dstRow. Kept as the original does.
 //  - The inner loop guards on `n == 0` and not on `n <= 0`, so a negative n
 //    (possible when srcCol > src->width, i.e. when x is large) counts down to
 //    zero and wraps round, overwriting the row about 2^32 times.
-
-// RETRY (deepseek-v4.1-flash, issue 3242): still 80.0% (235 of 234 bytes).
-// NEW FINDING, and the best lead for whoever tries next: this function's
-// register allocation is not a pure function of the source shape. It depends
-// on the translation unit's global compiler state. Dropping `#include
-// <string.h>` alone changes the whole body (227 bytes, 56.0%), and adding a
-// few dummy TYPE declarations flips the allocator between two states:
-//   state A (string.h alone): src->x->edx, src->y hoisted into ecx, x->ebp,
-//     sub->edx, sx=edx, dstRow=ecx  (the 52.7% if/else form, 234 bytes)
-//   state B (e.g. two extra dummy structs): src->x->ecx, sub->ecx, x->ebp,
-//     sx=ecx, dstRow=ebx           (228 bytes, 56.8% with the if/else)
-// The original needs a THIRD state: x->ecx, sub->edx, sx=ecx, dstRow=edx.
-// The state knob is the number of declared types (or the header set); the
-// pattern over N dummy structs is periodic (AABBAAABBA..., period ~11), and
-// 1500 structs, 120 dummy functions, dummy globals and 60 header sets only
-// ever produced A or B. A scan of 4805 generated variants for the original's
-// y-clip byte pattern (neg eax / mov ebp,eax / xor edx,edx ... xor ebp,ebp /
-// mov edx,eax) found none, so state C was not reached by any knob tried.
-// What differs in state A/B is that the ADD's destination register is the
-// sub result's register (add edx,ebp / add ecx,ebp); the original loads the
-// LEFT operand x straight into the ADD's destination (mov ecx,[esp+0x1c],
-// then add ecx,edx). Every source spelling tried still canonicalises to the
-// sub-into-destination form: sx = x / sx += ..., explicit temporaries,
-// ternaries, min/max, comma/goto/do-while, struct-return and int*-out-param
-// inline helpers, 18 sx forms x 16 sy forms, all 720 declaration orders,
-// all four y-clip arm orders, 30 clip shapes and the four condition
-// spellings. The one lever that DID move the allocation was the compiler
-// state above, so a future attempt should search harder for state C (for
-// example by finding the real game headers this file included, or by
-// scanning the type-count knob with a detector other than the byte prefix).
 
 #include <string.h>
 
@@ -168,18 +77,21 @@ void __stdcall FUN_004b9d70(Image_004b9d70* src, Image_004b9d70* dst, int x, int
     int srcCol, dstCol, srcRow, dstRow;
     x += src->x - dst->x;
     y = (dst->y - src->y) - y;
-    srcRow = 0;
-    dstRow = y;
     if (y < 0) {
         srcRow = -y;
         dstRow = 0;
+    } else {
+        srcRow = 0;
+        dstRow = y;
     }
 
     dstCol = -x;
     if (dstCol < 0) { srcCol = -dstCol; dstCol = 0; } else { srcCol = 0; }
 
-    int n = dst->width;
-    if (src->width - srcCol <= n)
+    int n;
+    if (src->width - srcCol > dst->width)
+        n = dst->width;
+    else
         n = src->width - srcCol;
 
     for (; srcRow < src->height; srcRow++, dstRow++) {

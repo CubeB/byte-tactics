@@ -1,4 +1,49 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Session Space Bunny Free (issue 4447): 83.0% -> 90.7% (1055 bytes vs 1051), one structural
+// difference left. Two findings, both new:
+//  1. THE ALLOCATION TRIGGER. Earlier sessions correctly identified the blocker (branch 2's
+//     Lock result lands in ebp instead of ebx, so the two Unlock bodies are not byte-identical
+//     and MSVC cannot tail-merge them). Found the exact trigger: ANY second read or branch of
+//     `held` inside branch 2 makes MSVC 5 allocate the Lock imports as
+//     (InterlockedExchange, WaitForSingleObject, held) = (ebp, ebx, ebx), which is exactly the
+//     original's. With that, both Unlock bodies compile to the same literal-0 sequence
+//     (`push 0; push 0x52a4e8; mov [0x52a4ec],0; call ebp; ...`) and MSVC merges them, so
+//     branch 1 ends in `mov eax,[esp+0x10]; test eax,eax; jmp <shared jne>` at 0x4c6470
+//     instead of carrying its own copy of the body. That single change is worth ~34 bytes.
+//     The cheapest trigger found is the two lines
+//         LONG held;
+//         if ((held = Lock()) == 0) held = 0;
+//     where MSVC deletes the dead store but keeps the test, leaving a degenerate
+//     `test ebx,ebx; jne <the next instruction>` (4 bytes) that the original does not have.
+//     That is the ONLY remaining difference in this file; remove it and the function should
+//     match. Everything below was tried and does NOT give the flip for free (all variants are
+//     in build/scratch/0x4c63a0/, 200+ compiles): the same use far from the Lock works
+//     (`if (d->field_1ce == 0x7fffffff) held = 0;` just before Unlock, but 8 bytes),
+//     `switch (held = Lock()) { case 0x7fffffff: held = 0; }` works (8 bytes), and an empty
+//     then-branch, a switch with no case, `(void)held`, `held = held`, `held += 0`, an
+//     unconditional dead store, the `register` keyword, a goto, a label, lifting branch 1 or
+//     branch 2 into an inline helper, permuting branch 2's declarations, eight Lock-helper
+//     spellings (else chains, `!r`, a named constant, `return r`, a declared-outside r), the
+//     two bmp-resolution checks reordered or merged into one `||`, the if/else-if/else
+//     restructure and the branch-2-only Lock all leave the allocation at (ebx, ebp, ebp).
+//     tools/permute.py, 15 minutes over 1269 candidates: no gain.
+//  2. THE INLINED UnlockScreen SPELLING. 0x4c5fa0 is MATCHED (src/unsorted/0x4c5fa0.cpp) and
+//     it unlocks through a method of an embedded screen struct, which is why the surface
+//     pointer is re-read there: `struct Screen { ...; IDirectDrawSurface* surface;
+//     void UnlockSurface() { surface->Unlock(0); } };`. Copying that shape here (with
+//     `primary` at +0x08 so field_88 keeps offset 0x88) reproduces the original's exact
+//     sequence `mov ecx,[eax+0x8c]; test ecx,ecx; je; mov eax,ecx; push 0; push eax;
+//     mov ecx,[eax]; call [ecx+0x80]` in both inlined copies. Every other spelling tried (a
+//     named local, no local at all, nested ifs, a helper taking the surface or the display, a
+//     parameterised UnlockScreen, a void return, the surface test first, the counter guard
+//     first) loads the surface straight into eax and loses the `mov eax,ecx`. This fixed
+//     four of the wrong instructions.
+// Frame and slots are unchanged and correct: 0xf4, with held/bmp/pt sharing 0x10, rect 0x18,
+// src 0x28, out 0x38, screen 0x68, desc 0x98.
+// For the record: build/scratch/0x4c63a0/u_x_cond0.cpp is this code WITHOUT the nested-screen
+// UnlockScreen fix. It measures 1051 bytes and 91.3% by check.py (its four shorter instructions
+// make difflib's text ratio happier) but has three differences instead of one, so the version
+// kept here is the better starting point.
 // Session claude-sonnet-5-5 (issue 4140 retry, no code change, still 83.0%): root cause found for the
 // unmerged Unlock. Our branch-2 Lock allocates (iel,wfso,held) = (ebx,ebp,ebp) instead of (ebp,ebx,ebx),
 // and our tail then substitutes the proven-zero held register (`push ebp`), so it differs from branch 1's
@@ -145,6 +190,15 @@ struct Out_004c63a0 {
 };
 
 #pragma pack(push, 1)
+struct Screen_004c63a0 {
+    char unknown_0[0x8];
+    IDirectDrawSurface* primary;       // +0x08
+    IDirectDrawSurface* surface;       // +0x0c
+    char unknown_10[0x18 - 0x10];
+
+    void UnlockSurface() { surface->Unlock(0); }
+};
+
 struct Display_004c63a0 {
     char unknown_0[0x40];
     HWND hwnd;                         // +0x40
@@ -152,10 +206,7 @@ struct Display_004c63a0 {
     HDC srcDC;                         // +0x48
     HPALETTE palette;                  // +0x4c
     Out_004c63a0 cached;               // +0x50
-    char unknown_80[0x8];
-    IDirectDrawSurface* field_88;      // +0x88
-    IDirectDrawSurface* surface;       // +0x8c
-    char unknown_90[0x98 - 0x90];
+    Screen_004c63a0 screen;            // +0x80
     Surface_004c63a0* field_98;        // +0x98
     int field_9c;                      // +0x9c
     char unknown_a0[0xbc - 0xa0];
@@ -220,10 +271,9 @@ static inline int UnlockScreen()
 {
     Display_004c63a0* d = FUN_004b6220();
     if (d->field_44 == 0 && d->field_dc == 0) {
-        IDirectDrawSurface* surface = d->surface;
-        if (surface == 0)
+        if (d->screen.surface == 0)
             return 0;
-        surface->Unlock(0);
+        d->screen.UnlockSurface();
         if (DAT_0051fe00 > 0)
             DAT_0051fe00--;
     }
@@ -269,9 +319,15 @@ void FUN_004c63a0(void)
         if (bmp->data[1] != FUN_004b6710())
             return;
 
-        LONG held = Lock();
+        // The test reads the lock result again straight after the Lock; that read is
+        // what makes MSVC give the Lock result ebx (see the header notes), which is in
+        // turn what lets it tail-merge the two Unlock bodies. The assignment in the
+        // then-arm is dead and MSVC drops it, leaving only the test.
+        LONG held;
+        if ((held = Lock()) == 0)
+            held = 0;
         desc.dwSize = sizeof(desc);
-        unsigned long lr = d->field_88->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
+        unsigned long lr = d->screen.primary->Lock(0, (DDSURFACEDESC*)&desc, 1, 0);
         if (lr == 0) {
             out.data[0] = d->field_d4;
             out.data[1] = d->field_d8;
@@ -281,12 +337,12 @@ void FUN_004c63a0(void)
             FUN_004cbbe0(&out, bmp, 0, 0);
             if (d->field_1ce != 0 && d->field_1d2 != 0)
                 FUN_004c6b70(bmp, (Surface_004c63a0*)d->field_1be, d->field_1b6, d->field_1ba);
-            d->field_88->Unlock(0);
+            d->screen.primary->Unlock(0);
         } else if (lr == 0x887601c2) {
             Display_004c63a0* dd = FUN_004b6220();
             if (dd->field_44 == 0) {
-                if (d->field_88->Restore() == 0) {
-                    if (d->surface->Restore() == 0) {
+                if (d->screen.primary->Restore() == 0) {
+                    if (d->screen.surface->Restore() == 0) {
                         FUN_004c5e70(&screen);
                         FUN_004cbbe0(&screen, dd->field_98, 0, 0);
                         UnlockScreen();
@@ -299,7 +355,7 @@ void FUN_004c63a0(void)
     }
 
     if (d->field_9c != 0 && (flags & 1) != 0) {
-        d->field_88->Flip(0, 1);
+        d->screen.primary->Flip(0, 1);
         return;
     }
 
@@ -315,7 +371,7 @@ void FUN_004c63a0(void)
 
     int hr;
     while (1) {
-        hr = d->field_88->Blt(&rect, d->surface, &src, 0x1000000, 0);
+        hr = d->screen.primary->Blt(&rect, d->screen.surface, &src, 0x1000000, 0);
         if (hr == 0)
             return;
         if (hr != 0x887601c2)
@@ -324,9 +380,9 @@ void FUN_004c63a0(void)
         if (dd->field_44 != 0) {
             hr = 0;
         } else {
-            hr = d->field_88->Restore();
+            hr = d->screen.primary->Restore();
             if (hr == 0) {
-                hr = d->surface->Restore();
+                hr = d->screen.surface->Restore();
                 if (hr == 0) {
                     FUN_004c5e70(&screen);
                     FUN_004cbbe0(&screen, dd->field_98, 0, 0);

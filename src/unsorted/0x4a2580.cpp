@@ -1,4 +1,79 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// 2026-10-02 (Space Bunny Free), 81.7 -> 84.2%, two hunks from the permuter,
+// each verified alone (limit-before-first alone is 83.8%, the `b` hoist alone
+// 82.0%, together 84.2%):
+//  - in the h<=w arm `int limit = x + w - 1;` comes BEFORE
+//    `Glyph_004a2580* first = FUN_004b7f30(...)`, not after it.  Swapping only
+//    these two statements is worth 2.1 points.
+//  - `b` is declared as a function-scope `int b;` (no initialiser) and assigned
+//    in the h<=w arm, rather than being a branch local.  The permuter found the
+//    uninitialised declaration; giving it a name comment is fine because the
+//    branch assigns it before every read.  Hoisting `a` the same way is inert.
+//  Both changes are about where the allocator puts the h<=w temporaries, which
+//  is what finally freed the register that the w<h branch's surface wants.
+// Remaining gap is still one hunk: in the w<h arm the original enregisters the
+// reloaded surface in ebp and homes `limit` at [esp+0x10], ours does the
+// reverse (`limit` in ebp, surface at [esp+0x10], and every FUN_004b7f90 draw
+// reloads it with `mov eax,[esp+0x1c]`).  The original's four scalar slots are
+// limit 0x10, lc 0x14, entries 0x18, surface 0x1c; ours are surface 0x10,
+// lc 0x14, entries 0x18 and one fewer.  Every declaration order of the four w<h
+// locals is byte-identical, a branch-local `void* surf` draws its own frame slot
+// (72.8%), hoisting `int limit` to function scope drops to 65.9%, and wrapping
+// the whole arm in an inlined `static inline void DrawStack(e, surf)` is inert
+// at 84.2%.  `Smaller` must stay reference-returning: a by-value `Min`, or a
+// plain `if` for EITHER minimum, is 68-69%, so the `lea [esp+0x1c]` address
+// temporaries it costs are required by the original's own code shape.
+// 2026-10-01 (Space Bunny Free), 75.2 -> 80.6%, byte count exact at 1631 again:
+//  - `e->w < e->h` is NOT the comparison in the source. The original emits
+//    `mov cx,[ebx+0x17]; mov dx,[ebx+0x19]; cmp cx,dx` and then REUSES the
+//    register copies inside the branches: `movsx edx,dx` for `y + h - 1` and
+//    `movsx ecx,cx` for `x + w - 1`. That only happens when w and h are `short`
+//    locals read again inside the two arms, so the else-if chain becomes an else
+//    holding `short w = e->w; short h = e->h; if (w < h) {...} else {...}` with the
+//    h<=w arm's limit written `x + w - 1`. Using the locals in only one arm, or
+//    making them `int` (32-bit compare), or `unsigned short` (jb) all score lower
+//    (75.2 / 75.5 / 72.1). This was worth 5.4 points on its own.
+//  - the pointer chain `obj->holder->entries->u.head.surface` goes through a
+//    `static inline void* Surface_004a2580(Object*)` getter at all three sites
+//    (the guide's pointer-chain pattern), +0.3 and byte-identical to writing the
+//    chain out. Doing it in one site only is the same, so it is not the lever.
+// Remaining gap: still the frame slot for the function-scope `surface`
+// ([esp+0x10] here, [esp+0x1c] in the original), which in turn makes the w<h
+// branch keep `limit` in ebp where the original keeps the reloaded surface in ebp
+// and homes `limit` at [esp+0x10]. Every declaration order of the four w<h locals
+// tried is byte-identical (b0-b3 style), a branch-local `void* surf` draws its own
+// frame slot and drops to 66%, and hoisting `int limit` first gives 64.9%.
+// 2026-10-01 (Space Bunny Free), 69.8 -> 74.5%, three independent wins in the
+// 2026-10-01 (Space Bunny Free): 69.8 -> 74.5%. Three independent wins, all in the
+// flags&4 tail, all measured:
+//  - the glyph-width measuring loop needs a real `unsigned char c` local, not the
+//    `(unsigned char)*p` cast: the original stores the byte to the dead `obj` argument
+//    home and reloads it (`mov byte [esp+0x54],al; mov ecx,[esp+0x54]; and ecx,0xff`),
+//    which only a named byte local produces (72.4% alone, +11 bytes);
+//  - `int total = 0;` belongs BEFORE the `char* text = buf` null test so that the zero
+//    lands at `xor edi,edi` ahead of it (70.0% alone), and `p` is a second pointer
+//    declared inside the `font != 0` arm so that `lea esi,[esp+0x20]` is only emitted
+//    there (72.7% together). The null-tested pointer is `text`; the walked pointer is `p`.
+//  - the _itoa float value must be a named `int num` computed in its own statement
+//    before `_itoa(num, buf, 10)`: that makes MSVC finish the x87 chain before it starts
+//    the shared argument pushes, which is the original's order (74.5%). Spelling the
+//    same value inline inside the call interleaves `push 0xa; push ecx` between `fild`
+//    and `fimul`. A named denominator (`int span`) instead is inert at 72.7%.
+//  - and 74.5 -> 74.9: the SECOND minimum (`lim2 = Smaller(lim2, t)`) is a plain
+//    `if (lim2 >= t) lim2 = t;`. The first one (`lc = Smaller(lc, e->size)`) has to stay
+//    the reference-returning helper: making that a plain if too is 68.5% (1615 bytes),
+//    and flipping either condition or writing the second as `lim2 < t ? lim2 : t` is
+//    byte-identical to `if (lim2 >= t) lim2 = t`.
+// Remaining gap, all in the w<h branch: the frame slot for the function-scope `surface`
+// is [esp+0x10] here against [esp+0x1c] in the original, and the allocator gives ebp to
+// `limit` here and to the reloaded surface there, so the three draws in that branch
+// reload `surface` from the stack (`mov eax,[esp+0x10]; push eax`, 4 bytes each) where
+// the original pushes ebp. That is the whole +11 byte excess. Still worth trying: a
+// branch-local surface variable in the w<h arm (63.1%, it draws its own frame slot),
+// `short w/h` locals for the two-register branch compare (69.8%, inert), a by-value
+// `Smaller(int,int)` (62.4%, 1604 bytes, drops the reference temps but moves `entries`
+// to 0x14), and `e->x + e->w + 2` vs `e->w + e->x + 2` in the FUN_004c14f0 call (both
+// still load x and w in the opposite order to the original).
 // 2026-10-01 retry 8 (deepseek-v4.1-flash, #3660): best is still 69.8% (the form below).
 // New measurements, all scored:
 //  - The w<h register tie is real and use-count sensitive, but only for a BRANCH-LOCAL
@@ -255,12 +330,18 @@ void __stdcall FUN_004bfe10(void* surface, void* rect);
 void __stdcall FUN_004bf4d0(void* surface, void* rect, int a);
 
 static inline const int& Smaller(const int& a, const int& b) { return a < b ? a : b; }
+
+static inline void* Surface_004a2580(Object_004a2580* o)
+{
+    return o->holder->entries->u.head.surface;
+}
 // FUNCTION: 0x4a2580
 void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
 {
-    void* surface = obj->holder->entries->u.head.surface;
+    int b;
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
+    void* surface = Surface_004a2580(obj);
     Glyph_004a2580* g;
     Glyph_004a2580* mid;
 
@@ -286,11 +367,14 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
     if (gl == 0) {
         FUN_004b0510(surface, r1, obj->field_8b2, obj->field_8c3, obj->field_8c6);
         FUN_004b0590(surface, r2, obj->field_8b2, obj->field_8c3, obj->field_8c6);
-    } else if (e->w < e->h) {
+    } else {
+        short w = e->w;
+        short h = e->h;
+        if (w < h) {
         int y = e->y;
-        surface = obj->holder->entries->u.head.surface;
+        surface = Surface_004a2580(obj);
         int x = e->x;
-        int limit = y + e->h - 1;
+        int limit = y + h - 1;
         g = FUN_004b7f30(e->glyphs, e->field_152);
         if (g != 0)
             FUN_004b7f90(surface, g, x, y);
@@ -310,7 +394,8 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         int ybase = e->off + e->y + 3;
         int lim2 = lc + ybase - 1;
         int t = e->h + e->y - 4;
-        lim2 = Smaller(lim2, t);
+        if (lim2 >= t)
+            lim2 = t;
         if (ybase > lim2 - lc + 1)
             ybase = lim2 - lc + 1;
         FUN_004b7f90(surface, g, x, ybase);
@@ -326,11 +411,11 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         g = FUN_004b7f30(e->glyphs, e->field_152 + 5);
         FUN_004b7f90(surface, g, x, lim2 - g->height + 1);
     } else {
-        void* surf = obj->holder->entries->u.head.surface;
+        void* surf = Surface_004a2580(obj);
         int x = e->x;
         int y = e->y;
+        int limit = x + w - 1;
         Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);
-        int limit = x + e->w - 1;
         if (first != 0)
             FUN_004b7f90(surf, first, x, y);
         x += first->width;
@@ -345,10 +430,11 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
         y -= g->height / 2;
         int a = e->off + e->x + 3;
-        int b = limit - g->width - 2;
+        b = limit - g->width - 2;
         if (a >= b)
             a = b;
         FUN_004b7f90(surf, g, a, y);
+        }
     }
 
     if (e->flags & 4) {
@@ -358,21 +444,23 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         if (e->u.text[0] != 0) {
             strcpy(buf, e->u.text);
         } else if (e->field_13c != 0) {
-            _itoa((int)((float)e->off * e->field_13c / (e->w - e->size)), buf, 10);
+            int num = (int)((float)e->off * e->field_13c / (e->w - e->size));
+            _itoa(num, buf, 10);
         } else if (e->flags & 8) {
             _itoa(e->off + 1, buf, 10);
         } else {
             _itoa(e->off, buf, 10);
         }
-        char* p = buf;
-        if (p != 0) {
+        char* text = buf;
+        int total = 0;
+        if (text != 0) {
             if (DAT_0051fba4->font == 0) {
-                FUN_004c1480((Font_004a2580*)FUN_004c1440(), buf);
+                FUN_004c1480((Font_004a2580*)FUN_004c1440(), text);
             } else {
-                int total = 0;
+                char* p = text;
                 for (; *p != 0; p++) {
-                    g = FUN_004b7f30(
-                        (unsigned short*)DAT_0051fba4->font->glyphs, (unsigned char)*p);
+                    unsigned char c = *p;
+                    g = FUN_004b7f30((unsigned short*)DAT_0051fba4->font->glyphs, c);
                     if (g != 0)
                         total += g->width;
                 }

@@ -190,5 +190,4 @@ void __stdcall FUN_004c8760(Surface_4c8760* target, Surface_4c8760* texture, int
                 }
             }
         }
-    }
 }

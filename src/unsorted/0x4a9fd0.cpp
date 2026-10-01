@@ -1,43 +1,82 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
 //
-// Partial: 53.1%, 2180 bytes versus 2164 (was 46.0% / 2204).
+// Partial: 73.5%, 2108 bytes versus 2164 (was 53.1% / 2180).
 //
-// claude-sonnet-5-5 session, structural fixes that raised 46.0 to 53.1:
-//   * case 12 is written textually LAST in the switch (block layout), and case 1
-//     jumps into it (`goto setdirty;`) because the original shares the
-//     `if (layer) layer->dirty = 1` tail between cases 1 and 12;
-//   * the post-loop code never uses the cached `entries` local: the original
-//     re-reads menu->layer->entries (help-text search, strcpy, field_68 pointer,
-//     and the final sel block each get a fresh load);
-//   * the "select current" tails (case 5 and the final sel block) read
-//     `int current = menu->layer->current;` back after storing it, test
-//     `layer->entries[current].type == 3` and then load `ents` again;
-//   * case 13 and the loop body use plain `entries[i]` / `menu->layer->entries[i]`
-//     (the compiler derives the p / bias strength reduction itself);
-//   * case 5's name search has no `found == count + 1` fix-up (it was dead code
-//     that cost 20 bytes): `found` is -1 unless the strncmp matched.
+// Space Bunny Free session, 53.1 -> 73.5. Seven structural fixes:
+//   * the "select current" block at the tail of the function is 0x4a76b0's
+//     `static inline void DoSelect(menu, entries, sel)` (a MATCH) called as
+//     `if (menu->layer->entries[menu->layer->current].type == 3)
+//          DoSelect(menu, menu->layer->entries, menu->layer->current);`
+//     It reproduces the group scan (the type 7 walk with the `n` counter,
+//     entries[i].language, and the DAT_0051fba4->group fallback), the
+//     FUN_0049fc50 call, the re-store of menu->layer->current = sel and the
+//     FUN_004ab6c0 call. With the next point: 53.1 -> 61.1;
+//   * case 5's entry-name search is 0x4a76b0's `FindEntry` helper, and case 5's
+//     own type-3 test reads the cached local `entries` (as 0x4a76b0 does).
+//     61.1 -> 61.4;
+//   * `i` is initialised with `i = 1;` as a statement right before the loop
+//     instead of in the declaration, and the first clamp reads the point
+//     through a reference `Point_004a9fd0& pt = menu->point;`. 61.4 -> 62.1;
+//   * `entries` is read (`entries = menu->layer->entries;`) immediately after
+//     the null test, with the declaration at the top of the function.
+//     62.1 -> 70.9;
+//   * the help-text block gives `ptr` its initialiser at the declaration
+//     (`char* ptr = DAT_005119b8;` with the branch flipped) and spells the
+//     count check `>=`; the search itself is the same FindEntry shape as
+//     0x4a76b0 (`FindHelp`), which drops the dead count+1 re-test after the
+//     loop. 70.9 -> 72.6;
+//   * case 5's two give-up arms are one test
+//     (`me->field_29 == 0 || (me->type == 4 && me->field_157 != 0)`) so both
+//     share the `sel = -1` store. 72.6 -> 72.7;
+//   * the early `if (menu->layer == 0) return 0;` becomes
+//     `if (menu->layer != 0) { ... }` with the single `return 1` afterwards.
+//     MSVC 5 then has no early return at the entry block to shrink-wrap, so
+//     it saves ebx, ebp, esi, edi up front exactly as the original does, and
+//     every [esp+N] frame slot lines up. 72.7 -> 73.5.
 //
-// Still differs (all register allocation / scheduling, nothing structural):
-//   1. Prologue: the original saves ebx, ebp, esi, edi before the early
-//      `layer == 0` return (no shrink-wrap); ours pushes only ebp first.
+// Still differs (register allocation / scheduling, nothing structural):
+//   1. The null test's taken edge: the original falls through to the early
+//      `return 0` block (xor eax,eax / pop x4 / add esp,0x34 / ret 4) with
+//      `jne` into the body; ours jumps to the shared tail with `je`. The
+//      single-exit form is what stops the shrink-wrap, so the two shapes pull
+//      against each other and this is where a MATCH would have to give.
 //   2. Entry loop: the original keeps i in EBX and the strength-reduced entry
 //      pointer in EDI (spill slots [esp+0x10]/[esp+0x14]) and reloads `entries`
-//      from [esp+0x18]; ours keeps `entries` in EBX up to the loop head so i and
-//      the pointer stay in memory with ESI/EDI/EBX used as temps.
+//      from [esp+0x18] at the loop head; ours keeps `entries` in a register up
+//      to the loop head, so i and the pointer stay in memory with ESI/EDI/EBX
+//      used as temps.
 //   3. First entry clamp: the original loads point.y into EDI early and spills
-//      right/bottom to [esp+0x34]/[esp+0x38].
-//   4. The `layer->entries[current].type` tests: the original loads the entries
-//      pointer before the focus/current stores (EDX) and again for the body
-//      (EBX); ours merges the two loads.
-// Measured with no effect on any of these (do not repeat): declaration order of
-// i/entries/sel/key at function top (24 orders, all 51.9), `register int i`,
-// an alias `first` for the first-section pointer (copy-propagated, identical
-// bytes), moving the first clamp into an inline helper (identical bytes),
-// dropping the `e` pointer in favour of `entries[i].` (same size), and a 15
-// minute tools/permute.py run (53.1 -> 53.1). Earlier sessions also measured
-// `int i` inside the for header (-1.6), fresh-read spellings of the entry-loop
-// bound, `int result` single-exit shape (44.1), `short y` and an address-taken
-// entries slot (40.4).
+//      BOTH `right` and `bottom` to their own frame slots ([esp+0x34]/[esp+0x38]),
+//      comparing against the memory operands; ours gives EDI to `bottom` and
+//      reloads point.y for the second half of the test.
+//   4. The two `type == 3` select tests (case 5 and the tail): the original
+//      loads menu->layer->entries into EDX before the focus/current stores (for
+//      the test) and reloads it into EBX for the helper body; ours merges the
+//      two loads.
+//
+// Measured with no effect or worse (do not repeat): all 128 header sets
+// (tools/headers.py, best is the written <windows.h> <string.h>), declaration
+// order of i/key/sel at the function top (all six orders, 58.2 to 61.1),
+// a `layer` local used for every `menu->layer` (28.1), `sel` read above the
+// null test, `int i = 1` in the for header (67.2), `for (i = 1; ...; i++, e++)`
+// (60.2), `++i` (60.0), `register` on i and e (52.5), the loop bound read
+// through `menu->layer->entries` (70.8), `e = &menu->layer->entries[i]` (60.6),
+// a hoisted `int last = count + 1` bound (67.5), the loop as a `while` with the
+// increment at the bottom (73.5, identical), case 5's select tail as its own
+// inline helper (59.6), the tail block's test on the cached `entries` (69.8),
+// both select tests fresh (59.6), the first clamp through px/py locals (72.5),
+// through a copied `Point pt` (72.4), in an inline helper (73.5, identical),
+// with `bottom` computed before `right` (72.5 / 73.3), with the `pt` reference
+// declared after the bounds (70.2 / 70.4), with a nested `inside` flag (72.6),
+// the help-text branch with the non-null arm first (67.0), case 5's search with
+// the not-found arm first (55.8), `menu->layer = menu->layer->prev` (identical),
+// `notnull` cached before the test (72.7), a `layer` local used only by the test
+// (72.7), the give-up arms reordered or with `field_29` in a temp (72.5 / 71.7),
+// `entries` read after the `now`/key blocks instead of right after the test
+// (71.6 / 70.8), and a 15 minute tools/permute.py run at the 61.4 baseline
+// (61.4 -> 62.4) and another at 70.9 (70.9 -> 71.6 before it was stopped),
+// both below this file and both holding only `tmp0`/`inl0` artifacts and dead
+// `goto` skips that read as implausible source.
 
 #include <windows.h>
 #include <string.h>
@@ -186,13 +225,70 @@ void FUN_004c2470();
 void FUN_004c2870();
 void __cdecl FUN_004d85a0(Layer_004a9fd0*);
 
+static inline int FindEntry(Entry_004a9fd0* entries, char* name)
+{
+    for (int i = 1; i < entries->u_b6.anim.count + 1; i++) {
+        if (strncmp(entries[i].name2, name, 0x10) == 0)
+            return i;
+    }
+    return -1;
+}
+
+// The type==3 body shared with 0x4a7190/0x4a76b0/0x4a7830/0x4a7960.
+static inline void SelectCurrent(Menu_004a9fd0* menu, Entry_004a9fd0* entries, int sel)
+{
+    Entry_004a9fd0* entry = &entries[sel];
+    FUN_004c13a0(menu->palette[entry->u1f.colourIndex], FUN_004c13f0());
+
+    int n = 0;
+    int i = 1;
+    for (; i < entries->u_b6.anim.count + 1; i++) {
+        if (entries[i].type == 7) {
+            if (n == entry->group) {
+                FUN_004c1420(entries[i].language);
+                break;
+            }
+            n++;
+        }
+    }
+    if (i == entries->u_b6.anim.count + 1)
+        FUN_004c1420(DAT_0051fba4->group);
+
+    FUN_0049fc50(menu, sel);
+    menu->layer->current = sel;
+    FUN_004ab6c0(menu, sel, entry->u_b6.text, entry->u136.c.field_138, 0);
+    FUN_004c1a40();
+}
+
+// The same body with the group scan left out and the entry lookup in front.
+static inline void SelectCurrentByName(Menu_004a9fd0* menu, Entry_004a9fd0* entries, int sel)
+{
+    Entry_004a9fd0* entry = &entries[sel];
+    FUN_004c13a0(menu->palette[entry->u1f.colourIndex], FUN_004c13f0());
+    FUN_004a1810(entries, sel);
+    FUN_0049fc50(menu, sel);
+    menu->layer->current = sel;
+    FUN_004ab6c0(menu, sel, entry->u_b6.text, entry->u136.c.field_138, 0);
+    FUN_004c1a40();
+}
+
+static inline int FindHelp(Entry_004a9fd0* entries)
+{
+    for (int i = 1; i < entries->u_b6.anim.count + 1; i++) {
+        if (strncmp(entries[i].name2, DAT_005098c4, 0x10) == 0)
+            return i;
+    }
+    return -1;
+}
+
 // FUNCTION: 0x4a9fd0
 int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
 {
-    int i = 1;
+    int i;
+    Entry_004a9fd0* entries = 0;
 
-    if (menu->layer == 0)
-        return 0;
+    if (menu->layer != 0) {
+    entries = menu->layer->entries;
 
     int now = FUN_004b6340();
     menu->field_9a = now - menu->field_96;
@@ -227,7 +323,6 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             FUN_004a81e0(menu, menu->layer->flags | 0x40);
         }
 
-        Entry_004a9fd0* entries = menu->layer->entries;
         if (entries != 0) {
 
         Point_004a9fd0& pt = menu->point;
@@ -258,6 +353,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             elapsed = 0;
         }
 
+        i = 1;
         for (; i < entries->u_b6.anim.count + 1; i++) {
             Entry_004a9fd0* e = &entries[i];
             if (e->field_29 != 0) {
@@ -300,14 +396,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                 case 5:
                     if (FUN_004a4440(menu, i, key) != 0) {
                         sel = -1;
-                        int found = -1;
-                        int j;
-                        for (j = 1; j < entries->u_b6.anim.count + 1; j++) {
-                            if (strncmp(entries[j].name2, e->u136.name, 0x10) == 0) {
-                                found = j;
-                                break;
-                            }
-                        }
+                        int found = FindEntry(entries, e->u136.name);
                         if (found == sel) {
                             sel = i;
                         } else {
@@ -323,15 +412,14 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                                         me->u136.c.field_137 = 0;
                                     FUN_004a5f40(menu, found);
                                 }
-                            } else if (me->field_29 == 0) {
-                                sel = -1;
-                            } else if (me->type == 4 && me->field_157 != 0) {
+                            } else if (me->field_29 == 0 ||
+                                       (me->type == 4 && me->field_157 != 0)) {
                                 sel = -1;
                             } else {
                                 menu->focus = -1;
                                 menu->layer->current = found;
                                 int current = menu->layer->current;
-                                if (menu->layer->entries[current].type == 3) {
+                                if (entries[current].type == 3) {
                                     Entry_004a9fd0* activeEntries = menu->layer->entries;
                                     me = &activeEntries[current];
                                     FUN_004c13a0(menu->palette[me->u1f.colourIndex],
@@ -383,21 +471,13 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
         }
 
         if (menu->field_68 != saved) {
-            char* ptr;
-            if (menu->field_68 == -1) {
-                ptr = DAT_005119b8;
-            } else {
+            char* ptr = DAT_005119b8;
+            if (menu->field_68 != -1) {
                 menu->field_6c = menu->field_68;
                 ptr = (char*)&menu->layer->entries[menu->field_68] + 0x33;
             }
             Entry_004a9fd0* ents = menu->layer->entries;
-            int found = 1;
-            for (; found < ents->u_b6.anim.count + 1; found++) {
-                if (strncmp((char*)ents + found * 0x15b + 2, DAT_005098c4, 0x10) == 0)
-                    break;
-            }
-            if (found == ents->u_b6.anim.count + 1)
-                found = -1;
+            int found = FindHelp(ents);
             if (found != -1) {
                 char* text = FUN_004c5740(ptr);
                 strcpy((char*)&menu->layer->entries[found] + 0xb6, text);
@@ -412,29 +492,8 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
             menu->field_60 = sel;
             menu->focus = -1;
             menu->layer->current = sel;
-            int current = menu->layer->current;
-            if (menu->layer->entries[current].type == 3) {
-                Entry_004a9fd0* ents = menu->layer->entries;
-                Entry_004a9fd0* me = &ents[current];
-                FUN_004c13a0(menu->palette[me->u1f.colourIndex], FUN_004c13f0());
-                int grp = 0;
-                int t;
-                for (t = 1; t < ents->u_b6.anim.count + 1; t++) {
-                    if (ents[t].type == 7) {
-                        if (grp == me->group) {
-                            FUN_004c1420(ents[t].language);
-                            break;
-                        }
-                        grp++;
-                    }
-                }
-                if (t == ents->u_b6.anim.count + 1)
-                    FUN_004c1420(DAT_0051fba4->group);
-                FUN_0049fc50(menu, current);
-                menu->layer->current = current;
-                FUN_004ab6c0(menu, current, me->u_b6.text, me->u136.c.field_138, 0);
-                FUN_004c1a40();
-            }
+            if (menu->layer->entries[menu->layer->current].type == 3)
+                SelectCurrent(menu, menu->layer->entries, menu->layer->current);
             if (menu->layer->cb8 != 0)
                 menu->layer->cb8(menu);
             if (menu->field_60 != -1) {
@@ -458,6 +517,7 @@ int __stdcall FUN_004a9fd0(Menu_004a9fd0* menu)
                 }
             }
         }
+    }
     }
     }
     return 1;

@@ -1,4 +1,11 @@
 // Decompiled by GPT-5.6-Terra, finished by Space Bunny Free, finished by GPT-6.1-sol. edited by deepseek-v4.1. Names are provisional.
+// issue-3175-r1 GPT-6.1-sol: baseline confirmed at 93.7% (576/568). Changing the
+// inline helper's two range parameters from int to unsigned int was byte-identical;
+// introducing a named Vec3 copy of unit2->pos before the helper fell to 92.1%
+// (579 bytes), so the original by-value argument form remains best. One malformed
+// scratch edit failed to compile and is not a scored variant. Still differs in the
+// line-of-fire block: MSVC materializes unit2->pos as a pointer in ebx/ebp and reloads
+// unit2/x, while the target copies x/z into dead argument homes and keeps ebx as unit2.
 // #2981 retry by GPT-6.1-sol: three checks retained 93.7% (576/568); the
 // line-of-fire block still reloads unit2 after copying its position.
 // Retry #1736: GPT-6.1-sol verified the saved source at 93.7% (576/568); no MATCH. The line-of-fire block still reloads unit2 after copying its position.

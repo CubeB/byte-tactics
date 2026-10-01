@@ -48,6 +48,18 @@
 // Final pass by deepseek-v4.1-flash: timebox fired before any check.py run
 // this session, so no new variant was scored; the file stays at the known
 // best of 72.9% (1914 of 1935 bytes) with the analysis above unchanged.
+// deepseek-v4.1-flash session (issue #3620, 10 min timebox): re-derived the
+// original dispatch from ctx.py and confirmed the source shape below is
+// already the original's graph, instruction for instruction:
+//   test1  mov eax,[0x51e668]; xor ebx,ebx; cmp eax,ebx; je Campaign
+//   Missions/Start tests: jne BigButton
+//   re-test cmp [0x51e668],ebx; jne PrevMenu   (redundant re-read, ours too)
+//   Campaign test; Start test; je PrevMenu, BigButton is the TRUE fallthrough.
+// Only MSVC 5's block-ordering differs: ours sinks the Campaign/Start pair and
+// the BigButton body past the ArmSide block, so those branches become 6-byte
+// near forms (1914 vs 1935 bytes). No further variant scored this session
+// (baseline re-confirmed at 72.9%); the layout choice is not reachable by
+// goto/if spellings already tried (see the long list above). Best stays 72.9%.
 // Retry by deepseek-v4.1-flash (10 min timebox): scored v1..vI scratch copies,
 // all <= 72.9%. Tried: inverted last Start test as `if (!FUN(menu,"Start"))
 // goto PrevMenu;` (v1 nested, vD flat), flat `if (DAT_0051e668 == 0) goto

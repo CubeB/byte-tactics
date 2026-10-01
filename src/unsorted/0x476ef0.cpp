@@ -33,6 +33,12 @@
 // 0x28, gp store 0x38 load 0x30), just shifted, while linesPerPage (0x18) and
 // textX (0x24) already land in the original slots. Chasing the pair offsets
 // with declaration reorders was the previous pass's dead end too.
+// deepseek-v4.1-flash extra pass (issue #3620): hoisted an uninitialised
+// `int count;` above `int colourState = 1;` and left the assignment at its old
+// line, aiming to swap the two frame slots (original count [esp+0x1c] /
+// colourState [esp+0x20], ours the reverse) and to let the dead
+// `mov [esp+0x20], 0` reappear. Result: byte-identical, 1112 bytes, still
+// 80.4%, so this slot pair is not declaration-order driven either.
 // Timebox note (deepseek-v4.1-flash final pass): stopped at 80.4%, unchanged
 // from the file this pass inherited (1124 original bytes vs 1112 ours).
 // What still differs (all confirmed in the last check.py diff):
@@ -218,6 +224,7 @@ void FUN_00476ef0()
 {
     Holder_476ef0* dialog = g_game->dialog;
     Entry_476ef0* gadgets = dialog->entries;
+    int count;
     int colourState = 1;
     if (DAT_0051e63c == 0)
         return;
@@ -242,7 +249,7 @@ void FUN_00476ef0()
     int linesPerPage = gp->h / divisor;
     int textX = gp->x + 5;
     int y = gp->y + divisor / 2;
-    int count = gadgets[0].u.count;
+    count = gadgets[0].u.count;
     DAT_0051e64c++;
 
     char* lineStart = PageStart_476ef0(DAT_0051e63c, linesPerPage, DAT_0051e64c);

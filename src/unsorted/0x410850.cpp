@@ -1,44 +1,52 @@
 // Decompiled by GPT-6 Astra, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
 // (base version by GPT-6 Astra; deepseek-v4.1 re-verified and extended the notes)
-// Partial: 91.0%, 1046 bytes versus 1051. The case 1 tail's pos temp now lands at
-//     [esp+0x1c] with no early store and stores x, y, z in order (was 90.3%
-//     with an early x store at [esp+0x10] and stores y, x, z), by building the
-//     sums into a temporary Vec3 and then copying it: `Vec3 sum; sum.x=pos.x
-//     +off.x; sum.y=pos.y; sum.z=pos.z+off.z; pos=sum;` (a `sum=PosOf(order)`
-//     temp costs 4 bytes, 87.0%).
+// Partial: 91.5%, 1047 bytes versus 1051. Up from 91.0%: case 0 now hoists
+//     `UnitDef* df=unit->def;` into a braced `case 0:` and uses `df->flags`.
+//     That alone rotates the whole case-0 block onto the original's registers
+//     (`mov eax,[esi+0x92]` / `mov ecx,[eax+0x241]` / `test ch,8`, and the pos
+//     copy `ecx`/`edx`/`eax`), which is +0.5 points for one byte. A named
+//     `unsigned int df=unit->def->flags` does NOT do it (90.6%): it needs the
+//     POINTER as the named local, not the value.
 // Still differing, five hunks, all one global colouring or outgoing-arg slot:
 //  1) case 1 health test: original has def in edx, health in ecx, bound in eax
 //     and cmp ecx,eax; ours uses eax/edx/ecx and cmp edx,ecx (same length).
+//     Same rotation as case 0, so the same lever probably applies, but a named
+//     `df` pointer or named `bound`/`hp` locals in case 1 change nothing
+//     (91.0% for each).
 //  2) the Class_00438760 return buffer of FUN_0043f0e0 sits at [esp+0x64]
 //     (the dead flags argument home) in the original and at [esp+0x68] (a slot
 //     above the argument homes) here, so the later reload of kind is
-//     [esp+0x6c]/[esp+0x70] too.
+//     [esp+0x6c]/[esp+0x70] too. This is a 1-byte displacement either way; it
+//     costs the score only by breaking the instruction alignment.
 //  3) the tail's two sums: original `add ecx, ebx` / `add edx, eax` (the sum
-//     lands in the order->pos register); ours `add ebx, ecx` / `add eax, edx`
-//     (the sum lands in the offset register, same value, same store slots).
+//     lands in the order->pos register); ours `add ebx, ecx` / `add eax, edx`.
+//     NEW THIS SESSION: `sum.z+=off.z` DOES give the original's `add edx, eax`
+//     (w1, x2: 87.0/89.6%) but `sum.x+=off.x` still emits `add ebx, ecx`, and
+//     either one alone is a net loss because it moves the pads vector from
+//     [esp+0x38] to [esp+0x48]. The three-statement `sum` temp of the base
+//     version keeps every offset, so keep it.
 //  4) the tail ends with an out-of-line ~vector() call where the original
 //     inlines `operator delete(units.first)`: `mov edx,[esp+0x4c]; push edx;
 //     call ??3@YAXPAX@Z; add esp,4` (also the source of the last byte, since
 //     `or dl,0xf8` is 3 bytes and our `or al,0xf8` is 2).
-//  5) case 0's def/flags rotation is mirrored (ours edx/eax/test ah, original
-//     eax/ecx/test ch) and its pos copy uses eax/ecx/edx where the original
-//     uses ecx/edx/eax.
-// Tried and rejected (all scored lower): the inline `order->pos + Offset(...)`
-//     with a member operator+ (78.7%): it fixes region 3's three direct loads
-//     but MSVC then gives ESI to `order` and EDI to `unit` instead of the
-//     other way round, which costs far more. Field-wise reads of order->pos
-//     written straight in the body do the same (76.8%), but routing them
-//     through the one-argument PosOf() helper below keeps the parameter
-//     register roles and scores 90.3% or better. Naming the offset `off` costs
-//     nothing there; a named `dir` local in the water block (79.2%) and passing
-//     -FUN_004b70ef()/-FUN_004b7123() straight into a helper (77.3%) both
-//     lose the esi/edi roles. Region 2 alone did not move under any spelling
-//     tried. A named `bound` local for the health compare is unchanged at
-//     89.9%, as is reversing the compare to (maxHealth>>2)*3 > (unsigned)health.
-//     An inline ~vector() body (delete[] or operator delete, 82.5%, also with a
-//     derived Class_00410830 dtor left out-of-line, 88.9%) breaks the three
-//     pads destroy sites, which the original emits as calls to 0x40c530, so
-//     the unit's dtor stays declared-only here.
+//  5) case 0's pos copy and the `mov eax,[edi+6]` rotation in the tail: ours
+//     uses eax/ecx/edx where the original uses ecx/edx/eax.
+// Tried and rejected (all scored lower): giving ~vector() an inline body
+//     `operator delete(first);` expands the destructor at ALL four destroy
+//     sites (1063 bytes, 82.5%) and a null-guarded body is worse still
+//     (1083 bytes, 71.8%); the original expands exactly one of the four, which
+//     is not reachable from a visible destructor in this shape. Writing
+//     `operator delete` in place of the base destructor means the pads sites
+//     can no longer call 0x40c530, so the unit's destructor stays declared-only
+//     here. Swapping the operands of each sum (`off.x+pos.x`) changes nothing at
+//     all (MSVC 5 canonicalises `a+b`, item 20 of the brief). The inline
+//     `order->pos + Offset(...)` with a member operator+ (78.7%), field-wise
+//     reads of order->pos (76.8%), a named `dir` local in the water block
+//     (79.2%), -FUN_004b70ef()/-FUN_004b7123() passed straight into a helper
+//     (77.3%), dropping the redundant `state` local (91.0%, byte for byte the
+//     same code) and reversing the health compare (90.8%) all lose. Routing
+//     the case-0 field reads through the one-argument PosOf() helper is what
+//     holds the parameter register roles, so leave PosOf/MovePos alone.
 // Suspected original bug: none. The final delete[] takes [esp+0x4c], which is
 //     the units vector's first pointer (inlineEmpty reads first at +4 and last
 //     at +8 of the object at [esp+0x48]), so it is a correct inlined ~vector().
@@ -147,14 +155,16 @@ int __stdcall FUN_00410850(Unit* unit, Order* order, int flags)
     }
     unsigned int state=0; state=order->state;
     switch(state) {
-    case 0:
-        if (unit->motion && (unit->def->flags&0x800)) {
+    case 0: {
+        UnitDef* df=unit->def;
+        if (unit->motion && (df->flags&0x800)) {
             if (!order->pos.x && !order->pos.z && !order->pos.y) order->pos=unit->pos;
             order->angle=FUN_004b6c30(0x10000);
             order->parity=order->angle&1;
             return 1;
         }
         break;
+    }
     case 1: {
         if ((unsigned int)unit->health < (unit->def->maxHealth>>2)*3) {
             Class_00410830 pads;

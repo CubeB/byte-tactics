@@ -1,4 +1,25 @@
-// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by GPT-5.6 Astra, finished by deepseek-v4.1-flash and GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash pass (kept 79.4%, 1974 vs 1976): re-verified the baseline
+// and confirmed the whole remaining gap is allocation shape, not missing logic.
+// Tried and rejected, all byte-neutral or worse: the weapon loop as a for-loop,
+// as &unit->weapons[i], with `++i; weapon++` instead of `weapon++; ++i`, with
+// `i` declared before `weapon`, and with `unsigned char wf=weapon->flags` bound
+// (all 1974/79.4, so the loop body is a consequence of upstream liveness, not a
+// source lever); a WeaponDef* def local (1973/73.5); swapping the two flag tests
+// (1974/79.3); `!(def->flags & 0x4000000)` instead of the shift (1972/73.8).
+// The building/actionable chain: making `building` use inline
+// order->target->order (with or without moving the `other` declaration after
+// it) balloons to 2010 bytes, 62.9-64.5%, because MSVC then cannot CSE the
+// chain; the named `other` first is required. The BuildOrder tail as a direct
+// `FUN_0043acb0(unit,new ...)` shrinks to 1918/77.1 (it tail-merges the two
+// null-path call sites); the explicit `if (cmd)` is required. So the file is
+// unchanged from the best prior version. The remaining diffs are one shared
+// allocator state: the original keeps a zero in EBP from 0x40fe7a to 0x410129
+// (`cmp reg,ebp`, `push ebp`, `mov [ebx+6],ebp`), where ours uses `test reg,reg`
+// and immediate zeroes; that plus the loop's extra `mov edx,ecx` and top reload
+// shifts every branch target after 0x40fe68 by 6. The ground twin 0x406300 uses
+// the same ebp-zero tail at 96.2%, so the cause is generic liveness here, not a
+// distinct source construct.
 // Started by GPT-5.6 Astra, continued by deepseek-v4.1-flash and GPT-6; the
 // 75.8% version is deepseek-v4.1 lowering the earlier 74.5%.
 // Partial 79.4% (original 1976 bytes, ours 1974). Best during GPT-6.1-sol pass: separate Vec3* destination/source locals for the initial position copy; direct cast assignment falls to 75.8%.

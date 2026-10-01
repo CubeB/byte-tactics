@@ -1,4 +1,24 @@
-// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6, deepseek-v4.1-flash, and GPT-6.1-sol. edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3631): 69.9 -> 70.7. The first half's b2 block
+// was an if/goto where the original is an if/else chain: the original's `jl`
+// at 0x4592f1 jumps to 0x45935c, PAST the b3 block at 0x459324, so the
+// bright-path test failing must skip the b3 block. Writing the b3 test as the
+// `else` of `(owner+0x113 & 0x20) && !(f & 0x40000000)` reproduces the
+// original's jump targets (je/jne to 0x459324, jl to 0x45935c) and the
+// control flow of both halves now matches; the goto is gone. Still differing
+// (all allocator, same family as 0x459830 and 0x458fa0): the cv = v copy runs
+// y,z,x with edx = x (original x,y,z with edx = z and `sub ebx,[esp+0x3c]`),
+// which cascades into param_2 in ebx / y in [esp+0x10] / f in edx instead of
+// y in ebx / f in [esp+0x10]; and the second half's bright path folds
+// (bright ? 0x4b : 0) to 0x7d and homes its bool at [esp+0x48] where the
+// original recomputes the shade from memory. Tried this pass, all worse: a
+// fresh bool local for the bright path's shade value (59.4), the full
+// expression there plus plain int arithmetic in both 1427f-dx sites (62.6
+// with a 0x1c frame, 59.0 with a 0x20 frame), reading the transform sources
+// from cv instead of v (65.8, cv moves to [esp+0x18]), plain int in the tail
+// value alone (61.7), memcpy / Vec3 cv = v / cv.p = v.p / component-wise
+// copies (prologue identical, y,z,x invariant). The tail from 0x4596eb and
+// the last basic block match instruction for instruction.
 // deepseek-v4.1-flash retry (#3241): five more variants scored, all worse than
 // this 69.9% base, so the base is kept. (1) plain int arithmetic in both
 // f-diff shade sites (dropping the (unsigned char) casts the notes above
@@ -199,25 +219,23 @@ void Class_00459200::FUN_00459200(int param_2, Model_459200* model, Vec3_459200 
         if (gameFlags.b2) {
             f = model->owner->field_92->flags;
             if (!(f & 0x2000000)) {
-                if (*(unsigned char*)((char*)model->owner+0x113) & 0x20) {
-                    if (!(f & 0x40000000)) {
-                        if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
-                            if (model->field_14 == 0)
-                                ((Class_00437a30*)this)->FUN_0045a790(model,bmp);
-                            FUN_004b8500(param_2, model->field_14, v.p.x.whole + 0x85, y);
-                            goto tail1;
-                        }
+                if ((*(unsigned char*)((char*)model->owner+0x113) & 0x20)
+                    && !(f & 0x40000000)) {
+                    if (model->owner->field_a6 != 0 || dx >= g_game->field_1427f) {
+                        if (model->field_14 == 0)
+                            ((Class_00437a30*)this)->FUN_0045a790(model,bmp);
+                        FUN_004b8500(param_2, model->field_14, v.p.x.whole + 0x85, y);
                     }
-                }
-                if (gameFlags.b3) {
-                    if (!(f & 0x81000)) {
-                        ((Class_0045a470*)this)->FUN_0045a470(bmp);
-                        FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
+                } else {
+                    if (gameFlags.b3) {
+                        if (!(f & 0x81000)) {
+                            ((Class_0045a470*)this)->FUN_0045a470(bmp);
+                            FUN_004b8500(param_2, this->bitmap, v.p.x.whole + 0x85, y);
+                        }
                     }
                 }
             }
         }
-    tail1:
         if (model->bitmap == 0) {
             ((Class_004581e0*)this)->FUN_004586a0(model, 0, 1);
             bmp = model->bitmap;

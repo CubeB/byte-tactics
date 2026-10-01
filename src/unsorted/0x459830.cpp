@@ -1,4 +1,23 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#3631), finished by deepseek-v4.1-flash: 66.8 -> 71.0.
+// The lever is the face-block branch layout: the original emits
+// `test al,1 / jne <clip>` at 0x459b12 with the 4-vertex pic path as the
+// fall-through and FUN_004c1000 out of line at 0x459b9d, so the source is
+// `if ((flags & 1) == 0) { if (face->count == 4) { ... FUN_004c8760 ... } }
+// else { FUN_004c1000(...); }`, NOT the `if (flags & 1) { clip } else
+// if (count == 4) {...}` form (which scores 66.8 and 8 bytes shorter).
+// Still differs: bitmap (the parameter, reassigned to this->shadow) stays in
+// ebp where the original reloads it from its home [esp+0x5f18] at 0x45999f,
+// 0x459b8e, 0x459ba3 and 0x459c03; list is in edx not esi, fi in ebx not
+// edi, the vertex-copy pointers edx/edi are swapped, and the spill slots are
+// counter 0x20 / src 0x24 (original sr 0x20 / counter 0x24).
+// Also tried in this pass and DID NOT help: the tail downsample reading the
+// row count from src->height and the row width from src->width (the shapes
+// 0x459c1d/0x459c25 read), 57.0; the same with count locals, 63.6; a
+// `while (x-- > 0)` inner loop, 66.0; moving `src = bitmap; bitmap = shadow;`
+// before the two memsets (so the home store lands at the original 0x4598d3),
+// 65.6; Face_459c70::flags as a 1/1/1/29 bitfield and the bit 1/bit 2 tests
+// written as shifts, both byte-identical to the masks (66.8 then).
 // deepseek-v4.1-flash retry (#2889): 62.0 -> 66.8. The lever is the source
 // position of `src = bitmap`. Declaring `Bitmap_459c70* src;` uninitialised
 // at function scope and assigning it late in the shadow branch, immediately
@@ -257,24 +276,26 @@ void Class_004581e0::FUN_00459830(Bitmap_459c70* bitmap, List_459c70* list,
                 *q = vertex[*idx];
             }
             unsigned int fflags = face->flags;
-            if ((fflags & 1) != 0) {
-                FUN_004c1000(bitmap, poly, face->count, face->unknown_0);
-            } else if (face->count == 4) {
-                void* pic;
-                if ((fflags & 2) != 0) {
-                    if ((fflags & 4) != 0) {
-                        int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
-                        pic = FUN_004b7f30(face->color,
-                            *(unsigned char*)(unit + 0x96));
-                    } else if (useColor) {
-                        pic = FUN_004b7f30(face->color, 0);
+            if ((fflags & 1) == 0) {
+                if (face->count == 4) {
+                    void* pic;
+                    if ((fflags & 2) != 0) {
+                        if ((fflags & 4) != 0) {
+                            int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
+                            pic = FUN_004b7f30(face->color,
+                                *(unsigned char*)(unit + 0x96));
+                        } else if (useColor) {
+                            pic = FUN_004b7f30(face->color, 0);
+                        } else {
+                            pic = FUN_004b7ee0(&face->pic);
+                        }
                     } else {
-                        pic = FUN_004b7ee0(&face->pic);
+                        pic = face->pic;
                     }
-                } else {
-                    pic = face->pic;
+                    FUN_004c8760(bitmap, pic, poly, 0);
                 }
-                FUN_004c8760(bitmap, pic, poly, 0);
+            } else {
+                FUN_004c1000(bitmap, poly, face->count, face->unknown_0);
             }
         }
     }

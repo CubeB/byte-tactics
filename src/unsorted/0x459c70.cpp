@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (3631), 36.5% base kept, 2 check runs: swapping the
+// src/mode declaration order (`int mode; Bitmap* src;`) compiles to the same
+// 1955-byte body and the same 36.5, so the 0x24/0x28 slots come from use order,
+// not declaration order. Re-probing the full parameter-reassignment shape
+// (`bitmap = shadow` plus an arm-only `src`, all later uses on the parameter)
+// measures 1982 bytes / 34.4, confirming pass 3241: the smaller live set frees a
+// callee-saved register for useColor, which is exactly the register the original
+// does NOT spend on it. The original's 0x459de6 slot map (vertices 0x14/0x18,
+// piece 0x1c, mode 0x20, info 0x24, src 0x28, offY 0x2c, n 0x30, count 0x38,
+// offX 0x3c) is only reachable if useColor stays in its stack slot 0x159f4
+// across the whole piece loop (0x459da0 reloads it), which is what the extra
+// live surface pointer in `bmp` buys; every "cleaner" spelling scores lower.
 // deepseek-v4.1-flash retry (watchdog pass), 36.5% base kept: the tail inner
 // loop as `while (x--)` scores 36.4, so the `for (x; x != 0; --x)` spelling is
 // kept. Still differs: prologue preload of bmp into esi/ebx before push edi

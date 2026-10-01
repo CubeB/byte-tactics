@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional., finished by deepseek-v4.1-flash
 // Sonnet 5.5: 97.8% (was 87.4%). Slot 0 of Class_004085d0 (vtable 0x4fc9a8), derived
 // from Class_00407350 (family listed in 0x407350.cpp). Runs every 90 ticks over the
 // units of this object's group: first gives each unit that FUN_0040bdb0 picks an item
@@ -19,23 +19,32 @@
 // the `else if (len > range)` form give the same bytes; a real different second use
 // (`range > K`) shifts everything, so the weight is wanted, not a second compare.
 //
+// deepseek-v4.1-flash: 98.5% (was 97.8%). One addition did it: a user-defined
+// `Vec3::operator=` (three member stores, returning *this). It flips the loop-2
+// flag12 Direction() from ang=ebp (and the xor after `neg eax`) to the original's
+// ang=ebx, xor in the gap before the second call, d.z in ebx. With it, the
+// helper's own statement order (x,z,y, x,y,z or y,x,z) no longer changes
+// anything. The earlier 95.9%-class shapes (helper reordered, aggregate
+// initialiser, separate temp `Vec3 e`) keep the extra `mov ebp, ebx`, and a
+// hand-written copy constructor is far worse (53.6%).
+//
 // Still different (3 hunks, 1221 bytes exact):
 // - 0x408334: the `u->def` load sits before the three `target = origin` stores
-//   instead of after them. Memberwise `target.x = origin.x; ..` is identical, a
-//   function-scope target is worse (94.2%).
-// - 0x4083a4-0x4083d6 (flag12 Direction()): the original has ang in ebx, `xor ebp,ebp`
-//   (d.y = 0) in the gap between the second call's pushes and the call, and d.z
-//   reusing ebx; ours has ang in ebp and the xor after `neg eax`. The helper in x,y,z
-//   or y,x,z order (or an aggregate initialiser) puts the xor in the gap but adds
-//   `mov ebp, ebx` (95.9%). Expanding the call into direct d.x/d.y/d.z stores with an
-//   int ang local (the shape that matches at 0x4084c5) is the likely original, but it
-//   adds a named web that moves loop 1 again (71.6%: this=edi, unit=ebx, ok=ebp, so
-//   unit and ok need swapping, extra foldable uses of ok/range/this tried with no
-//   effect). Weights of ok and unit are the thing to find in that shape.
-// - 0x4084f7: _allmul's first pair is pushed d.x-first (original calls _allmul(s, d.x),
-//   the second and third are (d.y, s) and (d.z, s) as ours). All FixMul operand
-//   orders, a FixMul(__int64, __int64), and spelling FixDiv inline in each of the
-//   three statements give the identical commuted push.
+//   instead of after them. Memberwise `target.x = origin.x; ..`, a split
+//   declaration, `Vec3 target(origin);` and a `const Vec3&` alias for origin are
+//   all byte-identical, and removing the second load (member-scope `def`
+//   pointer, flag12 local) does not move it either.
+// - 0x4083a4-0x4083d6 (flag12 Direction()): only the schedule of `neg eax` /
+//   `add esp,8` / `xor ebp,ebp` differs now (the original fills the gap before
+//   the second call with `xor ebp,ebp`, ours runs `neg eax; add esp,8` first).
+//   Expanding the call into direct d.x/d.y/d.z stores with an int ang local
+//   (the shape that matches at 0x4084c5) is still 71.6% even with operator=:
+//   that named web moves loop 1 (this=edi, unit=ebx, ok=ebp).
+// - 0x4084f7: _allmul's first pair is pushed d.x-first (original calls
+//   _allmul(s, d.x), the second and third are (d.y, s) and (d.z, s) as ours).
+//   All FixMul operand orders, a FixMul(__int64, __int64), (__int64)s * d.x,
+//   s * (__int64)d.x, a copy `int x = d.x;` and a __int64 temp all give the
+//   identical commuted push.
 // Earlier findings that still hold:
 // - Length() takes a const reference to a temporary (pos - origin): only then are the
 //   three fild operands the temporary's own memory, with a stored 0 for y.
@@ -58,6 +67,7 @@
 class Class_00407350;
 
 struct Vec3 {
+    Vec3& operator=(const Vec3& o) { x = o.x; y = o.y; z = o.z; return *this; }
     int x, y, z;
     Vec3 operator+(const Vec3& o) const { Vec3 r; r.x = x + o.x; r.y = y + o.y; r.z = z + o.z; return r; }
     Vec3 operator-(const Vec3& o) const { Vec3 r; r.x = x - o.x; r.y = y - o.y; r.z = z - o.z; return r; }

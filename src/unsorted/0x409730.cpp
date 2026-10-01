@@ -1,5 +1,22 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// deepseek-v4.1-flash 10-minute pass (build/scratch/0x409730/v1-v10.cpp), the
+// two SIB base/index bytes (0x4099f6 `[esi + ecx]` vs ours `[ecx + esi]`,
+// 0x409b53 `[eax + edx]` vs ours `[edx + eax]`) are untouched, 1678 bytes and
+// 99.6% every time. New negatives: the address ADD probe, forcing the operand
+// order through integer arithmetic, is neutral in all four spellings
+// (`(unsigned char*)((int)i + (int)vec_8d.begin())` at the store, at the read,
+// at both, and the control `(int)vec_8d.begin() + (int)i`), so the front end
+// canonicalises the commutative ADD and the tree order is not reachable from
+// the source; `i[vec_8d.begin()]` (store only, read only, both) is likewise
+// byte-identical at 99.6%, confirming that the source operand order does not
+// reach the SIB. Routing either access through a `static` inline helper on a
+// raw pointer (`StoreByte(unsigned char*, int, unsigned char)`,
+// `LoadByte(unsigned char*, int)`) costs the inline budget: 1683 bytes and
+// 83.9% for the store alone, the read alone and both, exactly like the
+// reference-form helpers before, so the parameter node does not survive the
+// expansion into a real variable. Together with the earlier store-comma result
+// this closes the last two routes to a variable pointer node.
 // STILL 99.6% (deepseek-v4.1-flash decomp-worker pass): the same two SIB
 // base/index bytes remain (0x4099f6 wants [esi + ecx], 0x409b53 wants
 // [eax + edx]; ours [ecx + esi] and [edx + eax]), size 1678 exact. New

@@ -1,6 +1,10 @@
 // Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 // Started by deepseek-v4.1-flash, continued by GPT-6, finished by deepseek-v4.1,
 // extended by space-bunny-free. Names are provisional.
+// Session addendum 2 (deepseek-v4.1-flash, timeboxed): also tried a
+// zero-instruction comma use of the raw index in the flag test,
+// `if (!(idx, p->flag14 & 1))`: byte-identical to the plain form (94.0%),
+// so a use the front end folds away does not flip the scan roles.
 // Session addendum (deepseek-v4.1-flash, timeboxed, no new variant landed): the
 // exact byte diff of the 94.0 char-k form vs the original is now fully mapped.
 // Original fallback scan: xor ecx,ecx (idx=0) / xor edx,edx (k=0) / mov edi,

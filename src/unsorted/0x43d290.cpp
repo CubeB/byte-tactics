@@ -42,6 +42,9 @@
 //
 // Also confirmed: the speed clamp must be `if (mag > f18)` to keep the _hypot
 // result in st(0) and give the original `fcom [esp+0x28] / test ah,0x41 / jne`.
+// Session addendum (deepseek-v4.1-flash, timeboxed): swapping the dbz/dbx
+// declaration and assignment order (dbz first) drops the kept build to 90.8%,
+// so dbx-before-dbz in source is load bearing.
 //
 // What still differs (38 instructions, one cause in each of three places):
 //   * the four delta locals get different stack homes (ours dax 0x14, daz

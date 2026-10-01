@@ -1,4 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash 2026-10-01 (retry 2): dropping the (int) casts in
+// ScaleX_00466dc0 (`u->field_6c * g_game->field_142eb`) is byte-identical to
+// the cast form (78.3%, 1646 bytes, output diff empty), so the eax/ecx swap
+// of the two movsx loads is not the cast spelling.
 // deepseek-v4.1-flash retry 2026-10-01: ScaleX_00466dc0 operand swap (zoom first) and swapping the projectile-latch update order (q before p) are both byte-neutral (78.3%, 1646 bytes, same 7 hunks), confirming MSVC canonicalises the commutative multiply and the latch order is not the q-in-ebx lever. Restored base.
 // deepseek-v4.1-flash worker retry: best stayed 78.3%. Four free --sym scratch
 // variants this session all lost: routing both projectile tail reads (player
@@ -325,7 +329,7 @@ static inline int OnRadar_00466dc0(int px, int py)
 // order of the multiply so the operand lands in the right register.
 static inline int ScaleX_00466dc0(Unit_00466dc0* u)
 {
-    return (int)u->field_6c * (int)g_game->field_142eb;
+    return u->field_6c * g_game->field_142eb;
 }
 
 static inline int ScaleY_00466dc0(Unit_00466dc0* u)

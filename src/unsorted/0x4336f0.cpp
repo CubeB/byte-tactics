@@ -1,4 +1,32 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// space-bunny-free pass 2: baseline rechecked at 86.1% (712 bytes), one scored
+// run, file left unchanged. New data, all scored free in
+// build/scratch/0x4336f0/{v1,a,b,c,d,e,g,f1,f2,f3,h1,h2,h3,i1,i2,i3}.
+// The ONE remaining difference in this file is three arm guard tests plus the
+// `mov ebx,[esi+4]` hoisting in arms 1-3, and both have a single upstream
+// cause: the rank of the loop counter. In this file the allocator gives
+// `count` edi, `i` ebx, the reloaded _First ebp; the original gives `i` edi,
+// _First ebx, `count` ebp, i.e. `count` is two steps demoted. Fixing the rank
+// in the EXACT-SHAPE source (all four arms `if (n > 0) do {} while (--count)`,
+// v1, 708 bytes, every instruction and operand right) needs extra uses of
+// `count` that emit no code, and the cheapest one that works is a copy:
+//   `int k = count;` per arm, then `while (--k)`. With all four arms spelled
+// that way (e, f1-f3, h3) the rotation, the `test di,di` guard, `xor edi,edi`
+// and every `mov word ptr [ebx+edi]` all become the original's, and the score
+// rises to 82.4% (700 bytes).
+// BUT it also costs one /Ob2 inline unit per arm, and at three arms (h3) the
+// failed-lookup tail's `vector::_Destroy` inlines to nothing and the function
+// loses the 8-byte call, the `mov ecx,esi` and the `mov [esi+8],edi`. The rank
+// flip and the inlining flip sit on the SAME budget threshold: two arms give
+// 704 bytes with the old rank (74.8%), three give 700 with the new (82.4%),
+// and there is no setting that gives both. Trying to buy the missing budget
+// unit back with dead `__inline` helper calls does NOT work: an empty helper
+// called 1, 2, 3 and 8 times (f1-f3, i1-i2) changes nothing at all, and one
+// with an argument or a body costs real code and drops to 692 bytes/69.6%
+// (i1-i3). Dead stores, `count--` in the while, a `k` copy in only one or two
+// arms, `unsigned i`, and a burn helper on the exact shape are all no better.
+// So the two shapes are mutually exclusive at 82.4% and 86.1%; this file keeps
+// the 86.1% one, which is the only one whose first two arms are byte exact.
 // GPT-6.1-sol (#3157 retry): baseline rechecked at 86.1% (712/708), one scored run. Two helper variants failed to compile or resolve; best unchanged, no MATCH.
 // space-bunny-free pass: kept the 86.1% file unchanged (it is the best known)
 // and mapped what is left with a byte-exact diff (relocation fields masked),

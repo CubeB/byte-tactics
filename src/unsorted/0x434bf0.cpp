@@ -1,68 +1,20 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// GPT-6.1-sol (#3157 retry): baseline 92.9% (886/886); FileCount helper tied, FileLoop aggregate fell to 63.9%. No MATCH; five stack homes remain swapped.
-// Partial (92.9%, size 886 = the original's). Every instruction matches except
-// the frame offsets of five locals; the code around them is identical, only the
-// `esp+` displacements differ. Frame map (offsets from esp while the four
-// callee-saved registers are pushed, so the return address is at 0x10 and the
-// three arguments at 0x340/0x344/0x348):
-//
-//   slot   original        ours
-//   0x10   count           allocator temp
-//   0x14   allocator temp  count
-//   0x18   bFlag           bFlag
-//   0x1c   loop index i    (files, the std::vector)
-//   0x20   files (16 B)    loop index i
-//   0x30   parser          parser          (identical from here up)
-//
-// The two pairs are each swapped, so the fix is one ordering decision in MSVC's
-// local-slot numbering, not a spelling. What is NOT a difference: the odd
-// `mov al, byte ptr [esp+0x13]` / `mov byte ptr [esp+0x2c], al` pair at 0x434cca.
-// That is the std::vector's own constructor: in this game's headers
-// `vector(const _A& _Al = _A()) : allocator(_Al), _First(0), _Last(0), _End(0)`
-// puts the empty `std::allocator` first, so the object is 16 bytes (allocator
-// byte at +0, _First/_Last/_End at +4/+8/+0xc) and copying the default
-// argument's temporary allocator is a one-byte copy out of a 4-byte temp slot.
-// It is reproduced automatically by #include <vector>; do not add a local for it.
-// Tried and all still 92.9%: declaring the loop index above the vector and
-// using `for (i = 0; ...)`, declaring the count before the vector, giving the
-// vector an explicit `std::allocator<Class_004c91a0>()` argument, and gpt-6's
-// 768 header sets. MSVC5 does not number these slots in declaration order or in
-// first-reference order, so the swap has to come from a change in the IL shape.
-// GPT-6.1-sol refinement: a named std::allocator passed to the vector constructor
-// left the checker at 92.9%, so the original default-construction form is retained.
-// GPT-6.1-sol refinement: declaring count and i before files, initializing count
-// to zero, and deriving count from end()-begin() did not improve the frame-slot
-// permutation; end()-begin() instead reduced the score to 70.7%.
-// deepseek-v4.1 follow-up: the five swapped offsets are not reachable from the
-// declarations or from statement order. Declaring `int i;`/`int count;` before
-// the vector, renaming them, swapping the DAT_005122e0 store with the count
-// line, a while-loop form, and `for (int i = 0, count = files.size(); ...)`
-// either keep the same permutation or break the bytes (while-loop 90.1%,
-// statement swap 91.8%, for-init 86.8%). The homes come out in a fixed IL order
-// (count, allocator temp, bFlag, files, i) that source reordering does not
-// touch, so the swap needs a change in the IL shape that was not found here.
-// deepseek-v4.1-flash follow-up: still 92.9%. The permutation is invariant to
-// declaration and statement order: `int count;`/`int i;` before the vector,
-// count zeroed or left uninitialised before it, `files` declared first at the
-// top of the slow path, and moving the count store earlier all reproduce the
-// exact same 886-byte home assignment (count 0x10, allocator temp 0x14, bFlag
-// 0x18, files 0x1c, i 0x2c). Inlining files.size() in the loop condition drops
-// to 74.7% (857 bytes). MSVC5 assigns these homes from its own free-list order,
-// not from the source: the two swaps (count<->allocator temp and files<->i) are
-// a compiler-state tie. Best kept at 92.9%.
-// deepseek-v4.1-flash (second pass) confirmation that the two swaps are not
-// source-order: a 32-variant declaration/statement-order sweep (count and i
-// declared before files, at function top, before FUN_00491c80; unsigned and
-// size_t count; explicit std::allocator local; dummy locals; count computed
-// before the DAT_005122e0 store; nested blocks) all reproduce the identical
-// 886-byte frame (count 0x10, temp 0x14, bFlag 0x18, files 0x1c, i 0x2c). An
-// N-declarations sweep (N = 0..256, step 8) is flat, and defining the real
-// neighbouring function 0x434b90 above this one changes nothing, so the
-// permutation is not front-end compiler state. Best kept at 92.9%.
-// GPT-6.1-sol retry: rechecked the 92.9% source, a single-use files.size()
-// helper kept the same output, and putting count/index/vector in an aggregate
-// shifted the whole frame and scored 63.9%. Keep the existing source: the
-// remaining difference is still the count/vector/index stack-home permutation.
+// Aggregate grouping pins the frame order. The original's scalar locals were
+// members of one small local struct and its three 256-byte buffers were members
+// of another, so their frame offsets follow member order instead of MSVC5's
+// free-list order. With `struct { int count; int bFlag; int i; } s;` declared at
+// the top of the slow path and `struct { char name[256]; char lower[256];
+// char path[256]; } a;` at the top of the loop body the frame comes out:
+// allocator temp 0x10, s.count 0x14, s.bFlag 0x18, s.i 0x1c, files 0x20,
+// parser 0x30, a.name 0x3c, a.lower 0x13c, a.path 0x23c, byte-exact (886).
+// Earlier attempts (declaration/statement reordering, explicit allocator,
+// unsigned/size_t counts, header sets, N-declaration sweeps) all stalled at
+// 92.9% because MSVC5 numbers these slots by free-list order, which no scalar
+// declaration order moves. Grouping the two 256-byte pairs in the base version
+// was already right; grouping the scalars is what fixed the five small homes,
+// and grouping the buffers with name before lower fixes the last two.
+// The odd `mov al, [esp+0x13]` / `mov [files], al` pair is the inlined vector
+// default constructor copying the empty allocator temporary; no local for it.
 
 #include <string.h>
 #include <vector>
@@ -140,13 +92,14 @@ int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
     }
 
     FUN_00491c80(0x14);
-    int bFlag;
+    struct S { int count; int bFlag; int i; } s;
+    
     if (param_2 == 0) {
-        bFlag = 1;
+        s.bFlag = 1;
         if (*(int*)(*(int*)(g_game + 0x391e9)) != 3)
-            bFlag = 0;
+            s.bFlag = 0;
     } else {
-        bFlag = 0;
+        s.bFlag = 0;
     }
     int offset = 0;
     DAT_005122dc = 1;
@@ -157,23 +110,21 @@ int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
     FUN_004bca30("Maps\\*.ota", 0, &files);
     DAT_005122e0 = 0;
 
-    int count = files.size();
-    for (int i = 0; i < count; i++) {
-        char path[256];
-        FUN_004290f0(path, "Maps", files[i].ptr, "OTA");
+    s.count = files.size();
+    for (s.i = 0; s.i < s.count; s.i++) {
+        struct A { char name[256]; char lower[256]; char path[256]; } a;
+        FUN_004290f0(a.path, "Maps", files[s.i].ptr, "OTA");
         Class_004c2ea0 parser;
-        if (((Class_004c2f60*)&parser)->FUN_004c2f60(path) != 0
+        if (((Class_004c2f60*)&parser)->FUN_004c2f60(a.path) != 0
             && ((Class_00435c00*)(*(int*)(g_game + 0x391e9)))
                    ->FUN_00436860(3, &parser, 0) != 0) {
-            char name[256];
-            char lower[256];
-            strcpy(name, files[i].ptr);
-            FUN_004bb0f0(name);
-            strcpy(lower, name);
-            _strlwr(lower);
-            char* src = FUN_004c5740(lower);
-            if (_strcmpi(src, lower) == 0)
-                src = name;
+            strcpy(a.name, files[s.i].ptr);
+            FUN_004bb0f0(a.name);
+            strcpy(a.lower, a.name);
+            _strlwr(a.lower);
+            char* src = FUN_004c5740(a.lower);
+            if (_strcmpi(src, a.lower) == 0)
+                src = a.name;
             int len = strlen(src) + 1;
             DAT_005122d4 = (char*)FUN_004d84a0(DAT_005122d4, "MULTI MAPS",
                                                len + DAT_005122dc);
@@ -185,7 +136,7 @@ int __stdcall FUN_00434bf0(void** param_1, int param_2, int param_3)
             if (param_2 != 0)
                 break;
         }
-        if (bFlag != 0) {
+        if (s.bFlag != 0) {
             FUN_00453d40();
             if (DAT_00506dbc != 0)
                 DAT_00513000.FUN_004618a0(0);

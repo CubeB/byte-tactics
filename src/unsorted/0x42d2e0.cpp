@@ -1,5 +1,16 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// Best result 91.2% (2183 bytes against 2173). The GUI suffix loop must be written as a do-while
+// Best result 91.4% (2175 bytes against 2173), deepseek-v4.1-flash. The compaction copy loop
+// takes a separate write cursor (`w = p; ... *w = *s; w++;` then `d = w;` after the loop): that
+// removes the [esp+0x10] spill of d (the single-variable form scores 91.2 with d reloaded and
+// stored around every operator= call). What still differs is only the cursor/end register swap:
+// ours keeps the cursor in ebp and `end` in edi, the original has d in edi and `end` in ebp,
+// which cascades into the unit-loop hunks. Rejected this pass: `for(;;) { ...; if
+// (!FUN_004bbc40(path)) break; ... }` for the suffix loop (rotated, 2240 bytes, 87.2), inert
+// file-scope extern declarations (16 / 48 / 80 -> 91.2 / 90.8 / 91.2), moving the w or end
+// declaration, `end` declared last (87.7), making w span both branches with `d = w` after the
+// if/else (91.2), `d += 1`, `d = 0` initialiser, `last` alias removed, while-copy with s
+// declared outside.
+// Best 91.2% (2183 bytes against 2173) shape: the GUI suffix loop must be written as a do-while
 // whose condition re-reads the FUN_004bbc40 result from a local:
 //   more = FUN_004bbc40(path); if (more) { suffix++; found = 1; } while (more);
 // That stops /O2 from peeling the first iteration; for(;;), while(1) and a goto loop all score
@@ -10,7 +21,8 @@
 // `if (p == end) { d = p; } else { d = p; for(...) }` fixed the inverted first guard,
 // 90.2 -> 91.2: the original emits `cmp; je Ld` (scan is the fall-through) then after the loop
 // `cmp; jne Lelse`, and this shape reproduces both branch layouts.
-// Remaining (single structural mismatch, everything after it is an offset cascade):
+// Remaining (as of the 91.2 shape; the spill below was later fixed by the write cursor,
+// everything after it is an offset cascade):
 // the compaction copy loop spills d to [esp+0x10] and reloads/gathers it around every
 // operator= call; the original emits `lea esi,[eax+0x249]; mov edi,eax` and keeps d in edi for
 // the whole loop, storing it once after (about 6 bytes). Tried and rejected: `*d++ = *s` (89.2,
@@ -264,13 +276,14 @@ void FUN_0042d2e0() {
     if (p == end) {
         d = p;
     } else {
-        d = p;
+        Class_0042b370* w = p;
         for (Class_0042b370* s = p + 1; s != end; s++) {
             if (!(~(s->flags.value) & 0x800000)) {
-                *d = *s;
-                d++;
+                *w = *s;
+                w++;
             }
         }
+        d = w;
     }
     g_game->field_1438f = (int)(d - g_game->field_1439b);
 

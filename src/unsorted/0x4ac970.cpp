@@ -1,4 +1,7 @@
 // Decompiled by Opus, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol issue 3121 retest: 96.6% after four checks. Reversing y operand
+// order, splitting y into short locals, and moving x before y did not change
+// codegen. Remaining difference: the two y loads use ecx/edx in swapped order.
 // Verified by GPT-6.1-sol for #1705: best retained score 83.1%; not a MATCH.
 // Codex / GPT-6 retest in #13:
 // a rectangle constructor, a drawing helper, coordinate updates and
@@ -61,8 +64,10 @@ void __stdcall FUN_004ac970(Object_004ac970* obj, int cell, int color)
     Gadget_004ac970* gadgets = obj->holder->gadgets;
     int index = FUN_0049fdf0(gadgets, "COLS", 6);
     void* surface = gadgets->surface;
-    int y = gadgets->y + gadgets[index].y;
     unsigned int x = gadgets[index].x + gadgets->x;
+    short baseY = gadgets->y;
+    short cellY = gadgets[index].y;
+    int y = baseY + cellY;
     Rect_004ac970 rect;
     rect.left = x + (cell % 16) * 8;
     rect.top = y + (cell / 16) * 8;

@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass (#3673, deepseek-v4.1-flash): re-measured 74.2% (1029 vs 1040 bytes). Byte-neutral
+// this pass: swapping the scan-loop n/remaining declarations, and declaring rem2 before q
+// in the a6==0 tail loop. Putting p between n and remaining regresses to 71.9 (1018 bytes).
+// The remaining diff is still the two register rotations named below.
+
 // PARTIAL: 74.2% (1029 vs 1040 bytes). Best found this session.
 //
 // What now matches: the `mov edi,0x200` preheader hoist, `sub ebx,4` then

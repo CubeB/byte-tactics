@@ -1,4 +1,10 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 6 (deepseek-v4.1-flash, #3673): re-measured unchanged at 43.3% (1578 vs 1653 bytes).
+// Diff fact from this pass: in the 0x4632b5 region our source emits 58 more instruction
+// lines than the original although the whole function is 75 bytes smaller, so that block
+// is a real code-shape difference (branch/helper expansion), not only the 4-byte frame
+// shift. Attack it there, not by local slot arithmetic.
+
 // Pass 5 (deepseek-v4.1-flash) measured these and they all compile to the identical
 // 1578 bytes, so none of them is the lever: the first loop written as
 // `e = &entries[i]` inside the body (MSVC canonicalises it back to the pointer walk,

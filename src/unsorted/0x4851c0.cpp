@@ -79,6 +79,17 @@
 // The original's b.x load is hoisted above the push ebx and above a.y's
 // load, which is a scheduler/allocator decision this source shape does not
 // reach; the instruction sequence is otherwise identical.
+//
+// deepseek-v4.1-flash fourth pass (retry), still 84.7%, 354 bytes. Confirmed
+// this is a compiler-state tie, not a source shape: the unused-declaration
+// sweep (`extern int dummyN;` for N = 0..400, step 4) is flat at 84.7%, and
+// tools/headers.py reports all 128 header sets flat at 84.7% (closest
+// <stdlib.h>). Also scored this pass, all worse: a by-value member
+// `operator-` in every one of the six body component orders (80.6 to 81.5%)
+// and all six in-place subtraction orders (yxz and yzx stay best at 84.7%).
+// The single remaining hunk is dx in ecx plus abs(dx)/n in esi (original)
+// versus dx in esi plus abs(dx)/n in ecx (ours); both instruction streams are
+// identical from the division onward. Left as-is per the flat-sweep rule.
 #include <stdlib.h>
 
 #pragma pack(push, 1)

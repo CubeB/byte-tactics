@@ -1,4 +1,9 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (issue #3941, this session): the 0x494bc4 block in our build
+// re-emits the whole player-state loop body inline (the `cmp edi,0xa; jne` plus the
+// 0x1b63 player scan) where the original jumps to the tail copy at 0x494dc0, and our
+// tail then has the loop collapsed into `mov ecx,[esp+0x18]; add ecx,0x28`, so the two
+// loop copies are transposed; size +33 bytes (1451 vs 1418) and 78.3% stand.
 // Retry (#3641, deepseek-v4.1-flash): 78.3% stands (1451 vs 1418 bytes). Decoded the
 // original's dst/panel layout from the disassembly in full: [esp+0x10] maxw,
 // [esp+0x14] i, [esp+0x18] panel.left, 0x1c top (0x20), 0x20 right, 0x24 bottom (the

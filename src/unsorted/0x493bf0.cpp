@@ -1,5 +1,10 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash. Names are provisional.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
+// deepseek-v4.1-flash (issue #3941, this session): tried the raw-byte spelling of the
+// 0x37f2f bit 1 test to kill the `test byte [m],2` fold: `int flags` with
+// `(raw >> 1) & flags` still folds (84.8%, 1113 bytes) and `unsigned char flags`
+// with the raw shift shifts the entry frame to [esp+0x10] and drops to 80.7%
+// (1125 bytes), so the stored short-flags plus bitfield shape stays best at 89.7%.
 // deepseek-v4.1-flash (issue #3454): retried the bit test with int flags (84.8)
 // and with the byte cast (84.8, identical); int flags fixes `or al,2` and the
 // direct `push eax` but still folds the shift to `test byte [m],2` and perturbs

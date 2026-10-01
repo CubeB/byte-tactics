@@ -1,32 +1,79 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
-// space-bunny-free pass 2: baseline rechecked at 86.1% (712 bytes), one scored
-// run, file left unchanged. New data, all scored free in
-// build/scratch/0x4336f0/{v1,a,b,c,d,e,g,f1,f2,f3,h1,h2,h3,i1,i2,i3}.
-// The ONE remaining difference in this file is three arm guard tests plus the
-// `mov ebx,[esi+4]` hoisting in arms 1-3, and both have a single upstream
-// cause: the rank of the loop counter. In this file the allocator gives
-// `count` edi, `i` ebx, the reloaded _First ebp; the original gives `i` edi,
-// _First ebx, `count` ebp, i.e. `count` is two steps demoted. Fixing the rank
-// in the EXACT-SHAPE source (all four arms `if (n > 0) do {} while (--count)`,
-// v1, 708 bytes, every instruction and operand right) needs extra uses of
-// `count` that emit no code, and the cheapest one that works is a copy:
-//   `int k = count;` per arm, then `while (--k)`. With all four arms spelled
-// that way (e, f1-f3, h3) the rotation, the `test di,di` guard, `xor edi,edi`
-// and every `mov word ptr [ebx+edi]` all become the original's, and the score
-// rises to 82.4% (700 bytes).
-// BUT it also costs one /Ob2 inline unit per arm, and at three arms (h3) the
-// failed-lookup tail's `vector::_Destroy` inlines to nothing and the function
-// loses the 8-byte call, the `mov ecx,esi` and the `mov [esi+8],edi`. The rank
-// flip and the inlining flip sit on the SAME budget threshold: two arms give
-// 704 bytes with the old rank (74.8%), three give 700 with the new (82.4%),
-// and there is no setting that gives both. Trying to buy the missing budget
-// unit back with dead `__inline` helper calls does NOT work: an empty helper
-// called 1, 2, 3 and 8 times (f1-f3, i1-i2) changes nothing at all, and one
-// with an argument or a body costs real code and drops to 692 bytes/69.6%
-// (i1-i3). Dead stores, `count--` in the while, a `k` copy in only one or two
-// arms, `unsigned i`, and a burn helper on the exact shape are all no better.
-// So the two shapes are mutually exclusive at 82.4% and 86.1%; this file keeps
-// the 86.1% one, which is the only one whose first two arms are byte exact.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro continuation (second session): still 87.1%, nothing beat it.
+// New facts, from a byte-exact diff (build/scratch/0x4336f0/bytediff.py):
+// - The 4 byte excess is exactly: case 1's extra `test ebp,ebp / jle` costs
+//   +8 bytes (the jle is a NEAR jump here), cases 2 and 3 each save 1 byte
+//   (`test ebp,ebp` is 2 bytes where the original `test di,di` is 3), and the
+//   alignment pad shrinks 2 bytes (1-byte nop vs the original 3-byte
+//   `lea ecx,[ecx]`). So fixing case 1's top test and restoring `test di,di`
+//   guards in cases 2 and 3 would land the size on 708 exactly.
+// - Countdown spellings that add `count` uses with identical codegen do NOT
+//   flip the register rank: `do {} while (--count != 0)`, `do { count--; }
+//   while (count != 0)`, `do {} while ((count = count - 1) != 0)` and
+//   resize(count, x) instead of resize(n, x) all keep the wrong rank (i in
+//   ebx, count in edi, _First in ebp), and the first three also inline
+//   vector::_Destroy away (69.7%). The rank really is decided by loop
+//   structure, not by count's weighted use.
+// - Dead `int k = count;` copies in 1-3 arms never flip the rank (only a LIVE
+//   k as the loop counter in 3 arms does, kdo3), so the flip is not "a new
+//   local" or "one more use of count" but the loop counter being a fresh
+//   arm-local (kdo3) or a loop-top test existing (top-tested arms).
+// - `if (count > 0) { do {...} while (--count); }` (count guard instead of
+//   n guard) does not flip the rank either; it just loses the 1 byte per arm.
+// - The _Destroy call survives only in: exact arms with `--count`, the
+//   cguard shapes, and 3-4 top-tested arms (with or without splits). It
+//   inlines away with 2+ kdo arms, 3+ dead-k arms, 8 statement splits, or
+//   the alternate countdown spellings above. The trigger is still unclear
+//   (it is not raw statement count: the 3 top-tested arms carry 3 extra
+//   count--; statements and 3 splits yet keep the call).
+// All of this session's variants are in build/scratch/0x4336f0/e_*.cpp; the
+// best (e_base, 87.1%) is the config already in this file.
+//
+// mimo-v2.6-pro retry: best 87.1% (712 bytes vs 708). Beats the old 86.1% by
+// fixing the arm 3 missing neg (original arm 3 is b = -y, a = -x; the previous
+// file had a = x) and by splitting the strtok call into its own statement in
+// three stores (case 0's two stores and case 1's second store):
+//   char* t = strtok(0, ", "); (*this)[i].a = atoi(t);
+// which moves the reloaded _First (mov ebx,[esi+4]) from before the pushes to
+// just after the strtok call, exactly where the original has it. The single-
+// expression form (a = atoi(strtok(...))) makes MSVC evaluate the LHS address
+// first and hoist the load above the push/call sequence; the statement split is
+// what the original source almost certainly did.
+//
+// What still differs:
+// 1. Case 1 carries both the n guard (test di,di) and the while (count > 0)
+//    top test (test ebp,ebp), cases 2 and 3 have test ebp,ebp where the
+//    original has test di,di. All four original arms are the exact shape
+//    `if (n > 0) { i = 0; do {...} while (--count); }`. Writing all four arms
+//    that way gives byte-exact arms but the wrong register rank (count in edi,
+//    i in ebx, _First in ebp instead of i in edi, _First in ebx, count in ebp).
+//    The rank only flips back with three top-tested while arms (this file) or
+//    with an `int k = count; do {} while (--k)` copy in three arms.
+// 2. Five of the eight _First reloads (cases 1 second store, cases 2 and 3)
+//    are still hoisted before the pushes. Splitting them the same way would
+//    need four or more statement splits, and at four splits the /Ob2 inliner
+//    flips the failed-lookup tail: vector::_Destroy inlines to nothing and the
+//    tail loses the call, the mov ecx,esi and the mov [esi+8],edi (the
+//    function drops to 708 bytes and 84.3%).
+// 3. Ours is 712 bytes vs 708, so every jump target in the diff is shifted.
+//
+// mimo-v2.6-pro experiments (all scored in build/scratch/0x4336f0/):
+// - Statement-split temps fix the load placement but flip the _Destroy tail
+//   inline at 4 splits (3300/3333/a1: 84.3% or less). 3 splits are safe; the
+//   best distribution is 3200 or 2300 (87.1%).
+// - Exact-shape arms + k-copy (int k = count; do {} while (--k)) in 3-4 arms
+//   (kdo3/kdo4): rank and arm shape byte-exact, but 2 k-copies already break
+//   the tail (kdo2/kdo3/kdo4 all lose the _Destroy call) and the placement is
+//   still wrong; 700 bytes, 84.9%.
+// - Member helper setters (sa(i, strtok(...)) with inline bodies) fix the
+//   placement with no new locals but break both the rank and the tail (69.7%).
+// - Failed-path spellings (resize(0,x), resize(0), if(size()>0) erase(...),
+//   clear(), erase(...)) do not change the rank; only resize(0,x)/resize(0)
+//   keep the _Destroy call at all, the others inline it (58-70%).
+// - register/const int count, dead k copies, and while(--k) spellings are all
+//   worse or unchanged. Dead k copy in 2 arms also breaks the tail, so the
+//   trigger is the copy statement itself, not its liveness.
+//
 // GPT-6.1-sol (#3157 retry): baseline rechecked at 86.1% (712/708), one scored run. Two helper variants failed to compile or resolve; best unchanged, no MATCH.
 // space-bunny-free pass: kept the 86.1% file unchanged (it is the best known)
 // and mapped what is left with a byte-exact diff (relocation fields masked),
@@ -45,16 +92,17 @@
 // Remaining difference 2, which NO score has shown before: in all four arms the
 // original emits `call strtok; mov ebx,[esi+4]; add esp,8` (the reload of
 // _First lands immediately AFTER the call) where every variant here, including
-// the 4-do-while one, emits `mov ebx,[esi+4]` BEFORE the two pushes, i.e. it is
-// hoisted above the strtok call. Both slots are legal (a load cannot cross a
-// call, and in the original neither load is hoisted past its own strtok), so
-// this is a scheduler tie-break, not a missing instruction: difflib matches the
-// two `mov ebx, dword ptr [esi+4]` texts to each other and scores them equal,
-// but the bytes are 6 out of place in each of the 8 loads. That is why the
-// text score never reached 100% even where the instruction multiset matches.
-// Writing the store through a local pointer (`Elem* p = &(*this)[i]; p->a = ...`)
-// puts the load even earlier, drops the function to 696 bytes and makes the
-// allocation flip back (68.1% / 79.1%), so the pointer form is not it either.
+// the 4-do-while one, emits `mov ebx, dword ptr [esi+4]` BEFORE the two pushes,
+// i.e. it is hoisted above the strtok call. Both slots are legal (a load cannot
+// cross a call, and in the original neither load is hoisted past its own
+// strtok), so this is a scheduler tie-break, not a missing instruction:
+// difflib matches the two `mov ebx, dword ptr [esi+4]` texts to each other and
+// scores them equal, but the bytes are 6 out of place in each of the 8 loads.
+// That is why the text score never reached 100% even where the instruction
+// multiset matches. Writing the store through a local pointer
+// (`Elem* p = &(*this)[i]; p->a = ...`) puts the load even earlier, drops the
+// function to 696 bytes and makes the allocation flip back (68.1% / 79.1%),
+// so the pointer form is not it either.
 //
 // deepseek-v4.1-flash pass 2: swept all subsets of arms switched to
 // top-tested loops and all combinations of which arms test n vs count in a
@@ -178,39 +226,42 @@ void Class_004336f0::FUN_004336f0(Class_004c3e10* obj, short line, short mode)
         resize(n, x);
         switch (mode) {
             case 0:
-                    if (n > 0) {
-    do {
-                            (*this)[i].a = atoi(strtok(0, ", "));
-                            (*this)[i].b = -atoi(strtok(0, ", "));
-                            i++;
-                        } while (--count);
-                    }
+    if (n > 0) {
+        do {
+                            char* t1 = strtok(0, ", ");
+                            (*this)[i].a = atoi(t1);
+                            char* t2 = strtok(0, ", ");
+                            (*this)[i].b = -atoi(t2);
+            i++;
+        } while (--count);
+    }
                 return;
             case 1:
-                    if (n > 0) {
-    while (count > 0) {
+    if (n > 0) {
+        while (count > 0) {
                             (*this)[i].b = atoi(strtok(0, ", "));
-                            (*this)[i].a = atoi(strtok(0, ", "));
-                            i++;
-                            count--;
-                        }
-                    }
+                            char* t2 = strtok(0, ", ");
+                            (*this)[i].a = atoi(t2);
+            i++;
+            count--;
+        }
+    }
                 return;
             case 2:
-while (count > 0) {
-                        (*this)[i].a = -atoi(strtok(0, ", "));
-                        (*this)[i].b = atoi(strtok(0, ", "));
-                        i++;
-                        count--;
-                    }
+    while (count > 0) {
+                            (*this)[i].a = -atoi(strtok(0, ", "));
+                            (*this)[i].b = atoi(strtok(0, ", "));
+        i++;
+        count--;
+    }
                 return;
             case 3:
-while (count > 0) {
-                        (*this)[i].b = -atoi(strtok(0, ", "));
-                        (*this)[i].a = atoi(strtok(0, ", "));
-                        i++;
-                        count--;
-                    }
+    while (count > 0) {
+                            (*this)[i].b = -atoi(strtok(0, ", "));
+                            (*this)[i].a = -atoi(strtok(0, ", "));
+        i++;
+        count--;
+    }
                 return;
         }
     }

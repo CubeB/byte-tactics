@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
 // The game's free() for its own heap: under the allocator lock it looks the
 // block up in the live-block map, records the freed header in the debug arena,
 // drops it from the live map, releases the pages it had reserved for the block
@@ -34,6 +34,22 @@
 // Tried this pass and worse: the whole pair<iterator,bool> result as an 8
 // byte `it3` (frame grows by 4), all iterators as by-value temps, a mutated
 // `p` aliased as `node` (37 to 54 percent).
+// deepseek-v4.1-flash (#3363 retry, still 83.0, 625/624): the remaining two
+// diffs are one slot-allocation question. The original's five low slots are
+// it1 0x10, n 0x14, the shared discarded-result temp 0x18 (the same slot the
+// end() iterator occupies; every one of the four calls whose result is
+// discarded, FUN_004dbe10(0), both FUN_004dbd00 erases and the FUN_004dbbc0
+// insert, writes 0x18), a genuine hole at 0x1c, and cs at 0x20. Ours is it1
+// 0x10, n 0x14, it3 0x18, cs 0x1c, temp 0x20: the temp cannot alias 0x18 only
+// because our named `it3` is still live (it is passed to FUN_004dbbc0), and
+// nothing occupies the hole.
+// Tried and worse: assigning the three discarded iterator results to `it3`
+// (MSVC materialises a temp and copies, moving n to 0x10 and it1 to 0x14);
+// dropping the named it3 from the FUN_004dbbc0 call (its hidden-return temp
+// still lands at 0x20, and it3 stays at 0x18); declaring the funnel block in
+// several other positions. Not yet tried: making FUN_004dbeb0/FUN_004dbbc0
+// return their iterator by value so every use site is an anonymous temp, and
+// giving the 0x1c hole a real home (a slot MSVC promotes to a register).
 #include <windows.h>
 #include <memory>
 

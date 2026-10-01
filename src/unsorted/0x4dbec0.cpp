@@ -194,6 +194,15 @@
 // while `p` takes EAX at the merge at 0x4dc0e3, and the reverse here, with an
 // identical interference graph on both sides.
 //
+// Seventh pass (deepseek-v4.1-flash) added three more negatives so nobody
+// repeats them: moving the birth `it.ptr = y;` to function scope before the
+// `if (rebuild)` is 85.3 percent (the iterator then lives across the whole
+// rebuild path and the allocator re-homes everything), the rebuild arm's tail
+// store written as `out->field_0.ptr = node;` is byte-identical at 95.6
+// percent, and retyping the `node` local as a Class_004dd2a0 (same bytes
+// intended) does not compile because the class has no usable copy assignment
+// for `y->left = node;`. The one difference is still the birth register.
+//
 //  - `head->+4` is the root and `head->+0` is begin(). The empty-tree case
 //    writes y->left (which is head->left), then head->parent (the root), then
 //    head->right. The fixup is only needed on the header's two extremes, which

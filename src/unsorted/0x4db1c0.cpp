@@ -34,6 +34,17 @@
 //    as out 0x20, res 0x1c, pair 0x18, k 0x24.
 //  * With all-temporary pairs and no named `res` MSVC turns the tail recursion
 //    into a jump (589 bytes); the named `res` (address taken) prevents that.
+// deepseek-v4.1-flash retry (#3363), still 80.5 percent and 646 bytes: the
+// register pick is a pure allocator tie-break, not statement order. Flat: 1..4
+// dummy `static void dummyN(void) {}` definitions before the function (TU state
+// does not move it), `Class_004db000* self = this;` for the two FUN_004dbec0
+// calls plus `total += len` (copy-propagates), and the same alias for the
+// FUN_004dd250/FUN_004dc130 sites. Giving the parameter's live range an explicit
+// end (self = this immediately before the erase call, so `this` dies there)
+// grows the body to 650 bytes and drops to 70.1. Note that in ours the success
+// block's `mov ebp,[esi+0x10]` clobbers the only `bytes` home, which is exactly
+// why the extra `mov edx,[esp+0x30]` reloads and the `sub eax,ebx` appear; flip
+// the two homes and every hunk in the diff closes at once.
 // Tried this pass and flat or worse for the this/bytes tie: `bytes <= len`,
 // `bytes + mark`, `end` as an expression (`mark + bytes` thrice, 650 bytes and
 // 75 percent: the length becomes `base + len - mark - bytes` with a different

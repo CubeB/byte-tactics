@@ -1,7 +1,17 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
 //
 // Partial: 46.0%, 2204 bytes versus 2164. Best so far; every earlier attempt is
 // in build/scratch/0x4a9fd0/.
+//
+// deepseek-v4.1-flash retry (#4034, 10-minute timebox): baseline re-verified at
+// 46.0% (2204 vs 2164). One variant measured: moving the hoisted `int i = 1;`
+// down to just below the early return (right after `int sel = menu->field_60;`)
+// removes our extra entry-block `mov dword ptr [esp+4],1` so the entry block
+// content then matches the original exactly (original entry is only
+// sub esp,0x34; push ebx/ebp; mov ebp,[esp+0x40]; push esi; push edi;
+// mov eax,[ebp+0x18]; test; jne; xor eax,eax; pop x4; add esp,0x34; ret 4),
+// but it scores 45.6 / 2200 bytes, so the hoisted store is still alignment
+// positive and the whole residual stays the shrink-wrapped save order.
 //
 // deepseek-v4.1-flash retry (#3478, 10-minute timebox): +1.3 to 46.0 with two
 // changes in the first entry clamp, both now faithful to the original:

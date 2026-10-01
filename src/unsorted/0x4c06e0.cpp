@@ -1,4 +1,5 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry for issue #3189: best remains 74.1%, no MATCH. Six checker invocations: baseline, maxx/local-x rewrite (50.0%), unsigned-short pitch guard (68.6%), inlined Plot and Surface* alias (both tied at 74.1%), and a failed declaration reorder compile. Remaining difference is register allocation across the clipped-span count/offset and loop.
 //
 // Eighth pass (#2984, deepseek-v4.1-flash): baseline re-confirmed at 74.1%.
 // Swept ~60 more shapes with a generator (all scored via check.py --sym, free):

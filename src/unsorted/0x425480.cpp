@@ -1,4 +1,40 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro pass (60 min timebox, ~70 scored scratch variants, no score
+// change; kept the saved 534-byte / 81.1% do-while). New evidence:
+// - Translation-unit state is a live lever here: emitting a second template
+//   instantiation in the same file (std::vector<unsigned short>::insert or
+//   vector<int>::insert, at any of four positions) flips the third copy's
+//   source derivation from `lea eax, [ecx + edi]` to `mov eax, ecx / add eax,
+//   edi`, 535 bytes / 80.9%. So the file hash moves at least one byte of this
+//   function, but only between the same two buckets.
+// - A dead-declaration spray (30 files, 1-12 items each: functions, classes,
+//   enums, typedefs, externs, unions, namespaces, templates, virtual classes,
+//   at three positions) produced only those two buckets: 534 / 81.1 and
+//   535 / 80.9. No variant flipped the register rotation.
+// - _Ufill and first _Ucopy spellings move bytes but never the rotation:
+//   `0 < _N` to `_N != 0` or a while form is 534 / 80.6 (only jbe to je),
+//   manual fill loops collapse the family (532 / 55.5), a manual first copy
+//   is 534 / 80.6, post-increment constructs 524 / 52.5, and source-first
+//   increments, `_d += _M` splits, end() bounds and _M aliases are all byte
+//   identical to the kept form.
+// - The exe's two register variants of vector<T>::insert compared side by
+//   side: 0x425210's (this in ebx, _M in ebp, _P reloaded into ebx) third
+//   loop keeps dest in ecx, source in eax from `lea eax, [ebx + ecx]`,
+//   _Last cached in esi and _M in edi; ours is that loop shape with _P in
+//   edi (so the lea reads [ecx + edi]) and _Last reloaded into edx each
+//   pass. The wanted 0x425480/0x4732e0/0x40d020 variant (this in ebp, _P in
+//   ecx merged into the source induction variable, _Last cached in esi) is
+//   the other family: every _P-into-ecx spelling flips this back to ebx, so
+//   the two cannot be combined from this source. docs/field-notes.md lists
+//   0x425480 on the callee-saved register rotation wall and says the exe
+//   holds both register variants from different translation units.
+// Still differs (unchanged): everything after the operator new call in the
+// growth branch. Ours: _P in edi, first copy temp ecx, _Ufill _X esi and
+// count ecx, third copy M4 in esi, dest in ecx, source derived in eax and
+// _Last reloaded into edx every iteration. Original: _P in ecx, temps and
+// fill registers one step around (esi / edi / esi), third copy M4 in edi,
+// dest in eax, source merged into ecx (`sub ecx, edx / add ecx, eax /
+// sub ecx, edi`), _Last cached in esi.
 // Ninth pass (deepseek-v4.1-flash, #3897): a live `const_iterator _P0 = _P;`
 // copy used as the third copy's source inside the do-while, and a
 // `size_type _N0 = _M;` alias for the _Ufill count, stay byte-identical at

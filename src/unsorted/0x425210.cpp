@@ -16,6 +16,49 @@
 // still only `lea eax, [ebx + ecx]` (original) vs `[ecx + ebx]` (ours) at
 // 0x4252d1 differs, and no BAD references. The wanted base/index order needs a
 // translation-unit state this build cannot reach.
+// Tenth pass (mimo-v2.6-pro, 2026-10-01, 60 min): re-verified the 544-byte /
+// 99.6 percent base with one fresh check.py run. New measurements this pass,
+// all scored via build/scratch/0x425210/scan.py harnessing check.py's own
+// compile and compare (several thousand builds, none MATCH and none reaching
+// the wanted [ebx+ecx]):
+//   * dense TU-state scan (every count, not step 8) of unused extern int
+//     padding after the includes: 0-1600 gives exactly two shapes, the 544
+//     [ecx+ebx] one (0-59, 317-500 at one-count granularity) and the 545
+//     association (60-316, and sparse singles at 380/388/444/452), so the
+//     step-8 boundaries hide no third shape. The A/B flip is count-based,
+//     not name-based: the prefixes pad425210_/zq_/aardvark_ give identical
+//     regimes at identical counts.
+//   * other padding kinds: void prototypes to 6000 (the 0x4b6c30 flip scale
+//     was 2700-5400 prototypes; only two shapes at any count), class decls,
+//     struct decls, typedefs, globals, and dead function definitions.
+//   * insertion points: before the includes, after the includes, at namespace
+//     std, before the typedef and appended at end of file (only the
+//     before-instantiation positions matter; the same two shapes).
+//   * #include <windows.h> in front of the file crossed with 200 counts of
+//     extern padding: still only the same two shapes (so the guide's
+//     windows.h SIB lever does not reach this lea).
+//   * the 0x41ace0 technique (no includes at all: operator new/delete
+//     hand-declared, own allocator and the header's fill/copy_backward
+//     spellings) puts the whole function in the OTHER register family
+//     (this in ebp, _M in ebx, 503-504 bytes) at every count 0-400 with and
+//     without windows.h, so the no-include state is a family flip, not a
+//     SIB lever here.
+//   * original instantiation order state: instantiating vector<Class_004c2ea0*>._Destroy
+//     and vector<unsigned short>.size before insert (matching the original's
+//     emission order 0x4251e0, 0x4251f0, 0x425210) flips the build to the
+//     545-byte association in every order tried (destroy+size before and
+//     destroy+erase+insert<Class*> after), and a decls-only variant without
+//     the size instantiation stays 99.6 percent with the same SIB byte. The
+//     state flips at single-declaration granularity (adding just the
+//     DestroyFn typedef to the decls block moves it A to B).
+//   * two untried spellings of the third _Ucopy body: a value local
+//     `value_type _V = *_F; construct(_P, _V)` (558 bytes, 46.4 percent, the
+//     temp survives) and a fresh `const_iterator _G = _F` read through
+//     (byte-identical 544, same SIB byte).
+// Verdict unchanged and reinforced: the wanted `lea eax, [ebx + ecx]` is a
+// third state of the optimizer's commutative-operand pick that no TU state
+// reachable from this file produces; every reachable state gives either
+// [ecx+ebx] in the 544-byte shape or the 545-byte association.
 // #2343 retry by GPT-6.1-sol: baseline remains 99.6% after four check.py
 // invocations. Restrict, byte-offset, and single-use destination probes left
 // the SIB operand order at 0x4252d1 unchanged. No MATCH.

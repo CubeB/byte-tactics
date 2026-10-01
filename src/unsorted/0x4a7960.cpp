@@ -1,4 +1,13 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// claude-opus-5-5 (#4258): 72.7% -> 75.2%. The first loop's inner search is a
+// plain `for (j = 1; used[j] != 0; j++) { int d = used[j] - *p; if (d < 10 &&
+// d > -10) { idx = j; break; } }`, which gives the original `mov eax,[ecx+4];
+// add ecx,4` walk. Still differs: `cnt` (count + 1) is computed into esi before
+// the rep stosd and the layer/cnt frame slots are swapped ([esp+0x20]/[esp+0x24]);
+// the original computes it into eax after the stosd and keeps it in memory.
+// Moving the definition after the zeroing loop, memset(used, 0, 200) and
+// declaration order did not change it. The tail scheduling around DoSelect
+// differs slightly; the jump tables at the end only differ by address.
 // deepseek-v4.1-flash (#4124, 10-minute box, no new variant scored above 72.7%):
 // re-ran the top-allocation search with the ctx.py frame decoded exactly (used[]
 // is 200 ints at post-push esp+0x28, frame 0x338 = 24 bytes of scalars at
@@ -316,17 +325,12 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
         int remaining = cnt - 1;
         do {
             int idx = -1;
-            int* q = &used[1];
-            int v = *q;
-            int j = 1;
-            while (v != 0) {
-                if (v - *p < 10 && v - *p > -10) {
+            for (int j = 1; used[j] != 0; j++) {
+                int d = used[j] - *p;
+                if (d < 10 && d > -10) {
                     idx = j;
                     break;
                 }
-                v = q[1];
-                q++;
-                j++;
             }
             if (idx != -1)
                 *out = used[idx];

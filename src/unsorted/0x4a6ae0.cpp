@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// claude-opus-5-5 (#4258): kept at 93.4%. The original's field_138 block is an
+// if / else-if / else chain, which reproduces the whole layout (structural ratio
+// 0.957 -> 0.996, including the `test ax,ax` re-tests at 0x4a6f43 and 0x4a7060):
+//     if (entry->field_138 != 0 && (entry->flags & 0x2000)) { auto-repeat ... }
+//     else if (entry->field_138 == 0 && <point in r>) { field_138 = 1; DAT_0051fbac = 0xf; }
+//     else { if (entry->field_138 != 0 && <point outside r>) { field_138 = 0;
+//            FUN_004a5f40(obj, index); return 0; } goto fail; }
+//     FUN_004a5f40(obj, index); ...
+// plus `int bound` (not short) for the team search. With that chain the only
+// difference left is a register tie: obj gets ebp and entry ebx (the original has
+// obj in ebx, entry in ebp), which shifts every later byte and scores 64.1%.
+// A 15-minute permuter run only flipped the tie with a dummy `bool tmp0` around
+// the tolower compare; a `short state` local, `entry + index`, split declarations,
+// operand order in the tolower/toupper compares and `!field_138` did not.
 // deepseek-v4.1-flash (#4124, 10-minute box, no new variant scored). Measured the
 // region's `entry`-reference ladder on a rebuilt v1 (the correct-semantics shape,
 // build/scratch/0x4a6ae0/batch.py): v1 = 64.1% with obj=EBP/entry=EBX; v1 plus ONE

@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// #2988 retry by GPT-6.1-sol: five checks retained 93.2%; the three variant
+// forms all scored lower. Operand registers, bit tracking, and packet stores differ.
 // GPT-6.1-sol retry (#2420): best remains 93.2% after helper and expression variants; see remaining-diff notes below.
 // GPT-6.1-sol retry (#1616): an int old / byte now variant scored 67.0%, so the prior 93.2% version remains best. The previous notes still describe the register and packet-store differences.
 // Claude Sonnet 5.5 pass (#755, no code change, still 93.2% and 367 bytes):

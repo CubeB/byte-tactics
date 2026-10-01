@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// #2988 retry by GPT-6.1-sol: five checks retained 88.8%; a pointer local
+// scored lower. Early-exit targets and bit-19 register allocation still differ.
 // GPT-6.1-sol retry (#2420): two checker runs kept the existing 88.8% best;
 // one Windows invocation failed before the checker. A register-int split
 // variation emitted identical code; the prior bit-19 register mismatch remains.

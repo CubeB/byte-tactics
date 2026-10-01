@@ -1,4 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// New evidence (deepseek-v4.1-flash, pass 4): diffing our asm against the original
+// shows our frame is exactly one local short and the missing one is `a`: ours homes
+// i/entry at [esp+0x10], flag and tick, but keeps `a` in a register, while the
+// original has i/entry [0x10], tick [0x14], flag [0x18], a [0x1c]. In the original
+// `a` is written exactly once (0x4631e7, `mov [esp+0x1c], eax` interleaved into the
+// cmp chain) and read exactly once (0x4632a7), with many calls in between, so MSVC 5
+// homed it in memory and then had no callee-saved register to spare for `entry`
+// (which is why the original reloads entry from [esp+0x10] at every use) and froze a
+// zero in edi for the whole first loop (`cmp eax, edi`, `mov [eax+4], edi`).
+// So the fix is to make `a` live across a call in a way MSVC 5 spills; every
+// declaration-order and pointer-spelling trick tried so far leaves it in a register.
 // PARTIAL: 43.3%. Still differs: the frame is sub esp,0xc against sub esp,0x10 (three
 // spilled locals instead of four: original homes i/entry in [esp+0x10], tick in
 // [esp+0x14], flag in [esp+0x18] and a in [esp+0x1c]; ours homes i/entry, flag and

@@ -137,6 +137,40 @@
 // `mov [esp+0x10], ecx` at 0x4ba072, so the width spill is peeled out of
 // the loop and only happens on the first iteration.
 
+// Appended by space-bunny-free. Re-verified 98.7% (430 of 430 bytes, 154 of
+// 158 instructions) with a real check.py run, and confirmed the residual really
+// is only the four-instruction permutation in the loop head. Confirmed from a
+// real /Fa listing, which the note above had only inferred: the emitted head of
+// the flat form is exactly
+//   p reload, ++n, load byte, ++p, p store, state load, sub eax,0, value store,
+//   history store, je
+// and the two in-place-store helper shapes that were reported to emit the
+// stores at slots 5 and 6 really do, but they also move the pointer store
+// ahead of the history store and switch the switch-test to a different
+// register, so neither block matches. New shapes compiled and scored with
+// `check.py --sym`, none better than 98.7%:
+//  - `DAT_0051fcaf[++n] = c` with the read split from the increment: 86.7%,
+//    worse, because the increment then sits inside the store's index and the
+//    loop no longer peels the width spill;
+//  - `c = *p; n++;` before the store (the increment after the read), with
+//    and without `n++` folded in, and with the store fused into the read:
+//    98.1% each, one point worse, so the `++n` really must precede the read;
+//  - `p = bump(p, n, c)` with `bump` an inline helper that stores the history
+//    and returns the bumped pointer, plus the same helper taking `value` by
+//    reference and returning the pointer: 98.7%, but the pointer store lands
+//    before the history store, which is the wrong way round;
+//  - the same helper taking `c` and `value` by reference and returning the
+//    pointer, i.e. the read inside the helper: 60.4%, far worse;
+//  - `p = (p + 1, DAT_0051fcaf[n] = c, p)` and `value = DAT_0051fcaf[n] = c`
+//    and `DAT_0051fcaf[n] = value = c`: 63.5%, 98.7% and 98.7%. The
+//    63.5% one is worth remembering: a comma expression whose left operand
+//    is the pointer increment makes MSVC give `p` a register it keeps across
+//    the switch, which changes the whole tail.
+// So the residual is still unresolved, and it is a single cause: MSVC 5 emits
+// the original's loop head only when the read, the pointer advance and the
+// history store are one nested expression tree, and every shape that does that
+// also loses `bl` for the byte or `eax` for the pointer.
+//
 // Appended by deepseek-v4.1-flash. Still 98.7%, the same single block. These
 // further shapes were compiled and scored: hoisting one or both stores into
 // the switch condition as a comma expression

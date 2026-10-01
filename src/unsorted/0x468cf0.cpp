@@ -1,6 +1,16 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
 // (Earlier partials: deepseek-v4.1-flash, then GPT-6, then GPT-6.1-sol.)
 // deepseek-v4.1-flash retry 4 (timeboxed): one variant tried, no gain, reverted.
+// deepseek-v4.1-flash retry 8 (10 min timebox): 55.3 -> 57.4, 5963 -> 5979 bytes.
+// Both +/-99999.0f sprintf pairs inverted to put the "%dK" arm first:
+//   if (L.local_1a7 >  99999.0f) "%dK" /1000; else "%d";
+//   if (L.local_1a3 < -99999.0f) "%dK" /1000; else "%d";
+// This yields the original's jne-to-plain-arm / K-fall-through layout and its
+// compare polarity at both sites (the old note that the local_1a3 inversion is
+// worse was measured against the older register allocation and no longer holds).
+// Also confirmed byte-neutral: `iVar21 += (int)lVar25; L.local_1ab = (float)iVar21;`
+// in place of `L.local_1ab = (float)(iVar21 + (int)lVar25);` (identical output),
+// so the add esi,eax vs add eax,esi difference is not statement placement.
 // deepseek-v4.1-flash retry 7 (10 min timebox): 53.8 -> 55.3, 6023 -> 5963 bytes.
 // Two shape fixes, both now in the file:
 // 1. The prologue g_game+0xdcb pointer: introducing a plain local pointer
@@ -434,13 +444,13 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     sprintf((char*)L.local_170,"%d",(int)*(float*)(iVar12+0xa4));
     iVar21 = FUN_004c1480((int)(*(int *)(iVar11 + 0x22e)),(int)(L.local_170));
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0xb2) - iVar21),(int)(*(int *)(iVar11 + 0xb6)),(int)(-1));
-    if (L.local_1a7 <= 99999.0f) sprintf((char*)L.local_170,"%d",(int)L.local_1a7);
-    else sprintf((char*)L.local_170,"%dK",(int)L.local_1a7/1000);
+    if (L.local_1a7 > 99999.0f) sprintf((char*)L.local_170,"%dK",(int)L.local_1a7/1000);
+    else sprintf((char*)L.local_170,"%d",(int)L.local_1a7);
     iVar21 = FUN_004c13f0();
     FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 10)),(int)(iVar21));
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0xf2)),(int)(*(int *)(iVar11 + 0xf6)),(int)(-1));
-    if (L.local_1a3 >= -99999.0f) sprintf((char*)L.local_170,"%d",(int)L.local_1a3);
-    else sprintf((char*)L.local_170,"%dK",(int)L.local_1a3/1000);
+    if (L.local_1a3 < -99999.0f) sprintf((char*)L.local_170,"%dK",(int)L.local_1a3/1000);
+    else sprintf((char*)L.local_170,"%d",(int)L.local_1a3);
     iVar21 = FUN_004c13f0();
     FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 0xc)),(int)(iVar21));
     FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0x102)),(int)(*(int *)(iVar11 + 0x106)),(int)(-1));

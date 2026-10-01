@@ -10,6 +10,43 @@
 // Only the `mov edi,[esi+0x1c]` base-load slot differs (ours right after the `je`,
 // original after `mov [eax],0`).
 
+// deepseek-v4.1-flash (#4170 round, final): still 98.7 (191 bytes, exact), the
+// same single hunk (ClearLast's `mov edi,[esi+0x1c]` load emitted right after
+// the `je` instead of after the `mov [eax],0` store). ~320 scored variants this
+// round (all logged in build/scratch/0x40d900/), none above 98.7:
+// * The outcome is a strict binary switch. The load-first two-statement form
+//   (`Cell* p = cells;` before the store, `p += i*256;` after) loads the base
+//   straight into edi (p's home) and the offset into edx, and emits the load
+//   first (98.7). Every store-first form (any spelling) makes the code
+//   generator defer the base load to the add, so the offset is allocated first
+//   into edi, the base lands in ecx or edx, and the `mov ebx,edx` bits copy is
+//   emitted after the base load (93.7).
+// * New shapes tried this round: named base/offset locals in every order
+//   (`base = cells; off = i*256; store; p = base + off;` and permutations)
+//   reach 96.2 with the base in edx and the offset in edi, still the wrong
+//   roles; `for`-init pointers, comma expressions (`(cells, &cells[i*256])`,
+//   optimized away), byte-pointer (`unsigned char*`) grids, direct
+//   AISearch-style fields instead of the Grid sub-object, inline methods
+//   defined out of class, static free helpers, reversed method definition
+//   order, `int`/`unsigned int` count and dirty types, shared function-scope
+//   bits, a second `mask = bits` variable (88.6, different prologue), extra
+//   typedef/function state declarations (flat), and seven standard headers
+//   (flat) all reproduce one of the two schedules.
+// * The two schedules are the same allocator/live-range tie the earlier
+//   rounds describe: the bits copy can only free edx for the offset if it is
+//   placed at the start of the then-block, and this compiler only places it
+//   there when the base load comes first in the source.
+// deepseek-v4.1-flash (#4170 round, 30-min checkpoint): still 98.7 (191 bytes,
+// exact), same single hunk (ClearLast's `mov edi,[esi+0x1c]` load emitted right
+// after the `je` instead of after the `mov [eax],0` store). This round ran ~190
+// scored variants (all logged in build/scratch/0x40d900/): all pointer
+// spellings, offset types, statement orders, split pointer forms, value- and
+// pointer-parameter helpers, inline-vs-method bodies, caller loop spellings,
+// extra `mask = bits` variables and guard spellings either keep 98.7 with the
+// load first or drop to 93.7 with the offset in edi and the base in ecx. The
+// allocator only reuses edx for the offset when the `mov ebx,edx` bits copy
+// has already freed it; every source that stores before it loads cells emits
+// that copy too late. Same wall as the earlier rounds.
 // deepseek-v4.1-flash (#3265 round): re-confirmed 98.7; no new angle on the ClearLast base-load slot after the store-first/load-first sweep above.
 // deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1,
 // finished by deepseek-v4.1-flash.

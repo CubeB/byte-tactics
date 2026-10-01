@@ -1,4 +1,27 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4170 round, new best 98.3%): the big lever is the
+// Target_0040e630 virtual `Cost` calling convention. Declaring it
+// `virtual int __fastcall Cost(int x, int y, int z)` and calling it as
+// `target->Cost(x, y, 0)` makes MSVC 5 put the argument temporaries in edx and
+// the vtable in eax exactly like the original, which fixes three of the four
+// old hunks (the InBounds width/x pair, both inlined Release object pointers
+// and the freed-buffer register). Other conventions: 2-param `__fastcall`
+// (1 push + edx arg) gives 94.7, `__stdcall` (this pushed) 93.7, plain
+// thiscall 92.8, 16-bit virtual params 93.2. Remaining two hunks (880 bytes,
+// 98.3%):
+//   A. the fastcall third argument emits `push ebp` (0) before `push edx` (y)
+//      where the original has `push edx` (y) then, after `movsx edx,x` and the
+//      vtable load, `push edx` (x); i.e. the original is a 2-argument call and
+//      the fastcall trick cannot drop its third push. `Cost(x, x, y)` has the
+//      right push order but the allocator then puts y in ebx (93.8);
+//      `Cost(x, y, 0)` with the third argument spelled as a different
+//      expression only ever moves the push slot, never removes it.
+//   D. the four `heap.Clear()` stores still land after the flags store instead
+//      of between `movsx edx,ax` and `mov word ptr [esp+0x22],ax`; the
+//      Clear()-position sweep (8 positions, including Clear() as the g
+//      argument of the NodeData constructor) keeps the current placement best.
+// Everything else in the function is byte-identical.
+//
 // deepseek-v4.1-flash (#4073 round): hoisting `heap.Clear();` ahead of the tail d(i) work (two placements: before NodeData and after it) both drop 92.8 to 92.1, so the 0x40e807 store group is not source-hoistable; baseline re-confirmed at 92.8% (880 bytes).
 // deepseek-v4.1-flash (#3770 round): still 92.8% (880 bytes, exact), same four hunks.
 // Two more shapes are flat: splitting `int cost; cost = Cost(start.x, start.y);`
@@ -176,7 +199,7 @@ public:
     virtual void unused4();
     virtual int IsGoal(int x, int y);
     virtual void GetGoals(std::vector<Point_0040e630>& goals);
-    virtual int Cost(int x, int y);
+    virtual int __fastcall Cost(int x, int y, int z);
 };
 
 class Class_0044ced0 {
@@ -283,7 +306,7 @@ public:
     int Cost(int x, int y)
     {
         int s = costScale;
-        return (int)(((__int64)s * target->Cost(x, y)) >> 0x10);
+        return (int)(((__int64)s * target->Cost(x, y, 0)) >> 0x10);
     }
     void ResetTable()
     {

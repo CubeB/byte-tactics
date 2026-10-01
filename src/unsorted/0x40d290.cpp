@@ -4,6 +4,28 @@
 // deepseek-v4.1-flash (#3770 round): re-confirmed 93.3% (477 bytes, exact) with the
 // same four hunks; no new lever attempted here, the residue stays the realloc-tail
 // association and load scheduling inside the <vector> instantiation.
+// deepseek-v4.1-flash (2026-10-01, #4170 round, ~510 check.py runs): still 93.3%,
+// best unchanged. Fresh negative results, all in build/scratch/0x40d290/:
+//   * A full hand-written out-of-line specialization (body under source control,
+//     `template<> void std::vector<unsigned char>::insert(...)` + the global
+//     member pointer) is byte-identical to the header instantiation, so every
+//     tail spelling was tested directly. About 40 spellings (both operand
+//     orders, int/size_type/difference_type/(void*) casts, integer-only sums
+//     with the result cast back, temporaries for _N/_S/_M/size(), `_End += _N`
+//     forms, `_Last = _S + size(); _Last += _M;`, statement reorders, a hoisted
+//     `iterator _F0 = _First;` local, spelled-out size()) either fold back to
+//     this emission or lose bytes (91.0% or worse). Only a hoisted _First local
+//     moves a register (the _End sum goes to edx), never the sum's shape.
+//   * Replicating this TU's preceding emission order in the exe (vector<short>
+//     size 0x40d000, insert 0x40d020, erase 0x40d240, _Destroy 0x40d280 ahead
+//     of ours) changes nothing, nor do 0..38 dummy function definitions ahead.
+//   * `extern int` filler sweep 0..2048 step 8 (and the 0x476210/0x408f30
+//     hand-written namespace std clone carrier, whose filler sweep has four
+//     states 87.0/91.0/92.8/93.3): only the third _Ucopy's source start moves
+//     (period 256); the three tail hunks are present in every state.
+//   * 50 single extra headers and the full tools/headers.py --cpp (768 sets,
+//     0 failures) top out at 93.3%; the RTM compiler is identical.
+// So the tail is unreachable from this file; the original TU's state decides it.
 
 // NEW, and it closes the loop on the "is it steerable from source" question: an
 // explicit out-of-line SPECIALISATION

@@ -100,6 +100,18 @@
 // shape `Game_00499200** pp = &g_game; Game_00499200* gp = *pp;` ahead of the
 // field_2a3c read is byte-identical to the 98.4 percent base (1654 bytes, same
 // 0x4997a0 eax), so the address-of node is not the missing live value either.
+// deepseek-v4.1-flash session 8 (issue #4122): no new shape run, analysis only.
+// Constraint on the missing temp: it must occupy eax AT 0x4997a0 yet be gone by
+// 0x4997bb (where the original itself picks A1 eax). The two calls at 0x4997af
+// and 0x4997b6 clobber eax, so the range must end before them, and the only
+// instructions in between are the gp load and the xor/mov-si saved load, which
+// use only edx and esi: a live temp there would have to fuse its last use into
+// those bytes or be dead-but-allocated (phi-like or block-granular range end).
+// The then arm's g_game loads cycle ecx (0x499729), edx (0x499740), eax
+// (0x499753), ecx (0x499763), edx (0x499775), eax (0x49978f); the else arm's
+// first pick in the original is edx, i.e. exactly one step on from the last
+// then-arm pick, which fits a rotating register hint whose state our build
+// resets before 0x4997a0. Still differs only at 0x4997a0: edx vs eax.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

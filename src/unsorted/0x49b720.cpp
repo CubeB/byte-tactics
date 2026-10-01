@@ -1,9 +1,15 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// PARTIAL 33.0%. Size 1847 vs original 1853 bytes. Best after 9 checker runs.
+// PARTIAL 33.0%. Size 1847 vs original 1853 bytes. Best after 12 checker runs.
 // Remaining diffs span entry register allocation through the loop tail. Attempts
 // changing declaration order, local scope, entry guard and base-pointer ordering
 // did not improve the score. The count, s, counter and ec values use different
 // registers early, and later instruction/control-flow differences persist.
+// This session: tail sl as unsigned char (and with a (short) cast) scores
+// 31.6%, worse than the unsigned short form kept here; the original tail uses
+// mov al,[+0x1427f] then xor dx,dx / mov dl,al and a 16-bit cmp word. The
+// loop head reads s via mov cx,[base+off+0xa] before add ebp,esi forms p, and
+// the idx search loop keeps idx in dl with the *7 scratch in ebx (edi stays
+// the zero register); ours allocates bl/edi instead.
 // Key fixes: the Select block is emitted twice (counter==0 path ends at Next,
 // live path ends at TailOnly), and the type flags tests use a 1-bit bitfield
 // union, which makes MSVC emit the original's mov/shr/test sequence instead of

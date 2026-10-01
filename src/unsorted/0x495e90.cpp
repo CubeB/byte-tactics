@@ -1,4 +1,52 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// space-bunny-free pass (issue 3260): still PARTIAL 79.6%, 1 real check run.
+// Confirmed again, with an instruction-text LCS diff of both disassemblies,
+// that there is exactly ONE delta left in the whole function and it is the
+// case 0xd7 entry register tie described below. Everything after 0x4961d7 is
+// only shifted by the one byte that entry is too long, so this one block is
+// worth about 20 points.
+// New data points on that tie (all scored free with check.py --sym):
+//   hoisting `int old` above the guard (the current file) 2292  79.6%
+//   `unsigned int old` hoisted                              2292  79.6%
+//   `if (!old)` / `if (old <= 0)` hoisted                   2292  79.6%
+//   `int zero = 0;` hoisted, store as `= zero`              2292  79.6%
+//   `Game_495e90* g` hoisted with `g->field_38c53`          2292  79.6%
+//   `unsigned char f = flags_37f2f.b1` hoisted, `if (f)`   2292  79.6%
+//   `if (old != 0) old = g_game->field_38c53;` hoisted      2292  79.6%
+//   `int old` INSIDE the guard (all spellings below)        2288  75.9%
+//   `long old`, `0 == old`, `int old;` declared then set,
+//   `Game_495e90& gr = *g_game`, `int& fld = field`, all
+//   inside the guard                                       2288  75.9%
+//   `(raw >> 1) & 1` for the guard                         compile failed
+//   `int& fld = field; old = fld;` hoisted, store `fld = 0` 2292  79.6%
+//   `unsigned char f` hoisted AND `old` inside the guard     2288  75.9%
+//   so no spelling of the reference or the flag local moves it either.
+// The hoisted family always lands as
+//     mov esi,[g_game] / mov cl,[esi+0x37f2f] / mov eax,[esi+0x38c53]
+//     shr cl,1 / test cl,1 / je / cmp eax,ebx / mov [esi+0x38c53],ebx / jne
+// and the inside family always lands as
+//     mov ecx,[g_game] / mov al,[ecx+0x37f2f] / shr al,1 / test al,1
+//     / je / mov eax,[ecx+0x38c53] / mov [ecx+0x38c53],ebx / cmp eax,ebx / jne
+// so the two g_game registers (EAX and ECX) are simply swapped, and neither
+// family ever reaches the original's EAX for g_game with the pair in CL/ECX.
+// Two facts worth keeping:
+//   * The 5-byte `mov eax,[g_game]` is not a hint about the source, it is only
+//     the moffs encoding: any other register is 6 bytes. Every block in this
+//     function picks its own register for g_game (case 0x1b picks EAX, case
+//     0xec picks ESI, case 0x5c picks EDX) and they all match, so the choice
+//     is per block.
+//   * g_game is REMATERIALISED in this function: it is reloaded from the
+//     global at nearly every use site (0x4961d7, 0x496201, 0x496249,
+//     0x496275, 0x496287, 0x4962c7, ...). The original still keeps one copy
+//     in a register across the three adjacent uses inside the d7 guard, which
+//     is why a web of 3 uses must not become ESI.
+// The remaining reading is an upstream allocator state difference, not a
+// d7 source shape: the inside family also loses one byte EARLIER than the
+// dispatch (the epilogue sits at 0x4965e5, not 0x4965e6), so moving the
+// `old` load inside the guard costs a second, unrelated byte somewhere before
+// 0x4961d7. That earlier byte is the more promising thing to hunt: fixing it
+// and keeping the hoisted load would leave only the register tie.
+//
 // Edited by deepseek-v4.1-flash (decomp-worker, issue 3095). Still PARTIAL
 // 79.6%, unchanged: one delta left, case 0xd7's entry register tie.
 // This pass tried (all scored with check.py --sym on scratch copies):

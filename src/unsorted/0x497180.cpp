@@ -127,6 +127,24 @@
 //   the pointer chain is `lea ..+0x1b63; mov eax,[rec+0x27];
 //   or byte ptr [eax+0x9b],0x10`, as in the original.
 // - `pos.x.i` before `pos.y.i = 0` (the original's order at 0x4976cd).
+// This pass (deepseek-v4.1-flash, ~15 min, all --sym scratch scores): no gain
+// over the 82.8% baseline. Confirmed the lane region is the sole real diff: the
+// entire tail after the switch matches instruction-for-instruction except for
+// branch targets shifted by the lanes' 49 extra bytes. Tried, all worse:
+// - 32-bit byte temps (`t = *(unsigned char*)p; t &= M;`, and with `t = 0;`)
+//   per lane site: post-loop only 81.0, case-3 only 80.4, case-1/2 only 81.2,
+//   all twelve 77.9. The dword `and` shape is right but the register file
+//   rotates and MSVC never emits the original's `xor ebx,ebx; mov bl,[..]`
+//   zero-extension, so bytes shrink below 2797 and every branch target moves.
+// - case-3 lanes with the mask inline and `fb = 0; fb = byte;`: 79.7; MSVC
+//   folds it to the `xor al,cl; and eax,2; xor eax,ecx` combine, not the
+//   original's separate `and ebx,2; and edx,0xfffd; or edx,ebx`.
+// - `bool`/`short`/`char`/`unsigned int` for `one`: all byte-identical, 82.8.
+// - Compiling the real preceding function (FUN_00497080, already matched in
+//   src/unsorted/0x497080.cpp) above ours in this file: 82.3, allocation
+//   unchanged (still `mov edx,1`), so the edi/edx choice is not file layout.
+// The lane region and `mov edi,1` are one allocator state; no source respelling
+// of the lanes alone moves it.
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>

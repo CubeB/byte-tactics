@@ -1,4 +1,13 @@
 // Decompiled by DeepSeek V4.1 Flash, edited by deepseek-v4.1-flash. Names are provisional.
+// Session 6 (deepseek-v4.1-flash): 88.3 -> 89.5, size now exactly 1148. The leaf
+// `*total += (*(unsigned int*)(node + 4) = fd.size);` written as one
+// assignment-expression (fd.size read once, value reused for the RMW) gives the
+// original `mov ecx,eax; mov [esi+4],eax; ...; add [eax],ecx`; a separate store
+// plus a second `fd.size` read reloads the slot and is 4 bytes longer. Flat probes
+// on top: `out[0] = (entries = out[0]) + count*9;` (v4, 89.5) and the three
+// root+nb / root+base SIB spellings (v5, 89.5), so the residual is the
+// ebx/esi SIB direction, the [esp+0x24]-after-pushes root spill and the
+// lea/add shape of the entries+count*9 sum.
 // Session 5 (deepseek-v4.1-flash): three more probes, all byte-flat or worse:
 // `(unsigned int)base + root` for the header/inc/count SIB (88.3, unchanged),
 // `unsigned int nsize = root + 8;` (83.6, worse), and re-checking the fsz
@@ -172,10 +181,9 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
                     out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
                     ((Entry_004bd3b0*)((char*)out[1] + entries + ent))->data = nodeOff;
                     unsigned char* node = (unsigned char*)((char*)out[1] + nodeOff);
-                    *(unsigned int*)(node + 4) = fd.size;
                     *(unsigned int*)node = 0;
                     node[8] = 0;
-                    *total += fd.size;
+                    *total += (*(unsigned int*)(node + 4) = fd.size);
                 }
                 ent += 9;
             }

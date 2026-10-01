@@ -1,121 +1,50 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
-// Partial (84.9%), both sides 742 bytes. WHAT STILL DIFFERS is the frame slot
-// permutation, and nothing else: every branch target and every instruction
-// shape matches, only the local slots are swapped.
-//   original: move 0x12, retbuf 0x13, except 0x14, flag_a 0x18, range 0x1c,
-//   p 0x20, [3 dead dwords 0x24,0x28,0x30], avg_x 0x2c, avg_z 0x34,
-//   here 0x38..0x43, fire in the dead entry-argument slot 0x48 (shared with
-//   the fild temp).
-//   ours: except 0x10, avg_x 0x14, avg_z 0x18, flag_a 0x1c, fire 0x20,
-//   move 0x24, range 0x28, p 0x2c, [2 dead dwords 0x30,0x34], here 0x38..0x43,
-//   the return temporary in the dead entry-argument slot 0x48 (shared with the
-//   fild temp). So the original has move+retbuf in a 4-byte byte pool at
-//   0x10..0x13 (0x10/0x11 dead) and fire in the arg slot; ours gives the two
-//   Class_00438760 objects full dword slots and the retbuf the arg slot.
+// MATCH, 742 of 742 bytes. (Was 84.9% with a frame-slot permutation that no
+// amount of declaration reordering could move.) Four source-shape facts
+// produce the original exactly:
+//   1. Class_00438760 fire/move are NAMED locals initialised from an inline
+//      wrapper that returns the class by value
+//      (`static inline Class_00438760 Order(const char*) { return
+//      Class_00438760(name); }`). Such a byte's address is taken as a hidden
+//      return pointer (an ARGUMENT), so fire takes the dead entry-parameter
+//      slot at 0x48 exactly where the original puts it, and move pools at
+//      0x12 beside the FUN_0043f0e0 return temporary at 0x13. A named ctor
+//      object (`Class_00438760 fire("...")`) is a THIS pointer instead and
+//      always gets its own dword slot; a condition temporary pools but is
+//      then read through the constructor's returned this (`mov dl, [eax]`),
+//      which is not what the original does.
+//   2. The averages are one int avg[3] aggregate (x/y/z: map coordinates are
+//      x/z and y is height, never written). avg[1] is the dead dword at 0x30
+//      between avg[0] (0x2c) and avg[2] (0x34). Frame slots are handed out by
+//      size class (1-byte pool, 4-byte scalars, the 8-byte (int64) cast temp,
+//      then the 12-byte arrays), so the 12-byte avg sorts after range/p and
+//      before here[3]; within a size class the order is reads desc, then
+//      last-use asc. The dead dword at 0x24 plus the dz sign-extension spill
+//      at 0x28 are the low/high halves of the 8-byte (int64) cast temp.
+//   3. The deltas are written in two steps (`int dx = u->x; dx -= avg[0];`):
+//      the one-step `int dx = u->x - avg[0];` lets MSVC CSE `u->x - avg[0]`
+//      across the branch, which reassociates pos[0] + u->x - avg[0] into
+//      pos[0] - avg[0] + u->x in the here block (and swaps that block's
+//      register pairs).
+//   4. The delta statements are written z first, x second (`int dz = u->z;
+//      dz -= avg[2]; int dx = u->x; dx -= avg[0];`), which is what chains
+//      avg[0]'s dying register into dx and avg[2]'s into dz in the distance
+//      block (edi/ebx instead of crossed ebx/edi). The loads still come out
+//      in the original's x, avg[0], z, avg[2] order either way.
+// <stdio.h> + <stdlib.h> is load-bearing compiler state (tools/headers.py
+// sweeps all 768 sets at 98.3% without fact 4 and MATCH with it).
 //
-// mimo-v2.6-pro (this session): FUN_0043f0e0 RETURNS Class_00438760 BY VALUE
-// (see the matched src/unsorted/0x43f0e0.cpp: `Class_00438760 __stdcall
-// FUN_0043f0e0(unsigned char, Unit*, Unit*, void*)`), so the old `unsigned char
-// buf` local was a mis-model of the hidden return temporary: the call is
-// `kind.index = FUN_0043f0e0(mode, u, except, &g_game->field_2caa).index;` and
-// there is no named buf. The old out-param form (`unsigned char* buf` first)
-// mangles to a different symbol than the matched callee and would not link.
-// The corrected form compiles to the same 742-byte body at the same 84.9% and
-// the same frame layout (the temp lands in the arg slot where the old buf did).
-// Also tried this session (all scored with check.py or pre-screened by their
-// wcl listing): fire/move as condition temporaries 62.1% (738 bytes). Frame
-// experiments (build/scratch/0x48cf30/exp/) established the allocator's rules:
-// byte entities pool into a 4-byte chunk whose used bytes sit at the TOP and
-// fill bottom-up in address-taken order; entities whose address is passed as a
-// pointer ARGUMENT pool, but a byte used as a __thiscall THIS pointer always
-// gets a full dword slot (e22/e27 vs e28), which is exactly what our fire/move
-// do and what the original somehow does not; byte entities prefer a dead
-// parameter slot over the pool. e29 (the whole loop body in miniature) puts
-// fire -4, move in the dead pos slot, retbuf in the dead kind slot: same
-// pattern as ours, never the original's. So the remaining permutation still
-// looks like translation-unit compiler state: the N-dummy probe reaches 87.5%
-// at N = 250 (not shippable), and tools/headers.py's sets all top out at 84.9%.
+// The function: for every unit of the local player with flag 0x10 that is not
+// g_game->units[g_game->field_2cba], if its order kind is not Standing_FireOrder
+// (or the unit type allows fire) and not Standing_MoveOrder (or allows move),
+// issue FUN_0043afc0 at pos offset by the unit's delta from the player's
+// average unit position, when the unit is within count*3000 of that average,
+// else at pos unchanged.
 //
-// Earlier notes (still true): pass flag_a (not range) as FUN_0043afc0's second
-// argument; write the FUN_0043afc0 call in BOTH arms (tail-merged at 0x48d1f4);
-// declare the fire/move locals plainly; the field_2cba test is `if (!x)
-// except = 0; else ...` so the zero store is the jne fall-through; the fifth
-// argument of FUN_0043f0e0 is the ADDRESS of g_game->field_2caa.
-// `#include <stdio.h>` is load-bearing compiler state (59.5% without it).
-#include <stdio.h>` is load bearing compiler state: without it this shape
-// is 59.5%, with it 84.9%. tools/headers.py reports several sets give 84.9%
-// (`<stdio.h>` alone, `<stdio.h>`+`<stdlib.h>`, `<string.h>`+`<math.h>`);
-// sweeping N unused `extern int dummyN;` declarations reaches the same 84.9%
-// in two windows, N = 282..309 and 346..373, so the shape is right and only
-// the state differs. Do not commit such declarations; a real header set works.
-// WHAT STILL DIFFERS (all one cause, the frame slot permutation):
-//   original: move 0x12, buf 0x13, except 0x14, flag_a 0x18, range 0x1c,
-//   p 0x20, avg_x 0x2c, avg_z 0x34, here 0x38.
-//   ours: except 0x10, avg_x 0x14, avg_z 0x18, flag_a 0x1c, fire 0x20,
-//   move 0x24, range 0x28, p 0x2c, here 0x38, and the one-byte buf gets the
-//   dead argument-0 slot (0x48) where the original puts the fire object.
-// Because avg_x and avg_z sit in the two slots the original gives flag_a and
-// range, the distance block also swaps their registers (ours ebx=avg_x,
-// edi=avg_z; original edi=avg_x, ebx=avg_z). Everything else in the diff,
-// including every branch target, is just the same permutation. Reordering the
-// declarations did not move it; fixed-byte locals and parameter-slot reuse are
-// the two suspects left.
-// Known-good detail from space-bunny-free: the fifth argument of FUN_0043f0e0
-// is the ADDRESS of g_game->field_2caa (`add ecx, 0x2caa`), and the
-// field_2cba test is written `if (!x) except = 0; else ...` so the zero store
-// is the `jne` fall-through.
-//
-// Additional attempts by deepseek-v4.1-flash, all no-ops on the permutation:
-// moving avg_x/avg_z (or range, or dx/dz) to function scope as bare
-// declarations assigned later, and making `buf` function scope. All leave
-// every slot where it was (and moving buf drops the score to 83.2% by
-// disturbing the fild block). `tools/headers.py` tried all 128 sets: best is
-// 84.9% (`<stdio.h>` and several others), none match. This agrees with the
-// note above that a flat dummy-declaration sweep only ever reached 84.9%, so
-// the remaining frame permutation is translation-unit compiler state, not
-// source shape; it should resolve when this file is regrouped into its
-// original translation unit in address order.
-// deepseek-v4.1 (this session): the frame permutation is invariant to every
-// source shape tried. Locals renamed, declaration order changed, avg_x/avg_z/
-// range/here/buf moved to function scope, and `int avg[2]` instead of two
-// scalars all compile to the same 752-byte body, byte for byte, so the
-// permutation is not source shape. It IS translation-unit symbol state: N
-// inert `extern int dummy%d;` declarations inserted at the end of the comment
-// header move the allocator through a small set of layouts. Measured with a
-// per-instruction diff of the compiled body against the original (232
-// instructions on both sides, addresses masked, so it counts only real
-// differences):
-//   N = 0 (and N = 20, 50, 300, 450, 500, 700): 41 instructions differ
-//   N = 250 (and 240..260): 35 instructions differ, check.py 87.5%
-//   N = 20, 100..200, 265..300, 350..400, 550..600, 800: 102 differ
-// N = 250 fixed only the distance block's load
-// order (mov ecx,[esi+0x6a] / mov ebp,avg_x / mov ebx,[esi+0x72] /
-// mov edi,avg_z, one step closer to the original's eax/edi/ecx/ebx order) and
-// leaves the frame permutation: ours puts except 0x10, avg_x 0x14, avg_z 0x18,
-// flag_a 0x1c, fire 0x20, move 0x24, range 0x28, p 0x2c, here 0x38, buf 0x48,
-// the original puts move 0x12, buf 0x13, except 0x14, flag_a 0x18, range 0x1c,
-// p 0x20, avg_x 0x2c, avg_z 0x34, here 0x38, fire 0x48. The two one-byte
-// objects (move, buf) end up in dword slots instead of the original's byte
-// pool at 0x12/0x13, and `fire` never takes the dead entry-argument slot.
-// The dummy-declaration probe is NOT shipped: this file is the clean, probe-free
-// version, which is the same 84.9% as origin/main. The probe lives in
-// build/scratch/0x48cf30/ and exists only to show that the frame permutation is
-// translation-unit symbol state; the real fix is for this file to sit in its
-// original translation unit, where the preceding functions and declarations
-// supply that state legitimately.
-// All 768 header sets from tools/headers.py --cpp were tried in this session
-// (best 84.9%, the N = 0 layout), so headers alone cannot supply the state.
-// deepseek-v4.1 (second session): a fifteen-variant statement-shape sweep was
-// run against this same file. Buf scoped inside the if (mode) block, explicit
-// (int) casts on the averages, split declarations with later assignment,
-// unsigned or grouped average declarations, function-scope dx/dz, and
-// avg_x/avg_z at function scope all reproduce the 84.9% body byte for byte.
-// The rest only regress: range declared before the averages 82.8%, buf hoisted
-// above the loop 83.2%, p declared after the sums 70.3%, unsigned count 64.4%,
-// fire/move built as temporaries 62.1%, and an extra math.h include 75.2%.
-// Statement shape therefore does not move the frame permutation; the best
-// version stays this 84.9% one.
+// Suspected original bug: none spotted; field_2cba indexes g_game->units with
+// no bounds check but every reference agrees and 0 means "no exception unit".
 #include <stdio.h>
+#include <stdlib.h>
 
 #pragma pack(push, 1)
 
@@ -187,6 +116,8 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0048cf30* unit,
 void __stdcall FUN_0043afc0(Class_00438830 kind, int flag, Unit_0048cf30* unit,
                             Unit_0048cf30* target, int* pos, int param_5, int param_6);
 
+static inline Class_00438760 Order(const char* name) { return Class_00438760(name); }
+
 // FUNCTION: 0x48cf30
 void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
                             Class_00438830 kind, int* pos, int param_5, int param_6)
@@ -218,8 +149,9 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
     }
     if (!count)
         return;
-    int avg_x = (sum_x / count) * 65536.0;
-    int avg_z = (sum_z / count) * 65536.0;
+    int avg[3];
+    avg[0] = (sum_x / count) * 65536.0;
+    avg[2] = (sum_z / count) * 65536.0;
     int range = count * 3000;
     for (u = p->first; u <= p->last; u++) {
         if (!(u->flags & 0x10) || u == except)
@@ -228,19 +160,21 @@ void __stdcall FUN_0048cf30(UnitType_0048cf30* entry, unsigned char mode,
             kind.index = FUN_0043f0e0(mode, u, except, &g_game->field_2caa).index;
         if (!kind.index)
             continue;
-        Class_00438760 fire("Standing_FireOrder");
+        Class_00438760 fire = Order("Standing_FireOrder");
         if (kind.index != fire.index || (u->def->flags & 2)) {
-            Class_00438760 move("Standing_MoveOrder");
+            Class_00438760 move = Order("Standing_MoveOrder");
             if (kind.index != move.index || (u->def->flags & 1)) {
                 if (pos && (kind.FUN_00438830()->flags & 2)) {
-                    int dx = u->x - avg_x;
-                    int dz = u->z - avg_z;
+                    int dz = u->z;
+                    dz -= avg[2];
+                    int dx = u->x;
+                    dx -= avg[0];
                     if ((int)(((__int64)dx * dx) >> 32)
                         + (int)(((__int64)dz * dz) >> 32) <= range) {
                         int here[3];
-                        here[0] = pos[0] + u->x - avg_x;
+                        here[0] = pos[0] + u->x - avg[0];
                         here[1] = pos[1];
-                        here[2] = pos[2] + u->z - avg_z;
+                        here[2] = pos[2] + u->z - avg[2];
                         FUN_0043afc0(kind, flag_a, u, except, here, param_5, param_6);
                         continue;
                     }

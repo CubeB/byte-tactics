@@ -1,4 +1,5 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// GPT-6.1-sol retry in #3224: seven checker invocations, best remains 76.0%; no MATCH. Capturing flags6 tied at 76.0%, splitting the case-9 OR/store also tied, and capturing the command kind byte scored 75.6%. Existing mask/register, Wait-push, and MoveToEnd differences remain.
 // deepseek-v4.1-flash (#3039 retry): still 76.0% (772 of 780). The two-literal Wait
 // form (one static helper called with 0xf and 0x1e) does tail-merge into one block
 // with real `push 0xf`/`push 0x1e` entries (768 bytes, 71.7), so the goto-Wait is not

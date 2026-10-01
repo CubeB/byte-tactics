@@ -203,6 +203,9 @@ static inline int MapRange()
 // explicit `(unsigned char)` cast on the inner loop-2 `u->def->flag12` test is
 // byte-identical: the def-load hoist over the three target stores is not affected by
 // the condition's cast spelling or by how the copy is declared.
+// deepseek-v4.1-flash retry: an explicit `d.y = 0;` before the Direction() call in
+// the flag12 arm is byte-neutral too (same 3 hunks, 1221 bytes), so the xor
+// ebp,ebp placement in hunk 2 is not reachable by pre-zeroing the destination.
 // FUNCTION: 0x408100
 void Class_004085d0::FUN_00407380()
 {

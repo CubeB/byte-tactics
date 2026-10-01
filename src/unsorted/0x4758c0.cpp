@@ -1,3 +1,9 @@
+// Retry (deepseek-v4.1-flash, issue 4032): still 88.9, 779 of 779 bytes, the
+// same realloc-arm allocation wall (_P in ecx here, edx in the original). Two
+// more spellings measured this pass: the faithful `_Ufill(_Q, _M, _X)` in the
+// realloc arm is 84.3 (777 bytes) as recorded before, and the third copy's
+// destination as `_S + (_P - _First) + _M` drops to 49.9 (794 bytes). Best
+// version (88.9) kept.
 // Retry (deepseek-v4.1-flash, issue 3947): still 88.9, 779 of 779 bytes, the
 // same realloc-arm register wall documented below (_P in ecx here, edx in the
 // original, with our fill counter living in a register instead of the _P arg

@@ -1,3 +1,10 @@
+// Retry (deepseek-v4.1-flash, issue 4032): still 99.7, 791 of 791 bytes, the
+// same single mirrored lea SIB byte at 0x475d01 (`lea eax,[esi+edx]` in the
+// original, `lea eax,[edx+esi]` ours). Two more spellings measured: moving the
+// third _Ucopy ahead of _Ufill regresses to 51.4 (789 bytes), and `_Q + _M * 1`
+// as the destination is byte-identical at 99.7, so neither the statement order
+// nor the scaled spelling moves the SIB base/index pick. Best version (99.7)
+// kept.
 // Retry (deepseek-v4.1-flash, issue 3947): confirmed 99.7, 791 of 791 bytes,
 // the same single mirrored lea SIB byte at 0x475d01 (`lea eax,[esi+edx]` in the
 // original, `lea eax,[edx+esi]` ours) inside the realloc arm's third _Ucopy

@@ -1,4 +1,90 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
+// space-bunny-free pass (short timebox, 1 real check.py run, 36 scratch
+// variants scored free through check.py's own compile and compare): the saved
+// 534-byte / 81.1 percent do-while base still stands, and nothing this pass
+// beat it. Source unchanged, so the file holds the best version.
+// New evidence, all scored this pass (growth-branch shapes reported as
+// P=<reg of the post-new[] _P reload>, fill=<reg of the fill value pointer>):
+//   * the first and third copies under two DIFFERENT helper names (_Ucopy_i for
+//     the first, _Ucopy for the third, the spelling 0x46cc10.cpp needs to make
+//     that file's caller match), helpers with plain `iterator` parameters,
+//     `static` helpers, `value_type` in the parameter list, raw `class _Ty *`
+//     typedefs, the fill's value parameter moved first, explicit placement new
+//     in the third copy, a value local in each copy, a local reference to _X,
+//     a local copy of _P, _P as the do-while loop variable, an extra scope
+//     around the block and `_d += 1, _s += 1` all leave the P=edi shape and
+//     534 bytes / 81.1 percent.
+//   * the only spellings that move the reload register at all put it in a
+//     register the rest of the function cannot use: `_P` as the do-while loop
+//     variable gives P=ecx with the family collapsed to 522 bytes / 60.3
+//     percent, `construct(--_d, *_s)` gives P=esi at 521 bytes / 55.3 percent,
+//     and the header's own `_Ucopy(_P, _Last, _Q + _M)` (helper or plain
+//     `iterator` parameters) gives P=ebx at 546 bytes / 58.0 percent. So every
+//     reachable shape pairs the wanted ecx with the wrong allocation
+//     elsewhere, which is the same wall the earlier passes recorded.
+//   * caching _Last in a local declared before the block is 538 bytes /
+//     59.8 percent (family flip again), the pre-tested for and if-around-do
+//     forms are 541 bytes / 80.5 percent, so the kept do-while is still the
+//     best structure.
+// Still differs (unchanged): the whole register assignment of the growth
+// branch. Original: _P in ecx from the reload after operator new, first copy's
+// temp esi, fill's value pointer edi and count esi, third copy with _Last
+// cached in esi, _M*4 in edi, destination in eax and the source derived in
+// place into ecx (`sub ecx, edx / add ecx, eax / sub ecx, edi`). Ours: _P in
+// edi, first copy's temp ecx, fill's value pointer esi and count ecx, third
+// copy with _M*4 in esi, destination in ecx, the source derived into eax
+// (`lea eax, [ecx + edi] / sub eax, edx / sub eax, esi`) and _Last reloaded
+// into edx every iteration. Everything outside the growth branch matches
+// instruction for instruction.
+// Best lead for the next attempt: the priority order MSVC 5 gives the first
+// copy's load temp and the fill's value pointer over _P at the reload is what
+// picks edi. 0x425210's original, which is 99.6 percent matched in this repo,
+// reaches the same code with _P in a register reused from a spilled `this`
+// (ebx) and the source derived fresh by `lea eax, [ebx + ecx]`; 0x425480's
+// original keeps `this` in ebp and derives the source in place. A spelling
+// that spills a long-lived value in the growth branch so that _P inherits a
+// volatile register is the untried route; so far every added local is removed
+// before numbering.
+// deepseek-v4.1-flash pass (60 min, 12 real check.py runs, ~180 scratch
+// variants scored through check.py's own compile and compare): no new best,
+// the 534-byte / 81.1 percent do-while stands. The residual is the register
+// the growth branch loads _P into after the operator new call: original
+// `mov ecx,[esp+0x20]`, ours `mov edi,[esp+0x20]`; everything else in the
+// growth branch follows from that one choice. New measurements:
+// - TU-state padding does NOT flip this function. 900 consecutive counts of
+//   unused extern ints (0..900) and 100 counts each of function prototypes,
+//   class declarations, static ints and empty function definitions (0..400
+//   step 40) all leave the load in edi; extern ints 900..6000 and prototypes
+//   0..6000 (step 60) also leave it. Unlike 0x425210, where padding moves the
+//   shape, this rotation is pinned for this source.
+// - the original TU's real sibling instantiations (vector<Class_004c2ea0*>
+//   ::_Destroy, vector<unsigned short>::size/_Destroy, forced by member
+//   pointers and the Access trick, alone and in exe emission order) do not
+//   move it either: a bare unsigned-short instantiation is 534B/81.1 with the
+//   load in edi, adding size or _Destroy is 535B/80.9. The real <vector>
+//   header instead flips the whole function to the other family (this in
+//   ebx), 547B/57.9 percent, so the hand-written class is what holds family B.
+// - std::uninitialized_copy and std::copy for the third copy (58.0 and 71.7
+//   percent) flip the family like the header's own _Ucopy call does.
+// - <windows.h>, <string>, <stdexcept> and <stdio.h> before <memory> are
+//   534-535B / 80.9-81.1 percent with the load in edi.
+// - hoisting the third copy's destination (_R = _Q + _M before the _Ufill),
+//   advancing _Q by _M, all seven manual first-copy spellings (including the
+//   seven 534-byte ones) and a manual fill all leave the load in edi at or
+//   below 81.1 percent.
+// - BT_TOOLCHAIN=msvc5-rtm gives the same 534 bytes / 81.1 percent, so the
+//   compiler build is not the lever. 0x4732e0 is byte-identical to 0x425480
+//   apart from the two call displacements (6 bytes), so both are the same
+//   COMDAT code from the same source and state.
+// Best lead for the next attempt: in family B the declaration order of the
+// third copy's locals DOES choose the load's register class. Source-first
+// (`const_iterator _s = _P;` before `iterator _d = _Q + _M;`, any loop kind)
+// puts the load in edx, a volatile register (531B/72.4 percent), while
+// destination-first puts it in edi. The original wants ecx with the
+// destination-first first copy (bound in ecx, dest in edx), so a spelling
+// that keeps the first copy's dest in edx while giving the load ecx is what
+// is still missing; a live-range or use-count change for _P that survives
+// optimization is the other route (docs/field-notes.md part 4 item 2).
 // mimo-v2.6-pro pass (60 min timebox, ~70 scored scratch variants, no score
 // change; kept the saved 534-byte / 81.1% do-while). New evidence:
 // - Translation-unit state is a live lever here: emitting a second template

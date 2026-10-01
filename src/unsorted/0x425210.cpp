@@ -228,6 +228,42 @@
 // (`allocator.construct(_P++, *_F)`) dropped to 547 bytes / 47.2%. None of
 // the source levers move the base/index pick, matching the earlier verdict
 // that the wanted `[ebx+ecx]` needs a compiler state this TU cannot reach.
+// Eleventh pass (space-bunny-free, 1 check.py run on the file, ~430 scratch
+// scores): the verdict stands, and the state space around this byte is now
+// mapped rather than guessed. New this pass, with the SIB byte read straight
+// out of the object (build/scratch/0x425210/scan2.py prints it: ours 0x19,
+// the 545-byte association 0x2b, the wanted 0x0b):
+//   * Writing out the REAL <vector> (all 68 members, toolchain
+//     toolchain/msvc5-sp3/INCLUDE/VECTOR lines 14-247) reproduces the
+//     545-byte association exactly, and so does the growth branch ALONE with
+//     that class: the association is fixed inside the third _Ucopy's
+//     loop-block rewrite, not by the other two insert branches.
+//   * The 545 state is robust: deleting any ONE of the 22 other public
+//     members, or any PAIR of them (242 variants), or adding 0 to 140 unused
+//     `extern int` declarations before the typedef, never leaves it. The
+//     544-byte `[ecx+ebx]` state is equally a plateau in this file.
+//   * All six _Ucopy parameter orders (source first and destination first) on
+//     the real header give 545 or the 33% other register family, never
+//     `[ebx+ecx]`; twelve third-copy spellings (destination/source local
+//     order, for/while/do-while, `&_Q[_M]`, a `_Ucopy` helper with either
+//     parameter first) are 545 or 62% on the real header and 99.6% or worse
+//     on this one.
+//   * The reachable states differ only in how the optimiser's sum of {the
+//     destination induction variable, _P, -_S, -2 * _M} is ordered and
+//     grouped: `((ecx + _P) - _S) - 2 * _M` here, the same grouping with the
+//     addends the other way round in the original, and
+//     `((ecx - _S) + _P) - 2 * _M` in the 545 state. Original and this file
+//     share the grouping and differ only in which addend the backend made
+//     the SIB base, and every use of ebx and ecx before 0x4252d1 is
+//     byte-identical in both, so this is a property of the IR the
+//     reassociation pass builds, not of the register allocator or of the
+//     source spelling.
+// msvc5-rtm and msvc5-sp3 ship identical INCLUDE headers (cmp of VECTOR,
+// XUTILITY, MEMORY), so the STL revision is not the missing variable.
+// Best lead for the next attempt: that reassociation order, which no source
+// form reaches. The one kind of state still untried here is a real caller
+// that inlines this insert (only _Destroy and size instantiations were
+// tried as neighbours).
 #include <memory>
 #include <xutility>
 

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL, 98.4% (1654 of 1655 bytes). Every branch, field offset, call target,
 // stack slot, jump target and register role now agrees with the original except
 // ONE instruction: at 0x4997a0 the original loads g_game with
@@ -96,6 +96,10 @@
 // allocator blocks eax and ecx at 0x4997a0 in the original (pick order eax, edx, ecx),
 // so the 6-byte `mov edx` needs one more value live at the else arm's entry; no shape
 // tried here produces it.
+// deepseek-v4.1-flash session 7 (issue #4001): the address-of-global double-pointer
+// shape `Game_00499200** pp = &g_game; Game_00499200* gp = *pp;` ahead of the
+// field_2a3c read is byte-identical to the 98.4 percent base (1654 bytes, same
+// 0x4997a0 eax), so the address-of node is not the missing live value either.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

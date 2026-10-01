@@ -151,6 +151,14 @@
 // ternary condition written as the reloaded `unit->f_f0 != 0` -> 73.5 / 1067.
 // Residual diff is unchanged: the shared zero register is edx in ours, ecx in
 // the original, driven by the rec.f3d/rec.f3f load window.
+// deepseek-v4.1-flash (run 12, timebox): tried the untried piece-loop shape,
+// rewriting the 3x copy as a pointer walk (`dp->f8 = ...; sp++; dp++;`) instead
+// of the indexed `sp[k]/dp[k]` form. Byte-neutral at 74.0 / 1059 bytes, but the
+// source anchor moves from the original's `lea esi,[ebp+0xc]` to `lea esi,
+// [ebp+4]` and the addressing becomes [esi-0x14]-style, i.e. still a hoisted
+// top-of-loop increment, so the indexed form (with the matching anchor) is
+// kept and the pointer walk is reverted. The esi mid-body placement and the
+// shared-zero register remain the only two diffs.
 #include <string.h>
 
 extern "C" int __cdecl sprintf(char* buf, const char* fmt, ...);

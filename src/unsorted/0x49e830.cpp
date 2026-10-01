@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and deepseek-v4.1-flash, edited by deepseek-v4.1, retried by Sonnet 5.5. Names are provisional.
+// Sonnet 5.5 retry: 87.7% -> 89.2% (1366 of 1365 bytes). The globals at
+// 0x51f320..0x51f522 are fields of ONE object (the App struct of 0x4b5980:
+// hInstance +0, nCmdShow +4, className +8, title +0xc, menuId +0x14, the
+// flags dword +0xf0, startWidth +0x1fa, startHeight +0x1fe, the video word
+// +0x202), not separate externs. Declaring them as members of one struct
+// (DAT_0051f320) is what makes MSVC keep the seven single-bit sets of the
+// video word as the original's `or al,K` / `or ah,K` chain on one ax register
+// instead of folding them into `or edx,0x3f2`. The bit-0 update is also a
+// plain bitfield assignment, `video.bits.b0 = ~DAT_0051fb48;` (the byte load
+// plus word xor is the bitfield-assign idiom), not b0 ^ flag. What is left is
+// instruction scheduling of the stores around the or chain (the original
+// interleaves them in program order) and the g_game store register rotation.
 // WinMain of Total Annihilation.
 // PARTIAL 87.7%, 1345 of 1365 bytes. Best kept here; scratch probes this
 // session all scored lower (unsigned-char single-struct bits -> 86.0% with
@@ -170,17 +182,9 @@ extern Game_0049e830* g_game;
 extern unsigned char DAT_0051f31c;
 extern char* DAT_0050971c;
 extern char* DAT_00509718;
-extern int DAT_0051f320;
-extern int DAT_0051f324;
-extern int DAT_0051f328;
-extern int DAT_0051f32c;
-extern int DAT_0051f334;
-extern int DAT_0051f51a;
-extern int DAT_0051f51e;
 extern int DAT_0051fb48;
 extern char DAT_0051fb50[];
 extern char DAT_005119b8[];
-extern int DAT_0051f400;
 extern int DAT_0051fb90;
 extern int DAT_00509720;
 extern DWORD DAT_0051fb94;
@@ -201,8 +205,6 @@ union Word_0051f522 {
         unsigned short spare : 6;
     } bits;
 };
-extern Word_0051f522 DAT_0051f522;
-
 union Dword_0051f410 {
     int value;
     struct {
@@ -221,7 +223,27 @@ union Dword_0051f410 {
         unsigned spare : 20;
     } bits;
 };
-extern Dword_0051f410 DAT_0051f410;
+
+#pragma pack(push, 2)
+struct App_0049e830 {
+    int hInstance;                     // +0x00
+    int nCmdShow;                      // +0x04
+    int className;                     // +0x08
+    int title;                         // +0x0c
+    int unknown_10;                    // +0x10
+    int menuId;                        // +0x14
+    char unknown_18[0xe0 - 0x18];
+    int field_e0;                      // +0xe0
+    char unknown_e4[0xf0 - 0xe4];
+    Dword_0051f410 flags;              // +0xf0
+    char unknown_f4[0x1fa - 0xf4];
+    int startWidth;                    // +0x1fa
+    int startHeight;                   // +0x1fe
+    Word_0051f522 video;               // +0x202
+};
+#pragma pack(pop)
+extern App_0049e830 DAT_0051f320;
+
 
 extern const char DAT_005097f4[];
 extern const char DAT_005097e8[];
@@ -284,21 +306,21 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     if (FUN_0049ee30(lpCmdLine, DAT_0050971c) == 0)
         return 1;
     FUN_004b52e0(&DAT_0051f320);
-    DAT_0051f51a = 0x280;
-    int notFlags = ~DAT_0051fb48; DAT_0051f522.bits.b0 = DAT_0051f522.bits.b0 ^ notFlags;
-    DAT_0051f522.bits.b1 = 1;
-    DAT_0051f522.bits.b8 = 1;
-    DAT_0051f522.bits.b4 = 1;
-    DAT_0051f522.bits.b9 = 1;
-    DAT_0051f522.bits.b5 = 1;
-    DAT_0051f51e = 0x1e0;
-    DAT_0051f522.bits.b6 = 1;
-    DAT_0051f324 = nCmdShow;
-    DAT_0051f522.bits.b7 = 1;
-    DAT_0051f328 = (int)DAT_00509718;
-    DAT_0051f320 = (int)hInstance;
-    DAT_0051f32c = (int)DAT_0050971c;
-    DAT_0051f334 = 0;
+    DAT_0051f320.startWidth = 0x280;
+    int notFlags = ~DAT_0051fb48; DAT_0051f320.video.bits.b0 = notFlags;
+    DAT_0051f320.video.bits.b1 = 1;
+    DAT_0051f320.video.bits.b8 = 1;
+    DAT_0051f320.video.bits.b4 = 1;
+    DAT_0051f320.video.bits.b9 = 1;
+    DAT_0051f320.video.bits.b5 = 1;
+    DAT_0051f320.hInstance = (int)hInstance;
+    DAT_0051f320.video.bits.b6 = 1;
+    DAT_0051f320.nCmdShow = nCmdShow;
+    DAT_0051f320.video.bits.b7 = 1;
+    DAT_0051f320.className = (int)DAT_00509718;
+    DAT_0051f320.startHeight = 0x1e0;
+    DAT_0051f320.title = (int)DAT_0050971c;
+    DAT_0051f320.menuId = 0;
     int bGameOk = FUN_004b5980(&DAT_0051f320);
     if (bGameOk == lzero)
         return 0;
@@ -341,12 +363,12 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     for (;;) {
         for (;;) {
-            if (DAT_0051f400 == lzero && *(int*)g_game->field_10 != 0) {
+            if (DAT_0051f320.field_e0 == lzero && *(int*)g_game->field_10 != 0) {
                 FUN_00490f80();
                 DAT_0051fb90 = ((Class_004ce680*)g_game->field_10)->FUN_004ce680();
                 ((Class_004ce410*)g_game->field_10)->FUN_004ce410();
                 DAT_00509720 = 1;
-            } else if (DAT_0051f400 != lzero && *(int*)g_game->field_10 == 0
+            } else if (DAT_0051f320.field_e0 != lzero && *(int*)g_game->field_10 == 0
                        && DAT_00509720 != 0) {
                 ((Class_004ce260*)g_game->field_10)->FUN_004ce260();
                 ((Class_004cd9d0*)g_game->field_10)->FUN_004cd9d0(FUN_00490fe0);
@@ -358,7 +380,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             }
             if (PeekMessageA(&msg, NULL, 0, 0, 0) != 0)
                 break;
-            if (DAT_0051f400 == 0 && (g_game->field_2a44 & 1) == 0)
+            if (DAT_0051f320.field_e0 == 0 && (g_game->field_2a44 & 1) == 0)
                 break;
             FUN_00499890();
             {
@@ -375,7 +397,7 @@ int __stdcall FUN_0049e830(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessageA(&msg);
     }
 
-    if (DAT_0051f410.bits.b11) {
+    if (DAT_0051f320.flags.bits.b11) {
         FUN_004c2cc0();
         FUN_004916a0();
     }

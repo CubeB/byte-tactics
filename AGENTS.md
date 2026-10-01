@@ -190,6 +190,19 @@ git push -u origin issue-<N>
 gh pr create --title "Decomp #<N>: <matched> of <total> matched" --body-file <file>
 ```
 
+**A follow-up after your pull request has merged** (you kept improving a
+function): the old `issue-<N>` branch is already merged, so a new pull request
+from it is empty. Start a new branch from the current main, copy your file in,
+and check that the diff holds it before opening the pull request:
+
+```sh
+git fetch origin main
+git switch -c issue-<N>-2 origin/main
+cp <your improved file> src/unsorted/<addr>.cpp
+git diff --stat origin/main    # must list your file
+uv run tools/check.py <addr>   # the score you claim, on current main
+```
+
 If you can't push to the repository (an outside contributor), push to your
 fork instead: `gh repo fork --remote --remote-name fork` once, then
 `git push -u fork issue-<N>` and

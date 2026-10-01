@@ -1,121 +1,47 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and
-// space-bunny-free, edited by deepseek-v4.1. Names are provisional.
-// deepseek-v4.1-flash (#3090 retry): still 76.7% (646 bytes, exact). The remaining
-// diff is the single `this`(ebp)/`bytes`(ebx) register swap: the ebp-vs-ebx tie
-// between the implicit `this` and a stack parameter is front-end variable numbering,
-// not codegen. `int ok`, swapped ok/tries, `unsigned tries` and left-operand `bytes`
-// variants are all 76.2-76.7%. Sibling 0x4db000 keeps `this` in ebp only because it
-// has no competing register-resident parameter.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by Sonnet 5.5. Names are provisional.
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
 // map (a std::map<unsigned int, Pair_004db000>, the map's value_type being a
 // block's base offset plus its length), erase it, and return the two leftovers
 // around the request as new free blocks. If the map is empty, or two passes over
 // it find nothing big enough, reserve more address space with VirtualAlloc and
 // try again. Same std::map idiom, and the same two-pass search, as 0x4db450 and
-// 0x4db000 in this worktree; DAT_005289d4 is the offset of the last block handed
-// out (the allocator tries to keep allocating from it), DAT_00528a00 counts the
-// wraps around the map, and DAT_00528a54 is the tree's _Nil node.
+// 0x4db000; DAT_005289d4 is the offset of the last block handed out (the
+// allocator tries to keep allocating from it), DAT_00528a00 counts the wraps
+// around the map, and DAT_00528a54 is the tree's _Nil node.
 //
-// PASS deepseek-v4.1-flash (third visit, retry from 74.4%): 74.4% -> 76.7%,
-// still 646 of 646 bytes. The gain was moving the erase output iterator `out`
-// out of the innermost success `if` block (to function scope; it is inert
-// which enclosing scope, all of function/if/do scope give identical output).
-// With `out` in the innermost block MSVC reuses the `res` slot for it and
-// mis-schedules the second FUN_004dbec0 call; hoisting it lets the first
-// FUN_004dbec0 call take the original `res` slot at [esp+0x14] and shortens
-// the second call's setup. Reusing one local for both erase output and the
-// FUN_004dbec0 result (the original aliases them at [esp+0x14]) drops to
-// 73.5%. Everything still differing is the this/bytes register swap below;
-// `out`'s hoist only reduced the diff, it did not flip the swap.
-// PASS deepseek-v4.1: 69.3% -> 74.4%, frame 614 -> 646 bytes, exactly the
-// original frame, from one line: `bool ok;` left UNINITIALISED. That keeps the
-// original's dead `xor al,al; test al,al; je` arm at 0x4db41a and its duplicate
-// `return FUN_004db1c0(bytes)` tail (24 bytes) that `bool ok = false;` folds
-// away; `char ok = 0;` folds it away too. The arm now differs only in how the
-// flag is read: `mov al,[esp+0x30]` here (the uninitialised slot aliases the
-// bytes parameter slot, C4700) vs `xor al,al` in the original. The remaining
-// diff is unchanged and is all the one cause described below, the this/bytes
-// tie (ebx vs ebp). Tried this pass and inert: `unsigned int n = bytes` used
-// in the search test or the success block (still 69.3%), char flag.
-// PASS deepseek-v4.1 (second visit): still 74.4%, 646 of 646 bytes, 6 hunks,
-// all of them the this/bytes register swap below. Tried and inert this pass:
-// declaring `Pair_004db000 p` at function scope (74.4%, identical output),
-// writing a `self = this` copy and using it for every member access and every
-// cast call (74.4%, coalesced away), `unsigned int n = bytes` used in the loop
-// test, the `mark > base + len` test and `end = mark + n` (74.0%), a `(int)`
-// cast on the loop's length test (74.0%), and hoisting `int tries` out of the
-// do-loop with `tries = 0` written before the latch (74.4%). The sibling
-// matched 0x4db000 and 0x4db450 both keep `this` in ebp as well, so ebp for
-// `this` is this allocator's normal choice here; in our compile it is the
-// parameter `bytes` that wins ebp, i.e. the two values trade registers as a
-// pair, and nothing in the source body moves the pair. The likeliest lever left
-// is the front end's value creation order for the entry block (the original's
-// `bytes` has to be numbered before `this`), which no ordinary declaration or
-// use ordering reached.
-// NOT MATCHING yet (was 69.3%, then 74.4% with `bool ok;`, now 76.7% with the
-// hoisted `out`; 646 of 646 bytes). What still differs, measured
-// against the original at 0x4db1c0:
-//   * 0x4db1c0 (the one big cause): the original keeps `this` in ebp and `bytes`
-//     in ebx; we keep them the other way round, and everything downstream
-//     follows: in the second half the original has mark in esi, base in edi,
-//     bytes in ebx and length in ebp, while we have `this` in esi, mark in
-//     edi, base in ebx and length in ebp with `bytes` reloaded from [esp+0x30].
-//     The original's `this` is memory-only from 0x4db253 on (it reloads
-//     [esp+0x10] at every call site, straight into ecx), ours is promoted back
-//     into a register, and that promotion is what steals esi from `mark` and
-//     pushes `bytes` out to the stack. So the fix is one construct that either
-//     demotes `this` or makes it memory-resident, not a per-instruction fix.
-//     The two lowest frame slots are also swapped because of it: the original
-//     spills `this` at [esp+0x10] and keeps the erase's out iterator (which
-//     reuses the dead `cur` slot) at [esp+0x14], while we spill `this` at
-//     [esp+0x14] and put the iterator at [esp+0x10]. Fixing the register
-//     should drag the whole frame back with it, since ebp is then overwritten
-//     by `length` in the success block and `this` is forced to memory.
-//     Tried and inert (all still 69.3%, 614 bytes): a `self = this` copy used
-//     for every access (the copy is coalesced away), a local `n = bytes` with
-//     every use renamed to `n` (also coalesced), and moving `cur`/`k` to
-//     function scope, and an extra outer `for (;;)` around the whole body (the
-//     grow-and-retry loop shape: the loop-nesting lever that moved `this` into
-//     ebp at 0x40e160 does nothing here, still 69.3% with `mov ebx, ecx`
-//     intact). Declaration order is inert here too.
-//     Measured more precisely (space-bunny-free, second pass): the tie is
-//     between `this` and the parameter `bytes` only, and it is decided at
-//     0x4db1c5, where `this` is the single live value. The original then holds
-//     `this` in ebp and `bytes` in ebx, so `bytes` must have been assigned
-//     FIRST (it took the preferred ebx) and `this` got what was left; in this
-//     file `this` is assigned first and takes ebx, so `bytes` is pushed into
-//     ebp and, at 0x4db2c7 where the original recycles ebp for `len`, ours
-//     loses `bytes` altogether and reloads it from [esp+0x30] in the second
-//     half. Everything else in the diff (the `mov ecx, [esp+0x10]` before the
-//     pushes at 0x4db2c0, the [esp+0x1c] query pair, the k slot) is a
-//     consequence of that one decision, not a separate problem. The next thing
-//     to try is whatever makes MSVC 5 order a parameter ahead of `this` in the
-//     register allocator: a second live value with a longer range than `this`
-//     in the pre-header, or a use of the parameter inside the `size > 0` test.
-//   * 0x4db41a: the original keeps a dead `xor al,al; test al,al; je` and an
-//     unreachable arm that retries with `return FUN_004db1c0(bytes)`. The flag
-//     is a compile-time 0 here, so MSVC folds our `if (ok)` away and the retry
-//     block (0x4db420-0x4db437, 24 bytes) is missing. No spelling of a local
-//     bool, an uninitialised one, a comparison (`!= 0`, `== 1`), a ternary or
-//     an inlined helper returning 0 reproduced the dead test.
-//   * 0x4db1df: the query pair lands in [esp+0x24] where the original uses
-//     [esp+0x1c], for the frame-layout reason above.
-//
-// The one scheduling fix found here (by deepseek-v4.1-flash, 59.9% to 69.3%):
-// read `mark = DAT_005289d4` AFTER the erase call FUN_004dc130, not before it.
-// The original loads `mark` into esi at 0x4db2d5, after the call; assigning it
-// before the call changes the scheduler's live ranges and loses 9.4 points.
-//
-// The reservation loop now matches instruction for instruction, including the
-// rotated shape: writing the VirtualAlloc out twice (once before the loop and
-// once at its latch) is what produces the second copy at 0x4db3e0, the back
-// edge onto the `if (base)` test at 0x4db3ae, and the import addresses hoisted
-// into ebp and ebx. Writing the two `if (base != 0)` tests as two separate
-// ifs at the same level, rather than nesting the VirtualFree inside one, is
-// what keeps the redundant `test eax,eax` at 0x4db3bd; nesting it, or writing
-// one `if (base != 0 && base + len <= 0x80000000)`, loses it again. Both the
-// success path and the `if (ok)` retry have to be `return`s inside the loop
-// for MSVC to lay the exit block out last.
+// NOT MATCHING: 80.5 percent, 646 of 646 bytes (Sonnet 5.5, #3275 retry; was
+// 76.7 percent). Only one cause is left: the original keeps `this` in ebp and
+// `bytes` in ebx (and treats `this` as memory-only in the success block,
+// reloading it from [esp+0x10] at every call), we keep them the other way
+// round, so ebx/ebp, the success block's `bytes` reloads and the lea/add
+// order of `base + len` all differ. All the stack-frame and control-flow
+// differences are gone. What fixed them, for the next person:
+//  * The reservation code is an inline member returning bool (`Grow` here,
+//    `return true` after the insert, `return false` when the halving gives
+//    up), and the caller is `if (Grow(bytes)) return FUN_004db1c0(bytes);
+//    return 0;`. MSVC then keeps the dead `xor al,al; test al,al; je` arm and
+//    its second `return FUN_004db1c0(bytes)` at 0x4db420 by itself, so no
+//    uninitialised flag is needed (the old `bool ok;` version read a frame
+//    slot instead of using `xor al,al`).
+//  * The frame is hdr-style: the erase result is a DISCARDED by-value
+//    temporary (`Class_004dd2a0 FUN_004dc130(Class_004dd2a0)`, as in 0x4db450),
+//    and the pairs handed to FUN_004dbec0 are temporaries too
+//    (`Pair_004db000(base, mark - base)`, a const reference parameter). Both
+//    land in one shared temp slot at [esp+0x14] with the lookup key at 0x1c
+//    and the result at 0x24, like the original. The insert's result is the
+//    8 byte pair<iterator, bool> (`Res_004dbec0`), declared at function scope.
+//    With `Class_004dd2a0 res`/`out` as named 4 byte locals the slots came out
+//    as out 0x20, res 0x1c, pair 0x18, k 0x24.
+//  * With all-temporary pairs and no named `res` MSVC turns the tail recursion
+//    into a jump (589 bytes); the named `res` (address taken) prevents that.
+// Tried this pass and flat or worse for the this/bytes tie: `bytes <= len`,
+// `bytes + mark`, `end` as an expression (`mark + bytes` thrice, 650 bytes and
+// 75 percent: the length becomes `base + len - mark - bytes` with a different
+// operand order than the original's `base - bytes + len - mark`), `const`
+// bytes, `size != 0`, unsigned `tries`, a `bytes` copy `n`, swapping the
+// declaration order of res and tries, moving `total += len` after the insert,
+// dropping `atend`, and a loop that `break`s with the success block after it
+// (78.5 percent, 642 bytes).
 #include <windows.h>
 #include <yvals.h>
 
@@ -142,6 +68,8 @@ extern int DAT_00528a00;               // how often the search wrapped
 struct Pair_004db000 {
     unsigned int offset;               // +0x0
     int length;                        // +0x4
+    Pair_004db000() {}
+    Pair_004db000(unsigned int o, int l) : offset(o), length(l) {}
 };
 
 // The tree's iterator: one pointer. FUN_004dd2a0 is its operator--.
@@ -163,12 +91,17 @@ public:
 
 class Class_004dc130 {
 public:
-    void FUN_004dc130(Class_004dd2a0* out, Class_004dd2a0 it);
+    Class_004dd2a0 FUN_004dc130(Class_004dd2a0 it);
+};
+
+struct Res_004dbec0 {
+    Class_004dd2a0 it;
+    unsigned char ins;
 };
 
 class Class_004dbec0 {
 public:
-    void FUN_004dbec0(Class_004dd2a0* out, Pair_004db000* p);
+    void FUN_004dbec0(Res_004dbec0* out, const Pair_004db000& p);
 };
 
 Node_004dd1b0* __cdecl FUN_004dd1b0(Node_004dd1b0* p);
@@ -208,14 +141,45 @@ public:
     void FUN_004db000(Pair_004db000 p);
 
     unsigned int FUN_004db1c0(unsigned int bytes);
+
+    bool Grow(unsigned int bytes)
+    {
+        unsigned int len = 0x10000000;
+        unsigned int base;
+        unsigned int dsize;
+
+        if (2 * bytes > len && bytes < 0x40000000u)
+            len = ((bytes + 0x1fff) & 0xffffe000) * 2;
+        if (bytes > len)
+            len = (bytes + 0x1fff) & 0xffffe000;
+        dsize = len + 0x2000;
+        base = (unsigned int)VirtualAlloc(0, dsize, 0x2000, PAGE_READWRITE);
+        for (;;) {
+            if (base != 0) {
+                if (base + len <= 0x80000000u) {
+                    Pair_004db000 q;
+                    q.offset = base;
+                    q.length = len;
+                    total += len;
+                    FUN_004db000(q);
+                    return true;
+                }
+            }
+            if (base != 0)
+                VirtualFree((void*)base, dsize, MEM_RELEASE);
+            len = (len >> 1) & 0x7fffe000;
+            if (len < 0x10000 || len < bytes)
+                return false;
+            dsize = len + 0x2000;
+            base = (unsigned int)VirtualAlloc(0, dsize, 0x2000, PAGE_READWRITE);
+        }
+    }
 };
 
 // FUNCTION: 0x4db1c0
 unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
 {
-    Class_004dd2a0 res;
-    Class_004dd2a0 out;
-    bool ok;
+    Res_004dbec0 res;
     int tries = 0;
     if (size > 0) {
         Pair_004db000 k;
@@ -251,12 +215,11 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
                 unsigned int len = cur.ptr->length;
                 unsigned int mark;
                 unsigned int end;
-                Pair_004db000 p;
 
                 // Drop the block from the map, then hand out `bytes` from it,
                 // preferring the offset the last allocation used so the free
                 // space stays together.
-                ((Class_004dc130*)this)->FUN_004dc130(&out, cur);
+                ((Class_004dc130*)this)->FUN_004dc130(cur);
                 mark = DAT_005289d4;
                 if (mark == 0) {
                     mark = base;
@@ -265,15 +228,11 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
                 if (mark < base || mark + bytes > base + len)
                     mark = base;
                 if (mark > base) {
-                    p.offset = base;
-                    p.length = mark - base;
-                    ((Class_004dbec0*)this)->FUN_004dbec0(&res, &p);
+                    ((Class_004dbec0*)this)->FUN_004dbec0(&res, Pair_004db000(base, mark - base));
                 }
                 end = mark + bytes;
                 if (end < base + len) {
-                    p.offset = end;
-                    p.length = base + len - end;
-                    ((Class_004dbec0*)this)->FUN_004dbec0(&res, &p);
+                    ((Class_004dbec0*)this)->FUN_004dbec0(&res, Pair_004db000(end, base + len - end));
                 }
                 DAT_005289d4 = end;
                 return mark;
@@ -282,42 +241,7 @@ unsigned int Class_004db000::FUN_004db1c0(unsigned int bytes)
         } while (tries < 2);
     }
 
-    {
-        // Nothing free: reserve a block of at least `bytes`, rounded up to 8k
-        // and doubled so the block has room to grow, halving it while the
-        // reservation lands above 2Gb.
-        unsigned int len = 0x10000000;
-        unsigned int base;
-        unsigned int dsize;
-
-        if (2 * bytes > len && bytes < 0x40000000u)
-            len = ((bytes + 0x1fff) & 0xffffe000) * 2;
-        if (bytes > len)
-            len = (bytes + 0x1fff) & 0xffffe000;
-        dsize = len + 0x2000;
-        base = (unsigned int)VirtualAlloc(0, dsize, 0x2000, PAGE_READWRITE);
-        for (;;) {
-            if (base != 0) {
-                if (base + len <= 0x80000000u) {
-                    Pair_004db000 q;
-                    q.offset = base;
-                    q.length = len;
-                    total += len;
-                    FUN_004db000(q);
-                    return FUN_004db1c0(bytes);
-                }
-            }
-            if (base != 0)
-                VirtualFree((void*)base, dsize, MEM_RELEASE);
-            len = (len >> 1) & 0x7fffe000;
-            if (len < 0x10000 || len < bytes) {
-                if (ok)
-                    return FUN_004db1c0(bytes);
-                break;
-            }
-            dsize = len + 0x2000;
-            base = (unsigned int)VirtualAlloc(0, dsize, 0x2000, PAGE_READWRITE);
-        }
-        return 0;
-    }
+    if (Grow(bytes))
+        return FUN_004db1c0(bytes);
+    return 0;
 }

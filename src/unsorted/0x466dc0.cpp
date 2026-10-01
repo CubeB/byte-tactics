@@ -1,4 +1,13 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// deepseek-v4.1-flash worker retry: best stayed 78.3%. Four free --sym scratch
+// variants this session all lost: routing both projectile tail reads (player
+// and owner) through the q Tail struct while p serves only p->shot (vA) 77.1;
+// typing p as Shot_00466dc0** so the only p use is *p (vC) 77.1; the same with
+// q declared before p and p assigned first (vD) 77.1; deriving p from q at the
+// latch (vE) 76.0 with a shrunken 0x18 frame. The two open sites are unchanged:
+// (1) the projectile loop keeps p in ebx and q spilled where the original keeps
+// q in ebx and reloads p from [esp+0x1c], and (2) the ScaleX multiply loads
+// zoom into eax before u->field_6c where the original loads field_6c first.
 // GPT-6.1-sol retry: best stayed 78.3% after a fresh ScaleX local and p-before-q setup; moving i ahead of p/q scored 78.1%, while initializing q directly from g_game->projectiles scored 77.8%. No exact match. Seven checker invocations total, including one initial call with no output.
 // PARTIAL 78.3 percent (1646 of 1662 bytes). This session (deepseek-v4.1-flash
 // retry) only gained 0.2: declaring the projectile tail pointer as

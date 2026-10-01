@@ -1,75 +1,22 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
-// PARTIAL: 53.0% (996 of the original's 1015 bytes). Five loops over the unit
-// array (stride 0x118): A clears/sets flags 0x1000/0x700/0x300 from the player
-// index and two "data" records, B ranges over pl->field_67..pl->field_6b and
-// hands a Class_00467840 visitor to FUN_0047e890, C does the same with the two
-// 4-byte visitors (Class_00467960 / Class_00467980), D sets flag 0x1000 and
-// field_b0, E sets flag 0x100 from the per-player cell masks.
+// PARTIAL: 74.6% (986 of the original's 1015 bytes). Five loops over the unit
+// array (stride 0x118). Loop B now matches after computing t = a + f70*2
+// BEFORE loading b, then t = t*t, s = b*b, then if (a <= b) a = b; and calling
+// with (int)a << 16. Loop C's compare matches with pl->field_146 != u->field_ff.
 //
-// Biggest lever in this session (43.6% -> 51.6% -> 53.0%): DECLARE EACH VISITOR
-// LAST, after the call arguments have been materialised into locals, and call
-// FUN_0047e890 through those temporaries:
-//     int r = (int)u->def->field_20a << 16;
-//     Vec3_00467440* pp = &u->pos.vec;
-//     Class_00467960 v;
-//     FUN_0047e890(pp, r, &v);
-// That sinks the vptr store to just before the call, exactly where the original
-// has it (after the pushes). Writing the arguments inline instead emits the
-// vtable store at the top of the block; that costs ~8 points.
-//
-// What still differs (53.0%). The frame now MATCHES the original exactly:
-// sub esp,0x28, last=+0x10, first=+0x14, visitor slots +0x18 and +0x1c, the
-// 0x18-byte Class_00467840 at +0x20 (the diff shows the prologue and every
-// [esp+N] offset already matching, so the older note about a 0x24 frame is
-// stale). The residual gap is register choice only:
-//  - Loop A tail: the original reloads `last` into esi (ebx is clobbered
-//    inside the body, esi is dead scratch there) and keeps edi = first
-//    untouched; ours reloads into ebx and re-materialises edi before loop B.
-//  - Loop B's arithmetic: the original keeps `a` in ax, `b` in di, `t` in ecx
-//    and does `imul ecx,ecx` / `imul edx,edx` in place; ours loads b into cx
-//    early (`mov cx, word[ecx+0x206]`) and needs `mov edi,edx; imul edi,edx`
-//    copies, plus the vptr store lands early. `def` sits in ecx here, in edx
-//    there.
-//  - Loop C: the two vtable constants are swapped relative to the original
-//    (original: ebx = first visitor's vtable, edi = second; ours the other way
-//    round), and ours re-materialises edi = first before loop C starts.
-//  - Loop E: the original computes x and y INSIDE each arm of the field_14281
-//    mode test (duplicated movsx/sar) and anchors the loop at esi = u+0x74
-//    (flags at [esi+0x9c], x as [esi-8] = +0x6c); ours hoists x/y, anchors at
-//    edi = u+0x6c and uses bh for the flags word. Duplicating x/y into both
-//    arms was retried this session on the correct 0x28 frame: 1013 bytes (the
-//    closest byte count of any variant) but 52.5%, and the anchor stayed at
-//    u+0x6c, so it was not kept.
-//  - Loop D: original materialises 0x2000 in ebx and 0x1000 in edi, ours the
-//    other way round.
-//
-// Scratch variants scored (check.py <addr> <file>): base42 42.4%, base43 43.6%,
-// loop-B reorder 43.6%, both loop-C visitors in one scope 36.6%, v516 51.6%,
-// v530 (this file) 53.0%. Session 2: both loop-C visitors hoisted to the outer
-// block 40.8%, per-loop `u` declarations 53.0% (tie), `b` deferred until after
-// t 52.7%, loop E x/y duplicated into both arms of the field_14281 test 52.5%
-// (1013 bytes, closest byte count, but it still anchors the loop at u+0x6c
-// where the original uses u+0x74, so it was not kept).
-//
-// Session 3 (deepseek-v4.1): the loop E anchor moves from u+0x6c to u+0x74,
-// matching the original's lea and [base+N] offsets, when y is computed BEFORE
-// x in the source (write the f74 expression first, then the f6c one). The
-// py-pointer spelling (short* py = &u->pos.half.f74; py[-4], py[-2], py[0])
-// moves it identically. That y-first form is the current file, still 53.0%;
-// the residual loop E diff is register names and load scheduling only.
-// Combining y-first with x/y duplicated into both arms of the field_14281
-// test: 1016 bytes / 52.4% (plain) and 1012 bytes / 52.8% (py-pointer), so
-// neither was kept over the current file.
-//
-// Session 4 (deepseek-v4.1-flash): giving each of the five loops its own
-// scoped `for (Unit* u = ...)` copy (extra braces, so no cross-loop `u`
-// coalescing) is byte-identical to the shared-`u` form, still 53.0%. The
-// original reloads first=[esp+0x14] after loops B/C/D (its loop bodies clobber
-// edi) but NOT after loop A; ours inserts that reload after loop A as well,
-// i.e. first is not kept live across loop A in our allocation. This is the
-// main structural residue; the rest is register-name/scheduling noise.
-
-// Session 5 (GPT-6.1-sol): a dedicated first-loop cursor produced the same 53.0% as the shared loop variable. Remaining gaps are the loop A last-pointer register (target esi, ours ebx), loop B/C visitor/register scheduling, and loop E branch/register allocation; no MATCH. Best source retained at 53.0%.
+// What still differs (74.6%):
+//  - Loop C first visitor call: the original stores the vptr AFTER the three
+//    pushes (mov [esp+0x24], ebx) and materialises pp into edx before them;
+//    ours stores the vptr before the pushes and computes pp at the third push.
+//  - Loop C body: the original loads u->field_ff into al and pl->field_146
+//    into cl; ours still swaps those two registers (the compare operands now
+//    match, the register names do not).
+//  - Loop D: the original loads u->flags AFTER the field_b0 store
+//    (mov [esi+0x1e],edx; mov eax,[esi+0x7e]; or eax,edi); ours hoists the
+//    flags load above the g_game reload. |= vs = x | 1000 makes no difference.
+//  - Loop E: the original anchors the cursor at u+0x74 in esi with flags in
+//    ebp (test ebp,0x100), ours anchors with add edi,0x74 and flags in ebx
+//    (test bh,1); body register allocation (x/y/pl) differs throughout.
 
 #pragma pack(push, 1)
 
@@ -223,21 +170,25 @@ void FUN_00467440(void)
         if ((u->flags & 0x10000000) && !(u->flags & 0x4000) && (u->field_10e & 1)) {
             if (u->def->field_204 != 0 || u->def->field_206 != 0) {
                 short a = u->def->field_204;
-                short b = u->def->field_206;
                 int t = a + u->pos.half.f70 * 2;
-                int r = (int)(a > b ? a : b) << 16;
+                short b = u->def->field_206;
+                t = t * t;
+                int s = (int)b * (int)b;
+                if (a <= b) {
+                    a = b;
+                }
                 Vec3_00467440* pp = &u->pos.vec;
                 Class_00467840 v;
-                v.field_4 = t * t;
-                v.field_8 = (int)b * (int)b;
+                v.field_4 = t;
+                v.field_8 = s;
                 v.pos = u->pos.vec;
-                FUN_0047e890(pp, r, &v);
+                FUN_0047e890(pp, (int)a << 16, &v);
             }
         }
     }
 
     for (u = first; u <= last; u++) {
-        if ((u->flags & 0x10000000) && u->field_ff != pl->field_146 && (u->field_10e & 1)) {
+        if ((u->flags & 0x10000000) && pl->field_146 != u->field_ff && (u->field_10e & 1)) {
             if (u->def->field_20a != 0) {
                 int r = (int)u->def->field_20a << 16;
                 Vec3_00467440* pp = &u->pos.vec;
@@ -260,7 +211,7 @@ void FUN_00467440(void)
                 if (u->def->field_245 & 0x2000) {
                     if (FUN_0040b0d0(u->field_ff, &u->pos.vec, u->def->field_208)) {
                         u->field_b0 = g_game->field_38a47 + 0x5a;
-                        u->flags |= 0x1000;
+                        u->flags = u->flags | 0x1000;
                     }
                 }
             }

@@ -50,14 +50,17 @@ outside=$(echo "$changed" | grep -v '^src/unsorted/.*\.cpp$' || true)
 # branched, and with names rebuilt from all matched files (a caller and its
 # callee in the same PR can disagree on a name, and only the rebuild shows it).
 [ -n "${REVIEW_NOFETCH:-}" ] || git fetch -q origin main
-if ! git merge -q --no-edit origin/main >/dev/null 2>&1; then
+# Pin the main being merged: other landings can move origin/main while this
+# review runs, and the comparison below must use the same commit.
+base=$(git rev-parse origin/main)
+if ! git merge -q --no-edit "$base" >/dev/null 2>&1; then
     git merge --abort 2>/dev/null || true
     # Most conflicts are with the conventions the switch to /Gz wrote (#2290)
     # or with a later landing on the same file. Keep the PR's side of each
     # conflicting hunk; the checks below catch anything that gets worse, and
     # the orchestrator commits the checked result instead of merging the PR.
-    clash=$(git merge-tree --write-tree --name-only origin/main HEAD 2>/dev/null | sed -n '2,/^$/p' | tr '\n' ' ' || true)
-    if git merge -q --no-edit -X ours origin/main >/dev/null 2>&1; then
+    clash=$(git merge-tree --write-tree --name-only "$base" HEAD 2>/dev/null | sed -n '2,/^$/p' | tr '\n' ' ' || true)
+    if git merge -q --no-edit -X ours "$base" >/dev/null 2>&1; then
         echo "== conflicts with origin/main resolved in favour of the PR: $clash"
     else
         git merge --abort 2>/dev/null || true
@@ -75,7 +78,7 @@ if ! git show "pr-$PR:tools/check.py" 2>/dev/null | grep -q '^DEFAULT_FLAGS = ".
 fi
 echo "== whole project after merging"
 uv run --quiet tools/progress.py | tail -1 | sed 's/^/  /'
-git show origin/main:data/progress.csv > build/main-progress.csv
+git show "$base":data/progress.csv > build/main-progress.csv
 regressed=0
 awk -F, 'NR == FNR { if ($5 == "matched") m[$1] = 1; next }
          FNR > 1 && ($1 in m) && $5 != "matched" { print "  !! matched on main, now " $5 " " $6 "%: " $1 " " $3; bad = 1 }

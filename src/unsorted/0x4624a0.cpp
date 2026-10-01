@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Claude Sonnet 5.5 (#3250): 78.9% (was 77.9%), 555 of 570 bytes. Found by an
+// automated source-mutation hill-climb scored with check.py --sym (about 900
+// variants): `unsigned int sent` and `unsigned int nbytes` locals, `0 != x`
+// operand order in the conditions, `q = base + 0x14 + offset`. The structural
+// residual described below is unchanged.
 // #3046 retry by GPT-6.1-sol: six checks retained 77.9%; goto and payload
 // pointer variants did not fix the remaining register/liveness differences.
 //
@@ -357,30 +362,33 @@ struct Locals_004624a0 {
 // FUNCTION: 0x4624a0
 int Class_004624a0::FUN_004624a0(int force)
 {
-    unsigned int now = FUN_004b6340();
+    int now;
+    now = FUN_004b6340();
     FUN_00461170("player: %ld, ticks betw sends=%lu, nextsend=%lu, gametimereal=%lu\n",
                  dpid, ticks, nextSend, now);
     if (now >= nextSend || force != 0) {
-    nextSend = now + ticks;
+    nextSend = ticks + now;
     Locals_004624a0 loc;
     loc.n = (int)&loc;
     loc.n = queue.count;
-    if (loc.n == 0)
+    if (0 == loc.n)
         return 1;
+    unsigned int sent;
     int i;
-    int sent;
-    Packet_004624a0* entry = 0;
+    Packet_004624a0* entry;
+    entry = 0;
     while (1) {
         sent = 0;
         loc.headFrame = queue.GetFirst()->frame;
         FUN_00461170("assigning packets to frame number: %ld\n", frame);
-        for (i = 0; i < loc.n; i++) {
+        for (i = 0; i < loc.n; ++i) {
             // Two calls, not one: the original's inlined code has the diamond
             // of a two-return helper and then a second count test of its own.
             entry = queue.GetFirst();
             queue.Pop();
-            if (entry->frame == loc.headFrame) {
-                char* q = (char*)entry->base + entry->offset + 0x14;
+            if (loc.headFrame == entry->frame) {
+                char* q;
+                q = (char*)entry->base + 0x14 + entry->offset;
                 FUN_00461170("extracted packet (len=%ld, type=%d, data=\"%s\")\n",
                              entry->size, (unsigned char)*q, q + 1);
                 entry->queued = frame;
@@ -389,27 +397,28 @@ int Class_004624a0::FUN_004624a0(int force)
                         (unsigned char*)q,
                         entry->size) == 0)
                     return 0;
-                sent = sent + 1;
+                sent += 1;
             } else {
                 queue.Push(entry);
             }
         }
         queuedBytes = 0;
-        if (sent > 0) {
+        if (0 < sent) {
             FUN_00461170("sending %ld packets in frame: %ld\n", sent, frame);
-            *DAT_0051e2f4 = (dpid != 0) ? -1 : frame;
-            int nbytes = DAT_0051e2f8;
+            *DAT_0051e2f4 = (0 != dpid) ? -1 : frame;
+            unsigned int nbytes;
+            nbytes = DAT_0051e2f8;
             FUN_00461170("bytes to send to (DPID)(%ld): %ld\n", dpid, nbytes);
             DAT_005129d0.FUN_004626e0(g_game + 0x14, loc.headFrame, dpid, DAT_0051e2f4, nbytes);
-            DAT_0051e2f8 = (DAT_0051e2f4 != 0) ? 4 : 0;
-            frame = frame - 1;
+            DAT_0051e2f8 = (0 != DAT_0051e2f4) ? 4 : 0;
+            frame -= 1;
             if (frame >= -1)
                 frame = -2;
-            if (queue.count == 0)
+            if (0 == queue.count)
                 return 1;
         }
         loc.n = queue.count;
-        if (loc.n != 0)
+        if (loc.n)
             continue;
         return 1;
     }

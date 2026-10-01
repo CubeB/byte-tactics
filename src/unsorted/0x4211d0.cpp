@@ -1,5 +1,23 @@
 // Decompiled by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by
-// space-bunny-free, retried by Sonnet 5.5. Names are provisional.
+// space-bunny-free, retried by Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (#2977): 90.6 -> 96.1%. The first-face setup now
+// matches instruction for instruction. The lever is to assign `face` in BOTH
+// arms instead of incrementing it in one arm:
+//     if (arr->firstFace != -1) { face = arr->faces + 1; i = 1; }
+//     else                       { face = arr->faces;     i = 0; }
+// A ternary (setne/shl/add) scored 90.6%, `i = 0; if (...) { i = 1; face++; }`
+// scored 92.5% but spilled `i` twice (once per definition). The both-arms form
+// keeps arr in ebp and stores `i` exactly once at the join, as the original
+// does (0x4212a3..0x4212c1). Everything before and after this block matches.
+// The ONLY remaining difference is the copy loop's ecx/edx tie: original gives
+// idx=edx / j=ecx (`mov edx,[esi+0xc]; xor ecx,ecx; inc ecx` at the loop top),
+// this file gives idx=ecx / j=edx (`mov ecx,[esi+0xc]; xor edx,edx`), which
+// also flips the increment scheduling (ours `add eax,8` before the load, `inc`
+// at the bottom; original `inc` at the top). Declaration order (idx/j at
+// function or block scope, either order), unsigned counters, do/while, while,
+// indexed source (`projected[idx[j]]`), dest walk and pointer-range loops are
+// all flat at 96.1% with the same swap, so it is a compiler register tie-break,
+// not a source lever.
 // Sonnet 5.5 retry (#2451), still 90.6%. The diff of this version is now only
 // the first-face setup (original: branches, `add esi,0x20; mov edi,1` or
 // `xor edi,edi`; ours: setne/shl/add) and the ecx/edx swap in the copy loop,
@@ -173,9 +191,14 @@ void __stdcall FUN_004211d0(void* surface, Obj_00421170* obj, Inner_00421550* in
     }
 
     int j;
-    i = arr->firstFace == -1 ? 0 : 1;
-    Face_004211d0* face = arr->faces;
-    face += i;
+    Face_004211d0* face;
+    if (arr->firstFace != -1) {
+        face = arr->faces + 1;
+        i = 1;
+    } else {
+        face = arr->faces;
+        i = 0;
+    }
     for (; i < arr->faceCount; i++, face++) {
         unsigned short* idx = face->indices;
         for (j = 0; j < face->count; j++) {

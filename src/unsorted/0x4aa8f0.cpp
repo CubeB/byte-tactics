@@ -59,6 +59,15 @@
 // nothing; a Menu layout whose padding array was sized from 0x64 instead of
 // 0x68 put menu->name at +0x9ba, four bytes too high (fixed here).
 //
+// Tried 2026-10-01 (deepseek-v4.1-flash), both below the 60.8 / 1781 baseline:
+// writing the PANEL search as `i < base->count + 1` (the reload-per-iteration
+// form the original shows at 0x4aab02) is the same 60.8% but 1785 bytes; and
+// writing the flags & 0x800 rect block with the array stores inside the arms
+// (`rect[0] = 0; y = 0;` / `rect[0] = e->x; y = e->y;`, then
+// `rect[1] = y; rect[2] = rect[0] + e->w - 1;`) scores 60.4 / 1785 because
+// the rect[0] reload for rect[2] splits the `lea ecx,[ebx+ecx-1]` the
+// original has, so the x/y locals plus the single post-merge store stay.
+//
 // Structural facts recovered from the disassembly (kept because they are
 // load-bearing for whoever tries next):
 //  * the name setup is strncpy(layerName, menu->name, 0x100) followed by

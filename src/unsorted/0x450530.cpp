@@ -65,6 +65,24 @@
 //    a 2D char array, while/do-while/i!=10 forms, short/char/unsigned index,
 //    separate ifs, nested else, a switch, and all 128 header sets from
 //    tools/headers.py. See build/scratch/0x450530/.
+// Try (space-bunny-free, issue 3202): the one lever that would pay is the
+// outer loop. Everything else follows from it: with a byte-offset induction
+// variable the frame is 0x14, msg sits at [esp+0x18] instead of [esp+0x14],
+// and ebp is used as scratch for `to`/`from`, so the single IV decision
+// cascades into six blocks. Note that the original's inlined FindPlayer loop
+// at 0x4507e4 and its outer loop head at 0x450551 expand 331*i the SAME way,
+// into (base+i) + 330*i*2 (`mov ecx,edi; add ecx,ebp; lea eax,[eax+eax*4];
+// lea esi,[ecx+eax*2+0x1b63]`), and our source already reproduces that shape
+// at 0x4507e4. Only the outer loop differs, so the expander and the strength
+// reducer are both available to MSVC here and it picks strength reduction for
+// the outer loop alone. New variants scored with check.py --sym, all worse or
+// identical, none of them stops the strength reduction: `unsigned char i`
+// 48.7% (still reduces, and adds a [esp+0x18]=10 copy); `unsigned i` 52.3%
+// (byte-identical to `int i`); `int i` declared before a `for (;;)` with
+// `if (++i == 10) break;` 52.1%; `while (i < 10) { ... i++; }` 52.1%;
+// the FindPlayer loop written out at its one call site instead of through the
+// static inline helper 48.6%; `Msg_00450530 msg` hoisted above the loop
+// 52.3% (byte-identical, MSVC gives it the same slot either way).
 // Tried by space-bunny-free and rejected, all scored with check.py --sym:
 // removing the `p` local from the loop head and writing `g_game->players[i]`
 // at each of the four guard tests (the two `lea` at the top of the loop then

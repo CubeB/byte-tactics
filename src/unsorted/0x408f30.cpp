@@ -67,6 +67,28 @@
 // two pointers has no C++ spelling, so the original's form is MSVC 5's
 // reassociation of the value, not of this function's source.
 //
+// space-bunny-free (2026-10-01, this run): re-walked the wall with nine fresh
+// variants (build/scratch/0x408f30/v[A-L]). Five spellings keep 546 bytes at
+// 99.6% with the SAME single SIB byte and nothing else moving: a destination
+// local `iterator _R = _Q + _M`, `_Ucopy(_P + 0, _Last, _Q + _M)`, `_Q + (_M)`,
+// a `size_type _M1 = _M` temp, `_Last = _S + _M + size()` and
+// `_N = (_M < size() ? size() : _M) + size()`. Four are worse and they are
+// informative, because they rule out spellings that look plausible:
+//   _Ufill returning iterator and `_Q = _Ufill(_Q, _M, _X)` with the third
+//   _Ucopy taking `_Q`: 510 bytes, 45.5% (the loop no longer needs the
+//   `sub edx / sub edi` pair, so the whole LEA block goes);
+//   the same _Ufill change with the call still `_Ucopy(_P, _Last, _Q + _M)`:
+//   526 bytes, 67.9%;
+//   `_Last = _Q + size()` instead of `_S + size() + _M`: 526 bytes, 57.8%
+//   (it lets the compiler drop the redundant `_Q` CSE);
+//   `end()` for the third _Ucopy's range end: 528 bytes, 53.8%;
+//   `_L != _F` as _Ucopy's condition: 546 bytes but 97.8%, two bytes worse.
+// So _Ufill returns void, the destination really is spelled `_Q + _M`, and the
+// remaining byte is not reachable from this function's source text. The
+// register-number reading fits every lea in the original: MSVC 5 puts the
+// LOWER-numbered of two commutative register operands in the SIB base
+// (edx before edi at 0x408ff1, ecx before ebx here), and the original's
+// translation unit did not sort this one pair.
 // deepseek-v4.1 (2368, 2026-09): re-walked the wall. A file-scope padding
 // sweep of 29 dummy declaration counts (0 to 1024, step 16/32) toggles only
 // between the 99.6% lea and a 547-byte 89.6% shape whose source pointer is

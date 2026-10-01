@@ -74,6 +74,16 @@
 // (mask 0x200) or unsigned int (mask 0x2000000) changes the emitted test and
 // drops to 69%. The single `lea ecx,[ebp+eax*8]` vs `[ebx+eax*8]` byte remains;
 // see the notes above, this is the archived compiler-state wall.
+// deepseek-v4.1-flash retry 3 (2026-10-01): the 0x408f30 "hand-written
+// namespace std vector clone" lever is dead here too. A full clone of the
+// class template (from <climits> + <memory> + <xutility>, no <vector>) gives
+// byte-identical 88.7% (645/644) with the same ebx/ebp swap, so the pick is
+// not header state. Also no effect: bool, int and char locals for the
+// two-condition test, a flags-byte local (89.4%, 646 bytes, a different diff),
+// address-taking every vector member through a derived class, prepending
+// <iostream>, <string>, <map>, <list>, <algorithm>, <memory>, <set> or
+// <deque>, and 1..64 dead __inline helper call sites (the /Ob2 budget does
+// move the code, but never to a flipped pick).
 #include <vector>
 
 struct Point16 {

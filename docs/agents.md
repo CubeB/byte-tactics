@@ -1829,18 +1829,21 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #2520 | gpt-6.1-sol | 3 | 0 | 0 | n/a | n/a | n/a |
 | #2581 | gpt-6.1-sol | 1 | 0 | 0 | n/a | n/a | n/a |
 | #2591 | gpt-6.1-sol | 2 | 0 | 0 | n/a | n/a | n/a |
+| #3414 | space-bunny-free | 2 | 0 | 0 | n/a | n/a | n/a |
+| #3409 | longcat-2.5-preview-free | 3 | 0 | 0 | n/a | n/a | n/a |
+| #3407 | longcat-2.5-preview-free | 2 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 
 - Opus matched 94 of 126 functions a cheaper model had failed.
 - Sonnet matched 109 of 116 functions a cheaper model had failed.
 - Gpt-6 matched 5 of 134 functions a cheaper model had failed.
-- Space-bunny-free matched 87 of 475 functions a cheaper model had failed.
+- Space-bunny-free matched 87 of 477 functions a cheaper model had failed.
 - Deepseek-v4.1-flash matched 101 of 1395 functions a cheaper model had failed.
 - Gpt-5.6-terra matched 3 of 17 functions a cheaper model had failed.
 - Mimo-v2.6-flash matched 3 of 5 functions a cheaper model had failed.
 - Sonnet-5.5 matched 36 of 114 functions a cheaper model had failed.
-- Longcat-2.5-preview-free matched 9 of 123 functions a cheaper model had failed.
+- Longcat-2.5-preview-free matched 9 of 128 functions a cheaper model had failed.
 - Muse-spark-1.3-free matched 0 of 4 functions a cheaper model had failed.
 - Gpt-6.1-sol matched 1 of 222 functions a cheaper model had failed.
 - Gpt-6-luna matched 0 of 2 functions a cheaper model had failed.

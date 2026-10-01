@@ -27,6 +27,8 @@
 // difference (original loads piece.offset.y into esi first and makes unit.pos.y
 // the add destination; ours loads unit.pos.y first), and the component-wise
 // spelling is blocked: Vec3_00421700 has no 3-argument constructor (C2661).
+// deepseek-v4.1-flash #3549: component-wise d->pos.x/y/z member assignment
+// does compile but scores 58.4 (1750 bytes), so the operator+ form is required.
 // deepseek-v4.1-flash 01:12Z retry, all scored with scratch copies, none beat
 // 71.7 so the base stays:
 //  - ni as three plain int locals (nx,ny,nz): 70.7, frame still 0xa8, so the

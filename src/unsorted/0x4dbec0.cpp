@@ -1,5 +1,12 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by
 // deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (#3090 retry): still 95.6% (621 bytes, exact). The residual is
+// the eax/ecx 2-colouring of the `it` iterator temp versus the reloaded `p` parameter
+// in the non-rebuild (else) arm: original it=ecx/p=eax, ours it=eax/p=ecx (9
+// instructions, all consequences). `it = y`, `register Class_004dd2a0 it` and a
+// two-step `yy = y; it.ptr = yy` birth are byte-identical; 128 header sets, 101
+// dummy-extern builds, all declaration orderings and ~260 statement spellings are
+// also flat. Function-wide allocator tie, not source-reachable.
 // The red-black tree insert behind std::map<unsigned int, Pair>, the same
 // std::map idiom as 0x4db000 and 0x4db450. DAT_00528a54 is the tree's _Nil
 // node, head->left is begin() and head->parent is the root. The value is

@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (#3090 retry): still 81.3% (615 of 624). Frame/layout only:
+// the erase out-param `node` must live in the parameter home `[esp+0x60]`, which
+// frees 0x10 for `it1`. A late `Class_004dbe10& node = *(Class_004dbe10*)&p;` alias
+// plus killing p's last textual use (early `unsigned int base = (unsigned int)p;`
+// then a deferred `base &= 0xfffff000;`) does land the out-param on [esp+0x60] with
+// frame `sub esp,0x4c`, but it1 still lands at 0x18 because n takes 0x10 (64.7%).
+// The it1/n/it3 slot ordering is the remaining blocker.
 // Fifth pass by deepseek-v4.1: 81.3 percent, 615 of 624 bytes. Two changes to
 // the previous 73.1 percent best: hoist the arena entry pointer into
 // `LiveEntry* ve = &it1.ptr->entry;` used by BOTH arena arms, declared just

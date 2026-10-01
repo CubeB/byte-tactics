@@ -1,5 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash and
 // space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// deepseek-v4.1-flash (#3090 retry): still 76.7% (646 bytes, exact). The remaining
+// diff is the single `this`(ebp)/`bytes`(ebx) register swap: the ebp-vs-ebx tie
+// between the implicit `this` and a stack parameter is front-end variable numbering,
+// not codegen. `int ok`, swapped ok/tries, `unsigned tries` and left-operand `bytes`
+// variants are all 76.2-76.7%. Sibling 0x4db000 keeps `this` in ebp only because it
+// has no competing register-resident parameter.
 // The allocator's alloc(): look for a free block of `bytes` in the free-block
 // map (a std::map<unsigned int, Pair_004db000>, the map's value_type being a
 // block's base offset plus its length), erase it, and return the two leftovers

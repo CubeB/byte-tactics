@@ -1,4 +1,6 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// #3031 retry by GPT-6.1-sol: five checks retained 97.3%; a ternary source
+// form did not alter the two branch-local register/order differences.
 // Retry (deepseek-v4.1-flash, issue 2857): re-confirmed 97.3%. The two
 // inversions are the guide's scheduler tie-break class (deferred `add esp,0xc`
 // around a call's pushes); 11 new source shapes (sep scope, addrs[i] temporaries,

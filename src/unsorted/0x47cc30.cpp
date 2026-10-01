@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by space-bunny-free, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
 // PARTIAL 80.9% (1202 bytes vs the original 1199). Frame, the three cell loops,
 // the inlined FUN_0047cb60 owner surgery, the (g_game+0x38a47) store, the
 // 0x20000000 mask path, both FUN_00483210/FUN_00440a40 calls and the epilogue
@@ -37,6 +37,16 @@
 // (drops the dead store of p.y and costs 13 points), the reversed
 // `(p.z>>23)*cols + (p.x>>23)`, and every combination of combined `||`
 // versus separate ifs for the negative and the sum tests.
+// deepseek-v4.1-flash pass (issue 3456), timeboxed, best stays 80.9%. Nine more source shapes,
+// all free-scored with check.py --sym, none beat 80.9: owner index through a pointer local with the
+// struct copy taken through it (identical code), a one line static helper taking the position pointer
+// or reference for the owner index (67.6, the helper call shape changes too much), explicit
+// accumulate-left temporaries (t = p.z >> 23; t = t * cols; t = t + (p.x >> 23)) alone and combined
+// with the same form for the sums (52.8 combined), the multiply written cols * (p.z >> 23) (identical),
+// short locals px/py for the negative tests (identical), one combined || including inline sums (80.5),
+// sums declared and computed y first (identical) and sizes read through obj in the sums (48.0).
+// The commutative left-accumulator flip therefore does not come from operand order, accumulator
+// temporaries or the multiply spelling: it is front end state, same class as 0x47d820.
 #pragma pack(push, 1)
 
 struct Obj_0047cc30;

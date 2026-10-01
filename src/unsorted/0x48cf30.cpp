@@ -1,4 +1,25 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
+// space-bunny-free (this session): re-verified the saved best at 84.9% (one
+// check.py run, no real run spent on anything else). New measurement worth
+// having: `tools/wcl /Fa` listings name every local and print its frame offset
+// (the value is the address minus esp-at-entry, e.g. `_p$ = -24`), so the
+// whole permutation can be watched without spending a run. In listing-offset
+// terms, ORIGINAL: move -50, buf -49, except -48, flag_a -44, range -40,
+// p -36, [3 dead dwords -32,-28,-20], avg_x -24, avg_z -16, here -12..-1,
+// fire in the dead argument slot at +4. OURS: except -52, avg_x -48, avg_z
+// -44, flag_a -40, fire -36, move -32, range -28, p -24, here -12..-1, buf
+// in the dead argument slot at +4. So the original's frame is a 4-byte BYTE
+// POOL holding buf and move, plus 6 live dwords and 3 dead ones; ours has no
+// byte pool at all, and MSVC gives each 1-byte Class_00438760 object a full
+// dword slot (fire, move) while the plain `unsigned char` takes the dead
+// argument slot instead. That is the whole difference, and it is why the two
+// averages land in the wrong slots: they are handed the slots freed by
+// flag_b/count/sum_x/sum_z, which is right here and wrong in the original.
+// Trying to reach the original's layout by source shape failed again:
+// buf as `unsigned char[2]` passed by decay, buf/fire/move declared at
+// function scope, fire/move declared before the mode test, dx/dz at function
+// scope, and here at function scope ALL print the identical offset list above,
+// byte for byte. build/scratch/0x48cf30/{frame.sh,gen.py} reproduce this.
 // GPT-6.1-sol retry: verified the saved best at 84.9%; the remaining mismatch
 // is the local stack-slot/register permutation documented below.
 // GPT-6 retry: remains 84.9%. Byte-index classes and inheritance, and a

@@ -1,4 +1,65 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
+// deepseek-v4.1, GPT-6.1-sol, finished by deepseek-v4.1-flash,
+// finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro 2026-10-01: 78.3 -> 99.6 percent (1662 bytes, exactly the
+// original's size). Two things fixed almost everything:
+//   1. OnRadar reshaped: each arm declares tx/ty locals and uses the
+//      MapSize::Contains inline method (the matched 0x408090 spelling).
+//      That gives the original's destructive `sar ebp, 5; sar edi, 5`, the
+//      inline `cmp edi, [edx+0x84]` height compare and the width reload
+//      `mov ecx, [edx+0x80]` in the multiply. The byte arm is
+//      `if (cond) b = 1; else b = 0;`, the short arm is
+//      `if (!Contains) b = 0; else b = expr != 0;` (early-out shape with the
+//      zero block between checks and compute, as in 0x408090). The two arms
+//      are separate inline helpers taking the PlayerInfo* (pi passed in):
+//      that stops the tail merger fusing their identical zero blocks.
+//      Helpers that compute pi themselves duplicate the player-index chain
+//      and lose 15 percent, so pi must be computed before the dispatch.
+//   2. All projectile tail reads (small-branch player, big-branch owner,
+//      big-branch player) go through the q Tail struct at p+0xa; p is used
+//      only for p->shot. That flips the loop register split to the
+//      original's: q stays live in ebx across the latch (`add ebx, 0x6b`),
+//      p is memory-resident and reloaded at the loop top
+//      (`mov ecx, [esp+0x1c]`), and the big-branch copy restores q with
+//      `mov ebx, [esp+0x18]` at 0x4673a9. Hypothesis confirmed: the walker
+//      used LAST before the draw calls gets ebx. q must also be declared
+//      inside the `if (g_game->projectileCount > 0)` block so its lea
+//      lands after the guard like the original's.
+// Remaining, ONE site only (2 swapped instructions): the unit-loop ScaleX
+// multiply. Original: `movsx eax, [ebx+0x6c]` (u->field_6c) then
+// `movsx ecx, [esi+0x142eb]` (zoom); ours loads zoom first (into the imul
+// accumulator) either way. Byte-neutral, tried this session on the matched
+// base: operand swap at the site, single and double (int) casts, a named
+// v/temp local, `int x = u->field_6c; x = x * zoom / scale;` accumulation,
+// statement split (`int x = a*b; x = x/c;`), ScaleX helper with and without
+// the division, a 3-arg Scale(v,z,s) helper both argument orders, a 2-arg
+// Mul(a,b) helper both argument orders, a zoom-first parameter helper, and
+// `short* pf = &u->field_6c; *pf * zoom`. This is the same unreachable
+// scheduler choice documented at 0x47d0e0 ("the multiply's destination
+// register ... is a single scheduling choice that no source shape here
+// reaches"; sign-extended movsx operands canonicalise and swapping the
+// source operands changes nothing). The other multiplies in this function
+// all follow the source's left operand into the accumulator; only this
+// load*load node canonicalises the g_game-based operand there.
+// deepseek-v4.1-flash 2026-10-01 (retry 7, timeboxed): no gain, stays 78.3 /
+// 1646 bytes. Eight scratch probes, all <= 78.3: routing every tail read
+// (small-branch player, big-branch player, owner) through the q Tail struct
+// 77.1 (note: it moves q to slot 0x18 but p to 0x28 and i to 0x1c); q declared
+// inside the if 78.1; q declared first as an independent g_game->projectiles
+// load with p second 77.8 (1650 bytes, and p becomes fully memory resident,
+// reloaded for p->shot, yet q still lands in ecx); p derived from q 74.8;
+// a `for` loop with the increments in the for-clause 77.5; typed `p++` instead
+// of the char* cast 78.3 (identical bytes); px/py declared before x/y 76.4;
+// q built through a named char* qraw 78.3 (identical bytes). So the ebx choice
+// is not use count, not declaration order and not the tail-read base: with p
+// reduced to a single loop use MSVC still keeps p in ebx and spills q, which
+// matches this function's earlier sessions and points at compiler state, not
+// at the source spelling. Four more probes after that note: i declared and
+// assigned before p 78.1; p/q/i declared and then assigned in two steps 78.1;
+// q outside the if with p inside 77.4 (1650 bytes, and neither pointer reaches
+// the preheader in ebx there); both walkers typed char* (reads as
+// *(short*)(q - 4) and (*(Shot_00466dc0**)p)->flags) 78.3, byte-identical to
+// the base, so the pointer type is not the lever either.
 // deepseek-v4.1-flash 2026-10-01 (retry 6, timeboxed): no gain, stays 78.3 /
 // 1646 bytes. Seven probes this session were flat or negative: q declared
 // before p (77.8), q-first declaration with p assigned first (flat), the
@@ -180,13 +241,22 @@ struct Player_00466dc0 {
     unsigned char field_96;              // +0x96
 };
 
+struct MapSize_00466dc0 {
+    unsigned int width;                  // +0x80
+    unsigned int height;                 // +0x84
+
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
 struct PlayerInfo_00466dc0 {
     char unknown_0[0x27];
     Player_00466dc0* data;               // +0x27
     char unknown_2b[0x7c - 0x2b];
     unsigned char* los;                  // +0x7c
-    int width;                           // +0x80
-    int height;                          // +0x84
+    MapSize_00466dc0 size;               // +0x80
     char unknown_88[0x14b - 0x88];
 };
 
@@ -325,32 +395,35 @@ static PlayerInfo_00466dc0* PlayerInfo_00466dc0_Get(unsigned char p)
 
 // True when (px, py) is inside the current player's visible area. The two
 // halves match the uint8 terrain bitmap and the packed 16-bit bitfield variant.
+static inline int OnRadarByte_00466dc0(PlayerInfo_00466dc0* pi, int px, int py)
+{
+    int tx = px >> 5;
+    int ty = py >> 5;
+    if (pi->size.Contains(tx, ty) && pi->los[pi->size.width * ty + tx] != 0)
+        return 1;
+    return 0;
+}
+
+static inline int OnRadarShort_00466dc0(PlayerInfo_00466dc0* pi, int px, int py)
+{
+    int tx = px >> 5;
+    int ty = py >> 5;
+    if (!pi->size.Contains(tx, ty))
+        return 0;
+    return (g_game->field_14273[pi->size.width * ty + tx] &
+            (1 << g_game->currentPlayer)) != 0;
+}
+
 static inline int OnRadar_00466dc0(int px, int py)
 {
     PlayerInfo_00466dc0* pi = PlayerInfo_00466dc0_Get(g_game->currentPlayer);
-    int b;
-    if ((g_game->field_14281.all & 2) == 2) {
-        b = (unsigned int)(px >> 5) < (unsigned int)pi->width &&
-            (unsigned int)(py >> 5) < (unsigned int)pi->height &&
-            pi->los[(py >> 5) * pi->width + (px >> 5)] != 0;
-    } else {
-        if ((unsigned int)(px >> 5) < (unsigned int)pi->width &&
-            (unsigned int)(py >> 5) < (unsigned int)pi->height)
-            b = (g_game->field_14273[(py >> 5) * pi->width + (px >> 5)] &
-                 (1 << g_game->currentPlayer)) != 0;
-        else
-            b = 0;
-    }
-    return b;
+    if ((g_game->field_14281.all & 2) == 2)
+        return OnRadarByte_00466dc0(pi, px, py);
+    return OnRadarShort_00466dc0(pi, px, py);
 }
 
 // Scale a unit's world coordinate by the current zoom, keeping the source
 // order of the multiply so the operand lands in the right register.
-static inline int ScaleX_00466dc0(Unit_00466dc0* u)
-{
-    return u->field_6c * g_game->field_142eb;
-}
-
 static inline int ScaleY_00466dc0(Unit_00466dc0* u)
 {
     return ((int)u->field_74 - ((int)u->field_70 >> 1)) * (int)g_game->field_142ed;
@@ -381,7 +454,8 @@ void FUN_00466dc0(void)
             if (u->field_a6 != 0) {
                 if (enabled != 0 || (u->flags_110.all & 0x300) != 0 ||
                     u->field_ff == g_game->currentPlayer) {
-                    int x = ScaleX_00466dc0(u) / g_game->field_1422b;
+                    int x = u->field_6c * g_game->field_142eb /
+                            g_game->field_1422b;
                     int y = ScaleY_00466dc0(u) / g_game->field_1422f;
                     if (u->field_fa == 0 ||
                         (g_game->field_142f0.b.hi & 1) != 0) {
@@ -447,9 +521,9 @@ void FUN_00466dc0(void)
     }
 
     Projectile_00466dc0* p = g_game->projectiles;
-    short* q = (short*)((char*)p + 0xa);
     int i = 0;
     if (g_game->projectileCount > 0) {
+        short* q = (short*)((char*)p + 0xa);
         do {
             int px = q[-2];
             int x = (int)g_game->field_142eb * px / g_game->field_1422b;
@@ -458,7 +532,8 @@ void FUN_00466dc0(void)
             if ((p->shot->flags.all & 0x60000000) == 0) {
                 if ((p->shot->flags.all & 0x40) == 0) {
                     if (OnRadar_00466dc0(px, py) ||
-                        p->player == g_game->currentPlayer) {
+                        ((Tail_00466dc0*)q)->player ==
+                            g_game->currentPlayer) {
                         FUN_004bee60(surface, x, y, base[0xe]);
                     }
                 }
@@ -468,7 +543,8 @@ void FUN_00466dc0(void)
                         g_game->currentPlayer) {
                     FUN_004b7f90(surface,
                         FUN_004b7f30(g_game->field_147e7,
-                            PlayerInfo_00466dc0_Get(p->player)->data->field_96),
+                            PlayerInfo_00466dc0_Get(
+                                ((Tail_00466dc0*)q)->player)->data->field_96),
                         x, y);
                 }
             }

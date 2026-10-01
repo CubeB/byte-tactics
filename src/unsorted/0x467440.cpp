@@ -1,4 +1,33 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// mimo-v2.6-pro 2026-10-01 (timeboxed retry, second pass): 97.9 -> 98.6
+// percent. Loop D's flags-load hoist is fixed by writing the field_b0 store
+// through an `int&` to the field (the 0x41ba60 pattern from the guide): the
+// reference keeps MSVC from moving the `mov eax,[esi+0x7e]` load above the
+// store.
+// Still differs (98.6): Loop C compare only. Original:
+//   test dword ptr [esi+0x7e],0x10000000 / je
+//   mov al,[esi+0x6d] / mov cl,[ebp+0x146] / cmp al,cl / je
+// Ours (with the single `unsigned char ff` local that fixes the first visitor
+// call block's vptr store and arg registers):
+//   mov ecx,[esi+0x7e] / mov al,[esi+0x6d] / test ecx / je
+//   cmp byte ptr [ebp+0x146],al / je
+// The ff local fixes call 1 but makes the compiler hoist the flags load into
+// ecx and compare memory-to-al. Tried and flat/worse this pass: inline
+// `u->field_ff != pl->field_146` (96.5, gets `test [esi+0x7e]` back but swaps
+// al/cl in the compare and breaks the visitor-call block), inline reversed
+// (96.8, same), nested if with two byte locals either order (96.5/96.8, same
+// al/cl swap). Remaining idea not tried: two locals `ff`/`f146` with one of
+// them as `char` (signed) or the compare written through a tiny inline helper,
+// to force al=field_ff / cl=field_146 while keeping the call block.
+// mimo-v2.6-pro 2026-10-01 (timeboxed retry): 75.9 -> 97.9 percent (1015 of
+// 1015 bytes). What fixed it: Loop E split into IsExplored/IsSeen inline
+// helpers (the matched 0x4658e0 pattern, Contains/Get on a ByteMap at
+// player+0x7c, tx/ty computed inside each helper) with the player pointer
+// built by an inline Game::Current() member (the 0x47f300 trick) and a plain
+// `unsigned int vis` result local (int vis tail-merged the two zero blocks and
+// lost 4 bytes). Loop C's compare now uses an `unsigned char ff` local before
+// the if, which also fixed the first visitor call block's vptr store and arg
+// registers.
 // deepseek-v4.1-flash 2026-10-01 (retry 7, timeboxed): 75.2 -> 75.9 percent
 // (975 bytes). Moving the Loop E `int pi = g_game->playerIndex;` and the p2 lea
 // chain to AFTER the y/x pos loads (`int y ...; int x ...;`) gains 0.7 percent:
@@ -125,6 +154,23 @@ struct Unit_00467440 {
     char unknown_114[0x118 - 0x114];
 };
 
+struct MapSize_00467440 {
+    unsigned int width;                // +0x0
+    unsigned int height;               // +0x4
+
+    int Contains(unsigned int tx, unsigned int ty)
+    {
+        return tx < width && ty < height;
+    }
+};
+
+struct ByteMap_00467440 {
+    unsigned char* data;               // +0x0
+    MapSize_00467440 size;             // +0x4
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
 struct PlayerInfo_00467440 {
     void* field_0;                     // +0x0
     char unknown_4[0x27 - 0x4];
@@ -133,15 +179,16 @@ struct PlayerInfo_00467440 {
     Unit_00467440* field_67;           // +0x67
     Unit_00467440* field_6b;           // +0x6b
     char unknown_6f[0x7c - 0x6f];
-    unsigned char* field_7c;           // +0x7c
-    unsigned int field_80;             // +0x80
-    unsigned int field_84;             // +0x84
+    ByteMap_00467440 explored;         // +0x7c
     char unknown_88[0x146 - 0x88];
     unsigned char field_146;           // +0x146
+    char unknown_147[0x14b - 0x147];
 };
 
 struct Game_00467440 {
-    char unknown_0[0x2a3c];
+    char unknown_0[0x1b63];
+    PlayerInfo_00467440 players[10];   // +0x1b63, stride 0x14b
+    char unknown_2851[0x2a3c - 0x2851];
     unsigned short field_2a3c;         // +0x2a3c
     char unknown_2a3e[0x2a43 - 0x2a3e];
     unsigned char playerIndex;         // +0x2a43
@@ -154,6 +201,8 @@ struct Game_00467440 {
     Unit_00467440* units_end;          // +0x1435b
     char unknown_1435f[0x38a47 - 0x1435f];
     int field_38a47;                   // +0x38a47
+
+    PlayerInfo_00467440* Current() { return &players[playerIndex]; }
 };
 #pragma pack(pop)
 
@@ -179,6 +228,25 @@ extern Game_00467440* g_game;
 
 void __stdcall FUN_0047e890(Vec3_00467440* pos, int range, void* visitor);
 bool __stdcall FUN_0040b0d0(int player, Vec3_00467440* p, int range);
+
+static inline int IsExplored_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
+{
+    int tx = pos->half.f6c >> 5;
+    int ty = (pos->half.f74 - (pos->half.f70 >> 1)) >> 5;
+    if (p->explored.size.Contains(tx, ty) && p->explored.Get(tx, ty) != 0)
+        return 1;
+    return 0;
+}
+
+static inline int IsSeen_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
+{
+    int tx = pos->half.f6c >> 5;
+    int ty = (pos->half.f74 - (pos->half.f70 >> 1)) >> 5;
+    if (!p->explored.size.Contains(tx, ty))
+        return 0;
+    return (g_game->field_14273[p->explored.size.width * ty + tx] &
+            (1 << g_game->playerIndex)) != 0;
+}
 
 // FUNCTION: 0x467440
 void FUN_00467440(void)
@@ -230,7 +298,8 @@ void FUN_00467440(void)
     }
 
     for (u = first; u <= last; u++) {
-        if ((u->flags & 0x10000000) && pl->field_146 != u->field_ff && (u->field_10e & 1)) {
+        unsigned char ff = u->field_ff;
+        if ((u->flags & 0x10000000) && pl->field_146 != ff && (u->field_10e & 1)) {
             if (u->def->field_20a != 0) {
                 int r = (int)u->def->field_20a << 16;
                 Vec3_00467440* pp = &u->pos.vec;
@@ -252,7 +321,8 @@ void FUN_00467440(void)
             if (c == 1 || c == 2) {
                 if (u->def->field_245 & 0x2000) {
                     if (FUN_0040b0d0(u->field_ff, &u->pos.vec, u->def->field_208)) {
-                        u->field_b0 = g_game->field_38a47 + 0x5a;
+                        int& b0 = u->field_b0;
+                        b0 = g_game->field_38a47 + 0x5a;
                         u->flags |= 0x1000;
                     }
                 }
@@ -263,25 +333,15 @@ void FUN_00467440(void)
     for (u = first; u <= last; u++) {
         unsigned int f = u->flags;
         if ((f & 0x10000000) && !(f & 0x100) && !(u->field_10e & 4)) {
-            int y = ((int)u->pos.half.f74 - ((int)u->pos.half.f70 >> 1)) >> 5;
-            int x = (int)u->pos.half.f6c >> 5;
             int pi = g_game->playerIndex;
-            PlayerInfo_00467440* p2 =
-                (PlayerInfo_00467440*)((char*)g_game + 0x1b63 + (unsigned int)pi * 0x14b);
-            int vis;
+            PlayerInfo_00467440* p2 = g_game->Current();
+            unsigned int vis;
             if ((g_game->field_14281 & 2) == 2) {
-                vis = 0;
-                if ((unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84
-                    && p2->field_7c[p2->field_80 * y + x] != 0) {
-                    vis = 1;
-                }
+                vis = IsExplored_00467440(p2, &u->pos);
             } else {
-                if ((unsigned int)x < p2->field_80 && (unsigned int)y < p2->field_84)
-                    vis = (g_game->field_14273[p2->field_80 * y + x] & (1 << pi)) != 0;
-                else
-                    vis = 0;
+                vis = IsSeen_00467440(p2, &u->pos);
             }
-            if (vis) {
+            if ((int)vis) {
                 u->flags = f | 0x100;
             }
         }

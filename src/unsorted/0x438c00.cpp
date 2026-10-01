@@ -1,4 +1,86 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+//
+// PASS 12 (Space Bunny Free, 2026-10-02): 52.7 percent, up from 52.2. One real
+// gain, one real closure, and one solid explanation of the wall. All measurements
+// below are in build/scratch/0x438c00/ (probe.py, probe2.py .. probe5.py compile
+// small probe functions with /Fa so the entry register is readable; sweep.py runs
+// variants through check.py in parallel, one directory per variant so the objects
+// never collide).
+//
+// 1. COMPILER STATE IS NOW CLOSED, not just unswept. The earlier passes only went
+//    to N = 39 dummy `extern int` declarations, and the matched siblings show the
+//    matching window can sit at N = 92..404 (0x47dfc0) or 43..298 (0x4399f0), so
+//    the old sweep could easily have stopped short of it. Swept N = 0..129 step 1
+//    and N = 130..616 step 6, 212 variants: flat at 52.2 with dips to 51.8 at
+//    N = 2, 3, 10, 11, 58, 67, 91, 184, 220, 256, 292, 328, 364, 400, 514, 538, 586
+//    (a mod-8 micro effect), and every variant is the same 647 bytes. So the
+//    earlier "flat at 50.2" note was right in substance but had not been tested
+//    anywhere near the window its siblings needed.
+//
+// 2. THE ENTRY REGISTER IS REACHABLE, and the probe pinpoints what decides it.
+//    0x419be0 and 0x49c9c0 hit the same family of wall (a parameter read back from
+//    its home slot instead of from its register), so the useful question is what
+//    moves VC5's parameter ranking. Compiling a batch of minimal stdcall functions
+//    through /Fa gives, for this exact signature shape:
+//      1 or 2 uses of `order`          -> `mov eax,[esp+0xc]`
+//      the full body without the owner -> `mov edx,[esp+0xc]`  (the original)
+//      the full body as written here   -> `mov ecx,[esp+0xc]`
+//    So the original's EDX is reachable and `order->owner` is the single use that
+//    tips `order` from the second to the first choice. Removing it, or hoisting
+//    ONLY that read to just after the guard (`int sel = order->owner->flags.bits.b4;`,
+//    `Unit* owner = order->owner;`, or hoisting just `order->timestamp`), all give
+//    EDX; every other owner shape (a test flag local, an owner local, a flags
+//    local, the bitfield, the mask, a static inline) still gives ECX, and so does
+//    every hoisting that leaves the raw parameter in the late test.
+//
+// 3. WHY THE EDX SHAPES SCORE WORSE, and why no shape can fix it. The original's
+//    `order` is not a register variable at all: its argument slot [esp+0x4c] is
+//    never written before 0x438d45, `order` is rematerialised from it at 0x438cbd
+//    and 0x438d41, and only then is the slot reused for `color1` (0x438d67). That
+//    is why `level` lands in the view slot in the original and in the order slot
+//    here. Hoisting the owner read does buy EDX but forces the hoisted value into
+//    local+0x00 (46.7 percent for `int sel`, 47.9 for `Unit* owner`, 48.1 for
+//    `owner` with the mask, all worse than 52.2), and it moves the load to the top
+//    of the body where the original has `and eax,0xffff / push edi`. So the only
+//    shapes that reach the register are the ones that cannot keep the late read,
+//    and the only shapes that keep the late read keep the register. Adding an
+//    extra reference to `world`, `def` or `view` pushes `order` out to a callee
+//    saved register instead (esi, loaded after the pushes), which is a third shape
+//    and no better. This is the same wall as 0x419be0's `mov ebp,[esp+0x34]`: no
+//    construct tried (local copies, `Order&`, `Order* const`, `&order`, pointer
+//    casts, inline helpers by value, pointer or reference) makes VC5 keep a
+//    parameter in memory. Treat the entry register as allocator behaviour.
+//
+// 4. THE GAIN. Reading `half` (the `world.lo.y.whole >> 1`) BEFORE the two scroll
+//    reads is worth +0.5. All 5040 orders of the seven projection statements were
+//    measured, against both the mask and the bitfield form of the flag test
+//    (10080 variants): the two winners are
+//      half, sy, sx, az, bz, ax, bx   52.7
+//      half, sy, az, sx, bz, ax, bx  52.7
+//    and nothing else beats the old 52.2, so the projection order axis is closed.
+//    Also measured and no better: all 120 box-store orders (best 52.2), all 6
+//    pos-read orders (all 52.2), the colour block before or after the two
+//    divisions (49.7 / 49.4), the colour block at the top (does not compile),
+//    declaration order of level/dx/dz and colour1/colour2 (all 52.2 or 50.9),
+//    a `void* surf = surface;` local for the eight calls (52.2), inlining the two
+//    scroll reads (47.9), and six spellings of the clamp beyond the inline-cast
+//    form (48.7 to 52.2). The one thing PASS 10 found is still true and still
+//    worth its 1.0 point of loss: the flags test must be the mask, not the
+//    bitfield, at this baseline (52.2 against 50.9).
+//
+// 5. WHAT STILL DIFFERS, unchanged from the older notes: the single ecx/edx
+//    assignment at 0x438c00, and the whole downstream cascade follows from it.
+//    Ours is 647 bytes against the original's 660. The 13 missing bytes are the
+//    original's version of the same facts: the `mov [esp+0x2c],ecx` spill of bx,
+//    the two `mov edx,[esp+0x4c]` rematerialisations of `order`, the
+//    `mov edx,[esp+0x48]` reload of level at the clamp join, the `mov ebx,edx` /
+//    `mov ecx,edx` pair in the two division tails, the `mov [esp+0x14],ebx` spill
+//    of dx, the `mov [esp+0x5c],ecx` that puts bx + 1 over the dead surface
+//    argument, and the extra byte of `shr ecx,4` in the bitfield extract. Ours has
+//    the matching extras: seven reloads of `surface` instead of one load into ebx,
+//    the `mov edx,ebp` / `sub edx,ebx` pair, and the `order->owner` load hoisted
+//    into the middle of the first division.
+//
 //
 // PASS 11 (claude-sonnet-5-5, 2026-10-01): 52.2 unchanged. Measured, none above 52.2:
 //  * tools/permute.py 15 min (--jobs 4): 495 candidates, no gain.
@@ -348,9 +430,9 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* 
     *(int*)&world.hi.x.frac = px + *(int*)&def->bounds.hi.x.frac;
     *(int*)&world.hi.z.frac = pz + *(int*)&def->bounds.hi.z.frac;
 
+    int half = world.lo.y.whole >> 1;
     int sy = view->scroll_y;
     int sx = view->scroll_x;
-    int half = world.lo.y.whole >> 1;
     int az = world.lo.z.whole - half - sy + 0x20;
     int bz = world.hi.z.whole - half - sy + 0x20;
     int ax = world.lo.x.whole - sx + 0x80;

@@ -1,4 +1,28 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// 2026-10-02 (Space Bunny Free), 81.7 -> 84.2%, two hunks from the permuter,
+// each verified alone (limit-before-first alone is 83.8%, the `b` hoist alone
+// 82.0%, together 84.2%):
+//  - in the h<=w arm `int limit = x + w - 1;` comes BEFORE
+//    `Glyph_004a2580* first = FUN_004b7f30(...)`, not after it.  Swapping only
+//    these two statements is worth 2.1 points.
+//  - `b` is declared as a function-scope `int b;` (no initialiser) and assigned
+//    in the h<=w arm, rather than being a branch local.  The permuter found the
+//    uninitialised declaration; giving it a name comment is fine because the
+//    branch assigns it before every read.  Hoisting `a` the same way is inert.
+//  Both changes are about where the allocator puts the h<=w temporaries, which
+//  is what finally freed the register that the w<h branch's surface wants.
+// Remaining gap is still one hunk: in the w<h arm the original enregisters the
+// reloaded surface in ebp and homes `limit` at [esp+0x10], ours does the
+// reverse (`limit` in ebp, surface at [esp+0x10], and every FUN_004b7f90 draw
+// reloads it with `mov eax,[esp+0x1c]`).  The original's four scalar slots are
+// limit 0x10, lc 0x14, entries 0x18, surface 0x1c; ours are surface 0x10,
+// lc 0x14, entries 0x18 and one fewer.  Every declaration order of the four w<h
+// locals is byte-identical, a branch-local `void* surf` draws its own frame slot
+// (72.8%), hoisting `int limit` to function scope drops to 65.9%, and wrapping
+// the whole arm in an inlined `static inline void DrawStack(e, surf)` is inert
+// at 84.2%.  `Smaller` must stay reference-returning: a by-value `Min`, or a
+// plain `if` for EITHER minimum, is 68-69%, so the `lea [esp+0x1c]` address
+// temporaries it costs are required by the original's own code shape.
 // 2026-10-01 (Space Bunny Free), 75.2 -> 80.6%, byte count exact at 1631 again:
 //  - `e->w < e->h` is NOT the comparison in the source. The original emits
 //    `mov cx,[ebx+0x17]; mov dx,[ebx+0x19]; cmp cx,dx` and then REUSES the
@@ -314,6 +338,7 @@ static inline void* Surface_004a2580(Object_004a2580* o)
 // FUNCTION: 0x4a2580
 void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
 {
+    int b;
     Entry_004a2580* entries = obj->holder->entries;
     Entry_004a2580* e = &entries[index];
     void* surface = Surface_004a2580(obj);
@@ -389,8 +414,8 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         void* surf = Surface_004a2580(obj);
         int x = e->x;
         int y = e->y;
-        Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);
         int limit = x + w - 1;
+        Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);
         if (first != 0)
             FUN_004b7f90(surf, first, x, y);
         x += first->width;
@@ -405,7 +430,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
         y -= g->height / 2;
         int a = e->off + e->x + 3;
-        int b = limit - g->width - 2;
+        b = limit - g->width - 2;
         if (a >= b)
             a = b;
         FUN_004b7f90(surf, g, a, y);

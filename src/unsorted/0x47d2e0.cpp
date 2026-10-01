@@ -1,11 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// PARTIAL 70.6% (1337 of 1339 bytes; was 45.6% at 1237 bytes). What moved it:
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// PARTIAL 80.7% (1339 of 1339 bytes, exact size; was 70.6% at 1337 bytes). What moved it:
+//  * The ground height is NOT pos.y. The original stores `FUN_00485010(&cell) << 16`
+//    into the dead `los` home slot [esp+0x4c] and reads `movsx word [esp+0x4e]`, so it
+//    is a separate `Fix` local declared beside the Pos and both inline helpers take it
+//    as a third `Fix*` argument. With the height inside Pos the helpers keep it there
+//    and neither the frame layout nor the store sequence can match.
+//  * Both inline helpers take the player bit as a fourth argument. That stops MSVC
+//    from re-deriving `1 << g_game->player` inside IsSeen, which is what put the
+//    g_game reload and the vis multiply in the wrong block (69.3% -> 80.2%).
+//  * The helpers read the position through a six-short `Position` cast
+//    (`(Position_0047d2e0*)&pos`), the shape matched in 0x408090 and 0x465ac0,
+//    instead of `pos->x.p.hi` (80.2% -> 80.7%).
+// Earlier passes, still true:
 //  * `los` is the neighbours' Map: `explored` = ByteMap {data, MapSize{width, height}}
-//    with MapSize::Contains and ByteMap::Get (see 0x4658e0, 0x465ac0, 0x408090), and
-//    the position is a 12-byte 16.16 fixed-point Pos {Fix x, y, z} (Fix = union of an
-//    int and two shorts). Pos is address-taken-like memory, so wx/wz are stored as
-//    dwords and read back with `movsx word [esp+0x32]/[0x3a]`, and the frame is the
-//    original 0x2c with no width cache and no dummy locals.
+//    with MapSize::Contains and ByteMap::Get (see 0x4658e0, 0x465ac0, 0x408090).
 //  * The loop's `rr`/Terrain tests are early-return inline helpers (Blocked_,
 //    Terrain_), which reproduces the `xor ecx,ecx; jmp join` ladders exactly.
 //  * The second visibility test is NOT folded to ok = 1 when it goes through an
@@ -15,13 +23,26 @@
 //  * `int ok` declared at the very top (assigned before `if (los)`), and `bit`
 //    declared BEFORE the Contains test, each worth several points through register
 //    allocation only.
-// Still differs: (1) the prologue allocation (original: g_game in ebp, origin.x in esi;
-// ours the reverse for the first compare), (2) the original keeps y (h << 16) as a
-// spilled temp in the dead `los` home slot [esp+0x4c], ours puts it in pos.y at
-// [esp+0x34] (the helpers need y inside Pos), (3) `bit`/vis/width are computed before
-// the bounds jumps here, after them in the original, (4) arm 2 stores ok = 0 with a
-// mov instead of `xor eax,eax; jmp` into one shared store, (5) the cell.y * width
-// operand order after the LOS block and the col latch order.
+// What is left is ONE cause: the esi/edi choice in the prologue. The original takes
+// `esi` for origin.x (spilled to [esp+0x18]) and `edi` for `los`; ours takes `edi` for
+// origin.x ([esp+0x14]) and `esi` for `los`, so every later use of the two is
+// mirrored, `los` has to be reloaded from [esp+0x4c] in the explored arm, and the
+// loop's mask index lands in esi instead of edi. The register the 16-bit cell.y temp
+// takes decides it: the original emits `mov di, word [esp+0x46]`, we emit
+// `mov si, word [esp+0x46]`. Tried and flat at 80.7% or worse: `origin.x + cell.x` /
+// `cols + cell.x` / `cell.x + cols` operand orders, `int width0` cached before or
+// after `cols`, `int rows` / `int oy` / `int cy` locals, the guard as two `if`s, as
+// one `||`, as an inline OutOfBounds helper, the two bounds tests swapped, `cols`
+// materialised before the cell guard, origin read after the guard, the map width
+// cached in a local `w` (with and without passing it to the helpers), the first
+// visibility test folded into its own inline helper, `los` and `unit` cached in
+// locals, a second `Game*` local for the cell index, `CellAt()` for the index, the
+// helpers re-deriving the bit (69.3%) or taking it as a pointer (80.2% unchanged),
+// the explored arm's Contains as a nested `if` (h6) or an early `return 0` (h7),
+// braces on the visibility arms, and the mask-index spellings.
+// Still open once that flips: the explored arm's own `mov [esp+0x10], 0` block (we
+// share one store with the seen arm), `movsx eax,[esi+0x46]; imul eax,[ebp+0x14233]`
+// against our width-into-eax form, and the col latch order.
 #pragma pack(push, 1)
 
 union Fix_0047d2e0 {
@@ -107,23 +128,33 @@ struct Pos_0047d2e0 {
     Fix_0047d2e0 x, y, z;
 };
 
-static inline int IsExplored_0047d2e0(Los_0047d2e0* los, Pos_0047d2e0* pos)
+struct Position_0047d2e0 {              // 16.16 fixed point, only high words read
+    short xFrac;
+    short x;
+    short yFrac;
+    short y;
+    short zFrac;
+    short z;
+};
+
+static inline int IsExplored_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
+    Fix_0047d2e0* hgt, unsigned int bit)
 {
-    int tx = pos->x.p.hi >> 5;
-    int ty = (pos->z.p.hi - (pos->y.p.hi >> 1)) >> 5;
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
     if (los->explored.size.Contains(tx, ty) && los->explored.Get(tx, ty) != 0)
         return 1;
     return 0;
 }
 
-static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Pos_0047d2e0* pos)
+static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
+    Fix_0047d2e0* hgt, unsigned int bit)
 {
-    int tx = pos->x.p.hi >> 5;
-    int ty = (pos->z.p.hi - (pos->y.p.hi >> 1)) >> 5;
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
     if (!los->explored.size.Contains(tx, ty))
         return 0;
-    return (g_game->field_14273[los->explored.size.width * ty + tx] &
-            (1 << g_game->player)) != 0;
+    return (g_game->field_14273[los->explored.size.width * ty + tx] & bit) != 0;
 }
 
 static int Blocked_0047d2e0(Cell_0047d2e0* c)
@@ -185,11 +216,12 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     ok = 1;
     if (los != 0) {
         Pos_0047d2e0 pos;
+        Fix_0047d2e0 hgt;
         pos.x.v = (origin.x + cell.x * 2) << 19;
         pos.z.v = (origin.y + cell.y * 2) << 19;
-        pos.y.v = FUN_00485010(&cell) << 16;
+        hgt.v = FUN_00485010(&cell) << 16;
         x = pos.x.p.hi >> 5;
-        y = (pos.z.p.hi - (pos.y.p.hi >> 1)) >> 5;
+        y = (pos.z.p.hi - (hgt.p.hi >> 1)) >> 5;
 
         unsigned int bit = 1 << g_game->player;
         if (!los->explored.size.Contains(x, y))
@@ -199,9 +231,9 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
             return 0;
 
         if ((g_game->losFlags & 2) == 2)
-            ok = IsExplored_0047d2e0(los, &pos);
+            ok = IsExplored_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
         else
-            ok = IsSeen_0047d2e0(los, &pos);
+            ok = IsSeen_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
 
     }
     unsigned char min6 = 0xff;

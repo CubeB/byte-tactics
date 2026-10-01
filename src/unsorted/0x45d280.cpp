@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, edited by deepseek-v4.1 and GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry 8: copied the matched 0x45c950 UNDO flag-sync
+// shape verbatim (int DAT_00512f46, `f = f ^ ((f ^ DAT) & 1); game->flags.word
+// = f;`, cast if-test). It scores 86.5% / 1330 bytes here, so the neighbouring
+// match does not transfer; the int-temp form below (91.5%) stays best. Still
+// differing: UNDO flip widths/registers (+8 bytes), RESTORE/apply register
+// picks, tail `lea eax,[edi*8]` vs `mov eax,edi / shl eax,3`, TRACKMODE al/cl.
+
 // deepseek-v4.1-flash retry 7: tested whether the xor operand order steers the
 // UNDO block allocation. `game->flags.word = (b & 1) ^ f;` (v1) and the same
 // with `int b = DAT ^ (unsigned char)f;` (v2) are byte-identical to the kept

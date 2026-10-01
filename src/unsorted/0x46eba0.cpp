@@ -71,6 +71,10 @@
 // deepseek-v4.1-flash (#3860): declaration-count padding (320 file-scope dummy
 // typedefs after the includes) is byte-neutral here, 81.4 percent / 928 bytes,
 // so unlike 0x475bd0/0x408f30 this instantiation is not padding sensitive.
+// deepseek-v4.1-flash (#3935): reordering the grow-branch reset stores to
+// `_First = _S; _End = _S + _N; _Last = _S + size() + _M;` (the retained order
+// is _End, _Last, _First) drops to 80.4 percent / 925 bytes, so this store
+// order is load bearing and the retained file is the best of the two.
 // Re-checked the retained dst-first clone: it is still the best of the four
 // helper/call-site shapes for this 14-byte element (source-first everywhere is
 // 63.3% as recorded above). The remaining diff is the _N/_S home swap plus the

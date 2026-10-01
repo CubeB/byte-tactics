@@ -1,8 +1,14 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 //
-// PARTIAL, 80.3% (507 bytes vs 505). One instruction reverts to a register
-// form instead of the original's memory-operand form, and everything else
-// matches instruction for instruction.
+// PARTIAL, 93.5% (505 bytes vs 505). The size now matches the original exactly
+// and everything from 0x47d12d on is byte identical, including every jump
+// target; only the eight-instruction index block at the top of the body still
+// differs, and it is the same multiply-block problem the earlier passes
+// recorded. See the last entry for the new lever.
+//
+// WHAT THE EARLIER PASSES RECORDED (all of it still true unless noted):
+// One instruction reverted to a register form instead of the original's
+// memory-operand form, and everything else matched instruction for instruction.
 //
 // Two source shapes were worth real points. First, the inner mask loop must
 // read the footprint byte into a named local before the cell-owner test:
@@ -110,6 +116,94 @@
 // original `movsx eax,[esi+0x78]; imul eax,[ebx+0x14233]` (505); ours loads
 // the width into eax and uses `imul eax,ecx` (507). No source shape reaches
 // the memory-operand form for a sign-extended short.
+//
+// Space Bunny Free pass: 80.3% -> 93.5%, and the blocker moved. The lever is
+// the ORDER OF THE OPERANDS OF THE FIRST COMPARISON, not the index expression.
+// Writing the guard as
+//     if (g_game->field_142b7 != obj->field_82)
+// instead of
+//     if (obj->field_82 != g_game->field_142b7)
+// takes ours from 507 to exactly 505 bytes, so every jump target from the
+// index block onwards now matches the original and the whole tail of the
+// function is byte identical. The two are the same test; only the order in
+// which MSVC loads the two fields changes, and that is enough to move the
+// register allocator. Ours goes from
+//     mov ecx,[ebx+0x142b7] ... mov eax,[esi+0x82] cmp eax,ecx
+// to
+//     mov eax,[ebx+0x142b7] ... cmp eax,[esi+0x82]
+// which is 2 bytes shorter and exactly makes up the 2 bytes the index block
+// was over. `(a ^ b) != 0` scores the same 93.5% with the same compare, so
+// the win is the size, not the particular spelling.
+// Swept at the new 93.5% baseline and all flat, so the multiply block is now
+// the only thing left and none of the earlier index spellings reach it:
+//   - all six orders of size / index / cell: 505 bytes at 92.2% with the cell
+//     statement first and 93.5% for the other five under the new guard, and
+//     507 at 78.96-80.26% under the old guard, so the new guard and putting
+//     the cell statement first are two separate effects;
+//   - index expression, all byte-identical at 93.5%: `width * pos.y`,
+//     `pos.x + pos.y * width`, a separate `int idx`, a separate `int row`,
+//     `int`/`short` `pos.x`/`pos.y` locals, `(int)` casts on the operands,
+//     `g_game` through a local `Game*`, `cells` through a local pointer,
+//     pointer arithmetic, an inlined `static inline` cell helper taking
+//     (game, x, y) or (game, Point), a `Game::cellAt` member, `n` computed
+//     in two statements, `n *= width` then `n += x`, `Point& size`,
+//     `Point& p`, `Obj& o`, `short py`/`px` locals: all 93.5%, same block;
+//   - prologue: `!(a == b)`, `a != b ? 1 : 0`, `(a - b) != 0`, `a > b ||
+//     a < b`, `int a`/`int b` locals, a `bool` local, an inlined
+//     `Changed(obj)` helper, a `Game::stamp()` member and a `Stamp(obj)`
+//     helper: `(a ^ b) != 0` is the only other 93.5%, `bool ne` drops to
+//     77.6% and the helpers to 78.2%.
+// The remaining residual is the same eight instructions, and the register the
+// multiply lands in is still the difference:
+//   original: movsx eax,[esi+0x78] / imul eax,[ebx+0x14233]
+//   ours:     movsx ecx,[esi+0x78] / mov eax,[ebx+0x14233] / imul eax,ecx
+// with `edi` picking up `obj->size` two instructions earlier than the original
+// does. So the fold still needs eax to be free at the multiply and the size
+// load to be scheduled after it; the new guard freed the register, the
+// scheduling did not follow.
+// Further search at the new 93.5% baseline, about 90 more scratch variants and
+// a minimal isolation harness in build/scratch/0x47d0e0, all still 93.5% with
+// the same eight-instruction block, so nothing else moves it:
+//   - the address form: `&cells[...]`, `cells + ...`, `cells + (...)`,
+//     `cells; cell += ...`, a row pointer then `+ x`, a row pointer then
+//     `&row[x]`, `&cells[row]` then `+= x`, `cells + x` then `+= y*width`,
+//     a `char*` scale by 13, and a `cells - (...)` pointer subtraction:
+//     all byte-identical at 93.5%;
+//   - inlined helpers, ten shapes: `CellIndex(obj)`, `CellIndexXY(game,x,y)`,
+//     `RowOf(game,y)`, `MulY(y,w)`, a `Game::rowOf` member, a
+//     `Game::cellAt` member, three separate one-line accessors for the
+//     operands, the `c - (y * w + x)` shape from the matched 0x421e60, and a
+//     helper returning `g->cells + y * g->width + x`: all 93.5% with the
+//     same block, except the `c - (...)` one (77.7%) and a non-inlinable
+//     out-of-line helper (47.0%), both worse;
+//   - `int`/`unsigned`/`long` index locals, a `short` y local, `unsigned`
+//     y and width, `(int)` casts, a `Point& size`, a `Point& p`, an
+//     `Obj& o`, a `Game* game` local, a `Cell* cells` local, the index read
+//     into `px` first, the index split over `n = y*w; n += x`, and
+//     `n = y; n *= w; n += x`: all 93.5%, same block;
+//   - declaration state: all six orders of size / index / cell; `int index;`
+//     uninitialised then `index = 0`; `index = 0` written after the cell
+//     statement; `size` declared then assigned; `index` named `mapIndex` and
+//     copied; `cell -= 0` and `&cells[...] + 0` no-ops: 93.5% except the
+//     three orders that put the cell statement first (92.2%);
+//   - `g_game->width` redeclared `unsigned int`, `pos.y` copied to an
+//     `unsigned` local, and dropping the flags union in favour of a plain
+//     `unsigned int fl` read before the cell statement: flat or worse
+//     (61.3% for the flags change);
+//   - `tools/headers.py` again: all 128 sets are 93.5%.
+// The isolation harness settles what the earlier passes guessed at. A
+// sign-extended `short` DOES fold: `cell - (cell->y * g_game->width +
+// cell->x)` compiles to `movsx eax,[y]; imul eax,[width]` in a small function
+// (the matched 0x421e60's own shape), so the rule the earlier passes recorded
+// ("a sign-extended short was always loaded into a register first") does not
+// hold in general. What decides it is the register the allocator gives the
+// sign-extended operand: when it lands in eax the multiply folds the width,
+// when it lands anywhere else the width is loaded into eax first and the
+// multiply becomes reg,reg. In this function the allocator gives it ecx, and
+// `edi` (the `Point size` copy) is scheduled two instructions before the
+// multiply rather than after the `cells` load as the original has it. So the
+// residual is one allocator decision, and neither the expression's spelling
+// nor its order reaches it.
 #pragma pack(push, 1)
 
 struct Point {
@@ -177,7 +271,7 @@ void __stdcall FUN_00440a70(Obj_0047db20* obj);
 // FUNCTION: 0x47d0e0
 void __stdcall FUN_0047d0e0(Obj_0047db20* obj)
 {
-    if (obj->field_82 != g_game->field_142b7) {
+    if (g_game->field_142b7 != obj->field_82) {
         Point size = obj->size;
         int index = 0;
         Cell_0047db20* cell = &g_game->cells[obj->pos.y * g_game->width + obj->pos.x];

@@ -1,4 +1,18 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, edited by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4014, 10 min): best stays 92.0% (732/753). Two further
+// levers tested against it, both worse: (1) the 0x43bc90 copy-loop shape
+// (`iterator ins = end(); do { insert(ins,1,*p); ins = end(); ++p; }`) collapses to
+// 31.2% / 915 bytes: it makes vector::insert an out-of-line call per iteration where
+// the original calls 0x43c3a0 exactly once, from the inlined push_back.
+// (2) routing the reserve through the Access `grow` member with a declared non-static
+// `_Destroy(iterator,iterator)` does emit the wanted `call 0x43c390` (verified against
+// ctx.py: the original calls 0x43c390 at 0x43c108) and lands 752/753 bytes, but only
+// 82.8% with 8 hunks: the reserve tail flips its scratch temp to edx (original: ecx
+// before the `mov ecx,this`) and the sort's register homes shift, i.e. the call and the
+// allocation are not independently steerable. Same conclusion as the four prior
+// sessions, which confirmed with /Fa that the inline verdict is a whole-function
+// pre-pass threshold: the 732 byte body sits just under it, the 753 byte original just
+// over, and the 20-byte `_Destroy` call is itself what it is measured against.
 // deepseek-v4.1-flash (#3676, 10 min): best stays 92.0% (732/753 bytes). Two levers
 // tested against it, both worse. Deleting `template class std::vector<Elem_0043c390>;`
 // (to mirror 0x43bc90's TU, which does emit the out-of-line `_Destroy` call) kept 732

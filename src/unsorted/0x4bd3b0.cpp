@@ -1,4 +1,10 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 12 (deepseek-v4.1-flash, 10-minute box): one probe, byte-identical
+// to the 89.5 file: `unsigned int nsize = out[0]; root = out[0]; nsize += 8;
+// out[0] = nsize;` emits exactly the v0 sequence (diff of the check outputs is
+// empty), so the load/add split spelling is normalized by VC5 and the top
+// copy-node residual is unchanged (the `nsize = root; nsize = nsize + 8;` form
+// is 83.4 / 1146, same as the earlier nsize-first temp load).
 // Session 11 (deepseek-v4.1-flash, 10-minute box): five probes on the 89.5
 // file, none better. The original's `mov eax,[ebp]; mov esi,eax` top (the load
 // landing in eax and being copied to root's esi) is a front-end copy node, and

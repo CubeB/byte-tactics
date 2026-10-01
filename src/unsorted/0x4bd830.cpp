@@ -1,4 +1,18 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Session 12 (deepseek-v4.1-flash, 10-minute box): two probes on the 61.9 file,
+// flat/worse: hoisting the subtracted term (`int dst90 = *(int*)(base + 8) * 90;`
+// then `cb((unsigned)(*dataptr * 90 - dst90) / extra + 5);`, and the same with
+// both terms in temps) is byte-identical at 61.9 / 1334. BIG finding for the
+// next session: the original's nblocks IS SIGNED. Its `and edx,0xffff; add
+// eax,edx; sar eax,0x10` is exactly MSVC `int / 65536` with truncation
+// correction and its `cdq; xor; sub; and 0xffff; xor` plus `neg/sbb/neg` is
+// `int % 65536 != 0`, so the source was `int blocks = size / 65536 + (size %
+// 65536 != 0);` with a signed size/blocks. Making nblocks(int) on the unsigned
+// `size` (no conversion costs, signed idioms emitted, the block starts to line
+// up) scores 61.7 / 1353 (+19 bytes): the signed code is longer and the ebx/ebp
+// mirror it lands in does not absorb it, so the signed spelling only pays off
+// together with the register-mirror fix. Keep unsigned nblocks until that
+// mirror is solved.
 // Session 7 (deepseek-v4.1-flash): renaming clen (name-hash slot theory) is
 // byte-flat at 61.9, so the stack-slot colour is not name-keyed either; the
 // layout is decided by something internal to the allocator, not by

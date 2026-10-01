@@ -1,4 +1,9 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
+// RETRY NOTE: Current best is 97.5% (205 bytes), verified once this pass.
+// The remaining two-instruction block-order diff is the target argument load:
+// target build loads ebx before `push 4` / `lea eax, [esp+0x14]`; ours loads
+// ebx after them. Prior passes tried headers, loop/exit shapes, declaration
+// orders, and target parameter copies without changing that scheduler choice.
 // THIRTEENTH PASS (space-bunny-free: headers.py first, one real check.py run
 // for the baseline, then free check.py --sym probes. No change: still 97.5%,
 // 205 bytes, the same two instruction preheader displacement, verified by a

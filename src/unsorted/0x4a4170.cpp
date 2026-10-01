@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// GPT-6.1-sol retry (#3140): baseline remains best at 80.9% after five checks.
+// A two-arm zero local was canonicalized to the baseline. A local max clamp
+// scored 69.1%, and copying field_78 into a local dragging flag scored 50.9%.
+// Keep the direct field test and original clamp. No MATCH observed.
 // Retry (deepseek-v4.1-flash, issue 3076): still 80.9%. The residual: the
 // original keeps a literal 0 live in edx across the `focus == index` block
 // (per-arm `xor edx,edx`, `cmp [ebp+0x78],edx`, `cmp word [ebx+0x140],dx`,

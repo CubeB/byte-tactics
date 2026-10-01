@@ -1,4 +1,5 @@
 // Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Retry #3140 (GPT-6.1-sol): one checker run reconfirmed the inherited 98.7% / 661-byte best, no MATCH. The only differences remain the colour-load SIB operand order and the final marker-call surface-load/push schedule; prior notes record many equivalent source-shape attempts.
 // Retry (deepseek-v4.1-flash, issue 3076): 98.7%, 661 bytes both sides. The
 // colour SIB base/index (`[ecx+eax+0x8b2]` vs `[eax+ecx+0x8b2]`) and the surface
 // load not hoisted above the three trailing pushes are one compiler-state

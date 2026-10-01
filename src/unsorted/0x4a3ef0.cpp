@@ -1,4 +1,8 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// GPT-6.1-sol (#3140 retry): six checks, best remains 93.1% (629 bytes), no MATCH.
+// The 0x10 denominator selection still has different registers and shorter code;
+// in the 0x20 arm the field_c6 load remains after the count test and zero-extends
+// through edx plus a copy into ecx. Pointer-hoist variants damaged global allocation.
 // Retry (deepseek-v4.1-flash, issue 3076): best stays 93.1% (629 bytes both).
 // The two-statement 0x10 denominator is now proven exact (631 bytes / 90.6%
 // alone); only the 0x20 arm remains, needing `e->field_c6` in edx before

@@ -1,4 +1,46 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// #3306 retry by deepseek-v4.1-flash: reconfirmed 74.9 percent (265/267), no MATCH.
+// This retry found the lever the #2930 note below says does not exist: the whole
+// function's eax/ecx/edx allocation IS reachable from the locked arm's source,
+// but only through expressions with wrong semantics, so none is retained. Probes
+// (scored with a scratch driver, sources in build/scratch/0x4bfe10/):
+//   w2: locked-arm dst written as `r.top * screen.pitch + r.left + screen.pitch`
+//       (adds the pitch instead of the pixels) scores 93.3 percent. MSVC's C1
+//       factors `top*pitch + pitch` into `(top+1)*pitch`; that factored tree
+//       flips the C2 register allocation for the WHOLE function to the original's
+//       (table load first, bottom in ecx, top in eax, left in ecx, pitch in edx),
+//       and the else arm then matches byte for byte. The only remaining
+//       difference is the factored arithmetic (extra `inc eax`, no pixels load).
+//   z10: dst `r.top * (int)screen.pixels + r.left + (int)screen.pixels` scores
+//       92.3 percent, same mechanism (factors top*pixels + pixels).
+//   a3 (`+ r.top`) 91.3, b4 (`+ (int)screen.pitch`) 93.3, a1/a2/a6 (last addend
+//       r.bottom / r.right / g->field_cc) 61 to 66, constants 75 to 78.
+//   So the good allocation appears exactly when the locked arm's last addend is
+//   one of the multiply's operands, i.e. when C1 can factor the dst.
+// The correct dst `top*pitch + left + pixels` cannot factor, and every correct
+// spelling tried keeps 74.9 (see the long lists below and the #2930 note).
+// Next lead: an algebraically equal spelling of the locked-arm dst that still
+// makes C1 factor (or otherwise reproduce the factored tree) without changing
+// the value, for example a form where `pixels` participates in the multiply.
+// Note also that more than the two call setups differ: the unlock call's `lea`
+// register (original eax, ours ecx) and the else arm's clip `lea` (original ecx,
+// ours edx) are off too, i.e. the whole function's allocation is shifted, and
+// the w2 probe fixes all of those at once.
+// New negative results this retry: dst spellings through `*(int*)((char*)&screen
+// + 8)`, `((int*)&screen)[2]`, `*(&screen.pitch)` and comma/cast/no-op forms;
+// `(r.top + 1) * screen.pitch - screen.pitch` forms (C1 cancels them back to the
+// plain tree); `int pitch/px` and `unsigned char* px` locals inside the if;
+// table spelled nine ways (casts, `*(int*)((char*)g + 0xcc)`, `+ 0`, `| 0`,
+// `* 1`); including stdio/string/math/stdlib/time/mmsystem/ddraw headers; 1 to
+// 50 extra extern/function/class declarations before the function; the Surface
+// struct's field declaration order swapped (with the call rewritten to keep the
+// same machine code); the rect copy as memcpy / four field stores / copy-ctor;
+// reference parameters; screen as an array, at function scope, or through a
+// local pointer; the else arm's return as `*(int*)&rect` (271 bytes, 59.7),
+// `*(int*)((char*)&surface + 4)` (74.9) and `*(int*)&surface` (259 bytes, 72.5);
+// `int status = 0;` (73.8), 36 h/w spellings; and the flags/if spellings.
+//
 // GPT-6.1-sol issue 3121 retest: two completed checks kept 74.9% (265/267).
 // A success-convention rewrite did not improve the retained source; no MATCH.
 // #1705 retry by Codex / GPT-6.1-sol: check.py reconfirmed 74.9% (265/267 bytes), no MATCH.

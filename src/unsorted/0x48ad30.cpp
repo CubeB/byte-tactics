@@ -443,6 +443,11 @@ static inline Player_0048ad30* PlayerOk(unsigned char i, int& off)
     return p;
 }
 
+// deepseek-v4.1-flash (#4087, 10 min timebox): re-confirmed 84.5% / 849 bytes as
+// the best for this helper/select form; the residual is still the prologue slot
+// order (cnt 0x14 / off 0x18 against the original's off 0x14 / cnt 0x18) with the
+// latch roles cl/eax instead of al/edx, and the *cnt reload placement at the tail.
+
 // FUNCTION: 0x48ad30
 void __stdcall FUN_0048ad30(void)
 {

@@ -142,6 +142,9 @@
 // original schedule drops to 73.9/73.6 even with the owner cached in a local. What still differs:
 // items 1 and 3 of the first comment (prologue m/count ecx/edx swap and its cascade, the dropped
 // mask and the movsx reload of p).
+// deepseek-v4.1-flash (#4087, 10 min timebox): byte-flat at 77.8% / 857 bytes.
+// Splitting the head pair into `MapRow* row = m->rows; row += m->count;` does not
+// move the m-in-ecx / count-in-edx allocator tie-break or any downstream hunk.
 #include <stdlib.h>
 
 #pragma pack(push, 1)

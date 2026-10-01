@@ -1,4 +1,24 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+// Tenth pass (deepseek-v4.1-flash), retry: 97.8% (775 bytes, same size as the
+// original), up from the 86.5% baseline. The visibility block now uses TWO
+// player pointer locals, `player` for the width/height comparisons and
+// `player2` for the index expression, with `pi` as an `int`. This puts the
+// player pointer in EAX (the original's register) instead of EDI, makes the
+// whole fog arm byte exact, and makes the mask arm BODY byte exact (including
+// the second materialised width read). Only two layout differences remain:
+//   1. the address base step is `mov eax,ebp / add eax,ecx` where the original
+//      has `lea eax,[ebp+ecx]` (same 4 bytes, one instruction).
+//   2. the mask arm puts its fail block (`xor eax,eax`) after the body with a
+//      second `jae fail`, where the original puts the fail block first and uses
+//      `jb body`; the fog arm already matches (fail after body).
+// Tried on top of this shape, all scored with check.py --sym and none higher:
+// int/unsigned int pi, a cast and a masked index, guard, negated guard,
+// pre-initialised `vis = 0` and nested-if mask arms, an inlined IsSeen helper
+// with one and two pointers, players+pi, `(char*)g_game + 0x1b63` and
+// `(char*)g_game->players + pi*0x14b` address spellings, swapping the arms, and
+// all 128 header sets (headers.py: 97.8% best across windows.h, stdio.h,
+// math.h, memory.h, ddraw.h). None moved the base step off mov/add or the mask
+// fail block before the body. Score 97.8, no MATCH.
 // Seventh pass (deepseek-v4.1-flash): baseline re-confirmed 86.5%, 775 bytes.
 // Tried in free scratch (build/scratch/0x47f300/), none beat the file:
 //   v20 no player local, direct g_game->players[pi].field indexing: 56.0%, 804 bytes.
@@ -12,7 +32,7 @@
 // +0x80/+0x84) with `MapSize::Contains(tx,ty)` and `ByteMap::Get(tx,ty)` (the
 // matched 0x4658e0 spelling) reproduces the original's SECOND materialised
 // width read in the fog arm (`mov edi,[p+0x80]; imul edi,ecx`), which the
-// direct `player->exploredWidth * ty + tx` spelling CSEs away. With unsigned
+// direct `player2->exploredWidth * ty + tx` spelling CSEs away. With unsigned
 // char pi it is 81.6% (785 bytes) and the arm bodies are exact: pos.y in edi,
 // pointer in EDX, flags test in AL. With int pi it is 83.4% (773 bytes).
 // The single remaining difference in the Contains version is the same one: the
@@ -373,14 +393,15 @@ int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
     if (FUN_00481550(pos->xVal / (1 << 20), pos->zVal / (1 << 20)) == 0)
         return 0;
 
-    unsigned char pi = g_game->playerIndex;
+    int pi = g_game->playerIndex;
     Player_0047f300* player = &g_game->players[pi];
+    Player_0047f300* player2 = &g_game->players[pi];
     int vis;
     if ((g_game->flags_14281 & 2) == 2) {
         int tx = pos->x >> 5;
         int ty = (pos->z - (pos->y >> 1)) >> 5;
         if (tx < player->exploredWidth && ty < player->exploredHeight
-            && player->explored[player->exploredWidth * ty + tx] != 0)
+            && player->explored[player2->exploredWidth * ty + tx] != 0)
             vis = 1;
         else
             vis = 0;
@@ -388,7 +409,7 @@ int __stdcall FUN_0047f300(int index, Pos_0047f300* pos, int param_3)
         int tx = pos->x >> 5;
         int ty = (pos->z - (pos->y >> 1)) >> 5;
         if (tx < player->exploredWidth && ty < player->exploredHeight)
-            vis = (g_game->visibilityMask[player->exploredWidth * ty + tx]
+            vis = (g_game->visibilityMask[player2->exploredWidth * ty + tx]
                 & (1 << pi)) ? 1 : 0;
         else
             vis = 0;

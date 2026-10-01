@@ -1,4 +1,22 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (3029 board), 36.5% base kept, 2 check runs, no new
+// variant scored: timebox expired before a probe could be built. Findings from
+// the diff/disassembly this run (next worker should try this exact shape):
+//  * The original REASSIGNS the bitmap PARAMETER to the shadow: at 0x459d28 it
+//    stores the shadow to [esp+0x159e8] (the param home slot) and the old
+//    bitmap to [esp+0x28] (src). The else arm at 0x459d57 then reads BOTH from
+//    memory (`mov esi,[esp+0x159e8]; mov ebp,[esp+0x28]`), and 0x45a3da reloads
+//    both at the end of every polygon loop. So esi = drawing bitmap (the
+//    param, = shadow in mode) and ebp = src for the whole piece loop; the
+//    else-path `mov ebp,[esp+0x28]` reads a slot never written there, which is
+//    the classic MSVC reload of an UNINITIALIZED src (src assigned only in the
+//    shadow arm). Untested combination: param reassignment + src assigned only
+//    in the arm (earlier probes tried each half separately: 35.3 and 33.4).
+//  * offX/offY at 0x459df0 read [esi+4]/[esi+6] with esi = drawing bitmap, so
+//    semantically they are bmp (shadow) offsets; the current `bitmap` spelling
+//    only matches the instruction because our esi holds the original bitmap.
+//  * Tail inner loop is a `while (x--)` shape (`mov edi,eax; dec eax; test
+//    edi,edi; je; lea edi,[eax+1]`), not the current for(x; x!=0; --x).
 // Partial, 34.8%: Sampling direction and mutable lighting-vector reads corrected.
 // A 128-set header sweep found no match; <ddraw.h> alone is best (34.8%).
 // A materialized shifted-flag local did not improve the score.

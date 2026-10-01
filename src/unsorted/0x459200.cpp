@@ -29,6 +29,20 @@
 // alone gives 1509 bytes but 68.5 due to the changed value expression. The
 // first half keeps al live only when f is spilled to [esp+0x10]; ours keeps f
 // in edx so the compiler rematerialises gf.
+// Last pass (deepseek-v4.1-flash, diff analysis only, no new build scored):
+// (a) both f-diff blocks should use plain 32-bit arithmetic: original does
+// xor eax,eax / mov al,[g_game+0x1427f] / sub eax,edx (edx = spilled dx),
+// no byte truncation, then value = diff + shade + 0x32 with shade+0x32 in its
+// own register (and ecx,0x4b / add ecx,0x32 / add eax,ecx). Our
+// (unsigned char)(field_1427f - dx) cast forces byte arithmetic
+// (mov bl,[..] / sub al,bl / and eax,0xff / lea eax,[eax+edx+0x32]) the
+// original never emits. (b) the g_game+0x37f06 b2 test should be a plain mask
+// test (original: mov ax,word / test al,4) while b3 keeps the shift form
+// (shr al,3 / test al,1); ours emits mov dl,al / shr dl,2 / test dl,1 for b2.
+// Untested idea: union with a whole ushort (test whole & 4) plus the bitfield
+// member for b3. (c) ours spills y (screen y) to [esp+0x10] and later clobbers
+// ebx with a dx reload; the original keeps y in ebx throughout and reloads dx
+// into edx (mov edx,[esp+0x14] / sub eax,edx).
 struct Vec3;
 struct Model_459200;
 struct Team_459200;

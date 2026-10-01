@@ -1,4 +1,40 @@
 // Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// space-bunny-free third pass, no MATCH, best kept unchanged at 85.8% (702 of
+// 706). Read from a real /Fa listing (build/scratch/0x4a7290/asm.py), not from
+// difflib, which misaligns this block badly. DECISIVE NEGATIVE RESULT: the
+// target's join `mov dword ptr [esp+0x40], eax` reads a zero that is LIVE-IN
+// from both predecessors (each arm ends in its own `xor eax,eax`), so it is
+// not a `xor`+store pair inside the join and the constant-store fold cannot
+// fire on it. Every spelling of `n = 0` that puts the store in the join folds
+// to `mov dword ptr [esp+0x40], 0`, and every spelling that puts the store in
+// an arm leaves it in that arm. Scored, all free --sym:
+//   `int n = 0;` after the if/else, two-statement zero fill  84.6% (698 bytes)
+//   the same with `n = 0` before rect.x1, or with `int n = 0, i = 1;`, or
+//     with `int n = ZeroInt()` from a static inline int helper  84.6% (698)
+//   `int n = 0;` before the if/else                            75.3% (694)
+//   `n = 0;` as the last statement of both arms, `int n;` before rect (and
+//     with `int i;` before or after)                          85.1% (706)
+//   the else arm with `n = 0` first                             76.9%
+//   `n` as a field of a one-int local struct, `counter.n = 0`   84.6% (698)
+// So a struct field does NOT change the fold: it is not plain-local versus
+// struct-field. Put together with the listing, the fold rule that actually
+// holds here is that the register form appears only when the zero's VALUE is
+// still live after the store. In the if arm the two rect stores keep it live
+// (their values are read in the join), which is why the if arm gets
+// `xor eax,eax / mov [0x14],eax / mov [0x18],eax`; `n`'s zero is never read
+// before it is overwritten by the count load, so it folds. That also explains
+// the dead-store shapes: `rect.y0 = rect.x0 = 0` and `rect.x0 = 0;
+// rect.y0 = rect.x0;` both lose the second store entirely (84.6%, 698) because
+// the value is forwarded in a register instead, while `rect.x0 = 0;
+// rect.y0 = 0;` and `rect.x0 = rect.y0 = 0;` both emit TWO xors hoisted to the
+// top of the arm, one per store, never one shared register (84.6% and 84.9%).
+// The register allocator then keeps rect.x0 and rect.y0 live in registers
+// across the join, so the two reloads the target has cannot appear. Getting
+// them needs the zero pinned in eax at the join, and no source spelling of
+// `n = 0` pins it. I believe this is a register-allocator tie-break, not a
+// source shape, and I would not spend another session on `n = 0` placements.
+// Everything outside the rect block already matches instruction for
+// instruction, and the only other diffs are the 4-byte jump-target shift.
 // Sonnet 5.5 (issue 3070), still 85.8% (702 of 706 bytes). New observations,
 // all free --sym scores: (a) the target reloads rect.x0/rect.y0 from the stack
 // at the join, i.e. it does NOT keep them in registers across the if/else; the

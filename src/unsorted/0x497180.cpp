@@ -1,4 +1,12 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by
+// 2026-10-01 pass 2 (deepseek-v4.1-flash, 10 min timebox, 1 scored variant): re-confirmed
+// 82.8 (2846 vs 2797). Tried one untried lane respelling: hoisting a per-lane
+// `unsigned short v = *(unsigned short*)(g_game + 0x14281);` temp in the three case-3
+// post-loop lanes so the g_game load precedes the 0x9c byte load (the original's order
+// at 0x4974xx is `mov ecx,[g_game]` then `mov bl,[eax+0x9c]`, ours is the reverse).
+// Result: byte-identical, 2846 bytes / 82.8, so that order is not steered by naming the
+// read. No change kept. Remaining residue unchanged: the CSE'd constant 1 lands in EDX
+// here and EDI in the original, and the nine 0x14281 lanes keep the movzx form.
 // 2026-10-01 pass (deepseek-v4.1-flash): re-confirmed 82.8 (2846 vs 2797 bytes). Remaining
 // diffs are unchanged from the notes below: the CSE'd constant 1 lands in EDX here and EDI
 // in the original, and the nine 0x14281 lanes keep the movzx form.

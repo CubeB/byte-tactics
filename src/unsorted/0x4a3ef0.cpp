@@ -1,21 +1,25 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// STOP NOTE (deepseek-v4.1-flash retry): best stays 93.1 pct / 629 bytes. Two
-// 2-byte hunks remain and cancel in size. (1) The 0x10 arm clamp needs the
-// two-statement form (int other = e->field_da; int denominator = size + 1;
-// if (other > denominator) denominator = other;), which reproduces the
-// original movsx edx / lea edi,[eax+1] / cmp edx,edi / jle / mov edi,edx
-// exactly but costs +2 bytes; a fresh run with that fix confirmed the clamp
-// hunk disappears. (2) The 0x20 arm needs e->field_c6 loaded into EDX before
-// test eax,eax (chain mov ecx,[edx]; mov edx,[ecx+0x28]; xor ecx,ecx;
-// mov cx,[edx+2]; imul ecx,eax). An arm-local hoisted `int* p = e->field_c6;`
-// does hoist the load before the test and fixes the whole deref chain except
-// p lands in ECX not EDX (mov ecx,[ebx+0xc6]; mov ecx,[ecx]), which spills the
-// shared zero `lines` to [esp+0x10] (extra stores and a skip-path reload), so
-// that variant scores 85.4 pct / 644. Applying both fixes together is still
-// the way to MATCH if p can be pushed to EDX (untested scratch shapes for p's
-// register: helper taking the pointer as a parameter, helper with a hoisted
-// pointer local, p declared before count, nested deref expression, all in
-// build/scratch/0x4a3ef0/v2..v5.cpp, never scored).
+// deepseek-v4.1-flash retry (issue 4076, free --sym scratch runs): still 93.1 pct / 629.
+// NEW evidence for the 0x20 arm, which is the only real residual. That arm's
+// shape is reachable by source: keep the union `lines` declaration as it is
+// here, declare `int* p = e->field_c6;` inside the arm BEFORE the
+// `if (count > 0)`, and assign `lines.full` only inside that if (an inline
+// body, not the helper call). That compiles the original 0x20 arm exactly
+// (`movsx eax,[ebx+0xc0] / mov ecx,[ebx+0xc6] / test eax,eax / jle /
+// mov ecx,[ecx] / mov edx,[ecx+0x28] / xor ecx,ecx / mov cx,[edx+2] /
+// imul ecx,eax`), 644 bytes against 629. Everything else in the function is
+// then byte-identical except the +9 shift, so the two remaining faults are:
+//   * the pointer lands in ecx, not edx. That is the ONLY register
+//     difference; with edx the arm would be byte-identical. It needs ecx to
+//     still hold the live zero at the load, which this shape does not do
+//     because the conditional assignment turns `lines` into a stack object.
+//   * the union's 0 initialisation is then emitted as real stores
+//     (`mov dword ptr [esp+0x10],ecx` plus `mov word ptr [esp+0x10],cx`,
+//     8 bytes), where the original value-numbers the 0 and keeps it in ecx.
+// Also measured: `int lines;` uninitialised kills the shared ecx zero at the
+// found test entirely (the compare folds to `test eax,eax`, 637 bytes), so the
+// zero that the original reuses in the 0x10, 0x20 and 0x80 arms must come from
+// an initialisation of `lines`, not from the compare.
 // deepseek-v4.1-flash retry (issue 3840, 2 scored runs): still 93.1 pct / 629.
 // The if-statement form of the denominator clamp (int denominator = size + 1;
 // if (e->field_da > denominator) denominator = e->field_da;) regresses to 89.1

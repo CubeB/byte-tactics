@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Retry (deepseek-v4.1-flash, issue 4076, short box): two further scored
+// negatives, both flat at 714 bytes / 80.9 pct and byte-identical to the
+// baseline shape: an `int z;` phi (z = 0 in both arms, store in the if arm,
+// read after the merge by the drag test, the clamp and the holder test) and an
+// `int zero = 0;` with a redundant `zero = 0;` redefinition in the otherwise
+// empty else arm. Both rematerialise as `mov [ebp+0x78], eax` plus immediate
+// compares, so a two-arm constant phi does not give the value a register home.
 // Retry (deepseek-v4.1-flash, issue 3781): no new variant run; the ctx
 // disassembly confirms the original materialises the zero twice at the merge
 // (0x4a420d and 0x4a421b xor edx,edx, then cmp [ebp+0x78],edx), while ours

@@ -1,11 +1,40 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// PARTIAL 70.6% (1337 of 1339 bytes; was 45.6% at 1237 bytes). What moved it:
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Can a unit's footprint stand on the map cell `cell`? The guards are the map
+// bounds, then the two visibility tests (seen on the shared bit mask, or on the
+// player's explored byte map when flag 2 of g_game+0x14281 is set), then a walk
+// of the footprint cells that accumulates the build cost into DAT_0051e688 and
+// the height envelope into the returned DAT_0051e684.
+//
+// PARTIAL 81.5% (1339 of 1339 bytes, exact size; was 70.6% at 1337 bytes).
+//
+// What moved it, from the 70.6% starting point:
+//  * The ground height is NOT pos.y. The original stores `FUN_00485010(&cell) << 16`
+//    into the dead `los` home slot [esp+0x4c] and reads it back with
+//    `movsx word [esp+0x4e]`, so it is a separate `Fix` local declared beside the
+//    Pos, and both inline helpers take it as a third `Fix*` argument. With the
+//    height inside Pos the helpers keep it there and neither the frame layout nor
+//    the store sequence can match (70.6% -> 69.3% on its own, but it is what makes
+//    the rest reachable).
+//  * Both inline helpers take the player bit as a fourth argument. That stops MSVC
+//    from re-deriving `1 << g_game->player` inside IsSeen, which is what put the
+//    g_game reload and the vis multiply in the wrong basic block (69.3% -> 80.2%).
+//  * The helpers read the position through a six-short `Position` cast
+//    (`(Position_0047d2e0*)&pos`), the shape matched in 0x408090 and 0x465ac0,
+//    instead of `pos->x.p.hi` (80.2% -> 80.7%).
+//  * The bounds guard is the one combined `if` of the 99.1% sibling 0x47d820, with
+//    `short y0` and `short x0` read off the by-value Point first. That is what puts
+//    `movsx edx, cx` (cell.x) before the width load as the original has it
+//    (80.7% -> 80.9%).
+//  * The footprint loop is written in the rotated form the original emits
+//    (`if (origin.y > row) { while (1) { ... if (origin.y <= row) break; } }` with
+//    `col = 1 + col` and `c = (width - cols) + c` at the end of the bodies).
+//    MSVC rotates a plain `for` itself and adds one guard; writing the rotation out
+//    is worth another 0.6% here (80.9% -> 81.5%). A plain `for` gives 80.9%, a plain
+//    `do/while` with the test at the bottom 57%.
+//
+// Earlier passes, still true:
 //  * `los` is the neighbours' Map: `explored` = ByteMap {data, MapSize{width, height}}
-//    with MapSize::Contains and ByteMap::Get (see 0x4658e0, 0x465ac0, 0x408090), and
-//    the position is a 12-byte 16.16 fixed-point Pos {Fix x, y, z} (Fix = union of an
-//    int and two shorts). Pos is address-taken-like memory, so wx/wz are stored as
-//    dwords and read back with `movsx word [esp+0x32]/[0x3a]`, and the frame is the
-//    original 0x2c with no width cache and no dummy locals.
+//    with MapSize::Contains and ByteMap::Get (see 0x4658e0, 0x465ac0, 0x408090).
 //  * The loop's `rr`/Terrain tests are early-return inline helpers (Blocked_,
 //    Terrain_), which reproduces the `xor ecx,ecx; jmp join` ladders exactly.
 //  * The second visibility test is NOT folded to ok = 1 when it goes through an
@@ -15,13 +44,63 @@
 //  * `int ok` declared at the very top (assigned before `if (los)`), and `bit`
 //    declared BEFORE the Contains test, each worth several points through register
 //    allocation only.
-// Still differs: (1) the prologue allocation (original: g_game in ebp, origin.x in esi;
-// ours the reverse for the first compare), (2) the original keeps y (h << 16) as a
-// spilled temp in the dead `los` home slot [esp+0x4c], ours puts it in pos.y at
-// [esp+0x34] (the helpers need y inside Pos), (3) `bit`/vis/width are computed before
-// the bounds jumps here, after them in the original, (4) arm 2 stores ok = 0 with a
-// mov instead of `xor eax,eax; jmp` into one shared store, (5) the cell.y * width
-// operand order after the LOS block and the col latch order.
+//
+// WHAT IS LEFT. The dominant item is one cause: the esi/edi choice in the prologue.
+// The original takes `esi` for origin.x (spilled to [esp+0x18]) and `edi` for `los`;
+// we take `edi` for origin.x ([esp+0x14]) and `esi` for `los`, so every later use of
+// the two is mirrored, `los` has to be reloaded from [esp+0x4c] in the explored arm,
+// and the loop's mask index lands in esi instead of edi. The register the 16-bit
+// cell.y temp takes decides it: the original emits `mov di, word [esp+0x46]`, we emit
+// `mov si, word [esp+0x46]`. It is a colour tie-break inside MSVC 5's LCL, not a
+// source-order effect: the same two values come out in the other order in the
+// sibling 0x47d820, whose notes call the same thing for `esi`/`edi`.
+//
+// Tried and flat at 81.5% or worse (all on top of the best version here):
+//   - guard: `origin.x + cell.x` / `cols + cell.x` / `cell.x + cols`, `x0 + origin.x`
+//     and `origin.x + x0`; `int width0` cached before or after `cols`; `int rows`,
+//     `int oy`, `int cy` locals; the guard as two `if`s, as one `||`, as an inline
+//     OutOfBounds helper; the two bounds tests swapped; `cols` materialised before
+//     the cell guard; origin read after the guard; `int x0`/`y0` as `int` not
+//     `short`; `cols` declared then assigned; `x0 < 1` as `1 > x0`.
+//   - LOS block: the map width cached in a local `w` (with and without passing it to
+//     the helpers), a `row = width * y` temporary, `g_game` through a `Game*` local,
+//     the first visibility test folded into its own inline helper (54-61%), `los` and
+//     `unit` cached in locals, the helpers re-deriving the bit (69.3%) or taking it
+//     as a pointer, the helpers taking the Fix height by value, `2 == (flags & 2)`,
+//     `0 == Contains`, the explored arm's Contains as a nested `if` or an early
+//     `return 0`, braces on the visibility arms.
+//   - loop: the mask-index spellings (`*(mask + i)`, `mask[i]; i++`, the load before
+//     or after the cost accumulation), `DAT_0051e688 = DAT_0051e688 + c->field_7`,
+//     the 0x40/0x80/owner/type tests as nested `if`s, `8 & m` and `2 & e[0xff]`
+//     operand swaps, `unsigned int ok` (69.3%), merging the latch declarations,
+//     hoisting `g_game->seaLevel - unit->field_1be`, `(unsigned char)min6` in the
+//     spread test, `min6 > max5` for `max5 < min6`, the found80 latch as a nested
+//     `if`, `col = 1 + col` / `++c` alone, and `c = (width - cols) + c`.
+//   - prologue: adding a second `Game*` local for the cell index (64.6%), a
+//     `CellAt()` helper for it (75.2%), a `GetMask()` helper (80.4%), and
+//     `#include <math.h>` / `<string.h>` / `<memory.h>` / `<stdlib.h>` (66-80%).
+//
+// THE PERMUTER REACHED 91.0% AND ITS RESULT IS NOT USABLE SOURCE. tools/permute.py
+// (1339 candidates, 17 min) got this function from 80.2% to 91.0% at the exact size,
+// and build/permute/0x47d2e0/best.cpp is that result. Every one of its wins is a
+// one-instruction scheduling nudge and none of them survives on its own: reverting
+// any single change costs about 0.6%, and a clean rewrite of the whole function in
+// its shape scores 63.8%. What it adds, none of which I can write as plausible
+// source: `#include <math.h>` with nothing from math.h used (worth 6% on its own,
+// and the same front-end-state lever 0x47d820's notes describe); six one-line
+// helpers that just return a member or a mask (`inl0..inl5`, e.g.
+// `static inline int inl0(int m) { return m & 0x10; }`); `unsigned int ok`; a
+// `goto skip0/skip1/skip2` ladder where the original has none; and
+// `if (1) do { ... } while (1);` around the outer loop, which duplicates the guard
+// the guide warns against. Per the guide's rule, those are recorded here as leads
+// rather than committed. Its guard change is neutral here: best.cpp with this
+// file's guard still scores 91.0%.
+//
+// Also still open, independent of the register flip: the explored arm's own
+// `mov [esp+0x10], 0` block (we share one store with the seen arm), and
+// `movsx eax,[esi+0x46]; imul eax,[ebp+0x14233]` against our width-into-eax form,
+// which is the same sign-extended-short multiply 0x47d0e0 and 0x47d820 both record
+// as unreachable from the source.
 #pragma pack(push, 1)
 
 union Fix_0047d2e0 {
@@ -107,23 +186,33 @@ struct Pos_0047d2e0 {
     Fix_0047d2e0 x, y, z;
 };
 
-static inline int IsExplored_0047d2e0(Los_0047d2e0* los, Pos_0047d2e0* pos)
+struct Position_0047d2e0 {              // 16.16 fixed point, only high words read
+    short xFrac;
+    short x;
+    short yFrac;
+    short y;
+    short zFrac;
+    short z;
+};
+
+static inline int IsExplored_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
+    Fix_0047d2e0* hgt, unsigned int bit)
 {
-    int tx = pos->x.p.hi >> 5;
-    int ty = (pos->z.p.hi - (pos->y.p.hi >> 1)) >> 5;
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
     if (los->explored.size.Contains(tx, ty) && los->explored.Get(tx, ty) != 0)
         return 1;
     return 0;
 }
 
-static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Pos_0047d2e0* pos)
+static inline int IsSeen_0047d2e0(Los_0047d2e0* los, Position_0047d2e0* pos,
+    Fix_0047d2e0* hgt, unsigned int bit)
 {
-    int tx = pos->x.p.hi >> 5;
-    int ty = (pos->z.p.hi - (pos->y.p.hi >> 1)) >> 5;
+    int tx = pos->x >> 5;
+    int ty = (pos->z - (hgt->p.hi >> 1)) >> 5;
     if (!los->explored.size.Contains(tx, ty))
         return 0;
-    return (g_game->field_14273[los->explored.size.width * ty + tx] &
-            (1 << g_game->player)) != 0;
+    return (g_game->field_14273[los->explored.size.width * ty + tx] & bit) != 0;
 }
 
 static int Blocked_0047d2e0(Cell_0047d2e0* c)
@@ -172,24 +261,23 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     DAT_0051e684 = 0;
     DAT_0051e688 = 0;
     Point origin = unit->origin;
-    if (cell.x < 1 || cell.y < 1)
+    short y0 = cell.y;
+    short x0 = cell.x;
+    if (x0 < 1 || y0 < 1 || x0 + origin.x >= g_game->width ||
+        y0 + origin.y >= g_game->height)
         return 0;
     int cols = origin.x;
-    int width0 = g_game->width;
-    if (cell.x + cols >= width0)
-        return 0;
-    if (cell.y + origin.y >= g_game->height)
-        return 0;
     int x;
     int y;
     ok = 1;
     if (los != 0) {
         Pos_0047d2e0 pos;
+        Fix_0047d2e0 hgt;
         pos.x.v = (origin.x + cell.x * 2) << 19;
         pos.z.v = (origin.y + cell.y * 2) << 19;
-        pos.y.v = FUN_00485010(&cell) << 16;
+        hgt.v = FUN_00485010(&cell) << 16;
         x = pos.x.p.hi >> 5;
-        y = (pos.z.p.hi - (pos.y.p.hi >> 1)) >> 5;
+        y = (pos.z.p.hi - (hgt.p.hi >> 1)) >> 5;
 
         unsigned int bit = 1 << g_game->player;
         if (!los->explored.size.Contains(x, y))
@@ -199,9 +287,9 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
             return 0;
 
         if ((g_game->losFlags & 2) == 2)
-            ok = IsExplored_0047d2e0(los, &pos);
+            ok = IsExplored_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
         else
-            ok = IsSeen_0047d2e0(los, &pos);
+            ok = IsSeen_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
 
     }
     unsigned char min6 = 0xff;
@@ -213,8 +301,10 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
     Cell_0047d2e0* c = &g_game->cells[cell.y * g_game->width + cell.x];
     int row;
     int col;
-    for (row = 0; row < origin.y; row++) {
-        for (col = 0; col < cols; col++) {
+    row = 0;
+    if (origin.y > row) { while (1) {
+        col = 0;
+        if (col < cols) do {
             DAT_0051e688 += c->field_7;
             int m = unit->mask[index++];
             if (m & 8) {
@@ -244,11 +334,14 @@ int __stdcall FUN_0047d2e0(Unit_0047d2e0* unit, Point cell, short type, Los_0047
                 if (e != 0 && (e[0xfe] & 0x20))
                     foundFE20 = 1;
             }
-            c++;
-        }
-        c += g_game->width - cols;
-
-    }
+            col = 1 + col;
+            ++c;
+        } while (col < cols);
+        row++;
+        c = (g_game->width - ((int)cols)) + c;
+        if (origin.y <= row)
+            break;
+    } }
     if (found80 && !foundFE20)
         return 0;
     unsigned char r;

@@ -1,4 +1,81 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash; further tried by GPT-6.1-sol, edited by deepseek-v4.1, further tried by Space Bunny Free. Names are provisional.
+// Space Bunny Free retry (issue 4401, about 40 scratch scores, all in
+// build/scratch/0x4c54f0/): still 70.2 percent (553 bytes), no MATCH. The body
+// is unchanged from the version below; this pass only re-measured the
+// alternatives and re-confirmed which of them are dead ends. Do NOT trust a
+// score for `char[]` here: the first attempt at that patch replaced the word
+// inside this comment block instead of the declaration (the first literal
+// occurrence of `extern char* DAT_005119b8;` is on the line above, not the
+// declaration), so the variant scored the same and looked free. Patched
+// properly, `extern char DAT_005119b8[];` really is 68.7 percent, which
+// confirms the older measurement, so the pointer stays for now.
+//
+// NEW MEASUREMENTS THIS PASS, so nobody repeats them:
+// - The destruction block needs FOUR callee-saved registers (esi, ebp, edi,
+//   ebx) for the original's 0x224 frame, because the object is copied from
+//   eax into ebx and the vector is materialised as `lea edi, [eax+1]` and then
+//   freed through [edi+4], [edi+8], [edi+0xc]. That is why the original
+//   re-reads `section` from the stack instead of hoisting it.
+// - Every spelling that inlines the free drops to three callee-saved
+//   registers: the vector folds onto the object base ([edi+5], [edi+9],
+//   [edi+0xd]), the frame becomes 0x220, `section` is hoisted into ebx, and
+//   the score falls to 57.0. This fold resisted every shape tried this pass:
+//   the free written out inline in the destructor, a real `std::vector`
+//   member (57.5, and it emits ??_GElem_004c5bc0), a member destructor
+//   ~Vec_004c54f0, a `static inline FreeEntries(Vec*)` helper, a two-parameter
+//   `static inline FreeMap(Vec*, Class*)` helper, `(Vec*)((char*)s + 1)`
+//   instead of `&s->v`, the loop bounds read through w instead of the object,
+//   and the free kept as a member but reduced to two statements
+//   (`this->first = this->last = this->end = 0;`) so /Ob2 does inline it.
+//   The only way found to keep the vector a separate register is to leave
+//   Free2 out of line, which is what this file does: right frame, right
+//   0x224, but obj/vec across ebx/edi are the other way round and there is a
+//   call where the original inlines.
+// - `int idx[1]` and the inline free are the same threshold, not two
+//   problems: with only three callee-saved registers the index is promoted to
+//   ebx and the array trick stops holding. Fixing the free fixes the index.
+// - The destroy loop must stay in the same body as the free. Moved into its
+//   own `static inline` helper it emits `push 0; mov ecx, elem; call ??_G`
+//   instead of the original's direct `call ??1Elem_004c5bc0`.
+// - `delete DAT_0051fdb8;` 56.8. An explicit `->~Class_004c5840()` plus
+//   `::operator delete` at the call site is 62.1, the best of the
+//   inline-free family: that shape does put the vector in edi, but it has no
+//   ebx for the object and re-reads the global for the second delete.
+// - `char[]` for DAT_005119b8, patched properly: 68.7 (see above).
+//
+// THE INSERT CONDITION IS INVERTED IN THIS FILE. Read from the bytes at
+// 0x4c568d..0x4c569b: `cmp eax, ebx` (ebx is the zero register), `sete cl`
+// makes cl 1 when strcmp returned 0, `neg cl` makes it 0xff, and
+// `test cl, cl; jne 0x4c56a2` therefore JUMPS TO THE INSERT when the found
+// key is EQUAL to the key being added. The condition in this file is
+// `!(strcmp(...) == 0)`, which inserts when they differ. The source
+// condition is `e == s->last || (strcmp(e->key.ptr, key.ptr) == 0)`, and the
+// int sitting beside the bool in ecx (`sbb ecx, ecx; inc ecx`) is that
+// polarity, not the other one. Nothing written so far reproduces both the
+// polarity and the layout at once.
+// - The insert result is USED in the original: `mov esi, eax; add esi, 4`
+//   right after the 0x4c59d0 call, and `mov ecx, esi` feeds a SINGLE shared
+//   `FUN_004c93f0(value)` call at 0x4c56e1 that both branches reach (the
+//   not-taken path does `lea ecx, [edi+4]; jmp 0x4c56e1`). This file
+//   discards the result and duplicates the call. Merging the assignment
+//   after the if with a separate element pointer scores 64.5 to 68.1, and
+//   with a `Class_004c93f0*` local for the receiver 68.1, so the merge
+//   alone is not enough.
+// - Closest insert spelling found: a `static inline bool SameKey(a, b)
+//   { return strcmp(a, b) == 0; }` helper in `e == last || SameKey(...)`
+//   with the assignment after the if gives `xor ecx, ecx; cmp eax, ebx;
+//   sete cl; test cl, cl; je` and scores 70.1 (build/scratch/0x4c54f0/g1.cpp),
+//   still missing the original's `neg cl; sbb ecx,ecx; inc ecx`, and MSVC
+//   hoists the strcmp above the `e == last` test. Whoever retries should
+//   start from g1 and look for the int form of the comparison beside the
+//   bool, which means the comparison result is used twice in the source.
+// - Also still open and unaffected by any of this: the FUN_004c4420 /
+//   FUN_004c48c0 argument order (the original loads `f.current` into ecx
+//   first, then lea's the buffer into edx, then pushes), the `mov eax, ecx`
+//   versus `mov edx, ecx` that holds the strlen length for the strcpy, the
+//   `mov dl` versus `mov cl` for the constructor's char argument, and the
+//   prologue's `mov eax, [esp+8]` before `sub esp, 0x224`.
+
 // Retry #3361 by mimo-v2.6-pro: still 70.2% (553 bytes). Kept variant A (below).
 //   * Read order: declaring `e = v.last;` before `p = v.first;` now emits
 //     `mov ebp,[edi+9]; mov esi,[edi+5]`, matching the original's last-then-first
@@ -21,6 +98,10 @@
 //     match, but reshuffles the FUN_004c4420/48c0 block registers (lea edx vs lea
 //     eax) and scores 68.7%. The declaration is right and the register tie is the
 //     blocker, so it needs the upstream destructor register swap first.
+//     RE-CONFIRMED: patched properly (the first literal occurrence of that
+//     text is on this line, not the declaration, which is what made an earlier
+//     attempt look free) `extern char DAT_005119b8[];` scores 68.7, so the
+//     pointer stays until the destructor registers move.
 // Retry #3141 by GPT-6.1-sol: five worker checks plus an unsigned-index trial found no improvement; best remains 70.2%. Reordering destructor pointer declarations, making the old global object explicit, and rewriting the indexed for loop as while all reproduced the same score. Remaining differences are documented below, especially vector destruction/codegen and register allocation.
 // #2959 retry by GPT-6.1-sol: six checks reconfirmed 70.2%; strlen/memcpy and
 // other variants did not improve the saved source. No MATCH.

@@ -1,4 +1,40 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free (issue 4452): 75.2% -> 83.0%, still 1400 bytes against 1404.
+// Two changes together break the register-allocation deadlock the older notes
+// here spent a hundred attempts on. Neither works alone.
+//   (1) The FIRST type-3 test reads the local: `if (entries[layer->field_20]
+//       .type == 3) DoSelect(menu, menu->layer->entries, menu->layer
+//       ->field_20);`. Spelling it through `menu->layer` (what this file did
+//       before) gives `mov eax, [eax+0x18]` at the top and 75.2%; reading it
+//       through `layer` makes that variable live across the first DoSelect's
+//       calls, so MSVC has to give it a callee-saved register and it lands in
+//       esi: `mov esi, [eax+0x18]` plus `mov [esp+0x20], esi`, which is what
+//       every earlier pass could not reach. The second test keeps going
+//       through `menu->layer`, which is what the original does at 0x4a7d86.
+//       Alone: 68.4%, but 1404 bytes, the original's exact size.
+//   (2) `int cnt = entries->data.count + 1;` goes AFTER the `used[]` zero loop
+//       instead of before it. With (1) in place the count is no longer
+//       competing with `layer` for esi, so it is free to land in eax after
+//       `xor eax, eax / rep stosd`, which is where the original has it
+//       (`movsx eax, [edx+0xb6] / inc eax / cmp eax, 1 / mov [esp+0x24], eax`),
+//       and it gets slot 0x24 instead of stealing `remaining`'s. Together
+//       83.0%; (2) alone on the old file scored 75.0%, (1) alone 68.4%.
+// Scratch harness for this pass: build/scratch/0x4a7960/ (gen.py, gen2.py ...
+// gen9.py hold the substitutions, base.cpp is the old 75.2% version,
+// base_kmix.cpp is change (1) alone, sc.sh scores a variant, df.sh dumps the
+// full check diff, permute.log is permute.py's run on the 75.2% file).
+// What still differs, biggest first:
+//   * The loop-1 store keeps `used[idx]` in edi and writes through a freshly
+//     reloaded `out`: the original loads `out` into eax first and copies
+//     through edx, ours reloads ecx after the branch.
+//   * The `switch (dir)` case bodies that compute `entries[index].x0 +
+//     entries[index].y0 * 5000` put the multiply chain in edx where the
+//     original puts it in eax, and the tail's index arithmetic is the same
+//     rotation one block later.
+//   * The `jmp dword ptr [eax*4 + ...]` jump-table bases and the table bytes
+//     differ only by the 4-byte shift, and the second DoSelect's colour
+//     expression is `xor eax,eax / mov al,[edx+ecx+0x8b2]` against the
+//     original's `xor edx,edx / mov dl,[ecx+eax+0x8b2]`.
 // claude-opus-5-5 (#4258): 72.7% -> 75.2%. The first loop's inner search is a
 // plain `for (j = 1; used[j] != 0; j++) { int d = used[j] - *p; if (d < 10 &&
 // d > -10) { idx = j; break; } }`, which gives the original `mov eax,[ecx+4];
@@ -314,10 +350,10 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
     if (index == -1)
         return;
 
-    int cnt = entries->data.count + 1;
-
     for (int k = 0; k < 50; k++)
         used[k] = 0;
+
+    int cnt = entries->data.count + 1;
 
     if (cnt > 1) {
         int* out = used + 1;
@@ -423,7 +459,7 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
 
     menu->focus = -1;
     menu->layer->field_20 = index;
-    if (entries[menu->layer->field_20].type == 3)
+    if (entries[layer->field_20].type == 3)
         DoSelect(menu, menu->layer->entries, menu->layer->field_20);
     if (entries[menu->layer->field_20].type == 3)
         DoSelect(menu, menu->layer->entries, menu->layer->field_20);

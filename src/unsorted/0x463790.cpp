@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 10 (deepseek-v4.1-flash, #3870): re-measured 75.0% (1025 vs 1040 bytes) and left it
+// unchanged. Tried this pass: swapping the f14/f18 source store order (74.2, worse, so the
+// compiler's own store order is the one that scores) and a named `unsigned int cap =
+// size + 0x100` local reused for the new and the f4 assignment (byte-neutral at 75.0).
+// The two open rotations below are unchanged.
 // Pass 9 (deepseek-v4.1-flash, #3819): 74.2 -> 75.0% (1025 vs 1040 bytes). The finding: the
 // a4/a5 tail loops each get their own count local computed as `n - 0x200` (`left1` in the
 // a6!=0 path, `left2` in the a6==0 path), which finally puts the a5-path counter in EDI and

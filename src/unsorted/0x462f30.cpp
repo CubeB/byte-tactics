@@ -1,4 +1,9 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Pass 10 (deepseek-v4.1-flash): re-measured 43.3% (1578 vs 1653 bytes), no edit kept.
+// Ruled out the puVar1/ebp lever: the original keeps &this->length (lea ebp,[ebx+0x22c])
+// in ebp and routes every length access through it, but an explicit `int* pl = &length;`
+// scores 37.9% when assigned after the first loop and 29.6% when initialised at the top
+// (MSVC 5 also rejects the mid-function initialiser, goto copy_out skips it, C2362).
 // Pass 9 (deepseek-v4.1-flash, #3819): re-measured 43.3% (1578 vs 1653 bytes), no edit kept.
 // New datums from the top hunks, all one live-range web with the tick spill at [esp+0x14]:
 // the original bases the entry walk at `lea esi,[ebx+0x48]` and reads the first field as

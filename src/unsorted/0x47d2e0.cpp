@@ -1,11 +1,184 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free. Names are provisional.
+//
+// Space Bunny Free pass #2 (#4566, from 88.5%, no improvement, ~90 check runs).
+// Baseline reproduced exactly: 1339 of 1339 bytes, 88.5%, 91.1% ignoring the
+// three jump-target-only lines. The body below is unchanged and is still the
+// best measured. What this pass bought is a jump-target-blind differ and an
+// isolation harness, which turn the "wall of diff" into ONE coupled allocation
+// and then say which two source shapes reach the original's shape and at what
+// cost. All of it is in build/scratch/0x47d2e0/: jd.py (the jump-target-blind
+// differ), probe.py and mk.py (batch variants of the real file, with our LOS
+// block printed next to the original's), dsweep.py (the parallel
+// declaration-order sweep) and iso/ (the compile-only isolation
+// harness, with its own sweep.py).
+//
+//  1. THE RESIDUAL IS ONE DECISION, NOT A LIST. jd.py diffs the original
+//     against ours with every address inside the function replaced by a label,
+//     so a branch target compares equal however the bytes around it moved. That
+//     turns the 88.5% residual from a wall into 64 lines, and they collapse to
+//     ONE thing: 37 of the 64 lines are the LOS block and its two arms, and
+//     every other site (the `cols` home slot, the two guard `lea` SIB bytes,
+//     the cell-index fold, the `min6` store position, the mask pointer's
+//     ecx/edx) is downstream of the same register rotation. Sites worth their
+//     own lines: 3 + 2 + 4 + 5 + 2 = 16, and all of them are consequences of
+//     which register the LOS width lands in.
+//
+//  2. WHAT THE LOS BLOCK ACTUALLY DECIDES, spelled out. The original spills
+//     `bit` to the dead `los` slot and reloads it five instructions later:
+//         mov ebx, g_game / mov esi, 1 / xor ebp, ebp / mov cl, [ebx+0x2a43]
+//         shl esi, cl / mov ecx, [ebx+0x14273] / mov [esp+0x4c], esi
+//         mov esi, [edi+0x80] / mov ebx, esi / imul ebx, eax / add ebx, edx
+//         mov bp, [ecx+ebx*2] / mov ebx, [esp+0x4c] / test ebp, ebx / je
+//     and we common-express the width instead, into ebp, spill it to the SAME
+//     slot, and keep `bit` in esi:
+//         mov ebx, g_game / mov ebp, [edi+0x80] / mov esi, 1
+//         mov [esp+0x4c], ebp / mov cl, [ebx+0x2a43] / shl esi, cl ...
+//         xor ebp, ebp / mov bp, [ecx+ebx*2] / test esi, ebp / je
+//     Everything downstream follows: with the width in esi the IsExplored arm
+//     reuses it (`mov ecx, esi / cmp edx, ecx`, `mov ecx, esi / imul ecx, eax`)
+//     and the IsSeen arm consumes it (`imul esi, eax`), which is why the
+//     original's two arms have their own failure blocks and ours merge
+//     IsExplored's failure with IsSeen's. So the two arms are not a second bug.
+//     There are 7 registers and the block needs 8 live values, so one value
+//     must be spilled; the original spills `bit` (used once here, once in the
+//     IsSeen arm) and we spill the width.
+//
+//  3. THE BRIEF'S ITEM 18 (the lever that closed the sibling 0x47d0e0 at 96.1%)
+//     IS INERT HERE. Eight variants, all 88.5% and byte-identical to the file:
+//     `int w = g_game->width; int* pw = &w;` at the cell statement, the plain
+//     `int w` alone, each of those with the cell statement before and after
+//     `int index = 0;`, and a plain local in place of the pointer. The plain
+//     local alone does nothing here exactly as the sibling recorded, but the
+//     pointer does nothing either, so the lever does not transfer from a
+//     function whose multiply sits in its first basic block. Also measured and
+//     flat: the LOS width through a pointer to an unmodified local (69.6%, so
+//     it does something, just the wrong thing), the LOS width as a plain local,
+//     `&g_game->width` taken directly (45.6%), the stride as a `const int&`
+//     (45.6%), a `Cell* cells` local (22.0%), the index through a named int
+//     (42.6%), `cell` read through `&cell` (88.5%), a `short cy` local (63.2%).
+//
+//  4. AN ISOLATION HARNESS NAMES THE TWO SHAPES THAT REACH IT, AND BOTH COST
+//     30 POINTS ON THE REAL FILE (build/scratch/0x47d2e0/iso/). A ~200-byte
+//     cut-down body reproduces the same choice, so it iterates in about three
+//     seconds instead of a minute, and the original's own block is read out of
+//     the exe as the target (so `d` there is a real distance, but only `check`
+//     scores the function).
+//     a) THE HELPERS TAKE `(tx, ty)`, not `(pos, hgt)`. The original DEMANDS
+//        this: the bit spill at 0x47d3df writes four bytes at [esp+0x4c], which
+//        covers the high word of `hgt` at [esp+0x4e], and neither arm rereads
+//        it, so the arms cannot be receiving `&hgt`. With this signature the
+//        harness emits `xor ebp, ebp` EARLY, where the original has it (the
+//        file emits it late), and folds the width into the imul. On the real
+//        file: 57.6%, because pos and hgt die early and the whole prologue
+//        rotates (`mov edi, g_game` for `mov ebp, g_game`, `mov si` for
+//        `mov di`, `movsx ebp, ax` for `movsx esi, ax`, and the `cols` home
+//        moves to [esp+0x10]). Re-swept on top of it, as the brief's item 17
+//        asks, nine ways: x0/y0 order 58.1, pos/hgt at function scope 57.6,
+//        `cols` early 56.5, `cols` removed 57.0, all of it byte-identical or
+//        worse. So this is a real fix to the block and a real loss to the
+//        prologue, and the two are one decision again.
+//     b) THE CONTAINS GUARD HAND-WRITTEN as `x >= w || y >= h` (or the negated
+//        `!(x < w && y < h)`) instead of the member call. In the harness this
+//        keeps the width in a REGISTER across the multiply with a reg,reg
+//        `imul ecx, ebx`, which is the original's `mov ebx, esi / imul ebx,
+//        eax` shape, and the `xor` lands late as ours does. On the real file:
+//        55.6% (identical for all three spellings), again because the prologue
+//        rotates. The cross of (a) and (b) is 56.7%.
+//     So both halves of the original are reachable from source, and neither is
+//     reachable together with the prologue this file has. That is the finding:
+//     the residual is one allocation decision that no single edit here moves.
+//
+//  5. MEASURED FLAT AT 88.5% ON TOP OF THE FILE BELOW (byte-identical unless a
+//     number is given). The two guard `lea` SIB operand orders: the original
+//     has `lea ecx, [esi+edx]` (base = origin.x) and `lea edi, [ecx+eax]`
+//     (base = origin.y), so both sums should be spelled origin-first, and
+//     `origin.x + x0` / `origin.y + y0`, each alone and both together, and both
+//     together with x0/y0 swapped, are all byte-identical. So the SIB byte is
+//     NOT expression-driven here, which settles the open question in the notes
+//     below rather than repeating it. The vis test: the index through a named
+//     int, through a `unsigned short* vis` local, through a `unsigned short v`
+//     local, the index computed before the bit, `bit & word`, `0 == (word &
+//     bit)`, `!(word & bit)`: all 88.5%. The bit: `int`, `unsigned long`, split
+//     into `unsigned int b = 1; b <<= g_game->player;`, through a `static inline
+//     unsigned int Bit_(unsigned char)` helper (87.9), through a pointer to an
+//     unmodified local (88.5), declared at the top of the LOS block and
+//     assigned after the test (88.5), assigned before the Contains test (86.9).
+//     Local set: x and y declared in the LOS block, x and y removed with the
+//     expressions inlined, `cols` removed, `cols` declared next to the loop
+//     locals, `index` after the cell statement, `ok` declared in the LOS block
+//     (87.9), `hgt` at function scope (87.7), `hgt` and `bit` both at function
+//     scope (87.7), one extra unused `int` (88.5), `&cols` taken and never
+//     dereferenced (byte-identical: the address is optimised away). `&ok` taken
+//     is 63.8 and is the clearest sign this file's allocation is already at a
+//     local optimum. The zero-initialisers: `min6`, `max5`, `max5b`,
+//     `found80` declared without an initialiser and assigned after the cell
+//     statement, each alone and all together, in the order the original emits
+//     them and in source order: 87.4 to 88.2, and moving `max5` or `max5b`
+//     alone is 70.0 and 70.8. That is the fourth site: the original's
+//     `or dl, 0xff` and its `mov byte [esp+0x14], dl` sit after the two leas
+//     because the leas take edx there, and ours takes ecx, so edx is free and
+//     the store moves up. Writing the initialisers as late statements does move
+//     it and costs 0.6, because the leas then take ecx anyway.
+//
+//  6. THE `static inline` PREDICATE RETURN TYPE, MEASURED PER FUNCTION AS THE
+//     BRIEF SAYS (item 31: three functions, three answers, never carry it
+//     across). Around the Contains guard, taking `(MapSize*, unsigned, unsigned)`:
+//     `int` is 87.7% and `bool` is 69.8%. Around the vis test, taking
+//     `(vis, w, tx, ty, bit)`: `int` is 87.9% and `bool` is 70.1%, the `bool`
+//     form materialising into `mov ebx, ebp / and ebx, esi / neg / sbb / neg /
+//     test bl, bl / je` where the original has `test ebp, ebx / je`. So `int` is
+//     the better return type in both places here, by 0.6 and 0.6 points, and
+//     neither reaches the block. That is a fourth data point for the rule.
+//
+//  7. DECLARATION ORDER: MEASURED, AND THE AXIS IS LIVE HERE, unlike 0x459200
+//     (24 orders) and 0x448c70 (151). A random sweep of the nine declarations
+//     between the guard and the footprint loop, seed 4566, 500 permutations all
+//     scored with check.py: the range is 67.6% to 88.5%, so order matters a
+//     great deal on this function, and THE FILE'S OWN ORDER IS THE BEST OF
+//     ALL 500 (identity, 88.5%, 1339 bytes). 35 permutations tie at 88.5%, the
+//     next best is 88.2% and then 87.9%. This is the one sweep in the file that
+//     had never been run at full size, and it closes that axis.
+//
+//  8. `tools/permute.py`, re-run against this 88.5% body (15.0 min, 7445
+//     candidates, 48 did not compile, 36 duplicates, 36 mutation families):
+//     88.5% -> 88.5%, score 1572 -> 1572, best_size 1339. Its `include` family
+//     is the only one that finds anything at all (2 improvements out of 468, and
+//     the best reverts), and its `move_decl`, `move_stmt`, `negate_if`,
+//     `temp_inline` and `extract_helper` families each found one or two hill
+//     climbs that did not survive. Its best.cpp is the file below. So the
+//     permuter's mutation space does not contain the LOS fix, which is
+//     consistent with item 3: the pointer form is not a spelling it generates.
+//     Confirmed afterwards that permute restored src/unsorted/0x47d2e0.cpp, by
+//     hashing it against the scratch copy taken before the run.
+//
+// WHAT THE NEXT PASS SHOULD LOOK AT, in priority order:
+//  * the LOS width's home. Everything else in the residual follows from it.
+//    Both source shapes that reach it (the `(tx, ty)` helpers and the
+//    hand-written guard) rotate the prologue, so the useful question is what
+//    keeps `mov ebp, g_game`, `mov di` and `movsx esi, ax` in the prologue
+//    while giving the width a register. The prologue's three registers are
+//    decided before the LOS block is reached, so a lever that adds pressure
+//    only inside the LOS block cannot be the answer; something that changes the
+//    prologue's own choice has to be found, and nothing in this file's local
+//    set does.
+//  * the `cols` home slot, [esp+0x18] against [esp+0x04]. Both files put min6
+//    at 0x04 and max5 at 0x08, and the original's 4-byte `cols` copy lands in
+//    the 0x08 hole with max5 while ours lands in the 0x04 hole with min6. The
+//    declaration-order sweep above permutes min6, max5 and max5b freely and
+//    never moves it, so the slot is not chosen by declaration order here.
+//  * the two guard `lea` SIB bytes are settled: not source-expressible.
+//  * the `min6` store position is settled: it follows from which register the
+//    two leas take, which follows from the LOS rotation.
+//
 // Can a unit's footprint stand on the map cell `cell`? The guards are the map
 // bounds, then the two visibility tests (seen on the shared bit mask, or on the
 // player's explored byte map when flag 2 of g_game+0x14281 is set), then a walk
 // of the footprint cells that accumulates the build cost into DAT_0051e688 and
 // the height envelope into the returned DAT_0051e684.
 //
-// PARTIAL 88.5% (1339 of 1339 bytes, exact size; 82.0% before this pass).
+// PARTIAL 88.5% (1339 of 1339 bytes, exact size; 82.0% before the pass below,
+// and unchanged by the second pass at the top, which bought precision rather
+// than points).
 //
 // space-bunny-free pass (#4566, from 82.0%): the file's own note called the
 // prologue's esi/edi choice "a colour tie-break inside MSVC 5's LCL, not a
@@ -84,7 +257,14 @@
 //     `int bit`, bit used twice; and the braces-around-a-statement lever on the
 //     Contains test and the vis test.
 
-// WHAT IS LEFT, four independent items, in rough order of diff lines:
+// WHAT IS LEFT, four independent items, in rough order of diff lines. (The
+// second pass at the top of this file keeps the same four, but shows with a
+// jump-target-blind differ that they are ONE decision rather than four, and
+// settles the third one's SIB half outright: both expression orders of the two
+// guard sums compile byte-identically, so `lea ecx, [esi+edx]` against
+// `[edx+esi]` is not source-expressible. It also runs the declaration-order
+// sweep at full size for the first time, 500 permutations, and the file's own
+// order is the best of all of them.)
 //  * The home slot of the `cols` copy of origin.x. The original stores esi
 //    (origin.x) to [esp+0x18], frame offset 8, and reloads it from there after
 //    the LOS block; we store to [esp+0x14], frame offset 4. Offset 4 belongs to

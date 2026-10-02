@@ -1,4 +1,40 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5, finished by claude-opus-5-5. Names are provisional.
+// PARTIAL (claude-opus-5-5, 2026-10-02): 83.0% -> 87.5%. Four fixes, the first
+// three read off the original's frame:
+//  (1) kind 7's dx/dy/dz are ONE Vec3 local `d` (the original keeps them at
+//      frame+0x60/0x64/0x68, in x/y/z order, which is what fild reads), and the
+//      three steps are written back into it (`d.x = (d.x << 16) / n`): the
+//      original stores stepY/stepZ over dy/dz's slots (0x49c56f, 0x49c58c). The
+//      64-bit divisor is a named `__int64 n64` (`n64 = nSeg.i;`), so it lands at
+//      frame+0x40 after the angle arrays as in the original.
+//  (2) kinds 1, 3 and 6 pass a 3-short angle struct (Angles_0049be60, the
+//      projectile's +0x34): kind 1 copies it (`rot = p->angles`, the original's
+//      `lea ecx,[esi+0x34]` is the copy's source), kind 6 passes `&p->angles`
+//      and kind 3 passes its own `Angles rot3` that is never written (the
+//      recorded bug in docs/bugs.md). This replaces the old dead `short clip[6]`
+//      that only padded the frame, and puts both arrays at the original's
+//      frame+0x30/0x38.
+//  (3) kind 0's two line arms each make both FUN_004be950 calls (colour2 then
+//      colour1); that is what puts colour1 at frame+0x10 and colour2 at 0x20 and
+//      un-rotates kind 1's temporaries. A shared colour1 call after the arms
+//      gets the call merged but swaps the two colour slots (79.9%).
+//  (4) kind 7 takes `color` before `start` (permute.py): that puts start,
+//      nSeg and the outer counter in the original's slots and gives the outer
+//      loop its `jmp` entry with the start reload on the back edge, +0.9.
+// What still differs:
+//  (a) the original merges the two arms' tails (`jmp` into the second arm's
+//      `mov edx,[surface] / push edx / call`, then one colour1 call); here
+//      the y-major arm is laid out after the loop with its own copies (2308
+//      bytes against 2272). A minimal test file shows that MSVC 5 does
+//      merge this exact shape outside a loop, and inside the loop only when the
+//      field_10e == 0 path leaves through `continue`/`goto next`, but then it
+//      merges that path's colour1 call too, which the original does not.
+//      Every `continue`/`goto`/else/else-if spelling tried here is flat.
+//  (b) kind 7: pt's three dwords come out in edx/ecx/eax where the original
+//      has ecx/eax/edx (temp rotation), and the inner loop's prev stores follow.
+//      `pt = *start; sp = pt;` is the same; sp first is 85.8%.
+// The older notes below are from the previous passes; their slot claims are
+// about the old frame, which (1) and (2) above have changed.
 // PARTIAL (83.0%), best of everything tried. Space Bunny Free, issue 4354,
 // 77.6 -> 83.0%. Four sources of gain, each confirmed by check.py:
 // (1) In the kind-7 outer loop the initialisation order is `pt = *start;
@@ -343,14 +379,18 @@ struct Sprite_0049be60 {
     void* field_30;                    // +0x30
 };
 
+struct Angles_0049be60 {
+    short x;
+    short y;
+    short z;
+};
+
 struct Proj_0049be60 {
     Type_0049be60* type;               // +0x0
     Vec3_0049be60 pos;                 // +0x4
     Vec3_0049be60 start;               // +0x10
     char unknown_1c[0x34 - 0x1c];
-    short field_34;                    // +0x34
-    short field_36;                    // +0x36
-    short field_38;                    // +0x38
+    Angles_0049be60 angles;            // +0x34
     char unknown_3a[0x42 - 0x3a];
     int field_42;                      // +0x42
     int field_46;                      // +0x46
@@ -440,10 +480,11 @@ void __stdcall FUN_0049be60(void* surface)
     int scrollXk6;
     Type_0049be60* type;
     int fr;
-    Vec3_0049be60 sp, prev;
+    Vec3_0049be60 sp;
     Vec3_0049be60 pt;
-    short rect[4];
-    short clip[6];
+    Vec3_0049be60 prev;
+    Vec3_0049be60 d;
+    __int64 n64;
     int time = g_game->time;
     void* frame0 = FUN_004b7f30(g_game->gaf_1480f, 0);
     int index = 0;
@@ -512,18 +553,17 @@ void __stdcall FUN_0049be60(void* surface)
                     int sx = 0x80 + (int)*(short*)((char*)&sp + 2);
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
-                    short* rp = &p->field_34;
-                    *(int*)&rect[0] = *(int*)&p->field_34;
-                    rect[2] = (short)(0x8000 + rp[2]);
-                    rect[1] = rect[1] + 0x8000;
-                    FUN_0046bae0(surface, &sp, type->field_74, rect);
+                    Angles_0049be60 rot = p->angles;
+                    rot.y += 0x8000;
+                    rot.z += 0x8000;
+                    FUN_0046bae0(surface, &sp, type->field_74, &rot);
                     Sprite_0049be60* s = (Sprite_0049be60*)type->field_74;
                     if (0 != s->field_30 && p->field_46 > time) {
                         if (type->flag_21) {
-                            rect[0] = p->field_64;
-                            FUN_0046bae0(surface, &sp, s->field_30, rect);
+                            rot.x = p->field_64;
+                            FUN_0046bae0(surface, &sp, s->field_30, &rot);
                         } else {
-                            FUN_0046bae0(surface, &sp, s->field_30, rect);
+                            FUN_0046bae0(surface, &sp, s->field_30, &rot);
                         }
                     }
                 } else if (type->field_10c == 2) {
@@ -541,7 +581,8 @@ void __stdcall FUN_0049be60(void* surface)
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     FUN_004b8500(surface, frame0, sx, sy);
-                    FUN_0046bae0(surface, &sp, type->field_74, clip);
+                    Angles_0049be60 rot3;
+                    FUN_0046bae0(surface, &sp, type->field_74, &rot3);
                 } else if (type->field_10c == 4) {
                     if (type->field_10d < 0xff) {
                         void* gaf = 0;
@@ -587,19 +628,20 @@ void __stdcall FUN_0049be60(void* surface)
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->field_5e >> 1) + 0x20;
                     int sx = ((int)*(short*)((char*)&sp + 2) + 0x80);
                     FUN_004b8500(surface, frame0, sx, sy);
-                    FUN_0046bae0(surface, &sp, type->field_74, &p->field_34);
+                    FUN_0046bae0(surface, &sp, type->field_74, &p->angles);
                 } else if (type->field_10c == 7) {
-                    Vec3_0049be60* start = &p->start;
                     unsigned int color = g_game->palette[type->field_10d];
-                    int dx = pos->x - start->x;
-                    int dy = pos->y - start->y;
-                    int dz = pos->z - start->z;
+                    Vec3_0049be60* start = &p->start;
+                    d.x = pos->x - start->x;
+                    d.y = pos->y - start->y;
+                    d.z = pos->z - start->z;
                     union { int i; short s[2]; } nSeg;
-                    nSeg.i = (int)(((__int64)((int)sqrt(dx * (double)dx + (double)dy * dy + (double)dz * dz)) << 16) / 0x50000);
+                    nSeg.i = (int)(((__int64)((int)sqrt(d.x * (double)d.x + (double)d.y * d.y + (double)d.z * d.z)) << 16) / 0x50000);
                     if (0 != nSeg.i) {
-                        int stepX = (int)(((__int64)dx << 16) / (__int64)nSeg.i);
-                        int stepY = (int)(((__int64)dy << 16) / (__int64)nSeg.i);
-                        int stepZ = (int)(((__int64)dz << 16) / (__int64)nSeg.i);
+                        n64 = nSeg.i;
+                        d.x = (int)(((__int64)d.x << 16) / n64);
+                        d.y = (int)(((__int64)d.y << 16) / n64);
+                        d.z = (int)(((__int64)d.z << 16) / n64);
                         int outer = 2;
                         for (; 1; ) {
                             pt = *start;
@@ -610,9 +652,9 @@ void __stdcall FUN_0049be60(void* surface)
                                     int i = n;
                                     do {
                                         prev = pt;
-                                        sp.x += stepX;
-                                        sp.y = stepY + sp.y;
-                                        sp.z += stepZ;
+                                        sp.x += d.x;
+                                        sp.y = d.y + sp.y;
+                                        sp.z += d.z;
                                         pt = sp;
                                         *(short*)((char*)&pt + 2) +=
                                             (short)((int)(((__int64)rand() * 11) / 0x8000) - 5);

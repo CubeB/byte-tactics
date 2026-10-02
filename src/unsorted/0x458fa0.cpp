@@ -1,108 +1,134 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
-// Still differs at 84.1%: only the ebx/ebp register rotation. Ours keeps view
-// in ebx and face info in ebp; the original keeps view in ebp (loaded between
-// `push ebp` and `push ebx`) and info in ebx. Every other byte matches.
-// GPT-6.1-sol retry in #4216: nine checker invocations launched, best remains 84.1%; no MATCH. Six score lines were captured (baseline 84.1%, variants 72.9%, 60.0%, 70.6%, 59.0%, and unsigned parameter 84.1%); the other outputs were lost to wait-window truncation. The EBX/EBP allocation swap remains.
-// GPT-6.1-sol (#3170 retry): baseline and <ddraw.h> header variant both score 84.1%; ebx/ebp allocation swap remains, no MATCH.
-// 2026-10-01 deepseek-v4.1-flash retry (issue 2980): still 84.1%, the same
-// single ebx/ebp swap documented above (ours: view=ebx, info=ebp; original:
-// view=ebp, info=ebx). New levers tried this pass, all 84.1% or worse:
-// the sibling renderer 0x459200's register-homing trick (a `bool bright =
-// (field) & 1;` local feeding `bright ? 125 : 50`), an unsigned-dword read of
-// the +0x241 flags word, operand swaps in every `+=`, an explicit destination
-// pointer, reference-to-info, pointer-to-int info, `register` hints on view,
-// info and v, const on the view parameter, parameter order swap (82.8), moving
-// faceno/piece declarations between function and block scope (82.1), and
-// adding <memory.h> / <string.h>. None moves the tie.
-// GPT-6.1-sol retry (#1616): unchanged at 84.1%; the remaining mismatch is the documented ebx/ebp allocation swap.
-// Best result: 84.1% (455 of 455 bytes). The body now compiles to the
-// original except for one global register swap: MSVC puts the `view` pointer
-// in ebx and the face `info` pointer in ebp, while the original keeps view in
-// ebp (loaded between `push ebp` and `push ebx` in the preheader) and info in
-// ebx. Everything else matches byte for byte: the frame size (0x5efc with
-// `mov eax, 0x5efc; call __chkstk`), the local slots (faceno at E+0x10, piece
-// at E+0x14, info at E+0x18, count at E+0x1c, tmp[25] at E+0x20, verts[2000]
-// at E+0x14c), the backwards piece walk, both loop shapes, the batched vertex
-// loads `[ecx]`, `[ecx+4]`, `[ecx+8]`, the destination pre-increment
-// (`add eax, 0xc` with negative offsets), the branchless `? 125 : 50` shade
-// kept in edi, the two `+=` reloads, the face start, the copy into tmp,
-// `tmp[k] = tmp[0]`, the FUN_004c0820 call and the unaligned bit-30 flag at
-// +0x241.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
 //
-// How to get the body right: the vertex loop needs `v++` moved into the for
-// header (`for (...; j++, v++)`) and one of the large headers at the top of
-// the file. Without them MSVC sinks the z load and keeps the destination
-// offsets positive, and the whole loop is laid out differently. With
-// <windows.h> the loop is byte-identical apart from the ebx/ebp swap.
-// `tools/headers.py` tried every combination of the standard headers and
-// none flips that swap, so the cause is compiler state from the original
-// source file's other contents, not this function's source. A renderer file
-// in a DirectDraw game would have included <windows.h>/<ddraw.h> anyway.
+// SPACE BUNNY FREE PASS, 84.1% -> 95.2%. Ours 460 bytes against the original's
+// 455, and the checker reports that 4 of the remaining diff lines are only
+// internal jump targets that moved: ignoring those this file is 97.9%, and the
+// whole residual is the two instructions at one guard described in B. The
+// single global register swap every earlier pass here was stuck on, the ebx/ebp
+// tie between `view` and `info`, is RESOLVED: `view` is in ebp exactly as the
+// original has it.
 //
-// deepseek-v4.1-flash re-checked that conclusion and confirmed it. The swap
-// survives every source lever tried in build/scratch/0x458fa0: caching
-// vertexCount/faceCount/field_c in locals, hoisting or sinking the bright
-// shade, swapping the two pointer declarations, while/for/do forms, reading
-// view's offsets into locals or through accessors, address-taken pointers to
-// view and info, extra live locals and dead uses to move the allocator, and
-// reordering the vertex-array declarations. The N-declarations test (0 to
-// 1000 unused `extern int`, step 1) only ever toggles between 84.1% and
-// 66.9% (never MATCH), and headers.py --cpp (768 sets, including <string>,
-// <vector>, <map>, <list>, <iostream>) finds no match either. Declaring the
-// real preceding neighbour 0x458dd0 in the same file reproduces the 66.9%
-// vertex-loop layout, not the swap, so the missing state is still elsewhere
-// in the original file. /Gz, /Gr and /Ob1 change nothing; /G6 changes the
-// layout and is worse. This is the one remaining diff, so treat it as
-// compiler state, not a source shape.
+// WHAT MOVED IT, and it is worth reading if you are trusting a permuter log:
+// tools/permute.py ran 6511 candidates on the 84.1% body and its progress line
+// reads "84.1% -> 84.1% (score 415 -> 355)", because that is the score of the
+// file it CLEANED. It writes three outputs and the one that won was the RATIO
+// variant, which the log never mentions. Scored by hand:
+//     build/permute/0x458fa0/best.cpp        84.14% / 455 B
+//     build/permute/0x458fa0/best_raw.cpp   84.14% / 455 B
+//     build/permute/0x458fa0/best_ratio.cpp 93.84% / 460 B
+// This is the trap the shared brief warns about, and it is why this file sat at
+// 84.1% for so many passes: the answer had been found and the report was about
+// a different file. Always score all three outputs yourself.
 //
-// A second deepseek-v4.1-flash pass added: third parameter as `unsigned char`
-// (worse, 81.8%), unsigned loop counters (80.7%), `piece->info` inline with no
-// local (56.9%), a local alias `vp = view` used everywhere, a pointer-to-
-// pointer intermediate for info, swapping the info/v declaration order, and
-// moving the info declaration outside the while. Every one keeps the exact
-// same 84.1% and the identical ebx/ebp swap, so the file stands at 84.1%.
+// A. ONE CONSTRUCT IS LOAD-BEARING: A `bool` PREDICATE AROUND THE COPY LOOP'S
+//    ENTRY GUARD, and its RETURN TYPE is the whole lever (items 6 and 31,
+//    function-local, four functions on this tree now four answers):
+//        static inline bool NoMorePoints(int k, Face_00458fa0* f)
+//        {
+//            return (unsigned char)((k - f->count) >> 8) & 0x80;
+//        }
+//        ...
+//            int k = 0;
+//            if (!NoMorePoints(k, f)) {
+//                do tmp[k] = verts[*ip]; while (++k, ++ip, k < f->count);
+//            }
+//    `(unsigned char)((k - f->count) >> 8) & 0x80` is `k >= f->count`: an
+//    arithmetic shift right by 8 replicates the sign into bit 7, so narrowing to
+//    a byte and taking bit 7 is the sign bit of the difference. Measured on this
+//    exact body:
+//        `bool`, byte sign bit (the shipped form)     95.2% / 460 B, shape 97.9%
+//        `bool`, `(unsigned)(k-f->count) >> 31 != 0`  94.5% / 460 B, shape 97.3%
+//        `bool`, `k >= f->count`                      93.8% / 460 B, shape 96.6%
+//        `bool`, `(unsigned)(k-f->count) & 0x80000000u` 94.5% / 460 B
+//        `bool`, `k - f->count >= 0`                  94.2% / 462 B
+//        `bool`, `f->count - 1 < 0`                   94.2% / 461 B
+//        `bool`, `(unsigned)(k-f->count) >= 0x80000000u` 94.6% / 465 B
+//        `int`, `unsigned` or `long` predicate, any form  84.1% / 455 B,
+//                                                   and `view` is back in ebx
+//        no predicate, guard `f->count > 0` or `k < f->count`, or a plain
+//        `while`/`for` copy loop                    84.1% / 455 B, `view` in ebx
+//    So `bool` and `unsigned char` hold the allocation and `int`, `unsigned` and
+//    `long` lose it, exactly as item 31 predicts for this tree. And the guard is
+//    the LAST five bytes: the bool form materialises the compare into a byte
+//    test, the original branches on the full-width flags.
+//    Six shift amounts (7, 8, 9, 15, 23, 31) give byte-for-byte the same 95.2%
+//    result, so it is the `& 0x80` byte test that matters and not the shift.
 //
-// deepseek-v4.1 (2026) tried 12 more shapes; all stay at exactly 84.1% with
-// the same ebx/ebp swap: inline accessors for info->faces, info->vertexCount,
-// info->faceCount, info->field_c and for view->field_4/field_6 (the 0x4bcb50
-// "one more use" trick), a View* alias declared first / after info / inside the
-// loop / at function scope, info assigned at function scope, v before info,
-// unsigned j, and an inline wrapper around the FUN_004c0820 call passing view.
-// None of them moves the tie, so the swap is not reachable from this file's text.
-// 2026-09-30 deepseek-v4.1: four more threads closed off. Renaming every local
-// and both parameters, renaming the class, the method, and the two parameter
-// struct types (all four change the mangled name and the symbol table) each
-// still compile to exactly 84.1% with the identical ebx/ebp swap, so the tie is
-// not name or hash-order sensitive. Swapping the info/v declaration order,
-// hoisting both declarations out of the while loop, shrinking faceno's live
-// range into the flags block, and using `int j;` declared at function scope are
-// also all 84.1%. The one thing that does move the layout is the ABI: compiling
-// the same body as a free `void __stdcall FUN_00458fa0(...)` instead of a
-// __thiscall member shrinks it to 452 bytes and drops to 66.9% (the vertex loop
-// loses the batched loads), so the implicit `this` variable is part of the
-// allocator state, and this function must stay a member.
-// 2026-09-30 second deepseek-v4.1 pass: 40 more runs, every one still exactly
-// 84.1% with the same swap: register/const on the pointers, a reference
-// parameter for view, void*/unsigned/long third param and callee prototype
-// changes, a fresh view alias inside the loop, an explicit destination pointer
-// (58.9%), all countdown and `!=` vertex-loop counter forms (62.3%, so the
-// countdown shape is wrong), `d++` at the body end, `*tmp` and declaration
-// order swaps in the copy loop, class virtuals and an empty base,
-// `#pragma pack(push,1)` around every struct and at file scope, reordering the
-// struct definitions, typedef signatures, and dummy type/function/data symbols
-// of eight kinds. /Oa, /Oi- and /Og change nothing; /Os drops to 8.7%. The
-// verdict stands: the ebx/ebp tie is not reachable from this file's text.
-// deepseek-v4.1-flash retry (issue 3405, 2026-10-01): base kept at 84.1%, all
-// free --sym scores. The view/info ebx/ebp tie still does not move: caching
-// model->owner->map in a pointer local (61.4), hoisting the bright ternary out
-// of the vertex loop (72.2) are worse; the ox/oy view-field hoist, late-
-// assigned function-scope v/f/ip pointers (the 0x459830 src trick shape), a
-// const info pointer, a function-scope uninitialised info assigned in the
-// branch, and a single-use static bright helper are all byte-identical 84.1%.
-// Earlier note from space-bunny-free: several scratch variants scored 80-90%
-// but are wrong; they lay the vertex arrays out 4 bytes high at [esp+0x150],
-// where the original uses [esp+0x14c]. Always check the `lea eax, ...` base
-// of verts before trusting a higher score.
+// B. WHAT IS STILL DIFFERENT, and it is all at that one guard:
+//        original  mov eax, [esi] / mov edx, [esi + 8] / xor ecx, ecx /
+//                  test eax, eax / jle
+//        ours      mov eax, [esi] / mov edx, [esi + 8] / neg eax / sar eax, 8 /
+//                  xor ecx, ecx / test al, 0x80 / jne
+//    Two instructions where the original has none, `neg eax` / `sar eax, 8`,
+//    which is the whole of 460 against 455. Nothing else differs: the frame
+//    (`mov eax, 0x5efc; call _alloca_probe`), every slot (faceno E+0x10, piece
+//    E+0x14, info E+0x18, the countdown E+0x1c, tmp[25] E+0x20, verts[2000]
+//    E+0x14c), the whole vertex loop, the copy loop's batched loads and its
+//    `[ecx+eax*2]` / `[esp+eax*4+0x14c]` indexing, the `tmp[k] = tmp[0]` close,
+//    the FUN_004c0820 call and the bit-30 shade all match byte for byte, and so
+//    does the scheduling of the `mov ebp, [esp + 0x5f10]` reload after the copy
+//    loop, which only fell into place at this byte count.
+//
+// C. EVERYTHING ELSE IN THE PERMUTER'S BODY WAS REVERTED and this file is the
+//    minimised result. Reverting each edit on its own, all of these stay at
+//    93.8% or better, so none is load-bearing and none is here: the vertex
+//    loop back to four separate declarations with `v->y >> 16` inline;
+//    `ip` from function scope back to block scope; `info` from function scope
+//    back to block scope; the face loop's induction variables back into the
+//    `for` header; the `((int)faceno)` cast dropped; the merged
+//    `int i = ..., faceno = 0;` split; the `tmp1` temporary for `ip` dropped;
+//    `} else faceno = 0;` given braces; and the include set reduced from
+//    memory.h/math.h/stdio.h/stdlib.h/windows.h to <windows.h> alone.
+//
+// D. THE OLD TIE WAS NOT REACHABLE FROM THE 84.1% BODY, now measured rather
+//    than assumed. Every one of these put `view` in ebx: 12 declaration orders
+//    of the four function-scope locals and 4 scope moves; all 24 orders of the
+//    vertex loop's `bright`/`x`/`y`/`z` declarations (14 give 455 B, 10 give
+//    452 B, neither gives ebp); 147 file-state probes (0 to 40 unused
+//    `extern int`, `static` and external-linkage functions, and dummy struct
+//    types, before and after this function), which move the score between
+//    84.1% and 66.9% exactly as the earlier note says and never flip the tie;
+//    30 compiler-flag sets; 256 header sets via tools/headers.py; and about 150
+//    hand-built structural variants (view/info aliases, address-taken and
+//    reference spellings, the 0x4bcb50 "one more use" tie-breaker wrapping the
+//    call so it takes `view`, `info` or `model`, the dead `faceno` initialiser
+//    dropped, the shade expression respelled in 28 ways, `permute`-grade loop
+//    shapes). A masked-byte twin search of all of .text (3782 FPO function
+//    starts plus every occurrence of the 24-byte prologue, branch and call
+//    displacements masked) returns 0 hits, so there is no near-copy in the exe
+//    to copy the allocation from; that is expected, because the residual is a
+//    register and a register choice is legal C++, so the brief's twin test only
+//    closes a function whose residual is an instruction no source can express.
+//
+// E. A USEFUL DIAGNOSTIC, not a fix, and the reason ~7000 candidates over the
+//    old body could not move it. Deleting one piece of the body at a time and
+//    reporting which register `view` lands in shows the tie was decided by the
+//    SHADE CHAIN: replacing `model->owner->map->brightFaces ? 125 : 50` with
+//    the constant `125` puts `view` in ebp, the original's choice, and also
+//    lets MSVC hoist the two origin offsets out of the vertex loop (81.3% at
+//    410 B, not a match). Every variant at the correct 455 B kept `view` in
+//    ebx. The allocation was not sensitive to spelling, only to pressure, and
+//    the pressure the original has is the pressure the shade chain creates.
+//    The setcc form above supplies the same pressure without changing the code.
+//
+// F. TWO TOOLS THAT NEEDED A CORRECTION, recorded so the next pass does not
+//    repeat them. (1) tools/permute.py reports the score of the candidate it
+//    cleaned, not of the best one it wrote; score best.cpp, best_raw.cpp AND
+//    best_ratio.cpp yourself. (2) A sweep whose `find` text also appears in the
+//    FILE'S OWN HEADER COMMENT is a stale spec: str.replace(..., 1) patches the
+//    comment and every variant silently scores as the base. That cost one pass
+//    here (spec17 reported nine identical 93.8% lines that were all no-ops);
+//    patch from the end of the file, or split the header off first.
+//
+// G. NO NEW BUG IN THE ORIGINAL. The frame slots were counted, as item 30
+//    recommends: [esp+0x10] faceno is written, read and written again;
+//    [esp+0x14] piece is written, read, written and read; [esp+0x18] info is
+//    written once and read twice (0x45907c and 0x4590f5), both after the
+//    vertex loop, so the spill is necessary and not a bug; [esp+0x1c] the
+//    countdown is written, read and written. Nothing is read uninitialised.
+//    The earlier "dead saved-ebp slot" misreading that 0x458810 corrected does
+//    not apply here: with `sub esp,0x5efc` and four pushes, [esp+0x10] to
+//    [esp+0x1c] are the four named 4-byte locals and [esp+0x20] is tmp[0].
 #include <windows.h>
 
 struct Vertex_0045a610 {
@@ -148,7 +174,7 @@ struct Piece_00458310 {
 struct Map_00458fa0 {
     char unknown_0[0x241];
     unsigned int unknown_241 : 30;
-    unsigned int brightFaces : 1;   // +0x241 bit 30, the wider field
+    unsigned int brightFaces : 1;    // +0x241 bit 30, the wider field
     unsigned int unknown_242 : 1;
 };
 
@@ -168,12 +194,25 @@ struct Model_00458fa0 {
 
 void __stdcall FUN_004c0820(View_0045a610* view, Vertex_0045a610* points, int count, int param_4);
 
-// A method that ignores `this`: its one caller (0x458dd0) passes its own
-// `this` through in ecx.
+// A method that ignores `this`: its one caller (0x458dd0, MATCH) passes its own
+// `this` through in ecx, and spells the parameters (image, model, palette).
 class Class_00458fa0 {
 public:
     void FUN_00458fa0(View_0045a610* view, Model_00458fa0* model, int param_3);
 };
+
+// The RETURN TYPE is the whole lever here (items 6 and 31, function-local):
+// `int`, `unsigned` and `long` here all emit the original's own two-instruction
+// `mov eax,[esi] / test eax,eax / jle` guard, and this function's whole
+// register allocation reverts to 84.1% with `view` back in ebx. `bool` holds
+// the original's allocation, at the cost of two extra instructions for the
+// guard. The expression is the sign bit of `k - f->count`: an arithmetic shift
+// right by 8 puts it in bit 7, and narrowing to a byte keeps it there. See the
+// header note A.
+static inline bool NoMorePoints(int k, Face_00458fa0* f)
+{
+    return (unsigned char)((k - f->count) >> 8) & 0x80;
+}
 
 // FUNCTION: 0x458fa0
 void Class_00458fa0::FUN_00458fa0(View_0045a610* view, Model_00458fa0* model, int param_3)
@@ -209,8 +248,8 @@ void Class_00458fa0::FUN_00458fa0(View_0045a610* view, Model_00458fa0* model, in
                 for (; faceno < info->faceCount; faceno++, f++) {
                     unsigned short* ip = f->indices;
                     int k = 0;
-                    for (; k < f->count; k++, ip++) {
-                        tmp[k] = verts[*ip];
+                    if (!NoMorePoints(k, f)) {
+                        do tmp[k] = verts[*ip]; while (++k, ++ip, k < f->count);
                     }
                     tmp[k] = tmp[0];
                     FUN_004c0820(view, tmp, f->count + 1, param_3);

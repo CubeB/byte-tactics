@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // (previously: deepseek-v4.1-flash, GPT-6, space-bunny-free.)
 //
 // Partial: 99.4% (1116 of 1116 bytes, the byte count already matches).
@@ -156,6 +156,30 @@
 //    padding and filler declarations (to shift MSVC's internal node ids).
 //    Two runs of permute.py from 97.6% and from 99.4% (1250 and 5012
 //    candidates) found nothing beyond this.
+//
+// DeepSeek V4.1 Flash (issue #4758), this session: no new best. A fresh run of
+// permute.py (3 min, 2220 candidates) found nothing. headers.py tried all 256
+// header sets (none match). Optimization-flag variants re-checked: /Oi, /Ot,
+// /Op and /Ob1 are byte-identical to the default; /Ow and /Oa change the
+// instruction sequence (/Oa relaxes the alias assumptions), 66.6% and 65.3%,
+// far worse. Fresh micro-probes under /O2 (with the same eax-busy with a byte
+// call result as here) re-confirm the split:
+//   * direct `g_game->field_2bf1[n] = v` -> pointer in the index slot, in EDX;
+//   * any named-local/array-pointer/reference form -> pointer in the base slot,
+//     but the register becomes ECX (`[ecx + esi + 0x2bf1]`), and every such
+//     form also drags the SENDTO branch's `mov eax, [edi+0x60]` with it, so the
+//     whole function drops to 98.4%.
+//   * Forcing the local into EDX needs another value already live in ECX with
+//     no extra instructions; none exists at that point (n is ESI, v is EAX, and
+//     every added dummy local emits code or crosses a call and lands in a
+//     callee-saved register). A local declared before the FUN_004a0ff0 call
+//     moves to EBX, as recorded above.
+// A brute force over ~30 fresh spellings of the first store (direct, cast,
+// comma, unary, local in every form, two locals, split declaration, void*,
+// char*, call-result-direct) and ~10 of the second store (including a shared
+// local used by both the memset and the store) produced no `[edx + esi ...]`
+// or `[edx + eax ...]` store. The residual is the two SIB bytes and nothing
+// else; it stays stuck.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>

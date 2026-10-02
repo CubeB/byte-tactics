@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Retry (deepseek-v4.1-flash, 2026-10): confirmed the neg/shl/sub target block
 // appears for EVERY spelling whose correction is a real multiply tree, inline
 // or materialised: ((-q)<<31)-q, q*0x7fffffff, q*-2147483647, -q*2147483648,
@@ -187,6 +187,29 @@ extern unsigned int DAT_0051fc88;
 // the 101-byte chain-hoisted form); 5 min on this file found nothing.
 // A parallel scorer that runs check.py over a list of generated variants at
 // about 16 per second was in build/scratch/0x4b6c30/fast.py of that worktree.
+// deepseek-v4.1-flash (issue 4516, finishing): 95.0% kept, still no MATCH.
+// (a) Step-1 (not step-8) dummy-declaration sweeps, N = 0 to 1200, are flat on
+//     all forms: plain (no <windows.h>) stays 33.8%, plain + <windows.h> stays
+//     57.5%, the retained shift form stays 95.0%, shift + <windows.h> 33.8%.
+//     So the missing combination is not a narrow compiler-heap window (the
+//     earlier step-8 sweeps did not miss one).
+// (b) A fresh 3-minute tools/permute.py run (3719 candidates) found nothing.
+// (c) About 250 variants were tried this round: the second division moved
+//     inside the correction statement next to a real multiply (V1/V2/W family,
+//     all fall back to plain 57.5/33.8), named-local cancelling forms
+//     (`c = q*C + seed/127773 - q` and 20 more), the multiply spelled with
+//     negative constants (0x80000001, -2147483647, -0x7fffffff), and register
+//     storage on seed/q. None changed the outcome.
+// (d) The one interesting near miss: `c = (seed/127773) * -2147483647;
+//     seed = seed*16807 - c;` scores 72.2% (101 bytes) without <windows.h>.
+//     MSVC keeps a real multiply node, the division stays first and seed stays
+//     in esi, so the correction block `neg; shl 31; sub` appears (in eax, not
+//     edx) and the product becomes `imul esi,esi,0x41a7`. It is not usable: the
+//     value is p + q*C, the wrong sign, so the emitted tail adds. Writing the
+//     correct-sign version folds the double negative and drops back to 33.8% or
+//     57.5%. The retained shift form is still the only spelling that keeps the
+//     lea chain and the original schedule; its two-instruction tail (`sub edx,
+//     ecx; sub eax, edx` vs our `add ecx, edx; add eax, ecx`) remains.
 // FUNCTION: 0x4b6c30
 int __stdcall FUN_004b6c30(int range)
 {

@@ -1,7 +1,30 @@
 // Decompiled by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free,
 // claude-opus-5-5 (#4373), GPT-6.1-sol, mimo-v2.6-pro, space-bunny-free (#4489)
-// and space-bunny-free (#4539), space-bunny-free (#4652), Space Bunny Free (#4688).
+// and space-bunny-free (#4539), space-bunny-free (#4652), Space Bunny Free (#4688),
+// finished by DeepSeek V4.1 Flash (issue 4875).
 // Names are provisional.
+// DeepSeek V4.1 Flash pass (issue 4875): best stays 89.8% (6 differing bytes,
+// 0x4ac910/0x4ac913 in the prologue and 0x4ac926/0x4ac92f/0x4ac936/0x4ac945 in
+// the loop). Measured with a byte scorer over about 60 fresh variants
+// (build/scratch/0x4ac8c0/harness.py, batch.py, run_pro*.py, run_loop.py,
+// run_cond.py), all new, do not repeat:
+//  - the 24 rect store orders still hoist the ebx-derived pair; only
+//    left,top,right,bottom and its three rotations keep 6 bytes, the rest 9 to 11.
+//  - member forms (right = p.r.left + 7, bottom = p.r.top + 7), right/bottom
+//    temps, 7 + y, swapped sums, (x - x) dependencies, int/short gy temps,
+//    merged `gadgets->y + grid->y` and `gadgets[index].y` forms, pointer-cast
+//    loads, and prologue statement orders (gx before/after s, surface direct,
+//    surface after x0, y before the x0 load, add-before-surface, both adds
+//    reversed) are all inert at 6 bytes or a size shift (166 to 181).
+//  - the COND on the two x stores stays the only flip: conditions edi, col, row,
+//    y, x + 1, !col, col == 0, and x alone all keep a real branch, 180 to 194
+//    bytes; only the folded W(a,b) = a ? b : b reaches the esi hoist, and it
+//    still moves the surface reload to rank 1 (state B, 18 bytes).
+//  - tools/permute.py default seed and seed 123, 3 minutes and 3 jobs each
+//    (2562 and 2590 candidates): 89.8% to 89.8%, empty best.diff.
+// Still differs: grid->y goes into eax where the original uses edx, and the loop
+// hoists (y + 7, bottom) where the original hoists (x + 7, right). No spelling
+// tried reaches both.
 // Space Bunny Free pass (issue 4688): best stays 89.8% (167/167 bytes, 6 differing
 // bytes). Nothing beat it. The useful new result is the exact byte map of the six
 // bytes (dbytes.py prints them): 0x050 and 0x053 are the destination register of

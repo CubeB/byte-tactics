@@ -1,4 +1,31 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// space-bunny-free session (50 min): still 99.5, 613 of 613 bytes, the same single hunk (the walk1
+// latch reloads pts then the index, the original reloads the index then pts). What this session
+// added, all screened on the /Fa listing and all inert (identical latch order, mostly identical
+// bytes): the value in [esp+0x24] is an UNNAMED compiler temp, the CSE of the walk head's `i - 1`
+// with the latch's, never a source local, so no spelling of `j` can move it (a function-scope `j`
+// in walk1 only, or in both walks, compiles to the same 339-line listing, frame included); the
+// frame leaves 16 free bytes below the first live slot (0x0-0xc), and moving all four fill
+// temporaries (h, y, dy, rows) to function scope fits in them, frame still 0x14024 and every other
+// byte unchanged, so slot numbering is not the discriminator either; dead function-scope locals
+// (one to three, plain, initialised) and dead block-locals in the walk head, the fill and the
+// first scan change nothing, so neither is the lclvar count; const-ness of the parameters and of
+// the Point fields, and a `const Point* const cp = pts` view for the reads, change nothing; the
+// fill loop as for(;rows;--rows), while(rows){...rows--;}, do/while(rows-- > 0), out = out + 1, or
+// out++ first, changes nothing; a forward `goto` for the failing `y0 < y1` test (walk1 alone, both
+// walks, and spelled `!(y0 < y1)`) leaves the same graph and the same order, and neither does
+// swapping the loop test's operands (`while (iymax != i)`, `while (!(i == iymax))`) or the
+// pre-decrement spelling `i -= 1`. Rejected with a
+// full score: dropping the `b` local and indexing `pts[j]` directly, the 0x4c1000 shape, is 93.6%
+// at the same 613 bytes, so the function-scope `b` is what holds slot 0x20 in both walks here;
+// `int rows = y1 - y0` and `int h = b->y - y0` (either re-read the original does not make) turn the
+// walk head into the pointer-walking form; folding `b = &pts[j]` into the y1 read, or reading y1
+// straight off the array, changes the head. tools/permute.py (12 min budget, 8913 candidates, seed
+// 11) and tools/headers.py (128 sets) are both flat at 99.5. Best next lead: the order is chosen
+// inside one block's exit code and MSVC emits walk2's equivalent pair the other way round in
+// 0x4c1000, so it is not a function-wide counter; find a source shape that changes the block graph
+// AT the latch (the predecessor set of the latch, or whether the fill's exit and the latch are one
+// block) without changing the emitted bytes, which is the only lever every sweep so far has missed.
 // DeepSeek V4.1 Flash session (45 min): still 99.5, 613 of 613 bytes, the same single hunk (walk1
 // latch loads pts then i; original loads i then pts). Re-confirmed nothing in the header state:
 // tools/headers.py --cpp (768 sets) is flat at 99.5. Swept and rejected this session, all 99.5 with

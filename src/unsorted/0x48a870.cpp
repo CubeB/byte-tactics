@@ -1,5 +1,63 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 //
+// 30-min checkpoint (space-bunny-free, #4496). Best stays 88.8% / 262 bytes, the
+// pointer form at the bottom of this file; nothing below beat it in ~40 check.py
+// runs plus a 336-spelling sweep (build/scratch/0x48a870/: gen.py, metric.py,
+// sweep.py, asm.py). The sweep scores each variant by how many of the original's
+// 15 instructions (the 11 of the bit 19 block plus its 4-instruction epilogue) it
+// reproduces, which is a much sharper signal than the check.py percentage. The
+// distribution over bases x draft x product x sea x operand order:
+// 144 spellings at 8/15 (every direct `g_game->seaLevel`), 24 at 5/15, 24 at 1/15.
+// New facts this pass:
+// 1. The g_game LOAD IS NOT HOISTED WHEN THE ADDRESS IS TAKEN OF A MEMBER, but
+//    the only such spelling that also keeps the earlier `mov ecx,[esi+0x92]`
+//    type load in ecx is `g_game->seaLevel` itself, which hoists. A local
+//    pointer to the game (`Game* g = g_game;`, before OR after the product, at
+//    function scope, via `&g_game->seaLevel`, through `Game**`, through a
+//    `static Game*`, through a reference) does stop the hoist, but every one of
+//    them rotates the earlier allocation: the second type load goes to eax, the
+//    flags to ecx, and the whole function drops to 73-74%. Same for a local
+//    `UnitType* t = unit->type;` anywhere in that scope (73-80%), which is the
+//    callee-saved register rotation wall of docs/field-notes.md item 2.
+// 2. What DOES change the block's shape: a `UnitType* t` local in the outer if
+//    body makes the on_water block put the draft in edx, the product in eax
+//    (copy form), the g_game load LATE (after the product) and the sea in ecx
+//    (out/k2_t_direct.cpp, 82.2% / 270 bytes). So "g load late" and "draft in
+//    eax" are reachable separately; the target needs both at once, and the
+//    pressure that pushes the load late also pushes the draft out of eax.
+// 3. An `Identity(v)` wrapper (the trick from #4241) changes nothing here: all
+//    five placements (on the draft, on the sea, on the product, on the sum, on
+//    both) give byte-identical code to the plain form. Inlined helpers
+//    (GetGame(), SeaOf(), AddSea(v), MakeY(a,b)), `*p -= draft` for the
+//    strength reduction, `0xffff *` and `* 65535`, `65535 * draft`, an unsigned
+//    cast, a 64 bit cast, an extra `+ 0`, `0 + (...)`, `(*p) - (0 - sea)`,
+//    `(*p) - -sea`, two pointers to the same local, and a dead `if (h == h)`
+//    all give the same 8/15.
+// 4. tools/permute.py on the pointer form (start 73.0%) and on the best form
+//    (start 88.8%, 40 mutations) found no better spelling in 721 and ~1500
+//    candidates.
+// 5. The three levers that matched other functions this hour, measured here and
+//    all flat: a dead store in a statically folded branch between the hoisted
+//    load and its use (`if (0) unit->pos.x = 1;`, `if (0) g_game->seaLevel = 0;`,
+//    `int t = 0; if (t) ...`, `while (0) ...`, and `if (0) s_game = g_game;`)
+//    is gone before codegen, so the hoist is not blocked: all 8/15.
+//    `Identity()` with int, Game*, int* and UnitType* overloads, wrapped around
+//    the draft, the sea, the product, the sum, `&h` and the g pointer, is
+//    byte-identical to the plain form (8/15) or rotates like a plain pointer
+//    (73-74%). Two different pointers for the same value (two type pointers,
+//    two game pointers, `&g1[0]`) gives 8/15 or 73%.
+// 6. The only non-pointer way to get the load late is the accumulating form:
+//    the store to `unit->pos.y` may alias g_game, so `mov edx,[g_game]` stays
+//    below it. That reproduces the original's first five instructions and the
+//    late load, but the product is still in eax, g_game in edx (6 bytes) and
+//    the sea in ecx, and the leftover store costs 3 bytes: 265 bytes, 88.3%
+//    (every spelling of it: `+=` then `<<=`, one statement, `*= 0x10000`, the
+//    pointer form, a dead read of pos.x, 265-270 bytes, 88.1-88.4%).
+// So "load late" and "product in ecx with a 5 byte A1 load in eax" have each
+// been reached alone and never together: whichever register the allocator gives
+// the g_game temp, it gives the same one the dead draft had, and the original
+// needs the draft in eax, which the g pointer route loses.
+// The 30-min checkpoint below is the previous pass's record, kept for context.
 // 30-min checkpoint (deepseek-v4.1-flash, #4308). Best stays 88.8% / 262 bytes
 // (the pointer form below). Two NEW measured facts this pass, both from the
 // compiler's own listings (build/scratch/0x48a870/, gen.py + search.py):

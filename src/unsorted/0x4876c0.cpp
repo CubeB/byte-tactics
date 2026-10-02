@@ -3,28 +3,80 @@
 // byte record; inverse of 0x487080/0x486fd0. Record and Piece field maps are
 // complete and confirmed by the 0x487080 loader.
 //
-// PARTIAL 85.6% (1060 bytes vs the original's 1062). What got it here (74.0% -> 85.6%):
+// PARTIAL 90.1%, size-exact at 1062 bytes. What got it here (74.0% -> 90.1%):
 //  - rec.f89 is `unit->f86 == 0 ? 0 : a->f_a8` (zero arm first, the original's
 //    layout) and the id8b ternary is `unit->f_f0 == 0 ? 0 : a2->f_a8`: the
 //    original keeps a third, reloaded null test in both guards. The second one
 //    also brings the size from 1058 to the original's 1062.
 //  - the 3x piece copy is written as dp[k].fc, f4, f8 (obj deref), f0, ...:
-//    that keeps the `lea esi,[ebp+0xc]` anchor (the f8 member) and now puts the
-//    `add esi,0x1c` / `add eax,0x18` increments mid-body like the original. All
-//    24 orders of the first four statements were scored; 76.2% was the best.
+//    that keeps the `lea esi,[ebp+0xc]` anchor (the f8 member) and puts the
+//    `add esi,0x1c` / `add eax,0x18` increments mid-body like the original.
 //  - tools/permute.py found the next steps: `rec.flags.a = Get10f(unit) & 0xf`
-//    with Get10f an inline helper returning the unsigned char (an int-returning
-//    helper, or a direct `unit->b_10f & 0xf`, scores 82.8 and 81.7); that gives
-//    the original's `xor ecx,ecx; mov cl,[b_10f]` and its zero in ecx. Also
-//    `short id8b = 0;` is declared before `Unit* a` (next to a2 it loses 7 points).
+//    with Get10f an inline helper returning the unsigned char, and
+//    `short id8b = 0;` declared before `Unit* a`.
 //  - earlier passes: `rec.pos = unit->pos` / packed copies for the rec+0x2b
 //    block, obj-deref first, `unit->f86` reload for the rec.f27 and f89 guards.
+//  - 85.6% -> 88.5%: statement order in the rec+0x8f..+0xbb block. The
+//    `rec.f8b = id8b;` store moves from 6th to 10th of the sixteen
+//    (build/scratch/0x4876c0/search.py, mode `cheap`).
+//  - 88.5% -> 88.7% and the size reaches the original's 1062: `short id8b` is
+//    written through a pointer, `short* pid8b = &id8b; ... *pid8b = ...;
+//    rec.f8b = *pid8b;` (build/scratch/0x4876c0/variants2.py, "id8b through
+//    ptr"). The 2 bytes are a second `xor ecx, ecx`, so the size landing on 1062
+//    is a real signal, but it is the wrong xor: see "Still differs" below.
+//  - 88.7% -> 90.1%: with the pointer in place, `rec.f8e = unit->f_f4;` moves
+//    ahead of `rec.f8f = unit->f58;` in the sixteen (both directions are the
+//    same permutation). Note this single swap is worth 1.4 points WITH the
+//    pointer and costs 0.8 points WITHOUT it, so the two levers only work
+//    together: that is the technique-17 case, re-sweep what you rejected.
 // Still differs:
-//  - the rec+0x8f..+0xbb field block: the scratch registers and the order of
-//    the loads/stores are scheduled differently (the original loads f4 into dl
-//    and f5 into al, ours al/al; 15 diff lines), the source order matches.
-//  - the first loop iteration loads f10 first ([esi+8]) where the original loads
-//    f0 first ([esi-8]); the f0-first orders lose the f8 anchor.
+//  - the original zeroes ecx a second time at 0x4879d3, immediately after the
+//    rec.fa3 store `mov [esp+0xbb],ecx` at 0x4879cc and just before
+//    `mov cl,[ebp+0x10f]` at 0x4879da. Our codegen fills cl of a dead ecx and
+//    masks it, which is the same value 2 bytes narrower. We now emit the two
+//    xors the original has, but ours is the id8b one just before
+//    `mov cx,[eax+0xa8]` at 0x4878ed, where the original shares one zero
+//    (emitted at 0x48785e) between the rec.f89 and rec.f8b stores. So the size
+//    is right and the two zeros sit in the wrong order.
+//  - the register split of the block: the original gives f104 to edx and fb0 to
+//    ecx (so ecx dies right before the b_10f load and must be re-zeroed), ours
+//    gives f104 to ecx and fb0 to eax. The original's first dword (f58) goes to
+//    eax and the first byte (f_f4) to dl; ours sends f58 to edx and f_f4 to al,
+//    which is what makes al the byte scratch for four loads where the original
+//    splits dl (three) and al (one).
+//  - the first piece-loop iteration loads f10 ([esi+8]) where the original loads
+//    f0 ([esi-8]) and stores it at [eax-4]; the source order is the same.
+// Measured and rejected on the current body:
+//  - tools/headers.py: all 256 header sets are 88.5% or worse, `<string.h>` (what
+//    we have) among the best, so there is no header lever here.
+//  - declaration order is inert: all 6 orders of the three function-scope
+//    declarations, all 6 of rec/bufTail+script/bufHead, both of n/c, both of
+//    id8b/a, and id8b or u moved to each of five group tops are all 88.7% and
+//    fine=1318, byte-identical. One measured sweep, recorded either way.
+//  - a getter for any single other field of the block (f104, f76, f58, fac,
+//    f7a, f7e, fb0, f_f6, f_f8, f_f7, f_fa) is byte-identical to no getter:
+//    MSVC 5 inlines them away and the load keeps its place.
+//  - all 57 single relocations and adjacent transpositions of the eight dp[k]
+//    piece-copy statements are worse than our order (best 1383 fine / 87.7%
+//    against 1278 / 90.1%), so the f0-first loop iteration is not reachable by
+//    reordering those statements.
+//  - `volatile` on unit fields (all, flags, f108, fb8, the piece fields) does
+//    not help here (70.8 to 77.7), unlike 0x487bf0. See the volatile note
+//    below: no field in this function meets the bar anyway.
+// For `rec.flags.a = Get10f(unit) & 0xf` (measured on the 85.6% body, re-check
+// the ones that changed the size): an int- or unsigned-int-returning Get10f
+// gives 1065 (82.8%), a plain `unit->b_10f & 0xf` or any int/unsigned char
+// temporary gives 81.7%, a signed char getter is byte-identical to the
+// unsigned char one, a ushort or short getter gives the right 1062 but via
+// `movzx cx,[ebp+0x10f]` rather than `xor ecx,ecx` plus `mov cl,...`, and
+// moving the five flags lines before the block gives 1061 (71.0%). An 8-bit
+// `flags.a` and a `flags.a : 1` + `: 3` split are both worse (73.1%, 84.9%).
+//  - for `rec.flags.a = Get10f(unit) & 0xf`: an int- or unsigned-int-returning
+//    Get10f gives 1065 (82.8%), a plain `unit->b_10f & 0xf` or any int/unsigned
+//    char temporary gives 81.7%, a signed char getter is byte-identical to the
+//    unsigned char one, and moving the five flags lines before the block gives
+//    1061 (71.0%). A `flags.a : 1 + : 3` split and an 8-bit `flags.a` are worse
+//    (84.9% and 73.1%).
 //  - volatile on unit fields (all, flags, f108, fb8, the piece fields) does not
 //    help here (70.8 to 77.7), unlike 0x487bf0.
 #include <string.h>
@@ -271,6 +323,7 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             rec.f27 = unit->vtable != 0;
 
             short id8b = 0;
+            short* pid8b = &id8b;
             Unit_004876c0* a = (Unit_004876c0*)unit->f86;
 
             if (a != 0 && (a->flags & 0x10000000)) {
@@ -283,19 +336,19 @@ void __stdcall FUN_004876c0(Class_004b4560* file)
             Unit_004876c0* a2 = (Unit_004876c0*)unit->f_f0;
             if (a2 != 0) {
                 if (a2->flags & 0x10000000)
-                    id8b = unit->f_f0 == 0 ? 0 : a2->f_a8;
+                    *pid8b = unit->f_f0 == 0 ? 0 : a2->f_a8;
             }
 
-            rec.f8f = unit->f58;
             rec.f8e = unit->f_f4;
+            rec.f8f = unit->f58;
             rec.f9b = unit->f7e;
             rec.fab = unit->f_f5;
             rec.f97 = unit->f7a;
-            rec.f8b = id8b;
             rec.fae = unit->fba;
             rec.fa7 = unit->f104;
             rec.f93 = unit->f76;
             rec.fad = unit->f_f7;
+            rec.f8b = *pid8b;
             rec.fb2 = unit->b_10e;
             rec.f9f = unit->fac;
             rec.fb1 = unit->f_fa;

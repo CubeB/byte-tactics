@@ -1,4 +1,17 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by Space Bunny Free. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash second pass (still 96.1%, no code change): two 3-minute
+// permuter runs (2224 candidates on the file below, 3385 seeded from the
+// obj-first width-pointer variant) found nothing. Confirmed by hand that the
+// obj-first guard written `if (obj->field_82 != g_game->field_142b7)` on top of
+// the width pointer reproduces the original's guard bytes AND keeps pos.y in
+// eax, giving 507 bytes / 82.8% whose index block differs from the original by
+// exactly the missing fold. About 60 more index spellings seeded from that
+// 82.8% candidate (short/int/unsigned locals for y, size via a pointer, the
+// width through `int*`/`const int*`/`int&` to the local and to the field,
+// element and cast forms, `Point`/`Point*` copies, named row/index temporaries,
+// a live dummy use) all emit `mov ecx,[width]; imul eax,ecx`, never
+// `imul eax,[width]`. So the cross obj-first + fold is unreachable from source
+// in this file, and the 2-byte residual stands.
 // PARTIAL, 96.1%, 505 bytes vs 505: the width-pointer form below is the whole
 // improvement over the 93.5% that was here when this pass started.
 // claude-sonnet-5-5 pass (still 93.5%): the ORIGINAL guard is the obj-first one

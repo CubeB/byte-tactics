@@ -1,4 +1,39 @@
-// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by Space Bunny Free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by space-bunny-free, edited by deepseek-v4.1-flash, finished by mimo-v2.6-pro, re-verified by space-bunny-free. Names are provisional.
+// space-bunny-free (issue #4352): best stays 83.6% (488/488 bytes), no MATCH. Re-derived the
+// original's x87 schedule with a numeric x87 interpreter run over the raw bytes
+// (build/scratch/0x49a890/x87run.py) rather than by eye. Two things settled; the first is a
+// trap nobody should walk into twice.
+//
+//   * THE `disc` SPELLED BELOW IS CORRECT. A hand symbolic trace produces a different but
+//     plausible discriminant, (q + h2*gg)*A - A*gg*sum with q = d*d*s2, because it reads
+//     `fxch st(3)` as a reversal of the stack. `fxch st(N)` swaps only st(0) and st(N): on
+//     [gg, A, d4, h2] at 0x49a924 it gives [h2, A, d4, gg], so the multiply after it is
+//     A*s2, not d4*s2. Simulating the bytes at g=98, h=50, R=1000, v=500 gives 5.5346e22,
+//     which is exactly what this file's expression evaluates to; the wrong tree gives
+//     6.4950e22. Spelling the wrong one costs about 18 points (best 65.5%), and every form
+//     of it with A named or inlined grows the frame to `sub esp,0x38`.
+//
+//   * VERIFIED TREE (dist = _hypot(x,z), d = dist*dist, s2 = speed*speed, h2 = height*height,
+//     gh = g*height, A = s2 - gh*-2.0, gg = g*g, sum = h2 + d):
+//         disc = (A*s2 + h2*gg)*d*d - (d*d)*gg*sum
+//         num = (s2+gh)*d ; high = (sqrt(disc)+num)/(2*sum) ; low = (num-sqrt(disc))/(2*sum)
+//     The original evaluates in this order: gh, d, s2, h2, gh*-2, d*d, A, (fild gg), A*s2,
+//     h2*gg, sum, (d*d)*gg, (A*s2)+(h2*gg), (d*d)*gg*sum, then the product, then the fsubp.
+//     Constants read out of the image: 0x4fda60 = -2.0, 0x4fda68 = 0.0, 0x4fda78 = pi/2,
+//     0x4fda80 = pi/4, 0x4fda88 = 32768.0, 0x4fda90 = 1/(2*pi).
+//
+// The one remaining difference is still only the commutative fild order right after the
+// _hypot call (the original converts g, then height, then does the gh multiply, then speed;
+// ours converts height, g and speed, then does the multiply), and the `add esp,0x10` rides
+// along with it because that add is the caller-side pop of the two doubles pushed for _hypot,
+// not a frame teardown. It did not move for anything tried: 9 gh spellings x 6 statement
+// orders; a 1440-candidate cross-product of gh spelling x statement order x distance/d naming
+// x sum spelling x discriminant spelling x the `disc < 0.0` test, 54 of which tie at 83.6%;
+// 6 tail shapes; 0 to 5400 unused file-scope prototypes above the function (the 0x4b6c30
+// trick); and the real neighbours 0x49a0c0, 0x49a850 and 0x49adf0 defined above it in both
+// orders. That makes it the guide's "operand order that nothing changes" case: the cause is
+// compiler state from the original file's other contents, not from this source. Everything
+// from the `fcom` at 0x49a966 to the end is byte-identical.
 // mimo-v2.6-pro (issue #4035): best stays 83.6% (488/488 bytes). The one diff hunk is the
 // post-_hypot x87 schedule, rooted in the commutative fild order of the gh multiply: the
 // original filds g then height, ours filds height then g and batches speed's fild before the

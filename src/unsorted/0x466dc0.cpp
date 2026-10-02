@@ -1,7 +1,25 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by
 // deepseek-v4.1, GPT-6.1-sol, finished by deepseek-v4.1-flash,
-// finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are
-// provisional.
+// finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by
+// DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash pass 2026-10-02. No gain, stays 99.6% / 1662 bytes.
+// The two-instruction residual is unchanged. This pass pinned the rule down
+// with the real compiler in isolation: for two sign-extended short loads MSVC
+// elects the LARGER displacement as the imul accumulator and loads it first,
+// which is why [esi+0x142eb] wins in our file and [ebx+0x6c] wins in the
+// original. The only lever that moves the accumulator is putting one operand
+// behind a pointer to a local (the 0x47d0e0 trick): pointer to the zoom gives
+// field_6c the accumulator but makes the zoom load precede it (93.0%),
+// pointer to field_6c loads it first but leaves zoom the accumulator (92.8%),
+// pointer to the divisor reallocates the whole multiply (82.7%). No form gives
+// both. About 70 check.py runs this pass, all flat at 99.6%: single and
+// stacked casts on either operand (int, short, long, __int16, unsigned), the
+// y-before-x order (95.3%), the divisor behind a pointer, eleven identity
+// computations on the left operand (^0, |0, &-1, 0+x, x-0, 1*x, x/1, ~~x,
+// -(-x), +1-1, <<0, >>0), self-assignment through locals and through the field
+// itself, and pointer forms of both operands. The score never moved, so the
+// body below is the best measured and this is an allocator choice no source
+// shape here reaches.
 // Space Bunny Free pass. Baseline reproduced at 99.6% / 1662 bytes, which is
 // the original's exact size, so the shape is right and the whole residual is
 // two swapped instructions at the unit-loop ScaleX multiply:

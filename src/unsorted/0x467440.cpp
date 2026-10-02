@@ -1,4 +1,14 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash 2026-10-02: MATCH (1015 bytes). The last Loop C
+// mismatch is fixed by giving the field_ff load its own condition term:
+//   (u->flags & 0x10000000) && (ff = u->field_ff, 1) && ff != pl->field_146
+// The `, 1` keeps the assignment as a separate term, so MSVC emits
+// `test dword ptr [u+0x7e],0x10000000` first and then
+// `mov al,[u+0xff]; mov cl,[pl+0x146]; cmp al,cl`, and the first visitor call
+// keeps the original vptr store after the pushes. Writing the compare as
+// `pl->field_146 != ff` flips the cmp operands (99.6); folding the compare
+// into the comma term (`(ff = u->field_ff, pl->field_146 != ff)`) moves it to
+// the register form and reschedules the visitor block (97.5).
 // mimo-v2.6-pro 2026-10-01 (timeboxed retry, second pass): 97.9 -> 98.6
 // percent. Loop D's flags-load hoist is fixed by writing the field_b0 store
 // through an `int&` to the field (the 0x41ba60 pattern from the guide): the
@@ -298,8 +308,8 @@ void FUN_00467440(void)
     }
 
     for (u = first; u <= last; u++) {
-        unsigned char ff = u->field_ff;
-        if ((u->flags & 0x10000000) && pl->field_146 != ff && (u->field_10e & 1)) {
+        unsigned char ff;
+        if ((u->flags & 0x10000000) && (ff = u->field_ff, 1) && ff != pl->field_146 && (u->field_10e & 1)) {
             if (u->def->field_20a != 0) {
                 int r = (int)u->def->field_20a << 16;
                 Vec3_00467440* pp = &u->pos.vec;

@@ -3990,6 +3990,9 @@ address,name
 0x4fd488,DAT_004fd488
 0x4fd514,??_7Class_00460f60@@6B@
 0x4fd518,??_7Class_00462d30@@6B@
+0x4fd554,??_7Class_00467980@@6B@
+0x4fd558,??_7Class_00467960@@6B@
+0x4fd55c,??_7Class_00467840@@6B@
 0x4fd580,??_7Class_00470ae0@@6B@
 0x4fd588,??_7Class_00471430@@6B@
 0x4fd5a8,??_7Class_00471cc0@@6B@

@@ -1,4 +1,29 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash, 2026-10-02: 74.3% (original 920 bytes, ours 922), up from
+// 73.9. Two changes, and both are needed together (each alone scores lower):
+//   - an inline helper `DraftX_0043d6d0(u)` returning `u->draft.x`, used only
+//     for the `Point draft(DraftX_0043d6d0(u), u->draft.y)` construction. It
+//     changes where VC5 materialises the draft.x load and its register.
+//   - merging the `m`/`nx` declarations and swapping the y sum's operands:
+//     `int m = mode, ny = u->pos.y.value + pp->y.value, nx = pp->x.value +
+//     u->pos.x.value;`. This puts `m` in the dead argument slot and frees a
+//     frame slot, which moves the second block's first stores and the
+//     early-return compares onto the original's slots.
+// Both were found by permute.py's ratio objective and cleaned with a second
+// permute; check.py confirms 74.3% (helper alone 70.6, merged declaration alone
+// 71.8). The rest of the frame still differs: `cell`/`draft2` sit at -0x24 where
+// the original has them in the dead argument slot, and `ny` at -0x28 where the
+// original reuses the dead FUN_0043e060 temp at temp+4. What still differs in
+// the code: the first block's grouped copy (no interleaved load-store through
+// the returned pointer, v.x in ebx not edi); the seaLevel load's registers
+// (g_game in edx not ebx, seaLevel in ecx not edx); the second block's add
+// interleaving; the clamp's z-operand reload and its tail; the final flags
+// double-`xor`. Tried without gain on top of this: real `Point draft = u->draft`
+// (62.6), moving `cell` to function scope or after `pp` (74.3, slots unmoved),
+// per-field helpers for pos/pp/cell/range/flags (74.3), a `Vec3`-returning
+// wrapper around FUN_0043e060 (62.7-67.8), and the `Vec3 v; v = FUN(...)`
+// spelling that fixes the copy but shrinks the frame to 0x20 (70.0).
 //
 // Space Bunny Free, 2026-10-02: 73.9% (original 920 bytes, ours 922), up from
 // 70.9. ONE change is kept: the clamp's test re-spells the expression instead
@@ -288,7 +313,6 @@
 //      the ny spill at [esp+0x3c]. Note the original's pp=&p1 is NOT copy
 //      propagated and keeps a home, while ours is.
 
-#include <string.h>
 
 #pragma pack(push, 1)
 
@@ -418,9 +442,12 @@ public:
 
 static inline int& MaxRef_0043d6d0(int& a, int& b) { return a > b ? a : b; }
 
+static inline short DraftX_0043d6d0(Unit_0043d6d0*u) { return u->draft.x; }
+
 // FUNCTION: 0x43d6d0
 void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
 {
+    int half, cz;
     if (u->obj != 0) {
         Vec3 t = FUN_0043e060(u->obj, u->index);
         Vec3 v;
@@ -446,10 +473,8 @@ void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
     }
 
     Vec3* pp = &p1;
-    int nx = pp->x.value + u->pos.x.value;
+    int m = mode, ny = u->pos.y.value + pp->y.value, nx = pp->x.value + u->pos.x.value;
     int nz = pp->z.value + u->pos.z.value;
-    int ny = pp->y.value + u->pos.y.value;
-    int m = mode;
     Vec3 pos;
     pos.x.value = nx;
     pos.y.value = ny;
@@ -458,7 +483,7 @@ void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
         return;
 
     field_2a = g_game->field_38a47;
-    const Point& draft = Point(u->draft.x, u->draft.y);
+    const Point& draft = Point(DraftX_0043d6d0(u), u->draft.y);
     Point cell;
     cell.x = (nx - (draft.x << 19) + 0x80000) >> 20;
     cell.y = (nz - (draft.y << 19) + 0x80000) >> 20;
@@ -478,7 +503,7 @@ void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
         Point draft2 = u->draft;
         Point c = u->cell;
         int cx = (draft2.x + c.x * 2) << 19;
-        int cz = (draft2.y + c.y * 2) << 19;
+        cz = (draft2.y + c.y * 2) << 19;
         if (nx > cx + 0x7ffff)
             pos.x.value = cx + 0x7ffff;
         else if (nx < cx - 0x7ffff)
@@ -487,7 +512,7 @@ void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
             pos.z.value = cz + 0x7ffff;
         else if (nz < cz - 0x7ffff)
             pos.z.value = cz - 0x7ffff;
-        int half = u->type->range / 2;
+        half = u->type->range / 2;
         if (field_20 > (u->type->range / 2)) {
             field_20 = half;
             unsigned short angle = u->f64.y;

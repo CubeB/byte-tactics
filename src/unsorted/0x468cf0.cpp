@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash and claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, claude-sonnet-5-5 and Space Bunny Free. Names are provisional.
 // (Later partial: Space Bunny Free. Earlier partials: deepseek-v4.1-flash,
 // then GPT-6, then GPT-6.1-sol.)
 // Space Bunny Free pass: 80.9 -> 82.5 percent (5884 -> 5890 bytes), via
@@ -26,6 +26,69 @@
 // Leftover artifacts to try again if the below stalls: the pfZoomY (0xe8)
 // pointer temp at the 0x200 lerp, the pcGame temp for the 0x1431f/16 read,
 // the iDebugFlags pointer, and the fZoomY temp before the first lerp.
+// Space Bunny Free pass: 82.5 -> 83.1 percent (5890 -> 5897 bytes), 51 -> 48
+// diff hunks. Another tools/permute.py run (16 min, seed 29, 1129 candidates)
+// whose best_ratio.cpp scored 0.8311 against the 0.8249 it started from; that
+// file is the one in place below, with its artifacts hand-tidied. What the run
+// bought, all shape rather than register choice:
+// - the first `0x1426f` 16-bit index read: `(int)g_game+0x14b*uVar19+0x1b63`
+//   in place of `(int)g_game+uVar19*0x14b+0x1b63` (the multiplication order is
+//   what decides MSVC's `shl 5 / add / lea ecx,[ecx+ecx*4]` shape).
+// - `lVar26 = ((int)*(float*)(iVar12+0x8c));` written in full instead of
+//   through the named fZoomY temp.
+// - the +0x52 OverlayRect guard split into nested ifs (`if (a > 0.0f) { if
+//   (b > c) {...} }` instead of `if (a > 0.0f && b > c) {...}`), likewise at
+//   +0x72, with the pointer read hoisted to a named pR and the 0x22e source
+//   spelled `iVar11 + 0x102` consistently.
+// - `piVar16 = (int *)(iVar13 * 4 + mv->f4)` (index * stride + base, base
+//   second) and `puVar9 = ((ushort*)puVar9) + 1`.
+// - `L.local_204 + (int)L.local_208 > mv->f38 + -1` with the empty arm
+//   dropped, and the same for `L.local_1c0 == 0` / `0 < L.local_204`.
+// - the 0x14367 scan bound `(int)iVar13` read through a plain pointer and the
+//   row/column coordinate adds regrouped as `0x80 + (a - b)` / `0x20 + (...)`.
+// - a named `bool bVisible` for the `param_1 != 0` around FUN_00471f90(6..7),
+//   which is what stops the load being re-read in the branch.
+// - the 0x3923b test through a `Bits8` bitfield (`->b0`) as at the b5/b6 sites.
+// Tidied by hand afterwards, each verified score-neutral at 83.1: the inl0
+// helper inlined; tmp1, tmp2, tmp5 and tmp6 renamed bVisible, bDrew, cOwner
+// and iRectBottom; pcGame renamed pcView; the pR declaration folded back onto
+// one line; and both `MODE %s INFO %s` arms spelled `((int)g_game + 0x3923b)`
+// so the two bitfields agree on the base.
+// Re-measured this pass and left out (all worse or exactly neutral, so the
+// 83.1 file is the best of these):
+// - hoisting `mv = g_game + 0x141fb` to just after the player-index read
+//   (80.4), and declaring MapGrid *mv first / last / after puVar9 (82.5 each:
+//   declaration order does not move MSVC's pick here).
+// - dropping the pcView temp, moving `iVar13 = 0` after the /16 reads, and
+//   `mv->f54 > 0` for `0 < mv->f54` (all 82.5, byte-identical).
+// - the tick update written with a named delta temp (80.9), with the old value
+//   read into a temp first (80.9), with `*pDVar1 = DVar7` before the accumulate
+//   (80.8) or after the following FUN_00483fa0 call (82.7). The 82.5 spelling
+//   really is the one in place; the store order is not reachable from source.
+// - reading the 0xdcb byte through the existing pcVar18 (67.2), through a new
+//   pcFont temp (82.6), or as `*(byte*)((int)L.local_208 + 0xf)` (83.1).
+// - the L.local_178/L.local_174 pair read at each call instead of hoisted
+//   (81.9), assigned inside the 0x38a51 branch as well as after it (81.4),
+//   assigned 174-before-178 (83.0), and split into two fresh locals (83.1).
+// - the +0x52 / +0x72 float compared through a named temp (82.5 each) and the
+//   0x1ca9 / 0x1b63 addresses split as `u + u*0x14a` (83.1 each: the extra
+//   `lea eax,[eax+edx*2]` vs the original's folded `mov cl,[eax+edx*2+0x1ca9]`
+//   is scheduling, not spelling, as the notes below already record).
+// - the first insert loop rewritten as a plain `for` with the index times
+//   stride and no `-4 + iVar13*4` (81.6), with the iVar14 temp inlined
+//   (81.1), and with `-4` moved to the end of the index expression (83.1).
+//   The inc-then-index form in place is what gives `inc ecx` before the store
+//   and `mov [esi + ecx*4 - 4], edx`, so it is load-bearing too.
+// - an alias `mvGrid`/`mvLoops` for MapGrid *mv (83.1 each, byte-identical:
+//   MSVC does not keep two names for one value in registers).
+// - the `FUN_00435100() == 3 || == 2` test read through a named Class_00435100
+//   pointer (80.6 both ways): the original's two reloads of
+//   `*(int *)(g_game + 0x391e9)` need the expression spelled out twice.
+// - the "MODE %s INFO %s" pair through named char* temps (83.1) and both arms
+//   spelled `((int)g_game + 0x3923b)` (83.1; kept, it is the tidier form).
+// - the +0x52 / +0x72 guard float hoisted into a named float before the rect
+//   copy (83.1 both, byte-identical), so the fld/fcomp-vs-copy order noted
+//   below really is pure scheduling and not reachable from the source.
 // Re-measured and reverted this pass (all at the 80.9 baseline):
 // - moving the `mv = g_game + 0x141fb` assignment up to just after the
 //   player-index read, so MSVC would `lea edi,[edx+0x141fb]` as the original
@@ -36,11 +99,17 @@
 //   edi/esi load pairs need the hoisted form we already have).
 // - `(int)lVar25 + iVar21` for the L.local_1ab lerp: byte-identical to
 //   `iVar21 + (int)lVar25`, confirming the old add-esi-vs-add-eax note.
-// STILL DIFFERS, all register allocation and scheduling (49 hunks at 82.5):
+// STILL DIFFERS, all register allocation and scheduling (48 hunks at 83.1):
 // - The two big regions are still the same swap the earlier passes describe:
 //   the original keeps mv in edi and the /16 view x in ebx, ours keeps mv in
 //   ebx and the view x in edi, so param_1's CSE load moves with them. Every
-//   attempt to make MSVC pick edi for mv has failed (see the retried notes).
+//   attempt to make MSVC pick edi for mv has failed (see the retried notes),
+//   and this pass adds that declaring MapGrid *mv first, last or mid-list
+//   makes no difference either, so it is not the declaration order either.
+//   This one region is most of the remaining 17 percent: the @@ -720 hunk
+//   (the first insert loop and the 0x1435f/0x14367 scan) and the @@ -843 hunk
+//   (both unit loops and the 0x71f90 calls between them) are 360 of the ~370
+//   differing lines, and every one of them is this same edi/ebx pair.
 // - `test edx,edx` (orig) vs `cmp edx,ebp` with ebp materialised as a zero
 //   register (ours) in the first insert loop and the 0x1431f/16 setup; ours
 //   spends a register on the zero that the original folds into `test`.
@@ -329,7 +398,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <stdlib.h>
 typedef unsigned char byte;
 typedef unsigned short ushort;
 typedef unsigned int uint;
@@ -443,6 +511,7 @@ struct UnitFlags { uint kind:2; uint b2:1; uint b3:1; uint b4:1; uint b5:1; uint
 void __stdcall FUN_00468cf0(int param_1,int param_2)
 
 {
+  unsigned int bDrew;
   int iDebugFlags;
   float* pfZoomY;
   short *psVar2;
@@ -456,8 +525,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   int lVar25;
   int lVar26;
   ushort *puVar9;
-  int *piVar10;
-  int iVar11, iVar14;
+  int *piVar10, iVar11, iVar14;
   int iVar13;
   OverlayRect *pR2;
   int *piVar16;
@@ -498,19 +566,20 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
   FUN_004c69c0((int)((int *)L.local_1f0));
   iVar11 = (int)g_game;
   uVar19 = (uint)*(byte *)((int)g_game + 0x2a43);
-  iVar12 = (int)g_game+uVar19*0x14b+0x1b63;
+  iVar12 = (int)g_game+0x14b*uVar19+0x1b63;
   memcpy(&L.local_1ac,g_game+0x37e3f,33);
   cVar3 = *(char*)(g_game+0x14b*uVar19+0x1ca9);
   L.local_1ac = cVar3;
   lVar25 = (int)L.local_1ab;
-  int fZoomY = (int)*(float*)(iVar12+0x8c);
-  lVar26 = fZoomY;
+  lVar26 = ((int)*(float*)(iVar12+0x8c));
   iVar21 = (int)lVar26 - (int)lVar25;
   if (iVar21 < 0) {
     iVar21 = iVar21 / 8;
-    if (iVar21 == 0) {
-      iVar21 = -1;
-    }
+    do {
+        if (iVar21 == 0) {
+          iVar21 = -1;
+        }
+    } while (0);
   }
   else if (iVar21 > 0) {
     iVar21 = iVar21 / 8;
@@ -532,7 +601,7 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
     }
   }
   else if (iVar21 > 0) {
-    iVar21 = iVar21 / 8;
+    iVar21 /= 8;
     if (iVar21 == 0) {
       iVar21 = 1;
     }
@@ -585,16 +654,17 @@ void __stdcall FUN_00468cf0(int param_1,int param_2)
       lVar25 = (int)(((int)L.local_180-(int)L.local_188)*L.local_1ab / *(float*)(iVar12+0xa4)+(int)L.local_188);
       L.local_180 = (undefined4)lVar25;
       FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_188),(int)(*(int *)(iVar11 + 0x222)));
-      if ((*(float *)(iVar12 + 0xe8) > 0.0f) &&
-         (*(float *)(iVar12 + 0x8c) > *(float *)(iVar12 + 0xe8))) {
-        *(OverlayRect *)&L.local_200 = *pR;
-        pfZoomY = (float*)(iVar12+0xe8);
-        lVar25 = (int)(((int)L.local_1f8-(int)L.local_200)* *pfZoomY / *(float*)(iVar12+0xa4)+(int)L.local_200);
-        L.local_200 = (uint)lVar25;
-        L.local_1f8 = L.local_200 + 2;
-        puVar9 = L.local_208;
-        FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_200),(int)(*(byte *)((int)puVar9 + 0xc)));
-        goto LAB_join1;
+      if ((*(float *)(iVar12 + 0xe8) > 0.0f)) {
+          if ((*(float *)(iVar12 + 0x8c) > *(float *)(iVar12 + 0xe8))) {
+            *(OverlayRect *)&L.local_200 = *pR;
+            pfZoomY = (float*)(iVar12+0xe8);
+            lVar25 = (int)(((int)L.local_1f8-(int)L.local_200)* *pfZoomY / *(float*)(iVar12+0xa4)+(int)L.local_200);
+            L.local_200 = (uint)lVar25;
+            L.local_1f8 = L.local_200 + 2;
+            puVar9 = L.local_208;
+            FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_200),(int)(*(byte *)((int)puVar9 + 0xc)));
+            goto LAB_join1;
+          }
       }
     }
     puVar9 = L.local_208;
@@ -614,20 +684,21 @@ LAB_join1:
     else sprintf((char*)L.local_170,"%d",abs((int)L.local_1a3));
     iVar21 = FUN_004c13f0();
     FUN_004c13a0((int)((uint)*(byte *)((int)puVar9 + 0xc)),(int)(iVar21));
-    FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0x102)),(int)(*(int *)(0x106 + iVar11)),(int)(-1));
+    FUN_004c14f0((int)(L.local_1f0),(int)(L.local_170),(int)(*(int *)(iVar11 + 0x102)),(int)(*(int *)(iVar11 + 0x106)),(int)(-1));
     pR2 = (OverlayRect *)(iVar11 + 0x72);
     *(OverlayRect *)&L.local_188 = *((OverlayRect *)(iVar11 + 0x72));
     if (*(float *)(iVar12 + 0xa8) > 0.0f) {
       lVar25 = (int)((int)L.local_188+L.local_19f*((int)L.local_180-(int)L.local_188) / *(float*)(iVar12+0xa8));
       L.local_180 = (undefined4)lVar25;
       FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_188),(int)(*(int *)(iVar11 + 0x226)));
-      if ((*(float *)(iVar12 + 0xe4) > 0.0f) &&
-         (*(float *)(iVar12 + 0x98) > *(float *)(0xe4 + iVar12))) {
-        *(OverlayRect *)&L.local_200 = *pR2;
-        lVar25 = (int)(((int)L.local_1f8-(int)L.local_200)* *(float*)((iVar12+0xe4)) / *(float*)(iVar12+0xa8)+(int)L.local_200);
-        L.local_200 = (uint)lVar25;
-        L.local_1f8 = L.local_200 + 2;
-        FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_200),(int)(*(byte *)((int)puVar9 + 0xc)));
+      if ((*(float *)(iVar12 + 0xe4) > 0.0f)) {
+          if ((*(float *)(iVar12 + 0x98) > *(float *)(0xe4 + iVar12))) {
+            *(OverlayRect *)&L.local_200 = *pR2;
+            lVar25 = (int)(((int)L.local_1f8-(int)L.local_200)* *(float*)((iVar12+0xe4)) / *(float*)(iVar12+0xa8)+(int)L.local_200);
+            L.local_200 = (uint)lVar25;
+            L.local_1f8 = L.local_200 + 2;
+            FUN_004bf6f0((int)(L.local_1f0),(int)(&L.local_200),(int)(*(byte *)((int)puVar9 + 0xc)));
+          }
       }
     }
     iVar12 = FUN_004c13f0();
@@ -662,17 +733,18 @@ LAB_join1:
                        (uint)*(byte *)(*(int *)(iVar11 + 0x27) + 0x95) * 0x232)));
   FUN_004c13a0((int)((uint)*(byte *)((int)g_game + 0xdda)),(int)FUN_004c13f0());
   iVar13 = 0;
-  char* pcGame = g_game;
-  iVar12 = *(int *)((int)pcGame + 0x1431f) / 16;
+  char* pcView;
+  pcView = g_game;
+  iVar12 = *(int *)((int)pcView + 0x1431f) / 16;
   iVar21 = *(int *)((int)g_game + 0x14323) / 16;
   mv = (MapGrid *)((int)g_game + 0x141fb);
   if (0 < mv->f54) {
-    do {
-      iVar14 = mv->f50 * iVar13;
-      iVar13 = iVar13 + 1;
-      *(int *)(mv->f4 + -4 + iVar13 * 4) = mv->f0 + iVar14 * 4;
-      *(undefined2 *)(mv->f8 + -2 + iVar13 * 2) = 0;
-    } while (iVar13 < mv->f54);
+      do {
+          iVar14 = mv->f50 * iVar13;
+          iVar13 = iVar13 + 1;
+          *(int *)(mv->f4 + -4 + iVar13 * 4) = mv->f0 + iVar14 * 4;
+          *(undefined2 *)(mv->f8 + -2 + iVar13 * 2) = 0;
+        } while (iVar13 < mv->f54);
   }
   L.local_210 = mv->f54;
   L.local_1b8 = iVar21 - 0x10;
@@ -693,8 +765,7 @@ LAB_join1:
     L.local_204 = L.local_204 + (int)L.local_208;
     L.local_208 = (ushort *)0x0;
   }
-  if (!(L.local_204 + (int)L.local_208 > mv->f38 + -1)) {
-  } else L.local_204 = (mv->f38 - (int)L.local_208) + -1;
+  if (L.local_204 + (int)L.local_208 > mv->f38 + -1) L.local_204 = (mv->f38 - (int)L.local_208) + -1;
   puVar9 = *(ushort **)((int)g_game + 0x1435f);
   L.local_20c = 0;
   iVar12 = (int)g_game;
@@ -702,11 +773,11 @@ LAB_join1:
     do {
       uVar6 = (int)*(ushort *)puVar9;
       iVar21 = *(int *)(iVar12 + 0x14357);
-      iVar13 = (int)*(short *)(iVar21 + 0x74 + 0x118 * (uint)uVar6) - *(int *)(iVar12 + 0x14323);
+      iVar13 = (int)*(short *)(((int)iVar21) + 0x74 + 0x118 * (uint)uVar6) - *(int *)(iVar12 + 0x14323);
       iVar13 = iVar13 / 16 + 0x10;
       if ((iVar13 >= 0)) {
           if ((iVar13 < mv->f54)) {
-            piVar16 = (int *)(mv->f4 + iVar13 * 4);
+            piVar16 = (int *)(iVar13 * 4 + mv->f4);
             psVar2 = ((short *)(mv->f8 + iVar13 * 2));
             *psVar2 = *psVar2 + 1;
             iVar12 = (int)g_game;
@@ -718,7 +789,7 @@ LAB_join1:
           }
       }
       L.local_20c = L.local_20c + 1;
-      puVar9 = puVar9 + 1;
+      puVar9 = ((ushort*)puVar9) + 1;
     } while (L.local_20c < *(int *)(iVar12 + 0x14367));
   }
   FUN_00471f90((int)(L.local_1f0),(int)(0));
@@ -727,7 +798,7 @@ LAB_join1:
   if (0 < L.local_210) {
     L.local_1c0 = L.local_210;
     iVar12 = L.local_1b8;
-    do {
+    for (;;) {
       do {
           iVar21 = 0xd * ((int)(mv->f38 * iVar12 + (int)L.local_208)) +
                    mv->f8c;
@@ -746,7 +817,8 @@ LAB_join1:
                         FUN_0046a610((int)(L.local_1f0),(int)(iVar21),(int)((int)puVar9),(int)(iVar12));
                       } else {
                         bVar23 = FUN_004658e0(((int)(iVar11)),(int)puVar9,(int)iVar12,(int)(*(short *)(iVar13 + 0x94)),(int)(*(short *)(iVar13 + 0x96)),(int)((ushort)*(byte *)(iVar21 + 4)));
-                        if (bVar23 != 0) {
+                        bDrew = bVar23 != 0;
+                        if (bDrew) {
                           FUN_0046a610((int)(L.local_1f0),(int)(iVar21),(int)((int)puVar9),(int)(iVar12));
                         }
                       }
@@ -755,6 +827,7 @@ LAB_join1:
                       *(byte *)(0xc + iVar21) = *(byte *)(iVar21 + 0xc) | 4;
                     }
                 } while (0);
+              } else {
               }
               L.local_20c = L.local_20c + -1;
               puVar9 = (ushort *)((int)puVar9 + 1);
@@ -764,7 +837,9 @@ LAB_join1:
           L.local_1c0 = L.local_1c0 + -1;
       } while (0);
       iVar12 = iVar12 + 1;
-    } while (L.local_1c0 != 0);
+        if (L.local_1c0 == 0)
+            break;
+    }
   }
   FUN_00471f90((int)(L.local_1f0),(int)(3));
   FUN_00471f90((int)(L.local_1f0),(int)(4));
@@ -777,25 +852,28 @@ LAB_join1:
     do {
       iVar12 = 0;
       piVar16 = (int *)(mv->f0 + (L.local_1b8 + L.local_210) * mv->f50 * 4);
-      if (0 < *(ushort *)(L.local_20c + mv->f8)) {
+      if (!(0 < *(ushort *)(L.local_20c + mv->f8))) {
+      } else {
         do {
           iVar21 = *piVar16;
           pF = (UnitFlags *)(iVar21 + 0x110);
-          if ((pF->kind == 1) && (param_1 != 0)) {
-            if (pF->b4) {
-              FUN_0046a530((int)(L.local_1f0),(int)(iVar21));
-            }
-            if (*(int *)(iVar21 + 0x9a) != 0) {
-              FUN_0045ac20((int)(L.local_1f0),(int)(iVar21));
-            }
-          }
-          iVar12 = iVar12 + 1;
+          do {
+              if ((pF->kind == 1) && (param_1 != 0)) {
+                if (pF->b4) {
+                  FUN_0046a530((int)(L.local_1f0),(int)(iVar21));
+                }
+                if (*(int *)(iVar21 + 0x9a) != 0) {
+                  FUN_0045ac20((int)(L.local_1f0),(int)(iVar21));
+                }
+              }
+              iVar12 = iVar12 + 1;
+          } while (0);
           piVar16 = piVar16 + 1;
         } while (iVar12 < (int)(uint)*(ushort *)(L.local_20c + mv->f8));
       }
       iVar12 = (int)(L.local_210 * mv->f38 + (int)L.local_208) * 0xd +
                mv->f8c;
-      if (0 < L.local_204) {
+      if (L.local_204 > 0) {
         L.local_1bc = L.local_204;
         puVar9 = L.local_208;
         do {
@@ -820,14 +898,14 @@ LAB_join1:
     } while (L.local_1c0 != 0);
   }
   FUN_00471f90((int)(L.local_1f0),(int)(5));
-  if (param_1 != 0) {
+  bool bVisible = param_1 != 0;
+  if (bVisible) {
     FUN_00471f90((int)(L.local_1f0),(int)(6));
     FUN_0049be60((int)(L.local_1f0));
     FUN_00420b00((int)(L.local_1f0));
     FUN_00471f90((int)(L.local_1f0),(int)(7));
     L.local_204 = 0;
-    if (0 >= mv->f54) {
-    } else {
+    if (0 < mv->f54) {
       for (;;) {
         piVar16 = (int *)(mv->f0 + mv->f50 * L.local_204 * 4);
         iVar12 = 0;
@@ -865,10 +943,10 @@ LAB_join1:
     if (*(int *)((int)g_game + 0x14367) > 0) {
       for (;;) {
         do {
-            iVar12 = *(int *)(iVar11 + 0x14357) + (uint)*L.local_208 * 0x118;
+            iVar12 = *(int *)(((int)iVar11) + 0x14357) + (uint)*L.local_208 * 0x118;
             if (((*(byte *)(iVar11 + 0x37f06) & 1) != 0) || (*(int *)(iVar12 + 0xac) != 0)) {
               *((byte *)&L.local_210 + 1) = 0;
-              iVar21 = ((int)*(short *)(iVar12 + 0x6c) - *(int *)(iVar11 + 0x1431f)) + 0x80;
+              iVar21 = 0x80 + ((int)*(short *)(0x6c + iVar12) - *(int *)(iVar11 + 0x1431f));
               iVar8 = 0x20 + (((int)*(short *)(iVar12 + 0x74) - *(int *)(iVar11 + 0x14323)) -
                       ((int)*(short *)(0x70 + iVar12) >> 1));
               if ((*(byte *)(iVar11 + 0x37f06) & 1) != 0) {
@@ -878,7 +956,8 @@ LAB_join1:
                   FUN_0046a430((int)(L.local_1f0),(int)(iVar12),(int)(iVar21),(int)(iVar8 + 10));
                   iVar11 = (int)g_game;
                 }
-                char cOwner = *(char *)(*(int *)(iVar12 + 0x96) + 0x146);
+                char cOwner;
+                cOwner = *(char *)(*(int *)(iVar12 + 0x96) + 0x146);
                 if ((cOwner == cVar3) &&
                    (0 != *(int *)(iVar12 + 0xac))) {
                   *(byte*)&L.local_210 = *(char *)(iVar12+0xac)+'0';
@@ -902,7 +981,7 @@ LAB_join1:
   pDVar1[15] += DVar7 - *pDVar1;
   *pDVar1 = DVar7;
   if (((*(ushort *)((int)g_game + 0x3923b) & 1) != 0)) {
-      if (((*(ushort *)((int)g_game + 0x3923b) & 2) != 0)) {
+      if (((2 & *(ushort *)((int)g_game + 0x3923b)) != 0)) {
         if (0 == param_1) goto LAB_00469d93;
         piVar10 = (int *)FUN_0048c190((int)(0),(int)(0));
         FUN_00417f30((int)(L.local_1f0),(int)(piVar10));
@@ -917,8 +996,8 @@ LAB_00469d93:
   DVar7 = FUN_004b6560();
   pDVar1[16] += DVar7 - *pDVar1;
   *pDVar1 = DVar7;
-  if (param_1 == 0) bVar23 = false;
-  else if ((*(byte *)((int)g_game + 0x2cc6) & 8) != 0) {
+  if (((int)param_1) == 0) bVar23 = false;
+  else if ((*(byte *)(0x2cc6 + (int)g_game) & 8) != 0) {
     bVar23 = true;
   }
   else if (*(char *)((int)g_game + 0x2cc3) == '') {
@@ -932,9 +1011,9 @@ LAB_00469d93:
     iVar11 = ((*(int *)((int)g_game + 0x2c9a) - (*(int *)((int)g_game + 0x2c96) >> 1)) -
              *(int *)((int)g_game + 0x14323)) + 0x20;
     iVar13 = (*(int *)((int)g_game + 0x2c9e) - *(int *)((int)g_game + 0x1431f)) + 0x80;
-    int iBoxBottom = ((*(int *)((int)g_game + 0x2ca6) - (*(int *)((int)g_game + 0x2ca2) >> 1)) -
-                *(int *)((int)g_game + 0x14323)) + 0x20;
-    iVar14 = iBoxBottom;
+    int iRectBottom = ((*(int *)((int)g_game + 0x2ca6) - (*(int *)((int)g_game + 0x2ca2) >> 1)) -
+                      *(int *)((int)g_game + 0x14323)) + 0x20;
+    iVar14 = iRectBottom;
     if (*(char *)((int)g_game + 0x2cc3) == '') iVar12 = (((0x40 & *(byte *)((int)g_game + 0x2cc6)) ? 6 : 0) + 4); else iVar12 = 0xf;
     uVar15 = (uint)L.local_1b0[iVar12];
     if (iVar13 < iVar21) {
@@ -987,7 +1066,7 @@ LAB_00469d93:
         sprintf((char*)L.local_150,"FRATE: %d\n",FUN_004b66a0());
         FUN_004c14f0((int)(L.local_1f0),(int)(L.local_150),(int)(0x83),(int)(iVar11),(int)(-1));
         FUN_004c14f0((int)(L.local_1f0),(int)((byte *)"[Release]"),(int)(0xbc),(int)(iVar11),(int)(-1));
-        sprintf((char*)L.local_150,"MODE %s INFO %s",((Bits8 *)(g_game+0x3923b))->b1?"DEBUG":"NORMAL",((Bits8 *)(0x3923b+g_game))->b0?"ON":"OFF");
+        sprintf((char*)L.local_150,"MODE %s INFO %s",((Bits8 *)((int)g_game+0x3923b))->b1?"DEBUG":"NORMAL",((Bits8 *)((int)g_game+0x3923b))->b0?"ON":"OFF");
         FUN_004c14f0((int)(L.local_1f0),(int)(L.local_150),(int)(0x1ee),(int)(iVar11),(int)(-1));
         iVar11 += FUN_004c1450();
         iDebugFlags = (int)g_game + 0x2a44;
@@ -1000,16 +1079,16 @@ LAB_00469d93:
   iVar11 = L.local_178;
   iVar12 = L.local_174;
   if ((*(byte *)((int)g_game + 0x38a51) & 1) != 0) {
-    FUN_004b7f90((int)(L.local_1f0),(int)(FUN_004b7f30((int)(*(ushort **)((int)g_game + 0x1481b)),(int)(0))),(int)(iVar11),(int)(iVar12));
+      FUN_004b7f90((int)(L.local_1f0),(int)(FUN_004b7f30((int)(*(ushort **)((int)g_game + 0x1481b)),(int)(0))),(int)(iVar11),(int)(iVar12));
   }
   if ((*(byte *)(*(int *)((int)g_game + (uint)*(byte *)(0x2a42 + (int)g_game) * 0x14b + 0x1b8a) +
                 0x9b) & 0x40) == 0) {
     if (((Bits8 *)((int)g_game + 0x3923b))->b5) {
-      FUN_004b7f90((int)(L.local_1f0),(int)(FUN_004b7f30((int)(*(ushort **)((int)g_game + 0x14813)),(int)(0))),(int)(iVar11),(int)(iVar12));
-    }
-    if (((Bits8 *)((int)g_game + 0x3923b))->b6) {
-      FUN_004b7f90((int)(L.local_1f0),(int)(FUN_004b7f30((int)(*(ushort **)((int)g_game + 0x14817)),(int)(0))),(int)(iVar11),(int)(iVar12));
-    }
+          FUN_004b7f90((int)(L.local_1f0),(int)(FUN_004b7f30((int)(*(ushort **)((int)g_game + 0x14813)),(int)(0))),(int)(iVar11),(int)(iVar12));
+        }
+        if (((Bits8 *)((int)g_game + 0x3923b))->b6) {
+          FUN_004b7f90((int)(L.local_1f0),(int)(FUN_004b7f30((int)(*(ushort **)((int)g_game + 0x14817)),(int)(0))),(int)(iVar11),(int)(iVar12));
+        }
   }
   if (((Bits8 *)((int)g_game + 0x37f2f))->b6) {
     uint ticks=*(uint*)(g_game+0x38a47), hours=ticks/108000;
@@ -1035,7 +1114,7 @@ LAB_00469d93:
     FUN_0046b900((int)(L.local_1f0),(int)((byte *)"Render Stuff"),(int)(4));
     FUN_0046b900((int)(L.local_1f0),(int)((byte *)"Render Fog"),(int)(5));
     FUN_0046b900((int)(L.local_1f0),(int)("SFX"),(int)(6));
-    FUN_0046b900((int)(L.local_1f0),(int)((byte *)"Weapon"),(int)(7));
+    FUN_0046b900((int)(L.local_1f0),(int)(((byte *)"Weapon")),(int)(7));
     FUN_0046b900((int)(L.local_1f0),(int)("Misc"),(int)(8));
   }
   FUN_0045ffb0((int)L.local_1f0);

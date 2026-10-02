@@ -1,4 +1,15 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, retried by Sonnet 5.5, retried by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash pass (from 88.5%, no improvement). tools/stackcmp.py shows
+// the same single unused slot (max5b/hgt at +0x14) and no relocated local;
+// tools/permute.py 3 min / 3 jobs, 2266 candidates (12 compile failures): 88.5%
+// -> 88.5%, best size 1339. Targeted variants, all at 1339 bytes: the sibling
+// 0x47d0e0's width-pointer form at the cell statement (88.5), with `index`
+// after the cell statement instead of before (88.5), `index` after alone (88.5),
+// a `word` local for the vis test (88.5), `bit` first in the vis test (88.5),
+// and IsExplored_ with no `bit` parameter (87.9). The LOS-block allocation
+// (bit in esi and width spilled to [esp+0x4c], against the original's width in
+// esi and bit spilled) is unchanged and remains the whole residual.
 //
 // Space Bunny Free pass #2 (#4566, from 88.5%, no improvement, ~90 check runs).
 // Baseline reproduced exactly: 1339 of 1339 bytes, 88.5%, 91.1% ignoring the

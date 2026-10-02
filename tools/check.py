@@ -561,8 +561,11 @@ def main() -> None:
     print(report(res))
     # Calls from other files resolve through data/symbols.csv, so a definition
     # under another name breaks them once this function matches (0x40d900, #4596).
-    named = sorted(n for n, a in load_symbols().items() if a == args.address)
-    if qualname and named and qualname not in named:
+    # Only plain C++ names compare: a raw mangled `=?...` annotation, an
+    # operator, or a mangled row in symbols.csv spell the same symbol differently.
+    named = sorted(n for n, a in load_symbols().items() if a == args.address and not n.startswith("?"))
+    plain = qualname and not qualname.startswith("=") and "operator" not in qualname
+    if plain and named and qualname not in named:
         print(f"\nnote: data/symbols.csv names {args.address:#x} {' / '.join(repr(n) for n in named)}, "
               f"but this file defines {qualname!r}. Use that name, or calls to it from other "
               f"files stop resolving once it matches.")

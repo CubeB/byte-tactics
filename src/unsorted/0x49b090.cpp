@@ -1,4 +1,53 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+//
+// MATCH, 844 bytes against 844 (Space Bunny Free, issue 4156). It sat at 82.3% /
+// 847 bytes for many passes. Four source changes took it to MATCH, and every one
+// of them is load-bearing, so do not "tidy" any of them away:
+//
+//  1. The height test has to be written in the positive direction:
+//         if (mf->height + cell->ground > proj->py.s.hi) { ... } else { mf = 0; }
+//     and not as `if (mf->height + cell->ground <= proj->py.s.hi) mf = 0; else
+//     ...`. The positive form is what puts the sum in eax and proj->py.s.hi in
+//     edx (`cmp eax, edx / jle`, the original's own order) and frees ax for the
+//     cellZ compare. The negative form gives `xor edx,edx` first and swaps both.
+//     Worth 0.7 points on its own and it was the unblocking change.
+//  2. There is NO `Game_0049b090* g = g_game;` local. Reading `g_game->` at
+//     every use is what keeps g_game in edi from 0x49b1ca to 0x49b3ba, which in
+//     turn spills cz to [esp+0x30], produces the single `mov edi,[g_game]` in
+//     the cellX/cellZ store branch, and lets both feature-map arms merge into
+//     the shared `g->mapping + f*256` tail at 0x49b31b. A local holding g_game
+//     is live across the two FUN_00499eb0 calls in the unit blocks, so MSVC 5
+//     gives it a stack home, and one compile state change then moves every other
+//     allocation with it. Worth 7.3 points.
+//  3. The 0xfffe arm's index is spelled `cell->offX + g_game->width * cell->offY`
+//     and its feature id is an `unsigned short`. Together they give the original's
+//     `mov ecx,[width] / xor eax,eax / mov al,[ebx+0xa] / xor edx,edx /
+//     imul ecx,eax` instead of `imul ecx,[edi+0x14233]` with offY in cl, and the
+//     `mov dx,[edx+8] / cmp dx,0xfffb` with the `and edx,0xffff` after the
+//     branch. With `int f2` the address register ends up in ecx and the two
+//     mapping tails never merge; with `unsigned short f2` and the old index
+//     spelling they do. The two are not independent, and the branch shape below
+//     is part of the same allocation.
+//  4. The outer chain is `if (f < 0xfffb) { ... } else if (!(f == 0xfffe)) {
+//     mf = 0; } else { <0xfffe arm> }`, not `else if (f == 0xfffe) { <arm> }
+//     else { mf = 0; }`. The same CFG, but the block order and therefore the
+//     three separate `xor ecx,ecx` blocks and the jump into 0x49b31b come out
+//     right only in this spelling.
+//
+// `tools/headers.py` also matters here, and not for the SIB swaps this file used
+// to need: <windows.h> alone scores 90.6% and <windows.h> plus <ddraw.h> scores
+// 91.3% (ddraw.h fixes the unit0 `mov ebp,[eax+0x6e]` vs `mov ecx,...` swap on
+// its own, which no source shape ever reached), but only <stdio.h> gets the
+// feature block's allocation right. So the header is <stdio.h> and nothing else.
+//
+// The harness for the last part is in build/scratch/0x49b090/: hs.py applies a
+// list of text rewrites to base.cpp, writes each variant into v/ and scores it
+// with `check.py <addr> <file> --sym <mangled>`, which never touches
+// src/unsorted/0x49b090.cpp and takes about 0.6 s a variant. Roughly 130 source
+// shapes are recorded below as flat 90.6%.
+//
+// Everything after this point is the record of the earlier partial attempts and
+// of the negative results, kept because they say what does not work.
 // deepseek-v4.1-flash (issue 3314 retry, 10 min): body reconfirmed at 82.3% / 847 bytes against 844;
 // no new shape tried beat it. Left as is, with the diff exactly as described below.
 // deepseek-v4.1-flash (issue 2893 retry, 10 min): body left at 82.3% / 847 bytes against 844, still the
@@ -123,14 +172,15 @@
 //    `type->flags.raw & 0x10000`. Worth about 3 points once the register
 //    layout is right.
 //
-// What still differs, all of it in the last third of the function, and all of it
-// traced to one cause: `g_game` is not kept in edi across the unit blocks and
-// the feature block. In the original edi holds g_game from 0x49b1ca to
-// 0x49b3ba; in the current source the extra local from fix 2 above takes edi
-// and g_game is reloaded (`mov eax,[g_game]; mov ecx,[eax+0x14357]`). That one
-// cause explains all of:
+// What still differed at the time this note was written (the 73.6% source; all of
+// it is fixed now, see the MATCH note at the top), all of it in the last third
+// of the function, and all of it traced to one cause: `g_game` was not kept in
+// edi across the unit blocks and the feature block. In the original edi holds
+// g_game from 0x49b1ca to 0x49b3ba; in that source the extra local from fix 2
+// above took edi and g_game was reloaded (`mov eax,[g_game]; mov ecx,[eax+0x14357]`).
+// That one cause explained all of:
 //   - the duplicated `mapping + f*256` tail, because the original merges both
-//     arms into the shared block at 0x49b31b and this build does not;
+//     arms into the shared block at 0x49b31b and that build did not;
 //   - `mf` living in edi instead of ecx;
 //   - `cmp cx, ax` against the original's `cmp dx, ax` at 0x49b3ad;
 //   - the `mov [esp+0x30]` reload of g_game at 0x49b3ad and 0x49b3ba.
@@ -142,7 +192,8 @@
 //     (`xor edx,edx` + `and ecx,0xffff`) where the original defers it to
 //     `mov dx,[ebx+8]` and an `and edx,0xffff` on the taken path only.
 //
-// Where to look next, in order:
+// Where to look next, in order (items 1 and 2 were the answer: delete the
+// `Game_0049b090* g` local entirely, item 3 became hs.py in the scratch dir):
 //   1. The g_game-in-edi problem, which is the highest value. Not yet tried: an
 //      extra variable live only in a region where edi is dead (before
 //      0x49b1ca or after 0x49b284), two extra variables whose net register cost
@@ -155,13 +206,15 @@
 //      with `check.py --sym`, which is why this pass used no check.py runs at
 //      all.
 //
-// Suspected original bug, still open and now confirmed in the part that does
-// match: 0x49b2c8 to 0x49b2d6 range-checks the map-feature id against
+// Suspected original bug, now confirmed byte for byte: 0x49b2c8 to 0x49b2d6 range-checks the map-feature id against
 // g_game+0x14253, but the 0xfffe reload path at 0x49b2e7 to 0x49b30f re-tests
 // only against 0xfffb and skips the count check, so a feature id read from the
 // neighbouring cell indexes g_game->mapping unchecked.
 
-#include <windows.h>
+// Only <stdio.h>, and only because tools/headers.py found it: <windows.h> scores
+// 90.6% and <windows.h> plus <ddraw.h> scores 91.3%, but neither gives the
+// feature block the register plan the original has. Nothing here is used from it.
+#include <stdio.h>
 
 // deepseek-v4.1-flash (issue 4021 retry, 10 min): body kept at 82.3% / 847
 // bytes. One more shape tried: arm2 of the feature map reusing the same `f`
@@ -337,16 +390,15 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             FUN_00499eb0(proj, 0);
     }
     proj->radius = (cell->radius + cell->ground) / 2;
-    Game_0049b090* g = g_game;
     if (cell->unit0) {
-        Unit_0049b090* u = &g->units[cell->unit0];
+        Unit_0049b090* u = &g_game->units[cell->unit0];
         if (u->owner != proj->owner && proj->py.i < u->type->high + u->elev) {
             FUN_00499eb0(proj, u);
             return;
         }
     }
     if (cell->unit1) {
-        Unit_0049b090* u = &g->units[cell->unit1];
+        Unit_0049b090* u = &g_game->units[cell->unit1];
         if (u->owner != proj->owner) {
             if (proj->py.i >= u->type->low + u->elev
                 && proj->py.i <= u->type->high + u->elev) {
@@ -355,7 +407,6 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
             }
         }
     }
-    g = g_game;
     if (type->flags.raw & 0x4000)
         return;
     {
@@ -363,29 +414,35 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         short cz = proj->pz.s.hi / 16;
         unsigned short f = cell->feature;
         MapFeature_0049b090* mf;
+        // The `!(f == 0xfffe)` spelling, the `cell->offX + width * offY` index
+        // and the `unsigned short f2` are each load-bearing; see the note at the
+        // top of the file.
         if (f < 0xfffb) {
-            if (f < g->featureCount)
-                mf = g->mapping + f;
+            if (f < g_game->featureCount)
+                mf = g_game->mapping + f;
             else
                 mf = 0;
-        } else if (f == 0xfffe) {
-            int n = g->width * cell->offY + cell->offX;
-            unsigned short f2 = (cell - n)->feature;
-            if (f2 < 0xfffb)
-                mf = g->mapping + f2;
-            else
-                mf = 0;
-        } else {
+        } else if (!(f == 0xfffe)) {
             mf = 0;
+        } else {
+            int n = cell->offX + g_game->width * cell->offY;
+            unsigned short f2 = (cell - n)->feature;
+            if (f2 >= 0xfffb) {
+                mf = 0;
+            } else {
+                mf = g_game->mapping + f2;
+            }
         }
         if (mf) {
-            if (mf->height + cell->ground <= proj->py.s.hi)
+            if (mf->height + cell->ground > proj->py.s.hi) {
+                if (proj->cellX == cx && proj->cellZ == cz) {
+                    mf = 0;
+                } else {
+                    proj->cellX = cx;
+                    proj->cellZ = cz;
+                }
+            } else {
                 mf = 0;
-            else if (proj->cellX == cx && proj->cellZ == cz)
-                mf = 0;
-            else {
-                proj->cellX = cx;
-                proj->cellZ = cz;
             }
         }
         if (mf) {
@@ -400,9 +457,9 @@ void __stdcall FUN_0049b090(ProjType_0049b090* type, Proj_0049b090* proj)
         }
     } else if (type->flags.raw & 0x10000) {
         return;
-    } else if (proj->py.s.hi >= g->limit) {
+    } else if (proj->py.s.hi >= g_game->limit) {
         return;
-    } else if (((Net_0049b090*)g->net)->field_d48) {
+    } else if (((Net_0049b090*)g_game->net)->field_d48) {
         return;
     }
     FUN_00499eb0(proj, 0);

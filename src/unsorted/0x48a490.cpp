@@ -1,9 +1,173 @@
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free (#4163): 77.8% -> 92.2% -> 93.5% (858 bytes). All the gains
+// are in the loop body, and all of them are the register allocator agreeing with
+// the original after a change of statement shape. Four changes did it, the first
+// three by hand and the fourth from tools/permute.py with seed 7:
+//
+//   * `pts[k].x = t.x = vx;` as a chained assignment, where the previous text
+//     had `t.x = vx; pts[k].x = vx;`. Worth 7.6 points (77.8% -> 85.4%). The
+//     chained form puts the two stores in the original's order AND frees the
+//     register the allocator wanted for the corner-array pointer: with it the
+//     map pointer goes back to edx, the pointer induction variable to ecx and
+//     u->aim back to `mov cx`, which is 20 diff lines at once. Splitting them
+//     the other way round (`t.x = pts[k].x = vx`) scores 77.8% again, so the
+//     store order alone is not the lever; it is the register choice the chain
+//     makes.
+//   * `wx` before `hz`, and `fx` before `fz`. Worth 4.3 points (85.4% ->
+//     89.7%). The original computes wx first and copies it straight into esi
+//     (fx) and edx (gx) before it computes hz at all, which is only reachable
+//     if the two halves are written in that order. All 560 legal orders of the
+//     six declarations (wx, hz, fx, fz, gx, gz) with `gridW` inserted at each
+//     of the seven positions were swept; seven tie at 92.2% and this is one.
+//   * Writing the interpolated height through the array before reading it
+//     back (`hs[k].h = H0 + ((H1 - H0) * fz) / 16; int H = hs[k].h;` instead of
+//     `int H = ...; hs[k].h = H;`) is worth 2.5 points (89.7% -> 92.2%). It
+//     puts H in ecx, which is the register the original's sea-level max select
+//     wants, and that fixes the whole max hunk. `H > sea ? H : sea`, an
+//     unsigned char sea and the reversed sum `((H1 - H0) * fz) / 16 + H0` are
+//     all byte-flat here, so the max itself was never the problem.
+//   * `* 2048` for `<< 11` in p (which keeps the original's `and eax, 0x1f`;
+//     see the micro probe note below), `short` for FUN_004b7123's first
+//     parameter (which turns `movsx eax, word ptr [esp + 0x28]` into the
+//     original's plain `mov eax, dword ptr [esp + 0x28]`) and reading hs[1]
+//     before hs[0] in the tail together give 92.4% at 858 bytes.
+//   * The permuter then found the last 1.1 points (92.4% -> 93.5%): declaring
+//     `unsigned gz` before `int fz`, and giving `gw` and `c0` their own
+//     declaration apart from `t`, `pts`, `hs` and `k`. Both are declaration
+//     moves and neither is obvious: on the 92.4% version `gz` before `fz` was
+//     byte-flat (92.4% either way), and it only becomes worth 1.1 points once
+//     the other two declarations move as well, so the pair is the lever, not
+//     either alone. (Whether `gw` and `c0` sit outside the block or inside it
+//     is byte-flat too; what matters is that they are declared separately.)
+//
+// Compiler rules measured while getting p right (the micro probe is
+// build/scratch/0x48a490/micro.cpp, which compiles to micro.lst):
+//
+//   * `int` results add the addend 32-bit, with an explicit zero-extension first
+//     (`and edx, 65535; ...; add eax, edx`), while `short` and `unsigned short`
+//     results give the 16-bit `add ax, word ptr [u->fix_lo]` the original has.
+//     So p has to be a 16-bit object even though it is pushed as a dword, which
+//     is why declaring FUN_004b7123's first parameter `short` turns the reload
+//     into the original's plain `mov eax, dword ptr [esp + 0x28]`.
+//   * The original keeps `and eax, 0x1f` on the random value, and `<< 11` throws
+//     that mask away here (93.3% without it) while `* 2048` for the same product
+//     keeps it and still gives `add ax`. The micro probe says which side of the
+//     line it is: with one expression and `<< 11` the mask survives
+//     (`and eax, 31; ...; shl eax, 11; add eax, ecx`) but the add is 32-bit, and
+//     it is the split form `short p = (short)(X << 11); p = (short)(p + g);` that
+//     loses the mask entirely. Whichever way it goes, `<< 11` is not what the
+//     original was written with, so the source uses `* 2048`. That costs 3 bytes
+//     and the `short` callee parameter gives 1 byte back.
+//
+// What still differs (18 diff lines, 8 of them only jump targets):
+//
+//   * The sea-level block (10 lines). The original holds `u->owner` in ebp from
+//     before the p expression to after the 64-bit divide, loads age into esi and
+//     frame into eax (`mov eax, [g_game]`, the 5-byte A1 form), and clamps in
+//     eax. We hold the owner in ecx, hoist n into ebp and clamp in ebp, so
+//     `g_game` goes through `mov edx, [g_game]` (6 bytes). That one byte is the
+//     whole reason the function is 858 instead of 857: with it the loop's
+//     `je`/`jne` targets and the two `jae` in the head all sit one byte past
+//     the original's, and taking that byte out is worth the eight target-only
+//     lines on its own (93.5% to about 96.4%). The frame load is the only
+//     instruction in the whole block whose encoding is one byte shorter in
+//     MSVC 5's A1 form, and A1 is only ever used for eax, so it comes down to
+//     making the allocator pick eax. Nothing reaches it: the late-n schedule
+//     that would give the original's `mov eax, [g_game]` compiles and matches
+//     the owner load, but it moves mm from ecx to esi and the pts induction
+//     variable from ecx to edx and scores 89.7%. Caching the owner pointer, an
+//     owner load before p, `frame` or `age` into a local, `n` split over two
+//     statements or into `unsigned`, `n` moved before q or s, a `ty` local for
+//     u->type, and all 45 legal orders of the block's six statements were
+//     measured; every one of them is byte-flat or worse.
+//
+// Everything else that was tried is byte-flat or worse: int/unsigned/short for
+// p, `unsigned short` against `short` for fix_lo, a by-value helper around the
+// min, the head pair split into `row = m->rows; row += m->count;`, a named maps
+// array, a named map index, all 24 orders of t/pts/hs/k, all 24 orders of the
+// four hs[] reads in the tail and both operand orders of both sums, /2/2 instead
+// of (h0+h1)/2, `u->type->sight / 2` against abs(), and (t.x + u->posx) against
+// (u->posx + t.x).
 // deepseek-v4.1-flash (#3932) retry: swapping the second tail sum to (h3 + h2)
 // and swapping both a/b tail sums is byte-flat at 77.8% / 857 bytes, so the tail
 // hunk (load order plus lea [ebp + ebx]) is not source-operand-order reachable.
 // The residual hunks stand: m edx/ecx in the prologue, the loop carry reloads,
 // and the max-select register roles (H in eax here against ecx in the original).
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+//
+// What still differed at 77.8%, all of it a register choice MSVC 5 makes for
+// itself (this section is the 92.2% pass, kept for the record):
+//
+//   1. hz lands in eax, the original's in ecx (2 diff lines).
+//   2. The sea-level block (11 diff lines). The original keeps `u->owner` in
+//      ebp from before the p expression to after the 64-bit divide and only
+//      then computes n = g_game->frame - u->owner->age into eax; we hoist n
+//      into ebp before the call and reload the owner late. Both schedules
+//      compile, and neither dominates: hoisting n fixes the owner load but
+//      moves mm from ecx to esi and the pts induction variable from ecx to edx,
+//      which loses more than it gains. Three sub-levers were measured
+//      separately and each is real but none fits: `* 2048` instead of `<< 11`
+//      keeps the original's `and eax, 0x1f` (3 bytes, 860 total, 91.3%),
+//      declaring FUN_004b7123's first parameter short gives the original's
+//      plain `mov eax, [esp + 0x28]` instead of `movsx` (1 byte shorter, 856,
+//      91.5%), and together with the late n they land at 848 bytes and 87.8%.
+//      857 bytes only fits the version that has none of them.
+//   3. The tail reads h1 before h0 and sums them as `lea eax, [ebp + ebx]`
+//      (3 diff lines). All 24 orders of the four hs[] reads and both operand
+//      orders of both sums were swept: 24 tie at 92.2%, and reading b's
+//      operands straight from the array scores 91.9% with a better shape
+//      (95.1%), so this is a plateau, not a missed permutation.
+//
+//   * `pts[k].x = t.x = vx;` as a chained assignment, where the previous text
+//     had `t.x = vx; pts[k].x = vx;`. Worth 7.6 points (77.8% to 85.4%). The
+//     chained form puts the two stores in the original's order AND frees the
+//     register the allocator wanted for the corner-array pointer: with it the
+//     map pointer goes back to edx, the pointer induction variable to ecx and
+//     u->aim back to `mov cx`, which is 20 diff lines at once. Splitting them
+//     the other way round (`t.x = pts[k].x = vx`) scores 77.8% again, so the
+//     store order alone is not the lever; it is the register choice the chain
+//     makes.
+//   * `wx` before `hz`, and `fx` before `fz`. Worth 4.3 points (85.4% to
+//     89.7%). The original computes wx first and copies it straight into esi
+//     (fx) and edx (gx) before it computes hz at all, which is only reachable
+//     if the two halves are written in that order. All 560 legal orders of the
+//     six declarations (wx, hz, fx, fz, gx, gz) with `gridW` inserted at each
+//     of the seven positions were swept; seven tie at 92.2% and this is one.
+//   * Writing the interpolated height through the array before reading it
+//     back (`hs[k].h = H0 + ((H1 - H0) * fz) / 16; int H = hs[k].h;` instead of
+//     `int H = ...; hs[k].h = H;`) is worth 2.5 points (89.7% to 92.2%). It
+//     puts H in ecx, which is the register the original's sea-level max select
+//     wants, and that fixes the whole max hunk. `H > sea ? H : sea`, an
+//     unsigned char sea and the reversed sum `((H1 - H0) * fz) / 16 + H0` are
+//     all byte-flat here, so the max itself was never the problem.
+//
+// What still differs, all of it a register choice MSVC 5 makes for itself:
+//
+//   1. hz lands in eax, the original's in ecx (2 diff lines).
+//   2. The sea-level block (11 diff lines). The original keeps `u->owner` in
+//      ebp from before the p expression to after the 64-bit divide and only
+//      then computes n = g_game->frame - u->owner->age into eax; we hoist n
+//      into ebp before the call and reload the owner late. Both schedules
+//      compile, and neither dominates: hoisting n fixes the owner load but
+//      moves mm from ecx to esi and the pts induction variable from ecx to edx,
+//      which loses more than it gains. Three sub-levers were measured
+//      separately and each is real but none fits: `* 2048` instead of `<< 11`
+//      keeps the original's `and eax, 0x1f` (3 bytes, 860 total, 91.3%),
+//      declaring FUN_004b7123's first parameter short gives the original's
+//      plain `mov eax, [esp + 0x28]` instead of `movsx` (1 byte shorter, 856,
+//      91.5%), and together with the late n they land at 848 bytes and 87.8%.
+//      857 bytes only fits the version that has none of them.
+//   3. The tail reads h1 before h0 and sums them as `lea eax, [ebp + ebx]`
+//      (3 diff lines). All 24 orders of the four hs[] reads and both operand
+//      orders of both sums were swept: 24 tie at 92.2%, and reading b's
+//      operands straight from the array scores 91.9% with a better shape
+//      (95.1%), so this is a plateau, not a missed permutation.
+//
+// Nothing else moved the score: int/unsigned/short for p, unsigned short for
+// fix_lo, a by-value helper around the min, a cached owner pointer, the head
+// pair split into `row = m->rows; row += m->count;`, a named maps array, a
+// named map index, all seven orders of t/pts/hs/k, /2/2 instead of (h0+h1)/2,
+// `u->type->sight / 2` against abs(), and (t.x + u->posx) against
+// (u->posx + t.x) are all byte-flat or worse.
 // deepseek-v4.1-flash (#3891) retry: caching the owner pointer as a named
 // local (`PlayerRec_0048a490* o = u->owner;` used for both `o->sight` and
 // `o->age`, matching the original's single `mov ebp,[edi]` held across the
@@ -233,12 +397,19 @@ struct Game_0048a490 {
 extern Game_0048a490* g_game;
 
 unsigned int FUN_004b6340();
-int __cdecl FUN_004b7123(int a, int b);
+int __cdecl FUN_004b7123(short a, int b);
 int __cdecl FUN_004b715a(int x, int y);
 void __cdecl FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+// Samples the ground under a unit at its four surrounding terrain vertices and
+// stores the resulting pitch (0x68) and roll (0x70) on the unit, plus a heading
+// (0x64) from the two side vertices. The 0x11/0x04 bytes of a heightmap tile are
+// the two half heights of its edge pair, and the corner heights are bilinearly
+// interpolated with a plain / 16 (MSVC 5 spells that cdq/and 0xf/add/sar 4;
+// there is no second shift). The sea-level block then adds a jitter that fades
+// out over 60 frames.
 // FUNCTION: 0x48a490
 void __stdcall FUN_0048a490(Unit_0048a490* u)
 {
@@ -247,6 +418,7 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
     if (m->count < 0)
         return;
     {
+        int gw, c0;
         Pos2_0048a490 t;
         Pos2_0048a490 pts[4];
         Hs_0048a490 hs[4];
@@ -254,19 +426,18 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
         for (k = 0; k < 4; k++) {
             MapVertex_0048a490* v = m->verts + row->ids[k];
             int vx = v->x;
-            t.x = vx;
-            pts[k].x = vx;
+            pts[k].x = t.x = vx;
             int vz = v->z;
             t.z = vz;
             pts[k].z = vz;
             FUN_004b7173(u->aim, &t);
-            int hz = (short)((u->posz - t.z) >> 16);
             int wx = (short)((t.x + u->posx) >> 16);
-            int fz = hz & 0xf;
+            int hz = (short)((u->posz - t.z) >> 16);
             int fx = wx & 0xf;
-            int gw = g_game->gridW;
-            unsigned gx = (unsigned)wx >> 4;
             unsigned gz = (unsigned)hz >> 4;
+            int fz = hz & 0xf;
+            gw = g_game->gridW;
+            unsigned gx = (unsigned)wx >> 4;
             if (gx >= gw - 1)
                 return;
             if (gz >= g_game->gridH - 1)
@@ -275,21 +446,21 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
             int b0 = tb[4];
             unsigned char* tb1 = tb + g_game->gridW * 13;
             int b1 = tb1[4];
-            int c0 = tb[0x11];
+            c0 = tb[0x11];
             int c1 = tb1[0x11];
             int H0 = b0 + ((c0 - b0) * fx) / 16;
             int H1 = b1 + ((c1 - b1) * fx) / 16;
             hs[k].wx = wx;
             if ((u->type->flags & 0x1000) && (u->flags & 0x10000000)
                 && !(u->flags & 0x4000)) {
-                int H = H0 + ((H1 - H0) * fz) / 16;
-                hs[k].h = H;
+                hs[k].h = H0 + ((H1 - H0) * fz) / 16;
+                int H = hs[k].h;
                 int sea = g_game->seaLevel;
                 hs[k].h = max(H, sea);
-                short p = (short)((((FUN_004b6340() & 0x1f) + k * 8) << 11) + u->fix_lo);
+                short p = (short)(((FUN_004b6340() & 0x1f) + k * 8) * 2048 + u->fix_lo);
                 int s = u->type->sight / 2;
-                unsigned int n = g_game->frame - u->owner->age;
                 int q = u->owner->sight;
+                unsigned int n = g_game->frame - u->owner->age;
                 if (q >= s)
                     q = s;
                 int w = (int)((((__int64)q << 16) / s));
@@ -303,8 +474,8 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
             }
             hs[k].spare = hz;
         }
-        int h0 = hs[0].h;
         int h1 = hs[1].h;
+        int h0 = hs[0].h;
         int h2 = hs[2].h;
         int h3 = hs[3].h;
         int a = (h0 + h1) / 2;

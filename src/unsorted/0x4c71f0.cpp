@@ -1,5 +1,80 @@
 // Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol and space-bunny-free. Names are provisional.
 //
+// space-bunny-free pass (#4676): MATCH, 100.0%, 280 of 280 bytes, all
+// references ok. The whole fix is case 1's second argument: it is computed into
+// a local and then passed to the call THROUGH A POINTER TO THAT LOCAL, which is
+// what makes cl5 5 schedule the block the way the original does.
+//   * The body is otherwise unchanged from the earlier passes: one line of case
+//     1, `out->high = FUN_004b7381(at_high, size - offset, DAT_0051fe40);`,
+//     becomes
+//         int span = size - offset;
+//         int* spanp = &span;
+//         out->high = FUN_004b7381(at_high, *spanp, DAT_0051fe40);
+//     and that alone takes cases 1 AND 2 to byte-identical (and with them the
+//     1-byte `je`/`ja`/jump-table offset, since the global reload lands in eax
+//     and so uses the 5-byte accumulator form). The `int*` reads like a
+//     leftover in Cavedog's source; it is kept with a comment because the bytes
+//     need it.
+//   * What it does: `size - offset` written in the argument is copied into the
+//     register that `sub ecx, eax` frees, which is eax, which the hoisted
+//     at_high load then wants. Going through `&span` stops that copy
+//     propagation, so the block is numbered in the original's order: store,
+//     `mov eax, ds:[0x51fe40]` (5 bytes), `push eax`, `push ecx`, then
+//     `mov ecx, [esp+0x24]` for at_high as the last push, and case 2's at_high
+//     load lands after `mov [ecx], eax` in eax as the original has it. So the
+//     whole residual of the previous passes (one allocator tie, two hunks) is a
+//     copy-propagation tie on case 1's second argument.
+//   * Exact statement of the lever, for docs/agent-guide.md: when a call's
+//     argument is an expression the compiler would otherwise materialise into the
+//     register the previous instruction freed, assigning that expression to a
+//     local first is NOT enough (cl5 copies it straight back), but taking the
+//     local's address and passing `*spanp` blocks the propagation and renumbers
+//     the block. Confirmed here on all four spellings: the pointer before the
+//     store, after the store, a pointer to `offset` as well, and a pointer to
+//     `at_high` as well, all MATCH. It does NOT work through an inlined helper
+//     (`static inline int Span(int* s, int o) { return *s - o; }` called as
+//     `Span(&size, offset)` is 80.0% again: the inliner folds it back to the
+//     plain expression), and `*&d` is 80.0% too, so it must be a real local
+//     pointer used as an argument. Cases 0, 2 and 3 need nothing.
+//   * New tools in build/scratch/0x4c71f0/: h.py imports tools/check.py and
+//     prints a per-region tag line (pre c0 c1 c2 c3 epi pad, O or D) per
+//     variant, ~0.1 s a variant with six threads, so a variant that fixes one
+//     case and breaks another shows at once; sw.py is the plain scorer;
+//     b1.py..b6.py are the batches of this pass.
+//   * THE SIBLING LEAD IN THE NOTES BELOW IS WRONG, and it closed the best idea
+//     several earlier passes had. 0x4c70d0 is NOT a match in this worktree:
+//     check.py prints 78.9% (280 of 280 bytes). Its case 0 block is the SAME
+//     miscompile ours had:
+//         ours      mov eax,[esp+0x1c]; mov [esi],0; mov edx,[DAT_0051fef0]
+//         original  mov [esi],0;           mov eax,[DAT_0051fef0]
+//     so "our build of the sibling emits exactly the schedule we want" is not
+//     true and there was no sibling case to copy. Do not spend budget on
+//     0x4c70d0 for this. Its case 2 is the one that already scheduled at_high
+//     late (`out->low = at_low; int c = DAT_0051fef0;
+//     out->high = FUN_004b7381(at_high, offset, c);`), which is what pointed at
+//     the second argument being the thing to change.
+//   * Measured this pass, all byte-identical to the 80.0% body, so do not retry:
+//     the at_high load through a `static inline` self-conditional
+//     `(i == 1) ? at_high : at_high` (as a local, inline in the argument, and
+//     the `at_high > at_high` form: cl5 folds all three, no phi survives);
+//     `(int)` on case 1's first argument; `int* p = &at_high; ... *p` for the
+//     first argument; case 2 with `DAT_0051fe40` as its third argument; the loop
+//     as `for (; cond;)`, `do`/`while`, a `goto` and a comma condition; the
+//     loop body re-reading `table = DAT_0051fef8;` (the guide's "re-assign the
+//     pointer in the loop body" lever, which adds a global load and so changes
+//     the loop); nine loop and tail wordings (`goto`, `for` with the increment
+//     in the header, initialisation order, `table[j].field_4` inlined in the
+//     condition, `hi`/`lo`/`size`/`offset` declared in every order, the test on
+//     the global, `if (size)` instead of an early return, a switch on a copy of
+//     `i`); and twenty dead-code perturbations that emit nothing (`if (0)`,
+//     `int t = 0; if (t) ...`, self assignments and a ten-statement dead block,
+//     in the loop body, in the tail and in cases 1 and 2). The block's
+//     allocation is insensitive to all of them.
+//   * Case 1's second argument as `value - lo` (algebraically `size - offset`)
+//     is 54.1%, and case 2's the same is 56.0%: reading `lo` inside the switch
+//     keeps it live to the switch and the whole pre-switch renumbers (table
+//     moves to edi, i to ecx, lo to edx). So `lo` must not be read in a case.
+//
 // space-bunny-free pass (#4547): still 80.0%, 280 bytes (exact size), no MATCH;
 // the body below is unchanged and remains the best. New harness in
 // build/scratch/0x4c71f0/ (harness.py scores six variants per 0.7 s and tags
@@ -544,7 +619,14 @@ void __stdcall FUN_004c71f0(int value, Range* out, int at_low, int at_high)
         return;
     case 1:
         out->low = at_low;
-        out->high = FUN_004b7381(at_high, size - offset, DAT_0051fe40);
+        {
+            // The distance is passed through a pointer to a local. It reads
+            // like a leftover from the original, but it is what puts case 1's
+            // global reload in the 5-byte accumulator form (see the notes).
+            int span = size - offset;
+            int* spanp = &span;
+            out->high = FUN_004b7381(at_high, *spanp, DAT_0051fe40);
+        }
         return;
     case 2:
         out->low = FUN_004b7381(at_low, offset, size);

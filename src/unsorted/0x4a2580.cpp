@@ -1,6 +1,55 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// BEST SO FAR: 84.4%, 1631 bytes (exactly the original's size), up from the 69.8%
+// this file started at.  What is left is ONE hunk, the w<h arm's register/slot
+// split, and it is a single allocator decision that every source-level spelling
+// tried so far fails to reach.  Permute confirmed the plateau: 1106 further
+// candidates over 15 minutes found nothing better than 84.4%.
+// THE REMAINING HUNK, precisely.  Original, at the top of the w<h arm:
+//     mov ecx,[ebp+0x18] ; movsx esi,[ebx+0x15] ; mov ecx,[ecx+4]
+//     movsx edx,dx                          <- h, reused from the branch compare
+//     mov ebp,[ecx+0xbc]                    <- surface STRAIGHT INTO ebp, no store
+//     movsx edi,[ebx+0x13] ; lea ecx,[esi+edx-1]
+//     mov [esp+0x10],ecx                    <- limit gets a frame home at 0x10
+// Ours:
+//     mov ecx,[ecx+0xbc] ; mov [esp+0x10],ecx   <- surface gets the 0x10 home
+//     lea ebp,[edx+esi-1]                       <- and limit takes ebp
+// so every one of the arm's seven FUN_004b7f90 draws reloads the surface
+// (`mov eax,[esp+0x1c]; push eax`) where the original pushes ebp.  The original's
+// frame has FOUR scalar slots (limit 0x10, lc 0x14, entries 0x18, surface 0x1c);
+// ours has three (surface 0x10, lc 0x14, entries 0x18).  The surface is
+// function-scope here, so it must survive to the flags&4 block, which is what
+// makes MSVC give it the home and hand ebp to `limit` instead.
+// 2026-10-02 (Space Bunny Free), 84.2 -> 84.4%: the permuter's 84.4% best.cpp is
+// 2026-10-02 (Space Bunny Free), 84.2 -> 84.4%: the permuter's 84.4% best.cpp is
+// 14 hunks, of which exactly ONE carries the gain, isolated by scoring each alone:
+// the `unsigned int same0 = limit; limit = same0;` round-trip in the h<=w arm
+// (+0.2, marked in the source with a comment saying it is an allocator nudge, not
+// real source).  The other 13 hunks (Smaller as if/else, `7 == entries[i].type`,
+// `(ybase + lc) - 1`, the `lastg` temporary, `2 + (e->x + e->w)`, the merged
+// `int x = e->x, limit = ...` declaration, the x/y split declarations, the
+// operand-order flips) are all byte-identical at 84.2% one at a time and inert
+// together with it.  Making `limit` itself `unsigned int` is 83.8%, hoisting an
+// `unsigned int limit;` is 83.8%, an unsigned-short intermediate is 74.5%, and
+// `unsigned short w` (so the comparison becomes jb) is 76.3%, so the round trip
+// has to stay a copy through an unsigned temporary.
+// Also ruled out this round, all scored on the 84.2% base: wrapping the whole w<h
+// arm in `static inline void StackGlyphs(e, surf)` or `StackGlyphs(surf, e)` or
+// with `h`/`w` as extra by-value parameters is 74.3% in all three orders, so the
+// parent's inlined-by-value-parameter lead does NOT apply here (an unmodified
+// by-value parameter still draws a frame slot in MSVC 5); calling the surface
+// getter at each draw site instead of storing it is 66.6%, and at every site in
+// the function 64.5%; reading the chain in the gl==0 path only is 70.6%; putting
+// `ybase` between `lc`'s initialiser and the first minimum is 64.6-70.1%; and
+// lengthening `limit`'s live range by flipping either loop test is 78.3-78.7%.
+// Every declaration order of the four w<h arm locals {y, surface reload, x,
+// limit} is byte-identical at 84.4% (p00-p03) except when `limit` comes first,
+// which is 68.3%; a branch-local `void* surf` in the arm is 75.5% in all three
+// orders because it draws its own frame slot; reading the chain at each draw
+// instead of storing it is 66.8%.  So the next person should look for the source
+// construct that makes MSVC treat the arm's surface as a value with no home at
+// all, rather than more reordering.
 // 2026-10-02 (Space Bunny Free), 81.7 -> 84.2%, two hunks from the permuter,
-// each verified alone (limit-before-first alone is 83.8%, the `b` hoist alone
+// each verified alone (limit-before-first alone is 83.8%, the `b` hoist alone is
 // 82.0%, together 84.2%):
 //  - in the h<=w arm `int limit = x + w - 1;` comes BEFORE
 //    `Glyph_004a2580* first = FUN_004b7f30(...)`, not after it.  Swapping only
@@ -371,50 +420,56 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         short w = e->w;
         short h = e->h;
         if (w < h) {
-        int y = e->y;
-        surface = Surface_004a2580(obj);
-        int x = e->x;
-        int limit = y + h - 1;
-        g = FUN_004b7f30(e->glyphs, e->field_152);
-        if (g != 0)
-            FUN_004b7f90(surface, g, x, y);
-        y += g->height;
-        mid = FUN_004b7f30(e->glyphs, e->field_152 + 1);
-        while (y + mid->height <= limit) {
-            FUN_004b7f90(surface, mid, x, y);
-            y += mid->height;
-        }
-        Glyph_004a2580* last = FUN_004b7f30(e->glyphs, e->field_152 + 2);
-        FUN_004b7f90(surface, last, x, limit - last->height + 1);
-        x += last->width / 2;
-        g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
-        x -= g->width / 2;
-        int lc = e->h - 6;
-        lc = Smaller(lc, (int)e->size);
-        int ybase = e->off + e->y + 3;
-        int lim2 = lc + ybase - 1;
-        int t = e->h + e->y - 4;
-        if (lim2 >= t)
-            lim2 = t;
-        if (ybase > lim2 - lc + 1)
-            ybase = lim2 - lc + 1;
-        FUN_004b7f90(surface, g, x, ybase);
-        lc -= g->height;
-        ybase += g->height;
-        mid = FUN_004b7f30(e->glyphs, e->field_152 + 4);
-        while (ybase <= lim2 - mid->height) {
-            FUN_004b7f90(surface, mid, x, ybase);
-            lc -= mid->height;
-            ybase += mid->height;
-        }
-        FUN_004b7f90(surface, mid, x, lim2 - mid->height);
-        g = FUN_004b7f30(e->glyphs, e->field_152 + 5);
-        FUN_004b7f90(surface, g, x, lim2 - g->height + 1);
+            int y = e->y;
+            surface = Surface_004a2580(obj);
+            int x = e->x;
+            int limit = y + h - 1;
+            g = FUN_004b7f30(e->glyphs, e->field_152);
+            if (g != 0)
+                FUN_004b7f90(surface, g, x, y);
+            y += g->height;
+            mid = FUN_004b7f30(e->glyphs, e->field_152 + 1);
+            while (y + mid->height <= limit) {
+                FUN_004b7f90(surface, mid, x, y);
+                y += mid->height;
+            }
+            Glyph_004a2580* last = FUN_004b7f30(e->glyphs, e->field_152 + 2);
+            FUN_004b7f90(surface, last, x, limit - last->height + 1);
+            x += last->width / 2;
+            g = FUN_004b7f30(e->glyphs, e->field_152 + 3);
+            x -= g->width / 2;
+            int lc = e->h - 6;
+            lc = Smaller(lc, (int)e->size);
+            int ybase = e->off + e->y + 3;
+            int lim2 = lc + ybase - 1;
+            int t = e->h + e->y - 4;
+            if (lim2 >= t)
+                lim2 = t;
+            if (ybase > lim2 - lc + 1)
+                ybase = lim2 - lc + 1;
+            FUN_004b7f90(surface, g, x, ybase);
+            lc -= g->height;
+            ybase += g->height;
+            mid = FUN_004b7f30(e->glyphs, e->field_152 + 4);
+            while (ybase <= lim2 - mid->height) {
+                FUN_004b7f90(surface, mid, x, ybase);
+                lc -= mid->height;
+                ybase += mid->height;
+            }
+            FUN_004b7f90(surface, mid, x, lim2 - mid->height);
+            Glyph_004a2580* lastg = FUN_004b7f30(e->glyphs, e->field_152 + 5);
+            g = lastg;
+            FUN_004b7f90(surface, g, x, lim2 - g->height + 1);
     } else {
         void* surf = Surface_004a2580(obj);
         int x = e->x;
         int y = e->y;
         int limit = x + w - 1;
+        // The unsigned round-trip below is not in the original source as written:
+        // it is here only because MSVC 5's allocator gives the h<=w `limit` a
+        // different treatment after a 32-bit unsigned copy, which is worth 0.2%.
+        unsigned int umax = limit;
+        limit = (int)umax;
         Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);
         if (first != 0)
             FUN_004b7f90(surf, first, x, y);
@@ -434,7 +489,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
         if (a >= b)
             a = b;
         FUN_004b7f90(surf, g, a, y);
-        }
+    }
     }
 
     if (e->flags & 4) {

@@ -1,336 +1,38 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
-// 2026-10-01 pass (deepseek-v4.1-flash, issue 4286): MAPPED the d7 register tie as an exact
-// moffs-vs-byte-temp tie. g_game loaded via the 5-byte moffs `mov eax,[g_game]` wants EAX; the
-// bitfield byte temp for flags_37f2f.b1 wants AL (`test al,1` = 2 bytes vs `test cl,1` = 3). Both
-// save exactly 1 byte and MSVC breaks the tie toward flag=AL, leaving g_game on ECX. The original
-// breaks it toward g_game=EAX / flag=CL. KEY NEW FACT: the pair (g_game=EAX, old=ECX) with
-// old = g_game->field_38c53 IS achievable - `int old = g_game->field_38c53; g_game->field_38c53 = 0;
-// if (g_game->flags_37f2f.b1 && old == 0)` scores 79.5 with g_game=EAX and old=ECX exactly like the
-// target. The ONLY delta left there is the flag test form: the `&&` collapses the flag to a direct
-// memory test `test byte [g_game+37f2f],2` where the original has the shift-test
-// `mov cl,[..]; shr cl,1; test cl,1`. The flag form is coupled to the guard shape: an `if (flag)`
-// standalone gives the shift-test (but then old=g_game->field flips g_game to ECX, 75.9); any
-// `if (flag && X)` (and `int f = g_game->flags_37f2f.b1; if (f && X)`, `!= 0`, a ternary on flag)
-// collapses to the memory test. So one can have g_game=EAX+old=ECX with the memory test (andold),
-// or the shift-test with g_game=ECX (nested), but every spelling tried pairs the wrong two. The
-// remaining reading is that some source keeps the flag as a value extract (shift-test) inside a
-// short-circuit test without the collapse AND without stealing EAX from g_game; that spelling was
-// not found this pass. Further: `int old = g_game->field_38c53; g_game->field_38c53 = 0;
-// if ((g_game->flags_37f2f.b1) & (old == 0))` (bitwise AND, no short circuit) scores 84.4 (2292),
-// and its old load/store/check all match the target (g_game=EAX, old=ECX). But it stores
-// UNCONDITIONALLY (the store sits before the flag test, so field_38c53 is zeroed even when flag=0)
-// and its flag is a combined `test cl, al`, so it is semantically wrong and stuck below 100.
-// That pins the real constraint: g_game=EAX+old=ECX only comes out when old and the store are both
-// hoisted above the guard (unconditional store). Making the store conditional (inside the flag
-// check, which is what the original does) forces the nested form and flips g_game to ECX. So the
-// correct structure and the correct registers are still mutually exclusive across every spelling.
-// Re-tested and flat at 75.9 (2288): local g used only in the entry, cast
-// pointer read, int& fld, register int old, nested comma `(old=.., field=0, old==0)`, all with
-// old=g_game->field. Hoisted form (this file) stays the best at 79.6 (2292).
-// 2026-10-01 pass 2 (deepseek-v4.1-flash): the whole 79.6 residue is one 1-byte cascade. Case 0xd7 is
-// the only size delta this side of the dispatch: ours emits 6-byte `mov esi,[g_game]` where the original
-// has the 5-byte moffs `mov eax,[g_game]`, so every later jump target (0x4965ce/0x4965e6) is +1 and the
-// diff shows hundreds of shifted lines. Probed this pass: decl-hoisted/assign-inside (`int old;` at the
-// case top, `old = g_game->field_38c53;` inside the guard) is byte-identical to the fully-inside form
-// (75.9, 2288 bytes), `unsigned int old` and `(int)` cast spellings are flat at 79.6, and `b1 != 0`
-// regresses to 75.8. In the inside form ours mirrors the original exactly except for the register pair:
-// ours is ptr ECX / byte AL / old EAX, original is ptr EAX / byte CL / old ECX, so the byte temp and the
-// pointer register are the tie, not the statement order.
-// 2026-10-01 pass (deepseek-v4.1-flash): re-confirmed 79.6 (2292 vs 2292 bytes). Only two
-// real deltas left: case 0xd7 is 1 byte overlong (6-byte `mov esi,[g_game]` where the
-// original has the 5-byte EAX moffs), which shifts every tail jump target by 1, and the
-// case 0xab CTRL buffer sits at esp+0x18 where the original has esp+0x10. Re-tested the
-// `int old` inside-the-guard d7 spelling in isolation: 75.9 (2288), so the hoisted form stays.
-// deepseek-v4.1-flash (issue 3489): one stale claim corrected. check.py on the
-// current file still shows a REAL second delta (not only the d7 tie): the case
-// 0xab CTRL buffer sits at esp+0x18 here but at esp+0x10 in the original
-// (2 x `lea ecx/edx, [esp+0x18]` vs `[esp+0x10]`). The note below claiming
-// `buf[0x10]` + `path[0x100]` lands the CTRL buffer at 0x10 is wrong for this
-// file; it is 0x18. Enlarging case 0xf8's `data[4]` to `data[0x10]` (trying to
-// free 0x10..0x20 for the CTRL buffer) keeps the size at 2292 but drops the
-// score to 77.6%. The frame (`sub esp,0x230`), path (0x140, 0x100 bytes) and
-// findData (0x28) offsets are all correct in the current file.
-// space-bunny-free pass (issue 3260): still PARTIAL 79.6%, 1 real check run.
-// Confirmed again, with an instruction-text LCS diff of both disassemblies,
-// that there is exactly ONE delta left in the whole function and it is the
-// case 0xd7 entry register tie described below. Everything after 0x4961d7 is
-// only shifted by the one byte that entry is too long, so this one block is
-// worth about 20 points.
-// New data points on that tie (all scored free with check.py --sym):
-//   hoisting `int old` above the guard (the current file) 2292  79.6%
-//   `unsigned int old` hoisted                              2292  79.6%
-//   `if (!old)` / `if (old <= 0)` hoisted                   2292  79.6%
-//   `int zero = 0;` hoisted, store as `= zero`              2292  79.6%
-//   `Game_495e90* g` hoisted with `g->field_38c53`          2292  79.6%
-//   `unsigned char f = flags_37f2f.b1` hoisted, `if (f)`   2292  79.6%
-//   `if (old != 0) old = g_game->field_38c53;` hoisted      2292  79.6%
-//   `int old` INSIDE the guard (all spellings below)        2288  75.9%
-//   `long old`, `0 == old`, `int old;` declared then set,
-//   `Game_495e90& gr = *g_game`, `int& fld = field`, all
-//   inside the guard                                       2288  75.9%
-//   `(raw >> 1) & 1` for the guard                         compile failed
-//   `int& fld = field; old = fld;` hoisted, store `fld = 0` 2292  79.6%
-//   `unsigned char f` hoisted AND `old` inside the guard     2288  75.9%
-//   so no spelling of the reference or the flag local moves it either.
-// The hoisted family always lands as
-//     mov esi,[g_game] / mov cl,[esi+0x37f2f] / mov eax,[esi+0x38c53]
-//     shr cl,1 / test cl,1 / je / cmp eax,ebx / mov [esi+0x38c53],ebx / jne
-// and the inside family always lands as
-//     mov ecx,[g_game] / mov al,[ecx+0x37f2f] / shr al,1 / test al,1
-//     / je / mov eax,[ecx+0x38c53] / mov [ecx+0x38c53],ebx / cmp eax,ebx / jne
-// so the two g_game registers (EAX and ECX) are simply swapped, and neither
-// family ever reaches the original's EAX for g_game with the pair in CL/ECX.
-// Two facts worth keeping:
-//   * The 5-byte `mov eax,[g_game]` is not a hint about the source, it is only
-//     the moffs encoding: any other register is 6 bytes. Every block in this
-//     function picks its own register for g_game (case 0x1b picks EAX, case
-//     0xec picks ESI, case 0x5c picks EDX) and they all match, so the choice
-//     is per block.
-//   * g_game is REMATERIALISED in this function: it is reloaded from the
-//     global at nearly every use site (0x4961d7, 0x496201, 0x496249,
-//     0x496275, 0x496287, 0x4962c7, ...). The original still keeps one copy
-//     in a register across the three adjacent uses inside the d7 guard, which
-//     is why a web of 3 uses must not become ESI.
-// The remaining reading is an upstream allocator state difference, not a
-// d7 source shape: the inside family also loses one byte EARLIER than the
-// dispatch (the epilogue sits at 0x4965e5, not 0x4965e6), so moving the
-// `old` load inside the guard costs a second, unrelated byte somewhere before
-// 0x4961d7. That earlier byte is the more promising thing to hunt: fixing it
-// and keeping the hoisted load would leave only the register tie.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol and space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Fable 5.1. Names are provisional.
+// In-game keyboard command dispatcher: FUN_004c1ab0 returns the event (0 means
+// return), FUN_004c1b80(0xf9) the "key down" flag. The switch is value sorted
+// into a 0xf0-byte index table and a 40-entry jump table; the case bodies are
+// written in the original's physical order so the jump table lines up.
 //
-// Edited by deepseek-v4.1-flash (decomp-worker, issue 3095). Still PARTIAL
-// 79.6%, unchanged: one delta left, case 0xd7's entry register tie.
-// This pass tried (all scored with check.py --sym on scratch copies):
-//   vB/vC/vD early-`break` spelling of the two d7 guards (both jumps go to
-//     the shared switch end in the original, which looked like break style):
-//     2284 bytes, 75.7%. The straight-line form saves 6 bytes before d7 and
-//     restructures, so nested ifs stay.
-//   vE/vK flag guard read through a static inline helper taking g_game:
-//     75.7 / 71.7. vH/vI a GetOld(g_game) helper for field_38c53: 71.7/72.5.
-//     Inlined helper parameters do not flip the EAX/ECX tie here.
-//   vG split declaration `int old; old = g_game->field_38c53;`: 72.5.
-//   vF `int* p = &g_game->field_38c53; int old = *p; *p = 0;`: 75.9, same
-//     swap as vA.
-// Still needed for a match: d7 entry with `int old` INSIDE the guard (vA's
-// instruction order: ptr, flag byte, je, old load, store, cmp, jne) but the
-// pointer in EAX (5-byte moffs) and the flag/old pair in CL/ECX. vA gets the
-// exact order but mirrors the registers (ptr ECX 6-byte, pair AL/EAX).
+// The two residues that held this at 79.6% for many passes:
+// - Case 0xd7 (movie recording toggle) is an if/else with the counter reset in
+//   BOTH arms: `if (counter != 0) counter = 0; else { counter = 0; ...start... }`.
+//   MSVC 5 hoists the common store above the compare, which gives the
+//   original's `mov ecx,[eax+0x38c53]; mov [eax+0x38c53],ebx; cmp ecx,ebx`
+//   with g_game in EAX (the 5-byte moffs load) and the flag byte in CL. Every
+//   `int old = counter; counter = 0; if (old == 0)` spelling, hoisted or not,
+//   mirrors the registers (pointer ECX, byte AL, old EAX) and loses one byte.
+// - The case 0xab CTRL buffer is 7 bytes ("CTRL_x" plus the NUL), not 16.
+//   MSVC 5 lays locals out by (memory references / size), highest ratio
+//   nearest esp; a 16-byte buffer (2/16) sorts after the vector case's
+//   locals and reuses the vector's dead 16-byte slot at esp+0x18, while a
+//   7-byte one (2/7) sorts before the vector's 4-byte allocator temporary
+//   (1/4) and lands at esp+0x10 with the frame unchanged at 0x230. Sizes 3 to
+//   7 are byte-identical; 8 ties the allocator temporary and moves the frame.
+//   (Rule measured in build/scratch/0x495a30/model2.py for issue 4408.)
 //
-// deepseek-v4.1-flash (issue 3311), four more scored spellings, all with the
-// current frame (buf[0x10] + path[0x100]) so the frame is not the variable:
-//   `Game_495e90* gp = g_game;` used for all three accesses (flag test, old
-//     load, store) with `int old` hoisted: 2292 / 79.6, byte-identical to the
-//     three plain `g_game` spellings, so naming the pointer does not move it.
-//   the same local pointer with `int old` INSIDE the guard: 2288 / 75.9.
-//   `int old = 0;` hoisted, `old = g_game->field_38c53;` inside the guard:
-//     2288 / 75.9 (same as the other inside spellings, so a zero initialiser
-//     does not pin `old` to the ebx zero register).
-//   `int zero = 0;` INSIDE the guard, store as `= zero`: 2292 / 79.6 flat.
-// Conclusion: the ESI-vs-EAX pick for the block's g_game load is upstream
-// allocator state, not a function of this block's source shape.
-
-// deepseek-v4.1-flash (issue 3666): each of the six inside-the-guard respellings
-// below was scored on its own file with check.py, all 2288 / 75.9, so the inside
-// family is a flat register swap, not a spelling: explicit `!= 0` guard (2284,
-// 75.7), `int old;` then assign, `int* p = &field; int old = *p; *p = 0;`,
-// `0 == old`, and `Game_495e90* g` for the three accesses. The comma-operator
-// spelling `int old; if (flags_37f2f.b1 && ((old = g_game->field_38c53),
-// (g_game->field_38c53 = 0), old == 0))` keeps the original's store-before-cmp
-// order but lands at 2284 / 75.7, and the same comma form inside the guard is
-// 2284 / 76.2. Nothing moved the d7 entry off the 37-byte ESI form, so the file
-// is unchanged at 79.6% (2292 vs 2292).
-// PARTIAL 79.6%: in-game command/gadget event dispatcher, original 2292 bytes,
-// ours 2292 (exact size; structure, jump tables and case order agree).
-//
-// What this pass changed (79.0% -> 79.6%), THE STACK FRAME:
-// Both remaining frame-slot differences were ONE cause, the size of the two
-// buffers in case 0xd7 and the CTRL buffer in case 0xab. Measured with the
-// scratch scorer in build/scratch/0x495e90/score.py (buf size -> frame,
-// CTRL buf, findData, path):
-//   buf[0x20] path[0xf0]  frame 0x230  CTRL 0x18  findData 0x38  path 0x150
-//   buf[0x18] path[0xf0]  frame 0x228  CTRL 0x18  findData 0x30  path 0x148
-//   buf[0x10] path[0xf0]  frame 0x220  CTRL 0x10  findData 0x28  path 0x140
-//   buf[8]    path[0xf0]  frame 0x224  CTRL 0x10  findData 0x2c  path 0x144
-//   buf[0x10] path[0x100] frame 0x230  CTRL 0x10  findData 0x28  path 0x140
-// The last row is the original, exactly. MSVC5 sizes the frame as
-// (top of the highest local) MINUS 0x10, so a `char path[0xf0]` placed at
-// 0x140 only yields `sub esp,0x220`; the original's path buffer is 0x100
-// bytes, and `char buf[0x10]` is what lets the CTRL buffer share slot 0x10
-// with case 0xf8's `data[4]`. That single pair of sizes fixes the CTRL lea
-// (esp+0x18 -> 0x10), the two 0xd7 leas (0x38 -> 0x28, 0x150 -> 0x140), the
-// atoi argument lea (0x51 -> 0x41) and keeps the frame at 0x230 at the same
-// time. Every diff hunk in the checker that was not a `jmp 0x4965ce` ->
-// `jmp 0x4965cf` target shift is gone; see build/scratch/0x495e90/itxt.py,
-// which reproduces the checker's instruction-text diff offline.
-//
-// What the earlier passes changed (75.7% -> 78.8%):
-// - Case 0xd7: hoisting `int old = g_game->field_38c53;` ABOVE the
-//   `flags_37f2f.b1` guard (semantically the same, the read is unconditional)
-//   flips the whole block's allocation. MSVC now keeps g_game in esi and the
-//   flag byte in cl, exactly as the original does, and stops sinking the
-//   field_38c53 load past the branch. The original really does hoist that load:
-//   its live range starts at the block entry even though the guard is first.
-//   With the load inside the guard MSVC gives g_game to ecx, the flag byte to
-//   al, and emits a 6-byte `mov ecx, g_game` where the original has the 5-byte
-//   moffs `mov eax, g_game`. Worth 3.1 points.
-//
-// What is known to be right:
-// - FUN_004c1ab0 returns the event, 0 means return; FUN_004c1b80(0xf9) returns
-//   the "key down" flag (kept in esi).
-// - The switch is value sorted. MSVC 5 builds a 0xf0-byte index table at
-//   0x496694 (index = event - 9) and a 40-entry jump table at 0x4965f4.
-//   The jump table is sorted by case value; each non-adjacent case label that
-//   shares a body gets its OWN slot even though the bodies fold to one address
-//   (0x21/0x23/0x2a/0x60/0x7e all fold to 0x496058; 0xab|0xae..0xbb|0xbd..0xc2
-//   all fold to 0x4963d8; 0x2b|0x3d fold to 0x496570; 0x2d|0x5f fold to
-//   0x496512). Cases written as one chain (0x31..0x39, 0xc5..0xcd, 0xd2..0xd5,
-//   0xe6..0xe9) get one slot.
-// - Case bodies in memory are NOT in value order. Physical order starts at
-//   0x495ed4 with case 0x1b and ends at 0x496570 with 0x2b/0x3d; writing the
-//   switch in that order is what makes the jump table line up.
-// - The 0x4963d8 "CTRL_%c" body is sprintf(buf, "CTRL_%c", event - 0x69) then
-//   FUN_0048bf30(buf, key). ebp is the event, not a frame pointer (there is no
-//   mov ebp,esp), so lea reg,[ebp-0x69] is the character for %c.
-// - The `if (key == 0)` blocks are written as `if (key != 0) { then } else`,
-//   with the `key != 0` arm first, so the `key == 0` arm is out of line
-//   (0x496167 je 0x4961a4). Same trick for the nested `field_2cba != 0` test.
-// - The 0x2d/0x5f and 0x2b/0x3d guards are a RAW `if (!(flags_3923b.raw & 2))`
-//   (test byte,2), while the tail and 0xec use the `flags_3923b.b1` bitfield
-//   (mov al; shr; test). The union in this file keeps both spellings.
-// - The 0x496058 body is a 1-bit `!` on a `unsigned short` bitfield, which
-//   yields the not/and/xor expand-in-place toggle.
-// - Case 0xf8 (0x496099): writing the call as one expression
-//   `FUN_00451df0(FUN_0044fdb0(), data, 3)` (no intermediate int) makes MSVC
-//   push the literal 3 before the toggle, as the original does.
-//
-// This pass (deepseek-v4.1) tried the following, all scored with
-// check.py against a scratch copy:
-//   vA `int old = g_game->field_38c53;` moved INSIDE the guard (the exact
-//      original instruction order: pointer load, flag byte, je, old load,
-//      store 0, cmp, jne): 2288 bytes, 75.9%. Byte-identical to the original
-//      except eax and ecx are swapped: ours `mov ecx,[g_game]` (6 bytes) /
-//      byte temp AL / old EAX, original `mov eax,[g_game]` (5 bytes, the moffs
-//      form) / byte temp CL / old ECX. So the register pair (pointer, flag
-//      byte) is a pure allocation-order tie-break: when the byte temp and
-//      `old` coalesce onto one register, that pair takes EAX in ours and the
-//      pointer is pushed to ECX, while the original gives the pointer EAX
-//      first and the pair takes CL/ECX.
-//   vB = current file + `(void)key;` at the top of case 0xd7 (to keep ESI
-//      busy and force EAX for the pointer): the no-op is dropped, output is
-//      byte-identical to the current file (2292, 79.6%). ESI liveness is not
-//      the lever.
-//   vC/vD `Game_495e90* g = g_game;` before the guard + `int old` inside:
-//      same 2288 / 75.9% and the same ECX/AL/EAX swap as vA.
-//   An instruction-text diff of the current file shows our d7 entry emits the
-//      `old` load BEFORE `shr cl,1` and the store AFTER `cmp eax,ebx`, so
-//      besides the pointer register our store/compare order is also still
-//      swapped; both come from the single register-pair decision above.
-//
-// What still differs (measured with tools/check.py, and an instruction-text
-// LCS alignment of both disassemblies, see build/scratch/0x495e90/):
-// - There is now exactly ONE delta left in the whole function: case 0xd7's
-//   entry is 37 bytes here against 36 in the original, so the code from
-//   0x496202 on, and therefore every `jmp 0x4965ce` and the shared break
-//   target, sits one byte high. Everything else, including the epilogue,
-//   the tail (`push ebp / call FUN_004956c0`), the 0xad block and the two
-//   jump tables, is byte for byte the original.
-//     original: mov eax,[g_game] / mov cl,[eax+0x37f2f] / shr cl,1 / test cl,1
-//               / je / mov ecx,[eax+0x38c53] / mov [eax+0x38c53],ebx
-//               / cmp ecx,ebx / jne            (36 bytes)
-//     here:     mov esi,[g_game] / mov cl,[esi+0x37f2f] / shr cl,1
-//               / test cl,1 / je / mov eax,[esi+0x38c53] / cmp eax,ebx
-//               / mov [esi+0x38c53],ebx / jne  (37 bytes)
-//   Two things are wrong at once: the pointer needs EAX for the 5-byte moffs
-//   form (any other register is 6 bytes), and the store must come BEFORE the
-//   compare. The store-before-compare only happens when the `int old` load is
-//   inside the guard; the EAX choice only happens when the `int old` load is
-//   hoisted above it. Every spelling tried couples them the wrong way:
-//     `int old` hoisted (kept, 79.6%)  flag in CL as the original, pointer ESI.
-//     `int old` inside the guard       original's order, but `mov ecx,[g_game]`
-//                                     and the flag byte in AL, 2288 bytes.
-//     local `Game_495e90* g` hoisted, `int old` hoisted   ESI / CL, wrong order.
-//     local `Game_495e90* g` inside the guard             ESI / AL, 2260 bytes.
-//     `int old` hoisted + a named `unsigned short keep` for the flag: MSVC
-//       folds the 1-bit compare into `test dl,2`, a different shape, 2288.
-//   Reading either value into a named local (technique 8) does not decouple
-//   them either. The reading to try next is a construct that makes the
-//   g_game load a value the allocator ranks ABOVE the bitfield byte temp but
-//   still lets its web die at the branch, so it never becomes ESI.
-// - An older note claimed case 0xad needed +2 bytes at its entry test. That
-//   is stale: with the corrected frame the 0xad block is exact.
-// - Older notes on this file:
-//   (a) Case 0xad entry is `mov eax,[esp+0x20]; cmp esi,eax` where the
-//       original has the folded `cmp esi, dword ptr [esp + 0x20]`. STALE.
-//       Tried and did not help: a hoisted
-//       `std::vector<int>::iterator e = sel.end();`, `sel.end() != it`,
-//       `!(it == sel.end())`, `int*` iteration, and a `const&` to sel.
-// - Frame slots now agree with the original exactly.
-// - Tested with buf[8] in case 0xab: the CTRL buffer then lands at esp+0x10
-//   exactly like the original, but the frame drops to 0x224 and the 0xd7/0xad
-//   locals stay 4 bytes high. STALE as a dead end: buf[0x10] WITH path[0x100]
-//   gets every offset right (see the top of this file). The frame and the slot
-//   offsets are two separate constraints, which is why searching buffer sizes
-//   on one of them alone kept looking like a dead end.
-// - Case 0xec (0x4962f8) loads the guard into al where the original uses dl
-//   (`test al,1` is 2 bytes, `test dl,1` is 3). A `char` bitfield base for
-//   Flags_00495e90_37f2f was tried and is much worse (69.6%), so the
-//   `unsigned short` base is right and the register difference is pure
-//   allocator state. Note the ORIGINAL also picks al for the same test in case
-//   0x5c and cl in case 0xd7, so the choice is per block, not per expression.
-// - The buffer sizes 8, 0x10, 0x18, 0x1c, 0x20 were all tried for `buf` while
-//   `path` stayed 0xf0, and no CTRL buffer landed below 0x18. STALE: the CTRL
-//   buffer needs BOTH buf[0x10] and path[0x100], because the frame size and
-//   the slot offsets are computed independently.
-//
-
-// deepseek-v4.1-flash (issue 4185, retry of 4080): 15 more scored spellings, all
-// flat. The "inside" family is now exhaustive: the guard as a cast pointer
-// (`Flags_00495e90_37f2f* f = (Flags_00495e90_37f2f*)((char*)g_game + 0x37f2f);
-// if (f->b1)`), a `char* base` used for all three accesses, a `Flags&` reference,
-// `unsigned short* base`, a local byte-bitfield struct, `unsigned short f = ...; if (f)`,
-// `long`/`const`/casted `old`, an `int* p = &g_game->field_38c53;` hoisted above
-// the guard, `int old;` declared above and assigned inside, `!== 1`, `(bool)`,
-// and a hoisted `char* base`: every one is byte-identical to the 2288-byte
-// inside form below. Only `x == 1` and `(bool)` change anything and both emit
-// `and al,2 / cmp al,2` instead of the original `shr cl,1 / test cl,1`.
-// Cross-checked against matched near-copies that DO get the original's
-// ptr EAX / byte CL pattern: 0x499890.cpp (`if (g_game->screenBitB)` on a
-// direct `unsigned short` bitfield) and 0x46a530.cpp
-// (`Flags* f = (Flags*)((char*)g_game + 0x37f2f); if (f->flag)`), so both the
-// direct-member and cast-pointer spellings are known-good shapes elsewhere;
-// here they still land ptr ECX / byte AL / old EAX. Reproducing that shape
-// needs the pointer web to be allocated before the flag byte temp, and no
-// source spelling tried in five passes moves it.
-// Measured this pass with a local byte-diff of the two disassemblies
-// (build/scratch/0x495e90/sdiff.py): the current file's ONLY size delta is
-// 0x4961d7 (43 vs 42 bytes); every other difference is the resulting +1
-// target shift. The inside family's 2288 bytes are NOT one byte shorter: the
-// entry matches the original exactly and the remaining 3 bytes are lost in the
-// body, whose register allocation diverges (`mov ecx,[g_game]` + `lea edx,...`
-// where the original has `mov edx,[g_game]` + `lea eax,...`), so the body of the
-// original cannot come from the inside form as spelled here.
-
-// deepseek-v4.1-flash (issue 4259, retry of 4185): no new family found; the file is
-// unchanged at 79.6 (2292 vs 2292). Two measurements this pass are worth keeping:
-//  * Why 2292 == 2292 with a +1 block: our code really is one byte longer from
-//    0x4961d7 to the epilogue, but the jump table is 4-byte aligned, so our one
-//    extra padding byte disappears: original ends 0x4965e6 + 14 pad, ours 0x4965e7
-//    + 13 pad, both tables start at 0x4965f4. Equal totals do NOT mean no delta.
-//  * The inside family (2288) is not just the entry mirrored: its entry is the
-//    SAME SIZE as the original (its `test al,1` is the 2-byte A8 form where the
-//    original's `test cl,1` is the 3-byte F6 C1 01, which pays for the 6-byte
-//    `mov ecx,[g_game]`), but the whole case BODY then diverges: 0x496201 is
-//    `mov ecx,[g_game]` + `lea edx,[esp+..]` in ours against `mov edx,[g_game]`
-//    + `lea eax,[esp+..]`, and the two sprintf argument pushes are reordered
-//    (the 4-byte loss is there, not in the entry). So the inside form cannot be
-//    fixed by the entry alone; its register pair has to flip, which is the same
-//    single allocator decision the hoisted form misses.
-//  This pass also re-scored 20 more spellings of the 0xd7 entry (register int,
-//  const int, int old(expr), *&field, a ternary, `+ 0`, a local zero, a
-//  short/unsigned `old`, a named pointer at both scopes, a local flag word): all
-//  hoisted spellings are flat 2292 / 79.6 and all inside spellings are flat
-//  2288 / 75.9, exactly as the notes below say.
-
+// Other facts that matter:
+// - `char path[0x100]` in case 0xd7 and `unsigned char data[4]` in case 0xf8
+//   pin the frame at 0x230 and findData at esp+0x28.
+// - The 0x2d/0x5f and 0x2b/0x3d guards are a raw `& 2` test (test byte,2) while
+//   the tail and 0xec use the `b1` bitfield (mov al; shr; test); the union
+//   keeps both spellings.
+// - Case 0xf8: writing `FUN_00451df0(FUN_0044fdb0(), data, 3)` as one expression
+//   pushes the literal 3 before the toggle, as the original does.
+// - The `key == 0` arms are written as `if (key != 0) { ... } else`, so the
+//   `key == 0` arm is out of line.
+// - Class_00438760 is a one-byte order-type class passed by value (pushed as
+//   the containing dword).
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -450,7 +152,7 @@ public:
 class Class_00438760 {
 public:
     Class_00438760(const char* name);
-    char* name;                         // +0
+    unsigned char index;                // +0
 };
 
 extern Game_495e90* g_game;
@@ -499,8 +201,8 @@ void __stdcall FUN_004bc8d0(int handle);
 void __stdcall FUN_004bcf00(char* path);
 void __stdcall FUN_00468cf0(int param_1, int param_2);
 void __stdcall FUN_004cb170(char* param_1, const char* param_2);
-void __stdcall FUN_0048cf30(void* a, int b, int c, void* d, int e, void* f);
-int __stdcall FUN_00439e30(int unit, int arg);
+void __stdcall FUN_0048cf30(void* a, int b, Class_00438760 kind, int d, int e, int f);
+int __stdcall FUN_00439e30(int unit, Class_00438760 kind);
 void __stdcall FUN_00439f80(int unit, int arg);
 void __cdecl operator delete(void* p);
 
@@ -658,10 +360,11 @@ void FUN_00495e90(void)
         break;
 
     case 0xd7: {
-        int old = g_game->field_38c53;
         if (g_game->flags_37f2f.b1) {
-            g_game->field_38c53 = 0;
-            if (old == 0) {
+            if (g_game->field_38c53 != 0) {
+                g_game->field_38c53 = 0;
+            } else {
+                g_game->field_38c53 = 0;
                 char path[0x100];
                 char findData[0x118];
                 sprintf(path, "%s\\MOVIE*", g_game->field_38a53);
@@ -737,7 +440,7 @@ void FUN_00495e90(void)
     case 0xc0:
     case 0xc1:
     case 0xc2: {
-        char buf[0x10];
+        char buf[7];
         sprintf(buf, "CTRL_%c", event - 0x69);
         FUN_0048bf30(buf, key);
         break;
@@ -758,14 +461,14 @@ void FUN_00495e90(void)
         int found = 0;
         Class_00438760 order("SELFDESTRUCT");
         for (std::vector<int>::iterator it = sel.begin(); it != sel.end(); ++it) {
-            int r = FUN_00439e30(*it, (int)order.name);
+            int r = FUN_00439e30(*it, order);
             if (r != 0) {
                 found = 1;
                 FUN_00439f80(*it, r);
             }
         }
         if (found == 0)
-            FUN_0048cf30(g_game->orders_2c76, 0, (int)order.name, 0, 0, 0);
+            FUN_0048cf30(g_game->orders_2c76, 0, order, 0, 0, 0);
         break;
     }
 

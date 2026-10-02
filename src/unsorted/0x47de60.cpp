@@ -1,4 +1,129 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+//
+// MATCH, 342 of 342 bytes (#4818). The fix is one line of the 0xfffe arm: the
+// width was a copy of g_game->width, and it is now a pointer to the field,
+// `int* width = &g_game->width;` with `*width` at the two uses. Nothing else in
+// the file changed, and the file below is the 87.1 percent one otherwise
+// unchanged.
+//
+// Why it works, and what it says about every earlier pass: the whole argument
+// in the notes below is that the two properties the original wants are in
+// tension, so that "fold" (the imul folding `g_game->width` into its memory
+// operand, `imul eax,[edx+0x14233]`) and "shared lookup" (one
+// `mov al,byte ptr [ecx+eax+0xfe]` for both paths) never coexist, and that the
+// only state reaching both (99.3 percent, one SIB swap from MATCH) needs 2386
+// padding declarations to reach. That tension is an artefact of the copy.
+//
+// A copy of the width has two uses, so it must be materialised in a register,
+// and the register it wins is ecx, which the original spends on spotX. That
+// single decision costs both halves at once: `mov ecx,[edx+0x14233]` plus a
+// register-to-register imul instead of a folded one, and the allocator's answer
+// to the extra pressure, which is what pushed the features lookup into the
+// first path and swapped the SIB. Written as a pointer, the width stays an
+// lvalue to the multiply, so the front end folds it and never has to allocate
+// anything for it. Both wanted properties then come from the source directly,
+// with no padding and no compiler state.
+//
+// Measured, all with the real checker, one rewrite each from this file:
+//   int* width = &g_game->width, index spelled twice   MATCH (this file)
+//   the same through const int*                        MATCH
+   //   the same, width as the left operand of the multiply MATCH
+//   the same, index spelled once (test reads f2)      86.8 percent, 346 bytes
+//   the same, neighbour named other                   84.2 percent, 348 bytes
+//   the same, rowbase temp                            86.3 percent, 344 bytes
+// So both halves are needed and they are the halves the notes were measuring:
+// the pointer alone (with one use) does not fold, and the copy alone (with two
+// uses) does not fold either. What was never tried in any of the passes below
+// is the pointer with two uses, because the passes that found the copy treated
+// "give the width a local" and "share the index block" as the same lever.
+//
+// Generalisable, and worth trying before the padding sweeps on any function
+// where a global or field read sits in an arithmetic expression the original
+// folds: ask whether the value can stay an lvalue (`T* p = &obj->f;`) instead
+// of being copied into a local. A copy forces a register, and MSVC 5's
+// allocator then decides the rest of the block.
+//
+// space-bunny-free pass, best unchanged at 87.1 percent, 344 of 342 bytes. Three
+// permuter runs added nothing: unseeded from this file (3627 candidates,
+// 87.1 -> 87.1), seed 7 from this file (4633, 87.1 -> 87.1), and seed 11 from the
+// single-use arm (3200, 86.8 -> 86.8), so about 11500 candidates over three
+// different neighbourhoods. What is new
+// is the exact shape of the tradeoff at the compiler-state boundary, which
+// settles the "is it a missing source shape" question the earlier passes kept
+// re-deriving. Using a compile-only probe that reads the /Fa listing instead of
+// scoring (about 5 s per variant instead of 60), and sweeping N inert
+// `struct dumsK { int a; };` lines on the SINGLE-USE arm, the two things the
+// original wants are strictly in tension and no N gets both:
+//   N below ~2312   imul does NOT fold, features lookup shared, one copy, spelled
+//                    [ecx+eax+0xfe], i.e. exactly the original: this is 86.8 to
+//                    87.1 percent and the state this file stays in
+//   N ~2312 to 4640 imul folds EXACTLY (xor eax; xor ecx; mov al; mov cl;
+//                    imul eax,[edx+0x14233]; add eax,ecx). What it costs is the
+//                    features lookup, and here the earlier notes' summary needed
+//                    correcting: counting every `mov al, byte ptr [..+0xfe]` in
+//                    the listing, the fold window is NOT just "shared vs not".
+//                    There is a third state. Across N the lookup goes:
+//                      N 2312 to 2380, 2420, 2460 to 4640: TWO copies of the
+//                        lookup in the output, one spelled [eax+ecx+0xfe] and one
+//                        [ecx+eax+0xfe], i.e. the tail stops being shared and is
+//                        copied into the first path, which costs the most
+//                      N 2386 to 2400, 2424, 2430: ONE copy, shared as the
+//                        original has it, but spelled [eax+ecx+0xfe]. This is the
+//                        99.3 percent state, 342 of 342 bytes, verified with a
+//                        real check.py run, and it is the only fold state worth
+//                        having: one instruction from MATCH
+//                      so "fold" and "spelled [ecx+eax+0xfe]" never coexist. The
+//                    one window that keeps a single, shared copy still swaps
+//                    the SIB. That is why 99.3 percent is the ceiling here and
+//                    not MATCH, and it is why no amount of arm rewriting gets
+//                    closer: the two properties are the same coin.
+//   N ~4660 and up   back to no fold, single shared copy, correct SIB
+// So the fold and the [ecx+eax] SIB never coexist: whichever way the register
+// allocator resolves the pressure at the arm, it fixes one and breaks the other.
+// The 99.3 percent state was re-verified here with a real check.py run (not
+// --sym), so it is a measurement and not an artefact.
+//
+// Two more things the earlier passes did not try, both now dead:
+//  - headers.py ON THE FOLD STATE. The earlier passes ran all 128 header sets
+//    against the non-fold file only. Re-run against the N = 2390 fold file, all
+//    256 sets (128 plus --cpp) are still 99.3 percent: no header set supplies
+//    the fold without losing the [ecx+eax] SIB either. This is the cleanest
+//    evidence that the residual is not a header-set or include-order effect.
+//  - the SIB itself. Inside the 99.3 percent fold state the one remaining
+//    difference is a single SIB swap, so twelve spellings of the features lookup
+//    were tried there (the earlier nine were all tried in the non-fold state,
+//    where the allocation is different): a features pointer local, explicit
+//    pointer arithmetic, an int index local, the flags byte in an unsigned char
+//    local, a char* walk with the offset folded in, a char* to the element then
+//    +0xfe, a byte-offset unsigned int local, a char* advanced by index*256, and
+//    four more of the same families. All twelve stay 99.3 percent with the SIB
+//    swapped, which is consistent with the map above: the SIB is decided by the
+//    same allocation decision as the fold, not by how the lookup is written.
+//
+// Also newly dead, all producing the identical non-folding eight-instruction
+// block, so the earlier passes' conclusion that the arm is not a source-shape
+// effect holds: `static inline` getters for g_game->width, for cell->spotY and
+// for cell->spotX (alone and together, and with the width also given a local);
+// a by-value inline `IndexOf(spotY, width, spotX)` and a by-value inline
+// `Scale(spotY, width)` (the brief's by-value-argument lever, and also a
+// confirmation of the guide's rule that a by-value parameter always draws a
+// home); an inline `Other(cell)` returning the neighbour pointer; an inline
+// `FeatureBlocked(f)` for the shared lookup; a compound assignment onto cell
+// (0x4246b0's spelling); an all-unsigned index with a width local; and both
+// compare orders (`f2 >= 0xfffb` and `0xfffb > f2`), the latter of which also
+// merges the 0xffff arm's two blocks and is worse.
+//
+// Scratch tooling in build/scratch/0x47de60/ (none of it part of the match):
+//   probe.sh / sweep.sh / padprobe.sh / padprobe2.sh / padboth.sh / padall.sh
+//                   compile a variant and print the generated index block, with
+//                   a FOLD marker when the width stays a memory operand
+//   gen.py / diag.py / pad.py / foldsib.py / foldwalk.py
+//                   build the variants (an arm body, a file-scope prelude, N
+//                   padding lines, or a features-lookup rewrite)
+//   score.sh         score scratch variants with check.py --sym (not a run)
+//   mkvar.sh / mkdiag.sh / perm2.sh   batch drivers
+//   v/ body/ pre/ listing/            every variant and its listing this pass
+//
 //
 // claude-sonnet-5-5 pass (#4693), source unchanged at 87.1 percent, 344 of 342
 // bytes. THE RESIDUAL IS COMPILER STATE, NOT SOURCE, and the right source shape is
@@ -505,13 +630,17 @@ int __stdcall FUN_0047de60(Pathfinder_0047de60* obj, Cell_0047de60* cell)
     } else if (feature != 0xfffe) {
         blocked = 1;
     } else {
-        // The width gets a local and the neighbour index is spelled out twice:
-        // that is what makes c1 materialise the width in ecx instead of copying
-        // spotY out of eax, which is the closest this block has come.
-        int width = g_game->width;
+        // The width stays an lvalue: a pointer to the field, not a copy of it.
+        // A copy has two uses, so it must live in a register, and the one it
+        // wins is ecx, which the original uses for spotX; that costs the
+        // `mov ecx,[edx+0x14233]` and the register-to-register imul. As a
+        // pointer the width folds into `imul eax,[edx+0x14233]` exactly as the
+        // original has it, and the two spelled index uses still share one
+        // block, which is the other half the original wants.
+        int* width = &g_game->width;
         unsigned short f2 =
-            (cell - (cell->spotY * width + cell->spotX))->feature;
-        if (0xfffb <= (cell - (cell->spotY * width + cell->spotX))->feature) {
+            (cell - (cell->spotY * *width + cell->spotX))->feature;
+        if (0xfffb <= (cell - (cell->spotY * *width + cell->spotX))->feature) {
             blocked = 0;
         } else {
             blocked = (g_game->features[f2].flags >> 6) & 1;

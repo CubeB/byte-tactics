@@ -1,595 +1,543 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, edited by Space Bunny Free. Names are provisional.
-// PARTIAL (56.0%). Space Bunny Free pass (issue 4387, 50 min box): 55.6 -> 56.0
-// (3902 original / 3913 emitted, was 3917). Tools written to
-// build/scratch/448c70/: shapediff.py (address-anchored diff on instruction
-// SHAPES, immediates and displacements masked) and slots.py (esp tracker that
-// pops the register saves separately from the call arguments, so every [esp+K]
-// maps to a frame slot).
-// - `uVar4` is a `uint`, not a `ushort`: that is what removes the `and ebx,0xffff`
-//   after `mov bx,word ptr [eax+0x2a40]` and gives the original's
-//   `xor ebx,ebx / mov si / mov bx` pair verbatim. An earlier note says "uVar4 as
-//   uint (47.3)", but that was on the pre-55.6 layout, where the frame did not
-//   match; the two changes only pay off together. That is the whole +0.4.
-// - slots.py says the ORIGINAL's frame is, in frame offsets from the 0xd4
-//   bottom: local_c0 0x14, ONE slot 0x18 shared by what we call local_bc and
-//   local_b8, local_b4 0x20, local_b0 0x24, local_ac 0x28. Our /Fa gives
-//   c0 0x14, ac 0x1c, bc 0x20, b8 0x24, b4 0x28, b0 0x2c: same total size, one
-//   slot too many before local_b4 and everything after it shifted up by 8.
-//   So the original has ONE FEWER 4-byte local, not a different order.
-// - Tried and reverted, all flat at 55.6/55.5/55.9 or worse: writing the 0x1b63
-//   sum with the constant last (`pcVar19 + uVar18*0x14a + 0x1b63`, alone or with
-//   the 0x1b8a load too), `pcVar19 + 0x1b63 + idx*330`, splitting the pcVar19
-//   add into two statements (51.0, +1 byte), a separate local for the 0x531
-//   deref, swapping local_c0/local_b4, swapping local_b4/local_b0, moving
-//   local_ac after local_a8, `pcVar19 = g_game + uVar18` (no change), and
-//   casting the local_b4 address through `int`/a char* temp.
-// - Merging local_bc and local_b8 into one int (the reading above) gives 50.4
-//   and 3941 bytes: the counter really is a byte, `inc al; cmp al,0xa`, so the
-//   shared slot cannot be one variable.
-// Still differs: the prologue. The original builds `esi` as `mov esi,edx` +
-//   `add esi,ecx` and folds 0x1b63 into one `lea eax,[esi+eax*2+0x1b63]`; we emit
-//   `lea esi,[ecx+edx]` and split the lea+add. It also keeps the 0x531 deref in
-//   eax (we use ecx) and evaluates `FUN_004a50b0()+2` as `mov ecx,eax; add ecx,2`
-//   rather than `lea ecx,[eax+2]`. shapediff.py puts all of that in the first
-//   ~120 bytes; if the prologue is fixed the rest of the shape residual is
-//   1-3 instructions per hunk in 130-odd places.
-// claude-opus-5-5 pass (#4272), 47.5 -> 55.6, structural:
-// - The per-player branch is `if (!IsPlaying(p) && !IsWatching(p)) { dead
-//   slot } else { live slot }` with two inline helpers (the original re-tests
-//   *p inside the second one and lays the dead slot out first). The merged
-//   condition made MSVC emit the live slot first; structural similarity went
-//   from 0.47 to 0.88 with this one change (47.5 -> 49.0).
-// - The RES and MEM columns use `!IsLocal(p) && !IsRemote(p)` the same way
-//   (49.8).
-// - The MAP state is two calls with constant arguments (1 in the
-//   does-not-have-map path, 0 after clearing +0x23), which MSVC tail-merges
-//   as the original does (52.1).
-// - READY: +0x138 is an int-width `(flags >> 5) & 1`, and bit 0 of +0x13c is
-//   a 1-bit bitfield set from `!IsLocal(p)` (52.4).
-// - The player counter local_b8 is an unsigned char (`inc al; cmp al,0xa`),
-//   55.6; it lost in earlier passes only because the layout was wrong.
-// Remaining differences are register and stack-slot assignment.
-// deepseek-v4.1-flash pass (issue 4200, 10 minute box): one check.py run on a
-// variant that assigned local_b4 before local_c0 (hoping the lea+store would be
-// scheduled before FUN_0049ff90 like the original's `lea eax,[esi+eax*2+0x1b63];
-// mov [esp+0x34],eax`): 47.5 -> 46.3 (3944 bytes), reverted. Baseline re-confirmed
-// at 47.5 (3902 original / 3945 emitted); file restored unchanged.
-// deepseek-v4.1-flash pass (issue 4165): hoisted the g_game+player byte base into
-// pcVar19 for the two 0x1b8a/0x1b63 address computations (47.4 -> 47.5, 3948 -> 3945
-// emitted bytes; the local_a8 player base now uses the same base-plus-0x14a-stride shape). Everything still left to fix is listed in the notes below.
-// deepseek-v4.1-flash pass (issue 4098, 10 minute box shared with 0x447380/0x447b10):
-// one check.py run, best stays 47.4% (3902 original / 3948 emitted), first
-// mismatch still the +8 stack-slot shift for the loop counter/temp pair; no new
-// variant tried, file unchanged.
-// deepseek-v4.1-flash pass (issue 3565, 10 minute box): three check.py runs, best
-// stays 47.4% (3902 original / 3948 emitted); the box went to 0x447380. First
-// mismatch is still the +8 stack-slot shift for the loop counter/temp pair.
-// deepseek-v4.1-flash pass (issue 3538, 10 minute box): one check.py run, best
-// stays 47.4% (3902 original / 3948 emitted); no new variant was tried.
-// deepseek-v4.1-flash pass (issue 3485): re-ran check.py once; best stays 47.4%
-// (3902 original / 3948 emitted) with the residual exactly as described in the
-// notes below (iVar17 EBX/EBP swap and the [esp+0x34]/[esp+0x30] slot roles).
-// File restored to this best version unmodified.
-// Retry (GPT-6.1-sol): the best remains 47.4% (3902 original / 3948 emitted).
-// Four checker invocations in this pass: baseline 47.4%; a ushort scroll-start
-// local scored 47.2%, a byte local_b8 scored 41.0%, and a separate uint
-// scroll-start local was unchanged. The two lower-scoring variants were reverted.
-// Partial, 47.4%: the frame now matches at 0xd4 (all four buffers at 0x48/0x68/0x7c/0xb0).
-// Retry (deepseek-v4.1-flash) tried and reverted these, none changed the score:
-//   declaring iVar17 before uVar4; uVar4 as uint (47.3); swapping the two ushort
-//   loads; local_b4 as byte* (compile error elsewhere); reordering
-//   local_b4/local_c0; folding the local_b4 sum differently. The ebx/ebp swap
-//   between the top-loop counter (iVar17) and the 0x2a40 value (uVar4) survives
-//   all of them, and everything else is a consequence of that plus the frame
-//   slot rotation.
-// How: dropping the local_a4/local_a0 temporaries (the PING widget pointer stays in iVar17 and
-// the player byte stride is recomputed inline) took 0xdc -> 0xd8, then reusing the existing byte
-// local bVar6 for the four iVar17+0x29 byte temps removed the last dedicated slot (0xd8 -> 0xd4).
-// Still differs: the scalar slots are rotated by one (our local_c0 sits at 0x28 where the
-// original has its first slot at 0x24, and our local_b4 pointer lands at 0x44 instead of the
-// original's 0x30 via lea eax,[esi+eax*2+0x1b63]), the top-loop ebx/ebp pair is swapped
-// (we zero ebx for iVar17 and use ebp for the 0x2a40 ushort), and the player-loop register
-// allocation and the map-refresh region shape still differ.
-// Fixes that gained points: FUN_00435c40 declared bool (removed a neg/sbb/neg),
-// reading the selected slot pointer before the map-slot local, and clearing
-// local_b8 with 0 instead of & 0xffffff00.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, checked by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, edited by Space Bunny Free, finished by Space Bunny Free, rewritten by claude-opus-5-5. Names are provisional.
+// Refreshes the multiplayer battle room every frame: scrolls the OUTPUT chat
+// list, the MAPNAME/MAP state, the ready bits of the local players, then the
+// ten player rows (CD, PLAYER, LOGO, SIDE, ALLY, TEAMICONS, RES, PING, MEM,
+// READY), and finally the lowest ping limit.
+//
+// PARTIAL (86.2%). claude-opus-5-5 (#4799) rewrote the old Ghidra-shaped
+// version (63.2%) with real types. What paid, largest first:
+// - Two functions of this file that have no callers are inlined here and are
+//   defined above, unannotated: the map check 0x440cd0 (FUN_00440cd0) and the
+//   SIDE%d update 0x448bf0 (FUN_00448bf0). Both still compile to their own
+//   original bytes out of line.
+// - <windows.h> (the file's other functions use it too): it gives the
+//   original's base/index order and the loop-head shape below.
+// - The mapname text and the PING text share one `char* str` (one frame slot,
+//   0x28); the row loop counter is a plain unsigned char `n` with no int copy.
+//   Together these give the original frame layout exactly.
+// - TEAMICONS writes its visible byte from the expression, not from the
+//   IsWatching helper (the helper's value is materialised and then `sete`d).
+// - In FUN_00440cd0 the version test is `if (major >= 2) check = 1; else if
+//   (major == 1 && minor >= 2) check = 1;`. Same bytes out of line, but inlined
+//   it gives the original's edi/edx for g_game/check (the one-`if` form swaps
+//   them). The same holds in 0x447b10.
+//
+// STILL DIFFERS:
+// - The whole row loop has ebx and ebp swapped: the original keeps the int
+//   value of `n` in ebx and the player pointer (and the g_game load it is built
+//   from, from the loop prologue on) in ebp; we do the opposite. The code is
+//   otherwise identical there (47 vs 32 references, mirrored). Not moved by:
+//   20 extra uses of `n`, an `int i = n` copy (fixes the loop head but breaks
+//   the frame and `ready`), loop forms (while/do/for, break at the end), p/e
+//   declared at function scope or shared, helpers as macros, inline helpers vs
+//   inline expressions in every condition, every <windows.h>/<stdio.h>/C++
+//   header set (tools/headers.py --cpp), and two permuter runs.
+// - TEAMICONS lays out the 1 before the 0 (`jne zero; mov ecx,1`); every
+//   spelling of the ternary tried gives the 0 first.
+// - MEM: the original loads g_game->map in each arm of the n/a / %d sprintf
+//   and shares only the FUN_00435920 call; one call after the if/else shares
+//   the sprintf call too, and a call in each arm gets the arms' registers
+//   rotated (84.5%).
+#include <windows.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-typedef unsigned char byte;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned char undefined1;
-typedef unsigned short undefined2;
-typedef unsigned int undefined4;
-extern char* g_game;
-struct Class_004358f0 { int FUN_004358f0(); };
-struct Class_00435920 { int FUN_00435920(); };
-struct Class_00435a20 { int FUN_00435a20(int); };
-struct Class_00435c20 { int FUN_00435c20(); };
-struct Class_00435c30 { int FUN_00435c30(); };
-struct Class_00435c40 { bool FUN_00435c40(); };
-struct Class_004373a0 { int FUN_004373a0(); };
-int FUN_00444a20();
-int FUN_00445ed0();
-int FUN_00446a50();
-int FUN_00446c70();
-int __stdcall FUN_0044ffd0(int);
-int FUN_00450f90();
-int FUN_00451180();
-int __stdcall FUN_00453010(int,int);
-int FUN_00456850();
-int FUN_00457a50();
-int __stdcall FUN_00463e50(int,int,int,int);
-struct Class_0046d040 { int FUN_0046e0b0(int); };
-int __stdcall FUN_0049fa90(int);
-int __stdcall FUN_0049fdf0(int,int,int);
-int __stdcall FUN_0049ff10(int,int);
-int __stdcall FUN_0049ff90(int,int);
-int __stdcall FUN_004a0180(int,int);
-int __stdcall FUN_004a0280(int,int);
-int __stdcall FUN_004a0570(int,int,int);
-int __stdcall FUN_004a0bf0(int,int,int,int);
-int __stdcall FUN_004a1080(int,int,int);
-int __stdcall FUN_004a1110(int,int,int);
-int __stdcall FUN_004a1450(int,int,int);
-int FUN_004a50b0();
-int __stdcall FUN_004a5d50(int,int);
-int __stdcall FUN_004ab060(int,int);
-int FUN_004b6340();
-int __stdcall FUN_004b6af0(int,int);
-int __stdcall FUN_004c5740(int);
-void FUN_00444ba0();
-static inline int IsPlaying_448c70(int* p)
-{
-    char t = *(char*)((int)p + 0x73);
-    return *p != 0 && (t == 1 || t == 2 || t == 3) && *(char*)((int)p + 0x146) != 10;
-}
 
-static inline int IsWatching_448c70(int* p)
-{
-    return *p != 0 && (*(byte*)(*(int*)((int)p + 0x27) + 0x9b) & 0x40) != 0;
-}
+struct Class_004a1080;
 
-struct Bits13c_448c70 {
-    unsigned short b0 : 1;
-    unsigned short rest : 15;
+#pragma pack(push, 1)
+struct PlayerInfo_00448c70 {
+    char unknown_0[0x8b];
+    unsigned short width;               // +0x8b
+    unsigned short height;              // +0x8d
+    char unknown_8f[0x94 - 0x8f];
+    char kind;                          // +0x94
+    unsigned char side;                 // +0x95
+    unsigned char field_96;             // +0x96
+    unsigned char f97_0 : 1;            // +0x97
+    unsigned char f97_rest : 7;
+    char unknown_98;
+    unsigned short memory;              // +0x99
+    union {
+        unsigned char flags_9b;         // +0x9b
+        unsigned short flags;
+        struct {
+            unsigned short low : 5;
+            unsigned short ready : 1;
+            unsigned short bit6 : 1;
+            unsigned short watching : 1;
+            unsigned short b8 : 3;
+            unsigned short commander : 2;
+            unsigned short b13 : 3;
+        } b;
+    };
+    unsigned char f9d_0 : 2;            // +0x9d
+    unsigned char f9d_2 : 1;
+    unsigned char f9d_rest : 5;
+    char unknown_9e;
+    unsigned short pingLimit;           // +0x9f
+    char unknown_a1[0xa7 - 0xa1];
+    unsigned char versionMajor;         // +0xa7
+    unsigned char versionMinor;         // +0xa8
+    unsigned int mapCrc;                // +0xa9
 };
 
-static inline int IsLocal_448c70(int* p)
+struct Player_00448c70 {                // 0x14b bytes
+    int active;                         // +0x00
+    int id;                             // +0x04
+    char unknown_8[0x14 - 0x8];
+    unsigned int ping;                  // +0x14
+    char unknown_18[0x27 - 0x18];
+    PlayerInfo_00448c70* info;          // +0x27
+    char name[0x73 - 0x2b];             // +0x2b
+    char type;                          // +0x73
+    char unknown_74[0x108 - 0x74];
+    unsigned char field_108[0xb];       // +0x108
+    unsigned char field_113[0xb];       // +0x113
+    char unknown_11e[0x146 - 0x11e];
+    unsigned char field_146;            // +0x146
+    char unknown_147[0x14b - 0x147];
+};
+
+struct Gadget_00448c70 {
+    char unknown_0[0x19];
+    short height;                       // +0x19
+    char unknown_1b[0x23 - 0x1b];
+    int colour;                         // +0x23
+    char unknown_27[0x29 - 0x27];
+    unsigned char visible;              // +0x29
+    char unknown_2a[0xb6 - 0x2a];
+    char text[0xbe - 0xb6];             // +0xb6
+    union {
+        int field_be;                   // +0xbe
+        struct {
+            short unknown_be;
+            short count;                // +0xc0
+        } list;
+    };
+    char unknown_c2[0xc6 - 0xc2];
+    unsigned short field_c6;            // +0xc6
+    unsigned int c8_0 : 1;              // +0xc8
+    unsigned int c8_rest : 31;
+    char unknown_cc[0x138 - 0xcc];
+    unsigned short field_138;           // +0x138
+    char unknown_13a[0x13c - 0x13a];
+    unsigned short b13c_0 : 1;          // +0x13c
+    unsigned short b13c_rest : 15;
+};
+#pragma pack(pop)
+
+class Class_004358f0 {
+public:
+    int FUN_004358f0();
+};
+class Class_00435920 {
+public:
+    int FUN_00435920();
+};
+class Class_00435a20 {
+public:
+    int FUN_00435a20(char* map);
+};
+class Class_00435c20 {
+public:
+    char* FUN_00435c20();
+};
+class Class_00435c30 {
+public:
+    char* FUN_00435c30();
+};
+class Class_00435c40 {
+public:
+    bool FUN_00435c40();
+};
+class Class_004373a0 {
+public:
+    unsigned int FUN_004373a0();
+};
+class Class_0046d040 {
+public:
+    int FUN_0046e0b0(int id);
+};
+
+struct Layer_00448c70 {
+    int unknown_0;
+    char* entries;                      // +0x4
+};
+
+#pragma pack(push, 1)
+struct Game_00448c70 {
+    char unknown_0[0x519];
+    char gui[0x531 - 0x519];            // +0x519
+    Layer_00448c70* table;              // +0x531
+    char unknown_535[0x12ef - 0x535];
+    char messages[30][0x48];            // +0x12ef
+    char unknown_1b5f[0x1b63 - 0x1b5f];
+    Player_00448c70 players[10];        // +0x1b63
+    char unknown_2851[0x2a30 - 0x2851];
+    Class_0046d040* net;                // +0x2a30
+    char unknown_2a34[0x2a3e - 0x2a34];
+    unsigned short scrollEnd;           // +0x2a3e
+    unsigned short scrollStart;         // +0x2a40
+    unsigned char localPlayer;          // +0x2a42
+    char unknown_2a43[0x2a9b - 0x2a43];
+    int list;                           // +0x2a9b
+    char unknown_2a9f[0x148db - 0x2a9f];
+    int field_148db;                    // +0x148db
+    char unknown_148df[0x391e9 - 0x148df];
+    Class_004358f0* map;                // +0x391e9
+};
+#pragma pack(pop)
+
+extern Game_00448c70* g_game;
+
+int FUN_004a50b0();
+char* __stdcall FUN_004b6af0(int list, int index);
+void FUN_00445ed0();
+void FUN_00444a20();
+void FUN_00446a50();
+void FUN_00446c70();
+void FUN_00450f90();
+void FUN_00451180();
+unsigned char FUN_00456850();
+int FUN_00457a50();
+int FUN_004b6340();
+int __stdcall FUN_0044ffd0(unsigned char player);
+void __stdcall FUN_00453010(int id, unsigned char msg);
+void __stdcall FUN_00463e50(Player_00448c70* p, char* text, int a, int b);
+char* __stdcall FUN_004c5740(char* text);
+Gadget_00448c70* __stdcall FUN_0049ff90(char* entries, char* name);
+Gadget_00448c70* __stdcall FUN_0049ff10(char* entries, char* name);
+Gadget_00448c70* __stdcall FUN_004a0180(char* entries, char* name);
+Gadget_00448c70* __stdcall FUN_004a0280(char* entries, char* name);
+int __stdcall FUN_0049fdf0(char* entries, char* name, int type);
+int __stdcall FUN_004ab060(char* gui, char* name);
+void __stdcall FUN_0049fa90(char* gui);
+void __stdcall FUN_004a0570(char* gui, char* name, int value);
+void __stdcall FUN_004a0bf0(char* gui, char* name, char* text, int size);
+int __stdcall FUN_004a1080(Class_004a1080* gui, char* name, int value);
+void __stdcall FUN_004a1110(char* gui, char* name, int value);
+void __stdcall FUN_004a1450(char* gui, char* name, int value);
+void __stdcall FUN_004a5d50(char* gui, int index);
+
+static inline int IsPlaying_00448c70(Player_00448c70* p)
 {
-    return *p != 0 && *(char*)((int)p + 0x73) == 1;
+    return p->active != 0
+        && (p->type == 1 || p->type == 2 || p->type == 3)
+        && p->field_146 != 10;
 }
 
-static inline int IsRemote_448c70(int* p)
+static inline int IsWatching_00448c70(Player_00448c70* p)
 {
-    return *p != 0 && *(char*)((int)p + 0x73) == 3 && *(char*)(*(int*)((int)p + 0x27) + 0x94) == 1;
+    return p->active != 0 && (p->info->flags_9b & 0x40);
+}
+
+static inline int IsLocalHuman_00448c70(Player_00448c70* p)
+{
+    return p->active != 0 && p->type == 1;
+}
+
+static inline int IsLocalAI_00448c70(Player_00448c70* p)
+{
+    return p->active != 0 && p->type == 2;
+}
+
+static inline int IsRemoteHuman_00448c70(Player_00448c70* p)
+{
+    return p->active != 0 && p->type == 3 && p->info->kind == 1;
+}
+
+static inline int IsRemoteAI_00448c70(Player_00448c70* p)
+{
+    return p->active != 0 && p->type == 3 && p->info->kind == 2;
+}
+
+static inline int IsLocal_00448c70(Player_00448c70* p)
+{
+    return p->active != 0 && (p->type == 1 || p->type == 2);
+}
+
+// The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
+int FUN_00440cd0()
+{
+    if (!g_game->map->FUN_004358f0()) {
+        return 0;
+    }
+    unsigned char me = FUN_00456850();
+    PlayerInfo_00448c70* data = 0;
+    int check = 0;
+    if (me != 10) {
+        data = g_game->players[me].info;
+        if (data->versionMajor >= 2)
+            check = 1;
+        else if (data->versionMajor == 1 && data->versionMinor >= 2)
+            check = 1;
+    }
+    if (!check) {
+        return 1;
+    }
+    if (((Class_004373a0*)g_game->map)->FUN_004373a0() != data->mapCrc)
+        return 0;
+    return 1;
+}
+
+// The SIDE%d update at 0x448bf0, which has no callers: /Ob2 inlined it.
+void __stdcall FUN_00448bf0(int side)
+{
+    char name[20];
+    Player_00448c70* p = &g_game->players[side];
+
+    sprintf(name, "SIDE%d", side);
+    FUN_004a1080((Class_004a1080*)g_game->gui, name,
+                 (p->active != 0 && (p->info->flags_9b & 0x40)) ? 2 : p->info->side);
 }
 
 // FUNCTION: 0x448c70
-void FUN_00448c70(void)
-
+void FUN_00448c70()
 {
-  ushort *puVar1;
-  int *piVar2;
-  char cVar3;
-  uint uVar4;
-  bool bVar5;
-  byte bVar6;
-  int uVar7;
-  int iVar8;
-  char *pcVar9;
-  byte *pbVar10;
-  byte *pbVar11;
-  byte *pbVar12;
-  int iVar13;
-  uint uVar15;
-  uint uVar16;
-  int iVar17;
-  uint uVar18;
-  char *pcVar19;
-  char *pcVar20;
-  char local_d4 [20];
-  uint local_c0;
-  int local_bc;
-  unsigned char local_b8;
-  int local_b4;
-  uint local_b0;
-  byte *local_ac;
-  int *local_a8;
-  byte local_9c [32];
-  char local_7c [20];
-  byte local_68 [52];
-  char local_34 [52];
+    char name[20];
+    char* str;
+    unsigned int minPing = 0xffffffff;
+    int count = 0;
+    Player_00448c70* me = &g_game->players[g_game->localPlayer];
+    int ready = me->info->b.ready;
+    Gadget_00448c70* output = FUN_0049ff90(g_game->table->entries, "OUTPUT");
 
-  uVar18 = (uint)*(byte *)((int)g_game + 0x2a42);
-  pcVar19 = (char *)((int)g_game + uVar18);
-  local_b0 = 0xffffffff;
-  iVar17 = 0;
-  local_c0 = (*(byte *)(*(int *)(pcVar19 + 0x1b8a + uVar18 * 0x14a) + 0x9b) & 0x20) >> 5;
-  local_b4 = (int)(pcVar19 + 0x1b63 + uVar18 * 0x14a);
-  iVar8 = FUN_0049ff90((int)(*(int *)(*(int *)((int)g_game + 0x531) + 4)),(int)("OUTPUT"));
-  uint scrollStart = (uint)*(ushort *)((int)g_game + 0x2a3e);
-  uVar4 = *(ushort *)((int)g_game + 0x2a40);
-  if ((int)scrollStart < (int)uVar4) {
-    scrollStart = scrollStart + 0x1e;
-  }
-  local_bc = iVar8;
-  uVar7 = FUN_004a50b0();
-  if (((int)(scrollStart - uVar4) > (int)*(short *)(iVar8 + 0x19) / (uVar7 + 2))
-     && (*(short *)((int)g_game + 0x2a40) = *(short *)((int)g_game + 0x2a40) + 1,
-        *(ushort *)((int)g_game + 0x2a40) >= 0x1e)) {
-    *(undefined2 *)((int)g_game + 0x2a40) = 0;
-  }
-  if ((*(ushort *)((int)g_game + 0x2a3e) != *(ushort *)((int)g_game + 0x2a40)) &&
-     (uVar18 = (uint)*(ushort *)((int)g_game + 0x2a40),
-     *(ushort *)((int)g_game + 0x2a3e) != uVar18)) {
-    do {
-      pcVar9 = (char *)FUN_004b6af0((int)(*(int *)((int)g_game + 0x2a9b)),(int)(iVar17));
-      strcpy(pcVar9,g_game+0x12ef+uVar18*0x48);
-      ++iVar17;
-      ++uVar18;
-      if (uVar18 == 0x1e) {
-        uVar18 = 0;
-      }
-      iVar8 = local_bc;
-    } while (*(ushort *)((int)g_game + 0x2a3e) != uVar18);
-  }
-  FUN_00445ed0();
-  *(short *)(iVar8 + 0xc0) = (short)iVar17;
-  iVar8 = FUN_004a0180((int)(*(int *)(*(int *)((int)g_game + 0x531) + 4)),(int)("MAPNAME"));
-  pbVar10 = (byte *)((Class_00435c30*)(*(int *)((int)g_game + 0x391e9)))->FUN_00435c30();
-  bVar5 = ((Class_00435c40*)(*(int *)((int)g_game + 0x391e9)))->FUN_00435c40();
-  if (!bVar5) {
-    *(undefined4 *)(iVar8 + 0x23) = 0xc;
-    FUN_004a0bf0((int)((int)g_game + 0x519),(int)("MAPNAME"),(int)((byte *)"NOT SELECTED"),(int)(0));
-    goto LAB_0044904e;
-  }
-  pbVar11 = (byte *)((Class_00435c20*)(*(int *)((int)g_game + 0x391e9)))->FUN_00435c20();
-  local_ac = (byte *)(iVar8 + 0xb6);
-  iVar17 = strcmp((char*)local_ac,(char*)pbVar11);
-  if (iVar17 != 0) {
-    iVar13 = FUN_004ab060((int)((int)g_game + 0x519),(int)("viewmap.gui"));
-    if (iVar13 == 0) {
-      ((Class_00435a20*)(*(void **)((int)g_game + 0x391e9)))->FUN_00435a20((int)(pbVar10));
+    int end = g_game->scrollEnd;
+    int start = g_game->scrollStart;
+    if (end < start)
+        end += 30;
+    if (end - start > output->height / (FUN_004a50b0() + 2)) {
+        g_game->scrollStart++;
+        if (g_game->scrollStart >= 30)
+            g_game->scrollStart = 0;
     }
-    else {
-      FUN_00444a20();
+    if (g_game->scrollEnd != g_game->scrollStart) {
+        for (int i = g_game->scrollStart; g_game->scrollEnd != i; ) {
+            char* line = FUN_004b6af0(g_game->list, count);
+            strcpy(line, g_game->messages[i]);
+            count++;
+            i++;
+            if (i == 30)
+                i = 0;
+        }
     }
-  }
-  iVar13 = ((Class_004358f0*)(*(int *)((int)g_game + 0x391e9)))->FUN_004358f0();
-  if (iVar13 == 0) {
-LAB_00448f38:
-    uVar18 = FUN_004b6340();
-    *(uint *)(iVar8 + 0x23) = ((int)uVar18 / 30 & 1) ? 0xc : 0;
-    if (iVar17 != 0) {
-      bVar6 = 4;
-      pbVar10 = (byte*)FUN_004c5740((int)((byte *)"does not have this map"));
-      iVar8 = local_b4;
-      FUN_00463e50((int)(local_b4),(int)(pbVar10),(int)(bVar6),(int)(0));
-      puVar1 = (ushort *)(*(int *)(iVar8 + 0x27) + 0x9b);
-      *puVar1 = *puVar1 & 0xffdf;
-      sprintf(local_d4,"READY%d",*(byte*)(g_game+0x2a42));
-      FUN_004a1110((int)((int)g_game + 0x519),(int)(local_d4),(int)(0));
-      FUN_00450f90();
+    FUN_00445ed0();
+    output->list.count = count;
+
+    Gadget_00448c70* mapname = FUN_004a0180(g_game->table->entries, "MAPNAME");
+    char* map = ((Class_00435c30*)g_game->map)->FUN_00435c30();
+    if (!((Class_00435c40*)g_game->map)->FUN_00435c40()) {
+        mapname->colour = 0xc;
+        FUN_004a0bf0(g_game->gui, "MAPNAME", "NOT SELECTED", 0);
+    } else {
+        char* cur = ((Class_00435c20*)g_game->map)->FUN_00435c20();
+        str = mapname->text;
+        int differs = strcmp(str, cur);
+        if (differs) {
+            if (FUN_004ab060(g_game->gui, "viewmap.gui"))
+                FUN_00444a20();
+            else
+                ((Class_00435a20*)g_game->map)->FUN_00435a20(map);
+        }
+        if (!FUN_00440cd0()) {
+            mapname->colour = (FUN_004b6340() / 30 & 1) ? 0xc : 0;
+            if (differs) {
+                FUN_00463e50(me, FUN_004c5740("does not have this map"), 4, 0);
+                me->info->b.ready = 0;
+                sprintf(name, "READY%d", g_game->localPlayer);
+                FUN_004a1110(g_game->gui, name, 0);
+                FUN_00450f90();
+            }
+            if (!g_game->players[g_game->localPlayer].info->f97_0)
+                FUN_004a1450(g_game->gui, "MAP", 1);
+        } else {
+            mapname->colour = 0;
+            FUN_004a1450(g_game->gui, "MAP", 0);
+        }
+        strcpy(str, ((Class_00435c20*)g_game->map)->FUN_00435c20());
     }
-    if ((*(byte *)(*(int *)((int)g_game + (uint)*(byte *)((int)g_game + 0x2a42) * 0x14b + 0x1b8a)
-                  + 0x97) & 1) == 0) {
-      FUN_004a1450((int)((int)g_game + 0x519),(int)("MAP"),1);
-      goto LAB_00449010;
+
+    int i;
+    for (i = 0; i < 10; i++) {
+        Player_00448c70* p = &g_game->players[i];
+        if (IsLocal_00448c70(p))
+            p->info->b.ready = g_game->players[g_game->localPlayer].info->b.ready;
     }
-  }
-  else {
-    bVar6 = FUN_00456850();
-    iVar13 = 0;
-    bVar5 = false;
-    local_bc = ((local_bc & 0xffffff00) | bVar6);
-    if (bVar6 != 10) {
-      iVar13 = *(int *)((int)g_game + (uint)bVar6 * 0x14b + 0x1b8a);
-      if ((1 < *(byte *)(iVar13 + 0xa7)) ||
-         ((*(byte *)(iVar13 + 0xa7) == 1 && (1 < *(byte *)(iVar13 + 0xa8))))) {
-        bVar5 = true;
-      }
+    for (i = 0; i < 10; i++) {
+        Player_00448c70* p = &g_game->players[i];
+        if (g_game->players[g_game->localPlayer].info->b.commander == 2
+            && (IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p))) {
+            FUN_00453010(p->id, 0xb);
+            FUN_00450f90();
+        }
+        if (FUN_00456850() != 10
+            && !g_game->players[FUN_00456850()].info->b.watching
+            && p->active != 0) {
+            unsigned short flags = p->info->flags;
+            if (flags & 0x40) {
+                p->info->flags = flags & ~0x40;
+                p->info->side = 0;
+                FUN_00450f90();
+            }
+        }
     }
-    if ((bVar5) &&
-       (uVar18 = ((Class_004373a0*)(*(int *)((int)g_game + 0x391e9)))->FUN_004373a0(), uVar18 != *(uint *)(iVar13 + 0xa9))
-       ) goto LAB_00448f38;
-    *(undefined4 *)(iVar8 + 0x23) = 0;
-    FUN_004a1450((int)((int)g_game + 0x519),(int)("MAP"),0);
-LAB_00449010:
-    ;
-  }
-  pcVar9 = (char *)((Class_00435c20*)(*(int *)((int)g_game + 0x391e9)))->FUN_00435c20();
-  strcpy((char*)local_ac, pcVar9);
-LAB_0044904e:
-  iVar17 = 0;
-  iVar8 = (int)g_game;
-  do {
-    if ((*(int *)(iVar8 + 0x1b63 + iVar17) != 0) &&
-       ((cVar3 = *(char *)(iVar8 + 0x1bd6 + iVar17), cVar3 == '\x01' || (cVar3 == '\x02')))) {
-      iVar13 = *(int *)(iVar8 + 0x1b8a + iVar17);
-      uVar4 = *(ushort *)(iVar13 + 0x9b);
-      *(ushort *)(iVar13 + 0x9b) =
-           (byte)(*(byte *)(*(int *)(iVar8 + (uint)*(byte *)(iVar8 + 0x2a42) * 0x14b + 0x1b8a) +
-                           0x9b) ^ (byte)uVar4) & 0x20 ^ uVar4;
-      iVar8 = (int)g_game;
+    FUN_00446c70();
+    FUN_00446a50();
+
+    char* entries = g_game->table->entries;
+    Player_00448c70* local = &g_game->players[g_game->localPlayer];
+    for (unsigned char n = 0; n < 10; n++) {
+        char text[32];
+        char res[52];
+        char blocked[52];
+        Player_00448c70* p = &g_game->players[n];
+        Gadget_00448c70* e;
+        if (!IsPlaying_00448c70(p) && !IsWatching_00448c70(p)) {
+            sprintf(name, "CD%d", n);
+            FUN_004a0570(g_game->gui, name, 0);
+            FUN_004a1450(g_game->gui, name, 0);
+            sprintf(name, "PLAYER%d", n);
+            char* s = "UNUSED";
+            if (p->type == 4) {
+                sprintf(blocked, "[%s]", FUN_004c5740("BLOCKED"));
+                s = blocked;
+            }
+            strncpy(text, s, 0x1e);
+            FUN_004a0bf0(g_game->gui, name, text, 0);
+            FUN_004a5d50(g_game->gui, FUN_0049fdf0(entries, name, 0xe));
+            FUN_004a1450(g_game->gui, name, ready);
+            sprintf(name, "LOGO%d", n);
+            e = FUN_004a0280(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "SIDE%d", n);
+            e = FUN_0049ff10(entries, name);
+            if (e)
+                e->visible = 0;
+            if (n != g_game->localPlayer) {
+                sprintf(name, "ALLY%d", n);
+                e = FUN_0049ff10(entries, name);
+                if (e)
+                    e->visible = 0;
+            }
+            sprintf(name, "TEAMICONS%d", n);
+            e = FUN_0049ff10(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "RES%d", n);
+            e = FUN_004a0180(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "PING%d", n);
+            e = FUN_004a0180(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "MEM%d", n);
+            e = FUN_004a0180(entries, name);
+            if (e)
+                e->visible = 0;
+            sprintf(name, "READY%d", n);
+            e = FUN_0049ff10(entries, name);
+            if (e) {
+                e->b13c_0 = 1;
+                e->field_138 = 0;
+                e->visible = 0;
+            }
+        } else {
+            sprintf(name, "CD%d", n);
+            FUN_004a0570(g_game->gui, name,
+                         ((IsLocalHuman_00448c70(p) || IsRemoteHuman_00448c70(p))
+                          && p->info->f9d_2) ? 1 : 0);
+            FUN_004a1450(g_game->gui, name, 0);
+            sprintf(name, "LOGO%d", n);
+            e = FUN_004a0280(entries, name);
+            if (e) {
+                e->visible = (p->info->field_96 == 0xff && !ready) ? 0 : 1;
+                e->c8_0 = !ready;
+                e->field_be = g_game->field_148db;
+                e->field_c6 = p->info->field_96;
+            }
+            sprintf(name, "PLAYER%d", n);
+            strncpy(text, p->name, 0x1e);
+            FUN_004a0bf0(g_game->gui, name, text, 0);
+            FUN_004a5d50(g_game->gui, FUN_0049fdf0(entries, name, 0xe));
+            FUN_004a1450(g_game->gui, name, ready);
+            sprintf(name, "SIDE%d", n);
+            e = FUN_0049ff10(entries, name);
+            if (e) {
+                FUN_00448bf0(n);
+                e->visible = 1;
+                FUN_004a1450(g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
+            }
+            sprintf(name, "ALLY%d", n);
+            e = FUN_0049ff10(entries, name);
+            if (e) {
+                FUN_004a1080((Class_004a1080*)g_game->gui, name,
+                             me->field_113[n] << 1 | me->field_108[n]);
+                e->visible = (IsLocalHuman_00448c70(p) || IsWatching_00448c70(p)
+                              || IsLocalAI_00448c70(p) || IsRemoteAI_00448c70(p)
+                              || IsWatching_00448c70(local)) ? 0 : 1;
+                FUN_004a1450(g_game->gui, name, ready);
+            }
+            sprintf(name, "TEAMICONS%d", n);
+            e = FUN_0049ff10(entries, name);
+            if (e) {
+                e->visible = (p->active != 0 && (p->info->flags_9b & 0x40)) ? 0 : 1;
+                FUN_004a1450(g_game->gui, name, (IsLocal_00448c70(p) && !ready) ? 0 : 1);
+            }
+            sprintf(name, "RES%d", n);
+            if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p))
+                sprintf(res, "%s", "n/a");
+            else
+                sprintf(res, "%dx%d", p->info->width, p->info->height);
+            FUN_004a0bf0(g_game->gui, name, res, 0);
+            if (IsLocalHuman_00448c70(p)) {
+                FUN_004a1450(g_game->gui, name, ready);
+            } else {
+                e = FUN_004a0180(entries, name);
+                if (e)
+                    e->visible = 1;
+            }
+            sprintf(name, "PING%d", n);
+            e = FUN_004a0180(entries, name);
+            if (IsRemoteHuman_00448c70(p)) {
+                if (e) {
+                    str = e->text;
+                    _itoa(p->ping, str, 10);
+                    if (FUN_00457a50())
+                        strcat(str, g_game->net->FUN_0046e0b0(FUN_0044ffd0(n)) ? ":s" : "");
+                    if (minPing >= p->ping)
+                        minPing = p->ping;
+                    e->visible = 1;
+                }
+            } else {
+                FUN_004a0bf0(g_game->gui, name, "n/a", 0);
+                if (e)
+                    e->visible = 1;
+            }
+            sprintf(name, "MEM%d", n);
+            e = FUN_004a0180(entries, name);
+            if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p))
+                sprintf(e->text, "%s", "n/a");
+            else
+                sprintf(e->text, "%d", p->info->memory);
+            int need = ((Class_00435920*)g_game->map)->FUN_00435920();
+            e->colour = p->info->memory < need ? 0xc : 0;
+            e->visible = 1;
+            sprintf(name, "READY%d", n);
+            e = FUN_0049ff10(entries, name);
+            if (e) {
+                e->field_138 = g_game->players[n].info->b.ready;
+                e->visible = 1;
+                e->b13c_0 = !IsLocalHuman_00448c70(p);
+            }
+        }
     }
-    iVar17 = iVar17 + 0x14b;
-  } while (iVar17 < 0xcee);
-  iVar17 = 0;
-  do {
-    piVar2 = (int *)(iVar8 + 0x1b63 + iVar17);
-    if ((((*(ushort *)(*(int *)(iVar8 + (uint)*(byte *)(iVar8 + 0x2a42) * 0x14b + 0x1b8a) + 0x9b) &
-          0x1800) == 0x1000) && (*piVar2 != 0)) &&
-       ((*(char *)((int)piVar2 + 0x73) == '\x02' ||
-        (((*piVar2 != 0 && (*(char *)((int)piVar2 + 0x73) == '\x03')) &&
-         (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) == '\x02')))))) {
-      FUN_00453010((int)((int *)piVar2[1]),(int)(0xb));
-      FUN_00450f90();
-    }
-    bVar6 = FUN_00456850();
-    if (((bVar6 != 10) &&
-        (bVar6 = FUN_00456850(),
-        (*(byte *)(*(int *)((int)g_game + (uint)bVar6 * 0x14b + 0x1b8a) + 0x9b) & 0x80) == 0)) &&
-       (*piVar2 != 0)) {
-      uVar4 = *(ushort *)(*(int *)((int)piVar2 + 0x27) + 0x9b);
-      if ((uVar4 & 0x40) != 0) {
-        *(ushort *)(*(int *)((int)piVar2 + 0x27) + 0x9b) = uVar4 & 0xffbf;
-        *(undefined1 *)(*(int *)((int)piVar2 + 0x27) + 0x95) = 0;
-        FUN_00450f90();
-      }
-    }
-    iVar17 = iVar17 + 0x14b;
-    iVar8 = (int)g_game;
-  } while (iVar17 < 0xcee);
-  FUN_00446c70();
-  FUN_00446a50();
-  local_b8 = 0;
-  iVar8 = *(int *)(*(int *)((int)g_game + 0x531) + 4);
-  pcVar20 = (char *)((int)g_game + (uint)*(byte *)((int)g_game + 0x2a42));
-  local_a8 = (int *)(pcVar20 + (uint)*(byte *)((int)g_game + 0x2a42) * 0x14a + 0x1b63);
-  local_bc = iVar8;
-  do {
-    uVar18 = local_b8 & 0xff;
-    piVar2 = (int *)((int)g_game + 0x1b63 + uVar18 * 0x14b);
-    if (!IsPlaying_448c70(piVar2) && !IsWatching_448c70(piVar2)) {
-      sprintf(local_d4,"CD%d",(byte)local_b8);
-      FUN_004a0570((int)((int)g_game + 0x519),(int)(local_d4),(int)(0));
-      FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(0));
-      sprintf(local_d4,"PLAYER%d",(byte)local_b8);
-      pcVar9 = "UNUSED";
-      if (*(char *)((int)piVar2 + 0x73) == '\x04') {
-        sprintf(local_34,"[%s]",(char*)FUN_004c5740((int)"BLOCKED"));
-        pcVar9 = local_34;
-      }
-      strncpy((char *)local_9c,pcVar9,0x1e);
-      FUN_004a0bf0((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_9c),(int)(0));
-      iVar17 = FUN_0049fdf0((int)(iVar8),(int)(local_d4),(int)(0xe));
-      FUN_004a5d50((int)((int)g_game + 0x519),(int)(iVar17));
-      FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_c0));
-      sprintf(local_d4,"LOGO%d",(byte)local_b8);
-      iVar17 = FUN_004a0280((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(undefined1 *)(iVar17 + 0x29) = 0;
-      }
-      sprintf(local_d4,"SIDE%d",(byte)local_b8);
-      iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(undefined1 *)(iVar17 + 0x29) = 0;
-      }
-      if ((char)local_b8 != *(char *)((int)g_game + 0x2a42)) {
-        sprintf(local_d4,"ALLY%d",(byte)local_b8);
-        iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-        if (iVar17 != 0) {
-          *(undefined1 *)(iVar17 + 0x29) = 0;
-        }
-      }
-      sprintf(local_d4,"TEAMICONS%d",(byte)local_b8);
-      iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(undefined1 *)(iVar17 + 0x29) = 0;
-      }
-      sprintf(local_d4,"RES%d",(byte)local_b8);
-      iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(undefined1 *)(iVar17 + 0x29) = 0;
-      }
-      sprintf(local_d4,"PING%d",(byte)local_b8);
-      iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(undefined1 *)(iVar17 + 0x29) = 0;
-      }
-      sprintf(local_d4,"MEM%d",(byte)local_b8);
-      iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(undefined1 *)(iVar17 + 0x29) = 0;
-      }
-      sprintf(local_d4,"READY%d",(byte)local_b8);
-      iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(byte *)(iVar17 + 0x13c) = *(byte *)(iVar17 + 0x13c) | 1;
-        *(undefined2 *)(iVar17 + 0x138) = 0;
-        *(undefined1 *)(iVar17 + 0x29) = 0;
-      }
-    }
-    else {
-      sprintf(local_d4,"CD%d",(byte)local_b8);
-      if ((*piVar2 == 0) ||
-         (((*(char *)((int)piVar2 + 0x73) != '\x01' &&
-           (((*piVar2 == 0 || (*(char *)((int)piVar2 + 0x73) != '\x03')) ||
-            (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) != '\x01')))) ||
-          ((*(byte *)(*(int *)((int)piVar2 + 0x27) + 0x9d) & 4) == 0)))) {
-        iVar17 = 0;
-      }
-      else {
-        iVar17 = 1;
-      }
-      FUN_004a0570((int)((int)g_game + 0x519),(int)(local_d4),(int)(iVar17));
-      FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(0));
-      sprintf(local_d4,"LOGO%d",(byte)local_b8);
-      iVar17 = FUN_004a0280((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        if ((*(char *)(*(int *)((int)piVar2 + 0x27) + 0x96) == -1) && (local_c0 == 0)) {
-          bVar6 = 0;
-        }
-        else {
-          bVar6 = 1;
-        }
-        *(undefined1 *)(iVar17 + 0x29) = bVar6;
-        *(uint *)(iVar17 + 200) = (uint)(local_c0 == 0) | *(uint *)(iVar17 + 200) & 0xfffffffe;
-        *(undefined4 *)(iVar17 + 0xbe) = *(undefined4 *)((int)g_game + 0x148db);
-        *(ushort *)(iVar17 + 0xc6) = (ushort)*(byte *)(*(int *)((int)piVar2 + 0x27) + 0x96);
-      }
-      sprintf(local_d4,"PLAYER%d",(byte)local_b8);
-      strncpy((char *)local_9c,(char *)((int)piVar2 + 0x2b),0x1e);
-      FUN_004a0bf0((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_9c),(int)(0));
-      iVar17 = FUN_0049fdf0((int)(iVar8),(int)(local_d4),(int)(0xe));
-      FUN_004a5d50((int)((int)g_game + 0x519),(int)(iVar17));
-      FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_c0));
-      sprintf(local_d4,"SIDE%d",(byte)local_b8);
-      iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        iVar8 = (int)g_game + uVar18 * 0x14b;
-        sprintf(local_7c,"SIDE%d",uVar18);
-        if ((*(int *)(iVar8 + 0x1b63) == 0) ||
-           ((*(byte *)(*(int *)(iVar8 + 0x1b8a) + 0x9b) & 0x40) == 0)) {
-          bVar6 = *(undefined1 *)(*(int *)(iVar8 + 0x1b8a) + 0x95);
-        }
-        else {
-          bVar6 = 2;
-        }
-        FUN_004a1080((int)((int)g_game + 0x519),(int)(local_7c),(int)(bVar6));
-        *(undefined1 *)(iVar17 + 0x29) = 1;
-        if ((*piVar2 == 0) ||
-           (((*(char *)((int)piVar2 + 0x73) != '\x01' && (*(char *)((int)piVar2 + 0x73) != '\x02'))
-            || (local_c0 != 0)))) {
-          uVar15 = 1;
-        }
-        else {
-          uVar15 = 0;
-        }
-        FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(uVar15));
-        iVar8 = local_bc;
-      }
-      sprintf(local_d4,"ALLY%d",(byte)local_b8);
-      iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        FUN_004a1080((int)((int)g_game + 0x519),(int)(local_d4),(int)(*(char *)(local_b4 + 0x113 + uVar18) << 1 |
-                     *(byte *)(local_b4 + 0x108 + uVar18)));
-        iVar13 = *piVar2;
-        if (((iVar13 == 0) ||
-            ((*(char *)((int)piVar2 + 0x73) != '\x01' &&
-             ((iVar13 == 0 ||
-              (((*(byte *)(*(int *)((int)piVar2 + 0x27) + 0x9b) & 0x40) == 0 &&
-               ((iVar13 == 0 ||
-                ((*(char *)((int)piVar2 + 0x73) != '\x02' &&
-                 (((iVar13 == 0 || (*(char *)((int)piVar2 + 0x73) != '\x03')) ||
-                  (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) != '\x02')))))))))))))) &&
-           ((*local_a8 == 0 || ((*(byte *)(*(int *)((int)local_a8 + 0x27) + 0x9b) & 0x40) == 0)))) {
-          bVar6 = 1;
-        }
-        else {
-          bVar6 = 0;
-        }
-        *(undefined1 *)(iVar17 + 0x29) = bVar6;
-        FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_c0));
-      }
-      sprintf(local_d4,"TEAMICONS%d",(byte)local_b8);
-      iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        if ((*piVar2 == 0) || ((*(byte *)(*(int *)((int)piVar2 + 0x27) + 0x9b) & 0x40) == 0)) {
-          bVar6 = 1;
-        }
-        else {
-          bVar6 = 0;
-        }
-        *(undefined1 *)(iVar17 + 0x29) = bVar6;
-        if ((*piVar2 == 0) ||
-           (((*(char *)((int)piVar2 + 0x73) != '\x01' && (*(char *)((int)piVar2 + 0x73) != '\x02'))
-            || (local_c0 != 0)))) {
-          uVar18 = 1;
-        }
-        else {
-          uVar18 = 0;
-        }
-        FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(uVar18));
-      }
-      sprintf(local_d4,"RES%d",(byte)local_b8);
-      if (!IsLocal_448c70(piVar2) && !IsRemote_448c70(piVar2)) {
-        sprintf((char*)local_68,"%s","n/a");
-      }
-      else {
-        sprintf((char*)local_68,"%dx%d",*(ushort*)(*(int*)((int)piVar2+0x27)+0x8b),*(ushort*)(*(int*)((int)piVar2+0x27)+0x8d));
-      }
-      FUN_004a0bf0((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_68),(int)(0));
-      if ((*piVar2 == 0) || (*(char *)((int)piVar2 + 0x73) != '\x01')) {
-        iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-        if (iVar17 != 0) {
-          *(undefined1 *)(iVar17 + 0x29) = 1;
-        }
-      }
-      else {
-        FUN_004a1450((int)((int)g_game + 0x519),(int)(local_d4),(int)(local_c0));
-      }
-      sprintf(local_d4,"PING%d",(byte)local_b8);
-      iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-      if (((*piVar2 == 0) || (*(char *)((int)piVar2 + 0x73) != '\x03')) ||
-         (*(char *)(*(int *)((int)piVar2 + 0x27) + 0x94) != '\x01')) {
-        FUN_004a0bf0((int)((int)g_game + 0x519),(int)(local_d4),(int)("n/a"),(int)(0));
-        if (iVar17 != 0) goto LAB_00449a19;
-      }
-      else if (iVar17 != 0) {
-        local_ac = (byte *)(iVar17 + 0xb6);
-        _itoa(piVar2[5],(char *)local_ac,10);
-        iVar13 = FUN_00457a50();
-        if (iVar13 != 0) {
-          uVar18 = FUN_0044ffd0((int)((byte)local_b8));
-          iVar8 = ((Class_0046d040*)(*(void **)((int)g_game + 0x2a30)))->FUN_0046e0b0((int)(uVar18));
-          pcVar9 = ":s";
-          if (iVar8 == 0) {
-            pcVar9 = "";
-          }
-          strcat((char*)local_ac,pcVar9);
-          iVar8=local_bc;
-        }
-        if ((uint)piVar2[5] <= local_b0) {
-          local_b0 = piVar2[5];
-        }
-LAB_00449a19:
-        *(undefined1 *)(iVar17 + 0x29) = 1;
-      }
-      sprintf(local_d4,"MEM%d",(byte)local_b8);
-      iVar17 = FUN_004a0180((int)(iVar8),(int)(local_d4));
-      if (!IsLocal_448c70(piVar2) && !IsRemote_448c70(piVar2)) {
-        sprintf((char *)(iVar17 + 0xb6),"%s","n/a");
-        iVar13 = *(int *)((int)g_game + 0x391e9);
-      }
-      else {
-        sprintf((char *)(iVar17 + 0xb6),"%d",*(ushort*)(*(int*)((int)piVar2+0x27)+0x99));
-        iVar13 = *(int *)((int)g_game + 0x391e9);
-      }
-      iVar13 = ((Class_00435920*)(iVar13))->FUN_00435920();
-      uVar4 = *(ushort *)(*(int *)((int)piVar2 + 0x27) + 0x99);
-      *(undefined1 *)(iVar17 + 0x29) = 1;
-      *(uint *)(iVar17 + 0x23) = (iVar13 <= (int)(uint)uVar4) - 1 & 0xc;
-      sprintf(local_d4,"READY%d",(byte)local_b8);
-      iVar17 = FUN_0049ff10((int)(iVar8),(int)(local_d4));
-      if (iVar17 != 0) {
-        *(undefined1 *)(iVar17 + 0x29) = 1;
-        *(ushort *)(iVar17 + 0x138) =
-            (*(byte *)(*(int *)((int)g_game + 0x1b8a + (uint)(byte)local_b8 * 0x14b) + 0x9b) >> 5) & 1;
-        ((Bits13c_448c70 *)(iVar17 + 0x13c))->b0 = !IsLocal_448c70(piVar2);
-      }
-    }
-    local_b8++;
-    if (local_b8 >= 10) {
-      FUN_0049fa90((int)((int)g_game + 0x519));
-      iVar8 = *(int *)(local_b4 + 0x27);
-      if (((*(byte *)(iVar8 + 0x97) & 1) != 0) && (local_b0 < *(ushort *)(iVar8 + 0x9f))) {
-        *(short *)(iVar8 + 0x9f) = (short)local_b0;
+    FUN_0049fa90(g_game->gui);
+    PlayerInfo_00448c70* info = me->info;
+    if (info->f97_0 && minPing < info->pingLimit) {
+        info->pingLimit = minPing;
         FUN_00451180();
-      }
-      return;
     }
-  } while( true );
 }

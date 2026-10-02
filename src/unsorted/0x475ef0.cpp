@@ -1,99 +1,99 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
-// deepseek-v4.1-flash retry (10 min, 5 check runs): function-scope `_Ps = _P` plus
-// `_Xs = _X` aliases, a hand-written prefix copy loop (`for (; _F != _P; ++_F, ++_Q)
-// allocator.construct(_Q, *_F);`), a `size_type _Mf = _M;` fill count, and a split
-// `iterator _S; ... _S = allocate(...)` declaration ALL compile to the byte-identical
-// 795-byte object (each compared instruction for instruction against the baseline
-// diff: zero differences), so this TU's codegen for every spelling of the
-// reallocating branch is canonical and the esi/edx pick for _P is not reachable
-// from the source, as the notes below already concluded.
-// deepseek-v4.1-flash (#3287): the real-<vector> recipe of the matched sibling
-// 0x43c3a0 (explicit instantiation, 0x44-byte trivial element) scores 82.9%,
-// 796 bytes, against this clone's 83.0%, 795; swapping _Destroy and deallocate
-// regresses to 76.5%. The retained wall is unchanged: _P in esi instead of edx.
-// deepseek-v4.1-flash retry (10 min): no improvement on the retained 83.0%
-// (795/794). Tried <windows.h> added (82.9%, 796 bytes), a late `_P3 = _P`
-// local for the third copy (83.0%, _P stays in esi), and reusing a cached
-// `_S2 = _Q + _M` destination (75.3%). The ceiling remains the allocator
-// putting the iterator _P in esi instead of edx in the reallocating branch.
-// deepseek-v4.1 retry (#2496): 83.0% confirmed, 10 check runs (declfirst _S/_N, split _Q decl/assign, cached _Q+_M, non-const _Ucopy params, const_iterator bound alias, _QE precompute) all stay at 795 bytes with _P in esi instead of edx; no source-level lever found for the allocator pick.
-// Refinement issue #2306: best remains 83.0% (795/794 bytes). The reallocating branch allocates _P in esi instead of edx, shifting spills and copy-loop registers; all other branches match.
-// GPT-6 retry: 83.0%, 795 of 794 bytes; pointer and buffer constness and allocator pointer typedef variants did not change the saved register family.
-// Sonnet 5.5 retry (#1081): /Gz and /Gr change nothing (it is a method), and about
-// 700 more variants (deallocate/_Destroy order and spelling, helper parameter
-// orders and loop shapes, manual third-copy loops, size and tail spellings) all
-// stay at 83.0%. The same single cause as 0x476490: _P stays in edx and _S in esi.
-// std::vector<T>::insert(iterator, size_type, const T&) from MSVC 5's <vector>,
-// with _Ucopy, _Ufill, fill and copy_backward inlined. The element is 0x44
-// (68) bytes, so every copy is a rep movsd of 0x11 dwords and every stride is
-// 0x44; the three pointers sit at this+4, this+8 and this+0xc in the original
-// (a class that derives from the vector), which is why the code reads
-// [this+4] for _First here.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass (issue 4147 follow-up): 83.0% RETAINED, 795 of 794 bytes,
+// unchanged body. This pass ran the masked-byte twin test it was pointed at and
+// then showed that on THIS function the twin test's 0 hits is a false negative
+// and must not be read as closing it.
 //
-// The class below is a hand-written clone of the <vector> class template rather
-// than an include of <vector>, for one measurable reason: <vector> pulls in
-// <stdexcept> and its std::string instantiations, and with it this build makes
-// the third copy's source pointer with
-//     mov eax, edx / sub eax, ebx / add eax, esi / sub eax, ecx     (796 bytes)
-// while the hand-written clone makes the same value with one lea:
-//     lea eax, [edx + esi] / sub eax, ebx / sub eax, ecx            (795 bytes)
-// Nothing else about the class matters: the element type (int[0x11], char[0x44],
-// short[0x22], float, double, pointer + ints, a nested struct, a user copy
-// constructor), the parameter and member names, the loop shapes of _Ucopy and
-// _Ufill, the order of the increments, the header set (including <windows.h>,
-// which makes no difference here) and dummy code all give the same result.
+// TWIN TEST, MASKED BYTES (the decisive form). Masking every rel8 and rel32
+// branch and call displacement of the 794 bytes at 0x475ef0 and searching all
+// of .text returns 0 hits in 1,026,560 bytes, so no byte-identical compilation
+// of this shape exists anywhere in TotalA.exe and there is no sibling to copy.
+// TWIN TEST, SIZE LEVEL: of the 29 insert@?$vector instantiations the linker
+// names, 12 are matched (449/467/547/622/649/755/773/785) and 17 are partial
+// (477/532/537/544/546/632/636/639/779/781/791/794/798/936). 794 appears only
+// among the partials, and no partial size appears among the matched ones at all.
 //
-// Still differs: 83.0%, ours 795 bytes against the original's 794. Every
-// difference is inside the reallocating branch and comes from one register
-// choice: the original keeps the iterator _P in edx from the first instruction
-// after the operator new call to the end of the suffix copy, so nothing has to
-// reload it and the fill loop can use ebp as its counter:
-//     mov edx, [esp + 0x24]    ; _P                      original
-//     mov esi, [esp + 0x24]    ; _P                      this build
-//     ...
-//     mov ebp, edi             ; fill counter in ebp     original
-//     mov ebp, [esp + 0x28]    ; &_X cached in ebp       this build
-//     mov edx, edi             ; fill counter in edx     this build
-//     ...
-//     mov esi, [esp + 0x28]    ; &_X reloaded each turn  original
-//     mov esi, ebp             ; &_X from ebp            this build
-// Because _P is in esi here, the prefix copy's loop bound has to spill and
-// reload it (`mov esi, [esp + 0x20]` inside the loop at 0x475fc4), and the
-// third copy then computes its source from the reloaded copy
-// (`lea eax, [edx + esi]`) where the original reuses the register it already
-// has (`sub edx, ebx` / `add edx, eax` on _P itself). The original also keeps
-// the new buffer in two registers (esi and ebx, copied with `mov ebx, esi`)
-// and spills _S to [esp+0x14] where this build keeps one register (ebx) and
-// spills it to [esp+0x18]; _N takes the other slot in each. Everything after
-// the reallocating branch, including both in-place branches, the delete call,
-// the three pointer stores, the epilogue and every jump target, is
-// byte-identical.
+// BUT THE RESIDUAL IS A REGISTER, NOT AN INSTRUCTION, SO 0 HITS PROVES NOTHING
+// HERE, and this pass established that instead of assuming it. The whole
+// residual is one choice at instruction 71: the original loads _P into edx, and
+// edx is the only register the first copy loop leaves free, because eax and ebx
+// are its two walking pointers, ecx is the rep count and esi and edi are the rep
+// movsd operands. A register choice is legal C++, so it needs no twin to exist
+// for it to be reachable. The axis provably varies: reading the family straight
+// off the exe for all 29 gives eax (4 functions, 2 matched), ebx (2, 2), ecx
+// (1, 1), edi (7, 4), ebp (1, 0), esi (10, 3), edx (4, 0). Five of the seven
+// registers appear in MATCHED functions, so edx's absence from the matched set
+// is absence from a set that provably varies, not from a constant set. The three
+// CONSECUTIVE functions 0x4758c0 (779 bytes, _P in eax), 0x475bd0 (791, esi) and
+// this one (794, edx) are one template at element sizes 0x34, 0x3c and 0x44, so
+// the family varies inside a single instantiation run, which is why a size census
+// cannot settle it either.
 //
-// The register choice is not reachable from the source: about 450 variants
-// (source spellings, statement orders, the operator new/delete spelling, the
-// copy/fill helpers as members or free functions, loop shapes, the size()
-// and the free-space test, the header set, the element type) all put _P in
-// esi, ecx or ebp. Only a differently shaped branch reaches edx, and then the
-// rest of the branch no longer matches.
+// edx IS REACHABLE FROM SOURCE. Two independent knobs, neither recorded in the
+// notes below, put _P in edx AND delete the in-loop reload that is the single
+// extra byte:
+//   1. fusing the fill's increment into the construct call, either through the
+//      member _Ufill(_Q, _M, _X); written as
+//          for (; 0 < _N; --_N) allocator.construct(_F++, _X);   (800 bytes)
+//      or inline through a local
+//          {iterator _Q2 = _Q; for (size_type _C = _M; 0 < _C; --_C)
+//           allocator.construct(_Q2++, _X); }                    (800 bytes);
+//   2. a bare do-while fill, do { construct(_F2, _X); ++_F2; }
+//      while (0 < --_C);                                         (781 bytes).
+// Item 1 and the inline local form are equivalent to _Ufill(_Q, _M, _X) and are
+// correct C++; item 2 is NOT, it spins for 2^32 iterations when _M is 0, which
+// is also why it loses the `test edi,edi / jbe` entry guard the original has,
+// so it is a lever reading, not a candidate.
+// Independently, spelling the third copy's source as a difference of two live
+// pointers also gives edx: _Ucopy(_Last - (_Last - _P), _Last, _Q + _M) is 810
+// bytes and _Ucopy(_Q - (_Q - _P), _Last, _Q + _M) is 844. The same mechanism
+// applied to _Ucopy itself moves the register without reaching edx:
+// allocator.construct(_P++, *_F) gives ebp (787 bytes),
+// allocator.construct(_P, *_F++) gives ebp (775), and construct(_P++, *_F) with
+// ++_F, ++_P still in the comma gives ebx (789). All seven registers are
+// reachable from this one body, so "not reachable from the source" as recorded
+// below is wrong and is withdrawn.
 //
-// One more spelling ruled out (space-bunny-free, 66.7%, 849 bytes, so clearly
-// worse than the _Q form above): dropping the _Q local for the real <vector>
-// wording
-//     _Ucopy(_First, _P, _S);
-//     _Ufill(_S + size_type(_P - _First), _M, _X);
-//     _Ucopy(_P, _Last, _S + _M + size_type(_P - _First));
-// gives back a third copy loop bound it recomputes and loses the register
-// rotation, so the _Q local really is what the original used.
+// WHY edx IS STILL NOT THE ANSWER: every edx shape costs more elsewhere than it
+// gains. The postfix _Ufill is 800 bytes and 112 differing lines; dropping
+// _Destroy on top of it reaches 796 bytes and check.py scores that one 70.5%
+// against this file's 83.0% (78.3% if internal jump-target shifts are ignored),
+// and it is not a candidate anyway because it deletes a line the original
+// plainly has. Its listing has edx right and three things wrong at once: `this` and _M become live ACROSS the first copy loop, so
+// they are re-materialised inside it (mov ebp,[esp+0x10] and mov edi,[esp+0x24]
+// where the original has them after it) and the restore of _S into esi
+// disappears; &_X lands in edx and evicts _P, which then has to be reloaded from
+// [esp+0x20]; and the third copy's destination and source registers stay swapped
+// (lea edx,[ebx+ecx] and cmp eax,esi where the original wants lea eax,[ebx+ecx]
+// and cmp edx,ebp).
 //
-// The only two structural differences left, both inside the first copy loop,
-// are that ours rematerialises _P from the argument slot on every turn
-// (`mov esi, [esp + 0x20]` inside the loop, the single extra byte) and swaps
-// the two spill slots: the original puts _N in [esp+0x18] and _S in [esp+0x14]
-// after the argument push is popped, ours puts _N in [esp+0x14] and _S in
-// [esp+0x1c]. Since ours re-reads _P instead of keeping it, the allocator
-// ranked _P above _S; the original ranks it below every callee-saved register.
-// Refinement: a register alias, reference alias, reversed realloc branch, and
-// cached free-space local did not improve the retained 83.0% result.
+// MEASURED AND INERT THIS PASS. Compile-only, through the 0.5 s harness at
+// build/scratch/475ef0/, so these are differing-line distances from the
+// original's disassembly, not percentages, and `d=0` would mean byte-identical:
+//  - element size, the axis the family actually varies on: 24 sizes from 4 to
+//    128 built with the real <vector> give esi, edi, ecx, eax and never edx, so
+//    the 0x44 element is not the cause;
+//  - the real <vector> with `template class std::vector<E>;`, the recipe of
+//    matched sibling 0x43c3a0, at a 0x44-byte element: 796 bytes, 65 differing
+//    lines, the same esi family plus a dead pre-delete spill. Not the lever;
+//  - translation-unit state: one extra address-taken vector<T>::insert, before or
+//    after, at any of 32 element sizes, and pairs of them, all give the same
+//    796-byte, 65-line, esi-family shape. Two shapes, never a third, which is
+//    what 0x475bd0's notes record for the neighbouring template;
+//  - declaration order for _N and _S, both orders and both split and unsplit:
+//    byte-identical. The _N/_S frame-slot swap (original _S at [esp+0x14] and _N
+//    at [esp+0x18], this build the reverse) is the FIRST difference in the diff
+//    and is not declaration-driven here;
+//  - inert at 795/41 with the faithful _Ufill: the third copy's destination (a
+//    named local, _Q + _M + 0, an explicit cast, &_Q[_M], _Q + _M * 1), its
+//    source (_P + 0, &*_P, a cast, a named local), the three member stores in
+//    three orders, the allocate spelling, splitting the _N and _S declarations,
+//    dropping _Destroy, moving the stores ahead of _Destroy and deallocate, an
+//    extra _Ucopy member, an extra reserve member, an operator[], and four
+//    single includes including <windows.h>;
+//  - ten fill spellings crossed with six _Ucopy parameter and loop-shape orders
+//    and twelve other arm knobs, 144 combinations: this file's body (795 bytes,
+//    d=41) is still the best of all of them.
 #include <climits>
 #include <memory>
 #include <xutility>

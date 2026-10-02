@@ -1,4 +1,160 @@
-// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
+//
+// SEVENTH PASS (Space Bunny Free, issue 4723). 423 of 427 bytes, 88.9%, up
+// from 87.6%. Two independent changes, and both of them overturn a negative
+// recorded below.
+//
+//  1. THE esi/edi TIE IS SOLVED, and its cause is the FAST-PATH
+//     `list->frame++`, not the tail reload. Measured on the reload family
+//     (the tail spelled `if (list->bitmap != 0)`, so `this` lands in ebx and
+//     the whole tail matches):
+//       * deleting the fast-path increment alone: 87.8%, 420 bytes, and the
+//         function is byte-identical to the original except that one
+//         `inc dword ptr [edi + 4]`;
+//       * deleting both increments: 86.6%, 413 bytes;
+//       * keeping both, in any spelling: 69.4%, 423 bytes with `list` in esi
+//         and the shifted `x` in edi, where the original has esi=x,
+//         edi=list.
+//     So the trigger is a STORE through `list` after a call inside the
+//     conditional block, and it is not a spelling question. Sixteen
+//     spellings all score exactly 423 bytes / 69.4%: pre- and post-increment,
+//     `= list->frame + 1`, `+= 1`, `= 1 + list->frame`, a `(List_458810*)`
+//     cast, `*(int*)((char*)list + 4) += 1`, a `static inline void
+//     BumpFrame(List_458810*)` helper, a `int* fp = &list->frame` pointer
+//     read through it, `return (list->frame++, 0)`, a `static inline void
+//     Bump2(int&)` helper, the increment in each arm of an if/else,
+//     `while (1) { ...; break; }`, `do { } while (0)`, an inverted
+//     `if (list->bitmap == 0)`, and a `goto`.
+//     WHAT WORKS is to write ONE increment, after the if/else:
+//         if (list->bitmap != 0) {
+//             FUN_00459200(result, list, coords, visible);
+//         } else {
+//             for (int i = list->pieceCount - 1; i >= 0; i--) { ... }
+//         }
+//         list->frame++;
+//     MSVC 5 tail-duplicates it into the fast path as
+//     `inc dword ptr [edi + 4]` (0x45894d) and keeps
+//     `mov eax,[edi + 4] / inc eax / mov [edi + 0x4],eax` at the loop exit
+//     (0x4589aa). Both are the original's, so nothing is deleted: the source
+//     has one increment and the compiler emits the two the original has.
+//     That one change took the reload family from 69.4% to 88.2% and made
+//     the prologue, the rebuild diamond, the `mov ecx,[edi + 0x10]` reload,
+//     `this` in ebx, the memory-resident loop counter and the whole piece
+//     loop match byte for byte.
+//  2. `coords.y` MUST BE SOURCED FROM A SECOND UNINITIALISED Vec3:
+//         Vec3_458810 coords;
+//         Vec3_458810 src;
+//         coords.x = x;
+//         coords.y = src.y;
+//         coords.z = z;
+//     which homes the value in coords.y's own frame slot so the load reads
+//     [esp + 0x20] as the original does. An uninitialised `int local_8`
+//     emits the same bytes but homes the value in the `result` argument slot
+//     ([esp + 0x30]); that was the last non-jump difference, worth 88.2% ->
+//     88.9%. `coords.y = coords.y`, `coords.y = *(int*)((char*)&coords + 4)`,
+//     `Vec3_458810* cp = &coords; coords.y = cp->y` and
+//     `int ly = coords.y; coords.y = ly;` all lose the write-back pair
+//     (419 bytes, 76.0%). Moving `local_8` to the top of the function is
+//     byte-neutral (88.9%), so it is the SECOND OBJECT that matters, not
+//     where the uninitialised int is declared.
+//
+// CORRECTION TO THE FRAME NOTE BELOW. [esp + 0x20] is NOT "the dead saved
+// ebp slot". With `sub esp,0x18` and four pushes, esp is entry-0x28, so
+// [esp + 0x10] through [esp + 0x24] are the six 4-byte locals the FPO
+// directory reports: 0x10 rebuild, 0x14 `this`, 0x18 `special`, and
+// 0x1c/0x20/0x24 coords.x/coords.y/coords.z. [esp + 0x28] is the return
+// address, [esp + 0x2c] is the incoming `list` slot and [esp + 0x30] is
+// `result`. The original really does home `visible` in the incoming `list`
+// slot (0x45885c, 0x45886c), which is legal because `ret 8` lets the callee
+// reuse the argument slots, and this file matches that. So the earlier
+// reading of those bytes as the saved ebp is wrong, and so is the claim that
+// the uninitialised `local_8` lives there.
+//
+// THE SHARED `List` TYPE CHECKS OUT. `List_458810` here and `List_459c70` in
+// 0x459c70 (the other method of this same `Class_004581e0`) agree where they
+// overlap: count at +0x00, owner at +0x0c, bitmap at +0x10, pieces at +0x22 on
+// a 0x36 stride, and both `Piece_*` structs put info at +0x00 and vertices at
+// +0x22. This function additionally needs the frame counter at +0x04 and
+// field_14 at +0x14, which 0x459c70 does not read; adding them is additive
+// and does not move any other field. The `Vec3` in 0x459c70 is also
+// `{ int x; int y; int z; }`, the same as `Vec3_458810` here, so 0x459200's
+// by-value parameter and this function's `Vec3_458810*` are the same type.
+//
+// WHAT IS STILL DIFFERENT: the doubled `test eax,eax / jne` at 0x4588bd,
+// which is 4 bytes (`mov eax,[ebx + 0x14] / test eax,eax / jne X / test
+// eax,eax / jne X`), and every jump target after it, which moves by 4
+// because of those 4 bytes. Nothing else differs.
+//
+// THE DOUBLED TEST IS STILL UNREACHABLE, and it now costs the whole byte
+// gap. The ONE shape that does emit it is a `Bitmap_458810* bp =
+// list->bitmap;` that only the second conjunct reads (p6/u1 in
+// build/scratch/0x458810/spec18.py and spec19.py): that gives exactly the
+// original's `mov eax,[reg + 0x14] / test eax,eax / jne X / test eax,eax /
+// jne X`. But `bp` is a fifth register candidate, so the allocator demotes
+// the bitmap from ebx to edx and the flags and the zero constant from edx to
+// ebx (`xor ebx,ebx` where the original has `xor edx,edx`, `test bh,0x20`
+// where it has `test dh,0x20`, `sete al` where it has `sete bl`), and it
+// merges the two `visible` arms into one block. That is 425 bytes and 73.8%.
+// The polarity form `if (list->bitmap == 0) rebuild = 1; else if (...)
+// rebuild = 1;` with the same local is 431 bytes and 79.5%, and the flat
+// polarity form without it is 414 and 56.1%. So the doubled test costs 15
+// points either way and is not worth taking.
+//
+// Every other route folds to the single test or recolours. Measured on this
+// exact shape, all worse than 88.9%:
+//  * `Bitmap_458810* bitmap = list->bitmap;` used by all five pre-call
+//    tests: 431 bytes, 60.7%; used only by the doubled conjunct: 431, 60.7%;
+//    block-scoped inside the flag `if`: 425, 73.8%;
+//  * a `Bitmap_458810&` reference for the second conjunct: 425, 73.1%; an
+//    `int&` bound to the field: 425, 73.1%;
+//  * `static inline int F14(Bitmap_458810*)` with the return type `int`
+//    (427, 73.8%) and with `bool` (438, 78.6%). The `int` form does reach
+//    the original's exact 427 bytes, but by growing the tail, not by
+//    emitting the second `test`;
+//  * an in-class `int F14() const { return field_14; }`: 427, 73.8%;
+//  * a `static Bitmap_458810* cb;`: 436, 87.7%;
+//  * and all of these fold to the single test and stay at 423/88.9%:
+//    a union overlay on the field, `List_458810::iv[5]`, an extra `int f14`
+//    field, `*(&list->bitmap->field_14)`, `*(int*)&X`,
+//    `(*(int*)((char*)list->bitmap + 0x14) == 0)`,
+//    `(*(Bitmap_458810**)((char*)list + 0x10))->field_14`,
+//    `(*list).bitmap->field_14`, a second `List_458810*` copy, a
+//    `(const List_458810*)` cast, `0 == X`, `X == 0L`, `!(X != 0)`,
+//    `(X ^ 0) == 0`, `X + 0 == 0`, `(short)X == 0`, `(char)X == 0`, `!X`,
+//    `(X ? 0 : 1)` and `(X == 0 ? 1 : 0)`; a second `List_458810*` copy read
+//    only by the doubled conjunct (423, 88.9%, folds); a `{ Bitmap_458810*
+//    b; }` wrapper struct (425, 73.8%); naming the value
+//    `int f14 = list->bitmap->field_14;` and testing the local plus the
+//    member (433, 54.5%); and splitting the chain into two separate `if`
+//    statements (438, 49.8%).
+//
+// ALSO MEASURED HERE AND NEGATIVE, so the shape above is not one spelling out
+// of many. Each is 423 bytes / 88.9% or worse: declaration order of the five
+// prologue statements (all 120 permutations; max 69.4% on the reload family,
+// inert at 88.9% here); `x`/`z` unsigned, read through a `static inline`
+// getter, split into two statements, or read through a `char* game = g_game`
+// local; `unsigned short visible`; a `Class_004581e0* self = this` used at
+// every call site; a named `List_458810* lp = list` for the tail test; the
+// loop as `int i = ...; for (; i >= 0; i--)`; `owner` declared late; the
+// tail re-read as `0 != list->bitmap`, `list->bitmap`,
+// `*(Bitmap_458810**)list`, `FBM(list)` or `((char*)list + 0x10)`; coords
+// declared in the top block; the fast path inverted; a second `List_458810*`
+// copy for the tail test; and a `static inline` predicate, tried BOTH ways as
+// the brief suggests, around the tail test, the frame test, the bitmap-zero
+// test and `if (rebuild)`: every `int`-returning form is byte-neutral at
+// 423/88.9% and every `bool`-returning form is worse (430 bytes / 79.7% for
+// the tail and the rebuild test, 432 / 85.6% for the frame test), which is the
+// same split 0x438ea0 recorded. Passing `list` to the calls through a pointer
+// to a local that is never modified (`List_458810* pl = list;
+// List_458810** ppl = &pl; ... *ppl`) is 87.5% when the tail test also goes
+// through it and byte-neutral at 88.9% when only the call argument does.
+//
+// The variants live in build/scratch/0x458810/: v0 the previous best, v1 the
+// reload family, v3 the merge-point increment, v4 the coords.y fix, v5 this
+// file, with the sweeps in spec1..spec17 and the drivers runner.py (score a
+// scratch file without touching src/) and sweep.py (apply substitutions and
+// score each).
+//
 // claude-opus-5-5 (#4634): still 87.6% here, but one structural finding for the
 // next attempt: after the optional rebuild call the original re-reads
 // `list->bitmap` (FUN_004586a0 may rebuild it), so the final test is
@@ -63,7 +219,9 @@
 // GPT-6.1-sol retest in #2859: seven checks kept the 87.6% best. Declaration
 // order was unchanged; result alias and tail reload scored lower. Remaining
 // reload, coordinate-slot, counter, and loop-result differences are below.
-// PARTIAL, 87.6% (410 of 427 bytes; up from 81.9%).
+// PARTIAL, 87.6% (410 of 427 bytes; up from 81.9%). SUPERSEDED by the
+// seventh pass at the top of this file, which is 88.9% and 423 bytes; the two
+// ceilings recorded below are both real but neither is the answer.
 //
 // WHAT IS SOLVED. The piece array starts at list+0x22, not +0x44, with `info`
 // at piece+0, `vertices` at +0x22 and `flags` at +0x28 on a 0x36 stride, under
@@ -100,6 +258,10 @@
 // miscompilation. Keep it.
 //
 // THE REAL SPLIT, and it is a register-priority tie I could not break.
+// SUPERSEDED: the tie exists but it is not between the two shapes below. It
+// is caused by the fast-path `list->frame++`, and one increment written after
+// the if/else dissolves it. The two ceilings measured here (81.9% and 69.4%)
+// are both real; they just are not where the answer was.
 // The original does two things at once that this source cannot do at once:
 //   (a) it re-reads `list->bitmap` into ecx AFTER the 0x4586a0 call (0x107),
 //       so the pre-call bitmap value is dead and ebx is freed for `this`;
@@ -336,42 +498,44 @@ void Class_004581e0::FUN_00458810(List_458810* list, Vec3_458810* result)
     }
     if (list->frame == 0)
         rebuild = 1;
-    Bitmap_458810* bitmap = list->bitmap;
-    if (bitmap == 0)
+    if (list->bitmap == 0)
         list->field_14 = 0;
     if ((owner->flags & 0x20000000) != 0) {
-        if (bitmap == 0
+        if (list->bitmap == 0
             || (owner->intensity != 0.0f
                 && (owner->flags & 0x2000) != 0
                 && list->bitmap->field_14 == 0
-                && bitmap->field_14 == 0))
+                && list->bitmap->field_14 == 0))
             rebuild = 1;
     }
-    if (bitmap == 0 && (owner->flags & 0x20000000) != 0)
+    if (list->bitmap == 0 && (owner->flags & 0x20000000) != 0)
         rebuild = 1;
-    if ((owner->field_114 & 1) != 0 && bitmap == 0)
+    if ((owner->field_114 & 1) != 0 && list->bitmap == 0)
         rebuild = 1;
     if (rebuild) {
         list->field_14 = 0;
         FUN_004586a0(list, 0, 1);
     }
     Vec3_458810 coords;
-    int local_8;                  // uninitialised, as in the original's stack slot
+    Vec3_458810 src;
     coords.x = x;
-    coords.y = local_8;
+    coords.y = src.y;
     coords.z = z;
-    if (bitmap != 0) {
+    if (list->bitmap != 0) {
         ((Class_00459200*)this)->FUN_00459200(result, list, coords, visible);
-        list->frame++;
-        return;
-    }
-    for (int i = list->pieceCount - 1; i >= 0; i--) {
-        Piece_458810* piece = &list->pieces[i];
-        if (piece->flags & 1) {
-            unsigned char kind = list->owner->kind;
-            ((Class_004584d0*)this)->FUN_004584d0(list, result, &coords, piece->info,
-                piece->vertices, kind, visible);
+    } else {
+        for (int i = list->pieceCount - 1; i >= 0; i--) {
+            Piece_458810* piece = &list->pieces[i];
+            if (piece->flags & 1) {
+                unsigned char kind = list->owner->kind;
+                ((Class_004584d0*)this)->FUN_004584d0(list, result, &coords, piece->info,
+                    piece->vertices, kind, visible);
+            }
         }
     }
+    // ONE increment for both paths: MSVC 5 tail-duplicates it into the fast
+    // path as `inc dword ptr [edi + 4]` and keeps the three-instruction form
+    // at the loop exit, which is what the original has. Writing it twice, or
+    // in any other shape, flips esi/edi and costs 19 points.
     list->frame++;
 }

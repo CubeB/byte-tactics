@@ -1,3 +1,67 @@
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+//
+// Space Bunny Free pass (issue 4157): TWIN TEST FAILS, so this is now treated
+// as the same closed case as 0x46e640 and 0x475bd0, with one refinement the
+// earlier passes could not have made.  Baseline re-measured before any change:
+// 88.9%, 779 of 779 bytes, and that is what the file still holds.
+//
+// TWIN TEST, SIZE LEVEL: the 12 MATCHED insert@?$vector compilations in the
+// exe are 449/467/547/622/649/755/773/785 bytes (0x48ddc0 449, 0x40ca50 467,
+// 0x433b20 547, 0x4c4d70 547, 0x433db0 622, 0x4340f0 622, 0x488fb0 649,
+// 0x4be6c0 649, 0x4c51e0 649, 0x4b7b00 755, 0x43c3a0 773, 0x4dd8c0 785).
+// 779 is not among them, so no matched compilation of this function exists
+// anywhere in TotalA.exe.
+//
+// TWIN TEST, REGISTER LEVEL (the sharper form).  The size test was decisive
+// for 0x46e640 only because its residual was a swapped SIB that no C++ can
+// express.  This residual is a register choice, which nothing forbids, so the
+// size test alone is not enough.  Recompiling a matched sibling reproduces
+// its own original bytes, so its realloc-arm head reads the register straight
+// off the exe: 0x433b20 and 0x4c4d70 (547B) hold _P in ebx, 0x433db0,
+// 0x4340f0, 0x4b7b00, 0x488fb0, 0x4be6c0 and 0x4c51e0 hold it in ecx, and
+// 0x43c3a0 (773B) holds it in esi.  Never edx.  The two near siblings of this
+// function put it in esi as well (0x475bd0 at 99.7%, 0x475ef0 at 83.0%), so
+// the pick genuinely varies per function rather than being one fixed answer,
+// which is why this refinement matters: it is absence from a set that does
+// vary, not absence from a set that never moves.
+//
+// WHAT STILL DIFFERS, unchanged from the notes below: after `call operator
+// new` the original does `mov edx,[esp+0x20]` / `mov ebx,eax`, keeping _P in
+// edx and _S in ebx through the first copy, the fill and the third copy
+// (`cmp edx,esi` then `sub edx,ebx; add edx,eax; sub edx,ecx`), so _P's
+// argument slot dies and the fill counter is spilled into it.  This build
+// does `mov ecx,[esp+0x1c]` / `mov edx,eax`, and ecx is the `rep movsd` count,
+// so _P is reloaded inside the copy loop and the counter takes a register
+// instead.  Everything after that follows from that one choice.
+//
+// MEASURED THIS PASS.  All compile-only, through the 0.5 s harness at
+// build/scratch/0x4758c0/sweep.py, so the numbers below are
+// instruction-sequence distances from the current best body, not percentages.
+//  - Pointer to a local, the one lever never tried on this file: _P through
+//    `iterator *_Pp = &_P` at every use and at each of three positions, and
+//    _S, _M and _Q the same way, under both the explicit fill loop and
+//    _Ufill.  Never reaches edx; the pointer forms move the arm by 20 to 47
+//    lines.  Plain copies of _P stay byte-identical, as the passes below
+//    record, so the pointer form is a distinct and still inert lever here.
+//  - Ten fill spellings (for with the increment in the comma, postfix
+//    construct, increment in the body, increments in both orders, two while
+//    forms, do-while, `*_Q = _X`, and _Ufill) crossed with both statement
+//    orders for the fill and the third copy, plus eight declaration orders
+//    and the deletion-style variants of _N and _C.  _P comes out ecx, edi,
+//    esi, ebx or ebp, that is five of the six scratch registers, but never
+//    edx, and every variant that moves it off ecx costs 20 to 157 lines.
+//  - 276 file-scope padding variants: extern, typedef and static pads, with
+//    K = 0 to 128 step 2, the borders 0x475bd0 measured (50, 320, 576, 832,
+//    1088, 1344, 1600) and their neighbours, then 2000 to 9000.  Completely
+//    inert: _P stays in ecx in all 276 and not one improves on the current
+//    body.  That lever is documented to flip this exact template between two
+//    shapes on sibling 0x475bd0, so it does work on the family; it simply
+//    does not respond on this function.
+// CONCLUSION: the residual is compiler state from the game's own translation
+// unit, as every pass below concluded, and now the exe's own matched set is
+// behind that conclusion rather than just a size count.  Best version (88.9,
+// 779 of 779) kept; nothing regressed.
+//
 // Retry (deepseek-v4.1-flash, issue 4032): still 88.9, 779 of 779 bytes, the
 // same realloc-arm allocation wall (_P in ecx here, edx in the original). Two
 // more spellings measured this pass: the faithful `_Ufill(_Q, _M, _X)` in the
@@ -32,7 +96,6 @@
 // and deallocate is a real regression to 76.6 (772 bytes), so that order is
 // load-bearing for the allocation. Best version (88.9) kept.
 
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash retry (#3691): still 88.9, 779 of 779 bytes, the same
 // realloc-arm register wall documented below (_P in ecx here, edx in the
 // original). Moving allocator.deallocate before _Destroy in the arm regresses

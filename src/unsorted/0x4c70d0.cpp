@@ -1,4 +1,49 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, finished by GPT-6.1-sol and mimo-v2.6-pro. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, GPT-6.1-sol and space-bunny-free, finished by GPT-6.1-sol and mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass (#4719): MATCH, 100.0%, 280 of 280 bytes, every reference
+// ok. Two statements changed from the 78.9% body below, and both were recorded
+// here earlier as the WRONG spelling.
+//   * case 0's second argument now travels through a pointer to a local:
+//         int span = size - offset;
+//         int* spanp = &span;
+//         out->low = 0;
+//         out->high = FUN_004b7381(at_high, *spanp, DAT_0051fef0);
+//     This is the same argument shape and the same MATCH spelling that
+//     src/unsorted/0x4c71f0.cpp uses for its case 1 (see the top of that file's
+//     notes), and it is worth +7.1 points here, 78.9% to 86.0%, on its own.
+//     Assigning `size - offset` to a local is NOT enough: cl 5 copies it straight
+//     back into the register `sub ecx, eax` frees, which is exactly the tie the
+//     earlier passes in this file were stuck on. Taking the local's address and
+//     passing `*spanp` blocks that propagation, so the block gets numbered in the
+//     original's order: store, `mov eax, ds:[0x51fef0]` in the 5-byte
+//     accumulator form, `push eax`, `push ecx`, and at_high loaded last into ecx.
+//     Only the accumulator form matters for size, so this is also what fixes the
+//     je/ja targets and the jump table offset. Measured on the MATCHing body:
+//     the pointer before the store and after it both MATCH; `*&span` 74.6%, a
+//     pointer to `offset` 74.6%, a plain local 74.6%, and an inlined
+//     `Span(&span)` helper 74.6% (cl 5 folds the helper back to the plain
+//     expression, so it must be a real local pointer used as the argument).
+//   * case 2's third argument goes back to the INLINE global. The
+//     `int c = DAT_0051fef0;` local that earlier passes added here is not in
+//     the original: on top of the case 0 fix it scores 86.0%, without it 100%.
+//     So the case 2 note in this file that introduced the local, and the third
+//     pass note above it, are both superseded.
+//   * cases 1 and 3 needed nothing. After the case 0 fix case 2's at_high load
+//     and case 3's at_low load both start out hoisted above the pushes, and both
+//     fall back to the original's late position on their own once case 2 uses the
+//     inline global. Nothing about case 2 or case 3 needed to be written to get
+//     them back.
+//   * The general lesson for the next pass, and the reason this took so long:
+//     every negative result recorded in this file was measured on the 78.9% body,
+//     and case 0's fix renumbered the switch's register allocation, which
+//     invalidated a lot of them. A spelling that was 25 points WORSE on the
+//     previous base can be the missing line once another case is fixed. Re-sweep
+//     the shapes that were rejected, do not only try new ones.
+//   * Harness left in build/scratch/0x4c70d0/: probe.py prints our emission next
+//     to the original's instruction by instruction (and takes a scratch file, so
+//     no check.py run is needed to see what moved); sc.py scores a batch of six
+//     variants in about 0.7 s; gen.py and gen3.py write the case 0 and the
+//     case 2 x case 3 sweeps, sweep.sh runs a directory of them and best.sh
+//     groups the results by score.
 // claude-sonnet-5-5 (#4374): still 78.9% (structural ratio 0.897), no change to the body.
 // About 280 scratch compiles, none better. New negatives: struct-by-value `Range at`
 // or a 4-int `Args` parameter, `register` params, `__int64`/`unsigned`/`long`/`throw()`
@@ -316,19 +361,23 @@ void __stdcall FUN_004c70d0(int value, Range* out, int at_low, int at_high)
         return;
     }
     switch (i) {
-    case 0:
+    case 0: {
+        // The distance is passed through a pointer to a local. It reads like a
+        // leftover from the original, but it is what makes cl 5 schedule case 0
+        // the way the original does (see the notes).
+        int span = size - offset;
+        int* spanp = &span;
         out->low = 0;
-        out->high = FUN_004b7381(at_high, size - offset, DAT_0051fef0);
-        return;
+        out->high = FUN_004b7381(at_high, *spanp, DAT_0051fef0);
+        return; }
     case 1:
         out->low = FUN_004b7381(at_low, offset, size);
         out->high = 0;
         return;
-    case 2: {
+    case 2:
         out->low = at_low;
-        int c = DAT_0051fef0;
-        out->high = FUN_004b7381(at_high, offset, c);
-        return; }
+        out->high = FUN_004b7381(at_high, offset, DAT_0051fef0);
+        return;
     case 3:
         out->low = FUN_004b7381(at_low, size - offset, size);
         out->high = at_high;

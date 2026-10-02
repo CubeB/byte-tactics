@@ -1,3 +1,4 @@
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
 // Retry (deepseek-v4.1-flash, issue 4032): still 99.7, 791 of 791 bytes, the
 // same single mirrored lea SIB byte at 0x475d01 (`lea eax,[esi+edx]` in the
 // original, `lea eax,[edx+esi]` ours). Two more spellings measured: moving the
@@ -28,7 +29,6 @@
 // the constness of the copy bounds and a fresh third-copy source local are both
 // ruled out; the best version (99.7) is kept.
 
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash retry (#3691): still 99.7, the same single mirror lea byte
 // in the second arm (`_Last - _P < _M`): at 0x475d01 the original emits
 // `lea eax,[esi+edx]` where esi and ebx are duplicate _P loads and edx =
@@ -167,6 +167,111 @@
 // declaration-count state: the file still needs the regroup-into-original-files
 // phase. Also 99.7 with the identical diff this pass: iterator(_Q + _M),
 // &_Q[_M] and (_Q) + (_M) as the third copy's destination.
+//
+// Space Bunny Free pass (issue 4157): STILL 99.7%, 791 of 791 bytes. The
+// residual is unchanged and it is one byte: at 0x475d01 the original emits
+// `lea eax, [esi + edx]` and this build emits `lea eax, [edx + esi]`. All 335
+// instructions agree and `check` prints exactly one changed line. The padding
+// lever is real here, as the notes above say, but this pass established that it
+// is a TWO-state lever, so below is what was measured.
+//
+// The hand-written class is a character-for-character copy of the toolchain's
+// own source (VECTOR 150-171 for insert, XMEMORY 20-67 for _Allocate,
+// _Construct, _Destroy and allocator, XUTILITY 17-34 for copy_backward and
+// fill), verified this pass by vecsrc.py and hdr3.py, so the source is right
+// and the only thing that can still differ is the TRANSLATION UNIT the template
+// was compiled in. That was attacked with a compile-only harness (h.py) whose
+// shape detector is proved correct by selftest.py: it reports `esi+edx` for the
+// original's instruction text and `edx+esi` for this file's. As the brief
+// warns, the harness's `d=0` means "identical to our current best", never
+// "matches the original"; only check.py scores against the original.
+//
+// WHAT THIS PASS MEASURED (about 34000 compile-only evaluations, 3 real `check`
+// runs, best score never below 99.7%):
+//
+// 1. The dial is BINARY on the source-pointer shape, and only two shapes have
+//    ever appeared: `edx+esi`, this file at 99.7%, and the four-instruction
+//    `mov eax,edx / sub eax,ebx / add eax,esi / sub eax,ecx` at 91.5%. The
+//    original's `esi+edx` appeared in neither, on any base.
+//
+// 2. File-scope padding: 11 filler kinds (extern, static int, typedef, static
+//    one-line function, external one-line function, initialised static, empty
+//    struct, static array, static double, and 2x and 4x width variants) x 5
+//    insertion positions (before the includes, before `namespace std`, inside
+//    it before the template, after the class, at end of file) x K = 0..120,
+//    then 17688 cells of K = 0..200 over 11 kinds x 4 positions on each of two
+//    bases. Two shapes throughout.
+//
+// 3. Headers included AFTER the class are a SECOND and independent dial, which
+//    no earlier sweep had: the recorded 225/3800 header sweep was prefixes
+//    only. 14 of 25 appended headers flip this to the 91.5% shape, 9 leave it
+//    at 99.7%, and once flipped the padding dial is saturated. A 2-D sweep of K
+//    against 0..9 appended headers (610 cells) still gives two shapes.
+//
+// 4. The original's real header list is VECTOR lines 4-7, i.e.
+//    <climits> <memory> <stdexcept> <xutility>. <climits>, which appears in NO
+//    earlier sweep, is completely inert. <stdexcept> alone is what flips this
+//    file to 91.5%, in all 24 orderings of those four headers.
+//
+// 5. Using the toolchain's REAL <vector> instead of the hand-written class
+//    scores 91.5% (d=2) and is saturated: 621 padding cells plus 434 cells of
+//    two more filler kinds on that base are all 91.5%. The older notes
+//    suspected the real header was a worse stand-in; this pass measured it.
+//
+// 6. SHRINKING the TU, the direction no earlier pass turned: rebuilding the
+//    file from XMEMORY/XUTILITY/VECTOR with no <memory> and no <xutility>
+//    (minbase.py) gives the 91.5% shape at padding 0 and the 99.7% shape from
+//    K = 154 to K = 3000, so the dial is not monotone in TU size and a plain
+//    declaration count is not the whole mechanism. A third base that keeps
+//    <memory> and hand-writes only fill and copy_backward (midbase.py) is
+//    byte-identical to this file at padding 0. About 6600 cells across the three
+//    bases: two shapes.
+//
+// 7. Source shapes, eight sweeps and about 130 variants, every one either
+//    byte-identical (d=0) or worse, never `esi+edx`. The third _Ucopy's source
+//    and destination were each spelled ten or more ways: `*&_P`, `&_P[0]`,
+//    `_P + 0`, `(const_iterator)_P`, `Id_(_P)`, `this->_Last`, a `_Last_()`
+//    getter, a destination local `iterator _R = _Q + _M`, `*(&_Q) + _M`,
+//    `_Qp + _M`, `_Q + _N - _N + _M`, `(int)_M`, `(short)_M`, `(long)_M`,
+//    `_M ^ 0`, `_M | 0`, `_M - 0`, `_Q - -_M`, `_S + (_P - _First) + _M`. The
+//    destination offset was reassociated as `_M * 60`, `_M * 15 * 4`,
+//    `_M * 12 * 5`, `_M * 3 * 4 * 5`, `_M << 2 << 2 << 2` and
+//    `sizeof(_Ty) * _M`. The pointer-to-a-local lever was applied to `_P`,
+//    `_Q`, `_M` and `_N`; a plain local is byte-identical and `*&_P` is
+//    byte-identical too, so that lever is inert here. A `static inline`
+//    predicate was wrapped around each of the five comparisons with the return
+//    type tried both ways: `int` keeps the branch form and is byte-identical,
+//    `bool` gets materialised into setcc and costs 6 to 10 instructions, which
+//    reproduces technique 6 but does not move the SIB. Also measured: the
+//    comparison result in an `int` and a `bool` local, `_Ufill` returning its
+//    end pointer, `_Ucopy` and `_Ufill` as free functions over `_Ty*`,
+//    `__forceinline` on all three helpers, a nested if/else guard chain, an
+//    explicit third-copy loop with `_d` or `_s` declared first, `size()` written
+//    out, `fill` and `copy_backward` as named helpers, getters for `_P`, `_M`,
+//    `_First` and `_Last`, an explicit template instantiation, the address of
+//    four other members of the same template taken, and 1377 include
+//    permutations inside the permuter.
+//
+// 8. `permute`, twice, two seeds: 10225 and 15627 candidates across all 20 of
+//    its mutation kinds, including 3700 and 2343 commutative swaps and compare
+//    flips. 99.7% -> 99.7% both times, and it restored this file both times.
+//
+// 9. diag.py holds deliberately UNFAITHFUL probes that must never be shipped,
+//    written only to answer whether the operand order is a source-level choice
+//    at all: destination spelled `_P + _M`, source spelled `_Q`, destination
+//    `_S + _M`, destination `_Last + _M`. None of them even produces the same
+//    three-instruction shape any more, so no spelling of those two operands
+//    puts `esi` in the base slot. That is the conclusion 0x46e640 reached for
+//    its mirrored SIB, now measured rather than argued.
+//
+// CONCLUSION. The residual is the optimiser's linear-function term for the
+// third _Ucopy, `src_iv_entry + dest_iv_entry - _Q - _M*0x3c`, and MSVC 5
+// canonicalises that add so the destination is the left operand and then prints
+// `[dest + src]`. Every translation unit that keeps the three-instruction shape
+// prints it that way here, and the ones that do not print it as a
+// four-instruction sequence instead. Reaching `[esi + edx]` therefore needs the
+// original translation unit's other contents, which is the
+// regroup-into-original-files phase. Best version (99.7%) kept.
 #include <memory>
 #include <xutility>
 

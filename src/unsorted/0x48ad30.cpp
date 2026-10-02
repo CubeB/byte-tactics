@@ -1,7 +1,88 @@
-// deepseek-v4.1-flash (#3932) retry: reversing the do-while latch to
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free (#4163): 84.5% to 97.5%, 849 bytes both ways, and the unit
+// body is now instruction for instruction. Two changes, both in the outer loop.
+//
+// 1. The value returning helper went away. PlayerOk(i, off) returned a Player*
+//    and the body was if (p) { ... }, so every failed test became an if
+//    converted select (xor edi,edi / jmp) and the entry guard came out
+//    jb <body>. Spelling the three rejects as a flat short circuit chain with
+//    continue inside for (; i < 10; i++, off += 0x14b), with PlayerMore(i)
+//    (a static inline in the body that tests the counter, so the trip count
+//    pass gives up) reproducing the original's xor al,al / cmp al,0xa / jae
+//    <latch> outright, costs nothing: before this change 94.1% of the diff lines
+//    already agreed and the only thing the old shape was buying was the guard.
+// 2. off has to be memory resident, and that is the whole 9 bytes. Promoted
+//    into edi it compiles to xor edi,edi / mov [esp+0x18],edi / mov [ebx],edi,
+//    10 bytes shorter than the original's mov dword ptr [esp+0x14],0 /
+//    mov dword ptr [ebx],0, and the head becomes mov eax,[edi+ecx+0x1b63]
+//    instead of mov edx,[esp+0x14] / mov eax,[ecx+edx+0x1b63]. MSVC 5 only
+//    stops promoting a local whose address escapes, and the address has to
+//    escape for real: an int& or int* parameter of an inlined helper,
+//    int& r = off, *(&off), a union { int off; int raw; }, an int offv[1], a
+//    packed {unsigned char i; int off;} local passed by reference and a by
+//    value parameter of an __inline helper are ALL folded away, each measured,
+//    and each gives a head byte identical to the promoted form. What does work
+//    is the escape at a site the optimiser deletes:
+//
+//        if (0) { g_leak = &off; }
+//
+//    The front end has already marked off address exposed, the dead store
+//    emits nothing, and off stays in its frame slot for the whole function.
+//    That one line is 84.5% to 97.0% on its own, and it also puts cnt and off in
+//    the original's slots (i 0x13, off 0x14, cnt 0x18) and turns both zero
+//    stores back into immediates. while (0) {...}, for (; 0;) {...},
+//    switch (0) { case 0: ... }, a for (int k = 0; k < 0; k++) and a function
+//    local static all behave the same way. A LIVE escape costs
+//    lea ecx,[esp+8] / mov [g_leak],ecx and the function comes out at 858.
+//
+// STILL DIFFERENT (97.5%, all register allocation and scheduling, no semantics
+// left): the off = 0 store is emitted before cmp al,0xa where the original
+// emits it after the *cnt = 0 store and the byte store for i (2 lines); at the
+// loop head the two loads land in the opposite registers,
+// mov ecx,[esp+0x14] / mov edx,[g_game] against the original's
+// mov ecx,[g_game] / mov edx,[esp+0x14], same sizes (2 lines); and the
+// mov ebx,[esp+0x18] reload of the counter pointer sits just after the
+// FUN_0041bd10 call where the original puts it after the last call of the block,
+// FUN_0048a870, which also shifts the two je/jne targets that follow it
+// (4 lines). None of the three moved with any spelling of the loop head (p
+// and its f0 == 0 test as one expression, as a raw cast expression, through
+// static inline PlayerAt(int*), through a char* q base, or the two uses of the
+// address expression spelled out separately), with any of the six orders of
+// cnt / i / off, with off += 0x14b in either clause order, with the counter
+// pointer or the byte counter escaped as well (96.6% and 847 bytes), or with
+// #include <windows.h>; all measured. Two orderings do move the store block,
+// which is why the initialisers are separate statements here: putting
+// *cnt = 0 before the i and off declarations, or off = 0 after it, gives the
+// escape's effect back up and drops to 74.6%.
+//
+// MEASURED AND WORSE OR NO CHANGE THIS ROUND, so the next pass does not repeat
+// them. Loop head: p with its f0 == 0 test as one expression, as a raw cast
+// expression on the address, through static inline PlayerAt(int*), through a
+// char* q base local, through two locals (int o = off / char* g), with the
+// address expression written twice, commuted, or parenthesised: all 97.5% or
+// 96.6%, none moves the two loads into ecx/edx. Slot(i, off) returning the
+// player pointer, and PlayerMore(i, off) taking the offset by value: 78.4% and
+// 78.7%, both 851 bytes, the select comes back. Escapes that are folded away:
+// PlayerAt(int*)/PlayerMore(.., int&) with &off, PlayerMore(i, int&) by value,
+// int& r = off, *(&off), a union of two ints, int offv[1], a packed
+// {unsigned char i; int off;} local by reference and by value: every one leaves
+// the head byte identical to the promoted form. Escaping the byte counter as
+// well: 96.6%, 847 bytes. Escaping the counter pointer as well: 74.6%, 847
+// bytes. The u->def block through a local, if (u->def), the b14 test without
+// braces, and the two per unit calls before or after the def block: 97.5%,
+// 89.4% and 63.9% (the last two reorder the calls and cost 12 bytes). A live
+// escape through a file scope static, a function local static, or straight into
+// g_game->f14353: 858, 858 and 856 bytes. #include <windows.h>: 97.5%, no
+// change. All six orders of cnt / i / off with the escape in place: 97.0% or
+// 97.5%, two of them 850 bytes. The declaration order that puts cnt in 0x18 and
+// off in 0x14 is what the escape buys; it cannot be had without it.
+//
+// Two permuter runs over this version, 2016 and then 3254 candidates with
+// different seeds, found nothing above 97.5% and nothing that moved any of the
+// three residuals above, so treat 97.5% as a local optimum for rewrites of
+// this source rather than as a lead worth chasing further.// deepseek-v4.1-flash (#3932) retry: reversing the do-while latch to
 // `off += 0x14b; i++;` is byte-flat at 84.5% / 849 bytes, so the latch register
 // roles (al/edx against our cl/eax) are not steered by increment order here.
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
 // deepseek-v4.1-flash (#3834) retry: the SHARED.md slot-order idea was re-tested
 // inside this 84.5 percent helper/select form: `unsigned char i = 0; int off = 0;
 // int* cnt = &g_game->f14353; *cnt = 0;` does give the original homes (i 0x13,
@@ -432,15 +513,19 @@ void __stdcall FUN_0048d790(void);
 int __stdcall FUN_004c1b80(int n);
 void __stdcall FUN_0041c2e0(int n);
 
-static inline Player_0048ad30* PlayerOk(unsigned char i, int& off)
+// The original keeps its player offset in a frame slot for the whole function:
+// both zero initialisers are immediate stores and the loop head reloads it, so
+// MSVC 5 never promoted it to a register. Taking the offset's address is what
+// reproduces that. Like the self-assignment on 0x450530, the store itself emits
+// no code, but it is worth 22.4 points and so stays: with it this function is
+// 97.5% / 849 bytes, without it 75.1% / 840 bytes. Every live spelling of the
+// escape adds a lea plus a mov and lands the function at 858 bytes.
+static int* g_leak;
+
+static inline int PlayerMore(unsigned char i)
 {
     if (i >= 10) return 0;
-    Player_0048ad30* p = (Player_0048ad30*)((char*)&g_game->players[0] + off);
-    if (p->f0 == 0) return 0;
-    unsigned char k = p->f73;
-    if (k != 1 && k != 2 && k != 3) return 0;
-    if (p->f146 == 0xa) return 0;
-    return p;
+    return 1;
 }
 
 // deepseek-v4.1-flash (#4087, 10 min timebox): re-confirmed 84.5% / 849 bytes as
@@ -452,16 +537,26 @@ static inline Player_0048ad30* PlayerOk(unsigned char i, int& off)
 void __stdcall FUN_0048ad30(void)
 {
     int* cnt = &g_game->f14353;
-    unsigned char i = 0;
-    int off = 0;
+    int off;
+    // No code, but worth 22.4 points: with this line 97.5% / 849 bytes, without
+    // it 75.1% / 840 bytes. See g_leak above.
+    if (0) {
+        g_leak = &off;
+    }
+    off = 0;
     *cnt = 0;
-    do {
-        Player_0048ad30* p = PlayerOk(i, off);
-        if (p) {
-            {
-                Unit_0048ad30* last = p->f6b;
-                Unit_0048ad30* u = p->f67;
-                while (u <= last) {
+    unsigned char i = 0;
+    for (; i < 10; i++, off += 0x14b) {
+        if (!PlayerMore(i)) continue;
+        Player_0048ad30* p = (Player_0048ad30*)((char*)&g_game->players[0] + off);
+        if (p->f0 == 0) continue;
+        unsigned char k = p->f73;
+        if (k != 1 && k != 2 && k != 3) continue;
+        if (p->f146 == 0xa) continue;
+        {
+            Unit_0048ad30* last = p->f6b;
+            Unit_0048ad30* u = p->f67;
+            while (u <= last) {
                     if (u->fa6 != 0) {
                         (*cnt)++;
                         FUN_00437910(u);
@@ -536,9 +631,6 @@ void __stdcall FUN_0048ad30(void)
                 }
             }
         }
-        i++;
-        off += 0x14b;
-    } while (i < 10);
     if (g_game->f14373.bits.b1) {
         if (!FUN_004c1b80(0xf9)) {
             g_game->f14371--;

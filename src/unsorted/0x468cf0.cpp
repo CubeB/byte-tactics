@@ -1001,7 +1001,7 @@ LAB_00469d93:
   else if ((*(byte *)(0x2cc6 + (int)g_game) & 8) != 0) {
     bVar23 = true;
   }
-  else if (*(char *)((int)g_game + 0x2cc3) == '') {
+  else if (*(char *)((int)g_game + 0x2cc3) == '\x0e') {
     bVar23 = FUN_004b6720((int)((int *)((int)g_game + 0x37e27)),(int)(*(int *)((int)g_game + 0x2c76)),(int)(*(int *)((int)g_game + 0x2c7a))) != 0;
   }
   else {
@@ -1015,7 +1015,7 @@ LAB_00469d93:
     int iRectBottom = ((*(int *)((int)g_game + 0x2ca6) - (*(int *)((int)g_game + 0x2ca2) >> 1)) -
                       *(int *)((int)g_game + 0x14323)) + 0x20;
     iVar14 = iRectBottom;
-    if (*(char *)((int)g_game + 0x2cc3) == '') iVar12 = (((0x40 & *(byte *)((int)g_game + 0x2cc6)) ? 6 : 0) + 4); else iVar12 = 0xf;
+    if (*(char *)((int)g_game + 0x2cc3) == '\x0e') iVar12 = (((0x40 & *(byte *)((int)g_game + 0x2cc6)) ? 6 : 0) + 4); else iVar12 = 0xf;
     uVar15 = (uint)L.local_1b0[iVar12];
     if (iVar13 < iVar21) {
       iVar8 = iVar21;

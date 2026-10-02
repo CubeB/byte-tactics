@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5, edited by DeepSeek V4.1 Flash. Names are provisional.
 // claude-opus-5-5 (#4267): 98.4% -> 99.5% at the exact size (1655 bytes).
 // One register is left: the g_game load for the FUN_00435c00 call at 0x499775
 // is `mov ecx` here and `mov edx` in the original.
@@ -156,6 +156,20 @@
 // either folded away by the value tracker before allocation or, when it really
 // survives, forces a callee-saved register and shrinks the function. The 6-byte
 // `mov edx` is not reachable from source shape here.
+// DeepSeek V4.1 Flash session 10 (2026-10-02, issue #4929): re-ran the 3 minute
+// permuter (1546 candidates, no gain) and then a register-pick survey on the
+// then-arm tail. Enumerated all 16 placements of a dead g_game local at the four
+// accesses (FUN_00435c50/FUN_004352b0/FUN_00435110/FUN_00435c00): only a local
+// at the FUN_00435110 call (the current file) reaches 99.5, every other
+// placement is 94.7 to 98.1. Also tried, all byte-neutral at 99.5 with
+// 0x499775 still ecx: a `Class_00435c00*`/`void*`/`int` local for the net
+// pointer at the FUN_00435c00 call (folds back to the direct read), the
+// FUN_00435c00 result in a named local, `g2 = g`, `g = g_game` repeated or
+// reassigned, a nested scope or do/while(0) around the FUN_00435110 call, and
+// char*/void*/address/typedef spellings of the g local. The FUN_00435110 local
+// is load-bearing for the tail (it is what gives 0x4997a0 edx) and it is also
+// what forces 0x499775 to ecx; the original wants that load in edx with the
+// same tail. No source shape here produces both, so it is stuck.
 // Main-loop frame handler. Copies the 24-byte view/input block off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.

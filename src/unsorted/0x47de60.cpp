@@ -247,6 +247,74 @@
 // 61.8), and it is worse. What still differs is unchanged: the original keeps
 // the width as the memory operand of `imul eax, [edx+0x14233]` and has both
 // zero-extensions before the multiply.
+//
+// space-bunny-free pass (#4592 second attempt), best unchanged at 87.1 percent,
+// 344 of 342 bytes. The residual is still exactly the six-instruction index
+// block at 0x47dea5..0x47deb6; everything else, including every jump target
+// once the block's 2 bytes are accounted for, is byte identical. What is new:
+//  - the closest analogue is not 0x47db70 or 0x421e60 but the matched sibling
+//    0x47dfc0, whose arm is the SAME six instructions with the SAME pair of
+//    temporaries in the same order, just shifted one register: `xor ecx,ecx;
+//    xor edx,edx; mov cl,[esi+0xa]; mov dl,[esi+0xb]; imul ecx,[edi+0x14233];
+//    add ecx,edx`. Its source is one line,
+//    `Cell* other = cell - (cell->spotY * g_game->width + cell->spotX);`, and it
+//    MATCHes. Our original needs that block with the pair (eax, ecx) and
+//    g_game in edx, and that is the one combination that refuses to fold, in
+//    every spelling;
+//  - a combinatorial sweep of 234 compiling spellings of the arm, crossed over
+//    the width source (raw field, local, local with the index spelled twice),
+//    leaf locals (none, `unsigned int`/`int` y and x as statements, in either
+//    order), sum spelling (`y*w + x`, `x + y*w`, `w*y + x`), pointer spelling
+//    (`cell - s`, `cell[-s]`, `cell + -s`), and comparison form (`0xfffb <= e`,
+//    `e >= 0xfffb`, `f2 < 0xfffb`): every one is 86.8 or 87.1 percent, 346 or
+//    344 bytes, and the block is always one of the same two non-folding shapes;
+//  - leaf locals as statements before the sum are NOT flat, they are much
+//    worse: `unsigned int y = cell->spotY; unsigned int x = cell->spotX;`
+//    scores 56 to 62 percent and 371 to 379 bytes, because the two extra
+//    locals shift the whole function's register allocation (cell moves to ecx
+//    and g_game to esi, so even the prologue no longer matches). Only naming
+//    one of the two leaves moves anything, and then to 371 bytes;
+//  - a dead store inside a statically folded branch, both before and after the
+//    index statement (`int t = 0; if (t) width = 0;` and `if (width & 0) t = 1;`),
+//    is bit identical to the file's version, so that lever does nothing here
+//    either, and neither does an uncalled static inline sweep (four shapes,
+//    two of them mentioning the width and the leaves) or a `Game* g = g_game`
+//    in the arm;
+//  - mixing a local and a spelled-out use of the width is 346 bytes one way
+//    (86.8) and 349 the other (86.4);
+//  - adding a replica of the matched 0x421e60 (which folds this very
+//    expression) to this file as pure compiler state is flat 87.1, and so is
+//    adding a replica of the matched 0x47dfc0 body, which contains the folded
+//    block inside a loop;
+//  - two more permuter runs, seed 11 for 9 minutes (2860 candidates) and a
+//    seed 12 run that had to be killed after about 12 minutes without printing
+//    a result. Note for whoever runs it next: permute.py rewrites
+//    src/unsorted/<addr>.cpp in place while it works, so it must not run at the
+//    same time as any check.py scoring of a scratch variant, or the variants are
+//    built from a half-mutated file and every one of them fails to compile;
+//  - tiny `static inline` accessors for the two byte fields and for the width
+//    (`SpotY(cell) * width + SpotX(cell)`), the accessor-only spelling with no
+//    width local, spelling the index three times, `width * cell->spotY` as the
+//    written multiply order, and `+ -cell->spotX` as the sum: 87.1 percent and
+//    344 bytes, or 86.3 to 86.8 percent, all with the same non-folding block.
+// A second apparent improvement is a trap and was not taken, on the same
+// grounds as the 94.1 percent one above: writing the arm as a ternary,
+// `blocked = f2 < 0xfffb ? (g_game->features[f2].flags >> 6) & 1 : 0;` with the
+// width local, scores 91.9 percent at exactly 342 bytes, but the differ shows
+// a different sequence, not a closer one: the outer tests come out inverted
+// (`je` where the original has `jne`, `jae` where it has `jb`) and it grows a
+// `jmp 0x47deeb` before `test eax,eax` that the original does not have. The
+// size matching is a coincidence.
+// Conclusion after this pass: c1 builds the multiply as `mul(width, spotY)`
+// here (it emits `mov ecx,[width]; xor eax; mov al; imul eax,ecx`, i.e. the
+// width as op1 and a register copy for spotY), while the original and all five
+// matched siblings build `mul(spotY, width)`, which is the shape that allows
+// the memory operand. That swap has not moved for the width source, the leaf
+// locals, the sum or multiply order, the helper and dead-code placements, or
+// the translation-unit state, so the next attempt should look for a source
+// construct that makes c1 keep the memory load as the multiply's second
+// operand, and should treat the (eax, ecx) pair with g_game pinned in edx as
+// the thing to break rather than the expression.
 #pragma pack(push, 1)
 struct Feature_0047de60 {
     char unknown_0[0xfe];

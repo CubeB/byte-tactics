@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by space-bunny-free, retried by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by DeepSeek V4.1 Flash. Names are provisional.
 // GPT-6.1-sol retry in #4216: four checker invocations, best remains 98.7%; no MATCH. Precomputing the entries pointer scored 55.8%; restored source differs at 0x45f9f7, where `lea ecx`/`push ecx` remains instead of the original `lea edx`/`push edx`.
 // GPT-6.1-sol retry: 3 checks retained 98.7%; only the first line-buffer LEA register still differs (EDX in the original, ECX here).
 // GPT-6.1-sol (#3170 retry): 4 scored checks, including alternate loop form, helper-returned next y, and caller-held nextY, all retained 98.7% with the same LEA/PUSH register difference.
@@ -301,6 +301,35 @@
 // original emits at 0x45f99d with nothing live afterwards. That is where the
 // next attempt should start: keep the lookup's `this` in ecx across the merge,
 // or give one of the merge's callee-visible values a forced register.
+//
+// DeepSeek V4.1 Flash (issue #4872 retry), fast /Fa-free screen (a 0.2 s
+// objdump probe at build/scratch/0x45f8c0/probe.py, confirmed against the
+// known strchr flip, which does move 0x137 to edx and costs 47 body lines):
+// tools/permute.py 3 min (2411 candidates) flat at 98.7; then ~450 screened
+// variants, none moved the merge lea. New families, all still `lea ecx`:
+// every lookup-result temp type (`bool`, `char`, `short`, `unsigned short`,
+// `signed char`, `int`, `long`, `unsigned`) assigned before the if; AddLine
+// return type `bool`/`int`/`unsigned char`; `__forceinline`, `__stdcall`,
+// plain `static` (non-inline), `char (&value)[0x80]`, `const char* value`;
+// a `Class_004c48c0* cur = parser.current;` local for the lookup; ~50
+// expression forms (casts, `&value[0]`, `value+0`, comma with a register
+// variable, `x ? x : x` identities) substituted for the value argument of
+// both FUN_004b6af0 calls, the AddLine call and the cut condition; the same
+// ternary identities wrapped around every register-resident value (`y`,
+// `layer`, `page`, `pp`, `first`, `last`, `n`, `p2`, `parser.current`,
+// `value[0]`, `pp->first`, `pp->last`, `DAT_00512ef0`) in each merge argument
+// and in the lookup `this`; a `char* v = value` alias (plain, `const`,
+// `register`, `&value[0]`) used by strcpy, the scan and both calls; and ~70
+// dead self-assignments (`parser.current = parser.current;`,
+// `layer->entries = layer->entries;`, `y = y;`, `pp->first = pp->first;`, and
+// 18 more lvalues) at three placements in AddLine and before the AddLine
+// call. Only one variant moved the lea: wrapping the first call's `y`
+// argument in `(value[0] ? value[0] : value[0])` put `movsx ecx,al` before
+// the push and flipped 0x137 to edx, at 41 changed lines, which confirms the
+// mechanism (a live ecx at the merge) but is not the original's code.
+// Nothing that emits no instruction occupied ecx, so the residual is still
+// only the `lea ecx`/`push ecx` pair at 0x45f9f7 (edx wanted) with an exact
+// 504-byte body.
 #include <windows.h>
 #include <string.h>
 

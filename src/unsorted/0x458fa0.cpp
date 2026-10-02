@@ -129,6 +129,18 @@
 //    The earlier "dead saved-ebp slot" misreading that 0x458810 corrected does
 //    not apply here: with `sub esp,0x5efc` and four pushes, [esp+0x10] to
 //    [esp+0x1c] are the four named 4-byte locals and [esp+0x20] is tmp[0].
+//
+// H. deepseek-v4.1-flash (issue #4872 retry): still 95.2%, 460 B, unchanged.
+//    Ran the required 3-minute permuter (2672 candidates, 95.2 -> 95.2); this
+//    permuter version wrote only best.cpp and it also scored 95.2. Tried more
+//    bool-returning guard forms that keep `view` in ebp yet never emit the
+//    original `test eax,eax; jle`: one-parameter helpers `n <= 0`, `n > 0`,
+//    `n >= 1`, `n < 1`, `n` and `!n` around `f->count` (all materialise a
+//    setcc, 93.8 to 94.2), and a bool-returning helper around the shade
+//    bitfield with a natural `if (f->count > 0)` guard (84.1, `view` back in
+//    ebx). Any bool predicate needs the setcc or the extra byte test; the
+//    natural full-width guard is exactly 455 B but colours `view` into ebx.
+//    No source form reached both, so the residual above still stands.
 #include <windows.h>
 
 struct Vertex_0045a610 {

@@ -320,6 +320,16 @@ be taken. So a list with neither flag still runs the variable-row walk. Most
 likely meant `flags & (0x20 | 0x80)`. Noted in earlier attempts and confirmed
 by Claude Code / Opus 5.5 in #4856.
 
+## A position is used before its null test (possible)
+
+**0x43f0e0**, case 12 of the order chooser. It passes `pos` to FUN_004815a0
+(push and call at 0x43f50a, 0x43f50b), which reads `[pos]` and `[pos + 8]` with
+no check (0x4815a5, 0x4815a7), and only later tests `pos` for null
+(`test esi, esi` at 0x43f58c) before the RECLAIM branch. So the code treats
+`pos` as possibly null after it has already dereferenced it; a null `pos` would
+fault in FUN_004815a0. Possible rather than likely: case 12 may never be reached
+without a position. Found by Claude Code / Opus 5.5 in #4914.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

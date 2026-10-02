@@ -1,4 +1,27 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash pass: still 95.7%, 4247 bytes, same 9 hunks. The gap is
+// a pure register-allocation fixed point, not a source spelling: every
+// equivalent rewrite below compiled to byte-identical output (check.py diff
+// diffed clean against the current file). Tried and neutral this pass:
+// - PFSTATE: two-statement pfstate ([g+0x37e23] then field_c, then subtract),
+//   pfdelta/pfstate split, named sprintf args in both orders, int field_c,
+//   (void)pfable, separate declaration then assignment, `- (pfable + 1)`
+//   (the last one changes the order to ecx/edx and drops to 88.4).
+// - entry block: base/local split, (char*)(0x249*type) + base, reversed sum,
+//   `type * 0x249`, typed PFBlk struct field access.
+// - weapons loop: `*q++` in each arm, for-header increments, cursor-first,
+//   index form: all byte-identical.
+// - PFSTATE/entry with an inline `Game_0046a860()` accessor, g_game in a local
+//   `gg` used for both PFSTATE loads (95.3), typed g_game struct fields.
+// - removed local_38/5e/60 reference aliases, removed idxCopy, removed buf2,
+//   __cdecl/__fastcall on DrawBar/Positive/Font, <string.h>/<stdlib.h>.
+// - permute ran 3 min / 1345 candidates, best.diff empty.
+// The two real diffs are the same event in two places: the original loads
+// g_game into eax (`mov eax,[0x511de8]`, 5 bytes) and ours into edx/ecx
+// (6 bytes), so PFSTATE is 1 byte long, the entry block is 1 byte short, and
+// the four je/jl hunks are the address shift, exactly as the notes below say.
+// Nothing source-level reaches it; the register choice survives every
+// equivalent statement, declaration, operand, loop-form and accessor rewrite.
 // Space Bunny Free pass: 95.2% -> 95.7%, still 4247 bytes (the original's size).
 // - WIN: the XYH index is written as three statements instead of one expression
 //   (`v = load; v *= y; v += x;`). VC5 then emits the original's register pair

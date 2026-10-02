@@ -1,4 +1,15 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash (issue 4879): still 86.5%, 714 bytes. Ran the permuter
+// for 3 min (3112 candidates) and it was flat at 86.5%. Compile-only sweeps of
+// the zero value (plain/phi locals of every width, an inline helper returning
+// 0, a named call result, pointer-typed field_78, holder-test and tail
+// spellings) either fold back to the eax store or hoist the zero before the
+// call test; none produced the original's two per-arm `xor edx, edx` with a
+// separate `test eax, eax`. Isolated the flip with a reduced model: the full
+// tail (the `if (obj->holder) obj->holder->field_14 = 1;` conditional store
+// plus both tail calls) is what makes MSVC pick the eax/immediate form; a tail
+// that early-returns on `holder == 0` keeps a register zero in edx/ecx. The
+// residual is still the single edx-zero decision described below.
 // Retry (deepseek-v4.1-flash, issue 4076, short box): two further scored
 // negatives, both flat at 714 bytes / 80.9 pct and byte-identical to the
 // baseline shape: an `int z;` phi (z = 0 in both arms, store in the if arm,

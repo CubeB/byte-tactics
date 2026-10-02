@@ -1,4 +1,15 @@
 // Decompiled by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash retry (issue 4879): still 93.1 pct / 629. About 40 more
+// shapes for the 0x20 hoist, all regressing or reshaping: a guard that reads
+// lines.full or lines.word does put the pointer in edx, but the union is then a
+// stack object and reloads (640/84.1); a separate char/int zero plus an
+// arm-local int lines is 598-606 bytes / 34-35 pct; helper pointer parameters
+// in every order and pointer type reshape (602/34.7); word-then-full union with
+// the hoist reshapes (633/60.1); scalar-then-union and ternary forms are
+// 635-649 / 79.9-83.1; decomposing the deref chain into pointer-typed
+// temporaries all canonicalises back to this file. Nothing keeps the shared
+// zero in ecx and the hoisted pointer in edx at once; the two remaining 2-byte
+// hunks still cancel in size.
 // space-bunny-free retry (issue 4160, probe-driven, 75 min): still 93.1% /
 // 629 bytes. THE RESIDUAL IS ONE REGISTER AND I NOW KNOW WHY. The whole 0x20
 // arm matches the original byte for byte the moment the hoisted `e->field_c6`

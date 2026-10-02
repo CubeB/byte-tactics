@@ -1,4 +1,23 @@
-// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash (issue 4879): still 99.1% / 661 bytes, no MATCH. The only
+// residual is the marker call's surface load: the original hoists it after
+// `push eax` (`mov eax,[ebx+0xbc]`), ours pushes x2/y1 first and loads into edx.
+// The colour SIB is already right. Three permuter runs (3 min each, 3 jobs: two
+// from this file, one from a 98.9% `short colour` variant) found no MATCH. The
+// one lever that does move the surface load is giving the marker `colour` a
+// 16-bit type: the tail then matches, but the zero-extended colour2 read
+// collapses to a single `movzx dx` (98.9% overall), so it is a net loss. From
+// that neighbourhood the permuter climbed to a 99.3% / 665-byte artifact,
+// build/scratch/0x4a4d70/perm/best993.cpp (also build/permute/0x4a4d70/
+// best.cpp): it fixes the surface hoist by inserting a bogus `movzx dx, byte
+// ptr [edx]` that dereferences the colour byte as an address. That is a scoring
+// artifact and wrong source, so it is deliberately not copied into src/. About
+// twenty more tail spellings (surface/int locals, casts, aliases, inline
+// helpers with several parameter orders, statement/declaration ordering, int
+// and pointer field types) all compile to the identical 661-byte body; the
+// per-hunk permuter runs (3142 + 2313 + 1504 candidates) all plateau at the
+// start score. headers.py: 256 sets, every one 99.1%. The six-instruction
+// difference is unchanged from the notes below.
 // space-bunny-free (issue 4179): 99.1% confirmed, the colour SIB hunk is gone
 // and only the marker call's surface load is left. The mechanism behind the
 // SIB, found by deleting one region of the function at a time and re-reading the

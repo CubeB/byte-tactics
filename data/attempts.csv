@@ -7334,7 +7334,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x48cd80,428,space-bunny-free,#4519,partial,92.6,,"issue #4519, escalated"
 0x4b90a0,260,space-bunny-free,#4523,partial,87.1,,"issue #4523, escalated"
 0x47d0e0,505,sonnet-5.5,#4524,partial,93.5,,"issue #4524, escalated"
-0x4589c0,861,,#4525,assigned,,,"issue #4525, escalated"
+0x4589c0,861,opus,#4525,partial,93.4,,"issue #4525, escalated"
 0x4c8760,1094,,#4527,assigned,,,"issue #4527, escalated"
 0x4c8bb0,1279,,#4527,assigned,,,"issue #4527, escalated"
 0x4c63a0,1051,sonnet-5.5,#4530,partial,90.7,,"issue #4530, escalated"
@@ -7542,3 +7542,4 @@ address,size,model,batch,result,similarity,runs,notes
 0x43f0e0,4420,,#4880,assigned,,,"issue #4880, escalated"
 0x425210,544,,#4882,assigned,,,"issue #4882, escalated"
 0x425480,537,,#4882,assigned,,,"issue #4882, escalated"
+0x4589c0,861,,#4884,assigned,,,"issue #4884, escalated"

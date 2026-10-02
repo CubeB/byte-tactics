@@ -1,5 +1,16 @@
 // Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
 //
+// claude-sonnet-5-5 (issue 4611): same 99.1% (580 of 580 bytes) with plain code
+// and no dead `z` temporary: `struct HapiBuf sb = {0}; sb.size += 20;
+// sb.buf = FUN(sb.buf, ...)`. Also 99.1% (same bytes): `sb.size = sb.size + 20`,
+// `FUN(..., sb.size += 20)`, an inline Grow(HapiBuf&, n) helper, an anonymous
+// union with `unsigned w[2]`, and `ibuf` as `unsigned`. The only difference
+// left is that the aggregate's size zero is a separate `xor eax,eax` before
+// `xor ecx,ecx` (then `mov eax,0x14`), where the original copies the buf zero
+// with `xor ecx,ecx / mov eax,ecx` (one shared zero node). Ctor, `{0,0}`,
+// `{0}` with plain stores, and assignment-chain spellings fold to immediates (576).
+// (Older notes below describe earlier sources with a dead `z` temporary.)
+//
 // space-bunny-free session (issue 4366): still 99.1%, and the size is exactly
 // the original's 580 bytes, so the whole remaining difference is the constant
 // encoding in the buffer setup:
@@ -318,10 +329,9 @@ int __stdcall FUN_004bd160(char* srcname, char* dstname, void (__cdecl* cb)(int)
 
     if (cb)
         cb(0);
-    struct HapiBuf sb = {20};
-    char* z = sb.buf;
-    sb.size = 20 - (unsigned)z;
-    sb.buf = (char*)FUN_004d84a0(z, "Package Data", sb.size);
+    struct HapiBuf sb = {0};
+    sb.size += 20;
+    sb.buf = (char*)FUN_004d84a0(sb.buf, "Package Data", sb.size);
     off = FUN_004bd3b0(srcname, &sb.size, &extra);
 
     {

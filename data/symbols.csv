@@ -3063,6 +3063,7 @@ address,name
 0x4dabb0,FUN_004dabb0
 0x4dacf0,FUN_004dacf0
 0x4db000,Class_004db000::FUN_004db000
+0x4db450,Class_004db450::FUN_004db450
 0x4db610,FUN_004db610
 0x4db760,FUN_004db760
 0x4db7b0,FUN_004db7b0
@@ -3077,6 +3078,7 @@ address,name
 0x4dbd80,Class_004dbe10::FUN_004dbd80
 0x4dbe10,Class_004dbe10::FUN_004dbe10
 0x4dbeb0,Class_004dbeb0::FUN_004dbeb0
+0x4dbec0,Class_004dbec0::FUN_004dbec0
 0x4dc130,Class_004dc130::FUN_004dc130
 0x4dc620,Class_004dc620::FUN_004dc620
 0x4dc680,Class_004dc680::FUN_004dc680

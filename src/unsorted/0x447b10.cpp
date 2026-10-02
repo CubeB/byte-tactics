@@ -1,6 +1,7 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5. Names are provisional.
-// claude-sonnet-5-5 pass (issue 4272): 46.2% -> 82.8% by rebuilding the function on real types.
-// What made the difference (all verified against the original asm):
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by space-bunny-free. Names are provisional.
+// Score history for this statement order (tools/check.py): 46.2% -> 82.8% claude-sonnet-5-5,
+// 83.4% base as inherited, 83.6% here (the post-loop flag pair below).
+// What the original does, each point verified against its own disassembly:
 //  - the player info struct (+0x27) has 16-bit bitfields at +0x9b (ready, b6, watching,
 //    b8..b10, cmdr:2, cheat, fixed, closed): reads give "mov cx,[..]; shr; test", writes
 //    give "or byte [..],imm", "x ^= 1" gives "not edx; xor edx,eax; and edx,mask; xor". Use
@@ -10,26 +11,66 @@
 //  - nested call arguments (FUN_004abd90(gui, FUN_004c5740(msg), 500, 1, 1)) push the
 //    constants before the inner call; reusing iVar5/iVar8/iVar20 in the tail made the
 //    frame 0x140, giving the tail its own locals gives the original 0x13c.
-//  - the "t != 5" guard in the START team loop looks like an inlined
-//    "CountTeam(t)" helper (if (t == 5) return 0): see below, not enabled because the
-//    extra guard shifts every later jump target in this build.
-// What still differs (82.8%, 4306 original / 4382 emitted):
-//  - register split in the tail: original keeps param_1 in esi and the hoisted constant 1
-//    in ebp ("mov ebp,1" right after the post-loop "cmp ebp,ecx"); we pick esi for the
-//    constant and ebp for param_1. As a result the original's shared epilogue block at
-//    0x448b98 ("mov edx,[esp+0x150]; push edx; call FUN_004ab0a0; ... ret", 9 insns, so
-//    MSVC does not clone it) is cloned into each "goto done" path here (8 insns). Verified:
-//    adding any extra statement to the done block stops the cloning, so the block size is
-//    the trigger. Every jump target after 0x9c6 is shifted by that.
+//  - g_game+0x2bee is written through TWO different lvalues. A byte bitfield (GB2::bflag,
+//    "or byte ptr [eax+0x2bee],1") at 0x4482d9 (READY), 0x448347 and 0x448486 (MESSAGE) and
+//    0x448bd1 (RES, after its FUN_004ab0a0 call). A 16-bit one
+//    ("or word ptr [eax+0x2bee],bp", bp = the ushort local `one`) at 0x448365, 0x4486bc
+//    (CHEATING/FIXEDLOC/WATCHING) and 0x448abe (COMMANDER/LOSTYPE/MAPPING/GAMEOPEN).
+//    The post-loop pair is "or byte [eax+0x2bee],1" unconditionally at 0x448347, then
+//    "mov ebp,1 / cmp ebp,[eax+0x2a3c] / je / or word [eax+0x2bee],bp". `one` is a ushort
+//    local: it is also pushed as the argument of FUN_004618a0 at 0x44846e. Writing the
+//    post-loop byte-or unconditionally and the word-or inside the if is worth +0.2% here;
+//    converting the six tail bodies to the word form as well costs 0.7% (see below).
+//  - the else-if bodies converge on two shared blocks: 0x448aaf (call FUN_00450f90, call
+//    FUN_00451180, mov eax,[g], or word [eax+0x2bee],bp) for COMMANDER, LOSTYPE, MAPPING
+//    and GAMEOPEN, and 0x4486a9 (xor edx,eax, store, call FUN_00450f90, mov eax,[g], or
+//    word, ...) for WATCHING, CHEATING and FIXEDLOC, which jump into the middle of the
+//    other's code. Our version merges some of these too.
+// What still differs (83.6%, 4306 original / 4418 emitted):
+//  - BIGGEST ONE, and the whole 112-byte excess: the trailing "FUN_004ab0a0(param_1); return;"
+//    is a single block at 0x448b98 in the original, 9 insns / 25 bytes, reached by 6 "jmp",
+//    1 "je" and one fall-through. Ours is 8 insns / 19 bytes and MSVC clones it into every
+//    predecessor, so this file has 13 "pop edi" epilogues where the original has 7
+//    (0x447b5f, 0x4483da, 0x4488c2, 0x448a15, 0x448a55, 0x448ba5, 0x448bce).
+//    THE TRIGGER IS ONE INSTRUCTION IN THAT BLOCK: the original's block has one more
+//    instruction than ours ("mov edx,[esp+0x150]; push edx" instead of "push ebp"), and any
+//    surviving instruction there (a call or a store; the threshold is between 8 and 9
+//    instructions, 19 and 24 bytes) stops the cloning and takes the file to 85.1% / 4336
+//    bytes with exactly 7 epilogues. Probes: build/scratch/447b10/e24.cpp (a call) 85.1%,
+//    e18.cpp and e2.cpp (a store) 85.1%, e27.cpp (a global store) 85.0%, e26.cpp
+//    ("one = 1;", a store to a scalar local) 83.6% because the optimiser folds it away,
+//    e1.cpp 85.0%. No legitimate extra statement has been found for that spot, so it is
+//    left out here, per the rule that a partial should not carry a statement the original
+//    does not have. Every jump target after +0x9c6 is shifted by the extra 91 bytes of
+//    cloned epilogues.
+//  - register split in the tail: the original keeps param_1 in esi (loaded once at 0x44836c,
+//    "mov esi,[esp+0x150]") and `one` in ebp ("mov ebp,1" at 0x44835e); we pick ebp for
+//    param_1 and esi for `one`, so eight "push esi" sites read "push ebp", the PREVMENU and
+//    START-team loops load g_game into eax where the original uses ecx, and the READY block
+//    uses edx/edi where the original uses ecx/edx. Moving the declaration of `one` to the
+//    top of the function or into the if gives byte-identical code, so this is not reachable
+//    from the declaration position.
 //  - stack slot order: original (low to high) player ptr, iVar8, bVar1, stride, byte9,
 //    iVar5; ours has iVar5 and bVar1 swapped (slot order follows static reference weight).
-//  - START team loop: original wraps the inner 10-player loop in "if (t != 5)" (entry guard
-//    cmp ebx,5 / jne, count=0 otherwise), evaluates the flag2 bitfield per team (shr/and),
-//    and has the "same team" error block after the loop. A helper
-//    "static int CountTeam(int t){ if (t==5) return 0; int cnt=0; byte flag2=((GB*)g_game)->flag2; ... }"
-//    reproduces the loop shape exactly (see build/scratch/0x447b10/v20.cpp) but scores lower
-//    only because of the shifted jump targets above.
-//  - loop head: original computes the stride in eax before "lea eax,[esp+0x30]; push eax".
+//    At the loop head the original computes the stride in eax and stores it in the player
+//    slot ("lea eax,[ebp+ecx*2]; mov [esp+0x24],eax; lea ebx,[edx+eax+0x1b63]"), we keep it
+//    in ebx and store the player pointer into +0x28 instead of +0x24.
+//  - START team loop: the original wraps the inner 10-player loop in "if (t != 5)" (entry
+//    guard "cmp ebx,5 / jne", count = 0 otherwise) and reads the flag2 bitfield once per
+//    team ("mov dl,[ebp+0x2a44]; shr dl,2; and dl,1") before the inner loop. Both were
+//    tried on this statement order and each scored lower (80.4%, and 83.6% at 3 bytes more),
+//    because the extra branch shifts every later jump target and that costs more than the
+//    shape it fixes. Inlining the LAB_notenough body at its goto (no separate tail block)
+//    is byte-identical to the goto form and also changes nothing.
+//  - tools worth rebuilding: build/scratch/447b10/shapediff.py (address-anchored shape diff,
+//    immediates and displacements masked, with --runs for aligned identical runs) and
+//    build/scratch/447b10/slots.py (esp slot tracker honouring ret N for __stdcall);
+//    build/scratch/447b10/s.sh scores one scratch variant. tools/permute.py over 12 minutes
+//    gained nothing here (its own metric 10756 -> 10751, 83.6% -> 83.7%), so the residual
+//    is not a meaning-preserving rewrite of these statements.
+//  - declared-variable experiments that all give byte-identical code here, so none of them
+//    is the lever for the register split or the slot order: giving the loop stride its own
+//    local, a tail-local copy of param_1, declaring `one` first / last / inside the if.
 #include <stdio.h>
 #include <string.h>
 typedef unsigned char byte;
@@ -86,6 +127,11 @@ struct GB {
   byte flag2 : 1;
   byte flag_rest : 5;
 };
+struct GB2 {
+  char unknown_0[0x2bee];
+  byte bflag : 1;
+  byte brest : 7;
+};
 #pragma pack(pop)
 extern char* g_game;
 extern int DAT_00506dbc;
@@ -94,7 +140,7 @@ extern int DAT_00513000;
 int __stdcall FUN_004288d0(int,int,int,int);
 int FUN_00430f00();
 struct Class_004358f0 { int FUN_004358f0(); };
-struct Class_00435c40 { int FUN_00435c40(); };
+struct Class_00435c40 { char FUN_00435c40(); };
 struct Class_004373a0 { int FUN_004373a0(); };
 int FUN_00444a20();
 int FUN_00444ea0();
@@ -187,7 +233,7 @@ void __stdcall FUN_00447b10(byte *param_1)
        ((player->type == 1 || (player->type == 2)))) {
       FUN_0047f1a0((int)"Multi",0);
       FUN_004526c0((int)player->info->c96 + 1);
-      *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
+      ((GB2 *)g_game)->bflag = 1;
       FUN_00450f90();
     }
     sprintf(local_124.text,"PLAYER%d",uVar17);
@@ -223,7 +269,7 @@ void __stdcall FUN_00447b10(byte *param_1)
         if (((PInfo *)*(int *)((int)g_game + (uint)bVar4 * 0x14b + 0x1b8a))->closed) {
           FUN_004abd90((int)g_game + 0x519,FUN_004c5740((int)"Can't add another player when game is closed."),500,1,1);
           ((Class_00463c60*)(player))->FUN_00463c60(0);
-          *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
+          ((GB2 *)g_game)->bflag = 1;
           break;
         }
         bVar4 = FUN_00456850();
@@ -262,7 +308,7 @@ void __stdcall FUN_00447b10(byte *param_1)
         }
       }
 LAB_00447e27:
-      *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
+      ((GB2 *)g_game)->bflag = 1;
       FUN_00451180();
       FUN_00450f90();
     }
@@ -289,7 +335,7 @@ LAB_00447e27:
           }
         }
       }
-      *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
+      ((GB2 *)g_game)->bflag = 1;
       FUN_0046c620(4);
       FUN_00450f90();
     }
@@ -318,7 +364,7 @@ LAB_00447e27:
       }
       sprintf(local_124.text," %s %s",(char*)FUN_004c5740(me->ally[uVar17] ? (int)"allied with" : (int)"broke alliance with"),(char*)((int)g_game + iVar6 + 0x1b8e));
       FUN_00463e50((int)me,(int)(local_124.text),4,0);
-      *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
+      ((GB2 *)g_game)->bflag = 1;
       FUN_00450f90();
     }
     sprintf(local_124.text,"TEAMICONS%d",uVar17);
@@ -341,7 +387,7 @@ LAB_00447e27:
       FUN_0047f1a0((int)"Multi",0);
       FUN_00446310();
       FUN_004ab0a0((int)param_1);
-      *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
+      ((GB2 *)g_game)->bflag = 1;
       return;
     }
     sprintf(local_124.text,"READY%d",uVar17);
@@ -394,8 +440,9 @@ LAB_00448300:
     uVar17 = uVar17 + 1;
   } while ((int)uVar17 < 10);
   ushort one = 1;
+  ((GB2 *)g_game)->bflag = 1;
   if (uVar17 != *(ushort *)((int)g_game + 0x2a3c)) {
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    *(ushort *)((int)g_game + 0x2bee) |= one;
   }
   if (FUN_0049fd60((int)param_1,(int)"PREVMENU")) {
     FUN_0047f1a0((int)"Previous",0);
@@ -428,7 +475,7 @@ LAB_00448300:
           ((Class_004618a0*)(&DAT_00513000))->FUN_004618a0(one);
         }
       }
-      *(byte *)((int)g_game + 0x2bee) = *(byte *)((int)g_game + 0x2bee) | 1;
+      ((GB2 *)g_game)->bflag = 1;
       strcpy((char*)pbVar10,"");
     }
     pcVar21 = (char *)FUN_0049fdf0(*(int *)(*(int *)((int)g_game + 0x531) + 4),(int)"MESSAGE",3);
@@ -442,7 +489,7 @@ LAB_00448300:
     }
     FUN_00450f90();
     FUN_00451180();
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    ((GB2 *)g_game)->bflag = 1;
   }
   else if (FUN_0049fd60((int)param_1,(int)"LOSTYPE")) {
     FUN_0047f1a0((int)"Multi",0);
@@ -458,7 +505,7 @@ LAB_00448300:
     }
     FUN_00450f90();
     FUN_00451180();
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    ((GB2 *)g_game)->bflag = 1;
   }
   else if (FUN_0049fd60((int)param_1,(int)"WATCHING")) {
     FUN_0047f1a0((int)"Multi",0);
@@ -468,19 +515,19 @@ LAB_00448300:
     }
     FUN_00450f90();
     FUN_00451180();
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    ((GB2 *)g_game)->bflag = 1;
   }
   else if (FUN_0049fd60((int)param_1,(int)"CHEATING")) {
     FUN_0047f1a0((int)"Multi",0);
     me->info->cheat ^= 1;
     FUN_00450f90();
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    ((GB2 *)g_game)->bflag = 1;
   }
   else if (FUN_0049fd60((int)param_1,(int)"FIXEDLOC")) {
     FUN_0047f1a0((int)"Multi",0);
     me->info->fixed ^= 1;
     FUN_00450f90();
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    ((GB2 *)g_game)->bflag = 1;
   }
   else if (FUN_0049fd60((int)param_1,(int)"MAPPING")) {
     FUN_0047f1a0((int)"Multi",0);
@@ -488,7 +535,7 @@ LAB_00448300:
     me->info->b8 = (m == 0);
     FUN_00450f90();
     FUN_00451180();
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    ((GB2 *)g_game)->bflag = 1;
   }
   else if (FUN_0049fd60((int)param_1,(int)"START")) {
     int nReady = 0;
@@ -579,7 +626,7 @@ LAB_00448300:
     me->info->closed = (m == 0);
     FUN_00450f90();
     FUN_00451180();
-    *(ushort *)((int)g_game + 0x2bee) = *(ushort *)((int)g_game + 0x2bee) | one;
+    ((GB2 *)g_game)->bflag = 1;
   }
   else if (FUN_0049fd60((int)param_1,(int)"RESTRICTIONS")) {
     FUN_0047f1a0((int)"Options",0);

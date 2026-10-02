@@ -1,4 +1,12 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, GPT-6.1-sol and Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// PASS 13 (claude-sonnet-5-5, 2026-10-02): 52.7 -> 54.5 percent (646 bytes). NEW LEVER: name the two
+// vertical-gap sums `ty = az + dz` and `by = bz - dz` as locals declared right after `dz`, and use them in
+// calls 3, 4, 7 and 8. Declaring them next to their first use (between the calls) is worth nothing; right
+// after dz is 54.5, naming rx = bx - dx right before the calls is 54.0, naming all four is worse (52.0).
+// The entry ecx/edx swap and the bx-in-ebp (original keeps surface in ebx, spills bx) wall are unchanged.
+// A DrawFrame(g=1 / g=0) inline helper for the eight calls is byte-identical-ish (52.2). Expressing ax/bx/az/bz
+// as macros breaks the frame size (0x34).
+//
 //
 // PASS 12 (Space Bunny Free, 2026-10-02): 52.7 percent, up from 52.2. One real
 // gain, one real closure, and one solid explanation of the wall. All measurements
@@ -445,6 +453,8 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* 
     int level = __min(__max((unsigned)(g_game->ticks - order->timestamp), 0), 10);
     int dx = ((bx - ax) * level) / 10;
     int dz = ((bz - az) * level) / 10;
+    int ty = az + dz;
+    int by = bz - dz;
 
     unsigned char color1;
     unsigned char color2;
@@ -456,14 +466,14 @@ void __stdcall FUN_00438c00(void* surface, View_00438c00* view, Order_00438c00* 
         color2 = g_game->color_dd4;
     }
 
-    FUN_004be950(surface, ax + dx - 1, az - 1, ax + dx - 1, bz + 1, color1);
-    FUN_004be950(surface, bx - dx + 1, az - 1, bx - dx + 1, bz + 1, color1);
-    FUN_004be950(surface, ax - 1, az + dz - 1, bx + 1, az + dz - 1, color1);
-    FUN_004be950(surface, ax - 1, bz - dz + 1, bx + 1, bz - dz + 1, color1);
-    FUN_004be950(surface, ax + dx, az, ax + dx, bz, color2);
-    FUN_004be950(surface, bx - dx, az, bx - dx, bz, color2);
-    FUN_004be950(surface, ax, az + dz, bx, az + dz, color2);
-    FUN_004be950(surface, ax, bz - dz, bx, bz - dz, color2);
+    FUN_004be950(surface, (ax + dx) - 1, az - 1, (ax + dx) - 1, bz + 1, color1);
+    FUN_004be950(surface, (bx - dx) + 1, az - 1, (bx - dx) + 1, bz + 1, color1);
+    FUN_004be950(surface, ax - 1, ty - 1, bx + 1, ty - 1, color1);
+    FUN_004be950(surface, ax - 1, by + 1, bx + 1, by + 1, color1);
+    FUN_004be950(surface, (ax + dx), az, (ax + dx), bz, color2);
+    FUN_004be950(surface, (bx - dx), az, (bx - dx), bz, color2);
+    FUN_004be950(surface, ax, ty, bx, ty, color2);
+    FUN_004be950(surface, ax, by, bx, by, color2);
 
     *out = order->pos;
 }

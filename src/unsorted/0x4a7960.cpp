@@ -1,4 +1,73 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by deepseek-v4.1-flash, finished by claude-opus-5-5, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free (issue 4452): 75.2% -> 84.6%, and now 1404 bytes, the
+// original's exact size. Four changes, worth almost nothing apart. All of
+// them together are what breaks the register-allocation deadlock the older
+// notes below spent about a hundred attempts on.
+//   (1) `int cnt = entries->data.count + 1;` goes AFTER the `used[]` zero loop
+//       instead of before it. With (2) in place the count is no longer
+//       competing with `layer` for esi, so it lands in eax after `xor eax, eax
+//       / rep stosd`, which is where the original has it (`movsx eax,[edx+0xb6]
+//       / inc eax / cmp eax,1 / mov [esp+0x24],eax`), and it takes slot 0x24
+//       instead of stealing `remaining`'s. On the old file alone: 75.0%.
+//   (2) `layer` needs a reference AFTER the `menu->layer->field_20 = index`
+//       store that CSE cannot remove, or MSVC has nothing to allocate and puts
+//       it in the dying parameter register: `mov eax, [eax+0x18]`, the 75.2%
+//       plateau every earlier pass reached. `layer->entries` is CSE'd against
+//       the load at the top and does NOT count; `layer->field_20` does.
+//       Spelling the first type-3 test through the local
+//       (`entries[layer->field_20].type == 3`) is enough on its own: 68.4%,
+//       but already 1404 bytes, the original's exact size.
+//   (3) The first `DoSelect` takes a named `int sel = layer->field_20;` read
+//       back after the store, and the test itself goes back through
+//       `menu->layer->field_20`, so the test still re-reads the argument slot
+//       the way the original does at 0x4a7c76. 83.4%. The same reference
+//       inline (`DoSelect(menu, menu->layer->entries, layer->field_20)`) is
+//       64.7%: MSVC forwards `index` and keeps a second copy in esi.
+//   (4) Loop 2's pointer advances go in the `for` header, the guide's
+//       "put pointer advances in the `for` header" shape:
+//       `for (int i = 1; i < cnt; i++, up++, b += 0x15b)`. With the advances
+//       as body statements MSVC gives the walk pointer esi and reorders the
+//       latch; in the header it keeps `up` in [esp+0x14] and the latch is the
+//       original's `mov eax,[esp+0x14] / inc edi / add eax,4 / add ecx,0x15b
+//       / mov [esp+0x14],eax / mov eax,[esp+0x24]`. 83.4% -> 84.6%.
+// What still differs, biggest first:
+//   * The tail, and it is one register. Without the `sel` local the tail is
+//     instruction for instruction the original's except that `layer` comes
+//     back in ecx (`mov ecx, [esp+0x24]`) where the original brings it in esi
+//     (`mov esi, [esp+0x20]`) and then reuses esi for the re-read index. So
+//     the last thing standing is (2)'s late reference, which needs a `layer`
+//     read that MSVC forwards and therefore keeps a second copy of `index`
+//     (`mov esi, ebx`) where the original has none. Every shape of that
+//     reference that does not cost an instruction scores 64 to 83%:
+//     `layer->entries` anywhere is CSE'd and loses esi (75.0%), the reference
+//     in the second block's index or sel is 62 to 69%, and `layer->field_20 =`
+//     as the store is 75.0%. THIS IS THE LEAD: a late `layer->field_20` read
+//     whose value MSVC folds into the re-read from `menu->layer->field_20`
+//     would make the tail match exactly. `index + 0` and `index - 0` as the
+//     stored value are folded by MSVC and change nothing (83.0%).
+//   * The loop-2 head: ours hoists `lea eax,[esp+0x2c] / mov edi,1 /
+//     mov [esp+0x14],eax` above the `mov eax,[esp+0x24] / cmp / jle`, the
+//     original keeps the bound test first. Same nine instructions, same bytes.
+//     Declaring `up` and `i` outside the block (84.6%), a `for` init of two
+//     assignments (82.1%), a `while` loop (36.9%, rotated) and the bound
+//     spelled `entries->data.count + 1` (84.4%) all leave it.
+//   * The `if (idx != -1)` store in loop 1: ours writes through a freshly
+//     reloaded ecx, the original loads `out` into eax first and copies edx.
+//   * The second `DoSelect`'s colour argument is `xor ecx,ecx / mov cl,[eax +
+//     edx + 0x8b2]` against the original's `xor edx,edx / mov dl,[ecx+eax +
+//     0x8b2]`; both are `menu->colors[entry->colourIndex]`, and spelling the
+//     entry's `colours` field as a pointer (0x4a7830's way) does not change
+//     it.
+//   * The jump-table bases and the table bytes differ only by address, and
+//     every internal jump target is out by the tail hunk's few bytes.
+// Scratch harness for this pass: build/scratch/0x4a7960/.  gen.py through
+// gen20.py hold the substitutions, base.cpp is the old 75.2% version,
+// base_kmix.cpp is (2) alone, base83.cpp is (1)+(2), p_sel_local.cpp is
+// (1)+(2)+(3) at 83.4%, u_for_incr.cpp is all four and is what src/ holds,
+// sc.sh scores a variant and df.sh dumps the full check diff. About 110
+// variants were scored; every one that is not listed above as a number is
+// byte-identical to the file.
+// claude-opus-5-5 (#4258): 72.7% -> 75.2%. The first loop's inner search is a
 // claude-opus-5-5 (#4258): 72.7% -> 75.2%. The first loop's inner search is a
 // plain `for (j = 1; used[j] != 0; j++) { int d = used[j] - *p; if (d < 10 &&
 // d > -10) { idx = j; break; } }`, which gives the original `mov eax,[ecx+4];
@@ -314,10 +383,10 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
     if (index == -1)
         return;
 
-    int cnt = entries->data.count + 1;
-
     for (int k = 0; k < 50; k++)
         used[k] = 0;
+
+    int cnt = entries->data.count + 1;
 
     if (cnt > 1) {
         int* out = used + 1;
@@ -365,11 +434,10 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
 
     int* up = used + 1;
 
-    int i;
     int pos;
     {
         char* b = (char*)&entries[1].x1;
-        for (i = 1; i < cnt; i++) {
+        for (int i = 1; i < cnt; i++, up++, b += 0x15b) {
             if (*(signed char*)(b + 0x12) != 0 && !(*(int*)(b + 4) & 0x400)
                 && !(*(unsigned char*)(b - 0x17) == 1 && (*(unsigned char*)(b + 0x125) & 1))
                 && !(*(unsigned char*)(b - 0x17) == 4 && *(int*)(b + 0x140) != 0)) {
@@ -416,15 +484,14 @@ void __stdcall FUN_004a7960(Menu_004a7960* menu, int dir)
                     }
                 }
             }
-            up++;
-            b += 0x15b;
         }
     }
 
     menu->focus = -1;
     menu->layer->field_20 = index;
+    int sel = layer->field_20;
     if (entries[menu->layer->field_20].type == 3)
-        DoSelect(menu, menu->layer->entries, menu->layer->field_20);
+        DoSelect(menu, menu->layer->entries, sel);
     if (entries[menu->layer->field_20].type == 3)
         DoSelect(menu, menu->layer->entries, menu->layer->field_20);
 }

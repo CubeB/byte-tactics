@@ -131,6 +131,62 @@ extern unsigned int DAT_0051fc88;
 // 16807 * seed order, an `old` copy) compiles 16807 as one imul and keeps seed
 // in ecx (83 bytes, 33.8%). Only the duplicated division keeps seed in esi with
 // the lea chain. A 10-minute permuter run (558 candidates) found nothing.
+// space-bunny-free (issue 4516, retry): 95.0% kept, still no MATCH. What is
+// new is a map of the three code shapes this function falls into, and evidence
+// that the shape is decided by the source form plus the include, not by the
+// compiler heap: 0 to 3000 dummy `extern int fN();`, 0 to 300 dummy static
+// definitions and 0 to 300 dummy static prototypes are completely flat on all
+// three (the earlier notes blamed heap state).
+//   A (95.0%, 101 bytes, the original's schedule and allocation): the
+//     correction is a SUBTRACTION with a second division node, e.g.
+//     `unsigned int c = (q << 31) - seed / 127773;` with no <windows.h>. The
+//     lea chain for 16807 is there, interleaved with the division, seed in esi
+//     and the product in eax, and the diff is always exactly these two lines:
+//     the original has `sub edx, ecx; sub eax, edx`, we get
+//     `add ecx, edx; add eax, ecx`. Every spelling that reaches A (about 40
+//     of them) differs in those same two instructions and nothing else.
+//   B (57.5%, 103 bytes): a real multiply for the correction plus
+//     <windows.h> (the plain Park-Miller line lands here). Right instructions
+//     including the neg / shl 31 / sub block, but the whole lea chain is
+//     hoisted before the division, seed in ecx, the product in esi, and the
+//     store moves after the div.
+//   C (33.8%, 83 bytes): a real multiply for the correction and no
+//     <windows.h>. The schedule is the original's (division first, the
+//     interleave kept) and the tail is the original's neg / shl 31 / sub, but
+//     16807 becomes one `imul ecx, ecx, 0x41a7` and seed and product share
+//     ecx.
+// The original is A's schedule with B/C's tail, a fourth combination that no
+// spelling has reached. A cannot have B/C's tail because A's tree is the
+// flattened sum `product + (q - (q << 31))`, and the two adds are the only
+// way to emit that, while the original's tree is
+// `product - (q * 0x7fffffff)` with the multiply still a multiply node at
+// codegen time, which the backend expands late into
+// `mov edx, ecx; neg edx; shl edx, 31; sub edx, ecx`. A real multiply in the
+// source leaves state A, and A's shape loses the multiply, so from the source
+// as written the two requirements cannot both be met.
+// Also tried this round, all flat or worse: signed and long mixes for the
+// quotient, the correction and the seed (13 spellings, every one that reaches
+// A has the identical two line diff); hybrid corrections holding both a
+// multiply and a subtraction (`q * 2147483647u - d2 + q` and 14 more, 15
+// spellings, all 95% with the same two line diff); a `static inline` helper
+// for the correction, for the division or for the whole update (best 59.7%,
+// 93 bytes); the update inside `do { } while (0)`, a bare block,
+// `if (range > 1) ... else` and while / for guards; dead stores and dead
+// loops (`int t = 0; if (t) ...`, a dead for, `if (range & 0)`, a null
+// pointer test, a static flag) between the quotient and the correction, which
+// drop it to 43.6% (99 bytes) but never change the tail; a static global used
+// as a store-and-reload barrier around the multiply (33.3%, 89 bytes); a hand
+// written lea chain for 16807 next to a multiply correction (MSVC folds it
+// back and gives C); all 120 orders of the statements {quotient, second
+// division, correction, product, subtraction} with the locals declared up
+// front, for a shift and for a multiply correction (16 orders reach A, all
+// with the same two line diff, the multiply family never reaches A); and about
+// 2500 randomised combinations of include, helper, quotient, correction, final
+// statement and pad. tools/permute.py: 11.9 min / 3806 candidates on the
+// plain Park-Miller spelling only reached 67.5% (it walks back into state B,
+// the 101-byte chain-hoisted form); 5 min on this file found nothing.
+// A parallel scorer that runs check.py over a list of generated variants at
+// about 16 per second was in build/scratch/0x4b6c30/fast.py of that worktree.
 // FUNCTION: 0x4b6c30
 int __stdcall FUN_004b6c30(int range)
 {

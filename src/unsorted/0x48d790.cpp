@@ -1,4 +1,75 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, verified by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Space Bunny Free pass (issue #4487): best stays 92.6% (387 of 388 bytes), no
+// MATCH. What this pass adds is the shape of the wall, plus a correction:
+//  * CORRECTION to the #4398 note's lever list: adding a file-scope inline
+//    function does NOT change this function's code. The scores that looked
+//    like a lever flipping the two-write shape were the merged shape being
+//    scored twice; 31 unused inline functions (identity over unsigned short,
+//    int, unsigned int, short, void*, void; named Id0, Id1, Id2, Lv, Inl0, F,
+//    G, H, X, Y, Z, helper0, dead0, unused0, aa, zz, mm, kk, ...), 1 to 3
+//    copies each, give byte-identical code on both the merged and the split
+//    hit block. Same for an identity wrapper around the mask or the unit
+//    pointer at the use sites (8 spellings), and for a whole-hit inline helper
+//    taking the mask as a parameter.
+//  * The function has exactly TWO attractors, and in each the hit block is
+//    byte-fixed. 64 spellings of the split shape (store through an unpropagated
+//    alias, RMW through the global) all give the same 392 bytes with the same
+//    block: `mov edi,[esi+0x110] / mov edx,0x10 / or edi,edx / mov [esi+0x110],edi
+//    / mov eax,[g] / mov word [eax+0x37e9c],0 / mov eax,[g] / or word
+//    [eax+0x37ebe],dx`, and 60 spellings of the merged shape all give 387 with
+//    the same block. Tried inside both: the RMW as the bitfield, `|= flag`,
+//    `= x | flag`, a named temp, `&u->flags` and `(char*)u + 0x110` pointers and
+//    `u->u.flags = f | flag` from a local copy of the flags; the store as `= 0`,
+//    `= (short)0`, `&= 0`, `= flag & 0`, an offset cast; the RMW as the global
+//    and the store as the alias (this merges), two aliases, the alias declared
+//    between the two writes, `(*&g_game)`, and a pointer-to-pointer
+//    (`Game** pp = &g_game; (*pp)->field_37e9c = 0; g_game->flags |= flag;`,
+//    which is the one spelling that should make the reload compulsory and does
+//    keep it, but lands on the same 392 block). Statement order (store before
+//    RMW, RMW before store) only ever merges or reorders back to the two
+//    attractors.
+//  * The arithmetic of what is missing: from the 392 shape the original is
+//    -5 bytes (the sink), +1 byte (the last g_game load is 6 bytes in EDI, not
+//    5 in EAX) and the container register moves EDI -> EAX at no size cost, so
+//    it lands exactly on 388 if and only if those three land together. The
+//    container and the last load move together: in the split shape the two
+//    g_game temps always take EAX and the container EDI, and the found tail,
+//    which matches, always takes EAX for the RMW and EDI for g_game. So one
+//    decision (the sink) plausibly drives both register swaps: trimmed to a
+//    single temp the container already goes to EAX and the mask folds to
+//    `or al, 16`.
+//  * Measured with a standalone micro test (a small loop that ORs a constant
+//    into a dword and a word, compiled and disassembled directly): MSVC 5 sinks
+//    a loop-invariant constant into the loop block on EVERY spelling - the
+//    mask as int/short/unsigned short/const/register/literal, declare-assign
+//    split, via an inline helper's parameter, and via a whole-hit helper
+//    taking it as a parameter all re-emit `mov edx,0x10` at the top of the hit
+//    block. The only non-constant source, `static unsigned short st = 0x10`
+//    read into the mask, does keep it in a register (`or esi,ecx` / `or word
+//    [eax+..],cx`) but pays a 6-byte load for the def, and a
+//    `static const` or a plain `static` initializer is folded back to a
+//    constant, so it remats anyway. A dead store in a folded branch inside the
+//    loop only moves the sink to the loop top. Conclusion: a 5-byte
+//    `mov edx,0x10` def with register-form uses inside a loop is not reachable
+//    from a constant local, and a 6-byte memory def cannot be the original's
+//    5-byte one. That is why the mask keeps EDX live in the original and is
+//    re-materialised here.
+//  * The uncalled-inline-function lever, swept properly this pass (N = 0 to 8,
+//    six bodies: an identity over unsigned short / int / Game* / Unit* / void
+//    and a `return 0x10`, on BOTH the merged and the split hit block, 108
+//    variants): exactly 54 score 387 and 54 score 392, with the same two
+//    blocks. It moves nothing here, at any N. Self-assignments around the two
+//    game writes and the mask (`g = g;` after the alias, before the store,
+//    between the two writes, `u = u;`, `found = found;`, `flag = flag;` in
+//    three positions, a self-assign through a named copy): also byte-neutral,
+//    16 variants, so MSVC deletes them rather than merely scoring the same.
+//  * Also measured, no change: eleven dead-store forms (`if (flag == 0)
+//    flag = 0`, `flag & 0`, a dead `while`, a dead `for (k=0;k<0;k++)`, a dead
+//    array element, a null-pointer test, a self-assign, `flag = flag ? 0x10 :
+//    0x10`) in three positions (after the mask def, after the found test,
+//    inside the second loop); 30 unused-inline-name variants; and two permuter
+//    runs, 27 minutes on the split shape (default seed) and `--minutes 7
+//    --seed 11` on the merged shape (2762 candidates), neither better.
 // Space Bunny Free pass (issue #4398): best stays 92.6% (387 of 388 bytes), no
 // MATCH, and the permuter confirms 92.6% is flat (2786 candidates, nothing
 // better). The residual is still one allocator decision, but the two halves of

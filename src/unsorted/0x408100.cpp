@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
 // mimo-v2.6-pro retry pass: re-confirmed 1221 bytes / 98.5% and the same three
 // hunks. New negatives, all unchanged or worse: includes <string.h>, <windows.h>
 // and <stdio.h> do not move the _allmul push order; a `UnitDef* def` local before
@@ -264,6 +264,40 @@ static inline int MapRange()
 // Assigning `v.y = 0;` first in the inline Direction() helper is byte-neutral
 // (same hunks), so the flag12 arm's `xor ebp,ebp` before the first trig call is
 // not source order either.
+//
+// Space Bunny Free: 98.5% confirmed and left as the best version (1221 bytes, same
+// three hunks). The permuter ran 15.1 min over 825 candidates (47 uncompilable,
+// 8 duplicates) and moved nothing, so I stopped rather than spend on the last 1.5%.
+// I then built a fast probe instead of check runs: every variant below is compiled
+// straight with tools/wcl (/c /O2 /Ob2 /MT /Fa) and only the three hunk windows are
+// read, so a probe costs about 5 s. Thirty-four probes were byte-identical to the
+// baseline in all three windows (files and specs in build/scratch/0x408100/):
+// - hunk 3, first _allmul: eight spellings of the multiply (`FixMul(s, d.x)`,
+//   `FixMul(d.x, s)`, `(__int64)s * d.x`, `(__int64)d.x * s`, a `__int64` product
+//   local, a separate `int nx` result, `(int)d.x`, and the FixMul body with its two
+//   parameters transposed) ALL emit `push ebx; push edi; push edx; push eax`, so
+//   the argument order is fixed by C1's commutative canonicalisation and no source
+//   spelling reaches the original's `push edx; push eax; push ebx; push edi`.
+//   Eleven header sets (<stdlib.h>, <string>, <list>, <map>, <string.h>,
+//   <windows.h>, <stdio.h>+<stdlib.h>+<ctype.h>, the game header block, the limits
+//   and float headers, <time.h>+<assert.h>+<setjmp.h>, <new>) also leave all three
+//   hunks untouched, so the header-state lever from the guide is dead here too.
+// - hunk 2, the flag12 Direction() arm: the out-of-line `static inline void
+//   SetDirection(Vec3&, short, int)` writing d.x/d.y/d.z in x,y,z and in x,z,y
+//   order, a separate `Vec3 e` filled field by field from the returned temporary,
+//   an explicit `short a` with direct d.x/d.y/d.z stores, and hoisting the test into
+//   an `if/else` that copies d are all identical. The helper's statement order
+//   (x,z,y current; x,y,z; y,x,z; z,y,x) makes no difference either, so the
+//   `xor ebp,ebp` after `add esp, 8` is not the helper's y=0 ordering.
+// - hunk 1, the `u->def` load: an `IsAir(Unit*)` inline getter for the third
+//   flag12 test, a second `Unit* v = u` local, `Vec3 target;` declared outside the
+//   if with the copy and a `def` local after it, and the three stores written out
+//   by hand are all identical, so the hoist over the copy is C1's load preloading,
+//   not the order of the statements.
+// The one documented lever I did not spend on: the guide's "define the preceding
+// function in the same file" (0x408090, 111 bytes, the map bit test, is the real
+// neighbour). Compiler state from an earlier function can decide these, but it
+// needs that function matched first, which is a job of its own.
 // FUNCTION: 0x408100
 void Class_004085d0::FUN_00407380()
 {

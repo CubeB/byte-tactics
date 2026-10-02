@@ -1,4 +1,90 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// 2026-10-02 (Space Bunny Free): 58.1% -> 67.6%, 1843 bytes. Six source changes,
+//   every one scored on its own and in combination. The first two are worth far
+//   more together than apart.
+//   1. The `out` block tests the scroll-up case positively
+//      (`if (point.y < r.y0) goto scroll_up; goto scroll_down;`), so scroll_up
+//      is the out block's fall-through and lands before scroll_down: the
+//      original's `cmp edi,ebx / jge 0x4a3def` at 0x4a3d27. Alone 57.5%, and with
+//      (2) it is most of the jump from 58.1.
+//   2. scroll_up clamps the field, not a local (`if (me->field_ba < 0)
+//      me->field_ba = 0;`), which is what produces the original's
+//      `mov cx, word [ebp+0xba] / test cx,cx / jge`.
+//   3. `} else if ((flags & 0x20) | 0x80) {`: the original's
+//      `mov ecx,eax / and ecx,0x20 / or cl,0x80 / test cl,cl`. The older note
+//      here that this spelling scores worse was measured on the 52.3% base; on
+//      this base it is 0.2 points worse alone, but it is the only spelling that
+//      emits those three instructions at all, so it stays.
+//   4. The 0x10 block reads `if ((short)line >= 0) { big } else { restore }`,
+//      so its two-instruction restore block is laid out after the second loop,
+//      where the original puts it at 0x4a3c18.
+//   5. `+ (unsigned short)me->field_bc` in the FIRST FUN_004ab570 block's line
+//      addition only. That mixed signedness is what gives the original's
+//      `mov cx, word [ebp+0xbc] / ... / add eax, ecx / ... / movsx edx, cx /
+//      lea eax, [eax + ecx - 1]`: one use of field_bc is zero-extended and one is
+//      sign-extended. The same cast in the 0x10 block costs 12 points (55.8%), so
+//      only the first block wants it.
+//   6. The 0x20/0x80 walk's second pointer is a `char*` stepped in bytes
+//      (`*(char**)(itemp + 0x28)`, `itemp += 4`) instead of an `int*` stepped in
+//      words: 67.0% -> 67.6%. It also folds the pointer into the
+//      `lea [eax+ecx*4+0x28]` the original has at 0x4a3c85.
+//   The two FUN_0049fc50/FUN_004ab690 tails no longer merge: each keeps the
+//   original's `push N / mov edx,[esp+0x54] / push edx / call / jmp`. The nudge
+//   (`if (i < 1) break;`) is still what buys the esi/edi split; deleting it drops
+//   67.0% -> 58.7%, so it stays as a diagnostic.
+//
+// What still differs, biggest first:
+//   (a) The second loop (`type == 2 && kind == me->kind`) is one register
+//       rotation: the original keeps `entries` in esi and the loop counter in
+//       edi, here the counter keeps esi and `entries` takes edi, and the walk
+//       pointer is ecx where the original uses eax. The instruction sequence is
+//       otherwise identical, down to the `[reg-0xc0]` displacements, so the
+//       pointer is biased to field_c0 either way. The cause is that this is the
+//       same variable `i` the first loop used, so its web wins the preferred
+//       register. Giving the second loop a fresh counter (`int j`, in block
+//       scope or at function scope, with or without its own walk pointer) is
+//       byte-identical: MSVC coalesces the two counters. A folded extra use of
+//       `entries` (to outrank the counter) also changes nothing.
+//   (b) The 0x20/0x80 prologue. The original builds only the pointer its flag8
+//       path uses, with a dead `mov esi, obj` on the other path and a dead `je`
+//       that reuses the outer test's flags; here both pointers are built. Every
+//       spelling that builds only one of them (`char* fixed;` plus
+//       `if (flag8) fixed = ...;`, and its mirror) collapses the score to about
+//       43%, because MSVC then has to re-test flag8 inside the loop.
+//   (c) The flags word. The original spills `me->flags` to [esp+0x20] and keeps
+//       it in eax for the 0x20/0x80 test, here it stays in ecx and the test
+//       copies it to edx. Declaring `flags` at function scope, as an int, as an
+//       unsigned, or through a second local is byte-identical or far worse
+//       (43%). `unsigned flags` is in this file only because it turns the
+//       `sar ecx,7` into the original's `shr eax,7`.
+//   (d) The prologue's point.x/point.y schedule, unchanged by every earlier pass:
+//       the original reloads point.x into edi, subtracts, stores it, then
+//       reloads point.y into that same edi; here point.x's subtraction is done
+//       in ecx and point.y's reload is hoisted above it. Subtracting y first
+//       (66.6%), copying the two differences into plain ints, a separate copy
+//       statement, and a hoisted loop bound are all within 0.4 points of this
+//       file; none of them moves the schedule.
+//   (e) 11 bytes are missing, so every internal jump target from the first loop
+//       on is out by the same amount. Two spellings account for all of it: the
+//       extra `mov edx, ecx / and edx, 0xffff` before `add eax, ecx` in the
+//       first ab570 block (5 bytes: MSVC only skips that zero-extend when the
+//       register is already known clean, and every cast or local spelling of
+//       the addend either keeps it or costs 8 points), and the nudge's
+//       `cmp esi,1 / jl` (5 bytes, the price of the esi/edi split). LEAD:
+//       build/scratch/0x4a3780/v_w1b.cpp scores the same 67.6% at 1831 bytes,
+//       one byte under the original, by clamping scroll_up's index in an `int
+//       sel` local instead of in the field. With the sizes that close the
+//       remaining diffs are register names only, so that is worth trying first.
+//   (f) Smaller, unchanged: `mov [esi+0xcca], 1` (the original has obj in esi
+//       there, this compile reloads it), `mov cx, [esp+0x10]` against `mov dx`,
+//       `lea eax, [ecx+eax-1]` operand order in scroll_down, and `push esi`
+//       against `push ecx` for the field_ce callback.
+// permute.py was run on the 63.7% version of this file and found nothing better
+//   than 64.0%; its best.cpp keeps a `tmp0` temporary and an `inl4` helper that
+//   just returns its argument, so nothing was taken from it. Scoring harness
+//   and every variant tried: build/scratch/0x4a3780/ (sc.sh scores a scratch
+//   file, gen.py holds the substitutions, gv.sh does both, asm.sh writes the
+//   listing, hunks.py ranks the diff hunks).
 // 2026-10-01 retry 9 (deepseek-v4.1-flash, #3660): best stays 58.1% (this file,
 //   the nudge version). About 100 check.py runs, no new best. What this pass
 //   established, all scored:
@@ -303,7 +389,7 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
             if (!(me->flags & 0x200))
                 goto ret1;
             {
-                int line = (point.y - r.y0) / span + me->field_bc;
+                int line = (point.y - r.y0) / span + (unsigned short)me->field_bc;
                 me->field_ba = (short)line;
                 if ((short)line < 0)
                     goto ret1;
@@ -346,13 +432,11 @@ after:
         goto out;
     {
         obj->holder->field_20 = index;
-        int flags = me->flags;
+        unsigned flags = me->flags;
         if (flags & 0x10) {
             int line = (point.y - r.y0) / span + me->field_bc;
             me->field_ba = (short)line;
-            if ((short)line < 0) {
-                me->field_ba = orig_sel;
-            } else {
+            if ((short)line >= 0) {
                 int off = (short)line - me->field_bc;
                 if (off > step - 1)
                     me->field_ba = (short)(step + me->field_bc - 1);
@@ -374,17 +458,19 @@ after:
                         e->field_ba = v;
                     }
                 }
+            } else {
+                me->field_ba = orig_sel;
             }
-        } else if ((flags & 0x20) || (flags & 0x80)) {
+        } else if ((flags & 0x20) | 0x80) {
             flag8 = (flags >> 7) & 1;
             int bc = me->field_bc;
             char* fixed = (char*)(me->field_c6 + bc * 0x18);
-            int* itemp = (int*)(me->field_c6 + bc * 4);
+            char* itemp = (char*)(me->field_c6 + bc * 4);
             int remain = point.y - r.y0 - 2;
             int n2 = 0;
             int k = bc;
             while (1) {
-                char* row = flag8 ? fixed : *(char**)((*itemp) + 0x28);
+                char* row = flag8 ? fixed : *(char**)(itemp + 0x28);
                 int h = (me->field_da != 0) ? span : *(unsigned short*)(row + 2);
                 remain -= h;
                 if (remain <= 0) {
@@ -394,7 +480,7 @@ after:
                 n2++;
                 k++;
                 fixed += 0x18;
-                itemp++;
+                itemp += 4;
                 if (k > me->field_c0 - 1)
                     break;
             }
@@ -415,8 +501,9 @@ ret1:
     goto end;
 
 out:
-    if (point.y >= r.y0)
-        goto scroll_down;
+    if (point.y < r.y0)
+        goto scroll_up;
+    goto scroll_down;
 
 scroll_up:
     if (me->field_bc > 0 && me->field_b6 < FUN_004b6340()) {
@@ -426,8 +513,9 @@ scroll_up:
         me->field_ba--;
         me->field_bc--;
         if (me->field_c2 != 0) {
-            int sel = me->field_ba;
-            char* s = FUN_004b6af0(me->field_c2, (sel < 0) ? 0 : sel);
+            if (me->field_ba < 0)
+                me->field_ba = 0;
+            char* s = FUN_004b6af0(me->field_c2, me->field_ba);
             if (strncmp(DAT_00502a20, s, 2) == 0)
                 me->field_ba = orig_sel;
         }

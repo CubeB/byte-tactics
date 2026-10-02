@@ -117,6 +117,65 @@
 // `int y` declarations to function scope (98.0 to 98.7); reordering the blank
 // stores (98.0); chained blank stores. The register choice is a whole-function
 // colouring tie that no source form of this function reaches.
+// space-bunny-free (issue #4232), about 950 screened variants, still 98.7% with
+// the same one hunk (`lea edx`/`push edx` wanted at 0x45f9f7, `lea ecx`/`push
+// ecx` produced). All of it was screened with the /Fa probe in
+// build/scratch/0x45f8c0/probe/probe.py (~0.2 s a variant against 7 s for
+// check.py): it compiles a file with tools/wcl, prints for every FUN_004b6af0
+// call the register of its value-buffer lea and of the push after it, and counts
+// the differing lines of the function body against base.asm with jump labels
+// normalised. So the register is screened directly, not through the ratio, and
+// a variant whose body is byte-identical to the 98.7% file is instantly
+// distinguishable from one that broke something else. Copy probe.py before use:
+// it is throwaway scratch, not part of the repo.
+//
+// THE ONE POSITIVE LEAD, worth the next attempt: the register at the merge
+// moves to edx (both leas edx, as in the original) when the '|' path ends with
+// the address of a store coming out of a CALL RESULT. Replacing the do-while
+// scan with `strchr(value, '|')[0] = 0;` gives the original's `lea edx` /
+// `push edx` at 0x45f9f7 and leaves the second call's lea alone, at the cost of
+// a real call in the else path (17 changed lines). The same flip comes from
+// `char* q = strchr(value, '|'); q[0] = 0;`, from `strpbrk(value, "|")[0] = 0;`
+// and from replacing the '|' path's `strcpy` with `*value = ' '; value[1] = 0;`.
+// What the flip has in common: the value the last store addresses is a pointer
+// that arrived in eax from a call, not a pointer LCOL allocated itself, and the
+// scan's own pointer temp (`lea eax, [value+1]`) is no longer the last thing
+// eax holds. Since the original's else path is byte for byte the do-while scan
+// (`lea eax,[esp+0x35]` / `mov cl,[eax]` / `inc eax` / `cmp cl,7ch` / `jne` /
+// `mov [eax-1],0`), something else in the original's tree has to make LCOL
+// allocate differently, and no spelling of it has been found yet.
+//
+// Screened here, every one of them byte-identical to this file and still ecx,
+// so none of these families needs another pass: a scope block per statement
+// (first only, second only, both, and each with its own char*/int/layer local);
+// a `do {} while (0)` per half; phi declarations merged across the '|' if/else,
+// by assignment in both branches and by `x ? x : x` ternaries with identical
+// arms (char*, int and layer flavours, used by the first call, the second or
+// both); distinct `char* v` aliases per call, with and without blocks; the text
+// split into a local, one call at a time or both in blocks; pointer temps for
+// the entries table and the mark; AddLine split into two helpers (AddLeft,
+// AddRight) or inlined into the loop with no helper at all; 17 signature and
+// call-site permutations (page passed by reference, `page->blank` passed instead
+// of page in four orders, layer by reference, y first, `const char*`, static
+// not inline, `&value[0]`, an extra parameter, the call site in a block or a
+// do-while, a `char* vp` local at the call); four unused locals in AddLine (int,
+// char*, char[4], char[0x80]) before and after the calls; every spelling of the
+// scan that emits the same six instructions (post-increment split into two
+// statements, `++p`, `p += 1`, `*(p++)`, `(char)'|'`, `0x7c`, `'|' != c`,
+// `c = 0` first, `&value[1]`, a separate `p++`, the while-with-assignment forms,
+// the scan in an inlined Cut helper, `unsigned char c`); `p[-1]`, `*(p - 1)` and
+// sixteen spellings of the store's index arithmetic, all folding to the same
+// `[eax-1]` displacement; extra dead stores and dead self-assigns in either
+// path; an empty inline call and an inlined identity call in either path; an
+// inlined `Next`/`Same` helper feeding the scan pointer; a real `strlen(value)`
+// after the scan (MSVC deletes it, still ecx); a one-line `Text()`, `Blank()`
+// and `Count()` accessor for each of the three folded expressions; and the
+// preheader's ternary identities replaced by an inlined `Id()` identity call,
+// `,`, `&&`, `||`, a cast and a double call (all of which break the imul
+// preheader, so the ternary stays). On top of that, 750 single rewrites from
+// tools/permute_mutate.py over three bases (this file, the helper-inlined file,
+// the two-helper file) all stayed at ecx, so the permuter on this file is not
+// worth 15 minutes: its score cannot see a register-only difference.
 // deepseek-v4.1-flash (issue #3405 rerun): 3 more scored variants, all flat 98.7
 // with the same lea ecx / push ecx hunk: key/value buffers declared inside the
 // do-while body, the '|' cut split into its own static inline CutAtBar helper,

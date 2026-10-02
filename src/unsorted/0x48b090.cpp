@@ -1,9 +1,91 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, notes by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, reworked by space-bunny-free. Names are provisional.
 // Orchestrator note (2026-10-02): 94.9% is reachable, but only with unused
 // static inline helpers and unused locals (found by the permuter twice, #4479
 // and #4587); without them the body compiles to the same bytes as this 93.2%
 // version. That is compiler state, not source, so it was not taken (AGENTS.md).
 // A natural spelling that reaches it is still wanted.
+// space-bunny-free pass (#4665, 97.4% at 367 bytes, up from 96.6%, about 60
+// scratch variants scored with check.py --sym at 0.4 s each, one permuter run):
+// - FOUND, and it replaces the self-conditional: the set arm's two `mov`s come
+//   out in the original's order when the old state is read through a trivial
+//   in-class accessor. `unsigned char GetState() { return state; }` in the
+//   class, called as `unsigned char old = GetState();`, takes the plain body
+//   `now = old | (unsigned char)mask;` / `now = old & ~(mask & 0xff);` from
+//   82.4% to 97.4% at 367 bytes, and the arm is then `mov eax,[esp+0xc]; mov
+//   edx,[esp+0x14]; and eax,0xff; and edx,0xff; or eax,edx`, the original's.
+//   The self-conditional that bought the same two instructions has been
+//   deleted from the body: the getter buys them with plausible source (a
+//   one-line accessor, the kind of inlined function boundary the guide
+//   recommends), which is what the passes above were looking for.
+// - what the getter really does is only make the file contain one more
+//   function: the same 97.4% comes out of the free `static inline unsigned
+//   char StateOf(const Class_0048b090* u) { return u->state; }` with `old =
+//   StateOf(this)`, out of a used `static inline unsigned char AndByte(unsigned
+//   char a, unsigned char b)` for `lost`, and out of one unused
+//   `static inline unsigned char H1(int a) { return (unsigned char)a; }`
+//   (that last one on the body without the getter: 97.4% too, and the same
+//   two hunks left). TWO extra functions put it back to 82.4%, the state where
+//   the mask load hoists into the preheader (363 bytes), so the count is the
+//   knife edge and one is the best number. Sweeping five cast helpers
+//   (`(unsigned char)a`, `(unsigned char)b`, `(unsigned char)(a|b)`,
+//   `(unsigned char)(a&b)`, `(unsigned char)(a^b)`, then `+ - < & 0xff | 0xff
+//   + 1 - 1`) over both bodies for N = 0 to 10 gives 96.6% at every N on the
+//   self-conditional body and 97.4% at N = 1 and N = 4 on the plain one, 82.4%
+//   at N = 0, 2, 3, 5 and 81.2% from N = 6 up. The N = 5 / 94.9% and N = 4 /
+//   82.4% in the note above do not reproduce with these bodies: 97.4% at N = 1
+//   and N = 4 is what they were reaching, one function earlier than counted.
+// - NOT ADOPTED, but it is the lead: 99.1% at 367 bytes with the packet store
+//   as the only hunk left. The permuter reached it
+//   (build/permute/0x48b090, best_ratio.cpp, 9554 candidates, 9 minutes) and
+//   bisecting it leaves this body: `now = (unsigned char)old |
+//   (unsigned char)(IsSet(mask) ? mask : (int)mask)` with `static inline bool
+//   IsSet(int v) { return 0 != v; }`, the clear arm `now = (~(mask & 0xff)) &
+//   old`, `gained = now & ~(unsigned char)old`, `lost = old & ~((int)now)`, the
+//   locals declared at the top of the function with `old = state;` as its own
+//   statement, `Player_0048b090* p;` declared before `p = player;`, the
+//   `if (set) ... else ...` on one line, one bare `{ }` block round the body,
+//   and SIX unused locals (`int tmp10, tmp6, tmp4, tmp3;` `unsigned int
+//   tmp2;` `unsigned char tmp0;`). Everything in that list except the unused
+//   locals can be taken away one piece at a time and still scores 99.1% (each
+//   was checked on its own), and the inlined bodies of the permuter's other
+//   four helpers are dead weight as well, so one helper is enough. The unused
+//   locals cannot go: delete them and it falls to 97.4%, and adding one to six
+//   unused locals to the 97.4% body does not bring the `lost` hunk back. So
+//   `lost` is a property of the whole shape, not of a line, and 1.7% is not
+//   worth unused locals and a self-conditional in src/ (AGENTS.md), so this is
+//   written down instead of taken.
+// - leads from other addresses today, not tried here for want of time: an
+//   assignment inside the condition, `if (!(a || (b = (x == y))))`, is on
+//   another function the only spelling that keeps a comparison both
+//   short-circuited and materialised, and the gained/lost pair is that shape,
+//   so `if (!(x || (lost = (old & ~now) == 0)))` and the same with `gained`
+//   are worth a try; and a self-conditional on a *derived* pointer,
+//   `w = w ? w : w;`, was worth 15 points elsewhere because it is the only
+//   spelling found that stops MSVC 5 folding member accesses onto the base
+//   pointer, which matters here because `lost` lands in the dead `mask`
+//   argument slot while `gained` stays in bl (a pin on the frame pointer, or
+//   on a pointer built from it, is the shape to try). Mind the caveat below:
+//   a merge loads its value first, so check the set arm's first instructions
+//   and not only the score.
+// - what was tried and did not move the set arm's load order, all on the
+//   getter body: a merge on `old` instead of on the mask, with and without a
+//   merge on the mask too (`(unsigned char)(old ? old : old) | ...` 81.5%),
+//   two merges, one per arm (73.0%), the narrowing moved inside the merge
+//   (`(unsigned char)((mask ? mask : mask) & 0xff)`, `((mask & 0xff) ? mask &
+//   0xff : mask & 0xff)` 95.7%, `* 1` and unary `+` on the merge), the merge
+//   through a local (`unsigned char m = (unsigned char)(mask ? mask : mask);
+//   now = old | m`, 78.7%: the compiler turns it into a real branch), the
+//   merge on the OR's result instead of on an operand with `old` as its
+//   condition (`old ? (old | (unsigned char)mask) : (old | (unsigned char)mask)`,
+//   81.5%: also a real branch), `mask` as a byte local with `old | m` (82.4%),
+//   `int m = mask & 0xff` (73.8%), both arms narrowed with `(unsigned char)`
+//   (82.4%), an outer `(unsigned char)` round each arm (82.4%), the arms
+//   merged into one ternary (97.4%), and both operand orders (97.4%, VC5
+//   canonicalises them). The question this pass set out to answer, whether a phi
+//   can be had
+//   without making the mask load first in the set arm, is answered no: a
+//   merge always evaluates its condition first, and no merge on any other
+//   value puts `old` first. The getter avoids the merge altogether.
 // space-bunny-free pass (#4591, no code change, still 93.2% at 367 bytes, 45
 // scratch variants, scored with check.py --sym at 1.5 s each):
 // - REPRODUCED the 94.9% state and bisected it. Five unused `static inline`
@@ -141,26 +223,26 @@
 // unit (the list head at +0xa2) to update, then a network packet (0x11) tells
 // the owner when the owner is a real player (1 or 2).
 //
-// Not a match yet (96.6%, same size). What still differs, after all the
+// Not a match yet (97.4%, same size). What still differs, after all the
 // passes above:
-// 1. The set arm's two loads are emitted in the opposite order. The original
-//    is `mov eax,[esp+0xc]; mov edx,[esp+0x14]; and eax,0xff; and edx,0xff;
-//    or eax,edx`; this file emits `mov edx,[esp+0x14]; mov eax,[esp+0xc]`
-//    and then the same four instructions, so only the order of the two loads
-//    differs. Every narrowing spelling tried moves the mask into eax first;
-//    only the self-conditional above gets the arm this close, and it gets it
-//    with the two loads the wrong way round.
+// 1. `lost` is computed into al here (`not al; and al, cl`), the original
+//    computes it into cl (`not al; and cl, al`). Fourteen spellings of the
+//    gained/lost pair on top of this body, the mask's narrowing moved, the
+//    operands swapped both ways, an int temporary, an extra `& 0xff`, a split
+//    assignment, a helper call, the cast moved onto `old` or onto `now`, and
+//    the two declarations swapped, all score 97.4% or worse. The permuter's
+//    99.1% body gets this hunk right, but only with six unused locals: see the
+//    note at the top.
 // 2. The packet's type byte: the original stores it between the other two
 //    (`mov word [E+5], cx; mov byte [E+4], 0x11; mov byte [E+7], dl`), this
 //    version sinks the constant store past the argument pushes, just before
-//    the call. All six field orders, aggregate initialisation, a byte temp, a
-//    pointer variable and a dead `if (t) packet.type = 0;` before the call
-//    leave it sunk at this score too.
-// 3. `lost` is computed into al here (`not al; and al, cl`), the original
-//    computes it into cl (`not al; and cl, al`). Six spellings of `lost` on
-//    top of this body all score 96.6% or worse; only the five unused helpers
-//    fix it (98.3%). It was fixed in earlier 93.2% bodies by the same
-//    helpers.
+//    the call. Measured on the 99.1% body, where this is the only hunk left:
+//    all six field orders, a byte temp for the constant and for the state, a
+//    cast on the constant, an aggregate initialiser and `sizeof(packet)` as
+//    the size argument all still sink it, and putting `state` first also
+//    changes the order of the two loads (95.7%). It is a scheduling decision
+//    that no source order reaches, and the loop-invariant-in-a-loop trick that
+//    fixed 0x47eee0 does not apply: there is no loop here.
 // deepseek-v4.1 pass 2 (#2008, 12 more check.py runs, best stays 93.2 at 367):
 // the clear branch wants `~(mask & 0xff) & old`, which is the only spelling that
 // gives the original's dword mask read and `and eax,0xff; not eax; and eax,edx`,
@@ -271,6 +353,8 @@ public:
     char unknown_aa[0x10e - 0xaa];
     unsigned char state;                // +0x10e
 
+    unsigned char GetState() { return state; }
+
     void FUN_0048b090(int mask, int set);
 };
 #pragma pack(pop)
@@ -282,14 +366,10 @@ int __stdcall FUN_00451df0(int player, void* data, int size);
 // FUNCTION: 0x48b090
 void Class_0048b090::FUN_0048b090(int mask, int set)
 {
-    unsigned char old = state;
+    unsigned char old = GetState();
     int now;
     if (set)
-        // `mask ? mask : mask` emits no code; it is here only because it gives
-        // the mask's narrowing a merge, and with it this file scores 96.6%
-        // where the plain `(unsigned char)mask` scores 93.2%. It is not
-        // plausible source: the score without it is 93.2% (see the notes).
-        now = old | (unsigned char)(mask ? mask : mask);
+        now = old | (unsigned char)mask;
     else
         now = old & ~(mask & 0xff);
     state = (unsigned char)now;

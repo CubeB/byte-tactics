@@ -1,13 +1,21 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
-// Session 14 (Space Bunny Free): 89.5 -> 90.8 percent (1145 bytes). Three wins,
-// all the same idea and all found by hand after `headers` and `permute` had
-// nothing: give MSVC a SHORT-LIVED TEMP to modify in place, and copy the temp
-// into the long-lived variable, instead of writing the sum into a fresh
-// register. The load stays in a scratch register, the long-lived variable gets
-// the `mov x, x` copy, and the sum becomes an in-place `add` that the
-// original's scheduling then sinks to the right place.
-// (1) Prologue, byte-exact now (was the "front-end copy node" residual twelve
-// sessions called stuck): `unsigned int nsize = out[0]; root = nsize;
+// Decompiled by DeepSeek V4.1 Flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Session 14 (Space Bunny Free): 89.5 -> 91.5 percent (1145 bytes). Four wins.
+// (1) Prologue, byte-exact now (this was the "front-end copy node" residual
+// twelve sessions called stuck): `unsigned int nsize = out[0]; root = nsize;
+// nsize += 8; out[0] = nsize;` emits `mov eax,[ebp]; mov esi,eax; add eax,8;
+// mov [ebp],eax` AND moves the root spill to the original's late [esp+0x24]
+// slot just before the call, which earlier sessions had treated as two
+// separate stuck items. The old form (`root = out[0]; unsigned int nsize =
+// out[0] + 8; out[0] = nsize;`) lets MSVC pick root's register for the load
+// and rematerialise with a copy. The idea: give MSVC a SHORT-LIVED TEMP to
+// modify in place and copy that temp into the long-lived variable, instead of
+// writing the sum into a freshly allocated register. The load then stays in a
+// scratch register, the long-lived variable gets a plain register copy, and
+// the sum becomes an in-place `add` that MSVC's scheduler sinks to exactly
+// where the original has it. No self-assignment and no dead code is involved:
+// `root = nsize` copies a value that is genuinely used twice.
+// (1) Prologue, byte-exact now (this was the "front-end copy node" residual
+// twelve sessions called stuck): `unsigned int nsize = out[0]; root = nsize;
 // nsize += 8; out[0] = nsize;` emits `mov eax,[ebp]; mov esi,eax; add eax,8;
 // mov [ebp],eax` AND moves the root spill to the original's late [esp+0x24]
 // slot just before the call, which earlier sessions had treated as two
@@ -17,38 +25,62 @@
 // (2) Name allocator, byte-exact now: `unsigned int nsize = strlen(fd.name)
 // + 1; nsize += nameOff; out[0] = nsize; ... FUN_004d84a0(..., nsize)` gives
 // the original's in-place `add ecx,ebx` and `push ecx`, and the `out[0]` store
-// sinks to just before the call. Passing `out[0]` as the third argument (t2)
-// still scores 89.8: the argument has to be the temp, not the reload.
+// sinks to just before the call. Passing `out[0]` as the third argument scores
+// 89.8, one point lower: the argument has to be the temp, not the reload.
 // (3) Leaf: the size store goes FIRST as a plain statement, read back for the
 // accumulate: `*(unsigned int*)(node + 4) = fd.size; ... *total += *(unsigned
 // int*)(node + 4);`. That reproduces `mov ecx,eax` + `add [eax],ecx` and the
 // original's store order. Alone on the old file this cost 2 bytes and scored
 // 89.0; combined with (1) and (2) it is a clear win.
+// (4) The two realloc-result pointers `base` and `nb` are declared with the
+// other locals instead of at their points of use (90.8 -> 91.0 -> 91.5, still
+// 1145 bytes). Moving `base` also fixed the ebx/esi SIB direction, see below.
+// Both items came out of `permute`, but only the declaration moves are kept;
+// see the leads further down for everything in the permuter's result that was
+// left out. All 128 header sets are flat.
 // Still differs (register allocation only; semantics believed correct):
 //  - Second allocator block, the one real blocker: original `mov eax,[ebp];
 //    mov esi,eax; mov ecx,[edi+ebx]; lea edx,[eax+ecx*8]; lea eax,[ecx+edx]`,
 //    ours `mov esi,[ebp]; mov eax,[ebx+edi]; lea edx,[esi+eax*8]; add eax,edx`.
-//    The (1) trick does NOT transfer here: fifteen spellings of the
-//    temp-then-copy shape (esize, esize +=, count temp first, constant-add
-//    probe, operand swaps, `out[0] +=`, `entries = (esize = out[0]) + ...`, a
-//    `bump()` inline helper) all normalize to the same three instructions.
-//    This is 3 bytes short, and that shift is why every jump target from the
-//    second strcmp onward still mismatches.
+//    The (1) trick does NOT transfer here. Twenty-odd spellings of the
+//    temp-then-copy shape normalize to the same three instructions: esize /
+//    esize += / constant-add probe / count temp first / count pre-multiplied /
+//    `out[0] +=` / `out[0] = out[0] + ...` / `entries = (esize = out[0]) + ...`
+//    / a `bump()` helper / a `grow9()` helper that loads the count inside /
+//    a `countAt()` helper / operand swaps and parenthesised trees. It is 3
+//    bytes short, and that shift is why every jump target from the second
+//    strcmp onward still mismatches.
 //  - entry pointer sum: original `add eax,edx; add eax,ecx` with `entries`
 //    loaded into eax after the strcpy's rep movsb, ours `lea eax,[ecx+edx]`
-//    with `entries` hoisted before it. Same tree, different register order.
+//    with `entries` hoisted before it. Same tree, different register order;
+//    eight trees and two pointer-temp forms are all flat or worse.
 //  - Leaf entry pointer: original `mov ecx,[esp+0x20]; mov edx,[esp+0x1c];
 //    add ecx,eax; mov [ecx+4],esi`, ours loads ent first and folds the address
 //    into `mov [ecx+eax+4],esi`. Both halves are source-order insensitive:
-//    eight spellings (pointer local, parenthesised trees, entries-first,
-//    out[1]-first, unsigned ent) are all byte-identical.
-//  - ebx/esi SIB direction at the three base+root sites (original [esi+ebx],
-//    ours [ebx+esi]); five spellings and all 128 header sets are flat.
+//    nine spellings (pointer local, parenthesised trees, entries-first,
+//    out[1]-first, an `entryAt()` helper, unsigned ent) are byte-identical.
+//  - ebx/esi SIB direction at the three base+root sites is now RIGHT. It was
+//    stuck for five sessions: five cast spellings, a separate offset local, a
+//    pointer local, all 128 header sets, and even writing the address as an
+//    integer sum so the offset is the FIRST addend (`*(unsigned int*)(root +
+//    (unsigned int)base)`) all gave the same wrong byte, which looked like a
+//    register-allocation tie. (4) broke it: the direction is decided by which
+//    register `base` is in, and moving `base` to the declaration block fixed it.
+//    Worth remembering that an "allocator tie" can be a declaration-order
+//    effect and not a source-shape one.
+// Still open leads from the permuter (all need implausible source, so none
+// were kept): a `temp_inline` helper whose result is discarded, an `inl0()`
+// helper that only returns `e->flags`, `tmp0`/`tmp1`/`tmp3`/`tmp4`/`tmp5`
+// temporaries, `if (1) do { ... break; } while (1);` loop bodies, an empty
+// `if (trailing) { } else` arm and an empty `if (0 <= state) { }` arm. None of
+// them bought a ratio beyond 91.5 once (4) was in.
 //  - The dir-branch store loads out[1]/entries/ent in the other order.
-// The third parameter is dead in the original: it reads `[ebp+4]` (= out[1],
-// which the caller pointed at the same slot) for the accumulate and for the
-// recursive call's third argument, and never reads `[ebp+8]`. So `*total` and
-// `*(int*)out[1]` are the same store and the same source.
+// The third argument's slot coincides with `out[1]`: ebp holds `out`, so
+// [ebp+4] is out[1] and also the slot the third parameter was passed in. The
+// accumulate and the recursive call's third argument both read that one slot,
+// and out[2] is never touched, so `*total` and `*(int*)out[1]` are the same
+// store. `*total` is the safer spelling: a real `*(int*)out[1]` re-reads a
+// slot MSVC has just written, which it may fold away.
 // Older sessions (all below 89.5 on this file) are kept in the history below.
 // mimo-v2.6-pro session (60-minute box): best unchanged at 89.5 percent,
 // this file. One leaf probe DID reproduce the tail exactly (scratch t3, 89.0
@@ -252,6 +284,8 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
 {
     char buf[0x104];
     struct _finddata_t fd;
+    char* nb;
+    char* base;
     int h;
     int trailing;
     unsigned int root;
@@ -262,7 +296,7 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
     root = nsize;
     nsize += 8;
     out[0] = nsize;
-    char* base = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, nsize);
+    base = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, nsize);
     out[1] = (unsigned int)base;
     *(unsigned int*)(base + root) = 0;
 
@@ -290,7 +324,7 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
 
     entries = out[0];
     out[0] = entries + *(unsigned int*)(base + root) * 9;
-    char* nb = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
+    nb = (char*)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
     out[1] = (unsigned int)nb;
     *(unsigned int*)(nb + root + 4) = entries;
 
@@ -323,6 +357,9 @@ unsigned int __stdcall FUN_004bd3b0(char* path, unsigned int* out, int* total)
                     out[1] = (unsigned int)FUN_004d84a0((void*)out[1], DAT_0050a56c, out[0]);
                     ((Entry_004bd3b0*)((char*)out[1] + entries + ent))->data = nodeOff;
                     unsigned char* node = (unsigned char*)((char*)out[1] + nodeOff);
+                    // The size is stored first and then read back for the
+                    // accumulate, which is what keeps the addend in a register
+                    // and gives the `mov ecx,eax` + `add [eax],ecx` pair.
                     *(unsigned int*)(node + 4) = fd.size;
                     *(unsigned int*)node = 0;
                     node[8] = 0;

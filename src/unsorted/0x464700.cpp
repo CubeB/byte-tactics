@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
 
 // mimo-v2.6-pro retry (still 98.3%, best unchanged). New evidence, all 473
 // bytes, scratch in build/scratch/0x464700/: (1) v2 with the guard AFTER the
@@ -263,6 +263,58 @@
 // to ebx; moving both the guard and the ff8 store there rotates the pool too.
 // `if (p->ref == 0)` is byte-identical. The cmp/[esi+0xf8] pair placement is
 // the only remaining hunk.
+//
+// space-bunny-free retry (still 98.3%, 473 of 473 bytes, about 50 checker
+// runs). Harness try_.py and batches b1 to b21 in build/scratch/464700/.
+// (1) The original's first block is reachable instruction for instruction with
+// TWO variables where this file has none: `PlayerRef* ref = p->ref;` then
+// `int t = g_game->ticks;` as the third statement and `p->ff8 = t;` after the
+// six clears (x3, w2) give the original's order and its scratch registers for
+// all three loads (g_game in ecx, ref in eax, ticks in edx) with the `cmp` and
+// the +0xf8 store in the original's slots. The order of the two definitions
+// picks the tick's register: ref first puts the ref in eax (right) and the
+// tick in ecx, reusing the g_game register; tick first puts the tick in eax and
+// the ref in ecx. (2) What still differs in that family is only the
+// callee-saved pool: 0 in ebx instead of ebp, so the 22 stores, the four
+// shorts and the `cmp` all come from ebx and width/2 takes ebp. Every local
+// live across the six zero stores flips it, whatever the local is: function
+// scope `int t;`, block scope `int t = ...`, a nested `{ }` around the six
+// clears, `register`, `const`, `unsigned`, `int w, h;` hoisted to the top of
+// the function, either declaration order, the six clears chained, and an
+// inlined helper taking the tick by value or by reference (65.5 to 70.6). A
+// local whose live range crosses no store keeps the pool: function scope
+// `int t;` with `t = g_game->ticks; p->ff8 = t;` at statement 3 is byte for
+// byte this file's 98.3 percent body. (3) The flip is not an alias class: the
+// 22 cleared fields declared `float`, `void*`, `long` or `short` change
+// nothing, alone (96.6 flat) or with the two variables (66.4).
+// (4) NEW SHAPE AND THE BEST LEAD: put the six clears in an inline method of a
+// member sub-object, a struct at +0xac holding fac, fb4, fbc, fc4, fcc and fd4
+// with the five other ints of that range as padding, and
+// `void Clear() { fac = 0; ... fd4 = 0; }`, then write `p->ff8 =
+// g_game->ticks;` after the call (t1): 97.5 at 473 bytes, with the pool, all
+// three scratch registers, the `cmp` and the +0xf8 store in the original's
+// places, and only the three loads left to explain, sitting between the six
+// clears and the `cmp` instead of above the clears. The same 97.5 when the
+// +0xf8 store also goes through a method of a second sub-object type (v1b).
+// The inlined method is a scheduling barrier, so this shape cannot hoist the
+// loads either, but it is the closest anyone has come to the original's
+// schedule with no variable in the block, and it shows the pool does not need
+// a variable to stay right. The same 97.5 comes from writing the six clears
+// through a local `Stamps_00464700* s = &p->stamps;` (z1, and with a reference
+// y1/y2), so it is a *pointer* of a sub-object type that carries the six
+// stores, not the type alone: writing them flat as `p->stamps.fac = 0;` with
+// no local and no method is back to 96.6 (f1). The reverse arrangement, the
+// +0xf8 store in a method of a sub-object at
+// +0xf8 with the six clears left flat, is 96.6 (d1), and giving the +0xf8 field
+// its own sub-object type changes nothing (c1, v3b, 97.5 and 98.3).
+// (5) The guard cannot explain the schedule: putting
+// `if (!p->ref) { p->ref = new PlayerRef; }` before the six clears makes MSVC
+// emit the allocation there (67.2), and with a tick variable too, 65.5.
+// Two cautions for the next run: a member function named `Set` makes CL.EXE
+// fail with an empty log, so give such a method another name; and a permuter
+// run on this file (8318 candidates, nine minutes, --jobs 2) found nothing.
+// The remaining hunk is unchanged: `cmp eax, ebp` and `mov [esi + 0xf8], edx`
+// six instructions below where this file puts them.
 #include <string.h>
 
 class PlayerRef {

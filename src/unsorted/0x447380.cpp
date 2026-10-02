@@ -1,5 +1,78 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// space-bunny-free pass (issue 4387, 50 minute box, best unchanged at 95.1% /
+// 1318 bytes with the lstrcpynA-before-group probe). New facts, all confirmed
+// by building scratch/447380/idf.py, which diffs our instructions against the
+// original's by address with shapes normalised:
+//  * On the NATURAL order (four body sprintfs, then lstrcpynA, kept as
+//    scratch/447380/nat.cpp) the whole residual is 24 instructions, from
+//    0x44752d to 0x4475c5 and nowhere else, and every one of them is the same
+//    one-step rotation of {eax, ecx, edx}. Nothing else differs, including
+//    FUN_0049fdf0's argument order: we already emit lea player, push 0xe,
+//    mov entries, push player, push entries, the original's order. So the
+//    earlier "we hoist the entries load" reading came from the 95.1 probe,
+//    not from the natural order.
+//  * The probe's POST-group phase is already right (edx then eax), and the
+//    original has exactly one more {eax, ecx, edx} allocation after the group:
+//    lstrcpynA's `name` lea. So the whole requirement is precisely: one extra
+//    scratch allocation consumed before the body group while lstrcpynA stays
+//    where the exe has it (after the fourth body sprintf). Nothing else will
+//    do it.
+//  * `lstrcpynA(name, p->name, 0x80)` costs exactly ONE {eax,ecx,edx}
+//    allocation when hoisted (its `name` lea; `p->name` goes to callee-saved
+//    ebx, outside the rotation), which is why moving it realigns the group and
+//    leaves the tail a step behind. Any pre-group statement must likewise cost
+//    one slot and emit no bytes.
+// Probed this pass, every one flat at 93.5% / 1318 bytes on the natural order,
+// i.e. none of them moved the phase: an inline `Fmt4(player, logo, ally,
+// teamicons, n)` helper around the loop-top sprintf group, around the body
+// sprintf group (and both), a `Clr4` helper around the loop-top a0570 group
+// (that one is 61.1% / 1272 bytes), a `Seen(p)` helper for the last condition
+// term, a `Rest(p, i, param_1)` helper for the last three terms, a whole
+// `Ok(p, i, param_1)` condition helper, `p` declared at function scope and
+// assigned in the body, `idx` at function scope, `int play = IsPlaying(p);`,
+// `int nv = n;` before the group, reparenthesised `&&`, an extra nested block
+// around the body group, scoped `char* dst = name;` / `char* pn = p->name;`,
+// an `unsigned char f96` local, a `Gui()` accessor for `(char*)g_game + 0x519`
+// in all ten calls, and moving the `entries` declaration after `local`.
+// More helper boundaries, all flat at 93.5% / 1318 bytes as well (an inlined
+// boundary is the usual way to shift this allocator, so it is worth listing
+// what has now been ruled out): `CopyName(name, p)` around the lstrcpynA,
+// `PName(p)` returning p->name for it, and one `Lookup(entries, player)` helper
+// holding the whole FUN_0049fdf0 + entries[idx].field_0 + FUN_0049ff10 block.
+// Also confirmed this pass that the second `if (!p->active)` in IsPlaying really
+// is a fresh re-read and not the `act` local: writing `if (!act)` there costs
+// 8 bytes (1318 -> 1310, 81.5%), so the shape in the file is right.
+// Condition and helper body shapes tried and flat at 93.5% / 1318 bytes:
+// `!(i == g_game->localPlayer && param_1)`, `g_game->localPlayer != i ||
+// !param_1`, `i == g_game->localPlayer ? param_1 == 0 : 1`, `!(flags & 4 &&
+// !IsCounted(p))`, `IsPlaying(p) != 0`, an `Alive(p)`/`IsPlaying(p)` helper
+// split, a one-return `IsCounted` and one-return `IsPlaying`, helper return
+// types `bool` (72.5% / 1359 bytes) and `unsigned char`, `int t = p->type` in
+// IsType (68.8% / 1330), a `PlayerInfo* pi` local in IsPlaying (72.6%).
+// Loop and declaration shapes tried and flat: swapped i/n declaration order,
+// `for (n = 0, i = 0; ...)`, `for (i = n = 0; ...)`, `i != 10`, unsigned
+// counters (93.2%), `i`/`n` declared after the buffers, `i = 0; n = 0;` then
+// `for (; i < 10; i++)`, `sizeof`-derived bound, `++n` vs `n++`, `g_game->players
+// + i`, `(entries + idx)->`, `unsigned int idx`, `char name[128]` and 0x14-sized
+// buffers, and in the prologue `players + localPlayer`, `(*g_game->table)
+// .entries`, `table[0].entries`, an `int` cast on the index, an
+// `unsigned char lpid` local, and a split `entries` declaration. Buffers moved
+// into the loop body or into the `if` body, `name` declared first, and
+// `unsigned int param_1`: all flat. lstrcpynA's operands respelled
+// `(char*)p + 0x2b`, `&p->name[0]`, `&name[0]`, `sizeof(name)`: all flat, and
+// a THIRD `if (!p->active)` re-read in IsPlaying is 93.5% / 1318 bytes too, so
+// extra folded field re-reads do not take an allocation either.
+// Also tools/permute.py, twice, 11539 candidates: from the natural order
+// (5042, move_stmt / move_decl / split_multi_decl / merge_decls / split_init)
+// and from the 95.1 probe above with seed 5 (6497, same kinds). Neither found
+// anything better, so nothing in that neighbourhood moves the phase.
+// Also worth recording, because it looks like a bug and is not: MSVC 5 emits
+// `&g_game->players[g_game->localPlayer]` as g_game + 0x1b63 + localPlayer*595,
+// not *331, although sizeof(Player_00447380) is 0x14b and `&g_game->players[i]`
+// with an int index does use the 0x14b stride. Reproduced exactly from our own
+// struct (scratch/447380/t1b.cpp), so the prologue pointer is not a lever.
+//
 // claude-sonnet-5-5 pass (issue 4272, no improvement, best stays 95.1% with the
 // lstrcpynA-before-group probe; natural order is 93.5%). All flat on the natural
 // order, 1318 bytes: unused `extern int` declaration sweep N=0..710 (so it is

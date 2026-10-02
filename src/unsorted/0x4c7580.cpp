@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash. Names are provisional., finished by deepseek-v4.1-flash
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
 // Session claude-sonnet-5-5 (issue 4140 retry, no code change, still 66.9%). Findings:
 // (1) The big hunk is check 2 (xmin > clip[2]): MSVC post-RA cross-jumps identical return tails, and
 // whenever two tails get the same `lea` register (here check 2 and check 5, both edx) it turns the
@@ -64,6 +64,36 @@
 // declarations (clip first) is byte-identical at 64.3 percent / 1144 bytes, so that pair's slot
 // order (ours clip 0x34, imin/imax 0x44/0x48 versus the original imin/imax 0x34/0x38, clip 0x3c)
 // is not steered by declaration order. The kept file has clip declared first.
+// Session Space Bunny Free: 66.9 -> 86.3 percent, 1152 -> 1182 of 1183 bytes. Four changes:
+// (1) In each edge walk, write the top clip offset inlined in all three steps
+// (`x += dxdy * (clip[1] - y0);`) instead of through an `int dd` temporary. That alone was
+// 68.7 -> 81.8 percent: the temporary makes MSVC keep `clip[1]` live in a scratch register
+// across the idiv block and reload it, which is the bulk of the walk-loop diff.
+// (2) `j = k = i - 1;` in the first walk instead of `j = i - 1; k = j;` (68.7 percent). The
+// two assignments give the compiler one register for the wrapped index; the separate form
+// costs an extra `mov ecx, edx`.
+// (3) Dropping `imin = imax = 0;` (both are written before any read inside the 4-point loop,
+// so the zero stores are dead; keeping them costs two extra `mov [esp+0x38/0x34], ebp` and
+// also moved clip out of 0x3c). 81.8 -> 83.7 percent, and the frame map now matches exactly.
+// (4) Checks 1 and 4 as `goto unlock;` with the label inside the final
+// `if (locked) { unlock: FUN_004c5fa0(&local); }`, and check 5 as a plain early-out spelled
+// `if (locked == 1)`. The `== 1` is what keeps check 5's tail from being cross-jumped into
+// the shared unlock body: the original keeps FOUR FUN_004c5fa0 call sites (checks 2, 3, 5 and
+// the final one) and threads only checks 1 and 4, which is exactly this shape.
+// Still open, 1182 vs 1183 bytes. Two hunks, both about which unlock tail check 5 keeps:
+// (a) Ours emits `cmp dword ptr [esp+0x18], 1 / jne` for check 5 where the original has
+// `mov eax,[esp+0x18] / test eax,eax / je`, so our tail is 1 byte shorter. Spelling check 5
+// as plain `if (locked)` gives the right `mov/test/je` but MSVC then cross-jumps that whole
+// tail into the shared unlock body and drops the fourth call site (86.3 -> 83.7 percent).
+// (b) The first walk's entry allocates the loop index in eax where the original keeps ecx.
+// Adding a dead `if (i < 0) i = 3;` at the top of that loop body moves the allocation and
+// scores 89.2 percent / 1191 bytes, but it costs 8 real instructions the original does not
+// have, so it is not kept here; it is the strongest lead for whoever picks this up, and the
+// register rotation it papers over is the one the guide notes at 0x402da0 ("the loop has one
+// temporary more or fewer earlier on"). A fast filter (compile only, count the
+// FUN_004c5fa0 call sites, which the original has 4 of) over the 9^5 spellings of the five
+// early-outs is what found (4); 1137 of 59049 keep 4 calls and scoring all of them tops out
+// at this file.
 #include <windows.h>
 
 struct Point_004c7580 {
@@ -194,8 +224,11 @@ void __stdcall FUN_004c7580(void* surf, Frame_004c7580* bmp,
         ymin = clip[1];
     if (ymax > clip[3])
         ymax = clip[3];
-    if (ymax == ymin)
-        goto unlock;
+    if (ymax == ymin) {
+        if (locked == 1)
+            FUN_004c5fa0(&local);
+        return;
+    }
 
     out = recs;
     i = imin;

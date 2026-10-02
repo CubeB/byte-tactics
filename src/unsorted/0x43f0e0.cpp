@@ -24,7 +24,6 @@
 // has its own VTOL_MOVE block with unit in edi (reloaded from [esp+0x1c]); ours shares the 1b tail.
 // (5) the unit/def reload after the FUN_004899b0 calls in case 2 (ours reloads unit->def, the original
 // reads the spill slot) but writing def-> there scored lower overall.
-#include <iostream>
 #include <windows.h>
 
 #pragma pack(push, 1)
@@ -219,16 +218,23 @@ static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
            ((1 << g_game->localPlayerBit) & g_game->visibility[p->width * y + x]) != 0;
 }
 
+#define FEATURE_CHECK(def, unit, pos, mask, result)                                            \
+    do {                                                                                       \
+        if (((def)->f245 & (mask)) && (pos) && Visible((unit), (pos)) && Marked(Lookup(pos)))  \
+            return (result);                                                                   \
+    } while (0)
+
+static inline int Marked(Thing_0043f0e0* t) { return t && (t->ffe & 0x80); }
+
 static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
     Cell_0043f0e0* cell = FUN_004815a0(pos);
     if (!cell)
         return 0;
     unsigned short id = cell->feature;
     if (id < 0xfffb) {
-        int idx = id;
-        if (idx >= g_game->unitCount)
+        if (id >= g_game->unitCount)
             return 0;
-        return (Thing_0043f0e0*)(g_game->units + (idx << 8));
+        return (Thing_0043f0e0*)(g_game->units + (id << 8));
     }
     if (id != 0xfffe)
         return 0;
@@ -238,7 +244,6 @@ static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
     return (Thing_0043f0e0*)(g_game->units + (id << 8));
 }
 
-static inline int Marked(Thing_0043f0e0* t) { return t && (t->ffe & 0x80); }
 
 // FUNCTION: 0x43f0e0
 Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
@@ -422,12 +427,11 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 return Pick(def, "VTOL_PICKUP", "GROUND_PICKUP");
             if ((def->f245 & 0x20) && friendly)
                 return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
-            if ((def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
-                return Class_00438760("RESURRECT");
-            if ((def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
-                return Pick(def, "VTOL_RECLAIM", "RECLAIM");
+            FEATURE_CHECK(def, unit, pos, 0x800, Class_00438760("RESURRECT"));
+            FEATURE_CHECK(def, unit, pos, 0x400, Pick(def, "VTOL_RECLAIM", "RECLAIM"));
             if (!(def->f245 & 0x80) || unit->moving == 0)
                 break;
+            return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         } else {
             if ((def->f245 & 0x10) && enemy)
             recurse3:
@@ -440,14 +444,12 @@ Class_00438760 __stdcall FUN_0043f0e0(unsigned char mode, Unit_0043f0e0* unit,
                 target->f104 == 0.0f && target->ffb == 0 &&
                 (!target->f86 || (target->f86->f110 & 0x40000000)))
                 break;
-            if ((def->f245 & 0x800) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
-                return Class_00438760("RESURRECT");
-            if ((def->f245 & 0x400) && pos && Visible(unit, pos) && Marked(Lookup(pos)))
-                return Pick(def, "VTOL_RECLAIM", "RECLAIM");
+            FEATURE_CHECK(def, unit, pos, 0x800, Class_00438760("RESURRECT"));
+            FEATURE_CHECK(def, unit, pos, 0x400, Pick(def, "VTOL_RECLAIM", "RECLAIM"));
             if (!(def->f245 & 0x80) || unit->moving == 0)
                 break;
+            return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         }
-        return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
     }
     }
 none:

@@ -1,4 +1,16 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Session claude-sonnet-5-5 (issue 4530, no code change, still 90.7%). NOTE: the `if ((held = Lock()) == 0)
+// held = 0;` below is a steering construct (it makes MSVC allocate the branch-2 Lock as ebp/ebx/ebx and so
+// merge the two Unlock bodies); without it the file is 85.1% (`LONG held = Lock();`, 1090 bytes). Tried
+// without success, all at 85.1% or below: Unlock written with `held` in its stores (folded to literal 0),
+// `held` initialised before the bmp checks (0, 1, d->field_dc), Unlock condition spelled `held <= 0`,
+// `held < 1`, `!held`, Lock tests spelled `r <= 0` / `!(r > 0)`, Unlock(held) at every leaf of branch 2
+// (not merged, 1316 bytes), and tools/permute.py 10 minutes (135 candidates) from the non-steered file.
+// The allocation is a pure swap: in the original the group {WaitForSingleObject, held} gets ebx and
+// InterlockedExchange gets ebp (as in branch 1, where {WaitForSingleObject, p} gets ebx); ours gives ebx to
+// InterlockedExchange. Lead from 0x4c7580: a signed `> 0` compare is a different expression from `!= 0`
+// to MSVC's tail merger even though it emits the same test; a spelling of held's use that is a surviving
+// but code-free IL use (like that one) is the thing to look for.
 // Session Space Bunny Free (issue 4447): 83.0% -> 90.7% (1055 bytes vs 1051), one structural
 // difference left. Two findings, both new:
 //  1. THE ALLOCATION TRIGGER. Earlier sessions correctly identified the blocker (branch 2's

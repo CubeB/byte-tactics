@@ -1,4 +1,11 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// DeepSeek V4.1 Flash pass (issue #4761): still 84.7%, 354 of 354 bytes, size
+// exact. tools/permute.py ran the HARD-CAPPED 3 minutes / 3268 candidates and
+// stayed flat at 84.7% (score 355); stackcmp reports no moved local, so no
+// --stack names. The same single hunk remains: the original loads b.x into ecx
+// before push ebx (dx in ecx, abs(dx)/n in esi); ours loads b.x after the pushes
+// into esi (dx in esi, chain in ecx). Every other instruction is identical.
+// Stopping: the score has not moved in any prior pass nor in this one.
 // Space Bunny Free pass (issue #4682): still 84.7%, 354 of 354 bytes, the file's
 // version left in place. New result this pass, and the reason the earlier notes'
 // searches kept missing: there is a much better screen than check.py's ratio, and

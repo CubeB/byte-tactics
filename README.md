@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**72.48% of Cavedog's code matched** (616,696 of 850,853 bytes)
+**72.70% of Cavedog's code matched** (618,570 of 850,853 bytes)
 
 `[#############################-----------]`
 
-By count that is 3,079 of the game's 3,267 functions (94.2%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,080 of the game's 3,267 functions (94.3%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,079 | 616,696 |
-| Attempted, not yet matching | 188 | 234,157 |
+| Matched byte-for-byte | 3,080 | 618,570 |
+| Attempted, not yet matching | 187 | 232,283 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 680 of 703 | 96.3% | 6,628 | `##########` |
 | xl (401 to 600 bytes) | 199 of 226 | 87.7% | 13,587 | `#########-` |
 | xxl (601 to 1,000 bytes) | 142 of 195 | 72.6% | 40,277 | `#######---` |
-| huge (over 1,000 bytes) | 79 of 161 | 40.7% | 173,319 | `####------` |
+| huge (over 1,000 bytes) | 80 of 161 | 41.3% | 171,445 | `####------` |
 
 ### By area
 
@@ -53,7 +53,7 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x410000` | Orders and VTOL states | 213 of 222 | 78.0% | 14,015 | `########--` |
 | `0x420000` | Frontend shell | 146 of 154 | 69.5% | 19,401 | `#######---` |
 | `0x430000` | Maps, missions, briefings | 211 of 228 | 65.8% | 20,624 | `#######---` |
-| `0x440000` | Multiplayer setup | 238 of 246 | 69.7% | 18,628 | `#######---` |
+| `0x440000` | Multiplayer setup | 239 of 246 | 72.7% | 16,754 | `#######---` |
 | `0x450000` | Options and audio menus | 162 of 176 | 67.6% | 20,463 | `#######---` |
 | `0x460000` | Game and skirmish setup, unit classes | 198 of 212 | 62.6% | 23,020 | `######----` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 239 of 259 | 74.2% | 16,391 | `#######---` |

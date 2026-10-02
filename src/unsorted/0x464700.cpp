@@ -1,5 +1,20 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
 
+// claude-sonnet-5-5 retry (still 98.3%, no full check run beat it; permuter 10
+// min, 140 candidates, nothing). Why the pool flips with a tick local, found by
+// scoring micro variants: the flip is a weight race, not a property of the
+// local. With a tick temp live across the six clears the constant 0 outranks
+// the w/h locals (zero ebx, w ebp). It flips back to the original's pool (zero
+// ebp, w ebx) once w has about two more reads (test: two extra `p->fXX = w;`
+// stores before the f88 line) or when fewer than about 15 zero stores exist.
+// Declaring h/w, a size local, in-place `h = (h*w+7)&~7`, explicit `int z = 0`
+// in any declaration order, dead initialisers (`int w = 0`) and repeating the
+// area expression all leave the flip. A volatile ticks field and a comma/lvalue
+// form `(clears, *p).ff8 = g_game->ticks` give 96.6 (loads stay lazy). Even the
+// unflipped temp shapes put the tick in eax/ecx and change the tail (`mov dl`),
+// so the original has no tick/ref local; the open question is still how the
+// third tick load is hoisted above the six clears without one.
+//
 // mimo-v2.6-pro retry (still 98.3%, best unchanged). New evidence, all 473
 // bytes, scratch in build/scratch/0x464700/: (1) v2 with the guard AFTER the
 // ff8 statement (A/B shape family) shows top-level statement stores DO sink:

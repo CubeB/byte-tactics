@@ -1,82 +1,49 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and GPT-6.1-sol, finished by space-bunny-free. Names are provisional.
-// Fourth pass (space-bunny-free): 91.4% as reported by check.py, 94.1% by a
-// true instruction LCS (88/102 -> 96/102 of the original's instructions).
-// The inherited 85.0% draft was kept for three earlier passes by two models.
+// MATCH (deepseek-v4.1-flash, #4241). 300 bytes, byte for byte the original.
 //
-// WHAT CHANGED AND WHY. The inherited draft put a redundant self-correction
-// (`if (visible) visible = 1; else visible = 0;`) at the END of the FIRST arm.
-// That self-correction is what kept the prologue byte identical: without any
-// self-correction anywhere, MSVC 5 drops to 67.3% and rotates the whole
-// prologue (g_game out of ebx into edi, this->x and this->y swap between
-// bp/bx and bp/di). But inside the first arm the self-correction compiles to
-// `xor eax,eax / cmp / setne al / mov edx,eax`, which forced MSVC to keep the
-// arm's boolean in eax and so to pick ebp for the fog-map base pointer. The
-// original needs eax free at that point (it reuses the dead row register for
-// the base pointer), so the boolean must not live in eax.
+// The inherited version was 91.4% with six instructions off in two places:
+// the fog arm's cell address picked edi for the map pointer (the original
+// reuses the dead row register for it), and the second arm carried a redundant
+// `bool` self-correction whose only purpose was to pin the register
+// allocation. Two independent changes fixed both, and they are the answer to
+// the "allocator-only" wall this family (0x473590, 0x474170, 0x4745e0,
+// 0x474b80) has been stuck on.
 //
-// Moving the self-correction OUT of the first arm and into the second, and
-// spelling it through a `bool` temporary, gives the first arm the branchy
-// `&&` shape the original has (three conditional jumps to one shared
-// `xor eax,eax` fail block, then `mov eax,1 / jmp`), keeps the prologue byte
-// identical, and leaves the second arm byte identical too.
+// 1. The fog arm is a ByteMap::Get inline. `{data at +0x7c, size at +0x80}`
+//    with `unsigned char Get(int x, int y) { return data[size.width * y + x]; }`
+//    (the same inline as 0x407f74, 0x465b6a and 0x475470) compiles to the
+//    original's four instructions exactly: the width load, the imul into edx,
+//    the data pointer loaded into the register the multiply just freed, then
+//    the col add with col as the index. Spelling the same lookup as
+//    `p->fogMap[q->size.width * row + col]` always folds the data pointer into
+//    the add instead, which is what the 91.4% draft showed.
 //
-//   Measured on top of this version, all worse: the self-correction spelled
-//   `if (visible) visible = 1; else visible = 0;` in the second arm (309 bytes,
-//   87.5%), `visible = !!visible` (309, 87.5%), `visible = (visible != 0)`
-//   (309, 87.5%), `if (!visible) visible = 0` (302, 85.9%), a reversed index
-//   `col + width*row` (309, 87.5%), a fog pointer local in the first arm
-//   (315, 46.7%), `*(q->fogMap + width*row + col)` (323, 46.9%), the pinning in
-//   BOTH arms (320, 37.6%), swapping which of the two player pointers is used
-//   for the bounds test and for the index (296, 67.3%), declaring col/row at
-//   function scope (296, 67.3%), a `MapSize` struct copy (292, 43.8%), and an
-//   index local `int cell`/`unsigned int cell` in the first arm (no change at
-//   all: MSVC 5 scalar-replaces it, byte for byte the same output), grouping
-//   the fog map pointer and the size into one `Fog { unsigned char* map;
-//   MapSize size; }` at Player+0x7c and reading both out of it (314 bytes,
-//   91.4%, byte for byte the same output), taking the index from `q` rather
-//   than `p` (91.4%, identical output), and moving the self-correction inside
-//   the second arm's `else` arm (305 bytes, 61.2%, the prologue rotates).
+// 2. The mask arm is an inline `IsSeen(p, q, col, row)` helper wrapped in a
+//    trivial inline `Identity(v) { return v; }`, and the wrap is the
+//    allocation lever: it pins the prologue, the pre-branch block and the call
+//    block without emitting a single extra instruction, so the second arm
+//    keeps the original's `neg eax / sbb eax,eax / neg eax` tail instead of
+//    the self-correction's six extra instructions. Two details are load
+//    bearing:
+//      * the Contains test reads through `p` and the index through `q`, two
+//        separate player pointers. With one pointer the width load folds into
+//        the imul (`imul eax, [esi+0x80]`) and the arm loses the original's
+//        `mov edx, [esi+0x80] / imul edx, eax` pair; two parameters give the
+//        compiler two address nodes and it materialises the load.
+//      * the helper must contain the whole arm (Contains test included) and be
+//        called through Identity. IsSeen alone, Identity around an inline
+//        expression, or Identity around only the mask test all rotate the
+//        prologue (67.7 to 70.3 percent).
 //
-// So none of the ways of re-spelling the first arm's cell address changes its
-// four instructions: with `q->size.width * row + col` as the index,
-// `col + q->size.width * row` as the index, or `p` instead of `q` for the base,
-// MSVC 5 picks the same three instructions every time. Only a construct that
-// makes the map pointer and the index two separately live values would change
-// it, and none of the index locals I tried is one.
-//
-// NOT A MATCH: 91.4% as check.py reports it (300-byte original, ours 314),
-// re-verified with tools/check.py. Only 6 of the original's 102 instructions
-// are still not matched, and they are in exactly two places:
-//
-//   1. First arm, the cell address (ours -> original):
-//        mov edi, [esi+0x7c]        ;  imul edx, eax
-//        imul edx, eax              ;  mov eax, [esi+0x7c]
-//        add edx, edi               ;  add edx, ecx
-//        cmp byte [edx+ecx], 0      ;  cmp byte [edx+eax], 0
-//      Ours adds the map POINTER into the index and leaves col as the
-//      addressing-mode displacement; the original adds col into the index and
-//      puts the map pointer in the register the multiply just freed. The whole
-//      first arm above these four instructions, and everything else in the
-//      function, is byte identical, so this is a register-choice difference in
-//      one four-instruction window, not a structural one.
-//
-//   2. Second arm, the self-correction tail we still have to keep for the
-//      allocation (ours -> original):
-//        xor ecx, ecx               ;  (nothing)
-//        test eax, eax              ;
-//        setne cl                   ;
-//        xor eax, eax               ;
-//        test cl, cl                ;
-//        setne al                   ;
-//      The original has no instructions there at all: its second arm's value
-//      arrives in eax already normalised by `neg eax / sbb eax,eax / neg eax`.
-//      The self-correction is only in the source because removing it rotates
-//      the prologue; every cheaper spelling tried above either rotates the
-//      prologue too or lands at 87.5%.
-//
-// The blocker is the same register-allocation wall the siblings hit (0x473590
-// 84.0, 0x474170 85.4, 0x474b80 84.6, 0x4745e0 79.8), but it is now only 6
-// instructions wide and both remaining spots are named above.
+// Measured and rejected on the way: `visible &= 1` as a second-arm tail
+// (96.6 percent, one extra `and eax,1`), the same self-correction spelled as
+// `!!visible`, `visible ? 1 : 0`, `(bool)visible` or an if/else (87 to 90),
+// `add_self`/`++visible` (96.6 but semantically wrong), 128 header sets on
+// both the plain and the helper body (flat, so this is not compiler state),
+// w/m locals as in 0x4745e0 (45 to 68), a Visible() method with early returns
+// (67.7), Identity's parameter type, the rect statement order, and every
+// no-op unary spelling of the tail (all folded, all left the prologue
+// rotated).
 #pragma pack(push, 1)
 
 struct Rect_004b0510 {
@@ -96,10 +63,16 @@ struct MapSize_00473a00 {
     }
 };
 
+struct ByteMap_00473a00 {
+    unsigned char* data;             // +0x0
+    MapSize_00473a00 size;           // +0x4
+
+    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
+};
+
 struct Player_00473a00 {
     char unknown_0[0x7c];
-    unsigned char* fogMap;           // +0x7c
-    MapSize_00473a00 size;           // +0x80
+    ByteMap_00473a00 explored;       // +0x7c
     char unknown_88[0x14b - 0x88];   // stride 331
 };
 
@@ -113,6 +86,21 @@ struct Game_00473a00 {
     char unknown_14277[0x14281 - 0x14277];
     unsigned char flags;             // +0x14281, bit 1 (mask 2)
 };
+
+extern Game_00473a00* g_game;
+
+static inline int Identity_00473a00(int v) { return v; }
+
+// The second arm, inlined. The two player parameters are not a typo: the
+// Contains test through `p` and the width in the index through `q` are what
+// stop the index from folding into the imul.
+static inline int IsSeen_00473a00(Player_00473a00* p, Player_00473a00* q, int col, int row)
+{
+    if (!p->explored.size.Contains((unsigned int)col, (unsigned int)row))
+        return 0;
+    return (g_game->visibilityMask[q->explored.size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
 
 class Class_00473a00 {
 public:
@@ -129,8 +117,6 @@ public:
     void FUN_00473a00(int param_1, short x, short y);
 };
 #pragma pack(pop)
-
-extern Game_00473a00* g_game;
 
 void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
 
@@ -153,29 +139,12 @@ void Class_00473a00::FUN_00473a00(int param_1, short x, short y)
     if ((g_game->flags & 2) == 2) {
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
-        visible = ((unsigned int)col < p->size.width &&
-                   (unsigned int)row < p->size.height) &&
-                  p->fogMap[q->size.width * row + col] != 0;
+        visible = p->explored.size.Contains((unsigned int)col, (unsigned int)row) &&
+                  p->explored.Get(col, row) != 0;
     } else {
         int col = this->x >> 5;
         int row = (this->y - (this->height >> 1)) >> 5;
-        if (!p->size.Contains((unsigned int)col, (unsigned int)row))
-            visible = 0;
-        else
-            visible = (g_game->visibilityMask[q->size.width * row + col] &
-                       (1 << g_game->playerIndex)) != 0;
-        // A redundant self-correction, and a real one: the original's boolean
-        // here is a `mov reg,1` / `xor reg,reg` pair rather than a `setcc`, and
-        // this is what pins the register allocation of the whole function.
-        // Remove it and the prologue rotates (67.3%). Every cheaper spelling
-        // of it costs bytes in the second arm's tail.
-        {
-            bool b = visible;
-            if (b)
-                visible = 1;
-            else
-                visible = 0;
-        }
+        visible = Identity_00473a00(IsSeen_00473a00(p, q, col, row));
     }
 
     if (visible)

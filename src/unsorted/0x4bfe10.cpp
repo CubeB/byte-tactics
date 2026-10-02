@@ -1,4 +1,61 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free and claude-opus-5-5, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash. Names are provisional.
+//
+// space-bunny-free retry (#4469): reconfirmed 74.9 percent (265/267), no MATCH. The
+// score is decided by WHICH Surface field sits in the locked arm's multiply, not by
+// its value. Four shape classes; for each, all six orders of the three addends and
+// the parenthesised, unsigned, long and pointer spellings give the same object:
+//   mul by pitch (+8),  addend pixels (+0xc)   74.9%  265 bytes  <- the correct value
+//   mul by pitch,       addend pitch           93.3%  262 bytes  (C1 folds x*p + p)
+//   mul by pixels,      addend pitch           94.9%  267 bytes  <- best score, right size
+//   mul by pixels,      addend pixels          92.3%  264 bytes
+// The 94.9% shape (dst = `r.top * (int)screen.pixels + r.left + (int)screen.pitch`) is
+// the closest to the original found so far: its size is the original's 267 bytes and
+// EVERY instruction outside the locked arm's dst matches, the whole else arm included.
+// So the frame, the rect copy, the clip/unlock calls, the locked-screen path, the tail
+// and the else arm are settled; only the locked arm's dst arithmetic is open. What is
+// left in it, against the original:
+//  (1) the multiply accumulates in the register that already holds r.top
+//      (`imul eax,edx`, eax = top, loaded early); ours accumulates in the register
+//      that holds the pitch (`imul eax,ecx`, eax = pitch, loaded late), which forces
+//      `push pitch` BEFORE the imul where the original pushes it after;
+//  (2) the original loads screen.pixels into edx and adds it as a register
+//      (`mov edx,[esp+0x34]; add eax,edx`); we fold the load into the add
+//      (`add eax,[esp+0x34]`). That is exactly the 2-byte size difference, and it
+//      means the original's pixels NT is not a single-use fusable load;
+//  (3) the two adds come out (left, pixels) in the original and (pixels, left) in
+//      ours, although both spellings give one and the same tree.
+// The original's order is C1's plain right-to-left argument walk with nothing moved
+// (table, bottom, top, right, left, pitch, pixels); MSVC hoists our two height loads
+// above the table load. Changing the shape of the dst (which field is in the multiply)
+// flips the allocation of the WHOLE function, else arm included, so the original's
+// allocation is reachable from the source, but only through the four classes above
+// and none of them computes the right value. Both the target allocation and the
+// unfused pixels load appear together in every wrong-value shape that reaches them.
+// New negative results this retry, ~110 spellings, all 74.9% and byte-identical to the
+// retained source unless stated: the pointer forms `(int)(screen.pixels + ...)` and
+// `(int)((unsigned char*)screen.pixels + r.top * screen.pitch) + r.left`; the callee's
+// first parameter typed unsigned char*/char*/void* with a pointer expression and
+// unsigned short* (wrong code); `screen.pixels[r.top * screen.pitch + r.left]`
+// (77.2% but 270 bytes: it reads the dst as a char, so not kept); unsigned/long casts
+// on every term, unsigned Rect fields, an unsigned pitch, an int-typed pixels field
+// (so no cast at all); neutral wrappers (1*x, x*1, 0+x, x+0, x-0, x*1/1, ~~x);
+// fold-blocking forms x*(p+px-px), (x*p+l)*1+px, x*p+l+px+0*x*p, x*p+l+(px^0);
+// correct-semantics forms that repeat an addend so C1 could share its NT
+// (px+px-px, px+0*x, x*p+l+px+p-p, x*p-p+l+px+p, (x+1)*p+l+px-p, (x-1)*p+l+px+p,
+// x*p+p+l+px-p): C1 folds all of them before the load-fusing decision, so the pixels
+// load stays fused; locals for the pitch, pixels, table, w, h, dst, a Surface* and a
+// Rect* inside the locked arm, including all five arguments precomputed into
+// register locals (74.9, identical object), dst as a local 65.7, pitch 67.3, pixels
+// 63.3, table 71.8, h or w 67.0-67.7; and the `1 *`/`+ 0`/`* 1` no-op forms on every
+// term. A permuter run (--minutes 12 --stall 8 --jobs 4) stopped on the stall with an
+// empty best.diff: no gain over 74.9%. Swapping the two arms' destination spellings,
+// and reading every argument through a Rect* or Game* local, are also 74.9%.
+// 30-minute checkpoint (space-bunny-free #4469): best is still the retained source at
+// 74.9%; the x1 shape (94.9%, wrong value) is recorded above as a probe, not kept.
+// Next lead: the original does not fuse the pixels load, so find a value-preserving
+// source where screen.pixels is read twice in the locked arm (or where the addend is
+// a register NT), since every way of doing that tried here is folded away first.
+
 // claude-opus-5-5 (#4406): still 74.9%. The screen-branch destination adds screen.pixels
 // from memory where the original loads it into edx first; every operand order, char*
 // pointer arithmetic and a shared inline Shade(Surface*, Rect*, Game*) helper compile

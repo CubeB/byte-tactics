@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
 // Retry #2441: GPT-6.1-sol rechecked the saved source (98.7%, no MATCH) and
 // ran headers.py across all 128 common header sets; none changed the score.
 // GPT-6.1-sol retry #1952: 10 checks kept 98.7%. Header sets, an inline byte-returning helper, and pointer-index spelling tied; int value scored 64.4%, bool state 31.7%.
@@ -234,6 +234,73 @@
 // Also confirmed the compare sub eax,0 is not the lever: it sits after the
 // flushed stores in every pinned variant and before them in every sunk one,
 // so fixing the sink fixes the compare position too.
+//
+// Appended by Space Bunny Free. Still 98.7%, 430 of 430 bytes, and the
+// residual is still only the four-instruction permutation of the loop head.
+// This pass bought measurements instead of a match, and they narrow the
+// search:
+//  - the emitted loop head does not depend on the source order of the three
+//    stores at all. More than twenty spellings of the head (the read fused
+//    with the advance, the read split, every relative order of the history
+//    store, the pointer advance and the value store, the value store chained
+//    into the history store, the history store folded into the pointer
+//    advance with a comma, each store alone in a nested block, a
+//    `do {} while (0)` block, a `goto` to a label just before the switch, a
+//    `;` expression statement, an `if (0) { }` after them) all compile to
+//    the identical block `p store, state load, sub eax,0, value store,
+//    history store, je`. So the block is decided by the backend, not by
+//    statement shape, and the flush order is canonical (value store, then
+//    history store): with a third trailing store added as a probe
+//    (`DAT_0051fdb0 = 0`, five extra bytes) the flush follows the source
+//    order instead, so the fixed order only shows up for the two stores the
+//    original block actually has.
+//  - the sink is an aliasing effect, confirmed on a fresh pair of micro
+//    models in build/scratch/0x4ba000/sci1.cpp. In t1, where the history
+//    store is a global array store with a variable index and the state and
+//    the value are plain frame locals, the store is delayed past the switch
+//    dispatch. In t4, where the same store goes into a local struct that also
+//    holds the state and the value, it is not delayed and the state load
+//    follows it. Nothing else differs, so what stops the delay is exactly
+//    the may-alias relation between the history store and a later access.
+//    This function has no such pair: after the history store the only
+//    accesses in the block are the pointer store, the state load and the
+//    value store, three distinct frame slots, and MSVC 5 does not confuse a
+//    global plus a register index with the frame. That is why the original's
+//    order looks unreachable from any flat spelling.
+//  - three ways of giving a local an escaped address do NOT create the
+//    hazard the struct does: taking `&p`, `&value` and `&state` and passing
+//    each to a declared function inside `if (0) { }` leaves the block in the
+//    sunk form (with `&state` taken the switch test moves into ecx and it
+//    still sinks), and handing `&value` to an inline function as a local
+//    pointer folds back to the direct store. So the refinement that matters
+//    here is not address-taken-ness.
+//  - the guide's "a nested store is not sunk" rule does not fire for the
+//    shapes available here: an inline helper that takes the byte by value and
+//    does both stores, called both as a statement and with its result
+//    assigned to p, still emits the identical sunk block. Only the shape the
+//    earlier notes describe, where the helper reads through the pointer and
+//    returns the bumped pointer, moves the store positions, and it costs the
+//    register allocation.
+//  - the dispatch has to be a real `switch`: an `if (state == 0) ... else if
+//    (state == 1) ...` chain compiles to `test eax,eax; jne; cmp eax,1; jne`
+//    (build/scratch/0x4ba000/sci2.cpp, w1 against w2), not to the original's
+//    `sub eax,0; je; dec eax; je`.
+//  - it is not a toolchain build difference: the unpatched compiler
+//    (BT_TOOLCHAIN=msvc5-rtm) emits the same sunk block as msvc5-sp3.
+//  - permute.py over 25 minutes with 8 jobs found nothing better than 98.7%.
+//
+// What I would try next, in order. (1) The pointer store is the one store in
+// this block that is never delayed, in any of those spellings, so if the
+// original's history store was flushed at the pointer store then that store
+// has to be reachable by an address MSVC 5 cannot tie to the frame, which
+// the emitted `mov [esp+0x1c], eax` does not show. (2) The value store then
+// also has to be unpinned, since the original has it in place between the
+// hoisted state load and the dispatch, and it is the only store in the block
+// whose slot is a dedicated frame slot rather than a dead parameter slot.
+// (3) Breaking the flush group with another memory op is dead: the probe
+//    above shows a third global store joins the same group. The only memory
+//    ops MSVC 5 cannot delete are global stores, and each one costs bytes,
+//    so this route is closed.
 
 extern unsigned char DAT_0051fcaf[];
 extern unsigned char DAT_0051fcb0[];

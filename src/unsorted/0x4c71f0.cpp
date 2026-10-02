@@ -1,4 +1,75 @@
 // Decompiled by DeepSeek V4.1 Flash and space-bunny-free, finished by deepseek-v4.1-flash and space-bunny-free, edited by deepseek-v4.1, finished by GPT-6.1-sol. Names are provisional.
+//
+// space-bunny-free pass (#4488): still 80.0%, 280 bytes (exact size), no MATCH;
+// the body below is unchanged and remains the best. About 2700 fresh shapes
+// were scored with a local harness in build/scratch/0x4c71f0/ (harness.py scores six
+// variants at a time, 0.3 s each; cb.py prints the four case blocks beside the
+// original's; dump.py, mdump.py; generators gen.py..gen6.py, micro.cpp, micro2.cpp).
+// Nothing moved either hunk, but two new facts change what is worth trying next.
+//   * The original's case-1 SCHEDULE is reachable; only the at_high load is
+//     wrong. Give case 1's FIRST argument a global load instead of the stack
+//     parameter (`+DAT_0051fe40`, or `Id(DAT_0051fe40)`) and case 1 becomes
+//         mov esi,[esp+0x14]; mov edx,[esp+0x18]; sub ecx,eax; mov [esi],edx;
+//         mov edx,[G]; push edx; push ecx; push edx; call
+//     which is the original's order instruction for instruction (store first,
+//     global loaded at its argument, arg1 pushed last) with at_high's own load
+//     missing and the global in edx instead of eax. The reason it stops being
+//     hoisted is aliasing: a global load may not cross `mov [esi],edx`, a
+//     stack-parameter load may. So the original's late `mov ecx,[esp+0x24]`
+//     means cl5 did not treat the parameter slot as clobbered by the store
+//     through `out`, and nothing tried here makes it: `&at_high` in an inlined
+//     `Id(int&)`, a `const int&` parameter, `Ignore(&at_high)` (an inlined
+//     no-op that still takes the address), `*(int*)&at_high` and
+//     `*(volatile int*)&at_high` are all byte-identical to the body below.
+//     A micro testbed (micro2.cpp) shows the same for every store target type:
+//     Range*, int*, char*, void*, short*, `R&`, `R*`, `R[1]` all hoist the
+//     arg1 stack load above the store. Only `R** out` stops it, and that needs
+//     an extra `mov eax,[esi]`, so it cannot be spelled here.
+//   * The switch's allocation is decided for the WHOLE switch, not per case:
+//     that same global-as-arg1 change also moves case 2 (its at_low load goes
+//     to the arg1 position in eax instead of into ecx after `push ecx`). So
+//     perturbing one case's argument expression is a real lever on the other
+//     case's block, which is why the two hunks always move together.
+//   * Also measured, all 80.0% and byte-identical to the body below, so do not
+//     retry: `Identity`/`Id`/`Cid`/`Val`/`CVal` wrappers on each argument, on
+//     the store value and on the call result (cl5 folds every one of them);
+//     unary `+`, `*&`, `(int)` casts and `*(int*)&x` on every argument and on
+//     both store values; forwarders `Rev(c,b,a)`, `Rev` with locals or a dead
+//     `+ 0` or a dead `if`, `Step(d,h,g)`, `Fwd`, `Mix(a,b)`, `Sub2(a,b)`,
+//     `Ld(int*)`, in case 1 and case 2; `int g = DAT_0051fe40;` and
+//     `int h = at_high;` and `int d = size - offset;` after the store in every
+//     order and braced or not (the micro's version of the `g` local DOES put
+//     the global in eax, but the micro is not faithful: it reloads `size` from
+//     the stack for `size - off`, while here both are already in registers);
+//     `Ignore()` address probes on at_high, at_low, size, offset, out and
+//     out->low; case 2 with the statements swapped (77.8%), braced with a
+//     result local, with `+at_low`, with a local `h = at_high`, with `Fwd`, and
+//     with `DAT_0051fe40` as arg3; six loop wordings (`for`, `do`/`while`, the
+//     reversed and the negated condition, a `goto` and `while (1)` with a
+//     `break`) which are byte-identical or worse.
+//   * Next attempt: the trigger is that cl5 may not cross the store with the
+//     at_high load, so look for a way to make the frame slot look reachable
+//     from `out` (a struct type whose field overlaps, a `Chunk`-style cast of
+//     the pointer, an inline helper that stores through a second pointer), or
+//     accept the aliasing reading and find a spelling that puts the global in
+//     eax while the arg1 load stays where the global-as-arg1 experiment leaves
+//     it.
+//   * The strongest negative result of this pass: 2304 more variants in two
+//     knob sweeps (sweep2.py, build/scratch/0x4c71f0/t/) over the case-2 body
+//     (arg1 x arg2 x arg3 x store value x store target x a local for the call
+//     result x braces, 1728 combinations) and the case-1 body (store value x
+//     store target x the three arguments x a local for the result, 576) give
+//     exactly ONE case-2 block and ONE case-1 block between them, both
+//     identical to the body below's. So no spelling of the two failing bodies
+//     can move them: the schedule is fixed by something structural above them.
+//     A goto-shaped loop (test at the bottom, two entry points, gen8.py) is the
+//     only structural rewrite that changed the switch at all, and it merges the
+//     arms (48.9%). Six other loop wordings and an inline helper owning the
+//     whole switch (three parameter orders) are byte-identical.
+//   * Harness left behind: build/scratch/0x4c71f0/{harness,cb,dump,mdump}.py,
+//     sweep.py, sweep2.py, gen.py..gen9.py, micro.cpp, micro2.cpp, micro3.cpp
+//     and the g_/h_/p_/q_/r_/b_/w_/y_/z_/t_ variant files.
+//
 // space-bunny-free pass: still 80.0%, 280 bytes (exact size, no MATCH). About 130
 // fresh source shapes were measured with a local harness kept in
 // build/scratch/0x4c71f0/ (fast.py scores variants six at a time, blocks.py prints

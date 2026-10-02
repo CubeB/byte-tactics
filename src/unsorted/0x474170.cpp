@@ -1,3 +1,9 @@
+// SPACE-BUNNY-FREE, ninth pass (issue 4241): MATCH, 301 of 301 bytes. This is the
+// 0x473a00/0x473590 recipe applied to this sibling: the fog arm drops both arm
+// locals and reads the fog map through two player pointers, and the mask arm is
+// Identity(IsSeen(p, p2, col, row)) with the helper holding the whole arm. The
+// variant was verified by the 0x473590 worker in build/scratch/0x473590/ and is
+// promoted here unchanged.
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, third pass by space-bunny-free, finished by GPT-6.1-sol. Names are provisional.
 // GPT-6.1-sol retry pass: best remains 85.4% (307/301 bytes). Explicit nested
 // fog checks and scoped row-index locals scored lower; no MATCH. Remaining gap
@@ -122,6 +128,55 @@
 // So this pass reproduces the earlier conclusion independently: the only source
 // shape that holds the pre-block is the pair of live arm locals, and MSVC 5 can
 // only spill a named local, never rematerialise it. 85.4 percent stays.
+//
+// DEEPSEEK-V4.1-FLASH, sixth pass (60 minute timebox, ~90 scratch scorings on
+// top of the file's own history, no code change: 85.4 percent remains best).
+// The one genuinely new lever is that the pre-block pin is NOT specific to the
+// `seen`/`w` locals: a 16-bit value live across the arm's Contains test pins
+// it too. Measured with check.py --sym on scratch copies in build/scratch/0x474170:
+//   * mask arm `unsigned short cell = g_game->visibilityMask[map->size.width *
+//     row + col];` then `if (cell & (1 << playerIndex))`: 74.5 [307]. The
+//     prologue, pre-block, branch AND the fog arm's first width load come out
+//     byte-identical to the original. What still differs is that MSVC hoists
+//     the cell load above the bounds test and the fog index then folds to
+//     `imul ecx,[edx+0x80]` because ebx is free.
+//   * the same pin in the fog arm: 70.1 [311]; in both arms: 70.1 [311].
+//   * the pin needs the 16-bit width: `unsigned char cell` is 39.4 [288],
+//     `int cell` 42.0 [308] (fog) and 53.2 [315] (mask), `MapSize* sz =
+//     &map->size` 37.3, a `w` used only in the compare 37.3. Only the 16-bit
+//     cell fills the seventh register across the test.
+//   * the pin also needs the Contains inline: spelling the bounds out by hand
+//     in the pinned fog arm drops it from 70.1 to 41.0.
+//   * the ByteMap {data, size} Get() form (the matched 0x407e90 idiom) gives
+//     the original's width materialisation `mov ebx,[edx+0x80]; imul ebx,ecx`
+//     in the fog arm but computes the address as data + (width*row + col)
+//     (`mov edx,[edx+0x7c]; add ebx,edi; cmp [ebx+edx]`) where the original
+//     folds the pointer (`add ebx,[edx+0x7c]; cmp [ebx+edi]`). With the mask
+//     cell pin it is 75.8 [311], the best non-85.4 shape; with a free mask arm
+//     46.4 [291].
+//   * combining the cell pin with the seen/w locals is worse (43.9 to 85.4),
+//     and the 0x473a00 self-correction (bool b = visible; if (b) ...) is 19.8
+//     to 30.4 here, so that sibling's lever does not transfer.
+//   * compiler symbol state is not the missing piece: 0..520 pad declarations
+//     (step 5) leave the local-free body flat at 39.6 and the pinned body flat
+//     at 85.4.
+//   * also re-measured dead: index operand orders (rw / col+w*row / row*w+col
+//     are all byte-identical on the cell-pinned shape), declaration orders
+//     (seen first 84.0, w first 81.2, mask w first 34.5/39.0), two pointers
+//     computed from g_game inside the arms (25.5), `unsigned short* m` mask
+//     pointer (28.7), a height local (38.6/38.8), short-circuit cell
+//     assignments (39.6), no-op self-assignments (30.1 to 39.6), inline
+//     IsSeen/IsVisible helpers (25.5/39.6), a flags/fog local before the map
+//     (all 39.6), spelled-out Contains in either arm (33.2 to 41.0; the
+//     inline Contains is load-bearing), index locals (37.1 to 45.9), the
+//     header moved inside `if (visible)` (13.9/33.5), and `q->x` vs `pos.x`
+//     per arm (17.3 to 20.3).
+// NEXT ATTEMPT'S BEST LEAD: the pin only needs a 16-bit live value at the
+// test, so find a spelling whose cell read is placed AFTER the bounds check
+// yet still live across it, or accept the cell hoist and find what makes MSVC
+// materialise the width in the fog arm (`mov ebx,[edx+0x80]; imul ebx,ecx`)
+// instead of folding it. The two goals meet in the ByteMap Get() fog arm,
+// which already has the right materialisation.
 #include <stddef.h>
 
 void* __stdcall FUN_004b7f30(void* a, int b);
@@ -177,38 +232,39 @@ public:
 
 extern Game_00473590* g_game;
 
+static inline int Identity_00474170(int v) { return v; }
+
+static inline int IsSeen_00474170(Player_00473590* p, Player_00473590* q, int col, int row)
+{
+    if (!p->size.Contains(col, row))
+        return 0;
+    return (g_game->visibilityMask[q->size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
 // FUNCTION: 0x474170
 void Class_00474170::FUN_00474170(void* dest, short px, short py)
 {
-    // The header reads the position through the pointer, the arms read the
-    // member: two different expression trees, so MSVC keeps both load nodes and
-    // re-reads the three shorts per arm instead of sharing the header's.
     Pos_00473590* q = &pos;
     short sx = q->x - px + 0x80;
     short sy = q->y - (q->h >> 1) - py + 0x20;
-    Player_00473590* map = &g_game->players[g_game->playerIndex];
+    Player_00473590* p = &g_game->players[g_game->playerIndex];
+    Player_00473590* p2 = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->fogFlags & 2) == 2) {
         int col = pos.x >> 5;
         int row = (pos.y - (pos.h >> 1)) >> 5;
-        // `seen` and `w` are the arm pressure that keeps the pre-branch
-        // allocation on the original's registers; both are spilled, see above.
-        unsigned char* seen = map->seen;
-        unsigned int w = map->size.width;
-        if (map->size.Contains(col, row) && seen[w * row + col] != 0)
+        if (p->size.Contains(col, row) &&
+            p->seen[p2->size.width * row + col] != 0)
             visible = 1;
         else
             visible = 0;
     } else {
         int col = pos.x >> 5;
         int row = (pos.y - (pos.h >> 1)) >> 5;
-        unsigned int w = map->size.width;
-        if (!map->size.Contains(col, row))
-            visible = 0;
-        else
-            visible = (g_game->visibilityMask[w * row + col] &
-                       (1 << g_game->playerIndex)) != 0;
+        visible = Identity_00474170(IsSeen_00474170(p, p2, col, row));
     }
     if (visible)
         FUN_004b8500(dest, FUN_004b7f30(data, field_2c), sx, sy);
 }
+

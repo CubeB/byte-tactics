@@ -1,67 +1,57 @@
 // Decompiled by space-bunny-free, finished by LongCat 2.5 Preview Free,
 // GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
-// mimo-v2.6-pro (retry after deepseek-v4.1-flash): 96.6 percent (312 of 306
-// bytes), up from 79.8. NOT A MATCH: the single remaining code difference is
-// one instruction, `and edx, 0xff` (the pin, see below), plus the two short
-// jmp offsets in arm A that shift because of it. Everything else is now
-// byte-identical: prologue, rect, pre-branch, both arms' compare chains, the
-// fog arm's whole body (width rematerialised into the dying player-pointer
-// register, mask loaded after the imul into the dead row register, cell
-// zero-extended through di then copied to edx), the fail blocks (one per arm,
-// not tail merged), the phi in edx (`mov edx,1` / `xor edx,edx` in arm A), and
-// the whole call sequence (edx=colour, eax=&rect, ecx=surface).
+// MATCH (306 of 306 bytes, both references resolved).
 //
-// THE TWO LEVERS THAT FIXED IT (both from the sibling 0x473a00's notes):
-//   1. `p` and `q`, two spellings of the same `&g_game->players[...]`: the
-//      bounds test reads through `p`, the mask index re-reads
-//      `q->explored.size.width`. That is what makes MSVC rematerialise the
-//      width (`mov edx,[edx+0x80]; imul edx,ecx`) instead of keeping it in a
-//      register (the old w/m shape) or folding it into the imul.
-//   2. A redundant normalisation statement at the end of the else arm,
-//      `visible = (unsigned char)visible;`, pins the whole frame (this -> eax,
-//      player pointer -> edx, playerIndex -> esi, g_game -> edi) and keeps the
-//      phi in edx. Without any pin the frame rotates and the score is 23.1; a
-//      flat 0..1200 extern-int sweep shows the rotation is source-caused, not
-//      compiler state. `visible = !!visible` pins too but emits
-//      `xor ecx,ecx; test; setne cl` (93.7), `(unsigned char)` emits just
-//      `and edx, 0xff` and keeps the phi in edx (96.6). The cast is what a
-//      `unsigned char` or `char` field would do; the original has no such and,
-//      so its pin is still unknown.
+// SPACE-BUNNY-FREE, tenth pass (issue 4299, orchestrator recipe): MATCH. The
+// answer to the wall six models described as the register-allocation wall is the
+// recipe the sibling 0x474b80 of this same issue matched with (and 0x473590 and
+// 0x473a00 before it): no arm carries a map local, the fog arm reads the byte
+// map through the ByteMap `Get()` inline, and the mask arm is a value-returning
+// `static inline IsSeen(p, p2, col, row)` (the Contains test included) whose
+// result goes through the trivial `Identity(v) { return v; }`. Identity is the
+// code-free pin: it emits no instruction, but MSVC 5 allocates what it returns
+// as a fresh live range, which is what holds this -> eax, the player pointer ->
+// edx and the player index -> esi across the pre-branch block, and keeps the
+// phi in edx. Every code-emitting pin tried before it (a redundant
+// `(unsigned char)visible`, 96.6 percent / 312 bytes) emitted the 6-byte
+// `and edx, 0xff` the original does not have, which was the whole residual.
+//   * Two player pointers, p and p2, both `&g_game->players[g_game->playerIndex]`:
+//     the bounds test reads p, the mask index re-reads the width through p2. One
+//     pointer folds one of the two width loads the original has.
+//   * The fog arm keeps no `seen` / `w` local and reads through
+//     `ByteMap::Get(x, y) { return data[size.width * y + x]; }` (data at +0x7c,
+//     size at +0x80), because this original materialises the fog pointer into a
+//     register (`mov edx,[edx+0x7c]; imul edi,ecx; add edi,esi; cmp byte
+//     [edi+edx],0`). Where an original folds the pointer into the add, as
+//     0x473590 does, the flat `p->explored.data[p2->...width*row+col]` index is
+//     the right spelling instead; check the disassembly before choosing.
+//   * `Contains` takes `(int col, int row)` and casts inside, as at 0x474b80.
+//   * The visibility code stays inside a `Pos_004745e0::Visible()` member. That
+//     boundary is load bearing: inlined into the draw function instead, MSVC
+//     CSEs the arms' `pos.x` / `pos.y` loads against the header's (the header
+//     does its 16-bit arithmetic through `short sx` / `short sy`), so the arms
+//     reuse hoisted registers and no longer re-read the three shorts the way
+//     the original does. That inline shape scores 18.9 percent, and it is also
+//     why the sibling's header goes through a `Pos* q` local.
 //
-// mimo-v2.6-pro (continuation): confirmed the `and` is structurally required to
-// pin this->eax, and every spelling that keeps the frame emits it. Sweep of the
-// pin at the end of arm B, all 96.6 and all emitting the same 6-byte
-// `and edx, 0xff`: `visible & 0xff`, `visible &= 0xff`, `(unsigned char)(short)`,
-// a used `unsigned char t` temp, `(int)(unsigned char)`, a union/struct byte
-// read at the arm-B tail, and `*(unsigned char*)&visible`. A DEAD byte temp is
-// DSE'd (no and) and the frame rotates (23.1), so the byte value must be USED
-// (feed the test) to pin, and a used byte value always emits the truncation. The
-// natural frame (this->eax) appears without any pin only in the w/m early-return
-// shape (cur, 79.8), which merges the fail blocks and folds width, i.e. the
-// wrong fog arm. Every no-pin int+if/else structural variant (p/q, p/q/r, extra
-// Game*/dead locals, single p) stays rotated at 23.1. Byte-typed `visible`
-// (unsigned char/char/bool throughout) emits no and but over-pins to al (this
-// moves to edx, 23.1). So the and is the RA perturbation itself and cannot be
-// folded away while keeping the frame: this is the register-allocation wall.
-//
-// STILL DIFFERS: `and edx, 0xff` after arm B's neg/sbb/neg (6 bytes) and the
-// two jmp offsets. Tried and worse: `!!` and `(visible != 0)` tails (93.7),
-// `bool` round trip (92.3), `if/else` self-correction (88.0), raw AND + tail
-// normalisation (91.1, the normalisation becomes a setne), `(bool)` cast
-// (93.2), `(short)` cast (93.6), cast at the return instead of the assignment
-// (23.1), `& 1` / `|= 0` / `+ 0` / `* 1` / unary `+` tails (23-32), the
-// normalisation inside the else or after both arms (23.1), three pointer
-// spellings (23.1), bool visible (23.1), caller shapes (`!= 0`, `!!`, temp
-// local, early return, 23.1 each), three inline arm helpers (41.5), and
-// tools/headers.py (all 128 sets at 93.7 on the !! shape). If the pin could
-// be made to emit nothing, the file would match.
-//
-// SUPERSEDED (79.8 percent era): the mask arm is the ByteMap::Get arm (flags
-// & 2 set) and the fog arm is the visibilityMask arm; the decorated name is
-// `?FUN_004745e0@Class_004745e0@@QAEXPAXFF@Z` so the surface parameter is
-// (void*, short, short); the stride is 0x14b and the flag test is
-// `(flags & 2) == 2`. Do not retry the old w/m/four-local spellings or their
-// 24 declaration orders (all measured dead); they are in git history.
+// WHAT THE EARLIER PASSES HAD MEASURED, kept because it explains the shape:
+//   * The pin is a USE of the phi, not a truncation: `visible = ~0 + visible;`
+//     emits a single `dec edx`, pins the frame identically and still fails at
+//     96.6 percent / 307 bytes, so the original's pin must cost zero bytes.
+//     Every code-free self-use is DSE'd by VC5 before allocation and the frame
+//     rotates to 23.1 percent (`visible = visible`, `^ 0`, `& -1`, `+ 0`, `- 0`,
+//     int/unsigned casts either way, `(visible, visible)`, the self ternary,
+//     `if (visible) { }`, and an identity helper applied to the phi directly).
+//   * The arms' spelling matters as much as the pin: mask-expression respellings
+//     (hoisted word, hoisted bit, hoisted player index, `(1u << ...)`), a bool
+//     Get, an int-parameter Contains, a nested if in arm A, a ternary in arm B,
+//     `visible = 0; if (...) visible = ...`, swapping the arms, hoisting col/row
+//     or the player index into a local, moving Visible() into the outer class,
+//     and the 0x4658e0-style IsExplored/IsSeen helper pair with `unsigned int
+//     vis` all scored 18.9 to 63.0 percent, none of them better than 96.6.
+//   * tools/permute.py over the draw function plus Contains, Get and Visible
+//     (14 minutes, 6 jobs) found nothing above 96.6 percent, so the wall was not
+//     reachable from mutations of the old file.
 #include <stddef.h>
 
 struct Rect_004b0510 {
@@ -76,9 +66,9 @@ struct MapSize_004745e0 {
     unsigned int width;             // +0x80
     unsigned int height;            // +0x84
 
-    int Contains(unsigned int tx, unsigned int ty)
+    int Contains(int col, int row)
     {
-        return tx < width && ty < height;
+        return (unsigned int)col < width && (unsigned int)row < height;
     }
 };
 
@@ -111,6 +101,22 @@ extern Game_004745e0* g_game;
 
 void __stdcall FUN_004bf6f0(void* surface, Rect_004b0510* rect, int color);
 
+// The pin the earlier passes were looking for: a helper that returns its
+// argument. It emits no instruction, but MSVC 5 allocates what it returns as a
+// fresh live range, which is what holds the frame in place. Remove it and the
+// whole frame rotates (see the notes above).
+static inline int Identity_004745e0(int v) { return v; }
+
+// The whole mask arm, the Contains test included; the index re-reads the width
+// through the second pointer, which keeps both of the original's width loads.
+static inline int IsSeen_004745e0(Map_004745e0* p, Map_004745e0* q, int col, int row)
+{
+    if (!p->explored.size.Contains(col, row))
+        return 0;
+    return (g_game->visibilityMask[q->explored.size.width * row + col] &
+            (1 << g_game->playerIndex)) != 0;
+}
+
 #pragma pack(push, 1)
 struct Pos_004745e0 {
     short x;                        // +0
@@ -119,27 +125,27 @@ struct Pos_004745e0 {
     char unknown_6[2];
     short y;                        // +8
 
+    // Is this record's position inside the explored byte map of the local
+    // player (flags bit 1 set), or inside their bit of the shared visibility
+    // mask (bit clear)? The two arms keep their own fail block, as the original
+    // does.
     int Visible()
     {
         Map_004745e0* p = &g_game->players[g_game->playerIndex];
-        Map_004745e0* q = &g_game->players[g_game->playerIndex];
+        Map_004745e0* p2 = &g_game->players[g_game->playerIndex];
         int visible;
         if ((g_game->flags & 2) == 2) {
             int col = x >> 5;
             int row = (y - (height >> 1)) >> 5;
-            if (p->explored.size.Contains((unsigned int)col, (unsigned int)row) &&
-                p->explored.Get(col, row))
+            if (p->explored.size.Contains(col, row) &&
+                p->explored.Get(col, row) != 0)
                 visible = 1;
             else
                 visible = 0;
         } else {
             int col = x >> 5;
             int row = (y - (height >> 1)) >> 5;
-            if (!p->explored.size.Contains((unsigned int)col, (unsigned int)row))
-                visible = 0;
-            else
-                visible = (g_game->visibilityMask[q->explored.size.width * row + col] & (1 << g_game->playerIndex)) != 0;
-            visible = (unsigned char)visible;
+            visible = Identity_004745e0(IsSeen_004745e0(p, p2, col, row));
         }
         return visible;
     }
@@ -157,6 +163,9 @@ public:
     void FUN_004745e0(void* surface, short px, short py);
 };
 
+// Draws the record's one-pixel marker at (surface, px, py) offset by its own
+// position, when that position is visible to the local player. The marker is a
+// 1x1 rectangle centred on the sprite's origin, 0x80/0x20 to the right of it.
 // FUNCTION: 0x4745e0
 void Class_004745e0::FUN_004745e0(void* surface, short px, short py)
 {

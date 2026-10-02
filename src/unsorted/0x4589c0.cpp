@@ -1,4 +1,34 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, finished by deepseek-v4.1-flash, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
+// space-bunny-free: 92.7% (from 75.3%). Three changes: (1) the y projection is
+// computed through a `Fixed` temporary, which keeps MSVC 5 from rewriting the stored
+// value to `(z - ya) << 16` (it does that when the whole expression is one statement,
+// because only the high half is ever read back); (2) the four outer bounds are declared
+// `minX, maxX, minY, maxY`, which is the order MSVC zeroes them in and the order the
+// prologue needs; (3) `surface.bits = this->bitmap->shade;` comes BEFORE the
+// pixels/shade swap, so MSVC loads `this->bitmap` and `this->bitmap->shade` before the
+// two stores and hoists the `lea` of `&surface` early for the second blit, as the
+// original does.
+// Still differs (three hunks): (a) the child loop's four out-params. The original's
+// call has its 2nd pointer at the 3rd slot and its 3rd pointer at the 2nd slot
+// (arg1+0, arg2+8, arg3+4, arg4+12, with the zero stores ascending). MSVC 5 allocates
+// plain block locals in argument order, so arg2 can never reach +8; only a 4-int
+// aggregate member layout produces that order, and a block-scope
+// `struct {int minX,minY,maxX,maxY;} cb;` or `int cb[4]` does produce the right
+// displacements but MSVC allocates an aggregate AFTER the other block locals, so it
+// lands at +0x48 instead of +0x2c and the frame grows from 0x68 to 0x6c (shrinking
+// Surface_4589c0 back to 0x14 keeps the frame at 0x68 but not the position).
+// (b) the bounds block, which follows from (a): same arithmetic, different load order.
+// (c) two scheduling nits MSVC 5 will not give up: `bmp->dx = 0; bmp->dy = 0;` emits
+// load/load/store/store instead of load/store/load/store (interleaving the statements
+// by hand does not change it), and the last swap emits `bmp->pixels = bmp->shade`
+// after `mov ax, word [esp+0x7c]` instead of before it (two temps, one temp and
+// reversed temps all score the same 92.7%).
+// space-bunny-free: 85.9% (from 75.3%). Change: the y projection is computed through a
+// `Fixed` temporary (`yv.value = (ya << 16) - ya + d.z.whole; yv.value <<= 16; s.y = yv;`).
+// Written as one expression, MSVC 5 rewrites the value it stores into `(z - ya) << 16`,
+// because only the high half is ever read back; through the temporary it keeps the
+// full `shl 16 / sub / add / shl 16` chain and the 16-bit `sar dx,1`, which is what
+// the original does.
 // claude-opus-5-5: 75.3% (from 61.8%). Changes: the outer call's Pos is built by a
 // three-int constructor (three separate zero registers in the prologue), the child
 // offset is a plain 3-int struct copied into a second one (frame slots 0x30/0x3c now
@@ -133,10 +163,10 @@ public:
 // FUNCTION: 0x4589c0
 void Class_00459200::FUN_004589c0(Image_4589c0* bmp, Model_4589c0* model)
 {
+    int minX = 0;
     int maxX = 0;
     int minY = 0;
     int maxY = 0;
-    int minX = 0;
 
     ((Class_00458310*)this)->FUN_00458310(&minX, &maxX, &minY, &maxY, model, Pos_4589c0(0, 0, 0));
     Child_4589c0* child = model->owner->firstChild;
@@ -157,7 +187,10 @@ void Class_00459200::FUN_004589c0(Image_4589c0* bmp, Model_4589c0* model)
             d.z.value = child->z - op[2];
             Vec s = d;
             short ya = d.y.whole >> 1;
-            s.y.value = ((ya << 16) - ya + d.z.whole) << 16;
+            Fixed yv;
+            yv.value = (ya << 16) - ya + d.z.whole;
+            yv.value <<= 16;
+            s.y = yv;
             int xoff = s.x.whole;
             int yo = s.y.whole;
             int cx = cminX + xoff;
@@ -203,10 +236,10 @@ void Class_00459200::FUN_004589c0(Image_4589c0* bmp, Model_4589c0* model)
         memset(this->bitmap->shade, 0, this->bitmap->height * this->bitmap->width);
         FUN_004b7f90((Class_004c6ae0*)&surface, (Bitmap_4589c0*)bmp,
                      this->bitmap->dx - sdx, this->bitmap->dy - sdy);
+        surface.bits = this->bitmap->shade;
         unsigned char* t = bmp->pixels;
         bmp->pixels = bmp->shade;
         bmp->shade = t;
-        surface.bits = this->bitmap->shade;
         FUN_004b7f90((Class_004c6ae0*)&surface, (Bitmap_4589c0*)bmp,
                      this->bitmap->dx - sdx, this->bitmap->dy - sdy);
         t = bmp->pixels;

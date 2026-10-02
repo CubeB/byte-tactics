@@ -1,4 +1,62 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+// 30-min checkpoint (space-bunny-free, best 98.3%, unchanged from main), plus
+// the last 15 minutes: the two levers from the guide also come out flat here.
+// A dead store in a statically folded branch does rotate the `Cost` handout
+// (all ten spellings of `int t = 0; if (t) s = 1;` and up to three of them at
+// once give the argument temporaries eax/edx and the vtable ebx), but it never
+// reaches the original's edx/edx/eax, and in the `Cost(x, x, y)` shape it only
+// moves the second argument's temporary from ebx to eax. Ten uncalled
+// `static inline` file-scope helpers (int/unsigned short accessors, a FixMul
+// clone, a flags accessor, a heap resetter) change neither the fastcall nor the
+// thiscall nor the `Cost(x, x, y)` shape by a byte. For the Clear() group, dead
+// stores that name the same fields, self-assignments (`d = d;`, `i = i;`,
+// `heap.count = heap.count;`, `d.pos = d.pos;`), a comma expression putting
+// `heap.Clear()` inside the NodeData constructor's argument list or inside the
+// index expression, Clear() bodies that route the four values through a local or
+// through a chained read of `count`, and a two-level pointer cast are all
+// exactly 98.3%. The group is emitted where its statement stands, and when it
+// stands early it is spread through the dirty-word OR instead of staying one
+// block, so the original's slot (between the ctor's argument loads and its
+// body stores) is not reachable from any statement order. tools/permute.py
+// found nothing in 2937 candidates at the default seed and nothing in 3379 at
+// seed 11; seeds 12 and 13 are the obvious next thing to try. Ten more uncalled
+// helpers, one and two at a time, before or after the class, inline or not, a
+// multi-statement one and a class member accessor, are all byte-identical. The
+// clearest lead left: the original's two pushes imply a 3-parameter fastcall
+// called as `Cost(x, x, y)`, which reproduces the push order, the edx
+// argument and the eax vtable, and only misses because the second argument's
+// temporary is handed ebx with both loads hoisted; and the Clear() group is
+// emitted exactly where its statement stands, so the original's source has it
+// between the NodeData constructor's argument loads and its body stores, which
+// no plain statement order produces.
+//
+// 30-min checkpoint (space-bunny-free, best 98.3%, unchanged from main): the two
+// hunks are still the extra `push ebp` and the four Clear() stores one block
+// late. Measured again on this base, all flat or worse: the whole 6x6 matrix of
+// narrow/int first-and-second parameter types for the virtual `Cost`
+// (`short`/`unsigned short`/`char`/`unsigned char`/`int`/`long`): 16-bit first +
+// 32-bit second gives 96.6 (the InBounds and Release registers then match and
+// only the call block is wrong), 32-bit/32-bit 92.8, 16-bit/16-bit 93.2, so the
+// 98.3 fastcall shape is still the best. `Cost(x, x, y)` (the push order the
+// original's two pushes imply for a 3-parameter fastcall) scores 93.8 for all
+// 216 type combinations: the second argument's temporary goes to ebx and both
+// loads stay at the top instead of sinking the x load into edx. A thiscall
+// 2-parameter call keeps the register reuse but hands the argument temporaries
+// eax and the vtable edx, the exact mirror of the original, and no argument
+// spelling (x+0, y*1, a folded ternary, an Identity wrapper, two-pointer reads,
+// a target local) nor an extra dead statement moves that: the dead store
+// (`int t = 0; if (t) s = 1;`) does rotate the handout, to eax/edx/ebx with the
+// loads both at the top, never to edx/edx/eax. For the Clear() group, all eight
+// source positions were re-swept: positions 0, 1 and 2 score 97.6 with the four
+// stores spread through the dirty-word OR region instead of landing as one
+// block at the top, and the spelling of the group makes no difference at all
+// (member call, a free helper taking `Heap*` or `void*`, four explicit stores,
+// one statement), only its position does. Dead stores around the group and a
+// `*(float*)&global` node, and ctor bodies that reorder or add a self-assign,
+// are all exactly 98.3%. The group is emitted in the source order of its
+// statement, and the original needs it between the ctor's argument loads and
+// its body stores, which no statement order reaches.
+//
 // deepseek-v4.1-flash (#4170 round, new best 98.3%): the big lever is the
 // Target_0040e630 virtual `Cost` calling convention. Declaring it
 // `virtual int __fastcall Cost(int x, int y, int z)` and calling it as
@@ -237,7 +295,7 @@ public:
     void FUN_00440af0(Object_0040e630* p);
 };
 
-class Class_0040d900 {
+class Class_0040e9e0 {
 public:
     void FUN_0040d900();
 };
@@ -342,7 +400,7 @@ void Class_0040e630::FUN_0040e630(Target_0040e630* t)
     start = object->pos;
     ((Class_00440af0*)owner)->FUN_00440af0(object);
     ResetTable();
-    ((Class_0040d900*)this)->FUN_0040d900();
+    ((Class_0040e9e0*)this)->FUN_0040d900();
 
     std::vector<Point_0040e630> goals;
     target->GetGoals(goals);

@@ -1,4 +1,10 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Space Bunny Free, deepseek-v4.1-flash, GPT-6.1-sol, and Space Bunny Free. , edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// PARTIAL, 83.0%, 601 bytes, the original's exact size. 66.7 -> 83.0 this pass;
+// see the THREE FINDINGS below (each one is a source shape that moved the
+// register allocator, and each is now in the code below). The single remaining
+// difference is a swap of `flag` and the snapshot's x between ebp and edi in
+// the prologue, and the throwaway probe that proves the direction is recorded
+// with it, so whoever picks this up does not have to re-find it.
 // PASS (claude-sonnet-5-5, 2026-10-01): 66.7 unchanged (the permuter's only gain is the
 // redundant parentheses in `dist`, internal score 2132 -> 2007, same percent). Model that fits all
 // measurements: the prologue values {out, flag, order, x} take esi, edi, ebx, ebp in priority
@@ -47,6 +53,93 @@
 // snapshot 61.7%. The print `mov ebx,[esp+0x60]` before `push edi` versus
 // `push edi; mov edi,[esp+0x64]` is not reachable from the statement order of
 // the copy, the call arguments or the callee declaration.
+// #1529 retry by Codex / GPT-6.1-sol: checkall reconfirmed 65.2% (601/601 bytes).
+// BREAKTHROUGH (space-bunny-free, 2026-10-01): 66.7 -> 77.5 at the same 601 bytes,
+// from the matched sibling 0x40beb0's two idioms, applied together:
+//   1. the three deltas live in a `Vec3` of PLAIN INTS, not in the Fixed-union
+//      `Pos` (the old code read `out->x.value` etc. straight into three int
+//      locals), and
+//   2. the length is a member function `int Length() const` that converts each
+//      component into its OWN `double` local before summing the squares.
+// The guide's "Three filds kept on the x87 stack in x, y, z order: convert each
+// component into its own double local" is what changed; writing
+// `(double)dx * dx + (double)dy * dy + ...` lets VC5 fold the products and emit
+// the `fld st(2) / fmul st(3)` block only because of how it reassociates. With
+// `double fx = d.x; double fy = d.y; double fz = d.z; return
+// (int)sqrt(fx*fx + fy*fy + fz*fz);` the three filds come out in x, y, z order
+// and the whole sqrt block, the three `_ftol` pops and the `dist` compare now
+// match. Only the prologue rotation is left (see below).
+// SECOND FINDING (same pass): 77.5 -> 78.0, still 601 bytes, from taking a
+// reference to the timestamp field before the call: `int& ts = order->timestamp;`
+// then `g_game->frame - ts`. Per the guide ("A parameter pointer loaded before
+// the first branch while yours loads it in each branch: take a reference to the
+// field at the top (`int& m = obj->field;`)"). That alone fixes the dead
+// argument slot the length goes to: the original stores dist at esp+0x64 (the
+// now-dead `order` slot) and ours at esp+0x6c; with the reference ours matches.
+// THIRD FINDING (same pass): 78.0 -> 83.0, still 601 bytes, from putting the
+// whole walk loop behind an inlined member function on a small struct that
+// carries the loop state (`struct Trail_004394e0 { Pos start; Vec3 delta;
+// int dist, pos, idx; void* surface; View* view; Anim* anim; void Run(); }`),
+// and computing the three deltas BEFORE the timestamp clamp. Of the four
+// combinations (loop inline vs behind Run(), deltas before vs after the
+// clamp) the scores are 77.0 / 77.5 / 82.0 / 83.0, so the struct boundary is
+// worth ~4 points and the delta order ~1: the inlined boundary is what lets
+// `order` reach ebx, the register the original loads it into, and everything
+// downstream follows (the timestamp folds into `sub eax,[ebx+0x46]`, g_game
+// stays in ebp across the sqrt, and idx/pos take ebx/ebp as in the original).
+// Measured and rejected on this baseline: a Trail that stores POINTERS to
+// start/delta instead of copies (52.8%, 549 bytes), a `Make_...()` helper that
+// builds and returns the Trail by value (54.7%, 719 bytes), the whole walk as
+// a free helper taking the Pos by value (70.4%), a per-iteration `Step()`
+// method called from a caller-side loop (78.0%), and the guard as a positive
+// `if (flag != 0) { ... }` block (77.5%). Passing the loop state through a
+// constructor-like init list is byte-identical to the eight assignments.
+// What still differs is the SAME rotation one step along the register list:
+// the original loads the five parameters into {esi, ebp, ebx} = {out, flag,
+// order} and puts the snapshot's x in edi; ours loads {esi, ebx, edi} =
+// {out, order, flag} and puts the snapshot's x in ebp. So `flag` and
+// `start.x` are still swapped relative to the original, which cascades into
+// `mov ebp, [g_game]` becoming a reload into edx, `mov ebp,[ebp+0x148d3]`
+// into ecx, and the `frames`/`anim` spills at esp+0x68/0x6c.
+//
+// THE RESIDUAL, WITH THE PROBE THAT SETTLES ITS DIRECTION (all in
+// build/scratch/0x4394e0/, tmpl.cpp plus the pf*/c1* probe scripts):
+//   original  mov esi,[out] / mov ebp,[flag] / mov eax,esi / mov ebx,[order]
+//             / push edi / mov edi,[eax]        <- snapshot x into edi
+//   ours      mov esi,[out] / mov eax,esi / mov ebx,[order] / push edi
+//             / mov edi,[flag] / mov ebp,[eax] <- snapshot x into ebp
+// A throwaway probe with ONE extra genuine use of `flag` (`if (flag + flag ==
+// 0x1234) dist = 0;` after Length()) does land the three parameters where the
+// original has them, {esi, ebp, ebx} = {out, flag, order}, in every loop shape
+// tried (pf1, sw11, shA1/shB1/shC1/shD1). So `flag` is the one that is one use
+// short, and the lever is a THIRD reference to `flag`, which the source only
+// has two of (the argument push and the `test`). The cost is that the probe
+// then drops start.x out of the callee-saved set entirely (`mov ecx,[eax]`)
+// instead of moving it to edi, so the natural construct has to add the use
+// without losing the register. Adding uses of start.x instead does nothing:
+// with the extra flag use present, 1, 2 and 3 extra uses of start.x all leave
+// the prologue byte-identical (c10-c13). Measured and rejected at this baseline:
+// seven orders of the Trail struct's fields (all 83.0, byte-identical, so the
+// frame slots follow the assignments in the caller, not the declaration order),
+// Run() taking the Pos by value and by const reference instead of a member
+// (83.0), `Run` as a free helper (70.4%), a `Trail` of pointers instead of
+// copies (52.8%), a `Make_Trail()` helper returning the struct by value (54.7%),
+// a per-step `Step()` method under a caller-side loop (78.0%), the guard as a
+// positive block (77.5%), `Pos start; start = *out;` (83.0, byte-identical),
+// a `Pos& dst = *out` alias (83.0, byte-identical), the flat frac/whole `Pos`
+// of the matched 0x438c00 read through `*(int*)&x.frac` (83.0), `Length` as a
+// free function instead of a member (83.0), a `Game*& game = g_game` alias
+// (83.0), an unsigned `dist` compare (82.5), the deltas in dy/dz/dx order
+// (81.5), advancing `idx` at the top of the loop (75.1), a hand-written clamp
+// instead of `__max` (61.1, 611 bytes: that one is the MIRROR rotation,
+// {flag, order} in {edi, ebp} and start.x in ebx, so the clamp spelling and the
+// register pair are coupled), `g_game->frame` written twice instead of cached
+// (75.6), and eight extra `#include`s - string.h, memory.h, windows.h, ctype.h,
+// float.h, limits.h, time.h, assert.h - all byte-identical at 83.0.
+// tools/permute.py 15 min (--jobs 4) on this file: 1382 candidates (60 did not
+// compile, 13 duplicates), 83.0 -> 83.0, internal score 1772 -> 1772, so the
+// whole statement/declaration/temporary/loop-form space is exhausted here and
+// the residual is an allocator decision no rewrite reaches.
 // #1529 retry by Codex / GPT-6.1-sol: checkall reconfirmed 65.2% (601/601 bytes).
 // Four worker checks found no better version; the remaining mismatch is the register/stack-slot rotation described below.
 //
@@ -195,6 +288,24 @@ struct Pos_004394e0 {
     Fixed_004394e0 x, y, z;
 };
 
+// The three deltas as plain ints, with the length helper of the matched
+// sibling 0x40beb0. Two things there matter and both are visible here: the
+// three components go through their own `double` locals, which is what keeps
+// the three `fild`s in x, y, z order, and the difference is a struct the
+// helper reads through memory, which is what keeps the three deltas in the
+// original's esp+0x28..0x30 slots.
+struct Vec3_004394e0 {
+    int x, y, z;
+
+    int Length() const
+    {
+        double fx = x;
+        double fy = y;
+        double fz = z;
+        return (int)sqrt(fx * fx + fy * fy + fz * fz);
+    }
+};
+
 struct Node_004394e0 {                  // the unit order 0x439740 walks
     char unknown_0[0x46];
     int timestamp;                      // +0x46
@@ -240,20 +351,56 @@ static Pos_004394e0 offset_004394e0(int dx, int dy, int dz, int f)
     return d;
 }
 
+// The walk itself, as an inline method on a struct that holds the whole loop
+// state. Per the guide, "an inlined function boundary changes the order MSVC
+// evaluates things in and which registers it keeps values in"; moving the loop
+// behind this boundary is what moves `order` out of edi and into ebx (the
+// register the original loads it into).
+struct Trail_004394e0 {
+    Pos_004394e0 start;
+    Vec3_004394e0 delta;
+    int dist;
+    int pos;
+    int idx;
+    void* surface;
+    View_004394e0* view;
+    Anim_004394e0* anim;
+
+    void Run()
+    {
+        for (; pos < dist; pos += 0x300000) {
+            int f = (int)(((__int64)pos << 16) / dist);
+            Pos_004394e0 o = offset_004394e0(delta.x, delta.y, delta.z, f);
+            Pos_004394e0 p;
+            p.x.value = start.x.value + o.x.value;
+            p.y.value = start.y.value + o.y.value;
+            p.z.value = start.z.value + o.z.value;
+            FUN_004b7f90(surface, *(void**)((char*)anim + idx * 8 + 0x28),
+                         p.x.whole - view->scroll_x + 0x80,
+                         p.z.whole - (p.y.whole >> 1) - view->scroll_y + 0x20);
+            idx = (idx + 1) % anim->count;
+        }
+    }
+};
+
 // FUNCTION: 0x4394e0
 void __stdcall FUN_004394e0(void* surface, View_004394e0* view,
                             Node_004394e0* order, Pos_004394e0* out, int flag)
 {
     Pos_004394e0 start = *out;
+    int& ts = order->timestamp;
     FUN_00439740(surface, view, order, out, flag);
     if (flag == 0)
         return;
 
-    int t = __max(g_game->frame - order->timestamp, 0);
-    int dy = out->y.value - start.y.value;
-    int dz = out->z.value - start.z.value;
-    int dx = out->x.value - start.x.value;
-    int dist = (int)sqrt((double)dx * dx + ((double)dy * dy) + (double)dz * dz);
+    // The deltas before the timestamp: with this order the three `out` loads
+    // are hoisted together the way the original hoists them at 0x439529.
+    Vec3_004394e0 d;
+    d.x = out->x.value - start.x.value;
+    d.y = out->y.value - start.y.value;
+    d.z = out->z.value - start.z.value;
+    int t = __max(g_game->frame - ts, 0);
+    int dist = d.Length();
     if (dist < 0x10000)
         return;
 
@@ -263,16 +410,14 @@ void __stdcall FUN_004394e0(void* surface, View_004394e0* view,
     int frames = len < 1 ? 1 : (int)len;
     int idx = (t / frames) % anim->count;
 
-    for (; pos < dist; pos += 0x300000) {
-        int f = (int)(((__int64)pos << 16) / dist);
-        Pos_004394e0 d = offset_004394e0(dx, dy, dz, f);
-        Pos_004394e0 p;
-        p.x.value = start.x.value + d.x.value;
-        p.y.value = start.y.value + d.y.value;
-        p.z.value = start.z.value + d.z.value;
-        FUN_004b7f90(surface, *(void**)((char*)anim + idx * 8 + 0x28),
-                     p.x.whole - view->scroll_x + 0x80,
-                     p.z.whole - (p.y.whole >> 1) - view->scroll_y + 0x20);
-        idx = (idx + 1) % anim->count;
-    }
+    Trail_004394e0 tr;
+    tr.start = start;
+    tr.delta = d;
+    tr.dist = dist;
+    tr.pos = pos;
+    tr.idx = idx;
+    tr.surface = surface;
+    tr.view = view;
+    tr.anim = anim;
+    tr.Run();
 }

@@ -202,6 +202,108 @@
 //     whether the field_1fe load, the 0xffff mask and fild dword/qword are
 //     there) is build/scratch/0x438650/h.py with gen2.py beside it, about
 //     0.7 s per variant.
+//
+// space-bunny-free in #4637 (file unchanged, still 96.6%). About 110 scratch
+// variants scored this session, every one probed for the field_1fe load order,
+// the 0xffff mask, fild dword/qword and which register the chain accumulates
+// in. The complete map of reachable shapes, so nobody has to re-derive it:
+//
+//   96.6%  `(unsigned short)` on the quotient: this file. The original's whole
+//          integer block, plus the 6-byte `and edx, 0xffff`.
+//   92.0%  `unsigned int field_1fe : 16` + the plain `(unsigned)` conversion:
+//          the original's order and registers, the mask on the A LOAD instead
+//          (`mov edi,[ecx+0x1fe]; and edi,0xffff`, 162 bytes). New: earlier
+//          passes only recorded this bitfield with a *signed* conversion, and
+//          it survives the unsigned one, so the bitfield and the cast are two
+//          independent ways to stop the canonicalisation, each paying a mask.
+//   90.1%  `int p = A*Q*F*n; __int64 w = p; (int)((double)(unsigned int)w /
+//          (v*300.0f));`  The integer block is byte for byte the original's
+//          and the conversion is the original's `fild qword` with a zero high
+//          word, so this is the first mask-free shape with everything but the
+//          frame right. It differs by four instructions only: the 64-bit local
+//          costs `mov eax,edi / cdq / mov [esp+0xc],edx / mov [esp+8],eax`
+//          where the original has one `mov [esp+8],edi`, and the zero store
+//          lands after the value instead of before the A load (168 bytes).
+//   77.6%  the same but `(double)w` with w a signed `__int64`: MSVC5 knows the
+//          local's range is 32 bits and emits `fild dword`, with no `sub esp,8`
+//          and no zero store. Still the original's integer block byte for byte
+//          (this is the shape the older notes call "the signed chain").
+//   77.3%  a barrier INSIDE the chain (split after the first multiply):
+//          `int p = A*Q; int t=0; if (t) { p = 0; } int r = (int)((double)
+//          (unsigned)(p*F*n)/(v*300.0f));`  This is the only shape that gets
+//          the dividend into ecx AND a saved register, but the two saved
+//          registers are the wrong way round: bt in edi, A and the first
+//          product in esi, the rest of the chain in ecx (`imul ecx,esi`).
+//   62.8%  a barrier BETWEEN the chain and the conversion (the #4577 shape).
+//   52.9%  everything else, always: field_1fe loaded second, into ecx, after
+//          the quotient is in edx, accumulator edx, b->type homed in edi.
+//
+// Three things this pass settles that the earlier notes left open:
+//
+// 1. WHY the 62.8% shape allocates the way it does, and it is not p's live
+//    range. The copy `mov <acc>, edx` is scheduled immediately after the
+//    field_1fe load instead of just before the imul. Because that copy frees
+//    edx at once, the b8 zero-extended load then takes edx (`xor edx,edx; mov
+//    dx,[eax+0xb8]`, and the one-operand imul takes edx as its dividend),
+//    which leaves the accumulator free to sit in ecx. In the original the
+//    order is the other way round: the b8 load takes ecx, the register
+//    `a->type` has just freed, so eax (the magic), ecx (the dividend) and edx
+//    (the quotient) are all busy when the accumulator register is chosen and
+//    the only free one is the callee-saved edi. So the fix has to make the b8
+//    load happen BEFORE the copy, and that is a decision the allocator and the
+//    scheduler take together, not something the source spells directly.
+// 2. It is the STATEMENT between the chain and the conversion that changes the
+//    allocation, not the redefinition. A dead store to an unrelated variable
+//    (a local, an extern global, a store through a pointer, a store of
+//    `bt->field_1fa`), a dead store to p, two of them, and a barrier before
+//    the chain all compile to exactly the same 62.8% code, so p's live range
+//    is not what the barrier changes. Dead USES meant to lengthen a range (of
+//    p, of the A value, of the quotient, in one or two dead branches) change
+//    nothing: 62.8% every time. `p = p`, `p = p + 0`, `p = p * 1`, `p ^= 0`
+//    and `p = q; p = q;` do not block the canonicalisation either (52.9%),
+//    which is worth knowing next to 0x450530, where the same self-assignment
+//    moved 40 points.
+// 3. Nothing inside the chain can block the unsigned fact, and a barrier on an
+//    INTERMEDIATE value does not either. The comma operator (in every
+//    position), a conditional expression, a dead assignment folded into the
+//    chain, an inlined by-value helper (all four factors, the first two, the
+//    last two, the quotient, both object pointers, the unsigned cast inside
+//    the helper), `__int64 w = (unsigned int)p`, `w = p & 0xffffffff`, a
+//    union read back as 64 bits, and a redefinition of the quotient between
+//    its definition and the chain (`int q = Q; if (t) { q = 0; } int p =
+//    A*q*F*n;`) all give the 52.9% shape. Only a narrowing anywhere in the
+//    chain (a mask) or a statement between the chain and the conversion keeps
+//    field_1fe first, and those are the only two families at all.
+//    `unsigned __int64` cannot be converted to double in VC5 at all (hard
+//    error C2369-ish, "conversion from unsigned __int64 to double not
+//    implemented, use signed __int64"), which rules out the obvious way of
+//    giving the 64-bit local of the 90.1% shape a zero high word.
+//
+// Best lead left, and it is a new one: the 90.1% and 77.6% shapes prove the
+// original's register allocation needs NO barrier and NO mask - what buys it is
+// a 64-bit local in the conversion, i.e. one extra copy of the product whose
+// store is a dword and whose value is live across the float block. The only
+// thing that shape is missing is the zero high word, and the only reason the
+// obvious spelling of it (`__int64 w = (unsigned int)p`) reorders is the
+// unsigned cast. Measured this session and all dead: putting the value into a
+// global through an `unsigned int*` and reading it back (50.5%, and it reorders
+// like any other unsigned source), a 64-bit local in a struct member, in an
+// array element, or feeding a `float` local (all 77.6%, i.e. `fild dword`, the
+// local converted as a signed 64-bit), and `(double)(unsigned int)w` against a
+// separate `unsigned int u` copy of the local (90.1%, the same four extra
+// instructions as above). So every spelling of the 64-bit local either keeps
+// the signed conversion or keeps the round trip, and the frame it needs is the
+// only thing still missing from an otherwise byte-identical integer block.
+// The other lead is the 77.3% split-chain family, which has the dividend in
+// ecx and a saved register but the two saved registers the wrong way round
+// (bt in edi, the product in esi). Nothing tried moved the split point to
+// where the original has it: a split after the first multiply is the only one
+// of the four that reaches 77.3%, and splitting again after the second drops
+// back to 62.8%.
+// Two more permute.py runs this session, both with an empty best.diff: 16
+// minutes at seed 11 on this file (96.6%) and 12 minutes at seed 13 on the
+// 77.3% split-chain file (build/scratch/0x438650/famB.cpp, so the split-chain
+// family is now searched by the permuter too, not just the barrier shape).
 
 #pragma pack(push, 1)
 struct UnitType_00438650 {

@@ -1,9 +1,9 @@
 # Field notes: what actually produced matches
 
-Notes from a decompilation session (opencode / space-bunny-free, 47 matched
-functions). Everything here was measured with `tools/check.py`; where a
-technique did not work, the measurement is given too, because a ruled-out lever
-is as valuable as a working one.
+Notes from two decompilation sessions (opencode / space-bunny-free, 74 matched
+functions: 47 in Parts 1-4, 27 in Part 5). Everything here was measured with
+`tools/check.py`; where a technique did not work, the measurement is given too,
+because a ruled-out lever is as valuable as a working one.
 
 These notes deliberately do not touch `docs/agent-guide.md`, which `AGENTS.md`
 reserves for the orchestrator. They are offered as a supplement, and every claim
@@ -375,6 +375,331 @@ guide's "known wall" note on `vector::insert`.*
 6. The exe holds **both** register variants of `vector<T>::insert` (`0x46e640`
    and `0x408f30` common, `0x4732e0` and `0x425480` rarer), so those two are not
    fixable from source.
+
+---
+
+## Part 5: the 2026-10-02 batch
+
+*Same model, a later batch: 27 matched functions, of which seven came out of the
+rules below. Everything here was measured on this binary with `tools/check.py`, and
+the ruled-out levers are reported with the measurement that ruled them out.*
+
+### The address-temporary pool
+
+MSVC 5 keeps **address temporaries in a three-slot pool that rotates
+`edx -> eax -> ecx`, and when there is more than one use it assigns the LATER call
+site first.** Measured on a minimal model that reproduces a 504-byte function's
+hunk byte for byte:
+
+| live address values | registers assigned, in source order |
+| --- | --- |
+| 1 | `edx` |
+| 2 | `ecx, edx` |
+| 3 | `ecx, edx, eax` |
+| 4 | `ecx, edx, eax, ecx` |
+| 5 | `..., ecx, edx` |
+
+It is simply the lowest-numbered free register, with `eax` consumed by a nested
+call's result. **So "which register does this `lea` get" is a question about how
+many address values are live, not about the statement** — and the intuitive model,
+that the first use gets the best register, is the *opposite* of what happens. A
+pool-filling lab confirms it (0x45f8c0).
+
+### A local pointer is the highest-yield single lever on the project
+
+One lever, and it decides **two** independent questions:
+
+- **A store through a local pointer alias blocks MSVC's disjointness proof and
+  keeps a load it would otherwise eliminate.** `float* slot = &unit->field_bc;
+  *slot = f;` made it re-emit a sibling field's load, where a direct
+  `unit->field_bc = f;` let it drop the load. The pointer **folds back to a
+  constant offset**, so the stored-to addressing is unchanged: a reload with no
+  disturbance to the access. It also beat a union, which is the shape usually
+  tried first (0x464f80).
+- **A local pointer is the only way to force a reload, and it costs no
+  instructions.** MSVC 5 CSEs two plain reads of a field and reloads only when an
+  aliasing store or a call sits between them — **a deleted store does not defeat
+  the fold** — but `unsigned int *flags = &unit->flags;` forces the reload while
+  emitting nothing extra, and it flipped a bonus register choice as well
+  (`and eax,0xffc3ffff`, 5 bytes, replacing `and edx,...`, 6). That one change
+  took a 1811-byte function from 76.9% to byte-identical (0x487bf0).
+
+### SIB and `lea` operand order
+
+- **The deepest cause, and it is not about spelling: a temporary used BOTH as a
+  memref base and as a plain int comes out of the memref with its children in the
+  other order.** The swap only happens when two reads of the same address are
+  **CSE-mergeable**. On 0x4a4d70 the colour read and a style argument both read
+  `me->colours` at `+0x1f`; the front end shared one temporary between them and
+  that sharing flipped the slot. Making the second read a **non-duplicate**
+  (`entries[param_2].colours`) restored the original's order. Thirty
+  re-spellings of the style read at the same address were byte-identical and a
+  block-scope alias did nothing — **the answer came from deleting one region of
+  the function at a time.** So if every spelling comes back identical, you are
+  probably in the CSE-sharing case, and the lever is to make one read
+  non-duplicate, not to re-spell either.
+- **A block-scope named local alias does flip the SIB slot** where thirty
+  in-expression spellings did not — but it moves the pointer register too, because
+  a materialised global prefers EAX/EDX/ECX while a local prefers EAX/ECX/EDX.
+  Write the two requirements down as a *pair*; on 0x493bf0 they were mutually
+  exclusive under every spelling tried.
+- **Only byte-scaled deltas can take the base slot; an element-scaled one cannot**,
+  because x86 forces a scaled index into the index slot (same rule as
+  `0x4bc370`'s `[int + ptr + 0]`). And the operand is *separable* from the slot:
+  one variant on 0x471de0 reaches the delta-base slot **and** keeps the library's
+  `sub ecx,ebx`. When an experiment moves one property and not the other, you
+  have found the axis, not a dead end.
+- **If the original puts the older value in the base and you put the newer one
+  there, check whether your `lea` is an outlier inside its own function.** On
+  0x40cca0 *every other* `lea`, matching or not, already puts the older value in
+  the SIB base. Also: the wanted form is **one byte longer** (`disp8=0`), so total
+  size is useless as an oracle on that family — use the lea's base register.
+- **The `void **` MSVC builds for `(void **)&x` always lands at x's own slot + 4**
+  — checked against three different locals in three shapes, always exactly 4
+  (0x4b5510).
+- **A commutative `lea`/`add` whose base/index assignment will not move is a
+  property of the small translation unit, not of the function, and it is
+  independent of the element type.** `vector<T>::insert` carries the identical
+  single byte with `T` = `int`, `Unit*`, `Class_004c2ea0*` and `Elem_0040cfb0`
+  (0x46e640, 0x408f30, 0x425210, 0x40cca0). The exe holds both register variants,
+  so treat it as one problem with several members and do not spend boxes on the
+  siblings individually.
+
+### Order and placement
+
+- **MSVC 5 never hoists a load out of an if-block** (proved with a minimal file).
+  So a load that appears before a test but seems to come from inside a branch
+  means the original's source genuinely reads it *before* the branch — a
+  source-shape question, not a scheduler one.
+- **Where a load lands depends on whether the address is taken.** MSVC 5
+  materialises the load of a plain **non-address-taken** local at its
+  *definition* point, and at its *use* point if the address is taken. Making a
+  local non-address-taken produced an original's exact five-instruction sequence
+  including the register (0x4b5510).
+- **The tree order is strict source order, with an argument push spliced
+  immediately before a through-pointer store.** So a residual of the form "these
+  three instructions are rotated" can *never* be fixed by reordering statements
+  within the group — the load and the store have to come from different source
+  statements. Recognise that shape before testing all six orders.
+- **To stop MSVC hoisting a load above a branch, duplicate the block rather than
+  `goto`.** MSVC 5 tail-merges arms that share a `goto` target, and the hoist was
+  a consequence of the merge; giving one arm **its own copy** made the merge
+  impossible and produced the original's order (0x464f80). So "every if/else
+  versus early-goto respelling is byte-identical" means the *other* arm wants its
+  own copy.
+- **Give each of two structurally identical statements its own scope.** A function
+  stuck at 99.6% on one stack-slot ordering was fixed by putting each of two calls
+  in its own nested block with its own local: the first block is dead when the
+  second opens, so both locals land in the same stack slot and both statements
+  emit the wanted form with the frame unchanged. **Nesting only one of the two
+  grew the frame and scored 98.1%**, and nesting only the other got the order
+  right but moved the struct — the two effects are separable and both had to be
+  satisfied (0x491200, MATCH).
+- **RGEN promotes a memory object only while nothing conflicts across the
+  branch.** A union written by two stores of different widths is exactly such an
+  object: promotion fails, the value spills (15 bytes here), and the pointer is
+  forced into the other register. Register choice depends on a *promotion*
+  decision, which is a different question from allocation — check it separately
+  whenever a union is involved. A corollary that explains minimal-repro failures:
+  **a range can be value-numbered with another arm's loop counter** that has to
+  survive several calls (0x4a3ef0).
+- **A constant zero CSEs away; a zero-fill does not.** To get a fresh
+  `xor ecx,ecx` plus `push ecx` you need *runtime* zero — the aggregate's own
+  zero-fill, or `20u & ~(unsigned)(size_t)z`. A literal `0` folds into whatever
+  other zero the block already has, deleting the register being chased. Several
+  passes on 0x4bd160 had this rule exactly backwards.
+- **Copy-into-a-second-register is decided by whether the operation can be done in
+  place.** MSVC breaks a value's live range into another register only for an
+  operation it cannot perform in place: `~`, `^`, `&`, `|` need the copy and each
+  leaves its own op behind, while `+`, `-`, `*` can be done in place and drop it.
+  So a residual of the form `op eax; op2 eax` against a bare `mov eax,imm` means
+  **the original's operand was independent, not computed**.
+- **`x ? x : x` works by failing codegen's "is this a load" test, not by creating
+  a phi.** MSVC 5 does not fold it away; it declines to treat the value as a bare
+  load, so an operand that must stay in a register cannot be folded into the next
+  instruction's memory operand. `& 0x7fffffff` does the same at the cost of a
+  5-byte `and`. This explains why the construct is worth 15.2 points on one
+  function and a byte-for-byte no-op on another: it only bites when the consumer
+  has a memory-operand form to fold into (0x45f8c0, 0x47d2e0).
+- **Local declaration order decides load order, independently of the order the
+  values are used in.** This extends §5 of Part 1 (which covers commutative-add
+  operand order): on 0x45f8c0 the multiply's operands are read through locals
+  declared in the **opposite** order to the multiply, because the original loads
+  the first one first. All six other orderings gave the same registers with the
+  two loads swapped. When a load order is wrong and the expressions are right,
+  invert the *declarations*.
+- **A missing initialiser can be the fix.** `int x2; int y2;` beat every spelling
+  that assigned them, because the original never initialises them at all.
+- **One instruction of source movement can move a jump past a reload.**
+  `processed = 1;` after a call, rather than before, pushed an arm's loop-back
+  `jmp` past a reload that only *another* arm needed, because that arm clobbers
+  `ebp` (0x487bf0).
+- **Check whether a workaround is compensating for a bug elsewhere.** A `Found()`
+  shim existed only because a different arm was wrong; once that arm was fixed,
+  three others fell into place and the shim had to be **deleted** (0x487bf0).
+- **The `sizeof`/argument-count is not the frame.** A `void **` argument does not
+  scale the way a real pointer array does, so passing one does not grow the frame
+  the way passing an array would; a template parameter instantiated at different
+  granularities changes the amount of code emitted without changing the frame
+  (0x4bd160, 0x5f9c00).
+- **`register` is a no-op on VC5 and useless as a lever.** 52 unused `register`
+  variables changed nothing, because MSVC 5 drops them in the front end *before*
+  register allocation, so they reserve nothing.
+- **Comma expressions drop their left operand** in argument position (measured on
+  all 20 argument sites), so they cannot smuggle a node past the front end.
+
+### Headers, and what they decide
+
+**Run `tools/headers.py <addr> --cpp` before concluding that a register choice is
+a compiler-internal coin.** On 0x47d2e0 five-plus notes attributed `mov di`
+against `mov si` to "a colour tie-break inside MSVC 5's LCL, not a source-order
+effect", and it was the **header set**: `<string.h>` **plus** `<math.h>` — neither
+used by the file — deciding the allocation, worth 4.9 points. Either header alone
+gives the same state; `<windows.h>` gives a 1392-byte frame.
+
+`<minmax.h>` was added to that sweep recently and any file using min/max macros
+was invisible to it before. It is **not** universal: the sweep came back flat on
+the `vector::insert` family and on 0x4bd160 and 0x425210. Run it anyway — it is
+cheap and it is silent.
+
+### Method
+
+- **Screen on binary features, never on the percentage.** `check.py`'s ratio only
+  moves on a near-match, so on a register-allocation or instruction-order residual
+  it is nearly useless. Pick two or three discrete facts about the original's
+  bytes and print those per variant: 6560 variants scored on four features while
+  the percentage sat *completely still*, and that is what surfaced a 90.6%
+  two-exit `if`+`while` shape earlier passes had never seen. A register pair, a
+  one-letter-per-call-site oracle, or the frame-slot order all work; §11 of Part 1
+  and this paragraph are the same point from two directions.
+- **Fix size before hunks, and read the delta as a *difference* of two shapes.**
+  When ours is longer, count epilogues — but the prediction is refutable, and on
+  0x487bf0 the tool showed 19 epilogue starts in both streams and no cloned tail.
+  The real story was a shim's 7 instructions **minus** the 3 a neighbouring arm
+  should have had. Build the align tool anyway; it cost one compile and refuted
+  the hypothesis in one pass. Compare epilogue *counts*, not just bytes, when ours
+  is longer, because a tail just under MSVC's sharing threshold gets cloned into
+  every predecessor (112 bytes over and 13 epilogues against 7, on 0x447b10).
+- **Build a minimal model of the differing region, then a pool-filling lab.**
+  `min.cpp` reproduced a 504-byte function's register hunk byte for byte at 0.3 s a
+  compile, and sweeping the number of live address values produced the whole
+  assignment table in one run. **3,400 real-function compiles and 14,559 permuter
+  candidates on that function produced nothing the model did not already
+  explain.**
+- **Run the permuter from several seeds, including deliberately worse shapes.** One
+  MATCH came from a 54%-scoring shape in 14 seconds, where six workers permuting
+  the best file gained nothing — because the ratio cannot see register-only
+  differences. Conversely, 9,768 and 7,712 candidates from the *best* file on two
+  functions changed nothing but cosmetics, which upgrades "that is where I
+  stopped" to "**that is a local optimum of the mutation space**" and saves the
+  next attempt a box.
+- **A one-instruction-short shape that scores correctly means a missing node.**
+  Adding one register-consuming node put the target register at both call sites on
+  0x45f8c0, and the only reason it was not the answer is that the node emitted one
+  instruction. Record it as "the original had one more node than any spelling I
+  can produce, and it emitted no instruction" — far more useful than "all
+  spellings flat".
+- **Settle an allocator question in a simpler sibling, not the hard function.**
+  0x47d820 and 0x47d0e0 both hinge on one coin — which register the sign-extended
+  short gets, `ecx` in one and `eax` in another — and 0x47d0e0 settles it in a
+  small harness because it contains that instruction in isolation. That one coin
+  then explains five other differences across the family. When one instruction's
+  register blocks a whole function, find the sibling that has it alone.
+- **Read the exe's stack traffic to work out which variable a load means.** The
+  biggest single gain in one session was a misidentified variable: a `y1` that
+  actually read the loop counter's dead argument slot, worth 54.0% → 64.3% *and* a
+  frame move as a side effect. Build the frame map from **your own object file**
+  (track the pushes and each callee's `ret N`; then `[esp+N]` is frame offset
+  `N-0x10`) — the `/Fa` name-to-offset mapping has been misread repeatedly. And
+  check whether the slot is a variable at all: one function's `[esp+0x24]` is an
+  unnamed CSE temp, so no spelling of any variable can move it.
+- **"Tried, flat" can mean "tried the wrong arity".** The clearest instance yet:
+  five passes recorded that every hoist shape was flat, when the correct shape was
+  **one** hoisted pointer and **one** nested expression at 98.0% shape-matched,
+  while the two-temporary forms everyone actually tried scored 34–36%. When a
+  negative spans a family of shapes, check that the family's members differ in
+  the dimension that matters.
+- **A recorded conclusion is conditional on the frame state it was measured in,
+  and it can invert.** "Declare `bit` before the Contains test, worth several
+  points" was true at 82% and became **exactly backwards** at 86.9%. When a big
+  change lands — a header set, a frame layout, a scope move — re-run the earlier
+  conclusions rather than carrying them forward. (This refines Part 1 §13: the
+  negative was true, just not now.)
+- **A register tie-break blamed on the LCL is often the header set** — see the
+  section above. Put it with the size-delta rule: both are cases where a plausible
+  compiler-internal explanation was really something in the build.
+- **Transplant the real neighbouring function when it is MATCHed.** This is much
+  stronger than the knife-edge note about the number of functions in a file: on
+  0x408100 one small `static inline` helper was **neutral**, but adding
+  **0x408090** — the function that actually preceded it in the original
+  translation unit, and whose two extra `g_game` field reads are needed —
+  **flipped MapRange's two loads to the original's order**. Sweep it, do not
+  apply it blindly: on that same function it also moved the score down, 98.5% to
+  98.0%.
+- **Verify the compiler is deterministic before treating a flat sweep as a fact.**
+  12 parallel compiles of the same file produced the same SIB byte, which is what
+  licenses reading a negative as evidence about the compiler rather than noise.
+- **A suspected original bug must be checked against the original's bytes, not
+  your source.** 0x487bf0's notes carried an uninitialised read at frame 0x28;
+  that word is written and read by the arm that owns it, and **our own wrong
+  spelling was what read a stale word.** Reporting a bug that rests on your
+  decompilation being right costs the reviewer a box to disprove.
+
+### Tooling and environment
+
+- **MSVC 5 gives a `float` *literal* an 8-byte `.rdata` slot.** The checker then
+  compares its 4 padding bytes against the next function's constant, so a file can
+  report **100.0% and still fail with a data-reference error** — the seen state was
+  `100.0%` with `100.0f`'s padding against the following function's `12700.0f`.
+  Naming the constant makes it a 4-byte object, and declaring doubles before
+  floats keeps it last in `.rdata`. If you see 100% with a bad reference, this is
+  why.
+- **Import `check.py`'s `compare` directly to score variants in-process.** About
+  0.2 s instead of 7 s, which is what makes a 3000-variant sweep affordable
+  inside a timebox.
+- **`check.py`'s object tag is a hash of the file's *parent directory***, so a
+  parallel batch needs one directory per variant, not one filename per variant.
+- **CL.EXE compiles a `.c` file as C**, so a behaviour harness written with C++
+  syntax must be named `.cpp` or it fails with a misleading
+  `missing ')' before '*'`.
+- **`pkill -f <script>.py` will kill your own shell** if the pattern matches the
+  parent command line. Kill by PID.
+- **In-shell `cp`/`sed` writes lose stray `)` and `:` characters.** Write files
+  with a heredoc or an editor call instead of shell string surgery.
+- **`sed -i` prints `preserving permissions ... Invalid argument` in these
+  worktrees and still applies the edit.** Do not treat it as a failure.
+- **`build/obj/scratch/<tag>/` is case-insensitive under Wine**, so one case per
+  tag, unique per batch. A reused tag silently overwrote a variant on another
+  address.
+- **Never name a scratch module after a stdlib module.** `copy.py`, `dis.py` and
+  `bisect.py` each broke `pefile`, capstone and `random` in turn.
+- **A wrapper that imports `tools/permute.py` must carry the same PEP 723
+  dependency block and guard `permute.main()` with `if __name__ == "__main__"`**,
+  because the forkserver re-imports the script as `__mp_main__`. And
+  `multiprocessing` needs `get_context("fork")` here.
+- **`/tmp/opencode` is not writable on this box**; keep scratch in
+  `build/scratch` inside the worktree.
+
+### Two process rules that cost boxes
+
+- **Verify an inherited harness before believing the notes it produced.** This is
+  the **fourth** tool defect on this project to corrupt the record, after a reused
+  `build/obj/scratch` tag, the wrong `/Fa` name-to-offset mapping, and a generator
+  that renamed identifiers *before* substituting so every variant it produced had a
+  doubled frame. The fourth: a sweep script mis-merged its variant dicts and
+  printed a bogus "delta-base" line for a variant that recompiles walker-base.
+  **A harness bug produces confident, specific, wrong output, which is worse than
+  no output.** Re-derive any prior result that came from a harness you have not
+  re-verified, and rebuild generators rather than extending them. Re-check any
+  surprising positive against the `/Fa` listing before it goes in your notes.
+- **On a rebase conflict, diff the stages before choosing.** `git show :2:<file>`
+  (upstream) against `git show :3:<file>` (yours) — during a rebase **theirs is
+  your commit**. Taking it blindly discarded 21 lines of an independent earlier
+  account of the same shape, including two facts the newer notes lacked. Keep
+  both: a superseded note that contradicts the new one costs nothing as a comment,
+  and losing one costs the next attempt a measurement. A conflicted `git pull
+  --rebase` also leaves `HEAD` detached, so `git-safe push` will refuse the push
+  until the rebase is resolved.
 
 ---
 

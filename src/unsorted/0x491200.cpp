@@ -1,100 +1,40 @@
-// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
-// Final verification pass (deepseek-v4.1-flash) under timebox: check.py run 1
-// reprints 99.6% with the same 4-line diff (push/store order in the second
-// GlobalMemoryStatus's delay slot). File below is the best variant (99.6%,
-// 1174 bytes on both sides). Still differs: only the second call's delay slot,
-// ours emits the dwLength store before push edx, the original fills the slot
-// with the store after the push. See the full history of tried shapes below.
-// Frame/slot note (deepseek-v4.1-flash, last pass): the 0x10 vs 0x14 operand
-// difference is NOT a frame layout difference. Both sides store 0x20 to the
-// same physical slot: ours addresses it as [esp+0x10] before the push, the
-// original as [esp+0x14] after the push (the push decrements esp by 4). Both
-// sites agree with lea edx,[esp+0x10] and with the first call's [esp+0x14]
-// after push edi/push eax. So extra dead locals, int64 locals or struct
-// temporaries would only renumber slots and break the (already correct)
-// frame; the sole difference is the scheduler's ordering tie between the
-// dwLength store and push edx at the second call.
-// Retry pass (deepseek-v4.1-flash): tried do/while(0) block, comma-operator
-// argument, sizeof, *(DWORD*)&mem, reference/pointer local, do-block wrap,
-// LPMEMORYSTATUS/integer-constant and helper forms for the second
-// GlobalMemoryStatus. Every one stays at 99.6% with the identical 4-line diff
-// (push/mov swapped at the call's delay slot). Confirms the guide's note at
-// 0x4b6570: this is a scheduler tie-break, not a source-shape lever.
-// Partial: 99.6%, 1174 bytes on both sides. The whole body is byte-identical
-// except the second GlobalMemoryStatus: ours emits
-//     lea edx,[esp+0x10]; mov dword ptr [esp+0x10],0x20; push edx; call esi
-// while the original fills the call delay slot,
-//     lea edx,[esp+0x10]; push edx; mov dword ptr [esp+0x14],0x20; call esi
-// (the first GlobalMemoryStatus already has the original's order). A 768-set
-// header sweep, 20 call/init variants and 12 type/layout variants did not
-// resolve it; neither did declaring the function __stdcall (it still emits
-// ?FUN_00491200@@YGXXZ and the same order), a nested-block copy of mem, a
-// second MEMORYSTATUS local, a pointer local, a store through *(DWORD*)&mem,
-// a comma expression, and single-use inline helpers for set-then-call. The
-// store is free to move all over the neighbouring block (writing the store
-// before FUN_004b4fd0 even moves it into that call's delay slot at
-// [esp+0x18]), so only the scheduler's tie-break differs; the frame, every
-// esp+N slot and every other instruction are correct.
-// A second deepseek-v4.1-flash pass added: an N-declaration sweep 0..2400 (all
-// 99.6%), a check of the other push+store-shadow sites in the exe (0x4b5980 and
-// this function's first call both have a preceding push; 0x490aa0, the plain
-// single-call sibling, is also store-before-push), and about 70 scratch variants
-// (pointer/reference locals, union, inline helpers, ternaries, comma operator,
-// sizeof, array form, declaration order, volatile diagnostics). None moved the
-// store into the push shadow.
-// A third pass (space-bunny-free) established what the tie actually is. It is a
-// two-way list-scheduler tie between the dwLength store and the `push edx` that
-// is a child of the GlobalMemoryStatus call, decided by which statement sits
-// earlier in the block's statement list, and the delay slot IS reachable:
-// writing g_game->field_391f5 = FUN_00496a60 AFTER FUN_004b4fd0(...) instead of
-// before it (both spellings are legal) gives 99.2% and emits
-//     call <FUN_004b4fd0>; mov ecx,g_game; lea edx,[esp+0x10]; push edx;
-//     mov [ecx+0x391f5],0x496a60; mov dword ptr [esp+0x14],0x20; call esi
-// so the dwLength store takes the delay slot there, but the 391f5 store is then
-// hoisted below the argument pushes. The original wants the 391f5 store before
-// the pushes and the dwLength store in the slot, and the current order gets the
-// first right and the second wrong, so the two stores compete for one slot.
-// Also failing at 99.6% with the identical diff: a two-site static __inline
-// helper, sizeof(mem) at either site, the call inside a nested block, ::
-// qualified, (mem.dwLength = 0x20, &mem) as the argument. Moving calls and
-// stores around the block all cost points: 391f5 after call B 99.2%, the eight
-// zero stores swapped 98.8%, the byte store moved 96.5%, the whole 9-store group
-// plus call B hoisted above FUN_004c1420 91.5%. The current order is the best of
-// about 30 shapes tried here on top of the earlier 70. The store has three
-// reachable homes in this block and the original is the one that is not
-// reachable from the current statement order: before the argument push (99.6%,
-// the file as it stands), in FUN_004b4fd0's delay slot at [esp+0x18] (also
-// 99.6%, from writing the dwLength store above the 391f5 store and call B), and
-// in GlobalMemoryStatus's own delay slot at [esp+0x14] (99.2%, from writing the
-// 391f5 store after call B). The nine g_game zero stores and the 391f5 store as
-// one inline helper, and a single-store inline helper at site 2, both stay at
-// 99.6% with the same diff.
-// A fourth deepseek-v4.1-flash pass added about 40 more spellings at site 2
-// (statement-level comma, switch(0)/case, for(;;)break, do/while(0), if(1), a
-// bare {} block, pointer/reference locals assigned before or after the store,
-// (void)(store), a result variable, array and -> forms, a function-pointer
-// local, and first-site perturbations plus `register` declarations). Every one
-// compiled to the same object as the file below: the tie is not reachable from
-// any C++ shape, only from the scheduler's internal node order.
-// A fifth pass (deepseek-v4.1-flash, 10 min) tried 18 more site-2 shapes:
-// no-windows.h manual MEMORYSTATUS/GlobalMemoryStatus, a shared top-level
-// LPMEMORYSTATUS used at both sites, site-2 pointer and int-cast stores,
-// MEMORYSTATUS mem[1] with mem[0] and GlobalMemoryStatus(mem), a union whose
-// store goes through u.dw, comma expressions in both orders, pointer-comma
-// (q = &mem, q->dwLength = 0x20, q) inside and outside the call, casts, a named
-// length local, a comma grouping the store with FUN_004b4fd0, and single-use
-// pointer-returning / two-argument inline helpers. All stay at 99.6% with the
-// same 4-line diff, except (GlobalMemoryStatus(&mem), mem.dwLength = 0x20),
-// which does reach the wanted push-before-store order but then leaves the store
-// one instruction after the call (a 2-line diff). The scheduler will not move a
-// store past a call that may alias mem, so the push shadow at [esp+0x14] is
-// still not reachable from any legal source order.
-// Pass 6 (deepseek-v4.1-flash) confirmed two more permutations are worse: moving
-// the 391f5 store after the whole mem block scores 98.1% (the ecx/edx homes swap
-// too), and moving the mem block above that store scores 97.3% (the dwLength
-// store does reach the push shadow, but the nine zero stores re-schedule), so the
-// 99.6% store-before-push shape below stays the best known version.
-
+// Decompiled by deepseek-v4.1-flash, finished by deepseek-v4.1, finished by
+// deepseek-v4.1-flash, finished by space-bunny-free, finished by
+// deepseek-v4.1-flash, finished by space-bunny-free. Names are provisional.
+//
+// MATCH, 1174 of 1174 bytes.
+//
+// The whole function was byte-identical except the second GlobalMemoryStatus,
+// where the original fills the call's delay slot
+//     lea edx, [esp+0x10]; push edx; mov dword ptr [esp+0x14], 0x20; call esi
+// and this file emitted
+//     lea edx, [esp+0x10]; mov dword ptr [esp+0x10], 0x20; push edx; call esi
+// Five earlier passes (about 200 spellings of the second call) all left that
+// tie alone, and concluded it was unreachable. It is reachable, and the lever
+// is the SCOPE of the local, not its spelling:
+//
+//     { MEMORYSTATUS mem;  mem.dwLength = 0x20; GlobalMemoryStatus(&mem);  }
+//     ...
+//     { MEMORYSTATUS mem2; mem2.dwLength = 0x20; GlobalMemoryStatus(&mem2); }
+//
+// Each call needs its own block because that is what puts the dwLength store
+// into the call's delay slot, and the two blocks are what makes both locals
+// share one stack slot (the first is dead when the second block opens, so
+// MSVC reuses [esp+0x10] and the frame stays 0x24 dwords). Both blocks must
+// be nested: nesting only the second one grows the frame to 0x44 and moves
+// the struct, nesting only the first does the same.
+//
+// How it was found (see build/scratch/0x491200/): a miniature of the tail
+// (two `p->dwLength = 0x20; GlobalMemoryStatus(&p);` around a call) compiles
+// in about 0.15 s, and shows that with one MEMORYSTATUS local shared by both
+// calls the FIRST call gets the delay slot and the second never does, with
+// the same statement lists either side. Giving the second call a block of its
+// own with its own MEMORYSTATUS flips it to match. The mini also shows what
+// else moves that store: three or more stores to globals between the two
+// calls, and any call between them (which is why every spelling tried before
+// could not reach it: FUN_004b4fd0 sits between the two sites here).
+//
+// Scratch used: build/scratch/0x491200/{probe,mini,orc}.py and s1-s5.py.
 #include <string.h>
 #include <windows.h>
 
@@ -253,10 +193,12 @@ void __cdecl FUN_004578f0();
 void FUN_00491200()
 {
     int size;
-    MEMORYSTATUS mem;
 
-    mem.dwLength = 0x20;
-    GlobalMemoryStatus(&mem);
+    {
+        MEMORYSTATUS mem;
+        mem.dwLength = 0x20;
+        GlobalMemoryStatus(&mem);
+    }
     g_game->field_37e1f = FUN_004b6700();
     g_game->field_37e23 = FUN_004b6710();
     g_game->field_37e1b = FUN_004c69f0(DAT_005091d4, g_game->field_37e1f,
@@ -328,8 +270,11 @@ void FUN_00491200()
     g_game->field_391f1 = 0;
     g_game->field_391f5 = FUN_00496a60;
     FUN_004b4fd0(FUN_004578f0, 0);
-    mem.dwLength = 0x20;
-    GlobalMemoryStatus(&mem);
+    {
+        MEMORYSTATUS mem2;
+        mem2.dwLength = 0x20;
+        GlobalMemoryStatus(&mem2);
+    }
     FUN_004287b0();
     g_game->field_589 = 1;
     int limit = FUN_0049f5a0(DAT_00509238, 0xfa);

@@ -311,6 +311,108 @@
 //    above shows a third global store joins the same group. The only memory
 //    ops MSVC 5 cannot delete are global stores, and each one costs bytes,
 //    so this route is closed.
+//
+// Appended by Space Bunny Free (second pass, ~1450 variants compiled and read
+// out of the object file, not scored). Still 98.7%, 430 of 430 bytes, and the
+// residual is still only the four-instruction permutation of the loop head.
+// Build the sweep first: build/scratch/0x4ba000/probe.py compiles a whole
+// directory of variants with check.py's own compile_source and prints, per
+// variant, the ratio plus a slot-by-slot diff of the loop head against the
+// original's (head.py prints the head of named files; gen*.py write the
+// batches). 800 variants take 26s with 10 jobs, so this axis costs seconds
+// per idea instead of a check.py run each, which is what made the sweep below
+// possible. Everything in it emits either the identical sunk head or something
+// worse:
+//  - 803 variants: 12 relative orders of the read, the pointer advance, the
+//    history store and the value store x 9 dead statements (`p = p;`, `n = n;`,
+//    `c = c;`, `value = value;`, `state = state;`, a duplicate history store,
+//    a history store at index 0, a no-op `if (n) { n++; n--; }`, and a history
+//    plus value store inside a branch on a variable MSVC folds away) x 8
+//    positions in and around the loop head. Not one of them moves the history
+//    store. So the "a deleted statement still moves a block's store order"
+//    trick does NOT work in this function, and the flat head is what every
+//    spelling of it produces.
+//  - 448 variants: the history store written through a pointer whose value is
+//    re-assigned INSIDE the loop body (`hp = DAT_0051fcaf;` in four spellings,
+//    at eight positions, plus the reassignment in the latch), to block the
+//    base+displacement fold so the store's address is a register when MSVC
+//    decides to sink it. All identical, and the byte count does not even
+//    change: MSVC folds `hp[n]` straight back to `[esi + 0x51fcaf]` and
+//    deletes the hoisted base load again, so the fold happens before the sink
+//    decision, not after.
+//  - the rest, all flat or worse: inline helper shapes (byte by value, through
+//    `unsigned char*` parameters, returning the bumped pointer, doing all three
+//    stores), comma-expression nestings inside the pointer assignment, nested
+//    DUPLICATE stores (MSVC keeps the nested one and drops the top-level copy,
+//    but it sinks anyway), `default:` labels and reversed cases, twelve
+//    spellings of the switch expression (`state + 0`, `state - 0`, `(int)state`,
+//    `0 + state`, `state | 0`, `state ^ 0`, `state * 1`, `(unsigned)state`, a
+//    ternary), signed `char` for `value` and for the array, declared array
+//    sizes 128/129/255/256/1024, `(unsigned)n` and `(short)n` indices, three
+//    loop shapes (`for (; width; --width)`, `if (width) do {} while (--width);`,
+//    a `goto` guard plus `for (;;)` with a break), `register` on each local
+//    separately and on all of them, `const` on a parameter, and marking a
+//    local address-taken in a way that emits no code (`(void)&value;`,
+//    `if (&value == 0) { value = 0; }`, `if (&value) { value = value; }`,
+//    `if (sizeof(&value) == 3) { value = 0; }`, the same for state, p, c, n and
+//    the history element). `__restrict` is not a keyword in this compiler.
+//
+// The one positive result, and it is the first time the history store has been
+// seen IN PLACE with the right register allocation: the store is pinned when a
+// memory op whose address MSVC cannot tie to the frame sits between it and the
+// block's terminator. Shape (build/scratch/0x4ba000/b4/sx.cpp, 75.7%):
+//     static __inline void vs(char* q, unsigned char* pv) { *pv = *q; }
+//     ...
+//     c = *p;
+//     DAT_0051fcaf[n] = c;
+//     vs(p, &value);
+//     p++;
+//     switch (state) {
+// emits `p reload, ++n, load byte, ++p, HISTORY STORE, mov cl, [eax-1],
+// p store, state load, sub eax,0, value store, je`: the history store lands on
+// the original's slot 4. The pin really is that unknown-address load and not
+// the nesting: passing the byte by value instead (`vs(&value, c)`) drops the
+// reload and the store sinks again. It costs two bytes, because MSVC does not
+// forward `bl` across the inline expansion and reloads the byte, and the value
+// store still sinks past `sub eax,0`, so it cannot be used as it stands.
+//
+// What the emitted heads add up to. The state load is hoisted to just after the
+// last IN-PLACE memory op and the delayed stores are flushed after
+// `sub eax,0`, so the original's block (history store in place, value store in
+// place, `sub eax,0` last) is exactly the case where the delayed list is
+// EMPTY, and ours is the case where it holds value + history store. The same
+// reading explains the pre-loop block, whose list holds prev/DAT_0051fcb0/
+// n = 1/state but not p/value. So the residual is not an ordering choice at
+// all: the two stores have to leave the list, and the only thing that has ever
+// been observed to keep a store out of its flush position in this function is
+// an untrackable address. The original's loop head has no such op after the
+// history store (the pointer store, the state load and the value store are
+// three distinct direct frame slots), which is why I could not find a
+// spelling that empties the list.
+//
+// One more measured fact about the list, because it closes the last ordering
+// idea: the store to the dedicated frame slot is ALWAYS emitted first in the
+// group, whatever order the source puts it in, and the global stores then keep
+// their relative source order. Adding a probe store to a global below the
+// history array (DAT_0051fc94) and one above it (DAT_0051fdb0) and reading the
+// head: source `value, hist, low` and source `hist, value, low` both emit
+// `value, hist, low`, while source `low, hist, value` and `low, value, hist`
+// both emit `value, low, hist`. So there is no source order that puts the
+// history store before the value store inside the group, and pinning only the
+// history store (the sx shape) gives exactly the prediction above: history
+// store at 4, then the pointer store, the hoisted state load, `sub eax,0` and
+// the value store after it. Both stores have to stay out of the list.
+//
+// Two last things, so nobody repeats them. (1) The frame-slot locals can be the
+// PARAMETERS themselves and the layout still works out (p on the dead `dest`
+// slot by writing `dest = src` and reading `*dest++`, prev on the dead `src`
+// slot, the state on the dead `width` slot with a separate `left` counter on a
+// dedicated slot): p as the `dest` parameter gives 98.7% with the same sunk
+// head, and the state as the `width` parameter gives 79.1%, so whether the
+// symbol is a parameter or an overlaid local makes no difference to the sink.
+// (2) permute.py from the pinned-history-store seed (build/scratch/0x4ba000/
+// seed_pin.cpp, 75.7%) climbed to 88.3% over 1395 candidates in ten minutes
+// with no match, so there is no flat rewrite in the pin neighbourhood either.
 
 extern unsigned char DAT_0051fcaf[];
 extern unsigned char DAT_0051fcb0[];

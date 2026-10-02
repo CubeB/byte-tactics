@@ -1,46 +1,108 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
-// PARTIAL 42.8%. Size 1880 vs original 1853 bytes (27 bytes long).
-// Recovered from a permuter run whose best_ratio.cpp was never copied back; that
-// single file moved 39.1% to 42.8% and is now the body here. Everything below
-// records what was measured AFTER that recovery, so these numbers are against
-// 42.79% and not against the 33.0% the older notes were written at.
-// Key fixes already in the file: the Select block is emitted twice (the
-// counter!=0 path ends at Next, the live path at TailOnly) via goto labels, the
-// type flags tests use a 1-bit bitfield union so MSVC emits the original's
-// mov/shr/test sequence instead of folding (x>>N)&1 into test reg,imm, and the
-// global accesses are routed through static inline helpers.
-// Residuals, biggest first:
-//  1. Prologue. The original loads g_game into eax BEFORE `sub esp, 0x14` and
-//     then re-reads it into ecx after the pushes; ours loads once into ecx and
-//     CSEs the second use. The original also homes count to [esp+0x18] AFTER
-//     the three pushes, ours spills it to [esp+0xc] before the branch. Neither
-//     spelling tried moves it (see group.py P1..P7 below).
+// PARTIAL 46.6%. Size 1891 vs original 1853 bytes (38 bytes long).
+// Recovered from a permuter run whose best_ratio.cpp was never copied back (that
+// file alone was 39.1% to 42.8%), then 42.8% to 43.6% by hand, then 44.5%, 45.6%
+// and 46.6% from three more permuter batches. Every score below is measured
+// against the body named, so none of it is comparable to the older 33.0% notes.
+// A METHOD WARNING, because it cost a full batch on this file: comparing two
+// permuter RUNS to attribute a gain to one line is CONFOUNDED. Runs 21 and 22
+// differed by four edits at once, and reading the 45.43-against-45.63 gap as
+// "the `char* tmp3 = g_game` temporary is noise" was WRONG: run 33 re-added the
+// same temporary (as tmp9) and that single line is worth +0.94, isolated below.
+// Always isolate a run's diff before believing which line did the work.
+// TWO PERMUTER FINDINGS WORTH RECORDING, both measured here:
+//  * `best.json`'s `best_ratio` field did not point at `best_ratio.cpp`. Run 5's
+//    summary recorded best_ratio 0.4029 while the file it had written was
+//    0.4279, which is why that run read as finding nothing. Always probe the
+//    candidate files on disk; never trust the JSON summary.
+//  * best_ratio.cpp beat best.cpp and best_raw.cpp in EVERY run measured (run 12:
+//    44.48 vs 43.58/43.58; runs 21-24: 45.43, 45.63, 45.29, 45.29 as the ratio
+//    files against 45.43, 44.75, 45.29, 45.29 as the best files; runs 31-34:
+//    46.57, 46.57, 46.57, 46.43 against 45.89, 46.57, 45.89, 45.89). Same
+//    pattern as 0x43f0e0 in the guide: the ratio variant is the one to copy back
+//    here. Note run 32 is the one case where best.cpp tied its ratio file, so
+//    the claim is "wins or ties, never loses", not "always wins outright".
+// What gained 44.5% to 45.6% (run 22's best_ratio, four edits):
+//  * The b0 arm's `p->field_4a < (unsigned int)gt` moved into a new helper
+//    `inl0(p, gt)`, giving that one compare a boundary. This is the guide's
+//    "give a single load a boundary" technique and it is the largest of the four.
+//  * `int tmp30 = p->vel.z;` merged onto the line that uses it, and the tail's
+//    last two `&&` operands folded onto one line. Cosmetic, but they are part of
+//    the same candidate so their individual worth is not yet separated.
+//  * `short tmp31 = p->counter; if (0 == tmp31)` instead of testing
+//    `p->counter` directly: the compare result is parked in a local first,
+//    the guide's technique 4.
+//  * the frame-number load collapsed from a temporary to `g_game` inline. That
+//    one was later REVERSED by run 33; see the 46.6% note below.
+// What gained 45.6% to 46.6% (run 33's best_ratio, isolated one at a time):
+//  * `char* tmp9 = g_game;` in front of the frame-number load: +0.94, and it is
+//    the ONLY load-bearing edit of the three. The temporary exists to give that
+//    one load a boundary, the guide's technique 2. Dropping it is -0.94.
+//  * `int a; a = FUN_004b6c30(type->field_ee);` instead of `int a = ...`: inert.
+//  * inl22 as a one-line `return` instead of a ret-locals pair: inert.
+//    Both inert edits are kept as they stand because they are byte-identical and
+//    the split form is what the rest of the permuter output uses, but neither is
+//    worth points and neither should be credited with any.
+// What gained 43.6% to 44.5%, three edits from run 12's best_ratio:
+//  * `int* tmp18 = ..., offset;` as ONE multi-declarator instead of two
+//    statements. This is declaration SHAPE, and it is load-bearing here even
+//    though every permutation of the declaration ORDER measured inert.
+//  * `idx = idx + 1;` instead of `idx++;` in the three-slot search loop.
+//  * The b1 arm's guard inverted to `if (p->field_46 <= ...) { } else { ... }`,
+//    worth +0.9 alone. The same flip on the b3 test two arms earlier is -2.32,
+//    so these two empty arms are NOT the same shape and must be flipped
+//    independently. An empty arm is not automatically noise.
+// What gained 42.8% to 43.6%:
+//  * THE INCLUDES WERE REMOVED. This file now has none. The 256-subset sweep in
+//    build/scratch/0x49b720/hdrsweep.py found exactly two distinct scores across
+//    all 256 subsets of {windows.h, ddraw.h, stdio.h, stdlib.h, math.h,
+//    string.h, memory.h, assert.h}: 43.58% with no windows.h, 43.23% with it.
+//    So <windows.h> was COSTING 0.35 points and the older note that including it
+//    helps was wrong for this function.
+//  * ApplyVel now reads pos.y, pos.x, pos.z in that order instead of
+//    pos.x, pos.y, pos.z, matching the original's slot-access order. +0.37.
+//  * The loop tail's two s tests plus the two v guards are one && chain, so all
+//    four compares share the original's single failure label. +0.07, and 8 bytes
+//    smaller (1880 to 1872) before the include change.
+//  * 19 of the permuter's helper accessors were measured inert call by call and
+//    collapsed back into plain expressions (build/scratch/0x49b720/collapse.py).
+//    Byte-identical, but the file went from 31 helpers to 11.
+// Helpers that ARE load-bearing, do not inline them: inl18 (-2.00 if inlined),
+// inl12 (-0.40), inl9 (an int return is -2.51), inl15 (an int return is -0.32).
+// Residuals, biggest first. The prologue, recoil and Drift figures are against
+// 43.23%, the body before the include change; the rest is against this body:
+//  1. Prologue. The original loads g_game into eax BEFORE `sub esp, 0x14`, then
+//     re-reads it into ecx after the three pushes; ours loads once into ecx and
+//     CSEs the second use. The original homes count to [esp+0x18] after the
+//     pushes, ours spills to [esp+0xc] before the branch. This resisted every
+//     spelling tried: count declared first with an inline initialiser, count and
+//     the array read through separate helpers, g_game hoisted into its own
+//     `char* gbase` local, the two reads spelled with opposite addend order, the
+//     guard written `0 < count` or `!(count <= 0)`, and an early return instead
+//     of the guard. All inert. Declaration order was swept too: all 210 adjacent
+//     swaps of the function-scope declarations are byte-identical
+//     (build/scratch/0x49b720/dsweep.py), so ORDER is inert and should not be
+//     retried, even though the declaration SHAPE above was worth 0.9.
 //  2. `s` is read by the original as `mov cx, word ptr [ebp+esi+0xa]` BEFORE
-//     `add ebp, esi`, i.e. from base+offset rather than from p, then sign
-//     extended into edx. Ours reads `movsx ebx, word ptr [ebp+0xa]` after the
-//     add. Reading s before p scores 41.70% (-1.09), so the two-register SIB
-//     form is not reachable by spelling s from the same base+offset expression.
-//  3. The recoil block signs cx with `sub cx, ax` in 16 bits and adds it to a
-//     32-bit `a` with `add edi, ecx`. Ours sign extends ang to eax and rebuilds
-//     the sum with `lea edi,[eax+ebx]`. Casting a, t or the sum to short all
-//     score between -0.18 and -0.36; routing the sum through a short local and
-//     reusing it for both calls (H7) is -2.36. The block is byte-identical with
-//     a short t or with plain source (H5/H6, both +0.00), so the fix is not in
-//     this block's widths.
-//  4. The empty `if (!type->flags.bits.b3) { } else { ... }` in the b0 path
-//     IS load-bearing: making it a positive test scores 40.47% (-2.32).
-// Measured and rejected (each applied alone onto this body):
-//   * a separate `char* qbase` local for the 0x141f7 array, with p and s both
-//     formed from qbase+offset: 27.32% (-15.47). Also -15.47 as an int qbase.
-//   * `p` formed as `(Proj*)((char*)(*(int*)(0x141f7+g_game)) + offset)`: +0.00,
-//     inert, kept because it reads better.
-//   * `count` read through a static inline helper: +0.00, inert.
-//   * the `count > 0` guard written `0 < count`: +0.00, inert.
-//   * `s` declared `short` instead of `int`: -0.18.
-//   * `offset` declared with its initialiser: -0.18.
-// Harness: build/scratch/0x49b720/probe.py is a compile-only probe that reuses
-// check.py's comparison, ~0.5 s per variant instead of ~60 s. A `d` of 0 in its
-// output means "same as this file", NOT "matches the original".
+//     `add ebp, esi`, from base+offset rather than from p, then sign extended
+//     into edx; ours reads `movsx ebx, word ptr [ebp+0xa]` after the add.
+//     Reading s before p is -1.09. A separate base-pointer local for the array
+//     is -15.47, as char* and as int, which is the strongest signal here that
+//     the two-register SIB form is not reachable from this source shape.
+//  3. The recoil block: the original does `sub cx, ax` in 16 bits then
+//     `add edi, ecx`; ours sign extends ang to eax and rebuilds the sum with
+//     `lea edi,[eax+ebx]`. Casting a, t or the sum to short gives -0.18 to
+//     -0.36, routing the sum through a short local reused for both calls is
+//     -2.36, and a short t or plain source is byte-identical. The block's widths
+//     are already right, so this is a register-allocation difference.
+//  4. The empty `if (!type->flags.bits.b3) { } else { ... }` in the b0 path is
+//     load-bearing as written; the positive-test spelling is -2.32. Do not tidy
+//     it, and see the b1 note above for why the other one flips.
+//  5. Drift and Drift2 are each -0.73 and -0.91 when their stores are reordered
+//     to match the original's slot order, the opposite of ApplyVel. Leave both.
+// Harness: build/scratch/0x49b720/probe.py is a compile-only probe reusing
+// check.py's own comparison, ~0.5 s per variant instead of ~60 s. A `d` of 0 in
+// its output means "same as this file", NOT "matches the original".
 
 #pragma pack(push, 1)
 
@@ -158,6 +220,8 @@ static inline unsigned short inl29(unsigned int e) { return (unsigned short)((0x
 static inline void inl7(Proj_0049b720*p) { p->start.x += p->vel.x; }
 
 
+static inline bool inl0(Proj_0049b720*p, int gt) { return p->field_4a < (unsigned int)gt; }
+
 // FUNCTION: 0x49b720
 void __cdecl FUN_0049b720()
 {
@@ -165,7 +229,6 @@ void __cdecl FUN_0049b720()
     int tmp6;
     int tmp23;
     short* tmp4;
-    char* tmp13;
     WType_0049b720* type;
     unsigned short sl;
     char* tmp15;
@@ -180,8 +243,7 @@ void __cdecl FUN_0049b720()
     unsigned short ec;
     unsigned char idx;
     int * arr, s;
-    int* tmp18 = (int*)(g_game + 0x141f3);
-    int offset;
+    int* tmp18 = (int*)(g_game + 0x141f3), offset;
     int count;
     count = *tmp18;
 
@@ -209,7 +271,7 @@ void __cdecl FUN_0049b720()
                 tmp10 = ((int)tmp6) + ((char*)tmp28);
                 if (((unsigned int)(*(int*)(tmp10 + 0x10) == (int)type)))
                     break;
-                idx++;
+                idx = idx + 1;
                 if (((int)(idx >= 3))) break;
             }
             FUN_0043e240(arr, &p->pos, idx, p->field_62);
@@ -244,10 +306,10 @@ skip1:;
                     int a;
                     a = FUN_004b6c30(type->field_ee);
                     ang = (short)(inl6(p, type));
+                    int tmp34 = (a) + ang;
                     int t;
                     t = FUN_004b7123((p->pitch), type->field_68);
                     p->vel.x = -FUN_004b70ef(a + ang, (((int)t)));
-                    int tmp34 = (a) + ang;
                     unsigned int tmp20;
                     tmp20 = -FUN_004b7123(tmp34, t);
                     tmp5 = tmp20;
@@ -320,7 +382,8 @@ skip1:;
                         int tmp22;
                         tmp22 = !(p->flags69 & 0x30);
                         if (tmp22) {
-                                    tmp23 = (*(int*)(0x38a47 + g_game));
+                                    char* tmp9 = g_game;
+                                    tmp23 = (*(int*)(0x38a47 + tmp9));
                                     p->field_46 = p->type->field_fc + tmp23;
                                     unsigned int e;
                                     int tmp33;
@@ -343,8 +406,7 @@ skip0:;
                     p->pos.y = ((p->vel.y + p->pos.y));
                     p->pos.x += p->vel.x; p->pos.z = p->pos.z + p->vel.z; if (!type->flags.bits.b3) {
                     } else { int tmp32 = inl9(((Proj_0049b720*)p));
-                    if (tmp32) { p->start.y += p->vel.y; int tmp30;
-                    tmp30 = p->vel.z;
+                    if (tmp32) { p->start.y += p->vel.y; int tmp30 = p->vel.z;
                     p->start.z += tmp30; inl7(p); } else if (*(unsigned int*)(0x38a47 + g_game) > p->field_42 + (type->field_f0)) p->flags69 = (p->flags69) | 1; }
                     goto Call090;
                 }
@@ -354,7 +416,8 @@ skip0:;
             if (type->flags.bits.b1) {
                 if (!(type->field_e6 != 0))
                     goto Drift;
-                if (p->field_46 > *((int*)((int*)(g_game + 0x38a47)))) {
+                if (p->field_46 <= *((int*)((int*)(g_game + 0x38a47)))) {
+                } else {
                     p->pos.y += p->vel.y;
                     p->pos.z += p->vel.z;
                     p->pos.x += p->vel.x;
@@ -417,7 +480,7 @@ skip0:;
             gt = *((int*)(g_game + 0x38a47));
             if ((type->flags.raw & 0x40000)) {
                 if (p->field_46 > gt) {
-                        if (p->field_4a < (unsigned int)gt) {
+                        if (inl0(p, gt)) {
                                                         FUN_00472810(&p->pos, 9);
                                                         p->field_4a = p->field_4a + type->field_fa;
                                                     }
@@ -429,9 +492,7 @@ skip0:;
                     && *(short*)(0xa + (char*)p) <= (unsigned short)sl) {
                     void* v = FUN_004815a0(&p->pos);
                     if (v != 0
-                        && (*(unsigned char*)(g_game + 0x1427f)) > *(unsigned char*)((char*)v + 5)
-                        && *(int*)(0xd48 + *(int*)(0x391e9 + g_game)) == 0)
-                        FUN_00420a30(&p->pos, type->field_7c, 0, 1);
+                        && (*(unsigned char*)(g_game + 0x1427f)) > *(unsigned char*)((char*)v + 5) && *(int*)(0xd48 + *(int*)(0x391e9 + g_game)) == 0) FUN_00420a30(&p->pos, type->field_7c, 0, 1);
                 }
             }
         }

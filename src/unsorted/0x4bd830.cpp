@@ -64,6 +64,11 @@
 // *dataptr * 90 into eax, then sub eax, ecx; we interleave the two chains and
 // use edx. A temporary for either term, or for the whole span, is folded away
 // before allocation and changes nothing.
+// Two 15-minute tools/permute.py runs over this file (it mutates FUN_004bd830,
+// entryAt and nblocks) improved on nothing: the best mutation it completed
+// scored 2562 against the base's 2622. Roughly 70 scored variants were tried
+// in total, so items (1) to (3) are allocator ties I could not reach from the
+// source; the leads worth trying next are in (1) and (4).
 // BUG: the max-output-size argument handed to FUN_004d1820 is a heap address.
 // The original stores the result of FUN_004d83b0("Pack Buffer", packlen) into
 // the very slot whose address it passes as that argument (0x4bda5e stores it,

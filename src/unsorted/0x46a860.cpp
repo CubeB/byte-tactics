@@ -1,4 +1,49 @@
-// Decompiled by deepseek-v4.1, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass: 95.2% -> 95.7%, still 4247 bytes (the original's size).
+// - WIN: the XYH index is written as three statements instead of one expression
+//   (`v = load; v *= y; v += x;`). VC5 then emits the original's register pair
+//   (0x2c90 in ebx, 0x2c8e in edx); as a single `a * b + c` expression the two
+//   movsx results land in edx/ebx swapped and the whole hunk differs.
+// - the now-unneeded `rectPtr` temp (a pointer to ebp+0x1d2) is gone; the frame
+//   and the bytes are unchanged, 4247 both.
+// What still differs (9 hunks, all register choice or scheduling):
+// - Byte accounting for the whole rest of the function is fixed by two spots
+//   where the original keeps g_game in eax and we keep it in edx:
+//   * the PFSTATE block at 0x46a949: the original copies the FUN_004c1450
+//     result out of eax (`mov ecx, eax`) so that eax is free for g_game, and
+//     emits `mov eax,[g]` (5 bytes); ours leaves pfable in eax, puts g_game in
+//     edx (6 bytes) and so block 1 is one byte SHORT, which is what shifts every
+//     later je/jl target by one (six hunks of pure address noise).
+//   * the strncpy/`entry` block at 0x46ae39: the original reloads g_game into
+//     eax right after `lea esi,[eax+eax*8]`, we hoist it to the top of the
+//     `if (type != 0)` block in edx, which makes this region one byte LONG and
+//     cancels the block-1 shortfall so the totals match at 4247.
+//   Fixing either alone breaks the byte count, so they have to move together.
+// - the weapons loop: p and the snapshot.weapons cursor are swapped
+//   (original p in ecx, cursor in eax; ours the other way round), everything
+//   else in the loop matches.
+// - the two FUN_004c14f0 calls after the strncpy sprintf: the original picks
+//   (y in eax, x in ecx, buffer in edx), we pick (y in edx, x in eax, buffer
+//   in ecx), a one-step rotation of the same three.
+// - the strncpy base: ours folds `*(int*)(*(int*)(g_game+0x531)+4)` into the
+//   scale chain early, the original reads it after the whole `lea` chain.
+// - the orderName block: the original schedules `mov edx,[ebp+0x22e]` between
+//   the strcpy's `mov edi, edx` and `shr ecx,2`, we schedule it after `rep movsb`.
+// Tried and reverted this pass (byte identical or worse): pfable as unsigned,
+// field_c as a typed struct pointer with named fields, field_c as char*, the
+// field_c load hoisted above FUN_004c1420 (95.5%), pfstate and field_c swapped
+// (88.0%, confirmed again at this baseline), `pfstate--` as its own statement,
+// the strncpy index and the entry index as sequential accumulations, the entry
+// addition with the operands swapped, `int* nameTable` for the 0x531 table,
+// `*(int*)(ebp+0x22e)` spelled directly instead of through Font_0046a860, the
+// weapons loop as a `for` with the increments in the header and with p declared
+// before the cursor, the cursor assigned before p, and named locals for the two
+// y values in the label/name calls. Hoisting the orderName font load into a local
+// costs 8 bytes (91.7%).
+// permute ran 15 minutes from both the 95.2% and the 95.7% file (695 candidates,
+// 18 did not compile) and found no improvement at either, best.diff empty, so the
+// remaining gap is not reachable by statement, declaration, operand, loop-form or
+// inline-helper rewriting: it needs the two g_game-in-eax choices to move together.
 // claude-sonnet-5-5 pass: 86.7% -> 94.7%, 4247 bytes (same as the original). Three levers:
 // - kills block: do not keep `unsigned short kills` in a local; the original re-reads
 //   *(unsigned short*)(unit + 0xb8) at every use (cx compare, then a reload after the call).
@@ -227,7 +272,7 @@ static inline int* Font_0046a860(char* epb) { return (int*)(epb + 0x22e); }
 // FUNCTION: 0x46a860
 void __stdcall FUN_0046a860(void* param_1) {
     char* buf7;
-    int* rectPtr, iVar5 = *(int*)(g_game + 0x37e23) - *(int*)(g_game + 0x147a7);
+    int iVar5 = *(int*)(g_game + 0x37e23) - *(int*)(g_game + 0x147a7);
     Snapshot_0046a860 snapshot;
     memset(&snapshot, 0, sizeof(snapshot));
     char text[256], amount[100];
@@ -283,8 +328,9 @@ void __stdcall FUN_0046a860(void* param_1) {
                                     *(int*)(g_game + 0x1f54));
             FUN_004c14f0(param_1, (unsigned char*)buf2, 0x190, (int)pfstate, -1);
                     
-            int v = *(int*)(g_game + 0x14233) * (short)*(unsigned short*)(g_game + 0x2c90) +
-                                    (short)*(unsigned short*)(g_game + 0x2c8e);
+            int v = *(int*)(g_game + 0x14233);
+            v *= (short)*(unsigned short*)(g_game + 0x2c90);
+            v += (short)*(unsigned short*)(g_game + 0x2c8e);
             unsigned char c = *(unsigned char*)(*(int*)(0x14287 + g_game) + v * 13 + 4);
             sprintf(buf2, "XYH: %d %d %d\n", (short)*(unsigned short*)(g_game + 0x2c8e),
                                     (short)*(unsigned short*)(g_game + 0x2c90), (unsigned char)c);
@@ -379,9 +425,8 @@ void __stdcall FUN_0046a860(void* param_1) {
                 sprintf(buf8, "%s  M:%d E:%d", entry, (int)*(float*)(entry + 0x18a),
                         (int)*(float*)(entry + 0x186));
                 {
-                    rectPtr = (int*)(ebp + 0x1d2);
-                    FUN_004c14f0(param_1, (unsigned char*)buf8, *rectPtr,
-                                 iVar5 + *(int*)(0x1d6 + ebp), -1);
+                    FUN_004c14f0(param_1, (unsigned char*)buf8, *(int*)(ebp + 0x1d2),
+                                 *(int*)(0x1d6 + ebp) + iVar5, -1);
                     FUN_004c14f0(param_1, (unsigned char*)(entry + 0x40),
                                  *(int*)(ebp + 0x1e2), (*(int*)(ebp + 0x1e6)) + iVar5, -1);
                 }

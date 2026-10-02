@@ -1,4 +1,25 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5, edited by deepseek-v4.1-flash,
+// matched by space-bunny-free. MATCH (191 bytes, exact).
+// space-bunny-free (#4430 round): MATCH. The one hunk every earlier round was
+// stuck on (ClearLast's `mov edi,[esi+0x1c]` base load, ours emitted three
+// slots early, right after the guard's `je`) is fixed by a store standing
+// between the `cells` load and the pointer add: see ClearLast below. The
+// mechanism, so nobody repeats the ~320 spellings the earlier rounds burned on
+// statement order: MSVC 5 propagates the `p = cells` load into the `p += i*256`
+// add whenever no store separates them, and once it has, the add takes the
+// shift as its own destination, the loaded base lands in a scratch (`mov
+// edi,ebp` / `shl edi,0xa` / `add edi,ecx`, 93.7%) and the load is emitted
+// where the add is. With a store in between, `p` keeps the loaded value as its
+// own definition, the add stays in place on `p`, the base gets edi and the
+// shift edx, and the load lands after the `dirty[i] = 0` store as the original
+// has it. What the store has to be: a store to a dead local, kept alive by a
+// *control-flow* use. `int t = 0;` alone is dropped before the propagation
+// (93.7%), `bits = bits | t` is folded away with it (93.7%), a store to a
+// file-scope static survives but costs a 7-byte `mov dword ptr [g],0` (99.4%,
+// the tail itself then matches exactly), and a store to a live variable keeps
+// its branch (69.6%). Only the dead-local-plus-folded-branch form emits
+// nothing; `if (t)`, `while (t)`, a dead `for (k = 0; k < 0; k++)`, a dead
+// local array element and a null-pointer check all give the same 100%.
 // deepseek-v4.1-flash (#3770 round): still 98.7% (191 bytes, exact), the one hunk
 // is unchanged. Four more store-first spellings confirmed dead at 93.7%
 // (`&cells[i << 10]`, `(Cell*)((char*)cells + (i << 10))`, a scalar
@@ -57,10 +78,11 @@
 // store-first spelling gives the right slot order but swaps to ecx base / edi offset
 // (93.7%). headers.py swept all 128 sets, all flat. Scheduler/live-range tie.
 //
-// Partial (98.7%): clears the kind byte of every cell in each dirty group of
-// eight cells, then clears the dirty masks. One dirty word covers 256 cells
-// (0x400 bytes). Every full block is cleared unconditionally; the last block
-// is bounds-checked against the cell count.
+// Partial (was 98.7%, now MATCH, see the space-bunny-free note at the top):
+// clears the kind byte of every cell in each dirty group of eight cells, then
+// clears the dirty masks. One dirty word covers 256 cells (0x400 bytes).
+// Every full block is cleared unconditionally; the last block is
+// bounds-checked against the cell count.
 //
 // The first loop's inlined body matches exactly. The last block's body also
 // has the original's registers (ebx = dirty word, edx = i << 10, edi = base
@@ -189,8 +211,17 @@ struct Grid_0040d900 {
     {
         if (dirty[i]) {
             unsigned int bits = dirty[i];
-            Cell_0040d900* p = cells;
             dirty[i] = 0;
+            Cell_0040d900* p = cells;
+            // Dead code the original's bytes need (see the note at the top of
+            // this file): the store keeps MSVC 5 from propagating the `cells`
+            // load into the add below, which is what puts the base pointer in
+            // edi and the shift in edx, and emits the load after the
+            // `dirty[i] = 0` store. A bare `int t = 0;` is dropped too early to
+            // do this; the read in `if (t)` is what keeps the store alive.
+            int t = 0;
+            if (t)
+                bits = 0;
             p += i * 256;
             while (bits) {
                 if (bits & 1) {
@@ -210,7 +241,7 @@ struct Grid_0040d900 {
     }
 };
 
-class Class_0040d900 {
+class Class_0040e9e0 {
 public:
     char unknown_0[0x1c];
     Grid_0040d900 grid;                // +0x1c
@@ -219,7 +250,7 @@ public:
 };
 
 // FUNCTION: 0x40d900
-void Class_0040d900::FUN_0040d900()
+void Class_0040e9e0::FUN_0040d900()
 {
     int n = ((grid.count + 0xff) >> 8) - 1;
     int i;

@@ -1,4 +1,23 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// SOLVED (DeepSeek V4.1 Flash, #4833): 93.5% -> MATCH, 858 -> 857 bytes. Two
+// changes in the sea-level block, and they only work together:
+//
+//   * `PlayerRec_0048a490* o = u->owner;` and then `q = o->sight` and
+//     `n = g_game->frame - o->age`. The local keeps the owner pointer live
+//     across the four 64-bit helper calls, so the allocator holds it in ebp
+//     (the original's single `mov ebp, [edi]` reused as `mov esi, [ebp+0x2a]`
+//     after the divide). With `u->owner` read at each use the front end
+//     rematerialises `[edi]` after the calls and ebp goes to p instead.
+//   * The 60-frame clamp has to be inline in the multiply as
+//     `(n < 60 ? n : 60)` rather than a separate `if (n >= 60) n = 60;`. The
+//     if form schedules the frame/age loads after mm, so mm lands in esi, p
+//     goes to ebp and the function comes out 847 bytes at 89.7%. The ternary
+//     keeps the age load hoisted before mm, so mm lands in ecx, p spills to
+//     [esp+0x28] and eax holds the clamp result, which is the original.
+//     `min(n, 60u)` gives the same allocation but selects into edx (95.7%).
+//     Every if-shaped spelling was measured and all regress to 847/89.7.
+//
 // Space Bunny Free (#4163): 77.8% -> 92.2% -> 93.5% (858 bytes). All the gains
 // are in the loop body, and all of them are the register allocator agreeing with
 // the original after a change of statement shape. Four changes did it, the first
@@ -459,15 +478,14 @@ void __stdcall FUN_0048a490(Unit_0048a490* u)
                 hs[k].h = max(H, sea);
                 short p = (short)(((FUN_004b6340() & 0x1f) + k * 8) * 2048 + u->fix_lo);
                 int s = u->type->sight / 2;
-                int q = u->owner->sight;
-                unsigned int n = g_game->frame - u->owner->age;
+                PlayerRec_0048a490* o = u->owner;
+                int q = o->sight;
                 if (q >= s)
                     q = s;
                 int w = (int)((((__int64)q << 16) / s));
                 int mm = 2 - (int)((((__int64)w * 2) >> 16));
-                if (n >= 60)
-                    n = 60;
-                mm -= (unsigned int)(mm * n) / 60;
+                unsigned int n = g_game->frame - o->age;
+                mm -= (unsigned int)(mm * (n < 60 ? n : 60)) / 60;
                 hs[k].h = FUN_004b7123(p, mm) + hs[k].h;
             } else {
                 hs[k].h = H0 + ((H1 - H0) * fz) / 16;

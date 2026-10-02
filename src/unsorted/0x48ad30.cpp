@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by longcat-2.5-preview-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Space Bunny Free (#4163): 84.5% to 97.5%, 849 bytes both ways, and the unit
 // body is now instruction for instruction. Two changes, both in the outer loop.
 //
@@ -379,6 +379,20 @@
 // at +0x110 as a plain int with mask tests (68.4%: the bit 14 test stops
 // being a shift) and as a bitfield group starting at bit 0 instead of bit 4
 // (71.2%).
+//
+// deepseek-v4.1-flash (#4833) retry: no movement. A 3 minute permuter run
+// (1706 candidates) kept score 147 / 97.5%; all 256 header sets from
+// tools/headers.py also gave 97.5%; and the swapped loop-head loads survive
+// every expression rewrite of the player address (raw g_game cast, commuted
+// operand, char* base, extra +0, unsigned cast, players without [0]). Those
+// variants do change the object bytes but all score the same 147, so the
+// load order really is compiler state, not source shape. Dead uses of cnt
+// (if (0) g_leak = cnt;) around FUN_0043b7c0 and FUN_0048a870 left the ebx
+// reload at 0x267 and the score flat; store orders off/i/*cnt and off/*cnt/i
+// scored 207, *cnt first 765/625. Still differing: the off = 0 store sits
+// before cmp al,0xa, the loop-head g_game/off loads are in the opposite
+// registers, and the cnt reload is before FUN_0043b7c0 rather than after the
+// def block plus FUN_0048a870.
 #pragma pack(push, 1)
 
 class Class_00435100 {

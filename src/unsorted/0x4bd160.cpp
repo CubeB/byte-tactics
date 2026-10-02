@@ -1,4 +1,30 @@
-// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by Space Bunny Free, finished by muse-spark-1.3-free, finished by space-bunny-free, finished by GPT-6.1-sol, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash session (issue 4790): 99.3% unchanged, still only the
+// size constant encoding at 0x4bd183 (`mov eax,0x14` original versus
+// `not eax; and eax,0x14` ours). tools/permute.py ran 2150 candidates in
+// 3 minutes and stayed flat at 99.3%. Fresh structural attempts, all scored
+// with check.py's diff:
+//   99.1%  `sb.size = -(unsigned)(size_t)z + 20u;` emits
+//          `mov eax,0x14 / sub eax,ecx` before the buf store: the mirror
+//          schedule of the original's `mov eax,ecx / store / mov eax,0x14`.
+//          `(unsigned)(size_t)z * -1 + 20u` is the same shape. Both keep the
+//          zero in ecx and the early store, but the subtraction is not folded.
+//   99.1%  `struct HapiBuf t = {0}; sb.size = (unsigned)(size_t)sb.buf + 20u;
+//          sb.buf = FUN(t.buf, ...)` is the closest fold found: it gives the
+//          original's `mov eax,0x14` and early store, but the sum-base buf
+//          zero lands in eax (`xor eax,eax`) while the alloc-argument zero
+//          lands in ecx, so no dead `mov eax,ecx`.
+//   <=97.2% two-aggregate shapes that try to decouple the sum base from the
+//          alloc argument (store one zero into the other struct, swap which
+//          aggregate feeds the sum and which feeds the argument, local copies
+//          of each zero) either swap the two zero registers or fold the
+//          aggregate to immediate stores.
+// Reading: MSVC 5 folds an opaque zero's `+ 20` into `mov r,0x14` only when
+// the base register is dead after the sum (W3 note above and the 99.1% case);
+// when the base is live as the alloc argument MSVC gives the base eax and the
+// sum ecx, and never emits the dead copy. No spelling found that keeps the
+// base in ecx, live, and still folds the constant.
 //
 // space-bunny-free session (issue 4714): 99.3%, a real step up from 99.1%, and
 // the ONLY remaining difference is the encoding of the constant 20. The whole

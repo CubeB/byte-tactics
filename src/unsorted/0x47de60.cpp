@@ -1,5 +1,82 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 //
+// space-bunny-free pass (third), 3 check.py runs, best unchanged at 87.1 percent
+// (the file below), 344 of 342 bytes. This pass went after the mechanism rather
+// than the spelling, with a compile-and-read testbed (build/scratch/0x47de60,
+// beds 1 to 16, one compile of 5 to 30 whole-function variants each, read from
+// the /Fa listing). What it found:
+//  - the fold is not a property of the expression at all. In this exact
+//    function body, EVERY spelling of the arm builds mul(width, spotY) and
+//    materialises the width: about 70 variants, including everything the
+//    earlier passes swept, plus new ones: the leaves through a union member
+//    (0x4246b0's `sf.offsetY`), the width read through a char pointer cast,
+//    by-value helpers for the index, the neighbour pointer and the whole arm,
+//    `RowIndex(spotY, width, spotX)` with the arguments left to right, the
+//    index hoisted to the top of the function, the neighbour access spelled
+//    twice with no local, no hoisted `feature` local, and 0x47e2d0's exact
+//    shape (`Game* g` plus `int w`, then `cell[-(spotY * w + spotX)].feature`).
+//    All of them give the same eight-instruction block;
+//  - the fold does happen, and here is what buys it. In a small function,
+//    `return (cell - (spotY * g_game->width + spotX))->feature;` (0x421e60's
+//    body) emits the original's six instructions exactly, and so do two odd
+//    spellings that fold only because they are small: `other + (1 - (...))` and
+//    the sum written `spotX + spotY * width`. Add one thing to that small
+//    function and it stops folding, each one on its own: an `unsigned short f2`
+//    local holding the neighbour feature, the featureCount/features dispatch
+//    ahead of the arm, or the unit block after it (a ladder from the tiny
+//    version to this whole body is bed9's T0 to T4, and T3 already has this
+//    function's exact prologue, `mov edx,[g_game]; push esi; mov esi,[cell]`,
+//    and still does not fold). So the fold needs both a low-pressure body and
+//    the arm written as one nested expression with a single use, and this
+//    function can have neither;
+//  - the original's own schedule is `xor eax; xor ecx; mov al; mov cl; imul
+//    eax,[edx+0x14233]; add eax,ecx`, both zero-extensions before the imul,
+//    which is NOT the depth-first order c1 emits for a nested expression
+//    (0x421e60 does `xor eax; mov al; imul; xor edx; mov dl; add`). Hoisting the
+//    two leaves into `unsigned int` locals does reproduce that schedule exactly
+//    (`xor eax; xor ebx; mov al; mov bl; ...`), but then c1 has to keep spotY
+//    alive across the dispatch and copies it into edi first, giving
+//    `mov eax,[edx+0x14233]; imul eax,edi; add eax,ebx`. So the original did
+//    not hoist the leaves either, and its schedule comes from the backend
+//    moving the two independent byte loads above the multiply, which the
+//    backend only does when the multiply folds. This is consistent with the
+//    earlier passes' conclusion that the residual is not reachable by a source
+//    spelling, and it says why: the schedule is an effect of the fold, not a
+//    way in.
+// Conclusion: leave the 87.1 percent shape. Two permuter runs added nothing,
+// about 20800 candidates in all: 10 minutes from the 86.8 percent
+// `other`-pointer seed (12152 candidates, best stayed 86.8, though a 91.9
+// percent candidate turned up, which is the ternary size coincidence the note
+// above warns about) and 8 minutes from this file's 87.1 percent seed (8639
+// candidates, best stayed 87.1). A new idea worth one attempt by whoever takes
+// this next is that the fold may be a backend peephole that needs the width load
+// to have exactly one use and to be the last use of edx before it, i.e.
+// something that depends on how many times `g_game` is live across the arm;
+// nothing I tried changed that count without breaking the two-step unit load
+// that the rest of the function depends on.
+//
+// Two more facts for the next pass, both from the testbed (beds 13 to 16):
+//  - the closest non-loop analogue is the matched 0x4246b0, not 0x421e60. It
+//    folds in a straight-line function with the same register roles as ours
+//    (g_game in ecx, live past the block, temps (eax, edx)) and its arm is one
+//    statement, `cell -= cell->sf.offsetY * g_game->width + cell->sf.offsetX;`,
+//    with no neighbour-feature local at all. Written into this function (as a
+//    compound assignment on a fresh alias, with the leaves read through the
+//    union and the `feature` variable reused for the neighbour's feature, which
+//    is what matched 0x47db70's `SteepCell` does) it still does not fold: P1 to
+//    P4 in bed16 are that shape and every one gives `imul eax, ecx`;
+//  - the fold is not a loop effect, so do not spend time there: putting the arm
+//    in a one-trip `for` or `while` in this body (bed14's L1, L2) does not fold
+//    either, while 0x47dfc0, 0x47db70 and 0x47e2d0 all fold inside loops.
+// Also worth knowing: in the *small* bodies, one extra use of `g_game` after the
+// block is enough to kill the fold (bed15: D1 folds with 0x421e60's body, D2 and
+// D3 are the same body with one more use of g_game and do not), so there the
+// fold wants the width load's base register to be reusable afterwards. That is a
+// register-allocation property rather than an expression shape, which is why no
+// spelling of the arm reaches it in this body. Passing the cell as a reference
+// instead of a pointer (bed17) is also flat, so the parameter's indirection is
+// not part of it.
+//
 // 30-min checkpoint (space-bunny-free): best 87.1 percent, 344 of 342 bytes,
 // up from the 86.8 percent the earlier passes left here. Everything except the
 // map-index block in the feature == 0xfffe arm matches, jump targets included.

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-alpha. Names are provisional.
+// Decompiled by space-bunny-alpha, finished by DeepSeek V4.1 Flash. Names are provisional.
 // PARTIAL 97.1%, 791 of 791 bytes (same size, every instruction the compiler
 // chose is the original's, in the original's order).
 // Scanline filler, the sibling of 0x4c0c70 (which also fills a shade channel):
@@ -74,6 +74,21 @@ void __stdcall FUN_004c06e0(int row, Span_004c1000* span, Surface_004c1000* surf
 // FUNCTION: 0x4c1000
 int __stdcall FUN_004c1000(Surface_004c1000* surf, Point_004c1000* pts, int n, int color)
 {
+// DeepSeek V4.1 Flash retry (#4589): still 97.1, the same two walk-head hunks.
+// New result: the 0x4c0820 lever taken straight (a function-scope `Point* b`
+// assigned `&pts[j]`, first point indexed) DOES hand the reused minX slot to
+// &pts[j] as the original wants, but it re-packs the frame, moving maxYi to
+// 0x34 and swapping dx/sp and the walk1 index temp, so it lands at 92.8. A
+// block-local `Point* b = &pts[j]` per walk is optimized straight back into
+// this file's CSE temps (byte-identical 97.1). Also inert at 97.1 (identical
+// bytes): reading pts[j].y/x/z first (via (&pts[j])->y, (pts + j)->y, commuted
+// dx), named p/q or p-alone pointers, references, self-stores, void comma
+// reads of pts[j] before the y reads, one to six unused dummy locals, and
+// c-shape declaration reorders. tools/permute.py seeds 777 and the
+// stackcmp-suggested `--stack maxYi,dx,sp` on the 92.8 c-shape, and the
+// original run on this file, are all flat. The residue is still an allocator
+// tie-break over which spilled address temp gets the freed minX slot, not a
+// source-shape lever.
     int y0, y1, x, dx, dz;
     Span_004c1000 spans[2048];
     int maxX = -999999;

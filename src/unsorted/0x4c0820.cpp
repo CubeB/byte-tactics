@@ -1,4 +1,22 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash (this session, 99.5, 613 of 613, same single hunk): ran the permuter for
+// 3 minutes (2854 candidates, flat) and then about 50 hand variants scored directly from
+// build/scratch/0x4c0820/variants*.py, all at 99.5 with the byte-identical hunk (walk1 latch
+// reloads pts then i; original i then pts) unless noted. Tried and rejected this session:
+// single-statement wrap `j = count - 1` / `i = count - 1`, `i -= 1`, combined `if (--i < 0)`,
+// reversed test `iymax != i` (99.0), function-scope j (walk1 only and both walks), function-scope
+// i (walk1 only and both), function-scope i plus j, `out = spans` after `i = iymin`, `scanorder`
+// (`y = ymin` before `s = spans`), xdx declaration split/reorder/move, an extra `int j`, extra dead
+// function-scope locals (plain and initialised), `int iymax, iymin`, `register int i`, y0
+// pre-declared then assigned, the 0x4c0c70 `for (;;) { ... i = i - 1; if (i == iymax) break; }`
+// latch (single and double wrap, compile to our bytes), a function-scope `q = pts` base alias, and
+// the tail reorder `wrapaftery0` (76.2). Also re-confirmed: `i = j` latch (70.0), block-local
+// p/q for the two edge points (70.1), `for` fill (93.4), y0 before j (67.5), b before y0 (70.1),
+// latch as if/else, walk2 j/y0/b/out permutations. Since the 0x4c0330 and 0x4c0c70 matched siblings
+// both emit points-before-index, our compile follows the family norm and 0x4c0820's original is the
+// outlier, so this is an allocator tie-break with no source-shape lever found. Only the walk1 head's
+// i register or the global live-range creation order could still flip it; every lever inside walk1
+// and every declaration/scope permutation tried is inert.
 // space-bunny-free session 2 (50 min timebox, harness first): still 99.5, 613 of 613 bytes, the same
 // single hunk. NEW RESULT, now measured rather than guessed: the order of the two live-out reloads
 // at the walk1 latch is NOT reachable by any spelling inside walk1. I built the standalone harness

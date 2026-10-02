@@ -1,4 +1,4 @@
-// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
 // mimo-v2.6-pro retry pass: re-confirmed 1221 bytes / 98.5% and the same three
 // hunks. New negatives, all unchanged or worse: includes <string.h>, <windows.h>
 // and <stdio.h> do not move the _allmul push order; a `UnitDef* def` local before
@@ -108,6 +108,19 @@
 // regresses to 77.6%. An out-param DirectionTo() helper (70.3%) or an expanded flag12
 // arm sharing one function-scope `ang` (71.6%) both destroy the loop-1 web, so the
 // flag12 arm must stay a returned temporary.
+// DeepSeek V4.1 Flash retry pass (this session): permuter 3 min over 2821
+// candidates (172 uncompilable, 19 duplicates), 98.5% -> 98.5%. Manual probes,
+// all 1221 bytes and the same three hunks unless noted: an inline
+// Unit::CopyAndFlag(target, origin) method returning def->flag12 (the 0x463610
+// member-method pattern), the target stores through a `Vec3&` and through a
+// `const Vec3* p`, a CopyVec(origin) return-by-value helper, `Vec3
+// target(origin)`, nested ifs for the loop-2 condition, 0x408090 added before
+// this function (with and without a swapped MapRange operand order; unlike the
+// earlier note it changed nothing here), and fresh value numbers for the FixMul
+// operands (`int sy = s` before and after d.x, `int dy = d.y`, `+s`). Worse:
+// FixMul statement order d.y,d.x,d.z and `FixMul(s, d.y)` 84.0% / 1223 bytes;
+// operator= y,x,z 98.3% with a new loop-2 hunk; operator= x,z,y 97.0%. Nothing
+// moved the three scheduler hunks.
 #include <memory.h>
 #include <vector>
 #include <math.h>

@@ -1,4 +1,29 @@
-// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash session: still 1678 bytes and 99.8%, the single store SIB
+// byte at 0x4099f6 (want `mov byte ptr [esi + ecx], al`, ours
+// `mov byte ptr [ecx + esi], al`). The diagnosis is now firm: this is the
+// commutative-register canonicalisation wall of 0x408f30 (0x476210), MSVC 5
+// puts the LOWER-numbered of two commutative register operands in the SIB base
+// (here ecx=1 over esi=6, and eax=0 over edx in the fixed read), and the
+// original translation unit did not sort THIS pair. The reference-to-a-local
+// pointer trick (the one that fixes the read) does bypass the sort (vA gives
+// the wanted [esi + ecx]) but schedules the pointer load six instructions early
+// into the clamp (1675 bytes, 86.8%); a value temp puts the load back in place
+// but rotates the allocator (v2: clamp result to ecx, pointer to eax, index to
+// edx, 1676 bytes, 83.8%), because the value that was in eax is displaced by
+// the pointer. New negatives this pass (all check.py --sym, everything else
+// byte-identical unless noted): index made a Lod via a reference to a local
+// copy (`int k=i; int& rk=k; vec_8d[rk]`), an `int k[1]` array slot and an
+// `int* pk=&k; vec_8d[*pk]` are all neutral at 99.8% (the store keeps base=ecx);
+// dead copy-back assignments (`int k=i; i=k;` and the `k=k` self-assign form,
+// the 0x461b10 lever) are neutral whether placed just before the store or at
+// the loop top; a TU-order sweep with 1 to 8 dummy __stdcall functions before
+// the function (the 0x4bc370 per-TU function-order lever) leaves the byte
+// swapped; concatenating the real sibling 0x408100 above or below this file
+// (with its g_game renamed) also leaves it swapped (99.8% / 99.4%). The value
+// temp forms (d20/d21/d22) and reusing a dead slot do not get the clamp into
+// eax. Remaining work list is the one byte: 0x4099f6 `[esi + ecx]` vs
+// `[ecx + esi]`.
 // mimo-v2.6-pro pass (build/scratch/0x409730/): still 1678 bytes, 99.8%, the
 // one remaining diff is the store SIB at 0x4099f6 (want `mov byte ptr [esi +
 // ecx], al`, ours `[ecx + esi]`). This pass mapped WHY the fix is hard: the

@@ -1,4 +1,13 @@
 // Decompiled by GPT-6-Luna, finished by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// claude-sonnet-5-5 pass (still 93.5%): the ORIGINAL guard is the obj-first one
+// (`mov ecx,[g+0x142b7]; mov eax,[obj+0x82]; cmp eax,ecx`), so the original is the
+// old guard plus the folded `imul eax,[width]` (-2 bytes); we have either old guard
+// without the fold (507) or the swapped guard without it (505). Isolation harness:
+// MSVC folds `imul reg,[mem]` for a short operand only when the right operand needs
+// no address register ([abs global], [esp+k]) or the left operand is heavier than the
+// right (`(pos.y + pos.x) * g->width` folds). `short * g->width` never folds, whatever
+// the base register (param, CSE temp, local), cast, constant wrapper or spelling
+// (14 more index spellings and 2 permuter runs of 10 min: no change).
 //
 // PARTIAL, 93.5% (505 bytes vs 505). The size now matches the original exactly
 // and everything from 0x47d12d on is byte identical, including every jump

@@ -1,4 +1,30 @@
 // Decompiled by longcat-2.5-preview-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// Issue #4863 (claude-opus-5-5): no change to the code, 78.9% kept.
+// WARNING, SEMANTICS: the tail below is not what the original does. The
+// original's downsample loop counts rows with src->height and columns with
+// src->width (0x459c1d/0x459c25 read through the saved src) and only steps d
+// by bitmap->width; this file iterates bitmap->height x bitmap->width, i.e.
+// the doubled shadow size, so it would write past src. The faithful tail,
+//     for (int y = 0; y < src->height; y++) {
+//         int x = src->width;
+//         while (x--) { unsigned int c = *d; *s++ = c; d += 2; }
+//         d += bitmap->width;
+//     }
+// (unsigned char* s and d; the int temporary and `while (x--)` reproduce the
+// original inner loop exactly, see 0x459c70) scores 71.2% at best, so it is
+// not committed. With it MSVC promotes src (ebx) and the target bitmap (ebp)
+// for the whole function and demotes useColor, where the original keeps
+// useColor in ebx and src and the bitmap in memory. 0x459c70's original has
+// exactly the opposite allocation for the same head and tail, and our
+// compiles of both functions come out inverted, so the deciding difference
+// is somewhere else in the source and was not found. Tried with the faithful
+// tail (about 1000 compiles, build/scratch/0x459200/g_c30*.py): every head
+// form (the bool helpers here, nested ifs with else blocks, a goto, `bool aa`
+// with a plain && chain), src assigned early or late, the shadow reads
+// through src, offX/offY locals, `poly[j] = vertex[idx[j]]`, the bias helper
+// taking list or owner, `mode != 0` spellings; and tools/permute.py for 18
+// minutes (5092 candidates, no gain). Best faithful file: 71.2% (bool aa
+// head, `src = bitmap` right after `mode = 1`).
 // deepseek-v4.1-flash retry (#4353): 75.9 -> 78.9. Two real levers, both in the
 // face/tail half. (1) The poly-copy loop's increment order: `j++, idx++, q++`
 // keeps the destination pointer in edi and the index pointer in edx as the

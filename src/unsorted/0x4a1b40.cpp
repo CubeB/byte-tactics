@@ -135,13 +135,15 @@
 //    `int font` for the byte slot is 68.2 / 2165 bytes, `unsigned int xx` 73.1,
 //    and a `short da` hoisted above `step = lh + 1` in the step block 73.1.
 //
-// PERMUTER (Space Bunny Free, issue 4635): seed 4635, 16 minutes, 3 jobs, from
-// the 73.1% base, 2344 candidates compiled and 0 of them better, best.score ==
-// start.score == 5343, best.diff empty. Mutation kinds it did try, all of them
-// at or below the base, with the counts of compiled/equal: move_decl 229/141,
-// move_stmt 225/52, swap_commutative 498/298, split_init 241/169,
-// flip_compare 217, negate_if 203/50, zero_compare 120/77, cast 167/112,
-// nested_if 153/100, temp_intro 246/128, extract_helper 152/44,
+// PERMUTER (Space Bunny Free, issue 4635), two seeds, both with nothing:
+//  seed 4635, 16 min, 3 jobs, from the 73.1% base: 2344 candidates, 120 compile
+//  errors, 0 better, best.score == start.score == 5343, best.diff empty.
+//  seed 20261002, 14 min, 3 jobs, from this file's 73.3%: 1700 candidates, 60
+//  compile errors, 0 better, best_ratio == start_ratio, best.diff empty.
+// Mutation kinds seed 4635 did try, all at or below the base, compiled/equal:
+// move_decl 229/141, move_stmt 225/52, swap_commutative 498/298, split_init
+// 241/169, flip_compare 217, negate_if 203/50, zero_compare 120/77, cast
+// 167/112, nested_if 153/100, temp_intro 246/128, extract_helper 152/44,
 // decl_scope 52/20, loop_form 106/62, do_while0 86/46, goto_polarity 49/16,
 // return_var 83/7, loop_back 39/24. So the meaning-preserving rewrite space
 // around this file really is exhausted at 73%; the next pass should not re-run

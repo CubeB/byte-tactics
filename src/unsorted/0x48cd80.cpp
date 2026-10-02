@@ -1,4 +1,50 @@
 // Decompiled by GPT-5.6-Terra, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free, fourth pass: the branch-B preheader IS reachable without an
+// invented statement, and the lever is the ORDER OF THE TWO BRANCH-A TESTS.
+// The original's branch A clearly tests the flag first (0x48ce05
+// `cmp word ptr [ecx + eax*8 + 0xa6], 0`, 0x48ce11 `je`, then 0x48ce13
+// `push esi` / 0x48ce14 `push edi` / 0x48ce15 `call FUN_0048c6a0`), i.e. the
+// shape this file already has.  With the flag first, every spelling of the loop
+// that reads BOTH coordinates through p gives MSVC the mirrored
+// p=EDI/zero=ESI pair: about 300 variants (grid4.py 6400, grid5/6/7/8/10/11/12)
+// over statement order, coordinate source, both call spellings, five loop
+// headers, four d-expression forms, both loop-exit tests, declaration order,
+// extra locals, second aliases of the same address, p[0].x / p[1].x / (*p).x /
+// pointer-arithmetic / accessor-reference spellings, and prehoisting the
+// coordinates.  Swapping the two tests, so FUN_0048c6a0(u,p) is evaluated FIRST
+// and the field_a6 test second, with the loop written dy-first
+// (int dy = s->y - p->y; int dx = s->x - p->x;), emits the byte-identical
+// preheader:
+//     mov eax,[g_game]; mov ebx,0x1869f; mov edx,[eax+0x14363];
+//     mov eax,[eax+0x1436b]; cmp eax,edi; jle; mov edi,[esi+4];
+//     mov esi,[esi]; mov [esp+0x18],eax
+// 42 spellings reach it (build/scratch/0x48cd80/grid4.log: any of the
+// temps/one-statement/DistSq/DistSq2 body forms, either or both calls taking p,
+// and the nested-if, && or comma forms of the swapped tests).  So the preheader
+// is reachable and NOT an invented statement, but the register pair and the
+// branch-A order are coupled: the swapped source emits the call before the flag
+// test, which the original does not, and the flag-first source that matches
+// branch A loses the preheader.  Nothing found so far decouples them, and the
+// original must therefore spell branch A in a way this reconstruction has not
+// found yet.  Two more data points:
+//   * `if ((u->field_a6 != 0, FUN_0048c6a0(u, p)))` also reaches the exact
+//     preheader but MSVC folds the discarded flag test away, so the flag test
+//     disappears from the code entirely (88.3%, 405 bytes).
+//   * two permuter runs (8991 candidates from the both-from-p dy-first seed at
+//     71.2% -> 90.1%, 9235 from the 79.7% &g_game->view-call seed, both
+//     build/scratch/0x48cd80/perm{1,2}.log) confirm the plateau; the 90.1% best
+//     (build/permute/0x48cd80/best_raw.cpp) is a permuter artifact full of
+//     `inl0`/`tmp0` helpers and a do-while(0) wrapper, not plausible source.
+// Also measured and neutral (same 92.6%, same 4-instruction residual):
+// `s++, result = result;` as the last loop statement, `s++` as the first
+// statement of the body, an int n = g_game->count2 read before the loop, and a
+// second pointer q = p or q = &g_game->view used only in the branch-A call.
+// TOOL: build/scratch/0x48cd80/sweep.py compiles a whole batch of variants with
+// /Fa in parallel and diffs the listing against ctx.py's instruction list
+// (build/scratch/0x48cd80/target.json, made by mktarget.py), printing which
+// target instruction ranges differ and whether target[99:108], the branch-B
+// preheader, matches.  That is ~0.5 s a variant against ~7 s for check.py, and
+// it reports the register pair directly, which check.py's ratio does not.
 // Partial: 92.6% (431 bytes vs 428). Prologue, branch A and the whole branch B
 // loop body match; only three instructions of the branch B preheader differ:
 //   original: mov edx,[eax+0x14363]; mov eax,[eax+0x1436b]; cmp eax,edi;

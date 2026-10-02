@@ -25,6 +25,33 @@ from coff import parse_object
 from progress import ROOT
 
 
+def template_siblings(addresses: list[str]) -> str:
+    """A note naming the other unmatched copies of each function's template
+    method (`?$vector::insert` and the like): the copies share their shape, and
+    without the list each agent re-derives what a sibling already found
+    (0x425210 and 0x46e640, #4756)."""
+    def key(name: str) -> str | None:
+        i = name.rfind("?$")
+        return name[i:] if i >= 0 else None
+    names = {f"{a:#x}": n for n, a in load_symbols().items()}
+    with (ROOT / "data/progress.csv").open() as fh:
+        unmatched = {r["address"]: r["similarity"] for r in csv.DictReader(fh) if r["status"] != "matched"}
+    lines = []
+    for a in addresses:
+        k = key(names.get(a, ""))
+        if not k:
+            continue
+        sib = sorted(b for b, n in names.items() if b != a and b in unmatched and key(n) == k)
+        if sib:
+            lines.append(f"- {a} ({k}): " + ", ".join(f"{b} ({unmatched[b]}%)" for b in sib[:12])
+                         + (f" and {len(sib) - 12} more" if len(sib) > 12 else ""))
+    if not lines:
+        return ""
+    return ("\n\nOther unmatched copies of the same template method. Read their files under "
+            "src/unsorted/ first: a conclusion reached on one usually holds for the rest, though "
+            "check which local owns the stack slot before copying a sibling's shape.\n" + "\n".join(lines))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("issue", help="issue number (the batch is '#<issue>')")
@@ -80,13 +107,14 @@ def main() -> None:
     left = [r["address"] for r in mine if r["result"] != "matched"]
     if args.escalate and left:
         models = sorted({r["model"] for r in mine if r["result"] != "matched"})
+        siblings = template_siblings(left)
         subprocess.run(["uv", "run", "--quiet", "tools/issues.py", "--addresses", *left,
                         "--title", f"Retry: {len(left)} function{'' if len(left) == 1 else 's'} left unmatched in {batch}",
                         "--label", "near-miss",
                         *(["--open"] if args.escalate == "retry" else []),
                         "--escalation",
                         "--note", f"Tried by {', '.join(models)} in {batch}. Each file says what still "
-                                  "differs; treat it as a starting point, not as correct."],
+                                  "differs; treat it as a starting point, not as correct." + siblings],
                        cwd=ROOT, check=True)
 
 

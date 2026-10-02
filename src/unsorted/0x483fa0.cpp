@@ -1,4 +1,25 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash continued from 76.9% to 77.2% (1048 bytes against 1046).
+// A 3 minute permute run with --stack px,ay,w2 (run twice) found 77.2%; its
+// winner was cleaned by removing every helper (inl0..), the stdlib include,
+// `same2 = s; s = same2;`, the do/while(0) wrapper and the tmp1/tmp5 and tmp3
+// temporaries, all of which re-checked neutral. Three artifacts are load
+// bearing and kept (removing each drops the score): block 1's duplicate
+// `p1 = mapValues + (px + (int)py * stride)` alongside `base`, the local
+// `Game_00483fa0* game = g_game`, and block 2's `int topRow = (int)(ry != 0);
+// if (!topRow) {} else {...}` (a plain `if (ry != 0)` costs 4%). The permuter
+// itself only moved slot/register colour here, so its helpers were not needed.
+// STILL DIFFERS: the px/ay/w2 slot rotation (ours px -0x3c, ay -0x40, w2
+// -0x44; original px -0x44, w2 -0x40, ay -0x3c) and the block 3 outer-loop
+// entry `jmp` (2 bytes, the whole size delta): ours reloads w1 into ebp at the
+// loop top and skips it with a jmp, the original reloads at the latch and has
+// no jmp. Also unreached original offsets -0x14/-0x12 (the original's bmp
+// dx/dy pair). Tried and neutral or worse on this cleaned base: every loop
+// form for the block 3 inner/outer loop (for, while, do/while0, no guard,
+// outer while/for/while(n--)), moving `int m = w1` before/after p, a plain sy
+// instead of the pointer, block 3 setup statement orders, all helper
+// inlinings, and all the artifact removals above. A second full permute run
+// from 77.2% found nothing.
 // Space Bunny Free continued from 68.6% to 76.9% (1048 bytes against 1046).
 // WHAT WORKED: order, not types. Three passes of search over the ORDER of
 // declarations and statements inside each block, scored with check.py, plus a
@@ -179,18 +200,18 @@ void __stdcall FUN_00483fa0(void* surface)
 {
     Bitmap_00483fa0 bmp;
     int ax = g_game->viewX;
-    int sx = g_game->scrollX;
     int ay = g_game->viewY;
+    int sx = g_game->scrollX;
     int sy = g_game->scrollY;
     int px = sx / 32;
     int rx = sx - px * 32;
     int py = sy / 32;
-    int ry = sy - py * 32;
+    int ry = sy - 32 * py;
     int vw = g_game->viewW;
     int w1 = (vw + rx) / 32;
     int vh = g_game->viewH;
     int w2 = (vh + ry) / 32;
-    int rem1 = rx + (vw - 32 * w1);
+    int rem1 = (vw - w1 * 32) + rx;
     int rem2 = (vh - w2 * 32) + ry;
     if (rem2 != 0)
         w2++;
@@ -204,18 +225,20 @@ void __stdcall FUN_00483fa0(void* surface)
     bmp.flag9 = 0;
     bmp.count = 0;
     if (rx != 0 || rem1 != 0) {
-        int base = py * stride + px;
-        unsigned short* p1 = g_game->mapValues + base;
+        int base = px + ((int)py) * stride;
+        unsigned short* p1;
+        p1 = g_game->mapValues + (px + ((int)py) * stride);
         unsigned short* p2 = g_game->mapValues + base + w1 - 1;
         int n = w2;
         int y = ay;
         if (n > 0) do {
             if (rx != 0) {
-                bmp.data = g_game->iconSet->data + *p1 * 0x400;
+                Game_00483fa0* game = g_game;
+                bmp.data = game->iconSet->data + *p1 * 0x400;
                 FUN_004b8150(surface, &bmp, ax - rx, y - ry);
             }
             if (rem1 != 0) {
-                bmp.data = g_game->iconSet->data + *p2 * 0x400;
+                bmp.data = g_game->iconSet->data + 0x400 * *p2;
                 FUN_004b8150(surface, &bmp, w1 * 32 + ax - rx - 32, y - ry);
             }
             p1 += stride;
@@ -229,20 +252,23 @@ void __stdcall FUN_00483fa0(void* surface)
         unsigned short* p2 = g_game->mapValues + (py + w2 - 1) * stride + px;
         int x = ax;
         int n = w1;
-        if (n > 0) do {
-            int topRow = ry != 0;
-            if (topRow) {
-                bmp.data = g_game->iconSet->data + *p1 * 0x400;
-                FUN_004b8150(surface, &bmp, x - rx, ay - ry);
-            }
-            if (rem2 != 0) {
-                bmp.data = g_game->iconSet->data + *p2 * 0x400;
-                FUN_004b8150(surface, &bmp, x - rx, w2 * 32 + ay - ry - 32);
-            }
-            p1++;
-            p2++;
-            x += 32;
-        } while (--n);
+        if (n > 0) {
+            do {
+                int topRow = (int)(ry != 0);
+                if (!(topRow)) {
+                } else {
+                    bmp.data = g_game->iconSet->data + *p1 * 0x400;
+                    FUN_004b8150(surface, &bmp, x - rx, ay - ry);
+                }
+                if (rem2 != 0) {
+                    bmp.data = g_game->iconSet->data + *p2 * 0x400;
+                    FUN_004b8150(surface, &bmp, x - rx, w2 * 32 + ay - ry - 32);
+                }
+                p1++;
+                p2++;
+                x += 32;
+            } while (--n);
+        }
     }
 
     if (rx != 0) {
@@ -256,29 +282,29 @@ void __stdcall FUN_00483fa0(void* surface)
         py++;
     }
     if (rem1 != 0)
-        w1--;
+        --w1;
     if (rem2 != 0)
         w2--;
 
     if (w2 > 0) {
-        int y = ay;
-        unsigned short s = stride;
-        int stride2 = ((unsigned short)stride) * 2;
-        int offset = (py * s + px) * 2;
-        int n = w2;
-        do {
-            unsigned short* p = (unsigned short*)((char*)g_game->mapValues + offset);
-            int m = w1;
-            if (m > 0) {
-                int x = ax;
-                do {
-                    FUN_004c6e70(surface, x, y, g_game->iconSet->data + *p * 0x400);
-                    x += 32;
-                    p++;
-                } while (--m);
-            }
-            offset += stride2;
-            y += 32;
-        } while (--n);
-    }
+            int y = ay;
+            unsigned short s = stride;
+            int stride2 = ((unsigned short)stride) * 2;
+            int offset = (py * s + px) * 2;
+            int n = w2;
+            do {
+                unsigned short* p = (unsigned short*)((char*)g_game->mapValues + offset);
+                int m = w1;
+                if (m > 0) {
+                    int x = ax;
+                    do {
+                        FUN_004c6e70(surface, x, y, g_game->iconSet->data + *p * 0x400);
+                        x += 32;
+                        ++p;
+                    } while (--m);
+                }
+                offset += stride2;
+                y += 32;
+            } while (--n);
+        }
 }

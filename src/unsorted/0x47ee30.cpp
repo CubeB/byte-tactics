@@ -168,6 +168,67 @@
 // reload instead of `mov eax,ecx`) are the allocator trade-off already documented above.
 // 91.2% remains best.
 
+// space-bunny-free pass 3 (checkpoint, 31 min): the file below is unchanged and
+// still scores 91.2% (169/171). What this pass added, all measured with
+// check.py --sym (no check.py runs):
+// * A prologue/tail differ (build/scratch/0x47ee30/screen.py compares our /Fa
+//   listing's first 8 instructions and its last 6 against the original's) makes
+//   the three regimes exact, and there are only three:
+//     - count POINTER from the global + base-form loop test (this file):
+//       prologue exact, back edge reloads. 169 bytes, 91.2%.
+//     - count POINTER from the global + pointer-form test (guarded do/while):
+//       whole body byte-exact including the forwarded `mov eax,ecx`, but the
+//       prologue takes the detour. 166 bytes, 85.7%.
+//     - count pointer DERIVED from a local (`&list->count`, `(char*)entries+0x99`):
+//       prologue exact, but either everything folds onto the base (167 bytes,
+//       67.7%, `mov edi,[DAT]; xor ebp,ebp; cmp [edi+0x99],ebp`) or, spelled
+//       `*count--` and declared inside the guard, MSVC 5 strength-reduces the
+//       count ADDRESS into an induction variable and DROPS THE STORE: 164
+//       bytes, 87.8%, exact prologue, tail `mov eax,[edi-4]; sub edi,4` with no
+//       write to the count at all. That is a real VC5 codegen bug (the loop
+//       would walk off the list), and every other decrement spelling
+//       (`(*count)--`, `--(*count)`, `(*count) -= 1`, `*count = *count - 1`,
+//       `--*count`) folds instead. Worth knowing before anyone tries it.
+// * The detour is not about statement order: 48 combinations of count-pointer
+//   source (5) x entries source (3) x guard spelling (6), plus the count
+//   declared inside/outside the guard, never give `mov ebp,[DAT]` together
+//   with a pointer-form test. Nor do N = 1..8 uncalled inline functions, dead
+//   stores or self-assignments at six positions, inline helpers returning
+//   `&DAT->count` / `DAT->entries` / the count value, static inline helpers
+//   taking the list or (entries, count), a nested `{count, field_9d}` tail
+//   struct, or five spellings of the count-pointer expression.
+// * Byte arithmetic for the do/while shape: the original's `mov ebp,[0x51e68c]`
+//   is the 6-byte 8B 2D form; ours is the 5-byte A1 form plus a 2-byte
+//   `mov ebp,eax`, so fixing the prologue alone would give 165 bytes and leave
+//   only the remat `lea`.
+// * Exe scan (lever 8): `lea edi,[ebp+0x99]` occurs exactly 4 times in the
+//   whole exe, at 0x47ee40/0x47ee79 here and 0x47eefa/0x47ef33 in 0x47eee0, so
+//   there is no matched sibling with the remat to copy. The matched 0x47f8c0
+//   has the same declarations and the same `lea <reg>,[edi+0x99]` structure
+//   but no remat, and the current 0x47eee0 file on this branch also produces
+//   the eax detour, so this is shared with the issue's other function.
+// * What the matched siblings say, read directly: 0x47f8c0 (MATCH) has the
+//   same declarations as this file and emits `mov edi,[DAT]; mov eax,[edi+0x99];
+//   lea esi,[edi+0x99]`, i.e. it has BOTH the base+disp pre-test and a
+//   pointer-form loop test (`while (i < *count)`), with the count pointer
+//   surviving in its own register and the list straight in edi. What it has
+//   that this function cannot have is a stack argument, a live register index
+//   in the condition, and an `else i++` branch. 0x480020 is the same loop as a
+//   member (count a member, `this` in ecx) and also matches, and 0x47fca0 has
+//   `if (count == 0) return; ... for (i...) entries[i] = entries[i+1]; count--;`
+//   with the count as a member. So the shape is right; the register the global
+//   lands in is what differs.
+// * Two more shapes worth knowing: declaring the count pointer INSIDE the
+//   guard block puts the `lea` after the pre-test load (the order the original
+//   has) but still derives it from the eax temporary and puts the pre-test
+//   load in ecx: 82.5%, 166 bytes. Dropping the `entries` variable altogether
+//   and writing `DAT_0051e68c->entries[j]` inside the loop is 34.6% at 179
+//   bytes: the global is reloaded on every iteration.
+// * Permuter, two runs, no gain: the do/while shape from 85.7% (seed 11, 3099
+//   candidates) and this file from 91.2% (seed 12, 4404 candidates).
+// * Still to try: a loop whose condition carries a live register (0x47f8c0's
+//   `i < *count`), which needs an index that our source does not have.
+
 void __cdecl FUN_004d85a0(int* param_1);
 
 #pragma pack(push, 1)

@@ -1,4 +1,72 @@
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Space Bunny Free pass (issue #4667): still 84.7%, 354 of 354 bytes, size exact,
+// the file's version left in place. A systematic 750-shape sweep and two of the
+// three levers tried on other functions today both failed, but the sweep pins the
+// remaining question much more tightly than any earlier note:
+// 1. THE EXACT ORIGINAL PREFIX IS UNREACHABLE IN THE WHOLE FAMILY. I enumerated
+//    every shape of the form <in-place statements on b, in any subset and any
+//    order> + `Vec3_004851c0 d = b;` + <the rest, in any order>, with each of the
+//    three differences independently spelled as one of five mechanisms (in place
+//    on b, in place on d, `d.F = b.F - a.F`, `d.F = DF(a, b)` through a
+//    `static inline` helper, `b.F = DF(a, b)`): 6 orders x 5^3 = 750 files, all
+//    compiled. Best is the file's 84.7%; the tightest miss is 84.7% itself, and
+//    NOT ONE of the 750 emits the original's first four instructions
+//    (`sub esp,0xc; mov eax,[b.y]; mov ecx,[b.x]; push ebx`). Across all 750 the
+//    load of b.x lands only in eax (hoisted, when the x difference is a level-0
+//    temp), ebx, esi, ebp or edi, never in ecx.
+// 2. NEW: the y-first load order with BOTH b.y and b.x hoisted into caller-saved
+//    registers before `push ebx` is reachable in 52 of the 750 shapes (mechanism
+//    set iDD / ihh / iDh / hiD / hDh / hDi and their perms), and in every one of
+//    them the pairing is b.y -> ecx and b.x -> eax, i.e. the original's two
+//    scratch registers exactly exchanged, as the earlier passes found. Those
+//    shapes are all 360 bytes (six too many: d.z and d.y go to stack slots
+//    instead of staying in edi/ecx, and a.y/ebp swap appears), so flipping the
+//    pairing there would not reach a MATCH either. Best of them is 70.4%.
+// 3. NEW, and this is why the pairing cannot be fixed by reordering: the pairing
+//    is a WEIGHT effect, not a walk-order effect, and the weight is on the VALUE,
+//    not on the field. In the all-in-place shapes whose first source statement
+//    is not the y one (orders zxy, xzy, zyx: 354 bytes, 83.9%) MSVC also hoists
+//    TWO loads, `mov eax,[b.y]; mov ecx,[a.x]; push ebx; mov ebx,[a.x]`, and
+//    there b.y keeps eax and the SECOND hoisted value takes ecx. So b.y holds eax
+//    whenever the competitor for the second scratch register is not b.x, and
+//    loses it only when the x difference is a level-0 temp, in which case dx (four
+//    register uses: the abs, the max compare, the idiv, the store) outranks dy
+//    (one use: the dead store) and takes eax. The original has it the other way
+//    round, so the original's dy must outrank its dx, which the emitted code does
+//    not admit, unless the two are not weighed against each other at all.
+// 4. REFUTED, the weighted-use lever from the guide (0x424890): thirteen neutral
+//    extra uses of d.y (`+= 0`, `-= 0`, `*= 1`, `|= 0`, `-(-d.y)`, `d.y = d.y`,
+//    two, three and four stacked copies, `d.y += 0; d.z += 0;`, and `b.y = b.y`)
+//    plus a `d.x += 0` control, applied to three shapes (the file's in-place
+//    baseline, the 70.4% `d.x = b.x - a.x; d.z = b.z - a.z;` shape and the 67.2%
+//    helper shape) compile BYTE-IDENTICALLY in all 39 cases: 84.7%, 70.4% and
+//    67.2% unchanged, same first four instructions. MSVC 5 folds those in the
+//    front end, before the allocator ever weighs the value, so no amount of dead
+//    arithmetic moves the tie.
+// 5. RULED OUT this pass, both tried on other functions today and neither of them
+//    touches the prologue here: (a) 0x47eee0's loop-invariant assignment as the
+//    first statement of a loop body, in all seven of its spellings here
+//    (`a = a;`, `b = b;`, `d = d;`, `n = n;`, `i = i;`, `best = best;`,
+//    `c = c;`) placed at the top of the difference loop's body, and the same seven
+//    placed just before the loop: every one is exactly 84.7% with a byte-identical
+//    prologue. (b) 0x48b090's self-conditional phi, `d.x = d.x ? d.x : d.x;` and
+//    `a.x = a.x ? a.x : a.x;` and `n = n ? n : n;` at the top of the loop body, and
+//    `d.x`, `d.y`, `b.x`, `a.y` in the prologue: all 81.5%, same prologue, only the
+//    loop perturbed. So this function's tie is decided before either of them runs.
+// 6. A note on the original code itself, not on the source: the local the loop
+//    reads as d.y (frame slot [esp+0x14], `mov eax,[esp+0x14]; add edx,eax` at
+//    0x4852fa for `a.y += d.y`) is NEVER WRITTEN anywhere in the function. The
+//    y step only ever reaches [esp+0x10] (0x4851de, the dead store, immediately
+//    overwritten by the x step at 0x4851f4). So a.y accumulates whatever was on
+//    the stack. It is harmless (a.y is dead after the loop) and our source
+//    reproduces the machine code exactly, but it is a real defect in the shipped
+//    code and worth reporting.
+// Tooling note for the next pass: build/scratch/0x4851c0/score.py scores a whole
+// directory of variants in parallel (ThreadPoolExecutor over
+//    check.compile_source, one out_dir per thread, build/objS<n>) and prints the
+//    first 26 normalised instructions per variant, which is what makes a 750-shape
+//    sweep readable: screen the prologues, not the ratios, since a register-only
+//    difference does not move the ratio at all.
 // Space Bunny Free pass (issue #4573): still 84.7%, 354 of 354 bytes. Nothing
 // beat the file's version; this pass's value is the mechanism, below, and one
 // new measurement that pins the search.
@@ -128,6 +196,73 @@
 // the abs inside the helper, GetCell as a macro, a named constant for the
 // shift, the aggregate initialiser, three scalar difference locals, subtract on
 // a local copy and copy that into d, and every return type.
+// Space Bunny Free pass (issue #4629): still 84.7%, 354 of 354 bytes, size exact,
+// and the whole diff is still the one register pair (dx in ecx, |dx|/n in esi in
+// the original; dx in esi, |dx|/n in ecx here). About 120 more shapes scored,
+// none above 84.7%, but this pass found the one mechanism that moves the x
+// difference into a caller-saved register, which is the thing every earlier pass
+// was looking for:
+// - `static inline int Dx(const Vec3_004851c0& p, const Vec3_004851c0& q) { return
+//   q.x - p.x; }` with its result stored to a LOCAL struct field, `d.x = Dx(a, b);`
+//   after the in-place y/z subtractions and the copy, is the only spelling found
+//   that puts BOTH b.x and b.y in caller-saved registers before `push ebx`: it
+//   emits `mov eax,[esp+0x1c]` (b.x) then `mov ecx,[esp+0x20]` (b.y), i.e. the
+//   original's two hoisted loads with the roles SWAPPED, 354 bytes, 74.2%.
+// - The destination decides it: the same helper stored into the by-value
+//   parameter's field (`b.x = Dx(a, b);`) puts the difference straight back in
+//   esi (81.5%), as do the pointer and by-value-argument forms (81.5%). So an
+//   inlined function's return value keeps a scratch register only when it lands
+//   in a local, and b.x being a by-value struct parameter is exactly what costs
+//   the original's ecx.
+// - The order of the two hoisted loads can be flipped, but only by routing BOTH
+//   differences through helpers into d's fields (b.z in place, then
+//   `d.y = Dy(a,b); d.x = Dx(a,b);`): that gives `mov ecx,[b.y]` before
+//   `mov eax,[b.x]`, the original's order, but it is 360 bytes and 64 to 67%.
+// - The helper's DEFINITION order in the translation unit (yxz, xyz, zyx, yzx)
+//   changes nothing: all four compile to identical bytes at 74.2%, so this is
+//   not the compiler-state lever either.
+// - Everything else tried this pass, all 84.7% or worse: the parameters declared
+//   the other way round, `b` first (the x difference then lands in edi, not
+//   ecx; 77.4 to 78.2%, 354 bytes, and the symbol is the same either way); all
+//   six orders of the in-place form, of the fresh-d form and of copy-first (the
+//   fresh-d orders put dx in esi for xyz/xzy/yxz and in ebp for yzx/zxy/zyx, so
+//   no order reaches ecx); eight neutral extra uses of b.x (`-= 0`, `*= 1`,
+//   `b.x == b.x`, a copy through a temp, `+= a.x; -= a.x`, `-(-b.x)`, `|= 0`)
+//   at three positions each; the three differences through int locals rebuilt
+//   into d; by-value, pointer, const-ref and member helpers for one, two or
+//   three of the differences in all six orders; an `Ab()` helper for the abs;
+//   and the max reading b's fields instead of d's.
+// - NEW, the closest anyone has come to the mechanism, and what it rules out: a
+//   shape exists whose first eight prologue instructions are the original's with
+//   ONLY the first two registers exchanged,
+//       b.y -= a.y;
+//       Vec3_004851c0 d = b;
+//       d.x = Dx(a, b);      // or Sx(b.x, a.x), a scalar-argument helper
+//       d.z = Dz(a, b);
+//   which emits `mov ecx,[b.y]`, `mov eax,[b.x]`, push ebx, ebx=a.x, push ebp,
+//   push esi, esi=a.y, ebp=a.z against the original's `mov eax,[b.y]`,
+//   `mov ecx,[b.x]` and the same six after it. 360 bytes, 67.2%. So the load
+//   ORDER the original needs is reachable, and what is left is which of the two
+//   scratch registers C1 hands out first: whenever the x difference is a level-0
+//   temp (a helper result, or plain `d.x -= a.x` with b.x only read), b.x takes
+//   the FIRST scratch register and the y difference the second, and the baseline
+//   (both differences in place) is the only shape where the y difference takes
+//   the first and the x difference misses the scratch pool entirely. No shape
+//   tried produces "y difference first AND x difference level 0", which is
+//   exactly what the original is.
+// - A non-y-first in-place order (b.x first) puts the second scratch register in
+//   EDX, not ecx, so the scratch pool is not simply [eax, ecx, edx] handed out
+//   in allocation order; that order is 83.9%, 354 bytes.
+// - The same holds for every shape in which b.x is only READ, with or without a
+//   folding wrapper on the subtraction (`(b.x - a.x) * 1`, `+ 0`, `| 0`, `<< 0`,
+//   `-(-(...))`, a cast): all eight are 354 bytes, 77.4%, and all emit
+//   `mov eax,[b.x]; mov ecx,[b.y]`, so it is b.x being read-only, not the shape
+//   of the expression, that wins it the first scratch register. Putting the same
+//   wrappers on the y difference instead changes nothing at all (84.7%, esi).
+// What still differs is only the register class of the x difference: the
+// original loads b.x into ecx before `push ebx` and keeps the abs/max/n chain in
+// esi; here b.x's load lands after the pushes in esi and the chain takes ecx.
+// Every other instruction, from the frame down to the `ret 0x18`, is identical.
 // Space Bunny Free pass: still 84.7%, 354 bytes, and I now know exactly what the
 // tie is. Register by register, the original allocates six different registers:
 // b.y->eax, b.x->ecx, a.x->ebx, a.y->esi, a.z->ebp, b.z->edi. Ours allocates the

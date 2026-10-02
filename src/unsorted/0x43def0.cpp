@@ -216,6 +216,145 @@
 //   zero register. Every zero source tried (a local, an array, a union, an
 //   inline helper) folds, so the source has to be something whose zeros are
 //   only known at run time and still cost one `xor` each.
+//
+// Seventh pass (space-bunny-free): still 99.2%, the sixth-pass body is
+// unchanged. Measured this pass, with all scores from check.py:
+// - The register mapping and the xor *emission* order are two independent
+//   things. The mapping is always x = <1st reg>, y = <3rd reg>, z = <2nd reg>
+//   off the source order (the copy-back's stores are always in field order), so
+//   the source's field order only picks which field lands on which emitted
+//   xor. The emission is always x first, then the other two in source order,
+//   and the three registers always come out in the order edx, ecx, esi. The
+//   target therefore needs the source order y, x, z (x first, then y, z) *and*
+//   the register order edx, esi, ecx, and no source order gives both: y, x, z
+//   emits x, y, z but maps y = ecx, z = esi; z, x, y maps y = esi, z = ecx
+//   but emits x, z, y. The end block already has the target's map and order
+//   (edx, esi, ecx for x, y, z) because it is an unrolled loop copy, so the
+//   range block wants the same shape with a zero source MSVC will not fold.
+// - New this pass, all scored: `memset(&w, 0, sizeof w)` and two spellings of
+//   its size (357 bytes, 93.8%: one shared zero plus `mov edx, ecx`), a loop
+//   write `for (i = 0; i < 3; i++) ((int*)&w)[i] = 0;` through `&w` and
+//   through an `int*` (357 bytes, same single zero), `Vec3 w = {0}` (357
+//   bytes: y and z share ecx), `Vec3 w = {}` and `w = Vec3()` (MSVC 5 rejects
+//   the first, the second is 92.6%), float zeros 0.0f and 0.0 (330 bytes, the
+//   two blocks merge), duplicate zeroing statements in every order (best
+//   99.2%, same diff), folded conditionals on a field (`if (index - index)`,
+//   `index - index ? 1 : 0`), a live `if (block)` and `if (block->count)` after
+//   the zeroing (91.4 to 91.8%), self-assignments `w.f = w.f` on each field,
+//   nine end-block loop spellings crossed with the range block (all 99.2%,
+//   the end block's shape does not move the range block's xors), the null
+//   block split into two `if`s and a nested range test with two zero blocks
+//   (both 99.2%, identical diff), the range test split into two `if`s (83.5%),
+//   and the count in a local.
+// - `tools/permute.py 0x43def0 --minutes 8 --seed 12` evaluated 3072
+//   candidates and found nothing; seed 13 evaluated 3819 and found nothing.
+//
+// Eighth pass (space-bunny-free): still 99.2%, the body is unchanged. This
+// pass pinned the register rule down exactly, so the next attempt can aim at
+// it instead of sweeping. For the range block, with the field order the source
+// writes (all six scored, 359 bytes each except x, y, z):
+//
+//   source   xor emission   physical   x, y, z land in
+//   x,y,z    x y z          ecx edx esi  ecx edx esi   (330 bytes, blocks merge)
+//   x,z,y    x z y          ecx edx esi  ecx esi edx
+//   y,x,z    x y z          edx ecx esi  edx ecx esi
+//   y,z,x    y z x          ecx edx esi  esi ecx edx
+//   z,x,y    x z y          edx ecx esi  edx esi ecx   (99.2%, this file)
+//   z,y,x    z y x          ecx edx esi  esi edx ecx
+//   target   x y z          edx esi ecx  edx esi ecx
+//
+// So the emission is the source order except that x is hoisted to the front
+// when x is written second, and the two volatile zeros (edx, ecx) always take
+// the first two slots with the callee-saved esi always last. The target is the
+// only shape that needs esi second, i.e. ecx unavailable at the second
+// allocation and free at the third. Nothing below made that happen:
+// - zero expressions that keep `block` or the count live across the second
+//   zero (`block->count - block->count`, `& 0`, `* 0`, `^ itself`,
+//   `-c + c`, `~c & 0`, `c` in a local) on each field, and the same as the
+//   range test's condition: all 97.5%, the same block as plain y, x, z.
+// - a `Vec3` class with a 3-int constructor (6 body orders x 3 spellings:
+//   `Vec3 w(0,0,0)`, `w = Vec3(0,0,0)`, `return Vec3(0,0,0)`) and
+//   `unsigned int` or `long` fields with `0u` literals: identical to the plain
+//   struct, so the constructor is transparent here.
+// - a loop *copy* is the one thing that does follow the source order: copying
+//   field by field out of a separately zeroed local through
+//   `for (i = 0; i < 3; i++) ((int*)&w)[i] = ((int*)&src)[i];` emits the three
+//   xors in the order `src` was zeroed (x y z for an x, y, z source), which is
+//   the order the target needs. But the loop always keeps a counter register,
+//   so the block grows to 361 bytes with a trailing `mov eax, esi`, in all 13
+//   loop spellings tried (`!=`, `unsigned`/`char`/`short` index, while,
+//   do-while, pointer walk, reverse, `+ 0`). The end block's copy has no
+//   counter because its source is homed in the frame; a zeroed source would
+//   cost three extra immediate stores, so that route is closed too.
+// - shape changes: `goto` labels for either zero block, the zero block as the
+//   fallthrough of `if (in range) goto in_range;` (three predecessors), the
+//   zero block inside an `if (in range) { ...main... }`, the two range
+//   conditions swapped (MSVC keeps the source order, +2 bytes), a `switch` on
+//   the folded condition, `!(index >= 0 && index < count)`, `index - count
+//   >= 0`, the null check through a pointer local, and the null block zeroing
+//   through a `Vec3*`: 99.2% with the same diff, or worse.
+// - `tools/permute.py 0x43def0 --minutes 8 --seed 13`: 3819 candidates, no
+//   gain. Seeds 11, 14 and 15 were also started.
+// - Tooling note for other passes: score scratch variants with a tag that is
+//   unique per batch (hash the variants file's name into it). Reusing
+//   r000..rNNN across batches silently overwrote an earlier variant and made
+//   z, y, x look identical to z, x, y for one batch's worth of results.
+//
+// Ninth pass (space-bunny-free): still 99.2%, the body is unchanged. The rule
+// above is now closed for the "three field assignments then return" family, so
+// the original's range block is spelled some other way:
+// - The order that matters is the order of the *copy* into the returned value,
+//   not the order of the zeroing statements: a separately zeroed local copied
+//   field by field gives the same result for all 36 zero-order x copy-order
+//   pairs, and the five that copy z, x, y are all 99.2% while all six that copy
+//   x, y, z merge the two zero blocks. MSVC coalesces the copy into the
+//   zeroing, so the two orders cannot be decoupled this way.
+// - Copy order x, y, z emits the xors as the original does (x, y, z) but
+//   allocates the same registers as the null block, which is why the blocks
+//   merge. Breaking the merge with dead code in the *null* block (a dead int,
+//   a dead array, a dead Vec3, a dead `if`, a repeated statement, in eight
+//   placements) changes nothing: the merge and the allocation are unaffected.
+//   So the allocation is not sensitive to anything the source can perturb
+//   without emitting code.
+// - Casts of the zero literals (`(char)`, `(short)`, `(long)`, `(unsigned)`,
+//   `(float)`, `(double)`, `'0' - '0'`) on each of the three fields, and
+//   `static const int` / `static const Vec3` / `extern const int` zero sources,
+//   fold to the same node: 99.2% or 97.5%, the same blocks as plain zeros.
+// - `return` spellings that put an assignment inside the return expression
+//   (`return (w.y = 0, w);`, `return (w.z = 0, w.x = 0, w.y = 0, w);`, a
+//   ternary on a field, a shared zero local): all 99.2%, same block.
+// - `tools/headers.py 0x43def0`: 128 header sets, best 99.2% (<windows.h>,
+//   <string.h>, <ddraw.h> and pairs), no change.
+// - `tools/permute.py 0x43def0 --minutes 8 --seed 13`: 3819 candidates, no
+//   gain. Seeds 11, 14 and 15 were also started; seeds 11, 12, 13, 14 and 15
+//   together evaluated 12600 candidates and none of them matched.
+// - Zeroing through a local struct's member (`struct S { Vec3 v; } s;
+//   s.v.z = 0; ... return s.v;`) in all six orders, and the same with a second
+//   vector copied in after, give exactly the plain-field numbers, so member
+//   access is transparent here too.
+// - Self-conditional zero sources, `(w.z ? w.z : w.z)` and `(t ? t : t)` on
+//   each of the three components and `w.f = (w.f ? w.f : w.f)` after it, plus
+//   `(0 ? 0 : 0)` and `(index ? index : index) - index`: 99.2% with the same
+//   diff (the last is 93.0% and 2 bytes longer). The phi these create is
+//   folded away before the allocator runs, so the ranking effect that helped
+//   elsewhere does not reach this block.
+//
+// Final state of this pass: 99.2%, 359 of 359 bytes, the body above is
+// unchanged from the sixth pass. What still differs is one instruction pair in
+// the range block, and the table above says why: the original needs the xor
+// emission x, y, z with the registers edx, esi, ecx, and every source order
+// that emits x, y, z also allocates edx, ecx, esi (and merges with the null
+// block), while every order that allocates edx, esi, ecx emits x, z, y. The
+// lead for the next attempt is that the two are coupled only through the
+// graph node order of the three zero values, which the field assignment order
+// fixes; the one construct found that decouples them is the unrolled loop copy
+// (it emits in index order), and it needs a counter register because its
+// source is not homed in the frame. So the thing still missing is a way to
+// copy three zeros out of something MSVC has to keep in memory without paying
+// for three immediate stores: a homed source that is already known to be zero
+// at that point in the function. Nothing in the current frame is (the angles
+// array is three shorts, `result` is live only on the main path), and giving
+// either one a home changes the frame size.
 
 #include <string.h>
 

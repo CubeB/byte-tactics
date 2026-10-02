@@ -1,4 +1,105 @@
-// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Claude Sonnet 5.5, finished by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
+//
+// space-bunny-free pass (#4523), 87.1% confirmed unchanged, and the residual is
+// now MEASURED to be exactly one thing. 6 counted check.py runs plus ~50 free
+// `check.py --sym` scores of scratch files (all in build/scratch/0x4b90a0/;
+// probe.py compiles a variant with /Fa and prints its loop head, so a variant
+// that emits the same code is told apart from one that moves without spending a
+// run, and rowvar.py/fullvar.py/cases*.py generate and score them).
+// THE SCORE IS DOMINATED BY LABEL ALIGNMENT, so here is the measurement that
+// matters. Guarding the second test on a variable with a stack home instead of
+// the register (`if (xoff < 0 || stride < 0)` with `stride` never assigned, a
+// C4700 uninitialised read, NOT a legal answer) makes the guard reload and
+// test a slot, which adds exactly the 4 bytes the row head is short, and the
+// file becomes 260 bytes: 92.0%, with every jump target in the function then
+// identical to the original's and only three hunks left. So: (a) everything
+// outside the row head, the yoff store and that one guard test is already
+// byte-identical, (b) the whole 4-byte shortfall and most of the remaining
+// score are the one thing below, and (c) a 260-byte build is reachable ONLY
+// through the row head, so no amount of shuffling elsewhere can pay. Read the
+// score with that in mind: 87.1% is 256 bytes with every label 4 out, and the
+// 92.0% above is not a better decompilation, it is the same wrong code with the
+// labels lined up.
+//  1. THE ROW HEAD, the plane load folded into the add's destination
+//     (`mov esi,[edx+0x10]; add esi,ebx` here, `mov esi,ebx; mov
+//     eax,[edx+0x10]; add esi,eax` in the original, 2 bytes of copy per row).
+//     New this pass, all emitting the SAME 9-instruction head byte for byte:
+//     the plane pointer re-assigned as the first statement of the row body
+//     (alone, both planes, stride line before or after), a `Bitmap*` alias, a
+//     helper taking dst by value and returning the plane, a helper taking the
+//     plane and both offsets by value (these two rotate the whole block, 64.5%),
+//     the plane fields read into `int` locals with the cast at the store, the
+//     planes as `unsigned char** pl = &dst->plane0` indexed [0]/[1], declared-
+//     then-assigned pairs (guide 0x411f50), a self-assignment of the plane
+//     local, the same value read twice in the sum, a dead `xoff = xoff;`
+//     between the rows, a fresh value number for row 1's offset or for both or
+//     for the stride (that one does move the two stride adds ahead of the two
+//     xoff adds, 86.0%), the sum split into two statements per row,
+//     `dst->plane0 + (xoff + stride)`, `int xo = xoff; int st = stride;`, and
+//     `long` offsets. Pointer+pointer, the one IR path left, is not available:
+//     MSVC 5 rejects `(unsigned char*)xoff + dst->plane0` with C2110.
+//     The dead-store-inside-a-folded-branch lever (the one that took 0x47eee0
+//     over the line) needs a local to fold the condition, and one local in the
+//     row body reallocates the frame and rotates the block (17.8%); at file
+//     scope the flag is a real load, not a folded 0 (32.1%). So the fold is the
+//     IR rule that puts a memory operand in an ADD's destination register, and
+//     only a value with two live uses stops it, which this source cannot give
+//     it without changing what the function computes.
+//     Reading of what the original's build did: it never puts a REGISTERED
+//     memory operand on an ALU instruction anywhere in this function. The only
+//     ALU instruction with a memory operand in the whole 260 bytes is
+//     `cmp word ptr [ebp+2], 0`, a compare against a constant; every load that
+//     feeds an arithmetic operation is materialised into a register first
+//     (`xor edx,edx; mov dl,[edi]; add edx,ebx` for the threshold test, the
+//     `mov cx,[edx]` partial write for the stride), and our build does exactly
+//     the same everywhere EXCEPT this one add, where it folds the load into the
+//     destination. The four missing bytes are the two `mov reg,reg` copies of
+//     xoff that a build with no load-into-destination rule must make. Build
+//     difference, not a source spelling.
+//  2. THE YOFF SPILL, ours in the guard block, the original's a store in the
+//     loop preheader, one instruction, and THIS PASS MOVED IT: it is reachable
+//     in the preheader, but only through a copy with no stack slot of its own.
+//     A copy with a home slot moves it and costs more than it wins: `int y2 =
+//     yoff; if (xoff < 0 || y2 < 0) return; yoff = y2;` is 82.8% and puts the
+//     store after `mov edi,[ebp+0x14]`, and the same assignment in the for-init
+//     (`for (int row = 0, dummy = (yoff = y2, 0); ...`) puts it in exactly the
+//     original's order among the stores at 83.9%, but a third local reverts the
+//     threshold compare to `add ebx, edx` with *dp1 in eax. A copy in a
+//     REGISTER-ONLY local costs no slot and keeps the compare: `stride =
+//     dst->field_6 - src->field_6 + y; if (xoff < 0 || stride < 0) { return; }
+//     yoff = stride;` with the `yoff = stride;` after the two source-plane
+//     assignments is 87.1% (four spellings of it, all 87.1%) and puts the store
+//     in the preheader between the sp0 and row stores, after which the guard
+//     block matches the original exactly apart from the branch targets. All
+//     that is left is one instruction: the original's store is after the `jbe`,
+//     ours is before it. The same store as a side effect of the row
+//     initialiser, `for (int row = (yoff = stride, 0); ...)`, is 87.1% and
+//     lands before the row store instead (and with the comma the other way round
+//     MSVC rewrites the whole loop test, 54.1%), and a self-assignment of yoff
+//     at the top of the row body or just before the loop emits nothing at all.
+//     Still 87.1% with the store where the file has it: the yoff definition in
+//     a nested block that ends with the guard, the guard and the loop inside a
+//     `do {} while (0)` (a real merge point after the guards: 80.6%, it moves
+//     the `push edi` and the xoff store and leaves the yoff store alone), a
+//     folded `if (1)` around the inner loop, yoff split into two definitions,
+//     and two separate guard ifs. So the store is a store-at-definition in
+//     both builds for xoff, whose value the loop never changes, while only
+//     yoff, the one variable the loop increments, is sunk past the loop-entry
+//     test by the original's build: a phi-copy placement decision, now one
+//     instruction short of reachable.
+// The file below is main's version unchanged; every variant above that ties at
+// 87.1% and restructures the source (the register-only copy in particular) was
+// left out, since a tie is not an improvement and the notes say which line to
+// change. One permuter round on the NEW stride-copy shape, the only form here
+// that had never been permuted, is flat too: 2490 candidates, 8 minutes, seed
+// 11, score 365 unchanged, nothing to read in build/permute/0x4b90a0/best.diff.
+// One guide rule checked and ruled out, so nobody chases it again: "MSVC 5 will
+// not fold a memory operand whose base register is the destination of the same
+// instruction" (the 0x473590 family) is the only documented way to force a
+// load to materialise, and it does NOT apply here, because in the original the
+// add's destination is esi while the plane load's base is edx. The original's
+// build simply has no load-into-destination rule, so its row head is not
+// reachable from this source.
 //
 // space-bunny-free pass (#4497), 87.1% confirmed unchanged: 1 check.py run plus
 // about 110 free `check.py --sym` scores (all the scratch files are in

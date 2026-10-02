@@ -1,4 +1,81 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
+//
+// space-bunny-free, 2026-10-02: 70.9% (original 920 bytes, ours 922), up from
+// 69.5. The only change kept is the DECLARATION ORDER of the three sums in the
+// second block: `nx`, then `nz`, then `ny` scores 70.9; the previous nx, ny, nz
+// scores 69.5, nz, ny, nx 69.5, nz, nx, ny 70.5, ny, nx, nz 69.5. So the y sum
+// must be declared LAST of the three even though the emitted code still
+// computes it before nx. The frame layout is unchanged (cell@0, m@4, pp@8,
+// v/pos@0x10, the FUN_0043e060 sret temp@0x1c, ny in the dead parameter slot
+// at 0x2c), and it is identical for every permutation.
+// New measurements this pass, all with a slot map derived from objdump of our
+// own object (annotate [esp+N] as frame offset N-0x10 after tracking the
+// pushes and each callee's `ret`; the /Fa name offsets in this file's older
+// notes do NOT map that way):
+//   - Layout, restated from the exe's own offsets (F = esp offset - 0x10 at
+//     the post-prologue esp): original has m@F0, draft@F4, &p1@F8, v/pos@F0x10,
+//     the FUN_0043e060 sret temp@F0x1c, ny@F0x20 (INSIDE the dead temp's 12
+//     bytes, temp+4) and cell in the dead parameter slot at F0x2c. Ours has
+//     cell@F0, m@F4, the same three blocks, and ny in the parameter slot.
+//     That is a 4-byte shortfall: the original has only THREE 4-byte locals at
+//     the bottom of the frame, we have four, and the original's fourth (ny) sits
+//     in a hole inside the first block's temp. Everything else follows from
+//     that one slot.
+//   - WHY ny has to be in a hole (the best lead I have left): the original's
+//     FUN_0043e180 sret temp (6 bytes) sits at F0x8, sharing &p1's slot and
+//     running into F0xd, so the fourth 4-byte slot at F0xc is only 2 bytes wide
+//     and cannot hold ny; the next free 4-byte hole is the dead
+//     FUN_0043e060 temp at F0x1c, and ny lands at its +4. So the original's
+//     allocator put the Short3 temp AFTER &p1 in the bottom group, which is
+//     what pushes ny out. With four 4-byte locals in the bottom group (our
+//     case) the same temp instead goes to the fourth slot (F0xc in the draft
+//     variant) and ny keeps a bottom slot, growing the frame to 0x2c. Nothing I
+//     tried (declaration order of cell/m/draft/ny, their position in the
+//     function, an extra brace level around the whole second block, a
+//     Point-prvalue `Point cell(a, b)`) changes which side of that the
+//     allocator takes.
+//   - Adding the missing `Point draft` local (with the clamp block reusing
+//     `cell`/`draft` instead of separate draft2/c, as the exe's second
+//     `mov [esp+0x14],eax` suggests) DOES flip the allocator: cell then goes to
+//     the dead parameter slot (F0x30) exactly as the original does, and draft
+//     gets a real home, but the frame grows to 0x2c and every offset shifts by
+//     4: 61.7%. So the draft local is real, and the remaining problem is only
+//     where ny lands.
+//   - That variant is insensitive to declaration order and to scope: declaring
+//     `Point draft` before or after `int m`, declaring cell before draft,
+//     wrapping the whole second block in an extra `{ }`, and reordering nx/nz/ny
+//     around it all give byte-identical code (frame 0x2c, layout
+//     draft@0, ny@4, m@8, pp@0xc, v@0x14, temp@0x20). Nothing I tried makes
+//     the allocator put a 4-byte local in the hole inside the dead 12-byte
+//     temp; that is the one lever left and I could not find it.
+//   - Dropping nx/nz as variables (assigning pos.x.value/pos.z.value directly
+//     and keeping only a named ny) collapses the shape badly: 44.6%. Repeating
+//     the y expression instead of naming it: 38.2%.
+//   - The first block's copy: `Vec3 v; v = FUN_0043e060(...)` (v = the call
+//     result, no named temp) gives the original's interleaved
+//     load/store-through-eax copy AND `cmp ecx,eax` with y live in ecx, but the
+//     sret temp lands BELOW v (F0, v@F8) and the frame shrinks to 0x20: 66.9%.
+//     `Vec3 t = FUN(...); Vec3 v; v = t;`, and the same with `v` declared
+//     before `t`, both fold t back to a constant [esp+N] and give the old
+//     grouped load-load-load-store copy: 69.5% each, byte-identical. The three
+//     field assignments (`v.x = t.x; ...`) are also identical to `v = t`, so
+//     the copy shape is not reachable with a frame-local source object: it needs
+//     the call result pointer itself, and that spelling breaks the frame.
+//   - `(u->flags & ~3) | (m & 3)`, `(u->flags & 0xfffffffc) | m` and
+//     `... + (m & 3)` instead of `(u->flags & 0xfffffffc) | (m & 3)`: 69.5 /
+//     69.3 / 69.5, none reaching the original's `and eax,3; and ecx,~3;
+//     or eax,ecx`. VC5 always rewrites the last one to the double `xor` form
+//     (69.5%), which is what costs that hunk.
+//   - `u->pos.y.value = pos.y.value` instead of `= ny` in the early-return
+//     arm is byte-identical (the compiler forwards it), so the reload of
+//     pos.y in the original's clamp tail cannot be reached from that source.
+// What still differs: the frame's m/draft/cell/ny slot contents (one 4-byte
+// local too many at the bottom, and the missing store of pos.y from the ny
+// slot); the first block's grouped copy and the seaLevel load's register
+// choice (g_game in ebx in the original, edx here); the second block's
+// interleaving of the three adds with the u->pos loads; the clamp block's
+// half/result register swap and the tail's load-or-store against the
+// original's in-place `or dword ptr [esi+0x110],0x10000`.
 //
 // mimo-v2.6-pro, 2026-10-01 (retry pass 2): still 69.5%. This pass mapped the
 // frame with /Fa listings (build/scratch/0x43d6d0/*.asm, name offsets: slot
@@ -284,8 +361,8 @@ void Class_0043d6d0::FUN_0043d6d0(Unit_0043d6d0* u)
 
     Vec3* pp = &p1;
     int nx = pp->x.value + u->pos.x.value;
-    int ny = pp->y.value + u->pos.y.value;
     int nz = pp->z.value + u->pos.z.value;
+    int ny = pp->y.value + u->pos.y.value;
     int m = mode;
     Vec3 pos;
     pos.x.value = nx;

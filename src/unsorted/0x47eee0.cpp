@@ -1,8 +1,38 @@
-// Retry #2427 (GPT-6.1-sol): best remains 86.2% (219/224 bytes); no MATCH.
-// This pass confirmed the saved source and tested a loop-local count pointer
-// derived from list (69.2%, 224 bytes). Remaining differences are the global
-// load/count-pointer setup and a missing count-pointer rematerialization before
-// the shift loop, as detailed in the prior notes below.
+// MATCH (224 bytes, every reference checks out). This pass took it from 86.2%
+// to a match, and the thing that did it is worth keeping:
+// `count = &list->count;` as the FIRST statement of the shift loop's body.
+//
+// Why: MSVC 5 folds `&list->count` into `[ebp+0x99]` in every plain spelling
+// (that fold is what cost every earlier attempt its `lea edi,[ebp+0x99]`, and
+// with it the whole head: `mov ebp,[DAT]` with no eax detour, the zero in ebx,
+// and the guard's `mov eax,[ebp+0x99]`). Re-assigning the pointer variable
+// stops the fold, and because the assignment sits inside the shift loop and is
+// loop invariant, the lea is hoisted into that loop's preheader, which is
+// exactly where the original materialises it (0x47ef33). Nothing else
+// reproduces both halves at once; the alternatives are listed so the next
+// person does not repeat them (measured with check.py --sym):
+//  * the re-assignment before the call to FUN_004d85a0, inside `if (last->data)`:
+//    97.5%, right head, but the lea lands just before the call instead of at the
+//    preheader (one instruction in the wrong place, nothing else wrong).
+//  * the re-assignment after the shift loop: 91.2%, the lea lands in the
+//    loop-back block instead.
+//  * the re-assignment between the pre-test and the shift loop, `if (i < *count)
+//    { count = &list->count; for (...) }`: 88.9%, the lea is in the right place
+//    but MSVC then also emits the for's own pre-test, so there are two
+//    `cmp esi,...; jge` pairs where the original has one. No statement can sit
+//    between a test and a rotated loop's body, which is why these two halves
+//    (one test, lea at the preheader) looked unreachable until the in-body
+//    spelling: there the assignment is hoisted out of the body by LICM.
+//  * the re-assignment in the for-init clause, at the loop top, after the call,
+//    or twice: 53.4% to 64.6%, they all fold or spill.
+//  * a second pointer variable for the shift loop, a `while`/`do-while` shift
+//    loop, an inline helper taking `int*`, a reference to the field, the count
+//    pointer derived from the global (`&DAT_0051e68c->count`, the old 86.2%
+//    shape), one to six unused `static inline` helpers, and `count = count;`
+//    beside the assignment: 49% to 97.5%, none better than the saved source.
+//  * tools/permute.py from the 97.5% shape, 12+ minutes, seed 11, about 9000
+//    mutations over 35 kinds: no improvement (it cannot move a statement into a
+//    loop body, which is the one rewrite that worked).
 // Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, continued by GPT-6.1-sol, continued by Space Bunny Free. Names are provisional.
 // Space Bunny Free pass (#1958): the file below still holds the 86.2% best (219
 // bytes); nothing in this pass beat it, all other shapes scored with --sym:
@@ -104,6 +134,12 @@ struct List_0047f8c0 {
 class Class_004d0130 {
 public:
     void FUN_004d0130();
+};
+
+// The callee of 0x4ceee0 is a different class in data/symbols.csv, so the
+// object g_game->sound is cast to call it.
+class Class_004ceee0 {
+public:
     void FUN_004ceee0();
 };
 
@@ -123,17 +159,25 @@ void FUN_0047eee0()
 {
     List_0047f8c0* list = DAT_0051e68c;
     if (list) {
-        int* count = &DAT_0051e68c->count;
-        while (*count > 0) {
-            int i = *count - 1;
-            Entry_0047f8c0* last = &list->entries[i];
-            if (last->data) {
-                FUN_004d85a0(last->data);
-                last->data = 0;
-            }
-            for (int j = i; j < *count; j++)
-                list->entries[j] = list->entries[j + 1];
-            (*count)--;
+        if (list->count > 0) {
+            int* count = &list->count;
+            do {
+                int i = *count - 1;
+                Entry_0047f8c0* last = &list->entries[i];
+                if (last->data) {
+                    FUN_004d85a0(last->data);
+                    last->data = 0;
+                }
+                for (int j = i; j < *count; j++) {
+                    // Re-taken at the top of the body: this is what stops MSVC 5
+                    // folding &list->count into [ebp+0x99]. The assignment is
+                    // loop invariant, so the lea is hoisted into the shift loop's
+                    // preheader, which is exactly where the original has it.
+                    count = &list->count;
+                    list->entries[j] = list->entries[j + 1];
+                }
+                (*count)--;
+            } while (*count > 0);
         }
         list->field_9d = 0;
         operator delete(list);
@@ -142,7 +186,7 @@ void FUN_0047eee0()
     g_game->sound->FUN_004d0130();
     Class_004d0130* sound = g_game->sound;
     if (sound) {
-        sound->FUN_004ceee0();
+        ((Class_004ceee0*)sound)->FUN_004ceee0();
         operator delete(sound);
     }
     g_game->sound = 0;

@@ -1,4 +1,6 @@
 // Decompiled by deepseek-v4.1-flash. Names are provisional.
+// Retry (DeepSeek V4.1 Flash): 3-minute permuter run, 2219 candidates, best
+// stayed 99.6%; only the lea SIB of the third _Ucopy differs.
 // Retry #759 (Sonnet 5.5), still 99.6%, only the lea SIB differs. Ruled out
 // by about 1500 scored scratch variants, none moved that byte: all 5^4 forms
 // of the four _Ucopy sites (original, loop with destination first or source

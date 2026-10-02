@@ -1,4 +1,18 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5. Names are provisional.
+// 2026-10-02 (claude-opus-5-5): 90.8 -> 96.6%, exact size (1631 bytes). Two changes:
+//  1. The second thumb loop updates ybase BEFORE lc (`ybase += mid->height;
+//     lc -= mid->height;`): that is the original's latch order (`sub ecx,eax /
+//     add esi,eax / mov [lc],ecx`, then `lim2 - height` for the test, with mid
+//     kept in a register for the next draw). It fixes the "(b)" difference
+//     below and the two extra bytes (90.8 -> 96.2).
+//  2. The two limits are written `y + e->h - 1` and `x + e->w - 1`; the short
+//     w/h locals still supply the registers, but y and x now take the lea base
+//     as in the original (96.2 -> 96.6).
+// Still differs: (a) below, unchanged (limit/lim2 and lc in each other's stack
+// slots, 0x10 and 0x14; declaring lc before limit, at the top of the arm or at
+// function scope, and reusing one variable for limit and lim2 are flat or
+// worse), and (c) `add edi,-2` (`limit - g->width - 2`: `+ 1 ... - 3`,
+// `- 2 - width`, `-2 + ...`, `b -= 2`, `b += -2`, `2u`, `2L` all give sub).
 // 2026-10-02 (claude-sonnet-5-5): 84.2 -> 90.8%, 1633 bytes. The w<h/h<=w surface
 // puzzle below was solved by changes that only work together:
 //  1. each arm has its OWN `void* surf = Surface_004a2580(obj);` (the function-scope
@@ -398,7 +412,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
             void* surf = Surface_004a2580(obj);
             int y = e->y;
             int x = e->x;
-            int limit = y + h - 1;
+            int limit = y + e->h - 1;
             g = FUN_004b7f30(e->glyphs, e->field_152);
             if (g != 0)
                 FUN_004b7f90(surf, g, x, y);
@@ -427,8 +441,8 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
             mid = FUN_004b7f30(e->glyphs, e->field_152 + 4);
             while (ybase <= lim2 - mid->height) {
                 FUN_004b7f90(surf, mid, x, ybase);
-                lc -= mid->height;
                 ybase += mid->height;
+                lc -= mid->height;
             }
             FUN_004b7f90(surf, mid, x, lim2 - mid->height);
             g = FUN_004b7f30(e->glyphs, e->field_152 + 5);
@@ -437,7 +451,7 @@ void __stdcall FUN_004a2580(Object_004a2580* obj, int index)
             void* surf = Surface_004a2580(obj);
             int x = e->x;
             int y = e->y;
-            int limit = x + w - 1;
+            int limit = x + e->w - 1;
             Glyph_004a2580* first = FUN_004b7f30(e->glyphs, e->field_152);
             if (first != 0)
                 FUN_004b7f90(surf, first, x, y);

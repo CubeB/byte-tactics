@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by space-bunny-free, finished by DeepSeek V4.1 Flash. Names are provisional.
 
 // space-bunny-free retry 2 (still 98.3%, 473 of 473 bytes, 4 checker runs,
 // about 450 in-process compiles). The big new result is that the pool flip is
@@ -447,6 +447,20 @@
 // run on this file (8318 candidates, nine minutes, --jobs 2) found nothing.
 // The remaining hunk is unchanged: `cmp eax, ebp` and `mov [esi + 0xf8], edx`
 // six instructions below where this file puts them.
+// DeepSeek V4.1 Flash retry (still 98.3%, 473 of 473 bytes; permuter 3 min,
+// 1822 candidates, no gain). Two new negative results, both reproducing the
+// schedule exactly with the callee-saved pool flipped (zero ebx, tick not
+// edx): (a) the six clears AND the +0xf8 store in one inlined sub-object
+// method taking the tick by value,
+//   ((Stamps*)((char*)p + 0xac))->ClearStamp(g_game->ticks);
+// gives load, six stores, ff8 store, ref load, cmp -> 66.4; (b) a by-value
+// struct snapshot helper (`struct Snap { PlayerRef* ref; int t; }; Snap snap =
+// Snap(p);` then `p->ff8 = snap.t;` and `if (!snap.ref)`) gives the same 66.4
+// shape. So neither an inlined parameter nor a returned aggregate avoids the
+// live-range-across-the-clears penalty: any value read before the clears and
+// used after them makes the allocator hand the constant 0 ebx. The split load
+// and store cannot be produced without such a value, so the pool tie stands.
+// Scratch: build/scratch/0x464700/ (gen.py harness, t1-t8.py).
 #include <string.h>
 
 class PlayerRef {

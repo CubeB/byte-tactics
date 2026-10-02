@@ -1,4 +1,11 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, edited by GPT-6.1-sol, finished by DeepSeek V4.1 Flash. Names are provisional.
+// Retry (DeepSeek V4.1 Flash, issue 4843): still 99.7, 791 of 791 bytes, the
+// same single mirrored SIB byte at 0x475d01 (`lea eax,[esi+edx]` original,
+// `lea eax,[edx+esi]` ours). Ran permute for 3 minutes (3064 candidates, 3
+// jobs, 20 mutation kinds); best was byte-identical to the file (score 5 -> 5,
+// no improvement), so no variant to copy in. The notes below already measured
+// this residual as a two-state compiler/TU toggle that no caller-visible
+// spelling reaches; nothing new this pass. Best version (99.7) kept.
 // Retry (deepseek-v4.1-flash, issue 4032): still 99.7, 791 of 791 bytes, the
 // same single mirrored lea SIB byte at 0x475d01 (`lea eax,[esi+edx]` in the
 // original, `lea eax,[edx+esi]` ours). Two more spellings measured: moving the

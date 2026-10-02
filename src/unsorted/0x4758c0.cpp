@@ -1,4 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by Space Bunny Free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash retry (this session): still 88.9, 779 of 779 bytes, the
+// same realloc-arm register wall. The permuter ran twice for 3 minutes (2760
+// candidates each), once from this file and once from the faithful
+// `_Ufill(_Q, _M, _X)` source, and found nothing above the start. The real
+// VC5 <vector> header (the one the matched caller 0x4737c0.cpp uses) scores
+// 84.0 at 783 bytes and also puts _P in ecx, so the hand-written vector is
+// not the cause. Compiling the real header together with the whole matched
+// caller body in one translation unit (to reproduce the original TU state)
+// gives the same 84.0, so the caller's instantiations do not steer the
+// allocator either. Other measured dead ends, all at or below 88.9: a
+// destination-first explicit third-copy loop as the guide recommends (44.4,
+// 791 bytes), the same for the first copy (84.0), reordered _Ucopy helpers
+// with the destination first or middle (88.6 and 88.9), _Ucopy helpers that
+// take the allocator as an extra parameter first/last (88.9), and declaring
+// _N and/or _S at function scope (88.9). Nothing regressed; the 88.9 best is
+// unchanged.
 //
 // Space Bunny Free pass (issue 4157): TWIN TEST FAILS, so this is now treated
 // as the same closed case as 0x46e640 and 0x475bd0, with one refinement the

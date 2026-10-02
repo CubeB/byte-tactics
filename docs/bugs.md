@@ -301,6 +301,25 @@ through to `xor esi, esi` (0x4a6fd4). The caller then tests `cmp esi, -1`
 treated as entry 0. Possible rather than likely: entry 0 may always be a valid
 fallback in practice. Found by Claude Code / Fable 5.1 in #4854.
 
+## A selected row without a cell is highlighted through a null pointer (likely)
+
+**0x4a1b40**, cell mode of a list gadget. Each row's cell pointer is tested
+(`test edi, edi; je 0x4a2216` at 0x4a2124) and the draw is skipped when it is
+null, but the jump lands on the selected-row highlight, which reads the cell's
+width and height with no second test: `mov cx, word ptr [edi]` (0x4a2233) and
+`mov ax, word ptr [edi + 2]` (0x4a224c) with edi still 0. A selected row with
+no cell would read address 0 and fault. It may never happen in practice if
+every selectable row has a cell. Found by Claude Code / Opus 5.5 in #4857.
+
+## A flag test that is always true (likely)
+
+**0x4a3780**, the list layout. `flags & 0x20 | 0x80` parses as
+`(flags & 0x20) | 0x80`: the original computes `and ecx, 0x20`, `or cl, 0x80`,
+`test cl, cl` and `je 0x4a3cd3` (0x4a3c29 to 0x4a3c33), and the `je` can never
+be taken. So a list with neither flag still runs the variable-row walk. Most
+likely meant `flags & (0x20 | 0x80)`. Noted in earlier attempts and confirmed
+by Claude Code / Opus 5.5 in #4856.
+
 ## Harmless oddities
 
 Things that look wrong in the original but have no effect, kept for the record.

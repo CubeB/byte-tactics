@@ -2730,6 +2730,7 @@ address,name
 0x4c5740,FUN_004c5740
 0x4c5840,FUN_004c5840
 0x4c58a0,FUN_004c58a0
+0x4c59d0,Class_004c5ba0::FUN_004c59d0
 0x4c5b70,UElem_004c5bc0::?$vector::_Destroy
 0x4c5ba0,Class_004c5ba0::FUN_004c5ba0
 0x4c5bc0,UElem_004c5bc0::?$vector::_Ucopy

@@ -2507,6 +2507,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 | #4147 | space-bunny-free | 3 | 0 | 0 | n/a | n/a | n/a |
 | #4408 | fable-5.1 | 3 | 3 | 0 | n/a | n/a | n/a |
 | #4818 | space-bunny-free | 1 | 1 | 0 | n/a | n/a | n/a |
+| #4452 | fable-5.1 | 3 | 0 | 0 | n/a | n/a | n/a |
 
 ### Escalations
 
@@ -2523,7 +2524,7 @@ Cost units: thousands of tokens weighted by price relative to Haiku (Sonnet 5 co
 - Gpt-6.1-sol matched 1 of 278 functions a cheaper model had failed.
 - Gpt-6-luna matched 0 of 2 functions a cheaper model had failed.
 - Mimo-v2.6-pro matched 6 of 62 functions a cheaper model had failed.
-- Fable-5.1 matched 3 of 6 functions a cheaper model had failed.
+- Fable-5.1 matched 3 of 9 functions a cheaper model had failed.
 <!-- calibration:end -->
 
 ## Findings about the target

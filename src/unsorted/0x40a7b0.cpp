@@ -1,5 +1,6 @@
 // Decompiled by Claude Opus 5.5, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol,
-// finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash. Names are provisional.
+// finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash,
+// finished by Space Bunny Free. Names are provisional.
 // deepseek-v4.1-flash (3857, 2026-10-01): hoisting `Feature* feats = g_game->features` regresses to 74.8% (649 bytes); the `(f->flags & 2) && f->value != 0.0f` swap gives 88.2%. Best stays 88.7%, same ebx/ebp swap.
 // deepseek-v4.1-flash retry (3312, 2026-10-01): `feature <= 0xfffa` drops to 88.2%; a `(f->flags & 2) != 0` spelling and hoisted x/y declarations stay at 88.7% with the same ebx/ebp swap.
 //
@@ -86,6 +87,90 @@
 // <iostream>, <string>, <map>, <list>, <algorithm>, <memory>, <set> or
 // <deque>, and 1..64 dead __inline helper call sites (the /Ob2 budget does
 // move the code, but never to a flipped pick).
+// space-bunny-free pass 2026-10-02. The shipped file is unchanged at 88.7%
+// (645 of 644 bytes) and the _S/_Q pick is the only difference. What is new here
+// is a MATCHed twin, a byte-faithful platform for testing insert's source, and
+// two negative results that close off whole families for the next pass.
+//
+// THE MATCHED TWIN: 0x40a260 (MATCH, 834/834) is the other method of this same
+// class and uses this same std::vector<Elem_0040cc40>, and its inlined
+// reserve() has the identical tail: _End = _S + _N / _Last = _S + size() /
+// _First = _S. It puts _S in **ebp** there, not ebx. So the pick is not a fixed
+// preference for one of the two dead callee-saved registers: in 0x40a260 esi,
+// edi and ebx are the type, list and range parameters, which outrank the local
+// _S, and _S takes what is left. Here esi is the vector pointer and edi is
+// insert's _P, so _S and _Q split ebx and ebp between them, and the original
+// gives the better one to _S. The pick therefore depends on the competition,
+// and _S is not pinned to ebp: see the derived-class note below, where it lands
+// in edi.
+//
+// THE PLATFORM (the useful lead). Nothing outside <vector>'s insert can change
+// how many times _S or _Q is referenced, so to test insert itself I replaced
+// <vector> with the primary template written out in namespace std (VC5 rejects
+// an explicit specialization of a class template, error C2989, so the
+// 0x408f30 "clone trick" is the only route). _Destroy, size and capacity must be
+// **defined** in the clone, because the original inlines them at some call sites
+// (erase's _Destroy vanishes, two of the three size() calls in insert are
+// inlined); _Ucopy and _Ufill must be **declared and never defined**, which is
+// what keeps them calls to 0x40cc40 and 0x40d5b0. That clone is byte-faithful:
+// 645 bytes, 88.69%, the identical single lea hunk. It is in
+// build/scratch/0x40a7b0/gen5.py (k00_faithful). A derived class is NOT a
+// usable platform: with only one caller in the translation unit /Ob2 inlines the
+// first _Ucopy and the function grows to 665 bytes (61.3%). Forcing the vector's
+// members out of line by taking their addresses is byte-neutral on its own
+// (645 / 88.69%, j00) and does not stop that inlining, though it is what the
+// original file must have done: 0x40c5b0, 0x40ca30, 0x40ca50, 0x40cc30, 0x40cc40
+// and 0x40d5b0 all exist in the exe for this element type.
+//
+// NEGATIVE RESULT 1, and it retires a guide rule here: a reference to _S that
+// folds away never reaches the register allocator, so the pick is not a
+// reference-count tie the source can reach. On the clone, `_S = _S;`,
+// `_End = _S + (_N + (_S - _S));` and `_First = _S + (_S - _S);` are all
+// **byte-identical** to the control, so the allocator never sees the extra
+// reference; the ones that do not fold (a second _Ucopy, _S inside _Last's sum,
+// _S + _S in _First) all grow the function to 656 to 659 bytes. So the guide's
+// "the original may have used the other variable once more in a way that folds
+// away" cannot explain this residual, and no amount of folding will.
+//
+// NEGATIVE RESULT 2: 25 further perturbations inside the faithful clone all
+// leave lea_regs at ebp/ebp, that is, `_S` in ebp: the six orders of the three
+// tail statements and their groupings, `_End = _N + _S`, `const iterator _S`,
+// `_Q` and `_S` declared then assigned, a `_D` destination local for
+// `_Q + _M`, `&_Q[_M]`, `(size_type)_M`, the expanded `_M < size() ? size() +
+// size() : size() + _M`, and swapping the two independent statements `_Ufill(_Q,
+// _M, _X)` and `_Ucopy(_P, _Last, _Q + _M)` (83.3%). Declaration order in the
+// caller was swept too (w, y, x and row at function scope in four orders, row
+// declared inside the for, w inside the outer loop) and is inert here, like most
+// of the tree. Nothing reaches the pick.
+//
+// NOT REACHED, with scores: an explicit insert(end(), 1, X) is 696 bytes and
+// 47.7%; _N expanded as a ternary of two sums is 663 / 76.9%; the derived-class
+// insert is 665 / 61.3% with _S in edi (which is how we know it is movable at
+// all); a named Elem local, a float value local, nested ifs, walking the row
+// with a pointer, an unsigned short feature local, <windows.h> first, an
+// explicit std::vector<Elem, std::allocator<Elem> > typedef, and member
+// pointers to size, capacity and both insert overloads are all 88.7% or worse.
+//
+// PERMUTER, and the file is restored: 16 minutes, 8564 candidates. The log says
+// "88.7% -> 88.7% (score 252 -> 252)" and best.json records best_ratio 0.8869
+// against top_ratio 0.9050, so the wrong candidate is reported twice, as the
+// brief says. Scored by hand: best.cpp is 645 bytes / 88.69% (no gain), and
+// **best_ratio.cpp is 644 bytes / 90.5%, which is rejected.** Read the bytes: it
+// hoists `xor ebx, ebx` above the call to FUN_00481550 and passes the literal 0
+// as `push ebx` where the original has `push 0` (0x40a808), drops the x
+// counter's home store `mov dword ptr [esp + 0x10], ebx` (0x40a813), and adds a
+// redundant second store of y, `mov dword ptr [esp + 0x18], ebx`, which the
+// original does not have (it stores y once, at 0x40a7fd). Same instruction
+// count, same 644 bytes, but it trades a difference that was only a jump target
+// for a real codegen difference, and it leaves the _S/_Q residual untouched, so
+// it can never reach MATCH. Its source (`int y = 0;` before the loop, `int x =
+// 0;` in the body) reads well, so the score is not the reason to reject it: the
+// bytes are.
+//
+// WHAT STILL DIFFERS: one thing. `lea ecx, [ebx + eax*8]` (3 bytes) at 0x40a92e
+// where we emit `lea ecx, [ebp + eax*8]` (4 bytes), because _S is in ebp and ebp
+// as a base needs a disp8; every later address shifts by one. 15 of the diff
+// lines are internal jump targets that moved; ignoring those this is 95.5%.
 #include <vector>
 
 struct Point16 {

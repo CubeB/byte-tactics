@@ -1,4 +1,4 @@
-// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
+// Decompiled by DeepSeek V4.1 Flash, finished by GPT-6, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
 // Pass 13 (Space Bunny Free): 83.7 -> 88.6 percent / 1596 bytes (original 1595). Not a MATCH.
 // What moved it (free-scored variants, all kept under build/scratch/0x487080/):
 //  - GetB10F_00487080(unit), a one-line static inline getter for the byte flag field, read
@@ -22,17 +22,26 @@
 //    getter (70.1), a pointer-returning getter (81.3), a local `u`/`b` for the 0x110 chain read
 //    as `unit->flags` (72.4) or seeded from a getter (85.6, no change), and swapping the
 //    operands of the first `^` or of the 0x110 `|` (no change at all: MSVC normalises both).
+// Pass 14 (claude-sonnet-5-5): 88.6 -> 88.8 percent. BLOCK LAYOUT fixed the epilogue: the
+//  first exit is `return unit` (the already-active unit, or null) and the failure paths fall out
+//  of nested `if (unit != 0) { ... return unit; } return 0;`, so the final `return 0` is the LAST
+//  block of the function (xor eax,eax then the shared pops) and the early `return unit` branches
+//  jump into the pops after it, exactly like the original. The old `return 0` + early `return 0`
+//  form made MSVC fold the xor into the epilogue and schedule it after pop ebp.
 // Still differs:
-//  (1) The first exit returns eax unchanged (jne 0x4876ae with eax = unit), i.e. `return unit`
-//    when the unit already has flag 0x10000000, so this file's behaviour differs there. But
-//    `return unit` makes MSVC inline two more copies of the whole epilogue (80.1 percent), and
-//    wrapping the body in `if (unit && !(unit->flags & 0x10000000))` makes it pick esi for
-//    unit and inline them anyway (79.4). Splitting the test into two returns is no better
-//    (79.3), and neither is flipping any of the four failure tests (86.0 to 86.2, no change).
-//    The original needs a `xor eax,eax` block that only the four failure returns enter, with
-//    the two early branches joining the pops after it; no phrasing found for that.
-//  (2) That shared failure epilogue schedules its xor eax,eax after pop ebp instead of before
-//    pop edi, so the failure branches target the wrong instruction (six hunks).
+//  Pass 14 experiments that did NOT help (kept in build/scratch/0x487080/n1b.cpp, n3.cpp, f2.cpp):
+//   - real bitfield unions (rec.flags as a 32-bit uint bitfield view, unit->flags and b_10f as
+//     bitfield views, one plain `unit->x4 = rec.c8;` per bit): the 0x10f statements 2-4 and the
+//     `or` (not xor) come out right, but MSVC puts the destination part on the LEFT of the final
+//     `or` (result in the dst register, `and al,0xf3` narrowed) where the original puts the source
+//     term on the left (`shr eax,4; and eax,0xc; and ecx,0xfffffff3; or eax,ecx`), so the
+//     alternating eax/ecx rotation of the original is lost: 72 percent. The explicit
+//     `(term) | (u & ~mask)` form in this file is therefore the right shape.
+//   - a 16-bit bitfield container over b_10e/b_10f (to explain why the load of b_10f is not
+//     hoisted above the b_10e store): MSVC then does 16-bit read-modify-write (70 percent).
+//   - `unit->b_10f ^= (src ^ unit->b_10f) & 1;` and a local `d = GetB10F(unit)`: the dst byte is
+//     still hoisted into cl above the `mov [esi+0xfa], dl` store (the original loads it into al
+//     right after the b_10e store, so the allocator there put dst in al and src in cl).
 //  (3) The first statement of the 0x10f chain calls the getter twice, so MSVC keeps a hoisted
 //    copy in bl at 0x487275 (just after FUN_00480250) and emits `xor al, byte ptr [esp+0x4c]`
 //    then `xor bl, al` where the original has `mov cl, [esp+0x4c]` / `xor cl, al` / `xor cl, al`.
@@ -243,7 +252,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     else
         unit = (Unit_00487080*)(*(char**)((char*)g_game + 0x14357) + id * 0x118);
     if (unit == 0 || (unit->flags & 0x10000000))
-        return 0;
+        return unit;
 
     SaveRec_00487080 rec;
     char name[32];
@@ -266,8 +275,7 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
         return 0;
 
     unit = FUN_00485f50(rec.player, FUN_00488b10(rec.name), *(Vec3_00487080*)&rec.f2b, 1, (rec.flags >> 4) & 3, rec.id);
-    if (unit == 0)
-        return 0;
+    if (unit != 0) {
 
     unit->field_64 = *(Pair_00487080*)&rec.f37;
     unit->field_108 = rec.f3d;
@@ -389,4 +397,6 @@ Unit_00487080* __stdcall FUN_00487080(unsigned short id, Class_004b4560* file)
     if (unit->b_10f & 4)
         FUN_0047db20(unit);
     return unit;
+    }
+    return 0;
 }

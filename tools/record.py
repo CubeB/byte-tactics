@@ -26,32 +26,59 @@ from coff import parse_object
 from progress import ROOT
 
 
-def template_siblings(addresses: list[str]) -> str:
-    """A note naming the other unmatched copies of each function's template
-    method (`vector::insert` and the like), from the mangled names in
-    data/progress.csv: the copies share their shape, and without the list each
-    agent re-derives what a sibling already found (0x425210 and 0x46e640, #4756)."""
-    def key(symbol: str) -> str | None:
-        m = re.match(r"\?(\w+)@\?\$(\w+)@", symbol)
-        return f"{m.group(2)}::{m.group(1)}" if m else None
+def sibling_key(symbol: str) -> str | None:
+    """A key grouping the copies of one function, from its mangled name: the
+    template method when it has one, else the signature with the class and
+    struct names folded to `_*`, which is what groups the plain near-copies a
+    template name misses (0x4c0820 and 0x4c1000).
+
+    Returns None for a function that returns void and takes no arguments. Every
+    such function shares one signature whatever it does, so the group is noise:
+    without the test, 20 unrelated functions collect under `?FUN_*@@YGXXZ`.
+    """
+    m = re.match(r"\?(\w+)@\?\$(\w+)@", symbol or "")
+    if m:
+        return f"{m.group(2)}::{m.group(1)}"
+    if re.search(r"X+Z$", symbol or ""):
+        return None
+    # Only signatures that name a struct or class: `void f(void*)`, `void f(int)`
+    # and the like are shared by unrelated functions too.
+    if not re.search(r"P[AB][UV]\w+@@", symbol or ""):
+        return None
+    return re.sub(r"_[0-9a-f]{4,8}", "_*", symbol or "")
+
+
+# Near-copies that are not one template sit next to each other in the exe
+# (0x4c0820 and 0x4c1000, 0x43cd20 to 0x43d6d0); the same signature far away
+# is usually a different function.
+NEAR = 0x10000
+
+
+def sibling_note(addresses: list[str]) -> str:
+    """A note naming the other unmatched copies of each function, from the
+    mangled names in data/progress.csv: the copies share their shape, and
+    without the list each agent re-derives what a sibling already found
+    (0x425210 and 0x46e640, #4756)."""
     with (ROOT / "data/progress.csv").open() as fh:
         rows = list(csv.DictReader(fh))
     unmatched = {r["address"]: r for r in rows if r["status"] != "matched"}
-    keys = {r["address"]: key(r["symbol"]) for r in rows}
+    keys = {r["address"]: sibling_key(r["symbol"]) for r in rows}
     lines = []
     for a in addresses:
         k = keys.get(a)
         if not k:
             continue
-        sib = sorted(b for b in unmatched if b != a and keys.get(b) == k)
+        sib = sorted(b for b in unmatched if b != a and keys.get(b) == k
+                     and ("::" in k or abs(int(b, 16) - int(a, 16)) <= NEAR))
         if sib:
             lines.append(f"- {a} ({k}): " + ", ".join(f"{b} ({unmatched[b]['similarity']}%)" for b in sib[:12])
                          + (f" and {len(sib) - 12} more" if len(sib) > 12 else ""))
     if not lines:
         return ""
-    return ("\n\nOther unmatched copies of the same template method. Read their files under "
-            "src/unsorted/ first: a conclusion reached on one usually holds for the rest, though "
-            "check which local owns the stack slot before copying a sibling's shape.\n" + "\n".join(lines))
+    return ("\n\nOther unmatched functions that look like copies of this one. Read their files "
+            "under src/unsorted/ first: a conclusion reached on one usually holds for the rest, "
+            "though check which local owns the stack slot before copying a sibling's shape.\n"
+            + "\n".join(lines))
 
 
 def main() -> None:
@@ -109,7 +136,7 @@ def main() -> None:
     left = [r["address"] for r in mine if r["result"] != "matched"]
     if args.escalate and left:
         models = sorted({r["model"] for r in mine if r["result"] != "matched"})
-        siblings = template_siblings(left)
+        siblings = sibling_note(left)
         subprocess.run(["uv", "run", "--quiet", "tools/issues.py", "--addresses", *left,
                         "--title", f"Retry: {len(left)} function{'' if len(left) == 1 else 's'} left unmatched in {batch}",
                         "--label", "near-miss",

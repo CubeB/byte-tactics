@@ -1,72 +1,43 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free. Names are provisional.
-// Status (Space Bunny Free, #4393): 74.5 -> 85.2%, 5288 bytes vs 5248. What moved,
-// in the order it moved:
-// (1) Headers: `#include <windows.h>` on top of `<stdio.h>` (the string functions
-//     come in through it). On its own that was 74.5 -> 78.6% and it fixed every
-//     `[ebp+ebx+off]` vs `[ebx+ebp+off]` SIB base/index swap at once;
-//     tools/headers.py reported 78.6% for five sets, all with <windows.h>.
-// (2) The FUN_004c1ab0 wait is `do { } while (FUN_004c1ab0());`, not
-//     `while (FUN_004c1ab0() != 0);`: the original is `xor esi, esi; call; cmp eax,esi;
-//     jne top`, and the while-form rotated into two calls and two tests and moved
-//     the `xor esi, esi`. That deleted a whole hunk.
-// (3) The post-loop name scan walks the entries and derives the index from the
-//     pointer (`j = (int)(other - entries)` in the match arm). That is what puts j
-//     in edi and the walk in ebx as in the original (80.6 -> 82.5%), even though the
-//     division by 0x15b costs seven instructions the original does not have.
-// (4) The second loop and the post-loop scan are inside the
-//     `if ((flags & 4) || force || (flags & 0x40))` block: the original's
-//     `test bl,0x40; je 0x4a950a` jumps past both, so with them inside every branch
-//     target from there on has the original's offset. Same score, but it is the
-//     shape a match needs.
-// (5) tools/permute.py, 17 min, 82.5 -> 85.2%. What it found that is worth keeping
-//     (the temp names and the do-nothing casts are gone, the rest is here):
-//     savedType, walk, orientation and pf are function-scope, not block-scope; the
-//     first loop is `i = 0; while (i < count + 1) { ... i++; }` rather than a `for`;
-//     the case 2 list-scroll sync writes the max twice (an initialiser and then the
-//     recomputed expression for entries[i], and the local for the partner entry),
-//     and that duplication alone is worth 3.0 points, so it looks like the original
-//     really does recompute it; `base[i].h = (short)(hh - ((int)base[i].h) % (fh+2))`
-//     re-reads the field instead of using hh (worth 3.8 points); `do { ... } while (0);`
-//     around the checkbox/stage-button GAF lookup is load-bearing (2.7 points), as is
-//     the comma-expression loop `if (j < g->count) do { ... } while (((j += 4),
-//     (j < g->count)));` for the frame search; `1 & entries[i].resourceFlags`,
-//     `-1 == entries[0].x`, `0 > entries[0].y`, `0 == g`, `(flags & 4) != 0` and
-//     `0x40 & flags` are the operand orders the original had.
-// What still differs (register, scheduling and slot noise; no missing code):
-// (a) Stack slots are permuted. `force` is at [esp+0x1c] here and [esp+0x18] in the
-//     original, and `i`, `&entries[i].flags`, `&entries[i].x/y` and the loop 2 `t`
-//     counter follow it round. Local declaration order is not a lever: permuting
-//     these ten locals, reordering the buffers and changing their sizes all compile
-//     byte-identically (build/scratch/0x4a81e0/v1 and v13).
-// (b) The case-4 slider geometry is 8 to 10 bytes short. The original stores
-//     `secondEnd->x` from dx after a dead `add edx, ecx` (the address of
-//     `entries[i].x` advanced by the width), and in the vertical arm does
-//     `add esi, edx` with edx still the address of `entries[i].h`. Both look like an
-//     MSVC 5 codegen artifact for `e->x - fw + e->w`; x+w-fw, a (short) cast, a
-//     local pointer, two statements and swapping the arms all fail to reproduce it.
-// (c) Case 1: the original merges the "CHECKBOX" call into the shared
-//     `FUN_004b8d40(menu->gaf, stagebuf)` tail (`push "CHECKBOX"; jmp <past the
-//     stagebuf push>`) and leaves the "BUTTONS0" call inline; ours does the opposite
-//     and duplicates `menu->gaf`. Writing it with two call sites
-//     (build/scratch/0x4a81e0/v8/k1_two_calls.cpp) gets within three instructions.
-// (d) `entries[i].flags & 0x80` reads through the spilled `&entries[i].flags`
-//     pointer here, directly from `[ebp+ebx+0x1b]` in the original; the 0x40 and
-//     0x4000 accesses use the pointer on both sides.
-// (e) Loop 2 type 13 spills `menu->layer->entries` across FUN_004b6340() here, where
-//     the original keeps it in edi; that also costs the `mov edi,[esp+0x1c]` reload
-//     at the end of that arm.
-// (f) `textbuf[0x10] = 0` is scheduled before `add esp, 0xc` instead of after it, in
-//     the case 0/11 and case 1 blocks.
-// (g) `FUN_004c6b70(0, saveUnder, x, y)` loads y then x into edx/ecx here and
-//     ecx/edx there: operand order only.
-// Dead ends, so nobody repeats them: declaration and buffer order (a);
-// `unsigned int force`; hoisting `entries[0].u.count + 1` or the compare string in
-// the scan; while/do-while/`++j` spellings of the scan loop other than the one above;
-// removing the named `base` locals in loop 2; `(unsigned char)` casts on the flags
-// test; swapping the two arms of the slider if/else; putting `textbuf[0x10] = 0`
-// after the strcat. build/scratch/0x4a81e0 holds sweep.ps1 (scores a folder of
-// variants), gen.ps1 and the spec files; build/scratch/0x4a81e0/v10/k1_s5.cpp is
-// 5248 bytes exactly at 81.7%, so the byte count is reachable but that shape is not.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Status: 85.2 -> 91.3%, 5248 bytes (the original's size exactly; was 5288).
+// Not a MATCH. What moved it (claude-sonnet-5-5, #4532):
+// (1) The post-loop name scan is the inline helper FindByName (the same shape as
+//     0x4a9fd0's FindEntry: `for (j = 1; j < count + 1; j++) if (!strncmp(entries[j].name,
+//     name, 0x10)) return j; return -1;`). The old hand-rolled walk with
+//     `j = (int)(other - entries)` cost a 0x15b division the original does not have.
+// (2) The FUN_004c1ab0 wait stores the call result in a variable and compares it:
+//     `do { i = FUN_004c1ab0(); } while (i != 0);`. That gives the original's
+//     `xor esi, esi` hoisted above the loop and `cmp eax, esi` (a call result that is
+//     assigned to a named variable before the test is compared against the zero
+//     register, not with `test`).
+// (3) The `field_70` loop is `for (i = 0; i <= count; i++) if (entries[i].type == 1)
+//     entries[i].field_13a = 0;` with no `walk` pointer: the compiler makes the
+//     pointer itself and puts `mov eax, ebp` after the loop test as the original does.
+// Known artifact, kept because it scores higher: case 2 (list scroll sync) computes
+// the max twice (`short scroll = max; entries[i].scroll = (short)max; other->scroll =
+// scroll;`). The original computes it ONCE (`short m = a > b ? a : b; e = m; o = m;`,
+// `cmp cx,dx; jg; mov ecx,edx; mov [e],cx; mov [o],cx`). The single-max source gives
+// the original's case 2 exactly (j in esi, i in edi) but 83.5%: the case 4 slider then
+// compiles `mov dx,[x]; sub dx,[fw]; add edx,ecx` as `sub cx,[fw]; add cx,[x]` (w first
+// instead of x first) and the file is 16 bytes short, so every later jump target
+// moves. Nothing else was found that restores the slider; spelling the slider
+// expression in nine ways, `short`/`int` temporaries, and dropping/adding `pf` all
+// compile the same or worse. Removing `pf` also makes the slider match but swaps the
+// textbuf and buf1 frame slots (+/-0x100 on every reference to them).
+// What still differs (all register, slot or scheduling noise, plus case 2 above):
+// (a) `pf` (`&entries[i].flags`) is read through the register copy here for the
+//     0x1800 and 0x80 tests (`mov eax,[edi]; test ah,0x18`); the original reads
+//     `[ebp+ebx+0x1b]` directly and only the 0x4000 accesses use the spilled pointer.
+// (b) `textbuf[0x10] = 0` is emitted before `add esp, 0xc` here and after it in the
+//     original (cases 0/11, 12 and 1); same size.
+// (c) The stage-button frame search keeps its counters in different frame slots
+//     ([esp+0x10]/[esp+0x14]); `mov [esp+0x10], edi` here is `mov [esp+0x10], 0` there.
+// (d) Case 2: see above. (e) The two jump tables read as garbage in the diff (the
+//     checker verifies their targets separately).
+// Dead ends: declaration/buffer order, `unsigned force`, hoisting the count or the
+// compare string, while/do-while/`++j` spellings of the scan other than FindByName,
+// `(unsigned char)` casts on the flags test, swapping the slider arms, Glyph::w/h as
+// signed short, a fresh `int busy` for the wait (costs a frame slot; reuse `i`).
 #include <math.h>
 #include <string.h>
 #include <windows.h>
@@ -244,11 +215,19 @@ void __stdcall FUN_004c6ac0(void* obj);
 void __stdcall FUN_004c6b70(void* dst, void* bmp, int x, int y);
 void __cdecl FUN_004d85a0(int* param_1);
 
+static inline int FindByName(Entry_004a81e0* entries, char* name)
+{
+    for (int j = 1; j < entries[0].u.count + 1; j++) {
+        if (strncmp(entries[j].name, name, 0x10) == 0)
+            return j;
+    }
+    return -1;
+}
+
 // FUNCTION: 0x4a81e0
 int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
 {
     int savedType;
-    Entry_004a81e0* walk;
     int orientation;
     Entry_004a81e0* entries;
     char* name;
@@ -289,12 +268,12 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
     if (force) {
 
     do {
-    } while (FUN_004c1ab0());
+        i = FUN_004c1ab0();
+    } while (i != 0);
     if (menu->field_70 != 0) {
-        walk = entries;
-        for (i = 0; i <= entries[0].u.count; i++, walk++) {
-            if (walk->type == 1)
-                walk->field_13a = 0;
+        for (i = 0; i <= entries[0].u.count; i++) {
+            if (entries[i].type == 1)
+                entries[i].field_13a = 0;
         }
     }
     if (entries[0].w > FUN_004b6700() || entries[0].h > FUN_004b6710())
@@ -467,6 +446,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
                 Entry_004a81e0* other = &entries[j];
                 if (j != i && other->type == 2) {
                     if (other->group == entries[i].group) {
+                        // The max is written twice on purpose; see the header.
                         short scroll = other->u.list.scroll > entries[i].u.list.scroll
                                          ? other->u.list.scroll : entries[i].u.list.scroll;
                         entries[i].u.list.scroll = (short)(other->u.list.scroll > entries[i].u.list.scroll
@@ -722,17 +702,7 @@ int __stdcall FUN_004a81e0(Menu_004a81e0* menu, unsigned int flags)
         if (menu->layer->field_20 != -1 && menu->field_a2 != 0) {
             savedType = entries[menu->layer->field_20].type;
             FUN_004a16f0(menu, menu->layer->field_20, 8);
-            int j = 1;
-            Entry_004a81e0* other = &entries[1];
-            while (j < entries[0].u.count + 1) {
-                if (0 == strncmp(other->name, entries[0].u.text + 0x16, 0x10)) {
-                    j = (int)(other - entries);
-                    goto found;
-                }
-                j++, other++;
-            }
-            j = -1;
-        found:
+            int j = FindByName(entries, entries[0].u.text + 0x16);
             if (j != -1 && savedType != 1 && entries[i].field_29 != 0)
                 FUN_004a16f0(menu, j, 8);
         }

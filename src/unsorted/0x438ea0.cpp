@@ -1,100 +1,123 @@
-// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
-// Space Bunny Free pass (issue 4404): still 54.0% and 500 bytes, but the one
-// real bug in the previous best is fixed, and the register wall is now pinned
-// down exactly (scratch under build/scratch/0x438ea0/, about 80 scratch
-// variants scored, 4 scoring runs of this file; see the tools at the end of
-// this header).
+// Decompiled by space-bunny-free, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro, finished by Space Bunny Free, reworked by space-bunny-free. Names are provisional.
+// issue 4503 pass: 68.25%, ours 501 bytes against the original's 505. Up from
+// 54.0%: two source-level facts fell out of re-reading the exe's tail against
+// the disassembly instead of against our own listing, and the whole lower half
+// of the function moved at once. The old header's claim that the whole residual
+// was one register swap was right about the register and wrong about the rest.
 //
-// FIXED HERE, invisible to the similarity score: the two fmul constants were
-// emitted in the opposite order. check.py masks both operands as `<addr>`, so
-// `radius * DAT_004fd2b0 * DAT_004fd2b8` scored exactly the same 54.0% as the
-// right order, but the relocations pointed at the wrong data and check.py
-// would report `DAT_004fd2b8 is 0x4fd2b0` the moment the bytes matched. MSVC 5
-// evaluates that product's operands right to left; naming the first product
-// (`double d = radius * DAT_004fd2b0; int n = (int)(d * DAT_004fd2b8);`)
-// restores the original's `fmul 0x4fd2b0 ; fmul 0x4fd2b8` at the same 500 bytes.
-// Do not write that expression inline again. (Verified in the /Fa listing of
-// build/scratch/0x438ea0/{base,fm1,fm2,fm3}.asm.)
+// WHAT CHANGED, 54.0% -> 68.25%:
 //
-// THE WHOLE REMAINING DIFFERENCE IS ONE REGISTER SWAP, and it is the same in
-// every variant tried. Callee-saved roles, ours vs original:
-//     ours      ebx = pos, edi = rad then x2, esi = y2, ebp = angle (SPILLED)
-//     original  ebx = rad then x2, ebp = angle, edi = pos, esi = y2
-// ebp = angle and esi = y2 already agree; pos and rad trade ebx against edi.
-// Ours then loses ebp, because with the angle spilled MSVC keeps a zero in it
-// for the text block (`xor ebp, ebp` after the loop, `cmp eax, ebp` where the
-// original has `test eax, eax`, and `cmp [lx], ebp` where the original loads
-// lx into ecx and tests it), and the loop tail computes y1 in ebp where the
-// original uses edx and keeps ebp for the angle. Everything else in the diff
-// (the two `xor edi,edi / xor esi,esi`, the i = 0 store sinking past the
-// guard's compare, the missing `mov [esp+0x48], edx` spill of sy into pos's
-// dead argument slot, the p1/p2 store and load orders, and the missing
-// `mov esi, [esp+0x4c] ; mov ebx, [esp+0x4c]` cold path) follows from that one
-// choice; see items 1 to 3 below for the size of each.
+// 1. y1 subtracts the loop counter, not view->scroll_y. The original's y1 is
+//    `movsx edx, p2.x ; sar eax, 1 ; sub edx, eax ; mov eax, [esp+0x4c] ;
+//    sub edx, eax ; add edx, 0x20`, and [esp+0x4c] is the dead argument slot
+//    the counter `i` lives in (`mov [esp+0x4c], ebp` before the guard's test,
+//    `mov [esp+0x4c], eax` in the loop tail). So the source is
+//    `int y1 = p1.z - (p1.y >> 1) - i + 0x20;`, not `- sy`. 54.0 -> 64.3.
+//    This also stops MSVC needing a register for the angle: ebp now holds the
+//    angle across the whole loop, and the text block gets the original's
+//    `test eax, eax` / `test ecx, ecx` instead of `cmp reg, ebp` plus the
+//    `xor ebp, ebp` that went with it.
 //
-// 1. The once-cold path (about 8 of the 157 diff lines). The original's is
-//    `jl 0x43904d` -> `mov esi, [arg4] ; mov ebx, [arg4]` -> `jmp 0x439055`,
-//    i.e. x2 and y2 are read out of the loop counter's dead argument slot,
-//    which is only possible if they have no frame home at all and the i = 0
-//    store lands BEFORE the guard's compare. Ours has neither: MSVC materialises
-//    the two zeros up front and sinks i = 0 below the cmp.
-//    `int x2; int y2;` (uninitialised) does emit the original's `mov reg, [slot]`
-//    pair, but the shared home lands on index's slot (+0x58) not the counter's
-//    (+0x4c), the block moves past the epilogue, and the whole callee-saved pool
-//    rotates (zero to ebx, radius to ebp, angle spilled to arg5): 45.0%.
-//    Declaring them uninitialised at FUNCTION scope (build/scratch/0x438ea0/x4.cpp)
-//    compiles byte-identically to `int x2 = 0, y2 = 0`, which settles the point:
-//    the two `xor`es are MSVC's zero rematerialisation for register-only
-//    locals, not the initialiser, so no spelling of the initialiser removes them.
+// 2. `x2` and `y2` are UNINITIALISED (`int x2; int y2;` where the function
+//    starts), which is what produces the original's cold path: the `jl` after
+//    the counter's compare jumps to `mov esi, [slot] ; mov ebx, [slot]` and
+//    falls into the text block. The old header ruled this out on the strength
+//    of the two `xor edi,edi` / `xor esi,esi` that `int x2 = 0, y2 = 0` emits;
+//    those are MSVC's zero rematerialisation for the two register-only
+//    variables, not the initialiser, so dropping `= 0` removes them and the
+//    reload pair as well. 64.3 -> 68.25, and the angle stops being spilled.
 //
-// 2. p1's store order is x, y, z in the original (`[+0x14]`, `[+0x18]`, `[+0x1c]`)
-//    against x, z, y here, but its LOAD order is x, z, y-dword, y-short, which
-//    the temporaries give. Reordering the stores to x, y, z (ps1.cpp) makes MSVC
-//    hoist the y dword load with its store and the pos reads come out x, y, z:
-//    51.6%. The two orders cannot be spelled independently here.
+// STILL DIFFERS (501 bytes against 505, so four bytes of code are missing):
 //
-// 3. The tail spills sy into pos's argument slot (`mov [esp+0x48], edx` then
-//    `mov eax, [esp+0x4c]`), because edx is needed for x1 while sy is still live.
-//    Ours keeps sy in edx. This needs pos's argument slot to be free, which it
-//    is only once the angle is out of memory (item 1 above is separate).
+// A. The prologue, which is the ebx/edi choice below showing up early. The
+//    original tests radius in ebx, loaded right after `push ebx`, so the guard
+//    is `cmp ebx, ebp` between `push esi` and `push edi`; ours loads it into
+//    edi after all four pushes. Nothing tried moves it (see the dead list).
 //
-// DEAD LEVERS, RE-SWEPT THIS PASS, DO NOT SPEND RUNS ON THEM AGAIN:
-//  * Compiler state. The N-unused-`extern int` calibration is flat to negative:
-//    N = 0 and N = 700 give 54.0%, N = 400, 1000, 1400, 1800, 2400 and 3000 all
-//    give 52.2%. Combined with the earlier 768-set headers.py sweep (also flat at
-//    54.0%) this is a source-shape difference, not compiler state.
-//  * Loop form. A plain `for (int i = 0; i <= n; i++)` is much worse (38.6%):
-//    MSVC peels the first iteration, so `index *= 3` and the loop head end up
-//    inside the body instead of before the `jmp`. The explicit `i = 0; if (i <= n)`
-//    guard with a `do { } while (i <= n);` is right.
-//  * The pos/rad tie. Tried and all 54.0%: `radius << 16` vs `radius * 0x10000`
-//    vs `(int)(radius << 16)` vs a two-step `int r = radius; rad = r << 16;`
-//    (identical output, so rad is not re-spelt); extra uses of rad through
-//    `static inline` wrappers with a local copy of either argument (w1, w2); a
-//    `Pos*` local copy of pos (pp); `unsigned` step and rad (u5); the coordinate
-//    computation order in the tail (t1: MSVC schedules them itself, no effect);
-//    step/rad declaration order (53.4%); p1/p2 at function scope (no change);
-//    inline `RingPoint` helpers, both reading pos inside (48.7%) and taking the
-//    values as arguments (48.7%); a wrapper returning the negation (54.0%).
-//  * `int angle` inside the guard instead of at function scope: 45.2%, 498 bytes,
-//    and the prologue rotates (radius to ebp, zero to ebx). At function scope the
-//    prologue matches the original exactly, so keep it there.
-//  * The two max() forms: `__max(v, f())` is right (`cmp v, f(); jle`), swapping
-//    the operands costs 1.2 points and a ternary costs 1.2 (m1, m2, h4).
+// B. One register swap, everything else in the loop follows from it. Ours:
+//    ebx = pos, edi = rad then x2, esi = y, ebp = angle. The original: edi =
+//    pos, ebx = rad then x2, esi = y, ebp = angle. That is why ours emits the
+//    three-instruction shuffle `mov edi, ebx ; mov ebx, [pos] ;
+//    mov [rad], edi` where the original has only `shl ebx, 0x10`. Apply the
+//    swap to our listing and 140 of the original's 169 instructions match in
+//    shape (`python build/scratch/438ea0/shape2.py <file> swap`), so this one
+//    choice is worth about ten instruction lines and nothing else.
 //
-// What is already right: the 0x2c frame, every frame slot (ly +0x00, lx +0x04,
-// rad +0x08, step +0x0c, n +0x10, p1 +0x14, p2 +0x20), the 16.16 Pos layout, the
-// counter in arg4's dead slot, index *= 3 in arg7's slot, the x, z, y load order
-// in both point copies, the __max double call for the terrain height, the guard,
-// both draw calls, the argument list and every callee ret N.
+// C. p1's and p2's loads. The original reads `pos->y_frac` (dword, into esi)
+//    immediately after `sub ecx, esi` and stores it at +0x28 before the
+//    argument push; ours reads `pos->y` (the short) there and the dword after
+//    the push. p2's block is the mirror image. The store order x, y, z instead
+//    of x, z, y is worth 61.9%, not more; declaring the y dword load first is
+//    exactly flat; a named `pos->y` temporary is exactly flat; both points at
+//    once is 62.0%.
 //
-// Scratch tooling left in build/scratch/0x438ea0/ (score many variants without
-// spending check runs):
-//   many.sh '<glob>'          one line per variant: status, size, diff lines
-//   many.sh --side NAME       the original and ours aligned line by line
-//   gen.sh <specfile>         generate variants by textual substitution
-//   nsweep.sh 400 800 ...     the N-unused-declarations calibration
-//   fa.sh NAME                compile one variant to a /Fa listing
+// D. The loop tail's sy. The original loads scroll_y into edx and spills it to
+//    [esp+0x48], pos's dead argument slot, before pushing the colour; ours
+//    keeps it in eax and has no spill. The spill is four bytes and looks like
+//    the whole of the 501 against 505. Note that the spill's value is never
+//    read back (the text call reloads [esp+0x48] with esp eight lower, which is
+//    the first argument's slot, not this one), so it is dead in the original.
+//
+// E. `step` is loaded into ecx in the original and edx here
+//    (`mov ecx, [esp+0x1c] ; add ebp, ecx`), and p2's second
+//    `FUN_00485070` argument is `lea ecx, [esp+0x30]` there and
+//    `lea edx, [esp+0x30]` here. Both follow from the same register choices.
+//
+// F. The cold path reloads x2 and y2 out of +0x58 (index's dead slot) here
+//    and out of +0x4c (the counter's slot) in the original, so only one of the
+//    two loads lines up. Moving `x2`/`y2` past `i` in the declaration order
+//    does not move the slot (Z1, Z2: both 68.25%, 501 bytes).
+//
+// A LEAD FOR THE NEXT ATTEMPT, from the field offsets MSVC really emits. For
+// p1 (based at +0x24) MSVC 5 puts our `p1.x` at +0x2a, our `p1.y` at +0x2e and
+// our `p1.z` at +0x2e, while for p2 (at +0x30) `p2.x` is at +0x32 and `p2.z`
+// at +0x3a as the struct says. The original's x1 reads +0x2a, its y1 shift
+// term reads +0x2a and its y1 base reads +0x32. So x1 already lines up, and
+// y1 wants a base that MSVC emits at p2+2 and a shift term at p1+6, i.e.
+// `y1 = p2.x - (p1.x >> 1) - i + 0x20`. That spelling drops to 35.0% and 497
+// bytes: p1 and p2 swap their frame slots (p1 goes to +0x30 and p2 to +0x24)
+// and the tail falls apart with them. Declaring p2 before p1 to force the
+// other order back does not help either, same 35.0%. Somebody should find a
+// shape that gets those two field reads without moving the two structs.
+//
+// DEAD LEVERS, RE-SWEPT THIS PASS. All of these score exactly 68.25% and 501
+// bytes, i.e. identical output, so do not spend runs on them: `rad`/`step` at
+// function scope; `step`/`rad` swapped in the declaration; a dummy
+// uninitialised local inside the guard to shift the callee-saved allocation; a
+// two-step `int r = radius; rad = r << 16;`; `(unsigned)radius << 16`; a local
+// `Pos*` copy of pos; `sx`/`sy` at function scope; `sx`/`sy` declared in the
+// other order; `if (radius != 0)`; `if (radius > 0)`; a local copy of radius
+// for both the guard and the shift; `x2`/`y2` at function scope; a `(void)i;`.
+// Also still dead from the previous pass: the N-unused-`extern int` compiler
+// state calibration (flat to negative), a plain `for (int i = 0; i <= n; i++)`
+// loop (38.6%, MSVC peels the first iteration), `angle` inside the guard
+// (45.2%, and the prologue rotates), and the `__max(v, f())` spelling
+// (swapping the operands or using a ternary each costs 1.2 points).
+//
+// STILL RIGHT: the 0x2c frame, every frame slot (ly +0x10, lx +0x14,
+// rad +0x18, step +0x1c, n +0x20, p1 +0x24, p2 +0x30), the 16.16 Pos layout,
+// the counter in arg4's dead slot, `index *= 3` in arg7's slot, the counter in
+// arg4's slot with the `i = 0` store before the guard's compare, the
+// `__max(double)` call for the terrain height, both draw calls and the
+// argument list, every callee ret N, and the argument-slot map. That last one
+// is worth writing down because it is easy to get wrong: the prologue's
+// `mov ebx, [esp+0x40]` is `radius` (only `push ebx` has happened, so the
+// displacement is four larger than it looks), and after all four pushes
+// [esp+0x4c] is the same argument while [esp+0x40] is the first one.
+//
+// The fmul order from the previous pass still stands: `d = radius * DAT_004fd2b0`
+// then `n = (int)(d * DAT_004fd2b8)`. check.py masks both operands as `<addr>`,
+// so the product's operands can be in the wrong order and still score, but MSVC
+// 5 evaluates right to left and the relocations then point at the wrong data.
+//
+// Scratch tooling in build/scratch/438ea0/ (scores many variants in about a
+// third of a second each, which does not count as a check.py run):
+//   score.py <name=file> ...   one line per variant: percent and size
+//   shape2.py <file> [swap]    shape diff, optionally renaming ebx<->edi in ours
+//   align.py <file>            byte-accurate side-by-side with a drift column
+//   dump.py <addr> <file>      both listings with bytes
+//   grep.py                    filtered listing; V=<file> PAT=<substr> [ALL=1]
+//   v/                         every variant tried this pass and the last
 #include <stdlib.h>
 
 // A 16.16 world position: the frac/whole halves share one dword, so the code
@@ -139,8 +162,8 @@ void __stdcall FUN_00438ea0(void* surface, View_00438ea0* view, Pos_00438ea0* po
         double d = radius * DAT_004fd2b0;
         int n = (int)(d * DAT_004fd2b8);
         i = 0;
-        int x2 = 0;
-        int y2 = 0;
+        int x2;
+        int y2;
         if (i <= n) {
             int step = 0x10000 / n;
             int rad = radius << 16;
@@ -170,7 +193,7 @@ void __stdcall FUN_00438ea0(void* surface, View_00438ea0* view, Pos_00438ea0* po
                 int sx = view->scroll_x;
                 int sy = view->scroll_y;
                 int x1 = p1.x - sx + 0x80;
-                int y1 = p1.z - (p1.y >> 1) - sy + 0x20;
+                int y1 = p1.z - (p1.y >> 1) - i + 0x20;
                 x2 = p2.x - sx + 0x80;
                 y2 = p2.z - (p2.y >> 1) - sy + 0x20;
                 FUN_004be950(surface, x1, y1, x2, y2, color);

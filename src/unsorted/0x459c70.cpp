@@ -1,4 +1,12 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, deepseek-v4.1-flash retry, second deepseek-v4.1-flash pass. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, finished by GPT-6.1-sol, finished by deepseek-v4.1-flash, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, edited by claude-opus-5-5, deepseek-v4.1-flash retry, second deepseek-v4.1-flash pass, finished by Space Bunny Free. Names are provisional.
+//
+// WHAT THIS PASS ADDED (Space Bunny Free). Baseline 66.6% (2047 original bytes,
+// 2038 ours) and the file is UNCHANGED, because nothing measured beat it. About
+// 270 scored compiles this pass, 151 of them one declaration-order sweep, run
+// through a new harness that compiles and scores N candidates in one process at
+// about 0.4 s each instead of check.py's ~60 s (the recipe is at the end of
+// this header, so the next pass can afford the same kind of sweep). Every
+// claim below is a measurement, not a reading of the disassembly.
 //
 // Second pass: 63.7 -> 66.6%, and the file is now semantically faithful
 // (item 3 below fixes a real bug the first pass had).
@@ -103,8 +111,135 @@
 //     (-0.4 if written as `return c ? 125 : 50;`). The split `bool c; c = ...;`
 //     declaration beside it is free to merge and has been.
 //
-// Counted check.py runs against this file this pass: 163 (63.7 -> 66.6), of
-// which 12 were against this file and the rest --sym runs on scratch variants.
+// SPACE BUNNY FREE PASS, 66.6% held. Residual by hunk (build/scratch/0x459c70/
+// hunks.py: one line per unified-diff hunk with the original address it
+// covers), so the next pass knows where the 214 removed / 205 added lines are:
+//   0x459ec7 -52/+49  the vertex loop's tail          <- the largest single loss
+//   0x45a442 -40/+36  the tail's inner copy loop
+//   0x45a133 -26/+28  the second face loop's prologue
+//   0x459dd2 -21/+26  the vertex loop's prologue
+//   0x45a223 -16/+14  the division loop
+//   0x459d57 -15/+11  the prologue's else arm
+//   0x45a1e2 -11/+11  the division loop's bound
+//   0x45a363  -9/+9   the FUN_004c8bb0 argument (see C below)
+//   0x45a30b  -9/+8   the piece bit-2 test and the two bit tests after it
+//   0x45a2f3  -5/+3   the poly loop's two inductions
+//  A. THE FRAME SLOTS ARE WORTH 4.8 POINTS, NOT MORE, AND DECLARATION ORDER
+//     DOES NOT MOVE THEM. A differ that rewrites every local
+//     `dword ptr [esp + 0xNN]` with NN < 0x100 to one token scores 71.4%
+//     against the real 66.6% (shape 74.0%), so no amount of moving variables
+//     between frame slots can buy more than 4.8; the other 24.6 is register
+//     choice and instruction shape. And the order is not the source order:
+//     151 random permutations of the entire function-scope scalar block
+//     (shadow, src, bmp, mode, offX, w, s, d, piece, verts, pflags) all
+//     compile BYTE-IDENTICALLY, 2038 bytes and 66.6% every one. That confirms
+//     and hardens the "moving every declaration was inert" note above: on this
+//     file it is inert over 151 orders, not over the three or four an earlier
+//     pass tried. MSVC 5 ranks slots by how often the variable's slot is
+//     referenced (the rule 0x4c8bb0's header records), so the only way to
+//     move one is to change its reference count, not its declaration.
+//  B. `bmp` REALLY IS THE REASSIGNED `bitmap` PARAMETER, AND SAYING SO FIXES
+//     FOUR THINGS AT ONCE. Written as `bitmap = shadow;` in the antiAlias arm
+//     with `src = bitmap;` hoisted to the top of the function and no `bmp`
+//     local at all, MSVC 5 emits `mov [esp+0x159e8], edi` (the original's
+//     `mov [esp+0x159e8], esi` at 0x459d28, writing the shadow over the
+//     parameter), the `mode` slot lands on [esp+0x20] as in the original
+//     (ours is 0x24), `offX` lands on [esp+0x3c] as in the original (ours is
+//     0x34), and the tail's inner loop gets the original's `mov edi, eax;
+//     dec eax; test edi, edi; je; lea edi, [eax + 1]` entry with the `je` and
+//     `jne` on the original's addresses. The whole function also comes out at
+//     exactly 2047 bytes, the original's size. It still does not score better:
+//     65.9% with `src = bitmap` left after `haveMode`, 66.6% (shape 75.0%,
+//     the best shape measured, 2028 bytes) with it hoisted to the top and the
+//     division loop as a `for`, and 65.6% with the other `src` placement. What
+//     it costs is the vertex loop, which grows from -52/+49 to -75/+75 because
+//     `bitmap->field_4` and `field_6` now have to come from the parameter slot
+//     instead of a register. So: right shape, wrong trade, kept out. The one
+//     thing worth stealing from it is the `mode` slot at 0x20.
+//  C. THE TWO DRAW CALLS DO NOT TAKE THE BITMAP AS THEIR FIRST ARGUMENT, and
+//     the file is wrong about both. The encodings are unambiguous:
+//       0x45a394  8b 84 24 f4 59 01 00   mov eax, [esp + 0x159f4]
+//       0x45a3a9  8b 8c 24 ec 59 01 00   mov ecx, [esp + 0x159ec]
+//     0x159f4 is the fourth parameter (`useColor`) and 0x159ec the second
+//     (`list`), and stdcall pushes right to left, so the original really calls
+//     FUN_004c8bb0(useColor, pic, poly, 0) and FUN_004c0c70(list, poly,
+//     f->count, f->unknown_0). `bmp` is the bitmap argument at 0x159e8 and is
+//     only ever passed to FUN_004b95a0 (0x45a419 `push ebp; push esi` with
+//     esi reloaded from 0x159e8 at 0x459d57). Writing the real arguments, and
+//     loosening both prototypes' first parameter to int, matches both call
+//     sites exactly and scores 66.2% (shape 74.9%), 0.4 BELOW the file as it
+//     stands, with or without B, with or without the `!= 0` spelling of the
+//     usePic test (66.3%). Not applied, because a smaller score is a
+//     regression, but it is a two-line change and it is the one place left
+//     where this file is known not to be semantically faithful.
+//  D. The vertex loop's `shade` reload (the original re-reads [esp+0x10] at
+//     0x459f18 for `shade += 3`, ours keeps the value in a register) cannot be
+//     bought: `int* sp = &shade; *sp` , a one-field local struct, and
+//     `shade = shade + 3` all compile byte-identically (2038, 66.6%), and
+//     moving `shade += 3` to the end of the body costs 0.9. The original's
+//     reload is a consequence of its register allocation (edx carries the
+//     vertices walk and is clobbered by the vertex loads), not of anything the
+//     source asks for.
+//  E. The tail's inner loop idiom is not reachable from any spelling tried.
+//     Eight loop forms (`for (x = w; x != 0; x--)`, guarded and unguarded,
+//     `while (x != 0) { ...; --x; }`, `do {} while (--x != 0)`, `x-- > 1`,
+//     `x > 0`, `do {} while (x-- != 0)`, and a goto form) all score 66.6% or
+//     64.0% and none emits the entry sequence. A sixteen-function micro probe
+//     (int, unsigned, short, unsigned short, pre-decrement and post-decrement
+//     counters, with and without a surrounding row loop and with `d += width`
+//     at the row end) produces `mov si, [eax]; test si, si` or
+//     `mov esi, ...; and esi, 0xffff` and never `mov edi, eax; dec eax; test
+//     edi, edi; lea edi, [eax + 1]`. That pattern is not a C spelling MSVC 5
+//     will emit; it looks like an artefact of the register pressure in the
+//     original, the same conclusion item B reaches from the other side.
+//  F. Neutral or worse, all measured on this file, none applied: adding
+//     <windows.h> (item 1 of the shared brief) 66.6%, 2038 bytes, no SIB
+//     operand-order difference in this function to fix; dropping <math.h>
+//     62.9%; dropping <stdio.h> 62.6%; `src = bitmap` hoisted above the
+//     antiAlias `if` with `bmp` kept 66.6%; `(pflags >> 2) & 1` for the piece
+//     bit 2 54.3% and `pflags != 0` 59.0% (the reload of `piece->flags` is
+//     what the original has, and `piece->flags & 4` is right); `shade` as a
+//     pointer or a struct field, neutral; `float* a = accum[k]` written out,
+//     neutral; the accum zero stores in the order 2,1,0 65.4% and chained
+//     `accum[k][2] = accum[k][1] = accum[k][0] = 0.0f` 66.6% (neutral); the
+//     vertex fields read into vx, vy, vz before the mode test 64.3%, which is
+//     surprising because that IS the original's load pattern; reading them
+//     through `piece->vertices[k]` 64.6%; an explicit `int*` vertices walk
+//     43.5%; the division loop's bound re-read from
+//     `piece->info->vertexCount` 54.2% (confirms the existing note); the
+//     division loop as a `for` or as `while (q1 < n)`, both neutral; the poly
+//     loop walked with explicit `pp`/`ip` pointers 55.0%, `poly-temp` 50.1%;
+//     `(f->flags.usePic) != 0` 65.5%, `f->flags.shaded != 0` 65.3%,
+//     `f->flags.textured != 1` 65.6%; and `src = bitmap` kept only inside the
+//     antiAlias arm 62.2%.
+//
+// THE HARNESS THIS PASS BUILT (reusable; all under build/scratch/0x459c70/).
+// check.py re-parses the whole exe and data/symbols.csv on every run, which is
+// most of its ~60 s. fastcheck.py parses both once and compiles and compares
+// any number of candidates in the same process, 0.4 s each: it is
+// check.py's Original, compile_source and compare, driven from a list.
+// sweep.py applies text substitutions listed in variants.py to v0.cpp, writes
+// each result to gen/<name>.cpp and ranks them. permdecl.py regenerates
+// variants.py with N random orders of a declaration block. hunks.py prints one
+// line per diff hunk with its original address, dump.py prints the original and
+// our disassembly aligned instruction by instruction over a byte range, and
+// slotscore.py reports the slot-blind score described in A. Run them as
+//   wsl -d Ubuntu-24.04 -e bash .../build/scratch/0x459c70/sw.sh   (sweep)
+//   wsl -d Ubuntu-24.04 -e bash .../build/scratch/0x459c70/pd.sh 150 (orders)
+//   wsl -d Ubuntu-24.04 -e bash .../build/scratch/0x459c70/hk.sh  (hunks)
+//   wsl -d Ubuntu-24.04 -e bash .../build/scratch/0x459c70/dm.sh 0x459c70 <src> <lo> <hi>
+//   wsl -d Ubuntu-24.04 -e bash .../build/scratch/0x459c70/ss.sh <src> (slots)
+// A first version of the loop-counters list in the original above (0x18 verts,
+// 0x24 info) cannot be right as written: the original stores `ebx = [ecx]`,
+// which is `piece->info`, to [esp+0x24] at 0x459de6, and 0x459fd1 loads
+// [esp+0x24] into ebp to index the vertices at 0x459fd8. One of those two
+// readings is wrong and it is worth settling, since the whole frame map
+// argument rests on it.
+//
+// Counted check.py runs against this file: 163 in the previous pass (63.7 ->
+// 66.6) and about 270 this pass, none of which beat 66.6%, of which 2 were
+// full `bt.cmd check` runs on this file and the rest the same compile through
+// the harness above.
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>

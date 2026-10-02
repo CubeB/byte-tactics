@@ -1,4 +1,70 @@
 // Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
+// space-bunny-free pass (50 min timebox, 1 real check.py run on the file, 34
+// scratch variants scored free through check.py's own compile and compare
+// with build/scratch/425480/score.py, which prints the growth branch's
+// instructions): the saved 534-byte / 81.1 percent do-while base still stands,
+// source unchanged, and nothing beat it. Everything outside the growth branch
+// matches instruction for instruction, so the whole residual is the third
+// _Ucopy's derived source pointer, and this pass pins down exactly why.
+// The frame map, re-derived from the exe's own bytes this pass (the earlier
+// passes' reading of [esp+0x24] as a _X slot is wrong, so do not build on it):
+// sub esp,8 plus four pushes, so esp = S-24 after the prologue where [S] is the
+// return address and the three args are [S+4] _P, [S+8] _M, [S+12] _X. At
+// esp = S-24 the two locals are [esp+0x10] (this) and [esp+0x14] (_N), both in
+// the dead pushed-register area; [esp+0x1c] is _P and [esp+0x24] is _X. Between
+// the operator new call and the following add esp,4 esp is S-28, so there
+// [esp+0x20] is _P and `mov [esp+0x24], eax` spills _S into _M's dead argument
+// slot, not into a _X slot. The original and this file both do exactly that,
+// which is why the first 12 instructions of the branch match.
+// What the residual is, precisely: the third copy's source start is the same
+// value in both, _P, reached by two different left-leaning sums.
+//   original:  sub ecx,edx / add ecx,eax / sub ecx,edi   leaves [_P, _Q, dest, _M4]
+//   ours:      lea eax,[ecx+edi] / sub eax,edx / sub eax,esi  leaves [dest, _P, _Q, _M4]
+// (ecx holds _P on entry to both.) The leaf order decides everything else: the
+// original's leftmost leaf is _P, whose register is dead after the use, so the
+// emitter accumulates in place and _P keeps ecx; ours starts at the destination
+// induction variable, whose register is busy for the whole loop, so the emitter
+// takes a fresh register and _P is left holding the third register of the pool.
+// The pool order ecx, esi, edi is the same in both, so that one choice rotates
+// every other temporary by one slot: ours assigns the first copy's load temp
+// ecx, the fill's _X esi and _P edi, the original assigns _P ecx, that temp esi
+// and _X edi. The original's _Last cache in esi survives for the same reason
+// its derivation does, and ours has to reload [ebp+8] into edx every pass.
+// New measurements this pass, all through the same scorer:
+//   * source-first do-while (const_iterator _s declared before iterator _d):
+//     524 bytes / 55.2 percent, increments in either order identical; the
+//     pre-tested source-first for and while are 531 / 72.4, both the
+//     this-in-ebx family the older passes recorded, so dest-first do-while
+//     remains the best of the four structures.
+//   * `_P` itself as the loop variable (no local copy), do-while 522 / 60.3,
+//     for 529 / 59.9, while 529 / 59.9: _P really does land in ecx, as the older
+//     passes recorded, but the loop needs no derivation at all (the source IV
+//     is _P itself), which loses the original's three instruction chain, and
+//     the whole function rotates to this in edi and _M in ebp. So P=ecx and
+//     the derivation are not reachable together from this source.
+//   * a byte-identical 534 / 81.1 plateau for the third copy's spelling:
+//     `_P + 0` and `const _Ty* _s = _P` as the source, `_M + _Q` and
+//     `&_Q[_M]` as the destination, the increments in either order, only one
+//     of the two pointers incremented in the body, and an extra nested scope.
+//   * `const iterator _S` and `const iterator _Q` are also 534 / 81.1, so
+//     mutability of the two block locals is not a lever either.
+//   * `_Ucopy` with the destination parameter first: 532 / 58.2; with the end
+//     parameter first: 526 / 54.4. Permuting _Ufill's parameters does not even
+//     compile unless all three call sites move with it.
+//   * ONE spelling found this pass that changes the third loop's instruction
+//     sequence at all: `_Ucopy(begin(), _P, _S)` instead of `_Ucopy(_First,
+//     _P, _S)`, which gives 537 bytes (the original's size) with
+//     `lea ecx,[edx+edi] / sub ecx,eax / sub ecx,esi` there, but the rest of
+//     the branch falls apart (62.0 percent). Recorded because it is the only
+//     sign that the leaf order is not simply pinned for this file; it is not
+//     a usable base.
+// Best lead for the next attempt: the leaf order of the derived source, which
+// no third-copy spelling reaches. The one thing that has never been tried and
+// is not a spelling of the loop is making the destination induction variable
+// NOT a separate register, so that the emitter's leftmost leaf cannot be the
+// busy one: a source written as an explicit affine function of the destination
+// (`_P + (_d - _Q - _M)` as the element to copy) rather than as a second
+// pointer walked beside it. That was not tried this pass.
 // space-bunny-free pass (short timebox, 1 real check.py run, 36 scratch
 // variants scored free through check.py's own compile and compare): the saved
 // 534-byte / 81.1 percent do-while base still stands, and nothing this pass

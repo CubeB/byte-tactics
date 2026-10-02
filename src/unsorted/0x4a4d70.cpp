@@ -1,4 +1,94 @@
-// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5. Names are provisional.
+// Decompiled by space-bunny-free, finished by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Claude Opus 5.5, finished by space-bunny-free. Names are provisional.
+// space-bunny-free (issue 4179): 99.1% confirmed, the colour SIB hunk is gone
+// and only the marker call's surface load is left. The mechanism behind the
+// SIB, found by deleting one region of the function at a time and re-reading the
+// two hunks (0.5 s a variant), is worth writing down because it kills a whole
+// class of attempts: the swap is NOT in the subscript and NOT in the subscript's
+// spelling. The colour pointer wins the SIB BASE slot, the original's
+// `mov dl, BYTE PTR [ecx + eax + 0x8b2]`, in every one of these:
+//  - the whole `FUN_004a50e0` text call removed;
+//  - only its 6th argument, the style `(int)me->colours`, replaced by 0;
+//  - only its 1st argument, `entries->surface`, replaced by 0;
+//  - the style argument read at a different address, `((unsigned char**)me)
+//    [0x1f]` (which lands on 0x7c, since a pointer subscript scales by 4);
+//  - the style argument read as `entries[param_2].colours`, which is what this
+//    file now does and which MATCHES the original's instruction for
+//    instruction, `mov dl, byte ptr [ecx + eax + 0x8b2]`.
+//  and it stays swapped in every one of these:
+//  - the 2nd argument (`me->b6.text`) or the 5th (`rect.right - rect.left`)
+//    replaced, with the style read left alone;
+//  - the style read re-spelled at the SAME address 0x1f through a `char*`
+//    cast, an `unsigned long` deref, a double cast, a union, a differently
+//    named struct with the same layout, an `unsigned char* colours[1]` field
+//    subscripted two ways, a wrapped `struct { unsigned char* p; }`, or an
+//    array-element subscript whose index arithmetic works out to land back on
+//    0x1f (`((unsigned char**)((char*)me + 3))[7]`, which emits exactly
+//    `mov ecx,[edi+0x1f]` and still does not flip).
+//  So the trigger is neither the spelling nor the kind of access: it is whether
+//  the style argument's read of the entry's colour pointer is a CSE-able
+//  DUPLICATE of the colour read's own. When both are `me->colours` at +0x1f
+//  the front end shares one temporary between them, and a temporary used both
+//  as a memref base and as a plain int comes out of the memref with its
+//  children in the other order. A second read through a different access path
+//  to the same address (here `entries[param_2].colours`) is not shared, and the
+//  memref keeps pointer-first order, which is what the original has. That also
+//  explains the isolated-expression result: with nothing else in the function
+//  there is no duplicate and the SIB is right, and adding the language loop,
+//  the rect, the align branch, the text call, the focused block or forcing
+//  `obj` out of a register one at a time never breaks it.
+// Hunk (b) is reachable, by two independent routes, and both keep `me` in edi:
+//  1. Give the marker's `colour` local a 16-bit type (`short colour =
+//     param_1->colour2;`, or `unsigned short`, or declare the +0x8bb field
+//     `char`): the tail then matches the original instruction for instruction,
+//     `push eax / mov eax,[ebx+0xbc] / push ecx / push edx / push ecx / push
+//     eax`, with the surface load hoisted into the register y2 has just
+//     vacated. It is a net loss only because the 16-bit value loses the zero
+//     extension and the colour2 read collapses to one `movzx dx, byte ptr
+//     [edx+0x8bb]` where the original has four instructions, `xor edx,edx /
+//     mov esi,[esp+0x2c] / mov dl,[esi+0x8bb]`. So the trigger is "the last
+//     argument is not an int zero-extended from an unsigned char".
+//  2. Give each of the two `blank` accesses its own block, so both `blank`
+//     temporaries are dead before the other opens: two blocks each declaring
+//     their own `char* blank`, or the second named `blank2`, or the second
+//     re-spelling the address inline. All three flip the tail. It costs 11%
+//     (81.8% / 674 B) because the second `blank` is then recomputed from `me`
+//     after the Measure call, so `me` stays live across that call and the
+//     allocator hands it ebp instead of edi (`lea ebp,[ecx+eax*2]`, `lea
+//     edi,[ebp+0xb6]`, where the original has edi and ebp the other way round).
+//     Keeping one `blank` live across the call, which is what the original
+//     does, and scoping only the first pair of statements, or only the restore,
+//     or scoping the `w` statement, or scoping the height if/else, changes
+//     nothing. The two are coupled: every spelling that fixes the tail through
+//     scoping costs `me` its register.
+// Also measured and flat, so nobody repeats them: the block-scope local alias
+// that works on a store does not transfer to this read, since any named alias
+// hoists the load above FUN_004c13f0 and spills the pointer to ebp (`mov cl,
+// BYTE PTR [ebp+edx+2226]`), comma-expression alias included; all six
+// declaration orders of x/colour/y2 and four more that add a y1 local; a
+// `void* surf` local in four placements; four dead-store perturbations that
+// emit no code; a scoped dead `int` in five places; three unused inline
+// functions in the file and seven single-use inline accessors at seven
+// different reads; Measure as plain `static`; the marker's surface read as
+// `param_1->holder->entries->surface` or `me->surface` or a local; `+0` and
+// `(int)` casts on the colour; `entries` and `me` behind an extra const alias;
+// and fourteen index cast/type variants on the colour subscript. A permuter
+// run from the 87.7% shape (y2 and colour inlined into the call, which also
+// gets the surface load into eax) climbed to 95.3% / 660 bytes in 20 minutes
+// and found no MATCH, so the tail's register is not reachable from that
+// neighbourhood by the permuter's rewrites either.
+// Re-measured on THIS file, with the colour SIB already right, so that the
+// hunk-(a) fix cannot be hiding behind the tail: the 16-bit `colour` route now
+// gives both hunks' shapes but only 98.9% overall, because the colour2 read
+// collapses to one `movzx dx` against the original's four instructions, so the
+// `int colour` in this file is the right one and stays. The hunk-(a) trick
+// applied to the surface does not work: `me->surface`, `entries[param_2]
+// .surface`, `(*entries).surface`, `*(void**)((char*)entries + 0xbc)` and
+// `((void**)entries)[0x2f]` in the marker call all leave the tail exactly as it
+// is. Neither do the four declaration orders of x/colour/y2, a y1 local, a
+// `void* surf` local, a folded dead store before the tail, or inlining y2 and
+// colour. Re-deriving `me` from `&entries[param_2]` in the scoped spelling, so
+// that `me` can die before the Measure call, keeps the SIB right but throws the
+// tail fix away again.
 // Claude Opus 5.5 (found with tools/permute.py): 99.1%, up from 98.7%. The colour
 // table passed to FUN_004a50e0 is read as entries[param_2].colours, not
 // through `me` (98.7% through `me`).

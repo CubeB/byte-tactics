@@ -1,6 +1,90 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6, space-bunny-free,
 // mimo-v2.6-pro and Space Bunny Free. Names are provisional.
 // Partial: 70.3%, not MATCH, original 1115 bytes, ours 1133.
+// Space Bunny Free pass 2 (14 checks, no gain; everything below is re-derived
+// against this file's own object code, not the Ghidra listing):
+//  * HOW THE SCORE IS LOST, and why a shrink does not automatically help.
+//    check.py scores with difflib.SequenceMatcher over the normalised
+//    instruction text, and normalise() only masks hex values inside the
+//    original image, so an INTERNAL branch target is compared verbatim. A
+//    variant of the right shape at the wrong length therefore loses every
+//    jump it shifts. 25 diff pairs of the current 70.3% differ ONLY in the
+//    jump target: build/scratch/4c3e40/addr.py prints them with the drift
+//    (ours - original) at each, and build/scratch/4c3e40/drift.py prints the
+//    whole profile (it aligns the two listings by normalised text). The 25
+//    pairs' drifts, in order, are +4 x6 (the six SkipSpace jumps), then +9,
+//    -5, +3, +9, -2 x5, +9, -2 x2, +4, +9 x6. So the six SkipSpace pairs
+//    (12 lines, worth about +4%) come back the moment anything in the
+//    prologue plus setup block, that is 0x4c3e40 to 0x4c3eb5, loses 4 bytes.
+//    Our prologue is 74 bytes to the original's 71 over the same span
+//    (0x4c3e40 to the rep movsd), the setup block 49 to 47, so +5 there is
+//    where the +4 comes from. The whole-file 18 bytes over is only two of
+//    those. Two of the three groups cannot both be won: dropping those 4
+//    bytes turns the last +9 group into +5 and gives the six SkipSpace pairs
+//    back, a wash; the -2 group wants +2 between the '=' test and the strcmp
+//    loop, and the only flexible length there is the 7 bytes the permuter's
+//    `0 != ((int)(!eq))` spends, which lands the drift on +5, not 0.
+//  * the prologue excess is 5 bytes and all of it is the register swap the
+//    older notes describe: we spend `lea eax,[ebp+4]` + `lea ebx,[ebp+0x15]`
+//    + `mov byte [eax],cl` + `mov byte [ebx],dl` + `mov [esp+0x38],eax`
+//    where the original spends `lea ebx,[ebp+4]` + `mov byte [ebx],al` +
+//    `mov [esp+0x3c],ebx`, and our entries zeroing is 9 bytes against the
+//    original's 18 because ours goes through ebx ([ebx+4],[ebx+8],[ebx+0xc])
+//    where the original goes through ebp ([ebp+0x19],[ebp+0x1d],[ebp+0x21]).
+//    We also need two zero registers (xor ecx,ecx for the vector stores plus
+//    xor eax,eax for the stosd) where the original reuses eax for both, which
+//    is the other 2 bytes.
+//  * what this session tried, all worse, all in build/scratch/4c3e40/:
+//    the '=' test as `eq == 0`, `!eq` and `0 == eq` (all three identical,
+//    1126 bytes, 69.1%: they drop the three extra instructions the permuter's
+//    `0 != ((int)(!eq))` emits, but the seven bytes that saves move every
+//    later jump off its target); `char* current` assigned after the
+//    FUN_004d8610 call instead of in the declaration (1126, 69.4, and it
+//    does reproduce the original's `mov edi,[...]; add esp,4; mov [ebp],eax;
+//    mov [esp+0x10],edi` order); the lookup fully inlined in the body
+//    (1108, 55.5); the search inline with the insert in a helper taking
+//    `Class_004c3e40* self` (1108, 58.2); the search inline with a helper
+//    taking `vector&` for equality plus insert (the older z8, still 58);
+//    dropping the `kids` reference for plain `children.insert(children.end(),
+//    1, child)` and making `kids` a pointer (both give byte-identical code to
+//    the current file, 1133, 70.3, so the reference is not what keeps
+//    &children alive); an `AddChild(Class_004c3e40*, child)` helper so
+//    &children is never a loop-live value (1127, 69.1, and its 6 bytes are
+//    all after the SkipSpace loop, so the +4 drift there is untouched);
+//    the two tails written without a named end, `text <= current - 1` and
+//    `FUN_004b6ba0(text, current - text - 2)` (1143, 54.2);
+//    KeyEqual hoisted into a named bool, and the whole condition inverted to
+//    `v.end() == lo || KeyEqual(...)` with the found branch as the else,
+//    which is the branch sense the original's `test cl,cl; jne` has
+//    (1126, 65.3, and still no `neg cl; sbb ecx,ecx; inc ecx`).
+//  * BEST NEW SHAPE, kept here as a lead: build/scratch/4c3e40/y1.cpp writes
+//    the '[' case as `current = SkipSpace(1 + close);` (one call on the
+//    expression) instead of assigning `current = 1 + close;` and then
+//    SkipSpace(current). That reproduces the original's
+//    `mov al,[esi+1]; lea ecx,[esi+1]` and turns the whole '[' case into an
+//    address-only diff: every instruction in it is already the right shape,
+//    and only the jump targets are off. It is 1130 bytes and 69.9%, and it
+//    has 29 aligned pairs instead of 25, but it loses more elsewhere, so it
+//    does not replace the current file. In it the '[' case's own jumps sit at
+//    drift -5 and want 5 more bytes between 0x4c3fc2 (drift +3) and
+//    0x4c4068 (drift -5), which is the insert path, where ours is short by
+//    exactly those 8 because of the ebx/ebp split described above. Fix that
+//    split and those 7 pairs (14 lines) come back at once.
+//  * tools/permute.py was started and died without a single candidate, so
+//    this file is unpermuted by this session. `LowerBound`/`Lookup` taking the
+//    key object by pointer instead of by reference (`key->ptr`) compiles to
+//    byte-identical code (1133, 70.3), so the key's indirection level is not
+//    what makes MSVC reload it inside the search loop.
+//  * BUG, and the lead it gives: at 0x4c3fcb the original computes
+//    `xor ecx,ecx; test eax,eax; sete cl; neg cl; sbb ecx,ecx; inc ecx;
+//    test cl,cl; jne 0x4c3fe0`, so with eax the strcmp result it jumps to
+//    the insert when the keys ARE equal and falls through to
+//    `lea ecx,[edi+4]` (`dst = &lo->second`) when they are not. Ours spells
+//    it the sane way round (`!KeyDifferent` -> use the found entry). If the
+//    original really is inverted, the TDF parser inserts a duplicate entry
+//    for every key that is already present and returns a neighbouring entry
+//    for every key that is not, which is worth checking against the game's
+//    behaviour before spending more time matching it byte for byte.
 // Space Bunny Free pass. What moved the score up from 66.8%:
 //  * the two '}' / end-of-file tails are written as if/else
 //    ("if (text <= end) unknown_25 = FUN_004b6ba0(...); else unknown_25 = 0;")

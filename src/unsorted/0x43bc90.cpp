@@ -1,4 +1,70 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free (issue 4150, second pass on this address): baseline reconfirmed at 83.6%
+// and 909 bytes, exactly the original's size, and left unchanged. Forty-odd variants and two
+// seeded permuter runs found nothing better. One correction to the notes below: at the top of
+// the function OURS holds _Last in ecx and _First in ebx (and tests ebx); the original holds
+// _First in ecx and _Last in ebp (and tests ecx). Everything else in the prologue mirrors it
+// instruction for instruction (11 either side), so that one swap is the whole residual, and it
+// cascades into reserve's tail, the insert loop, the sort entry push order and three stack
+// homes.
+// What still differs, all register and stack slot naming, no semantic gap:
+//   * prologue: the original emits `mov ecx,[_First] / sub esp,0x20 / test ecx,ecx / push ebx /
+//     push ebp / mov ebp,[_Last] / push esi / push edi / jne`; ours `mov ecx,[_Last] / sub esp,
+//     0x20 / push ebx / mov ebx,[_First] / push ebp / push esi / test ebx,ebx / push edi / jne`.
+//     The null test is hoisted above the pushes in the original only because its register is
+//     volatile.
+//   * `lea esi,[ed2 + edi]` (size + count) in the original, `lea esi,[edi + ed2]` in ours.
+//     `count + DAT.size()` does not flip it: MSVC 5 canonicalises the commutative add and puts
+//     the call result in the index slot.
+//   * reserve's reallocation tail: the original computes _Last in ebp and _First in ebx, so it
+//     needs no register copies (7 instructions including `mov ecx,ebx / mov [_First],ecx / add
+//     ebp,edx / mov [_Last],ebp`); ours computes it in eax and needs one extra `mov eax,ecx` to
+//     seed the insert cursor (8).
+//   * insert loop: the original's cursor is ebp, so it pushes ebp and reloads `mov
+//     ebp,[_Mylast]` after each call, with count consumed into the bound (`lea edi,[edi+edi*4]
+//     / lea eax,[esi+edi*4] / add edi,eax / cmp esi,edi`). Ours keeps the cursor in eax (an
+//     extra `mov eax,ecx` per iteration), tests count <= 0 on entry and counts down with `dec
+//     edi`. A pointer loop does reproduce the original's loop instruction for instruction but
+//     costs 9 bytes (82.6%, 918), which shifts every later jump target.
+//   * stack homes: the original puts _Last in [esp+0x10] (the reserve argument's slot, reused,
+//     since the two live ranges do not overlap), _First in [esp+0x38] (count's dead incoming
+//     slot) and _First+16 in [esp+0x34]; ours puts _First in [esp+0x34], _Last in [esp+0x38]
+//     and _First+16 in [esp+0x10]. Six diff lines come from this alone.
+// Tried this session, each scored with check.py --sym, all worse or a dead tie:
+//   * iterator lifetimes and declaration order, the cross-product of {first/last before
+//     reserve, between reserve and the loop, after the loop, inline begin()/end()} x {one
+//     shared cursor or two variables} x {index, pointer, counted-down loop}: 70.3 to 83.6%.
+//     Every spelling that does reach _First in ecx and _Last in ebp (b13, b40, b42, b48, b49)
+//     grows the frame from 0x20 to 0x24 or 0x28 and lands at 62.8 to 72.0%. The tell is the
+//     frame: the original needs only one real local dword because it overlays the reserve
+//     argument's slot, and declaring the iterators as locals stops MSVC 5 reusing the dead
+//     parameter slots.
+//   * one variable serving as both the insert cursor and the sort's _Last: 78.2%, 898 bytes.
+//     The cursor is then spilled to [esp+0x38] instead of held in ebp, and reserve's out-of-
+//     line `_Destroy` call inlines away (the 11 byte shortfall).
+//   * reserve argument: `int N = size() + count; reserve(N)` 83.6% (tie), `count + size()`
+//     83.6% (tie), `(unsigned)count` 81.5%, a const reference to the vector 81.5%,
+//     `(end() - begin()) + count` 72.6% (loses size()'s `_First == 0` guard), and
+//     `last - DAT.begin()` with `last` a local 67.9% (that one does reach _Last in ebp).
+//   * loop and call forms: `insert(DAT.end(),1,*p)` 73.8%, an explicit stop pointer 80.8%, `for
+//     (i = count; i; --i) insert(ins,1,*--from)` 83.0%, the sort called with inline
+//     begin()/end() 83.3%, a `sort_0043bc90` wrapper 83.6% (tie), one merged
+//     `iterator first = ..., last = ...;` 83.6% (tie).
+//   * helpers: `InsertionInline` as a template 81.5%, `_M = _F + 1` 81.5%, `_Sort_0` keeping
+//     `_M = _F + 16` in a named local 83.6% (tie), and the shapes the sibling 0x43c050 reaches
+//     92.0% with: dummy operator< / == / != on the element 83.6% (tie), an explicit `template
+//     class std::vector<Elem_0043c390>;` 81.5%, dropping <algorithm> 81.5%, all three together
+//     81.5%.
+//   * permute.py, two seeds, 14 minutes each (declaration and statement movements with seed 1,
+//     the default mutation set with seed 2): neither beat the start. The best either found is
+//     cosmetic (`if (_L != _F)`, `return _X;`), still 83.6% and 909 bytes, but with two more of
+//     the diff lines being jump displacements, so it was not kept.
+// Lead for the next pass: the swap is decided by whole-function register allocation, not by
+// anything in this function's statements, so the lever is in the inlined helpers. Note that
+// the file sits right at /Ob2's inline-weight threshold: the out-of-line `_Destroy` call in
+// reserve is 13 bytes and is exactly the size gap to 909, and it inlines away as soon as the
+// function grows or shrinks enough. Full variant table with sizes in
+// build/scratch/0x43bc90/sweep.md.
 // deepseek-v4.1-flash (#3676, 10 min): baseline reconfirmed at 83.6% (909 bytes, exact); no
 // variant attempted this session, the 0x43c050 half of the issue consumed the timebox. The
 // documented root below (prologue hoists _First into ecx before `sub esp` and _Last into ebp;

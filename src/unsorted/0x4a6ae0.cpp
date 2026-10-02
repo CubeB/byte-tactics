@@ -1,4 +1,30 @@
-// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Fable 5.1. Names are provisional.
+// Fable 5.1 (#4452): kept at 93.4%, no new variant scored. What this pass
+// measured on v1 (the correct-semantics if/else-if/else region, obj=EBP /
+// entry=EBX, 64.1%), all with scratch --sym scores:
+//  - Verified the inherited claims: dropping the shared tail call (k1) flips
+//    the homes and matches everything else (88.6%); `entry != 0 &&` (87.4%)
+//    and a dummy entry store (88.7%) flip them at a byte cost. The margin
+//    really is one reference.
+//  - Levers that do NOT add a reference here: a trivial static inline wrapper
+//    around any entry access or around the tail call (the 0x4bcb50 trick), an
+//    EntryRect(entry, &r) helper, a Capture(obj, index, entry, button) helper
+//    for the two mouse-button arms, an InRect(&r, &point) helper, a local copy
+//    of obj, entry as a reference, declaring entry before entries, splitting
+//    declarations from assignments: all exactly 64.1%, same bytes.
+//  - headers.py: all 256 C header sets give 64.1%.
+//  - Any single shared tail written once with a goto (the D block's
+//    `f138 = 0; redraw; return 0` reached from the 0x40 arm or from the default
+//    arm, the arms 8/0x100 tail, or the keyboard half's one FUN_004a5f40 call
+//    reached from both sub-arms) flips the homes but lowers index by one as
+//    well, and point.y then takes edi (`mov ecx, edi; cmp ecx, eax` in the
+//    first in-rect block): 1709 bytes, 78.9% every time. Adding an index use
+//    back with a wrapper, `index + 0` or a swapped compare changes nothing.
+//    So the lever must lower obj (or raise entry) by one without touching
+//    index; no obj-only site was found whose sharing the compiler keeps.
+//  - Not a matching problem but worth a note: the team search's not-found
+//    value is 0 (`xor esi, esi` at 0x4a6fd4) while the caller tests for -1
+//    (`cmp esi, -1` at 0x4a6fd6), so a missing team falls through to entry 0.
 // claude-opus-5-5 (#4258): kept at 93.4%. The original's field_138 block is an
 // if / else-if / else chain, which reproduces the whole layout (structural ratio
 // 0.957 -> 0.996, including the `test ax,ax` re-tests at 0x4a6f43 and 0x4a7060):

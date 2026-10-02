@@ -1,4 +1,24 @@
 // Decompiled by deepseek-v4.1, finished by deepseek-v4.1-flash, space-bunny-free, finished by Sonnet 5.5, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Fable 5.1. Names are provisional.
+// deepseek-v4.1-flash pass: kept 93.4% / 1703 bytes, no variant scored higher.
+// Rebuilt v1 (correct-semantics else-if region) = 64.1% / 1704 bytes, obj=EBP /
+// entry=EBX as documented; v1 + int bound = 64.1% / 1700 bytes (bound becomes
+// movsx ecx / inc ecx, homes still swapped); v1 + `entry != 0 &&` in the first
+// test = 87.3% / 1714 bytes and v1 + that + int bound = 87.4% / 1710 bytes
+// (object/entry homes correct but the compiler reorders: it emits its own
+// test ebp / cmp [f138] / test ah,0x20 trio before the auto-repeat and then a
+// second mov ax,[f138]; test ax,ax, so the region layout is still wrong).
+// A nested if/else spelling of the same correct semantics (flags test first,
+// rect-set in the f138==0 arm) = 58.5% / 1688 bytes, wrong homes. A batch of
+// 12 self-assignment / dummy-store spellings (`entry->field_138 =
+// entry->field_138` at four sites, `(entry->field_138 += 0)`, an
+// `entry->field_138 == 0 || (entry->flags & 0)` test) all stayed at 64.1%:
+// the allocator CSEs or drops them, so a surviving extra `entry` reference
+// still cannot be added without emitting bytes. Bound spellings on the kept
+// shape (`int`, `int` split over two statements, `short` split, `(short)` cast)
+// are either 61.8% or the same 93.4%; b4 `short bound = entries->count;
+// bound = bound + 1;` and b7 `bound = (short)(bound + 1);` keep 93.4% but do
+// not fix the movsx shape. headers.py (256 sets) and a 3-minute permuter run
+// (2709 candidates) found nothing. Everything below is unchanged.
 // Fable 5.1 (#4452): kept at 93.4%, no new variant scored. What this pass
 // measured on v1 (the correct-semantics if/else-if/else region, obj=EBP /
 // entry=EBX, 64.1%), all with scratch --sym scores:

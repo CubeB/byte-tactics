@@ -1,7 +1,44 @@
 // Decompiled by Space Bunny Free, finished by space-bunny-free, edited by
 // deepseek-v4.1, finished by deepseek-v4.1-flash, finished by mimo-v2.6-pro,
-// finished by space-bunny-free.
+// finished by space-bunny-free, finished by DeepSeek V4.1 Flash.
 // Names are provisional.
+//
+// DeepSeek V4.1 Flash, 2026-10-02 (fresh continuation worker, 94.8% kept,
+// no new best). Re-ran check.py on the file as it stands: 94.8% (943 original,
+// 964 ours), the same three hunks (arm rotation, imul ecx, tail call split).
+// stackcmp shows the frame fully aligned (0x44 + 0x10 saved), so only
+// registers and instruction order remain. Measurements this pass, all on the
+// 94.8 base and all byte-identical to it unless noted:
+//  - arm: `turn = 0` (any spelling) still stores ax and keeps the store first;
+//    keeping hasPath live through the argument (`-r2 + hasPath`,
+//    `-(r2 - hasPath)`, `*hp`) folds to the immediate 0 and drops to 92.9
+//    (rate-first) or stays 94.8; per-arm `Unit* u` copies, `&unit`, `unit + 0`
+//    and a `Unit** up` all scalarise and sink the load past the store. The
+//    original's unit-in-ecx only appears when the rate load is written first,
+//    which then folds the store to `mov [esi+0x24], 0`; the two requirements
+//    (store ax first, unit loaded before it) remain antagonistic.
+//  - tail: EVERY value-select spelling duplicates the call in both arms
+//    (if/else amount, ternary as argument or assigned, nested ternary, goto,
+//    switch, do/while, block-local amount in each arm, trailing return,
+//    inverted condition with bodies swapped). Only the pointer select joins
+//    (84.1, 949 bytes) and its join adds a `lea`/load and pushes in edx, not
+//    the original's `mov eax,[esp+0x14]; neg eax` phi. All 16 tail rewrites
+//    this pass scored <= 94.8 (the two-call base and the inverted-condition
+//    variant are byte-identical). Cross-jumping the two identical call tails
+//    is what the original shows, but VC5 will not do it from here.
+//  - imul: the turned block differs by only `imul ecx` vs `imul eax,ecx; cdq`.
+//    The 64-bit form `(__int64)(unsigned short)adiff * field_20` does narrow
+//    to `imul ecx` in an isolated function but not inside this one: every
+//    in-function spelling (adiff temp of every width, field_20 temp, cast
+//    order, operand order, separate __int64 product temp, `prod *= field_20`,
+//    an __inline helper, abs respelled as a ternary) raises the score drop to
+//    87.7 (972 bytes, extra _allmul). The abs()-derived adiff is the likely
+//    trigger: a small standalone with abs() also widens to _allmul, while a
+//    plain parameter does not.
+//  - tools/permute.py 3 min, 2087 candidates, 2 jobs: no gain (94.8 -> 94.8).
+//    tools/headers.py, 256 sets: closest is the current <math.h> at 94.8,
+//    no set matches. So this is not compiler state.
+// What still differs: the three hunks above. Best left as is.
 //
 // space-bunny-free, 2026-10-02 (about 15 check/compile rounds, best still
 // 94.8%, file unchanged). New measurements, all on the 94.8% base:

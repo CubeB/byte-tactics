@@ -1,5 +1,20 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, finished by GPT-6, edited by deepseek-v4.1, finished by GPT-6.1-sol, edited by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by claude-sonnet-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Status: 85.2 -> 91.3%, 5248 bytes (the original's size exactly; was 5288).
+// DeepSeek V4.1 Flash (#4779): attacked the two stack slots stackcmp flags
+// (`i` should be at -0x3b4, ours -0x3b0; `best/src` should be at -0x3c0, ours
+// -0x3bc). Four permute runs with `--stack i,best,src` (3 min, jobs 3, seeds
+// 1/2/5 and a `--no-focus` run) all ended at the same 91.3% / score 8122. The
+// slot assignment is not driven by declaration order: moving `orientation` into
+// case 4, every permutation of the `pf`/`i`/`force` declarations, splitting
+// `int i, force;`, renaming the locals, `int* pf = 0;` and `unsigned i` all
+// compile to byte-identical code (same size, same 279 diff lines). Only removing
+// `pf` altogether moves `i` to -0x3b4, but it shifts the whole frame by 4
+// (savedType to -0x3a8, the buffers swap) and drops to 79.6%. The single-max
+// case 2 form still matches the original's case 2 exactly but is 5232 bytes and
+// 83.5% because the case 4 slider then reassociates; every other max spelling
+// (if/else, upgrade-if, reversed ternary, no local) lands at 82.0-83.5%. So the
+// double-max hack remains the best form and the slots follow the surrounding
+// code, not any isolated declaration change.
 // Not a MATCH. What moved it (claude-sonnet-5-5, #4532):
 // (1) The post-loop name scan is the inline helper FindByName (the same shape as
 //     0x4a9fd0's FindEntry: `for (j = 1; j < count + 1; j++) if (!strncmp(entries[j].name,

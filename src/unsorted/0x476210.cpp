@@ -1,4 +1,11 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
+// deepseek-v4.1-flash (#4851, 2026-10): two 3-minute permuter runs (6258
+// candidates, seeds default and 12345) and manual third-copy source spellings
+// (a difference-of-pointers source `_Last - (_Last - _P)`, an explicit
+// `(_Q + _M) - ((_Q + _M) - _P)`, and a named destination local) all stay at
+// 99.6%, 636 bytes. Still only the single SIB byte: `lea eax, [edi + edx]`
+// (SIB 0x17) against this build's `lea eax, [edx + edi]` (SIB 0x3a).
+// Confirmed compiler state; needs the regroup-into-original-files phase.
 // deepseek-v4.1-flash (#3287): tried the real-<vector> recipe of the matched
 // siblings 0x43c3a0/0x433db0 (explicit instantiation, same element size): 89.6%,
 // 637 bytes, worse than this clone's 99.6%, 636 bytes. A dest local of iterator

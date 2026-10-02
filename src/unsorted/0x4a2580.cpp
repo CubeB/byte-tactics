@@ -1,4 +1,21 @@
-// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by GPT-6, finished by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free. finished by claude-sonnet-5-5, finished by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// 2026-10-02 (DeepSeek V4.1 Flash): retried the lc slot swap. `permute --stack
+// lc` (3 min, 3159 candidates) and `--stack lc,limit,lim2` (3 min, 2857) both
+// stayed at 96.6, as did a headers.py sweep (256 sets) and ~80 hand variants:
+// declaring lc before limit at branch and function scope (with and without an
+// initialiser), multi-declarations `int lc, limit = ...`, plain-if lc, hoisted
+// function-scope limit/lc/lim2 in all orders, int/unsigned/long types, wrapping
+// the second section in a nested block, reusing limit for lim2, and dead
+// self-stores to extend a live range. Nothing moved lc off -0x40. The w<h code
+// is instruction-identical to the original except the two slot numbers, so this
+// is a global allocator tie-break: the original pairs lim2 with limit at 0x10
+// and lc with the h<=w surf at 0x14, ours pairs lim2 and surf with limit at
+// 0x14 and leaves lc alone at 0x10. Plain-if lc does move lc to 0x14 and lim2
+// to 0x10 but then limit shares 0x14 with lc (96.1); reusing limit for lim2 puts
+// lc at 0x14 but limit in the dead parameter home +0xc (94.4). Still differs:
+// the lc/limit/lim2 slot swap, and `add edi,-2` (every spelling and every type
+// of `limit - g->width - 2` gives `sub edi,2`; MSVC only emits add for a leaf
+// minus a constant, e.g. the load at 0x404ad0).
 // 2026-10-02 (claude-opus-5-5): 90.8 -> 96.6%, exact size (1631 bytes). Two changes:
 //  1. The second thumb loop updates ybase BEFORE lc (`ybase += mid->height;
 //     lc -= mid->height;`): that is the original's latch order (`sub ecx,eax /

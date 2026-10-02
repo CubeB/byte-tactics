@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Claude Fable 5.1. Names are provisional.
+// Decompiled by space-bunny-free, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by Claude Fable 5.1, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Reads the installed DirectX version: first through dsetup.dll's
 // DirectXSetupGetVersion, then, if that fails, through
 // HKLM\Software\Microsoft\DirectX (the "InstalledVersion" DWORD on NT, the
@@ -47,6 +47,19 @@
 // are: the "installed major version differs" arm at 0x4b5233 compares the major
 // half against argument 2 (the minor half) instead of against argument 1, and
 // the NT path reads the InstalledVersion value into the status variable.
+//
+// DeepSeek V4.1 Flash (issue retry): the permuter with --stack status,isNT ran
+// 3 min (2457 candidates) and a second 3 min run seeded from the flipped
+// 625-byte shape both came back to this same 94.9/619 optimum. headers.py over
+// 256 header sets is flat at 94.9. The flip itself is easy to reach (a
+// declaration initialiser on status, or any second status store, puts status
+// at -0xc8 and isNT at -0xc4 with everything after the prologue matching) but
+// it always costs 6 bytes, and every source route to it without the extra
+// store is inert: inlined helpers adding a use of status or isNT, name swaps,
+// declaration reordering, type changes, folded extra tests, and self
+// assignments all compile to the same 619 bytes with the same wrong slots. So
+// the residual is the allocator tie-break between two six-reference locals,
+// not a source shape this file has not tried.
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>

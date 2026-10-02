@@ -1,4 +1,19 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by Space Bunny Free, finished by DeepSeek V4.1 Flash. Names are provisional.
+//
+// DeepSeek V4.1 Flash pass (#4851): 78.9 percent RETAINED, 646 of 632 bytes.
+// No variant beat it in ~200 check.py runs, and tools/permute.py ran 2730
+// mutations for 3 minutes without leaving 78.9 (score 1125 -> 1125). Re-tested
+// and confirmed flat: every _Ucopy/_Ufill loop shape and increment order (66
+// combinations), the _Ufill postfix/local/do-while forms, the third-copy
+// source as a pointer difference, the three tail-store orders, cast and
+// accessor spellings, _P/_M/_X local copies, and data-member padding. The real
+// <vector> header body (637 bytes, instr count 246 vs 245) is confirmed at
+// 60.7 percent, this->EDI family, and headers.py crossed with --cpp over all
+// 1536 header sets never moves it. Everything still hinges on the one decision
+// the notes below name: _P in EDX (with `this` in the ECX family) versus _P
+// rematerialised from [esp+0x20] (this build). The clone's 4 extra instructions
+// are exactly the two prefix-loop `mov ecx,[esp+0x20]` reloads and the two tail
+// `mov [esp+0x20],...` spills.
 //
 // TWIN TEST, Space Bunny Free pass (#4147): CLOSED, the shape is unreachable.
 // The guide's twin test has four outcomes and this is outcome (1). All 29

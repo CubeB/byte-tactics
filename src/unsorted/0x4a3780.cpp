@@ -1,4 +1,24 @@
-// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5. Names are provisional.
+// Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, finished by GPT-6, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, reworked by Claude Sonnet 5.5, finished by deepseek-v4.1-flash, finished by Space Bunny Free, rewritten by claude-opus-5-5, finished by DeepSeek V4.1 Flash. Names are provisional.
+// 2026-10-02 (DeepSeek V4.1 Flash): 84.3% -> 86.6%, size now exact (1832).
+// Two layout levers, both measured, moved the 0x20 block's register allocation
+// and a few branch targets:
+//  - The 0x20 loop's bottom test is `int lim = me->field_c0; if (lim < k + 1)
+//    break;`. The `c0` bound in a local with `k + 1` on the other side makes
+//    MSVC put the counter in ecx (`lea ecx,[eax+1]` before the loop, `inc ecx`
+//    at the bottom) and the row pointer in eax; the old `if (k > c0 - 1)` left
+//    them in the other registers. 84.3 -> 86.2.
+//  - The first `FUN_004ab570` arm's `if (me->field_c0 != 0) { ... }` is written
+//    as an early exit, `if (me->field_c0 == 0) goto skip0; ... skip0:;`, which
+//    is how the original lays that guard out (`je` past the body). 86.2 -> 86.6.
+// What still differs, unchanged from the note above: (a) flags loads into ecx
+// not eax; (b) the 0x20 loop keeps flag8 in edx and spills ip to [esp+0x1c]
+// where the original spills flag8 and keeps ip in esi (with n2/row/k in the
+// matching rotation); (c) the y1 `lea` base/index order; (d) the two scroll
+// tails' temp rotation, all downstream of (b). The exact 0x20 register map was
+// not reachable: every spelling of flag8/ip (types, scopes, pointer-to-flag8
+// forcing memory, a `char*` walk, one more use of either) either leaves the
+// map unchanged or changes it globally and drops the score. The loop bound was
+// the one knob that moved it.
 // 2026-10-02 (claude-opus-5-5): 67.6% -> 84.3%, exact size (1830 of 1832 bytes),
 // rewritten from scratch as plain structured code. The old file's goto web, its
 // `if (i < 1) break;` nudge and its `(unsigned short)` addend are all gone:
@@ -196,22 +216,22 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
 
     if (FUN_004ab570(obj, 1)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
-            if (me->field_c0 != 0) {
-                if (!(me->flags & 0x200))
-                    goto ret1;
-                me->field_ba = (point.y - r.y0) / span + me->field_bc;
-                if (me->field_ba < 0)
-                    goto ret1;
-                if (me->field_ba - me->field_bc > step - 1)
-                    me->field_ba = me->field_bc + step - 1;
-                if (me->field_ba >= me->field_c0 - 1)
-                    me->field_ba = me->field_c0 - 1;
-                s = FUN_004b6af0(me->field_c2, me->field_ba);
-                if (strncmp(DAT_00502a20, s, 2) != 0)
-                    goto ret1;
-                me->field_ba = orig_sel;
-                return 0;
-            }
+            if (me->field_c0 == 0) goto skip0;
+            if (!(me->flags & 0x200))
+                goto ret1;
+            me->field_ba = (point.y - r.y0) / span + me->field_bc;
+            if (me->field_ba < 0)
+                goto ret1;
+            if (me->field_ba - me->field_bc > step - 1)
+                me->field_ba = me->field_bc + step - 1;
+            if (me->field_ba >= me->field_c0 - 1)
+                me->field_ba = me->field_c0 - 1;
+            s = FUN_004b6af0(me->field_c2, me->field_ba);
+            if (strncmp(DAT_00502a20, s, 2) != 0)
+                goto ret1;
+            me->field_ba = orig_sel;
+            return 0;
+skip0:;
         }
     } else if (FUN_004ab510(obj, 1)) {
         if (point.x >= r.x0 && point.x <= r.x1 && point.y >= r.y0 && point.y <= r.y1) {
@@ -281,7 +301,8 @@ int __stdcall FUN_004a3780(Object_004a3780* obj, int index, int param_3)
                     ip++;
                 n2++;
                 k++;
-                if (k > me->field_c0 - 1)
+                int lim = me->field_c0;
+                if (lim < k + 1)
                     break;
             }
         }

@@ -1,4 +1,4 @@
-// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1. Names are provisional.
+// Decompiled by deepseek-v4.1, finished by Sonnet 5.5, finished by deepseek-v4.1-flash, finished by claude-sonnet-5-5, finished by Space Bunny Free, finished by Fable 5.1, finished by DeepSeek V4.1 Flash. Names are provisional.
 // Fable 5.1 (#4452): 76.7% -> 88.1%, 2705 bytes (original 2700). A permuter
 // run from this file (7864 candidates) found nothing. Compared with
 // the original block by block; the changes that paid, in order:
@@ -31,28 +31,40 @@
 //    (the original zero-extends the byte), the colour call after the hotkey
 //    draw has its `field_138 != 0` arm first like every other colour call
 //    (worth 3.6 points on its own), and `int t` is declared last (0.9).
-// Still differs:
-//  - Frame slots: ours x 0x18, t 0x1c, me 0x20, found 0x34, width 0x38,
-//    border 0x3c, textw 0x40, measured 0x48 against t 0x18, me 0x1c, measured
-//    0x20, x 0x34, found 0x38, width 0x3c, border 0x40, textw 0x48 (rect, key1,
-//    key2, surface, flagy, text, pass, saved and buf are right). All 56
-//    adjacent swaps and single moves of the declarations score the same, so
-//    the order is not declaration order. Probes (build/scratch/0x4a5f40/slots/)
-//    show MSVC 5 lays spilled locals out by size class and, within a class, in
-//    an order that follows definition and use rather than declaration;
-//    rect as four ints and a {measured, rect} struct both place worse.
-//  - The flags & 0x20 branch's two values come out in each other's register:
-//    the original keeps xb in ebx and spills ys to 0x20 (`lea esi, [edx+eax-4];
-//    mov [esp+0x20], esi`), ours puts ys in ebx and spills xb. Every spelling
-//    tried (xb as `x`, as `y`, block-local ys, ys through the alias or plain)
-//    keeps that swap; it costs the branch about 12 bytes and is the main
-//    reason the function is 5 bytes long.
-//  - The subtraction in that branch is `(right - left) - textw` here against
-//    `(right - textw) - left` there (the same expression in the flags & 2 arm
-//    matches), and the colour byte for FUN_004c13a0 in the 0x20 branch's third
-//    call loads menu after the font call where the original loads it before.
-//  - The 0x20 branch's FUN_004be950 argument block, and the second LineHeight
-//    result register in the flags & 2 arm (edi vs eax on one path).
+// DeepSeek V4.1 Flash (#4855): 88.1% -> 90.1%, 2706 bytes (original 2700).
+// Two source changes paid:
+//  - In the flags & 0x20 branch, compute `*pm` (ys) BEFORE `xb`. Defining xb
+//    first makes MSVC spill xb and keep ys in ebx; defining ys first lets xb
+//    be born after the inlined LineHeight and land in ebx the way the original
+//    has it. 88.1 -> 90.0.
+//  - In the flags & 2 hotkey path, move `key1[1] = 0;` to AFTER
+//    `strcpy(buf, p);` so the compiler emits the strcpy buffer address before
+//    the terminating store, matching the original. 90.0 -> 90.1.
+// Tried and failed: three 3-minute permuter runs from the 90.1 file (`--stack
+// textw,flagy,border,me,t,measured,width`, then general), a 1008-sample random
+// search over declaration orders, xb spelled as the outer x / a helper for ys,
+// one- and two-statement forms of the ys/xy expressions, `measured` as a
+// block local / array / reference / initialized, and hoisting the `*pm` write.
+// Still differs (all clauses were re-read against the 90.0 build):
+//  - Frame slots stay cyclically shifted. Ours: textw 0x44, flagy 0x40, border
+//    0x3c, me 0x20, t 0x1c, and measured/width share 0x18 (the flags & 2 hotkey
+//    copy of measured instead uses 0x48). Original: textw 0x48, flagy 0x44,
+//    border 0x40, me 0x1c, t 0x18, measured 0x20, width 0x3c. So measured is
+//    split across two slots here while the original keeps one, and that one
+//    extra live slot rotates everything above it. All 56 adjacent swaps and
+//    single moves of the declarations, and every random permutation tried,
+//    score the same. Probes (build/scratch/0x4a5f40/slots/) show MSVC 5 lays
+//    spilled locals out by size class and, within a class, in an order that
+//    follows definition and use rather than declaration.
+//  - The flags & 0x20 branch now has xb in ebx, but emits LineHeight, then ys
+//    (stored to 0x18), then xb; the original emits xb (`lea ebx, [eax+ecx+1]`),
+//    then LineHeight, then ys stored to 0x20 (`lea esi, [edx+eax-4]`). Defining
+//    xb first in source puts it back in the wrong register (88.1), so this
+//    ordering is the price of the ebx match.
+//  - The colour byte for FUN_004c13a0 in the 0x20 branch's third call loads
+//    menu after the font call where the original loads it before, and the
+//    0x20 branch's FUN_004be950 argument block plus the second LineHeight
+//    result register in the flags & 2 arm (edi vs eax on one path) still differ.
 // Not a bug but noted: the `do { ... } while (pass--)` loop runs its body once
 // (pass starts at 0 and nothing else writes it).
 #include <memory.h>
@@ -343,8 +355,8 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             } else {
                 key1[0] = me->field_13a;
                 width = rect.right - rect.left + 1;
-                key1[1] = 0;
                 strcpy(buf, p);
+                key1[1] = 0;
                 found = strstr(buf, key1);
                 if (found != 0) {
                     FUN_004c1440();
@@ -380,10 +392,10 @@ void __stdcall FUN_004a5f40(Menu_004a5f40* menu, int index)
             }
         } else if (me->flags & 0x20) {
             int xb;
-            xb = (rect.right - textw - rect.left) / 2 + t;
-            xb += rect.left + 1;
             *pm = flagy - LineHeight_004a5f40();
             *pm += rect.bottom - 4;
+            xb = (rect.right - textw - rect.left) / 2 + t;
+            xb += rect.left + 1;
             if (me->field_13a != 0 && (found = strchr(p, (signed char)me->field_13a)) != 0) {
                 width = rect.right - rect.left + 1;
                 key2[0] = me->field_13a;

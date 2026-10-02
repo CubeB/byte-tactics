@@ -16,16 +16,16 @@ original game are listed in `docs/bugs.md`.
 <!-- progress:start -->
 ## Progress
 
-**75.56% of Cavedog's code matched** (642,894 of 850,853 bytes)
+**76.09% of Cavedog's code matched** (647,450 of 850,853 bytes)
 
 `[##############################----------]`
 
-By count that is 3,107 of the game's 3,267 functions (95.1%). The headline counts bytes, because the functions left are mostly the longest ones.
+By count that is 3,109 of the game's 3,267 functions (95.2%). The headline counts bytes, because the functions left are mostly the longest ones.
 
 | | Functions | Bytes |
 | --- | ---: | ---: |
-| Matched byte-for-byte | 3,107 | 642,894 |
-| Attempted, not yet matching | 160 | 207,959 |
+| Matched byte-for-byte | 3,109 | 647,450 |
+| Attempted, not yet matching | 158 | 203,403 |
 | Not attempted yet | 0 | 0 |
 
 ### By function size
@@ -39,7 +39,7 @@ The size bands are the `size:` labels on the issues.
 | large (161 to 400 bytes) | 692 of 703 | 98.3% | 3,008 | `##########` |
 | xl (401 to 600 bytes) | 203 of 226 | 89.5% | 11,608 | `#########-` |
 | xxl (601 to 1,000 bytes) | 144 of 195 | 73.6% | 38,747 | `#######---` |
-| huge (over 1,000 bytes) | 89 of 161 | 47.2% | 154,250 | `#####-----` |
+| huge (over 1,000 bytes) | 91 of 161 | 48.8% | 149,694 | `#####-----` |
 
 ### By area
 
@@ -52,14 +52,14 @@ and Windows calls each window's code uses (`data/areas.csv`).
 | `0x400000` | Unit orders and unit AI | 198 of 210 | 79.3% | 12,615 | `########--` |
 | `0x410000` | Orders and VTOL states | 213 of 222 | 78.0% | 14,015 | `########--` |
 | `0x420000` | Frontend shell | 146 of 154 | 69.5% | 19,401 | `#######---` |
-| `0x430000` | Maps, missions, briefings | 211 of 228 | 65.8% | 20,624 | `#######---` |
+| `0x430000` | Maps, missions, briefings | 212 of 228 | 71.0% | 17,472 | `#######---` |
 | `0x440000` | Multiplayer setup | 240 of 246 | 74.9% | 15,436 | `#######---` |
 | `0x450000` | Options and audio menus | 162 of 176 | 67.6% | 20,463 | `#######---` |
 | `0x460000` | Game and skirmish setup, unit classes | 199 of 212 | 66.5% | 20,628 | `#######---` |
 | `0x470000` | Campaign and skirmish screens, resource bars | 244 of 259 | 76.5% | 14,946 | `########--` |
 | `0x480000` | Unit definitions, COB scripting, TNT map | 253 of 264 | 84.9% | 9,599 | `########--` |
 | `0x490000` | Config and registry, skirmish summary | 184 of 193 | 77.8% | 13,185 | `########--` |
-| `0x4a0000` | GUI layout and GAF | 186 of 201 | 63.6% | 23,346 | `######----` |
+| `0x4a0000` | GUI layout and GAF | 187 of 201 | 65.8% | 21,942 | `#######---` |
 | `0x4b0000` | UI controls and file packages | 302 of 314 | 86.9% | 8,098 | `#########-` |
 | `0x4c0000` | TDF parser, CD audio, string handles | 287 of 298 | 83.9% | 8,730 | `########--` |
 | `0x4d0000` | Compression (SQSH), CRT/STL, debug, file I/O | 190 of 197 | 83.9% | 6,072 | `########--` |

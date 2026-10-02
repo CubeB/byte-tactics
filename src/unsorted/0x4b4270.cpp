@@ -39,6 +39,17 @@
 //   B+0x08 base       B+0x0c end
 //   B+0x10 p          B+0x14 header (0x30 bytes modelled, 0x20 read)
 //   B+0x40 reclen     B+0x44 message[1000]
+//
+// DeepSeek V4.1 Flash pass: still 93.0%. Re-tried the whole-function BlobRec
+// copy in every placement (block-local, function scope, two 8-byte halves),
+// header sizes 0x24..0x40, header 0x20 plus a function-scope 16-byte rec (the
+// frame then grows to 0x430), every declaration order of the loop locals,
+// branch polarity and ternary forms, src/need respellings, local copies of
+// either parameter, self-assignments, tools/headers.py (256 sets) and the
+// N-extern-declarations sweep (N = 0..400); the best stayed 93.0. The permuter
+// ran its 3 minutes on this file and on the BlobRec variant with no gain. Every
+// BlobRec struct copy reproduces the original's field loads and roles but moves
+// fh/image to edi/ebx for the whole function, and nothing tried flips that pair.
 #include <stdio.h>
 #include <memory.h>
 

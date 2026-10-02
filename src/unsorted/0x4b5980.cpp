@@ -1,4 +1,25 @@
-// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by muse-spark-1.3-free, finished by deepseek-v4.1-flash, verified by GPT-6.1-sol, finished by deepseek-v4.1-flash, retried by Claude Fable 5.1, finished by DeepSeek V4.1 Flash. Names are provisional.
+// DeepSeek V4.1 Flash retry 3: no gain over 89.2% (827 bytes), file restored
+// below. About 90 check runs. The useful new lead:
+//  * The two `int* pw/ph` locals are what keeps the downstream bit tests in
+//    the original's cl/dl/al/... cycle, but they also make MSVC put startWidth
+//    in ebp, spill startHeight to eax, and give block 2 videoFlags=edx,
+//    flags=ecx.
+//  * Replacing them with `int w,h;` and direct `d->width = w; d->height = h;`
+//    (no pointer locals) restores the original frame (sub esp,0x38, no spill)
+//    and makes block 2 byte-exact (videoFlags=ecx, flags=eax, `or al,1`,
+//    `shr al,6`), 818 bytes, but it also starts the downstream bit-test
+//    register cycle at edx instead of ecx (72.5%). Swapping the w/h
+//    declaration order does the same. The surviving pointer locals also keep
+//    the whole-word expressions canonical: every expression spelling tried
+//    (operand order, `|1` position, unsigned/char casts, union/bitfield
+//    locals, an inline helper, a videoFlags local in either block, style
+//    moved after wc.lpfnWndProc) compiles identically or worse.
+//  * tools/permute.py, 3 min, found nothing.
+// What still differs: block 0's early `mov cx,[esi+0x202]` sits after the
+// no_video RMW instead of between scratch[0] and scratch[1]; block 2 picks
+// edx/ecx; wc.style is `mov [eax],8` just before RegisterClassA instead of
+// `mov [esi+0x18],8` inside the mode copy.
 // Claude Fable 5.1 retry: no gain over 89.2% (827 bytes), file unchanged below.
 // Measured: the N-declarations sweep is flat (0 to 400), so the residual is
 // the source shape. `wc.style = 8` placed anywhere before the RegisterClassA

@@ -1,4 +1,4 @@
-// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1. Names are provisional.
+// Decompiled by space-bunny-free, finished by deepseek-v4.1-flash, and GPT-6.1-sol, edited by deepseek-v4.1, finished by Space Bunny Free. Names are provisional.
 // Retry (deepseek-v4.1-flash, issue 4076, short box): two further scored
 // negatives, both flat at 714 bytes / 80.9 pct and byte-identical to the
 // baseline shape: an `int z;` phi (z = 0 in both arms, store in the if arm,
@@ -156,18 +156,27 @@
 // single `e->off = v` after the if/else moves `index` into ebx and spills `e`
 // (40.8%); a `?:` for the drag arm keeps the shared store but widens the
 // subtract to 32 bits (61.6%); duplicating both arms so MSVC cross-jumps the
-// tails does not cross-jump at all (49.0%); declaring the old offset
-// uninitialised and assigning it in each arm, or hoisting `f94` out of the
-// drag arm, both cost the shared store (73.5% and 73.7%).
+// tails does not cross-jump at all (49.0%).
+// WITHDRAWN, and this is the largest single lesson in the file: the note here
+// used to read "declaring the old offset uninitialised and assigning it in each
+// arm, or hoisting `f94` out of the drag arm, both cost the shared store (73.5%
+// and 73.7%)". The first of those was measured against a body that no longer
+// exists. Spelling `old` as a two-arm phi (`int old;` declared bare, `old =
+// e->off` in the drag arm and `old = v` in the wheel arm) keeps the single
+// shared `e->off = v` store and is worth **+3.8 points, 80.9% to 84.7%, at an
+// unchanged 714 bytes**. Nothing about the store changed; the gain is entirely
+// register allocation, because giving the phi a frame slot frees EDX as the
+// "materialised zero" register and so lets the tail use immediate forms.
+// "A rejected sweep entry is valid only for the body it was measured on."
 
-// deepseek-v4.1 retry (issue 2461): no improvement, still 80.9%. New measured
-// fact: naming the FUN_004ab5b0 result in an int local before the test
+// deepseek-v4.1 retry (issue 2461): no improvement, still 80.9%. Measured fact:
+// naming the FUN_004ab5b0 result in an int local before the test
 // (`int ok = FUN_004ab5b0(obj, 3); if (ok == 0)`) DOES materialize the wanted
 // 32-bit zero in EDX and reproduces the original per-arm `xor edx, edx` plus
 // `mov [ebp+0x78], edx`, but it also turns the call test itself into
-// `xor edx, edx` / `cmp eax, edx` instead of `test eax, eax`, which costs 5
-// bytes, drops the printed score to 75.1% and raises the differing-instruction
-// count from 83 to 114, so the two halves are not separable from the source.
+// `xor edx, edx` / `cmp eax, edx` instead of `test eax, eax`, which cost 5
+// bytes and dropped the score to 75.1%, so the two halves looked inseparable.
+// THEY ARE NOT SEPARABLE-FOR-ALL, only on this body: see the entry below.
 // A `union { int full; short word; }` zero (the 0x4a3ef0 trick) gets a memory
 // home here (725 bytes, 73.7%). Re-confirmed dead ends: plain int/short/pointer
 // zero locals, phi-shaped zero locals, named-zero comparisons, and reference
@@ -178,6 +187,99 @@
 // else-path def breaks the join). Spelling the arm-1 store as `obj->focus + 1`
 // (focus was just set to -1) is byte-identical to the baseline (80.9%), and so is
 // an `unsigned` return type on FUN_004ab5b0 (80.9%).
+
+// Space Bunny Free (issue 4179): 84.7% to **86.5%**, still 714 bytes, 93.0%
+// ignoring moved internal jump targets. The whole residual is inside
+// `if (obj->focus == index) { ... }`; everything from 0x4a4170 to 0x4a420b and
+// everything from 0x4a42cd to 0x4a4437 was already byte-exact and still is.
+//
+// WHAT THE ORIGINAL WANTS, from the bytes rather than from the diff. It keeps
+// ONE constant 0 live in EDX across the entire focus block, materialised once
+// per arm of the ab5b0 diamond and used four times:
+//   0x4a420d xor edx,edx ; 0x4a421b xor edx,edx
+//   0x4a4216 mov dword ptr [ebp+0x78], edx      (the field_78 store)
+//   0x4a421d cmp dword ptr [ebp+0x78], edx      (the field_78 test, MEMORY form)
+//   0x4a42a0 cmp word ptr [ebx+0x140], dx      (the lower clamp)
+//   0x4a42a9 mov word ptr [ebx+0x140], dx
+//   0x4a42c2 cmp eax, edx                       (the holder test)
+// Because EAX is then free, the drag arm can put the flags byte in AL
+// (`mov al, byte ptr [ebx+0x1b]` / `test al, 1`) instead of DL.
+//
+// WHY `cmp [mem], reg` APPEARS AT ALL, settled from a MATCHed twin rather than
+// by sweeping. 0x43bad0 is MATCHed at 100% in this tree and carries the same
+// idiom from `while (child != 0) { if (child->flags_6 == 0 || ...) child-
+// >flags_6 = 0; }`:
+//   0x43bad8 xor ebx,ebx                      ; the loop's literal 0 takes a home
+//   0x43bae8 cmp dword ptr [esi+6], ebx      ; flags_6 == 0, MEMORY vs REGISTER
+//   0x43bb09 mov dword ptr [esi+6], ebx       ; flags_6 = 0, store from it
+// So `cmp [mem], reg` is not something a spelling asks for: C1 prefers
+// `mov reg,[mem]; test reg,reg` UNLESS a register already holds the zero, and
+// only a zero that is compared against memory AND stored forces one. That is
+// why the wheel arm's `mov ax, word [ebx+0x140]` (16-bit, no extension)
+// followed by `movsx ecx, ax` is the tell: `v` is an int loaded from a short,
+// and `old` is that same value narrowed back to 16 bits.
+//
+// THE WIN. `int v = e->off; old = (short)v;` in the wheel arm. The cast is a
+// no-op on the value and is load-bearing: it makes C1 emit
+// `movsx eax, word [ebx+0x140]` (7 bytes, same length as the original's
+// `mov ax, ...`) plus `movsx ecx, ax`, instead of a second load and a 2-byte
+// `mov ecx, eax`. 84.7% to 86.5%. The same cast with the EDX-zero head gives
+// `movsx ecx, ax` AND the whole 0x4a4282-on tail, but lands on 715 bytes and
+// difflib realigns on the off-by-one, so it prints 76.0%. **Here a single byte
+// of drift costs about ten points**, which is the byte-similarity rule of the
+// guide biting: measure the byte count next to the percentage, always.
+//
+// The intermediate 85.7% is worth recording because the two halves are worth
+// nothing apart. Naming the call result (`int ok = FUN_004ab5b0(obj, 3); if
+// (!ok)`) is 73.7% on its own and 73.3% alone is the split `int v = e->off;
+// old = v;`, yet together they are 85.7% at exactly 714: the naming gives the
+// EDX zero, and the split stops C1 folding `v` and `old` into one register.
+// Two regressed-looking changes that only pay in combination. This is the
+// direct answer to the deepseek-v4.1 note above: the two halves ARE separable,
+// just not on the 80.9% body.
+//
+// MEASURED AND REJECTED, all on the 86.5% body, generator asserted able to
+// rebuild the known-good text first (216 + 108 + 126 + 432 + 21 = 903 scored
+// variants, plus 7760 permuter candidates and 256 header sets):
+// - Every literal-zero spelling is INERT, now for the third time on a third
+//   body. Immediate, `int`/`short`/`unsigned`/`const int` local, and a file
+//   scope `static const int` are all byte-identical, 6 x 3 field_78 tests x 2
+//   clamps x 3 holder tests = 96 distinct texts, 0 occurrences of `xor edx,edx`
+//   and 0 of `mov al`. C1 propagates any zero you can NAME back to an
+//   immediate. Only a zero compared against memory while also stored gets a
+//   register, and that is a control-flow decision, not a spelling.
+// - Inverting the field_78 branch (`== 0` with the arms swapped) is 71.5% at
+//   717 bytes on every base. The drag arm must fall through.
+// - Storing `e->off` inside each wheel arm instead of once after the if/else is
+//   72.2% at 738 bytes: C1 does not cross-jump the tails. The single shared
+//   `e->off = v;` is right, and its consequence is that our `jle` lands on the
+//   store where the original's lands past it. Those 11 jump-target lines are
+//   the ones the checker ignores.
+// - `short old` 72.6%/713, `short v` 73.8%/716, `unsigned short v` 74.9%/728,
+//   `long v` byte-identical, `int f94` byte-identical, `Entry* const e`
+//   byte-identical, `old` at function scope byte-identical.
+// - Inlining `f94` into the drag arm's arithmetic IS the only spelling that
+//   produces the wanted `mov al, byte ptr [ebx+0x1b]` (0 occurrences
+//   otherwise), but it costs 13 bytes, 727 total, 74.5%.
+// - `p.x`/`p.y` adjust order swapped 84.2%; deleting the `entries` local and
+//   re-deriving it as `e - index` 64.5%; `int r1[4], r2[4]` combined, `r2`
+//   declared first, and all three legal declaration-group orders are all
+//   byte-identical, so DECLARATION ORDER IS INERT on this function, measured
+//   once as the guide asks. `int hi = e->field_136 - 1` as a local 74.3%.
+// - All 128 header sets score 86.5%, so the include lever is inert here too.
+// - Two `permute` runs on two different bodies (5490 candidates on the 84.7%
+//   body, 7760 on this one) found nothing.
+//
+// STILL OPEN, and it is one register-allocation decision: the ab5b0 diamond.
+// The original spends `test eax, eax` on the call result AND materialises a
+// separate per-arm zero in EDX; every shape found here spends the zero on the
+// call test instead (`xor edx, edx` / `cmp eax, edx` / `jne`), because C1 will
+// not keep a register zero live across a call, and there is no loop in this
+// function to give one a home the way `while (child != 0)` does at 0x43bad0.
+// Whoever closes this needs a way to make the constant live in EDX from
+// 0x4a420d to 0x4a42c2 without spending it on 0x4a4209; a construct that forces
+// a zero into a register BEFORE the call and reloads it after is the obvious
+// untried shape.
 
 #pragma pack(push, 1)
 struct Entry_004a4170 {                // 0x15b bytes, the table of 0x4a23b0
@@ -255,8 +357,9 @@ void __stdcall FUN_004a4170(Object_004a4170* obj, int index)
             obj->focus = -1;
             obj->field_78 = 0;
         }
-        int old = e->off;
+        int old;
         if (obj->field_78) {
+            old = e->off;
             short f94 = obj->field_94;
             if (e->flags & 1)
                 e->off = f94 - obj->saved.x + p.x;
@@ -264,6 +367,11 @@ void __stdcall FUN_004a4170(Object_004a4170* obj, int index)
                 e->off = f94 - obj->saved.y + p.y;
         } else {
             int v = e->off;
+            // The narrowing cast is a no-op on the value and is here only
+            // because it is load-bearing: it is what makes MSVC load the entry
+            // offset once and sign-extend it into ECX, which is the original's
+            // `mov ax, word [ebx+0x140]` / `movsx ecx, ax` pair.
+            old = (short)v;
             if (e->flags & 1) {
                 if (p.x < r2[0])
                     v--;

@@ -7109,7 +7109,7 @@ address,size,model,batch,result,similarity,runs,notes
 0x4d0720,205,deepseek-v4.1-flash,#4233,matched,100.0,,"issue #4233, escalated"
 0x4d07f0,275,deepseek-v4.1-flash,#4233,matched,100.0,,"issue #4233, escalated"
 0x4d0910,206,deepseek-v4.1-flash,#4233,matched,100.0,,"issue #4233, escalated"
-0x491200,1174,,#4234,assigned,,,"issue #4234, escalated"
+0x491200,1174,space-bunny-free,#4234,matched,100.0,,"issue #4234, escalated"
 0x49aa80,301,deepseek-v4.1-flash,#4235,partial,66.1,,"issue #4235, escalated"
 0x49aa80,301,deepseek-v4.1-flash,#4240,partial,66.1,,"issue #4240, escalated"
 0x473590,301,space-bunny-free,#4241,matched,100.0,,"issue #4241, escalated"

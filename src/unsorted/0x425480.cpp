@@ -1,4 +1,104 @@
-// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro. Names are provisional.
+// Decompiled by Space Bunny Free, finished by deepseek-v4.1-flash, finished by LongCat 2.5 Preview Free, verified by GPT-6.1-sol, finished by space-bunny-free, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
+// Space Bunny Free pass: 81.1 -> 84.1 percent, 534 -> 550 bytes, about 90
+// scratch variants scored free through check.py's own compile and compare
+// (build/scratch/425480/regmap.py prints the growth branch's register
+// assignment and, with -v, the branch itself; try1.py runs a batch file;
+// padsweep.py sweeps file-scope padding). The source below is the new best.
+// No MATCH.
+//
+// WHAT MOVED, and why. The whole residual used to be one allocator decision:
+// the reload of _P after the operator new[] call took edi, a CALLEE-SAVED
+// register, which left the third copy with only esi free and forced _Last to be
+// re-read every iteration. The original puts _P in ecx, a volatile register,
+// and then the first copy's load temp goes to esi, _Ufill gets edi/esi with the
+// ebp restore, _Last is cached in esi and M4 in edi. Spelling the third copy's
+// source as a DIFFERENCE OF LIVE POINTERS,
+//   const_iterator _s = _First + (end() - begin() - (end() - begin())) + (_P - _First);
+// keeps _P's load a single `mov ecx, [esp+0x20]` but makes MSVC 5 value-number
+// _P as a computed temporary instead of a parameter copy, and a temporary takes
+// a volatile register. That one statement moves this=ebp, _M=ebx, _P=ecx, the
+// first copy's temp esi, _Ufill edi/esi/ebp and the cached _Last, all to the
+// original's assignment. This is why the older passes' "no _P-into-ecx spelling
+// exists" reading was wrong: a temporary is not a register choice, and the old
+// sweeps only varied loop shapes and helper spellings, never whether _P was a
+// computed value. That claim is withdrawn.
+//
+// THE TWINS, which is where the mechanism came from. 0x433b20 and 0x4c4d70 are
+// MATCHed at 100 percent, are 4-byte POINTER elements like this one, and both
+// run the growth branch with _Last in esi, M4 in edi and the third copy's
+// derivation in bytes:
+//   0x433b20  mov eax,ecx / sub eax,edx / add eax,ebx / sub eax,edi
+//   0x488fb0  mov esi,edi / sub esi,ebx / add esi,ecx / sub esi,eax
+// 0x4c4d70's own header records the family split this file also has: "this
+// copy is the register assignment a plain file produces: this in ebx, the count
+// in ebp", against 0x4732e0's "this in ebp and the count in ebx", which is this
+// function's. So family Z (this in ebp) is reachable from this carrier and
+// never needed compiler state; only the source DERIVATION was wrong.
+//
+// STILL DIFFERS (unchanged, and now the only difference in the function): the
+// third copy's source start, 17 bytes too long.
+//   original  mov esi,[ebp+8] / lea edi,[ebx*4] / cmp ecx,esi / lea eax,[edx+edi]
+//             / je / sub ecx,edx / add ecx,eax / sub ecx,edi
+//   ours      mov eax,[ebp+8] / mov esi,[ebp+4] / mov edi,eax / sub ecx,esi /
+//             sub edi,esi / sub eax,esi / sar ecx,2 / sar edi,2 / sub ecx,edi /
+//             lea edx,[edx+ebx*4] / sar eax,2 / add ecx,eax / lea eax,[esi+ecx*4]
+// The re-numbering costs that MSVC 5 does not cancel
+// (end() - begin()) - (end() - begin()), so it emits a /4 and a *4 round trip
+// for the pointer differences; and the loop still re-reads [ebp+8] per
+// iteration, because esi is wanted for _First in the derivation instead.
+//
+// MEASURED THIS PASS, all through the same scorer:
+//   - the re-numbering is a hard plateau at 550 bytes / 84.1 percent: six
+//     orderings of its terms, do-while, for, while, if-around-do, end() for the
+//     bound and a difference_type local for the zero term are all exactly 550
+//     bytes and 84.1 percent.
+//   - a zero term MSVC 5 CAN fold costs the re-numbering: (_Q - _Q), (_S - _S),
+//     (_d - _d), (_M - _M), (_Last - _Last) and (begin() - begin()) are 533
+//     bytes / 72.4 percent with _P back in edi, and (size() - size()) and
+//     (capacity() - capacity()) are 567 / 77.8. So the winning term is exactly
+//     the one that fails to fold, which is the whole tension in one line.
+//   - every BYTE-level affine start, ((int)_P - (int)_Q + (int)_d - 4*(int)_M)
+//     and five leaf orders, folds straight back to the old 534-byte body with
+//     _P in edi: 81.1 percent, no better. The derivation's leaf order is the
+//     optimiser's own reassociation and is not expressible, the same wall
+//     0x425210.cpp and 0x408f30.cpp record.
+//   - every ELEMENT-level spelling (_P - _Q + _d - _M and its orders, _P +
+//     (_d - _Q) - _M, (_d - _Q) + _P - _M, _P - (_Q - _d + _M), _Last -
+//     (_Last - _P)) buys the original's FILL registers and the cached _Last but
+//     costs a sar ,2 / *4 round trip: 530 to 537 bytes, 70.3 to 79.6 percent.
+//     They are the same re-numbering with a worse encoding, and the only one
+//     that came close in size (537 bytes, _Last - (_Last - _P), 79.6 percent)
+//     puts _P in esi, not ecx.
+//   - _P as its own loop variable still gives _P in ecx and still flips the
+//     family: 522 bytes / 60.3 percent, and 529 / 59.9 for the for form.
+//   - moving the re-numbering to the first _Ucopy instead of the third copy is
+//     much worse (41.1 percent, 561 bytes) and to the loop bound worse still
+//     (50.8 percent, 577 bytes); putting it on _Q, _S, _N or _Ufill's first
+//     argument is inert at 534 bytes / 81.1 percent.
+//   - guarding the third loop on the destination instead of the source, so
+//     _Last is read once, is worse: 563 bytes / 76.1 percent with an _e end
+//     pointer, 557 / 80.4 with a difference_type count.
+//   - file-scope padding is inert on this body: 0 to 160 unused extern int
+//     declarations, step 4, all 550 bytes / 84.1 percent / _P=ecx.
+//   - headers are inert: all 256 sets 84.1 percent.
+//   - this IS the brief's re-sweep of rejected shapes on a new body: the four
+//     _Ucopy parameter orders, the _Last-cache local in every declaration order,
+//     _Ucopy(_P,_Last,_Q+_M) as helper and inline, the manual first copy and
+//     fill, begin()/end() for the bound and the _P-alias locals all keep the
+//     old allocation once the re-numbering is removed, and all of the byte- and
+//     element-level families above were re-measured on top of it.
+//
+// BEST LEAD FOR THE NEXT ATTEMPT: the two costs are separable and the cheaper
+// one is untried. If the re-numbering can be bought with a zero term MSVC 5
+// does not cancel but that needs only ONE pointer difference instead of two,
+// the /4 *4 round trip halves and the block drops from 17 bytes over to about
+// 9. Everything measured this pass either folds (one difference) or costs two
+// (end() - begin()), so the open question is a one-difference form that still
+// mis-classifies _P as a temporary: a difference_type local that MSVC 5 keeps
+// live, or a term built from _End rather than from begin(). The other lead, the
+// per-iteration [ebp+8] reload, needs esi for _Last while the derivation holds
+// _First in esi, so it is only reachable if _s's start is written without
+// begin() at all.
 // space-bunny-free pass (50 min timebox, 1 real check.py run on the file, 34
 // scratch variants scored free through check.py's own compile and compare
 // with build/scratch/425480/score.py, which prints the growth branch's
@@ -348,7 +448,7 @@ public:
 			iterator _S = allocator.allocate(_N, (void *)0);
 			iterator _Q = _Ucopy(_First, _P, _S);
 			_Ufill(_Q, _M, _X);
-			{ iterator _d = _Q + _M; const_iterator _s = _P; do { allocator.construct(_d, *_s); ++_d; ++_s; } while (_s != _Last); }
+			{ iterator _d = _Q + _M; const_iterator _s = _First + (end() - begin() - (end() - begin())) + (_P - _First); do { allocator.construct(_d, *_s); ++_d; ++_s; } while (_s != _Last); }
 			_Destroy(_First, _Last);
 			allocator.deallocate(_First, _End - _First);
 			_End = _S + _N;

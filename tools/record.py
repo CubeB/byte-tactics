@@ -18,6 +18,7 @@ labelled `hard` (the biggest functions). Every model may take either.
 
 import argparse
 import csv
+import re
 import subprocess
 
 from check import Original, annotations, compare, compile_source, find_source, load_symbols
@@ -27,23 +28,24 @@ from progress import ROOT
 
 def template_siblings(addresses: list[str]) -> str:
     """A note naming the other unmatched copies of each function's template
-    method (`?$vector::insert` and the like): the copies share their shape, and
-    without the list each agent re-derives what a sibling already found
-    (0x425210 and 0x46e640, #4756)."""
-    def key(name: str) -> str | None:
-        i = name.rfind("?$")
-        return name[i:] if i >= 0 else None
-    names = {f"{a:#x}": n for n, a in load_symbols().items()}
+    method (`vector::insert` and the like), from the mangled names in
+    data/progress.csv: the copies share their shape, and without the list each
+    agent re-derives what a sibling already found (0x425210 and 0x46e640, #4756)."""
+    def key(symbol: str) -> str | None:
+        m = re.match(r"\?(\w+)@\?\$(\w+)@", symbol)
+        return f"{m.group(2)}::{m.group(1)}" if m else None
     with (ROOT / "data/progress.csv").open() as fh:
-        unmatched = {r["address"]: r["similarity"] for r in csv.DictReader(fh) if r["status"] != "matched"}
+        rows = list(csv.DictReader(fh))
+    unmatched = {r["address"]: r for r in rows if r["status"] != "matched"}
+    keys = {r["address"]: key(r["symbol"]) for r in rows}
     lines = []
     for a in addresses:
-        k = key(names.get(a, ""))
+        k = keys.get(a)
         if not k:
             continue
-        sib = sorted(b for b, n in names.items() if b != a and b in unmatched and key(n) == k)
+        sib = sorted(b for b in unmatched if b != a and keys.get(b) == k)
         if sib:
-            lines.append(f"- {a} ({k}): " + ", ".join(f"{b} ({unmatched[b]}%)" for b in sib[:12])
+            lines.append(f"- {a} ({k}): " + ", ".join(f"{b} ({unmatched[b]['similarity']}%)" for b in sib[:12])
                          + (f" and {len(sib) - 12} more" if len(sib) > 12 else ""))
     if not lines:
         return ""
